@@ -2,7 +2,7 @@ import React from "react"
 import { Link } from "react-router-dom"
 
 const Footer = () => (
-    <footer className="footer is-hidden-mobile has-text-white is-size-7">
+    <footer className="is-hidden-mobile has-text-white is-size-7">
         <div className="level">
             <div className="level-left">
                 <Link to="/download">Download data</Link>

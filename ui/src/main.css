@@ -32,10 +32,10 @@ a:visited {
 .text-smaller {
     font-size: smaller !important;
 }
-.text-right {
+.text-align-right {
     text-align: right !important;
 }
-.text-center {
+.text-align-center {
     text-align: center !important;
 }
 
@@ -76,45 +76,91 @@ a:visited {
     flex-grow: 1;
 }
 
-nav {
-    background: #073763;
-    padding: 0.5em 1em 0.5em 0.25em;
+/* .full-height {
+    height: 100%;
+} */
+
+.fill-viewport {
+    min-height: 100vh;
 }
-nav .logo {
+
+header {
+    background: #073763;
+    padding: 10px 0 10px 6px;
+}
+header .logo {
     fill: white;
     height: 30px;
     width: 30px;
     margin-right: 10px;
+    box-sizing: border-box;
+    border: none;
 }
-nav .fa {
+header .fa {
     margin-right: 0.25em;
 }
-nav .nav-link + .nav-link {
-    border-left: 1px solid #fff;
-    margin-left: 1em;
-    padding-left: 1em;
+header .nav-link {
+    padding: 4px 8px;
+    margin: -10px 0;
+    border-radius: 6px;
+    margin-right: 8px;
+}
+header .nav-link:hover {
+    background: #2c557a;
+}
+header .nav-link.active {
+    background: #597996;
 }
 
-.navbar-menu.is-active {
-    background: #333;
-}
-
-@media screen and (min-width: 500px) {
-    .navbar-menu {
-        flex-grow: 1 !important;
-        flex-shrink: 0 !important;
-        display: flex !important;
-        align-items: stretch !important;
-    }
-}
-
-.footer {
+footer {
     padding: 4px 10px;
     background: #073763;
     border-top: 1px solid #333;
 }
 
-.footer a {
-    color: white;
-    text-decoration: none;
+footer a {
+    color: white !important;
+}
+
+.main {
+    flex: 1;
+    display: flex;
+}
+
+#Home {
+    /* min-height: 80vh; */
+}
+
+#NotFound {
+    align-self: center;
+    width: 100%;
+    position: relative;
+}
+@keyframes animateFish {
+    0% {
+        fill: #999;
+        opacity: 0.2;
+        transform: rotate(0deg) translate(0, 0);
+    }
+    33% {
+        fill: #aaa;
+        opacity: 0.1;
+        transform: rotate(360deg) translate(10px, 100px);
+    }
+    50% {
+        opacity: 0;
+        fill: #eee;
+        transform: rotate(360deg) translate(10px, 100px);
+    }
+    100% {
+        fill: #fff;
+        opacity: 0;
+        transform: rotate(360deg) translate(20px, 100px);
+    }
+}
+#NotFound svg {
+    opacity: 0;
+    color: #999;
+    transform: rotate(0deg);
+    animation: animateFish 5s infinite ease-in;
 }
