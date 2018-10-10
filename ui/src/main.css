@@ -76,9 +76,9 @@ a:visited {
     flex-grow: 1;
 }
 
-/* .full-height {
+.full-height {
     height: 100%;
-} */
+}
 
 .fill-viewport {
     min-height: 100vh;
@@ -86,7 +86,7 @@ a:visited {
 
 header {
     background: #073763;
-    padding: 10px 0 10px 6px;
+    padding: 6px 0;
 }
 header .logo {
     fill: white;
@@ -125,10 +125,16 @@ footer a {
 .main {
     flex: 1;
     display: flex;
+    overflow-y: auto;
+}
+
+#Root {
+    height: 100%;
+    width: 100%;
 }
 
 #Home {
-    /* min-height: 80vh; */
+    width: 100%;
 }
 
 #NotFound {
@@ -163,4 +169,30 @@ footer a {
     color: #999;
     transform: rotate(0deg);
     animation: animateFish 5s infinite ease-in;
+}
+
+#Home .hero.container {
+    max-width: 960px;
+}
+
+#Home .dark .hero {
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+}
+#Home .dark .title,
+#Home .dark .subtitle {
+    color: #fff;
+    text-shadow: 2px 2px 2px #000;
+}
+
+#Home .hero {
+    min-height: 100vh;
+}
+
+#HomeHeader h1 {
+    font-size: 3rem;
+}
+
+#HomeHeader h2 {
+    font-size: 2rem;
 }
