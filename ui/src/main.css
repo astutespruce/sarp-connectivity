@@ -5,6 +5,7 @@ body {
     height: 100%;
     width: 100%;
     font-family: Verdana, Geneva, sans-serif;
+    font-size: 16px;
     color: #333;
 }
 
@@ -58,6 +59,9 @@ a:visited {
 .flex-justify-center {
     justify-content: center;
 }
+.flex-justify-space-between {
+    justify-content: space-between;
+}
 
 .flex-align-center {
     align-items: center;
@@ -70,4 +74,47 @@ a:visited {
 }
 .flex-grow {
     flex-grow: 1;
+}
+
+nav {
+    background: #073763;
+    padding: 0.5em 1em 0.5em 0.25em;
+}
+nav .logo {
+    fill: white;
+    height: 30px;
+    width: 30px;
+    margin-right: 10px;
+}
+nav .fa {
+    margin-right: 0.25em;
+}
+nav .nav-link + .nav-link {
+    border-left: 1px solid #fff;
+    margin-left: 1em;
+    padding-left: 1em;
+}
+
+.navbar-menu.is-active {
+    background: #333;
+}
+
+@media screen and (min-width: 500px) {
+    .navbar-menu {
+        flex-grow: 1 !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        align-items: stretch !important;
+    }
+}
+
+.footer {
+    padding: 4px 10px;
+    background: #073763;
+    border-top: 1px solid #333;
+}
+
+.footer a {
+    color: white;
+    text-decoration: none;
 }

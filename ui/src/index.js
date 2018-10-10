@@ -9,6 +9,7 @@ import { BrowserRouter as Router } from "react-router-dom"
 
 import reducer from "./reducers"
 
+import "@fortawesome/fontawesome-free/css/all.min.css"
 import "bulma/css/bulma.css"
 import "./main.css"
 

@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "raven-js": "^3.27.0",
-    "react-ga": "^2.5.3",
-    "react-redux": "^5.0.7"
-  }
-}
