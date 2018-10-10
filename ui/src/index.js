@@ -25,10 +25,14 @@ import App from "./App"
 
 const store = createStore(reducer, applyMiddleware(createLogger()))
 
+// TODO: migrate to final deployment path.  For now production is hosted at
+// https://consbio.github.io/sarp/
+const basename = process.env.NODE_ENV === "production" ? "/sarp" : ""
+
 /* eslint-disable react/jsx-filename-extension */
 ReactDOM.render(
     <Provider store={store}>
-        <Router>
+        <Router basename={basename}>
             <App />
         </Router>
     </Provider>,

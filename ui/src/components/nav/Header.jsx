@@ -10,7 +10,7 @@ const Header = () => (
             <Link to="/" style={{ flexGrow: 1 }} className="flex-container flex-justify-start">
                 <Logo className="logo" />
                 <h1 className="is-size-4 is-hidden-touch has-text-white has-text-weight-bold">
-                    Southeast Aquatic Barrier Inventory Prioritization Tool
+                    Southeast Aquatic Barrier Prioritization Tool
                 </h1>
                 <h1 className="is-size-5 is-hidden-desktop has-text-white has-text-weight-bold">
                     Southeast Aquatic Barrier Tool
