@@ -1,12 +1,16 @@
 import React from "react"
 // import PropTypes from 'prop-types'
 import { Link } from "react-router-dom"
+
 import Section from "./Section"
+import Image1 from "../../../img/iStock-181890680.jpg"
+import Image2 from "../../../img/IMG_1530.jpg"
 
 const Home = () => (
     <div id="Home" className="view">
         <Section
             id="HomeHeader"
+            image={Image1}
             dark
             title="Fish and other aquatic organisms"
             subtitle="depend on high quality, connected river networks."
@@ -99,7 +103,7 @@ const Home = () => (
                 filters sidebar of prioritization view to the right]
             </p>
         </Section>
-        <Section dark title="The Southeast Aquatic Barrier Inventory">
+        <Section image={Image2} dark title="The Southeast Aquatic Barrier Inventory">
             <p>
                 This inventory is a growing database of dams and road / stream crossings compiled by the Southeast
                 Aquatic Resources Partnership and partners. Information about network analysis, landscape condition, and

@@ -171,6 +171,13 @@ footer a {
     animation: animateFish 5s infinite ease-in;
 }
 
+#Home > section {
+    background-size: cover;
+    background-position-y: center;
+    background-repeat: no-repeat;
+    position: relative;
+}
+
 #Home .hero.container {
     max-width: 960px;
 }
