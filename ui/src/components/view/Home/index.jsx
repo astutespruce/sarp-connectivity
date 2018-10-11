@@ -3,14 +3,22 @@ import React from "react"
 import { Link } from "react-router-dom"
 
 import Section from "./Section"
-import Image1 from "../../../img/iStock-181890680.jpg"
-import Image2 from "../../../img/IMG_1530.jpg"
+
+import SARPLogo from "../../../img/sarp_logo.png"
+import CBILogo from "../../../img/cbi_logo.png"
+import FishImage from "../../../img/iStock-181890680.jpg"
+
+// Photo by American Public Power Association on Unsplash, https://unsplash.com/photos/FUeb2npsblQ
+import DamImage from "../../../img/american-public-power-association-430861-unsplash.jpg"
+
+// Photo by Robert Zunikoff on Unsplash, https://unsplash.com/photos/ko7Tp_LyAt4
+import WaterStonesImage from "../../../img/robert-zunikoff-409755-unsplash.jpg"
 
 const Home = () => (
     <div id="Home" className="view">
         <Section
             id="HomeHeader"
-            image={Image1}
+            image={FishImage}
             dark
             title="Fish and other aquatic organisms"
             subtitle="depend on high quality, connected river networks."
@@ -85,7 +93,7 @@ const Home = () => (
             </section>
         </Section>
 
-        <Section title="The Southeast Aquatic Barrier Inventory Visualization Tool">
+        <Section title="The Southeast Aquatic Barrier Prioritization Tool">
             <p>
                 Using this tool, you can:
                 <br />
@@ -103,7 +111,7 @@ const Home = () => (
                 filters sidebar of prioritization view to the right]
             </p>
         </Section>
-        <Section image={Image2} dark title="The Southeast Aquatic Barrier Inventory">
+        <Section image={DamImage} dark title="The Southeast Aquatic Barrier Inventory">
             <p>
                 This inventory is a growing database of dams and road / stream crossings compiled by the Southeast
                 Aquatic Resources Partnership and partners. Information about network analysis, landscape condition, and
@@ -114,7 +122,16 @@ const Home = () => (
                 areas]
             </p>
         </Section>
-        <Section title="Example use case: removing small, unneeded dams on private land">
+        <Section title="Example use case: regional planning">
+            <p>
+                You can also use this tool to better understand the number and location of aquatic barriers across the
+                southeastern U.S. You can use this information to guide regional planning and allocate resources
+                targeted at improving aquatic conditions. You can use this information to help stakeholders and others
+                understand the impact of aquatic barriers across the region, and build awareness about how to reduce
+                those impacts…
+            </p>
+        </Section>
+        <Section image={WaterStonesImage} dark title="Example use case: removing small, unneeded dams on private land">
             <p>
                 One way you can use this tool is to identify and prioritize dams according to the criteria that matter
                 to you. For example, you can first select the dams that are within the watersheds where you work. Then
@@ -128,19 +145,53 @@ const Home = () => (
             </p>
         </Section>
 
-        <Section dark title="Example use case: regional planning">
-            <p>
-                You can also use this tool to better understand the number and location of aquatic barriers across the
-                southeastern U.S. You can use this information to guide regional planning and allocate resources
-                targeted at improving aquatic conditions. You can use this information to help stakeholders and others
-                understand the impact of aquatic barriers across the region, and build awareness about how to reduce
-                those impacts…
-            </p>
+        <Section title="The Southeast Aquatic Resources Partnership">
+            <div className="columns">
+                <div className="column is-two-thirds">
+                    <p>
+                        The{" "}
+                        <a href="https://southeastaquatics.net/" target="_blank" rel="noopener noreferrer">
+                            Southeast Aquatic Resources Partnership
+                        </a>
+                        &nbsp; (SARP) is a regional collaboration of natural resource and science agencies, conservation
+                        organizations and private interests developed to strengthen the management and conservation of
+                        aquatic resources in the southeastern United States.
+                        <br />
+                        <br />
+                        Nationally, SARP works to implement the goals of the National Fish Habitat Action Plan in some
+                        of the United States most ecologically and economically significant watersheds. Regionally, SARP
+                        works with partners in 14 states in the Southeast to conduct science-based watershed and habitat
+                        assessments that collectively identify regional conservation priorities. SARP works with
+                        communities to facilitate locally-driven conservation projects that bring together partners and
+                        funding to help meet regional priorities.
+                    </p>
+                </div>
+                <div className="column">
+                    <img src={SARPLogo} style={{ width: "100%" }} alt="SARP logo" />
+                </div>
+            </div>
         </Section>
 
-        <Section title="The Southeast Aquatic Resources Partnership">TODO</Section>
-
-        <Section subtitle="The Conservation Biology Institute">TODO</Section>
+        <Section id="HomeFooter">
+            <div className="columns">
+                <div className="column is-two-thirds">
+                    <p>
+                        This application was created by the&nbsp;
+                        <a href="https://consbio.org" target="_blank" rel="noopener noreferrer">
+                            Conservation Biology Institute
+                        </a>
+                        &nbsp; (CBI) in partnership with the&nbsp;
+                        <a href="https://southeastaquatics.net/" target="_blank" rel="noopener noreferrer">
+                            Southeast Aquatic Resources Partnership
+                        </a>
+                        . CBI provides science and software development to support the conservation of biodiversity.
+                    </p>
+                </div>
+                <div className="column">
+                    <img src={CBILogo} style={{ width: "100%" }} alt="CBI logo" />
+                </div>
+            </div>
+        </Section>
     </div>
 )
 

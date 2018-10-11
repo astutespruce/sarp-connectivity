@@ -2,8 +2,12 @@ import React from "react"
 import PropTypes from "prop-types"
 
 const Section = ({ children, dark, image, title, subtitle, id, className }) => (
-    <section id={id} className={`${className || ""}`} style={{ backgroundImage: image ? `url(${image})` : "" }}>
-        <div className={`container ${dark ? "dark" : ""}`}>
+    <section
+        id={id}
+        className={`${className || ""} ${dark ? "dark" : ""}`}
+        style={{ backgroundImage: image ? `url(${image})` : "" }}
+    >
+        <div className="container">
             <div className="hero container">
                 <div className="hero-body">
                     {title && <h1 className="title">{title}</h1>}

@@ -133,10 +133,6 @@ footer a {
     width: 100%;
 }
 
-#Home {
-    width: 100%;
-}
-
 #NotFound {
     align-self: center;
     width: 100%;
@@ -171,35 +167,55 @@ footer a {
     animation: animateFish 5s infinite ease-in;
 }
 
+#Home {
+    width: 100%;
+    background: #ee7d140a;
+}
 #Home > section {
+    background-color: #f5f7f9;
     background-size: cover;
     background-position-y: center;
     background-repeat: no-repeat;
     position: relative;
+    border-bottom: 20px solid #333;
+}
+#Home > section.dark,
+#HomeFooter {
+    border-bottom: none !important;
 }
 
 #Home .hero.container {
     max-width: 960px;
+    background: #fff;
+    border-right: 1px solid #eee;
+    border-left: 1px solid #eee;
 }
 
 #Home .dark .hero {
     background: rgba(0, 0, 0, 0.8);
     color: #fff;
+    border-left-color: transparent;
+    border-right-color: transparent;
 }
 #Home .dark .title,
 #Home .dark .subtitle {
     color: #fff;
     text-shadow: 2px 2px 2px #000;
 }
-
 #Home .hero {
     min-height: 100vh;
+}
+#Home p {
+    font-size: 18px;
 }
 
 #HomeHeader h1 {
     font-size: 3rem;
 }
-
 #HomeHeader h2 {
     font-size: 2rem;
+}
+
+#HomeFooter .hero {
+    min-height: auto;
 }
