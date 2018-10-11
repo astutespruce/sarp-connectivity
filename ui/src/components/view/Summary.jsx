@@ -1,5 +1,14 @@
 import React from "react"
+import Map from "../Map"
+import Sidebar from "../Map/Sidebar"
 
-const Summary = () => <div>Summary page -under construction-</div>
+const Summary = () => (
+    <React.Fragment>
+        <Sidebar>sidebar content goes here</Sidebar>
+        <div id="MapContainer">
+            <Map />
+        </div>
+    </React.Fragment>
+)
 
 export default Summary

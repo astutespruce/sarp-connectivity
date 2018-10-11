@@ -736,6 +736,12 @@
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.4.0.tgz#f3eea20ce4c216dc35e3c13f52f1caf9fc52d746"
 
+"@mapbox/geo-viewport@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@mapbox/geo-viewport/-/geo-viewport-0.4.0.tgz#0a8dc5812d3be12c778d6545b2f3f4dec9c633da"
+  dependencies:
+    "@mapbox/sphericalmercator" "~1.1.0"
+
 "@mapbox/geojson-area@0.2.2":
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/@mapbox/geojson-area/-/geojson-area-0.2.2.tgz#18d7814aa36bf23fbbcc379f8e26a22927debf10"
@@ -757,6 +763,10 @@
 "@mapbox/point-geometry@0.1.0", "@mapbox/point-geometry@^0.1.0", "@mapbox/point-geometry@~0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@mapbox/point-geometry/-/point-geometry-0.1.0.tgz#8a83f9335c7860effa2eeeca254332aa0aeed8f2"
+
+"@mapbox/sphericalmercator@~1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@mapbox/sphericalmercator/-/sphericalmercator-1.1.0.tgz#f3b1af042620716a1289fc41e1e97f610823aefe"
 
 "@mapbox/tiny-sdf@^1.1.0":
   version "1.1.0"
@@ -4280,6 +4290,10 @@ ignore@^3.3.3:
 ignore@^4.0.6:
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-4.0.6.tgz#750e3db5862087b4737ebac8207ffd1ef27b25fc"
+
+immutable@^3.8.2:
+  version "3.8.2"
+  resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.2.tgz#c2439951455bb39913daf281376f1530e104adf3"
 
 import-cwd@^2.0.0:
   version "2.1.0"

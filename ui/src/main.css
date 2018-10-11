@@ -126,6 +126,7 @@ footer a {
     flex: 1;
     display: flex;
     overflow-y: auto;
+    position: relative;
 }
 
 #Root {
@@ -218,4 +219,22 @@ footer a {
 
 #HomeFooter .hero {
     min-height: auto;
+}
+
+#Sidebar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 400px;
+    border-right: 1px solid #9b9b9b;
+    background-color: #fff;
+}
+
+#MapContainer {
+    position: absolute;
+    left: 400px;
+    right: 0;
+    top: 0;
+    bottom: 0;
 }

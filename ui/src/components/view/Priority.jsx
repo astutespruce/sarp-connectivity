@@ -1,5 +1,14 @@
 import React from "react"
+import Map from "../Map"
+import Sidebar from "../Map/Sidebar"
 
-const Priority = () => <div>Priority page -under construction-</div>
+const Priority = () => (
+    <React.Fragment>
+        <Sidebar>sidebar content goes here</Sidebar>
+        <div id="MapContainer">
+            <Map />
+        </div>
+    </React.Fragment>
+)
 
 export default Priority
