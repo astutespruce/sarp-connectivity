@@ -8,6 +8,10 @@ import "mapbox-gl/dist/mapbox-gl.css"
 // TODO: change to one for this account
 mapboxgl.accessToken = "pk.eyJ1IjoiYmN3YXJkIiwiYSI6InJ5NzUxQzAifQ.CVyzbyOpnStfYUQ_6r8AgQ"
 
+const TILE_HOST = "http://localhost:8000"
+// from lowest to highest count, just setup a linear interpolation in that range and find 3 interior breaks
+// const COUNT_COLORS = ['#fef0d9','#fdcc8a','#fc8d59','#e34a33','#b30000']
+
 class Map extends React.Component {
     // static getDerivedStateFromProps(nextProps) {
     //     const {
@@ -40,7 +44,7 @@ class Map extends React.Component {
         // let center = [0, 0]
         // let zoom = 1
         let center = [-87.69692774001089, 31.845649246524772]
-        let zoom = 5
+        let zoom = 4
 
         // If bounds are available, use these to establish center and zoom when map first
         // boots, then fit the bounds more specifically later
@@ -59,24 +63,57 @@ class Map extends React.Component {
             center,
             zoom
         })
-        map.setLayerVisibility = this.setLayerVisibility
+
         this.map = map
         window.map = map
 
         map.addControl(new mapboxgl.NavigationControl(), "top-right")
+        // map.setLayerVisibility = this.setLayerVisibility
 
-        // Geojson layers must be added after map loads
         map.on("load", () => {
-            /* Load up layers for map.  Note: Whichever layers are added last are highest in z-order */
+            // Add boundary layers
+            map.addSource("boundaries", {
+                type: "vector",
+                tiles: [`${TILE_HOST}/services/sarp_boundaries/tiles/{z}/{x}/{y}.pbf`],
+                maxzoom: 8
+            })
 
-            // Add dataset layers to map
-            // if (layers && layers.length) {
-            //     // Add them in reverse order since the last layer added is the one on top
-            //     layers
-            //         .slice(0, layers.length)
-            //         .reverse()
-            //         .forEach(this.addLayerToMap)
-            // }
+            map.addLayer({
+                id: "states-outline",
+                source: "boundaries",
+                "source-layer": "sarp_states_wgs84",
+                type: "line",
+                layout: {}, // TODO: set as not visible by default
+                paint: {
+                    "line-color": "#AAAAAA",
+                    "line-opacity": 0.8,
+                    "line-width": 2
+                }
+            })
+
+            // colors are inline pairs of value and color, followed by default color
+            const colors = ["Texas", "#FF0000", "North Carolina", "#00FF00", "#FFF"]
+
+            map.addLayer({
+                id: "states-fill",
+                source: "boundaries",
+                "source-layer": "sarp_states_wgs84",
+                type: "fill",
+                layout: {}, // TODO: set as not visible by default
+                paint: {
+                    "fill-opacity": 0.6,
+                    "fill-color": [
+                        "match",
+                        ["get", "NAME"],
+                        ...colors
+                        // "Texas",
+                        // "#FF0000",
+
+                        // // all others
+                        // "#FFF"
+                    ]
+                }
+            })
 
             if (location) {
                 this.setLocationMarker()
@@ -114,23 +151,6 @@ class Map extends React.Component {
     //         this.setDrawingGeometry()
     //     }
 
-    //     // Update project footprint
-    //     if (!is(footprint, prevFootprint)) {
-    //         // delete previous footprint
-    //         this.setFootprint()
-    //     }
-
-    //     // update zones of influence
-    //     if (!is(zoi, prevZOI)) {
-    //         // delete any that are now gone
-    //         const ids = zoi.map(z => z.toJS().id)
-    //         const prevIDs = prevZOI.map(z => z.toJS().id)
-    //         const removed = prevIDs.filter(z => ids.indexOf(z) === -1)
-    //         removed.forEach(id => this.removeZone(id))
-
-    //         // add or update the rest
-    //         zoi.forEach(z => this.setZone(z.toJS()))
-    //     }
     // }
 
     setLayerVisibility = (datasetId, isHidden) => {
