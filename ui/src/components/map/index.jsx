@@ -5,23 +5,24 @@ import geoViewport from "@mapbox/geo-viewport"
 import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
 
+import { mapColorsToRange } from "../../utils/colors"
+
 // TODO: change to one for this account
 mapboxgl.accessToken = "pk.eyJ1IjoiYmN3YXJkIiwiYSI6InJ5NzUxQzAifQ.CVyzbyOpnStfYUQ_6r8AgQ"
 
 const TILE_HOST = "http://localhost:8000"
 // from lowest to highest count, just setup a linear interpolation in that range and find 3 interior breaks
-// const COUNT_COLORS = ['#fef0d9','#fdcc8a','#fc8d59','#e34a33','#b30000']
+const COUNT_COLORS = ["#fef0d9", "#fdcc8a", "#fc8d59", "#e34a33", "#b30000"]
+
+// TODO: find a better way of handling this
+// min/max values for each variable we may use to render map
+const stats = {
+    states: {
+        dams: [431, 30115]
+    }
+}
 
 class Map extends React.Component {
-    // static getDerivedStateFromProps(nextProps) {
-    //     const {
-    //         location, drawingGeometry, footprint, zoi
-    //     } = nextProps
-    //     return {
-    //         location: fromJS(location),
-    //     }
-    // }
-
     constructor(props) {
         super(props)
 
@@ -72,47 +73,79 @@ class Map extends React.Component {
 
         map.on("load", () => {
             // Add boundary layers
-            map.addSource("boundaries", {
+            // map.addSource("boundaries", {
+            //     type: "vector",
+            //     tiles: [`${TILE_HOST}/services/sarp_boundaries/tiles/{z}/{x}/{y}.pbf`],
+            //     maxzoom: 8
+            // })
+
+            // map.addLayer({
+            //     id: "states-outline",
+            //     source: "boundaries",
+            //     "source-layer": "sarp_states_wgs84",
+            //     type: "line",
+            //     layout: {}, // TODO: set as not visible by default
+            //     paint: {
+            //         "line-color": "#AAAAAA",
+            //         "line-opacity": 0.8,
+            //         "line-width": 2
+            //     }
+            // })
+            map.addSource("mask", {
                 type: "vector",
-                tiles: [`${TILE_HOST}/services/sarp_boundaries/tiles/{z}/{x}/{y}.pbf`],
-                maxzoom: 8
+                maxzoom: 8,
+                tiles: [`${TILE_HOST}/services/sarp_mask/tiles/{z}/{x}/{y}.pbf`]
+            })
+            map.addLayer({
+                id: "mask",
+                source: "mask",
+                "source-layer": "mask",
+                type: "fill",
+                layout: {},
+                paint: {
+                    "fill-opacity": 0.6,
+                    "fill-color": "#FFFFFF"
+                }
+            })
+
+            map.addSource("states", {
+                type: "vector",
+                maxzoom: 8,
+                tiles: [`${TILE_HOST}/services/sarp_states_summary/tiles/{z}/{x}/{y}.pbf`]
+            })
+
+            // colors are inline pairs of value and color, followed by default color
+
+            map.addLayer({
+                id: "states-fill",
+                source: "states",
+                "source-layer": "states",
+                type: "fill",
+                layout: {},
+                paint: {
+                    "fill-opacity": 0.6,
+                    "fill-color": [
+                        "interpolate",
+                        ["linear"],
+                        ["get", "dams"],
+                        ...mapColorsToRange(COUNT_COLORS, stats.states.dams)
+                    ]
+                },
+                filter: [">", "dams", 0]
+                // TODO: filter dams == 0
             })
 
             map.addLayer({
                 id: "states-outline",
-                source: "boundaries",
-                "source-layer": "sarp_states_wgs84",
+                source: "states",
+                "source-layer": "states",
                 type: "line",
-                layout: {}, // TODO: set as not visible by default
+                layout: {},
                 paint: {
-                    "line-color": "#AAAAAA",
                     "line-opacity": 0.8,
-                    "line-width": 2
-                }
-            })
-
-            // colors are inline pairs of value and color, followed by default color
-            const colors = ["Texas", "#FF0000", "North Carolina", "#00FF00", "#FFF"]
-
-            map.addLayer({
-                id: "states-fill",
-                source: "boundaries",
-                "source-layer": "sarp_states_wgs84",
-                type: "fill",
-                layout: {}, // TODO: set as not visible by default
-                paint: {
-                    "fill-opacity": 0.6,
-                    "fill-color": [
-                        "match",
-                        ["get", "NAME"],
-                        ...colors
-                        // "Texas",
-                        // "#FF0000",
-
-                        // // all others
-                        // "#FFF"
-                    ]
-                }
+                    "line-color": "#AAAAAA"
+                },
+                filter: [">", "dams", 0]
             })
 
             if (location) {
@@ -126,33 +159,6 @@ class Map extends React.Component {
         })
     }
 
-    // componentDidUpdate(prevProps, prevState) {
-    //     // console.log('componentDidUpdate', prevState, this.state)
-    //     // Use this function to update the state of the map object to the current state
-    //     // of this component
-
-    //     const {
-    //         location, drawingGeometry, footprint, zoi
-    //     } = this.state
-    //     const {
-    //         location: prevLocation,
-    //         drawingGeometry: prevDrawingGeometry,
-    //         footprint: prevFootprint,
-    //         zoi: prevZOI
-    //     } = prevState
-
-    //     // Update the location marker if needed or remove it
-    //     if (!is(location, prevLocation)) {
-    //         this.setLocationMarker()
-    //     }
-
-    //     // Update drawing geometry
-    //     if (!is(drawingGeometry, prevDrawingGeometry)) {
-    //         this.setDrawingGeometry()
-    //     }
-
-    // }
-
     setLayerVisibility = (datasetId, isHidden) => {
         const source = `layer-${datasetId}`
         const layers = this.map.getStyle().layers.filter(layer => layer.source === source)
@@ -160,60 +166,6 @@ class Map extends React.Component {
             this.map.setLayoutProperty(id, "visibility", isHidden ? "none" : "visible")
         })
     }
-
-    // setLocationMarker = () => {
-    //     const { location } = this.state
-
-    //     if (location !== null) {
-    //         const { latitude, longitude } = location.toObject()
-    //         this.map.flyTo({ center: [longitude, latitude], zoom: 10 })
-
-    //         if (!this.locationMarker) {
-    //             this.locationMarker = new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(this.map)
-    //         } else {
-    //             this.locationMarker.setLngLat([longitude, latitude])
-    //         }
-    //     } else {
-    //         this.locationMarker.remove()
-    //         this.locationMarker = null
-    //     }
-    // }
-
-    // addLayerToMap = (layer) => {
-    //     // TODO: caller is responsible for setting next available color from palette if no
-    //     // color is defined for dataset (requires state management in container)
-    //     const { overlayStyle, minZoom, maxZoom } = layer
-    //     const source = `layer-${layer.datasetId}`
-    //     const options = {
-    //         type: 'vector',
-    //         tiles: [`${window.location.protocol}//${TILESERVER_HOST}/services/${layer.datasetId}/tiles/{z}/{x}/{y}.pbf`]
-    //     }
-    //     if (minZoom) {
-    //         options.minzoom = minZoom
-    //     }
-    //     if (maxZoom) {
-    //         options.maxzoom = maxZoom
-    //     }
-    //     this.map.addSource(source, options)
-
-    //     console.log('adding layer', layer, `/services/${layer.datasetId}/tiles/{z}/{x}/{y}.pbf`)
-
-    //     overlayStyle.forEach((style, i) => {
-    //         this.map.addLayer(
-    //             Object.assign(
-    //                 {
-    //                     id: `${source}-${i}`,
-    //                     source,
-    //                     'source-layer': 'data', // 'data' is hard-coded into vector tile creation pipeline
-    //                     layout: {
-    //                         visibility: !layer.hidden ? 'visible' : 'none'
-    //                     }
-    //                 },
-    //                 style
-    //             )
-    //         )
-    //     })
-    // }
 
     render() {
         return (
@@ -249,6 +201,43 @@ Map.defaultProps = {
 }
 
 export default Map
+
+// TODO: things cut out of above
+
+// static getDerivedStateFromProps(nextProps) {
+//     const {
+//         location, drawingGeometry, footprint, zoi
+//     } = nextProps
+//     return {
+//         location: fromJS(location),
+//     }
+// }
+
+// componentDidUpdate(prevProps, prevState) {
+//     // console.log('componentDidUpdate', prevState, this.state)
+//     // Use this function to update the state of the map object to the current state
+//     // of this component
+
+//     const {
+//         location, drawingGeometry, footprint, zoi
+//     } = this.state
+//     const {
+//         location: prevLocation,
+//         drawingGeometry: prevDrawingGeometry,
+//         footprint: prevFootprint,
+//         zoi: prevZOI
+//     } = prevState
+
+//     // Update the location marker if needed or remove it
+//     if (!is(location, prevLocation)) {
+//         this.setLocationMarker()
+//     }
+
+//     // Update drawing geometry
+//     if (!is(drawingGeometry, prevDrawingGeometry)) {
+//         this.setDrawingGeometry()
+//     }
+// }
 
 // TODO: enable this if we want animated markers
 // const addAnimatedLocationToMap = (map, { latitude, longitude }) => {
@@ -293,3 +282,74 @@ export default Map
 //     }
 //     animateMarker()
 // }
+
+// setLocationMarker = () => {
+//     const { location } = this.state
+
+//     if (location !== null) {
+//         const { latitude, longitude } = location.toObject()
+//         this.map.flyTo({ center: [longitude, latitude], zoom: 10 })
+
+//         if (!this.locationMarker) {
+//             this.locationMarker = new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(this.map)
+//         } else {
+//             this.locationMarker.setLngLat([longitude, latitude])
+//         }
+//     } else {
+//         this.locationMarker.remove()
+//         this.locationMarker = null
+//     }
+// }
+
+// addLayerToMap = (layer) => {
+//     // TODO: caller is responsible for setting next available color from palette if no
+//     // color is defined for dataset (requires state management in container)
+//     const { overlayStyle, minZoom, maxZoom } = layer
+//     const source = `layer-${layer.datasetId}`
+//     const options = {
+//         type: 'vector',
+//         tiles: [`${window.location.protocol}//${TILESERVER_HOST}/services/${layer.datasetId}/tiles/{z}/{x}/{y}.pbf`]
+//     }
+//     if (minZoom) {
+//         options.minzoom = minZoom
+//     }
+//     if (maxZoom) {
+//         options.maxzoom = maxZoom
+//     }
+//     this.map.addSource(source, options)
+
+//     console.log('adding layer', layer, `/services/${layer.datasetId}/tiles/{z}/{x}/{y}.pbf`)
+
+//     overlayStyle.forEach((style, i) => {
+//         this.map.addLayer(
+//             Object.assign(
+//                 {
+//                     id: `${source}-${i}`,
+//                     source,
+//                     'source-layer': 'data', // 'data' is hard-coded into vector tile creation pipeline
+//                     layout: {
+//                         visibility: !layer.hidden ? 'visible' : 'none'
+//                     }
+//                 },
+//                 style
+//             )
+//         )
+//     })
+// }
+
+// const colors = ["Texas", "#FF0000", "North Carolina", "#00FF00", "#FFF"]
+// map.addLayer({
+//     id: "states-fill",
+//     source: "states",
+//     "source-layer": "states",
+//     type: "fill",
+//     layout: {}, // TODO: set as not visible by default
+//     paint: {
+//         "fill-opacity": 0.6,
+//         "fill-color": [
+//             "match",
+//             ["get", "NAME"],
+//             ...colors
+//         ]
+//     }
+// })
