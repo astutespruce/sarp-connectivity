@@ -47,14 +47,14 @@ const Home = () => (
                             </figure>
                             <div className="media-content">
                                 <div className="content">
-                                    <h4 className="is-size-4">View summaries</h4>
+                                    <h4 className="is-size-4">Summarize</h4>
                                 </div>
                             </div>
                         </div>
                         <p>Explore summaries of small and large aquatic barriers across the southeast.</p>
                         <div className="has-text-centered is-size-5">
-                            <Link to="/compare" style={{ color: "#3273dc" }}>
-                                Start comparing
+                            <Link to="/summary" style={{ color: "#3273dc" }}>
+                                View regional summaries
                             </Link>
                         </div>
                     </div>
@@ -70,15 +70,15 @@ const Home = () => (
                             </figure>
                             <div className="media-content">
                                 <div className="content">
-                                    <h4 className="is-size-4">Calculate priorities</h4>
+                                    <h4 className="is-size-4">Prioritize</h4>
                                 </div>
                             </div>
                         </div>
                         <p>Prioritize aquatic barriers for removal in your area of interest.</p>
                         <div className="has-text-centered is-size-5">
-                            <Link to="/explore" style={{ color: "#3273dc" }}>
+                            <Link to="/priority" style={{ color: "#3273dc" }}>
                                 {" "}
-                                Start exploring
+                                Start prioritizing
                             </Link>
                         </div>
                     </div>
