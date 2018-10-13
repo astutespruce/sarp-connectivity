@@ -9,6 +9,7 @@ flask = "*"
 flask-sqlalchemy = "*"
 pandas = "*"
 black = "*"
+geopandas = "*"
 
 [dev-packages]
 pylint = "*"

@@ -1,22 +1,78 @@
+from collections import defaultdict
+import json
 import pandas as pd
 import geopandas as gp
-import os
+
 
 # TODO: derive other HUCs from HUC12 if they don't already exist
 df = pd.read_csv(
-    "data/src/sarp_dams.csv", dtype={"HUC12": str, "HUC8": str, "HUC4": str}
+    "data/src/sarp_dams.csv", dtype={"HUC12": str, "HUC8": str, "HUC4": str, 'Ecoregion3': str}
 )
 
 # Lookup state domain codes to state names
 states = pd.read_csv("data/src/state_domain.csv").set_index(["State"])
 df = df.join(states, on=("State"))
-df = df.drop("State", axis=1).rename(columns={"StateName": "State"})
+df = df.drop("State", axis=1).rename(columns={"StateName": "states"})
 
-group_col = "State"
-g = df.groupby(group_col).agg({"UniqueID": {"dams": "count"}})
-g.to_csv(
-    "data/summary/{}.csv".format(group_col.lower()), header=["dams"], index_label="NAME"
-)
+# Calculate any HUC codes that are missing
+# TODO: fix missing HUC12s, for now, just filter them out
+df = df[df['HUC12'].notnull()].copy()
+
+cols = set(df.columns)
+if 'HUC2' not in cols:
+    df['HUC2'] = df.apply(lambda row: row['HUC12'][:2], axis=1)
+# if 'HUC4' not in cols:
+#     df['HUC4'] = df.apply(lambda row: row['HUC12'][:4], axis=1)
+# if 'HUC8' not in cols:
+#     df['HUC8'] = df.apply(lambda row: row['HUC12'][:8], axis=1)
+
+df['Ecoregion1'] = df.apply(lambda row: row['Ecoregion3'].split(
+    '.')[0] if not pd.isnull(row['Ecoregion3']) else '', axis=1)
+df['Ecoregion2'] = df.apply(lambda row: row['Ecoregion3'][:row['Ecoregion3'].rindex(
+    '.')] if not pd.isnull(row['Ecoregion3']) else '', axis=1)
+
+
+stats = defaultdict(defaultdict)
+cols = ['dams', 'connectedmiles']
+# Group by state
+# g = df.groupby("state").agg(
+#     {"UniqueID": {"dams": "count"}, "AbsoluteGainMi": {"connectedmiles": "mean"}})
+# g.to_csv(
+#     "data/summary/{}.csv".format('state'), header=cols, index_label="NAME"
+# )
+
+# level_stats = g.agg(['min', 'max'])
+# level_stats.columns = cols
+# for col in cols:
+#     stats['states'][col] = level_stats[col].tolist()
+
+geo_join_lut = {
+    'state': 'NAME',
+    'HUC2': 'HUC2',
+    'HUC4': 'HUC4',
+    'HUC8': 'HUC8',
+    'Ecoregion1': 'NA_L1CODE',
+    'Ecoregion2': 'NA_L2CODE',
+    'Ecoregion3': 'NA_L3CODE',
+    'Ecoregion4': 'L4_KEY',
+}
+
+# Group by state, HUC level, ecoregion level
+for unit in ('state', 'HUC2', 'HUC4', 'HUC8', 'Ecoregion1', 'Ecoregion2', 'Ecoregion3', 'Ecoregion4'):
+    g = df.groupby(unit).agg(
+        {"UniqueID": {"dams": "count"}, "AbsoluteGainMi": {"connectedmiles": "mean"}})
+    g.to_csv(
+        "data/summary/{}.csv".format(unit), header=["dams", "connectedmiles"], index_label=geo_join_lut[unit]
+    )
+
+    level_stats = g.agg(['min', 'max'])
+    level_stats.columns = cols
+    for col in cols:
+        stats[unit][col] = level_stats[col].tolist()
+
+
+with open('ui/src/config/summary_stats.json', 'w') as outfile:
+    outfile.write(json.dumps(stats))
 
 
 # state_df = gp.read_file(

@@ -10,6 +10,7 @@ import { mapColorsToRange } from "../../utils/colors"
 // TODO: change to one for this account
 mapboxgl.accessToken = "pk.eyJ1IjoiYmN3YXJkIiwiYSI6InJ5NzUxQzAifQ.CVyzbyOpnStfYUQ_6r8AgQ"
 
+const SARP_BOUNDS = [-106.645646, 17.623468, -64.512674, 40.61364]
 const TILE_HOST = "http://localhost:8000"
 // from lowest to highest count, just setup a linear interpolation in that range and find 3 interior breaks
 const COUNT_COLORS = ["#fef0d9", "#fdcc8a", "#fc8d59", "#e34a33", "#b30000"]
@@ -42,8 +43,6 @@ class Map extends React.Component {
         } = this.props
 
         const { mapContainer } = this
-        // let center = [0, 0]
-        // let zoom = 1
         let center = [-87.69692774001089, 31.845649246524772]
         let zoom = 4
 
@@ -195,7 +194,7 @@ Map.propTypes = {
 }
 
 Map.defaultProps = {
-    bounds: [],
+    bounds: SARP_BOUNDS,
     // layers: [],
     location: null
 }
