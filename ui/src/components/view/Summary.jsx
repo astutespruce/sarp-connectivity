@@ -6,7 +6,7 @@ const Summary = () => (
     <React.Fragment>
         <Sidebar>sidebar content goes here</Sidebar>
         <div id="MapContainer">
-            <Map />
+            <Map view="summary" />
         </div>
     </React.Fragment>
 )

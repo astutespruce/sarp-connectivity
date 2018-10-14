@@ -6,7 +6,7 @@ const Priority = () => (
     <React.Fragment>
         <Sidebar>sidebar content goes here</Sidebar>
         <div id="MapContainer">
-            <Map />
+            <Map view="priority" />
         </div>
     </React.Fragment>
 )

@@ -12,7 +12,7 @@ import summaryStats from "../../config/summary_stats.json"
 mapboxgl.accessToken = "pk.eyJ1IjoiYmN3YXJkIiwiYSI6InJ5NzUxQzAifQ.CVyzbyOpnStfYUQ_6r8AgQ"
 
 const SARP_BOUNDS = [-106.645646, 17.623468, -64.512674, 40.61364]
-const TILE_HOST = "http://localhost:8000"
+const TILE_HOST = process.env.NODE_ENV === "production" ? "http://34.237.24.48:8000" : "http://localhost:8000"
 // from lowest to highest count, just setup a linear interpolation in that range and find 3 interior breaks
 const COUNT_COLORS = ["#fef0d9", "#fdcc8a", "#fc8d59", "#e34a33", "#b30000"]
 
@@ -30,6 +30,7 @@ class Map extends React.Component {
 
     componentDidMount() {
         const {
+            view,
             bounds,
             // layers,
             location
@@ -64,25 +65,6 @@ class Map extends React.Component {
         // map.setLayerVisibility = this.setLayerVisibility
 
         map.on("load", () => {
-            // Add boundary layers
-            // map.addSource("boundaries", {
-            //     type: "vector",
-            //     tiles: [`${TILE_HOST}/services/sarp_boundaries/tiles/{z}/{x}/{y}.pbf`],
-            //     maxzoom: 8
-            // })
-
-            // map.addLayer({
-            //     id: "states-outline",
-            //     source: "boundaries",
-            //     "source-layer": "sarp_states_wgs84",
-            //     type: "line",
-            //     layout: {}, // TODO: set as not visible by default
-            //     paint: {
-            //         "line-color": "#AAAAAA",
-            //         "line-opacity": 0.8,
-            //         "line-width": 2
-            //     }
-            // })
             map.addSource("sarp", {
                 type: "vector",
                 maxzoom: 8,
@@ -99,8 +81,24 @@ class Map extends React.Component {
                     "fill-color": "#FFFFFF"
                 }
             })
+            map.addLayer({
+                id: "boundary",
+                source: "sarp",
+                "source-layer": "boundary",
+                type: "line",
+                layout: {
+                    visibility: view === "priority" ? "visible" : "none"
+                },
+                paint: {
+                    "line-opacity": 0.8,
+                    "line-width": 2,
+                    "line-color": "#AAA"
+                }
+            })
 
-            this.addSummaryLayers("HUC2", "dams")
+            if (view === "summary") {
+                this.addSummaryLayers("HUC2", "dams")
+            }
 
             if (location) {
                 this.setLocationMarker()
@@ -206,6 +204,8 @@ class Map extends React.Component {
 }
 
 Map.propTypes = {
+    view: PropTypes.string.isRequired, // summary, priority
+
     bounds: PropTypes.arrayOf(PropTypes.number), // example: [-180, -86, 180, 86]
     // layers: PropTypes.arrayOf(DatasetPropType),
     location: PropTypes.shape({
