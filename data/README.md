@@ -100,58 +100,52 @@ HUC2:
 
 ```
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_HUC2_wgs84.json sarp_HUC2.shp
-tippecanoe -f -z 8 -l HUC2 -o ../../tiles/sarp_huc2.mbtiles -y HUC2 sarp_huc2_wgs84.json
+tippecanoe -f -z 8 -l HUC2 -o ../../tiles/sarp_huc2.mbtiles  -T HUC2:string -y HUC2 sarp_huc2_wgs84.json
 ```
 
 HUC4:
 
 ```
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_HUC4_wgs84.json sarp_HUC4.shp
-tippecanoe -f -z 8 -l HUC4 -o ../../tiles/sarp_huc4.mbtiles -y HUC4 sarp_huc4_wgs84.json
+tippecanoe -f -z 8 -l HUC4 -o ../../tiles/sarp_huc4.mbtiles  -T HUC4:string -y HUC4 sarp_huc4_wgs84.json
 ```
 
 HUC8:
 
 ```
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_HUC8_wgs84.json SARP_Bounds.gdb SARP_HUC8_Albers
-tippecanoe -f -z 10 -l HUC8 -o ../../tiles/sarp_huc8.mbtiles -y HUC8 sarp_huc8_wgs84.json
+tippecanoe -f -z 10 -l HUC8 -o ../../tiles/sarp_huc8.mbtiles  -T HUC8:string -y HUC8 sarp_huc8_wgs84.json
 ```
 
 HUC12:
 
 ```
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_HUC12_wgs84.json SARP_Bounds.gdb SARP_HUC12_Albers
-tippecanoe -f -z 12 -l HUC12 -o ../../tiles/sarp_huc12.mbtiles -y HUC12 sarp_huc12_wgs84.json
+tippecanoe -f -z 12 -l HUC12 -o ../../tiles/sarp_huc12.mbtiles  -T HUC12:string -y HUC12 sarp_huc12_wgs84.json
 ```
 
 ## Create centroids vector tiles:
 
+Centroids are extracted using `extract_centroids.py`.
+
 ```
-ogr2ogr -f GeoJSON -t_srs EPSG:4326 sarp_state_centroids_wgs84.json sarp_states.shp -dialect sqlite -sql "SELECT ST_Centroid(geometry), NAME from sarp_states"
-tippecanoe -f -z 4 -l HUC4 -o ../../tiles/sarp_states_centroids.mbtiles -y HUC4 sarp_state_centroids_wgs84.json
+tippecanoe -f -B 0 -z 4 -l states_centroids -o ../../tiles/sarp_states_centroids.mbtiles -y NAME sarp_states_centroids.csv
+tippecanoe -f -B 0 -z 4 -l HUC2_centroids -o ../../tiles/sarp_HUC2_centroids.mbtiles  -T HUC2:string -y HUC2 sarp_HUC2_centroids.csv
+tippecanoe -f -B 0 -z 6 -l HUC4_centroids -o ../../tiles/sarp_HUC4_centroids.mbtiles  -T HUC4:string -y HUC4 sarp_HUC4_centroids.csv
 ```
 
-<!-- Doesn't work because of multi-polygons -->
-
-<!-- ogr2ogr -f GeoJSON -t_srs EPSG:4326 sarp_HUC2_centroids_wgs84.json sarp_HUC2.shp -dialect sqlite -sql "SELECT ST_Centroid(geometry), HUC2 from sarp_HUC2"
-tippecanoe -f -z 4 -l HUC2 -o ../../tiles/sarp_HUC2_centroids.mbtiles -y HUC2 sarp_HUC2_centroids_wgs84.json
-
-ogr2ogr -f GeoJSON -t_srs EPSG:4326 sarp_HUC4_centroids_wgs84.json sarp_HUC4.shp -dialect sqlite -sql "SELECT ST_Centroid(geometry), HUC4 from sarp_HUC4"
-tippecanoe -f -z 6 -l HUC4 -o ../../tiles/sarp_HUC4_centroids.mbtiles -y HUC4 sarp_HUC4_centroids_wgs84.json
-
-ogr2ogr -f GeoJSON -t_srs EPSG:4326 sarp_HUC8_centroids_wgs84.json SARP_Bounds.gdb SARP_HUC8_Albers -dialect sqlite -sql "SELECT ST_Centroid(geometry), HUC8 from SARP_HUC8_Albers"
-tippecanoe -f -z 8 -l HUC8 -o ../../tiles/sarp_HUC8_centroids.mbtiles -y HUC8 sarp_HUC8_centroids_wgs84.json -->
+TODO: HUC8 and ecoregions. Also - fix `-B 0` for those, as it won't be appropriate
 
 ### Add summaries and join tiles together
 
 Summaries are created using summarize_by_unit.py
 
 ```
-tile-join -f -o sarp_states_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/state.csv sarp_states.mbtiles
+tile-join -f -o sarp_states_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/state.csv sarp_states.mbtiles sarp_states_centroids.mbtiles
+tile-join -f -o sarp_huc2_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc2.csv sarp_huc2.mbtiles sarp_huc2_centroids.mbtiles
+tile-join -f -o sarp_huc4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc4.csv sarp_huc4.mbtiles sarp_huc4_centroids.mbtiles
 ```
 
-# Experiment: Convert to TopoJSON:
-
-First convert each file to WGS84
-Upload to https://mapshaper.org/
-Simplify to 1-3% and download as topojson
+```
+tile-join -f -o sarp_summary.mbtiles sarp_states_summary.mbtiles sarp_huc2_summary.mbtiles sarp_huc4_summary.mbtiles
+```

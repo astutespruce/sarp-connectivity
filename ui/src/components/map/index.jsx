@@ -6,6 +6,7 @@ import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
 
 import { mapColorsToRange } from "../../utils/colors"
+import summaryStats from "../../config/summary_stats.json"
 
 // TODO: change to one for this account
 mapboxgl.accessToken = "pk.eyJ1IjoiYmN3YXJkIiwiYSI6InJ5NzUxQzAifQ.CVyzbyOpnStfYUQ_6r8AgQ"
@@ -14,14 +15,6 @@ const SARP_BOUNDS = [-106.645646, 17.623468, -64.512674, 40.61364]
 const TILE_HOST = "http://localhost:8000"
 // from lowest to highest count, just setup a linear interpolation in that range and find 3 interior breaks
 const COUNT_COLORS = ["#fef0d9", "#fdcc8a", "#fc8d59", "#e34a33", "#b30000"]
-
-// TODO: find a better way of handling this
-// min/max values for each variable we may use to render map
-const stats = {
-    states: {
-        dams: [431, 30115]
-    }
-}
 
 class Map extends React.Component {
     constructor(props) {
@@ -90,14 +83,14 @@ class Map extends React.Component {
             //         "line-width": 2
             //     }
             // })
-            map.addSource("mask", {
+            map.addSource("sarp", {
                 type: "vector",
                 maxzoom: 8,
-                tiles: [`${TILE_HOST}/services/sarp_mask/tiles/{z}/{x}/{y}.pbf`]
+                tiles: [`${TILE_HOST}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`]
             })
             map.addLayer({
                 id: "mask",
-                source: "mask",
+                source: "sarp",
                 "source-layer": "mask",
                 type: "fill",
                 layout: {},
@@ -107,45 +100,7 @@ class Map extends React.Component {
                 }
             })
 
-            map.addSource("states", {
-                type: "vector",
-                maxzoom: 8,
-                tiles: [`${TILE_HOST}/services/sarp_states_summary/tiles/{z}/{x}/{y}.pbf`]
-            })
-
-            // colors are inline pairs of value and color, followed by default color
-
-            map.addLayer({
-                id: "states-fill",
-                source: "states",
-                "source-layer": "states",
-                type: "fill",
-                layout: {},
-                paint: {
-                    "fill-opacity": 0.6,
-                    "fill-color": [
-                        "interpolate",
-                        ["linear"],
-                        ["get", "dams"],
-                        ...mapColorsToRange(COUNT_COLORS, stats.states.dams)
-                    ]
-                },
-                filter: [">", "dams", 0]
-                // TODO: filter dams == 0
-            })
-
-            map.addLayer({
-                id: "states-outline",
-                source: "states",
-                "source-layer": "states",
-                type: "line",
-                layout: {},
-                paint: {
-                    "line-opacity": 0.8,
-                    "line-color": "#AAAAAA"
-                },
-                filter: [">", "dams", 0]
-            })
+            this.addSummaryLayers("HUC2", "dams")
 
             if (location) {
                 this.setLocationMarker()
@@ -155,6 +110,72 @@ class Map extends React.Component {
             // this is here to give the styles time to load on the page and set the dimensions for
             // the map container
             map.resize()
+        })
+    }
+
+    addSummaryLayers = (unit, metric) => {
+        // unit: states, HUC2, HUC4, etc
+        // metric: dams, connectedmiles
+
+        const colors = mapColorsToRange(COUNT_COLORS, summaryStats[unit][metric])
+        this.map.addLayer({
+            id: `${unit}-${metric}-fill`,
+            source: "sarp",
+            "source-layer": unit,
+            type: "fill",
+            layout: {},
+            paint: {
+                "fill-opacity": 0.6,
+                "fill-color": ["interpolate", ["linear"], ["get", metric], ...colors]
+            },
+            // Filter any units for which we do not have data
+            filter: [">", metric, 0]
+        })
+
+        this.map.addLayer({
+            id: `${unit}-${metric}-outline`,
+            source: "sarp",
+            "source-layer": unit,
+            type: "line",
+            layout: {},
+            paint: {
+                "line-opacity": 0.8,
+                "line-color": "#AAAAAA"
+            },
+            filter: [">", metric, 0]
+        })
+
+        // this.map.addLayer({
+        //     id: `${unit}-${metric}-centroid`,
+        //     source: "sarp",
+        //     "source-layer": `${unit}_centroids`,
+        //     type: "circle",
+        //     layout: {},
+        //     paint: {
+        //         "circle-opacity": 0.3,
+        //         "circle-color": "#FFF",
+        //         // "circle-color": ["interpolate", ["linear"], ["get", metric], ...colors]
+        //         "circle-stroke-color": "#AAA",
+        //         "circle-stroke-width": 2,
+        //         "circle-radius": 30
+        //     },
+        //     filter: [">", metric, 0]
+        // })
+
+        this.map.addLayer({
+            id: `${unit}-${metric}-label`,
+            source: "sarp",
+            "source-layer": `${unit}_centroids`,
+            type: "symbol",
+            layout: {
+                "text-field": ["get", metric]
+            },
+            paint: {
+                "text-color": "#333",
+                "text-halo-color": "#FFF",
+                "text-halo-width": 2
+            },
+            filter: [">", metric, 0]
         })
     }
 
