@@ -70,34 +70,35 @@ class Map extends React.Component {
                 maxzoom: 8,
                 tiles: [`${TILE_HOST}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`]
             })
-            map.addLayer({
-                id: "mask",
-                source: "sarp",
-                "source-layer": "mask",
-                type: "fill",
-                layout: {},
-                paint: {
-                    "fill-opacity": 0.6,
-                    "fill-color": "#FFFFFF"
-                }
-            })
-            map.addLayer({
-                id: "boundary",
-                source: "sarp",
-                "source-layer": "boundary",
-                type: "line",
-                layout: {
-                    visibility: view === "priority" ? "visible" : "none"
-                },
-                paint: {
-                    "line-opacity": 0.8,
-                    "line-width": 2,
-                    "line-color": "#AAA"
-                }
-            })
+            // map.addLayer({
+            //     id: "mask",
+            //     source: "sarp",
+            //     "source-layer": "mask",
+            //     type: "fill",
+            //     layout: {},
+            //     paint: {
+            //         "fill-opacity": 0.6,
+            //         "fill-color": "#FFFFFF"
+            //     }
+            // })
+            // map.addLayer({
+            //     id: "boundary",
+            //     source: "sarp",
+            //     "source-layer": "boundary",
+            //     type: "line",
+            //     layout: {
+            //         visibility: view === "priority" ? "visible" : "none"
+            //     },
+            //     paint: {
+            //         "line-opacity": 0.8,
+            //         "line-width": 2,
+            //         "line-color": "#AAA"
+            //     }
+            // })
 
             if (view === "summary") {
-                this.addSummaryLayers("HUC2", "dams")
+                // this.addSummaryLayers("HUC2", "dams")
+                this.addSummaryLayers("HUC4", "dams")
             }
 
             if (location) {
@@ -139,8 +140,8 @@ class Map extends React.Component {
             paint: {
                 "line-opacity": 0.8,
                 "line-color": "#AAAAAA"
-            },
-            filter: [">", metric, 0]
+            }
+            // filter: [">", metric, 0]
         })
 
         // this.map.addLayer({
