@@ -140,8 +140,8 @@ class Map extends React.Component {
             paint: {
                 "line-opacity": 0.8,
                 "line-color": "#AAAAAA"
-            }
-            // filter: [">", metric, 0]
+            },
+            filter: [">", metric, 0]
         })
 
         // this.map.addLayer({

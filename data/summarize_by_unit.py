@@ -22,7 +22,8 @@ cols = set(df.columns)
 if 'HUC2' not in cols:
     df['HUC2'] = df.apply(lambda row: row['HUC12'][:2], axis=1)
 # if 'HUC4' not in cols:
-#     df['HUC4'] = df.apply(lambda row: row['HUC12'][:4], axis=1)
+# HUC4 had issues, make it right
+df['HUC4'] = df.apply(lambda row: row['HUC12'][:4], axis=1)
 # if 'HUC8' not in cols:
 #     df['HUC8'] = df.apply(lambda row: row['HUC12'][:8], axis=1)
 
@@ -47,7 +48,7 @@ cols = ['dams', 'connectedmiles']
 #     stats['states'][col] = level_stats[col].tolist()
 
 geo_join_lut = {
-    'state': 'NAME',
+    'states': 'NAME',
     'HUC2': 'HUC2',
     'HUC4': 'HUC4',
     'HUC8': 'HUC8',
@@ -58,7 +59,7 @@ geo_join_lut = {
 }
 
 # Group by state, HUC level, ecoregion level
-for unit in ('state', 'HUC2', 'HUC4', 'HUC8', 'Ecoregion1', 'Ecoregion2', 'Ecoregion3', 'Ecoregion4'):
+for unit in ('states', 'HUC2', 'HUC4', 'HUC8', 'Ecoregion1', 'Ecoregion2', 'Ecoregion3', 'Ecoregion4'):
     g = df.groupby(unit).agg(
         {"UniqueID": {"dams": "count"}, "AbsoluteGainMi": {"connectedmiles": "mean"}})
     g.to_csv(
