@@ -98,7 +98,7 @@ class Map extends React.Component {
 
             if (view === "summary") {
                 // this.addSummaryLayers("HUC2", "dams")
-                this.addSummaryLayers("HUC4", "dams")
+                this.addSummaryLayers("HUC4", "dams", { HUC2: "03" })
             }
 
             if (location) {
@@ -112,9 +112,18 @@ class Map extends React.Component {
         })
     }
 
-    addSummaryLayers = (unit, metric) => {
+    addSummaryLayers = (unit, metric, filters = null) => {
         // unit: states, HUC2, HUC4, etc
         // metric: dams, connectedmiles
+        // filters: null or object of key: value pairs.
+
+        let filter = [">", metric, 0]
+        if (filters) {
+            const expressions = Object.entries(filters).map(([k, v]) => ["==", k, v])
+            // filter = ["all", filter, ...expressions]
+            filter = ["all", filter, ...expressions]
+        }
+        console.log(filter)
 
         const colors = mapColorsToRange(COUNT_COLORS, summaryStats[unit][metric])
         this.map.addLayer({
@@ -127,8 +136,7 @@ class Map extends React.Component {
                 "fill-opacity": 0.6,
                 "fill-color": ["interpolate", ["linear"], ["get", metric], ...colors]
             },
-            // Filter any units for which we do not have data
-            filter: [">", metric, 0]
+            filter
         })
 
         this.map.addLayer({
@@ -141,7 +149,7 @@ class Map extends React.Component {
                 "line-opacity": 0.8,
                 "line-color": "#AAAAAA"
             },
-            filter: [">", metric, 0]
+            filter
         })
 
         // this.map.addLayer({
@@ -158,7 +166,7 @@ class Map extends React.Component {
         //         "circle-stroke-width": 2,
         //         "circle-radius": 30
         //     },
-        //     filter: [">", metric, 0]
+        //     filter
         // })
 
         this.map.addLayer({
@@ -174,7 +182,7 @@ class Map extends React.Component {
                 "text-halo-color": "#FFF",
                 "text-halo-width": 2
             },
-            filter: [">", metric, 0]
+            filter
         })
     }
 
