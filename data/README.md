@@ -138,15 +138,15 @@ tippecanoe -f -Z 4 -z 12 -l ecoregion4 -o ../../tiles/sarp_ecoregion4.mbtiles  -
 Centroids are extracted using `extract_centroids.py`.
 
 ```
-tippecanoe -f -B 0 -z 4 -l states_centroids -o ../../tiles/sarp_states_centroids.mbtiles -y NAME sarp_states_centroids.csv
-tippecanoe -f -B 0 -z 4 -l HUC2_centroids -o ../../tiles/sarp_HUC2_centroids.mbtiles  -T HUC2:string -y HUC2 sarp_HUC2_centroids.csv
-tippecanoe -f -B 0 -z 6 -l HUC4_centroids -o ../../tiles/sarp_HUC4_centroids.mbtiles  -T HUC4:string -y HUC4 sarp_HUC4_centroids.csv
-tippecanoe -f -B 4 -Z 4 -z 8 -l HUC8_centroids -o ../../tiles/sarp_HUC8_centroids.mbtiles  -T HUC8:string -y HUC8 sarp_HUC8_centroids.csv
+tippecanoe -f -B 0 -z 4 -l states_centroids -o ../../tiles/sarp_states_centroids.mbtiles sarp_states_centroids.csv
+tippecanoe -f -B 0 -z 4 -l HUC2_centroids -o ../../tiles/sarp_HUC2_centroids.mbtiles  -T HUC2:string sarp_HUC2_centroids.csv
+tippecanoe -f -B 0 -z 6 -l HUC4_centroids -o ../../tiles/sarp_HUC4_centroids.mbtiles  -T HUC4:string sarp_HUC4_centroids.csv
+tippecanoe -f -B 4 -Z 4 -z 8 -l HUC8_centroids -o ../../tiles/sarp_HUC8_centroids.mbtiles  -T HUC8:string sarp_HUC8_centroids.csv
 
-tippecanoe -f -B 0 -z 4 -l ecoregion1_centroids -o ../../tiles/sarp_ecoregion1_centroids.mbtiles  -T NA_L1CODE:string -y NA_L1CODE sarp_ecoregion1_centroids.csv
-tippecanoe -f -B 0 -z 4 -l ecoregion2_centroids -o ../../tiles/sarp_ecoregion2_centroids.mbtiles  -T NA_L2CODE:string -y NA_L2CODE sarp_ecoregion2_centroids.csv
-tippecanoe -f -B 0 -z 6 -l ecoregion3_centroids -o ../../tiles/sarp_ecoregion3_centroids.mbtiles  -T NA_L3CODE:string -y NA_L3CODE sarp_ecoregion3_centroids.csv
-tippecanoe -f -B 4 -Z 4 -z 10 -l ecoregion4_centroids -o ../../tiles/sarp_ecoregion4_centroids.mbtiles  -T L4_KEY:string -y L4_KEY sarp_ecoregion4_centroids.csv
+tippecanoe -f -B 0 -z 4 -l ecoregion1_centroids -o ../../tiles/sarp_ecoregion1_centroids.mbtiles  -T NA_L1CODE:string sarp_ecoregion1_centroids.csv
+tippecanoe -f -B 0 -z 4 -l ecoregion2_centroids -o ../../tiles/sarp_ecoregion2_centroids.mbtiles  -T NA_L2CODE:string sarp_ecoregion2_centroids.csv
+tippecanoe -f -B 0 -z 6 -l ecoregion3_centroids -o ../../tiles/sarp_ecoregion3_centroids.mbtiles  -T NA_L3CODE:string sarp_ecoregion3_centroids.csv
+tippecanoe -f -B 4 -Z 4 -z 10 -l ecoregion4_centroids -o ../../tiles/sarp_ecoregion4_centroids.mbtiles  -T L4_KEY:string sarp_ecoregion4_centroids.csv
 ```
 
 ### Add summaries and join tiles together

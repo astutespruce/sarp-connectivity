@@ -10,7 +10,7 @@ units = (
     "ecoregion2",
     "ecoregion3",
     "ecoregion4",
-)  # TODO: 'HUC8',
+)
 
 field_lut = {
     "states": "NAME",
@@ -39,9 +39,12 @@ for unit in units:
         .to_crs({"init": "EPSG:4326"})
     )
     df["center"] = df.apply(lambda row: row.bnd.centroid, axis=1)
+    df["bbox"] = df.apply(
+        lambda row: "[{}]".format(",".join(["{:.2f}".format(x) for x in row.bnd.bounds])), axis=1
+    )
     df["x"] = df.apply(lambda row: row.center.x, axis=1)
     df["y"] = df.apply(lambda row: row.center.y, axis=1)
 
-    df[["x", "y"]].to_csv(
+    df[["x", "y", "bbox"]].to_csv(
         "data/src/sarp_{}_centroids.csv".format(unit), header=True, index_label=field
     )

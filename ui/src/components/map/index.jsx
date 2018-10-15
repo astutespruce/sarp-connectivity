@@ -6,7 +6,10 @@ import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
 
 import { mapColorsToRange } from "../../utils/colors"
-import summaryStats from "../../config/summary_stats.json"
+import summaryStats from "../../data/summary_stats.json"
+import units from "../../data/units.json"
+
+console.log(units)
 
 // TODO: change to one for this account
 mapboxgl.accessToken = "pk.eyJ1IjoiYmN3YXJkIiwiYSI6InJ5NzUxQzAifQ.CVyzbyOpnStfYUQ_6r8AgQ"
@@ -97,8 +100,8 @@ class Map extends React.Component {
             // })
 
             if (view === "summary") {
-                // this.addSummaryLayers("HUC2", "dams")
-                this.addSummaryLayers("HUC4", "dams", { HUC2: "03" })
+                this.addSummaryLayers("HUC2", "dams")
+                // this.addSummaryLayers("HUC4", "dams", { HUC2: "03" })
             }
 
             if (location) {
@@ -109,6 +112,12 @@ class Map extends React.Component {
             // this is here to give the styles time to load on the page and set the dimensions for
             // the map container
             map.resize()
+        })
+
+        map.on("click", e => {
+            // must query against a fill feature; poly outline doesn't work
+            const features = map.queryRenderedFeatures(e.point, { layers: ["HUC2-dams-fill"] })
+            console.log(features)
         })
     }
 
@@ -123,7 +132,6 @@ class Map extends React.Component {
             // filter = ["all", filter, ...expressions]
             filter = ["all", filter, ...expressions]
         }
-        console.log(filter)
 
         const colors = mapColorsToRange(COUNT_COLORS, summaryStats[unit][metric])
         this.map.addLayer({
@@ -140,7 +148,7 @@ class Map extends React.Component {
         })
 
         this.map.addLayer({
-            id: `${unit}-${metric}-outline`,
+            id: `${unit}-outline`,
             source: "sarp",
             "source-layer": unit,
             type: "line",
