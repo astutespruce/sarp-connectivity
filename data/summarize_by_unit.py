@@ -98,7 +98,7 @@ for unit in (
         stats[unit][col] = level_stats[col].tolist()
 
 
-with open("ui/src/config/summary_stats.json", "w") as outfile:
+with open("ui/src/data/summary_stats.json", "w") as outfile:
     outfile.write(json.dumps(stats))
 
 

@@ -35,25 +35,25 @@ for unit in units:
     dtype = {field: "str"}
     summary_df = pd.read_csv("data/summary/{}.csv".format(unit), dtype=dtype).set_index(
         field
-    )
+    )[["dams", "connectedmiles"]]
     summary_df["connectedmiles"] = summary_df.apply(
         lambda row: round(row.connectedmiles, 2), axis=1
     )
+    summary_df["id"] = summary_df.index
 
     geo_df = pd.read_csv(
         "data/src/sarp_{}_centroids.csv".format(unit), dtype=dtype
     ).set_index(field)
 
-    # TODO: convert x, y into a single column
-    geo_df["x"] = geo_df.apply(lambda row: round(row.x, 5), axis=1)
-    geo_df["y"] = geo_df.apply(lambda row: round(row.y, 5), axis=1)
+    geo_df["center"] = geo_df.apply(
+        lambda row: [round(row.x, 5), round(row.y, 5)], axis=1
+    )
     geo_df["bbox"] = geo_df.apply(lambda row: json.loads(row.bbox), axis=1)
 
-    df = summary_df.join(geo_df, how="inner")
+    df = summary_df.join(geo_df[["center", "bbox"]], how="inner")
     # df.to_csv("ui/src/data/{}.csv".format(unit))
 
-    data[unit] = df.to_dict()
+    data[unit] = df.to_dict(orient="records")
 
 with open("ui/src/data/units.json", "w") as out:
     out.write(json.dumps(data))
-

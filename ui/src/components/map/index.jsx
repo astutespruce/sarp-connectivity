@@ -1,20 +1,22 @@
 import React from "react"
 import PropTypes from "prop-types"
+import ImmutablePropTypes from "react-immutable-proptypes"
+import { connect } from "react-redux"
 // import { fromJS, is } from 'immutable'
 import geoViewport from "@mapbox/geo-viewport"
 import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
 
+import * as actions from "../../actions"
 import { mapColorsToRange } from "../../utils/colors"
-import summaryStats from "../../data/summary_stats.json"
-import units from "../../data/units.json"
+import { LabelPointPropType } from "../../CustomPropTypes"
+import { labelsToGeoJSON } from "../../utils/geojson"
 
-console.log(units)
+import summaryStats from "../../data/summary_stats.json"
 
 // TODO: change to one for this account
 mapboxgl.accessToken = "pk.eyJ1IjoiYmN3YXJkIiwiYSI6InJ5NzUxQzAifQ.CVyzbyOpnStfYUQ_6r8AgQ"
 
-const SARP_BOUNDS = [-106.645646, 17.623468, -64.512674, 40.61364]
 const TILE_HOST = process.env.NODE_ENV === "production" ? "http://34.237.24.48:8000" : "http://localhost:8000"
 // from lowest to highest count, just setup a linear interpolation in that range and find 3 interior breaks
 const COUNT_COLORS = ["#fef0d9", "#fdcc8a", "#fc8d59", "#e34a33", "#b30000"]
@@ -35,19 +37,21 @@ class Map extends React.Component {
         const {
             view,
             bounds,
+            labels,
             // layers,
-            location
+            location,
+            setUnit
         } = this.props
 
         const { mapContainer } = this
-        let center = [-87.69692774001089, 31.845649246524772]
+        let center = [-87.69692774001089, 31.845649246524772] // approx center of SARP
         let zoom = 4
 
         // If bounds are available, use these to establish center and zoom when map first
         // boots, then fit the bounds more specifically later
-        if (bounds && bounds.length) {
+        if (bounds && bounds) {
             const { offsetWidth: width, offsetHeight: height } = mapContainer
-            const viewport = geoViewport.viewport(bounds, [width, height], undefined, undefined, undefined, true)
+            const viewport = geoViewport.viewport(bounds.toJS(), [width, height], undefined, undefined, undefined, true)
             // Zoom out slightly to pad around bounds
             zoom = Math.max(viewport.zoom - 1, 0) * 0.99
             /* eslint-disable prefer-destructuring */
@@ -65,7 +69,6 @@ class Map extends React.Component {
         window.map = map
 
         map.addControl(new mapboxgl.NavigationControl(), "top-right")
-        // map.setLayerVisibility = this.setLayerVisibility
 
         map.on("load", () => {
             map.addSource("sarp", {
@@ -73,34 +76,38 @@ class Map extends React.Component {
                 maxzoom: 8,
                 tiles: [`${TILE_HOST}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`]
             })
-            // map.addLayer({
-            //     id: "mask",
-            //     source: "sarp",
-            //     "source-layer": "mask",
-            //     type: "fill",
-            //     layout: {},
-            //     paint: {
-            //         "fill-opacity": 0.6,
-            //         "fill-color": "#FFFFFF"
-            //     }
-            // })
-            // map.addLayer({
-            //     id: "boundary",
-            //     source: "sarp",
-            //     "source-layer": "boundary",
-            //     type: "line",
-            //     layout: {
-            //         visibility: view === "priority" ? "visible" : "none"
-            //     },
-            //     paint: {
-            //         "line-opacity": 0.8,
-            //         "line-width": 2,
-            //         "line-color": "#AAA"
-            //     }
-            // })
+
+            // Initially the mask and boundary are visible
+            map.addLayer({
+                id: "mask",
+                source: "sarp",
+                "source-layer": "mask",
+                type: "fill",
+                layout: {},
+                paint: {
+                    "fill-opacity": 0.6,
+                    "fill-color": "#FFFFFF"
+                }
+            })
+            map.addLayer({
+                id: "boundary",
+                source: "sarp",
+                "source-layer": "boundary",
+                type: "line",
+                layout: {
+                    // visibility: view === "priority" ? "visible" : "none"
+                },
+                paint: {
+                    "line-opacity": 0.8,
+                    "line-width": 2,
+                    "line-color": "#AAA"
+                }
+            })
 
             if (view === "summary") {
-                this.addSummaryLayers("HUC2", "dams")
+                this.addLabelLayer(labels)
+                this.addUnitLayers()
+                // this.addSummaryLayers("HUC2", "dams")
                 // this.addSummaryLayers("HUC4", "dams", { HUC2: "03" })
             }
 
@@ -115,9 +122,122 @@ class Map extends React.Component {
         })
 
         map.on("click", e => {
+            if (this.props.system === null) return
+
+            const unit = `${this.props.system}${this.props.level}`
+            const layerID = `${unit}-fill`
             // must query against a fill feature; poly outline doesn't work
-            const features = map.queryRenderedFeatures(e.point, { layers: ["HUC2-dams-fill"] })
+            const features = map.queryRenderedFeatures(e.point, { layers: [layerID] })
             console.log(features)
+
+            if (features.length > 0) {
+                setUnit(features[0].properties[unit])
+            }
+        })
+    }
+
+    componentDidUpdate(prevProps) {
+        console.log("component did update", this.props, prevProps)
+        // const { bounds, labels } = this.props
+        // const { prevBounds, prevLabels } = prevProps
+
+        const { bounds: prevBounds, system: prevSystem, level: prevLevel } = prevProps
+        const { bounds, system, level } = this.props
+
+        // TODO: immutable comparison
+        console.log("new bounds", bounds.toJS(), prevBounds.toJS())
+        if (!bounds.equals(prevBounds)) {
+            console.log("new bounds", bounds.toJS())
+            this.map.fitBounds(bounds.toJS(), { padding: 50 })
+        }
+
+        // TODO: update displayed units]
+
+        const prevLayerID = `${prevSystem}${prevLevel}`
+        const layerID = `${system}${level}`
+
+        if (prevLayerID !== layerID) {
+            if (prevSystem !== null) {
+                this.map.setLayoutProperty(`${prevLayerID}-fill`, "visibility", "none")
+                this.map.setLayoutProperty(`${prevLayerID}-outline`, "visibility", "none")
+            }
+
+            this.map.setLayoutProperty(`${layerID}-fill`, "visibility", "visible")
+            this.map.setLayoutProperty(`${layerID}-outline`, "visibility", "visible")
+        }
+    }
+
+    addLabelLayer = labels => {
+        console.log(labels)
+        const data = labelsToGeoJSON(labels)
+        console.log(data)
+        this.map.addLayer({
+            id: "labels-circle",
+            source: {
+                type: "geojson",
+                data
+            },
+            type: "circle",
+            layout: {},
+            paint: {
+                "circle-opacity": 0.4,
+                "circle-color": "#FFF",
+                "circle-stroke-color": "#AAA",
+                "circle-stroke-width": 2,
+                "circle-radius": 30
+            }
+        })
+
+        this.map.addLayer({
+            id: "labels-text",
+            type: "symbol",
+            source: {
+                type: "geojson",
+                data
+            },
+            layout: {
+                "text-field": ["get", "label"]
+            },
+            paint: {
+                "text-color": "#333",
+                "text-halo-color": "#FFF",
+                "text-halo-width": 2
+            }
+        })
+    }
+
+    addUnitLayers = () => {
+        // add all unit layers, but make them hidden initially
+        const units = ["states", "HUC2", "HUC4", "HUC8", "ecoregion1", "ecoregion2", "ecoregion3", "ecoregion4"]
+
+        units.forEach(unit => {
+            this.map.addLayer({
+                id: `${unit}-fill`,
+                source: "sarp",
+                "source-layer": unit,
+                type: "fill",
+                layout: {
+                    visibility: "none"
+                },
+                paint: {
+                    "fill-opacity": 0.6,
+                    "fill-color": "#FFF"
+                }
+            })
+            this.map.addLayer({
+                id: `${unit}-outline`,
+                source: "sarp",
+                "source-layer": unit,
+                type: "line",
+                layout: {
+                    visibility: "none"
+                },
+                paint: {
+                    "line-opacity": 0.6,
+                    "line-width": 2,
+                    "line-color": "#AAA"
+                }
+            })
         })
     }
 
@@ -222,8 +342,12 @@ class Map extends React.Component {
 
 Map.propTypes = {
     view: PropTypes.string.isRequired, // summary, priority
+    system: PropTypes.string,
+    level: PropTypes.number,
+    labels: PropTypes.arrayOf(LabelPointPropType),
+    setUnit: PropTypes.func.isRequired,
 
-    bounds: PropTypes.arrayOf(PropTypes.number), // example: [-180, -86, 180, 86]
+    bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
     // layers: PropTypes.arrayOf(DatasetPropType),
     location: PropTypes.shape({
         latitude: PropTypes.number.isRequired,
@@ -232,12 +356,26 @@ Map.propTypes = {
 }
 
 Map.defaultProps = {
-    bounds: SARP_BOUNDS,
+    bounds: null,
+    system: null,
+    level: null,
+    labels: [],
     // layers: [],
     location: null
 }
 
-export default Map
+const mapStateToProps = state => ({
+    bounds: state.get("bounds"),
+    system: state.get("system"),
+    level: state.get("level"),
+    unit: state.get("unit"),
+    labels: state.get("labels")
+})
+
+export default connect(
+    mapStateToProps,
+    actions
+)(Map)
 
 // TODO: things cut out of above
 

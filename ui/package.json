@@ -17,6 +17,7 @@
         "react": "^16.5.2",
         "react-dom": "^16.5.2",
         "react-ga": "^2.5.3",
+        "react-immutable-proptypes": "^2.1.0",
         "react-redux": "^5.0.7",
         "react-router": "^4.3.1",
         "react-router-dom": "^4.3.1",
