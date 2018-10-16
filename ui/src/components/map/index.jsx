@@ -105,8 +105,8 @@ class Map extends React.Component {
             })
 
             if (view === "summary") {
-                this.addLabelLayer(labels)
                 this.addUnitLayers()
+                this.addLabelLayer(labels.toJS())
                 // this.addSummaryLayers("HUC2", "dams")
                 // this.addSummaryLayers("HUC4", "dams", { HUC2: "03" })
             }
@@ -128,7 +128,7 @@ class Map extends React.Component {
             const layerID = `${unit}-fill`
             // must query against a fill feature; poly outline doesn't work
             const features = map.queryRenderedFeatures(e.point, { layers: [layerID] })
-            console.log(features)
+            console.log("click features", features)
 
             if (features.length > 0) {
                 setUnit(features[0].properties[unit])
@@ -141,42 +141,50 @@ class Map extends React.Component {
         // const { bounds, labels } = this.props
         // const { prevBounds, prevLabels } = prevProps
 
+        const { map } = this
         const { bounds: prevBounds, system: prevSystem, level: prevLevel } = prevProps
-        const { bounds, system, level } = this.props
+        const { bounds, system, level, labels } = this.props
 
         // TODO: immutable comparison
         console.log("new bounds", bounds.toJS(), prevBounds.toJS())
         if (!bounds.equals(prevBounds)) {
-            console.log("new bounds", bounds.toJS())
-            this.map.fitBounds(bounds.toJS(), { padding: 50 })
+            map.fitBounds(bounds.toJS(), { padding: 50 })
         }
 
         // TODO: update displayed units]
 
-        const prevLayerID = `${prevSystem}${prevLevel}`
-        const layerID = `${system}${level}`
-
-        if (prevLayerID !== layerID) {
+        if (level !== prevLevel) {
+            // toogle layer visibility to show these units
             if (prevSystem !== null) {
-                this.map.setLayoutProperty(`${prevLayerID}-fill`, "visibility", "none")
-                this.map.setLayoutProperty(`${prevLayerID}-outline`, "visibility", "none")
+                map.setLayoutProperty(`${prevLevel}-fill`, "visibility", "none")
+                map.setLayoutProperty(`${prevLevel}-outline`, "visibility", "none")
             }
 
-            this.map.setLayoutProperty(`${layerID}-fill`, "visibility", "visible")
-            this.map.setLayoutProperty(`${layerID}-outline`, "visibility", "visible")
+            if (system !== null) {
+                map.setLayoutProperty(`${level}-fill`, "visibility", "visible")
+                map.setLayoutProperty(`${level}-outline`, "visibility", "visible")
+            }
+
+            // update labels
+            console.log("labels", labels, labels.toJS())
+            map.getSource("unit-labels").setData(labelsToGeoJSON(labels.toJS()))
         }
     }
 
     addLabelLayer = labels => {
-        console.log(labels)
+        console.log("labels", labels)
+
+        const { map } = this
         const data = labelsToGeoJSON(labels)
-        console.log(data)
-        this.map.addLayer({
-            id: "labels-circle",
-            source: {
-                type: "geojson",
-                data
-            },
+
+        map.addSource("unit-labels", {
+            type: "geojson",
+            data
+        })
+
+        map.addLayer({
+            id: "unit-labels-circle",
+            source: "unit-labels",
             type: "circle",
             layout: {},
             paint: {
@@ -188,13 +196,10 @@ class Map extends React.Component {
             }
         })
 
-        this.map.addLayer({
-            id: "labels-text",
+        map.addLayer({
+            id: "unit-labels-text",
             type: "symbol",
-            source: {
-                type: "geojson",
-                data
-            },
+            source: "unit-labels",
             layout: {
                 "text-field": ["get", "label"]
             },
@@ -210,8 +215,9 @@ class Map extends React.Component {
         // add all unit layers, but make them hidden initially
         const units = ["states", "HUC2", "HUC4", "HUC8", "ecoregion1", "ecoregion2", "ecoregion3", "ecoregion4"]
 
+        const { map } = this
         units.forEach(unit => {
-            this.map.addLayer({
+            map.addLayer({
                 id: `${unit}-fill`,
                 source: "sarp",
                 "source-layer": unit,
@@ -224,7 +230,7 @@ class Map extends React.Component {
                     "fill-color": "#FFF"
                 }
             })
-            this.map.addLayer({
+            map.addLayer({
                 id: `${unit}-outline`,
                 source: "sarp",
                 "source-layer": unit,
@@ -245,6 +251,7 @@ class Map extends React.Component {
         // unit: states, HUC2, HUC4, etc
         // metric: dams, connectedmiles
         // filters: null or object of key: value pairs.
+        const { map } = this
 
         let filter = [">", metric, 0]
         if (filters) {
@@ -254,7 +261,7 @@ class Map extends React.Component {
         }
 
         const colors = mapColorsToRange(COUNT_COLORS, summaryStats[unit][metric])
-        this.map.addLayer({
+        map.addLayer({
             id: `${unit}-${metric}-fill`,
             source: "sarp",
             "source-layer": unit,
@@ -267,7 +274,7 @@ class Map extends React.Component {
             filter
         })
 
-        this.map.addLayer({
+        map.addLayer({
             id: `${unit}-outline`,
             source: "sarp",
             "source-layer": unit,
@@ -280,7 +287,7 @@ class Map extends React.Component {
             filter
         })
 
-        // this.map.addLayer({
+        // map.addLayer({
         //     id: `${unit}-${metric}-centroid`,
         //     source: "sarp",
         //     "source-layer": `${unit}_centroids`,
@@ -297,7 +304,7 @@ class Map extends React.Component {
         //     filter
         // })
 
-        this.map.addLayer({
+        map.addLayer({
             id: `${unit}-${metric}-label`,
             source: "sarp",
             "source-layer": `${unit}_centroids`,
@@ -343,8 +350,8 @@ class Map extends React.Component {
 Map.propTypes = {
     view: PropTypes.string.isRequired, // summary, priority
     system: PropTypes.string,
-    level: PropTypes.number,
-    labels: PropTypes.arrayOf(LabelPointPropType),
+    level: PropTypes.string,
+    labels: ImmutablePropTypes.listOf(LabelPointPropType),
     setUnit: PropTypes.func.isRequired,
 
     bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
@@ -376,155 +383,3 @@ export default connect(
     mapStateToProps,
     actions
 )(Map)
-
-// TODO: things cut out of above
-
-// static getDerivedStateFromProps(nextProps) {
-//     const {
-//         location, drawingGeometry, footprint, zoi
-//     } = nextProps
-//     return {
-//         location: fromJS(location),
-//     }
-// }
-
-// componentDidUpdate(prevProps, prevState) {
-//     // console.log('componentDidUpdate', prevState, this.state)
-//     // Use this function to update the state of the map object to the current state
-//     // of this component
-
-//     const {
-//         location, drawingGeometry, footprint, zoi
-//     } = this.state
-//     const {
-//         location: prevLocation,
-//         drawingGeometry: prevDrawingGeometry,
-//         footprint: prevFootprint,
-//         zoi: prevZOI
-//     } = prevState
-
-//     // Update the location marker if needed or remove it
-//     if (!is(location, prevLocation)) {
-//         this.setLocationMarker()
-//     }
-
-//     // Update drawing geometry
-//     if (!is(drawingGeometry, prevDrawingGeometry)) {
-//         this.setDrawingGeometry()
-//     }
-// }
-
-// TODO: enable this if we want animated markers
-// const addAnimatedLocationToMap = (map, { latitude, longitude }) => {
-//     map.addSource('location', {
-//         type: 'geojson',
-//         data: {
-//             type: 'Point',
-//             coordinates: [longitude, latitude]
-//         }
-//     })
-//     locationStyle.forEach(style => map.addLayer(style))
-
-//     // setup animation
-//     const framesPerSecond = 15
-//     const { 'circle-opacity': initialOpacity, 'circle-radius': initialRadius } = locationStyle[0].paint
-//     const maxRadius = 15
-
-//     let radius = initialRadius
-//     let opacity = initialOpacity
-//     let counter = 0
-//     // derived from: https://bl.ocks.org/danswick/2f72bc392b65e77f6a9c
-//     const animateMarker = () => {
-//         // TODO: store this timeout someplace so we can kill it later
-//         setTimeout(() => {
-//             requestAnimationFrame(animateMarker)
-//             counter++
-
-//             radius += (maxRadius - radius) / framesPerSecond
-//             opacity -= 0.9 / framesPerSecond
-//             opacity = Math.max(opacity, 0)
-
-//             map.setPaintProperty('location-point1', 'circle-radius', radius)
-//             map.setPaintProperty('location-point1', 'circle-opacity', opacity)
-
-//             // if (opacity <= 0) {
-//             if (counter >= framesPerSecond) {
-//                 counter = 0
-//                 radius = initialRadius
-//                 opacity = initialOpacity
-//             }
-//         }, 1000 / framesPerSecond)
-//     }
-//     animateMarker()
-// }
-
-// setLocationMarker = () => {
-//     const { location } = this.state
-
-//     if (location !== null) {
-//         const { latitude, longitude } = location.toObject()
-//         this.map.flyTo({ center: [longitude, latitude], zoom: 10 })
-
-//         if (!this.locationMarker) {
-//             this.locationMarker = new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(this.map)
-//         } else {
-//             this.locationMarker.setLngLat([longitude, latitude])
-//         }
-//     } else {
-//         this.locationMarker.remove()
-//         this.locationMarker = null
-//     }
-// }
-
-// addLayerToMap = (layer) => {
-//     // TODO: caller is responsible for setting next available color from palette if no
-//     // color is defined for dataset (requires state management in container)
-//     const { overlayStyle, minZoom, maxZoom } = layer
-//     const source = `layer-${layer.datasetId}`
-//     const options = {
-//         type: 'vector',
-//         tiles: [`${window.location.protocol}//${TILESERVER_HOST}/services/${layer.datasetId}/tiles/{z}/{x}/{y}.pbf`]
-//     }
-//     if (minZoom) {
-//         options.minzoom = minZoom
-//     }
-//     if (maxZoom) {
-//         options.maxzoom = maxZoom
-//     }
-//     this.map.addSource(source, options)
-
-//     console.log('adding layer', layer, `/services/${layer.datasetId}/tiles/{z}/{x}/{y}.pbf`)
-
-//     overlayStyle.forEach((style, i) => {
-//         this.map.addLayer(
-//             Object.assign(
-//                 {
-//                     id: `${source}-${i}`,
-//                     source,
-//                     'source-layer': 'data', // 'data' is hard-coded into vector tile creation pipeline
-//                     layout: {
-//                         visibility: !layer.hidden ? 'visible' : 'none'
-//                     }
-//                 },
-//                 style
-//             )
-//         )
-//     })
-// }
-
-// const colors = ["Texas", "#FF0000", "North Carolina", "#00FF00", "#FFF"]
-// map.addLayer({
-//     id: "states-fill",
-//     source: "states",
-//     "source-layer": "states",
-//     type: "fill",
-//     layout: {}, // TODO: set as not visible by default
-//     paint: {
-//         "fill-opacity": 0.6,
-//         "fill-color": [
-//             "match",
-//             ["get", "NAME"],
-//             ...colors
-//         ]
-//     }
-// })

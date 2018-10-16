@@ -6,13 +6,20 @@ import * as actions from "../../actions"
 import Map from "../Map"
 import Sidebar from "../Map/Sidebar"
 
-const Summary = ({ system, level, setSystem }) => (
+const Summary = ({ system, level, setSystem, goBack }) => (
     <React.Fragment>
         <Sidebar>
             {system !== null && (
-                <h3>
-                    Current system is: {system} {level}{" "}
-                </h3>
+                <React.Fragment>
+                    <div className="section">
+                        <button type="button" onClick={() => goBack()}>
+                            Go back
+                        </button>
+                    </div>
+                    <h3>
+                        Current system is: {system} {level}{" "}
+                    </h3>
+                </React.Fragment>
             )}
             {system === null && (
                 <React.Fragment>
@@ -39,8 +46,9 @@ const Summary = ({ system, level, setSystem }) => (
 
 Summary.propTypes = {
     system: PropTypes.string,
-    level: PropTypes.number,
-    setSystem: PropTypes.func.isRequired
+    level: PropTypes.string,
+    setSystem: PropTypes.func.isRequired,
+    goBack: PropTypes.func.isRequired
 }
 
 Summary.defaultProps = {

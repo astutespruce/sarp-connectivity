@@ -9,3 +9,8 @@ export const setUnit = unit => ({
     type: SET_UNIT,
     payload: { unit }
 })
+
+export const GO_BACK = "GO_BACK"
+export const goBack = () => ({
+    type: GO_BACK
+})
