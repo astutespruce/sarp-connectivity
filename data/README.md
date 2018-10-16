@@ -69,7 +69,7 @@ To HUC8 layer, added fields
 -   HUC4 = HUC8[:4]. Dissolved on this field: SARP_HUC4.shp
 -   HUC2 = HUC8[:2]. Dissolved on this field: SARP_HUC2.shp
 
-HUC8 has field issues that don't play nice with geopandas.  Drop nonessential fields:
+HUC8 has field issues that don't play nice with geopandas. Drop nonessential fields:
 `ogr2ogr sarp_huc8.shp -select HUC8 sarp_bounds.gdb SARP_HUC8_Albers`
 
 ## Create Other layers vector tiles
@@ -119,6 +119,7 @@ tippecanoe -f -Z 7 -z 12 -l HUC12 -o ../../tiles/sarp_huc12.mbtiles  -T HUC12:st
 ```
 
 Ecoregions:
+
 ```
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_ecoregion1_wgs84.json sarp_ecoregion1.shp
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_ecoregion2_wgs84.json sarp_ecoregion2.shp
@@ -131,9 +132,7 @@ tippecanoe -f -Z 3 -z 10 -l ecoregion3 -o ../../tiles/sarp_ecoregion3.mbtiles  -
 tippecanoe -f -Z 4 -z 12 -l ecoregion4 -o ../../tiles/sarp_ecoregion4.mbtiles  -T L4_KEY:string -y HUC4 sarp_ecoregion4_wgs84.json
 ```
 
-
-
-## Create centroids vector tiles (for labeling):
+## Create centroids vector tiles (for labeling) - OUTDATED, not needed anymore:
 
 Centroids are extracted using `extract_centroids.py`.
 
@@ -154,18 +153,19 @@ tippecanoe -f -B 4 -Z 4 -z 10 -l ecoregion4_centroids -o ../../tiles/sarp_ecoreg
 Summaries are created using summarize_by_unit.py
 
 ```
-tile-join -f -o sarp_states_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/state.csv sarp_states.mbtiles sarp_states_centroids.mbtiles
-tile-join -f -o sarp_huc2_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc2.csv sarp_huc2.mbtiles sarp_huc2_centroids.mbtiles
-tile-join -f -o sarp_huc4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc4.csv sarp_huc4.mbtiles sarp_huc4_centroids.mbtiles
-tile-join -f -o sarp_huc8_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc8.csv sarp_huc8.mbtiles sarp_huc8_centroids.mbtiles
+tile-join -f -o sarp_states_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/state.csv sarp_states.mbtiles
+tile-join -f -o sarp_huc2_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc2.csv sarp_huc2.mbtiles
+tile-join -f -o sarp_huc4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc4.csv sarp_huc4.mbtiles
+tile-join -f -o sarp_huc8_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc8.csv sarp_huc8.mbtiles
 
-tile-join -f -o sarp_ecoregion1_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ecoregion1.csv sarp_ecoregion1.mbtiles sarp_ecoregion1_centroids.mbtiles
-tile-join -f -o sarp_ecoregion2_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ecoregion2.csv sarp_ecoregion2.mbtiles sarp_ecoregion2_centroids.mbtiles
-tile-join -f -o sarp_ecoregion3_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ecoregion3.csv sarp_ecoregion3.mbtiles sarp_ecoregion3_centroids.mbtiles
-tile-join -f -o sarp_ecoregion4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ecoregion4.csv sarp_ecoregion4.mbtiles sarp_ecoregion4_centroids.mbtiles
+tile-join -f -o sarp_ecoregion1_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ecoregion1.csv sarp_ecoregion1.mbtiles
+tile-join -f -o sarp_ecoregion2_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ecoregion2.csv sarp_ecoregion2.mbtiles
+tile-join -f -o sarp_ecoregion3_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ecoregion3.csv sarp_ecoregion3.mbtiles
+tile-join -f -o sarp_ecoregion4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ecoregion4.csv sarp_ecoregion4.mbtiles
 ```
 
 Merge all tilesets together
+
 ```
-tile-join -f -o sarp_summary.mbtiles sarp_states_summary.mbtiles sarp_huc2_summary.mbtiles sarp_huc4_summary.mbtiles sarp_huc8_summary.mbtiles sarp_ecoregion1_summary.mbtiles sarp_ecoregion2_summary.mbtiles sarp_ecoregion3_summary.mbtiles sarp_ecoregion4_summary.mbtiles
+tile-join -f -o sarp_summary.mbtiles sarp_mask.mbtiles sarp_boundary.mbtiles sarp_states_summary.mbtiles sarp_huc2_summary.mbtiles sarp_huc4_summary.mbtiles sarp_huc8_summary.mbtiles sarp_ecoregion1_summary.mbtiles sarp_ecoregion2_summary.mbtiles sarp_ecoregion3_summary.mbtiles sarp_ecoregion4_summary.mbtiles
 ```

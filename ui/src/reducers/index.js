@@ -17,6 +17,7 @@ Object.entries(data).forEach(([key, records]) => {
 index = fromJS(index)
 
 const SYSTEM_LEVELS = {
+    sarp: [0],
     states: [0],
     HUC: [2, 4, 8],
     ecoregion: [1, 2, 3, 4]
@@ -24,40 +25,45 @@ const SYSTEM_LEVELS = {
 
 // TODO: migrate this into units.json instead
 const SARPBounds = List([-106.645646, 17.623468, -64.512674, 40.61364])
-const SARPLabelPoint = {
-    point: [-87.69692774001089, 31.845649246524772],
-    label: data.states.reduce((out, record) => out + record.dams, 0)
-}
+const SARPLabelPoint = fromJS([
+    {
+        point: [-87.69692774001089, 31.845649246524772],
+        label: data.states.reduce((out, record) => out + record.dams, 0)
+    }
+])
+
+const getLabels = d => ({
+    point: d.get("center").toJS(),
+    label: d.get("dams")
+})
 
 const initialState = Map({
     bounds: SARPBounds, // SARP bounds
     prevBounds: List(), // push previous bounds here
     index,
     system: null, // HUC, ecoregion, state. null means SARP bounds
-    level: null, // HUC: 2,4,8; Ecoregion1-4
     levelIndex: null, // index of level within system
+    level: null, // HUC: 2,4,8; Ecoregion1-4, states, sarp
+    childLevel: null,
     unit: null, // selected unit ID
     parentUnit: null, // larger unit in system that contains current unit
-    labels: List([SARPLabelPoint])
+    labels: SARPLabelPoint
 })
 
 export const reducer = (state = initialState, { type, payload = {} }) => {
     switch (type) {
         case SET_SYSTEM: {
             const { system } = payload
+            const levels = SYSTEM_LEVELS[system]
             const levelIndex = 0
-            const level = `${system}${SYSTEM_LEVELS[system][levelIndex]}`
-
-            const units = index.get(level)
-            const labels = Array.from(units.values(), d => ({
-                point: d.get("center").toJS(),
-                label: d.get("dams")
-            }))
+            const level = `${system}${levels[levelIndex]}`
+            const labels = Array.from(index.get(level).values(), getLabels)
 
             return state.merge({
                 system,
                 level,
                 levelIndex,
+                childLevel: levelIndex < levels.length - 1 ? `${system}${levels[levelIndex + 1]}` : null,
                 labels
             })
         }
@@ -66,12 +72,18 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
 
             if (payload.unit === null) {
                 // setting unit to null means reset, so go to previous bounds or full bounds?
+                // stay at same level
                 return state.merge({
                     unit: null,
                     bounds: prevBounds.last(SARPBounds),
-                    prevBounds: prevBounds.pop(),
-                    labels: List([SARPLabelPoint])
+                    prevBounds: prevBounds.pop()
                 })
+            }
+
+            // We are at the same level, but a different unit; we only want to store
+            // bounds for the last selected unit at this level
+            if (state.get("unit") !== null) {
+                prevBounds.pop()
             }
 
             return state.merge({
@@ -82,6 +94,29 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
                     .get("bbox"),
                 prevBounds: prevBounds.push(state.get("bounds"))
             })
+
+            // const system = state.get("system")
+            // let levelIndex = state.get("levelIndex")
+            // console.log(
+            //     "cur level",
+            //     `${system}${SYSTEM_LEVELS[system][levelIndex]}`,
+            //     levelIndex,
+            //     SYSTEM_LEVELS[system].length
+            // )
+
+            // // move up to the next level
+            // if (levelIndex < SYSTEM_LEVELS[system].length - 1) {
+            //     levelIndex += 1
+            //     const level = `${system}${SYSTEM_LEVELS[system][levelIndex]}`
+
+            //     newState = newState.merge({
+            //         levelIndex,
+            //         level
+            //         // labels: Array.from(index.get(level).values(), getLabels)
+            //     })
+            // }
+
+            // return newState
         }
         case GO_BACK: {
             const system = state.get("system")
@@ -96,15 +131,16 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
                     system: null,
                     level: null,
                     levelIndex: null,
+                    childLevel: null,
+                    unit: null,
                     bounds: SARPBounds,
                     prevBounds: List(),
-                    labels: List([SARPLabelPoint])
+                    labels: SARPLabelPoint
                 })
             }
 
-            // TODO: get labels for prev level
-
             return state.merge({
+                unit: null,
                 level: SYSTEM_LEVELS[levelIndex - 1],
                 levelIndex: levelIndex - 1,
                 bounds: prevBounds.last(SARPBounds),

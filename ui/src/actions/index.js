@@ -4,6 +4,12 @@ export const setSystem = system => ({
     payload: { system }
 })
 
+export const SET_LEVEL = 'SET_LEVEL'
+export const setLevel = level => ({
+    type: SET_LEVEL,
+    payload: { level }
+})
+
 export const SET_UNIT = "SET_UNIT"
 export const setUnit = unit => ({
     type: SET_UNIT,
