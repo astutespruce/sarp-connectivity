@@ -8,7 +8,14 @@ import geopandas as gp
 # TODO: derive other HUCs from HUC12 if they don't already exist
 df = pd.read_csv(
     "data/src/sarp_dams.csv",
-    dtype={"HUC12": str, "HUC8": str, "HUC4": str, "Ecoregion3": str},
+    dtype={
+        "HUC12": str,
+        # "HUC8": str, # now calculated in this script
+        # "HUC4": str,
+        # "HUC2": str,
+        "Ecoregion3": str,
+        "Ecoregion4": str,
+    },
 )
 
 # Lookup state domain codes to state names
@@ -18,16 +25,12 @@ df = df.drop("State", axis=1).rename(columns={"StateName": "states"})
 
 # Calculate any HUC codes that are missing
 # TODO: fix missing HUC12s, for now, just filter them out
+# For now, that should just mean that one dam is filtered out
 df = df[df["HUC12"].notnull()].copy()
 
-cols = set(df.columns)
-if "HUC2" not in cols:
-    df["HUC2"] = df.apply(lambda row: row["HUC12"][:2], axis=1)
-# if 'HUC4' not in cols:
-# HUC4 had issues, make it right
+df["HUC2"] = df.apply(lambda row: row["HUC12"][:2], axis=1)
 df["HUC4"] = df.apply(lambda row: row["HUC12"][:4], axis=1)
-# if 'HUC8' not in cols:
-#     df['HUC8'] = df.apply(lambda row: row['HUC12'][:8], axis=1)
+df["HUC8"] = df.apply(lambda row: row["HUC12"][:8], axis=1)
 
 df["Ecoregion1"] = df.apply(
     lambda row: row["Ecoregion3"].split(".")[0]

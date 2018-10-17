@@ -18,28 +18,19 @@ ogr2ogr -f CSV sarp_dams.csv Dams_WebViewer.gdb Dam_Inventory_AllDams_Metrics_Dr
 
 To convert dams to mbtiles:
 
-1. First convert to GeoJSON (use WGS84):
+1. First convert to CSV and preprocess
+Using `preprocess_data.py`
+
+2. Then convert CSV to MBTiles:
+TODO: only include the attributes actually needed for the mbtiles file.
 
 ```
-ogr2ogr -f GeoJSON -t_srs EPSG:4326 sarp_dams.json Dams_WebViewer.gdb Dam_Inventory_AllDams_Metrics_Draft_Two_08172018
+tippecanoe -f -Bg -o ../../tiles/sarp_dams_full.mbtiles -n "SARP Dams" -A "SARP" -N "SARP Dams" sarp_dams.csv
 ```
 
-TODO: investigate using CSV instead of GeoJSON so that we can manage attributes. Already contains x,y fields with long,lat
+TODO: tune tile creation / base zoom & reduce rate. Right now guesses base zoom of 5
+TODO: revisit clustering: https://github.com/mapbox/tippecanoe#clustered-points-world-cities-summing-the-clustered-population-visible-at-all-zoom-levels
 
-2. Then convert GeoJSON to MBTiles:
-   TODO: tune tile creation / base zoom & reduce rate. Right now guesses base zoom of 5
-   TODO: revisit clustering: https://github.com/mapbox/tippecanoe#clustered-points-world-cities-summing-the-clustered-population-visible-at-all-zoom-levels
-   TODO: refine included attributes
-
-Include select attributes that will be used to join to other info:
-UniqueID,State,HUC12,Ecoregion4,Ecoregion3
-
-Consider adding:
-River,Height,PurposeCategory,<other domain fields>
-
-```
-tippecanoe -Bg -o ../../tiles/sarp_dams.mbtiles -n "SARP Dams" -A "SARP" -N "SARP Dams" -y UniqueID -y State -y HUC12 -y Ecoregion4 -y Ecoregion3 sarp_dams.json
-```
 
 ## Ecoregions
 
