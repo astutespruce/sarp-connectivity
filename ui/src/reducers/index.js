@@ -20,7 +20,7 @@ window.index = index
 const SYSTEM_LEVELS = {
     sarp: [0],
     states: [0],
-    HUC: [2, 4, 8],
+    HUC: [4, 8],
     ecoregion: [2, 3, 4]
 }
 

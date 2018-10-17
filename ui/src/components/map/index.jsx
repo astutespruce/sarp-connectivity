@@ -129,9 +129,34 @@ class Map extends React.Component {
             if (view === "summary") {
                 this.addUnitLayers()
                 // this.addLabelLayer(labels.toJS())
+            }
 
-                // this.addSummaryLayers("HUC2", "dams")
-                // this.addSummaryLayers("HUC4", "dams", { HUC2: "03" })
+            if (view === "priority") {
+                map.addSource("dams", {
+                    type: "vector",
+                    tiles: [`${TILE_HOST}/services/sarp_dams/tiles/{z}/{x}/{y}.pbf`],
+                    maxzoom: 14
+                })
+                map.addLayer({
+                    id: "dams-heatmap",
+                    source: "dams",
+                    "source-layer": "sarp_dams",
+                    type: "heatmap",
+                    paint: {
+                        "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1, 9, 3],
+                        "heatmap-color": [
+                            "interpolate",
+                            ["linear"],
+                            ["heatmap-density"],
+                            0,
+                            "rgba(255,215, 215,0)",
+                            1,
+                            "rgb(178,24,43)"
+                        ],
+                        "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 4, 2, 9, 8],
+                        "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 1, 9, 0]
+                    }
+                })
             }
 
             if (location) {
@@ -186,7 +211,7 @@ class Map extends React.Component {
         const unitIDField = FEATURE_ID_FIELD[level]
 
         if (!bounds.equals(prevBounds)) {
-            map.fitBounds(bounds.toJS(), { padding: 50 })
+            map.fitBounds(bounds.toJS(), { padding: 10 })
         }
 
         const prevFillID = `${prevLevel}-fill`
@@ -227,9 +252,13 @@ class Map extends React.Component {
         if (level !== null) {
             let records = []
             if (unit !== null && childLevel !== null) {
+                console.log("info", level, childLevel, unit)
                 records = Array.from(index.get(childLevel).values(), d => ({
                     id: d.get("id"),
-                    parentId: getParentId(system, d.get("id")),
+                    parentId:
+                        level === "HUC4"
+                            ? getParentId(system, getParentId(system, d.get("id")))
+                            : getParentId(system, d.get("id")),
                     dams: d.get("dams")
                 }))
                 records = records.filter(d => d.parentId === unit)
