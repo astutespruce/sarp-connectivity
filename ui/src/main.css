@@ -239,3 +239,32 @@ footer a {
     top: 0;
     bottom: 0;
 }
+
+#Legend {
+    padding: 10px;
+    background: white;
+    position: absolute;
+    bottom: 24px;
+    right: 10px;
+    border-radius: 6px;
+    box-shadow: 1px 1px 8px #333;
+    z-index: 2000;
+}
+
+.legend-patch {
+    width: 20px;
+    height:8px;
+    box-shadow: 1px 1px 4px #aaa;
+}
+.legend-patch:first-child {
+    border-radius: 3px 3px 0 0;
+}
+.legend-patch:last-child {
+    border-radius: 0 0 3px 3px;
+}
+
+.legend-label {
+    margin-left: 10px;
+    line-height: 1;
+    color: #666;
+}

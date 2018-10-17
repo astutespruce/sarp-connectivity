@@ -5,6 +5,7 @@ import { connect } from "react-redux"
 import * as actions from "../../actions"
 import Map from "../Map"
 import Sidebar from "../Map/Sidebar"
+import Legend from "../Map/Legend"
 
 const Summary = ({ system, level, unit, setSystem, setUnit, goBack }) => {
     const handleBackClick = () => (unit !== null ? setUnit(null) : goBack())
@@ -42,6 +43,7 @@ const Summary = ({ system, level, unit, setSystem, setUnit, goBack }) => {
             </Sidebar>
             <div id="MapContainer">
                 <Map view="summary" />
+                <Legend labels={["least dams", "most dams"]} colors={["#fff7ec", "#fee8c8", "#fdd49e", "#fdbb84", "#fc8d59", "#ef6548", "#d7301f", "#b30000", "#7f0000"]} />
             </div>
         </React.Fragment>
     )
