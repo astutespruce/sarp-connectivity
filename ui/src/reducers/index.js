@@ -15,12 +15,13 @@ Object.entries(data).forEach(([key, records]) => {
     })
 })
 index = fromJS(index)
+window.index = index
 
 const SYSTEM_LEVELS = {
     sarp: [0],
     states: [0],
     HUC: [2, 4, 8],
-    ecoregion: [1, 2, 3, 4]
+    ecoregion: [2, 3, 4]
 }
 
 // TODO: migrate this into units.json instead
@@ -68,13 +69,16 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             })
         }
         case SET_UNIT: {
-            const prevBounds = state.get("prevBounds")
+            let prevBounds = state.get("prevBounds")
+            const prevLevel = state.get("level")
+            const { unit } = payload
+            const level = payload.level || prevLevel
 
-            if (payload.unit === null) {
+            if (unit === null) {
                 // setting unit to null means reset, so go to previous bounds or full bounds?
                 // stay at same level
                 return state.merge({
-                    unit: null,
+                    unit,
                     bounds: prevBounds.last(SARPBounds),
                     prevBounds: prevBounds.pop()
                 })
@@ -82,39 +86,34 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
 
             // We are at the same level, but a different unit; we only want to store
             // bounds for the last selected unit at this level
+            // TODO: this isn't working properly
             if (state.get("unit") !== null) {
-                prevBounds.pop()
+                prevBounds = prevBounds.pop()
             }
 
-            return state.merge({
-                unit: payload.unit,
+            let newState = state
+
+            if (level !== null && level !== prevLevel) {
+                const system = state.get("system")
+                const levelIndex = state.get("levelIndex") + 1 // assume just moving up 1 level
+                const levels = SYSTEM_LEVELS[system]
+
+                newState = newState.merge({
+                    level,
+                    levelIndex,
+                    childLevel: levelIndex < levels.length - 1 ? `${system}${levels[levelIndex + 1]}` : null
+                    // labels: Array.from(index.get(level).values(), getLabels)
+                })
+            }
+
+            return newState.merge({
+                unit,
                 bounds: index
-                    .get(state.get("level"))
-                    .get(payload.unit)
+                    .get(level)
+                    .get(unit)
                     .get("bbox"),
                 prevBounds: prevBounds.push(state.get("bounds"))
             })
-
-            // const system = state.get("system")
-            // let levelIndex = state.get("levelIndex")
-            // console.log(
-            //     "cur level",
-            //     `${system}${SYSTEM_LEVELS[system][levelIndex]}`,
-            //     levelIndex,
-            //     SYSTEM_LEVELS[system].length
-            // )
-
-            // // move up to the next level
-            // if (levelIndex < SYSTEM_LEVELS[system].length - 1) {
-            //     levelIndex += 1
-            //     const level = `${system}${SYSTEM_LEVELS[system][levelIndex]}`
-
-            //     newState = newState.merge({
-            //         levelIndex,
-            //         level
-            //         // labels: Array.from(index.get(level).values(), getLabels)
-            //     })
-            // }
 
             // return newState
         }

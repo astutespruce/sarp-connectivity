@@ -36,6 +36,7 @@ const Summary = ({ system, level, unit, setSystem, setUnit, goBack }) => {
                         <h3>
                             Current system is: {system} {level}{" "}
                         </h3>
+                        {unit !== null && <h3>Unit: {unit}</h3>}
                     </React.Fragment>
                 )}
             </Sidebar>

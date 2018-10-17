@@ -126,10 +126,10 @@ ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_ecoregion2_wgs84.json sarp_ecoregion2.s
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_ecoregion3_wgs84.json sarp_ecoregion3.shp
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_ecoregion4_wgs84.json sarp_ecoregion4.shp
 
-tippecanoe -f -z 8 -l ecoregion1 -o ../../tiles/sarp_ecoregion1.mbtiles  -T NA_L1CODE:string -y HUC4 sarp_ecoregion1_wgs84.json
-tippecanoe -f -z 8 -l ecoregion2 -o ../../tiles/sarp_ecoregion2.mbtiles  -T NA_L2CODE:string -y HUC4 sarp_ecoregion2_wgs84.json
-tippecanoe -f -Z 3 -z 10 -l ecoregion3 -o ../../tiles/sarp_ecoregion3.mbtiles  -T NA_L3CODE:string -y HUC4 sarp_ecoregion3_wgs84.json
-tippecanoe -f -Z 4 -z 12 -l ecoregion4 -o ../../tiles/sarp_ecoregion4.mbtiles  -T L4_KEY:string -y HUC4 sarp_ecoregion4_wgs84.json
+tippecanoe -f -z 8 -l ecoregion1 -o ../../tiles/sarp_ecoregion1.mbtiles  -T NA_L1CODE:string -y NA_L1CODE sarp_ecoregion1_wgs84.json
+tippecanoe -f -z 8 -l ecoregion2 -o ../../tiles/sarp_ecoregion2.mbtiles  -T NA_L2CODE:string -y NA_L2CODE sarp_ecoregion2_wgs84.json
+tippecanoe -f -Z 3 -z 10 -l ecoregion3 -o ../../tiles/sarp_ecoregion3.mbtiles  -T NA_L3CODE:string -y NA_L3CODE sarp_ecoregion3_wgs84.json
+tippecanoe -f -Z 4 -z 12 -l ecoregion4 -o ../../tiles/sarp_ecoregion4.mbtiles  -T L4_KEY:string -y L4_KEY sarp_ecoregion4_wgs84.json
 ```
 
 ## Create centroids vector tiles (for labeling) - OUTDATED, not needed anymore:
