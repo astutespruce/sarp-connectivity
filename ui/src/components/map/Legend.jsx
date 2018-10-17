@@ -11,12 +11,12 @@ const Legend = ({ colors, labels }) => {
             <div className="flex-container">
                 <div>
                     {colors.map(backgroundColor => (
-                        <div className="legend-patch" style={{ backgroundColor }} />
+                        <div key={backgroundColor} className="legend-patch" style={{ backgroundColor }} />
                     ))}
                 </div>
                 <div className="flex-container-column flex-justify-space-between">
                     {labels.map(label => (
-                        <div className="legend-label is-size-7">{label}</div>
+                        <div key={label} className="legend-label is-size-7">{label}</div>
                     ))}
                 </div>
             </div>

@@ -253,7 +253,7 @@ footer a {
 
 .legend-patch {
     width: 20px;
-    height:8px;
+    height:10px;
     box-shadow: 1px 1px 4px #aaa;
 }
 .legend-patch:first-child {
