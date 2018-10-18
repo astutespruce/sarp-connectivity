@@ -1,13 +1,13 @@
 import React from "react"
 import PropTypes from "prop-types"
 
-const Legend = ({ colors, labels }) => {
+const Legend = ({ colors, labels, title }) => {
     // flip the order since we are displaying from top to bottom
     colors.reverse()
     labels.reverse()
     return (
         <div id="Legend">
-            <h5 className="is-size-6">Legend</h5>
+            <h5 className="is-size-6">{title}</h5>
             <div className="flex-container">
                 <div>
                     {colors.map(backgroundColor => (
@@ -16,7 +16,9 @@ const Legend = ({ colors, labels }) => {
                 </div>
                 <div className="flex-container-column flex-justify-space-between">
                     {labels.map(label => (
-                        <div key={label} className="legend-label is-size-7">{label}</div>
+                        <div key={label} className="legend-label is-size-7">
+                            {label}
+                        </div>
                     ))}
                 </div>
             </div>
@@ -26,9 +28,12 @@ const Legend = ({ colors, labels }) => {
 
 Legend.propTypes = {
     colors: PropTypes.arrayOf(PropTypes.string).isRequired,
-    labels: PropTypes.arrayOf(PropTypes.string).isRequired
+    labels: PropTypes.arrayOf(PropTypes.string).isRequired,
+    title: PropTypes.string
 }
 
-Legend.defaultProps = {}
+Legend.defaultProps = {
+    title: "Legend"
+}
 
 export default Legend

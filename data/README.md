@@ -19,10 +19,10 @@ ogr2ogr -f CSV sarp_dams.csv Dams_WebViewer.gdb Dam_Inventory_AllDams_Metrics_Dr
 To convert dams to mbtiles:
 
 1. First convert to CSV and preprocess
-Using `preprocess_data.py`
+   Using `preprocess_data.py`
 
 2. Then convert CSV to MBTiles:
-TODO: only include the attributes actually needed for the mbtiles file.
+   TODO: only include the attributes actually needed for the mbtiles file.
 
 ```
 tippecanoe -f -Bg -o ../../tiles/sarp_dams_full.mbtiles -n "SARP Dams" -A "SARP" -N "SARP Dams" sarp_dams.csv
@@ -30,7 +30,6 @@ tippecanoe -f -Bg -o ../../tiles/sarp_dams_full.mbtiles -n "SARP Dams" -A "SARP"
 
 TODO: tune tile creation / base zoom & reduce rate. Right now guesses base zoom of 5
 TODO: revisit clustering: https://github.com/mapbox/tippecanoe#clustered-points-world-cities-summing-the-clustered-population-visible-at-all-zoom-levels
-
 
 ## Ecoregions
 
@@ -120,7 +119,7 @@ ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_ecoregion4_wgs84.json sarp_ecoregion4.s
 tippecanoe -f -z 8 -l ecoregion1 -o ../../tiles/sarp_ecoregion1.mbtiles  -T NA_L1CODE:string -y NA_L1CODE sarp_ecoregion1_wgs84.json
 tippecanoe -f -z 8 -l ecoregion2 -o ../../tiles/sarp_ecoregion2.mbtiles  -T NA_L2CODE:string -y NA_L2CODE sarp_ecoregion2_wgs84.json
 tippecanoe -f -Z 3 -z 10 -l ecoregion3 -o ../../tiles/sarp_ecoregion3.mbtiles  -T NA_L3CODE:string -y NA_L3CODE sarp_ecoregion3_wgs84.json
-tippecanoe -f -Z 4 -z 12 -l ecoregion4 -o ../../tiles/sarp_ecoregion4.mbtiles  -T L4_KEY:string -y L4_KEY sarp_ecoregion4_wgs84.json
+tippecanoe -f -Z 4 -z 12 -l ecoregion4 -o ../../tiles/sarp_ecoregion4.mbtiles  -T US_L4CODE:string -y US_L4CODE sarp_ecoregion4_wgs84.json
 ```
 
 ## Create centroids vector tiles (for labeling) - OUTDATED, not needed anymore:
@@ -136,7 +135,7 @@ tippecanoe -f -B 4 -Z 4 -z 8 -l HUC8_centroids -o ../../tiles/sarp_HUC8_centroid
 tippecanoe -f -B 0 -z 4 -l ecoregion1_centroids -o ../../tiles/sarp_ecoregion1_centroids.mbtiles  -T NA_L1CODE:string sarp_ecoregion1_centroids.csv
 tippecanoe -f -B 0 -z 4 -l ecoregion2_centroids -o ../../tiles/sarp_ecoregion2_centroids.mbtiles  -T NA_L2CODE:string sarp_ecoregion2_centroids.csv
 tippecanoe -f -B 0 -z 6 -l ecoregion3_centroids -o ../../tiles/sarp_ecoregion3_centroids.mbtiles  -T NA_L3CODE:string sarp_ecoregion3_centroids.csv
-tippecanoe -f -B 4 -Z 4 -z 10 -l ecoregion4_centroids -o ../../tiles/sarp_ecoregion4_centroids.mbtiles  -T L4_KEY:string sarp_ecoregion4_centroids.csv
+tippecanoe -f -B 4 -Z 4 -z 10 -l ecoregion4_centroids -o ../../tiles/sarp_ecoregion4_centroids.mbtiles  -T US_L4CODE:string sarp_ecoregion4_centroids.csv
 ```
 
 ### Add summaries and join tiles together

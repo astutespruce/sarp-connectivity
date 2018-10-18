@@ -8,7 +8,9 @@ import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
 
 import * as actions from "../../actions"
-import { mapColorsToRange, equalIntervals } from "../../utils/colors"
+import Legend from "./Legend"
+import { mapColorsToRange } from "../../utils/colors"
+import { equalIntervals } from "../../utils/stats"
 import { getParentId } from "../../utils/features"
 // import { LabelPointPropType } from "../../CustomPropTypes"
 import { labelsToGeoJSON } from "../../utils/geojson"
@@ -30,8 +32,42 @@ const FEATURE_ID_FIELD = {
     ecoregion1: "NA_L1CODE",
     ecoregion2: "NA_L2CODE",
     ecoregion3: "NA_L3CODE",
-    ecoregion4: "L4_KEY"
+    ecoregion4: "US_L4CODE"
 }
+
+const ZOOM_LEVELS = {
+    HUC2: [0, 4],
+    HUC4: [4, 6],
+    HUC8: [6, 21],
+    // ecoregion1: [0, 4],
+    // ecoregion2: [4, 5],
+    ecoregion3: [0, 7],
+    ecoregion4: [7, 21]
+}
+
+const SYSTEM_LEVELS = {
+    HUC: ["HUC2", "HUC4", "HUC8"],
+    ecoregion: ["ecoregion3", "ecoregion4"]
+}
+
+const LEVEL_LABELS = {
+    HUC2: "Hydrologic region",
+    HUC4: "Hydrologic subregion",
+    HUC8: "Hydrologic subbasin",
+    ecoregion3: "Level 3 Ecoregion",
+    ecoregion4: "Level 4 Ecoregion"
+}
+
+// Precalculate colors
+const LEVEL_LEGEND = {}
+Object.keys(SYSTEM_LEVELS).forEach(s => {
+    SYSTEM_LEVELS[s].forEach(l => {
+        LEVEL_LEGEND[l] = {
+            bins: equalIntervals(summaryStats[l].dams, COUNT_COLORS.length),
+            colors: COUNT_COLORS
+        }
+    })
+})
 
 class Map extends React.Component {
     constructor(props) {
@@ -39,6 +75,7 @@ class Map extends React.Component {
 
         this.state = {
             // location: fromJS(location)
+            zoom: 4
         }
 
         this.map = null
@@ -81,6 +118,10 @@ class Map extends React.Component {
         window.map = map
 
         map.addControl(new mapboxgl.NavigationControl(), "top-right")
+
+        map.on("zoom", () => {
+            this.setState({ zoom: map.getZoom() })
+        })
 
         map.on("load", () => {
             map.addSource("sarp", {
@@ -127,7 +168,8 @@ class Map extends React.Component {
             })
 
             if (view === "summary") {
-                this.addUnitLayers()
+                this.addUnitLayers(SYSTEM_LEVELS.HUC, false)
+                this.addUnitLayers(SYSTEM_LEVELS.ecoregion, false)
                 // this.addLabelLayer(labels.toJS())
             }
 
@@ -180,6 +222,7 @@ class Map extends React.Component {
                 layers.push(childLayerID)
             }
 
+            // TODO: capture and emit all intersected IDs, let consumer figure out which to process?
             let features = map.queryRenderedFeatures(e.point, { layers })
             if (features.length === 0) return
             console.log("click features", features)
@@ -228,104 +271,31 @@ class Map extends React.Component {
             // hide previous layers
             // TODO: hide boundary
             if (prevSystem !== null) {
-                map.setLayoutProperty(prevFillID, "visibility", "none")
-                map.setLayoutProperty(prevOutlineID, "visibility", "none")
+                // map.setLayoutProperty(prevFillID, "visibility", "none")
+                // map.setLayoutProperty(prevOutlineID, "visibility", "none")
+
+                SYSTEM_LEVELS[prevSystem].forEach(u => {
+                    map.setLayoutProperty(`${u}-fill`, "visibility", "none")
+                    map.setLayoutProperty(`${u}-outline`, "visibility", "none")
+                })
             }
 
             if (system === null) {
+                // show boundary
                 map.setLayoutProperty("sarp-fill", "visibility", "visible")
                 map.setLayoutProperty("sarp-outline", "visibility", "visible")
-            }
-            if (system !== null) {
-                map.setLayoutProperty(fillID, "visibility", "visible")
-                map.setLayoutProperty(outlineID, "visibility", "visible")
+            } else {
+                // map.setLayoutProperty(fillID, "visibility", "visible")
+                // map.setLayoutProperty(outlineID, "visibility", "visible")
 
                 // hide the boundary
                 map.setLayoutProperty("sarp-fill", "visibility", "none")
                 map.setLayoutProperty("sarp-outline", "visibility", "none")
-            }
-        }
 
-        // assign colors to current level
-
-        // TODO: if childLevel and unit !== null, apply to child level and filter by unit instead
-        if (level !== null) {
-            let records = []
-            if (unit !== null && childLevel !== null) {
-                console.log("info", level, childLevel, unit)
-                records = Array.from(index.get(childLevel).values(), d => ({
-                    id: d.get("id"),
-                    parentId:
-                        level === "HUC4"
-                            ? getParentId(system, getParentId(system, d.get("id")))
-                            : getParentId(system, d.get("id")),
-                    dams: d.get("dams")
-                }))
-                records = records.filter(d => d.parentId === unit)
-                // TODO: filter by ID of parent
-            } else {
-                records = Array.from(index.get(level).values(), d => ({
-                    id: d.get("id"),
-                    dams: d.get("dams")
-                }))
-            }
-
-            console.log("records", records)
-
-            const colorFunc = equalIntervals(records.map(d => d.dams), COUNT_COLORS)
-            const colorLUT = []
-            records.forEach(d => {
-                colorLUT.push(d.id)
-                colorLUT.push(colorFunc(d.dams))
-            })
-            console.log("colors", colorLUT)
-
-            if (unit !== null && childLevel !== null) {
-                map.setPaintProperty(childFillID, "fill-color", [
-                    "match",
-                    ["get", FEATURE_ID_FIELD[childLevel]],
-                    ...colorLUT,
-                    "#FFF"
-                ])
-                map.setPaintProperty(fillID, "fill-color", "#FFF")
-            } else {
-                map.setPaintProperty(fillID, "fill-color", ["match", ["get", unitIDField], ...colorLUT, "#FFF"])
-            }
-        }
-
-        if (level !== prevLevel) {
-            console.log("levels changed", level, "prev", prevLevel)
-        }
-
-        if (unit !== prevUnit) {
-            if (unit === null) {
-                map.setLayoutProperty(highlightID, "visibility", "none")
-                if (childLevel !== null) {
-                    map.setFilter(fillID, null)
-                    // map.setPaintProperty(outlineID, "line-opacity", 1)
-
-                    map.setLayoutProperty(childFillID, "visibility", "none")
-                    map.setFilter(childFillID, null)
-
-                    map.setLayoutProperty(childOutlineID, "visibility", "none")
-                    map.setFilter(childOutlineID, null)
-                }
-                // reset filters
-                console.log("unit is null, reset filters and styles", highlightID)
-            } else {
-                map.setLayoutProperty(highlightID, "visibility", "visible")
-                map.setFilter(highlightID, ["==", unitIDField, unit])
-
-                if (childLevel !== null) {
-                    map.setFilter(fillID, ["!=", unitIDField, unit])
-                    // map.setPaintProperty(outlineID, "line-opacity", 0.1)
-
-                    map.setLayoutProperty(childFillID, "visibility", "visible")
-                    map.setFilter(childFillID, ["==", unitIDField, unit])
-
-                    map.setLayoutProperty(childOutlineID, "visibility", "visible")
-                    map.setFilter(childOutlineID, ["==", unitIDField, unit])
-                }
+                SYSTEM_LEVELS[system].forEach(u => {
+                    map.setLayoutProperty(`${u}-fill`, "visibility", "visible")
+                    map.setLayoutProperty(`${u}-outline`, "visibility", "visible")
+                })
             }
         }
 
@@ -371,13 +341,21 @@ class Map extends React.Component {
         })
     }
 
-    addUnitLayers = () => {
-        // add all unit layers, but make them hidden initially
-        const units = ["states", "HUC2", "HUC4", "HUC8", "ecoregion1", "ecoregion2", "ecoregion3", "ecoregion4"]
+    addUnitLayers = (units, visible = false) => {
         units.reverse() // make sure that higher level units are stacked on lower level ones
 
         const { map } = this
         units.forEach(unit => {
+            // const colors = mapColorsToRange(COUNT_COLORS, summaryStats[unit].dams)
+            const { bins, colors } = LEVEL_LEGEND[unit]
+            const [minzoom, maxzoom] = ZOOM_LEVELS[unit]
+
+            const renderColors = []
+            bins.forEach(([min, max], i) => {
+                renderColors.push((max - min) / 2 + min) // interpolate from the midpoint
+                renderColors.push(colors[i])
+            })
+
             let outlineColor = "#AAA"
             if (unit.startsWith("HUC")) {
                 outlineColor = "#3F6DD7"
@@ -390,12 +368,14 @@ class Map extends React.Component {
                 source: "sarp",
                 "source-layer": unit,
                 type: "fill",
+                minzoom,
+                maxzoom,
                 layout: {
-                    visibility: "none"
+                    visibility: visible ? "visible" : "none"
                 },
                 paint: {
                     "fill-opacity": 0.6,
-                    "fill-color": "#FFF"
+                    "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
                 }
             })
             map.addLayer({
@@ -403,12 +383,14 @@ class Map extends React.Component {
                 source: "sarp",
                 "source-layer": unit,
                 type: "line",
+                minzoom,
+                maxzoom,
                 layout: {
-                    visibility: "none"
+                    visibility: visible ? "visible" : "none"
                 },
                 paint: {
                     "line-opacity": 1,
-                    "line-width": 1,
+                    "line-width": 0.5,
                     "line-color": outlineColor
                 }
             })
@@ -433,61 +415,51 @@ class Map extends React.Component {
         })
     }
 
-    addSummaryLayers = (unit, metric, filters = null) => {
-        // unit: states, HUC2, HUC4, etc
-        // metric: dams, connectedmiles
-        // filters: null or object of key: value pairs.
-        const { map } = this
+    render() {
+        const { zoom } = this.state
+        const { system, view } = this.props
 
-        let filter = [">", metric, 0]
-        if (filters) {
-            const expressions = Object.entries(filters).map(([k, v]) => ["==", k, v])
-            // filter = ["all", filter, ...expressions]
-            filter = ["all", filter, ...expressions]
+        // TODO: optimize this
+        let curUnit = null
+        let colors = null
+        let labels = null
+        if (system) {
+            curUnit = SYSTEM_LEVELS[system].filter(u => {
+                const [minzoom, maxzoom] = ZOOM_LEVELS[u]
+                return zoom >= minzoom && zoom < maxzoom
+            })
+            const legendInfo = LEVEL_LEGEND[curUnit]
+            colors = legendInfo.colors.slice()
+            const { bins } = legendInfo
+            labels = bins.map(([min, max], i) => {
+                if (i === 0) {
+                    return `< ${Math.round(max)} dams`
+                }
+                if (i === bins.length - 1) {
+                    return `>= ${Math.round(min)} dams`
+                }
+                return Math.round(min)
+            })
         }
 
-        const colors = mapColorsToRange(COUNT_COLORS, summaryStats[unit][metric])
-        map.addLayer({
-            id: `${unit}-${metric}-fill`,
-            source: "sarp",
-            "source-layer": unit,
-            type: "fill",
-            layout: {},
-            paint: {
-                "fill-opacity": 0.6,
-                "fill-color": ["interpolate", ["linear"], ["get", metric], ...colors]
-            },
-            filter
-        })
-
-        map.addLayer({
-            id: `${unit}-outline`,
-            source: "sarp",
-            "source-layer": unit,
-            type: "line",
-            layout: {},
-            paint: {
-                "line-opacity": 0.8,
-                "line-color": "#AAAAAA"
-            },
-            filter
-        })
-    }
-
-    render() {
+        console.log("render", zoom, curUnit)
         return (
-            <div
-                ref={el => {
-                    this.mapContainer = el
-                }}
-                style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0
-                }}
-            />
+            <React.Fragment>
+                <div
+                    ref={el => {
+                        this.mapContainer = el
+                    }}
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0
+                    }}
+                />
+                {system !== null &&
+                    view === "summary" && <Legend title={LEVEL_LABELS[curUnit]} labels={labels} colors={colors} />}
+            </React.Fragment>
         )
     }
 }
@@ -537,3 +509,86 @@ export default connect(
     mapStateToProps,
     actions
 )(Map)
+
+// assign colors to current level
+
+// TODO: if childLevel and unit !== null, apply to child level and filter by unit instead
+// if (level !== null) {
+//     let records = []
+//     if (unit !== null && childLevel !== null) {
+//         console.log("info", level, childLevel, unit)
+//         records = Array.from(index.get(childLevel).values(), d => ({
+//             id: d.get("id"),
+//             parentId:
+//                 level === "HUC4"
+//                     ? getParentId(system, getParentId(system, d.get("id")))
+//                     : getParentId(system, d.get("id")),
+//             dams: d.get("dams")
+//         }))
+//         records = records.filter(d => d.parentId === unit)
+//         // TODO: filter by ID of parent
+//     } else {
+//         records = Array.from(index.get(level).values(), d => ({
+//             id: d.get("id"),
+//             dams: d.get("dams")
+//         }))
+//     }
+
+//     console.log("records", records)
+
+//     const colorFunc = equalIntervals(records.map(d => d.dams), COUNT_COLORS)
+//     const colorLUT = []
+//     records.forEach(d => {
+//         colorLUT.push(d.id)
+//         colorLUT.push(colorFunc(d.dams))
+//     })
+//     console.log("colors", colorLUT)
+
+//     if (unit !== null && childLevel !== null) {
+//         map.setPaintProperty(childFillID, "fill-color", [
+//             "match",
+//             ["get", FEATURE_ID_FIELD[childLevel]],
+//             ...colorLUT,
+//             "#FFF"
+//         ])
+//         map.setPaintProperty(fillID, "fill-color", "#FFF")
+//     } else {
+//         map.setPaintProperty(fillID, "fill-color", ["match", ["get", unitIDField], ...colorLUT, "#FFF"])
+//     }
+// }
+
+// if (level !== prevLevel) {
+//     console.log("levels changed", level, "prev", prevLevel)
+// }
+
+// if (unit !== prevUnit) {
+//     if (unit === null) {
+//         map.setLayoutProperty(highlightID, "visibility", "none")
+//         if (childLevel !== null) {
+//             map.setFilter(fillID, null)
+//             // map.setPaintProperty(outlineID, "line-opacity", 1)
+
+//             map.setLayoutProperty(childFillID, "visibility", "none")
+//             map.setFilter(childFillID, null)
+
+//             map.setLayoutProperty(childOutlineID, "visibility", "none")
+//             map.setFilter(childOutlineID, null)
+//         }
+//         // reset filters
+//         console.log("unit is null, reset filters and styles", highlightID)
+//     } else {
+//         map.setLayoutProperty(highlightID, "visibility", "visible")
+//         map.setFilter(highlightID, ["==", unitIDField, unit])
+
+//         if (childLevel !== null) {
+//             map.setFilter(fillID, ["!=", unitIDField, unit])
+//             // map.setPaintProperty(outlineID, "line-opacity", 0.1)
+
+//             map.setLayoutProperty(childFillID, "visibility", "visible")
+//             map.setFilter(childFillID, ["==", unitIDField, unit])
+
+//             map.setLayoutProperty(childOutlineID, "visibility", "visible")
+//             map.setFilter(childOutlineID, ["==", unitIDField, unit])
+//         }
+//     }
+// }

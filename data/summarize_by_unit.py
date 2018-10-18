@@ -57,7 +57,7 @@ geo_join_lut = {
     "Ecoregion1": "NA_L1CODE",
     "Ecoregion2": "NA_L2CODE",
     "Ecoregion3": "NA_L3CODE",
-    "Ecoregion4": "L4_KEY",
+    "Ecoregion4": "US_L4CODE",
 }
 
 # Group by state, HUC level, ecoregion level
@@ -98,7 +98,8 @@ for unit in (
     level_stats = g.agg(["min", "max"])
     level_stats.columns = cols
     for col in cols:
-        stats[unit][col] = level_stats[col].tolist()
+        unit_key = unit.lower() if 'Ecoregion' in unit else unit
+        stats[unit_key][col] = level_stats[col].tolist()
 
 
 with open("ui/src/data/summary_stats.json", "w") as outfile:
