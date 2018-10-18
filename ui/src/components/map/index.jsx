@@ -36,8 +36,8 @@ const FEATURE_ID_FIELD = {
 }
 
 const ZOOM_LEVELS = {
-    HUC2: [0, 4],
-    HUC4: [4, 6],
+    HUC2: [0, 4.5],
+    HUC4: [4.5, 6],
     HUC8: [6, 21],
     // ecoregion1: [0, 4],
     // ecoregion2: [4, 5],
@@ -433,16 +433,16 @@ class Map extends React.Component {
             const { bins } = legendInfo
             labels = bins.map(([min, max], i) => {
                 if (i === 0) {
-                    return `< ${Math.round(max)} dams`
+                    return `< ${Math.round(max).toLocaleString()} dams`
                 }
                 if (i === bins.length - 1) {
-                    return `>= ${Math.round(min)} dams`
+                    return `≥ ${Math.round(min).toLocaleString()} dams`
                 }
-                return Math.round(min)
+                // Use midpoint value
+                return Math.round((max - min) / 2 + min).toLocaleString()
             })
         }
 
-        console.log("render", zoom, curUnit)
         return (
             <React.Fragment>
                 <div

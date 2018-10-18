@@ -14,13 +14,10 @@ const Summary = ({ system, level, unit, setSystem, setUnit, goBack }) => {
                 {system === null ? (
                     <React.Fragment>
                         <h3>Which unit system?</h3>
-                        <div className="section">
+                        <div className="buttons has-addons">
                             <button className="button" type="button" onClick={() => setSystem("HUC")}>
                                 Watersheds
                             </button>
-                        </div>
-
-                        <div className="section">
                             <button className="button" type="button" onClick={() => setSystem("ecoregion")}>
                                 Ecoregions
                             </button>
