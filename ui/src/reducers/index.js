@@ -42,9 +42,9 @@ const initialState = Map({
     bounds: SARPBounds, // SARP bounds
     prevBounds: List(), // push previous bounds here
     index,
-    system: null, // HUC, ecoregion, state. null means SARP bounds
-    levelIndex: null, // index of level within system
-    level: null, // HUC: 2,4,8; Ecoregion1-4, states, sarp
+    system: 'HUC', // HUC, ecoregion, state. null means SARP bounds
+    levelIndex: 0, // index of level within system
+    level: 'HUC4', // HUC: 2,4,8; Ecoregion1-4, states, sarp
     childLevel: null,
     unit: null, // selected unit ID
     parentUnit: null, // larger unit in system that contains current unit
@@ -55,17 +55,17 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
     switch (type) {
         case SET_SYSTEM: {
             const { system } = payload
-            const levels = SYSTEM_LEVELS[system]
-            const levelIndex = 0
-            const level = `${system}${levels[levelIndex]}`
-            const labels = Array.from(index.get(level).values(), getLabels)
+            // const levels = SYSTEM_LEVELS[system]
+            // const levelIndex = 0
+            // const level = `${system}${levels[levelIndex]}`
+            // const labels = Array.from(index.get(level).values(), getLabels)
 
             return state.merge({
-                system,
-                level,
-                levelIndex,
-                childLevel: levelIndex < levels.length - 1 ? `${system}${levels[levelIndex + 1]}` : null,
-                labels
+                system
+                // level,
+                // levelIndex,
+                // childLevel: levelIndex < levels.length - 1 ? `${system}${levels[levelIndex + 1]}` : null,
+                // labels
             })
         }
         case SET_UNIT: {

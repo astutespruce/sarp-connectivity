@@ -17,6 +17,13 @@ a:visited {
     text-decoration: none;
 }
 
+button:active,
+button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: inherit;
+}
+
 .hidden {
     display: none !important;
 }
@@ -267,4 +274,27 @@ footer a {
     margin-left: 10px;
     line-height: 1;
     color: #666;
+}
+
+#SystemChooser {
+    background: #fff;
+    padding: 8px;
+    border-radius: 0 0 6px 6px;
+    box-shadow: 1px 1px 8px #333;
+    margin-left: 12px;
+}
+#SystemChooser .button {
+    pointer-events: auto;
+    /* border-color: #dbdbdb !important; */
+    border-width: 0 0 4px 0;
+    border-bottom-color: transparent;
+    border-radius: 0;
+}
+#SystemChooser .button.active {
+    border-bottom-color: #597996;
+    /* color: #fff; */
+    font-weight: bold;
+}
+#SystemChooser .buttons {
+    margin-left: 6px;
 }

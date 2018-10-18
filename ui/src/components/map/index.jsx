@@ -168,7 +168,7 @@ class Map extends React.Component {
             })
 
             if (view === "summary") {
-                this.addUnitLayers(SYSTEM_LEVELS.HUC, false)
+                this.addUnitLayers(SYSTEM_LEVELS.HUC, true)
                 this.addUnitLayers(SYSTEM_LEVELS.ecoregion, false)
                 // this.addLabelLayer(labels.toJS())
             }
@@ -417,12 +417,13 @@ class Map extends React.Component {
 
     render() {
         const { zoom } = this.state
-        const { system, view } = this.props
+        const { system, view, setSystem } = this.props
 
         // TODO: optimize this
         let curUnit = null
         let colors = null
         let labels = null
+        const showLegend = system !== null && view === "summary"
         if (system) {
             curUnit = SYSTEM_LEVELS[system].filter(u => {
                 const [minzoom, maxzoom] = ZOOM_LEVELS[u]
@@ -457,8 +458,28 @@ class Map extends React.Component {
                         bottom: 0
                     }}
                 />
-                {system !== null &&
-                    view === "summary" && <Legend title={LEVEL_LABELS[curUnit]} labels={labels} colors={colors} />}
+
+                <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
+                    <h5 className="is-size-7">Summarize on: </h5>
+                    <div className="buttons has-addons">
+                        <button
+                            className={`button is-small ${system === "HUC" ? "active" : ""}`}
+                            type="button"
+                            onClick={() => setSystem("HUC")}
+                        >
+                            Watersheds
+                        </button>
+                        <button
+                            className={`button is-small ${system === "ecoregion" ? "active" : ""}`}
+                            type="button"
+                            onClick={() => setSystem("ecoregion")}
+                        >
+                            Ecoregions
+                        </button>
+                    </div>
+                </div>
+
+                {showLegend && <Legend title={LEVEL_LABELS[curUnit]} labels={labels} colors={colors} />}
             </React.Fragment>
         )
     }
@@ -474,6 +495,7 @@ Map.propTypes = {
     unit: PropTypes.string,
     labels: ImmutablePropTypes.listOf(ImmutablePropTypes.map),
     setUnit: PropTypes.func.isRequired,
+    setSystem: PropTypes.func.isRequired,
 
     bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
     // layers: PropTypes.arrayOf(DatasetPropType),

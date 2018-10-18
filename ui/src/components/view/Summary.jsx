@@ -11,25 +11,27 @@ const Summary = ({ system, level, unit, setSystem, setUnit, goBack }) => {
     return (
         <React.Fragment>
             <Sidebar>
-                {system === null ? (
+                <React.Fragment>
+                    <h3>Which unit system?</h3>
+                    <div className="buttons has-addons">
+                        {/* <button className="button" type="button" onClick={() => setSystem(null)}>
+                            Southeast Region
+                        </button> */}
+                        <button className="button" type="button" onClick={() => setSystem("HUC")}>
+                            Watersheds
+                        </button>
+                        <button className="button" type="button" onClick={() => setSystem("ecoregion")}>
+                            Ecoregions
+                        </button>
+                    </div>
+                </React.Fragment>
+                {system !== null && (
                     <React.Fragment>
-                        <h3>Which unit system?</h3>
-                        <div className="buttons has-addons">
-                            <button className="button" type="button" onClick={() => setSystem("HUC")}>
-                                Watersheds
-                            </button>
-                            <button className="button" type="button" onClick={() => setSystem("ecoregion")}>
-                                Ecoregions
-                            </button>
-                        </div>
-                    </React.Fragment>
-                ) : (
-                    <React.Fragment>
-                        <div className="section">
+                        {/* <div className="section">
                             <button type="button" onClick={handleBackClick}>
                                 Go back
                             </button>
-                        </div>
+                        </div> */}
                         <h3>
                             Current system is: {system} {level}{" "}
                         </h3>
