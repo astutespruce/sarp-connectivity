@@ -41,8 +41,8 @@ const ZOOM_LEVELS = {
     HUC8: [6, 21],
     // ecoregion1: [0, 4],
     // ecoregion2: [4, 5],
-    ecoregion3: [0, 7],
-    ecoregion4: [7, 21]
+    ecoregion3: [0, 5],
+    ecoregion4: [5, 21]
 }
 
 const SYSTEM_LEVELS = {
@@ -370,6 +370,7 @@ class Map extends React.Component {
                 type: "fill",
                 minzoom,
                 maxzoom,
+                filter: [">", "dams", 0],
                 layout: {
                     visibility: visible ? "visible" : "none"
                 },
@@ -385,6 +386,7 @@ class Map extends React.Component {
                 type: "line",
                 minzoom,
                 maxzoom,
+                filter: [">", "dams", 0],
                 layout: {
                     visibility: visible ? "visible" : "none"
                 },
