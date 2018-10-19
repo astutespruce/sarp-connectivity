@@ -1,3 +1,4 @@
+import csv
 import pandas as pd
 import geopandas as gp
 
@@ -20,10 +21,10 @@ df = gp.read_file(
 df.crs = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
 
 # Project to WGS84 and add x, y columns
-print("Projecting to WGS84 and adding x,y columns")
+print("Projecting to WGS84 and adding lat / lon columns")
 df = df.to_crs(epsg=4326)
-df["x"] = df.apply(lambda row: row.geometry.x, axis=1)
-df["y"] = df.apply(lambda row: row.geometry.y, axis=1)
+df["lon"] = df.apply(lambda row: row.geometry.x, axis=1)
+df["lat"] = df.apply(lambda row: row.geometry.y, axis=1)
 df = pd.DataFrame(df.drop(columns="geometry"))
 
 # Drop unnecessary columns
@@ -57,11 +58,13 @@ df = df[
         "SpeciesRichness",
         "batUSNetID",
         "batDSNetID",
-        "batTotUSDS",
+        # "batTotUSDS",
         "HUC12",
         "Ecoregion3",
         "Ecoregion4",
         "StreamOrder",
+        "lat",
+        "lon",
     ]
 ]
 
@@ -102,9 +105,6 @@ df["Off_Network"] = df.apply(
     lambda row: Off_Network_domain.get(row[domain], "Unknown"), axis=1
 )
 
-df.to_csv("data/src/sarp_dams_temp.csv")
-
-
 # Filter out any dams that do not have a HUC12 (they are not valid)
 # there should only be one.
 df = df[df["HUC12"].notnull()].copy()
@@ -114,25 +114,62 @@ print("Calculating HUC and Ecoregion codes")
 df["HUC2"] = df.apply(lambda row: row["HUC12"][:2], axis=1)
 df["HUC4"] = df.apply(lambda row: row["HUC12"][:4], axis=1)
 df["HUC8"] = df.apply(lambda row: row["HUC12"][:8], axis=1)
-df["Ecoregion1"] = df.apply(
-    lambda row: row["Ecoregion3"].split(".")[0]
-    if not pd.isnull(row["Ecoregion3"])
-    else "",
-    axis=1,
-)
-df["Ecoregion2"] = df.apply(
-    lambda row: row["Ecoregion3"][: row["Ecoregion3"].rindex(".")]
-    if not pd.isnull(row["Ecoregion3"])
-    else "",
-    axis=1,
+
+# Fix name issue - 3 dams have duplicate dam names with line breaks, which breaks tippecanoe
+ids = df.UniqueID.isin(["s18605", "s18684", "s18687"])
+df.loc[ids, "Barrier_Name"] = df.loc[ids, "Barrier_Name"].apply(
+    lambda v: v.split("\r")[0]
 )
 
-# Fix name issue
-df["Barrier_Name"] = df.apply(
-    lambda row: str(row["Barrier_Name"]).split("\r\n")[0], axis=1
-)
+# Export full set of fields
+df.to_csv("data/src/sarp_dams.csv", index_label="id")
 
-df.to_csv("data/src/sarp_dams.csv")
+
+# Export subset of fields for use in mbtiles
+mbtiles_df = df[
+    [
+        "UniqueID",
+        "NIDID",
+        "SourceDBID",
+        "Barrier_Name",
+        # "Other_Barrier_Name",
+        "State",
+        "County",
+        "River",
+        "PurposeCategory",  # value domain
+        "Year_Completed",
+        "Height",
+        "StructureCondition",  # value domain
+        "ConstructionMaterial",  # value domain
+        "ProtectedLand",  # 0="Unknown", 1="Yes", 2="No"
+        # "DB_Source",
+        # "Off_Network",  # 0="On Network", 1="Off Network"
+        "Mussel_Presence",  # 0="Unknown", 1="Yes", 2="No"
+        "AbsoluteGainMi",
+        "UpstreamMiles",
+        "DownstreamMiles",
+        "TotalNetworkMiles",
+        "PctNatFloodplain",
+        "NetworkSinuosity",
+        "NumSizeClassGained",
+        "NumberRareSpeciesHUC12",
+        "SpeciesRichness",
+        "batUSNetID",
+        "batDSNetID",
+        "HUC2",
+        "HUC4",
+        "HUC8",
+        "HUC12",
+        "Ecoregion3",
+        "Ecoregion4",
+        "StreamOrder",
+        "lat",
+        "lon",
+    ]
+]
+mbtiles_df.to_csv(
+    "data/src/sarp_dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+)
 
 
 # TODO: calculate regional scores and scores for main units
