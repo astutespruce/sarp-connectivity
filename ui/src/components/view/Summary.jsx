@@ -3,7 +3,7 @@ import PropTypes from "prop-types"
 import { connect } from "react-redux"
 
 import * as actions from "../../actions"
-import Map from "../Map"
+import SummaryMap from "../Map/SummaryMap"
 import Sidebar from "../Map/Sidebar"
 
 const Summary = ({ system, level, unit, setSystem, setUnit, goBack }) => {
@@ -40,7 +40,7 @@ const Summary = ({ system, level, unit, setSystem, setUnit, goBack }) => {
                 )}
             </Sidebar>
             <div id="MapContainer">
-                <Map view="summary" />
+                <SummaryMap />
             </div>
         </React.Fragment>
     )
