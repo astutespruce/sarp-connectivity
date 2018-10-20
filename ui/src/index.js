@@ -23,7 +23,12 @@ import App from "./App"
 
 // ReactGA.initialize("UA-82274034-8")
 
-const store = createStore(reducer, applyMiddleware(createLogger()))
+// TODO: only for development
+const logger = createLogger({
+    stateTransformer: state => state.toJS()
+})
+
+const store = createStore(reducer, applyMiddleware(logger))
 
 // TODO: migrate to final deployment path.  For now production is hosted at
 // https://consbio.github.io/sarp/

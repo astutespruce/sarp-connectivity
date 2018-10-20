@@ -3,7 +3,7 @@ import { connect } from "react-redux"
 
 import * as actions from "../../actions"
 import PriorityMap from "../Map/PriorityMap"
-import Sidebar from "../Map/Sidebar"
+import Sidebar from "../Sidebar"
 
 const Priority = () => (
     <React.Fragment>

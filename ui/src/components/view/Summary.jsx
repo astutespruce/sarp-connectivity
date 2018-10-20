@@ -4,24 +4,38 @@ import { connect } from "react-redux"
 
 import * as actions from "../../actions"
 import { FeaturePropType } from "../../CustomPropTypes"
+import { formatNumber } from "../../utils/format"
 
 import SummaryMap from "../Map/SummaryMap"
-import Sidebar from "../Map/Sidebar"
+import Sidebar from "../Sidebar"
+import SummaryUnitDetails from "../SummaryUnitDetails"
 
-const Summary = ({ system, selectedFeature }) => (
-    // const handleBackClick = () => (unit !== null ? setUnit(null) : goBack())
+import summaryStats from "../../data/summary_stats.json"
+
+const Summary = ({ selectedFeature, dams, connectedmiles, selectFeature }) => (
     <React.Fragment>
         <Sidebar>
-            {system !== null && (
-                <React.Fragment>
-                    {/* <div className="section">
-                            <button type="button" onClick={handleBackClick}>
-                                Go back
-                            </button>
-                        </div> */}
-                    <h3>Current system is: {system} </h3>
-                    {selectedFeature !== null && <h3>Selected: {selectedFeature.id}</h3>}
-                </React.Fragment>
+            {selectedFeature === null ? (
+                <div id="SidebarContent">
+                    <p className="is-size-5">
+                        Across the Southeast, there are at least {formatNumber(dams)} dams, resulting in an average of{" "}
+                        {formatNumber(connectedmiles)} miles of connected rivers.
+                    </p>
+                    <p className="is-size-7 has-text-grey">
+                        <br />
+                        <br />
+                        Note: These statistics are based on <i>inventoried</i> dams. Because the inventory is incomplete
+                        in many areas, areas with a high number of dams may simply represent areas that have a more
+                        complete inventory.
+                    </p>
+                </div>
+            ) : (
+                <SummaryUnitDetails
+                    selectedFeature={selectedFeature}
+                    totalDams={dams}
+                    meanConnectedMiles={connectedmiles}
+                    onClose={() => selectFeature(null)}
+                />
             )}
         </Sidebar>
         <div id="MapContainer">
@@ -31,17 +45,17 @@ const Summary = ({ system, selectedFeature }) => (
 )
 
 Summary.propTypes = {
-    system: PropTypes.string,
     selectedFeature: FeaturePropType,
+    dams: PropTypes.number,
+    connectedmiles: PropTypes.number,
 
-    setSystem: PropTypes.func.isRequired,
-    selectFeature: PropTypes.func.isRequired,
-    goBack: PropTypes.func.isRequired
+    selectFeature: PropTypes.func.isRequired
 }
 
 Summary.defaultProps = {
-    system: null,
-    selectedFeature: null
+    selectedFeature: null,
+    dams: summaryStats.sarp.dams,
+    connectedmiles: summaryStats.sarp.connectedmiles
 }
 
 const mapStateToProps = state => ({ system: state.get("system"), selectedFeature: state.get("selectedFeature") })

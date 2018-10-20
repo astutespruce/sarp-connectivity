@@ -2,7 +2,7 @@ import React, { Component } from "react"
 import PropTypes from "prop-types"
 import ImmutablePropTypes from "react-immutable-proptypes"
 import { connect } from "react-redux"
-
+import { fromJS } from "immutable"
 import * as actions from "../../actions"
 import Legend from "./Legend"
 import { equalIntervals } from "../../utils/stats"
@@ -170,7 +170,10 @@ class SummaryMap extends Component {
             const features = map.queryRenderedFeatures(e.point, { layers })
             if (features.length === 0) return
             console.log("click features", features)
-            selectFeature(features[0].properties)
+
+            const { sourceLayer, properties } = features[0]
+            console.log("props", sourceLayer, properties)
+            selectFeature(fromJS(properties).merge({ layerId: sourceLayer }))
         })
     }
 

@@ -46,8 +46,9 @@ for unit in ("State", "HUC2", "HUC4", "HUC8", "ECO3", "ECO4"):
     level_stats.columns = cols
     for col in cols:
         key = "states" if unit == "State" else unit
-        stats[key][col] = level_stats[col].tolist()
+        stats[key][col] = {"range": level_stats[col].tolist(), "mean": g[col].mean()}
 
+stats["sarp"] = {"dams": len(df), "connectedmiles": df["AbsoluteGainMi"].mean()}
 
 with open("ui/src/data/summary_stats.json", "w") as outfile:
     outfile.write(json.dumps(stats))

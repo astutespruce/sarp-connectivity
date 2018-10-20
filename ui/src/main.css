@@ -239,6 +239,28 @@ footer a {
     background-color: #fff;
 }
 
+#SidebarHeader {
+    padding: 1em 0.5em 1em 1em;
+    background: #eee;
+    border-bottom: 1px solid #ddd;
+}
+#SidebarHeader .button {
+    border: none;
+}
+#SidebarHeader .icon {
+    color: #aaa;
+    background: transparent;
+}
+#SidebarHeader .icon:hover {
+    color: #666;
+}
+
+#SidebarContent {
+    padding: 1em;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 #MapContainer {
     position: absolute;
     left: 400px;
