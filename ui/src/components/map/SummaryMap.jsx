@@ -13,46 +13,17 @@ import { labelsToGeoJSON } from "../../utils/geojson"
 
 import summaryStats from "../../data/summary_stats.json"
 
-import { TILE_HOST, COUNT_COLORS } from "./config"
+import { TILE_HOST, COUNT_COLORS, LAYER_CONFIG } from "./config"
 import MapBase from "./MapBase"
 
-const FEATURE_ID_FIELD = {
-    HUC2: "HUC2",
-    HUC4: "HUC4",
-    HUC8: "HUC8",
-    ecoregion3: "NA_L3CODE",
-    ecoregion4: "US_L4CODE"
-}
-
-const ZOOM_LEVELS = {
-    HUC2: [0, 4.5],
-    HUC4: [4.5, 6],
-    HUC8: [6, 21],
-    ecoregion3: [0, 6],
-    ecoregion4: [6, 21]
-}
-
-const SYSTEM_LEVELS = {
-    HUC: ["HUC2", "HUC4", "HUC8"],
-    ecoregion: ["ecoregion3", "ecoregion4"]
-}
-
-const LEVEL_LABELS = {
-    HUC2: "Hydrologic region",
-    HUC4: "Hydrologic subregion",
-    HUC8: "Hydrologic subbasin",
-    ecoregion3: "Level 3 Ecoregion",
-    ecoregion4: "Level 4 Ecoregion"
-}
 // Precalculate colors
+// TODO: make this vary by metric
 const LEVEL_LEGEND = {}
-Object.keys(SYSTEM_LEVELS).forEach(s => {
-    SYSTEM_LEVELS[s].forEach(l => {
-        LEVEL_LEGEND[l] = {
-            bins: equalIntervals(summaryStats[l].dams, COUNT_COLORS.length),
-            colors: COUNT_COLORS
-        }
-    })
+Object.keys(LAYER_CONFIG).forEach(lyr => {
+    LEVEL_LEGEND[lyr] = {
+        bins: equalIntervals(summaryStats[lyr].dams, COUNT_COLORS.length),
+        colors: COUNT_COLORS
+    }
 })
 
 class SummaryMap extends Component {
@@ -60,10 +31,12 @@ class SummaryMap extends Component {
         super()
 
         this.state = {
-            activeLayer: null // root ID of the active layer(s)
+            // activeLayer: null // root ID of the active layer(s)
+            zoom: null
         }
 
         this.map = null
+        this.layers = []
     }
 
     componentDidUpdate(prevProps) {
@@ -73,13 +46,17 @@ class SummaryMap extends Component {
         const { system: prevSystem } = prevProps
         const { system } = this.props
 
+
+        // TODO: set activeLayer 
         if (system !== prevSystem) {
             if (prevSystem !== null) {
-                this.setUnitLayerVisibility(prevSystem, false)
+                const hideUnits = this.layers.filter(({group}) => group === prevSystem)
+                hideUnits.forEach(({id}) => this.setLayerVisibility(id, false))
             }
 
             if (system !== null) {
-                this.setUnitLayerVisibility(system, true)
+                const showUnits = this.layers.filter(({group}) => group === system)
+                showUnits.forEach(({id}) => this.setLayerVisibility(id, true))
             }
         }
 
@@ -87,26 +64,20 @@ class SummaryMap extends Component {
         // map.getSource("unit-labels").setData(labelsToGeoJSON(labels.toJS()))
     }
 
-    setUnitLayerVisibility = (system, visible) => {
-        SYSTEM_LEVELS[system].forEach(lyr => this.setLayerVisibility(lyr, visible))
-    }
-
-    setLayerVisibility = (layerId, visible) => {
+    setLayerVisibility = (id, visible) => {
         // set fill and outline layer visibility
         const { map } = this
         const visibility = visible ? "visible" : "none"
-
-        map.setLayoutProperty(`${layerId}-fill`, "visibility", visibility)
-        map.setLayoutProperty(`${layerId}-outline`, "visibility", visibility)
+        map.setLayoutProperty(`${id}-fill`, "visibility", visibility)
+        map.setLayoutProperty(`${id}-outline`, "visibility", visibility)
     }
 
-    addUnitLayers = (units, visible = false) => {
-        units.reverse() // make sure that higher level units are stacked on lower level ones
-
+    addLayers = (layers, visible=true) => {
         const { map } = this
-        units.forEach(unit => {
-            const { bins, colors } = LEVEL_LEGEND[unit]
-            const [minzoom, maxzoom] = ZOOM_LEVELS[unit]
+
+        layers.forEach(lyr => {
+            const { bins, colors } = LEVEL_LEGEND[lyr]
+            const { id, minzoom, maxzoom } = lyr
 
             const renderColors = []
             bins.forEach(([min, max], i) => {
@@ -115,39 +86,34 @@ class SummaryMap extends Component {
             })
 
             let outlineColor = "#AAA"
-            if (unit.startsWith("HUC")) {
+            if (id.startsWith("HUC")) {
                 outlineColor = "#3F6DD7"
-            } else if (unit.startsWith("ecoregion")) {
+            } else if (id.startsWith("ecoregion")) {
                 outlineColor = "#008040"
             }
 
-            map.addLayer({
-                id: `${unit}-fill`,
+            const config = {
                 source: "sarp",
-                "source-layer": unit,
+                "source-layer": id,
                 type: "fill",
-                minzoom,
-                maxzoom,
+                minzoom: minzoom || 0,
+                maxzoom: maxzoom || 21,
                 filter: [">", "dams", 0],
                 layout: {
                     visibility: visible ? "visible" : "none"
-                },
+                }
+            }
+            const fillConfig = Object.assign({}, config, {
+                id: `${id}-fill`,
+                type: "fill",
                 paint: {
                     "fill-opacity": 0.6,
                     "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
                 }
             })
-            map.addLayer({
-                id: `${unit}-outline`,
-                source: "sarp",
-                "source-layer": unit,
+            const outlineConfig = Object.assign({}, config, {
+                id: `${id}-outline`,
                 type: "line",
-                minzoom,
-                maxzoom,
-                filter: [">", "dams", 0],
-                layout: {
-                    visibility: visible ? "visible" : "none"
-                },
                 paint: {
                     "line-opacity": 1,
                     "line-width": 0.5,
@@ -155,30 +121,74 @@ class SummaryMap extends Component {
                 }
             })
 
+            map.addLayer(fillConfig)
+            map.addLayer(outlineConfig)
+
+            this.layers.push(lyr)
+
+            // this.layers[id] = [`${id}-fill`, `${id}-outline`]
+
+            // map.addLayer({
+            //     id: `${id}-fill`,
+            //     source: "sarp",
+            //     "source-layer": id,
+            //     type: "fill",
+            //     minzoom: minzoom || 0,
+            //     maxzoom: maxzoom || 21,
+            //     filter: [">", "dams", 0],
+            //     layout: {
+            //         visibility: visible ? "visible" : "none"
+            //     },
+            //     paint: {
+            //         "fill-opacity": 0.6,
+            //         "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
+            //     }
+            // })
+            // map.addLayer({
+            //     id: `${id}-outline`,
+            //     source: "sarp",
+            //     "source-layer": id,
+            //     type: "line",
+            //     minzoom: minzoom || 0,
+            //     maxzoom: maxzoom || 21,
+            //     filter: [">", "dams", 0],
+            //     layout: {
+            //         visibility: visible ? "visible" : "none"
+            //     },
+            //     paint: {
+            //         "line-opacity": 1,
+            //         "line-width": 0.5,
+            //         "line-color": outlineColor
+            //     }
+            // })
+
+            
+
             // Show this and set the filter to highlight selected features
-            map.addLayer({
-                id: `${unit}-outline-highlight`,
-                source: "sarp",
-                "source-layer": unit,
-                type: "line",
-                layout: {
-                    visibility: "none",
-                    "line-cap": "round",
-                    "line-join": "round"
-                },
-                paint: {
-                    "line-opacity": 1,
-                    "line-width": 4,
-                    "line-color": "#333"
-                }
-            })
+            // map.addLayer({
+            //     id: `${id}-outline-highlight`,
+            //     source: "sarp",
+            //     "source-layer": id,
+            //     type: "line",
+            //     layout: {
+            //         visibility: "none",
+            //         "line-cap": "round",
+            //         "line-join": "round"
+            //     },
+            //     paint: {
+            //         "line-opacity": 1,
+            //         "line-width": 4,
+            //         "line-color": "#333"
+            //     }
+            // })
         })
     }
 
     handleCreateMap = map => {
         this.map = map
+        const { system } = this.props
 
-        this.updateActiveLayer()
+        // this.updateActiveLevel()
 
         map.on("load", () => {
             map.addSource("sarp", {
@@ -187,56 +197,47 @@ class SummaryMap extends Component {
                 tiles: [`${TILE_HOST}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`]
             })
 
-            this.addUnitLayers(SYSTEM_LEVELS.HUC, true)
-            this.addUnitLayers(SYSTEM_LEVELS.ecoregion, false)
+            const hucs = LAYER_CONFIG.filter(({group})=> group === 'HUC')
+            const ecoregions = LAYER_CONFIG.filter(({group})=> group === 'ecoregion')
+
+            this.addLayers(hucs, system === 'HUC')
+            this.addLayers(ecoregions, system === 'ecoregion')
+
             // this.addLabelLayer(labels.toJS())
         })
 
-        map.on("zoom", this.updateActiveLayer)
+        map.on("zoom", this.setState({ zoom: map.getZoom() }))
         map.on("click", e => {
-            const { activeLayer } = this.state
-            const { system, setUnit } = this.props
+            // const { activeLayer } = this.state
+            const { system, level, setUnit } = this.props
 
             if (system === null) return
 
             // TODO: capture and emit all intersected IDs, let consumer figure out which to process?
-            const features = map.queryRenderedFeatures(e.point, { layers: [`${activeLayer}-fill`] })
+            // TODO: can add all layers, only those that are visible will be returned.  Just need to extract out the appropriate IDs
+            const features = map.queryRenderedFeatures(e.point, { layers: [`${level}-fill`] })
             if (features.length === 0) return
             console.log("click features", features)
-            setUnit(activeLayer, features[0].properties[FEATURE_ID_FIELD[activeLayer]])
+            setUnit(features[0].properties[FEATURE_ID_FIELD[level]])
         })
     }
 
-    updateActiveLayer = () => {
-        // TODO: optimize this since it is called on every render
-        const { map } = this
-        const { activeLayer: prevActiveLayer } = this.state
-        const { system } = this.props
-
-        if (map === null) return
-
-        const zoom = this.map.getZoom()
-
-        if (system !== null) {
-            const available = SYSTEM_LEVELS[system].filter(u => {
-                const [minzoom, maxzoom] = ZOOM_LEVELS[u]
-                return zoom >= minzoom && zoom < maxzoom
-            })
-            const activeLayer = available.length > 0 ? available[0] : null
-
-            if (activeLayer !== prevActiveLayer) {
-                this.setState({ activeLayer })
-            }
-        }
+    getVisibleLayers = () => {
+        const { zoom } = this.state
+        return this.layers.filter(({ minzoom, maxzoom }) => zoom >= minzoom && zoom < maxzoom)
     }
 
     renderLegend() {
-        const { activeLayer } = this.state
-        const { system } = this.props
+        // const { activeLayer } = this.state
+        
+        const { system, level } = this.props
 
-        if (system === null || activeLayer === null) return null
+        const visibleLayers = this.getVisibleLayers()
 
-        const legendInfo = LEVEL_LEGEND[activeLayer]
+        if (system === null || level === null) return null
+
+        const title = LEVEL_LABELS[level]
+        const legendInfo = LEVEL_LEGEND[level]
         const { bins } = legendInfo
         const colors = legendInfo.colors.slice()
         const labels = bins.map(([min, max], i) => {
@@ -253,7 +254,7 @@ class SummaryMap extends Component {
         colors.reverse()
         labels.reverse()
 
-        return <Legend title={LEVEL_LABELS[activeLayer]} labels={labels} colors={colors} />
+        return <Legend title={title} labels={labels} colors={colors} />
     }
 
     render() {
@@ -290,42 +291,29 @@ class SummaryMap extends Component {
 }
 
 SummaryMap.propTypes = {
-    index: ImmutablePropTypes.map.isRequired,
+    bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
     system: PropTypes.string,
-    level: PropTypes.string,
-    childLevel: PropTypes.string,
-    levelIndex: PropTypes.number,
+    // level: PropTypes.string,
     unit: PropTypes.string,
     labels: ImmutablePropTypes.listOf(ImmutablePropTypes.map),
-    setUnit: PropTypes.func.isRequired,
+    
     setSystem: PropTypes.func.isRequired,
-
-    bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
-    // layers: PropTypes.arrayOf(DatasetPropType),
-    location: PropTypes.shape({
-        latitude: PropTypes.number.isRequired,
-        longitude: PropTypes.number.isRequired
-    }) // location to highlight on the map, such as a placename search result
+    setLevel: PropTypes.func.isRequired,
+    setUnit: PropTypes.func.isRequired
 }
 
 SummaryMap.defaultProps = {
     bounds: null,
     system: null,
-    level: null,
-    childLevel: null,
-    levelIndex: null,
+    // level: null,
     unit: null,
-    labels: [],
-    // layers: [],
-    location: null
+    labels: []
 }
 
 const mapStateToProps = state => ({
-    index: state.get("index"),
     bounds: state.get("bounds"),
     system: state.get("system"),
-    level: state.get("level"),
-    childLevel: state.get("childLevel"),
+    // level: state.get("level"),
     unit: state.get("unit"),
     labels: state.get("labels")
 })

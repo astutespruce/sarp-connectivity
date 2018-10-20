@@ -1,6 +1,6 @@
 import { List, Map, fromJS } from "immutable"
 
-import { GO_BACK, SET_SYSTEM, SET_UNIT } from "../actions"
+import { GO_BACK, SET_SYSTEM, SET_LEVEL, SET_UNIT } from "../actions"
 
 // TODO: load this at run time instead of build time
 import data from "../data/units.json"
@@ -42,9 +42,9 @@ const initialState = Map({
     bounds: SARPBounds, // SARP bounds
     prevBounds: List(), // push previous bounds here
     index,
-    system: 'HUC', // HUC, ecoregion, state. null means SARP bounds
+    system: "HUC", // HUC, ecoregion, state. null means SARP bounds
     levelIndex: 0, // index of level within system
-    level: 'HUC4', // HUC: 2,4,8; Ecoregion1-4, states, sarp
+    level: "HUC2", // HUC: 2,4,8; Ecoregion1-4, states, sarp
     childLevel: null,
     unit: null, // selected unit ID
     parentUnit: null, // larger unit in system that contains current unit
@@ -55,50 +55,44 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
     switch (type) {
         case SET_SYSTEM: {
             const { system } = payload
-            // const levels = SYSTEM_LEVELS[system]
-            // const levelIndex = 0
-            // const level = `${system}${levels[levelIndex]}`
-            // const labels = Array.from(index.get(level).values(), getLabels)
 
+            // TODO: need to set level for this to work
             return state.merge({
                 system
-                // level,
-                // levelIndex,
-                // childLevel: levelIndex < levels.length - 1 ? `${system}${levels[levelIndex + 1]}` : null,
-                // labels
             })
         }
+        case SET_LEVEL: {
+            return state.set("level", payload.level)
+        }
         case SET_UNIT: {
-            let prevBounds = state.get("prevBounds")
-            const { level, unit } = payload
+            return state.set("unit", payload.unit)
 
-            if (unit === null) {
-                // setting unit to null means reset, so go to previous bounds or full bounds?
-                // stay at same level
-                return state.merge({
-                    unit,
-                    bounds: prevBounds.last(SARPBounds),
-                    prevBounds: prevBounds.pop()
-                })
-            }
+            // let prevBounds = state.get("prevBounds")
+            // if (unit === null) {
+            //     // setting unit to null means reset, so go to previous bounds or full bounds?
+            //     // stay at same level
+            //     return state.merge({
+            //         unit,
+            //         bounds: prevBounds.last(SARPBounds),
+            //         prevBounds: prevBounds.pop()
+            //     })
+            // }
 
-            // We are at the same level, but a different unit; we only want to store
-            // bounds for the last selected unit at this level
-            // TODO: this isn't working properly
-            if (state.get("unit") !== null) {
-                prevBounds = prevBounds.pop()
-            }
+            // // We are at the same level, but a different unit; we only want to store
+            // // bounds for the last selected unit at this level
+            // // TODO: this isn't working properly
+            // if (state.get("unit") !== null) {
+            //     prevBounds = prevBounds.pop()
+            // }
 
-            return state.merge({
-                unit,
-                bounds: index
-                    .get(level)
-                    .get(unit)
-                    .get("bbox"),
-                prevBounds: prevBounds.push(state.get("bounds"))
-            })
-
-            // return newState
+            // return state.merge({
+            //     unit,
+            //     bounds: index
+            //         .get(level)
+            //         .get(unit)
+            //         .get("bbox"),
+            //     prevBounds: prevBounds.push(state.get("bounds"))
+            // })
         }
         case GO_BACK: {
             const system = state.get("system")

@@ -11,9 +11,9 @@ export const setLevel = level => ({
 })
 
 export const SET_UNIT = "SET_UNIT"
-export const setUnit = (level, unit) => ({
+export const setUnit = unit => ({
     type: SET_UNIT,
-    payload: { level, unit }
+    payload: { unit }
 })
 
 export const GO_BACK = "GO_BACK"
