@@ -41,19 +41,25 @@ class SummaryMap extends Component {
         const { map } = this
         if (map === null) return
 
-        const { system: prevSystem } = prevProps
-        const { system } = this.props
+        const { system: prevSystem, selectedFeature: prevFeature } = prevProps
+        const { system, selectedFeature } = this.props
+
+        const visibleLayers = this.layers.filter(({ group }) => group === system)
 
         if (system !== prevSystem) {
             if (prevSystem !== null) {
-                const hideUnits = this.layers.filter(({ group }) => group === prevSystem)
-                hideUnits.forEach(({ id }) => this.setLayerVisibility(id, false))
+                const hideLayers = this.layers.filter(({ group }) => group === prevSystem)
+                hideLayers.forEach(({ id }) => this.setLayerVisibility(id, false))
             }
 
             if (system !== null) {
-                const showUnits = this.layers.filter(({ group }) => group === system)
-                showUnits.forEach(({ id }) => this.setLayerVisibility(id, true))
+                visibleLayers.forEach(({ id }) => this.setLayerVisibility(id, true))
             }
+        }
+
+        if (selectedFeature !== prevFeature) {
+            visibleLayers.forEach(({ id }) =>
+                this.setHighlight(id, selectedFeature === null ? null : selectedFeature.get("id")))
         }
 
         // TODO: compare before updating
@@ -66,6 +72,11 @@ class SummaryMap extends Component {
         const visibility = visible ? "visible" : "none"
         map.setLayoutProperty(`${id}-fill`, "visibility", visibility)
         map.setLayoutProperty(`${id}-outline`, "visibility", visibility)
+        map.setLayoutProperty(`${id}-highlight`, "visibility", visibility)
+    }
+
+    setHighlight = (id, featureId) => {
+        this.map.setFilter(`${id}-highlight`, ["==", "id", featureId === null ? Infinity : featureId])
     }
 
     addLayers = (layers, visible = true) => {
@@ -87,7 +98,8 @@ class SummaryMap extends Component {
                 outlineColor = "#008040"
             }
 
-            const config = {
+            // TODO: merge objects using immutable instead
+            const config = fromJS({
                 source: "sarp",
                 "source-layer": id,
                 type: "fill",
@@ -97,47 +109,49 @@ class SummaryMap extends Component {
                 layout: {
                     visibility: visible ? "visible" : "none"
                 }
-            }
-            const fillConfig = Object.assign({}, config, {
-                id: `${id}-fill`,
-                type: "fill",
-                paint: {
-                    "fill-opacity": 0.6,
-                    "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
-                }
             })
-            const outlineConfig = Object.assign({}, config, {
-                id: `${id}-outline`,
+            const fillConfig = config.merge(
+                fromJS({
+                    id: `${id}-fill`,
+                    type: "fill",
+                    paint: {
+                        "fill-opacity": 0.6,
+                        "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
+                    }
+                })
+            )
+            const outlineConfig = config.merge(
+                fromJS({
+                    id: `${id}-outline`,
+                    type: "line",
+                    paint: {
+                        "line-opacity": 1,
+                        "line-width": 0.5,
+                        "line-color": outlineColor
+                    }
+                })
+            )
+
+            const highlightConfig = outlineConfig.mergeDeep({
+                id: `${id}-highlight`,
                 type: "line",
+                layout: {
+                    "line-cap": "round",
+                    "line-join": "round"
+                },
                 paint: {
                     "line-opacity": 1,
-                    "line-width": 0.5,
-                    "line-color": outlineColor
-                }
+                    "line-width": 4,
+                    "line-color": "#333"
+                },
+                filter: ["==", "id", Infinity]
             })
 
-            map.addLayer(fillConfig)
-            map.addLayer(outlineConfig)
+            map.addLayer(fillConfig.toJS())
+            map.addLayer(outlineConfig.toJS())
+            map.addLayer(highlightConfig.toJS())
 
             this.layers.push(lyr)
-
-            // Show this and set the filter to highlight selected features
-            // map.addLayer({
-            //     id: `${id}-outline-highlight`,
-            //     source: "sarp",
-            //     "source-layer": id,
-            //     type: "line",
-            //     layout: {
-            //         visibility: "none",
-            //         "line-cap": "round",
-            //         "line-join": "round"
-            //     },
-            //     paint: {
-            //         "line-opacity": 1,
-            //         "line-width": 4,
-            //         "line-color": "#333"
-            //     }
-            // })
         })
     }
 
