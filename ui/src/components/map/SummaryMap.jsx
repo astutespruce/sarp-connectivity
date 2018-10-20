@@ -54,157 +54,32 @@ Object.keys(SYSTEM_LEVELS).forEach(s => {
         }
     })
 })
-console.log("level legend", LEVEL_LEGEND)
 
 class SummaryMap extends Component {
     constructor() {
         super()
 
+        this.state = {
+            activeLayer: null // root ID of the active layer(s)
+        }
+
         this.map = null
     }
 
-    componentDidMount() {
-        // const { map } = this
-
-        map.on("load", () => {
-            map.addSource("sarp", {
-                type: "vector",
-                maxzoom: 8,
-                tiles: [`${TILE_HOST}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`]
-            })
-
-            // Initially the mask and boundary are visible
-            // map.addLayer({
-            //     id: "sarp-mask",
-            //     source: "sarp",
-            //     "source-layer": "mask",
-            //     type: "fill",
-            //     layout: {},
-            //     paint: {
-            //         "fill-opacity": 0.6,
-            //         "fill-color": "#AAA"
-            //     }
-            // })
-            // create fill layer only for consistency w/ other units below
-            // map.addLayer({
-            //     id: "sarp-fill",
-            //     source: "sarp",
-            //     "source-layer": "boundary",
-            //     type: "fill",
-            //     layout: {},
-            //     paint: {
-            //         "fill-opacity": 0
-            //     }
-            // })
-            // map.addLayer({
-            //     id: "sarp-outline",
-            //     source: "sarp",
-            //     "source-layer": "boundary",
-            //     type: "line",
-            //     layout: {},
-            //     paint: {
-            //         "line-opacity": 0.8,
-            //         "line-width": 2,
-            //         // "line-color": "#AAA"
-            //         "line-color": "#4A0025"
-            //     }
-            // })
-
-            this.addUnitLayers(SYSTEM_LEVELS.HUC, true)
-            this.addUnitLayers(SYSTEM_LEVELS.ecoregion, false)
-            // this.addLabelLayer(labels.toJS())
-
-            // Hack: Update to make it fit its viewport
-            // this is here to give the styles time to load on the page and set the dimensions for
-            // the map container
-            map.resize()
-        })
-
-        // map.on("click", e => {
-        //     const { system: curSystem, level: curLevel, childLevel: curChildLevel, setLevel } = this.props
-        //     if (curSystem === null) return
-
-        //     const layerID = `${curLevel}-fill`
-        //     const childLayerID = `${curChildLevel}-fill`
-        //     const layers = [layerID]
-        //     if (curChildLevel) {
-        //         layers.push(childLayerID)
-        //     }
-
-        //     // TODO: capture and emit all intersected IDs, let consumer figure out which to process?
-        //     let features = map.queryRenderedFeatures(e.point, { layers })
-        //     if (features.length === 0) return
-        //     console.log("click features", features)
-
-        //     const childFeatures = features.filter(d => d.layer.id === childLayerID)
-        //     features = features.filter(d => d.layer.id === layerID)
-
-        //     // TODO: the prop with the ID and the level are NOT always the same, need a LUT
-
-        //     if (childFeatures.length > 0) {
-        //         // set feature in current level, and move to next level
-        //         // setLevel(curChildLevel)
-        //         setUnit(childFeatures[0].properties[FEATURE_ID_FIELD[curChildLevel]], curChildLevel)
-        //     } else {
-        //         // select feature in current level
-        //         setUnit(features[0].properties[FEATURE_ID_FIELD[curLevel]])
-        //     }
-        // })
-    }
-
     componentDidUpdate(prevProps) {
-        console.log("component did update", this.props, "prev:", prevProps)
-        // const { bounds, labels } = this.props
-        // const { prevBounds, prevLabels } = prevProps
-
         const { map } = this
-        const { bounds: prevBounds, system: prevSystem, level: prevLevel, unit: prevUnit } = prevProps
-        const { bounds, system, level, childLevel, labels, levelIndex, unit, index } = this.props
-        const unitIDField = FEATURE_ID_FIELD[level]
+        if (map === null) return
 
-        if (!bounds.equals(prevBounds)) {
-            map.fitBounds(bounds.toJS(), { padding: 10 })
-        }
-
-        const prevFillID = `${prevLevel}-fill`
-        const prevOutlineID = `${prevLevel}-outline`
-        const fillID = `${level}-fill`
-        const outlineID = `${level}-outline`
-        const highlightID = `${level}-outline-highlight`
-        const childFillID = `${childLevel}-fill`
-        const childOutlineID = `${childLevel}-outline`
+        const { system: prevSystem } = prevProps
+        const { system } = this.props
 
         if (system !== prevSystem) {
-            // TODO: overhaul this
-            // reset filters and styles for previous things
-            // hide previous layers
-            // TODO: hide boundary
             if (prevSystem !== null) {
-                // map.setLayoutProperty(prevFillID, "visibility", "none")
-                // map.setLayoutProperty(prevOutlineID, "visibility", "none")
-
-                SYSTEM_LEVELS[prevSystem].forEach(u => {
-                    map.setLayoutProperty(`${u}-fill`, "visibility", "none")
-                    map.setLayoutProperty(`${u}-outline`, "visibility", "none")
-                })
+                this.setUnitLayerVisibility(prevSystem, false)
             }
 
-            if (system === null) {
-                // show boundary
-                map.setLayoutProperty("sarp-fill", "visibility", "visible")
-                map.setLayoutProperty("sarp-outline", "visibility", "visible")
-            } else {
-                // map.setLayoutProperty(fillID, "visibility", "visible")
-                // map.setLayoutProperty(outlineID, "visibility", "visible")
-
-                // hide the boundary
-                map.setLayoutProperty("sarp-fill", "visibility", "none")
-                map.setLayoutProperty("sarp-outline", "visibility", "none")
-
-                SYSTEM_LEVELS[system].forEach(u => {
-                    map.setLayoutProperty(`${u}-fill`, "visibility", "visible")
-                    map.setLayoutProperty(`${u}-outline`, "visibility", "visible")
-                })
+            if (system !== null) {
+                this.setUnitLayerVisibility(system, true)
             }
         }
 
@@ -212,12 +87,24 @@ class SummaryMap extends Component {
         // map.getSource("unit-labels").setData(labelsToGeoJSON(labels.toJS()))
     }
 
+    setUnitLayerVisibility = (system, visible) => {
+        SYSTEM_LEVELS[system].forEach(lyr => this.setLayerVisibility(lyr, visible))
+    }
+
+    setLayerVisibility = (layerId, visible) => {
+        // set fill and outline layer visibility
+        const { map } = this
+        const visibility = visible ? "visible" : "none"
+
+        map.setLayoutProperty(`${layerId}-fill`, "visibility", visibility)
+        map.setLayoutProperty(`${layerId}-outline`, "visibility", visibility)
+    }
+
     addUnitLayers = (units, visible = false) => {
         units.reverse() // make sure that higher level units are stacked on lower level ones
 
         const { map } = this
         units.forEach(unit => {
-            // const colors = mapColorsToRange(COUNT_COLORS, summaryStats[unit].dams)
             const { bins, colors } = LEVEL_LEGEND[unit]
             const [minzoom, maxzoom] = ZOOM_LEVELS[unit]
 
@@ -288,40 +175,93 @@ class SummaryMap extends Component {
         })
     }
 
-    render() {
-        const { zoom } = this.state
-        const { system, view, setSystem } = this.props
+    handleCreateMap = map => {
+        this.map = map
 
-        // TODO: optimize this
-        const curUnit = null
-        const colors = null
-        const labels = null
-        const showLegend = false
-        // const showLegend = system !== null && view === "summary"
-        // if (system) {
-        //     curUnit = SYSTEM_LEVELS[system].filter(u => {
-        //         const [minzoom, maxzoom] = ZOOM_LEVELS[u]
-        //         return zoom >= minzoom && zoom < maxzoom
-        //     })
-        //     console.log("curUnit", curUnit)
-        //     const legendInfo = LEVEL_LEGEND[curUnit]
-        //     colors = legendInfo.colors.slice()
-        //     const { bins } = legendInfo
-        //     labels = bins.map(([min, max], i) => {
-        //         if (i === 0) {
-        //             return `< ${Math.round(max).toLocaleString()} dams`
-        //         }
-        //         if (i === bins.length - 1) {
-        //             return `≥ ${Math.round(min).toLocaleString()} dams`
-        //         }
-        //         // Use midpoint value
-        //         return Math.round((max - min) / 2 + min).toLocaleString()
-        //     })
-        // }
+        this.updateActiveLayer()
+
+        map.on("load", () => {
+            map.addSource("sarp", {
+                type: "vector",
+                maxzoom: 8,
+                tiles: [`${TILE_HOST}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`]
+            })
+
+            this.addUnitLayers(SYSTEM_LEVELS.HUC, true)
+            this.addUnitLayers(SYSTEM_LEVELS.ecoregion, false)
+            // this.addLabelLayer(labels.toJS())
+        })
+
+        map.on("zoom", this.updateActiveLayer)
+        map.on("click", e => {
+            const { activeLayer } = this.state
+            const { system, setUnit } = this.props
+
+            if (system === null) return
+
+            // TODO: capture and emit all intersected IDs, let consumer figure out which to process?
+            const features = map.queryRenderedFeatures(e.point, { layers: [`${activeLayer}-fill`] })
+            if (features.length === 0) return
+            console.log("click features", features)
+            setUnit(activeLayer, features[0].properties[FEATURE_ID_FIELD[activeLayer]])
+        })
+    }
+
+    updateActiveLayer = () => {
+        // TODO: optimize this since it is called on every render
+        const { map } = this
+        const { activeLayer: prevActiveLayer } = this.state
+        const { system } = this.props
+
+        if (map === null) return
+
+        const zoom = this.map.getZoom()
+
+        if (system !== null) {
+            const available = SYSTEM_LEVELS[system].filter(u => {
+                const [minzoom, maxzoom] = ZOOM_LEVELS[u]
+                return zoom >= minzoom && zoom < maxzoom
+            })
+            const activeLayer = available.length > 0 ? available[0] : null
+
+            if (activeLayer !== prevActiveLayer) {
+                this.setState({ activeLayer })
+            }
+        }
+    }
+
+    renderLegend() {
+        const { activeLayer } = this.state
+        const { system } = this.props
+
+        if (system === null || activeLayer === null) return null
+
+        const legendInfo = LEVEL_LEGEND[activeLayer]
+        const { bins } = legendInfo
+        const colors = legendInfo.colors.slice()
+        const labels = bins.map(([min, max], i) => {
+            if (i === 0) {
+                return `< ${Math.round(max).toLocaleString()} dams`
+            }
+            if (i === bins.length - 1) {
+                return `≥ ${Math.round(min).toLocaleString()} dams`
+            }
+            // Use midpoint value
+            return Math.round((max - min) / 2 + min).toLocaleString()
+        })
+        // flip the order since we are displaying from top to bottom
+        colors.reverse()
+        labels.reverse()
+
+        return <Legend title={LEVEL_LABELS[activeLayer]} labels={labels} colors={colors} />
+    }
+
+    render() {
+        const { system, setSystem, bounds } = this.props
 
         return (
             <React.Fragment>
-                <Map bounds={bounds} />
+                <MapBase bounds={bounds} onCreateMap={this.handleCreateMap} />
 
                 <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
                     <h5 className="is-size-7">Summarize on: </h5>
@@ -343,7 +283,7 @@ class SummaryMap extends Component {
                     </div>
                 </div>
 
-                {showLegend && <Legend title={LEVEL_LABELS[curUnit]} labels={labels} colors={colors} />}
+                {this.renderLegend()}
             </React.Fragment>
         )
     }
@@ -394,3 +334,40 @@ export default connect(
     mapStateToProps,
     actions
 )(SummaryMap)
+
+// Initially the mask and boundary are visible
+// map.addLayer({
+//     id: "sarp-mask",
+//     source: "sarp",
+//     "source-layer": "mask",
+//     type: "fill",
+//     layout: {},
+//     paint: {
+//         "fill-opacity": 0.6,
+//         "fill-color": "#AAA"
+//     }
+// })
+// create fill layer only for consistency w/ other units below
+// map.addLayer({
+//     id: "sarp-fill",
+//     source: "sarp",
+//     "source-layer": "boundary",
+//     type: "fill",
+//     layout: {},
+//     paint: {
+//         "fill-opacity": 0
+//     }
+// })
+// map.addLayer({
+//     id: "sarp-outline",
+//     source: "sarp",
+//     "source-layer": "boundary",
+//     type: "line",
+//     layout: {},
+//     paint: {
+//         "line-opacity": 0.8,
+//         "line-width": 2,
+//         // "line-color": "#AAA"
+//         "line-color": "#4A0025"
+//     }
+// })

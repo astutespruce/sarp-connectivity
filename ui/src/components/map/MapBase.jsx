@@ -1,13 +1,9 @@
 import React from "react"
 import PropTypes from "prop-types"
 import ImmutablePropTypes from "react-immutable-proptypes"
-import { connect } from "react-redux"
-// import { fromJS, is } from 'immutable'
 import geoViewport from "@mapbox/geo-viewport"
 import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
-
-import * as actions from "../../actions"
 
 // TODO: change to one for this account
 mapboxgl.accessToken = "pk.eyJ1IjoiYmN3YXJkIiwiYSI6InJ5NzUxQzAifQ.CVyzbyOpnStfYUQ_6r8AgQ"
@@ -16,25 +12,20 @@ class Map extends React.Component {
     constructor(props) {
         super(props)
 
-        this.state = {
-            zoom: 4
-        }
-
         this.map = null
+        this.mapNode = null
     }
 
     componentDidMount() {
-        const { bounds } = this.props
+        const { bounds, onCreateMap } = this.props
 
-        let { zoom } = this.state
-
-        const { mapContainer } = this
-        let center = [-87.69692774001089, 31.845649246524772] // approx center of SARP
+        const { mapNode } = this
+        let center = [0, 0]
+        let zoom = 0
 
         // If bounds are available, use these to establish center and zoom when map first
-        // boots, then fit the bounds more specifically later
-        if (bounds && bounds) {
-            const { offsetWidth: width, offsetHeight: height } = mapContainer
+        if (bounds && bounds.size === 4) {
+            const { offsetWidth: width, offsetHeight: height } = mapNode
             const viewport = geoViewport.viewport(bounds.toJS(), [width, height], undefined, undefined, undefined, true)
             // Zoom out slightly to pad around bounds
             zoom = Math.max(viewport.zoom - 1, 0) * 0.99
@@ -43,7 +34,7 @@ class Map extends React.Component {
         }
 
         const map = new mapboxgl.Map({
-            container: mapContainer,
+            container: mapNode,
             style: "mapbox://styles/mapbox/light-v9",
             center,
             zoom
@@ -54,16 +45,23 @@ class Map extends React.Component {
 
         map.addControl(new mapboxgl.NavigationControl(), "top-right")
 
-        map.on("zoom", () => {
-            this.setState({ zoom: map.getZoom() })
-        })
+        onCreateMap(map)
+    }
+
+    componentDidUpdate(prevProps) {
+        const { bounds: prevBounds } = prevProps
+        const { bounds } = this.props
+
+        if (!bounds.equals(prevBounds)) {
+            this.map.fitBounds(bounds.toJS(), { padding: 10 })
+        }
     }
 
     renderMapNode() {
         return (
             <div
                 ref={el => {
-                    this.mapContainer = el
+                    this.mapNode = el
                 }}
                 style={{
                     position: "absolute",
@@ -82,21 +80,17 @@ class Map extends React.Component {
 }
 
 Map.propTypes = {
-    bounds: ImmutablePropTypes.listOf(PropTypes.number) // example: [-180, -86, 180, 86]\
+    bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
+    onCreateMap: PropTypes.func // called with map object when created
 }
 
 Map.defaultProps = {
-    bounds: null
+    bounds: null,
+    onCreateMap: () => {}
 }
 
-const mapStateToProps = state => ({
-    bounds: state.get("bounds")
-})
+export default Map
 
-export default connect(
-    mapStateToProps,
-    actions
-)(Map)
 
 // assign colors to current level
 

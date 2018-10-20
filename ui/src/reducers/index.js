@@ -70,9 +70,7 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
         }
         case SET_UNIT: {
             let prevBounds = state.get("prevBounds")
-            const prevLevel = state.get("level")
-            const { unit } = payload
-            const level = payload.level || prevLevel
+            const { level, unit } = payload
 
             if (unit === null) {
                 // setting unit to null means reset, so go to previous bounds or full bounds?
@@ -91,22 +89,7 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
                 prevBounds = prevBounds.pop()
             }
 
-            let newState = state
-
-            if (level !== null && level !== prevLevel) {
-                const system = state.get("system")
-                const levelIndex = state.get("levelIndex") + 1 // assume just moving up 1 level
-                const levels = SYSTEM_LEVELS[system]
-
-                newState = newState.merge({
-                    level,
-                    levelIndex,
-                    childLevel: levelIndex < levels.length - 1 ? `${system}${levels[levelIndex + 1]}` : null
-                    // labels: Array.from(index.get(level).values(), getLabels)
-                })
-            }
-
-            return newState.merge({
+            return state.merge({
                 unit,
                 bounds: index
                     .get(level)
