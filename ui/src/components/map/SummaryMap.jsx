@@ -5,11 +5,10 @@ import { connect } from "react-redux"
 
 import * as actions from "../../actions"
 import Legend from "./Legend"
-import { mapColorsToRange } from "../../utils/colors"
 import { equalIntervals } from "../../utils/stats"
-import { getParentId } from "../../utils/features"
+import { FeaturePropType } from "../../CustomPropTypes"
 // import { LabelPointPropType } from "../../CustomPropTypes"
-import { labelsToGeoJSON } from "../../utils/geojson"
+// import { labelsToGeoJSON } from "../../utils/geojson"
 
 import summaryStats from "../../data/summary_stats.json"
 
@@ -19,9 +18,9 @@ import MapBase from "./MapBase"
 // Precalculate colors
 // TODO: make this vary by metric
 const LEVEL_LEGEND = {}
-Object.keys(LAYER_CONFIG).forEach(lyr => {
-    LEVEL_LEGEND[lyr] = {
-        bins: equalIntervals(summaryStats[lyr].dams, COUNT_COLORS.length),
+LAYER_CONFIG.forEach(({ id }) => {
+    LEVEL_LEGEND[id] = {
+        bins: equalIntervals(summaryStats[id].dams, COUNT_COLORS.length),
         colors: COUNT_COLORS
     }
 })
@@ -31,7 +30,6 @@ class SummaryMap extends Component {
         super()
 
         this.state = {
-            // activeLayer: null // root ID of the active layer(s)
             zoom: null
         }
 
@@ -46,17 +44,15 @@ class SummaryMap extends Component {
         const { system: prevSystem } = prevProps
         const { system } = this.props
 
-
-        // TODO: set activeLayer 
         if (system !== prevSystem) {
             if (prevSystem !== null) {
-                const hideUnits = this.layers.filter(({group}) => group === prevSystem)
-                hideUnits.forEach(({id}) => this.setLayerVisibility(id, false))
+                const hideUnits = this.layers.filter(({ group }) => group === prevSystem)
+                hideUnits.forEach(({ id }) => this.setLayerVisibility(id, false))
             }
 
             if (system !== null) {
-                const showUnits = this.layers.filter(({group}) => group === system)
-                showUnits.forEach(({id}) => this.setLayerVisibility(id, true))
+                const showUnits = this.layers.filter(({ group }) => group === system)
+                showUnits.forEach(({ id }) => this.setLayerVisibility(id, true))
             }
         }
 
@@ -72,13 +68,12 @@ class SummaryMap extends Component {
         map.setLayoutProperty(`${id}-outline`, "visibility", visibility)
     }
 
-    addLayers = (layers, visible=true) => {
+    addLayers = (layers, visible = true) => {
         const { map } = this
 
         layers.forEach(lyr => {
-            const { bins, colors } = LEVEL_LEGEND[lyr]
             const { id, minzoom, maxzoom } = lyr
-
+            const { bins, colors } = LEVEL_LEGEND[id]
             const renderColors = []
             bins.forEach(([min, max], i) => {
                 renderColors.push((max - min) / 2 + min) // interpolate from the midpoint
@@ -88,7 +83,7 @@ class SummaryMap extends Component {
             let outlineColor = "#AAA"
             if (id.startsWith("HUC")) {
                 outlineColor = "#3F6DD7"
-            } else if (id.startsWith("ecoregion")) {
+            } else if (id.startsWith("ECO")) {
                 outlineColor = "#008040"
             }
 
@@ -162,8 +157,6 @@ class SummaryMap extends Component {
             //     }
             // })
 
-            
-
             // Show this and set the filter to highlight selected features
             // map.addLayer({
             //     id: `${id}-outline-highlight`,
@@ -188,7 +181,7 @@ class SummaryMap extends Component {
         this.map = map
         const { system } = this.props
 
-        // this.updateActiveLevel()
+        this.setState({ zoom: this.map.getZoom() })
 
         map.on("load", () => {
             map.addSource("sarp", {
@@ -197,47 +190,47 @@ class SummaryMap extends Component {
                 tiles: [`${TILE_HOST}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`]
             })
 
-            const hucs = LAYER_CONFIG.filter(({group})=> group === 'HUC')
-            const ecoregions = LAYER_CONFIG.filter(({group})=> group === 'ecoregion')
-
-            this.addLayers(hucs, system === 'HUC')
-            this.addLayers(ecoregions, system === 'ecoregion')
+            const systems = ["HUC", "ECO"]
+            systems.forEach(s => {
+                this.addLayers(LAYER_CONFIG.filter(({ group }) => group === s), s === system)
+            })
 
             // this.addLabelLayer(labels.toJS())
         })
 
-        map.on("zoom", this.setState({ zoom: map.getZoom() }))
+        map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
         map.on("click", e => {
-            // const { activeLayer } = this.state
-            const { system, level, setUnit } = this.props
+            const { system: curSystem, selectFeature } = this.props
 
-            if (system === null) return
-
-            // TODO: capture and emit all intersected IDs, let consumer figure out which to process?
-            // TODO: can add all layers, only those that are visible will be returned.  Just need to extract out the appropriate IDs
-            const features = map.queryRenderedFeatures(e.point, { layers: [`${level}-fill`] })
+            const layers = this.layers.filter(({ group }) => group === curSystem).map(({ id }) => `${id}-fill`)
+            const features = map.queryRenderedFeatures(e.point, { layers })
             if (features.length === 0) return
             console.log("click features", features)
-            setUnit(features[0].properties[FEATURE_ID_FIELD[level]])
+            selectFeature(features[0].properties)
         })
     }
 
     getVisibleLayers = () => {
         const { zoom } = this.state
-        return this.layers.filter(({ minzoom, maxzoom }) => zoom >= minzoom && zoom < maxzoom)
+        const { system } = this.props
+
+        return this.layers.filter(
+            ({ group, minzoom, maxzoom }) => group === system && zoom >= minzoom && zoom < maxzoom
+        )
     }
 
     renderLegend() {
-        // const { activeLayer } = this.state
-        
-        const { system, level } = this.props
+        const { system } = this.props
+
+        if (system === null) return null
 
         const visibleLayers = this.getVisibleLayers()
+        if (visibleLayers.length === 0) return null
 
-        if (system === null || level === null) return null
+        const lyr = visibleLayers[0]
+        const { id, title } = lyr
 
-        const title = LEVEL_LABELS[level]
-        const legendInfo = LEVEL_LEGEND[level]
+        const legendInfo = LEVEL_LEGEND[id]
         const { bins } = legendInfo
         const colors = legendInfo.colors.slice()
         const labels = bins.map(([min, max], i) => {
@@ -275,9 +268,9 @@ class SummaryMap extends Component {
                             Watersheds
                         </button>
                         <button
-                            className={`button is-small ${system === "ecoregion" ? "active" : ""}`}
+                            className={`button is-small ${system === "ECO" ? "active" : ""}`}
                             type="button"
-                            onClick={() => setSystem("ecoregion")}
+                            onClick={() => setSystem("ECO")}
                         >
                             Ecoregions
                         </button>
@@ -293,28 +286,24 @@ class SummaryMap extends Component {
 SummaryMap.propTypes = {
     bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
     system: PropTypes.string,
-    // level: PropTypes.string,
-    unit: PropTypes.string,
+    selectedFeature: FeaturePropType,
     labels: ImmutablePropTypes.listOf(ImmutablePropTypes.map),
-    
+
     setSystem: PropTypes.func.isRequired,
-    setLevel: PropTypes.func.isRequired,
-    setUnit: PropTypes.func.isRequired
+    selectFeature: PropTypes.func.isRequired
 }
 
 SummaryMap.defaultProps = {
     bounds: null,
     system: null,
-    // level: null,
-    unit: null,
+    selectedFeature: null,
     labels: []
 }
 
 const mapStateToProps = state => ({
     bounds: state.get("bounds"),
     system: state.get("system"),
-    // level: state.get("level"),
-    unit: state.get("unit"),
+    selectedFeature: state.get("selectedFeature"),
     labels: state.get("labels")
 })
 

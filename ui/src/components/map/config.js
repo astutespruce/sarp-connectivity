@@ -42,9 +42,9 @@ export const COUNT_COLORS = [
 // }
 
 export const LAYER_CONFIG = [
-    { id: "HUC2", group: "HUC", minzoom: 0, maxzoom: 4.5, title: "Hydrologic region", idField: "HUC2" },
-    { id: "HUC4", group: "HUC", minzoom: 4.5, maxzoom: 6, title: "Hydrologic subregion", idField: "HUC4" },
-    { id: "HUC8", group: "HUC", minzoom: 6, maxzoom: 21, title: "Hydrologic subbasin", idField: "HUC8" },
-    { id: "ecoregion1", group: "ecoregion", minzoom: 0, maxzoom: 6, title: "Level 3 Ecoregion", idField: "NA_L3CODE" },
-    { id: "ecoregion1", group: "ecoregion", minzoom: 6, maxzoom: 21, title: "Level 4 Ecoregion", idField: "US_L4CODE" }
+    { id: "HUC2", group: "HUC", minzoom: 0, maxzoom: 4.5, title: "Hydrologic region" },
+    { id: "HUC4", group: "HUC", minzoom: 4.5, maxzoom: 6, title: "Hydrologic subregion" },
+    { id: "HUC8", group: "HUC", minzoom: 6, maxzoom: 21, title: "Hydrologic subbasin" },
+    { id: "ECO3", group: "ECO", minzoom: 0, maxzoom: 6, title: "Level 3 Ecoregion" },
+    { id: "ECO4", group: "ECO", minzoom: 6, maxzoom: 21, title: "Level 4 Ecoregion" }
 ]
