@@ -3,7 +3,7 @@ import PropTypes from "prop-types"
 import ImmutablePropTypes from "react-immutable-proptypes"
 import { connect } from "react-redux"
 import { fromJS } from "immutable"
-import * as actions from "../../actions"
+import * as actions from "../../actions/summary"
 import Legend from "./Legend"
 import { equalIntervals } from "../../utils/stats"
 import { FeaturePropType } from "../../CustomPropTypes"
@@ -274,12 +274,16 @@ SummaryMap.defaultProps = {
     labels: []
 }
 
-const mapStateToProps = state => ({
-    bounds: state.get("bounds"),
-    system: state.get("system"),
-    selectedFeature: state.get("selectedFeature"),
-    labels: state.get("labels")
-})
+const mapStateToProps = globalState => {
+    const state = globalState.get("summary")
+
+    return {
+        bounds: state.get("bounds"),
+        system: state.get("system"),
+        selectedFeature: state.get("selectedFeature"),
+        labels: state.get("labels")
+    }
+}
 
 export default connect(
     mapStateToProps,

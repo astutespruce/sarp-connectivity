@@ -24,6 +24,7 @@
         "react-router-prop-types": "^1.0.4",
         "react-scripts": "2.0.4",
         "redux": "^4.0.0",
+        "redux-immutable": "^4.0.0",
         "redux-logger": "^3.0.6"
     },
     "scripts": {

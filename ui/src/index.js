@@ -6,8 +6,10 @@ import { createLogger } from "redux-logger"
 import { createStore, applyMiddleware } from "redux"
 import { Provider } from "react-redux"
 import { BrowserRouter as Router } from "react-router-dom"
+import { combineReducers } from "redux-immutable"
+import { Record } from "immutable"
 
-import reducer from "./reducers"
+import { summaryReducer, priorityReducer } from "./reducers"
 
 import "@fortawesome/fontawesome-free/css/all.min.css"
 import "bulma/css/bulma.css"
@@ -28,7 +30,19 @@ const logger = createLogger({
     stateTransformer: state => state.toJS()
 })
 
-const store = createStore(reducer, applyMiddleware(logger))
+// const StateRecord = Record({
+//     // priority: undefined,
+//     summary: undefined
+// })
+const rootReducer = combineReducers(
+    {
+        priority: priorityReducer,
+        summary: summaryReducer
+    }
+    // StateRecord
+)
+
+const store = createStore(rootReducer, applyMiddleware(logger))
 
 // TODO: migrate to final deployment path.  For now production is hosted at
 // https://consbio.github.io/sarp/

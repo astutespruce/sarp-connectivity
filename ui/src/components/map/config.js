@@ -1,4 +1,8 @@
+import { List } from 'immutable'
+
 export const TILE_HOST = process.env.NODE_ENV === "production" ? "http://34.237.24.48:8000" : "http://localhost:8000"
+
+export const SARP_BOUNDS = List([-106.645646, 17.623468, -64.512674, 40.61364])
 
 export const COUNT_COLORS = [
     "#fff7ec",

@@ -2,7 +2,7 @@ import React from "react"
 import PropTypes from "prop-types"
 import { connect } from "react-redux"
 
-import * as actions from "../../actions"
+import * as actions from "../../actions/summary"
 import { FeaturePropType } from "../../CustomPropTypes"
 import { formatNumber } from "../../utils/format"
 
@@ -58,7 +58,14 @@ Summary.defaultProps = {
     connectedmiles: summaryStats.sarp.connectedmiles
 }
 
-const mapStateToProps = state => ({ system: state.get("system"), selectedFeature: state.get("selectedFeature") })
+const mapStateToProps = globalState => {
+    const state = globalState.get("summary")
+
+    return {
+        system: state.get("system"),
+        selectedFeature: state.get("selectedFeature")
+    }
+}
 
 export default connect(
     mapStateToProps,

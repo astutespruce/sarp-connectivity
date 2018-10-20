@@ -3,7 +3,7 @@ import PropTypes from "prop-types"
 import ImmutablePropTypes from "react-immutable-proptypes"
 import { connect } from "react-redux"
 
-import * as actions from "../../actions"
+import * as actions from "../../actions/priority"
 import Legend from "./Legend"
 import { FeaturePropType } from "../../CustomPropTypes"
 
@@ -215,12 +215,16 @@ PriorityMap.defaultProps = {
     labels: []
 }
 
-const mapStateToProps = state => ({
-    bounds: state.get("bounds"),
-    system: state.get("system"),
-    selectedFeature: state.get("selectedFeature"),
-    labels: state.get("labels")
-})
+const mapStateToProps = globalState => {
+    const state = globalState.get("priority")
+
+    return {
+        bounds: state.get("bounds"),
+        system: state.get("system"),
+        selectedFeature: state.get("selectedFeature"),
+        labels: state.get("labels")
+    }
+}
 
 export default connect(
     mapStateToProps,
