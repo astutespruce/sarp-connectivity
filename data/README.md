@@ -25,7 +25,7 @@ To convert dams to mbtiles:
    TODO: only include the attributes actually needed for the mbtiles file.
 
 ```
-tippecanoe -f -Z0 -z14 -B5 -r1 --cluster-distance=2 -o ../../tiles/sarp_dams_full.mbtiles -l dams sarp_dams_mbtiles.csv
+tippecanoe -f -Z0 -z14 -B5 -r1 --cluster-distance=2 -o ../../tiles/dams_full.mbtiles -l dams dams_mbtiles.csv
 ```
 
 TODO: consider --drop-densest-as-needed instead
@@ -71,8 +71,8 @@ Convert from shapefile to GeoJSON first, then cut tiles. Note the variation in m
 SARP Boundary:
 
 ```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_boundary_wgs84.json sarp_boundary.shp
-tippecanoe -z 8 -l boundary -o ../../tiles/sarp_boundary.mbtiles sarp_boundary_wgs84.json
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON boundary.json sarp_boundary.shp
+tippecanoe -z 8 -l boundary -o ../../tiles/boundary.mbtiles boundary.json
 ```
 
 SARP Inverse Boundary (for masking):
@@ -80,47 +80,39 @@ Create a GeoJSON polygon for world bounds using GeoJSON.io. In ArcGIS, erase fro
 using SARP boundary: SARP_mask.shp (already in wgs_84)
 
 ```
-ogr2ogr -f GeoJSON SARP_mask_wgs84.json sarp_mask.shp
-tippecanoe -z 8 -l mask -o ../../tiles/sarp_mask.mbtiles sarp_mask_wgs84.json
+ogr2ogr -f GeoJSON mask.json sarp_mask.shp
+tippecanoe -z 8 -l mask -o ../../tiles/mask.mbtiles mask.json
 ```
 
 States:
 
-```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_states_wgs84.json sarp_states.shp
-tippecanoe -f -z 8 -l states -o ../../tiles/sarp_states.mbtiles -y NAME sarp_states_wgs84.json
-```
-
-HUC2 - 8:
+states, HUC2 - 8 and ecoregions:
 
 ```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_HUC2_wgs84.json sarp_HUC2.shp
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_HUC4_wgs84.json sarp_HUC4.shp
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_HUC8_wgs84.json SARP_Bounds.gdb SARP_HUC8_Albers
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON states.json sarp_states.shp -sql "SELECT NAME as id from sarp_states"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC2.json sarp_HUC2.shp -sql "SELECT HUC2 as id from sarp_HUC2"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC4.json sarp_HUC4.shp -sql "SELECT HUC4 as id from sarp_HUC4"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC8.json SARP_Bounds.gdb SARP_HUC8_Albers -sql "SELECT HUC8 as id, HU_8_NAME as name from SARP_HUC8_Albers"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO3.json sarp_ecoregion3.shp -sql "SELECT NA_L3CODE as id, US_L3NAME as name from sarp_ecoregion3"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO4.json sarp_ecoregion4.shp -sql "SELECT US_L4CODE as id, US_L4NAME as name from sarp_ecoregion4"
 
-tippecanoe -f -z 8 -l HUC2 -o ../../tiles/sarp_huc2.mbtiles  -T HUC2:string -y HUC2 sarp_huc2_wgs84.json
-tippecanoe -f -z 8 -l HUC4 -o ../../tiles/sarp_huc4.mbtiles  -T HUC4:string -y HUC4 sarp_huc4_wgs84.json
-tippecanoe -f -Z 5 -z 10 -l HUC8 -o ../../tiles/sarp_huc8.mbtiles  -T HUC8:string -y HUC8 sarp_huc8_wgs84.json
+
+tippecanoe -f -z 8 -l states -o ../../tiles/states.mbtiles -y id states.json
+tippecanoe -f -z 8 -l HUC2 -o ../../tiles/HUC2.mbtiles  -T id:string -y id HUC2.json
+tippecanoe -f -z 8 -l HUC4 -o ../../tiles/HUC4.mbtiles  -T id:string -y id HUC4.json
+tippecanoe -f -Z 5 -z 10 -l HUC8 -o ../../tiles/HUC8.mbtiles  -T id:string -y id -y name HUC8.json
+tippecanoe -f -Z 3 -z 10 -l ECO3 -o ../../tiles/ECO3.mbtiles  -T id:string -y id -y name ECO3.json
+tippecanoe -f -Z 4 -z 12 -l ECO4 -o ../../tiles/ECO4.mbtiles  -T id:string -y id -y name ECO4.json
 ```
 
-HUC12 - currently not being done:
+<!-- HUC12 - currently not being done:
 
 ```
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_HUC12_wgs84.json SARP_Bounds.gdb SARP_HUC12_Albers
 tippecanoe -f -Z 7 -z 12 -l HUC12 -o ../../tiles/sarp_huc12.mbtiles  -T HUC12:string -y HUC12 sarp_huc12_wgs84.json
-```
+``` -->
 
-Ecoregions:
-
-```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_ecoregion3_wgs84.json sarp_ecoregion3.shp
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_ecoregion4_wgs84.json sarp_ecoregion4.shp
-
-tippecanoe -f -Z 3 -z 10 -l ecoregion3 -o ../../tiles/sarp_ecoregion3.mbtiles  -T NA_L3CODE:string -y NA_L3CODE sarp_ecoregion3_wgs84.json
-tippecanoe -f -Z 4 -z 12 -l ecoregion4 -o ../../tiles/sarp_ecoregion4.mbtiles  -T US_L4CODE:string -y US_L4CODE sarp_ecoregion4_wgs84.json
-```
-
-## Create centroids vector tiles (for labeling) - OUTDATED, not needed anymore:
+<!-- ## Create centroids vector tiles (for labeling) - OUTDATED, not needed anymore:
 
 Centroids are extracted using `extract_centroids.py`.
 
@@ -132,23 +124,23 @@ tippecanoe -f -B 4 -Z 4 -z 8 -l HUC8_centroids -o ../../tiles/sarp_HUC8_centroid
 
 tippecanoe -f -B 0 -z 6 -l ecoregion3_centroids -o ../../tiles/sarp_ecoregion3_centroids.mbtiles  -T NA_L3CODE:string sarp_ecoregion3_centroids.csv
 tippecanoe -f -B 4 -Z 4 -z 10 -l ecoregion4_centroids -o ../../tiles/sarp_ecoregion4_centroids.mbtiles  -T US_L4CODE:string sarp_ecoregion4_centroids.csv
-```
+``` -->
 
 ### Add summaries and join tiles together
 
 Summaries are created using summarize_by_unit.py
 
 ```
-tile-join -f -o sarp_states_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/state.csv sarp_states.mbtiles
-tile-join -f -o sarp_huc2_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc2.csv sarp_huc2.mbtiles
-tile-join -f -o sarp_huc4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc4.csv sarp_huc4.mbtiles
-tile-join -f -o sarp_huc8_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc8.csv sarp_huc8.mbtiles
-tile-join -f -o sarp_ecoregion3_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ecoregion3.csv sarp_ecoregion3.mbtiles
-tile-join -f -o sarp_ecoregion4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ecoregion4.csv sarp_ecoregion4.mbtiles
+tile-join -f -o states_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/state.csv states.mbtiles
+tile-join -f -o HUC2_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc2.csv HUC2.mbtiles
+tile-join -f -o HUC4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc4.csv HUC4.mbtiles
+tile-join -f -o HUC8_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc8.csv HUC8.mbtiles
+tile-join -f -o ECO3_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ECO3.csv ECO3.mbtiles
+tile-join -f -o ECO4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ECO4.csv ECO4.mbtiles
 ```
 
 Merge all tilesets together
 
 ```
-tile-join -f -o sarp_summary.mbtiles sarp_mask.mbtiles sarp_boundary.mbtiles sarp_states_summary.mbtiles sarp_huc2_summary.mbtiles sarp_huc4_summary.mbtiles sarp_huc8_summary.mbtiles sarp_ecoregion3_summary.mbtiles sarp_ecoregion4_summary.mbtiles
+tile-join -f -o sarp_summary.mbtiles mask.mbtiles boundary.mbtiles states_summary.mbtiles huc2_summary.mbtiles huc4_summary.mbtiles huc8_summary.mbtiles ECO3_summary.mbtiles ECO4_summary.mbtiles
 ```

@@ -3,65 +3,48 @@ import PropTypes from "prop-types"
 import { connect } from "react-redux"
 
 import * as actions from "../../actions"
-import Map from "../Map"
+import { FeaturePropType } from "../../CustomPropTypes"
+
+import SummaryMap from "../Map/SummaryMap"
 import Sidebar from "../Map/Sidebar"
 
-const Summary = ({ system, level, unit, setSystem, setUnit, goBack }) => {
-    const handleBackClick = () => (unit !== null ? setUnit(null) : goBack())
-    return (
-        <React.Fragment>
-            <Sidebar>
+const Summary = ({ system, selectedFeature }) => (
+    // const handleBackClick = () => (unit !== null ? setUnit(null) : goBack())
+    <React.Fragment>
+        <Sidebar>
+            {system !== null && (
                 <React.Fragment>
-                    <h3>Which unit system?</h3>
-                    <div className="buttons has-addons">
-                        {/* <button className="button" type="button" onClick={() => setSystem(null)}>
-                            Southeast Region
-                        </button> */}
-                        <button className="button" type="button" onClick={() => setSystem("HUC")}>
-                            Watersheds
-                        </button>
-                        <button className="button" type="button" onClick={() => setSystem("ecoregion")}>
-                            Ecoregions
-                        </button>
-                    </div>
-                </React.Fragment>
-                {system !== null && (
-                    <React.Fragment>
-                        {/* <div className="section">
+                    {/* <div className="section">
                             <button type="button" onClick={handleBackClick}>
                                 Go back
                             </button>
                         </div> */}
-                        <h3>
-                            Current system is: {system} {level}{" "}
-                        </h3>
-                        {unit !== null && <h3>Unit: {unit}</h3>}
-                    </React.Fragment>
-                )}
-            </Sidebar>
-            <div id="MapContainer">
-                <Map view="summary" />
-            </div>
-        </React.Fragment>
-    )
-}
+                    <h3>Current system is: {system} </h3>
+                    {selectedFeature !== null && <h3>Selected: {selectedFeature.id}</h3>}
+                </React.Fragment>
+            )}
+        </Sidebar>
+        <div id="MapContainer">
+            <SummaryMap />
+        </div>
+    </React.Fragment>
+)
 
 Summary.propTypes = {
     system: PropTypes.string,
-    level: PropTypes.string,
-    unit: PropTypes.string,
+    selectedFeature: FeaturePropType,
+
     setSystem: PropTypes.func.isRequired,
-    setUnit: PropTypes.func.isRequired,
+    selectFeature: PropTypes.func.isRequired,
     goBack: PropTypes.func.isRequired
 }
 
 Summary.defaultProps = {
     system: null,
-    level: null,
-    unit: null
+    selectedFeature: null
 }
 
-const mapStateToProps = state => ({ system: state.get("system"), level: state.get("level"), unit: state.get("unit") })
+const mapStateToProps = state => ({ system: state.get("system"), selectedFeature: state.get("selectedFeature") })
 
 export default connect(
     mapStateToProps,

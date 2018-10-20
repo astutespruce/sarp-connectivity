@@ -4,16 +4,10 @@ export const setSystem = system => ({
     payload: { system }
 })
 
-export const SET_LEVEL = 'SET_LEVEL'
-export const setLevel = level => ({
-    type: SET_LEVEL,
-    payload: { level }
-})
-
-export const SET_UNIT = "SET_UNIT"
-export const setUnit = (unit, level=null) => ({
-    type: SET_UNIT,
-    payload: { unit, level }
+export const SELECT_FEATURE = "SELECT_FEATURE"
+export const selectFeature = selectedFeature => ({
+    type: SELECT_FEATURE,
+    payload: { selectedFeature }
 })
 
 export const GO_BACK = "GO_BACK"

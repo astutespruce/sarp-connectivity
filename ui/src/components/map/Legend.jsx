@@ -2,9 +2,6 @@ import React from "react"
 import PropTypes from "prop-types"
 
 const Legend = ({ colors, labels, title }) => {
-    // flip the order since we are displaying from top to bottom
-    colors.reverse()
-    labels.reverse()
     return (
         <div id="Legend">
             <h5 className="is-size-6">{title}</h5>

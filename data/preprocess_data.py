@@ -110,10 +110,12 @@ df["Off_Network"] = df.apply(
 df = df[df["HUC12"].notnull()].copy()
 
 # Calculate HUC and Ecoregion codes
-print("Calculating HUC and Ecoregion codes")
+print("Calculating HUC codes")
 df["HUC2"] = df.apply(lambda row: row["HUC12"][:2], axis=1)
 df["HUC4"] = df.apply(lambda row: row["HUC12"][:4], axis=1)
 df["HUC8"] = df.apply(lambda row: row["HUC12"][:8], axis=1)
+
+df.rename(columns={"Ecoregion3": "ECO3", "Ecoregion4": "ECO4"}, inplace=True)
 
 # Fix name issue - 3 dams have duplicate dam names with line breaks, which breaks tippecanoe
 ids = df.UniqueID.isin(["s18605", "s18684", "s18687"])
@@ -122,7 +124,7 @@ df.loc[ids, "Barrier_Name"] = df.loc[ids, "Barrier_Name"].apply(
 )
 
 # Export full set of fields
-df.to_csv("data/src/sarp_dams.csv", index_label="id")
+df.to_csv("data/src/dams.csv", index_label="id")
 
 
 # Export subset of fields for use in mbtiles
@@ -160,15 +162,15 @@ mbtiles_df = df[
         "HUC4",
         "HUC8",
         "HUC12",
-        "Ecoregion3",
-        "Ecoregion4",
+        "ECO3",
+        "ECO4",
         "StreamOrder",
         "lat",
         "lon",
     ]
 ]
 mbtiles_df.to_csv(
-    "data/src/sarp_dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+    "data/src/dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
 )
 
 
