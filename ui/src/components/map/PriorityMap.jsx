@@ -5,27 +5,12 @@ import { connect } from "react-redux"
 
 import * as actions from "../../actions"
 import Legend from "./Legend"
-import { equalIntervals } from "../../utils/stats"
 import { FeaturePropType } from "../../CustomPropTypes"
-// import { LabelPointPropType } from "../../CustomPropTypes"
-// import { labelsToGeoJSON } from "../../utils/geojson"
 
-import summaryStats from "../../data/summary_stats.json"
-
-import { TILE_HOST, COUNT_COLORS, LAYER_CONFIG } from "./config"
+import { TILE_HOST, LAYER_CONFIG } from "./config"
 import Map from "./index"
 
-// Precalculate colors
-// TODO: make this vary by metric
-const LEVEL_LEGEND = {}
-LAYER_CONFIG.forEach(({ id }) => {
-    LEVEL_LEGEND[id] = {
-        bins: equalIntervals(summaryStats[id].dams, COUNT_COLORS.length),
-        colors: COUNT_COLORS
-    }
-})
-
-class SummaryMap extends Component {
+class PriorityMap extends Component {
     constructor() {
         super()
 
@@ -55,9 +40,6 @@ class SummaryMap extends Component {
                 showUnits.forEach(({ id }) => this.setLayerVisibility(id, true))
             }
         }
-
-        // TODO: compare before updating
-        // map.getSource("unit-labels").setData(labelsToGeoJSON(labels.toJS()))
     }
 
     setLayerVisibility = (id, visible) => {
@@ -73,12 +55,6 @@ class SummaryMap extends Component {
 
         layers.forEach(lyr => {
             const { id, minzoom, maxzoom } = lyr
-            const { bins, colors } = LEVEL_LEGEND[id]
-            const renderColors = []
-            bins.forEach(([min, max], i) => {
-                renderColors.push((max - min) / 2 + min) // interpolate from the midpoint
-                renderColors.push(colors[i])
-            })
 
             let outlineColor = "#AAA"
             if (id.startsWith("HUC")) {
@@ -102,8 +78,9 @@ class SummaryMap extends Component {
                 id: `${id}-fill`,
                 type: "fill",
                 paint: {
-                    "fill-opacity": 0.6,
-                    "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
+                    "fill-opacity": 0.3,
+                    "fill-color": "#FFF"
+                    // "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
                 }
             })
             const outlineConfig = Object.assign({}, config, {
@@ -183,37 +160,6 @@ class SummaryMap extends Component {
         )
     }
 
-    renderLegend() {
-        const { system } = this.props
-
-        if (system === null) return null
-
-        const visibleLayers = this.getVisibleLayers()
-        if (visibleLayers.length === 0) return null
-
-        const lyr = visibleLayers[0]
-        const { id, title } = lyr
-
-        const legendInfo = LEVEL_LEGEND[id]
-        const { bins } = legendInfo
-        const colors = legendInfo.colors.slice()
-        const labels = bins.map(([min, max], i) => {
-            if (i === 0) {
-                return `< ${Math.round(max).toLocaleString()} dams`
-            }
-            if (i === bins.length - 1) {
-                return `≥ ${Math.round(min).toLocaleString()} dams`
-            }
-            // Use midpoint value
-            return Math.round((max - min) / 2 + min).toLocaleString()
-        })
-        // flip the order since we are displaying from top to bottom
-        colors.reverse()
-        labels.reverse()
-
-        return <Legend title={title} labels={labels} colors={colors} />
-    }
-
     render() {
         const { system, setSystem, bounds } = this.props
 
@@ -247,14 +193,12 @@ class SummaryMap extends Component {
                         </button>
                     </div>
                 </div>
-
-                {this.renderLegend()}
             </React.Fragment>
         )
     }
 }
 
-SummaryMap.propTypes = {
+PriorityMap.propTypes = {
     bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
     system: PropTypes.string,
     selectedFeature: FeaturePropType,
@@ -264,7 +208,7 @@ SummaryMap.propTypes = {
     selectFeature: PropTypes.func.isRequired
 }
 
-SummaryMap.defaultProps = {
+PriorityMap.defaultProps = {
     bounds: null,
     system: null,
     selectedFeature: null,
@@ -281,7 +225,7 @@ const mapStateToProps = state => ({
 export default connect(
     mapStateToProps,
     actions
-)(SummaryMap)
+)(PriorityMap)
 
 // Initially the mask and boundary are visible
 // map.addLayer({

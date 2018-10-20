@@ -43,7 +43,10 @@ const initialState = Map({
 export const reducer = (state = initialState, { type, payload = {} }) => {
     switch (type) {
         case SET_SYSTEM: {
-            return state.set("system", payload.system)
+            return state.merge({
+                system: payload.system,
+                selectedFeature: null
+            })
         }
         case SELECT_FEATURE: {
             return state.set("selectedFeature", payload.selectedFeature)

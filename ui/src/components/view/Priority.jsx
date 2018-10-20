@@ -1,12 +1,22 @@
 import React from "react"
-// import Map from "../Map"
+import { connect } from "react-redux"
+
+import * as actions from "../../actions"
+import PriorityMap from "../Map/PriorityMap"
 import Sidebar from "../Map/Sidebar"
 
 const Priority = () => (
     <React.Fragment>
         <Sidebar>sidebar content goes here</Sidebar>
-        <div id="MapContainer">{/* <Map view="priority" /> */}</div>
+        <div id="MapContainer">
+            <PriorityMap />
+        </div>
     </React.Fragment>
 )
 
-export default Priority
+const mapStateToProps = state => ({ system: state.get("system"), selectedFeature: state.get("selectedFeature") })
+
+export default connect(
+    mapStateToProps,
+    actions
+)(Priority)

@@ -7,7 +7,7 @@ import geopandas as gp
 
 # TODO: derive other HUCs from HUC12 if they don't already exist
 df = pd.read_csv(
-    "data/src/sarp_dams.csv",
+    "data/src/dams.csv",
     dtype={
         "HUC2": str,
         "HUC4": str,
@@ -45,7 +45,8 @@ for unit in ("State", "HUC2", "HUC4", "HUC8", "ECO3", "ECO4"):
     level_stats = g.agg(["min", "max"])
     level_stats.columns = cols
     for col in cols:
-        stats[unit][col] = level_stats[col].tolist()
+        key = "states" if unit == "State" else unit
+        stats[key][col] = level_stats[col].tolist()
 
 
 with open("ui/src/data/summary_stats.json", "w") as outfile:
