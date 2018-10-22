@@ -20,6 +20,9 @@ const Summary = ({ selectedFeature, dams, connectedmiles, selectFeature }) => (
                     <p className="is-size-5">
                         Across the Southeast, there are at least {formatNumber(dams)} dams, resulting in an average of{" "}
                         {formatNumber(connectedmiles)} miles of connected rivers.
+                        <br />
+                        <br />
+                        Click on a summary unit the map for more information about that area.
                     </p>
                     <p className="is-size-7 has-text-grey">
                         <br />

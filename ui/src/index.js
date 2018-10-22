@@ -1,3 +1,5 @@
+/* eslint-disable react/jsx-filename-extension */
+
 import React from "react"
 import ReactDOM from "react-dom"
 // import { init } from "@sentry/browser"
@@ -7,7 +9,6 @@ import { createStore, applyMiddleware } from "redux"
 import { Provider } from "react-redux"
 import { BrowserRouter as Router } from "react-router-dom"
 import { combineReducers } from "redux-immutable"
-import { Record } from "immutable"
 
 import { summaryReducer, priorityReducer } from "./reducers"
 
@@ -30,28 +31,16 @@ const logger = createLogger({
     stateTransformer: state => state.toJS()
 })
 
-// const StateRecord = Record({
-//     // priority: undefined,
-//     summary: undefined
-// })
-const rootReducer = combineReducers(
-    {
-        priority: priorityReducer,
-        summary: summaryReducer
-    }
-    // StateRecord
-)
+const rootReducer = combineReducers({
+    priority: priorityReducer,
+    summary: summaryReducer
+})
 
 const store = createStore(rootReducer, applyMiddleware(logger))
 
-// TODO: migrate to final deployment path.  For now production is hosted at
-// https://consbio.github.io/sarp/
-const basename = process.env.NODE_ENV === "production" ? "/sarp" : ""
-
-/* eslint-disable react/jsx-filename-extension */
 ReactDOM.render(
     <Provider store={store}>
-        <Router basename={basename}>
+        <Router>
             <App />
         </Router>
     </Provider>,

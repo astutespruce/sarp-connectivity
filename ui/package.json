@@ -1,7 +1,7 @@
 {
     "name": "sarp-prioritization-tool",
     "description": "Southeast Aquatic Barrier Prioritization Tool",
-    "homepage": "https://consbio.github.io/sarp/",
+    "homepage": "http://34.237.24.48/",
     "version": "0.1.0",
     "private": true,
     "dependencies": {
@@ -32,8 +32,9 @@
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
-        "predeploy": "yarn run build",
-        "deploy": "gh-pages -d build"
+        "clean": "rm -rf build/*",
+        "predeploy": "npm run build",
+        "deploy": "rm -rf /var/www/sarp/site/* && cp -r build/* /var/www/sarp/site"
     },
     "eslintConfig": {
         "extends": "react-app"
@@ -51,7 +52,6 @@
         "eslint-plugin-jsx-a11y": "^6.1.2",
         "eslint-plugin-prettier": "^3.0.0",
         "eslint-plugin-react": "^7.11.1",
-        "gh-pages": "^2.0.1",
         "prettier": "^1.14.3",
         "prettier-eslint": "^8.8.2"
     }

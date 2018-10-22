@@ -175,7 +175,7 @@ const Home = () => (
         <Section id="HomeFooter">
             <div className="columns">
                 <div className="column is-two-thirds">
-                    <p>
+                    <p className="is-size-7">
                         This application was created by the&nbsp;
                         <a href="https://consbio.org" target="_blank" rel="noopener noreferrer">
                             Conservation Biology Institute
@@ -188,7 +188,7 @@ const Home = () => (
                     </p>
                 </div>
                 <div className="column">
-                    <img src={CBILogo} style={{ width: "100%" }} alt="CBI logo" />
+                    <img src={CBILogo} style={{ height: 48 }} alt="CBI logo" />
                 </div>
             </div>
         </Section>
