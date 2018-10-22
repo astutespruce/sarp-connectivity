@@ -4,7 +4,7 @@ import ImmutablePropTypes from "react-immutable-proptypes"
 import { connect } from "react-redux"
 
 import * as actions from "../../actions/priority"
-import Legend from "./Legend"
+// import Legend from "./Legend"
 import { FeaturePropType } from "../../CustomPropTypes"
 
 import { TILE_HOST, LAYER_CONFIG } from "./config"
@@ -131,24 +131,140 @@ class PriorityMap extends Component {
                 tiles: [`${TILE_HOST}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`]
             })
 
+            // Initially the mask and boundary are visible
+            map.addLayer({
+                id: "sarp-mask",
+                source: "sarp",
+                "source-layer": "mask",
+                type: "fill",
+                layout: {},
+                paint: {
+                    "fill-opacity": 0.6,
+                    "fill-color": "#AAA"
+                }
+            })
+            map.addLayer({
+                id: "sarp-outline",
+                source: "sarp",
+                "source-layer": "boundary",
+                type: "line",
+                layout: {},
+                paint: {
+                    "line-opacity": 0.8,
+                    "line-width": 2,
+                    // "line-color": "#AAA"
+                    "line-color": "#4A0025"
+                }
+            })
+
             const systems = ["states", "HUC", "ECO"]
             systems.forEach(s => {
                 this.addLayers(LAYER_CONFIG.filter(({ group }) => group === s), s === system)
             })
 
-            // this.addLabelLayer(labels.toJS())
+            map.addSource("dams", {
+                type: "vector",
+                tiles: [`${TILE_HOST}/services/dams_full/tiles/{z}/{x}/{y}.pbf`],
+                maxzoom: 14
+            })
+            map.addLayer({
+                id: "dams-heatmap",
+                source: "dams",
+                "source-layer": "dams",
+                type: "heatmap",
+                paint: {
+                    "heatmap-intensity": 1,
+                    "heatmap-color": [
+                        "interpolate",
+                        ["linear"],
+                        ["heatmap-density"],
+                        0,
+                        "rgba(255,0, 0,0)",
+                        0.1,
+                        "rgba(255,0,0, 0.5)",
+                        1,
+                        "rgb(178,24,43)"
+                    ],
+                    "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 6, 2, 9, 20],
+                    "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 1, 8, 0]
+                }
+            })
+            map.addLayer({
+                id: "dams",
+                source: "dams",
+                "source-layer": "dams",
+                type: "circle",
+                minzoom: 7,
+                paint: {
+                    "circle-color": "rgb(178,24,43)",
+                    "circle-radius": ["interpolate", ["linear"], ["zoom"], 7, 4, 14, 8],
+                    "circle-opacity": 0.75,
+                    "circle-stroke-width": 0,
+                    "circle-blur": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 9, 0]
+                }
+            })
+
+            map.addLayer({
+                id: "dams-heatmap-background",
+                source: "dams",
+                "source-layer": "dams",
+                type: "heatmap",
+                layout: {
+                    visibility: "none"
+                },
+                paint: {
+                    "heatmap-intensity": 1,
+                    "heatmap-color": [
+                        "interpolate",
+                        ["linear"],
+                        ["heatmap-density"],
+                        0,
+                        "rgba(255,255, 255,0)",
+                        0.1,
+                        "rgba(240, 240, 240, 0.1)",
+                        1,
+                        "rgb(122,1,119)"
+                    ],
+                    "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 6, 2, 9, 10],
+                    "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 8, 0]
+                }
+            })
+            map.addLayer({
+                id: "dams-background",
+                source: "dams",
+                "source-layer": "dams",
+                type: "circle",
+                minzoom: 7,
+                layout: {
+                    visibility: "none"
+                },
+                paint: {
+                    "circle-color": "rgb(122,1,119)",
+                    "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 2, 14, 4],
+                    "circle-opacity": 0.25,
+                    "circle-stroke-width": 0,
+                    "circle-blur": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 9, 0]
+                }
+            })
         })
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
         map.on("click", e => {
             const { system: curSystem, selectFeature } = this.props
 
-            const layers = this.layers.filter(({ group }) => group === curSystem).map(({ id }) => `${id}-fill`)
-            const features = map.queryRenderedFeatures(e.point, { layers })
+            const features = map.queryRenderedFeatures(e.point, { layers: ["dams"] })
             if (features.length === 0) return
             console.log("click features", features)
             selectFeature(features[0].properties)
         })
+        map.foo = () => {
+            map.setFilter("dams-heatmap", ["==", "State", "Alabama"])
+            map.setFilter("dams-heatmap-background", ["!=", "State", "Alabama"])
+            map.setFilter("dams", ["==", "State", "Alabama"])
+            map.setFilter("dams-background", ["!=", "State", "Alabama"])
+            map.setLayoutProperty("dams-background", "visibility", "visible")
+            map.setLayoutProperty("dams-heatmap-background", "visibility", "visible")
+        }
     }
 
     getVisibleLayers = () => {
@@ -230,40 +346,3 @@ export default connect(
     mapStateToProps,
     actions
 )(PriorityMap)
-
-// Initially the mask and boundary are visible
-// map.addLayer({
-//     id: "sarp-mask",
-//     source: "sarp",
-//     "source-layer": "mask",
-//     type: "fill",
-//     layout: {},
-//     paint: {
-//         "fill-opacity": 0.6,
-//         "fill-color": "#AAA"
-//     }
-// })
-// create fill layer only for consistency w/ other units below
-// map.addLayer({
-//     id: "sarp-fill",
-//     source: "sarp",
-//     "source-layer": "boundary",
-//     type: "fill",
-//     layout: {},
-//     paint: {
-//         "fill-opacity": 0
-//     }
-// })
-// map.addLayer({
-//     id: "sarp-outline",
-//     source: "sarp",
-//     "source-layer": "boundary",
-//     type: "line",
-//     layout: {},
-//     paint: {
-//         "line-opacity": 0.8,
-//         "line-width": 2,
-//         // "line-color": "#AAA"
-//         "line-color": "#4A0025"
-//     }
-// })

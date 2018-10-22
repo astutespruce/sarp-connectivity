@@ -1,6 +1,9 @@
 import { List } from "immutable"
 
-export const TILE_HOST = process.env.NODE_ENV === "production" ? "" : "http://localhost:8000"
+export const TILE_HOST =
+    process.env.NODE_ENV === "production"
+        ? `${window.location.protocol}//${window.location.host}`
+        : "http://localhost:8000"
 
 export const SARP_BOUNDS = List([-106.645646, 17.623468, -64.512674, 40.61364])
 

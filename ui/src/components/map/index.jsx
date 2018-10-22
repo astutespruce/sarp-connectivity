@@ -91,7 +91,6 @@ Map.defaultProps = {
 
 export default Map
 
-
 // assign colors to current level
 
 // TODO: if childLevel and unit !== null, apply to child level and filter by unit instead
