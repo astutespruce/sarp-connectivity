@@ -2,7 +2,7 @@ import React from "react"
 import { connect } from "react-redux"
 
 import * as actions from "../../actions/priority"
-import PriorityMap from "../Map/PriorityMap"
+import PriorityMap from "../map/PriorityMap"
 import Sidebar from "../Sidebar"
 
 const Priority = () => (

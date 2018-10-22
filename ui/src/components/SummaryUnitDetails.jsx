@@ -4,7 +4,7 @@ import PropTypes from "prop-types"
 import { FeaturePropType } from "../CustomPropTypes"
 import { formatNumber, formatPercent } from "../utils/format"
 
-import { LAYER_CONFIG } from "./Map/config"
+import { LAYER_CONFIG } from "./map/config"
 
 import summaryStats from "../data/summary_stats.json"
 

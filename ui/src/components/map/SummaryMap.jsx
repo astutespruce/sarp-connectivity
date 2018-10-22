@@ -132,26 +132,34 @@ class SummaryMap extends Component {
                 })
             )
 
-            const highlightConfig = outlineConfig.mergeDeep({
-                id: `${id}-highlight`,
-                type: "line",
-                layout: {
-                    "line-cap": "round",
-                    "line-join": "round"
-                },
-                paint: {
-                    "line-opacity": 1,
-                    "line-width": 4,
-                    "line-color": "#333"
-                },
-                filter: ["==", "id", Infinity]
-            })
-
             map.addLayer(fillConfig.toJS())
             map.addLayer(outlineConfig.toJS())
-            map.addLayer(highlightConfig.toJS())
 
             this.layers.push(lyr)
+        })
+    }
+
+    addHighlightLayer = (layer, visible = true) => {
+        const { id } = layer
+
+        this.map.addLayer({
+            id: `${id}-highlight`,
+            source: "sarp",
+            "source-layer": id,
+            type: "line",
+            minzoom: 0,
+            maxzoom: 21,
+            layout: {
+                "line-cap": "round",
+                "line-join": "round",
+                visibility: visible ? "visible" : "none"
+            },
+            paint: {
+                "line-opacity": 1,
+                "line-width": 4,
+                "line-color": "#333"
+            },
+            filter: ["==", "id", Infinity]
         })
     }
 
@@ -170,23 +178,29 @@ class SummaryMap extends Component {
 
             const systems = ["states", "HUC", "ECO"]
             systems.forEach(s => {
-                this.addLayers(LAYER_CONFIG.filter(({ group }) => group === s), s === system)
+                this.addLayers(
+                    LAYER_CONFIG.filter(({ group }) => group === s)
+                        .slice()
+                        .reverse(),
+                    s === system
+                )
             })
+
+            this.layers.forEach(lyr => this.addHighlightLayer(lyr, lyr.group === system))
 
             // this.addLabelLayer(labels.toJS())
         })
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
         map.on("click", e => {
-            const { system: curSystem, selectFeature } = this.props
+            const { selectFeature } = this.props
 
-            const layers = this.layers.filter(({ group }) => group === curSystem).map(({ id }) => `${id}-fill`)
+            const layers = this.getVisibleLayers().map(({ id }) => `${id}-fill`)
             const features = map.queryRenderedFeatures(e.point, { layers })
             if (features.length === 0) return
             console.log("click features", features)
 
             const { sourceLayer, properties } = features[0]
-            console.log("props", sourceLayer, properties)
             selectFeature(fromJS(properties).merge({ layerId: sourceLayer }))
         })
     }

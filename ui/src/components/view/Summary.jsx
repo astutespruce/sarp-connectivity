@@ -6,7 +6,7 @@ import * as actions from "../../actions/summary"
 import { FeaturePropType } from "../../CustomPropTypes"
 import { formatNumber } from "../../utils/format"
 
-import SummaryMap from "../Map/SummaryMap"
+import SummaryMap from "../map/SummaryMap"
 import Sidebar from "../Sidebar"
 import SummaryUnitDetails from "../SummaryUnitDetails"
 

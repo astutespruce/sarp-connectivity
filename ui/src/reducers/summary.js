@@ -1,7 +1,7 @@
 import { List, Map, fromJS } from "immutable"
 
 import { SUMMARY_SET_SYSTEM, SUMMARY_SELECT_FEATURE } from "../actions/summary"
-import { SARP_BOUNDS } from "../components/Map/config"
+import { SARP_BOUNDS } from "../components/map/config"
 
 // TODO: load this at run time instead of build time
 import data from "../data/units.json"

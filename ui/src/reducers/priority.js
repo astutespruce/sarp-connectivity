@@ -1,7 +1,7 @@
 import { List, Map } from "immutable"
 
 import { PRIORITY_SET_SYSTEM, PRIORITY_SELECT_FEATURE } from "../actions/priority"
-import { SARP_BOUNDS } from "../components/Map/config"
+import { SARP_BOUNDS } from "../components/map/config"
 
 const initialState = Map({
     bounds: SARP_BOUNDS, // SARP bounds

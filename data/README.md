@@ -100,9 +100,9 @@ ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO4.json sarp_ecoregion4.shp -sql "SELECT U
 tippecanoe -f -z 8 -l states -o ../../tiles/states.mbtiles -y id states.json
 tippecanoe -f -z 8 -l HUC2 -o ../../tiles/HUC2.mbtiles  -T id:string -y id HUC2.json
 tippecanoe -f -z 8 -l HUC4 -o ../../tiles/HUC4.mbtiles  -T id:string -y id HUC4.json
-tippecanoe -f -Z 5 -z 10 -l HUC8 -o ../../tiles/HUC8.mbtiles  -T id:string -y id -y name HUC8.json
-tippecanoe -f -Z 3 -z 10 -l ECO3 -o ../../tiles/ECO3.mbtiles  -T id:string -y id -y name ECO3.json
-tippecanoe -f -Z 4 -z 12 -l ECO4 -o ../../tiles/ECO4.mbtiles  -T id:string -y id -y name ECO4.json
+tippecanoe -f -z 10 -l HUC8 -o ../../tiles/HUC8.mbtiles  -T id:string -y id -y name HUC8.json
+tippecanoe -f -z 10 -l ECO3 -o ../../tiles/ECO3.mbtiles  -T id:string -y id -y name ECO3.json
+tippecanoe -f -z 12 -l ECO4 -o ../../tiles/ECO4.mbtiles  -T id:string -y id -y name ECO4.json
 ```
 
 <!-- HUC12 - currently not being done:
