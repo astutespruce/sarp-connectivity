@@ -1,0 +1,96 @@
+.filterbar {
+    cursor: pointer;
+    transition: margin 300ms;
+    overflow: hidden;
+}
+.filterbar + .filterbar {
+    margin-top: 10px;
+}
+
+.filterbar-labels {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.filterbars.has-filters .filterbar {
+    opacity: 0.5;
+}
+.filterbars.has-filters .filterbar.is-filtered {
+    opacity: 1.0;
+}
+
+.filterbars.has-filters .filterbar-labels {
+    color: #aaa;
+}
+
+.filterbars.has-filters .filterbar.is-filtered .filterbar-labels {
+    color: #ee7d14;
+}
+
+.filterbar-labels-value {
+    text-align: right;
+    color: #aaa;
+    font-size: small;
+    cursor: pointer;
+}
+
+.filterbar-bars {
+    margin-top: 2px;
+    background: #EEE;
+    border: 1px solid #EEE;
+    height: 6px;
+    border-radius: 3px;
+    display: flex;
+    flex-direction: row;
+}
+.filterbars.has-filters .bar {
+    background: #CCC;
+}
+.filterbar.is-filtered .bar {
+    background: #ee7d14;
+}
+
+
+.filterbar .bar {
+    background: #0892D0;
+    border-radius: 3px;
+    height: 6px;
+    transition: all 300ms;
+}
+
+.filterbars {
+    padding: 0.5rem 1rem 1rem 1rem;
+    border-top: 1px solid #EEE;
+}
+
+.filterbars .title {
+    cursor: pointer;
+}
+
+.filterbars .title .fa {
+    margin-right: 0.25em;
+}
+
+.filterbars-reset {
+    color: #ee7d14;
+    cursor: pointer;
+    display: none;
+    margin-left: 0.25em;
+}
+
+.filterbars.has-filters .filterbars-reset {
+    display: block;
+}
+
+.filterbars.is-closed .filterbar {
+    height: 0;
+    margin: 0;
+}
+.filterbars.is-closed {
+    padding-bottom: 0.5rem;
+}
+.filterbars.is-closed + .filterbars {
+    border-top-color: #EEE;
+}

@@ -25,7 +25,7 @@ To convert dams to mbtiles:
    TODO: only include the attributes actually needed for the mbtiles file.
 
 ```
-tippecanoe -f -Z0 -z14 -B5 --drop-densest-as-needed -o ../../tiles/dams_full.mbtiles -l dams dams_mbtiles.csv
+tippecanoe -f -Z0 -z14 -B6 --cluster-densest-as-needed -o ../../tiles/dams_full.mbtiles -l dams dams_mbtiles.csv
 ```
 
 -r1 --cluster-distance=2

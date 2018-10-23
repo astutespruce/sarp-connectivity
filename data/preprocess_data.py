@@ -127,12 +127,27 @@ df.loc[ids, "Barrier_Name"] = df.loc[ids, "Barrier_Name"].apply(
 df.to_csv("data/src/dams.csv", index_label="id")
 
 
+# Calculate height class
+# Height in 10ft increments; -1 (height of 0) indicates null
+def calc_height_class(height):
+    if pd.isnull(height) or height == 0:
+        return -1
+    return int(round(height / 10.0))
+
+
+df["HeightClass"] = df.apply(lambda row: calc_height_class(row.Height), axis=1)
+
+
+# Export full set of fields
+df.to_csv("data/src/dams.csv", index_label="id")
+
+
 # Export subset of fields for use in mbtiles
-mbtiles_df = df[
+df = df[
     [
         "UniqueID",
-        "NIDID",
-        "SourceDBID",
+        # "NIDID",
+        # "SourceDBID",
         "Barrier_Name",
         # "Other_Barrier_Name",
         "State",
@@ -140,7 +155,7 @@ mbtiles_df = df[
         "River",
         "PurposeCategory",  # value domain
         "Year_Completed",
-        "Height",
+        "HeightClass",
         "StructureCondition",  # value domain
         "ConstructionMaterial",  # value domain
         "ProtectedLand",  # 0="Unknown", 1="Yes", 2="No"
@@ -154,24 +169,30 @@ mbtiles_df = df[
         "PctNatFloodplain",
         "NetworkSinuosity",
         "NumSizeClassGained",
-        "NumberRareSpeciesHUC12",
-        "SpeciesRichness",
-        "batUSNetID",
-        "batDSNetID",
+        # "NumberRareSpeciesHUC12", # FIXME: currently not present
+        # "SpeciesRichness", # FIXME: currently not present
+        # "batUSNetID",  # FIXME: not currently used
+        # "batDSNetID",  # FIXME: not currently used
         "HUC2",
         "HUC4",
         "HUC8",
         "HUC12",
         "ECO3",
         "ECO4",
-        "StreamOrder",
+        # "StreamOrder",
         "lat",
         "lon",
     ]
 ]
-mbtiles_df.to_csv(
-    "data/src/dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-)
+
+
+df.to_csv("data/src/dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
+
+
+# Consider bins of AbsMilesGained for filtering too; log scale
+
+
+# g = df.groupby(["State", "HeightClass", "PurposeCategory", "ProtectedLand"]).agg({"UniqueID": {"dams": "count"}})
 
 
 # TODO: calculate regional scores and scores for main units
