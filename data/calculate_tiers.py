@@ -1,18 +1,3 @@
-"""
-Scenarios:
-1. Network connectivity: "AbsoluteGainMi" 
-2. Watershed condition: "NetworkSinuosity", "PctNatFloodplain", "NumSizeClassGained"  (33% each)
-3. Network connectivitiy + watershed condition: (each gets 50%)
-
-
-watershed condition score which = (0.333 * sinuosity_score + 0.333 * pctnatfloodplain_score + 0.333 * numsizeclass_score)
-WatershedConditionTier = above in 5% bins like Eriks old script, tier 1-20
-ConnectivityScore = (AbsMiGained_Score)
-ConnectivityTier =  above in 5% bins like Eriks old script, tier 1-20
-WatershedPlusConnectivityScore = (0.5 * watershedconditionScore + 0.5 * connectivityScore
-WatershedPlusConnectivityTier =  above in 5% bins like Eriks old script, tier 1-20
-"""
-
 import numpy as np
 import pandas as pd
 
@@ -32,7 +17,7 @@ def calculate_score(series, ascending=True):
     
     Returns
     -------
-    Pandas.Series, type is float64
+    pandas.Series, dtype is float64
         score value for each entry in the series
     """
 
@@ -48,7 +33,75 @@ def calculate_score(series, ascending=True):
     return series.apply(lambda row: lut.get(row, np.nan))
 
 
-df = pd.read_csv(
+# TODO: calculate_score_grouped
+
+
+def calculate_composite_score(dataframe, weights=None):
+    """Calculate composite, weighted score across one or more columns.
+    The lowest tier (1) is the highest 95% of the composite score range.
+    
+    Parameters
+    ----------
+    dataframe : DataFrame
+        data frame of score fields to combine for calculating tier
+    weights : list-like, optional (default: None)
+        list-like of weights.  It is up to caller to make sure these sum to 1.  By default,
+        if no weights are provided, all columns are weighted equally.  If provided, must
+        be same length as dataframe.columns
+    
+    Raises
+    ------
+    ValueError
+        raised if weights are not the same length as number of columns in dataframe
+    
+    Returns
+    -------
+    pandas.Series, dtype is float64
+        composite score
+    """
+
+    if weights is None:
+        numcols = len(dataframe.columns)
+        weights = [1.0 / numcols] * numcols
+
+    elif not len(weights) == len(dataframe.columns):
+        raise ValueError(
+            "weights must be same length as number of columns in input data frame"
+        )
+
+    dataframe = dataframe.copy()  # copy so that we can modify in place
+    for i, col in enumerate(dataframe.columns):
+        dataframe[col] = dataframe[col] * weights[i]
+
+    return dataframe.sum(axis=1)
+
+
+def calculate_tier(series):
+    """Calculate tiers based on 5% increments of the score range.
+    The lowest tier (1) is the highest 95% of the composite score range.
+    
+    Parameters
+    ----------
+    series : pandas.Series
+        Data series against which to assign relative tiers.
+
+    Returns
+    -------
+    pandas.Series, dtype is int
+        tiers
+    """
+
+    # calculate relative score
+    series_min = max(series.min(), 0)
+    series_range = (series.max() - series_min) or 1  # to avoid divide by 0
+    relative_value = 100.0 * (series - series_min) / series_range
+
+    # break into 5% increments, such that tier 0 is in top 95% of the relative scores
+    bins = np.arange(0, 100, 5)[::-1]
+    return pd.Series(np.digitize(relative_value, bins) + 1, dtype="uint8")
+
+
+raw_df = pd.read_csv(
     "data/src/dams.csv",
     dtype={
         "HUC2": str,
@@ -61,14 +114,35 @@ df = pd.read_csv(
 )
 
 
-fields = (
+fields = [
     "AbsoluteGainMi",
     "NetworkSinuosity",
     "PctNatFloodplain",
     "NumSizeClassGained",
-)
+]
+
+# Drop na fields up front, then join back to the original data frame
+df = raw_df[fields].dropna()
+
 for field in fields:
-    score_field = "{}_score".format(field)
-    df[score_field] = np.nan
-    filter = ~pd.isnull(df[field])
-    df.loc[filter, score_field] = calculate_score(df.loc[filter, field])
+    df["{}_score".format(field)] = calculate_score(df[field])
+
+
+scenarios = [
+    ["Connectivity", ["AbsoluteGainMi"]],
+    [
+        "WatershedCondition",
+        ["NetworkSinuosity", "PctNatFloodplain", "NumSizeClassGained"],
+    ],
+    [
+        "ConnectivityPlusWatershedCondition",
+        ["NetworkConnectivity", "WatershedCondition"],
+    ],
+]
+
+for scenario, inputs in scenarios:
+    input_scores = ["{}_score".format(field) for field in inputs]
+    score_field = "{}_score".format(scenario)
+    df[score_field] = calculate_composite_score(df[input_scores])
+    df["{}_tier".format(scenario)] = calculate_tier(df[score_field])
+
