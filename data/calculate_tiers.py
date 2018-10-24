@@ -128,6 +128,7 @@ for field in fields:
     df["{}_score".format(field)] = calculate_score(df[field])
 
 
+# structured as a list because the last scenario must be run last
 scenarios = [
     ["Connectivity", ["AbsoluteGainMi"]],
     [
@@ -146,3 +147,6 @@ for scenario, inputs in scenarios:
     df[score_field] = calculate_composite_score(df[input_scores])
     df["{}_tier".format(scenario)] = calculate_tier(df[score_field])
 
+new_fields = [x for x in df.columns if "_score" in x or "_tier" in x]
+
+final = raw_df.join(df[new_fields])

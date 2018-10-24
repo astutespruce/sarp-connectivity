@@ -238,3 +238,157 @@
 // })(App));
 
 // export default App
+
+// Map related stuff
+
+// TODO: things cut out of above
+
+// static getDerivedStateFromProps(nextProps) {
+//     const {
+//         location, drawingGeometry, footprint, zoi
+//     } = nextProps
+//     return {
+//         location: fromJS(location),
+//     }
+// }
+
+// componentDidUpdate(prevProps, prevState) {
+//     // console.log('componentDidUpdate', prevState, this.state)
+//     // Use this function to update the state of the map object to the current state
+//     // of this component
+
+//     const {
+//         location, drawingGeometry, footprint, zoi
+//     } = this.state
+//     const {
+//         location: prevLocation,
+//         drawingGeometry: prevDrawingGeometry,
+//         footprint: prevFootprint,
+//         zoi: prevZOI
+//     } = prevState
+
+//     // Update the location marker if needed or remove it
+//     if (!is(location, prevLocation)) {
+//         this.setLocationMarker()
+//     }
+
+//     // Update drawing geometry
+//     if (!is(drawingGeometry, prevDrawingGeometry)) {
+//         this.setDrawingGeometry()
+//     }
+// }
+
+// TODO: enable this if we want animated markers
+// const addAnimatedLocationToMap = (map, { latitude, longitude }) => {
+//     map.addSource('location', {
+//         type: 'geojson',
+//         data: {
+//             type: 'Point',
+//             coordinates: [longitude, latitude]
+//         }
+//     })
+//     locationStyle.forEach(style => map.addLayer(style))
+
+//     // setup animation
+//     const framesPerSecond = 15
+//     const { 'circle-opacity': initialOpacity, 'circle-radius': initialRadius } = locationStyle[0].paint
+//     const maxRadius = 15
+
+//     let radius = initialRadius
+//     let opacity = initialOpacity
+//     let counter = 0
+//     // derived from: https://bl.ocks.org/danswick/2f72bc392b65e77f6a9c
+//     const animateMarker = () => {
+//         // TODO: store this timeout someplace so we can kill it later
+//         setTimeout(() => {
+//             requestAnimationFrame(animateMarker)
+//             counter++
+
+//             radius += (maxRadius - radius) / framesPerSecond
+//             opacity -= 0.9 / framesPerSecond
+//             opacity = Math.max(opacity, 0)
+
+//             map.setPaintProperty('location-point1', 'circle-radius', radius)
+//             map.setPaintProperty('location-point1', 'circle-opacity', opacity)
+
+//             // if (opacity <= 0) {
+//             if (counter >= framesPerSecond) {
+//                 counter = 0
+//                 radius = initialRadius
+//                 opacity = initialOpacity
+//             }
+//         }, 1000 / framesPerSecond)
+//     }
+//     animateMarker()
+// }
+
+// setLocationMarker = () => {
+//     const { location } = this.state
+
+//     if (location !== null) {
+//         const { latitude, longitude } = location.toObject()
+//         this.map.flyTo({ center: [longitude, latitude], zoom: 10 })
+
+//         if (!this.locationMarker) {
+//             this.locationMarker = new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(this.map)
+//         } else {
+//             this.locationMarker.setLngLat([longitude, latitude])
+//         }
+//     } else {
+//         this.locationMarker.remove()
+//         this.locationMarker = null
+//     }
+// }
+
+// addLayerToMap = (layer) => {
+//     // TODO: caller is responsible for setting next available color from palette if no
+//     // color is defined for dataset (requires state management in container)
+//     const { overlayStyle, minZoom, maxZoom } = layer
+//     const source = `layer-${layer.datasetId}`
+//     const options = {
+//         type: 'vector',
+//         tiles: [`${window.location.protocol}//${TILESERVER_HOST}/services/${layer.datasetId}/tiles/{z}/{x}/{y}.pbf`]
+//     }
+//     if (minZoom) {
+//         options.minzoom = minZoom
+//     }
+//     if (maxZoom) {
+//         options.maxzoom = maxZoom
+//     }
+//     this.map.addSource(source, options)
+
+//     console.log('adding layer', layer, `/services/${layer.datasetId}/tiles/{z}/{x}/{y}.pbf`)
+
+//     overlayStyle.forEach((style, i) => {
+//         this.map.addLayer(
+//             Object.assign(
+//                 {
+//                     id: `${source}-${i}`,
+//                     source,
+//                     'source-layer': 'data', // 'data' is hard-coded into vector tile creation pipeline
+//                     layout: {
+//                         visibility: !layer.hidden ? 'visible' : 'none'
+//                     }
+//                 },
+//                 style
+//             )
+//         )
+//     })
+// }
+
+// const colors = ["Texas", "#FF0000", "North Carolina", "#00FF00", "#FFF"]
+// map.addLayer({
+//     id: "states-fill",
+//     source: "states",
+//     "source-layer": "states",
+//     type: "fill",
+//     layout: {}, // TODO: set as not visible by default
+//     paint: {
+//         "fill-opacity": 0.6,
+//         "fill-color": [
+//             "match",
+//             ["get", "NAME"],
+//             ...colors
+//         ]
+//     }
+// })
