@@ -52,7 +52,7 @@ Dissolved on L1_CODE:
 
 -   SARP_ecoregion1.shp
 
-## Watersheds
+<!-- ## Watersheds - OLD
 
 Obtained HUC12 - HUC8 levels from Kat
 
@@ -64,7 +64,22 @@ To HUC8 layer, added fields
 -   HUC2 = HUC8[:2]. Dissolved on this field: SARP_HUC2.shp
 
 HUC8 has field issues that don't play nice with geopandas. Drop nonessential fields:
-`ogr2ogr sarp_huc8.shp -select HUC8 sarp_bounds.gdb SARP_HUC8_Albers`
+`ogr2ogr sarp_huc8.shp -select HUC8 sarp_bounds.gdb SARP_HUC8_Albers` -->
+
+
+## Watersheds - updated
+Downloaded the WBD dataset from: ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Hydrography/WBD/National/GDB/
+1. selected units from HUC2 ... HUC12 that intersect SARP bounds
+2. exported each to a new shapefile HUC*.shp
+
+
+## States and counties
+Downloaded from US Census TIGER 2018: https://www.census.gov/cgi-bin/geo/shapefiles/index.php
+1. Extracted states that fell within SARP boundary.
+2. Extracted counties whose STATE_FP attribute was one of the states above.
+
+
+
 
 ## Create Other layers vector tiles
 
@@ -86,20 +101,24 @@ ogr2ogr -f GeoJSON mask.json sarp_mask.shp
 tippecanoe -z 8 -l mask -o ../../tiles/mask.mbtiles mask.json
 ```
 
-States:
 
 states, HUC2 - 8 and ecoregions:
 
 ```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON states.json sarp_states.shp -sql "SELECT NAME as id from sarp_states"
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC2.json sarp_HUC2.shp -sql "SELECT HUC2 as id from sarp_HUC2"
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC4.json sarp_HUC4.shp -sql "SELECT HUC4 as id from sarp_HUC4"
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC8.json SARP_Bounds.gdb SARP_HUC8_Albers -sql "SELECT HUC8 as id, HU_8_NAME as name from SARP_HUC8_Albers"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON states.json states.shp -sql "SELECT NAME as id from states"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON counties.json counties.shp -sql "SELECT GEOID as id, NAME as name from counties"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC2.json HUC2.shp -sql "SELECT HUC2 as id, NAME as name from HUC2"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC4.json HUC4.shp -sql "SELECT HUC4 as id, NAME as name from HUC4"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC6.json HUC6.shp -sql "SELECT HUC6 as id, NAME as name from HUC6"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC8.json HUC8.shp -sql "SELECT HUC8 as id, NAME as name from HUC8"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC10.json HUC10.shp -sql "SELECT HUC10 as id, NAME as name from HUC10"
+ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC12.json HUC12.shp -sql "SELECT HUC12 as id, NAME as name from HUC12"
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO3.json sarp_ecoregion3.shp -sql "SELECT NA_L3CODE as id, US_L3NAME as name from sarp_ecoregion3"
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO4.json sarp_ecoregion4.shp -sql "SELECT US_L4CODE as id, US_L4NAME as name from sarp_ecoregion4"
 
 
 tippecanoe -f -z 8 -l states -o ../../tiles/states.mbtiles -y id states.json
+tippecanoe -f -z 12 -l states -o ../../tiles/counties.mbtiles -y id counties.json
 tippecanoe -f -z 8 -l HUC2 -o ../../tiles/HUC2.mbtiles  -T id:string -y id HUC2.json
 tippecanoe -f -z 8 -l HUC4 -o ../../tiles/HUC4.mbtiles  -T id:string -y id HUC4.json
 tippecanoe -f -z 10 -l HUC8 -o ../../tiles/HUC8.mbtiles  -T id:string -y id -y name HUC8.json
@@ -145,4 +164,32 @@ Merge all tilesets together
 
 ```
 tile-join -f -o sarp_summary.mbtiles mask.mbtiles boundary.mbtiles states_summary.mbtiles huc2_summary.mbtiles huc4_summary.mbtiles huc8_summary.mbtiles ECO3_summary.mbtiles ECO4_summary.mbtiles
+```
+
+
+
+## River network
+Obtained from Kat as DataSnapshot.gdb SARP_NHD_Dendrite.
+
+Note: there are lots of issues here - selecting out StreamOrde does not produce consistent results (e.g., Ohio river at confluence of Mississipi).
+One possible way would be to select by GNIS_ID, based on the max StreamOrde for a given name.
+Can take a first cut by filtering out the major ones by order, then find the GNIS_IDs of those, then re-filter on those.
+
+Pull out different levels to use for different tilesets
+```
+ogr2ogr -f "ESRI Shapefile" rivers8.shp DataSnapshots.gdb SARP_NHD_Dendrite -dim 2 -sql "SELECT BATID as id, GNIS_NAME as name from SARP_NHD_Dendrite where StreamOrde >= 8"
+ogr2ogr -f "ESRI Shapefile" rivers6.shp DataSnapshots.gdb SARP_NHD_Dendrite -dim 2 -sql "SELECT BATID as id, GNIS_NAME as name from SARP_NHD_Dendrite where StreamOrde >= 6"
+ogr2ogr -f "ESRI Shapefile" rivers4.shp DataSnapshots.gdb SARP_NHD_Dendrite -dim 2 -sql "SELECT BATID as id, GNIS_NAME as name from SARP_NHD_Dendrite where StreamOrde >= 4"
+ogr2ogr -f "ESRI Shapefile" rivers2.shp DataSnapshots.gdb SARP_NHD_Dendrite -dim 2 -sql "SELECT BATID as id, GNIS_NAME as name from SARP_NHD_Dendrite where StreamOrde >= 2"
+ogr2ogr -f "ESRI Shapefile" rivers.shp DataSnapshots.gdb SARP_NHD_Dendrite -dim 2 -sql "SELECT BATID as id, GNIS_NAME as name from SARP_NHD_Dendrite"
+
+ogr2ogr -t_srs EPSG:4326 -f "GeoJSON" rivers8.json rivers8.shp
+ogr2ogr -t_srs EPSG:4326 -f "GeoJSON" rivers6.json rivers6.shp
+ogr2ogr -t_srs EPSG:4326 -f "GeoJSON" rivers4.json rivers4.shp
+
+
+tippecanoe -f -z 6 -l rivers8 -o ../../tiles/rivers8.mbtiles -y id -y name rivers8.json
+tippecanoe -f -Z 4 -z 8 -l rivers6 -o ../../tiles/rivers6.mbtiles -y id -y name rivers6.json
+tippecanoe -f -Z 7 -z 10 -l rivers4 -o ../../tiles/rivers4.mbtiles -y id -y name rivers4.json
+
 ```
