@@ -1,5 +1,24 @@
+from collections import OrderedDict
+from functools import reduce
+from time import time
+
 import numpy as np
 import pandas as pd
+
+
+# Using short labels for scenarios since we will add prefixes / suffixes to them
+SCENARIOS = OrderedDict(
+    {
+        "NC": ["AbsoluteGainMi"],  # NetworkConnectivity
+        "WC": [
+            "NetworkSinuosity",
+            "PctNatFloodplain",
+            "NumSizeClassGained",
+        ],  # Watershed Condition
+    }
+)
+# Add combination last to ensure it runs last
+SCENARIOS["NCWC"] = ["NC", "WC"]  # Network Connectivity Plus Watershed Condition
 
 
 def calculate_score(series, ascending=True):
@@ -31,9 +50,6 @@ def calculate_score(series, ascending=True):
     score = rank / (rank.size - 1)
     lut = {v: score[i] for i, v in enumerate(unique)}
     return series.apply(lambda row: lut.get(row, np.nan))
-
-
-# TODO: calculate_score_grouped
 
 
 def calculate_composite_score(dataframe, weights=None):
@@ -101,52 +117,72 @@ def calculate_tier(series):
     return pd.Series(np.digitize(relative_value, bins) + 1, dtype="uint8")
 
 
-raw_df = pd.read_csv(
-    "data/src/dams.csv",
-    dtype={
-        "HUC2": str,
-        "HUC4": str,
-        "HUC8": str,
-        "HUC12": str,
-        "ECO3": str,
-        "ECO4": str,
-    },
-)
+def calculate_tiers(dataframe, scenarios):
+    """Calculate tiers for each input scenario, which is based on combining scores for
+    each scenario's inputs.
+
+    Calculations will only be performed where all input fields are not null.  Null fields
+    will result in null values in output tiers.
+    
+    Parameters
+    ----------
+    dataframe : pandas.DataFrame
+        Input data frame containing at least all input fields
+    scenarios : dict
+        Dict mapping name of scenario to input fields
+    
+    Returns
+    -------
+    pandas.DataFrame
+        returns data frame with original fields plus a tier field (_tier) for each scenario
+    """
+
+    # extract list of fields based on inputs to scenarios, excluding those that are combinations of other scenarios
+    fields = [
+        field
+        for field in reduce(lambda x, y: set(x).union(y), SCENARIOS.values())
+        if not field in SCENARIOS
+    ]
+
+    # Drop na fields up front, then join back to the original data frame
+    df = dataframe[fields].dropna()
+
+    # calculate score for each input field
+    for field in fields:
+        df["{}_score".format(field)] = calculate_score(df[field])
+
+    # calculate composite score and tier
+    for scenario, inputs in scenarios.items():
+        input_scores = ["{}_score".format(field) for field in inputs]
+        score_field = "{}_score".format(scenario)
+        df[score_field] = calculate_composite_score(df[input_scores])
+
+        # Tiers are named for the scenario
+        df[scenario] = calculate_tier(df[score_field])
+
+    # join back to the original data frame
+    # only keep the scenario tier fields
+    out_fields = list(scenarios.keys())
+    return dataframe.join(df[out_fields])
 
 
-fields = [
-    "AbsoluteGainMi",
-    "NetworkSinuosity",
-    "PctNatFloodplain",
-    "NumSizeClassGained",
-]
+if __name__ == "__main__":
+    df = pd.read_csv(
+        "data/src/dams.csv",
+        dtype={
+            "HUC2": str,
+            "HUC4": str,
+            "HUC8": str,
+            "HUC12": str,
+            "ECO3": str,
+            "ECO4": str,
+        },
+    )
 
-# Drop na fields up front, then join back to the original data frame
-df = raw_df[fields].dropna()
+    print("Calculating tiers for each scenario...")
+    start = time()
+    out_df = calculate_tiers(df, SCENARIOS)
+    print("Done in {:.2f}".format(time() - start))
 
-for field in fields:
-    df["{}_score".format(field)] = calculate_score(df[field])
+    out_df.to_csv("data/src/dam_tiers.csv")
 
-
-# structured as a list because the last scenario must be run last
-scenarios = [
-    ["Connectivity", ["AbsoluteGainMi"]],
-    [
-        "WatershedCondition",
-        ["NetworkSinuosity", "PctNatFloodplain", "NumSizeClassGained"],
-    ],
-    [
-        "ConnectivityPlusWatershedCondition",
-        ["NetworkConnectivity", "WatershedCondition"],
-    ],
-]
-
-for scenario, inputs in scenarios:
-    input_scores = ["{}_score".format(field) for field in inputs]
-    score_field = "{}_score".format(scenario)
-    df[score_field] = calculate_composite_score(df[input_scores])
-    df["{}_tier".format(scenario)] = calculate_tier(df[score_field])
-
-new_fields = [x for x in df.columns if "_score" in x or "_tier" in x]
-
-final = raw_df.join(df[new_fields])
