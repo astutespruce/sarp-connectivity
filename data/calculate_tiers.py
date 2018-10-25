@@ -5,7 +5,6 @@ from time import time
 import numpy as np
 import pandas as pd
 
-
 # Using short labels for scenarios since we will add prefixes / suffixes to them
 SCENARIOS = OrderedDict(
     {
@@ -47,7 +46,8 @@ def calculate_score(series, ascending=True):
         unique = unique[::-1]
 
     rank = np.arange(0, unique.size, dtype="float64")
-    score = rank / (rank.size - 1)
+    rank_size = (rank.size - 1) or 1  # to prevent divide by 0 error
+    score = rank / rank_size
     lut = {v: score[i] for i, v in enumerate(unique)}
     return series.apply(lambda row: lut.get(row, np.nan))
 
@@ -117,7 +117,7 @@ def calculate_tier(series):
     return pd.Series(np.digitize(relative_value, bins) + 1, dtype="uint8")
 
 
-def calculate_tiers(dataframe, scenarios):
+def calculate_tiers(dataframe, scenarios, group_field=None):
     """Calculate tiers for each input scenario, which is based on combining scores for
     each scenario's inputs.
 
@@ -130,11 +130,13 @@ def calculate_tiers(dataframe, scenarios):
         Input data frame containing at least all input fields
     scenarios : dict
         Dict mapping name of scenario to input fields
+    group_field: str
+        Name of a column to use for grouping tier calculation (all scores will be based on values within each group)
     
     Returns
     -------
     pandas.DataFrame
-        returns data frame with original fields plus a tier field (_tier) for each scenario
+        returns data frame with a tier field (_tier) for each scenario. 
     """
 
     # extract list of fields based on inputs to scenarios, excluding those that are combinations of other scenarios
@@ -145,25 +147,54 @@ def calculate_tiers(dataframe, scenarios):
     ]
 
     # Drop na fields up front, then join back to the original data frame
-    df = dataframe[fields].dropna()
+    columns = fields.copy()
+    if group_field is not None:
+        columns.append(group_field)
+    df = dataframe[columns].dropna()
 
-    # calculate score for each input field
-    for field in fields:
-        df["{}_score".format(field)] = calculate_score(df[field])
+    # temporary fix for nulls being encoded as 0's - drop any rows where the input fields are 0 (based in AbsoluteGainMi as indicator)
+    df = df[df["AbsoluteGainMi"] > 0]
 
-    # calculate composite score and tier
-    for scenario, inputs in scenarios.items():
-        input_scores = ["{}_score".format(field) for field in inputs]
-        score_field = "{}_score".format(scenario)
-        df[score_field] = calculate_composite_score(df[input_scores])
+    groups = df[group_field].unique() if group_field is not None else [None]
 
-        # Tiers are named for the scenario
-        df[scenario] = calculate_tier(df[score_field])
+    for group in groups:
+        if group is not None:
+            print("calculating tiers for {}".format(group))
+
+        row_index = df[group_field] == group if group is not None else df.index
+
+        # calculate score for each input field
+        for field in fields:
+            df.loc[row_index, "{}_score".format(field)] = calculate_score(
+                df.loc[row_index, field]
+            )
+
+        # calculate composite score and tier
+        for scenario, inputs in scenarios.items():
+            input_scores = ["{}_score".format(field) for field in inputs]
+            score_field = "{}_score".format(scenario)
+            df.loc[row_index, score_field] = calculate_composite_score(
+                df.loc[row_index, input_scores]
+            )
+
+            # Tiers are named for the scenario
+            df.loc[row_index, scenario] = calculate_tier(df.loc[row_index, score_field])
 
     # join back to the original data frame
     # only keep the scenario tier fields
     out_fields = list(scenarios.keys())
-    return dataframe.join(df[out_fields])
+    df = df[out_fields]
+
+    if group_field is not None:
+        # rename fields based on group prefix
+        df.rename(
+            columns={
+                field: "{0}_{1}".format(group_field, field) for field in out_fields
+            },
+            inplace=True,
+        )
+
+    return df
 
 
 if __name__ == "__main__":
@@ -177,12 +208,18 @@ if __name__ == "__main__":
             "ECO3": str,
             "ECO4": str,
         },
-    )
+    ).set_index(["id"])
 
-    print("Calculating tiers for each scenario...")
-    start = time()
-    out_df = calculate_tiers(df, SCENARIOS)
-    print("Done in {:.2f}".format(time() - start))
+    for group in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
+        if group is None:
+            print("Calculating regional tiers")
+        else:
+            print("Calculating tiers for {}".format(group))
 
-    out_df.to_csv("data/src/dam_tiers.csv")
+        start = time()
+        tiers_df = calculate_tiers(df, SCENARIOS, group_field=group)
+        df = df.join(tiers_df)
+        print("Done in {:.2f}".format(time() - start))
+
+    df.to_csv("data/src/dam_tiers.csv", index_label="id")
 
