@@ -212,7 +212,7 @@ if __name__ == "__main__":
     ).set_index(["id"])
 
     # for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
-    for group_field in ("HUC8",):
+    for group_field in ("State",):
         if group_field is None:
             print("Calculating regional tiers")
         else:
@@ -221,6 +221,11 @@ if __name__ == "__main__":
         start = time()
         tiers_df = calculate_tiers(df, SCENARIOS, group_field=group_field)
         df = df.join(tiers_df)
+
+        # Fill n/a with -1 for tiers
+        df[tiers_df.columns] = df[tiers_df.columns].fillna(-1).astype("int8")
+        print(df.tail(10)[tiers_df.columns])
+
         print("Done in {:.2f}".format(time() - start))
 
     df.to_csv("data/src/dam_tiers.csv", index_label="id")
