@@ -114,7 +114,7 @@ def calculate_tier(series):
 
     # break into 5% increments, such that tier 0 is in top 95% of the relative scores
     bins = np.arange(0, 100, 5)[::-1]
-    return pd.Series(np.digitize(relative_value, bins) + 1, dtype="uint8")
+    return (np.digitize(relative_value, bins) + 1).astype("uint8")
 
 
 def calculate_tiers(dataframe, scenarios, group_field=None):
@@ -178,7 +178,8 @@ def calculate_tiers(dataframe, scenarios, group_field=None):
             )
 
             # Tiers are named for the scenario
-            df.loc[row_index, scenario] = calculate_tier(df.loc[row_index, score_field])
+            tier = calculate_tier(df.loc[row_index, score_field])
+            df.loc[row_index, scenario] = tier
 
     # join back to the original data frame
     # only keep the scenario tier fields
@@ -210,14 +211,15 @@ if __name__ == "__main__":
         },
     ).set_index(["id"])
 
-    for group in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
-        if group is None:
+    # for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
+    for group_field in ("HUC8",):
+        if group_field is None:
             print("Calculating regional tiers")
         else:
-            print("Calculating tiers for {}".format(group))
+            print("Calculating tiers for {}".format(group_field))
 
         start = time()
-        tiers_df = calculate_tiers(df, SCENARIOS, group_field=group)
+        tiers_df = calculate_tiers(df, SCENARIOS, group_field=group_field)
         df = df.join(tiers_df)
         print("Done in {:.2f}".format(time() - start))
 
