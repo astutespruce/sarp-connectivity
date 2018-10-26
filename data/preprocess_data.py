@@ -1,12 +1,17 @@
 import csv
+from time import time
 import pandas as pd
 import geopandas as gp
+
+from calculate_tiers import calculate_tiers, SCENARIOS
 
 """
 Preprocess data.
 Clean data for creating mbtiles of points
 
 """
+
+start = time()
 
 print("Reading source FGDB dataset")
 df = gp.read_file(
@@ -130,6 +135,19 @@ row_index = df.Height > 0
 df.loc[row_index, "HeightClass"] = (df.loc[row_index, "Height"] / 10).round()
 df.HeightClass = df.HeightClass.astype("int8")
 
+# Calculate tiers
+for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
+    if group_field is None:
+        print("Calculating regional tiers")
+    else:
+        print("Calculating tiers for {}".format(group_field))
+
+    tiers_df = calculate_tiers(df, SCENARIOS, group_field=group_field)
+    df = df.join(tiers_df)
+
+    # Fill n/a with -1 for tiers
+    df[tiers_df.columns] = df[tiers_df.columns].fillna(-1).astype("int8")
+
 
 # Export full set of fields
 print("Writing to data/src/dams.csv")
@@ -137,51 +155,55 @@ df.to_csv("data/src/dams.csv", index_label="id")
 
 
 # TODO:
-# # Export subset of fields for use in mbtiles
-# df = df[
-#     [
-#         "UniqueID",
-#         # "NIDID",
-#         # "SourceDBID",
-#         "Barrier_Name",
-#         # "Other_Barrier_Name",
-#         "State",
-#         "County",
-#         "River",
-#         "PurposeCategory",  # value domain
-#         "Year_Completed",
-#         "HeightClass",
-#         "StructureCondition",  # value domain
-#         "ConstructionMaterial",  # value domain
-#         "ProtectedLand",  # 0="Unknown", 1="Yes", 2="No"
-#         # "DB_Source",
-#         # "Off_Network",  # 0="On Network", 1="Off Network"
-#         "Mussel_Presence",  # 0="Unknown", 1="Yes", 2="No"
-#         "AbsoluteGainMi",
-#         "UpstreamMiles",
-#         "DownstreamMiles",
-#         "TotalNetworkMiles",
-#         "PctNatFloodplain",
-#         "NetworkSinuosity",
-#         "NumSizeClassGained",
-#         # "NumberRareSpeciesHUC12", # FIXME: currently not present
-#         # "SpeciesRichness", # FIXME: currently not present
-#         # "batUSNetID",  # FIXME: not currently used
-#         # "batDSNetID",  # FIXME: not currently used
-#         "HUC2",
-#         "HUC4",
-#         "HUC8",
-#         "HUC12",
-#         "ECO3",
-#         "ECO4",
-#         # "StreamOrder",
-#         "lat",
-#         "lon",
-#     ]
-# ]
+# Export subset of fields for use in mbtiles
+
+mbtiles_fields = [
+    "UniqueID",
+    # "NIDID",
+    # "SourceDBID",
+    "Barrier_Name",
+    # "Other_Barrier_Name",
+    "State",
+    # "County", # TODO:
+    "River",
+    "PurposeCategory",  # value domain
+    "Year_Completed",
+    "HeightClass",
+    "StructureCondition",  # value domain
+    "ConstructionMaterial",  # value domain
+    "ProtectedLand",  # 0="Unknown", 1="Yes", 2="No"
+    # "DB_Source",
+    # "Off_Network",  # 0="On Network", 1="Off Network"
+    # "Mussel_Presence",  # 0="Unknown", 1="Yes", 2="No"
+    "AbsoluteGainMi",
+    "UpstreamMiles",
+    "DownstreamMiles",
+    "TotalNetworkMiles",
+    "PctNatFloodplain",
+    "NetworkSinuosity",
+    "NumSizeClassGained",
+    # "NumberRareSpeciesHUC12", # FIXME: currently not present
+    # "SpeciesRichness", # FIXME: currently not present
+    # "batUSNetID",  # FIXME: not currently used
+    # "batDSNetID",  # FIXME: not currently used
+    "HUC2",
+    "HUC4",
+    "HUC6",
+    "HUC8",
+    "HUC10",
+    "HUC12",
+    "ECO3",
+    "ECO4",
+    # "StreamOrder",
+    "lat",
+    "lon",
+] + tiers_df.columns.tolist()
 
 
-# df.to_csv("data/src/dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC)
+print("Writing subset of fields to data/src/dams_mbtiles.csv")
+df[mbtiles_fields].to_csv(
+    "data/src/dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+)
 
 
 # Consider bins of AbsMilesGained for filtering too; log scale
@@ -191,3 +213,6 @@ df.to_csv("data/src/dams.csv", index_label="id")
 
 
 # TODO: calculate regional scores and scores for main units
+
+
+print("Done in {:.2f}".format(time() - start))

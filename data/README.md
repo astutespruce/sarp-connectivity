@@ -66,20 +66,19 @@ To HUC8 layer, added fields
 HUC8 has field issues that don't play nice with geopandas. Drop nonessential fields:
 `ogr2ogr sarp_huc8.shp -select HUC8 sarp_bounds.gdb SARP_HUC8_Albers` -->
 
-
 ## Watersheds - updated
-Downloaded the WBD dataset from: ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Hydrography/WBD/National/GDB/
-1. selected units from HUC2 ... HUC12 that intersect SARP bounds
-2. exported each to a new shapefile HUC*.shp
 
+Downloaded the WBD dataset from: ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Hydrography/WBD/National/GDB/
+
+1. selected units from HUC2 ... HUC12 that intersect SARP bounds
+2. exported each to a new shapefile HUC\*.shp
 
 ## States and counties
+
 Downloaded from US Census TIGER 2018: https://www.census.gov/cgi-bin/geo/shapefiles/index.php
+
 1. Extracted states that fell within SARP boundary.
 2. Extracted counties whose STATE_FP attribute was one of the states above.
-
-
-
 
 ## Create Other layers vector tiles
 
@@ -101,7 +100,6 @@ ogr2ogr -f GeoJSON mask.json sarp_mask.shp
 tippecanoe -z 8 -l mask -o ../../tiles/mask.mbtiles mask.json
 ```
 
-
 states, HUC2 - 8 and ecoregions:
 
 ```
@@ -117,21 +115,18 @@ ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO3.json sarp_ecoregion3.shp -sql "SELECT N
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO4.json sarp_ecoregion4.shp -sql "SELECT US_L4CODE as id, US_L4NAME as name from sarp_ecoregion4"
 
 
-tippecanoe -f -z 8 -l states -o ../../tiles/states.mbtiles -y id states.json
-tippecanoe -f -z 12 -l states -o ../../tiles/counties.mbtiles -y id counties.json
+tippecanoe -f -z 8 -l State -o ../../tiles/states.mbtiles -y id states.json
+tippecanoe -f -Z 3 -z 12 -l counties -o ../../tiles/counties.mbtiles -y id counties.json
 tippecanoe -f -z 8 -l HUC2 -o ../../tiles/HUC2.mbtiles  -T id:string -y id HUC2.json
 tippecanoe -f -z 8 -l HUC4 -o ../../tiles/HUC4.mbtiles  -T id:string -y id HUC4.json
+tippecanoe -f -z 8 -l HUC6 -o ../../tiles/HUC6.mbtiles  -T id:string -y id HUC6.json
 tippecanoe -f -z 10 -l HUC8 -o ../../tiles/HUC8.mbtiles  -T id:string -y id -y name HUC8.json
+tippecanoe -f -Z 4 -z 12 -l HUC10 -o ../../tiles/HUC10.mbtiles  -T id:string -y id -y name HUC10.json
 tippecanoe -f -z 10 -l ECO3 -o ../../tiles/ECO3.mbtiles  -T id:string -y id -y name ECO3.json
-tippecanoe -f -z 12 -l ECO4 -o ../../tiles/ECO4.mbtiles  -T id:string -y id -y name ECO4.json
+tippecanoe -f -Z 3 -z 12 -l ECO4 -o ../../tiles/ECO4.mbtiles  -T id:string -y id -y name ECO4.json
 ```
 
-<!-- HUC12 - currently not being done:
-
-```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON SARP_HUC12_wgs84.json SARP_Bounds.gdb SARP_HUC12_Albers
-tippecanoe -f -Z 7 -z 12 -l HUC12 -o ../../tiles/sarp_huc12.mbtiles  -T HUC12:string -y HUC12 sarp_huc12_wgs84.json
-``` -->
+TODO: HUC12?
 
 <!-- ## Create centroids vector tiles (for labeling) - OUTDATED, not needed anymore:
 
@@ -155,7 +150,9 @@ Summaries are created using summarize_by_unit.py
 tile-join -f -o states_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/state.csv states.mbtiles
 tile-join -f -o HUC2_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc2.csv HUC2.mbtiles
 tile-join -f -o HUC4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc4.csv HUC4.mbtiles
+tile-join -f -o HUC6_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc6.csv HUC6.mbtiles
 tile-join -f -o HUC8_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc8.csv HUC8.mbtiles
+tile-join -f -o HUC10_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc10.csv HUC10.mbtiles
 tile-join -f -o ECO3_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ECO3.csv ECO3.mbtiles
 tile-join -f -o ECO4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ECO4.csv ECO4.mbtiles
 ```
@@ -163,12 +160,11 @@ tile-join -f -o ECO4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary
 Merge all tilesets together
 
 ```
-tile-join -f -o sarp_summary.mbtiles mask.mbtiles boundary.mbtiles states_summary.mbtiles huc2_summary.mbtiles huc4_summary.mbtiles huc8_summary.mbtiles ECO3_summary.mbtiles ECO4_summary.mbtiles
+tile-join -f -o sarp_summary.mbtiles mask.mbtiles boundary.mbtiles states_summary.mbtiles huc2_summary.mbtiles huc4_summary.mbtiles huc6_summary.mbtiles huc8_summary.mbtiles huc10_summary.mbtiles ECO3_summary.mbtiles ECO4_summary.mbtiles
 ```
 
-
-
 ## River network
+
 Obtained from Kat as DataSnapshot.gdb SARP_NHD_Dendrite.
 
 Note: there are lots of issues here - selecting out StreamOrde does not produce consistent results (e.g., Ohio river at confluence of Mississipi).
@@ -176,6 +172,7 @@ One possible way would be to select by GNIS_ID, based on the max StreamOrde for 
 Can take a first cut by filtering out the major ones by order, then find the GNIS_IDs of those, then re-filter on those.
 
 Pull out different levels to use for different tilesets
+
 ```
 ogr2ogr -f "ESRI Shapefile" rivers8.shp DataSnapshots.gdb SARP_NHD_Dendrite -dim 2 -sql "SELECT BATID as id, GNIS_NAME as name from SARP_NHD_Dendrite where StreamOrde >= 8"
 ogr2ogr -f "ESRI Shapefile" rivers6.shp DataSnapshots.gdb SARP_NHD_Dendrite -dim 2 -sql "SELECT BATID as id, GNIS_NAME as name from SARP_NHD_Dendrite where StreamOrde >= 6"
@@ -191,5 +188,4 @@ ogr2ogr -t_srs EPSG:4326 -f "GeoJSON" rivers4.json rivers4.shp
 tippecanoe -f -z 6 -l rivers8 -o ../../tiles/rivers8.mbtiles -y id -y name rivers8.json
 tippecanoe -f -Z 4 -z 8 -l rivers6 -o ../../tiles/rivers6.mbtiles -y id -y name rivers6.json
 tippecanoe -f -Z 7 -z 10 -l rivers4 -o ../../tiles/rivers4.mbtiles -y id -y name rivers4.json
-
 ```

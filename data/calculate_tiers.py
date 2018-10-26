@@ -39,7 +39,8 @@ def calculate_score(series, ascending=True):
         score value for each entry in the series
     """
 
-    unique = series.unique()
+    # Round to 3 decimal places to avoid unnecessary precision and extract unique values
+    unique = series.round(3).unique()
     unique.sort()
 
     if not ascending:
@@ -95,7 +96,7 @@ def calculate_composite_score(dataframe, weights=None):
 def calculate_tier(series):
     """Calculate tiers based on 5% increments of the score range.
     The lowest tier (1) is the highest 95% of the composite score range.
-    
+
     Parameters
     ----------
     series : pandas.Series
@@ -115,6 +116,10 @@ def calculate_tier(series):
     # break into 5% increments, such that tier 0 is in top 95% of the relative scores
     bins = np.arange(0, 100, 5)[::-1]
     return (np.digitize(relative_value, bins) + 1).astype("uint8")
+
+    # TEMP: calculate using percentiles instead, so that there are 5% in each bin.  DOES NOT WORK in all cases (e.g., too many of same value or too few overall dams)
+    # percentiles = np.percentile(series, bins)  # no need to make relative first
+    # return (np.digitize(series, percentiles) + 1).astype("uint8")
 
 
 def calculate_tiers(dataframe, scenarios, group_field=None):
@@ -152,15 +157,9 @@ def calculate_tiers(dataframe, scenarios, group_field=None):
         columns.append(group_field)
     df = dataframe[columns].dropna()
 
-    # temporary fix for nulls being encoded as 0's - drop any rows where the input fields are 0 (based in AbsoluteGainMi as indicator)
-    df = df[df["AbsoluteGainMi"] > 0]
-
     groups = df[group_field].unique() if group_field is not None else [None]
 
     for group in groups:
-        if group is not None:
-            print("calculating tiers for {}".format(group))
-
         row_index = df[group_field] == group if group is not None else df.index
 
         # calculate score for each input field
@@ -184,6 +183,9 @@ def calculate_tiers(dataframe, scenarios, group_field=None):
     # join back to the original data frame
     # only keep the scenario tier fields
     out_fields = list(scenarios.keys())
+
+    # For adding score fields
+    # out_fields = [f for f in df.columns if not f in fields]
     df = df[out_fields]
 
     if group_field is not None:
@@ -199,34 +201,36 @@ def calculate_tiers(dataframe, scenarios, group_field=None):
 
 
 if __name__ == "__main__":
+    start = time()
+
     df = pd.read_csv(
         "data/src/dams.csv",
         dtype={
             "HUC2": str,
             "HUC4": str,
+            "HUC6": str,
             "HUC8": str,
+            "HUC10": str,
             "HUC12": str,
             "ECO3": str,
             "ECO4": str,
         },
     ).set_index(["id"])
 
-    # for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
-    for group_field in ("State",):
+    for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
         if group_field is None:
             print("Calculating regional tiers")
         else:
             print("Calculating tiers for {}".format(group_field))
 
-        start = time()
         tiers_df = calculate_tiers(df, SCENARIOS, group_field=group_field)
         df = df.join(tiers_df)
 
         # Fill n/a with -1 for tiers
         df[tiers_df.columns] = df[tiers_df.columns].fillna(-1).astype("int8")
-        print(df.tail(10)[tiers_df.columns])
 
-        print("Done in {:.2f}".format(time() - start))
+    df.to_csv("data/src/tiers.csv", index_label="id")
 
-    df.to_csv("data/src/dam_tiers.csv", index_label="id")
+    print("Size", len(df))
 
+    print("Done in {:.2f}".format(time() - start))

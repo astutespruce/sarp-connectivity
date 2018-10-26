@@ -25,5 +25,5 @@ export const LAYER_CONFIG = [
     { id: "HUC8", group: "HUC", minzoom: 6, maxzoom: 21, title: "Hydrologic subbasin" },
     { id: "ECO3", group: "ECO", minzoom: 0, maxzoom: 6, title: "Level 3 Ecoregion" },
     { id: "ECO4", group: "ECO", minzoom: 6, maxzoom: 21, title: "Level 4 Ecoregion" },
-    { id: "states", group: "states", minzoom: 0, maxzoom: 21, title: "State" }
+    { id: "State", group: "ADM", minzoom: 0, maxzoom: 21, title: "State" }
 ]
