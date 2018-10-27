@@ -7,7 +7,7 @@ import * as actions from "../../actions/priority"
 // import Legend from "./Legend"
 import { FeaturePropType } from "../../CustomPropTypes"
 
-import { TILE_HOST, LAYER_CONFIG } from "./config"
+import { TILE_HOST, LAYER_CONFIG, TIER_COLORS } from "./config"
 import Map from "./index"
 
 class PriorityMap extends Component {
@@ -125,6 +125,8 @@ class PriorityMap extends Component {
         this.setState({ zoom: this.map.getZoom() })
 
         map.on("load", () => {
+            const { scenario } = this.props
+
             map.addSource("sarp", {
                 type: "vector",
                 maxzoom: 8,
@@ -157,10 +159,20 @@ class PriorityMap extends Component {
                 }
             })
 
-            const systems = ["State", "HUC", "ECO"]
-            systems.forEach(s => {
-                this.addLayers(LAYER_CONFIG.filter(({ group }) => group === s), s === system)
-            })
+            // const systems = ["State", "HUC", "ECO"]
+            // systems.forEach(s => {
+            //     this.addLayers(LAYER_CONFIG.filter(({ group }) => group === s), s === system)
+            // })
+
+            const colors = TIER_COLORS.reduce((out, color, i) => out.concat([i, color]), [])
+            const maxRadius = 20
+            const minRadius = 6
+            const numSizes = TIER_COLORS.length
+            const increment = (maxRadius - minRadius) / (numSizes - 1)
+            const sizes = Array.from(Array(numSizes), (_, i) => numSizes - increment * i).reduce(
+                (out, size, i) => out.concat([i, size]),
+                []
+            )
 
             map.addSource("dams", {
                 type: "vector",
@@ -185,7 +197,8 @@ class PriorityMap extends Component {
                         1,
                         "rgb(178,24,43)"
                     ],
-                    "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 6, 2, 9, 20],
+                    // "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 6, 2, 9, 20],
+                    "heatmap-radius": 2,
                     "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 1, 8, 0]
                 }
             })
@@ -194,13 +207,24 @@ class PriorityMap extends Component {
                 source: "dams",
                 "source-layer": "dams",
                 type: "circle",
-                minzoom: 7,
+                minzoom: 5,
+                filter: [
+                    "any",
+                    ["all", ["<=", ["number", ["get", scenario]], 4], ["!=", ["number", ["get", scenario]], -1]],
+                    [">=", ["zoom"], 10]
+                ],
                 paint: {
-                    "circle-color": "rgb(178,24,43)",
-                    "circle-radius": ["interpolate", ["linear"], ["zoom"], 7, 4, 14, 8],
-                    "circle-opacity": 0.75,
-                    "circle-stroke-width": 0,
-                    "circle-blur": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 9, 0]
+                    // "circle-color": "rgb(178,24,43)",
+                    // TODO: color on tier
+                    "circle-color": ["match", ["get", scenario], ...colors, "#AAA"],
+                    // "circle-radius": ["interpolate", ["linear"], ["zoom"], 7, 4, 14, 8],
+                    "circle-radius": ["match", ["get", scenario], ...sizes, 3],
+                    // "circle-opacity": ["case", [">=", ["get", scenario], 0], 0.85, 0.1],
+                    "circle-opacity": 0.85,
+                    "circle-stroke-width": 1,
+                    "circle-stroke-color": "#AAA"
+                    // "circle-stroke-opacity": ["case", [">=", ["get", scenario], 0], 0.85, 0.1]
+                    // "circle-blur": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 9, 0]
                 }
             })
 
@@ -229,32 +253,32 @@ class PriorityMap extends Component {
                     "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 8, 0]
                 }
             })
-            map.addLayer({
-                id: "dams-background",
-                source: "dams",
-                "source-layer": "dams",
-                type: "circle",
-                minzoom: 7,
-                layout: {
-                    visibility: "none"
-                },
-                paint: {
-                    "circle-color": "rgb(122,1,119)",
-                    "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 2, 14, 4],
-                    "circle-opacity": 0.25,
-                    "circle-stroke-width": 0,
-                    "circle-blur": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 9, 0]
-                }
-            })
+            // map.addLayer({
+            //     id: "dams-background",
+            //     source: "dams",
+            //     "source-layer": "dams",
+            //     type: "circle",
+            //     minzoom: 7,
+            //     layout: {
+            //         visibility: "none"
+            //     },
+            //     paint: {
+            //         "circle-color": "rgb(122,1,119)",
+            //         "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 2, 14, 4],
+            //         "circle-opacity": 0.25,
+            //         "circle-stroke-width": 0,
+            //         "circle-blur": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 9, 0]
+            //     }
+            // })
         })
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
         map.on("click", e => {
-            const { system: curSystem, selectFeature } = this.props
+            const { scenario, selectFeature } = this.props
 
             const features = map.queryRenderedFeatures(e.point, { layers: ["dams"] })
             if (features.length === 0) return
-            console.log("click features", features)
+            console.log("click features", features, features[0].properties[scenario])
             selectFeature(features[0].properties)
         })
         map.foo = () => {
@@ -315,20 +339,20 @@ class PriorityMap extends Component {
 }
 
 PriorityMap.propTypes = {
+    scenario: PropTypes.string,
     bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
     system: PropTypes.string,
     selectedFeature: FeaturePropType,
-    labels: ImmutablePropTypes.listOf(ImmutablePropTypes.map),
 
     setSystem: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired
 }
 
 PriorityMap.defaultProps = {
+    scenario: null,
     bounds: null,
     system: null,
-    selectedFeature: null,
-    labels: []
+    selectedFeature: null
 }
 
 const mapStateToProps = globalState => {
@@ -338,7 +362,7 @@ const mapStateToProps = globalState => {
         bounds: state.get("bounds"),
         system: state.get("system"),
         selectedFeature: state.get("selectedFeature"),
-        labels: state.get("labels")
+        scenario: state.get("scenario")
     }
 }
 

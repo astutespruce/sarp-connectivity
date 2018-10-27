@@ -197,7 +197,24 @@ mbtiles_fields = [
     # "StreamOrder",
     "lat",
     "lon",
-] + tiers_df.columns.tolist()
+
+    # tiers
+    "NC",
+    "WC",
+    "NCWC",
+    "State_NC",
+    "State_WC",
+    "State_NCWC",
+    "HUC2_NC",
+    "HUC2_WC",
+    "HUC2_NCWC",
+    "HUC4_NC",
+    "HUC4_WC",
+    "HUC4_NCWC",
+    "HUC8_NC",
+    "HUC8_WC",
+    "HUC8_NCWC",
+]
 
 
 print("Writing subset of fields to data/src/dams_mbtiles.csv")
