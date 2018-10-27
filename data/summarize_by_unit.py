@@ -4,8 +4,6 @@ import json
 import pandas as pd
 import numpy as np
 
-NUM_BINS = 9  # for assigning colors in frontend
-
 
 df = pd.read_csv(
     "data/src/dams.csv",
@@ -41,10 +39,10 @@ for unit in ("State", "HUC2", "HUC4", "HUC6", "HUC8", "HUC10", "ECO3", "ECO4"):
         .rename(columns={"UniqueID": "dams", "AbsoluteGainMi": "connectedmiles"})
     )
 
-    # calculate percentiles and assign colors
-    bins = np.arange(0, 100, 100 / NUM_BINS)
+    # Bins are manually constructed to give reasonable looking map
+    # There must be a matching number of colors in the map
+    bins = [20, 40, 60, 75, 80, 85, 90, 95, 100]
     percentiles = np.percentile(g.dams, bins)
-    g["bin"] = np.digitize(g.dams, percentiles) - 1
 
     stats[unit]["percentiles"] = percentiles.round().astype("uint").tolist()
 
