@@ -1,6 +1,6 @@
 import { List, Map } from "immutable"
 
-import { PRIORITY_SET_SYSTEM, PRIORITY_SELECT_FEATURE } from "../actions/priority"
+import { PRIORITY_SET_SYSTEM, PRIORITY_SET_SCENARIO, PRIORITY_SELECT_FEATURE } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
 const initialState = Map({
@@ -16,6 +16,9 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
                 system: payload.system,
                 selectedFeature: null
             })
+        }
+        case PRIORITY_SET_SCENARIO: {
+            return state.set("scenario", payload.scenario)
         }
         case PRIORITY_SELECT_FEATURE: {
             return state.set("selectedFeature", payload.selectedFeature)

@@ -40,7 +40,8 @@ def calculate_score(series, ascending=True):
     """
 
     # Round to 3 decimal places to avoid unnecessary precision and extract unique values
-    unique = series.round(3).unique()
+    series = series.copy().round(5)
+    unique = series.unique()
     unique.sort()
 
     if not ascending:
@@ -217,7 +218,16 @@ if __name__ == "__main__":
         },
     ).set_index(["id"])
 
-    for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
+    df = df.drop(
+        columns=[
+            c
+            for c in df.columns
+            if c in {"NCWC", "NC", "WC"} or "_NC" in c or "_WC" in c
+        ]
+    )
+
+    # for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
+    for group_field in (None,):
         if group_field is None:
             print("Calculating regional tiers")
         else:

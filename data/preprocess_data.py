@@ -197,7 +197,6 @@ mbtiles_fields = [
     # "StreamOrder",
     "lat",
     "lon",
-
     # tiers
     "NC",
     "WC",
@@ -220,6 +219,12 @@ mbtiles_fields = [
 print("Writing subset of fields to data/src/dams_mbtiles.csv")
 df[mbtiles_fields].to_csv(
     "data/src/dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+)
+
+
+# Query out the highest regional priorities
+df.query("NCWC > 0 & (NCWC <=4 | NC <= 4 | WC <=4)").to_csv(
+    "data/src/dams_priority_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
 )
 
 

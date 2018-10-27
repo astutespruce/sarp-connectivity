@@ -7,8 +7,11 @@ import * as actions from "../../actions/priority"
 // import Legend from "./Legend"
 import { FeaturePropType } from "../../CustomPropTypes"
 
-import { TILE_HOST, LAYER_CONFIG, TIER_COLORS } from "./config"
+import { TILE_HOST, LAYER_CONFIG, TIER_COLORS, PRIORITY_TIER_COLORS, SCENARIOS } from "./config"
 import Map from "./index"
+
+// Construct colors for mapbox GL layers in advance
+const priorityColors = PRIORITY_TIER_COLORS.reduce((out, color, i) => out.concat([i, color]), [])
 
 class PriorityMap extends Component {
     constructor() {
@@ -26,8 +29,8 @@ class PriorityMap extends Component {
         const { map } = this
         if (map === null) return
 
-        const { system: prevSystem } = prevProps
-        const { system } = this.props
+        const { system: prevSystem, scenario: prevScenario } = prevProps
+        const { system, scenario } = this.props
 
         if (system !== prevSystem) {
             if (prevSystem !== null) {
@@ -39,6 +42,25 @@ class PriorityMap extends Component {
                 const showUnits = this.layers.filter(({ group }) => group === system)
                 showUnits.forEach(({ id }) => this.setLayerVisibility(id, true))
             }
+        }
+        if (scenario !== prevScenario) {
+            // Note: scenarios cannot be null
+            map.setFilter("dams_priority", ["<=", ["get", scenario], 4])
+            map.setPaintProperty("dams_priority", "circle-color", [
+                "match",
+                ["get", scenario],
+                ...priorityColors,
+                "#AAA"
+            ])
+            map.setPaintProperty("dams_priority", "circle-radius", [
+                "interpolate",
+                ["linear"],
+                ["get", scenario],
+                1,
+                20,
+                4,
+                6
+            ])
         }
     }
 
@@ -164,25 +186,28 @@ class PriorityMap extends Component {
             //     this.addLayers(LAYER_CONFIG.filter(({ group }) => group === s), s === system)
             // })
 
-            const colors = TIER_COLORS.reduce((out, color, i) => out.concat([i, color]), [])
-            const maxRadius = 20
-            const minRadius = 6
-            const numSizes = TIER_COLORS.length
-            const increment = (maxRadius - minRadius) / (numSizes - 1)
-            const sizes = Array.from(Array(numSizes), (_, i) => numSizes - increment * i).reduce(
-                (out, size, i) => out.concat([i, size]),
-                []
-            )
+            // const colors = TIER_COLORS.reduce((out, color, i) => out.concat([i, color]), [])
+            // const maxRadius = 20
+            // const minRadius = 6
+            // const numSizes = TIER_COLORS.length
+            // const increment = (maxRadius - minRadius) / (numSizes - 1)
+            // const sizes = Array.from(Array(numSizes), (_, i) => numSizes - increment * i).reduce(
+            //     (out, size, i) => out.concat([i, size]),
+            //     []
+            // )
 
             map.addSource("dams", {
                 type: "vector",
-                tiles: [`${TILE_HOST}/services/dams_full/tiles/{z}/{x}/{y}.pbf`],
+                tiles: [`${TILE_HOST}/services/dams/tiles/{z}/{x}/{y}.pbf`],
                 maxzoom: 14
             })
+
+            // Show a heatmap of all points (no attributes)
+            // TODO: make this gray or push to background with zoom?
             map.addLayer({
-                id: "dams-heatmap",
+                id: "dams_heatmap",
                 source: "dams",
-                "source-layer": "dams",
+                "source-layer": "dams_heatmap",
                 type: "heatmap",
                 paint: {
                     "heatmap-intensity": 1,
@@ -202,57 +227,73 @@ class PriorityMap extends Component {
                     "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 1, 8, 0]
                 }
             })
+
+            // Show priority dams
             map.addLayer({
-                id: "dams",
+                id: "dams_priority",
                 source: "dams",
-                "source-layer": "dams",
+                "source-layer": "dams_priority",
                 type: "circle",
-                minzoom: 5,
-                filter: [
-                    "any",
-                    ["all", ["<=", ["number", ["get", scenario]], 4], ["!=", ["number", ["get", scenario]], -1]],
-                    [">=", ["zoom"], 10]
-                ],
+                minzoom: 3,
+                filter: ["<=", ["get", scenario], 4], // only show the top priorities for the current scenario.  TODO: update on change of scenario
                 paint: {
-                    // "circle-color": "rgb(178,24,43)",
-                    // TODO: color on tier
-                    "circle-color": ["match", ["get", scenario], ...colors, "#AAA"],
-                    // "circle-radius": ["interpolate", ["linear"], ["zoom"], 7, 4, 14, 8],
-                    "circle-radius": ["match", ["get", scenario], ...sizes, 3],
-                    // "circle-opacity": ["case", [">=", ["get", scenario], 0], 0.85, 0.1],
-                    "circle-opacity": 0.85,
+                    "circle-color": ["match", ["get", scenario], ...priorityColors, "#AAA"],
+                    "circle-radius": ["interpolate", ["linear"], ["get", scenario], 1, 20, 4, 6],
+                    // "circle-opacity": 1,
                     "circle-stroke-width": 1,
                     "circle-stroke-color": "#AAA"
-                    // "circle-stroke-opacity": ["case", [">=", ["get", scenario], 0], 0.85, 0.1]
-                    // "circle-blur": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 9, 0]
                 }
             })
 
-            map.addLayer({
-                id: "dams-heatmap-background",
-                source: "dams",
-                "source-layer": "dams",
-                type: "heatmap",
-                layout: {
-                    visibility: "none"
-                },
-                paint: {
-                    "heatmap-intensity": 1,
-                    "heatmap-color": [
-                        "interpolate",
-                        ["linear"],
-                        ["heatmap-density"],
-                        0,
-                        "rgba(255,255, 255,0)",
-                        0.1,
-                        "rgba(240, 240, 240, 0.1)",
-                        1,
-                        "rgb(122,1,119)"
-                    ],
-                    "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 6, 2, 9, 10],
-                    "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 8, 0]
-                }
-            })
+            // map.addLayer({
+            //     id: "dams-priority",
+            //     source: "dams",
+            //     "source-layer": "dams_priority",
+            //     type: "circle",
+            //     minzoom: 3,
+            //     // filter: [
+            //     //     "any",
+            //     //     ["all", ["<=", ["number", ["get", scenario]], 4], ["!=", ["number", ["get", scenario]], -1]],
+            //     //     [">=", ["zoom"], 10]
+            //     // ],
+            //     paint: {
+            //         "circle-color": ["match", ["get", scenario], ...priorityColors, "#AAA"],
+            //         // "circle-radius": ["interpolate", ["linear"], ["zoom"], 7, 4, 14, 8],
+            //         "circle-radius": ["interpolate", ["linear"], ["get", scenario], 1, 20, 4, 6],
+            //         // "circle-opacity": ["case", [">=", ["get", scenario], 0], 0.85, 0.1],
+            //         "circle-opacity": 0.85,
+            //         "circle-stroke-width": 1,
+            //         "circle-stroke-color": "#AAA"
+            //         // "circle-stroke-opacity": ["case", [">=", ["get", scenario], 0], 0.85, 0.1]
+            //         // "circle-blur": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 9, 0]
+            //     }
+            // })
+
+            // map.addLayer({
+            //     id: "dams-heatmap-background",
+            //     source: "dams",
+            //     "source-layer": "dams",
+            //     type: "heatmap",
+            //     layout: {
+            //         visibility: "none"
+            //     },
+            //     paint: {
+            //         "heatmap-intensity": 1,
+            //         "heatmap-color": [
+            //             "interpolate",
+            //             ["linear"],
+            //             ["heatmap-density"],
+            //             0,
+            //             "rgba(255,255, 255,0)",
+            //             0.1,
+            //             "rgba(240, 240, 240, 0.1)",
+            //             1,
+            //             "rgb(122,1,119)"
+            //         ],
+            //         "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 6, 2, 9, 10],
+            //         "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 0.5, 8, 0]
+            //     }
+            // })
             // map.addLayer({
             //     id: "dams-background",
             //     source: "dams",
@@ -276,19 +317,19 @@ class PriorityMap extends Component {
         map.on("click", e => {
             const { scenario, selectFeature } = this.props
 
-            const features = map.queryRenderedFeatures(e.point, { layers: ["dams"] })
+            const features = map.queryRenderedFeatures(e.point, { layers: ["dams_priority"] })
             if (features.length === 0) return
             console.log("click features", features, features[0].properties[scenario])
             selectFeature(features[0].properties)
         })
-        map.foo = () => {
-            map.setFilter("dams-heatmap", ["==", "State", "Alabama"])
-            map.setFilter("dams-heatmap-background", ["!=", "State", "Alabama"])
-            map.setFilter("dams", ["==", "State", "Alabama"])
-            map.setFilter("dams-background", ["!=", "State", "Alabama"])
-            map.setLayoutProperty("dams-background", "visibility", "visible")
-            map.setLayoutProperty("dams-heatmap-background", "visibility", "visible")
-        }
+        // map.foo = () => {
+        //     map.setFilter("dams-heatmap", ["==", "State", "Alabama"])
+        //     map.setFilter("dams-heatmap-background", ["!=", "State", "Alabama"])
+        //     map.setFilter("dams", ["==", "State", "Alabama"])
+        //     map.setFilter("dams-background", ["!=", "State", "Alabama"])
+        //     map.setLayoutProperty("dams-background", "visibility", "visible")
+        //     map.setLayoutProperty("dams-heatmap-background", "visibility", "visible")
+        // }
     }
 
     getVisibleLayers = () => {
@@ -301,13 +342,13 @@ class PriorityMap extends Component {
     }
 
     render() {
-        const { system, setSystem, bounds } = this.props
+        const { scenario, system, setSystem, setScenario, bounds } = this.props
 
         return (
             <React.Fragment>
                 <Map bounds={bounds} onCreateMap={this.handleCreateMap} />
 
-                <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
+                {/* <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
                     <h5 className="is-size-7">Summarize on: </h5>
                     <div className="buttons has-addons">
                         <button
@@ -332,6 +373,21 @@ class PriorityMap extends Component {
                             Ecoregions
                         </button>
                     </div>
+                </div> */}
+                <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
+                    <h5 className="is-size-7">Show Tiers for: </h5>
+                    <div className="buttons has-addons">
+                        {Object.entries(SCENARIOS).map(([key, name]) => (
+                            <button
+                                key={key}
+                                className={`button is-small ${scenario === key ? "active" : ""}`}
+                                type="button"
+                                onClick={() => setScenario(key)}
+                            >
+                                {name}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </React.Fragment>
         )
@@ -345,6 +401,7 @@ PriorityMap.propTypes = {
     selectedFeature: FeaturePropType,
 
     setSystem: PropTypes.func.isRequired,
+    setScenario: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired
 }
 

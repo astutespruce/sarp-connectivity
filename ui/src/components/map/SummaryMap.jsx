@@ -191,6 +191,36 @@ class SummaryMap extends Component {
 
             this.layers.forEach(lyr => this.addHighlightLayer(lyr, lyr.group === system))
 
+            // TODO: add heatmap?
+            // map.addSource("dams", {
+            //     type: "vector",
+            //     tiles: [`${TILE_HOST}/services/dams/tiles/{z}/{x}/{y}.pbf`],
+            //     maxzoom: 14
+            // })
+            // map.addLayer({
+            //     id: "dams_heatmap",
+            //     source: "dams",
+            //     "source-layer": "dams_heatmap",
+            //     type: "heatmap",
+            //     paint: {
+            //         "heatmap-intensity": 1,
+            //         "heatmap-color": [
+            //             "interpolate",
+            //             ["linear"],
+            //             ["heatmap-density"],
+            //             0,
+            //             "rgba(255,0, 0,0)",
+            //             0.1,
+            //             "rgba(255,0,0, 0.5)",
+            //             1,
+            //             "rgb(178,24,43)"
+            //         ],
+            //         // "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 6, 2, 9, 20],
+            //         "heatmap-radius": 2,
+            //         "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 1, 8, 0]
+            //     }
+            // })
+
             // this.addLabelLayer(labels.toJS())
 
             this.setState({ zoom: this.map.getZoom() })

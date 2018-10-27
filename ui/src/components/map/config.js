@@ -7,6 +7,7 @@ export const TILE_HOST =
 
 export const SARP_BOUNDS = List([-106.645646, 17.623468, -64.512674, 40.61364])
 
+// from colorbrewer
 export const COUNT_COLORS = [
     "#ffffcc",
     "#ffeda0",
@@ -42,12 +43,15 @@ export const TIER_COLORS = [
     "#B8DE29",
     "#DDE318",
     "#FDE725"
-]
+] // TODO: may need to be reversed
+
+// from colorbrewer: http://colorbrewer2.org/#type=sequential&scheme=BuPu&n=5
+export const PRIORITY_TIER_COLORS = ["#edf8fb", "#b3cde3", "#8c96c6", "#8856a7", "#810f7c"].reverse()
 
 export const SCENARIOS = {
-    "NCWC": "Network Connectivity & Watershed Condition",
-    "NC": "Network Connnectivity",
-    "WC": "Watershed Condition"
+    NC: "Network Connnectivity",
+    WC: "Watershed Condition",
+    NCWC: "Both"
 }
 
 export const LAYER_CONFIG = [

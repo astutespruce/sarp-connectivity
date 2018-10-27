@@ -24,15 +24,20 @@ To convert dams to mbtiles:
 2. Then convert CSV to MBTiles:
    TODO: only include the attributes actually needed for the mbtiles file.
 
+Save all dams for use in the heatmap but without attributes, save the full dams at zooms 6-14 (note: many dams still dropped at Z6, some at Z7), and the priority dams at all zooms:
+
 ```
-tippecanoe -f -Z0 -z14 -B6 --cluster-densest-as-needed -o ../../tiles/dams_full.mbtiles -l dams dams_mbtiles.csv
+tippecanoe -f -Z0 -z10 -B6 --cluster-densest-as-needed -o ../../tiles/dams_heatmap.mbtiles -l dams_heatmap --exclude-all dams_mbtiles.csv
+tippecanoe -f -Z6 -z14 -B6 --cluster-densest-as-needed -o ../../tiles/dams_full.mbtiles -l dams dams_mbtiles.csv
+tippecanoe -f -Z3 -z14 -B3 -o ../../tiles/dams_priority.mbtiles -l dams_priority dams_priority_mbtiles.csv
+
+tile-join -f --no-tile-size-limit -o dams.mbtiles dams_heatmap.mbtiles dams_full.mbtiles dams_priority.mbtiles
 ```
 
--r1 --cluster-distance=2
+TODO: consider creating another layer with just priorities > -1
 
-TODO: consider --drop-densest-as-needed instead
-
-TODO: tune tile creation / base zoom & reduce rate. Right now guesses base zoom of 5
+TODO: consider --drop-densest-as-needed instead, or -r1 --cluster-distance=2\
+TODO: tune tile creation / base zoom & reduce rate.
 TODO: revisit clustering: https://github.com/mapbox/tippecanoe#clustered-points-world-cities-summing-the-clustered-population-visible-at-all-zoom-levels
 
 ## Ecoregions
