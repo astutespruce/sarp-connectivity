@@ -114,7 +114,7 @@ def calculate_tier(series):
     relative_value = 100.0 * (series - series_min) / series_range
 
     # break into 5% increments, such that tier 0 is in top 95% of the relative scores
-    bins = np.arange(0, 100, 5)[::-1]
+    bins = np.arange(95, -5, -5)
     return (np.digitize(relative_value, bins) + 1).astype("uint8")
 
     # TEMP: calculate using percentiles instead, so that there are 5% in each bin.  DOES NOT WORK in all cases (e.g., too many of same value or too few overall dams)

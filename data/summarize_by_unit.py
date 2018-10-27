@@ -2,10 +2,11 @@ from collections import defaultdict
 import csv
 import json
 import pandas as pd
-import geopandas as gp
+import numpy as np
+
+NUM_BINS = 9  # for assigning colors in frontend
 
 
-# TODO: derive other HUCs from HUC12 if they don't already exist
 df = pd.read_csv(
     "data/src/dams.csv",
     dtype={
@@ -24,6 +25,7 @@ stats = defaultdict(defaultdict)
 
 # Group by state, HUC level, ecoregion level
 for unit in ("State", "HUC2", "HUC4", "HUC6", "HUC8", "HUC10", "ECO3", "ECO4"):
+    print("processing {}".format(unit))
     group_cols = [unit]
     # TODO: only needed if we are extracting out subregions based on some higher order ID
     # if unit == "HUC4":
@@ -39,6 +41,13 @@ for unit in ("State", "HUC2", "HUC4", "HUC6", "HUC8", "HUC10", "ECO3", "ECO4"):
         .rename(columns={"UniqueID": "dams", "AbsoluteGainMi": "connectedmiles"})
     )
 
+    # calculate percentiles and assign colors
+    bins = np.arange(0, 100, 100 / NUM_BINS)
+    percentiles = np.percentile(g.dams, bins)
+    g["bin"] = np.digitize(g.dams, percentiles) - 1
+
+    stats[unit]["percentiles"] = percentiles.round().astype("uint").tolist()
+
     g.to_csv(
         "data/summary/{}.csv".format(unit),
         index_label=["id"] + group_cols[1:],
@@ -46,7 +55,7 @@ for unit in ("State", "HUC2", "HUC4", "HUC6", "HUC8", "HUC10", "ECO3", "ECO4"):
     )
 
     level_stats = g.agg(["min", "max"])
-    for col in g.columns:
+    for col in ("dams", "connectedmiles"):
         stats[unit][col] = {"range": level_stats[col].tolist(), "mean": g[col].mean()}
 
 stats["sarp"] = {"dams": len(df), "connectedmiles": df["AbsoluteGainMi"].mean()}

@@ -115,15 +115,15 @@ ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO3.json sarp_ecoregion3.shp -sql "SELECT N
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO4.json sarp_ecoregion4.shp -sql "SELECT US_L4CODE as id, US_L4NAME as name from sarp_ecoregion4"
 
 
-tippecanoe -f -z 8 -l State -o ../../tiles/states.mbtiles -y id states.json
-tippecanoe -f -Z 3 -z 12 -l counties -o ../../tiles/counties.mbtiles -y id counties.json
-tippecanoe -f -z 8 -l HUC2 -o ../../tiles/HUC2.mbtiles  -T id:string -y id HUC2.json
-tippecanoe -f -z 8 -l HUC4 -o ../../tiles/HUC4.mbtiles  -T id:string -y id HUC4.json
-tippecanoe -f -z 8 -l HUC6 -o ../../tiles/HUC6.mbtiles  -T id:string -y id HUC6.json
-tippecanoe -f -z 10 -l HUC8 -o ../../tiles/HUC8.mbtiles  -T id:string -y id -y name HUC8.json
-tippecanoe -f -Z 4 -z 12 -l HUC10 -o ../../tiles/HUC10.mbtiles  -T id:string -y id -y name HUC10.json
-tippecanoe -f -z 10 -l ECO3 -o ../../tiles/ECO3.mbtiles  -T id:string -y id -y name ECO3.json
-tippecanoe -f -Z 3 -z 12 -l ECO4 -o ../../tiles/ECO4.mbtiles  -T id:string -y id -y name ECO4.json
+tippecanoe -f -z 8 -l State -o ../../tiles/states.mbtiles states.json
+tippecanoe -f -Z 3 -z 12 -l counties -o ../../tiles/counties.mbtiles counties.json
+tippecanoe -f -z 8 -l HUC2 -o ../../tiles/HUC2.mbtiles  -T id:string HUC2.json
+tippecanoe -f -z 8 -l HUC4 -o ../../tiles/HUC4.mbtiles  -T id:string HUC4.json
+tippecanoe -f -z 8 -l HUC6 -o ../../tiles/HUC6.mbtiles  -T id:string HUC6.json
+tippecanoe -f -z 10 -l HUC8 -o ../../tiles/HUC8.mbtiles  -T id:string HUC8.json
+tippecanoe -f -Z 4 -z 12 -l HUC10 -o ../../tiles/HUC10.mbtiles  -T id:string HUC10.json
+tippecanoe -f -z 10 -l ECO3 -o ../../tiles/ECO3.mbtiles  -T id:string ECO3.json
+tippecanoe -f -Z 3 -z 12 -l ECO4 -o ../../tiles/ECO4.mbtiles  -T id:string ECO4.json
 ```
 
 TODO: HUC12?
@@ -160,7 +160,7 @@ tile-join -f -o ECO4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary
 Merge all tilesets together
 
 ```
-tile-join -f -o sarp_summary.mbtiles mask.mbtiles boundary.mbtiles states_summary.mbtiles huc2_summary.mbtiles huc4_summary.mbtiles huc6_summary.mbtiles huc8_summary.mbtiles huc10_summary.mbtiles ECO3_summary.mbtiles ECO4_summary.mbtiles
+tile-join -f --no-tile-size-limit -o sarp_summary.mbtiles mask.mbtiles boundary.mbtiles states_summary.mbtiles huc2_summary.mbtiles huc4_summary.mbtiles huc6_summary.mbtiles huc8_summary.mbtiles huc10_summary.mbtiles ECO3_summary.mbtiles ECO4_summary.mbtiles
 ```
 
 ## River network

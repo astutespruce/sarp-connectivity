@@ -157,7 +157,7 @@ class PriorityMap extends Component {
                 }
             })
 
-            const systems = ["states", "HUC", "ECO"]
+            const systems = ["State", "HUC", "ECO"]
             systems.forEach(s => {
                 this.addLayers(LAYER_CONFIG.filter(({ group }) => group === s), s === system)
             })

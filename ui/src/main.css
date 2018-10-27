@@ -271,6 +271,7 @@ footer a {
 
 #Legend {
     padding: 10px;
+    max-width: 160px;
     background: white;
     position: absolute;
     bottom: 24px;
@@ -278,6 +279,16 @@ footer a {
     border-radius: 6px;
     box-shadow: 1px 1px 8px #333;
     z-index: 2000;
+}
+#Legend h5 {
+    line-height: 1.2;
+    margin-bottom: 0.5em;
+}
+
+#LegendFootnote {
+    margin-top: 1em;
+    line-height: 1.1;
+    max-width: 140px;
 }
 
 .legend-patch {

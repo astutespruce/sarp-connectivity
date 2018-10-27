@@ -20,7 +20,8 @@ import Map from "./index"
 const LEVEL_LEGEND = {}
 LAYER_CONFIG.forEach(({ id }) => {
     LEVEL_LEGEND[id] = {
-        bins: equalIntervals(summaryStats[id].dams, COUNT_COLORS.length),
+        // bins: equalIntervals(summaryStats[id].dams.range, COUNT_COLORS.length),
+        bins: summaryStats[id].percentiles,
         colors: COUNT_COLORS
     }
 })
@@ -86,8 +87,12 @@ class SummaryMap extends Component {
             const { id, minzoom, maxzoom } = lyr
             const { bins, colors } = LEVEL_LEGEND[id]
             const renderColors = []
-            bins.forEach(([min, max], i) => {
-                renderColors.push((max - min) / 2 + min) // interpolate from the midpoint
+            // bins.forEach(([min, max], i) => {
+            //     renderColors.push((max - min) / 2 + min) // interpolate from the midpoint
+            //     renderColors.push(colors[i])
+            // })
+            bins.forEach((bin, i) => {
+                renderColors.push(bin)
                 renderColors.push(colors[i])
             })
 
@@ -105,7 +110,7 @@ class SummaryMap extends Component {
                 type: "fill",
                 minzoom: minzoom || 0,
                 maxzoom: maxzoom || 21,
-                filter: [">", "dams", 0],
+                filter: [">=", "dams", 0],
                 layout: {
                     visibility: visible ? "visible" : "none"
                 }
@@ -115,7 +120,7 @@ class SummaryMap extends Component {
                     id: `${id}-fill`,
                     type: "fill",
                     paint: {
-                        "fill-opacity": 0.6,
+                        "fill-opacity": 0.3,
                         "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
                     }
                 })
@@ -167,8 +172,6 @@ class SummaryMap extends Component {
         this.map = map
         const { system } = this.props
 
-        this.setState({ zoom: this.map.getZoom() })
-
         map.on("load", () => {
             map.addSource("sarp", {
                 type: "vector",
@@ -176,7 +179,7 @@ class SummaryMap extends Component {
                 tiles: [`${TILE_HOST}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`]
             })
 
-            const systems = ["states", "HUC", "ECO"]
+            const systems = ["States", "HUC", "ECO"]
             systems.forEach(s => {
                 this.addLayers(
                     LAYER_CONFIG.filter(({ group }) => group === s)
@@ -189,6 +192,8 @@ class SummaryMap extends Component {
             this.layers.forEach(lyr => this.addHighlightLayer(lyr, lyr.group === system))
 
             // this.addLabelLayer(labels.toJS())
+
+            this.setState({ zoom: this.map.getZoom() })
         })
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
@@ -228,21 +233,30 @@ class SummaryMap extends Component {
         const legendInfo = LEVEL_LEGEND[id]
         const { bins } = legendInfo
         const colors = legendInfo.colors.slice()
-        const labels = bins.map(([min, max], i) => {
-            if (i === 0) {
-                return `< ${Math.round(max).toLocaleString()} dams`
-            }
+        // const labels = bins.map(([min, max], i) => {
+        //     if (i === 0) {
+        //         return `< ${Math.round(max).toLocaleString()} dams`
+        //     }
+        //     if (i === bins.length - 1) {
+        //         return `≥ ${Math.round(min).toLocaleString()} dams`
+        //     }
+        //     // Use midpoint value
+        //     return Math.round((max - min) / 2 + min).toLocaleString()
+        // })
+
+        const labels = bins.map((bin, i) => {
             if (i === bins.length - 1) {
-                return `≥ ${Math.round(min).toLocaleString()} dams`
+                return `≥ ${Math.round(bin).toLocaleString()} dams`
             }
             // Use midpoint value
-            return Math.round((max - min) / 2 + min).toLocaleString()
+            return Math.round(bin).toLocaleString()
         })
+
         // flip the order since we are displaying from top to bottom
         colors.reverse()
         labels.reverse()
 
-        return <Legend title={title} labels={labels} colors={colors} />
+        return <Legend title={title} labels={labels} colors={colors} footnote="areas with no dams are not shown" />
     }
 
     render() {
