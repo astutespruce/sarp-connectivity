@@ -36,7 +36,7 @@ const initialState = Map({
     bounds: SARP_BOUNDS, // SARP bounds
     prevBounds: List(), // push previous bounds here
     index,
-    system: "HUC", // HUC, ECO, state. null means SARP b
+    system: "HUC", // HUC, ECO, ADMIN. null means SARP region
     selectedFeature: null, // selected unit properties {id: <>, ...}
     labels: SARPLabelPoint
 })

@@ -7,15 +7,30 @@ import { SCENARIOS } from "../map/config"
 import Sidebar from "../Sidebar"
 import { FeaturePropType } from "../../CustomPropTypes"
 
+/**
+ * If name is all uppercase coming in and is more than 3 characters, title case it instead
+ * @param {String} name
+ */
+const standardizeName = name => {
+    if (name === name.toUpperCase() && name.length > 3) {
+        return name
+            .split(" ")
+            .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+            .join(" ")
+    }
+    return name
+}
+window.std = standardizeName
+
 const FeatureDetails = ({ selectedFeature }) => {
     const { Barrier_Name: damName } = selectedFeature
 
     return (
         <div id="SidebarContent">
-            <h5 className="is-size-5">{damName || "Unknown name"}</h5>
-            {Object.entries(SCENARIOS).map(([scenario, name]) => (
+            <h5 className="is-size-5">{damName ? standardizeName(damName) : "Unknown name"}</h5>
+            {Object.entries(SCENARIOS).map(([scenario, scenarioName]) => (
                 <div className="row flex-container flex-justify-space-between" key={scenario}>
-                    <div className="field">{name} Tier</div>
+                    <div className="field">{scenarioName} Tier</div>
                     <div>{selectedFeature[scenario]}</div>
                 </div>
             ))}

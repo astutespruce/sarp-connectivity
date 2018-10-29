@@ -127,6 +127,7 @@ tippecanoe -f -z 8 -l HUC4 -o ../../tiles/HUC4.mbtiles  -T id:string HUC4.json
 tippecanoe -f -z 8 -l HUC6 -o ../../tiles/HUC6.mbtiles  -T id:string HUC6.json
 tippecanoe -f -z 10 -l HUC8 -o ../../tiles/HUC8.mbtiles  -T id:string HUC8.json
 tippecanoe -f -Z 4 -z 12 -l HUC10 -o ../../tiles/HUC10.mbtiles  -T id:string HUC10.json
+tippecanoe -f -Z 4 -z 12 -l HUC12 -o ../../tiles/HUC12.mbtiles  -T id:string HUC12.json
 tippecanoe -f -z 10 -l ECO3 -o ../../tiles/ECO3.mbtiles  -T id:string ECO3.json
 tippecanoe -f -Z 3 -z 12 -l ECO4 -o ../../tiles/ECO4.mbtiles  -T id:string ECO4.json
 ```
@@ -158,6 +159,7 @@ tile-join -f -o HUC4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary
 tile-join -f -o HUC6_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc6.csv HUC6.mbtiles
 tile-join -f -o HUC8_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc8.csv HUC8.mbtiles
 tile-join -f -o HUC10_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc10.csv HUC10.mbtiles
+tile-join -f -o HUC12_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc12.csv HUC12.mbtiles
 tile-join -f -o ECO3_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ECO3.csv ECO3.mbtiles
 tile-join -f -o ECO4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ECO4.csv ECO4.mbtiles
 ```
@@ -165,7 +167,7 @@ tile-join -f -o ECO4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary
 Merge all tilesets together
 
 ```
-tile-join -f --no-tile-size-limit -o sarp_summary.mbtiles mask.mbtiles boundary.mbtiles states_summary.mbtiles huc2_summary.mbtiles huc4_summary.mbtiles huc6_summary.mbtiles huc8_summary.mbtiles huc10_summary.mbtiles ECO3_summary.mbtiles ECO4_summary.mbtiles
+tile-join -f --no-tile-size-limit -o sarp_summary.mbtiles mask.mbtiles boundary.mbtiles states_summary.mbtiles huc2_summary.mbtiles huc4_summary.mbtiles huc6_summary.mbtiles huc8_summary.mbtiles huc10_summary.mbtiles huc12_summary.mbtiles ECO3_summary.mbtiles ECO4_summary.mbtiles
 ```
 
 ## River network

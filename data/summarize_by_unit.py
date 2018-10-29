@@ -22,7 +22,7 @@ df = pd.read_csv(
 stats = defaultdict(defaultdict)
 
 # Group by state, HUC level, ecoregion level
-for unit in ("State", "HUC2", "HUC4", "HUC6", "HUC8", "HUC10", "ECO3", "ECO4"):
+for unit in ("State", "HUC2", "HUC4", "HUC6", "HUC8", "HUC10", "HUC12", "ECO3", "ECO4"):
     print("processing {}".format(unit))
     group_cols = [unit]
     # TODO: only needed if we are extracting out subregions based on some higher order ID

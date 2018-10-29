@@ -35,4 +35,21 @@ export const equalIntervals = (values, colors) => {
     }
 }
 
-export default { mapColorsToRange, equalIntervals }
+
+/** Convert a 3 or 6 character hex color code to RGB array 
+ * @param {String} color - 3 or 6 character hex code, preceded by #.  Example #ABC or #AABBCC
+ * 
+ * Returns [r, g, b]
+*/
+export const hexToRGB = (color) => {
+    const numDigits = (color.length - 1) / 3
+    const colorArray = []
+    for (let i=1; i<color.length; i+=numDigits){
+        colorArray.push(parseInt(color.slice(i,i+numDigits), 16))
+    }
+    return colorArray
+}
+
+
+
+export default { mapColorsToRange, equalIntervals, hexToRGB }

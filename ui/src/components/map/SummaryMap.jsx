@@ -6,13 +6,14 @@ import { fromJS } from "immutable"
 import * as actions from "../../actions/summary"
 import Legend from "./Legend"
 import { equalIntervals } from "../../utils/stats"
+import { hexToRGB } from "../../utils/colors"
 import { FeaturePropType } from "../../CustomPropTypes"
 // import { LabelPointPropType } from "../../CustomPropTypes"
 // import { labelsToGeoJSON } from "../../utils/geojson"
 
 import summaryStats from "../../data/summary_stats.json"
 
-import { TILE_HOST, COUNT_COLORS, LAYER_CONFIG } from "./config"
+import { TILE_HOST, COUNT_COLORS, LAYER_CONFIG, SYSTEMS } from "./config"
 import Map from "./index"
 
 // Precalculate colors
@@ -179,8 +180,7 @@ class SummaryMap extends Component {
                 tiles: [`${TILE_HOST}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`]
             })
 
-            const systems = ["States", "HUC", "ECO"]
-            systems.forEach(s => {
+            Object.keys(SYSTEMS).forEach(s => {
                 this.addLayers(
                     LAYER_CONFIG.filter(({ group }) => group === s)
                         .slice()
@@ -262,17 +262,11 @@ class SummaryMap extends Component {
 
         const legendInfo = LEVEL_LEGEND[id]
         const { bins } = legendInfo
-        const colors = legendInfo.colors.slice()
-        // const labels = bins.map(([min, max], i) => {
-        //     if (i === 0) {
-        //         return `< ${Math.round(max).toLocaleString()} dams`
-        //     }
-        //     if (i === bins.length - 1) {
-        //         return `≥ ${Math.round(min).toLocaleString()} dams`
-        //     }
-        //     // Use midpoint value
-        //     return Math.round((max - min) / 2 + min).toLocaleString()
-        // })
+        const opacity = 0.3
+        const colors = legendInfo.colors.slice().map(c => {
+            const [r, g, b] = hexToRGB(c)
+            return `rgba(${r},${g},${b},${opacity})`
+        })
 
         const labels = bins.map((bin, i) => {
             if (i === bins.length - 1) {
@@ -297,29 +291,18 @@ class SummaryMap extends Component {
                 <Map bounds={bounds} onCreateMap={this.handleCreateMap} />
 
                 <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
-                    <h5 className="is-size-7">Summarize on: </h5>
+                    <h5 className="is-size-7">Show Tiers for: </h5>
                     <div className="buttons has-addons">
-                        <button
-                            className={`button is-small ${system === "states" ? "active" : ""}`}
-                            type="button"
-                            onClick={() => setSystem("states")}
-                        >
-                            States
-                        </button>
-                        <button
-                            className={`button is-small ${system === "HUC" ? "active" : ""}`}
-                            type="button"
-                            onClick={() => setSystem("HUC")}
-                        >
-                            Watersheds
-                        </button>
-                        <button
-                            className={`button is-small ${system === "ECO" ? "active" : ""}`}
-                            type="button"
-                            onClick={() => setSystem("ECO")}
-                        >
-                            Ecoregions
-                        </button>
+                        {Object.entries(SYSTEMS).map(([key, name]) => (
+                            <button
+                                key={key}
+                                className={`button is-small ${system === key ? "active" : ""}`}
+                                type="button"
+                                onClick={() => setSystem(key)}
+                            >
+                                {name}
+                            </button>
+                        ))}
                     </div>
                 </div>
 

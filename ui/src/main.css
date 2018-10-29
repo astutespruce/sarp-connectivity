@@ -307,10 +307,13 @@ footer a {
 .legend-patch {
     width: 20px;
     height: 1em;
-    box-shadow: 1px 1px 4px #aaa;
+    border-color: #aaa;
+    border-width: 0 1px 1px 1px;
+    border-style: solid;
 }
 .legend-patch:first-child {
     border-radius: 3px 3px 0 0;
+    border-width-top: 1px;
 }
 .legend-patch:last-child {
     border-radius: 0 0 3px 3px;

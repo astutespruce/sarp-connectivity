@@ -48,6 +48,12 @@ export const TIER_COLORS = [
 // from colorbrewer: http://colorbrewer2.org/#type=sequential&scheme=BuPu&n=5
 export const PRIORITY_TIER_COLORS = ["#edf8fb", "#b3cde3", "#8c96c6", "#8856a7", "#810f7c"].reverse()
 
+export const SYSTEMS = {
+    ADM: "State",
+    HUC: "Hydrologic unit",
+    ECO: "Ecoregion"
+}
+
 export const SCENARIOS = {
     NC: "Network Connnectivity",
     WC: "Watershed Condition",
@@ -59,7 +65,8 @@ export const LAYER_CONFIG = [
     // { id: "HUC4", group: "HUC", minzoom: 4.5, maxzoom: 5, title: "Hydrologic subregion" },
     { id: "HUC6", group: "HUC", minzoom: 4.5, maxzoom: 6, title: "Hydrologic basin" },
     // { id: "HUC8", group: "HUC", minzoom: 6, maxzoom: 7, title: "Hydrologic subbasin" },
-    { id: "HUC10", group: "HUC", minzoom: 6, maxzoom: 21, title: "Hydrologic watershed" },
+    { id: "HUC10", group: "HUC", minzoom: 6, maxzoom: 7, title: "Hydrologic watershed" },
+    { id: "HUC12", group: "HUC", minzoom: 7, maxzoom: 21, title: "Hydrologic subwatershed" },
     { id: "ECO3", group: "ECO", minzoom: 0, maxzoom: 6, title: "Level 3 Ecoregion" },
     { id: "ECO4", group: "ECO", minzoom: 6, maxzoom: 21, title: "Level 4 Ecoregion" },
     { id: "State", group: "ADM", minzoom: 0, maxzoom: 21, title: "State" }

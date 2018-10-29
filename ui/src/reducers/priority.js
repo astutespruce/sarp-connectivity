@@ -6,7 +6,7 @@ import { SARP_BOUNDS } from "../components/map/config"
 const initialState = Map({
     bounds: SARP_BOUNDS, // SARP bounds
     prevBounds: List(), // push previous bounds here
-    scenario: "NCWC" // NC, WC, NCWC, or *_NC, *_WC, *_NCWC
+    scenario: "NC" // NC, WC, NCWC, or *_NC, *_WC, *_NCWC
 })
 
 export const reducer = (state = initialState, { type, payload = {} }) => {
