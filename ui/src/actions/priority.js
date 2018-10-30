@@ -10,6 +10,18 @@ export const setScenario = scenario => ({
     payload: { scenario }
 })
 
+export const PRIORITY_SET_LAYER = "PRIORITY_SET_LAYER"
+export const setLayer = id => ({
+    type: PRIORITY_SET_LAYER,
+    payload: { id }
+})
+
+export const PRIORITY_ADD_SUMMARY_UNIT = "PRIORITY_ADD_SUMMARY_UNIT"
+export const selectUnit = id => ({
+    type: PRIORITY_ADD_SUMMARY_UNIT,
+    payload: { id }
+})
+
 export const PRIORITY_SELECT_FEATURE = "PRIORITY_SELECT_FEATURE"
 export const selectFeature = selectedFeature => ({
     type: PRIORITY_SELECT_FEATURE,

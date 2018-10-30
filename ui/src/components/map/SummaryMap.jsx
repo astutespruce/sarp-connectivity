@@ -104,7 +104,6 @@ class SummaryMap extends Component {
                 outlineColor = "#008040"
             }
 
-            // TODO: merge objects using immutable instead
             const config = fromJS({
                 source: "sarp",
                 "source-layer": id,

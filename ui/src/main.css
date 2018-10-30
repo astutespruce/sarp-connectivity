@@ -92,6 +92,10 @@ button:focus {
     min-height: 100vh;
 }
 
+.cursor-pointer {
+    cursor: pointer;
+}
+
 header {
     background: #073763;
     padding: 6px 0;
@@ -346,4 +350,10 @@ footer a {
 }
 #SystemChooser .buttons {
     margin-left: 6px;
+}
+
+#SummaryUnitChooser a + a {
+    margin-left: 0.5em;
+    padding-left: 0.5em;
+    border-left: 1px solid #aaa;
 }
