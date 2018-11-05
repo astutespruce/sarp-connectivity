@@ -3,11 +3,15 @@ import PropTypes from "prop-types"
 
 import { LAYER_CONFIG } from "../../map/config"
 
-const SummaryLayerChooser = ({ onSelect }) => {
+const SummaryLayerChooser = ({ onSelect, onBack }) => {
     const handleClick = id => () => onSelect(id)
 
     return (
         <div id="SidebarContent">
+            <a href="#" onClick={() => onBack()}>
+                <span className="fa fa-reply" />
+                &nbsp; back to Southeast region
+            </a>
             <h5 className="is-size-5">View priorities at another level</h5>
             <div id="SummaryUnitChooser">
                 <h6
@@ -53,7 +57,8 @@ const SummaryLayerChooser = ({ onSelect }) => {
 }
 
 SummaryLayerChooser.propTypes = {
-    onSelect: PropTypes.func.isRequired
+    onSelect: PropTypes.func.isRequired,
+    onBack: PropTypes.func.isRequired
 }
 
 export default SummaryLayerChooser

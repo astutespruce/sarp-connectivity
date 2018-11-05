@@ -2,13 +2,13 @@ import React from "react"
 import PropTypes from "prop-types"
 import ImmutablePropTypes from "react-immutable-proptypes"
 
-const SummaryUnitChooser = ({ summaryUnits, onDeselectUnit, onBack }) => {
+const SummaryUnitChooser = ({ summaryUnits, onDeselectUnit, onBack, onSubmit }) => {
     window.units = summaryUnits
     return (
         <div id="SidebarContent">
             <a href="#" onClick={() => onBack()}>
                 <span className="fa fa-reply" />
-                &nbsp; back to Southeast region
+                &nbsp; choose a different summary level
             </a>
             <h5 className="is-size-5">Select area of interest</h5>
             <p className="is-size-7 has-text-grey">
@@ -34,6 +34,11 @@ const SummaryUnitChooser = ({ summaryUnits, onDeselectUnit, onBack }) => {
                             </li>
                         ))}
                     </ul>
+                    <div>
+                        <button type="button" className="button" onClick={onSubmit}>
+                            Prioritize Barriers
+                        </button>
+                    </div>
                 </React.Fragment>
             )}
         </div>
@@ -43,7 +48,8 @@ const SummaryUnitChooser = ({ summaryUnits, onDeselectUnit, onBack }) => {
 SummaryUnitChooser.propTypes = {
     summaryUnits: ImmutablePropTypes.set.isRequired,
     onDeselectUnit: PropTypes.func.isRequired,
-    onBack: PropTypes.func.isRequired
+    onBack: PropTypes.func.isRequired,
+    onSubmit: PropTypes.func.isRequired
 }
 
 export default SummaryUnitChooser

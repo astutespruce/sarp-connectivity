@@ -5,11 +5,13 @@ import {
     PRIORITY_SET_SCENARIO,
     PRIORITY_SELECT_FEATURE,
     PRIORITY_SET_LAYER,
-    PRIORITY_ADD_SUMMARY_UNIT
+    PRIORITY_ADD_SUMMARY_UNIT,
+    PRIORITY_SET_MODE
 } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
 const initialState = Map({
+    mode: "default", // mode or step in selection process: "default" (initial), "select", "prioritize"
     bounds: SARP_BOUNDS, // SARP bounds
     prevBounds: List(), // push previous bounds here
     scenario: "NC", // NC, WC, NCWC, or *_NC, *_WC, *_NCWC
@@ -42,6 +44,11 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             const summaryUnits = state.get("summaryUnits")
             const updated = summaryUnits.has(id) ? summaryUnits.delete(id) : summaryUnits.add(id)
             return state.set("summaryUnits", updated)
+        }
+        case PRIORITY_SET_MODE: {
+            const { mode } = payload
+            // TODO: clear out units depending on mode
+            return state.set("mode", mode)
         }
         default: {
             return state

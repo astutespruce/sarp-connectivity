@@ -27,3 +27,9 @@ export const selectFeature = selectedFeature => ({
     type: PRIORITY_SELECT_FEATURE,
     payload: { selectedFeature }
 })
+
+export const PRIORITY_SET_MODE = "PRIORITY_SET_MODE"
+export const setMode = mode => ({
+    type: PRIORITY_SET_MODE,
+    payload: { mode }
+})
