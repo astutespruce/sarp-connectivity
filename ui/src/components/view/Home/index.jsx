@@ -4,6 +4,11 @@ import { Link } from "react-router-dom"
 
 import Section from "./Section"
 
+import { ReactComponent as HighSinuosityIcon } from "../../../img/sinuosity_high.svg"
+import { ReactComponent as LowSinuosityIcon } from "../../../img/sinuosity_low.svg"
+import { ReactComponent as HighSizeClassesIcon } from "../../../img/size_classes_high.svg"
+import { ReactComponent as LowSizeClassesIcon } from "../../../img/size_classes_low.svg"
+
 import SARPLogo from "../../../img/sarp_logo.png"
 import CBILogo from "../../../img/cbi_logo.png"
 import FishImage from "../../../img/iStock-181890680.jpg"
@@ -120,6 +125,86 @@ const Home = () => (
                 explain absolute miles gained, sinuosity, etc] [brief description of status / completeness of inventory
                 to help people understand that inventory is not complete, and is particularly spotty for some states /
                 areas]
+            </p>
+        </Section>
+        <Section title="How are aquatic barriers prioritized for removal?">
+            <p>
+                In order to prioritize dams for removal, first they need to be evaluated according to different
+                criteria:
+            </p>
+            <div>
+                <section>
+                    <h3 className="is-size-3 flex-container flex-align-center">
+                        <HighSinuosityIcon />
+                        <div>Network sinuosity</div>
+                    </h3>
+                    <p>
+                        Network sinuosity is a measure of how much the path of the river or stream deviates from a
+                        straight line. First, the amount of curvature of each upstream segment from a barrier is
+                        calculated. These measures are then averaged together based on the length of each segment, so
+                        that longer segments contribute more to the overall measure for the upstream network.
+                        <br />
+                        <br />
+                        In general, rivers and streams that are more sinuous generally indicate those that have lower
+                        alteration from human disturbance such as channelization and diking, whereas rivers that have
+                        been extensively tend to be less sinous.
+                    </p>
+                    <div className="prioritization-details flex-container flex-justify-space-between">
+                        <div>
+                            <HighSinuosityIcon />
+                            <h4 className="is-size-4 text-align-center">High Sinuosity</h4>
+                            <p>
+                                Rivers and streams with high sinuosity are likely less altered by artificial
+                                channelization, and may have a wider variety of in-stream habitats...
+                            </p>
+                        </div>
+                        <div>
+                            <LowSinuosityIcon />
+                            <h4 className="is-size-4 text-align-center">Low Sinuosity</h4>
+                            <p>
+                                Rivers and streams with lower sinuosity may be more altered by artificial
+                                channelization...
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 className="is-size-3 flex-container flex-align-center">
+                        <HighSizeClassesIcon />
+                        <div>Number of size classes gained</div>
+                    </h3>
+                    <p>
+                        A barrier that has tributaries upstream with different sizes, such as small streams and rivers,
+                        would contribute a higher number of size classes to the network if it is removed. In contrast, a
+                        barrier that has another barrier immediately upstream, with no additional tributaries in
+                        between, does not contribute any additional size classes to the network.
+                        <br />
+                        <br />
+                        In general, a barrier that has a more complex upstream network will provide bigger gains for
+                        restoring aquatic connectivity.
+                    </p>
+                    <div className="prioritization-details flex-container flex-justify-space-between">
+                        <div>
+                            <HighSizeClassesIcon />
+                            <h4 className="is-size-4 text-align-center">More size classes gained</h4>
+                            <p>Dams that have several size classes upstream are ...</p>
+                        </div>
+                        <div>
+                            <LowSizeClassesIcon />
+                            <h4 className="is-size-4 text-align-center">No size classes gained</h4>
+                            <p>Dams that do not contribute any additional size classes are...</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section />
+            </div>
+            <p>
+                <br />
+                <br />
+                <br />
+                Not all dams have this information, and therefore cannot be prioritized at this time.
             </p>
         </Section>
         <Section title="Example use case: regional planning">

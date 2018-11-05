@@ -222,6 +222,23 @@ footer a {
     font-size: 18px;
 }
 
+#Home .hero-body section + section {
+    margin-top: 5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ddd;
+}
+#Home .hero-body section h3 {
+    margin: 2rem 0 1rem 0;
+}
+#Home .hero-body section h3 svg {
+    margin-right: 0.5em;
+    width: 2em;
+    height: 2em;
+}
+#Home .hero-body section p {
+    padding-left: 2rem;
+}
+
 #HomeHeader h1 {
     font-size: 3rem;
 }
@@ -356,4 +373,34 @@ footer a {
     margin-left: 0.5em;
     padding-left: 0.5em;
     border-left: 1px solid #aaa;
+}
+
+.prioritization-details {
+    margin-top: 2em;
+    padding-left: 2rem;
+}
+
+.prioritization-details > div {
+    width: 400px;
+    background: #eee;
+    padding: 1em;
+    border-radius: 6px;
+}
+.prioritization-details h4 {
+    margin-bottom: 0.5em;
+    padding-bottom: 0.5em;
+    border-bottom: 4px solid #fff;
+    font-weight: 700;
+    color: #666;
+}
+
+.prioritization-details svg {
+    width: 5em;
+    height: 5em;
+    margin: 0 auto;
+    display: block;
+}
+
+.prioritization-details p {
+    padding-left: 0 !important;
 }
