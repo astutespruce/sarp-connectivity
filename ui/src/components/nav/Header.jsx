@@ -26,6 +26,9 @@ const Header = () => (
                 <span className="fa fa-search-location" />
                 <span>Prioritize</span>
             </NavLink>
+            <NavLink to="/heatmap" activeClassName="active" className="has-text-white nav-link">
+                <span>TEST: Heatmap</span>
+            </NavLink>
         </div>
     </header>
 )

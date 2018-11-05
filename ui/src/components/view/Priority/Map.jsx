@@ -200,7 +200,7 @@ class PriorityMap extends Component {
                     paint: {
                         "line-opacity": 1,
                         "line-width": 0.5,
-                        "line-color": "#AAA"
+                        "line-color": "#4A0025"
                     }
                 })
             )
@@ -218,9 +218,6 @@ class PriorityMap extends Component {
                     paint: {
                         "fill-color": "#F00",
                         "fill-opacity": 0.3
-                        // "line-opacity": 1,
-                        // "line-width": 4,
-                        // "line-color": "#333"
                     }
                 })
             )
@@ -309,7 +306,7 @@ class PriorityMap extends Component {
             <React.Fragment>
                 <Map bounds={bounds} onCreateMap={this.handleCreateMap} />
 
-                <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
+                {/* <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
                     <h5 className="is-size-7">Show Tiers for: </h5>
                     <div className="buttons has-addons">
                         {Object.entries(SCENARIOS).map(([key, name]) => (
@@ -323,7 +320,7 @@ class PriorityMap extends Component {
                             </button>
                         ))}
                     </div>
-                </div>
+                </div> */}
             </React.Fragment>
         )
     }

@@ -97,13 +97,6 @@ class SummaryMap extends Component {
                 renderColors.push(colors[i])
             })
 
-            let outlineColor = "#AAA"
-            if (id.startsWith("HUC")) {
-                outlineColor = "#3F6DD7"
-            } else if (id.startsWith("ECO")) {
-                outlineColor = "#008040"
-            }
-
             const config = fromJS({
                 source: "sarp",
                 "source-layer": id,
@@ -132,7 +125,7 @@ class SummaryMap extends Component {
                     paint: {
                         "line-opacity": 1,
                         "line-width": 0.5,
-                        "line-color": outlineColor
+                        "line-color": '#AAA'
                     }
                 })
             )

@@ -16,13 +16,15 @@ const SummaryUnitDetails = ({ selectedFeature, totalDams, meanConnectedMiles, su
     const percentDams = (100 * dams) / totalDams
     const milesCompare = connectedmiles - meanConnectedMiles
 
-    const title = layerId === "states" ? id : `${layerTitle}: ${name || id}`
+    // const title = layerId === "states" ? id : `${layerTitle}: ${name || id}`
+    const title = name || id
 
     return (
         <React.Fragment>
             <div id="SidebarHeader" className="flex-container flex-justify-center flex-align-start">
                 <div className="flex-grow">
-                    <h3 className="title is-5">{title}</h3>
+                    <h3 className="title is-5 no-margin">{title}</h3>
+                    {layerId !== "State" && <h5 className="is-size-7 is-text-gray">{layerTitle}</h5>}
                 </div>
                 <div className="icon button" onClick={onClose}>
                     <span className="fa fa-times-circle is-size-4" />

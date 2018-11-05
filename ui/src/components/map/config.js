@@ -61,7 +61,7 @@ export const SCENARIOS = {
 }
 
 export const LAYER_CONFIG = [
-    { id: "HUC2", group: "HUC", minzoom: 0, maxzoom: 4.5, title: "Region" },
+    { id: "HUC2", group: "HUC", minzoom: 0, maxzoom: 4.5, title: "Hydrologic Region" },
     // { id: "HUC4", group: "HUC", minzoom: 4.5, maxzoom: 5, title: "Hydrologic subregion" },
     { id: "HUC6", group: "HUC", minzoom: 4.5, maxzoom: 6, title: "Basin" },
     // { id: "HUC8", group: "HUC", minzoom: 6, maxzoom: 7, title: "Hydrologic subbasin" },

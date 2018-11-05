@@ -10,6 +10,9 @@ import Summary from "./components/view/Summary"
 import DamDetails from "./components/view/DamDetails"
 import NotFound from "./components/view/NotFound"
 
+// testing
+import Heatmap from './components/view/Heatmap'
+
 const App = () => (
     <div className="flex-container-column full-height fill-viewport">
         <Header />
@@ -21,8 +24,8 @@ const App = () => (
                 <Route exact path="/priority" component={Priority} />
                 <Route exact path="/dams/:id" component={DamDetails} />
 
-                {/* <Route path="/:anything" render={() => this.renderMapView()} /> */}
-
+                <Route exact path="/heatmap" component={Heatmap} />
+                
                 {/* Fall-through route */}
                 <Route component={NotFound} />
             </Switch>
