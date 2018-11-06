@@ -241,20 +241,27 @@ const Home = () => (
                         &nbsp; (SARP) is a regional collaboration of natural resource and science agencies, conservation
                         organizations and private interests developed to strengthen the management and conservation of
                         aquatic resources in the southeastern United States.
-                        <br />
-                        <br />
-                        Nationally, SARP works to implement the goals of the National Fish Habitat Action Plan in some
-                        of the United States most ecologically and economically significant watersheds. Regionally, SARP
-                        works with partners in 14 states in the Southeast to conduct science-based watershed and habitat
-                        assessments that collectively identify regional conservation priorities. SARP works with
-                        communities to facilitate locally-driven conservation projects that bring together partners and
-                        funding to help meet regional priorities.
                     </p>
                 </div>
                 <div className="column">
                     <img src={SARPLogo} style={{ width: "100%" }} alt="SARP logo" />
                 </div>
             </div>
+            <p>
+                Nationally, SARP works to implement the goals of the National Fish Habitat Action Plan in some of the
+                United States most ecologically and economically significant watersheds. Regionally, SARP works with
+                partners in 14 states in the Southeast to conduct science-based watershed and habitat assessments that
+                collectively identify regional conservation priorities. SARP works with communities to facilitate
+                locally-driven conservation projects that bring together partners and funding to help meet regional
+                priorities.
+                <br />
+                <br />
+                SARP and partners have been working to build a community of practice surrounding barrier removal through
+                the development of state-based Aquatic Connectivity Teams (ACTs). These teams create a forum that allows
+                resource managers from all sectors to work together and share resources, disseminate information, and
+                examine regulatory streamlining processes as well as project management tips and techniques. These teams
+                are active in Arkansas, Florida, Georgia, North Carolina, and Tennessee.
+            </p>
         </Section>
 
         <Section id="HomeFooter">
