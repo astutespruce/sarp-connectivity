@@ -61,13 +61,71 @@ export const SCENARIOS = {
 }
 
 export const LAYER_CONFIG = [
-    { id: "HUC2", group: "HUC", minzoom: 0, maxzoom: 4.5, title: "Region" },
-    // { id: "HUC4", group: "HUC", minzoom: 4.5, maxzoom: 5, title: "Hydrologic subregion" },
-    { id: "HUC6", group: "HUC", minzoom: 4.5, maxzoom: 6, title: "Basin" },
-    // { id: "HUC8", group: "HUC", minzoom: 6, maxzoom: 7, title: "Hydrologic subbasin" },
-    { id: "HUC10", group: "HUC", minzoom: 6, maxzoom: 7, title: "Watershed" },
-    { id: "HUC12", group: "HUC", minzoom: 7, maxzoom: 21, title: "Subwatershed" },
+    // { id: "HUC2", group: "HUC", minzoom: 0, maxzoom: 4.5, title: "Region" },
+    // { id: "HUC4", group: "HUC", minzoom: 0, maxzoom: 5, title: "Hydrologic subregion" },
+    {
+        id: "HUC6",
+        group: "HUC",
+        minzoom: 0,
+        maxzoom: 7,
+        title: "Basin",
+        fill: {
+            paint: {
+                "fill-opacity": {
+                    base: 0.25,
+                    stops: [[2, 0.4], [4, 0.25], [6, 0.25], [7, 0]]
+                }
+            }
+        },
+        outline: {
+            paint: {
+                "line-width": {
+                    base: 0.1,
+                    stops: [[4, 0.1], [5, 0.25], [6, 0.5], [6.5, 1.5], [8, 2], [9, 4], [12, 6]]
+                }
+            }
+        }
+    },
+    {
+        id: "HUC8",
+        group: "HUC",
+        minzoom: 6,
+        maxzoom: 9.5,
+        title: "Hydrologic subbasin",
+        fill: {
+            paint: {
+                "fill-opacity": {
+                    base: 0.25,
+                    stops: [[6, 0], [7, 0.25], [8.5, 0.25], [9.5, 0]]
+                }
+            }
+        },
+        outline: {
+            paint: {
+                "line-width": {
+                    base: 0.1,
+                    stops: [[6, 0.1], [8, 0.5], [8, 1.5], [9, 2.5]]
+                }
+            }
+        }
+    },
+    // { id: "HUC10", group: "HUC", minzoom: 6, maxzoom: 7, title: "Watershed" },
+    {
+        id: "HUC12",
+        group: "HUC",
+        minzoom: 8.5,
+        maxzoom: 24,
+        title: "Subwatershed",
+        fill: {
+            paint: {
+                "fill-opacity": {
+                    base: 0.25,
+                    stops: [[8.5, 0], [9.5, 0.25], [11, 0.25], [12, 0.15]]
+                }
+            }
+        }
+    },
     { id: "ECO3", group: "ECO", minzoom: 0, maxzoom: 6, title: "Level 3 Ecoregion" },
-    { id: "ECO4", group: "ECO", minzoom: 6, maxzoom: 21, title: "Level 4 Ecoregion" },
-    { id: "State", group: "ADM", minzoom: 0, maxzoom: 21, title: "State" }
+    { id: "ECO4", group: "ECO", minzoom: 6, maxzoom: 24, title: "Level 4 Ecoregion" },
+    { id: "State", group: "ADM", minzoom: 0, maxzoom: 24, title: "State" }
 ]

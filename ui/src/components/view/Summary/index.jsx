@@ -2,15 +2,15 @@ import React from "react"
 import PropTypes from "prop-types"
 import { connect } from "react-redux"
 
-import * as actions from "../../actions/summary"
-import { FeaturePropType } from "../../CustomPropTypes"
-import { formatNumber } from "../../utils/format"
+import * as actions from "../../../actions/summary"
+import { FeaturePropType } from "../../../CustomPropTypes"
+import { formatNumber } from "../../../utils/format"
 
-import SummaryMap from "../map/SummaryMap"
-import Sidebar from "../Sidebar"
-import SummaryUnitDetails from "../SummaryUnitDetails"
+import SummaryMap from "./Map"
+import Sidebar from "../../Sidebar"
+import SummaryUnitDetails from "../../SummaryUnitDetails"
 
-import summaryStats from "../../data/summary_stats.json"
+import summaryStats from "../../../data/summary_stats.json"
 
 const Summary = ({ selectedFeature, dams, connectedmiles, selectFeature }) => (
     <React.Fragment>

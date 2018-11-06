@@ -3,18 +3,18 @@ import PropTypes from "prop-types"
 import ImmutablePropTypes from "react-immutable-proptypes"
 import { connect } from "react-redux"
 import { fromJS } from "immutable"
-import * as actions from "../../actions/summary"
-import Legend from "./Legend"
-import { equalIntervals } from "../../utils/stats"
-import { hexToRGB } from "../../utils/colors"
-import { FeaturePropType } from "../../CustomPropTypes"
+import * as actions from "../../../actions/summary"
+import Legend from "../../map/Legend"
+// import { equalIntervals } from "../../../utils/stats"
+import { hexToRGB } from "../../../utils/colors"
+import { FeaturePropType } from "../../../CustomPropTypes"
 // import { LabelPointPropType } from "../../CustomPropTypes"
 // import { labelsToGeoJSON } from "../../utils/geojson"
 
-import summaryStats from "../../data/summary_stats.json"
+import summaryStats from "../../../data/summary_stats.json"
 
-import { TILE_HOST, COUNT_COLORS, LAYER_CONFIG, SYSTEMS } from "./config"
-import Map from "./index"
+import { TILE_HOST, COUNT_COLORS, LAYER_CONFIG, SYSTEMS } from "../../map/config"
+import Map from "../../map/index"
 
 // Precalculate colors
 // TODO: make this vary by metric
@@ -60,8 +60,18 @@ class SummaryMap extends Component {
         }
 
         if (selectedFeature !== prevFeature) {
-            visibleLayers.forEach(({ id }) =>
-                this.setHighlight(id, selectedFeature === null ? null : selectedFeature.get("id")))
+            const featureId = selectedFeature === null ? null : selectedFeature.get("id")
+            visibleLayers.forEach(({ id }) => {
+                let featureIdForLyr = featureId
+                console.log("foo", featureId, id)
+
+                // if incoming featureId is for a HUC12, also highlight its containing HUC8
+                if (featureId && id === "HUC8" && featureId.length === 12) {
+                    featureIdForLyr = featureId.slice(0, 8)
+                }
+
+                this.setHighlight(id, featureIdForLyr)
+            })
         }
 
         // TODO: compare before updating
@@ -85,7 +95,9 @@ class SummaryMap extends Component {
         const { map } = this
 
         layers.forEach(lyr => {
-            const { id, minzoom, maxzoom } = lyr
+            this.layers.push(lyr)
+
+            const { id, minzoom, maxzoom, fill = {}, outline = {} } = lyr
             const { bins, colors } = LEVEL_LEGEND[id]
             const renderColors = []
             // bins.forEach(([min, max], i) => {
@@ -102,44 +114,56 @@ class SummaryMap extends Component {
                 "source-layer": id,
                 type: "fill",
                 minzoom: minzoom || 0,
-                maxzoom: maxzoom || 21,
+                maxzoom: maxzoom || 24,
                 filter: [">=", "dams", 0],
                 layout: {
                     visibility: visible ? "visible" : "none"
                 }
             })
-            const fillConfig = config.merge(
-                fromJS({
-                    id: `${id}-fill`,
-                    type: "fill",
-                    paint: {
-                        "fill-opacity": 0.3,
-                        "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
-                    }
-                })
-            )
-            const outlineConfig = config.merge(
-                fromJS({
-                    id: `${id}-outline`,
-                    type: "line",
-                    paint: {
-                        "line-opacity": 1,
-                        "line-width": 0.5,
-                        "line-color": '#AAA'
-                    }
-                })
-            )
+            const fillConfig = config
+                .merge(
+                    fromJS({
+                        id: `${id}-fill`,
+                        type: "fill",
+                        paint: {
+                            "fill-opacity": 0.25,
+                            // "fill-opacity": {
+                            //     base: 0.5,
+                            //     stops: [[2, 0.4], [3, 0.3], [6, 0.25], [8, 0.2], [12, 0.1]]
+                            // },
+                            "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
+                        }
+                    })
+                )
+                .mergeDeep(fromJS(fill))
+
+            // outline should always be visible for higher level units (e.g., HUC8, )
+            // merge in specific style overrides for the layer
+            const outlineConfig = config
+                .mergeDeep(
+                    fromJS({
+                        id: `${id}-outline`,
+                        type: "line",
+                        maxzoom: 24,
+                        layout: {
+                            "line-cap": "round",
+                            "line-join": "round"
+                        },
+                        paint: {
+                            "line-opacity": 1,
+                            "line-width": 0.5,
+                            "line-color": "#CC99A8" // last color of COUNT_COLORS, then lighted several shades
+                        }
+                    })
+                )
+                .mergeDeep(fromJS(outline))
 
             map.addLayer(fillConfig.toJS())
             map.addLayer(outlineConfig.toJS())
-
-            this.layers.push(lyr)
         })
     }
 
-    addHighlightLayer = (layer, visible = true) => {
-        const { id } = layer
-
+    addHighlightLayer = ({ id }, visible = true) => {
         this.map.addLayer({
             id: `${id}-highlight`,
             source: "sarp",
@@ -166,6 +190,7 @@ class SummaryMap extends Component {
         const { system } = this.props
 
         map.on("load", () => {
+            map.setMaxZoom(12)
             map.addSource("sarp", {
                 type: "vector",
                 maxzoom: 8,
