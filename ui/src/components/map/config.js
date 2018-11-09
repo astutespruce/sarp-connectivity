@@ -66,10 +66,10 @@ export const LAYER_CONFIG = [
     {
         id: "HUC6",
         group: "HUC",
-        minzoom: 0,
-        maxzoom: 7,
         title: "Basin",
         fill: {
+            minzoom: 0,
+            maxzoom: 7,
             paint: {
                 "fill-opacity": {
                     base: 0.25,
@@ -78,6 +78,8 @@ export const LAYER_CONFIG = [
             }
         },
         outline: {
+            minzoom: 0,
+            maxzoom: 9.5,
             paint: {
                 "line-width": {
                     base: 0.1,
@@ -93,6 +95,8 @@ export const LAYER_CONFIG = [
         maxzoom: 9.5,
         title: "Hydrologic subbasin",
         fill: {
+            minzoom: 6,
+            maxzoom: 9.5,
             paint: {
                 "fill-opacity": {
                     base: 0.25,
@@ -101,6 +105,8 @@ export const LAYER_CONFIG = [
             }
         },
         outline: {
+            minzoom: 6,
+            maxzoom: 24,
             paint: {
                 "line-width": {
                     base: 0.1,
@@ -117,10 +123,22 @@ export const LAYER_CONFIG = [
         maxzoom: 24,
         title: "Subwatershed",
         fill: {
+            minzoom: 8.5,
+            maxzoom: 24,
             paint: {
                 "fill-opacity": {
                     base: 0.25,
                     stops: [[8.5, 0], [9.5, 0.25], [11, 0.25], [12, 0.15]]
+                }
+            }
+        },
+        outline: {
+            minzoom: 8.5,
+            maxzoom: 24,
+            paint: {
+                "line-width": {
+                    base: 0.1,
+                    stops: [[9, 0.1], [9.5, 0.5]]
                 }
             }
         }

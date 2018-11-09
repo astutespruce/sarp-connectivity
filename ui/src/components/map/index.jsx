@@ -17,7 +17,7 @@ class Map extends React.Component {
     }
 
     componentDidMount() {
-        const { bounds, onCreateMap } = this.props
+        const { baseStyle, bounds, onCreateMap } = this.props
 
         const { mapNode } = this
         let center = [0, 0]
@@ -35,13 +35,17 @@ class Map extends React.Component {
 
         const map = new mapboxgl.Map({
             container: mapNode,
-            style: "mapbox://styles/mapbox/light-v9",
+            style: `mapbox://styles/mapbox/${baseStyle}`,
             center,
             zoom
         })
 
         this.map = map
         window.map = map
+        // a few shortcuts for use on console
+        map.p = map.setPaintProperty
+        map.f = map.setFilter
+        map.l = map.setLayoutProperty
 
         map.addControl(new mapboxgl.NavigationControl(), "top-right")
 
@@ -80,11 +84,13 @@ class Map extends React.Component {
 }
 
 Map.propTypes = {
+    baseStyle: PropTypes.string,
     bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
     onCreateMap: PropTypes.func // called with map object when created
 }
 
 Map.defaultProps = {
+    baseStyle: "light-v9",
     bounds: null,
     onCreateMap: () => {}
 }

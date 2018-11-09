@@ -62,13 +62,13 @@ class SummaryMap extends Component {
         if (selectedFeature !== prevFeature) {
             const featureId = selectedFeature === null ? null : selectedFeature.get("id")
             visibleLayers.forEach(({ id }) => {
-                let featureIdForLyr = featureId
+                const featureIdForLyr = featureId
                 console.log("foo", featureId, id)
 
                 // if incoming featureId is for a HUC12, also highlight its containing HUC8
-                if (featureId && id === "HUC8" && featureId.length === 12) {
-                    featureIdForLyr = featureId.slice(0, 8)
-                }
+                // if (featureId && id === "HUC8" && featureId.length === 12) {
+                //     featureIdForLyr = featureId.slice(0, 8)
+                // }
 
                 this.setHighlight(id, featureIdForLyr)
             })
@@ -85,10 +85,12 @@ class SummaryMap extends Component {
         map.setLayoutProperty(`${id}-fill`, "visibility", visibility)
         map.setLayoutProperty(`${id}-outline`, "visibility", visibility)
         map.setLayoutProperty(`${id}-highlight`, "visibility", visibility)
+        map.setLayoutProperty(`${id}-highlight-fill`, "visibility", visibility)
     }
 
     setHighlight = (id, featureId) => {
         this.map.setFilter(`${id}-highlight`, ["==", "id", featureId === null ? Infinity : featureId])
+        // this.map.setFilter(`${id}-highlight-fill`, ["==", "id", featureId === null ? Infinity : featureId])
     }
 
     addLayers = (layers, visible = true) => {
@@ -112,7 +114,6 @@ class SummaryMap extends Component {
             const config = fromJS({
                 source: "sarp",
                 "source-layer": id,
-                type: "fill",
                 minzoom: minzoom || 0,
                 maxzoom: maxzoom || 24,
                 filter: [">=", "dams", 0],
@@ -121,16 +122,12 @@ class SummaryMap extends Component {
                 }
             })
             const fillConfig = config
-                .merge(
+                .mergeDeep(
                     fromJS({
                         id: `${id}-fill`,
                         type: "fill",
                         paint: {
                             "fill-opacity": 0.25,
-                            // "fill-opacity": {
-                            //     base: 0.5,
-                            //     stops: [[2, 0.4], [3, 0.3], [6, 0.25], [8, 0.2], [12, 0.1]]
-                            // },
                             "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
                         }
                     })
@@ -183,6 +180,21 @@ class SummaryMap extends Component {
             },
             filter: ["==", "id", Infinity]
         })
+
+        // this.map.addLayer({
+        //     id: `${id}-highlight-fill`,
+        //     source: "sarp",
+        //     "source-layer": id,
+        //     type: "fill",
+        //     minzoom: 0,
+        //     maxzoom: 21,
+        //     paint: {
+        //         "fill-opacity": 0.25,
+        //         // "line-width": 4,
+        //         "fill-color": "#333"
+        //     },
+        //     filter: ["==", "id", Infinity]
+        // })
     }
 
     handleCreateMap = map => {
@@ -199,46 +211,13 @@ class SummaryMap extends Component {
 
             Object.keys(SYSTEMS).forEach(s => {
                 this.addLayers(
-                    LAYER_CONFIG.filter(({ group }) => group === s)
-                        .slice()
-                        .reverse(),
+                    LAYER_CONFIG.filter(({ group }) => group === s).slice(),
+                    // .reverse(),
                     s === system
                 )
             })
 
             this.layers.forEach(lyr => this.addHighlightLayer(lyr, lyr.group === system))
-
-            // TODO: add heatmap?
-            // map.addSource("dams", {
-            //     type: "vector",
-            //     tiles: [`${TILE_HOST}/services/dams/tiles/{z}/{x}/{y}.pbf`],
-            //     maxzoom: 14
-            // })
-            // map.addLayer({
-            //     id: "dams_heatmap",
-            //     source: "dams",
-            //     "source-layer": "dams_heatmap",
-            //     type: "heatmap",
-            //     paint: {
-            //         "heatmap-intensity": 1,
-            //         "heatmap-color": [
-            //             "interpolate",
-            //             ["linear"],
-            //             ["heatmap-density"],
-            //             0,
-            //             "rgba(255,0, 0,0)",
-            //             0.1,
-            //             "rgba(255,0,0, 0.5)",
-            //             1,
-            //             "rgb(178,24,43)"
-            //         ],
-            //         // "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 6, 2, 9, 20],
-            //         "heatmap-radius": 2,
-            //         "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 1, 8, 0]
-            //     }
-            // })
-
-            // this.addLabelLayer(labels.toJS())
 
             this.setState({ zoom: this.map.getZoom() })
         })
@@ -247,7 +226,8 @@ class SummaryMap extends Component {
         map.on("click", e => {
             const { selectFeature } = this.props
 
-            const layers = this.getVisibleLayers().map(({ id }) => `${id}-fill`)
+            // const layers = this.getVisibleLayers().map(({ id }) => `${id}-fill`)
+            const layers = this.layers.map(({ id }) => `${id}-fill`)
             const features = map.queryRenderedFeatures(e.point, { layers })
             if (features.length === 0) return
             console.log("click features", features)
