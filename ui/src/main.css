@@ -408,3 +408,16 @@ footer a {
 .prioritization-details p {
     padding-left: 0 !important;
 }
+
+#SummaryUnitList li {
+    line-height: 1.2;
+}
+#SummaryUnitList li .fa-trash {
+    color: #aaa;
+}
+#SummaryUnitList li .fa-trash:hover {
+    color: inherit;
+}
+#SummaryUnitList li + li {
+    margin-top: 1em;
+}

@@ -27,6 +27,7 @@ class PriorityMap extends Component {
         this.map = null
         this.layers = []
         this.layerIndex = {}
+        this.hoverId = null
     }
 
     componentDidUpdate(prevProps) {
@@ -77,12 +78,16 @@ class PriorityMap extends Component {
                 this.setLayerVisibility(prevLayer, false)
                 // clear out previous highlight
                 this.map.setFilter(`${prevLayer}-highlight`, ["==", "id", Infinity])
+                // map.off("mousemove", `${layer}-fill`, this.handleFeatureHover)
+                // map.off("mouseleave", `${layer}-fill`, this.handleFeatureUnhover)
             }
 
             if (layer !== null) {
                 // clear out previous highlight
                 this.map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
                 this.setLayerVisibility(layer, true)
+                // map.on("mousemove", `${layer}-fill`, this.handleFeatureHover)
+                // map.on("mouseleave", `${layer}-fill`, this.handleFeatureUnhover)
             }
         }
 
@@ -93,7 +98,7 @@ class PriorityMap extends Component {
                 if (!summaryUnits.size) {
                     this.map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
                 } else {
-                    this.map.setFilter(`${layer}-highlight`, ["in", "id", ...summaryUnits.toJS()])
+                    this.map.setFilter(`${layer}-highlight`, ["in", "id", ...summaryUnits.toJS().map(({ id }) => id)])
                 }
             }
         }
@@ -191,6 +196,27 @@ class PriorityMap extends Component {
         })
     }
 
+    // TODO: make this work based on featureIDs set via tippecanoe.  Requires new version of tippecanoe and int IDs
+    // handleFeatureHover = e => {
+    //     const { map } = this
+
+    //     if (e.features.length) {
+    //         const { source, sourceLayer, properties } = e.features[0]
+    //         const { id } = properties
+    //         if (this.hoverId !== null) {
+    //             map.setFeatureState({source, sourceLayer, id: this.hoverId}, {hover: false})
+    //         }
+    //         this.hoverId = e.features[0].id
+    //         map.setFeatureState({source, sourceLayer, id}, {hover: false})
+    //     }
+    // }
+
+    // handleFeatureUnhover = () => {
+    //     if (this.hoverId !== null) {
+    //         map.setFeatureState({source, sourceLayer, id: this.hoverId}, {hover: false})
+    //     }
+    // }
+
     handleCreateMap = map => {
         this.map = map
         const { system } = this.props
@@ -231,16 +257,16 @@ class PriorityMap extends Component {
             if (layer !== null) {
                 const features = map.queryRenderedFeatures(e.point, { layers: [`${layer}-fill`] })
                 if (features.length > 0) {
-                    selectUnit(features[0].properties.id)
+                    selectUnit(features[0].properties)
                 }
-                return
             }
 
-            const features = map.queryRenderedFeatures(e.point, { layers: ["dams_priority"] })
-            if (features.length === 0) return
-            console.log("click features", features, features[0].properties[scenario])
-            selectFeature(features[0].properties)
+            // const features = map.queryRenderedFeatures(e.point, { layers: ["dams_priority"] })
+            // if (features.length === 0) return
+            // console.log("click features", features, features[0].properties[scenario])
+            // selectFeature(features[0].properties)
         })
+
         // map.foo = () => {
         //     map.setFilter("dams-heatmap", ["==", "State", "Alabama"])
         //     map.setFilter("dams-heatmap-background", ["!=", "State", "Alabama"])

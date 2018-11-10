@@ -27,7 +27,7 @@ export const OUTLINE_STYLE = {
     paint: {
         "line-opacity": 1,
         "line-width": 0.5,
-        "line-color": "#CC99A8" // last color of COUNT_COLORS, then lightened several shades
+        "line-color": "#0B1CF4"
     }
 }
 
@@ -46,7 +46,7 @@ export const PARENT_STYLE = {
     paint: {
         "line-opacity": 1,
         "line-width": 2,
-        "line-color": "#CC99A8" // last color of COUNT_COLORS, then lightened several shades
+        "line-color": "#0B1CF4"
     }
 }
 
@@ -61,6 +61,6 @@ export const HIGHLIGHT_STYLE = {
     filter: ["==", "id", Infinity],
     paint: {
         "fill-opacity": 0.5,
-        "fill-color": "#CC99A8" // last color of COUNT_COLORS, then lightened several shades
+        "fill-color": "#0B1CF4"
     }
 }

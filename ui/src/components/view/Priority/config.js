@@ -10,7 +10,7 @@ export const LAYER_CONFIG = [
         id: "HUC8",
         group: "HUC",
         title: "Hydrologic subbasin",
-        minzoom: 5,
+        minzoom: 7,
         maxzoom: 24,
         parent: "HUC6"
     },
@@ -18,7 +18,7 @@ export const LAYER_CONFIG = [
         id: "HUC12",
         group: "HUC",
         title: "Subwatershed",
-        minzoom: 7,
+        minzoom: 8.5,
         maxzoom: 24,
         parent: "HUC8"
     },

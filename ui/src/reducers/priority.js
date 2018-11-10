@@ -1,4 +1,4 @@
-import { List, Map, Set } from "immutable"
+import { List, Map, Set, fromJS } from "immutable"
 
 import {
     PRIORITY_SET_SYSTEM,
@@ -40,9 +40,9 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             })
         }
         case PRIORITY_ADD_SUMMARY_UNIT: {
-            const { id } = payload
+            const unit = fromJS(payload.unit)
             const summaryUnits = state.get("summaryUnits")
-            const updated = summaryUnits.has(id) ? summaryUnits.delete(id) : summaryUnits.add(id)
+            const updated = summaryUnits.has(unit) ? summaryUnits.delete(unit) : summaryUnits.add(unit)
             return state.set("summaryUnits", updated)
         }
         case PRIORITY_SET_MODE: {

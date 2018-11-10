@@ -17,9 +17,9 @@ export const setLayer = id => ({
 })
 
 export const PRIORITY_ADD_SUMMARY_UNIT = "PRIORITY_ADD_SUMMARY_UNIT"
-export const selectUnit = id => ({
+export const selectUnit = unit => ({
     type: PRIORITY_ADD_SUMMARY_UNIT,
-    payload: { id }
+    payload: { unit }
 })
 
 export const PRIORITY_SELECT_FEATURE = "PRIORITY_SELECT_FEATURE"
