@@ -8,7 +8,9 @@ import * as actions from "../../../actions/priority"
 // import Legend from "./Legend"
 import { FeaturePropType } from "../../../CustomPropTypes"
 
-import { TILE_HOST, LAYER_CONFIG, TIER_COLORS, PRIORITY_TIER_COLORS, SCENARIOS, SYSTEMS } from "../../map/config"
+import { TILE_HOST, PRIORITY_TIER_COLORS, SYSTEMS } from "../../map/config"
+import { FILL_STYLE, OUTLINE_STYLE, HIGHLIGHT_STYLE, PARENT_STYLE } from "./styles"
+import { LAYER_CONFIG } from "./config"
 import Map from "../../map/index"
 
 // Construct colors for mapbox GL layers in advance
@@ -24,6 +26,7 @@ class PriorityMap extends Component {
 
         this.map = null
         this.layers = []
+        this.layerIndex = {}
     }
 
     componentDidUpdate(prevProps) {
@@ -38,36 +41,36 @@ class PriorityMap extends Component {
         } = prevProps
         const { system, scenario, summaryUnits, layer } = this.props
 
-        if (system !== prevSystem) {
-            if (prevSystem !== null) {
-                const hideUnits = this.layers.filter(({ group }) => group === prevSystem)
-                hideUnits.forEach(({ id }) => this.setLayerVisibility(id, false))
-            }
+        // if (system !== prevSystem) {
+        //     if (prevSystem !== null) {
+        //         const hideUnits = this.layers.filter(({ group }) => group === prevSystem)
+        //         hideUnits.forEach(({ id }) => this.setLayerVisibility(id, false))
+        //     }
 
-            if (system !== null) {
-                const showUnits = this.layers.filter(({ group }) => group === system)
-                showUnits.forEach(({ id }) => this.setLayerVisibility(id, true))
-            }
-        }
-        if (scenario !== prevScenario) {
-            // Note: scenarios cannot be null
-            map.setFilter("dams_priority", ["<=", ["get", scenario], 4])
-            map.setPaintProperty("dams_priority", "circle-color", [
-                "match",
-                ["get", scenario],
-                ...priorityColors,
-                "#AAA"
-            ])
-            map.setPaintProperty("dams_priority", "circle-radius", [
-                "interpolate",
-                ["linear"],
-                ["get", scenario],
-                1,
-                20,
-                4,
-                6
-            ])
-        }
+        //     if (system !== null) {
+        //         const showUnits = this.layers.filter(({ group }) => group === system)
+        //         showUnits.forEach(({ id }) => this.setLayerVisibility(id, true))
+        //     }
+        // }
+        // if (scenario !== prevScenario) {
+        //     // Note: scenarios cannot be null
+        //     map.setFilter("dams_priority", ["<=", ["get", scenario], 4])
+        //     map.setPaintProperty("dams_priority", "circle-color", [
+        //         "match",
+        //         ["get", scenario],
+        //         ...priorityColors,
+        //         "#AAA"
+        //     ])
+        //     map.setPaintProperty("dams_priority", "circle-radius", [
+        //         "interpolate",
+        //         ["linear"],
+        //         ["get", scenario],
+        //         1,
+        //         20,
+        //         4,
+        //         6
+        //     ])
+        // }
 
         if (layer !== prevLayer) {
             if (prevLayer !== null) {
@@ -77,6 +80,7 @@ class PriorityMap extends Component {
             }
 
             if (layer !== null) {
+                // clear out previous highlight
                 this.map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
                 this.setLayerVisibility(layer, true)
             }
@@ -102,38 +106,10 @@ class PriorityMap extends Component {
         map.setLayoutProperty(`${id}-fill`, "visibility", visibility)
         map.setLayoutProperty(`${id}-outline`, "visibility", visibility)
         map.setLayoutProperty(`${id}-highlight`, "visibility", visibility)
-    }
 
-    // setHighlight = (id, featureId) => {
-    //     this.map.setFilter(`${id}-highlight`, ["==", "id", featureId === null ? Infinity : featureId])
-    // }
-
-    addHeatmap = () => {
-        // Show a heatmap of all points (no attributes)
-        // TODO: make this gray or push to background with zoom?
-        this.map.addLayer({
-            id: "dams_heatmap",
-            source: "dams",
-            "source-layer": "dams_heatmap",
-            type: "heatmap",
-            paint: {
-                "heatmap-intensity": 1,
-                "heatmap-color": [
-                    "interpolate",
-                    ["linear"],
-                    ["heatmap-density"],
-                    0,
-                    "rgba(255,0, 0,0)",
-                    0.1,
-                    "rgba(255,0,0, 0.5)",
-                    1,
-                    "rgba(178,24,43, 0.8)"
-                ],
-                // "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 6, 2, 9, 20],
-                "heatmap-radius": 2,
-                "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 7, 1, 8, 0]
-            }
-        })
+        if (this.layerIndex[id].parent) {
+            map.setLayoutProperty(`${id}-parent-outline`, "visibility", visibility)
+        }
     }
 
     addBoundaryLayers = () => {
@@ -170,63 +146,48 @@ class PriorityMap extends Component {
         const { map } = this
 
         layers.forEach(lyr => {
-            const { id } = lyr
+            const { id, minzoom = 0, maxzoom = 24, parent } = lyr
 
             const config = fromJS({
                 source: "sarp",
                 "source-layer": id,
-                type: "fill",
-                minzoom: 0,
-                maxzoom: 21,
-                filter: [">=", "dams", 0],
+                minzoom,
+                maxzoom,
                 layout: {
                     visibility: visible ? "visible" : "none"
                 }
             })
-            const fillConfig = config.merge(
-                fromJS({
-                    id: `${id}-fill`,
-                    type: "fill",
-                    paint: {
-                        "fill-opacity": 0,
-                        "fill-color": "#FFF"
-                    }
-                })
+
+            map.addLayer(
+                config
+                    .merge({ id: `${id}-fill` })
+                    .mergeDeep(fromJS(FILL_STYLE))
+                    .toJS()
             )
-            const outlineConfig = config.merge(
-                fromJS({
-                    id: `${id}-outline`,
-                    type: "line",
-                    paint: {
-                        "line-opacity": 1,
-                        "line-width": 0.5,
-                        "line-color": "#4A0025"
-                    }
-                })
+            map.addLayer(
+                config
+                    .merge({ id: `${id}-outline` })
+                    .mergeDeep(fromJS(OUTLINE_STYLE))
+                    .toJS()
+            )
+            map.addLayer(
+                config
+                    .merge({ id: `${id}-highlight` })
+                    .mergeDeep(fromJS(HIGHLIGHT_STYLE))
+                    .toJS()
             )
 
-            const highlightConfig = config.merge(
-                fromJS({
-                    id: `${id}-highlight`,
-                    type: "fill",
-                    filter: ["==", "id", Infinity],
-                    // layout: {
-                    //     visibility: "none",
-                    //     "line-cap": "round",
-                    //     "line-join": "round"
-                    // },
-                    paint: {
-                        "fill-color": "#F00",
-                        "fill-opacity": 0.3
-                    }
-                })
-            )
-
-            map.addLayer(fillConfig.toJS())
-            map.addLayer(outlineConfig.toJS())
-            map.addLayer(highlightConfig.toJS())
+            if (parent) {
+                map.addLayer(
+                    config
+                        .merge({ id: `${id}-parent-outline`, "source-layer": parent })
+                        .mergeDeep(fromJS(PARENT_STYLE))
+                        .toJS()
+                )
+            }
 
             this.layers.push(lyr)
+            this.layerIndex[id] = lyr
         })
     }
 
@@ -304,7 +265,7 @@ class PriorityMap extends Component {
 
         return (
             <React.Fragment>
-                <Map bounds={bounds} onCreateMap={this.handleCreateMap} />
+                <Map baseStyle="streets-v9" bounds={bounds} onCreateMap={this.handleCreateMap} />
 
                 {/* <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
                     <h5 className="is-size-7">Show Tiers for: </h5>

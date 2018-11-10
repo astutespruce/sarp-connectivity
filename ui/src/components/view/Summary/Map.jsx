@@ -149,7 +149,7 @@ class SummaryMap extends Component {
                         paint: {
                             "line-opacity": 1,
                             "line-width": 0.5,
-                            "line-color": "#CC99A8" // last color of COUNT_COLORS, then lighted several shades
+                            "line-color": "#CC99A8" // last color of COUNT_COLORS, then lightened several shades
                         }
                     })
                 )
