@@ -19,6 +19,8 @@ SCENARIOS = OrderedDict(
 # Add combination last to ensure it runs last
 SCENARIOS["NCWC"] = ["NC", "WC"]  # Network Connectivity Plus Watershed Condition
 
+PERCENTILES = [99, 95, 90, 75, 50, 25, 0]
+
 
 def calculate_score(series, ascending=True):
     """Calculate score based on the rank of a row's value within the sorted array of unique values.
@@ -118,9 +120,24 @@ def calculate_tier(series):
     bins = np.arange(95, -5, -5)
     return (np.digitize(relative_value, bins) + 1).astype("uint8")
 
-    # TEMP: calculate using percentiles instead, so that there are 5% in each bin.  DOES NOT WORK in all cases (e.g., too many of same value or too few overall dams)
-    # percentiles = np.percentile(series, bins)  # no need to make relative first
-    # return (np.digitize(series, percentiles) + 1).astype("uint8")
+
+def calculate_percentile(series, bins):
+    """Calculate the percentile value of each element in the series, based on the bins passed in.
+
+    Note: this will fail if the length of unque values in the series is less than the number of bins.
+    
+    Parameters
+    ----------
+    series : pandas.Series
+        Data series against which to assign relative tiers.
+    bins : array-like 
+        percentile thresholds to use for calculating percentiles.  Example: [0, 50, 100] would bin values into min, median, and max of the series, and assign 0, 50, 100 to those values
+        needs to include either a bin with value of 100 or 0 to work properly.  Example: [99, 95, 90, 75, 50, 25,  0]
+    """
+
+    percentiles = np.percentile(series, bins, interpolation="nearest")
+    digitized = np.digitize(series, percentiles)
+    return np.array(bins)[digitized].astype("uint8")
 
 
 def calculate_tiers(dataframe, scenarios, group_field=None):
@@ -181,12 +198,25 @@ def calculate_tiers(dataframe, scenarios, group_field=None):
             tier = calculate_tier(df.loc[row_index, score_field])
             df.loc[row_index, scenario] = tier
 
+            # Percentiles
+            percentile = calculate_percentile(
+                df.loc[row_index, score_field], PERCENTILES
+            )
+            df.loc[row_index, "{}_p".format(scenario)] = percentile
+
     # join back to the original data frame
     # only keep the scenario tier fields
-    out_fields = list(scenarios.keys())
+    # out_fields = list(scenarios.keys())
 
     # For adding score fields
     # out_fields = [f for f in df.columns if not f in fields]
+
+    out_fields = []
+    for scenario in scenarios:
+        out_fields.extend(
+            [scenario, "{}_score".format(scenario), "{}_p".format(scenario)]
+        )
+
     df = df[out_fields]
 
     if group_field is not None:
@@ -227,7 +257,7 @@ if __name__ == "__main__":
     )
 
     # for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
-    for group_field in (None,):
+    for group_field in (None, "State"):
         if group_field is None:
             print("Calculating regional tiers")
         else:
@@ -237,7 +267,13 @@ if __name__ == "__main__":
         df = df.join(tiers_df)
 
         # Fill n/a with -1 for tiers
-        df[tiers_df.columns] = df[tiers_df.columns].fillna(-1).astype("int8")
+        df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)  # .astype("int8")
+        for scenario in SCENARIOS:
+            df[scenario] = df[scenario].astype("int8")
+            df["{}_p".format(scenario)] = df["{}_p".format(scenario)].astype("int8")
+
+    # TEMP: drop all dams with missing data
+    df = df[df.NCWC > 0]
 
     df.to_csv("data/src/tiers.csv", index_label="id")
 

@@ -136,7 +136,7 @@ df.loc[row_index, "HeightClass"] = (df.loc[row_index, "Height"] / 10).round()
 df.HeightClass = df.HeightClass.astype("int8")
 
 # Calculate tiers
-for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
+for group_field in (None, "State", "HUC8", ):  # TODO: "ECO3", "HUC6"?
     if group_field is None:
         print("Calculating regional tiers")
     else:
@@ -223,6 +223,7 @@ df[mbtiles_fields].to_csv(
 
 
 # Query out the highest regional priorities
+# TODO: this needs to be fixed; tippecanoe is having issues with some of the numeric fields
 df.query("NCWC > 0 & (NCWC <=4 | NC <= 4 | WC <=4)").to_csv(
     "data/src/dams_priority_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
 )
