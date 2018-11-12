@@ -136,17 +136,22 @@ df.loc[row_index, "HeightClass"] = (df.loc[row_index, "Height"] / 10).round()
 df.HeightClass = df.HeightClass.astype("int8")
 
 # Calculate tiers
-for group_field in (None, "State", "HUC8", ):  # TODO: "ECO3", "HUC6"?
+for group_field in (None, "State", "HUC8"):  # TODO: "ECO3", "HUC6"?
     if group_field is None:
         print("Calculating regional tiers")
     else:
         print("Calculating tiers for {}".format(group_field))
 
-    tiers_df = calculate_tiers(df, SCENARIOS, group_field=group_field)
+    tiers_df = calculate_tiers(
+        df, SCENARIOS, group_field=group_field, prefix=group_field
+    )
     df = df.join(tiers_df)
 
-    # Fill n/a with -1 for tiers
-    df[tiers_df.columns] = df[tiers_df.columns].fillna(-1).astype("int8")
+    # Fill n/a with -1 for tiers and cast columns to integers
+    df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
+    for scenario in SCENARIOS:
+        for col in (scenario, "{}_p".format(scenario), "{}_top".format(scenario)):
+            df[col] = df[col].astype("int8")
 
 
 # Export full set of fields
@@ -154,88 +159,88 @@ print("Writing to data/src/dams.csv")
 df.to_csv("data/src/dams.csv", index_label="id")
 
 
-# TODO:
-# Export subset of fields for use in mbtiles
+# # TODO:
+# # Export subset of fields for use in mbtiles
 
-mbtiles_fields = [
-    "UniqueID",
-    # "NIDID",
-    # "SourceDBID",
-    "Barrier_Name",
-    # "Other_Barrier_Name",
-    "State",
-    # "County", # TODO:
-    "River",
-    "PurposeCategory",  # value domain
-    "Year_Completed",
-    "HeightClass",
-    "StructureCondition",  # value domain
-    "ConstructionMaterial",  # value domain
-    "ProtectedLand",  # 0="Unknown", 1="Yes", 2="No"
-    # "DB_Source",
-    # "Off_Network",  # 0="On Network", 1="Off Network"
-    # "Mussel_Presence",  # 0="Unknown", 1="Yes", 2="No"
-    "AbsoluteGainMi",
-    "UpstreamMiles",
-    "DownstreamMiles",
-    "TotalNetworkMiles",
-    "PctNatFloodplain",
-    "NetworkSinuosity",
-    "NumSizeClassGained",
-    # "NumberRareSpeciesHUC12", # FIXME: currently not present
-    # "SpeciesRichness", # FIXME: currently not present
-    # "batUSNetID",  # FIXME: not currently used
-    # "batDSNetID",  # FIXME: not currently used
-    "HUC2",
-    "HUC4",
-    "HUC6",
-    "HUC8",
-    "HUC10",
-    "HUC12",
-    "ECO3",
-    "ECO4",
-    # "StreamOrder",
-    "lat",
-    "lon",
-    # tiers
-    "NC",
-    "WC",
-    "NCWC",
-    "State_NC",
-    "State_WC",
-    "State_NCWC",
-    "HUC2_NC",
-    "HUC2_WC",
-    "HUC2_NCWC",
-    "HUC4_NC",
-    "HUC4_WC",
-    "HUC4_NCWC",
-    "HUC8_NC",
-    "HUC8_WC",
-    "HUC8_NCWC",
-]
-
-
-print("Writing subset of fields to data/src/dams_mbtiles.csv")
-df[mbtiles_fields].to_csv(
-    "data/src/dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-)
+# mbtiles_fields = [
+#     "UniqueID",
+#     # "NIDID",
+#     # "SourceDBID",
+#     "Barrier_Name",
+#     # "Other_Barrier_Name",
+#     "State",
+#     # "County", # TODO:
+#     "River",
+#     "PurposeCategory",  # value domain
+#     "Year_Completed",
+#     "HeightClass",
+#     "StructureCondition",  # value domain
+#     "ConstructionMaterial",  # value domain
+#     "ProtectedLand",  # 0="Unknown", 1="Yes", 2="No"
+#     # "DB_Source",
+#     # "Off_Network",  # 0="On Network", 1="Off Network"
+#     # "Mussel_Presence",  # 0="Unknown", 1="Yes", 2="No"
+#     "AbsoluteGainMi",
+#     "UpstreamMiles",
+#     "DownstreamMiles",
+#     "TotalNetworkMiles",
+#     "PctNatFloodplain",
+#     "NetworkSinuosity",
+#     "NumSizeClassGained",
+#     # "NumberRareSpeciesHUC12", # FIXME: currently not present
+#     # "SpeciesRichness", # FIXME: currently not present
+#     # "batUSNetID",  # FIXME: not currently used
+#     # "batDSNetID",  # FIXME: not currently used
+#     "HUC2",
+#     "HUC4",
+#     "HUC6",
+#     "HUC8",
+#     "HUC10",
+#     "HUC12",
+#     "ECO3",
+#     "ECO4",
+#     # "StreamOrder",
+#     "lat",
+#     "lon",
+#     # tiers
+#     "NC",
+#     "WC",
+#     "NCWC",
+#     "State_NC",
+#     "State_WC",
+#     "State_NCWC",
+#     "HUC2_NC",
+#     "HUC2_WC",
+#     "HUC2_NCWC",
+#     "HUC4_NC",
+#     "HUC4_WC",
+#     "HUC4_NCWC",
+#     "HUC8_NC",
+#     "HUC8_WC",
+#     "HUC8_NCWC",
+# ]
 
 
-# Query out the highest regional priorities
-# TODO: this needs to be fixed; tippecanoe is having issues with some of the numeric fields
-df.query("NCWC > 0 & (NCWC <=4 | NC <= 4 | WC <=4)").to_csv(
-    "data/src/dams_priority_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-)
+# print("Writing subset of fields to data/src/dams_mbtiles.csv")
+# df[mbtiles_fields].to_csv(
+#     "data/src/dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+# )
 
 
-# Consider bins of AbsMilesGained for filtering too; log scale
+# # Query out the highest regional priorities
+# # TODO: this needs to be fixed; tippecanoe is having issues with some of the numeric fields
+# df.query("NCWC > 0 & (NCWC <=4 | NC <= 4 | WC <=4)").to_csv(
+#     "data/src/dams_priority_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+# )
 
 
-# g = df.groupby(["State", "HeightClass", "PurposeCategory", "ProtectedLand"]).agg({"UniqueID": {"dams": "count"}})
+# # Consider bins of AbsMilesGained for filtering too; log scale
 
 
-# TODO: calculate regional scores and scores for main units
+# # g = df.groupby(["State", "HeightClass", "PurposeCategory", "ProtectedLand"]).agg({"UniqueID": {"dams": "count"}})
 
 
-print("Done in {:.2f}".format(time() - start))
+# # TODO: calculate regional scores and scores for main units
+
+
+# print("Done in {:.2f}".format(time() - start))

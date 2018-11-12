@@ -20,6 +20,8 @@ SCENARIOS = OrderedDict(
 SCENARIOS["NCWC"] = ["NC", "WC"]  # Network Connectivity Plus Watershed Condition
 
 PERCENTILES = [99, 95, 90, 75, 50, 25, 0]
+# TOP_N = 5  # select the top N from each group
+TOP_N = [1000, 500, 100, 50, 10]
 
 
 def calculate_score(series, ascending=True):
@@ -137,10 +139,12 @@ def calculate_percentile(series, bins):
 
     percentiles = np.percentile(series, bins, interpolation="nearest")
     digitized = np.digitize(series, percentiles)
+    print(bins)
+    print(np.bincount(digitized))
     return np.array(bins)[digitized].astype("uint8")
 
 
-def calculate_tiers(dataframe, scenarios, group_field=None):
+def calculate_tiers(dataframe, scenarios, group_field=None, prefix=""):
     """Calculate tiers for each input scenario, which is based on combining scores for
     each scenario's inputs.
 
@@ -153,8 +157,10 @@ def calculate_tiers(dataframe, scenarios, group_field=None):
         Input data frame containing at least all input fields
     scenarios : dict
         Dict mapping name of scenario to input fields
-    group_field: str
-        Name of a column to use for grouping tier calculation (all scores will be based on values within each group)
+    group_field: str, optional (default: None)
+        Name of a column to use for grouping tier calculation (all scores will be based on values within each group).
+    prefix: str, optional (default: "")
+        Prefix to add to the resulting score and tier fields.
     
     Returns
     -------
@@ -178,6 +184,7 @@ def calculate_tiers(dataframe, scenarios, group_field=None):
     groups = df[group_field].unique() if group_field is not None else [None]
 
     for group in groups:
+        print(group)
         row_index = df[group_field] == group if group is not None else df.index
 
         # calculate score for each input field
@@ -204,6 +211,14 @@ def calculate_tiers(dataframe, scenarios, group_field=None):
             )
             df.loc[row_index, "{}_p".format(scenario)] = percentile
 
+            # Top N - set true if in top N, otherwise false
+            # TODO: This is NOT working correctly!
+            # topn_field = "{0}_top{1}".format(scenario, TOP_N)
+            topn_field = "{}_top".format(scenario)
+
+            for n in TOP_N:
+                df.loc[df.loc[row_index, score_field].nlargest(n).index, topn_field] = n
+
     # join back to the original data frame
     # only keep the scenario tier fields
     # out_fields = list(scenarios.keys())
@@ -214,17 +229,19 @@ def calculate_tiers(dataframe, scenarios, group_field=None):
     out_fields = []
     for scenario in scenarios:
         out_fields.extend(
-            [scenario, "{}_score".format(scenario), "{}_p".format(scenario)]
+            [
+                scenario,
+                "{}_score".format(scenario),
+                "{}_p".format(scenario),
+                "{}_top".format(scenario),
+            ]
         )
 
     df = df[out_fields]
 
-    if group_field is not None:
-        # rename fields based on group prefix
+    if prefix:
         df.rename(
-            columns={
-                field: "{0}_{1}".format(group_field, field) for field in out_fields
-            },
+            columns={field: "{0}_{1}".format(prefix, field) for field in out_fields},
             inplace=True,
         )
 
@@ -257,13 +274,15 @@ if __name__ == "__main__":
     )
 
     # for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
-    for group_field in (None, "State"):
+    for group_field in (None, "HUC8", "State"):
         if group_field is None:
             print("Calculating regional tiers")
         else:
             print("Calculating tiers for {}".format(group_field))
 
-        tiers_df = calculate_tiers(df, SCENARIOS, group_field=group_field)
+        tiers_df = calculate_tiers(
+            df, SCENARIOS, group_field=group_field, prefix=group_field
+        )
         df = df.join(tiers_df)
 
         # Fill n/a with -1 for tiers

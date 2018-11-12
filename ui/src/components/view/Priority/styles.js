@@ -60,7 +60,7 @@ export const HIGHLIGHT_STYLE = {
     maxzoom: 24,
     filter: ["==", "id", Infinity],
     paint: {
-        "fill-opacity": 0.5,
+        "fill-opacity": 0.2,
         "fill-color": "#0B1CF4"
     }
 }
