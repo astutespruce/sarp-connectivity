@@ -132,22 +132,6 @@ tippecanoe -f -z 10 -l ECO3 -o ../../tiles/ECO3.mbtiles  -T id:string ECO3.json
 tippecanoe -f -Z 3 -z 12 -l ECO4 -o ../../tiles/ECO4.mbtiles  -T id:string ECO4.json
 ```
 
-TODO: HUC12?
-
-<!-- ## Create centroids vector tiles (for labeling) - OUTDATED, not needed anymore:
-
-Centroids are extracted using `extract_centroids.py`.
-
-```
-tippecanoe -f -B 0 -z 4 -l states_centroids -o ../../tiles/sarp_states_centroids.mbtiles sarp_states_centroids.csv
-tippecanoe -f -B 0 -z 4 -l HUC2_centroids -o ../../tiles/sarp_HUC2_centroids.mbtiles  -T HUC2:string sarp_HUC2_centroids.csv
-tippecanoe -f -B 0 -z 6 -l HUC4_centroids -o ../../tiles/sarp_HUC4_centroids.mbtiles  -T HUC4:string sarp_HUC4_centroids.csv
-tippecanoe -f -B 4 -Z 4 -z 8 -l HUC8_centroids -o ../../tiles/sarp_HUC8_centroids.mbtiles  -T HUC8:string sarp_HUC8_centroids.csv
-
-tippecanoe -f -B 0 -z 6 -l ecoregion3_centroids -o ../../tiles/sarp_ecoregion3_centroids.mbtiles  -T NA_L3CODE:string sarp_ecoregion3_centroids.csv
-tippecanoe -f -B 4 -Z 4 -z 10 -l ecoregion4_centroids -o ../../tiles/sarp_ecoregion4_centroids.mbtiles  -T US_L4CODE:string sarp_ecoregion4_centroids.csv
-``` -->
-
 ### Add summaries and join tiles together
 
 Summaries are created using summarize_by_unit.py
@@ -170,7 +154,25 @@ Merge all tilesets together
 tile-join -f --no-tile-size-limit -o sarp_summary.mbtiles mask.mbtiles boundary.mbtiles states_summary.mbtiles huc2_summary.mbtiles huc4_summary.mbtiles huc6_summary.mbtiles huc8_summary.mbtiles huc10_summary.mbtiles huc12_summary.mbtiles ECO3_summary.mbtiles ECO4_summary.mbtiles
 ```
 
-## River network
+## Rare species occurrences
+
+Kat collated information on rare species from multiple states into 2 datasets and sent these on 11/15-11/15/2018:
+
+-   Species_points_HUC12.csv
+-   Species_polygons_HUC12.csv
+
+Several species had variants of species name (some incorrect spellings) and status.
+
+Kat obtained a species list from ECOS and extracted aquatic species. She removed the parenthentical parts of species names.
+
+-   ECOS_listed_aquatic_species_2018.csv
+
+Listed species info here:
+https://ecos.fws.gov/ecp0/reports/ad-hoc-species-report?kingdom=V&kingdom=I&status=E&status=T&status=EmE&status=EmT&status=EXPE&status=EXPN&status=SAE&status=SAT&fcrithab=on&fstatus=on&fspecrule=on&finvpop=on&fgroup=on&header=Listed+Animals
+
+# ARCHIVE / UNUSED
+
+## River network - NOT USED
 
 Obtained from Kat as DataSnapshot.gdb SARP_NHD_Dendrite.
 
@@ -196,3 +198,17 @@ tippecanoe -f -z 6 -l rivers8 -o ../../tiles/rivers8.mbtiles -y id -y name river
 tippecanoe -f -Z 4 -z 8 -l rivers6 -o ../../tiles/rivers6.mbtiles -y id -y name rivers6.json
 tippecanoe -f -Z 7 -z 10 -l rivers4 -o ../../tiles/rivers4.mbtiles -y id -y name rivers4.json
 ```
+
+<!-- ## Create centroids vector tiles (for labeling) - OUTDATED, not needed anymore:
+
+Centroids are extracted using `extract_centroids.py`.
+
+```
+tippecanoe -f -B 0 -z 4 -l states_centroids -o ../../tiles/sarp_states_centroids.mbtiles sarp_states_centroids.csv
+tippecanoe -f -B 0 -z 4 -l HUC2_centroids -o ../../tiles/sarp_HUC2_centroids.mbtiles  -T HUC2:string sarp_HUC2_centroids.csv
+tippecanoe -f -B 0 -z 6 -l HUC4_centroids -o ../../tiles/sarp_HUC4_centroids.mbtiles  -T HUC4:string sarp_HUC4_centroids.csv
+tippecanoe -f -B 4 -Z 4 -z 8 -l HUC8_centroids -o ../../tiles/sarp_HUC8_centroids.mbtiles  -T HUC8:string sarp_HUC8_centroids.csv
+
+tippecanoe -f -B 0 -z 6 -l ecoregion3_centroids -o ../../tiles/sarp_ecoregion3_centroids.mbtiles  -T NA_L3CODE:string sarp_ecoregion3_centroids.csv
+tippecanoe -f -B 4 -Z 4 -z 10 -l ecoregion4_centroids -o ../../tiles/sarp_ecoregion4_centroids.mbtiles  -T US_L4CODE:string sarp_ecoregion4_centroids.csv
+``` -->
