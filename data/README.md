@@ -159,7 +159,9 @@ tile-join -f --no-tile-size-limit -o sarp_summary.mbtiles mask.mbtiles boundary.
 Kat collated information on rare species from multiple states into 2 datasets and sent these on 11/15-11/15/2018:
 
 -   Species_points_HUC12.csv
--   Species_polygons_HUC12.csv
+-   Species_polygons_HUC12_intersect.csv (HUGE!)
+
+These are first aggregated to unique HUC12, species, status records using `aggregate_spp_occurrences.py`
 
 Several species had variants of species name (some incorrect spellings) and status.
 
@@ -167,8 +169,10 @@ Kat obtained a species list from ECOS and extracted aquatic species. She removed
 
 -   ECOS_listed_aquatic_species_2018.csv
 
-Listed species info here:
-https://ecos.fws.gov/ecp0/reports/ad-hoc-species-report?kingdom=V&kingdom=I&status=E&status=T&status=EmE&status=EmT&status=EXPE&status=EXPN&status=SAE&status=SAT&fcrithab=on&fstatus=on&fspecrule=on&finvpop=on&fgroup=on&header=Listed+Animals
+Based on that information and Google searching based on different taxonomies, we were able to derive an updated list of T & E species
+to apply to the point and polygon level data.
+
+After applying T & E status, we extracted all T & E records, then counted unique species by HUC12.
 
 # ARCHIVE / UNUSED
 
