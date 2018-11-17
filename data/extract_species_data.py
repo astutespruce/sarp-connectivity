@@ -113,6 +113,7 @@ unique_species_df = (
     df.loc[df.status.isin(["T", "E"])]
     .groupby(["HUC12", "SNAME"])
     .size()
+    .reset_index()
     .drop(columns=[0])
 )
 
@@ -122,4 +123,33 @@ count_by_HUC12_df = (
     .reset_index()
     .rename(columns={0: "NumTEspp"})
 )
-count_by_HUC12_df.to_csv("data/src/species_huc12_summary.csv", index=False, header=True)
+count_by_HUC12_df.to_csv(
+    "data/summary/species_huc12_summary.csv", index=False, header=True
+)
+
+
+## generate statistics of species and status
+species_stats_df = (
+    df.loc[df.status.isin(["T", "E"])]
+    # aggregate to unique species per HUC
+    .groupby(["HUC12", "status", "SNAME"])
+    .size()
+    .reset_index()
+    .drop(columns=[0])
+    # aggregate count of HUCs per species
+    .groupby(["status", "SNAME"])
+    .size()
+    .reset_index()
+    .rename(columns={0: "CountHUC12"})
+)
+
+species_stats_df.to_csv("data/src/tmp/species_stats.csv")
+
+status_stats_df = (
+    species_stats_df.groupby(["status"])
+    .size()
+    .reset_index()
+    .rename(columns={0: "CountSpp"})
+)
+
+status_stats_df.to_csv("data/src/tmp/status_stats.csv")

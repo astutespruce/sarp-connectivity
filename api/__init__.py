@@ -81,23 +81,31 @@ def download_dams(layer="HUC8", format="CSV"):
             ),
         )
 
-    tiers_df = calculate_tiers(df, SCENARIOS, prefix="custom")
+    is_custom = False
 
-    # TODO: join type is based on include_unranked
-    join_type = "left" if include_unranked else "right"
-    df = df.join(tiers_df, how=join_type)
+    if len(ids) > 1 or layer not in ("State", "HUC8"):
+        is_custom = True
+        tiers_df = calculate_tiers(df, SCENARIOS, prefix="custom")
 
-    print("df.columns", df.columns)
+        # TODO: join type is based on include_unranked
+        join_type = "left" if include_unranked else "right"
+        df = df.join(tiers_df, how=join_type)
 
-    # Fill n/a with -1 for tiers and cast columns to integers
-    df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
-    for scenario in SCENARIOS:
-        for col in (scenario, "{}_p".format(scenario), "{}_top".format(scenario)):
-            df[col] = df[col].astype("int8")
+        # Fill n/a with -1 for tiers and cast columns to integers
+        df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
+        for scenario in SCENARIOS:
+            int_fields = [scenario] + [
+                f for f in tiers_df.columns if f.endswith("_p") or f.endswith("_top")
+            ]
+            for col in int_fields:
+                df[col] = df[col].astype("int8")
 
     # Serialize to format
     # TODO: bundle this into zip file
-    filename = "sarp_custom_ranks_{}".format(date.today().isoformat())
+    filename = "sarp_{0}_ranks_{1}".format(
+        "custom" if is_custom else "{0}_{1}".format(layer, ids[0]),
+        date.today().isoformat(),
+    )
     if format == "csv":
         resp = make_response(df.to_csv())
         resp.headers["Content-Disposition"] = "attachment; filename={}.csv".format(
@@ -106,8 +114,11 @@ def download_dams(layer="HUC8", format="CSV"):
         resp.headers["Content-Type"] = "text/csv"
         return resp
 
+    else:
+        raise NotImplementedError("Not done yet!")
+
     # Should never get here
-    return 'Done'
+    return "Done"
 
 
 if __name__ == "__main__":

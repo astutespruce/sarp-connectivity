@@ -139,12 +139,12 @@ def calculate_percentile(series, bins):
 
     percentiles = np.percentile(series, bins, interpolation="nearest")
     digitized = np.digitize(series, percentiles)
-    print(bins)
-    print(np.bincount(digitized))
     return np.array(bins)[digitized].astype("uint8")
 
 
-def calculate_tiers(dataframe, scenarios, group_field=None, prefix=""):
+def calculate_tiers(
+    dataframe, scenarios, group_field=None, prefix="", percentiles=False, topn=False
+):
     """Calculate tiers for each input scenario, which is based on combining scores for
     each scenario's inputs.
 
@@ -161,6 +161,10 @@ def calculate_tiers(dataframe, scenarios, group_field=None, prefix=""):
         Name of a column to use for grouping tier calculation (all scores will be based on values within each group).
     prefix: str, optional (default: "")
         Prefix to add to the resulting score and tier fields.
+    percentiles: bool (default: False)
+        If True, calculate percentiles.  Note: there must be more values than the PERCENTILES or an exception will occur
+    topn: bool (default: False)
+        If True, calculate top N bins
     
     Returns
     -------
@@ -184,7 +188,7 @@ def calculate_tiers(dataframe, scenarios, group_field=None, prefix=""):
     groups = df[group_field].unique() if group_field is not None else [None]
 
     for group in groups:
-        print(group)
+        # print(group)
         row_index = df[group_field] == group if group is not None else df.index
 
         # calculate score for each input field
@@ -205,19 +209,21 @@ def calculate_tiers(dataframe, scenarios, group_field=None, prefix=""):
             tier = calculate_tier(df.loc[row_index, score_field])
             df.loc[row_index, scenario] = tier
 
-            # Percentiles
-            percentile = calculate_percentile(
-                df.loc[row_index, score_field], PERCENTILES
-            )
-            df.loc[row_index, "{}_p".format(scenario)] = percentile
+            # Percentiles - only for large areas
+            if percentiles:
+                percentile = calculate_percentile(
+                    df.loc[row_index, score_field], PERCENTILES
+                )
+                df.loc[row_index, "{}_p".format(scenario)] = percentile
 
-            # Top N - set true if in top N, otherwise false
-            # TODO: This is NOT working correctly!
-            # topn_field = "{0}_top{1}".format(scenario, TOP_N)
-            topn_field = "{}_top".format(scenario)
+            if topn:
+                # Top N - set true if in top N, otherwise false
+                topn_field = "{}_top".format(scenario)
 
-            for n in TOP_N:
-                df.loc[df.loc[row_index, score_field].nlargest(n).index, topn_field] = n
+                for n in TOP_N:
+                    df.loc[
+                        df.loc[row_index, score_field].nlargest(n).index, topn_field
+                    ] = n
 
     # join back to the original data frame
     # only keep the scenario tier fields
@@ -228,14 +234,13 @@ def calculate_tiers(dataframe, scenarios, group_field=None, prefix=""):
 
     out_fields = []
     for scenario in scenarios:
-        out_fields.extend(
-            [
-                scenario,
-                "{}_score".format(scenario),
-                "{}_p".format(scenario),
-                "{}_top".format(scenario),
-            ]
-        )
+        out_fields.extend([scenario, "{}_score".format(scenario)])
+
+        if percentiles:
+            out_fields.append("{}_p".format(scenario))
+
+        if topn:
+            out_fields.append("{}_top".format(scenario))
 
     df = df[out_fields]
 
@@ -280,8 +285,15 @@ if __name__ == "__main__":
         else:
             print("Calculating tiers for {}".format(group_field))
 
+        is_large_unit = group_field in (None, "State")
+
         tiers_df = calculate_tiers(
-            df, SCENARIOS, group_field=group_field, prefix=group_field
+            df,
+            SCENARIOS,
+            group_field=group_field,
+            prefix=group_field,
+            percentiles=is_large_unit,
+            topn=is_large_unit,
         )
         df = df.join(tiers_df)
 

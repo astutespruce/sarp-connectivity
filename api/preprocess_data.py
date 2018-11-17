@@ -48,8 +48,8 @@ df = df[
         "ConstructionMaterial",  # value domain
         "ProtectedLand",  # 0="Unknown", 1="Yes", 2="No"
         "DB_Source",
-        "Off_Network",  # 0="On Network", 1="Off Network"
-        "Mussel_Presence",  # 0="Unknown", 1="Yes", 2="No"
+        # "Off_Network",  # 0="On Network", 1="Off Network"
+        # "Mussel_Presence",  # 0="Unknown", 1="Yes", 2="No"
         "AbsoluteGainMi",
         "UpstreamMiles",
         "DownstreamMiles",
@@ -57,8 +57,8 @@ df = df[
         "PctNatFloodplain",
         "NetworkSinuosity",
         "NumSizeClassGained",
-        "NumberRareSpeciesHUC12",
-        "SpeciesRichness",
+        # "NumberRareSpeciesHUC12", # replaced by newer T&E data
+        # "SpeciesRichness",
         "batUSNetID",
         "batDSNetID",
         # "batTotUSDS",
@@ -100,11 +100,12 @@ for domain in (
     df.loc[df[domain].isnull(), domain] = "Unknown"
 
 # # Lookup the simple domains directly
-for domain in ("ProtectedLand", "Mussel_Presence"):
+# Not used right now: "Mussel_Presence"
+for domain in ("ProtectedLand",):
     df[domain] = df[domain].map({0: "Unknown", 1: "Yes", 2: "No"})
 
-domain = "Off_Network"
-df[domain] = df[domain].map({0: "Off Network", 1: "On Network"})
+# domain = "Off_Network"
+# df[domain] = df[domain].map({0: "Off Network", 1: "On Network"})
 
 # Filter out any dams that do not have a HUC12 (they are not valid)
 # there should only be one.
@@ -135,6 +136,54 @@ row_index = df.Height > 0
 df.loc[row_index, "HeightClass"] = (df.loc[row_index, "Height"] / 10).round()
 df.HeightClass = df.HeightClass.astype("int8")
 
+
+# Join T & E species summary
+species_df = pd.read_csv(
+    "data/summary/species_huc12_summary.csv", dtype={"HUC12": str}
+).set_index(["HUC12"])
+df = df.join(species_df, on="HUC12").fillna({"NumTEspp": 0})
+
+
+# Extract the columns we want in the order we want
+df = df[
+    [
+        "UniqueID",
+        "lat",
+        "lon",
+        "NIDID",
+        "Barrier_Name",
+        "Other_Barrier_Name",
+        "Year_Completed",
+        "Height",
+        "HeightClass",
+        "ConstructionMaterial",
+        "PurposeCategory",
+        "StructureCondition",
+        "County",
+        "State",
+        "River",
+        "StreamOrder",
+        "HUC2",
+        "HUC4",
+        "HUC6",
+        "HUC8",
+        "HUC10",
+        "HUC12",
+        "ECO3",
+        "ECO4",
+        "ProtectedLand",
+        "NumTEspp",
+        "UpstreamMiles",
+        "DownstreamMiles",
+        "TotalNetworkMiles",
+        "AbsoluteGainMi",
+        "PctNatFloodplain",
+        "NetworkSinuosity",
+        "NumSizeClassGained",
+    ]
+]
+
+
 # Calculate tiers
 for group_field in (None, "State", "HUC8"):  # TODO: "ECO3", "HUC6"?
     if group_field is None:
@@ -156,6 +205,7 @@ for group_field in (None, "State", "HUC8"):  # TODO: "ECO3", "HUC6"?
 
 # Export full set of fields
 print("Writing to data/src/dams.csv")
+
 df.to_csv("data/src/dams.csv", index_label="id")
 
 
