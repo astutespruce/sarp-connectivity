@@ -35,12 +35,17 @@ if not os.path.exists(out_dir):
     os.makedirs(out_dir)
 
 # Read in data and convert to data frame (no need for geometry)
+start = time()
 print("Reading flowlines")
 df = gp.read_file(gdb, layer="NHDFlowline")
 
 df = df[["NHDPlusID", "FlowDir", "FType", "FCode", "geometry"]]
-df.NHDPlusID = df.NHDPlusID.astype("uint64")
-df = df.set_index(["NHDPlusID"], drop=False)
+# df.NHDPlusID = df.NHDPlusID.astype("int64")
+df["id"] = df.NHDPlusID.astype("uint64")
+# df = df.set_index(["NHDPlusID"], drop=False)
+df = df.set_index(["id"])
+
+print("Read {} features".format(len(df)))
 
 print("Converting geometry to 2D")
 df.geometry = df.geometry.apply(to2D)
@@ -55,7 +60,7 @@ df.geometry = df.geometry.apply(to2D)
 
 # Read in VAA and convert to data frame
 # NOTE: not all records in Flowlines have corresponding records in VAA
-print("Reading VAA table")
+print("Reading VAA table and joining...")
 vaa_df = gp.read_file(gdb, layer="NHDPlusFlowlineVAA")[
     ["NHDPlusID", "StreamLeve", "StreamOrde", "StreamCalc"]
 ]
@@ -63,6 +68,8 @@ vaa_df.NHDPlusID = vaa_df.NHDPlusID.astype("uint64")
 vaa_df = vaa_df.set_index(["NHDPlusID"])
 
 df = df.join(vaa_df, how="inner")  # drop any segments where we don't have info
+print("{} features after join".format(len(df)))
+
 
 # Project to USGS Albers CONUS so that we can calculate lengths
 print("projecting to USGS Albers")
@@ -82,7 +89,6 @@ df.drop(columns=["geometry"]).to_csv(
     "{}/flowline.csv".format(out_dir), index_label="id"
 )
 
-
 # Flow has the connections between segments
 # Upstream is the upstream side of the connection, which would actually correspond to the downstream node of the upstream segment
 print("Reading segment connections")
@@ -94,3 +100,5 @@ join_df.downstream = join_df.downstream.astype("uint64")
 
 print("Writing segment connections")
 join_df.to_csv("{}/connections.csv".format(out_dir), index=False)
+
+print("Done in {:.2f}".format(time() - start))
