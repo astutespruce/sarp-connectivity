@@ -10,7 +10,7 @@ import rtree
 
 
 CRS = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
-TOLERANCE = 150  # meters
+TOLERANCE = 100  # meters
 
 HUC4 = "0307"
 
@@ -54,7 +54,7 @@ for idx, dam in dams.iterrows():
     hits["dist"] = hits.distance(
         dam.geometry
     )  # hits.geometry.apply(lambda g: g.project(dam.geometry))
-    closest = hits[hits.dist <= TOLERANCE].nlargest(1, columns=["dist"])
+    closest = hits[hits.dist <= TOLERANCE].nsmallest(1, columns=["dist"])
 
     # only snap if there is a closest one, and it is within 100 m
     if len(closest):
