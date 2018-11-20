@@ -69,3 +69,34 @@ def calculate_sinuosity(geometry):
 
     return 1  # if there is no straight line distance, there is no sinuosity
 
+
+def cut_line(line, point):
+    """
+    Cut line at a point on the line.
+    modified from: https://shapely.readthedocs.io/en/stable/manual.html#splitting
+
+    Parameters
+    ----------
+    line : shapely.LineString
+    point : shapely.Point
+    
+    Returns
+    -------
+    list of LineStrings
+    """
+
+    distance = line.project(point)
+    if distance <= 0.0 or distance >= line.length:
+        return [LineString(line)]
+
+    coords = list(line.coords)
+    for i, p in enumerate(coords):
+        pd = line.project(Point(p))
+        if pd == distance:
+            return [LineString(coords[: i + 1]), LineString(coords[i:])]
+        if pd > distance:
+            cp = line.interpolate(distance)
+            return [
+                LineString(coords[:i] + [(cp.x, cp.y)]),
+                LineString([(cp.x, cp.y)] + coords[i:]),
+            ]

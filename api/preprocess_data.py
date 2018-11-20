@@ -48,7 +48,7 @@ df = df[
         "ConstructionMaterial",  # value domain
         "ProtectedLand",  # 0="Unknown", 1="Yes", 2="No"
         "DB_Source",
-        # "Off_Network",  # 0="On Network", 1="Off Network"
+        "Off_Network",  # 0="On Network", 1="Off Network"
         # "Mussel_Presence",  # 0="Unknown", 1="Yes", 2="No"
         "AbsoluteGainMi",
         "UpstreamMiles",
@@ -104,8 +104,8 @@ for domain in (
 for domain in ("ProtectedLand",):
     df[domain] = df[domain].map({0: "Unknown", 1: "Yes", 2: "No"})
 
-# domain = "Off_Network"
-# df[domain] = df[domain].map({0: "Off Network", 1: "On Network"})
+domain = "Off_Network"
+df[domain] = df[domain].map({0: "On Network", 1: "Off Network"})
 
 # Filter out any dams that do not have a HUC12 (they are not valid)
 # there should only be one.
@@ -171,6 +171,7 @@ df = df[
         "HUC12",
         "ECO3",
         "ECO4",
+        "Off_Network",
         "ProtectedLand",
         "NumTEspp",
         "UpstreamMiles",
@@ -191,15 +192,25 @@ for group_field in (None, "State", "HUC8"):  # TODO: "ECO3", "HUC6"?
     else:
         print("Calculating tiers for {}".format(group_field))
 
+    is_large_unit = group_field in (None, "State")
+
     tiers_df = calculate_tiers(
-        df, SCENARIOS, group_field=group_field, prefix=group_field
+        df,
+        SCENARIOS,
+        group_field=group_field,
+        prefix=group_field,
+        percentiles=is_large_unit,
+        topn=is_large_unit,
     )
     df = df.join(tiers_df)
 
     # Fill n/a with -1 for tiers and cast columns to integers
     df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
     for scenario in SCENARIOS:
-        for col in (scenario, "{}_p".format(scenario), "{}_top".format(scenario)):
+        int_fields = [scenario] + [
+            f for f in tiers_df.columns if f.endswith("_p") or f.endswith("_top")
+        ]
+        for col in int_fields:
             df[col] = df[col].astype("int8")
 
 

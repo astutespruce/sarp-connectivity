@@ -15,20 +15,30 @@ from network_utils import calculate_upstream_network
 # dam_segments = set()  # {15001600000190, 15001600046755}
 
 
-HUC4 = "0307"
+HUC4 = "0602"
 data_dir = "data/src/tmp/{}".format(HUC4)
 os.chdir(data_dir)
 
 start = time()
 
-print("Reading input data")
+print("Reading flowline data")
 df = pd.read_csv("flowline.csv").set_index("id")
 join_df = pd.read_csv("connections.csv")
-snapped_df = pd.read_csv("snapped.csv")[["NHDPlusID"]]
-snapped_df = snapped_df.loc[~snapped_df.NHDPlusID.isnull()].copy()
-snapped_df.NHDPlusID = snapped_df.NHDPlusID.astype("uint64")
 
-dam_segments = snapped_df.NHDPlusID.unique()
+# Read in snapped dams
+print("Reading snapped dams")
+dams_df = pd.read_csv("snapped_dams.csv")[["NHDPlusID"]]
+dams_df = dams_df.loc[~dams_df.NHDPlusID.isnull()].copy()
+dams_df.NHDPlusID = dams_df.NHDPlusID.astype("uint64")
+
+# Read in snapped waterfalls
+print("Reading snapped waterfalls")
+wf_df = pd.read_csv("snapped_waterfalls.csv")[["NHDPlusID"]]
+wf_df = wf_df.loc[~wf_df.NHDPlusID.isnull()].copy()
+wf_df.NHDPlusID = wf_df.NHDPlusID.astype("uint64")
+
+# Union dam and natural barriers together
+barrier_segments = set(dams_df.NHDPlusID.unique()).union(wf_df.NHDPlusID.unique())
 
 
 get_upstream_ids = lambda id: join_df.loc[join_df.downstream == id].upstream
@@ -37,32 +47,39 @@ has_multiple_downstreams = (
 )
 
 # Create networks from all terminal nodes (no downstream nodes) up to origins or dams (but not including dam segments)
-# root_ids = join_df.loc[join_df.downstream == 0].upstream
-# for start_id in root_ids:
-#     print("Calculating upstream network: {}".format(start_id))
-#     network = calculate_upstream_network(
-#         start_id, get_upstream_ids, has_multiple_downstreams, stop_segments=set(dam_segments)
-#     )
+root_ids = join_df.loc[join_df.downstream == 0].upstream
+for start_id in root_ids:
+    print("Calculating upstream network: {}".format(start_id))
+    network = calculate_upstream_network(
+        start_id,
+        get_upstream_ids,
+        has_multiple_downstreams,
+        stop_segments=barrier_segments.copy(),
+    )
 
-#     df.loc[df.index.isin(network), "networkID"] = start_id
-#     print("network has {} segments".format(len(network)))
+    rows = df.index.isin(network)
+    df.loc[rows, "networkID"] = start_id
+    df.loc[rows, "networkType"] = 0
 
-# Create networks UPSTREAM of dam_segments
-# dam_upstream_ids = join_df.loc[join_df.downstream.isin(dam_segments)].upstream
-for start_id in dam_segments:
+    print("nonbarrier upstream network has {} segments".format(len(network)))
+
+# Create networks UPSTREAM of barrier_segments
+for start_id in barrier_segments:
     # print("Calculating network upstream of dam: {}".format(start_id))
     network = calculate_upstream_network(
         start_id,
         get_upstream_ids,
         has_multiple_downstreams,
-        stop_segments=set(dam_segments),
+        stop_segments=barrier_segments.copy(),
     )
 
     # remove the dam segment itself from the network but preserve full upstream network
     network.pop(0)
 
-    df.loc[df.index.isin(network), "networkID"] = start_id
-    # print("network has {} segments".format(len(network)))
+    rows = df.index.isin(network)
+    df.loc[rows, "networkID"] = start_id
+    df.loc[rows, "networkType"] = 0
+    print("barrier upstream network has {} segments".format(len(network)))
 
 
 network_df = df.loc[~df.networkID.isnull(), ["networkID"]].astype("uint64")
