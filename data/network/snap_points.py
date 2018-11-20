@@ -111,6 +111,7 @@ dams.to_csv(
     "data/src/tmp/{}/snapped_dams.csv".format(HUC4),
     index_label="id",
     columns=[
+        "UniqueID",
         "snap_x",
         "snap_y",
         "snap_dist",
