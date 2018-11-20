@@ -52,89 +52,105 @@ new_flowlines = gp.GeoDataFrame(columns=df.columns, crs=df.crs, geometry="geomet
 df = df.loc[df.index.isin(barriers.NHDPlusID.unique())].copy()
 
 for idx, row in df.iterrows():
-    break
+    print("-----------------------\n\nNHDPlusID", idx)
+    # break
 
-# Find upstream and downstream segments
-upstream_ids = join_df.loc[join_df.downstream == row.NHDPlusID]
-downstream_ids = join_df.loc[join_df.upstream == row.NHDPlusID]
+    # Find upstream and downstream segments
+    upstream_ids = join_df.loc[join_df.downstream == row.NHDPlusID]
+    downstream_ids = join_df.loc[join_df.upstream == row.NHDPlusID]
 
+    # FIXME: this approach only works if the next upstream segment DOES NOT have barriers
+    # segment_upstream_networkID = row.NHDPlusID
+    # based on how we defined networks, the upstream network upstream
+    # of this segment is always given the NHDPlusID of this segment
 
-# FIXME: this approach only works if the next upstream segment DOES NOT have barriers
-# segment_upstream_networkID = row.NHDPlusID
-# based on how we defined networks, the upstream network upstream
-# of this segment is always given the NHDPlusID of this segment
+    # FIXME: this approach only works if the next downstream segment DOES NOT have barriers
 
-# FIXME: this approach only works if the next downstream segment DOES NOT have barriers
+    # segment_downstream_networkID # TODO
+    # barriers.loc[barriers.NHDPlusID == downstream_segment]
 
-# segment_downstream_networkID # TODO
-# barriers.loc[barriers.NHDPlusID == downstream_segment]
+    line = row.geometry
+    length = line.length
 
+    # Barriers on this line
+    points = barriers.loc[barriers.NHDPlusID == idx].copy()
+    print("barriers", points[["dam", "waterfall"]])
 
-line = row.geometry
-length = line.length
+    # ordinate the barriers by their projected distance on the line
+    points["linepos"] = points.geometry.apply(lambda p: line.project(p))
+    points.sort_values("linepos", inplace=True)
 
-# Barriers on this line
-points = barriers.loc[barriers.NHDPlusID == idx].copy()
+    # NOTE: lines start at their DOWNSTREAM end
 
-# ordinate the barriers by their projected distance on the line
-points["linepos"] = points.geometry.apply(lambda p: line.project(p))
-points.sort_values("linepos", inplace=True)
+    # set first point upstream
 
-# set first point upstream
+    start_points = points.loc[points.linepos <= 0]
+    end_points = points.loc[points.linepos >= length]
+    print("has start points?", len(start_points) > 0)
+    print("has end points?", len(end_points) > 0)
 
+    # by definition, splits must occur after the first coordinate in the line and before the last coordinate
+    split_points = points.loc[(points.linepos > 0) & (points.linepos < length)]
+    # split_points = points.loc[~(start_points | end_points)]
+    print("line len: {}".format(length))
+    print("splits", split_points[["linepos"]])
 
-start_points = points.loc[points.linepos == 0]
-end_points = points.loc[points.linepos == length]
+    if len(split_points):
+        segments = []
+        remainder = line
+        counter = 1
+        prev_pt_idx = None
+        for pt_idx, split_point in split_points.iterrows():
+            is_dam = not pd.isnull(split_point.dam)
+            segment, remainder = cut_line(remainder, split_point.geometry)
+            segment_id = generate_id(row.NHDPlusID, counter)
+            segments.append([segment_id, segment])
+            print("new segment id: {}".format(segment_id))
+            counter += 1
 
-# by definition, splits must occur after the first coordinate in the line and before the last coordinate
-split_points = points.loc[(points.linepos) > 0 & (points.linepos < length)]
+        # add the last segment
+        segments.append([generate_id(row.NHDPlusID, counter), remainder])
 
-if len(split_points):
-    new_segments = []
-    remainder = line
-    counter = 1
-    prev_pt_idx = None
-    for pt_idx, split_point in split_points.iterrows():
-        is_dam = not pd.isnull(split_point.dam)
-        segment, remainder = cut_line(remainder, split_point.geometry)
-        segment_id = generate_id(row.NHDPlusID, counter)
-        new_segments.append(segment_id)
-        print("new segment id: {}".format(segment_id))
-        counter += 1
+        for segment_id, segment in segments:
+            new_flowlines.loc[segment_id, "SplitID"] = segment_id
+            new_flowlines.loc[segment_id, "geometry"] = segment
+            new_flowlines.loc[segment_id, "length"] = segment.length
+            new_flowlines.loc[segment_id, "sinuosity"] = calculate_sinuosity(segment)
 
-        new_flowlines.loc[segment_id, "SplitID"] = segment_id
-        new_flowlines.loc[segment_id, "geometry"] = segment
-        new_flowlines.loc[segment_id, "length"] = segment.length
-        new_flowlines.loc[segment_id, "sinuosity"] = calculate_sinuosity(segment)
+            # add barrier info
+            new_flowlines.loc[segment_id, "barrier_id"] = (
+                split_point.dam if is_dam else split_point.waterfall
+            )
+            new_flowlines.loc[segment_id, "barrier_type"] = (
+                "dam" if is_dam else "waterfall"
+            )
 
-        # add barrier info
-        new_flowlines.loc[segment_id, "barrier_id"] = (
-            split_point.dam if is_dam else split_point.waterfall
-        )
-        new_flowlines.loc[segment_id, "barrier_type"] = "dam" if is_dam else "waterfall"
+            # copy all other cols across
+            for column in set(df.columns).difference(
+                {"geometry", "length", "sinuosity"}
+            ):
+                new_flowlines.loc[segment_id, column] = row[column]
 
-        # copy all other cols across
-        for column in set(df.columns).difference({"geometry", "length", "sinuosity"}):
-            new_flowlines.loc[segment_id, column] = row[column]
+            # update the barriers to track upstream / downstram segments.  NOT YET COMPLETE!!
+            barriers.loc[pt_idx, "upstream_seg"] = segment_id
+            if prev_pt_idx is not None:
+                barriers.loc[prev_pt_idx, "downstream_seg"] = segment_id
+            prev_pt_idx = pt_idx
 
-        # update the barriers to track upstream / downstram segments.  NOT YET COMPLETE!!
-        barriers.loc[pt_idx, "upstream_seg"] = segment_id
-        if prev_pt_idx is not None:
-            barriers.loc[prev_pt_idx, "downstream_seg"] = segment_id
-        prev_pt_idx = pt_idx
+        # update upstream nodes to set first segment as their new downstream
+        join_df.loc[upstream_ids.index, "downstream"] = segments[0][0]
 
-    # update upstream nodes to set first segment as their new downstream
-    join_df.loc[upstream_ids.index, "downstream"] = new_segments[0]
+        # update downstream nodes to set last segment as their new upstream
+        join_df.loc[downstream_ids.index, "upstream"] = segments[-1][0]
 
-    # update downstream nodes to set last segment as their new upstream
-    join_df.loc[downstream_ids.index, "upstream"] = new_segments[-1]
+        # add joins for everything after first
+        # print("new segments", segments)
+        new_joins = []
+        for i, (segment_id, _) in enumerate(segments[1:]):
+            new_joins.append({"upstream": segments[i][0], "downstream": segment_id})
 
-    # add joins for everything after first
-    new_joins = []
-    for i, segment_id in enumerate(new_segments):
-        new_joins.append({"upstream": new_segments[i], "downstream": segment_id})
-
-    join_df = join_df.append(new_joins, ignore_index=True)
+        # print("adding new joins", new_joins)
+        join_df = join_df.append(new_joins, ignore_index=True)
 
 
 # serialize data to make sure we are on the right track
@@ -143,6 +159,8 @@ join_df.to_csv("updated_joins.csv", index=False)
 # new_flowines.barrier_id = new_flowines.barrier_id.astype("int")
 new_flowlines.to_file("split_flowlines.shp", driver="ESRI Shapefile")
 new_flowlines.drop(columns=["geometry"]).to_csv("split_flowlines.csv", index_label="id")
+
+barriers.to_file("barriers.shp", driver="ESRI Shapefile")
 
 print("Done in {:.2f}".format(time() - start))
 
