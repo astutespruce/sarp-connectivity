@@ -1,3 +1,4 @@
+import pandas as pd
 from shapely.geometry import Point, LineString, MultiLineString
 
 
@@ -100,3 +101,66 @@ def cut_line(line, point):
                 LineString(coords[:i] + [(cp.x, cp.y)]),
                 LineString([(cp.x, cp.y)] + coords[i:]),
             ]
+
+
+def snap_to_line(
+    points, lines, tolerance=100, prefer_endpoints=False, line_columns=None
+):
+    def snap(record):
+        point = record.geometry
+        x, y = point.coords[0]
+
+        # Search window
+        window = (x - tolerance, y - tolerance, x + tolerance, y + tolerance)
+
+        # find nearby features
+        hits = lines.loc[sindex.intersection(window)].copy()
+        # hits = get_line_by_window(window)
+
+        # calculate distance to point and
+        hits["dist"] = hits.distance(point)
+        within_tolerance = hits[hits.dist <= tolerance]
+
+        if len(within_tolerance):
+            # find nearest line segment that is within tolerance
+            closest = within_tolerance.nsmallest(1, columns=["dist"])
+
+            # calculate the snapped coordinate as a point on the nearest line
+            closest["snapped"] = closest.geometry.apply(
+                lambda g: g.interpolate(g.project(point))
+            )
+
+            # TODO: if prefer_endpoints
+
+            # Select first record
+            closest = closest.iloc[0]
+
+            columns = ["snap_x", "snap_y", "snap_dist", "nearby"]
+            values = [
+                closest.snapped.x,
+                closest.snapped.y,
+                closest.dist,
+                len(within_tolerance),
+            ]
+
+            # Copy attributes from line to point
+            if line_columns:
+                columns.extend(line_columns)
+                values.extend([closest[c] for c in line_columns])
+
+            return pd.Series(values, index=columns)
+
+    print("creating spatial index on lines")
+    sindex = lines.sindex
+
+    # TODO: make into a partial function
+
+    print("snapping {} points".format(len(points)))
+
+    return points.apply(snap, axis=1)
+
+    # for idx, record in points.iterrows():
+
+    # print("out\n", out, "---------------------------------")
+
+    # return out

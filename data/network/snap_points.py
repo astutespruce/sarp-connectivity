@@ -20,10 +20,23 @@ import pandas as pd
 from shapely.geometry import Point
 import rtree
 
+from line_utils import snap_to_line
 
 CRS = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
 TOLERANCE = 200  # meters  FIXME: should be 100m
 WF_TOLERANCE = 100  # meters - tolerance for waterfalls
+
+DAM_COLS = [
+    "id",
+    "UniqueID",
+    "Barrier_Name",
+    "River",
+    "Off_Network",
+    "HUC4",
+    "lat",
+    "lon",
+]
+
 
 HUC4 = "0602"
 
@@ -34,21 +47,15 @@ flowlines = gp.read_file("data/src/tmp/{}/flowline.shp".format(HUC4))
 # flowlines.NHDPlusID = flowlines.NHDPlusID.astype("uint64")
 
 # create spatial index
-print("creating spatial index on flowlines")
-sindex = flowlines.sindex
+# print("creating spatial index on flowlines")
+# sindex = flowlines.sindex
 
 ############# Snap dams ################
 print("Importing dams")
-dams = pd.read_csv("data/src/dams.csv", dtype={"HUC4": str})
-
-# Select out only the fields we need
-dams = dams[
-    ["id", "UniqueID", "Barrier_Name", "River", "Off_Network", "HUC4", "lat", "lon"]
-]
+dams = pd.read_csv("data/src/dams.csv", dtype={"HUC4": str})[DAM_COLS]
 
 # Select out only the dams in this HUC
 dams = dams.loc[dams.HUC4 == HUC4].copy()  # TODO: do this after reprojecting
-
 
 # Filter out any known to be off network
 # TODO: this might not be right
@@ -63,49 +70,15 @@ dams = (
     .set_index("id")
 )
 
-# Create a window that is +/- tolerance
-dams["window"] = dams.geometry.apply(
-    lambda g: (g.x - TOLERANCE, g.y - TOLERANCE, g.x + TOLERANCE, g.y + TOLERANCE)
+snapped = snap_to_line(
+    dams,
+    flowlines,
+    TOLERANCE,
+    prefer_endpoints=True,
+    line_columns=["NHDPlusID", "GNIS_Name"],
 )
 
-print("snapping points to lines")
-for idx, dam in dams.iterrows():
-    # print(idx)
-
-    # nearby features
-    hits = flowlines.loc[sindex.intersection(dam.window)].copy()
-
-    # calculate distance to point and
-    hits["dist"] = hits.distance(dam.geometry)
-    within_tolerance = hits[hits.dist <= TOLERANCE]
-
-    if len(within_tolerance):
-        # find nearest line segment that is within TOLERANCE
-        closest = within_tolerance.nsmallest(1, columns=["dist"])
-
-        # calculate the snapped coordinate
-        closest["snapped"] = closest.geometry.apply(
-            lambda g: g.interpolate(g.project(dam.geometry))
-        )
-        # closest = gp.GeoDataFrame(closest, geometry=closest.snapped, crs=closest.crs)
-
-        # Project to WGS84 and grab first record
-        # closest = (
-        #     gp.GeoDataFrame(closest, geometry=closest.snapped, crs=closest.crs)
-        #     .to_crs({"init": "EPSG:4326"})
-        # )
-
-        # Select first record
-        closest = closest.iloc[0]
-        dams.loc[idx, "snap_x"] = closest.snapped.x
-        dams.loc[idx, "snap_y"] = closest.snapped.y
-        dams.loc[idx, "snap_dist"] = closest.dist
-        dams.loc[idx, "num_within_tolerance"] = len(within_tolerance)
-
-        # Copy attributes from NHD to dam
-        for column in ("NHDPlusID", "GNIS_Name"):
-            dams.loc[idx, column] = closest[column]
-
+dams = dams.join(snapped)
 
 dams.to_csv(
     "data/src/tmp/{}/snapped_dams.csv".format(HUC4),
@@ -115,7 +88,7 @@ dams.to_csv(
         "snap_x",
         "snap_y",
         "snap_dist",
-        "num_within_tolerance",
+        "nearby",
         "NHDPlusID",
         "GNIS_Name",
         "River",
@@ -126,6 +99,8 @@ dams.to_csv(
 
 print("Done in {:.2f}".format(time() - start))
 
+
+raise Exception("Foo")
 
 ############# Snap waterfalls ################
 
@@ -166,11 +141,6 @@ if len(wf):
             closest["snapped"] = closest.geometry.apply(
                 lambda g: g.interpolate(g.project(waterfall.geometry))
             )
-
-            # Project to WGS84 and grab first record
-            # closest = gp.GeoDataFrame(
-            #     closest, geometry=closest.snapped, crs=closest.crs
-            # ).to_crs({"init": "EPSG:4326"})
 
             # Select first record
             closest = closest.iloc[0]

@@ -22,6 +22,19 @@ from line_utils import to2D, calculate_sinuosity
 # Use USGS CONUS Albers (EPSG:102003): https://epsg.io/102003    (same as other SARP datasets)
 # use Proj4 syntax, since GeoPandas doesn't properly recognize it's EPSG Code.
 CRS = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
+FLOWLINE_COLS = [
+    "NHDPlusID",
+    "FlowDir",
+    "FType",
+    "FCode",
+    "GNIS_Name",
+    "ReachCode",
+    "geometry",
+]
+
+# TODO: add elevation gradient info
+VAA_COLS = ["NHDPlusID", "StreamOrde", "StreamCalc", "TotDASqKm"]
+
 
 # TODO: loop on this
 HUC4 = "0602"
@@ -37,38 +50,35 @@ if not os.path.exists(out_dir):
 # Read in data and convert to data frame (no need for geometry)
 start = time()
 print("Reading flowlines")
-df = gp.read_file(gdb, layer="NHDFlowline")[
-    ["NHDPlusID", "FlowDir", "FType", "FCode", "GNIS_Name", "ReachCode", "geometry"]
-]
-df.NHDPlusID = df.NHDPlusID.astype("uint64").astype("str")
+df = gp.read_file(gdb, layer="NHDFlowline")[FLOWLINE_COLS]
+# Set our internal master IDs to the original index of the file we start from
+# Assume that we can always fit into a uint32, which is ~400 million records
+# and probably bigger than anything we could ever read in
+# df["id"] = df.index.values.astype("uint32") + 1
+df["id"] = df.index + 1
+# Index on NHDPlusID for easy joins to other NHD data
+df.NHDPlusID = df.NHDPlusID.astype("uint64")
 df = df.set_index(["NHDPlusID"], drop=False)
 
-print("Read {} features".format(len(df)))
+print("Read {} flowlines".format(len(df)))
 
 # Read in VAA and convert to data frame
 # NOTE: not all records in Flowlines have corresponding records in VAA
-# TODO: add elevation gradient info and drainage area info, can do statistics on these later
 print("Reading VAA table and joining...")
-vaa_df = gp.read_file(gdb, layer="NHDPlusFlowlineVAA")[
-    ["NHDPlusID", "StreamOrde", "StreamCalc", "TotDASqKm"]
-]
-vaa_df.NHDPlusID = vaa_df.NHDPlusID.astype("uint64").astype("str")
+vaa_df = gp.read_file(gdb, layer="NHDPlusFlowlineVAA")[VAA_COLS]
+vaa_df.NHDPlusID = vaa_df.NHDPlusID.astype("uint64")
 vaa_df = vaa_df.set_index(["NHDPlusID"])
+df = df.join(vaa_df, how="inner")
+print("{} features after join to VAA".format(len(df)))
 
-df = df.join(vaa_df, how="inner")  # drop any segments where we don't have info
-print("{} features after join".format(len(df)))
-
-# Filter out loops (query came from Kat).  566 is coastlines type.
-print("Filtering out loops")
-# remove_segments = df.loc[(df.StreamOrde != df.StreamCalc) | (df.FlowDir.isnull()) | (df.FType == 566)]
+# Filter out loops (query came from Kat) and other segments we don't want.
+# 566 is coastlines type.
+print("Filtering out loops and coastlines")
 removed = df.loc[
     (df.StreamOrde != df.StreamCalc) | (df.FlowDir.isnull()) | (df.FType == 566)
 ]
-# df = df.loc[
-#     (df.StreamOrde == df.StreamCalc) & ~df.FlowDir.isnull() & (df.FType != 566)
-# ].copy()
 df = df.loc[~df.index.isin(removed.index)].copy()
-print("{} features after removing segments".format(len(df)))
+print("{} features after removing loops and coastlines".format(len(df)))
 
 # Calculate size classes
 print("Calculating size class")
@@ -80,7 +90,6 @@ df.loc[(drainage >= 518) & (drainage < 2590), "sizeclass"] = "3a"
 df.loc[(drainage >= 2590) & (drainage < 10000), "sizeclass"] = "3b"
 df.loc[(drainage >= 10000) & (drainage < 25000), "sizeclass"] = "4"
 df.loc[drainage >= 25000, "sizeclass"] = "5"
-
 
 # Convert incoming data from XYZM to XY
 print("Converting geometry to 2D")
@@ -98,6 +107,7 @@ df["sinuosity"] = df.geometry.apply(calculate_sinuosity).astype("float32")
 # Drop unneeded attributes to speed up I/O
 df = df[
     [
+        "id",
         "NHDPlusID",
         "FType",
         "FCode",
@@ -115,38 +125,44 @@ print("Writing flowlines to disk")
 df.to_file("{}/flowline.shp".format(out_dir), driver="ESRI Shapefile")
 df.drop(columns=["geometry"]).to_csv("{}/flowline.csv".format(out_dir), index=False)
 
-# Flow has the connections between segments
-# Upstream is the upstream side of the connection, which would actually correspond to the downstream node of the upstream segment
+############# Connections between segments ###################
 print("Reading segment connections")
 join_df = gp.read_file(gdb, layer="NHDPlusFlow")[["FromNHDPID", "ToNHDPID"]].rename(
     columns={"FromNHDPID": "upstream", "ToNHDPID": "downstream"}
 )
-join_df.upstream = join_df.upstream.astype("uint64").astype("str")
-join_df.downstream = join_df.downstream.astype("uint64").astype("str")
+join_df.upstream = join_df.upstream.astype("uint64")
+join_df.downstream = join_df.downstream.astype("uint64")
 
 # remove any joins to or from segments we removed above
 join_df = join_df.loc[
     ~(join_df.upstream.isin(removed.index) | join_df.downstream.isin(removed.index))
 ]
 
-# origins = join_df.loc[join_df.upstream == '0']
-# Some major rivers are coded as terminal segments - WHY???
-# terminals = join_df.loc[join_df.downstream == '0']
-
-# ID for which this HUC connects  to next one upstream
-# huc_us_joins = join_df.loc[~(join_df.upstream.isin(df.index) | (join_df.upstream == '0'))]
-# # This seems incomplete due to terminal segment coding above
-# huc_ds_joins = join_df.loc[~(join_df.downstream.isin(df.index) | (join_df.downstream == '0'))]
-
 # Any join that is not a terminal or origin that we don't have in our data at this point
 # is most likely a join between this HUC and the next
+# TODO: validate this idea
 huc_joins = join_df.loc[
-    (~(join_df.upstream.isin(df.index) | (join_df.upstream == "0")))
-    | (~(join_df.downstream.isin(df.index) | (join_df.downstream == "0")))
+    (~(join_df.upstream.isin(df.index) | (join_df.upstream == 0)))
+    | (~(join_df.downstream.isin(df.index) | (join_df.downstream == 0)))
 ]
+
+# origins = join_df.loc[join_df.upstream == 0]
+# Some major rivers are coded as terminal segments - WHY???
+# terminals = join_df.loc[join_df.downstream == 0]
+
 
 # Drop any of the joins outside of this HUC for purposes of building the network
 join_df = join_df.loc[~join_df.index.isin(huc_joins.index)]
+
+# update joins with our ids
+ids = df[["id"]]
+join_df = (
+    join_df.join(ids.rename(columns={"id": "upstream_id"}), on="upstream")
+    .join(ids.rename(columns={"id": "downstream_id"}), on="downstream")
+    .fillna(0)
+    .astype("uint64")
+)
+
 
 print("Writing segment connections")
 join_df.to_csv("{}/connections.csv".format(out_dir), index=False)
