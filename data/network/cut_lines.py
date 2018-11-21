@@ -1,3 +1,10 @@
+"""
+
+Note: line geometries always start from upstream end.
+
+"""
+
+
 import os
 from time import time
 
@@ -26,20 +33,24 @@ join_df = pd.read_csv("connections.csv")
 join_df.upstream = join_df.upstream.astype("str")
 join_df.downstream = join_df.downstream.astype("str")
 
-network_df = pd.read_csv("network.csv").set_index(["id"])
+updated_joins = join_df.copy()
+
+# network_df = pd.read_csv("network.csv").set_index(["id"])
 
 # Read in snapped dams and waterfalls, and merge them
 print("Reading snapped dams and waterfalls")
 dams = pd.read_csv("snapped_dams.csv")
 dams = dams.loc[~dams.NHDPlusID.isnull()].copy()
-dams["dam"] = dams.UniqueID
+dams["id"] = dams.UniqueID
+dams["kind"] = "dam"
 
 wf = pd.read_csv("snapped_waterfalls.csv")
 wf = wf.loc[~wf.NHDPlusID.isnull()].copy()
-wf["waterfall"] = "wf{}".format(wf.id)
+wf["id"] = wf.id.apply(lambda id: "wf{}".format(id))
+wf["kind"] = "waterfall"
 
-barriers = dams[["NHDPlusID", "dam", "snap_x", "snap_y"]].append(
-    wf[["NHDPlusID", "waterfall"]], ignore_index=True, sort=False
+barriers = dams[["NHDPlusID", "id", "kind", "snap_x", "snap_y"]].append(
+    wf[["NHDPlusID", "id", "kind", "snap_x", "snap_y"]], ignore_index=True, sort=False
 )
 barriers.NHDPlusID = barriers.NHDPlusID.astype("uint64").astype("str")
 geometry = [Point(xy) for xy in zip(barriers.snap_x, barriers.snap_y)]
@@ -48,180 +59,147 @@ barriers = gp.GeoDataFrame(barriers, geometry=geometry, crs=CRS)
 # create container for new geoms
 new_flowlines = gp.GeoDataFrame(columns=df.columns, crs=df.crs, geometry="geometry")
 
-# Union dam and natural barriers together, and select out associated segments
-df = df.loc[df.index.isin(barriers.NHDPlusID.unique())].copy()
+# create join table for barriers
+barrier_joins = []
 
-for idx, row in df.iterrows():
+# Loop ovder all segments that have barriers
+for idx, row in df.loc[df.index.isin(barriers.NHDPlusID.unique())].iterrows():
     print("-----------------------\n\nNHDPlusID", idx)
     # break
 
-    # Find upstream and downstream segments (exclude terminal segments)
+    # Find upstream and downstream segments
     upstream_ids = join_df.loc[join_df.downstream == row.NHDPlusID]
-    upstream_segments = upstream_ids.loc[upstream_ids.upstream != "0"]
     downstream_ids = join_df.loc[join_df.upstream == row.NHDPlusID]
-    downstream_segments = downstream_ids.loc[downstream_ids.downstream != "0"]
-
-    # Determine which direction this line segment is going
-    starts_downstream = True
-    if len(downstream_segments):
-        downstream = df.ix[downstream_segments.iloc[0].downstream]
-        if downstream.geometry.distance(Point(row.geometry.coords[0])) < 0.00001:
-            # first coordinate is closest to downstream geom
-            starts_downstream = True
-        else:
-            starts_downstream = False
-
-    elif len(upstream_segments):
-        upstream = df.ix[upstream_segments.iloc[0]].iloc[0]
-        if upstream.geometry.distance(Point(row.geometry.coords[0])) < 0.00001:
-            # first coordinate is closest to upstream geom
-            starts_downstream = False
-        else:
-            starts_downstream = True
-
-    else:
-        # there are no upstream or downstream segments, so we don't know.
-        print("NO IDEA OF COORDINATE DIRECTION ON LINE")
-
-    print("Line starts from downstream end?", starts_downstream)
-
-    # FIXME: this approach only works if the next upstream segment DOES NOT have barriers
-    # segment_upstream_networkID = row.NHDPlusID
-    # based on how we defined networks, the upstream network upstream
-    # of this segment is always given the NHDPlusID of this segment
-
-    # FIXME: this approach only works if the next downstream segment DOES NOT have barriers
-
-    # segment_downstream_networkID # TODO
-    # barriers.loc[barriers.NHDPlusID == downstream_segment]
 
     line = row.geometry
     length = line.length
 
     # Barriers on this line
     points = barriers.loc[barriers.NHDPlusID == idx].copy()
-    print("barriers", points[["dam", "waterfall"]])
+    print("barriers", points[["id", "kind"]])
 
     # ordinate the barriers by their projected distance on the line
+    # Reorder this so we are always moving from upstream end to downstream end
     points["linepos"] = points.geometry.apply(lambda p: line.project(p))
-    # Reorder this so we are always moving in the UPSTREAM direction
-    points.sort_values("linepos", inplace=True, ascending=starts_downstream)
+    points.sort_values("linepos", inplace=True, ascending=True)
 
     # If barriers are at the downstream-most point or upstream-most point
-    ds_points = points.loc[points.linepos <= 0]
-    us_points = points.loc[points.linepos >= length]
-    print("has downstream points?", len(ds_points) > 0)
-    print("has upstream points?", len(us_points) > 0)
+    us_points = points.loc[points.linepos <= 0]
+    ds_points = points.loc[points.linepos >= length]
 
     # by definition, splits must occur after the first coordinate in the line and before the last coordinate
     split_points = points.loc[(points.linepos > 0) & (points.linepos < length)]
-    print("line len: {}".format(length))
-    print("splits", split_points[["linepos"]])
+    # print("splits", split_points[["linepos"]])
 
+    segments = []
     if len(split_points):
-        segments = []
         remainder = line
         counter = 1
-        prev_pt_idx = None
-        # Iterate through the splits moving in the UPSTREAM direction
-        for pt_idx, split_point in split_points.iterrows():
-            is_dam = not pd.isnull(split_point.dam)
-            remainder, segment = cut_line(remainder, split_point.geometry)
+
+        # Iterate through the splits moving in the DOWNSTREAM direction
+        for _, barrier in split_points.iterrows():
+            segment, remainder = cut_line(remainder, barrier.geometry)
             segment_id = generate_id(row.NHDPlusID, counter)
-            segments.append([segment_id, segment])
-            print("new segment id: {}".format(segment_id))
+            segments.append([segment_id, segment, barrier])
             counter += 1
 
         # add the last segment
         remainder_id = generate_id(row.NHDPlusID, counter)
-        print("new segment id: {}".format(remainder_id))
-        segments.append([remainder_id, remainder])
+        segments.append([remainder_id, remainder, None])
 
-        for segment_id, segment in segments:
+        num_segments = len(segments)
+
+        for i, (segment_id, segment, barrier) in enumerate(segments):
             new_flowlines.loc[segment_id, "SplitID"] = segment_id
             new_flowlines.loc[segment_id, "geometry"] = segment
             new_flowlines.loc[segment_id, "length"] = segment.length
             new_flowlines.loc[segment_id, "sinuosity"] = calculate_sinuosity(segment)
-
-            # add barrier info
-            new_flowlines.loc[segment_id, "barrier_id"] = (
-                split_point.dam if is_dam else split_point.waterfall
-            )
-            new_flowlines.loc[segment_id, "barrier_type"] = (
-                "dam" if is_dam else "waterfall"
-            )
-
             # copy all other cols across
             for column in set(df.columns).difference(
                 {"geometry", "length", "sinuosity"}
             ):
                 new_flowlines.loc[segment_id, column] = row[column]
 
-            # update the barriers to track upstream / downstram segments.  NOT YET COMPLETE!!
-            barriers.loc[pt_idx, "downstream_seg"] = segment_id
-            if prev_pt_idx is not None:
-                barriers.loc[prev_pt_idx, "upstream_seg"] = segment_id
-            prev_pt_idx = pt_idx
+            # add barrier info - barrier is None for last segment
+            if barrier is not None:
+                new_flowlines.loc[segment_id, "barrier_id"] = barrier.id
+                new_flowlines.loc[segment_id, "barrier_type"] = barrier.kind
+
+                # Add segment info to the barriers join table
+                barrier_joins.append(
+                    {
+                        "NHDPlusID": idx,
+                        "id": barrier.id,
+                        "upstream": segment_id,
+                        "downstream": segments[i + 1][0],
+                    }
+                )
 
         # update upstream nodes to set first segment as their new downstream
-        join_df.loc[upstream_ids.index, "downstream"] = segments[0][0]
-
         # update downstream nodes to set last segment as their new upstream
-        join_df.loc[downstream_ids.index, "upstream"] = segments[-1][0]
+        updated_joins.loc[upstream_ids.index, "downstream"] = segments[0][0]
+        updated_joins.loc[downstream_ids.index, "upstream"] = segments[-1][0]
 
         # add joins for everything after first node
         new_joins = [
-            {"downstream": segments[i][0], "upstream": segment_id}
-            for i, (segment_id, _) in enumerate(segments[1:])
+            {"upstream": segments[i][0], "downstream": segment_id}
+            for i, (segment_id, _, _) in enumerate(segments[1:])
         ]
+        updated_joins = updated_joins.append(new_joins, ignore_index=True)
 
-        join_df = join_df.append(new_joins, ignore_index=True)
+    # Handle any points on the upstream or downstream end of line
+    if len(us_points):
+        # Create a record for each that has downstream set to the first segment if any, or
+        # NHDPlusID of this segment
+        # Do this for every upstream segment (if there are multiple upstream nodes)
+        downstream_id = segments[0] if segments else idx
+        for _, barrier in us_points.iterrows():
+            for _, upstream in upstream_ids.iterrows():
+                barrier_joins.append(
+                    {
+                        "NHDPlusID": idx,
+                        "id": barrier.id,
+                        "upstream": upstream.upstream,
+                        "downstream": downstream_id,
+                    }
+                )
 
-    break  # FIXME
+        raise NotImplementedError(
+            "barriers on upstream coordinate of segment not yet handled!"
+        )
+
+    if len(ds_points):
+        # Create a record for each that has upstream set to the last segment if any, or
+        # NHDPlusID of this segment
+        # Do this for every downstream segment (if there are multiple downstream nodes)
+        upstream_id = segments[-1] if segments else idx
+        for _, barrier in ds_points.iterrows():
+            for _, downstream in downstream_ids.iterrows():
+                barrier_joins.append(
+                    {
+                        "NHDPlusID": idx,
+                        "id": barrier.id,
+                        "upstream": upstream_id,
+                        "downstream": downstream.downstream,
+                    }
+                )
+
+        print("BREAK")
+        break
+
+    # break  # FIXME
 
 
-# serialize data to make sure we are on the right track
-join_df.to_csv("updated_joins.csv", index=False)
+barrier_joins = pd.DataFrame(
+    barrier_joins, columns=["NHDPlusID", "id", "upstream", "downstream"]
+)
+barrier_joins.to_csv("barrier_joins.csv", index=False)
 
-# new_flowines.barrier_id = new_flowines.barrier_id.astype("int")
+updated_joins.to_csv("updated_joins.csv", index=False)
+
 new_flowlines.to_file("split_flowlines.shp", driver="ESRI Shapefile")
 new_flowlines.drop(columns=["geometry"]).to_csv("split_flowlines.csv", index_label="id")
 
 # barriers.to_file("barriers.shp", driver="ESRI Shapefile")
 
 print("Done in {:.2f}".format(time() - start))
-
-# for each split segment, we want to know the id of the barrier so that we can add this as the upstream segment ID for that barrier
-# if there was a previous split, then we want that previous barrier and set this segment ID as the downstream segment for that barrier
-
-# if there is just one barrier, then we have 3 cases:
-# - no new segment: barrier is on last coordinate of line
-# - split segment into an upstream and downstream part
-
-
-# if there is more than one barrier
-
-
-# remaining = line
-# for pt_idx, point in points.iterrows():
-#     # TODO: if any barriers are very close to each other, snap them to the same coordinate
-
-#     if point.project <= 0:
-#         # = first coordinate on the line, so the upstream network is the upstream network of this segment
-
-#     elif point.project >= line.length:
-#         # last coordinate on the line, so the downstream network is the
-
-#     else:
-#         # TODO: do we have the upstream vs downstream directions correct here?
-#         # How do we know what direction they are going?
-#         upstream, downstream = split
-
-
-# Create a file cut_segments.csv
-# NHDPlusID, networkID, length, sinuosity, sizeclass
-
-# calculate network ID such that it is either the ID upstream of this segment (= this NHDplusID), the network dow
-
-
-# Create a file that has barrier and upstream and downstream network IDs
