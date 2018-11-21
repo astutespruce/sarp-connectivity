@@ -104,18 +104,48 @@ def cut_line(line, point):
 
 
 def snap_to_line(
-    points, lines, tolerance=100, prefer_endpoints=False, line_columns=None
+    points, lines, tolerance=100, prefer_endpoint=False, line_columns=None
 ):
+    """
+    Attempt to snap a line to the nearest line, within tolerance distance.
+
+    Points and lines must be in the same projection and must be in a planar (not geographic)
+    projection.
+
+    Parameters
+    ----------
+    points : GeoPandas.DataFrame
+        points to snap
+    lines : GeoPandas.DataFrame
+        lines to snap against 
+    tolerance : int, optional (default: 100)
+        maximum distance between line and point that can still be snapped
+    prefer_endpoint : bool, optional (default False)
+        if True, will try to match to the nearest endpoint on the nearest line
+        provided that the distance to that endpoint is less than tolerance
+    line_columns : [type], optional (default: None)
+        List of column names to copy from matching line to the point once snapped
+
+    Returns
+    -------
+    Pandas.DataFrame
+        output data frame containing: 
+        * snap_x
+        * snap_y
+        * snap_dist: distance between original point and snapped location
+        * nearby: number of nearby lines within tolerance
+        * is_endpoint: True if successfully snapped to endpoint
+    """
+
     def snap(record):
         point = record.geometry
-        x, y = point.coords[0]
+        x, y = point.coords[0][:2]
 
         # Search window
         window = (x - tolerance, y - tolerance, x + tolerance, y + tolerance)
 
         # find nearby features
         hits = lines.loc[sindex.intersection(window)].copy()
-        # hits = get_line_by_window(window)
 
         # calculate distance to point and
         hits["dist"] = hits.distance(point)
@@ -123,25 +153,29 @@ def snap_to_line(
 
         if len(within_tolerance):
             # find nearest line segment that is within tolerance
-            closest = within_tolerance.nsmallest(1, columns=["dist"])
+            closest = within_tolerance.nsmallest(1, columns=["dist"]).iloc[0]
+            line = closest.geometry
 
-            # calculate the snapped coordinate as a point on the nearest line
-            closest["snapped"] = closest.geometry.apply(
-                lambda g: g.interpolate(g.project(point))
-            )
+            dist = closest.dist
+            snapped = None
+            is_endpoint = False
+            if prefer_endpoint:
+                # snap to the nearest endpoint if it is within tolerance
+                endpoints = [
+                    (pt, point.distance(pt))
+                    for pt in (Point(line.coords[0]), Point(line.coords[-1]))
+                    if point.distance(pt) < tolerance
+                ]
+                endpoints = sorted(endpoints, key=lambda x: x[1])
+                if endpoints:
+                    snapped, dist = endpoints[0]
+                    is_endpoint = True
 
-            # TODO: if prefer_endpoints
+            if snapped is None:
+                snapped = line.interpolate(line.project(point))
 
-            # Select first record
-            closest = closest.iloc[0]
-
-            columns = ["snap_x", "snap_y", "snap_dist", "nearby"]
-            values = [
-                closest.snapped.x,
-                closest.snapped.y,
-                closest.dist,
-                len(within_tolerance),
-            ]
+            columns = ["snap_x", "snap_y", "snap_dist", "nearby", "is_endpoint"]
+            values = [snapped.x, snapped.y, dist, len(within_tolerance), is_endpoint]
 
             # Copy attributes from line to point
             if line_columns:

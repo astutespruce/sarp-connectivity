@@ -47,8 +47,8 @@ flowlines = gp.read_file("data/src/tmp/{}/flowline.shp".format(HUC4))
 # flowlines.NHDPlusID = flowlines.NHDPlusID.astype("uint64")
 
 # create spatial index
-# print("creating spatial index on flowlines")
-# sindex = flowlines.sindex
+print("creating spatial index on flowlines")
+sindex = flowlines.sindex
 
 ############# Snap dams ################
 print("Importing dams")
@@ -70,11 +70,13 @@ dams = (
     .set_index("id")
 )
 
+# dams = dams.head(10).copy()  # FIXME
+
 snapped = snap_to_line(
     dams,
     flowlines,
     TOLERANCE,
-    prefer_endpoints=True,
+    prefer_endpoint=True,
     line_columns=["NHDPlusID", "GNIS_Name"],
 )
 
@@ -89,6 +91,7 @@ dams.to_csv(
         "snap_y",
         "snap_dist",
         "nearby",
+        "is_endpoint",
         "NHDPlusID",
         "GNIS_Name",
         "River",
@@ -99,8 +102,6 @@ dams.to_csv(
 
 print("Done in {:.2f}".format(time() - start))
 
-
-raise Exception("Foo")
 
 ############# Snap waterfalls ################
 
@@ -113,75 +114,30 @@ wf["HUC4"] = wf.HUC_8.str[:4]
 wf = wf.loc[wf.HUC4 == HUC4].to_crs(CRS)
 
 if len(wf):
-
-    # Create a window that is +/- tolerance
-    wf["window"] = wf.geometry.apply(
-        lambda g: (
-            g.x - WF_TOLERANCE,
-            g.y - WF_TOLERANCE,
-            g.x + WF_TOLERANCE,
-            g.y + WF_TOLERANCE,
-        )
+    snapped = snap_to_line(
+        wf,
+        flowlines,
+        WF_TOLERANCE,
+        prefer_endpoint=True,
+        line_columns=["NHDPlusID", "GNIS_Name"],
     )
 
-    print("snapping points to lines")
-    for idx, waterfall in wf.iterrows():
-        # nearby features
-        hits = flowlines.loc[sindex.intersection(waterfall.window)].copy()
+    wf = wf.join(snapped)
 
-        # calculate distance to point and
-        hits["dist"] = hits.distance(waterfall.geometry)
-        within_tolerance = hits[hits.dist <= WF_TOLERANCE]
-
-        if len(within_tolerance):
-            # find nearest line segment that is within TOLERANCE
-            closest = within_tolerance.nsmallest(1, columns=["dist"])
-
-            # calculate the snapped coordinate
-            closest["snapped"] = closest.geometry.apply(
-                lambda g: g.interpolate(g.project(waterfall.geometry))
-            )
-
-            # Select first record
-            closest = closest.iloc[0]
-            wf.loc[idx, "snap_x"] = closest.snapped.x
-            wf.loc[idx, "snap_y"] = closest.snapped.y
-            wf.loc[idx, "snap_dist"] = closest.dist
-            wf.loc[idx, "num_within_tolerance"] = len(within_tolerance)
-
-            # Copy attributes from NHD to waterfall
-            for column in ("NHDPlusID", "GNIS_Name"):
-                wf.loc[idx, column] = closest[column]
-
-        wf.to_csv(
-            "data/src/tmp/{}/snapped_waterfalls.csv".format(HUC4),
-            index_label="id",
-            columns=[
-                "snap_x",
-                "snap_y",
-                "snap_dist",
-                "num_within_tolerance",
-                "NHDPlusID",
-                "Name",
-                "GNIS_Name",
-            ],
-        )
-
-        # Write shapefile
-        # wf = wf[
-        #     [
-        #         "snap_x",
-        #         "snap_y",
-        #         "snap_dist",
-        #         "num_within_tolerance",
-        #         "NHDPlusID",
-        #         "Name",
-        #         "GNIS_Name",
-        #         "geometry",
-        #     ]
-        # ].copy()
-        # wf.NHDPlusID = wf.NHDPlusID.astype("float64")
-        # wf.to_file("data/src/tmp/{}/snapped_waterfalls.shp".format(HUC4))
+    wf.to_csv(
+        "data/src/tmp/{}/snapped_waterfalls.csv".format(HUC4),
+        index_label="id",
+        columns=[
+            "snap_x",
+            "snap_y",
+            "snap_dist",
+            "nearby",
+            "is_endpoint",
+            "NHDPlusID",
+            "Name",
+            "GNIS_Name",
+        ],
+    )
 
 print("Done in {:.2f}".format(time() - start))
 
