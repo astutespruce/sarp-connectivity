@@ -40,18 +40,19 @@ print("Reading flowlines")
 df = gp.read_file(gdb, layer="NHDFlowline")[
     ["NHDPlusID", "FlowDir", "FType", "FCode", "GNIS_Name", "ReachCode", "geometry"]
 ]
-df["id"] = df.NHDPlusID.astype("uint64")
-df = df.set_index(["id"])
+df.NHDPlusID = df.NHDPlusID.astype("uint64").astype("str")
+df = df.set_index(["NHDPlusID"], drop=False)
 
 print("Read {} features".format(len(df)))
 
 # Read in VAA and convert to data frame
 # NOTE: not all records in Flowlines have corresponding records in VAA
+# TODO: add elevation gradient info and drainage area info, can do statistics on these later
 print("Reading VAA table and joining...")
 vaa_df = gp.read_file(gdb, layer="NHDPlusFlowlineVAA")[
     ["NHDPlusID", "StreamOrde", "StreamCalc", "TotDASqKm"]
 ]
-vaa_df.NHDPlusID = vaa_df.NHDPlusID.astype("uint64")
+vaa_df.NHDPlusID = vaa_df.NHDPlusID.astype("uint64").astype("str")
 vaa_df = vaa_df.set_index(["NHDPlusID"])
 
 df = df.join(vaa_df, how="inner")  # drop any segments where we don't have info
@@ -59,10 +60,15 @@ print("{} features after join".format(len(df)))
 
 # Filter out loops (query came from Kat).  566 is coastlines type.
 print("Filtering out loops")
-df = df.loc[
-    (df.StreamOrde == df.StreamCalc) & ~df.FlowDir.isnull() & (df.FType != 566)
-].copy()
-print("{} features after join".format(len(df)))
+# remove_segments = df.loc[(df.StreamOrde != df.StreamCalc) | (df.FlowDir.isnull()) | (df.FType == 566)]
+removed = df.loc[
+    (df.StreamOrde != df.StreamCalc) | (df.FlowDir.isnull()) | (df.FType == 566)
+]
+# df = df.loc[
+#     (df.StreamOrde == df.StreamCalc) & ~df.FlowDir.isnull() & (df.FType != 566)
+# ].copy()
+df = df.loc[~df.index.isin(removed.index)].copy()
+print("{} features after removing segments".format(len(df)))
 
 # Calculate size classes
 print("Calculating size class")
@@ -107,9 +113,7 @@ df = df[
 # Write to shapefile and CSV for easier processing later
 print("Writing flowlines to disk")
 df.to_file("{}/flowline.shp".format(out_dir), driver="ESRI Shapefile")
-df.drop(columns=["geometry"]).to_csv(
-    "{}/flowline.csv".format(out_dir), index_label="id"
-)
+df.drop(columns=["geometry"]).to_csv("{}/flowline.csv".format(out_dir), index=False)
 
 # Flow has the connections between segments
 # Upstream is the upstream side of the connection, which would actually correspond to the downstream node of the upstream segment
@@ -117,10 +121,36 @@ print("Reading segment connections")
 join_df = gp.read_file(gdb, layer="NHDPlusFlow")[["FromNHDPID", "ToNHDPID"]].rename(
     columns={"FromNHDPID": "upstream", "ToNHDPID": "downstream"}
 )
-join_df.upstream = join_df.upstream.astype("uint64")
-join_df.downstream = join_df.downstream.astype("uint64")
+join_df.upstream = join_df.upstream.astype("uint64").astype("str")
+join_df.downstream = join_df.downstream.astype("uint64").astype("str")
+
+# remove any joins to or from segments we removed above
+join_df = join_df.loc[
+    ~(join_df.upstream.isin(removed.index) | join_df.downstream.isin(removed.index))
+]
+
+# origins = join_df.loc[join_df.upstream == '0']
+# Some major rivers are coded as terminal segments - WHY???
+# terminals = join_df.loc[join_df.downstream == '0']
+
+# ID for which this HUC connects  to next one upstream
+# huc_us_joins = join_df.loc[~(join_df.upstream.isin(df.index) | (join_df.upstream == '0'))]
+# # This seems incomplete due to terminal segment coding above
+# huc_ds_joins = join_df.loc[~(join_df.downstream.isin(df.index) | (join_df.downstream == '0'))]
+
+# Any join that is not a terminal or origin that we don't have in our data at this point
+# is most likely a join between this HUC and the next
+huc_joins = join_df.loc[
+    (~(join_df.upstream.isin(df.index) | (join_df.upstream == "0")))
+    | (~(join_df.downstream.isin(df.index) | (join_df.downstream == "0")))
+]
+
+# Drop any of the joins outside of this HUC for purposes of building the network
+join_df = join_df.loc[~join_df.index.isin(huc_joins.index)]
 
 print("Writing segment connections")
 join_df.to_csv("{}/connections.csv".format(out_dir), index=False)
+huc_joins.to_csv("{}/huc_joins.csv".format(out_dir), index=False)
+
 
 print("Done in {:.2f}".format(time() - start))

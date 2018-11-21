@@ -31,7 +31,7 @@ start = time()
 
 print("reading flowlines")
 flowlines = gp.read_file("data/src/tmp/{}/flowline.shp".format(HUC4))
-flowlines.NHDPlusID = flowlines.NHDPlusID.astype("uint64")
+# flowlines.NHDPlusID = flowlines.NHDPlusID.astype("uint64")
 
 # create spatial index
 print("creating spatial index on flowlines")

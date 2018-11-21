@@ -25,28 +25,22 @@ os.chdir(data_dir)
 start = time()
 
 print("Reading flowline data")
-df = gp.read_file("flowline.shp")
-df.NHDPlusID = df.NHDPlusID.astype("uint64").astype("str")
-df.set_index(["NHDPlusID"], inplace=True, drop=False)
-# df["remove"] = False
+df = gp.read_file("flowline.shp").set_index(["NHDPlusID"], drop=False)
+print("{} original segments".format(len(df)))
 
-join_df = pd.read_csv("connections.csv")
-join_df.upstream = join_df.upstream.astype("str")
-join_df.downstream = join_df.downstream.astype("str")
 
+join_df = pd.read_csv("connections.csv", dtype={"upstream": str, "downstream": str})
 updated_joins = join_df.copy()
-
-# network_df = pd.read_csv("network.csv").set_index(["id"])
 
 # Read in snapped dams and waterfalls, and merge them
 # TODO: merge them before getting here
 print("Reading snapped dams and waterfalls")
-dams = pd.read_csv("snapped_dams.csv")
+dams = pd.read_csv("snapped_dams.csv", dtype={"NHDPlusID": str})
 dams = dams.loc[~dams.NHDPlusID.isnull()].copy()
 dams["id"] = dams.UniqueID
 dams["kind"] = "dam"
 
-wf = pd.read_csv("snapped_waterfalls.csv")
+wf = pd.read_csv("snapped_waterfalls.csv", dtype={"NHDPlusID": str})
 wf = wf.loc[~wf.NHDPlusID.isnull()].copy()
 wf["id"] = wf.id.apply(lambda id: "wf{}".format(id))
 wf["kind"] = "waterfall"
@@ -54,7 +48,7 @@ wf["kind"] = "waterfall"
 barriers = dams[["NHDPlusID", "id", "kind", "snap_x", "snap_y"]].append(
     wf[["NHDPlusID", "id", "kind", "snap_x", "snap_y"]], ignore_index=True, sort=False
 )
-barriers.NHDPlusID = barriers.NHDPlusID.astype("uint64").astype("str")
+# barriers.NHDPlusID = barriers.NHDPlusID.astype("uint64").astype("str")
 geometry = [Point(xy) for xy in zip(barriers.snap_x, barriers.snap_y)]
 barriers = gp.GeoDataFrame(barriers, geometry=geometry, crs=CRS)
 
