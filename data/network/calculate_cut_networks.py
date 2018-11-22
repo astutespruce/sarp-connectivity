@@ -53,7 +53,7 @@ for start_id in root_ids:
 
     rows = flowlines.index.isin(network)
     flowlines.loc[rows, "networkID"] = start_id
-    flowlines.loc[rows, "networkType"] = 0
+    flowlines.loc[rows, "networkType"] = "origin_upstream"
 
     print("nonbarrier upstream network has {} segments".format(len(network)))
 
@@ -73,14 +73,16 @@ for start_id in barrier_segments:
 
     rows = flowlines.index.isin(network)
     flowlines.loc[rows, "networkID"] = start_id
-    flowlines.loc[rows, "networkType"] = 1
+    flowlines.loc[rows, "networkType"] = "barrier_upstream"
     print("barrier upstream network has {} segments".format(len(network)))
 
 
 # drop anything that didn't get assigned a network
 network_df = flowlines.loc[~flowlines.networkID.isnull()].copy()
+
+print("Created {} networks".format(len(network_df.networkID.unique())))
+
 network_df.networkID = network_df.networkID.astype("uint32")
-network_df.networkType = network_df.networkType.astype("uint8")
 network_df.to_csv("split_network.csv", index=False)
 print("Network traversal done in {:.2f}".format(time() - start))
 
