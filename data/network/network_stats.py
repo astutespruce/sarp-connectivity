@@ -3,6 +3,7 @@ from time import time
 
 import geopandas as gp
 import pandas as pd
+from shapely.geometry import MultiLineString
 
 HUC4 = "0602"
 data_dir = "data/src/tmp/{}".format(HUC4)
@@ -46,5 +47,41 @@ stats_df["miles"] = stats_df.meters * 0.000621371
 stats_df.to_csv(
     "network_stats.csv", columns=["km", "miles", "sinuosity"], index_label="networkID"
 )
+
+print("Done in {:.2f}".format(time() - start))
+
+
+# Dissolve networks on networkID
+start = time()
+print("Aggregating flowlines to network geometries")
+flowlines = gp.read_file("split_network.shp").set_index("networkID", drop=False)
+flowlines = flowlines[["networkID", "geometry"]].join(stats_df)
+
+network_ids = stats_df.index
+# ['networkID', 'geometry', 'km', 'miles', 'sinuosity']
+networks = gp.GeoDataFrame(
+    columns=flowlines.columns, geometry="geometry", crs=flowlines.crs
+)
+
+copy_cols = list(set(flowlines.columns).difference({"networkID", "geometry"}))
+print("copy cols", copy_cols)
+
+# join in network stats
+for id in network_ids:
+    stats = stats_df.loc[id]
+
+    geometries = flowlines.loc[id].geometry
+    # converting to list is very inefficient but otherwise
+    # we get an error in shapely internals
+    if isinstance(geometries, gp.GeoSeries):
+        geometry = MultiLineString(geometries.values.tolist())
+    else:
+        geometry = MultiLineString([geometries])
+
+    columns = ["networkID", "geometry"] + copy_cols
+    values = [id, geometry] + [stats[c] for c in copy_cols]
+    networks.loc[id] = gp.GeoSeries(values, index=columns)
+
+networks.to_file("network_dissolve.shp", driver="ESRI Shapefile")
 
 print("Done in {:.2f}".format(time() - start))
