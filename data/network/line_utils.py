@@ -1,4 +1,5 @@
 import pandas as pd
+import geopandas as gp
 from shapely.geometry import Point, LineString, MultiLineString
 
 
@@ -69,38 +70,6 @@ def calculate_sinuosity(geometry):
         return max(line.length / straight_line_distance, 1)
 
     return 1  # if there is no straight line distance, there is no sinuosity
-
-
-def cut_line(line, point):
-    """
-    Cut line at a point on the line.
-    modified from: https://shapely.readthedocs.io/en/stable/manual.html#splitting
-
-    Parameters
-    ----------
-    line : shapely.LineString
-    point : shapely.Point
-    
-    Returns
-    -------
-    list of LineStrings
-    """
-
-    distance = line.project(point)
-    if distance <= 0.0 or distance >= line.length:
-        return [LineString(line)]
-
-    coords = list(line.coords)
-    for i, p in enumerate(coords):
-        pd = line.project(Point(p))
-        if pd == distance:
-            return [LineString(coords[: i + 1]), LineString(coords[i:])]
-        if pd > distance:
-            cp = line.interpolate(distance)
-            return [
-                LineString(coords[:i] + [(cp.x, cp.y)]),
-                LineString([(cp.x, cp.y)] + coords[i:]),
-            ]
 
 
 def snap_to_line(
@@ -193,8 +162,62 @@ def snap_to_line(
 
     return points.apply(snap, axis=1)
 
-    # for idx, record in points.iterrows():
 
-    # print("out\n", out, "---------------------------------")
+def cut_line_at_point(line, point):
+    """
+    Cut line at a point on the line.
+    modified from: https://shapely.readthedocs.io/en/stable/manual.html#splitting
 
-    # return out
+    Parameters
+    ----------
+    line : shapely.LineString
+    point : shapely.Point
+    
+    Returns
+    -------
+    list of LineStrings
+    """
+
+    distance = line.project(point)
+    if distance <= 0.0 or distance >= line.length:
+        return [LineString(line)]
+
+    coords = list(line.coords)
+    for i, p in enumerate(coords):
+        pd = line.project(Point(p))
+        if pd == distance:
+            return [LineString(coords[: i + 1]), LineString(coords[i:])]
+        if pd > distance:
+            cp = line.interpolate(distance)
+            return [
+                LineString(coords[:i] + [(cp.x, cp.y)]),
+                LineString([(cp.x, cp.y)] + coords[i:]),
+            ]
+
+
+def cut_line_at_points(line, points):
+    """
+    Cut a line geometry by multiple points.
+    
+    Parameters
+    ----------
+    line : shapely.LineString
+    points : iterable of shapely.Point objects.  
+        Must be ordered from the start of the line to the end.
+       
+    
+    Returns
+    -------
+    list of shapely.LineString containing new segments
+    """
+
+    segments = []
+    remainder = line
+
+    for point in points:
+        segment, remainder = cut_line_at_point(remainder, point)
+        segments.append(segment)
+
+    segments.append(remainder)
+
+    return segments

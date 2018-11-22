@@ -9,6 +9,8 @@ So an alternative method needs to be worked out for those.
 
 TODO: add lat and lon snapped coords too
 
+Note: early attempts at snapping to end line produced undesirable results
+
 """
 
 
@@ -44,7 +46,7 @@ start = time()
 
 print("reading flowlines")
 flowlines = gp.read_file("data/src/tmp/{}/flowline.shp".format(HUC4))
-# flowlines.NHDPlusID = flowlines.NHDPlusID.astype("uint64")
+flowlines.NHDPlusID = flowlines.NHDPlusID.astype("uint64")
 
 # create spatial index
 print("creating spatial index on flowlines")
@@ -69,15 +71,15 @@ dams = (
     .to_crs(CRS)
     .set_index("id")
 )
-
+dams["joinID"] = dams.UniqueID
 # dams = dams.head(10).copy()  # FIXME
 
 snapped = snap_to_line(
     dams,
     flowlines,
     TOLERANCE,
-    prefer_endpoint=True,
-    line_columns=["NHDPlusID", "GNIS_Name"],
+    prefer_endpoint=False,
+    line_columns=["lineID", "NHDPlusID", "GNIS_Name"],
 )
 
 dams = dams.join(snapped)
@@ -91,7 +93,8 @@ dams.to_csv(
         "snap_y",
         "snap_dist",
         "nearby",
-        "is_endpoint",
+        # "is_endpoint",
+        "lineID",
         "NHDPlusID",
         "GNIS_Name",
         "River",
@@ -107,7 +110,10 @@ print("Done in {:.2f}".format(time() - start))
 
 # Read in waterfalls and project to USGS Albers
 print("Reading waterfalls")
-wf = gp.read_file("data/src/Waterfalls_USGS_2017.gdb", layer="Waterfalls_USGS_2018")
+wf = gp.read_file(
+    "data/src/Waterfalls_USGS_2017.gdb", layer="Waterfalls_USGS_2018"
+).to_crs(CRS)
+wf["joinID"] = wf.OBJECTID
 wf["HUC4"] = wf.HUC_8.str[:4]
 
 # Extract out waterfalls in this HUC
@@ -118,8 +124,8 @@ if len(wf):
         wf,
         flowlines,
         WF_TOLERANCE,
-        prefer_endpoint=True,
-        line_columns=["NHDPlusID", "GNIS_Name"],
+        prefer_endpoint=False,
+        line_columns=["lineID", "NHDPlusID", "GNIS_Name"],
     )
 
     wf = wf.join(snapped)
@@ -132,7 +138,8 @@ if len(wf):
             "snap_y",
             "snap_dist",
             "nearby",
-            "is_endpoint",
+            # "is_endpoint",
+            "lineID",
             "NHDPlusID",
             "Name",
             "GNIS_Name",
@@ -140,4 +147,53 @@ if len(wf):
     )
 
 print("Done in {:.2f}".format(time() - start))
+
+
+print("Merging and exporting single barriers file")
+dams["kind"] = "dam"
+wf["kind"] = "waterfall"
+
+barriers = (
+    dams[
+        [
+            "lineID",
+            "NHDPlusID",
+            "joinID",
+            "kind",
+            "snap_x",
+            "snap_y",
+            "snap_dist",
+            "nearby",
+            # "is_endpoint",
+        ]
+    ]
+    .append(
+        wf[
+            [
+                "lineID",
+                "NHDPlusID",
+                "joinID",
+                "kind",
+                "snap_x",
+                "snap_y",
+                "snap_dist",
+                "nearby",
+                # "is_endpoint",
+            ]
+        ],
+        ignore_index=True,
+        sort=False,
+    )
+    .rename(columns={"snap_x": "x", "snap_y": "y"})
+)
+
+barriers.to_csv("data/src/tmp/{}/barriers.csv".format(HUC4), index=False)
+
+
+# drop any that aren't on the network
+barriers = barriers.loc[~barriers.NHDPlusID.isnull()]
+
+gp.GeoDataFrame(
+    barriers, geometry=[Point(xy) for xy in zip(barriers.x, barriers.y)], crs=CRS
+).to_file("data/src/tmp/{}/barriers.shp".format(HUC4), driver="ESRI Shapefile")
 

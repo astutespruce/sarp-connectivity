@@ -55,7 +55,7 @@ df = gp.read_file(gdb, layer="NHDFlowline")[FLOWLINE_COLS]
 # Assume that we can always fit into a uint32, which is ~400 million records
 # and probably bigger than anything we could ever read in
 # df["id"] = df.index.values.astype("uint32") + 1
-df["id"] = df.index + 1
+df["lineID"] = df.index + 1
 # Index on NHDPlusID for easy joins to other NHD data
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 df = df.set_index(["NHDPlusID"], drop=False)
@@ -107,7 +107,7 @@ df["sinuosity"] = df.geometry.apply(calculate_sinuosity).astype("float32")
 # Drop unneeded attributes to speed up I/O
 df = df[
     [
-        "id",
+        "lineID",
         "NHDPlusID",
         "FType",
         "FCode",
@@ -122,8 +122,13 @@ df = df[
 
 # Write to shapefile and CSV for easier processing later
 print("Writing flowlines to disk")
-df.to_file("{}/flowline.shp".format(out_dir), driver="ESRI Shapefile")
 df.drop(columns=["geometry"]).to_csv("{}/flowline.csv".format(out_dir), index=False)
+
+# Always write NHDPlusID back out as a float64
+geo_df = df.copy()
+geo_df.NHDPlusID = geo_df.NHDPlusID.astype("float64")
+geo_df.to_file("{}/flowline.shp".format(out_dir), driver="ESRI Shapefile")
+
 
 ############# Connections between segments ###################
 print("Reading segment connections")
@@ -155,10 +160,10 @@ huc_joins = join_df.loc[
 join_df = join_df.loc[~join_df.index.isin(huc_joins.index)]
 
 # update joins with our ids
-ids = df[["id"]]
+ids = df[["lineID"]]
 join_df = (
-    join_df.join(ids.rename(columns={"id": "upstream_id"}), on="upstream")
-    .join(ids.rename(columns={"id": "downstream_id"}), on="downstream")
+    join_df.join(ids.rename(columns={"lineID": "upstream_id"}), on="upstream")
+    .join(ids.rename(columns={"lineID": "downstream_id"}), on="downstream")
     .fillna(0)
     .astype("uint64")
 )
