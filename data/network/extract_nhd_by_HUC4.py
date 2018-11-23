@@ -9,6 +9,8 @@
 
 Note: NHDPlusIDs are converted to 64bit ints
 
+TODO: add other attributes to keep throughout, including size info for plotting
+
 """
 
 import os
@@ -150,6 +152,10 @@ huc_joins = join_df.loc[
     (~(join_df.upstream.isin(df.index) | (join_df.upstream == 0)))
     | (~(join_df.downstream.isin(df.index) | (join_df.downstream == 0)))
 ]
+
+# TODO: code any that are outside the network as a  well known code (-1 would be great but not uint32)
+# OR leave them in the processing for joins but make sure not to try and include their downstream segment in any geo process
+# should we use them to ID the furthest downstream networks??
 
 # origins = join_df.loc[join_df.upstream == 0]
 # Some major rivers are coded as terminal segments - WHY???

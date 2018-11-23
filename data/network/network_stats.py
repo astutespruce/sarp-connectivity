@@ -15,6 +15,9 @@ df = pd.read_csv(
     "split_network.csv", dtype={"lineID": "uint32", "networkID": "uint32"}
 ).set_index("lineID", drop=False)
 
+
+################# Calculate statistics #########################
+
 # for every network, calc length-weighted sinuosity and sum length
 sum_length_df = (
     df[["networkID", "length"]]
@@ -48,11 +51,45 @@ stats_df.to_csv(
     "network_stats.csv", columns=["km", "miles", "sinuosity"], index_label="networkID"
 )
 
-print("Done in {:.2f}".format(time() - start))
+
+################ Add upstream and downstream to associated barriers ##############
+
+network_miles = stats_df[["miles"]]
+
+# Note: not using updated barriers - not needed!
+# drop any that are not on the network
+barriers = pd.read_csv("barriers.csv")[["joinID", "NHDPlusID"]].set_index(["joinID"])
+barriers = barriers.loc[~barriers.NHDPlusID.isnull()][[]].copy()
+
+barrier_joins = pd.read_csv(
+    "barrier_joins.csv", dtype={"upstream_id": "uint32", "downstream_id": "uint32"}
+)[["joinID", "upstream_id", "downstream_id"]].set_index(["joinID"])
+
+# join to upstream networks
+barriers = (
+    barriers.join(barrier_joins.upstream_id)
+    .join(network_miles, on="upstream_id")
+    .rename(columns={"upstream_id": "upNetID", "miles": "UpstreamMiles"})
+)
+downstream_networks = (
+    barrier_joins.join(df[["networkID"]], on="downstream_id")
+    .join(network_miles, on="networkID")
+    .rename(columns={"networkID": "dsNetID", "miles": "DownstreamMiles"})[
+        ["dsNetID", "DownstreamMiles"]
+    ]
+)
+barriers = barriers.join(downstream_networks)
+
+# Absolute gain is minimum of upstream or downstream miles
+barriers["AbsoluteGainMi"] = barriers[["UpstreamMiles", "DownstreamMiles"]].min(axis=1)
+
+barriers.to_csv("barriers_network.csv", index_label="joinID")
 
 
-# Dissolve networks on networkID
-start = time()
+# TODO: if downstream network extends off this HUC, it will be null in the above and AbsoluteGainMin will be wrong
+
+
+##################### Dissolve networks on networkID ########################
 print("Aggregating flowlines to network geometries")
 flowlines = gp.read_file("split_network.shp").set_index("networkID", drop=False)
 flowlines = flowlines[["networkID", "geometry"]].join(stats_df)
@@ -64,7 +101,6 @@ networks = gp.GeoDataFrame(
 )
 
 copy_cols = list(set(flowlines.columns).difference({"networkID", "geometry"}))
-print("copy cols", copy_cols)
 
 # join in network stats
 for id in network_ids:

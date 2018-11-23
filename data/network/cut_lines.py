@@ -2,6 +2,10 @@
 
 Note: line geometries always start from upstream end.
 
+TODO: write this so that it returns things that can be right joined against original joins and flowlines data to add in missing segments,
+to keep this bit more self-contained.  This way we can avoid having to copy in all data and just return the new bits and join
+back to original data on NHDPlusID / upstream / downstream 
+
 """
 
 
@@ -112,6 +116,7 @@ for idx, row in segments_with_barriers.iterrows():
 
             if i < num_segments - 1:
                 # Update the barrier so that it has the correct segment
+                # TODO: may not need to do this anymore since we can just use joins to get to same place
                 barrier = split_points.iloc[i]
                 # name = index in this case
                 barriers.loc[barrier.name, "lineID"] = id
