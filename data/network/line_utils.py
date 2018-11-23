@@ -252,10 +252,7 @@ def cut_flowlines(flowlines, barriers, joins):
     print("Cutting in {0} barriers".format(len(barriers)))
 
     # Our segment ids are ints, so just increment from the last one we had from NHD
-    print("flowline idx")
-    print(flowlines.index)
     next_segment_id = int(flowlines.index.max() + 1)
-    print("next seg id", next_segment_id)
 
     copy_cols = list(
         set(flowlines.columns).difference({"lineID", "geometry", "length", "sinuosity"})
@@ -272,7 +269,6 @@ def cut_flowlines(flowlines, barriers, joins):
     barrier_joins = []
 
     segments_with_barriers = flowlines.loc[flowlines.index.isin(barriers.lineID)]
-    print(segments_with_barriers.index)
     print("{} segments have at least one barrier".format(len(segments_with_barriers)))
     for idx, row in segments_with_barriers.iterrows():
         # print("-----------------------\n\nlineID", idx)
