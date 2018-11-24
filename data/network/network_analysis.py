@@ -130,10 +130,10 @@ flowlines, joins, barrier_joins = cut_flowlines(flowlines, barriers, joins)
 barrier_joins.upstream_id = barrier_joins.upstream_id.astype("uint32")
 barrier_joins.downstream_id = barrier_joins.downstream_id.astype("uint32")
 
+
 # joins.to_csv("updated_joins.csv", index=False)
 # barrier_joins.to_csv("barrier_joins.csv", index=False)
 # flowlines.drop(columns=["geometry"]).to_csv("split_flowlines.csv", index=False)
-
 # print("Writing split flowlines shp")
 # flowlines.NHDPlusID = flowlines.NHDPlusID.astype("float64")
 # flowlines.to_file("split_flowlines.shp", driver="ESRI Shapefile")
@@ -150,7 +150,10 @@ get_upstream_ids = lambda id: joins.loc[joins.downstream_id == id].upstream_id
 has_multiple_downstreams = lambda id: len(joins.loc[joins.upstream_id == id]) > 1
 
 # Create networks from all terminal nodes (no downstream nodes) up to origins or dams (but not including dam segments)
-root_ids = joins.loc[joins.downstream_id == 0].upstream_id
+# Note: origins are also those that have a downstream_id but are not the upstream_id of another node
+root_ids = joins.loc[
+    (joins.downstream_id == 0) | (~joins.downstream_id.isin(joins.upstream_id.unique()))
+].upstream_id
 print(
     "Starting non-barrier functional network creation for {} origin points".format(
         len(root_ids)
@@ -192,8 +195,8 @@ for start_id in barrier_segments:
 # Note: network_df is still indexed on lineID
 network_df = flowlines.loc[~flowlines.networkID.isnull()].copy()
 network_df.networkID = network_df.networkID.astype("uint32")
-# network_df.drop(columns=["geometry"]).to_csv("network_segments.csv", index=False)
-# network_df.to_file("network_segments.shp", driver="ESRI Shapefile")
+network_df.drop(columns=["geometry"]).to_csv("network_segments.csv", index=False)
+network_df.to_file("network_segments.shp", driver="ESRI Shapefile")
 
 print(
     "Created {0} networks in {1:.2f}s".format(
