@@ -19,7 +19,7 @@ from network_utils import calculate_upstream_network, calculate_network_stats
 SNAP_TOLERANCE_DAMS = 200  # meters  FIXME: should be 100m
 SNAP_TOLERANCE = 100  # meters - tolerance for waterfalls
 
-HUC4 = "0602"
+HUC4 = "0307"
 src_dir = "/Users/bcward/projects/sarp/data/src"
 working_dir = "data/src/tmp/{}".format(HUC4)
 os.chdir(working_dir)
@@ -94,8 +94,25 @@ barriers.set_index("joinID", inplace=True, drop=False)
 # drop any not on the network from all later processing
 barriers = barriers.loc[~barriers.NHDPlusID.isnull()]
 barriers.lineID = barriers.lineID.astype("uint32")
-# barriers.to_csv("barriers.csv", index=False)
-# barriers.to_file("barriers.shp", driver="ESRI Shapefile")
+
+wkt = barriers[["joinID", "geometry"]].copy()
+wkt["point"] = wkt.geometry.apply(lambda g: g.to_wkt())
+wkt_counts = (
+    wkt.groupby("point")
+    .size()
+    .reset_index()
+    .set_index("point")
+    .rename(columns={0: "num"})
+)
+wkt = wkt.join(wkt_counts, on="point")
+duplicates = wkt.loc[wkt.num > 1].joinID
+print("Removing {} duplicate locations".format(len(duplicates)))
+barriers = barriers.loc[~barriers.joinID.isin(duplicates)].copy()
+
+# barriers in original but not here are dropped due to likely duplication
+barriers.to_csv("barriers.csv", index=False)
+barriers.to_file("barriers.shp", driver="ESRI Shapefile")
+
 
 print("Done preparing barriers in {:.2f}s".format(time() - barrier_start))
 
@@ -255,7 +272,8 @@ for id in network_ids:
     values = [id, geometry] + [stats[c] for c in network_stats.columns]
     networks.loc[id] = gp.GeoSeries(values, index=columns)
 
-networks.drop(columns=["geometry"]).to_csv("network.csv", index=False)
+# same as network stats
+# networks.drop(columns=["geometry"]).to_csv("network.csv", index=False)
 
 print("Writing dissolved network shapefile")
 networks.to_file("network.shp", driver="ESRI Shapefile")
