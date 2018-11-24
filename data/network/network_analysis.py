@@ -94,8 +94,8 @@ barriers.set_index("joinID", inplace=True, drop=False)
 # drop any not on the network from all later processing
 barriers = barriers.loc[~barriers.NHDPlusID.isnull()]
 barriers.lineID = barriers.lineID.astype("uint32")
-barriers.to_csv("barriers.csv", index=False)
-barriers.to_file("barriers.shp", driver="ESRI Shapefile")
+# barriers.to_csv("barriers.csv", index=False)
+# barriers.to_file("barriers.shp", driver="ESRI Shapefile")
 
 print("Done preparing barriers in {:.2f}s".format(time() - barrier_start))
 
@@ -113,8 +113,8 @@ flowlines, joins, barrier_joins = cut_flowlines(flowlines, barriers, joins)
 barrier_joins.upstream_id = barrier_joins.upstream_id.astype("uint32")
 barrier_joins.downstream_id = barrier_joins.downstream_id.astype("uint32")
 
-joins.to_csv("updated_joins.csv", index=False)
-barrier_joins.to_csv("barrier_joins.csv", index=False)
+# joins.to_csv("updated_joins.csv", index=False)
+# barrier_joins.to_csv("barrier_joins.csv", index=False)
 # flowlines.drop(columns=["geometry"]).to_csv("split_flowlines.csv", index=False)
 
 # print("Writing split flowlines shp")
@@ -175,7 +175,7 @@ for start_id in barrier_segments:
 # Note: network_df is still indexed on lineID
 network_df = flowlines.loc[~flowlines.networkID.isnull()].copy()
 network_df.networkID = network_df.networkID.astype("uint32")
-network_df.drop(columns=["geometry"]).to_csv("network_segments.csv", index=False)
+# network_df.drop(columns=["geometry"]).to_csv("network_segments.csv", index=False)
 # network_df.to_file("network_segments.shp", driver="ESRI Shapefile")
 
 print(
@@ -191,34 +191,44 @@ print("------------------- Aggregating network info -----------")
 network_stats = calculate_network_stats(network_df)
 
 network_stats.to_csv(
-    "network_stats.csv", columns=["km", "miles", "sinuosity"], index_label="networkID"
+    "network_stats.csv",
+    columns=["km", "miles", "NetworkSinuosity", "NumSizeClassGained"],
+    index_label="networkID",
 )
-network_miles = network_stats[["miles"]]
+
+network_stats = network_stats[["miles", "NetworkSinuosity", "NumSizeClassGained"]]
 
 # join to upstream networks
-barriers = (
+barriers = barriers.set_index("joinID")[["kind"]]
+barrier_joins.set_index("joinID", inplace=True)
+upstream_networks = (
     barriers.join(barrier_joins.upstream_id)
-    .join(network_miles, on="upstream_id")
+    .join(network_stats, on="upstream_id")
     .rename(columns={"upstream_id": "upNetID", "miles": "UpstreamMiles"})
 )
 
 network_by_lineID = network_df[["lineID", "networkID"]].set_index("lineID")
 downstream_networks = (
     barrier_joins.join(network_by_lineID, on="downstream_id")
-    .join(network_miles, on="networkID")
+    .join(network_stats, on="networkID")
     .rename(columns={"networkID": "downNetID", "miles": "DownstreamMiles"})[
         ["downNetID", "DownstreamMiles"]
     ]
 )
-barriers = barriers.join(downstream_networks)
+
+barrier_networks = upstream_networks.join(downstream_networks)
 
 # Absolute gain is minimum of upstream or downstream miles
-barriers["AbsoluteGainMi"] = barriers[["UpstreamMiles", "DownstreamMiles"]].min(axis=1)
-barriers.upNetID = barriers.upNetID.fillna(0).astype("uint32")
-barriers.downNetID = barriers.downNetID.fillna(0).astype("uint32")
+barrier_networks["AbsoluteGainMi"] = barrier_networks[
+    ["UpstreamMiles", "DownstreamMiles"]
+].min(axis=1)
+barrier_networks.upNetID = barrier_networks.upNetID.fillna(0).astype("uint32")
+barrier_networks.downNetID = barrier_networks.downNetID.fillna(0).astype("uint32")
+barrier_networks.NumSizeClassGained = barrier_networks.NumSizeClassGained.fillna(
+    0
+).astype("uint8")
 
-
-barriers.to_csv("barriers_network.csv", index_label="joinID")
+barrier_networks.to_csv("barrier_network.csv", index_label="joinID")
 
 # TODO: if downstream network extends off this HUC, it will be null in the above and AbsoluteGainMin will be wrong
 

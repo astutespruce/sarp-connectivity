@@ -57,13 +57,29 @@ def calculate_network_stats(df):
         .set_index("networkID")
     )
 
-    stats_df = sum_length_df.join(wtd_sinuosity_df).rename(
-        columns={"wtd_sinuosity": "sinuosity"}
+    num_sc_df = (
+        df[["networkID", "sizeclass"]]
+        .groupby("networkID")
+        .sizeclass.nunique()
+        .reset_index()
+        .set_index("networkID")
+    )
+    num_sc_df = num_sc_df - 1  # subtract the size class we are on
+
+    stats_df = (
+        sum_length_df.join(wtd_sinuosity_df)
+        .join(num_sc_df)
+        .rename(
+            columns={
+                "wtd_sinuosity": "NetworkSinuosity",
+                "sizeclass": "NumSizeClassGained",
+            }
+        )
     )
 
     # convert units
     stats_df["km"] = stats_df.length / 1000.0
     stats_df["miles"] = stats_df.length * 0.000621371
 
-    return stats_df[["km", "miles", "sinuosity"]]
+    return stats_df[["km", "miles", "NetworkSinuosity", "NumSizeClassGained"]]
 
