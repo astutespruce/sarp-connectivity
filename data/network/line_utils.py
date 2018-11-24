@@ -254,9 +254,9 @@ def cut_flowlines(flowlines, barriers, joins):
     # Our segment ids are ints, so just increment from the last one we had from NHD
     next_segment_id = int(flowlines.index.max() + 1)
 
-    copy_cols = list(
-        set(flowlines.columns).difference({"lineID", "geometry", "length", "sinuosity"})
-    )
+    update_cols = ["length", "sinuosity", "geometry", "lineID"]
+    copy_cols = list(set(flowlines.columns).difference(update_cols))
+    columns = copy_cols + update_cols
 
     # create container for new geoms
     new_flowlines = gp.GeoDataFrame(
@@ -304,7 +304,6 @@ def cut_flowlines(flowlines, barriers, joins):
 
             # add these to flowlines
             for i, (id, segment) in enumerate(segments):
-                columns = copy_cols + ["length", "sinuosity", "geometry", "lineID"]
                 values = [row[c] for c in copy_cols] + [
                     segment.length,
                     calculate_sinuosity(segment),

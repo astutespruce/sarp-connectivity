@@ -94,8 +94,8 @@ barriers.set_index("joinID", inplace=True, drop=False)
 # drop any not on the network from all later processing
 barriers = barriers.loc[~barriers.NHDPlusID.isnull()]
 barriers.lineID = barriers.lineID.astype("uint32")
-# barriers.to_csv("barriers.csv", index=False)
-# barriers.to_file("barriers.shp", driver="ESRI Shapefile")
+barriers.to_csv("barriers.csv", index=False)
+barriers.to_file("barriers.shp", driver="ESRI Shapefile")
 
 print("Done preparing barriers in {:.2f}s".format(time() - barrier_start))
 
@@ -115,7 +115,7 @@ barrier_joins.downstream_id = barrier_joins.downstream_id.astype("uint32")
 
 joins.to_csv("updated_joins.csv", index=False)
 barrier_joins.to_csv("barrier_joins.csv", index=False)
-flowlines.drop(columns=["geometry"]).to_csv("split_flowlines.csv", index=False)
+# flowlines.drop(columns=["geometry"]).to_csv("split_flowlines.csv", index=False)
 
 # print("Writing split flowlines shp")
 # flowlines.NHDPlusID = flowlines.NHDPlusID.astype("float64")
@@ -172,10 +172,11 @@ for start_id in barrier_segments:
     # print("barrier upstream network has {} segments".format(len(network)))
 
 # drop anything that didn't get assigned a network
+# Note: network_df is still indexed on lineID
 network_df = flowlines.loc[~flowlines.networkID.isnull()].copy()
 network_df.networkID = network_df.networkID.astype("uint32")
 network_df.drop(columns=["geometry"]).to_csv("network_segments.csv", index=False)
-network_df.to_file("network_segments.shp", driver="ESRI Shapefile")
+# network_df.to_file("network_segments.shp", driver="ESRI Shapefile")
 
 print(
     "Created {0} networks in {1:.2f}s".format(
@@ -200,8 +201,10 @@ barriers = (
     .join(network_miles, on="upstream_id")
     .rename(columns={"upstream_id": "upNetID", "miles": "UpstreamMiles"})
 )
+
+network_by_lineID = network_df[["lineID", "networkID"]].set_index("lineID")
 downstream_networks = (
-    barrier_joins.join(network_df[["networkID"]], on="downstream_id")
+    barrier_joins.join(network_by_lineID, on="downstream_id")
     .join(network_miles, on="networkID")
     .rename(columns={"networkID": "downNetID", "miles": "DownstreamMiles"})[
         ["downNetID", "DownstreamMiles"]
@@ -242,9 +245,10 @@ for id in network_ids:
     values = [id, geometry] + [stats[c] for c in network_stats.columns]
     networks.loc[id] = gp.GeoSeries(values, index=columns)
 
+networks.drop(columns=["geometry"]).to_csv("network.csv", index=False)
+
 print("Writing dissolved network shapefile")
 networks.to_file("network.shp", driver="ESRI Shapefile")
-networks.drop(columns=["geometry"]).to_csv("network.csv", index=False)
 
 
 print("All done in {:.2f}".format(time() - start))

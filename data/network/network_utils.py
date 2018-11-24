@@ -33,3 +33,37 @@ def calculate_upstream_network(
         ret.extend(upstream_network)
 
     return ret
+
+
+def calculate_network_stats(df):
+    # for every network, calc length-weighted sinuosity and sum length
+    sum_length_df = (
+        df[["networkID", "length"]]
+        .groupby(["networkID"])
+        .sum()
+        .reset_index()
+        .set_index("networkID")
+    )
+    temp_df = df.join(sum_length_df, on="networkID", rsuffix="_total")
+    temp_df["wtd_sinuosity"] = temp_df.sinuosity * (
+        temp_df.length / temp_df.length_total
+    )
+
+    wtd_sinuosity_df = (
+        temp_df[["networkID", "wtd_sinuosity"]]
+        .groupby(["networkID"])
+        .sum()
+        .reset_index()
+        .set_index("networkID")
+    )
+
+    stats_df = sum_length_df.join(wtd_sinuosity_df).rename(
+        columns={"wtd_sinuosity": "sinuosity"}
+    )
+
+    # convert units
+    stats_df["km"] = stats_df.length / 1000.0
+    stats_df["miles"] = stats_df.length * 0.000621371
+
+    return stats_df[["km", "miles", "sinuosity"]]
+
