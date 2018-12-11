@@ -2,6 +2,8 @@ import React from "react"
 // import PropTypes from 'prop-types'
 import { Link } from "react-router-dom"
 
+import { scrollIntoView } from "../../../utils/dom"
+
 import Section from "./Section"
 
 import { ReactComponent as HighSinuosityIcon } from "../../../img/sinuosity_high.svg"
@@ -10,6 +12,8 @@ import { ReactComponent as HighSizeClassesIcon } from "../../../img/size_classes
 import { ReactComponent as LowSizeClassesIcon } from "../../../img/size_classes_low.svg"
 import { ReactComponent as HighLengthIcon } from "../../../img/length_high.svg"
 import { ReactComponent as LowLengthIcon } from "../../../img/length_low.svg"
+import { ReactComponent as HighLandcoverIcon } from "../../../img/nat_landcover_high.svg"
+import { ReactComponent as LowLandcoverIcon } from "../../../img/nat_landcover_low.svg"
 import { ReactComponent as FunctionalNetwork } from "../../../img/functional_network.svg"
 
 import SARPLogo from "../../../img/sarp_logo.png"
@@ -147,7 +151,31 @@ const Home = () => (
                 complete than others but none should be considered 100% complete.
             </p>
         </Section>
-        <Section title="Aquatic Barriers">
+
+        <Section title="Example use case: regional planning">
+            <p>
+                You can also use this tool to better understand the number and location of aquatic barriers across the
+                southeastern U.S. You can use this information to guide regional planning and allocate resources
+                targeted at improving aquatic conditions. You can use this information to help stakeholders and others
+                understand the impact of aquatic barriers across the region, and build awareness about how to reduce
+                those impacts…
+            </p>
+        </Section>
+        <Section image={WaterStonesImage} dark title="Example use case: removing small, unneeded dams on private land">
+            <p>
+                One way you can use this tool is to identify and prioritize dams according to the criteria that matter
+                to you. For example, you can first select the dams that are within the watersheds where you work. Then
+                you can filter those dams further to find those that have a low height, are on private land, and were
+                constructed a long time ago. These dams may no longer be necessary, but since they haven’t been targeted
+                for removal, they may remain barriers within the aquatic network. Once you’ve selected the dams that
+                meet your criteria, you can re-prioritize these to find those that would contribute most to restoring
+                overall aquatic connectivity. You can explore these further using the interactive map, or you can export
+                them to a spreadsheet for further analysis and exploration. You can use this information to supplement
+                your grant proposals and work plans to…
+            </p>
+        </Section>
+
+        <Section title="Key Concept: Aquatic Barriers">
             <div className="columns">
                 <div className="column">
                     <p>
@@ -162,7 +190,7 @@ const Home = () => (
                     <ul>
                         <li>Waterfalls (from the USGS Waterfalls Inventory)</li>
                         <li>Dams</li>
-                        <li>Small Barriers (culverts and similar)</li>
+                        <li>Small barriers (culverts and similar)</li>
                     </ul>
                     <p>
                         <br />
@@ -181,7 +209,7 @@ const Home = () => (
                 </div>
             </div>
         </Section>
-        <Section title="Functional Networks">
+        <Section title="Key Concept: Functional Networks">
             <div className="columns">
                 <div className="column is-two-thirds">
                     <p>
@@ -218,39 +246,97 @@ const Home = () => (
             </div>
         </Section>
         <Section title="How are aquatic barriers prioritized for removal?">
-            <p>
-                In order to prioritize dams for removal, first they need to be evaluated according to different
-                criteria:
-                <ul>
-                    <li>Network length</li>
-                    <li>Network sinuosity</li>
-                    <li>Network complexity</li>
-                    <li>Natural landcover</li>
-                </ul>
-                <br />
-                <br />
-                These metrics are combined to create three scenarios for prioritizing barriers for removal:
-                <ul>
-                    <li>Network connectivity</li>
-                    <li>Watershed condition</li>
-                    <li>Network connectivity and watershed condition</li>
-                </ul>
-            </p>
             <section>
-                <h3 className="is-size-3 flex-container flex-align-center">
-                    <HighLengthIcon />
-                    <div>Network length</div>
-                </h3>
                 <p>
-                    Network length is a measure of how much additional length would be added to the network by removing
-                    the barrier. It is the smaller of either the total upstream network length or downstream network
-                    length for the networks subdivided by this barrier.
+                    In order to prioritize dams for removal, they are first characterized based on particular metrics of
+                    their functional networks:
                 </p>
+                <ul>
+                    <li>
+                        <a onClick={() => scrollIntoView("NetworkLengthDef")}>Network length</a>
+                    </li>
+                    <li>
+                        <a onClick={() => scrollIntoView("NetworkSinuosityDef")}>Network sinuosity</a>
+                    </li>
+                    <li>
+                        <a onClick={() => scrollIntoView("NetworkComplexityDef")}>Network complexity</a>
+                    </li>
+                    <li>
+                        <a onClick={() => scrollIntoView("NaturalLandcoverDef")}>Floodplain natural landcover</a>
+                    </li>
+                </ul>
+
+                <p>
+                    <br />
+                    <br />
+                    These metrics are then combined to create three scenarios for prioritizing barriers for removal:
+                </p>
+                <ul>
+                    <li>
+                        <a onClick={() => scrollIntoView("NetworkConnectivityDef")}>Network connectivity</a>
+                    </li>
+                    <li>
+                        <a onClick={() => scrollIntoView("WatershedConditionDef")}>Watershed condition</a>
+                    </li>
+                    <li>
+                        <a onClick={() => scrollIntoView("CombinedScoreDef")}>
+                            Network connectivity and watershed condition
+                        </a>
+                    </li>
+                </ul>
+                <br />
+                <br />
+                <p>TODO: explain the scoring approach</p>
+                <p>Using this tool, you can select the scenario that best meets your needs.</p>
             </section>
             <section>
-                <h3 className="is-size-3 flex-container flex-align-center">
+                <h3 id="NetworkLengthDef" className="is-size-3 flex-container flex-align-center">
+                    <HighLengthIcon />
+                    <div>Metric: network length</div>
+                </h3>
+                <p>
+                    Network length measures the amount of connected aquatic network length that would be added to the
+                    network by removing the barrier. It is the smaller of either the total upstream network length or
+                    total downstream network length for the networks subdivided by this barrier. This is because a
+                    barrier may have a very large upstream network, but if there is another barrier immediately
+                    downstream, the overall effect of removing this barrier will be quite small.
+                </p>
+                <div className="prioritization-details flex-container flex-justify-space-between">
+                    <div>
+                        <HighLengthIcon />
+                        <h4 className="is-size-4 text-align-center">High Network Length</h4>
+                        <p>
+                            Barriers that have large upstream and downstream networks will contribute a large amount of
+                            connected aquatic network length if they are removed.
+                        </p>
+                    </div>
+                    <div>
+                        <LowLengthIcon />
+                        <h4 className="is-size-4 text-align-center">Low Network Length</h4>
+                        <p>
+                            Barriers that have small upstream or downstream networks contribute relatively little
+                            connected aquatic network length if removed.
+                        </p>
+                    </div>
+                </div>
+                <h5 className="title is-5">Methods:</h5>
+                <ol>
+                    <li>
+                        The total upstream length is calculated as the sum of the lengths of all upstream river and
+                        stream reaches.
+                    </li>
+                    <li>
+                        The total downstream length is calculated for the network immediately downstream of the barrier.
+                        Note: this is the total network length of the downstream network, <i>not</i> the shortest
+                        downstream path to the next barrier or river mouth.
+                    </li>
+                    <li>Network length is the smaller of the upstream or downstream network lengths.</li>
+                </ol>
+            </section>
+            <section>
+                <h3 id="NetworkSinuosityDef" className="is-size-3 flex-container flex-align-center">
                     <HighSinuosityIcon />
-                    <div>Network sinuosity</div>
+                    <div>Metric: network sinuosity</div>
                 </h3>
                 <p>
                     Network sinuosity is a measure of how much the path of the river or stream deviates from a straight
@@ -264,7 +350,8 @@ const Home = () => (
                         <h4 className="is-size-4 text-align-center">High Sinuosity</h4>
                         <p>
                             Rivers and streams with high sinuosity are likely less altered by artificial channelization
-                            and may have a wider variety of in-stream habitat.
+                            and may have a wider variety of in-stream habitat. Barriers with more sinuous upstream
+                            networks may contribute more natural habitat if removed.
                         </p>
                     </div>
                     <div>
@@ -272,7 +359,8 @@ const Home = () => (
                         <h4 className="is-size-4 text-align-center">Low Sinuosity</h4>
                         <p>
                             Rivers and streams with lower sinuosity may be more altered by artificial channelization and
-                            may have a lower variety of in-stream habitat.
+                            may have a lower variety of in-stream habitat. Barriers with less sinuous upstream networks
+                            may contribute less natural habitat if removed.
                         </p>
                     </div>
                 </div>
@@ -280,7 +368,8 @@ const Home = () => (
                 <ol>
                     <li>
                         The sinuosity of each stream is calculated as the ratio between the length of that reach and the
-                        straight line distance between the endpoints of that reach.
+                        straight line distance between the endpoints of that reach. The greater the total length
+                        compared to the straight line distance, the higher the sinuosity.
                     </li>
                     <li>
                         Reaches are combined using a length-weighted average to calculate the overall sinuosity of each
@@ -290,56 +379,173 @@ const Home = () => (
             </section>
 
             <section>
-                <h3 className="is-size-3 flex-container flex-align-center">
+                <h3 id="NetworkComplexityDef" className="is-size-3 flex-container flex-align-center">
                     <HighSizeClassesIcon />
-                    <div>Number of size classes gained</div>
+                    <div>Metric: network complexity</div>
                 </h3>
                 <p>
-                    A barrier that has tributaries upstream with different sizes, such as small streams and rivers,
-                    would contribute a higher number of size classes to the network if it is removed. In contrast, a
-                    barrier with fewer upstream tributaries may contribute few if any size classes to the network if
-                    removed. In general, the number of size classes gained is an approximation of the overall network
-                    complexity upstream from this barrier.
-                    <br />
-                    <br />
-                    In general, a barrier that has a more complex upstream network will provide bigger gains for
-                    restoring aquatic connectivity.
+                    A barrier that has upstream tributaries of different size classes, such as small streams, small
+                    rivers, and large rivers, would contribute a more complex connected aquatic network if it was
+                    removed. In contrast, a barrier with fewer upstream tributaries may contribute few if any size
+                    classes to the network if removed. In general, a more complex network composed of a greater range of
+                    size classes is more likely to have a wide range of available habitat for a greater number of
+                    aquatic species.
                 </p>
                 <div className="prioritization-details flex-container flex-justify-space-between">
                     <div>
                         <HighSizeClassesIcon />
                         <h4 className="is-size-4 text-align-center">More size classes gained</h4>
-                        <p>Dams that have several size classes upstream are ...</p>
+                        <p>
+                            Barriers that have several size classes upstream are more likely to contribute a more
+                            complex network with a greater range of aquatic habitat for a greater variety of species.
+                        </p>
                     </div>
                     <div>
                         <LowSizeClassesIcon />
                         <h4 className="is-size-4 text-align-center">No size classes gained</h4>
-                        <p>Dams that do not contribute any additional size classes are...</p>
+                        <p>
+                            Barriers that do not contribute any additional size classes are less likely to contribute a
+                            wide range of aquatic habitat.
+                        </p>
                     </div>
                 </div>
+                <h5 className="title is-5">Methods:</h5>
+                <ol>
+                    <li>
+                        Stream and river reaches were assigned to size classes based on total drainage area:
+                        <ul>
+                            <li>
+                                Headwaters: &lt; 10 km
+                                <sup>2</sup>
+                            </li>
+                            <li>
+                                Creeks: &ge; 10 km
+                                <sup>2</sup> and &lt; 100 km
+                                <sup>2</sup>
+                            </li>
+                            <li>
+                                Small rivers: &ge; 100 km
+                                <sup>2</sup> and &lt; 518 km
+                                <sup>2</sup>
+                            </li>
+                            <li>
+                                Medium tributary rivers: &ge; 519 km
+                                <sup>2</sup> and &lt; 2,590 km
+                                <sup>2</sup>
+                            </li>
+                            <li>
+                                Medium mainstem rivers: &ge; 2,590 km
+                                <sup>2</sup> and &lt; 10,000 km
+                                <sup>2</sup>
+                            </li>
+                            <li>
+                                Large rivers: &ge; 10,000 km
+                                <sup>2</sup> and &lt; 25,000 km
+                                <sup>2</sup>
+                            </li>
+                            <li>
+                                Great rivers: &ge; 25,000 km
+                                <sup>2</sup>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        Each barrier is assigned the total number of unique size classes in its upstream functional
+                        network.
+                    </li>
+                </ol>
             </section>
-        </Section>
-        <Section title="Example use case: regional planning">
-            <p>
-                You can also use this tool to better understand the number and location of aquatic barriers across the
-                southeastern U.S. You can use this information to guide regional planning and allocate resources
-                targeted at improving aquatic conditions. You can use this information to help stakeholders and others
-                understand the impact of aquatic barriers across the region, and build awareness about how to reduce
-                those impacts…
-            </p>
-        </Section>
-        <Section image={WaterStonesImage} dark title="Example use case: removing small, unneeded dams on private land">
-            <p>
-                One way you can use this tool is to identify and prioritize dams according to the criteria that matter
-                to you. For example, you can first select the dams that are within the watersheds where you work. Then
-                you can filter those dams further to find those that have a low height, are on private land, and were
-                constructed a long time ago. These dams may no longer be necessary, but since they haven’t been targeted
-                for removal, they may remain barriers within the aquatic network. Once you’ve selected the dams that
-                meet your criteria, you can re-prioritize these to find those that would contribute most to restoring
-                overall aquatic connectivity. You can explore these further using the interactive map, or you can export
-                them to a spreadsheet for further analysis and exploration. You can use this information to supplement
-                your grant proposals and work plans to…
-            </p>
+
+            <section>
+                <h3 id="NaturalLandcoverDef" className="is-size-3 flex-container flex-align-center">
+                    <HighLandcoverIcon />
+                    <div>Metric: floodlplain natural landcover</div>
+                </h3>
+                <p>
+                    Rivers and streams that have a greater amount of natural landcover in their floodplain are more
+                    likely to have higher quality aquatic habitat. These areas may have more cool-water refugia for
+                    temperature sensitive species due to shading from the overstory, and may have fewer water quality
+                    issues. In contrast, rivers that have less natural landcover are more likely to be altered and have
+                    impaired water quality.
+                </p>
+                <div className="prioritization-details flex-container flex-justify-space-between">
+                    <div>
+                        <HighLandcoverIcon />
+                        <h4 className="is-size-4 text-align-center">High Natural Landcover</h4>
+                        <p>
+                            Barriers with aquatic networks that have more natural landcover are more likely to
+                            contribute higher quality habitat if they are removed.
+                        </p>
+                    </div>
+                    <div>
+                        <LowLandcoverIcon />
+                        <h4 className="is-size-4 text-align-center">Low Natural Landcover</h4>
+                        <p>
+                            Barriers with less natural landcover are less likely to contribute high quality habitat for
+                            aquatic species if removed.
+                        </p>
+                    </div>
+                </div>
+                <h5 className="title is-5">Methods:</h5>
+                <ol>
+                    <li>Floodplains are delineated using: TODO: floodplain methods from Kat</li>
+                    <li>Natural landcover is derived from ... TODO: methods from Kat... </li>
+                    <li>Natural landcover is clipped to the floodplain area for analysis</li>
+                    <li>
+                        The contributing watershed (catchment) of each stream and river reach is extracted from the
+                        NHDPlus dataset
+                    </li>
+                    <li>
+                        The total amount of area in natural landcover and total floodplain area are tallied for each
+                        functional network
+                    </li>
+                    <li>
+                        Floodplain natural landcover is measured from the overall percent of natural landcover
+                        throughout the entire functional network
+                    </li>
+                </ol>
+            </section>
+
+            <section>
+                <h3 id="NetworkConnectivityDef" className="is-size-3">
+                    Scenario: network connectivity
+                </h3>
+                <p>
+                    The network connectivity score prioritizes barriers on the amount of overall connected network
+                    length they would contribute if removed. This is calculated by ranking barriers from those that
+                    contribute the most network length to the least.
+                    <br />
+                    <br />
+                    This scenario is most useful if you are ... TODO
+                </p>
+            </section>
+
+            <section>
+                <h3 id="WatershedConditionDef" className="is-size-3">
+                    Scenario: watershed condition
+                </h3>
+                <p>
+                    The watershed scenario is calculated by ranking barriers based on their combined scores of network
+                    sinuosity, network complexity, and amount of natural landcover in the floodplains. Each of these
+                    metrics is weighted equally.
+                    <br />
+                    <br />
+                    This scenario is most useful if you are ... TODO
+                </p>
+            </section>
+
+            <section>
+                <h3 id="CombinedScoreDef" className="is-size-3">
+                    Scenario: network connectivity and watershed condition
+                </h3>
+                <p>
+                    This scenario combines the network connectivity and watershed condition scores into a single score.
+                    Network connectivity and watershed condition are weighted equally relative to each other.
+                    <br />
+                    <br />
+                    This scenario is most useful if you are ... TODO
+                </p>
+            </section>
         </Section>
 
         <Section title="The Southeast Aquatic Resources Partnership">

@@ -244,8 +244,10 @@ footer a {
 }
 #Home .hero-body h4.title,
 #Home .hero-body h5.title {
-    /* padding-left: 2rem; */
     margin: 2rem 0 0.5rem 0;
+}
+#Home .hero-body section h5.title {
+    padding-left: 2rem;
 }
 #Home .hero-body ul,
 #Home .hero-body ol {
@@ -253,6 +255,9 @@ footer a {
 }
 #Home .hero-body ul {
     list-style-type: disc;
+}
+#Home .hero-body ol ul {
+    padding-left: 2rem;
 }
 #Home .hero-body .photo {
     width: 100%;
