@@ -268,6 +268,22 @@ footer a {
 #Home .hero-body .fa-exclamation-triangle {
     color: orange;
 }
+#Home .hero-body .info-box {
+    border-radius: 6px;
+    background: #eee;
+    padding: 1em;
+    color: #333;
+}
+
+#Home .hero-body .info-box .title,
+#Home .hero-body .info-box .subtitle {
+    color: #333;
+    text-shadow: none;
+}
+
+#Home .hero-body .info-box section + section {
+    margin-top: 1rem;
+}
 
 #HomeHeader h1 {
     font-size: 3rem;
