@@ -8,7 +8,7 @@ import { LAYER_CONFIG } from "./map/config"
 
 import summaryStats from "../data/summary_stats.json"
 
-const SummaryUnitDetails = ({ selectedFeature, totalDams, meanConnectedMiles, summaryStats, onClose }) => {
+const SummaryUnitDetails = ({ selectedFeature, totalDams, meanConnectedMiles, onClose }) => {
     const { id, layerId, name, dams, connectedmiles } = selectedFeature.toJS()
     const layerConfig = LAYER_CONFIG.filter(({ id: lyrID }) => lyrID === layerId)[0]
     const { title: layerTitle } = layerConfig
@@ -16,7 +16,6 @@ const SummaryUnitDetails = ({ selectedFeature, totalDams, meanConnectedMiles, su
     const percentDams = (100 * dams) / totalDams
     const milesCompare = connectedmiles - meanConnectedMiles
 
-    // const title = layerId === "states" ? id : `${layerTitle}: ${name || id}`
     const title = name || id
 
     return (
@@ -24,7 +23,7 @@ const SummaryUnitDetails = ({ selectedFeature, totalDams, meanConnectedMiles, su
             <div id="SidebarHeader" className="flex-container flex-justify-center flex-align-start">
                 <div className="flex-grow">
                     <h3 className="title is-5 no-margin">{title}</h3>
-                    {layerId !== "State" && <h5 className="is-size-7 is-text-gray">{layerTitle}</h5>}
+                    {layerId !== "State" && <h5 className="is-size-6 is-text-gray">{layerTitle}</h5>}
                 </div>
                 <div className="icon button" onClick={onClose}>
                     <span className="fa fa-times-circle is-size-4" />

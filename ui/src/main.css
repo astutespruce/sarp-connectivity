@@ -219,6 +219,10 @@ footer a {
     color: #fff;
     text-shadow: 2px 2px 2px #000;
 }
+#Home .dark a {
+    color: #FFF;
+    text-decoration: underline;
+}
 #Home .hero {
     min-height: 100vh;
 }
@@ -423,7 +427,6 @@ footer a {
 
 .prioritization-details {
     margin-top: 2em;
-    padding-left: 2rem;
 }
 
 .prioritization-details > div {

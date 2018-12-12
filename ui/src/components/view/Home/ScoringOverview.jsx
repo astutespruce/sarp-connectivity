@@ -13,7 +13,7 @@ function ScoringOverview() {
     return (
         <Section title="How are barriers prioritized for removal?">
             <div className="columns">
-                <div className="column is-two-thirds">
+                <div className="column">
                     <p>
                         In order to prioritize dams for removal, they are first characterized using metrics that
                         describe the quality and status of their functional networks:
@@ -33,13 +33,7 @@ function ScoringOverview() {
                         </li>
                     </ul>
                 </div>
-                <div className="column">
-                    <img src={ForestStream} className="photo" alt="Loakfoma Creek at Noxubee" />
-                </div>
-            </div>
-
-            <div className="columns">
-                <div className="column is-two-thirds">
+                <div className="column" style={{ borderLeft: '1px solid #EEE' }}>
                     <p>
                         These metrics are then combined to create three scenarios for prioritizing barriers for removal:
                     </p>
@@ -56,13 +50,20 @@ function ScoringOverview() {
                             </a>
                         </li>
                     </ul>
-                    <br />
-                    <br />
-                    <p>TODO: explain the scoring approach</p>
-                    <p>Using this tool, you can select the scenario that best meets your needs.</p>
+                </div>
+            </div>
+
+            <div className="columns">
+                <div className="column">
+                    <img src={ForestStream} className="photo" alt="Loakfoma Creek at Noxubee" style={{ height: 300 }} />
                 </div>
                 <div className="column">
-                    <img src={DamRemoval} alt="Dam Removal on Desnons Creek, North Carolina" class="photo" />
+                    <img
+                        src={DamRemoval}
+                        alt="Dam Removal on Desnons Creek, North Carolina"
+                        className="photo"
+                        style={{ height: 300 }}
+                    />
                 </div>
             </div>
         </Section>
