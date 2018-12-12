@@ -25,26 +25,38 @@ function Inventory() {
                         any scale for your desired purposes.
                         <br />
                         <br />
-                        This inventory consists of datasets from local, state, and federal partners, along with input
-                        from various partners with on the ground knowledge of specific structures. The information on
-                        barriers is not complete and dependent upon the availability and completion of data. Some areas
-                        of the region are more complete than others but none should be considered 100% complete.
+                        This inventory consists of datasets from local, state, and federal partners. It is supplemented
+                        with input from partners with on the ground knowledge of specific structures. The information on
+                        barriers is not complete or comprehensive across the region, and depends on the availability and
+                        completeness of existing data. Some areas of the region are more complete than others but none
+                        should be considered 100% complete.
+                        <br />
+                        <br />
+                    </p>
+                    <h4 className="title is-5" style={{ marginBottom: 0 }}>
+                        Get involved!
+                    </h4>
+                    <p>
+                        If you are able to help improve the inventory by sharing data or assisting with field
+                        reconnaissance, please <a href="mailto:kat@southeastaquatics.net">contact us</a>.
                     </p>
                 </div>
                 <div className="column">
                     <div className="info-box">
-                        <h5 className="subtitle is-5">At a Glance</h5>
+                        <h5 className="subtitle is-4 text-align-center">At a Glance</h5>
                         <section>
-                            <b>14</b> states plus Puerto Rico
+                            <b className="is-size-4 has-text-grey-dark">14</b> states plus Puerto Rico
                         </section>
                         <section>
-                            <b>{formatNumber(dams, 0)}</b> dams
+                            <b className="is-size-4 has-text-grey-dark">{formatNumber(dams, 0)}</b> dams
                         </section>
                         <section>
-                            <b>{formatNumber(smallBarriers, 0)}</b> road-related barriers
+                            <b className="is-size-4 has-text-grey-dark">{formatNumber(smallBarriers, 0)}</b>{" "}
+                            road-related barriers
                         </section>
                         <section>
-                            <b>{formatNumber(connectedmiles, 1)}</b> miles average connected aquatic network length
+                            <b className="is-size-4 has-text-grey-dark">{formatNumber(connectedmiles, 1)}</b> miles of
+                            connected aquatic network length, on average
                         </section>
                     </div>
                 </div>

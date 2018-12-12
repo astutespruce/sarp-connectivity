@@ -248,6 +248,25 @@ class PriorityMap extends Component {
                     s === system
                 )
             })
+
+            map.addLayer({
+                id: "dams_priority",
+                source: "dams",
+                "source-layer": "dams_priority",
+                type: "circle",
+                minzoom: 3,
+                filter: ["<=", ["get", "State_WC"], 1], // only show the top priorities for the current scenario.  TODO: update on change of scenario
+                paint: {
+                    "circle-color": "red",
+                    "circle-radius": 6
+                    // "circle-color": ["match", ["get", scenario], ...priorityColors, "#AAA"],
+                    // "circle-radius": ["interpolate", ["linear"], ["get", scenario], 1, 10, 4, 4],
+                    // "circle-radius": ["interpolate", ["linear"], ["get", scenario], 1, 3, 4, 3]
+                    // "circle-opacity": 1
+                    // "circle-stroke-width": 1,
+                    // "circle-stroke-color": "#AAA"
+                }
+            })
         })
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))

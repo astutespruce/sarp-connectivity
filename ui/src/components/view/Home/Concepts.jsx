@@ -10,13 +10,12 @@ import DamImage2 from "../../../img/9272554306_b34bf886f4_z.jpg"
 // Photo from: https://www.flickr.com/photos/usfwssoutheast/33643110826/in/album-72157675681441135/
 import CaneRiverDam from "../../../img/33643110826_a90387d592_z.jpg"
 
-
 function Concepts() {
     return (
         <React.Fragment>
             <Section title="Key Concept: Aquatic Barriers">
                 <div className="columns">
-                    <div className="column">
+                    <div className="column is-two-thirds">
                         <p>
                             These barriers are natural and human-made structures that impede the passage of aquatic
                             organisms through the river network. Some human-made barriers may no longer serve their
@@ -33,9 +32,10 @@ function Concepts() {
                         </ul>
                         <p>
                             <br />
-                            Not all barriers completely block the passage of all aquatic organisms. In this
-                            tool waterfalls and dams are considered &quot;hard&quot; barriers that divide the aquatic
-                            network.  Road-related barriers require field reconnaissance to determine if they are true barriers in the aquatic network.  
+                            Not all barriers completely block the passage of all aquatic organisms. In this tool
+                            waterfalls and dams are considered &quot;hard&quot; barriers that divide the aquatic
+                            network. Road-related barriers require field reconnaissance to determine if they are true
+                            barriers in the aquatic network.
                         </p>
                     </div>
                     <div className="column">

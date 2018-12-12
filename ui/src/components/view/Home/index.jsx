@@ -5,9 +5,19 @@ import Tool from "./Tool"
 import Inventory from "./Inventory"
 import UseCases from "./UseCases"
 import Concepts from "./Concepts"
-import Background from "./Background"
+import ScoringOverview from "./ScoringOverview"
 import SARP from "./SARP"
 import Credits from "./Credits"
+
+import NetworkLength from './metrics/NetworkLength'
+import NetworkSinuosity from './metrics/NetworkSinuosity'
+import NetworkComplexity from './metrics/NetworkComplexity'
+import NaturalLandcover from './metrics/NaturalLandcover'
+
+import NetworkConnectivity from './priorities/NetworkConnectivity'
+import WatershedCondition from './priorities/WatershedCondition'
+import Combined from './priorities/Combined'
+
 
 const Home = () => (
     <div id="Home" className="view">
@@ -21,7 +31,21 @@ const Home = () => (
 
         <Concepts />
 
-        <Background />
+        <ScoringOverview />
+
+        <NetworkLength />
+
+        <NetworkComplexity />
+
+        <NetworkSinuosity />
+
+        <NaturalLandcover />
+
+        <NetworkConnectivity />
+
+        <WatershedCondition />
+
+        <Combined />
 
         <SARP />
 
