@@ -33,10 +33,10 @@ const Barrier = ({ tab, barrier, onClose, setTab }) => {
                 <div className="tabs">
                     <ul>
                         <li className={tab === "details" ? "is-active" : null}>
-                            <a onClick={handleDetailsClick}>Details</a>
+                            <a onClick={handleDetailsClick}>Overview</a>
                         </li>
                         <li className={tab === "priorities" ? "is-active" : null}>
-                            <a onClick={handlePrioritiesClick}>Priorities</a>
+                            <a onClick={handlePrioritiesClick}>Connectivity Ranks</a>
                         </li>
                     </ul>
                 </div>

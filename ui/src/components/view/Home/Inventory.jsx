@@ -45,7 +45,7 @@ function Inventory() {
                     <div className="info-box">
                         <h5 className="subtitle is-4 text-align-center">At a Glance</h5>
                         <section>
-                            <b className="is-size-4 has-text-grey-dark">14</b> states plus Puerto Rico
+                            <b className="is-size-4 has-text-grey-dark">14</b> states and Puerto Rico
                         </section>
                         <section>
                             <b className="is-size-4 has-text-grey-dark">{formatNumber(dams, 0)}</b> dams
