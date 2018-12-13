@@ -65,7 +65,10 @@ button:focus {
     justify-content: flex-start;
 }
 .flex-justify-center {
-    justify-content: center;
+    justify-content: center !important;
+}
+.flex-justify-end {
+    justify-content: flex-end !important;
 }
 .flex-justify-space-between {
     justify-content: space-between;
@@ -220,7 +223,7 @@ footer a {
     text-shadow: 2px 2px 2px #000;
 }
 #Home .dark a {
-    color: #FFF;
+    color: #fff;
     text-decoration: underline;
 }
 #Home .hero {
@@ -311,9 +314,14 @@ footer a {
 }
 
 #SidebarHeader {
-    padding: 1em 0.5em 1em 1em;
+    padding: 1rem 0.5rem 1rem 1rem;
     background: #eee;
     border-bottom: 1px solid #ddd;
+}
+#SidebarHeader.has-tabs {
+    padding-bottom: 0;
+    border-bottom: none;
+    background: #fff;
 }
 #SidebarHeader .button {
     border: none;
@@ -325,11 +333,29 @@ footer a {
 #SidebarHeader .icon:hover {
     color: #666;
 }
+#SidebarHeader .tabs {
+    margin: 1rem -0.5rem 0 -1rem;
+    padding: 0 1rem;
+    background: #ddd;
+    border-top: 4px solid #859db3;
+}
+#SidebarHeader .tabs ul {
+    border-bottom: none;
+}
+#SidebarHeader .tabs .is-active a {
+    background: #fff !important;
+    color: inherit;
+    font-weight: bold;
+}
+#SidebarHeader .tabs a:hover {
+    background: #eee;
+}
 
 #SidebarContent {
-    padding: 1em;
+    padding: 1rem;
     overflow-y: auto;
     overflow-x: hidden;
+    flex-grow: 1;
 }
 
 #SidebarContent .row {
@@ -343,6 +369,11 @@ footer a {
 #SidebarContent .field {
     font-weight: bold;
     color: #555;
+}
+
+#SidebarContent .button-group {
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
 }
 
 #MapContainer {
@@ -465,4 +496,38 @@ footer a {
 }
 #SummaryUnitList li + li {
     margin-top: 1em;
+}
+
+.chart-score + .chart-score {
+    margin-top: 3rem;
+}
+.chart-score .domain {
+    position: relative;
+    margin: 4px 16px 0;
+    flex: 1;
+}
+.chart-score .domain-line {
+    height: 2px;
+    background: #ddd;
+}
+
+.chart-score .marker {
+    position: absolute;
+    top: -12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 24px;
+    background: #666;
+    margin-left: -12px;
+}
+
+#BarrierDetails .title {
+    margin: 1em 0 0.5em 0;
+}
+#BarrierDetails ul {
+    padding-left: 2rem;
+    list-style-type: disc;
+}
+#BarrierDetails ul li + li {
+    margin-top: 0.25em;
 }

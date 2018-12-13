@@ -33,9 +33,9 @@ const SummaryUnitChooser = ({ summaryUnits, onDeselectUnit, onBack, onSubmit }) 
                     Select additional areas by clicking on them on the map. To unselect an area, use the trash button
                     above or click on it on the map.
                 </p>
-                <div className="field is-grouped">
-                    <button type="button" className="button is-white is-medium">
-                        Cancel
+                <div className="field is-grouped flex-justify-end button-group">
+                    <button type="button" className="button is-white is-medium" onClick={() => onBack()}>
+                        Start Over
                     </button>
                     <button type="button" className="button is-info is-medium" onClick={onSubmit}>
                         <i className="fa fa-search-location" />

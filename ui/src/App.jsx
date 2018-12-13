@@ -7,11 +7,11 @@ import Home from "./components/view/Home"
 import Download from "./components/view/Download"
 import Priority from "./components/view/Priority"
 import Summary from "./components/view/Summary"
-import DamDetails from "./components/view/DamDetails"
+import TestDetails from "./test/TestDetails"
 import NotFound from "./components/view/NotFound"
 
 // testing
-import Heatmap from './components/view/Heatmap'
+import Heatmap from "./components/view/Heatmap"
 
 const App = () => (
     <div className="flex-container-column full-height fill-viewport">
@@ -22,10 +22,12 @@ const App = () => (
                 <Route exact path="/download" component={Download} />
                 <Route exact path="/summary" component={Summary} />
                 <Route exact path="/priority" component={Priority} />
-                <Route exact path="/dams/:id" component={DamDetails} />
+
+                {/* FIXME! */}
+                <Route exact path="/test/:id" component={TestDetails} />
 
                 <Route exact path="/heatmap" component={Heatmap} />
-                
+
                 {/* Fall-through route */}
                 <Route component={NotFound} />
             </Switch>
