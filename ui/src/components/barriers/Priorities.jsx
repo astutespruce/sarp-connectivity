@@ -2,12 +2,15 @@
 
 import React from "react"
 import PropTypes from "prop-types"
+import { connect } from "react-redux"
 
 import PrioritiesList from "./PrioritiesList"
 
 import { BarrierPrioritiesPropType, MetricsPropType } from "../../CustomPropTypes"
 
-const Priorities = ({ tab, metrics, metricScores, priorities, setTab }) => {
+import { setDetailsUnit } from "../../actions/details"
+
+const Priorities = ({ tab, metricScores, priorities, setTab }) => {
     const hasCustom = priorities.custom && priorities.custom.nc
 
     const handleCustomClick = () => setTab("custom")
@@ -15,7 +18,6 @@ const Priorities = ({ tab, metrics, metricScores, priorities, setTab }) => {
     const handleRegionclick = () => setTab("se")
 
     const curPriorities = priorities[tab]
-    console.log(curPriorities)
 
     return (
         <div>
@@ -42,17 +44,32 @@ const Priorities = ({ tab, metrics, metricScores, priorities, setTab }) => {
 }
 
 Priorities.propTypes = {
-    tab: PropTypes.string,
-    metrics: MetricsPropType.isRequired,
+    tab: PropTypes.string.isRequired,
+    metricScores: MetricsPropType.isRequired,
     priorities: BarrierPrioritiesPropType.isRequired,
     setTab: PropTypes.func
 }
 
 Priorities.defaultProps = {
-    tab: "state",
     setTab: tab => {
         console.log(`Set Tab: ${tab}`)
     }
 }
 
-export default Priorities
+const mapStateToProps = globalState => {
+    const state = globalState.get("details")
+    return {
+        tab: state.get("unit")
+    }
+}
+
+// const mapDispatchToProps = (dispatch) => {
+//     return {
+//         setTab:
+//     }
+// }
+
+export default connect(
+    mapStateToProps,
+    { setTab: setDetailsUnit }
+)(Priorities)

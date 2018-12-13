@@ -376,6 +376,18 @@ footer a {
     padding-top: 1rem;
 }
 
+#SidebarContent .tabs ul {
+    border-bottom-color: transparent;
+}
+
+#SidebarContent .tabs a {
+    border-bottom-color: transparent;
+}
+
+#SidebarContent .tabs .is-active a {
+    border-bottom-color: inherit;
+}
+
 #MapContainer {
     position: absolute;
     left: 400px;

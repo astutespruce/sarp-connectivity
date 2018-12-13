@@ -10,7 +10,7 @@ import { Provider } from "react-redux"
 import { BrowserRouter as Router } from "react-router-dom"
 import { combineReducers } from "redux-immutable"
 
-import { summaryReducer, priorityReducer } from "./reducers"
+import { summaryReducer, priorityReducer, detailsReducer } from "./reducers"
 
 import "@fortawesome/fontawesome-free/css/all.min.css"
 import "bulma/css/bulma.css"
@@ -33,7 +33,8 @@ const logger = createLogger({
 
 const rootReducer = combineReducers({
     priority: priorityReducer,
-    summary: summaryReducer
+    summary: summaryReducer,
+    details: detailsReducer
 })
 
 const store = createStore(rootReducer, applyMiddleware(logger))

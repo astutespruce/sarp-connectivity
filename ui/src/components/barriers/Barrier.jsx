@@ -2,10 +2,13 @@
 
 import React from "react"
 import PropTypes from "prop-types"
+import { connect } from "react-redux"
 
 import Details from "./Details"
 import Priorities from "./Priorities"
 import { BarrierPropType } from "../../CustomPropTypes"
+
+import { setDetailsTab } from "../../actions/details"
 
 const Barrier = ({ tab, barrier, onClose, setTab }) => {
     const { id, name, county, state } = barrier
@@ -70,4 +73,15 @@ Barrier.defaultProps = {
     }
 }
 
-export default Barrier
+const mapStateToProps = globalState => {
+    const state = globalState.get("details")
+
+    return {
+        tab: state.get("tab")
+    }
+}
+
+export default connect(
+    mapStateToProps,
+    { setTab: setDetailsTab }
+)(Barrier)
