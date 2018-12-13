@@ -15,7 +15,21 @@ const sinuosityLabel = sinuosity => {
     return "low"
 }
 
-const Details = ({ lat, lon, type, height, year, material, purpose, condition, river, basin, metrics, numSpp }) => {
+const Details = ({
+    lat,
+    lon,
+    type,
+    height,
+    year,
+    material,
+    purpose,
+    condition,
+    river,
+    basin,
+    metrics,
+    numSpp,
+    feasibility
+}) => {
     const { length, upstreamMiles, downstreamMiles, sinuosity, sizeclasses, landcover } = metrics
     const hasMetrics = metrics !== null
 
@@ -48,16 +62,18 @@ const Details = ({ lat, lon, type, height, year, material, purpose, condition, r
             {hasMetrics ? (
                 <ul>
                     <li>
-                        <b>{formatNumber(length)}</b> miles could be gained by removing this barrier (
-                        {formatNumber(upstreamMiles)} miles in the upstream network, {formatNumber(downstreamMiles)}{" "}
-                        miles in the downstream network){" "}
+                        <b>{formatNumber(length)}</b> miles could be gained by removing this barrier
+                        <ul>
+                            <li>{formatNumber(upstreamMiles)} miles in the upstream network</li>
+                            <li>{formatNumber(downstreamMiles)} miles in the downstream network</li>
+                        </ul>
                     </li>
                     <li>
-                        <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain is in natural landcover
+                        <b>{sizeclasses}</b> river size {sizeclasses === 1 ? "class" : "classes"} could be gained by
+                        removing this barrier
                     </li>
                     <li>
-                        There {sizeclasses === 1 ? "is" : "are"} <b>{sizeclasses}</b> upstream size{" "}
-                        {sizeclasses === 1 ? "class" : "classes"}
+                        <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain is composed of natural landcover
                     </li>
                     <li>
                         The upstream network has <b>{sinuosityLabel(sinuosity)}</b> sinuosity
@@ -68,26 +84,34 @@ const Details = ({ lat, lon, type, height, year, material, purpose, condition, r
             )}
 
             <h6 className="title is-6">Species information</h6>
-            {numSpp > 0 ? (
-                <React.Fragment>
-                    <ul>
+            <ul>
+                {numSpp > 0 ? (
+                    <React.Fragment>
                         <li>
                             <b>{numSpp}</b> threatened and endangered aquatic species have been found in the
                             subwatershed containing this barrier.
                         </li>
-                    </ul>
-                    <p>
-                        <br />
-                        Note: species information is very incomplete. These species may or may not be directly impacted
-                        by this barrier.
-                    </p>
-                </React.Fragment>
-            ) : (
-                <p className="has-text-grey">
-                    No threatened and endangered aquatic species occurrence information is available for this
-                    subwatershed.
-                </p>
-            )}
+                        <li className="has-text-grey is-size-7">
+                            Note: species information is very incomplete. These species may or may not be directly
+                            impacted by this barrier.
+                        </li>
+                    </React.Fragment>
+                ) : (
+                    <li className="has-text-grey">
+                        No threatened and endangered aquatic species occurrence information is available for this
+                        subwatershed.
+                    </li>
+                )}
+            </ul>
+
+            <h6 className="title is-6">Feasibility of removal</h6>
+            <ul>
+                {feasibility ? (
+                    <li>{feasibility}</li>
+                ) : (
+                    <li className="has-text-grey">No feasibility information is available for this barrier.</li>
+                )}
+            </ul>
         </div>
     )
 }
@@ -106,7 +130,8 @@ Details.propTypes = {
     purpose: PropTypes.string,
     condition: PropTypes.string,
     metrics: MetricsPropType,
-    numSpp: PropTypes.number
+    numSpp: PropTypes.number,
+    feasibility: PropTypes.string
 }
 
 Details.defaultProps = {
@@ -117,7 +142,8 @@ Details.defaultProps = {
     purpose: "",
     condition: "",
     metrics: null,
-    numSpp: 0
+    numSpp: 0,
+    feasibility: ""
 }
 
 export default Details

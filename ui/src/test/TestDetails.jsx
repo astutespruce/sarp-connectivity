@@ -25,6 +25,7 @@ const barrier = {
     condition: "not rated",
 
     numSpp: 3, // num T&E spps
+    feasibility: "Removal is unlikely. Social conditions unfavorable",
 
     metrics: {
         length: 0.628,
