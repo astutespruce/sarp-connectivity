@@ -92,16 +92,12 @@ point_df = (
     df.groupby(["HUC12", "SNAME", "status"]).size().reset_index().drop(columns=[0])
 )
 
-
 # merge the datasets together
-# poly_df = pd.read_csv(
-#     "data/src/Species_polygons_HUC12.csv",
-#     usecols=["SNAME", "status", "HUC12"],
-#     dtype={"HUC12": str},
-# )
-
 merged_df = poly_df.append(point_df, ignore_index=True)
 merged_df = (
-    merged.groupby(["HUC12", "SNAME", "status"]).size().reset_index().drop(columns=[0])
+    merged_df.groupby(["HUC12", "SNAME", "status"])
+    .size()
+    .reset_index()
+    .drop(columns=[0])
 )
 merged_df.to_csv("data/src/species_HUC12.csv", index=False)

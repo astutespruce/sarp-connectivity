@@ -8,16 +8,16 @@ import pandas as pd
 # Using short labels for scenarios since we will add prefixes / suffixes to them
 SCENARIOS = OrderedDict(
     {
-        "NC": ["AbsoluteGainMi"],  # NetworkConnectivity
-        "WC": [
-            "NetworkSinuosity",
-            "PctNatFloodplain",
-            "NumSizeClassGained",
-        ],  # Watershed Condition
+        # NetworkConnectivity
+        "NC": ["GainMiles"],
+        # Watershed Condition
+        "WC": ["Sinuosity", "PctNatFloodplain", "SizeClasses"],
     }
 )
 # Add combination last to ensure it runs last
 SCENARIOS["NCWC"] = ["NC", "WC"]  # Network Connectivity Plus Watershed Condition
+
+METRICS = ["GainMiles", "Sinuosity", "Landcover", "SizeClasses"]
 
 PERCENTILES = [99, 95, 90, 75, 50, 25, 0]
 # TOP_N = 5  # select the top N from each group
@@ -44,7 +44,7 @@ def calculate_score(series, ascending=True):
     """
 
     # Round to 3 decimal places to avoid unnecessary precision and extract unique values
-    series = series.copy().round(5)
+    series = series.copy().round(3)
     unique = series.unique()
     unique.sort()
 
@@ -172,27 +172,19 @@ def calculate_tiers(
         returns data frame with a tier field (_tier) for each scenario. 
     """
 
-    # extract list of fields based on inputs to scenarios, excluding those that are combinations of other scenarios
-    fields = [
-        field
-        for field in reduce(lambda x, y: set(x).union(y), SCENARIOS.values())
-        if not field in SCENARIOS
-    ]
-
-    # Drop na fields up front, then join back to the original data frame
-    columns = fields.copy()
+    columns = METRICS.copy()
     if group_field is not None:
         columns.append(group_field)
-    df = dataframe[columns].dropna()
+
+    df = dataframe[columns].copy()
 
     groups = df[group_field].unique() if group_field is not None else [None]
 
     for group in groups:
-        # print(group)
         row_index = df[group_field] == group if group is not None else df.index
 
         # calculate score for each input field
-        for field in fields:
+        for field in METRICS:
             df.loc[row_index, "{}_score".format(field)] = calculate_score(
                 df.loc[row_index, field]
             )
@@ -253,61 +245,61 @@ def calculate_tiers(
     return df
 
 
-if __name__ == "__main__":
-    start = time()
+# if __name__ == "__main__":
+#     start = time()
 
-    df = pd.read_csv(
-        "data/src/dams.csv",
-        dtype={
-            "HUC2": str,
-            "HUC4": str,
-            "HUC6": str,
-            "HUC8": str,
-            "HUC10": str,
-            "HUC12": str,
-            "ECO3": str,
-            "ECO4": str,
-        },
-    ).set_index(["id"])
+#     df = pd.read_csv(
+#         "data/src/dams.csv",
+#         dtype={
+#             "HUC2": str,
+#             "HUC4": str,
+#             "HUC6": str,
+#             "HUC8": str,
+#             "HUC10": str,
+#             "HUC12": str,
+#             "ECO3": str,
+#             "ECO4": str,
+#         },
+#     ).set_index(["id"])
 
-    df = df.drop(
-        columns=[
-            c
-            for c in df.columns
-            if c in {"NCWC", "NC", "WC"} or "_NC" in c or "_WC" in c
-        ]
-    )
+#     df = df.drop(
+#         columns=[
+#             c
+#             for c in df.columns
+#             if c in {"NCWC", "NC", "WC"} or "_NC" in c or "_WC" in c
+#         ]
+#     )
 
-    # for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
-    for group_field in (None, "HUC8", "State"):
-        if group_field is None:
-            print("Calculating regional tiers")
-        else:
-            print("Calculating tiers for {}".format(group_field))
+#     # for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
+#     for group_field in (None, "HUC8", "State"):
+#         if group_field is None:
+#             print("Calculating regional tiers")
+#         else:
+#             print("Calculating tiers for {}".format(group_field))
 
-        is_large_unit = group_field in (None, "State")
+#         is_large_unit = group_field in (None, "State")
 
-        tiers_df = calculate_tiers(
-            df,
-            SCENARIOS,
-            group_field=group_field,
-            prefix=group_field,
-            percentiles=is_large_unit,
-            topn=is_large_unit,
-        )
-        df = df.join(tiers_df)
+#         tiers_df = calculate_tiers(
+#             df,
+#             SCENARIOS,
+#             group_field=group_field,
+#             prefix=group_field,
+#             percentiles=is_large_unit,
+#             topn=is_large_unit,
+#         )
+#         df = df.join(tiers_df)
 
-        # Fill n/a with -1 for tiers
-        df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)  # .astype("int8")
-        for scenario in SCENARIOS:
-            df[scenario] = df[scenario].astype("int8")
-            df["{}_p".format(scenario)] = df["{}_p".format(scenario)].astype("int8")
+#         # Fill n/a with -1 for tiers
+#         df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)  # .astype("int8")
+#         for scenario in SCENARIOS:
+#             df[scenario] = df[scenario].astype("int8")
+#             df["{}_p".format(scenario)] = df["{}_p".format(scenario)].astype("int8")
 
-    # TEMP: drop all dams with missing data
-    df = df[df.NCWC > 0]
+#     # TEMP: drop all dams with missing data
+#     df = df[df.NCWC > 0]
 
-    df.to_csv("data/src/tiers.csv", index_label="id")
+#     df.to_csv("data/src/tiers.csv", index_label="id")
 
-    print("Size", len(df))
+#     print("Size", len(df))
 
-    print("Done in {:.2f}".format(time() - start))
+#     print("Done in {:.2f}".format(time() - start))

@@ -27,4 +27,5 @@ yarn-error.log*
 /ui/build/*
 
 /data/src/*
+/data/tiles/*
 /tiles/*
