@@ -3,60 +3,65 @@ import csv
 import json
 import pandas as pd
 import numpy as np
+from feather import read_dataframe
+
+# Bins are manually constructed to give reasonable looking map
+# There must be a matching number of colors in the map
+PERCENTILES = [20, 40, 60, 75, 80, 85, 90, 95, 100]
 
 
-df = pd.read_csv(
-    "data/src/dams.csv",
-    dtype={
-        "HUC2": str,
-        "HUC4": str,
-        "HUC6": str,
-        "HUC8": str,
-        "HUC10": str,
-        "HUC12": str,
-        "ECO3": str,
-        "ECO4": str,
-    },
-)
+dams = read_dataframe("data/src/dams.feather")
+sb = read_dataframe("data/src/small_barriers.feather")
 
 stats = defaultdict(defaultdict)
+stats["southeast"] = {
+    "dams": len(dams),
+    "miles": round(dams["GainMiles"].mean().item(), 3),
+    "barriers": len(sb),
+}
 
 # Group by state, HUC level, ecoregion level
-for unit in ("State", "HUC2", "HUC4", "HUC6", "HUC8", "HUC10", "HUC12", "ECO3", "ECO4"):
+for unit in ("State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4"):
     print("processing {}".format(unit))
-    group_cols = [unit]
-    # TODO: only needed if we are extracting out subregions based on some higher order ID
-    # if unit == "HUC4":
-    #     group_cols.append("HUC2")
-    # elif unit == "HUC8":
-    #     group_cols.extend(["HUC4", "HUC2"])
-    # elif unit == "ECO4":
-    #     group_cols.append("ECO3")
 
-    g = (
-        df.groupby(group_cols)
-        .agg({"UniqueID": "count", "AbsoluteGainMi": "mean"})
-        .rename(columns={"UniqueID": "dams", "AbsoluteGainMi": "connectedmiles"})
+    dam_stats = (
+        dams[[unit, "id", "GainMiles"]]
+        .groupby(unit)
+        .agg({"id": "count", "GainMiles": "mean"})
+        .reset_index()
+        .rename(columns={"id": "dams", "GainMiles": "miles"})
+        .set_index(unit)
     )
 
-    # Bins are manually constructed to give reasonable looking map
-    # There must be a matching number of colors in the map
-    bins = [20, 40, 60, 75, 80, 85, 90, 95, 100]
-    percentiles = np.percentile(g.dams, bins)
+    sb_stats = (
+        sb[[unit, "id"]]
+        .groupby(unit)
+        .size()
+        .reset_index()
+        .rename(columns={0: "barriers"})
+        .set_index(unit)
+    )
+    merged = dam_stats.join(sb_stats, how="outer").fillna(0)
+    merged.dams = merged.dams.astype("uint32")
+    merged.barriers = merged.barriers.astype("uint32")
+    merged.miles = merged.miles.round(3)
 
-    stats[unit]["percentiles"] = percentiles.round().astype("uint").tolist()
-
-    g.to_csv(
+    merged.to_csv(
         "data/summary/{}.csv".format(unit),
-        index_label=["id"] + group_cols[1:],
+        index_label="id",
         quoting=csv.QUOTE_NONNUMERIC,
     )
 
-    level_stats = g.agg(["min", "max"])
-    for col in ("dams", "connectedmiles"):
-        stats[unit][col] = {"range": level_stats[col].tolist(), "mean": g[col].mean()}
-
-stats["sarp"] = {"dams": len(df), "connectedmiles": df["AbsoluteGainMi"].mean()}
+    level_stats = merged.agg(["min", "max"])
+    for col in ("dams", "miles", "barriers"):
+        stats[unit][col] = {
+            "range": level_stats[col].round(3).tolist(),
+            "mean": round(merged[col].mean().item(), 3),
+        }
+        if col in ("dams", "barriers"):
+            stats[unit][col]["bins"] = (
+                np.percentile(merged[col], PERCENTILES).round().astype("uint").tolist()
+            )
 
 with open("ui/src/data/summary_stats.json", "w") as outfile:
     outfile.write(json.dumps(stats))

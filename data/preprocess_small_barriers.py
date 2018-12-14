@@ -78,12 +78,11 @@ df.rename(
         "PctNatFloodplain": "Landcover",
         "NetworkSinuosity": "Sinuosity",
         "NumSizeClassesGained": "SizeClasses",
-        "CrossingTypeId": "Type",
+        "CrossingTypeId": "CrossingType",
         "RoadTypeId": "RoadType",
         "CrossingConditionId": "Condition",
         "StreamName": "Stream",
         "NumberOfStructures": "Structures",
-        "CrossingComment": "Comment",
     },
     inplace=True,
 )
@@ -101,7 +100,7 @@ df.State = df.STATEFIPS.map(STATE_FIPS_DOMAIN)
 df.County = df.County.fillna("").str.replace(" County", "")
 
 # Fix mixed casing of values
-for column in ("Type", "RoadType", "Stream", "Road"):
+for column in ("CrossingType", "RoadType", "Stream", "Road"):
     df[column] = df[column].fillna("Unknown").str.title().str.strip()
     df.loc[df[column].str.len() == 0, column] = "Unknown"
 
@@ -114,7 +113,7 @@ df.loc[df.Condition == "No Data", "Condition"] = "Unknown"
 
 #########  Fill NaN fields and set data types
 
-for column in ("CrossingCode", "LocalID", "Comment", "Source"):
+for column in ("CrossingCode", "LocalID", "Source"):
     df[column] = df[column].fillna("").str.strip()
 
 for column in ("RareSpp", "ProtectedLand"):
@@ -190,14 +189,10 @@ df = df[
         "ECO3",
         "ECO4",
         # Barrier info
-        "Type",
+        "CrossingType",
         "Condition",
         "PotentialProject",
         "Structures",
-        "SEAOP",
-        "SARPScore",
-        "SRIScore",  # ??
-        "Comment",
         # Metrics
         "GainMiles",
         "UpstreamMiles",
