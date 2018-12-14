@@ -11,7 +11,7 @@ SCENARIOS = OrderedDict(
         # NetworkConnectivity
         "NC": ["GainMiles"],
         # Watershed Condition
-        "WC": ["Sinuosity", "PctNatFloodplain", "SizeClasses"],
+        "WC": ["Sinuosity", "Landcover", "SizeClasses"],
     }
 )
 # Add combination last to ensure it runs last
@@ -53,9 +53,9 @@ def calculate_score(series, ascending=True):
 
     rank = np.arange(0, unique.size, dtype="float64")
     rank_size = (rank.size - 1) or 1  # to prevent divide by 0 error
-    score = rank / rank_size
+    score = rank / rank_size  # on a 0-1 scale
     lut = {v: score[i] for i, v in enumerate(unique)}
-    return series.apply(lambda row: lut.get(row, np.nan))
+    return series.map(lut)
 
 
 def calculate_composite_score(dataframe, weights=None):
@@ -182,9 +182,9 @@ def calculate_tiers(
 
     for group in groups:
         row_index = df[group_field] == group if group is not None else df.index
-
         # calculate score for each input field
         for field in METRICS:
+
             df.loc[row_index, "{}_score".format(field)] = calculate_score(
                 df.loc[row_index, field]
             )
@@ -193,13 +193,14 @@ def calculate_tiers(
         for scenario, inputs in scenarios.items():
             input_scores = ["{}_score".format(field) for field in inputs]
             score_field = "{}_score".format(scenario)
+
             df.loc[row_index, score_field] = calculate_composite_score(
-                df.loc[row_index, input_scores]
+                df.loc[row_index][input_scores]
             )
 
-            # Tiers are named for the scenario
-            tier = calculate_tier(df.loc[row_index, score_field])
-            df.loc[row_index, scenario] = tier
+            df.loc[row_index, "{}_tier".format(scenario)] = calculate_tier(
+                df.loc[row_index, score_field]
+            )
 
             # Percentiles - only for large areas
             if percentiles:
@@ -217,89 +218,50 @@ def calculate_tiers(
                         df.loc[row_index, score_field].nlargest(n).index, topn_field
                     ] = n
 
-    # join back to the original data frame
-    # only keep the scenario tier fields
-    # out_fields = list(scenarios.keys())
-
-    # For adding score fields
-    # out_fields = [f for f in df.columns if not f in fields]
-
-    out_fields = []
-    for scenario in scenarios:
-        out_fields.extend([scenario, "{}_score".format(scenario)])
-
-        if percentiles:
-            out_fields.append("{}_p".format(scenario))
-
-        if topn:
-            out_fields.append("{}_top".format(scenario))
-
-    df = df[out_fields]
+    df = df[df.columns.drop(columns)]
 
     if prefix:
         df.rename(
-            columns={field: "{0}_{1}".format(prefix, field) for field in out_fields},
+            columns={field: "{0}_{1}".format(prefix, field) for field in df.columns},
             inplace=True,
         )
 
     return df
 
 
-# if __name__ == "__main__":
-#     start = time()
+if __name__ == "__main__":
+    from feather import read_dataframe
 
-#     df = pd.read_csv(
-#         "data/src/dams.csv",
-#         dtype={
-#             "HUC2": str,
-#             "HUC4": str,
-#             "HUC6": str,
-#             "HUC8": str,
-#             "HUC10": str,
-#             "HUC12": str,
-#             "ECO3": str,
-#             "ECO4": str,
-#         },
-#     ).set_index(["id"])
+    start = time()
 
-#     df = df.drop(
-#         columns=[
-#             c
-#             for c in df.columns
-#             if c in {"NCWC", "NC", "WC"} or "_NC" in c or "_WC" in c
-#         ]
-#     )
+    print("reading data")
+    df = read_dataframe("data/src/dams.feather").set_index("id", drop=False)
 
-#     # for group_field in (None, "State", "HUC2", "HUC4", "HUC8", "ECO3"):
-#     for group_field in (None, "HUC8", "State"):
-#         if group_field is None:
-#             print("Calculating regional tiers")
-#         else:
-#             print("Calculating tiers for {}".format(group_field))
+    # keep only those on the network
+    df = df.loc[df.HasNetwork].copy()
 
-#         is_large_unit = group_field in (None, "State")
+    for group_field in (None, "State"):
+        print("Calculating tiers for: {}".format(group_field or "Region"))
 
-#         tiers_df = calculate_tiers(
-#             df,
-#             SCENARIOS,
-#             group_field=group_field,
-#             prefix=group_field,
-#             percentiles=is_large_unit,
-#             topn=is_large_unit,
-#         )
-#         df = df.join(tiers_df)
+        tiers_df = calculate_tiers(
+            df,
+            SCENARIOS,
+            group_field=group_field,
+            prefix="SE" if group_field is None else group_field,
+            percentiles=True,
+            topn=True,
+        )
+        df = df.join(tiers_df)
 
-#         # Fill n/a with -1 for tiers
-#         df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)  # .astype("int8")
-#         for scenario in SCENARIOS:
-#             df[scenario] = df[scenario].astype("int8")
-#             df["{}_p".format(scenario)] = df["{}_p".format(scenario)].astype("int8")
+        # Fill n/a with -1 for tiers
+        df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
+        for col in tiers_df.columns:
+            if col.endswith("_tier") or col.endswith("_p") or col.endswith("_top"):
+                df[col] = df[col].astype("int8")
+            elif col.endswith("_score"):
+                df[col] = df[col].round(3).astype("float32")
 
-#     # TEMP: drop all dams with missing data
-#     df = df[df.NCWC > 0]
+    print("saving to CSV")
+    df.to_csv("data/src/tiers.csv", index_label="id")
 
-#     df.to_csv("data/src/tiers.csv", index_label="id")
-
-#     print("Size", len(df))
-
-#     print("Done in {:.2f}".format(time() - start))
+    print("Done in {:.2f}".format(time() - start))
