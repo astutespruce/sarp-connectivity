@@ -111,6 +111,9 @@ df.loc[df.RoadType.isin(("No Data", "NoData")), "RoadType"] = "Unknown"
 df.Condition = df.Condition.fillna("Unknown")
 df.loc[df.Condition == "No Data", "Condition"] = "Unknown"
 
+# Fix issues with Structures
+df.Structures = df.Structures.fillna(-1).astype("int8")
+
 #########  Fill NaN fields and set data types
 
 for column in ("CrossingCode", "LocalID", "Source"):
