@@ -82,7 +82,6 @@ df.rename(
         "RoadTypeId": "RoadType",
         "CrossingConditionId": "Condition",
         "StreamName": "Stream",
-        "NumberOfStructures": "Structures",
     },
     inplace=True,
 )
@@ -110,9 +109,6 @@ df.loc[df.RoadType.isin(("No Data", "NoData")), "RoadType"] = "Unknown"
 # Fix issues with Condition
 df.Condition = df.Condition.fillna("Unknown")
 df.loc[df.Condition == "No Data", "Condition"] = "Unknown"
-
-# Fix issues with Structures
-df.Structures = df.Structures.fillna(-1).astype("int8")
 
 #########  Fill NaN fields and set data types
 
@@ -195,7 +191,6 @@ df = df[
         "CrossingType",
         "Condition",
         "PotentialProject",
-        "Structures",
         # Metrics
         "GainMiles",
         "UpstreamMiles",
