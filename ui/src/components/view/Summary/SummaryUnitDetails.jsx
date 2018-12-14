@@ -1,22 +1,27 @@
 import React from "react"
 import PropTypes from "prop-types"
 
-import { FeaturePropType } from "../CustomPropTypes"
-import { formatNumber, formatPercent } from "../utils/format"
+import { FeaturePropType } from "../../../CustomPropTypes"
+import { formatNumber, formatPercent } from "../../../utils/format"
 
-import { LAYER_CONFIG } from "./map/config"
+import { LAYER_CONFIG } from "../../map/config"
+import { stateFIPS } from '../../../constants'
 
-import summaryStats from "../data/summary_stats.json"
+import summaryStats from "../../../data/summary_stats.json"
 
 const SummaryUnitDetails = ({ selectedFeature, totalDams, meanConnectedMiles, onClose }) => {
-    const { id, layerId, name, dams, connectedmiles } = selectedFeature.toJS()
+    const { id, layerId, name, dams, miles } = selectedFeature.toJS()
     const layerConfig = LAYER_CONFIG.filter(({ id: lyrID }) => lyrID === layerId)[0]
-    const { title: layerTitle } = layerConfig
+    let { title: layerTitle } = layerConfig
 
     const percentDams = (100 * dams) / totalDams
-    const milesCompare = connectedmiles - meanConnectedMiles
+    const milesCompare = miles - meanConnectedMiles
 
-    const title = name || id
+    let title = name || id
+    if (layerId === 'County') {
+        title = `${name} County`
+        layerTitle = stateFIPS[id.slice(0, 2)]
+    }
 
     return (
         <React.Fragment>
@@ -32,7 +37,7 @@ const SummaryUnitDetails = ({ selectedFeature, totalDams, meanConnectedMiles, on
             <div id="SidebarContent" className="flex-container-column">
                 <p className="is-size-5">
                     This area contains at least {formatNumber(dams, 0)} dams that have been inventoried so far,
-                    resulting in an average of {formatNumber(connectedmiles)} miles of connected rivers.
+                    resulting in an average of {formatNumber(miles)} miles of connected rivers and streams.
                     <br />
                     <br />
                     This area has {formatPercent(percentDams)}% of the inventoried dams in the Southeast and{" "}

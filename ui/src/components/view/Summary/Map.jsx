@@ -22,7 +22,7 @@ const LEVEL_LEGEND = {}
 LAYER_CONFIG.forEach(({ id }) => {
     LEVEL_LEGEND[id] = {
         // bins: equalIntervals(summaryStats[id].dams.range, COUNT_COLORS.length),
-        bins: summaryStats[id].percentiles,
+        bins: summaryStats[id].dams.bins, // TODO: dams or barriers
         colors: COUNT_COLORS
     }
 })
@@ -63,19 +63,10 @@ class SummaryMap extends Component {
             const featureId = selectedFeature === null ? null : selectedFeature.get("id")
             visibleLayers.forEach(({ id }) => {
                 const featureIdForLyr = featureId
-                console.log("foo", featureId, id)
-
-                // if incoming featureId is for a HUC12, also highlight its containing HUC8
-                // if (featureId && id === "HUC8" && featureId.length === 12) {
-                //     featureIdForLyr = featureId.slice(0, 8)
-                // }
 
                 this.setHighlight(id, featureIdForLyr)
             })
         }
-
-        // TODO: compare before updating
-        // map.getSource("unit-labels").setData(labelsToGeoJSON(labels.toJS()))
     }
 
     setLayerVisibility = (id, visible) => {
@@ -85,12 +76,10 @@ class SummaryMap extends Component {
         map.setLayoutProperty(`${id}-fill`, "visibility", visibility)
         map.setLayoutProperty(`${id}-outline`, "visibility", visibility)
         map.setLayoutProperty(`${id}-highlight`, "visibility", visibility)
-        map.setLayoutProperty(`${id}-highlight-fill`, "visibility", visibility)
     }
 
     setHighlight = (id, featureId) => {
         this.map.setFilter(`${id}-highlight`, ["==", "id", featureId === null ? Infinity : featureId])
-        // this.map.setFilter(`${id}-highlight-fill`, ["==", "id", featureId === null ? Infinity : featureId])
     }
 
     addLayers = (layers, visible = true) => {
@@ -180,21 +169,6 @@ class SummaryMap extends Component {
             },
             filter: ["==", "id", Infinity]
         })
-
-        // this.map.addLayer({
-        //     id: `${id}-highlight-fill`,
-        //     source: "sarp",
-        //     "source-layer": id,
-        //     type: "fill",
-        //     minzoom: 0,
-        //     maxzoom: 21,
-        //     paint: {
-        //         "fill-opacity": 0.25,
-        //         // "line-width": 4,
-        //         "fill-color": "#333"
-        //     },
-        //     filter: ["==", "id", Infinity]
-        // })
     }
 
     handleCreateMap = map => {

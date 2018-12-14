@@ -8,18 +8,18 @@ import { formatNumber } from "../../../utils/format"
 
 import SummaryMap from "./Map"
 import Sidebar from "../../Sidebar"
-import SummaryUnitDetails from "../../SummaryUnitDetails"
+import SummaryUnitDetails from "./SummaryUnitDetails"
 
 import summaryStats from "../../../data/summary_stats.json"
 
-const Summary = ({ selectedFeature, dams, connectedmiles, selectFeature }) => (
+const Summary = ({ selectedFeature, dams, miles, selectFeature }) => (
     <React.Fragment>
         <Sidebar>
             {selectedFeature === null ? (
                 <div id="SidebarContent">
                     <p className="is-size-5">
                         Across the Southeast, there are at least {formatNumber(dams)} dams, resulting in an average of{" "}
-                        {formatNumber(connectedmiles)} miles of connected rivers.
+                        {formatNumber(miles)} miles of connected rivers and streams.
                         <br />
                         <br />
                         Click on a summary unit the map for more information about that area.
@@ -36,7 +36,7 @@ const Summary = ({ selectedFeature, dams, connectedmiles, selectFeature }) => (
                 <SummaryUnitDetails
                     selectedFeature={selectedFeature}
                     totalDams={dams}
-                    meanConnectedMiles={connectedmiles}
+                    meanConnectedMiles={miles}
                     onClose={() => selectFeature(null)}
                 />
             )}
@@ -50,15 +50,15 @@ const Summary = ({ selectedFeature, dams, connectedmiles, selectFeature }) => (
 Summary.propTypes = {
     selectedFeature: FeaturePropType,
     dams: PropTypes.number,
-    connectedmiles: PropTypes.number,
+    miles: PropTypes.number,
 
     selectFeature: PropTypes.func.isRequired
 }
 
 Summary.defaultProps = {
     selectedFeature: null,
-    dams: summaryStats.sarp.dams,
-    connectedmiles: summaryStats.sarp.connectedmiles
+    dams: summaryStats.southeast.dams,
+    miles: summaryStats.southeast.miles
 }
 
 const mapStateToProps = globalState => {

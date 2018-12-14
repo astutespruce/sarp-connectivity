@@ -16,7 +16,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api.calculate_tiers import calculate_tiers, SCENARIOS
 
-from domains import STATE_FIPS_DOMAIN
+from domains import STATE_FIPS_DOMAIN, HUC6_DOMAIN
 
 
 start = time()
@@ -95,6 +95,9 @@ df["HasNetwork"] = ~df.GainMiles.isnull()
 # Join in state from FIPS due to data issue with values in State field (many are missing)
 df.State = df.STATEFIPS.map(STATE_FIPS_DOMAIN)
 
+# Fix COUNTYFIPS: leading 0's and convert to string
+df.COUNTYFIPS = df.COUNTYFIPS.astype("int").astype(str).str.pad(5, fillchar="0")
+
 # Drop ' County' from County field
 df.County = df.County.fillna("").str.replace(" County", "")
 
@@ -140,7 +143,7 @@ for column in (
 ######## Calculate derived fields
 
 # Construct a name from Stream and Road
-df["Name"] = "Unknown Crossing"
+df["Name"] = ""  # "Unknown Crossing"
 df.loc[(df.Stream != "Unknown") & (df.Road != "Unknown"), "Name"] = (
     df.Stream + " / " + df.Road + " Crossing"
 )
@@ -158,6 +161,9 @@ print("Calculating HUC codes")
 df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
 df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
 
+df["Basin"] = df.HUC6.map(HUC6_DOMAIN)
+
+
 ########## Drop unnecessary columns
 df = df[
     [
@@ -172,6 +178,7 @@ df = df[
         "Name",
         "County",
         "State",
+        "Basin",
         # Species info
         "RareSpp",
         # Stream info

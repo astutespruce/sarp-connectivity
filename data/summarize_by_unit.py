@@ -21,7 +21,7 @@ stats["southeast"] = {
 }
 
 # Group by state, HUC level, ecoregion level
-for unit in ("State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4"):
+for unit in ("State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"):
     print("processing {}".format(unit))
 
     dam_stats = (
@@ -45,6 +45,8 @@ for unit in ("State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4"):
     merged.dams = merged.dams.astype("uint32")
     merged.barriers = merged.barriers.astype("uint32")
     merged.miles = merged.miles.round(3)
+
+    unit = "County" if unit == "COUNTYFIPS" else unit
 
     merged.to_csv(
         "data/summary/{}.csv".format(unit),

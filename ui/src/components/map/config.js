@@ -49,7 +49,7 @@ export const TIER_COLORS = [
 export const PRIORITY_TIER_COLORS = ["#edf8fb", "#b3cde3", "#8c96c6", "#8856a7", "#810f7c"].reverse()
 
 export const SYSTEMS = {
-    ADM: "State",
+    ADM: "State / County",
     HUC: "Hydrologic unit",
     ECO: "Ecoregion"
 }
@@ -57,12 +57,10 @@ export const SYSTEMS = {
 export const SCENARIOS = {
     NC: "Network Connnectivity",
     WC: "Watershed Condition",
-    NCWC: "Both"
+    NCWC: "Combined"
 }
 
 export const LAYER_CONFIG = [
-    // { id: "HUC2", group: "HUC", minzoom: 0, maxzoom: 4.5, title: "Region" },
-    // { id: "HUC4", group: "HUC", minzoom: 0, maxzoom: 5, title: "Hydrologic subregion" },
     {
         id: "HUC6",
         group: "HUC",
@@ -115,7 +113,6 @@ export const LAYER_CONFIG = [
             }
         }
     },
-    // { id: "HUC10", group: "HUC", minzoom: 6, maxzoom: 7, title: "Watershed" },
     {
         id: "HUC12",
         group: "HUC",
@@ -145,5 +142,58 @@ export const LAYER_CONFIG = [
     },
     { id: "ECO3", group: "ECO", minzoom: 0, maxzoom: 6, title: "Level 3 Ecoregion" },
     { id: "ECO4", group: "ECO", minzoom: 6, maxzoom: 24, title: "Level 4 Ecoregion" },
-    { id: "State", group: "ADM", minzoom: 0, maxzoom: 24, title: "State" }
+    {
+        id: "State",
+        group: "ADM",
+        minzoom: 0,
+        maxzoom: 7,
+        title: "State",
+        fill: {
+            minzoom: 0,
+            maxzoom: 7,
+            paint: {
+                "fill-opacity": {
+                    base: 0.25,
+                    stops: [[2, 0.4], [4, 0.25], [6, 0.25], [7, 0]]
+                }
+            }
+        },
+        outline: {
+            minzoom: 0,
+            maxzoom: 12,
+            paint: {
+                "line-width": {
+                    base: 0.1,
+                    stops: [[4, 0.1], [5, 0.25], [6, 0.5], [6.5, 1.5], [8, 2], [9, 4], [12, 6]]
+                }
+            }
+        }
+    },
+    {
+        id: "County",
+        group: "ADM",
+        minzoom: 6,
+        maxzoom: 24,
+        title: "County",
+        fill: {
+            minzoom: 6,
+            maxzoom: 24,
+            paint: {
+                "fill-opacity": {
+                    base: 0.25,
+                    stops: [[6, 0], [7, 0.25], [11, 0.25], [12, 0.15]]
+                }
+            }
+        },
+        outline: {
+            minzoom: 6,
+            maxzoom: 24,
+            paint: {
+                "line-width": {
+                    base: 0.1,
+                    stops: [[6, 0.1], [8, 0.5], [10, 1], [12, 1.5]]
+                }
+            }
+        }
+    }
 ]

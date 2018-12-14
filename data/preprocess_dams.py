@@ -16,7 +16,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api.calculate_tiers import calculate_tiers, SCENARIOS
 
-from domains import STATE_FIPS_DOMAIN
+from domains import STATE_FIPS_DOMAIN, HUC6_DOMAIN
 
 
 start = time()
@@ -104,11 +104,14 @@ ids = (df.Name.str.count("Estimated Dam") > 0) & (df.OtherBarrierName.str.len() 
 df.loc[ids, "Name"] = df.loc[ids].OtherBarrierName
 
 # Fill any remaining ones that are missing
-df.loc[df.Name.str.len() == 0] = "Unknown Dam"
+# df.loc[df.Name.str.len() == 0, "Name"] = "Unknown Dam"
 
 
 # Join in state from FIPS due to data issue with values in State field (many are missing)
 df.State = df.STATEFIPS.map(STATE_FIPS_DOMAIN)
+
+# Fix COUNTYFIPS: leading 0's and convert to string
+df.COUNTYFIPS = df.COUNTYFIPS.astype("int").astype(str).str.pad(5, fillchar="0")
 
 # Drop ' County' from County field
 df.County = df.County.fillna("").str.replace(" County", "")
@@ -131,7 +134,7 @@ df.loc[df.Year == 9999, "Year"] = 0
 #########  Fill NaN fields and set data types
 df.SARPID = df.SARPID.astype("uint32")
 
-for column in ("River", "NIDID", "DBSource"):
+for column in ("River", "NIDID", "Source"):
     df[column] = df[column].fillna("").str.strip()
 
 for column in (
@@ -145,7 +148,7 @@ for column in (
     df[column] = df[column].fillna(0).astype("uint8")
 
 
-for column in ("Year", "COUNTYFIPS"):
+for column in ("Year",):
     df[column] = df[column].fillna(0).astype("uint16")
 
 
@@ -183,6 +186,8 @@ print("Calculating HUC codes")
 df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
 df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
 
+df["Basin"] = df.HUC6.map(HUC6_DOMAIN)
+
 
 ######## Drop unnecessary columns
 df = df[
@@ -198,6 +203,7 @@ df = df[
         "Name",
         "County",
         "State",
+        "Basin",
         # Species info
         "RareSpp",
         # River info
@@ -269,66 +275,45 @@ df.reset_index(drop=True).to_feather("data/src/dams.feather")
 df.to_csv("data/src/dams.csv", index_label="id")
 
 
-# # TODO:
-# # Export subset of fields for use in mbtiles
+# Split datasets based on those that have networks
 
-# mbtiles_fields = [
-#     "UniqueID",
-#     # "NIDID",
-#     # "SourceDBID",
-#     "Barrier_Name",
-#     # "Other_Barrier_Name",
-#     "State",
-#     # "County", # TODO:
-#     "River",
-#     "PurposeCategory",  # value domain
-#     "Year_Completed",
-#     "HeightClass",
-#     "StructureCondition",  # value domain
-#     "ConstructionMaterial",  # value domain
-#     "ProtectedLand",  # 0="Unknown", 1="Yes", 2="No"
-#     # "DB_Source",
-#     # "Off_Network",  # 0="On Network", 1="Off Network"
-#     # "Mussel_Presence",  # 0="Unknown", 1="Yes", 2="No"
-#     "AbsoluteGainMi",
-#     "UpstreamMiles",
-#     "DownstreamMiles",
-#     "TotalNetworkMiles",
-#     "PctNatFloodplain",
-#     "NetworkSinuosity",
-#     "NumSizeClassGained",
-#     # "NumberRareSpeciesHUC12", # FIXME: currently not present
-#     # "SpeciesRichness", # FIXME: currently not present
-#     # "batUSNetID",  # FIXME: not currently used
-#     # "batDSNetID",  # FIXME: not currently used
-#     "HUC2",
-#     "HUC4",
-#     "HUC6",
-#     "HUC8",
-#     "HUC10",
-#     "HUC12",
-#     "ECO3",
-#     "ECO4",
-#     # "StreamOrder",
-#     "lat",
-#     "lon",
-#     # tiers
-#     "NC",
-#     "WC",
-#     "NCWC",
-#     "State_NC",
-#     "State_WC",
-#     "State_NCWC",
-#     "HUC2_NC",
-#     "HUC2_WC",
-#     "HUC2_NCWC",
-#     "HUC4_NC",
-#     "HUC4_WC",
-#     "HUC4_NCWC",
-#     "HUC8_NC",
-#     "HUC8_WC",
-#     "HUC8_NCWC",
-# ]
+no_network = df.loc[~df.HasNetwork][
+    [
+        "id",
+        "lat",
+        "lon",
+        # ID and source info
+        "SARPID",
+        "NIDID",
+        "Source",  # => source
+        # Basic info
+        "Name",
+        "County",
+        "State",
+        # Species info
+        "RareSpp",
+        # Location info
+        "ProtectedLand",
+        # "HUC2",
+        "HUC6",
+        "HUC8",
+        "HUC12",
+        "ECO3",
+        "ECO4",
+        # Dam info
+        "Height",
+        "Year",
+        "Construction",
+        "Purpose",
+        "Condition",
+        "Recon",
+    ]
+]
+
+
+# Export subset of fields for use in mbtiles
+
+# df = df[["SARPID"]]
 
 
 # print("Writing subset of fields to data/src/dams_mbtiles.csv")
