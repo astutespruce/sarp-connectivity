@@ -10,8 +10,7 @@ import summaryStats from "../../../data/summary_stats.json"
 import DamImage from "../../../img/american-public-power-association-430861-unsplash.jpg"
 
 function Inventory() {
-    const { dams, connectedmiles } = summaryStats.sarp
-    const smallBarriers = 2000000 // FIXME!
+    const { dams, barriers, miles } = summaryStats.southeast
 
     return (
         <Section image={DamImage} dark title="The Southeast Aquatic Barrier Inventory">
@@ -51,12 +50,12 @@ function Inventory() {
                             <b className="is-size-4 has-text-grey-dark">{formatNumber(dams, 0)}</b> dams
                         </section>
                         <section>
-                            <b className="is-size-4 has-text-grey-dark">{formatNumber(smallBarriers, 0)}</b>{" "}
-                            road-related barriers
+                            <b className="is-size-4 has-text-grey-dark">{formatNumber(barriers, 0)}</b> road-related
+                            barriers assessed for impact to aquatic organisms
                         </section>
                         <section>
-                            <b className="is-size-4 has-text-grey-dark">{formatNumber(connectedmiles, 1)}</b> miles of
-                            connected aquatic network length, on average
+                            <b className="is-size-4 has-text-grey-dark">{formatNumber(miles, 1)}</b> miles of connected
+                            aquatic network length, on average
                         </section>
                     </div>
                 </div>
