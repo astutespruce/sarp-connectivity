@@ -28,7 +28,7 @@ class Map extends React.Component {
             const { offsetWidth: width, offsetHeight: height } = mapNode
             const viewport = geoViewport.viewport(bounds.toJS(), [width, height], undefined, undefined, undefined, true)
             // Zoom out slightly to pad around bounds
-            zoom = Math.max(viewport.zoom - 1, 0) * 0.99
+            zoom = Math.max(viewport.zoom - 1, 0) * 0.9
             /* eslint-disable prefer-destructuring */
             center = viewport.center
         }

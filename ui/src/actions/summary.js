@@ -9,3 +9,11 @@ export const selectFeature = selectedFeature => ({
     type: SUMMARY_SELECT_FEATURE,
     payload: { selectedFeature }
 })
+
+export const SUMMARY_SET_TYPE = "SUMMARY_SET_TYPE"
+export const setType = type => ({
+    type: SUMMARY_SET_TYPE,
+    payload: {
+        type
+    }
+})

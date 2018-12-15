@@ -446,17 +446,32 @@ footer a {
     box-shadow: 1px 1px 8px #333;
     margin-left: 12px;
 }
+#SystemChooser .button-group {
+    background: #eee;
+    border-radius: 6px;
+}
 #SystemChooser .button {
+    background: none;
     pointer-events: auto;
     /* border-color: #dbdbdb !important; */
     border-width: 0 0 4px 0;
     border-bottom-color: transparent;
     border-radius: 0;
+    text-transform: lowercase;
 }
+#SystemChooser .button:first-child {
+    border-radius: 6px 0 0 6px;
+}
+#SystemChooser .button:last-child {
+    border-radius: 0 6px 6px 0;
+}
+#SystemChooser .button + .button {
+    border-left: 1px solid #ccc;
+}
+
 #SystemChooser .button.active {
-    border-bottom-color: #597996;
-    /* color: #fff; */
-    font-weight: bold;
+    background: #597996;
+    color: #fff;
 }
 #SystemChooser .buttons {
     margin-left: 6px;

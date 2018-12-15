@@ -12,53 +12,55 @@ import SummaryUnitDetails from "./SummaryUnitDetails"
 
 import summaryStats from "../../../data/summary_stats.json"
 
-const Summary = ({ selectedFeature, dams, miles, selectFeature }) => (
-    <React.Fragment>
-        <Sidebar>
-            {selectedFeature === null ? (
-                <div id="SidebarContent">
-                    <p className="is-size-5">
-                        Across the Southeast, there are at least {formatNumber(dams)} dams, resulting in an average of{" "}
-                        {formatNumber(miles)} miles of connected rivers and streams.
-                        <br />
-                        <br />
-                        Click on a summary unit the map for more information about that area.
-                    </p>
-                    <p className="is-size-7 has-text-grey">
-                        <br />
-                        <br />
-                        Note: These statistics are based on <i>inventoried</i> dams. Because the inventory is incomplete
-                        in many areas, areas with a high number of dams may simply represent areas that have a more
-                        complete inventory.
-                    </p>
-                </div>
-            ) : (
-                <SummaryUnitDetails
-                    selectedFeature={selectedFeature}
-                    totalDams={dams}
-                    meanConnectedMiles={miles}
-                    onClose={() => selectFeature(null)}
-                />
-            )}
-        </Sidebar>
-        <div id="MapContainer">
-            <SummaryMap />
-        </div>
-    </React.Fragment>
-)
+const Summary = ({ selectedFeature, type, selectFeature }) => {
+    const { dams, barriers, miles } = summaryStats.southeast
+    const total = type === "dams" ? dams : barriers
+
+    return (
+        <React.Fragment>
+            <Sidebar>
+                {selectedFeature === null ? (
+                    <div id="SidebarContent">
+                        <p className="is-size-5">
+                            Across the Southeast, there are at least {formatNumber(dams)} dams, resulting in an average
+                            of {formatNumber(miles)} miles of connected rivers and streams.
+                            <br />
+                            <br />
+                            Click on a summary unit the map for more information about that area.
+                        </p>
+                        <p className="is-size-7 has-text-grey">
+                            <br />
+                            <br />
+                            Note: These statistics are based on <i>inventoried</i> dams. Because the inventory is
+                            incomplete in many areas, areas with a high number of dams may simply represent areas that
+                            have a more complete inventory.
+                        </p>
+                    </div>
+                ) : (
+                    <SummaryUnitDetails
+                        selectedFeature={selectedFeature}
+                        total={total}
+                        type={type}
+                        meanConnectedMiles={miles}
+                        onClose={() => selectFeature(null)}
+                    />
+                )}
+            </Sidebar>
+            <div id="MapContainer">
+                <SummaryMap />
+            </div>
+        </React.Fragment>
+    )
+}
 
 Summary.propTypes = {
     selectedFeature: FeaturePropType,
-    dams: PropTypes.number,
-    miles: PropTypes.number,
-
+    type: PropTypes.string.isRequired,
     selectFeature: PropTypes.func.isRequired
 }
 
 Summary.defaultProps = {
-    selectedFeature: null,
-    dams: summaryStats.southeast.dams,
-    miles: summaryStats.southeast.miles
+    selectedFeature: null
 }
 
 const mapStateToProps = globalState => {
@@ -66,6 +68,7 @@ const mapStateToProps = globalState => {
 
     return {
         system: state.get("system"),
+        type: state.get("type"),
         selectedFeature: state.get("selectedFeature")
     }
 }

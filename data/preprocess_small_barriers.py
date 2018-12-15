@@ -121,10 +121,6 @@ for column in ("CrossingCode", "LocalID", "Source"):
 for column in ("RareSpp", "ProtectedLand"):
     df[column] = df[column].fillna(0).astype("uint8")
 
-for column in ("COUNTYFIPS",):
-    df[column] = df[column].fillna(0).astype("uint16")
-
-
 # Fill metrics with -1
 for column in ("Landcover", "SizeClasses"):  # null but with network should be 0
     df[column] = df[column].fillna(-1).astype("int8")

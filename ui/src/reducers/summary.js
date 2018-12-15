@@ -1,6 +1,6 @@
 import { List, Map, fromJS } from "immutable"
 
-import { SUMMARY_SET_SYSTEM, SUMMARY_SELECT_FEATURE } from "../actions/summary"
+import { SUMMARY_SET_SYSTEM, SUMMARY_SELECT_FEATURE, SUMMARY_SET_TYPE } from "../actions/summary"
 import { SARP_BOUNDS } from "../components/map/config"
 
 // TODO: load this at run time instead of build time
@@ -18,27 +18,13 @@ Object.entries(data).forEach(([key, records]) => {
 index = fromJS(index)
 window.index = index
 
-// TODO: migrate this into units.json instead
-
-const SARPLabelPoint = fromJS([
-    {
-        point: [-87.69692774001089, 31.845649246524772],
-        label: data.states.reduce((out, record) => out + record.dams, 0)
-    }
-])
-
-const getLabels = d => ({
-    point: d.get("center").toJS(),
-    label: d.get("dams")
-})
-
 const initialState = Map({
     bounds: SARP_BOUNDS, // SARP bounds
     prevBounds: List(), // push previous bounds here
     index,
     system: "HUC", // HUC, ECO, ADMIN. null means SARP region
-    selectedFeature: null, // selected unit properties {id: <>, ...}
-    labels: SARPLabelPoint
+    type: "dams", // dams, barriers
+    selectedFeature: null // selected unit properties {id: <>, ...}
 })
 
 export const reducer = (state = initialState, { type, payload = {} }) => {
@@ -48,6 +34,9 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
                 system: payload.system,
                 selectedFeature: null
             })
+        }
+        case SUMMARY_SET_TYPE: {
+            return state.set("type", payload.type)
         }
         case SUMMARY_SELECT_FEATURE: {
             return state.set("selectedFeature", payload.selectedFeature)

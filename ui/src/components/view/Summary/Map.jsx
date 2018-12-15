@@ -5,27 +5,13 @@ import { connect } from "react-redux"
 import { fromJS } from "immutable"
 import * as actions from "../../../actions/summary"
 import Legend from "../../map/Legend"
-// import { equalIntervals } from "../../../utils/stats"
 import { hexToRGB } from "../../../utils/colors"
 import { FeaturePropType } from "../../../CustomPropTypes"
-// import { LabelPointPropType } from "../../CustomPropTypes"
-// import { labelsToGeoJSON } from "../../utils/geojson"
 
 import summaryStats from "../../../data/summary_stats.json"
 
-import { TILE_HOST, COUNT_COLORS, LAYER_CONFIG, SYSTEMS } from "../../map/config"
+import { TILE_HOST, COLORS, LAYER_CONFIG, SYSTEMS } from "../../map/config"
 import Map from "../../map/index"
-
-// Precalculate colors
-// TODO: make this vary by metric
-const LEVEL_LEGEND = {}
-LAYER_CONFIG.forEach(({ id }) => {
-    LEVEL_LEGEND[id] = {
-        // bins: equalIntervals(summaryStats[id].dams.range, COUNT_COLORS.length),
-        bins: summaryStats[id].dams.bins, // TODO: dams or barriers
-        colors: COUNT_COLORS
-    }
-})
 
 class SummaryMap extends Component {
     constructor() {
@@ -40,11 +26,11 @@ class SummaryMap extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { map } = this
+        const { map, layers } = this
         if (map === null) return
 
-        const { system: prevSystem, selectedFeature: prevFeature } = prevProps
-        const { system, selectedFeature } = this.props
+        const { system: prevSystem, type: prevType, selectedFeature: prevFeature } = prevProps
+        const { system, type, selectedFeature } = this.props
 
         const visibleLayers = this.layers.filter(({ group }) => group === system)
 
@@ -67,6 +53,30 @@ class SummaryMap extends Component {
                 this.setHighlight(id, featureIdForLyr)
             })
         }
+
+        if (type !== prevType) {
+            layers.forEach(lyr => {
+                const { id } = lyr
+
+                const renderColors = []
+                const bins = lyr.bins[type]
+                const colors = COLORS.count[bins.length]
+
+                bins.forEach((bin, i) => {
+                    renderColors.push(bin)
+                    renderColors.push(colors[i])
+                })
+
+                map.setPaintProperty(`${id}-fill`, "fill-color", [
+                    "interpolate",
+                    ["linear"],
+                    ["get", type],
+                    ...renderColors
+                ])
+                map.setFilter(`${id}-fill`, [">", type, 0])
+                map.setFilter(`${id}-outline`, [">", type, 0])
+            })
+        }
     }
 
     setLayerVisibility = (id, visible) => {
@@ -84,17 +94,15 @@ class SummaryMap extends Component {
 
     addLayers = (layers, visible = true) => {
         const { map } = this
+        const { type } = this.props
 
         layers.forEach(lyr => {
             this.layers.push(lyr)
 
             const { id, minzoom, maxzoom, fill = {}, outline = {} } = lyr
-            const { bins, colors } = LEVEL_LEGEND[id]
             const renderColors = []
-            // bins.forEach(([min, max], i) => {
-            //     renderColors.push((max - min) / 2 + min) // interpolate from the midpoint
-            //     renderColors.push(colors[i])
-            // })
+            const bins = lyr.bins[type]
+            const colors = COLORS.count[bins.length]
             bins.forEach((bin, i) => {
                 renderColors.push(bin)
                 renderColors.push(colors[i])
@@ -105,7 +113,7 @@ class SummaryMap extends Component {
                 "source-layer": id,
                 minzoom: minzoom || 0,
                 maxzoom: maxzoom || 24,
-                filter: [">=", "dams", 0],
+                filter: [">", type, 0],
                 layout: {
                     visibility: visible ? "visible" : "none"
                 }
@@ -117,7 +125,7 @@ class SummaryMap extends Component {
                         type: "fill",
                         paint: {
                             "fill-opacity": 0.25,
-                            "fill-color": ["interpolate", ["linear"], ["get", "dams"], ...renderColors]
+                            "fill-color": ["interpolate", ["linear"], ["get", type], ...renderColors]
                         }
                     })
                 )
@@ -199,8 +207,6 @@ class SummaryMap extends Component {
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
         map.on("click", e => {
             const { selectFeature } = this.props
-
-            // const layers = this.getVisibleLayers().map(({ id }) => `${id}-fill`)
             const layers = this.layers.map(({ id }) => `${id}-fill`)
             const features = map.queryRenderedFeatures(e.point, { layers })
             if (features.length === 0) return
@@ -221,7 +227,7 @@ class SummaryMap extends Component {
     }
 
     renderLegend() {
-        const { system } = this.props
+        const { system, type } = this.props
 
         if (system === null) return null
 
@@ -229,19 +235,21 @@ class SummaryMap extends Component {
         if (visibleLayers.length === 0) return null
 
         const lyr = visibleLayers[0]
-        const { id, title } = lyr
+        const { title } = lyr
+        const bins = lyr.bins[type]
 
-        const legendInfo = LEVEL_LEGEND[id]
-        const { bins } = legendInfo
         const opacity = 0.3
-        const colors = legendInfo.colors.slice().map(c => {
+        const colors = COLORS.count[bins.length].slice().map(c => {
             const [r, g, b] = hexToRGB(c)
             return `rgba(${r},${g},${b},${opacity})`
         })
 
         const labels = bins.map((bin, i) => {
+            if (i === 0) {
+                return `≤ ${Math.round(bin).toLocaleString()} ${type}`
+            }
             if (i === bins.length - 1) {
-                return `≥ ${Math.round(bin).toLocaleString()} dams`
+                return `≥ ${Math.round(bin).toLocaleString()} ${type}`
             }
             // Use midpoint value
             return Math.round(bin).toLocaleString()
@@ -251,23 +259,40 @@ class SummaryMap extends Component {
         colors.reverse()
         labels.reverse()
 
-        return <Legend title={title} labels={labels} colors={colors} footnote="areas with no dams are not shown" />
+        return <Legend title={title} labels={labels} colors={colors} footnote={`areas with no ${type} are not shown`} />
     }
 
     render() {
-        const { system, setSystem, bounds } = this.props
+        const { system, type, setSystem, setType, bounds } = this.props
 
         return (
             <React.Fragment>
                 <Map bounds={bounds} onCreateMap={this.handleCreateMap} />
 
                 <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
-                    <h5 className="is-size-7">Show Tiers for: </h5>
-                    <div className="buttons has-addons">
+                    <h5 style={{ marginRight: "1rem" }}>Show:</h5>
+                    <div className="button-group">
+                        <button
+                            type="button"
+                            className={`button ${type === "dams" ? "active" : ""}`}
+                            onClick={() => setType("dams")}
+                        >
+                            dams
+                        </button>
+                        <button
+                            type="button"
+                            className={`button ${type === "barriers" ? "active" : ""}`}
+                            onClick={() => setType("barriers")}
+                        >
+                            road-related barriers
+                        </button>
+                    </div>
+                    <h5 style={{ margin: "0 1rem" }}>by</h5>
+                    <div className="button-group">
                         {Object.entries(SYSTEMS).map(([key, name]) => (
                             <button
                                 key={key}
-                                className={`button is-small ${system === key ? "active" : ""}`}
+                                className={`button ${system === key ? "active" : ""}`}
                                 type="button"
                                 onClick={() => setSystem(key)}
                             >
@@ -285,19 +310,18 @@ class SummaryMap extends Component {
 
 SummaryMap.propTypes = {
     bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
-    system: PropTypes.string,
+    system: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
     selectedFeature: FeaturePropType,
-    labels: ImmutablePropTypes.listOf(ImmutablePropTypes.map),
 
     setSystem: PropTypes.func.isRequired,
+    setType: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired
 }
 
 SummaryMap.defaultProps = {
     bounds: null,
-    system: null,
-    selectedFeature: null,
-    labels: []
+    selectedFeature: null
 }
 
 const mapStateToProps = globalState => {
@@ -306,8 +330,8 @@ const mapStateToProps = globalState => {
     return {
         bounds: state.get("bounds"),
         system: state.get("system"),
-        selectedFeature: state.get("selectedFeature"),
-        labels: state.get("labels")
+        type: state.get("type"),
+        selectedFeature: state.get("selectedFeature")
     }
 }
 
@@ -315,40 +339,3 @@ export default connect(
     mapStateToProps,
     actions
 )(SummaryMap)
-
-// Initially the mask and boundary are visible
-// map.addLayer({
-//     id: "sarp-mask",
-//     source: "sarp",
-//     "source-layer": "mask",
-//     type: "fill",
-//     layout: {},
-//     paint: {
-//         "fill-opacity": 0.6,
-//         "fill-color": "#AAA"
-//     }
-// })
-// create fill layer only for consistency w/ other units below
-// map.addLayer({
-//     id: "sarp-fill",
-//     source: "sarp",
-//     "source-layer": "boundary",
-//     type: "fill",
-//     layout: {},
-//     paint: {
-//         "fill-opacity": 0
-//     }
-// })
-// map.addLayer({
-//     id: "sarp-outline",
-//     source: "sarp",
-//     "source-layer": "boundary",
-//     type: "line",
-//     layout: {},
-//     paint: {
-//         "line-opacity": 0.8,
-//         "line-width": 2,
-//         // "line-color": "#AAA"
-//         "line-color": "#4A0025"
-//     }
-// })
