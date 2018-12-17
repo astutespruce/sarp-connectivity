@@ -42,9 +42,10 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
                         {count > 0 ? (
                             <React.Fragment>
                                 <p className="is-size-5">
-                                    This area contains at least {formatNumber(count, 0)} dams that have been inventoried
-                                    so far, resulting in an average of {formatNumber(Math.max(miles, 0))} miles of
-                                    connected rivers and streams.
+                                    This area contains at least {formatNumber(count, 0)} {count > 1 ? "dams" : "dam"}{" "}
+                                    that {count > 1 ? "have" : "has"} been inventoried so far, resulting in an average
+                                    of {formatNumber(miles, 2)} miles of rivers and streams that could be reconnected by
+                                    removing dams.
                                     <br />
                                     <br />
                                     This area has {formatPercent(percent)}% of the inventoried dams in the Southeast and{" "}
@@ -68,7 +69,8 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
                         {count > 0 ? (
                             <React.Fragment>
                                 <p className="is-size-5">
-                                    This area contains at least {formatNumber(count, 0)} road-related barriers that have
+                                    This area contains at least {formatNumber(count, 0)} road-related{" "}
+                                    {count > 1 ? "barriers" : "barriers"} that {count > 1 ? "have" : "has"}
                                     been inventoried so far.
                                 </p>
                                 <p className="is-size-7 has-text-grey">

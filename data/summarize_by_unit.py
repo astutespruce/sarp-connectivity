@@ -13,6 +13,9 @@ PERCENTILES = [20, 40, 60, 75, 80, 85, 90, 95, 100]
 dams = read_dataframe("data/src/dams.feather")
 sb = read_dataframe("data/src/small_barriers.feather")
 
+# Set NA
+dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
+
 stats = defaultdict(defaultdict)
 stats["southeast"] = {
     "dams": len(dams),
