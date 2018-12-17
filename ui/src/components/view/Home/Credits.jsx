@@ -26,9 +26,21 @@ function Credits() {
                 </div>
             </div>
             <p>
-                This project was supported in part by a grant from the&nbsp;
+                This project was supported in part by grants from the&nbsp;
                 <a href="https://www.fws.gov/fisheries/fish-passage.html" target="_blank" rel="noopener noreferrer">
                     U.S. Fish and Wildlife Service Fish Passage Program
+                </a>
+                , the&nbsp;
+                <a href="https://gcpolcc.org/" target="_blank" rel="noopener noreferrer">
+                    Gulf Coastal Plains and Ozarks Landscape Conservation Cooperative
+                </a>
+                , and the&nbsp;
+                <a
+                    href="https://myfwc.com/conservation/special-initiatives/fwli/grant/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Florida State Wildlife Grants Program
                 </a>
                 .
             </p>

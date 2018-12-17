@@ -5,7 +5,6 @@ import Section from "../Section"
 import { ReactComponent as HighSinuosityIcon } from "../../../../img/sinuosity_high.svg"
 import { ReactComponent as LowSinuosityIcon } from "../../../../img/sinuosity_low.svg"
 
-
 function NetworkSinuosity() {
     return (
         <Section id="NetworkSinuosityDef" title="Network Sinuosity">
@@ -13,7 +12,8 @@ function NetworkSinuosity() {
                 Network sinuosity is a measure of how much the path of the river or stream deviates from a straight
                 line. In general, rivers and streams that are more sinuous generally indicate those that have lower
                 alteration from human disturbance such as channelization and diking, whereas rivers that have been
-                extensively altered tend to be less sinous.
+                extensively altered tend to be less sinuous. Sinuosity ranges from low (&lt;1.2) to moderate (1.2 - 1.5)
+                to high (&gt;1.5) (Rosgen, 1996).
             </p>
             <div className="prioritization-details flex-container flex-justify-space-between">
                 <div>
@@ -44,9 +44,13 @@ function NetworkSinuosity() {
                 </li>
                 <li>
                     Reaches are combined using a length-weighted average to calculate the overall sinuosity of each
-                    functional network
+                    functional network.
                 </li>
             </ol>
+            <h5 className="title is-5">References:</h5>
+            <ul style={{ listStyle: "none" }}>
+                <li>Rosgen, David L. 1996. Applied river morphology. Pagosa Springs, Colo: Wildland Hydrology.</li>
+            </ul>
         </Section>
     )
 }

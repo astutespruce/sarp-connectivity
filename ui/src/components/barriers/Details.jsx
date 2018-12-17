@@ -9,7 +9,7 @@ const sinuosityLabel = sinuosity => {
     if (sinuosity > 1.5) {
         return "higher"
     }
-    if (sinuosity > 1.1) {
+    if (sinuosity >= 1.2) {
         return "moderate"
     }
     return "low"

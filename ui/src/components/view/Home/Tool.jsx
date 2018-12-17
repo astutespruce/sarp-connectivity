@@ -28,7 +28,7 @@ function Tool() {
                 Need Help?
             </h4>
             <p>
-                If you are not able to get what you need from this tool, or if you need to report an issue, please{" "}
+                If you are not able to get what you need from this tool, or if you need to report an issue, please&nbsp;
                 <a href="mailto:kat@southeastaquatics.net">contact us</a>!
             </p>
         </Section>

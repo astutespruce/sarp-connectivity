@@ -12,7 +12,10 @@ function Combined() {
                 <br />
                 <br />
                 This prioritization will be most useful for you if your aquatic restoration goals focused on both the
-                length and quality of the aquatic networks you are able to reconnect by removing aquatic barriers.
+                length and quality of the aquatic networks you are able to reconnect by removing aquatic barriers. This
+                prioritization will highlight barriers that open a large number of miles of higher quality. This is
+                useful for user that would like to improve the overall habitat quality of the area and for species that
+                require both a larger network but of high quality. This is the most popular scenario.
             </p>
         </Section>
     )

@@ -1,11 +1,11 @@
-import React from 'react'
+import React from "react"
 import Section from "./Section"
 
 import SARPLogo from "../../../img/sarp_logo.png"
 
 function SARP() {
-  return (
-    <Section title="The Southeast Aquatic Resources Partnership">
+    return (
+        <Section title="The Southeast Aquatic Resources Partnership">
             <div className="columns">
                 <div className="column is-two-thirds">
                     <p>
@@ -26,7 +26,8 @@ function SARP() {
                 SARP works with partners to protect, conserve, and restore aquatic resources including habitats
                 throughout the Southeast for the continuing benefit, use, and enjoyment of the American people. SARP is
                 also one of the first Fish Habitat Partnerships under the the National Fish Habitat Partnership umbrella
-                that works to conserve and protect the nation’s fisheries and aquatic systems.
+                that works to conserve and protect the nation’s fisheries and aquatic systems through a network of 20
+                Fish Habitat Partnerships.
                 <br />
                 <br />
                 SARP and partners have been working to build a community of practice surrounding barrier removal through
@@ -36,7 +37,7 @@ function SARP() {
                 are active in Arkansas, Florida, Georgia, North Carolina, and Tennessee.
             </p>
         </Section>
-  )
+    )
 }
 
 export default SARP
