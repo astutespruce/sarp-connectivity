@@ -1,3 +1,9 @@
+// import axios from "axios"
+import { csv } from "d3-fetch"
+
+// TODO: make env var
+const API_URL = "http://localhost:5000/api/v1/dams/rank"
+
 export const PRIORITY_SET_SYSTEM = "PRIORITY_SET_SYSTEM"
 export const setSystem = system => ({
     type: PRIORITY_SET_SYSTEM,
@@ -39,3 +45,52 @@ export const setType = type => ({
     type: setType,
     payload: { type }
 })
+
+export const PRIORITY_FETCH_START = "PRIORITY_FETCH_START"
+export const fetchStart = (layer, ids) => ({
+    type: PRIORITY_FETCH_START,
+    payload: {
+        layer,
+        ids
+    }
+})
+
+export const PRIORITY_FETCH_SUCCESS = "PRIORITY_FETCH_SUCCESS"
+export const fetchSuccess = data => ({
+    type: PRIORITY_FETCH_SUCCESS,
+    payload: {
+        data
+    }
+})
+
+export const PRIORITY_FETCH_ERROR = "PRIORITY_FETCH_ERROR"
+export const fetchError = error => ({
+    type: PRIORITY_FETCH_ERROR,
+    payload: { error }
+})
+
+export function fetchRanks(layer, units) {
+    return dispatch => {
+        const ids = units.map(({ id }) => id)
+        csv(`${API_URL}/${layer}?id=${ids.join(",")}`, row => {
+            // Convert fields to floating point or int as needed
+            Object.keys(row).forEach(f => {
+                if (f === "lat" || f === "lon") {
+                    row[f] = parseFloat(row[f])
+                } else {
+                    row[f] = parseInt(row[f], 10)
+                }
+            })
+            return row
+        })
+            .then(response => {
+                console.log(response)
+                dispatch(fetchSuccess(response.data))
+            })
+            .catch(error => {
+                console.error(error)
+                dispatch(fetchError(error))
+            })
+        return dispatch(fetchStart(layer, ids))
+    }
+}

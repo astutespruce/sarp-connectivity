@@ -4,6 +4,7 @@ import React from "react"
 import ReactDOM from "react-dom"
 // import { init } from "@sentry/browser"
 // import ReactGA from "react-ga"
+import thunkMiddleware from "redux-thunk"
 import { createLogger } from "redux-logger"
 import { createStore, applyMiddleware } from "redux"
 import { Provider } from "react-redux"
@@ -37,7 +38,7 @@ const rootReducer = combineReducers({
     details: detailsReducer
 })
 
-const store = createStore(rootReducer, applyMiddleware(logger))
+const store = createStore(rootReducer, applyMiddleware(thunkMiddleware, logger))
 
 ReactDOM.render(
     <Provider store={store}>

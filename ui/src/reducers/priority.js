@@ -19,7 +19,8 @@ const initialState = Map({
     scenario: "NCWC", // NC, WC, NCWC, or *_NC, *_WC, *_NCWC
     layer: null, // HUC*, ECO*, State
     summaryUnits: Set(), // set of specific IDs from the summary unit layer
-    type: "dams" // dams or barriers
+    type: "dams", // dams or barriers
+    data: null
 })
 
 export const reducer = (state = initialState, { type, payload = {} }) => {

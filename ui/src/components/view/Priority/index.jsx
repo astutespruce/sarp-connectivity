@@ -22,7 +22,17 @@ const DefaultView = ({ setMode }) => (
     </div>
 )
 
-const Priority = ({ mode, selectedFeature, layer, summaryUnits, setLayer, selectFeature, selectUnit, setMode }) => {
+const Priority = ({
+    mode,
+    selectedFeature,
+    layer,
+    summaryUnits,
+    setLayer,
+    selectFeature,
+    selectUnit,
+    setMode,
+    fetchRanks
+}) => {
     let content = null
 
     if (selectedFeature !== null) {
@@ -38,7 +48,8 @@ const Priority = ({ mode, selectedFeature, layer, summaryUnits, setLayer, select
                             summaryUnits={summaryUnits}
                             onDeselectUnit={id => selectUnit(id)}
                             onBack={() => setLayer(null)}
-                            onSubmit={() => setMode("prioritize")}
+                            // onSubmit={() => setMode("prioritize")}
+                            onSubmit={() => fetchRanks(layer, summaryUnits.toJS())}
                         />
                     )
                 }
@@ -87,7 +98,8 @@ Priority.propTypes = {
     setLayer: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired,
     selectUnit: PropTypes.func.isRequired,
-    setMode: PropTypes.func.isRequired
+    setMode: PropTypes.func.isRequired,
+    fetchRanks: PropTypes.func.isRequired
 }
 
 Priority.defaultProps = {

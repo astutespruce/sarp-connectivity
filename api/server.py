@@ -4,24 +4,103 @@ import time
 from datetime import date
 import pandas as pd
 import geopandas as gp
+from feather import read_dataframe
 from flask import Flask, abort, request, send_file, make_response
+from flask_cors import CORS
 
 from api.calculate_tiers import calculate_tiers, SCENARIOS
 
 
 app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 log = app.logger
 
 LAYERS = ("HUC6", "HUC8", "HUC12", "State")
-FORMATS = ("csv", "shp")
+FORMATS = ("csv",)  # TODO: "shp"
 
 
 # Read source data into memory
-dams_df = pd.read_csv(
-    "data/src/dams.csv",
-    dtype={"HUC6": str, "HUC8": str, "HUC12": str, "ECO3": str, "ECO4": str},
-).set_index(["id"])
+dams = read_dataframe("data/src/dams.feather").set_index(["id"])
+
+dams_with_network = dams.loc[dams.HasNetwork]
+
 print("Data loaded")
+
+
+def validate_layer(layer):
+    if not layer in LAYERS:
+        abort(
+            400,
+            "layer is not valid: {0}; must be one of {1}".format(
+                layer, ", ".join(LAYERS)
+            ),
+        )
+
+
+def validate_format(format):
+    if not format in FORMATS:
+        abort(
+            400,
+            "format is not valid: {0}; must be one of {1}".format(
+                layer, ", ".join(FORMATS)
+            ),
+        )
+
+
+# TODO: log incoming request parameters
+@app.route("/api/v1/dams/rank/<layer>")
+def rank(layer="HUC8"):
+    """Rank a subset of dams data.
+
+    Query parameters:
+    * id: list of ids
+    * filter: TBD
+
+    Parameters
+    ----------
+    layer : str (default: HUC8)
+        Layer to use for subsetting by ID.  One of: HUC6, HUC8, HUC12, State, ... TBD
+            
+    format : str (default: CSV)
+        Format for download.  One of: CSV, SHP
+    """
+
+    args = request.args
+
+    validate_layer(layer)
+
+    ids = request.args.get("id", "").split(",")
+    if not ids:
+        abort(400, "id must be non-empty")
+
+    # TODO: validate that rows were returned for these ids
+    df = dams_with_network[dams[layer].isin(ids)].copy()
+    nrows = len(df.index)
+
+    log.info("selected {} dams".format(nrows))
+
+    # TODO: return a 204 instead?
+    if not nrows:
+        abort(
+            404,
+            "no dams are contained in selected ids {0}:{1}".format(
+                layer, ",".join(ids)
+            ),
+        )
+
+    tiers_df = calculate_tiers(df, SCENARIOS)
+    df = df[["lat", "lon"]].join(tiers_df)
+
+    for col in tiers_df.columns:
+        if col.endswith("_tier"):
+            df[col] = df[col].astype("int8")
+        elif col.endswith("_score"):
+            # Convert to a 100% scale
+            df[col] = (df[col] * 100).round().astype("uint16")
+
+    resp = make_response(df.to_csv(index_label="id"))
+    resp.headers["Content-Type"] = "text/csv"
+    return resp
 
 
 # TODO: log incoming request parameters
@@ -45,21 +124,8 @@ def download_dams(layer="HUC8", format="CSV"):
 
     args = request.args
 
-    if not layer in LAYERS:
-        abort(
-            400,
-            "layer is not valid: {0}; must be one of {1}".format(
-                layer, ", ".join(LAYERS)
-            ),
-        )
-
-    if not format in FORMATS:
-        abort(
-            400,
-            "format is not valid: {0}; must be one of {1}".format(
-                layer, ", ".join(FORMATS)
-            ),
-        )
+    validate_layer(layer)
+    validate_format(format)
 
     include_unranked = args.get("include_unranked", True)
 
@@ -68,7 +134,7 @@ def download_dams(layer="HUC8", format="CSV"):
         abort(400, "id must be non-empty")
 
     # TODO: validate that rows were returned for these ids
-    df = dams_df[dams_df[layer].isin(ids)].copy()
+    df = dams[dams[layer].isin(ids)].copy()
     nrows = len(df.index)
 
     log.info("selected {} dams".format(nrows))

@@ -12,6 +12,7 @@ black = "*"
 geopandas = "*"
 rtree = "*"
 feather-format = "*"
+flask-cors = "*"
 
 [dev-packages]
 pylint = "*"
