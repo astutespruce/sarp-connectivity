@@ -114,25 +114,59 @@ SARP_STATE_FIPS_DOMAIN = {
 # typos fixed and trailing periods removed
 RECON_DOMAIN = {
     0: "Not yet evaluated",  # added
+    1: "Good candidate for removal. Move forward with landowner contact",  # expanded acronym
     2: "Dam needs follow-up with landowner",
     3: "Removal is unlikely.  Social conditions unfavorable",
     4: "Removal is extremely infeasible.  Large reservoirs, etc.",
     5: "Dam may be removed or error",
+    6: "Infeasible in short term via landowner contact",
     7: "Dam was deliberately removed",
     8: "Dam location is incorrect and needs to be moved",  # fixed phrasing
     9: "Dam is breached and no impoundment visible",
     10: "Dam was once considered, need to revisit",
     11: "Removal planned",
     13: "Unsure, need second opinion",
-    1: "Good candidate for removal. Move forward with landowner contact",  # expanded acronym
     14: "Take immediate action, abandoned-looking dam in poor condition",
     15: "No conservation benefit",
     16: "Invasive species barrier",
-    6: "Infeasible in short term via landowner contact",
+    17: "Risky for mussels",
     18: "Dam failed",
     19: "Proposed dam",
-    17: "Risky for mussels",
 }
+
+# Created here to capture values below
+FEASIBILITY_DOMAIN = {
+    -1: "N/A",  # Filter these out
+    0: "Unknown",
+    1: "Not feasible",
+    2: "Likely infeasible",
+    3: "Possibly feasible",
+    4: "Likely feasible",
+}
+
+# Applies to Recon values, omitted values should be filtered out
+RECON_TO_FEASIBILITY = {
+    0: 0,
+    1: 3,
+    2: 3,
+    3: 2,
+    4: 1,
+    5: -1,
+    6: 2,
+    7: -1,
+    8: 0,
+    9: 0,
+    10: 0,
+    11: 4,
+    13: 0,
+    14: 4,
+    15: 0,
+    16: 0,
+    17: 0,
+    18: 0,
+    19: -1,
+}
+
 
 PURPOSE_DOMAIN = {
     0: "Unknown",  # added
@@ -322,6 +356,58 @@ HUC6_DOMAIN = {
     "080103": "Town of Madrid-Saint Johns Bayou",
 }
 
+
+# Created here
+# Height in feet
+HEIGHT_DOMAIN = {
+    -1: "Unknown",
+    0: "< 5",
+    1: "5 - 10",
+    2: "10 - 20",
+    3: "20 - 30",
+    4: "30 - 40",
+    5: "40 - 50",
+    6: "50 - 100",
+    7: ">= 100",
+}
+
+GAINMILES_DOMAIN = {
+    # -1: "no network", # filter this out
+    0: "< 1",
+    1: "1 - 5",
+    2: "5 - 10",
+    3: "10 - 25",
+    4: "25 - 100",
+    5: ">= 100",
+}
+
+RARESPP_DOMAIN = {0: "0", 1: "1", 2: "1 - 4", 3: "5 - 9", 4: ">= 10"}
+
+LANDCOVER_DOMAIN = {
+    # -1: "no network", # filter this out
+    0: "< 50",
+    1: "50 - 75",
+    2: "75 - 90",
+    3: ">= 90",
+}
+
+SINUOSITY_DOMAIN = {
+    # -1: "no network", # filter this out
+    0: "low",  # <1.2
+    1: "moderate",  # 1.2 - 1.5
+    2: "high",  # > 1.5
+}
+
+STREAM_ORDER_DOMAIN = {
+    # -1: "no network", # filter this out
+    0: "0",
+    1: "1",
+    2: "2",
+    3: "3",
+    4: "4",
+    5: "5",
+    6: ">= 6",
+}
 
 # for domain in ("ProtectedLand",):
 #     df[domain] = df[domain].map({0: "Unknown", 1: "Yes", 2: "No"})

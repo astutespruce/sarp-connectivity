@@ -16,7 +16,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api.calculate_tiers import calculate_tiers, SCENARIOS
 
-from domains import STATE_FIPS_DOMAIN, HUC6_DOMAIN
+from domains import STATE_FIPS_DOMAIN, HUC6_DOMAIN, RECON_TO_FEASIBILITY
 
 
 start = time()
@@ -174,21 +174,70 @@ for column in (
 
 
 ######## Calculate derived fields
+print("Calculating derived attributes")
+
 # Calculate height class
-# Height in 10ft increments; -1 (height of 0) indicates null
-print("Calculating height class")
-df["HeightClass"] = -1
-row_index = df.Height > 0
-df.loc[row_index, "HeightClass"] = (df.loc[row_index, "Height"] / 10).round()
+df["HeightClass"] = -1  # Unknown
+df.loc[(df.Height > 0) & (df.Height < 5), "HeightClass"] = 0
+df.loc[(df.Height >= 5) & (df.Height < 10), "HeightClass"] = 1
+df.loc[(df.Height >= 10) & (df.Height < 20), "HeightClass"] = 2
+df.loc[(df.Height >= 20) & (df.Height < 30), "HeightClass"] = 3
+df.loc[(df.Height >= 30) & (df.Height < 40), "HeightClass"] = 4
+df.loc[(df.Height >= 40) & (df.Height < 50), "HeightClass"] = 5
+df.loc[(df.Height >= 50) & (df.Height < 100), "HeightClass"] = 6
+df.loc[df.Height >= 100, "HeightClass"] = 7
 df.HeightClass = df.HeightClass.astype("int8")
 
 # Calculate HUC and Ecoregion codes
-print("Calculating HUC codes")
-# df["HUC2"] = df["HUC12"].str.slice(0, 2)  # region
 df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
 df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
-
 df["Basin"] = df.HUC6.map(HUC6_DOMAIN)
+
+# Calculate feasibility
+df["Feasibility"] = df.Recon.map(RECON_TO_FEASIBILITY).astype("int8")
+
+# Bin gain miles
+df["GainMilesClass"] = -1  # no network
+df.loc[df.HasNetwork & (df.GainMiles < 1), "GainMilesClass"] = 0
+df.loc[df.HasNetwork & (df.GainMiles >= 1) & (df.GainMiles < 5), "GainMilesClass"] = 1
+df.loc[df.HasNetwork & (df.GainMiles >= 5) & (df.GainMiles < 10), "GainMilesClass"] = 2
+df.loc[df.HasNetwork & (df.GainMiles >= 10) & (df.GainMiles < 25), "GainMilesClass"] = 3
+df.loc[
+    df.HasNetwork & (df.GainMiles >= 25) & (df.GainMiles < 100), "GainMilesClass"
+] = 4
+df.loc[df.HasNetwork & (df.GainMiles >= 100), "GainMilesClass"] = 5
+df.GainMilesClass = df.GainMilesClass.astype("int8")
+
+# Bin sinuosity
+df["SinuosityClass"] = -1  # no network
+df.loc[df.HasNetwork & (df.Sinuosity < 1.2), "SinuosityClass"] = 0
+df.loc[
+    df.HasNetwork & (df.Sinuosity >= 1.2) & (df.Sinuosity <= 1.5), "SinuosityClass"
+] = 1
+df.loc[df.HasNetwork & (df.Sinuosity > 1.5), "SinuosityClass"] = 2
+df.SinuosityClass = df.SinuosityClass.astype("int8")
+
+
+# Bin landcover
+df["LandcoverClass"] = -1  # no network
+df.loc[df.HasNetwork & (df.Landcover < 50), "LandcoverClass"] = 0
+df.loc[df.HasNetwork & (df.Landcover >= 50) & (df.Landcover < 75), "LandcoverClass"] = 1
+df.loc[df.HasNetwork & (df.Landcover >= 75) & (df.Landcover < 90), "LandcoverClass"] = 2
+df.loc[df.HasNetwork & (df.Landcover >= 90), "LandcoverClass"] = 3
+df.LandcoverClass = df.LandcoverClass.astype("int8")
+
+# Bin rare species
+df.loc[df.RareSpp == 0, "RareSppClass"] = 0
+df.loc[df.RareSpp == 1, "RareSppClass"] = 1
+df.loc[(df.RareSpp > 1) & (df.RareSpp < 5), "RareSppClass"] = 2
+df.loc[(df.RareSpp >= 5) & (df.RareSpp < 10), "RareSppClass"] = 3
+df.loc[(df.RareSpp >= 10), "RareSppClass"] = 4
+df.RareSppClass = df.RareSppClass.astype("uint8")
+
+# Bin StreamOrder
+df["StreamOrderClass"] = df.StreamOrder
+df.loc[df.StreamOrder >= 6, "StreamOrderClass"] = 6
+df.StreamOrderClass = df.StreamOrderClass.astype("int8")
 
 
 ######## Drop unnecessary columns
@@ -226,6 +275,7 @@ df = df[
         "Purpose",
         "Condition",
         "Recon",
+        "Feasibility",
         # Metrics
         "GainMiles",
         "UpstreamMiles",
@@ -237,8 +287,13 @@ df = df[
         # Internal fields
         "COUNTYFIPS",
         "STATEFIPS",
-        "HeightClass",
         "HasNetwork",
+        "HeightClass",
+        "RareSppClass",
+        "GainMilesClass",
+        "SinuosityClass",
+        "LandcoverClass",
+        "StreamOrderClass",
     ]
 ].set_index("id", drop=False)
 
@@ -282,49 +337,16 @@ df.to_csv("data/src/dams.csv", index_label="id")
 # Split datasets based on those that have networks
 
 # create duplicate columns for those dropped by tippecanoe
+# tippecanoe will use these ones and leave lat / lon
 df["latitude"] = df.lat
 df["longitude"] = df.lon
 
-
-no_network = df.loc[~df.HasNetwork][
-    [
-        "id",
-        "lat",
-        "lon",
-        # ID and source info
-        "SARPID",
-        "NIDID",
-        "Source",  # => source
-        # Basic info
-        "Name",
-        "County",
-        "State",
-        "Basin",
-        # Species info
-        "RareSpp",
-        # Location info
-        "ProtectedLand",
-        # Dam info
-        "Height",
-        "Year",
-        "Construction",
-        "Purpose",
-        "Condition",
-        "Recon",
-    ]
-]
-
-no_network.to_csv(
-    "data/src/dams_no_network.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-)
-
-
-network = df.loc[df.HasNetwork].drop(
+df = df.drop(
     columns=[
         "NHDplusVersion",
         "COUNTYFIPS",
         "STATEFIPS",
-        "HasNetwork",
+        # "HasNetwork",
         "HUC6",
         "HUC8",
         "HUC12",
@@ -332,9 +354,61 @@ network = df.loc[df.HasNetwork].drop(
         "ECO4",
     ]
 )
-network.to_csv(
-    "data/src/dams_with_network.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-)
+
+df.to_csv("data/src/dams_mbtiles.csv", index_label="id")
+
+
+# no_network = df.loc[~df.HasNetwork][
+#     [
+#         "id",
+#         "lat",
+#         # "latitude",
+#         # "longitude",
+#         "lon",
+#         # ID and source info
+#         "SARPID",
+#         "NIDID",
+#         "Source",  # => source
+#         # Basic info
+#         "Name",
+#         "County",
+#         "State",
+#         "Basin",
+#         # Species info
+#         "RareSpp",
+#         # Location info
+#         "ProtectedLand",
+#         # Dam info
+#         "Height",
+#         "Year",
+#         "Construction",
+#         "Purpose",
+#         "Condition",
+#         "Recon",
+#     ]
+# ]
+
+# no_network.to_csv(
+#     "data/src/dams_no_network.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+# )
+
+
+# network = df.loc[df.HasNetwork].drop(
+#     columns=[
+#         "NHDplusVersion",
+#         "COUNTYFIPS",
+#         "STATEFIPS",
+#         "HasNetwork",
+#         "HUC6",
+#         "HUC8",
+#         "HUC12",
+#         "ECO3",
+#         "ECO4",
+#     ]
+# )
+# network.to_csv(
+#     "data/src/dams_with_network.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+# )
 
 
 # topn = network.loc[

@@ -18,6 +18,15 @@ log = app.logger
 LAYERS = ("HUC6", "HUC8", "HUC12", "State")
 FORMATS = ("csv",)  # TODO: "shp"
 
+FILTER_FIELDS = [
+    "HeightClass",
+    "RareSppClass",
+    "GainMilesClass",
+    "LandcoverClass",
+    "SizeClasses",
+    "StreamOrderClass",
+]
+
 
 # Read source data into memory
 dams = read_dataframe("data/src/dams.feather").set_index(["id"])
@@ -39,12 +48,7 @@ def validate_layer(layer):
 
 def validate_format(format):
     if not format in FORMATS:
-        abort(
-            400,
-            "format is not valid: {0}; must be one of {1}".format(
-                layer, ", ".join(FORMATS)
-            ),
-        )
+        abort(400, "format is not valid; must be one of {0}".format(", ".join(FORMATS)))
 
 
 # TODO: log incoming request parameters
@@ -60,9 +64,6 @@ def rank(layer="HUC8"):
     ----------
     layer : str (default: HUC8)
         Layer to use for subsetting by ID.  One of: HUC6, HUC8, HUC12, State, ... TBD
-            
-    format : str (default: CSV)
-        Format for download.  One of: CSV, SHP
     """
 
     args = request.args
@@ -97,6 +98,38 @@ def rank(layer="HUC8"):
         elif col.endswith("_score"):
             # Convert to a 100% scale
             df[col] = (df[col] * 100).round().astype("uint16")
+
+    resp = make_response(df.to_csv(index_label="id"))
+    resp.headers["Content-Type"] = "text/csv"
+    return resp
+
+
+@app.route("/api/v1/dams/query/<layer>")
+def query(layer="HUC8"):
+    """Filter dams and return key properties for filtering.  ONLY for those with networks.
+
+    Query parameters:
+    * id: list of ids
+
+    Parameters
+    ----------
+    layer : str (default: HUC8)
+        Layer to use for subsetting by ID.  One of: HUC6, HUC8, HUC12, State, ... TBD
+    """
+
+    args = request.args
+
+    validate_layer(layer)
+
+    ids = request.args.get("id", "").split(",")
+    if not ids:
+        abort(400, "id must be non-empty")
+
+    # TODO: validate that rows were returned for these ids
+    df = dams_with_network[dams[layer].isin(ids)][FILTER_FIELDS].copy()
+    nrows = len(df.index)
+
+    log.info("selected {} dams".format(nrows))
 
     resp = make_response(df.to_csv(index_label="id"))
     resp.headers["Content-Type"] = "text/csv"
