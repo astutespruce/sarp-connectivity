@@ -39,9 +39,10 @@ class PriorityMap extends Component {
             scenario: prevScenario,
             summaryUnits: prevSummaryUnits,
             layer: prevLayer,
-            selectedFeature: prevSelectedFeature
+            selectedFeature: prevSelectedFeature,
+            mode: prevMode
         } = prevProps
-        const { system, scenario, summaryUnits, layer, selectedFeature } = this.props
+        const { system, scenario, summaryUnits, layer, selectedFeature, mode } = this.props
 
         // if (system !== prevSystem) {
         //     if (prevSystem !== null) {
@@ -102,6 +103,24 @@ class PriorityMap extends Component {
                     this.map.setFilter(`${layer}-highlight`, ["in", "id", ...summaryUnits.toJS().map(({ id }) => id)])
                 }
             }
+        }
+
+        if (mode !== prevMode) {
+            if (mode === "prioritize") {
+                // Convert to outline instead and turn on dams
+                console.log(system, summaryUnits.toJS())
+                map.setFilter("dams-low", [">", `${layer}_${scenario}_tier`, 3])
+                map.setFilter("dams-top", [
+                    "all",
+                    ["<=", `${layer}_${scenario}_tier`, 3],
+                    ["in", layer, ...summaryUnits.toJS().map(({ id }) => id)]
+                ])
+            }
+            const damsVisible = mode === "prioritize" ? "visible" : "none"
+
+            map.setLayoutProperty("dams-no", "visibility", damsVisible)
+            map.setLayoutProperty("dams-low", "visibility", damsVisible)
+            map.setLayoutProperty("dams-top", "visibility", damsVisible)
         }
 
         if (selectedFeature !== prevSelectedFeature) {
@@ -211,6 +230,7 @@ class PriorityMap extends Component {
 
     addDams = () => {
         const { map } = this
+
         // Add dams that have no network
         map.addLayer({
             id: "dams-no",
@@ -219,7 +239,9 @@ class PriorityMap extends Component {
             type: "circle",
             minzoom: 10,
             maxzoom: 24,
-            layout: {},
+            layout: {
+                visibility: "none"
+            },
             paint: {
                 "circle-color": { stops: [[10, "#AAA"], [14, "#999"]] },
                 "circle-radius": { stops: [[10, 0.5], [14, 4]] },
@@ -236,9 +258,11 @@ class PriorityMap extends Component {
             type: "circle",
             minzoom: 5,
             maxzoom: 24,
-            layout: {},
+            layout: {
+                visibility: "none"
+            },
             // TODO: threshold from user or zoom
-            filter: [">", "State_WC_tier", 3],
+            // filter: [">", `${layer}_${scenario}_tier`, 3],
             paint: {
                 "circle-color": "#fbb4b9",
                 "circle-radius": { stops: [[10, 0.5], [14, 6]] },
@@ -255,10 +279,12 @@ class PriorityMap extends Component {
             type: "circle",
             minzoom: 5,
             maxzoom: 24,
-            layout: {},
+            layout: {
+                visibility: "none"
+            },
             // TODO: threshold from user or zoom
             // TODO: selected unit
-            filter: ["<=", "State_WC_tier", 3], // only show the top priorities for the current scenario.  TODO: update on change of scenario
+            // filter: ["<=", `${layer}_${scenario}_tier`, 3],
             paint: {
                 "circle-color": "#c51b8a",
                 "circle-radius": { stops: [[6, 4], [14, 8]] },
@@ -328,7 +354,7 @@ class PriorityMap extends Component {
 
     handleCreateMap = map => {
         this.map = map
-        const { system } = this.props
+        const { system, mode } = this.props
 
         this.setState({ zoom: this.map.getZoom() })
 
@@ -364,27 +390,28 @@ class PriorityMap extends Component {
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
         map.on("click", e => {
-            const { scenario, layer, selectFeature, selectUnit } = this.props
+            const { layer, selectFeature, selectUnit, mode: curMode } = this.props
 
-            // If in selecting unit mode
-            if (layer !== null) {
-                const features = map.queryRenderedFeatures(e.point, { layers: [`${layer}-fill`] })
-                if (features.length > 0) {
-                    selectUnit(features[0].properties)
+            switch (curMode) {
+                case "select": {
+                    if (layer !== null) {
+                        const features = map.queryRenderedFeatures(e.point, { layers: [`${layer}-fill`] })
+                        if (features.length > 0) {
+                            selectUnit(features[0].properties)
+                        }
+                    }
+                    break
+                }
+                case "prioritize": {
+                    const points = map.queryRenderedFeatures(e.point, { layers: ["dams-top", "dams-low", "dams-no"] })
+                    if (points.length > 0) {
+                        const point = points[0]
+                        console.log(point)
+                        selectFeature(fromJS(point.properties).merge({ layerId: point.sourceLayer, type: "dam" }))
+                    }
+                    break
                 }
             }
-
-            const points = map.queryRenderedFeatures(e.point, { layers: ["dams-top", "dams-low", "dams-no"] })
-            if (points.length > 0) {
-                const point = points[0]
-                console.log(point)
-                selectFeature(fromJS(point.properties).merge({ layerId: point.sourceLayer, type: "dam" }))
-            }
-
-            // const features = map.queryRenderedFeatures(e.point, { layers: ["dams_priority"] })
-            // if (features.length === 0) return
-            // console.log("click features", features, features[0].properties[scenario])
-            // selectFeature(features[0].properties)
         })
 
         // map.foo = () => {
@@ -440,6 +467,7 @@ PriorityMap.propTypes = {
     selectedFeature: FeaturePropType,
     layer: PropTypes.string,
     summaryUnits: ImmutablePropTypes.set.isRequired,
+    mode: PropTypes.string.isRequired,
 
     setSystem: PropTypes.func.isRequired,
     setScenario: PropTypes.func.isRequired,
@@ -464,7 +492,8 @@ const mapStateToProps = globalState => {
         selectedFeature: state.get("selectedFeature"),
         scenario: state.get("scenario"),
         summaryUnits: state.get("summaryUnits"),
-        layer: state.get("layer")
+        layer: state.get("layer"),
+        mode: state.get("mode")
     }
 }
 
