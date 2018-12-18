@@ -38,9 +38,10 @@ class PriorityMap extends Component {
             system: prevSystem,
             scenario: prevScenario,
             summaryUnits: prevSummaryUnits,
-            layer: prevLayer
+            layer: prevLayer,
+            selectedFeature: prevSelectedFeature
         } = prevProps
-        const { system, scenario, summaryUnits, layer } = this.props
+        const { system, scenario, summaryUnits, layer, selectedFeature } = this.props
 
         // if (system !== prevSystem) {
         //     if (prevSystem !== null) {
@@ -102,6 +103,19 @@ class PriorityMap extends Component {
                 }
             }
         }
+
+        if (selectedFeature !== prevSelectedFeature) {
+            if (prevSelectedFeature !== null) {
+                this.map.setFilter(`${prevSelectedFeature.get("layerId")}-selected`, ["==", "id", Infinity])
+            }
+            if (selectedFeature !== null) {
+                this.map.setFilter(`${selectedFeature.get("layerId")}-selected`, [
+                    "==",
+                    "id",
+                    selectedFeature.get("id")
+                ])
+            }
+        }
     }
 
     setLayerVisibility = (id, visible) => {
@@ -141,7 +155,6 @@ class PriorityMap extends Component {
             paint: {
                 "line-opacity": 0.8,
                 "line-width": 2,
-                // "line-color": "#AAA"
                 "line-color": "#4A0025"
             }
         })
@@ -196,6 +209,102 @@ class PriorityMap extends Component {
         })
     }
 
+    addDams = () => {
+        const { map } = this
+        // Add dams that have no network
+        map.addLayer({
+            id: "dams-no",
+            source: "dams",
+            "source-layer": "no_network",
+            type: "circle",
+            minzoom: 10,
+            maxzoom: 24,
+            layout: {},
+            paint: {
+                "circle-color": { stops: [[10, "#AAA"], [14, "#999"]] },
+                "circle-radius": { stops: [[10, 0.5], [14, 4]] },
+                "circle-opacity": { stops: [[10, 0.5], [14, 1]] },
+                "circle-stroke-color": "#666",
+                "circle-stroke-width": { stops: [[10, 0], [14, 1]] }
+            }
+        })
+
+        map.addLayer({
+            id: "dams-low",
+            source: "dams",
+            "source-layer": "dams",
+            type: "circle",
+            minzoom: 5,
+            maxzoom: 24,
+            layout: {},
+            // TODO: threshold from user or zoom
+            filter: [">", "State_WC_tier", 3],
+            paint: {
+                "circle-color": "#fbb4b9",
+                "circle-radius": { stops: [[10, 0.5], [14, 6]] },
+                "circle-opacity": { stops: [[10, 0.5], [14, 1]] },
+                "circle-stroke-color": "#c51b8a",
+                "circle-stroke-width": { stops: [[10, 0], [14, 1]] }
+            }
+        })
+
+        map.addLayer({
+            id: "dams-top",
+            source: "dams",
+            "source-layer": "dams",
+            type: "circle",
+            minzoom: 5,
+            maxzoom: 24,
+            layout: {},
+            // TODO: threshold from user or zoom
+            // TODO: selected unit
+            filter: ["<=", "State_WC_tier", 3], // only show the top priorities for the current scenario.  TODO: update on change of scenario
+            paint: {
+                "circle-color": "#c51b8a",
+                "circle-radius": { stops: [[6, 4], [14, 8]] },
+                "circle-opacity": { stops: [[5, 0.1], [6, 0.25], [7, 1]] },
+                "circle-stroke-color": "#FFFFFF",
+                "circle-stroke-width": { stops: [[6, 0.25], [10, 1], [14, 3]] }
+            }
+        })
+
+        map.addLayer({
+            id: "no_network-selected",
+            source: "dams",
+            "source-layer": "no_network",
+            type: "circle",
+            minzoom: 5,
+            maxzoom: 24,
+            layout: {},
+            // TODO
+            filter: ["==", "id", Infinity],
+            paint: {
+                "circle-color": "#fd8d3c",
+                "circle-radius": 14,
+                "circle-stroke-width": 3,
+                "circle-stroke-color": "#f03b20"
+            }
+        })
+
+        map.addLayer({
+            id: "dams-selected",
+            source: "dams",
+            "source-layer": "dams",
+            type: "circle",
+            minzoom: 5,
+            maxzoom: 24,
+            layout: {},
+            // TODO
+            filter: ["==", "id", Infinity],
+            paint: {
+                "circle-color": "#fd8d3c",
+                "circle-radius": 14,
+                "circle-stroke-width": 3,
+                "circle-stroke-color": "#f03b20"
+            }
+        })
+    }
+
     // TODO: make this work based on featureIDs set via tippecanoe.  Requires new version of tippecanoe and int IDs
     // handleFeatureHover = e => {
     //     const { map } = this
@@ -233,11 +342,14 @@ class PriorityMap extends Component {
             })
             map.addSource("dams", {
                 type: "vector",
-                tiles: [`${TILE_HOST}/services/dams/tiles/{z}/{x}/{y}.pbf`],
-                maxzoom: 14
+                tiles: [`${TILE_HOST}/services/sarp_dams/tiles/{z}/{x}/{y}.pbf`],
+                minzoom: 5,
+                maxzoom: 12
             })
 
             this.addBoundaryLayers()
+
+            this.addDams()
 
             // Add summary unit layers
             Object.keys(SYSTEMS).forEach(s => {
@@ -248,36 +360,25 @@ class PriorityMap extends Component {
                     s === system
                 )
             })
-
-            map.addLayer({
-                id: "dams_priority",
-                source: "dams",
-                "source-layer": "dams_priority",
-                type: "circle",
-                minzoom: 3,
-                filter: ["<=", ["get", "State_WC"], 1], // only show the top priorities for the current scenario.  TODO: update on change of scenario
-                paint: {
-                    "circle-color": "red",
-                    "circle-radius": 6
-                    // "circle-color": ["match", ["get", scenario], ...priorityColors, "#AAA"],
-                    // "circle-radius": ["interpolate", ["linear"], ["get", scenario], 1, 10, 4, 4],
-                    // "circle-radius": ["interpolate", ["linear"], ["get", scenario], 1, 3, 4, 3]
-                    // "circle-opacity": 1
-                    // "circle-stroke-width": 1,
-                    // "circle-stroke-color": "#AAA"
-                }
-            })
         })
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
         map.on("click", e => {
             const { scenario, layer, selectFeature, selectUnit } = this.props
 
+            // If in selecting unit mode
             if (layer !== null) {
                 const features = map.queryRenderedFeatures(e.point, { layers: [`${layer}-fill`] })
                 if (features.length > 0) {
                     selectUnit(features[0].properties)
                 }
+            }
+
+            const points = map.queryRenderedFeatures(e.point, { layers: ["dams-top", "dams-low", "dams-no"] })
+            if (points.length > 0) {
+                const point = points[0]
+                console.log(point)
+                selectFeature(fromJS(point.properties).merge({ layerId: point.sourceLayer, type: "dam" }))
             }
 
             // const features = map.queryRenderedFeatures(e.point, { layers: ["dams_priority"] })

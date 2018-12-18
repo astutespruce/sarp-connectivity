@@ -5,11 +5,11 @@ import { connect } from "react-redux"
 
 import * as actions from "../../../actions/priority"
 import Map from "./Map"
-// import { LAYER_CONFIG } from "../../map/config"
 import Sidebar from "../../Sidebar"
 import { FeaturePropType } from "../../../CustomPropTypes"
 
-import FeatureDetails from "./FeatureDetails"
+// import FeatureDetails from "./FeatureDetails"
+import Barrier from "../../barriers/Barrier"
 import SummaryLayerChooser from "./SummaryLayerChooser"
 import SummaryUnitChooser from "./SummaryUnitChooser"
 
@@ -25,40 +25,44 @@ const DefaultView = ({ setMode }) => (
 const Priority = ({ mode, selectedFeature, layer, summaryUnits, setLayer, selectFeature, selectUnit, setMode }) => {
     let content = null
 
-    switch (mode) {
-        case "select": {
-            if (layer === null) {
-                content = <SummaryLayerChooser onSelect={setLayer} onBack={() => setMode("default")} />
-            } else {
-                content = (
-                    <SummaryUnitChooser
-                        summaryUnits={summaryUnits}
-                        onDeselectUnit={id => selectUnit(id)}
-                        onBack={() => setLayer(null)}
-                        onSubmit={() => setMode("prioritize")}
-                    />
-                )
+    if (selectedFeature !== null) {
+        content = <Barrier barrier={selectedFeature.toJS()} onClose={() => selectFeature(null)} />
+    } else {
+        switch (mode) {
+            case "select": {
+                if (layer === null) {
+                    content = <SummaryLayerChooser onSelect={setLayer} onBack={() => setMode("default")} />
+                } else {
+                    content = (
+                        <SummaryUnitChooser
+                            summaryUnits={summaryUnits}
+                            onDeselectUnit={id => selectUnit(id)}
+                            onBack={() => setLayer(null)}
+                            onSubmit={() => setMode("prioritize")}
+                        />
+                    )
+                }
+                break
             }
-            break
-        }
-        case "prioritize": {
-            content = (
-                <div id="SidebarContent">
-                    <a href="#" onClick={() => setMode("select")}>
-                        <span className="fa fa-reply" />
-                        &nbsp; select other summary units
-                    </a>
-                    <p>TODO: show priorities on map and summary info here</p>
-                    <button type="button" className="button" onClick={() => setMode("default")}>
-                        start over
-                    </button>
-                </div>
-            )
-            break
-        }
-        default: {
-            content = <DefaultView setMode={setMode} />
-            break
+            case "prioritize": {
+                content = (
+                    <div id="SidebarContent">
+                        <a href="#" onClick={() => setMode("select")}>
+                            <span className="fa fa-reply" />
+                            &nbsp; select other summary units
+                        </a>
+                        <p>TODO: show priorities on map and summary info here</p>
+                        <button type="button" className="button" onClick={() => setMode("default")}>
+                            start over
+                        </button>
+                    </div>
+                )
+                break
+            }
+            default: {
+                content = <DefaultView setMode={setMode} />
+                break
+            }
         }
     }
 

@@ -49,8 +49,8 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
                                     <br />
                                     <br />
                                     This area has {formatPercent(percent)}% of the inventoried dams in the Southeast and{" "}
-                                    {formatNumber(Math.abs(milesCompare))} {milesCompare > 0 ? "more" : "less"} miles of
-                                    connected river network than the average for the region.
+                                    {formatNumber(Math.abs(milesCompare))} {milesCompare > 0 ? "more" : "fewer"} miles
+                                    of connected river network than the average for the region.
                                 </p>
                                 <p className="is-size-7 has-text-grey">
                                     <br />

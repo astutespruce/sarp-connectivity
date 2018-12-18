@@ -4,9 +4,8 @@ import { DETAILS_SET_TAB, DETAILS_SET_UNIT } from "../actions/details"
 
 const initialState = Map({
     tab: "details",
-    unit: "state" // custom, state, se
+    unit: "State" // custom, State, SE
 })
-
 
 // TODO: when prioritization is changed, change the summaryUnit to custom
 export const reducer = (state = initialState, { type, payload = {} }) => {

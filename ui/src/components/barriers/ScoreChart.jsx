@@ -9,7 +9,7 @@ const ScoreChart = ({ label, score, lowIcon, highIcon }) => (
             <div>Low</div>
             <div className="domain">
                 <div className="domain-line" />
-                <div className="marker" style={{ left: `${100 * score}%` }} />
+                <div className="marker" style={{ left: `${score}%` }} />
             </div>
             <div>High</div>
         </div>

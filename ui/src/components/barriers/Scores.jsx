@@ -4,20 +4,21 @@ import React from "react"
 import PropTypes from "prop-types"
 import { connect } from "react-redux"
 
-import PrioritiesList from "./PrioritiesList"
-
-import { BarrierPrioritiesPropType, MetricsPropType } from "../../CustomPropTypes"
+import ScoresList from "./ScoresList"
 
 import { setDetailsUnit } from "../../actions/details"
+import { ScoresPropType } from "../../CustomPropTypes"
 
-const Priorities = ({ tab, metricScores, priorities, setTab }) => {
-    const hasCustom = priorities.custom && priorities.custom.nc
+const Scores = ({ tab, scores, setTab }) => {
+    const hasCustom = scores.custom && scores.custom.GainMiles
 
     const handleCustomClick = () => setTab("custom")
-    const handleStateClick = () => setTab("state")
-    const handleRegionclick = () => setTab("se")
+    const handleStateClick = () => setTab("State")
+    const handleRegionclick = () => setTab("SE")
 
-    const curPriorities = priorities[tab]
+    const curScores = scores[tab]
+
+    console.log(curScores)
 
     return (
         <div>
@@ -29,28 +30,31 @@ const Priorities = ({ tab, metricScores, priorities, setTab }) => {
                             <a onClick={handleCustomClick}>Selected Area</a>
                         </li>
                     )}
-                    <li className={tab === "state" ? "is-active" : null}>
+                    <li className={tab === "State" ? "is-active" : null}>
                         <a onClick={handleStateClick}>State</a>
                     </li>
-                    <li className={tab === "se" ? "is-active" : null}>
+                    <li className={tab === "SE" ? "is-active" : null}>
                         <a onClick={handleRegionclick}>Southeast</a>
                     </li>
                 </ul>
             </div>
 
-            <PrioritiesList {...curPriorities} />
+            <ScoresList {...curScores} />
         </div>
     )
 }
 
-Priorities.propTypes = {
+Scores.propTypes = {
     tab: PropTypes.string.isRequired,
-    metricScores: MetricsPropType.isRequired,
-    priorities: BarrierPrioritiesPropType.isRequired,
+    scores: PropTypes.shape({
+        SE: ScoresPropType.isRequired,
+        State: ScoresPropType.isRequired,
+        custom: ScoresPropType
+    }).isRequired,
     setTab: PropTypes.func
 }
 
-Priorities.defaultProps = {
+Scores.defaultProps = {
     setTab: tab => {
         console.log(`Set Tab: ${tab}`)
     }
@@ -63,13 +67,7 @@ const mapStateToProps = globalState => {
     }
 }
 
-// const mapDispatchToProps = (dispatch) => {
-//     return {
-//         setTab:
-//     }
-// }
-
 export default connect(
     mapStateToProps,
     { setTab: setDetailsUnit }
-)(Priorities)
+)(Scores)

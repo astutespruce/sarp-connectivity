@@ -33,3 +33,9 @@ export const setMode = mode => ({
     type: PRIORITY_SET_MODE,
     payload: { mode }
 })
+
+export const PRIORITY_SET_TYPE = "PRIORITY_SET_TYPE"
+export const setType = type => ({
+    type: setType,
+    payload: { type }
+})

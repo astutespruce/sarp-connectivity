@@ -130,6 +130,8 @@ df.loc[(df.Year > 0) & (df.Year < 100), "Year"] = df.Year + 1900
 df.loc[df.Year == 20151, "Year"] = 2015
 df.loc[df.Year == 9999, "Year"] = 0
 
+df.River = df.River.str.title()
+
 
 #########  Fill NaN fields and set data types
 df.SARPID = df.SARPID.astype("uint32")
@@ -212,7 +214,6 @@ df = df[
         "NHDplusVersion",
         # Location info
         "ProtectedLand",
-        # "HUC2",
         "HUC6",
         "HUC8",
         "HUC12",
@@ -251,18 +252,21 @@ for group_field in (None, "State"):
         SCENARIOS,
         group_field=group_field,
         prefix="SE" if group_field is None else group_field,
-        percentiles=True,
-        topn=True,
+        percentiles=False,
+        topn=False,
     )
     df = df.join(tiers_df)
 
     # Fill n/a with -1 for tiers and cast columns to integers
     df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
     for col in tiers_df.columns:
-        if col.endswith("_tier") or col.endswith("_p") or col.endswith("_top"):
+        if col.endswith("_tier") or col.endswith("_p"):
             df[col] = df[col].astype("int8")
+        elif col.endswith("_top"):
+            df[col] = df[col].astype("int16")
         elif col.endswith("_score"):
-            df[col] = df[col].round(3).astype("float32")
+            # Convert to a 100% scale
+            df[col] = (df[col] * 100).round().astype("uint16")
 
 
 # Export full set of fields
@@ -277,6 +281,11 @@ df.to_csv("data/src/dams.csv", index_label="id")
 
 # Split datasets based on those that have networks
 
+# create duplicate columns for those dropped by tippecanoe
+df["latitude"] = df.lat
+df["longitude"] = df.lon
+
+
 no_network = df.loc[~df.HasNetwork][
     [
         "id",
@@ -290,16 +299,11 @@ no_network = df.loc[~df.HasNetwork][
         "Name",
         "County",
         "State",
+        "Basin",
         # Species info
         "RareSpp",
         # Location info
         "ProtectedLand",
-        # "HUC2",
-        "HUC6",
-        "HUC8",
-        "HUC12",
-        "ECO3",
-        "ECO4",
         # Dam info
         "Height",
         "Year",
@@ -309,6 +313,36 @@ no_network = df.loc[~df.HasNetwork][
         "Recon",
     ]
 ]
+
+no_network.to_csv(
+    "data/src/dams_no_network.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+)
+
+
+network = df.loc[df.HasNetwork].drop(
+    columns=[
+        "NHDplusVersion",
+        "COUNTYFIPS",
+        "STATEFIPS",
+        "HasNetwork",
+        "HUC6",
+        "HUC8",
+        "HUC12",
+        "ECO3",
+        "ECO4",
+    ]
+)
+network.to_csv(
+    "data/src/dams_with_network.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+)
+
+
+# topn = network.loc[
+#     (network.State_NCWC_top != -1)
+#     | (network.State_NC_top != -1)
+#     | (network.State_WC_top != -1)
+# ]
+# topn.to_csv("data/src/dams_topn.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC)
 
 
 # Export subset of fields for use in mbtiles
