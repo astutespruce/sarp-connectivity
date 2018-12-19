@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 
 import Intro from "./Intro"
 import Tool from "./Tool"
@@ -18,38 +18,46 @@ import NetworkConnectivity from "./priorities/NetworkConnectivity"
 import WatershedCondition from "./priorities/WatershedCondition"
 import Combined from "./priorities/Combined"
 
-const Home = () => (
-    <div id="ContentPage" className="view">
-        <Intro />
+import { scrollIntoView } from "../../../utils/dom"
 
-        <Tool />
+const Home = () => {
+    useEffect(() => {
+        scrollIntoView("ContentPage")
+    })
 
-        <Inventory />
+    return (
+        <div id="ContentPage" className="view">
+            <Intro />
 
-        <UseCases />
+            <Tool />
 
-        <Concepts />
+            <Inventory />
 
-        <ScoringOverview />
+            <UseCases />
 
-        <NetworkLength />
+            <Concepts />
 
-        <NetworkComplexity />
+            <ScoringOverview />
 
-        <NetworkSinuosity />
+            <NetworkLength />
 
-        <NaturalLandcover />
+            <NetworkComplexity />
 
-        <NetworkConnectivity />
+            <NetworkSinuosity />
 
-        <WatershedCondition />
+            <NaturalLandcover />
 
-        <Combined />
+            <NetworkConnectivity />
 
-        <SARP />
+            <WatershedCondition />
 
-        <Credits />
-    </div>
-)
+            <Combined />
+
+            <SARP />
+
+            <Credits />
+        </div>
+    )
+}
 
 export default Home

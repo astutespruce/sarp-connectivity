@@ -29,6 +29,9 @@ const initialState = Map({
 
 export const reducer = (state = initialState, { type, payload = {} }) => {
     switch (type) {
+        case "@@router/LOCATION_CHANGE": {
+            return initialState
+        }
         case SUMMARY_SET_SYSTEM: {
             return state.merge({
                 system: payload.system,

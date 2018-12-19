@@ -8,18 +8,20 @@ import thunkMiddleware from "redux-thunk"
 import { createLogger } from "redux-logger"
 import { createStore, applyMiddleware } from "redux"
 import { Provider } from "react-redux"
-import { BrowserRouter as Router } from "react-router-dom"
-import { combineReducers } from "redux-immutable"
+// import { BrowserRouter as Router } from "react-router-dom"
+import { createBrowserHistory } from "history"
+import { ConnectedRouter, routerMiddleware } from "connected-react-router/immutable"
 
-import ScrollToTop from "./components/ScrollToTop"
-
-import { summaryReducer, priorityReducer, detailsReducer } from "./reducers"
+import rootReducer from "./reducers"
 
 import "@fortawesome/fontawesome-free/css/all.min.css"
 import "bulma/css/bulma.css"
 import "./main.css"
 
 import App from "./App"
+
+// Setup history
+const history = createBrowserHistory()
 
 // Setup sentry and Google Analytics
 // TODO: do this only in production enviroment
@@ -34,21 +36,13 @@ const logger = createLogger({
     stateTransformer: state => state.toJS()
 })
 
-const rootReducer = combineReducers({
-    priority: priorityReducer,
-    summary: summaryReducer,
-    details: detailsReducer
-})
-
-const store = createStore(rootReducer, applyMiddleware(thunkMiddleware, logger))
+const store = createStore(rootReducer(history), applyMiddleware(thunkMiddleware, routerMiddleware(history), logger))
 
 ReactDOM.render(
     <Provider store={store}>
-        <Router>
-            <ScrollToTop>
-                <App />
-            </ScrollToTop>
-        </Router>
+        <ConnectedRouter history={history}>
+            <App />
+        </ConnectedRouter>
     </Provider>,
     document.getElementById("Root")
 )
