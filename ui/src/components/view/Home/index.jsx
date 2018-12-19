@@ -9,18 +9,17 @@ import ScoringOverview from "./ScoringOverview"
 import SARP from "./SARP"
 import Credits from "./Credits"
 
-import NetworkLength from './metrics/NetworkLength'
-import NetworkSinuosity from './metrics/NetworkSinuosity'
-import NetworkComplexity from './metrics/NetworkComplexity'
-import NaturalLandcover from './metrics/NaturalLandcover'
+import NetworkLength from "./metrics/NetworkLength"
+import NetworkSinuosity from "./metrics/NetworkSinuosity"
+import NetworkComplexity from "./metrics/NetworkComplexity"
+import NaturalLandcover from "./metrics/NaturalLandcover"
 
-import NetworkConnectivity from './priorities/NetworkConnectivity'
-import WatershedCondition from './priorities/WatershedCondition'
-import Combined from './priorities/Combined'
-
+import NetworkConnectivity from "./priorities/NetworkConnectivity"
+import WatershedCondition from "./priorities/WatershedCondition"
+import Combined from "./priorities/Combined"
 
 const Home = () => (
-    <div id="Home" className="view">
+    <div id="ContentPage" className="view">
         <Intro />
 
         <Tool />

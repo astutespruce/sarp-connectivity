@@ -1,5 +1,5 @@
 import React from "react"
-import Section from "./Section"
+import Section from "../../Section"
 
 // Photo by Robert Zunikoff on Unsplash, https://unsplash.com/photos/ko7Tp_LyAt4
 import WaterStonesImage from "../../../img/robert-zunikoff-409755-unsplash.jpg"

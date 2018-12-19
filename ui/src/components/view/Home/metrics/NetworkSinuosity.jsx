@@ -1,6 +1,6 @@
 import React from "react"
 
-import Section from "../Section"
+import Section from "../../../Section"
 
 import { ReactComponent as HighSinuosityIcon } from "../../../../img/sinuosity_high.svg"
 import { ReactComponent as LowSinuosityIcon } from "../../../../img/sinuosity_low.svg"

@@ -1,7 +1,7 @@
 import React from "react"
 import { Link } from "react-router-dom"
 
-import Section from "./Section"
+import Section from "../../Section"
 
 function Tool() {
     return (

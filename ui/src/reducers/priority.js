@@ -14,7 +14,7 @@ import {
 } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
-import { getDimensionCounts, existsFilter } from "../filters"
+import { getDimensionCounts } from "../filters"
 
 const initialState = Map({
     mode: "default", // mode or step in selection process: "default" (initial), "select", "prioritize"
@@ -24,7 +24,7 @@ const initialState = Map({
     scenario: "NCWC", // NC, WC, NCWC, or *_NC, *_WC, *_NCWC
     layer: null, // HUC*, ECO*, State
     summaryUnits: Set(), // set of specific IDs from the summary unit layer
-    type: "dams", // dams or barriers
+    type: null, // dams or barriers; not set until chosen by user
     data: null,
 
     // filter state
@@ -66,7 +66,10 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             return state.set("mode", mode)
         }
         case PRIORITY_SET_TYPE: {
-            return state.set("type", payload.type)
+            return state.merge({
+                type: payload.type,
+                mode: "select"
+            })
         }
         case SET_FILTER: {
             const { filter, filterValues } = payload

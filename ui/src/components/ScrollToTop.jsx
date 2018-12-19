@@ -2,11 +2,11 @@
  * Lightweight component to force scrolling to the top of the content on route change
  */
 
-import React, { Component } from "react"
+import React from "react"
 import PropTypes from "prop-types"
 import { withRouter } from "react-router"
 
-class ScrollToTop extends Component {
+class ScrollToTop extends React.Component {
     componentDidUpdate({ location: { pathname: prevPath } }) {
         const {
             location: { pathname }

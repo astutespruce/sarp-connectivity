@@ -1,6 +1,6 @@
 import React from "react"
 
-import Section from "./Section"
+import Section from "../../Section"
 import { scrollIntoView } from "../../../utils/dom"
 
 // From https://www.flickr.com/photos/usfwssoutheast/6882770647/in/album-72157629334467105/

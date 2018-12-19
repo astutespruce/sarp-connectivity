@@ -4,6 +4,7 @@ import ImmutablePropTypes from "react-immutable-proptypes"
 import { connect } from "react-redux"
 
 import * as actions from "../../../actions/priority"
+import Start from "./Start"
 import Map from "./Map"
 import Sidebar from "../../Sidebar"
 import { FeaturePropType } from "../../../CustomPropTypes"
@@ -13,16 +14,8 @@ import Barrier from "../../barriers/Barrier"
 import SummaryLayerChooser from "./SummaryLayerChooser"
 import SummaryUnitChooser from "./SummaryUnitChooser"
 
-const DefaultView = ({ setMode }) => (
-    <div id="SidebarContent">
-        <p>TODO: more content would go here, summarizing regional priorities</p>
-        <button type="button" className="button" onClick={() => setMode("select")}>
-            Select a Subset to Prioritize
-        </button>
-    </div>
-)
-
 const Priority = ({
+    type,
     mode,
     selectedFeature,
     layer,
@@ -30,6 +23,7 @@ const Priority = ({
     setLayer,
     selectFeature,
     selectUnit,
+    setType,
     setMode,
     fetchRanks
 }) => {
@@ -70,10 +64,6 @@ const Priority = ({
                 )
                 break
             }
-            default: {
-                content = <DefaultView setMode={setMode} />
-                break
-            }
         }
     }
 
@@ -81,20 +71,28 @@ const Priority = ({
 
     return (
         <React.Fragment>
-            <Sidebar>{content}</Sidebar>
-            <div id="MapContainer">
-                <Map />
-            </div>
+            {type === null ? (
+                <Start setType={setType} />
+            ) : (
+                <React.Fragment>
+                    <Sidebar>{content}</Sidebar>
+                    <div id="MapContainer">
+                        <Map />
+                    </div>
+                </React.Fragment>
+            )}
         </React.Fragment>
     )
 }
 
 Priority.propTypes = {
+    type: PropTypes.string,
     mode: PropTypes.string.isRequired,
     selectedFeature: FeaturePropType,
     layer: PropTypes.string,
     summaryUnits: ImmutablePropTypes.set.isRequired,
 
+    setType: PropTypes.func.isRequired,
     setLayer: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired,
     selectUnit: PropTypes.func.isRequired,
@@ -103,6 +101,7 @@ Priority.propTypes = {
 }
 
 Priority.defaultProps = {
+    type: null,
     selectedFeature: null,
     layer: null
 }
@@ -111,6 +110,7 @@ const mapStateToProps = globalState => {
     const state = globalState.get("priority")
 
     return {
+        type: state.get("type"),
         mode: state.get("mode"),
         system: state.get("system"),
         layer: state.get("layer"),

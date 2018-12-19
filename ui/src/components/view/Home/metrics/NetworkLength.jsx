@@ -1,6 +1,6 @@
 import React from "react"
 
-import Section from "../Section"
+import Section from "../../../Section"
 
 import { ReactComponent as HighLengthIcon } from "../../../../img/length_high.svg"
 import { ReactComponent as LowLengthIcon } from "../../../../img/length_low.svg"

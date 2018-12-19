@@ -10,8 +10,8 @@ const Section = ({ children, dark, image, title, subtitle, id, className }) => (
         <div className="container">
             <div className="hero container">
                 <div className="hero-body">
-                    {title && <h1 className="title">{title}</h1>}
-                    {subtitle && <h2 className="subtitle">{subtitle}</h2>}
+                    {title && <h1 className={`title ${subtitle ? "is-1" : "is-3"}`}>{title}</h1>}
+                    {subtitle && <h2 className="subtitle is-3">{subtitle}</h2>}
                     {children}
                 </div>
             </div>

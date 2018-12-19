@@ -1,6 +1,6 @@
 import React from "react"
 
-import Section from "../Section"
+import Section from "../../../Section"
 
 import { ReactComponent as HighLandcoverIcon } from "../../../../img/nat_landcover_high.svg"
 import { ReactComponent as LowLandcoverIcon } from "../../../../img/nat_landcover_low.svg"

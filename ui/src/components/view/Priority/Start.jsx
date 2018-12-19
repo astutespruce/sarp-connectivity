@@ -1,9 +1,11 @@
 import React from "react"
+import PropTypes from "prop-types"
+
+import Section from "../../Section"
 
 import WaterStonesImage from "../../../img/robert-zunikoff-409755-unsplash.jpg"
-import Section from "../Home/Section"
 
-const Start = () => (
+const Start = ({ setType }) => (
     <div id="ContentPage">
         <Section title="Prioritize Barriers for Removal" dark image={WaterStonesImage}>
             <div className="columns">
@@ -54,10 +56,14 @@ const Start = () => (
                     <div className="info-box">
                         <h4 className="is-size-4">What do you want to prioritize?</h4>
                         <div>
-                            <button className="button is-info is-medium" type="button">
+                            <button className="button is-info is-medium" type="button" onClick={() => setType("dams")}>
                                 Dams
                             </button>
-                            <button className="button is-info is-medium" type="button">
+                            <button
+                                className="button is-info is-medium"
+                                type="button"
+                                onClick={() => setType("barriers")}
+                            >
                                 Road-related barriers
                             </button>
                         </div>
@@ -67,5 +73,9 @@ const Start = () => (
         </Section>
     </div>
 )
+
+Start.propTypes = {
+    setType: PropTypes.func.isRequired
+}
 
 export default Start
