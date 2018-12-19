@@ -103,6 +103,30 @@ button:focus {
     margin: 0 !important;
 }
 
+.step-number {
+    color: #fff;
+    background: #333;
+    border-radius: 3em;
+    margin-right: 0.5em;
+    padding: 0.25em 0.5em;
+    font-size: 0.8em;
+    font-weight: bold !important;
+}
+
+.dark .step-number {
+    color: #333;
+    background: #fff;
+    text-shadow: none;
+}
+
+.text-help {
+    color: #666;
+}
+
+.dark .text-help {
+    color: #ccc;
+}
+
 header {
     background: #073763;
     padding: 6px 0;
@@ -187,11 +211,11 @@ footer a {
     animation: animateFish 5s infinite ease-in;
 }
 
-#Home {
+#ContentPage {
     width: 100%;
     background: #ee7d140a;
 }
-#Home > section {
+#ContentPage > section {
     background-color: #f5f7f9;
     background-size: cover;
     background-position-y: center;
@@ -199,107 +223,117 @@ footer a {
     position: relative;
     border-bottom: 20px solid #333;
 }
-#Home > section.dark,
-#HomeFooter {
+#ContentPage > section.dark,
+#ContentPageFooter {
     border-bottom: none !important;
 }
 
-#Home .hero.container {
+#ContentPage .hero.container {
     max-width: 960px;
     background: #fff;
     border-right: 1px solid #eee;
     border-left: 1px solid #eee;
 }
 
-#Home .dark .hero {
+#ContentPage .dark .hero {
     background: rgba(0, 0, 0, 0.8);
     color: #fff;
     border-left-color: transparent;
     border-right-color: transparent;
 }
-#Home .dark .title,
-#Home .dark .subtitle {
+#ContentPage .dark .title,
+#ContentPage .dark .subtitle {
     color: #fff;
     text-shadow: 2px 2px 2px #000;
 }
-#Home .dark a {
+#ContentPage .dark a {
     color: #fff;
     text-decoration: underline;
 }
-#Home .hero {
+#ContentPage .hero {
     min-height: 100vh;
 }
-#Home p {
+#ContentPage p {
     font-size: 18px;
 }
 
-#Home .hero-body section + section {
+#ContentPage .hero-body section + section {
     margin-top: 5rem;
     padding-top: 1rem;
     border-top: 1px solid #ddd;
 }
-#Home .hero-body section h3 {
+
+#ContentPage .hero-body section.step + section {
+    margin-top: 1rem;
+}
+
+#ContentPage .hero-body section h3 {
     margin: 2rem 0 1rem 0;
 }
-#Home .hero-body section h3 svg {
+#ContentPage .hero-body section h3 svg {
     margin-right: 0.5em;
     width: 2em;
     height: 2em;
 }
-#Home .hero-body section p {
+#ContentPage .hero-body section p {
     padding-left: 2rem;
 }
-#Home .hero-body h4.title,
-#Home .hero-body h5.title {
+#ContentPage .hero-body h4.title,
+#ContentPage .hero-body h5.title {
     margin: 2rem 0 0.5rem 0;
 }
-#Home .hero-body section h5.title {
+#ContentPage .hero-body section h5.title {
     padding-left: 2rem;
 }
-#Home .hero-body ul,
-#Home .hero-body ol {
+#ContentPage .hero-body ul,
+#ContentPage .hero-body ol {
     padding-left: 3rem;
 }
-#Home .hero-body ul {
+#ContentPage .hero-body ul {
     list-style-type: disc;
 }
-#Home .hero-body ol ul {
+#ContentPage .hero-body ol ul {
     padding-left: 2rem;
 }
-#Home .hero-body .photo {
+#ContentPage .hero-body .photo {
     width: 100%;
     border-radius: 6px;
     border: 1px solid #aaa;
 }
 
-#Home .hero-body .fa-exclamation-triangle {
+#ContentPage .hero-body .fa-exclamation-triangle {
     color: orange;
 }
-#Home .hero-body .info-box {
+#ContentPage .hero-body .info-box {
     border-radius: 6px;
     background: #eee;
     padding: 1em;
     color: #333;
 }
 
-#Home .hero-body .info-box .title,
-#Home .hero-body .info-box .subtitle {
+#ContentPage .hero-body .info-box .title,
+#ContentPage .hero-body .info-box .subtitle {
     color: #333;
     text-shadow: none;
 }
 
-#Home .hero-body .info-box section + section {
+#ContentPage .hero-body .info-box section + section {
     margin-top: 1rem;
 }
 
-#HomeHeader h1 {
+#ContentPage .info-box .button {
+    width: 100%;
+    margin-top: 2rem;
+}
+
+#ContentPageHeader h1 {
     font-size: 3rem;
 }
-#HomeHeader h2 {
+#ContentPageHeader h2 {
     font-size: 2rem;
 }
 
-#HomeFooter .hero {
+#ContentPageFooter .hero {
     min-height: auto;
 }
 
@@ -386,6 +420,20 @@ footer a {
 
 #SidebarContent .tabs .is-active a {
     border-bottom-color: inherit;
+}
+
+#SidebarContent section.step + section {
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+}
+
+#SidebarContent section.step .subtitle {
+    margin-bottom: 0.1em;
+}
+
+#SidebarContent section.step .text-help {
+    margin-left: 2.25rem;
+    padding-bottom: 1rem;
 }
 
 #MapContainer {

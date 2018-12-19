@@ -107,7 +107,6 @@ export const GAINMILES = {
 export const RARESPP = { 0: "0", 1: "1", 2: "1 - 4", 3: "5 - 9", 4: ">= 10" }
 
 export const STREAMORDER = {
-    0: "0",
     1: "1",
     2: "2",
     3: "3",

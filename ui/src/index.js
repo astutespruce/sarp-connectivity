@@ -11,6 +11,8 @@ import { Provider } from "react-redux"
 import { BrowserRouter as Router } from "react-router-dom"
 import { combineReducers } from "redux-immutable"
 
+import ScrollToTop from "./components/ScrollToTop"
+
 import { summaryReducer, priorityReducer, detailsReducer } from "./reducers"
 
 import "@fortawesome/fontawesome-free/css/all.min.css"
@@ -43,7 +45,9 @@ const store = createStore(rootReducer, applyMiddleware(thunkMiddleware, logger))
 ReactDOM.render(
     <Provider store={store}>
         <Router>
-            <App />
+            <ScrollToTop>
+                <App />
+            </ScrollToTop>
         </Router>
     </Provider>,
     document.getElementById("Root")
