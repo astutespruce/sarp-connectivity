@@ -136,7 +136,7 @@ RECON_DOMAIN = {
 
 # Created here to capture values below
 FEASIBILITY_DOMAIN = {
-    -1: "N/A",  # Filter these out
+    # -1: "N/A",  # Filter these out
     0: "Unknown",
     1: "Not feasible",
     2: "Likely infeasible",
@@ -151,9 +151,9 @@ RECON_TO_FEASIBILITY = {
     2: 3,
     3: 2,
     4: 1,
-    5: -1,
+    5: 0,  # should be N/A
     6: 2,
-    7: -1,
+    7: 0,  # should be N/A
     8: 0,
     9: 0,
     10: 0,
@@ -164,7 +164,7 @@ RECON_TO_FEASIBILITY = {
     16: 0,
     17: 0,
     18: 0,
-    19: -1,
+    19: 0,  # should be N/A
 }
 
 
@@ -360,15 +360,13 @@ HUC6_DOMAIN = {
 # Created here
 # Height in feet
 HEIGHT_DOMAIN = {
-    -1: "Unknown",
-    0: "< 5",
-    1: "5 - 10",
-    2: "10 - 20",
-    3: "20 - 30",
-    4: "30 - 40",
-    5: "40 - 50",
-    6: "50 - 100",
-    7: ">= 100",
+    0: "Unknown",
+    1: "< 5",
+    2: "5 - 10",
+    3: "10 - 25",
+    4: "25 - 50",
+    5: "50 - 100",
+    6: ">= 100",
 }
 
 GAINMILES_DOMAIN = {

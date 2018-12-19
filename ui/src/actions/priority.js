@@ -1,8 +1,10 @@
 // import axios from "axios"
 import { csv } from "d3-fetch"
 
+import { initCrossfilter, allFilters, filterConfig, existsFilter, getDimensionCounts } from "../filters"
+
 // TODO: make env var
-const API_URL = "http://localhost:5000/api/v1/dams/rank"
+const API_URL = "http://localhost:5000/api/v1"
 
 export const PRIORITY_SET_SYSTEM = "PRIORITY_SET_SYSTEM"
 export const setSystem = system => ({
@@ -72,7 +74,7 @@ export const fetchError = error => ({
 export function fetchRanks(layer, units) {
     return dispatch => {
         const ids = units.map(({ id }) => id)
-        csv(`${API_URL}/${layer}?id=${ids.join(",")}`, row => {
+        csv(`${API_URL}/dams/rank/${layer}?id=${ids.join(",")}`, row => {
             // Convert fields to floating point or int as needed
             Object.keys(row).forEach(f => {
                 if (f === "lat" || f === "lon") {
@@ -83,14 +85,110 @@ export function fetchRanks(layer, units) {
             })
             return row
         })
-            .then(response => {
-                console.log(response)
-                dispatch(fetchSuccess(response.data))
+            .then(data => {
+                console.log(data)
+                dispatch(fetchSuccess(data))
             })
             .catch(error => {
                 console.error(error)
                 dispatch(fetchError(error))
             })
         return dispatch(fetchStart(layer, ids))
+    }
+}
+
+export const FETCH_QUERY_START = "FETCH_QUERY_START"
+export const fetchQueryStart = (layer, ids) => ({
+    type: FETCH_QUERY_START,
+    payload: {
+        layer,
+        ids
+    }
+})
+
+export const FETCH_QUERY_SUCCESS = "FETCH_QUERY_SUCCESS"
+export const fetchQuerySuccess = data => ({
+    type: FETCH_QUERY_SUCCESS,
+    payload: {
+        data
+    }
+})
+
+export const FETCH_QUERY_ERROR = "FETCH_QUERY_ERROR"
+export const fetchQueryError = error => ({
+    type: FETCH_QUERY_ERROR,
+    payload: {
+        error
+    }
+})
+
+export const fetchQuery = (layer, units) => dispatch => {
+    const ids = units.map(({ id }) => id)
+    csv(`${API_URL}/dams/query/${layer}?id=${ids.join(",")}`, row => {
+        // convert everything to integer
+        Object.keys(row).forEach(f => {
+            row[f] = parseInt(row[f], 10)
+        })
+        return row
+    })
+        .then(data => {
+            console.log(data)
+            window.data = data
+
+            initCrossfilter(data)
+            // TODO: kick off rebuilding the filters
+
+            dispatch(fetchQuerySuccess(data))
+        })
+        .catch(error => {
+            console.error(error)
+            dispatch(fetchQueryError(error))
+        })
+    return dispatch(fetchQueryStart(layer, ids))
+}
+
+export const SET_FILTER = "SET_FILTER"
+export const setFilter = (filter, filterValues) => {
+    const dimension = window.dims[filter]
+
+    if (filterValues && filterValues.size > 0) {
+        // TODO: always defaulting to exists filter
+        const filterFunction = filterConfig[filter].filterFunction || existsFilter
+
+        dimension.filterFunction(d => filterFunction(filterValues, d))
+    } else {
+        dimension.filterAll()
+    }
+
+    return {
+        type: SET_FILTER,
+        filter,
+        filterValues
+    }
+}
+
+export const RESET_FILTERS = "RESET_FILTERS"
+export const resetFilters = () => {
+    const filters = {}
+    allFilters.forEach(d => {
+        window.dims[d].filterAll()
+        filters[d] = null
+    })
+
+    return {
+        type: RESET_FILTERS,
+        filters,
+        dimensionCounts: getDimensionCounts()
+    }
+}
+
+export const TOGGLE_FILTER_CLOSED = "TOGGLE_FILTER_CLOSED"
+export function toggleFilterClosed(filter, isClosed) {
+    return {
+        type: TOGGLE_FILTER_CLOSED,
+        payload: {
+            filter,
+            isClosed
+        }
     }
 }

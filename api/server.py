@@ -19,6 +19,7 @@ LAYERS = ("HUC6", "HUC8", "HUC12", "State")
 FORMATS = ("csv",)  # TODO: "shp"
 
 FILTER_FIELDS = [
+    "Feasibility",
     "HeightClass",
     "RareSppClass",
     "GainMilesClass",
@@ -99,7 +100,9 @@ def rank(layer="HUC8"):
             # Convert to a 100% scale
             df[col] = (df[col] * 100).round().astype("uint16")
 
-    resp = make_response(df.to_csv(index_label="id"))
+    resp = make_response(
+        df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
+    )
     resp.headers["Content-Type"] = "text/csv"
     return resp
 
@@ -131,7 +134,15 @@ def query(layer="HUC8"):
 
     log.info("selected {} dams".format(nrows))
 
-    resp = make_response(df.to_csv(index_label="id"))
+    resp = make_response(
+        df.to_csv(
+            index_label="id",
+            header=[
+                c.lower().replace("class", "") if not c == "SizeClasses" else c.lower()
+                for c in df.columns
+            ],
+        )
+    )
     resp.headers["Content-Type"] = "text/csv"
     return resp
 

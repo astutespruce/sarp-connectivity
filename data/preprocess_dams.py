@@ -177,16 +177,14 @@ for column in (
 print("Calculating derived attributes")
 
 # Calculate height class
-df["HeightClass"] = -1  # Unknown
-df.loc[(df.Height > 0) & (df.Height < 5), "HeightClass"] = 0
-df.loc[(df.Height >= 5) & (df.Height < 10), "HeightClass"] = 1
-df.loc[(df.Height >= 10) & (df.Height < 20), "HeightClass"] = 2
-df.loc[(df.Height >= 20) & (df.Height < 30), "HeightClass"] = 3
-df.loc[(df.Height >= 30) & (df.Height < 40), "HeightClass"] = 4
-df.loc[(df.Height >= 40) & (df.Height < 50), "HeightClass"] = 5
-df.loc[(df.Height >= 50) & (df.Height < 100), "HeightClass"] = 6
-df.loc[df.Height >= 100, "HeightClass"] = 7
-df.HeightClass = df.HeightClass.astype("int8")
+df["HeightClass"] = 0  # Unknown
+df.loc[(df.Height > 0) & (df.Height < 5), "HeightClass"] = 1
+df.loc[(df.Height >= 5) & (df.Height < 10), "HeightClass"] = 2
+df.loc[(df.Height >= 10) & (df.Height < 25), "HeightClass"] = 3
+df.loc[(df.Height >= 25) & (df.Height < 50), "HeightClass"] = 4
+df.loc[(df.Height >= 50) & (df.Height < 100), "HeightClass"] = 5
+df.loc[df.Height >= 100, "HeightClass"] = 6
+df.HeightClass = df.HeightClass.astype("uint8")
 
 # Calculate HUC and Ecoregion codes
 df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
@@ -194,7 +192,7 @@ df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
 df["Basin"] = df.HUC6.map(HUC6_DOMAIN)
 
 # Calculate feasibility
-df["Feasibility"] = df.Recon.map(RECON_TO_FEASIBILITY).astype("int8")
+df["Feasibility"] = df.Recon.map(RECON_TO_FEASIBILITY).astype("uint8")
 
 # Bin gain miles
 df["GainMilesClass"] = -1  # no network

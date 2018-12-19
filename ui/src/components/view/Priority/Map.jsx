@@ -235,13 +235,14 @@ class PriorityMap extends Component {
         map.addLayer({
             id: "dams-no",
             source: "dams",
-            "source-layer": "no_network",
+            "source-layer": "dams",
             type: "circle",
             minzoom: 10,
             maxzoom: 24,
             layout: {
-                visibility: "none"
+                // visibility: "none"
             },
+            filter: ["=="],
             paint: {
                 "circle-color": { stops: [[10, "#AAA"], [14, "#999"]] },
                 "circle-radius": { stops: [[10, 0.5], [14, 4]] },
@@ -259,10 +260,11 @@ class PriorityMap extends Component {
             minzoom: 5,
             maxzoom: 24,
             layout: {
-                visibility: "none"
+                // visibility: "none"
             },
             // TODO: threshold from user or zoom
             // filter: [">", `${layer}_${scenario}_tier`, 3],
+            filter: [">", "State_NCWC_tier", 1],
             paint: {
                 "circle-color": "#fbb4b9",
                 "circle-radius": { stops: [[10, 0.5], [14, 6]] },
@@ -280,11 +282,12 @@ class PriorityMap extends Component {
             minzoom: 5,
             maxzoom: 24,
             layout: {
-                visibility: "none"
+                // visibility: "none"
             },
             // TODO: threshold from user or zoom
             // TODO: selected unit
             // filter: ["<=", `${layer}_${scenario}_tier`, 3],
+            filter: ["<=", "State_NCWC_tier", 1],
             paint: {
                 "circle-color": "#c51b8a",
                 "circle-radius": { stops: [[6, 4], [14, 8]] },

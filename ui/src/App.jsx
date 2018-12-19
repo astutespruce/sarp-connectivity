@@ -7,8 +7,9 @@ import Home from "./components/view/Home"
 import Download from "./components/view/Download"
 import Priority from "./components/view/Priority"
 import Summary from "./components/view/Summary"
-import TestDetails from "./test/TestDetails"
+import TestFilter from "./test/TestFilter"
 import NotFound from "./components/view/NotFound"
+import Find from "./components/view/Find"
 
 // testing
 import Heatmap from "./components/view/Heatmap"
@@ -24,7 +25,8 @@ const App = () => (
                 <Route exact path="/priority" component={Priority} />
 
                 {/* FIXME! */}
-                <Route exact path="/test/:id" component={TestDetails} />
+                {/* <Route exact path="/find" component={Find} /> */}
+                <Route exact path="/test" component={TestFilter} />
 
                 <Route exact path="/heatmap" component={Heatmap} />
 

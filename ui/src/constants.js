@@ -35,7 +35,7 @@ export const RECON = {
     6: "Infeasible in short term via landowner contact",
     18: "Dam failed",
     19: "Proposed dam",
-    17: "Risky for mussels",
+    17: "Risky for mussels"
 }
 
 export const PURPOSE = {
@@ -51,7 +51,7 @@ export const PURPOSE = {
     9: "Tailings",
     10: "Not Rated",
     13: "Mine or Industrial Waste",
-    11: "Grade Stabilization",
+    11: "Grade Stabilization"
 }
 
 export const CONSTRUCTION = {
@@ -66,7 +66,7 @@ export const CONSTRUCTION = {
     8: "Corrugated Metal",
     9: "Polyvinyl chloride (PVC)",
     10: "Cast Iron",
-    11: "Other",
+    11: "Other"
 }
 
 export const CONDITION = {
@@ -74,7 +74,34 @@ export const CONDITION = {
     1: "Satisfactory",
     2: "Fair",
     3: "Poor",
-    4: "Unsatisfactory",
+    4: "Unsatisfactory"
+}
+
+export const FEASIBILITY = {
+    0: "Unknown",
+    1: "Not feasible",
+    2: "Likely infeasible",
+    3: "Possibly feasible",
+    4: "Likely feasible"
+}
+
+export const HEIGHT = {
+    0: "Unknown",
+    1: "< 5",
+    2: "5 - 10",
+    3: "10 - 25",
+    4: "25 - 50",
+    5: "50 - 100",
+    6: ">= 100"
+}
+
+export const GAINMILES = {
+    0: "< 1",
+    1: "1 - 5",
+    2: "5 - 10",
+    3: "10 - 25",
+    4: "25 - 100",
+    5: ">= 100"
 }
 
 export default { stateFIPS }
