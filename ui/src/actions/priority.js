@@ -132,12 +132,8 @@ export const fetchQuery = (layer, units) => dispatch => {
         return row
     })
         .then(data => {
-            console.log(data)
             window.data = data
-
             initCrossfilter(data)
-            // TODO: kick off rebuilding the filters
-
             dispatch(fetchQuerySuccess(data))
         })
         .catch(error => {
@@ -148,25 +144,15 @@ export const fetchQuery = (layer, units) => dispatch => {
 }
 
 export const SET_FILTER = "SET_FILTER"
-export const setFilter = (filter, filterValues) => {
-    const dimension = window.dims[filter]
-
-    if (filterValues && filterValues.size > 0) {
-        // TODO: always defaulting to exists filter
-        const filterFunction = filterConfig[filter].filterFunction || existsFilter
-
-        dimension.filterFunction(d => filterFunction(filterValues, d))
-    } else {
-        dimension.filterAll()
-    }
-
-    return {
-        type: SET_FILTER,
+export const setFilter = (filter, filterValues) => ({
+    type: SET_FILTER,
+    payload: {
         filter,
         filterValues
     }
-}
+})
 
+// TODO: not hooked up yet
 export const RESET_FILTERS = "RESET_FILTERS"
 export const resetFilters = () => {
     const filters = {}
@@ -177,8 +163,9 @@ export const resetFilters = () => {
 
     return {
         type: RESET_FILTERS,
-        filters,
-        dimensionCounts: getDimensionCounts()
+        payload: {
+            filters
+        }
     }
 }
 

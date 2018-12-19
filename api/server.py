@@ -22,10 +22,10 @@ FILTER_FIELDS = [
     "Feasibility",
     "HeightClass",
     "RareSppClass",
+    "StreamOrderClass",
     "GainMilesClass",
     "LandcoverClass",
     "SizeClasses",
-    "StreamOrderClass",
 ]
 
 

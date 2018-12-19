@@ -14,7 +14,7 @@ import {
 } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
-import { getDimensionCounts } from "../filters"
+import { getDimensionCounts, existsFilter } from "../filters"
 
 const initialState = Map({
     mode: "default", // mode or step in selection process: "default" (initial), "select", "prioritize"
@@ -27,10 +27,10 @@ const initialState = Map({
     type: "dams", // dams or barriers
     data: null,
 
-    // filter state - TODO: make immutable?
+    // filter state
     filtersLoaded: false,
-    filters: Map(), // {filter: [filterKeys...]...}
-    dimensionCounts: Map(),
+    filters: Map(), // Map of sets
+    dimensionCounts: Map(), // Map of Map of ints
     closedFilters: Map()
 })
 
@@ -71,6 +71,13 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
         case SET_FILTER: {
             const { filter, filterValues } = payload
             const filters = state.get("filters")
+
+            const dimension = window.dims[filter]
+            if (filterValues.size > 0) {
+                dimension.filterFunction(d => filterValues.has(d))
+            } else {
+                dimension.filterAll()
+            }
 
             return state.merge({
                 dimensionCounts: fromJS(getDimensionCounts()),

@@ -1,5 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
+import ImmutablePropTypes from "react-immutable-proptypes"
+import { Set } from "immutable"
 import { connect } from "react-redux"
 
 import * as actions from "../../../actions/priority"
@@ -17,8 +19,7 @@ function FiltersList({ filtersLoaded, counts, filters, setFilter, closedFilters,
                         key={f}
                         filter={f}
                         counts={counts.get(f)}
-                        // range={ranges[f]}
-                        filterValues={filters.get(f)}
+                        filterValues={filters.get(f, Set())}
                         closed={closedFilters.get(f, false)}
                         onFilterChange={v => setFilter(f, v)}
                         toggleFilterClosed={v => toggleFilterClosed(f, v)}
@@ -33,9 +34,11 @@ function FiltersList({ filtersLoaded, counts, filters, setFilter, closedFilters,
 
 FiltersList.propTypes = {
     filtersLoaded: PropTypes.bool.isRequired,
-    counts: PropTypes.object.isRequired,
-    filters: PropTypes.object.isRequired,
-    closedFilters: PropTypes.object.isRequired,
+    counts: ImmutablePropTypes.mapOf(ImmutablePropTypes.mapOf(PropTypes.number)).isRequired,
+    filters: ImmutablePropTypes.mapOf(
+        ImmutablePropTypes.setOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number]))
+    ).isRequired,
+    closedFilters: ImmutablePropTypes.mapOf(PropTypes.bool).isRequired,
 
     setFilter: PropTypes.func.isRequired,
     toggleFilterClosed: PropTypes.func.isRequired

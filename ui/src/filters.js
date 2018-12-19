@@ -16,7 +16,7 @@ import crossfilter from "crossfilter2"
 // } from "./constants"
 // import { splitWords } from "./utils"
 
-import { HEIGHT, FEASIBILITY } from "./constants"
+import { HEIGHT, FEASIBILITY, RARESPP, STREAMORDER, GAINMILES } from "./constants"
 
 // Returns true if d exists in filterValues
 // Only applies where a record has a singular value of d
@@ -46,10 +46,25 @@ export const filterConfig = {
         title: "Upstream Size Classes",
         keys: [0, 1, 2, 3, 4, 5, 6, 7],
         labelFunction: d => d
+    },
+    rarespp: {
+        title: "Number of Rare Species",
+        keys: getIntKeys(RARESPP),
+        labelFunction: d => RARESPP[d]
+    },
+    streamorder: {
+        title: "Stream Order (NHD modified Strahler)",
+        keys: getIntKeys(STREAMORDER),
+        labelFunction: d => STREAMORDER[d]
+    },
+    gainmiles: {
+        title: "Miles Gained",
+        keys: getIntKeys(GAINMILES),
+        labelFunction: d => GAINMILES[d]
     }
 }
 
-export const allFilters = ["feasibility", "height", "sizeclasses"]
+export const allFilters = ["feasibility", "height", "sizeclasses", "rarespp", "streamorder", "gainmiles"]
 
 export function initCrossfilter(data) {
     // Create global crossfilter and dimensions
@@ -67,23 +82,6 @@ export function initCrossfilter(data) {
     window.dims = dims
 }
 
-/**
- * Convert an array of objects into a map of key:value based on the value of the key for each item.
- *
- * @param {Array} arr  - input array
- * @param {String} key - use the value of this field as the key
- * @param {String} value - use the value of this field as the value to associate with key
- *
- * Returns {key: value, ...}
- */
-// const objArrayToObj = (arr, key, value) =>
-//     arr.reduce((result, item) => {
-//         if (item) {
-//             result[item[key]] = item[value]
-//         }
-//         return result
-//     }, {})
-
 // Get counts based on current filters
 export const getDimensionCounts = () => {
     let dimCounts = Map()
@@ -94,7 +92,6 @@ export const getDimensionCounts = () => {
         const counts = grouped.reduce((result, item) => {
             if (item) {
                 return result.set(item.key, item.value)
-                // result[item.key] = item.value
             }
             return result
         }, Map())

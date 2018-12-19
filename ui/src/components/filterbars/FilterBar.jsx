@@ -1,36 +1,38 @@
-import React, { Component } from "react"
+import React from "react"
+import PropTypes from "prop-types"
 
-class FilterBar extends Component {
-    render() {
-        const { label, value, valueLabel, range, filtered, onClick } = this.props
-        const position = value / range
-        const remainder = 1 - position
+const FilterBar = ({ label, value, valueLabel, range, filtered, onClick }) => {
+    const position = value / range
+    const remainder = 1 - position
 
-        return (
-            <div className={`filterbar${filtered ? " is-filtered" : ""}`} onClick={onClick}>
-                <div className="filterbar-labels">
-                    <div className="filterbar-label is-size-7">{label}</div>
-                    <div className="filterbar-label-value">{valueLabel}</div>
-                </div>
-                <div className="filterbar-bars">
-                    {position > 0 && <div className="bar" style={{ flexGrow: position }} />}
-
-                    {remainder > 0 && <div className="bar-remainder" style={{ flexGrow: remainder }} />}
-                </div>
+    return (
+        <div className={`filterbar${filtered ? " is-filtered" : ""}`} onClick={onClick}>
+            <div className="filterbar-labels">
+                <div className="filterbar-label is-size-7">{label}</div>
+                <div className="filterbar-label-value">{valueLabel}</div>
             </div>
-        )
-    }
+            <div className="filterbar-bars">
+                {position > 0 && <div className="bar" style={{ flexGrow: position }} />}
+
+                {remainder > 0 && <div className="bar-remainder" style={{ flexGrow: remainder }} />}
+            </div>
+        </div>
+    )
+}
+
+FilterBar.propTypes = {
+    label: PropTypes.string.isRequired,
+    value: PropTypes.number.isRequired,
+    valueLabel: PropTypes.string.isRequired,
+    onClick: PropTypes.func.isRequired,
+
+    filtered: PropTypes.bool,
+    range: PropTypes.number // relative range
 }
 
 FilterBar.defaultProps = {
     filtered: false,
-    label: "Category",
-    value: 50,
-    valueLabel: "50%", // properly formatted version of value for display
-    range: 100, // relative range
-    onClick: () => {
-        console.log("FilterBar: onClick")
-    }
+    range: 100
 }
 
 export default FilterBar
