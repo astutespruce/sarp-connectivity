@@ -10,18 +10,20 @@ import { FeaturePropType } from "../../../CustomPropTypes"
 
 import { TILE_HOST, PRIORITY_TIER_COLORS, SYSTEMS } from "../../map/config"
 import {
-    FILL_STYLE,
-    OUTLINE_STYLE,
-    HIGHLIGHT_STYLE,
-    PARENT_STYLE,
-    HIGHLIGHT_OUTLINE_STYLE,
-    POINT_HIGHLIGHT_STYLE
+    maskFill,
+    maskOutline,
+    unitFill,
+    unitOutline,
+    parentOutline,
+    unitHighlightFill,
+    unitHighlightOutline,
+    pointHighlight
 } from "./styles"
 import { LAYER_CONFIG } from "./config"
 import Map from "../../map/index"
 
 // Construct colors for mapbox GL layers in advance
-const priorityColors = PRIORITY_TIER_COLORS.reduce((out, color, i) => out.concat([i, color]), [])
+// const priorityColors = PRIORITY_TIER_COLORS.reduce((out, color, i) => out.concat([i, color]), [])
 
 class PriorityMap extends Component {
     constructor() {
@@ -75,7 +77,7 @@ class PriorityMap extends Component {
 
         if (summaryUnits !== prevSummaryUnits) {
             if (layer !== null) {
-                this.setHighlight(summaryUnits.toJS().map(({ id }) => id))
+                this.setHighlight(summaryUnits.toJS())
             }
         }
 
@@ -85,8 +87,9 @@ class PriorityMap extends Component {
                     this.setLayerVisibility(true)
                 }
             } else {
+                // modes other than filter or prioritize will have null layers, and be covered above
                 this.setLayerVisibility(false)
-                map.setLayoutProperty(`${layer}-highlight-outline`, "visibility", "visible")
+                // map.setLayoutProperty("unit-highlight-outline", "visibility", "visible")
             }
 
             if (mode === "prioritize") {
@@ -120,13 +123,14 @@ class PriorityMap extends Component {
         }
     }
 
-    setHighlight = ids => {
+    setHighlight = units => {
         const { map } = this
 
+        const ids = units.map(({ id }) => id)
         const filterExpr = ids.length > 0 ? ["in", "id", ...ids] : ["==", "id", Infinity]
 
-        map.setFilter(`highlight`, filterExpr)
-        map.setFilter(`highlight-outline`, filterExpr)
+        map.setFilter("unit-highlight-fill", filterExpr)
+        map.setFilter("unit-highlight-outline", filterExpr)
     }
 
     setLayerVisibility = visible => {
@@ -134,42 +138,14 @@ class PriorityMap extends Component {
         const { map } = this
         const { layer } = this.props
         const visibility = visible ? "visible" : "none"
-        map.setLayoutProperty("fill", "visibility", visibility)
-        map.setLayoutProperty("outline", "visibility", visibility)
-        map.setLayoutProperty("highlight", "visibility", visibility)
+        map.setLayoutProperty("unit-fill", "visibility", visibility)
+        map.setLayoutProperty("unit-outline", "visibility", visibility)
+        map.setLayoutProperty("unit-highlight-fill", "visibility", visibility)
+        // unit-highlight-outline deliberately left as-is
 
         if (LAYER_CONFIG[layer].parent) {
             map.setLayoutProperty("parent-outline", "visibility", visibility)
         }
-    }
-
-    addBoundaryLayers = () => {
-        const { map } = this
-
-        // Initially the mask and boundary are visible
-        map.addLayer({
-            id: "sarp-mask",
-            source: "sarp",
-            "source-layer": "mask",
-            type: "fill",
-            layout: {},
-            paint: {
-                "fill-opacity": 0.6,
-                "fill-color": "#AAA"
-            }
-        })
-        map.addLayer({
-            id: "sarp-outline",
-            source: "sarp",
-            "source-layer": "boundary",
-            type: "line",
-            layout: {},
-            paint: {
-                "line-opacity": 0.8,
-                "line-width": 2,
-                "line-color": "#4A0025"
-            }
-        })
     }
 
     addUnitLayers = layer => {
@@ -177,43 +153,21 @@ class PriorityMap extends Component {
         const { minzoom = 0, maxzoom = 24, parent } = LAYER_CONFIG[layer]
 
         const config = fromJS({
-            source: "sarp",
             "source-layer": layer,
             minzoom,
             maxzoom
         })
 
-        map.addLayer(
-            config
-                .merge({ id: "fill" })
-                .mergeDeep(fromJS(FILL_STYLE))
-                .toJS()
-        )
-        map.addLayer(
-            config
-                .merge({ id: "outline" })
-                .mergeDeep(fromJS(OUTLINE_STYLE))
-                .toJS()
-        )
-        map.addLayer(
-            config
-                .merge({ id: "highlight" })
-                .mergeDeep(fromJS(HIGHLIGHT_STYLE))
-                .toJS()
-        )
-
-        map.addLayer(
-            config
-                .merge({ id: "highlight-outline" })
-                .mergeDeep(fromJS(HIGHLIGHT_OUTLINE_STYLE))
-                .toJS()
-        )
+        map.addLayer(config.mergeDeep(fromJS(unitFill)).toJS())
+        map.addLayer(config.mergeDeep(fromJS(unitOutline)).toJS())
+        map.addLayer(config.mergeDeep(fromJS(unitHighlightFill)).toJS())
+        map.addLayer(config.mergeDeep(fromJS(unitHighlightOutline)).toJS())
 
         if (parent) {
             map.addLayer(
                 config
-                    .merge({ id: "parent-outline", "source-layer": parent })
-                    .mergeDeep(fromJS(PARENT_STYLE))
+                    .merge({ "source-layer": parent })
+                    .mergeDeep(fromJS(parentOutline))
                     .toJS()
             )
         }
@@ -222,10 +176,10 @@ class PriorityMap extends Component {
     removeUnitLayers = layer => {
         const { map } = this
 
-        map.removeLayer("fill")
-        map.removeLayer("outline")
-        map.removeLayer("highlight")
-        map.removeLayer("highlight-outline")
+        map.removeLayer("unit-fill")
+        map.removeLayer("unit-outline")
+        map.removeLayer("unit-highlight-fill")
+        map.removeLayer("unit-highlight-outline")
         if (LAYER_CONFIG[layer]) {
             map.removeLayer("parent-outline")
         }
@@ -331,14 +285,17 @@ class PriorityMap extends Component {
                 maxzoom: 8,
                 tiles: [`${TILE_HOST}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`]
             })
-            map.addSource("dams", {
-                type: "vector",
-                tiles: [`${TILE_HOST}/services/sarp_dams/tiles/{z}/{x}/{y}.pbf`],
-                minzoom: 5,
-                maxzoom: 12
-            })
 
-            this.addBoundaryLayers()
+            // Initially the mask and boundary are visible
+            map.addLayer(maskFill)
+            map.addLayer(maskOutline)
+
+            // map.addSource("dams", {
+            //     type: "vector",
+            //     tiles: [`${TILE_HOST}/services/sarp_dams/tiles/{z}/{x}/{y}.pbf`],
+            //     minzoom: 5,
+            //     maxzoom: 12
+            // })
 
             // this.addDams()
         })
@@ -350,7 +307,7 @@ class PriorityMap extends Component {
             switch (mode) {
                 case "select": {
                     if (layer !== null) {
-                        const features = map.queryRenderedFeatures(e.point, { layers: ["fill"] })
+                        const features = map.queryRenderedFeatures(e.point, { layers: ["unit-fill"] })
                         if (features.length > 0) {
                             selectUnit(features[0].properties)
                         }
