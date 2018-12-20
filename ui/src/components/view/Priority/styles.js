@@ -64,3 +64,30 @@ export const HIGHLIGHT_STYLE = {
         "fill-color": "#0B1CF4"
     }
 }
+
+export const HIGHLIGHT_OUTLINE_STYLE = {
+    type: "line",
+    minzoom: 0,
+    maxzoom: 24,
+    layout: {
+        "line-cap": "round",
+        "line-join": "round"
+    },
+    filter: ["==", "id", Infinity],
+    paint: {
+        "line-opacity": 1,
+        "line-width": 2,
+        "line-color": "#fd8d3c"
+    }
+}
+
+export const POINT_HIGHLIGHT_STYLE = {
+    type: "circle",
+    filter: ["==", "id", Infinity],
+    paint: {
+        "circle-color": "#fd8d3c",
+        "circle-radius": 14,
+        "circle-stroke-width": 3,
+        "circle-stroke-color": "#f03b20"
+    }
+}

@@ -9,7 +9,14 @@ import * as actions from "../../../actions/priority"
 import { FeaturePropType } from "../../../CustomPropTypes"
 
 import { TILE_HOST, PRIORITY_TIER_COLORS, SYSTEMS } from "../../map/config"
-import { FILL_STYLE, OUTLINE_STYLE, HIGHLIGHT_STYLE, PARENT_STYLE } from "./styles"
+import {
+    FILL_STYLE,
+    OUTLINE_STYLE,
+    HIGHLIGHT_STYLE,
+    PARENT_STYLE,
+    HIGHLIGHT_OUTLINE_STYLE,
+    POINT_HIGHLIGHT_STYLE
+} from "./styles"
 import { LAYER_CONFIG } from "./config"
 import Map from "../../map/index"
 
@@ -35,51 +42,20 @@ class PriorityMap extends Component {
         if (map === null) return
 
         const {
-            system: prevSystem,
             scenario: prevScenario,
             summaryUnits: prevSummaryUnits,
             layer: prevLayer,
             selectedFeature: prevSelectedFeature,
             mode: prevMode
         } = prevProps
-        const { system, scenario, summaryUnits, layer, selectedFeature, mode } = this.props
-
-        // if (system !== prevSystem) {
-        //     if (prevSystem !== null) {
-        //         const hideUnits = this.layers.filter(({ group }) => group === prevSystem)
-        //         hideUnits.forEach(({ id }) => this.setLayerVisibility(id, false))
-        //     }
-
-        //     if (system !== null) {
-        //         const showUnits = this.layers.filter(({ group }) => group === system)
-        //         showUnits.forEach(({ id }) => this.setLayerVisibility(id, true))
-        //     }
-        // }
-        // if (scenario !== prevScenario) {
-        //     // Note: scenarios cannot be null
-        //     map.setFilter("dams_priority", ["<=", ["get", scenario], 4])
-        //     map.setPaintProperty("dams_priority", "circle-color", [
-        //         "match",
-        //         ["get", scenario],
-        //         ...priorityColors,
-        //         "#AAA"
-        //     ])
-        //     map.setPaintProperty("dams_priority", "circle-radius", [
-        //         "interpolate",
-        //         ["linear"],
-        //         ["get", scenario],
-        //         1,
-        //         20,
-        //         4,
-        //         6
-        //     ])
-        // }
+        const { scenario, summaryUnits, layer, selectedFeature, mode } = this.props
 
         if (layer !== prevLayer) {
             if (prevLayer !== null) {
                 this.setLayerVisibility(prevLayer, false)
                 // clear out previous highlight
                 this.map.setFilter(`${prevLayer}-highlight`, ["==", "id", Infinity])
+                map.setFilter(`${prevLayer}-highlight-outline`, ["==", "id", Infinity])
                 // map.off("mousemove", `${layer}-fill`, this.handleFeatureHover)
                 // map.off("mouseleave", `${layer}-fill`, this.handleFeatureUnhover)
             }
@@ -87,6 +63,7 @@ class PriorityMap extends Component {
             if (layer !== null) {
                 // clear out previous highlight
                 this.map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
+                map.setFilter(`${layer}-highlight-outline`, ["==", "id", Infinity])
                 this.setLayerVisibility(layer, true)
                 // map.on("mousemove", `${layer}-fill`, this.handleFeatureHover)
                 // map.on("mouseleave", `${layer}-fill`, this.handleFeatureUnhover)
@@ -98,17 +75,33 @@ class PriorityMap extends Component {
 
             if (layer !== null) {
                 if (!summaryUnits.size) {
-                    this.map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
+                    map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
+                    map.setFilter(`${layer}-highlight-outline`, ["==", "id", Infinity])
                 } else {
-                    this.map.setFilter(`${layer}-highlight`, ["in", "id", ...summaryUnits.toJS().map(({ id }) => id)])
+                    map.setFilter(`${layer}-highlight`, ["in", "id", ...summaryUnits.toJS().map(({ id }) => id)])
+                    map.setFilter(`${layer}-highlight-outline`, [
+                        "in",
+                        "id",
+                        ...summaryUnits.toJS().map(({ id }) => id)
+                    ])
                 }
             }
         }
 
         if (mode !== prevMode) {
+            if (mode === "select") {
+                if (layer !== null) {
+                    // this.map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
+                    this.setLayerVisibility(layer, true)
+                }
+            } else {
+                this.setLayerVisibility(layer, false)
+                map.setLayoutProperty(`${layer}-highlight-outline`, "visibility", "visible")
+            }
+
             if (mode === "prioritize") {
                 // Convert to outline instead and turn on dams
-                console.log(system, summaryUnits.toJS())
+                console.log(layer, summaryUnits.toJS())
                 map.setFilter("dams-low", [">", `${layer}_${scenario}_tier`, 3])
                 map.setFilter("dams-top", [
                     "all",
@@ -144,6 +137,7 @@ class PriorityMap extends Component {
         map.setLayoutProperty(`${id}-fill`, "visibility", visibility)
         map.setLayoutProperty(`${id}-outline`, "visibility", visibility)
         map.setLayoutProperty(`${id}-highlight`, "visibility", visibility)
+        map.setLayoutProperty(`${id}-highlight-outline`, "visibility", visibility)
 
         if (this.layerIndex[id].parent) {
             map.setLayoutProperty(`${id}-parent-outline`, "visibility", visibility)
@@ -179,53 +173,58 @@ class PriorityMap extends Component {
         })
     }
 
-    addLayers = (layers, visible = true) => {
+    addLayers = (lyr, visible = true) => {
         const { map } = this
 
-        layers.forEach(lyr => {
-            const { id, minzoom = 0, maxzoom = 24, parent } = lyr
+        const { id, minzoom = 0, maxzoom = 24, parent } = lyr
 
-            const config = fromJS({
-                source: "sarp",
-                "source-layer": id,
-                minzoom,
-                maxzoom,
-                layout: {
-                    visibility: visible ? "visible" : "none"
-                }
-            })
-
-            map.addLayer(
-                config
-                    .merge({ id: `${id}-fill` })
-                    .mergeDeep(fromJS(FILL_STYLE))
-                    .toJS()
-            )
-            map.addLayer(
-                config
-                    .merge({ id: `${id}-outline` })
-                    .mergeDeep(fromJS(OUTLINE_STYLE))
-                    .toJS()
-            )
-            map.addLayer(
-                config
-                    .merge({ id: `${id}-highlight` })
-                    .mergeDeep(fromJS(HIGHLIGHT_STYLE))
-                    .toJS()
-            )
-
-            if (parent) {
-                map.addLayer(
-                    config
-                        .merge({ id: `${id}-parent-outline`, "source-layer": parent })
-                        .mergeDeep(fromJS(PARENT_STYLE))
-                        .toJS()
-                )
+        const config = fromJS({
+            source: "sarp",
+            "source-layer": id,
+            minzoom,
+            maxzoom,
+            layout: {
+                visibility: visible ? "visible" : "none"
             }
-
-            this.layers.push(lyr)
-            this.layerIndex[id] = lyr
         })
+
+        map.addLayer(
+            config
+                .merge({ id: `${id}-fill` })
+                .mergeDeep(fromJS(FILL_STYLE))
+                .toJS()
+        )
+        map.addLayer(
+            config
+                .merge({ id: `${id}-outline` })
+                .mergeDeep(fromJS(OUTLINE_STYLE))
+                .toJS()
+        )
+        map.addLayer(
+            config
+                .merge({ id: `${id}-highlight` })
+                .mergeDeep(fromJS(HIGHLIGHT_STYLE))
+                .toJS()
+        )
+
+        map.addLayer(
+            config
+                .merge({ id: `${id}-highlight-outline` })
+                .mergeDeep(fromJS(HIGHLIGHT_OUTLINE_STYLE))
+                .toJS()
+        )
+
+        if (parent) {
+            map.addLayer(
+                config
+                    .merge({ id: `${id}-parent-outline`, "source-layer": parent })
+                    .mergeDeep(fromJS(PARENT_STYLE))
+                    .toJS()
+            )
+        }
+
+        this.layers.push(lyr)
+        this.layerIndex[id] = lyr
     }
 
     addDams = () => {
@@ -299,24 +298,6 @@ class PriorityMap extends Component {
         })
 
         map.addLayer({
-            id: "no_network-selected",
-            source: "dams",
-            "source-layer": "no_network",
-            type: "circle",
-            minzoom: 5,
-            maxzoom: 24,
-            layout: {},
-            // TODO
-            filter: ["==", "id", Infinity],
-            paint: {
-                "circle-color": "#fd8d3c",
-                "circle-radius": 14,
-                "circle-stroke-width": 3,
-                "circle-stroke-color": "#f03b20"
-            }
-        })
-
-        map.addLayer({
             id: "dams-selected",
             source: "dams",
             "source-layer": "dams",
@@ -335,36 +316,12 @@ class PriorityMap extends Component {
         })
     }
 
-    // TODO: make this work based on featureIDs set via tippecanoe.  Requires new version of tippecanoe and int IDs
-    // handleFeatureHover = e => {
-    //     const { map } = this
-
-    //     if (e.features.length) {
-    //         const { source, sourceLayer, properties } = e.features[0]
-    //         const { id } = properties
-    //         if (this.hoverId !== null) {
-    //             map.setFeatureState({source, sourceLayer, id: this.hoverId}, {hover: false})
-    //         }
-    //         this.hoverId = e.features[0].id
-    //         map.setFeatureState({source, sourceLayer, id}, {hover: false})
-    //     }
-    // }
-
-    // handleFeatureUnhover = () => {
-    //     if (this.hoverId !== null) {
-    //         map.setFeatureState({source, sourceLayer, id: this.hoverId}, {hover: false})
-    //     }
-    // }
-
     handleCreateMap = map => {
         this.map = map
-        const { system, mode } = this.props
 
         this.setState({ zoom: this.map.getZoom() })
 
         map.on("load", () => {
-            const { scenario } = this.props
-
             map.addSource("sarp", {
                 type: "vector",
                 maxzoom: 8,
@@ -379,24 +336,19 @@ class PriorityMap extends Component {
 
             this.addBoundaryLayers()
 
-            this.addDams()
+            // this.addDams()
 
             // Add summary unit layers
-            Object.keys(SYSTEMS).forEach(s => {
-                this.addLayers(
-                    LAYER_CONFIG.filter(({ group }) => group === s)
-                        .slice()
-                        .reverse(),
-                    s === system
-                )
+            LAYER_CONFIG.forEach(lyr => {
+                this.addLayers(lyr, false)
             })
         })
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
         map.on("click", e => {
-            const { layer, selectFeature, selectUnit, mode: curMode } = this.props
+            const { layer, selectFeature, selectUnit, mode } = this.props
 
-            switch (curMode) {
+            switch (mode) {
                 case "select": {
                     if (layer !== null) {
                         const features = map.queryRenderedFeatures(e.point, { layers: [`${layer}-fill`] })
@@ -417,48 +369,21 @@ class PriorityMap extends Component {
                 }
             }
         })
-
-        // map.foo = () => {
-        //     map.setFilter("dams-heatmap", ["==", "State", "Alabama"])
-        //     map.setFilter("dams-heatmap-background", ["!=", "State", "Alabama"])
-        //     map.setFilter("dams", ["==", "State", "Alabama"])
-        //     map.setFilter("dams-background", ["!=", "State", "Alabama"])
-        //     map.setLayoutProperty("dams-background", "visibility", "visible")
-        //     map.setLayoutProperty("dams-heatmap-background", "visibility", "visible")
-        // }
     }
 
     getVisibleLayers = () => {
         const { zoom } = this.state
-        const { system } = this.props
+        const { layer } = this.props
 
-        return this.layers.filter(
-            ({ group, minzoom, maxzoom }) => group === system && zoom >= minzoom && zoom < maxzoom
-        )
+        return this.layers.filter(({ id, minzoom, maxzoom }) => id === layer && zoom >= minzoom && zoom < maxzoom)
     }
 
     render() {
-        const { scenario, system, setSystem, setScenario, bounds } = this.props
+        const { scenario, setScenario, bounds } = this.props
 
         return (
             <React.Fragment>
                 <Map baseStyle="streets-v9" bounds={bounds} onCreateMap={this.handleCreateMap} />
-
-                {/* <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
-                    <h5 className="is-size-7">Show Tiers for: </h5>
-                    <div className="buttons has-addons">
-                        {Object.entries(SCENARIOS).map(([key, name]) => (
-                            <button
-                                key={key}
-                                className={`button is-small ${scenario === key ? "active" : ""}`}
-                                type="button"
-                                onClick={() => setScenario(key)}
-                            >
-                                {name}
-                            </button>
-                        ))}
-                    </div>
-                </div> */}
             </React.Fragment>
         )
     }
@@ -467,13 +392,11 @@ class PriorityMap extends Component {
 PriorityMap.propTypes = {
     scenario: PropTypes.string,
     bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
-    system: PropTypes.string,
     selectedFeature: FeaturePropType,
     layer: PropTypes.string,
     summaryUnits: ImmutablePropTypes.set.isRequired,
     mode: PropTypes.string.isRequired,
 
-    setSystem: PropTypes.func.isRequired,
     setScenario: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired,
     selectUnit: PropTypes.func.isRequired
@@ -482,7 +405,6 @@ PriorityMap.propTypes = {
 PriorityMap.defaultProps = {
     scenario: null,
     bounds: null,
-    system: null,
     selectedFeature: null,
     layer: null
 }
@@ -492,7 +414,6 @@ const mapStateToProps = globalState => {
 
     return {
         bounds: state.get("bounds"),
-        system: state.get("system"),
         selectedFeature: state.get("selectedFeature"),
         scenario: state.get("scenario"),
         summaryUnits: state.get("summaryUnits"),
@@ -505,6 +426,27 @@ export default connect(
     mapStateToProps,
     actions
 )(PriorityMap)
+
+// TODO: make this work based on featureIDs set via tippecanoe.  Requires new version of tippecanoe and int IDs
+// handleFeatureHover = e => {
+//     const { map } = this
+
+//     if (e.features.length) {
+//         const { source, sourceLayer, properties } = e.features[0]
+//         const { id } = properties
+//         if (this.hoverId !== null) {
+//             map.setFeatureState({source, sourceLayer, id: this.hoverId}, {hover: false})
+//         }
+//         this.hoverId = e.features[0].id
+//         map.setFeatureState({source, sourceLayer, id}, {hover: false})
+//     }
+// }
+
+// handleFeatureUnhover = () => {
+//     if (this.hoverId !== null) {
+//         map.setFeatureState({source, sourceLayer, id: this.hoverId}, {hover: false})
+//     }
+// }
 
 // const colors = TIER_COLORS.reduce((out, color, i) => out.concat([i, color]), [])
 // const maxRadius = 20

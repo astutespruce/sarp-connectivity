@@ -24,7 +24,8 @@ export const LAYER_CONFIG = [
     },
     { id: "ECO3", group: "ECO", minzoom: 0, maxzoom: 6, title: "Level 3 Ecoregion" },
     { id: "ECO4", group: "ECO", minzoom: 6, maxzoom: 24, title: "Level 4 Ecoregion" },
-    { id: "State", group: "ADM", minzoom: 0, maxzoom: 24, title: "State" }
+    { id: "State", group: "ADM", minzoom: 0, maxzoom: 24, title: "State" },
+    { id: "County", group: "ADM", minzoom: 3, maxzoom: 24, title: "County" }
 ]
 
 export default LAYER_CONFIG

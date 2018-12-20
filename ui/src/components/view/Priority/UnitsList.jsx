@@ -92,6 +92,17 @@ const UnitsList = ({ layer, summaryUnits, selectUnit, setLayer }) => {
                         </p>
                     </React.Fragment>
                 )}
+
+                {layer !== "State" && layer !== "County" ? (
+                    <p className="text-help">
+                        <span className="icon">
+                            <i className="fas fa-exclamation-triangle" />
+                        </span>
+                        Note: You can choose from {pluralLabel} outside the highlighted states in the Southeast, but the
+                        barriers inventory is likely more complete only where {pluralLabel} overlap the highlighted
+                        states.
+                    </p>
+                ) : null}
             </div>
         </React.Fragment>
     )
