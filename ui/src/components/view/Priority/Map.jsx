@@ -32,13 +32,11 @@ class PriorityMap extends Component {
         }
 
         this.map = null
-        this.layers = []
-        this.layerIndex = {}
-        this.hoverId = null
+        // this.hoverId = null
     }
 
     componentDidUpdate(prevProps) {
-        const { map } = this
+        const { map, layers } = this
         if (map === null) return
 
         const {
@@ -52,50 +50,42 @@ class PriorityMap extends Component {
 
         if (layer !== prevLayer) {
             if (prevLayer !== null) {
-                this.setLayerVisibility(prevLayer, false)
+                // remove layers
+                this.removeUnitLayers(prevLayer)
+
+                // this.setLayerVisibility(prevLayer, false)
                 // clear out previous highlight
-                this.map.setFilter(`${prevLayer}-highlight`, ["==", "id", Infinity])
-                map.setFilter(`${prevLayer}-highlight-outline`, ["==", "id", Infinity])
+                // this.map.setFilter(`${prevLayer}-highlight`, ["==", "id", Infinity])
+                // map.setFilter(`${prevLayer}-highlight-outline`, ["==", "id", Infinity])
                 // map.off("mousemove", `${layer}-fill`, this.handleFeatureHover)
                 // map.off("mouseleave", `${layer}-fill`, this.handleFeatureUnhover)
             }
 
             if (layer !== null) {
+                this.addUnitLayers(layer, true)
+
                 // clear out previous highlight
-                this.map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
-                map.setFilter(`${layer}-highlight-outline`, ["==", "id", Infinity])
-                this.setLayerVisibility(layer, true)
+                // this.map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
+                // map.setFilter(`${layer}-highlight-outline`, ["==", "id", Infinity])
+                // this.setLayerVisibility(layer, true)
                 // map.on("mousemove", `${layer}-fill`, this.handleFeatureHover)
                 // map.on("mouseleave", `${layer}-fill`, this.handleFeatureUnhover)
             }
         }
 
         if (summaryUnits !== prevSummaryUnits) {
-            // TODO: set filter based on the current units
-
             if (layer !== null) {
-                if (!summaryUnits.size) {
-                    map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
-                    map.setFilter(`${layer}-highlight-outline`, ["==", "id", Infinity])
-                } else {
-                    map.setFilter(`${layer}-highlight`, ["in", "id", ...summaryUnits.toJS().map(({ id }) => id)])
-                    map.setFilter(`${layer}-highlight-outline`, [
-                        "in",
-                        "id",
-                        ...summaryUnits.toJS().map(({ id }) => id)
-                    ])
-                }
+                this.setHighlight(summaryUnits.toJS().map(({ id }) => id))
             }
         }
 
         if (mode !== prevMode) {
             if (mode === "select") {
                 if (layer !== null) {
-                    // this.map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
-                    this.setLayerVisibility(layer, true)
+                    this.setLayerVisibility(true)
                 }
             } else {
-                this.setLayerVisibility(layer, false)
+                this.setLayerVisibility(false)
                 map.setLayoutProperty(`${layer}-highlight-outline`, "visibility", "visible")
             }
 
@@ -130,17 +120,26 @@ class PriorityMap extends Component {
         }
     }
 
-    setLayerVisibility = (id, visible) => {
+    setHighlight = ids => {
+        const { map } = this
+
+        const filterExpr = ids.length > 0 ? ["in", "id", ...ids] : ["==", "id", Infinity]
+
+        map.setFilter(`highlight`, filterExpr)
+        map.setFilter(`highlight-outline`, filterExpr)
+    }
+
+    setLayerVisibility = visible => {
         // set fill and outline layer visibility
         const { map } = this
+        const { layer } = this.props
         const visibility = visible ? "visible" : "none"
-        map.setLayoutProperty(`${id}-fill`, "visibility", visibility)
-        map.setLayoutProperty(`${id}-outline`, "visibility", visibility)
-        map.setLayoutProperty(`${id}-highlight`, "visibility", visibility)
-        map.setLayoutProperty(`${id}-highlight-outline`, "visibility", visibility)
+        map.setLayoutProperty("fill", "visibility", visibility)
+        map.setLayoutProperty("outline", "visibility", visibility)
+        map.setLayoutProperty("highlight", "visibility", visibility)
 
-        if (this.layerIndex[id].parent) {
-            map.setLayoutProperty(`${id}-parent-outline`, "visibility", visibility)
+        if (LAYER_CONFIG[layer].parent) {
+            map.setLayoutProperty("parent-outline", "visibility", visibility)
         }
     }
 
@@ -173,43 +172,39 @@ class PriorityMap extends Component {
         })
     }
 
-    addLayers = (lyr, visible = true) => {
+    addUnitLayers = layer => {
         const { map } = this
-
-        const { id, minzoom = 0, maxzoom = 24, parent } = lyr
+        const { minzoom = 0, maxzoom = 24, parent } = LAYER_CONFIG[layer]
 
         const config = fromJS({
             source: "sarp",
-            "source-layer": id,
+            "source-layer": layer,
             minzoom,
-            maxzoom,
-            layout: {
-                visibility: visible ? "visible" : "none"
-            }
+            maxzoom
         })
 
         map.addLayer(
             config
-                .merge({ id: `${id}-fill` })
+                .merge({ id: "fill" })
                 .mergeDeep(fromJS(FILL_STYLE))
                 .toJS()
         )
         map.addLayer(
             config
-                .merge({ id: `${id}-outline` })
+                .merge({ id: "outline" })
                 .mergeDeep(fromJS(OUTLINE_STYLE))
                 .toJS()
         )
         map.addLayer(
             config
-                .merge({ id: `${id}-highlight` })
+                .merge({ id: "highlight" })
                 .mergeDeep(fromJS(HIGHLIGHT_STYLE))
                 .toJS()
         )
 
         map.addLayer(
             config
-                .merge({ id: `${id}-highlight-outline` })
+                .merge({ id: "highlight-outline" })
                 .mergeDeep(fromJS(HIGHLIGHT_OUTLINE_STYLE))
                 .toJS()
         )
@@ -217,14 +212,23 @@ class PriorityMap extends Component {
         if (parent) {
             map.addLayer(
                 config
-                    .merge({ id: `${id}-parent-outline`, "source-layer": parent })
+                    .merge({ id: "parent-outline", "source-layer": parent })
                     .mergeDeep(fromJS(PARENT_STYLE))
                     .toJS()
             )
         }
+    }
 
-        this.layers.push(lyr)
-        this.layerIndex[id] = lyr
+    removeUnitLayers = layer => {
+        const { map } = this
+
+        map.removeLayer("fill")
+        map.removeLayer("outline")
+        map.removeLayer("highlight")
+        map.removeLayer("highlight-outline")
+        if (LAYER_CONFIG[layer]) {
+            map.removeLayer("parent-outline")
+        }
     }
 
     addDams = () => {
@@ -337,11 +341,6 @@ class PriorityMap extends Component {
             this.addBoundaryLayers()
 
             // this.addDams()
-
-            // Add summary unit layers
-            LAYER_CONFIG.forEach(lyr => {
-                this.addLayers(lyr, false)
-            })
         })
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
@@ -351,7 +350,7 @@ class PriorityMap extends Component {
             switch (mode) {
                 case "select": {
                     if (layer !== null) {
-                        const features = map.queryRenderedFeatures(e.point, { layers: [`${layer}-fill`] })
+                        const features = map.queryRenderedFeatures(e.point, { layers: ["fill"] })
                         if (features.length > 0) {
                             selectUnit(features[0].properties)
                         }
@@ -369,13 +368,6 @@ class PriorityMap extends Component {
                 }
             }
         })
-    }
-
-    getVisibleLayers = () => {
-        const { zoom } = this.state
-        const { layer } = this.props
-
-        return this.layers.filter(({ id, minzoom, maxzoom }) => id === layer && zoom >= minzoom && zoom < maxzoom)
     }
 
     render() {
