@@ -1,56 +1,69 @@
 import React from "react"
 import PropTypes from "prop-types"
 
-import { LAYER_CONFIG } from "../../map/config"
-
-const SummaryLayerChooser = ({ onSelect, onBack }) => {
+const SummaryLayerChooser = ({ onSelect }) => {
     const handleClick = id => () => onSelect(id)
 
     return (
         <div id="SidebarContent">
-            <a href="#" onClick={() => onBack()}>
-                <span className="fa fa-reply" />
-                &nbsp; back to Southeast region
-            </a>
-            <h5 className="is-size-5">View priorities at another level</h5>
+            <h4 className="title is-4">What type of area do you want to select?</h4>
+            <p className="text-help">
+                Choose from one of the following types of areas that will best capture your area of interest. You will
+                select specific areas on the next screen.
+            </p>
             <div id="SummaryUnitChooser">
-                <h6
+                <h5
+                    className="is-size-5"
                     style={{
-                        marginTop: "1em"
+                        marginTop: "1rem"
                     }}
                 >
                     Administrative unit
-                </h6>
-                <div>
-                    <a href="#" onClick={handleClick("State")}>
+                </h5>
+                <div className="button-group flex-container">
+                    <button className="button" type="button" onClick={handleClick("State")}>
                         State
-                    </a>
+                    </button>
+                    <button className="button" type="button" onClick={handleClick("County")}>
+                        County
+                    </button>
                 </div>
-                <h6
+                <h5
+                    className="is-size-5"
                     style={{
-                        marginTop: "1em"
+                        marginTop: "2rem"
                     }}
                 >
                     Hydrologic unit
-                </h6>
-                {LAYER_CONFIG.filter(({ group }) => group === "HUC").map(({ id, title }) => (
-                    <a href="#" key={id} onClick={handleClick(id)}>
-                        {title}
-                    </a>
-                ))}
+                </h5>
+                <div className="button-group flex-container">
+                    <button className="button" type="button" onClick={handleClick("HUC6")}>
+                        Basin
+                    </button>
+                    <button className="button" type="button" onClick={handleClick("HUC8")}>
+                        Subbasin
+                    </button>
+                    <button className="button" type="button" onClick={handleClick("HUC12")}>
+                        Subwatershed
+                    </button>
+                </div>
 
-                <h6
+                <h5
+                    className="is-size-5"
                     style={{
-                        marginTop: "1em"
+                        marginTop: "2rem"
                     }}
                 >
                     Ecoregion
-                </h6>
-                {LAYER_CONFIG.filter(({ group }) => group === "ECO").map(({ id, title }) => (
-                    <a href="#" key={id} onClick={handleClick(id)}>
-                        {title}
-                    </a>
-                ))}
+                </h5>
+                <div className="button-group flex-container">
+                    <button className="button" type="button" onClick={handleClick("ECO3")}>
+                        Level 3
+                    </button>
+                    <button className="button" type="button" onClick={handleClick("ECO4")}>
+                        Level 4
+                    </button>
+                </div>
             </div>
         </div>
     )

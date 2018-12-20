@@ -2,6 +2,7 @@ import React from "react"
 import PropTypes from "prop-types"
 import ImmutablePropTypes from "react-immutable-proptypes"
 import { connect } from "react-redux"
+import { Link } from "react-router-dom"
 
 import * as actions from "../../../actions/priority"
 import Start from "./Start"
@@ -13,6 +14,7 @@ import { FeaturePropType } from "../../../CustomPropTypes"
 import Barrier from "../../barriers/Barrier"
 import SummaryLayerChooser from "./SummaryLayerChooser"
 import SummaryUnitChooser from "./SummaryUnitChooser"
+import FiltersList from "./FiltersList"
 
 const Priority = ({
     type,
@@ -25,9 +27,11 @@ const Priority = ({
     selectUnit,
     setType,
     setMode,
+    fetchQuery,
     fetchRanks
 }) => {
     let content = null
+    let submitButton = null
 
     if (selectedFeature !== null) {
         content = <Barrier barrier={selectedFeature.toJS()} onClose={() => selectFeature(null)} />
@@ -35,23 +39,49 @@ const Priority = ({
         switch (mode) {
             case "select": {
                 if (layer === null) {
-                    content = <SummaryLayerChooser onSelect={setLayer} onBack={() => setMode("default")} />
+                    content = <SummaryLayerChooser onSelect={setLayer} />
                 } else {
                     content = (
                         <SummaryUnitChooser
+                            layer={layer}
                             summaryUnits={summaryUnits}
                             onDeselectUnit={id => selectUnit(id)}
                             onBack={() => setLayer(null)}
-                            // onSubmit={() => setMode("prioritize")}
-                            onSubmit={() => fetchRanks(layer, summaryUnits.toJS())}
                         />
+                    )
+                    submitButton = (
+                        <button
+                            className="button is-medium is-info"
+                            type="button"
+                            onClick={() => fetchQuery(layer, summaryUnits.toJS())}
+                            disabled={summaryUnits.size === 0}
+                        >
+                            <span className="fa fa-search-location" />
+                            &nbsp;Select {type} in this area
+                        </button>
                     )
                 }
                 break
             }
+            case "filter": {
+                content = <FiltersList />
+
+                submitButton = (
+                    <button
+                        className="button is-medium is-info"
+                        type="button"
+                        onClick={() => fetchRanks(layer, summaryUnits.toJS())}
+                        disabled={summaryUnits.size === 0}
+                    >
+                        <span className="fa fa-search-location" />
+                        &nbsp;Prioritize {type}
+                    </button>
+                )
+                break
+            }
             case "prioritize": {
                 content = (
-                    <div id="SidebarContent">
+                    <div>
                         <a href="#" onClick={() => setMode("select")}>
                             <span className="fa fa-reply" />
                             &nbsp; select other summary units
@@ -75,7 +105,24 @@ const Priority = ({
                 <Start setType={setType} />
             ) : (
                 <React.Fragment>
-                    <Sidebar>{content}</Sidebar>
+                    <Sidebar>
+                        {content}
+                        {layer !== null ? (
+                            <div id="SidebarFooter" className="flex-container flex-justify-center flex-align-center">
+                                <Link to="/priority">
+                                    <button
+                                        className="button is-black is-medium"
+                                        type="button"
+                                        style={{ marginRight: "1rem" }}
+                                        title="Start Over"
+                                    >
+                                        <i className="fa fa-trash" />
+                                    </button>
+                                </Link>
+                                {submitButton}
+                            </div>
+                        ) : null}
+                    </Sidebar>
                     <div id="MapContainer">
                         <Map />
                     </div>
@@ -97,6 +144,7 @@ Priority.propTypes = {
     selectFeature: PropTypes.func.isRequired,
     selectUnit: PropTypes.func.isRequired,
     setMode: PropTypes.func.isRequired,
+    fetchQuery: PropTypes.func.isRequired,
     fetchRanks: PropTypes.func.isRequired
 }
 

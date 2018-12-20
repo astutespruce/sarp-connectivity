@@ -229,6 +229,7 @@ class PriorityMap extends Component {
     }
 
     addDams = () => {
+        // TODO: add these LATER!!
         const { map } = this
 
         // Add dams that have no network
@@ -240,7 +241,7 @@ class PriorityMap extends Component {
             minzoom: 10,
             maxzoom: 24,
             layout: {
-                // visibility: "none"
+                visibility: "none"
             },
             filter: ["=="],
             paint: {
@@ -260,7 +261,7 @@ class PriorityMap extends Component {
             minzoom: 5,
             maxzoom: 24,
             layout: {
-                // visibility: "none"
+                visibility: "none"
             },
             // TODO: threshold from user or zoom
             // filter: [">", `${layer}_${scenario}_tier`, 3],
@@ -282,7 +283,7 @@ class PriorityMap extends Component {
             minzoom: 5,
             maxzoom: 24,
             layout: {
-                // visibility: "none"
+                visibility: "none"
             },
             // TODO: threshold from user or zoom
             // TODO: selected unit

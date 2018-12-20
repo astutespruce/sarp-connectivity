@@ -14,24 +14,29 @@ import {
 } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
-import { getDimensionCounts } from "../filters"
+import { allFilters, getDimensionCounts } from "../filters"
+
+const closedFilters = {}
+allFilters.forEach((f, i) => {
+    closedFilters[f] = i >= 2
+})
 
 const initialState = Map({
-    mode: "default", // mode or step in selection process: "default" (initial), "select", "prioritize"
+    mode: "select", // mode or step in selection process: "default" (initial), "select", "filter", "prioritize"
     bounds: SARP_BOUNDS, // SARP bounds
     // bounds: List([-85.03324716546452, 32.63585392698306, -84.15434091546213, 32.96541554455193]),
     prevBounds: List(), // push previous bounds here
     scenario: "NCWC", // NC, WC, NCWC, or *_NC, *_WC, *_NCWC
     layer: null, // HUC*, ECO*, State
     summaryUnits: Set(), // set of specific IDs from the summary unit layer
-    type: null, // dams or barriers; not set until chosen by user
+    type: "dams", // null, // dams or barriers; not set until chosen by user
     data: null,
 
     // filter state
     filtersLoaded: false,
     filters: Map(), // Map of sets
     dimensionCounts: Map(), // Map of Map of ints
-    closedFilters: Map()
+    closedFilters: Map(closedFilters)
 })
 
 export const reducer = (state = initialState, { type, payload = {} }) => {
@@ -94,7 +99,8 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             return state.merge({
                 filtersLoaded: true,
                 filters: Map(),
-                dimensionCounts: fromJS(getDimensionCounts())
+                dimensionCounts: fromJS(getDimensionCounts()),
+                mode: "filter"
             })
         }
         case TOGGLE_FILTER_CLOSED: {

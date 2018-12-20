@@ -165,6 +165,19 @@ footer a {
     color: white !important;
 }
 
+button.link {
+    border: none;
+    background: none;
+    color: #0074d9;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+button.link.link-back {
+    margin: -0.5rem 0 0.5rem -1rem;
+    display: block;
+}
+
 .main {
     flex: 1;
     display: flex;
@@ -384,6 +397,12 @@ footer a {
 #SidebarHeader .tabs a:hover {
     background: #eee;
 }
+#SidebarFooter {
+    flex-grow: 0;
+    padding: 1rem 0;
+    border-top: 1px solid #ddd;
+    background: #eee;
+}
 
 #SidebarContent {
     padding: 1rem;
@@ -406,8 +425,31 @@ footer a {
 }
 
 #SidebarContent .button-group {
-    border-top: 1px solid #eee;
-    padding-top: 1rem;
+    /* border-top: 1px solid #eee;
+    padding-top: 1rem; */
+    background: #eee;
+    border-radius: 6px;
+}
+
+#SidebarContent .button-group .button {
+    flex-grow: 1;
+}
+#SidebarContent .button-group .button:first-child {
+    border-radius: 6px 0 0 6px;
+}
+#SidebarContent .button-group .button:last-child {
+    border-radius: 0 6px 6px 0;
+}
+#SidebarContent .button-group .button:not(:first-child):not(:last-child) {
+    border-radius: 0;
+}
+/* #SidebarContent .button-group .button + .button {
+    border-left: 1px solid #fff;
+} */
+#SidebarContent .button-group .button:hover {
+    background: #597996;
+    border-color: #597996;
+    color: #fff;
 }
 
 #SidebarContent .tabs ul {
