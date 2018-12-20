@@ -353,6 +353,9 @@ df = df.drop(
     ]
 )
 
+# convert HasNetwork so that it encodes into tiles properly
+df.HasNetwork = df.HasNetwork.astype('uint8')
+
 df.to_csv("data/src/dams_mbtiles.csv", index_label="id")
 
 

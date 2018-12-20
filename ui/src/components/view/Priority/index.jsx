@@ -62,7 +62,7 @@ const Priority = ({
                         disabled={summaryUnits.size === 0}
                         onClick={() => fetchRanks(layer, summaryUnits.toJS())}
                         icon="search-location"
-                        label={`Prioritize {type}`}
+                        label={`Prioritize ${type}`}
                     />
                 )
                 break

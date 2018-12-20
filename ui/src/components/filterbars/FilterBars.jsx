@@ -8,7 +8,6 @@ import "./FilterBars.css"
 
 const FilterBars = ({ title, bars, filterValues, closed, formatter, onFilterChange, toggleFilterClosed }) => {
     const handleClick = key => () => {
-        console.log("handle click", key, filterValues.add(key).toJS())
         if (filterValues.has(key)) {
             onFilterChange(filterValues.delete(key))
         } else {
@@ -23,8 +22,6 @@ const FilterBars = ({ title, bars, filterValues, closed, formatter, onFilterChan
     const handleReset = () => {
         onFilterChange(filterValues.clear())
     }
-
-    console.log("filterValues", filterValues.toJS())
 
     const className = `filterbars${filterValues.size > 0 ? " has-filters" : ""}${closed ? " is-closed" : ""}`
 

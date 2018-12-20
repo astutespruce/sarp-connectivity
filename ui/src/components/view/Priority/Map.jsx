@@ -17,7 +17,10 @@ import {
     parentOutline,
     unitHighlightFill,
     unitHighlightOutline,
-    pointHighlight
+    pointHighlight,
+    backgroundPoint,
+    excludedPoint,
+    includedPoint
 } from "./styles"
 import { LAYER_CONFIG } from "./config"
 import Map from "../../map/index"
@@ -50,87 +53,91 @@ class PriorityMap extends Component {
         } = prevProps
         const { scenario, summaryUnits, layer, selectedFeature, mode } = this.props
 
+        if (selectedFeature !== prevSelectedFeature) {
+            this.updateBarrierHighlight()
+        }
+
         if (layer !== prevLayer) {
             if (prevLayer !== null) {
-                // remove layers
                 this.removeUnitLayers(prevLayer)
-
-                // this.setLayerVisibility(prevLayer, false)
-                // clear out previous highlight
-                // this.map.setFilter(`${prevLayer}-highlight`, ["==", "id", Infinity])
-                // map.setFilter(`${prevLayer}-highlight-outline`, ["==", "id", Infinity])
-                // map.off("mousemove", `${layer}-fill`, this.handleFeatureHover)
-                // map.off("mouseleave", `${layer}-fill`, this.handleFeatureUnhover)
             }
 
             if (layer !== null) {
-                this.addUnitLayers(layer, true)
-
-                // clear out previous highlight
-                // this.map.setFilter(`${layer}-highlight`, ["==", "id", Infinity])
-                // map.setFilter(`${layer}-highlight-outline`, ["==", "id", Infinity])
-                // this.setLayerVisibility(layer, true)
-                // map.on("mousemove", `${layer}-fill`, this.handleFeatureHover)
-                // map.on("mouseleave", `${layer}-fill`, this.handleFeatureUnhover)
+                this.addUnitLayers()
             }
         }
 
         if (summaryUnits !== prevSummaryUnits) {
             if (layer !== null) {
-                this.setHighlight(summaryUnits.toJS())
+                this.updateUnitHighlight()
             }
         }
 
         if (mode !== prevMode) {
+            // modes other than filter or prioritize will have null layers, and be covered above
+            this.setLayerVisibility(mode === "select" && layer !== null)
+
             if (mode === "select") {
-                if (layer !== null) {
-                    this.setLayerVisibility(true)
-                }
-            } else {
-                // modes other than filter or prioritize will have null layers, and be covered above
-                this.setLayerVisibility(false)
-                // map.setLayoutProperty("unit-highlight-outline", "visibility", "visible")
+                map.setLayoutProperty("point-no-network", "visibility", "none")
             }
 
-            if (mode === "prioritize") {
-                // Convert to outline instead and turn on dams
-                console.log(layer, summaryUnits.toJS())
-                map.setFilter("dams-low", [">", `${layer}_${scenario}_tier`, 3])
-                map.setFilter("dams-top", [
-                    "all",
-                    ["<=", `${layer}_${scenario}_tier`, 3],
-                    ["in", layer, ...summaryUnits.toJS().map(({ id }) => id)]
-                ])
+            if (prevMode === "filter") {
+                this.removeBarrierFilterLayers()
             }
-            const damsVisible = mode === "prioritize" ? "visible" : "none"
 
-            map.setLayoutProperty("dams-no", "visibility", damsVisible)
-            map.setLayoutProperty("dams-low", "visibility", damsVisible)
-            map.setLayoutProperty("dams-top", "visibility", damsVisible)
-        }
+            if (mode === "filter") {
+                this.addBarrierFilterLayers()
+                map.setLayoutProperty("point-no-network", "visibility", "visible")
+            }
 
-        if (selectedFeature !== prevSelectedFeature) {
-            if (prevSelectedFeature !== null) {
-                this.map.setFilter(`${prevSelectedFeature.get("layerId")}-selected`, ["==", "id", Infinity])
-            }
-            if (selectedFeature !== null) {
-                this.map.setFilter(`${selectedFeature.get("layerId")}-selected`, [
-                    "==",
-                    "id",
-                    selectedFeature.get("id")
-                ])
-            }
+            // switch (mode) {
+            //     case "select": {
+
+            //         break
+            //     }
+            //     case "filter": {
+            //         this.addBarrierFilterLayers()
+            //         break
+            //     }
+            //     case "prioritize": {
+
+            //         break
+            //     }
+            // }
+
+            // if (mode === "prioritize") {
+            //     // Convert to outline instead and turn on dams
+            //     console.log(layer, summaryUnits.toJS())
+            //     map.setFilter("dams-low", [">", `${layer}_${scenario}_tier`, 3])
+            //     map.setFilter("dams-top", [
+            //         "all",
+            //         ["<=", `${layer}_${scenario}_tier`, 3],
+            //         ["in", layer, ...summaryUnits.toJS().map(({ id }) => id)]
+            //     ])
+            // }
+            // const damsVisible = mode === "prioritize" ? "visible" : "none"
+
+            // map.setLayoutProperty("dams-no", "visibility", damsVisible)
+            // map.setLayoutProperty("dams-low", "visibility", damsVisible)
+            // map.setLayoutProperty("dams-top", "visibility", damsVisible)
         }
     }
 
-    setHighlight = units => {
+    updateUnitHighlight = () => {
         const { map } = this
+        const { summaryUnits } = this.props
 
-        const ids = units.map(({ id }) => id)
+        const ids = summaryUnits.toJS().map(({ id }) => id)
         const filterExpr = ids.length > 0 ? ["in", "id", ...ids] : ["==", "id", Infinity]
 
         map.setFilter("unit-highlight-fill", filterExpr)
         map.setFilter("unit-highlight-outline", filterExpr)
+    }
+
+    updateBarrierHighlight = () => {
+        const { selectedFeature } = this.props
+        const filterExpr = selectedFeature !== null ? ["==", "id", selectedFeature.get("id")] : ["==", "id", Infinity]
+        this.map.setFilter("point-highlight", filterExpr)
     }
 
     setLayerVisibility = visible => {
@@ -148,8 +155,9 @@ class PriorityMap extends Component {
         }
     }
 
-    addUnitLayers = layer => {
+    addUnitLayers = () => {
         const { map } = this
+        const { layer } = this.props
         const { minzoom = 0, maxzoom = 24, parent } = LAYER_CONFIG[layer]
 
         const config = fromJS({
@@ -185,99 +193,111 @@ class PriorityMap extends Component {
         }
     }
 
-    addDams = () => {
-        // TODO: add these LATER!!
+    getBarrierFilter = inclusive => {
+        const { layer, summaryUnits } = this.props
+        const unitIds = summaryUnits.toJS().map(({ id }) => id)
+
+        const inExpr = inclusive ? "in" : "!in"
+        const filterExpr = ["all", ["==", "HasNetwork", true], [inExpr, layer, ...unitIds]]
+
+        // TODO: from filters
+        return filterExpr
+    }
+
+    addBarrierFilterLayers = () => {
+        const { map } = this
+        const { type } = this.props
+
+        const config = fromJS({
+            source: type,
+            "source-layer": type
+        })
+
+        map.addLayer(
+            fromJS(excludedPoint)
+                .merge(config)
+                .merge({
+                    filter: this.getBarrierFilter(false)
+                })
+                .toJS()
+        )
+        map.addLayer(
+            fromJS(includedPoint)
+                .merge(config)
+                .merge({
+                    filter: this.getBarrierFilter(true)
+                })
+                .toJS()
+        )
+
+        map.addLayer(
+            fromJS(pointHighlight)
+                .merge(config)
+                .toJS()
+        )
+
+        // add highlight layer last so it is on top
+
+        // map.addLayer({
+        //     id: "dams-low",
+        //     source: "dams",
+        //     "source-layer": "dams",
+        //     type: "circle",
+        //     minzoom: 5,
+        //     maxzoom: 24,
+        //     layout: {
+        //         visibility: "none"
+        //     },
+        //     // TODO: threshold from user or zoom
+        //     // filter: [">", `${layer}_${scenario}_tier`, 3],
+        //     filter: [">", "State_NCWC_tier", 1],
+        //     paint: {
+        //         "circle-color": "#fbb4b9",
+        //         "circle-radius": { stops: [[10, 0.5], [14, 6]] },
+        //         "circle-opacity": { stops: [[10, 0.5], [14, 1]] },
+        //         "circle-stroke-color": "#c51b8a",
+        //         "circle-stroke-width": { stops: [[10, 0], [14, 1]] }
+        //     }
+        // })
+
+        // map.addLayer({
+        //     id: "dams-top",
+        //     source: "dams",
+        //     "source-layer": "dams",
+        //     type: "circle",
+        //     minzoom: 5,
+        //     maxzoom: 24,
+        //     layout: {
+        //         visibility: "none"
+        //     },
+        //     // TODO: threshold from user or zoom
+        //     // TODO: selected unit
+        //     // filter: ["<=", `${layer}_${scenario}_tier`, 3],
+        //     filter: ["<=", "State_NCWC_tier", 1],
+        //     paint: {
+        //         "circle-color": "#c51b8a",
+        //         "circle-radius": { stops: [[6, 4], [14, 8]] },
+        //         "circle-opacity": { stops: [[5, 0.1], [6, 0.25], [7, 1]] },
+        //         "circle-stroke-color": "#FFFFFF",
+        //         "circle-stroke-width": { stops: [[6, 0.25], [10, 1], [14, 3]] }
+        //     }
+        // })
+    }
+
+    removeBarrierFilterLayers = () => {
         const { map } = this
 
-        // Add dams that have no network
-        map.addLayer({
-            id: "dams-no",
-            source: "dams",
-            "source-layer": "dams",
-            type: "circle",
-            minzoom: 10,
-            maxzoom: 24,
-            layout: {
-                visibility: "none"
-            },
-            filter: ["=="],
-            paint: {
-                "circle-color": { stops: [[10, "#AAA"], [14, "#999"]] },
-                "circle-radius": { stops: [[10, 0.5], [14, 4]] },
-                "circle-opacity": { stops: [[10, 0.5], [14, 1]] },
-                "circle-stroke-color": "#666",
-                "circle-stroke-width": { stops: [[10, 0], [14, 1]] }
-            }
-        })
-
-        map.addLayer({
-            id: "dams-low",
-            source: "dams",
-            "source-layer": "dams",
-            type: "circle",
-            minzoom: 5,
-            maxzoom: 24,
-            layout: {
-                visibility: "none"
-            },
-            // TODO: threshold from user or zoom
-            // filter: [">", `${layer}_${scenario}_tier`, 3],
-            filter: [">", "State_NCWC_tier", 1],
-            paint: {
-                "circle-color": "#fbb4b9",
-                "circle-radius": { stops: [[10, 0.5], [14, 6]] },
-                "circle-opacity": { stops: [[10, 0.5], [14, 1]] },
-                "circle-stroke-color": "#c51b8a",
-                "circle-stroke-width": { stops: [[10, 0], [14, 1]] }
-            }
-        })
-
-        map.addLayer({
-            id: "dams-top",
-            source: "dams",
-            "source-layer": "dams",
-            type: "circle",
-            minzoom: 5,
-            maxzoom: 24,
-            layout: {
-                visibility: "none"
-            },
-            // TODO: threshold from user or zoom
-            // TODO: selected unit
-            // filter: ["<=", `${layer}_${scenario}_tier`, 3],
-            filter: ["<=", "State_NCWC_tier", 1],
-            paint: {
-                "circle-color": "#c51b8a",
-                "circle-radius": { stops: [[6, 4], [14, 8]] },
-                "circle-opacity": { stops: [[5, 0.1], [6, 0.25], [7, 1]] },
-                "circle-stroke-color": "#FFFFFF",
-                "circle-stroke-width": { stops: [[6, 0.25], [10, 1], [14, 3]] }
-            }
-        })
-
-        map.addLayer({
-            id: "dams-selected",
-            source: "dams",
-            "source-layer": "dams",
-            type: "circle",
-            minzoom: 5,
-            maxzoom: 24,
-            layout: {},
-            // TODO
-            filter: ["==", "id", Infinity],
-            paint: {
-                "circle-color": "#fd8d3c",
-                "circle-radius": 14,
-                "circle-stroke-width": 3,
-                "circle-stroke-color": "#f03b20"
-            }
-        })
+        map.removeLayer("point-excluded")
+        map.removeLayer("point-included")
+        map.removeLayer("point-highlight")
     }
 
     handleCreateMap = map => {
         this.map = map
 
-        this.setState({ zoom: this.map.getZoom() })
+        const { type } = this.props
+
+        this.setState({ zoom: map.getZoom() })
 
         map.on("load", () => {
             map.addSource("sarp", {
@@ -290,14 +310,25 @@ class PriorityMap extends Component {
             map.addLayer(maskFill)
             map.addLayer(maskOutline)
 
-            // map.addSource("dams", {
-            //     type: "vector",
-            //     tiles: [`${TILE_HOST}/services/sarp_dams/tiles/{z}/{x}/{y}.pbf`],
-            //     minzoom: 5,
-            //     maxzoom: 12
-            // })
+            map.addSource(type, {
+                type: "vector",
+                tiles: [`${TILE_HOST}/services/sarp_${type}/tiles/{z}/{x}/{y}.pbf`],
+                minzoom: 5,
+                maxzoom: 12
+            })
 
-            // this.addDams()
+            // Add the background (no network) points up front, but not visible
+            // these don't change style based on any props
+            map.addLayer(
+                fromJS(backgroundPoint)
+                    .merge(
+                        fromJS({
+                            source: type,
+                            "source-layer": type
+                        })
+                    )
+                    .toJS()
+            )
         })
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
@@ -311,6 +342,18 @@ class PriorityMap extends Component {
                         if (features.length > 0) {
                             selectUnit(features[0].properties)
                         }
+                    }
+                    break
+                }
+                case "filter": {
+                    const points = map.queryRenderedFeatures(e.point, {
+                        layers: ["point-no-network", "point-excluded", "point-included"]
+                    })
+                    if (points.length > 0) {
+                        const point = points[0]
+                        console.log(point)
+                        selectFeature(fromJS(point.properties))
+                        // selectFeature(fromJS(point.properties).merge({ layerId: point.sourceLayer, type }))
                     }
                     break
                 }
@@ -339,6 +382,7 @@ class PriorityMap extends Component {
 }
 
 PriorityMap.propTypes = {
+    type: PropTypes.string.isRequired,
     scenario: PropTypes.string,
     bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
     selectedFeature: FeaturePropType,
@@ -362,6 +406,7 @@ const mapStateToProps = globalState => {
     const state = globalState.get("priority")
 
     return {
+        type: state.get("type"),
         bounds: state.get("bounds"),
         selectedFeature: state.get("selectedFeature"),
         scenario: state.get("scenario"),
@@ -377,6 +422,10 @@ export default connect(
 )(PriorityMap)
 
 // TODO: make this work based on featureIDs set via tippecanoe.  Requires new version of tippecanoe and int IDs
+
+// map.off("mousemove", `${layer}-fill`, this.handleFeatureHover)
+// map.off("mouseleave", `${layer}-fill`, this.handleFeatureUnhover)
+
 // handleFeatureHover = e => {
 //     const { map } = this
 
