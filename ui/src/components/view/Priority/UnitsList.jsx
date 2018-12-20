@@ -1,7 +1,11 @@
 import React from "react"
 import PropTypes from "prop-types"
 import ImmutablePropTypes from "react-immutable-proptypes"
-import SummaryUnitListItem from "./SummaryUnitListItem"
+import { connect } from "react-redux"
+
+import * as actions from "../../../actions/priority"
+
+import UnitListItem from "./UnitListItem"
 
 const getPluralLabel = layer => {
     switch (layer) {
@@ -50,7 +54,7 @@ const getSingularArticle = layer => {
     return "a"
 }
 
-const SummaryUnitChooser = ({ layer, summaryUnits, onDeselectUnit, onBack }) => {
+const UnitsList = ({ layer, summaryUnits, selectUnit, setLayer }) => {
     const pluralLabel = getPluralLabel(layer)
     const singularLabel = getSingularLabel(layer)
     const article = getSingularArticle(layer)
@@ -58,7 +62,7 @@ const SummaryUnitChooser = ({ layer, summaryUnits, onDeselectUnit, onBack }) => 
     return (
         <React.Fragment>
             <div id="SidebarHeader">
-                <button className="link link-back" type="button" onClick={() => onBack()}>
+                <button className="link link-back" type="button" onClick={() => setLayer(null)}>
                     <span className="fa fa-reply" />
                     &nbsp; choose a different type of area
                 </button>
@@ -79,7 +83,7 @@ const SummaryUnitChooser = ({ layer, summaryUnits, onDeselectUnit, onBack }) => 
                         <b>Selected {pluralLabel}:</b>
                         <ul id="SummaryUnitList">
                             {summaryUnits.toJS().map(unit => (
-                                <SummaryUnitListItem key={unit.id} unit={unit} onDelete={onDeselectUnit} />
+                                <UnitListItem key={unit.id} unit={unit} onDelete={() => selectUnit(unit)} />
                             ))}
                         </ul>
                         <p className="is-size-6 has-text-grey" style={{ padding: "2rem 0" }}>
@@ -93,11 +97,23 @@ const SummaryUnitChooser = ({ layer, summaryUnits, onDeselectUnit, onBack }) => 
     )
 }
 
-SummaryUnitChooser.propTypes = {
+UnitsList.propTypes = {
     layer: PropTypes.string.isRequired,
     summaryUnits: ImmutablePropTypes.set.isRequired,
-    onDeselectUnit: PropTypes.func.isRequired,
-    onBack: PropTypes.func.isRequired
+    setLayer: PropTypes.func.isRequired,
+    selectUnit: PropTypes.func.isRequired
 }
 
-export default SummaryUnitChooser
+const mapStateToProps = globalState => {
+    const state = globalState.get("priority")
+
+    return {
+        layer: state.get("layer"),
+        summaryUnits: state.get("summaryUnits")
+    }
+}
+
+export default connect(
+    mapStateToProps,
+    actions
+)(UnitsList)

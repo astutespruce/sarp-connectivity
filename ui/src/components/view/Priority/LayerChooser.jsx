@@ -1,8 +1,11 @@
 import React from "react"
 import PropTypes from "prop-types"
+import { connect } from "react-redux"
 
-const SummaryLayerChooser = ({ onSelect }) => {
-    const handleClick = id => () => onSelect(id)
+import * as actions from "../../../actions/priority"
+
+const LayerChooser = ({ setLayer }) => {
+    const handleClick = id => () => setLayer(id)
 
     return (
         <div id="SidebarContent">
@@ -69,9 +72,11 @@ const SummaryLayerChooser = ({ onSelect }) => {
     )
 }
 
-SummaryLayerChooser.propTypes = {
-    onSelect: PropTypes.func.isRequired,
-    onBack: PropTypes.func.isRequired
+LayerChooser.propTypes = {
+    setLayer: PropTypes.func.isRequired
 }
 
-export default SummaryLayerChooser
+export default connect(
+    null,
+    actions
+)(LayerChooser)

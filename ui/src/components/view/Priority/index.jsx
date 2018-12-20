@@ -12,9 +12,10 @@ import { FeaturePropType } from "../../../CustomPropTypes"
 
 // import FeatureDetails from "./FeatureDetails"
 import Barrier from "../../barriers/Barrier"
-import SummaryLayerChooser from "./SummaryLayerChooser"
-import SummaryUnitChooser from "./SummaryUnitChooser"
+import LayerChooser from "./LayerChooser"
+import UnitChooser from "./UnitsList"
 import FiltersList from "./FiltersList"
+import SubmitButton from "./SubmitButton"
 
 const Priority = ({
     type,
@@ -39,26 +40,16 @@ const Priority = ({
         switch (mode) {
             case "select": {
                 if (layer === null) {
-                    content = <SummaryLayerChooser onSelect={setLayer} />
+                    content = <LayerChooser />
                 } else {
-                    content = (
-                        <SummaryUnitChooser
-                            layer={layer}
-                            summaryUnits={summaryUnits}
-                            onDeselectUnit={id => selectUnit(id)}
-                            onBack={() => setLayer(null)}
-                        />
-                    )
+                    content = <UnitChooser />
                     submitButton = (
-                        <button
-                            className="button is-medium is-info"
-                            type="button"
-                            onClick={() => fetchQuery(layer, summaryUnits.toJS())}
+                        <SubmitButton
                             disabled={summaryUnits.size === 0}
-                        >
-                            <span className="fa fa-search-location" />
-                            &nbsp;Select {type} in this area
-                        </button>
+                            onClick={() => fetchQuery(layer, summaryUnits.toJS())}
+                            icon="search-location"
+                            label={`Select ${type} in this area`}
+                        />
                     )
                 }
                 break
@@ -67,15 +58,12 @@ const Priority = ({
                 content = <FiltersList />
 
                 submitButton = (
-                    <button
-                        className="button is-medium is-info"
-                        type="button"
-                        onClick={() => fetchRanks(layer, summaryUnits.toJS())}
+                    <SubmitButton
                         disabled={summaryUnits.size === 0}
-                    >
-                        <span className="fa fa-search-location" />
-                        &nbsp;Prioritize {type}
-                    </button>
+                        onClick={() => fetchRanks(layer, summaryUnits.toJS())}
+                        icon="search-location"
+                        label={`Prioritize {type}`}
+                    />
                 )
                 break
             }
