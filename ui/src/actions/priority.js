@@ -1,7 +1,7 @@
 // import axios from "axios"
 import { csv } from "d3-fetch"
 
-import { initCrossfilter, allFilters, filterConfig, existsFilter, getDimensionCounts } from "../filters"
+import { initCrossfilter } from "../filters"
 import { API_HOST } from "../config"
 
 export const PRIORITY_SET_SYSTEM = "PRIORITY_SET_SYSTEM"

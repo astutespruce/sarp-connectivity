@@ -20,14 +20,14 @@ import { allFilters, getDimensionCounts, getTotalFilteredCount } from "../filter
 allFilters.reduce((out, item) => out.set(item, Set()), Map())
 
 const initialState = Map({
-    mode: "select", // mode or step in selection process: "default" (initial), "select", "filter", "prioritize"
+    mode: "default", // mode or step in selection process: "default" (initial), "select", "filter", "prioritize"
     bounds: SARP_BOUNDS, // SARP bounds
     // bounds: List([-85.03324716546452, 32.63585392698306, -84.15434091546213, 32.96541554455193]),
     prevBounds: List(), // push previous bounds here
     scenario: "NCWC", // NC, WC, NCWC, or *_NC, *_WC, *_NCWC
     layer: null, // HUC*, ECO*, State
     summaryUnits: Set(), // set of specific IDs from the summary unit layer
-    type: "dams", // null, // dams or barriers; not set until chosen by user
+    type: null, // dams or barriers; not set until chosen by user
     data: null,
 
     // filter state
