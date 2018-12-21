@@ -1,10 +1,5 @@
 import { List } from "immutable"
 
-export const TILE_HOST =
-    process.env.NODE_ENV === "production"
-        ? `${window.location.protocol}//${window.location.host}`
-        : "http://localhost:8000"
-
 // Bounds around all selected HUC6s
 export const SARP_BOUNDS = List([-107.87000919, 17.62370026, -64.5126611, 44.26093852])
 

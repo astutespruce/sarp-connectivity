@@ -62,7 +62,7 @@ for unit in ("State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"):
     unit = "County" if unit == "COUNTYFIPS" else unit
 
     merged.to_csv(
-        "data/summary/{}.csv".format(unit),
+        "data/derived/{}.csv".format(unit),
         index_label="id",
         quoting=csv.QUOTE_NONNUMERIC,
     )

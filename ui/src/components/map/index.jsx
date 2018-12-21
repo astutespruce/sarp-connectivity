@@ -5,8 +5,12 @@ import geoViewport from "@mapbox/geo-viewport"
 import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
 
-// TODO: change to one for this account
-mapboxgl.accessToken = "pk.eyJ1IjoiYmN3YXJkIiwiYSI6InJ5NzUxQzAifQ.CVyzbyOpnStfYUQ_6r8AgQ"
+const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN || '' // REQUIRED: this must be present in .env file
+
+console.log('env', process.env)
+
+mapboxgl.accessToken = MAPBOX_TOKEN || "pk.eyJ1IjoiYmN3YXJkIiwiYSI6InJ5NzUxQzAifQ.CVyzbyOpnStfYUQ_6r8AgQ"
+
 
 class Map extends React.Component {
     constructor(props) {

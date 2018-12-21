@@ -16,7 +16,7 @@ const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
     if (mode !== "prioritize") {
         return (
             <React.Fragment>
-                <div id="SidebarHeader" className="has-tabs">
+                <div id="SidebarHeader">
                     <div className="flex-container flex-justify-center flex-align-start">
                         <div className="flex-grow">
                             <h5 className="title is-5">{name && name !== "null" ? name : "Unknown name"}</h5>

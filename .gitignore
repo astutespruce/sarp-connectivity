@@ -3,6 +3,7 @@
 
 *.pyc
 
+.env
 
 # dependencies
 */node_modules/*
@@ -27,5 +28,6 @@ yarn-error.log*
 /ui/build/*
 
 /data/src/*
+/data/derived/*
 /data/tiles/*
 /tiles/*

@@ -239,8 +239,8 @@ for group_field in (None, "State"):
 
 
 print("Writing to files")
-df.reset_index(drop=True).to_feather("data/src/small_barriers.feather")
-df.to_csv("data/src/small_barriers.csv", index=False)
+df.reset_index(drop=True).to_feather("data/derived/small_barriers.feather")
+df.to_csv("data/derived/small_barriers.csv", index=False)
 
 
 # # TODO:

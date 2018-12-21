@@ -8,15 +8,16 @@ name = "pypi"
 flask = "*"
 flask-sqlalchemy = "*"
 pandas = "*"
-black = "*"
-geopandas = "*"
-rtree = "*"
 feather-format = "*"
 flask-cors = "*"
+gunicorn = "*"
 
 [dev-packages]
 pylint = "*"
 "autopep8" = "*"
+black = "*"
+geopandas = "*"
+rtree = "*"
 
 [requires]
 python_version = "3.6"

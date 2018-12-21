@@ -1,0 +1,23 @@
+;NoNewPrivileges=true
+
+[Unit]
+Description=Flask SARP API server
+Documentation=https://github.com/consbio/sarp
+After=network-online.target
+Wants=network-online.target systemd-networkd-wait-online.service
+
+[Service]
+Restart=on-failure
+RestartSec=60
+
+; User and group the process will run as.
+User=app
+Group=www-data
+
+WorkingDirectory=/home/app/sarp
+EnvironmentFile=/home/app/sarp/api/.env
+ExecStart=/usr/local/bin/pipenv run gunicorn api.server:app -b 0.0.0.0:8001
+ExecReload=/bin/kill -USR1 $MAINPID
+
+[Install]
+WantedBy=multi-user.target

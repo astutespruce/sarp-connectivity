@@ -8,7 +8,7 @@ import * as actions from "../../../actions/priority"
 import Legend from "./Legend"
 import { FeaturePropType } from "../../../CustomPropTypes"
 
-import { TILE_HOST } from "../../map/config"
+import { TILE_HOST } from "../../../config"
 import {
     maskFill,
     maskOutline,

@@ -2,9 +2,7 @@
 import { csv } from "d3-fetch"
 
 import { initCrossfilter, allFilters, filterConfig, existsFilter, getDimensionCounts } from "../filters"
-
-// TODO: make env var
-const API_URL = "http://localhost:5000/api/v1"
+import { API_HOST } from "../config"
 
 export const PRIORITY_SET_SYSTEM = "PRIORITY_SET_SYSTEM"
 export const setSystem = system => ({
@@ -76,7 +74,7 @@ export function fetchRanks(layer, units, filters) {
         const ids = units.map(({ id }) => id)
         const filterValues = Object.entries(filters).filter(([, v]) => v.length > 0) // .map(([, v]) => v.join(','))
 
-        let url = `${API_URL}/dams/rank/${layer}?id=${ids.join(",")}`
+        let url = `${API_HOST}/api/v1/dams/rank/${layer}?id=${ids.join(",")}`
         if (filterValues) {
             url += filterValues.map(([k, v]) => `&${k}=${v.join(",")}`)
             // url += `&filter=${filterValues}`
@@ -132,7 +130,7 @@ export const fetchQueryError = error => ({
 
 export const fetchQuery = (layer, units) => dispatch => {
     const ids = units.map(({ id }) => id)
-    csv(`${API_URL}/dams/query/${layer}?id=${ids.join(",")}`, row => {
+    csv(`${API_HOST}/api/v1/dams/query/${layer}?id=${ids.join(",")}`, row => {
         // convert everything to integer
         Object.keys(row).forEach(f => {
             row[f] = parseInt(row[f], 10)

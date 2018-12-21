@@ -8,7 +8,8 @@ import { connect } from "react-redux"
 // import Legend from "./Legend"
 import { FeaturePropType } from "../../../CustomPropTypes"
 
-import { TILE_HOST, LAYER_CONFIG, TIER_COLORS, PRIORITY_TIER_COLORS, SCENARIOS, SYSTEMS } from "../../map/config"
+import { TILE_HOST } from '../../../config'
+import { LAYER_CONFIG, TIER_COLORS, PRIORITY_TIER_COLORS, SCENARIOS, SYSTEMS } from "../../map/config"
 import { default as MapBase } from "../../map/index"
 
 // Construct colors for mapbox GL layers in advance

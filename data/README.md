@@ -50,7 +50,7 @@ Downloaded from US Census TIGER 2018: https://www.census.gov/cgi-bin/geo/shapefi
 
 ## Vector Tiles
 
-Assumes a working directory of `data/src`
+Assumes a working directory of `data/derived`
 
 Convert from shapefile to GeoJSON first, then cut tiles. Note the variation in max zoom; this was chosen by hand.
 
@@ -112,13 +112,13 @@ Assumes a working directory of `data/tiles`.
 Summaries are created using summarize_by_unit.py
 
 ```
-tile-join -f -o states_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/State.csv states.mbtiles
-tile-join -f -o counties_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/County.csv counties.mbtiles
-tile-join -f -o HUC6_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc6.csv HUC6.mbtiles
-tile-join -f -o HUC8_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc8.csv HUC8.mbtiles
-tile-join -f -o HUC12_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/huc12.csv HUC12.mbtiles
-tile-join -f -o ECO3_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ECO3.csv ECO3.mbtiles
-tile-join -f -o ECO4_summary.mbtiles -c /Users/bcward/projects/sarp/data/summary/ECO4.csv ECO4.mbtiles
+tile-join -f -o states_summary.mbtiles -c /Users/bcward/projects/sarp/data/derived/State.csv states.mbtiles
+tile-join -f -o counties_summary.mbtiles -c /Users/bcward/projects/sarp/data/derived/County.csv counties.mbtiles
+tile-join -f -o HUC6_summary.mbtiles -c /Users/bcward/projects/sarp/data/derived/huc6.csv HUC6.mbtiles
+tile-join -f -o HUC8_summary.mbtiles -c /Users/bcward/projects/sarp/data/derived/huc8.csv HUC8.mbtiles
+tile-join -f -o HUC12_summary.mbtiles -c /Users/bcward/projects/sarp/data/derived/huc12.csv HUC12.mbtiles
+tile-join -f -o ECO3_summary.mbtiles -c /Users/bcward/projects/sarp/data/derived/ECO3.csv ECO3.mbtiles
+tile-join -f -o ECO4_summary.mbtiles -c /Users/bcward/projects/sarp/data/derived/ECO4.csv ECO4.mbtiles
 ```
 
 Merge all tilesets together

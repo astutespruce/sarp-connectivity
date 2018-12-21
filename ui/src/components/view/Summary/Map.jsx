@@ -8,7 +8,8 @@ import Legend from "../../map/Legend"
 import { hexToRGB } from "../../../utils/colors"
 import { FeaturePropType } from "../../../CustomPropTypes"
 
-import { TILE_HOST, COLORS, LAYER_CONFIG, SYSTEMS } from "../../map/config"
+import { TILE_HOST } from '../../../config'
+import { COLORS, LAYER_CONFIG, SYSTEMS } from "../../map/config"
 import Map from "../../map/index"
 
 class SummaryMap extends Component {

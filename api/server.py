@@ -3,7 +3,6 @@ import tempfile
 import time
 from datetime import date
 import pandas as pd
-import geopandas as gp
 from feather import read_dataframe
 from flask import Flask, abort, request, send_file, make_response
 from flask_cors import CORS
@@ -30,7 +29,7 @@ FILTER_FIELDS = [
 
 
 # Read source data into memory
-dams = read_dataframe("data/src/dams.feather").set_index(["id"])
+dams = read_dataframe("data/derived/dams.feather").set_index(["id"])
 
 dams_with_network = dams.loc[dams.HasNetwork]
 
@@ -141,12 +140,7 @@ def query(layer="HUC8"):
     log.info("selected {} dams".format(nrows))
 
     resp = make_response(
-        df.to_csv(
-            index_label="id",
-            header=[
-                c.lower() for c in df.columns
-            ],
-        )
+        df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
     )
 
     resp.headers["Content-Type"] = "text/csv"

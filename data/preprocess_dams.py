@@ -326,10 +326,10 @@ for group_field in (None, "State"):
 print("Writing to output files")
 
 # For use in API
-df.reset_index(drop=True).to_feather("data/src/dams.feather")
+df.reset_index(drop=True).to_feather("data/derived/dams.feather")
 
 # For QA
-df.to_csv("data/src/dams.csv", index_label="id")
+df.to_csv("data/derived/dams.csv", index_label="id")
 
 
 # Split datasets based on those that have networks
@@ -378,7 +378,7 @@ df.rename(
 )
 
 
-df.to_csv("data/src/dams_mbtiles.csv", index_label="id")
+df.to_csv("data/derived/dams_mbtiles.csv", index_label="id")
 
 
 # no_network = df.loc[~df.HasNetwork][
