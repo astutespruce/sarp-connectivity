@@ -5,7 +5,7 @@ import { Set } from "immutable"
 import { connect } from "react-redux"
 
 import * as actions from "../../../actions/priority"
-import { allFilters } from "../../../filters"
+import { allFilters, filterConfig } from "../../../filters"
 import { formatNumber } from "../../../utils/format"
 
 import StartOverButton from "./StartOverButton"
@@ -30,6 +30,8 @@ function FiltersList({
         resetFilters()
     }
 
+    const hasFilters = Object.values(filters.toJS()).reduce((out, v) => out + v.length, 0) > 0
+
     return (
         <React.Fragment>
             <div id="SidebarHeader">
@@ -40,7 +42,7 @@ function FiltersList({
                 <h4 className="title is-4 no-margin">Filter {type}</h4>
                 <div className="has-text-gray flex-container flex-justify-space-between">
                     <div>{formatNumber(totalCount, 0)} selected</div>
-                    {filters.size > 0 ? (
+                    {hasFilters ? (
                         <button
                             className="link"
                             type="button"
@@ -68,6 +70,7 @@ function FiltersList({
                             counts={counts.get(f)}
                             filterValues={filters.get(f, Set())}
                             closed={closedFilters.get(f, false)}
+                            help={filterConfig[f].help}
                             onFilterChange={v => setFilter(f, v)}
                             toggleFilterClosed={v => toggleFilterClosed(f, v)}
                         />

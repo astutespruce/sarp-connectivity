@@ -75,7 +75,7 @@ const Details = ({
                     </li>
                 </React.Fragment>
             ) : (
-                <li className="has-text-grey">No network information available for this barrier.</li>
+                <li className="has-text-grey">This barrier is off-network and has no functional network information.</li>
             )}
         </ul>
 

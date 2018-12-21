@@ -7,7 +7,7 @@ import { formatNumber } from "../../utils/format"
 import FilterBar from "./FilterBar"
 import "./FilterBars.css"
 
-const FilterBars = ({ title, bars, filterValues, closed, onFilterChange, toggleFilterClosed }) => {
+const FilterBars = ({ title, bars, filterValues, closed, help, onFilterChange, toggleFilterClosed }) => {
     const range = Math.max(...bars.map(b => b.value))
 
     const handleClick = key => () => {
@@ -49,6 +49,8 @@ const FilterBars = ({ title, bars, filterValues, closed, onFilterChange, toggleF
                     onClick={handleClick(key)}
                 />
             ))}
+
+            {help ? <p className="text-help is-size-7">{help}</p> : null}
         </div>
     )
 }
@@ -64,9 +66,14 @@ FilterBars.propTypes = {
     ).isRequired,
     filterValues: ImmutablePropTypes.setOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])).isRequired,
     closed: PropTypes.bool.isRequired,
+    help: PropTypes.string,
 
     onFilterChange: PropTypes.func.isRequired,
     toggleFilterClosed: PropTypes.func.isRequired
+}
+
+FilterBars.defaultProps = {
+    help: null
 }
 
 export default FilterBars

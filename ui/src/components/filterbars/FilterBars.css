@@ -91,13 +91,19 @@
     display: block;
 }
 
-.filterbars.is-closed .filterbar {
+.filterbars.is-closed .filterbar,
+.filterbars.is-closed .text-help {
     height: 0;
     margin: 0;
+    overflow: hidden;
 }
 .filterbars.is-closed {
     padding-bottom: 0.5rem;
 }
 .filterbars.is-closed + .filterbars {
     border-top-color: #eee;
+}
+
+.filterbars .text-help {
+    padding: 1rem 0 0 0.25rem;
 }

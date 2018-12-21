@@ -5,10 +5,10 @@ import ImmutablePropTypes from "react-immutable-proptypes"
 import { connect } from "react-redux"
 
 import * as actions from "../../../actions/priority"
-// import Legend from "./Legend"
+import Legend from "./Legend"
 import { FeaturePropType } from "../../../CustomPropTypes"
 
-import { TILE_HOST, PRIORITY_TIER_COLORS, SYSTEMS } from "../../map/config"
+import { TILE_HOST } from "../../map/config"
 import {
     maskFill,
     maskOutline,
@@ -321,12 +321,52 @@ class PriorityMap extends Component {
         })
     }
 
+    renderLegend() {
+        const { zoom } = this.state
+        const { mode, type } = this.props
+
+        if (mode === "filter") {
+            // TODO: based on zoom
+            if (zoom <= 5) {
+                return <Legend title={`Zoom in further to see selected ${type}`} />
+            }
+
+            const entries = [
+                {
+                    label: `Selected ${type}`,
+                    color: includedPoint.paint["circle-color"],
+                    size: 16
+                }
+            ]
+            if (zoom >= 7) {
+                entries.push({
+                    label: `Not selected ${type}`,
+                    color: excludedPoint.paint["circle-color"],
+                    borderColor: excludedPoint.paint["circle-stroke-color"],
+                    size: 12
+                })
+            }
+            if (zoom >= 10) {
+                entries.push({
+                    label: `Off-network ${type}`,
+                    color: backgroundPoint.paint["circle-color"],
+                    size: 10
+                })
+            }
+
+            return <Legend entries={entries} />
+        }
+
+        return null
+    }
+
     render() {
         const { scenario, setScenario, bounds } = this.props
 
         return (
             <React.Fragment>
                 <Map baseStyle="streets-v9" bounds={bounds} onCreateMap={this.handleCreateMap} />
+                {this.renderLegend()}
             </React.Fragment>
         )
     }

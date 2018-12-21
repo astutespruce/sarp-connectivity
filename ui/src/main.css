@@ -492,7 +492,7 @@ button.link.link-back {
 
 #Legend {
     padding: 10px;
-    max-width: 160px;
+    max-width: 200px;
     background: white;
     position: absolute;
     bottom: 24px;
@@ -512,6 +512,10 @@ button.link.link-back {
     max-width: 140px;
 }
 
+#Legend .legend-row + .legend-row {
+    margin-top: 0.5rem;
+}
+
 .legend-patch {
     width: 20px;
     height: 1em;
@@ -525,6 +529,10 @@ button.link.link-back {
 }
 .legend-patch:last-child {
     border-radius: 0 0 3px 3px;
+}
+
+.legend-patch-point {
+    border: 1px solid transparent;
 }
 
 .legend-label {

@@ -61,6 +61,8 @@ const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery
     const singularLabel = getSingularLabel(layer)
     const article = getSingularArticle(layer)
 
+    const off_network_count = 0 // TODO
+
     return (
         <React.Fragment>
             <div id="SidebarHeader">
@@ -91,6 +93,15 @@ const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery
                         <p className="is-size-6 has-text-grey" style={{ padding: "2rem 0" }}>
                             Select additional {pluralLabel} by clicking on them on the map. To unselect {article}{" "}
                             {singularLabel}, use the trash button above or click on it on the map.
+                            {off_network_count > 0 ? (
+                                <React.Fragment>
+                                    <br />
+                                    <br />
+                                    Note: only {type} that have been snapped to the aquatic network are available for
+                                    prioritization. There are {off_network_count} off-network {type} in your selected
+                                    area.
+                                </React.Fragment>
+                            ) : null}
                         </p>
                     </React.Fragment>
                 )}

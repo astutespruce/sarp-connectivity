@@ -3,7 +3,7 @@ import PropTypes from "prop-types"
 
 const Legend = ({ colors, labels, title, footnote }) => (
     <div id="Legend">
-        <h5 className="is-size-6">{title}</h5>
+        <h5 className="title is-6">{title}</h5>
         <div className="flex-container">
             <div>
                 {colors.map(backgroundColor => (

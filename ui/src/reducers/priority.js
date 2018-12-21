@@ -25,8 +25,8 @@ const initialState = Map({
     // bounds: List([-85.03324716546452, 32.63585392698306, -84.15434091546213, 32.96541554455193]),
     prevBounds: List(), // push previous bounds here
     scenario: "NCWC", // NC, WC, NCWC, or *_NC, *_WC, *_NCWC
-    layer: "State", // HUC*, ECO*, State
-    summaryUnits: Set([{ id: "Alabama" }]), // set of specific IDs from the summary unit layer
+    layer: null, // HUC*, ECO*, State
+    summaryUnits: Set(), // set of specific IDs from the summary unit layer
     type: "dams", // null, // dams or barriers; not set until chosen by user
     data: null,
 

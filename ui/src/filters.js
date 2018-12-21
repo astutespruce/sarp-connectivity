@@ -1,20 +1,5 @@
 import { Map } from "immutable"
 import crossfilter from "crossfilter2"
-// import { objArrayToObj } from "./utils"
-// import {
-//     stateNames,
-//     sizeClassLabels,
-//     spps,
-//     nfhpLabels,
-//     estuaryTypes,
-//     sizeClasses,
-//     nfhpCodes,
-//     bioticTypes,
-//     bioticInfo,
-//     sppCountClasses,
-//     sppCountClassLabels
-// } from "./constants"
-// import { splitWords } from "./utils"
 
 import { HEIGHT, FEASIBILITY, RARESPP, STREAMORDER, GAINMILES } from "./constants"
 
@@ -35,12 +20,16 @@ export const filterConfig = {
     feasibility: {
         title: "Feasibility",
         keys: getIntKeys(FEASIBILITY),
-        labelFunction: d => FEASIBILITY[d]
+        labelFunction: d => FEASIBILITY[d],
+        help:
+            "Note: feasibility is based on further reconnaissance to evaluate individual barriers. Values are provided only for those that have been evaluated. There may be more feasible or infeasible dams than are indicated above."
     },
     heightclass: {
         title: "Dam Height",
         keys: getIntKeys(HEIGHT),
-        labelFunction: d => HEIGHT[d]
+        labelFunction: d => HEIGHT[d],
+        help:
+            "Note: height information is only available for a small number of dams.  Not all data sources recorded this information."
     },
     sizeclasses: {
         title: "Upstream Size Classes",
@@ -50,7 +39,9 @@ export const filterConfig = {
     raresppclass: {
         title: "Number of Rare Species",
         keys: getIntKeys(RARESPP),
-        labelFunction: d => RARESPP[d]
+        labelFunction: d => RARESPP[d],
+        help:
+            "Note: Rare species information is based on occurrences of a federal threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and not comprehensive across the region; some states are missing this information altogether."
     },
     streamorderclass: {
         title: "Stream Order (NHD modified Strahler)",
