@@ -155,17 +155,8 @@ export const setFilter = (filter, filterValues) => ({
 // TODO: not hooked up yet
 export const RESET_FILTERS = "RESET_FILTERS"
 export const resetFilters = () => {
-    const filters = {}
-    allFilters.forEach(d => {
-        window.dims[d].filterAll()
-        filters[d] = null
-    })
-
     return {
-        type: RESET_FILTERS,
-        payload: {
-            filters
-        }
+        type: RESET_FILTERS
     }
 }
 

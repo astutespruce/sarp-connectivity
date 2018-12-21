@@ -115,7 +115,7 @@ export const backgroundPoint = {
     type: "circle",
     minzoom: 10,
     maxzoom: 24,
-    filter: ["==", "HasNetwork", false],
+    filter: ["==", "hasnetwork", false],
     layout: {
         visibility: "none"
     },
@@ -136,7 +136,7 @@ export const excludedPoint = {
     type: "circle",
     minzoom: 5,
     maxzoom: 24,
-    // filter: compound filter, must include ["==", "HasNetwork", true]
+    // filter: compound filter, must include ["==", "hasnetwork", true]
     // layout: {
     //     visibility: "none"
     // },
@@ -157,7 +157,7 @@ export const includedPoint = {
     type: "circle",
     minzoom: 5,
     maxzoom: 24,
-    // filter: compound filter, must include ["==", "HasNetwork", true]
+    // filter: compound filter, must include ["==", "hasnetwork", true]
     // layout: {
     //     visibility: "none"
     // },

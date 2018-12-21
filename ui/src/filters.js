@@ -101,4 +101,10 @@ export const getDimensionCounts = () => {
     return dimCounts
 }
 
+export const getTotalFilteredCount = () =>
+    window.cf
+        .groupAll()
+        .reduceCount()
+        .value()
+
 window.getDimensionCounts = getDimensionCounts

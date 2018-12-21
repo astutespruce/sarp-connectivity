@@ -8,8 +8,8 @@ const FilterBar = ({ label, value, valueLabel, range, filtered, onClick }) => {
     return (
         <div className={`filterbar${filtered ? " is-filtered" : ""}`} onClick={onClick}>
             <div className="filterbar-labels">
-                <div className="filterbar-label is-size-7">{label}</div>
-                <div className="filterbar-label-value">{valueLabel}</div>
+                <div className="filterbar-label">{label}</div>
+                <div className="filterbar-label-value is-size-7">{valueLabel}</div>
             </div>
             <div className="filterbar-bars">
                 {position > 0 && <div className="bar" style={{ flexGrow: position }} />}

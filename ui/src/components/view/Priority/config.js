@@ -5,12 +5,12 @@ export const LAYER_CONFIG = {
         maxzoom: 24
     },
     HUC8: {
-        minzoom: 7,
+        minzoom: 0,
         maxzoom: 24,
         parent: "HUC6"
     },
     HUC12: {
-        minzoom: 8.5,
+        minzoom: 0,
         maxzoom: 24,
         parent: "HUC8"
     },
@@ -19,7 +19,7 @@ export const LAYER_CONFIG = {
         maxzoom: 24
     },
     County: {
-        minzoom: 3,
+        minzoom: 0,
         maxzoom: 24
     },
     ECO3: {
@@ -27,7 +27,7 @@ export const LAYER_CONFIG = {
         maxzoom: 24
     },
     ECO4: {
-        minzoom: 6,
+        minzoom: 0,
         maxzoom: 24
     }
 }

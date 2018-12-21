@@ -341,10 +341,11 @@ df["longitude"] = df.lon
 
 df = df.drop(
     columns=[
+        "Sinuosity",
+        "Source",
         "NHDplusVersion",
         "COUNTYFIPS",
         "STATEFIPS",
-        # "HasNetwork",
         "HUC6",
         "HUC8",
         "HUC12",
@@ -354,7 +355,30 @@ df = df.drop(
 )
 
 # convert HasNetwork so that it encodes into tiles properly
-df.HasNetwork = df.HasNetwork.astype('uint8')
+df.HasNetwork = df.HasNetwork.astype("uint8")
+
+
+# lowercase all fields except those for unit IDs
+
+df.rename(
+    columns={
+        k: k.lower()
+        for k in df.columns
+        if k
+        not in (
+            "State",
+            "COUNTYFIPS",
+            "STATEFIPS",
+            "HUC6",
+            "HUC8",
+            "HUC12",
+            "ECO3",
+            "ECO4",
+        )
+    },
+    inplace=True,
+)
+
 
 df.to_csv("data/src/dams_mbtiles.csv", index_label="id")
 

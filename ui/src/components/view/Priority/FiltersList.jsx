@@ -6,11 +6,25 @@ import { connect } from "react-redux"
 
 import * as actions from "../../../actions/priority"
 import { allFilters } from "../../../filters"
+import { formatNumber } from "../../../utils/format"
 
 import Filter from "./Filter"
 
-function FiltersList({ type, counts, filters, setFilter, closedFilters, toggleFilterClosed, setMode }) {
-    console.log("counts", counts.toJS())
+function FiltersList({
+    type,
+    counts,
+    totalCount,
+    filters,
+    setFilter,
+    resetFilters,
+    closedFilters,
+    toggleFilterClosed,
+    setMode
+}) {
+    const handleResetFilters = () => {
+        resetFilters()
+    }
+
     return (
         <React.Fragment>
             <div id="SidebarHeader">
@@ -18,20 +32,42 @@ function FiltersList({ type, counts, filters, setFilter, closedFilters, toggleFi
                     <span className="fa fa-reply" />
                     &nbsp; modify area of interest
                 </button>
-                <h4 className="title is-4">Filter {type}</h4>
+                <h4 className="title is-4 no-margin">Filter {type}</h4>
+                <div className="has-text-gray flex-container flex-justify-space-between">
+                    <div>{formatNumber(totalCount, 0)} selected</div>
+                    {filters.size > 0 ? (
+                        <button
+                            className="link"
+                            type="button"
+                            onClick={handleResetFilters}
+                            style={{ color: "#ee7d14" }}
+                        >
+                            <i className="fas fa-times-circle" />
+                            &nbsp; reset filters
+                        </button>
+                    ) : null}
+                </div>
             </div>
             <div id="SidebarContent">
-                {allFilters.map(f => (
-                    <Filter
-                        key={f}
-                        filter={f}
-                        counts={counts.get(f)}
-                        filterValues={filters.get(f, Set())}
-                        closed={closedFilters.get(f, false)}
-                        onFilterChange={v => setFilter(f, v)}
-                        toggleFilterClosed={v => toggleFilterClosed(f, v)}
-                    />
-                ))}
+                <p className="text-help">
+                    Use the filters below to select the {type} that meet your needs. Click on a bar to select {type}
+                    with that value. Click on the bar again to unselect. You can combine multiple values across multiple
+                    filters to select the {type} that match ANY of those values within a filter and also have the values
+                    selected across ALL filters.
+                </p>
+                <div style={{ marginTop: "1rem" }}>
+                    {allFilters.map(f => (
+                        <Filter
+                            key={f}
+                            filter={f}
+                            counts={counts.get(f)}
+                            filterValues={filters.get(f, Set())}
+                            closed={closedFilters.get(f, false)}
+                            onFilterChange={v => setFilter(f, v)}
+                            toggleFilterClosed={v => toggleFilterClosed(f, v)}
+                        />
+                    ))}
+                </div>
             </div>
         </React.Fragment>
     )
@@ -40,12 +76,14 @@ function FiltersList({ type, counts, filters, setFilter, closedFilters, toggleFi
 FiltersList.propTypes = {
     type: PropTypes.string.isRequired,
     counts: ImmutablePropTypes.mapOf(ImmutablePropTypes.mapOf(PropTypes.number)).isRequired,
+    totalCount: PropTypes.number.isRequired,
     filters: ImmutablePropTypes.mapOf(
         ImmutablePropTypes.setOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number]))
     ).isRequired,
     closedFilters: ImmutablePropTypes.mapOf(PropTypes.bool).isRequired,
 
     setFilter: PropTypes.func.isRequired,
+    resetFilters: PropTypes.func.isRequired,
     toggleFilterClosed: PropTypes.func.isRequired,
     setMode: PropTypes.func.isRequired
 }
@@ -55,6 +93,7 @@ const mapStateToProps = globalState => {
     return {
         type: state.get("type"),
         counts: state.get("dimensionCounts"),
+        totalCount: state.get("totalCount"),
         filters: state.get("filters"),
         closedFilters: state.get("closedFilters")
     }

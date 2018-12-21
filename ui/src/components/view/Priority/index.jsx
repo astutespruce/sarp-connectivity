@@ -23,6 +23,7 @@ const Priority = ({
     selectedFeature,
     layer,
     summaryUnits,
+    totalCount,
     setLayer,
     selectFeature,
     selectUnit,
@@ -59,7 +60,7 @@ const Priority = ({
 
                 submitButton = (
                     <SubmitButton
-                        disabled={summaryUnits.size === 0}
+                        disabled={totalCount === 0}
                         onClick={() => fetchRanks(layer, summaryUnits.toJS())}
                         icon="search-location"
                         label={`Prioritize ${type}`}
@@ -107,6 +108,7 @@ const Priority = ({
                                         <i className="fa fa-trash" />
                                     </button>
                                 </Link>
+
                                 {submitButton}
                             </div>
                         ) : null}
@@ -126,6 +128,7 @@ Priority.propTypes = {
     selectedFeature: FeaturePropType,
     layer: PropTypes.string,
     summaryUnits: ImmutablePropTypes.set.isRequired,
+    totalCount: PropTypes.number.isRequired,
 
     setType: PropTypes.func.isRequired,
     setLayer: PropTypes.func.isRequired,
@@ -150,6 +153,7 @@ const mapStateToProps = globalState => {
         mode: state.get("mode"),
         system: state.get("system"),
         layer: state.get("layer"),
+        totalCount: state.get("totalCount"),
         selectedFeature: state.get("selectedFeature"),
         summaryUnits: state.get("summaryUnits")
     }

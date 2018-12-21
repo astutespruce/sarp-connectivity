@@ -10,16 +10,14 @@ import {
     PRIORITY_SET_TYPE,
     SET_FILTER,
     FETCH_QUERY_SUCCESS,
-    TOGGLE_FILTER_CLOSED
+    TOGGLE_FILTER_CLOSED,
+    RESET_FILTERS
 } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
-import { allFilters, getDimensionCounts } from "../filters"
+import { allFilters, getDimensionCounts, getTotalFilteredCount } from "../filters"
 
-const closedFilters = {}
-allFilters.forEach((f, i) => {
-    closedFilters[f] = i >= 2
-})
+allFilters.reduce((out, item) => out.set(item, Set()), Map())
 
 const initialState = Map({
     mode: "select", // mode or step in selection process: "default" (initial), "select", "filter", "prioritize"
@@ -27,16 +25,17 @@ const initialState = Map({
     // bounds: List([-85.03324716546452, 32.63585392698306, -84.15434091546213, 32.96541554455193]),
     prevBounds: List(), // push previous bounds here
     scenario: "NCWC", // NC, WC, NCWC, or *_NC, *_WC, *_NCWC
-    layer: null, // HUC*, ECO*, State
-    summaryUnits: Set(), // set of specific IDs from the summary unit layer
+    layer: "State", // HUC*, ECO*, State
+    summaryUnits: Set([{ id: "Alabama" }]), // set of specific IDs from the summary unit layer
     type: "dams", // null, // dams or barriers; not set until chosen by user
     data: null,
 
     // filter state
     filtersLoaded: false,
-    filters: Map(), // Map of sets
+    filters: allFilters.reduce((out, item) => out.set(item, Set()), Map()),
     dimensionCounts: Map(), // Map of Map of ints
-    closedFilters: Map(closedFilters)
+    totalCount: 0,
+    closedFilters: allFilters.reduce((out, item, i) => out.set(item, i > 0), Map())
 })
 
 export const reducer = (state = initialState, { type, payload = {} }) => {
@@ -81,7 +80,6 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
         }
         case SET_FILTER: {
             const { filter, filterValues } = payload
-            const filters = state.get("filters")
 
             const dimension = window.dims[filter]
             if (filterValues.size > 0) {
@@ -92,21 +90,29 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
 
             return state.merge({
                 dimensionCounts: fromJS(getDimensionCounts()),
-                filters: filters.set(filter, filterValues)
+                totalCount: getTotalFilteredCount(),
+                filters: state.get("filters").set(filter, filterValues)
             })
+        }
+        case RESET_FILTERS: {
+            allFilters.forEach(d => {
+                window.dims[d].filterAll()
+            })
+            return state.set("filters", Map())
         }
         case FETCH_QUERY_SUCCESS: {
             return state.merge({
                 filtersLoaded: true,
-                filters: Map(),
+                filters: allFilters.reduce((out, item) => out.set(item, Set()), Map()),
                 dimensionCounts: fromJS(getDimensionCounts()),
+                totalCount: getTotalFilteredCount(),
                 mode: "filter"
             })
         }
         case TOGGLE_FILTER_CLOSED: {
             const { filter, isClosed } = payload
-            const closedFilters = state.get("closedFilters")
-            return state.set("closedFilters", closedFilters.set(filter, isClosed))
+            const closed = state.get("closedFilters")
+            return state.set("closedFilters", closed.set(filter, isClosed))
         }
         default: {
             return state

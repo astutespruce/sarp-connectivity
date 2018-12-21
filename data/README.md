@@ -57,12 +57,13 @@ Convert from shapefile to GeoJSON first, then cut tiles. Note the variation in m
 #### Dams
 
 ```
-tippecanoe -f -Z10 -z12 -pg -pe --cluster-densest-as-needed -o ../tiles/dams_no_network.mbtiles -l no_network -T Name:string -T River:string dams_no_network.csv
-
-tippecanoe -f -Z5 -z12 -B6 -pg -pe --cluster-densest-as-needed -o ../tiles/dams_with_network.mbtiles -l dams -T Name:string -T River:string dams_with_network.csv
-
-tile-join -f -pg --no-tile-size-limit -o ../../tiles/sarp_dams.mbtiles dams_no_network.mbtiles dams_with_network.mbtiles
+tippecanoe -f -Z5 -z12 -B6 -pg -pe -ai --drop-densest-as-needed -o ../../tiles/sarp_dams.mbtiles -l dams -T name:string -T river:string -T hasnetwork:bool dams_mbtiles.csv
 ```
+
+<!--
+tippecanoe -f -Z10 -z12 -pg -pe --cluster-densest-as-needed -o ../tiles/dams_no_network.mbtiles -l no_network -T Name:string -T River:string dams_no_network.csv
+tippecanoe -f -Z5 -z12 -B6 -pg -pe --cluster-densest-as-needed -o ../tiles/dams_with_network.mbtiles -l dams -T Name:string -T River:string dams_with_network.csv
+tile-join -f -pg --no-tile-size-limit -o ../../tiles/sarp_dams.mbtiles dams_no_network.mbtiles dams_with_network.mbtiles -->
 
 <!-- tippecanoe -f -Z4 -z12 -B4 -pg --cluster-densest-as-needed -o ../tiles/dams_topn.mbtiles -l dams_topn -T Name:string -T River:string dams_topn.csv -->
 

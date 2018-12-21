@@ -87,21 +87,21 @@ export const FEASIBILITY = {
 
 export const HEIGHT = {
     0: "Unknown",
-    1: "< 5",
-    2: "5 - 10",
-    3: "10 - 25",
-    4: "25 - 50",
-    5: "50 - 100",
-    6: ">= 100"
+    1: "< 5 feet",
+    2: "5 - 10 feet",
+    3: "10 - 25 feet",
+    4: "25 - 50 feet",
+    5: "50 - 100 feet",
+    6: ">= 100 feet"
 }
 
 export const GAINMILES = {
-    0: "< 1",
-    1: "1 - 5",
-    2: "5 - 10",
-    3: "10 - 25",
-    4: "25 - 100",
-    5: ">= 100"
+    0: "< 1 miles",
+    1: "1 - 5 miles",
+    2: "5 - 10 miles",
+    3: "10 - 25 miles",
+    4: "25 - 100 miles",
+    5: ">= 100 miles"
 }
 
 export const RARESPP = { 0: "0", 1: "1", 2: "1 - 4", 3: "5 - 9", 4: ">= 10" }
