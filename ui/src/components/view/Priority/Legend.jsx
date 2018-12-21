@@ -8,7 +8,13 @@ const Legend = ({ title, entries }) => (
             <div key={label} className="legend-row flex-container flex-align-center">
                 <div
                     className="legend-patch-point"
-                    style={{ backgroundColor: color, width: size, height: size, borderRadius: size, borderColor: borderColor || color }}
+                    style={{
+                        backgroundColor: color,
+                        width: size,
+                        height: size,
+                        borderRadius: size,
+                        borderColor: borderColor || color
+                    }}
                 />
                 <div className="legend-label">{label}</div>
             </div>
@@ -23,7 +29,7 @@ Legend.propTypes = {
             label: PropTypes.string.isRequired,
             color: PropTypes.string.isRequired,
             size: PropTypes.number.isRequired,
-            borderColor: PropTypes.string.isRequired
+            borderColor: PropTypes.string
         })
     )
 }

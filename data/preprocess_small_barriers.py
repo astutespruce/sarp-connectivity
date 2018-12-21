@@ -229,10 +229,13 @@ for group_field in (None, "State"):
     # Fill n/a with -1 for tiers and cast columns to integers
     df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
     for col in tiers_df.columns:
-        if col.endswith("_tier") or col.endswith("_p") or col.endswith("_top"):
+        if col.endswith("_tier") or col.endswith("_p"):
             df[col] = df[col].astype("int8")
+        elif col.endswith("_top"):
+            df[col] = df[col].astype("int16")
         elif col.endswith("_score"):
-            df[col] = df[col].round(3).astype("float32")
+            # Convert to a 100% scale
+            df[col] = (df[col] * 100).round().astype("uint16")
 
 
 print("Writing to files")

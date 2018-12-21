@@ -15,10 +15,13 @@ sb = read_dataframe("data/src/small_barriers.feather")
 
 # Set NA
 dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
+dams["OffNetwork"] = ~dams.HasNetwork
+
 
 stats = defaultdict(defaultdict)
 stats["southeast"] = {
     "dams": len(dams),
+    "off_network_dams": len(dams.loc[dams.OffNetwork]),
     "miles": round(dams["GainMiles"].mean().item(), 3),
     "barriers": len(sb),
 }
@@ -28,11 +31,17 @@ for unit in ("State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"):
     print("processing {}".format(unit))
 
     dam_stats = (
-        dams[[unit, "id", "GainMiles"]]
+        dams[[unit, "id", "OffNetwork", "GainMiles"]]
         .groupby(unit)
-        .agg({"id": "count", "GainMiles": "mean"})
+        .agg({"id": "count", "OffNetwork": "sum", "GainMiles": "mean"})
         .reset_index()
-        .rename(columns={"id": "dams", "GainMiles": "miles"})
+        .rename(
+            columns={
+                "id": "dams",
+                "OffNetwork": "off_network_dams",
+                "GainMiles": "miles",
+            }
+        )
         .set_index(unit)
     )
 
@@ -47,6 +56,7 @@ for unit in ("State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"):
     merged = dam_stats.join(sb_stats, how="outer").fillna(0)
     merged.dams = merged.dams.astype("uint32")
     merged.barriers = merged.barriers.astype("uint32")
+    merged.off_network_dams = merged.off_network_dams.astype("uint32")
     merged.miles = merged.miles.round(3)
 
     unit = "County" if unit == "COUNTYFIPS" else unit

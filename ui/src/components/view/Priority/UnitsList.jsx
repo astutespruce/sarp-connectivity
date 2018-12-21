@@ -5,6 +5,8 @@ import { connect } from "react-redux"
 
 import * as actions from "../../../actions/priority"
 
+import { formatNumber } from "../../../utils/format"
+
 import StartOverButton from "./StartOverButton"
 import SubmitButton from "./SubmitButton"
 import UnitListItem from "./UnitListItem"
@@ -61,7 +63,10 @@ const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery
     const singularLabel = getSingularLabel(layer)
     const article = getSingularArticle(layer)
 
-    const off_network_count = 0 // TODO
+    let offNetworkCount = 0
+    if (type === "dams" && summaryUnits.size > 0) {
+        offNetworkCount = summaryUnits.toJS().reduce((out, v) => out + v.off_network_dams, 0)
+    }
 
     return (
         <React.Fragment>
@@ -87,19 +92,19 @@ const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery
                         <b>Selected {pluralLabel}:</b>
                         <ul id="SummaryUnitList">
                             {summaryUnits.toJS().map(unit => (
-                                <UnitListItem key={unit.id} unit={unit} onDelete={() => selectUnit(unit)} />
+                                <UnitListItem key={unit.id} unit={unit} type={type} onDelete={() => selectUnit(unit)} />
                             ))}
                         </ul>
                         <p className="is-size-6 has-text-grey" style={{ padding: "2rem 0" }}>
                             Select additional {pluralLabel} by clicking on them on the map. To unselect {article}{" "}
                             {singularLabel}, use the trash button above or click on it on the map.
-                            {off_network_count > 0 ? (
+                            {offNetworkCount > 0 ? (
                                 <React.Fragment>
                                     <br />
                                     <br />
                                     Note: only {type} that have been snapped to the aquatic network are available for
-                                    prioritization. There are {off_network_count} off-network {type} in your selected
-                                    area.
+                                    prioritization. There are {formatNumber(offNetworkCount, 0)} off-network {type} in
+                                    your selected area.
                                 </React.Fragment>
                             ) : null}
                         </p>
