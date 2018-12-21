@@ -57,7 +57,7 @@ Convert from shapefile to GeoJSON first, then cut tiles. Note the variation in m
 #### Dams
 
 ```
-tippecanoe -f -Z5 -z12 -B6 -pg -pe -ai --drop-densest-as-needed -o ../../tiles/sarp_dams.mbtiles -l dams -T name:string -T river:string -T hasnetwork:bool dams_mbtiles.csv
+tippecanoe -f -Z5 -z12 -B6 -pk -pg -pe -ai --drop-densest-as-needed -o ../../tiles/sarp_dams.mbtiles -l dams -T name:string -T river:string -T hasnetwork:bool -T protectedland:bool -T County:string -T HUC6:string -T HUC8:string -T:string dams_mbtiles.csv
 ```
 
 <!--

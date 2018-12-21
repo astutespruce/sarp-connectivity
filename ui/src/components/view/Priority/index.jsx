@@ -1,8 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import ImmutablePropTypes from "react-immutable-proptypes"
 import { connect } from "react-redux"
-import { Link } from "react-router-dom"
 
 import * as actions from "../../../actions/priority"
 import Start from "./Start"
@@ -15,25 +13,9 @@ import Barrier from "../../barriers/Barrier"
 import LayerChooser from "./LayerChooser"
 import UnitChooser from "./UnitsList"
 import FiltersList from "./FiltersList"
-import SubmitButton from "./SubmitButton"
 
-const Priority = ({
-    type,
-    mode,
-    selectedFeature,
-    layer,
-    summaryUnits,
-    totalCount,
-    setLayer,
-    selectFeature,
-    selectUnit,
-    setType,
-    setMode,
-    fetchQuery,
-    fetchRanks
-}) => {
+const Priority = ({ type, mode, selectedFeature, layer, selectFeature, setType, setMode }) => {
     let content = null
-    let submitButton = null
 
     if (selectedFeature !== null) {
         content = <Barrier barrier={selectedFeature.toJS()} onClose={() => selectFeature(null)} />
@@ -44,28 +26,11 @@ const Priority = ({
                     content = <LayerChooser />
                 } else {
                     content = <UnitChooser />
-                    submitButton = (
-                        <SubmitButton
-                            disabled={summaryUnits.size === 0}
-                            onClick={() => fetchQuery(layer, summaryUnits.toJS())}
-                            icon="search-location"
-                            label={`Select ${type} in this area`}
-                        />
-                    )
                 }
                 break
             }
             case "filter": {
                 content = <FiltersList />
-
-                submitButton = (
-                    <SubmitButton
-                        disabled={totalCount === 0}
-                        onClick={() => fetchRanks(layer, summaryUnits.toJS())}
-                        icon="search-location"
-                        label={`Prioritize ${type}`}
-                    />
-                )
                 break
             }
             case "prioritize": {
@@ -94,25 +59,7 @@ const Priority = ({
                 <Start setType={setType} />
             ) : (
                 <React.Fragment>
-                    <Sidebar>
-                        {content}
-                        {layer !== null ? (
-                            <div id="SidebarFooter" className="flex-container flex-justify-center flex-align-center">
-                                <Link to="/priority">
-                                    <button
-                                        className="button is-black is-medium"
-                                        type="button"
-                                        style={{ marginRight: "1rem" }}
-                                        title="Start Over"
-                                    >
-                                        <i className="fa fa-trash" />
-                                    </button>
-                                </Link>
-
-                                {submitButton}
-                            </div>
-                        ) : null}
-                    </Sidebar>
+                    <Sidebar>{content}</Sidebar>
                     <div id="MapContainer">
                         <Map />
                     </div>
@@ -127,16 +74,19 @@ Priority.propTypes = {
     mode: PropTypes.string.isRequired,
     selectedFeature: FeaturePropType,
     layer: PropTypes.string,
-    summaryUnits: ImmutablePropTypes.set.isRequired,
-    totalCount: PropTypes.number.isRequired,
+    // summaryUnits: ImmutablePropTypes.set.isRequired,
+    // filters: ImmutablePropTypes.mapOf(
+    //     ImmutablePropTypes.setOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number]))
+    // ).isRequired,
+    // totalCount: PropTypes.number.isRequired,
 
     setType: PropTypes.func.isRequired,
-    setLayer: PropTypes.func.isRequired,
+    // setLayer: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired,
-    selectUnit: PropTypes.func.isRequired,
-    setMode: PropTypes.func.isRequired,
-    fetchQuery: PropTypes.func.isRequired,
-    fetchRanks: PropTypes.func.isRequired
+    // selectUnit: PropTypes.func.isRequired,
+    setMode: PropTypes.func.isRequired
+    // fetchQuery: PropTypes.func.isRequired,
+    // fetchRanks: PropTypes.func.isRequired
 }
 
 Priority.defaultProps = {
@@ -155,7 +105,8 @@ const mapStateToProps = globalState => {
         layer: state.get("layer"),
         totalCount: state.get("totalCount"),
         selectedFeature: state.get("selectedFeature"),
-        summaryUnits: state.get("summaryUnits")
+        summaryUnits: state.get("summaryUnits"),
+        filters: state.get("filters")
     }
 }
 

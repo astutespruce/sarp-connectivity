@@ -37,7 +37,7 @@ export const filterConfig = {
         keys: getIntKeys(FEASIBILITY),
         labelFunction: d => FEASIBILITY[d]
     },
-    height: {
+    heightclass: {
         title: "Dam Height",
         keys: getIntKeys(HEIGHT),
         labelFunction: d => HEIGHT[d]
@@ -47,24 +47,31 @@ export const filterConfig = {
         keys: [0, 1, 2, 3, 4, 5, 6, 7],
         labelFunction: d => d
     },
-    rarespp: {
+    raresppclass: {
         title: "Number of Rare Species",
         keys: getIntKeys(RARESPP),
         labelFunction: d => RARESPP[d]
     },
-    streamorder: {
+    streamorderclass: {
         title: "Stream Order (NHD modified Strahler)",
         keys: getIntKeys(STREAMORDER),
         labelFunction: d => STREAMORDER[d]
     },
-    gainmiles: {
+    gainmilesclass: {
         title: "Miles Gained",
         keys: getIntKeys(GAINMILES),
         labelFunction: d => GAINMILES[d]
     }
 }
 
-export const allFilters = ["feasibility", "height", "sizeclasses", "rarespp", "streamorder", "gainmiles"]
+export const allFilters = [
+    "feasibility",
+    "heightclass",
+    "sizeclasses",
+    "raresppclass",
+    "streamorderclass",
+    "gainmilesclass"
+]
 
 export function initCrossfilter(data) {
     // Create global crossfilter and dimensions

@@ -71,10 +71,18 @@ export const fetchError = error => ({
     payload: { error }
 })
 
-export function fetchRanks(layer, units) {
+export function fetchRanks(layer, units, filters) {
     return dispatch => {
         const ids = units.map(({ id }) => id)
-        csv(`${API_URL}/dams/rank/${layer}?id=${ids.join(",")}`, row => {
+        const filterValues = Object.entries(filters).filter(([, v]) => v.length > 0) // .map(([, v]) => v.join(','))
+
+        let url = `${API_URL}/dams/rank/${layer}?id=${ids.join(",")}`
+        if (filterValues) {
+            url += filterValues.map(([k, v]) => `&${k}=${v.join(",")}`)
+            // url += `&filter=${filterValues}`
+        }
+
+        csv(url, row => {
             // Convert fields to floating point or int as needed
             Object.keys(row).forEach(f => {
                 if (f === "lat" || f === "lon") {
@@ -154,11 +162,9 @@ export const setFilter = (filter, filterValues) => ({
 
 // TODO: not hooked up yet
 export const RESET_FILTERS = "RESET_FILTERS"
-export const resetFilters = () => {
-    return {
-        type: RESET_FILTERS
-    }
-}
+export const resetFilters = () => ({
+    type: RESET_FILTERS
+})
 
 export const TOGGLE_FILTER_CLOSED = "TOGGLE_FILTER_CLOSED"
 export function toggleFilterClosed(filter, isClosed) {

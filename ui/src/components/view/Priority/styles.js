@@ -120,7 +120,8 @@ export const backgroundPoint = {
         visibility: "none"
     },
     paint: {
-        "circle-color": { stops: [[10, "#AAA"], [14, "#999"]] },
+        "circle-color": "#999",
+        // "circle-color": { stops: [[10, "#AAA"], [14, "#999"]] },
         "circle-radius": { stops: [[10, 0.5], [14, 4]] },
         "circle-opacity": { stops: [[10, 0.5], [14, 1]] },
         "circle-stroke-color": "#666",
@@ -134,18 +135,17 @@ export const excludedPoint = {
     // soruce: "" // provided by specific layer
     // 'source-layer': '', // provided by specific layer
     type: "circle",
-    minzoom: 5,
+    minzoom: 7,
     maxzoom: 24,
     // filter: compound filter, must include ["==", "hasnetwork", true]
-    // layout: {
-    //     visibility: "none"
-    // },
     paint: {
+        // "circle-color": "#00F",
+        // "circle-radius": 5
         "circle-color": "#fbb4b9",
-        "circle-radius": { stops: [[10, 0.5], [14, 6]] },
-        "circle-opacity": { stops: [[10, 0.5], [14, 1]] },
         "circle-stroke-color": "#c51b8a",
-        "circle-stroke-width": { stops: [[10, 0], [14, 1]] }
+        "circle-radius": { stops: [[7, 0.5], [10, 4], [14, 6]] },
+        "circle-opacity": { stops: [[10, 0.5], [14, 1]] },
+        "circle-stroke-width": { stops: [[10, 0], [11, 0.25], [14, 1]] }
     }
 }
 
@@ -158,15 +158,12 @@ export const includedPoint = {
     minzoom: 5,
     maxzoom: 24,
     // filter: compound filter, must include ["==", "hasnetwork", true]
-    // layout: {
-    //     visibility: "none"
-    // },
     paint: {
         "circle-color": "#c51b8a",
-        "circle-radius": { stops: [[6, 4], [14, 8]] },
-        "circle-opacity": { stops: [[5, 0.1], [6, 0.25], [7, 1]] },
+        "circle-radius": { stops: [[5, 1], [6, 2], [14, 8]] },
+        "circle-opacity": { stops: [[5, 0.2], [6, 0.5], [7, 1]] },
         "circle-stroke-color": "#FFFFFF",
-        "circle-stroke-width": { stops: [[6, 0.25], [10, 1], [14, 3]] }
+        "circle-stroke-width": { stops: [[7, 0], [8, 0.25], [10, 1], [14, 3]] }
     }
 }
 

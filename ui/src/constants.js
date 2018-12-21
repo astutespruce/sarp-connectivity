@@ -115,4 +115,10 @@ export const STREAMORDER = {
     6: ">= 6"
 }
 
+export const SINUOSITY = {
+    0: "low",
+    1: "moderate",
+    2: "high"
+}
+
 export default { stateFIPS }

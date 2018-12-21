@@ -5,6 +5,8 @@ import { connect } from "react-redux"
 
 import * as actions from "../../../actions/priority"
 
+import StartOverButton from "./StartOverButton"
+import SubmitButton from "./SubmitButton"
 import UnitListItem from "./UnitListItem"
 
 const getPluralLabel = layer => {
@@ -54,7 +56,7 @@ const getSingularArticle = layer => {
     return "a"
 }
 
-const UnitsList = ({ layer, summaryUnits, selectUnit, setLayer }) => {
+const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery }) => {
     const pluralLabel = getPluralLabel(layer)
     const singularLabel = getSingularLabel(layer)
     const article = getSingularArticle(layer)
@@ -104,21 +106,37 @@ const UnitsList = ({ layer, summaryUnits, selectUnit, setLayer }) => {
                     </p>
                 ) : null}
             </div>
+
+            <div id="SidebarFooter">
+                <div className="flex-container flex-justify-center flex-align-center">
+                    <StartOverButton />
+
+                    <SubmitButton
+                        disabled={summaryUnits.size === 0}
+                        onClick={() => fetchQuery(layer, summaryUnits.toJS())}
+                        icon="search-location"
+                        label={`Select ${type} in this area`}
+                    />
+                </div>
+            </div>
         </React.Fragment>
     )
 }
 
 UnitsList.propTypes = {
+    type: PropTypes.string.isRequired,
     layer: PropTypes.string.isRequired,
     summaryUnits: ImmutablePropTypes.set.isRequired,
     setLayer: PropTypes.func.isRequired,
-    selectUnit: PropTypes.func.isRequired
+    selectUnit: PropTypes.func.isRequired,
+    fetchQuery: PropTypes.func.isRequired
 }
 
 const mapStateToProps = globalState => {
     const state = globalState.get("priority")
 
     return {
+        type: state.get("type"),
         layer: state.get("layer"),
         summaryUnits: state.get("summaryUnits")
     }

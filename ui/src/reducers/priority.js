@@ -35,7 +35,7 @@ const initialState = Map({
     filters: allFilters.reduce((out, item) => out.set(item, Set()), Map()),
     dimensionCounts: Map(), // Map of Map of ints
     totalCount: 0,
-    closedFilters: allFilters.reduce((out, item, i) => out.set(item, i > 0), Map())
+    closedFilters: allFilters.reduce((out, item, i) => out.set(item, i >= 0), Map())
 })
 
 export const reducer = (state = initialState, { type, payload = {} }) => {
@@ -70,6 +70,7 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
         case PRIORITY_SET_MODE: {
             const { mode } = payload
             // TODO: clear out units depending on mode
+            // TODO: clear out crossfilter and associated stuff if going from filter to previous?
             return state.set("mode", mode)
         }
         case PRIORITY_SET_TYPE: {

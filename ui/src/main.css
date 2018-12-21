@@ -402,6 +402,10 @@ button.link.link-back {
     padding: 1rem 0;
     border-top: 1px solid #ddd;
     background: #eee;
+    /* display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center; */
 }
 
 #SidebarContent {

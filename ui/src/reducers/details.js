@@ -4,7 +4,7 @@ import { DETAILS_SET_TAB, DETAILS_SET_UNIT } from "../actions/details"
 
 const initialState = Map({
     tab: "details",
-    unit: "State" // custom, State, SE
+    unit: "state" // custom, state, se
 })
 
 // TODO: when prioritization is changed, change the summaryUnit to custom

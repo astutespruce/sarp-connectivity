@@ -27,7 +27,8 @@
 }
 
 .filterbars.has-filters .filterbar.is-filtered .filterbar-labels {
-    color: #ee7d14;
+    /* color: #ee7d14; */
+    color: #c51b8a;
 }
 
 .filterbar-labels-value {
@@ -50,7 +51,8 @@
     background: #ccc;
 }
 .filterbar.is-filtered .bar {
-    background: #ee7d14;
+    /* background: #ee7d14; */
+    background: #c51b8a;
 }
 
 .filterbar .bar {

@@ -15,7 +15,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 log = app.logger
 
-LAYERS = ("HUC6", "HUC8", "HUC12", "State")
+LAYERS = ("HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4")
 FORMATS = ("csv",)  # TODO: "shp"
 
 FILTER_FIELDS = [
@@ -71,6 +71,9 @@ def rank(layer="HUC8"):
 
     validate_layer(layer)
 
+    if layer == "County":
+        layer = "COUNTYFIPS"
+
     ids = request.args.get("id", "").split(",")
     if not ids:
         abort(400, "id must be non-empty")
@@ -124,6 +127,9 @@ def query(layer="HUC8"):
 
     validate_layer(layer)
 
+    if layer == "County":
+        layer = "COUNTYFIPS"
+
     ids = request.args.get("id", "").split(",")
     if not ids:
         abort(400, "id must be non-empty")
@@ -138,11 +144,11 @@ def query(layer="HUC8"):
         df.to_csv(
             index_label="id",
             header=[
-                c.lower().replace("class", "") if not c == "SizeClasses" else c.lower()
-                for c in df.columns
+                c.lower() for c in df.columns
             ],
         )
     )
+
     resp.headers["Content-Type"] = "text/csv"
     return resp
 
@@ -170,6 +176,9 @@ def download_dams(layer="HUC8", format="CSV"):
 
     validate_layer(layer)
     validate_format(format)
+
+    if layer == "County":
+        layer = "COUNTYFIPS"
 
     include_unranked = args.get("include_unranked", True)
 

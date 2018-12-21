@@ -58,19 +58,19 @@ class PriorityMap extends Component {
             this.updateBarrierHighlight()
         }
 
+        if (summaryUnits !== prevSummaryUnits) {
+            if (layer !== null) {
+                this.updateUnitHighlight()
+            }
+        }
+
         if (layer !== prevLayer) {
             if (prevLayer !== null) {
-                this.removeUnitLayers(prevLayer)
+                this.removeUnitLayers()
             }
 
             if (layer !== null) {
                 this.addUnitLayers()
-            }
-        }
-
-        if (summaryUnits !== prevSummaryUnits) {
-            if (layer !== null) {
-                this.updateUnitHighlight()
             }
         }
 
@@ -129,8 +129,8 @@ class PriorityMap extends Component {
         map.setLayoutProperty("unit-highlight-fill", "visibility", visibility)
         // unit-highlight-outline deliberately left as-is
 
-        if (map.getLayer("parent-outline")) {
-            map.setLayoutProperty("parent-outline", "visibility", visibility)
+        if (map.getLayer("unit-parent-outline")) {
+            map.setLayoutProperty("unit-parent-outline", "visibility", visibility)
         }
     }
 
@@ -145,11 +145,6 @@ class PriorityMap extends Component {
             maxzoom
         })
 
-        map.addLayer(config.mergeDeep(fromJS(unitFill)).toJS())
-        map.addLayer(config.mergeDeep(fromJS(unitOutline)).toJS())
-        map.addLayer(config.mergeDeep(fromJS(unitHighlightFill)).toJS())
-        map.addLayer(config.mergeDeep(fromJS(unitHighlightOutline)).toJS())
-
         if (parent) {
             map.addLayer(
                 config
@@ -158,6 +153,10 @@ class PriorityMap extends Component {
                     .toJS()
             )
         }
+        map.addLayer(config.mergeDeep(fromJS(unitFill)).toJS())
+        map.addLayer(config.mergeDeep(fromJS(unitOutline)).toJS())
+        map.addLayer(config.mergeDeep(fromJS(unitHighlightFill)).toJS())
+        map.addLayer(config.mergeDeep(fromJS(unitHighlightOutline)).toJS())
     }
 
     removeUnitLayers = () => {
@@ -169,8 +168,8 @@ class PriorityMap extends Component {
         map.removeLayer("unit-outline")
         map.removeLayer("unit-highlight-fill")
         map.removeLayer("unit-highlight-outline")
-        if (map.getLayer("parent-outline")) {
-            map.removeLayer("parent-outline")
+        if (map.getLayer("unit-parent-outline")) {
+            map.removeLayer("unit-parent-outline")
         }
     }
 
@@ -185,8 +184,12 @@ class PriorityMap extends Component {
             .filter(([, v]) => v.length > 0)
             .map(([k, v]) => [inExpr, k, ...v])
 
-        const filterExpr = ["all", ["==", "hasnetwork", true], [inExpr, layer, ...unitIds], ...filterValues]
-
+        let filterExpr = null
+        if (inclusive) {
+            filterExpr = ["all", ["==", "hasnetwork", true], [inExpr, layer, ...unitIds], ...filterValues]
+        } else {
+            filterExpr = ["all", ["==", "hasnetwork", true], ["any", [inExpr, layer, ...unitIds], ...filterValues]]
+        }
         console.log("filterExpr", filterExpr)
 
         return filterExpr

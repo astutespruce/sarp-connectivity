@@ -344,13 +344,13 @@ df = df.drop(
         "Sinuosity",
         "Source",
         "NHDplusVersion",
-        "COUNTYFIPS",
+        # "COUNTYFIPS",
         "STATEFIPS",
-        "HUC6",
-        "HUC8",
-        "HUC12",
-        "ECO3",
-        "ECO4",
+        # "HUC6",
+        # "HUC8",
+        # "HUC12",
+        # "ECO3",
+        # "ECO4",
     ]
 )
 
@@ -358,23 +358,21 @@ df = df.drop(
 df.HasNetwork = df.HasNetwork.astype("uint8")
 
 
-# lowercase all fields except those for unit IDs
+df.rename(
+    columns={
+        "County": "CountyName",
+        "COUNTYFIPS": "County",
+        "SinuosityClass": "Sinuosity",
+    },
+    inplace=True,
+)
 
+# lowercase all fields except those for unit IDs
 df.rename(
     columns={
         k: k.lower()
         for k in df.columns
-        if k
-        not in (
-            "State",
-            "COUNTYFIPS",
-            "STATEFIPS",
-            "HUC6",
-            "HUC8",
-            "HUC12",
-            "ECO3",
-            "ECO4",
-        )
+        if k not in ("State", "County", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4")
     },
     inplace=True,
 )

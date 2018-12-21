@@ -5,24 +5,32 @@ import PropTypes from "prop-types"
 import { connect } from "react-redux"
 
 import Details from "./Details"
-import Priorities from "./Scores"
+import Scores from "./Scores"
 import { BarrierPropType } from "../../CustomPropTypes"
 
 import { setDetailsTab } from "../../actions/details"
 
-const Barrier = ({ tab, barrier, onClose, setTab }) => {
-    const { SARPID, Name, County, State } = barrier
+const Barrier = ({ type, tab, barrier, onClose, setTab }) => {
+    const { sarpid, name, hasnetwork, countyname, State } = barrier
 
-    // Transform properties to priorities: <unit>_<metric>_score
-    const units = ["SE", "State"] // TODO: custom
-    const metrics = ["GainMiles", "Landcover", "Sinuosity", "SizeClasses", "NC", "WC", "NCWC"]
-    const scores = {}
-    units.forEach(unit => {
-        scores[unit] = {}
-        metrics.forEach(metric => {
-            scores[unit][metric] = barrier[`${unit}_${metric}_score`]
+    let scoreContent = null
+    if (hasnetwork) {
+        // Transform properties to priorities: <unit>_<metric>_score
+        const scores = {}
+        const units = ["se", "state"] // TODO: custom
+        const metrics = ["gainmiles", "landcover", "sinuosity", "sizeclasses", "nc", "wc", "ncwc"]
+
+        units.forEach(unit => {
+            scores[unit] = {}
+            metrics.forEach(metric => {
+                scores[unit][metric] = barrier[`${unit}_${metric}_score`]
+            })
         })
-    })
+
+        scoreContent = <Scores scores={scores} />
+    } else {
+        scoreContent = <p className="text-help">No connectivity information is available for this barrier.</p>
+    }
 
     const handleDetailsClick = () => setTab("details")
     const handlePrioritiesClick = () => setTab("priorities")
@@ -32,9 +40,9 @@ const Barrier = ({ tab, barrier, onClose, setTab }) => {
             <div id="SidebarHeader" className="has-tabs">
                 <div className="flex-container flex-justify-center flex-align-start">
                     <div className="flex-grow">
-                        <h5 className="title is-5">{Name && Name !== '"' ? Name : "Unknown name"}</h5>
+                        <h5 className="title is-5">{name && name !== "null" ? name : "Unknown name"}</h5>
                         <h5 className="subtitle is-6">
-                            {County}, {State}
+                            {countyname}, {State}
                         </h5>
                     </div>
                     <div className="icon button" onClick={onClose}>
@@ -54,25 +62,27 @@ const Barrier = ({ tab, barrier, onClose, setTab }) => {
             </div>
 
             <div id="SidebarContent" className="flex-container-column">
-                {tab === "details" ? <Details {...barrier} /> : <Priorities scores={scores} />}
+                {tab === "details" ? <Details type={type} {...barrier} /> : scoreContent}
             </div>
 
-            <div className="text-align-center" style={{ padding: "1rem 0" }}>
-                <a
-                    href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for barrier: ${SARPID}&body=I found the following problem with the SARP Inventory for this barrier:`}
-                >
-                    <i className="fas fa-envelope" />
-                    &nbsp; Report a problem with this barrier
-                </a>
+            <div id="SidebarFooter">
+                <div className="flex-container flex-justify-center flex-align-center">
+                    <a
+                        href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for barrier: ${sarpid}&body=I found the following problem with the SARP Inventory for this barrier:`}
+                    >
+                        <i className="fas fa-envelope" />
+                        &nbsp; Report a problem with this barrier
+                    </a>
+                </div>
             </div>
         </React.Fragment>
     )
 }
 
 Barrier.propTypes = {
+    type: PropTypes.string.isRequired,
     tab: PropTypes.string.isRequired,
     barrier: BarrierPropType.isRequired,
-    // summaryUnit: PropTypes.string,
     onClose: PropTypes.func.isRequired,
     setTab: PropTypes.func
 }
@@ -87,7 +97,8 @@ const mapStateToProps = globalState => {
     const state = globalState.get("details")
 
     return {
-        tab: state.get("tab")
+        tab: state.get("tab"),
+        type: globalState.get("priority").get("type")
     }
 }
 

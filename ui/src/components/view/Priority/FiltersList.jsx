@@ -8,18 +8,23 @@ import * as actions from "../../../actions/priority"
 import { allFilters } from "../../../filters"
 import { formatNumber } from "../../../utils/format"
 
+import StartOverButton from "./StartOverButton"
+import SubmitButton from "./SubmitButton"
 import Filter from "./Filter"
 
 function FiltersList({
+    layer,
     type,
     counts,
     totalCount,
     filters,
+    summaryUnits,
     setFilter,
     resetFilters,
     closedFilters,
     toggleFilterClosed,
-    setMode
+    setMode,
+    fetchRanks
 }) {
     const handleResetFilters = () => {
         resetFilters()
@@ -50,7 +55,7 @@ function FiltersList({
             </div>
             <div id="SidebarContent">
                 <p className="text-help">
-                    Use the filters below to select the {type} that meet your needs. Click on a bar to select {type}
+                    Use the filters below to select the {type} that meet your needs. Click on a bar to select {type}{" "}
                     with that value. Click on the bar again to unselect. You can combine multiple values across multiple
                     filters to select the {type} that match ANY of those values within a filter and also have the values
                     selected across ALL filters.
@@ -69,12 +74,26 @@ function FiltersList({
                     ))}
                 </div>
             </div>
+
+            <div id="SidebarFooter">
+                <div className="flex-container flex-justify-center flex-align-center">
+                    <StartOverButton />
+
+                    <SubmitButton
+                        disabled={totalCount === 0}
+                        onClick={() => fetchRanks(layer, summaryUnits.toJS(), filters.toJS())}
+                        icon="search-location"
+                        label={`Prioritize ${type}`}
+                    />
+                </div>
+            </div>
         </React.Fragment>
     )
 }
 
 FiltersList.propTypes = {
     type: PropTypes.string.isRequired,
+    layer: PropTypes.string.isRequired,
     counts: ImmutablePropTypes.mapOf(ImmutablePropTypes.mapOf(PropTypes.number)).isRequired,
     totalCount: PropTypes.number.isRequired,
     filters: ImmutablePropTypes.mapOf(
@@ -82,20 +101,24 @@ FiltersList.propTypes = {
     ).isRequired,
     closedFilters: ImmutablePropTypes.mapOf(PropTypes.bool).isRequired,
 
+    summaryUnits: ImmutablePropTypes.set.isRequired,
     setFilter: PropTypes.func.isRequired,
     resetFilters: PropTypes.func.isRequired,
     toggleFilterClosed: PropTypes.func.isRequired,
-    setMode: PropTypes.func.isRequired
+    setMode: PropTypes.func.isRequired,
+    fetchRanks: PropTypes.func.isRequired
 }
 const mapStateToProps = globalState => {
     const state = globalState.get("priority")
 
     return {
         type: state.get("type"),
+        layer: state.get("layer"),
         counts: state.get("dimensionCounts"),
         totalCount: state.get("totalCount"),
         filters: state.get("filters"),
-        closedFilters: state.get("closedFilters")
+        closedFilters: state.get("closedFilters"),
+        summaryUnits: state.get("summaryUnits")
     }
 }
 

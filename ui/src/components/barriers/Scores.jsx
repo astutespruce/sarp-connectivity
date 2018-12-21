@@ -10,11 +10,11 @@ import { setDetailsUnit } from "../../actions/details"
 import { ScoresPropType } from "../../CustomPropTypes"
 
 const Scores = ({ tab, scores, setTab }) => {
-    const hasCustom = scores.custom && scores.custom.GainMiles
+    const hasCustom = scores.custom && scores.custom.gainmiles
 
     const handleCustomClick = () => setTab("custom")
-    const handleStateClick = () => setTab("State")
-    const handleRegionclick = () => setTab("SE")
+    const handleStateClick = () => setTab("state")
+    const handleRegionclick = () => setTab("se")
 
     const curScores = scores[tab]
 
@@ -30,10 +30,10 @@ const Scores = ({ tab, scores, setTab }) => {
                             <a onClick={handleCustomClick}>Selected Area</a>
                         </li>
                     )}
-                    <li className={tab === "State" ? "is-active" : null}>
+                    <li className={tab === "state" ? "is-active" : null}>
                         <a onClick={handleStateClick}>State</a>
                     </li>
-                    <li className={tab === "SE" ? "is-active" : null}>
+                    <li className={tab === "se" ? "is-active" : null}>
                         <a onClick={handleRegionclick}>Southeast</a>
                     </li>
                 </ul>
@@ -47,8 +47,8 @@ const Scores = ({ tab, scores, setTab }) => {
 Scores.propTypes = {
     tab: PropTypes.string.isRequired,
     scores: PropTypes.shape({
-        SE: ScoresPropType.isRequired,
-        State: ScoresPropType.isRequired,
+        se: ScoresPropType.isRequired,
+        state: ScoresPropType.isRequired,
         custom: ScoresPropType
     }).isRequired,
     setTab: PropTypes.func
