@@ -104,7 +104,11 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             allFilters.forEach(d => {
                 window.dims[d].filterAll()
             })
-            return state.set("filters", Map())
+            return state.merge({
+                filters: allFilters.reduce((out, item) => out.set(item, Set()), Map()),
+                dimensionCounts: fromJS(getDimensionCounts()),
+                totalCount: getTotalFilteredCount()
+            })
         }
         case FETCH_QUERY_SUCCESS: {
             return state.merge({

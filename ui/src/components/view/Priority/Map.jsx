@@ -27,6 +27,7 @@ import {
 } from "./styles"
 import { LAYER_CONFIG } from "./config"
 import Map from "../../map/index"
+import { SCENARIOS } from "../../map/config";
 
 // Construct colors for mapbox GL layers in advance
 // const priorityColors = PRIORITY_TIER_COLORS.reduce((out, color, i) => out.concat([i, color]), [])
@@ -77,6 +78,11 @@ class PriorityMap extends Component {
             }
         }
 
+        if (scenario !== prevScenario) {
+            map.setFilter("rank-top", ["==", `${scenario}_tier`, 1])
+            map.setFilter("rank-low", [">", `${scenario}_tier`, 1])
+        }
+
         if (mode !== prevMode) {
             // modes other than filter or prioritize will have null layers, and be covered above
             // this.setLayerVisibility(mode === "select" && layer !== null)
@@ -94,7 +100,7 @@ class PriorityMap extends Component {
 
             if (mode === "filter") {
                 this.addBarrierFilterLayers()
-                map.setLayoutProperty("point-included", "visibility", "visible")
+                // map.setLayoutProperty("point-included", "visibility", "visible")
                 map.setLayoutProperty("point-no-network", "visibility", "visible")
             }
 
@@ -103,8 +109,14 @@ class PriorityMap extends Component {
             }
 
             if (mode === "results") {
-                map.setLayoutProperty("point-included", "visibility", "none")
+                // map.setLayoutProperty("point-included", "visibility", "none")
+                // make transparent
+                map.setPaintProperty("point-included", "circle-color", "rgba(0,0,0,0)")
+                map.setPaintProperty("point-included", "circle-stroke-color", "rgba(0,0,0,0)")
                 this.addRankedBarrierLayers()
+                // move highlight to top
+                /* eslint-disable no-underscore-dangle */
+                map.moveLayer("point-highlight", map.style._layers.length)
             }
         }
 
@@ -269,15 +281,17 @@ class PriorityMap extends Component {
         })
 
         map.addLayer(
-            fromJS(topRank)
-                .merge({ filter: ["==", `${scenario}_tier`, 1] })
-                .toJS()
-        )
-        map.addLayer(
             fromJS(lowerRank)
                 .merge({ filter: [">", `${scenario}_tier`, 1] })
                 .toJS()
         )
+
+        map.addLayer(
+            fromJS(topRank)
+                .merge({ filter: ["==", `${scenario}_tier`, 1] })
+                .toJS()
+        )
+        
     }
 
     removeRankedBarrierLayers = () => {
@@ -354,11 +368,24 @@ class PriorityMap extends Component {
                     break
                 }
                 case "results": {
-                    const points = map.queryRenderedFeatures(e.point, { layers: ["rank-top", "rank-low"] })
+                    const points = map.queryRenderedFeatures(e.point, {
+                        layers: ["rank-top", "rank-low", "point-excluded", "point-no-network"]
+                    })
                     if (points.length > 0) {
                         const point = points[0]
                         console.log(point)
-                        selectFeature(fromJS(point.properties))
+
+                        if (point.source === "ranked") {
+                            const { id } = point.properties
+                            const { x, y } = e.point
+                            const dist = 4
+                            const window = [[x - dist, y - dist], [x + dist, y + dist]]
+                            const nearby = map.queryRenderedFeatures(window, { layers: ["point-included"] })
+                            const tilePoint = nearby.filter(({ properties: { id: ptId } }) => ptId === id)[0]
+                            selectFeature(fromJS(tilePoint.properties).mergeDeep(fromJS(point.properties)))
+                        } else {
+                            selectFeature(fromJS(point.properties))
+                        }
                     }
                     break
                 }
@@ -371,7 +398,7 @@ class PriorityMap extends Component {
         const { mode, type } = this.props
 
         if (mode === "filter") {
-            if (zoom <= 5) {
+            if (zoom <= includedPoint.minzoom) {
                 return <Legend title={`Zoom in further to see selected ${type}`} />
             }
 
@@ -382,7 +409,7 @@ class PriorityMap extends Component {
                     size: 16
                 }
             ]
-            if (zoom >= 7) {
+            if (zoom >= excludedPoint.minzoom) {
                 entries.push({
                     label: `Not selected ${type}`,
                     color: excludedPoint.paint["circle-color"],
@@ -390,7 +417,7 @@ class PriorityMap extends Component {
                     size: 12
                 })
             }
-            if (zoom >= 10) {
+            if (zoom >= backgroundPoint.minzoom) {
                 entries.push({
                     label: `Off-network ${type}`,
                     color: backgroundPoint.paint["circle-color"],
@@ -402,7 +429,7 @@ class PriorityMap extends Component {
         }
 
         if (mode === "results") {
-            if (zoom <= 5) {
+            if (zoom <= topRank.minzoom) {
                 return <Legend title={`Zoom in further to see top-ranked ${type}`} />
             }
 
@@ -413,14 +440,15 @@ class PriorityMap extends Component {
                     size: 16
                 }
             ]
-            if (zoom >= 7) {
+            if (zoom >= lowerRank.minzoom) {
                 // TODO: lower ranks
                 entries.push({
                     label: `Lower-ranked ${type}`,
                     color: lowerRank.paint["circle-color"],
                     size: 16
                 })
-
+            }
+            if (zoom >= excludedPoint.minzoom) {
                 entries.push({
                     label: `Not selected ${type}`,
                     color: excludedPoint.paint["circle-color"],
@@ -428,7 +456,7 @@ class PriorityMap extends Component {
                     size: 12
                 })
             }
-            if (zoom >= 10) {
+            if (zoom >= backgroundPoint.minzoom) {
                 entries.push({
                     label: `Off-network ${type}`,
                     color: backgroundPoint.paint["circle-color"],
@@ -443,11 +471,30 @@ class PriorityMap extends Component {
     }
 
     render() {
-        const { scenario, setScenario, bounds } = this.props
+        const { mode, scenario, setScenario, bounds } = this.props
 
         return (
             <React.Fragment>
                 <Map baseStyle="streets-v9" bounds={bounds} onCreateMap={this.handleCreateMap} />
+
+                {mode === "results" ? (
+                    <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
+                        <h5 style={{ marginRight: "1rem" }}>Show ranks for:</h5>
+                        <div className="button-group">
+                            {Object.entries(SCENARIOS).map(([key, name]) => (
+                                <button
+                                    key={key}
+                                    className={`button ${scenario === key ? "active" : ""}`}
+                                    type="button"
+                                    onClick={() => setScenario(key)}
+                                >
+                                    {name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                ) : null}
+
                 {this.renderLegend()}
             </React.Fragment>
         )

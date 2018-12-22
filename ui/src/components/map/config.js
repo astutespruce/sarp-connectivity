@@ -60,9 +60,9 @@ export const SYSTEMS = {
 }
 
 export const SCENARIOS = {
-    NC: "Network Connnectivity",
-    WC: "Watershed Condition",
-    NCWC: "Combined"
+    nc: "Network Connnectivity",
+    wc: "Watershed Condition",
+    ncwc: "Combined"
 }
 
 export const LAYER_CONFIG = [

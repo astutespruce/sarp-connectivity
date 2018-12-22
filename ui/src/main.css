@@ -370,6 +370,12 @@ button.link.link-back {
     border-bottom: none;
     background: #fff;
 }
+
+#SidebarHeader.no-tabs {
+    background: #fff;
+    border-bottom: 4px solid #859db3;
+}
+
 #SidebarHeader .button {
     border: none;
 }

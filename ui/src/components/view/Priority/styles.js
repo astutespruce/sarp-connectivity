@@ -192,7 +192,7 @@ export const topRank = {
         "circle-radius": { stops: [[5, 4], [6, 6], [14, 8]] },
         "circle-opacity": { stops: [[5, 0.5], [6, 1]] },
         "circle-stroke-color": "#FFFFFF",
-        "circle-stroke-width": { stops: [[6, 0.25], [7, 1], [14, 3]] }
+        "circle-stroke-width": { stops: [[5, 2], [14, 3]] }
     }
 }
 
@@ -200,14 +200,16 @@ export const lowerRank = {
     id: "rank-low",
     source: "ranked",
     type: "circle",
-    minzoom: 7,
+    minzoom: 6,
     maxzoom: 24,
     // filter:  // provided by specific layer
     paint: {
-        "circle-color": "#d95f0e",
-        "circle-stroke-color": "#993404",
-        "circle-radius": { stops: [[7, 0.5], [10, 4], [14, 6]] },
-        "circle-opacity": { stops: [[10, 0.5], [14, 1]] },
-        "circle-stroke-width": { stops: [[10, 0], [11, 0.25], [14, 1]] }
+        // "circle-color": "#d95f0e",
+        // "circle-stroke-color": "#993404",
+        "circle-color": "#2c7fb8",
+        "circle-stroke-color": "#FFFFFF",
+        "circle-radius": { stops: [[6, 1], [7, 4], [10, 6], [14, 8]] },
+        "circle-opacity": { stops: [[6, 0.5], [7, 0.5], [8, 1]] },
+        "circle-stroke-width": { stops: [[6, 0], [8, 1], [14, 3]] }
     }
 }

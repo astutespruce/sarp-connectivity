@@ -13,10 +13,10 @@ import { setDetailsTab } from "../../actions/details"
 const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
     const { sarpid, name, hasnetwork, countyname, State } = barrier
 
-    if (mode !== "prioritize") {
+    if (mode !== "results" || !barrier.ncwc_tier) {
         return (
             <React.Fragment>
-                <div id="SidebarHeader">
+                <div id="SidebarHeader" className="no-tabs">
                     <div className="flex-container flex-justify-center flex-align-start">
                         <div className="flex-grow">
                             <h5 className="title is-5">{name && name !== "null" ? name : "Unknown name"}</h5>
@@ -52,8 +52,13 @@ const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
     if (hasnetwork) {
         // Transform properties to priorities: <unit>_<metric>_score
         const scores = {}
-        const units = ["se", "state"] // TODO: custom
+        const units = ["se", "state"]
         const metrics = ["gainmiles", "landcover", "sinuosity", "sizeclasses", "nc", "wc", "ncwc"]
+
+        scores.custom = {}
+        metrics.forEach(metric => {
+            scores.custom[metric] = barrier[`${metric}_score`]
+        })
 
         units.forEach(unit => {
             scores[unit] = {}
