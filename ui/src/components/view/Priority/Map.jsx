@@ -7,6 +7,7 @@ import { connect } from "react-redux"
 import * as actions from "../../../actions/priority"
 import Legend from "./Legend"
 import { FeaturePropType } from "../../../CustomPropTypes"
+import { recordsToGeoJSON } from "../../../utils/geojson"
 
 import { TILE_HOST } from "../../../config"
 import {
@@ -20,7 +21,9 @@ import {
     pointHighlight,
     backgroundPoint,
     excludedPoint,
-    includedPoint
+    includedPoint,
+    topRank,
+    lowerRank
 } from "./styles"
 import { LAYER_CONFIG } from "./config"
 import Map from "../../map/index"
@@ -85,13 +88,23 @@ class PriorityMap extends Component {
                 this.setLayerVisibility(false)
             }
 
-            if (prevMode === "filter") {
+            if (prevMode === "filter" && mode !== "results") {
                 this.removeBarrierFilterLayers()
             }
 
             if (mode === "filter") {
                 this.addBarrierFilterLayers()
+                map.setLayoutProperty("point-included", "visibility", "visible")
                 map.setLayoutProperty("point-no-network", "visibility", "visible")
+            }
+
+            if (prevMode === "results") {
+                this.removeRankedBarrierLayers()
+            }
+
+            if (mode === "results") {
+                map.setLayoutProperty("point-included", "visibility", "none")
+                this.addRankedBarrierLayers()
             }
         }
 
@@ -241,6 +254,40 @@ class PriorityMap extends Component {
         map.removeLayer("point-highlight")
     }
 
+    addRankedBarrierLayers = () => {
+        const { map } = this
+        const { rankData, scenario } = this.props
+
+        if (!rankData.size) return
+
+        const geojson = recordsToGeoJSON(rankData.toJS())
+        console.log(geojson)
+
+        map.addSource("ranked", {
+            type: "geojson",
+            data: geojson
+        })
+
+        map.addLayer(
+            fromJS(topRank)
+                .merge({ filter: ["==", `${scenario}_tier`, 1] })
+                .toJS()
+        )
+        map.addLayer(
+            fromJS(lowerRank)
+                .merge({ filter: [">", `${scenario}_tier`, 1] })
+                .toJS()
+        )
+    }
+
+    removeRankedBarrierLayers = () => {
+        const { map } = this
+
+        map.removeLayer("rank-top")
+        map.removeLayer("rank-low")
+        map.removeSource("ranked")
+    }
+
     handleCreateMap = map => {
         this.map = map
 
@@ -306,12 +353,12 @@ class PriorityMap extends Component {
                     }
                     break
                 }
-                case "prioritize": {
-                    const points = map.queryRenderedFeatures(e.point, { layers: ["dams-top", "dams-low", "dams-no"] })
+                case "results": {
+                    const points = map.queryRenderedFeatures(e.point, { layers: ["rank-top", "rank-low"] })
                     if (points.length > 0) {
                         const point = points[0]
                         console.log(point)
-                        selectFeature(fromJS(point.properties).merge({ layerId: point.sourceLayer, type: "dam" }))
+                        selectFeature(fromJS(point.properties))
                     }
                     break
                 }
@@ -324,7 +371,6 @@ class PriorityMap extends Component {
         const { mode, type } = this.props
 
         if (mode === "filter") {
-            // TODO: based on zoom
             if (zoom <= 5) {
                 return <Legend title={`Zoom in further to see selected ${type}`} />
             }
@@ -337,6 +383,44 @@ class PriorityMap extends Component {
                 }
             ]
             if (zoom >= 7) {
+                entries.push({
+                    label: `Not selected ${type}`,
+                    color: excludedPoint.paint["circle-color"],
+                    borderColor: excludedPoint.paint["circle-stroke-color"],
+                    size: 12
+                })
+            }
+            if (zoom >= 10) {
+                entries.push({
+                    label: `Off-network ${type}`,
+                    color: backgroundPoint.paint["circle-color"],
+                    size: 10
+                })
+            }
+
+            return <Legend entries={entries} />
+        }
+
+        if (mode === "results") {
+            if (zoom <= 5) {
+                return <Legend title={`Zoom in further to see top-ranked ${type}`} />
+            }
+
+            const entries = [
+                {
+                    label: `Top-ranked ${type}`,
+                    color: topRank.paint["circle-color"],
+                    size: 16
+                }
+            ]
+            if (zoom >= 7) {
+                // TODO: lower ranks
+                entries.push({
+                    label: `Lower-ranked ${type}`,
+                    color: lowerRank.paint["circle-color"],
+                    size: 16
+                })
+
                 entries.push({
                     label: `Not selected ${type}`,
                     color: excludedPoint.paint["circle-color"],
@@ -381,6 +465,7 @@ PriorityMap.propTypes = {
     layer: PropTypes.string,
     summaryUnits: ImmutablePropTypes.set.isRequired,
     mode: PropTypes.string.isRequired,
+    rankData: ImmutablePropTypes.listOf(ImmutablePropTypes.map).isRequired,
 
     setScenario: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired,
@@ -405,7 +490,8 @@ const mapStateToProps = globalState => {
         summaryUnits: state.get("summaryUnits"),
         filters: state.get("filters"),
         layer: state.get("layer"),
-        mode: state.get("mode")
+        mode: state.get("mode"),
+        rankData: state.get("rankData")
     }
 }
 

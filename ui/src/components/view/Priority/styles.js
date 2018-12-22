@@ -110,7 +110,7 @@ export const unitHighlightOutline = {
 
 export const backgroundPoint = {
     id: "point-no-network",
-    // soruce: "" // provided by specific layer
+    // source: "" // provided by specific layer
     // 'source-layer': '', // provided by specific layer
     type: "circle",
     minzoom: 10,
@@ -121,7 +121,6 @@ export const backgroundPoint = {
     },
     paint: {
         "circle-color": "#999",
-        // "circle-color": { stops: [[10, "#AAA"], [14, "#999"]] },
         "circle-radius": { stops: [[10, 0.5], [14, 4]] },
         "circle-opacity": { stops: [[10, 0.5], [14, 1]] },
         "circle-stroke-color": "#666",
@@ -132,15 +131,13 @@ export const backgroundPoint = {
 // points filtered OUT with networks
 export const excludedPoint = {
     id: "point-excluded",
-    // soruce: "" // provided by specific layer
+    // source: "" // provided by specific layer
     // 'source-layer': '', // provided by specific layer
     type: "circle",
     minzoom: 7,
     maxzoom: 24,
     // filter: compound filter, must include ["==", "hasnetwork", true]
     paint: {
-        // "circle-color": "#00F",
-        // "circle-radius": 5
         "circle-color": "#fbb4b9",
         "circle-stroke-color": "#c51b8a",
         "circle-radius": { stops: [[7, 0.5], [10, 4], [14, 6]] },
@@ -152,7 +149,7 @@ export const excludedPoint = {
 // points filtered IN with networks
 export const includedPoint = {
     id: "point-included",
-    // soruce: "" // provided by specific layer
+    // source: "" // provided by specific layer
     // 'source-layer': '', // provided by specific layer
     type: "circle",
     minzoom: 5,
@@ -169,7 +166,7 @@ export const includedPoint = {
 
 export const pointHighlight = {
     id: "point-highlight",
-    // soruce: "" // provided by specific layer
+    // source: "" // provided by specific layer
     // 'source-layer': '', // provided by specific layer
     type: "circle",
     minzoom: 5,
@@ -180,5 +177,37 @@ export const pointHighlight = {
         "circle-radius": 14,
         "circle-stroke-width": 3,
         "circle-stroke-color": "#f03b20"
+    }
+}
+
+export const topRank = {
+    id: "rank-top",
+    source: "ranked",
+    type: "circle",
+    minzoom: 5,
+    maxzoom: 24,
+    // filter:  // provided by specific layer
+    paint: {
+        "circle-color": "#c51b8a",
+        "circle-radius": { stops: [[5, 4], [6, 6], [14, 8]] },
+        "circle-opacity": { stops: [[5, 0.5], [6, 1]] },
+        "circle-stroke-color": "#FFFFFF",
+        "circle-stroke-width": { stops: [[6, 0.25], [7, 1], [14, 3]] }
+    }
+}
+
+export const lowerRank = {
+    id: "rank-low",
+    source: "ranked",
+    type: "circle",
+    minzoom: 7,
+    maxzoom: 24,
+    // filter:  // provided by specific layer
+    paint: {
+        "circle-color": "#d95f0e",
+        "circle-stroke-color": "#993404",
+        "circle-radius": { stops: [[7, 0.5], [10, 4], [14, 6]] },
+        "circle-opacity": { stops: [[10, 0.5], [14, 1]] },
+        "circle-stroke-width": { stops: [[10, 0], [11, 0.25], [14, 1]] }
     }
 }

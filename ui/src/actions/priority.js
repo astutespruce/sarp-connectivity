@@ -91,7 +91,6 @@ export function fetchRanks(layer, units, filters) {
             return row
         })
             .then(data => {
-                console.log(data)
                 dispatch(fetchSuccess(data))
             })
             .catch(error => {

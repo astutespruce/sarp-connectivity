@@ -32,6 +32,9 @@ export const toGeoJSON = (record, x = "lon", y = "lat") => {
     }
 }
 
-export const recordsToGeoJSON = records => records.map(toGeoJSON)
+export const recordsToGeoJSON = records => ({
+    type: "FeatureCollection",
+    features: records.map(r => toGeoJSON(r))
+})
 
 export default { labelToGeoJSON, labelsToGeoJSON }
