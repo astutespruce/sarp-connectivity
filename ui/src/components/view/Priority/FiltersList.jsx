@@ -57,10 +57,10 @@ function FiltersList({
             </div>
             <div id="SidebarContent">
                 <p className="text-help">
-                    Use the filters below to select the {type} that meet your needs. Click on a bar to select {type}{" "}
-                    with that value. Click on the bar again to unselect. You can combine multiple values across multiple
-                    filters to select the {type} that match ANY of those values within a filter and also have the values
-                    selected across ALL filters.
+                    [OPTIONAL] Use the filters below to select the {type} that meet your needs. Click on a bar to select{" "}
+                    {type} with that value. Click on the bar again to unselect. You can combine multiple values across
+                    multiple filters to select the {type} that match ANY of those values within a filter and also have
+                    the values selected across ALL filters.
                 </p>
                 <div style={{ marginTop: "1rem" }}>
                     {allFilters.map(f => (

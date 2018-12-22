@@ -2,6 +2,7 @@
 import { csv } from "d3-fetch"
 
 import { initCrossfilter } from "../filters"
+import { apiQueryParams } from "../utils/api"
 import { API_HOST } from "../config"
 
 export const PRIORITY_SET_SYSTEM = "PRIORITY_SET_SYSTEM"
@@ -47,12 +48,9 @@ export const setType = type => ({
 })
 
 export const PRIORITY_FETCH_START = "PRIORITY_FETCH_START"
-export const fetchStart = (layer, ids) => ({
+export const fetchStart = () => ({
     type: PRIORITY_FETCH_START,
-    payload: {
-        layer,
-        ids
-    }
+    payload: {}
 })
 
 export const PRIORITY_FETCH_SUCCESS = "PRIORITY_FETCH_SUCCESS"
@@ -71,14 +69,15 @@ export const fetchError = error => ({
 
 export function fetchRanks(layer, units, filters) {
     return dispatch => {
-        const ids = units.map(({ id }) => id)
-        const filterValues = Object.entries(filters).filter(([, v]) => v.length > 0) // .map(([, v]) => v.join(','))
+        // const ids = units.map(({ id }) => id)
+        // const filterValues = Object.entries(filters).filter(([, v]) => v.length > 0)
 
-        let url = `${API_HOST}/api/v1/dams/rank/${layer}?id=${ids.join(",")}`
-        if (filterValues) {
-            url += filterValues.map(([k, v]) => `&${k}=${v.join(",")}`)
-            // url += `&filter=${filterValues}`
-        }
+        // let url = `${API_HOST}/api/v1/dams/rank/${layer}?id=${ids.join(",")}`
+        // if (filterValues) {
+        //     url += `&${filterValues.map(([k, v]) => `${k}=${v.join(",")}`).join("&")}`
+        // }
+
+        const url = `${API_HOST}/api/v1/dams/rank/${layer}?${apiQueryParams(units, filters)}`
 
         csv(url, row => {
             // Convert fields to floating point or int as needed
@@ -99,17 +98,14 @@ export function fetchRanks(layer, units, filters) {
                 console.error(error)
                 dispatch(fetchError(error))
             })
-        return dispatch(fetchStart(layer, ids))
+        return dispatch(fetchStart())
     }
 }
 
 export const FETCH_QUERY_START = "FETCH_QUERY_START"
-export const fetchQueryStart = (layer, ids) => ({
+export const fetchQueryStart = () => ({
     type: FETCH_QUERY_START,
-    payload: {
-        layer,
-        ids
-    }
+    payload: {}
 })
 
 export const FETCH_QUERY_SUCCESS = "FETCH_QUERY_SUCCESS"
@@ -129,8 +125,9 @@ export const fetchQueryError = error => ({
 })
 
 export const fetchQuery = (layer, units) => dispatch => {
-    const ids = units.map(({ id }) => id)
-    csv(`${API_HOST}/api/v1/dams/query/${layer}?id=${ids.join(",")}`, row => {
+    const url = `${API_HOST}/api/v1/dams/query/${layer}?${apiQueryParams(units)}`
+
+    csv(url, row => {
         // convert everything to integer
         Object.keys(row).forEach(f => {
             row[f] = parseInt(row[f], 10)
@@ -146,7 +143,7 @@ export const fetchQuery = (layer, units) => dispatch => {
             console.error(error)
             dispatch(fetchQueryError(error))
         })
-    return dispatch(fetchQueryStart(layer, ids))
+    return dispatch(fetchQueryStart())
 }
 
 export const SET_FILTER = "SET_FILTER"

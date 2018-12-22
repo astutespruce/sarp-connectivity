@@ -27,6 +27,8 @@ FILTER_FIELDS = [
     "SizeClasses",
 ]
 
+filterFieldMap = {f.lower(): f for f in FILTER_FIELDS}
+
 
 # Read source data into memory
 dams = read_dataframe("data/derived/dams.feather").set_index(["id"])
@@ -58,7 +60,7 @@ def rank(layer="HUC8"):
 
     Query parameters:
     * id: list of ids
-    * filter: TBD
+    * filters are defined using a lowercased version of column name and a comma-delimited list of values
 
     Parameters
     ----------
@@ -77,8 +79,16 @@ def rank(layer="HUC8"):
     if not ids:
         abort(400, "id must be non-empty")
 
-    # TODO: validate that rows were returned for these ids
-    df = dams_with_network[dams[layer].isin(ids)].copy()
+    filters = dams_with_network[layer].isin(ids)
+
+    filterKeys = [a for a in request.args if not a == "id"]
+    # TODO: make this more efficient
+    for filter in filterKeys:
+        # convert all incoming to integers
+        values = [int(x) for x in request.args.get(filter).split(",")]
+        filters = filters & dams_with_network[filterFieldMap[filter]].isin(values)
+
+    df = dams_with_network.loc[filters].copy()
     nrows = len(df.index)
 
     log.info("selected {} dams".format(nrows))
@@ -154,7 +164,7 @@ def download_dams(layer="HUC8", format="CSV"):
 
     Query parameters:
     * ids: list of ids
-    * filter: TBD
+    * filters are defined using a lowercased version of column name and a comma-delimited list of values
     * include_unranked: bool
 
     Parameters
@@ -162,8 +172,8 @@ def download_dams(layer="HUC8", format="CSV"):
     layer : str (default: HUC8)
         Layer to use for subsetting by ID.  One of: HUC6, HUC8, HUC12, State, ... TBD
             
-    format : str (default: CSV)
-        Format for download.  One of: CSV, SHP
+    format : str (default: csv)
+        Format for download.  One of: csv, shp
     """
 
     args = request.args
@@ -175,13 +185,23 @@ def download_dams(layer="HUC8", format="CSV"):
         layer = "COUNTYFIPS"
 
     include_unranked = args.get("include_unranked", True)
+    if include_unranked:
+        df = dams
+    else:
+        df = dams_with_network
 
     ids = request.args.get("id", "").split(",")
     if not ids:
         abort(400, "id must be non-empty")
 
-    # TODO: validate that rows were returned for these ids
-    df = dams[dams[layer].isin(ids)].copy()
+    filters = df[layer].isin(ids)
+    filterKeys = [a for a in request.args if not a == "id"]
+    for filter in filterKeys:
+        # convert all incoming to integers
+        values = [int(x) for x in request.args.get(filter).split(",")]
+        filters = filters & df[filterFieldMap[filter]].isin(values)
+
+    df = df.loc[filters].copy()
     nrows = len(df.index)
 
     log.info("selected {} dams".format(nrows))

@@ -179,7 +179,6 @@ class PriorityMap extends Component {
 
         const inExpr = inclusive ? "in" : "!in"
 
-        console.log("filters", filters.toJS())
         const filterValues = Object.entries(filters.toJS())
             .filter(([, v]) => v.length > 0)
             .map(([k, v]) => [inExpr, k, ...v])
@@ -190,7 +189,6 @@ class PriorityMap extends Component {
         } else {
             filterExpr = ["all", ["==", "hasnetwork", true], ["any", [inExpr, layer, ...unitIds], ...filterValues]]
         }
-        console.log("filterExpr", filterExpr)
 
         return filterExpr
     }

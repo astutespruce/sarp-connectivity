@@ -13,6 +13,7 @@ import Barrier from "../../barriers/Barrier"
 import LayerChooser from "./LayerChooser"
 import UnitChooser from "./UnitsList"
 import FiltersList from "./FiltersList"
+import Results from "./Results"
 
 const Priority = ({ type, mode, selectedFeature, layer, selectFeature, setType, setMode }) => {
     let content = null
@@ -33,25 +34,12 @@ const Priority = ({ type, mode, selectedFeature, layer, selectFeature, setType, 
                 content = <FiltersList />
                 break
             }
-            case "prioritize": {
-                content = (
-                    <div>
-                        <a href="#" onClick={() => setMode("select")}>
-                            <span className="fa fa-reply" />
-                            &nbsp; select other summary units
-                        </a>
-                        <p>TODO: show priorities on map and summary info here</p>
-                        <button type="button" className="button" onClick={() => setMode("default")}>
-                            start over
-                        </button>
-                    </div>
-                )
+            case "results": {
+                content = <Results />
                 break
             }
         }
     }
-
-    // content = <FeatureDetails selectedFeature={selectedFeature} onClose={() => selectFeature(null)} />
 
     return (
         <React.Fragment>

@@ -9,9 +9,14 @@ import {
     PRIORITY_SET_MODE,
     PRIORITY_SET_TYPE,
     SET_FILTER,
+    FETCH_QUERY_START,
     FETCH_QUERY_SUCCESS,
+    FETCH_QUERY_FAILURE,
     TOGGLE_FILTER_CLOSED,
-    RESET_FILTERS
+    RESET_FILTERS,
+    PRIORITY_FETCH_START,
+    PRIORITY_FETCH_SUCCESS,
+    PRIORITY_FETCH_FAILURE
 } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
@@ -20,15 +25,15 @@ import { allFilters, getDimensionCounts, getTotalFilteredCount } from "../filter
 allFilters.reduce((out, item) => out.set(item, Set()), Map())
 
 const initialState = Map({
-    mode: "default", // mode or step in selection process: "default" (initial), "select", "filter", "prioritize"
+    mode: "select", // mode or step in selection process: "default" (initial), "select", "filter", "results"
     bounds: SARP_BOUNDS, // SARP bounds
     // bounds: List([-85.03324716546452, 32.63585392698306, -84.15434091546213, 32.96541554455193]),
     prevBounds: List(), // push previous bounds here
     scenario: "NCWC", // NC, WC, NCWC, or *_NC, *_WC, *_NCWC
-    layer: null, // HUC*, ECO*, State
-    summaryUnits: Set(), // set of specific IDs from the summary unit layer
-    type: null, // dams or barriers; not set until chosen by user
-    data: null,
+    layer: "State", // HUC*, ECO*, State
+    summaryUnits: Set([{ id: "Alabama" }]), // set of specific IDs from the summary unit layer
+    type: "dams", // null, // dams or barriers; not set until chosen by user
+    rankData: null,
 
     // filter state
     filtersLoaded: false,
@@ -114,6 +119,13 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             const { filter, isClosed } = payload
             const closed = state.get("closedFilters")
             return state.set("closedFilters", closed.set(filter, isClosed))
+        }
+        case PRIORITY_FETCH_SUCCESS: {
+            const { data } = payload
+            return state.merge({
+                mode: "results",
+                rankData: data
+            })
         }
         default: {
             return state
