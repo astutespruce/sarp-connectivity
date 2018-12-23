@@ -11,12 +11,12 @@ import {
     SET_FILTER,
     FETCH_QUERY_START,
     FETCH_QUERY_SUCCESS,
-    FETCH_QUERY_FAILURE,
+    FETCH_QUERY_ERROR,
     TOGGLE_FILTER_CLOSED,
     RESET_FILTERS,
     PRIORITY_FETCH_START,
     PRIORITY_FETCH_SUCCESS,
-    PRIORITY_FETCH_FAILURE
+    PRIORITY_FETCH_ERROR
 } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
@@ -40,7 +40,10 @@ const initialState = Map({
     filters: allFilters.reduce((out, item) => out.set(item, Set()), Map()),
     dimensionCounts: Map(), // Map of Map of ints
     totalCount: 0,
-    closedFilters: allFilters.reduce((out, item, i) => out.set(item, i >= 0), Map())
+    closedFilters: allFilters.reduce((out, item, i) => out.set(item, i >= 0), Map()),
+
+    isLoading: false,
+    isError: false
 })
 
 export const reducer = (state = initialState, { type, payload = {} }) => {
@@ -110,13 +113,24 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
                 totalCount: getTotalFilteredCount()
             })
         }
+        case FETCH_QUERY_START: {
+            return state.set("isLoading", true)
+        }
+        case FETCH_QUERY_ERROR: {
+            return state.merge({
+                isLoading: false,
+                isError: true
+            })
+        }
         case FETCH_QUERY_SUCCESS: {
             return state.merge({
                 filtersLoaded: true,
                 filters: allFilters.reduce((out, item) => out.set(item, Set()), Map()),
                 dimensionCounts: fromJS(getDimensionCounts()),
                 totalCount: getTotalFilteredCount(),
-                mode: "filter"
+                mode: "filter",
+                isLoading: false,
+                isError: false
             })
         }
         case TOGGLE_FILTER_CLOSED: {
@@ -124,11 +138,22 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             const closed = state.get("closedFilters")
             return state.set("closedFilters", closed.set(filter, isClosed))
         }
+        case PRIORITY_FETCH_START: {
+            return state.set("isLoading", true)
+        }
+        case PRIORITY_FETCH_ERROR: {
+            return state.merge({
+                isLoading: false,
+                isError: true
+            })
+        }
         case PRIORITY_FETCH_SUCCESS: {
             const { data } = payload
             return state.merge({
                 mode: "results",
-                rankData: fromJS(data)
+                rankData: fromJS(data),
+                isLoading: false,
+                isError: false
             })
         }
         default: {

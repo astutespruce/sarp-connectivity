@@ -69,14 +69,6 @@ export const fetchError = error => ({
 
 export function fetchRanks(layer, units, filters) {
     return dispatch => {
-        // const ids = units.map(({ id }) => id)
-        // const filterValues = Object.entries(filters).filter(([, v]) => v.length > 0)
-
-        // let url = `${API_HOST}/api/v1/dams/rank/${layer}?id=${ids.join(",")}`
-        // if (filterValues) {
-        //     url += `&${filterValues.map(([k, v]) => `${k}=${v.join(",")}`).join("&")}`
-        // }
-
         const url = `${API_HOST}/api/v1/dams/rank/${layer}?${apiQueryParams(units, filters)}`
 
         csv(url, row => {

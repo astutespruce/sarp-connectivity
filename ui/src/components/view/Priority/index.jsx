@@ -2,6 +2,8 @@ import React from "react"
 import PropTypes from "prop-types"
 import { connect } from "react-redux"
 
+import "bulma-pageloader/dist/css/bulma-pageloader.min.css"
+
 import * as actions from "../../../actions/priority"
 import Start from "./Start"
 import Map from "./Map"
@@ -15,10 +17,33 @@ import UnitChooser from "./UnitsList"
 import FiltersList from "./FiltersList"
 import Results from "./Results"
 
-const Priority = ({ type, mode, selectedFeature, layer, selectFeature, setType, setMode }) => {
+const Priority = ({ isLoading, isError, type, mode, selectedFeature, layer, selectFeature, setType }) => {
     let content = null
 
-    if (selectedFeature !== null) {
+    if (isError) {
+        content = (
+            <div className="container notification-container flex-container-column flex-justify-center flex-grow">
+                <div className="notification is-error">
+                    <i className="fas fa-exclamation-triangle" />
+                    &nbsp; Whoops! There was an error loading these data. Please refresh your browser page and try
+                    again.
+                </div>
+                <p className="text-help">
+                    If it happens again, please <a href="mailto:kat@southeastaquatics.net">contact us</a>.
+                </p>
+            </div>
+        )
+
+        return content
+    }
+    if (isLoading) {
+        content = (
+            <div className="loading-spinner flex-container flex-justify-center flex-align-center">
+                <div className="fas fa-sync fa-spin" />
+                <p>Loading...</p>
+            </div>
+        )
+    } else if (selectedFeature !== null) {
         content = <Barrier barrier={selectedFeature.toJS()} onClose={() => selectFeature(null)} />
     } else {
         switch (mode) {
@@ -58,6 +83,8 @@ const Priority = ({ type, mode, selectedFeature, layer, selectFeature, setType, 
 }
 
 Priority.propTypes = {
+    isLoading: PropTypes.bool.isRequired,
+    isError: PropTypes.bool.isRequired,
     type: PropTypes.string,
     mode: PropTypes.string.isRequired,
     selectedFeature: FeaturePropType,
@@ -70,9 +97,9 @@ Priority.propTypes = {
 
     setType: PropTypes.func.isRequired,
     // setLayer: PropTypes.func.isRequired,
-    selectFeature: PropTypes.func.isRequired,
+    selectFeature: PropTypes.func.isRequired
     // selectUnit: PropTypes.func.isRequired,
-    setMode: PropTypes.func.isRequired
+    // setMode: PropTypes.func.isRequired
     // fetchQuery: PropTypes.func.isRequired,
     // fetchRanks: PropTypes.func.isRequired
 }
@@ -87,6 +114,8 @@ const mapStateToProps = globalState => {
     const state = globalState.get("priority")
 
     return {
+        isLoading: state.get("isLoading"),
+        isError: state.get("isError"),
         type: state.get("type"),
         mode: state.get("mode"),
         system: state.get("system"),
