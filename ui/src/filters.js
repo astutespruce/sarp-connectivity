@@ -57,11 +57,11 @@ export const filterConfig = {
 
 export const allFilters = [
     "feasibility",
+    "gainmilesclass",
     "heightclass",
     "sizeclasses",
     "raresppclass",
-    "streamorderclass",
-    "gainmilesclass"
+    "streamorderclass"
 ]
 
 export function initCrossfilter(data) {

@@ -27,7 +27,7 @@ import {
 } from "./styles"
 import { LAYER_CONFIG } from "./config"
 import Map from "../../map/index"
-import { SCENARIOS } from "../../map/config";
+import { SCENARIOS } from "../../map/config"
 
 // Construct colors for mapbox GL layers in advance
 // const priorityColors = PRIORITY_TIER_COLORS.reduce((out, color, i) => out.concat([i, color]), [])
@@ -45,7 +45,7 @@ class PriorityMap extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        const { map, layers } = this
+        const { map } = this
         if (map === null) return
 
         const {
@@ -58,16 +58,12 @@ class PriorityMap extends Component {
         } = prevProps
         const { scenario, summaryUnits, layer, selectedFeature, mode, filters } = this.props
 
+        // Only changes on select / deselect of a barrier
         if (selectedFeature !== prevSelectedFeature) {
             this.updateBarrierHighlight()
         }
 
-        if (summaryUnits !== prevSummaryUnits) {
-            if (layer !== null) {
-                this.updateUnitHighlight()
-            }
-        }
-
+        // Only happens on start over or when going back from a selected layer
         if (layer !== prevLayer) {
             if (prevLayer !== null) {
                 this.removeUnitLayers()
@@ -78,29 +74,41 @@ class PriorityMap extends Component {
             }
         }
 
+        // Only changes on select / deselect of summary units, which is limited to select mode
+        if (summaryUnits !== prevSummaryUnits) {
+            if (layer !== null) {
+                this.updateUnitHighlight()
+            }
+        }
+
+        // Only happens in results view
         if (scenario !== prevScenario) {
             map.setFilter("rank-top", ["==", `${scenario}_tier`, 1])
             map.setFilter("rank-low", [">", `${scenario}_tier`, 1])
         }
 
         if (mode !== prevMode) {
-            // modes other than filter or prioritize will have null layers, and be covered above
-            // this.setLayerVisibility(mode === "select" && layer !== null)
-
             if (mode === "select") {
-                this.setLayerVisibility(true)
-                map.setLayoutProperty("point-no-network", "visibility", "none")
+                this.setUnitLayerVisibility(true)
             } else {
-                this.setLayerVisibility(false)
+                this.setUnitLayerVisibility(false)
             }
 
             if (prevMode === "filter" && mode !== "results") {
                 this.removeBarrierFilterLayers()
             }
 
+            if ((prevMode === "filter" || prevMode === "results") && (mode !== "filter" && mode !== "results")) {
+                map.setLayoutProperty("point-no-network", "visibility", "none")
+            }
+
             if (mode === "filter") {
-                this.addBarrierFilterLayers()
-                // map.setLayoutProperty("point-included", "visibility", "visible")
+                if (prevMode === "results") {
+                    this.setFilterLayerTransparency(false)
+                } else {
+                    this.addBarrierFilterLayers()
+                }
+
                 map.setLayoutProperty("point-no-network", "visibility", "visible")
             }
 
@@ -109,18 +117,12 @@ class PriorityMap extends Component {
             }
 
             if (mode === "results") {
-                // map.setLayoutProperty("point-included", "visibility", "none")
-                // make transparent
-                map.setPaintProperty("point-included", "circle-color", "rgba(0,0,0,0)")
-                map.setPaintProperty("point-included", "circle-stroke-color", "rgba(0,0,0,0)")
+                this.setFilterLayerTransparency(true)
                 this.addRankedBarrierLayers()
-                // move highlight to top
-                /* eslint-disable no-underscore-dangle */
-                map.moveLayer("point-highlight", map.style._layers.length)
             }
         }
 
-        if (filters !== prevFilters && mode === "filter") {
+        if (mode === "filter" && filters !== prevFilters) {
             this.updateBarrierFilters()
         }
     }
@@ -137,12 +139,18 @@ class PriorityMap extends Component {
     }
 
     updateBarrierHighlight = () => {
+        const { map } = this
         const { selectedFeature } = this.props
+
+        // make sure it is on top
+        /* eslint-disable no-underscore-dangle */
+        map.moveLayer("point-highlight", map.style._layers.length)
+
         const filterExpr = selectedFeature !== null ? ["==", "id", selectedFeature.get("id")] : ["==", "id", Infinity]
         this.map.setFilter("point-highlight", filterExpr)
     }
 
-    setLayerVisibility = visible => {
+    setUnitLayerVisibility = visible => {
         // set fill and outline layer visibility
         const { map } = this
 
@@ -157,6 +165,22 @@ class PriorityMap extends Component {
         if (map.getLayer("unit-parent-outline")) {
             map.setLayoutProperty("unit-parent-outline", "visibility", visibility)
         }
+    }
+
+    setFilterLayerTransparency = transparent => {
+        const { map } = this
+
+        const layer = map.getLayer("point-included")
+
+        if (!layer) return
+
+        const transparentColor = "rgba(0, 0, 0, 0)"
+
+        layer.setPaintProperty("circle-color", transparent ? transparentColor : includedPoint.paint["circle-color"])
+        layer.setPaintProperty(
+            "circle-stroke-color",
+            transparent ? transparentColor : includedPoint.paint["circle-stroke-color"]
+        )
     }
 
     addUnitLayers = () => {
@@ -243,17 +267,13 @@ class PriorityMap extends Component {
                 })
                 .toJS()
         )
-
-        // add highlight layer last so it is on top
-        map.addLayer(
-            fromJS(pointHighlight)
-                .merge(config)
-                .toJS()
-        )
     }
 
     updateBarrierFilters = () => {
         const { map } = this
+
+        if (!map.getLayer("point-included")) return
+
         map.setFilter("point-excluded", this.getBarrierFilter(false))
         map.setFilter("point-included", this.getBarrierFilter(true))
     }
@@ -261,9 +281,10 @@ class PriorityMap extends Component {
     removeBarrierFilterLayers = () => {
         const { map } = this
 
+        if (!map.getLayer("point-included")) return
+
         map.removeLayer("point-excluded")
         map.removeLayer("point-included")
-        map.removeLayer("point-highlight")
     }
 
     addRankedBarrierLayers = () => {
@@ -291,7 +312,6 @@ class PriorityMap extends Component {
                 .merge({ filter: ["==", `${scenario}_tier`, 1] })
                 .toJS()
         )
-        
     }
 
     removeRankedBarrierLayers = () => {
@@ -328,15 +348,22 @@ class PriorityMap extends Component {
             })
 
             // Add the background (no network) points up front, but not visible
-            // these don't change style based on any props
+            const barriersConfig = fromJS({
+                source: type,
+                "source-layer": type
+            })
+
             map.addLayer(
                 fromJS(backgroundPoint)
-                    .merge(
-                        fromJS({
-                            source: type,
-                            "source-layer": type
-                        })
-                    )
+                    .merge(barriersConfig)
+                    .toJS()
+            )
+
+            // Add highlight layer.  Note: on subsequent additions of layers, move this to the top.
+            // Always visible and only based on filter by ID
+            map.addLayer(
+                fromJS(pointHighlight)
+                    .merge(barriersConfig)
                     .toJS()
             )
         })
@@ -344,6 +371,7 @@ class PriorityMap extends Component {
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
         map.on("click", e => {
             const { layer, selectFeature, selectUnit, mode } = this.props
+            const { zoom } = this.state
 
             switch (mode) {
                 case "select": {
@@ -356,6 +384,7 @@ class PriorityMap extends Component {
                     break
                 }
                 case "filter": {
+                    if (zoom < 9) return
                     const points = map.queryRenderedFeatures(e.point, {
                         layers: ["point-no-network", "point-excluded", "point-included"]
                     })
@@ -378,11 +407,14 @@ class PriorityMap extends Component {
                         if (point.source === "ranked") {
                             const { id } = point.properties
                             const { x, y } = e.point
-                            const dist = 4
+                            const dist = zoom / 2
                             const window = [[x - dist, y - dist], [x + dist, y + dist]]
-                            const nearby = map.queryRenderedFeatures(window, { layers: ["point-included"] })
-                            const tilePoint = nearby.filter(({ properties: { id: ptId } }) => ptId === id)[0]
-                            selectFeature(fromJS(tilePoint.properties).mergeDeep(fromJS(point.properties)))
+                            const nearby = map
+                                .queryRenderedFeatures(window, { layers: ["point-included"] })
+                                .filter(({ properties: { id: ptId } }) => ptId === id)
+                            if (nearby.length > 0) {
+                                selectFeature(fromJS(nearby[0].properties).mergeDeep(fromJS(point.properties)))
+                            }
                         } else {
                             selectFeature(fromJS(point.properties))
                         }
