@@ -105,7 +105,7 @@ class PriorityMap extends Component {
 
             if (mode === "filter") {
                 if (prevMode === "results") {
-                    this.setFilterLayerTransparency(false)
+                    this.setFilterLayerVisibility(true)
                 } else {
                     this.addBarrierFilterLayers()
                 }
@@ -118,7 +118,7 @@ class PriorityMap extends Component {
             }
 
             if (mode === "results") {
-                this.setFilterLayerTransparency(true)
+                this.setFilterLayerVisibility(false)
                 this.addRankedBarrierLayers()
             }
         }
@@ -168,7 +168,7 @@ class PriorityMap extends Component {
         }
     }
 
-    setFilterLayerTransparency = transparent => {
+    setFilterLayerVisibility = visible => {
         const { map } = this
 
         const layer = map.getLayer("point-included")
@@ -176,10 +176,7 @@ class PriorityMap extends Component {
         if (!layer) return
 
         // have to flip layout state to force refresh
-        layer.setLayoutProperty("visibility", "none")
-        layer.setPaintProperty("circle-opacity", transparent ? 0 : includedPoint.paint["circle-opacity"])
-        layer.setLayoutProperty("visibility", "visible")
-
+        layer.setLayoutProperty("visibility", visible ? "visible" : "none")
     }
 
     addUnitLayers = () => {
@@ -370,7 +367,7 @@ class PriorityMap extends Component {
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
         map.on("click", e => {
-            const { layer, selectFeature, selectUnit, mode } = this.props
+            const { type, layer, selectFeature, selectUnit, mode } = this.props
             const { zoom } = this.state
 
             switch (mode) {
@@ -406,14 +403,22 @@ class PriorityMap extends Component {
 
                         if (point.source === "ranked") {
                             const { id } = point.properties
-                            const { x, y } = e.point
-                            const dist = zoom / 2
-                            const window = [[x - dist, y - dist], [x + dist, y + dist]]
-                            const nearby = map
-                                .queryRenderedFeatures(window, { layers: ["point-included"] })
-                                .filter(({ properties: { id: ptId } }) => ptId === id)
-                            if (nearby.length > 0) {
-                                selectFeature(fromJS(nearby[0].properties).mergeDeep(fromJS(point.properties)))
+                            // const { x, y } = e.point
+                            // const dist = zoom / 2
+                            // const window = [[x - dist, y - dist], [x + dist, y + dist]]
+                            // const nearby = map
+                            //     .queryRenderedFeatures(window, { layers: ["point-included"] })
+                            //     .filter(({ properties: { id: ptId } }) => ptId === id)
+                            // if (nearby.length > 0) {
+                            //     selectFeature(fromJS(nearby[0].properties).mergeDeep(fromJS(point.properties)))
+                            // }
+                            const tilePoints = map.querySourceFeatures(type, {
+                                sourceLayer: type,
+                                filter: ["==", "id", id]
+                            })
+                            console.log("tilePoints", tilePoints)
+                            if (tilePoints.length) {
+                                selectFeature(fromJS(tilePoints[0].properties).mergeDeep(fromJS(point.properties)))
                             }
                         } else {
                             selectFeature(fromJS(point.properties))
@@ -466,7 +471,7 @@ class PriorityMap extends Component {
                 return <Legend title={`Zoom in further to see top-ranked ${type}`} />
             }
 
-            const tierLabel = tierThreshold === 1 ? 'tier 1' : `tiers 1 - ${tierThreshold}`
+            const tierLabel = tierThreshold === 1 ? "tier 1" : `tiers 1 - ${tierThreshold}`
             const entries = [
                 {
                     label: `Top-ranked ${type} (${tierLabel})`,
@@ -575,7 +580,7 @@ const mapStateToProps = globalState => {
         layer: state.get("layer"),
         mode: state.get("mode"),
         rankData: state.get("rankData"),
-        tierThreshold: state.get('tierThreshold')
+        tierThreshold: state.get("tierThreshold")
     }
 }
 
