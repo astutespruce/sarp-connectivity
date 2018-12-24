@@ -54,9 +54,10 @@ class PriorityMap extends Component {
             layer: prevLayer,
             selectedFeature: prevSelectedFeature,
             mode: prevMode,
-            filters: prevFilters
+            filters: prevFilters,
+            tierThreshold: prevTierThreshold
         } = prevProps
-        const { scenario, summaryUnits, layer, selectedFeature, mode, filters } = this.props
+        const { scenario, summaryUnits, layer, selectedFeature, mode, filters, tierThreshold } = this.props
 
         // Only changes on select / deselect of a barrier
         if (selectedFeature !== prevSelectedFeature) {
@@ -82,9 +83,9 @@ class PriorityMap extends Component {
         }
 
         // Only happens in results view
-        if (scenario !== prevScenario) {
-            map.setFilter("rank-top", ["==", `${scenario}_tier`, 1])
-            map.setFilter("rank-low", [">", `${scenario}_tier`, 1])
+        if (scenario !== prevScenario || tierThreshold !== prevTierThreshold) {
+            map.setFilter("rank-top", ["<=", `${scenario}_tier`, tierThreshold])
+            map.setFilter("rank-low", [">", `${scenario}_tier`, tierThreshold])
         }
 
         if (mode !== prevMode) {
@@ -174,13 +175,11 @@ class PriorityMap extends Component {
 
         if (!layer) return
 
-        const transparentColor = "rgba(0, 0, 0, 0)"
+        // have to flip layout state to force refresh
+        layer.setLayoutProperty("visibility", "none")
+        layer.setPaintProperty("circle-opacity", transparent ? 0 : includedPoint.paint["circle-opacity"])
+        layer.setLayoutProperty("visibility", "visible")
 
-        layer.setPaintProperty("circle-color", transparent ? transparentColor : includedPoint.paint["circle-color"])
-        layer.setPaintProperty(
-            "circle-stroke-color",
-            transparent ? transparentColor : includedPoint.paint["circle-stroke-color"]
-        )
     }
 
     addUnitLayers = () => {
@@ -289,12 +288,11 @@ class PriorityMap extends Component {
 
     addRankedBarrierLayers = () => {
         const { map } = this
-        const { rankData, scenario } = this.props
+        const { rankData, scenario, tierThreshold } = this.props
 
         if (!rankData.size) return
 
         const geojson = recordsToGeoJSON(rankData.toJS())
-        console.log(geojson)
 
         map.addSource("ranked", {
             type: "geojson",
@@ -303,19 +301,21 @@ class PriorityMap extends Component {
 
         map.addLayer(
             fromJS(lowerRank)
-                .merge({ filter: [">", `${scenario}_tier`, 1] })
+                .merge({ filter: [">", `${scenario}_tier`, tierThreshold] })
                 .toJS()
         )
 
         map.addLayer(
             fromJS(topRank)
-                .merge({ filter: ["==", `${scenario}_tier`, 1] })
+                .merge({ filter: ["<=", `${scenario}_tier`, tierThreshold] })
                 .toJS()
         )
     }
 
     removeRankedBarrierLayers = () => {
         const { map } = this
+
+        if (!map.getLayer("rank-top")) return
 
         map.removeLayer("rank-top")
         map.removeLayer("rank-low")
@@ -427,7 +427,7 @@ class PriorityMap extends Component {
 
     renderLegend() {
         const { zoom } = this.state
-        const { mode, type } = this.props
+        const { mode, type, tierThreshold } = this.props
 
         if (mode === "filter") {
             if (zoom <= includedPoint.minzoom) {
@@ -453,6 +453,7 @@ class PriorityMap extends Component {
                 entries.push({
                     label: `Off-network ${type}`,
                     color: backgroundPoint.paint["circle-color"],
+                    borderColor: backgroundPoint.paint["circle-stroke-color"],
                     size: 10
                 })
             }
@@ -465,9 +466,10 @@ class PriorityMap extends Component {
                 return <Legend title={`Zoom in further to see top-ranked ${type}`} />
             }
 
+            const tierLabel = tierThreshold === 1 ? 'tier 1' : `tiers 1 - ${tierThreshold}`
             const entries = [
                 {
-                    label: `Top-ranked ${type}`,
+                    label: `Top-ranked ${type} (${tierLabel})`,
                     color: topRank.paint["circle-color"],
                     size: 16
                 }
@@ -492,6 +494,7 @@ class PriorityMap extends Component {
                 entries.push({
                     label: `Off-network ${type}`,
                     color: backgroundPoint.paint["circle-color"],
+                    borderColor: backgroundPoint.paint["circle-stroke-color"],
                     size: 10
                 })
             }
@@ -545,6 +548,7 @@ PriorityMap.propTypes = {
     summaryUnits: ImmutablePropTypes.set.isRequired,
     mode: PropTypes.string.isRequired,
     rankData: ImmutablePropTypes.listOf(ImmutablePropTypes.map).isRequired,
+    tierThreshold: PropTypes.number.isRequired,
 
     setScenario: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired,
@@ -570,7 +574,8 @@ const mapStateToProps = globalState => {
         filters: state.get("filters"),
         layer: state.get("layer"),
         mode: state.get("mode"),
-        rankData: state.get("rankData")
+        rankData: state.get("rankData"),
+        tierThreshold: state.get('tierThreshold')
     }
 }
 

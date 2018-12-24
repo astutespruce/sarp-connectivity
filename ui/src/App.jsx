@@ -7,12 +7,11 @@ import Home from "./components/view/Home"
 import Download from "./components/view/Download"
 import Priority from "./components/view/Priority"
 import Summary from "./components/view/Summary"
-import TestFilter from "./test/TestFilter"
 import NotFound from "./components/view/NotFound"
-// import Find from "./components/view/Find"
 
 // testing
 import Heatmap from "./components/view/Heatmap"
+import TestHistogram from "./test/TestHistogram"
 
 const App = () => (
     <div className="flex-container-column full-height fill-viewport">
@@ -25,8 +24,7 @@ const App = () => (
                 <Route exact path="/priority" component={Priority} />
 
                 {/* FIXME! */}
-                {/* <Route exact path="/find" component={Find} /> */}
-                <Route exact path="/test" component={TestFilter} />
+                <Route exact path="/test" component={TestHistogram} />
 
                 <Route exact path="/heatmap" component={Heatmap} />
 

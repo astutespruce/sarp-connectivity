@@ -2,8 +2,6 @@ import React from "react"
 import PropTypes from "prop-types"
 import { connect } from "react-redux"
 
-import "bulma-pageloader/dist/css/bulma-pageloader.min.css"
-
 import * as actions from "../../../actions/priority"
 import Start from "./Start"
 import Map from "./Map"

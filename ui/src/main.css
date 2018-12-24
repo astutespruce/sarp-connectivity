@@ -498,6 +498,10 @@ button.link.link-back {
     padding-bottom: 1rem;
 }
 
+#SidebarContent input[type="range"] {
+    margin: 0 1em;
+}
+
 #MapContainer {
     position: absolute;
     left: 400px;
@@ -529,7 +533,7 @@ button.link.link-back {
 }
 
 #Legend .legend-row + .legend-row {
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
 }
 
 .legend-patch {
@@ -549,6 +553,7 @@ button.link.link-back {
 
 .legend-patch-point {
     border: 1px solid transparent;
+    flex-shrink: 0;
 }
 
 .legend-label {
@@ -683,7 +688,30 @@ button.link.link-back {
 }
 
 .notification.is-error {
-    background: #922349;
+    background: #c51b8a;
     color: white;
     font-size: 1.2em;
+}
+
+.histogram {
+    /* margin: 2rem; */
+}
+.histogram .histogram-bars {
+    padding: 0.25rem 0;
+}
+.histogram .histogram-label {
+    width: 4em;
+    text-align: right;
+    margin-right: 0.25em;
+}
+.histogram .bar-container {
+    padding: 0.1em 0;
+    border-left: 1px solid #aaa;
+}
+.histogram .bar {
+    height: 1rem;
+    background: #2c7fb8;
+}
+.histogram .bar.top {
+    background: #c51b8a;
 }

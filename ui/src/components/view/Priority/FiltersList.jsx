@@ -40,7 +40,7 @@ function FiltersList({
                     &nbsp; modify area of interest
                 </button>
                 <h4 className="title is-4 no-margin">Filter {type}</h4>
-                <div className="has-text-gray flex-container flex-justify-space-between">
+                <div className="has-text-grey flex-container flex-justify-space-between">
                     <div>{formatNumber(totalCount, 0)} selected</div>
                     {hasFilters ? (
                         <button

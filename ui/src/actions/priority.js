@@ -83,6 +83,7 @@ export function fetchRanks(layer, units, filters) {
             return row
         })
             .then(data => {
+                window.rankData = data
                 dispatch(fetchSuccess(data))
             })
             .catch(error => {
@@ -162,3 +163,11 @@ export function toggleFilterClosed(filter, isClosed) {
         }
     }
 }
+
+export const SET_TIER_THRESHOLD = 'SET_TIER_THRESHOLD'
+export const setTierThreshold = (threshold) => ({
+  type: SET_TIER_THRESHOLD,
+  payload: {
+      threshold
+  }
+})

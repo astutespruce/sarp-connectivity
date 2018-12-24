@@ -16,7 +16,8 @@ import {
     RESET_FILTERS,
     PRIORITY_FETCH_START,
     PRIORITY_FETCH_SUCCESS,
-    PRIORITY_FETCH_ERROR
+    PRIORITY_FETCH_ERROR,
+    SET_TIER_THRESHOLD
 } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
@@ -30,10 +31,11 @@ const initialState = Map({
     // bounds: List([-85.03324716546452, 32.63585392698306, -84.15434091546213, 32.96541554455193]),
     prevBounds: List(), // push previous bounds here
     scenario: "ncwc", // nc, wc, ncwc
-    layer: "State", // HUC*, ECO*, State
-    summaryUnits: Set([{ id: "Alabama" }]), // set of specific IDs from the summary unit layer
+    layer: "HUC8", // HUC*, ECO*, State
+    summaryUnits: Set([{ id: "03130007" }]), // set of specific IDs from the summary unit layer
     type: "dams", // null, // dams or barriers; not set until chosen by user
     rankData: List(),
+    tierThreshold: 1, // 1-20, which tiers to include in top-ranked dams on map
 
     // filter state
     filtersLoaded: false,
@@ -155,6 +157,9 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
                 isLoading: false,
                 isError: false
             })
+        }
+        case SET_TIER_THRESHOLD: {
+            return state.set("tierThreshold", payload.threshold)
         }
         default: {
             return state
