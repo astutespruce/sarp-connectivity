@@ -11,6 +11,7 @@ pandas = "*"
 feather-format = "*"
 flask-cors = "*"
 gunicorn = "*"
+"jinja2" = "*"
 
 [dev-packages]
 pylint = "*"

@@ -15,8 +15,7 @@ import geopandas as gp
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api.calculate_tiers import calculate_tiers, SCENARIOS
-
-from domains import STATE_FIPS_DOMAIN, HUC6_DOMAIN, RECON_TO_FEASIBILITY
+from api.domains import STATE_FIPS_DOMAIN, HUC6_DOMAIN, RECON_TO_FEASIBILITY
 
 
 start = time()

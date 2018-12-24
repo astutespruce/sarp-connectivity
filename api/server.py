@@ -1,13 +1,21 @@
 import os
-import tempfile
+from io import BytesIO
+from zipfile import ZipFile
 import time
 from datetime import date
 import pandas as pd
 from feather import read_dataframe
-from flask import Flask, abort, request, send_file, make_response
+from flask import Flask, abort, request, send_file, make_response, render_template
 from flask_cors import CORS
 
 from api.calculate_tiers import calculate_tiers, SCENARIOS
+from api.domains import (
+    RECON_DOMAIN,
+    FEASIBILITY_DOMAIN,
+    PURPOSE_DOMAIN,
+    CONSTRUCTION_DOMAIN,
+    CONDITION_DOMAIN,
+)
 
 
 app = Flask(__name__)
@@ -28,6 +36,60 @@ FILTER_FIELDS = [
 ]
 
 filterFieldMap = {f.lower(): f for f in FILTER_FIELDS}
+
+EXPORT_COLUMNS = [
+    "lat",
+    "lon",
+    # ID and source info
+    "SARPID",
+    "NIDID",
+    "Source",
+    # Basic info
+    "Name",
+    "County",
+    "State",
+    "Basin",
+    # Species info
+    "RareSpp",
+    # River info
+    "River",
+    "StreamOrder",
+    "NHDplusVersion",
+    "HasNetwork",
+    # Location info
+    "ProtectedLand",
+    "HUC6",
+    "HUC8",
+    "HUC12",
+    "ECO3",
+    "ECO4",
+    # Dam info
+    "Height",
+    "Year",
+    "Construction",
+    "Purpose",
+    "Condition",
+    "Recon",
+    "Feasibility",
+    # Metrics
+    "GainMiles",
+    "UpstreamMiles",
+    "DownstreamMiles",
+    "TotalNetworkMiles",
+    "Landcover",
+    "Sinuosity",
+    "SizeClasses",
+    # Tiers
+    "NC_tier",
+    "WC_tier",
+    "NCWC_tier",
+    "SE_NC_tier",
+    "SE_WC_tier",
+    "SE_NCWC_tier",
+    "State_NC_tier",
+    "State_WC_tier",
+    "State_NCWC_tier",
+]
 
 
 # Read source data into memory
@@ -206,52 +268,53 @@ def download_dams(layer="HUC8", format="CSV"):
 
     log.info("selected {} dams".format(nrows))
 
-    if not nrows:
-        abort(
-            404,
-            "no dams are contained in selected ids {0}:{1}".format(
-                layer, ",".join(ids)
-            ),
-        )
+    tiers_df = calculate_tiers(df, SCENARIOS)
 
-    is_custom = False
+    # TODO: join type is based on include_unranked
+    join_type = "left" if include_unranked else "right"
+    df = df.join(tiers_df, how=join_type)
 
-    if len(ids) > 1 or layer not in ("State", "HUC8"):
-        is_custom = True
-        tiers_df = calculate_tiers(df, SCENARIOS, prefix="custom")
+    # Fill n/a with -1 for tiers and cast columns to integers
+    df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
 
-        # TODO: join type is based on include_unranked
-        join_type = "left" if include_unranked else "right"
-        df = df.join(tiers_df, how=join_type)
+    # drop unneeded columns
+    df = df[EXPORT_COLUMNS]
 
-        # Fill n/a with -1 for tiers and cast columns to integers
-        df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
-        for scenario in SCENARIOS:
-            int_fields = [scenario] + [
-                f for f in tiers_df.columns if f.endswith("_p") or f.endswith("_top")
-            ]
-            for col in int_fields:
-                df[col] = df[col].astype("int8")
+    # map domain fields to values
+    df.HasNetwork = df.HasNetwork.map({True: "yes", False: "no"})
+    df.ProtectedLand = df.ProtectedLand.map({1: "yes", 0: "no"})
+    df.Condition = df.Condition.map(CONDITION_DOMAIN)
+    df.Construction = df.Construction.map(CONSTRUCTION_DOMAIN)
+    df.Purpose = df.Purpose.map(PURPOSE_DOMAIN)
+    df.Recon = df.Recon.map(RECON_DOMAIN)
+    df.Feasibility = df.Feasibility.map(FEASIBILITY_DOMAIN)
 
-    # Serialize to format
-    # TODO: bundle this into zip file
-    filename = "sarp_{0}_ranks_{1}".format(
-        "custom" if is_custom else "{0}_{1}".format(layer, ids[0]),
-        date.today().isoformat(),
+    filename = "aquatic_barrier_ranks_{0}.{1}".format(date.today().isoformat(), format)
+
+    # create readme
+    template_values = {
+        "date": date.today(),
+        "url": request.host_url,
+        "filename": filename,
+        "layer": layer,
+        "ids": ", ".join(ids),
+    }
+
+    readme = render_template("dams_readme.txt", **template_values)
+    # csv_bytes = BytesIO()
+    # df.to_csv(csv_bytes)
+
+    zf_bytes = BytesIO()
+    with ZipFile(zf_bytes, "w") as zf:
+        zf.writestr(filename, df.to_csv(index=False))
+        zf.writestr("README.txt", readme)
+
+    resp = make_response(zf_bytes.getvalue())
+    resp.headers["Content-Disposition"] = "attachment; filename={0}".format(
+        filename.replace(format, "zip")
     )
-    if format == "csv":
-        resp = make_response(df.to_csv())
-        resp.headers["Content-Disposition"] = "attachment; filename={}.csv".format(
-            filename
-        )
-        resp.headers["Content-Type"] = "text/csv"
-        return resp
-
-    else:
-        raise NotImplementedError("Not done yet!")
-
-    # Should never get here
-    return "Done"
+    resp.headers["Content-Type"] = "application/zip"
+    return resp
 
 
 if __name__ == "__main__":
