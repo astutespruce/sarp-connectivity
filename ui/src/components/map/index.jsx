@@ -5,10 +5,7 @@ import geoViewport from "@mapbox/geo-viewport"
 import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
 
-const MAPBOX_TOKEN = process.env.MAPBOX_ACCESS_TOKEN || "" // REQUIRED: this must be present in .env file
-
-// For testing - strip this out later
-mapboxgl.accessToken = MAPBOX_TOKEN || "pk.eyJ1IjoiYmN3YXJkIiwiYSI6InJ5NzUxQzAifQ.CVyzbyOpnStfYUQ_6r8AgQ"
+mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || "" // REQUIRED: this must be present in .env file
 
 class Map extends React.Component {
     constructor(props) {

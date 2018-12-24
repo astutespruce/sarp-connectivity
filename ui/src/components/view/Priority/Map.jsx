@@ -403,15 +403,6 @@ class PriorityMap extends Component {
 
                         if (point.source === "ranked") {
                             const { id } = point.properties
-                            // const { x, y } = e.point
-                            // const dist = zoom / 2
-                            // const window = [[x - dist, y - dist], [x + dist, y + dist]]
-                            // const nearby = map
-                            //     .queryRenderedFeatures(window, { layers: ["point-included"] })
-                            //     .filter(({ properties: { id: ptId } }) => ptId === id)
-                            // if (nearby.length > 0) {
-                            //     selectFeature(fromJS(nearby[0].properties).mergeDeep(fromJS(point.properties)))
-                            // }
                             const tilePoints = map.querySourceFeatures(type, {
                                 sourceLayer: type,
                                 filter: ["==", "id", id]

@@ -1,5 +1,6 @@
 import { List, Map, Set, fromJS } from "immutable"
 
+import { node } from "prop-types"
 import {
     PRIORITY_SET_SYSTEM,
     PRIORITY_SET_SCENARIO,
@@ -25,15 +26,15 @@ import { allFilters, getDimensionCounts, getTotalFilteredCount } from "../filter
 
 allFilters.reduce((out, item) => out.set(item, Set()), Map())
 
-const initialState = Map({
-    mode: "select", // mode or step in selection process: "default" (initial), "select", "filter", "results"
+let initialState = Map({
+    mode: "start", // mode or step in selection process: "select", "filter", "results"
     bounds: SARP_BOUNDS, // SARP bounds
     // bounds: List([-85.03324716546452, 32.63585392698306, -84.15434091546213, 32.96541554455193]),
     prevBounds: List(), // push previous bounds here
     scenario: "ncwc", // nc, wc, ncwc
-    layer: "HUC8", // HUC*, ECO*, State
-    summaryUnits: Set([{ id: "03130007" }]), // set of specific IDs from the summary unit layer
-    type: "dams", // null, // dams or barriers; not set until chosen by user
+    layer: null, // HUC*, ECO*, State
+    summaryUnits: Set(), // set of specific IDs from the summary unit layer
+    type: null, // dams or barriers; not set until chosen by user
     rankData: List(),
     tierThreshold: 1, // 1-20, which tiers to include in top-ranked dams on map
 
@@ -47,6 +48,16 @@ const initialState = Map({
     isLoading: false,
     isError: false
 })
+
+// FIXME: dev only
+if (process.env.NODE_ENV !== "production") {
+    initialState = initialState.merge({
+        mode: "select",
+        type: "dams",
+        layer: "HUC8",
+        summaryUnits: Set([{ id: "03130007" }])
+    })
+}
 
 export const reducer = (state = initialState, { type, payload = {} }) => {
     switch (type) {
