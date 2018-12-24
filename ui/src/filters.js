@@ -41,7 +41,7 @@ export const filterConfig = {
         keys: getIntKeys(RARESPP),
         labelFunction: d => RARESPP[d],
         help:
-            "Note: Rare species information is based on occurrences of one or more federally threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information is not available for all states at this time."
+            "Note: Rare species information is based on occurrences of one or more federally threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time."
     },
     streamorderclass: {
         title: "Stream Order (NHD modified Strahler)",

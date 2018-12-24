@@ -27,8 +27,8 @@ function Inventory() {
                         This inventory consists of datasets from local, state, and federal partners. It is supplemented
                         with input from partners with on the ground knowledge of specific structures. The information on
                         barriers is not complete or comprehensive across the region, and depends on the availability and
-                        completeness of existing data. Some areas of the region are more complete than others but none
-                        should be considered 100% complete.
+                        completeness of existing data and level of partner feedback. Some areas of the region are more
+                        complete than others but none should be considered 100% complete.
                         <br />
                         <br />
                     </p>

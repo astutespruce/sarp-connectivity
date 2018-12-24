@@ -2,8 +2,7 @@ import React from "react"
 import PropTypes from "prop-types"
 import { connect } from "react-redux"
 import ImmutablePropTypes from "react-immutable-proptypes"
-import debounce from 'lodash.debounce'
-
+import debounce from "lodash.debounce"
 
 import * as actions from "../../../actions/priority"
 import { API_HOST } from "../../../config"
@@ -15,7 +14,18 @@ import Histogram from "./Histogram"
 import StartOverButton from "./StartOverButton"
 import { SCENARIOS } from "../../map/config"
 
-const Results = ({ type, scenario, totalCount, layer, summaryUnits, filters, rankData, setMode, tierThreshold, setTierThreshold }) => {
+const Results = ({
+    type,
+    scenario,
+    totalCount,
+    layer,
+    summaryUnits,
+    filters,
+    rankData,
+    setMode,
+    tierThreshold,
+    setTierThreshold
+}) => {
     const scenarioLabel =
         scenario === "ncwc"
             ? "combined network connectivity and watershed condition"
@@ -33,7 +43,7 @@ const Results = ({ type, scenario, totalCount, layer, summaryUnits, filters, ran
     const tiers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     const counts = tiers.map(i => tierCounts[i] || 0)
 
-    const handleThresholdChange = ({target: {value}}) => {
+    const handleThresholdChange = ({ target: { value } }) => {
         debounce(() => setTierThreshold(21 - value), 50)()
     }
 
@@ -66,9 +76,22 @@ const Results = ({ type, scenario, totalCount, layer, summaryUnits, filters, ran
 
                     <div className="flex-container">
                         <div className="is-size-7">Lowest tier</div>
-                        <input type="range" min="1" max="20" step="1" className="flex-grow" value={21 - tierThreshold} onChange={handleThresholdChange}/>
+                        <input
+                            type="range"
+                            min="1"
+                            max="20"
+                            step="1"
+                            className="flex-grow"
+                            value={21 - tierThreshold}
+                            onChange={handleThresholdChange}
+                        />
                         <div className="is-size-7">Highest tier</div>
                     </div>
+                    <p className="text-help">
+                        Use this slider to control the number of tiers visible on the map. Based on the number of {type}{" "}
+                        visible for your area, you may be able to identify {type} that are more feasible in the top
+                        several tiers than in the top-most tier.
+                    </p>
                 </div>
 
                 <h6 className="title is-6 no-margin">Number of dams by tier</h6>
@@ -114,7 +137,6 @@ Results.propTypes = {
 
     setMode: PropTypes.func.isRequired,
     setTierThreshold: PropTypes.func.isRequired
-
 }
 
 const mapStateToProps = globalState => {

@@ -19,7 +19,7 @@ any scale for your desired purposes.
 This inventory consists of datasets from local, state, and federal partners. It is supplemented
 with input from partners with on the ground knowledge of specific structures. The information on
 barriers is not complete or comprehensive across the region, and depends on the availability and
-completeness of existing data. Some areas of the region are more complete than others but none
+completeness of existing data and level of partner feedback. Some areas of the region are more complete than others but none
 should be considered 100% complete.
 
 If you are able to help improve the inventory by sharing data or assisting with field
@@ -38,7 +38,7 @@ County: County where dam occurs.
 State: State where dam occurs.
 Basin: Name of the hydrologic basin (HUC6) where the dam occurs.
 
-RareSpp: Number of federally threatened or endangered aquatic species within the same subwatershed (HUC12) as the dam.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information is not available for all states at this time.
+RareSpp: Number of federally threatened or endangered aquatic species within the same subwatershed (HUC12) as the dam.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
 
 River: River name where dam occurs, if available.
 StreamOrder: NHDPlus Modified Strahler stream order. -1 = not available.
