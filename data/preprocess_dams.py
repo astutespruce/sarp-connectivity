@@ -17,6 +17,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from api.calculate_tiers import calculate_tiers, SCENARIOS
 from api.domains import STATE_FIPS_DOMAIN, HUC6_DOMAIN, RECON_TO_FEASIBILITY
 
+from classify import (
+    classify_gainmiles,
+    classify_sinuosity,
+    classify_landcover,
+    classify_rarespp,
+    classify_streamorder,
+)
 
 start = time()
 
@@ -193,48 +200,12 @@ df["Basin"] = df.HUC6.map(HUC6_DOMAIN)
 # Calculate feasibility
 df["Feasibility"] = df.Recon.map(RECON_TO_FEASIBILITY).astype("uint8")
 
-# Bin gain miles
-df["GainMilesClass"] = -1  # no network
-df.loc[df.HasNetwork & (df.GainMiles < 1), "GainMilesClass"] = 0
-df.loc[df.HasNetwork & (df.GainMiles >= 1) & (df.GainMiles < 5), "GainMilesClass"] = 1
-df.loc[df.HasNetwork & (df.GainMiles >= 5) & (df.GainMiles < 10), "GainMilesClass"] = 2
-df.loc[df.HasNetwork & (df.GainMiles >= 10) & (df.GainMiles < 25), "GainMilesClass"] = 3
-df.loc[
-    df.HasNetwork & (df.GainMiles >= 25) & (df.GainMiles < 100), "GainMilesClass"
-] = 4
-df.loc[df.HasNetwork & (df.GainMiles >= 100), "GainMilesClass"] = 5
-df.GainMilesClass = df.GainMilesClass.astype("int8")
-
-# Bin sinuosity
-df["SinuosityClass"] = -1  # no network
-df.loc[df.HasNetwork & (df.Sinuosity < 1.2), "SinuosityClass"] = 0
-df.loc[
-    df.HasNetwork & (df.Sinuosity >= 1.2) & (df.Sinuosity <= 1.5), "SinuosityClass"
-] = 1
-df.loc[df.HasNetwork & (df.Sinuosity > 1.5), "SinuosityClass"] = 2
-df.SinuosityClass = df.SinuosityClass.astype("int8")
-
-
-# Bin landcover
-df["LandcoverClass"] = -1  # no network
-df.loc[df.HasNetwork & (df.Landcover < 50), "LandcoverClass"] = 0
-df.loc[df.HasNetwork & (df.Landcover >= 50) & (df.Landcover < 75), "LandcoverClass"] = 1
-df.loc[df.HasNetwork & (df.Landcover >= 75) & (df.Landcover < 90), "LandcoverClass"] = 2
-df.loc[df.HasNetwork & (df.Landcover >= 90), "LandcoverClass"] = 3
-df.LandcoverClass = df.LandcoverClass.astype("int8")
-
-# Bin rare species
-df.loc[df.RareSpp == 0, "RareSppClass"] = 0
-df.loc[df.RareSpp == 1, "RareSppClass"] = 1
-df.loc[(df.RareSpp > 1) & (df.RareSpp < 5), "RareSppClass"] = 2
-df.loc[(df.RareSpp >= 5) & (df.RareSpp < 10), "RareSppClass"] = 3
-df.loc[(df.RareSpp >= 10), "RareSppClass"] = 4
-df.RareSppClass = df.RareSppClass.astype("uint8")
-
-# Bin StreamOrder
-df["StreamOrderClass"] = df.StreamOrder
-df.loc[df.StreamOrder >= 6, "StreamOrderClass"] = 6
-df.StreamOrderClass = df.StreamOrderClass.astype("int8")
+# Bin metrics
+df["GainMilesClass"] = classify_gainmiles(df.GainMiles)
+df["SinuosityClass"] = classify_sinuosity(df.Sinuosity)
+df["LandcoverClass"] = classify_landcover(df.Landcover)
+df["RareSppClass"] = classify_rarespp(df.RareSpp)
+df["StreamOrderClass"] = classify_streamorder(df.StreamOrder)
 
 
 ######## Drop unnecessary columns
@@ -338,20 +309,7 @@ df.to_csv("data/derived/dams.csv", index_label="id")
 df["latitude"] = df.lat
 df["longitude"] = df.lon
 
-df = df.drop(
-    columns=[
-        "Sinuosity",
-        "Source",
-        "NHDplusVersion",
-        # "COUNTYFIPS",
-        "STATEFIPS",
-        # "HUC6",
-        # "HUC8",
-        # "HUC12",
-        # "ECO3",
-        # "ECO4",
-    ]
-)
+df = df.drop(columns=["Sinuosity", "Source", "NHDplusVersion", "STATEFIPS"])
 
 # convert HasNetwork so that it encodes into tiles properly
 df.HasNetwork = df.HasNetwork.astype("uint8")
@@ -378,94 +336,6 @@ df.rename(
 
 
 df.to_csv("data/derived/dams_mbtiles.csv", index_label="id")
-
-
-# no_network = df.loc[~df.HasNetwork][
-#     [
-#         "id",
-#         "lat",
-#         # "latitude",
-#         # "longitude",
-#         "lon",
-#         # ID and source info
-#         "SARPID",
-#         "NIDID",
-#         "Source",  # => source
-#         # Basic info
-#         "Name",
-#         "County",
-#         "State",
-#         "Basin",
-#         # Species info
-#         "RareSpp",
-#         # Location info
-#         "ProtectedLand",
-#         # Dam info
-#         "Height",
-#         "Year",
-#         "Construction",
-#         "Purpose",
-#         "Condition",
-#         "Recon",
-#     ]
-# ]
-
-# no_network.to_csv(
-#     "data/src/dams_no_network.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-# )
-
-
-# network = df.loc[df.HasNetwork].drop(
-#     columns=[
-#         "NHDplusVersion",
-#         "COUNTYFIPS",
-#         "STATEFIPS",
-#         "HasNetwork",
-#         "HUC6",
-#         "HUC8",
-#         "HUC12",
-#         "ECO3",
-#         "ECO4",
-#     ]
-# )
-# network.to_csv(
-#     "data/src/dams_with_network.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-# )
-
-
-# topn = network.loc[
-#     (network.State_NCWC_top != -1)
-#     | (network.State_NC_top != -1)
-#     | (network.State_WC_top != -1)
-# ]
-# topn.to_csv("data/src/dams_topn.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC)
-
-
-# Export subset of fields for use in mbtiles
-
-# df = df[["SARPID"]]
-
-
-# print("Writing subset of fields to data/src/dams_mbtiles.csv")
-# df[mbtiles_fields].to_csv(
-#     "data/src/dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-# )
-
-
-# # Query out the highest regional priorities
-# # TODO: this needs to be fixed; tippecanoe is having issues with some of the numeric fields
-# df.query("NCWC > 0 & (NCWC <=4 | NC <= 4 | WC <=4)").to_csv(
-#     "data/src/dams_priority_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-# )
-
-
-# # Consider bins of AbsMilesGained for filtering too; log scale
-
-
-# # g = df.groupby(["State", "HeightClass", "PurposeCategory", "ProtectedLand"]).agg({"UniqueID": {"dams": "count"}})
-
-
-# # TODO: calculate regional scores and scores for main units
 
 
 print("Done in {:.2f}".format(time() - start))

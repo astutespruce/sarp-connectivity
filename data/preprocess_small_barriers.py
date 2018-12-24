@@ -17,6 +17,14 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from api.calculate_tiers import calculate_tiers, SCENARIOS
 from api.domains import STATE_FIPS_DOMAIN, HUC6_DOMAIN
 
+from classify import (
+    classify_gainmiles,
+    classify_sinuosity,
+    classify_landcover,
+    classify_rarespp,
+    classify_streamorder,
+)
+
 
 start = time()
 
@@ -158,6 +166,12 @@ df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
 
 df["Basin"] = df.HUC6.map(HUC6_DOMAIN)
 
+# Bin metrics
+df["GainMilesClass"] = classify_gainmiles(df.GainMiles)
+df["SinuosityClass"] = classify_sinuosity(df.Sinuosity)
+df["LandcoverClass"] = classify_landcover(df.Landcover)
+df["RareSppClass"] = classify_rarespp(df.RareSpp)
+
 
 ########## Drop unnecessary columns
 df = df[
@@ -168,7 +182,8 @@ df = df[
         # ID and source info
         "SARPID",
         "CrossingCode",
-        "LocalID",  # => source
+        "LocalID",
+        "Source",
         # Basic info
         "Name",
         "County",
@@ -205,6 +220,10 @@ df = df[
         "COUNTYFIPS",
         "STATEFIPS",
         "HasNetwork",
+        "RareSppClass",
+        "GainMilesClass",
+        "SinuosityClass",
+        "LandcoverClass",
     ]
 ].set_index("id", drop=False)
 
@@ -220,8 +239,8 @@ for group_field in (None, "State"):
         SCENARIOS,
         group_field=group_field,
         prefix="SE" if group_field is None else group_field,
-        percentiles=group_field is None,
-        topn=group_field is None,
+        percentiles=False,
+        topn=False,
     )
     df = df.join(tiers_df)
 
@@ -238,92 +257,42 @@ for group_field in (None, "State"):
 
 
 print("Writing to files")
+
+# For API
 df.reset_index(drop=True).to_feather("data/derived/small_barriers.feather")
+
+# For QA
 df.to_csv("data/derived/small_barriers.csv", index=False)
 
 
-# # TODO:
-# # Export subset of fields for use in mbtiles
-
-# mbtiles_fields = [
-#     "UniqueID",
-#     # "NIDID",
-#     # "SourceDBID",
-#     "Barrier_Name",
-#     # "Other_Barrier_Name",
-#     "State",
-#     # "County", # TODO:
-#     "River",
-#     "PurposeCategory",  # value domain
-#     "Year_Completed",
-#     "HeightClass",
-#     "StructureCondition",  # value domain
-#     "ConstructionMaterial",  # value domain
-#     "ProtectedLand",  # 0="Unknown", 1="Yes", 2="No"
-#     # "DB_Source",
-#     # "Off_Network",  # 0="On Network", 1="Off Network"
-#     # "Mussel_Presence",  # 0="Unknown", 1="Yes", 2="No"
-#     "AbsoluteGainMi",
-#     "UpstreamMiles",
-#     "DownstreamMiles",
-#     "TotalNetworkMiles",
-#     "PctNatFloodplain",
-#     "NetworkSinuosity",
-#     "NumSizeClassGained",
-#     # "NumberRareSpeciesHUC12", # FIXME: currently not present
-#     # "SpeciesRichness", # FIXME: currently not present
-#     # "batUSNetID",  # FIXME: not currently used
-#     # "batDSNetID",  # FIXME: not currently used
-#     "HUC2",
-#     "HUC4",
-#     "HUC6",
-#     "HUC8",
-#     "HUC10",
-#     "HUC12",
-#     "ECO3",
-#     "ECO4",
-#     # "StreamOrder",
-#     "lat",
-#     "lon",
-#     # tiers
-#     "NC",
-#     "WC",
-#     "NCWC",
-#     "State_NC",
-#     "State_WC",
-#     "State_NCWC",
-#     "HUC2_NC",
-#     "HUC2_WC",
-#     "HUC2_NCWC",
-#     "HUC4_NC",
-#     "HUC4_WC",
-#     "HUC4_NCWC",
-#     "HUC8_NC",
-#     "HUC8_WC",
-#     "HUC8_NCWC",
-# ]
+df = df.drop(columns=["Sinuosity", "Source", "STATEFIPS"])
 
 
-# print("Writing subset of fields to data/src/dams_mbtiles.csv")
-# df[mbtiles_fields].to_csv(
-#     "data/src/dams_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-# )
+# convert HasNetwork so that it encodes into tiles properly
+df.HasNetwork = df.HasNetwork.astype("uint8")
 
 
-# # Query out the highest regional priorities
-# # TODO: this needs to be fixed; tippecanoe is having issues with some of the numeric fields
-# df.query("NCWC > 0 & (NCWC <=4 | NC <= 4 | WC <=4)").to_csv(
-#     "data/src/dams_priority_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-# )
+df.rename(
+    columns={
+        "County": "CountyName",
+        "COUNTYFIPS": "County",
+        "SinuosityClass": "Sinuosity",
+    },
+    inplace=True,
+)
+
+# lowercase all fields except those for unit IDs
+df.rename(
+    columns={
+        k: k.lower()
+        for k in df.columns
+        if k not in ("State", "County", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4")
+    },
+    inplace=True,
+)
 
 
-# # Consider bins of AbsMilesGained for filtering too; log scale
-
-
-# # g = df.groupby(["State", "HeightClass", "PurposeCategory", "ProtectedLand"]).agg({"UniqueID": {"dams": "count"}})
-
-
-# # TODO: calculate regional scores and scores for main units
+df.to_csv("data/derived/barriers_mbtiles.csv", index_label="id")
 
 
 print("Done in {:.2f}".format(time() - start))
