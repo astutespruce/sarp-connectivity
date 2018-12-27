@@ -406,6 +406,86 @@ STREAM_ORDER_DOMAIN = {
     6: ">= 6",
 }
 
+BARRIER_SEVERITY_DOMAIN = {
+    0: "Unknown",
+    1: "Not a barrier",
+    2: "Minor barrier",
+    3: "Moderate barrier",
+    4: "Major barrier",
+}
+
+
+POTENTIAL_TO_SEVERITY = {
+    "Inaccessible": 0,
+    "Indeterminate": 0,
+    "Insignificant Barrier": 2,
+    "Minor Barrier": 2,
+    "Moderate Barrier": 3,
+    "No Barrier": 1,
+    "No Crossing": 1,
+    "No Upstream Channel": 1,
+    "Not Scored": 0,
+    "Past Project": 0,
+    "Potential Project": 0,
+    "Proposed Project": 0,
+    "Severe Barrier": 4,
+    "Significant Barrier": 4,
+    "Small Project": 0,
+}
+
+CROSSING_TYPE_DOMAIN = {
+    0: "Unknown",
+    1: "Not a barrier",
+    2: "Bridge",
+    3: "Culvert",
+    4: "Ford",
+    5: "Dam",
+}
+
+CROSSING_TYPE_TO_DOMAIN = {
+    "Bridge": 2,
+    "Bridge Adequate": 2,
+    "Buried Stream": 4,
+    "Culvert": 3,
+    "Dam": 5,
+    "Ford": 4,
+    "Inaccessible": 0,
+    "Multiple Culvert": 3,
+    "Multiple Culverts": 3,
+    "Natural Ford": 4,
+    "No Crossing": 1,
+    "No Upstream Channel": 1,
+    "Other": 0,
+    "Partially Inaccessible": 0,
+    "Removed Crossing": 1,
+    "Slab": 4,
+    "Unknown": 0,
+    "Vented Ford": 4,
+    "Vented Slab": 4,
+}
+
+
+ROAD_TYPE_DOMAIN = {0: "Unknown", 1: "Unpaved", 2: "Paved"}
+
+ROAD_TYPE_TO_DOMAIN = {
+    "Asphalt": 2,
+    "Concrete": 2,
+    "Dirt": 1,
+    "Driveway": 0,
+    "Gravel": 1,
+    "Other": 0,
+    "Paved": 2,
+    "Railroad": 1,
+    "Trail": 1,
+    "Unknown": 0,
+    "Unpaved": 1,
+}
+
+BARRIER_CONDITION_DOMAIN = {0: "Unknown", 1: "Failing", 2: "Poor", 3: "OK", 4: "New"}
+
+BARRIER_CONDITION_TO_DOMAIN = {"Failing": 1, "New": 4, "OK": 3, "Poor": 2, "Unknown": 0}
+
+
 # for domain in ("ProtectedLand",):
 #     df[domain] = df[domain].map({0: "Unknown", 1: "Yes", 2: "No"})
 

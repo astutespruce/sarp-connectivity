@@ -67,9 +67,9 @@ export const fetchError = error => ({
     payload: { error }
 })
 
-export function fetchRanks(layer, units, filters) {
+export function fetchRanks(type, layer, units, filters) {
     return dispatch => {
-        const url = `${API_HOST}/api/v1/dams/rank/${layer}?${apiQueryParams(units, filters)}`
+        const url = `${API_HOST}/api/v1/${type}/rank/${layer}?${apiQueryParams(units, filters)}`
 
         csv(url, row => {
             // Convert fields to floating point or int as needed
@@ -116,8 +116,8 @@ export const fetchQueryError = error => ({
     }
 })
 
-export const fetchQuery = (layer, units) => dispatch => {
-    const url = `${API_HOST}/api/v1/dams/query/${layer}?${apiQueryParams(units)}`
+export const fetchQuery = (type, layer, units) => dispatch => {
+    const url = `${API_HOST}/api/v1/${type}/query/${layer}?${apiQueryParams(units)}`
 
     csv(url, row => {
         // convert everything to integer
@@ -164,10 +164,10 @@ export function toggleFilterClosed(filter, isClosed) {
     }
 }
 
-export const SET_TIER_THRESHOLD = 'SET_TIER_THRESHOLD'
-export const setTierThreshold = (threshold) => ({
-  type: SET_TIER_THRESHOLD,
-  payload: {
-      threshold
-  }
+export const SET_TIER_THRESHOLD = "SET_TIER_THRESHOLD"
+export const setTierThreshold = threshold => ({
+    type: SET_TIER_THRESHOLD,
+    payload: {
+        threshold
+    }
 })

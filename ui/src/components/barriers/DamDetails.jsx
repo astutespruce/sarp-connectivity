@@ -8,7 +8,6 @@ import { CONDITION, CONSTRUCTION, PURPOSE, RECON, SINUOSITY } from "../../consta
 const DamDetails = ({
     lat,
     lon,
-    type,
     hasnetwork,
     height,
     year,
@@ -30,11 +29,11 @@ const DamDetails = ({
     <div id="BarrierDetails">
         <h6 className="title is-6">Location</h6>
         <ul>
-            {/* <li>
+            <li>
                 Coordinates: {formatNumber(lon, 3)}
                 &deg; W / {formatNumber(lat, 3)}
                 &deg; N
-            </li> */}
+            </li>
             <li>
                 {river && river !== "null" && river !== "Unknown" ? `${river}, ` : null}
                 {basin} Basin
@@ -43,7 +42,7 @@ const DamDetails = ({
 
         <h6 className="title is-6">Construction information</h6>
         <ul>
-            <li>Barrier type: {type === "dams" ? "dam" : "road-related potential barrier"}</li>
+            <li>Barrier type: dam</li>
             {year > 0 ? <li>Constructed completed: {year}</li> : null}
             {height > 0 ? <li>Height: {height} feet</li> : null}
             {construction ? <li>Construction material: {CONSTRUCTION[construction].toLowerCase()}</li> : null}
@@ -118,7 +117,6 @@ const DamDetails = ({
 DamDetails.propTypes = {
     lat: PropTypes.number.isRequired,
     lon: PropTypes.number.isRequired,
-    type: PropTypes.string.isRequired,
     hasnetwork: PropTypes.bool.isRequired,
     river: PropTypes.string,
     basin: PropTypes.string.isRequired,

@@ -84,7 +84,7 @@ function FiltersList({
 
                     <SubmitButton
                         disabled={totalCount === 0}
-                        onClick={() => fetchRanks(layer, summaryUnits.toJS(), filters.toJS())}
+                        onClick={() => fetchRanks(type, layer, summaryUnits.toJS(), filters.toJS())}
                         icon="search-location"
                         label={`Prioritize ${type}`}
                     />

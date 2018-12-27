@@ -56,16 +56,41 @@ Convert from shapefile to GeoJSON first, then cut tiles. Note the variation in m
 
 #### Dams
 
+Preprocessed using `preprocess_dams.py`.
+
+In `data/derived` directory:
+
 ```
-tippecanoe -f -Z5 -z12 -B6 -pk -pg -pe -ai --drop-densest-as-needed -o ../../tiles/sarp_dams.mbtiles -l dams -T name:string -T river:string -T hasnetwork:bool -T protectedland:bool -T County:string -T HUC6:string -T HUC8:string -T:string dams_mbtiles.csv
+tippecanoe -f -Z5 -z12 -B6 -pk -pg -pe -ai -o ../tiles/dams_with_networks.mbtiles -l dams -T name:string -T river:string -T protectedland:bool -T County:string -T HUC6:string -T HUC8:string -T HUC12:string dams_with_networks.csv
+
+tippecanoe -f -Z9 -z12 -B10 -pk -pg -pe -ai -o ../tiles/dams_without_networks.mbtiles -l background -T name:string -T river:string -T protectedland:bool dams_without_networks.csv
 ```
 
-<!--
-tippecanoe -f -Z10 -z12 -pg -pe --cluster-densest-as-needed -o ../tiles/dams_no_network.mbtiles -l no_network -T Name:string -T River:string dams_no_network.csv
-tippecanoe -f -Z5 -z12 -B6 -pg -pe --cluster-densest-as-needed -o ../tiles/dams_with_network.mbtiles -l dams -T Name:string -T River:string dams_with_network.csv
-tile-join -f -pg --no-tile-size-limit -o ../../tiles/sarp_dams.mbtiles dams_no_network.mbtiles dams_with_network.mbtiles -->
+In `data/tiles` directory:
 
-<!-- tippecanoe -f -Z4 -z12 -B4 -pg --cluster-densest-as-needed -o ../tiles/dams_topn.mbtiles -l dams_topn -T Name:string -T River:string dams_topn.csv -->
+```
+tile-join -f --no-tile-size-limit -o ../../tiles/sarp_dams.mbtiles dams_with_networks.mbtiles dams_without_networks.mbtiles
+```
+
+#### Small barriers
+
+USGS Road / stream crossings: Preprocessed using `preprocess_road_crossings.py`.
+
+Road-related barriers (that have been evaluated and snapped to network): preprocessed and off-network barriers merged with road / stream crossings using `preprocess_small_barriers.py`.
+
+In `data/derived` directory:
+
+```
+tippecanoe -f -Z5 -z12 -B6 -pk -pg -pe -ai -o ../tiles/barriers_with_networks.mbtiles -l barriers -T name:string -T stream:string -T road:string -T sarpid:string -T crossingcode:string -T localid:string -T protectedland:bool -T County:string -T HUC6:string -T HUC8:string -T HUC12:string barriers_with_networks.csv
+
+tippecanoe -f -Z9 -z14 -B10 -X -pg --drop-densest-as-needed -o ../tiles/barriers_background.mbtiles -l background -T name:string -T stream:string -T road:string -T sarpid:string -T crossingcode:string -T localid:string -T protectedland:bool barriers_background.csv
+```
+
+In `data/tiles` directory:
+
+```
+tile-join -f --no-tile-size-limit -o ../../tiles/sarp_barriers.mbtiles barriers_with_networks.mbtiles barriers_background.mbtiles
+```
 
 #### SARP Boundary:
 

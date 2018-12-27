@@ -53,9 +53,9 @@ let initialState = Map({
 if (process.env.NODE_ENV !== "production") {
     initialState = initialState.merge({
         mode: "select",
-        type: "dams",
-        layer: "HUC8",
-        summaryUnits: Set([{ id: "03130007" }])
+        type: "barriers",
+        layer: "State",
+        summaryUnits: Set([{ id: "Alabama" }])
     })
 }
 

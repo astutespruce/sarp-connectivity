@@ -115,7 +115,7 @@ export const backgroundPoint = {
     type: "circle",
     minzoom: 10,
     maxzoom: 24,
-    filter: ["==", "hasnetwork", false],
+    // filter: ["==", "hasnetwork", false],
     layout: {
         visibility: "none"
     },
@@ -168,10 +168,14 @@ export const pointHighlight = {
     id: "point-highlight",
     // source: "" // provided by specific layer
     // 'source-layer': '', // provided by specific layer
+    source: {
+        type: "geojson",
+        data: null
+    },
     type: "circle",
     minzoom: 5,
     maxzoom: 24,
-    filter: ["==", "id", Infinity],
+    // filter: ["==", "id", Infinity],
     paint: {
         "circle-color": "#fd8d3c",
         "circle-radius": 14,

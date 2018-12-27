@@ -64,10 +64,22 @@ const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery
     const article = getSingularArticle(layer)
 
     let offNetworkCount = 0
-    if (type === "dams" && summaryUnits.size > 0) {
-        offNetworkCount = summaryUnits.toJS().reduce((out, v) => out + v.off_network_dams, 0)
+    let total = 0
+    if (summaryUnits.size > 0) {
+        const units = summaryUnits.toJS()
+        switch (type) {
+            case "dams": {
+                offNetworkCount = units.reduce((out, v) => out + v.off_network_dams, 0)
+                total = units.reduce((out, v) => out + v.dams, 0) - offNetworkCount
+                break
+            }
+            case "barriers": {
+                offNetworkCount = units.reduce((out, v) => out + v.off_network_barriers, 0)
+                total = units.reduce((out, v) => out + v.barriers, 0) - offNetworkCount
+                break
+            }
+        }
     }
-
     return (
         <React.Fragment>
             <div id="SidebarHeader">
@@ -128,8 +140,8 @@ const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery
                     <StartOverButton />
 
                     <SubmitButton
-                        disabled={summaryUnits.size === 0}
-                        onClick={() => fetchQuery(layer, summaryUnits.toJS())}
+                        disabled={summaryUnits.size === 0 || total === 0}
+                        onClick={() => fetchQuery(type, layer, summaryUnits.toJS())}
                         icon="search-location"
                         label={`Select ${type} in this area`}
                     />

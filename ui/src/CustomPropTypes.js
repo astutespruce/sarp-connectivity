@@ -8,8 +8,8 @@ export const FeaturePropType = ImmutablePropTypes.mapContains({
 
 export const BarrierPropType = PropTypes.shape({
     name: PropTypes.string,
-    County: PropTypes.string.isRequired,
-    State: PropTypes.string.isRequired
+    County: PropTypes.string,
+    State: PropTypes.string
     // TODO: other props
 })
 

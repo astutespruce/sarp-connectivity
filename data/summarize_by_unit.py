@@ -10,20 +10,23 @@ from feather import read_dataframe
 PERCENTILES = [20, 40, 60, 75, 80, 85, 90, 95, 100]
 
 
-dams = read_dataframe("data/src/dams.feather")
-sb = read_dataframe("data/src/small_barriers.feather")
+dams = read_dataframe("data/derived/dams.feather")
+barriers = read_dataframe("data/derived/small_barriers.feather")
 
 # Set NA
 dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
-dams["OffNetwork"] = ~dams.HasNetwork
 
+# Mark those off network
+dams["OffNetwork"] = ~dams.HasNetwork
+barriers["OffNetwork"] = ~barriers.HasNetwork
 
 stats = defaultdict(defaultdict)
 stats["southeast"] = {
     "dams": len(dams),
     "off_network_dams": len(dams.loc[dams.OffNetwork]),
     "miles": round(dams["GainMiles"].mean().item(), 3),
-    "barriers": len(sb),
+    "barriers": len(barriers),
+    "off_network_barriers": len(barriers.loc[barriers.OffNetwork]),
 }
 
 # Group by state, HUC level, ecoregion level
@@ -45,15 +48,15 @@ for unit in ("State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"):
         .set_index(unit)
     )
 
-    sb_stats = (
-        sb[[unit, "id"]]
+    barriers_stats = (
+        barriers[[unit, "id", "OffNetwork"]]
         .groupby(unit)
-        .size()
+        .agg({"id": "count", "OffNetwork": "sum"})
         .reset_index()
-        .rename(columns={0: "barriers"})
+        .rename(columns={"id": "barriers", "OffNetwork": "off_network_barriers"})
         .set_index(unit)
     )
-    merged = dam_stats.join(sb_stats, how="outer").fillna(0)
+    merged = dam_stats.join(barriers_stats, how="outer").fillna(0)
     merged.dams = merged.dams.astype("uint32")
     merged.barriers = merged.barriers.astype("uint32")
     merged.off_network_dams = merged.off_network_dams.astype("uint32")

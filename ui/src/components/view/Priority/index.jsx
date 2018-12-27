@@ -87,19 +87,9 @@ Priority.propTypes = {
     mode: PropTypes.string.isRequired,
     selectedFeature: FeaturePropType,
     layer: PropTypes.string,
-    // summaryUnits: ImmutablePropTypes.set.isRequired,
-    // filters: ImmutablePropTypes.mapOf(
-    //     ImmutablePropTypes.setOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number]))
-    // ).isRequired,
-    // totalCount: PropTypes.number.isRequired,
 
     setType: PropTypes.func.isRequired,
-    // setLayer: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired
-    // selectUnit: PropTypes.func.isRequired,
-    // setMode: PropTypes.func.isRequired
-    // fetchQuery: PropTypes.func.isRequired,
-    // fetchRanks: PropTypes.func.isRequired
 }
 
 Priority.defaultProps = {

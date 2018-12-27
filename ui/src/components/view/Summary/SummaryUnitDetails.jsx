@@ -7,8 +7,6 @@ import { formatNumber, formatPercent } from "../../../utils/format"
 import { LAYER_CONFIG } from "../../map/config"
 import { stateFIPS } from "../../../constants"
 
-import summaryStats from "../../../data/summary_stats.json"
-
 const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, onClose }) => {
     const { id, layerId, name, dams, barriers, miles } = selectedFeature.toJS()
     const layerConfig = LAYER_CONFIG.filter(({ id: lyrID }) => lyrID === layerId)[0]
@@ -100,12 +98,7 @@ SummaryUnitDetails.propTypes = {
     selectedFeature: FeaturePropType.isRequired,
     onClose: PropTypes.func.isRequired,
     total: PropTypes.number.isRequired,
-    meanConnectedMiles: PropTypes.number.isRequired,
-    summaryStats: PropTypes.object
-}
-
-SummaryUnitDetails.defaultProps = {
-    summaryStats
+    meanConnectedMiles: PropTypes.number.isRequired
 }
 
 export default SummaryUnitDetails

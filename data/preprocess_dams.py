@@ -309,10 +309,13 @@ df.to_csv("data/derived/dams.csv", index_label="id")
 df["latitude"] = df.lat
 df["longitude"] = df.lon
 
-df = df.drop(columns=["Sinuosity", "Source", "NHDplusVersion", "STATEFIPS"])
+df = df.drop(
+    columns=["Sinuosity", "Source", "NHDplusVersion", "STATEFIPS"]
+    + [c for c in df.columns if c.endswith("_score")]
+)
 
 # convert HasNetwork so that it encodes into tiles properly
-df.HasNetwork = df.HasNetwork.astype("uint8")
+# df.HasNetwork = df.HasNetwork.astype("uint8")
 
 
 df.rename(
@@ -335,7 +338,35 @@ df.rename(
 )
 
 
-df.to_csv("data/derived/dams_mbtiles.csv", index_label="id")
+# df.to_csv("data/derived/dams_mbtiles.csv", index=False)
+df.loc[df.hasnetwork].drop(columns=["hasnetwork"]).to_csv(
+    "data/derived/dams_with_networks.csv", index=False
+)
 
+df.loc[~df.hasnetwork].drop(
+    columns=[
+        "hasnetwork",
+        "sinuosity",
+        "sizeclasses",
+        "upstreammiles",
+        "downstreammiles",
+        "totalnetworkmiles",
+        "gainmiles",
+        "landcover",
+        "streamorder",
+        "gainmilesclass",
+        "raresppclass",
+        "heightclass",
+        "landcoverclass",
+        "streamorderclass",
+        "County",
+        "HUC6",
+        "HUC8",
+        "HUC12",
+        "ECO3",
+        "ECO4",
+    ]
+    + [c for c in df.columns if c.endswith("_tier")]
+).to_csv("data/derived/dams_without_networks.csv", index=False)
 
 print("Done in {:.2f}".format(time() - start))

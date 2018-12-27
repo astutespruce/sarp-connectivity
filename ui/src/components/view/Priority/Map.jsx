@@ -143,12 +143,19 @@ class PriorityMap extends Component {
         const { map } = this
         const { selectedFeature } = this.props
 
-        // make sure it is on top
-        /* eslint-disable no-underscore-dangle */
-        map.moveLayer("point-highlight", map.style._layers.length)
+        if (selectedFeature !== null) {
+            map.getSource("point-highlight").setData({
+                type: "Point",
+                coordinates: [selectedFeature.get("lon"), selectedFeature.get("lat")]
+            })
 
-        const filterExpr = selectedFeature !== null ? ["==", "id", selectedFeature.get("id")] : ["==", "id", Infinity]
-        this.map.setFilter("point-highlight", filterExpr)
+            // make sure it is on top
+            /* eslint-disable no-underscore-dangle */
+            map.moveLayer("point-highlight", map.style._layers.length)
+            map.setLayoutProperty("point-highlight", "visibility", "visible")
+        } else {
+            map.setLayoutProperty("point-highlight", "visibility", "none")
+        }
     }
 
     setUnitLayerVisibility = visible => {
@@ -230,9 +237,9 @@ class PriorityMap extends Component {
 
         let filterExpr = null
         if (inclusive) {
-            filterExpr = ["all", ["==", "hasnetwork", true], [inExpr, layer, ...unitIds], ...filterValues]
+            filterExpr = ["all", [inExpr, layer, ...unitIds], ...filterValues]
         } else {
-            filterExpr = ["all", ["==", "hasnetwork", true], ["any", [inExpr, layer, ...unitIds], ...filterValues]]
+            filterExpr = ["all", ["any", [inExpr, layer, ...unitIds], ...filterValues]]
         }
 
         return filterExpr
@@ -345,24 +352,30 @@ class PriorityMap extends Component {
             })
 
             // Add the background (no network) points up front, but not visible
-            const barriersConfig = fromJS({
-                source: type,
-                "source-layer": type
-            })
+            // const barriersConfig = fromJS({
+            //     source: type,
+            //     "source-layer": type
+            // })
 
             map.addLayer(
                 fromJS(backgroundPoint)
-                    .merge(barriersConfig)
+                    .merge({
+                        source: type,
+                        "source-layer": "background"
+                    })
                     .toJS()
             )
 
             // Add highlight layer.  Note: on subsequent additions of layers, move this to the top.
+            map.addLayer(pointHighlight)
+
             // Always visible and only based on filter by ID
-            map.addLayer(
-                fromJS(pointHighlight)
-                    .merge(barriersConfig)
-                    .toJS()
-            )
+
+            // map.addLayer(
+            //     fromJS(pointHighlight)
+            //         .merge(barriersConfig)
+            //         .toJS()
+            // )
         })
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
@@ -388,8 +401,7 @@ class PriorityMap extends Component {
                     if (points.length > 0) {
                         const point = points[0]
                         console.log(point)
-                        selectFeature(fromJS(point.properties))
-                        // selectFeature(fromJS(point.properties).merge({ layerId: point.sourceLayer, type }))
+                        selectFeature(fromJS(point.properties).merge({ hasnetwork: point.layer.source === type }))
                     }
                     break
                 }
@@ -401,6 +413,8 @@ class PriorityMap extends Component {
                         const point = points[0]
                         console.log(point)
 
+                        const properties = fromJS(point.properties).merge({ hasnetwork: point.layer.source === type })
+
                         if (point.source === "ranked") {
                             const { id } = point.properties
                             const tilePoints = map.querySourceFeatures(type, {
@@ -409,10 +423,10 @@ class PriorityMap extends Component {
                             })
                             console.log("tilePoints", tilePoints)
                             if (tilePoints.length) {
-                                selectFeature(fromJS(tilePoints[0].properties).mergeDeep(fromJS(point.properties)))
+                                selectFeature(fromJS(tilePoints[0].properties).mergeDeep(properties))
                             }
                         } else {
-                            selectFeature(fromJS(point.properties))
+                            selectFeature(properties)
                         }
                     }
                     break
@@ -424,6 +438,20 @@ class PriorityMap extends Component {
     renderLegend() {
         const { zoom } = this.state
         const { mode, type, tierThreshold } = this.props
+
+        const excludedLegend = {
+            label: `Not selected ${type}`,
+            color: excludedPoint.paint["circle-color"],
+            borderColor: excludedPoint.paint["circle-stroke-color"],
+            size: 12
+        }
+
+        const backgroundLegend = {
+            label: type === 'dams' ? `Off-network ${type}` : `Off-network ${type} and road / stream crossings`,
+            color: backgroundPoint.paint["circle-color"],
+            borderColor: backgroundPoint.paint["circle-stroke-color"],
+            size: 10
+        }
 
         if (mode === "filter") {
             if (zoom <= includedPoint.minzoom) {
@@ -438,20 +466,10 @@ class PriorityMap extends Component {
                 }
             ]
             if (zoom >= excludedPoint.minzoom) {
-                entries.push({
-                    label: `Not selected ${type}`,
-                    color: excludedPoint.paint["circle-color"],
-                    borderColor: excludedPoint.paint["circle-stroke-color"],
-                    size: 12
-                })
+                entries.push(excludedLegend)
             }
             if (zoom >= backgroundPoint.minzoom) {
-                entries.push({
-                    label: `Off-network ${type}`,
-                    color: backgroundPoint.paint["circle-color"],
-                    borderColor: backgroundPoint.paint["circle-stroke-color"],
-                    size: 10
-                })
+                entries.push(backgroundLegend)
             }
 
             return <Legend entries={entries} />
@@ -479,20 +497,10 @@ class PriorityMap extends Component {
                 })
             }
             if (zoom >= excludedPoint.minzoom) {
-                entries.push({
-                    label: `Not selected ${type}`,
-                    color: excludedPoint.paint["circle-color"],
-                    borderColor: excludedPoint.paint["circle-stroke-color"],
-                    size: 12
-                })
+                entries.push(excludedLegend)
             }
             if (zoom >= backgroundPoint.minzoom) {
-                entries.push({
-                    label: `Off-network ${type}`,
-                    color: backgroundPoint.paint["circle-color"],
-                    borderColor: backgroundPoint.paint["circle-stroke-color"],
-                    size: 10
-                })
+                entries.push(backgroundLegend)
             }
 
             return <Legend entries={entries} />

@@ -121,4 +121,21 @@ export const SINUOSITY = {
     2: "high"
 }
 
-export default { stateFIPS }
+export const BARRIER_SEVERITY = {
+    0: "Unknown",
+    1: "Not a barrier",
+    2: "Minor barrier",
+    3: "Moderate barrier",
+    4: "Major barrier"
+}
+
+export const CROSSING_TYPE = {
+    0: "Unknown",
+    1: "Not a barrier",
+    2: "Bridge",
+    3: "Culvert",
+    4: "Ford",
+    5: "Dam"
+}
+
+export const ROAD_TYPE = { 0: "Unknown", 1: "Unpaved", 2: "Paved" }

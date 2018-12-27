@@ -22,12 +22,17 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 log = app.logger
 
+TYPES = ("dams", "barriers")
 LAYERS = ("HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4")
 FORMATS = ("csv",)  # TODO: "shp"
 
-FILTER_FIELDS = [
+
+DAM_FILTER_FIELDS = [
     "Feasibility",
     "HeightClass",
+    # "Condition", ?
+    # "Construction", ?
+    # "Purpose", ?
     "RareSppClass",
     "StreamOrderClass",
     "GainMilesClass",
@@ -35,7 +40,20 @@ FILTER_FIELDS = [
     "SizeClasses",
 ]
 
-filterFieldMap = {f.lower(): f for f in FILTER_FIELDS}
+dam_filter_field_map = {f.lower(): f for f in DAM_FILTER_FIELDS}
+
+BARRIER_FILTER_FIELDS = [
+    "ConditionClass",
+    "SeverityClass",
+    "CrossingTypeClass",
+    "RoadTypeClass",
+    "RareSppClass",
+    "GainMilesClass",
+    "LandcoverClass",
+    "SizeClasses",
+]
+barrier_filter_field_map = {f.lower(): f for f in BARRIER_FILTER_FIELDS}
+
 
 EXPORT_COLUMNS = [
     "lat",
@@ -94,10 +112,22 @@ EXPORT_COLUMNS = [
 
 # Read source data into memory
 dams = read_dataframe("data/derived/dams.feather").set_index(["id"])
+dams_with_networks = dams.loc[dams.HasNetwork]
 
-dams_with_network = dams.loc[dams.HasNetwork]
+barriers = read_dataframe("data/derived/small_barriers.feather").set_index(["id"])
+barriers_with_networks = barriers.loc[barriers.HasNetwork]
 
 print("Data loaded")
+
+
+def validate_type(barrier_type):
+    if not barrier_type in TYPES:
+        abort(
+            400,
+            "type is not valid: {0}; must be one of {1}".format(
+                barrier_type, ", ".join(TYPES)
+            ),
+        )
 
 
 def validate_layer(layer):
@@ -115,10 +145,62 @@ def validate_format(format):
         abort(400, "format is not valid; must be one of {0}".format(", ".join(FORMATS)))
 
 
+@app.route("/api/v1/<barrier_type>/query/<layer>")
+def query(barrier_type="dams", layer="HUC8"):
+    """Filter dams and return key properties for filtering.  ONLY for those with networks.
+
+    Path parameters:
+    <barrier_type> : one of TYPES
+    <layer> : one of LAYERS
+
+    Query parameters:
+    * id: list of ids
+
+    Parameters
+    ----------
+    layer : str (default: HUC8)
+        Layer to use for subsetting by ID.  One of: HUC6, HUC8, HUC12, State, ... TBD
+    """
+
+    validate_type(barrier_type)
+    validate_layer(layer)
+
+    if layer == "County":
+        layer = "COUNTYFIPS"
+
+    ids = request.args.get("id", "").split(",")
+    if not ids:
+        abort(400, "id must be non-empty")
+
+    if barrier_type == "dams":
+        df = dams_with_networks
+        field_map = dam_filter_field_map
+        fields = DAM_FILTER_FIELDS
+    else:
+        df = barriers_with_networks
+        field_map = barrier_filter_field_map
+        fields = BARRIER_FILTER_FIELDS
+
+    df = df.loc[df[layer].isin(ids)][fields].copy()
+    nrows = len(df.index)
+    log.info("selected {} dams".format(nrows))
+
+    resp = make_response(
+        df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
+    )
+
+    resp.headers["Content-Type"] = "text/csv"
+    return resp
+
+
 # TODO: log incoming request parameters
-@app.route("/api/v1/dams/rank/<layer>")
-def rank(layer="HUC8"):
+@app.route("/api/v1/<barrier_type>/rank/<layer>")
+def rank(barrier_type="dams", layer="HUC8"):
     """Rank a subset of dams data.
+
+    Path parameters:
+    <barrier_type> : one of TYPES
+    <layer> : one of LAYERS
 
     Query parameters:
     * id: list of ids
@@ -132,6 +214,7 @@ def rank(layer="HUC8"):
 
     args = request.args
 
+    validate_type(barrier_type)
     validate_layer(layer)
 
     if layer == "County":
@@ -141,16 +224,23 @@ def rank(layer="HUC8"):
     if not ids:
         abort(400, "id must be non-empty")
 
-    filters = dams_with_network[layer].isin(ids)
+    if barrier_type == "dams":
+        df = dams_with_networks
+        field_map = dam_filter_field_map
+    else:
+        df = barriers_with_networks
+        field_map = barrier_filter_field_map
+
+    filters = df[layer].isin(ids)
 
     filterKeys = [a for a in request.args if not a == "id"]
     # TODO: make this more efficient
     for filter in filterKeys:
         # convert all incoming to integers
         values = [int(x) for x in request.args.get(filter).split(",")]
-        filters = filters & dams_with_network[filterFieldMap[filter]].isin(values)
+        filters = filters & df[field_map[filter]].isin(values)
 
-    df = dams_with_network.loc[filters].copy()
+    df = df.loc[filters].copy()
     nrows = len(df.index)
 
     log.info("selected {} dams".format(nrows))
@@ -181,48 +271,14 @@ def rank(layer="HUC8"):
     return resp
 
 
-@app.route("/api/v1/dams/query/<layer>")
-def query(layer="HUC8"):
-    """Filter dams and return key properties for filtering.  ONLY for those with networks.
-
-    Query parameters:
-    * id: list of ids
-
-    Parameters
-    ----------
-    layer : str (default: HUC8)
-        Layer to use for subsetting by ID.  One of: HUC6, HUC8, HUC12, State, ... TBD
-    """
-
-    args = request.args
-
-    validate_layer(layer)
-
-    if layer == "County":
-        layer = "COUNTYFIPS"
-
-    ids = request.args.get("id", "").split(",")
-    if not ids:
-        abort(400, "id must be non-empty")
-
-    # TODO: validate that rows were returned for these ids
-    df = dams_with_network[dams[layer].isin(ids)][FILTER_FIELDS].copy()
-    nrows = len(df.index)
-
-    log.info("selected {} dams".format(nrows))
-
-    resp = make_response(
-        df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
-    )
-
-    resp.headers["Content-Type"] = "text/csv"
-    return resp
-
-
 # TODO: log incoming request parameters
-@app.route("/api/v1/dams/<format>/<layer>")
-def download_dams(layer="HUC8", format="CSV"):
+@app.route("/api/v1/barrier_type>/<format>/<layer>")
+def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     """Download subset of dams data.
+
+    Path parameters:
+    <barrier_type> : one of TYPES
+    <layer> : one of LAYERS
 
     Query parameters:
     * ids: list of ids
@@ -240,6 +296,7 @@ def download_dams(layer="HUC8", format="CSV"):
 
     args = request.args
 
+    validate_type(barrier_type)
     validate_layer(layer)
     validate_format(format)
 
@@ -247,21 +304,27 @@ def download_dams(layer="HUC8", format="CSV"):
         layer = "COUNTYFIPS"
 
     include_unranked = args.get("include_unranked", True)
-    if include_unranked:
-        df = dams
-    else:
-        df = dams_with_network
 
-    ids = request.args.get("id", "").split(",")
+    ids = args.get("id", "").split(",")
     if not ids:
         abort(400, "id must be non-empty")
+
+    if barrier_type == "dams":
+        df = dams_with_networks
+        field_map = dam_filter_field_map
+    else:
+        df = barriers_with_networks
+        field_map = barrier_filter_field_map
+
+    if not include_unranked:
+        df = df.loc[df.HasNetwork]
 
     filters = df[layer].isin(ids)
     filterKeys = [a for a in request.args if not a == "id"]
     for filter in filterKeys:
         # convert all incoming to integers
         values = [int(x) for x in request.args.get(filter).split(",")]
-        filters = filters & df[filterFieldMap[filter]].isin(values)
+        filters = filters & df[field_map[filter]].isin(values)
 
     df = df.loc[filters].copy()
     nrows = len(df.index)

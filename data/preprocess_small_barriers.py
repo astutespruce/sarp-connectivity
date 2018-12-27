@@ -15,7 +15,14 @@ import geopandas as gp
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api.calculate_tiers import calculate_tiers, SCENARIOS
-from api.domains import STATE_FIPS_DOMAIN, HUC6_DOMAIN
+from api.domains import (
+    STATE_FIPS_DOMAIN,
+    HUC6_DOMAIN,
+    BARRIER_CONDITION_TO_DOMAIN,
+    POTENTIAL_TO_SEVERITY,
+    ROAD_TYPE_TO_DOMAIN,
+    CROSSING_TYPE_TO_DOMAIN,
+)
 
 from classify import (
     classify_gainmiles,
@@ -113,12 +120,21 @@ for column in ("CrossingType", "RoadType", "Stream", "Road"):
     df[column] = df[column].fillna("Unknown").str.title().str.strip()
     df.loc[df[column].str.len() == 0, column] = "Unknown"
 
+# Fix line returns in stream name and road name
+df.loc[df.SARPID == "sm7044", "Stream"] = "Unnamed"
+df.Road = df.Road.str.replace("\r\n", "")
+
 # Fix issues with RoadType
-df.loc[df.RoadType.isin(("No Data", "NoData")), "RoadType"] = "Unknown"
+df.loc[df.RoadType.isin(("No Data", "NoData", "Nodata")), "RoadType"] = "Unknown"
 
 # Fix issues with Condition
 df.Condition = df.Condition.fillna("Unknown")
-df.loc[df.Condition == "No Data", "Condition"] = "Unknown"
+df.loc[
+    (df.Condition == "No Data")
+    | (df.Condition == "No data")
+    | (df.Condition.str.strip().str.len() == 0),
+    "Condition",
+] = "Unknown"
 
 #########  Fill NaN fields and set data types
 
@@ -144,27 +160,31 @@ for column in (
 
 
 ######## Calculate derived fields
+print("Calculating derived values")
 
 # Construct a name from Stream and Road
 df["Name"] = ""  # "Unknown Crossing"
 df.loc[(df.Stream != "Unknown") & (df.Road != "Unknown"), "Name"] = (
     df.Stream + " / " + df.Road + " Crossing"
 )
-df.loc[(df.Stream != "Unknown") & (df.Road == "Unknown"), "Name"] = (
-    df.Stream + " / Unknown Road Crossing"
-)
-df.loc[(df.Stream == "Unknown") & (df.Road != "Unknown"), "Name"] = (
-    " Unknown Stream / " + df.Road + " Crossing"
-)
+# df.loc[(df.Stream != "Unknown") & (df.Road == "Unknown"), "Name"] = (
+#     df.Stream + " / Unknown Road Crossing"
+# )
+# df.loc[(df.Stream == "Unknown") & (df.Road != "Unknown"), "Name"] = (
+#     " Unknown Stream / " + df.Road + " Crossing"
+# )
 
 
 # Calculate HUC and Ecoregion codes
-print("Calculating HUC codes")
-# df["HUC2"] = df["HUC12"].str.slice(0, 2)  # region
 df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
 df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
-
 df["Basin"] = df.HUC6.map(HUC6_DOMAIN)
+
+df["ConditionClass"] = df.Condition.map(BARRIER_CONDITION_TO_DOMAIN)
+df["SeverityClass"] = df.PotentialProject.map(POTENTIAL_TO_SEVERITY)
+df["CrossingTypeClass"] = df.CrossingType.map(CROSSING_TYPE_TO_DOMAIN)
+df["RoadTypeClass"] = df.RoadType.map(ROAD_TYPE_TO_DOMAIN)
+
 
 # Bin metrics
 df["GainMilesClass"] = classify_gainmiles(df.GainMiles)
@@ -224,6 +244,10 @@ df = df[
         "GainMilesClass",
         "SinuosityClass",
         "LandcoverClass",
+        "ConditionClass",
+        "SeverityClass",
+        "CrossingTypeClass",
+        "RoadTypeClass",
     ]
 ].set_index("id", drop=False)
 
@@ -265,11 +289,10 @@ df.reset_index(drop=True).to_feather("data/derived/small_barriers.feather")
 df.to_csv("data/derived/small_barriers.csv", index=False)
 
 
-df = df.drop(columns=["Sinuosity", "Source", "STATEFIPS"])
-
-
-# convert HasNetwork so that it encodes into tiles properly
-df.HasNetwork = df.HasNetwork.astype("uint8")
+df = df.drop(
+    columns=["Sinuosity", "Source", "STATEFIPS", "CrossingCode", "LocalID"]
+    + [c for c in df.columns if c.endswith("_score")]
+)
 
 
 df.rename(
@@ -292,7 +315,72 @@ df.rename(
 )
 
 
-df.to_csv("data/derived/barriers_mbtiles.csv", index_label="id")
+# df.to_csv(
+#     "data/derived/barriers_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+# )
+
+df.loc[df.hasnetwork].drop(columns=["hasnetwork"]).to_csv(
+    "data/derived/barriers_with_networks.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+)
+
+no_network = df.loc[~df.hasnetwork].drop(
+    columns=[
+        "hasnetwork",
+        "sinuosity",
+        "sizeclasses",
+        "upstreammiles",
+        "downstreammiles",
+        "totalnetworkmiles",
+        "gainmiles",
+        "landcover",
+        "gainmilesclass",
+        "raresppclass",
+        "landcoverclass",
+        "severityclass",
+        "crossingtypeclass",
+        "roadtypeclass",
+        "County",
+        "HUC6",
+        "HUC8",
+        "HUC12",
+        "ECO3",
+        "ECO4",
+    ]
+    + [c for c in df.columns if c.endswith("_tier")]
+)
+
+no_network.to_csv("data/derived/barriers_without_networks.csv", index=False)
+
+# Combine with road crossings
+print("Reading stream crossings")
+road_crossings = pd.read_csv(
+    "data/derived/road_crossings.csv", dtype={"Road": str, "Stream": str, "SARPID": str}
+)
+road_crossings.rename(
+    columns={c: c.lower() for c in road_crossings.columns}, inplace=True
+)
+
+# Zero out some fields
+road_crossings["protectedland"] = 0
+road_crossings["rarespp"] = 0
+road_crossings["name"] = ""
+
+
+road_crossings.loc[
+    (road_crossings.stream.str.len() > 0) & (road_crossings.road.str.len() > 0), "name"
+] = (road_crossings.stream + " / " + road_crossings.road)
+
+
+combined = no_network.append(road_crossings, ignore_index=True, sort=False)
+combined["id"] = combined.index.values.astype("uint32")
+
+combined["latitude"] = combined.lat
+combined["longitude"] = combined.lon
+
+print("Writing combined file")
+combined.to_csv(
+    "data/derived/barriers_background.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+)
 
 
 print("Done in {:.2f}".format(time() - start))
