@@ -6,7 +6,7 @@ import CBILogo from "../../../img/cbi_logo.png"
 
 function Credits() {
     return (
-        <Section id="HomeFooter">
+        <Section id="ContentPageFooter">
             <div className="columns">
                 <div className="column is-two-thirds">
                     <p>

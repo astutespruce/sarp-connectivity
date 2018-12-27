@@ -2,7 +2,7 @@
 import React from "react"
 import PropTypes from "prop-types"
 
-import { formatNumber } from "../../../../utils/format"
+import { formatNumber } from "../../../utils/format"
 
 const Histogram = ({ counts, threshold }) => {
     const margin = "0.25em"
@@ -15,12 +15,10 @@ const Histogram = ({ counts, threshold }) => {
             <div className="histogram-bars flex-grow">
                 {counts.map((count, i) => (
                     <div key={`${i}-${count}`} className="flex-container flex-align-center">
-                        <div className="is-size-7 histogram-label">
-                            Tier {i + 1}
-                        </div>
+                        <div className="is-size-7 histogram-label">Tier {i + 1}</div>
                         <div className="bar-container flex-container flex-align-center flex-grow">
                             <div
-                                className={`bar ${i+1 <= threshold ? 'top': ''}`}
+                                className={`bar ${i + 1 <= threshold ? "top" : ""}`}
                                 style={{
                                     width: `calc(${(100 * count) / max}% - ${labelWidth}em - ${margin})`,
                                     marginRight: margin

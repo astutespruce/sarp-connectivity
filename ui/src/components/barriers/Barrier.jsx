@@ -4,7 +4,7 @@ import React from "react"
 import PropTypes from "prop-types"
 import { connect } from "react-redux"
 
-import Details from "./Details"
+import DamDetails from "./DamDetails"
 import Scores from "./Scores"
 import { BarrierPropType } from "../../CustomPropTypes"
 
@@ -31,13 +31,15 @@ const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
                 </div>
 
                 <div id="SidebarContent" className="flex-container-column">
-                    <Details type={type} {...barrier} />
+                    <DamDetails type={type} {...barrier} />
                 </div>
 
                 <div id="SidebarFooter">
                     <div className="flex-container flex-justify-center flex-align-center">
                         <a
-                            href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for barrier: ${sarpid}&body=I found the following problem with the SARP Inventory for this barrier:`}
+                            href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
+                                type === "dams" ? "dam" : "road-related barrier"
+                            }: ${sarpid}&body=I found the following problem with the SARP Inventory for this barrier:`}
                         >
                             <i className="fas fa-envelope" />
                             &nbsp; Report a problem with this barrier
@@ -102,7 +104,7 @@ const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
             </div>
 
             <div id="SidebarContent" className="flex-container-column">
-                {tab === "details" ? <Details type={type} {...barrier} /> : scoreContent}
+                {tab === "details" ? <DamDetails type={type} {...barrier} /> : scoreContent}
             </div>
 
             <div id="SidebarFooter">

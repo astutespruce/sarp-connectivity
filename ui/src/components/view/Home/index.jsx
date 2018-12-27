@@ -38,7 +38,7 @@ const Home = () => {
             <Concepts />
 
             <ScoringOverview />
-
+            {/* 
             <NetworkLength />
 
             <NetworkComplexity />
@@ -51,7 +51,7 @@ const Home = () => {
 
             <WatershedCondition />
 
-            <Combined />
+            <Combined /> */}
 
             <SARP />
 

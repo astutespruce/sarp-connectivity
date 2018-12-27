@@ -7,11 +7,13 @@ import Home from "./components/view/Home"
 import Download from "./components/view/Download"
 import Priority from "./components/view/Priority"
 import Summary from "./components/view/Summary"
-import NotFound from "./components/view/NotFound"
 
-// testing
-import Heatmap from "./components/view/Heatmap"
-import TestHistogram from "./test/TestHistogram"
+import NetworkLength from "./components/view/metrics/NetworkLength"
+import NetworkComplexity from "./components/view/metrics/NetworkComplexity"
+import NetworkSinuosity from "./components/view/metrics/NetworkSinuosity"
+import NaturalLandcover from "./components/view/metrics/NaturalLandcover"
+
+import NotFound from "./components/view/NotFound"
 
 const App = () => (
     <div className="flex-container-column full-height fill-viewport">
@@ -23,10 +25,10 @@ const App = () => (
                 <Route exact path="/summary" component={Summary} />
                 <Route exact path="/priority" component={Priority} />
 
-                {/* FIXME! */}
-                <Route exact path="/test" component={TestHistogram} />
-
-                <Route exact path="/heatmap" component={Heatmap} />
+                <Route exact path="/metrics/length" component={NetworkLength} />
+                <Route exact path="/metrics/complexity" component={NetworkComplexity} />
+                <Route exact path="/metrics/sinuosity" component={NetworkSinuosity} />
+                <Route exact path="/metrics/landcover" component={NaturalLandcover} />
 
                 {/* Fall-through route */}
                 <Route component={NotFound} />

@@ -5,7 +5,7 @@ import { formatNumber } from "../../utils/format"
 
 import { CONDITION, CONSTRUCTION, PURPOSE, RECON, SINUOSITY } from "../../constants"
 
-const Details = ({
+const DamDetails = ({
     lat,
     lon,
     type,
@@ -75,7 +75,9 @@ const Details = ({
                     </li>
                 </React.Fragment>
             ) : (
-                <li className="has-text-grey">This barrier is off-network and has no functional network information.</li>
+                <li className="has-text-grey">
+                    This barrier is off-network and has no functional network information.
+                </li>
             )}
         </ul>
 
@@ -113,7 +115,7 @@ const Details = ({
 
 // TODO: feasibility, metrics
 
-Details.propTypes = {
+DamDetails.propTypes = {
     lat: PropTypes.number.isRequired,
     lon: PropTypes.number.isRequired,
     type: PropTypes.string.isRequired,
@@ -135,7 +137,7 @@ Details.propTypes = {
     sizeclasses: PropTypes.number
 }
 
-Details.defaultProps = {
+DamDetails.defaultProps = {
     river: "",
     height: 0,
     year: 0,
@@ -152,4 +154,4 @@ Details.defaultProps = {
     sizeclasses: null
 }
 
-export default Details
+export default DamDetails

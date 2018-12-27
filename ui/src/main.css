@@ -266,6 +266,10 @@ button.link.link-back {
 #ContentPage .hero {
     min-height: 100vh;
 }
+#ContentPage #ContentPageFooter .hero {
+    min-height: auto;
+}
+
 #ContentPage p {
     font-size: 18px;
 }
@@ -337,6 +341,23 @@ button.link.link-back {
 #ContentPage .info-box .button {
     width: 100%;
     margin-top: 2rem;
+}
+
+#ContentPage .info-boxes img {
+    width: 72px;
+    margin-right: 0.5em;
+}
+#ContentPage .info-box-content {
+    padding: 1rem;
+    background: #eee;
+    border-radius: 6px;
+    height: 100%;
+}
+
+#ContentPage .info-box-header {
+    border-bottom: 4px solid #fff;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
 #ContentPageHeader h1 {
