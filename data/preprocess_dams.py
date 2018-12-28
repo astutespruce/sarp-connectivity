@@ -314,9 +314,6 @@ df = df.drop(
     + [c for c in df.columns if c.endswith("_score")]
 )
 
-# convert HasNetwork so that it encodes into tiles properly
-# df.HasNetwork = df.HasNetwork.astype("uint8")
-
 
 df.rename(
     columns={

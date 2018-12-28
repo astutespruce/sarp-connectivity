@@ -138,4 +138,4 @@ export const CROSSING_TYPE = {
     5: "Dam"
 }
 
-export const ROAD_TYPE = { 0: "Unknown", 1: "Unpaved", 2: "Paved" }
+export const ROAD_TYPE = { 0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad" }

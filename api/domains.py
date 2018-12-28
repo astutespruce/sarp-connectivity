@@ -465,7 +465,7 @@ CROSSING_TYPE_TO_DOMAIN = {
 }
 
 
-ROAD_TYPE_DOMAIN = {0: "Unknown", 1: "Unpaved", 2: "Paved"}
+ROAD_TYPE_DOMAIN = {0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad"}
 
 ROAD_TYPE_TO_DOMAIN = {
     "Asphalt": 2,
@@ -475,7 +475,7 @@ ROAD_TYPE_TO_DOMAIN = {
     "Gravel": 1,
     "Other": 0,
     "Paved": 2,
-    "Railroad": 1,
+    "Railroad": 3,
     "Trail": 1,
     "Unknown": 0,
     "Unpaved": 1,

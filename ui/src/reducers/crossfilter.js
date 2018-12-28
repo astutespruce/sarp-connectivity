@@ -1,5 +1,5 @@
-import crossfilter from "crossfilter2"
-import { Map, List, Set, fromJS } from "immutable"
+// import crossfilter from "crossfilter2"
+import { Map, List, Set } from "immutable"
 
 import { LOAD, SET_FILTER, RESET, CLEAR } from "../actions/crossfilter"
 
@@ -44,30 +44,23 @@ const initialState = Map({
 export const reducer = (state = initialState, { type, payload = {} }) => {
     switch (type) {
         case LOAD: {
-            const { data, filters } = payload
+            const { crossfilter, dimensions } = payload
 
-            const cf = crossfilter(data)
+            const dimensionIndex = dimensions.reduce((out, dimension) => {
+                out[dimension.config.field] = dimension
+                return out
+            }, {})
 
-            const dimensionIndex = {}
-            const dimensions = filters.map(filter => {
-                const { field, dimensionIsArray = false } = filter
-
-                // default is identify function for field
-                const dimensionFunction = filter.dimensionFunction || (d => d[field])
-                const dimension = cf.dimension(dimensionFunction, !!dimensionIsArray)
-                dimension.config = filter
-                dimensionIndex[field] = dimension
-                return dimension
-            })
+            const total = countFiltered(crossfilter)
 
             return state.merge({
-                crossfilter: Map(cf),
+                crossfilter: Map(crossfilter),
                 dimensions: List(dimensions),
                 dimensionIndex: Map(dimensionIndex),
-                filters: dimensions.reduce((out, item) => out.set(item, Set()), Map()),
+                filters: dimensions.reduce((out, dimension) => out.set(dimension.config.field, Set()), Map()),
                 dimensionCounts: countByDimension(dimensions),
-                filteredCount: countFiltered(cf),
-                total: data.length
+                filteredCount: total,
+                total
             })
         }
         case SET_FILTER: {
@@ -95,7 +88,7 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             })
 
             return state.merge({
-                filters: dimensions.reduce((out, item) => out.set(item, Set()), Map()),
+                filters: dimensions.reduce((out, dimension) => out.set(dimension.config.field, Set()), Map()),
                 dimensionCounts: countByDimension(dimensions),
                 filteredCount: countFiltered(state.get("crossfilter").toJS())
             })

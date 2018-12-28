@@ -1,11 +1,29 @@
+import crossfilter from "crossfilter2"
+
 export const LOAD = "@@crossfilter/LOAD"
-export const load = (data, filters) => ({
-    type: LOAD,
-    payload: {
-        data,
-        filters
+export const load = (data, filters) => {
+    const cf = crossfilter(data)
+
+    const dimensions = filters.map(filter => {
+        const { field, dimensionIsArray = false } = filter
+
+        // default is identify function for field
+        const dimensionFunction = filter.dimensionFunction || (d => d[field])
+        const dimension = cf.dimension(dimensionFunction, !!dimensionIsArray)
+        dimension.config = filter
+        return dimension
+    })
+
+    console.log("done constructing crossfilter")
+
+    return {
+        type: LOAD,
+        payload: {
+            crossfilter: cf,
+            dimensions
+        }
     }
-})
+}
 
 export const SET_FILTER = "@@crossfilter/SET_FILTER"
 export const setFilter = (filter, filterValues) => ({
