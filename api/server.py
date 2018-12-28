@@ -14,7 +14,8 @@ from api.domains import (
     FEASIBILITY_DOMAIN,
     PURPOSE_DOMAIN,
     CONSTRUCTION_DOMAIN,
-    CONDITION_DOMAIN,
+    DAM_CONDITION_DOMAIN,
+    BARRIER_SEVERITY_DOMAIN,
 )
 
 
@@ -55,7 +56,7 @@ BARRIER_FILTER_FIELDS = [
 barrier_filter_field_map = {f.lower(): f for f in BARRIER_FILTER_FIELDS}
 
 
-EXPORT_COLUMNS = [
+DAM_EXPORT_COLUMNS = [
     "lat",
     "lon",
     # ID and source info
@@ -89,6 +90,59 @@ EXPORT_COLUMNS = [
     "Condition",
     "Recon",
     "Feasibility",
+    # Metrics
+    "GainMiles",
+    "UpstreamMiles",
+    "DownstreamMiles",
+    "TotalNetworkMiles",
+    "Landcover",
+    "Sinuosity",
+    "SizeClasses",
+    # Tiers
+    "NC_tier",
+    "WC_tier",
+    "NCWC_tier",
+    "SE_NC_tier",
+    "SE_WC_tier",
+    "SE_NCWC_tier",
+    "State_NC_tier",
+    "State_WC_tier",
+    "State_NCWC_tier",
+]
+
+BARRIER_EXPORT_COLUMNS = [
+    "lat",
+    "lon",
+    # ID and source info
+    "SARPID",
+    "CrossingCode",
+    "LocalID",
+    "Source",
+    # Basic info
+    "Name",
+    "County",
+    "State",
+    "Basin",
+    # Species info
+    "RareSpp",
+    # River info
+    "Stream",
+    "HasNetwork",
+    # Road info
+    "Road",
+    "RoadType",
+    # Barrier info
+    "CrossingType",
+    "Condition",
+    "PotentialProject",
+    "SeverityClass",
+    # Location info
+    "ProtectedLand",
+    "HUC6",
+    "HUC8",
+    "HUC12",
+    "ECO3",
+    "ECO4",
     # Metrics
     "GainMiles",
     "UpstreamMiles",
@@ -272,7 +326,7 @@ def rank(barrier_type="dams", layer="HUC8"):
 
 
 # TODO: log incoming request parameters
-@app.route("/api/v1/barrier_type>/<format>/<layer>")
+@app.route("/api/v1/<barrier_type>/<format>/<layer>")
 def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     """Download subset of dams data.
 
@@ -312,9 +366,11 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     if barrier_type == "dams":
         df = dams_with_networks
         field_map = dam_filter_field_map
+        export_columns = DAM_EXPORT_COLUMNS
     else:
         df = barriers_with_networks
         field_map = barrier_filter_field_map
+        export_columns = BARRIER_EXPORT_COLUMNS
 
     if not include_unranked:
         df = df.loc[df.HasNetwork]
@@ -341,16 +397,21 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
 
     # drop unneeded columns
-    df = df[EXPORT_COLUMNS]
+    df = df[export_columns]
 
     # map domain fields to values
     df.HasNetwork = df.HasNetwork.map({True: "yes", False: "no"})
     df.ProtectedLand = df.ProtectedLand.map({1: "yes", 0: "no"})
-    df.Condition = df.Condition.map(CONDITION_DOMAIN)
-    df.Construction = df.Construction.map(CONSTRUCTION_DOMAIN)
-    df.Purpose = df.Purpose.map(PURPOSE_DOMAIN)
-    df.Recon = df.Recon.map(RECON_DOMAIN)
-    df.Feasibility = df.Feasibility.map(FEASIBILITY_DOMAIN)
+
+    if barrier_type == "dams":
+        df.Condition = df.Condition.map(DAM_CONDITION_DOMAIN)
+        df.Construction = df.Construction.map(CONSTRUCTION_DOMAIN)
+        df.Purpose = df.Purpose.map(PURPOSE_DOMAIN)
+        df.Recon = df.Recon.map(RECON_DOMAIN)
+        df.Feasibility = df.Feasibility.map(FEASIBILITY_DOMAIN)
+
+    else:
+        df.SeverityClass = df.SeverityClass.map(BARRIER_SEVERITY_DOMAIN)
 
     filename = "aquatic_barrier_ranks_{0}.{1}".format(date.today().isoformat(), format)
 
@@ -363,7 +424,7 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
         "ids": ", ".join(ids),
     }
 
-    readme = render_template("dams_readme.txt", **template_values)
+    readme = render_template("{}_readme.txt".format(barrier_type), **template_values)
     # csv_bytes = BytesIO()
     # df.to_csv(csv_bytes)
 

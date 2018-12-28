@@ -3,7 +3,7 @@ import PropTypes from "prop-types"
 
 import { formatNumber } from "../../utils/format"
 
-import { CONDITION, CONSTRUCTION, PURPOSE, RECON, SINUOSITY } from "../../constants"
+import { DAM_CONDITION, CONSTRUCTION, PURPOSE, RECON, SINUOSITY } from "../../constants"
 
 const DamDetails = ({
     lat,
@@ -47,7 +47,7 @@ const DamDetails = ({
             {height > 0 ? <li>Height: {height} feet</li> : null}
             {construction ? <li>Construction material: {CONSTRUCTION[construction].toLowerCase()}</li> : null}
             {purpose ? <li>Purpose: {PURPOSE[purpose].toLowerCase()}</li> : null}
-            {condition ? <li>Structural condition: {CONDITION[condition].toLowerCase()}</li> : null}
+            {condition ? <li>Structural condition: {DAM_CONDITION[condition].toLowerCase()}</li> : null}
         </ul>
 
         <h6 className="title is-6">Functional network information</h6>

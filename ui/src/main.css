@@ -140,10 +140,10 @@ button:focus {
     color: #ccc;
 }
 
+/* Bulma overrides */
 .button {
     background-color: transparent;
 }
-
 .button.is-info {
     background-color: #1891ac;
 }
@@ -154,13 +154,18 @@ button:focus {
 .button.is-info[disabled]:hover {
     background-color: #80c3d1;
 }
-
 .button.is-danger {
     background-color: #ea1b00;
 }
 .button.is-danger:hover {
     background-color: #b51500;
 }
+
+.tabs li.is-active a {
+    color: #1891ac;
+}
+
+/* end Bulma overrides */
 
 header {
     background: #253b6e;
@@ -428,7 +433,7 @@ button.link.link-back {
 
 #SidebarHeader {
     padding: 1rem 0.5rem 1rem 1rem;
-    background: #eee;
+    background: #f6f6f2;
     border-bottom: 1px solid #ddd;
 }
 #SidebarHeader.has-tabs {
@@ -454,9 +459,9 @@ button.link.link-back {
 }
 #SidebarHeader .tabs {
     margin: 1rem -0.5rem 0 -1rem;
-    padding: 0 1rem;
-    background: #ddd;
-    border-top: 4px solid #859db3;
+    padding: 0.5rem 1rem 0;
+    background: #e0f2fb;
+    border-top: 4px solid #cce5f2;
 }
 #SidebarHeader .tabs ul {
     border-bottom: none;
@@ -473,7 +478,7 @@ button.link.link-back {
     flex-grow: 0;
     padding: 1rem 0;
     border-top: 1px solid #ddd;
-    background: #eee;
+    background: #F6Fj6F2;
 }
 
 #SidebarContent {
@@ -523,6 +528,10 @@ button.link.link-back {
 
 #SidebarContent .tabs ul {
     border-bottom-color: transparent;
+}
+
+#SidebarContent .tabs li a {
+    border-bottom-width: 3px;
 }
 
 #SidebarContent .tabs a {
@@ -582,7 +591,10 @@ button.link.link-back {
 }
 
 #Legend .legend-row + .legend-row {
-    margin-top: 0.75rem;
+    margin-top: 0.5em;
+    padding-top: 0.5em;
+    font-size: 0.9em;
+    border-top: 1px solid #eee;
 }
 
 .legend-patch {

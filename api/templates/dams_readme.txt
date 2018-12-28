@@ -1,4 +1,4 @@
-Southeast Aquatic Barrier Inventory - data download
+Southeast Aquatic Barrier Inventory - dams data download
 
 Date downloaded: {{date}}
 Downloaded from: {{url}}

@@ -5,7 +5,7 @@ const Legend = ({ title, entries }) => (
     <div id="Legend">
         <h5 className="title is-6">{title}</h5>
         {entries.map(({ label, color, borderColor, size }) => (
-            <div key={label} className="legend-row flex-container flex-align-center">
+            <div key={label} className="legend-row flex-container">
                 <div
                     className="legend-patch-point"
                     style={{

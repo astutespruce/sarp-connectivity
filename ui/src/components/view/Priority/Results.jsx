@@ -74,7 +74,7 @@ const Results = ({
                 <div style={{ margin: "2rem 0" }}>
                     <h6 className="title is-6 no-margin">Choose top-ranked dams for display on map</h6>
 
-                    <div className="flex-container" style={{ margin: "1rem 0" }}>
+                    <div className="flex-container" style={{ margin: "1rem" }}>
                         <div className="is-size-7">Lowest tier</div>
                         <input
                             type="range"

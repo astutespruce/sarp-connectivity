@@ -69,7 +69,7 @@ export const CONSTRUCTION = {
     11: "Other"
 }
 
-export const CONDITION = {
+export const DAM_CONDITION = {
     0: "Not Rated",
     1: "Satisfactory",
     2: "Fair",
@@ -140,3 +140,5 @@ export const CROSSING_TYPE = {
 }
 
 export const ROAD_TYPE = { 0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad" }
+
+export const BARRIER_CONDITION = { 0: "Unknown", 1: "Failing", 2: "Poor", 3: "OK", 4: "New" }

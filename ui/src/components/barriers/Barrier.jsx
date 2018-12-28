@@ -67,19 +67,21 @@ const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
     let scoreContent = null
     if (hasnetwork) {
         // Transform properties to priorities: <unit>_<metric>_score
+        // For now, we are using tier to save space in data transport, so convert them to percent
         const scores = {}
         const units = ["se", "state"]
-        const metrics = ["gainmiles", "landcover", "sinuosity", "sizeclasses", "nc", "wc", "ncwc"]
+        const metrics = ["nc", "wc", "ncwc"]
+        // TODO: "gainmiles", "landcover", "sinuosity", "sizeclasses",
 
         scores.custom = {}
         metrics.forEach(metric => {
-            scores.custom[metric] = barrier[`${metric}_score`]
+            scores.custom[metric] = (100 * (19 - (barrier[`${metric}_tier`] - 1))) / 20
         })
 
         units.forEach(unit => {
             scores[unit] = {}
             metrics.forEach(metric => {
-                scores[unit][metric] = barrier[`${unit}_${metric}_score`]
+                scores[unit][metric] = (100 * (19 - (barrier[`${unit}_${metric}_tier`] - 1))) / 20
             })
         })
 

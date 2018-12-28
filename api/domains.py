@@ -199,7 +199,7 @@ CONSTRUCTION_DOMAIN = {
     11: "Other",
 }
 
-CONDITION_DOMAIN = {
+DAM_CONDITION_DOMAIN = {
     0: "Not Rated",
     1: "Satisfactory",
     2: "Fair",
@@ -440,7 +440,7 @@ CROSSING_TYPE_DOMAIN = {
     3: "Culvert",
     4: "Ford",
     5: "Dam",
-    6: "Buried stream"
+    6: "Buried stream",
 }
 
 CROSSING_TYPE_TO_DOMAIN = {

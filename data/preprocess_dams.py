@@ -292,6 +292,10 @@ for group_field in (None, "State"):
             df[col] = (df[col] * 100).round().astype("uint16")
 
 
+# Short term: drop scores, they aren't used in the frontend
+df = df.drop(columns=[c for c in df.columns if c.endswith("_score")])
+
+
 # Export full set of fields
 print("Writing to output files")
 
@@ -311,9 +315,7 @@ df["longitude"] = df.lon
 
 df = df.drop(
     columns=["Sinuosity", "Source", "NHDplusVersion", "STATEFIPS"]
-    + [c for c in df.columns if c.endswith("_score")]
 )
-
 
 df.rename(
     columns={

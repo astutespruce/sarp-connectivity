@@ -280,6 +280,10 @@ for group_field in (None, "State"):
             df[col] = (df[col] * 100).round().astype("uint16")
 
 
+# Short term: drop scores, they aren't used in the frontend
+df = df.drop(columns=[c for c in df.columns if c.endswith("_score")])
+
+
 print("Writing to files")
 
 # For API
@@ -291,7 +295,6 @@ df.to_csv("data/derived/small_barriers.csv", index=False)
 
 df = df.drop(
     columns=["Sinuosity", "Source", "STATEFIPS", "CrossingCode", "LocalID"]
-    + [c for c in df.columns if c.endswith("_score")]
 )
 
 

@@ -21,7 +21,7 @@ import {
 } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
-let initialState = Map({
+const initialState = Map({
     mode: "start", // mode or step in selection process: "select", "filter", "results"
     bounds: SARP_BOUNDS, // SARP bounds
     prevBounds: List(), // push previous bounds here
@@ -39,14 +39,14 @@ let initialState = Map({
 })
 
 // FIXME: dev only
-if (process.env.NODE_ENV !== "production") {
-    initialState = initialState.merge({
-        mode: "select",
-        type: "barriers",
-        layer: "State",
-        summaryUnits: Set([{ id: "Alabama" }])
-    })
-}
+// if (process.env.NODE_ENV !== "production") {
+//     initialState = initialState.merge({
+//         mode: "select",
+//         type: "barriers",
+//         layer: "State",
+//         summaryUnits: Set([{ id: "Alabama" }])
+//     })
+// }
 
 export const reducer = (state = initialState, { type, payload = {} }) => {
     switch (type) {
