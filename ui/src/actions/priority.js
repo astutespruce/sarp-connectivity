@@ -1,7 +1,7 @@
-// import axios from "axios"
 import { csv } from "d3-fetch"
 
-import { initCrossfilter } from "../filters"
+import { clear, load } from "./crossfilter"
+import { DAM_FILTERS, BARRIER_FILTERS } from "../filters"
 import { apiQueryParams } from "../utils/api"
 import { API_HOST } from "../config"
 
@@ -101,10 +101,11 @@ export const fetchQueryStart = () => ({
 })
 
 export const FETCH_QUERY_SUCCESS = "FETCH_QUERY_SUCCESS"
-export const fetchQuerySuccess = data => ({
+export const fetchQuerySuccess = (data, filters) => ({
     type: FETCH_QUERY_SUCCESS,
     payload: {
-        data
+        data,
+        filters
     }
 })
 
@@ -119,6 +120,9 @@ export const fetchQueryError = error => ({
 export const fetchQuery = (type, layer, units) => dispatch => {
     const url = `${API_HOST}/api/v1/${type}/query/${layer}?${apiQueryParams(units)}`
 
+    const filters = type === "dams" ? DAM_FILTERS : BARRIER_FILTERS
+    dispatch(clear())
+
     csv(url, row => {
         // convert everything to integer
         Object.keys(row).forEach(f => {
@@ -128,8 +132,8 @@ export const fetchQuery = (type, layer, units) => dispatch => {
     })
         .then(data => {
             window.data = data
-            initCrossfilter(data)
-            dispatch(fetchQuerySuccess(data))
+            dispatch(load(data, filters))
+            dispatch(fetchQuerySuccess(data, filters))
         })
         .catch(error => {
             console.error(error)
@@ -137,21 +141,6 @@ export const fetchQuery = (type, layer, units) => dispatch => {
         })
     return dispatch(fetchQueryStart())
 }
-
-export const SET_FILTER = "SET_FILTER"
-export const setFilter = (filter, filterValues) => ({
-    type: SET_FILTER,
-    payload: {
-        filter,
-        filterValues
-    }
-})
-
-// TODO: not hooked up yet
-export const RESET_FILTERS = "RESET_FILTERS"
-export const resetFilters = () => ({
-    type: RESET_FILTERS
-})
 
 export const TOGGLE_FILTER_CLOSED = "TOGGLE_FILTER_CLOSED"
 export function toggleFilterClosed(filter, isClosed) {

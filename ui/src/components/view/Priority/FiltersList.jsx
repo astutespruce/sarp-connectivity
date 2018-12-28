@@ -5,7 +5,8 @@ import { Set } from "immutable"
 import { connect } from "react-redux"
 
 import * as actions from "../../../actions/priority"
-import { allFilters, filterConfig } from "../../../filters"
+import { setFilter, reset } from "../../../actions/crossfilter"
+// import { allFilters, filterConfig } from "../../../filters"
 import { formatNumber } from "../../../utils/format"
 
 import StartOverButton from "./StartOverButton"
@@ -15,11 +16,12 @@ import Filter from "./Filter"
 function FiltersList({
     layer,
     type,
+    dimensions,
+    filters,
     counts,
     totalCount,
-    filters,
     summaryUnits,
-    setFilter,
+    setFilter: handleSetFilter,
     resetFilters,
     closedFilters,
     toggleFilterClosed,
@@ -63,18 +65,20 @@ function FiltersList({
                     the values selected across ALL filters.
                 </p>
                 <div style={{ marginTop: "1rem" }}>
-                    {allFilters.map(f => (
-                        <Filter
-                            key={f}
-                            filter={f}
-                            counts={counts.get(f)}
-                            filterValues={filters.get(f, Set())}
-                            closed={closedFilters.get(f, false)}
-                            help={filterConfig[f].help}
-                            onFilterChange={v => setFilter(f, v)}
-                            toggleFilterClosed={v => toggleFilterClosed(f, v)}
-                        />
-                    ))}
+                    {dimensions.map(({ config }) => {
+                        const { field } = config
+                        return (
+                            <Filter
+                                key={field}
+                                filterConfig={config}
+                                counts={counts.get(field)}
+                                filterValues={filters.get(field, Set())}
+                                closed={closedFilters.get(field, false)}
+                                onFilterChange={v => handleSetFilter(field, v)}
+                                toggleFilterClosed={v => toggleFilterClosed(field, v)}
+                            />
+                        )
+                    })}
                 </div>
             </div>
 
@@ -97,11 +101,14 @@ function FiltersList({
 FiltersList.propTypes = {
     type: PropTypes.string.isRequired,
     layer: PropTypes.string.isRequired,
-    counts: ImmutablePropTypes.mapOf(ImmutablePropTypes.mapOf(PropTypes.number)).isRequired,
-    totalCount: PropTypes.number.isRequired,
+
+    dimensions: ImmutablePropTypes.listOf(PropTypes.object).isRequired,
     filters: ImmutablePropTypes.mapOf(
         ImmutablePropTypes.setOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number]))
     ).isRequired,
+    counts: ImmutablePropTypes.mapOf(ImmutablePropTypes.mapOf(PropTypes.number)).isRequired,
+    totalCount: PropTypes.number.isRequired,
+
     closedFilters: ImmutablePropTypes.mapOf(PropTypes.bool).isRequired,
 
     summaryUnits: ImmutablePropTypes.set.isRequired,
@@ -113,19 +120,22 @@ FiltersList.propTypes = {
 }
 const mapStateToProps = globalState => {
     const state = globalState.get("priority")
+    const crossfilter = globalState.get("crossfilter")
 
     return {
         type: state.get("type"),
         layer: state.get("layer"),
-        counts: state.get("dimensionCounts"),
-        totalCount: state.get("totalCount"),
-        filters: state.get("filters"),
         closedFilters: state.get("closedFilters"),
-        summaryUnits: state.get("summaryUnits")
+        summaryUnits: state.get("summaryUnits"),
+
+        dimensions: crossfilter.get("dimensions"),
+        counts: crossfilter.get("dimensionCounts"),
+        totalCount: crossfilter.get("filteredCount"),
+        filters: crossfilter.get("filters")
     }
 }
 
 export default connect(
     mapStateToProps,
-    actions
+    { setFilter, resetFilters: reset, ...actions }
 )(FiltersList)

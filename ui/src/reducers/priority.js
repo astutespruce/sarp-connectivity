@@ -1,6 +1,7 @@
 import { List, Map, Set, fromJS } from "immutable"
 
-import { node } from "prop-types"
+import { LOAD } from "../actions/crossfilter"
+
 import {
     PRIORITY_SET_SYSTEM,
     PRIORITY_SET_SCENARIO,
@@ -9,12 +10,10 @@ import {
     PRIORITY_ADD_SUMMARY_UNIT,
     PRIORITY_SET_MODE,
     PRIORITY_SET_TYPE,
-    SET_FILTER,
     FETCH_QUERY_START,
     FETCH_QUERY_SUCCESS,
     FETCH_QUERY_ERROR,
     TOGGLE_FILTER_CLOSED,
-    RESET_FILTERS,
     PRIORITY_FETCH_START,
     PRIORITY_FETCH_SUCCESS,
     PRIORITY_FETCH_ERROR,
@@ -22,9 +21,9 @@ import {
 } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
-import { allFilters, getDimensionCounts, getTotalFilteredCount } from "../filters"
+// import { allFilters, getDimensionCounts, getTotalFilteredCount } from "../filters"
 
-allFilters.reduce((out, item) => out.set(item, Set()), Map())
+// allFilters.reduce((out, item) => out.set(item, Set()), Map())
 
 let initialState = Map({
     mode: "start", // mode or step in selection process: "select", "filter", "results"
@@ -39,11 +38,10 @@ let initialState = Map({
     tierThreshold: 1, // 1-20, which tiers to include in top-ranked dams on map
 
     // filter state
-    filtersLoaded: false,
-    filters: allFilters.reduce((out, item) => out.set(item, Set()), Map()),
-    dimensionCounts: Map(), // Map of Map of ints
-    totalCount: 0,
-    closedFilters: allFilters.reduce((out, item, i) => out.set(item, i >= 0), Map()),
+    // filters: allFilters.reduce((out, item) => out.set(item, Set()), Map()),
+    // dimensionCounts: Map(), // Map of Map of ints
+    // totalCount: 0,
+    closedFilters: Map(), //  allFilters.reduce((out, item, i) => out.set(item, i >= 0), Map()),
 
     isLoading: false,
     isError: false
@@ -63,6 +61,9 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
     switch (type) {
         case "@@router/LOCATION_CHANGE": {
             return initialState
+        }
+        case LOAD: {
+            return state.set("isLoading", false)
         }
         case PRIORITY_SET_SYSTEM: {
             return state.merge({
@@ -100,32 +101,6 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
                 mode: "select"
             })
         }
-        case SET_FILTER: {
-            const { filter, filterValues } = payload
-
-            const dimension = window.dims[filter]
-            if (filterValues.size > 0) {
-                dimension.filterFunction(d => filterValues.has(d))
-            } else {
-                dimension.filterAll()
-            }
-
-            return state.merge({
-                dimensionCounts: fromJS(getDimensionCounts()),
-                totalCount: getTotalFilteredCount(),
-                filters: state.get("filters").set(filter, filterValues)
-            })
-        }
-        case RESET_FILTERS: {
-            allFilters.forEach(d => {
-                window.dims[d].filterAll()
-            })
-            return state.merge({
-                filters: allFilters.reduce((out, item) => out.set(item, Set()), Map()),
-                dimensionCounts: fromJS(getDimensionCounts()),
-                totalCount: getTotalFilteredCount()
-            })
-        }
         case FETCH_QUERY_START: {
             return state.set("isLoading", true)
         }
@@ -136,14 +111,13 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             })
         }
         case FETCH_QUERY_SUCCESS: {
+            const { filters } = payload
+
             return state.merge({
-                filtersLoaded: true,
-                filters: allFilters.reduce((out, item) => out.set(item, Set()), Map()),
-                dimensionCounts: fromJS(getDimensionCounts()),
-                totalCount: getTotalFilteredCount(),
                 mode: "filter",
-                isLoading: false,
-                isError: false
+                // isLoading: false,
+                isError: false,
+                closedFilters: filters.reduce((out, item, i) => out.set(item, i >= 0), Map())
             })
         }
         case TOGGLE_FILTER_CLOSED: {

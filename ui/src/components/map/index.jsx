@@ -41,10 +41,6 @@ class Map extends React.Component {
 
         this.map = map
         window.map = map
-        // a few shortcuts for use on console
-        map.p = map.setPaintProperty
-        map.f = map.setFilter
-        map.l = map.setLayoutProperty
 
         map.addControl(new mapboxgl.NavigationControl(), "top-right")
 

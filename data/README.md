@@ -81,9 +81,9 @@ Road-related barriers (that have been evaluated and snapped to network): preproc
 In `data/derived` directory:
 
 ```
-tippecanoe -f -Z5 -z12 -B6 -pk -pg -pe -ai -o ../tiles/barriers_with_networks.mbtiles -l barriers -T name:string -T stream:string -T road:string -T sarpid:string -T crossingcode:string -T localid:string -T protectedland:bool -T County:string -T HUC6:string -T HUC8:string -T HUC12:string barriers_with_networks.csv
+tippecanoe -f -Z5 -z12 -B6 -pk -pg -pe -ai -o ../tiles/barriers_with_networks.mbtiles -l barriers -T name:string -T stream:string -T road:string -T sarpid:string  -T protectedland:bool -T County:string -T HUC6:string -T HUC8:string -T HUC12:string barriers_with_networks.csv
 
-tippecanoe -f -Z9 -z14 -B10 -X -pg --drop-densest-as-needed -o ../tiles/barriers_background.mbtiles -l background -T name:string -T stream:string -T road:string -T sarpid:string -T crossingcode:string -T localid:string -T protectedland:bool barriers_background.csv
+tippecanoe -f -Z9 -z14 -B10 -X -pg --drop-densest-as-needed -o ../tiles/barriers_background.mbtiles -l background -T name:string -T stream:string -T road:string -T sarpid:string -T protectedland:bool barriers_background.csv
 ```
 
 In `data/tiles` directory:

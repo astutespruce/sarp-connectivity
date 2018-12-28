@@ -380,7 +380,7 @@ class PriorityMap extends Component {
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
         map.on("click", e => {
-            const { type, layer, selectFeature, selectUnit, mode } = this.props
+            const { layer, selectFeature, selectUnit, mode } = this.props
             const { zoom } = this.state
 
             switch (mode) {
@@ -568,6 +568,7 @@ PriorityMap.defaultProps = {
 
 const mapStateToProps = globalState => {
     const state = globalState.get("priority")
+    const crossfilter = globalState.get("crossfilter")
 
     return {
         type: state.get("type"),
@@ -575,11 +576,12 @@ const mapStateToProps = globalState => {
         selectedFeature: state.get("selectedFeature"),
         scenario: state.get("scenario"),
         summaryUnits: state.get("summaryUnits"),
-        filters: state.get("filters"),
         layer: state.get("layer"),
         mode: state.get("mode"),
         rankData: state.get("rankData"),
-        tierThreshold: state.get("tierThreshold")
+        tierThreshold: state.get("tierThreshold"),
+
+        filters: crossfilter.get("filters")
     }
 }
 

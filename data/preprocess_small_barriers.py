@@ -336,6 +336,7 @@ no_network = df.loc[~df.hasnetwork].drop(
         "gainmilesclass",
         "raresppclass",
         "landcoverclass",
+        "conditionclass",
         "severityclass",
         "crossingtypeclass",
         "roadtypeclass",
