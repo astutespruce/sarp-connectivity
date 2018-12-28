@@ -41,14 +41,35 @@ const LayerChooser = ({ setLayer }) => {
                         Hydrologic unit
                     </h5>
                     <div className="button-group flex-container">
-                        <button className="button" type="button" onClick={handleClick("HUC6")}>
+                        <button
+                            className="button"
+                            type="button"
+                            onClick={handleClick("HUC6")}
+                            style={{ height: "auto" }}
+                        >
                             Basin
+                            <br />
+                            (HUC6)
                         </button>
-                        <button className="button" type="button" onClick={handleClick("HUC8")}>
+                        <button
+                            className="button"
+                            type="button"
+                            onClick={handleClick("HUC8")}
+                            style={{ height: "auto" }}
+                        >
                             Subbasin
+                            <br />
+                            (HUC8)
                         </button>
-                        <button className="button" type="button" onClick={handleClick("HUC12")}>
+                        <button
+                            className="button"
+                            type="button"
+                            onClick={handleClick("HUC12")}
+                            style={{ height: "auto" }}
+                        >
                             Subwatershed
+                            <br />
+                            (HUC12)
                         </button>
                     </div>
 
