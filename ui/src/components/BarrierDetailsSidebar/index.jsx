@@ -8,11 +8,10 @@ import DamDetails from "./DamDetails"
 import BarrierDetails from "./BarrierDetails"
 import Scores from "./Scores"
 import { BarrierPropType } from "../../CustomPropTypes"
-import { isEmptyString } from '../../utils/string'
+import { isEmptyString } from "../../utils/string"
 import { setDetailsTab } from "../../actions/details"
 
-
-const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
+const BarrierDetailsSidebar = ({ type, mode, tab, barrier, onClose, setTab }) => {
     const { sarpid, name, hasnetwork, countyname, State } = barrier
 
     const details = type === "dams" ? <DamDetails {...barrier} /> : <BarrierDetails {...barrier} />
@@ -85,7 +84,7 @@ const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
 
         scoreContent = <Scores scores={scores} />
     } else {
-        scoreContent = <p className="text-help">No connectivity information is available for this barrier.</p>
+        scoreContent = <p className="has-text-grey">No connectivity information is available for this barrier.</p>
     }
 
     const handleDetailsClick = () => setTab("details")
@@ -126,7 +125,7 @@ const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
     )
 }
 
-Barrier.propTypes = {
+BarrierDetailsSidebar.propTypes = {
     type: PropTypes.string.isRequired,
     mode: PropTypes.string.isRequired,
     tab: PropTypes.string.isRequired,
@@ -148,4 +147,4 @@ const mapStateToProps = globalState => {
 export default connect(
     mapStateToProps,
     { setTab: setDetailsTab }
-)(Barrier)
+)(BarrierDetailsSidebar)

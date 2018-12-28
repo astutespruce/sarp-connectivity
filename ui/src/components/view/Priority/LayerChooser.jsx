@@ -11,7 +11,7 @@ const LayerChooser = ({ setLayer }) => {
         <React.Fragment>
             <div id="SidebarContent">
                 <h4 className="title is-4">What type of area do you want to select?</h4>
-                <p className="text-help">
+                <p className="has-text-grey">
                     Choose from one of the following types of areas that will best capture your area of interest. You
                     will select specific areas on the next screen.
                 </p>

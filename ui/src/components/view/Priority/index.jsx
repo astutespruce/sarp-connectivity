@@ -9,7 +9,7 @@ import Sidebar from "../../Sidebar"
 import { FeaturePropType } from "../../../CustomPropTypes"
 
 // import FeatureDetails from "./FeatureDetails"
-import Barrier from "../../barriers/Barrier"
+import BarrierDetailsSidebar from "../../BarrierDetailsSidebar"
 import LayerChooser from "./LayerChooser"
 import UnitChooser from "./UnitsList"
 import FiltersList from "./FiltersList"
@@ -26,7 +26,7 @@ const Priority = ({ isLoading, isError, type, mode, selectedFeature, layer, sele
                     &nbsp; Whoops! There was an error loading these data. Please refresh your browser page and try
                     again.
                 </div>
-                <p className="text-help">
+                <p className="has-text-grey">
                     If it happens again, please <a href="mailto:kat@southeastaquatics.net">contact us</a>.
                 </p>
             </div>
@@ -42,7 +42,7 @@ const Priority = ({ isLoading, isError, type, mode, selectedFeature, layer, sele
             </div>
         )
     } else if (selectedFeature !== null) {
-        content = <Barrier barrier={selectedFeature.toJS()} onClose={() => selectFeature(null)} />
+        content = <BarrierDetailsSidebar barrier={selectedFeature.toJS()} onClose={() => selectFeature(null)} />
     } else {
         switch (mode) {
             case "select": {

@@ -28,7 +28,10 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
             <div id="SidebarHeader" className="flex-container flex-justify-center flex-align-start">
                 <div className="flex-grow">
                     <h3 className="title is-5 no-margin">{title}</h3>
-                    {layerId !== "State" && <h5 className="is-size-6 is-text-gray">{layerTitle}</h5>}
+                    {layerId !== "State" && <h5 className="is-size-5">{layerTitle}</h5>}
+                    {layerId === "HUC6" || layerId === "HUC8" || layerId === "HUC12" ? (
+                        <div className="has-text-grey">HUC: {id}</div>
+                    ) : null}
                 </div>
                 <div className="icon button" onClick={onClose}>
                     <span className="fa fa-times-circle is-size-4" />
@@ -39,7 +42,7 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
                     <React.Fragment>
                         {count > 0 ? (
                             <React.Fragment>
-                                <p className="is-size-5">
+                                <p>
                                     This area contains at least {formatNumber(count, 0)} {count > 1 ? "dams" : "dam"}{" "}
                                     that {count > 1 ? "have" : "has"} been inventoried so far, resulting in an average
                                     of {formatNumber(miles, 2)} miles of rivers and streams that could be reconnected by
@@ -50,7 +53,7 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
                                     {formatNumber(Math.abs(milesCompare))} {milesCompare > 0 ? "more" : "fewer"} miles
                                     of connected river network than the average for the region.
                                 </p>
-                                <p className="is-size-7 has-text-grey">
+                                <p className="has-text-grey">
                                     <br />
                                     <br />
                                     Note: These statistics are based on <i>inventoried</i> dams. Because the inventory
@@ -66,12 +69,12 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
                     <React.Fragment>
                         {count > 0 ? (
                             <React.Fragment>
-                                <p className="is-size-5">
+                                <p>
                                     This area contains at least {formatNumber(count, 0)} road-related{" "}
                                     {count > 1 ? "barriers" : "barriers"} that {count > 1 ? "have" : "has"}
                                     been inventoried so far.
                                 </p>
-                                <p className="is-size-7 has-text-grey">
+                                <p className="has-text-grey">
                                     <br />
                                     <br />
                                     Note: These statistics are based on <i>inventoried</i> road-related barriers that
@@ -81,7 +84,7 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
                                 </p>
                             </React.Fragment>
                         ) : (
-                            <p className="is-size-5">
+                            <p>
                                 This area does not yet have any road-related barriers that have been assessed for
                                 impacts to aquatic organisms.
                             </p>

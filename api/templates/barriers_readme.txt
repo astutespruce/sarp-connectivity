@@ -48,7 +48,7 @@ Road: road name, if available.
 RoadType: type of road, if available.
 CrossingType: type of road / stream crossing, if known.
 Condition: condition of the barrier as of last assessment, if known.  Note: assessment dates are not known.
-PotentialProject: reconnaissance information about barrier, including severity and / or potential for removal project.
+PotentialProject: reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.
 SeverityClass: potential severity of barrier, based on reconnaissance.
 
 ProtectedLand: Indicates if the barrier occurs on public land as represented within the PAD-US protected areas database of the U.S.

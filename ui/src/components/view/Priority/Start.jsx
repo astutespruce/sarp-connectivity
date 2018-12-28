@@ -15,7 +15,7 @@ const Start = ({ setType }) => {
             <Section title="Prioritize Barriers for Removal" dark image={WaterStonesImage}>
                 <div className="columns">
                     <div className="column is-two-thirds">
-                        <p className="text-help" style={{ marginBottom: "1rem" }}>
+                        <p className="has-text-grey-lighter" style={{ marginBottom: "1rem" }}>
                             To prioritize barriers, you will work through the following steps:
                         </p>
                         <section className="step">
@@ -23,7 +23,7 @@ const Start = ({ setType }) => {
                                 <span className="step-number">1</span>
                                 Select area of interest
                             </h4>
-                            <p className="text-help">
+                            <p className="has-text-grey-lighter">
                                 You can select areas using state, county, watershed, and ecoregion boundaries.
                             </p>
                         </section>
@@ -32,7 +32,7 @@ const Start = ({ setType }) => {
                                 <span className="step-number">2</span>
                                 Filter barriers
                             </h4>
-                            <p className="text-help">
+                            <p className="has-text-grey-lighter">
                                 You can filter barriers by feasibility, height, and other key characteristics to select
                                 those that best meet your needs.
                             </p>
@@ -42,7 +42,7 @@ const Start = ({ setType }) => {
                                 <span className="step-number">3</span>
                                 Explore priorities on the map
                             </h4>
-                            <p className="text-help">
+                            <p className="has-text-grey-lighter">
                                 Once you have defined your area of interest and selected the barriers you want, you can
                                 explore them on the map.
                             </p>
@@ -52,7 +52,7 @@ const Start = ({ setType }) => {
                                 <span className="step-number">4</span>
                                 Download prioritized barriers
                             </h4>
-                            <p className="text-help">
+                            <p className="has-text-grey-lighter">
                                 You can download the inventory for your area of interest and perform offline work.
                             </p>
                         </section>

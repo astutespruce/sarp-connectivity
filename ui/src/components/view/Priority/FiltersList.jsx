@@ -58,7 +58,7 @@ function FiltersList({
                 </div>
             </div>
             <div id="SidebarContent">
-                <p className="text-help">
+                <p className="has-text-grey">
                     [OPTIONAL] Use the filters below to select the {type} that meet your needs. Click on a bar to select{" "}
                     {type} with that value. Click on the bar again to unselect. You can combine multiple values across
                     multiple filters to select the {type} that match ANY of those values within a filter and also have

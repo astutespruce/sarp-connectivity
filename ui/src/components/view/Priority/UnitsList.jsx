@@ -91,7 +91,7 @@ const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery
             </div>
             <div id="SidebarContent">
                 {summaryUnits.size === 0 ? (
-                    <p className="is-size-6 text-help">
+                    <p className="has-text-grey">
                         Select your {pluralLabel} of interest by clicking on them in the map.
                         <br />
                         <br />
@@ -101,10 +101,15 @@ const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery
                     </p>
                 ) : (
                     <React.Fragment>
-                        <b>Selected {pluralLabel}:</b>
                         <ul id="SummaryUnitList">
                             {summaryUnits.toJS().map(unit => (
-                                <UnitListItem key={unit.id} unit={unit} type={type} onDelete={() => selectUnit(unit)} />
+                                <UnitListItem
+                                    key={unit.id}
+                                    layer={layer}
+                                    unit={unit}
+                                    type={type}
+                                    onDelete={() => selectUnit(unit)}
+                                />
                             ))}
                         </ul>
                         <p className="is-size-6 has-text-grey" style={{ padding: "2rem 0" }}>
@@ -114,9 +119,9 @@ const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery
                                 <React.Fragment>
                                     <br />
                                     <br />
-                                    Note: only {type} that have been snapped to the aquatic network are available for
-                                    prioritization. There are {formatNumber(offNetworkCount, 0)} off-network {type} in
-                                    your selected area.
+                                    Note: only {type} that have been evaluated for aquatic network connectivity are
+                                    available for prioritization. There are <b>{formatNumber(offNetworkCount, 0)}</b>{" "}
+                                    {type} not available for prioritization in your selected area.
                                 </React.Fragment>
                             ) : null}
                         </p>
@@ -124,7 +129,7 @@ const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery
                 )}
 
                 {layer !== "State" && layer !== "County" ? (
-                    <p className="text-help">
+                    <p className="has-text-grey">
                         <span className="icon">
                             <i className="fas fa-exclamation-triangle" />
                         </span>

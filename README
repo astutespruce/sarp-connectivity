@@ -49,7 +49,7 @@ Then open `http://localhost:3000` in your browser.
 To start the report server (on port 5000, by default):
 
 ```
-export FLASK_APP=api
+export FLASK_APP=api.server
 export FLASK_ENV=development
 pipenv run flask run
 ```

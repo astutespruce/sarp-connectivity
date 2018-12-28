@@ -84,7 +84,7 @@ const BarrierDetails = ({
                     <li className="has-text-grey">
                         {isCrossing
                             ? "This barrier has not yet been evaluated for aquatic connectivity."
-                            : "This barrier is off-network and has no functional network information."}
+                            : "No functional network information available.  This barrier is off-network or is not a barrier."}
                     </li>
                 )}
             </ul>

@@ -50,7 +50,7 @@ const FilterBars = ({ title, bars, filterValues, closed, help, onFilterChange, t
                 />
             ))}
 
-            {help ? <p className="text-help is-size-7">{help}</p> : null}
+            {help ? <p className="text-help  has-text-grey is-size-7">{help}</p> : null}
         </div>
     )
 }

@@ -132,14 +132,6 @@ button:focus {
     text-shadow: none;
 }
 
-.text-help {
-    color: #666;
-}
-
-.dark .text-help {
-    color: #ccc;
-}
-
 /* Bulma overrides */
 .button {
     background-color: transparent;
@@ -551,7 +543,7 @@ button.link.link-back {
     margin-bottom: 0.1em;
 }
 
-#SidebarContent section.step .text-help {
+#SidebarContent section.step p {
     margin-left: 2.25rem;
     padding-bottom: 1rem;
 }
@@ -700,6 +692,8 @@ button.link.link-back {
 
 #SummaryUnitList li {
     line-height: 1.2;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1em;
 }
 #SummaryUnitList li .fa-trash {
     color: #aaa;

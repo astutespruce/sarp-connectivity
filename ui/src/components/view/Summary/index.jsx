@@ -21,14 +21,14 @@ const Summary = ({ selectedFeature, type, selectFeature }) => {
             <Sidebar>
                 {selectedFeature === null ? (
                     <div id="SidebarContent">
-                        <p className="is-size-5">
+                        <p>
                             Across the Southeast, there are at least {formatNumber(dams)} dams, resulting in an average
                             of {formatNumber(miles)} miles of connected rivers and streams.
                             <br />
                             <br />
                             Click on a summary unit the map for more information about that area.
                         </p>
-                        <p className="is-size-7 has-text-grey">
+                        <p className="has-text-grey">
                             <br />
                             <br />
                             Note: These statistics are based on <i>inventoried</i> dams. Because the inventory is

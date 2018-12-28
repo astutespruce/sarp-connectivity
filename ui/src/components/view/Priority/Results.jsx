@@ -62,7 +62,7 @@ const Results = ({
                 </div>
             </div>
             <div id="SidebarContent">
-                <p className="text-help">
+                <p className="has-text-grey">
                     {type.slice(0, 1).toUpperCase() + type.slice(1)} are binned into tiers based on where they fall
                     within the value range of the <b>{scenarioLabel}</b> score. Tier 1 includes {type} that fall within
                     the top 5% of values for this score, and tier 20 includes {type} that fall within the lowest 5% of
@@ -87,7 +87,7 @@ const Results = ({
                         />
                         <div className="is-size-7">Highest tier</div>
                     </div>
-                    <p className="text-help">
+                    <p className="has-text-grey">
                         Use this slider to control the number of tiers visible on the map. Based on the number of {type}{" "}
                         visible for your area, you may be able to identify {type} that are more feasible in the top
                         several tiers than in the top-most tier.
