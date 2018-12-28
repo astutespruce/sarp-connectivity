@@ -2,15 +2,14 @@ import React from "react"
 import PropTypes from "prop-types"
 
 import { formatNumber } from "../../utils/format"
+import { isEmptyString } from "../../utils/string"
 
 import { SINUOSITY } from "../../constants"
-
-const isEmptyString = value =>
-    value === null || value === undefined || value === "" || value === '"' || value === "null"
 
 const BarrierDetails = ({
     lat,
     lon,
+    source,
     hasnetwork,
     stream,
     basin,
@@ -127,6 +126,15 @@ const BarrierDetails = ({
                     <li className="has-text-grey">No feasibility information is available for this barrier.</li>
                 )}
             </ul>
+
+            {!isEmptyString(source) ? (
+                <React.Fragment>
+                    <h6 className="title is-6">Other information</h6>
+                    <ul>
+                        <li>Source: {source}</li>
+                    </ul>
+                </React.Fragment>
+            ) : null}
         </div>
     )
 }
@@ -134,6 +142,7 @@ BarrierDetails.propTypes = {
     lat: PropTypes.number.isRequired,
     lon: PropTypes.number.isRequired,
     hasnetwork: PropTypes.bool.isRequired,
+    source: PropTypes.string,
     stream: PropTypes.string,
     basin: PropTypes.string,
     road: PropTypes.string,
@@ -151,6 +160,7 @@ BarrierDetails.propTypes = {
 }
 
 BarrierDetails.defaultProps = {
+    source: null,
     stream: null,
     basin: null,
     road: null,

@@ -451,7 +451,7 @@ class PriorityMap extends Component {
         }
 
         const backgroundLegend = {
-            label: type === "dams" ? `Off-network ${type}` : `Off-network ${type} and road / stream crossings not yet evaluated for connectivity`,
+            label: "Not included in analysis",
             color: backgroundPoint.paint["circle-color"],
             borderColor: backgroundPoint.paint["circle-stroke-color"],
             size: 10

@@ -313,9 +313,7 @@ df.to_csv("data/derived/dams.csv", index_label="id")
 df["latitude"] = df.lat
 df["longitude"] = df.lon
 
-df = df.drop(
-    columns=["Sinuosity", "Source", "NHDplusVersion", "STATEFIPS"]
-)
+df = df.drop(columns=["Sinuosity", "NHDplusVersion", "STATEFIPS"])
 
 df.rename(
     columns={

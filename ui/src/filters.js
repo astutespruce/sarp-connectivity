@@ -1,5 +1,7 @@
 import {
     HEIGHT,
+    CONSTRUCTION,
+    PURPOSE,
     FEASIBILITY,
     RARESPP,
     STREAMORDER,
@@ -7,6 +9,7 @@ import {
     BARRIER_SEVERITY,
     CROSSING_TYPE,
     ROAD_TYPE,
+    DAM_CONDITION,
     BARRIER_CONDITION
 } from "./constants"
 
@@ -58,6 +61,30 @@ export const DAM_FILTERS = [
         title: "Stream Order (NHD modified Strahler)",
         keys: getIntKeys(STREAMORDER),
         labelFunction: d => STREAMORDER[d]
+    },
+    {
+        field: "condition",
+        title: "Dam Condition",
+        keys: getIntKeys(DAM_CONDITION),
+        labelFunction: d => DAM_CONDITION[d],
+        help:
+            "Note: condition information is only available for a small number of dams.  Not all data sources recorded this information."
+    },
+    {
+        field: "construction",
+        title: "Dam Construction Materials",
+        keys: getIntKeys(CONSTRUCTION),
+        labelFunction: d => CONSTRUCTION[d],
+        help:
+            "Note: construction information is only available for a small number of dams.  Not all data sources recorded this information."
+    },
+    {
+        field: "purpose",
+        title: "Purpose",
+        keys: getIntKeys(PURPOSE),
+        labelFunction: d => PURPOSE[d],
+        help:
+            "Note: purpose information is only available for a small number of dams.  Not all data sources recorded this information."
     }
 ]
 
@@ -91,5 +118,19 @@ export const BARRIER_FILTERS = [
         title: "Barrier Condition",
         keys: getIntKeys(BARRIER_CONDITION),
         labelFunction: d => BARRIER_CONDITION[d]
+    },
+    {
+        field: "sizeclasses",
+        title: "Upstream Size Classes",
+        keys: [0, 1, 2, 3, 4, 5, 6, 7],
+        labelFunction: d => d
+    },
+    {
+        field: "raresppclass",
+        title: "Number of Rare Species",
+        keys: getIntKeys(RARESPP),
+        labelFunction: d => RARESPP[d],
+        help:
+            "Note: Rare species information is based on occurrences of one or more federally threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time."
     }
 ]

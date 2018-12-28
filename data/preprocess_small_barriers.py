@@ -293,9 +293,7 @@ df.reset_index(drop=True).to_feather("data/derived/small_barriers.feather")
 df.to_csv("data/derived/small_barriers.csv", index=False)
 
 
-df = df.drop(
-    columns=["Sinuosity", "Source", "STATEFIPS", "CrossingCode", "LocalID"]
-)
+df = df.drop(columns=["Sinuosity", "STATEFIPS", "CrossingCode", "LocalID"])
 
 
 df.rename(

@@ -42,9 +42,9 @@ const initialState = Map({
 // if (process.env.NODE_ENV !== "production") {
 //     initialState = initialState.merge({
 //         mode: "select",
-//         type: "barriers",
+//         type: "dams",
 //         layer: "State",
-//         summaryUnits: Set([{ id: "Alabama" }])
+//         summaryUnits: Set([{ id: "Virginia" }])
 //     })
 // }
 

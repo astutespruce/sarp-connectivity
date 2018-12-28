@@ -31,13 +31,13 @@ FORMATS = ("csv",)  # TODO: "shp"
 DAM_FILTER_FIELDS = [
     "Feasibility",
     "HeightClass",
-    # "Condition", ?
-    # "Construction", ?
-    # "Purpose", ?
+    "Condition",
+    "Construction",
+    "Purpose",
     "RareSppClass",
     "StreamOrderClass",
     "GainMilesClass",
-    "LandcoverClass",
+    # "LandcoverClass",
     "SizeClasses",
 ]
 
@@ -50,7 +50,7 @@ BARRIER_FILTER_FIELDS = [
     "RoadTypeClass",
     "RareSppClass",
     "GainMilesClass",
-    "LandcoverClass",
+    # "LandcoverClass",
     "SizeClasses",
 ]
 barrier_filter_field_map = {f.lower(): f for f in BARRIER_FILTER_FIELDS}

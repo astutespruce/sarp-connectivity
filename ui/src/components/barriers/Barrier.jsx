@@ -8,11 +8,9 @@ import DamDetails from "./DamDetails"
 import BarrierDetails from "./BarrierDetails"
 import Scores from "./Scores"
 import { BarrierPropType } from "../../CustomPropTypes"
-
+import { isEmptyString } from '../../utils/string'
 import { setDetailsTab } from "../../actions/details"
 
-const isEmptyString = value =>
-    value === null || value === undefined || value === "" || value === '"' || value === "null"
 
 const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
     const { sarpid, name, hasnetwork, countyname, State } = barrier

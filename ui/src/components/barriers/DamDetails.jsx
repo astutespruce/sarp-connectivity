@@ -2,6 +2,7 @@ import React from "react"
 import PropTypes from "prop-types"
 
 import { formatNumber } from "../../utils/format"
+import { isEmptyString } from "../../utils/string"
 
 import { DAM_CONDITION, CONSTRUCTION, PURPOSE, RECON, SINUOSITY } from "../../constants"
 
@@ -10,6 +11,8 @@ const DamDetails = ({
     lon,
     hasnetwork,
     height,
+    nidid,
+    source,
     year,
     construction,
     purpose,
@@ -103,12 +106,34 @@ const DamDetails = ({
 
         <h6 className="title is-6">Feasibility of removal</h6>
         <ul>
-            {recon ? (
+            {recon !== null ? (
                 <li>{RECON[recon]}</li>
             ) : (
                 <li className="has-text-grey">No feasibility information is available for this barrier.</li>
             )}
         </ul>
+
+        {!isEmptyString(nidid) || !isEmptyString(source) ? (
+            <React.Fragment>
+                <h6 className="title is-6">Other information</h6>
+                <ul>
+                    {!isEmptyString(nidid) ? (
+                        <li>
+                            National inventory of dams ID:{" "}
+                            <a
+                                href="http://nid.usace.army.mil/cm_apex/f?p=838:12"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {nidid}
+                            </a>
+                        </li>
+                    ) : null}
+
+                    {!isEmptyString(source) ? <li>Source: {source}</li> : null}
+                </ul>
+            </React.Fragment>
+        ) : null}
     </div>
 )
 
@@ -122,6 +147,8 @@ DamDetails.propTypes = {
     basin: PropTypes.string.isRequired,
     height: PropTypes.number,
     year: PropTypes.number,
+    nidid: PropTypes.string,
+    source: PropTypes.string,
     construction: PropTypes.number,
     purpose: PropTypes.number,
     condition: PropTypes.number,
@@ -136,7 +163,9 @@ DamDetails.propTypes = {
 }
 
 DamDetails.defaultProps = {
-    river: "",
+    river: null,
+    nidid: null,
+    source: null,
     height: 0,
     year: 0,
     construction: 0,
