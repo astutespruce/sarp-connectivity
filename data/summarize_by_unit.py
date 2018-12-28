@@ -70,16 +70,16 @@ for unit in ("State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"):
         quoting=csv.QUOTE_NONNUMERIC,
     )
 
-    level_stats = merged.agg(["min", "max"])
-    for col in ("dams", "miles", "barriers"):
-        stats[unit][col] = {
-            "range": level_stats[col].round(3).tolist(),
-            "mean": round(merged[col].mean().item(), 3),
-        }
-        if col in ("dams", "barriers"):
-            stats[unit][col]["bins"] = (
-                np.percentile(merged[col], PERCENTILES).round().astype("uint").tolist()
-            )
+    # level_stats = merged.agg(["min", "max"])
+    # for col in ("dams", "miles", "barriers"):
+    #     stats[unit][col] = {
+    #         "range": level_stats[col].round(3).tolist(),
+    #         "mean": round(merged[col].mean().item(), 3),
+    #     }
+    #     if col in ("dams", "barriers"):
+    #         stats[unit][col]["bins"] = (
+    #             np.percentile(merged[col], PERCENTILES).round().astype("uint").tolist()
+    #         )
 
 with open("ui/src/data/summary_stats.json", "w") as outfile:
     outfile.write(json.dumps(stats))

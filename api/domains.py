@@ -440,12 +440,13 @@ CROSSING_TYPE_DOMAIN = {
     3: "Culvert",
     4: "Ford",
     5: "Dam",
+    6: "Buried stream"
 }
 
 CROSSING_TYPE_TO_DOMAIN = {
     "Bridge": 2,
     "Bridge Adequate": 2,
-    "Buried Stream": 4,
+    "Buried Stream": 6,
     "Culvert": 3,
     "Dam": 5,
     "Ford": 4,

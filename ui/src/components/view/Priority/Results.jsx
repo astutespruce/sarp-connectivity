@@ -141,16 +141,18 @@ Results.propTypes = {
 
 const mapStateToProps = globalState => {
     const state = globalState.get("priority")
+    const crossfilter = globalState.get("crossfilter")
 
     return {
         type: state.get("type"),
         scenario: state.get("scenario"),
-        totalCount: state.get("totalCount"),
         layer: state.get("layer"),
         summaryUnits: state.get("summaryUnits"),
-        filters: state.get("filters"),
         rankData: state.get("rankData"),
-        tierThreshold: state.get("tierThreshold")
+        tierThreshold: state.get("tierThreshold"),
+
+        filters: crossfilter.get("filters"),
+        totalCount: crossfilter.get("filteredCount")
     }
 }
 

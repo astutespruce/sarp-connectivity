@@ -314,10 +314,8 @@ df.rename(
     inplace=True,
 )
 
-
-# df.to_csv(
-#     "data/derived/barriers_mbtiles.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
-# )
+df["latitude"] = df.lat
+df["longitude"] = df.lon
 
 df.loc[df.hasnetwork].drop(columns=["hasnetwork"]).to_csv(
     "data/derived/barriers_with_networks.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
@@ -357,6 +355,10 @@ print("Reading stream crossings")
 road_crossings = pd.read_csv(
     "data/derived/road_crossings.csv", dtype={"Road": str, "Stream": str, "SARPID": str}
 )
+
+road_crossings.Stream = road_crossings.Stream.str.strip()
+road_crossings.Road = road_crossings.Road.str.strip()
+
 road_crossings.rename(
     columns={c: c.lower() for c in road_crossings.columns}, inplace=True
 )
@@ -368,7 +370,9 @@ road_crossings["name"] = ""
 
 
 road_crossings.loc[
-    (road_crossings.stream.str.len() > 0) & (road_crossings.road.str.len() > 0), "name"
+    (road_crossings.stream.str.strip().str.len() > 0)
+    & (road_crossings.road.str.strip().str.len() > 0),
+    "name",
 ] = (road_crossings.stream + " / " + road_crossings.road)
 
 

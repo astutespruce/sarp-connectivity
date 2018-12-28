@@ -11,6 +11,9 @@ import { BarrierPropType } from "../../CustomPropTypes"
 
 import { setDetailsTab } from "../../actions/details"
 
+const isEmptyString = value =>
+    value === null || value === undefined || value === "" || value === '"' || value === "null"
+
 const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
     const { sarpid, name, hasnetwork, countyname, State } = barrier
 
@@ -39,8 +42,8 @@ const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
                 <div id="SidebarHeader" className="no-tabs">
                     <div className="flex-container flex-justify-center flex-align-start">
                         <div className="flex-grow">
-                            <h5 className="title is-5">{name && name !== "null" ? name : defaultName}</h5>
-                            {countyname && State ? (
+                            <h5 className="title is-5">{!isEmptyString(name) ? name : defaultName}</h5>
+                            {!isEmptyString(countyname) && !isEmptyString(State) ? (
                                 <h5 className="subtitle is-6">
                                     {countyname}, {State}
                                 </h5>
@@ -93,7 +96,7 @@ const Barrier = ({ type, mode, tab, barrier, onClose, setTab }) => {
             <div id="SidebarHeader" className="has-tabs">
                 <div className="flex-container flex-justify-center flex-align-start">
                     <div className="flex-grow">
-                        <h5 className="title is-5">{name && name !== "null" ? name : defaultName}</h5>
+                        <h5 className="title is-5">{!isEmptyString(name) ? name : defaultName}</h5>
                         <h5 className="subtitle is-6">
                             {countyname}, {State}
                         </h5>

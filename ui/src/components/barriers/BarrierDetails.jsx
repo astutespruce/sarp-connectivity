@@ -5,6 +5,9 @@ import { formatNumber } from "../../utils/format"
 
 import { SINUOSITY } from "../../constants"
 
+const isEmptyString = value =>
+    value === null || value === undefined || value === "" || value === '"' || value === "null"
+
 const BarrierDetails = ({
     lat,
     lon,
@@ -25,7 +28,9 @@ const BarrierDetails = ({
     landcover,
     sizeclasses
 }) => {
-    const isCrossing = roadtype === ""
+    const isCrossing = isEmptyString(crossingtype)
+
+    window.stream = stream
 
     return (
         <div id="BarrierDetails">
@@ -36,21 +41,21 @@ const BarrierDetails = ({
                     &deg; W / {formatNumber(lat, 3)}
                     &deg; N
                 </li>
-                {stream && stream !== "null" ? (
+                {!isEmptyString(stream) ? (
                     <li>
                         Stream or river: {stream}
-                        {basin ? `, ${basin} Basin` : null}
+                        {!isEmptyString(basin) ? `, ${basin} Basin` : null}
                     </li>
                 ) : null}
-                {road ? <li>Road: {road}</li> : null}
+                {!isEmptyString(road) ? <li>Road: {road}</li> : null}
             </ul>
 
             <h6 className="title is-6">Barrier information</h6>
             <ul>
                 <li>Barrier type: {isCrossing ? "road / stream crossing" : "road-related potential barrier"}</li>
-                {roadtype ? <li>Road type: {roadtype}</li> : null}
-                {crossingtype ? <li>Crossing type: {crossingtype}</li> : null}
-                {condition ? <li>Condition: {condition}</li> : null}
+                {!isEmptyString(roadtype) ? <li>Road type: {roadtype}</li> : null}
+                {!isEmptyString(crossingtype) ? <li>Crossing type: {crossingtype}</li> : null}
+                {!isEmptyString(condition) ? <li>Condition: {condition}</li> : null}
             </ul>
 
             <h6 className="title is-6">Functional network information</h6>
@@ -78,7 +83,9 @@ const BarrierDetails = ({
                     </React.Fragment>
                 ) : (
                     <li className="has-text-grey">
-                        This barrier is off-network and has no functional network information.
+                        {isCrossing
+                            ? "This barrier has not yet been evaluated for aquatic connectivity."
+                            : "This barrier is off-network and has no functional network information."}
                     </li>
                 )}
             </ul>
@@ -98,14 +105,14 @@ const BarrierDetails = ({
                                     subwatershed containing this barrier.
                                 </li>
                                 <li className="has-text-grey is-size-7">
-                                    Note: species information is very incomplete. These species may or may not be directly
-                                    impacted by this barrier.
+                                    Note: species information is very incomplete. These species may or may not be
+                                    directly impacted by this barrier.
                                 </li>
                             </React.Fragment>
                         ) : (
                             <li className="has-text-grey">
-                                No threatened and endangered aquatic species occurrence information is available for this
-                                subwatershed.
+                                No threatened and endangered aquatic species occurrence information is available for
+                                this subwatershed.
                             </li>
                         )}
                     </React.Fragment>
@@ -114,7 +121,7 @@ const BarrierDetails = ({
 
             <h6 className="title is-6">Feasibility of removal</h6>
             <ul>
-                {potentialproject ? (
+                {!isEmptyString(potentialproject) ? (
                     <li>{potentialproject}</li>
                 ) : (
                     <li className="has-text-grey">No feasibility information is available for this barrier.</li>

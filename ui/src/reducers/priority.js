@@ -21,14 +21,9 @@ import {
 } from "../actions/priority"
 import { SARP_BOUNDS } from "../components/map/config"
 
-// import { allFilters, getDimensionCounts, getTotalFilteredCount } from "../filters"
-
-// allFilters.reduce((out, item) => out.set(item, Set()), Map())
-
 let initialState = Map({
     mode: "start", // mode or step in selection process: "select", "filter", "results"
     bounds: SARP_BOUNDS, // SARP bounds
-    // bounds: List([-85.03324716546452, 32.63585392698306, -84.15434091546213, 32.96541554455193]),
     prevBounds: List(), // push previous bounds here
     scenario: "ncwc", // nc, wc, ncwc
     layer: null, // HUC*, ECO*, State
@@ -37,10 +32,6 @@ let initialState = Map({
     rankData: List(),
     tierThreshold: 1, // 1-20, which tiers to include in top-ranked dams on map
 
-    // filter state
-    // filters: allFilters.reduce((out, item) => out.set(item, Set()), Map()),
-    // dimensionCounts: Map(), // Map of Map of ints
-    // totalCount: 0,
     closedFilters: Map(), //  allFilters.reduce((out, item, i) => out.set(item, i >= 0), Map()),
 
     isLoading: false,
@@ -115,9 +106,9 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
 
             return state.merge({
                 mode: "filter",
-                // isLoading: false,
+                // isLoading: false, // updated by listening on crossfilter action instead
                 isError: false,
-                closedFilters: filters.reduce((out, item, i) => out.set(item, i >= 0), Map())
+                closedFilters: filters.reduce((out, item, i) => out.set(item.field, i >= 0), Map())
             })
         }
         case TOGGLE_FILTER_CLOSED: {

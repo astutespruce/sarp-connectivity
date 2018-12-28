@@ -401,7 +401,9 @@ class PriorityMap extends Component {
                     if (points.length > 0) {
                         const point = points[0]
                         console.log(point)
-                        selectFeature(fromJS(point.properties).merge({ hasnetwork: point.layer.source === type }))
+                        selectFeature(
+                            fromJS(point.properties).merge({ hasnetwork: point.layer.id !== "point-no-network" })
+                        )
                     }
                     break
                 }
@@ -413,7 +415,9 @@ class PriorityMap extends Component {
                         const point = points[0]
                         console.log(point)
 
-                        const properties = fromJS(point.properties).merge({ hasnetwork: point.layer.source === type })
+                        const properties = fromJS(point.properties).merge({
+                            hasnetwork: point.layer.id !== "point-no-network"
+                        })
 
                         if (point.source === "ranked") {
                             const { id } = point.properties
@@ -447,7 +451,7 @@ class PriorityMap extends Component {
         }
 
         const backgroundLegend = {
-            label: type === 'dams' ? `Off-network ${type}` : `Off-network ${type} and road / stream crossings`,
+            label: type === "dams" ? `Off-network ${type}` : `Off-network ${type} and road / stream crossings`,
             color: backgroundPoint.paint["circle-color"],
             borderColor: backgroundPoint.paint["circle-stroke-color"],
             size: 10

@@ -1,3 +1,16 @@
+/* Palette
+
+Primary (https://colorhunt.co/palette/62803):
+- #253b6e
+- #1f5f8b
+- #1891ac
+- #d2ecf9
+
+Secondary / highlight (complementary off 3rd color):
+- #B51500
+- #EA1B00
+*/
+
 html,
 body {
     margin: 0;
@@ -13,7 +26,7 @@ body {
 a,
 a:active,
 a:visited {
-    color: #0074d9;
+    color: #1891ac;
     text-decoration: none;
 }
 
@@ -127,8 +140,30 @@ button:focus {
     color: #ccc;
 }
 
+.button {
+    background-color: transparent;
+}
+
+.button.is-info {
+    background-color: #1891ac;
+}
+.button.is-info:hover {
+    background-color: #147b92;
+}
+.button.is-info[disabled],
+.button.is-info[disabled]:hover {
+    background-color: #80c3d1;
+}
+
+.button.is-danger {
+    background-color: #ea1b00;
+}
+.button.is-danger:hover {
+    background-color: #b51500;
+}
+
 header {
-    background: #073763;
+    background: #253b6e;
     padding: 6px 0;
 }
 header .logo {
@@ -149,15 +184,15 @@ header .nav-link {
     margin-right: 8px;
 }
 header .nav-link:hover {
-    background: #2c557a;
+    background: #1f5f8b;
 }
 header .nav-link.active {
-    background: #597996;
+    background: #1891ac;
 }
 
 footer {
     padding: 4px 10px;
-    background: #073763;
+    background: #253b6e;
     border-top: 1px solid #333;
 }
 
@@ -168,7 +203,7 @@ footer a {
 button.link {
     border: none;
     background: none;
-    color: #0074d9;
+    color: #1891ac;
     font-size: 1rem;
     cursor: pointer;
 }
@@ -439,10 +474,6 @@ button.link.link-back {
     padding: 1rem 0;
     border-top: 1px solid #ddd;
     background: #eee;
-    /* display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center; */
 }
 
 #SidebarContent {
@@ -466,9 +497,7 @@ button.link.link-back {
 }
 
 #SidebarContent .button-group {
-    /* border-top: 1px solid #eee;
-    padding-top: 1rem; */
-    background: #eee;
+    background: #e0f2fb;
     border-radius: 6px;
 }
 
@@ -484,13 +513,12 @@ button.link.link-back {
 #SidebarContent .button-group .button:not(:first-child):not(:last-child) {
     border-radius: 0;
 }
-/* #SidebarContent .button-group .button + .button {
-    border-left: 1px solid #fff;
-} */
+#SidebarContent .button-group .button {
+    border-color: #cce5f2;
+}
 #SidebarContent .button-group .button:hover {
-    background: #597996;
-    border-color: #597996;
-    color: #fff;
+    background: #d2ecf9;
+    border-color: #d2ecf9;
 }
 
 #SidebarContent .tabs ul {
@@ -591,17 +619,19 @@ button.link.link-back {
     margin-left: 12px;
 }
 #SystemChooser .button-group {
-    background: #eee;
+    background: #e0f2fb;
     border-radius: 6px;
 }
 #SystemChooser .button {
     background: none;
     pointer-events: auto;
-    /* border-color: #dbdbdb !important; */
     border-width: 0 0 4px 0;
     border-bottom-color: transparent;
     border-radius: 0;
     text-transform: lowercase;
+}
+#SystemChooser .button:hover {
+    background: #d2ecf9;
 }
 #SystemChooser .button:first-child {
     border-radius: 6px 0 0 6px;
@@ -610,11 +640,11 @@ button.link.link-back {
     border-radius: 0 6px 6px 0;
 }
 #SystemChooser .button + .button {
-    border-left: 1px solid #ccc;
+    border-left: 1px solid #cce5f2;
 }
 
 #SystemChooser .button.active {
-    background: #597996;
+    background: #1891ac;
     color: #fff;
 }
 #SystemChooser .buttons {
@@ -709,14 +739,11 @@ button.link.link-back {
 }
 
 .notification.is-error {
-    background: #c51b8a;
+    background: #b51500;
     color: white;
     font-size: 1.2em;
 }
 
-.histogram {
-    /* margin: 2rem; */
-}
 .histogram .histogram-bars {
     padding: 0.25rem 0;
 }
