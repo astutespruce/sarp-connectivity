@@ -769,3 +769,9 @@ button.link.link-back {
 .histogram .bar.top {
     background: #c51b8a;
 }
+
+.modal .buttons {
+    padding-top: 1rem;
+    margin-top: 2rem;
+    border-top: 1px solid #eee;
+}

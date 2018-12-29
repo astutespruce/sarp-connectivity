@@ -24,7 +24,8 @@ const Results = ({
     rankData,
     setMode,
     tierThreshold,
-    setTierThreshold
+    setTierThreshold,
+    logDownload
 }) => {
     const scenarioLabel =
         scenario === "ncwc"
@@ -111,6 +112,7 @@ const Results = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="button is-info is-medium"
+                        onClick={() => logDownload()}
                     >
                         <i className="fa fa-download" style={{ marginRight: "0.25em" }} />
                         Download {type}
@@ -136,7 +138,8 @@ Results.propTypes = {
     tierThreshold: PropTypes.number.isRequired,
 
     setMode: PropTypes.func.isRequired,
-    setTierThreshold: PropTypes.func.isRequired
+    setTierThreshold: PropTypes.func.isRequired,
+    logDownload: PropTypes.func.isRequired
 }
 
 const mapStateToProps = globalState => {

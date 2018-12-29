@@ -18,6 +18,7 @@
         "lodash.debounce": "^4.0.8",
         "mapbox-gl": "^0.50.0-beta.1",
         "prop-types": "^15.6.2",
+        "raven-js": "^3.27.0",
         "react": "^16.7.0-alpha.2",
         "react-dom": "^16.7.0-alpha.2",
         "react-ga": "^2.5.3",

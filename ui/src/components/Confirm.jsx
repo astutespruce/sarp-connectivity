@@ -7,11 +7,11 @@ const Confirm = ({ active, children, onConfirm, onClose }) => (
         <div className="modal-content" style={{ width: 300 }}>
             <div className="box">
                 {children}
-                <div className="flex-container flex-justify-space-between" style={{ marginTop: "2rem" }}>
-                    <button type="button" className="button" onClick={onClose}>
+                <div className="buttons flex-container flex-justify-space-between">
+                    <button type="button" className="button is-medium" onClick={onClose}>
                         No
                     </button>
-                    <button type="button" className="button is-danger" onClick={onConfirm}>
+                    <button type="button" className="button is-danger is-medium" onClick={onConfirm}>
                         Yes
                     </button>
                 </div>

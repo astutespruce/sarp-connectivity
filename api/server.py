@@ -2,11 +2,15 @@ import os
 from io import BytesIO
 from zipfile import ZipFile
 import time
+import logging
 from datetime import date
 import pandas as pd
 from feather import read_dataframe
 from flask import Flask, abort, request, send_file, make_response, render_template
 from flask_cors import CORS
+from raven.contrib.flask import Sentry
+from raven.handlers.logging import SentryHandler
+from raven.conf import setup_logging
 
 from api.calculate_tiers import calculate_tiers, SCENARIOS
 from api.domains import (
@@ -18,10 +22,20 @@ from api.domains import (
     BARRIER_SEVERITY_DOMAIN,
 )
 
-
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 log = app.logger
+
+SENTRY_DSN = os.getenv("SENTRY_DSN", None)
+sentry = Sentry(app, dsn=SENTRY_DSN)
+if SENTRY_DSN is not None:
+    print("Configuring Sentry logging...")
+    handler = SentryHandler(SENTRY_DSN)
+    handler.setLevel(logging.ERROR)
+    setup_logging(handler)
+else:
+    print("Sentry not configured")
+
 
 TYPES = ("dams", "barriers")
 LAYERS = ("HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4")
@@ -165,13 +179,18 @@ BARRIER_EXPORT_COLUMNS = [
 
 
 # Read source data into memory
-dams = read_dataframe("data/derived/dams.feather").set_index(["id"])
-dams_with_networks = dams.loc[dams.HasNetwork]
+try:
+    dams = read_dataframe("data/derived/dams.feather").set_index(["id"])
+    dams_with_networks = dams.loc[dams.HasNetwork]
 
-barriers = read_dataframe("data/derived/small_barriers.feather").set_index(["id"])
-barriers_with_networks = barriers.loc[barriers.HasNetwork]
+    barriers = read_dataframe("data/derived/small_barriers.feather").set_index(["id"])
+    barriers_with_networks = barriers.loc[barriers.HasNetwork]
 
-print("Data loaded")
+    print("Data loaded")
+
+except:
+    print("ERROR: not able to load data")
+    sentry.captureException()
 
 
 def validate_type(barrier_type):
@@ -199,7 +218,7 @@ def validate_format(format):
         abort(400, "format is not valid; must be one of {0}".format(", ".join(FORMATS)))
 
 
-@app.route("/api/v1/<barrier_type>/query/<layer>")
+@app.route("/api/v1/<barrier_type>/query/<layer>", methods=["GET"])
 def query(barrier_type="dams", layer="HUC8"):
     """Filter dams and return key properties for filtering.  ONLY for those with networks.
 
@@ -248,7 +267,7 @@ def query(barrier_type="dams", layer="HUC8"):
 
 
 # TODO: log incoming request parameters
-@app.route("/api/v1/<barrier_type>/rank/<layer>")
+@app.route("/api/v1/<barrier_type>/rank/<layer>", methods=["GET"])
 def rank(barrier_type="dams", layer="HUC8"):
     """Rank a subset of dams data.
 
@@ -326,7 +345,7 @@ def rank(barrier_type="dams", layer="HUC8"):
 
 
 # TODO: log incoming request parameters
-@app.route("/api/v1/<barrier_type>/<format>/<layer>")
+@app.route("/api/v1/<barrier_type>/<format>/<layer>", methods=["GET"])
 def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     """Download subset of dams data.
 

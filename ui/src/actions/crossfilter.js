@@ -14,8 +14,6 @@ export const load = (data, filters) => {
         return dimension
     })
 
-    console.log("done constructing crossfilter")
-
     return {
         type: LOAD,
         payload: {

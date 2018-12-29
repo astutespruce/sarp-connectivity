@@ -3,7 +3,6 @@ import { List, Map, Set, fromJS } from "immutable"
 import { LOAD } from "../actions/crossfilter"
 
 import {
-    PRIORITY_SET_SYSTEM,
     PRIORITY_SET_SCENARIO,
     PRIORITY_SELECT_FEATURE,
     PRIORITY_SET_LAYER,
@@ -55,12 +54,6 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
         }
         case LOAD: {
             return state.set("isLoading", false)
-        }
-        case PRIORITY_SET_SYSTEM: {
-            return state.merge({
-                system: payload.system,
-                selectedFeature: null
-            })
         }
         case PRIORITY_SET_SCENARIO: {
             return state.set("scenario", payload.scenario)

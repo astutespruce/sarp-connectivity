@@ -12,6 +12,7 @@ feather-format = "*"
 flask-cors = "*"
 gunicorn = "*"
 "jinja2" = "*"
+raven = {version = "*", extras = ["flask"]}
 
 [dev-packages]
 pylint = "*"
