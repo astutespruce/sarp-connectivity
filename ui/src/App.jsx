@@ -7,6 +7,8 @@ import Home from "./components/view/Home"
 import Priority from "./components/view/Priority"
 import Summary from "./components/view/Summary"
 
+import Teams from "./components/view/Teams"
+
 import NetworkLength from "./components/view/metrics/NetworkLength"
 import NetworkComplexity from "./components/view/metrics/NetworkComplexity"
 import NetworkSinuosity from "./components/view/metrics/NetworkSinuosity"
@@ -20,6 +22,7 @@ const App = () => (
         <div className="main">
             <Switch>
                 <Route exact path="/" component={Home} />
+
                 <Route exact path="/summary" component={Summary} />
                 <Route exact path="/priority" component={Priority} />
 
@@ -27,6 +30,8 @@ const App = () => (
                 <Route exact path="/metrics/complexity" component={NetworkComplexity} />
                 <Route exact path="/metrics/sinuosity" component={NetworkSinuosity} />
                 <Route exact path="/metrics/landcover" component={NaturalLandcover} />
+
+                <Route exact path="/teams" component={Teams} />
 
                 {/* Fall-through route */}
                 <Route component={NotFound} />

@@ -13,6 +13,8 @@ import Credits from "./Credits"
 // import WatershedCondition from "./priorities/WatershedCondition"
 // import Combined from "./priorities/Combined"
 
+// import DamImage from "../../../img/american-public-power-association-430861-unsplash.jpg"
+
 import { scrollIntoView } from "../../../utils/dom"
 
 const Home = () => {
@@ -25,6 +27,8 @@ const Home = () => {
             <Intro />
 
             <Tool />
+
+            {/* <div className="image-divider" style={{ backgroundImage: `url(${DamImage})` }} /> */}
 
             <Inventory />
 

@@ -775,3 +775,60 @@ button.link.link-back {
     margin-top: 2rem;
     border-top: 1px solid #eee;
 }
+
+.image-divider {
+    height: 100%;
+    width: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: relative;
+}
+.image-divider.top {
+    background-position-y: top;
+}
+.image-divider.bottom {
+    background-position-y: bottom;
+}
+
+.image-divider .credits,
+.image-header .credits {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 0.5em 1em;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.image-header .credits a {
+    color: #fff;
+    text-decoration: underline;
+}
+
+.image-header {
+    height: 75%;
+    width: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: relative;
+}
+
+.image-header + .container h1 {
+    margin-top: 3rem;
+}
+
+.subpage .container {
+    max-width: 960px;
+}
+
+.subpage section + section {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #eee;
+}
+
+.subpage > .container {
+    padding-bottom: 4rem;
+}

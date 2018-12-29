@@ -3,8 +3,8 @@ import React, { useEffect } from "react"
 import { scrollIntoView } from "../../../utils/dom"
 import Section from "../../Section"
 
-import { ReactComponent as HighSizeClassesIcon } from "../../../img/size_classes_high.svg"
-import { ReactComponent as LowSizeClassesIcon } from "../../../img/size_classes_low.svg"
+import highSizeClassesIcon from "../../../img/size_classes_high.svg"
+import lowSizeClassesIcon from "../../../img/size_classes_low.svg"
 
 function NetworkComplexity() {
     useEffect(() => {
@@ -23,7 +23,7 @@ function NetworkComplexity() {
                 </p>
                 <div className="prioritization-details flex-container flex-justify-space-between">
                     <div>
-                        <HighSizeClassesIcon />
+                        <img src={highSizeClassesIcon} alt="High Size Classes" />
                         <h4 className="is-size-4 text-align-center">More size classes gained</h4>
                         <p>
                             Barriers that have several size classes upstream are more likely to contribute a more
@@ -31,7 +31,7 @@ function NetworkComplexity() {
                         </p>
                     </div>
                     <div>
-                        <LowSizeClassesIcon />
+                        <img src={lowSizeClassesIcon} alt="Low Size Classes" />
                         <h4 className="is-size-4 text-align-center">No size classes gained</h4>
                         <p>
                             Barriers that do not contribute any additional size classes are less likely to contribute a

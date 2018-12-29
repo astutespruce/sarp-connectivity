@@ -3,8 +3,8 @@ import React, { useEffect } from "react"
 import { scrollIntoView } from "../../../utils/dom"
 import Section from "../../Section"
 
-import { ReactComponent as HighLengthIcon } from "../../../img/length_high.svg"
-import { ReactComponent as LowLengthIcon } from "../../../img/length_low.svg"
+import highLengthIcon from "../../../img/length_high.svg"
+import lowLengthIcon from "../../../img/length_low.svg"
 
 function NetworkLength() {
     useEffect(() => {
@@ -22,7 +22,7 @@ function NetworkLength() {
                 </p>
                 <div className="prioritization-details flex-container flex-justify-space-between">
                     <div>
-                        <HighLengthIcon />
+                        <img src={highLengthIcon} alt="Hgh Network Length" />
                         <h4 className="is-size-4 text-align-center">High Network Length</h4>
                         <p>
                             Barriers that have large upstream and downstream networks will contribute a large amount of
@@ -30,7 +30,7 @@ function NetworkLength() {
                         </p>
                     </div>
                     <div>
-                        <LowLengthIcon />
+                        <img src={lowLengthIcon} alt="Low Network Length" />
                         <h4 className="is-size-4 text-align-center">Low Network Length</h4>
                         <p>
                             Barriers that have small upstream or downstream networks contribute relatively little

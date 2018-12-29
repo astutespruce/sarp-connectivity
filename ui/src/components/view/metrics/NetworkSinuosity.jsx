@@ -3,8 +3,8 @@ import React, { useEffect } from "react"
 import { scrollIntoView } from "../../../utils/dom"
 import Section from "../../Section"
 
-import { ReactComponent as HighSinuosityIcon } from "../../../img/sinuosity_high.svg"
-import { ReactComponent as LowSinuosityIcon } from "../../../img/sinuosity_low.svg"
+import highSinuosityIcon from "../../../img/sinuosity_high.svg"
+import lowSinuosityIcon from "../../../img/sinuosity_low.svg"
 
 function NetworkSinuosity() {
     useEffect(() => {
@@ -22,7 +22,7 @@ function NetworkSinuosity() {
                 </p>
                 <div className="prioritization-details flex-container flex-justify-space-between">
                     <div>
-                        <HighSinuosityIcon />
+                        <img src={highSinuosityIcon} alt="High Sinuosity" />
                         <h4 className="is-size-4 text-align-center">High Sinuosity</h4>
                         <p>
                             Rivers and streams with high sinuosity are likely less altered by artificial channelization
@@ -31,7 +31,7 @@ function NetworkSinuosity() {
                         </p>
                     </div>
                     <div>
-                        <LowSinuosityIcon />
+                        <img src={lowSinuosityIcon} alt="Low Sinuosity" />
                         <h4 className="is-size-4 text-align-center">Low Sinuosity</h4>
                         <p>
                             Rivers and streams with lower sinuosity may be more altered by artificial channelization and

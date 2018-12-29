@@ -3,8 +3,8 @@ import React, { useEffect } from "react"
 import { scrollIntoView } from "../../../utils/dom"
 import Section from "../../Section"
 
-import { ReactComponent as HighLandcoverIcon } from "../../../img/nat_landcover_high.svg"
-import { ReactComponent as LowLandcoverIcon } from "../../../img/nat_landcover_low.svg"
+import highLandcoverIcon from "../../../img/nat_landcover_high.svg"
+import lowLandcoverIcon from "../../../img/nat_landcover_low.svg"
 
 function NaturalLandcover() {
     useEffect(() => {
@@ -23,7 +23,7 @@ function NaturalLandcover() {
                 </p>
                 <div className="prioritization-details flex-container flex-justify-space-between">
                     <div>
-                        <HighLandcoverIcon />
+                        <img src={highLandcoverIcon} alt="High Land Cover" />
                         <h4 className="is-size-4 text-align-center">High Natural Landcover</h4>
                         <p>
                             Barriers with aquatic networks that have more natural landcover are more likely to
@@ -31,7 +31,7 @@ function NaturalLandcover() {
                         </p>
                     </div>
                     <div>
-                        <LowLandcoverIcon />
+                        <img src={lowLandcoverIcon} alt="Low Land Cover" />
                         <h4 className="is-size-4 text-align-center">Low Natural Landcover</h4>
                         <p>
                             Barriers with less natural landcover are less likely to contribute high quality habitat for

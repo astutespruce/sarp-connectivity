@@ -1,4 +1,5 @@
 import React from "react"
+import { Link } from "react-router-dom"
 
 import Section from "../../Section"
 
@@ -35,9 +36,7 @@ function ScoringOverview() {
                             to the network by removing the barrier. Longer connected networks may provide more overall
                             aquatic habitat for a wider variety of organisms and better support dispersal and migration.
                             <br />
-                            <a href="/metrics/length" target="_blank">
-                                Read more...
-                            </a>
+                            <Link to="/metrics/length">Read more...</Link>
                         </p>
                     </div>
                 </div>
@@ -54,9 +53,7 @@ function ScoringOverview() {
                             size classes, such as small streams, small rivers, and large rivers, would contribute a more
                             complex connected aquatic network if it was removed.
                             <br />
-                            <a href="/metrics/complexity" target="_blank">
-                                Read more...
-                            </a>
+                            <Link to="/metrics/complexity">Read more...</Link>
                         </p>
                     </div>
                 </div>
@@ -74,9 +71,7 @@ function ScoringOverview() {
                             straight line. In general, rivers and streams that are more sinuous generally indicate those
                             that have lower alteration from human disturbance such as channelization and diking.
                             <br />
-                            <a href="/metrics/sinuosity" target="_blank">
-                                Read more...
-                            </a>
+                            <Link to="/metrics/sinuosity">Read more...</Link>
                         </p>
                     </div>
                 </div>
@@ -93,9 +88,7 @@ function ScoringOverview() {
                             natural landcover in their floodplain are more likely to have higher quality aquatic
                             habitat.
                             <br />
-                            <a href="/metrics/landcover" target="_blank">
-                                Read more...
-                            </a>
+                            <Link to="/metrics/landcover">Read more...</Link>
                         </p>
                     </div>
                 </div>
@@ -118,11 +111,8 @@ function ScoringOverview() {
                             Aquatic barriers prioritized according to network connectivity are driven exclusively on the
                             total amount of functional aquatic network that would be reconnected if a given dam was
                             removed. This is driven by the&nbsp;
-                            <a href="/metrics/length" target="_blank">
-                                network length
-                            </a>{" "}
-                            metric. No consideration is given to other characteristics that measure the quality and
-                            condition of those networks.
+                            <Link to="/metrics/length">network length</Link> metric. No consideration is given to other
+                            characteristics that measure the quality and condition of those networks.
                         </p>
                     </div>
                 </div>
@@ -136,18 +126,11 @@ function ScoringOverview() {
                             Aquatic barriers prioritized according to watershed condition are driven by metrics related
                             to the overall quality of the aquatic network that would be reconnected if a given dam was
                             removed. It is based on a combination of&nbsp;
-                            <a href="/metrics/complexity" target="_blank">
-                                network complexity
-                            </a>
+                            <Link to="/metrics/complexity">network complexity</Link>
                             ,&nbsp;
-                            <a href="/metrics/sinuosity" target="_blank">
-                                network sinuosity
-                            </a>
-                            , and&nbsp;
-                            <a href="/metrics/landcover" target="_blank">
-                                floodplain natural landcover
-                            </a>
-                            . Each of these metrics is weighted equally.
+                            <Link to="/metrics/sinuosity">network sinuosity</Link>, and&nbsp;
+                            <Link to="/metrics/landcover">floodplain natural landcover</Link>. Each of these metrics is
+                            weighted equally.
                         </p>
                     </div>
                 </div>
