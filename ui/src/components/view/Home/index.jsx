@@ -1,11 +1,9 @@
 import React, { useEffect } from "react"
 
 import Intro from "./Intro"
-import Tool from "./Tool"
 import Inventory from "./Inventory"
 import UseCases from "./UseCases"
 import Concepts from "./Concepts"
-import ScoringOverview from "./ScoringOverview"
 import SARP from "./SARP"
 import Credits from "./Credits"
 
@@ -13,7 +11,10 @@ import Credits from "./Credits"
 // import WatershedCondition from "./priorities/WatershedCondition"
 // import Combined from "./priorities/Combined"
 
-// import DamImage from "../../../img/american-public-power-association-430861-unsplash.jpg"
+import damImage from "../../../img/american-public-power-association-430861-unsplash.jpg"
+
+// From SARP
+import demolitionImage from "../../../img/Steeles_Mill_Dam_Hitchcock_Creek_during_removal__Peter_Raabe_A.jpg"
 
 import { scrollIntoView } from "../../../utils/dom"
 
@@ -26,31 +27,24 @@ const Home = () => {
         <div id="ContentPage" className="view">
             <Intro />
 
-            <Tool />
+            <div className="image-divider" style={{ backgroundImage: `url(${damImage})` }}>
+                <div className="credits">
+                    Photo credit:{" "}
+                    <a href="https://unsplash.com/photos/FUeb2npsblQ" target="_blank" rel="noopener noreferrer">
+                        American Public Power Association
+                    </a>
+                </div>
+            </div>
 
-            {/* <div className="image-divider" style={{ backgroundImage: `url(${DamImage})` }} /> */}
-
-            <Inventory />
-
-            <UseCases />
+            {/* <UseCases /> */}
 
             <Concepts />
 
-            <ScoringOverview />
-            {/* 
-            <NetworkLength />
-
-            <NetworkComplexity />
-
-            <NetworkSinuosity />
-
-            <NaturalLandcover />
-
-            <NetworkConnectivity />
-
-            <WatershedCondition />
-
-            <Combined /> */}
+            <div className="image-divider" style={{ backgroundImage: `url(${demolitionImage})` }}>
+                <div className="credits">
+                    Steeles Mill Dam Hitchcock Creek during removal. Photo credit: Peter Raabe.
+                </div>
+            </div>
 
             <SARP />
 

@@ -1,6 +1,5 @@
 import React from "react"
 import { Link } from "react-router-dom"
-import Section from "../../Section"
 
 import SARPLogo from "../../../img/sarp_logo.png"
 import GeorgiaACTImage from "../../../img/GA_ACT.jpg"
@@ -10,7 +9,8 @@ import ForestStream from "../../../img/6882770647_60c0d68a9c_z.jpg"
 
 function SARP() {
     return (
-        <Section title="The Southeast Aquatic Resources Partnership">
+        <div className="container">
+            <h3 className="title is-3">The Southeast Aquatic Resources Partnership</h3>
             <div className="columns">
                 <div className="column is-two-thirds">
                     <p>
@@ -29,17 +29,16 @@ function SARP() {
             </div>
             <div className="columns" style={{ marginTop: "2rem" }}>
                 <div className="column">
-                    <img src={ForestStream} alt="Stream" className="photo" />
+                    <img src={ForestStream} alt="Stream" />
                     <div className="is-size-7 has-text-grey">
-                        Photo:{" "}
                         <a
                             href="https://www.flickr.com/photos/usfwssoutheast/6882770647/in/album-72157629334467105/"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            Sam D. Hamilton Noxubee National Wildlife Refuge in Mississippi, USFWS
+                            Sam D. Hamilton Noxubee National Wildlife Refuge in Mississippi
                         </a>
-                        .
+                        . Photo: U.S. Fish and Wildlife Service.
                     </div>
                 </div>
                 <div className="column is-two-thirds">
@@ -67,9 +66,8 @@ function SARP() {
                     </p>
                 </div>
                 <div className="column">
-                    <img src={GeorgiaACTImage} alt="Georgia Aquatic Connectivity Team" className="photo" />
+                    <img src={GeorgiaACTImage} alt="Georgia Aquatic Connectivity Team" />
                     <div className="is-size-7 has-text-grey">
-                        Photo:{" "}
                         <a
                             href="https://www.southeastaquatics.net/news/white-dam-removal-motivates-georgia-conservation-practitioners"
                             target="_blank"
@@ -77,11 +75,10 @@ function SARP() {
                         >
                             Georgia Aquatic Connectivity Team
                         </a>
-                        .
                     </div>
                 </div>
             </div>
-        </Section>
+        </div>
     )
 }
 

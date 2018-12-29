@@ -31,15 +31,14 @@ function Teams() {
         <div id="ContentPage" className="subpage">
             <div className="image-header" style={{ backgroundImage: `url(${headerImage})` }}>
                 <div className="credits">
-                    Photo:
                     <a
                         href="https://www.flickr.com/photos/usfwssoutheast/10696646974/in/album-72157637310346925/"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        Smitherman Mill Dam Removal 2013, USFWS
+                        Smitherman Mill Dam Removal 2013
                     </a>
-                    .
+                    . Photo: U.S. Fish and Wildlife Service.
                 </div>
             </div>
 

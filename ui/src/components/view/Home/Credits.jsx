@@ -1,12 +1,10 @@
 import React from "react"
 
-import Section from "../../Section"
-
 import CBILogo from "../../../img/cbi_logo.png"
 
 function Credits() {
     return (
-        <Section id="ContentPageFooter">
+        <div id="ContentPageFooter" className="container">
             <div className="columns">
                 <div className="column is-two-thirds">
                     <p>
@@ -44,7 +42,7 @@ function Credits() {
                 </a>
                 .
             </p>
-        </Section>
+        </div>
     )
 }
 

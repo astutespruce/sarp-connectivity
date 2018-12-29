@@ -162,6 +162,7 @@ button:focus {
 header {
     background: #253b6e;
     padding: 6px 0;
+    border-bottom: 4px solid #1f5f8b;
 }
 header .logo {
     fill: white;
@@ -258,8 +259,22 @@ button.link.link-back {
 
 #ContentPage {
     width: 100%;
-    background: #ee7d140a;
+    /* background: #ee7d140a; */
 }
+
+#ContentPage .page-header.title {
+    font-size: 5rem;
+}
+
+#ContentPage .page-header.subtitle {
+    margin-top: 0;
+    font-size: 3rem;
+}
+
+#ContentPage section + section {
+    margin-top: 4rem;
+}
+
 #ContentPage > section {
     background-color: #f5f7f9;
     background-size: cover;
@@ -344,52 +359,41 @@ button.link.link-back {
 #ContentPage .hero-body ol ul {
     padding-left: 2rem;
 }
-#ContentPage .hero-body .photo {
-    width: 100%;
+#ContentPage .column img {
     border-radius: 6px;
-    border: 1px solid #aaa;
 }
 
 #ContentPage .hero-body .fa-exclamation-triangle {
     color: orange;
 }
-#ContentPage .hero-body .info-box {
+
+.info-box {
     border-radius: 6px;
-    background: #eee;
+    background: #e0f2fb;
     padding: 1em;
-    color: #333;
-}
-
-#ContentPage .hero-body .info-box .title,
-#ContentPage .hero-body .info-box .subtitle {
-    color: #333;
-    text-shadow: none;
-}
-
-#ContentPage .hero-body .info-box section + section {
-    margin-top: 1rem;
-}
-
-#ContentPage .info-box .button {
-    width: 100%;
-    margin-top: 2rem;
-}
-
-#ContentPage .info-boxes img {
-    width: 72px;
-    margin-right: 0.5em;
-}
-#ContentPage .info-box-content {
-    padding: 1rem;
-    background: #eee;
-    border-radius: 6px;
+    color: #253b6e;
     height: 100%;
 }
 
-#ContentPage .info-box-header {
+.info-box .subtitle {
+    color: #253b6e;
     border-bottom: 4px solid #fff;
     margin-bottom: 0.5rem;
     padding-bottom: 0.5rem;
+}
+
+.info-box .subtitle img {
+    width: 20%;
+    margin-right: 0.25em;
+}
+
+.info-box li + li {
+    margin-top: 1rem;
+}
+
+.info-box .button {
+    width: 100%;
+    margin-top: 2rem;
 }
 
 #ContentPageHeader h1 {
@@ -399,8 +403,10 @@ button.link.link-back {
     font-size: 2rem;
 }
 
-#ContentPageFooter .hero {
-    min-height: auto;
+#ContentPageFooter {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 8px solid #1f5f8b;
 }
 
 #Sidebar {
@@ -783,6 +789,7 @@ button.link.link-back {
     background-repeat: no-repeat;
     background-position: center;
     position: relative;
+    margin: 5rem 0;
 }
 .image-divider.top {
     background-position-y: top;
@@ -801,25 +808,27 @@ button.link.link-back {
     background: rgba(0, 0, 0, 0.6);
 }
 
+.image-divider .credits a,
 .image-header .credits a {
     color: #fff;
     text-decoration: underline;
 }
 
 .image-header {
-    height: 75%;
+    height: 65%;
     width: 100%;
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
     position: relative;
+    margin-bottom: 3rem;
 }
 
 .image-header + .container h1 {
     margin-top: 3rem;
 }
 
-.subpage .container {
+#ContentPage > .container {
     max-width: 960px;
 }
 
@@ -831,4 +840,11 @@ button.link.link-back {
 
 .subpage > .container {
     padding-bottom: 4rem;
+}
+
+.image-header > .container {
+    max-width: 960px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 1rem 2rem;
+    border-radius: 2rem;
 }

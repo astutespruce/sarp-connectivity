@@ -21,7 +21,7 @@ function NetworkLength() {
                     downstream, the overall effect of removing this barrier will be quite small.
                 </p>
                 <div className="prioritization-details flex-container flex-justify-space-between">
-                    <div>
+                    <div className="info-box">
                         <img src={highLengthIcon} alt="Hgh Network Length" />
                         <h4 className="is-size-4 text-align-center">High Network Length</h4>
                         <p>
@@ -29,7 +29,7 @@ function NetworkLength() {
                             connected aquatic network length if they are removed.
                         </p>
                     </div>
-                    <div>
+                    <div className="info-box">
                         <img src={lowLengthIcon} alt="Low Network Length" />
                         <h4 className="is-size-4 text-align-center">Low Network Length</h4>
                         <p>
