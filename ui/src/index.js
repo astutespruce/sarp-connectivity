@@ -27,10 +27,9 @@ const history = createBrowserHistory()
 
 // Setup sentry and Google Analytics
 const { NODE_ENV, REACT_APP_GOOGLE_ANALYTICS, REACT_APP_SENTRY_DSN } = process.env
-if (NODE_ENV === "development") {
-    // FIXME: production
+if (NODE_ENV === "production") {
     if (REACT_APP_GOOGLE_ANALYTICS) {
-        ReactGA.initialize(REACT_APP_GOOGLE_ANALYTICS)
+        ReactGA.initialize(REACT_APP_GOOGLE_ANALYTICS, { titleCase: false })
     }
     if (REACT_APP_SENTRY_DSN) {
         Raven.config(REACT_APP_SENTRY_DSN).install()
@@ -39,7 +38,6 @@ if (NODE_ENV === "development") {
 
 const middleware = [thunkMiddleware, routerMiddleware(history), trackingMiddleware]
 
-// TODO: only for development
 if (NODE_ENV === "development") {
     const logger = createLogger({
         stateTransformer: state => state.toJS()
