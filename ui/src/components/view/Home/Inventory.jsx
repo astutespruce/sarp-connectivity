@@ -32,13 +32,6 @@ function Inventory() {
                         <br />
                         <br />
                     </p>
-                    <h4 className="title is-5" style={{ marginBottom: 0 }}>
-                        Get involved!
-                    </h4>
-                    <p>
-                        If you are able to help improve the inventory by sharing data or assisting with field
-                        reconnaissance, please <a href="mailto:kat@southeastaquatics.net">contact us</a>.
-                    </p>
                 </div>
                 <div className="column">
                     <div className="info-box">
@@ -59,6 +52,15 @@ function Inventory() {
                         </section>
                     </div>
                 </div>
+            </div>
+            <div>
+                <h4 className="title is-5" style={{ marginBottom: 0 }}>
+                    Get involved!
+                </h4>
+                <p>
+                    If you are able to help improve the inventory by sharing data or assisting with field
+                    reconnaissance, please <a href="mailto:kat@southeastaquatics.net">contact us</a>.
+                </p>
             </div>
         </Section>
     )

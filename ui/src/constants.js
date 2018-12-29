@@ -142,3 +142,38 @@ export const CROSSING_TYPE = {
 export const ROAD_TYPE = { 0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad" }
 
 export const BARRIER_CONDITION = { 0: "Unknown", 1: "Failing", 2: "Poor", 3: "OK", 4: "New" }
+
+export const CONNECTIVITY_TEAMS = {
+    Georgia: {
+        description:
+            "Georgia has a state-based Aquatic Connectivity Team (ACT) that is co-lead by SARP and The Nature Conservancy (TNC) and includes members from all sectors including various state, federal, NGO, and private corporations/companies that are all interested in addressing aquatic connectivity. This team has been instrumental in increasing the knowledge of barriers through reconnaissance and field assessments since inception.",
+        contact: {
+            name: "Kat Hoenke",
+            email: "kat@southeastaquatics.net"
+        }
+    },
+    Arkansas: {
+        description:
+            "Arkansas kicked off a state-based Aquatic Connectivity Team (ACT) in early 2018 currently led by the Arkansas Natural Heritage Commission. The group, officially titled the Arkansas Stream Heritage Partnership, consists of over 50 members from all sectors including various state, federal, NGO, and private corporations/companies working to address aquatic connectivity in the state. This team has been working with SARP to consolidate data held by individual entities as well as those that are not readily available in an effort to be accurately reflect the number of barriers across the state. This team has been active in identifying and securing funding for various projects.",
+        contact: {
+            name: "Darrell Bowman",
+            email: "darrell.bowman@agfc.ar.gov"
+        }
+    },
+    Tennessee: {
+        description:
+            "Tennessee has had an active Aquatic Connectivity Team (ACT) since 2010 and led by The Nature Conservancy with support from American Rivers and the Tennessee Wildlife Resources Agency. Annual in person meetings and quarterly teleconferences support the coordinations and collaboration among team members across all sectors. Numerous projects have been identified and executed by various members as well as assessments conducted to better understand the level of aquatic fragmentation.",
+        contact: {
+            name: "Rob Bullard",
+            email: "ebullard@tnc.org"
+        }
+    },
+    "North Carolina": {
+        description:
+            "The North Carolina Aquatic Connectivity Team was initiated in 2011, and is led by American Rivers. This ACT holds yearly in person meetings as well as quarterly webinars. Over the years, this Team has had much success through the removal of multiple dams, and is currently working with SARP to perform feasibility reconnaissance on all of the dams in the SARP inventory.",
+        contact: {
+            name: "Erin McCombs",
+            email: "emccombs@americanrivers.org"
+        }
+    }
+}

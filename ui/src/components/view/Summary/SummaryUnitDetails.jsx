@@ -5,7 +5,7 @@ import { FeaturePropType } from "../../../CustomPropTypes"
 import { formatNumber, formatPercent } from "../../../utils/format"
 
 import { LAYER_CONFIG } from "../../map/config"
-import { stateFIPS } from "../../../constants"
+import { stateFIPS, CONNECTIVITY_TEAMS } from "../../../constants"
 
 const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, onClose }) => {
     const { id, layerId, name, dams, barriers, miles } = selectedFeature.toJS()
@@ -21,6 +21,11 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
     if (layerId === "County") {
         title = `${name} County`
         layerTitle = stateFIPS[id.slice(0, 2)]
+    }
+
+    let team = null
+    if (layerId === "State") {
+        team = CONNECTIVITY_TEAMS[id]
     }
 
     return (
@@ -55,7 +60,6 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
                                 </p>
                                 <p className="has-text-grey">
                                     <br />
-                                    <br />
                                     Note: These statistics are based on <i>inventoried</i> dams. Because the inventory
                                     is incomplete in many areas, areas with a high number of dams may simply represent
                                     areas that have a more complete inventory.
@@ -64,6 +68,20 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
                         ) : (
                             <p className="is-size-5">This area does not yet have any inventoried dams</p>
                         )}
+                        {team ? (
+                            <div style={{ marginTop: "3rem" }}>
+                                <h5 className="title is-5" style={{ marginBottom: "0.5em" }}>
+                                    Aquatic Connectivity Team
+                                </h5>
+                                <p>
+                                    {team.description}
+                                    <br />
+                                    <br />
+                                    For more information, please contact{" "}
+                                    <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a>.
+                                </p>
+                            </div>
+                        ) : null}
                     </React.Fragment>
                 ) : (
                     <React.Fragment>

@@ -40,7 +40,7 @@ function Intro() {
                                 </div>
                             </div>
                         </div>
-                        <p>Explore summaries of small and large aquatic barriers across the southeast.</p>
+                        <p>Explore summaries of dams and road-related aquatic barriers across the Southeast.</p>
                         <div className="has-text-centered is-size-5">
                             <Link to="/summary" style={{ color: "#3273dc" }}>
                                 View regional summaries
@@ -63,7 +63,7 @@ function Intro() {
                                 </div>
                             </div>
                         </div>
-                        <p>Prioritize aquatic barriers for removal in your area of interest.</p>
+                        <p>Prioritize dams and road-related aquatic barriers for removal in your area of interest.</p>
                         <div className="has-text-centered is-size-5">
                             <Link to="/priority" style={{ color: "#3273dc" }}>
                                 {" "}
