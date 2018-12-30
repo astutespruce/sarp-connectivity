@@ -9,8 +9,8 @@ import ForestStream from "../../../img/6882770647_60c0d68a9c_z.jpg"
 
 function SARP() {
     return (
-        <div className="container">
-            <h3 className="title is-3">The Southeast Aquatic Resources Partnership</h3>
+        <section>
+            <h3 className="title is-3">How to get involved?</h3>
             <div className="columns">
                 <div className="column is-two-thirds">
                     <p>
@@ -78,7 +78,7 @@ function SARP() {
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     )
 }
 

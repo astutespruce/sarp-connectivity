@@ -116,20 +116,37 @@ button:focus {
     margin: 0 !important;
 }
 
-.step-number {
-    color: #fff;
-    background: #333;
-    border-radius: 3em;
-    margin-right: 0.5em;
-    padding: 0.25em 0.5em;
-    font-size: 0.8em;
-    font-weight: bold !important;
+.info-box {
+    border-radius: 6px;
+    background: #e0f2fb;
+    padding: 1em;
+    color: #253b6e;
+    height: 100%;
 }
 
-.dark .step-number {
-    color: #333;
+.info-box .subtitle {
+    color: #253b6e;
+    border-bottom: 4px solid #fff;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.info-box .subtitle img {
+    width: 20%;
+    margin-right: 0.25em;
+}
+
+.info-box li + li {
+    margin-top: 1rem;
+}
+
+.info-box .button {
+    width: 100%;
+    margin-top: 2rem;
+}
+
+.dark .info-box {
     background: #fff;
-    text-shadow: none;
 }
 
 /* Bulma overrides */
@@ -275,125 +292,25 @@ button.link.link-back {
     margin-top: 4rem;
 }
 
-#ContentPage > section {
-    background-color: #f5f7f9;
-    background-size: cover;
-    background-position-y: center;
-    background-repeat: no-repeat;
-    position: relative;
-    border-bottom: 20px solid #333;
-}
-#ContentPage > section.dark,
-#ContentPageFooter {
-    border-bottom: none !important;
-}
-
-#ContentPage .hero.container {
-    max-width: 960px;
-    background: #fff;
-    border-right: 1px solid #eee;
-    border-left: 1px solid #eee;
-}
-
-#ContentPage .dark .hero {
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    border-left-color: transparent;
-    border-right-color: transparent;
-}
-#ContentPage .dark .title,
-#ContentPage .dark .subtitle {
-    color: #fff;
-    text-shadow: 2px 2px 2px #000;
-}
-#ContentPage .dark a {
-    color: #fff;
-    text-decoration: underline;
-}
-#ContentPage .hero {
-    min-height: 100vh;
-}
-#ContentPage #ContentPageFooter .hero {
-    min-height: auto;
-}
-
 #ContentPage p {
     font-size: 18px;
 }
 
-#ContentPage .hero-body section + section {
-    margin-top: 5rem;
-    padding-top: 1rem;
-    border-top: 1px solid #ddd;
-}
-
-#ContentPage .hero-body section.step + section {
-    margin-top: 1rem;
-}
-
-#ContentPage .hero-body section h3 {
-    margin: 2rem 0 1rem 0;
-}
-#ContentPage .hero-body section h3 svg {
-    margin-right: 0.5em;
-    width: 2em;
-    height: 2em;
-}
-#ContentPage .hero-body section p {
-    padding-left: 2rem;
-}
-#ContentPage .hero-body h4.title,
-#ContentPage .hero-body h5.title {
-    margin: 2rem 0 0.5rem 0;
-}
-#ContentPage .hero-body section h5.title {
-    padding-left: 2rem;
-}
-#ContentPage .hero-body ul,
-#ContentPage .hero-body ol {
-    padding-left: 3rem;
-}
-#ContentPage .hero-body ul {
-    list-style-type: disc;
-}
-#ContentPage .hero-body ol ul {
-    padding-left: 2rem;
-}
 #ContentPage .column img {
     border-radius: 6px;
 }
 
-#ContentPage .hero-body .fa-exclamation-triangle {
+#ContentPage .fa-exclamation-triangle {
     color: orange;
 }
 
-.info-box {
-    border-radius: 6px;
-    background: #e0f2fb;
-    padding: 1em;
-    color: #253b6e;
-    height: 100%;
+#ContentPage .list-disc {
+    list-style: outside disc;
+    padding-left: 1.1em;
 }
 
-.info-box .subtitle {
-    color: #253b6e;
-    border-bottom: 4px solid #fff;
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.5rem;
-}
-
-.info-box .subtitle img {
-    width: 20%;
-    margin-right: 0.25em;
-}
-
-.info-box li + li {
-    margin-top: 1rem;
-}
-
-.info-box .button {
-    width: 100%;
-    margin-top: 2rem;
+#ContentPage > .container {
+    max-width: 960px;
 }
 
 #ContentPageHeader h1 {
@@ -407,6 +324,18 @@ button.link.link-back {
     margin-top: 4rem;
     padding-top: 2rem;
     border-top: 8px solid #1f5f8b;
+}
+
+#ContentPage .step h4 {
+    margin-bottom: 0;
+}
+
+#ContentPage .step p {
+    margin-left: 4rem;
+}
+
+#ContentPage ol {
+    padding-left: 1.5rem;
 }
 
 #Sidebar {
@@ -783,7 +712,7 @@ button.link.link-back {
 }
 
 .image-divider {
-    height: 100%;
+    height: 75%;
     width: 100%;
     background-size: cover;
     background-repeat: no-repeat;
@@ -811,7 +740,6 @@ button.link.link-back {
 .image-divider .credits a,
 .image-header .credits a {
     color: #fff;
-    text-decoration: underline;
 }
 
 .image-header {
@@ -826,10 +754,6 @@ button.link.link-back {
 
 .image-header + .container h1 {
     margin-top: 3rem;
-}
-
-#ContentPage > .container {
-    max-width: 960px;
 }
 
 .subpage section + section {
@@ -847,4 +771,18 @@ button.link.link-back {
     background: rgba(0, 0, 0, 0.5);
     padding: 1rem 2rem;
     border-radius: 2rem;
+}
+
+.circle-dark {
+    background: #333;
+    color: #fff;
+    border-radius: 5em;
+    width: 2em;
+    height: 2em;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 0.5em;
+    display: flex;
+    flex-shrink: 0;
 }

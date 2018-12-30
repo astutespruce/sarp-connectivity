@@ -4,7 +4,6 @@ const Footer = () => (
     <footer className="is-hidden-mobile has-text-white is-size-7">
         <div className="level">
             <div className="level-left">
-                &nbsp;&nbsp;|&nbsp;&nbsp;
                 <a href="https://southeastaquatics.net/" target="_blank" rel="noopener noreferrer">
                     Southeast Aquatic Resources Partnership
                 </a>

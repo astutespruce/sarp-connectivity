@@ -30,12 +30,11 @@ const events = {
         category: "Priority",
         action: "Select Unit",
         data: "priority.summaryUnits",
-        func: summaryUnits => {
+        func: summaryUnits =>
             summaryUnits
                 .map(f => f.id)
                 .sort()
                 .join(",")
-        }
     },
     [PRIORITY_SELECT_FEATURE]: {
         category: "Priority",
@@ -111,8 +110,9 @@ const resolveData = (path, state, func) => {
         }
 
         return data.toString()
-    } catch {
+    } catch (ex) {
         console.error("Error fetching data for path", path)
+        console.error(ex)
         return null
     }
 }

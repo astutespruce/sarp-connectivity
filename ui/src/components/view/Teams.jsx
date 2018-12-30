@@ -6,7 +6,10 @@ import { scrollIntoView } from "../../utils/dom"
 import { CONNECTIVITY_TEAMS } from "../../constants"
 
 // https://www.flickr.com/photos/usfwssoutheast/10696646974/in/album-72157637310346925/
-import headerImage from "../../img/10696646974_748f57553f_k.jpg"
+// import headerImage from "../../img/10696646974_748f57553f_k.jpg"
+
+// from SARP
+import headerImage from "../../img/TN_ACT2.jpg"
 
 // from SARP
 import peopleCulvertImage from "../../img/IMG_1530.jpg"
@@ -17,9 +20,13 @@ import GeorgiaACTImage from "../../img/GA_ACT.jpg"
 // from: https://www.southeastaquatics.net/sarps-programs/southeast-aquatic-connectivity-assessment-program-seacap/connectivity-teams/arkansas-stream-heritage-partnership/copy_of_ArkansasWorkshop.jpg/view
 import ArkansasACTImage from "../../img/AR_ACT.jpg"
 
+// from SARP
+import TennesseeACTImage from "../../img/TN_ACT.jpg"
+
 const teamImages = {
     Arkansas: ArkansasACTImage,
-    Georgia: GeorgiaACTImage
+    Georgia: GeorgiaACTImage,
+    Tennessee: TennesseeACTImage
 }
 
 function Teams() {
@@ -29,18 +36,7 @@ function Teams() {
 
     return (
         <div id="ContentPage" className="subpage">
-            <div className="image-header" style={{ backgroundImage: `url(${headerImage})` }}>
-                <div className="credits">
-                    <a
-                        href="https://www.flickr.com/photos/usfwssoutheast/10696646974/in/album-72157637310346925/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Smitherman Mill Dam Removal 2013
-                    </a>
-                    . Photo: U.S. Fish and Wildlife Service.
-                </div>
-            </div>
+            <div className="image-header" style={{ backgroundImage: `url(${headerImage})` }} />
 
             <div className="container">
                 <h1 className="title is-1">Aquatic Connectivity Teams</h1>
