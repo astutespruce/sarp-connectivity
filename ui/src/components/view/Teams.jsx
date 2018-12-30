@@ -35,29 +35,33 @@ function Teams() {
     })
 
     return (
-        <div id="ContentPage" className="subpage">
+        <div id="ContentPage">
             <div className="image-header" style={{ backgroundImage: `url(${headerImage})` }} />
 
             <div className="container">
                 <h1 className="title is-1">Aquatic Connectivity Teams</h1>
-                {Object.entries(CONNECTIVITY_TEAMS).map(([state, team]) => (
-                    <section key={state}>
-                        <h3 className="title is-3">{state}</h3>
-                        <p>
-                            {team.description}
-                            <br />
-                            <br />
-                            For more information, please contact{" "}
-                            <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a>.
-                        </p>
-                        {teamImages[state] ? (
-                            <img
-                                src={teamImages[state]}
-                                alt={`${state} Aquatic Connectivity Team`}
-                                style={{ marginTop: "2rem" }}
-                            />
-                        ) : null}
-                    </section>
+                {Object.entries(CONNECTIVITY_TEAMS).map(([state, team], i) => (
+                    <React.Fragment key={state}>
+                        {i > 0 ? <div className="divider" /> : null}
+
+                        <section>
+                            <h3 className="title is-3">{state}</h3>
+                            <p>
+                                {team.description}
+                                <br />
+                                <br />
+                                For more information, please contact{" "}
+                                <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a>.
+                            </p>
+                            {teamImages[state] ? (
+                                <img
+                                    src={teamImages[state]}
+                                    alt={`${state} Aquatic Connectivity Team`}
+                                    style={{ marginTop: "2rem" }}
+                                />
+                            ) : null}
+                        </section>
+                    </React.Fragment>
                 ))}
                 <section>
                     <p>

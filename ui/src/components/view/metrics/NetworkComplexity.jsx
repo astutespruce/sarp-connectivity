@@ -34,7 +34,7 @@ function NetworkComplexity() {
                         number of aquatic species.
                     </p>
                 </section>
-
+                
                 <section>
                     <div className="columns">
                         <div className="column">

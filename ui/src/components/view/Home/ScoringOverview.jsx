@@ -237,6 +237,27 @@ const ScoringOverview = () => (
                     </div>
                 </div>
             </div>
+
+            <p style={{ marginTop: "2rem" }}>
+                To reduce the impact of outliers, such as very long functional networks, barriers are scored based on
+                their relative rank within the overall range of unique values for a given metric. Many barriers have the
+                same value for a given metric and are given the same relative score; this causes the distribution of
+                values among scores to be highly uneven in certain areas.
+                <br />
+                <br />
+                Once barriers have been scored for each of the above scenarios, they are binned into 20 tiers to
+                simplify interpretation and use. To do this, barriers that fall in the best 5% of the range of scores
+                for that metric are assigned to Tier 1 (top tier), whereas barriers that fall in the worst 5% of the
+                range of scores for that metric are assigned Tier 20 (bottom tier).
+                <br />
+                <br />
+                <i className="fas fa-exclamation-triangle" />
+                &nbsp; Note: tiers are based on position within the range of observed scores for a given area. They are{" "}
+                <i>not</i> based on the frequency of scores, such as percentiles, and therefore may have a highly uneven
+                number of dams per tier depending on the area. In general, there are fewer barriers in the top tiers
+                than there are in the bottom tiers. This is largely because many barriers share the same value for a
+                given metric.
+            </p>
         </section>
     </React.Fragment>
 )

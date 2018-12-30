@@ -276,7 +276,6 @@ button.link.link-back {
 
 #ContentPage {
     width: 100%;
-    /* background: #ee7d140a; */
 }
 
 #ContentPage .page-header.title {
@@ -286,6 +285,10 @@ button.link.link-back {
 #ContentPage .page-header.subtitle {
     margin-top: 0;
     font-size: 3rem;
+}
+
+#ContentPage .container:last-child {
+    padding-bottom: 5rem;
 }
 
 #ContentPage section + section {
@@ -756,14 +759,10 @@ button.link.link-back {
     margin-top: 3rem;
 }
 
-.subpage section + section {
-    margin-top: 3rem;
+.divider {
+    margin-top: 2rem;
     padding-top: 2rem;
     border-top: 1px solid #eee;
-}
-
-.subpage > .container {
-    padding-bottom: 4rem;
 }
 
 .image-header > .container {

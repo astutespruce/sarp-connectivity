@@ -37,11 +37,14 @@ function Credits() {
                 <div className="columns">
                     <div className="column is-two-thirds">
                         <p>
-                            This application was created by the&nbsp;
+                            This application was created by <a href="mailto:bcward@consbio.org">Brendan C. Ward</a> at
+                            the&nbsp;
                             <a href="https://consbio.org" target="_blank" rel="noopener noreferrer">
                                 Conservation Biology Institute
                             </a>
-                            &nbsp; (CBI) in partnership with the&nbsp;
+                            &nbsp; (CBI) in partnership with{" "}
+                            <a href="mailto:jessica@southeastaquatics.net">Jessica Graham</a> and{" "}
+                            <a href="mailto:kat@southeastaquatics.net">Kat Hoenke</a> at the&nbsp;
                             <a href="https://southeastaquatics.net/" target="_blank" rel="noopener noreferrer">
                                 Southeast Aquatic Resources Partnership
                             </a>
