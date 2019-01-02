@@ -11,7 +11,7 @@ function UseCases() {
         <section>
             <h3 className="title is-3">Example: prioritizing a failing dam for removal</h3>
             <p>
-                The Southeast Aquatic Barriers Inventory enabled partners in Tennessee to identify and prioritize an
+                The Southeast Aquatic Barrier Inventory enabled partners in Tennessee to identify and prioritize an
                 aging dam for removal. At 220 feet wide and 15 tall, this dam is the largest removed in Tennessee for
                 river and stream restoration.
                 <br />
@@ -25,7 +25,7 @@ function UseCases() {
                     target="_blank"
                     rel="noopener noreferrer"
                 >
-                    Roaring River Dam Removal, Tennessee, 2017. © Paul Kingsbury, The Nature Conservancy.
+                    Roaring River Dam Removal, Tennessee, 2017. © Rob Bullard, The Nature Conservancy.
                 </a>
             </div>
             <p>

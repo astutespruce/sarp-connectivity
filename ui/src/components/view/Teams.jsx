@@ -24,9 +24,17 @@ import ArkansasACTImage from "../../img/AR_ACT.jpg"
 import TennesseeACTImage from "../../img/TN_ACT.jpg"
 
 const teamImages = {
-    Arkansas: ArkansasACTImage,
-    Georgia: GeorgiaACTImage,
-    Tennessee: TennesseeACTImage
+    Arkansas: {
+        image: ArkansasACTImage,
+        credits: "Kat Hoenke, Southeast Aquatic Resources Partnership"
+    },
+    Georgia: {
+        image: GeorgiaACTImage
+    },
+    Tennessee: {
+        image: TennesseeACTImage,
+        credits: "Jessica Graham, Southeast Aquatic Resources Partnership"
+    }
 }
 
 function Teams() {
@@ -36,7 +44,9 @@ function Teams() {
 
     return (
         <div id="ContentPage">
-            <div className="image-header" style={{ backgroundImage: `url(${headerImage})` }} />
+            <div className="image-header" style={{ backgroundImage: `url(${headerImage})` }}>
+                <div className="credits">Photo credit: Jessica Graham, Southeast Aquatic Resources Partnership.</div>
+            </div>
 
             <div className="container">
                 <h1 className="title is-1">Aquatic Connectivity Teams</h1>
@@ -54,11 +64,18 @@ function Teams() {
                                 <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a>.
                             </p>
                             {teamImages[state] ? (
-                                <img
-                                    src={teamImages[state]}
-                                    alt={`${state} Aquatic Connectivity Team`}
-                                    style={{ marginTop: "2rem" }}
-                                />
+                                <React.Fragment>
+                                    <img
+                                        src={teamImages[state].image}
+                                        alt={`${state} Aquatic Connectivity Team`}
+                                        style={{ marginTop: "2rem" }}
+                                    />
+                                    {teamImages[state].credits ? (
+                                        <div className="has-text-grey is-size-7 text-align-right">
+                                            Photo: {teamImages[state].credits}
+                                        </div>
+                                    ) : null}
+                                </React.Fragment>
                             ) : null}
                         </section>
                     </React.Fragment>
@@ -77,6 +94,9 @@ function Teams() {
                         <br />
                     </p>
                     <img src={peopleCulvertImage} alt="Culvert evaluation" />
+                    <div className="has-text-grey is-size-7 text-align-right">
+                        Photo: Jessica Graham, Southeast Aquatic Resources Partnership
+                    </div>
                 </section>
             </div>
         </div>

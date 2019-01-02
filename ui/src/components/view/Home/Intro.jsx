@@ -6,6 +6,7 @@ import { formatNumber } from "../../../utils/format"
 import summaryStats from "../../../data/summary_stats.json"
 import summarizeImage from "../../../img/summarize.jpg"
 import prioritizeImage from "../../../img/prioritize.jpg"
+import SARPLogo from "../../../img/sarp_logo.png"
 
 const { dams, barriers, miles } = summaryStats.southeast
 
@@ -13,14 +14,11 @@ function Intro() {
     return (
         <React.Fragment>
             <section className="page-header">
-                <h1 className="title is-1 is-large">Aquatic connectivity is essential.</h1>
-                <h3 className="subtitle is-3 is-large">
-                    Fish and other aquatic organisms depend on high quality, connected river networks.
-                </h3>
                 <p className="is-size-4">
-                    A legacy of human use of river networks have left them fragmented by barriers such as dams and
-                    culverts. Fragmentation prevents species from dispersing and accessing habitats required for their
-                    persistence through changing conditions.
+                    Aquatic connectivity is essential. Fish and other aquatic organisms depend on high quality,
+                    connected river networks. A legacy of human use of river networks have left them fragmented by
+                    barriers such as dams and culverts. Fragmentation prevents species from dispersing and accessing
+                    habitats required for their persistence through changing conditions.
                     <br />
                     <br />
                     Recently improved inventories of aquatic barriers enable us to describe, understand, and prioritize
@@ -36,10 +34,23 @@ function Intro() {
                     <div className="column is-two-thirds">
                         <p>
                             This inventory is a growing and living database of dams, culverts, and other road crossings
-                            compiled by the Southeast Aquatic Resources Partnership with the generous support from many
-                            partners and funders. Information about network connectivity, landscape condition, and
-                            presence of threatened and endangered aquatic organisms are added to this inventory to help
-                            you investigate barriers at any scale for your desired purposes.
+                            compiled by the{" "}
+                            <a href="https://southeastaquatics.net/" target="_blank" rel="noopener noreferrer">
+                                Southeast Aquatic Resources Partnership
+                            </a>{" "}
+                            with the generous support from many partners and funders. The Inventory is the foundation of{" "}
+                            <a
+                                href="https://southeastaquatics.net/sarps-programs/southeast-aquatic-connectivity-assessment-program-seacap"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                SARP&apos;s Connectivity Program
+                            </a>{" "}
+                            because it empowers <Link to="/teams">Aquatic Connectivity Teams</Link> and other
+                            collaborators with the best available information on aquatic barriers. The inventory
+                            directly supports prioritization of barriers by including metrics that describe network
+                            connectivity, landscape condition, and presence of threatened and endangered aquatic
+                            organisms.
                             <br />
                             <br />
                             This inventory consists of datasets from local, state, and federal partners. It is
@@ -48,8 +59,6 @@ function Intro() {
                             on the availability and completeness of existing data and level of partner feedback. Some
                             areas of the region are more complete than others but none should be considered 100%
                             complete.
-                            <br />
-                            <br />
                         </p>
                     </div>
                     <div className="column">
@@ -71,6 +80,7 @@ function Intro() {
                                     average
                                 </li>
                             </ul>
+                            <img src={SARPLogo} alt="SARP Logo" style={{ marginTop: "1rem", width: "15rem", marginLeft: '1rem'}} />
                         </div>
                     </div>
                 </div>

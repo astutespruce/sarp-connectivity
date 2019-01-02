@@ -30,7 +30,18 @@ const Home = () => {
 
     return (
         <div id="ContentPage">
-            <div className="image-header" style={{ backgroundImage: `url(${fishImage})` }} />
+            <div
+                className="image-header flex-container-column flex-justify-center"
+                style={{ backgroundImage: `url(${fishImage})`, minHeight: "24rem", height: "40%" }}
+            >
+                <div className="container">
+                    <h1 className="title is-1 has-text-white">Southeast Aquatic Barrier Prioritization Tool</h1>
+                    <h4 className="subtitle is-4 has-text-white no-margin">
+                        Improve aquatic connectivity by prioritizing aquatic barriers for removal using the best
+                        available data.
+                    </h4>
+                </div>
+            </div>
 
             <div className="container">
                 <Intro />

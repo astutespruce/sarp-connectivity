@@ -49,13 +49,13 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
                             <React.Fragment>
                                 <p>
                                     This area contains at least {formatNumber(count, 0)} {count > 1 ? "dams" : "dam"}{" "}
-                                    that {count > 1 ? "have" : "has"} been inventoried so far, resulting in an average
+                                    that {count > 1 ? "have " : "has "} been inventoried so far, resulting in an average
                                     of {formatNumber(miles, 2)} miles of rivers and streams that could be reconnected by
                                     removing dams.
                                     <br />
                                     <br />
                                     This area has {formatPercent(percent)}% of the inventoried dams in the Southeast and{" "}
-                                    {formatNumber(Math.abs(milesCompare))} {milesCompare > 0 ? "more" : "fewer"} miles
+                                    {formatNumber(Math.abs(milesCompare))} {milesCompare > 0 ? "more " : "fewer "} miles
                                     of connected river network than the average for the region.
                                 </p>
                                 <p className="has-text-grey">
