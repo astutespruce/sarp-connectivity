@@ -8,12 +8,12 @@ import roaringRiverDamImage from "../../../img/Roaring_River_Dam_Removal_-_diggi
 
 function UseCases() {
     return (
-        <section>
+        <section id="Example">
             <h3 className="title is-3">Example: prioritizing a failing dam for removal</h3>
             <p>
-                The Southeast Aquatic Barrier Inventory enabled partners in Tennessee to identify and prioritize an
-                aging dam for removal. At 220 feet wide and 15 tall, this dam is the largest removed in Tennessee for
-                river and stream restoration.
+                The Southeast Aquatic Barrier Inventory and this tool will enable partners to identify and prioritize
+                aging dams for removal, such as the Roaring River Dam in Tennessee removed in 2017. At 220 feet wide and
+                15 tall, this dam is the largest removed in Tennessee for river and stream restoration.
                 <br />
                 <br />
             </p>

@@ -2,11 +2,15 @@ import React from "react"
 import { Link } from "react-router-dom"
 
 import { formatNumber } from "../../../utils/format"
+import { scrollIntoView } from "../../../utils/dom"
 
 import summaryStats from "../../../data/summary_stats.json"
 import summarizeImage from "../../../img/summarize.jpg"
 import prioritizeImage from "../../../img/prioritize.jpg"
 import SARPLogo from "../../../img/sarp_logo.png"
+import damGraphic from "../../../img/dam.svg"
+import prioritizeGraphic from "../../../img/prioritize.svg"
+import teamGraphic from "../../../img/team.svg"
 
 const { dams, barriers, miles } = summaryStats.southeast
 
@@ -26,6 +30,70 @@ function Intro() {
                     providing information on documented barriers and standardized methods by which to prioritize
                     barriers of interest for restoration efforts.
                 </p>
+            </section>
+
+            <section>
+                <div className="columns">
+                    <div className="column">
+                        <div className="info-box">
+                            <h3 className="subtitle is-3 flex-container flex-align-center">
+                                <img src={damGraphic} alt="Network length graphic" />
+                                Inventory
+                            </h3>
+                            <p>
+                                The aquatic barrier inventory is the foundation for identifying and prioritizing aquatic
+                                connectivity projects with partners. It provides essential information about the
+                                location, status, and characteristics of potential aquatic barriers.
+                                <br />
+                                <br />
+                                Scroll down for more information.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="column">
+                        <div className="info-box">
+                            <h3 className="subtitle is-3 flex-container flex-align-center">
+                                <img src={prioritizeGraphic} alt="Network length graphic" />
+                                Prioritization
+                            </h3>
+                            <p>
+                                In order to maximize partner effort and return on investment, aquatic barriers are
+                                prioritized based on their contribution to the aquatic network if removed. Quantitative
+                                metrics provide actionable information to assist barrier removal projects.
+                                <br />
+                                <br />
+                                <a
+                                    href=""
+                                    onClick={e => {
+                                        e.preventDefault()
+                                        scrollIntoView("ScoringOverview", "smooth")
+                                    }}
+                                >
+                                    Read more...
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="column">
+                        <div className="info-box">
+                            <h3 className="subtitle is-3 flex-container flex-align-center">
+                                <img src={teamGraphic} alt="Network length graphic" />
+                                Teams
+                            </h3>
+                            <p>
+                                Aquatic connectivity teams make barrier removal projects a reality. By combining effort
+                                across organizations and jurisdictions, partners work together to identify, prioritize,
+                                and implement barrier removal projects.
+                                <br />
+                                <br />
+                                <br />
+                                <Link to="/teams">Read more...</Link>
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section>
@@ -54,7 +122,19 @@ function Intro() {
                             <br />
                             <br />
                             This inventory consists of datasets from local, state, and federal partners. It is
-                            supplemented with input from partners with on the ground knowledge of specific structures.
+                            supplemented with input from partners with on the ground knowledge of specific structures.{" "}
+                            <a
+                                href=""
+                                onClick={e => {
+                                    e.preventDefault()
+                                    scrollIntoView("Example", "smooth")
+                                }}
+                            >
+                                See an example of how the inventory can assist local partners to identify and prioritize
+                                barriers for removal.
+                            </a>
+                            <br />
+                            <br />
                             The information on barriers is not complete or comprehensive across the region, and depends
                             on the availability and completeness of existing data and level of partner feedback. Some
                             areas of the region are more complete than others but none should be considered 100%
@@ -80,7 +160,11 @@ function Intro() {
                                     average
                                 </li>
                             </ul>
-                            <img src={SARPLogo} alt="SARP Logo" style={{ marginTop: "1rem", width: "15rem", marginLeft: '1rem'}} />
+                            <img
+                                src={SARPLogo}
+                                alt="SARP Logo"
+                                style={{ marginTop: "4rem", width: "15rem", marginLeft: "1rem" }}
+                            />
                         </div>
                     </div>
                 </div>

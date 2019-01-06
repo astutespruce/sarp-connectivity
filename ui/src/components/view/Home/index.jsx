@@ -45,22 +45,22 @@ const Home = () => {
 
             <div className="container">
                 <Intro />
-                <UseCases />
-            </div>
-
-            <div className="image-divider" style={{ backgroundImage: `url(${roaringRiverDamImage})` }}>
-                <div className="credits">
-                    Roaring River Dam Removal, Tennessee, 2017. Mark Thurman, Tennessee Wildlife Resources Agency.
-                </div>
-            </div>
-
-            <div className="container">
                 <ScoringOverview />
             </div>
 
             <div className="image-divider" style={{ backgroundImage: `url(${demolitionImage})` }}>
                 <div className="credits">
                     Steeles Mill Dam Hitchcock Creek during removal. Photo credit: Peter Raabe, American Rivers.
+                </div>
+            </div>
+
+            <div className="container">
+                <UseCases />
+            </div>
+
+            <div className="image-divider" style={{ backgroundImage: `url(${roaringRiverDamImage})` }}>
+                <div className="credits">
+                    Roaring River Dam Removal, Tennessee, 2017. Mark Thurman, Tennessee Wildlife Resources Agency.
                 </div>
             </div>
 

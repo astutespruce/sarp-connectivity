@@ -12,7 +12,7 @@ import damImage from "../../../img/9272554306_b34bf886f4_z.jpg"
 
 const ScoringOverview = () => (
     <React.Fragment>
-        <section>
+        <section id="ScoringOverview">
             <h3 className="title is-3">How are barriers prioritized for removal?</h3>
             <h4 className="subtitle is-4 flex-container flex-align-center" style={{ marginTop: "1rem" }}>
                 <div className="circle-dark">

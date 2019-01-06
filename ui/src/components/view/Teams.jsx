@@ -5,9 +5,6 @@ import { scrollIntoView } from "../../utils/dom"
 
 import { CONNECTIVITY_TEAMS } from "../../constants"
 
-// https://www.flickr.com/photos/usfwssoutheast/10696646974/in/album-72157637310346925/
-// import headerImage from "../../img/10696646974_748f57553f_k.jpg"
-
 // from SARP
 import headerImage from "../../img/TN_ACT2.jpg"
 

@@ -4,7 +4,7 @@ import PropTypes from "prop-types"
 import { formatNumber } from "../../utils/format"
 import { isEmptyString } from "../../utils/string"
 
-import { SINUOSITY } from "../../constants"
+import { SINUOSITY, BARRIER_SEVERITY } from "../../constants"
 
 const BarrierDetails = ({
     lat,
@@ -18,7 +18,7 @@ const BarrierDetails = ({
     crossingtype,
     condition,
     rarespp,
-    potentialproject,
+    severityclass,
     // metrics
     gainmiles,
     upstreammiles,
@@ -83,7 +83,7 @@ const BarrierDetails = ({
                 ) : (
                     <li className="has-text-grey">
                         {isCrossing
-                            ? "This barrier has not yet been evaluated for aquatic connectivity."
+                            ? "This crossing has not yet been evaluated for aquatic connectivity."
                             : "No functional network information available.  This barrier is off-network or is not a barrier."}
                     </li>
                 )}
@@ -118,12 +118,14 @@ const BarrierDetails = ({
                 )}
             </ul>
 
-            <h6 className="title is-6">Feasibility of removal</h6>
+            <h6 className="title is-6">Barrier severity</h6>
             <ul>
-                {!isEmptyString(potentialproject) ? (
-                    <li>{potentialproject}</li>
+                {severityclass !== null ? (
+                    <li>{BARRIER_SEVERITY[severityclass]}</li>
                 ) : (
-                    <li className="has-text-grey">No feasibility information is available for this barrier.</li>
+                    <li className="has-text-grey">
+                        No severity information is available for this {isCrossing ? "crossing" : "barrier"}.
+                    </li>
                 )}
             </ul>
 
@@ -149,7 +151,7 @@ BarrierDetails.propTypes = {
     roadtype: PropTypes.string,
     crossingtype: PropTypes.string,
     condition: PropTypes.string,
-    potentialproject: PropTypes.string,
+    severityclass: PropTypes.number,
     rarespp: PropTypes.number,
     gainmiles: PropTypes.number,
     upstreammiles: PropTypes.number,
@@ -166,7 +168,7 @@ BarrierDetails.defaultProps = {
     road: null,
     roadtype: null,
     crossingtype: null,
-    potentialproject: null,
+    severityclass: null,
     condition: null,
     rarespp: null,
     gainmiles: null,

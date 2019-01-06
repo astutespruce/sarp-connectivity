@@ -1,7 +1,7 @@
-export const scrollIntoView = id => {
+export const scrollIntoView = (id, behavior = "auto") => {
     const elem = window.document.getElementById(id)
     if (elem) {
-        elem.scrollIntoView()
+        elem.scrollIntoView({ behavior, block: "start" })
     }
 }
 
