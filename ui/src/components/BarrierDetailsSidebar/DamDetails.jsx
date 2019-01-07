@@ -98,7 +98,7 @@ const DamDetails = ({
                 </React.Fragment>
             ) : (
                 <li className="has-text-grey">
-                    No threatened and endangered aquatic species occurrence information is available for this
+                    No threatened and endangered aquatic species have been identified by available data sources for this
                     subwatershed.
                 </li>
             )}

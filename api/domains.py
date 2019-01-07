@@ -408,19 +408,18 @@ STREAM_ORDER_DOMAIN = {
 
 BARRIER_SEVERITY_DOMAIN = {
     0: "Unknown",
-    1: "Not a barrier",
-    2: "Minor barrier",
-    3: "Moderate barrier",
-    4: "Major barrier",
+    1: "Not a barrier", # includes minor barriers
+    2: "Moderate barrier",
+    3: "Major barrier",
 }
 
 
 POTENTIAL_TO_SEVERITY = {
     "Inaccessible": 0,
     "Indeterminate": 0,
-    "Insignificant Barrier": 2,
-    "Minor Barrier": 2,
-    "Moderate Barrier": 3,
+    "Insignificant Barrier": 1,
+    "Minor Barrier": 1,
+    "Moderate Barrier": 2,
     "No Barrier": 1,
     "No Crossing": 1,
     "No Upstream Channel": 1,
@@ -428,8 +427,8 @@ POTENTIAL_TO_SEVERITY = {
     "Past Project": 0,
     "Potential Project": 0,
     "Proposed Project": 0,
-    "Severe Barrier": 4,
-    "Significant Barrier": 4,
+    "Severe Barrier": 3,
+    "Significant Barrier": 3,
     "Small Project": 0,
 }
 

@@ -123,10 +123,9 @@ export const SINUOSITY = {
 
 export const BARRIER_SEVERITY = {
     0: "Unknown",
-    1: "Not a barrier",
-    2: "Minor barrier",
-    3: "Moderate barrier",
-    4: "Major barrier"
+    // 1: "Not a barrier",
+    2: "Moderate barrier",
+    3: "Major barrier"
 }
 
 export const CROSSING_TYPE = {

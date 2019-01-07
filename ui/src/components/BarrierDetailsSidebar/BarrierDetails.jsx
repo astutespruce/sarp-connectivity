@@ -55,6 +55,7 @@ const BarrierDetails = ({
                 {!isEmptyString(roadtype) ? <li>Road type: {roadtype}</li> : null}
                 {!isEmptyString(crossingtype) ? <li>Crossing type: {crossingtype}</li> : null}
                 {!isEmptyString(condition) ? <li>Condition: {condition}</li> : null}
+                {severityclass !== null ? <li>Severity: {BARRIER_SEVERITY[severityclass]}</li> : null}
             </ul>
 
             <h6 className="title is-6">Functional network information</h6>
@@ -110,22 +111,11 @@ const BarrierDetails = ({
                             </React.Fragment>
                         ) : (
                             <li className="has-text-grey">
-                                No threatened and endangered aquatic species occurrence information is available for
-                                this subwatershed.
+                                No threatened and endangered aquatic species have been identified by available data
+                                sources for this subwatershed.
                             </li>
                         )}
                     </React.Fragment>
-                )}
-            </ul>
-
-            <h6 className="title is-6">Barrier severity</h6>
-            <ul>
-                {severityclass !== null ? (
-                    <li>{BARRIER_SEVERITY[severityclass]}</li>
-                ) : (
-                    <li className="has-text-grey">
-                        No severity information is available for this {isCrossing ? "crossing" : "barrier"}.
-                    </li>
                 )}
             </ul>
 

@@ -42,8 +42,8 @@ const initialState = Map({
 //     initialState = initialState.merge({
 //         mode: "select",
 //         type: "dams",
-//         layer: "State",
-//         summaryUnits: Set([{ id: "Virginia" }])
+//         layer: "HUC12",
+//         summaryUnits: Set([{ id: "030101030502" }])
 //     })
 // }
 

@@ -101,7 +101,10 @@ df.rename(
 )
 
 # Flag if the field has a network
-df["HasNetwork"] = ~df.GainMiles.isnull()
+# TODO: remove no-upstream from network analysis
+df["HasNetwork"] = ~(
+    df.GainMiles.isnull() | (df.PotentialProject == "No Upstream Channel")
+)
 
 
 ######### Fix data issues
