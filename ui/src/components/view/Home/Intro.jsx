@@ -33,6 +33,9 @@ function Intro() {
             </section>
 
             <section>
+                <h3 className="title is-3">
+                    Enhancing aquatic connectivity by empowering people with actionable data:
+                </h3>
                 <div className="columns">
                     <div className="column">
                         <div className="info-box">
@@ -172,7 +175,7 @@ function Intro() {
 
             <section>
                 <h3 className="title is-3">
-                    The Southeast Aquatic Barrier Prioritization Tool empowers you with the latest inventory data.
+                    The Southeast Aquatic Barrier Prioritization Tool empowers you with the latest inventory data:
                 </h3>
                 <h3 className="subtitle is-3" style={{ marginTop: "1rem" }}>
                     <i className="fas fa-chart-bar" /> Summarize the inventory across the region
