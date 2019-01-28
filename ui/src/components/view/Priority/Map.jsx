@@ -29,9 +29,6 @@ import { LAYER_CONFIG } from "./config"
 import Map from "../../map/index"
 import { SCENARIOS } from "../../map/config"
 
-// Construct colors for mapbox GL layers in advance
-// const priorityColors = PRIORITY_TIER_COLORS.reduce((out, color, i) => out.concat([i, color]), [])
-
 class PriorityMap extends Component {
     constructor() {
         super()
@@ -41,7 +38,6 @@ class PriorityMap extends Component {
         }
 
         this.map = null
-        // this.hoverId = null
     }
 
     componentDidUpdate(prevProps) {
@@ -329,7 +325,7 @@ class PriorityMap extends Component {
     handleCreateMap = map => {
         this.map = map
 
-        const { type } = this.props
+        const { type, onMapLoad } = this.props
 
         this.setState({ zoom: map.getZoom() })
 
@@ -351,12 +347,6 @@ class PriorityMap extends Component {
                 maxzoom: 12
             })
 
-            // Add the background (no network) points up front, but not visible
-            // const barriersConfig = fromJS({
-            //     source: type,
-            //     "source-layer": type
-            // })
-
             map.addLayer(
                 fromJS(backgroundPoint)
                     .merge({
@@ -369,13 +359,7 @@ class PriorityMap extends Component {
             // Add highlight layer.  Note: on subsequent additions of layers, move this to the top.
             map.addLayer(pointHighlight)
 
-            // Always visible and only based on filter by ID
-
-            // map.addLayer(
-            //     fromJS(pointHighlight)
-            //         .merge(barriersConfig)
-            //         .toJS()
-            // )
+            onMapLoad()
         })
 
         map.on("zoom", () => this.setState({ zoom: this.map.getZoom() }))
@@ -560,7 +544,8 @@ PriorityMap.propTypes = {
 
     setScenario: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired,
-    selectUnit: PropTypes.func.isRequired
+    selectUnit: PropTypes.func.isRequired,
+    onMapLoad: PropTypes.func.isRequired
 }
 
 PriorityMap.defaultProps = {

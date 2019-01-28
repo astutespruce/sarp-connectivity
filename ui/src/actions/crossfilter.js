@@ -1,6 +1,6 @@
 import crossfilter from "crossfilter2"
 
-export const LOAD = "@@crossfilter/LOAD"
+export const ON_LOAD = "@@crossfilter/LOAD"
 export const load = (data, filters) => {
     const cf = crossfilter(data)
 
@@ -15,7 +15,7 @@ export const load = (data, filters) => {
     })
 
     return {
-        type: LOAD,
+        type: ON_LOAD,
         payload: {
             crossfilter: cf,
             dimensions

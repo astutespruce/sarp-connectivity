@@ -1,7 +1,7 @@
 // import crossfilter from "crossfilter2"
 import { Map, List, Set } from "immutable"
 
-import { LOAD, SET_FILTER, RESET, CLEAR } from "../actions/crossfilter"
+import { ON_LOAD, SET_FILTER, RESET, CLEAR } from "../actions/crossfilter"
 
 // Get counts based on current filters
 const countByDimension = dimensions => {
@@ -43,7 +43,7 @@ const initialState = Map({
 // TODO: when prioritization is changed, change the summaryUnit to custom
 export const reducer = (state = initialState, { type, payload = {} }) => {
     switch (type) {
-        case LOAD: {
+        case ON_LOAD: {
             const { crossfilter, dimensions } = payload
 
             const dimensionIndex = dimensions.reduce((out, dimension) => {

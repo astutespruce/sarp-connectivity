@@ -1,8 +1,9 @@
 import { List, Map, Set, fromJS } from "immutable"
 
-import { LOAD } from "../actions/crossfilter"
+import { ON_LOAD as ON_CROSSFILTER_LOAD } from "../actions/crossfilter"
 
 import {
+    ON_MAP_LOAD,
     PRIORITY_SET_SCENARIO,
     PRIORITY_SELECT_FEATURE,
     PRIORITY_SET_LAYER,
@@ -33,7 +34,8 @@ const initialState = Map({
 
     closedFilters: Map(), //  allFilters.reduce((out, item, i) => out.set(item, i >= 0), Map()),
 
-    isLoading: false,
+    // loading data, crossfilter, and map all happen in very separate steps, so for convenience completion of each can update this value
+    isLoading: true, // assume we are at start, and nothing has loaded yet
     isError: false
 })
 
@@ -52,7 +54,10 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
         case "@@router/LOCATION_CHANGE": {
             return initialState
         }
-        case LOAD: {
+        case ON_CROSSFILTER_LOAD: {
+            return state.set("isLoading", false)
+        }
+        case ON_MAP_LOAD: {
             return state.set("isLoading", false)
         }
         case PRIORITY_SET_SCENARIO: {
@@ -75,9 +80,10 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
         }
         case PRIORITY_SET_MODE: {
             const { mode } = payload
-            // TODO: clear out units depending on mode
-            // TODO: clear out crossfilter and associated stuff if going from filter to previous?
-            return state.set("mode", mode)
+            return state.merge({
+                mode,
+                isLoading: mode === "start" ? true : state.get("isLoading")
+            })
         }
         case PRIORITY_SET_TYPE: {
             return state.merge({
@@ -99,7 +105,6 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
 
             return state.merge({
                 mode: "filter",
-                // isLoading: false, // updated by listening on crossfilter action instead
                 isError: false,
                 closedFilters: filters.reduce((out, item, i) => out.set(item.field, i >= 0), Map())
             })

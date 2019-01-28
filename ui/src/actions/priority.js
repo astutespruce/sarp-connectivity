@@ -162,3 +162,9 @@ export const logDownload = () => ({
     type: PRIORITY_DOWNLOAD,
     payload: {}
 })
+
+export const ON_MAP_LOAD = "ON_MAP_LOAD"
+export const onMapLoad = () => ({
+    type: ON_MAP_LOAD,
+    payload: {}
+})
