@@ -104,7 +104,7 @@ const DamDetails = ({
             )}
         </ul>
 
-        <h6 className="title is-6">Feasibility of removal</h6>
+        <h6 className="title is-6">Feasibility & Conservation Benefit</h6>
         <ul>
             {recon !== null ? (
                 <li>{RECON[recon]}</li>
