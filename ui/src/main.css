@@ -466,9 +466,13 @@ button.link.link-back {
 
 #SidebarContent .tabs a {
     border-bottom-color: transparent;
+    transition: border-color 0.5s;
 }
 
 #SidebarContent .tabs .is-active a {
+    border-bottom-color: inherit;
+}
+#SidebarContent .tabs a:hover {
     border-bottom-color: inherit;
 }
 
@@ -643,12 +647,17 @@ button.link.link-back {
     margin-top: 1em;
 }
 
+.chart-score .title.is-6 {
+    font-weight: normal;
+    margin-bottom: 1rem;
+}
+
 .chart-score + .chart-score {
     margin-top: 3rem;
 }
 .chart-score .domain {
     position: relative;
-    margin: 4px 16px 0;
+    margin: 0.25rem 1.25rem 0;
     flex: 1;
 }
 .chart-score .domain-line {
@@ -658,12 +667,15 @@ button.link.link-back {
 
 .chart-score .marker {
     position: absolute;
-    top: -12px;
-    width: 24px;
-    height: 24px;
-    border-radius: 24px;
+    padding-top: 0.25rem;
+    top: -1rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 2rem;
     background: #666;
-    margin-left: -12px;
+    margin-left: -1rem;
+    text-align: center;
+    color: #fff;
 }
 
 #BarrierDetails .title {

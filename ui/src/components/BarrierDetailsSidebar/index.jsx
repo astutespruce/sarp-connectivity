@@ -11,6 +11,8 @@ import { BarrierPropType } from "../../CustomPropTypes"
 import { isEmptyString } from "../../utils/string"
 import { setDetailsTab } from "../../actions/details"
 
+const tierToPercent = tier => (100 * (19 - (tier - 1))) / 20
+
 const BarrierDetailsSidebar = ({ type, mode, tab, barrier, onClose, setTab }) => {
     const { sarpid, name, hasnetwork, countyname, State } = barrier
 
@@ -72,13 +74,21 @@ const BarrierDetailsSidebar = ({ type, mode, tab, barrier, onClose, setTab }) =>
 
         scores.custom = {}
         metrics.forEach(metric => {
-            scores.custom[metric] = (100 * (19 - (barrier[`${metric}_tier`] - 1))) / 20
+            const tier = barrier[`${metric}_tier`]
+            scores.custom[metric] = {
+                score: tierToPercent(tier),
+                tier
+            }
         })
 
         units.forEach(unit => {
             scores[unit] = {}
             metrics.forEach(metric => {
-                scores[unit][metric] = (100 * (19 - (barrier[`${unit}_${metric}_tier`] - 1))) / 20
+                const tier = barrier[`${unit}_${metric}_tier`]
+                scores[unit][metric] = {
+                    score: tierToPercent(tier),
+                    tier
+                }
             })
         })
 

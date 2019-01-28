@@ -37,6 +37,12 @@ const Scores = ({ type, tab, scores, setTab }) => {
                 </ul>
             </div>
 
+            <p className="has-text-grey is-size-7">
+                Tiers range from 1 (highest) to 20 (lowest).
+                <br />
+                <br />
+            </p>
+
             <ScoresList {...curScores} />
         </div>
     )
