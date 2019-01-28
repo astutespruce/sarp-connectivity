@@ -82,7 +82,8 @@ export const FEASIBILITY = {
     1: "Not feasible",
     2: "Likely infeasible",
     3: "Possibly feasible",
-    4: "Likely feasible"
+    4: "Likely feasible",
+    5: "No conservation benefit"
 }
 
 export const HEIGHT = {

@@ -22,7 +22,7 @@ const getIntKeys = obj =>
 export const DAM_FILTERS = [
     {
         field: "feasibility",
-        title: "Feasibility",
+        title: "Feasibility & Conservation Benefit",
         keys: getIntKeys(FEASIBILITY),
         labelFunction: d => FEASIBILITY[d],
         help:

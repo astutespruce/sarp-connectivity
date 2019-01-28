@@ -142,6 +142,7 @@ FEASIBILITY_DOMAIN = {
     2: "Likely infeasible",
     3: "Possibly feasible",
     4: "Likely feasible",
+    5: "No conservation benefit"
 }
 
 # Applies to Recon values, omitted values should be filtered out
@@ -160,7 +161,7 @@ RECON_TO_FEASIBILITY = {
     11: 4,
     13: 0,
     14: 4,
-    15: 0,
+    15: 5,
     16: 0,
     17: 0,
     18: 0,
