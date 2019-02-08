@@ -13,6 +13,7 @@ import { ConnectedRouter, routerMiddleware } from "connected-react-router/immuta
 
 // polyfills
 import "@babel/polyfill"
+import "whatwg-fetch"
 
 import rootReducer from "./reducers"
 import { trackingMiddleware } from "./analytics"
