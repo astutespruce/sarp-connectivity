@@ -2,16 +2,17 @@
 
 import React from "react"
 import ReactDOM from "react-dom"
-// import { init } from "@sentry/browser"
 import ReactGA from "react-ga"
 import Raven from "raven-js"
 import thunkMiddleware from "redux-thunk"
 import { createLogger } from "redux-logger"
 import { createStore, applyMiddleware } from "redux"
 import { Provider } from "react-redux"
-// import { BrowserRouter as Router } from "react-router-dom"
 import { createBrowserHistory } from "history"
 import { ConnectedRouter, routerMiddleware } from "connected-react-router/immutable"
+
+// polyfills
+import "@babel/polyfill"
 
 import rootReducer from "./reducers"
 import { trackingMiddleware } from "./analytics"

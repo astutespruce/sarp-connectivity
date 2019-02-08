@@ -5,6 +5,7 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "@babel/polyfill": "^7.2.5",
         "@fortawesome/fontawesome-free": "^5.4.0",
         "@mapbox/geo-viewport": "^0.4.0",
         "@sentry/browser": "^4.0.6",
