@@ -2,7 +2,7 @@
     "name": "sarp-prioritization-tool",
     "description": "Southeast Aquatic Barrier Prioritization Tool",
     "homepage": "http://34.237.24.48/",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "private": true,
     "dependencies": {
         "@babel/polyfill": "^7.2.5",
@@ -31,7 +31,8 @@
         "redux": "^4.0.0",
         "redux-immutable": "^4.0.0",
         "redux-logger": "^3.0.6",
-        "redux-thunk": "^2.3.0"
+        "redux-thunk": "^2.3.0",
+        "whatwg-fetch": "^3.0.0"
     },
     "scripts": {
         "start": "react-scripts start",
