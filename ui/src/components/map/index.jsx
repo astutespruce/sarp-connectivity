@@ -18,6 +18,7 @@ class Map extends React.Component {
 
         this.map = null
         this.mapNode = null
+        this.coordsNode = null
         this.locationMarker = null
     }
 
@@ -52,6 +53,11 @@ class Map extends React.Component {
 
         map.on("load", () => {
             this.map.resize() // force map to realign center
+        })
+
+        map.on("mousemove", ({ lngLat: { lat, lng } }) => {
+            this.coordsNode.innerHTML = `${Math.round(lat * 100000) / 100000}° N, ${Math.round(lng * 100000) /
+                100000}° E`
         })
 
         onCreateMap(map)
@@ -99,6 +105,12 @@ class Map extends React.Component {
                 }}
             >
                 <LatLong />
+                <div
+                    ref={el => {
+                        this.coordsNode = el
+                    }}
+                    className="map-coordinates is-size-7"
+                />
             </div>
         )
     }

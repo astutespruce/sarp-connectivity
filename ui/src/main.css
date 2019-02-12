@@ -850,3 +850,12 @@ button.link.link-back {
     top: 64px;
     left: 10px;
 }
+
+.map-coordinates {
+    position: absolute;
+    bottom: 0px;
+    left: 110px;
+    padding: 4px 8px;
+    z-index: 2000;
+    background: rgba(255, 255, 255, 0.5);
+}
