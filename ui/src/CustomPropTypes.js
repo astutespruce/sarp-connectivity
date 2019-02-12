@@ -22,3 +22,9 @@ export const ScoresPropType = PropTypes.shape({
     wc: PropTypes.number,
     ncwc: PropTypes.number
 })
+
+export const LocationPropType = PropTypes.shape({
+    latitude: PropTypes.number,
+    longitude: PropTypes.number,
+    timestamp: PropTypes.number
+})

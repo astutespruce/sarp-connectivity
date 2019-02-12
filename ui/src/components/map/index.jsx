@@ -1,9 +1,14 @@
 import React from "react"
 import PropTypes from "prop-types"
+import { connect } from "react-redux"
 import ImmutablePropTypes from "react-immutable-proptypes"
 import geoViewport from "@mapbox/geo-viewport"
 import mapboxgl from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
+
+import { LocationPropType } from "../../CustomPropTypes"
+
+import LatLong from "./LatLong"
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || "" // REQUIRED: this must be present in .env file
 
@@ -13,6 +18,7 @@ class Map extends React.Component {
 
         this.map = null
         this.mapNode = null
+        this.locationMarker = null
     }
 
     componentDidMount() {
@@ -44,15 +50,37 @@ class Map extends React.Component {
 
         map.addControl(new mapboxgl.NavigationControl(), "top-right")
 
+        map.on("load", () => {
+            this.map.resize() // force map to realign center
+        })
+
         onCreateMap(map)
     }
 
     componentDidUpdate(prevProps) {
-        const { bounds: prevBounds } = prevProps
-        const { bounds } = this.props
+        const { bounds: prevBounds, location: prevLocation } = prevProps
+        const { bounds, location } = this.props
+        const { map } = this
 
         if (!bounds.equals(prevBounds)) {
-            this.map.fitBounds(bounds.toJS(), { padding: 10 })
+            map.fitBounds(bounds.toJS(), { padding: 10 })
+        }
+
+        if (!location.equals(prevLocation)) {
+            const { latitude = null, longitude = null } = location.toJS()
+
+            if (latitude !== null && longitude !== null) {
+                map.flyTo({ center: [longitude, latitude], zoom: 9 })
+
+                if (!this.locationMarker) {
+                    this.locationMarker = new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(this.map)
+                } else {
+                    this.locationMarker.setLngLat([longitude, latitude])
+                }
+            } else {
+                this.locationMarker.remove()
+                this.locationMarker = null
+            }
         }
     }
 
@@ -69,7 +97,9 @@ class Map extends React.Component {
                     right: 0,
                     bottom: 0
                 }}
-            />
+            >
+                <LatLong />
+            </div>
         )
     }
 
@@ -79,18 +109,31 @@ class Map extends React.Component {
 }
 
 Map.propTypes = {
+    location: ImmutablePropTypes.mapContains({
+        latitude: PropTypes.number,
+        longitude: PropTypes.number
+    }),
     baseStyle: PropTypes.string,
     bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
     onCreateMap: PropTypes.func // called with map object when created
 }
 
 Map.defaultProps = {
+    location: null,
     baseStyle: "light-v9",
     bounds: null,
     onCreateMap: () => {}
 }
 
-export default Map
+const mapStateToProps = globalState => {
+    const state = globalState.get("map")
+
+    return {
+        location: state.get("location")
+    }
+}
+
+export default connect(mapStateToProps)(Map)
 
 // assign colors to current level
 

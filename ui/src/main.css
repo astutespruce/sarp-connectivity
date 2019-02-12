@@ -796,3 +796,57 @@ button.link.link-back {
     display: flex;
     flex-shrink: 0;
 }
+
+.map-control {
+    z-index: 2000;
+    padding: 4px;
+    background: #fff;
+    border: 1px solid #aaa;
+    position: absolute;
+    border-radius: 4px;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.map-control:hover {
+    background: #eee;
+}
+
+.map-control-toggle.fas {
+    margin-top: 1px;
+    cursor: pointer;
+}
+
+.map-control.is-open {
+    background: #eee !important;
+}
+
+.map-control-header {
+    margin: 0 0.5em;
+    font-weight: bold;
+}
+.map-control-form {
+    padding: 8px;
+}
+.map-control input {
+    border: 1px solid #aaa;
+    padding: 3px 4px;
+    border-radius: 2px;
+}
+
+.map-control input.invalid {
+    color: #ea1b00;
+    border-color: #ea1b00;
+}
+
+.map-control-form-row + .map-control-form-row {
+    margin-top: 8px;
+}
+
+.map-control-form .button + .button {
+    margin-left: 1em;
+}
+
+.map-control-lat-long {
+    top: 64px;
+    left: 10px;
+}
