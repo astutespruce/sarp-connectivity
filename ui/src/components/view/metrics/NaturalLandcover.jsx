@@ -70,20 +70,41 @@ function NaturalLandcover() {
                 <section>
                     <h3 className="subtitle is-3">Methods:</h3>
                     <ol>
-                        <li>Floodplains are delineated using: TODO: floodplain methods from Kat</li>
-                        <li>Natural landcover is derived from ... TODO: methods from Kat... </li>
-                        <li>Natural landcover is clipped to the floodplain area for analysis</li>
                         <li>
-                            The contributing watershed (catchment) of each stream and river reach is extracted from the
-                            NHDPlus dataset
+                            Floodplains are delineated using data derived from FATHOM Inc, which has modeled 30 by 30
+                            meter 100 year floodplain boundaries. For more information visit:
+                            <br />
+                            <a
+                                href="https://iopscience.iop.org/article/10.1088/1748-9326/aaac65/pdf"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                https://iopscience.iop.org/article/10.1088/1748-9326/aaac65/pdf
+                            </a>
                         </li>
                         <li>
-                            The total amount of area in natural landcover and total floodplain area are tallied for each
-                            functional network
+                            Natural landcover is derived from the USDA Cropscape 2017 30 by 30 meter landcover raster
+                            dataset. For more information see:{" "}
+                            <a href="https://www.nass.usda.gov/" target="_blank" rel="noopener noreferrer">
+                                https://www.nass.usda.gov
+                            </a>
+                            .
+                        </li>
+                        <li>
+                            Natural landcover is extracted from the overall Cropscape dataset and clipped to the
+                            floodplain area for analysis.
+                        </li>
+                        <li>
+                            The contributing watershed (catchment) of each stream and river reach is extracted from the
+                            NHDPlus dataset.
+                        </li>
+                        <li>
+                            The total amount of natural landcover within the catchment area as well as the floodplain
+                            area of that catchment area are tallied for each functional network.
                         </li>
                         <li>
                             Floodplain natural landcover is measured from the overall percent of natural landcover
-                            throughout the entire functional network
+                            throughout the entire functional network.
                         </li>
                     </ol>
                 </section>

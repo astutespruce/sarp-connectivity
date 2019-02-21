@@ -48,9 +48,13 @@ const DamDetails = ({
             <li>Barrier type: dam</li>
             {year > 0 ? <li>Constructed completed: {year}</li> : null}
             {height > 0 ? <li>Height: {height} feet</li> : null}
-            {construction ? <li>Construction material: {CONSTRUCTION[construction].toLowerCase()}</li> : null}
-            {purpose ? <li>Purpose: {PURPOSE[purpose].toLowerCase()}</li> : null}
-            {condition ? <li>Structural condition: {DAM_CONDITION[condition].toLowerCase()}</li> : null}
+            {construction && CONSTRUCTION[construction] ? (
+                <li>Construction material: {CONSTRUCTION[construction].toLowerCase()}</li>
+            ) : null}
+            {purpose && PURPOSE[purpose] ? <li>Purpose: {PURPOSE[purpose].toLowerCase()}</li> : null}
+            {condition && DAM_CONDITION[condition] ? (
+                <li>Structural condition: {DAM_CONDITION[condition].toLowerCase()}</li>
+            ) : null}
         </ul>
 
         <h6 className="title is-6">Functional network information</h6>
