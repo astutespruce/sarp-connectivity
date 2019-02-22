@@ -14,7 +14,6 @@ from raven.conf import setup_logging
 
 from api.calculate_tiers import calculate_tiers, SCENARIOS
 from api.domains import (
-    RECON_DOMAIN,
     FEASIBILITY_DOMAIN,
     PURPOSE_DOMAIN,
     CONSTRUCTION_DOMAIN,
@@ -102,7 +101,7 @@ DAM_EXPORT_COLUMNS = [
     "Construction",
     "Purpose",
     "Condition",
-    "Recon",
+    # "Recon",  # intentionally omitted
     "Feasibility",
     # Metrics
     "GainMiles",
@@ -426,7 +425,6 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
         df.Condition = df.Condition.map(DAM_CONDITION_DOMAIN)
         df.Construction = df.Construction.map(CONSTRUCTION_DOMAIN)
         df.Purpose = df.Purpose.map(PURPOSE_DOMAIN)
-        df.Recon = df.Recon.map(RECON_DOMAIN)
         df.Feasibility = df.Feasibility.map(FEASIBILITY_DOMAIN)
 
     else:
