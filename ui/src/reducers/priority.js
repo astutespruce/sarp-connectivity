@@ -95,7 +95,7 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             })
         }
         case PRIORITY_SET_SEARCH_FEATURE: {
-            return state.set("searchFeature", fromJS(payload.searchFeature))
+            return state.set("searchFeature", fromJS(payload.searchFeature).set("maxZoom", payload.maxZoom))
         }
         case FETCH_QUERY_START: {
             return state.set("isLoading", true)

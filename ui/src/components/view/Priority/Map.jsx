@@ -138,10 +138,17 @@ class PriorityMap extends Component {
 
             // if feature is already visible, select it
             // otherwise, zoom and attempt to select it
-            const feature = this.selectUnitByID(id)
+            let feature = this.selectUnitByID(id)
             if (!feature) {
                 map.once("moveend", () => {
-                    this.selectUnitByID(id)
+                    feature = this.selectUnitByID(id)
+
+                    // source may still be loading, try again in 1 second
+                    if (!feature) {
+                        setTimeout(() => {
+                            this.selectUnitByID(id, layer)
+                        }, 1000)
+                    }
                 })
             }
             map.fitBounds(bbox, { padding: 20, duration: 500 })
@@ -150,9 +157,9 @@ class PriorityMap extends Component {
 
     selectUnitByID = id => {
         const { map } = this
-        const { selectUnit, summaryUnits } = this.props
+        const { layer, selectUnit, summaryUnits } = this.props
 
-        const [feature] = map.queryRenderedFeatures({ layers: ["unit-fill"], filter: ["==", "id", id] })
+        const [feature] = map.querySourceFeatures("sarp", { sourceLayer: layer, filter: ["==", "id", id] })
         if (feature !== undefined) {
             const { properties } = feature
             if (!summaryUnits.map(u => u.get("id")).has(properties.id)) {
@@ -568,7 +575,6 @@ class PriorityMap extends Component {
 PriorityMap.propTypes = {
     type: PropTypes.string.isRequired,
     scenario: PropTypes.string,
-    bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
     selectedFeature: FeaturePropType.isRequired,
     searchFeature: SearchFeaturePropType.isRequired,
     filters: ImmutablePropTypes.mapOf(

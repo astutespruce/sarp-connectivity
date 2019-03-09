@@ -87,10 +87,14 @@ class SummaryMap extends Component {
 
             // if feature is already visible, select it
             // otherwise, zoom and attempt to select it
-            const feature = this.selectFeatureByID(id, layer)
+            let feature = this.selectFeatureByID(id, layer)
             if (!feature) {
                 map.once("moveend", () => {
-                    this.selectFeatureByID(id, layer)
+                    feature = this.selectFeatureByID(id, layer)
+                    // source may still be loading, try again in 1 second
+                    if (!feature) {
+                        setTimeout(() => {this.selectFeatureByID(id, layer)}, 1000)
+                    }
                 })
             }
 
@@ -108,7 +112,6 @@ class SummaryMap extends Component {
             selectFeature(fromJS(feature.properties).merge({ layerId: layer }))
         }
         return feature
-        
     }
 
     setLayerVisibility = (id, visible) => {

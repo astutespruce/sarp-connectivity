@@ -197,13 +197,24 @@ export const SCENARIOS = {
 }
 
 export const LAYER_NAMES = {
-    "State": "State",
-    "County": "County",
-    "HUC6": "Basin",
-    "HUC8": "Subbasin",
-    "HUC12": "Subwatershed",
-    "ECO3": "Level 3",
-    "ECO4": "Level 4"
+    State: "State",
+    County: "County",
+    HUC6: "Basin",
+    HUC8: "Subbasin",
+    HUC12: "Subwatershed",
+    ECO3: "Level 3",
+    ECO4: "Level 4"
+}
+
+// Ideal zoom level for each layer, e.g., when fitting bounds to a selected feature
+export const LAYER_ZOOM = {
+    State: 5,
+    County: 9,
+    HUC6: 5,
+    HUC8: 8,
+    HUC12: 10,
+    ECO3: 4,
+    ECO4: 8
 }
 
 // Bounds around all selected HUC6s

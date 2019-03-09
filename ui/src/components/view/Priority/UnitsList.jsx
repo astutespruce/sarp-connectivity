@@ -6,6 +6,7 @@ import { connect } from "react-redux"
 import * as actions from "../../../actions/priority"
 
 import { formatNumber } from "../../../utils/format"
+import { LAYER_ZOOM } from "../../../constants"
 
 import StartOverButton from "./StartOverButton"
 import SubmitButton from "./SubmitButton"
@@ -89,7 +90,7 @@ const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery
     }
 
     const handleSearchSelect = item => {
-        setSearchFeature(item)
+        setSearchFeature(item, LAYER_ZOOM[layer])
         setSearchValue("")
     }
 

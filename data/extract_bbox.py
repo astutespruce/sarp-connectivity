@@ -27,10 +27,8 @@ county_df = (
     .to_crs(epsg="4326")
 )
 
-for df in [state_df, county_df]:
-    df["bbox"] = df.apply(
-        lambda row: [round(x, 2) for x in row.geometry.bounds], axis=1
-    )
+state_df["bbox"] = state_df.geometry.apply(lambda g: [round(x, 1) for x in g.bounds])
+county_df["bbox"] = county_df.geometry.apply(lambda g: [round(x, 2) for x in g.bounds])
 
 out = {
     "State": state_df[["id", "bbox"]].to_dict(
@@ -54,6 +52,12 @@ for unit in units:
         print("projecting to WGS84")
         df = df.to_crs(epsg="4326")
 
+    # Ecoregions have multipart features and need to be dissolved to extract proper bounding boxes and spatial joins
+    if unit.startswith("ECO"):
+        print("Dissolving features...")
+        df["dissolve_id"] = df.id
+        df = df.dissolve(by="dissolve_id")
+
     df.sindex
 
     # do a spatial join of the unit against states to get list of FIPS codes per unit
@@ -68,10 +72,9 @@ for unit in units:
     df = df.join(unit_states)
     df["state"] = df.state.fillna("").apply(lambda x: ",".join(x))
 
-    # extract bounding box and round to 2 decimals.  Good enough for approximate zoom of map.
-    df["bbox"] = df.apply(
-        lambda row: [round(x, 2) for x in row.geometry.bounds], axis=1
-    )
+    # extract bounding box and round to 1-2 decimals.  Good enough for approximate zoom of map.
+    precision = 2 if unit == "HUC12" else 2
+    df["bbox"] = df.geometry.apply(lambda g: [round(x, precision) for x in g.bounds])
 
     out[unit] = df[["id", "name", "state", "bbox"]].to_dict(orient="records")
 

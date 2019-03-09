@@ -10,7 +10,7 @@ import SummaryMap from "./Map"
 import Sidebar from "../../Sidebar"
 import UnitSearch from "../../UnitSearch"
 import SummaryUnitDetails from "./SummaryUnitDetails"
-import { LAYER_ZOOM } from "./config"
+import { LAYER_ZOOM } from "../../../constants"
 
 import summaryStats from "../../../data/summary_stats.json"
 
