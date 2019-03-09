@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import PropTypes from "prop-types"
 import { connect } from "react-redux"
 
@@ -8,18 +8,38 @@ import { formatNumber } from "../../../utils/format"
 
 import SummaryMap from "./Map"
 import Sidebar from "../../Sidebar"
+import UnitSearch from "../../UnitSearch"
 import SummaryUnitDetails from "./SummaryUnitDetails"
+import { LAYER_ZOOM } from "./config"
 
 import summaryStats from "../../../data/summary_stats.json"
 
-const Summary = ({ selectedFeature, type, selectFeature }) => {
+const Summary = ({ selectedFeature, system, type, selectFeature, setSearchFeature }) => {
+    const [searchValue, setSearchValue] = useState("")
+
+    useEffect(
+        () => {
+            setSearchValue("")
+        },
+        [system]
+    )
+
     const { dams, barriers, miles } = summaryStats.southeast
     const total = type === "dams" ? dams : barriers
+
+    const handleSearchChange = value => {
+        setSearchValue(value)
+    }
+
+    const handleSearchSelect = item => {
+        const { layer } = item
+        setSearchFeature(item, LAYER_ZOOM[layer])
+    }
 
     return (
         <React.Fragment>
             <Sidebar>
-                {selectedFeature === null ? (
+                {selectedFeature.isEmpty() ? (
                     <div id="SidebarContent">
                         <p>
                             Across the Southeast, there are at least {formatNumber(dams)} dams, resulting in an average
@@ -27,7 +47,19 @@ const Summary = ({ selectedFeature, type, selectFeature }) => {
                             <br />
                             <br />
                             Click on a summary unit the map for more information about that area.
+                            <br />
+                            <br />
                         </p>
+
+                        <div>
+                            <UnitSearch
+                                system={system}
+                                value={searchValue}
+                                onChange={handleSearchChange}
+                                onSelect={handleSearchSelect}
+                            />
+                        </div>
+
                         <p className="has-text-grey">
                             <br />
                             <br />
@@ -42,7 +74,7 @@ const Summary = ({ selectedFeature, type, selectFeature }) => {
                         total={total}
                         type={type}
                         meanConnectedMiles={miles}
-                        onClose={() => selectFeature(null)}
+                        onClose={() => selectFeature(selectedFeature.clear())}
                     />
                 )}
             </Sidebar>
@@ -54,13 +86,11 @@ const Summary = ({ selectedFeature, type, selectFeature }) => {
 }
 
 Summary.propTypes = {
-    selectedFeature: FeaturePropType,
+    selectedFeature: FeaturePropType.isRequired,
     type: PropTypes.string.isRequired,
-    selectFeature: PropTypes.func.isRequired
-}
-
-Summary.defaultProps = {
-    selectedFeature: null
+    system: PropTypes.string.isRequired,
+    selectFeature: PropTypes.func.isRequired,
+    setSearchFeature: PropTypes.func.isRequired
 }
 
 const mapStateToProps = globalState => {

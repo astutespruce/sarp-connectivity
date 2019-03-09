@@ -116,6 +116,11 @@ button:focus {
     margin: 0 !important;
 }
 
+.no-wrap {
+    white-space: nowrap;
+    word-wrap: none;
+}
+
 .info-box {
     border-radius: 6px;
     background: #e0f2fb;
@@ -603,6 +608,16 @@ button.link.link-back {
     border-left: 1px solid #aaa;
 }
 
+#UnitSearch li {
+    padding: 0.5em;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    line-height: 1.2;
+}
+#UnitSearch li:hover {
+    background: rgb(210, 236, 249);
+}
+
 .prioritization-details {
     margin-top: 2em;
 }
@@ -630,6 +645,10 @@ button.link.link-back {
 
 .prioritization-details p {
     padding-left: 0 !important;
+}
+
+#SummaryUnitList {
+    margin-bottom: 2rem;
 }
 
 #SummaryUnitList li {
@@ -716,7 +735,15 @@ button.link.link-back {
     height: 1rem;
     background: #2c7fb8;
 }
-.histogram .bar.top {
+.histogram .bar + div {
+    color: #7a7a7a;
+}
+
+.histogram .top-tier .histogram-label,
+.histogram .top-tier .bar + div {
+    color: #c51b8a;
+}
+.histogram .top-tier .bar {
     background: #c51b8a;
 }
 

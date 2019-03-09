@@ -17,17 +17,17 @@ import {
     PRIORITY_FETCH_START,
     PRIORITY_FETCH_SUCCESS,
     PRIORITY_FETCH_ERROR,
+    PRIORITY_SET_SEARCH_FEATURE,
     SET_TIER_THRESHOLD
 } from "../actions/priority"
-import { SARP_BOUNDS } from "../components/map/config"
 
 const initialState = Map({
     mode: "start", // mode or step in selection process: "select", "filter", "results"
-    bounds: SARP_BOUNDS, // SARP bounds
-    prevBounds: List(), // push previous bounds here
     scenario: "ncwc", // nc, wc, ncwc
     layer: null, // HUC*, ECO*, State
     summaryUnits: Set(), // set of specific IDs from the summary unit layer
+    selectedFeature: Map(),
+    searchFeature: Map(),
     type: null, // dams or barriers; not set until chosen by user
     rankData: List(),
     tierThreshold: 1, // 1-20, which tiers to include in top-ranked dams on map
@@ -76,7 +76,10 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
             const unit = fromJS(payload.unit)
             const summaryUnits = state.get("summaryUnits")
             const updated = summaryUnits.has(unit) ? summaryUnits.delete(unit) : summaryUnits.add(unit)
-            return state.set("summaryUnits", updated)
+            return state.merge({
+                summaryUnits: updated,
+                searchFeature: Map()
+            })
         }
         case PRIORITY_SET_MODE: {
             const { mode } = payload
@@ -90,6 +93,9 @@ export const reducer = (state = initialState, { type, payload = {} }) => {
                 type: payload.type,
                 mode: "select"
             })
+        }
+        case PRIORITY_SET_SEARCH_FEATURE: {
+            return state.set("searchFeature", fromJS(payload.searchFeature))
         }
         case FETCH_QUERY_START: {
             return state.set("isLoading", true)

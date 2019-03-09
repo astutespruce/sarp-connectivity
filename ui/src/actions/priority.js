@@ -168,3 +168,12 @@ export const onMapLoad = () => ({
     type: ON_MAP_LOAD,
     payload: {}
 })
+
+export const PRIORITY_SET_SEARCH_FEATURE = "PRIORITY_SET_SEARCH_FEATURE"
+export const setSearchFeature = (searchFeature, maxZoom = null) => ({
+    type: PRIORITY_SET_SEARCH_FEATURE,
+    payload: {
+        searchFeature,
+        maxZoom
+    }
+})

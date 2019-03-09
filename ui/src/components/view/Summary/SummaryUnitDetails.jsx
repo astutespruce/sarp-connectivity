@@ -4,8 +4,8 @@ import PropTypes from "prop-types"
 import { FeaturePropType } from "../../../CustomPropTypes"
 import { formatNumber, formatPercent } from "../../../utils/format"
 
-import { LAYER_CONFIG } from "../../map/config"
-import { stateFIPS, CONNECTIVITY_TEAMS } from "../../../constants"
+import { LAYER_CONFIG } from "./config"
+import { STATE_FIPS, CONNECTIVITY_TEAMS } from "../../../constants"
 
 const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, onClose }) => {
     const { id, layerId, name, dams, barriers, miles } = selectedFeature.toJS()
@@ -20,7 +20,7 @@ const SummaryUnitDetails = ({ selectedFeature, type, total, meanConnectedMiles, 
     let title = name || id
     if (layerId === "County") {
         title = `${name} County`
-        layerTitle = stateFIPS[id.slice(0, 2)]
+        layerTitle = STATE_FIPS[id.slice(0, 2)]
     }
 
     let team = null

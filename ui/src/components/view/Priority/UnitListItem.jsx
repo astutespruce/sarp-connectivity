@@ -3,7 +3,7 @@ import React from "react"
 import PropTypes from "prop-types"
 
 import { formatNumber } from "../../../utils/format"
-import { stateFIPS } from "../../../constants"
+import { STATE_FIPS } from "../../../constants"
 
 const SummaryUnitListItem = ({ type, layer, unit, onDelete }) => {
     const { id } = unit
@@ -16,7 +16,7 @@ const SummaryUnitListItem = ({ type, layer, unit, onDelete }) => {
             <div style={{ maxWidth: 320 }}>
                 <div className="is-size-5">
                     {name}
-                    {layer === "County" ? `, ${stateFIPS[id.slice(0, 2)]}` : null}
+                    {layer === "County" ? `, ${STATE_FIPS[id.slice(0, 2)]}` : null}
                 </div>
                 {layer === "HUC6" || layer === "HUC8" || layer === "HUC12" ? <div>HUC: {id}</div> : null}
 

@@ -14,17 +14,17 @@ const Histogram = ({ counts, threshold }) => {
         <div className="histogram">
             <div className="histogram-bars flex-grow">
                 {counts.map((count, i) => (
-                    <div key={`${i}-${count}`} className="flex-container flex-align-center">
+                    <div key={`${i}-${count}`} className={`flex-container flex-align-center ${i + 1 <= threshold ? "top-tier" : ""}`}>
                         <div className="is-size-7 histogram-label">Tier {i + 1}</div>
                         <div className="bar-container flex-container flex-align-center flex-grow">
                             <div
-                                className={`bar ${i + 1 <= threshold ? "top" : ""}`}
+                                className="bar"
                                 style={{
                                     width: `calc(${(100 * count) / max}% - ${labelWidth}em - ${margin})`,
                                     marginRight: margin
                                 }}
                             />
-                            <div className="is-size-7 has-text-grey">{formatNumber(count, 0)}</div>
+                            <div className="is-size-7">{formatNumber(count, 0)}</div>
                         </div>
                     </div>
                 ))}

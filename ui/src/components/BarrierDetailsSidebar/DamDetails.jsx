@@ -33,9 +33,9 @@ const DamDetails = ({
         <h6 className="title is-6">Location</h6>
         <ul>
             <li>
-                Coordinates: {formatNumber(lon, 3)}
-                &deg; W / {formatNumber(lat, 3)}
-                &deg; N
+                Coordinates: {formatNumber(lat, 3)}
+                &deg; N, {formatNumber(lon, 3)}
+                &deg; E 
             </li>
             <li>
                 {river && river !== "null" && river !== "Unknown" ? `${river}, ` : null}

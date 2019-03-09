@@ -41,8 +41,13 @@ const Priority = ({ isLoading, isError, type, mode, selectedFeature, layer, sele
                 <p>Loading...</p>
             </div>
         )
-    } else if (selectedFeature !== null) {
-        content = <BarrierDetailsSidebar barrier={selectedFeature.toJS()} onClose={() => selectFeature(null)} />
+    } else if (!selectedFeature.isEmpty()) {
+        content = (
+            <BarrierDetailsSidebar
+                barrier={selectedFeature.toJS()}
+                onClose={() => selectFeature(selectedFeature.clear())}
+            />
+        )
     } else {
         switch (mode) {
             case "select": {
@@ -85,7 +90,7 @@ Priority.propTypes = {
     isError: PropTypes.bool.isRequired,
     type: PropTypes.string,
     mode: PropTypes.string.isRequired,
-    selectedFeature: FeaturePropType,
+    selectedFeature: FeaturePropType.isRequired,
     layer: PropTypes.string,
 
     setType: PropTypes.func.isRequired,
@@ -94,7 +99,6 @@ Priority.propTypes = {
 
 Priority.defaultProps = {
     type: null,
-    selectedFeature: null,
     layer: null
 }
 

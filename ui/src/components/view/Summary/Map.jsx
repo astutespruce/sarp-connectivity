@@ -6,10 +6,12 @@ import { fromJS } from "immutable"
 import * as actions from "../../../actions/summary"
 import Legend from "../../map/Legend"
 import { hexToRGB } from "../../../utils/colors"
-import { FeaturePropType } from "../../../CustomPropTypes"
+import { FeaturePropType, SearchFeaturePropType } from "../../../CustomPropTypes"
 
-import { TILE_HOST } from '../../../config'
-import { COLORS, LAYER_CONFIG, SYSTEMS } from "../../map/config"
+import { TILE_HOST } from "../../../config"
+import { SYSTEMS } from "../../../constants"
+import { COLORS, LAYER_CONFIG } from "./config"
+
 import Map from "../../map/index"
 
 class SummaryMap extends Component {
@@ -28,8 +30,13 @@ class SummaryMap extends Component {
         const { map, layers } = this
         if (map === null) return
 
-        const { system: prevSystem, type: prevType, selectedFeature: prevFeature } = prevProps
-        const { system, type, selectedFeature } = this.props
+        const {
+            system: prevSystem,
+            type: prevType,
+            searchFeature: prevSearchFeature,
+            selectedFeature: prevFeature
+        } = prevProps
+        const { system, type, searchFeature, selectedFeature } = this.props
 
         const visibleLayers = this.layers.filter(({ group }) => group === system)
 
@@ -44,12 +51,10 @@ class SummaryMap extends Component {
             }
         }
 
-        if (selectedFeature !== prevFeature) {
-            const featureId = selectedFeature === null ? null : selectedFeature.get("id")
+        if (!selectedFeature.equals(prevFeature)) {
+            const featureId = selectedFeature.get("id", null)
             visibleLayers.forEach(({ id }) => {
-                const featureIdForLyr = featureId
-
-                this.setHighlight(id, featureIdForLyr)
+                this.setHighlight(id, featureId)
             })
         }
 
@@ -76,6 +81,34 @@ class SummaryMap extends Component {
                 map.setFilter(`${id}-outline`, [">", type, 0])
             })
         }
+
+        if (!searchFeature.equals(prevSearchFeature) && !searchFeature.isEmpty()) {
+            const { id = null, layer, bbox, maxZoom } = searchFeature.toJS()
+
+            // if feature is already visible, select it
+            // otherwise, zoom and attempt to select it
+            const feature = this.selectFeatureByID(id, layer)
+            if (!feature) {
+                map.once("moveend", () => {
+                    this.selectFeatureByID(id, layer)
+                })
+            }
+
+            map.fitBounds(bbox, { padding: 20, maxZoom, duration: 500 })
+        }
+    }
+
+    selectFeatureByID = (id, layer) => {
+        const { map } = this
+        const { selectFeature } = this.props
+
+        const [feature] = map.querySourceFeatures("sarp", { sourceLayer: layer, filter: ["==", "id", id] })
+
+        if (feature !== undefined) {
+            selectFeature(fromJS(feature.properties).merge({ layerId: layer }))
+        }
+        return feature
+        
     }
 
     setLayerVisibility = (id, visible) => {
@@ -209,7 +242,6 @@ class SummaryMap extends Component {
             const layers = this.layers.map(({ id }) => `${id}-fill`)
             const features = map.queryRenderedFeatures(e.point, { layers })
             if (features.length === 0) return
-            console.log("click features", features)
 
             const { sourceLayer, properties } = features[0]
             selectFeature(fromJS(properties).merge({ layerId: sourceLayer }))
@@ -308,28 +340,25 @@ class SummaryMap extends Component {
 }
 
 SummaryMap.propTypes = {
-    bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
+    bounds: ImmutablePropTypes.listOf(PropTypes.number).isRequired, // example: [-180, -86, 180, 86]
     system: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
-    selectedFeature: FeaturePropType,
+    searchFeature: SearchFeaturePropType.isRequired,
+    selectedFeature: FeaturePropType.isRequired,
 
     setSystem: PropTypes.func.isRequired,
     setType: PropTypes.func.isRequired,
     selectFeature: PropTypes.func.isRequired
 }
 
-SummaryMap.defaultProps = {
-    bounds: null,
-    selectedFeature: null
-}
-
 const mapStateToProps = globalState => {
     const state = globalState.get("summary")
 
     return {
-        bounds: state.get("bounds"),
+        bounds: globalState.get("map").get("bounds"),
         system: state.get("system"),
         type: state.get("type"),
+        searchFeature: state.get("searchFeature"),
         selectedFeature: state.get("selectedFeature")
     }
 }

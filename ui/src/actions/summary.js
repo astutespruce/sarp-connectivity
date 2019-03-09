@@ -17,3 +17,12 @@ export const setType = type => ({
         type
     }
 })
+
+export const SUMMARY_SET_SEARCH_FEATURE = "SUMMARY_SET_SEARCH_FEATURE"
+export const setSearchFeature = (searchFeature, maxZoom = null) => ({
+    type: SUMMARY_SET_SEARCH_FEATURE,
+    payload: {
+        searchFeature,
+        maxZoom
+    }
+})

@@ -1,8 +1,3 @@
-import { List } from "immutable"
-
-// Bounds around all selected HUC6s
-export const SARP_BOUNDS = List([-107.87000919, 17.62370026, -64.5126611, 44.26093852])
-
 // from colorbrewer
 export const COUNT_COLORS = [
     "#ffffcc",
@@ -23,46 +18,6 @@ export const COLORS = {
         7: ["#ffffb2", "#fed976", "#feb24c", "#fd8d3c", "#fc4e2a", "#e31a1c", "#b10026"],
         5: ["#ffffb2", "#fecc5c", "#fd8d3c", "#f03b20", "#bd0026"]
     }
-}
-
-// there are 20 tiers
-// Viridis_20 from palettable
-export const TIER_COLORS = [
-    "#440154",
-    "#481467",
-    "#482677",
-    "#453781",
-    "#3F4788",
-    "#39558C",
-    "#32648E",
-    "#2D718E",
-    "#287D8E",
-    "#238A8D",
-    "#1F968B",
-    "#20A386",
-    "#29AF7F",
-    "#3BBB75",
-    "#56C667",
-    "#73D056",
-    "#95D840",
-    "#B8DE29",
-    "#DDE318",
-    "#FDE725"
-] // TODO: may need to be reversed
-
-// from colorbrewer: http://colorbrewer2.org/#type=sequential&scheme=BuPu&n=5
-export const PRIORITY_TIER_COLORS = ["#edf8fb", "#b3cde3", "#8c96c6", "#8856a7", "#810f7c"].reverse()
-
-export const SYSTEMS = {
-    ADM: "State / County",
-    HUC: "Hydrologic unit",
-    ECO: "Ecoregion"
-}
-
-export const SCENARIOS = {
-    nc: "Network Connnectivity",
-    wc: "Watershed Condition",
-    ncwc: "Combined"
 }
 
 export const LAYER_CONFIG = [
@@ -102,7 +57,7 @@ export const LAYER_CONFIG = [
         group: "HUC",
         minzoom: 6.5,
         maxzoom: 9,
-        title: "Hydrologic subbasin",
+        title: "Subbasin",
         bins: {
             dams: [10, 50, 100, 200, 250, 300, 400, 500, 5000],
             barriers: [25, 50, 100, 150, 1500]
@@ -284,3 +239,14 @@ export const LAYER_CONFIG = [
         }
     }
 ]
+
+// Ideal zoom level for each layer, e.g., when fitting bounds to a selected feature
+export const LAYER_ZOOM = {
+    State: 5,
+    County: 24,
+    HUC6: 5,
+    HUC8: 8,
+    HUC12: 24,
+    ECO3: 4,
+    ECO4: 24
+}

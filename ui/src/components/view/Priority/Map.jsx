@@ -6,10 +6,11 @@ import { connect } from "react-redux"
 
 import * as actions from "../../../actions/priority"
 import Legend from "./Legend"
-import { FeaturePropType } from "../../../CustomPropTypes"
+import { FeaturePropType, SearchFeaturePropType } from "../../../CustomPropTypes"
 import { recordsToGeoJSON } from "../../../utils/geojson"
 
 import { TILE_HOST } from "../../../config"
+import { SCENARIOS } from "../../../constants"
 import {
     maskFill,
     maskOutline,
@@ -27,7 +28,6 @@ import {
 } from "./styles"
 import { LAYER_CONFIG } from "./config"
 import Map from "../../map/index"
-import { SCENARIOS } from "../../map/config"
 
 class PriorityMap extends Component {
     constructor() {
@@ -51,12 +51,22 @@ class PriorityMap extends Component {
             selectedFeature: prevSelectedFeature,
             mode: prevMode,
             filters: prevFilters,
-            tierThreshold: prevTierThreshold
+            tierThreshold: prevTierThreshold,
+            searchFeature: prevSearchFeature
         } = prevProps
-        const { scenario, summaryUnits, layer, selectedFeature, mode, filters, tierThreshold } = this.props
+        const {
+            scenario,
+            summaryUnits,
+            layer,
+            selectedFeature,
+            mode,
+            filters,
+            tierThreshold,
+            searchFeature
+        } = this.props
 
         // Only changes on select / deselect of a barrier
-        if (selectedFeature !== prevSelectedFeature) {
+        if (!selectedFeature.equals(prevSelectedFeature)) {
             this.updateBarrierHighlight()
         }
 
@@ -122,6 +132,36 @@ class PriorityMap extends Component {
         if (mode === "filter" && filters !== prevFilters) {
             this.updateBarrierFilters()
         }
+
+        if (!searchFeature.equals(prevSearchFeature) && !searchFeature.isEmpty()) {
+            const { id = null, bbox } = searchFeature.toJS()
+
+            // if feature is already visible, select it
+            // otherwise, zoom and attempt to select it
+            const feature = this.selectUnitByID(id)
+            if (!feature) {
+                map.once("moveend", () => {
+                    this.selectUnitByID(id)
+                })
+            }
+            map.fitBounds(bbox, { padding: 20, duration: 500 })
+        }
+    }
+
+    selectUnitByID = id => {
+        const { map } = this
+        const { selectUnit, summaryUnits } = this.props
+
+        const [feature] = map.queryRenderedFeatures({ layers: ["unit-fill"], filter: ["==", "id", id] })
+        if (feature !== undefined) {
+            const { properties } = feature
+            if (!summaryUnits.map(u => u.get("id")).has(properties.id)) {
+                // only select it if it wasn't previously selected, otherwise
+                // we unexpectedly remove it
+                selectUnit(feature.properties)
+            }
+        }
+        return feature
     }
 
     updateUnitHighlight = () => {
@@ -139,7 +179,7 @@ class PriorityMap extends Component {
         const { map } = this
         const { selectedFeature } = this.props
 
-        if (selectedFeature !== null) {
+        if (!selectedFeature.isEmpty()) {
             map.getSource("point-highlight").setData({
                 type: "Point",
                 coordinates: [selectedFeature.get("lon"), selectedFeature.get("lat")]
@@ -384,7 +424,6 @@ class PriorityMap extends Component {
                     })
                     if (points.length > 0) {
                         const point = points[0]
-                        console.log(point)
                         selectFeature(
                             fromJS(point.properties).merge({ hasnetwork: point.layer.id !== "point-no-network" })
                         )
@@ -397,7 +436,6 @@ class PriorityMap extends Component {
                     })
                     if (points.length > 0) {
                         const point = points[0]
-                        console.log(point)
 
                         const properties = fromJS(point.properties).merge({
                             hasnetwork: point.layer.id !== "point-no-network"
@@ -409,7 +447,6 @@ class PriorityMap extends Component {
                                 sourceLayer: type,
                                 filter: ["==", "id", id]
                             })
-                            console.log("tilePoints", tilePoints)
                             if (tilePoints.length) {
                                 selectFeature(fromJS(tilePoints[0].properties).mergeDeep(properties))
                             }
@@ -498,11 +535,11 @@ class PriorityMap extends Component {
     }
 
     render() {
-        const { mode, scenario, setScenario, bounds } = this.props
+        const { mode, scenario, setScenario } = this.props
 
         return (
             <React.Fragment>
-                <Map baseStyle="streets-v9" bounds={bounds} onCreateMap={this.handleCreateMap} />
+                <Map baseStyle="streets-v9" onCreateMap={this.handleCreateMap} />
 
                 {mode === "results" ? (
                     <div id="SystemChooser" className="mapboxgl-ctrl-top-left flex-container flex-align-center">
@@ -532,7 +569,8 @@ PriorityMap.propTypes = {
     type: PropTypes.string.isRequired,
     scenario: PropTypes.string,
     bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
-    selectedFeature: FeaturePropType,
+    selectedFeature: FeaturePropType.isRequired,
+    searchFeature: SearchFeaturePropType.isRequired,
     filters: ImmutablePropTypes.mapOf(
         ImmutablePropTypes.setOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number]))
     ).isRequired,
@@ -551,7 +589,6 @@ PriorityMap.propTypes = {
 PriorityMap.defaultProps = {
     scenario: null,
     bounds: null,
-    selectedFeature: null,
     layer: null
 }
 
@@ -561,8 +598,8 @@ const mapStateToProps = globalState => {
 
     return {
         type: state.get("type"),
-        bounds: state.get("bounds"),
         selectedFeature: state.get("selectedFeature"),
+        searchFeature: state.get("searchFeature"),
         scenario: state.get("scenario"),
         summaryUnits: state.get("summaryUnits"),
         layer: state.get("layer"),
@@ -603,16 +640,6 @@ export default connect(
 //         map.setFeatureState({source, sourceLayer, id: this.hoverId}, {hover: false})
 //     }
 // }
-
-// const colors = TIER_COLORS.reduce((out, color, i) => out.concat([i, color]), [])
-// const maxRadius = 20
-// const minRadius = 6
-// const numSizes = TIER_COLORS.length
-// const increment = (maxRadius - minRadius) / (numSizes - 1)
-// const sizes = Array.from(Array(numSizes), (_, i) => numSizes - increment * i).reduce(
-//     (out, size, i) => out.concat([i, size]),
-//     []
-// )
 
 // Show priority dams
 // map.addLayer({

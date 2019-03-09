@@ -56,13 +56,7 @@ Scores.propTypes = {
         state: ScoresPropType.isRequired,
         custom: ScoresPropType
     }).isRequired,
-    setTab: PropTypes.func
-}
-
-Scores.defaultProps = {
-    setTab: tab => {
-        console.log(`Set Tab: ${tab}`)
-    }
+    setTab: PropTypes.func.isRequired
 }
 
 const mapStateToProps = globalState => ({

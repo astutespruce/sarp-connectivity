@@ -6,13 +6,13 @@ import debounce from "lodash.debounce"
 
 import * as actions from "../../../actions/priority"
 import { API_HOST } from "../../../config"
+import { SCENARIOS } from "../../../constants"
 import { apiQueryParams } from "../../../utils/api"
 import { formatNumber } from "../../../utils/format"
 
 import Histogram from "./Histogram"
 
 import StartOverButton from "./StartOverButton"
-import { SCENARIOS } from "../../map/config"
 
 const Results = ({
     type,
