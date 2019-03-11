@@ -1,6 +1,13 @@
 """
-Preprocess data.
-Clean data for creating mbtiles of points
+Preprocess dams into data needed by API and tippecanoe for creating vector tiles.
+
+Input: 
+* Dam inventory from SARP, including all network metrics and summary unit IDs (HUC12, ECO3, ECO4, State, County, etc).
+
+Outputs:
+* `dams.feather`: processed dam data for use by the API
+* `dams_with_networks.csv`: Dams with networks for creating vector tiles in tippecanoe
+* `dams_without_networks.csv`: Dams without networks for creating vector tiles in tippecanoe
 
 """
 
@@ -37,12 +44,12 @@ df = gp.read_file(
 # Also drop any that do not have a state assigned (there should be 13)
 df = df.loc[df.HUC12.notnull() & df.STATE_FIPS.notnull()].copy()
 
-# Assign an ID.  Note: this is ONLY valid for this exact version of the inventory
+# Assign an ID.  Note: this is ONLY valid for this exact version of the inventory,
+# so this exact same ID needs to be used for the dam vector tiles
 df["id"] = df.index.values.astype("uint32")
 
 
 print("Projecting to WGS84 and adding lat / lon fields")
-
 
 if not df.crs:
     # set projection on the data using Proj4 syntax, since GeoPandas doesn't always recognize it's EPSG Code.
@@ -52,13 +59,12 @@ if not df.crs:
 # Project to WGS84
 df = df.to_crs(epsg=4326)
 
-# Add lat / lon columns
+# Add lat / lon columns from projected geometry
 df["lon"] = df.geometry.x.astype("float32")
 df["lat"] = df.geometry.y.astype("float32")
 
 # drop geometry, no longer needed
 df = df.drop(columns=["geometry"])
-
 
 # Rename ecoregion columns
 df.rename(columns={"NA_L3CODE": "ECO3", "US_L4CODE": "ECO4"}, inplace=True)
@@ -108,10 +114,6 @@ df.loc[ids, "Name"] = df.loc[ids].Name.apply(lambda v: v.split("\r")[0])
 # Replace estimated dam names if another name is available
 ids = (df.Name.str.count("Estimated Dam") > 0) & (df.OtherBarrierName.str.len() > 0)
 df.loc[ids, "Name"] = df.loc[ids].OtherBarrierName
-
-# Fill any remaining ones that are missing
-# df.loc[df.Name.str.len() == 0, "Name"] = "Unknown Dam"
-
 
 # Join in state from FIPS due to data issue with values in State field (many are missing)
 df.State = df.STATEFIPS.map(STATE_FIPS_DOMAIN)
@@ -266,7 +268,7 @@ df = df[
 ].set_index("id", drop=False)
 
 
-# Calculate tiers
+# Calculate tiers and scores for the region (None) and State levels
 for group_field in (None, "State"):
     print("Calculating tiers for {}".format(group_field or "Region"))
 
@@ -292,34 +294,37 @@ for group_field in (None, "State"):
             df[col] = (df[col] * 100).round().astype("uint16")
 
 
-# Short term: drop scores, they aren't used in the frontend
+# Tiers are used to display the given barrier on a relative scale
+# compared to other barriers in the state and region.
+# Drop associated raw scores, they are not currently displayed on frontend.
 df = df.drop(columns=[c for c in df.columns if c.endswith("_score")])
 
 
-# Export full set of fields
+######## Export data for API
 print("Writing to output files")
-
-# For use in API
 df.reset_index(drop=True).to_feather("data/derived/dams.feather")
 
-# For QA
+# For QA and data exploration only
 df.to_csv("data/derived/dams.csv", index_label="id")
 
 
-# Split datasets based on those that have networks
-
+######## Export data for tippecanoe
 # create duplicate columns for those dropped by tippecanoe
 # tippecanoe will use these ones and leave lat / lon
+# so that we can use them for display in the frontend
+# TODO: can this be replaced with the actual geometry available to mapbox GL?
 df["latitude"] = df.lat
 df["longitude"] = df.lon
 
+# Drop columns that are not used in vector tiles
 df = df.drop(columns=["Sinuosity", "NHDplusVersion", "STATEFIPS"])
 
+# Rename columns for easier use
 df.rename(
     columns={
         "County": "CountyName",
         "COUNTYFIPS": "County",
-        "SinuosityClass": "Sinuosity",
+        "SinuosityClass": "Sinuosity",  # Decoded to a label on frontend
     },
     inplace=True,
 )
@@ -334,12 +339,16 @@ df.rename(
     inplace=True,
 )
 
-
-# df.to_csv("data/derived/dams_mbtiles.csv", index=False)
+# Split datasets based on those that have networks
+# This is done to control the size of the dam vector tiles, so that those without
+# networks are only used when zoomed in further.  Otherwise, the full vector tiles
+# get too large, and points that we want to display are dropped by tippecanoe.
 df.loc[df.hasnetwork].drop(columns=["hasnetwork"]).to_csv(
     "data/derived/dams_with_networks.csv", index=False
 )
 
+# Drop columns we don't need from dams that have no networks, since we do not filter or display
+# these fields.
 df.loc[~df.hasnetwork].drop(
     columns=[
         "hasnetwork",

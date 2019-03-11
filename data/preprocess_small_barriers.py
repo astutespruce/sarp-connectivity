@@ -1,6 +1,14 @@
 """
-Preprocess data.
-Clean data for creating mbtiles of points
+Preprocess small barriers into data needed by API and tippecanoe for creating vector tiles.
+
+Inputs: 
+* Small barriers inventory from SARP, including all network metrics and summary unit IDs (HUC12, ECO3, ECO4, State, County, etc).
+* `road_crossings.csv` created using `preprocess_road_crossings.py`
+
+Outputs:
+* `small_barriers.feather`: processed small barriers data for use by the API
+* `small_barriers_with_networks.csv`: Dams with networks for creating vector tiles in tippecanoe
+* `dams_without_networks.csv`: Dams without networks for creating vector tiles in tippecanoe
 
 """
 
@@ -61,13 +69,12 @@ if not df.crs:
 # Project to WGS84
 df = df.to_crs(epsg=4326)
 
-# Add lat / lon columns
+# Add lat / lon columns from projected geometry
 df["lon"] = df.geometry.x.astype("float32")
 df["lat"] = df.geometry.y.astype("float32")
 
 # drop geometry, no longer needed
 df = df.drop(columns=["geometry"])
-
 
 # Rename ecoregion columns
 df.rename(columns={"NA_L3CODE": "ECO3", "US_L4CODE": "ECO4"}, inplace=True)
@@ -255,7 +262,7 @@ df = df[
 ].set_index("id", drop=False)
 
 
-# Calculate tiers
+# Calculate tiers and scores for the region (None) and State levels
 for group_field in (None, "State"):
     print("Calculating tiers for {}".format(group_field or "Region"))
 
@@ -283,22 +290,31 @@ for group_field in (None, "State"):
             df[col] = (df[col] * 100).round().astype("uint16")
 
 
-# Short term: drop scores, they aren't used in the frontend
+# Tiers are used to display the given barrier on a relative scale
+# compared to other barriers in the state and region.
+# Drop associated raw scores, they are not currently displayed on frontend.
 df = df.drop(columns=[c for c in df.columns if c.endswith("_score")])
 
 
+######## Export data for API
 print("Writing to files")
-
-# For API
 df.reset_index(drop=True).to_feather("data/derived/small_barriers.feather")
 
-# For QA
+# For QA and data exploration only
 df.to_csv("data/derived/small_barriers.csv", index=False)
 
 
+######## Export data for tippecanoe
+# create duplicate columns for those dropped by tippecanoe
+# tippecanoe will use these ones and leave lat / lon
+# so that we can use them for display in the frontend
+df["latitude"] = df.lat
+df["longitude"] = df.lon
+
+# Drop columns that are not used in vector tiles
 df = df.drop(columns=["Sinuosity", "STATEFIPS", "CrossingCode", "LocalID"])
 
-
+# Rename columns for easier use
 df.rename(
     columns={
         "County": "CountyName",
@@ -318,13 +334,17 @@ df.rename(
     inplace=True,
 )
 
-df["latitude"] = df.lat
-df["longitude"] = df.lon
-
+# Split datasets based on those that have networks
+# This is done to control the size of the dam vector tiles, so that those without
+# networks are only used when zoomed in further.  Otherwise, the full vector tiles
+# get too large, and points that we want to display are dropped by tippecanoe.
+# Road / stream crossings are particularly large, so those are merged in below.
 df.loc[df.hasnetwork].drop(columns=["hasnetwork"]).to_csv(
     "data/derived/barriers_with_networks.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
 )
 
+# Drop columns we don't need from dams that have no networks, since we do not filter or display
+# these fields.
 no_network = df.loc[~df.hasnetwork].drop(
     columns=[
         "hasnetwork",
@@ -352,9 +372,7 @@ no_network = df.loc[~df.hasnetwork].drop(
     + [c for c in df.columns if c.endswith("_tier")]
 )
 
-no_network.to_csv("data/derived/barriers_without_networks.csv", index=False)
-
-# Combine with road crossings
+# Combine barriers that don't have networks with road / stream crossings
 print("Reading stream crossings")
 road_crossings = pd.read_csv(
     "data/derived/road_crossings.csv", dtype={"Road": str, "Stream": str, "SARPID": str}
@@ -383,6 +401,8 @@ road_crossings.loc[
 combined = no_network.append(road_crossings, ignore_index=True, sort=False)
 combined["id"] = combined.index.values.astype("uint32")
 
+# Fill latitude / longitude columns in again
+# (these are missing from road_crossings.csv)
 combined["latitude"] = combined.lat
 combined["longitude"] = combined.lon
 

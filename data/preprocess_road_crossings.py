@@ -1,3 +1,15 @@
+"""
+Preprocess road / stream crossings into data needed by tippecanoe for creating vector tiles.
+
+Input: 
+* USGS Road / Stream corssings SARP.
+*  created using `preprocess_road_crossings.py`
+
+Outputs:
+* `road_crossings.csv`: road / stream crossing data for merging in with small barriers that do not have networks
+
+"""
+
 from time import time
 import geopandas as gp
 import pandas as pd

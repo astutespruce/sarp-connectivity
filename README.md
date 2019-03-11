@@ -1,16 +1,18 @@
 # Southeast Aquatic Barriers Inventory Visualization & Prioritization Tool
 
 ## Data processing
+
 Data processing steps are detailed in `/data/README.md`.
 
-
 ## Architecture
+
 The user interface tier is stored in `/ui` and consists of a React-based application.
 
 The backend is composed of several parts:
-* `/data/*.py`: data processing scripts
-* `/api`: flask API for requesting subsets and downloads
-* map tiles are served from `/tiles` using `mbtileserver`
+
+-   `/data/*.py`: data processing scripts
+-   `/api`: flask API for requesting subsets and downloads
+-   map tiles are served from `/tiles` using `mbtileserver`
 
 ## Development
 
@@ -19,18 +21,19 @@ To develop this application, you need Python 3.6+ and NodeJS 8.9+
 `pipenv` and `yarn` are used as the package managers for those languages.
 
 ### mbtileserver
+
 Install `mbtilserver` according to https://github.com/consbio/mbtileserver
 Then from appropriate directory (or if installed via `go get` and `~/go/bin` is on your `PATH`): `mbtilserver -d /<PATH TO REPO>/tiles`.
 
 You should now be able to open `http://localhost:8000/services` to see a listing of available tile services.
 
-
 ### UI Initial setup:
+
 -   `cd ui`
 -   run `yarn install` to install all depedencies.
 
-
 ### Flask API initial setup:
+
 -   `cd api`
 -   run `pipenv install` to setup a Python virtual environment and install all dependencies.
 
@@ -61,7 +64,12 @@ pipenv shell
 flask run
 ```
 
-
 ## Deployment
 
 Server configuration and deployment steps are available in the [wiki](https://github.com/consbio/sarp/wiki).
+
+## Credits
+
+This project was made possible in partnership with the [Southeast Aquatic Resources Partnership](https://southeastaquatics.net/).
+
+It was supported in part by grants from the [U.S. Fish and Wildlife Service Fish Passage Program](https://www.fws.gov/fisheries/fish-passage.html), [Gulf Coastal Plains and Ozarks Landscape Conservation Cooperative](https://gcpolcc.org/), and [Florida State Wildlife Grants Program](https://myfwc.com/conservation/special-initiatives/fwli/grant/).
