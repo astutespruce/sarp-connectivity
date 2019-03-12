@@ -1,3 +1,21 @@
+"""Summarize dams and small barriers by summary units (HUC6, HUC8, etc).
+
+This creates a summary CSV file for each type of summary unit, with a count of dams, 
+small barriers, and average gained miles for each summary unit.
+
+It also calculates high-level summary statistics for the summary region, which
+is included in the user interface code at build time for display on the homepage
+and elsewhere.
+
+This is run AFTER `running preprocess_dams.py` and `preprocess_small_barriers.py`
+
+Inputs:
+* `dams.feather`
+* `small_barriers.feather`
+
+"""
+
+
 from collections import defaultdict
 import csv
 import json
@@ -9,11 +27,18 @@ from feather import read_dataframe
 # There must be a matching number of colors in the map
 PERCENTILES = [20, 40, 60, 75, 80, 85, 90, 95, 100]
 
+# Note: states are identified by name, whereas counties are uniquely identified by
+# FIPS code.
+# The values from these fields in the dams / small_barriers data must exactly match
+# the IDs for those units set when the vector tiles of those units are created, otherwise
+# they won't join properly in the frontend.
+SUMMARY_UNITS = ["State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"]
+
 
 dams = read_dataframe("data/derived/dams.feather")
 barriers = read_dataframe("data/derived/small_barriers.feather")
 
-# Set NA
+# Set NA so that we don't include these values in our statistics
 dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
 
 # Mark those off network
@@ -21,6 +46,8 @@ dams["OffNetwork"] = ~dams.HasNetwork
 barriers["OffNetwork"] = ~barriers.HasNetwork
 
 stats = defaultdict(defaultdict)
+
+# Calculate summary statistics for the entire region
 stats["southeast"] = {
     "dams": len(dams),
     "off_network_dams": len(dams.loc[dams.OffNetwork]),
@@ -29,8 +56,8 @@ stats["southeast"] = {
     "off_network_barriers": len(barriers.loc[barriers.OffNetwork]),
 }
 
-# Group by state, HUC level, ecoregion level
-for unit in ("State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"):
+# Calculate summary statistics for each type of summary unit
+for unit in SUMMARY_UNITS:
     print("processing {}".format(unit))
 
     dam_stats = (
@@ -64,22 +91,15 @@ for unit in ("State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"):
 
     unit = "County" if unit == "COUNTYFIPS" else unit
 
+    # Write summary CSV for each unit type
     merged.to_csv(
         "data/derived/{}.csv".format(unit),
         index_label="id",
         quoting=csv.QUOTE_NONNUMERIC,
     )
 
-    # level_stats = merged.agg(["min", "max"])
-    # for col in ("dams", "miles", "barriers"):
-    #     stats[unit][col] = {
-    #         "range": level_stats[col].round(3).tolist(),
-    #         "mean": round(merged[col].mean().item(), 3),
-    #     }
-    #     if col in ("dams", "barriers"):
-    #         stats[unit][col]["bins"] = (
-    #             np.percentile(merged[col], PERCENTILES).round().astype("uint").tolist()
-    #         )
 
+# Write the summary statistics into the UI directory so that it can be imported at build time
+# into the code
 with open("ui/src/data/summary_stats.json", "w") as outfile:
     outfile.write(json.dumps(stats))

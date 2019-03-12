@@ -7,7 +7,6 @@ Input:
 
 Outputs:
 * `road_crossings.csv`: road / stream crossing data for merging in with small barriers that do not have networks
-
 """
 
 from time import time

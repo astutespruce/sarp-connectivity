@@ -1,6 +1,8 @@
 """
 Preprocess small barriers into data needed by API and tippecanoe for creating vector tiles.
 
+This is run AFTER `preprocess_road_crossings.py`.
+
 Inputs: 
 * Small barriers inventory from SARP, including all network metrics and summary unit IDs (HUC12, ECO3, ECO4, State, County, etc).
 * `road_crossings.csv` created using `preprocess_road_crossings.py`
