@@ -415,7 +415,7 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
 
     # drop unneeded columns
-    df = df[export_columns]
+    df = df[export_columns].rename(columns={'RareSpp': 'TESpp'})
 
     # map domain fields to values
     df.HasNetwork = df.HasNetwork.map({True: "yes", False: "no"})

@@ -7,6 +7,7 @@ import { isEmptyString } from "../../utils/string"
 import { DAM_CONDITION, CONSTRUCTION, PURPOSE, RECON, SINUOSITY } from "../../constants"
 
 const DamDetails = ({
+    sarpid,
     lat,
     lon,
     hasnetwork,
@@ -35,7 +36,7 @@ const DamDetails = ({
             <li>
                 Coordinates: {formatNumber(lat, 3)}
                 &deg; N, {formatNumber(lon, 3)}
-                &deg; E 
+                &deg; E
             </li>
             <li>
                 {river && river !== "null" && river !== "Unknown" ? `${river}, ` : null}
@@ -117,33 +118,33 @@ const DamDetails = ({
             )}
         </ul>
 
-        {!isEmptyString(nidid) || !isEmptyString(source) ? (
-            <React.Fragment>
-                <h6 className="title is-6">Other information</h6>
-                <ul>
-                    {!isEmptyString(nidid) ? (
-                        <li>
-                            National inventory of dams ID:{" "}
-                            <a
-                                href="http://nid.usace.army.mil/cm_apex/f?p=838:12"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                {nidid}
-                            </a>
-                        </li>
-                    ) : null}
+        <React.Fragment>
+            <h6 className="title is-6">Other information</h6>
+            <ul>
+                <li>SARP ID: {sarpid}</li>
+                {!isEmptyString(nidid) ? (
+                    <li>
+                        National inventory of dams ID:{" "}
+                        <a
+                            href="http://nid.usace.army.mil/cm_apex/f?p=838:12"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {nidid}
+                        </a>
+                    </li>
+                ) : null}
 
-                    {!isEmptyString(source) ? <li>Source: {source}</li> : null}
-                </ul>
-            </React.Fragment>
-        ) : null}
+                {!isEmptyString(source) ? <li>Source: {source}</li> : null}
+            </ul>
+        </React.Fragment>
     </div>
 )
 
 // TODO: feasibility, metrics
 
 DamDetails.propTypes = {
+    sarpid: PropTypes.number.isRequired,
     lat: PropTypes.number.isRequired,
     lon: PropTypes.number.isRequired,
     hasnetwork: PropTypes.bool.isRequired,

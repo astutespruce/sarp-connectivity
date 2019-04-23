@@ -7,6 +7,7 @@ import { isEmptyString } from "../../utils/string"
 import { SINUOSITY, BARRIER_SEVERITY } from "../../constants"
 
 const BarrierDetails = ({
+    sarpid,
     lat,
     lon,
     source,
@@ -38,7 +39,7 @@ const BarrierDetails = ({
                 <li>
                     Coordinates: {formatNumber(lat, 3)}
                     &deg; N, {formatNumber(lon, 3)}
-                    &deg; E 
+                    &deg; E
                 </li>
                 {!isEmptyString(stream) ? (
                     <li>
@@ -119,11 +120,13 @@ const BarrierDetails = ({
                 )}
             </ul>
 
-            {!isEmptyString(source) ? (
+            {!isEmptyString(source) || !isCrossing ? (
                 <React.Fragment>
                     <h6 className="title is-6">Other information</h6>
                     <ul>
-                        <li>Source: {source}</li>
+                        {!isCrossing ? <li>SARP ID: {sarpid}</li> : null}
+
+                        {!isEmptyString(source) ? <li>Source: {source}</li> : null}
                     </ul>
                 </React.Fragment>
             ) : null}
@@ -131,6 +134,7 @@ const BarrierDetails = ({
     )
 }
 BarrierDetails.propTypes = {
+    sarpid: PropTypes.string.isRequired,
     lat: PropTypes.number.isRequired,
     lon: PropTypes.number.isRequired,
     hasnetwork: PropTypes.bool.isRequired,

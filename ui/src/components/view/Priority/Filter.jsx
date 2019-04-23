@@ -2,8 +2,6 @@ import React from "react"
 import PropTypes from "prop-types"
 import ImmutablePropTypes from "react-immutable-proptypes"
 
-// import { filterConfig } from "../../../filters"
-
 import FilterBars from "../../filterbars/FilterBars"
 
 const Filter = ({ filterConfig, filterValues, counts, onFilterChange, closed, toggleFilterClosed }) => {

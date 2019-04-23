@@ -39,7 +39,7 @@ County: county where barrier occurs.
 State: state where barrier occurs.
 Basin: name of the hydrologic basin (HUC6) where the barrier occurs.
 
-RareSpp: number of federally threatened or endangered aquatic species within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
+TESpp: number of federally threatened or endangered aquatic species within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
 
 Stream: stream or river name where barrier occurs, if available.
 HasNetwork: indicates if this barrier was snapped to the aquatic network for analysis.  1 = on network, 0 = off network or excluded from network analysis if determined not to be a significant barrier.  Note: network metrics and scores are not available for barriers that are off network.

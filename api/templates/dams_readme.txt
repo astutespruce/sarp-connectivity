@@ -38,7 +38,7 @@ County: County where dam occurs.
 State: State where dam occurs.
 Basin: Name of the hydrologic basin (HUC6) where the dam occurs.
 
-RareSpp: Number of federally threatened or endangered aquatic species within the same subwatershed (HUC12) as the dam.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
+TESpp: Number of federally threatened or endangered aquatic species within the same subwatershed (HUC12) as the dam.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
 
 River: River name where dam occurs, if available.
 StreamOrder: NHDPlus Modified Strahler stream order. -1 = not available.

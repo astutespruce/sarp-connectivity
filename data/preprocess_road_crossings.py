@@ -38,6 +38,7 @@ df.rename(
     columns={"FULLNAME": "Road", "GNIS_NAME": "Stream", "RDXID": "SARPID"}, inplace=True
 )
 
+df.SARPID = df.SARPID.astype("uint")
 
 df.to_csv("data/derived/road_crossings.csv", index=False)
 
