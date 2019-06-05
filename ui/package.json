@@ -1,65 +1,73 @@
 {
-    "name": "sarp-prioritization-tool",
-    "description": "Southeast Aquatic Barrier Prioritization Tool",
-    "homepage": "http://34.237.24.48/",
-    "version": "1.0.0",
-    "private": true,
-    "dependencies": {
-        "@babel/polyfill": "^7.2.5",
-        "@fortawesome/fontawesome-free": "^5.4.0",
-        "@mapbox/geo-viewport": "^0.4.0",
-        "@sentry/browser": "^4.0.6",
-        "bulma": "^0.7.1",
-        "connected-react-router": "^6.0.0",
-        "crossfilter2": "^1.4.6",
-        "d3-fetch": "^1.1.2",
-        "eslint": "5.12.0",
-        "history": "^4.7.2",
-        "immutable": "^3.8.2",
-        "lodash.debounce": "^4.0.8",
-        "mapbox-gl": "^0.50.0-beta.1",
-        "prop-types": "^15.6.2",
-        "raven-js": "^3.27.0",
-        "react": "^16.8.1",
-        "react-dom": "^16.8.1",
-        "react-ga": "^2.5.3",
-        "react-immutable-proptypes": "^2.1.0",
-        "react-redux": "^6.0.0",
-        "react-router": "^4.3.1",
-        "react-router-dom": "^4.3.1",
-        "react-scripts": "^2.1.4",
-        "redux": "^4.0.0",
-        "redux-immutable": "^4.0.0",
-        "redux-logger": "^3.0.6",
-        "redux-thunk": "^2.3.0",
-        "whatwg-fetch": "^3.0.0"
-    },
-    "scripts": {
-        "start": "react-scripts start",
-        "build": "react-scripts build",
-        "test": "react-scripts test",
-        "eject": "react-scripts eject",
-        "clean": "rm -rf build/*",
-        "predeploy": "npm run build",
-        "deploy": "rm -rf /var/www/sarp/site/* && cp -r build/* /var/www/sarp/site"
-    },
-    "eslintConfig": {
-        "extends": "react-app"
-    },
-    "browserslist": [
-        ">0.2%",
-        "not dead",
-        "not ie <= 11",
-        "not op_mini all"
-    ],
-    "devDependencies": {
-        "eslint-config-airbnb": "^17.1.0",
-        "eslint-config-prettier": "^3.1.0",
-        "eslint-plugin-import": "^2.14.0",
-        "eslint-plugin-jsx-a11y": "^6.1.2",
-        "eslint-plugin-prettier": "^3.0.0",
-        "eslint-plugin-react": "^7.11.1",
-        "prettier": "^1.14.3",
-        "prettier-eslint": "^8.8.2"
-    }
+  "name": "sarp-prioritization-tool",
+  "description": "Southeast Aquatic Barrier Prioritization Tool",
+  "version": "1.5.0",
+  "author": "Brendan C. Ward <bcward@astutespruce.com>",
+  "dependencies": {
+    "@mapbox/geo-viewport": "^0.4.0",
+    "@rebass/grid": "^6.0.0",
+    "babel-plugin-styled-components": "^1.10.0",
+    "gatsby": "^2.8.3",
+    "gatsby-image": "^2.0.41",
+    "gatsby-plugin-catch-links": "^2.0.13",
+    "gatsby-plugin-google-analytics": "^2.0.19",
+    "gatsby-plugin-manifest": "^2.1.1",
+    "gatsby-plugin-offline": "^2.1.0",
+    "gatsby-plugin-react-helmet": "^3.0.12",
+    "gatsby-plugin-sharp": "^2.0.36",
+    "gatsby-plugin-sitemap": "^2.1.0",
+    "gatsby-plugin-styled-components": "^3.0.7",
+    "gatsby-plugin-typography": "^2.2.13",
+    "gatsby-remark-images": "^3.0.11",
+    "gatsby-source-filesystem": "^2.0.33",
+    "gatsby-transformer-sharp": "^2.1.19",
+    "immutable": "^4.0.0-rc.12",
+    "mapbox-gl": "^0.54.0",
+    "prop-types": "^15.7.2",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-ga": "^2.5.7",
+    "react-helmet": "^5.2.1",
+    "react-icons": "^3.6.1",
+    "react-typography": "^0.16.19",
+    "rebass": "^3.1.0",
+    "styled-components": "^4.2.0",
+    "styled-system": "^4.1.0",
+    "typography": "^0.16.19",
+    "typography-theme-noriega": "^0.16.19"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-prettier": "^4.2.0",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-plugin-import": "^2.17.2",
+    "eslint-plugin-jsx-a11y": "^6.2.1",
+    "eslint-plugin-prettier": "^3.0.1",
+    "eslint-plugin-react": "^7.13.0",
+    "prettier": "^1.17.0",
+    "stylelint-config-recommended": "^2.2.0",
+    "stylelint-config-standard": "^18.3.0",
+    "stylelint-config-styled-components": "^0.1.1",
+    "stylelint-processor-styled-components": "^1.6.0"
+  },
+  "keywords": [
+    "gatsby"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "gatsby build",
+    "develop": "gatsby develop",
+    "format": "prettier --write src/**/*.{js,jsx}",
+    "start": "npm run develop",
+    "serve": "gatsby serve"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/astutespruce/sarp-connectivity"
+  },
+  "bugs": {
+    "url": "https://github.com/astutespruce/sarp-connectivity/issues"
+  }
 }

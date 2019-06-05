@@ -1,160 +1,161 @@
-import React from "react"
-import PropTypes from "prop-types"
-import { connect } from "react-redux"
-import ImmutablePropTypes from "react-immutable-proptypes"
-import geoViewport from "@mapbox/geo-viewport"
-import mapboxgl from "mapbox-gl"
-import "mapbox-gl/dist/mapbox-gl.css"
+/* eslint-disable max-len, no-underscore-dangle */
+import React, { useEffect, useRef } from 'react'
+import PropTypes from 'prop-types'
+import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
 
-import LatLong from "./LatLong"
+import styled from 'style'
+import { hasWindow } from 'util/dom'
+import { getCenterAndZoom } from './util'
+import StyleSelector from './StyleSelector'
 
-mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || "" // REQUIRED: this must be present in .env file
+import { siteMetadata } from '../../../gatsby-config'
 
-class Map extends React.Component {
-    constructor(props) {
-        super(props)
+// This wrapper must be positioned relative for the map to be able to lay itself out properly
+const Wrapper = styled.div`
+  width: ${({ width }) => width};
+  height: ${({ height }) => height};
+  position: relative;
+  flex: 1 0 auto;
+`
 
-        this.map = null
-        this.mapNode = null
-        this.coordsNode = null
-        this.locationMarker = null
+const Map = ({
+  width,
+  height,
+  zoom,
+  center,
+  bounds,
+  padding,
+  styles,
+  sources,
+  layers,
+  minZoom,
+  maxZoom,
+}) => {
+  const { mapboxToken } = siteMetadata
+
+  if (!mapboxToken) {
+    console.error(
+      'ERROR: Mapbox token is required in gatsby-config.js siteMetadata'
+    )
+  }
+
+  // if there is no window, we cannot render this component
+  if (!hasWindow) {
+    return null
+  }
+
+  // this ref holds the map DOM node so that we can pass it into Mapbox GL
+  const mapNode = useRef(null)
+
+  // this ref holds the map object once we have instantiated it, so that we
+  // can use it in other hooks
+  const mapRef = useRef(null)
+
+  // construct the map within an effect that has no dependencies
+  // this allows us to construct it only once at the time the
+  // component is constructed.
+  useEffect(() => {
+    let mapCenter = center
+    let mapZoom = zoom
+
+    // If bounds are available, use these to establish center and zoom when map first loads
+    if (bounds && bounds.length === 4) {
+      const { center: boundsCenter, zoom: boundsZoom } = getCenterAndZoom(
+        mapNode.current,
+        bounds,
+        padding
+      )
+      mapCenter = boundsCenter
+      mapZoom = boundsZoom
     }
 
-    componentDidMount() {
-        const { baseStyle, bounds, onCreateMap } = this.props
+    // Token must be set before constructing map
+    mapboxgl.accessToken = mapboxToken
 
-        const { mapNode } = this
-        let center = [0, 0]
-        let zoom = 0
+    const map = new mapboxgl.Map({
+      container: mapNode.current,
+      style: `mapbox://styles/mapbox/${styles[0]}`,
+      center: mapCenter,
+      zoom: mapZoom,
+      minZoom,
+      maxZoom,
+    })
+    mapRef.current = map
+    window.map = map // for easier debugging and querying via console
 
-        // If bounds are available, use these to establish center and zoom when map first
-        if (bounds && bounds.size === 4) {
-            const { offsetWidth: width, offsetHeight: height } = mapNode
-            const viewport = geoViewport.viewport(bounds.toJS(), [width, height], undefined, undefined, undefined, true)
-            // Zoom out slightly to pad around bounds
-            zoom = Math.max(viewport.zoom - 1, 0) * 0.9
-            /* eslint-disable prefer-destructuring */
-            center = viewport.center
-        }
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
-        const map = new mapboxgl.Map({
-            container: mapNode,
-            style: `mapbox://styles/mapbox/${baseStyle}`,
-            center,
-            zoom
-        })
-
-        this.map = map
-        window.map = map
-
-        map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), "top-right")
-
-        map.on("load", () => {
-            this.map.resize() // force map to realign center
-        })
-
-        map.on("mousemove", ({ lngLat: { lat, lng } }) => {
-            this.coordsNode.innerHTML = `${Math.round(lat * 100000) / 100000}° N, ${Math.round(lng * 100000) /
-                100000}° E`
-        })
-
-        onCreateMap(map)
+    if (styles.length > 1) {
+      map.addControl(
+        new StyleSelector({
+          styles,
+          token: mapboxToken,
+        }),
+        'bottom-left'
+      )
     }
 
-    componentDidUpdate(prevProps) {
-        const { bounds: prevBounds, center: prevCenter, location: prevLocation } = prevProps
-        const { bounds, center, location } = this.props
-        const { map } = this
+    map.on('load', () => {
+      console.log('map onload')
+      // add sources
+      Object.entries(sources).forEach(([id, source]) => {
+        map.addSource(id, source)
+      })
 
-        if (!bounds.equals(prevBounds)) {
-            map.fitBounds(bounds.toJS(), { padding: 10 })
-        }
+      // add layers
+      layers.forEach(layer => {
+        map.addLayer(layer)
+      })
+    })
 
-        if (!center.equals(prevCenter)) {
-            const { latitude = null, longitude = null, zoom = map.getZoom() } = center.toJS()
-            if (latitude !== null && longitude !== null) {
-                map.flyTo({ center: [longitude, latitude], zoom })
-            }
-        }
+    // hook up map events here, such as click, mouseenter, mouseleave
+    // e.g., map.on('click', (e) => {})
 
-        if (!location.equals(prevLocation)) {
-            const { latitude = null, longitude = null } = location.toJS()
-
-            if (latitude !== null && longitude !== null) {
-                map.flyTo({ center: [longitude, latitude], zoom: 9 })
-
-                if (!this.locationMarker) {
-                    this.locationMarker = new mapboxgl.Marker().setLngLat([longitude, latitude]).addTo(this.map)
-                } else {
-                    this.locationMarker.setLngLat([longitude, latitude])
-                }
-            } else {
-                this.locationMarker.remove()
-                this.locationMarker = null
-            }
-        }
+    // when this component is destroyed, remove the map
+    return () => {
+      map.remove()
     }
+  }, [])
 
-    renderMapNode() {
-        return (
-            <div
-                ref={el => {
-                    this.mapNode = el
-                }}
-                style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0
-                }}
-            >
-                <LatLong />
-                <div
-                    ref={el => {
-                        this.coordsNode = el
-                    }}
-                    className="map-coordinates is-size-7"
-                />
-            </div>
-        )
-    }
+  // You can use other `useEffect` hooks to update the state of the map
+  // based on incoming props.  Just beware that you might need to add additional
+  // refs to share objects or state between hooks.
 
-    render() {
-        return this.renderMapNode()
-    }
+  return (
+    <Wrapper width={width} height={height}>
+      <div ref={mapNode} style={{ width: '100%', height: '100%' }} />
+      {/* <StyleSelector map={mapRef.current} styles={styles} token={mapboxToken} /> */}
+    </Wrapper>
+  )
 }
 
 Map.propTypes = {
-    location: ImmutablePropTypes.mapContains({
-        latitude: PropTypes.number,
-        longitude: PropTypes.number
-    }).isRequired,
-    baseStyle: PropTypes.string,
-    bounds: ImmutablePropTypes.listOf(PropTypes.number), // example: [-180, -86, 180, 86]
-    center: ImmutablePropTypes.mapContains({
-        latitude: PropTypes.number,
-        longitude: PropTypes.number,
-        zoom: PropTypes.number
-    }),
-    onCreateMap: PropTypes.func // called with map object when created
+  width: PropTypes.string,
+  height: PropTypes.string,
+  center: PropTypes.arrayOf(PropTypes.number),
+  zoom: PropTypes.number,
+  bounds: PropTypes.arrayOf(PropTypes.number),
+  minZoom: PropTypes.number,
+  maxZoom: PropTypes.number,
+  styles: PropTypes.arrayOf(PropTypes.string),
+  padding: PropTypes.number,
+  sources: PropTypes.object,
+  layers: PropTypes.arrayOf(PropTypes.object),
 }
 
 Map.defaultProps = {
-    baseStyle: "light-v9",
-    bounds: null,
-    center: null,
-    onCreateMap: () => {}
+  width: 'auto',
+  height: '100%',
+  center: [0, 0],
+  zoom: 0,
+  bounds: null,
+  minZoom: 0,
+  maxZoom: 24,
+  styles: ['light-v9', 'dark-v9', 'streets-v11'],
+  padding: 0.1, // padding around bounds as a proportion
+  sources: {},
+  layers: [],
 }
 
-const mapStateToProps = globalState => {
-    const state = globalState.get("map")
-
-    return {
-        location: state.get("location"),
-        bounds: state.get("bounds"),
-        center: state.get("center")
-    }
-}
-
-export default connect(mapStateToProps)(Map)
+export default Map
