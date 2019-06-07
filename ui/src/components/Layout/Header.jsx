@@ -11,11 +11,13 @@ import LogoSVG from 'images/logo.svg'
 import { siteMetadata } from '../../../gatsby-config'
 
 const Wrapper = styled(Flex).attrs({
+  as: 'header',
   alignItems: 'center',
   justifyContent: 'space-between',
+  py: '0.25rem',
+  px: '0.5rem',
 })`
   background-color: ${themeGet('colors.primary.900')};
-  padding: 0.25rem;
   flex: 0 0 auto;
   border-bottom: 4px solid ${themeGet('colors.primary.800')};
 `
@@ -29,15 +31,15 @@ const SiteLogo = styled(Image).attrs({ src: LogoSVG })`
 
 const Title = styled(Text).attrs({
   as: 'h1',
-  fontSize: '1.5rem'
+  fontSize: '1.5rem',
 })`
   margin: 0;
-  flex-grow: 1;
+  flex: 0 0 auto;
   line-height: 1;
 
   & * {
     text-decoration: none;
-    color: #fff;
+    color: #fff !important;
   }
 `
 
@@ -53,9 +55,9 @@ const NavBar = styled(Flex).attrs({
 
 const NavLink = styled(Link)`
   text-decoration: none;
-  padding: 4px 8px;
+  padding: 0.25rem 0.5rem;
   display: block;
-  color: #fff;
+  color: #fff !important;
   border-radius: 6px;
 
   &:hover {

@@ -7,6 +7,7 @@ import styled, { ThemeProvider, theme } from 'style'
 import { isUnsupported } from 'util/dom'
 import UnsupportedBrowser from './UnsupportedBrowser'
 import Header from './Header'
+import Footer from './Footer'
 
 const Wrapper = styled(Flex).attrs({ flexDirection: 'column' })`
   height: 100%;
@@ -19,15 +20,14 @@ const Content = styled.div`
 const Layout = ({ children, title }) => {
   return (
     <ThemeProvider theme={theme}>
-      {isUnsupported ? (
-        <UnsupportedBrowser />
-      ) : (
-        <Wrapper>
-          <SEO title={title} />
-          <Header siteTitle={title} />
-          <Content>{children}</Content>
-        </Wrapper>
-      )}
+      <Wrapper>
+        <SEO title={title} />
+        <Header siteTitle={title} />
+
+        {isUnsupported ? <UnsupportedBrowser /> : <Content>{children}</Content>}
+
+        <Footer />
+      </Wrapper>
     </ThemeProvider>
   )
 }
