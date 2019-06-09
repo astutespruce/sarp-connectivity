@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 import styled from 'style'
 import { Box } from '@rebass/grid'
 
-const Container = styled(Box).attrs({ px: '1rem' })`
+const Container = styled(Box)`
   max-width: ${props => props.maxWidth};
 `
 
@@ -16,7 +16,7 @@ Container.propTypes = {
 
 Container.defaultProps = {
   mx: 'auto',
-  maxWidth: '1024px',
+  maxWidth: '960px',
 }
 
 export default Container

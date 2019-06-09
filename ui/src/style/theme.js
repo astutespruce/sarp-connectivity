@@ -5,6 +5,7 @@ const colors = {
   black: '#000',
   link: '#1891ac',
   primary: {
+    100: '#e0f2fb',
     // 0: '#e4f0f9',
     // 100: '#c6e1f3',
     // 200: '#a5cfed',
@@ -20,6 +21,8 @@ const colors = {
     900: '#253b6e',
   },
   secondary: {
+    500: '#1891ac',
+    600: '#147b92'
     // 0: '#e3f9f7',
     // 100: '#c4f3ef',
     // 200: '#a0ece5',
@@ -57,9 +60,25 @@ const colors = {
   },
 }
 
+const buttons = {
+  default: {
+    backgroundColor: colors.grey[900],
+  },
+  primary: {
+    backgroundColor: colors.primary[500],
+  },
+  secondary: {
+    backgroundColor: colors.secondary[500],
+  },
+  disabled: {
+    backgroundColor: colors.grey[300],
+  },
+}
+
 const theme = {
   breakpoints,
   colors,
+  buttons
 }
 
 export default theme

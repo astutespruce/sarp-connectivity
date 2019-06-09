@@ -24,6 +24,7 @@ typeographyTheme.overrideThemeStyles = () => ({
   },
   'a, a:visited, a:active': {
     color: theme.colors.link,
+    textDecoration: 'none',
   },
 })
 

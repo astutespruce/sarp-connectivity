@@ -23,6 +23,13 @@ module.exports = {
       },
     },
     {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `data`,
+        path: `${__dirname}/data`,
+      },
+    },
+    {
       resolve: `gatsby-plugin-styled-components`,
       options: {
         displayName: process.env.NODE_ENV !== `production`,
@@ -33,6 +40,14 @@ module.exports = {
       resolve: `gatsby-plugin-typography`,
       options: {
         pathToConfigModule: `./config/typography.js`,
+      },
+    },
+    {
+      resolve: `gatsby-plugin-react-svg`,
+      options: {
+        rule: {
+          include: /icons/,
+        },
       },
     },
     `gatsby-plugin-catch-links`,

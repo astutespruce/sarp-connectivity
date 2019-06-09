@@ -7,7 +7,7 @@ const FaIcon = ({ name, size, ...props }) => {
 
   if (!Icon) return null
 
-  return <Icon size={size} {...props} />
+  return <Icon size={size} style={{ width: size, height: size }} {...props} />
 }
 
 FaIcon.propTypes = {

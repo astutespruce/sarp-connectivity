@@ -33,14 +33,25 @@ const Overlay = styled.div`
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(0, rgba(0, 0, 0, 0), 30%, rgba(0, 0, 0, 0.7));
+  background: linear-gradient(
+    0,
+    rgba(0, 0, 0, 0),
+    1rem,
+    rgba(0, 0, 0, 0.7),
+    90%,
+    rgba(0, 0, 0, 0)
+  );
 `
 
-const TitleContainer = styled(Container)`
+const TitleContainer = styled(Container).attrs({
+  py: '1rem',
+  px: '1rem',
+  mt: ['2rem', '3rem'],
+})`
   position: absolute;
   left: 0;
   right: 0;
-  top: 3rem;
+  top: 0;
   text-shadow: 1px 1px 3px #000;
   border-top: 3px solid #fff;
   border-bottom: 3px solid #fff;
@@ -48,7 +59,7 @@ const TitleContainer = styled(Container)`
 
 const Title = styled(Text).attrs({
   as: 'h1',
-  fontSize: ['3rem', '3rem', '5rem'],
+  fontSize: '3rem',
 })`
   color: #fff;
   margin: 0 0 0.5rem 0;
@@ -56,8 +67,9 @@ const Title = styled(Text).attrs({
 
 const Subtitle = styled(Text).attrs({
   as: 'h3',
-  fontSize: ['1.5rem', '2rem', '3rem'],
+  fontSize: '1.5rem',
 })`
+  font-weight: normal;
   color: #fff;
   margin: 0;
 `
@@ -78,7 +90,7 @@ const ImageCredits = styled.div`
   }
 `
 
-const Fluid = ({
+const HeaderImage = ({
   image,
   height,
   minHeight,
@@ -111,7 +123,7 @@ const Fluid = ({
   </Wrapper>
 )
 
-Fluid.propTypes = {
+HeaderImage.propTypes = {
   image: PropTypes.any.isRequired,
   height: PropTypes.string,
   minHeight: PropTypes.string,
@@ -124,7 +136,7 @@ Fluid.propTypes = {
   position: PropTypes.string,
 }
 
-Fluid.defaultProps = {
+HeaderImage.defaultProps = {
   height: '60vh',
   minHeight: '20rem',
   title: '',
@@ -133,4 +145,4 @@ Fluid.defaultProps = {
   position: 'center',
 }
 
-export default Fluid
+export default HeaderImage
