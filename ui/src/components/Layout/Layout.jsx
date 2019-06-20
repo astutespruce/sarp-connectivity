@@ -9,20 +9,24 @@ import UnsupportedBrowser from './UnsupportedBrowser'
 import Header from './Header'
 import Footer from './Footer'
 
+import { siteMetadata } from '../../../gatsby-config'
+
+
 const Wrapper = styled(Flex).attrs({ flexDirection: 'column' })`
   height: 100%;
 `
 
 const Content = styled.div`
   flex: 1 1 auto;
+  overflow-y: auto;
 `
 
 const Layout = ({ children, title }) => {
   return (
     <ThemeProvider theme={theme}>
       <Wrapper>
-        <SEO title={title} />
-        <Header siteTitle={title} />
+        <SEO title={title || siteMetadata.title} />
+        <Header />
 
         {isUnsupported ? <UnsupportedBrowser /> : <Content>{children}</Content>}
 

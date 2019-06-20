@@ -8,8 +8,6 @@ export const DefaultButton = styled(BaseButton).attrs({
   variant: 'default',
   borderRadius: 8,
 })`
-  /* display: flex;
-  align-items: center; */
   opacity: 1;
   transition: opacity 0.25s linear;
 

@@ -9,18 +9,13 @@ import styled, { themeGet } from 'style'
 import { formatNumber } from 'util/format'
 import SARPLogoImage from 'images/sarp_logo.png'
 
-import { Section, Title } from './styles'
+import { Section, Title, NarrowColumn, WideColumn } from './styles'
 
 import summaryStats from '../../../data/summary_stats.json'
 
 // TODO: useStaticQuery
 const { dams, barriers, miles } = summaryStats.southeast
 
-const NarrowColumn = styled(Column).attrs({ px: 0, width: ['100%', '100%', '33%'] })``
-
-const WideColumn = styled(Column).attrs({
-  width: ['100%', '100%', '66%'],
-})``
 
 const HighlightBox = styled(BaseHighlightBox)`
 h3 { text-align: center;}
@@ -31,6 +26,7 @@ const Stats = styled.ul`
 list-style: none;
 font-size: 1.25rem;
 margin-left: 0;
+margin-bottom: 6rem !important;
 `
 
 const SARPLogo = styled(Image).attrs({src: SARPLogoImage, width: '100%'})`

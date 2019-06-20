@@ -16,13 +16,13 @@ const colors = {
     // 700: '#005da0',
     // 800: '#004d84',
     // 900: '#00365d',
-    500: '1891ac',
+    500: '#1891ac',
     800: '#1f5f8b',
     900: '#253b6e',
   },
   secondary: {
     500: '#1891ac',
-    600: '#147b92'
+    600: '#147b92',
     // 0: '#e3f9f7',
     // 100: '#c4f3ef',
     // 200: '#a0ece5',
@@ -40,7 +40,7 @@ const colors = {
     // 200: '#f0b7bc',
     // 300: '#ea969d',
     // 400: '#e16973',
-    // 500: '#cc0011',
+    500: 'orange',
     // 600: '#b8000f',
     // 700: '#a2000d',
     // 800: '#86000b',
@@ -78,7 +78,7 @@ const buttons = {
 const theme = {
   breakpoints,
   colors,
-  buttons
+  buttons,
 }
 
 export default theme

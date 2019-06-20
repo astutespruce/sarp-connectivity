@@ -1,19 +1,26 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { Image as BaseImage } from 'rebass'
 
-import styled, {theme} from 'style'
+import styled, { theme } from 'style'
 
 const Icon = ({ name, size, color, ...props }) => {
   /* eslint-disable-next-line */
   const svg = require(`icons/${name}.svg`)
 
-  const SVG = styled(svg)`
+  const Img = styled(BaseImage).attrs({
+    src: svg,
+    width: size,
+    height: size,
+    ...props,
+  })`
     flex-shrink: 0;
-    height: ${size};
-    width: ${size};
+    /* height: ${size};
+    width: ${size}; */
+    margin-bottom: 0;
   `
 
-  return <SVG {...props} />
+  return <Img />
 }
 
 Icon.propTypes = {

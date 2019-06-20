@@ -6,6 +6,7 @@ import { theme } from 'style'
 typeographyTheme.overrideThemeStyles = () => ({
   html: {
     height: '100%',
+    overflowY: 'hidden'
   },
   body: {
     height: '100%',

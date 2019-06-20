@@ -19,21 +19,22 @@ const Header = styled(Flex).attrs({ alignItems: 'center' })`
 
 const Title = styled(Text).attrs({ as: 'h3', fontSize: '2rem' })`
   flex: 1;
-  margin: 0 0 0 0.25rem;
+  margin: 0;
   font-weight: normal;
 `
 
 const Content = styled(Text)`
+  font-size: 1.05em;
   line-height: 1.5;
   color: ${themeGet('colors.primary.900')};
 `
 
-const HighlightBox = ({ icon, title, children }) => {
+const HighlightBox = ({ icon, title, children, ...props }) => {
   return (
-    <Wrapper>
+    <Wrapper {...props}>
       <Header>
-        {icon ? <Icon name={icon} size="3rem" /> : null}
-        <Title>{title}</Title>
+        {icon ? <Icon name={icon} size="3rem" mr="0.25rem" /> : null}
+        <Title textAlign={icon ? 'unset' : 'center'}>{title}</Title>
       </Header>
       <Content>{children}</Content>
     </Wrapper>

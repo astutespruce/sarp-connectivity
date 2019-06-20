@@ -1,28 +1,20 @@
 import React from 'react'
 import { Image } from 'rebass'
-import { FaChartBar, FaSearchLocation, FaSearch } from 'react-icons/fa'
+import { FaChartBar, FaSearchLocation } from 'react-icons/fa'
 
 import { Text } from 'components/Text'
 import { Link } from 'components/Link'
-import { HighlightBox as BaseHighlightBox } from 'components/Layout'
 import { SecondaryButton as Button } from 'components/Button'
-import { Columns, Column, Flex } from 'components/Grid'
+import { Columns, Flex } from 'components/Grid'
 import styled, { themeGet } from 'style'
 import SummarizeImage from 'images/summarize.jpg'
 import PrioritizeImage from 'images/prioritize.jpg'
 
-import { Section, Title } from './styles'
+import { Section, Title, NarrowColumn, WideColumn } from './styles'
 
-const NarrowColumn = styled(Column).attrs({
-  width: ['100%', '100%', '33%'],
-})``
-
-const WideColumn = styled(Column).attrs({
-  width: ['100%', '100%', '66%'],
-})``
 
 const Header = styled(Flex).attrs({ alignItems: 'center' })`
-  font-size: 1.75rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
   color: ${themeGet('colors.grey.900')};
 `
@@ -32,7 +24,7 @@ const Subtitle = styled(Text)`
 `
 
 const Screenshot = styled(Image).attrs({ width: '100%' })`
-  max-width: 300px;
+  border-radius: 0.25rem;
 `
 
 const BarIcon = styled(FaChartBar)`

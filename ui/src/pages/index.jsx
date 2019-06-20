@@ -4,14 +4,19 @@ import { graphql } from 'gatsby'
 
 import Layout from 'components/Layout'
 import { Container } from 'components/Grid'
-import { Link } from 'components/Link'
-import { HeaderImage } from 'components/Image'
-import Map from 'components/Map'
-import styled from 'style'
+import { HeaderImage, DividerImage } from 'components/Image'
 
-import { TopSection, InventorySection, ToolSection } from 'content/home'
+import {
+  TopSection,
+  InventorySection,
+  ToolSection,
+  ScoringSection,
+  UseCasesSection,
+  SARPSection,
+  CreditsSection,
+} from 'content/home'
 
-const IndexPage = ({ data: { headerImage } }) => (
+const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
   <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.fluid}
@@ -27,6 +32,34 @@ const IndexPage = ({ data: { headerImage } }) => (
       <TopSection />
       <InventorySection />
       <ToolSection />
+      <ScoringSection />
+    </Container>
+
+    <DividerImage
+      image={dividerImage1.childImageSharp.fluid}
+      height="75vh"
+      credits={{
+        author:
+          'Steeles Mill Dam Hitchcock Creek during removal. Peter Raabe, American Rivers.',
+      }}
+    />
+
+    <Container>
+      <UseCasesSection />
+    </Container>
+
+    <DividerImage
+      image={dividerImage2.childImageSharp.fluid}
+      height="50vh"
+      credits={{
+        author:
+          'Roaring River Dam Removal, Tennessee, 2017. Mark Thurman, Tennessee Wildlife Resources Agency.',
+      }}
+    />
+
+    <Container>
+      <SARPSection />
+      <CreditsSection />
     </Container>
   </Layout>
 )
@@ -34,12 +67,35 @@ const IndexPage = ({ data: { headerImage } }) => (
 IndexPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
+    dividerImage1: PropTypes.object.isRequired,
   }).isRequired,
 }
 
 export const pageQuery = graphql`
   query HomePageQuery {
     headerImage: file(relativePath: { eq: "iStock-181890680.jpg" }) {
+      childImageSharp {
+        fluid(maxWidth: 3200) {
+          ...GatsbyImageSharpFluid_withWebp
+        }
+      }
+    }
+    dividerImage1: file(
+      relativePath: {
+        eq: "Steeles_Mill_Dam_Hitchcock_Creek_during_removal__Peter_Raabe_A.jpg"
+      }
+    ) {
+      childImageSharp {
+        fluid(maxWidth: 3200) {
+          ...GatsbyImageSharpFluid_withWebp
+        }
+      }
+    }
+    dividerImage2: file(
+      relativePath: {
+        eq: "Roaring_River_dam_removal_-_All_the_Partners_-_DSC_0178.jpg"
+      }
+    ) {
       childImageSharp {
         fluid(maxWidth: 3200) {
           ...GatsbyImageSharpFluid_withWebp
