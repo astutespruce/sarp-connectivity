@@ -10,7 +10,14 @@ import styled, { themeGet } from 'style'
 import DamPhoto from 'images/9272554306_b34bf886f4_z.jpg'
 import NetworkGraphicSVG from 'images/functional_network.svg'
 
-import { Section, Title, NarrowColumn, WideColumn, ImageCredits } from '../styles'
+import {
+  Section,
+  Title,
+  NarrowColumn,
+  WideColumn,
+  ImageCredits,
+  Subtitle,
+} from '../styles'
 
 const Photo = styled(Image).attrs({ width: '100%' })`
   border-radius: 0.25rem;
@@ -24,8 +31,6 @@ const Header = styled(Flex).attrs({ alignItems: 'center' })`
   margin-bottom: 1rem;
 `
 
-const Subtitle = styled(Text)``
-
 const Step = styled(Flex)`
   color: #fff;
   background-color: ${themeGet('colors.grey.900')};
@@ -38,7 +43,6 @@ const Step = styled(Flex)`
   margin-right: 0.5rem;
   flex: 0 0 auto;
 `
-
 
 const List = styled.ul`
   li {
@@ -278,7 +282,10 @@ const Scoring = () => {
           </Column>
         </Columns>
 
-        <HighlightBox title="Network Connectivity + Watershed Condition" mt='2rem'>
+        <HighlightBox
+          title="Network Connectivity + Watershed Condition"
+          mt="2rem"
+        >
           <p>
             Aquatic barriers prioritized according to combined network
             connectivity and watershed condition are driven by both the length
@@ -288,31 +295,36 @@ const Scoring = () => {
           </p>
         </HighlightBox>
       </Section>
-      
+
       <Section>
-      <p>
-                To reduce the impact of outliers, such as very long functional networks, barriers are scored based on
-                their relative rank within the overall range of unique values for a given metric. Many barriers have the
-                same value for a given metric and are given the same relative score; this causes the distribution of
-                values among scores to be highly uneven in certain areas.
-                <br />
-                <br />
-                Once barriers have been scored for each of the above scenarios, they are binned into 20 tiers to
-                simplify interpretation and use. To do this, barriers that fall in the best 5% of the range of scores
-                for that metric are assigned to Tier 1 (top tier), whereas barriers that fall in the worst 5% of the
-                range of scores for that metric are assigned Tier 20 (bottom tier).
-                <br />
-                <br />
-                
-            </p>
-            <Note>
-                <WarningIcon />
-                Note: tiers are based on position within the range of observed scores for a given area. They are{" "}
-                <i>not</i> based on the frequency of scores, such as percentiles, and therefore may have a highly uneven
-                number of dams per tier depending on the area. In general, there are fewer barriers in the top tiers
-                than there are in the bottom tiers. This is largely because many barriers share the same value for a
-                given metric.
-                </Note>
+        <p>
+          To reduce the impact of outliers, such as very long functional
+          networks, barriers are scored based on their relative rank within the
+          overall range of unique values for a given metric. Many barriers have
+          the same value for a given metric and are given the same relative
+          score; this causes the distribution of values among scores to be
+          highly uneven in certain areas.
+          <br />
+          <br />
+          Once barriers have been scored for each of the above scenarios, they
+          are binned into 20 tiers to simplify interpretation and use. To do
+          this, barriers that fall in the best 5% of the range of scores for
+          that metric are assigned to Tier 1 (top tier), whereas barriers that
+          fall in the worst 5% of the range of scores for that metric are
+          assigned Tier 20 (bottom tier).
+          <br />
+          <br />
+        </p>
+        <Note>
+          <WarningIcon />
+          Note: tiers are based on position within the range of observed scores
+          for a given area. They are <i>not</i> based on the frequency of
+          scores, such as percentiles, and therefore may have a highly uneven
+          number of dams per tier depending on the area. In general, there are
+          fewer barriers in the top tiers than there are in the bottom tiers.
+          This is largely because many barriers share the same value for a given
+          metric.
+        </Note>
       </Section>
     </>
   )

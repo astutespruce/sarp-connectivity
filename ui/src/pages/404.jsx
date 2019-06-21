@@ -9,11 +9,15 @@ const IndexPage = ({ data: { headerImage } }) => (
   <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.fluid}
-      height="100vh"
+      height="100%"
       minHeight="22rem"
       position="center"
       title="PAGE NOT FOUND"
-      subtitle="However, we hope that by restoring aquatic connectivity, aquatic organisms will continue to be found."
+      subtitle="However, we hope that by restoring aquatic connectivity, aquatic organisms will continue to be FOUND."
+      credits={{
+        author: 'U.S. Fish & Wildlife Service Southeast Region',
+        url: 'https://www.flickr.com/photos/usfwssoutheast/25898720604/',
+      }}
     />
   </Layout>
 )

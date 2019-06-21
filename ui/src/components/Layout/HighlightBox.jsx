@@ -9,6 +9,7 @@ import styled, { themeGet } from 'style'
 const Wrapper = styled(Box).attrs({ p: '1rem' })`
   background: ${themeGet('colors.primary.100')};
   border-radius: 0.5rem;
+  flex: 1 0 auto;
 `
 
 const Header = styled(Flex).attrs({ alignItems: 'center' })`
@@ -33,7 +34,7 @@ const HighlightBox = ({ icon, title, children, ...props }) => {
   return (
     <Wrapper {...props}>
       <Header>
-        {icon ? <Icon name={icon} size="3rem" mr="0.25rem" /> : null}
+        {icon ? <Icon name={icon} size="4rem" mr="0.25rem" /> : null}
         <Title textAlign={icon ? 'unset' : 'center'}>{title}</Title>
       </Header>
       <Content>{children}</Content>

@@ -10,16 +10,10 @@ import { HeaderImage, GatsbyImage } from 'components/Image'
 import { extractNodes, GraphQLArrayPropType } from 'util/graphql'
 import { groupBy } from 'util/data'
 import styled, { themeGet } from 'style'
-import { Section, ImageCredits } from 'content/styles'
+import { PageTitle, Section, ImageCredits, PageContainer } from 'content/styles'
 import { CONNECTIVITY_TEAMS } from '../../config/constants'
 
-const Content = styled(Container).attrs({
-  px: ['1rem', '1rem', 0],
-  mt: '2rem',
-  mb: '4rem',
-})``
 
-const Title = styled(Text).attrs({ as: 'h1', fontSize: '3rem' })``
 
 
 const TeamSection = styled(Section)`
@@ -74,8 +68,8 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
         }}
       />
 
-      <Content>
-        <Title>Aquatic Connectivity Teams</Title>
+      <PageContainer>
+        <PageTitle>Aquatic Connectivity Teams</PageTitle>
 
         <div>
           {Object.entries(CONNECTIVITY_TEAMS).map(([state, team], i) => (
@@ -118,7 +112,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
             </Credits>
           </TeamSection>
         </div>
-      </Content>
+      </PageContainer>
     </Layout>
   )
 }

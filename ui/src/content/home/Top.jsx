@@ -5,22 +5,18 @@ import { Link } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
 import { Columns, Column as BaseColumn } from 'components/Grid'
 import styled from 'style'
-import { Section, Title } from '../styles'
-
-const Intro = styled(Text).attrs({ as: 'p' })`
-  margin-top: 2rem;
-  font-size: 1.5rem;
-`
+import { Section, Title, LargeText } from '../styles'
 
 const Column = styled(BaseColumn).attrs({
   width: ['100%', '100%', '33%'],
   px: '0.5rem',
-})``
+})`
+`
 
 const Top = () => {
   return (
     <>
-      <Intro>
+      <LargeText>
         Aquatic connectivity is essential. Fish and other aquatic organisms
         depend on high quality, connected river networks. A legacy of human use
         of river networks have left them fragmented by barriers such as dams and
@@ -33,7 +29,7 @@ const Top = () => {
         mitigation. Through this tool and others, we empower you by providing
         information on documented barriers and standardized methods by which to
         prioritize barriers of interest for restoration efforts.
-      </Intro>
+      </LargeText>
 
       <Section>
         <Title>
