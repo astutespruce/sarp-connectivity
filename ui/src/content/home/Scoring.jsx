@@ -69,7 +69,7 @@ const NetworkGraphic = styled(Image).attrs({ src: NetworkGraphicSVG })`
 const Scoring = () => {
   return (
     <>
-      <Section>
+      <Section id="prioritize">
         <Title>How are barriers prioritized for removal?</Title>
         <Header>
           <Step>

@@ -65,10 +65,6 @@ const Inventory = () => {
             ground knowledge of specific structures.{' '}
             <Link
               to="#example"
-              // onClick={e => {
-              //     e.preventDefault()
-              //     scrollIntoView("Example", "smooth")
-              // }}
             >
               See an example of how the inventory can assist local partners to
               identify and prioritize barriers for removal.

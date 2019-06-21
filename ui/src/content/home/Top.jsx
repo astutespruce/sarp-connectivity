@@ -1,6 +1,5 @@
 import React from 'react'
 
-import { Text } from 'components/Text'
 import { Link } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
 import { Columns, Column as BaseColumn } from 'components/Grid'

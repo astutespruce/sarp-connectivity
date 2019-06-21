@@ -25,7 +25,7 @@ const UseCases = () => {
   `).removalImage.childImageSharp.fluid
 
   return (
-    <Section>
+    <Section id="example">
       <Title>Example: prioritizing a failing dam for removal</Title>
       <p>
         The Southeast Aquatic Barrier Inventory and this tool will enable

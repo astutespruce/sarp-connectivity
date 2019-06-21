@@ -54,8 +54,6 @@ const teamImageCredits = {
 const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
   const images = groupBy(extractNodes(imagesSharp), 'state')
 
-  console.log(images)
-
   return (
     <Layout>
       <HeaderImage
