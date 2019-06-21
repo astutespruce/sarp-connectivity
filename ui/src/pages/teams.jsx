@@ -101,7 +101,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
               ) : null}
             </TeamSection>
           ))}
-          <Section>
+          <TeamSection>
             <p>
               For more information about Aquatic Connectivity Teams, please see
               the{' '}
@@ -114,9 +114,9 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
 
             <Image fluid={footerImage.childImageSharp.fluid} />
             <Credits>
-            Jessica Graham, Southeast Aquatic Resources Partnership.
+            Photo: Jessica Graham, Southeast Aquatic Resources Partnership.
             </Credits>
-          </Section>
+          </TeamSection>
         </div>
       </Content>
     </Layout>
