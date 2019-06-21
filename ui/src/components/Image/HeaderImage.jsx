@@ -76,7 +76,7 @@ const Subtitle = styled(Text).attrs({
 
 const ImageCredits = styled.div`
   color: ${themeGet('colors.grey.300')};
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   position: absolute;
   z-index: 1000;
   bottom: 0;

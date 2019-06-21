@@ -5,7 +5,7 @@ import Img from 'gatsby-image'
 import { Box } from 'components/Grid'
 import { OutboundLink } from 'components/Link'
 
-import { Section, Title, ImageCredits } from './styles'
+import { Section, Title, ImageCredits } from '../styles'
 
 const UseCases = () => {
   const img = useStaticQuery(graphql`

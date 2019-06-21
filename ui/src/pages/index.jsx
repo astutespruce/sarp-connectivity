@@ -5,6 +5,7 @@ import { graphql } from 'gatsby'
 import Layout from 'components/Layout'
 import { Container } from 'components/Grid'
 import { HeaderImage, DividerImage } from 'components/Image'
+import styled from 'style'
 
 import {
   TopSection,
@@ -15,6 +16,10 @@ import {
   SARPSection,
   CreditsSection,
 } from 'content/home'
+
+const Content = styled(Container).attrs({
+  px: ['1rem', '1rem', 0],
+})``
 
 const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
   <Layout>
@@ -28,12 +33,12 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
       available data."
     />
 
-    <Container>
+    <Content>
       <TopSection />
       <InventorySection />
       <ToolSection />
       <ScoringSection />
-    </Container>
+    </Content>
 
     <DividerImage
       image={dividerImage1.childImageSharp.fluid}
@@ -44,9 +49,9 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
       }}
     />
 
-    <Container>
+    <Content>
       <UseCasesSection />
-    </Container>
+    </Content>
 
     <DividerImage
       image={dividerImage2.childImageSharp.fluid}
@@ -57,10 +62,10 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
       }}
     />
 
-    <Container>
+    <Content>
       <SARPSection />
       <CreditsSection />
-    </Container>
+    </Content>
   </Layout>
 )
 
@@ -68,6 +73,7 @@ IndexPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
     dividerImage1: PropTypes.object.isRequired,
+    dividerImage2: PropTypes.object.isRequired,
   }).isRequired,
 }
 

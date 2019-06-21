@@ -5,9 +5,9 @@ import { Link } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
 import { Columns, Column as BaseColumn } from 'components/Grid'
 import styled from 'style'
-import { Section, Title } from './styles'
+import { Section, Title } from '../styles'
 
-const Intro = styled(Text).attrs({as: 'p'})`
+const Intro = styled(Text).attrs({ as: 'p' })`
   margin-top: 2rem;
   font-size: 1.5rem;
 `
@@ -41,7 +41,7 @@ const Top = () => {
           data:
         </Title>
 
-        <Columns>
+        <Columns flexWrap={['wrap']}>
           <Column>
             <HighlightBox title="Inventory" icon="dam">
               The aquatic barrier inventory is the foundation for identifying
@@ -79,7 +79,6 @@ const Top = () => {
             </HighlightBox>
           </Column>
         </Columns>
-
       </Section>
     </>
   )

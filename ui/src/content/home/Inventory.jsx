@@ -9,7 +9,7 @@ import styled, { themeGet } from 'style'
 import { formatNumber } from 'util/format'
 import SARPLogoImage from 'images/sarp_logo.png'
 
-import { Section, Title, NarrowColumn, WideColumn } from './styles'
+import { Section, Title, NarrowColumn, WideColumn } from '../styles'
 
 import summaryStats from '../../../data/summary_stats.json'
 

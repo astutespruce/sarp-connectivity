@@ -10,7 +10,7 @@ import styled, { themeGet } from 'style'
 import SummarizeImage from 'images/summarize.jpg'
 import PrioritizeImage from 'images/prioritize.jpg'
 
-import { Section, Title, NarrowColumn, WideColumn } from './styles'
+import { Section, Title, NarrowColumn, WideColumn } from '../styles'
 
 
 const Header = styled(Flex).attrs({ alignItems: 'center' })`

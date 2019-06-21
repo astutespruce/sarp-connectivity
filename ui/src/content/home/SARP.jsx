@@ -7,7 +7,7 @@ import { Columns, } from 'components/Grid'
 import styled from 'style'
 import SARPLogoImage from 'images/sarp_logo.png'
 import ForestStreamImage from 'images/6882770647_60c0d68a9c_z.jpg'
-import GeorgiaACTImage from 'images/GA_ACT.jpg'
+import GeorgiaACTImage from 'images/GA_ACT_small.jpg'
 
 import {
   Section,
@@ -15,7 +15,7 @@ import {
   NarrowColumn,
   WideColumn,
   ImageCredits,
-} from './styles'
+} from '../styles'
 
 const SARPLogo = styled(Image).attrs({ src: SARPLogoImage, width: '100%' })`
   max-width: 300px;
@@ -112,9 +112,7 @@ const SARP = () => {
             <ImageCredits>
                 Photo:{' '}
               <OutboundLink
-                href="https://www.southeastaquatics.net/news/white-dam-removal-motivates-georgia-conservation-practitioners"
-                target="_blank"
-                rel="noopener noreferrer"
+                to="https://www.southeastaquatics.net/news/white-dam-removal-motivates-georgia-conservation-practitioners"
               >
                 Georgia Aquatic Connectivity Team
               </OutboundLink>

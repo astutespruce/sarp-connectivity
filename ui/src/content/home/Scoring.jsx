@@ -10,7 +10,7 @@ import styled, { themeGet } from 'style'
 import DamPhoto from 'images/9272554306_b34bf886f4_z.jpg'
 import NetworkGraphicSVG from 'images/functional_network.svg'
 
-import { Section, Title, NarrowColumn, WideColumn, ImageCredits } from './styles'
+import { Section, Title, NarrowColumn, WideColumn, ImageCredits } from '../styles'
 
 const Photo = styled(Image).attrs({ width: '100%' })`
   border-radius: 0.25rem;
@@ -154,7 +154,8 @@ const Scoring = () => {
               used for offline analysis.
             </Note>
           </WideColumn>
-          <NarrowColumn>
+
+          <NarrowColumn display={['none', 'unset']}>
             <NetworkGraphic />
           </NarrowColumn>
         </Columns>

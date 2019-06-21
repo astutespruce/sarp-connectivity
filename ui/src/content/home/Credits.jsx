@@ -6,7 +6,7 @@ import { Columns } from 'components/Grid'
 import styled, { themeGet } from 'style'
 import CBILogoImage from 'images/cbi_logo.png'
 
-import { Section, NarrowColumn, WideColumn } from './styles'
+import { Section, NarrowColumn, WideColumn } from '../styles'
 
 const Content = styled.div`
   margin-bottom: 4rem;
