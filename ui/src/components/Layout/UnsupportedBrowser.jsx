@@ -9,16 +9,17 @@ const IconHeader = styled.h1`
 `
 
 const StyledIcon = styled(FaExclamationTriangle)`
-  height: 10rem;
-  width: 10rem;
+  height: 8rem;
+  width: 8rem;
   margin-right: 1rem;
   color: #fff;
 `
 
 const WarningBox = styled(Box)`
-  margin-top: 2rem;
+  margin: 2rem;
   padding: 2rem;
-  background-color: ${themeGet('colors.primary.900')};
+  background-color: ${themeGet('colors.primary.500')};
+  border-radius: 2rem;
 
   h1 {
     color: #fff;

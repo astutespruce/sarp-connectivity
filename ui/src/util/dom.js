@@ -8,3 +8,5 @@ export const isUnsupported =
     /Trident/i.test(navigator.userAgent))
 
 export const isDebug = hasWindow && process.env.NODE_ENV === 'development'
+
+export const hasGeolocation = hasWindow && navigator && 'geolocation' in navigator

@@ -1,5 +1,12 @@
-import Button, {DefaultButton, PrimaryButton, SecondaryButton, DisabledButton} from './Button'
+import Button, { DefaultButton, PrimaryButton, SecondaryButton } from './Button'
 import ButtonGroup from './ButtonGroup'
 import ToggleButton from './ToggleButton'
 
-export {Button, DefaultButton, PrimaryButton, SecondaryButton, DisabledButton, ButtonGroup, ToggleButton}
+export {
+  Button,
+  DefaultButton,
+  PrimaryButton,
+  SecondaryButton,
+  ButtonGroup,
+  ToggleButton,
+}

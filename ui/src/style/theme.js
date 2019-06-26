@@ -62,6 +62,7 @@ const colors = {
 
 const buttons = {
   default: {
+    type: 'button',
     backgroundColor: colors.grey[900],
   },
   primary: {
@@ -69,6 +70,9 @@ const buttons = {
   },
   secondary: {
     backgroundColor: colors.secondary[500],
+  },
+  warning: {
+    backgroundColor: '#ea1b00',
   },
   disabled: {
     backgroundColor: colors.grey[300],

@@ -36,7 +36,7 @@ Sidebar.propTypes = {
 }
 
 Sidebar.defaultProps = {
-  allowScroll: true,
+  allowScroll: false,
 }
 
 export default Sidebar

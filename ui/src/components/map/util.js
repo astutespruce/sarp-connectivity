@@ -7,7 +7,7 @@ import geoViewport from '@mapbox/geo-viewport'
  * @param {float} padding - proportion of calculated zoom level to zoom out by, to pad the bounds
  */
 export const getCenterAndZoom = (mapNode, bounds, padding = 0) => {
-  const { width, height } = mapNode
+  const { offsetWidth: width, offsetHeight: height } = mapNode
   const viewport = geoViewport.viewport(
     bounds,
     [width, height],

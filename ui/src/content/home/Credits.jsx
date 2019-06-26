@@ -13,7 +13,7 @@ const Content = styled.div`
 `
 
 const CBILogo = styled(Image).attrs({ src: CBILogoImage })`
-  height: 54px;
+  max-width: 300px;
 `
 
 const Divider = styled.div`
