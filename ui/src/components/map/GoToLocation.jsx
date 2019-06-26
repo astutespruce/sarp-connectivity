@@ -75,13 +75,20 @@ const Input = styled.input.attrs({
   font-size: 0.8em;
   outline: none;
   margin-left: 0.25em;
-  padding: 0.1em 0.25em;
+  padding: 0.25em;
+  border-radius: 0.25em;
+
+  border: 1px solid ${themeGet('colors.grey.500')};
+  &:focus {
+    border-color: ${themeGet('colors.primary.500')};
+  }
+
 
   ${({ isValid }) =>
     !isValid &&
     css`
       color: #ea1b00;
-      border-color: #ea1b00;
+      border-color: #ea1b00 !important;
     `}
 `
 
@@ -108,7 +115,7 @@ const LinkButton = styled(Button)`
 
 const GoToLocation = ({ setLocation }) => {
   const [state, setState] = useState({
-    isOpen: true,
+    isOpen: false,
     isPending: false,
     lat: '',
     lon: '',

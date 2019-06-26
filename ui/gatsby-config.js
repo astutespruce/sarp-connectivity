@@ -31,6 +31,13 @@ module.exports = {
       },
     },
     {
+      resolve: `gatsby-transformer-json`,
+      options: {
+        // name the top-level type after the filename
+        typeName: ({ node }) => `${node.name}Json`,
+      },
+    },
+    {
       resolve: `gatsby-plugin-styled-components`,
       options: {
         displayName: process.env.NODE_ENV !== `production`,

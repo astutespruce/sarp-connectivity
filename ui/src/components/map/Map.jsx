@@ -31,7 +31,7 @@ if (!mapboxToken) {
 
 const { bounds, baseStyle, minZoom, maxZoom } = config
 
-const Map = () => {
+const Map = ({searchFeature, selectedFeature}) => {
   // if there is no window, we cannot render this component
   if (!hasWindow) {
     return null
@@ -74,7 +74,6 @@ const Map = () => {
     // }
 
     map.on('load', () => {
-      console.log('map onload')
       // add sources
       Object.entries(sources).forEach(([id, source]) => {
         map.addSource(id, source)
