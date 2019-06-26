@@ -10,6 +10,7 @@ export const DefaultButton = styled(BaseButton).attrs({
   opacity: 1;
   transition: opacity 0.25s linear;
   border-radius: 0.1em;
+  font-weight: normal;
 
   &:hover {
     opacity: 0.8;

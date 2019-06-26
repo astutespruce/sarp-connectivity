@@ -43,8 +43,6 @@ const UnitSearch = ({ system, layer, onSelect }) => {
   const data = useBoundsData()
   const [query, setQuery] = useState('')
 
-  console.log('data', data)
-
   const showID = layer
     ? !(layer === 'State' || layer === 'County')
     : system !== 'ADM'

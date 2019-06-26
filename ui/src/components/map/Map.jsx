@@ -31,7 +31,7 @@ if (!mapboxToken) {
 
 const { bounds, baseStyle, minZoom, maxZoom } = config
 
-const Map = ({searchFeature, selectedFeature}) => {
+const Map = ({ searchFeature, selectedFeature }) => {
   // if there is no window, we cannot render this component
   if (!hasWindow) {
     return null
@@ -93,6 +93,32 @@ const Map = ({searchFeature, selectedFeature}) => {
       map.remove()
     }
   }, [])
+
+  useEffect(() => {
+    const { current: map } = mapRef
+
+    if (!(map && searchFeature)) {
+      return
+    }
+
+    const { id = null, layer, bbox, maxZoom: fitBoundsMaxZoom } = searchFeature
+    // if feature is already visible, select it
+    // otherwise, zoom and attempt to select it
+
+    // TODO: re-enable
+    // let feature = this.selectFeatureByID(id, layer)
+    // if (!feature) {
+    //     map.once("moveend", () => {
+    //         feature = this.selectFeatureByID(id, layer)
+    //         // source may still be loading, try again in 1 second
+    //         if (!feature) {
+    //             setTimeout(() => {this.selectFeatureByID(id, layer)}, 1000)
+    //         }
+    //     })
+    // }
+
+    map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
+  }, [searchFeature])
 
   const handleSetLocation = ({ latitude, longitude }) => {
     const { current: map } = mapRef

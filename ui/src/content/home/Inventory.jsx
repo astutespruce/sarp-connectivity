@@ -1,40 +1,36 @@
 import React from 'react'
-import {Image} from 'rebass'
+import { Image } from 'rebass'
 
-import { Text } from 'components/Text'
 import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox as BaseHighlightBox } from 'components/Layout'
-import { Columns, Column, Box } from 'components/Grid'
-import styled, { themeGet } from 'style'
+import { Columns } from 'components/Grid'
+import styled from 'style'
 import { formatNumber } from 'util/format'
+import { useSummaryData } from 'components/Data'
 import SARPLogoImage from 'images/sarp_logo.png'
 
 import { Section, Title, NarrowColumn, WideColumn } from '../styles'
 
-import summaryStats from '../../../data/summary_stats.json'
-
-// TODO: useStaticQuery
-const { dams, barriers, miles } = summaryStats.southeast
-
-
 const HighlightBox = styled(BaseHighlightBox)`
-h3 { text-align: center;}
-
+  h3 {
+    text-align: center;
+  }
 `
 
 const Stats = styled.ul`
-list-style: none;
-font-size: 1.25rem;
-margin-left: 0;
-margin-bottom: 6rem !important;
+  list-style: none;
+  font-size: 1.25rem;
+  margin-left: 0;
+  margin-bottom: 6rem !important;
 `
 
-const SARPLogo = styled(Image).attrs({src: SARPLogoImage, width: '100%'})`
-max-width: 300px;
+const SARPLogo = styled(Image).attrs({ src: SARPLogoImage, width: '100%' })`
+  max-width: 300px;
 `
-
 
 const Inventory = () => {
+  const { dams, barriers, miles } = useSummaryData()
+
   return (
     <Section>
       <Title>The Southeast Aquatic Barrier Inventory:</Title>
@@ -63,9 +59,7 @@ const Inventory = () => {
             This inventory consists of datasets from local, state, and federal
             partners. It is supplemented with input from partners with on the
             ground knowledge of specific structures.{' '}
-            <Link
-              to="#example"
-            >
+            <Link to="#example">
               See an example of how the inventory can assist local partners to
               identify and prioritize barriers for removal.
             </Link>
@@ -81,20 +75,24 @@ const Inventory = () => {
 
         <NarrowColumn>
           <HighlightBox title="At a Glance" icon="">
-              <Stats>
-            <li><b>14</b> states and Puerto Rico</li>
-            <li>
-            <b>{formatNumber(dams, 0)}</b> dams</li>
-            <li>
-            <b>{formatNumber(barriers, 0)}</b> road-related barriers assessed
-            for impact to aquatic organisms</li>
-            <li>
-            <b>{formatNumber(miles, 1)}</b> miles of connected aquatic network
-            length, on average</li>
+            <Stats>
+              <li>
+                <b>14</b> states and Puerto Rico
+              </li>
+              <li>
+                <b>{formatNumber(dams, 0)}</b> dams
+              </li>
+              <li>
+                <b>{formatNumber(barriers, 0)}</b> road-related barriers
+                assessed for impact to aquatic organisms
+              </li>
+              <li>
+                <b>{formatNumber(miles, 1)}</b> miles of connected aquatic
+                network length, on average
+              </li>
             </Stats>
 
             <SARPLogo />
-            
           </HighlightBox>
         </NarrowColumn>
       </Columns>
