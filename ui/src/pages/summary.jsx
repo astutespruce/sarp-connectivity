@@ -31,11 +31,12 @@ const Note = styled(HelpText).attrs({ mt: '3rem' })`
 `
 
 const TopBarToggle = styled(ToggleButton)`
-  font-size: 0.8rem;
   margin: 0 1rem;
 
   button {
-    text-transform: lowercase !important;
+    text-transform: lowercase;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
   }
 `
 

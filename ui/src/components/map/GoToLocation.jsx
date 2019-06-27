@@ -1,12 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, memo } from 'react'
 import PropTypes from 'prop-types'
 import { FaCrosshairs, FaLocationArrow } from 'react-icons/fa'
+import mapboxgl from 'mapbox-gl'
 
 import { Box, Flex } from 'components/Grid'
 import { Button as BaseButton } from 'components/Button'
 import { hasGeolocation } from 'util/dom'
 import styled, { themeGet, keyframes, css } from 'style'
-import { LocationPropType } from './proptypes'
 import { MapControlWrapper } from './styles'
 
 const navigatorOptions = {
@@ -113,7 +113,8 @@ const LinkButton = styled(Button)`
   background: none;
 `
 
-const GoToLocation = ({ setLocation }) => {
+const GoToLocation = ({ map }) => {
+  const markerRef = useRef(null)
   const [state, setState] = useState({
     isOpen: false,
     isPending: false,
@@ -127,7 +128,7 @@ const GoToLocation = ({ setLocation }) => {
 
   const handleLatitudeChange = ({ target: { value } }) => {
     setState(prevState => ({
-      ...state,
+      ...prevState,
       lat: value,
       isLatValid: value === '' || Math.abs(parseFloat(value)) < 89,
     }))
@@ -213,13 +214,29 @@ const GoToLocation = ({ setLocation }) => {
     )
   }
 
+  const setLocation = ({ latitude, longitude }) => {
+      const { current: marker } = markerRef
+  
+      if (latitude === null || longitude === null) {
+        if (marker) {
+          marker.remove()
+        }
+  
+        markerRef.current = null
+      } else {
+        map.flyTo({ center: [longitude, latitude], zoom: 9 })
+        if (!marker) {
+          markerRef.current = new mapboxgl.Marker()
+            .setLngLat([longitude, latitude])
+            .addTo(map)
+        } else {
+          markerRef.current.setLngLat([longitude, latitude])
+        }
+      }
+  }
+
   return (
     <Wrapper isOpen={isOpen}>
-      {/* <div
-        className={`map-control map-control-lat-long ${
-          isOpen ? 'is-open' : ''
-        }`}
-      > */}
       {isPending ? (
         <PendingIcon
           onClick={handleToggle}
@@ -228,13 +245,7 @@ const GoToLocation = ({ setLocation }) => {
       ) : (
         <Icon onClick={handleToggle} title="Go to latitude / longitude" />
       )}
-      {/* <div
-          className={`fas fa-crosshairs is-size-5 map-control-toggle ${
-            isPending ? 'fa-spin' : ''
-          }`}
-          onClick={handleToggle}
-          title="Go to latitude / longitude"
-        /> */}
+
       {isOpen ? (
         <>
           <Header>Go to latitude / longitude</Header>
@@ -286,7 +297,8 @@ const GoToLocation = ({ setLocation }) => {
 }
 
 GoToLocation.propTypes = {
-  setLocation: PropTypes.func.isRequired,
+  map: PropTypes.object.isRequired
+  // setLocation: PropTypes.func.isRequired,
 }
 
-export default GoToLocation
+export default memo(GoToLocation)

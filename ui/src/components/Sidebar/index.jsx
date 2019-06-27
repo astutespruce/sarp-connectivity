@@ -6,7 +6,7 @@ import styled, { themeGet } from 'style'
 
 // This sidebar is responsive: it shrinks a bit in smaller viewports, then eventually expands to fill the full width
 const Wrapper = styled(Box).attrs({
-  width: ['100%', '350px', '470px'],
+  width: ['100%', '350px', '400px'],
   flex: '0 0 auto',
 })`
   border-right: 1px solid ${themeGet('colors.grey.800')};
