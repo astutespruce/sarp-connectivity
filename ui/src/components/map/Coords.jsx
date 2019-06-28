@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react'
+import React, { useState, memo, useEffect } from 'react'
 import PropTypes from 'prop-types'
 
 import styled from 'style'
@@ -16,14 +16,16 @@ const Wrapper = styled.div`
 const Coords = ({ map }) => {
   const [{ lat, lng }, setCoords] = useState({})
 
-  // Track mouse cursor and display coordinates
-  map.on('mousemove', ({ lngLat }) => {
-    setCoords(lngLat)
-  })
+  useEffect(() => {
+    // Track mouse cursor and display coordinates
+    map.on('mousemove', ({ lngLat }) => {
+      setCoords(lngLat)
+    })
 
-  map.on('mouseout', () => {
-    setCoords({})
-  })
+    map.on('mouseout', () => {
+      setCoords({})
+    })
+  }, [])
 
   return (
     lat !== undefined &&
