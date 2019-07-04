@@ -11,41 +11,6 @@ export const config = {
 }
 
 export const sources = {
-  // imagery: {
-  //   type: 'raster',
-  //   tiles: [
-  //     '//server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  //   ],
-  //   // attribution:
-  //   //   'Esri, DigitalGlobe, Earthstar Geographics, CNES/Airbus DS, GeoEye, USDA FSA, USGS, Aerogrid, IGN, IGP, and the GIS User Community',
-  //   tileSize: 256,
-  // },
-  // imageryReference: {
-  //   type: 'raster',
-  //   tiles: [
-  //     '//services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
-  //   ],
-  //   // attribution:
-  //   //   'Esri, HERE, Garmin, (c) OpenStreetMap contributors, and the GIS user community ',
-  //   tileSize: 256,
-  // },
-  // imageryStreets: {
-  //   type: 'raster',
-  //   tiles: [
-  //     '//services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
-  //   ],
-  //   // attribution: 'Esri, HERE, Garmin, (c) OpenStreetMap contributors',
-  //   tileSize: 256,
-  // },
-  // topo: {
-  //   type: 'raster',
-  //   tiles: [
-  //     '//services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
-  //   ],
-  //   // attribution:
-  //   // 'Esri, HERE, Garmin, Intermap, INCREMENT P, GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), © OpenStreetMap contributors, GIS User Community',
-  //   tileSize: 256,
-  // },
   sarp: {
     type: 'vector',
     maxzoom: 8,
@@ -62,8 +27,7 @@ export const basemapLayers = {
         tiles: [
           '//server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         ],
-        attribution:
-          'Esri, DigitalGlobe. ...',
+        attribution: 'Esri, DigitalGlobe. ...',
         tileSize: 256,
       },
       type: 'raster',
@@ -114,8 +78,7 @@ export const basemapLayers = {
         tiles: [
           '//services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
         ],
-        attribution:
-        'Esri, HERE, Garmin, ...',
+        attribution: 'Esri, HERE, Garmin, ...',
         tileSize: 256,
       },
       type: 'raster',

@@ -23,3 +23,26 @@ export const getCenterAndZoom = (mapNode, bounds, padding = 0) => {
 
   return { center: viewport.center, zoom }
 }
+
+/**
+ * Interleaves a and b arrays into a single flat array:
+ * a=[1,2], b=[3,4]
+ * returns [1,3,2,4]
+ *
+ * @param {Array} a
+ * @param {Array} b
+ */
+const flatzip = (a, b) => {
+  if (a.length !== b.length) {
+    throw new Error('arrays must be equal to use zip')
+  }
+
+  return a.reduce((prev, v, i) => prev.concat([v, b[i]]), [])
+}
+
+export const interpolateExpr = (property, domain, range) => [
+  'interpolate',
+  ['linear'],
+  ['get', property],
+  ...flatzip(domain, range),
+]

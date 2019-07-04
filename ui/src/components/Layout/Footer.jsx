@@ -15,7 +15,7 @@ const Wrapper = styled(Flex).attrs({
   color: #fff;
   flex: 0 0 auto;
   border-top: ${themeGet('colors.grey.900')};
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 `
 
 const Link = styled(OutboundLink).attrs({

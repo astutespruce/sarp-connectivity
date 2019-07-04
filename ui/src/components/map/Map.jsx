@@ -21,6 +21,10 @@ const Wrapper = styled.div`
   flex: 1 0 auto;
   height: 100%;
   z-index: 1;
+
+  .mapboxgl-canvas {
+    outline: none;
+  }
 `
 
 const { mapboxToken } = siteMetadata
@@ -32,7 +36,7 @@ if (!mapboxToken) {
 
 const { bounds, styleID, minZoom, maxZoom } = config
 
-const Map = ({ searchFeature, selectedFeature }) => {
+const Map = ({ searchFeature, selectedFeature, onCreateMap }) => {
   // if there is no window, we cannot render this component
   if (!hasWindow) {
     return null
@@ -60,29 +64,18 @@ const Map = ({ searchFeature, selectedFeature }) => {
     })
     window.map = mapObj // for easier debugging and querying via console
 
-
     mapObj.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
     mapObj.on('load', () => {
-
-    // rerender to pass map into child components
-    setMap(mapObj)
-
       // add sources
       Object.entries(sources).forEach(([id, source]) => {
         mapObj.addSource(id, source)
       })
 
-
-
-      // // add layers
-      // layers.forEach(layer => {
-      //   map.addLayer(layer)
-      // })
+      // rerender to pass map into child components
+      setMap(mapObj)
+      onCreateMap(mapObj)
     })
-
-    // hook up map events here, such as click, mouseenter, mouseleave
-    // e.g., map.on('click', (e) => {})
 
     // when this component is destroyed, remove the map
     return () => {
@@ -134,13 +127,12 @@ const Map = ({ searchFeature, selectedFeature }) => {
 }
 
 Map.propTypes = {
-  layers: PropTypes.arrayOf(PropTypes.object),
   selectedFeature: FeaturePropType,
   searchFeature: SearchFeaturePropType,
+  onCreateMap: PropTypes.func.isRequired,
 }
 
 Map.defaultProps = {
-  layers: [],
   selectedFeature: null,
   searchFeature: null,
 }

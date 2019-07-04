@@ -5,7 +5,8 @@ import { Flex, Box } from 'components/Grid'
 import Layout from 'components/Layout'
 import Sidebar from 'components/Sidebar'
 import UnitSearch from 'components/UnitSearch'
-import { Map, TopBar } from 'components/Map'
+import { TopBar } from 'components/Map'
+import {Map, UnitDetails} from 'components/Summary'
 import { useSummaryData } from 'components/Data'
 import { ToggleButton } from 'components/Button'
 import { formatNumber } from 'util/format'
@@ -55,6 +56,7 @@ const SummaryPage = () => {
   const [system, setSystem] = useState('HUC')
   const [barrierType, setBarrierType] = useState('dams')
   const [searchFeature, setSearchFeature] = useState(null)
+  const [selectedUnit, setSelectedUnit] = useState(null)
 
   const handleSearch = nextSearchFeature => {
     setSearchFeature(nextSearchFeature)
@@ -66,12 +68,24 @@ const SummaryPage = () => {
 
   const handleSetSytem = nextSystem => {
     setSystem(nextSystem)
+    setSelectedUnit(null)
+  }
+
+  const handleSelectUnit = feature => {
+    setSelectedUnit(feature)
+  }
+
+  const handleDetailsClose = () => {
+    setSelectedUnit(null)
   }
 
   return (
     <Layout title="Summarize">
       <Wrapper>
         <Sidebar>
+        {selectedUnit !== null ? (
+              <UnitDetails summaryUnit={selectedUnit} barrierType={barrierType} onClose={handleDetailsClose}/>
+            ) : (
           <SidebarContent>
             <Intro>
               Across the Southeast, there are at least {formatNumber(dams, 0)}{' '}
@@ -91,9 +105,16 @@ const SummaryPage = () => {
               complete inventory.
             </Note>
           </SidebarContent>
+          )}
         </Sidebar>
         <MapContainer>
-          <Map searchFeature={searchFeature} />
+          <Map
+            barrierType={barrierType}
+            system={system}
+            searchFeature={searchFeature}
+            selectedUnit={selectedUnit}
+            onSelectUnit={handleSelectUnit}
+          />
           <TopBar>
             Show:
             <TopBarToggle
