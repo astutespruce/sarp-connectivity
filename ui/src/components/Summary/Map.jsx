@@ -1,8 +1,16 @@
-import React, { memo, useEffect, useRef, useCallback } from 'react'
+import React, {
+  memo,
+  useEffect,
+  useRef,
+  useCallback,
+  useState,
+  useMemo,
+} from 'react'
 import PropTypes from 'prop-types'
 
-import { Map, interpolateExpr } from 'components/Map'
+import { Map, Legend, interpolateExpr } from 'components/Map'
 import { COLORS, LAYER_CONFIG as layers } from './config'
+import { SYSTEMS } from '../../../config/constants'
 
 const SummaryMap = ({
   system,
@@ -13,8 +21,19 @@ const SummaryMap = ({
 }) => {
   const mapRef = useRef(null)
 
+  // first layer of system is default on init
+  // const [visibleLayer, setVisibleLayer] = useState(layers.filter(({system: lyrSystem}) => lyrSystem === system)[0])
+  const [zoom, setZoom] = useState(0)
+
   const handleCreateMap = useCallback(map => {
     mapRef.current = map
+
+    map.on('zoomend', () => {
+      // setVisibleLayer(getVisibleLayer(map, system))
+      setZoom(map.getZoom())
+    })
+
+    setZoom(map.getZoom())
 
     layers.forEach(
       ({
@@ -111,7 +130,6 @@ const SummaryMap = ({
   }, [])
 
   useEffect(() => {
-    console.log('update system')
     const { current: map } = mapRef
 
     if (!map) return
@@ -125,10 +143,12 @@ const SummaryMap = ({
         map.setLayoutProperty(`${id}-${suffix}`, 'visibility', visibility)
       })
     })
+
+    // setVisibleLayer(getVisibleLayer(map, system))
+    // TODO: update legend
   }, [system])
 
   useEffect(() => {
-    console.log('update type')
     const { current: map } = mapRef
 
     if (!map) return
@@ -144,10 +164,11 @@ const SummaryMap = ({
       map.setFilter(`${id}-fill`, ['>', barrierType, 0])
       map.setFilter(`${id}-outline`, ['>', barrierType, 0])
     })
+
+    // TODO: update legend
   }, [barrierType])
 
   useEffect(() => {
-    console.log('update selectedUnit')
     const { current: map } = mapRef
 
     if (!map) return
@@ -164,23 +185,64 @@ const SummaryMap = ({
     })
   }, [system, selectedUnit])
 
+  const { layerTitle, legendEntries } = useMemo(() => {
+    const layer = layers.filter(
+      ({ system: lyrSystem, minzoom, maxzoom }) =>
+        lyrSystem === system && zoom >= minzoom && zoom < maxzoom
+    )[0]
+
+    const {
+      title,
+      bins: { [barrierType]: bins },
+    } = layer
+    // flip the order of colors and bins since we are displaying from top to bottom
+    // add opacity to color
+    const colors = COLORS.count[bins.length].map(c => `${c}4d`).reverse()
+
+    const labels = bins
+      .map((bin, i) => {
+        if (i === 0) {
+          return `≤ ${Math.round(bin).toLocaleString()} ${barrierType}`
+        }
+        if (i === bins.length - 1) {
+          return `≥ ${Math.round(bin).toLocaleString()} ${barrierType}`
+        }
+        // Use midpoint value
+        return Math.round(bin).toLocaleString()
+      })
+      .reverse()
+
+    return {
+      layerTitle: title,
+      legendEntries: colors.map((color, i) => ({
+        color,
+        label: labels[i],
+      })),
+    }
+  }, [system, barrierType, zoom])
+
+  console.log('legend', legendEntries)
+
   return (
     <>
       <Map onCreateMap={handleCreateMap} {...props} />
+      <Legend
+        title={layerTitle}
+        entries={legendEntries}
+        footnote={`areas with no ${barrierType} are not shown`}
+      />
     </>
   )
 }
 
 SummaryMap.propTypes = {
-  system: PropTypes.string,
-  barrierType: PropTypes.string,
+  system: PropTypes.string.isRequired,
+  barrierType: PropTypes.string.isRequired,
   selectedUnit: PropTypes.object,
   onSelectUnit: PropTypes.func.isRequired,
 }
 
 SummaryMap.defaultProps = {
-  system: 'HUC',
-  barrierType: 'dams',
   selectedUnit: null,
 }
 

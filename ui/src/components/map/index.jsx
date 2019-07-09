@@ -1,5 +1,6 @@
 import Map from './Map'
 import TopBar from './TopBar'
-import {interpolateExpr} from './util'
+import Legend from './Legend'
+import { interpolateExpr } from './util'
 
-export {Map, TopBar, interpolateExpr}
+export { Map, TopBar, Legend, interpolateExpr }
