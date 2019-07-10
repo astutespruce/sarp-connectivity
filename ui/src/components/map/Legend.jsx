@@ -11,6 +11,11 @@ const Wrapper = styled(MapControlWrapper)`
   bottom: 24px;
   max-width: 160px;
   padding: 10px;
+  box-shadow: 1px 1px 8px #333;
+
+  &:hover {
+    background: #fff;
+  }
 `
 
 const Title = styled(Text).attrs({
@@ -18,10 +23,8 @@ const Title = styled(Text).attrs({
   fontSize: '1rem',
 })`
   line-height: 1.2;
-  margin-bottom: 0.5em;
+  margin-bottom: 0.25em;
 `
-
-const Row = styled(Flex)``
 
 const Patch = styled.div`
   width: 20px;
@@ -38,6 +41,17 @@ const Label = styled.div`
   color: ${themeGet('colors.grey.700')};
 `
 
+const Row = styled(Flex).attrs({ alignItems: 'center' })`
+  &:first-child ${Patch} {
+    border-radius: 3px 3px 0 0;
+    border-width-top: 1px;
+  }
+
+  &:last-child ${Patch} {
+    border-radius: 0 0 3px 3px;
+  }
+`
+
 const Footnote = styled(HelpText)`
   font-size: 0.75rem;
   line-height: 1.2;
@@ -48,12 +62,14 @@ const Legend = ({ title, entries, footnote }) => (
   <Wrapper>
     <Title>{title}</Title>
 
-    {entries.map(({ color: backgroundColor, label }) => (
-      <Row key={backgroundColor}>
-        <Patch style={{ backgroundColor }} />
-        <Label>{label}</Label>
-      </Row>
-    ))}
+    <div>
+      {entries.map(({ color: backgroundColor, label }) => (
+        <Row key={backgroundColor}>
+          <Patch style={{ backgroundColor }} />
+          <Label>{label}</Label>
+        </Row>
+      ))}
+    </div>
 
     {footnote && <Footnote>{footnote}</Footnote>}
   </Wrapper>

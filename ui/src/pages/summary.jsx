@@ -66,7 +66,7 @@ const SummaryPage = () => {
     setBarrierType(nextBarrierType)
   }
 
-  const handleSetSytem = nextSystem => {
+  const handleSetSystem = nextSystem => {
     setSystem(nextSystem)
     setSelectedUnit(null)
   }
@@ -77,6 +77,7 @@ const SummaryPage = () => {
 
   const handleDetailsClose = () => {
     setSelectedUnit(null)
+    setSearchFeature(null)
   }
 
   return (
@@ -126,7 +127,7 @@ const SummaryPage = () => {
             <TopBarToggle
               value={system}
               options={systemOptions}
-              onChange={handleSetSytem}
+              onChange={handleSetSystem}
             />
           </TopBar>
         </MapContainer>

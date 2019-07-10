@@ -8,14 +8,19 @@ import React, {
 } from 'react'
 import PropTypes from 'prop-types'
 
-import { Map, Legend, interpolateExpr } from 'components/Map'
+import {
+  Map,
+  Legend,
+  interpolateExpr,
+  SearchFeaturePropType,
+} from 'components/Map'
 import { COLORS, LAYER_CONFIG as layers } from './config'
-import { SYSTEMS } from '../../../config/constants'
 
 const SummaryMap = ({
   system,
   barrierType,
   selectedUnit,
+  searchFeature,
   onSelectUnit,
   ...props
 }) => {
@@ -185,6 +190,32 @@ const SummaryMap = ({
     })
   }, [system, selectedUnit])
 
+  useEffect(() => {
+    const { current: map } = mapRef
+    if (!(map && searchFeature)) {
+      return
+    }
+
+    const { id = null, layer, bbox, maxZoom: fitBoundsMaxZoom } = searchFeature
+    // if feature is already visible, select it
+    // otherwise, zoom and attempt to select it
+
+    let feature = selectFeatureByID(id, layer)
+    if (!feature) {
+      map.once('moveend', () => {
+        feature = selectFeatureByID(id, layer)
+        // source may still be loading, try again in 1 second
+        if (!feature) {
+          setTimeout(() => {
+            selectFeatureByID(id, layer)
+          }, 1000)
+        }
+      })
+    }
+
+    map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
+  }, [searchFeature])
+
   const { layerTitle, legendEntries } = useMemo(() => {
     const layer = layers.filter(
       ({ system: lyrSystem, minzoom, maxzoom }) =>
@@ -221,7 +252,17 @@ const SummaryMap = ({
     }
   }, [system, barrierType, zoom])
 
-  console.log('legend', legendEntries)
+  const selectFeatureByID = (id, layer) => {
+    const [feature] = mapRef.current.querySourceFeatures('sarp', {
+      sourceLayer: layer,
+      filter: ['==', 'id', id],
+    })
+
+    if (feature !== undefined) {
+      onSelectUnit({ ...feature.properties, layerId: layer })
+    }
+    return feature
+  }
 
   return (
     <>
@@ -239,11 +280,13 @@ SummaryMap.propTypes = {
   system: PropTypes.string.isRequired,
   barrierType: PropTypes.string.isRequired,
   selectedUnit: PropTypes.object,
+  searchFeature: SearchFeaturePropType,
   onSelectUnit: PropTypes.func.isRequired,
 }
 
 SummaryMap.defaultProps = {
   selectedUnit: null,
+  searchFeature: null,
 }
 
 export default memo(SummaryMap)

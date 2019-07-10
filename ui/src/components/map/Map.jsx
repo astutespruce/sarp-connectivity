@@ -9,7 +9,7 @@ import { hasWindow } from 'util/dom'
 import { getCenterAndZoom } from './util'
 import BasemapSelector from './BasemapSelector'
 import GoToLocation from './GoToLocation'
-import { FeaturePropType, SearchFeaturePropType } from './proptypes'
+import { SearchFeaturePropType } from './proptypes'
 
 import { siteMetadata } from '../../../gatsby-config'
 import { config, sources, basemapLayers } from './config'
@@ -36,7 +36,7 @@ if (!mapboxToken) {
 
 const { bounds, styleID, minZoom, maxZoom } = config
 
-const Map = ({ searchFeature, selectedFeature, onCreateMap }) => {
+const Map = ({ searchFeature, onCreateMap }) => {
   // if there is no window, we cannot render this component
   if (!hasWindow) {
     return null
@@ -83,30 +83,6 @@ const Map = ({ searchFeature, selectedFeature, onCreateMap }) => {
     }
   }, [])
 
-  useEffect(() => {
-    if (!(map && searchFeature)) {
-      return
-    }
-
-    const { id = null, layer, bbox, maxZoom: fitBoundsMaxZoom } = searchFeature
-    // if feature is already visible, select it
-    // otherwise, zoom and attempt to select it
-
-    // TODO: re-enable
-    // let feature = this.selectFeatureByID(id, layer)
-    // if (!feature) {
-    //     map.once("moveend", () => {
-    //         feature = this.selectFeatureByID(id, layer)
-    //         // source may still be loading, try again in 1 second
-    //         if (!feature) {
-    //             setTimeout(() => {this.selectFeatureByID(id, layer)}, 1000)
-    //         }
-    //     })
-    // }
-
-    map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
-  }, [searchFeature])
-
   return (
     <Wrapper>
       <div ref={mapNode} style={{ width: '100%', height: '100%' }} />
@@ -127,13 +103,11 @@ const Map = ({ searchFeature, selectedFeature, onCreateMap }) => {
 }
 
 Map.propTypes = {
-  selectedFeature: FeaturePropType,
   searchFeature: SearchFeaturePropType,
   onCreateMap: PropTypes.func.isRequired,
 }
 
 Map.defaultProps = {
-  selectedFeature: null,
   searchFeature: null,
 }
 
