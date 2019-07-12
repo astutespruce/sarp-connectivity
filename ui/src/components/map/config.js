@@ -16,6 +16,18 @@ export const sources = {
     maxzoom: 8,
     tiles: [`${tileHost}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`],
   },
+  dams: {
+    type: 'vector',
+    tiles: [`${tileHost}/services/sarp_dams/tiles/{z}/{x}/{y}.pbf`],
+    minzoom: 5,
+    maxzoom: 12,
+  },
+  barriers: {
+    type: 'vector',
+    tiles: [`${tileHost}/services/sarp_barriers/tiles/{z}/{x}/{y}.pbf`],
+    minzoom: 5,
+    maxzoom: 12,
+  },
 }
 
 export const basemapLayers = {

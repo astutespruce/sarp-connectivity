@@ -7,7 +7,7 @@ import { Text, HelpText } from 'components/Text'
 import { Box, Flex } from 'components/Grid'
 import { formatNumber, formatPercent } from 'util/format'
 import styled, { themeGet } from 'style'
-import { LAYER_CONFIG } from './config'
+import { layers } from './config'
 import { STATE_FIPS, CONNECTIVITY_TEAMS } from '../../../config/constants'
 
 const Wrapper = styled(Flex).attrs({
@@ -70,7 +70,7 @@ const UnitDetails = ({ summaryUnit, barrierType, onClose }) => {
   } = useSummaryData()
   const total = barrierType === 'dams' ? totalDams : totalBarriers
 
-  const layerConfig = LAYER_CONFIG.filter(
+  const layerConfig = layers.filter(
     ({ id: lyrID }) => lyrID === layerId
   )[0]
   let { title: layerTitle } = layerConfig

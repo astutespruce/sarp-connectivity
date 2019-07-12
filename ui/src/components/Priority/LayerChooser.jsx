@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import { Box } from 'components/Grid'
 import { ToggleButton } from 'components/Button'
 import { Text, HelpText } from 'components/Text'
-import styled, { themeGet } from 'style'
+import styled from 'style'
 
 const Wrapper = styled.div``
 
@@ -12,12 +12,16 @@ const Title = styled(Text).attrs({
   as: 'h3',
   fontSize: '1.5rem',
   lineHeight: 1.2,
-  m: 0,
+  mb: '0.5rem',
 })``
 
 const Subtitle = styled(Text).attrs({ fontSize: '1.25rem' })``
 
-const Section = styled(Box).attrs({ my: '1rem' })``
+const Section = styled(Box).attrs({ my: '1rem' })`
+  &:not(:first-child) {
+    margin-top: 2rem;
+  }
+`
 
 const adminLayerOptions = [
   { value: 'State', label: 'State' },
@@ -49,23 +53,31 @@ const LayerChooser = ({ setLayer }) => {
         screen.
       </HelpText>
 
-      <Section>
-        <Subtitle>Administrative unit</Subtitle>
-        <ToggleButton
-          options={adminLayerOptions}
-          onChange={handleSelectLayer}
-        />
-      </Section>
+      <div>
+        <Section>
+          <Subtitle>Administrative unit</Subtitle>
+          <ToggleButton
+            options={adminLayerOptions}
+            onChange={handleSelectLayer}
+          />
+        </Section>
 
-      <Section>
-        <Subtitle>Hydrologic unit</Subtitle>
-        <ToggleButton options={hucLayerOptions} onChange={handleSelectLayer} />
-      </Section>
+        <Section>
+          <Subtitle>Hydrologic unit</Subtitle>
+          <ToggleButton
+            options={hucLayerOptions}
+            onChange={handleSelectLayer}
+          />
+        </Section>
 
-      <Section>
-        <Subtitle>Ecoregion</Subtitle>
-        <ToggleButton options={ecoLayerOptions} onChange={handleSelectLayer} />
-      </Section>
+        <Section>
+          <Subtitle>Ecoregion</Subtitle>
+          <ToggleButton
+            options={ecoLayerOptions}
+            onChange={handleSelectLayer}
+          />
+        </Section>
+      </div>
     </Wrapper>
   )
 }

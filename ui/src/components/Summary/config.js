@@ -25,7 +25,7 @@ export const COLORS = {
   },
 }
 
-export const LAYER_CONFIG = [
+export const layers = [
   {
     id: 'HUC6',
     system: 'HUC',

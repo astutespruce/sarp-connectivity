@@ -1,12 +1,12 @@
-import React, { useRef, useState } from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 
 import { Flex, Box } from 'components/Grid'
 import Sidebar from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
-import { Map } from 'components/Map'
 import styled from 'style'
 
+import Map  from './Map'
 // import UnitChooser from './UnitChooser'
 import LayerChooser from './LayerChooser'
 
@@ -27,7 +27,6 @@ const MapContainer = styled.div`
 `
 
 const Prioritize = ({ barrierType }) => {
-    const mapRef = useRef(null)
   const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [searchFeature, setSearchFeature] = useState(null)
 
@@ -40,11 +39,6 @@ const Prioritize = ({ barrierType }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [isError, setIsError] = useState(false)
 
-  const handleCreateMap = (map) => {
-    mapRef.current = map
-
-    // TODO
-  }
 
   const handleSearch = nextSearchFeature => {
     setSearchFeature(nextSearchFeature)
@@ -133,11 +127,10 @@ const Prioritize = ({ barrierType }) => {
       <MapContainer>
         <Map
           barrierType={barrierType}
-          system={system}
+          activeLayer={layer}
           searchFeature={searchFeature}
           selectedBarrier={selectedBarrier}
           onSelectUnit={handleSelectBarrier}
-          onCreateMap={handleCreateMap}
         />
       </MapContainer>
     </Wrapper>

@@ -14,7 +14,7 @@ import {
   interpolateExpr,
   SearchFeaturePropType,
 } from 'components/Map'
-import { COLORS, LAYER_CONFIG as layers } from './config'
+import { COLORS, layers } from './config'
 
 const SummaryMap = ({
   system,
