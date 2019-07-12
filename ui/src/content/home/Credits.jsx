@@ -6,7 +6,7 @@ import { Columns } from 'components/Grid'
 import styled, { themeGet } from 'style'
 import CBILogoImage from 'images/cbi_logo.png'
 
-import { Section, NarrowColumn, WideColumn } from '../styles'
+import { Section, NarrowColumn, WideColumn, Divider } from '../styles'
 
 const Content = styled.div`
   margin-bottom: 4rem;
@@ -16,11 +16,7 @@ const CBILogo = styled(Image).attrs({ src: CBILogoImage })`
   max-width: 300px;
 `
 
-const Divider = styled.div`
-  height: 0.5rem;
-  background-color: ${themeGet('colors.primary.800')};
-  margin-bottom: 2rem;
-`
+
 
 const Credits = () => {
   return (

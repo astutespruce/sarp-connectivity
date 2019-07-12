@@ -6,8 +6,9 @@ import { Link } from 'components/Link'
 
 import { Text } from 'components/Text'
 import { Box, Flex } from 'components/Grid'
-import styled, { themeGet } from 'style'
+import styled, { css, themeGet } from 'style'
 import LogoSVG from 'images/logo.svg'
+import { hasWindow } from 'util/dom'
 import { siteMetadata } from '../../../gatsby-config'
 
 const Wrapper = styled(Flex).attrs({
@@ -63,6 +64,11 @@ const NavLink = styled(Link)`
   &:hover {
     background-color: ${themeGet('colors.primary.800')};
   }
+
+  ${({active}) => active && css`
+  background-color: ${themeGet('colors.primary.500')};
+  `}
+
 `
 
 const NavItem = styled(Flex).attrs({ alignItems: 'center' })``
@@ -78,6 +84,9 @@ const PrioritizeLogo = styled(FaSearchLocation)`
   height: 1em;
   margin-right: 0.25em;
 `
+
+const isActivePath = path =>
+  hasWindow && window.location.href.search(path) !== -1
 
 const Header = () => {
   const { title, shortTitle } = siteMetadata
@@ -101,7 +110,7 @@ const Header = () => {
             <div>Summarize</div>
           </NavItem>
         </NavLink>
-        <NavLink to="/prioritize" activeClassName="nav-active">
+        <NavLink to="/priority" activeClassName="nav-active" active={isActivePath('/priority') ? 1 : 0}>
           <NavItem>
             <PrioritizeLogo />
             <div>Prioritize</div>

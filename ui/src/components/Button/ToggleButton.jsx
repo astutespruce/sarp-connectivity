@@ -5,9 +5,15 @@ import styled, { themeGet } from 'style'
 import { DefaultButton, PrimaryButton } from './Button'
 import ButtonGroup from './ButtonGroup'
 
+const Button = styled(PrimaryButton)`
+flex: 1 1 auto;
+`
+
+
 const InactiveButton = styled(DefaultButton)`
   background-color: ${themeGet('colors.primary.100')};
   color: ${themeGet('colors.grey.900')};
+  flex: 1 1 auto;
 `
 
 const ToggleButton = ({ value, options, onChange, ...props }) => {
@@ -32,7 +38,7 @@ const ToggleButton = ({ value, options, onChange, ...props }) => {
     <ButtonGroup {...props}>
       {options.map(({ value: v, label }) =>
         v === value ? (
-          <PrimaryButton key={v}>{label}</PrimaryButton>
+          <Button key={v}>{label}</Button>
         ) : (
           <InactiveButton key={v} onClick={() => handleClick(v)}>
             {label}

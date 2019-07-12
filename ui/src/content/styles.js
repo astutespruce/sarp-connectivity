@@ -1,6 +1,7 @@
 import { Box, Container, Column as BaseColumn } from 'components/Grid'
 
 import { Text } from 'components/Text'
+import {Flex} from 'components/Grid'
 import styled, { themeGet } from 'style'
 
 export const PageContainer = styled(Container).attrs({
@@ -74,4 +75,30 @@ export const ImageCredits = styled(Box).attrs({})`
 export const LargeText = styled(Text).attrs({ as: 'p' })`
   margin-top: 2rem;
   font-size: 1.5rem;
+`
+
+export const StepHeader = styled(Flex).attrs({ alignItems: 'center' })`
+  font-size: 1.5rem;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+`
+
+// Flex so that we can position content vertically aligned
+export const StepNumber = styled(Flex)`
+  color: #fff;
+  background-color: ${themeGet('colors.grey.900')};
+  border-radius: 5em;
+  width: 2em;
+  height: 2em;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 0.5rem;
+  flex: 0 0 auto;
+`
+
+export const Divider = styled.div`
+height: 0.5rem;
+background-color: ${themeGet('colors.primary.800')};
+margin-bottom: 2rem;
 `

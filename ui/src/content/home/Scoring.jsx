@@ -17,6 +17,8 @@ import {
   WideColumn,
   ImageCredits,
   Subtitle,
+  StepHeader,
+  StepNumber
 } from '../styles'
 
 const Photo = styled(Image).attrs({ width: '100%' })`
@@ -25,24 +27,9 @@ const Photo = styled(Image).attrs({ width: '100%' })`
 
 const Column = styled(BaseColumn).attrs({ width: ['100%', '100%', '50%'] })``
 
-const Header = styled(Flex).attrs({ alignItems: 'center' })`
-  font-size: 1.5rem;
-  line-height: 1.2;
-  margin-bottom: 1rem;
-`
 
-const Step = styled(Flex)`
-  color: #fff;
-  background-color: ${themeGet('colors.grey.900')};
-  border-radius: 5em;
-  width: 2em;
-  height: 2em;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  margin-right: 0.5rem;
-  flex: 0 0 auto;
-`
+
+
 
 const List = styled.ul`
   li {
@@ -71,15 +58,15 @@ const Scoring = () => {
     <>
       <Section id="prioritize">
         <Title>How are barriers prioritized for removal?</Title>
-        <Header>
-          <Step>
+        <StepHeader>
+          <StepNumber>
             <div>1</div>
-          </Step>
+          </StepNumber>
           <Subtitle>
             Aquatic barriers are identified and measured for their potential
             impact on aquatic organisms:
           </Subtitle>
-        </Header>
+        </StepHeader>
         <Columns>
           <WideColumn>
             <p>
@@ -115,15 +102,15 @@ const Scoring = () => {
         </Columns>
       </Section>
       <Section>
-        <Header>
-          <Step>
+        <StepHeader>
+          <StepNumber>
             <div>2</div>
-          </Step>
+          </StepNumber>
           <Subtitle>
             Aquatic barriers are measured for their impact on the aquatic
             network:
           </Subtitle>
-        </Header>
+        </StepHeader>
 
         <Columns>
           <WideColumn>
@@ -166,15 +153,15 @@ const Scoring = () => {
       </Section>
 
       <Section>
-        <Header>
-          <Step>
+        <StepHeader>
+          <StepNumber>
             <div>3</div>
-          </Step>
+          </StepNumber>
           <Subtitle>
             Barriers are characterized using metrics that describe the quality
             and status of their functional networks:
           </Subtitle>
-        </Header>
+        </StepHeader>
 
         <Columns>
           <Column>
@@ -238,15 +225,15 @@ const Scoring = () => {
       </Section>
 
       <Section>
-        <Header>
-          <Step>
+        <StepHeader>
+          <StepNumber>
             <div>4</div>
-          </Step>
+          </StepNumber>
           <Subtitle>
             Metrics are combined and ranked to create three scenarios for
             prioritizing barriers for removal:
           </Subtitle>
-        </Header>
+        </StepHeader>
         <Columns>
           <Column>
             <HighlightBox title="Network Connectivity">
