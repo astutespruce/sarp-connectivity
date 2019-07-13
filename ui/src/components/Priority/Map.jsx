@@ -118,31 +118,31 @@ const PriorityMap = ({
     Object.keys(unitLayerConfig).forEach(layer => {
       const visibility = layer === activeLayer ? 'visible' : 'none'
       unitLayers.forEach(({ id }) => {
-        const layerId = `${layer}-${id}`
-
-        // reset previous highlight
-        if (id === 'unit-highlight-fill' || 'unit-highlight-outline') {
-          map.setFilter(layerId, '==', 'id', Infinity)
-        }
-
-        map.setLayoutProperty(layerId, 'visibility', visibility)
+        map.setLayoutProperty(`${layer}-${id}`, 'visibility', visibility)
       })
+
+      const { parent } = unitLayerConfig[layer]
+      if (parent) {
+        map.setLayoutProperty(
+          `${layer}-unit-parent-outline`,
+          'visibility',
+          visibility
+        )
+      }
     })
   }, [activeLayer])
 
   useEffect(() => {
     const { current: map } = mapRef
 
-    if (!map) return
+    if (!(map && activeLayer)) return
 
     const ids = summaryUnits.map(({ id }) => id)
-    console.log('set summary unit hightlight for ', ids)
     const filterExpr =
       ids.length > 0 ? ['in', 'id', ...ids] : ['==', 'id', Infinity]
 
     // last 2 layers are for highlight
     unitLayers.slice(2).forEach(({ id }) => {
-      // const layerId = `${activeLayer}-${id}`
       map.setFilter(`${activeLayer}-${id}`, filterExpr)
     })
   }, [activeLayer, summaryUnits])

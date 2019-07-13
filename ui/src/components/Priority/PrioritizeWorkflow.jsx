@@ -40,8 +40,9 @@ const Prioritize = ({ barrierType }) => {
   }, [layer])
 
   const handleSetLayer = nextLayer => {
-    setLayer(nextLayer)
     setSearchFeature(null)
+    setSummaryUnits([])
+    setLayer(nextLayer)
   }
 
   // Toggle selected unit in or out of selection

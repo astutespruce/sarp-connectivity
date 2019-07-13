@@ -71,7 +71,7 @@ export const parentOutline = {
     'line-cap': 'round',
     'line-join': 'round',
   },
-  filter: ['>=', 'dams', 0],
+  // filter: ['>=', 'dams', 0],
   paint: {
     'line-opacity': 1,
     'line-width': 2,

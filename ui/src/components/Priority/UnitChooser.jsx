@@ -82,7 +82,6 @@ const UnitChooser = ({
   fetchQuery,
   setSearchFeature,
 }) => {
-    console.log('render summary unit chooser', summaryUnits)
   const [searchValue, setSearchValue] = useState('')
 
   const pluralLabel = getPluralLabel(layer)
