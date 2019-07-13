@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { memo, useState } from 'react'
 import PropTypes from 'prop-types'
 
 import { Text } from 'components/Text'
@@ -51,23 +51,28 @@ const UnitSearch = ({ system, layer, onSelect }) => {
     setQuery(value)
   }
 
+  const handleSelect = item => () => {
+    onSelect(item)
+    setQuery('')
+  }
+
   let results = []
   if (query && query !== '') {
     let units = []
     if (layer !== null) {
       units = data[layer]
     } else {
+      // search all layers within system
       units = SYSTEM_UNITS[system].reduce(
-        (collector, unit) => collector.concat(data[unit]),
+        (collector, systemLayer) => collector.concat(data[systemLayer]),
         []
       )
     }
-
     // Filter out the top 10
     const expr = new RegExp(query, 'gi')
     const filtered = units.filter(
-      item =>
-        item.name.search(expr) !== -1 || (showID && item.id.search(expr) !== -1)
+      ({ name, id }) =>
+        name.search(expr) !== -1 || (showID && id.search(expr) !== -1)
     )
     results = filtered.slice(0, 10)
   }
@@ -97,7 +102,7 @@ const UnitSearch = ({ system, layer, onSelect }) => {
                   key={item.id}
                   {...item}
                   showID={showID}
-                  onClick={() => onSelect(item)}
+                  onClick={handleSelect(item)}
                 />
               ))}
             </List>
@@ -111,14 +116,14 @@ const UnitSearch = ({ system, layer, onSelect }) => {
 }
 
 UnitSearch.propTypes = {
-  system: PropTypes.string.isRequired,
+  system: PropTypes.string,
   layer: PropTypes.string,
-
   onSelect: PropTypes.func.isRequired,
 }
 
 UnitSearch.defaultProps = {
   layer: null,
+  system: null,
 }
 
-export default UnitSearch
+export default memo(UnitSearch)

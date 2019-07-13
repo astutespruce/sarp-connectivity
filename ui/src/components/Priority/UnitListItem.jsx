@@ -1,40 +1,97 @@
 /* eslint-disable camelcase */
-import React from "react"
-import PropTypes from "prop-types"
+import React, { memo } from 'react'
+import PropTypes from 'prop-types'
 
-import { formatNumber } from "../../../utils/format"
-import { STATE_FIPS } from "../../../constants"
+import { Text } from 'components/Text'
+import { Flex } from 'components/Grid'
+import { formatNumber } from 'util/format'
+import styled, { themeGet } from 'style'
+import { FaTimesCircle } from 'react-icons/fa'
+import { STATE_FIPS } from '../../../config/constants'
 
-const SummaryUnitListItem = ({ type, layer, unit, onDelete }) => {
-    const { id } = unit
-    const { name = id, dams = 0, barriers = 0, off_network_dams = 0, off_network_barriers = 0 } = unit
+const Wrapper = styled(Flex).attrs({
+  as: 'li',
+  justifyContent: 'space-between',
+})`
+  line-height: 1.4;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1em;
 
-    const count = type === "dams" ? dams - off_network_dams : barriers - off_network_barriers
+  &:not(:first-child) {
+    margin-top: 1em;
+  }
+`
 
-    return (
-        <li className="flex-container flex-justify-space-between">
-            <div style={{ maxWidth: 320 }}>
-                <div className="is-size-5">
-                    {name}
-                    {layer === "County" ? `, ${STATE_FIPS[id.slice(0, 2)]}` : null}
-                </div>
-                {layer === "HUC6" || layer === "HUC8" || layer === "HUC12" ? <div>HUC: {id}</div> : null}
+const Content = styled.div`
+  flex: 1 1 auto;
+`
 
-                <div className="has-text-grey">
-                    ({formatNumber(count)} {type})
-                </div>
-            </div>
-            <div>
-                <span className="delete" onClick={() => onDelete(unit)} />
-            </div>
-        </li>
-    )
+const Name = styled(Text).attrs({ fontSize: '1.25rem' })``
+
+const HUC = styled.div`
+  color: ${themeGet('colors.grey.800')};
+`
+
+const Count = styled.div`
+  font-size: 0.9rem;
+  color: ${themeGet('colors.grey.600')};
+`
+
+const DeleteIcon = styled(FaTimesCircle)`
+  width: 1.25em;
+  height: 1.25em;
+  margin-left: 1em;
+  color: ${themeGet('colors.grey.300')};
+  cursor: pointer;
+
+  &:hover {
+    color: ${themeGet('colors.grey.900')};
+  }
+`
+
+const SummaryUnitListItem = ({ barrierType, layer, unit, onDelete }) => {
+  const { id } = unit
+  const {
+    name = id,
+    dams = 0,
+    barriers = 0,
+    off_network_dams = 0,
+    off_network_barriers = 0,
+  } = unit
+
+  const count =
+    barrierType === 'dams'
+      ? dams - off_network_dams
+      : barriers - off_network_barriers
+
+  const handleDelete = () => onDelete(unit)
+
+  return (
+    <Wrapper>
+      <Content>
+        <Name>
+          {name}
+          {layer === 'County' ? `, ${STATE_FIPS[id.slice(0, 2)]}` : null}
+        </Name>
+
+        {layer === 'HUC6' || layer === 'HUC8' || layer === 'HUC12' ? (
+          <HUC>HUC: {id}</HUC>
+        ) : null}
+
+        <Count>
+          ({formatNumber(count)} {barrierType})
+        </Count>
+      </Content>
+
+      <DeleteIcon onClick={handleDelete} />
+    </Wrapper>
+  )
 }
 SummaryUnitListItem.propTypes = {
-    type: PropTypes.string.isRequired,
-    layer: PropTypes.string.isRequired,
-    unit: PropTypes.object.isRequired,
-    onDelete: PropTypes.func.isRequired
+  barrierType: PropTypes.string.isRequired,
+  layer: PropTypes.string.isRequired,
+  unit: PropTypes.object.isRequired,
+  onDelete: PropTypes.func.isRequired,
 }
 
-export default SummaryUnitListItem
+export default memo(SummaryUnitListItem)

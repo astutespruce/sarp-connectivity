@@ -5,15 +5,7 @@ import { Box } from 'components/Grid'
 import { ToggleButton } from 'components/Button'
 import { Text, HelpText } from 'components/Text'
 import styled from 'style'
-
-const Wrapper = styled.div``
-
-const Title = styled(Text).attrs({
-  as: 'h3',
-  fontSize: '1.5rem',
-  lineHeight: 1.2,
-  mb: '0.5rem',
-})``
+import { Content, Title } from './styles'
 
 const Subtitle = styled(Text).attrs({ fontSize: '1.25rem' })``
 
@@ -45,7 +37,7 @@ const LayerChooser = ({ setLayer }) => {
   }
 
   return (
-    <Wrapper>
+    <Content>
       <Title>What type of area do you want to select?</Title>
       <HelpText>
         Choose from one of the following types of areas that will best capture
@@ -78,7 +70,7 @@ const LayerChooser = ({ setLayer }) => {
           />
         </Section>
       </div>
-    </Wrapper>
+    </Content>
   )
 }
 

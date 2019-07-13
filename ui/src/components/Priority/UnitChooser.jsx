@@ -1,206 +1,243 @@
-import React, { useState } from "react"
-import PropTypes from "prop-types"
-import ImmutablePropTypes from "react-immutable-proptypes"
-import { connect } from "react-redux"
+import React, { useState } from 'react'
+import PropTypes from 'prop-types'
 
-import * as actions from "../../../actions/priority"
+import { HelpText } from 'components/Text'
+import UnitSearch from 'components/UnitSearch'
+import { formatNumber } from 'util/format'
+import styled from 'style'
 
-import { formatNumber } from "../../../utils/format"
-import { LAYER_ZOOM } from "../../../constants"
+import BackLink from './BackLink'
+import StartOverButton from './StartOverButton'
+import SubmitButton from './SubmitButton'
+import UnitListItem from './UnitListItem'
+import {
+  Wrapper,
+  Header,
+  Footer,
+  Title,
+  Content,
+  WarningIcon,
+} from './styles'
+import { LAYER_ZOOM } from '../../../config/constants'
 
-import StartOverButton from "./StartOverButton"
-import SubmitButton from "./SubmitButton"
-import UnitListItem from "./UnitListItem"
-import UnitSearch from "../../UnitSearch"
+
+const UnitList = styled.ul`
+margin: 0 0 2rem 0;
+`
+
 
 const getPluralLabel = layer => {
-    switch (layer) {
-        case "State":
-            return "states"
-        case "County":
-            return "counties"
-        case "HUC6":
-            return "basins"
-        case "HUC8":
-            return "subbasins"
-        case "HUC12":
-            return "subwatersheds"
-        case "ECO3":
-            return "ecoregions"
-        case "ECO4":
-            return "ecoregions"
-        default:
-            return "areas"
-    }
+  switch (layer) {
+    case 'State':
+      return 'states'
+    case 'County':
+      return 'counties'
+    case 'HUC6':
+      return 'basins'
+    case 'HUC8':
+      return 'subbasins'
+    case 'HUC12':
+      return 'subwatersheds'
+    case 'ECO3':
+      return 'ecoregions'
+    case 'ECO4':
+      return 'ecoregions'
+    default:
+      return 'areas'
+  }
 }
 
 const getSingularLabel = layer => {
-    switch (layer) {
-        case "State":
-            return "state"
-        case "County":
-            return "county"
-        case "HUC6":
-            return "basin"
-        case "HUC8":
-            return "subbasin"
-        case "HUC12":
-            return "subwatershed"
-        case "ECO3":
-            return "ecoregion"
-        case "ECO4":
-            return "ecoregion"
-        default:
-            return "area"
-    }
+  switch (layer) {
+    case 'State':
+      return 'state'
+    case 'County':
+      return 'county'
+    case 'HUC6':
+      return 'basin'
+    case 'HUC8':
+      return 'subbasin'
+    case 'HUC12':
+      return 'subwatershed'
+    case 'ECO3':
+      return 'ecoregion'
+    case 'ECO4':
+      return 'ecoregion'
+    default:
+      return 'area'
+  }
 }
 
 const getSingularArticle = layer => {
-    if (layer === "ECO3" || layer === "ECO4") return "an"
-    return "a"
+  if (layer === 'ECO3' || layer === 'ECO4') return 'an'
+  return 'a'
 }
 
-const UnitsList = ({ type, layer, summaryUnits, selectUnit, setLayer, fetchQuery, setSearchFeature }) => {
-    const [searchValue, setSearchValue] = useState("")
+const UnitChooser = ({
+  barrierType,
+  layer,
+  summaryUnits,
+  selectUnit,
+  onBack,
+  fetchQuery,
+  setSearchFeature,
+}) => {
+    console.log('render summary unit chooser', summaryUnits)
+  const [searchValue, setSearchValue] = useState('')
 
-    const pluralLabel = getPluralLabel(layer)
-    const singularLabel = getSingularLabel(layer)
-    const article = getSingularArticle(layer)
+  const pluralLabel = getPluralLabel(layer)
+  const singularLabel = getSingularLabel(layer)
+  const article = getSingularArticle(layer)
 
-    let offNetworkCount = 0
-    let total = 0
-    if (summaryUnits.size > 0) {
-        const units = summaryUnits.toJS()
-        switch (type) {
-            case "dams": {
-                offNetworkCount = units.reduce((out, v) => out + v.off_network_dams, 0)
-                total = units.reduce((out, v) => out + v.dams, 0) - offNetworkCount
-                break
-            }
-            case "barriers": {
-                offNetworkCount = units.reduce((out, v) => out + v.off_network_barriers, 0)
-                total = units.reduce((out, v) => out + v.barriers, 0) - offNetworkCount
-                break
-            }
-        }
+  let offNetworkCount = 0
+  let total = 0
+  if (summaryUnits.length > 0) {
+    switch (barrierType) {
+      case 'dams': {
+        offNetworkCount = summaryUnits.reduce(
+          (out, v) => out + v.off_network_dams,
+          0
+        )
+        total =
+          summaryUnits.reduce((out, v) => out + v.dams, 0) - offNetworkCount
+        break
+      }
+      case 'barriers': {
+        offNetworkCount = summaryUnits.reduce(
+          (out, v) => out + v.off_network_barriers,
+          0
+        )
+        total =
+          summaryUnits.reduce((out, v) => out + v.barriers, 0) - offNetworkCount
+        break
+      }
+      default: {
+        break
+      }
     }
+  }
 
-    const handleSearchChange = value => {
-        setSearchValue(value)
-    }
+  const handleSearchChange = value => {
+    setSearchValue(value)
+  }
 
-    const handleSearchSelect = item => {
-        setSearchFeature(item, LAYER_ZOOM[layer])
-        setSearchValue("")
-    }
+  const handleSearchSelect = item => {
+    setSearchFeature(item, LAYER_ZOOM[layer])
+    setSearchValue('')
+  }
 
-    return (
-        <React.Fragment>
-            <div id="SidebarHeader">
-                <button className="link link-back" type="button" onClick={() => setLayer(null)}>
-                    <span className="fa fa-reply" />
-                    &nbsp; choose a different type of area
-                </button>
-                <h4 className="title is-4">Choose {pluralLabel}</h4>
-            </div>
-            <div id="SidebarContent">
-                {summaryUnits.size === 0 ? (
-                    <p className="has-text-grey">
-                        Select your {pluralLabel} of interest by clicking on them in the map.
-                        <br />
-                        <br />
-                        If boundaries are not currently visible on the map, zoom in further until they appear.
-                        <br />
-                        <br />
-                    </p>
-                ) : (
-                    <ul id="SummaryUnitList">
-                        {summaryUnits.toJS().map(unit => (
-                            <UnitListItem
-                                key={unit.id}
-                                layer={layer}
-                                unit={unit}
-                                type={type}
-                                onDelete={() => selectUnit(unit)}
-                            />
-                        ))}
-                    </ul>
-                )}
+  return (
+    <Wrapper>
+      <Header>
+        <BackLink
+          label="choose a different type of area"
+          onClick={onBack}
+        />
+        <Title>Choose {pluralLabel}</Title>
+      </Header>
 
-                <UnitSearch
-                    layer={layer}
-                    value={searchValue}
-                    onChange={handleSearchChange}
-                    onSelect={handleSearchSelect}
-                />
+      <Content>
+        {summaryUnits.length === 0 ? (
+          <HelpText>
+            Select your {pluralLabel} of interest by clicking on them in the
+            map.
+            <br />
+            <br />
+            If boundaries are not currently visible on the map, zoom in further
+            until they appear.
+            <br />
+            <br />
+          </HelpText>
+        ) : (
+          <UnitList>
+            {summaryUnits.map(unit => (
+              <UnitListItem
+                key={unit.id}
+                layer={layer}
+                unit={unit}
+                barrierType={barrierType}
+                onDelete={() => selectUnit(unit)}
+              />
+            ))}
+          </UnitList>
+        )}
 
-                {summaryUnits.size > 0 ? (
-                    <p className="is-size-6 has-text-grey" style={{ padding: "2rem 0" }}>
-                        Select additional {pluralLabel} by clicking on them on the map or using the search above. To
-                        unselect {article} {singularLabel}, use the trash button above or click on it on the map.
-                        {offNetworkCount > 0 ? (
-                            <React.Fragment>
-                                <br />
-                                <br />
-                                Note: only {type} that have been evaluated for aquatic network connectivity are
-                                available for prioritization. There are <b>{formatNumber(offNetworkCount, 0)}</b> {type}{" "}
-                                not available for prioritization in your selected area.
-                            </React.Fragment>
-                        ) : null}
-                    </p>
-                ) : null}
+        <UnitSearch
+          layer={layer}
+          value={searchValue}
+          onChange={handleSearchChange}
+          onSelect={handleSearchSelect}
+        />
 
-                {layer !== "State" && layer !== "County" ? (
-                    <p className="has-text-grey">
-                        <br />
-                        <br />
-                        <span className="icon">
-                            <i className="fas fa-exclamation-triangle" />
-                        </span>
-                        Note: You can choose from {pluralLabel} outside the highlighted states in the Southeast, but the
-                        barriers inventory is likely more complete only where {pluralLabel} overlap the highlighted
-                        states.
-                    </p>
-                ) : null}
-            </div>
+        {summaryUnits.length > 0 ? (
+          <>
+            <HelpText py="2rem">
+              Select additional {pluralLabel} by clicking on them on the map or
+              using the search above. To unselect {article} {singularLabel}, use
+              the trash button above or click on it on the map.
+            </HelpText>
+            {offNetworkCount > 0 ? (
+              <HelpText pb="2rem">
+                Note: only {barrierType} that have been evaluated for aquatic
+                network connectivity are available for prioritization. There are{' '}
+                <b>{formatNumber(offNetworkCount, 0)}</b> {barrierType} not
+                available for prioritization in your selected area.
+              </HelpText>
+            ) : null}
+          </>
+        ) : null}
 
-            <div id="SidebarFooter">
-                <div className="flex-container flex-justify-center flex-align-center">
-                    <StartOverButton />
+        {layer !== 'State' && layer !== 'County' ? (
+          <HelpText pt="2rem">
+            <WarningIcon />
+            Note: You can choose from {pluralLabel} outside the highlighted
+            states in the Southeast, but the barriers inventory is likely more
+            complete only where {pluralLabel} overlap the highlighted states.
+          </HelpText>
+        ) : null}
+      </Content>
 
-                    <SubmitButton
-                        disabled={summaryUnits.size === 0 || total === 0}
-                        onClick={() => fetchQuery(type, layer, summaryUnits.toJS())}
-                        icon="search-location"
-                        label={`Select ${type} in this area`}
-                    />
-                </div>
-            </div>
-        </React.Fragment>
-    )
+      <Footer>
+          <StartOverButton />
+
+          <SubmitButton
+            disabled={summaryUnits.size === 0 || total === 0}
+            // TODO: onclick
+
+            // onClick={() => fetchQuery(barrierType, layer, summaryUnits.toJS())}
+            // icon="search-location"
+            label={`Select ${barrierType} in this area`}
+         />
+      </Footer>
+    </Wrapper>
+  )
 }
 
-UnitsList.propTypes = {
-    type: PropTypes.string.isRequired,
-    layer: PropTypes.string.isRequired,
-    summaryUnits: ImmutablePropTypes.set.isRequired,
-    setLayer: PropTypes.func.isRequired,
-    selectUnit: PropTypes.func.isRequired,
-    setSearchFeature: PropTypes.func.isRequired,
-    fetchQuery: PropTypes.func.isRequired
+UnitChooser.propTypes = {
+  barrierType: PropTypes.string.isRequired,
+  layer: PropTypes.string.isRequired,
+  summaryUnits: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string.isRequired
+  })).isRequired,
+  onBack: PropTypes.func.isRequired,
+  selectUnit: PropTypes.func.isRequired,
+  setSearchFeature: PropTypes.func.isRequired,
+  fetchQuery: PropTypes.func.isRequired,
 }
 
-const mapStateToProps = globalState => {
-    const state = globalState.get("priority")
+export default UnitChooser
 
-    return {
-        type: state.get("type"),
-        layer: state.get("layer"),
-        summaryUnits: state.get("summaryUnits")
-    }
-}
+// const mapStateToProps = globalState => {
+//   const state = globalState.get('priority')
 
-export default connect(
-    mapStateToProps,
-    actions
-)(UnitsList)
+//   return {
+//     type: state.get('type'),
+//     layer: state.get('layer'),
+//     summaryUnits: state.get('summaryUnits'),
+//   }
+// }
+
+// export default connect(
+//   mapStateToProps,
+//   actions
+// )(UnitsList)

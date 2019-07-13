@@ -4,7 +4,7 @@ import { graphql, useStaticQuery } from 'gatsby'
 import { SYSTEM_UNITS, STATE_FIPS } from '../../../config/constants'
 
 export const useBoundsData = () => {
-  const data = useStaticQuery(graphql`
+  const rawData = useStaticQuery(graphql`
     query boundsQuery {
       unitBoundsJson {
         State {
@@ -54,34 +54,38 @@ export const useBoundsData = () => {
   // postprocess the data within a memoized function so that we don't
   // repeat the calculation
   return useMemo(() => {
-    window.data = data
+    const data = {
+      // merge state name in
+      State: rawData.State.map(({ id, ...rest }) => ({
+        ...rest,
+        name: STATE_FIPS[id],
+        id: STATE_FIPS[id],
+        layer: 'State',
+      })),
 
-    // merge state name in
-    data.State = data.State.map(({ id, ...rest }) => ({
-      ...rest,
-      name: STATE_FIPS[id],
-      id: STATE_FIPS[id],
-      layer: 'State',
-    }))
+      // expand county name to include " County"
+      County: rawData.County.map(({ name, ...rest }) => ({
+        ...rest,
+        name: `${name} County`,
+        layer: 'County',
+      })),
+    }
 
-    // expand county name to include " County"
-    data.County = data.County.map(({ name, ...rest }) => ({
-      ...rest,
-      name: `${name} County`,
-      layer: 'County',
-    }))
-
-    // // for HUC and ECO units, add prefix for ID
+    // for HUC and ECO units, add prefix for ID
     SYSTEM_UNITS.HUC.forEach(layer => {
-      data[layer].forEach(item => {
-        item.layer = layer
-      })
+      data[layer] = rawData[layer].map(item => ({
+        ...item,
+        layer,
+      }))
     })
+
     SYSTEM_UNITS.ECO.forEach(layer => {
-      data[layer].forEach(item => {
-        item.layer = layer
-      })
+      data[layer] = rawData[layer].map(item => ({
+        ...item,
+        layer,
+      }))
     })
+
     return data
   }, [])
 }

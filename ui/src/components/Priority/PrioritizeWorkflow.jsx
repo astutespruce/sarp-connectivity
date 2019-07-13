@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 import PropTypes from 'prop-types'
 
 import { Flex, Box } from 'components/Grid'
@@ -6,18 +6,12 @@ import Sidebar from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
 import styled from 'style'
 
-import Map  from './Map'
-// import UnitChooser from './UnitChooser'
+import Map from './Map'
+import UnitChooser from './UnitChooser'
 import LayerChooser from './LayerChooser'
 
 const Wrapper = styled(Flex)`
   height: 100%;
-`
-
-const SidebarContent = styled(Box).attrs({ p: '1rem' })`
-overflow-y: auto;
-overflow-x: hidden;
-flex-grow: 1;
 `
 
 const MapContainer = styled.div`
@@ -30,27 +24,50 @@ const Prioritize = ({ barrierType }) => {
   const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [searchFeature, setSearchFeature] = useState(null)
 
+  // TODO: use an object keyed by ID instead
+  const [summaryUnits, setSummaryUnits] = useState([])
+
   // TODO: wrap into useReducer?
   const [step, setStep] = useState('select')
-  const [system, setSystem] = useState(null)
   const [layer, setLayer] = useState(null)
 
   // TODO: wrap into custom hook
   const [isLoading, setIsLoading] = useState(false)
   const [isError, setIsError] = useState(false)
 
-
-  const handleSearch = nextSearchFeature => {
+  const handleSearch = useCallback(nextSearchFeature => {
     setSearchFeature(nextSearchFeature)
-  }
-
-  const handleSetSystem = nextSystem => {
-    setSystem(nextSystem)
-    selectedBarrier(null)
-  }
+  }, [layer])
 
   const handleSetLayer = nextLayer => {
-      setLayer(nextLayer)
+    setLayer(nextLayer)
+    setSearchFeature(null)
+  }
+
+  // Toggle selected unit in or out of selection
+  const handleSelectUnit = unit => {
+    const { id } = unit
+
+    setSummaryUnits(prevSummaryUnits => {
+      // NOTE: we are always creating a new object,
+      // because we cannot mutate the underlying object
+      // without causing the setSummaryUnits call to be a no-op
+      const index = prevSummaryUnits.findIndex(
+        ({ id: unitId }) => unitId === id
+      )
+
+      if (index === -1) {
+        // add it
+        return prevSummaryUnits.concat([unit])
+      }
+
+      // remove it
+      return prevSummaryUnits
+        .slice(0, index)
+        .concat(prevSummaryUnits.slice(index + 1))
+    })
+
+    setSearchFeature(null)
   }
 
   const handleSelectBarrier = feature => {
@@ -92,11 +109,19 @@ const Prioritize = ({ barrierType }) => {
       switch (step) {
         case 'select': {
           if (layer === null) {
-            sidebarContent = <LayerChooser setLayer={handleSetLayer}/>
-          } 
-        //   else {
-        //     sidebarContent = <UnitChooser />
-        //   }
+            sidebarContent = <LayerChooser setLayer={handleSetLayer} />
+          } else {
+            sidebarContent = (
+              <UnitChooser
+                barrierType={barrierType}
+                layer={layer}
+                summaryUnits={summaryUnits}
+                onBack={() => handleSetLayer(null)}
+                selectUnit={handleSelectUnit}
+                setSearchFeature={handleSearch}
+              />
+            )
+          }
           break
         }
         default: {
@@ -118,9 +143,9 @@ const Prioritize = ({ barrierType }) => {
     <Wrapper>
       <Sidebar>
         {selectedBarrier !== null ? (
-          <BarrierDetails barrier={selectedBarrier} barrierType={barrierType}/>
+          <BarrierDetails barrier={selectedBarrier} barrierType={barrierType} />
         ) : (
-          <SidebarContent>{sidebarContent}</SidebarContent>
+          sidebarContent
         )}
       </Sidebar>
 
@@ -130,7 +155,8 @@ const Prioritize = ({ barrierType }) => {
           activeLayer={layer}
           searchFeature={searchFeature}
           selectedBarrier={selectedBarrier}
-          onSelectUnit={handleSelectBarrier}
+          summaryUnits={summaryUnits}
+          onSelectUnit={handleSelectUnit}
         />
       </MapContainer>
     </Wrapper>

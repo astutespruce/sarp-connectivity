@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback } from 'react'
 
 import { Text, HelpText } from 'components/Text'
 import { Flex, Box } from 'components/Grid'
@@ -58,9 +58,9 @@ const SummaryPage = () => {
   const [searchFeature, setSearchFeature] = useState(null)
   const [selectedUnit, setSelectedUnit] = useState(null)
 
-  const handleSearch = nextSearchFeature => {
+  const handleSearch = useCallback(nextSearchFeature => {
     setSearchFeature(nextSearchFeature)
-  }
+  }, [system])
 
   const handleSetBarrierType = nextBarrierType => {
     setBarrierType(nextBarrierType)

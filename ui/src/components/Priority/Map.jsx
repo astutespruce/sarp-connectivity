@@ -31,12 +31,14 @@ import {
   topRank,
   lowerRank,
 } from './layers'
+import { selectUnit } from '../../../../ui-bk/src/actions/priority'
 
 const PriorityMap = ({
   activeLayer,
   barrierType,
   selectedUnit,
   searchFeature,
+  summaryUnits,
   onSelectUnit,
   ...props
 }) => {
@@ -50,7 +52,6 @@ const PriorityMap = ({
     mapRef.current = map
 
     map.on('zoomend', () => {
-      // setVisibleLayer(getVisibleLayer(map, system))
       setZoom(map.getZoom())
     })
 
@@ -74,17 +75,26 @@ const PriorityMap = ({
             minzoom,
             maxzoom,
             ...parentOutline,
+            id: `${layer}-${parentOutline.id}`,
           })
         }
 
         // Each layer has 4 display layers: outline, fill, highlight fill, highlight outline
         unitLayers.forEach(({ id, ...rest }) => {
-          console.log('layer', layer, {
-            ...config,
-            ...rest,
-            id: `${layer}-${id}`,
-          })
-          map.addLayer({ ...config, ...rest, id: `${layer}-${id}` })
+          const layerId = `${layer}-${id}`
+          map.addLayer({ ...config, ...rest, id: layerId })
+
+          if (id === 'unit-fill') {
+            map.on('click', `${layer}-${id}`, e => {
+              const [feature] = map.queryRenderedFeatures(e.point, {
+                layers: [layerId],
+              })
+
+              if (feature) {
+                onSelectUnit(feature.properties)
+              }
+            })
+          }
         })
       }
     )
@@ -102,16 +112,40 @@ const PriorityMap = ({
   useEffect(() => {
     const { current: map } = mapRef
 
-    if (!(map && activeLayer)) return
+    if (!map) return
 
     // toggle visibility of layers so that we only show those layers for the activeLayer
     Object.keys(unitLayerConfig).forEach(layer => {
       const visibility = layer === activeLayer ? 'visible' : 'none'
       unitLayers.forEach(({ id }) => {
-        map.setLayoutProperty(`${layer}-${id}`, 'visibility', visibility)
+        const layerId = `${layer}-${id}`
+
+        // reset previous highlight
+        if (id === 'unit-highlight-fill' || 'unit-highlight-outline') {
+          map.setFilter(layerId, '==', 'id', Infinity)
+        }
+
+        map.setLayoutProperty(layerId, 'visibility', visibility)
       })
     })
   }, [activeLayer])
+
+  useEffect(() => {
+    const { current: map } = mapRef
+
+    if (!map) return
+
+    const ids = summaryUnits.map(({ id }) => id)
+    console.log('set summary unit hightlight for ', ids)
+    const filterExpr =
+      ids.length > 0 ? ['in', 'id', ...ids] : ['==', 'id', Infinity]
+
+    // last 2 layers are for highlight
+    unitLayers.slice(2).forEach(({ id }) => {
+      // const layerId = `${activeLayer}-${id}`
+      map.setFilter(`${activeLayer}-${id}`, filterExpr)
+    })
+  }, [activeLayer, summaryUnits])
 
   // useEffect(() => {
   //   const { current: map } = mapRef
@@ -169,31 +203,31 @@ const PriorityMap = ({
   //   })
   // }, [system, selectedUnit])
 
-  // useEffect(() => {
-  //   const { current: map } = mapRef
-  //   if (!(map && searchFeature)) {
-  //     return
-  //   }
+  useEffect(() => {
+    const { current: map } = mapRef
+    if (!(map && searchFeature)) {
+      return
+    }
 
-  //   const { id = null, layer, bbox, maxZoom: fitBoundsMaxZoom } = searchFeature
-  //   // if feature is already visible, select it
-  //   // otherwise, zoom and attempt to select it
+    const { id = null, layer, bbox, maxZoom: fitBoundsMaxZoom } = searchFeature
+    // if feature is already visible, select it
+    // otherwise, zoom and attempt to select it
 
-  //   let feature = selectFeatureByID(id, layer)
-  //   if (!feature) {
-  //     map.once('moveend', () => {
-  //       feature = selectFeatureByID(id, layer)
-  //       // source may still be loading, try again in 1 second
-  //       if (!feature) {
-  //         setTimeout(() => {
-  //           selectFeatureByID(id, layer)
-  //         }, 1000)
-  //       }
-  //     })
-  //   }
+    let feature = selectFeatureByID(id, layer)
+    if (!feature) {
+      map.once('moveend', () => {
+        feature = selectFeatureByID(id, layer)
+        // source may still be loading, try again in 1 second
+        if (!feature) {
+          setTimeout(() => {
+            selectFeatureByID(id, layer)
+          }, 1000)
+        }
+      })
+    }
 
-  //   map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
-  // }, [searchFeature])
+    map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
+  }, [searchFeature])
 
   // const { layerTitle, legendEntries } = useMemo(() => {
   //   const layer = layers.filter(
@@ -231,17 +265,17 @@ const PriorityMap = ({
   //   }
   // }, [system, barrierType, zoom])
 
-  // const selectFeatureByID = (id, layer) => {
-  //   const [feature] = mapRef.current.querySourceFeatures('sarp', {
-  //     sourceLayer: layer,
-  //     filter: ['==', 'id', id],
-  //   })
+  const selectFeatureByID = (id, layer) => {
+    const [feature] = mapRef.current.querySourceFeatures('sarp', {
+      sourceLayer: layer,
+      filter: ['==', 'id', id],
+    })
 
-  //   if (feature !== undefined) {
-  //     onSelectUnit({ ...feature.properties, layerId: layer })
-  //   }
-  //   return feature
-  // }
+    if (feature !== undefined) {
+      onSelectUnit({ ...feature.properties, layerId: layer })
+    }
+    return feature
+  }
 
   return (
     <>
@@ -259,6 +293,11 @@ PriorityMap.propTypes = {
   activeLayer: PropTypes.string,
   barrierType: PropTypes.string.isRequired,
   selectedUnit: PropTypes.object,
+  summaryUnits: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+    })
+  ),
   searchFeature: SearchFeaturePropType,
   onSelectUnit: PropTypes.func.isRequired,
 }
@@ -267,6 +306,7 @@ PriorityMap.defaultProps = {
   activeLayer: null,
   selectedUnit: null,
   searchFeature: null,
+  summaryUnits: [],
 }
 
 export default memo(PriorityMap)
