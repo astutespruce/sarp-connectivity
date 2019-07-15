@@ -350,6 +350,7 @@ PriorityMap.propTypes = {
   activeLayer: PropTypes.string,
   barrierType: PropTypes.string.isRequired,
   selectedUnit: PropTypes.object,
+  selectedBarrier: PropTypes.object,
   summaryUnits: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,

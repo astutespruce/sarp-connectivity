@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import PropTypes from 'prop-types'
 
-import { Flex, Box } from 'components/Grid'
+import { Flex } from 'components/Grid'
 import Sidebar from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
 import styled from 'style'
@@ -21,56 +21,10 @@ const MapContainer = styled.div`
 `
 
 const Prioritize = ({ barrierType }) => {
-  const [selectedBarrier, setSelectedBarrier] = useState({
-    id: 90124,
-    lat: 35.23275,
-    lon: -94.601814,
-    sarpid: 105413,
-    source: 'NHDplus High Resolution watebodies instersecting *',
-    name: 'null',
-    countyname: 'Le Flore',
-    State: 'Oklahoma',
-    basin: 'Robert S. Kerr Reservoir',
-    rarespp: 0,
-    river: 'null',
-    streamorder: 1,
-    protectedland: false,
-    HUC6: '111101',
-    HUC8: '11110104',
-    HUC12: '111101040603',
-    ECO3: '8.4.7',
-    ECO4: '37d',
-    height: 0,
-    year: 0,
-    construction: 0,
-    purpose: 0,
-    condition: 0,
-    recon: 0,
-    feasibility: 0,
-    gainmiles: 0.61,
-    upstreammiles: 0.61,
-    downstreammiles: 1.67,
-    totalnetworkmiles: 2.28,
-    landcover: 45,
-    sizeclasses: 0,
-    County: '40079',
-    heightclass: 0,
-    raresppclass: 0,
-    gainmilesclass: 0,
-    sinuosity: 1,
-    landcoverclass: 0,
-    streamorderclass: 1,
-    se_nc_tier: 20,
-    se_wc_tier: 14,
-    se_ncwc_tier: 17,
-    state_nc_tier: 17,
-    state_wc_tier: 12,
-    state_ncwc_tier: 15,
-    hasnetwork: true,
-  }) // FIXME
+  const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [searchFeature, setSearchFeature] = useState(null)
 
-  const [summaryUnits, setSummaryUnits] = useState({}) // useState([{"id":"Arkansas","dams":6269,"off_network_dams":422,"miles":10.72599983215332,"barriers":3018,"off_network_barriers":1526,"layerId":"State"}]) // FIXME
+  const [summaryUnits, setSummaryUnits] = useState([]) // useState([{"id":"Arkansas","dams":6269,"off_network_dams":422,"miles":10.72599983215332,"barriers":3018,"off_network_barriers":1526,"layerId":"State"}]) // FIXME
 
   // TODO: wrap into useReducer?
   const [step, setStep] = useState('select')
@@ -120,7 +74,9 @@ const Prioritize = ({ barrierType }) => {
   }
 
   const handleSelectBarrier = feature => {
-    console.log(JSON.stringify(feature))
+      // don't show details when selecting units
+      if (step === 'select') return
+
     setSelectedBarrier(feature)
   }
 
