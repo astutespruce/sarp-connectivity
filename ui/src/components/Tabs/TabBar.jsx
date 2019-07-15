@@ -14,14 +14,14 @@ const Wrapper = styled(Flex).attrs({
   font-size: 0.9rem;
 `
 
-const TabBar = ({ tabs, activeTab, onChange }) => {
+const TabBar = ({ tabs, activeTab, onChange, ...props }) => {
   const handleClick = id => {
     if (id !== activeTab) {
       onChange(id)
     }
   }
   return (
-    <Wrapper>
+    <Wrapper {...props}>
       {tabs.map(tab => (
         <Button
           key={tab.id}

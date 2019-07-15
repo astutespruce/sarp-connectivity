@@ -7,6 +7,7 @@ import styled from 'style'
 import TabBar from './TabBar'
 import TabContainer from './TabContainer'
 import Tab from './Tab'
+import { ActiveButton, InactiveButton } from './Button'
 
 const Wrapper = styled(Flex).attrs({
   flexDirection: 'column',
@@ -34,6 +35,6 @@ Tabs.propTypes = {
   children: PropTypes.arrayOf(PropTypes.node).isRequired,
 }
 
-export { Tab, TabBar, TabContainer }
+export { Tab, TabBar, TabContainer, ActiveButton, InactiveButton }
 
 export default Tabs

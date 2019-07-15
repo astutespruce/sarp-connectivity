@@ -15,8 +15,9 @@ const Wrapper = styled(Flex).attrs({
   as: 'header',
   alignItems: 'center',
   justifyContent: 'space-between',
-  py: '0.25rem',
-  px: '0.5rem',
+  py: '0.3rem',
+  pl: '0.15rem',
+  pr: '1rem'
 })`
   background-color: ${themeGet('colors.primary.900')};
   flex: 0 0 auto;
@@ -26,8 +27,8 @@ const Wrapper = styled(Flex).attrs({
 const SiteLogo = styled(Image).attrs({ src: LogoSVG })`
   fill: #fff;
   margin-right: 0.25rem;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2rem;
+  height: 2rem;
 `
 
 const Title = styled(Text).attrs({

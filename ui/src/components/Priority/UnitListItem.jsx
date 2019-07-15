@@ -4,9 +4,9 @@ import PropTypes from 'prop-types'
 
 import { Text } from 'components/Text'
 import { Flex } from 'components/Grid'
+import {CloseButton} from 'components/Button'
 import { formatNumber } from 'util/format'
 import styled, { themeGet } from 'style'
-import { FaTimesCircle } from 'react-icons/fa'
 import { STATE_FIPS } from '../../../config/constants'
 
 const Wrapper = styled(Flex).attrs({
@@ -24,6 +24,7 @@ const Wrapper = styled(Flex).attrs({
 
 const Content = styled.div`
   flex: 1 1 auto;
+  margin-right: 1em;
 `
 
 const Name = styled(Text).attrs({ fontSize: '1.25rem' })``
@@ -37,17 +38,6 @@ const Count = styled.div`
   color: ${themeGet('colors.grey.600')};
 `
 
-const DeleteIcon = styled(FaTimesCircle)`
-  width: 1.25em;
-  height: 1.25em;
-  margin-left: 1em;
-  color: ${themeGet('colors.grey.300')};
-  cursor: pointer;
-
-  &:hover {
-    color: ${themeGet('colors.grey.900')};
-  }
-`
 
 const SummaryUnitListItem = ({ barrierType, layer, unit, onDelete }) => {
   const { id } = unit
@@ -83,7 +73,7 @@ const SummaryUnitListItem = ({ barrierType, layer, unit, onDelete }) => {
         </Count>
       </Content>
 
-      <DeleteIcon onClick={handleDelete} />
+      <CloseButton onClick={handleDelete} />
     </Wrapper>
   )
 }

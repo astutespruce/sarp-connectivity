@@ -1,5 +1,3 @@
-import React from 'react'
-import PropTypes from 'prop-types'
 import { FaExclamationTriangle } from 'react-icons/fa'
 
 import { Text } from 'components/Text'
@@ -36,7 +34,7 @@ export const Title = styled(Text).attrs({
 })`
   font-size: 1.5rem;
   line-height: 1.2;
-  margin: 0;
+  margin: 0 0 0.5rem 0;
 `
 
 export const Content = styled(Box).attrs({ p: '1rem' })`
@@ -50,4 +48,3 @@ export const WarningIcon = styled(FaExclamationTriangle)`
   width: 1em;
   margin-right: 0.25em;
 `
-

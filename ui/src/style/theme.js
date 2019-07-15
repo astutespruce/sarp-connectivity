@@ -6,6 +6,7 @@ const colors = {
   link: '#1891ac',
   primary: {
     100: '#e0f2fb',
+    200: '#cce5f2',
     // 0: '#e4f0f9',
     // 100: '#c6e1f3',
     // 200: '#a5cfed',

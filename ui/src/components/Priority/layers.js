@@ -131,7 +131,6 @@ export const backgroundPoint = {
   type: 'circle',
   minzoom: 10,
   maxzoom: 24,
-  // filter: ["==", "hasnetwork", false],
   layout: {
     visibility: 'none',
   },
@@ -152,7 +151,7 @@ export const excludedPoint = {
   type: 'circle',
   minzoom: 7,
   maxzoom: 24,
-  // filter: compound filter, must include ["==", "hasnetwork", true]
+  // filter:  [], // will be filtered using "in" or "!in"
   paint: {
     'circle-color': '#fbb4b9',
     'circle-stroke-color': '#c51b8a',
@@ -170,7 +169,7 @@ export const includedPoint = {
   type: 'circle',
   minzoom: 5,
   maxzoom: 24,
-  // filter: compound filter, must include ["==", "hasnetwork", true]
+  filter: ['==', 'id', 'Infinity'],  // will be filtered using "in" or "!in"
   paint: {
     'circle-color': '#c51b8a',
     'circle-radius': { stops: [[5, 1], [6, 2], [14, 8]] },
@@ -179,6 +178,7 @@ export const includedPoint = {
     'circle-stroke-width': { stops: [[7, 0], [8, 0.25], [10, 1], [14, 3]] },
   },
 }
+
 
 export const pointHighlight = {
   id: 'point-highlight',

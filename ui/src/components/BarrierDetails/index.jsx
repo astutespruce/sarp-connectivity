@@ -1,24 +1,36 @@
 /* eslint-disable camelcase */
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
-import {FaEnvelope, FaTimesCircle} from 'react-icons/fa'
+import { FaEnvelope, FaTimesCircle } from 'react-icons/fa'
 
-import {Text} from 'components/Text'
-import {Flex, Box} from 'components/Grid'
-import {Tab, TabContainer} from 'components/Tabs'
+import { Text } from 'components/Text'
+import { Flex, Box } from 'components/Grid'
+import { CloseButton } from 'components/Button'
+import BaseTabs, {
+  Tab as BaseTab,
+  TabBar,
+  ActiveButton,
+  InactiveButton,
+} from 'components/Tabs'
 import { isEmptyString } from 'util/string'
-import styled from 'style'
+import styled, { themeGet } from 'style'
 import DamDetails from './DamDetails'
 import SmallBarrierDetails from './SmallBarrierDetails'
 import Scores from './Scores'
 import { BarrierPropType } from './proptypes'
 
-const Wrapper = styled(Flex).attrs({flexDirection: 'column'})``
+// const Wrapper = styled(Flex).attrs({flexDirection: 'column'})``
 
-
-const Header = styled(Flex).attrs({justifyContent: 'center', py: '1rem', pr: '0.5rem', pl: '1rem'})`
-    background: #f6f6f2;
-    border-bottom: 1px solid #ddd;
+const Header = styled(Flex).attrs({
+  justifyContent: 'space-between',
+  py: '1rem',
+  pr: '0.5rem',
+  pl: '1rem',
+})`
+  /* background: #f6f6f2; */
+  /* border-bottom: 1px solid #ddd; */
+  border-bottom: 4px solid ${themeGet('colors.primary.200')};
+  flex: 0 0 auto;
 `
 
 // const HeaderWithTabs = styled(Box).attrs({pt: '1rem', pr: '0.5rem', pl: '1rem'})`
@@ -26,32 +38,49 @@ const Header = styled(Flex).attrs({justifyContent: 'center', py: '1rem', pr: '0.
 
 // `
 
-const Title = styled(Text).attrs({fontSize: '1.5rem'})`
-flex-grow: 1;
-
+const TitleWrapper = styled(Box)`
+  flex: 1 1 auto;
+  margin-right: 1em;
 `
 
-const Subtitle = styled(Text).attrs({fontSize: '1rem'})``
+const Title = styled(Text).attrs({ as: 'h3', fontSize: '1.25rem', m: 0 })``
 
+const Subtitle = styled(Text).attrs({ fontSize: '1rem' })``
 
+const Tabs = styled(BaseTabs)`
+  flex: 1 1 auto;
+  height: 100%;
 
-
-const Footer = styled(Flex).attrs({justifyContent: 'center', alignItems: 'center', py: '1rem'})`
-    flex-grow: 0;
-    border-top: 1px solid #ddd;
-    background: #f6f6f2;
+  ${ActiveButton} {
+      border: none;
+      padding: 0.5rem 0;
+    }
+    ${InactiveButton} {
+      background: ${themeGet('colors.primary.100')};
+      border: none;
+      padding: 0.5rem 0;
+    }
 `
 
-const CloseButton = styled(FaTimesCircle)`
-height: 2em;
-width: 2em;
-flex: 0 0 auto;
+const Tab = styled(BaseTab)`
+  overflow-y: auto;
+  padding: 1rem;
+`
+
+const Footer = styled(Flex).attrs({
+  justifyContent: 'center',
+  alignItems: 'center',
+  py: '1rem',
+})`
+  flex: 0 0 auto;
+  border-top: 1px solid #ddd;
+  background: #f6f6f2;
 `
 
 const MailIcon = styled(FaEnvelope)`
-height: 1em;
-width: 1em;
-margin-right: 0.25em;
+  height: 1em;
+  width: 1em;
+  margin-right: 0.25em;
 `
 
 const tierToPercent = tier => (100 * (19 - (tier - 1))) / 20
@@ -59,13 +88,13 @@ const tierToPercent = tier => (100 * (19 - (tier - 1))) / 20
 const BarrierDetails = ({
   barrier,
   barrierType,
-  mode,  // TODO: only show results if there are some
+  mode, // TODO: only show results if there are some
 
   onClose,
 }) => {
   const { sarpid, name, hasnetwork, countyname, State, ncwc_tier } = barrier
 
-// const [tab, setTab] = useState('details')
+  // const [tab, setTab] = useState('details')
 
   const details =
     barrierType === 'dams' ? (
@@ -74,44 +103,32 @@ const BarrierDetails = ({
       <SmallBarrierDetails {...barrier} />
     )
 
-  const footer = (
-    <Footer>
-        <a
-          href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
-            barrierType === 'dams' ? 'dam' : 'road-related barrier'
-          }: ${sarpid}&body=I found the following problem with the SARP Inventory for this barrier:`}
-        >
-          <MailIcon /> Report a problem with this barrier
-        </a>
-    </Footer>
-  )
-
   const defaultName =
     barrierType === 'dams' ? 'Unknown name' : 'Unnamed crossing'
 
-  if (mode !== 'results' || !ncwc_tier) {
-    return (
-      <Wrapper>
-        <Header>
-            <Title>
-                {!isEmptyString(name) ? name : defaultName}
-              {!isEmptyString(countyname) && !isEmptyString(State) ? (
-                <Subtitle>
-                  {countyname}, {State}
-                </Subtitle>
-              ) : null}
-            </Title>
-            <CloseButton onClick={onClose} />
-        </Header>
+  // if (mode !== 'results' || !ncwc_tier) {
+  //   return (
+  //     <Wrapper>
+  //       <Header>
+  //           <Title>
+  //               {!isEmptyString(name) ? name : defaultName}
+  //             {!isEmptyString(countyname) && !isEmptyString(State) ? (
+  //               <Subtitle>
+  //                 {countyname}, {State}
+  //               </Subtitle>
+  //             ) : null}
+  //           </Title>
+  //           <CloseButton onClick={onClose} />
+  //       </Header>
 
-        <div id="SidebarContent" className="flex-container-column">
-          {details}
-        </div>
+  //       <div id="SidebarContent" className="flex-container-column">
+  //         {details}
+  //       </div>
 
-        {footer}
-      </Wrapper>
-    )
-  }
+  //       {footer}
+  //     </Wrapper>
+  //   )
+  // }
 
   let scoreContent = null
   if (hasnetwork) {
@@ -151,50 +168,37 @@ const BarrierDetails = ({
     )
   }
 
-//   const handleDetailsClick = () => setTab('details')
-//   const handlePrioritiesClick = () => setTab('priorities')
-
   return (
-    <Wrapper>
+    <>
       <Header>
-        <div className="flex-container flex-justify-center flex-align-start">
-          <div className="flex-grow">
-            <h5 className="title is-5">
-              {!isEmptyString(name) ? name : defaultName}
-            </h5>
-            <h5 className="subtitle is-6">
-              {countyname}, {State}
-            </h5>
-          </div>
-          <CloseButton onClick={onClose}/>
-        </div>
-        {/* <div className="tabs">
-          <ul>
-            <li className={tab === 'details' ? 'is-active' : null}>
-              <a onClick={handleDetailsClick}>Overview</a>
-            </li>
-            <li className={tab === 'priorities' ? 'is-active' : null}>
-              <a onClick={handlePrioritiesClick}>Connectivity Ranks</a>
-            </li>
-          </ul>
-        </div> */}
+        <TitleWrapper>
+          <Title>{!isEmptyString(name) ? name : defaultName}</Title>
+          <Subtitle>
+            {countyname}, {State}
+          </Subtitle>
+        </TitleWrapper>
+        <CloseButton onClick={onClose} />
       </Header>
 
-      <TabContainer>
-          <Tab id="details" label="Overview">
-              {details}
-          </Tab>
-          <Tab id="ranks" label="Connectivity Ranks">
-              {scoreContent}
-          </Tab>
-      </TabContainer>
+      <Tabs>
+        <Tab id="details" label="Overview">
+          {details}
+        </Tab>
+        <Tab id="ranks" label="Connectivity Ranks">
+          {scoreContent}
+        </Tab>
+      </Tabs>
 
-      {/* <div id="SidebarContent" className="flex-container-column">
-        {tab === 'details' ? details : scoreContent}
-      </div> */}
-
-      {footer}
-    </Wrapper>
+      <Footer>
+        <a
+          href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
+            barrierType === 'dams' ? 'dam' : 'road-related barrier'
+          }: ${sarpid}&body=I found the following problem with the SARP Inventory for this barrier:`}
+        >
+          <MailIcon /> Report a problem with this barrier
+        </a>
+      </Footer>
+    </>
   )
 }
 

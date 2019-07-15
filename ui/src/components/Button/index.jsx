@@ -1,6 +1,7 @@
 import Button, { DefaultButton, PrimaryButton, SecondaryButton, WarningButton } from './Button'
 import ButtonGroup from './ButtonGroup'
 import ToggleButton from './ToggleButton'
+import CloseButton from './CloseButton'
 
 export {
   Button,
@@ -10,4 +11,5 @@ export {
   WarningButton,
   ButtonGroup,
   ToggleButton,
+  CloseButton
 }

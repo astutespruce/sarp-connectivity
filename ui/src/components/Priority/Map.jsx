@@ -19,11 +19,7 @@ import {
   maskFill,
   maskOutline,
   unitLayers,
-  // unitFill,
-  // unitOutline,
   parentOutline,
-  // unitHighlightFill,
-  // unitHighlightOutline,
   pointHighlight,
   backgroundPoint,
   excludedPoint,
@@ -37,9 +33,11 @@ const PriorityMap = ({
   activeLayer,
   barrierType,
   selectedUnit,
+  selectedBarrier,
   searchFeature,
   summaryUnits,
   onSelectUnit,
+  onSelectBarrier,
   ...props
 }) => {
   const mapRef = useRef(null)
@@ -85,15 +83,7 @@ const PriorityMap = ({
           map.addLayer({ ...config, ...rest, id: layerId })
 
           if (id === 'unit-fill') {
-            map.on('click', `${layer}-${id}`, e => {
-              const [feature] = map.queryRenderedFeatures(e.point, {
-                layers: [layerId],
-              })
-
-              if (feature) {
-                onSelectUnit(feature.properties)
-              }
-            })
+            handleLayerClick(layerId, onSelectUnit)
           }
         })
       }
@@ -103,6 +93,39 @@ const PriorityMap = ({
     map.addLayer({
       ...backgroundPoint,
       source: barrierType,
+    })
+    handleLayerClick(backgroundPoint.id, feature => {
+      onSelectBarrier({
+        ...feature,
+        hasnetwork: false,
+      })
+    })
+
+    // add filter point layers
+    const pointConfig = {
+      source: barrierType,
+      'source-layer': barrierType,
+    }
+
+    // all points are initially excluded from analysis until their
+    // units are selected
+    map.addLayer({ ...pointConfig, ...excludedPoint })
+    handleLayerClick(excludedPoint.id, feature => {
+      onSelectBarrier({
+        ...feature,
+        hasnetwork: true,
+      })
+    })
+
+    map.addLayer({
+      ...pointConfig,
+      ...includedPoint,
+    })
+    handleLayerClick(includedPoint.id, feature => {
+      onSelectBarrier({
+        ...feature,
+        hasnetwork: true,
+      })
     })
 
     // Add barrier highlight layer.
@@ -277,6 +300,19 @@ const PriorityMap = ({
     return feature
   }
 
+  // Hookup map on click handler to call onClick with the properties
+  // of the feature selected
+  const handleLayerClick = (layerId, onClick) => {
+    const { current: map } = mapRef
+
+    map.on('click', layerId, ({ point }) => {
+      const [feature] = map.queryRenderedFeatures(point, { layers: [layerId] })
+      if (feature) {
+        onClick(feature.properties)
+      }
+    })
+  }
+
   return (
     <>
       <Map onCreateMap={handleCreateMap} {...props} />
@@ -300,11 +336,13 @@ PriorityMap.propTypes = {
   ),
   searchFeature: SearchFeaturePropType,
   onSelectUnit: PropTypes.func.isRequired,
+  onSelectBarrier: PropTypes.func.isRequired,
 }
 
 PriorityMap.defaultProps = {
   activeLayer: null,
   selectedUnit: null,
+  selectedBarrier: null,
   searchFeature: null,
   summaryUnits: [],
 }

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 
 import styled, { themeGet } from 'style'
 
-const InactiveButton = styled.div`
+export const InactiveButton = styled.div`
   text-align: center;
   cursor: pointer;
   flex-grow: 1;
@@ -15,7 +15,7 @@ const InactiveButton = styled.div`
   }
 `
 
-const ActiveButton = styled(InactiveButton)`
+export const ActiveButton = styled(InactiveButton)`
   font-weight: bold;
   color: ${themeGet('colors.grey.900')};
   border-bottom-color: transparent;

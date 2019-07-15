@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
+import { Section, SectionHeader, List } from './styles'
 
 import {
   DAM_CONDITION,
@@ -37,109 +38,125 @@ const DamDetails = ({
   sizeclasses,
 }) => (
   <div id="BarrierDetails">
-    <h6 className="title is-6">Location</h6>
-    <ul>
-      <li>
-        Coordinates: {formatNumber(lat, 3)}
-        &deg; N, {formatNumber(lon, 3)}
-        &deg; E
-      </li>
-      <li>
-        {river && river !== 'null' && river !== 'Unknown' ? `${river}, ` : null}
-        {basin} Basin
-      </li>
-    </ul>
-
-    <h6 className="title is-6">Construction information</h6>
-    <ul>
-      <li>Barrier type: dam</li>
-      {year > 0 ? <li>Constructed completed: {year}</li> : null}
-      {height > 0 ? <li>Height: {height} feet</li> : null}
-      {construction && CONSTRUCTION[construction] ? (
+    <Section>
+      <SectionHeader>Location</SectionHeader>
+      <List>
         <li>
-          Construction material: {CONSTRUCTION[construction].toLowerCase()}
+          Coordinates: {formatNumber(lat, 3)}
+          &deg; N, {formatNumber(lon, 3)}
+          &deg; E
         </li>
-      ) : null}
-      {purpose && PURPOSE[purpose] ? (
-        <li>Purpose: {PURPOSE[purpose].toLowerCase()}</li>
-      ) : null}
-      {condition && DAM_CONDITION[condition] ? (
-        <li>Structural condition: {DAM_CONDITION[condition].toLowerCase()}</li>
-      ) : null}
-    </ul>
-
-    <h6 className="title is-6">Functional network information</h6>
-
-    <ul>
-      {hasnetwork ? (
-        <React.Fragment>
-          <li>
-            <b>{formatNumber(gainmiles)}</b> miles could be gained by removing
-            this barrier
-            <ul>
-              <li>
-                {formatNumber(upstreammiles)} miles in the upstream network
-              </li>
-              <li>
-                {formatNumber(downstreammiles)} miles in the downstream network
-              </li>
-            </ul>
-          </li>
-          <li>
-            <b>{sizeclasses}</b> river size{' '}
-            {sizeclasses === 1 ? 'class' : 'classes'} could be gained by
-            removing this barrier
-          </li>
-          <li>
-            <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain is
-            composed of natural landcover
-          </li>
-          <li>
-            The upstream network has <b>{SINUOSITY[sinuosity]}</b> sinuosity
-          </li>
-        </React.Fragment>
-      ) : (
-        <li className="has-text-grey">
-          This barrier is off-network and has no functional network information.
+        <li>
+          {river && river !== 'null' && river !== 'Unknown'
+            ? `${river}, `
+            : null}
+          {basin} Basin
         </li>
-      )}
-    </ul>
+      </List>
+    </Section>
 
-    <h6 className="title is-6">Species information</h6>
-    <ul>
-      {rarespp > 0 ? (
-        <React.Fragment>
+    <Section>
+      <SectionHeader>Construction information</SectionHeader>
+      <List>
+        <li>Barrier type: dam</li>
+        {year > 0 ? <li>Constructed completed: {year}</li> : null}
+        {height > 0 ? <li>Height: {height} feet</li> : null}
+        {construction && CONSTRUCTION[construction] ? (
           <li>
-            <b>{rarespp}</b> threatened and endangered aquatic species have been
-            found in the subwatershed containing this barrier.
+            Construction material: {CONSTRUCTION[construction].toLowerCase()}
           </li>
-          <li className="has-text-grey is-size-7">
-            Note: species information is very incomplete. These species may or
-            may not be directly impacted by this barrier.
+        ) : null}
+        {purpose && PURPOSE[purpose] ? (
+          <li>Purpose: {PURPOSE[purpose].toLowerCase()}</li>
+        ) : null}
+        {condition && DAM_CONDITION[condition] ? (
+          <li>
+            Structural condition: {DAM_CONDITION[condition].toLowerCase()}
           </li>
-        </React.Fragment>
-      ) : (
-        <li className="has-text-grey">
-          No threatened and endangered aquatic species have been identified by
-          available data sources for this subwatershed.
-        </li>
-      )}
-    </ul>
+        ) : null}
+      </List>
+    </Section>
 
-    <h6 className="title is-6">Feasibility & Conservation Benefit</h6>
-    <ul>
-      {recon !== null ? (
-        <li>{RECON[recon]}</li>
-      ) : (
-        <li className="has-text-grey">
-          No feasibility information is available for this barrier.
-        </li>
-      )}
-    </ul>
+    <Section>
+      <SectionHeader>Functional network information</SectionHeader>
 
-    <React.Fragment>
-      <h6 className="title is-6">Other information</h6>
-      <ul>
+      <List>
+        {hasnetwork ? (
+          <>
+            <li>
+              <b>{formatNumber(gainmiles)}</b> miles could be gained by removing
+              this barrier
+              <List>
+                <li>
+                  {formatNumber(upstreammiles)} miles in the upstream network
+                </li>
+                <li>
+                  {formatNumber(downstreammiles)} miles in the downstream
+                  network
+                </li>
+              </List>
+            </li>
+            <li>
+              <b>{sizeclasses}</b> river size{' '}
+              {sizeclasses === 1 ? 'class' : 'classes'} could be gained by
+              removing this barrier
+            </li>
+            <li>
+              <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain is
+              composed of natural landcover
+            </li>
+            <li>
+              The upstream network has <b>{SINUOSITY[sinuosity]}</b> sinuosity
+            </li>
+          </>
+        ) : (
+          <li className="has-text-grey">
+            This barrier is off-network and has no functional network
+            information.
+          </li>
+        )}
+      </List>
+    </Section>
+
+    <Section>
+      <SectionHeader>Species information</SectionHeader>
+      <List>
+        {rarespp > 0 ? (
+          <>
+            <li>
+              <b>{rarespp}</b> threatened and endangered aquatic species have
+              been found in the subwatershed containing this barrier.
+            </li>
+            <li className="has-text-grey is-size-7">
+              Note: species information is very incomplete. These species may or
+              may not be directly impacted by this barrier.
+            </li>
+          </>
+        ) : (
+          <li className="has-text-grey">
+            No threatened and endangered aquatic species have been identified by
+            available data sources for this subwatershed.
+          </li>
+        )}
+      </List>
+    </Section>
+
+    <Section>
+      <SectionHeader>Feasibility & Conservation Benefit</SectionHeader>
+      <List>
+        {recon !== null ? (
+          <li>{RECON[recon]}</li>
+        ) : (
+          <li className="has-text-grey">
+            No feasibility information is available for this barrier.
+          </li>
+        )}
+      </List>
+    </Section>
+
+    <Section>
+      <SectionHeader>Other information</SectionHeader>
+      <List>
         <li>SARP ID: {sarpid}</li>
         {!isEmptyString(nidid) ? (
           <li>
@@ -155,12 +172,10 @@ const DamDetails = ({
         ) : null}
 
         {!isEmptyString(source) ? <li>Source: {source}</li> : null}
-      </ul>
-    </React.Fragment>
+      </List>
+    </Section>
   </div>
 )
-
-// TODO: feasibility, metrics
 
 DamDetails.propTypes = {
   sarpid: PropTypes.number.isRequired,

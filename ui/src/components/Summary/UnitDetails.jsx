@@ -1,9 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { FaTimesCircle } from 'react-icons/fa'
 
 import { useSummaryData } from 'components/Data'
 import { Text, HelpText } from 'components/Text'
+import {CloseButton} from 'components/Button'
 import { Box, Flex } from 'components/Grid'
 import { formatNumber, formatPercent } from 'util/format'
 import styled, { themeGet } from 'style'
@@ -41,16 +41,7 @@ const UnitID = styled(Text)`
   color: ${themeGet('colors.grey.700')};
 `
 
-const CloseButton = styled(FaTimesCircle)`
-  width: 1.25rem;
-  height: 1.25rem;
-  cursor: pointer;
-  color: ${themeGet('colors.grey.500')};
 
-  &:hover {
-    color: ${themeGet('colors.grey.900')};
-  }
-`
 
 const Content = styled(Box).attrs({
   p: '1rem',
