@@ -37,7 +37,7 @@ const DamDetails = ({
   landcover,
   sizeclasses,
 }) => (
-  <div id="BarrierDetails">
+  <div>
     <Section>
       <SectionHeader>Location</SectionHeader>
       <List>

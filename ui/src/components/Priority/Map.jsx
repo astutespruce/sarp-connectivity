@@ -170,6 +170,27 @@ const PriorityMap = ({
     })
   }, [activeLayer, summaryUnits])
 
+  useEffect(() => {
+    const { current: map } = mapRef
+
+    if (!map) return
+
+    const { id } = pointHighlight
+
+    // setting to null effectively hides this layer
+    let data = null
+
+    if (selectedBarrier) {
+      const { lat, lon } = selectedBarrier
+      data = {
+        type: 'Point',
+        coordinates: [lon, lat],
+      }
+    }
+
+    map.getSource(id).setData(data)
+  }, [selectedBarrier])
+
   // useEffect(() => {
   //   const { current: map } = mapRef
 
@@ -236,14 +257,14 @@ const PriorityMap = ({
     // if feature is already visible, select it
     // otherwise, zoom and attempt to select it
 
-    let feature = selectFeatureByID(id, layer)
+    let feature = selectUnitById(id, layer)
     if (!feature) {
       map.once('moveend', () => {
-        feature = selectFeatureByID(id, layer)
+        feature = selectUnitById(id, layer)
         // source may still be loading, try again in 1 second
         if (!feature) {
           setTimeout(() => {
-            selectFeatureByID(id, layer)
+            selectUnitById(id, layer)
           }, 1000)
         }
       })
@@ -288,7 +309,7 @@ const PriorityMap = ({
   //   }
   // }, [system, barrierType, zoom])
 
-  const selectFeatureByID = (id, layer) => {
+  const selectUnitById = (id, layer) => {
     const [feature] = mapRef.current.querySourceFeatures('sarp', {
       sourceLayer: layer,
       filter: ['==', 'id', id],

@@ -1,19 +1,46 @@
-// state: summaryunit, metrics expanded.  TODO: put these in global state otherwise we have issues
-
-import React, { useState } from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
 
 import { Text, HelpText as BaseHelpText } from 'components/Text'
-import { Tab, TabContainer } from 'components/Tabs'
-import styled from 'style'
+import BaseTabs, {
+  Tab as BaseTab,
+  ActiveButton,
+  InactiveButton,
+} from 'components/Tabs'
+import styled, { themeGet } from 'style'
 import ScoresList from './ScoresList'
 import { ScoresPropType } from './proptypes'
 
-const Wrapper = styled.div``
-
 const Title = styled(Text).attrs({ fontSize: '1.25rem' })``
 
-const HelpText = styled(BaseHelpText).attrs({ fontSize: '0.75rem', mb: '2rem' })``
+const HelpText = styled(BaseHelpText).attrs({
+  fontSize: '0.75rem',
+  mb: '2rem',
+})``
+
+const Tabs = styled(BaseTabs)`
+  ${ActiveButton}, ${InactiveButton} {
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+    background: #fff !important;
+    padding: 0 0.5rem;
+  }
+
+  ${ActiveButton} {
+    border-bottom: 3px solid ${themeGet('colors.primary.500')} !important;
+  }
+
+  ${InactiveButton} {
+    border-bottom: 3px solid #fff;
+
+    &:hover {
+      border-bottom: 3px solid ${themeGet('colors.grey.500')};
+    }
+  }
+`
+
+const Tab = styled(BaseTab)``
 
 const tabs = [
   { id: 'custom', label: 'Selected Area' },
@@ -28,44 +55,21 @@ const Scores = ({ barrierType, scores }) => {
 
   const availableTabs = hasCustom ? tabs : tabs.slice(1, tabs.length)
 
-  //   const handleCustomClick = () => setTab('custom')
-  //   const handleStateClick = () => setTab('state')
-  //   const handleRegionclick = () => setTab('se')
-
   return (
-    <Wrapper>
+    <>
       <Title>Compare to other {barrierType} in the</Title>
-      {/* <div className="tabs">
-        <ul className="flex-justify-center">
-          {hasCustom ? (
-            <li className={tab === 'custom' ? 'is-active' : null}>
-              <a onClick={handleCustomClick}>Selected Area</a>
-            </li>
-          ) : null}
-          <li className={tab === 'state' ? 'is-active' : null}>
-            <a onClick={handleStateClick}>State</a>
-          </li>
-          <li className={tab === 'se' ? 'is-active' : null}>
-            <a onClick={handleRegionclick}>Southeast</a>
-          </li>
-        </ul>
-      </div> */}
-      <TabContainer>
+      <Tabs>
         {availableTabs.map(({ id, label }) => (
           <Tab key={id} id={id} label={label}>
-            <HelpText>Tiers range from 1 (highest) to 20 (lowest).</HelpText>
+            <HelpText mt="2rem">
+              Tiers range from 20 (lowest) to 1 (highest).
+            </HelpText>
 
             <ScoresList {...scores[id]} />
           </Tab>
         ))}
-      </TabContainer>
-      {/* 
-    //   <HelpText>
-    //     Tiers range from 1 (highest) to 20 (lowest).
-    //   </HelpText>
-
-    //   <ScoresList {...scores[tab]} /> */}
-    </Wrapper>
+      </Tabs>
+    </>
   )
 }
 

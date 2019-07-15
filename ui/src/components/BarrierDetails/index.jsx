@@ -1,14 +1,13 @@
 /* eslint-disable camelcase */
-import React, { useState } from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
-import { FaEnvelope, FaTimesCircle } from 'react-icons/fa'
+import { FaEnvelope } from 'react-icons/fa'
 
-import { Text } from 'components/Text'
+import { Text, HelpText } from 'components/Text'
 import { Flex, Box } from 'components/Grid'
 import { CloseButton } from 'components/Button'
 import BaseTabs, {
   Tab as BaseTab,
-  TabBar,
   ActiveButton,
   InactiveButton,
 } from 'components/Tabs'
@@ -27,16 +26,9 @@ const Header = styled(Flex).attrs({
   pr: '0.5rem',
   pl: '1rem',
 })`
-  /* background: #f6f6f2; */
-  /* border-bottom: 1px solid #ddd; */
   border-bottom: 4px solid ${themeGet('colors.primary.200')};
   flex: 0 0 auto;
 `
-
-// const HeaderWithTabs = styled(Box).attrs({pt: '1rem', pr: '0.5rem', pl: '1rem'})`
-// background: #fff;
-
-// `
 
 const TitleWrapper = styled(Box)`
   flex: 1 1 auto;
@@ -88,13 +80,10 @@ const tierToPercent = tier => (100 * (19 - (tier - 1))) / 20
 const BarrierDetails = ({
   barrier,
   barrierType,
-  mode, // TODO: only show results if there are some
 
   onClose,
 }) => {
   const { sarpid, name, hasnetwork, countyname, State, ncwc_tier } = barrier
-
-  // const [tab, setTab] = useState('details')
 
   const details =
     barrierType === 'dams' ? (
@@ -106,30 +95,6 @@ const BarrierDetails = ({
   const defaultName =
     barrierType === 'dams' ? 'Unknown name' : 'Unnamed crossing'
 
-  // if (mode !== 'results' || !ncwc_tier) {
-  //   return (
-  //     <Wrapper>
-  //       <Header>
-  //           <Title>
-  //               {!isEmptyString(name) ? name : defaultName}
-  //             {!isEmptyString(countyname) && !isEmptyString(State) ? (
-  //               <Subtitle>
-  //                 {countyname}, {State}
-  //               </Subtitle>
-  //             ) : null}
-  //           </Title>
-  //           <CloseButton onClick={onClose} />
-  //       </Header>
-
-  //       <div id="SidebarContent" className="flex-container-column">
-  //         {details}
-  //       </div>
-
-  //       {footer}
-  //     </Wrapper>
-  //   )
-  // }
-
   let scoreContent = null
   if (hasnetwork) {
     // Transform properties to priorities: <unit>_<metric>_score
@@ -137,16 +102,6 @@ const BarrierDetails = ({
     const scores = {}
     const units = ['se', 'state']
     const metrics = ['nc', 'wc', 'ncwc']
-    // TODO: "gainmiles", "landcover", "sinuosity", "sizeclasses",
-
-    scores.custom = {}
-    metrics.forEach(metric => {
-      const tier = barrier[`${metric}_tier`]
-      scores.custom[metric] = {
-        score: tierToPercent(tier),
-        tier,
-      }
-    })
 
     units.forEach(unit => {
       scores[unit] = {}
@@ -159,12 +114,26 @@ const BarrierDetails = ({
       })
     })
 
-    scoreContent = <Scores scores={scores} />
+
+    // add in custom results if available
+    if (ncwc_tier) {
+    scores.custom = {}
+    metrics.forEach(metric => {
+      const tier = barrier[`${metric}_tier`]
+      scores.custom[metric] = {
+        score: tierToPercent(tier),
+        tier,
+      }
+    })
+  }
+
+
+    scoreContent = <Scores scores={scores} barrierType={barrierType} />
   } else {
     scoreContent = (
-      <p className="has-text-grey">
+      <HelpText>
         No connectivity information is available for this barrier.
-      </p>
+      </HelpText>
     )
   }
 
@@ -204,24 +173,8 @@ const BarrierDetails = ({
 
 BarrierDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
-  mode: PropTypes.string.isRequired,
   barrier: BarrierPropType.isRequired,
   onClose: PropTypes.func.isRequired,
 }
-
-// const mapStateToProps = globalState => {
-//   const state = globalState.get('details')
-
-//   return {
-//     mode: globalState.get('priority').get('mode'),
-//     tab: state.get('tab'),
-//     type: globalState.get('priority').get('type'),
-//   }
-// }
-
-// export default connect(
-//   mapStateToProps,
-//   { setTab: setDetailsTab }
-// )(BarrierDetailsSidebar)
 
 export default BarrierDetails

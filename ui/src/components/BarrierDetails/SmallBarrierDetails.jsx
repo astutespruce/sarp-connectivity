@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
+import { Section, SectionHeader, List } from './styles'
 
 import { SINUOSITY, BARRIER_SEVERITY } from '../../../config/constants'
 
@@ -33,9 +34,10 @@ const BarrierDetails = ({
   window.stream = stream
 
   return (
-    <div id="BarrierDetails">
-      <h6 className="title is-6">Location</h6>
-      <ul>
+    <div>
+      <Section>
+      <SectionHeader>Location</SectionHeader>
+      <List>
         <li>
           Coordinates: {formatNumber(lat, 3)}
           &deg; N, {formatNumber(lon, 3)}
@@ -48,10 +50,11 @@ const BarrierDetails = ({
           </li>
         ) : null}
         {!isEmptyString(road) ? <li>Road: {road}</li> : null}
-      </ul>
+      </List>
+      </Section>
 
-      <h6 className="title is-6">Barrier information</h6>
-      <ul>
+      <SectionHeader>Barrier information</SectionHeader>
+      <List>
         <li>
           Barrier type:{' '}
           {isCrossing
@@ -66,16 +69,16 @@ const BarrierDetails = ({
         {severityclass !== null ? (
           <li>Severity: {BARRIER_SEVERITY[severityclass]}</li>
         ) : null}
-      </ul>
+      </List>
 
-      <h6 className="title is-6">Functional network information</h6>
-      <ul>
+      <SectionHeader>Functional network information</SectionHeader>
+      <List>
         {hasnetwork ? (
           <React.Fragment>
             <li>
               <b>{formatNumber(gainmiles)}</b> miles could be gained by removing
               this barrier
-              <ul>
+              <List>
                 <li>
                   {formatNumber(upstreammiles)} miles in the upstream network
                 </li>
@@ -83,7 +86,7 @@ const BarrierDetails = ({
                   {formatNumber(downstreammiles)} miles in the downstream
                   network
                 </li>
-              </ul>
+              </List>
             </li>
             <li>
               <b>{sizeclasses}</b> river size{' '}
@@ -105,10 +108,10 @@ const BarrierDetails = ({
               : 'No functional network information available.  This barrier is off-network or is not a barrier.'}
           </li>
         )}
-      </ul>
+      </List>
 
-      <h6 className="title is-6">Species information</h6>
-      <ul>
+      <SectionHeader>Species information</SectionHeader>
+      <List>
         {rarespp === null ? (
           <li className="has-text-grey">
             This barrier does not have subwatershed threatened and endangered
@@ -135,16 +138,16 @@ const BarrierDetails = ({
             )}
           </React.Fragment>
         )}
-      </ul>
+      </List>
 
       {!isEmptyString(source) || !isCrossing ? (
         <React.Fragment>
-          <h6 className="title is-6">Other information</h6>
-          <ul>
+          <SectionHeader>Other information</SectionHeader>
+          <List>
             {!isCrossing ? <li>SARP ID: {sarpid}</li> : null}
 
             {!isEmptyString(source) ? <li>Source: {source}</li> : null}
-          </ul>
+          </List>
         </React.Fragment>
       ) : null}
     </div>
