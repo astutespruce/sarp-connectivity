@@ -1,14 +1,15 @@
 import React, { useState, useCallback } from 'react'
-import PropTypes from 'prop-types'
 
+import { HelpText } from 'components/Text'
 import { Flex } from 'components/Grid'
-import Sidebar from 'components/Sidebar'
+import Sidebar, { LoadingSpinner, Error } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
 import styled from 'style'
 
 import Map from './Map'
 import UnitChooser from './UnitChooser'
 import LayerChooser from './LayerChooser'
+import FiltersList from './FiltersList'
 
 const Wrapper = styled(Flex)`
   height: 100%;
@@ -20,7 +21,7 @@ const MapContainer = styled.div`
   height: 100%;
 `
 
-const Prioritize = ({ barrierType }) => {
+const Prioritize = () => {
   const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [searchFeature, setSearchFeature] = useState(null)
 
@@ -31,8 +32,12 @@ const Prioritize = ({ barrierType }) => {
   const [layer, setLayer] = useState(null) // useState('State') // FIXME
 
   // TODO: wrap into custom hook
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
+
+  const handleMapLoad = useCallback(() => {
+    setIsLoading(false)
+  })
 
   const handleSearch = useCallback(
     nextSearchFeature => {
@@ -74,8 +79,8 @@ const Prioritize = ({ barrierType }) => {
   }
 
   const handleSelectBarrier = feature => {
-      // don't show details when selecting units
-      if (step === 'select') return
+    // don't show details when selecting units
+    if (step === 'select') return
 
     setSelectedBarrier(feature)
   }
@@ -90,25 +95,23 @@ const Prioritize = ({ barrierType }) => {
     if (isError) {
       // TODO
       sidebarContent = (
-        <div className="container notification-container flex-container-column flex-justify-center flex-grow">
-          <div className="notification is-error">
-            <i className="fas fa-exclamation-triangle" />
-            &nbsp; Whoops! There was an error loading these data. Please refresh
-            your browser page and try again.
-          </div>
-          <p className="has-text-grey">
+        <Error>
+          There was an error loading these data. Please refresh your
+          browser page and try again.
+          <HelpText fontSize='1rem' mt='2rem'>
             If it happens again, please{' '}
             <a href="mailto:kat@southeastaquatics.net">contact us</a>.
-          </p>
-        </div>
+          </HelpText>
+        </Error>
       )
     } else if (isLoading) {
       // TODO
       sidebarContent = (
-        <div className="loading-spinner flex-container flex-justify-center flex-align-center">
-          <div className="fas fa-sync fa-spin" />
-          <p>Loading...</p>
-        </div>
+        <LoadingSpinner />
+        // <div className="loading-spinner flex-container flex-justify-center flex-align-center">
+        //   <div className="fas fa-sync fa-spin" />
+        //   <p>Loading...</p>
+        // </div>
       )
     } else {
       switch (step) {
@@ -118,24 +121,27 @@ const Prioritize = ({ barrierType }) => {
           } else {
             sidebarContent = (
               <UnitChooser
-                barrierType={barrierType}
                 layer={layer}
                 summaryUnits={summaryUnits}
                 onBack={() => handleSetLayer(null)}
                 selectUnit={handleSelectUnit}
                 setSearchFeature={handleSearch}
+                onSubmit={() => setStep('filter')}
               />
             )
           }
           break
         }
+        case 'filter': {
+          sidebarContent = (
+            <FiltersList layer={layer} summaryUnits={summaryUnits} />
+          )
+          break
+        }
         default: {
           sidebarContent = null
         }
-        // case "filter": {
-        //     sidebarContent = <FiltersList />
-        //     break
-        // }
+
         // case "results": {
         //     sidebarContent = <Results />
         //     break
@@ -150,7 +156,6 @@ const Prioritize = ({ barrierType }) => {
         {selectedBarrier !== null ? (
           <BarrierDetails
             barrier={selectedBarrier}
-            barrierType={barrierType}
             onClose={handleDetailsClose}
           />
         ) : (
@@ -160,21 +165,17 @@ const Prioritize = ({ barrierType }) => {
 
       <MapContainer>
         <Map
-          barrierType={barrierType}
           activeLayer={layer}
           searchFeature={searchFeature}
           selectedBarrier={selectedBarrier}
           summaryUnits={summaryUnits}
           onSelectUnit={handleSelectUnit}
           onSelectBarrier={handleSelectBarrier}
+          onMapLoad={handleMapLoad}
         />
       </MapContainer>
     </Wrapper>
   )
-}
-
-Prioritize.propTypes = {
-  barrierType: PropTypes.string.isRequired,
 }
 
 export default Prioritize

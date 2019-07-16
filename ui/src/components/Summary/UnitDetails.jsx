@@ -1,9 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { useSummaryData } from 'components/Data'
+import { useSummaryData, useBarrierType } from 'components/Data'
 import { Text, HelpText } from 'components/Text'
-import {CloseButton} from 'components/Button'
+import { CloseButton } from 'components/Button'
 import { Box, Flex } from 'components/Grid'
 import { formatNumber, formatPercent } from 'util/format'
 import styled, { themeGet } from 'style'
@@ -41,8 +41,6 @@ const UnitID = styled(Text)`
   color: ${themeGet('colors.grey.700')};
 `
 
-
-
 const Content = styled(Box).attrs({
   p: '1rem',
 })`
@@ -51,9 +49,11 @@ const Content = styled(Box).attrs({
   overflow-y: auto;
 `
 
-const UnitDetails = ({ summaryUnit, barrierType, onClose }) => {
+const UnitDetails = ({ summaryUnit, onClose }) => {
   // TODO
   const { id, layerId, name, dams, barriers, miles } = summaryUnit
+
+  const barrierType = useBarrierType()
   const {
     dams: totalDams,
     barriers: totalBarriers,
@@ -61,9 +61,7 @@ const UnitDetails = ({ summaryUnit, barrierType, onClose }) => {
   } = useSummaryData()
   const total = barrierType === 'dams' ? totalDams : totalBarriers
 
-  const layerConfig = layers.filter(
-    ({ id: lyrID }) => lyrID === layerId
-  )[0]
+  const layerConfig = layers.filter(({ id: lyrID }) => lyrID === layerId)[0]
   let { title: layerTitle } = layerConfig
 
   const count = barrierType === 'dams' ? dams : barriers
@@ -182,7 +180,6 @@ const UnitDetails = ({ summaryUnit, barrierType, onClose }) => {
 }
 
 UnitDetails.propTypes = {
-  barrierType: PropTypes.string.isRequired,
   summaryUnit: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   }).isRequired,

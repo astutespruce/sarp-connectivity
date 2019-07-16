@@ -3,6 +3,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { FaEnvelope } from 'react-icons/fa'
 
+import {useBarrierType} from 'components/Data'
 import { Text, HelpText } from 'components/Text'
 import { Flex, Box } from 'components/Grid'
 import { CloseButton } from 'components/Button'
@@ -79,11 +80,11 @@ const tierToPercent = tier => (100 * (19 - (tier - 1))) / 20
 
 const BarrierDetails = ({
   barrier,
-  barrierType,
-
   onClose,
 }) => {
   const { sarpid, name, hasnetwork, countyname, State, ncwc_tier } = barrier
+
+const barrierType = useBarrierType()
 
   const details =
     barrierType === 'dams' ? (
@@ -172,7 +173,6 @@ const BarrierDetails = ({
 }
 
 BarrierDetails.propTypes = {
-  barrierType: PropTypes.string.isRequired,
   barrier: BarrierPropType.isRequired,
   onClose: PropTypes.func.isRequired,
 }

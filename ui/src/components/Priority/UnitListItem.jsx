@@ -2,9 +2,10 @@
 import React, { memo } from 'react'
 import PropTypes from 'prop-types'
 
+import { useBarrierType } from 'components/Data'
 import { Text } from 'components/Text'
 import { Flex } from 'components/Grid'
-import {CloseButton} from 'components/Button'
+import { CloseButton } from 'components/Button'
 import { formatNumber } from 'util/format'
 import styled, { themeGet } from 'style'
 import { STATE_FIPS } from '../../../config/constants'
@@ -38,8 +39,7 @@ const Count = styled.div`
   color: ${themeGet('colors.grey.600')};
 `
 
-
-const SummaryUnitListItem = ({ barrierType, layer, unit, onDelete }) => {
+const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
   const { id } = unit
   const {
     name = id,
@@ -48,6 +48,8 @@ const SummaryUnitListItem = ({ barrierType, layer, unit, onDelete }) => {
     off_network_dams = 0,
     off_network_barriers = 0,
   } = unit
+
+  const barrierType = useBarrierType()
 
   const count =
     barrierType === 'dams'
@@ -78,7 +80,6 @@ const SummaryUnitListItem = ({ barrierType, layer, unit, onDelete }) => {
   )
 }
 SummaryUnitListItem.propTypes = {
-  barrierType: PropTypes.string.isRequired,
   layer: PropTypes.string.isRequired,
   unit: PropTypes.object.isRequired,
   onDelete: PropTypes.func.isRequired,

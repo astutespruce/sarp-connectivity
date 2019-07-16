@@ -4,10 +4,11 @@ import React, {
   useRef,
   useCallback,
   useState,
-  useMemo,
 } from 'react'
 import PropTypes from 'prop-types'
 
+
+import {useBarrierType} from 'components/Data'
 import {
   Map,
   Legend,
@@ -31,15 +32,16 @@ import { selectUnit } from '../../../../ui-bk/src/actions/priority'
 
 const PriorityMap = ({
   activeLayer,
-  barrierType,
   selectedUnit,
   selectedBarrier,
   searchFeature,
   summaryUnits,
   onSelectUnit,
   onSelectBarrier,
+  onMapLoad,
   ...props
 }) => {
+  const barrierType = useBarrierType()
   const mapRef = useRef(null)
 
   // first layer of system is default on init
@@ -130,6 +132,11 @@ const PriorityMap = ({
 
     // Add barrier highlight layer.
     map.addLayer(pointHighlight)
+
+
+map.once('idle', onMapLoad)
+
+
   }, [])
 
   useEffect(() => {
@@ -348,7 +355,6 @@ const PriorityMap = ({
 
 PriorityMap.propTypes = {
   activeLayer: PropTypes.string,
-  barrierType: PropTypes.string.isRequired,
   selectedUnit: PropTypes.object,
   selectedBarrier: PropTypes.object,
   summaryUnits: PropTypes.arrayOf(
@@ -359,6 +365,7 @@ PriorityMap.propTypes = {
   searchFeature: SearchFeaturePropType,
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
+  onMapLoad: PropTypes.func.isRequired,
 }
 
 PriorityMap.defaultProps = {

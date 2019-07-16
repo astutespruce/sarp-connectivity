@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 
 import { HelpText } from 'components/Text'
 import UnitSearch from 'components/UnitSearch'
+import { useBarrierType } from 'components/Data'
 import { formatNumber } from 'util/format'
 import styled from 'style'
 
@@ -10,21 +11,12 @@ import BackLink from './BackLink'
 import StartOverButton from './StartOverButton'
 import SubmitButton from './SubmitButton'
 import UnitListItem from './UnitListItem'
-import {
-  Wrapper,
-  Header,
-  Footer,
-  Title,
-  Content,
-  WarningIcon,
-} from './styles'
+import { Wrapper, Header, Footer, Title, Content, WarningIcon } from './styles'
 import { LAYER_ZOOM } from '../../../config/constants'
 
-
 const UnitList = styled.ul`
-margin: 0 0 2rem 0;
+  margin: 0 0 2rem 0;
 `
-
 
 const getPluralLabel = layer => {
   switch (layer) {
@@ -74,14 +66,14 @@ const getSingularArticle = layer => {
 }
 
 const UnitChooser = ({
-  barrierType,
   layer,
   summaryUnits,
   selectUnit,
   onBack,
-  fetchQuery,
+  onSubmit,
   setSearchFeature,
 }) => {
+  const barrierType = useBarrierType()
   const [searchValue, setSearchValue] = useState('')
 
   const pluralLabel = getPluralLabel(layer)
@@ -128,10 +120,7 @@ const UnitChooser = ({
   return (
     <Wrapper>
       <Header>
-        <BackLink
-          label="choose a different type of area"
-          onClick={onBack}
-        />
+        <BackLink label="choose a different type of area" onClick={onBack} />
         <Title>Choose {pluralLabel}</Title>
       </Header>
 
@@ -154,7 +143,6 @@ const UnitChooser = ({
                 key={unit.id}
                 layer={layer}
                 unit={unit}
-                barrierType={barrierType}
                 onDelete={() => selectUnit(unit)}
               />
             ))}
@@ -197,31 +185,29 @@ const UnitChooser = ({
       </Content>
 
       <Footer>
-          <StartOverButton />
+        <StartOverButton />
 
-          <SubmitButton
-            disabled={summaryUnits.size === 0 || total === 0}
-            // TODO: onclick
-
-            // onClick={() => fetchQuery(barrierType, layer, summaryUnits.toJS())}
-            // icon="search-location"
-            label={`Select ${barrierType} in this area`}
-         />
+        <SubmitButton
+          disabled={summaryUnits.size === 0 || total === 0}
+          onClick={onSubmit}
+          label={`Select ${barrierType} in this area`}
+        />
       </Footer>
     </Wrapper>
   )
 }
 
 UnitChooser.propTypes = {
-  barrierType: PropTypes.string.isRequired,
   layer: PropTypes.string.isRequired,
-  summaryUnits: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.string.isRequired
-  })).isRequired,
+  summaryUnits: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+    })
+  ).isRequired,
   onBack: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
   selectUnit: PropTypes.func.isRequired,
   setSearchFeature: PropTypes.func.isRequired,
-  fetchQuery: PropTypes.func.isRequired,
 }
 
 export default UnitChooser

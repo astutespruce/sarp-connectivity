@@ -1,4 +1,4 @@
-import { FaExclamationTriangle } from 'react-icons/fa'
+import { FaExclamationTriangle, FaCircleNotch } from 'react-icons/fa'
 
 import { Text } from 'components/Text'
 import { Box, Flex } from 'components/Grid'
@@ -48,3 +48,6 @@ export const WarningIcon = styled(FaExclamationTriangle)`
   width: 1em;
   margin-right: 0.25em;
 `
+
+
+
