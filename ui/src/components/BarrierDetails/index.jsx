@@ -115,9 +115,6 @@ const barrierType = useBarrierType()
       })
     })
 
-    console.log('score data', scores)
-
-
     // add in custom results if available
     if (ncwc_tier) {
     scores.custom = {}

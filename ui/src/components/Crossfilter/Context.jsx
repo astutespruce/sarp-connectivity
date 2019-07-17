@@ -8,8 +8,10 @@ import { Crossfilter } from './Crossfilter'
  * component tree can access crossfilter state or dispatch.
  */
 export const Context = createContext()
+
 export const Provider = ({ data, filterConfig, children }) => {
-  const value = Crossfilter(data, filterConfig)
+  const value =
+    data && data.length > 0 ? Crossfilter(data, filterConfig) : { state: {} }
 
   return <Context.Provider value={value}>{children}</Context.Provider>
 }

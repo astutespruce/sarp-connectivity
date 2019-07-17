@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import Crossfilter2 from 'crossfilter2'
 import { isDebug } from 'util/dom'
+import { useIsEqualMemo } from 'util/hooks'
 import { countByDimension, getFilteredCount } from './util'
 
 // returns true if passed in values contains the value
@@ -13,6 +14,7 @@ export const hasValue = filterValues => value => filterValues.has(value)
  * @param {Array} filters - array of field configuration
  */
 const initCrossfilter = (data, filterConfig) => {
+
   const crossfilter = Crossfilter2(data)
 
   const dimensions = {}
@@ -38,9 +40,9 @@ const initCrossfilter = (data, filterConfig) => {
 
 export const Crossfilter = (data, filterConfig) => {
   // Memoize construction of crossfilter and dimensions, so they only get created once
-  const { crossfilter, dimensions } = useMemo(() => {
+  const { crossfilter, dimensions } = useIsEqualMemo(() => {
     return initCrossfilter(data, filterConfig)
-  }, [])
+  }, [data])
 
   // create the initial state in the callback so that we only construct it once
   const [state, setState] = useState(() => {

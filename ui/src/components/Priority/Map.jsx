@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useRef, useCallback, useState } from 'react'
 import PropTypes from 'prop-types'
 
+import { useCrossfilter } from 'components/Crossfilter'
 import { useBarrierType } from 'components/Data'
 import {
   Map,
@@ -32,13 +33,15 @@ const PriorityMap = ({
   selectedBarrier,
   searchFeature,
   summaryUnits,
-  filters,
   onSelectUnit,
   onSelectBarrier,
   onMapLoad,
   ...props
 }) => {
   const barrierType = useBarrierType()
+  const {
+    state: { filters },
+  } = useCrossfilter()
   const mapRef = useRef(null)
 
   // first layer of system is default on init
@@ -169,7 +172,8 @@ const PriorityMap = ({
       // only show highlight fill when selecting units
       map.setLayoutProperty(
         `${layer}-${unitHighlightLayers[0].id}`,
-        'visibility',visibility
+        'visibility',
+        visibility
       )
 
       // show boundary highlight in all cases
@@ -178,7 +182,6 @@ const PriorityMap = ({
         'visibility',
         layer === activeLayer ? 'visible' : 'none'
       )
-
     })
   }, [allowUnitSelect, activeLayer])
 
@@ -195,7 +198,6 @@ const PriorityMap = ({
     unitHighlightLayers.forEach(({ id }) => {
       map.setFilter(`${activeLayer}-${id}`, filterExpr)
     })
-
   }, [activeLayer, summaryUnits])
 
   useEffect(() => {
@@ -205,8 +207,12 @@ const PriorityMap = ({
 
     const { id } = pointHighlight
 
-    // setting to null effectively hides this layer
-    let data = null
+    // setting to empty feature collection effectively hides this layer
+
+    let data = {
+      type: 'FeatureCollection',
+      features: [],
+    }
 
     if (selectedBarrier) {
       const { lat, lon } = selectedBarrier
@@ -339,7 +345,6 @@ PriorityMap.propTypes = {
       id: PropTypes.string.isRequired,
     })
   ),
-  filters: PropTypes.object,
   searchFeature: SearchFeaturePropType,
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
@@ -354,7 +359,6 @@ PriorityMap.defaultProps = {
   selectedBarrier: null,
   searchFeature: null,
   summaryUnits: [],
-  filters: null,
 }
 
 export default memo(PriorityMap)

@@ -1,7 +1,9 @@
 import React, { useState, useCallback, useRef } from 'react'
 
+import {Provider as CrossfilterProvider} from 'components/Crossfilter'
 import { HelpText } from 'components/Text'
 import { Flex } from 'components/Grid'
+import {fetchBarrierInfo, useBarrierType} from 'components/Data'
 import Sidebar, { LoadingSpinner, ErrorMessage } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
 import styled from 'style'
@@ -9,7 +11,8 @@ import styled from 'style'
 import Map from './Map'
 import UnitChooser from './UnitChooser'
 import LayerChooser from './LayerChooser'
-import BarrierFilters from './BarrierFilters'
+import Filters from './Filters'
+import { FILTERS } from '../../../config/filters'
 
 const Wrapper = styled(Flex)`
   height: 100%;
@@ -22,10 +25,11 @@ const MapContainer = styled.div`
 `
 
 const Prioritize = () => {
+  const barrierType = useBarrierType()
   const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [searchFeature, setSearchFeature] = useState(null)
   const [summaryUnits, setSummaryUnits] = useState([]) // useState([{"id":"Arkansas","dams":6269,"off_network_dams":422,"miles":10.72599983215332,"barriers":3018,"off_network_barriers":1526,"layerId":"State"}]) // FIXME
-  const [filters, setFilters] = useState(null)
+  const [data, setData] = useState([])
 
   // TODO: wrap into useReducer?
   const [step, setStep] = useState('select')
@@ -38,6 +42,8 @@ const Prioritize = () => {
 
   // keep the reference in sync
   stepRef.current = step
+
+  const filterConfig = FILTERS[barrierType]
 
   const handleMapLoad = useCallback(() => {
     setIsLoading(false)
@@ -53,7 +59,6 @@ const Prioritize = () => {
   const handleSetLayer = nextLayer => {
     setSearchFeature(null)
     setSummaryUnits([])
-    setFilters(null)
     setLayer(nextLayer)
   }
 
@@ -80,15 +85,33 @@ const Prioritize = () => {
         .concat(prevSummaryUnits.slice(index + 1))
     })
 
-    setFilters(null)
     setSearchFeature(null)
   }
 
-  const handleFilterChange = newFilters => {
-    setFilters(newFilters)
+  const loadBarrierInfo = () => {
+    setIsLoading(true)
+
+    const fetchData = async () => {
+      const {csv} = await fetchBarrierInfo(barrierType, layer, summaryUnits)
+
+      setIsLoading(false)
+  
+      if (csv) {
+        // TODO: init crossfilter in context
+        setData(csv)
+        setStep('filter')
+      } else {
+        setIsError(true)
+      }
+    }
+   fetchData() 
   }
 
-  
+  const handleFilterBack = () => {
+    setData([])
+    setStep('select')
+  }
+
 
   // WARNING: this is passed into map at construction type, any 
   // local state referenced here is not updated when the callback
@@ -123,13 +146,8 @@ const Prioritize = () => {
         </ErrorMessage>
       )
     } else if (isLoading) {
-      // TODO
       sidebarContent = (
         <LoadingSpinner />
-        // <div className="loading-spinner flex-container flex-justify-center flex-align-center">
-        //   <div className="fas fa-sync fa-spin" />
-        //   <p>Loading...</p>
-        // </div>
       )
     } else {
       switch (step) {
@@ -144,7 +162,7 @@ const Prioritize = () => {
                 onBack={() => handleSetLayer(null)}
                 selectUnit={handleSelectUnit}
                 setSearchFeature={handleSearch}
-                onSubmit={() => setStep('filter')}
+                onSubmit={loadBarrierInfo}
               />
             )
           }
@@ -152,13 +170,10 @@ const Prioritize = () => {
         }
         case 'filter': {
           sidebarContent = (
-            <BarrierFilters
-              layer={layer}
-              summaryUnits={summaryUnits}
-              onBack={() => setStep('select')}
-              onFilterChange={handleFilterChange}
+            <Filters 
+              onBack={handleFilterBack}
               onSubmit={() => setStep('results')}
-            />
+              />
           )
           break
         }
@@ -176,6 +191,7 @@ const Prioritize = () => {
 
   return (
     <Wrapper>
+      <CrossfilterProvider filterConfig={filterConfig} data={data}>
       <Sidebar>
         {selectedBarrier !== null ? (
           <BarrierDetails
@@ -196,12 +212,13 @@ const Prioritize = () => {
           searchFeature={searchFeature}
           selectedBarrier={selectedBarrier}
           summaryUnits={summaryUnits}
-          filters={filters}
+          // filters={filters}
           onSelectUnit={handleSelectUnit}
           onSelectBarrier={handleSelectBarrier}
           onMapLoad={handleMapLoad}
         />
       </MapContainer>
+      </CrossfilterProvider>
     </Wrapper>
   )
 }

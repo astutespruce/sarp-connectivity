@@ -11,10 +11,10 @@ import { Flex } from 'components/Grid'
 import styled, { themeGet } from 'style'
 import { formatNumber } from 'util/format'
 
-import BackLink from '../BackLink'
-import SubmitButton from '../SubmitButton'
-import StartOverButton from '../StartOverButton'
-import { Wrapper, Header, Footer, Title as BaseTitle, Content } from '../styles'
+import BackLink from './BackLink'
+import SubmitButton from './SubmitButton'
+import StartOverButton from './StartOverButton'
+import { Wrapper, Header, Footer, Title as BaseTitle, Content } from './styles'
 
 const Title = styled(BaseTitle)`
   margin-bottom: 0;
@@ -45,12 +45,10 @@ const HelpText = styled(ExpandableParagraph)`
   color: ${themeGet('colors.grey.700')};
 `
 
-const Filters = ({ onBack, onFilterChange, onSubmit }) => {
+const Filters = ({ onBack, onSubmit }) => {
   const barrierType = useBarrierType()
   const { state, filterConfig, resetFilters } = useCrossfilter()
-  const { filters, filteredCount, hasFilters } = state
-
-  onFilterChange(filters)
+  const { filteredCount, hasFilters } = state
 
   const handleReset = () => {
     resetFilters()
@@ -106,7 +104,6 @@ const Filters = ({ onBack, onFilterChange, onSubmit }) => {
 
 Filters.propTypes = {
   onBack: PropTypes.func.isRequired,
-  onFilterChange: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
 }
 

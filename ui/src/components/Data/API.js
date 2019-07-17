@@ -1,9 +1,9 @@
 // derived from: https://scotch.io/tutorials/create-a-custom-usefetch-react-hook
 
-import { useEffect, useState } from 'react'
+// import { useEffect, useState } from 'react'
 import { csvParse } from 'd3-dsv'
 
-import { useBarrierType } from 'components/Data'
+// import { useBarrierType } from 'components/Data'
 import { siteMetadata } from '../../../gatsby-config'
 
 const { apiHost } = siteMetadata
@@ -39,6 +39,25 @@ const rowToInts = row => {
   return row
 }
 
+const fetchCSV = async (url, options, rowParser) => {
+  try {
+    const request = await fetch(url, options)
+    const rawContent = await request.text()
+
+    return {
+      error: null,
+      csv: csvParse(rawContent, rowParser),
+    }
+  } catch (err) {
+    console.error(err)
+
+    return {
+      error: err,
+      csv: null,
+    }
+  }
+}
+
 /**
  * Use fetch API and d3-dsv to get API response and parse CSV into JSON.
  * Returns {error, csv}.  If both are null, request is loading
@@ -47,49 +66,39 @@ const rowToInts = row => {
  * @param {string} url - URL to fetch from
  * @param {Object} options - fetch API options
  */
-const useFetchCSV = (url, options, rowParser) => {
-  const [{ error, csv }, setState] = useState({
-    error: null,
-    csv: null,
-  })
+// const useFetchCSV = (url, options, rowParser) => {
+//   const [{ error, csv }, setState] = useState({
+//     error: null,
+//     csv: null,
+//   })
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const request = await fetch(url, options)
-        const rawContent = await request.text()
+//   useEffect(() => {
 
-        setState({
-          error: null,
-          csv: csvParse(rawContent, rowParser),
-        })
-      } catch (err) {
-        setState({
-          error: err,
-          csv: null,
-        })
-      }
-    }
-
-    fetchData()
-  }, [])
-  return { csv, error }
-}
+//     fetchCSV()
+//   }, [])
+//   return { csv, error }
+// }
 
 /**
  * Fetch and parse CSV data from API for dams or small barriers
  */
-export const useBarrierInfo = ({ layer, summaryUnits }) => {
-  const barrierType = useBarrierType()
+// export const useBarrierInfo = ({ layer, summaryUnits }) => {
+//   const barrierType = useBarrierType()
+//   const url = `${apiHost}/api/v1/${barrierType}/query/${layer}?${apiQueryParams(
+//     summaryUnits
+//   )}`
+
+//   return useFetchCSV(url, undefined, rowToInts)
+// }
+
+// export const useRanks = () => {
+//   // TODO
+// }
+
+export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
   const url = `${apiHost}/api/v1/${barrierType}/query/${layer}?${apiQueryParams(
     summaryUnits
   )}`
 
-  return useFetchCSV(url, undefined, rowToInts)
+  return fetchCSV(url, undefined, rowToInts)
 }
-
-export const useRanks = () => {
-  // TODO
-}
-
-window.useBarrierInfo = useBarrierInfo
