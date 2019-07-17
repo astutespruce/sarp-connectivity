@@ -31,10 +31,10 @@ export const Footer = styled(Flex).attrs({
 
 export const Title = styled(Text).attrs({
   as: 'h3',
+  mb: '0.5rem',
 })`
   font-size: 1.5rem;
   line-height: 1.2;
-  margin: 0 0 0.5rem 0;
 `
 
 export const Content = styled(Box).attrs({ p: '1rem' })`
@@ -48,6 +48,3 @@ export const WarningIcon = styled(FaExclamationTriangle)`
   width: 1em;
   margin-right: 0.25em;
 `
-
-
-

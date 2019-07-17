@@ -5,7 +5,7 @@ import { Box, Flex } from 'components/Grid'
 import styled, { themeGet } from 'style'
 
 import LoadingSpinner from './LoadingSpinner'
-import Error from './Error'
+import ErrorMessage from './ErrorMessage'
 
 // This sidebar is responsive: it shrinks a bit in smaller viewports, then eventually expands to fill the full width
 const Wrapper = styled(Box).attrs({
@@ -43,4 +43,4 @@ Sidebar.defaultProps = {
 }
 
 export default Sidebar
-export { LoadingSpinner, Error }
+export { LoadingSpinner, ErrorMessage }

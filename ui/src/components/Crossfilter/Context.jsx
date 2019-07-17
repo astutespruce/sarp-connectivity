@@ -1,26 +1,22 @@
-import React, { createContext } from 'react'
-import ImmutablePropTypes from 'react-immutable-proptypes'
+import React, { createContext, useContext } from 'react'
 import PropTypes from 'prop-types'
 
-import { useCrossfilter } from './Crossfilter'
+import { Crossfilter } from './Crossfilter'
 
 /**
  * Provide Crossfilter as a context so that components deeper in the
  * component tree can access crossfilter state or dispatch.
  */
 export const Context = createContext()
-export const Provider = ({ data, filters, valueField, children }) => {
-  const [state, dispatch] = useCrossfilter(data, filters, valueField)
+export const Provider = ({ data, filterConfig, children }) => {
+  const value = Crossfilter(data, filterConfig)
 
-  return (
-    <Context.Provider value={{ state, dispatch }}>{children}</Context.Provider>
-  )
+  return <Context.Provider value={value}>{children}</Context.Provider>
 }
 
 Provider.propTypes = {
-  data: ImmutablePropTypes.list.isRequired,
-  filters: PropTypes.array.isRequired,
-  valueField: PropTypes.string,
+  data: PropTypes.array.isRequired,
+  filterConfig: PropTypes.array.isRequired,
   children: PropTypes.oneOfType([
     PropTypes.node,
     PropTypes.element,
@@ -28,6 +24,7 @@ Provider.propTypes = {
   ]).isRequired,
 }
 
-Provider.defaultProps = {
-  valueField: null,
+// Hook for easier use in context
+export const useCrossfilter = () => {
+  return useContext(Context)
 }

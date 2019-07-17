@@ -1,6 +1,6 @@
 import React, { useState, useRef, memo } from 'react'
 import PropTypes from 'prop-types'
-import { FaCrosshairs, FaLocationArrow } from 'react-icons/fa'
+import { FaCrosshairs, FaLocationArrow, FaTimesCircle } from 'react-icons/fa'
 import mapboxgl from 'mapbox-gl'
 
 import { Box, Flex } from 'components/Grid'
@@ -16,8 +16,8 @@ const navigatorOptions = {
 }
 
 const Wrapper = styled(MapControlWrapper)`
-  top: 64px;
-  left: 10px;
+  top: 110px;
+  right: 10px;
   line-height: 1;
   background-color: ${({ isOpen }) => (isOpen ? '#eee' : '#fff')};
 `
@@ -29,6 +29,7 @@ const Header = styled.span`
   display: inline-block;
   vertical-align: top;
   margin-top: 4px;
+  cursor: pointer;
 `
 
 const Icon = styled(FaCrosshairs)`
@@ -57,6 +58,17 @@ const ArrowIcon = styled(FaLocationArrow)`
   height: 1em;
 `
 
+const CloseIcon = styled(FaTimesCircle)`
+  width: 1em;
+  height: 1em;
+  color: ${themeGet('colors.grey.500')};
+  cursor: pointer;
+
+  &:hover {
+    color: ${themeGet('colors.grey.900')};
+  }
+`
+
 const Form = styled(Box).attrs({ p: '0.5rem' })``
 
 const Row = styled(Flex).attrs({
@@ -82,7 +94,6 @@ const Input = styled.input.attrs({
   &:focus {
     border-color: ${themeGet('colors.primary.500')};
   }
-
 
   ${({ isValid }) =>
     !isValid &&
@@ -215,24 +226,24 @@ const GoToLocation = ({ map }) => {
   }
 
   const setLocation = ({ latitude, longitude }) => {
-      const { current: marker } = markerRef
-  
-      if (latitude === null || longitude === null) {
-        if (marker) {
-          marker.remove()
-        }
-  
-        markerRef.current = null
-      } else {
-        map.flyTo({ center: [longitude, latitude], zoom: 9 })
-        if (!marker) {
-          markerRef.current = new mapboxgl.Marker()
-            .setLngLat([longitude, latitude])
-            .addTo(map)
-        } else {
-          markerRef.current.setLngLat([longitude, latitude])
-        }
+    const { current: marker } = markerRef
+
+    if (latitude === null || longitude === null) {
+      if (marker) {
+        marker.remove()
       }
+
+      markerRef.current = null
+    } else {
+      map.flyTo({ center: [longitude, latitude], zoom: 9 })
+      if (!marker) {
+        markerRef.current = new mapboxgl.Marker()
+          .setLngLat([longitude, latitude])
+          .addTo(map)
+      } else {
+        markerRef.current.setLngLat([longitude, latitude])
+      }
+    }
   }
 
   return (
@@ -248,7 +259,8 @@ const GoToLocation = ({ map }) => {
 
       {isOpen ? (
         <>
-          <Header>Go to latitude / longitude</Header>
+          <Header onClick={handleToggle}>Go to latitude / longitude</Header>
+          <CloseIcon onClick={handleToggle} />
           <Form>
             <Row>
               <Label>Latitude:&nbsp;</Label>
@@ -297,7 +309,7 @@ const GoToLocation = ({ map }) => {
 }
 
 GoToLocation.propTypes = {
-  map: PropTypes.object.isRequired
+  map: PropTypes.object.isRequired,
   // setLocation: PropTypes.func.isRequired,
 }
 

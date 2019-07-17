@@ -2,14 +2,14 @@ import React, { useState, useCallback } from 'react'
 
 import { HelpText } from 'components/Text'
 import { Flex } from 'components/Grid'
-import Sidebar, { LoadingSpinner, Error } from 'components/Sidebar'
+import Sidebar, { LoadingSpinner, ErrorMessage } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
 import styled from 'style'
 
 import Map from './Map'
 import UnitChooser from './UnitChooser'
 import LayerChooser from './LayerChooser'
-import FiltersList from './FiltersList'
+import BarrierFilters from './BarrierFilters'
 
 const Wrapper = styled(Flex)`
   height: 100%;
@@ -95,14 +95,14 @@ const Prioritize = () => {
     if (isError) {
       // TODO
       sidebarContent = (
-        <Error>
+        <ErrorMessage>
           There was an error loading these data. Please refresh your
           browser page and try again.
           <HelpText fontSize='1rem' mt='2rem'>
             If it happens again, please{' '}
             <a href="mailto:kat@southeastaquatics.net">contact us</a>.
           </HelpText>
-        </Error>
+        </ErrorMessage>
       )
     } else if (isLoading) {
       // TODO
@@ -134,7 +134,7 @@ const Prioritize = () => {
         }
         case 'filter': {
           sidebarContent = (
-            <FiltersList layer={layer} summaryUnits={summaryUnits} />
+            <BarrierFilters layer={layer} summaryUnits={summaryUnits} onBack={() => setStep('select')} onSubmit={() => setStep('results')} />
           )
           break
         }

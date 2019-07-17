@@ -1,50 +1,108 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { FaTimesCircle } from 'react-icons/fa'
 
-import { useBarrierInfo } from 'components/Data'
-import {Text, HelpText} from 'components/Text'
-import {LoadingSpinner} from 'components/Sidebar'
-import {Flex, Box} from 'components/Grid'
-import styled, {themeGet} from 'style'
-import { Wrapper, Header, Footer, Title, Content, WarningIcon } from './styles'
+import { useBarrierType } from 'components/Data'
+import { Filter } from 'components/Filters'
+import { useCrossfilter } from 'components/Crossfilter'
+import { ExpandableParagraph } from 'components/Text'
+import { Flex } from 'components/Grid'
 
-const FiltersList = ({ layer, summaryUnits }) => {
-  const { csv, error } = useBarrierInfo({
-    layer,
-    summaryUnits,
-  })
+import styled, { themeGet } from 'style'
+import {formatNumber} from 'util/format'
 
-  if (!(csv || error)) {
-    return <LoadingSpinner />
+import BackLink from '../BackLink'
+import SubmitButton from '../SubmitButton'
+import StartOverButton from '../StartOverButton'
+import { Wrapper, Header, Footer, Title as BaseTitle, Content } from '../styles'
+
+
+const Title = styled(BaseTitle)`margin-bottom: 0;`
+
+
+const CountContainer = styled(Flex).attrs({
+  alignItems: 'center',
+  justifyContent: 'space-between',
+})``
+
+const Count = styled.div`
+  color: ${themeGet('colors.grey.700')};
+`
+
+const ResetLink = styled(Flex).attrs({ alignItems: 'center' })`
+  color: ${themeGet('colors.highlight.500')};
+  cursor: pointer;
+`
+
+const ResetIcon = styled(FaTimesCircle)`
+  height: 1em;
+  width: 1em;
+  margin-right: 0.5em;
+  color: ${themeGet('colors.highlight.500')};
+`
+
+const HelpText = styled(ExpandableParagraph)`
+color: ${themeGet('colors.grey.700')};
+`
+
+
+const Filters = ({ onBack, onSubmit }) => {
+  const barrierType = useBarrierType()
+  const { state, filterConfig, resetFilters } = useCrossfilter()
+  const { filteredCount, hasFilters } = state
+
+  const handleReset = () => {
+    resetFilters()
   }
-  // return <div>TODO!</div>
+
+  return (
+    <Wrapper>
+      <Header>
+        <BackLink label="modify area of interest" onClick={onBack} />
+        <Title>Filter {barrierType}</Title>
+
+        <CountContainer>
+          <Count>{formatNumber(filteredCount, 0)} selected</Count>
+          {hasFilters && (
+            <ResetLink onClick={handleReset}>
+              <ResetIcon />
+              <div>reset filters</div>
+            </ResetLink>
+          )}
+        </CountContainer>
+      </Header>
+
+      <Content>
+      <HelpText snippet={`[OPTIONAL] Use the filters below to select the ${barrierType} that meet
+        your needs. Click on a bar to select ${barrierType} with that value.`}>
+        [OPTIONAL] Use the filters below to select the {barrierType} that meet
+        your needs. Click on a bar to select {barrierType} with that value.
+        Click on the bar again to unselect. You can combine multiple values
+        across multiple filters to select the {barrierType} that match ANY of
+        those values within a filter and also have the values selected across
+        ALL filters.
+      </HelpText>
+
+        {filterConfig.map(filter => (
+          <Filter key={filter.field} {...filter} />
+        ))}
+      </Content>
+
+      <Footer>
+        <StartOverButton />
+
+        <SubmitButton disabled={filteredCount === 0} onClick={onSubmit} label={`Prioritize ${barrierType}`} />
+      </Footer>
+    </Wrapper>
+  )
 }
 
-FiltersList.propTypes = {
-  layer: PropTypes.string.isRequired,
-  summaryUnits: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-    })
-  ).isRequired,
+Filters.propTypes = {
+  onBack: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
 }
 
-export default FiltersList
-
-// import React from 'react'
-// import PropTypes from 'prop-types'
-// import ImmutablePropTypes from 'react-immutable-proptypes'
-// import { Set } from 'immutable'
-// import { connect } from 'react-redux'
-
-// import * as actions from '../../../actions/priority'
-// import { setFilter, reset } from '../../../actions/crossfilter'
-// // import { allFilters, filterConfig } from "../../../filters"
-// import { formatNumber } from '../../../utils/format'
-
-// import StartOverButton from './StartOverButton'
-// import SubmitButton from './SubmitButton'
-// import Filter from './Filter'
+export default Filters
 
 // function FiltersList({
 //   layer,
