@@ -120,9 +120,13 @@ export const unitHighlightOutline = {
 export const unitLayers = [
   unitFill,
   unitOutline,
-  unitHighlightFill,
-  unitHighlightOutline,
+  
 ]
+
+export const unitHighlightLayers = [
+  unitHighlightFill,
+  unitHighlightOutline,]
+
 
 export const backgroundPoint = {
   id: 'point-no-network',

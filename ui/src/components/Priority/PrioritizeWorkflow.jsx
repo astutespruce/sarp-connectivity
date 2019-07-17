@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
 
 import { HelpText } from 'components/Text'
 import { Flex } from 'components/Grid'
@@ -24,16 +24,20 @@ const MapContainer = styled.div`
 const Prioritize = () => {
   const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [searchFeature, setSearchFeature] = useState(null)
-
   const [summaryUnits, setSummaryUnits] = useState([]) // useState([{"id":"Arkansas","dams":6269,"off_network_dams":422,"miles":10.72599983215332,"barriers":3018,"off_network_barriers":1526,"layerId":"State"}]) // FIXME
+  const [filters, setFilters] = useState(null)
 
   // TODO: wrap into useReducer?
   const [step, setStep] = useState('select')
+  const stepRef = useRef(step) // need to keep a ref to use in callback below
   const [layer, setLayer] = useState(null) // useState('State') // FIXME
 
   // TODO: wrap into custom hook
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
+
+  // keep the reference in sync
+  stepRef.current = step
 
   const handleMapLoad = useCallback(() => {
     setIsLoading(false)
@@ -49,6 +53,7 @@ const Prioritize = () => {
   const handleSetLayer = nextLayer => {
     setSearchFeature(null)
     setSummaryUnits([])
+    setFilters(null)
     setLayer(nextLayer)
   }
 
@@ -75,12 +80,25 @@ const Prioritize = () => {
         .concat(prevSummaryUnits.slice(index + 1))
     })
 
+    setFilters(null)
     setSearchFeature(null)
   }
 
+  const handleFilterChange = newFilters => {
+    setFilters(newFilters)
+  }
+
+  
+
+  // WARNING: this is passed into map at construction type, any 
+  // local state referenced here is not updated when the callback
+  // is later called.  To get around that, use reference to step instead.
   const handleSelectBarrier = feature => {
+    const {current: curStep} = stepRef
     // don't show details when selecting units
-    if (step === 'select') return
+    if (curStep === 'select') return
+
+    console.log('selected feature', feature)
 
     setSelectedBarrier(feature)
   }
@@ -88,7 +106,7 @@ const Prioritize = () => {
   const handleDetailsClose = () => {
     setSelectedBarrier(null)
   }
-
+ 
   let sidebarContent = null
 
   if (selectedBarrier === null) {
@@ -96,9 +114,9 @@ const Prioritize = () => {
       // TODO
       sidebarContent = (
         <ErrorMessage>
-          There was an error loading these data. Please refresh your
-          browser page and try again.
-          <HelpText fontSize='1rem' mt='2rem'>
+          There was an error loading these data. Please refresh your browser
+          page and try again.
+          <HelpText fontSize="1rem" mt="2rem">
             If it happens again, please{' '}
             <a href="mailto:kat@southeastaquatics.net">contact us</a>.
           </HelpText>
@@ -134,7 +152,13 @@ const Prioritize = () => {
         }
         case 'filter': {
           sidebarContent = (
-            <BarrierFilters layer={layer} summaryUnits={summaryUnits} onBack={() => setStep('select')} onSubmit={() => setStep('results')} />
+            <BarrierFilters
+              layer={layer}
+              summaryUnits={summaryUnits}
+              onBack={() => setStep('select')}
+              onFilterChange={handleFilterChange}
+              onSubmit={() => setStep('results')}
+            />
           )
           break
         }
@@ -165,10 +189,14 @@ const Prioritize = () => {
 
       <MapContainer>
         <Map
+          allowUnitSelect={step === 'select'}
+          allowFilter={step === 'filter'}
+          step={step}
           activeLayer={layer}
           searchFeature={searchFeature}
           selectedBarrier={selectedBarrier}
           summaryUnits={summaryUnits}
+          filters={filters}
           onSelectUnit={handleSelectUnit}
           onSelectBarrier={handleSelectBarrier}
           onMapLoad={handleMapLoad}

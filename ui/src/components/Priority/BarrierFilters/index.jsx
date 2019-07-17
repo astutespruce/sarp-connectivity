@@ -10,7 +10,7 @@ import Filters from './Filters'
 
 import { FILTERS } from '../../../../config/filters'
 
-const BarrierFilters = ({ layer, summaryUnits, onBack, onSubmit }) => {
+const BarrierFilters = ({ layer, summaryUnits, onBack, onFilterChange, onSubmit }) => {
   const { csv, error } = useBarrierInfo({
     layer,
     summaryUnits,
@@ -22,7 +22,7 @@ const BarrierFilters = ({ layer, summaryUnits, onBack, onSubmit }) => {
   if (csv) {
     return (
       <CrossfilterProvider data={csv} filterConfig={filterConfig}>
-        <Filters onBack={onBack} onSubmit={onSubmit} />
+        <Filters onBack={onBack} onFilterChange={onFilterChange} onSubmit={onSubmit} />
       </CrossfilterProvider>
     )
   }
@@ -43,6 +43,7 @@ BarrierFilters.propTypes = {
     })
   ).isRequired,
   onBack: PropTypes.func.isRequired,
+  onFilterChange: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
 }
 

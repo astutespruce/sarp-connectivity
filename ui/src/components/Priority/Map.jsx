@@ -1,14 +1,7 @@
-import React, {
-  memo,
-  useEffect,
-  useRef,
-  useCallback,
-  useState,
-} from 'react'
+import React, { memo, useEffect, useRef, useCallback, useState } from 'react'
 import PropTypes from 'prop-types'
 
-
-import {useBarrierType} from 'components/Data'
+import { useBarrierType } from 'components/Data'
 import {
   Map,
   Legend,
@@ -20,6 +13,7 @@ import {
   maskFill,
   maskOutline,
   unitLayers,
+  unitHighlightLayers,
   parentOutline,
   pointHighlight,
   backgroundPoint,
@@ -31,11 +25,14 @@ import {
 import { selectUnit } from '../../../../ui-bk/src/actions/priority'
 
 const PriorityMap = ({
+  allowUnitSelect,
+  allowFilter,
   activeLayer,
   selectedUnit,
   selectedBarrier,
   searchFeature,
   summaryUnits,
+  filters,
   onSelectUnit,
   onSelectBarrier,
   onMapLoad,
@@ -55,6 +52,7 @@ const PriorityMap = ({
       setZoom(map.getZoom())
     })
 
+    // set for initial load too
     setZoom(map.getZoom())
 
     // Initially the mask and boundary are visible
@@ -79,7 +77,7 @@ const PriorityMap = ({
           })
         }
 
-        // Each layer has 4 display layers: outline, fill, highlight fill, highlight outline
+        // Each layer has 2 display layers: outline, fill
         unitLayers.forEach(({ id, ...rest }) => {
           const layerId = `${layer}-${id}`
           map.addLayer({ ...config, ...rest, id: layerId })
@@ -87,6 +85,12 @@ const PriorityMap = ({
           if (id === 'unit-fill') {
             handleLayerClick(layerId, onSelectUnit)
           }
+        })
+
+        // Each layer has 2 highlight layers: highlight fill, highlight outline
+        unitHighlightLayers.forEach(({ id, ...rest }) => {
+          const layerId = `${layer}-${id}`
+          map.addLayer({ ...config, ...rest, id: layerId })
         })
       }
     )
@@ -133,12 +137,12 @@ const PriorityMap = ({
     // Add barrier highlight layer.
     map.addLayer(pointHighlight)
 
-
-map.once('idle', onMapLoad)
-
-
+    // let consumers of map know that it is now fully loaded
+    map.once('idle', onMapLoad)
   }, [])
 
+  // If map allows unit selection, make layers visible for the activeLayer, so that user can select from them
+  // otherwise just highlight those currently selected
   useEffect(() => {
     const { current: map } = mapRef
 
@@ -146,7 +150,9 @@ map.once('idle', onMapLoad)
 
     // toggle visibility of layers so that we only show those layers for the activeLayer
     Object.keys(unitLayerConfig).forEach(layer => {
-      const visibility = layer === activeLayer ? 'visible' : 'none'
+      // only show the unit fill and boundary if we allow selection
+      const visibility =
+        layer === activeLayer && allowUnitSelect ? 'visible' : 'none'
       unitLayers.forEach(({ id }) => {
         map.setLayoutProperty(`${layer}-${id}`, 'visibility', visibility)
       })
@@ -159,9 +165,24 @@ map.once('idle', onMapLoad)
           visibility
         )
       }
-    })
-  }, [activeLayer])
 
+      // only show highlight fill when selecting units
+      map.setLayoutProperty(
+        `${layer}-${unitHighlightLayers[0].id}`,
+        'visibility',visibility
+      )
+
+      // show boundary highlight in all cases
+      map.setLayoutProperty(
+        `${layer}-${unitHighlightLayers[1].id}`,
+        'visibility',
+        layer === activeLayer ? 'visible' : 'none'
+      )
+
+    })
+  }, [allowUnitSelect, activeLayer])
+
+  // Highlight currently selected summaryUnits
   useEffect(() => {
     const { current: map } = mapRef
 
@@ -171,10 +192,10 @@ map.once('idle', onMapLoad)
     const filterExpr =
       ids.length > 0 ? ['in', 'id', ...ids] : ['==', 'id', Infinity]
 
-    // last 2 layers are for highlight
-    unitLayers.slice(2).forEach(({ id }) => {
+    unitHighlightLayers.forEach(({ id }) => {
       map.setFilter(`${activeLayer}-${id}`, filterExpr)
     })
+
   }, [activeLayer, summaryUnits])
 
   useEffect(() => {
@@ -198,61 +219,51 @@ map.once('idle', onMapLoad)
     map.getSource(id).setData(data)
   }, [selectedBarrier])
 
-  // useEffect(() => {
-  //   const { current: map } = mapRef
+  // if map allows filter, show selected vs unselected points, and make those without networks
+  // background points
+  // TODO: coordinate with legend
+  // TODO: enable click on barriers or handle better
+  useEffect(() => {
+    const { current: map } = mapRef
 
-  //   if (!map) return
+    if (!map) return
 
-  //   const subLayers = ['fill', 'outline', 'highlight']
+    const ids = summaryUnits.map(({ id }) => id)
 
-  //   // show or hide layers as necessary
-  //   layers.forEach(({ id, system: lyrSystem }) => {
-  //     const visibility = lyrSystem === system ? 'visible' : 'none'
-  //     subLayers.forEach(suffix => {
-  //       map.setLayoutProperty(`${id}-${suffix}`, 'visibility', visibility)
-  //     })
-  //   })
+    if (!(activeLayer || ids.length > 0)) {
+      // reset filters on barriers
+      map.setFilter(includedPoint.id, ['id', '==', Infinity])
+      map.setFilter(excludedPoint.id, null)
+      return
+    }
 
-  //   // setVisibleLayer(getVisibleLayer(map, system))
-  //   // TODO: update legend
-  // }, [system])
+    // Construct filter expressions for each active filter
+    const filterEntries = Object.entries(filters || {}).filter(
+      ([, v]) => v && v.size > 0
+    )
 
-  // useEffect(() => {
-  //   const { current: map } = mapRef
+    const includedByFilters = filterEntries.map(([field, values]) => [
+      'in',
+      field,
+      ...Array.from(values),
+    ])
+    const excludedByFilters = filterEntries.map(([field, values]) => [
+      '!in',
+      field,
+      ...Array.from(values),
+    ])
 
-  //   if (!map) return
-
-  //   // update renderer and filter on all layers
-  //   layers.forEach(({ id, bins: { [barrierType]: bins } }) => {
-  //     const colors = COLORS.count[bins.length]
-  //     map.setPaintProperty(
-  //       `${id}-fill`,
-  //       'fill-color',
-  //       interpolateExpr(barrierType, bins, colors)
-  //     )
-  //     map.setFilter(`${id}-fill`, ['>', barrierType, 0])
-  //     map.setFilter(`${id}-outline`, ['>', barrierType, 0])
-  //   })
-
-  //   // TODO: update legend
-  // }, [barrierType])
-
-  // useEffect(() => {
-  //   const { current: map } = mapRef
-
-  //   if (!map) return
-
-  //   // clear out filter on non-visible layers and set for visible layers
-  //   // also clear it out if it is undefined
-  //   const { id = Infinity } = selectedUnit || {}
-  //   layers.forEach(({ id: lyrId, system: lyrSystem }) => {
-  //     map.setFilter(`${lyrId}-highlight`, [
-  //       '==',
-  //       'id',
-  //       lyrSystem === system ? id : Infinity,
-  //     ])
-  //   })
-  // }, [system, selectedUnit])
+    // update barrier layers to select those that are in selected units
+    map.setFilter(includedPoint.id, [
+      'all',
+      ['in', activeLayer, ...ids],
+      ...includedByFilters,
+    ])
+    map.setFilter(excludedPoint.id, [
+      'all',
+      ['any', ['!in', activeLayer, ...ids], ...excludedByFilters],
+    ])
+  }, [activeLayer, summaryUnits, filters])
 
   useEffect(() => {
     const { current: map } = mapRef
@@ -279,42 +290,6 @@ map.once('idle', onMapLoad)
 
     map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
   }, [searchFeature])
-
-  // const { layerTitle, legendEntries } = useMemo(() => {
-  //   const layer = layers.filter(
-  //     ({ system: lyrSystem, minzoom, maxzoom }) =>
-  //       lyrSystem === system && zoom >= minzoom && zoom < maxzoom
-  //   )[0]
-
-  //   const {
-  //     title,
-  //     bins: { [barrierType]: bins },
-  //   } = layer
-  //   // flip the order of colors and bins since we are displaying from top to bottom
-  //   // add opacity to color
-  //   const colors = COLORS.count[bins.length].map(c => `${c}4d`).reverse()
-
-  //   const labels = bins
-  //     .map((bin, i) => {
-  //       if (i === 0) {
-  //         return `≤ ${Math.round(bin).toLocaleString()} ${barrierType}`
-  //       }
-  //       if (i === bins.length - 1) {
-  //         return `≥ ${Math.round(bin).toLocaleString()} ${barrierType}`
-  //       }
-  //       // Use midpoint value
-  //       return Math.round(bin).toLocaleString()
-  //     })
-  //     .reverse()
-
-  //   return {
-  //     layerTitle: title,
-  //     legendEntries: colors.map((color, i) => ({
-  //       color,
-  //       label: labels[i],
-  //     })),
-  //   }
-  // }, [system, barrierType, zoom])
 
   const selectUnitById = (id, layer) => {
     const [feature] = mapRef.current.querySourceFeatures('sarp', {
@@ -354,6 +329,8 @@ map.once('idle', onMapLoad)
 }
 
 PriorityMap.propTypes = {
+  allowUnitSelect: PropTypes.bool,
+  allowFilter: PropTypes.bool,
   activeLayer: PropTypes.string,
   selectedUnit: PropTypes.object,
   selectedBarrier: PropTypes.object,
@@ -362,6 +339,7 @@ PriorityMap.propTypes = {
       id: PropTypes.string.isRequired,
     })
   ),
+  filters: PropTypes.object,
   searchFeature: SearchFeaturePropType,
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
@@ -369,11 +347,14 @@ PriorityMap.propTypes = {
 }
 
 PriorityMap.defaultProps = {
+  allowUnitSelect: false,
+  allowFilter: false,
   activeLayer: null,
   selectedUnit: null,
   selectedBarrier: null,
   searchFeature: null,
   summaryUnits: [],
+  filters: null,
 }
 
 export default memo(PriorityMap)
