@@ -1,6 +1,6 @@
 import { useBoundsData } from './Bounds'
 import { useSummaryData } from './Summary'
-import {fetchBarrierInfo, fetchBarrierRanks} from './API'
+import {fetchBarrierInfo, fetchBarrierRanks, getDownloadURL} from './API'
 import { Provider as BarrierTypeProvider, useBarrierType } from './BarrierType'
 
 export {
@@ -10,4 +10,5 @@ export {
   fetchBarrierRanks,
   BarrierTypeProvider,
   useBarrierType,
+  getDownloadURL
 }

@@ -5,6 +5,21 @@ export const groupBy = (records, groupField) =>
   )
 
 /**
+ * Count records within each group.
+ * Returns object where keys are each unique value of groupField.
+ * NOTE: if the sum is 0, the key is absent from the resulting Map.
+ *
+ * @param {Array} records - Array of objects
+ * @param {String} groupField - field to group by
+ */
+export const countBy = (records, groupField) =>
+  records.reduce((prev, record) => {
+    const group = record[groupField]
+    prev[group] = (prev[group] || 0) + 1
+    return prev
+  }, {})
+
+/**
  * Creates a reducer function to pass on to a .reduce() operation.
  * If valueGetter is present, it will be executed on each object
  * in the array this is being called against (except key field).  Otherwise,

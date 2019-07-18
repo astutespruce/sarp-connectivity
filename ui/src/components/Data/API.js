@@ -25,7 +25,9 @@ const apiQueryParams = (units = [], filters = {}) => {
   let query = `id=${ids.join(',')}`
 
   if (filterValues.length > 0) {
-    query += `&${filterValues.map(([k, v]) => `${k}=${Array.from(v).join(',')}`).join('&')}`
+    query += `&${filterValues
+      .map(([k, v]) => `${k}=${Array.from(v).join(',')}`)
+      .join('&')}`
   }
 
   return query
@@ -70,14 +72,27 @@ export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
   return fetchCSV(url, undefined, rowToInts)
 }
 
-
 /**
  * Fetch and parse CSV data from API for dams or small barriers
  */
-export const fetchBarrierRanks = async (barrierType, layer, summaryUnits, filters) => {
+export const fetchBarrierRanks = async (
+  barrierType,
+  layer,
+  summaryUnits,
+  filters
+) => {
   const url = `${apiHost}/api/v1/${barrierType}/rank/${layer}?${apiQueryParams(
-    summaryUnits
+    summaryUnits,
+    filters
   )}`
 
   return fetchCSV(url, undefined, rowToInts)
 }
+
+export const getDownloadURL = (barrierType,
+  layer,
+  summaryUnits,
+  filters) => `${apiHost}/api/v1/${barrierType}/csv/${layer}?${apiQueryParams(
+    summaryUnits,
+    filters
+  )}`

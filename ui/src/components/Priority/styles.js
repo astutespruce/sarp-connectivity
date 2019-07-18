@@ -1,4 +1,4 @@
-import { FaExclamationTriangle, FaCircleNotch } from 'react-icons/fa'
+import { FaExclamationTriangle } from 'react-icons/fa'
 
 import { Text } from 'components/Text'
 import { Box, Flex } from 'components/Grid'
@@ -20,18 +20,18 @@ export const Header = styled(Box).attrs({
 `
 
 export const Footer = styled(Flex).attrs({
-  justifyContent: 'center',
+  justifyContent: 'space-between',
   alignItems: 'center',
+  p: '1rem',
 })`
   flex-grow: 0 0 auto;
-  padding: 1rem 0;
   border-top: 1px solid #ddd;
   background: #f6f6f2;
 `
 
 export const Title = styled(Text).attrs({
   as: 'h3',
-  mb: '0.5rem',
+  mb: 0
 })`
   font-size: 1.5rem;
   line-height: 1.2;

@@ -1,7 +1,7 @@
 import Map from './Map'
-import TopBar from './TopBar'
+import {TopBar, TopBarToggle} from './TopBar'
 import Legend from './Legend'
 import {SearchFeaturePropType } from './proptypes'
 import { interpolateExpr } from './util'
 
-export { Map, TopBar, Legend, SearchFeaturePropType, interpolateExpr }
+export { Map, TopBar, TopBarToggle, Legend, SearchFeaturePropType, interpolateExpr }

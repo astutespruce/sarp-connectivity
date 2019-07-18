@@ -5,10 +5,9 @@ import { Flex, Box } from 'components/Grid'
 import Layout from 'components/Layout'
 import Sidebar from 'components/Sidebar'
 import UnitSearch from 'components/UnitSearch'
-import { TopBar } from 'components/Map'
+import { TopBar, TopBarToggle } from 'components/Map'
 import {Map, UnitDetails} from 'components/Summary'
 import { useSummaryData } from 'components/Data'
-import { ToggleButton } from 'components/Button'
 import { formatNumber } from 'util/format'
 import styled, { themeGet } from 'style'
 import { SYSTEMS } from '../../config/constants'
@@ -31,15 +30,6 @@ const Note = styled(HelpText).attrs({ mt: '3rem' })`
   color: ${themeGet('colors.grey.600')};
 `
 
-const TopBarToggle = styled(ToggleButton)`
-  margin: 0 1rem;
-
-  button {
-    text-transform: lowercase;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.9rem;
-  }
-`
 
 const barrierTypeOptions = [
   { value: 'dams', label: 'dams' },

@@ -1,9 +1,15 @@
 import React, { useState, useCallback, useRef } from 'react'
 
-import {useCrossfilter} from 'components/Crossfilter'
+import { useCrossfilter } from 'components/Crossfilter'
 import { HelpText } from 'components/Text'
 import { Flex } from 'components/Grid'
-import {fetchBarrierInfo, fetchBarrierRanks, useBarrierType} from 'components/Data'
+import { TopBar, TopBarToggle } from 'components/Map'
+import {
+  fetchBarrierInfo,
+  fetchBarrierRanks,
+  useBarrierType,
+  getDownloadURL,
+} from 'components/Data'
 import Sidebar, { LoadingSpinner, ErrorMessage } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
 import styled from 'style'
@@ -12,6 +18,7 @@ import Map from './Map'
 import UnitChooser from './UnitChooser'
 import LayerChooser from './LayerChooser'
 import Filters from './Filters'
+import Results from './Results'
 
 const Wrapper = styled(Flex)`
   height: 100%;
@@ -23,16 +30,27 @@ const MapContainer = styled.div`
   height: 100%;
 `
 
+const scenarioOptions = [
+  {value: 'nc', label: 'network connectivity'},
+  {value: 'wc', label: 'watershed condition'},
+  {value: 'ncwc', label: 'combined'}
+]
+
 const Prioritize = () => {
   const barrierType = useBarrierType()
-  const {filters, setData: setFilterData} = useCrossfilter()
+  const {
+    state: { filters },
+    setData: setFilterData,
+  } = useCrossfilter()
   const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [searchFeature, setSearchFeature] = useState(null)
+  const [layer, setLayer] = useState(null) // useState('State') // FIXME
   const [summaryUnits, setSummaryUnits] = useState([]) // useState([{"id":"Arkansas","dams":6269,"off_network_dams":422,"miles":10.72599983215332,"barriers":3018,"off_network_barriers":1526,"layerId":"State"}]) // FIXME
   const [rankData, setRankData] = useState([])
+  const [scenario, setScenario] = useState('ncwc')
   const [step, setStep] = useState('select')
   const stepRef = useRef(step) // need to keep a ref to use in callback below
-  const [layer, setLayer] = useState(null) // useState('State') // FIXME
+
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
 
@@ -47,7 +65,7 @@ const Prioritize = () => {
     nextSearchFeature => {
       setSearchFeature(nextSearchFeature)
     },
-    [layer]
+    []
   )
 
   const handleSetLayer = nextLayer => {
@@ -86,7 +104,7 @@ const Prioritize = () => {
     setIsLoading(true)
 
     const fetchData = async () => {
-      const {csv} = await fetchBarrierInfo(barrierType, layer, summaryUnits)
+      const { csv } = await fetchBarrierInfo(barrierType, layer, summaryUnits)
 
       if (csv) {
         setFilterData(csv)
@@ -97,16 +115,21 @@ const Prioritize = () => {
         setIsError(true)
       }
     }
-   fetchData() 
+    fetchData()
   }
 
   const loadRankInfo = () => {
     setIsLoading(true)
     const fetchData = async () => {
-      const {csv} = await fetchBarrierRanks(barrierType, layer, summaryUnits, filters)
+      const { csv } = await fetchBarrierRanks(
+        barrierType,
+        layer,
+        summaryUnits,
+        filters
+      )
 
       setIsLoading(false)
-  
+
       if (csv) {
         setRankData(csv)
         setStep('results')
@@ -114,23 +137,28 @@ const Prioritize = () => {
         setIsError(true)
       }
     }
-   fetchData() 
-
-    setStep('results')
+    fetchData()
   }
 
   const handleFilterBack = () => {
-    // setData([])
     setFilterData([])
     setStep('select')
   }
 
+  const handleSetScenario = (nextScenario) => {
+    setScenario(nextScenario)
+  }
 
-  // WARNING: this is passed into map at construction type, any 
+  const handleResultsBack = () => {
+    setStep('filter')
+    setRankData([])
+  }
+
+  // WARNING: this is passed into map at construction type, any
   // local state referenced here is not updated when the callback
   // is later called.  To get around that, use reference to step instead.
   const handleSelectBarrier = feature => {
-    const {current: curStep} = stepRef
+    const { current: curStep } = stepRef
     // don't show details when selecting units
     if (curStep === 'select') return
 
@@ -141,7 +169,7 @@ const Prioritize = () => {
   const handleDetailsClose = () => {
     setSelectedBarrier(null)
   }
- 
+
   let sidebarContent = null
 
   if (selectedBarrier === null) {
@@ -158,9 +186,7 @@ const Prioritize = () => {
         </ErrorMessage>
       )
     } else if (isLoading) {
-      sidebarContent = (
-        <LoadingSpinner />
-      )
+      sidebarContent = <LoadingSpinner />
     } else {
       switch (step) {
         case 'select': {
@@ -182,21 +208,29 @@ const Prioritize = () => {
         }
         case 'filter': {
           sidebarContent = (
-            <Filters 
-              onBack={handleFilterBack}
-              onSubmit={loadRankInfo}
-              />
+            <Filters onBack={handleFilterBack} onSubmit={loadRankInfo} />
+          )
+          break
+        }
+        case 'results': {
+          sidebarContent = (
+            <Results
+              rankData={rankData}
+              scenario={scenario}
+              downloadURL={getDownloadURL(
+                barrierType,
+                layer,
+                summaryUnits,
+                filters
+              )}
+              onBack={handleResultsBack}
+            />
           )
           break
         }
         default: {
           sidebarContent = null
         }
-
-        // case "results": {
-        //     sidebarContent = <Results />
-        //     break
-        // }
       }
     }
   }
@@ -217,17 +251,27 @@ const Prioritize = () => {
       <MapContainer>
         <Map
           allowUnitSelect={step === 'select'}
-          allowFilter={step === 'filter'}
-          step={step}
           activeLayer={layer}
           searchFeature={searchFeature}
           selectedBarrier={selectedBarrier}
           summaryUnits={summaryUnits}
-          rankData={rankData}
+          rankedBarriers={rankData}
           onSelectUnit={handleSelectUnit}
           onSelectBarrier={handleSelectBarrier}
           onMapLoad={handleMapLoad}
         />
+
+        {(step === 'results') &&
+        (
+          <TopBar>
+            Show ranks for:
+            <TopBarToggle
+              value={scenario}
+              options={scenarioOptions}
+              onChange={handleSetScenario}
+            />
+          </TopBar>
+        )}
       </MapContainer>
     </Wrapper>
   )

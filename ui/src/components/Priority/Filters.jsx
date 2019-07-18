@@ -14,11 +14,8 @@ import { formatNumber } from 'util/format'
 import BackLink from './BackLink'
 import SubmitButton from './SubmitButton'
 import StartOverButton from './StartOverButton'
-import { Wrapper, Header, Footer, Title as BaseTitle, Content } from './styles'
+import { Wrapper, Header, Footer, Title, Content } from './styles'
 
-const Title = styled(BaseTitle)`
-  margin-bottom: 0;
-`
 
 const CountContainer = styled(Flex).attrs({
   alignItems: 'center',
