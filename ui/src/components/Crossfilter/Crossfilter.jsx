@@ -14,7 +14,6 @@ export const hasValue = filterValues => value => filterValues.has(value)
  * @param {Array} filters - array of field configuration
  */
 const initCrossfilter = (data, filterConfig) => {
-
   const crossfilter = Crossfilter2(data)
 
   const dimensions = {}
@@ -44,6 +43,8 @@ export const Crossfilter = (data, filterConfig) => {
     return initCrossfilter(data, filterConfig)
   }, [data])
 
+  // const { crossfilter, dimensions } = initCrossfilter(data, filterConfig)
+
   // create the initial state in the callback so that we only construct it once
   const [state, setState] = useState(() => {
     const count = crossfilter.size()
@@ -65,6 +66,34 @@ export const Crossfilter = (data, filterConfig) => {
 
     return initialState
   })
+
+  const setData = newData => {
+    if (isDebug) {
+      console.log('setData')
+    }
+
+    setState(() => {
+      // remove all previous records
+      crossfilter.remove(() => true)
+      crossfilter.add(newData)
+      const count = crossfilter.size()
+
+      const newState = {
+        data: newData,
+        count,
+        filteredCount: count,
+        filters: {},
+        hasFilters: false,
+        dimensionCounts: countByDimension(dimensions),
+      }
+
+      if (isDebug) {
+        console.log('Next state', newState)
+      }
+
+      return newState
+    })
+  }
 
   const setFilter = (field, filterValue) => {
     if (!dimensions[field]) {
@@ -153,6 +182,7 @@ export const Crossfilter = (data, filterConfig) => {
   }
 
   return {
+    setData,
     setFilter,
     // setBounds,
     resetFilters,

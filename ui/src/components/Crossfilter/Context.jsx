@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react'
+import React, { createContext, useState, useContext } from 'react'
 import PropTypes from 'prop-types'
 
 import { Crossfilter } from './Crossfilter'
@@ -7,17 +7,15 @@ import { Crossfilter } from './Crossfilter'
  * Provide Crossfilter as a context so that components deeper in the
  * component tree can access crossfilter state or dispatch.
  */
-export const Context = createContext()
+const Context = createContext()
 
-export const Provider = ({ data, filterConfig, children }) => {
-  const value =
-    data && data.length > 0 ? Crossfilter(data, filterConfig) : { state: {} }
-
-  return <Context.Provider value={value}>{children}</Context.Provider>
+export const Provider = ({ filterConfig, children }) => {
+  // init crossfilter with empty data
+  const crossfilter = Crossfilter([], filterConfig)
+  return <Context.Provider value={crossfilter}>{children}</Context.Provider>
 }
 
 Provider.propTypes = {
-  data: PropTypes.array.isRequired,
   filterConfig: PropTypes.array.isRequired,
   children: PropTypes.oneOfType([
     PropTypes.node,
@@ -26,7 +24,9 @@ Provider.propTypes = {
   ]).isRequired,
 }
 
-// Hook for easier use in context
+/**
+ * Return crossfilter {state, setFilter, resetFilters, filterConfig} values
+ */
 export const useCrossfilter = () => {
   return useContext(Context)
 }

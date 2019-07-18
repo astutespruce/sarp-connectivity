@@ -28,7 +28,6 @@ import {
 
 const PriorityMap = ({
   allowUnitSelect,
-  allowFilter,
   activeLayer,
   selectedUnit,
   selectedBarrier,
@@ -428,7 +427,6 @@ const PriorityMap = ({
 
 PriorityMap.propTypes = {
   allowUnitSelect: PropTypes.bool,
-  allowFilter: PropTypes.bool,
   activeLayer: PropTypes.string,
   selectedUnit: PropTypes.object,
   selectedBarrier: PropTypes.object,
@@ -450,7 +448,6 @@ PriorityMap.propTypes = {
 
 PriorityMap.defaultProps = {
   allowUnitSelect: false,
-  allowFilter: false,
   activeLayer: null,
   selectedUnit: null,
   selectedBarrier: null,

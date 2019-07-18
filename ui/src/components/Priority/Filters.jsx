@@ -48,6 +48,7 @@ const HelpText = styled(ExpandableParagraph)`
 const Filters = ({ onBack, onSubmit }) => {
   const barrierType = useBarrierType()
   const { state, filterConfig, resetFilters } = useCrossfilter()
+
   const { filteredCount, hasFilters } = state
 
   const handleReset = () => {

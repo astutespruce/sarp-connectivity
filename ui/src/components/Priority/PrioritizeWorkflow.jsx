@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useRef } from 'react'
 
-import {Provider as CrossfilterProvider} from 'components/Crossfilter'
+import {useCrossfilter} from 'components/Crossfilter'
 import { HelpText } from 'components/Text'
 import { Flex } from 'components/Grid'
-import {fetchBarrierInfo, useBarrierType} from 'components/Data'
+import {fetchBarrierInfo, fetchBarrierRanks, useBarrierType} from 'components/Data'
 import Sidebar, { LoadingSpinner, ErrorMessage } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
 import styled from 'style'
@@ -12,7 +12,6 @@ import Map from './Map'
 import UnitChooser from './UnitChooser'
 import LayerChooser from './LayerChooser'
 import Filters from './Filters'
-import { FILTERS } from '../../../config/filters'
 
 const Wrapper = styled(Flex)`
   height: 100%;
@@ -26,28 +25,23 @@ const MapContainer = styled.div`
 
 const Prioritize = () => {
   const barrierType = useBarrierType()
+  const {filters, setData: setFilterData} = useCrossfilter()
   const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [searchFeature, setSearchFeature] = useState(null)
   const [summaryUnits, setSummaryUnits] = useState([]) // useState([{"id":"Arkansas","dams":6269,"off_network_dams":422,"miles":10.72599983215332,"barriers":3018,"off_network_barriers":1526,"layerId":"State"}]) // FIXME
-  const [data, setData] = useState([])
-
-  // TODO: wrap into useReducer?
+  const [rankData, setRankData] = useState([])
   const [step, setStep] = useState('select')
   const stepRef = useRef(step) // need to keep a ref to use in callback below
   const [layer, setLayer] = useState(null) // useState('State') // FIXME
-
-  // TODO: wrap into custom hook
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
 
   // keep the reference in sync
   stepRef.current = step
 
-  const filterConfig = FILTERS[barrierType]
-
-  const handleMapLoad = useCallback(() => {
+  const handleMapLoad = () => {
     setIsLoading(false)
-  })
+  }
 
   const handleSearch = useCallback(
     nextSearchFeature => {
@@ -94,21 +88,40 @@ const Prioritize = () => {
     const fetchData = async () => {
       const {csv} = await fetchBarrierInfo(barrierType, layer, summaryUnits)
 
-      setIsLoading(false)
-  
       if (csv) {
-        // TODO: init crossfilter in context
-        setData(csv)
+        setFilterData(csv)
         setStep('filter')
+        setIsLoading(false)
       } else {
+        setIsLoading(false)
         setIsError(true)
       }
     }
    fetchData() 
   }
 
+  const loadRankInfo = () => {
+    setIsLoading(true)
+    const fetchData = async () => {
+      const {csv} = await fetchBarrierRanks(barrierType, layer, summaryUnits, filters)
+
+      setIsLoading(false)
+  
+      if (csv) {
+        setRankData(csv)
+        setStep('results')
+      } else {
+        setIsError(true)
+      }
+    }
+   fetchData() 
+
+    setStep('results')
+  }
+
   const handleFilterBack = () => {
-    setData([])
+    // setData([])
+    setFilterData([])
     setStep('select')
   }
 
@@ -122,7 +135,6 @@ const Prioritize = () => {
     if (curStep === 'select') return
 
     console.log('selected feature', feature)
-
     setSelectedBarrier(feature)
   }
 
@@ -172,7 +184,7 @@ const Prioritize = () => {
           sidebarContent = (
             <Filters 
               onBack={handleFilterBack}
-              onSubmit={() => setStep('results')}
+              onSubmit={loadRankInfo}
               />
           )
           break
@@ -191,7 +203,6 @@ const Prioritize = () => {
 
   return (
     <Wrapper>
-      <CrossfilterProvider filterConfig={filterConfig} data={data}>
       <Sidebar>
         {selectedBarrier !== null ? (
           <BarrierDetails
@@ -212,13 +223,12 @@ const Prioritize = () => {
           searchFeature={searchFeature}
           selectedBarrier={selectedBarrier}
           summaryUnits={summaryUnits}
-          // filters={filters}
+          rankData={rankData}
           onSelectUnit={handleSelectUnit}
           onSelectBarrier={handleSelectBarrier}
           onMapLoad={handleMapLoad}
         />
       </MapContainer>
-      </CrossfilterProvider>
     </Wrapper>
   )
 }
