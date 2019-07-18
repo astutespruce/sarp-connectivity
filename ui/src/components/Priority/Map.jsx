@@ -9,6 +9,7 @@ import {
   interpolateExpr,
   SearchFeaturePropType,
 } from 'components/Map'
+
 import { unitLayerConfig } from './config'
 import {
   maskFill,
@@ -20,10 +21,10 @@ import {
   backgroundPoint,
   excludedPoint,
   includedPoint,
+  pointLegends,
   topRank,
   lowerRank,
 } from './layers'
-import { selectUnit } from '../../../../ui-bk/src/actions/priority'
 
 const PriorityMap = ({
   allowUnitSelect,
@@ -31,6 +32,7 @@ const PriorityMap = ({
   activeLayer,
   selectedUnit,
   selectedBarrier,
+  rankedBarriers,
   searchFeature,
   summaryUnits,
   onSelectUnit,
@@ -237,8 +239,8 @@ const PriorityMap = ({
     const ids = summaryUnits.map(({ id }) => id)
 
     if (!(activeLayer || ids.length > 0)) {
-      // reset filters on barriers
-      map.setFilter(includedPoint.id, ['id', '==', Infinity])
+      // if no summary units are selected, reset filters on barriers
+      map.setFilter(includedPoint.id, ['==', 'id', Infinity])
       map.setFilter(excludedPoint.id, null)
       return
     }
@@ -297,6 +299,16 @@ const PriorityMap = ({
     map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
   }, [searchFeature])
 
+  useEffect(() => {
+    const { current: map } = mapRef
+
+    if (!map) return
+
+    console.log('update ranked barriers')
+  }, [rankedBarriers])
+
+  // TODO: scenario chooser
+
   const selectUnitById = (id, layer) => {
     const [feature] = mapRef.current.querySourceFeatures('sarp', {
       sourceLayer: layer,
@@ -322,14 +334,94 @@ const PriorityMap = ({
     })
   }
 
+  // TODO: memoize?
+  // returns {entries, footnote}
+  const getLegend = () => {
+    const includedIsVisible =
+      zoom >= includedPoint.minzoom && zoom <= includedPoint.maxzoom
+    const excludedIsVisible =
+      zoom >= excludedPoint.minzoom && zoom <= excludedPoint.maxzoom
+    const backgroundIsVisible =
+      zoom >= backgroundPoint.minzoom && zoom <= backgroundPoint.maxzoom
+
+    const {
+      included: includedLegend,
+      excluded: excludedLegend,
+      background: backgroundLegend,
+    } = pointLegends
+
+    if (activeLayer === null) {
+      if (!excludedIsVisible) {
+        return {
+          footnote: `zoom in to see ${barrierType} available for analysis`,
+        }
+      }
+      const circles = [
+        {
+          ...excludedLegend,
+          label: `${barrierType} available for analysis`,
+        },
+      ]
+
+      if (backgroundIsVisible) {
+        circles.push({
+          ...backgroundLegend,
+          label: `${barrierType} not available for analysis`,
+        })
+      }
+
+      return {
+        circles,
+      }
+    }
+
+    if (rankedBarriers !== null) {
+      // TODO
+      // background is "not included in analysis"
+
+      return {
+        footnote: 'TODO!',
+      }
+    }
+
+    // either in select units or filter step
+
+    if (!includedIsVisible) {
+      return {
+        footnote: `zoom in to see selected ${barrierType}`,
+      }
+    }
+
+    const circles = [
+      {
+        ...includedLegend,
+        label: `selected ${barrierType}`,
+      },
+    ]
+
+    if (excludedIsVisible) {
+      circles.push({
+        ...excludedLegend,
+        label: `not selected ${barrierType}`,
+      })
+    }
+
+    if (backgroundIsVisible) {
+      circles.push({
+        ...backgroundLegend,
+        label: `${barrierType} not available for analysis`,
+      })
+    }
+
+    return {
+      circles,
+    }
+  }
+
   return (
     <>
       <Map onCreateMap={handleCreateMap} {...props} />
-      {/* <Legend
-        title={layerTitle}
-        entries={legendEntries}
-        footnote={`areas with no ${barrierType} are not shown`}
-      /> */}
+      <Legend {...getLegend()} />
     </>
   )
 }
@@ -340,6 +432,11 @@ PriorityMap.propTypes = {
   activeLayer: PropTypes.string,
   selectedUnit: PropTypes.object,
   selectedBarrier: PropTypes.object,
+  rankedBarriers: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+    })
+  ),
   summaryUnits: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
@@ -359,6 +456,7 @@ PriorityMap.defaultProps = {
   selectedBarrier: null,
   searchFeature: null,
   summaryUnits: [],
+  rankedBarriers: null,
 }
 
 export default memo(PriorityMap)

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import Crossfilter2 from 'crossfilter2'
 import { isDebug } from 'util/dom'
 import { useIsEqualMemo } from 'util/hooks'

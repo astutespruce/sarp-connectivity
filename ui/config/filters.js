@@ -51,6 +51,7 @@ const dams = [
   {
     field: 'heightclass',
     title: 'Dam Height',
+    hideEmpty: true,
     help:
       'Note: height information is only available for a small number of dams.  Not all data sources recorded this information.',
     ...getEntries(HEIGHT),
@@ -64,6 +65,7 @@ const dams = [
   {
     field: 'raresppclass',
     title: 'Number of Threatened & Endangered Species',
+    hideEmpty: true,
     help:
       'Note: This information is based on occurrences of one or more federally threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
     ...getEntries(RARESPP),
@@ -145,6 +147,7 @@ const barriers = [
   {
     field: 'raresppclass',
     title: 'Number of Threatened and Endangered Species',
+    hideEmpty: true,
     help:
       'Note: This information is based on occurrences of one or more federally threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
     ...getEntries(RARESPP),

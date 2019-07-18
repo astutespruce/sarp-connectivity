@@ -269,7 +269,7 @@ const SummaryMap = ({
       <Map onCreateMap={handleCreateMap} {...props} />
       <Legend
         title={layerTitle}
-        entries={legendEntries}
+        patches={legendEntries}
         footnote={`areas with no ${barrierType} are not shown`}
       />
     </>

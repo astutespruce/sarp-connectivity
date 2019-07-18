@@ -117,16 +117,9 @@ export const unitHighlightOutline = {
   },
 }
 
-export const unitLayers = [
-  unitFill,
-  unitOutline,
-  
-]
+export const unitLayers = [unitFill, unitOutline]
 
-export const unitHighlightLayers = [
-  unitHighlightFill,
-  unitHighlightOutline,]
-
+export const unitHighlightLayers = [unitHighlightFill, unitHighlightOutline]
 
 export const backgroundPoint = {
   id: 'point-no-network',
@@ -135,9 +128,6 @@ export const backgroundPoint = {
   type: 'circle',
   minzoom: 10,
   maxzoom: 24,
-  layout: {
-    visibility: 'none',
-  },
   paint: {
     'circle-color': '#999',
     'circle-radius': { stops: [[10, 0.5], [14, 4]] },
@@ -173,7 +163,7 @@ export const includedPoint = {
   type: 'circle',
   minzoom: 5,
   maxzoom: 24,
-  filter: ['==', 'id', 'Infinity'],  // will be filtered using "in" or "!in"
+  filter: ['==', 'id', 'Infinity'], // will be filtered using "in" or "!in"
   paint: {
     'circle-color': '#c51b8a',
     'circle-radius': { stops: [[5, 1], [6, 2], [14, 8]] },
@@ -183,6 +173,24 @@ export const includedPoint = {
   },
 }
 
+export const pointLegends = {
+  included: {
+    radius: 8,
+    color: includedPoint.paint['circle-color'],
+  },
+  excluded: {
+    radius: 6,
+    color: `${excludedPoint.paint['circle-color']}99`,
+    borderColor: `${excludedPoint.paint['circle-stroke-color']}99`,
+    borderWidth: 1,
+  },
+  background: {
+    radius: 5,
+    color: backgroundPoint.paint['circle-color'],
+    borderColor: backgroundPoint.paint['circle-stroke-color'],
+    borderWidth: 1,
+  },
+}
 
 export const pointHighlight = {
   id: 'point-highlight',
