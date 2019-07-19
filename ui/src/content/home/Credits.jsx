@@ -3,8 +3,9 @@ import { Image } from 'rebass'
 
 import { OutboundLink } from 'components/Link'
 import { Columns } from 'components/Grid'
-import styled, { themeGet } from 'style'
+import styled from 'style'
 import CBILogoImage from 'images/cbi_logo.png'
+import AstuteSpruceLogoImage from 'images/Astute_Spruce_logo.png'
 
 import { Section, NarrowColumn, WideColumn, Divider } from '../styles'
 
@@ -16,7 +17,12 @@ const CBILogo = styled(Image).attrs({ src: CBILogoImage })`
   max-width: 300px;
 `
 
-
+const AstuteSpruceLogo = styled(Image).attrs({
+  src: AstuteSpruceLogoImage,
+  mt: '1rem',
+})`
+  max-width: 300px;
+`
 
 const Credits = () => {
   return (
@@ -27,15 +33,18 @@ const Credits = () => {
           <WideColumn>
             <p>
               This application was created by{' '}
-              <a href="mailto:bcward@consbio.org">Brendan C. Ward</a> at
-              the&nbsp;
+              <a href="mailto:bcward@consbio.org">Brendan C. Ward</a> at the{' '}
               <OutboundLink to="https://consbio.org">
                 Conservation Biology Institute
-              </OutboundLink>
-              &nbsp; (CBI) in partnership with{' '}
+              </OutboundLink>{' '}
+              (CBI), now with{' '}
+              <OutboundLink to="https://astutespruce.com/">
+                Astute Spruce, LLC,
+              </OutboundLink>{' '}
+              in partnership with{' '}
               <a href="mailto:jessica@southeastaquatics.net">Jessica Graham</a>{' '}
               and <a href="mailto:kat@southeastaquatics.net">Kat Hoenke</a> at
-              the&nbsp;
+              the{' '}
               <OutboundLink to="https://southeastaquatics.net/">
                 Southeast Aquatic Resources Partnership
               </OutboundLink>
@@ -44,7 +53,13 @@ const Credits = () => {
             </p>
           </WideColumn>
           <NarrowColumn>
-            <CBILogo />
+            <OutboundLink to="https://consbio.org">
+              <CBILogo />
+            </OutboundLink>
+
+            <OutboundLink to="https://astutespruce.com/">
+              <AstuteSpruceLogo />
+            </OutboundLink>
           </NarrowColumn>
         </Columns>
         <p>

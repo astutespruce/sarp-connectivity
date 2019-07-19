@@ -9,4 +9,5 @@ export const isUnsupported =
 
 export const isDebug = hasWindow && process.env.NODE_ENV === 'development'
 
-export const hasGeolocation = hasWindow && navigator && 'geolocation' in navigator
+export const hasGeolocation =
+  hasWindow && navigator && 'geolocation' in navigator

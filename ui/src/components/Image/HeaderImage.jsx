@@ -37,8 +37,8 @@ const Overlay = styled.div`
     0,
     rgba(0, 0, 0, 0),
     1rem,
-    rgba(0, 0, 0, 0.5),
-    90%,
+    rgba(0, 0, 0, 0.65),
+    100%,
     rgba(0, 0, 0, 0)
   );
 `
