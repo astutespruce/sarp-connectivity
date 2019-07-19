@@ -21,7 +21,10 @@ const Stats = styled.ul`
   list-style: none;
   font-size: 1.25rem;
   margin-left: 0;
-  margin-bottom: 6rem !important;
+
+  li {
+    margin-bottom: 2rem;
+  }
 `
 
 const SARPLogo = styled(Image).attrs({ src: SARPLogoImage, width: '100%' })`

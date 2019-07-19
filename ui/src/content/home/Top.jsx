@@ -10,6 +10,8 @@ const Column = styled(BaseColumn).attrs({
   width: ['100%', '100%', '33%'],
   px: '0.5rem',
 })`
+  display: flex;
+  flex-direction: column;
 `
 
 const Top = () => {

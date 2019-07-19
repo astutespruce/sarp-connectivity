@@ -55,7 +55,6 @@ const Results = ({
   downloadURL,
   scenario,
   rankData,
-  // logDownload,
   tierThreshold,
   onSetTierThreshold,
   onBack,
@@ -146,12 +145,12 @@ const Results = ({
 Results.propTypes = {
   downloadURL: PropTypes.string.isRequired,
   scenario: PropTypes.string.isRequired,
+  tierThreshold: PropTypes.number.isRequired,
   rankData: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number.isRequired,
     })
   ).isRequired,
-  // logDownload: PropTypes.func.isRequired,
   onSetTierThreshold: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
 }

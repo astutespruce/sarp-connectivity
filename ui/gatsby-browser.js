@@ -7,11 +7,15 @@ import { siteMetadata } from './gatsby-config'
  * Initialize Google Analytics and Sentry
  */
 export const onClientEntry = () => {
-  if (process.env.NODE_ENV === 'production') {
-    GoogleAnalytics.initialize(siteMetadata.googleAnalyticsId)
+  const { googleAnalyticsId, sentryDSN } = siteMetadata
 
+  if (googleAnalyticsId) {
+    GoogleAnalytics.initialize(googleAnalyticsId)
+  }
+
+  if (sentryDSN) {
     Sentry.init({
-      dsn: siteMetadata.sentryDSN,
+      dsn: sentryDSN,
     })
     window.Sentry = Sentry
   }

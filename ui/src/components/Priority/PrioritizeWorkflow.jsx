@@ -14,12 +14,12 @@ import Sidebar, { LoadingSpinner, ErrorMessage } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
 import styled from 'style'
 
-import { set } from 'immutable'
 import Map from './Map'
 import UnitChooser from './UnitChooser'
 import LayerChooser from './LayerChooser'
 import Filters from './Filters'
 import Results from './Results'
+
 
 const Wrapper = styled(Flex)`
   height: 100%;

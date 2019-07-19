@@ -1,15 +1,9 @@
-// derived from: https://scotch.io/tutorials/create-a-custom-usefetch-react-hook
-
-// import { useEffect, useState } from 'react'
 import { csvParse, autoType } from 'd3-dsv'
 
-// import { useBarrierType } from 'components/Data'
+import { captureException } from 'util/log'
 import { siteMetadata } from '../../../gatsby-config'
 
 const { apiHost } = siteMetadata
-
-// const infoURL =
-// const rankURL = `${API_HOST}/api/v1/${type}/rank/${layer}` // plus query params
 
 /**
  * Converts units and filters into query parameters for API requests
@@ -36,6 +30,10 @@ const apiQueryParams = (units = [], filters = {}) => {
 const fetchCSV = async (url, options, rowParser) => {
   try {
     const request = await fetch(url, options)
+    if (request.status !== 200) {
+      throw new Error(`Failed request to ${url}: ${request.statusText}`)
+    }
+
     const rawContent = await request.text()
 
     return {
@@ -43,7 +41,7 @@ const fetchCSV = async (url, options, rowParser) => {
       csv: csvParse(rawContent, rowParser),
     }
   } catch (err) {
-    console.error(err)
+    captureException(err)
 
     return {
       error: err,

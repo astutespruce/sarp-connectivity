@@ -2,6 +2,7 @@ const host = `https://connectivity.sarpdata.com`
 
 module.exports = {
   siteMetadata: {
+    siteUrl: process.env.GATSBY_SITE_URL || host,
     title: `Southeast Aquatic Barrier Prioritization Tool`,
     shortTitle: `Southeast Aquatic Barrier Tool`,
     description: `A tool to help prioritize aquatic barriers for removal or mitigation.`,
