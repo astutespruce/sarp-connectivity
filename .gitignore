@@ -4,6 +4,7 @@
 *.pyc
 
 .env
+.env.*
 
 # dependencies
 */node_modules/*
@@ -21,13 +22,18 @@
 .env.test.local
 .env.production.local
 
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
 /ui/build/*
+/ui/.cache
+/ui/public/*
 
 /data/src/*
 /data/derived/*
 /data/tiles/*
 /tiles/*
+
+/ui-bk

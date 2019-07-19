@@ -1,6 +1,0 @@
-media_sources:
-
-https://unsplash.com/photos/EZXAfsGpc7o
-https://unsplash.com/photos/sUHxY3v1PIE
-https://unsplash.com/photos/ko7Tp_LyAt4
-https://unsplash.com/photos/8X1-pcDF8l0
