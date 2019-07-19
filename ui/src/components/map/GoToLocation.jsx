@@ -20,6 +20,9 @@ const Wrapper = styled(MapControlWrapper)`
   right: 10px;
   line-height: 1;
   background-color: ${({ isOpen }) => (isOpen ? '#eee' : '#fff')};
+  border: none;
+  padding: 7px;
+  z-index: 20000;
 `
 
 const Header = styled.span`

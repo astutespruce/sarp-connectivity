@@ -9,6 +9,7 @@ import Circle from './Circle'
 import { MapControlWrapper } from '../styles'
 
 const Wrapper = styled(MapControlWrapper)`
+  z-index: 1000;
   right: 10px;
   bottom: 24px;
   max-width: 160px;

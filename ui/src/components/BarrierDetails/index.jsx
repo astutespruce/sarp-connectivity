@@ -3,7 +3,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { FaEnvelope } from 'react-icons/fa'
 
-import {useBarrierType} from 'components/Data'
+import { useBarrierType } from 'components/Data'
 import { Text, HelpText } from 'components/Text'
 import { Flex, Box } from 'components/Grid'
 import { CloseButton } from 'components/Button'
@@ -45,14 +45,14 @@ const Tabs = styled(BaseTabs)`
   height: 100%;
 
   ${ActiveButton} {
-      border: none;
-      padding: 0.5rem 0;
-    }
-    ${InactiveButton} {
-      background: ${themeGet('colors.primary.100')};
-      border: none;
-      padding: 0.5rem 0;
-    }
+    border: none;
+    padding: 0.5rem 0;
+  }
+  ${InactiveButton} {
+    background: ${themeGet('colors.primary.100')};
+    border: none;
+    padding: 0.5rem 0;
+  }
 `
 
 const Tab = styled(BaseTab)`
@@ -78,13 +78,10 @@ const MailIcon = styled(FaEnvelope)`
 
 const tierToPercent = tier => (100 * (19 - (tier - 1))) / 20
 
-const BarrierDetails = ({
-  barrier,
-  onClose,
-}) => {
+const BarrierDetails = ({ barrier, onClose }) => {
   const { sarpid, name, hasnetwork, countyname, State, ncwc_tier } = barrier
 
-const barrierType = useBarrierType()
+  const barrierType = useBarrierType()
 
   const details =
     barrierType === 'dams' ? (
@@ -117,16 +114,15 @@ const barrierType = useBarrierType()
 
     // add in custom results if available
     if (ncwc_tier) {
-    scores.custom = {}
-    metrics.forEach(metric => {
-      const tier = barrier[`${metric}_tier`]
-      scores.custom[metric] = {
-        score: tierToPercent(tier),
-        tier,
-      }
-    })
-  }
-
+      scores.custom = {}
+      metrics.forEach(metric => {
+        const tier = barrier[`${metric}_tier`]
+        scores.custom[metric] = {
+          score: tierToPercent(tier),
+          tier,
+        }
+      })
+    }
 
     scoreContent = <Scores scores={scores} barrierType={barrierType} />
   } else {
@@ -142,9 +138,11 @@ const barrierType = useBarrierType()
       <Header>
         <TitleWrapper>
           <Title>{!isEmptyString(name) ? name : defaultName}</Title>
-          <Subtitle>
-            {countyname}, {State}
-          </Subtitle>
+          {!(isEmptyString(countyname) || isEmptyString(State)) && (
+            <Subtitle>
+              {countyname}, {State}
+            </Subtitle>
+          )}
         </TitleWrapper>
         <CloseButton onClick={onClose} />
       </Header>

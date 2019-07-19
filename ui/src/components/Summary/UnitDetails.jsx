@@ -49,11 +49,10 @@ const Content = styled(Box).attrs({
   overflow-y: auto;
 `
 
-const UnitDetails = ({ summaryUnit, onClose }) => {
+const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   // TODO
   const { id, layerId, name, dams, barriers, miles } = summaryUnit
 
-  const barrierType = useBarrierType()
   const {
     dams: totalDams,
     barriers: totalBarriers,
@@ -104,7 +103,7 @@ const UnitDetails = ({ summaryUnit, onClose }) => {
                 <p>
                   This area contains at least {formatNumber(count, 0)}{' '}
                   {count > 1 ? 'dams' : 'dam'} that{' '}
-                  {count > 1 ? 'have ' : 'has '} been inventoried so far,
+                  {count > 1 ? 'have ' : 'has '}been inventoried so far,
                   resulting in an average of {formatNumber(miles, 2)} miles of
                   rivers and streams that could be reconnected by removing dams.
                   <br />
@@ -153,7 +152,7 @@ const UnitDetails = ({ summaryUnit, onClose }) => {
                 <p>
                   This area contains at least {formatNumber(count, 0)}{' '}
                   road-related {count > 1 ? 'barriers' : 'barriers'} that{' '}
-                  {count > 1 ? 'have' : 'has'}
+                  {count > 1 ? 'have ' : 'has '}
                   been inventoried so far.
                 </p>
                 <HelpText>
@@ -180,6 +179,7 @@ const UnitDetails = ({ summaryUnit, onClose }) => {
 }
 
 UnitDetails.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   summaryUnit: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   }).isRequired,
