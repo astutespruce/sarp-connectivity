@@ -48,3 +48,35 @@ export const interpolateExpr = (property, domain, range) => [
 ]
 
 
+
+export const toGeoJSONPoint = (record, x = 'lon', y = 'lat') => {
+  const properties = {}
+  Object.keys(record)
+    .filter(f => f !== x && f !== y)
+    .forEach(f => {
+      properties[f] = record[f]
+    })
+
+  const feature = {
+    type: 'Feature',
+    geometry: {
+      type: 'Point',
+      coordinates: [record[x], record[y]],
+    },
+    properties,
+  }
+
+  const { id } = record
+  if (id !== undefined && id !== null) {
+    feature.id = id
+  }
+
+  return feature
+}
+
+export const toGeoJSONPoints = records => ({
+  type: 'FeatureCollection',
+  features: records.map(r => toGeoJSONPoint(r)),
+})
+
+

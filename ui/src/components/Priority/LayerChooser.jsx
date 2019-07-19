@@ -39,7 +39,7 @@ const LayerChooser = ({ setLayer }) => {
   return (
     <Content>
       <Title>What type of area do you want to select?</Title>
-      <HelpText>
+      <HelpText mt="1rem">
         Choose from one of the following types of areas that will best capture
         your area of interest. You will select specific areas on the next
         screen.

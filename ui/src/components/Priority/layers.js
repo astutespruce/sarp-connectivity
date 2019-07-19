@@ -173,43 +173,6 @@ export const includedPoint = {
   },
 }
 
-export const pointLegends = {
-  included: {
-    radius: 8,
-    color: includedPoint.paint['circle-color'],
-  },
-  excluded: {
-    radius: 6,
-    color: `${excludedPoint.paint['circle-color']}99`,
-    borderColor: `${excludedPoint.paint['circle-stroke-color']}99`,
-    borderWidth: 1,
-  },
-  background: {
-    radius: 5,
-    color: backgroundPoint.paint['circle-color'],
-    borderColor: backgroundPoint.paint['circle-stroke-color'],
-    borderWidth: 1,
-  },
-}
-
-export const pointHighlight = {
-  id: 'point-highlight',
-  source: {
-    type: 'geojson',
-    data: null,
-  },
-  type: 'circle',
-  minzoom: 5,
-  maxzoom: 24,
-  // filter: ["==", "id", Infinity],
-  paint: {
-    'circle-color': '#fd8d3c',
-    'circle-radius': 14,
-    'circle-stroke-width': 3,
-    'circle-stroke-color': '#f03b20',
-  },
-}
-
 export const topRank = {
   id: 'rank-top',
   source: 'ranked',
@@ -230,16 +193,59 @@ export const lowerRank = {
   id: 'rank-low',
   source: 'ranked',
   type: 'circle',
-  minzoom: 6,
+  minzoom: 5,
   maxzoom: 24,
   // filter:  // provided by specific layer
   paint: {
-    // "circle-color": "#d95f0e",
-    // "circle-stroke-color": "#993404",
     'circle-color': '#2c7fb8',
     'circle-stroke-color': '#FFFFFF',
-    'circle-radius': { stops: [[6, 1], [7, 4], [10, 6], [14, 8]] },
-    'circle-opacity': { stops: [[6, 0.5], [7, 0.5], [8, 1]] },
-    'circle-stroke-width': { stops: [[6, 0], [8, 1], [14, 3]] },
+    'circle-radius': { stops: [[5, 1], [7, 4], [10, 6], [14, 8]] },
+    'circle-opacity': { stops: [[5, 0.5], [7, 0.5], [8, 1]] },
+    'circle-stroke-width': { stops: [[5, 0], [8, 1], [14, 3]] },
+  },
+}
+
+export const pointLegends = {
+  included: {
+    radius: 8,
+    color: includedPoint.paint['circle-color'],
+  },
+  excluded: {
+    radius: 6,
+    color: `${excludedPoint.paint['circle-color']}99`,
+    borderColor: `${excludedPoint.paint['circle-stroke-color']}99`,
+    borderWidth: 1,
+  },
+  background: {
+    radius: 5,
+    color: backgroundPoint.paint['circle-color'],
+    borderColor: backgroundPoint.paint['circle-stroke-color'],
+    borderWidth: 1,
+  },
+  topRank: {
+    radius: 8,
+    color: topRank.paint['circle-color'],
+  },
+  lowerRank: {
+    radius: 8,
+    color: lowerRank.paint['circle-color'],
+  },
+}
+
+export const pointHighlight = {
+  id: 'point-highlight',
+  source: {
+    type: 'geojson',
+    data: null,
+  },
+  type: 'circle',
+  minzoom: 5,
+  maxzoom: 24,
+  // filter: ["==", "id", Infinity],
+  paint: {
+    'circle-color': '#fd8d3c',
+    'circle-radius': 14,
+    'circle-stroke-width': 3,
+    'circle-stroke-color': '#f03b20',
   },
 }

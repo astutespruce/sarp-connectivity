@@ -39,7 +39,8 @@
     "rebass": "^3.1.0",
     "styled-components": "^4.2.0",
     "styled-system": "^4.1.0",
-    "typography": "^0.16.19"
+    "typography": "^0.16.19",
+    "use-debounce": "^2.2.0"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.1",

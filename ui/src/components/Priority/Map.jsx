@@ -1,13 +1,14 @@
 import React, { memo, useEffect, useRef, useCallback, useState } from 'react'
 import PropTypes from 'prop-types'
+import { useDebouncedCallback } from 'use-debounce'
 
 import { useCrossfilter } from 'components/Crossfilter'
 import { useBarrierType } from 'components/Data'
 import {
   Map,
   Legend,
-  interpolateExpr,
   SearchFeaturePropType,
+  toGeoJSONPoints,
 } from 'components/Map'
 
 import { unitLayerConfig } from './config'
@@ -26,12 +27,19 @@ import {
   lowerRank,
 } from './layers'
 
+const emptyFeatureCollection = {
+  type: 'FeatureCollection',
+  features: [],
+}
+
 const PriorityMap = ({
   allowUnitSelect,
   activeLayer,
   selectedUnit,
   selectedBarrier,
   rankedBarriers,
+  tierThreshold,
+  scenario,
   searchFeature,
   summaryUnits,
   onSelectUnit,
@@ -49,101 +57,169 @@ const PriorityMap = ({
   // const [visibleLayer, setVisibleLayer] = useState(layers.filter(({system: lyrSystem}) => lyrSystem === system)[0])
   const [zoom, setZoom] = useState(0)
 
-  const handleCreateMap = useCallback(map => {
-    mapRef.current = map
+  const handleCreateMap = useCallback(
+    map => {
+      mapRef.current = map
 
-    map.on('zoomend', () => {
-      setZoom(map.getZoom())
-    })
-
-    // set for initial load too
-    setZoom(map.getZoom())
-
-    // Initially the mask and boundary are visible
-    map.addLayer(maskFill)
-    map.addLayer(maskOutline)
-
-    Object.entries(unitLayerConfig).forEach(
-      ([layer, { minzoom = 0, maxzoom = 24, parent }]) => {
-        const config = {
-          'source-layer': layer,
-          minzoom,
-          maxzoom,
-        }
-
-        if (parent) {
-          map.addLayer({
-            'source-layer': parent,
-            minzoom,
-            maxzoom,
-            ...parentOutline,
-            id: `${layer}-${parentOutline.id}`,
-          })
-        }
-
-        // Each layer has 2 display layers: outline, fill
-        unitLayers.forEach(({ id, ...rest }) => {
-          const layerId = `${layer}-${id}`
-          map.addLayer({ ...config, ...rest, id: layerId })
-
-          if (id === 'unit-fill') {
-            handleLayerClick(layerId, onSelectUnit)
-          }
-        })
-
-        // Each layer has 2 highlight layers: highlight fill, highlight outline
-        unitHighlightLayers.forEach(({ id, ...rest }) => {
-          const layerId = `${layer}-${id}`
-          map.addLayer({ ...config, ...rest, id: layerId })
-        })
-      }
-    )
-
-    // add background point layer
-    map.addLayer({
-      ...backgroundPoint,
-      source: barrierType,
-    })
-    handleLayerClick(backgroundPoint.id, feature => {
-      onSelectBarrier({
-        ...feature,
-        hasnetwork: false,
+      map.on('zoomend', () => {
+        setZoom(map.getZoom())
       })
-    })
 
-    // add filter point layers
-    const pointConfig = {
-      source: barrierType,
-      'source-layer': barrierType,
+      // set for initial load too
+      setZoom(map.getZoom())
+
+    // Hookup map on click handler to call onClick with the properties
+    // of the feature selected
+    const handleLayerClick = (layerId, onClick) => {
+
+      map.on('click', layerId, ({ point }) => {
+        const [feature] = map.queryRenderedFeatures(point, { layers: [layerId] })
+        if (feature) {
+          onClick(feature.properties)
+        }
+      })
     }
 
-    // all points are initially excluded from analysis until their
-    // units are selected
-    map.addLayer({ ...pointConfig, ...excludedPoint })
-    handleLayerClick(excludedPoint.id, feature => {
-      onSelectBarrier({
-        ...feature,
-        hasnetwork: true,
+      // Initially the mask and boundary are visible
+      map.addLayer(maskFill)
+      map.addLayer(maskOutline)
+
+      Object.entries(unitLayerConfig).forEach(
+        ([layer, { minzoom = 0, maxzoom = 24, parent }]) => {
+          const config = {
+            'source-layer': layer,
+            minzoom,
+            maxzoom,
+          }
+
+          if (parent) {
+            map.addLayer({
+              'source-layer': parent,
+              minzoom,
+              maxzoom,
+              ...parentOutline,
+              id: `${layer}-${parentOutline.id}`,
+            })
+          }
+
+          // Each layer has 2 display layers: outline, fill
+          unitLayers.forEach(({ id, ...rest }) => {
+            const layerId = `${layer}-${id}`
+            map.addLayer({ ...config, ...rest, id: layerId })
+
+            if (id === 'unit-fill') {
+              handleLayerClick(layerId, onSelectUnit)
+            }
+          })
+
+          // Each layer has 2 highlight layers: highlight fill, highlight outline
+          unitHighlightLayers.forEach(({ id, ...rest }) => {
+            const layerId = `${layer}-${id}`
+            map.addLayer({ ...config, ...rest, id: layerId })
+          })
+        }
+      )
+
+      // add background point layer before the others, so that it is below them in the map
+      map.addLayer({
+        ...backgroundPoint,
+        source: barrierType,
       })
-    })
-
-    map.addLayer({
-      ...pointConfig,
-      ...includedPoint,
-    })
-    handleLayerClick(includedPoint.id, feature => {
-      onSelectBarrier({
-        ...feature,
-        hasnetwork: true,
+      handleLayerClick(backgroundPoint.id, feature => {
+        onSelectBarrier({
+          ...feature,
+          hasnetwork: false,
+        })
       })
-    })
 
-    // Add barrier highlight layer.
-    map.addLayer(pointHighlight)
+      // add filter point layers
+      const pointConfig = {
+        source: barrierType,
+        'source-layer': barrierType,
+      }
 
-    // let consumers of map know that it is now fully loaded
-    map.once('idle', onMapLoad)
-  }, [])
+      // all points are initially excluded from analysis until their
+      // units are selected
+      map.addLayer({ ...pointConfig, ...excludedPoint })
+      handleLayerClick(excludedPoint.id, feature => {
+        onSelectBarrier({
+          ...feature,
+          hasnetwork: true,
+        })
+      })
+
+      map.addLayer({
+        ...pointConfig,
+        ...includedPoint,
+      })
+      handleLayerClick(includedPoint.id, feature => {
+        onSelectBarrier({
+          ...feature,
+          hasnetwork: true,
+        })
+      })
+
+      // Add layers for ranks
+      map.addSource('ranked', {
+        type: 'geojson',
+        data: emptyFeatureCollection,
+      })
+
+      map.addLayer({
+        source: 'ranked',
+        ...lowerRank,
+        filter: ['>', `${scenario}_tier`, tierThreshold],
+      })
+      map.addLayer({
+        source: 'ranked',
+        ...topRank,
+        filter: ['<=', `${scenario}_tier`, tierThreshold],
+      })
+
+      // select barrier from tile data using ID
+      // this is only called from rankedBarriers click handler, which means that
+      // we are reasonably sure these data are available for querying
+      // NOTE: these data are not available at the same zoom levels as
+      // the ranked data
+      const getBarrierById = id => {
+        const [feature] = map.querySourceFeatures(barrierType, {
+          sourceLayer: barrierType,
+          filter: ['==', 'id', id],
+        })
+
+        return feature
+      }
+
+      const handleRankLayerClick = feature => {
+        const barrier = getBarrierById(feature.id)
+
+        if (barrier) {
+          onSelectBarrier({
+            ...barrier.properties,
+            ...feature,
+            hasnetwork: true,
+          })
+        }
+      }
+
+      handleLayerClick(lowerRank.id, handleRankLayerClick)
+      handleLayerClick(topRank.id, handleRankLayerClick)
+
+      // Add barrier highlight layer.
+      map.addLayer(pointHighlight)
+
+      // let consumers of map know that it is now fully loaded
+      map.once('idle', onMapLoad)
+    },
+    [
+      barrierType,
+      onMapLoad,
+      onSelectBarrier,
+      onSelectUnit,
+      scenario,
+      tierThreshold,
+    ]
+  )
 
   // If map allows unit selection, make layers visible for the activeLayer, so that user can select from them
   // otherwise just highlight those currently selected
@@ -209,11 +285,7 @@ const PriorityMap = ({
     const { id } = pointHighlight
 
     // setting to empty feature collection effectively hides this layer
-
-    let data = {
-      type: 'FeatureCollection',
-      features: [],
-    }
+    let data = emptyFeatureCollection
 
     if (selectedBarrier) {
       const { lat, lon } = selectedBarrier
@@ -228,8 +300,6 @@ const PriorityMap = ({
 
   // if map allows filter, show selected vs unselected points, and make those without networks
   // background points
-  // TODO: coordinate with legend
-  // TODO: enable click on barriers or handle better
   useEffect(() => {
     const { current: map } = mapRef
 
@@ -296,61 +366,84 @@ const PriorityMap = ({
     }
 
     map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
-  }, [searchFeature])
+  }, [searchFeature, selectUnitById])
 
   useEffect(() => {
     const { current: map } = mapRef
-
     if (!map) return
 
-    console.log('update ranked barriers')
+    // if rankedBarriers is an empty array, layers attached to this source are effectively
+    // hidden on the map
+    map.getSource('ranked').setData(toGeoJSONPoints(rankedBarriers))
+
+    // rankedBarriers are only present for results step, so if this is non-empty
+    // we need to hide the includedPoints layer; otherwise show it
+    map.setLayoutProperty(
+      includedPoint.id,
+      'visibility',
+      rankedBarriers.length > 0 ? 'none' : 'visible'
+    )
   }, [rankedBarriers])
 
-  // TODO: scenario chooser
-
-  const selectUnitById = (id, layer) => {
-    const [feature] = mapRef.current.querySourceFeatures('sarp', {
-      sourceLayer: layer,
-      filter: ['==', 'id', id],
-    })
-
-    if (feature !== undefined) {
-      onSelectUnit({ ...feature.properties, layerId: layer })
-    }
-    return feature
-  }
-
-  // Hookup map on click handler to call onClick with the properties
-  // of the feature selected
-  const handleLayerClick = (layerId, onClick) => {
+  useEffect(() => {
     const { current: map } = mapRef
+    if (!map) return
 
-    map.on('click', layerId, ({ point }) => {
-      const [feature] = map.queryRenderedFeatures(point, { layers: [layerId] })
-      if (feature) {
-        onClick(feature.properties)
+    debouncedSetRankFilter(`${scenario}_tier`, tierThreshold)
+  }, [tierThreshold, scenario, debouncedSetRankFilter])
+
+  // Debounce updates to the filter to prevent frequent redraws
+  // which have bad performance with high numbers of dams
+  const [debouncedSetRankFilter] = useDebouncedCallback((field, threshold) => {
+    const {current: map} = mapRef
+    map.setFilter(topRank.id, ['<=', field, threshold])
+    map.setFilter(lowerRank.id, ['>', field, threshold])
+  }, 200)
+
+  const selectUnitById = useCallback(
+    (id, layer) => {
+      const [feature] = mapRef.current.querySourceFeatures('sarp', {
+        sourceLayer: layer,
+        filter: ['==', 'id', id],
+      })
+
+      if (feature !== undefined) {
+        onSelectUnit({ ...feature.properties, layerId: layer })
       }
-    })
-  }
+      return feature
+    },
+    [onSelectUnit]
+  )
 
-  // TODO: memoize?
-  // returns {entries, footnote}
+
+
   const getLegend = () => {
-    const includedIsVisible =
-      zoom >= includedPoint.minzoom && zoom <= includedPoint.maxzoom
-    const excludedIsVisible =
-      zoom >= excludedPoint.minzoom && zoom <= excludedPoint.maxzoom
-    const backgroundIsVisible =
-      zoom >= backgroundPoint.minzoom && zoom <= backgroundPoint.maxzoom
+    const pointLayers = [
+      includedPoint,
+      excludedPoint,
+      backgroundPoint,
+      topRank,
+      lowerRank,
+    ]
+
+    const isWithinZoom = pointLayers.reduce(
+      (prev, { id, minzoom, maxzoom }) =>
+        Object.assign(prev, {
+          [id]: zoom >= minzoom && zoom <= maxzoom,
+        }),
+      {}
+    )
 
     const {
       included: includedLegend,
       excluded: excludedLegend,
       background: backgroundLegend,
+      topRank: topRankLegend,
+      lowerRank: lowerRankLegend,
     } = pointLegends
 
     if (activeLayer === null) {
-      if (!excludedIsVisible) {
+      if (!isWithinZoom[excludedPoint.id]) {
         return {
           footnote: `zoom in to see ${barrierType} available for analysis`,
         }
@@ -362,7 +455,7 @@ const PriorityMap = ({
         },
       ]
 
-      if (backgroundIsVisible) {
+      if (isWithinZoom[backgroundPoint.id]) {
         circles.push({
           ...backgroundLegend,
           label: `${barrierType} not available for analysis`,
@@ -374,18 +467,51 @@ const PriorityMap = ({
       }
     }
 
-    if (rankedBarriers !== null) {
-      // TODO
-      // background is "not included in analysis"
+    if (rankedBarriers.length > 0) {
+      if (!isWithinZoom[topRank.id]) {
+        return {
+          footnote: `Zoom in further to see top-ranked ${barrierType}`,
+        }
+      }
+
+      const tierLabel =
+        tierThreshold === 1 ? 'tier 1' : `tiers 1 - ${tierThreshold}`
+      const circles = [
+        {
+          ...topRankLegend,
+          label: `Top-ranked ${barrierType} (${tierLabel})`,
+        },
+      ]
+
+      if (isWithinZoom[lowerRank.id]) {
+        circles.push({
+          ...lowerRankLegend,
+          label: `lower-ranked ${barrierType}`,
+        })
+      }
+
+      if (isWithinZoom[excludedPoint.id]) {
+        circles.push({
+          ...excludedLegend,
+          label: `not selected ${barrierType}`,
+        })
+      }
+
+      if (isWithinZoom[backgroundPoint.id]) {
+        circles.push({
+          ...backgroundLegend,
+          label: `${barrierType} not included in analysis`,
+        })
+      }
 
       return {
-        footnote: 'TODO!',
+        circles,
       }
     }
 
     // either in select units or filter step
 
-    if (!includedIsVisible) {
+    if (!isWithinZoom[includedPoint.id]) {
       return {
         footnote: `zoom in to see selected ${barrierType}`,
       }
@@ -398,14 +524,14 @@ const PriorityMap = ({
       },
     ]
 
-    if (excludedIsVisible) {
+    if (isWithinZoom[excludedPoint.id]) {
       circles.push({
         ...excludedLegend,
         label: `not selected ${barrierType}`,
       })
     }
 
-    if (backgroundIsVisible) {
+    if (isWithinZoom[backgroundPoint.id]) {
       circles.push({
         ...backgroundLegend,
         label: `${barrierType} not available for analysis`,
@@ -432,9 +558,11 @@ PriorityMap.propTypes = {
   selectedBarrier: PropTypes.object,
   rankedBarriers: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
+      id: PropTypes.number.isRequired,
     })
   ),
+  tierThreshold: PropTypes.number.isRequired,
+  scenario: PropTypes.string.isRequired,
   summaryUnits: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
@@ -453,7 +581,7 @@ PriorityMap.defaultProps = {
   selectedBarrier: null,
   searchFeature: null,
   summaryUnits: [],
-  rankedBarriers: null,
+  rankedBarriers: [],
 }
 
 export default memo(PriorityMap)

@@ -1,7 +1,7 @@
 // derived from: https://scotch.io/tutorials/create-a-custom-usefetch-react-hook
 
 // import { useEffect, useState } from 'react'
-import { csvParse } from 'd3-dsv'
+import { csvParse, autoType } from 'd3-dsv'
 
 // import { useBarrierType } from 'components/Data'
 import { siteMetadata } from '../../../gatsby-config'
@@ -33,15 +33,6 @@ const apiQueryParams = (units = [], filters = {}) => {
   return query
 }
 
-/** Row parser for use with d3-dsv */
-const rowToInts = row => {
-  // convert everything to integer
-  Object.keys(row).forEach(f => {
-    row[f] = parseInt(row[f], 10)
-  })
-  return row
-}
-
 const fetchCSV = async (url, options, rowParser) => {
   try {
     const request = await fetch(url, options)
@@ -69,7 +60,7 @@ export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
     summaryUnits
   )}`
 
-  return fetchCSV(url, undefined, rowToInts)
+  return fetchCSV(url, undefined, autoType)
 }
 
 /**
@@ -86,13 +77,11 @@ export const fetchBarrierRanks = async (
     filters
   )}`
 
-  return fetchCSV(url, undefined, rowToInts)
+  return fetchCSV(url, undefined, autoType)
 }
 
-export const getDownloadURL = (barrierType,
-  layer,
-  summaryUnits,
-  filters) => `${apiHost}/api/v1/${barrierType}/csv/${layer}?${apiQueryParams(
+export const getDownloadURL = (barrierType, layer, summaryUnits, filters) =>
+  `${apiHost}/api/v1/${barrierType}/csv/${layer}?${apiQueryParams(
     summaryUnits,
     filters
   )}`

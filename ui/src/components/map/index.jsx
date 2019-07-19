@@ -1,7 +1,15 @@
 import Map from './Map'
-import {TopBar, TopBarToggle} from './TopBar'
+import { TopBar, TopBarToggle } from './TopBar'
 import Legend from './Legend'
-import {SearchFeaturePropType } from './proptypes'
-import { interpolateExpr } from './util'
+import { SearchFeaturePropType } from './proptypes'
+import { interpolateExpr, toGeoJSONPoints } from './util'
 
-export { Map, TopBar, TopBarToggle, Legend, SearchFeaturePropType, interpolateExpr }
+export {
+  Map,
+  TopBar,
+  TopBarToggle,
+  Legend,
+  SearchFeaturePropType,
+  interpolateExpr,
+  toGeoJSONPoints,
+}

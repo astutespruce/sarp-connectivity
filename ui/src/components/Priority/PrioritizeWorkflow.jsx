@@ -14,6 +14,7 @@ import Sidebar, { LoadingSpinner, ErrorMessage } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
 import styled from 'style'
 
+import { set } from 'immutable'
 import Map from './Map'
 import UnitChooser from './UnitChooser'
 import LayerChooser from './LayerChooser'
@@ -31,9 +32,9 @@ const MapContainer = styled.div`
 `
 
 const scenarioOptions = [
-  {value: 'nc', label: 'network connectivity'},
-  {value: 'wc', label: 'watershed condition'},
-  {value: 'ncwc', label: 'combined'}
+  { value: 'nc', label: 'network connectivity' },
+  { value: 'wc', label: 'watershed condition' },
+  { value: 'ncwc', label: 'combined' },
 ]
 
 const Prioritize = () => {
@@ -44,10 +45,11 @@ const Prioritize = () => {
   } = useCrossfilter()
   const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [searchFeature, setSearchFeature] = useState(null)
-  const [layer, setLayer] = useState(null) // useState('State') // FIXME
-  const [summaryUnits, setSummaryUnits] = useState([]) // useState([{"id":"Arkansas","dams":6269,"off_network_dams":422,"miles":10.72599983215332,"barriers":3018,"off_network_barriers":1526,"layerId":"State"}]) // FIXME
+  const [layer, setLayer] = useState(null)
+  const [summaryUnits, setSummaryUnits] = useState([])
   const [rankData, setRankData] = useState([])
   const [scenario, setScenario] = useState('ncwc')
+  const [tierThreshold, setTierThreshold] = useState(1)
   const [step, setStep] = useState('select')
   const stepRef = useRef(step) // need to keep a ref to use in callback below
 
@@ -61,12 +63,25 @@ const Prioritize = () => {
     setIsLoading(false)
   }
 
-  const handleSearch = useCallback(
-    nextSearchFeature => {
-      setSearchFeature(nextSearchFeature)
-    },
-    []
-  )
+  const handleUnitChooserBack = () => {
+    handleSetLayer(null)
+  }
+
+  const handleFilterBack = () => {
+    setFilterData([])
+    setStep('select')
+  }
+
+  const handleResultsBack = () => {
+    setStep('filter')
+    setRankData([])
+    setTierThreshold(1)
+    setScenario('ncwc')
+  }
+
+  const handleSearch = useCallback(nextSearchFeature => {
+    setSearchFeature(nextSearchFeature)
+  }, [])
 
   const handleSetLayer = nextLayer => {
     setSearchFeature(null)
@@ -128,30 +143,24 @@ const Prioritize = () => {
         filters
       )
 
-      setIsLoading(false)
-
       if (csv) {
         setRankData(csv)
         setStep('results')
+        setIsLoading(false)
       } else {
+        setIsLoading(false)
         setIsError(true)
       }
     }
     fetchData()
   }
 
-  const handleFilterBack = () => {
-    setFilterData([])
-    setStep('select')
-  }
-
-  const handleSetScenario = (nextScenario) => {
+  const handleSetScenario = nextScenario => {
     setScenario(nextScenario)
   }
 
-  const handleResultsBack = () => {
-    setStep('filter')
-    setRankData([])
+  const handleSetTierThreshold = newThreshold => {
+    setTierThreshold(newThreshold)
   }
 
   // WARNING: this is passed into map at construction type, any
@@ -162,7 +171,7 @@ const Prioritize = () => {
     // don't show details when selecting units
     if (curStep === 'select') return
 
-    console.log('selected feature', feature)
+    // console.log('selected feature', feature)
     setSelectedBarrier(feature)
   }
 
@@ -174,7 +183,6 @@ const Prioritize = () => {
 
   if (selectedBarrier === null) {
     if (isError) {
-      // TODO
       sidebarContent = (
         <ErrorMessage>
           There was an error loading these data. Please refresh your browser
@@ -197,7 +205,7 @@ const Prioritize = () => {
               <UnitChooser
                 layer={layer}
                 summaryUnits={summaryUnits}
-                onBack={() => handleSetLayer(null)}
+                onBack={handleUnitChooserBack}
                 selectUnit={handleSelectUnit}
                 setSearchFeature={handleSearch}
                 onSubmit={loadBarrierInfo}
@@ -216,6 +224,7 @@ const Prioritize = () => {
           sidebarContent = (
             <Results
               rankData={rankData}
+              tierThreshold={tierThreshold}
               scenario={scenario}
               downloadURL={getDownloadURL(
                 barrierType,
@@ -223,6 +232,7 @@ const Prioritize = () => {
                 summaryUnits,
                 filters
               )}
+              onSetTierThreshold={handleSetTierThreshold}
               onBack={handleResultsBack}
             />
           )
@@ -256,13 +266,14 @@ const Prioritize = () => {
           selectedBarrier={selectedBarrier}
           summaryUnits={summaryUnits}
           rankedBarriers={rankData}
+          tierThreshold={tierThreshold}
+          scenario={scenario}
           onSelectUnit={handleSelectUnit}
           onSelectBarrier={handleSelectBarrier}
           onMapLoad={handleMapLoad}
         />
 
-        {(step === 'results') &&
-        (
+        {step === 'results' && (
           <TopBar>
             Show ranks for:
             <TopBarToggle
