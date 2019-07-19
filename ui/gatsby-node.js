@@ -1,6 +1,9 @@
 const path = require('path')
-const { createFilePath } = require('gatsby-source-filesystem')
-
+/**
+ * Enable absolute imports with `/src` as root.
+ *
+ * See: https://github.com/alampros/gatsby-plugin-resolve-src/issues/4
+ */
 exports.onCreateWebpackConfig = ({ actions, stage, loaders }) => {
   const config = {
     resolve: {
