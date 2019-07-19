@@ -70,6 +70,8 @@ Server configuration and deployment steps are available in the [wiki](https://gi
 
 ## Credits
 
-This project was made possible in partnership with the [Southeast Aquatic Resources Partnership](https://southeastaquatics.net/).
+This project was made possible in partnership with the [Southeast Aquatic Resources Partnership](https://southeastaquatics.net/) (SARP).
 
 It was supported in part by grants from the [U.S. Fish and Wildlife Service Fish Passage Program](https://www.fws.gov/fisheries/fish-passage.html), [Gulf Coastal Plains and Ozarks Landscape Conservation Cooperative](https://gcpolcc.org/), and [Florida State Wildlife Grants Program](https://myfwc.com/conservation/special-initiatives/fwli/grant/).
+
+This project was originally created by [Brendan C. Ward](https://github.com/brendan-ward) at the [Conservation Biology Institute](https://consbio.org/). Brendan, now with [Astute Spruce, LLC](https://astutespruce.com/), has continued to enhance this project in partnership with SARP.
