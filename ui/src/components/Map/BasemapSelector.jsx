@@ -14,6 +14,20 @@ const Wrapper = styled.div`
   z-index: 999;
 `
 
+const BasemapContainer = styled.div`
+  display: inline-block;
+  &:not(:first-child) {
+    margin-left: 0.25rem;
+  }
+`
+
+const Label = styled.div`
+  font-size: 0.7rem;
+  text-align: center;
+  color: ${themeGet('colors.grey.700')};
+  margin-bottom: 0.25rem;
+`
+
 const Basemap = styled.img`
   box-sizing: border-box;
   border: 2px solid
@@ -21,15 +35,16 @@ const Basemap = styled.img`
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
   margin: 0;
 
+  &:hover {
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 1);
+    border-color: #eee;
+  }
+
   ${({ size }) => css`
     width: ${size};
     height: ${size};
     border-radius: ${size};
   `}
-
-  &:not(:first-child) {
-    margin-left: 0.25rem;
-  }
 `
 
 const BasemapSelector = ({
@@ -66,12 +81,12 @@ const BasemapSelector = ({
 
     return [
       {
-        id: 'default',
+        id: 'grey',
         src: `https://api.mapbox.com/styles/v1/mapbox/${defaultStyle}/tiles/256/${z}/${x}/${y}?access_token=${mapboxToken}`,
         layers: [],
       },
     ].concat(basemapOptions)
-  }, [])
+  }, [basemaps, defaultStyle, map, x, y, z])
 
   const [basemap, setBasemap] = useState(options[0])
 
@@ -106,21 +121,26 @@ const BasemapSelector = ({
     <Wrapper onMouseEnter={toggleOpen} onMouseLeave={toggleClosed}>
       {isOpen ? (
         <>
-          <Basemap
-            size={size}
-            src={nextBasemap.src}
-            onClick={() => handleBasemapClick(nextBasemap)}
-          />
+          <BasemapContainer>
+            <Label>{nextBasemap.id}</Label>
+            <Basemap
+              size={size}
+              src={nextBasemap.src}
+              onClick={() => handleBasemapClick(nextBasemap)}
+            />
+          </BasemapContainer>
           {options
             .filter(({ id }) => id !== nextBasemap.id)
             .map(altBasemap => (
-              <Basemap
-                key={altBasemap.id}
-                isActive={altBasemap.id === basemap.id}
-                size={size}
-                src={altBasemap.src}
-                onClick={() => handleBasemapClick(altBasemap)}
-              />
+              <BasemapContainer key={altBasemap.id}>
+                <Label>{altBasemap.id}</Label>
+                <Basemap
+                  isActive={altBasemap.id === basemap.id}
+                  size={size}
+                  src={altBasemap.src}
+                  onClick={() => handleBasemapClick(altBasemap)}
+                />
+              </BasemapContainer>
             ))}
         </>
       ) : (

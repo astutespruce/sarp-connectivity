@@ -99,4 +99,21 @@ export const basemapLayers = {
       },
     },
   ],
+  streets: [
+    {
+      id: 'streets',
+      source: {
+        type: 'raster',
+        tiles: [
+          '//services.arcgisonline.com/arcgis/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+        ],
+        attribution: 'Esri, HERE, Garmin, ...',
+        tileSize: 256,
+      },
+      type: 'raster',
+      layout: {
+        visibility: 'none',
+      },
+    },
+  ],
 }
