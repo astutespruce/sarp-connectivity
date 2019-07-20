@@ -18,7 +18,7 @@ The backend is composed of several parts:
 
 To develop this application, you need Python 3.6+ and NodeJS 8.9+
 
-`pipenv` and `yarn` are used as the package managers for those languages.
+`pipenv` and `npm` are used as the package managers for those languages.
 
 ### mbtileserver
 
@@ -30,7 +30,15 @@ You should now be able to open `http://localhost:8000/services` to see a listing
 ### UI Initial setup:
 
 -   `cd ui`
--   run `yarn install` to install all depedencies.
+-   run `npm install` to install all dependencies.
+
+The following environment variables must be sent in `/ui/.env.development`:
+
+```
+GATSBY_MAPBOX_API_TOKEN = <token>
+GATSBY_API_HOST = <root URL of API host, likely http://localhost/:5000 for local flask server >
+GATSBY_TILE_HOST = <root URL of tile host, likely http://localhost:8001 for local mbtileserver >
+```
 
 ### Flask API initial setup:
 
@@ -39,9 +47,16 @@ You should now be able to open `http://localhost:8000/services` to see a listing
 
 Running the above is also required as Python or NodeJS dependencies change.
 
-### Development servers
+### Development environment
 
-#### User interface (Webpack development server)
+#### User interface
+
+The user interface is built using GatsbyJS.
+
+To start the development server (on port 8000, by default):
+
+-   `cd ui`
+-   `gatsby develop`
 
 To start the frontend application (on port 3000, by default:
 `cd ui && yarn start`
@@ -66,7 +81,17 @@ flask run
 
 ## Deployment
 
-Server configuration and deployment steps are available in the [wiki](https://github.com/consbio/sarp/wiki).
+Server configuration and deployment steps are available in the [wiki](https://github.com/astutespruce/sarp-connectivity/wiki/AWS-Server-Setup).
+
+The following environment variables must be set in `/ui/.env.production` or otherwise passed to Gatsby during the build process:
+
+```
+GATSBY_MAPBOX_API_TOKEN = <token>
+GATSBY_SENTRY_DSN = <dsn>
+GATSBY_GOOGLE_ANALYTICS_ID = <ga id>
+GATSBY_API_HOST = <root URL of API host>
+GATSBY_TILE_HOST = <root URL of tile host>
+```
 
 ## Credits
 
