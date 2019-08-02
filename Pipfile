@@ -12,12 +12,13 @@ feather-format = "*"
 flask-cors = "*"
 gunicorn = "*"
 "jinja2" = "*"
-raven = {version = "*", extras = ["flask"]}
+raven = {version = "*",extras = ["flask"]}
+geopandas = "*"
 
 [dev-packages]
 pylint = "*"
 "autopep8" = "*"
-black = "*"
+black = "==19.3b0"
 geopandas = "*"
 rtree = "*"
 
