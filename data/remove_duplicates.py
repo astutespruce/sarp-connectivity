@@ -13,8 +13,8 @@ df = gp.read_file(
     data_dir / 'Road_Related_Barriers_DraftOne_Final08012019.gdb')
 
 # round to the nearest 10 meters in Albers
-df['rnd_x'] = (df.geometry.x / 10).round().astype('int') * 10
-df['rnd_y'] = (df.geometry.y / 10).round().astype('int') * 10
+df['rnd_x'] = (df.geometry.x / TOLERANCE).round().astype('int') * TOLERANCE
+df['rnd_y'] = (df.geometry.y / TOLERANCE).round().astype('int') * TOLERANCE
 clean = df.drop_duplicates(subset=['rnd_x', 'rnd_y'], keep="first").drop(
     columns=['rnd_x', 'rnd_y'])
 
@@ -30,8 +30,8 @@ duplicates.to_file(
 
 # Dams
 df = gp.read_file(data_dir / 'Dams_Webviewer_DraftOne_Final.gdb')
-df['rnd_x'] = (df.geometry.x / 10).round().astype('int') * 10
-df['rnd_y'] = (df.geometry.y / 10).round().astype('int') * 10
+df['rnd_x'] = (df.geometry.x / TOLERANCE).round().astype('int') * TOLERANCE
+df['rnd_y'] = (df.geometry.y / TOLERANCE).round().astype('int') * TOLERANCE
 clean = df.drop_duplicates(subset=['rnd_x', 'rnd_y'], keep="first").drop(
     columns=['rnd_x', 'rnd_y'])
 
@@ -51,8 +51,8 @@ df = df.loc[df.geometry.y.abs() <= 90]
 
 # project to Albers
 df = df.to_crs({'init': 'epsg:5070'})
-df['rnd_x'] = (df.geometry.x / 10).round().astype('int') * 10
-df['rnd_y'] = (df.geometry.y / 10).round().astype('int') * 10
+df['rnd_x'] = (df.geometry.x / TOLERANCE).round().astype('int') * TOLERANCE
+df['rnd_y'] = (df.geometry.y / TOLERANCE).round().astype('int') * TOLERANCE
 clean = df.drop_duplicates(subset=['rnd_x', 'rnd_y'], keep="first").drop(
     columns=['rnd_x', 'rnd_y'])
 

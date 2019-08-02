@@ -37,8 +37,6 @@ const dams = [
   {
     field: 'feasibility',
     title: 'Feasibility & Conservation Benefit',
-    sort: true,
-    hideEmpty: true,
     help:
       'Note: feasibility is based on further reconnaissance to evaluate individual barriers. Values are provided only for those that have been evaluated. There may be more feasible or infeasible dams than are indicated above.',
     ...getEntries(FEASIBILITY),
