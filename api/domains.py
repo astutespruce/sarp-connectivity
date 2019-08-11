@@ -136,7 +136,7 @@ RECON_DOMAIN = {
 
 # Created here to capture values below
 FEASIBILITY_DOMAIN = {
-    # -1: "N/A",  # Filter these out
+    # -1: "N/A",  # These are filtered out in preprocessing - not barriers
     0: "Unknown",
     1: "Not feasible",
     2: "Likely infeasible",
@@ -166,6 +166,8 @@ RECON_TO_FEASIBILITY = {
     17: 0,
     18: 0,
     19: 0,  # should be N/A
+    20: 5, 
+    21: 0
 }
 
 
