@@ -14,6 +14,7 @@ Outputs:
 
 """
 
+from pathlib import Path
 import os
 import sys
 import csv
@@ -21,13 +22,13 @@ from time import time
 import pandas as pd
 import geopandas as gp
 
+from nhdnet.io import deserialize_gdf
+
 # Lazy way to import from calculate tiers from a shared file, this allows us to import
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from api.calculate_tiers import calculate_tiers, SCENARIOS
 from api.domains import (
-    STATE_FIPS_DOMAIN,
-    HUC6_DOMAIN,
     BARRIER_CONDITION_TO_DOMAIN,
     POTENTIAL_TO_SEVERITY,
     ROAD_TYPE_TO_DOMAIN,
@@ -43,43 +44,52 @@ from classify import (
 )
 
 
+src_dir = Path("../data/sarp/derived/final_results")
+out_dir = Path("data/derived/")
+boundaries_dir = Path("../data/sarp/derived/boundaries")
+
 start = time()
 
 print("Reading source FGDB dataset")
-df = gp.read_file(
-    "data/src/Road_Related_Barriers_DraftOne_Final.gdb",
-    layer="Road_Barriers_WebViewer_DraftOne_ALL_12132018",
-)
+df = deserialize_gdf(src_dir / "small_barriers.feather").drop(columns=["TownId"])
 
-# Filter out any dams that do not have a HUC12 or State (currently none filtered)
-df = df.loc[df.HUC12.notnull() & df.STATE_FIPS.notnull()].copy()
-
-# Per instructions from SARP, drop all Potential_Project=='SRI Only'
-df = df.loc[df.Potential_Project != "SRI Only"].copy()
+# Per instructions from SARP, exclude all Potential_Project=='SRI Only'
+# from previous iterations we also dropped Potential_Project=="No Upstream Channel"
+# and noted that we should exclude it from analysis
+# TODO: move to preprocessing step?
+df = df.loc[
+    ~df.Potential_Project.isin(
+        ("SRI Only", "No Upstream Channel", "No Upstream Habitat")
+    )
+].copy()
 
 # Assign an ID.  Note: this is ONLY valid for this exact version of the inventory
-df["id"] = df.index.values.astype("uint32")
+df["id"] = df.joinID
 
 
+### Spatial joins to boundary layers
+df.sindex
+
+print("Joining to counties")
+counties = deserialize_gdf(boundaries_dir / "counties.feather")
+counties.sindex
+df = gp.sjoin(df, counties, how="left").drop(columns=["index_right"])
+
+
+print("Joining to ecoregions")
+eco4 = deserialize_gdf(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
+eco4.sindex
+df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
+
+
+### Project to WGS84
 print("Projecting to WGS84 and adding lat / lon fields")
-
-if not df.crs:
-    # set projection on the data using Proj4 syntax, since GeoPandas doesn't always recognize it's EPSG Code.
-    # It is in Albers (EPSG:102003): https://epsg.io/102003
-    df.crs = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
-
-# Project to WGS84
 df = df.to_crs(epsg=4326)
-
-# Add lat / lon columns from projected geometry
 df["lon"] = df.geometry.x.astype("float32")
 df["lat"] = df.geometry.y.astype("float32")
 
 # drop geometry, no longer needed
 df = df.drop(columns=["geometry"])
-
-# Rename ecoregion columns
-df.rename(columns={"NA_L3CODE": "ECO3", "US_L4CODE": "ECO4"}, inplace=True)
 
 # Rename all columns that have underscores
 df.rename(
@@ -94,9 +104,8 @@ df.rename(
         "STATE": "State",
         "OnConservationLand": "ProtectedLand",
         "NumberRareSpeciesHUC12": "RareSpp",
-        "TownId": "County",
         # Note re: SARPID - this isn't quite correct but needed for consistency
-        "AnalysisId": "SARPID",
+        "AnalysisID": "SARPID",
         "AbsoluteGainMi": "GainMiles",
         "PctNatFloodplain": "Landcover",
         "NetworkSinuosity": "Sinuosity",
@@ -109,23 +118,8 @@ df.rename(
     inplace=True,
 )
 
-# Flag if the field has a network
-# TODO: remove no-upstream from network analysis
-df["HasNetwork"] = ~(
-    df.GainMiles.isnull() | (df.PotentialProject == "No Upstream Channel")
-)
-
 
 ######### Fix data issues
-
-# Join in state from FIPS due to data issue with values in State field (many are missing)
-df.State = df.STATEFIPS.map(STATE_FIPS_DOMAIN)
-
-# Fix COUNTYFIPS: leading 0's and convert to string
-df.COUNTYFIPS = df.COUNTYFIPS.astype("int").astype(str).str.pad(5, fillchar="0")
-
-# Drop ' County' from County field
-df.County = df.County.fillna("").str.replace(" County", "")
 
 # Fix mixed casing of values
 for column in ("CrossingType", "RoadType", "Stream", "Road"):
@@ -179,19 +173,20 @@ df["Name"] = ""  # "Unknown Crossing"
 df.loc[(df.Stream != "Unknown") & (df.Road != "Unknown"), "Name"] = (
     df.Stream + " / " + df.Road + " Crossing"
 )
-# df.loc[(df.Stream != "Unknown") & (df.Road == "Unknown"), "Name"] = (
-#     df.Stream + " / Unknown Road Crossing"
-# )
-# df.loc[(df.Stream == "Unknown") & (df.Road != "Unknown"), "Name"] = (
-#     " Unknown Stream / " + df.Road + " Crossing"
-# )
-
 
 # Calculate HUC and Ecoregion codes
 df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
 df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
-df["Basin"] = df.HUC6.map(HUC6_DOMAIN)
 
+# Read in HUC6 and join in basin name
+huc6 = (
+    deserialize_gdf(boundaries_dir / "HUC6.feather")[["HUC6", "NAME"]]
+    .rename(columns={"NAME": "Basin"})
+    .set_index("HUC6")
+)
+df = df.join(huc6, on="HUC6")
+
+# Calculate classes
 df["ConditionClass"] = df.Condition.map(BARRIER_CONDITION_TO_DOMAIN)
 df["SeverityClass"] = df.PotentialProject.map(POTENTIAL_TO_SEVERITY)
 df["CrossingTypeClass"] = df.CrossingType.map(CROSSING_TYPE_TO_DOMAIN)

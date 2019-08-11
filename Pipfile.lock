@@ -1,11 +1,11 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "bf352ac918bdef5ee474b420167a244ce08b38c754a5084b2a7548ffa82e986a"
+            "sha256": "ecfd0a4372e19b6a0cd20733f0fb1dbaae6166db547cf1ea62d7abe06087ced3"
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_version": "3.6"
+            "python_version": "3.7"
         },
         "sources": [
             {
@@ -449,6 +449,10 @@
                 "sha256:6ae3d26b837feacf732fb8aa5b842130da1daf221f5af9f9d4b2a0a6414b0d51"
             ],
             "version": "==2.3.2"
+        },
+        "nhdnet": {
+            "editable": true,
+            "path": "./../nhdnet"
         },
         "numpy": {
             "hashes": [

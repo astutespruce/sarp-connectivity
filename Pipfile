@@ -21,6 +21,7 @@ pylint = "*"
 black = "==19.3b0"
 geopandas = "*"
 rtree = "*"
+nhdnet = {editable = true,path = "./../nhdnet"}
 
 [requires]
-python_version = "3.6"
+python_version = "3.7"
