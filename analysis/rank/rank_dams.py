@@ -13,17 +13,13 @@ Outputs:
 from pathlib import Path
 from time import time
 import csv
-import os
 import sys
 import geopandas as gp
 import pandas as pd
 from nhdnet.io import deserialize_gdf
 
 
-# Lazy way to import from calculate tiers from a shared file, this allows us to import
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from data.classify import (
+from classify import (
     classify_gainmiles,
     classify_sinuosity,
     classify_landcover,
@@ -37,8 +33,9 @@ from api.calculate_tiers import calculate_tiers, SCENARIOS
 start = time()
 
 src_dir = Path("../data/sarp/derived/final_results")
-out_dir = Path("data/derived/")
-boundaries_dir = Path("../data/sarp/derived/boundaries")
+data_dir = Path("data")
+boundaries_dir = data_dir / "boundaries"
+out_dir = data_dir / "derived"
 
 
 print("Reading network analysis results")

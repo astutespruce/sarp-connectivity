@@ -4,24 +4,21 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"geoalchemy2" = "*"
 flask = "*"
-flask-sqlalchemy = "*"
 pandas = "*"
 feather-format = "*"
 flask-cors = "*"
 gunicorn = "*"
 "jinja2" = "*"
 raven = {version = "*",extras = ["flask"]}
-geopandas = "*"
 
 [dev-packages]
 pylint = "*"
-"autopep8" = "*"
 black = "==19.3b0"
 geopandas = "*"
 rtree = "*"
 nhdnet = {editable = true,path = "./../nhdnet"}
+sarp-connectivity = {editable = true,path = "."}
 
 [requires]
 python_version = "3.7"

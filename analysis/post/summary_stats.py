@@ -15,7 +15,7 @@ Inputs:
 
 """
 
-
+from pathlib import Path
 from collections import defaultdict
 import csv
 import json
@@ -34,9 +34,21 @@ PERCENTILES = [20, 40, 60, 75, 80, 85, 90, 95, 100]
 # they won't join properly in the frontend.
 SUMMARY_UNITS = ["State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"]
 
+INT_COLS = ["dams", "barriers", "crossings", "off_network_dams", "off_network_barriers"]
 
-dams = read_dataframe("data/derived/dams.feather")
-barriers = read_dataframe("data/derived/small_barriers.feather")
+
+src_dir = Path("data/derived")
+ui_data_dir = Path("ui/data")
+
+
+print("Reading ranked barriers")
+dams = read_dataframe(src_dir / "dams.feather")
+barriers = read_dataframe(src_dir / "small_barriers.feather")
+crossings = read_dataframe(src_dir / "road_crossings.feather")
+
+# TODO: remove once rerun preprocess_road_crossings.py
+crossings["id"] = crossings.index.astype("uint")
+
 
 # Set NA so that we don't include these values in our statistics
 dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
@@ -54,9 +66,18 @@ stats["southeast"] = {
     "miles": round(dams["GainMiles"].mean().item(), 3),
     "barriers": len(barriers),
     "off_network_barriers": len(barriers.loc[barriers.OffNetwork]),
+    "crossings": len(crossings),
 }
 
+
+# Write the summary statistics into the UI directory so that it can be imported at build time
+# into the code
+with open(ui_data_dir / "summary_stats.json", "w") as outfile:
+    outfile.write(json.dumps(stats))
+
+
 # Calculate summary statistics for each type of summary unit
+# These are joined to vector tiles
 for unit in SUMMARY_UNITS:
     print("processing {}".format(unit))
 
@@ -64,7 +85,6 @@ for unit in SUMMARY_UNITS:
         dams[[unit, "id", "OffNetwork", "GainMiles"]]
         .groupby(unit)
         .agg({"id": "count", "OffNetwork": "sum", "GainMiles": "mean"})
-        .reset_index()
         .rename(
             columns={
                 "id": "dams",
@@ -72,34 +92,29 @@ for unit in SUMMARY_UNITS:
                 "GainMiles": "miles",
             }
         )
-        .set_index(unit)
     )
 
     barriers_stats = (
         barriers[[unit, "id", "OffNetwork"]]
         .groupby(unit)
         .agg({"id": "count", "OffNetwork": "sum"})
-        .reset_index()
         .rename(columns={"id": "barriers", "OffNetwork": "off_network_barriers"})
-        .set_index(unit)
     )
-    merged = dam_stats.join(barriers_stats, how="outer").fillna(0)
-    merged.dams = merged.dams.astype("uint32")
-    merged.barriers = merged.barriers.astype("uint32")
-    merged.off_network_dams = merged.off_network_dams.astype("uint32")
+
+    crossing_stats = crossings[[unit, "id"]].groupby(unit).size().rename("crossings")
+
+    merged = (
+        dam_stats.join(barriers_stats, how="outer")
+        .join(crossing_stats, how="outer")
+        .fillna(0)
+    )
+    merged[INT_COLS] = merged[INT_COLS].astype("uint32")
     merged.miles = merged.miles.round(3)
 
     unit = "County" if unit == "COUNTYFIPS" else unit
 
     # Write summary CSV for each unit type
     merged.to_csv(
-        "data/derived/{}.csv".format(unit),
-        index_label="id",
-        quoting=csv.QUOTE_NONNUMERIC,
+        src_dir / "{}.csv".format(unit), index_label="id", quoting=csv.QUOTE_NONNUMERIC
     )
 
-
-# Write the summary statistics into the UI directory so that it can be imported at build time
-# into the code
-with open("ui/src/data/summary_stats.json", "w") as outfile:
-    outfile.write(json.dumps(stats))

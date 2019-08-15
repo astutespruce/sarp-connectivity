@@ -4,8 +4,8 @@ Preprocess small barriers into data needed by API and tippecanoe for creating ve
 This is run AFTER `preprocess_road_crossings.py`.
 
 Inputs: 
-* Small barriers inventory from SARP, including all network metrics and summary unit IDs (HUC12, ECO3, ECO4, State, County, etc).
-* `road_crossings.csv` created using `preprocess_road_crossings.py`
+* Small barriers inventory from SARP, processed through the network analysis
+* `road_crossings.feather` created using `preprocess_road_crossings.py`
 
 Outputs:
 * `small_barriers.feather`: processed small barriers data for use by the API
@@ -15,17 +15,13 @@ Outputs:
 """
 
 from pathlib import Path
-import os
 import sys
 import csv
 from time import time
 import pandas as pd
 import geopandas as gp
 
-from nhdnet.io import deserialize_gdf
-
-# Lazy way to import from calculate tiers from a shared file, this allows us to import
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from nhdnet.io import deserialize_gdf, deserialize_df
 
 from api.calculate_tiers import calculate_tiers, SCENARIOS
 from api.domains import (
@@ -45,12 +41,14 @@ from classify import (
 
 
 src_dir = Path("../data/sarp/derived/final_results")
-out_dir = Path("data/derived/")
-boundaries_dir = Path("../data/sarp/derived/boundaries")
+
+data_dir = Path("data")
+boundaries_dir = data_dir / "boundaries"
+out_dir = data_dir / "derived"
 
 start = time()
 
-print("Reading source FGDB dataset")
+print("Reading small barriers")
 df = deserialize_gdf(src_dir / "small_barriers.feather").drop(columns=["TownId"])
 
 print(
@@ -85,6 +83,7 @@ df = gp.sjoin(df, counties, how="left").drop(columns=["index_right"])
 
 
 print("Joining to ecoregions")
+# Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
 eco4 = deserialize_gdf(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
 eco4.sindex
 df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
@@ -367,47 +366,31 @@ no_network = df.loc[~df.hasnetwork].drop(
         "severityclass",
         "crossingtypeclass",
         "roadtypeclass",
-        "County",
-        "HUC6",
-        "HUC8",
-        "HUC12",
-        "ECO3",
-        "ECO4",
+        # "County",
+        # "HUC6",
+        # "HUC8",
+        # "HUC12",
+        # "ECO3",
+        # "ECO4",
     ]
     + [c for c in df.columns if c.endswith("_tier")]
 )
 
 # Combine barriers that don't have networks with road / stream crossings
 print("Reading stream crossings")
-road_crossings = pd.read_csv(
-    "data/derived/road_crossings.csv", dtype={"Road": str, "Stream": str, "SARPID": str}
-)
-
-road_crossings.Stream = road_crossings.Stream.str.strip()
-road_crossings.Road = road_crossings.Road.str.strip()
-
-road_crossings.rename(
-    columns={c: c.lower() for c in road_crossings.columns}, inplace=True
-)
-
-# Zero out some fields
-road_crossings["protectedland"] = 0
-road_crossings["rarespp"] = 0
-road_crossings["name"] = ""
-
-
-road_crossings.loc[
-    (road_crossings.stream.str.strip().str.len() > 0)
-    & (road_crossings.road.str.strip().str.len() > 0),
-    "name",
-] = (road_crossings.stream + " / " + road_crossings.road)
-
+road_crossings = deserialize_df(out_dir / "road_crossings.feather")
 
 combined = no_network.append(road_crossings, ignore_index=True, sort=False)
-combined["id"] = combined.index.values.astype("uint32")
 
-# Fill latitude / longitude columns in again
-# (these are missing from road_crossings.csv)
+print("Now have {} combined background barriers".format(len(combined)))
+
+combined["id"] = combined.index.values.astype("uint32")
+combined.protectedland = combined.protectedland.fillna(0)
+combined.rarespp = combined.rarespp.fillna(0)
+combined.name = combined.name.fillna("")
+
+
+# Duplicate latitude / longitude columns in again
 combined["latitude"] = combined.lat
 combined["longitude"] = combined.lon
 

@@ -174,6 +174,16 @@ tippecanoe -f -z 10 -l ECO3 -o tiles/ECO3.mbtiles  -T id:string ECO3.json
 tippecanoe -f -Z 3 -z 12 -l ECO4 -o tiles/ECO4.mbtiles  -T id:string ECO4.json
 ```
 
+## Barriers pre-processing
+
+### Road crossings
+
+Road crossings were obtained by Kat from USGS in 2018.
+
+These are processed using `analysis/prep/preprocess_road_crossings.py`.
+
+This creates a feather file that is joined in with final small barriers dataset to create background barriers displayed on the map.
+
 ---
 
 ### Old Workflow BELOW
@@ -199,53 +209,6 @@ The tippecanoe commands are run from the `data/derived` directory.
 The boundaries are reprojected to geographic coordinates, exported to GeoJSON (required as input to `tippecanoe`), and converted to vector tiles using `tippecanoe`. Zoom levels were carefully chosen by hand based on tradeoffs in size of vector tiles vs the zoom levels where those data would be displayed.
 
 This step only needs to be rerun when summary units are modified or new ones are added.
-
-### Summary Units:
-
-#### States and counties
-
-Downloaded from US Census TIGER 2018: https://www.census.gov/cgi-bin/geo/shapefiles/index.php
-
-1. Extracted states that fell within SARP boundary.
-2. Extracted counties whose STATE_FP attribute was one of the states above.
-
-```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON states.json states.shp -sql "SELECT NAME as id from states"
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON counties.json counties.shp -sql "SELECT GEOID as id, NAME as name from counties"
-
-tippecanoe -f -z 8 -l State -o ../tiles/states.mbtiles states.json
-tippecanoe -f -Z 3 -z 12 -l County -o ../tiles/counties.mbtiles counties.json
-```
-
-#### Watersheds
-
-Downloaded the WBD dataset from: ftp://rockyftp.cr.usgs.gov/vdelivery/Datasets/Staged/Hydrography/WBD/National/GDB/
-
-1. selected units from HUC2 ... HUC12 that intersect SARP bounds
-2. exported each to a new shapefile HUC\*.shp
-
-```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC6.json HUC6.shp -sql "SELECT HUC6 as id, NAME as name from HUC6"
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC8.json HUC8.shp -sql "SELECT HUC8 as id, NAME as name from HUC8"
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC12.json HUC12.shp -sql "SELECT HUC12 as id, NAME as name from HUC12"
-
-tippecanoe -f -z 8 -l HUC6 -o ../tiles/HUC6.mbtiles  -T id:string HUC6.json
-tippecanoe -f -z 10 -l HUC8 -o ../tiles/HUC8.mbtiles  -T id:string HUC8.json
-tippecanoe -f -Z 6 -z 12 -l HUC12 -o ../tiles/HUC12.mbtiles  -T id:string HUC12.json
-
-```
-
-#### Ecoregions
-
-Downloaded from the EPA Ecoregions website, and extracted within the SARP boundary.
-
-```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO3.json sarp_ecoregion3.shp -sql "SELECT NA_L3CODE as id, US_L3NAME as name from sarp_ecoregion3"
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO4.json sarp_ecoregion4.shp -sql "SELECT US_L4CODE as id, US_L4NAME as name from sarp_ecoregion4"
-
-tippecanoe -f -z 10 -l ECO3 -o ../tiles/ECO3.mbtiles  -T id:string ECO3.json
-tippecanoe -f -Z 3 -z 12 -l ECO4 -o ../tiles/ECO4.mbtiles  -T id:string ECO4.json
-```
 
 ## Barriers Inventory
 
