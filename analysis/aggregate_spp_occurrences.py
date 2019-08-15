@@ -1,5 +1,5 @@
 """
-1. Aggregates 12 GB worth of species polygon occurence information into unique HUC12, species, status combinations.
+1. Aggregates 12 GB worth of species polygon occurrence information into unique HUC12, species, status combinations.
 2. Aggregates the point data.
 3. Merges both together and writes to a new CSV
 

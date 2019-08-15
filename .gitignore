@@ -31,9 +31,5 @@ yarn-error.log*
 /ui/.cache
 /ui/public/*
 
-/data/src/*
-/data/derived/*
-/data/tiles/*
+/data/*
 /tiles/*
-
-/ui-bk

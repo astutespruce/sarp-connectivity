@@ -1,54 +1,75 @@
 """
-Preprocess dams into data needed by API and tippecanoe for creating vector tiles.
+Preprocess small barriers into data needed by API and tippecanoe for creating vector tiles.
 
-Input: 
-* Dam inventory from SARP, including all network metrics and summary unit IDs (HUC12, ECO3, ECO4, State, County, etc).
+This is run AFTER `preprocess_road_crossings.py`.
+
+Inputs: 
+* Small barriers inventory from SARP, including all network metrics and summary unit IDs (HUC12, ECO3, ECO4, State, County, etc).
+* `road_crossings.csv` created using `preprocess_road_crossings.py`
 
 Outputs:
-* `dams.feather`: processed dam data for use by the API
-* `dams_with_networks.csv`: Dams with networks for creating vector tiles in tippecanoe
+* `small_barriers.feather`: processed small barriers data for use by the API
+* `small_barriers_with_networks.csv`: Dams with networks for creating vector tiles in tippecanoe
 * `dams_without_networks.csv`: Dams without networks for creating vector tiles in tippecanoe
 
 """
+
 from pathlib import Path
-from time import time
-import csv
 import os
 import sys
-import geopandas as gp
+import csv
+from time import time
 import pandas as pd
-from nhdnet.io import deserialize_gdf
+import geopandas as gp
 
+from nhdnet.io import deserialize_gdf
 
 # Lazy way to import from calculate tiers from a shared file, this allows us to import
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from data.classify import (
+from api.calculate_tiers import calculate_tiers, SCENARIOS
+from api.domains import (
+    BARRIER_CONDITION_TO_DOMAIN,
+    POTENTIAL_TO_SEVERITY,
+    ROAD_TYPE_TO_DOMAIN,
+    CROSSING_TYPE_TO_DOMAIN,
+)
+
+from classify import (
     classify_gainmiles,
     classify_sinuosity,
     classify_landcover,
     classify_rarespp,
     classify_streamorder,
 )
-from api.domains import RECON_TO_FEASIBILITY
-from api.calculate_tiers import calculate_tiers, SCENARIOS
 
-
-start = time()
 
 src_dir = Path("../data/sarp/derived/final_results")
 out_dir = Path("data/derived/")
 boundaries_dir = Path("../data/sarp/derived/boundaries")
 
+start = time()
 
-print("Reading network analysis results")
-df = deserialize_gdf(src_dir / "dams.feather")
+print("Reading source FGDB dataset")
+df = deserialize_gdf(src_dir / "small_barriers.feather").drop(columns=["TownId"])
 
+print(
+    "Read {} small_barriers, {} have networks".format(
+        len(df), len(df.loc[df.HasNetwork])
+    )
+)
 
-print("Read {} dams, {} have networks".format(len(df), len(df.loc[df.HasNetwork])))
+# Per instructions from SARP, exclude all Potential_Project=='SRI Only'
+# from previous iterations we also dropped Potential_Project=="No Upstream Channel"
+# and noted that we should exclude it from analysis
+# TODO: move to preprocessing step?
+df = df.loc[
+    ~df.Potential_Project.isin(
+        ("SRI Only", "No Upstream Channel", "No Upstream Habitat")
+    )
+].copy()
 
-# Assign an ID.  Note: this is ONLY valid for this exact version of the inventory,
-# so this exact same ID needs to be used for the dam vector tiles
+# Assign an ID.  Note: this is ONLY valid for this exact version of the inventory
 df["id"] = df.joinID
 
 
@@ -56,7 +77,9 @@ df["id"] = df.joinID
 df.sindex
 
 print("Joining to counties")
-counties = deserialize_gdf(boundaries_dir / "counties.feather")
+counties = deserialize_gdf(boundaries_dir / "counties.feather")[
+    ["geometry", "County", "COUNTYFIPS"]
+]
 counties.sindex
 df = gp.sjoin(df, counties, how="left").drop(columns=["index_right"])
 
@@ -76,7 +99,6 @@ df["lat"] = df.geometry.y.astype("float32")
 # drop geometry, no longer needed
 df = df.drop(columns=["geometry"])
 
-
 # Rename all columns that have underscores
 df.rename(
     columns={c: c.replace("_", "") for c in df.columns[df.columns.str.count("_") > 0]},
@@ -84,91 +106,60 @@ df.rename(
 )
 
 # Rename columns to make them easier to handle
+# also rename fields to match dams for consistency
 df.rename(
     columns={
-        "BarrierName": "Name",
-        "DBSource": "Source",
+        "STATE": "State",
+        "OnConservationLand": "ProtectedLand",
         "NumberRareSpeciesHUC12": "RareSpp",
-        "YearCompleted": "Year",
-        "ConstructionMaterial": "Construction",
-        "PurposeCategory": "Purpose",
-        "StructureCondition": "Condition",
+        # Note re: SARPID - this isn't quite correct but needed for consistency
+        "AnalysisID": "SARPID",
         "AbsoluteGainMi": "GainMiles",
         "PctNatFloodplain": "Landcover",
         "NetworkSinuosity": "Sinuosity",
-        "NumSizeClassGained": "SizeClasses",
+        "NumSizeClassesGained": "SizeClasses",
+        "CrossingTypeId": "CrossingType",
+        "RoadTypeId": "RoadType",
+        "CrossingConditionId": "Condition",
+        "StreamName": "Stream",
     },
     inplace=True,
 )
 
 
-# Field fixes
-# Round height to nearest foot.  There are no dams between 0 and 1 foot, so fill all
-# na as 0
-df.Height = df.Height.fillna(0).round().astype("uint16")
+######### Fix data issues
 
-# Cleanup names
-# Standardize the casing of the name
-df.Name = df.Name.fillna("").str.title().str.strip()
-df.OtherBarrierName = df.OtherBarrierName.fillna("").str.title().str.strip()
+# Fix mixed casing of values
+for column in ("CrossingType", "RoadType", "Stream", "Road"):
+    df[column] = df[column].fillna("Unknown").str.title().str.strip()
+    df.loc[df[column].str.len() == 0, column] = "Unknown"
 
-# Fix name issue - 3 dams have duplicate dam names with line breaks, which breaks tippecanoe
-ids = df.loc[df.Name.str.count("\r") > 0].index
-df.loc[ids, "Name"] = df.loc[ids].Name.apply(lambda v: v.split("\r")[0])
+# Fix line returns in stream name and road name
+df.loc[df.SARPID == "sm7044", "Stream"] = "Unnamed"
+df.Road = df.Road.str.replace("\r\n", "")
 
-# Replace estimated dam names if another name is available
-ids = (df.Name.str.count("Estimated Dam") > 0) & (df.OtherBarrierName.str.len() > 0)
-df.loc[ids, "Name"] = df.loc[ids].OtherBarrierName
+# Fix issues with RoadType
+df.loc[df.RoadType.isin(("No Data", "NoData", "Nodata")), "RoadType"] = "Unknown"
 
+# Fix issues with Condition
+df.Condition = df.Condition.fillna("Unknown")
+df.loc[
+    (df.Condition == "No Data")
+    | (df.Condition == "No data")
+    | (df.Condition.str.strip().str.len() == 0),
+    "Condition",
+] = "Unknown"
 
-# Fix ProtectedLand: since this was from an intersection, all values should
-# either be 1 (intersected) or 0 (did not)
-df.loc[df.ProtectedLand != 1, "ProtectedLand"] = 0
+#########  Fill NaN fields and set data types
 
-# Fix issue with Landcover.  It is null in places where there is a network
-# This was due to issues with the catchment floodplains during network processing
-df.loc[df.HasNetwork & df.Landcover.isnull(), "Landcover"] = 0
-df.Landcover = df.Landcover.round()
-
-# Fix years between 0 and 100; assume they were in the 1900s
-df.loc[(df.Year > 0) & (df.Year < 100), "Year"] = df.Year + 1900
-df.loc[df.Year == 20151, "Year"] = 2015
-df.loc[df.Year == 9999, "Year"] = 0
-
-df.River = df.River.str.title()
-
-
-### Fill NaN fields and set data types
-
-# TODO: fix once these are consistently provided
-df.SARPID = df.SARPID.fillna(-1).astype("int")
-# df.SARPID = df.SARPID.astype("uint32")
-
-
-for column in ("River", "NIDID", "Source"):
+for column in ("CrossingCode", "LocalID", "Source"):
     df[column] = df[column].fillna("").str.strip()
 
-for column in (
-    "RareSpp",
-    "ProtectedLand",
-    "Construction",
-    "Condition",
-    "Purpose",
-    "Recon",
-):
+for column in ("RareSpp", "ProtectedLand"):
     df[column] = df[column].fillna(0).astype("uint8")
 
-
-for column in ("Year",):
-    df[column] = df[column].fillna(0).astype("uint16")
-
-
 # Fill metrics with -1
-for column in (
-    "StreamOrder",
-    "Landcover",  # null but with network should be 0
-    "SizeClasses",
-):
+for column in ("Landcover", "SizeClasses"):  # null but with network should be 0
     df[column] = df[column].fillna(-1).astype("int8")
 
 # Round floating point columns to 3 decimals
@@ -182,18 +173,14 @@ for column in (
     df[column] = df[column].round(3).fillna(-1).astype("float32")
 
 
-# Calculate derived fields
-print("Calculating derived attributes")
+######## Calculate derived fields
+print("Calculating derived values")
 
-# Calculate height class
-df["HeightClass"] = 0  # Unknown
-df.loc[(df.Height > 0) & (df.Height < 5), "HeightClass"] = 1
-df.loc[(df.Height >= 5) & (df.Height < 10), "HeightClass"] = 2
-df.loc[(df.Height >= 10) & (df.Height < 25), "HeightClass"] = 3
-df.loc[(df.Height >= 25) & (df.Height < 50), "HeightClass"] = 4
-df.loc[(df.Height >= 50) & (df.Height < 100), "HeightClass"] = 5
-df.loc[df.Height >= 100, "HeightClass"] = 6
-df.HeightClass = df.HeightClass.astype("uint8")
+# Construct a name from Stream and Road
+df["Name"] = ""  # "Unknown Crossing"
+df.loc[(df.Stream != "Unknown") & (df.Road != "Unknown"), "Name"] = (
+    df.Stream + " / " + df.Road + " Crossing"
+)
 
 # Calculate HUC and Ecoregion codes
 df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
@@ -207,18 +194,21 @@ huc6 = (
 )
 df = df.join(huc6, on="HUC6")
 
+# Calculate classes
+df["ConditionClass"] = df.Condition.map(BARRIER_CONDITION_TO_DOMAIN)
+df["SeverityClass"] = df.PotentialProject.map(POTENTIAL_TO_SEVERITY)
+df["CrossingTypeClass"] = df.CrossingType.map(CROSSING_TYPE_TO_DOMAIN)
+df["RoadTypeClass"] = df.RoadType.map(ROAD_TYPE_TO_DOMAIN)
 
-# Calculate feasibility
-df["Feasibility"] = df.Recon.map(RECON_TO_FEASIBILITY).astype("uint8")
 
 # Bin metrics
 df["GainMilesClass"] = classify_gainmiles(df.GainMiles)
 df["SinuosityClass"] = classify_sinuosity(df.Sinuosity)
 df["LandcoverClass"] = classify_landcover(df.Landcover)
 df["RareSppClass"] = classify_rarespp(df.RareSpp)
-df["StreamOrderClass"] = classify_streamorder(df.StreamOrder)
 
-# Drop unnecessary columns
+
+########## Drop unnecessary columns
 df = df[
     [
         "id",
@@ -226,8 +216,9 @@ df = df[
         "lon",
         # ID and source info
         "SARPID",
-        "NIDID",
-        "Source",  # => source
+        "CrossingCode",
+        "LocalID",
+        "Source",
         # Basic info
         "Name",
         "County",
@@ -235,25 +226,23 @@ df = df[
         "Basin",
         # Species info
         "RareSpp",
-        # River info
-        "River",
-        "StreamOrder",
-        "NHDplusVersion",
+        # Stream info
+        "Stream",
+        # Road info
+        "Road",
+        "RoadType",
         # Location info
         "ProtectedLand",
+        # "HUC2",
         "HUC6",
         "HUC8",
         "HUC12",
         "ECO3",
         "ECO4",
-        # Dam info
-        "Height",
-        "Year",
-        "Construction",
-        "Purpose",
+        # Barrier info
+        "CrossingType",
         "Condition",
-        "Recon",
-        "Feasibility",
+        "PotentialProject",
         # Metrics
         "GainMiles",
         "UpstreamMiles",
@@ -266,12 +255,14 @@ df = df[
         "COUNTYFIPS",
         "STATEFIPS",
         "HasNetwork",
-        "HeightClass",
         "RareSppClass",
         "GainMilesClass",
         "SinuosityClass",
         "LandcoverClass",
-        "StreamOrderClass",
+        "ConditionClass",
+        "SeverityClass",
+        "CrossingTypeClass",
+        "RoadTypeClass",
     ]
 ].set_index("id", drop=False)
 
@@ -279,6 +270,8 @@ df = df[
 # Calculate tiers and scores for the region (None) and State levels
 for group_field in (None, "State"):
     print("Calculating tiers for {}".format(group_field or "Region"))
+
+    # Note: some states do not yet have enough inventoried barriers for percentiles to work
 
     tiers_df = calculate_tiers(
         df.loc[df.HasNetwork],
@@ -307,31 +300,31 @@ for group_field in (None, "State"):
 # Drop associated raw scores, they are not currently displayed on frontend.
 df = df.drop(columns=[c for c in df.columns if c.endswith("_score")])
 
-# Export data for API
-print("Writing to output files")
-df.reset_index(drop=True).to_feather("data/derived/dams.feather")
+
+######## Export data for API
+print("Writing to files")
+df.reset_index(drop=True).to_feather("data/derived/small_barriers.feather")
 
 # For QA and data exploration only
-df.to_csv(out_dir / "dams.csv", index_label="id")
+df.to_csv("data/derived/small_barriers.csv", index=False)
 
 
-# Export data for tippecanoe
+######## Export data for tippecanoe
 # create duplicate columns for those dropped by tippecanoe
 # tippecanoe will use these ones and leave lat / lon
 # so that we can use them for display in the frontend
-# TODO: can this be replaced with the actual geometry available to mapbox GL?
 df["latitude"] = df.lat
 df["longitude"] = df.lon
 
 # Drop columns that are not used in vector tiles
-df = df.drop(columns=["Sinuosity", "NHDplusVersion", "STATEFIPS"])
+df = df.drop(columns=["Sinuosity", "STATEFIPS", "CrossingCode", "LocalID"])
 
 # Rename columns for easier use
 df.rename(
     columns={
         "County": "CountyName",
         "COUNTYFIPS": "County",
-        "SinuosityClass": "Sinuosity",  # Decoded to a label on frontend
+        "SinuosityClass": "Sinuosity",
     },
     inplace=True,
 )
@@ -350,13 +343,14 @@ df.rename(
 # This is done to control the size of the dam vector tiles, so that those without
 # networks are only used when zoomed in further.  Otherwise, the full vector tiles
 # get too large, and points that we want to display are dropped by tippecanoe.
+# Road / stream crossings are particularly large, so those are merged in below.
 df.loc[df.hasnetwork].drop(columns=["hasnetwork"]).to_csv(
-    out_dir / "dams_with_networks.csv", index=False
+    "data/derived/barriers_with_networks.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
 )
 
 # Drop columns we don't need from dams that have no networks, since we do not filter or display
 # these fields.
-df.loc[~df.hasnetwork].drop(
+no_network = df.loc[~df.hasnetwork].drop(
     columns=[
         "hasnetwork",
         "sinuosity",
@@ -366,12 +360,13 @@ df.loc[~df.hasnetwork].drop(
         "totalnetworkmiles",
         "gainmiles",
         "landcover",
-        "streamorder",
         "gainmilesclass",
         "raresppclass",
-        "heightclass",
         "landcoverclass",
-        "streamorderclass",
+        "conditionclass",
+        "severityclass",
+        "crossingtypeclass",
+        "roadtypeclass",
         "County",
         "HUC6",
         "HUC8",
@@ -380,6 +375,46 @@ df.loc[~df.hasnetwork].drop(
         "ECO4",
     ]
     + [c for c in df.columns if c.endswith("_tier")]
-).to_csv(out_dir / "dams_without_networks.csv", index=False)
+)
+
+# Combine barriers that don't have networks with road / stream crossings
+print("Reading stream crossings")
+road_crossings = pd.read_csv(
+    "data/derived/road_crossings.csv", dtype={"Road": str, "Stream": str, "SARPID": str}
+)
+
+road_crossings.Stream = road_crossings.Stream.str.strip()
+road_crossings.Road = road_crossings.Road.str.strip()
+
+road_crossings.rename(
+    columns={c: c.lower() for c in road_crossings.columns}, inplace=True
+)
+
+# Zero out some fields
+road_crossings["protectedland"] = 0
+road_crossings["rarespp"] = 0
+road_crossings["name"] = ""
+
+
+road_crossings.loc[
+    (road_crossings.stream.str.strip().str.len() > 0)
+    & (road_crossings.road.str.strip().str.len() > 0),
+    "name",
+] = (road_crossings.stream + " / " + road_crossings.road)
+
+
+combined = no_network.append(road_crossings, ignore_index=True, sort=False)
+combined["id"] = combined.index.values.astype("uint32")
+
+# Fill latitude / longitude columns in again
+# (these are missing from road_crossings.csv)
+combined["latitude"] = combined.lat
+combined["longitude"] = combined.lon
+
+print("Writing combined file")
+combined.to_csv(
+    "data/derived/barriers_background.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
+)
+
 
 print("Done in {:.2f}".format(time() - start))
