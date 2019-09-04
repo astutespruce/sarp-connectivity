@@ -89,20 +89,16 @@ eco4.sindex
 df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
 
 
+# Obviated by upstream changes
 ### Project to WGS84
-print("Projecting to WGS84 and adding lat / lon fields")
-df = df.to_crs(epsg=4326)
-df["lon"] = df.geometry.x.astype("float32")
-df["lat"] = df.geometry.y.astype("float32")
+# print("Projecting to WGS84 and adding lat / lon fields")
+# df = df.to_crs(epsg=4326)
+# df["lon"] = df.geometry.x.astype("float32")
+# df["lat"] = df.geometry.y.astype("float32")
 
 # drop geometry, no longer needed
 df = df.drop(columns=["geometry"])
 
-# Rename all columns that have underscores
-df.rename(
-    columns={c: c.replace("_", "") for c in df.columns[df.columns.str.count("_") > 0]},
-    inplace=True,
-)
 
 # Rename columns to make them easier to handle
 # also rename fields to match dams for consistency

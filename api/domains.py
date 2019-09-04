@@ -46,30 +46,31 @@ FEASIBILITY_DOMAIN = {
     5: "No conservation benefit",
 }
 
+# in constants.py
 # Applies to Recon values, omitted values should be filtered out
-RECON_TO_FEASIBILITY = {
-    0: 0,
-    1: 3,
-    2: 3,
-    3: 2,
-    4: 1,
-    5: 0,  # should be N/A
-    6: 2,
-    7: 0,  # should be N/A
-    8: 0,
-    9: 0,
-    10: 0,
-    11: 4,
-    13: 0,
-    14: 4,
-    15: 5,
-    16: 0,
-    17: 0,
-    18: 0,
-    19: 0,  # should be N/A
-    20: 5,
-    21: 0,
-}
+# RECON_TO_FEASIBILITY = {
+#     0: 0,
+#     1: 3,
+#     2: 3,
+#     3: 2,
+#     4: 1,
+#     5: 0,  # should be N/A
+#     6: 2,
+#     7: 0,  # should be N/A
+#     8: 0,
+#     9: 0,
+#     10: 0,
+#     11: 4,
+#     13: 0,
+#     14: 4,
+#     15: 5,
+#     16: 0,
+#     17: 0,
+#     18: 0,
+#     19: 0,  # should be N/A
+#     20: 5,
+#     21: 0,
+# }
 
 
 PURPOSE_DOMAIN = {
@@ -169,24 +170,27 @@ BARRIER_SEVERITY_DOMAIN = {
 }
 
 
-POTENTIAL_TO_SEVERITY = {
-    "Inaccessible": 0,
-    "Indeterminate": 0,
-    "Insignificant Barrier": 1,
-    "Minor Barrier": 1,
-    "Moderate Barrier": 2,
-    "No Barrier": 1,  # removed from processing
-    "No Crossing": 1,
-    "No Upstream Channel": 1,
-    "No Upstream Habitat": 1,
-    "Not Scored": 0,
-    "Past Project": 0,  # removed from processing
-    "Potential Project": 0,
-    "Proposed Project": 0,
-    "Severe Barrier": 3,
-    "Significant Barrier": 3,
-    "Small Project": 0,
-}
+# in constants.py
+# POTENTIAL_TO_SEVERITY = {
+#     "Inaccessible": 0,
+#     "Indeterminate": 0,
+#     "Insignificant Barrier": 1,
+#     "Minor Barrier": 1,
+#     "Moderate Barrier": 2,
+#     "No Barrier": 1,  # removed from processing
+#     "No Crossing": 1,
+#     "No Upstream Channel": 1,
+#     "No Upstream Habitat": 1,
+#     "Not Scored": 0,
+#     "No": 1,
+#     "Past Project": 0,  # removed from processing
+#     "Potential Project": 0,
+#     "Proposed Project": 0,
+#     "Severe Barrier": 3,
+#     "Significant Barrier": 3,
+#     "Small Project": 0,
+#     "SRI Only": 0,
+# }
 
 CROSSING_TYPE_DOMAIN = {
     0: "Unknown",
@@ -198,50 +202,54 @@ CROSSING_TYPE_DOMAIN = {
     6: "Buried stream",
 }
 
-CROSSING_TYPE_TO_DOMAIN = {
-    "Bridge": 2,
-    "Bridge Adequate": 2,
-    "Buried Stream": 6,
-    "Culvert": 3,
-    "Dam": 5,
-    "Ford": 4,
-    "Inaccessible": 0,
-    "Multiple Culvert": 3,
-    "Multiple Culverts": 3,
-    "Natural Ford": 4,
-    "No Crossing": 1,
-    "No Upstream Channel": 1,
-    "Other": 0,
-    "Partially Inaccessible": 0,
-    "Removed Crossing": 1,
-    "Slab": 4,
-    "Unknown": 0,
-    "Vented Ford": 4,
-    "Vented Slab": 4,
-}
+# in constants.py
+# CROSSING_TYPE_TO_DOMAIN = {
+#     "Bridge": 2,
+#     "Bridge Adequate": 2,
+#     "Buried Stream": 6,
+#     "Culvert": 3,
+#     "Dam": 5,
+#     "Ford": 4,
+#     "Inaccessible": 0,
+#     "Multiple Culvert": 3,
+#     "Multiple Culverts": 3,
+#     "Natural Ford": 4,
+#     "No Crossing": 1,
+#     "No Upstream Channel": 1,
+#     "Other": 0,
+#     "Partially Inaccessible": 0,
+#     "Removed Crossing": 1,
+#     "Slab": 4,
+#     "Unknown": 0,
+#     "Vented Ford": 4,
+#     "Vented Slab": 4,
+# }
 
 
 ROAD_TYPE_DOMAIN = {0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad"}
 
-ROAD_TYPE_TO_DOMAIN = {
-    "Asphalt": 2,
-    "Concrete": 2,
-    "Dirt": 1,
-    "Driveway": 0,
-    "Gravel": 1,
-    "Other": 0,
-    "Paved": 2,
-    "Railroad": 3,
-    "Trail": 1,
-    "Unknown": 0,
-    "Unpaved": 1,
-    "No Data": 0,
-    "Nodata": 0,
-}
+
+# in constants.py
+# ROAD_TYPE_TO_DOMAIN = {
+#     "Asphalt": 2,
+#     "Concrete": 2,
+#     "Dirt": 1,
+#     "Driveway": 0,
+#     "Gravel": 1,
+#     "Other": 0,
+#     "Paved": 2,
+#     "Railroad": 3,
+#     "Trail": 1,
+#     "Unknown": 0,
+#     "Unpaved": 1,
+#     "No Data": 0,
+#     "Nodata": 0,
+# }
 
 BARRIER_CONDITION_DOMAIN = {0: "Unknown", 1: "Failing", 2: "Poor", 3: "OK", 4: "New"}
 
-BARRIER_CONDITION_TO_DOMAIN = {"Failing": 1, "New": 4, "OK": 3, "Poor": 2, "Unknown": 0}
+# in constants.py
+# BARRIER_CONDITION_TO_DOMAIN = {"Failing": 1, "New": 4, "OK": 3, "Poor": 2, "Unknown": 0}
 
 
 # for domain in ("ProtectedLand",):

@@ -7,6 +7,7 @@ Data preparation includes:
 1. Create summary units for analysis. These are joined to barriers and used for summary display on the map.
 2. Extract summary units within SARP HUC4 boundary and create geofeather files for later processing.
 3. Create vector tiles of all summary units that include name and ID in a standardized way. This only needs to be done again when summary units are modified or new ones are added.
+4. Prepare the barriers for network analysis and prioritization. This involves transforming the
 
 Naming conventions:
 `*_prj.shp` denotes a shapefile in the CONUS Albers projection of the inventory

@@ -4,12 +4,13 @@ Preprocess road / stream crossings into data needed by tippecanoe for creating v
 Input: 
 USGS Road / Stream crossings, projected to match SARP standard projection (Albers CONUS):
 
+In `data/barriers` directory:
 ```
-ogr2ogr -t_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs" road_crossings.shp RoadCrossings_USGS_10292018.gdb Rdx_Tiger2014_NHDplusV2Med_USGS -dim 2 -sql "SELECT FULLNAME, GNIS_NAME, RDXID from Rdx_Tiger2014_NHDplusV2Med_USGS"
+ogr2ogr -t_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs" src/road_crossings.shp src/RoadCrossings_USGS_10292018.gdb Rdx_Tiger2014_NHDplusV2Med_USGS -dim 2 -sql "SELECT FULLNAME, GNIS_NAME, RDXID from Rdx_Tiger2014_NHDplusV2Med_USGS"
 ```
 
 Outputs:
-`data/derived/road_crossings.feather`: road / stream crossing data for merging in with small barriers that do not have networks
+`data/barriers/intermediate/road_crossings.feather`: road / stream crossing data for merging in with small barriers that do not have networks
 """
 
 import sys
@@ -17,7 +18,8 @@ import os
 from pathlib import Path
 from time import time
 import geopandas as gp
-from nhdnet.io import deserialize_df, deserialize_gdf, serialize_df
+from nhdnet.io import deserialize_df, deserialize_gdf, serialize_gdf
+from nhdnet.geometry.points import add_lat_lon
 
 
 # Lazy way to import from a shared file in a different directory, this allows us to import
@@ -31,13 +33,14 @@ from analysis.constants import CRS
 start = time()
 
 data_dir = Path("data")
-src_dir = data_dir / "barriers"
 boundaries_dir = data_dir / "boundaries"
-out_dir = data_dir / "derived"
+barriers_dir = data_dir / "barriers"
+src_dir = barriers_dir / "src"
+out_dir = barriers_dir / "master"
 
 print("Reading source FGDB dataset")
 
-df = gp.read_file(src_dir / "road_crossings.shp")
+df = gp.read_file(src_dir / "road_crossings_prj.shp")
 print("Read {} road crossings".format(len(df)))
 
 # Rename columns to standardize with small barriers dataset
@@ -112,16 +115,10 @@ eco4.sindex
 df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
 
 
+df = add_lat_lon(df)
+
 print("Projecting to WGS84 and adding lat / lon fields")
-# Project to WGS84
-df = df.to_crs(epsg=4326)
 
-# Add lat / lon columns
-df["lon"] = df.geometry.x.astype("float32")
-df["lat"] = df.geometry.y.astype("float32")
-df = df.drop(columns=["geometry"])
-
-
-serialize_df(df, out_dir / "road_crossings.feather", index=False)
+serialize_gdf(df, out_dir / "road_crossings.feather", index=False)
 
 print("Done in {:.2f}".format(time() - start))

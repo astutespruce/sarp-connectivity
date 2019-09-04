@@ -67,99 +67,99 @@ df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
 
 
 ### Project to WGS84
-print("Projecting to WGS84 and adding lat / lon fields")
-df = df.to_crs(epsg=4326)
-df["lon"] = df.geometry.x.astype("float32")
-df["lat"] = df.geometry.y.astype("float32")
+# print("Projecting to WGS84 and adding lat / lon fields")
+# df = df.to_crs(epsg=4326)
+# df["lon"] = df.geometry.x.astype("float32")
+# df["lat"] = df.geometry.y.astype("float32")
 
-# drop geometry, no longer needed
-df = df.drop(columns=["geometry"])
+# # drop geometry, no longer needed
+# df = df.drop(columns=["geometry"])
 
 
 # Rename all columns that have underscores
-df.rename(
-    columns={c: c.replace("_", "") for c in df.columns[df.columns.str.count("_") > 0]},
-    inplace=True,
-)
+# df.rename(
+#     columns={c: c.replace("_", "") for c in df.columns[df.columns.str.count("_") > 0]},
+#     inplace=True,
+# )
 
-# Rename columns to make them easier to handle
-df.rename(
-    columns={
-        "BarrierName": "Name",
-        "DBSource": "Source",
-        "NumberRareSpeciesHUC12": "RareSpp",
-        "YearCompleted": "Year",
-        "ConstructionMaterial": "Construction",
-        "PurposeCategory": "Purpose",
-        "StructureCondition": "Condition",
-        "AbsoluteGainMi": "GainMiles",
-        "PctNatFloodplain": "Landcover",
-        "NetworkSinuosity": "Sinuosity",
-        "NumSizeClassGained": "SizeClasses",
-    },
-    inplace=True,
-)
-
-
-# Field fixes
-# Round height to nearest foot.  There are no dams between 0 and 1 foot, so fill all
-# na as 0
-df.Height = df.Height.fillna(0).round().astype("uint16")
-
-# Cleanup names
-# Standardize the casing of the name
-df.Name = df.Name.fillna("").str.title().str.strip()
-df.OtherBarrierName = df.OtherBarrierName.fillna("").str.title().str.strip()
-
-# Fix name issue - 3 dams have duplicate dam names with line breaks, which breaks tippecanoe
-ids = df.loc[df.Name.str.count("\r") > 0].index
-df.loc[ids, "Name"] = df.loc[ids].Name.apply(lambda v: v.split("\r")[0])
-
-# Replace estimated dam names if another name is available
-ids = (df.Name.str.count("Estimated Dam") > 0) & (df.OtherBarrierName.str.len() > 0)
-df.loc[ids, "Name"] = df.loc[ids].OtherBarrierName
+# # Rename columns to make them easier to handle
+# df.rename(
+#     columns={
+#         "BarrierName": "Name",
+#         "DBSource": "Source",
+#         "NumberRareSpeciesHUC12": "RareSpp",
+#         "YearCompleted": "Year",
+#         "ConstructionMaterial": "Construction",
+#         "PurposeCategory": "Purpose",
+#         "StructureCondition": "Condition",
+#         "AbsoluteGainMi": "GainMiles",
+#         "PctNatFloodplain": "Landcover",
+#         "NetworkSinuosity": "Sinuosity",
+#         "NumSizeClassGained": "SizeClasses",
+#     },
+#     inplace=True,
+# )
 
 
-# Fix ProtectedLand: since this was from an intersection, all values should
-# either be 1 (intersected) or 0 (did not)
-df.loc[df.ProtectedLand != 1, "ProtectedLand"] = 0
+# # Field fixes
+# # Round height to nearest foot.  There are no dams between 0 and 1 foot, so fill all
+# # na as 0
+# df.Height = df.Height.fillna(0).round().astype("uint16")
 
-# Fix issue with Landcover.  It is null in places where there is a network
-# This was due to issues with the catchment floodplains during network processing
-df.loc[df.HasNetwork & df.Landcover.isnull(), "Landcover"] = 0
-df.Landcover = df.Landcover.round()
+# # Cleanup names
+# # Standardize the casing of the name
+# df.Name = df.Name.fillna("").str.title().str.strip()
+# df.OtherBarrierName = df.OtherBarrierName.fillna("").str.title().str.strip()
 
-# Fix years between 0 and 100; assume they were in the 1900s
-df.loc[(df.Year > 0) & (df.Year < 100), "Year"] = df.Year + 1900
-df.loc[df.Year == 20151, "Year"] = 2015
-df.loc[df.Year == 9999, "Year"] = 0
+# # Fix name issue - 3 dams have duplicate dam names with line breaks, which breaks tippecanoe
+# ids = df.loc[df.Name.str.count("\r") > 0].index
+# df.loc[ids, "Name"] = df.loc[ids].Name.apply(lambda v: v.split("\r")[0])
 
-df.River = df.River.str.title()
-
-
-### Fill NaN fields and set data types
-
-# TODO: fix once these are consistently provided
-df.SARPID = df.SARPID.fillna(-1).astype("int")
-# df.SARPID = df.SARPID.astype("uint32")
+# # Replace estimated dam names if another name is available
+# ids = (df.Name.str.count("Estimated Dam") > 0) & (df.OtherBarrierName.str.len() > 0)
+# df.loc[ids, "Name"] = df.loc[ids].OtherBarrierName
 
 
-for column in ("River", "NIDID", "Source"):
-    df[column] = df[column].fillna("").str.strip()
+# # Fix ProtectedLand: since this was from an intersection, all values should
+# # either be 1 (intersected) or 0 (did not)
+# df.loc[df.ProtectedLand != 1, "ProtectedLand"] = 0
 
-for column in (
-    "RareSpp",
-    "ProtectedLand",
-    "Construction",
-    "Condition",
-    "Purpose",
-    "Recon",
-):
-    df[column] = df[column].fillna(0).astype("uint8")
+# # Fix issue with Landcover.  It is null in places where there is a network
+# # This was due to issues with the catchment floodplains during network processing
+# df.loc[df.HasNetwork & df.Landcover.isnull(), "Landcover"] = 0
+# df.Landcover = df.Landcover.round()
+
+# # Fix years between 0 and 100; assume they were in the 1900s
+# df.loc[(df.Year > 0) & (df.Year < 100), "Year"] = df.Year + 1900
+# df.loc[df.Year == 20151, "Year"] = 2015
+# df.loc[df.Year == 9999, "Year"] = 0
+
+# df.River = df.River.str.title()
 
 
-for column in ("Year",):
-    df[column] = df[column].fillna(0).astype("uint16")
+# ### Fill NaN fields and set data types
+
+# # TODO: fix once these are consistently provided
+# df.SARPID = df.SARPID.fillna(-1).astype("int")
+# # df.SARPID = df.SARPID.astype("uint32")
+
+
+# for column in ("River", "NIDID", "Source"):
+#     df[column] = df[column].fillna("").str.strip()
+
+# for column in (
+#     "RareSpp",
+#     "ProtectedLand",
+#     "Construction",
+#     "Condition",
+#     "Purpose",
+#     "Recon",
+# ):
+#     df[column] = df[column].fillna(0).astype("uint8")
+
+
+# for column in ("Year",):
+#     df[column] = df[column].fillna(0).astype("uint16")
 
 
 # Fill metrics with -1
