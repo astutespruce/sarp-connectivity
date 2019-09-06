@@ -47,17 +47,42 @@ src_dir = barriers_dir / "src"
 master_dir = barriers_dir / "master"
 snapped_dir = barriers_dir / "snapped"
 qa_dir = barriers_dir / "qa"
-dams_filename = "Dams_Webviewer_DraftOne_Final.gdb"
+dams_filename = "Raw_Featureservice_SARPUniqueID.gdb"
+gdb = src_dir / dams_filename
 
-start = time()
+# dams that were manually snapped
+snapped_layer = "Snapped_Dataset_for_Edits_09032019"
+# dams that fall outside SARP
+outside_layer = "Dams_Non_SARP_States_09052019"
+# layer for each SARP state
+sarp_state_layer = "Dams_{state}"
+
+
+# Each SARP state will have a layer in the geodatabase below
+sarp_states = [
+    "AL",
+    "AR",
+    "FL",
+    "GA",
+    "KY",
+    "LA",
+    "MO",
+    "MS",
+    "NC",
+    "OK",
+    "PR",  # not currently present but will be coming in late 2019
+    "SC",
+    "TN",
+    "TX",
+    "VA",
+]
+
 
 keep_cols = [
     "geometry",
-    "SARPID",
+    "SARPUniqueID",
     "AnalysisID",
-    "GlobalID",
     "Snap2018",
-    "OBJECTID",
     "NIDID",
     "SourceDBID",
     "Barrier_Name",
@@ -89,8 +114,57 @@ keep_cols = [
 ]
 
 
+start = time()
+
+
+### Read in SARP states and merge
+merged = None
+for state in sarp_states:
+    print("Reading dams in {}...".format(state))
+    try:
+        df = gp.read_file(gdb, layer=sarp_state_layer.format(state=state))
+    except:
+        print("WARNING: Layer not found for {}".format(state))
+        continue
+
+    # drop columns we don't need
+    # some states have specific columns
+    df = df[df.columns[df.columns.isin(keep_cols)]]
+
+    if merged is None:
+        merged = df
+    else:
+        merged = merged.append(df, ignore_index=True, sort=False)
+
+# Drop dams without locations and project
+merged = merged.loc[merged.geometry.notnull()].copy().to_crs(CRS)
+
+
+### Read in non-SARP states and join in
+# these are for states that overlap with HUC4s that overlap with SARP states
+print(
+    "Reading dams that fall outside SARP states, but within HUC4s that overlap with SARP states..."
+)
+outside_df = gp.read_file(gdb, layer=outside_layer)[keep_cols].to_crs(CRS)
+df = merged.append(outside_df, ignore_index=True, sort=False)
+
+
+### Read in dams that have been manually snapped and join to get latest location
+# Join on AnalysisID to merged data above.
+# ONLY keep Snap2018 and the location.
+print("Reading manually snapped dams...")
+snapped_df = gp.read_file(gdb, layer=snapped_layer)[
+    ["geometry", "AnalysisID", "SNAP2018"]
+].set_index("AnalysisID")
+snapped_df = snapped_df.loc[snapped_df.geometry.notnull()].to_crs(CRS)
+
+# Join to snapped and bring across updated geometry and SNAP2018
+df = df.set_index("AnalysisID").join(snapped_df, rsuffix="_snap").reset_index()
+idx = df.loc[df.geometry_snap.notnull()].index
+df.loc[idx, "geometry"] = df.loc[idx].geometry_snap
 df = (
-    gp.read_file(src_dir / dams_filename)[keep_cols]
+    df.drop(columns=["geometry_snap"])
+    .reset_index()
     .rename(
         columns={
             "Barrier_Name": "Name",
@@ -102,8 +176,8 @@ df = (
             "StructureCondition": "Condition",
         }
     )
-    .to_crs(CRS)
 )
+
 
 print("Read {} dams".format(len(df)))
 
@@ -175,7 +249,7 @@ df.River = df.River.str.title()
 
 
 ### Fill NaN fields and set data types
-df.SARPID = df.SARPID.fillna(-1).astype("int")
+# df.SARPID = df.SARPID.fillna(-1).astype("int")
 
 
 for column in ("River", "NIDID", "Source"):
