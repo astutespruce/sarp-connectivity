@@ -4,7 +4,7 @@ from nhdnet.io import deserialize_gdf, deserialize_sindex
 from nhdnet.geometry.lines import snap_to_line
 
 
-nhd_dir = Path("../data/sarp/derived/nhd/region")
+nhd_dir = Path("data/nhd/flowlines")
 
 
 def snap_by_region(df, regions, tolerance):
@@ -29,6 +29,7 @@ def snap_by_region(df, regions, tolerance):
     merged = None
 
     for region in regions:
+
         print("\n----- {} ------\n".format(region))
         region_dir = nhd_dir / region
 
@@ -55,3 +56,32 @@ def snap_by_region(df, regions, tolerance):
             merged = merged.append(snapped, sort=False, ignore_index=True)
 
     return merged
+
+
+def update_from_snapped(df, snapped):
+    """Update snapped coordinates into dataset.
+    
+    Parameters
+    ----------
+    df : GeoDataFrame
+        Master dataset to update with snapped coordinates
+    snapped : GeoDataFrame
+        Snapped dataset with coordinates to apply
+    
+    Returns
+    -------
+    GeoDataFrame
+    """
+
+    df["snapped"] = False
+    df = df.join(
+        snapped.set_index("id")[["geometry", "snap_dist", "lineID", "NHDPlusID"]],
+        on="id",
+        rsuffix="_snapped",
+    )
+    idx = df.loc[df.lineID.notnull()].index
+    df.loc[idx, "geometry"] = df.loc[idx].geometry_snapped
+    df.loc[idx, "snapped"] = True
+    df = df.drop(columns=["geometry_snapped"])
+
+    return df

@@ -44,16 +44,15 @@ from analysis.constants import (
     CROSSING_TYPE_TO_DOMAIN,
 )
 
-from analysis.prep.snap import snap_by_region
+from analysis.prep.barriers.snap import snap_by_region, update_from_snapped
 
-# Snap barriers by 100 meters
-SNAP_TOLERANCE = 100
-
+# Snap barriers by 50 meters
+SNAP_TOLERANCE = 50
 
 data_dir = Path("data")
 boundaries_dir = data_dir / "boundaries"
 barriers_dir = data_dir / "barriers"
-src_dir = barriers_dir / "src"
+src_dir = barriers_dir / "source"
 master_dir = barriers_dir / "master"
 snapped_dir = barriers_dir / "snapped"
 qa_dir = barriers_dir / "qa"
@@ -281,17 +280,8 @@ to_snap = df.loc[
 snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
 print("\n--------------\n")
 
-
-### Update snapped geometry into master
-df = (
-    df.set_index("id")
-    .join(snapped.set_index("id")[["geometry", "snap_dist"]], rsuffix="_snapped")
-    .reset_index()
-)
-idx = df.geometry_snapped.notnull()
-df.loc[idx, "geometry"] = df.loc[idx].geometry_snapped
-df.loc[idx, "snapped"] = True
-df = df.drop(columns=["geometry_snapped"])
+# join back to master
+df = update_from_snapped(df, snapped)
 
 ### Add lat / lon
 print("Adding lat / lon fields")
@@ -314,9 +304,20 @@ print(
 print("Serializing {} small barriers".format(len(df)))
 serialize_gdf(df, master_dir / "small_barriers.feather", index=False)
 
-print("Serializing {0} snapped small barriers".format(len(snapped)))
-serialize_gdf(df, snapped_dir / "small_barriers.feather", index=False)
 
+print(
+    "Serializing {0} snapped small barriers".format(
+        len(df.loc[df.snapped & ~df.duplicate])
+    )
+)
+serialize_gdf(
+    df.loc[
+        df.snapped & ~df.duplicate,
+        ["geometry", "id", "joinID", "HUC2", "lineID", "NHDPlusID"],
+    ],
+    snapped_dir / "small_barriers.feather",
+    index=False,
+)
 
 print("writing shapefiles for QA/QC")
 to_shp(df, qa_dir / "small_barriers.shp")

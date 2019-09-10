@@ -185,3 +185,17 @@ ROAD_TYPE_TO_DOMAIN = {
 }
 
 BARRIER_CONDITION_TO_DOMAIN = {"Failing": 1, "New": 4, "OK": 3, "Poor": 2, "Unknown": 0}
+
+OWNERTYPE_TO_DOMAIN = {
+    "Federal Land": 1,
+    "State Land": 2,
+    "Private Conservation Land": 5,
+    "Local Land": 3,
+    "Unknown": 0,
+    "Native American Land": 4,
+    "Joint Ownership": 3,
+    "Easement": 5,
+    "Designation": 0,
+    "Regional Agency Special Distribution": 3,
+}
+

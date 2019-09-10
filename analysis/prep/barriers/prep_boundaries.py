@@ -190,3 +190,8 @@ to_shp(
     df.reset_index().rename(columns={"ECO4": "id", "ECO4Name": "name"}),
     boundaries_dir / "eco4_prj.shp",
 )
+
+
+
+### Protected areas
+df = gp.read_file(intermediate_dir / "protected_areas.shp")

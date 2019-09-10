@@ -33,7 +33,7 @@ from analysis.constants import (
     RECON_TO_FEASIBILITY,
 )
 
-from analysis.prep.snap import snap_by_region
+from analysis.prep.barriers.snap import snap_by_region, update_from_snapped
 
 
 DUPLICATE_TOLERANCE = 30
@@ -43,7 +43,7 @@ SNAP_TOLERANCE = 100
 data_dir = Path("data")
 boundaries_dir = data_dir / "boundaries"
 barriers_dir = data_dir / "barriers"
-src_dir = barriers_dir / "src"
+src_dir = barriers_dir / "source"
 master_dir = barriers_dir / "master"
 snapped_dir = barriers_dir / "snapped"
 qa_dir = barriers_dir / "qa"
@@ -369,16 +369,8 @@ print("Attempting to snap {} dams".format(len(to_snap)))
 snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
 print("\n--------------\n")
 
-### Update snapped geometry into master
-df = (
-    df.set_index("id")
-    .join(snapped.set_index("id")[["geometry", "snap_dist"]], rsuffix="_snapped")
-    .reset_index()
-)
-idx = df.geometry_snapped.notnull()
-df.loc[idx, "geometry"] = df.loc[idx].geometry_snapped
-df.loc[idx, "snapped"] = True
-df = df.drop(columns=["geometry_snapped"])
+# join back to master
+df = update_from_snapped(df, snapped)
 
 ### Add lat / lon
 print("Adding lat / lon fields")
@@ -390,12 +382,18 @@ df = mark_duplicates(df, DUPLICATE_TOLERANCE)
 df = df.sort_values("id")
 print("{} duplicate dams removed after snapping".format(len(df.loc[df.duplicate])))
 
-print("Serializing {} dams".format(len(df)))
+print("Serializing {} dams to master file".format(len(df)))
 serialize_gdf(df, master_dir / "dams.feather", index=False)
 
-print("Serializing {0} snapped dams".format(len(snapped)))
-serialize_gdf(df, snapped_dir / "dams.feather", index=False)
-
+print("Serializing {0} snapped dams".format(len(df.loc[df.snapped & ~df.duplicate])))
+serialize_gdf(
+    df.loc[
+        df.snapped & ~df.duplicate,
+        ["geometry", "id", "joinID", "HUC2", "lineID", "NHDPlusID"],
+    ],
+    snapped_dir / "dams.feather",
+    index=False,
+)
 
 print("writing shapefiles for QA/QC")
 to_shp(df, qa_dir / "dams.shp")

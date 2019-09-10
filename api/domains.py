@@ -1,8 +1,6 @@
 """
-Dictionaries of domain values to labels.
-
-Mostly created using extract_domains.py
-
+Dictionaries of domain values to labels.  Domain values are assigned in ArcGIS prior to processing, or assigned during
+various prep scripts.
 """
 
 # Mussel_Presence
@@ -45,32 +43,6 @@ FEASIBILITY_DOMAIN = {
     4: "Likely feasible",
     5: "No conservation benefit",
 }
-
-# in constants.py
-# Applies to Recon values, omitted values should be filtered out
-# RECON_TO_FEASIBILITY = {
-#     0: 0,
-#     1: 3,
-#     2: 3,
-#     3: 2,
-#     4: 1,
-#     5: 0,  # should be N/A
-#     6: 2,
-#     7: 0,  # should be N/A
-#     8: 0,
-#     9: 0,
-#     10: 0,
-#     11: 4,
-#     13: 0,
-#     14: 4,
-#     15: 5,
-#     16: 0,
-#     17: 0,
-#     18: 0,
-#     19: 0,  # should be N/A
-#     20: 5,
-#     21: 0,
-# }
 
 
 PURPOSE_DOMAIN = {
@@ -169,29 +141,6 @@ BARRIER_SEVERITY_DOMAIN = {
     3: "Major barrier",
 }
 
-
-# in constants.py
-# POTENTIAL_TO_SEVERITY = {
-#     "Inaccessible": 0,
-#     "Indeterminate": 0,
-#     "Insignificant Barrier": 1,
-#     "Minor Barrier": 1,
-#     "Moderate Barrier": 2,
-#     "No Barrier": 1,  # removed from processing
-#     "No Crossing": 1,
-#     "No Upstream Channel": 1,
-#     "No Upstream Habitat": 1,
-#     "Not Scored": 0,
-#     "No": 1,
-#     "Past Project": 0,  # removed from processing
-#     "Potential Project": 0,
-#     "Proposed Project": 0,
-#     "Severe Barrier": 3,
-#     "Significant Barrier": 3,
-#     "Small Project": 0,
-#     "SRI Only": 0,
-# }
-
 CROSSING_TYPE_DOMAIN = {
     0: "Unknown",
     1: "Not a barrier",
@@ -202,80 +151,17 @@ CROSSING_TYPE_DOMAIN = {
     6: "Buried stream",
 }
 
-# in constants.py
-# CROSSING_TYPE_TO_DOMAIN = {
-#     "Bridge": 2,
-#     "Bridge Adequate": 2,
-#     "Buried Stream": 6,
-#     "Culvert": 3,
-#     "Dam": 5,
-#     "Ford": 4,
-#     "Inaccessible": 0,
-#     "Multiple Culvert": 3,
-#     "Multiple Culverts": 3,
-#     "Natural Ford": 4,
-#     "No Crossing": 1,
-#     "No Upstream Channel": 1,
-#     "Other": 0,
-#     "Partially Inaccessible": 0,
-#     "Removed Crossing": 1,
-#     "Slab": 4,
-#     "Unknown": 0,
-#     "Vented Ford": 4,
-#     "Vented Slab": 4,
-# }
-
 
 ROAD_TYPE_DOMAIN = {0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad"}
 
-
-# in constants.py
-# ROAD_TYPE_TO_DOMAIN = {
-#     "Asphalt": 2,
-#     "Concrete": 2,
-#     "Dirt": 1,
-#     "Driveway": 0,
-#     "Gravel": 1,
-#     "Other": 0,
-#     "Paved": 2,
-#     "Railroad": 3,
-#     "Trail": 1,
-#     "Unknown": 0,
-#     "Unpaved": 1,
-#     "No Data": 0,
-#     "Nodata": 0,
-# }
-
 BARRIER_CONDITION_DOMAIN = {0: "Unknown", 1: "Failing", 2: "Poor", 3: "OK", 4: "New"}
 
-# in constants.py
-# BARRIER_CONDITION_TO_DOMAIN = {"Failing": 1, "New": 4, "OK": 3, "Poor": 2, "Unknown": 0}
+OWNERTYPE_DOMAIN = {
+    0: "Unknown",
+    1: "Federal",
+    2: "State",
+    3: "Regional / Local",
+    4: "Native American Land",
+    5: "Private",
+}
 
-
-# for domain in ("ProtectedLand",):
-#     df[domain] = df[domain].map({0: "Unknown", 1: "Yes", 2: "No"})
-
-# domain = "Off_Network"
-# df[domain] = df[domain].map()
-
-
-######## To extract domains to dictionaries
-# NOTE: a 0 value was added to all domains for "Unknown" or n/a if there wasn't already a 0 value
-
-# import pandas as pd
-
-# Domains were exported using the ArcGIS Domain to Table tool, with domain name as the key and "value" as the value column
-# print("Joining in domains")
-# for domain in (
-#     "State",
-#     "StructureCondition",
-#     "ConstructionMaterial",
-#     "PurposeCategory",
-#     "Recon",
-# ):
-#     print("\n------{}-----\n".format(domain))
-#     print(
-#         pd.read_csv("data/src/{}_domain.csv".format(domain))
-#         .set_index(domain)["value"]
-#         .to_dict()
-#     )

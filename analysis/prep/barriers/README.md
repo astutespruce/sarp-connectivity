@@ -1,19 +1,17 @@
-# Southeast Aquatic Barrier Inventory Data preparation
+# Barrier Data Preparation
 
-## Overview
-
-Data preparation includes:
+## Overall workflow
 
 1. Create summary units for analysis. These are joined to barriers and used for summary display on the map.
 2. Extract summary units within SARP HUC4 boundary and create geofeather files for later processing.
 3. Create vector tiles of all summary units that include name and ID in a standardized way. This only needs to be done again when summary units are modified or new ones are added.
-4. Prepare the barriers for network analysis and prioritization. This involves transforming the
+4. Prepare the barriers for network analysis and prioritization.
 
 Naming conventions:
 `*_prj.shp` denotes a shapefile in the CONUS Albers projection of the inventory
 `*_wgs84.shp` denotes a shapefile in WGS84 projection for use in `tippecanoe`
 
-## Create summary units
+## 1. Create summary units
 
 All data are initially processed using an outer boundary defined by all HUC4s that intersect the SARP states boundary (below). This is so that spatial joins of these units to barriers always assign the correct value. Due to the large data volume for HUCs, these are extracted using queries in `ogr2ogr` (below) whereas others are extracted using python to evaluate the overlaps.
 
@@ -121,11 +119,19 @@ ogr2ogr -t_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 
 ogr2ogr -t_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs" eco4_prj.shp us_eco_l4_no_st.shp
 ```
 
-## Extract areas within SARP HUC4 boundary and processing
+### Protected Areas
+
+Kat extracted protected area data from CBI Protected Areas and TNC Secured Lands and merged them together.
+
+```
+ogr2ogr -t_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs" -sql "SELECT OwnerType as otype, OwnerName as owner, EasementHolderType as etype from CBI_PADUS_NCED_TNC_Combine2019_Clip" ../intermediate/protected_areas.shp Protected_Areas_2019.gdb CBI_PADUS_NCED_TNC_Combine2019_Clip
+```
+
+## 2. Extract areas within SARP HUC4 boundary and processing
 
 The above boundary data are processed into geofeather files using `/analysis/prep/prep_boundaries.py`. This includes selecting out states, counties, and ecoregions that fall within the HUC4 outer boundary.
 
-## Create boundary vector tiles
+## 3. Create boundary vector tiles
 
 Vector tiles are are created for each of the boundary layers.
 
@@ -175,17 +181,39 @@ tippecanoe -f -z 10 -l ECO3 -o tiles/ECO3.mbtiles  -T id:string ECO3.json
 tippecanoe -f -Z 3 -z 12 -l ECO4 -o tiles/ECO4.mbtiles  -T id:string ECO4.json
 ```
 
-## Barriers pre-processing
+## 4. Barriers pre-processing
+
+### Dams
+
+Dams were provided by Kat on 9/5/2019. These include:
+
+-   dams in non-SARP states. These are drawn from the National Inventory of Dams for HUC4s that overlap SARP states.
+-   dams for each of the SARP states.
+-   manually snapped dam locations.
+
+The locations of dams have been updated using corrected locations obtained from the National Anthropogenic Barrier database or snapped manually by SARP staff and aquatic connectivity team members. These corrected locations are joined to the master inventory after merging the SARP and non-SARP state datasets together.
+
+Dams are snapped automatically to the aquatic network if within 100 meters. Dams are excluded from analysis if they did not snap to the network or were otherwise identified by various attributes (e.g., Recon). After snapping, dams are de-duplicated to remove those that are very close to each other (within 30m).
+
+Dams are processed using `analysis/prep/prep_dams.py`.
+
+### Small Barriers
+
+Small barriers were provided by Kat on 8/1/2019.
+
+Small barriers are automatically snapped to the aquatic network if within 50 meters. Barriers are excluded from analysis if they did not snap to the network or were otherwise identified by various attributes (e.g., Feasibility). After snapping, barriers are de-duplicated to remove those that are very close to each other (within 10m).
+
+Small barriers are processed using `analysis/prep/prep_small_barriers.py`.
 
 ### Road crossings
 
 Road crossings were obtained by Kat from USGS in 2018.
 
-These are processed using `analysis/prep/preprocess_road_crossings.py`.
+These are processed using `analysis/prep/preprocess_road_crossings.py`. Run this before small barriers above so it can be merged in.
 
 This creates a feather file that is joined in with final small barriers dataset to create background barriers displayed on the map.
 
----
+## <!--
 
 ### Old Workflow BELOW
 

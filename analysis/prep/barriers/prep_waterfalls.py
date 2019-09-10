@@ -28,17 +28,16 @@ from nhdnet.geometry.points import mark_duplicates, add_lat_lon
 
 from analysis.constants import REGION_GROUPS, REGIONS, CRS, DUPLICATE_TOLERANCE
 
-from analysis.prep.snap import snap_by_region
+from analysis.prep.barriers.snap import snap_by_region, update_from_snapped
 
 # Snap waterfalls by 100 meters
 SNAP_TOLERANCE = 100
 
 
 data_dir = Path("data")
-nhd_dir = Path("../data/sarp/derived/nhd/region")
 boundaries_dir = data_dir / "boundaries"
 barriers_dir = data_dir / "barriers"
-src_dir = barriers_dir / "src"
+src_dir = barriers_dir / "source"
 master_dir = barriers_dir / "master"
 snapped_dir = barriers_dir / "snapped"
 qa_dir = barriers_dir / "qa"
@@ -76,14 +75,6 @@ df["dropped"] = False
 # excluded: records that should be retained in dataset but not used in analysis
 # NOTE: no waterfalls are currently excluded from analysis
 df["excluded"] = False
-
-# duplicate: records that are duplicates of another record that was retained
-# NOTE: the first instance of a set of duplicates is NOT marked as a duplicate,
-# only following ones are.
-df["duplicate"] = False
-
-# snapped: records that snapped to the aquatic network and ready for network analysis
-df["snapped"] = False
 
 
 ### Cleanup data
@@ -141,18 +132,11 @@ print("Starting snapping for {} waterfalls".format(len(df)))
 # retain only fields needed for snapping
 to_snap = df.loc[~df.dropped, ["geometry", "HUC2", "id", "joinID"]]
 snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
-print("\n--------------\n")
 
-### Update snapped geometry into master
-df = (
-    df.set_index("id")
-    .join(snapped.set_index("id")[["geometry", "snap_dist"]], rsuffix="_snapped")
-    .reset_index()
-)
-idx = df.loc[~df.geometry_snapped.isnull()].index
-df.loc[idx, "geometry"] = df.loc[idx].geometry_snapped
-df.loc[idx, "snapped"] = True
-df = df.drop(columns=["geometry_snapped"])
+# join back to master
+df = update_from_snapped(df, snapped)
+
+print("\n--------------\n")
 
 ### Add lat / lon
 print("Adding lat / lon fields")
@@ -167,9 +151,14 @@ print(
 
 serialize_gdf(df, master_dir / "waterfalls.feather", index=False)
 
-print("Serializing {0} snapped waterfalls out of {1}".format(len(snapped), len(df)))
+print(
+    "Serializing {0} snapped waterfalls".format(len(df.loc[df.snapped & ~df.duplicate]))
+)
 serialize_gdf(
-    snapped[["geometry", "id", "joinID", "HUC2", "lineID", "NHDPlusID"]],
+    df.loc[
+        df.snapped & ~df.duplicate,
+        ["geometry", "id", "joinID", "HUC2", "lineID", "NHDPlusID"],
+    ],
     snapped_dir / "waterfalls.feather",
     index=False,
 )
