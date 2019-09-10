@@ -91,11 +91,7 @@ const Map = ({ searchFeature, onCreateMap }) => {
         <>
           <Coords map={map} />
           <GoToLocation map={map} />
-          <BasemapSelector
-            map={map}
-            defaultStyle={styleID}
-            basemaps={basemapLayers}
-          />
+          <BasemapSelector map={map} basemaps={basemapLayers} />
         </>
       )}
     </Wrapper>

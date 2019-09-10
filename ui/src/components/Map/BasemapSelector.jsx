@@ -1,10 +1,12 @@
-import React, { useState, useRef, useMemo, memo } from 'react'
+import React, { useState, useMemo, memo } from 'react'
 import PropTypes from 'prop-types'
 
-import styled, { css, themeGet } from 'style'
-import { siteMetadata } from '../../../gatsby-config'
+import styled, { themeGet } from 'style'
 
-const { mapboxToken } = siteMetadata
+import LightIcon from 'images/light-v9.png'
+import StreetsIcon from 'images/esri-streets.jpg'
+import TopoIcon from 'images/esri-topo.jpg'
+import ImageryIcon from 'images/esri-imagery.jpg'
 
 const Wrapper = styled.div`
   cursor: pointer;
@@ -35,25 +37,24 @@ const Basemap = styled.img`
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
   margin: 0;
 
+  width: 64px;
+  height: 64px;
+  border-radius: 64px;
+
   &:hover {
     box-shadow: 0 1px 5px rgba(0, 0, 0, 1);
     border-color: #eee;
   }
-
-  ${({ size }) => css`
-    width: ${size};
-    height: ${size};
-    border-radius: ${size};
-  `}
 `
 
-const BasemapSelector = ({
-  map,
-  defaultStyle,
-  basemaps,
-  tile: { z, x, y },
-  size,
-}) => {
+const icons = {
+  'light-v9': LightIcon,
+  imagery: ImageryIcon,
+  streets: StreetsIcon,
+  topo: TopoIcon,
+}
+
+const BasemapSelector = ({ map, basemaps }) => {
   const [isOpen, setIsOpen] = useState(false)
 
   // memoize construction of options to avoid doing this on every render
@@ -68,13 +69,10 @@ const BasemapSelector = ({
         })
       })
 
-      const { id, source } = layers[0]
+      const { id } = layers[0]
       return {
         id,
-        src: source.tiles[0]
-          .replace('{z}', z)
-          .replace('{x}', x)
-          .replace('{y}', y),
+        src: icons[id],
         layers: layers.map(({ id: layerId }) => layerId),
       }
     })
@@ -82,11 +80,11 @@ const BasemapSelector = ({
     return [
       {
         id: 'grey',
-        src: `https://api.mapbox.com/styles/v1/mapbox/${defaultStyle}/tiles/256/${z}/${x}/${y}?access_token=${mapboxToken}`,
+        src: icons['light-v9'],
         layers: [],
       },
     ].concat(basemapOptions)
-  }, [basemaps, defaultStyle, map, x, y, z])
+  }, [basemaps, map])
 
   const [basemap, setBasemap] = useState(options[0])
 
@@ -124,7 +122,6 @@ const BasemapSelector = ({
           <BasemapContainer>
             <Label>{nextBasemap.id}</Label>
             <Basemap
-              size={size}
               src={nextBasemap.src}
               onClick={() => handleBasemapClick(nextBasemap)}
             />
@@ -136,7 +133,6 @@ const BasemapSelector = ({
                 <Label>{altBasemap.id}</Label>
                 <Basemap
                   isActive={altBasemap.id === basemap.id}
-                  size={size}
                   src={altBasemap.src}
                   onClick={() => handleBasemapClick(altBasemap)}
                 />
@@ -145,7 +141,6 @@ const BasemapSelector = ({
         </>
       ) : (
         <Basemap
-          size={size}
           src={nextBasemap.src}
           onClick={() => handleBasemapClick(nextBasemap)}
         />
@@ -156,30 +151,14 @@ const BasemapSelector = ({
 
 BasemapSelector.propTypes = {
   map: PropTypes.object.isRequired,
-  defaultStyle: PropTypes.string.isRequired,
+  // NOTE: these must have corresponding images loaded directly in here
   basemaps: PropTypes.objectOf(
     PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
-        source: PropTypes.object.isRequired,
       })
     )
   ).isRequired,
-  tile: PropTypes.shape({
-    x: PropTypes.number.isRequired,
-    y: PropTypes.number.isRequired,
-    z: PropTypes.number.isRequired,
-  }),
-  size: PropTypes.string,
-}
-
-BasemapSelector.defaultProps = {
-  tile: {
-    x: 0,
-    y: 0,
-    z: 0,
-  },
-  size: '64px',
 }
 
 export default memo(BasemapSelector)
