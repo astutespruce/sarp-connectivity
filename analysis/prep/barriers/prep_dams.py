@@ -2,8 +2,12 @@
 Extract dams from original data source, process for use in network analysis, and convert to feather format.
 1. Cleanup data values (as needed)
 2. Filter out dams not to be included in analysis (based on PotentialFeasibility and Snap2018)
-3. Remove duplicate dams
-4. Snap to networks by HUC2 and merge into single data frame
+3. Snap to networks by HUC2 and merge into single data frame
+4. Remove duplicate dams
+
+This creates 2 files:
+`barriers/master/dams.feather` - master dams dataset, including coordinates updated from snapping
+`barriers/snapped/dams.feather` - snapped dams dataset for network analysis
 """
 
 from pathlib import Path
@@ -82,7 +86,7 @@ keep_cols = [
     "geometry",
     "SARPUniqueID",
     "AnalysisID",
-    "Snap2018",
+    "SNAP2018",
     "NIDID",
     "SourceDBID",
     "Barrier_Name",
@@ -98,19 +102,9 @@ keep_cols = [
     "Off_Network",
     "Mussel_Presence",
     "NumberRareSpeciesHUC12",
-    "StreamOrder",
+    # "StreamOrder",
     "Recon",
     "PotentialFeasibility",
-    # TODO - network metrics only retained for region 8 barriers
-    "AbsoluteGainMi",
-    "UpstreamMiles",
-    "DownstreamMiles",
-    "TotalNetworkMiles",
-    "PctNatFloodplain",
-    "NetworkSinuosity",
-    "NumSizeClassGained",
-    "batUSNetID",
-    "batDSNetID",
 ]
 
 
@@ -122,7 +116,9 @@ merged = None
 for state in sarp_states:
     print("Reading dams in {}...".format(state))
     try:
-        df = gp.read_file(gdb, layer=sarp_state_layer.format(state=state))
+        df = gp.read_file(gdb, layer=sarp_state_layer.format(state=state)).rename(
+            columns={"Snap2018": "SNAP2018"}
+        )
     except:
         print("WARNING: Layer not found for {}".format(state))
         continue
@@ -145,13 +141,17 @@ merged = merged.loc[merged.geometry.notnull()].copy().to_crs(CRS)
 print(
     "Reading dams that fall outside SARP states, but within HUC4s that overlap with SARP states..."
 )
-outside_df = gp.read_file(gdb, layer=outside_layer)[keep_cols].to_crs(CRS)
+outside_df = (
+    gp.read_file(gdb, layer=outside_layer)
+    .rename(columns={"Snap2018": "SNAP2018"})[keep_cols]
+    .to_crs(CRS)
+)
 df = merged.append(outside_df, ignore_index=True, sort=False)
 
 
 ### Read in dams that have been manually snapped and join to get latest location
 # Join on AnalysisID to merged data above.
-# ONLY keep Snap2018 and the location.
+# ONLY keep SNAP2018 and the location.
 print("Reading manually snapped dams...")
 snapped_df = gp.read_file(gdb, layer=snapped_layer)[
     ["geometry", "AnalysisID", "SNAP2018"]
@@ -162,8 +162,9 @@ snapped_df = snapped_df.loc[snapped_df.geometry.notnull()].to_crs(CRS)
 df = df.set_index("AnalysisID").join(snapped_df, rsuffix="_snap").reset_index()
 idx = df.loc[df.geometry_snap.notnull()].index
 df.loc[idx, "geometry"] = df.loc[idx].geometry_snap
+df.loc[idx, "SNAP2018"] = df.loc[idx].SNAP2018_snap
 df = (
-    df.drop(columns=["geometry_snap"])
+    df.drop(columns=[c for c in df.columns if c.endswith("_snap")])
     .reset_index()
     .rename(
         columns={
@@ -189,11 +190,7 @@ df.rename(
 
 ### Add IDs for internal use
 # internal ID
-df["id"] = df.index.astype("uint")
-
-# joinID is used for all internal joins in analysis
-df["joinID"] = "d" + df.id.astype("str")
-
+df["id"] = df.index.astype("uint32")
 
 ### Add tracking fields
 # dropped: records that should not be included in any later analysis
@@ -361,9 +358,7 @@ df.loc[exclude_idx, "excluded"] = True
 
 
 ### Snap by region group
-to_snap = df.loc[
-    ~(df.dropped | df.excluded), ["geometry", "HUC2", "id", "joinID"]
-].copy()
+to_snap = df.loc[~(df.dropped | df.excluded), ["geometry", "HUC2", "id"]].copy()
 print("Attempting to snap {} dams".format(len(to_snap)))
 
 snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
@@ -385,15 +380,19 @@ print("{} duplicate dams removed after snapping".format(len(df.loc[df.duplicate]
 print("Serializing {} dams to master file".format(len(df)))
 serialize_gdf(df, master_dir / "dams.feather", index=False)
 
-print("Serializing {0} snapped dams".format(len(df.loc[df.snapped & ~df.duplicate])))
+print("writing shapefiles for QA/QC")
+to_shp(df, qa_dir / "dams.shp")
+
+
+# Extract out only the snapped ones
+df = df.loc[df.snapped & ~df.duplicate].copy()
+df.lineID = df.lineID.astype("uint32")
+df.NHDPlusID = df.NHDPlusID.astype("uint64")
+
+print("Serializing {0} snapped dams".format(len(df)))
 serialize_gdf(
-    df.loc[
-        df.snapped & ~df.duplicate,
-        ["geometry", "id", "joinID", "HUC2", "lineID", "NHDPlusID"],
-    ],
+    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]],
     snapped_dir / "dams.feather",
     index=False,
 )
 
-print("writing shapefiles for QA/QC")
-to_shp(df, qa_dir / "dams.shp")

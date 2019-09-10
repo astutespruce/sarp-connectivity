@@ -34,8 +34,12 @@ def snap_by_region(df, regions, tolerance):
         region_dir = nhd_dir / region
 
         print("Reading flowlines")
-        flowlines = deserialize_gdf(region_dir / "flowline.feather").set_index(
-            "lineID", drop=False
+        flowlines = (
+            deserialize_gdf(region_dir / "flowline.feather")[
+                ["geometry", "lineID", "NHDPlusID", "streamorder", "sizeclass"]
+            ]
+            .rename(columns={"streamorder": "StreamOrder", "sizeclass": "SizeClass"})
+            .set_index("lineID", drop=False)
         )
         print("Read {0} flowlines".format(len(flowlines)))
 
@@ -75,7 +79,9 @@ def update_from_snapped(df, snapped):
 
     df["snapped"] = False
     df = df.join(
-        snapped.set_index("id")[["geometry", "snap_dist", "lineID", "NHDPlusID"]],
+        snapped.set_index("id")[
+            ["geometry", "snap_dist", "lineID", "NHDPlusID", "StreamOrder", "SizeClass"]
+        ],
         on="id",
         rsuffix="_snapped",
     )

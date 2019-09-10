@@ -2,15 +2,12 @@
 Extract small barriers from original data source, process for use in network analysis, and convert to feather format.
 1. Cleanup data values (as needed)
 2. Filter out barriers not to be included in analysis (based on Potential_Project and Snap2018)
-3. Remove duplicate barriers
-4. Snap to networks by HUC2
+3. Snap to networks by HUC2
+4. Remove duplicate barriers
 
 This creates 2 files:
 `barriers/master/small_barriers.feather` - master barriers dataset, including coordinates updated from snapping
 `barriers/snapped/small_barriers.feather` - snapped barriers dataset for network analysis
-
-
-
 """
 
 from pathlib import Path
@@ -88,16 +85,6 @@ keep_cols = [
     "Potential_Project",
     "Source",
     "NumberRareSpeciesHUC12",
-    # TODO - network metrics only retained for region 8 barriers
-    "AbsoluteGainMi",
-    "UpstreamMiles",
-    "DownstreamMiles",
-    "TotalNetworkMiles",
-    "PctNatFloodplain",
-    "NetworkSinuosity",
-    "NumSizeClassesGained",
-    "batUSNetID",
-    "batDSNetId",
 ]
 
 df = (
@@ -133,10 +120,7 @@ df.rename(
 
 ### Add IDs for internal use
 # internal ID
-df["id"] = df.index.astype("uint")
-
-# joinID is used for all internal joins in analysis
-df["joinID"] = "sb" + df.id.astype("str")
+df["id"] = df.index.astype("uint32")
 
 
 ### Add tracking fields
@@ -274,9 +258,7 @@ df.loc[exclude_idx, "excluded"] = True
 
 
 ### Snap by region group
-to_snap = df.loc[
-    ~(df.dropped | df.excluded), ["geometry", "HUC2", "id", "joinID"]
-].copy()
+to_snap = df.loc[~(df.dropped | df.excluded), ["geometry", "HUC2", "id"]].copy()
 snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
 print("\n--------------\n")
 
@@ -305,20 +287,18 @@ print("Serializing {} small barriers".format(len(df)))
 serialize_gdf(df, master_dir / "small_barriers.feather", index=False)
 
 
-print(
-    "Serializing {0} snapped small barriers".format(
-        len(df.loc[df.snapped & ~df.duplicate])
-    )
-)
-serialize_gdf(
-    df.loc[
-        df.snapped & ~df.duplicate,
-        ["geometry", "id", "joinID", "HUC2", "lineID", "NHDPlusID"],
-    ],
-    snapped_dir / "small_barriers.feather",
-    index=False,
-)
-
 print("writing shapefiles for QA/QC")
 to_shp(df, qa_dir / "small_barriers.shp")
 
+
+# Extract out only the snapped ones
+df = df.loc[df.snapped & ~df.duplicate].copy()
+df.lineID = df.lineID.astype("uint32")
+df.NHDPlusID = df.NHDPlusID.astype("uint64")
+
+print("Serializing {0} snapped small barriers".format(len(df)))
+serialize_gdf(
+    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]],
+    snapped_dir / "small_barriers.feather",
+    index=False,
+)

@@ -13,9 +13,13 @@ Processing on updates to the inventory is derived into 3 main parts:
 2. Prioritization analysis of barriers
 3. Creation of vector tiles for the barriers datasets
 
-## Data preparation
+## Aquatic network data preparation
 
-See `analysis/prep/README.md`
+See `analysis/prep/network/README.md`
+
+## Aquatic barrier data preparation
+
+See `analysis/prep/barriers/README.md`
 
 ## Network analysis
 

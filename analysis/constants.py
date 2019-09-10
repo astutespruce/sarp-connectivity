@@ -52,17 +52,6 @@ CRS = {
     "no_defs": True,
 }
 
-# The columns to include from the barriers data for use in the network analysis.
-# The same columns are included for each type of barrier.
-BARRIER_COLUMNS = [
-    "lineID",
-    "NHDPlusID",
-    "joinID",
-    "geometry",
-    "snap_dist",
-    "nearby",
-    "kind",
-]
 
 # Used to filter small barriers by Potential_Project (small barriers)
 # based on guidance from Kat

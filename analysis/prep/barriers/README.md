@@ -183,7 +183,24 @@ tippecanoe -f -Z 3 -z 12 -l ECO4 -o tiles/ECO4.mbtiles  -T id:string ECO4.json
 
 ## 4. Barriers pre-processing
 
+Barriers are extracted from multiple sources for the network connectivity and barrier prioritization analyses. They include:
+
+-   waterfalls
+-   dams
+-   small barriers (inventoried road-related crossings)
+-   road crossings (non-inventoried road-related crossings)
+
+### Waterfalls
+
+Waterfalls are processed using `analysis/prep/barriers/prep_waterfalls.py`.
+
+Waterfalls were obtained by Kat from USGS in early 2019.
+
+Waterfalls are snapped to the aquatic network and duplicates are marked.
+
 ### Dams
+
+Dams are processed using `analysis/prep/prep_dams.py`.
 
 Dams were provided by Kat on 9/5/2019. These include:
 
@@ -195,15 +212,13 @@ The locations of dams have been updated using corrected locations obtained from 
 
 Dams are snapped automatically to the aquatic network if within 100 meters. Dams are excluded from analysis if they did not snap to the network or were otherwise identified by various attributes (e.g., Recon). After snapping, dams are de-duplicated to remove those that are very close to each other (within 30m).
 
-Dams are processed using `analysis/prep/prep_dams.py`.
-
 ### Small Barriers
+
+Small barriers are processed using `analysis/prep/prep_small_barriers.py`.
 
 Small barriers were provided by Kat on 8/1/2019.
 
 Small barriers are automatically snapped to the aquatic network if within 50 meters. Barriers are excluded from analysis if they did not snap to the network or were otherwise identified by various attributes (e.g., Feasibility). After snapping, barriers are de-duplicated to remove those that are very close to each other (within 10m).
-
-Small barriers are processed using `analysis/prep/prep_small_barriers.py`.
 
 ### Road crossings
 
@@ -213,7 +228,7 @@ These are processed using `analysis/prep/preprocess_road_crossings.py`. Run this
 
 This creates a feather file that is joined in with final small barriers dataset to create background barriers displayed on the map.
 
-## <!--
+<!--
 
 ### Old Workflow BELOW
 

@@ -1,5 +1,5 @@
 """
-Extract NHD File Geodatabases (FGDB) for all HUC4s within a region (HUC2).
+Extract NHD File Geodatabases (FGDB) for all HUC4s within each region group (set of HUC2s).
 
 Data are downloaded using `nhd/download.py::download_huc4`.
 
@@ -9,8 +9,9 @@ Due to data limitations of the FGDB / Shapefile format, NHDPlus IDs are represen
 However, float64 data are not ideal for indexing, so all IDs are converted to uint64 within this package, and
 converted back to float64 only for export to GIS.
 
-These are output as 2 files:
-* flowlines.feather: serialized flowline geometry and attributes
+These are output as 3 files:
+* flowline.feather: serialized flowline geometry and attributes
+* flowline.sidx: serialized bounding box data used to reconstruct the spatial index for flowlines
 * flowline_joins.feather: serialized joins between adjacent flowlines, with the upstream and downstream IDs of a join
 
 Note: there may be cases where Geopandas is unable to read a FGDB file.  See `nhdnet.nhd.extract` for specific workarounds.
@@ -21,8 +22,7 @@ import os
 from time import time
 
 from nhdnet.nhd.extract import extract_flowlines
-from nhdnet.nhd.legacy.extract import extract_flowlines_mr
-from nhdnet.io import serialize_gdf, serialize_df, to_shp
+from nhdnet.io import serialize_gdf, serialize_df, to_shp, serialize_sindex
 
 from analysis.constants import REGIONS, REGION_GROUPS, CRS
 
@@ -38,7 +38,6 @@ for region, HUC2s in REGION_GROUPS.items():
     if os.path.exists(region_dir / "flowline.feather"):
         print("Skipping existing region {}".format(region))
         continue
-
 
     region_start = time()
 
@@ -57,7 +56,11 @@ for region, HUC2s in REGION_GROUPS.items():
             print("Reading {}".format(HUC4))
             gdb = src_dir / HUC4 / "NHDPLUS_H_{HUC4}_HU4_GDB.gdb".format(HUC4=HUC4)
             flowlines, joins = extract_flowlines(gdb, target_crs=CRS)
-            print("Read {} flowlines in  {:.0f} seconds".format(len(flowlines), time() - read_start))
+            print(
+                "Read {} flowlines in  {:.0f} seconds".format(
+                    len(flowlines), time() - read_start
+                )
+            )
 
             flowlines = flowlines[
                 [
@@ -70,8 +73,6 @@ for region, HUC2s in REGION_GROUPS.items():
                     "streamorder",
                 ]
             ]
-            flowlines["HUC2"] = HUC2
-            joins["HUC2"] = HUC2
 
             # Calculate lineIDs to be unique across the regions
             huc_id = int(HUC4) * 1000000
@@ -109,6 +110,7 @@ for region, HUC2s in REGION_GROUPS.items():
 
     print("serializing {} flowlines to feather".format(len(merged)))
     serialize_gdf(merged, region_dir / "flowline.feather")
+    serialize_sindex(merged, region_dir / "flowline.sidx")
     serialize_df(merged_joins, region_dir / "flowline_joins.feather", index=False)
 
     print("serializing to shp")

@@ -63,10 +63,7 @@ df = df.to_crs(CRS)
 
 ### Add IDs for internal use
 # internal ID
-df["id"] = df.index.astype("uint")
-
-# joinID is used for all internal joins in analysis
-df["joinID"] = "wf" + df.id.astype("str")
+df["id"] = df.index.astype("uint32")
 
 ### Add tracking fields
 # dropped: records that should not be included in any later analysis
@@ -130,7 +127,7 @@ df.loc[drop_idx, "dropped"] = True
 print("Starting snapping for {} waterfalls".format(len(df)))
 
 # retain only fields needed for snapping
-to_snap = df.loc[~df.dropped, ["geometry", "HUC2", "id", "joinID"]]
+to_snap = df.loc[~df.dropped, ["geometry", "HUC2", "id"]]
 snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
 
 # join back to master
@@ -151,17 +148,18 @@ print(
 
 serialize_gdf(df, master_dir / "waterfalls.feather", index=False)
 
-print(
-    "Serializing {0} snapped waterfalls".format(len(df.loc[df.snapped & ~df.duplicate]))
-)
+print("writing shapefiles for QA/QC")
+to_shp(df, qa_dir / "waterfalls.shp")
+
+# Extract out only the snapped ones
+df = df.loc[df.snapped & ~df.duplicate].copy()
+df.lineID = df.lineID.astype("uint32")
+df.NHDPlusID = df.NHDPlusID.astype("uint64")
+
+print("Serializing {0} snapped waterfalls".format(len(df)))
 serialize_gdf(
-    df.loc[
-        df.snapped & ~df.duplicate,
-        ["geometry", "id", "joinID", "HUC2", "lineID", "NHDPlusID"],
-    ],
+    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]],
     snapped_dir / "waterfalls.feather",
     index=False,
 )
 
-print("writing shapefiles for QA/QC")
-to_shp(df, qa_dir / "waterfalls.shp")
