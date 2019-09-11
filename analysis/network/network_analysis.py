@@ -107,6 +107,7 @@ flowlines = (
 joins = deserialize_df(joins_feather)
 print("read {:,} flowlines".format(len(flowlines)))
 
+
 print("Done reading flowlines in {:.2f}s".format(time() - flowline_start))
 
 ##################### Cut flowlines #################
@@ -121,7 +122,7 @@ flowlines, joins, barrier_joins = cut_flowlines(
 )
 # barrier_joins.upstream_id = barrier_joins.upstream_id.astype("uint32")
 # barrier_joins.downstream_id = barrier_joins.downstream_id.astype("uint32")
-# barrier_joins.set_index("joinID", drop=False)
+# barrier_joins.set_index("barrierID", drop=False)
 
 print("Done cutting flowlines in {:.2f}".format(time() - cut_start))
 
@@ -130,6 +131,9 @@ if QA:
     serialize_df(joins, qa_dir / "updated_joins.feather", index=False)
     serialize_df(barrier_joins, qa_dir / "barrier_joins.feather", index=False)
     serialize_gdf(flowlines, qa_dir / "split_flowlines.feather", index=False)
+
+    # FIXME: remove
+    # to_shp(flowlines, qa_dir / "split_flowlines.shp")
 
     print("Done serializing cut flowlines in {:.2f}".format(time() - cut_start))
 
@@ -197,8 +201,8 @@ if len(multiple_upstreams):
     )
 
     # For each barrier with multiple upstreams, coalesce their networkIDs
-    for joinID in multiple_upstreams.index.unique():
-        upstream_ids = multiple_upstreams.loc[joinID].upstream_id
+    for barrierID in multiple_upstreams.index.unique():
+        upstream_ids = multiple_upstreams.loc[barrierID].upstream_id
 
         # Set all upstream networks for this barrier to the ID of the first
         barrier_network_segments.loc[
@@ -253,8 +257,8 @@ network_stats = network_stats[
 
 print("calculating upstream and downstream networks for barriers")
 # join to upstream networks
-barriers = barriers.set_index("joinID")[["kind"]]
-barrier_joins.set_index("joinID", inplace=True)
+barriers = barriers.set_index("barrierID")[["kind"]]
+barrier_joins.set_index("barrierID", inplace=True)
 
 # Join upstream networks, dropping any that don't have networks
 upstream_stats = barrier_joins.join(network_stats, on="upstream_id").dropna()
@@ -298,7 +302,7 @@ barrier_networks.NumSizeClassGained = barrier_networks.NumSizeClassGained.fillna
 
 serialize_df(barrier_networks.reset_index(), barrier_network_feather)
 barrier_networks.to_csv(
-    str(barrier_network_feather).replace(".feather", ".csv"), index_label="joinID"
+    str(barrier_network_feather).replace(".feather", ".csv"), index_label="barrierID"
 )
 
 

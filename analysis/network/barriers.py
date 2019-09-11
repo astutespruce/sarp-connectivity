@@ -40,7 +40,7 @@ def read_barriers(region, mode):
     wf = wf.loc[wf.HUC2.isin(REGION_GROUPS[region])].copy()
     print("Selected {:,} waterfalls".format(len(wf)))
 
-    wf["joinID"] = WATERFALLS_ID + wf.id
+    wf["barrierID"] = WATERFALLS_ID + wf.id
     wf["kind"] = "waterfall"
 
     barriers = wf
@@ -51,7 +51,7 @@ def read_barriers(region, mode):
         dams = dams.loc[dams.HUC2.isin(REGION_GROUPS[region])].copy()
         print("Selected {:,} dams".format(len(dams)))
 
-        dams["joinID"] = DAMS_ID + dams.id
+        dams["barrierID"] = DAMS_ID + dams.id
         dams["kind"] = "dam"
 
         if len(dams):
@@ -63,7 +63,7 @@ def read_barriers(region, mode):
         sb = sb.loc[sb.HUC2.isin(REGION_GROUPS[region])].copy()
         print("Selected {:,} small barriers".format(len(sb)))
 
-        sb["joinID"] = SB_ID + sb.id
+        sb["barrierID"] = SB_ID + sb.id
         sb["kind"] = "small_barrier"
 
         if len(sb):
@@ -75,8 +75,8 @@ def read_barriers(region, mode):
     barriers.lineID = barriers.lineID.astype("uint32")
     barriers.NHDPlusID = barriers.NHDPlusID.astype("uint64")
 
-    barriers.joinID = barriers.joinID.astype("uint64")
+    barriers.barrierID = barriers.barrierID.astype("uint64")
     return barriers[
-        ["geometry", "id", "lineID", "NHDPlusID", "joinID", "kind"]
-    ].set_index("joinID", drop=False)
+        ["geometry", "id", "lineID", "NHDPlusID", "barrierID", "kind"]
+    ].set_index("barrierID", drop=False)
 
