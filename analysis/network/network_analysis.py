@@ -41,7 +41,7 @@ QA = True
 
 mode = MODES[1]
 
-region = "02"  # Identifier of region group or region
+region = "03"  # Identifier of region group or region
 
 ### END Runtime variables
 ### -------------------------------------------
@@ -87,6 +87,7 @@ print("Reading barriers for analysis...")
 barriers = read_barriers(region, mode)
 print("Extracted {:,} barriers in this region".format(len(barriers)))
 
+
 if QA:
     print("Serializing barriers...")
     serialize_gdf(barriers, qa_dir / "barriers.feather", index=False)
@@ -120,9 +121,6 @@ next_segment_id = int(REGION_GROUPS[region][0]) * 1000000 + 1
 flowlines, joins, barrier_joins = cut_flowlines(
     flowlines, barriers, joins, next_segment_id=next_segment_id
 )
-# barrier_joins.upstream_id = barrier_joins.upstream_id.astype("uint32")
-# barrier_joins.downstream_id = barrier_joins.downstream_id.astype("uint32")
-# barrier_joins.set_index("barrierID", drop=False)
 
 print("Done cutting flowlines in {:.2f}".format(time() - cut_start))
 
@@ -131,9 +129,6 @@ if QA:
     serialize_df(joins, qa_dir / "updated_joins.feather", index=False)
     serialize_df(barrier_joins, qa_dir / "barrier_joins.feather", index=False)
     serialize_gdf(flowlines, qa_dir / "split_flowlines.feather", index=False)
-
-    # FIXME: remove
-    # to_shp(flowlines, qa_dir / "split_flowlines.shp")
 
     print("Done serializing cut flowlines in {:.2f}".format(time() - cut_start))
 
@@ -147,47 +142,73 @@ if QA:
 print("------------------- Creating networks -----------")
 network_start = time()
 
-# remove any origin segments ()
-barrier_segments = barrier_joins.loc[barrier_joins.upstream_id != 0][["upstream_id"]]
+# remove any segments that are at the upstream-most terminals of networks
+barrier_segments = barrier_joins.loc[barrier_joins.upstream_id != 0].set_index(
+    "upstream_id"
+)[[]]
 
-print("generating upstream index")
+### Generate upstream index
 # Remove origins, terminals, and barrier segments
-upstreams = (
-    joins.loc[
-        (joins.upstream_id != 0)
-        & (joins.downstream_id != 0)
-        & (~joins.upstream_id.isin(barrier_segments.upstream_id))
-    ]
-    .groupby("downstream_id")["upstream_id"]
-    .apply(list)
-    .to_dict()
-)
+# then create an index of downstream_id to all upstream_ids from it (dictionary of downstream_id to the corresponding upstream_id(s)).
+# This is so that network building can start from a downstream-most
+# line ID, and then build upward for all segments that have that as a downstream segment.
+# NOTE: this looks backward but is correct for the way that grouping works.
+print("Generating upstream index...")
+index_start = time()
+upstreams = joins.loc[
+    (joins.upstream_id != 0)
+    & (joins.downstream_id != 0)
+    & (~joins.upstream_id.isin(barrier_segments.index)),
+    ["downstream_id", "upstream_id"],
+]
+upstream_index = upstreams.set_index("upstream_id").groupby("downstream_id").groups
 
+print("Index complete in {:.2f}".format(time() - index_start))
+
+### Get list of network root IDs
 # Create networks from all terminal nodes (have no downstream nodes) up to barriers
 # Note: origins are also those that have a downstream_id but are not the upstream_id of another node
-origin_idx = (joins.downstream_id == 0) | (
-    ~joins.downstream_id.isin(joins.upstream_id.unique())
-)
-not_barrier_idx = ~joins.upstream_id.isin(barrier_segments.upstream_id)
-root_ids = joins.loc[origin_idx & not_barrier_idx][["upstream_id"]].copy()
+origin_idx = (joins.downstream_id == 0) | (~joins.downstream_id.isin(joins.upstream_id))
 
-print(
-    "Starting network creation for {} origin points and {} barriers".format(
-        len(root_ids), len(barrier_segments)
-    )
+origins = joins.loc[origin_idx].set_index("upstream_id")[[]]
+
+### Extract all origin points and barrier segments that immediately terminate upstream
+single_segment_networks = origins.append(barrier_segments).join(
+    upstreams.set_index("downstream_id")
 )
+single_segment_networks = single_segment_networks.loc[
+    single_segment_networks.upstream_id.isnull()
+][[]]
+single_segment_networks.index.rename("lineID", inplace=True)
+single_segment_networks["networkID"] = single_segment_networks.index
+single_segment_networks["type"] = "origin"
+single_segment_networks.loc[
+    single_segment_networks.index.isin(barrier_segments.index), "type"
+] = "barrier"
+
+print("{:,} networks are a single segment long".format(len(single_segment_networks)))
 
 # origin segments are the root of each non-barrier origin point up to barriers
 # segments are indexed by the id of the segment at the root for each network
-origin_network_segments = generate_networks(root_ids, upstreams)
+origins_with_upstreams = origins.loc[
+    ~origins.index.isin(single_segment_networks.index)
+].index.to_series(name="networkID")
+
+print("Generating networks for {:,} origin points".format(len(origins_with_upstreams)))
+
+origin_network_segments = generate_networks(origins_with_upstreams, upstream_index)
 origin_network_segments["type"] = "origin"
 
 # barrier segments are the root of each upstream network from each barrier
 # segments are indexed by the id of the segment at the root for each network
-barrier_network_segments = generate_networks(barrier_segments, upstreams)
+barriers_with_upstreams = barrier_segments.loc[
+    ~barrier_segments.index.isin(single_segment_networks.index)
+].index.to_series(name="networkID")
+print("Generating networks for {:,} barriers".format(len(barriers_with_upstreams)))
+barrier_network_segments = generate_networks(barriers_with_upstreams, upstream_index)
 barrier_network_segments["type"] = "barrier"
 
-# In Progress - multiple upstreams
+# Handle multiple upstreams
 upstream_count = barrier_joins.groupby(level=0).size()
 multiple_upstreams = barrier_joins.loc[
     barrier_joins.index.isin(upstream_count.loc[upstream_count > 1].index)
@@ -210,15 +231,20 @@ if len(multiple_upstreams):
         ] = upstream_ids.iloc[0]
 
 # Append network types back together
-network_df = origin_network_segments.append(
-    barrier_network_segments, sort=False, ignore_index=False
+network_df = (
+    single_segment_networks.reset_index()
+    .append(origin_network_segments, sort=False, ignore_index=False)
+    .append(barrier_network_segments, sort=False, ignore_index=False)
 )
+network_df.lineID = network_df.lineID.astype("uint32")
+network_df = network_df.set_index("lineID")
+
 
 # Join back to flowlines, dropping anything that didn't get networks
 network_df = flowlines.join(network_df, how="inner")
 
 print(
-    "{0} networks done in {1:.2f}".format(
+    "{0:,} networks done in {1:.2f}".format(
         len(network_df.networkID.unique()), time() - network_start
     )
 )
@@ -258,7 +284,6 @@ network_stats = network_stats[
 print("calculating upstream and downstream networks for barriers")
 # join to upstream networks
 barriers = barriers.set_index("barrierID")[["kind"]]
-barrier_joins.set_index("barrierID", inplace=True)
 
 # Join upstream networks, dropping any that don't have networks
 upstream_stats = barrier_joins.join(network_stats, on="upstream_id").dropna()
@@ -300,7 +325,8 @@ barrier_networks.NumSizeClassGained = barrier_networks.NumSizeClassGained.fillna
     0
 ).astype("uint8")
 
-serialize_df(barrier_networks.reset_index(), barrier_network_feather)
+# TODO: deal with barrierID attribute vs index
+serialize_df(barrier_networks.reset_index(drop=True), barrier_network_feather)
 barrier_networks.to_csv(
     str(barrier_network_feather).replace(".feather", ".csv"), index_label="barrierID"
 )
