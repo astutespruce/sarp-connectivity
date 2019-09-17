@@ -1,3 +1,12 @@
+from pathlib import Path
+import pandas as pd
+
+from nhdnet.io import deserialize_df
+
+
+data_dir = Path("data")
+
+
 def calculate_network_stats(df):
     """Calculation of network statistics, for each functional network.
     
@@ -8,7 +17,6 @@ def calculate_network_stats(df):
         * length
         * sinuosity
         * size class
-        * floodplain area and area of floodplain in natural landcover
     
     Returns
     -------
@@ -16,77 +24,94 @@ def calculate_network_stats(df):
         Summary statistics, with one row per functional network.
     """
 
+    return (
+        calculate_geometry_stats(df)
+        .join(calculate_floodplain_stats(df))
+        .join(calculate_size_classes_gained(df))
+    )
+
+
+def calculate_geometry_stats(df):
+    """Calculate total network miles, length-weighted sinuosity, and count of segments
+    
+    Parameters
+    ----------
+    df : DataFrame
+        must have length and sinuosity, and be indexed on networkID
+    
+    Returns
+    -------
+    DataFrame
+        contains miles, NetworkSinuosity, NumSegments
+    """
+
+    network_length = df.groupby(level=0).length.sum()
+    temp_df = df[["length", "sinuosity"]].join(network_length, rsuffix="_total")
+
     # Calculate length-weighted sinuosity
-    sum_length_df = (
-        df[["networkID", "length"]]
-        .groupby(["networkID"])
+    wtd_sinuosity = (
+        (temp_df.sinuosity * (temp_df.length / temp_df.length_total))
+        .groupby(level=0)
         .sum()
-        .reset_index()
-        .set_index("networkID")
-    )
-    temp_df = df.join(sum_length_df, on="networkID", rsuffix="_total")
-    temp_df["wtd_sinuosity"] = temp_df.sinuosity * (
-        temp_df.length / temp_df.length_total
     )
 
-    wtd_sinuosity_df = (
-        temp_df[["networkID", "wtd_sinuosity"]]
-        .groupby(["networkID"])
-        .sum()
-        .reset_index()
-        .set_index("networkID")
+    # convert meters to miles
+    return pd.DataFrame(
+        data={
+            "miles": network_length * 0.000621371,
+            "NetworkSinuosity": wtd_sinuosity,
+            "NumSegments": df.groupby(level=0).size(),
+        }
     )
 
-    # Calculate number of unique size classes beyond the first size class.
-    # Because a unique count of 1 is equivalent to gaining no additional size classes.
-    num_sc_df = (
-        df[["networkID", "sizeclass"]]
-        .groupby("networkID")
-        .sizeclass.nunique()
-        .reset_index()
-        .set_index("networkID")
-    )
-    num_sc_df = num_sc_df - 1
+
+def calculate_floodplain_stats(df):
+    """Calculate percent of floodplain covered by natural landcover.
+    
+    Parameters
+    ----------
+    df : DataFrame
+        network data frame, must have NHDPlusID and be indexed on networkID
+    
+    Returns
+    -------
+    Series
+        percent natural landcover
+    """
 
     # Sum floodplain and natural floodplain values, and calculate percent natural floodplain
-    pct_nat_df = (
-        df[["networkID", "floodplain_km2", "nat_floodplain_km2"]]
-        .groupby("networkID")
-        .sum()
-        .reset_index()
-        .set_index("networkID")
-    )
-    pct_nat_df["PctNatFloodplain"] = (
-        100 * pct_nat_df.nat_floodplain_km2 / pct_nat_df.floodplain_km2
-    ).astype("float32")
+    # Read in associated floodplain info and join
+    fp_stats = deserialize_df(
+        data_dir / "floodplains" / "floodplain_stats.feather"
+    ).set_index("NHDPlusID")
+    df = df.join(fp_stats, on="NHDPlusID")
 
-    # Count number of segments for each network
-    segment_count_df = (
-        df[["networkID"]]
-        .groupby("networkID")
-        .size()
-        .reset_index()
-        .set_index("networkID")
-        .rename(columns={0: "count"})
+    pct_nat_df = df[["floodplain_km2", "nat_floodplain_km2"]].groupby(level=0).sum()
+    # pct_nat_df["PctNatFloodplain"] = (
+    #     100 * pct_nat_df.nat_floodplain_km2 / pct_nat_df.floodplain_km2
+    # ).astype("float32")
+
+    return (
+        (100 * pct_nat_df.nat_floodplain_km2 / pct_nat_df.floodplain_km2)
+        .astype("float32")
+        .rename("PctNatFloodplain")
     )
 
-    # Create the final statistics data frame
-    stats_df = (
-        sum_length_df.join(wtd_sinuosity_df)
-        .join(num_sc_df)
-        .join(segment_count_df)
-        .join(pct_nat_df[["PctNatFloodplain"]])
-        .rename(
-            columns={
-                "wtd_sinuosity": "NetworkSinuosity",
-                "sizeclass": "NumSizeClassGained",
-            }
-        )
-    )
 
-    # convert units to miles
-    stats_df["miles"] = stats_df.length * 0.000621371
+def calculate_size_classes_gained(df):
+    """Calculate the number of new size classes gained in the upstream network
+    
+    Parameters
+    ----------
+    df : DataFrame
+        Network data frame, must include sizeclasses and be indexed on networkID
+    
+    Returns
+    -------
+    Series
+        number of size classes gained
+    """
+    # Calculate number of unique size classes beyond the first size class.
+    # Because a unique count of 1 is equivalent to gaining no additional size classes.
 
-    return stats_df[
-        ["miles", "NetworkSinuosity", "NumSizeClassGained", "PctNatFloodplain", "count"]
-    ]
+    return (df.groupby(level=0).sizeclass.nunique() - 1).rename("NumSizeClassGained")

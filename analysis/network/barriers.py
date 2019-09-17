@@ -1,4 +1,5 @@
 from pathlib import Path
+from time import time
 
 from nhdnet.io import (
     deserialize_df,
@@ -35,6 +36,8 @@ def read_barriers(region, mode):
         Merged barriers file
     """
 
+    start = time()
+
     print("Reading waterfalls")
     wf = deserialize_gdf(barriers_dir / "waterfalls.feather")
     wf = wf.loc[wf.HUC2.isin(REGION_GROUPS[region])].copy()
@@ -70,13 +73,33 @@ def read_barriers(region, mode):
             barriers = barriers.append(sb, ignore_index=True, sort=False)
 
     # Update dtypes
-    # TODO: not neeed after rerun of prep_*
+    # TODO: not neeed after rerun of prep_*.py scripts
     barriers.id = barriers.id.astype("uint32")
     barriers.lineID = barriers.lineID.astype("uint32")
     barriers.NHDPlusID = barriers.NHDPlusID.astype("uint64")
 
     barriers.barrierID = barriers.barrierID.astype("uint64")
+
+    print("Extracted {:,} barriers in {:.2f}s".format(len(barriers), time() - start))
+
     return barriers[
         ["geometry", "id", "lineID", "NHDPlusID", "barrierID", "kind"]
     ].set_index("barrierID", drop=False)
 
+
+def save_barriers(out_dir, barriers):
+    """Save consolidated barriers to disk for QA.
+    
+    Parameters
+    ----------
+    out_dir : str
+    barriers : GeoDataFrame
+    """
+
+    print("Serializing {:,} barriers...".format(len(barriers)))
+    start = time()
+
+    serialize_gdf(barriers, out_dir / "barriers.feather", index=False)
+    to_shp(barriers, out_dir / "barriers.shp")
+
+    print("Done serializing barriers in {:.2f}s".format(time() - start))
