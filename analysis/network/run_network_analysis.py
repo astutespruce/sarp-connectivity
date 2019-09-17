@@ -45,8 +45,7 @@ start = time()
 for region, mode in product(REGION_GROUPS.keys(), MODES[1:]):
     print("\n\n###### Processing region {0}: {1} networks #####".format(region, mode))
 
-    # out_dir = data_dir / "networks" / region / mode
-    out_dir = Path("/tmp/networks") / region / mode
+    out_dir = data_dir / "networks" / region / mode
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
