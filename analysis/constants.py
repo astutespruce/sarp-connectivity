@@ -1,6 +1,13 @@
 """Constants used in other scripts."""
 
 
+# NETWORK_TYPES determines the type of network analysis we are doing
+# natural: only include waterfalls in analysis
+# dams: include waterfalls and dams in analysis
+# small_barriers: include waterfalls, dams, and small barriers in analysis
+NETWORK_TYPES = ("natural", "dams", "small_barriers")
+
+
 # Mapping of region to HUC4 IDs that are present within the SARP boundary
 REGIONS = {
     "02": [7, 8],

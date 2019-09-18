@@ -30,10 +30,14 @@ def create_networks(flowlines, joins, barrier_joins):
     print("Index complete in {:.2f}s".format(time() - index_start))
 
     ### Get list of network root IDs
-    # Create networks from all terminal nodes (have no downstream nodes) up to barriers
+    # Create networks from all terminal nodes (have no downstream nodes) up to barriers.
+    # Exclude any segments where barriers are also on the downstream terminals to prevent duplicates.
     # Note: origins are also those that have a downstream_id but are not the upstream_id of another node
+    downstream_terminal_idx = (joins.downstream_id == 0) | (
+        ~joins.downstream_id.isin(joins.upstream_id)
+    )
     origins = joins.loc[
-        (joins.downstream_id == 0) | (~joins.downstream_id.isin(joins.upstream_id))
+        (downstream_terminal_idx & (~joins.upstream_id.isin(barrier_segments.index)))
     ].set_index("upstream_id")[[]]
 
     ### Extract all origin points and barrier segments that immediately terminate upstream
@@ -103,13 +107,23 @@ def create_networks(flowlines, joins, barrier_joins):
     # Append network types back together
     network_df = (
         single_segment_networks.reset_index()
-        .append(origin_network_segments, sort=False, ignore_index=False)
-        .append(barrier_network_segments, sort=False, ignore_index=False)
+        .append(
+            origin_network_segments.reset_index(drop=True),
+            sort=False,
+            ignore_index=False,
+        )
+        .append(
+            barrier_network_segments.reset_index(drop=True),
+            sort=False,
+            ignore_index=False,
+        )
     )
+    network_df.networkID = network_df.networkID.astype("uint32")
     network_df.lineID = network_df.lineID.astype("uint32")
-    network_df = network_df.set_index("lineID")
 
     # Join back to flowlines, dropping anything that didn't get networks
-    network_df = flowlines.join(network_df, how="inner")
+    network_df = flowlines.join(network_df.set_index("lineID"), how="inner").set_index(
+        "networkID"
+    )
 
-    return network_df.set_index("networkID")
+    return network_df

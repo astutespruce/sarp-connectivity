@@ -1,8 +1,14 @@
-"""This is the main processing script.
+"""Create networks by first cutting flowlines at barriers, then traversing upstream to
+determine upstream networks to upstream-most endpoints or upstream barriers.
 
-Run this after preparing NHD data for the region group identified below.
+After networks are created, summary statistics are calculated.
 
+The final outputs of this process are a set of network-related files for each region
+and network type (dams or small barriers):
+
+data/networks/<region>/<network type>/*
 """
+
 from pathlib import Path
 import os
 from time import time
@@ -23,18 +29,12 @@ from nhdnet.io import (
     serialize_gdf,
 )
 
-from analysis.constants import REGION_GROUPS
+from analysis.constants import REGION_GROUPS, NETWORK_TYPES
 
 from analysis.network.stats import calculate_network_stats
 from analysis.network.barriers import read_barriers, save_barriers
 from analysis.network.flowlines import cut_flowlines_at_barriers, save_cut_flowlines
 from analysis.network.networks import create_networks
-
-# mode determines the type of network analysis we are doing
-# natural: only include waterfalls in analysis
-# dams: include waterfalls and dams in analysis
-# small_barriers: include waterfalls, dams, and small barriers in analysis
-MODES = ("natural", "dams", "small_barriers")
 
 QA = True
 # Set to True to save intermediate files
@@ -42,10 +42,14 @@ QA = True
 data_dir = Path("data")
 
 start = time()
-for region, mode in product(REGION_GROUPS.keys(), MODES[1:]):
-    print("\n\n###### Processing region {0}: {1} networks #####".format(region, mode))
+for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES[1:]):
+    print(
+        "\n\n###### Processing region {0}: {1} networks #####".format(
+            region, network_type
+        )
+    )
 
-    out_dir = data_dir / "networks" / region / mode
+    out_dir = data_dir / "networks" / region / network_type
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
@@ -59,7 +63,7 @@ for region, mode in product(REGION_GROUPS.keys(), MODES[1:]):
     ##################### Read Barrier data #################
     print("------------------- Preparing Barriers ----------")
 
-    barriers = read_barriers(region, mode)
+    barriers = read_barriers(region, network_type)
 
     if QA:
         save_barriers(qa_dir, barriers)
@@ -105,6 +109,8 @@ for region, mode in product(REGION_GROUPS.keys(), MODES[1:]):
     stats_start = time()
 
     network_stats = calculate_network_stats(network_df)
+    # WARNING: because not all flowlines have associated catchments, they are missing
+    # PctNatFloodplain
 
     print("done calculating network stats in {0:.2f}".format(time() - stats_start))
 
@@ -134,10 +140,7 @@ for region, mode in product(REGION_GROUPS.keys(), MODES[1:]):
     # Note: the join creates duplicates if there are multiple upstream or downstream
     # networks for a given barrier, so we drop these duplicates after the join.
     barrier_networks = (
-        upstream_networks.join(downstream_networks)
-        .join(barriers.kind)
-        .drop_duplicates()
-        .fillna(0)
+        upstream_networks.join(downstream_networks).join(barriers.kind).fillna(0)
     )
 
     # Fix data types after all the joins
@@ -170,9 +173,7 @@ for region, mode in product(REGION_GROUPS.keys(), MODES[1:]):
         .astype("float32")
     )
 
-    serialize_df(
-        barrier_networks.reset_index(drop=True), out_dir / "barriers_network.feather"
-    )
+    serialize_df(barrier_networks.reset_index(), out_dir / "barriers_network.feather")
     barrier_networks.to_csv(out_dir / "barriers_network.csv", index_label="barrierID")
 
     # TODO: if downstream network extends off this HUC, it will be null in the above and AbsoluteGainMin will be wrong
