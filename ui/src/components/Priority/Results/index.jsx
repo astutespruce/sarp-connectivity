@@ -104,7 +104,7 @@ const Results = ({
 
         <Section>
           <SectionHeader>
-            Choose top-ranked dams for display on map
+            Choose top-ranked {barrierType} for display on map
           </SectionHeader>
 
           <InputContainer>
@@ -125,7 +125,7 @@ const Results = ({
         </Section>
 
         <Section>
-          <SectionHeader>Number of dams by tier</SectionHeader>
+          <SectionHeader>Number of {barrierType} by tier</SectionHeader>
           <Histogram counts={counts} threshold={tierThreshold} />
         </Section>
       </Content>

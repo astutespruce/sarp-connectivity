@@ -18,7 +18,7 @@ import {
   ImageCredits,
   Subtitle,
   StepHeader,
-  StepNumber
+  StepNumber,
 } from '../styles'
 
 const Photo = styled(Image).attrs({ width: '100%' })`
@@ -26,10 +26,6 @@ const Photo = styled(Image).attrs({ width: '100%' })`
 `
 
 const Column = styled(BaseColumn).attrs({ width: ['100%', '100%', '50%'] })``
-
-
-
-
 
 const List = styled.ul`
   li {
@@ -307,10 +303,10 @@ const Scoring = () => {
           Note: tiers are based on position within the range of observed scores
           for a given area. They are <i>not</i> based on the frequency of
           scores, such as percentiles, and therefore may have a highly uneven
-          number of dams per tier depending on the area. In general, there are
-          fewer barriers in the top tiers than there are in the bottom tiers.
-          This is largely because many barriers share the same value for a given
-          metric.
+          number of barriers per tier depending on the area. In general, there
+          are fewer barriers in the top tiers than there are in the bottom
+          tiers. This is largely because many barriers share the same value for
+          a given metric.
         </Note>
       </Section>
     </>
