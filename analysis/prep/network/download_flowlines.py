@@ -5,11 +5,12 @@ Download NHD Plus HR flowline data for every HUC4 in the SARP region.
 
 from pathlib import Path
 import os
+from requests import HTTPError
 
 from nhdnet.nhd.download import download_huc4
-from nhdnet.nhd.legacy.download import download_huc4_mr
 
 from analysis.constants import REGIONS
+
 
 nhd_dir = Path("data/nhd/source/huc4")
 
@@ -19,10 +20,8 @@ for HUC2 in REGIONS:
         filename = nhd_dir / "{HUC4}.zip".format(HUC4=HUC4)
 
         if not os.path.exists(filename):
-            # TODO: remove check for region 8
-            if HUC2 == "08":
-                pass
-            #     download_huc4_mr(HUC4, filename)
-
-            else:
+            try:
                 download_huc4(HUC4, filename)
+            except HTTPError as ex:
+                print(ex)
+                pass

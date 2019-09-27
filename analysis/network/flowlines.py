@@ -38,7 +38,7 @@ def cut_flowlines_at_barriers(region, barriers):
     flowlines = (
         deserialize_gdf(nhd_dir / region / "flowline.feather")
         .set_index("lineID", drop=False)
-        .drop(columns=["HUC2"])
+        .drop(columns=["HUC2"], errors="ignore")
     )
     joins = deserialize_df(nhd_dir / region / "flowline_joins.feather")
     print(

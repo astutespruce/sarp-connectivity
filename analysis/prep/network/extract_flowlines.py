@@ -35,6 +35,10 @@ start = time()
 for region, HUC2s in REGION_GROUPS.items():
     print("\n----- {} ------\n".format(region))
 
+    region_dir = out_dir / region
+    if not os.path.exists(region_dir):
+        os.makedirs(region_dir)
+
     if os.path.exists(region_dir / "flowline.feather"):
         print("Skipping existing region {}".format(region))
         continue
@@ -45,10 +49,6 @@ for region, HUC2s in REGION_GROUPS.items():
     merged_joins = None
 
     for HUC2 in HUC2s:
-        if HUC2 == "08":
-            # Skip for now
-            continue
-
         for i in REGIONS[HUC2]:
             HUC4 = "{0}{1:02d}".format(HUC2, i)
 
@@ -57,7 +57,7 @@ for region, HUC2s in REGION_GROUPS.items():
             gdb = src_dir / HUC4 / "NHDPLUS_H_{HUC4}_HU4_GDB.gdb".format(HUC4=HUC4)
             flowlines, joins = extract_flowlines(gdb, target_crs=CRS)
             print(
-                "Read {} flowlines in  {:.0f} seconds".format(
+                "Read {:,} flowlines in  {:.0f} seconds".format(
                     len(flowlines), time() - read_start
                 )
             )
@@ -88,7 +88,7 @@ for region, HUC2s in REGION_GROUPS.items():
                 merged = merged.append(flowlines, ignore_index=True)
                 merged_joins = merged_joins.append(joins, ignore_index=True)
 
-    # TODO: redo this as a join
+    # TODO: redo this as a join?
     # Update the missing upstream_ids at the joins between HUCs
     huc_in = merged_joins.loc[merged_joins.type == "huc_in"]
     for idx, row in huc_in.iterrows():
@@ -104,11 +104,7 @@ for region, HUC2s in REGION_GROUPS.items():
         )
     ].copy()
 
-    region_dir = out_dir / region
-    if not os.path.exists(region_dir):
-        os.makedirs(region_dir)
-
-    print("serializing {} flowlines to feather".format(len(merged)))
+    print("serializing {:,} flowlines to feather".format(len(merged)))
     serialize_gdf(merged, region_dir / "flowline.feather")
     serialize_sindex(merged, region_dir / "flowline.sidx")
     serialize_df(merged_joins, region_dir / "flowline_joins.feather", index=False)
@@ -116,9 +112,9 @@ for region, HUC2s in REGION_GROUPS.items():
     print("serializing to shp")
     serialize_start = time()
     to_shp(merged, region_dir / "flowline.shp")
-    print("serialize done in {:.0f}".format(time() - serialize_start))
+    print("serialize done in {:.0f}s".format(time() - serialize_start))
 
-    print("Region done in {:.0f}".format(time() - region_start))
+    print("Region done in {:.0f}s".format(time() - region_start))
 
 
-print("Done in {:.2f}\n============================".format(time() - start))
+print("Done in {:.2f}s\n============================".format(time() - start))

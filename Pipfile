@@ -16,6 +16,7 @@ raven = {version = "*",extras = ["flask"]}
 pylint = "*"
 black = "==19.3b0"
 geopandas = "*"
+requests = "*"
 rtree = "*"
 nhdnet = {editable = true,path = "./../nhdnet"}
 sarp-connectivity = {editable = true,path = "."}

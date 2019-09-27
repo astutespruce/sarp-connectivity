@@ -15,8 +15,7 @@ REGIONS = {
     "05": [5, 7, 9, 10, 11, 13, 14],
     "06": list(range(1, 5)),
     "07": [10, 11, 14],
-    # 08 is a special case; it is medium resolution until beta high resolution version is posted
-    # "08": list(range(1, 10)),
+    "08": list(range(1, 10)),
     "10": [24, 28, 29, 30],
     "11": [1, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14],
     "12": list(range(1, 12)),
@@ -27,13 +26,14 @@ REGIONS = {
 # Note: many of these flow into region 08, which is not yet available
 # The total size of the region group needs to be limited based on available memory and the size of the output shapefiles
 # from the network analysis, which cannot exceed 2 GB.
+
 REGION_GROUPS = {
     "02": ["02"],
     "03": ["03"],
+    # test: "MS_basin": ["05", "06", "07", "10", "11"],   # comes out almost too big
     "05_06": ["05", "06"],
     "07_10": ["07", "10"],
-    # 08 is a special case; it is medium resolution until beta high resolution version is posted
-    # "08": ["08"],
+    "08": ["08"],
     "11": ["11"],
     "12": ["12"],
     "13": ["13"],
