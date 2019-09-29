@@ -20,7 +20,7 @@ from analysis.constants import REGIONS, REGION_GROUPS
 floodplains_dir = Path("data/floodplains")
 src_dir = floodplains_dir / "source"
 out_dir = floodplains_dir
-gdb_filename = "Summer2019_Floodplain_Stats.gdb"
+gdb_filename = "FloodplainStats2019.gdb"
 lyr = "Region{HUC2}_floodplain"
 
 start = time()

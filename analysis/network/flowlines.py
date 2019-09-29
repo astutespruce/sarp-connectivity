@@ -61,7 +61,7 @@ def cut_flowlines_at_barriers(region, barriers):
 
 
 def save_cut_flowlines(out_dir, flowlines, joins, barrier_joins):
-    """Save cut flowline data frames to disk for QA.
+    """Save cut flowline data frames to disk.
     
     Parameters
     ----------
@@ -77,8 +77,8 @@ def save_cut_flowlines(out_dir, flowlines, joins, barrier_joins):
     print("serializing {:,} cut flowlines...".format(len(flowlines)))
     start = time()
 
-    serialize_gdf(flowlines, out_dir / "split_flowlines.feather", index=False)
-    serialize_df(joins, out_dir / "updated_joins.feather", index=False)
+    serialize_gdf(flowlines, out_dir / "flowline.feather", index=False)
+    serialize_df(joins, out_dir / "flowline_joins.feather", index=False)
     serialize_df(barrier_joins, out_dir / "barrier_joins.feather", index=False)
 
     print("Done serializing cut flowlines in {:.2f}s".format(time() - start))

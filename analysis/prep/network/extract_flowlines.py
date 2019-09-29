@@ -24,7 +24,7 @@ from time import time
 from nhdnet.nhd.extract import extract_flowlines
 from nhdnet.io import serialize_gdf, serialize_df, to_shp, serialize_sindex
 
-from analysis.constants import REGIONS, REGION_GROUPS, CRS
+from analysis.constants import REGIONS, REGION_GROUPS, CRS, EXCLUDE_IDs
 
 
 src_dir = Path("data/nhd/source/huc4")
@@ -53,7 +53,7 @@ for region, HUC2s in REGION_GROUPS.items():
             HUC4 = "{0}{1:02d}".format(HUC2, i)
 
             read_start = time()
-            print("Reading {}".format(HUC4))
+            print("\n\n------------------- Reading {} -------------------".format(HUC4))
             gdb = src_dir / HUC4 / "NHDPLUS_H_{HUC4}_HU4_GDB.gdb".format(HUC4=HUC4)
             flowlines, joins = extract_flowlines(gdb, target_crs=CRS)
             print(
@@ -61,6 +61,28 @@ for region, HUC2s in REGION_GROUPS.items():
                     len(flowlines), time() - read_start
                 )
             )
+
+            # Exclude flowlines as needed
+            if HUC4 in EXCLUDE_IDs:
+                exclude_ids = EXCLUDE_IDs[HUC4]
+                flowlines = flowlines.loc[~flowlines.NHDPlusID.isin(exclude_ids)].copy()
+
+                # update downstream end of joins
+                downstream_idx = joins.loc[joins.downstream.isin(exclude_ids)].index
+                joins.loc[downstream_idx, "downstream_id"] = 0
+                joins.loc[downstream_idx, "downstream"] = 0
+                joins.loc[downstream_idx, "type"] = "terminal"
+
+                # remove upstream end of joins
+                joins = joins.loc[~joins.upstream.isin(exclude_ids)].copy()
+
+                # reset dtypes
+                joins.downstream = joins.downstream.astype("uint64")
+                joins.downstream_id = joins.downstream_id.astype("uint32")
+
+                print(
+                    "Removed excluded flowlines, now have {:,}".format(len(flowlines))
+                )
 
             flowlines = flowlines[
                 [
@@ -88,20 +110,39 @@ for region, HUC2s in REGION_GROUPS.items():
                 merged = merged.append(flowlines, ignore_index=True)
                 merged_joins = merged_joins.append(joins, ignore_index=True)
 
-    # TODO: redo this as a join?
-    # Update the missing upstream_ids at the joins between HUCs
-    huc_in = merged_joins.loc[merged_joins.type == "huc_in"]
-    for idx, row in huc_in.iterrows():
-        match = merged_joins.loc[merged_joins.downstream == row.upstream].downstream_id
-        if len(match):
-            merged_joins.loc[idx, "upstream_id"] = match.iloc[0]
+    # Update the missing upstream_ids at the joins between HUCs.
+    # These are the segments that are immediately DOWNSTREAM of segments that flow into this HUC4
+    # We set a new UPSTREAM id for them based on the segment that is next upstream
 
-    # remove duplicate terminals
+    huc_in_idx = merged_joins.loc[merged_joins.type == "huc_in"].index
+    cross_huc_joins = merged_joins.loc[huc_in_idx]
+
+    new_upstreams = (
+        cross_huc_joins.join(
+            merged_joins.set_index("downstream").downstream_id.rename("new_upstream"),
+            on="upstream",
+        )
+        .new_upstream.fillna(0)
+        .astype("uint32")
+    )
+    merged_joins.loc[new_upstreams.index, "upstream_id"] = new_upstreams
+
+    # update new internal joins
+    merged_joins.loc[
+        (merged_joins.type == "huc_in") & (merged_joins.upstream_id != 0), "type"
+    ] = "internal"
+
+    # remove the duplicate downstreams that used to be terminals for their respective HUCs
     merged_joins = merged_joins.loc[
         ~(
-            merged_joins.upstream.isin(huc_in.upstream)
+            merged_joins.upstream.isin(cross_huc_joins.upstream)
             & (merged_joins.type == "terminal")
         )
+    ]
+
+    # remove dead ends
+    merged_joins = merged_joins.loc[
+        ~((merged_joins.downstream == 0) & (merged_joins.upstream == 0))
     ].copy()
 
     print("serializing {:,} flowlines to feather".format(len(merged)))

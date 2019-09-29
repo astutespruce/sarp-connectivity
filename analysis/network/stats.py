@@ -7,7 +7,7 @@ from nhdnet.io import deserialize_df
 data_dir = Path("data")
 
 
-def calculate_network_stats(df):
+def calculate_network_stats(df, barrier_joins):
     """Calculation of network statistics, for each functional network.
     
     Parameters
@@ -17,18 +17,70 @@ def calculate_network_stats(df):
         * length
         * sinuosity
         * size class
-    
+
+    barrier_barrier_joins : Pandas DataFrame
+        contains ...TODO: 
+
+
     Returns
     -------
     Pandas DataFrame
         Summary statistics, with one row per functional network.
     """
 
-    return (
+    networkID = df.reset_index().set_index("lineID").networkID
+
+    barriers_upstream = (
+        barrier_joins[["downstream_id", "kind"]]
+        .join(networkID, on="downstream_id")
+        .reset_index()[["networkID", "kind"]]
+        .dropna()
+    )
+    barriers_upstream.networkID = barriers_upstream.networkID.astype("uint32")
+
+    # Count barriers that have a given network DOWNSTREAM of them
+    upstream_counts = (
+        barriers_upstream.groupby(["networkID", "kind"])
+        .size()
+        .rename("count")
+        .reset_index()
+        .pivot(index="networkID", columns="kind", values="count")
+        .rename(
+            columns={
+                "dam": "up_ndams",
+                "waterfall": "up_nwfs",
+                "small_barrier": "up_nsbs",
+            }
+        )
+    )
+
+    barriers_downstream = (
+        barrier_joins[["upstream_id", "kind"]]
+        .join(networkID, on="upstream_id")
+        .reset_index()[["networkID", "kind"]]
+        .dropna()
+        # there are some duplicates due to a barrier having multiple upstream network segments
+        .drop_duplicates()
+    )
+    barriers_downstream.networkID = barriers_downstream.networkID.astype("uint32")
+    barriers_downstream = barriers_downstream.set_index("networkID").kind.rename(
+        "barrier"
+    )
+
+    results = (
         calculate_geometry_stats(df)
         .join(calculate_floodplain_stats(df))
-        .join(calculate_size_classes_gained(df))
+        .join(df.groupby(level=0).sizeclass.nunique().rename("sizeclasses"))
+        .join(upstream_counts)
+        .join(barriers_downstream)
     )
+
+    results[upstream_counts.columns] = (
+        results[upstream_counts.columns].fillna(0).astype("uint32")
+    )
+    results.barrier = results.barrier.fillna("")
+
+    return results
 
 
 def calculate_geometry_stats(df):
@@ -42,7 +94,7 @@ def calculate_geometry_stats(df):
     Returns
     -------
     DataFrame
-        contains miles, NetworkSinuosity, NumSegments
+        contains miles, sinuosity, segments
     """
 
     network_length = df.groupby(level=0).length.sum()
@@ -59,8 +111,8 @@ def calculate_geometry_stats(df):
     return pd.DataFrame(
         data={
             "miles": network_length * 0.000621371,
-            "NetworkSinuosity": wtd_sinuosity,
-            "NumSegments": df.groupby(level=0).size(),
+            "sinuosity": wtd_sinuosity,
+            "segments": df.groupby(level=0).size(),
         }
     )
 
@@ -76,7 +128,7 @@ def calculate_floodplain_stats(df):
     Returns
     -------
     Series
-        percent natural landcover
+        natfldpln
     """
 
     # Sum floodplain and natural floodplain values, and calculate percent natural floodplain
@@ -87,31 +139,9 @@ def calculate_floodplain_stats(df):
     df = df.join(fp_stats, on="NHDPlusID")
 
     pct_nat_df = df[["floodplain_km2", "nat_floodplain_km2"]].groupby(level=0).sum()
-    # pct_nat_df["PctNatFloodplain"] = (
-    #     100 * pct_nat_df.nat_floodplain_km2 / pct_nat_df.floodplain_km2
-    # ).astype("float32")
 
     return (
         (100 * pct_nat_df.nat_floodplain_km2 / pct_nat_df.floodplain_km2)
         .astype("float32")
-        .rename("PctNatFloodplain")
+        .rename("natfldpln")
     )
-
-
-def calculate_size_classes_gained(df):
-    """Calculate the number of new size classes gained in the upstream network
-    
-    Parameters
-    ----------
-    df : DataFrame
-        Network data frame, must include sizeclasses and be indexed on networkID
-    
-    Returns
-    -------
-    Series
-        number of size classes gained
-    """
-    # Calculate number of unique size classes beyond the first size class.
-    # Because a unique count of 1 is equivalent to gaining no additional size classes.
-
-    return (df.groupby(level=0).sizeclass.nunique() - 1).rename("NumSizeClassGained")
