@@ -1,6 +1,51 @@
 """Constants used in other scripts."""
 
 
+# Listing of official SARP states and territories
+# can be generated from the state polygon:
+# df = gp.read_file(intermediate_dir / "states_prj.shp")[['STUSPS', 'STATEFP', 'NAME']].set_index('STUSPS')
+# df = df.loc[df.index.isin(["AL","AR","FL","GA","KY","LA","MO","MS","NC","OK","PR","SC","TN","TX","VA"])].copy()
+# SARP_STATES = df.NAME.to_dict()
+# SARP_STATES_FIPS = df.STATEFP.to_list()
+
+SARP_STATES = {
+    "FL": "Florida",
+    "NC": "North Carolina",
+    "LA": "Louisiana",
+    "GA": "Georgia",
+    "AL": "Alabama",
+    "TX": "Texas",
+    "SC": "South Carolina",
+    "OK": "Oklahoma",
+    "TN": "Tennessee",
+    "KY": "Kentucky",
+    "AR": "Arkansas",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "PR": "Puerto Rico",
+    "VA": "Virginia",
+}
+
+# FIPS codes for the above states
+SARP_STATES_FIPS = [
+    "01",
+    "05",
+    "12",
+    "13",
+    "21",
+    "22",
+    "28",
+    "29",
+    "37",
+    "40",
+    "45",
+    "47",
+    "48",
+    "51",
+    "72",
+]
+
+
 # NETWORK_TYPES determines the type of network analysis we are doing
 # natural: only include waterfalls in analysis
 # dams: include waterfalls and dams in analysis
@@ -62,6 +107,33 @@ CRS = {
 }
 
 
+# NOTE: not all feature services have all columns
+DAM_COLS = [
+    "SARPUniqueID",
+    "AnalysisID",
+    "SNAP2018",
+    "NIDID",
+    "SourceDBID",
+    "Barrier_Name",
+    "Other_Barrier_Name",
+    "River",
+    "PurposeCategory",
+    "Year_Completed",
+    "Height",
+    "StructureCondition",
+    "ConstructionMaterial",
+    "ProtectedLand",
+    "DB_Source",
+    # "Off_Network", # not used
+    # "Mussel_Presence", # not used
+    # "NumberRareSpeciesHUC12", # we add later
+    # "StreamOrder", # we add later
+    "Recon",
+    "PotentialFeasibility",  # only present in NC
+]
+
+
+
 # Used to filter small barriers by Potential_Project (small barriers)
 # based on guidance from Kat
 KEEP_POTENTIAL_PROJECT = [
@@ -90,12 +162,13 @@ DROP_SNAP2018 = [6, 8]
 # These are excluded from network analysis / prioritization, but included for mapping
 EXCLUDE_SNAP2018 = [5, 7, 9, 10]
 
-# Used to filter dams by PotentialFeasibility
+# Used to filter dams by Recon
 # based on guidance from Kat
-DROP_FEASIBILITY = [7, 19]
+DROP_RECON = [7, 19]
+DROP_FEASIBILITY = [7, 8]
 
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_FEASIBILITY = [16]
+EXCLUDE_RECON = [16]
 
 # Applies to Recon values, omitted values should be filtered out
 RECON_TO_FEASIBILITY = {
@@ -104,23 +177,38 @@ RECON_TO_FEASIBILITY = {
     2: 3,
     3: 2,
     4: 1,
-    5: 0,  # should be N/A
+    5: 0,  # should be removed from analysis
     6: 2,
-    7: 0,  # should be N/A
-    8: 0,
-    9: 0,
-    10: 0,
+    7: 0,  # should be removed from analysis
+    8: 6,
+    9: 6,
+    10: 6,
     11: 4,
-    13: 0,
+    13: 6,
     14: 4,
     15: 5,
-    16: 0,
-    17: 0,
-    18: 0,
-    19: 0,  # should be N/A
+    16: 0,  # should be excluded from analysis
+    17: 6,
+    18: 6,
+    19: 0,  # should be removed from analysis
     20: 5,
-    21: 0,
+    21: 6,
 }
+
+# Associated recon values
+# FEASIBILITY = {
+#   0: 'Not assessed',
+#   1: 'Not feasible',
+#   2: 'Likely infeasible',
+#   3: 'Possibly feasible',
+#   4: 'Likely feasible',
+#   5: 'No conservation benefit',
+#   6: 'Unknown',
+#   # not shown to user
+#   # 6: 'Unknown',
+#   # 7: 'Error',
+#   # 8: 'Dam removed for conservation benefit'
+# }
 
 
 POTENTIAL_TO_SEVERITY = {
@@ -185,16 +273,19 @@ ROAD_TYPE_TO_DOMAIN = {
 BARRIER_CONDITION_TO_DOMAIN = {"Failing": 1, "New": 4, "OK": 3, "Poor": 2, "Unknown": 0}
 
 OWNERTYPE_TO_DOMAIN = {
-    "Federal Land": 1,
-    "State Land": 2,
-    "Private Conservation Land": 5,
-    "Local Land": 3,
     "Unknown": 0,
-    "Native American Land": 4,
-    "Joint Ownership": 3,
-    "Easement": 5,
     "Designation": 0,
-    "Regional Agency Special Distribution": 3,
+    "US Fish and Wildlife Service": 1,
+    "US Forest Service": 2,
+    # TODO: update below
+    "Federal Land": 3,
+    "State Land": 4,
+    "Local Land": 5,
+    "Joint Ownership": 5,
+    "Regional Agency Special Distribution": 5,
+    "Native American Land": 6,
+    "Easement": 7,
+    "Private Conservation Land": 8,
 }
 
 

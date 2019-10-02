@@ -78,12 +78,16 @@ export const DAM_CONDITION = {
 }
 
 export const FEASIBILITY = {
-  0: 'Unknown',
+  0: 'Not assessed',
   1: 'Not feasible',
   2: 'Likely infeasible',
   3: 'Possibly feasible',
   4: 'Likely feasible',
   5: 'No conservation benefit',
+  6: 'Unknown',
+  // not shown to user
+  // 7: 'Error',
+  // 8: 'Dam removed for conservation benefit'
 }
 
 export const HEIGHT = {

@@ -11,6 +11,8 @@ flask-cors = "*"
 gunicorn = "*"
 "jinja2" = "*"
 raven = {version = "*",extras = ["flask"]}
+requests = "*"
+python-dotenv = "*"
 
 [dev-packages]
 pylint = "*"

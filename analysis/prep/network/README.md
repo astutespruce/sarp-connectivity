@@ -1,10 +1,13 @@
-# Network Data Preparation
+# Southeast Aquatic Barrier Inventory - Network Data Preparation
 
 ## Overall workflow:
 
-1. Download NHDPlus High Resolution (HR) data for all applicable HUC4s that have dams. Note: Region 8 is not available yet.
-2. Run `extract_flowlines.py` to extract flowlines and joins for each region group
-3. Run `prep_floodplain_statistics.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment
+1. Download NHDPlus High Resolution (HR) data for all applicable HUC4s that have dams.
+2. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
+3. Run `extract_flowlines.py` to extract flowlines and joins for each region group.
+4. Run `prep_floodplain_statistics.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment
+
+Now the underlying aquatic networks are ready for the network analysis.
 
 Most of the data processing is performed by region group, which is one or more NHD HUC2s that flow into each other. This is done to reduce the number of networks connected across HUC2 boundaries that need to be merged after the analysis.
 
@@ -24,7 +27,7 @@ The above steps should only need to be rerun if there are errors or additional H
 
 ### Prepare floodplain metrics
 
-The amount of natural landcover in the floodplain of each aquatic network helps to measure the overall habitat quality of that network, and helps prioritize those barriers that if removed would contribute high quality upstream networks. In order to streamline processing for barrier inventories that growy over time, we approximated the natural landcover at the catchment level, so that floodplain statistics could be reused for many analyses rather than regenerated each time a new barrier is added to the inventory.
+The amount of natural landcover in the floodplain of each aquatic network helps to measure the overall habitat quality of that network, and helps prioritize those barriers that if removed would contribute high quality upstream networks. In order to streamline processing for barrier inventories that grow over time, we approximated the natural landcover at the catchment level, so that floodplain statistics could be reused for many analyses rather than regenerated each time a new barrier is added to the inventory.
 
 The floodplain statistics were generated in ArcGIS by:
 
@@ -36,18 +39,3 @@ The floodplain statistics were generated in ArcGIS by:
 Note: some catchments have no floodplain, and some have floodplains but no NHDPlusID (outside HUC4s we processed). These are filtered out.
 
 These data were exported to a FGDB, and prepared for analysis here using `prepare_floodplain_stats.py`.
-
-### Perform network analysis
-
-Once all the inputs are prepared using the above steps, you can now perform the network analysis for that region or group of regions. This can take 10 - 60+ minutes depending on the size and complexity of the region.
-
-1. Run `network_analysis.py` once for dams (set `SMALL_BARRIERS = False`)
-2. Run `network_analysis.py` again for small barriers (set `SMALL_BARRIERS = True`)
-3. Run `merge_outputs.py` to create the final aggregated results across all regions.
-
-This cuts the network at each barrier and associates each barrier with an upstream and downstream flowline segment ID. It automatically calculates a new unique ID for a segment if it is creating a new segment between two barriers on the same original flowline segment. The networks are then re-assembled by traversing upstream from the downstream-most points of the NHD flowlines or from each barrier.
-
-The output of this is a shapefile with one feature per functional network, a network summary statistics CSV, and a CSV including the upstream and downstream network IDs associated with each barrier.
-
-IMPORTANT: there may be multiple upstream networks from a given barrier or origin point. If this is encountered, the multiple networks
-are merged together into a single network.

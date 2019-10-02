@@ -1,16 +1,18 @@
-# Southeast Aquatic Barrier Inventory - Aquatic Network Connectivity Analysis
+# Southeast Aquatic Barrier Inventory - Network Analysis
 
-## Overview
+Once all the inputs are prepared using the above steps, you now run the network analysis on all regions.
+This can take 10 - 60+ minutes per region depending on the size and complexity of the region.
 
-TODO
+1. Run `network_analysis.py`
+2. Run `network_analysis.py`
+3. Run `merge_networks.py` to merge networks that cross region boundaries (e.g., between 07_10 and 08_11).
 
-### Aquatic networks
+This analysis cuts the network at each barrier and associates each barrier with an upstream and downstream flowline segment ID. It automatically calculates a new unique ID for a segment if it is creating a new segment between two barriers on the same original flowline segment. The networks are then re-assembled by traversing upstream from the downstream-most points of the NHD flowlines or from each barrier.
 
-1. Prep NHD (TODO: add reservoirs to flowlines)
-2. Join to regions
+The output of this analysis is:
 
-### Barriers
+-   `network.shp`: a shapefile with one feature per functional network, including the upstream and downstream network IDs associated with each barrier.
+-   `barriers_network.feather`: a feather file with one record per barrier, with statistics from the upstream network, downstream length, and upstream / downstream network identifiers.
 
-1. Prep barriers for analysis
-2. Deduplicate barriers and drop specific types from analysis
-3. Snap barriers
+IMPORTANT: there may be multiple upstream networks from a given barrier or origin point. If this is encountered, the multiple networks
+are merged together into a single network.
