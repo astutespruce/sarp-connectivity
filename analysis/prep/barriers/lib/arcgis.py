@@ -12,6 +12,9 @@ CRS_LUT = {
     102100: "+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext  +no_defs",
     # same as EPSG:102003
     'PROJCS["Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["false_easting",0.0],PARAMETER["false_northing",0.0],PARAMETER["central_meridian",-96.0],PARAMETER["standard_parallel_1",29.5],PARAMETER["standard_parallel_2",45.5],PARAMETER["latitude_of_origin",37.5],UNIT["Meter",1.0]]': "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs",
+    102003: "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs",
+    # same as EPSG:5070 (CONUS albers)
+    'PROJCS["NAD_1983_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["central_meridian",-96.0],PARAMETER["Standard_Parallel_1",29.5],PARAMETER["Standard_Parallel_2",45.5],PARAMETER["latitude_of_origin",23.0],UNIT["Meter",1.0]]': "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23.0 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs",
 }
 
 
@@ -64,7 +67,7 @@ def list_services(url, token=None):
     return getJSON(url, params={"f": "json", "token": token})["services"]
 
 
-def download_fs(url, fields=None, token=None):
+def download_fs(url, fields=None, token=None, target_wkid=None):
     """Download an ESRI FeatureService JSON to GeoDataFrame.
 
     Parameters
@@ -79,6 +82,9 @@ def download_fs(url, fields=None, token=None):
     batch_size = max(svc_info["maxRecordCount"], svc_info["standardMaxRecordCount"])
 
     query = {"where": "1=1", "resultType": "standard", "outFields": "*"}
+
+    if target_wkid:
+        query["outSR"] = target_wkid
 
     # ArcGIS will return an error if you request fields that are not present, so we have to
     # make sure to request only those that are present

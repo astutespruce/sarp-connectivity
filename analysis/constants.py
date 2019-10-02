@@ -132,6 +132,33 @@ DAM_COLS = [
     "PotentialFeasibility",  # only present in NC
 ]
 
+SMALL_BARRIER_COLS = [
+    "AnalysisId",
+    "SNAP2018",
+    "LocalID",
+    "Crossing_Code",
+    "StreamName",
+    "Road",
+    "RoadTypeId",
+    "CrossingTypeId",
+    "CrossingConditionId",
+    "OnConservationLand",
+    "Potential_Project",
+    "Source",
+
+    # Not used:
+    # "NumberOfStructures",
+    # "CrossingComment",
+    # "Assessed", # check me
+    # "SRI_Score",
+    # "Coffman_Strong",
+    # "Coffman_Medium",
+    # "Coffman_Weak",
+    # "SARP_Score",
+    # "SE_AOP",
+    # "NumberRareSpeciesHUC12", # we add this later
+]
+
 
 
 # Used to filter small barriers by Potential_Project (small barriers)

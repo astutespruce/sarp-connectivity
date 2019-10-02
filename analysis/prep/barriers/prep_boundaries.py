@@ -14,45 +14,7 @@ import os
 import geopandas as gp
 from nhdnet.io import serialize_gdf, to_shp
 
-from analysis.constants import CRS
-
-SARP_STATES = [
-    "Alabama",
-    "Arkansas",
-    "Florida",
-    "Georgia",
-    "Kentucky",
-    "Louisiana",
-    "Mississippi",
-    "Missouri",
-    "North Carolina",
-    "Oklahoma",
-    "Puerto Rico",
-    "South Carolina",
-    "Tennessee",
-    "Texas",
-    "United States Virgin Islands",
-    "Virginia",
-]
-
-SARP_STATES_FIPS = [
-    "01",
-    "05",
-    "12",
-    "13",
-    "21",
-    "22",
-    "28",
-    "29",
-    "37",
-    "40",
-    "45",
-    "47",
-    "48",
-    "51",
-    "72",
-    "78",
-]
+from analysis.constants import CRS, OWNERTYPE_TO_DOMAIN, SARP_STATES_FIPS
 
 
 data_dir = Path("./data")
@@ -122,6 +84,7 @@ df = df.loc[df.STATEFIPS.isin(in_region.STATEFIPS)]
 serialize_gdf(df, out_dir / "states.feather", index=False)
 
 # select only those within the SARP states for tilesets
+# since other states are only partially covered by data
 df = df.loc[df.STATEFIPS.isin(SARP_STATES_FIPS)]
 # Format field names for tilesets
 to_shp(
@@ -192,6 +155,18 @@ to_shp(
 )
 
 
-
 ### Protected areas
-df = gp.read_file(intermediate_dir / "protected_areas.shp")
+df = gp.read_file(intermediate_dir / "protected_areas.shp").rename(
+    columns={"type": "otype"}
+)
+
+# partner federal agencies to call out specifically
+partner_federal = ["US Fish and Wildlife Service", "US Forest Service"]
+idx = df.loc[df.owner.isin(partner_federal)].index
+df.loc[idx, "otype"] = df.loc[idx].owner
+
+# convert to int groups
+df.otype = df.otype.map(OWNERTYPE_TO_DOMAIN).astype("uint8")
+
+df = df[["geometry", "otype"]].rename(columns={"otype": "OwnerType"})
+serialize_gdf(df, boundaries_dir / "projected_areas.feather")

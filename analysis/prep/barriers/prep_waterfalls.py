@@ -28,7 +28,7 @@ from nhdnet.geometry.points import mark_duplicates, add_lat_lon
 
 from analysis.constants import REGION_GROUPS, REGIONS, CRS, DUPLICATE_TOLERANCE
 
-from analysis.prep.barriers.snap import snap_by_region, update_from_snapped
+from analysis.prep.barriers.lib.snap import snap_by_region, update_from_snapped
 
 # Snap waterfalls by 100 meters
 SNAP_TOLERANCE = 100

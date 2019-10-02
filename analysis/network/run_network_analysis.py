@@ -31,10 +31,10 @@ from nhdnet.io import (
 
 from analysis.constants import REGION_GROUPS, NETWORK_TYPES, CONNECTED_REGIONS
 
-from analysis.network.stats import calculate_network_stats
-from analysis.network.barriers import read_barriers, save_barriers
-from analysis.network.flowlines import cut_flowlines_at_barriers, save_cut_flowlines
-from analysis.network.networks import create_networks
+from analysis.network.lib.stats import calculate_network_stats
+from analysis.network.lib.barriers import read_barriers, save_barriers
+from analysis.network.lib.flowlines import cut_flowlines_at_barriers, save_cut_flowlines
+from analysis.network.lib.networks import create_networks
 
 data_dir = Path("data")
 

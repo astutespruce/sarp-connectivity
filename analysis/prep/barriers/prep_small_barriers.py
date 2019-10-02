@@ -41,7 +41,7 @@ from analysis.constants import (
     CROSSING_TYPE_TO_DOMAIN,
 )
 
-from analysis.prep.barriers.snap import snap_by_region, update_from_snapped
+from analysis.prep.barriers.lib.snap import snap_by_region, update_from_snapped
 
 # Snap barriers by 50 meters
 SNAP_TOLERANCE = 50
@@ -53,69 +53,14 @@ src_dir = barriers_dir / "source"
 master_dir = barriers_dir / "master"
 snapped_dir = barriers_dir / "snapped"
 qa_dir = barriers_dir / "qa"
-barriers_filename = "Road_Related_Barriers_DraftOne_Final08012019.gdb"
 
 start = time()
 
 
-# Read in authoritative original small barriers data
-# drop all columns not necessary later in the stack
-keep_cols = [
-    "geometry",
-    # TODO: GLOBALID
-    "AnalysisID",
-    "SNAP2018",
-    "LocalID",
-    "Crossing_Code",
-    "StreamName",
-    "Road",
-    "RoadTypeId",
-    "CrossingTypeId",
-    "NumberOfStructures",
-    "CrossingConditionId",
-    "CrossingComment",
-    "OnConservationLand",
-    "Assessed",
-    "SRI_Score",
-    "Coffman_Strong",
-    "Coffman_Medium",
-    "Coffman_Weak",
-    "SARP_Score",
-    "SE_AOP",
-    "Potential_Project",
-    "Source",
-    "NumberRareSpeciesHUC12",
-]
-
-df = (
-    gp.read_file(src_dir / barriers_filename)
-    .rename(columns={"AnalysisId": "AnalysisID"})
-    .to_crs(CRS)
-)[keep_cols].rename(
-    columns={
-        "OnConservationLand": "ProtectedLand",
-        "NumberRareSpeciesHUC12": "RareSpp",
-        # Note re: SARPID - this isn't quite correct but needed for consistency
-        "AnalysisID": "SARPID",
-        "AbsoluteGainMi": "GainMiles",
-        "PctNatFloodplain": "Landcover",
-        "NetworkSinuosity": "Sinuosity",
-        "NumSizeClassesGained": "SizeClasses",
-        "CrossingTypeId": "CrossingType",
-        "RoadTypeId": "RoadType",
-        "CrossingConditionId": "Condition",
-        "StreamName": "Stream",
-    }
-)
-
-
-print("Read {} small barriers".format(len(df)))
+df = deserialize_gdf(src_dir / "sarp_small_barriers.feather")
+print("Read {:,} small barriers".format(len(df)))
 
 # Rename all columns that have underscores
-df.rename(
-    columns={c: c.replace("_", "") for c in df.columns[df.columns.str.count("_") > 0]},
-    inplace=True,
-)
 
 
 ### Add IDs for internal use
@@ -167,7 +112,7 @@ df.loc[
 for column in ("CrossingCode", "LocalID", "Source"):
     df[column] = df[column].fillna("").str.strip()
 
-for column in ("RareSpp", "ProtectedLand"):
+for column in ["ProtectedLand"]:
     df[column] = df[column].fillna(0).astype("uint8")
 
 
@@ -255,7 +200,6 @@ print(
     )
 )
 df.loc[exclude_idx, "excluded"] = True
-
 
 ### Snap by region group
 to_snap = df.loc[~(df.dropped | df.excluded), ["geometry", "HUC2", "id"]].copy()

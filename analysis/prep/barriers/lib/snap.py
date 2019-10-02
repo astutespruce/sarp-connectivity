@@ -41,18 +41,18 @@ def snap_by_region(df, regions, tolerance):
             .rename(columns={"streamorder": "StreamOrder", "sizeclass": "SizeClass"})
             .set_index("lineID", drop=False)
         )
-        print("Read {0} flowlines".format(len(flowlines)))
+        print("Read {:,} flowlines".format(len(flowlines)))
 
         print("Reading spatial index on flowlines")
         sindex = deserialize_sindex(region_dir / "flowline.sidx")
 
         # Extract out waterfalls in this HUC
         in_region = df.loc[df.HUC2.isin(regions[region])]
-        print("Selected {0} barriers in region".format(len(in_region)))
+        print("Selected {:,} barriers in region".format(len(in_region)))
 
         print("Snapping to flowlines")
         snapped = snap_to_line(in_region, flowlines, tolerance, sindex=sindex)
-        print("{} barriers were successfully snapped".format(len(snapped)))
+        print("{:,} barriers were successfully snapped".format(len(snapped)))
 
         if merged is None:
             merged = snapped
