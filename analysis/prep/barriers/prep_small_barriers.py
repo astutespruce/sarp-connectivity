@@ -227,7 +227,7 @@ print(
     )
 )
 
-print("Serializing {} small barriers".format(len(df)))
+print("Serializing {:,} small barriers".format(len(df)))
 serialize_gdf(df, master_dir / "small_barriers.feather", index=False)
 
 
@@ -240,7 +240,7 @@ df = df.loc[df.snapped & ~df.duplicate].copy()
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
-print("Serializing {0} snapped small barriers".format(len(df)))
+print("Serializing {:,} snapped small barriers".format(len(df)))
 serialize_gdf(
     df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]],
     snapped_dir / "small_barriers.feather",

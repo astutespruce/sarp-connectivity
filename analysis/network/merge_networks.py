@@ -4,6 +4,7 @@ Merge network analysis outputs across regions, and join back into the pre-proces
 
 from pathlib import Path
 import os
+from time import time
 from itertools import chain
 import pandas as pd
 import geopandas as gp
@@ -24,8 +25,9 @@ from analysis.network.lib.stats import calculate_network_stats
 
 data_dir = Path("data")
 
+start = time()
 
-network_type = NETWORK_TYPES[0]
+network_type = NETWORK_TYPES[2]
 print("Processing {}".format(network_type))
 
 ### Read in original joins to find the ones that cross regions
@@ -174,37 +176,7 @@ for region in CONNECTED_REGIONS:
 cut_networks = None
 for region in cross_region.from_region.unique():
     out_dir = data_dir / "networks" / region / network_type
-
-    # ### Update barrier networks with the new IDs and stats
-    # barrier_networks = deserialize_df(
-    #     data_dir / "networks" / region / network_type / "raw/barriers_network.feather"
-    # )
-
-    # # NOTE: ONly update barriers that are UPSTREAM of the merged networks.
-    # # There are no barriers on the lower Mississippi River (downstream part of merged network).
-    # barrier_networks = barrier_networks.join(
-    #     cross_region.join(network_stats, on="downstream_network").set_index(
-    #         "upstream_network"
-    #     )[["downstream_network", "miles"]],
-    #     on="downNetID",
-    # )
-    # idx = barrier_networks.loc[barrier_networks.downstream_network.notnull()].index
-    # barrier_networks.loc[idx, "downNetID"] = barrier_networks.loc[
-    #     idx
-    # ].downstream_network.astype("uint64")
-    # barrier_networks.loc[idx, "DownstreamMiles"] = barrier_networks.loc[idx].miles
-
-    # # Recalculate AbsoluteGAinMi based on the merged network lengths
-    # barrier_networks.loc[idx, "AbsoluteGainMi"] = (
-    #     barrier_networks.loc[idx, ["UpstreamMiles", "DownstreamMiles"]]
-    #     .min(axis=1)
-    #     .astype("float32")
-    # )
-
-    # barrier_networks = barrier_networks.drop(columns=["miles", "downstream_network"])
-
-    # serialize_df(barrier_networks, out_dir / "barriers_network.feather")
-
+    
     ### Update network geometries
     print("Cutting downstream network from upstream region {}...".format(region))
 
@@ -293,3 +265,4 @@ for region in cross_region.region.unique():
     serialize_gdf(network, out_dir / "network.feather", index=None)
     to_shp(network, out_dir / "network.shp")
 
+print("All done in {:.2f}s".format(time() - start))
