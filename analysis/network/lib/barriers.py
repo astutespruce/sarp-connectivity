@@ -1,13 +1,9 @@
 from pathlib import Path
 from time import time
 
-from nhdnet.io import (
-    deserialize_df,
-    deserialize_gdf,
-    to_shp,
-    serialize_df,
-    serialize_gdf,
-)
+from geofeather import from_geofeather, to_geofeather
+
+from nhdnet.io import deserialize_df, to_shp, serialize_df
 from analysis.constants import REGION_GROUPS
 
 # ID ranges for each type
@@ -39,7 +35,7 @@ def read_barriers(region, mode):
     start = time()
 
     print("Reading waterfalls")
-    wf = deserialize_gdf(barriers_dir / "waterfalls.feather")
+    wf = from_geofeather(barriers_dir / "waterfalls.feather")
     wf = wf.loc[wf.HUC2.isin(REGION_GROUPS[region])].copy()
     print("Selected {:,} waterfalls".format(len(wf)))
 
@@ -50,7 +46,7 @@ def read_barriers(region, mode):
 
     if mode != "natural":
         print("Reading dams")
-        dams = deserialize_gdf(barriers_dir / "dams.feather")
+        dams = from_geofeather(barriers_dir / "dams.feather")
         dams = dams.loc[dams.HUC2.isin(REGION_GROUPS[region])].copy()
         print("Selected {:,} dams".format(len(dams)))
 
@@ -62,7 +58,7 @@ def read_barriers(region, mode):
 
     if mode == "small_barriers":
         print("Reading small barriers")
-        sb = deserialize_gdf(barriers_dir / "small_barriers.feather")
+        sb = from_geofeather(barriers_dir / "small_barriers.feather")
         sb = sb.loc[sb.HUC2.isin(REGION_GROUPS[region])].copy()
         print("Selected {:,} small barriers".format(len(sb)))
 
@@ -99,7 +95,7 @@ def save_barriers(out_dir, barriers):
     print("Serializing {:,} barriers...".format(len(barriers)))
     start = time()
 
-    serialize_gdf(barriers, out_dir / "barriers.feather", index=False)
+    to_geofeather(barriers.reset_index(drop=True), out_dir / "barriers.feather")
     to_shp(barriers, out_dir / "barriers.shp")
 
     print("Done serializing barriers in {:.2f}s".format(time() - start))

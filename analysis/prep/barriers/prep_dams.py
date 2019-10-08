@@ -13,18 +13,13 @@ This creates 2 files:
 from pathlib import Path
 from time import time
 import pandas as pd
+from geofeather import to_geofeather, from_geofeather
 import geopandas as gp
 import numpy as np
 
-from nhdnet.io import (
-    serialize_gdf,
-    deserialize_gdf,
-    deserialize_sindex,
-    deserialize_df,
-    to_shp,
-)
+from nhdnet.io import deserialize_sindex, deserialize_df, to_shp
 from nhdnet.geometry.lines import snap_to_line
-from nhdnet.geometry.points import mark_duplicates, add_lat_lon
+from nhdnet.geometry.points import mark_duplicates
 
 from analysis.constants import (
     REGION_GROUPS,
@@ -64,7 +59,7 @@ start = time()
 
 ### Read in SARP states and merge
 print("Reading dams in SARP states")
-df = deserialize_gdf(src_dir / "sarp_dams.feather")
+df = from_geofeather(src_dir / "sarp_dams.feather")
 print("Read {:,} dams in SARP states".format(len(df)))
 
 ### Read in non-SARP states and join in
@@ -91,25 +86,29 @@ outside_df = (
 )
 print("Read {:,} dams outside SARP states".format(len(outside_df)))
 
-df = df.append(outside_df, ignore_index=True, sort=False).set_index("AnalysisID")
-
+df = df.append(outside_df, ignore_index=True, sort=False)
 
 ### Read in dams that have been manually snapped and join to get latest location
 # Join on AnalysisID to merged data above.
 # ONLY keep SNAP2018 and the location.
 print("Reading manually snapped dams...")
-snapped_df = deserialize_gdf(src_dir / "manually_snapped_dams.feather").set_index(
+snapped_df = from_geofeather(src_dir / "manually_snapped_dams.feather").set_index(
     "AnalysisID"
 )
 
 # Join to snapped and bring across updated geometry and SNAP2018
-df = df.join(snapped_df, rsuffix="_snap").reset_index()
+
+df = df.join(snapped_df, on="AnalysisID", rsuffix="_snap")
+
 idx = df.loc[df.geometry_snap.notnull()].index
 df.loc[idx, "geometry"] = df.loc[idx].geometry_snap
 df.loc[idx, "SNAP2018"] = df.loc[idx].SNAP2018_snap
 # drop snap columns
-df = df.drop(columns=[c for c in df.columns if c.endswith("_snap")]).reset_index()
 
+# Reset the index so that we have a clean numbering for all rows
+df = df.drop(columns=[c for c in df.columns if c.endswith("_snap")]).reset_index(
+    drop=True
+)
 print("Compiled {:,} dams".format(len(df)))
 
 
@@ -167,15 +166,12 @@ df.loc[(df.Year > 0) & (df.Year < 100), "Year"] = df.Year + 1900
 df.loc[df.Year == 20151, "Year"] = 2015
 df.loc[df.Year == 9999, "Year"] = 0
 
-df.River = df.River.str.title()
-
-
-### Fill NaN fields and set data types
-# df.SARPID = df.SARPID.fillna(-1).astype("int")
-
 
 for column in ("River", "NIDID", "Source"):
     df[column] = df[column].fillna("").str.strip()
+
+df.River = df.River.str.title()
+
 
 for column in (
     # "RareSpp",
@@ -210,7 +206,7 @@ df.HeightClass = df.HeightClass.astype("uint8")
 ### Spatial joins
 # Join against HUC12 and then derive HUC2
 print("Reading HUC12 boundaries and joining to dams")
-huc12 = deserialize_gdf(boundaries_dir / "HUC12.feather")
+huc12 = from_geofeather(boundaries_dir / "HUC12.feather")
 huc12.sindex
 
 df.sindex
@@ -223,7 +219,7 @@ df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
 
 # Read in HUC6 and join in basin name
 huc6 = (
-    deserialize_gdf(boundaries_dir / "HUC6.feather")[["HUC6", "NAME"]]
+    from_geofeather(boundaries_dir / "HUC6.feather")[["HUC6", "NAME"]]
     .rename(columns={"NAME": "Basin"})
     .set_index("HUC6")
 )
@@ -231,7 +227,7 @@ df = df.join(huc6, on="HUC6")
 
 
 print("Joining to counties")
-counties = deserialize_gdf(boundaries_dir / "counties.feather")[
+counties = from_geofeather(boundaries_dir / "counties.feather")[
     ["geometry", "County", "COUNTYFIPS", "STATEFIPS"]
 ]
 counties.sindex
@@ -245,17 +241,18 @@ states = deserialize_df(boundaries_dir / "states.feather")[
 df = df.join(states, on="STATEFIPS")
 
 
-print("Joining to ecoregions")
-# Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
-eco4 = deserialize_gdf(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
-eco4.sindex
-df.sindex
-df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
+# TODO: remove, moved to post
+# print("Joining to ecoregions")
+# # Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
+# eco4 = from_geofeather(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
+# eco4.sindex
+# df.sindex
+# df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
 
 
 # Drop any that didn't intersect HUCs or states
 drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()
-print("{} dams are outside HUC12 / states".format(len(df.loc[drop_idx])))
+print("{:,} dams are outside HUC12 / states".format(len(df.loc[drop_idx])))
 # Mark dropped barriers
 df.loc[drop_idx, "dropped"] = True
 
@@ -268,14 +265,14 @@ drop_idx = (
     | df.Feasibility.isin(DROP_FEASIBILITY)
     | df.SNAP2018.isin(DROP_SNAP2018)
 )
-print("Dropped {} dams from all analysis and mapping".format(len(df.loc[drop_idx])))
+print("Dropped {:,} dams from all analysis and mapping".format(len(df.loc[drop_idx])))
 df.loc[drop_idx, "dropped"] = True
 
 
 ### Exclude dams that should not be analyzed or prioritized based on manual QA
 exclude_idx = df.Recon.isin(EXCLUDE_RECON) | df.SNAP2018.isin(EXCLUDE_SNAP2018)
 print(
-    "Excluded {} dams from network analysis and prioritization".format(
+    "Excluded {:,} dams from network analysis and prioritization".format(
         len(df.loc[exclude_idx])
     )
 )
@@ -287,14 +284,11 @@ to_snap = df.loc[~(df.dropped | df.excluded), ["geometry", "HUC2", "id"]].copy()
 print("Attempting to snap {:,} dams".format(len(to_snap)))
 
 snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
-print("\n--------------\n")
+
 
 # join back to master
 df = update_from_snapped(df, snapped)
 
-### Add lat / lon
-print("Adding lat / lon fields")
-df = add_lat_lon(df)
 
 # Remove duplicates after snapping, in case any snapped to the same position
 # These are completely dropped from the analysis from here on out
@@ -302,22 +296,24 @@ df = mark_duplicates(df, DUPLICATE_TOLERANCE)
 df = df.sort_values("id")
 print("{:,} duplicate dams removed after snapping".format(len(df.loc[df.duplicate])))
 
+print("\n--------------\n")
+df = df.reset_index(drop=True)
+
 print("Serializing {:,} dams to master file".format(len(df)))
-serialize_gdf(df, master_dir / "dams.feather", index=False)
+to_geofeather(df, master_dir / "dams.feather")
 
 print("writing shapefiles for QA/QC")
 to_shp(df, qa_dir / "dams.shp")
 
 
 # Extract out only the snapped ones
-df = df.loc[df.snapped & ~df.duplicate].copy()
+df = df.loc[df.snapped & ~df.duplicate].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped dams".format(len(df)))
-serialize_gdf(
-    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]],
-    snapped_dir / "dams.feather",
-    index=False,
+to_geofeather(
+    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]], snapped_dir / "dams.feather"
 )
 
+print("All done in {:.2f}s".format(time() - start))

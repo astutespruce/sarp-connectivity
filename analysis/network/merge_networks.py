@@ -9,13 +9,12 @@ from itertools import chain
 import pandas as pd
 import geopandas as gp
 from shapely.geometry import MultiLineString
+from geofeather import from_geofeather, to_geofeather
 
 from nhdnet.io import (
     serialize_df,
-    deserialize_gdf,
     deserialize_df,
     to_shp,
-    serialize_gdf,
     deserialize_dfs,
     deserialize_gdfs,
 )
@@ -157,13 +156,6 @@ for region in CONNECTED_REGIONS:
     ].downstream_network.astype("uint64")
     barrier_networks.loc[idx, "DownstreamMiles"] = barrier_networks.loc[idx].miles
 
-    # Recalculate AbsoluteGAinMi based on the merged network lengths
-    barrier_networks.loc[idx, "AbsoluteGainMi"] = (
-        barrier_networks.loc[idx, ["UpstreamMiles", "DownstreamMiles"]]
-        .min(axis=1)
-        .astype("float32")
-    )
-
     barrier_networks = barrier_networks.drop(columns=["miles", "downstream_network"])
 
     serialize_df(
@@ -176,11 +168,11 @@ for region in CONNECTED_REGIONS:
 cut_networks = None
 for region in cross_region.from_region.unique():
     out_dir = data_dir / "networks" / region / network_type
-    
+
     ### Update network geometries
     print("Cutting downstream network from upstream region {}...".format(region))
 
-    network = deserialize_gdf(
+    network = from_geofeather(
         data_dir / "networks" / region / network_type / "raw/network.feather"
     )
 
@@ -198,7 +190,7 @@ for region in cross_region.from_region.unique():
     network = network.loc[~idx].copy()
 
     print("Serializing updated network...")
-    serialize_gdf(network, out_dir / "network.feather", index=None)
+    to_geofeather(network.reset_index(drop=True), out_dir / "network.feather")
     to_shp(network, out_dir / "network.shp")
 
 ### Update new networkID and stats into cut networks
@@ -219,7 +211,7 @@ cut_networks = (
 ### Read in downstream networks, remove the original networks that are merged above, and append in merged ones
 for region in cross_region.region.unique():
     print("Updating merged network into downstream region {}...".format(region))
-    network = deserialize_gdf(
+    network = from_geofeather(
         data_dir / "networks" / region / network_type / "raw/network.feather"
     )
 
@@ -262,7 +254,7 @@ for region in cross_region.region.unique():
 
     print("Serializing updated network...")
     out_dir = data_dir / "networks" / region / network_type
-    serialize_gdf(network, out_dir / "network.feather", index=None)
+    to_geofeather(network.reset_index(drop=True), out_dir / "network.feather")
     to_shp(network, out_dir / "network.shp")
 
 print("All done in {:.2f}s".format(time() - start))

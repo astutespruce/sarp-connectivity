@@ -21,8 +21,10 @@ from pathlib import Path
 import os
 from time import time
 
+from geofeather import to_geofeather
 from nhdnet.nhd.extract import extract_flowlines
-from nhdnet.io import serialize_gdf, serialize_df, to_shp, serialize_sindex
+from nhdnet.io import serialize_df, serialize_sindex, to_shp
+
 
 from analysis.constants import REGIONS, REGION_GROUPS, CRS, EXCLUDE_IDs
 
@@ -145,14 +147,16 @@ for region, HUC2s in REGION_GROUPS.items():
         ~((merged_joins.downstream == 0) & (merged_joins.upstream == 0))
     ].copy()
 
+    print("--------------------")
+
     print("serializing {:,} flowlines to feather".format(len(merged)))
-    serialize_gdf(merged, region_dir / "flowline.feather")
+    to_geofeather(merged.reset_index(drop=True), region_dir / "flowline.feather")
     serialize_sindex(merged, region_dir / "flowline.sidx")
     serialize_df(merged_joins, region_dir / "flowline_joins.feather", index=False)
 
     print("serializing to shp")
     serialize_start = time()
-    to_shp(merged, region_dir / "flowline.shp")
+    to_shp(merged.reset_index(drop=True), region_dir / "flowline.shp")
     print("serialize done in {:.0f}s".format(time() - serialize_start))
 
     print("Region done in {:.0f}s".format(time() - region_start))

@@ -4,7 +4,8 @@ from time import time
 from dotenv import load_dotenv
 import requests
 
-from nhdnet.io import serialize_gdf, to_shp
+from geofeather import to_geofeather
+from nhdnet.io import to_shp
 
 from analysis.constants import (
     SARP_STATES,
@@ -81,64 +82,66 @@ out_dir = Path("data/barriers/source")
 
 start = time()
 
-# ### Download and merge state feature services
-# merged = None
-# # Services have varying casing of SNAP2018
-# dam_cols = DAM_COLS + ["Snap2018"]
-# for state, url in DAM_URLS.items():
-#     download_start = time()
+### Download and merge state feature services
+merged = None
+# Services have varying casing of SNAP2018
+dam_cols = DAM_COLS + ["Snap2018"]
+for state, url in DAM_URLS.items():
+    download_start = time()
 
-#     print("---- Downloading {} ----".format(state))
-#     df = download_fs(url, fields=dam_cols, token=token, target_wkid=TARGET_WKID).rename(
-#         columns={
-#             "Snap2018": "SNAP2018",
-#             "PotentialFeasibility": "Feasibility",
-#             "Barrier_Name": "Name",
-#             "Other_Barrier_Name": "OtherName",
-#             "DB_Source": "Source",
-#             "Year_Completed": "Year",
-#             "ConstructionMaterial": "Construction",
-#             "PurposeCategory": "Purpose",
-#             "StructureCondition": "Condition",
-#         }
-#     )
-#     df["SourceState"] = state
-#     print("Downloaded {:,} dams in {:.2f}s".format(len(df), time() - download_start))
+    print("---- Downloading {} ----".format(state))
+    df = download_fs(url, fields=dam_cols, token=token, target_wkid=TARGET_WKID).rename(
+        columns={
+            "Snap2018": "SNAP2018",
+            "PotentialFeasibility": "Feasibility",
+            "Barrier_Name": "Name",
+            "Other_Barrier_Name": "OtherName",
+            "DB_Source": "Source",
+            "Year_Completed": "Year",
+            "ConstructionMaterial": "Construction",
+            "PurposeCategory": "Purpose",
+            "StructureCondition": "Condition",
+        }
+    )
+    df["SourceState"] = state
+    print("Downloaded {:,} dams in {:.2f}s".format(len(df), time() - download_start))
 
-#     # Add feasibility so that we can merge
-#     if not "Feasibility" in df.columns:
-#         df["Feasibility"] = df.Recon.map(RECON_TO_FEASIBILITY)
+    # Add feasibility so that we can merge
+    if not "Feasibility" in df.columns:
+        df["Feasibility"] = df.Recon.map(RECON_TO_FEASIBILITY)
 
-#     if merged is None:
-#         merged = df
-#     else:
-#         merged = merged.append(df, ignore_index=True, sort=False)
+    if merged is None:
+        merged = df
+    else:
+        merged = merged.append(df, ignore_index=True, sort=False)
 
-# df = merged
+df = merged
 
-# print("Projecting dams...")
-# # Drop dams without locations and project
-# df = df.loc[df.geometry.notnull()].copy().to_crs(CRS)
-
-
-# print("Merged {:,} dams in SARP states".format(len(df)))
-# serialize_gdf(df, out_dir / "sarp_dams.feather")
+print("Projecting dams...")
+# Drop dams without locations and project
+df = df.loc[df.geometry.notnull()].copy().to_crs(CRS)
 
 
-# ### Download manually snapped dams
-# download_start = time()
-# print("---- Downloading Snapped Dams ----")
-# df = download_fs(SNAPPED_URL, fields=["AnalysisID", "SNAP2018"], token=token, target_wkid=TARGET_WKID)
+print("Merged {:,} dams in SARP states".format(len(df)))
+to_geofeather(df, out_dir / "sarp_dams.feather")
 
-# print("Projecting manually snapped dams...")
-# df = df.loc[df.geometry.notnull()].to_crs(CRS)
 
-# print(
-#     "Downloaded {:,} snapped dams in {:.2f}s".format(len(df), time() - download_start)
-# )
+### Download manually snapped dams
+download_start = time()
+print("---- Downloading Snapped Dams ----")
+df = download_fs(
+    SNAPPED_URL, fields=["AnalysisID", "SNAP2018"], token=token, target_wkid=TARGET_WKID
+)
 
-# df.SNAP2018 = df.SNAP2018.fillna(0).astype("uint8")
-# serialize_gdf(df, out_dir / "manually_snapped_dams.feather")
+print("Projecting manually snapped dams...")
+df = df.loc[df.geometry.notnull()].to_crs(CRS)
+
+print(
+    "Downloaded {:,} snapped dams in {:.2f}s".format(len(df), time() - download_start)
+)
+
+df.SNAP2018 = df.SNAP2018.fillna(0).astype("uint8")
+to_geofeather(df, out_dir / "manually_snapped_dams.feather")
 
 ### Download small barriers
 download_start = time()
@@ -148,7 +151,6 @@ df = download_fs(
 ).rename(
     columns={
         "Crossing_Code": "CrossingCode",
-        "OnConservationLand": "ProtectedLand",
         "Potential_Project": "PotentialProject",
         # Note re: SARPID - this isn't quite correct but needed for consistency
         "AnalysisId": "SARPID",
@@ -171,7 +173,7 @@ print(
 )
 
 # df.SNAP2018 = df.SNAP2018.fillna(0).astype("uint8")
-serialize_gdf(df, out_dir / "sarp_small_barriers.feather")
+to_geofeather(df, out_dir / "sarp_small_barriers.feather")
 
 
 print("---------------\nAll done in {:.2f}s".format(time() - start))

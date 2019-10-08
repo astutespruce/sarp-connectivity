@@ -33,6 +33,13 @@ def snap_by_region(df, regions, tolerance):
         print("\n----- {} ------\n".format(region))
         region_dir = nhd_dir / region
 
+        # Extract out waterfalls in this HUC
+        in_region = df.loc[df.HUC2.isin(regions[region])]
+        print("Selected {:,} barriers in region".format(len(in_region)))
+
+        if len(in_region) == 0:
+            continue
+
         print("Reading flowlines")
         flowlines = (
             deserialize_gdf(region_dir / "flowline.feather")[
@@ -45,10 +52,6 @@ def snap_by_region(df, regions, tolerance):
 
         print("Reading spatial index on flowlines")
         sindex = deserialize_sindex(region_dir / "flowline.sidx")
-
-        # Extract out waterfalls in this HUC
-        in_region = df.loc[df.HUC2.isin(regions[region])]
-        print("Selected {:,} barriers in region".format(len(in_region)))
 
         print("Snapping to flowlines")
         snapped = snap_to_line(in_region, flowlines, tolerance, sindex=sindex)

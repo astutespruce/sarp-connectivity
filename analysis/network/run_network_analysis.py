@@ -18,16 +18,11 @@ import geopandas as gp
 import pandas as pd
 import numpy as np
 from shapely.geometry import MultiLineString
+from geofeather import from_geofeather, to_geofeather
 
 from nhdnet.nhd.cut import cut_flowlines
 from nhdnet.nhd.network import generate_networks
-from nhdnet.io import (
-    deserialize_df,
-    deserialize_gdf,
-    to_shp,
-    serialize_df,
-    serialize_gdf,
-)
+from nhdnet.io import deserialize_df, to_shp, serialize_df
 
 from analysis.constants import REGION_GROUPS, NETWORK_TYPES, CONNECTED_REGIONS
 
@@ -130,7 +125,7 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES):
     # networks for a given barrier, so we drop these duplicates after the join.
     barrier_networks = (
         upstream_networks.join(downstream_networks)
-        .join(barriers.kind)
+        .join(barriers[["id", "kind"]])
         .drop(columns=["barrier", "up_ndams", "up_nwfs", "up_sbs"], errors="ignore")
         .fillna(0)
     )
@@ -143,20 +138,6 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES):
         barrier_networks[col] = barrier_networks[col].astype("float32")
 
     barrier_networks.sizeclasses = barrier_networks.sizeclasses.astype("uint8")
-
-    # Absolute gain is minimum of upstream or downstream miles
-    barrier_networks["AbsoluteGainMi"] = (
-        barrier_networks[["UpstreamMiles", "DownstreamMiles"]]
-        .min(axis=1)
-        .astype("float32")
-    )
-
-    # TotalNetworkMiles is sum of upstream and downstream miles
-    barrier_networks["TotalNetworkMiles"] = (
-        barrier_networks[["UpstreamMiles", "DownstreamMiles"]]
-        .sum(axis=1)
-        .astype("float32")
-    )
 
     serialize_df(barrier_networks.reset_index(), out_dir / "barriers_network.feather")
 
@@ -182,7 +163,7 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES):
     print("Network dissolve done in {0:.2f}".format(time() - dissolve_start))
 
     print("Serializing network")
-    serialize_gdf(networks, out_dir / "network.feather")
+    to_geofeather(networks.reset_index(drop=True), out_dir / "network.feather")
 
     if not region in CONNECTED_REGIONS:
         print("Writing dissolved network shapefile")

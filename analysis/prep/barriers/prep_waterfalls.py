@@ -12,16 +12,12 @@ This creates 2 files:
 
 from pathlib import Path
 import pandas as pd
+from time import time
+from geofeather import from_geofeather, to_geofeather
 import geopandas as gp
 import numpy as np
 
-from nhdnet.io import (
-    serialize_gdf,
-    deserialize_gdf,
-    deserialize_df,
-    deserialize_sindex,
-    to_shp,
-)
+from nhdnet.io import deserialize_df, deserialize_sindex, to_shp
 
 # from nhdnet.geometry.lines import snap_to_line
 from nhdnet.geometry.points import mark_duplicates, add_lat_lon
@@ -43,6 +39,8 @@ snapped_dir = barriers_dir / "snapped"
 qa_dir = barriers_dir / "qa"
 gdb_filename = "Waterfalls2019.gdb"
 
+
+start = time()
 
 print("Reading waterfalls")
 
@@ -86,7 +84,7 @@ df.loc[usgs_idx, "sourceID"] = df.loc[usgs_idx].fall_id.astype("int").astype("st
 
 
 print("Reading HUC2 boundaries and joining to waterfalls")
-huc12 = deserialize_gdf(boundaries_dir / "HUC12.feather")
+huc12 = from_geofeather(boundaries_dir / "HUC12.feather")
 df.sindex
 huc12.sindex
 df = gp.sjoin(df, huc12, how="left").drop(columns=["index_right"])
@@ -96,7 +94,7 @@ df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
 df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
 
 print("Joining to counties")
-counties = deserialize_gdf(boundaries_dir / "counties.feather")[
+counties = from_geofeather(boundaries_dir / "counties.feather")[
     ["geometry", "County", "COUNTYFIPS", "STATEFIPS"]
 ]
 counties.sindex
@@ -110,12 +108,14 @@ states = deserialize_df(boundaries_dir / "states.feather")[
 df = df.join(states, on="STATEFIPS")
 
 
-print("Joining to ecoregions")
-# Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
-eco4 = deserialize_gdf(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
-eco4.sindex
-df.sindex
-df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
+# TODO: migrate to post
+
+# print("Joining to ecoregions")
+# # Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
+# eco4 = from_geofeather(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
+# eco4.sindex
+# df.sindex
+# df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
 
 # Drop any that didn't intersect HUCs or states
 drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()
@@ -133,11 +133,10 @@ snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
 # join back to master
 df = update_from_snapped(df, snapped)
 
-print("\n--------------\n")
-
+# TODO: remove, move to post
 ### Add lat / lon
-print("Adding lat / lon fields")
-df = add_lat_lon(df)
+# print("Adding lat / lon fields")
+# df = add_lat_lon(df)
 
 ### Remove duplicates after snapping, in case any snapped to the same position
 # These are completely dropped from the analysis from here on out
@@ -146,20 +145,24 @@ print(
     "{} duplicate waterfalls removed after snapping".format(len(df.loc[df.duplicate]))
 )
 
-serialize_gdf(df, master_dir / "waterfalls.feather", index=False)
+print("\n--------------\n")
+df = df.reset_index(drop=True)
+
+
+to_geofeather(df, master_dir / "waterfalls.feather")
 
 print("writing shapefiles for QA/QC")
 to_shp(df, qa_dir / "waterfalls.shp")
 
 # Extract out only the snapped ones
-df = df.loc[df.snapped & ~df.duplicate].copy()
+df = df.loc[df.snapped & ~df.duplicate].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {0} snapped waterfalls".format(len(df)))
-serialize_gdf(
+to_geofeather(
     df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]],
     snapped_dir / "waterfalls.feather",
-    index=False,
 )
 
+print("All done in {:.2f}s".format(time() - start))

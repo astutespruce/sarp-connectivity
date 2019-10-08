@@ -13,16 +13,11 @@ This creates 2 files:
 from pathlib import Path
 from time import time
 import pandas as pd
+from geofeather import to_geofeather, from_geofeather
 import geopandas as gp
 import numpy as np
 
-from nhdnet.io import (
-    serialize_gdf,
-    deserialize_df,
-    deserialize_gdf,
-    deserialize_sindex,
-    to_shp,
-)
+from nhdnet.io import deserialize_df, deserialize_sindex, to_shp
 from nhdnet.geometry.points import mark_duplicates, add_lat_lon
 from nhdnet.geometry.lines import snap_to_line
 
@@ -57,7 +52,7 @@ qa_dir = barriers_dir / "qa"
 start = time()
 
 
-df = deserialize_gdf(src_dir / "sarp_small_barriers.feather")
+df = from_geofeather(src_dir / "sarp_small_barriers.feather")
 print("Read {:,} small barriers".format(len(df)))
 
 # Rename all columns that have underscores
@@ -126,7 +121,7 @@ df["RoadTypeClass"] = df.RoadType.map(ROAD_TYPE_TO_DOMAIN)
 ### Spatial joins
 # Join against HUC12 and then derive HUC2
 print("Reading HUC2 boundaries and joining to small barriers")
-huc12 = deserialize_gdf(boundaries_dir / "HUC12.feather")
+huc12 = from_geofeather(boundaries_dir / "HUC12.feather")
 huc12.sindex
 
 df.sindex
@@ -139,7 +134,7 @@ df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
 
 # Read in HUC6 and join in basin name
 huc6 = (
-    deserialize_gdf(boundaries_dir / "HUC6.feather")[["HUC6", "NAME"]]
+    from_geofeather(boundaries_dir / "HUC6.feather")[["HUC6", "NAME"]]
     .rename(columns={"NAME": "Basin"})
     .set_index("HUC6")
 )
@@ -147,7 +142,7 @@ df = df.join(huc6, on="HUC6")
 
 
 print("Joining to counties")
-counties = deserialize_gdf(boundaries_dir / "counties.feather")[
+counties = from_geofeather(boundaries_dir / "counties.feather")[
     ["geometry", "County", "COUNTYFIPS", "STATEFIPS"]
 ]
 counties.sindex
@@ -161,17 +156,19 @@ states = deserialize_df(boundaries_dir / "states.feather")[
 df = df.join(states, on="STATEFIPS")
 
 
-print("Joining to ecoregions")
-# Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
-eco4 = deserialize_gdf(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
-eco4.sindex
-df.sindex
-df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
+# TODO: remove, migrate to post
+
+# print("Joining to ecoregions")
+# # Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
+# eco4 = from_geofeather(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
+# eco4.sindex
+# df.sindex
+# df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
 
 
 # Drop any that didn't intersect HUCs or states
 drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()
-print("{} small barriers are outside HUC12 / states".format(len(df.loc[drop_idx])))
+print("{:,} small barriers are outside HUC12 / states".format(len(df.loc[drop_idx])))
 # Mark dropped barriers
 df.loc[drop_idx, "dropped"] = True
 
@@ -183,7 +180,7 @@ drop_idx = df.PotentialProject.isin(DROP_POTENTIAL_PROJECT) | df.SNAP2018.isin(
     DROP_SNAP2018
 )
 print(
-    "Dropped {} small barriers from all analysis and mapping".format(
+    "Dropped {:,} small barriers from all analysis and mapping".format(
         len(df.loc[drop_idx])
     )
 )
@@ -191,11 +188,12 @@ df.loc[drop_idx, "dropped"] = True
 
 ### Exclude barriers that should not be analyzed or prioritized based on manual QA
 # NOTE: small barriers currently do not have any values set for SNAP2018
-exclude_idx = ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT) & df.SNAP2018.isin(
+exclude_idx = ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT) | df.SNAP2018.isin(
     EXCLUDE_SNAP2018
 )
+
 print(
-    "Excluded {} small barriers from network analysis and prioritization".format(
+    "Excluded {:,} small barriers from network analysis and prioritization".format(
         len(df.loc[exclude_idx])
     )
 )
@@ -203,15 +201,17 @@ df.loc[exclude_idx, "excluded"] = True
 
 ### Snap by region group
 to_snap = df.loc[~(df.dropped | df.excluded), ["geometry", "HUC2", "id"]].copy()
+print("Attempting to snap {:,} small barriers".format(len(to_snap)))
+
 snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
-print("\n--------------\n")
 
 # join back to master
 df = update_from_snapped(df, snapped)
 
+# TODO: remove, migrate to post
 ### Add lat / lon
-print("Adding lat / lon fields")
-df = add_lat_lon(df)
+# print("Adding lat / lon fields")
+# df = add_lat_lon(df)
 
 
 # Remove duplicates after snapping, in case any snapped to the same position
@@ -227,8 +227,12 @@ print(
     )
 )
 
+print("\n--------------\n")
+
+df = df.reset_index(drop=True)
+
 print("Serializing {:,} small barriers".format(len(df)))
-serialize_gdf(df, master_dir / "small_barriers.feather", index=False)
+to_geofeather(df, master_dir / "small_barriers.feather")
 
 
 print("writing shapefiles for QA/QC")
@@ -236,13 +240,14 @@ to_shp(df, qa_dir / "small_barriers.shp")
 
 
 # Extract out only the snapped ones
-df = df.loc[df.snapped & ~df.duplicate].copy()
+df = df.loc[df.snapped & ~df.duplicate].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped small barriers".format(len(df)))
-serialize_gdf(
+to_geofeather(
     df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]],
     snapped_dir / "small_barriers.feather",
-    index=False,
 )
+
+print("All done in {:.2f}s".format(time() - start))
