@@ -12,7 +12,8 @@ from pathlib import Path
 import os
 
 import geopandas as gp
-from nhdnet.io import serialize_gdf, to_shp
+from geofeather import to_geofeather
+from nhdnet.io import to_shp
 
 from analysis.constants import CRS, OWNERTYPE_TO_DOMAIN, SARP_STATES_FIPS
 
@@ -38,7 +39,7 @@ huc4.sindex
 ### HUC6s - used for basin names
 df = gp.read_file(intermediate_dir / "HUC6_prj.shp")[["geometry", "HUC6", "NAME"]]
 df.sindex
-serialize_gdf(df, out_dir / "HUC6.feather")
+to_geofeather(df, out_dir / "HUC6.feather")
 
 # Select out within the SARP boundary
 in_sarp = gp.sjoin(df, bnd)
@@ -63,7 +64,7 @@ to_shp(
 ### HUC12s - primary for all spatial joins (other codes can be derived from HUC12)
 df = gp.read_file(intermediate_dir / "HUC12_prj.shp")[["geometry", "HUC12", "NAME"]]
 df.sindex
-serialize_gdf(df, out_dir / "HUC12.feather")
+to_geofeather(df, out_dir / "HUC12.feather")
 
 # Select out within the SARP boundary
 in_sarp = gp.sjoin(df, bnd)
@@ -81,7 +82,7 @@ df = gp.read_file(intermediate_dir / "states_prj.shp")[
 df.sindex
 in_region = gp.sjoin(df, huc4)
 df = df.loc[df.STATEFIPS.isin(in_region.STATEFIPS)]
-serialize_gdf(df, out_dir / "states.feather", index=False)
+to_geofeather(df, out_dir / "states.feather", index=False)
 
 # select only those within the SARP states for tilesets
 # since other states are only partially covered by data
@@ -106,7 +107,7 @@ df = gp.read_file(intermediate_dir / "counties_prj.shp")[
 df.sindex
 in_region = gp.sjoin(df, huc4)
 df = df.loc[df.COUNTYFIPS.isin(in_region.COUNTYFIPS)]
-serialize_gdf(df, out_dir / "counties.feather", index=False)
+to_geofeather(df, out_dir / "counties.feather", index=False)
 
 # select only those within the SARP states for tilesets
 df = df.loc[df.STATEFIPS.isin(SARP_STATES_FIPS)]
@@ -125,7 +126,7 @@ df = gp.read_file(intermediate_dir / "eco3_prj.shp")[
 df.sindex
 in_region = gp.sjoin(df, huc4)
 df = df.loc[df.ECO3.isin(in_region.ECO3)]
-serialize_gdf(df, out_dir / "eco3.feather", index=False)
+to_geofeather(df, out_dir / "eco3.feather", index=False)
 
 # Select out within the SARP boundary
 df["tmp_id"] = df.index.astype("uint")
@@ -143,7 +144,7 @@ df = gp.read_file(intermediate_dir / "eco4_prj.shp")[
 df.sindex
 in_region = gp.sjoin(df, huc4)
 df = df.loc[df.ECO4.isin(in_region.ECO4)]
-serialize_gdf(df, out_dir / "eco4.feather", index=False)
+to_geofeather(df, out_dir / "eco4.feather", index=False)
 
 # Select out within the SARP boundary (only the parts of multipart features in SARP)
 df["tmp_id"] = df.index.astype("uint")
@@ -169,4 +170,4 @@ df.loc[idx, "otype"] = df.loc[idx].owner
 df.otype = df.otype.map(OWNERTYPE_TO_DOMAIN).astype("uint8")
 
 df = df[["geometry", "otype"]].rename(columns={"otype": "OwnerType"})
-serialize_gdf(df, boundaries_dir / "projected_areas.feather")
+to_geofeather(df, boundaries_dir / "protected_areas.feather")

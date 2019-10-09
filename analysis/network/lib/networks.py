@@ -82,28 +82,6 @@ def create_networks(flowlines, joins, barrier_joins):
     )
     barrier_network_segments["type"] = "barrier"
 
-    # Handle multiple upstreams
-    upstream_count = barrier_joins.groupby(level=0).size()
-    multiple_upstreams = barrier_joins.loc[
-        barrier_joins.index.isin(upstream_count.loc[upstream_count > 1].index)
-    ]
-
-    if len(multiple_upstreams):
-        print(
-            "Merging multiple upstream networks for barriers at network junctions, affects {} networks".format(
-                len(multiple_upstreams)
-            )
-        )
-
-        # For each barrier with multiple upstreams, coalesce their networkIDs
-        for barrierID in multiple_upstreams.index.unique():
-            upstream_ids = multiple_upstreams.loc[barrierID].upstream_id
-
-            # Set all upstream networks for this barrier to the ID of the first
-            barrier_network_segments.loc[
-                barrier_network_segments.networkID.isin(upstream_ids), ["networkID"]
-            ] = upstream_ids.iloc[0]
-
     # Append network types back together
     network_df = (
         single_segment_networks.reset_index()
@@ -120,6 +98,32 @@ def create_networks(flowlines, joins, barrier_joins):
     )
     network_df.networkID = network_df.networkID.astype("uint32")
     network_df.lineID = network_df.lineID.astype("uint32")
+
+    ### Handle multiple upstreams
+    # A given barrier may have > 1 upstream segment, some have 3+
+    # Some might be single segments, so we can't just focus on barrier segments
+    # Group by barrierID
+    upstream_count = barrier_joins.groupby(level=0).size()
+    multiple_upstreams = barrier_joins.loc[
+        barrier_joins.index.isin(upstream_count.loc[upstream_count > 1].index)
+    ]
+
+    if len(multiple_upstreams):
+        print(
+            "Merging multiple upstream networks for barriers at network junctions, affects {} networks".format(
+                len(multiple_upstreams)
+            )
+        )
+
+        # For each barrier with multiple upstreams, coalesce their networkIDs
+        for barrierID in multiple_upstreams.index.unique():
+            upstream_ids = multiple_upstreams.loc[barrierID].upstream_id
+            networkID = upstream_ids.iloc[0]
+
+            # Set all upstream networks for this barrier to the ID of the first
+            network_df.loc[
+                network_df.networkID.isin(upstream_ids), ["networkID"]
+            ] = networkID
 
     # Join back to flowlines, dropping anything that didn't get networks
     network_df = flowlines.join(network_df.set_index("lineID"), how="inner").set_index(

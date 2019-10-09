@@ -76,6 +76,13 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES):
 
     network_df = create_networks(flowlines, joins, barrier_joins)
 
+    # For any barriers that had multiple upstreams, those were coalesced to a single network above
+    # So drop any dangling upstream references (those that are not in networks and non-zero)
+    barrier_joins = barrier_joins.loc[
+        barrier_joins.upstream_id.isin(network_df.index)
+        | (barrier_joins.upstream_id == 0)
+    ].copy()
+
     print(
         "{0:,} networks created in {1:.2f}s".format(
             len(network_df.index.unique()), time() - network_start
@@ -128,6 +135,7 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES):
         .join(barriers[["id", "kind"]])
         .drop(columns=["barrier", "up_ndams", "up_nwfs", "up_sbs"], errors="ignore")
         .fillna(0)
+        .drop_duplicates()
     )
 
     # Fix data types after all the joins

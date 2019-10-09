@@ -122,12 +122,7 @@ DAM_COLS = [
     "Height",
     "StructureCondition",
     "ConstructionMaterial",
-    "ProtectedLand",
     "DB_Source",
-    # "Off_Network", # not used
-    # "Mussel_Presence", # not used
-    # "NumberRareSpeciesHUC12", # we add later
-    # "StreamOrder", # we add later
     "Recon",
     "PotentialFeasibility",  # only present in NC
 ]
@@ -142,7 +137,6 @@ SMALL_BARRIER_COLS = [
     "RoadTypeId",
     "CrossingTypeId",
     "CrossingConditionId",
-    "OnConservationLand",
     "Potential_Project",
     "Source",
 
