@@ -26,7 +26,7 @@ data_dir = Path("data")
 
 start = time()
 
-network_type = NETWORK_TYPES[2]
+network_type = NETWORK_TYPES[1]
 print("Processing {}".format(network_type))
 
 ### Read in original joins to find the ones that cross regions
@@ -51,6 +51,7 @@ network_df = deserialize_dfs(
 ).set_index("networkID")
 
 ### Read barrier joins
+# WARNING: barrier joins do not reflect networks that were merged together due to multiple upstreams at a barrier
 print("Reading barrier joins...")
 barrier_joins = deserialize_dfs(
     [
@@ -61,7 +62,15 @@ barrier_joins = deserialize_dfs(
 ).set_index("barrierID")
 
 
-# Extract the joins that cross region boundaries, and set new upstream IDs for them
+### Remove dangling upstream networks
+# For any barriers that had multiple upstreams, those were coalesced to a single network above
+# So drop any dangling upstream references (those that are not in networks and non-zero)
+barrier_joins = barrier_joins.loc[
+    barrier_joins.upstream_id.isin(network_df.index) | (barrier_joins.upstream_id == 0)
+].copy()
+
+
+### Extract the joins that cross region boundaries, and set new upstream IDs for them
 cross_region = joins.loc[(joins.type == "huc_in") & (joins.upstream_id == 0)]
 
 cross_region = cross_region.join(
@@ -103,6 +112,11 @@ cross_region = cross_region.join(
 
 ### Reassign the upstream networks to the downstream networks
 print("------------------- Reassigning networks -----------")
+
+# cross_region.upstream_network is the upstream side of the join
+# so for every segment that has that networkID, reassign its networkID
+# to the cross_region.downstream_network (the new connected network extending)
+# upstream from the downstream regions)
 network_df = (
     network_df.join(cross_region.set_index("upstream_network").downstream_network)
     .reset_index()
@@ -121,6 +135,9 @@ updated_network = network_df.loc[cross_region.downstream_network]
 network_stats = calculate_network_stats(updated_network, barrier_joins)
 
 
+# NOTE: only extract out the stats we need for the DOWNSTREAM side of barriers
+# because there is no barrier at the bottom of the joined network, we never
+# need to assign stats on the upstream side of a barrier in this update
 cross_region_stats = cross_region.join(network_stats, on="downstream_network")[
     ["downstream_network", "upstream_network", "miles"]
 ]
@@ -139,24 +156,34 @@ for region in CONNECTED_REGIONS:
     # because there are no barriers on the lower Mississippi River (downstream part of merged network).
     # (meaning, we don't have to update the upstream networks of any barriers, since there are none)
 
-    # if on the upstream region side
     if region in cross_region.from_region:
-        stats = cross_region_stats.set_index("upstream_network")
+        # In one of the upstream regions, we need to update their downNetID and DownstreamMiles
+        # join to the stats based on their original downstream networkID
+        barrier_networks = barrier_networks.join(
+            cross_region_stats.set_index("upstream_network"), on="downNetID"
+        )
+        idx = barrier_networks.loc[barrier_networks.downstream_network.notnull()].index
+        barrier_networks.loc[idx, "downNetID"] = barrier_networks.loc[
+            idx
+        ].downstream_network.astype("uint64")
+        barrier_networks.loc[idx, "DownstreamMiles"] = barrier_networks.loc[idx].miles
 
-    else:
-        # in the same region as the downstream network, but need to update the stats for it
-        stats = cross_region_stats.set_index("downstream_network").rename(
-            columns={"upstream_network": "downstream_network"}
+        barrier_networks = barrier_networks.drop(
+            columns=["miles", "downstream_network"]
         )
 
-    barrier_networks = barrier_networks.join(stats, on="downNetID")
-    idx = barrier_networks.loc[barrier_networks.downstream_network.notnull()].index
-    barrier_networks.loc[idx, "downNetID"] = barrier_networks.loc[
-        idx
-    ].downstream_network.astype("uint64")
-    barrier_networks.loc[idx, "DownstreamMiles"] = barrier_networks.loc[idx].miles
+    else:
+        # in the same region as the downstream network, but need to update DownstreamMiles
 
-    barrier_networks = barrier_networks.drop(columns=["miles", "downstream_network"])
+        # Get only the new downstream miles, and drop the multiple incoming records
+        # since there is one per upstream_network
+        stats = cross_region_stats.set_index(
+            "downstream_network"
+        ).miles.drop_duplicates()
+        barrier_networks = barrier_networks.join(stats, on="downNetID")
+        idx = barrier_networks.loc[barrier_networks.miles.notnull()].index
+        barrier_networks.loc[idx, "DownstreamMiles"] = barrier_networks.loc[idx].miles
+        barrier_networks = barrier_networks.drop(columns=["miles"])
 
     serialize_df(
         barrier_networks.reset_index(drop=False), out_dir / "barriers_network.feather"
@@ -191,7 +218,8 @@ for region in cross_region.from_region.unique():
 
     print("Serializing updated network...")
     to_geofeather(network.reset_index(drop=True), out_dir / "network.feather")
-    to_shp(network, out_dir / "network.shp")
+    # FIXME:
+    # to_shp(network, out_dir / "network.shp")
 
 ### Update new networkID and stats into cut networks
 cut_networks = (
@@ -255,6 +283,7 @@ for region in cross_region.region.unique():
     print("Serializing updated network...")
     out_dir = data_dir / "networks" / region / network_type
     to_geofeather(network.reset_index(drop=True), out_dir / "network.feather")
-    to_shp(network, out_dir / "network.shp")
+    # FIXME:
+    # to_shp(network, out_dir / "network.shp")
 
 print("All done in {:.2f}s".format(time() - start))

@@ -28,8 +28,11 @@ def calculate_network_stats(df, barrier_joins):
         Summary statistics, with one row per functional network.
     """
 
+    # create series of networkID indexed by lineID
     networkID = df.reset_index().set_index("lineID").networkID
 
+    # identify all barriers that are upstream of a given network
+    # by joining on their downstream line ID (downstream_id)
     barriers_upstream = (
         barrier_joins[["downstream_id", "kind"]]
         .join(networkID, on="downstream_id")
@@ -54,6 +57,9 @@ def calculate_network_stats(df, barrier_joins):
         )
     )
 
+    # Extract downstream barrier type.
+    # on the downstream side of a network, there will only ever be a single barrier.
+    # Identify all barriers that have a given network upstream of them.
     barriers_downstream = (
         barrier_joins[["upstream_id", "kind"]]
         .join(networkID, on="upstream_id")
