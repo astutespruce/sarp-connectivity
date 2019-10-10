@@ -61,7 +61,7 @@ const dams = [
     labels: sizeclassValues,
   },
   {
-    field: 'raresppclass',
+    field: 'tesppclass',
     title: 'Number of Threatened & Endangered Species',
     hideEmpty: true,
     help:
@@ -143,7 +143,7 @@ const barriers = [
     labels: sizeclassValues,
   },
   {
-    field: 'raresppclass',
+    field: 'tesppclass',
     title: 'Number of Threatened and Endangered Species',
     hideEmpty: true,
     help:

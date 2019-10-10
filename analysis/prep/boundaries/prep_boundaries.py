@@ -82,7 +82,7 @@ df = gp.read_file(intermediate_dir / "states_prj.shp")[
 df.sindex
 in_region = gp.sjoin(df, huc4)
 df = df.loc[df.STATEFIPS.isin(in_region.STATEFIPS)]
-to_geofeather(df, out_dir / "states.feather", index=False)
+to_geofeather(df.reset_index(drop=True), out_dir / "states.feather")
 
 # select only those within the SARP states for tilesets
 # since other states are only partially covered by data
@@ -107,7 +107,7 @@ df = gp.read_file(intermediate_dir / "counties_prj.shp")[
 df.sindex
 in_region = gp.sjoin(df, huc4)
 df = df.loc[df.COUNTYFIPS.isin(in_region.COUNTYFIPS)]
-to_geofeather(df, out_dir / "counties.feather", index=False)
+to_geofeather(df.reset_index(drop=True), out_dir / "counties.feather")
 
 # select only those within the SARP states for tilesets
 df = df.loc[df.STATEFIPS.isin(SARP_STATES_FIPS)]
@@ -126,7 +126,7 @@ df = gp.read_file(intermediate_dir / "eco3_prj.shp")[
 df.sindex
 in_region = gp.sjoin(df, huc4)
 df = df.loc[df.ECO3.isin(in_region.ECO3)]
-to_geofeather(df, out_dir / "eco3.feather", index=False)
+to_geofeather(df.reset_index(drop=True), out_dir / "eco3.feather")
 
 # Select out within the SARP boundary
 df["tmp_id"] = df.index.astype("uint")
@@ -144,7 +144,7 @@ df = gp.read_file(intermediate_dir / "eco4_prj.shp")[
 df.sindex
 in_region = gp.sjoin(df, huc4)
 df = df.loc[df.ECO4.isin(in_region.ECO4)]
-to_geofeather(df, out_dir / "eco4.feather", index=False)
+to_geofeather(df.reset_index(drop=True), out_dir / "eco4.feather")
 
 # Select out within the SARP boundary (only the parts of multipart features in SARP)
 df["tmp_id"] = df.index.astype("uint")
@@ -157,17 +157,46 @@ to_shp(
 
 
 ### Protected areas
+print("Extracting protected areas...")
 df = gp.read_file(intermediate_dir / "protected_areas.shp").rename(
     columns={"type": "otype"}
 )
 
+
+# partner_federal = ["US Fish and Wildlife Service", "US Forest Service", "USDA Forest Service"]
+
 # partner federal agencies to call out specifically
-partner_federal = ["US Fish and Wildlife Service", "US Forest Service"]
-idx = df.loc[df.owner.isin(partner_federal)].index
-df.loc[idx, "otype"] = df.loc[idx].owner
+# map of substrings to search for specific owners
+partner_federal = {
+    "US Fish and Wildlife Service": [
+        "USFWS",
+        "USFW",
+        "US FWS",
+        "U.S. Fish and Wildlife Service",
+        "U.S. Fish & Wildlife Service",
+    ],
+    "USDA Forest Service": ["USFS", "USDA FOREST SERVICE", "US Forest Service"],
+}
+
+has_owner = df.owner.notnull()
+for partner, substrings in partner_federal.items():
+    print("Finding specific federal partner {}".format(partner))
+    # search on the primary name
+    df.loc[has_owner & df.owner.str.contains(partner), "otype"] = partner
+
+    for substring in substrings:
+        df.loc[has_owner & df.owner.str.contains(substring), "otype"] = partner
+
+    print("Found {:,} areas for that partner".format(len(df.loc[df.otype == partner])))
+
 
 # convert to int groups
 df.otype = df.otype.map(OWNERTYPE_TO_DOMAIN).astype("uint8")
 
-df = df[["geometry", "otype"]].rename(columns={"otype": "OwnerType"})
+# only save owner type
+df = (
+    df[["geometry", "otype"]]
+    .rename(columns={"otype": "OwnerType"})
+    .reset_index(drop=True)
+)
 to_geofeather(df, boundaries_dir / "protected_areas.feather")

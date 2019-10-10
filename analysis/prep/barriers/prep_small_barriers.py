@@ -37,6 +37,7 @@ from analysis.constants import (
 )
 
 from analysis.prep.barriers.lib.snap import snap_by_region, update_from_snapped
+from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
 # Snap barriers by 50 meters
 SNAP_TOLERANCE = 50
@@ -107,9 +108,6 @@ df.loc[
 for column in ("CrossingCode", "LocalID", "Source"):
     df[column] = df[column].fillna("").str.strip()
 
-for column in ["ProtectedLand"]:
-    df[column] = df[column].fillna(0).astype("uint8")
-
 
 ### Calculate classes
 df["ConditionClass"] = df.Condition.map(BARRIER_CONDITION_TO_DOMAIN)
@@ -119,52 +117,7 @@ df["RoadTypeClass"] = df.RoadType.map(ROAD_TYPE_TO_DOMAIN)
 
 
 ### Spatial joins
-# Join against HUC12 and then derive HUC2
-print("Reading HUC2 boundaries and joining to small barriers")
-huc12 = from_geofeather(boundaries_dir / "HUC12.feather")
-huc12.sindex
-
-df.sindex
-df = gp.sjoin(df, huc12, how="left").drop(columns=["index_right"])
-
-# Calculate HUC codes for other levels from HUC12
-df["HUC2"] = df["HUC12"].str.slice(0, 2)  # region
-df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
-df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
-
-# Read in HUC6 and join in basin name
-huc6 = (
-    from_geofeather(boundaries_dir / "HUC6.feather")[["HUC6", "NAME"]]
-    .rename(columns={"NAME": "Basin"})
-    .set_index("HUC6")
-)
-df = df.join(huc6, on="HUC6")
-
-
-print("Joining to counties")
-counties = from_geofeather(boundaries_dir / "counties.feather")[
-    ["geometry", "County", "COUNTYFIPS", "STATEFIPS"]
-]
-counties.sindex
-df.sindex
-df = gp.sjoin(df, counties, how="left").drop(columns=["index_right"])
-
-# Join in state name based on STATEFIPS from county
-states = deserialize_df(boundaries_dir / "states.feather")[
-    ["STATEFIPS", "State"]
-].set_index("STATEFIPS")
-df = df.join(states, on="STATEFIPS")
-
-
-# TODO: remove, migrate to post
-
-# print("Joining to ecoregions")
-# # Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
-# eco4 = from_geofeather(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
-# eco4.sindex
-# df.sindex
-# df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
-
+df = add_spatial_joins(df)
 
 # Drop any that didn't intersect HUCs or states
 drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()

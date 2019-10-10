@@ -47,7 +47,7 @@ DAM_FILTER_FIELDS = [
     "Condition",
     "Construction",
     "Purpose",
-    "RareSppClass",
+    "TESppClass",
     "StreamOrderClass",
     "GainMilesClass",
     # "LandcoverClass",
@@ -61,7 +61,7 @@ BARRIER_FILTER_FIELDS = [
     "SeverityClass",
     "CrossingTypeClass",
     "RoadTypeClass",
-    "RareSppClass",
+    "TESppClass",
     "GainMilesClass",
     # "LandcoverClass",
     "SizeClasses",
@@ -89,7 +89,7 @@ DAM_EXPORT_COLUMNS = [
     "NHDplusVersion",
     "HasNetwork",
     # Location info
-    "ProtectedLand",
+    "ProtectedLand", # TODO: OwnerType
     "HUC6",
     "HUC8",
     "HUC12",
@@ -415,7 +415,7 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
 
     # drop unneeded columns
-    df = df[export_columns].rename(columns={'RareSpp': 'TESpp'})
+    df = df[export_columns]  # .rename(columns={'RareSpp': 'TESpp'})
 
     # map domain fields to values
     df.HasNetwork = df.HasNetwork.map({True: "yes", False: "no"})
