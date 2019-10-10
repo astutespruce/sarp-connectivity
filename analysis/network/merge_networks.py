@@ -26,7 +26,7 @@ data_dir = Path("data")
 
 start = time()
 
-network_type = NETWORK_TYPES[1]
+network_type = NETWORK_TYPES[0]
 print("Processing {}".format(network_type))
 
 ### Read in original joins to find the ones that cross regions
@@ -218,8 +218,7 @@ for region in cross_region.from_region.unique():
 
     print("Serializing updated network...")
     to_geofeather(network.reset_index(drop=True), out_dir / "network.feather")
-    # FIXME:
-    # to_shp(network, out_dir / "network.shp")
+    to_shp(network, out_dir / "network.shp")
 
 ### Update new networkID and stats into cut networks
 cut_networks = (
@@ -283,7 +282,6 @@ for region in cross_region.region.unique():
     print("Serializing updated network...")
     out_dir = data_dir / "networks" / region / network_type
     to_geofeather(network.reset_index(drop=True), out_dir / "network.feather")
-    # FIXME:
-    # to_shp(network, out_dir / "network.shp")
+    to_shp(network, out_dir / "network.shp")
 
 print("All done in {:.2f}s".format(time() - start))

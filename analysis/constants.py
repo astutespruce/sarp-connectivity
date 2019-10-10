@@ -139,7 +139,6 @@ SMALL_BARRIER_COLS = [
     "CrossingConditionId",
     "Potential_Project",
     "Source",
-
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",
@@ -152,7 +151,6 @@ SMALL_BARRIER_COLS = [
     # "SE_AOP",
     # "NumberRareSpeciesHUC12", # we add this later
 ]
-
 
 
 # Used to filter small barriers by Potential_Project (small barriers)
@@ -297,8 +295,7 @@ OWNERTYPE_TO_DOMAIN = {
     "Unknown": 0,
     "Designation": 0,
     "US Fish and Wildlife Service": 1,
-    "US Forest Service": 2,
-    # TODO: update below
+    "USDA Forest Service": 2,
     "Federal Land": 3,
     "State Land": 4,
     "Local Land": 5,
@@ -307,6 +304,19 @@ OWNERTYPE_TO_DOMAIN = {
     "Native American Land": 6,
     "Easement": 7,
     "Private Conservation Land": 8,
+}
+
+# Really, just for frotend
+OWNERTYPE_TO_LABEL = {
+    0: "Unknown",
+    1: "US Fish and Wildlife Service land",
+    2: "USDA Forest Service land",
+    3: "Federal land",
+    4: "State land",
+    5: "Joint Ownership or Regional land",
+    6: "Native American land",
+    7: "Private easement",
+    8: "Other private conservation land",
 }
 
 

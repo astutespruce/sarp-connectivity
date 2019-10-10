@@ -17,17 +17,13 @@ import sys
 import os
 from pathlib import Path
 from time import time
+from geofeather import to_geofeather, from_geofeather
 import geopandas as gp
-from nhdnet.io import deserialize_df, deserialize_gdf, serialize_gdf
+from nhdnet.io import deserialize_df
 from nhdnet.geometry.points import add_lat_lon
 
-
-# Lazy way to import from a shared file in a different directory, this allows us to import
-sys.path.append(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
-
 from analysis.constants import CRS
+from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
 
 start = time()
@@ -35,13 +31,13 @@ start = time()
 data_dir = Path("data")
 boundaries_dir = data_dir / "boundaries"
 barriers_dir = data_dir / "barriers"
-src_dir = barriers_dir / "src"
+src_dir = barriers_dir / "source"
 out_dir = barriers_dir / "master"
 
-print("Reading source FGDB dataset")
+print("Reading road crossings")
 
 df = gp.read_file(src_dir / "road_crossings_prj.shp")
-print("Read {} road crossings".format(len(df)))
+print("Read {:,} road crossings".format(len(df)))
 
 # Rename columns to standardize with small barriers dataset
 df = df.rename(columns={"FULLNAME": "road", "GNIS_NAME": "stream", "RDXID": "sarpid"})
@@ -49,76 +45,23 @@ df.sarpid = df.sarpid.astype("uint")
 df["id"] = df.index.astype("uint")
 
 # Cleanup fields
-df.stream = df.stream.str.strip()
-df.road = df.road.str.strip()
+df.stream = df.stream.str.strip().fillna("")
+df.road = df.road.str.strip().fillna("")
 
 df.loc[
     (df.stream.str.strip().str.len() > 0) & (df.road.str.strip().str.len() > 0), "name"
 ] = (df.stream + " / " + df.road)
 
+df.name = df.name.fillna("")
 
 ### Spatial joins to boundary layers
-print("Creating spatial index")
-df.sindex
-
-print("Joining to HUCs")
-huc12 = deserialize_gdf(boundaries_dir / "huc12.feather")[["geometry", "HUC12"]]
-huc12.sindex
-df = gp.sjoin(df, huc12, how="left").drop(columns=["index_right"])
-
-# drop any that don't have HUC12s
-print(
-    "Dropping {} crossings that are missing HUC12".format(
-        len(df.loc[df.HUC12.isnull()])
-    )
-)
-df = df.loc[df.HUC12.notnull()]
+# TODO: these are not currently used, and take a lot of compute time to create
+# df = add_spatial_joins(df)
 
 
-# Calculate other HUC  codes
-df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
-df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
-
-# Read in HUC6 and join in basin name
-huc6 = (
-    deserialize_df(boundaries_dir / "HUC6.feather")[["HUC6", "NAME"]]
-    .rename(columns={"NAME": "Basin"})
-    .set_index("HUC6")
-)
-df = df.join(huc6, on="HUC6")
-
-
-# Regenerate the spatial index if needed
-df.sindex
-
-print("Joining to counties")
-counties = deserialize_gdf(boundaries_dir / "counties.feather")[
-    ["geometry", "County", "COUNTYFIPS", "STATEFIPS"]
-]
-counties.sindex
-df = gp.sjoin(df, counties, how="left").drop(columns=["index_right"])
-
-# Join in state name based on STATEFIPS from county
-states = deserialize_df(boundaries_dir / "states.feather")[
-    ["STATEFIPS", "State"]
-].set_index("STATEFIPS")
-df = df.join(states, on="STATEFIPS")
-
-
-# Regenerate the spatial index if needed
-df.sindex
-
-print("Joining to ecoregions")
-# Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
-eco4 = deserialize_gdf(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
-eco4.sindex
-df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
-
-
+print("Adding lat / lon fields")
 df = add_lat_lon(df)
 
-print("Projecting to WGS84 and adding lat / lon fields")
-
-serialize_gdf(df, out_dir / "road_crossings.feather", index=False)
+to_geofeather(df.reset_index(drop=True), out_dir / "road_crossings.feather")
 
 print("Done in {:.2f}".format(time() - start))

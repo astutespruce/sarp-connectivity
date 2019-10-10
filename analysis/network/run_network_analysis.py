@@ -78,6 +78,7 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES):
 
     # For any barriers that had multiple upstreams, those were coalesced to a single network above
     # So drop any dangling upstream references (those that are not in networks and non-zero)
+    # NOTE: these are not persisted because we want the original barrier_joins to reflect multiple upstreams
     barrier_joins = barrier_joins.loc[
         barrier_joins.upstream_id.isin(network_df.index)
         | (barrier_joins.upstream_id == 0)
@@ -129,7 +130,7 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES):
     )
 
     # Note: the join creates duplicates if there are multiple upstream or downstream
-    # networks for a given barrier, so we drop these duplicates after the join.
+    # networks for a given barrier, so we drop these duplicates after the join just to be sure.
     barrier_networks = (
         upstream_networks.join(downstream_networks)
         .join(barriers[["id", "kind"]])

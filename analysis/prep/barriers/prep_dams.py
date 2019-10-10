@@ -35,6 +35,7 @@ from analysis.constants import (
 )
 
 from analysis.prep.barriers.lib.snap import snap_by_region, update_from_snapped
+from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
 
 DUPLICATE_TOLERANCE = 30
@@ -156,11 +157,6 @@ ids = (df.Name.str.count("Estimated Dam") > 0) & (df.OtherName.str.len() > 0)
 df.loc[ids, "Name"] = df.loc[ids].OtherName
 
 
-# Fix ProtectedLand: since this was from an intersection, all values should
-# either be 1 (intersected) or 0 (did not)
-df.loc[df.ProtectedLand != 1, "ProtectedLand"] = 0
-
-
 # Fix years between 0 and 100; assume they were in the 1900s
 df.loc[(df.Year > 0) & (df.Year < 100), "Year"] = df.Year + 1900
 df.loc[df.Year == 20151, "Year"] = 2015
@@ -173,14 +169,7 @@ for column in ("River", "NIDID", "Source"):
 df.River = df.River.str.title()
 
 
-for column in (
-    # "RareSpp",
-    "ProtectedLand",
-    "Construction",
-    "Condition",
-    "Purpose",
-    "Recon",
-):
+for column in ("Construction", "Condition", "Purpose", "Recon"):
     df[column] = df[column].fillna(0).astype("uint8")
 
 
@@ -204,50 +193,7 @@ df.HeightClass = df.HeightClass.astype("uint8")
 
 
 ### Spatial joins
-# Join against HUC12 and then derive HUC2
-print("Reading HUC12 boundaries and joining to dams")
-huc12 = from_geofeather(boundaries_dir / "HUC12.feather")
-huc12.sindex
-
-df.sindex
-df = gp.sjoin(df, huc12, how="left").drop(columns=["index_right"])
-
-# Calculate HUC codes for other levels from HUC12
-df["HUC2"] = df["HUC12"].str.slice(0, 2)  # region
-df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
-df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
-
-# Read in HUC6 and join in basin name
-huc6 = (
-    from_geofeather(boundaries_dir / "HUC6.feather")[["HUC6", "NAME"]]
-    .rename(columns={"NAME": "Basin"})
-    .set_index("HUC6")
-)
-df = df.join(huc6, on="HUC6")
-
-
-print("Joining to counties")
-counties = from_geofeather(boundaries_dir / "counties.feather")[
-    ["geometry", "County", "COUNTYFIPS", "STATEFIPS"]
-]
-counties.sindex
-df.sindex
-df = gp.sjoin(df, counties, how="left").drop(columns=["index_right"])
-
-# Join in state name based on STATEFIPS from county
-states = deserialize_df(boundaries_dir / "states.feather")[
-    ["STATEFIPS", "State"]
-].set_index("STATEFIPS")
-df = df.join(states, on="STATEFIPS")
-
-
-# TODO: remove, moved to post
-# print("Joining to ecoregions")
-# # Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
-# eco4 = from_geofeather(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
-# eco4.sindex
-# df.sindex
-# df = gp.sjoin(df, eco4, how="left").drop(columns=["index_right"])
+df = add_spatial_joins(df)
 
 
 # Drop any that didn't intersect HUCs or states
