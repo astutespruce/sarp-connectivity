@@ -38,15 +38,7 @@ FILTER_FIELDS = [
     "StreamOrderClass",
 ]
 
-DAM_FILTER_FIELDS = FILTER_FIELDS + [
-    "HeightClass",
-    # TODO: should these be classes?
-    # "Condition",
-    # "Construction",
-    # "Purpose",
-    # "Recon",
-    # "Feasibility",
-]
+DAM_FILTER_FIELDS = FILTER_FIELDS + ["HeightClass"]
 
 SB_FILTER_FIELDS = FILTER_FIELDS = [
     "ConditionClass",
@@ -57,8 +49,6 @@ SB_FILTER_FIELDS = FILTER_FIELDS = [
 
 
 ### Fields used for export
-
-
 DAM_CORE_FIELDS = [
     "lat",
     "lon",
@@ -77,6 +67,8 @@ DAM_CORE_FIELDS = [
     "Condition",
     "Basin",
     "TESpp",
+    "OwnerType",
+    "ProtectedLand",
 ]
 
 DAM_API_FIELDS = (
@@ -117,6 +109,8 @@ SB_CORE_FIELDS = [
     "PotentialProject",
     "Basin",
     "TESpp",
+    "OwnerType",
+    "ProtectedLand",
 ]
 
 SB_API_FIELDS = (

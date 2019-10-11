@@ -7,11 +7,11 @@ It also calculates high-level summary statistics for the summary region, which
 is included in the user interface code at build time for display on the homepage
 and elsewhere.
 
-This is run AFTER `running preprocess_dams.py` and `preprocess_small_barriers.py`
+This is run AFTER running `rank_dams.py` and `rank_small_barriers.py`
 
 Inputs:
-* `dams.feather`
-* `small_barriers.feather`
+* `data/api/dams.feather`
+* `data/api/small_barriers.feather`
 
 """
 
@@ -32,22 +32,23 @@ PERCENTILES = [20, 40, 60, 75, 80, 85, 90, 95, 100]
 # The values from these fields in the dams / small_barriers data must exactly match
 # the IDs for those units set when the vector tiles of those units are created, otherwise
 # they won't join properly in the frontend.
+# TODO: can COUNTYFIPS be renamed as county?
 SUMMARY_UNITS = ["State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"]
 
 INT_COLS = ["dams", "barriers", "crossings", "off_network_dams", "off_network_barriers"]
 
 
-src_dir = Path("data/derived")
+data_dir = Path("data")
+src_dir = data_dir / "api"
+barriers_dir = data_dir / "barriers/master"
 ui_data_dir = Path("ui/data")
+tile_dir = data_dir / "tiles"
 
 
 print("Reading ranked barriers")
 dams = read_dataframe(src_dir / "dams.feather")
 barriers = read_dataframe(src_dir / "small_barriers.feather")
-crossings = read_dataframe(src_dir / "road_crossings.feather")
-
-# TODO: remove once rerun preprocess_road_crossings.py
-crossings["id"] = crossings.index.astype("uint")
+crossings = read_dataframe(barriers_dir / "road_crossings.feather")
 
 
 # Set NA so that we don't include these values in our statistics
@@ -115,6 +116,6 @@ for unit in SUMMARY_UNITS:
 
     # Write summary CSV for each unit type
     merged.to_csv(
-        src_dir / "{}.csv".format(unit), index_label="id", quoting=csv.QUOTE_NONNUMERIC
+        tile_dir / "{}.csv".format(unit), index_label="id", quoting=csv.QUOTE_NONNUMERIC
     )
 

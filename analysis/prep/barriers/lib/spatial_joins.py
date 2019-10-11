@@ -11,7 +11,19 @@ boundaries_dir = data_dir / "boundaries"
 
 
 def add_spatial_joins(df):
-    print("Reading HUC12 boundaries and joining to dams")
+    """Add spatial joins needed for network analysis.
+    
+    Parameters
+    ----------
+    df : GeoDataFrame
+    
+    Returns
+    -------
+    GeoDataFrame
+        has fields added by spatial joins to other datasets
+    """
+
+    print("Joining to HUC12")
     huc12 = from_geofeather(boundaries_dir / "HUC12.feather")
 
     df = spatial_join(df, huc12)

@@ -136,13 +136,15 @@ print("Writing to output files...")
 
 # Full results for SARP
 print("Saving full results to feather")
-to_geofeather(df.reset_index(), qa_dir / "dams_full.feather")
+to_geofeather(df.reset_index(), qa_dir / "dams_network_results.feather")
 
 # drop geometry, not needed from here on out
 df = df.drop(columns=["geometry"])
 
 print("Saving full results to CSV")
-df.to_csv(qa_dir / "dams.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC)
+df.to_csv(
+    qa_dir / "dams_network_results.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
+)
 
 
 # Drop any fields we don't need for API or tippecanoe
@@ -180,7 +182,7 @@ without_networks = df.loc[~df.HasNetwork].drop(columns=["HasNetwork"])
 with_networks.rename(
     columns={k: k.lower() for k in df.columns if k not in UNIT_FIELDS}
 ).to_csv(
-    out_dir / "dams_with_networks.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
+    tile_dir / "dams_with_networks.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
 )
 
 # Drop metrics, tiers, and units used only for filtering
@@ -190,7 +192,7 @@ keep_fields = DAM_CORE_FIELDS + ["CountyName", "State", "latitude", "longitude"]
 without_networks[keep_fields].rename(
     columns={k: k.lower() for k in df.columns if k not in UNIT_FIELDS}
 ).to_csv(
-    out_dir / "dams_without_networks.csv",
+    tile_dir / "dams_without_networks.csv",
     index_label="id",
     quoting=csv.QUOTE_NONNUMERIC,
 )

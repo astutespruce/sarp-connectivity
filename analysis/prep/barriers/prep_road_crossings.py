@@ -23,6 +23,7 @@ from nhdnet.io import deserialize_df
 from nhdnet.geometry.points import add_lat_lon
 
 from analysis.constants import CRS
+from analysis.util import spatial_join
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
 
@@ -49,14 +50,20 @@ df.Stream = df.Stream.str.strip().fillna("")
 df.Road = df.Road.str.strip().fillna("")
 
 df.loc[
-    (df.Stream.str.strip().str.len() > 0) & (df.Road.str.strip().str.len() > 0), "name"
-] = (df.Stream + " / " + df.road)
+    (df.Stream.str.strip().str.len() > 0) & (df.Road.str.strip().str.len() > 0), "Name"
+] = (df.Stream + " / " + df.Road)
 
 df.Name = df.Name.fillna("")
 
 ### Spatial joins to boundary layers
-# TODO: these are not all currently used, and take a lot of compute time to create
+# NOTE: these are used for summary stats, but not used in most of the rest of the stack
 df = add_spatial_joins(df)
+
+### Level 3 & 4 Ecoregions
+print("Joining to ecoregions")
+# Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
+eco4 = from_geofeather(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
+df = spatial_join(df, eco4)
 
 
 print("Adding lat / lon fields")

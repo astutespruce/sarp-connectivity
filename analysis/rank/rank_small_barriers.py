@@ -146,13 +146,13 @@ print("Writing to output files...")
 
 # Full results for SARP
 print("Saving full results to feather")
-to_geofeather(df.reset_index(), qa_dir / "small_barriers_full.feather")
+to_geofeather(df.reset_index(), qa_dir / "small_barriers_network_results.feather")
 
 # drop geometry, not needed from here on out
 df = df.drop(columns=["geometry"])
 
 print("Saving full results to CSV")
-df.to_csv(qa_dir / "small_barriers.csv", index_label="id")
+df.to_csv(qa_dir / "small_barriers_network_results.csv", index_label="id")
 
 
 # Drop any fields we don't need for API or tippecanoe
@@ -220,11 +220,8 @@ print("Now have {:,} combined background barriers".format(len(combined)))
 # Fill in N/A values
 
 cols = combined.dtypes.loc[combined.dtypes == "object"].index
-print("Filling N/A values for {}".format(cols))
 combined[cols] = combined[cols].fillna("")
 # all other fields should be non-null
-
-print(df.isnull().max())
 
 # create a new consolidated ID
 combined["id"] = combined.index.values.astype("uint32")

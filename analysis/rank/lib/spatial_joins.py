@@ -10,7 +10,17 @@ boundaries_dir = data_dir / "boundaries"
 
 
 def add_spatial_joins(df):
-    ### Spatial joins to boundary layers
+    """Add spatial joins of data provided by API, but not needed for network analysis.
+    
+    Parameters
+    ----------
+    df : GeoDataFrame
+    
+    Returns
+    -------
+    GeoDataFrame
+        has fields added by spatial joins to other datasets
+    """
 
     ### Level 3 & 4 Ecoregions
     print("Joining to ecoregions")

@@ -28,24 +28,10 @@ See `analysis/network/README.md`
 
 ## 5. Prioritization analysis
 
-TODO
+Aquatic barriers are ranked according to their network metrics using 3 different scenarios that express network connectivity and watershed condition. These data are then reformatted for use in the API and for creating vector tiles of the inventory.
 
-## Postprocessing
+See `analysis/rank/README.md`
+
+## Post-processing
 
 See `analysis/post/README.md`
-
-<!--
-## Overview
-
-Basic processing not dependent on the inventory includes:
-
-1. Extraction and processing of summary units and other boundaries
-2. Creation of summary unit vector tiles
-
-Processing on updates to the inventory is derived into 3 main parts:
-
-1. Download barrier data
-2. Prepare barrier data to snap to network, etc
-3. Perform network analysis of barriers (dams, small barriers, and waterfalls)
-4. Prioritization analysis of barriers
-5. Creation of vector tiles for the barriers datasets -->
