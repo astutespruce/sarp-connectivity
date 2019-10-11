@@ -47,8 +47,8 @@ else:
 
 
 # Read version from UI package.json
-with open(Path(__file__).resolve().parent / "ui/package.json") as infile:
-    VERSION = json.loads(infile.read())["VERSION"]
+with open(Path(__file__).resolve().parent.parent / "ui/package.json") as infile:
+    VERSION = json.loads(infile.read())["version"]
 
 TYPES = ("dams", "barriers")
 LAYERS = ("HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4")

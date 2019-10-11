@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from analysis.util import unique
 
 # Summary unit fields
 UNIT_FIELDS = ["HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4"]
@@ -28,23 +29,28 @@ TIER_FIELDS = [
 CUSTOM_TIER_FIELDS = ["NC_tier", "WC_tier", "NCWC_tier"]
 
 
-### Fields ONLY used for filtering
-# other fields below in *_CORE may be used for filtering too
 FILTER_FIELDS = [
+    "SizeClasses",
     "GainMilesClass",
-    "SinuosityClass",
-    # "LandcoverClass", # not currently used
     "TESppClass",
     "StreamOrderClass",
 ]
 
-DAM_FILTER_FIELDS = FILTER_FIELDS + ["HeightClass"]
+DAM_FILTER_FIELDS = [
+    "Feasibility",
+    "Construction",
+    "Purpose",
+    "Condition",
+    "HeightClass",
+] + FILTER_FIELDS
 
-SB_FILTER_FIELDS = FILTER_FIELDS = [
+SB_FILTER_FIELDS = [
     "ConditionClass",
     "CrossingTypeClass",
     "RoadTypeClass",
-]
+    "SeverityClass",
+] + FILTER_FIELDS
+
 
 
 ### Fields used for export
@@ -80,6 +86,9 @@ DAM_API_FIELDS = (
     + ["COUNTYFIPS"]
 )
 
+# reduce to unique list, since there are overlaps with filters and core fields
+DAM_API_FIELDS = unique(DAM_API_FIELDS)
+
 DAM_EXPORT_FIELDS = (
     DAM_CORE_FIELDS
     + UNIT_FIELDS
@@ -90,6 +99,8 @@ DAM_EXPORT_FIELDS = (
 )
 # remove recon
 DAM_EXPORT_FIELDS.remove("Recon")
+
+DAM_EXPORT_FIELDS = unique(DAM_EXPORT_FIELDS)
 
 
 SB_CORE_FIELDS = [
@@ -123,6 +134,8 @@ SB_API_FIELDS = (
     + ["COUNTYFIPS"]
 )
 
+SB_API_FIELDS = unique(SB_API_FIELDS)
+
 SB_EXPORT_FIELDS = (
     SB_CORE_FIELDS
     + UNIT_FIELDS
@@ -131,6 +144,8 @@ SB_EXPORT_FIELDS = (
     + TIER_FIELDS
     + CUSTOM_TIER_FIELDS
 )
+
+SB_EXPORT_FIELDS = unique(SB_EXPORT_FIELDS)
 
 
 #     # Original dams fields

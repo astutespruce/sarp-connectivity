@@ -110,7 +110,6 @@ CRS = {
 # NOTE: not all feature services have all columns
 DAM_COLS = [
     "SARPUniqueID",
-    "AnalysisID",
     "SNAP2018",
     "NIDID",
     "SourceDBID",
@@ -179,7 +178,7 @@ DROP_POTENTIAL_PROJECT = ["No", "No Barrier", "No Crossing", "Past Project"]
 DROP_SNAP2018 = [6, 8]
 
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_SNAP2018 = [5, 7, 9, 10]
+EXCLUDE_SNAP2018 = [5, 10]
 
 # Used to filter dams by Recon
 # based on guidance from Kat
