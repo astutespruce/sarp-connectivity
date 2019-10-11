@@ -6,11 +6,11 @@ import { isEmptyString } from 'util/string'
 import { Section, SectionHeader, List } from './styles'
 
 import {
+  SINUOSITY,
   DAM_CONDITION,
   CONSTRUCTION,
   PURPOSE,
   RECON,
-  SINUOSITY,
 } from '../../../config/constants'
 
 const DamDetails = ({
@@ -27,13 +27,13 @@ const DamDetails = ({
   condition,
   river,
   basin,
-  rarespp,
+  tespp,
   recon,
   // metrics
   gainmiles,
   upstreammiles,
   downstreammiles,
-  sinuosity,
+  sinuosityclass,
   landcover,
   sizeclasses,
 }) => (
@@ -106,7 +106,8 @@ const DamDetails = ({
               composed of natural landcover
             </li>
             <li>
-              The upstream network has <b>{SINUOSITY[sinuosity]}</b> sinuosity
+              The upstream network has <b>{SINUOSITY[sinuosityclass]}</b>{' '}
+              sinuosity
             </li>
           </>
         ) : (
@@ -121,11 +122,11 @@ const DamDetails = ({
     <Section>
       <SectionHeader>Species information</SectionHeader>
       <List>
-        {rarespp > 0 ? (
+        {tespp > 0 ? (
           <>
             <li>
-              <b>{rarespp}</b> threatened and endangered aquatic species have
-              been found in the subwatershed containing this barrier.
+              <b>{tespp}</b> threatened and endangered aquatic species have been
+              found in the subwatershed containing this barrier.
             </li>
             <li className="has-text-grey is-size-7">
               Note: species information is very incomplete. These species may or
@@ -191,12 +192,12 @@ DamDetails.propTypes = {
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.number,
-  rarespp: PropTypes.number,
+  tespp: PropTypes.number,
   recon: PropTypes.number,
   gainmiles: PropTypes.number,
   upstreammiles: PropTypes.number,
   downstreammiles: PropTypes.number,
-  sinuosity: PropTypes.number,
+  sinuosityclass: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
 }
@@ -210,12 +211,12 @@ DamDetails.defaultProps = {
   construction: 0,
   purpose: 0,
   condition: 0,
-  rarespp: 0,
+  tespp: 0,
   recon: 0,
   gainmiles: null,
   upstreammiles: null,
   downstreammiles: null,
-  sinuosity: null,
+  sinuosityclass: null,
   landcover: null,
   sizeclasses: null,
 }

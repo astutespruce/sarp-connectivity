@@ -292,8 +292,9 @@ ROAD_TYPE_TO_DOMAIN = {
 BARRIER_CONDITION_TO_DOMAIN = {"Failing": 1, "New": 4, "OK": 3, "Poor": 2, "Unknown": 0}
 
 OWNERTYPE_TO_DOMAIN = {
-    "Unknown": 0,
-    "Designation": 0,
+    # Unknown types are not useful
+    # "Unknown": 0,
+    # "Designation": 0,
     "US Fish and Wildlife Service": 1,
     "USDA Forest Service": 2,
     "Federal Land": 3,
@@ -306,19 +307,15 @@ OWNERTYPE_TO_DOMAIN = {
     "Private Conservation Land": 8,
 }
 
-# Really, just for frotend
-OWNERTYPE_TO_LABEL = {
-    0: "Unknown",
-    1: "US Fish and Wildlife Service land",
-    2: "USDA Forest Service land",
-    3: "Federal land",
-    4: "State land",
-    5: "Joint Ownership or Regional land",
-    6: "Native American land",
-    7: "Private easement",
-    8: "Other private conservation land",
+# Map of owner type domain above to whether or not the land is
+# considered public
+OWNERTYPE_TO_PUBLIC_LAND = {
+    1: True,
+    2: True,
+    3: True,
+    4: True,
+    5: True
 }
-
 
 # NHDPlusIDs to exclude when extracting flowlines (e.g., within Chesapeake Bay)
 # indexed by HUC4

@@ -15,7 +15,12 @@ import geopandas as gp
 from geofeather import to_geofeather
 from nhdnet.io import to_shp
 
-from analysis.constants import CRS, OWNERTYPE_TO_DOMAIN, SARP_STATES_FIPS
+from analysis.constants import (
+    CRS,
+    OWNERTYPE_TO_DOMAIN,
+    SARP_STATES_FIPS,
+    OWNERTYPE_TO_PUBLIC_LAND,
+)
 
 
 data_dir = Path("./data")
@@ -191,12 +196,17 @@ for partner, substrings in partner_federal.items():
 
 
 # convert to int groups
-df.otype = df.otype.map(OWNERTYPE_TO_DOMAIN).astype("uint8")
+df["OwnerType"] = df.otype.map(OWNERTYPE_TO_DOMAIN)
+# drop all that didn't get matched
+# CAUTION: make sure the types we want are properly handled!
+df = df.dropna(subset=["OwnerType"])
+df.OwnerType = df.OwnerType.astype("uint8")
+
+# Add in public status
+df["ProtectedLand"] = (
+    df.OwnerType.map(OWNERTYPE_TO_PUBLIC_LAND).fillna(False).astype("bool")
+)
 
 # only save owner type
-df = (
-    df[["geometry", "otype"]]
-    .rename(columns={"otype": "OwnerType"})
-    .reset_index(drop=True)
-)
+df = df[["geometry", "OwnerType", "ProtectedLand"]].reset_index(drop=True)
 to_geofeather(df, boundaries_dir / "protected_areas.feather")

@@ -5,11 +5,13 @@ Input:
 * Dam inventory from SARP, including all network metrics and summary unit IDs (HUC12, ECO3, ECO4, State, County, etc).
 
 Outputs:
-* `dams.feather`: processed dam data for use by the API
-* `dams_with_networks.csv`: Dams with networks for creating vector tiles in tippecanoe
-* `dams_without_networks.csv`: Dams without networks for creating vector tiles in tippecanoe
+* `data/api/dams.feather`: processed dam data for use by the API
+* `data/tiles/dams_with_networks.csv`: Dams with networks for creating vector tiles in tippecanoe
+* `data/tiles/dams_without_networks.csv`: Dams without networks for creating vector tiles in tippecanoe
 
 """
+
+import os
 from pathlib import Path
 from time import time
 import csv
@@ -23,17 +25,24 @@ from nhdnet.geometry.points import add_lat_lon
 
 from analysis.constants import REGION_GROUPS
 from analysis.network.lib.barriers import DAMS_ID
-from analysis.rank.lib import (
-    add_spatial_joins,
-    update_network_metrics,
-    calculate_tiers,
-    to_tippecanoe,
-)
+from analysis.rank.lib import add_spatial_joins, update_network_metrics, calculate_tiers
+from api.constants import DAM_API_FIELDS, UNIT_FIELDS, DAM_CORE_FIELDS
 
 start = time()
 
 data_dir = Path("data")
 barriers_dir = data_dir / "barriers/master"
+qa_dir = data_dir / "barriers/qa"
+api_dir = data_dir / "api"
+tile_dir = data_dir / "tiles"
+
+if not os.path.exists(api_dir):
+    os.makedirs(api_dir)
+
+if not os.path.exists(tile_dir):
+    os.makedirs(tile_dir)
+
+# split this into tile dir vs api
 out_dir = data_dir / "derived"
 
 
@@ -109,13 +118,13 @@ df = update_network_metrics(df)
 ### Add spatial joins to other units
 df = add_spatial_joins(df)
 
-
 ### Add lat / lon
 print("Adding lat / lon fields")
 df = add_lat_lon(df)
 
 ### Calculate tiers for the region and by state
-df = calculate_tiers(df)
+df = calculate_tiers(df, prefix="SE")
+df = calculate_tiers(df, group_field="State", prefix="State")
 
 ### Export data for API
 # TODO: double check against fields expected by API
@@ -127,24 +136,64 @@ print("Writing to output files...")
 
 # Full results for SARP
 print("Saving full results to feather")
-to_geofeather(df.reset_index(), out_dir / "dams_full.feather")
+to_geofeather(df.reset_index(), qa_dir / "dams_full.feather")
 
 # drop geometry, not needed from here on out
 df = df.drop(columns=["geometry"])
 
 print("Saving full results to CSV")
-df.to_csv(out_dir / "dams.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC)
+df.to_csv(qa_dir / "dams.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC)
 
 
-# Drop associated raw scores, they are not currently displayed on frontend.
-df = df.drop(columns=[c for c in df.columns if c.endswith("_score")])
+# Drop any fields we don't need for API or tippecanoe
+# TODO: sort out COUNTYFIPS vs COUNTY, it is confusing
+df = df[DAM_API_FIELDS].copy()
+
 
 # save for API
-# Fix index not being named correctly
-serialize_df(df.reset_index(), out_dir / "dams.feather")
+serialize_df(df.reset_index(), api_dir / "dams.feather")
+
+
+# Rename columns for easier use
+df = df.rename(
+    columns={
+        "County": "CountyName",
+        "COUNTYFIPS": "County",
+        # "SinuosityClass": "Sinuosity",  # Decoded to a label on frontend
+    }
+)
+
 
 ### Export data for use in tippecanoe to generate vector tiles
-to_tippecanoe(df, "dams")
+# create duplicate columns for those dropped by tippecanoe
+# tippecanoe will use these ones and leave lat / lon
+# so that we can use them for display in the frontend
+# TODO: can this be replaced with the actual geometry available to mapbox GL?
+df["latitude"] = df.lat
+df["longitude"] = df.lon
+
+
+with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork"])
+without_networks = df.loc[~df.HasNetwork].drop(columns=["HasNetwork"])
+
+
+with_networks.rename(
+    columns={k: k.lower() for k in df.columns if k not in UNIT_FIELDS}
+).to_csv(
+    out_dir / "dams_with_networks.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
+)
+
+# Drop metrics, tiers, and units used only for filtering
+keep_fields = DAM_CORE_FIELDS + ["CountyName", "State", "latitude", "longitude"]
+
+
+without_networks[keep_fields].rename(
+    columns={k: k.lower() for k in df.columns if k not in UNIT_FIELDS}
+).to_csv(
+    out_dir / "dams_without_networks.csv",
+    index_label="id",
+    quoting=csv.QUOTE_NONNUMERIC,
+)
 
 
 print("Done in {:.2f}".format(time() - start))

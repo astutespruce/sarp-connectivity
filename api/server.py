@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from io import BytesIO
 from zipfile import ZipFile
 import time
@@ -12,13 +13,21 @@ from raven.contrib.flask import Sentry
 from raven.handlers.logging import SentryHandler
 from raven.conf import setup_logging
 
-from api.calculate_tiers import calculate_tiers, SCENARIOS
-from api.domains import (
+from analysis.rank.lib import calculate_tiers
+
+from api.constants import (
+    DAM_FILTER_FIELDS,
+    DAM_EXPORT_FIELDS,
+    SB_FILTER_FIELDS,
+    SB_EXPORT_FIELDS,
+    # domains to invert before download
     FEASIBILITY_DOMAIN,
     PURPOSE_DOMAIN,
     CONSTRUCTION_DOMAIN,
     DAM_CONDITION_DOMAIN,
     BARRIER_SEVERITY_DOMAIN,
+    BOOLEAN_DOMAIN,
+    OWNERTYPE_DOMAIN,
 )
 
 app = Flask(__name__)
@@ -40,149 +49,18 @@ TYPES = ("dams", "barriers")
 LAYERS = ("HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4")
 FORMATS = ("csv",)  # TODO: "shp"
 
-
-DAM_FILTER_FIELDS = [
-    "Feasibility",
-    "HeightClass",
-    "Condition",
-    "Construction",
-    "Purpose",
-    "TESppClass",
-    "StreamOrderClass",
-    "GainMilesClass",
-    # "LandcoverClass",
-    "SizeClasses",
-]
-
+# create maps of fields to lower case equivalents
 dam_filter_field_map = {f.lower(): f for f in DAM_FILTER_FIELDS}
-
-BARRIER_FILTER_FIELDS = [
-    "ConditionClass",
-    "SeverityClass",
-    "CrossingTypeClass",
-    "RoadTypeClass",
-    "TESppClass",
-    "GainMilesClass",
-    # "LandcoverClass",
-    "SizeClasses",
-]
-barrier_filter_field_map = {f.lower(): f for f in BARRIER_FILTER_FIELDS}
-
-
-DAM_EXPORT_COLUMNS = [
-    "lat",
-    "lon",
-    # ID and source info
-    "SARPID",
-    "NIDID",
-    "Source",
-    # Basic info
-    "Name",
-    "County",
-    "State",
-    "Basin",
-    # Species info
-    "RareSpp",
-    # River info
-    "River",
-    "StreamOrder",
-    "NHDplusVersion",
-    "HasNetwork",
-    # Location info
-    "ProtectedLand", # TODO: OwnerType
-    "HUC6",
-    "HUC8",
-    "HUC12",
-    "ECO3",
-    "ECO4",
-    # Dam info
-    "Height",
-    "Year",
-    "Construction",
-    "Purpose",
-    "Condition",
-    # "Recon",  # intentionally omitted
-    "Feasibility",
-    # Metrics
-    "GainMiles",
-    "UpstreamMiles",
-    "DownstreamMiles",
-    "TotalNetworkMiles",
-    "Landcover",
-    "Sinuosity",
-    "SizeClasses",
-    # Tiers
-    "NC_tier",
-    "WC_tier",
-    "NCWC_tier",
-    "SE_NC_tier",
-    "SE_WC_tier",
-    "SE_NCWC_tier",
-    "State_NC_tier",
-    "State_WC_tier",
-    "State_NCWC_tier",
-]
-
-BARRIER_EXPORT_COLUMNS = [
-    "lat",
-    "lon",
-    # ID and source info
-    "SARPID",
-    "CrossingCode",
-    "LocalID",
-    "Source",
-    # Basic info
-    "Name",
-    "County",
-    "State",
-    "Basin",
-    # Species info
-    "RareSpp",
-    # River info
-    "Stream",
-    "HasNetwork",
-    # Road info
-    "Road",
-    "RoadType",
-    # Barrier info
-    "CrossingType",
-    "Condition",
-    "PotentialProject",
-    "SeverityClass",
-    # Location info
-    "ProtectedLand",
-    "HUC6",
-    "HUC8",
-    "HUC12",
-    "ECO3",
-    "ECO4",
-    # Metrics
-    "GainMiles",
-    "UpstreamMiles",
-    "DownstreamMiles",
-    "TotalNetworkMiles",
-    "Landcover",
-    "Sinuosity",
-    "SizeClasses",
-    # Tiers
-    "NC_tier",
-    "WC_tier",
-    "NCWC_tier",
-    "SE_NC_tier",
-    "SE_WC_tier",
-    "SE_NCWC_tier",
-    "State_NC_tier",
-    "State_WC_tier",
-    "State_NCWC_tier",
-]
+barrier_filter_field_map = {f.lower(): f for f in SB_FILTER_FIELDS}
 
 
 # Read source data into memory
 try:
-    dams = read_dataframe("data/derived/dams.feather").set_index(["id"])
+    data_dir = Path("data/api")
+    dams = read_dataframe(data_dir / "dams.feather").set_index(["id"])
     dams_with_networks = dams.loc[dams.HasNetwork]
 
-    barriers = read_dataframe("data/derived/small_barriers.feather").set_index(["id"])
+    barriers = read_dataframe(data_dir / "small_barriers.feather").set_index(["id"])
     barriers_with_networks = barriers.loc[barriers.HasNetwork]
 
     print("Data loaded")
@@ -246,12 +124,12 @@ def query(barrier_type="dams", layer="HUC8"):
 
     if barrier_type == "dams":
         df = dams_with_networks
-        field_map = dam_filter_field_map
+        # field_map = dam_filter_field_map
         fields = DAM_FILTER_FIELDS
     else:
         df = barriers_with_networks
-        field_map = barrier_filter_field_map
-        fields = BARRIER_FILTER_FIELDS
+        # field_map = barrier_filter_field_map
+        fields = SB_FILTER_FIELDS
 
     df = df.loc[df[layer].isin(ids)][fields].copy()
     nrows = len(df.index)
@@ -326,15 +204,8 @@ def rank(barrier_type="dams", layer="HUC8"):
             ),
         )
 
-    tiers_df = calculate_tiers(df, SCENARIOS)
+    tiers_df = calculate_tiers(df)
     df = df[["lat", "lon"]].join(tiers_df)
-
-    for col in tiers_df.columns:
-        if col.endswith("_tier"):
-            df[col] = df[col].astype("int8")
-        elif col.endswith("_score"):
-            # Convert to a 100% scale
-            df[col] = (df[col] * 100).round().astype("uint16")
 
     resp = make_response(
         df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
@@ -384,11 +255,11 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     if barrier_type == "dams":
         df = dams_with_networks
         field_map = dam_filter_field_map
-        export_columns = DAM_EXPORT_COLUMNS
+        export_columns = DAM_EXPORT_FIELDS
     else:
         df = barriers_with_networks
         field_map = barrier_filter_field_map
-        export_columns = BARRIER_EXPORT_COLUMNS
+        export_columns = SB_EXPORT_FIELDS
 
     if not include_unranked:
         df = df.loc[df.HasNetwork]
@@ -405,7 +276,8 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
 
     log.info("selected {} dams".format(nrows))
 
-    tiers_df = calculate_tiers(df, SCENARIOS)
+    # TODO: check unpacking here, where are scores, dtypes handled
+    tiers_df = calculate_tiers(df)
 
     # TODO: join type is based on include_unranked
     join_type = "left" if include_unranked else "right"
@@ -415,11 +287,13 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
 
     # drop unneeded columns
-    df = df[export_columns]  # .rename(columns={'RareSpp': 'TESpp'})
+    df = df[export_columns]
 
     # map domain fields to values
-    df.HasNetwork = df.HasNetwork.map({True: "yes", False: "no"})
-    df.ProtectedLand = df.ProtectedLand.map({1: "yes", 0: "no"})
+    df.HasNetwork = df.HasNetwork.map(BOOLEAN_DOMAIN)
+
+    df.OwnerType = df.OwnerType.map(OWNERTYPE_DOMAIN)
+    df.ProtectedLand = df.ProtectedLand.map(BOOLEAN_DOMAIN)
 
     if barrier_type == "dams":
         df.Condition = df.Condition.map(DAM_CONDITION_DOMAIN)
@@ -442,8 +316,6 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     }
 
     readme = render_template("{}_readme.txt".format(barrier_type), **template_values)
-    # csv_bytes = BytesIO()
-    # df.to_csv(csv_bytes)
 
     zf_bytes = BytesIO()
     with ZipFile(zf_bytes, "w") as zf:

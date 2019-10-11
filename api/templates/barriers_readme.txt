@@ -22,6 +22,9 @@ barriers is not complete or comprehensive across the region, and depends on the 
 completeness of existing data and level of partner feedback. Some areas of the region are more complete than others but none
 should be considered 100% complete.
 
+All network analyses were conducted using the NHD High Resolution Plus dataset 
+(https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution).
+
 If you are able to help improve the inventory by sharing data or assisting with field
 reconnaissance, please contact us (https://southeastaquatics.net/about/contact-us).
 
@@ -51,7 +54,8 @@ Condition: condition of the barrier as of last assessment, if known.  Note: asse
 PotentialProject: reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.
 SeverityClass: potential severity of barrier, based on reconnaissance.
 
-ProtectedLand: Indicates if the barrier occurs on public land as represented within the PAD-US protected areas database of the U.S.
+ProtectedLand: Indicates if the dam occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.
+OwnerType: Land ownership type for areas within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database (Note: USFWS and USFS lands pulled out specifically for partners).
 HUC6: Hydrologic basin identifier where the barrier occurs.
 HUC8: Hydrologic subbasin identifier where the barrier occurs.
 HUC12: Hydrologic subwatershed identifier where the barrier occurs.
@@ -59,11 +63,12 @@ ECO3: EPA Level 3 Ecoregion Identifier.
 ECO4: EPA Level 4 Ecoregion Identifier.
 
 GainMiles: absolute number of miles that could be gained by removal of this barrier.  Calculated as the minimum of the upstream and downstream network lengths. -1 = not available.
-UpstreamMiles: number of miles in the upstream river network from this barrier. -1 = not available.
+UpstreamMiles: number of miles in the upstream river network from this dam. -1 = not available.
 DownstreamMiles: number of miles in the complete downstream river network from this barrier.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path. -1 = not available.
 TotalNetworkMiles: upstream plus downstream network miles. -1 = not available.
 Landcover: average amount of the river floodplain in the upstream network that is in natural landcover types. -1 = not available.
 Sinuosity: length-weighted sinuosity of the upstream river network.  Sinuosity is the ratio between the straight-line distance between the endpoints for each stream reach and the total stream reach length. -1 = not available.
+StreamOrder: NHDPlus Modified Strahler stream order. -1 = not available.
 SizeClasses: number of unique upstream size classes that could be gained by removal of this barrier. -1 = not available.
 
 NC_tier: network connectivity tier for your selected subset.  Tier 1 represents the barriers within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.

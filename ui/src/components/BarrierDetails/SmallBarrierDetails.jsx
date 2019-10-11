@@ -19,13 +19,13 @@ const BarrierDetails = ({
   roadtype,
   crossingtype,
   condition,
-  rarespp,
+  tespp,
   severityclass,
   // metrics
   gainmiles,
   upstreammiles,
   downstreammiles,
-  sinuosity,
+  sinuosityclass,
   landcover,
   sizeclasses,
 }) => {
@@ -36,21 +36,21 @@ const BarrierDetails = ({
   return (
     <div>
       <Section>
-      <SectionHeader>Location</SectionHeader>
-      <List>
-        <li>
-          Coordinates: {formatNumber(lat, 3)}
-          &deg; N, {formatNumber(lon, 3)}
-          &deg; E
-        </li>
-        {!isEmptyString(stream) ? (
+        <SectionHeader>Location</SectionHeader>
+        <List>
           <li>
-            Stream or river: {stream}
-            {!isEmptyString(basin) ? `, ${basin} Basin` : null}
+            Coordinates: {formatNumber(lat, 3)}
+            &deg; N, {formatNumber(lon, 3)}
+            &deg; E
           </li>
-        ) : null}
-        {!isEmptyString(road) ? <li>Road: {road}</li> : null}
-      </List>
+          {!isEmptyString(stream) ? (
+            <li>
+              Stream or river: {stream}
+              {!isEmptyString(basin) ? `, ${basin} Basin` : null}
+            </li>
+          ) : null}
+          {!isEmptyString(road) ? <li>Road: {road}</li> : null}
+        </List>
       </Section>
 
       <SectionHeader>Barrier information</SectionHeader>
@@ -98,7 +98,8 @@ const BarrierDetails = ({
               composed of natural landcover
             </li>
             <li>
-              The upstream network has <b>{SINUOSITY[sinuosity]}</b> sinuosity
+              The upstream network has <b>{SINUOSITY[sinuosityclass]}</b>{' '}
+              sinuosity
             </li>
           </React.Fragment>
         ) : (
@@ -112,18 +113,18 @@ const BarrierDetails = ({
 
       <SectionHeader>Species information</SectionHeader>
       <List>
-        {rarespp === null ? (
+        {tespp === null ? (
           <li className="has-text-grey">
             This barrier does not have subwatershed threatened and endangered
             aquatic species information.
           </li>
         ) : (
           <React.Fragment>
-            {rarespp > 0 ? (
+            {tespp > 0 ? (
               <React.Fragment>
                 <li>
-                  <b>{rarespp}</b> threatened and endangered aquatic species
-                  have been found in the subwatershed containing this barrier.
+                  <b>{tespp}</b> threatened and endangered aquatic species have
+                  been found in the subwatershed containing this barrier.
                 </li>
                 <li className="has-text-grey is-size-7">
                   Note: species information is very incomplete. These species
@@ -166,11 +167,11 @@ BarrierDetails.propTypes = {
   crossingtype: PropTypes.string,
   condition: PropTypes.string,
   severityclass: PropTypes.number,
-  rarespp: PropTypes.number,
+  tespp: PropTypes.number,
   gainmiles: PropTypes.number,
   upstreammiles: PropTypes.number,
   downstreammiles: PropTypes.number,
-  sinuosity: PropTypes.number,
+  sinuosityclass: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
 }
@@ -184,11 +185,11 @@ BarrierDetails.defaultProps = {
   crossingtype: null,
   severityclass: null,
   condition: null,
-  rarespp: null,
+  tespp: null,
   gainmiles: null,
   upstreammiles: null,
   downstreammiles: null,
-  sinuosity: null,
+  sinuosityclass: null,
   landcover: null,
   sizeclasses: null,
 }

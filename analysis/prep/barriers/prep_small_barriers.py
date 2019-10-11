@@ -87,6 +87,12 @@ for column in ("CrossingType", "RoadType", "Stream", "Road"):
     df[column] = df[column].fillna("Unknown").str.title().str.strip()
     df.loc[df[column].str.len() == 0, column] = "Unknown"
 
+df.loc[(df.Stream != "Unknown") & (df.Road != "Unknown"), "Name"] = (
+    df.Stream + " / " + df.Road
+)
+df.Name = df.Name.fillna("")
+
+
 # Fix line returns in stream name and road name
 df.loc[df.SARPID == "sm7044", "Stream"] = "Unnamed"
 df.Road = df.Road.str.replace("\r\n", "")
@@ -160,11 +166,6 @@ snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
 
 # join back to master
 df = update_from_snapped(df, snapped)
-
-# TODO: remove, migrate to post
-### Add lat / lon
-# print("Adding lat / lon fields")
-# df = add_lat_lon(df)
 
 
 # Remove duplicates after snapping, in case any snapped to the same position

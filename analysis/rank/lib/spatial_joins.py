@@ -32,6 +32,7 @@ def add_spatial_joins(df):
     protected = from_geofeather(boundaries_dir / "protected_areas.feather")
     df = spatial_join(df, protected)
     df.OwnerType = df.OwnerType.fillna(-1).astype("int8")
+    df.ProtectedLand = df.ProtectedLand.fillna(False).astype("bool")
 
     # TODO: other spatial joins - priority layers?
 

@@ -40,23 +40,23 @@ df = gp.read_file(src_dir / "road_crossings_prj.shp")
 print("Read {:,} road crossings".format(len(df)))
 
 # Rename columns to standardize with small barriers dataset
-df = df.rename(columns={"FULLNAME": "road", "GNIS_NAME": "stream", "RDXID": "sarpid"})
-df.sarpid = df.sarpid.astype("uint")
+df = df.rename(columns={"FULLNAME": "Road", "GNIS_NAME": "Stream", "RDXID": "SARPID"})
+df.SARPID = df.SARPID.astype("uint")
 df["id"] = df.index.astype("uint")
 
 # Cleanup fields
-df.stream = df.stream.str.strip().fillna("")
-df.road = df.road.str.strip().fillna("")
+df.Stream = df.Stream.str.strip().fillna("")
+df.Road = df.Road.str.strip().fillna("")
 
 df.loc[
-    (df.stream.str.strip().str.len() > 0) & (df.road.str.strip().str.len() > 0), "name"
-] = (df.stream + " / " + df.road)
+    (df.Stream.str.strip().str.len() > 0) & (df.Road.str.strip().str.len() > 0), "name"
+] = (df.Stream + " / " + df.road)
 
-df.name = df.name.fillna("")
+df.Name = df.Name.fillna("")
 
 ### Spatial joins to boundary layers
-# TODO: these are not currently used, and take a lot of compute time to create
-# df = add_spatial_joins(df)
+# TODO: these are not all currently used, and take a lot of compute time to create
+df = add_spatial_joins(df)
 
 
 print("Adding lat / lon fields")

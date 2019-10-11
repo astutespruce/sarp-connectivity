@@ -22,6 +22,9 @@ barriers is not complete or comprehensive across the region, and depends on the 
 completeness of existing data and level of partner feedback. Some areas of the region are more complete than others but none
 should be considered 100% complete.
 
+All network analyses were conducted using the NHD High Resolution Plus dataset 
+(https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution).
+
 If you are able to help improve the inventory by sharing data or assisting with field
 reconnaissance, please contact us (https://southeastaquatics.net/about/contact-us).
 
@@ -29,7 +32,7 @@ reconnaissance, please contact us (https://southeastaquatics.net/about/contact-u
 ### File Contents ###
 lat: latitude.
 lon: longitude.
-SARPID: SARP Identifier.
+SARPUniqueID: SARP Identifier.
 NIDID: National Inventory of Dams Identifier.
 Source: Source of this record in the inventory.
 
@@ -42,10 +45,10 @@ TESpp: Number of federally threatened or endangered aquatic species within the s
 
 River: River name where dam occurs, if available.
 StreamOrder: NHDPlus Modified Strahler stream order. -1 = not available.
-NHDplusVersion: Version of NHDPlus data product used for snapping dams and calculating network metrics.  Either medium or high resolution.
 HasNetwork: indicates if this dam was snapped to the aquatic network for analysis.  1 = on network, 0 = off network.  Note: network metrics and scores are not available for dams that are off network.
 
-ProtectedLand: Indicates if the dam occurs on public land as represented within the PAD-US protected areas database of the U.S.
+ProtectedLand: Indicates if the dam occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.
+OwnerType: Land ownership type for areas within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database (Note: USFWS and USFS lands pulled out specifically for partners).
 HUC6: Hydrologic basin identifier where the dam occurs.
 HUC8: Hydrologic subbasin identifier where the dam occurs.
 HUC12: Hydrologic subwatershed identifier where the dam occurs.
