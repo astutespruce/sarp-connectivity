@@ -42,7 +42,6 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + ["HeightClass"]
 
 SB_FILTER_FIELDS = FILTER_FIELDS = [
     "ConditionClass",
-    "SeverityClass",
     "CrossingTypeClass",
     "RoadTypeClass",
 ]
@@ -52,23 +51,23 @@ SB_FILTER_FIELDS = FILTER_FIELDS = [
 DAM_CORE_FIELDS = [
     "lat",
     "lon",
-    "SARPUniqueID",
     "Name",
+    "SARPID",
     "NIDID",
     "Source",
-    "Year",
     "River",
+    "Year",
     "Height",
-    # Recon is intentionally omitted from download below
-    "Recon",
-    "Feasibility",
     "Construction",
     "Purpose",
     "Condition",
-    "Basin",
+    # Recon is intentionally omitted from download below
+    "Recon",
+    "Feasibility",
     "TESpp",
     "OwnerType",
     "ProtectedLand",
+    "Basin",
 ]
 
 DAM_API_FIELDS = (
@@ -96,10 +95,10 @@ DAM_EXPORT_FIELDS.remove("Recon")
 SB_CORE_FIELDS = [
     "lat",
     "lon",
-    "SARPID",
     "Name",
-    "CrossingCode",
+    "SARPID",
     "LocalID",
+    "CrossingCode",
     "Source",
     "Stream",
     "Road",
@@ -107,10 +106,11 @@ SB_CORE_FIELDS = [
     "CrossingType",
     "Condition",
     "PotentialProject",
-    "Basin",
+    "SeverityClass",
     "TESpp",
     "OwnerType",
     "ProtectedLand",
+    "Basin",
 ]
 
 SB_API_FIELDS = (
@@ -125,7 +125,6 @@ SB_API_FIELDS = (
 
 SB_EXPORT_FIELDS = (
     SB_CORE_FIELDS
-    + ["SeverityClass"]
     + UNIT_FIELDS
     + ["HasNetwork"]
     + METRIC_FIELDS

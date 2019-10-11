@@ -1,4 +1,5 @@
 import os
+import json
 from pathlib import Path
 from io import BytesIO
 from zipfile import ZipFile
@@ -44,6 +45,10 @@ if SENTRY_DSN is not None:
 else:
     print("Sentry not configured")
 
+
+# Read version from UI package.json
+with open(Path(__file__).resolve().parent / "ui/package.json") as infile:
+    VERSION = json.loads(infile.read())["VERSION"]
 
 TYPES = ("dams", "barriers")
 LAYERS = ("HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4")
@@ -309,6 +314,7 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     # create readme
     template_values = {
         "date": date.today(),
+        "version": VERSION,
         "url": request.host_url,
         "filename": filename,
         "layer": layer,

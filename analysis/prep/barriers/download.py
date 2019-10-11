@@ -92,6 +92,7 @@ for state, url in DAM_URLS.items():
     print("---- Downloading {} ----".format(state))
     df = download_fs(url, fields=dam_cols, token=token, target_wkid=TARGET_WKID).rename(
         columns={
+            "SARPUniqueID": "SARPID",
             "Snap2018": "SNAP2018",
             "PotentialFeasibility": "Feasibility",
             "Barrier_Name": "Name",
@@ -154,10 +155,6 @@ df = download_fs(
         "Potential_Project": "PotentialProject",
         # Note re: SARPID - this isn't quite correct but needed for consistency
         "AnalysisId": "SARPID",
-        "AbsoluteGainMi": "GainMiles",
-        "PctNatFloodplain": "Landcover",
-        "NetworkSinuosity": "Sinuosity",
-        "NumSizeClassesGained": "SizeClasses",
         "CrossingTypeId": "CrossingType",
         "RoadTypeId": "RoadType",
         "CrossingConditionId": "Condition",

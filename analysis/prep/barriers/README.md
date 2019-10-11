@@ -9,6 +9,10 @@ Barriers are extracted from multiple sources for the network connectivity and ba
 
 The output of the processing steps below are full barriers datasets in `data/barriers/master` and a subset of dams, small barriers, and waterfalls that were snapped to the aquatic network in `data/barriers/snapped`.
 
+## ArcGIS Online token
+
+You must set `AGOL_TOKEN` in an `.env` file in the root of this project. It must be set to a valid ArcGIS Online token, and must have access to the SARP datasets. To get this token, go to one of the SARP web maps for the inventory, sign in, and get the token from the URL.
+
 ## Data sources:
 
 -   Waterfalls: obtained by Kat (SARP) from USGS in early 2019.

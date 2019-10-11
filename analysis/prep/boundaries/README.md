@@ -136,46 +136,4 @@ Vector tiles are are created for each of the boundary layers.
 
 Because `tippecanoe` uses GeoJSON in WGS84 projection as input, each vector tileset below includes a step to create this GeoJSON file first. These GeoJSON files can be deleted as soon as the vector tileset is created.
 
-All operations below are executed in the `/data/boundaries` directory.
-
-### SARP boundary and inverse boundary:
-
-```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON boundary.json sarp_boundary.shp
-tippecanoe -z 8 -l boundary -o tiles/boundary.mbtiles boundary.json
-
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON mask.json sarp_mask.shp
-tippecanoe -z 8 -l mask -o tiles/mask.mbtiles mask.json
-```
-
-### Watersheds
-
-```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC6.json HUC6_prj.shp
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC8.json HUC8_prj.shp
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON HUC12.json HUC12_prj.shp
-
-tippecanoe -f -z 8 -l HUC6 -o tiles/HUC6.mbtiles  -T id:string HUC6.json
-tippecanoe -f -z 10 -l HUC8 -o tiles/HUC8.mbtiles  -T id:string HUC8.json
-tippecanoe -f -Z 6 -z 12 -l HUC12 -o tiles/HUC12.mbtiles  -T id:string HUC12.json
-```
-
-### States and counties
-
-```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON states.json states_prj.shp
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON counties.json counties_prj.shp
-
-tippecanoe -f -z 8 -l State -o tiles/states.mbtiles states.json
-tippecanoe -f -Z 3 -z 12 -l County -o tiles/counties.mbtiles counties.json
-```
-
-### Ecoregions
-
-```
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO3.json eco3_prj.shp
-ogr2ogr -t_srs EPSG:4326 -f GeoJSON ECO4.json eco4_prj.shp
-
-tippecanoe -f -z 10 -l ECO3 -o tiles/ECO3.mbtiles  -T id:string ECO3.json
-tippecanoe -f -Z 3 -z 12 -l ECO4 -o tiles/ECO4.mbtiles  -T id:string ECO4.json
-```
+Run `analysis/prep/boundaries/generate_tiles.sh` from the root directory of the project.

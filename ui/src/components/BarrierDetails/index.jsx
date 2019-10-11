@@ -19,7 +19,9 @@ import SmallBarrierDetails from './SmallBarrierDetails'
 import Scores from './Scores'
 import { BarrierPropType } from './proptypes'
 
-// const Wrapper = styled(Flex).attrs({flexDirection: 'column'})``
+import { siteMetadata } from '../../../gatsby-config'
+
+const { version: dataVersion } = siteMetadata
 
 const Header = styled(Flex).attrs({
   justifyContent: 'space-between',
@@ -160,7 +162,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
         <a
           href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
             barrierType === 'dams' ? 'dam' : 'road-related barrier'
-          }: ${sarpid}&body=I found the following problem with the SARP Inventory for this barrier:`}
+          }: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
         >
           <MailIcon /> Report a problem with this barrier
         </a>

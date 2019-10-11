@@ -63,12 +63,16 @@ df = (
         ],
         errors="ignore",
     )
+    .rename(
+        columns={
+            "SARPUniqueID": "SARPID"  # TODO: remove on next full run of download & analysis
+        }
+    )
 )
 
 # drop any that should be DROPPED (dropped or duplicate) from the analysis
 # NOTE: excluded ones are retained but don't have networks
 df = df.loc[~(df.dropped | df.duplicate)].copy()
-
 
 ### Read in network outputs and join to master
 print("Reading network outputs")
@@ -126,11 +130,6 @@ df = add_lat_lon(df)
 df = calculate_tiers(df, prefix="SE")
 df = calculate_tiers(df, group_field="State", prefix="State")
 
-### Export data for API
-# TODO: double check against fields expected by API
-
-# TODO: drop any fields not used by API
-
 ### Output results
 print("Writing to output files...")
 
@@ -167,6 +166,7 @@ df = df.rename(
 
 
 ### Export data for use in tippecanoe to generate vector tiles
+
 # create duplicate columns for those dropped by tippecanoe
 # tippecanoe will use these ones and leave lat / lon
 # so that we can use them for display in the frontend

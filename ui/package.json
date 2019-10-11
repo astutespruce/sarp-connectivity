@@ -1,7 +1,7 @@
 {
   "name": "sarp-prioritization-tool",
   "description": "Southeast Aquatic Barrier Prioritization Tool",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "author": "Brendan C. Ward <bcward@astutespruce.com>",
   "dependencies": {
     "@mapbox/geo-viewport": "^0.4.0",
