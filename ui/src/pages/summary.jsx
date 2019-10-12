@@ -6,7 +6,7 @@ import Layout from 'components/Layout'
 import Sidebar from 'components/Sidebar'
 import UnitSearch from 'components/UnitSearch'
 import { TopBar, TopBarToggle } from 'components/Map'
-import {Map, UnitDetails} from 'components/Summary'
+import { Map, UnitDetails } from 'components/Summary'
 import { useSummaryData } from 'components/Data'
 import { formatNumber } from 'util/format'
 import styled, { themeGet } from 'style'
@@ -30,7 +30,6 @@ const Note = styled(HelpText).attrs({ mt: '3rem' })`
   color: ${themeGet('colors.grey.600')};
 `
 
-
 const barrierTypeOptions = [
   { value: 'dams', label: 'dams' },
   { value: 'barriers', label: 'road-related barriers' },
@@ -42,15 +41,18 @@ const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
 }))
 
 const SummaryPage = () => {
-  const { dams, miles } = useSummaryData()
+  const { dams, miles, barriers, crossings } = useSummaryData()
   const [system, setSystem] = useState('HUC')
   const [barrierType, setBarrierType] = useState('dams')
   const [searchFeature, setSearchFeature] = useState(null)
   const [selectedUnit, setSelectedUnit] = useState(null)
 
-  const handleSearch = useCallback(nextSearchFeature => {
-    setSearchFeature(nextSearchFeature)
-  }, [system])
+  const handleSearch = useCallback(
+    nextSearchFeature => {
+      setSearchFeature(nextSearchFeature)
+    },
+    [system]
+  )
 
   const handleSetBarrierType = nextBarrierType => {
     setBarrierType(nextBarrierType)
@@ -74,28 +76,58 @@ const SummaryPage = () => {
     <Layout title="Summarize">
       <Wrapper>
         <Sidebar>
-        {selectedUnit !== null ? (
-              <UnitDetails summaryUnit={selectedUnit} barrierType={barrierType} onClose={handleDetailsClose}/>
-            ) : (
-          <SidebarContent>
-            <Intro>
-              Across the Southeast, there are at least {formatNumber(dams, 0)}{' '}
-              dams, resulting in an average of {formatNumber(miles, 0)} miles of
-              connected rivers and streams.
-              <br />
-              <br />
-              Click on a summary unit the map for more information about that
-              area.
-            </Intro>
-            <UnitSearch system={system} onSelect={handleSearch} />
+          {selectedUnit !== null ? (
+            <UnitDetails
+              summaryUnit={selectedUnit}
+              barrierType={barrierType}
+              onClose={handleDetailsClose}
+            />
+          ) : (
+            <SidebarContent>
+              {barrierType === 'dams' ? (
+                <>
+                  <Intro>
+                    Across the Southeast, there are at least{' '}
+                    {formatNumber(dams, 0)} dams, resulting in an average of{' '}
+                    {formatNumber(miles, 0)} miles of connected rivers and
+                    streams.
+                    <br />
+                    <br />
+                    Click on a summary unit the map for more information about
+                    that area.
+                  </Intro>
+                  <UnitSearch system={system} onSelect={handleSearch} />
 
-            <Note>
-              Note: These statistics are based on <i>inventoried</i> dams.
-              Because the inventory is incomplete in many areas, areas with a
-              high number of dams may simply represent areas that have a more
-              complete inventory.
-            </Note>
-          </SidebarContent>
+                  <Note>
+                    Note: These statistics are based on <i>inventoried</i> dams.
+                    Because the inventory is incomplete in many areas, areas
+                    with a high number of dams may simply represent areas that
+                    have a more complete inventory.
+                  </Note>
+                </>
+              ) : (
+                <>
+                  <Intro>
+                    Across the Southeast, there are at least{' '}
+                    {formatNumber(barriers, 0)} road-related barriers and at
+                    least {formatNumber(crossings, 0)} road / stream crossings.
+                    <br />
+                    <br />
+                    Click on a summary unit the map for more information about
+                    that area.
+                  </Intro>
+                  <UnitSearch system={system} onSelect={handleSearch} />
+
+                  <Note>
+                    Note: These statistics are based on <i>inventoried</i>{' '}
+                    road-related barriers. Because the inventory is incomplete
+                    in many areas, areas with a high number of road-related
+                    barriers may simply represent areas that have a more
+                    complete inventory.
+                  </Note>
+                </>
+              )}
+            </SidebarContent>
           )}
         </Sidebar>
         <MapContainer>

@@ -50,8 +50,15 @@ const Content = styled(Box).attrs({
 `
 
 const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
-  // TODO
-  const { id, layerId, name, dams, barriers, miles } = summaryUnit
+  const {
+    id,
+    layerId,
+    name = '',
+    dams = 0,
+    barriers = 0,
+    crossings = 0,
+    miles = 0,
+  } = summaryUnit
 
   const {
     dams: totalDams,
@@ -87,7 +94,6 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
       >
         <TitleWrapper>
           <Title>{title}</Title>
-          {/* <h3 className="title is-5 no-margin">{title}</h3> */}
           {layerId !== 'State' && <Subtitle>{layerTitle}</Subtitle>}
           {layerId === 'HUC6' || layerId === 'HUC8' || layerId === 'HUC12' ? (
             <UnitID>HUC: {id}</UnitID>
@@ -151,9 +157,17 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
               <>
                 <p>
                   This area contains at least {formatNumber(count, 0)}{' '}
-                  road-related {count > 1 ? 'barriers' : 'barriers'} that{' '}
+                  road-related {count > 1 ? 'barriers' : 'barrier'} that{' '}
                   {count > 1 ? 'have ' : 'has '}
-                  been inventoried so far.
+                  been inventoried so far ({formatPercent(percent)}% of the
+                  total inventoried road-related barriers across the Southeast).
+                  <br />
+                  <br />
+                  This area also contains at least {formatNumber(
+                    crossings,
+                    0
+                  )}{' '}
+                  road / stream crossings.
                 </p>
                 <HelpText>
                   <br />
@@ -182,6 +196,12 @@ UnitDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   summaryUnit: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    layerId: PropTypes.string.isRequired,
+    name: PropTypes.string,
+    dams: PropTypes.number,
+    barriers: PropTypes.number,
+    crossings: PropTypes.number,
+    miles: PropTypes.number,
   }).isRequired,
   onClose: PropTypes.func.isRequired,
 }

@@ -30,19 +30,17 @@ export const layers = [
     id: 'HUC6',
     system: 'HUC',
     title: 'Basin',
-    minzoom: 0,
-    maxzoom: 6.5,
     bins: {
       dams: [100, 500, 750, 1000, 1500, 2000, 2500, 5000, 25000],
       barriers: [10, 100, 200, 300, 500, 1000, 2500],
     },
     fill: {
       minzoom: 0,
-      maxzoom: 7,
+      maxzoom: 6,
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[2, 0.4], [4, 0.25], [6, 0.25], [7, 0]],
+          stops: [[2, 0.4], [4, 0.25], [5, 0.25], [6, 0.1]],
         },
       },
     },
@@ -68,8 +66,6 @@ export const layers = [
   {
     id: 'HUC8',
     system: 'HUC',
-    minzoom: 6.5,
-    maxzoom: 9,
     title: 'Subbasin',
     bins: {
       dams: [10, 50, 100, 200, 250, 300, 400, 500, 5000],
@@ -77,11 +73,11 @@ export const layers = [
     },
     fill: {
       minzoom: 6,
-      maxzoom: 9.5,
+      maxzoom: 10,
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[6, 0], [7, 0.25], [8.5, 0.25], [9.5, 0]],
+          stops: [[6, 0.1], [7, 0.25], [9, 0.25], [10, 0.1]],
         },
       },
     },
@@ -99,25 +95,23 @@ export const layers = [
   {
     id: 'HUC12',
     system: 'HUC',
-    minzoom: 8.5,
-    maxzoom: 24,
     title: 'Subwatershed',
     bins: {
       dams: [1, 10, 25, 100, 200],
       barriers: [1, 10, 25, 100, 200],
     },
     fill: {
-      minzoom: 8.5,
+      minzoom: 10,
       maxzoom: 24,
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[8.5, 0], [9.5, 0.25], [11, 0.25], [12, 0.15]],
+          stops: [[10, 0.1], [11, 0.25], [12, 0.15]],
         },
       },
     },
     outline: {
-      minzoom: 8.5,
+      minzoom: 10,
       maxzoom: 24,
       paint: {
         'line-width': {
@@ -130,8 +124,6 @@ export const layers = [
   {
     id: 'ECO3',
     system: 'ECO',
-    minzoom: 0,
-    maxzoom: 6,
     title: 'Level 3 Ecoregion',
     bins: {
       dams: [100, 250, 500, 1000, 2500, 5000, 7500, 10000, 25000],
@@ -143,7 +135,7 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[2, 0.4], [4, 0.25], [6, 0.25], [7, 0]],
+          stops: [[2, 0.4], [4, 0.25], [6, 0.25], [7, 0.1]],
         },
       },
     },
@@ -169,20 +161,18 @@ export const layers = [
   {
     id: 'ECO4',
     system: 'ECO',
-    minzoom: 6,
-    maxzoom: 24,
     title: 'Level 4 Ecoregion',
     bins: {
       dams: [10, 100, 250, 500, 750, 1000, 1500, 2000, 10000],
       barriers: [10, 50, 100, 250, 500, 1000, 2000],
     },
     fill: {
-      minzoom: 6,
+      minzoom: 7,
       maxzoom: 24,
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[6, 0], [7, 0.25], [11, 0.25], [12, 0.15]],
+          stops: [[7, 0.1], [8, 0.25], [11, 0.25], [12, 0.15]],
         },
       },
     },
@@ -200,8 +190,6 @@ export const layers = [
   {
     id: 'State',
     system: 'ADM',
-    minzoom: 0,
-    maxzoom: 6.5,
     title: 'State',
     bins: {
       dams: [500, 1000, 5000, 10000, 15000, 20000, 25000],
@@ -213,7 +201,7 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[2, 0.4], [4, 0.25], [6, 0.25], [7, 0]],
+          stops: [[2, 0.4], [4, 0.25], [6, 0.25], [7, 0.1]],
         },
       },
     },
@@ -239,25 +227,23 @@ export const layers = [
   {
     id: 'County',
     system: 'ADM',
-    minzoom: 6.5,
-    maxzoom: 24,
     title: 'County',
     bins: {
       dams: [10, 50, 100, 250, 1000],
       barriers: [10, 25, 50, 100, 500],
     },
     fill: {
-      minzoom: 6,
+      minzoom: 7,
       maxzoom: 24,
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[6, 0], [7, 0.25], [11, 0.25], [12, 0.15]],
+          stops: [[7, 0.1], [11, 0.25], [12, 0.15]],
         },
       },
     },
     outline: {
-      minzoom: 6,
+      minzoom: 7,
       maxzoom: 24,
       paint: {
         'line-width': {

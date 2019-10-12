@@ -218,7 +218,7 @@ const SummaryMap = ({
 
   const { layerTitle, legendEntries } = useMemo(() => {
     const layer = layers.filter(
-      ({ system: lyrSystem, minzoom, maxzoom }) =>
+      ({ system: lyrSystem, fill: { minzoom, maxzoom } }) =>
         lyrSystem === system && zoom >= minzoom && zoom < maxzoom
     )[0]
 

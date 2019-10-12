@@ -7,6 +7,7 @@ export const useSummaryData = () => {
         southeast {
           dams
           barriers
+          crossings
           miles
           off_network_barriers
           off_network_dams
