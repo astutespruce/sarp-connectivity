@@ -68,17 +68,18 @@ const PriorityMap = ({
       // set for initial load too
       setZoom(map.getZoom())
 
-    // Hookup map on click handler to call onClick with the properties
-    // of the feature selected
-    const handleLayerClick = (layerId, onClick) => {
-
-      map.on('click', layerId, ({ point }) => {
-        const [feature] = map.queryRenderedFeatures(point, { layers: [layerId] })
-        if (feature) {
-          onClick(feature.properties)
-        }
-      })
-    }
+      // Hookup map on click handler to call onClick with the properties
+      // of the feature selected
+      const handleLayerClick = (layerId, onClick) => {
+        map.on('click', layerId, ({ point }) => {
+          const [feature] = map.queryRenderedFeatures(point, {
+            layers: [layerId],
+          })
+          if (feature) {
+            onClick(feature.properties)
+          }
+        })
+      }
 
       // Initially the mask and boundary are visible
       map.addLayer(maskFill)
@@ -105,11 +106,22 @@ const PriorityMap = ({
           // Each layer has 2 display layers: outline, fill
           unitLayers.forEach(({ id, ...rest }) => {
             const layerId = `${layer}-${id}`
-            map.addLayer({ ...config, ...rest, id: layerId })
+            const unitLayer = { ...config, ...rest, id: layerId }
+            // map.addLayer({ ...config, ...rest, id: layerId })
 
             if (id === 'unit-fill') {
+              unitLayer.paint['fill-opacity'] = [
+                'match',
+                ['get', barrierType],
+                0,
+                0.25,
+                0,
+              ]
+
               handleLayerClick(layerId, onSelectUnit)
             }
+
+            map.addLayer(unitLayer)
           })
 
           // Each layer has 2 highlight layers: highlight fill, highlight outline
@@ -395,7 +407,7 @@ const PriorityMap = ({
   // Debounce updates to the filter to prevent frequent redraws
   // which have bad performance with high numbers of dams
   const [debouncedSetRankFilter] = useDebouncedCallback((field, threshold) => {
-    const {current: map} = mapRef
+    const { current: map } = mapRef
     map.setFilter(topRank.id, ['<=', field, threshold])
     map.setFilter(lowerRank.id, ['>', field, threshold])
   }, 200)
@@ -414,8 +426,6 @@ const PriorityMap = ({
     },
     [onSelectUnit]
   )
-
-
 
   const getLegend = () => {
     const pointLayers = [
@@ -441,6 +451,13 @@ const PriorityMap = ({
       topRank: topRankLegend,
       lowerRank: lowerRankLegend,
     } = pointLegends
+
+    const patches = [
+      {
+        color: 'rgba(0,0,0,0.15)',
+        label: `area with no ${barrierType}`,
+      },
+    ]
 
     if (activeLayer === null) {
       if (!isWithinZoom[excludedPoint.id]) {
@@ -513,6 +530,7 @@ const PriorityMap = ({
 
     if (!isWithinZoom[includedPoint.id]) {
       return {
+        patches,
         footnote: `zoom in to see selected ${barrierType}`,
       }
     }
@@ -539,6 +557,7 @@ const PriorityMap = ({
     }
 
     return {
+      patches: allowUnitSelect ? patches : null,
       circles,
     }
   }

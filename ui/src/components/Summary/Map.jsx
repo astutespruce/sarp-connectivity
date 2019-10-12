@@ -337,7 +337,7 @@ const SummaryMap = ({
 
     patches.push({
       color: 'rgba(0,0,0,0.15)',
-      label: `0 ${barrierType}`,
+      label: `no ${barrierType}`,
     })
 
     const circles = []

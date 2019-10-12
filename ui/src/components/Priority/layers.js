@@ -32,10 +32,8 @@ export const unitFill = {
   layout: {
     visibility: 'none',
   },
-  // filter: [">=", "dams", 0],
   paint: {
-    'fill-opacity': 0,
-    'fill-color': '#FFF',
+    'fill-color': '#BBB',
   },
 }
 
@@ -51,7 +49,6 @@ export const unitOutline = {
     'line-cap': 'round',
     'line-join': 'round',
   },
-  // filter: [">=", "dams", 0],
   paint: {
     'line-opacity': 1,
     'line-width': 0.5,
@@ -71,7 +68,6 @@ export const parentOutline = {
     'line-cap': 'round',
     'line-join': 'round',
   },
-  // filter: ['>=', 'dams', 0],
   paint: {
     'line-opacity': 1,
     'line-width': 2,
@@ -241,7 +237,6 @@ export const pointHighlight = {
   type: 'circle',
   minzoom: 5,
   maxzoom: 24,
-  // filter: ["==", "id", Infinity],
   paint: {
     'circle-color': '#fd8d3c',
     'circle-radius': 14,
