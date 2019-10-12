@@ -80,12 +80,12 @@ const MailIcon = styled(FaEnvelope)`
 
 const tierToPercent = tier => (100 * (19 - (tier - 1))) / 20
 
-const BarrierDetails = ({ barrier, onClose }) => {
+const BarrierDetails = ({ barrier, barrierType: barrierTypeProp, onClose }) => {
   const { id, sarpid, name, hasnetwork, countyname, State, ncwc_tier } = barrier
-
-  console.log('barrier', barrier)
-
-  const barrierType = useBarrierType()
+  
+  // get barrier type from prop, if passed in directly, otherwise get from context
+  const contextBarrierType = useBarrierType()
+  const barrierType = barrierTypeProp || contextBarrierType
 
   const details =
     barrierType === 'dams' ? (
@@ -174,8 +174,13 @@ const BarrierDetails = ({ barrier, onClose }) => {
 }
 
 BarrierDetails.propTypes = {
+  barrierType: PropTypes.string,
   barrier: BarrierPropType.isRequired,
   onClose: PropTypes.func.isRequired,
+}
+
+BarrierDetails.defaultProps = {
+  barrierType: null, // will get from context via useBarrierType by default
 }
 
 export default BarrierDetails

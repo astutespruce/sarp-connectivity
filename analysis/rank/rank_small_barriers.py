@@ -169,6 +169,10 @@ df = df[keep_fields].copy()
 # Rename columns for easier use
 df = df.rename(columns={"County": "CountyName", "COUNTYFIPS": "County"})
 
+# add duplicate lat / lon for tippecanoe to use
+df["latitude"] = df.lat
+df["longitude"] = df.lon
+
 # Fill N/A values and fix dtypes
 str_cols = df.dtypes.loc[df.dtypes == "object"].index
 df[str_cols] = df[str_cols].fillna("")
@@ -221,10 +225,13 @@ print("Now have {:,} combined background barriers".format(len(combined)))
 
 # Fill in N/A values
 cols = combined.dtypes.loc[combined.dtypes == "object"].index
-combined[cols] = combined[cols].fillna("")
+combined[cols] = combined[cols].fillna("").astype(str)
+
 # all other fields should be non-null
 
 combined.protectedland = combined.protectedland.fillna(0).astype("uint8")
+combined.ownertype = combined.ownertype.fillna(-1).astype("int8")
+combined.severityclass = combined.severityclass.fillna(0).astype("uint8")
 
 # create a new consolidated ID
 combined["id"] = combined.index.values.astype("uint32")
@@ -237,6 +244,5 @@ print("Writing combined file")
 combined.to_csv(
     tile_dir / "barriers_background.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
 )
-
 
 print("Done in {:.2f}".format(time() - start))

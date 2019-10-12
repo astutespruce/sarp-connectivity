@@ -19,30 +19,35 @@ import {
   layers,
   pointLayer,
   backgroundPointLayer,
+  pointHighlightLayer,
   pointLegends,
 } from './layers'
 
 const barrierTypes = ['dams', 'barriers']
+
+const emptyFeatureCollection = {
+  type: 'FeatureCollection',
+  features: [],
+}
 
 const SummaryMap = ({
   system,
   barrierType,
   selectedUnit,
   searchFeature,
+  selectedBarrier,
   onSelectUnit,
+  onSelectBarrier,
   ...props
 }) => {
   const mapRef = useRef(null)
 
-  // first layer of system is default on init
-  // const [visibleLayer, setVisibleLayer] = useState(layers.filter(({system: lyrSystem}) => lyrSystem === system)[0])
   const [zoom, setZoom] = useState(0)
 
   const handleCreateMap = useCallback(map => {
     mapRef.current = map
 
     map.on('zoomend', () => {
-      // setVisibleLayer(getVisibleLayer(map, system))
       setZoom(map.getZoom())
     })
 
@@ -149,6 +154,9 @@ const SummaryMap = ({
       })
     })
 
+    // Add barrier highlight layer.
+    map.addLayer(pointHighlightLayer)
+
     const clickLayers = barrierTypes
       .map(t => t)
       .concat(barrierTypes.map(t => `${t}-background`))
@@ -172,10 +180,14 @@ const SummaryMap = ({
         })
       } else {
         // dam or barrier
-
-        console.log('todo, barrier click')
+        onSelectBarrier({
+          ...properties,
+          ...feature,
+          hasnetwork: sourceLayer !== 'background',
+        })
       }
     })
+    // hook deps are intentionally omitted here
   }, [])
 
   useEffect(() => {
@@ -217,10 +229,28 @@ const SummaryMap = ({
       map.setLayoutProperty(t, 'visibility', visibility)
       map.setLayoutProperty(`${t}-background`, 'visibility', visibility)
     })
-
-    // FIXME: does legend need to be updated??
-    // TODO: update legend
   }, [barrierType])
+
+  useEffect(() => {
+    const { current: map } = mapRef
+
+    if (!map) return
+
+    const { id } = pointHighlightLayer
+
+    // setting to empty feature collection effectively hides this layer
+    let data = emptyFeatureCollection
+
+    if (selectedBarrier) {
+      const { lat, lon } = selectedBarrier
+      data = {
+        type: 'Point',
+        coordinates: [lon, lat],
+      }
+    }
+
+    map.getSource(id).setData(data)
+  }, [selectedBarrier])
 
   useEffect(() => {
     const { current: map } = mapRef
@@ -349,12 +379,15 @@ SummaryMap.propTypes = {
   barrierType: PropTypes.string.isRequired,
   selectedUnit: PropTypes.object,
   searchFeature: SearchFeaturePropType,
+  selectedBarrier: PropTypes.object,
   onSelectUnit: PropTypes.func.isRequired,
+  onSelectBarrier: PropTypes.func.isRequired,
 }
 
 SummaryMap.defaultProps = {
   selectedUnit: null,
   searchFeature: null,
+  selectedBarrier: null,
 }
 
 export default memo(SummaryMap)

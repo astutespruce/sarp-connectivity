@@ -1,33 +1,23 @@
 import React, { useState, useCallback } from 'react'
 
-import { Text, HelpText } from 'components/Text'
-import { Flex, Box } from 'components/Grid'
+import { Flex } from 'components/Grid'
 import Layout from 'components/Layout'
 import Sidebar from 'components/Sidebar'
-import UnitSearch from 'components/UnitSearch'
+import { BarrierTypeProvider } from 'components/Data'
 import { TopBar, TopBarToggle } from 'components/Map'
-import { Map, UnitDetails } from 'components/Summary'
-import { useSummaryData } from 'components/Data'
-import { formatNumber } from 'util/format'
-import styled, { themeGet } from 'style'
+import { Map, UnitDetails, SoutheastSummary } from 'components/Summary'
+import BarrierDetails from 'components/BarrierDetails'
+import styled from 'style'
 import { SYSTEMS } from '../../config/constants'
 
 const Wrapper = styled(Flex)`
   height: 100%;
 `
 
-const SidebarContent = styled(Box).attrs({ p: '1rem' })``
-
 const MapContainer = styled.div`
   position: relative;
   flex: 1 0 auto;
   height: 100%;
-`
-
-const Intro = styled(Text).attrs({ mb: '1rem' })``
-
-const Note = styled(HelpText).attrs({ mt: '3rem' })`
-  color: ${themeGet('colors.grey.600')};
 `
 
 const barrierTypeOptions = [
@@ -41,21 +31,19 @@ const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
 }))
 
 const SummaryPage = () => {
-  const { dams, miles, barriers, crossings } = useSummaryData()
   const [system, setSystem] = useState('HUC')
   const [barrierType, setBarrierType] = useState('dams')
   const [searchFeature, setSearchFeature] = useState(null)
   const [selectedUnit, setSelectedUnit] = useState(null)
+  const [selectedBarrier, setSelectedBarrier] = useState(null)
 
-  const handleSearch = useCallback(
-    nextSearchFeature => {
-      setSearchFeature(nextSearchFeature)
-    },
-    [system]
-  )
+  const handleSearch = useCallback(nextSearchFeature => {
+    setSearchFeature(nextSearchFeature)
+  }, [])
 
   const handleSetBarrierType = nextBarrierType => {
     setBarrierType(nextBarrierType)
+    setSelectedBarrier(null)
   }
 
   const handleSetSystem = nextSystem => {
@@ -65,6 +53,7 @@ const SummaryPage = () => {
 
   const handleSelectUnit = feature => {
     setSelectedUnit(feature)
+    setSelectedBarrier(null)
   }
 
   const handleDetailsClose = () => {
@@ -72,71 +61,59 @@ const SummaryPage = () => {
     setSearchFeature(null)
   }
 
+  const handleSelectBarrier = feature => {
+    setSelectedBarrier(feature)
+    setSelectedUnit(null)
+  }
+
+  const handleBarrierDetailsClose = () => {
+    setSelectedBarrier(null)
+  }
+
+  let sidebarContent = null
+
+  if (selectedBarrier !== null) {
+    // have to use provider here, barrier details expects to get barrierType from context
+    sidebarContent = (
+      // <BarrierTypeProvider barrierType={barrierType}>
+      <BarrierDetails
+        barrierType={barrierType}
+        barrier={selectedBarrier}
+        onClose={handleBarrierDetailsClose}
+      />
+      // </BarrierTypeProvider>
+    )
+  } else if (selectedUnit !== null) {
+    sidebarContent = (
+      <UnitDetails
+        summaryUnit={selectedUnit}
+        barrierType={barrierType}
+        onClose={handleDetailsClose}
+      />
+    )
+  } else {
+    sidebarContent = (
+      <SoutheastSummary
+        barrierType={barrierType}
+        system={system}
+        onSearch={handleSearch}
+      />
+    )
+  }
+
   return (
     <Layout title="Summarize">
       <Wrapper>
-        <Sidebar>
-          {selectedUnit !== null ? (
-            <UnitDetails
-              summaryUnit={selectedUnit}
-              barrierType={barrierType}
-              onClose={handleDetailsClose}
-            />
-          ) : (
-            <SidebarContent>
-              {barrierType === 'dams' ? (
-                <>
-                  <Intro>
-                    Across the Southeast, there are at least{' '}
-                    {formatNumber(dams, 0)} dams, resulting in an average of{' '}
-                    {formatNumber(miles, 0)} miles of connected rivers and
-                    streams.
-                    <br />
-                    <br />
-                    Click on a summary unit the map for more information about
-                    that area.
-                  </Intro>
-                  <UnitSearch system={system} onSelect={handleSearch} />
-
-                  <Note>
-                    Note: These statistics are based on <i>inventoried</i> dams.
-                    Because the inventory is incomplete in many areas, areas
-                    with a high number of dams may simply represent areas that
-                    have a more complete inventory.
-                  </Note>
-                </>
-              ) : (
-                <>
-                  <Intro>
-                    Across the Southeast, there are at least{' '}
-                    {formatNumber(barriers, 0)} road-related barriers and at
-                    least {formatNumber(crossings, 0)} road / stream crossings.
-                    <br />
-                    <br />
-                    Click on a summary unit the map for more information about
-                    that area.
-                  </Intro>
-                  <UnitSearch system={system} onSelect={handleSearch} />
-
-                  <Note>
-                    Note: These statistics are based on <i>inventoried</i>{' '}
-                    road-related barriers. Because the inventory is incomplete
-                    in many areas, areas with a high number of road-related
-                    barriers may simply represent areas that have a more
-                    complete inventory.
-                  </Note>
-                </>
-              )}
-            </SidebarContent>
-          )}
-        </Sidebar>
+        <Sidebar>{sidebarContent}</Sidebar>
         <MapContainer>
           <Map
             barrierType={barrierType}
             system={system}
             searchFeature={searchFeature}
             selectedUnit={selectedUnit}
+            selectedBarrier={selectedBarrier}
             onSelectUnit={handleSelectUnit}
+            onSelectBarrier={handleSelectBarrier}
           />
           <TopBar>
             Show:
