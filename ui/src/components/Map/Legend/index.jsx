@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 
 import { Text, HelpText } from 'components/Text'
-import { Flex } from 'components/Grid'
+import { Flex, Box } from 'components/Grid'
 import styled, { themeGet } from 'style'
 
 import Circle from './Circle'
@@ -45,6 +45,10 @@ const Label = styled.div`
   color: ${themeGet('colors.grey.700')};
 `
 
+const Divider = styled(Box).attrs({ mt: '0.5rem' })`
+  border-top: 1px solid ${themeGet('colors.grey.100')};
+`
+
 const CircleRow = styled(Flex).attrs({ alignItems: 'flex-start', py: '0.5em' })`
   &:not(:first-child) {
     border-top: 1px solid ${themeGet('colors.grey.100')};
@@ -85,17 +89,6 @@ const Legend = ({ title, patches, circles, footnote }) => {
         <>
           <Title>{title}</Title>
 
-          {circles && (
-            <div>
-              {circles.map(point => (
-                <CircleRow key={point.color}>
-                  <Circle {...point} />
-                  <Label>{point.label}</Label>
-                </CircleRow>
-              ))}
-            </div>
-          )}
-
           {patches && (
             <div>
               {patches.map(({ color, label }) => (
@@ -103,6 +96,19 @@ const Legend = ({ title, patches, circles, footnote }) => {
                   <Patch style={{ backgroundColor: color }} />
                   <Label>{label}</Label>
                 </PatchRow>
+              ))}
+            </div>
+          )}
+
+          {patches && circles && <Divider />}
+
+          {circles && (
+            <div>
+              {circles.map(point => (
+                <CircleRow key={point.color}>
+                  <Circle {...point} />
+                  <Label>{point.label}</Label>
+                </CircleRow>
               ))}
             </div>
           )}

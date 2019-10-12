@@ -1,13 +1,13 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { useSummaryData, useBarrierType } from 'components/Data'
+import { useSummaryData } from 'components/Data'
 import { Text, HelpText } from 'components/Text'
 import { CloseButton } from 'components/Button'
 import { Box, Flex } from 'components/Grid'
 import { formatNumber, formatPercent } from 'util/format'
 import styled, { themeGet } from 'style'
-import { layers } from './config'
+import { layers } from './layers'
 import { STATE_FIPS, CONNECTIVITY_TEAMS } from '../../../config/constants'
 
 const Wrapper = styled(Flex).attrs({

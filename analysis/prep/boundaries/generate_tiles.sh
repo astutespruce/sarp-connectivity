@@ -36,7 +36,7 @@ rm $TMPDIR/HUC8.json
 HUC12
 echo "Generating HUC12 tiles..."
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON $TMPDIR/HUC12.json $DATADIR/HUC12_prj.shp
-tippecanoe -f -Z 6 -z 12 -l HUC12 -o $TILEDIR/HUC12.mbtiles  -T id:string $TMPDIR/HUC12.json
+tippecanoe -f -Z 6 -z 14 -l HUC12 -o $TILEDIR/HUC12.mbtiles  -T id:string $TMPDIR/HUC12.json
 rm $TMPDIR/HUC12.json
 
 

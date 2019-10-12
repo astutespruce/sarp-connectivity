@@ -14,7 +14,15 @@ import {
   interpolateExpr,
   SearchFeaturePropType,
 } from 'components/Map'
-import { COLORS, layers } from './config'
+import { COLORS } from './config'
+import {
+  layers,
+  pointLayer,
+  backgroundPointLayer,
+  pointLegends,
+} from './layers'
+
+const barrierTypes = ['dams', 'barriers']
 
 const SummaryMap = ({
   system,
@@ -78,20 +86,6 @@ const SummaryMap = ({
           },
         })
 
-        map.on('click', fillID, ({ point }) => {
-          const [feature] = map.queryRenderedFeatures(point, {
-            layers: [fillID],
-          })
-
-          if (feature) {
-            const { sourceLayer, properties } = feature
-            onSelectUnit({
-              ...properties,
-              layerId: sourceLayer,
-            })
-          }
-        })
-
         // add outline layer
         map.addLayer({
           ...config,
@@ -132,6 +126,56 @@ const SummaryMap = ({
         })
       }
     )
+
+    // Add point layers
+    barrierTypes.forEach(t => {
+      map.addLayer({
+        id: t,
+        source: t,
+        'source-layer': t,
+        ...pointLayer,
+        layout: {
+          visibility: barrierType === t ? 'visible' : 'none',
+        },
+      })
+
+      map.addLayer({
+        id: `${t}-background`,
+        source: t,
+        ...backgroundPointLayer,
+        layout: {
+          visibility: barrierType === t ? 'visible' : 'none',
+        },
+      })
+    })
+
+    const clickLayers = barrierTypes
+      .map(t => t)
+      .concat(barrierTypes.map(t => `${t}-background`))
+      .concat(layers.map(({ id }) => `${id}-fill`))
+
+    map.on('click', ({ point }) => {
+      const [feature] = map.queryRenderedFeatures(point, {
+        layers: clickLayers,
+      })
+      if (!feature) {
+        return
+      }
+
+      const { source, sourceLayer, properties } = feature
+
+      if (source === 'sarp') {
+        // summary unit layer
+        onSelectUnit({
+          ...properties,
+          layerId: sourceLayer,
+        })
+      } else {
+        // dam or barrier
+
+        console.log('todo, barrier click')
+      }
+    })
   }, [])
 
   useEffect(() => {
@@ -148,9 +192,6 @@ const SummaryMap = ({
         map.setLayoutProperty(`${id}-${suffix}`, 'visibility', visibility)
       })
     })
-
-    // setVisibleLayer(getVisibleLayer(map, system))
-    // TODO: update legend
   }, [system])
 
   useEffect(() => {
@@ -170,6 +211,14 @@ const SummaryMap = ({
       map.setFilter(`${id}-outline`, ['>', barrierType, 0])
     })
 
+    // toggle barriers layer
+    barrierTypes.forEach(t => {
+      const visibility = barrierType === t ? 'visible' : 'none'
+      map.setLayoutProperty(t, 'visibility', visibility)
+      map.setLayoutProperty(`${t}-background`, 'visibility', visibility)
+    })
+
+    // FIXME: does legend need to be updated??
     // TODO: update legend
   }, [barrierType])
 
@@ -217,6 +266,8 @@ const SummaryMap = ({
   }, [searchFeature])
 
   const { layerTitle, legendEntries } = useMemo(() => {
+    const { current: map } = mapRef
+
     const layer = layers.filter(
       ({ system: lyrSystem, fill: { minzoom, maxzoom } }) =>
         lyrSystem === system && zoom >= minzoom && zoom < maxzoom
@@ -243,12 +294,29 @@ const SummaryMap = ({
       })
       .reverse()
 
+    const circles = []
+    if (map && map.getZoom() >= 12) {
+      const { primary, background } = pointLegends
+      circles.push({
+        ...primary,
+        label: `${barrierType} available for analysis`,
+      })
+
+      circles.push({
+        ...background,
+        label: `${barrierType} not available for analysis`,
+      })
+    }
+
     return {
       layerTitle: title,
-      legendEntries: colors.map((color, i) => ({
-        color,
-        label: labels[i],
-      })),
+      legendEntries: {
+        patches: colors.map((color, i) => ({
+          color,
+          label: labels[i],
+        })),
+        circles,
+      },
     }
   }, [system, barrierType, zoom])
 
@@ -269,7 +337,7 @@ const SummaryMap = ({
       <Map onCreateMap={handleCreateMap} {...props} />
       <Legend
         title={layerTitle}
-        patches={legendEntries}
+        {...legendEntries}
         footnote={`areas with no ${barrierType} are not shown`}
       />
     </>
