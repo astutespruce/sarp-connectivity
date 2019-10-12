@@ -5,9 +5,17 @@ import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 import { Section, SectionHeader, List } from './styles'
 
-import { SINUOSITY, BARRIER_SEVERITY } from '../../../config/constants'
+import { siteMetadata } from '../../../gatsby-config'
+import {
+  SINUOSITY,
+  BARRIER_SEVERITY,
+  OWNERTYPE,
+} from '../../../config/constants'
+
+const { version: dataVersion } = siteMetadata
 
 const BarrierDetails = ({
+  id,
   sarpid,
   lat,
   lon,
@@ -20,9 +28,9 @@ const BarrierDetails = ({
   crossingtype,
   condition,
   tespp,
+  ownertype,
   severityclass,
   // metrics
-  gainmiles,
   upstreammiles,
   downstreammiles,
   sinuosityclass,
@@ -50,6 +58,9 @@ const BarrierDetails = ({
             </li>
           ) : null}
           {!isEmptyString(road) ? <li>Road: {road}</li> : null}
+          {ownertype && ownertype > 0 && (
+            <li>Conservation land type: {OWNERTYPE[ownertype]}</li>
+          )}
         </List>
       </Section>
 
@@ -76,8 +87,8 @@ const BarrierDetails = ({
         {hasnetwork ? (
           <React.Fragment>
             <li>
-              <b>{formatNumber(gainmiles)}</b> miles could be gained by removing
-              this barrier
+              <b>{formatNumber(Math.min(upstreammiles, downstreammiles))}</b>{' '}
+              miles could be gained by removing this barrier
               <List>
                 <li>
                   {formatNumber(upstreammiles)} miles in the upstream network
@@ -145,6 +156,9 @@ const BarrierDetails = ({
         <React.Fragment>
           <SectionHeader>Other information</SectionHeader>
           <List>
+            <li>
+              Connectivity Tool ID: {id} (data version: {dataVersion})
+            </li>
             {!isCrossing ? <li>SARP ID: {sarpid}</li> : null}
 
             {!isEmptyString(source) ? <li>Source: {source}</li> : null}
@@ -155,6 +169,7 @@ const BarrierDetails = ({
   )
 }
 BarrierDetails.propTypes = {
+  id: PropTypes.number.isRequired,
   sarpid: PropTypes.string.isRequired,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
@@ -168,7 +183,7 @@ BarrierDetails.propTypes = {
   condition: PropTypes.string,
   severityclass: PropTypes.number,
   tespp: PropTypes.number,
-  gainmiles: PropTypes.number,
+  ownertype: PropTypes.number,
   upstreammiles: PropTypes.number,
   downstreammiles: PropTypes.number,
   sinuosityclass: PropTypes.number,
@@ -186,7 +201,7 @@ BarrierDetails.defaultProps = {
   severityclass: null,
   condition: null,
   tespp: null,
-  gainmiles: null,
+  ownertype: null,
   upstreammiles: null,
   downstreammiles: null,
   sinuosityclass: null,

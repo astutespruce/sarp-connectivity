@@ -34,6 +34,7 @@ FILTER_FIELDS = [
     "GainMilesClass",
     "TESppClass",
     "StreamOrderClass",
+    "OwnerType"
 ]
 
 DAM_FILTER_FIELDS = [

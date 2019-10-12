@@ -21,6 +21,8 @@ from api.constants import (
     DAM_EXPORT_FIELDS,
     SB_FILTER_FIELDS,
     SB_EXPORT_FIELDS,
+    TIER_FIELDS,
+    CUSTOM_TIER_FIELDS,
     # domains to invert before download
     FEASIBILITY_DOMAIN,
     PURPOSE_DOMAIN,
@@ -209,8 +211,9 @@ def rank(barrier_type="dams", layer="HUC8"):
             ),
         )
 
-    tiers_df = calculate_tiers(df)
-    df = df[["lat", "lon"]].join(tiers_df)
+    # just return tiers and lat/lon
+    cols = ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
+    df = calculate_tiers(df)[cols]
 
     resp = make_response(
         df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
@@ -281,18 +284,10 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
 
     log.info("selected {} dams".format(nrows))
 
-    # TODO: check unpacking here, where are scores, dtypes handled
-    tiers_df = calculate_tiers(df)
+    df = calculate_tiers(df)[export_columns]
 
-    # TODO: join type is based on include_unranked
-    join_type = "left" if include_unranked else "right"
-    df = df.join(tiers_df, how=join_type)
-
-    # Fill n/a with -1 for tiers and cast columns to integers
-    df[tiers_df.columns] = df[tiers_df.columns].fillna(-1)
-
-    # drop unneeded columns
-    df = df[export_columns]
+    if not include_unranked:
+        df = df.loc[df.HasNetwork]
 
     # map domain fields to values
     df.HasNetwork = df.HasNetwork.map(BOOLEAN_DOMAIN)

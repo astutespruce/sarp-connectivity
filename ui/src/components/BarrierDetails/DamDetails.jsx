@@ -5,15 +5,20 @@ import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 import { Section, SectionHeader, List } from './styles'
 
+import { siteMetadata } from '../../../gatsby-config'
 import {
   SINUOSITY,
   DAM_CONDITION,
   CONSTRUCTION,
   PURPOSE,
   RECON,
+  OWNERTYPE,
 } from '../../../config/constants'
 
+const { version: dataVersion } = siteMetadata
+
 const DamDetails = ({
+  id,
   sarpid,
   lat,
   lon,
@@ -29,8 +34,8 @@ const DamDetails = ({
   basin,
   tespp,
   recon,
+  ownertype,
   // metrics
-  gainmiles,
   upstreammiles,
   downstreammiles,
   sinuosityclass,
@@ -47,11 +52,14 @@ const DamDetails = ({
           &deg; E
         </li>
         <li>
-          {river && river !== 'null' && river !== 'Unknown'
+          {river && river !== '"' && river !== 'null' && river !== 'Unknown'
             ? `${river}, `
             : null}
           {basin} Basin
         </li>
+        {ownertype && ownertype > 0 && (
+          <li>Conservation land type: {OWNERTYPE[ownertype]}</li>
+        )}
       </List>
     </Section>
 
@@ -84,8 +92,8 @@ const DamDetails = ({
         {hasnetwork ? (
           <>
             <li>
-              <b>{formatNumber(gainmiles)}</b> miles could be gained by removing
-              this barrier
+              <b>{formatNumber(Math.min(upstreammiles, downstreammiles))}</b>{' '}
+              miles could be gained by removing this barrier
               <List>
                 <li>
                   {formatNumber(upstreammiles)} miles in the upstream network
@@ -158,6 +166,9 @@ const DamDetails = ({
     <Section>
       <SectionHeader>Other information</SectionHeader>
       <List>
+        <li>
+          Connectivity Tool ID: {id} (data version: {dataVersion})
+        </li>
         <li>SARP ID: {sarpid}</li>
         {!isEmptyString(nidid) ? (
           <li>
@@ -179,7 +190,8 @@ const DamDetails = ({
 )
 
 DamDetails.propTypes = {
-  sarpid: PropTypes.number.isRequired,
+  id: PropTypes.number.isRequired,
+  sarpid: PropTypes.string.isRequired,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
@@ -194,7 +206,7 @@ DamDetails.propTypes = {
   condition: PropTypes.number,
   tespp: PropTypes.number,
   recon: PropTypes.number,
-  gainmiles: PropTypes.number,
+  ownertype: PropTypes.number,
   upstreammiles: PropTypes.number,
   downstreammiles: PropTypes.number,
   sinuosityclass: PropTypes.number,
@@ -213,7 +225,7 @@ DamDetails.defaultProps = {
   condition: 0,
   tespp: 0,
   recon: 0,
-  gainmiles: null,
+  ownertype: null,
   upstreammiles: null,
   downstreammiles: null,
   sinuosityclass: null,

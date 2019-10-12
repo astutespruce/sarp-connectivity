@@ -146,26 +146,28 @@ df.to_csv(
 )
 
 
-# Drop any fields we don't need for API or tippecanoe
-# TODO: sort out COUNTYFIPS vs COUNTY, it is confusing
-df = df[DAM_API_FIELDS].copy()
-
-
 # save for API
-serialize_df(df.reset_index(), api_dir / "dams.feather")
+serialize_df(df[DAM_API_FIELDS].reset_index(), api_dir / "dams.feather")
+
+# Drop fields that can be calculated on frontend
+keep_fields = [
+    c for c in DAM_API_FIELDS if not c in {"GainMiles", "TotalUpstreamMiles"}
+] + ["SinuosityClass"]
+df = df[keep_fields].copy()
 
 
 # Rename columns for easier use
-df = df.rename(
-    columns={
-        "County": "CountyName",
-        "COUNTYFIPS": "County",
-        # "SinuosityClass": "Sinuosity",  # Decoded to a label on frontend
-    }
-)
+df = df.rename(columns={"County": "CountyName", "COUNTYFIPS": "County"})
 
 
 ### Export data for use in tippecanoe to generate vector tiles
+
+# Fill N/A values and fix dtypes
+str_cols = df.dtypes.loc[df.dtypes == "object"].index
+df[str_cols] = df[str_cols].fillna("")
+
+# Fix boolean types
+df.ProtectedLand = df.ProtectedLand.astype("uint8")
 
 # create duplicate columns for those dropped by tippecanoe
 # tippecanoe will use these ones and leave lat / lon

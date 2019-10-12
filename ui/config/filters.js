@@ -11,6 +11,7 @@ import {
   ROAD_TYPE,
   DAM_CONDITION,
   BARRIER_CONDITION,
+  OWNERTYPE,
 } from './constants'
 
 const getIntKeys = obj =>
@@ -100,6 +101,15 @@ const dams = [
       'Note: purpose information is only available for a small number of dams.  Not all data sources recorded this information.',
     ...getEntries(PURPOSE),
   },
+  {
+    field: 'ownertype',
+    title: 'Conservation land type',
+    sort: true,
+    hideEmpty: true,
+    help:
+      'Derived from the CBI Protected Areas Database and TNC Secured Lands Database',
+    ...getEntries(OWNERTYPE),
+  },
 ]
 
 const barriers = [
@@ -149,6 +159,15 @@ const barriers = [
     help:
       'Note: This information is based on occurrences of one or more federally threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
     ...getEntries(RARESPP),
+  },
+  {
+    field: 'ownertype',
+    title: 'Conservation land type',
+    sort: true,
+    hideEmpty: true,
+    help:
+      'Derived from the CBI Protected Areas Database and TNC Secured Lands Database',
+    ...getEntries(OWNERTYPE),
   },
 ]
 

@@ -81,7 +81,9 @@ const MailIcon = styled(FaEnvelope)`
 const tierToPercent = tier => (100 * (19 - (tier - 1))) / 20
 
 const BarrierDetails = ({ barrier, onClose }) => {
-  const { sarpid, name, hasnetwork, countyname, State, ncwc_tier } = barrier
+  const { id, sarpid, name, hasnetwork, countyname, State, ncwc_tier } = barrier
+
+  console.log('barrier', barrier)
 
   const barrierType = useBarrierType()
 
@@ -162,7 +164,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
         <a
           href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
             barrierType === 'dams' ? 'dam' : 'road-related barrier'
-          }: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+          }: ${sarpid} (Connectivity Tool ID: ${id} in data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
         >
           <MailIcon /> Report a problem with this barrier
         </a>

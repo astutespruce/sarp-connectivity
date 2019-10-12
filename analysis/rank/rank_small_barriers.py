@@ -156,22 +156,25 @@ df.to_csv(qa_dir / "small_barriers_network_results.csv", index_label="id")
 
 
 # Drop any fields we don't need for API or tippecanoe
-# TODO: sort out COUNTYFIPS vs COUNTY, it is confusing
-df = df[SB_API_FIELDS].copy()
-
-
 # save for API
-serialize_df(df.reset_index(), api_dir / "small_barriers.feather")
+serialize_df(df[SB_API_FIELDS].reset_index(), api_dir / "small_barriers.feather")
+
+# Drop fields that can be calculated on frontend
+keep_fields = [
+    c for c in SB_API_FIELDS if not c in {"GainMiles", "TotalUpstreamMiles"}
+] + ["SinuosityClass"]
+df = df[keep_fields].copy()
 
 ### Export data for use in tippecanoe to generate vector tiles
 # Rename columns for easier use
-df = df.rename(
-    columns={
-        "County": "CountyName",
-        "COUNTYFIPS": "County",
-        # "SinuosityClass": "Sinuosity",  # Decoded to a label on frontend
-    }
-)
+df = df.rename(columns={"County": "CountyName", "COUNTYFIPS": "County"})
+
+# Fill N/A values and fix dtypes
+str_cols = df.dtypes.loc[df.dtypes == "object"].index
+df[str_cols] = df[str_cols].fillna("")
+
+# Fix boolean types
+df.ProtectedLand = df.ProtectedLand.astype("uint8")
 
 with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork"])
 without_networks = df.loc[~df.HasNetwork].drop(columns=["HasNetwork"])
@@ -206,7 +209,6 @@ road_crossings.TESpp = road_crossings.TESpp.fillna(0).astype("uint8")
 road_crossings["Source"] = "USGS"
 
 # Drop fields we don't need and merge
-# TODO: does this need rest of UNIT_FIELDS?
 keep_fields = SB_CORE_FIELDS + ["CountyName", "State"]
 road_crossings = road_crossings[road_crossings.columns.intersection(keep_fields)]
 combined = (
@@ -218,10 +220,11 @@ combined = (
 print("Now have {:,} combined background barriers".format(len(combined)))
 
 # Fill in N/A values
-
 cols = combined.dtypes.loc[combined.dtypes == "object"].index
 combined[cols] = combined[cols].fillna("")
 # all other fields should be non-null
+
+combined.protectedland = combined.protectedland.fillna(0).astype("uint8")
 
 # create a new consolidated ID
 combined["id"] = combined.index.values.astype("uint32")

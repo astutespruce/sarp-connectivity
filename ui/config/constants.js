@@ -158,6 +158,17 @@ export const BARRIER_CONDITION = {
   4: 'New',
 }
 
+export const OWNERTYPE = {
+  1: 'US Fish and Wildlife Service land',
+  2: 'USDA Forest Service land',
+  3: 'Federal land',
+  4: 'State land',
+  5: 'Joint Ownership or Regional land',
+  6: 'Native American land',
+  7: 'Private easement',
+  8: 'Other private conservation land',
+}
+
 export const CONNECTIVITY_TEAMS = {
   Georgia: {
     description:
