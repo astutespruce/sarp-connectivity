@@ -122,11 +122,8 @@ const Scoring = () => {
               <OutboundLink to="https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution">
                 USGS High Resolution National Hydrography Dataset
               </OutboundLink>
-              &nbsp;(NHDPlus) for all areas except the lower Mississipi
-              (hydrologic region 8), where the NHDPlus Medium Resolution version
-              was the only one available. Where possible, their locations were
-              manually inspected to verify their correct position on the aquatic
-              network.
+              &nbsp;(NHDPlus). Where possible, their locations were manually
+              inspected to verify their correct position on the aquatic network.
               <br />
               <br />
             </p>

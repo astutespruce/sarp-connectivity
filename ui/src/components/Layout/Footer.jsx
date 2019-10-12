@@ -4,6 +4,10 @@ import { Flex } from 'components/Grid'
 import { OutboundLink } from 'components/Link'
 import styled, { themeGet } from 'style'
 
+import { siteMetadata } from '../../../gatsby-config'
+
+const { version: dataVersion, date: dataDate } = siteMetadata
+
 const Wrapper = styled(Flex).attrs({
   as: 'footer',
   alignItems: 'center',
@@ -38,6 +42,11 @@ const Footer = () => {
           Contact Us
         </Link>
       </div>
+
+      <div>
+        Data version: {dataVersion} ({dataDate})
+      </div>
+
       <div>
         Created by the&nbsp;
         <Link to="https://consbio.org">

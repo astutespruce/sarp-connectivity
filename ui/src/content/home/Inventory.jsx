@@ -1,6 +1,7 @@
 import React from 'react'
 import { Image } from 'rebass'
 
+import { HelpText } from 'components/Text'
 import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox as BaseHighlightBox } from 'components/Layout'
 import { Columns } from 'components/Grid'
@@ -10,6 +11,9 @@ import { useSummaryData } from 'components/Data'
 import SARPLogoImage from 'images/sarp_logo.png'
 
 import { Section, Title, NarrowColumn, WideColumn } from '../styles'
+import { siteMetadata } from '../../../gatsby-config'
+
+const { version: dataVersion, date: dataDate } = siteMetadata
 
 const HighlightBox = styled(BaseHighlightBox)`
   h3 {
@@ -96,6 +100,10 @@ const Inventory = () => {
             </Stats>
 
             <SARPLogo />
+
+            <HelpText textAlign="center" mt="1rem">
+              Data version: {dataVersion} ({dataDate})
+            </HelpText>
           </HighlightBox>
         </NarrowColumn>
       </Columns>

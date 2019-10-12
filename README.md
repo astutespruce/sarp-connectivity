@@ -120,7 +120,7 @@ GATSBY_TILE_HOST = <root URL of tile host>
 
 ### IMPORTANT:
 
-The `version` number needs to be set properly for each release in `ui/package.json`.
+The `version` number and `date` needs to be set properly for each release in `ui/package.json`.
 This generally should follow [semantic versioning](https://semver.org/) wherein with `X.Y.Z`:
 
 -   `X` refers to a major version, and includes major updates to the inventory data, network data, or analysis methods.
@@ -128,6 +128,8 @@ This generally should follow [semantic versioning](https://semver.org/) wherein 
 -   `Z` refers to a bug fix version, and is used when new results are released due to bugs in the analysis code.
 
 This version is displayed to end users as the data version.
+
+The `date` property needs to be set to the date the data were last downloaded.
 
 ## Credits
 

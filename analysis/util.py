@@ -2,11 +2,24 @@ import geopandas as gp
 
 
 def spatial_join(left, right):
-    # TODO: evaluate if having sindex in advance helps
     left.sindex
     right.sindex
 
     joined = gp.sjoin(left, right, how="left").drop(columns=["index_right"])
+
+    # WARNING: some places have overlapping areas (e.g., protected areas), this creates extra records!
+    # Take the first entry in each case
+    grouped = joined.groupby(level=0)
+    if grouped.size().max() > 1:
+        print(
+            "WARNING: multiple target areas returned in spatial join for a single point"
+        )
+
+        # extract the right side indexed by the left, and take first record
+        right = grouped[
+            [c for c in right.columns if not c == right._geometry_column_name]
+        ].first()
+        joined = left.join(right)
 
     # pending https://github.com/geopandas/geopandas/issues/846
     # we have to reassign the original index name
