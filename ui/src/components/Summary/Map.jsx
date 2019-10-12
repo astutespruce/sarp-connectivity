@@ -72,7 +72,7 @@ const SummaryMap = ({
           'source-layer': id,
           minzoom,
           maxzoom,
-          filter: ['>', barrierType, 0],
+          // filter: ['>', barrierType, 0],
         }
 
         // add fill layer
@@ -87,7 +87,13 @@ const SummaryMap = ({
           },
           paint: {
             'fill-opacity': fill.paint['fill-opacity'],
-            'fill-color': interpolateExpr(barrierType, bins, colors),
+            'fill-color': [
+              'match',
+              ['get', barrierType],
+              0,
+              COLORS.empty,
+              interpolateExpr(barrierType, bins, colors),
+            ],
           },
         })
 
@@ -214,13 +220,13 @@ const SummaryMap = ({
     // update renderer and filter on all layers
     layers.forEach(({ id, bins: { [barrierType]: bins } }) => {
       const colors = COLORS.count[bins.length]
-      map.setPaintProperty(
-        `${id}-fill`,
-        'fill-color',
-        interpolateExpr(barrierType, bins, colors)
-      )
-      map.setFilter(`${id}-fill`, ['>', barrierType, 0])
-      map.setFilter(`${id}-outline`, ['>', barrierType, 0])
+      map.setPaintProperty(`${id}-fill`, 'fill-color', [
+        'match',
+        ['get', barrierType],
+        0,
+        COLORS.empty,
+        interpolateExpr(barrierType, bins, colors),
+      ])
     })
 
     // toggle barriers layer
@@ -324,6 +330,16 @@ const SummaryMap = ({
       })
       .reverse()
 
+    const patches = colors.map((color, i) => ({
+      color,
+      label: labels[i],
+    }))
+
+    patches.push({
+      color: 'rgba(0,0,0,0.15)',
+      label: `0 ${barrierType}`,
+    })
+
     const circles = []
     if (map && map.getZoom() >= 12) {
       const { primary, background } = pointLegends
@@ -341,10 +357,7 @@ const SummaryMap = ({
     return {
       layerTitle: title,
       legendEntries: {
-        patches: colors.map((color, i) => ({
-          color,
-          label: labels[i],
-        })),
+        patches,
         circles,
       },
     }
@@ -365,11 +378,7 @@ const SummaryMap = ({
   return (
     <>
       <Map onCreateMap={handleCreateMap} {...props} />
-      <Legend
-        title={layerTitle}
-        {...legendEntries}
-        footnote={`areas with no ${barrierType} are not shown`}
-      />
+      <Legend title={layerTitle} {...legendEntries} />
     </>
   )
 }

@@ -79,7 +79,7 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[10, 0.1], [11, 0.25], [12, 0.15]],
+          stops: [[10, 0.1], [11, 0.25], [12, 0.15], [14, 0]],
         },
       },
     },
@@ -145,7 +145,7 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[7, 0.1], [8, 0.25], [11, 0.25], [12, 0.15]],
+          stops: [[7, 0.1], [8, 0.25], [11, 0.25], [12, 0.15], [14, 0]],
         },
       },
     },
@@ -170,7 +170,7 @@ export const layers = [
     },
     fill: {
       minzoom: 0,
-      maxzoom: 7,
+      maxzoom: 5,
       paint: {
         'fill-opacity': {
           base: 0.25,
@@ -206,17 +206,17 @@ export const layers = [
       barriers: [10, 25, 50, 100, 500],
     },
     fill: {
-      minzoom: 7,
+      minzoom: 5,
       maxzoom: 24,
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[7, 0.1], [11, 0.25], [12, 0.15]],
+          stops: [[5, 0.1], [6, 0.25], [9, 0.25], [10, 0.15], [14, 0]],
         },
       },
     },
     outline: {
-      minzoom: 7,
+      minzoom: 5,
       maxzoom: 24,
       paint: {
         'line-width': {
@@ -275,18 +275,18 @@ export const pointLegends = {
 }
 
 export const pointHighlightLayer = {
-    id: 'point-highlight',
-    source: {
-      type: 'geojson',
-      data: null,
-    },
-    type: 'circle',
-    minzoom: 12,
-    maxzoom: 24,
-    paint: {
-      'circle-color': '#fd8d3c',
-      'circle-radius': 14,
-      'circle-stroke-width': 3,
-      'circle-stroke-color': '#f03b20',
-    },
-  }
+  id: 'point-highlight',
+  source: {
+    type: 'geojson',
+    data: null,
+  },
+  type: 'circle',
+  minzoom: 12,
+  maxzoom: 24,
+  paint: {
+    'circle-color': '#fd8d3c',
+    'circle-radius': 14,
+    'circle-stroke-width': 3,
+    'circle-stroke-color': '#f03b20',
+  },
+}

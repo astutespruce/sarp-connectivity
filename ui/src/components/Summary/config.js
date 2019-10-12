@@ -23,4 +23,5 @@ export const COLORS = {
     ],
     5: ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'],
   },
+  empty: '#BBB',
 }
