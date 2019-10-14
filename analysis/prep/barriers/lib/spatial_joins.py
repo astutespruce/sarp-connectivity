@@ -28,6 +28,11 @@ def add_spatial_joins(df):
 
     df = spatial_join(df, huc12)
 
+    # Expected: not all barriers fall cleanly within the states dataset
+    print(
+        "{:,} barriers were not assigned HUC12".format(len(df.loc[df.HUC12.isnull()]))
+    )
+
     # Calculate HUC codes for other levels from HUC12
     df["HUC2"] = df["HUC12"].str.slice(0, 2)  # region
     df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
@@ -53,6 +58,28 @@ def add_spatial_joins(df):
         ["STATEFIPS", "State"]
     ].set_index("STATEFIPS")
     df = df.join(states, on="STATEFIPS")
+
+    # Expected: not all barriers fall cleanly within the states dataset
+    print(
+        "{:,} barriers were not assigned states".format(
+            len(df.loc[df.STATEFIPS.isnull()])
+        )
+    )
+
+    ### Level 3 & 4 Ecoregions
+    print("Joining to ecoregions")
+    # Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
+    eco4 = from_geofeather(boundaries_dir / "eco4.feather")[
+        ["geometry", "ECO3", "ECO4"]
+    ]
+    df = spatial_join(df, eco4)
+
+    # Expected: not all barriers fall cleanly within the ecoregions dataset
+    print(
+        "{:,} barriers were not assigned ecoregions".format(
+            len(df.loc[df.ECO4.isnull()])
+        )
+    )
 
     return df
 

@@ -41,20 +41,11 @@ const Count = styled.div`
 
 const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
   const { id } = unit
-  const {
-    name = id,
-    dams = 0,
-    barriers = 0,
-    off_network_dams = 0,
-    off_network_barriers = 0,
-  } = unit
+  const { name = id, on_network_dams = 0, on_network_barriers = 0 } = unit
 
   const barrierType = useBarrierType()
 
-  const count =
-    barrierType === 'dams'
-      ? dams - off_network_dams
-      : barriers - off_network_barriers
+  const count = barrierType === 'dams' ? on_network_dams : on_network_barriers
 
   const handleDelete = () => onDelete(unit)
 

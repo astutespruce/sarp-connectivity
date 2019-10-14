@@ -193,18 +193,12 @@ with_networks.rename(
 
 
 ### Combine barriers that don't have networks with road / stream crossings
-print("Reading stream crossings")
-
-# TODO: remove rename on rerun of prep_road_crossings.py
-road_crossings = deserialize_df(barriers_dir / "road_crossings.feather").rename(
-    columns={
-        "stream": "Stream",
-        "road": "Road",
-        "sarpid": "SARPID",
-        "name": "Name",
-        "County": "CountyName",
-    }
+print("Reading road / stream crossings")
+road_crossings = from_geofeather(barriers_dir / "road_crossings.feather").rename(
+    columns={"County": "CountyName"}
 )
+
+
 # bring in TESpp
 road_crossings = road_crossings.join(spp_df.NumTEspp.rename("TESpp"), on="HUC12")
 road_crossings.TESpp = road_crossings.TESpp.fillna(0).astype("uint8")
@@ -219,22 +213,35 @@ combined = (
     without_networks[keep_fields]
     .append(road_crossings, ignore_index=True, sort=False)
     .rename(columns={k: k.lower() for k in df.columns if k not in UNIT_FIELDS})
+    .reset_index(drop=True)
 )
 
-print("Now have {:,} combined background barriers".format(len(combined)))
+# create a new consolidated ID
+combined["id"] = combined.index.values.astype("uint32")
 
 # Fill in N/A values
-cols = combined.dtypes.loc[combined.dtypes == "object"].index
+# cols = combined.dtypes.loc[combined.dtypes == "object"].index
+cols = [
+    "name",
+    "sarpid",
+    "localid",
+    "crossingcode",
+    "source",
+    "stream",
+    "road",
+    "roadtype",
+    "crossingtype",
+    "condition",
+    "potentialproject",
+    "basin",
+    "countyname",
+    "State",
+]
 combined[cols] = combined[cols].fillna("").astype(str)
-
-# all other fields should be non-null
 
 combined.protectedland = combined.protectedland.fillna(0).astype("uint8")
 combined.ownertype = combined.ownertype.fillna(-1).astype("int8")
 combined.severityclass = combined.severityclass.fillna(0).astype("uint8")
-
-# create a new consolidated ID
-combined["id"] = combined.index.values.astype("uint32")
 
 # Duplicate latitude / longitude columns in again
 combined["latitude"] = combined.lat

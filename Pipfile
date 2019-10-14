@@ -13,7 +13,6 @@ gunicorn = "*"
 raven = {version = "*",extras = ["flask"]}
 requests = "*"
 python-dotenv = "*"
-geofeather = {editable = true,path = "./../geofeather"}
 
 [dev-packages]
 pylint = "*"
@@ -23,6 +22,7 @@ requests = "*"
 rtree = "*"
 nhdnet = {editable = true,path = "./../nhdnet"}
 sarp-connectivity = {editable = true,path = "."}
+geofeather = {editable = true,path = "./../geofeather"}
 
 [requires]
 python_version = "3.7"

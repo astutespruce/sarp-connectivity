@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import React from 'react'
 import PropTypes from 'prop-types'
 
@@ -55,7 +56,10 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
     layerId,
     name = '',
     dams = 0,
+    on_network_dams = 0,
     barriers = 0,
+    on_network_barriers = 0,
+    total_barriers = 0,
     crossings = 0,
     miles = 0,
   } = summaryUnit
@@ -66,6 +70,9 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
     miles: meanConnectedMiles,
   } = useSummaryData()
   const total = barrierType === 'dams' ? totalDams : totalBarriers
+  const totalRoadBarriers = total_barriers + crossings
+  const offNetworkDams = dams - on_network_dams
+  const offNetworkBarriers = barriers - on_network_barriers
 
   const layerConfig = layers.filter(({ id: lyrID }) => lyrID === layerId)[0]
   let { title: layerTitle } = layerConfig
@@ -104,14 +111,30 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
       <Content>
         {barrierType === 'dams' ? (
           <>
-            {count > 0 ? (
+            {dams > 0 ? (
               <>
                 <p>
-                  This area contains at least {formatNumber(count, 0)}{' '}
-                  {count > 1 ? 'dams' : 'dam'} that{' '}
-                  {count > 1 ? 'have ' : 'has '}been inventoried so far,
-                  resulting in an average of {formatNumber(miles, 2)} miles of
-                  rivers and streams that could be reconnected by removing dams.
+                  This area contains at least <b>{formatNumber(dams, 0)}</b>{' '}
+                  {dams > 1 ? 'dams' : 'dam'} that {dams > 1 ? 'have ' : 'has '}
+                  been inventoried so far.
+                  <br />
+                  <br />
+                  <b>{formatNumber(on_network_dams, 0)}</b> were analyzed for
+                  impacts to aquatic connectivity in this tool
+                  {offNetworkDams > 0 ? (
+                    <>
+                      {' '}
+                      ({formatNumber(offNetworkDams, 0)} were not analyzed
+                      because they were not on the aquatic network or could not
+                      be correctly located on the network)
+                    </>
+                  ) : null}
+                  .
+                  <br />
+                  <br />
+                  Based on this analysis, there is an average of{' '}
+                  <b>{formatNumber(miles, 2)}</b> miles of rivers and streams
+                  that could be reconnected by removing dams.
                   <br />
                   <br />
                   This area has {formatPercent(percent)}% of the inventoried
@@ -153,21 +176,35 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           </>
         ) : (
           <>
-            {count > 0 ? (
+            {totalRoadBarriers > 0 ? (
               <>
                 <p>
-                  This area contains at least {formatNumber(count, 0)}{' '}
-                  road-related {count > 1 ? 'barriers' : 'barrier'} that{' '}
-                  {count > 1 ? 'have ' : 'has '}
-                  been inventoried so far ({formatPercent(percent)}% of the
-                  total inventoried road-related barriers across the Southeast).
+                  This area contains at least{' '}
+                  <b>{formatNumber(totalRoadBarriers, 0)}</b> road-related
+                  potential {totalRoadBarriers > 1 ? 'barriers' : 'barrier'}. Of
+                  these, <b>{formatNumber(total_barriers, 0)}</b>{' '}
+                  {total_barriers > 1 ? 'have ' : 'has '} been assessed so far
+                  for potential impacts to aquatic organisms (
+                  {formatPercent(percent)}% of the total inventoried
+                  road-related barriers across the Southeast).
                   <br />
                   <br />
-                  This area also contains at least {formatNumber(
-                    crossings,
-                    0
-                  )}{' '}
-                  road / stream crossings.
+                  <b>{formatNumber(barriers, 0)}</b> road-related{' '}
+                  {barriers > 1 ? 'barriers' : 'barrier'} assessed so far{' '}
+                  {barriers > 1 ? 'are' : 'is'} likely to impact aquatic
+                  organisms and <b>{formatNumber(on_network_barriers, 0)}</b>{' '}
+                  {on_network_barriers > 1 ? 'have ' : 'has '} been evaluated
+                  for {on_network_barriers > 1 ? 'their impacts' : 'its impact'}{' '}
+                  on aquatic connectivity in this tool
+                  {offNetworkBarriers > 0 ? (
+                    <>
+                      {' '}
+                      ({formatNumber(offNetworkBarriers, 0)} were not analyzed
+                      because they were not on the aquatic network or could not
+                      be correctly located on the network)
+                    </>
+                  ) : null}
+                  ..
                 </p>
                 <HelpText>
                   <br />
@@ -199,7 +236,10 @@ UnitDetails.propTypes = {
     layerId: PropTypes.string.isRequired,
     name: PropTypes.string,
     dams: PropTypes.number,
+    on_network_dams: PropTypes.number,
     barriers: PropTypes.number,
+    total_barriers: PropTypes.number,
+    on_network_barriers: PropTypes.number,
     crossings: PropTypes.number,
     miles: PropTypes.number,
   }).isRequired,

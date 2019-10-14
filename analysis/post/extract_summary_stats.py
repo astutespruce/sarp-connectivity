@@ -33,40 +33,96 @@ PERCENTILES = [20, 40, 60, 75, 80, 85, 90, 95, 100]
 # the IDs for those units set when the vector tiles of those units are created, otherwise
 # they won't join properly in the frontend.
 # TODO: can COUNTYFIPS be renamed as county?
-SUMMARY_UNITS = ["State", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4", "COUNTYFIPS"]
 
-INT_COLS = ["dams", "barriers", "crossings", "off_network_dams", "off_network_barriers"]
+SUMMARY_UNITS = ["State", "COUNTYFIPS", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4"]
+
+INT_COLS = [
+    "dams",
+    "barriers",
+    "total_barriers",
+    "crossings",
+    "on_network_dams",
+    # "off_network_dams",
+    "on_network_barriers",
+    # "off_network_barriers",
+    # "dropped_barriers",
+]
 
 
 data_dir = Path("data")
-src_dir = data_dir / "api"
-barriers_dir = data_dir / "barriers/master"
+src_dir = data_dir / "barriers/master"
+api_dir = data_dir / "api"
 ui_data_dir = Path("ui/data")
 tile_dir = data_dir / "tiles"
 
 
-print("Reading ranked barriers")
-dams = read_dataframe(src_dir / "dams.feather")
-barriers = read_dataframe(src_dir / "small_barriers.feather")
-crossings = read_dataframe(barriers_dir / "road_crossings.feather")
+print("Reading barriers")
+
+# Read in ALL dams and drop those that are duplicates
+# dams = read_dataframe(src_dir / "dams.feather").set_index("id", drop=False)[
+#     ["id", "duplicate", "dropped", "excluded"] + SUMMARY_UNITS
+# ]
+# dams = dams.loc[~dams.duplicate].copy()
+
+# For dams, we want only those that were not dropped or duplicates
+# this matches the ones coming out of the rankiknkg
+# read in dams with network results
+dams = (
+    read_dataframe(api_dir / "dams.feather")
+    .set_index("id", drop=False)[["id", "HasNetwork", "GainMiles"] + SUMMARY_UNITS]
+    .rename(columns={"HasNetwork": "OnNetwork"})
+)
+# dams = dams.join(dams_network).rename(columns={"HasNetwork": "OnNetwork"})
+dams.OnNetwork = dams.OnNetwork.fillna(False)
+# dams["OffNetwork"] = ~dams.OnNetwork
+
+# dams = dams[
+#     ["id", "GainMiles", "OnNetwork", "OffNetwork", "Dropped"] + SUMMARY_UNITS
+# ].copy()
+
+# Read in ALL barriers and drop those that are duplicates
+barriers = read_dataframe(src_dir / "small_barriers.feather").set_index(
+    "id", drop=False
+)[["id", "duplicate", "dropped", "excluded"] + SUMMARY_UNITS]
+barriers = barriers.loc[~barriers.duplicate].copy()
+
+# read in barriers with network results
+barriers_network = read_dataframe(api_dir / "small_barriers.feather").set_index("id")[
+    ["HasNetwork"]
+]
+barriers = barriers.join(barriers_network).rename(columns={"HasNetwork": "OnNetwork"})
+barriers.OnNetwork = barriers.OnNetwork.fillna(False)
+# barriers["OffNetwork"] = ~barriers.OnNetwork
+# any that were not dropped were available for analysis
+barriers["Included"] = ~(barriers.dropped | barriers.excluded)
+# barriers["Dropped"] = ~barriers.Included
+
+# barriers = barriers[
+#     ["id", "OnNetwork", "OffNetwork", "Included", "Dropped"] + SUMMARY_UNITS
+# ].copy()
+
+# crossings are already de-duplicated against each other and against
+# barriers
+crossings = read_dataframe(src_dir / "road_crossings.feather")
 
 
 # Set NA so that we don't include these values in our statistics
 dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
 
-# Mark those off network
-dams["OffNetwork"] = ~dams.HasNetwork
-barriers["OffNetwork"] = ~barriers.HasNetwork
 
 stats = defaultdict(defaultdict)
 
 # Calculate summary statistics for the entire region
 stats["southeast"] = {
     "dams": len(dams),
-    "off_network_dams": len(dams.loc[dams.OffNetwork]),
+    "on_network_dams": len(dams.loc[dams.OnNetwork]),
+    # "off_network_dams": len(dams.loc[dams.OffNetwork]),
     "miles": round(dams["GainMiles"].mean().item(), 3),
-    "barriers": len(barriers),
-    "off_network_barriers": len(barriers.loc[barriers.OffNetwork]),
+    "total_barriers": len(barriers),
+    "barriers": len(barriers.loc[barriers.Included]),
+    # "dropped_barriers": len(barriers.loc[barriers.Dropped]),
+    "on_network_barriers": len(barriers.loc[barriers.OnNetwork]),
+    # "off_network_barriers": len(barriers.loc[barriers.OffNetwork]),
     "crossings": len(crossings),
 }
 
@@ -83,23 +139,47 @@ for unit in SUMMARY_UNITS:
     print("processing {}".format(unit))
 
     dam_stats = (
-        dams[[unit, "id", "OffNetwork", "GainMiles"]]
+        dams[[unit, "id", "OnNetwork", "GainMiles"]]  # "OffNetwork",
         .groupby(unit)
-        .agg({"id": "count", "OffNetwork": "sum", "GainMiles": "mean"})
+        .agg(
+            {
+                "id": "count",
+                "OnNetwork": "sum",
+                # "OffNetwork": "sum",
+                "GainMiles": "mean",
+            }
+        )
         .rename(
             columns={
                 "id": "dams",
-                "OffNetwork": "off_network_dams",
+                "OnNetwork": "on_network_dams",
+                # "OffNetwork": "off_network_dams",
                 "GainMiles": "miles",
             }
         )
     )
 
     barriers_stats = (
-        barriers[[unit, "id", "OffNetwork"]]
+        barriers[[unit, "id", "Included", "OnNetwork"]]  # "OffNetwork", "Dropped"
         .groupby(unit)
-        .agg({"id": "count", "OffNetwork": "sum"})
-        .rename(columns={"id": "barriers", "OffNetwork": "off_network_barriers"})
+        .agg(
+            {
+                "id": "count",
+                "Included": "sum",
+                "OnNetwork": "sum",
+                # "OffNetwork": "sum",
+                # "Dropped": "sum",
+            }
+        )
+        .rename(
+            columns={
+                "id": "total_barriers",
+                "Included": "barriers",
+                "OnNetwork": "on_network_barriers",
+                # "OffNetwork": "off_network_barriers",
+                # "Dropped": "dropped_barriers",
+            }
+        )
     )
 
     crossing_stats = crossings[[unit, "id"]].groupby(unit).size().rename("crossings")

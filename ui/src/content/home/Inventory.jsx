@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+
 import React from 'react'
 import { Image } from 'rebass'
 
@@ -36,7 +38,7 @@ const SARPLogo = styled(Image).attrs({ src: SARPLogoImage, width: '100%' })`
 `
 
 const Inventory = () => {
-  const { dams, barriers, miles } = useSummaryData()
+  const { dams, total_barriers, miles } = useSummaryData()
 
   return (
     <Section>
@@ -90,7 +92,7 @@ const Inventory = () => {
                 <b>{formatNumber(dams, 0)}</b> dams
               </li>
               <li>
-                <b>{formatNumber(barriers, 0)}</b> road-related barriers
+                <b>{formatNumber(total_barriers, 0)}</b> road-related barriers
                 assessed for impact to aquatic organisms
               </li>
               <li>

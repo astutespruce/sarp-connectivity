@@ -46,11 +46,11 @@ export const layers = [
     },
     fill: {
       minzoom: 6,
-      maxzoom: 10,
+      maxzoom: 8,
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[6, 0.1], [7, 0.25], [9, 0.25], [10, 0.1]],
+          stops: [[6, 0.1], [7, 0.25], [8, 0.1]],
         },
       },
     },
@@ -74,22 +74,22 @@ export const layers = [
       barriers: [1, 10, 25, 100, 200],
     },
     fill: {
-      minzoom: 10,
+      minzoom: 8,
       maxzoom: 24,
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[10, 0.1], [11, 0.25], [12, 0.15], [14, 0]],
+          stops: [[8, 0.1], [9, 0.25], [11, 0.25], [12, 0.15], [14, 0]],
         },
       },
     },
     outline: {
-      minzoom: 10,
+      minzoom: 8,
       maxzoom: 24,
       paint: {
         'line-width': {
           base: 0.1,
-          stops: [[9, 0.1], [9.5, 0.5]],
+          stops: [[8, 0.1], [9.5, 0.5]],
         },
       },
     },

@@ -86,20 +86,18 @@ const UnitChooser = ({
     switch (barrierType) {
       case 'dams': {
         offNetworkCount = summaryUnits.reduce(
-          (out, v) => out + v.off_network_dams,
+          (out, v) => out + (v.dams - v.on_network_dams),
           0
         )
-        total =
-          summaryUnits.reduce((out, v) => out + v.dams, 0) - offNetworkCount
+        total = summaryUnits.reduce((out, v) => out + v.on_network_dams, 0)
         break
       }
       case 'barriers': {
         offNetworkCount = summaryUnits.reduce(
-          (out, v) => out + v.off_network_barriers,
+          (out, v) => out + (v.barriers - v.on_network_barriers),
           0
         )
-        total =
-          summaryUnits.reduce((out, v) => out + v.barriers, 0) - offNetworkCount
+        total = summaryUnits.reduce((out, v) => out + v.on_network_barriers, 0)
         break
       }
       default: {
@@ -211,18 +209,3 @@ UnitChooser.propTypes = {
 }
 
 export default UnitChooser
-
-// const mapStateToProps = globalState => {
-//   const state = globalState.get('priority')
-
-//   return {
-//     type: state.get('type'),
-//     layer: state.get('layer'),
-//     summaryUnits: state.get('summaryUnits'),
-//   }
-// }
-
-// export default connect(
-//   mapStateToProps,
-//   actions
-// )(UnitsList)

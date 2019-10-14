@@ -6,11 +6,12 @@ export const useSummaryData = () => {
       summaryStatsJson {
         southeast {
           dams
+          total_barriers
           barriers
           crossings
           miles
-          off_network_barriers
-          off_network_dams
+          on_network_barriers
+          on_network_dams
         }
       }
     }

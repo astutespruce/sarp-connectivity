@@ -1,1 +1,1 @@
-{"southeast": {"dams": 145433, "off_network_dams": 23661, "miles": 8.72, "barriers": 15106, "off_network_barriers": 5129, "crossings": 1532995}}
+{"southeast": {"dams": 145433, "on_network_dams": 121772, "miles": 8.72, "total_barriers": 25099, "barriers": 10438, "on_network_barriers": 9977, "crossings": 1193182}}
