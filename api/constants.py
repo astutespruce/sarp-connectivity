@@ -1,5 +1,28 @@
-from collections import OrderedDict
-from analysis.util import unique
+
+
+def unique(items):
+    """Convert a sorted list of items into a unique list, taking the 
+    first occurrence of each duplicate item.
+    
+    Parameters
+    ----------
+    items : list-like
+    
+    Returns
+    -------
+    list
+    """
+
+    s = set()
+    result = []
+    for item in items:
+        if not item in s:
+            result.append(item)
+            s.add(item)
+
+    return result
+
+
 
 # Summary unit fields
 UNIT_FIELDS = ["HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4"]
@@ -148,114 +171,7 @@ SB_EXPORT_FIELDS = (
 
 SB_EXPORT_FIELDS = unique(SB_EXPORT_FIELDS)
 
-
-#     # Original dams fields
-#     # ID and source info
-#     "SARPID",
-#     "NIDID",
-#     "Source",
-#     # Basic info
-#     "Name",
-#     "County",
-#     "State",
-#     # Species info
-#     "RareSpp",
-#     # River info
-#     "River",
-#     "StreamOrder",
-#     "NHDplusVersion",
-#     "HasNetwork",
-#     # Location info
-#     "ProtectedLand",  # TODO: OwnerType
-#     "HUC6",
-#     "HUC8",
-#     "HUC12",
-#     "ECO3",
-#     "ECO4",
-#     # Dam info
-#     "Height",
-#     "Year",
-#     "Construction",
-#     "Purpose",
-#     "Condition",
-#     # "Recon",  # intentionally omitted
-#     "Feasibility",
-#     # Metrics
-#     "GainMiles",
-#     "UpstreamMiles",
-#     "DownstreamMiles",
-#     "TotalNetworkMiles",
-#     "Landcover",
-#     "Sinuosity",
-#     "SizeClasses",
-#     # Tiers
-#     "NC_tier",
-#     "WC_tier",
-#     "NCWC_tier",
-#     "SE_NC_tier",
-#     "SE_WC_tier",
-#     "SE_NCWC_tier",
-#     "State_NC_tier",
-#     "State_WC_tier",
-#     "State_NCWC_tier",
-
-
-# BARRIER_EXPORT_FIELDS = [
-#     "lat",
-#     "lon",
-#     # ID and source info
-#     "SARPID",
-#     "CrossingCode",
-#     "LocalID",
-#     "Source",
-#     # Basic info
-#     "Name",
-#     "County",
-#     "State",
-#     "Basin",
-#     # Species info
-#     "RareSpp",
-#     # River info
-#     "Stream",
-#     "HasNetwork",
-#     # Road info
-#     "Road",
-#     "RoadType",
-#     # Barrier info
-#     "CrossingType",
-#     "Condition",
-#     "PotentialProject",
-#     "SeverityClass",
-#     # Location info
-#     "ProtectedLand",
-#     "HUC6",
-#     "HUC8",
-#     "HUC12",
-#     "ECO3",
-#     "ECO4",
-#     # Metrics
-#     "GainMiles",
-#     "UpstreamMiles",
-#     "DownstreamMiles",
-#     "TotalNetworkMiles",
-#     "Landcover",
-#     "Sinuosity",
-#     "SizeClasses",
-#     # Tiers
-#     "NC_tier",
-#     "WC_tier",
-#     "NCWC_tier",
-#     "SE_NC_tier",
-#     "SE_WC_tier",
-#     "SE_NCWC_tier",
-#     "State_NC_tier",
-#     "State_WC_tier",
-#     "State_NCWC_tier",
-# ]
-
-
 ### Domains for coded values in exported data
-
 
 # typos fixed and trailing periods removed
 RECON_DOMAIN = {

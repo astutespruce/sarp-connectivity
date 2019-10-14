@@ -14,7 +14,7 @@ from raven.contrib.flask import Sentry
 from raven.handlers.logging import SentryHandler
 from raven.conf import setup_logging
 
-from analysis.rank.lib import calculate_tiers
+from analysis.rank.lib.tiers import calculate_tiers
 
 from api.constants import (
     DAM_FILTER_FIELDS,

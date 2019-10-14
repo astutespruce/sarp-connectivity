@@ -26,26 +26,3 @@ def spatial_join(left, right):
     joined.index.name = left.index.name
 
     return joined
-
-
-def unique(items):
-    """Convert a sorted list of items into a unique list, taking the 
-    first occurrence of each duplicate item.
-    
-    Parameters
-    ----------
-    items : list-like
-    
-    Returns
-    -------
-    list
-    """
-
-    s = set()
-    result = []
-    for item in items:
-        if not item in s:
-            result.append(item)
-            s.add(item)
-
-    return result

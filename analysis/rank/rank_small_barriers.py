@@ -28,7 +28,9 @@ from nhdnet.geometry.points import add_lat_lon
 
 from analysis.constants import REGION_GROUPS
 from analysis.network.lib.barriers import DAMS_ID
-from analysis.rank.lib import add_spatial_joins, update_network_metrics, calculate_tiers
+from analysis.rank.lib.spatial_joins import add_spatial_joins
+from analysis.rank.lib.tiers import calculate_tiers
+from analysis.rank.lib.metrics import update_network_metrics
 from api.constants import SB_API_FIELDS, SB_CORE_FIELDS, UNIT_FIELDS
 
 start = time()
