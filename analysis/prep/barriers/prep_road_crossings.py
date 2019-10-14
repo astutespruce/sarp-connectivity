@@ -2,7 +2,8 @@
 Preprocess road / stream crossings into data needed by tippecanoe for creating vector tiles.
 
 Input: 
-USGS Road / Stream crossings, projected to match SARP standard projection (Albers CONUS):
+* USGS Road / Stream crossings, projected to match SARP standard projection (Albers CONUS).
+* pre-processed and snapped small barriers
 
 In `data/barriers` directory:
 ```
@@ -20,9 +21,9 @@ from time import time
 from geofeather import to_geofeather, from_geofeather
 import geopandas as gp
 from nhdnet.io import deserialize_df
-from nhdnet.geometry.points import add_lat_lon
+from nhdnet.geometry.points import add_lat_lon, mark_duplicates
 
-from analysis.constants import CRS
+from analysis.constants import CRS, DUPLICATE_TOLERANCE
 from analysis.util import spatial_join
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
@@ -39,6 +40,61 @@ print("Reading road crossings")
 
 df = gp.read_file(src_dir / "road_crossings_prj.shp")
 print("Read {:,} road crossings".format(len(df)))
+
+df["id"] = df.index.astype("uint32")
+df = df.set_index("id", drop=False)
+
+# There are a bunch of crossings with identical coordinates, remove them
+# NOTE: they have different labels, but that seems like it is a result of
+# them methods used to identify the crossings (e.g., named highways, roads, etc)
+print("Removing duplicate crossings...")
+
+# round to int
+df["x"] = df.geometry.x.astype("int")
+df["y"] = df.geometry.y.astype("int")
+
+keep_ids = df[["x", "y", "id"]].groupby(["x", "y"]).first().reset_index().id
+print("{:,} duplicate road crossings".format(len(df) - len(keep_ids)))
+
+df = df.loc[keep_ids].copy()
+
+
+### Remove crossings that are very close
+print("Removing nearby road crossings...")
+# consider 5 m nearby
+df = mark_duplicates(df, 5)
+print("{:,} very close road crossings dropped".format(len(df.loc[df.duplicate])))
+df = df.loc[~df.duplicate].drop(columns=["duplicate", "dup_count", "dup_group"])
+
+### Remove those that otherwise duplicate existing small barriers
+print("Removing crossings that duplicate existing barriers")
+barriers = from_geofeather(barriers_dir / "master/small_barriers.feather")
+barriers = barriers.loc[~barriers.duplicate]
+barriers["kind"] = "barrier"
+
+df["joinID"] = (df.index * 1e6).astype("uint32")
+df["kind"] = "crossing"
+
+merged = barriers[["kind", "geometry"]].append(
+    df[["joinID", "kind", "geometry"]], sort=False, ignore_index=True
+)
+merged = mark_duplicates(merged, tolerance=DUPLICATE_TOLERANCE)
+
+dup_groups = merged.loc[
+    (merged.dup_count > 1) & (merged.kind == "barrier")
+].dup_group.unique()
+remove_ids = merged.loc[
+    merged.dup_group.isin(dup_groups) & (merged.kind == "crossing")
+].joinID
+print(
+    "{:,} crossings appear to be duplicates of existing barriers".format(
+        len(remove_ids)
+    )
+)
+
+df = df.loc[~df.joinID.isin(remove_ids)].drop(columns=["joinID", "kind"])
+print("Now have {:,} road crossings".format(len(df)))
+
 
 # Rename columns to standardize with small barriers dataset
 df = df.rename(columns={"FULLNAME": "Road", "GNIS_NAME": "Stream", "RDXID": "SARPID"})
