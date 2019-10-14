@@ -337,7 +337,7 @@ const SummaryMap = ({
 
     patches.push({
       color: 'rgba(0,0,0,0.15)',
-      label: `no ${barrierType}`,
+      label: `no inventoried ${barrierType}`,
     })
 
     const circles = []
@@ -345,12 +345,12 @@ const SummaryMap = ({
       const { primary, background } = pointLegends
       circles.push({
         ...primary,
-        label: `${barrierType} available for analysis`,
+        label: `${barrierType} analyzed for impacts to aquatic connectivity`,
       })
 
       circles.push({
         ...background,
-        label: `${barrierType} not available for analysis`,
+        label: `${barrierType} not analyzed`,
       })
     }
 

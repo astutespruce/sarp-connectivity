@@ -2,11 +2,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { useSummaryData } from 'components/Data'
 import { Text, HelpText } from 'components/Text'
 import { CloseButton } from 'components/Button'
 import { Box, Flex } from 'components/Grid'
-import { formatNumber, formatPercent } from 'util/format'
+import { formatNumber } from 'util/format'
 import styled, { themeGet } from 'style'
 import { layers } from './layers'
 import { STATE_FIPS, CONNECTIVITY_TEAMS } from '../../../config/constants'
@@ -50,6 +49,10 @@ const Content = styled(Box).attrs({
   overflow-y: auto;
 `
 
+const List = styled.ul`
+  margin-top: 1rem;
+`
+
 const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   const {
     id,
@@ -64,23 +67,12 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
     miles = 0,
   } = summaryUnit
 
-  const {
-    dams: totalDams,
-    barriers: totalBarriers,
-    miles: meanConnectedMiles,
-  } = useSummaryData()
-  const total = barrierType === 'dams' ? totalDams : totalBarriers
   const totalRoadBarriers = total_barriers + crossings
   const offNetworkDams = dams - on_network_dams
   const offNetworkBarriers = barriers - on_network_barriers
 
   const layerConfig = layers.filter(({ id: lyrID }) => lyrID === layerId)[0]
   let { title: layerTitle } = layerConfig
-
-  const count = barrierType === 'dams' ? dams : barriers
-
-  const percent = (100 * count) / total
-  const milesCompare = miles - meanConnectedMiles
 
   let title = name || id
   if (layerId === 'County') {
@@ -113,42 +105,39 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           <>
             {dams > 0 ? (
               <>
-                <p>
-                  This area contains at least <b>{formatNumber(dams, 0)}</b>{' '}
-                  {dams > 1 ? 'dams' : 'dam'} that {dams > 1 ? 'have ' : 'has '}
-                  been inventoried so far.
-                  <br />
-                  <br />
-                  <b>{formatNumber(on_network_dams, 0)}</b> were analyzed for
-                  impacts to aquatic connectivity in this tool
-                  {offNetworkDams > 0 ? (
-                    <>
-                      {' '}
-                      ({formatNumber(offNetworkDams, 0)} were not analyzed
-                      because they were not on the aquatic network or could not
-                      be correctly located on the network)
-                    </>
-                  ) : null}
-                  .
-                  <br />
-                  <br />
-                  Based on this analysis, there is an average of{' '}
-                  <b>{formatNumber(miles, 2)}</b> miles of rivers and streams
-                  that could be reconnected by removing dams.
-                  <br />
-                  <br />
-                  This area has {formatPercent(percent)}% of the inventoried
-                  dams in the Southeast and{' '}
-                  {formatNumber(Math.abs(milesCompare))}{' '}
-                  {milesCompare > 0 ? 'more ' : 'fewer '} miles of connected
-                  river network than the average for the region.
-                </p>
+                This area contains:
+                <List>
+                  <li>
+                    <b>{formatNumber(dams, 0)}</b> inventoried{' '}
+                    {dams > 1 ? 'dams' : 'dam'}
+                  </li>
+                  <li>
+                    <b>{formatNumber(on_network_dams, 0)}</b>{' '}
+                    {on_network_dams > 1 ? 'dams' : 'dam'} that{' '}
+                    {on_network_dams > 1 ? 'were ' : 'was '} analyzed for
+                    impacts to aquatic connectivity in this tool
+                  </li>
+                  <li>
+                    <b>{formatNumber(miles, 2)}</b> miles of connected rivers
+                    and streams
+                  </li>
+                </List>
                 <HelpText>
                   <br />
                   Note: These statistics are based on <i>inventoried</i> dams.
                   Because the inventory is incomplete in many areas, areas with
                   a high number of dams may simply represent areas that have a
                   more complete inventory.
+                  {offNetworkDams > 0 ? (
+                    <>
+                      <br />
+                      <br />
+                      {formatNumber(offNetworkDams, 0)}{' '}
+                      {offNetworkDams > 1 ? 'dams' : 'dam'} were not analyzed
+                      because they were not on the aquatic network or could not
+                      be correctly located on the network.
+                    </>
+                  ) : null}
                 </HelpText>
               </>
             ) : (
@@ -178,34 +167,31 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           <>
             {totalRoadBarriers > 0 ? (
               <>
-                <p>
-                  This area contains at least{' '}
-                  <b>{formatNumber(totalRoadBarriers, 0)}</b> road-related
-                  potential {totalRoadBarriers > 1 ? 'barriers' : 'barrier'}. Of
-                  these, <b>{formatNumber(total_barriers, 0)}</b>{' '}
-                  {total_barriers > 1 ? 'have ' : 'has '} been assessed so far
-                  for potential impacts to aquatic organisms (
-                  {formatPercent(percent)}% of the total inventoried
-                  road-related barriers across the Southeast).
-                  <br />
-                  <br />
-                  <b>{formatNumber(barriers, 0)}</b> road-related{' '}
-                  {barriers > 1 ? 'barriers' : 'barrier'} assessed so far{' '}
-                  {barriers > 1 ? 'are' : 'is'} likely to impact aquatic
-                  organisms and <b>{formatNumber(on_network_barriers, 0)}</b>{' '}
-                  {on_network_barriers > 1 ? 'have ' : 'has '} been evaluated
-                  for {on_network_barriers > 1 ? 'their impacts' : 'its impact'}{' '}
-                  on aquatic connectivity in this tool
-                  {offNetworkBarriers > 0 ? (
-                    <>
-                      {' '}
-                      ({formatNumber(offNetworkBarriers, 0)} were not analyzed
-                      because they were not on the aquatic network or could not
-                      be correctly located on the network)
-                    </>
-                  ) : null}
-                  ..
-                </p>
+                This area contains:
+                <List>
+                  <li>
+                    <b>{formatNumber(totalRoadBarriers, 0)}</b> road-related
+                    potential {totalRoadBarriers > 1 ? 'barriers' : 'barrier'}
+                  </li>
+                  <li>
+                    <b>{formatNumber(total_barriers, 0)}</b>{' '}
+                    {total_barriers > 1 ? 'barriers' : 'barrier'}
+                    {total_barriers > 1 ? 'have ' : 'has '} been assessed for
+                    impacts to aquatic organisms.
+                  </li>
+                  <li>
+                    <b>{formatNumber(barriers, 0)}</b> road-related{' '}
+                    {barriers > 1 ? 'barriers' : 'barrier'} assessed{' '}
+                    {barriers > 1 ? 'are' : 'is'} likely to impact aquatic
+                    organisms
+                  </li>
+                  <li>
+                    <b>{formatNumber(on_network_barriers, 0)}</b>{' '}
+                    {on_network_barriers > 1 ? 'dams' : 'dam'} that{' '}
+                    {on_network_barriers > 1 ? 'were ' : 'was '} analyzed for
+                    impacts to aquatic connectivity in this tool
+                  </li>
+                </List>
                 <HelpText>
                   <br />
                   <br />
@@ -214,6 +200,17 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
                   aquatic organisms. Because the inventory is incomplete in many
                   areas, areas with a high number of barriers may simply
                   represent areas that have a more complete inventory.
+                  {offNetworkBarriers > 0 ? (
+                    <>
+                      <br />
+                      <br />
+                      {formatNumber(offNetworkBarriers, 0)}{' '}
+                      {offNetworkBarriers > 1 ? 'barriers' : 'barrier'} that{' '}
+                      {offNetworkBarriers > 1 ? 'were ' : 'was '} not analyzed
+                      because they were not on the aquatic network or could not
+                      be correctly located on the network
+                    </>
+                  ) : null}
                 </HelpText>
               </>
             ) : (

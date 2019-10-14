@@ -46,7 +46,7 @@ Purpose: primary purpose of dam, if known.
 Condition: condition of the dam as of last assessment, if known.  Note: assessment dates are not known.
 Feasibility: feasibility of dam removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of dams.
 TESpp: Number of federally threatened or endangered aquatic species within the same subwatershed (HUC12) as the dam.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
-OwnerType: Land ownership type for areas within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database (Note: USFWS and USFS lands pulled out specifically for partners).
+OwnerType: Land ownership type.  This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.
 ProtectedLand: Indicates if the dam occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.
 
 Basin: Name of the hydrologic basin (HUC6) where the dam occurs.

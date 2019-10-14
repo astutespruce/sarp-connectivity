@@ -103,11 +103,11 @@ const dams = [
   },
   {
     field: 'ownertype',
-    title: 'Conservation land type',
+    title: 'Land ownership type',
     sort: true,
     hideEmpty: true,
     help:
-      'Derived from the CBI Protected Areas Database and TNC Secured Lands Database',
+      'This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.',
     ...getEntries(OWNERTYPE),
   },
 ]
@@ -162,11 +162,11 @@ const barriers = [
   },
   {
     field: 'ownertype',
-    title: 'Conservation land type',
+    title: 'Land ownership type',
     sort: true,
     hideEmpty: true,
     help:
-      'Derived from the CBI Protected Areas Database and TNC Secured Lands Database',
+      'This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.',
     ...getEntries(OWNERTYPE),
   },
 ]

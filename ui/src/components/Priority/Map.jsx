@@ -455,7 +455,7 @@ const PriorityMap = ({
     const patches = [
       {
         color: 'rgba(0,0,0,0.15)',
-        label: `area with no ${barrierType}`,
+        label: `area with no inventoried ${barrierType}`,
       },
     ]
 

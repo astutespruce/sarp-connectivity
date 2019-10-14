@@ -33,6 +33,7 @@ const Title = styled(Text).attrs({
 const Patch = styled.div`
   width: 20px;
   height: 1em;
+  flex: 0 0 auto;
   border-color: ${themeGet('colors.grey.500')};
   border-width: 0 1px 1px 1px;
   border-style: solid;
@@ -55,7 +56,7 @@ const CircleRow = styled(Flex).attrs({ alignItems: 'flex-start', py: '0.5em' })`
   }
 `
 
-const PatchRow = styled(Flex).attrs({ alignItems: 'center' })`
+const PatchRow = styled(Flex)`
   &:first-child ${Patch} {
     border-radius: 3px 3px 0 0;
     border-top-width: 1px;
