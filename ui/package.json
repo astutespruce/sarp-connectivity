@@ -71,8 +71,8 @@
     "format": "prettier --write src/**/*.{js,jsx}",
     "start": "npm run develop",
     "serve": "gatsby serve",
-    "predeploy": "npm run build",
-    "deploy": "rm -rf /var/www/sarp/site/* && cp -r build/* /var/www/sarp/site"
+    "predeploy": "npm run clean && npm run build",
+    "deploy": "rm -rf /var/www/sarp/site/* && cp -r public/* /var/www/sarp/site"
   },
   "repository": {
     "type": "git",

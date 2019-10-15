@@ -175,7 +175,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
                   </li>
                   <li>
                     <b>{formatNumber(total_barriers, 0)}</b>{' '}
-                    {total_barriers > 1 ? 'barriers' : 'barrier'}
+                    {total_barriers > 1 ? 'barriers' : 'barrier'}{' '}
                     {total_barriers > 1 ? 'have ' : 'has '} been assessed for
                     impacts to aquatic organisms.
                   </li>

@@ -2,7 +2,7 @@
 
 [Unit]
 Description=Flask SARP API server
-Documentation=https://github.com/consbio/sarp
+Documentation=https://github.com/astutespruce/sarp-connectivity
 After=network-online.target
 Wants=network-online.target systemd-networkd-wait-online.service
 
