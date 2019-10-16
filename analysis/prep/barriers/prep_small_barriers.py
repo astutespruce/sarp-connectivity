@@ -87,15 +87,17 @@ for column in ("CrossingType", "RoadType", "Stream", "Road"):
     df[column] = df[column].fillna("Unknown").str.title().str.strip()
     df.loc[df[column].str.len() == 0, column] = "Unknown"
 
-df.loc[(df.Stream != "Unknown") & (df.Road != "Unknown"), "Name"] = (
-    df.Stream + " / " + df.Road
-)
+# Fix line returns in stream name and road name
+df.loc[df.Stream.str.contains("\r\n", ""), "Stream"] = "Unnamed"
+df.Road = df.Road.str.replace("\r\n", "")
+
+df.loc[
+    (~df.Stream.isin(["Unknown", "Unnamed", ""]))
+    & (~df.Road.isin(["Unknown", "Unnamed", ""])),
+    "Name",
+] = (df.Stream + " / " + df.Road)
 df.Name = df.Name.fillna("")
 
-
-# Fix line returns in stream name and road name
-df.loc[df.SARPID == "sm7044", "Stream"] = "Unnamed"
-df.Road = df.Road.str.replace("\r\n", "")
 
 # Fix issues with RoadType
 df.loc[df.RoadType.isin(("No Data", "NoData", "Nodata")), "RoadType"] = "Unknown"

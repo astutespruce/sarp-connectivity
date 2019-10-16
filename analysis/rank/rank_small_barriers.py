@@ -71,12 +71,20 @@ df = (
 # NOTE: excluded ones are retained but don't have networks
 df = df.loc[~(df.dropped | df.duplicate)].copy()
 
-# TODO: remove once this has been handled in prep_small_barriers
-if not "Name" in df.columns:
-    df.loc[(df.Stream != "Unknown") & (df.Road != "Unknown"), "Name"] = (
-        df.Stream + " / " + df.Road
-    )
-    df.Name = df.Name.fillna("")
+
+# TODO: remove on next run of prep_small_barriers.py
+df.loc[df.Stream.str.contains("\r\n", ""), "Stream"] = "Unnamed"
+df.Road = df.Road.str.replace("\r\n", "")
+
+df["Name"] = ""
+
+df.loc[
+    (~df.Stream.isin(["Unknown", "Unnamed", ""]))
+    & (~df.Road.isin(["Unknown", "Unnamed", ""])),
+    "Name",
+] = (df.Stream + " / " + df.Road)
+
+df.Name = df.Name.fillna("")
 
 
 ### Read in network outputs and join to master
@@ -154,7 +162,11 @@ to_geofeather(df.reset_index(), qa_dir / "small_barriers_network_results.feather
 df = df.drop(columns=["geometry"])
 
 print("Saving full results to CSV")
-df.to_csv(qa_dir / "small_barriers_network_results.csv", index_label="id")
+df.to_csv(
+    qa_dir / "small_barriers_network_results.csv",
+    index_label="id",
+    quoting=csv.QUOTE_NONNUMERIC,
+)
 
 
 # Drop any fields we don't need for API or tippecanoe

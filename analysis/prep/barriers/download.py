@@ -22,6 +22,7 @@ token = os.getenv("AGOL_TOKEN", None)
 if not token:
     raise ValueError("AGOL_TOKEN must be defined in your .env file")
 
+
 # TODO:
 # Puerto Rico:  https://arcg.is/1qLnOP
 
@@ -153,8 +154,7 @@ df = download_fs(
     columns={
         "Crossing_Code": "CrossingCode",
         "Potential_Project": "PotentialProject",
-        # Note re: SARPID - this isn't quite correct but needed for consistency
-        "AnalysisId": "SARPID",
+        "SARPUniqueID": "SARPID",
         "CrossingTypeId": "CrossingType",
         "RoadTypeId": "RoadType",
         "CrossingConditionId": "Condition",

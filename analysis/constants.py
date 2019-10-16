@@ -127,6 +127,7 @@ DAM_COLS = [
 ]
 
 SMALL_BARRIER_COLS = [
+    "SARPUniqueID",
     "AnalysisId",
     "SNAP2018",
     "LocalID",
