@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
+import PropTypes from 'prop-types'
 import useForm from 'react-hook-form'
 import fetchJSONP from 'fetch-jsonp'
 import { FaSync, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa'
 import { Image } from 'rebass'
 
+import { Button } from 'components/Button'
 import { Text } from 'components/Text'
 import { Box, Flex } from 'components/Grid'
 import styled, { themeGet, keyframes, css } from 'style'
@@ -29,9 +31,7 @@ const FIELDS = {
   use: 'MERGE4',
 }
 
-const Wrapper = styled(Box)`
-  width: 960px;
-`
+const Wrapper = styled(Box).attrs({ pt: '1rem' })``
 
 const SARPLogo = styled(Image).attrs({ src: SARPLogoImage })`
   height: 4rem;
@@ -47,13 +47,14 @@ const List = styled.ul`
   margin-top: 0.5rem;
 `
 
+const Form = styled.form`
+  width: 960px;
+  margin: 0;
+`
+
 const FormContainer = styled(Box).attrs({})`
   width: 66%;
   padding-left: 1rem;
-`
-
-const Form = styled.form`
-  margin: 0;
 `
 
 const FormColumns = styled(Flex)``
@@ -122,11 +123,13 @@ const Error = styled(Text).attrs({ fontSize: '0.8rem' })`
 `
 
 const Buttons = styled(Flex).attrs({
-  mt: '1rem',
-  pt: '1rem',
   justifyContent: 'space-between',
   alignItems: 'center',
-})``
+  mt: '1rem',
+  pt: '1rem',
+})`
+  border-top: 1px solid ${themeGet('colors.grey.200')};
+`
 
 const rotate = keyframes`
   from {
@@ -142,10 +145,10 @@ const MessageBox = styled(Flex).attrs({
   p: '1rem',
   alignItems: 'center',
   justifyContent: 'center',
-  flexDirection: 'column',
   height: '100%',
 })`
-  font-size: 2rem;
+  font-size: 1.5rem;
+  width: 600px;
 `
 
 const Spinner = styled(FaSync)`
@@ -175,15 +178,19 @@ const SuccessIcon = styled(FaCheckCircle)`
   color: ${themeGet('colors.primary.500')};
 `
 
-const DownloadForm = () => {
+const DownloadForm = ({ onCancel, onContinue }) => {
   const [{ isPending, isError, isSuccess }, setState] = useState({
     isPending: false,
     isError: false,
     isSuccess: false,
   })
+
   const { register, handleSubmit, errors } = useForm({
     mode: 'onBlur',
   })
+
+  const formRef = useRef()
+
   const onSubmit = data => {
     console.log('on submit data', data)
 
@@ -217,6 +224,8 @@ const DownloadForm = () => {
             // this is an error ot Mailchimp, but not a problem for us
             saveToStorage('downloadForm', data)
             setState({ isPending: false, isError: false, isSuccess: true })
+
+            onContinue()
           } else {
             setState({ isPending: false, isError: true })
             // TODO: report error to sentry
@@ -226,6 +235,8 @@ const DownloadForm = () => {
           saveToStorage('downloadForm', data)
           setState({ isPending: false, isError: false, isSuccess: true })
           // TODO:
+
+          onContinue()
         }
       })
       .catch(error => {
@@ -236,17 +247,29 @@ const DownloadForm = () => {
       })
   }
 
+  const handleCancel = () => {
+    onCancel()
+  }
+
+  const handleContinue = () => {
+    onContinue()
+  }
+
   if (isError) {
     return (
       <Wrapper>
         <ErrorMessage>
           <ErrorIcon />
-          Whoops! That didn&apos;t work out quite right.
-          <br />
-          We are sorry for this problem.
-          <br />
+          <Box>Whoops! Something went wrong saving your information.</Box>
         </ErrorMessage>
-        TODO: download link
+
+        <Buttons>
+          <Button onClick={handleCancel}>Cancel</Button>
+
+          <Button primary onClick={handleContinue}>
+            Continue to download anyway
+          </Button>
+        </Buttons>
       </Wrapper>
     )
   }
@@ -271,25 +294,27 @@ const DownloadForm = () => {
 
   return (
     <Wrapper>
-      <Flex>
-        <Message>
-          <SARPLogo />
-          <br />
-          We use this information to:
-          <List>
-            <li>get in touch with you if we discover errors in the data</li>
-            <li>
-              provide statistics about how this tool is being used to report to
-              our funders, who make this tool possible
-            </li>
-            <li>
-              better understand how this tool is being used so that we can
-              prioritize improvements
-            </li>
-          </List>
-        </Message>
-        <FormContainer>
-          <Form onSubmit={handleSubmit(onSubmit)}>
+      <Form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
+        <Flex>
+          <Message>
+            We use this information to:
+            <List>
+              <li>get in touch with you if we discover errors in the data</li>
+              <li>
+                provide statistics about how this tool is being used to our
+                funders
+              </li>
+              <li>
+                better understand how this tool is being used so that we can
+                prioritize improvements
+              </li>
+            </List>
+            <Flex justifyContent="center">
+              <SARPLogo />
+            </Flex>
+          </Message>
+
+          <FormContainer>
             <FormColumns>
               <FormColumn>
                 <Row>
@@ -363,16 +388,26 @@ const DownloadForm = () => {
                 invalid={!!errors[FIELDS.organization]}
               />
             </Row>
+          </FormContainer>
+        </Flex>
 
-            <Buttons>
-              <button type="button">Cancel</button>
-              <button type="submit">Submit</button>
-            </Buttons>
-          </Form>
-        </FormContainer>
-      </Flex>
+        <Buttons>
+          <Button type="button" onClick={handleCancel}>
+            Cancel
+          </Button>
+
+          <Button type="submit" primary>
+            Continue to download
+          </Button>
+        </Buttons>
+      </Form>
     </Wrapper>
   )
+}
+
+DownloadForm.propTypes = {
+  onCancel: PropTypes.func.isRequired,
+  onContinue: PropTypes.func.isRequired,
 }
 
 export default DownloadForm

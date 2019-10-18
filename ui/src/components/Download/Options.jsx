@@ -1,60 +1,33 @@
-import React, { useState } from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
 
-import { Button, Checkbox } from 'components/Button'
-import { OutboundLink } from 'components/Link'
+import { Checkbox } from 'components/Button'
 import { HelpText } from 'components/Text'
-import { Box, Flex } from 'components/Grid'
-import styled, { themeGet } from 'style'
+import { Box } from 'components/Grid'
+import styled from 'style'
 
-const Wrapper = styled(Box).attrs({ pt: '1rem' })`
-  max-width: 600px;
-`
+const Wrapper = styled.div``
 
-const Row = styled(Box)``
+const Options = ({ barrierType, options, onChange }) => {
+  const { unranked } = options
 
-const Buttons = styled(Flex).attrs({
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  mt: '1rem',
-  pt: '1rem',
-})`
-  border-top: 1px solid ${themeGet('colors.grey.200')};
-`
-
-const Options = ({ barrierType }) => {
-  const [includeUnranked, setIncludeUnranked] = useState(false)
-
-  const handleChange = checked => {
-    console.log('checkbox value', checked)
-    setIncludeUnranked(checked)
-  }
-
-  const handleCancel = () => {
-    console.log('cancel')
-  }
-
-  const handleDownload = () => {
-    console.log('Download')
+  const handleUnrankedChange = checked => {
+    onChange({
+      ...options,
+      unranked: checked,
+    })
   }
 
   return (
     <Wrapper>
-      <Row>
+      <Box>
         <Checkbox
           id="unranked"
           label={`Include unranked ${barrierType}?`}
-          checked={includeUnranked}
-          onChange={handleChange}
+          checked={unranked}
+          onChange={handleUnrankedChange}
         />
-        {/* <Checkbox
-          name="include_unranked"
-          checked={includeUnranked}
-          onChange={handleChange}
-        />
-        <Label htmlFor="include_unranked">
-          Include unranked {barrierType}?
-        </Label> */}
+
         <HelpText mt="0.5rem" ml="2rem">
           This will include {barrierType} within your selected geographic area
           that were not prioritized in your analysis. These include any{' '}
@@ -63,35 +36,15 @@ const Options = ({ barrierType }) => {
           {barrierType === 'barriers' &&
             '  These data only include road-related barriers that have been assessed for impacts to aquatic organisms.'}
         </HelpText>
-      </Row>
-
-      <HelpText fontSize="small" mt="2rem">
-        By downloading these data, you agree to the{' '}
-        <OutboundLink to="/terms" target="_blank">
-          Terms of Use
-        </OutboundLink>
-        , which includes providing credit to SARP for any use of the data
-        including publication, reports, presentations, or projects. Please see
-        the <b>TERMS_OF_USE.txt</b> file in your download for the appropriate
-        citation and more information.
-      </HelpText>
-
-      <Buttons>
-        <Button onClick={handleCancel}>Cancel</Button>
-        <Button primary onClick={handleDownload}>
-          Download
-        </Button>
-      </Buttons>
+      </Box>
     </Wrapper>
   )
 }
 
 Options.propTypes = {
-  barrierType: PropTypes.string,
-}
-
-Options.defaultProps = {
-  barrierType: 'dams',
+  barrierType: PropTypes.string.isRequired,
+  options: PropTypes.object.isRequired,
+  onChange: PropTypes.func.isRequired,
 }
 
 export default Options

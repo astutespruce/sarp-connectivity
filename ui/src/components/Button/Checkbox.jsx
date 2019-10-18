@@ -61,7 +61,6 @@ const Label = styled.label`
 
 const Checkbox = ({ id, checked, label, onChange }) => {
   const handleChange = ({ target: { checked: isChecked } }) => {
-    console.log('onChange', isChecked)
     onChange(isChecked)
   }
   return (

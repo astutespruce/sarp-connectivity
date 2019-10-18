@@ -60,7 +60,6 @@ const Results = ({
   onBack,
 }) => {
   const barrierType = useBarrierType()
-  // const [tierThreshold, setTierThreshold] = useState(1)
 
   const handleDownloadClick = () => {
     console.log('download click')
