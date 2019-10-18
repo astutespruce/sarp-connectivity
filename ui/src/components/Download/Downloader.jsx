@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { FaDownload } from 'react-icons/fa'
 
+import { getDownloadURL } from 'components/Data'
 import { OutboundLink } from 'components/Link'
 import { HelpText } from 'components/Text'
 import { Box, Flex } from 'components/Grid'
 import { Button } from 'components/Button'
-import { UserInfoForm, DownloadOptions } from 'components/Download'
 import Modal from 'components/Modal'
 import { getFromStorage } from 'util/dom'
-
 import styled, { themeGet } from 'style'
+
+import UserInfoForm, { FIELDS } from './UserInfoForm'
+import DownloadOptions from './Options'
 
 const Content = styled(Box).attrs({ pt: '1rem' })`
   max-width: 600px;
@@ -36,15 +38,15 @@ const DownloadButton = styled(Button).attrs({ primary: true })`
   align-items: center;
 `
 
-const DownloadPopup = ({ barrierType, downloadURL }) => {
+const Downloader = ({ barrierType, config }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [haveUserInfo, setHaveUserInfo] = useState(false)
   const [downloadOptions, setDownloadOptions] = useState({ unranked: false })
 
   useEffect(() => {
+    // If the user previously entered their contact info, don't ask them for it again
     const formData = getFromStorage('downloadForm')
-    console.log(formData)
-    if (formData && formData.email) {
+    if (formData && formData[FIELDS.email]) {
       setHaveUserInfo(true)
     }
   }, [])
@@ -59,19 +61,27 @@ const DownloadPopup = ({ barrierType, downloadURL }) => {
 
   const handleDownloadOptionsChange = options => {
     setDownloadOptions(options)
-    console.log('download options', options)
   }
 
   const handleUserInfoContinue = () => {
     // Note: this might be called if there was an error submitting the user info, and we decided to let them continue anyway
-
-    // FIXME: need better prop
     setHaveUserInfo(true)
   }
 
   const handleDownload = () => {
-    // TODO: add unranked to URL
+    const { layer, summaryUnits, filters, scenario } = config
+
+    const downloadURL = getDownloadURL(
+      barrierType,
+      layer,
+      summaryUnits,
+      filters,
+      downloadOptions.unranked,
+      scenario.toUpperCase()
+    )
+
     window.open(downloadURL)
+    setIsOpen(false)
   }
 
   const showUserInfoForm = isOpen && !haveUserInfo
@@ -94,7 +104,10 @@ const DownloadPopup = ({ barrierType, downloadURL }) => {
       )}
 
       {showDownloadPopup && (
-        <Modal title="Download prioritized barriers" onClose={handleClose}>
+        <Modal
+          title={`Download prioritized ${barrierType}`}
+          onClose={handleClose}
+        >
           <Content>
             <DownloadOptions
               barrierType={barrierType}
@@ -127,9 +140,16 @@ const DownloadPopup = ({ barrierType, downloadURL }) => {
   )
 }
 
-DownloadPopup.propTypes = {
+Downloader.propTypes = {
   barrierType: PropTypes.string.isRequired,
-  downloadURL: PropTypes.string.isRequired,
+  config: PropTypes.shape({
+    layer: PropTypes.string.isRequired,
+    summaryUnits: PropTypes.arrayOf(
+      PropTypes.shape({ id: PropTypes.string.isRequired })
+    ).isRequired,
+    filters: PropTypes.object,
+    scenario: PropTypes.string.isRequired,
+  }).isRequired,
 }
 
-export default DownloadPopup
+export default Downloader

@@ -1,5 +1,5 @@
-Southeast Aquatic Barrier Inventory - Terms of Use
---------------------------------------------------
+Comprehensive Southeast Aquatic Barrier Inventory - Terms of Use
+----------------------------------------------------------------
 
 Date downloaded: {{date}}
 Data version: {{version}}
@@ -7,4 +7,17 @@ Downloaded from: {{url}}
 
 By downloading these data, you have agreed to the following terms:
 
-TODO:
+1) you will credit SARP in anything produced using the data provided in this dataset including, including, but not limited to, peer-reviewed publications via acknowledgments, presentations and reports via logo placement, and newsletter or interview articles via logo and/or verbal credit. 
+
+2) you have agreed to be contacted by SARP staff if a data issue is discovered in the data made available through this tool.  However, SARP staff are not obligated to notify you of any data issues.
+
+3) you have agreed to be contacted by SARP staff for information about how you are using these data, in order to help SARP staff report statistics to SARP's funders and partners, who have helped make these data available to you.
+
+
+For your convenience, a small version of the SARP logo is included in this download "SARP_logo.png".
+A high resolution copy of the SARP logo can be requested from Jessica Graham via email at jessica@southeastaquatics.net.
+
+
+Citation:
+---------
+Southeast Aquatic Resources Partnership (SARP). {{year}}. Comprehensive Southeast Aquatic Barrier Inventory. https://southeastaquatics.net/. (dowloaded {{date}} from {{url}}). SARP/USFWS.

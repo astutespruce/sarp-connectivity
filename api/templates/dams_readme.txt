@@ -1,4 +1,4 @@
-Southeast Aquatic Barrier Inventory - dams data download
+Comprehensive Southeast Aquatic Barrier Inventory - Dams
 --------------------------------------------------------
 
 Date downloaded: {{date}}
@@ -6,12 +6,13 @@ Data version: {{version}}
 Downloaded from: {{url}}
 Filename: {{filename}}
 
-### Selected Area: ###
+Selected Area:
+--------------
 {{layer}}: {{ids}}
 
 
-### Description ###
-
+Description:
+------------
 This inventory is a growing and living database of dams and road / stream crossings compiled by
 the Southeast Aquatic Resources Partnership with the generous support from many partners and
 funders. Information about network connectivity, landscape condition, and presence of threatened
@@ -31,7 +32,8 @@ If you are able to help improve the inventory by sharing data or assisting with 
 reconnaissance, please contact us (https://southeastaquatics.net/about/contact-us).
 
 
-### File Contents ###
+File Contents:
+--------------
 lat: latitude.
 lon: longitude.
 Name: Barrier name, if available.
@@ -82,8 +84,8 @@ WC_tier: watershed condition tier for your selected subset.  Tier 1 represents t
 NCWC_tier: combined network connectivity and watershed condition tier for your selected subset.  Tier 1 represents the dams within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.
 
 
-### Caveats and Data Limitations ###
-
+Caveats and Data Limitations
+----------------------------
 Note: data come from a variety of sources and available descriptive information is not comprehensive.
 
 Note: information on rare species is highly limited.

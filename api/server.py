@@ -14,7 +14,7 @@ from raven.contrib.flask import Sentry
 from raven.handlers.logging import SentryHandler
 from raven.conf import setup_logging
 
-from analysis.rank.lib.tiers import calculate_tiers
+from analysis.rank.lib.tiers import calculate_tiers, SCENARIOS
 
 from api.constants import (
     DAM_FILTER_FIELDS,
@@ -51,6 +51,9 @@ else:
 # Read version from UI package.json
 with open(Path(__file__).resolve().parent.parent / "ui/package.json") as infile:
     VERSION = json.loads(infile.read())["version"]
+
+# Include logo in download package
+LOGO_PATH = Path(__file__).resolve().parent.parent / "ui/src/images/sarp_logo.png"
 
 TYPES = ("dams", "barriers")
 LAYERS = ("HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4")
@@ -102,6 +105,16 @@ def validate_format(format):
         abort(400, "format is not valid; must be one of {0}".format(", ".join(FORMATS)))
 
 
+def validate_sort(sort):
+    if not sort in SCENARIOS.keys():
+        abort(
+            400,
+            "sort is not valid; must be one of {0}".format(
+                ", ".join(list(SCENARIOS.keys()))
+            ),
+        )
+
+
 @app.route("/api/v1/<barrier_type>/query/<layer>", methods=["GET"])
 def query(barrier_type="dams", layer="HUC8"):
     """Filter dams and return key properties for filtering.  ONLY for those with networks.
@@ -125,7 +138,7 @@ def query(barrier_type="dams", layer="HUC8"):
     if layer == "County":
         layer = "COUNTYFIPS"
 
-    ids = request.args.get("id", "").split(",")
+    ids = [id for id in request.args.get("id", "").split(",") if id]
     if not ids:
         abort(400, "id must be non-empty")
 
@@ -139,8 +152,7 @@ def query(barrier_type="dams", layer="HUC8"):
         fields = SB_FILTER_FIELDS
 
     df = df.loc[df[layer].isin(ids)][fields].copy()
-    nrows = len(df.index)
-    log.info("selected {} dams".format(nrows))
+    log.info("selected {} dams".format(len(df.index)))
 
     resp = make_response(
         df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
@@ -150,7 +162,6 @@ def query(barrier_type="dams", layer="HUC8"):
     return resp
 
 
-# TODO: log incoming request parameters
 @app.route("/api/v1/<barrier_type>/rank/<layer>", methods=["GET"])
 def rank(barrier_type="dams", layer="HUC8"):
     """Rank a subset of dams data.
@@ -177,7 +188,7 @@ def rank(barrier_type="dams", layer="HUC8"):
     if layer == "County":
         layer = "COUNTYFIPS"
 
-    ids = request.args.get("id", "").split(",")
+    ids = [id for id in args.get("id", "").split(",") if id]
     if not ids:
         abort(400, "id must be non-empty")
 
@@ -222,19 +233,21 @@ def rank(barrier_type="dams", layer="HUC8"):
     return resp
 
 
-# TODO: log incoming request parameters
 @app.route("/api/v1/<barrier_type>/<format>/<layer>", methods=["GET"])
-def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
-    """Download subset of dams data.
+def download(barrier_type="dams", layer="HUC8", format="CSV"):
+    """Download subset of dams or small barriers data.
+
+    If `unranked` is `True`, all barriers in the summary units are downloaded.
 
     Path parameters:
     <barrier_type> : one of TYPES
     <layer> : one of LAYERS
 
     Query parameters:
-    * ids: list of ids
+    * id: list of ids
+    * unranked: bool (default: False)
+    * sort: str, one of 'NC', 'WC', 'NCWC'
     * filters are defined using a lowercased version of column name and a comma-delimited list of values
-    * include_unranked: bool
 
     Parameters
     ----------
@@ -247,47 +260,77 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
 
     args = request.args
 
+    # query parameters that are NOT filters
+    query_params = ("id", "unranked", "sort")
+
     validate_type(barrier_type)
     validate_layer(layer)
     validate_format(format)
 
+    sort = args.get("sort", "NCWC")
+    validate_sort(sort)
+
     if layer == "County":
         layer = "COUNTYFIPS"
 
-    include_unranked = args.get("include_unranked", True)
+    include_unranked = bool(args.get("unranked", False))
 
-    ids = args.get("id", "").split(",")
+    ids = [id for id in args.get("id", "").split(",") if id]
     if not ids:
         abort(400, "id must be non-empty")
 
     if barrier_type == "dams":
-        df = dams_with_networks
+        df = dams
         field_map = dam_filter_field_map
         export_columns = DAM_EXPORT_FIELDS
     else:
-        df = barriers_with_networks
+        df = barriers
         field_map = barrier_filter_field_map
         export_columns = SB_EXPORT_FIELDS
 
+    # drop off-network barriers if we aren't including them
     if not include_unranked:
         df = df.loc[df.HasNetwork]
 
-    filters = df[layer].isin(ids)
-    filterKeys = [a for a in request.args if not a == "id"]
+    # filter to summary units
+    df = df.loc[df[layer].isin(ids)].copy()
+    log.info("selected {} dams in geographic area".format(len(df)))
+
+    if include_unranked:
+        full_df = df.copy()
+
+    filters = None
+    filterKeys = [a for a in request.args if not a in query_params]
     for filter in filterKeys:
         # convert all incoming to integers
         values = [int(x) for x in request.args.get(filter).split(",")]
-        filters = filters & df[field_map[filter]].isin(values)
+        filter_expr = df[field_map[filter]].isin(values)
 
-    df = df.loc[filters].copy()
-    nrows = len(df.index)
+        if filters is None:
+            filters = filter_expr
+        else:
+            filters = filters & filter_expr
 
-    log.info("selected {} dams".format(nrows))
+    if filters is not None:
+        df = df.loc[filters].copy()
 
-    df = calculate_tiers(df)[export_columns]
+    log.info("selected {} dams that meet filters".format(len(df.index)))
 
-    if not include_unranked:
-        df = df.loc[df.HasNetwork]
+    df = calculate_tiers(df)
+
+    if include_unranked:
+        # join back to full dataset
+        tier_cols = df.columns.difference(full_df.columns)
+        df = full_df.join(df[tier_cols], how="left")
+
+        df[tier_cols] = df[tier_cols].fillna(-1)
+
+    df = df[export_columns]
+
+    # Sort by tier
+    df = df.sort_values(
+        by=["HasNetwork", "{}_tier".format(sort)], ascending=[False, True]
+    )
 
     # map domain fields to values
     df.HasNetwork = df.HasNetwork.map(BOOLEAN_DOMAIN)
@@ -319,13 +362,14 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
     readme = render_template("{}_readme.txt".format(barrier_type), **template_values)
 
     ### Create terms of use
-    terms = render_template("terms.txt", **template_values)
+    terms = render_template("terms.txt", year=date.today().year, **template_values)
 
     zf_bytes = BytesIO()
     with ZipFile(zf_bytes, "w") as zf:
         zf.writestr(filename, df.to_csv(index=False))
         zf.writestr("README.txt", readme)
         zf.writestr("TERMS_OF_USE.txt", terms)
+        zf.write(LOGO_PATH, "SARP_logo.png")
 
     resp = make_response(zf_bytes.getvalue())
     resp.headers["Content-Disposition"] = "attachment; filename={0}".format(

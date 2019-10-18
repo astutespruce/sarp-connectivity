@@ -1,5 +1,3 @@
-import UserInfoForm from './UserInfoForm'
-import DownloadOptions from './Options'
-import DownloadPopup from './Popup'
+import Downloader from './Downloader'
 
-export { UserInfoForm, DownloadOptions, DownloadPopup }
+export { Downloader }

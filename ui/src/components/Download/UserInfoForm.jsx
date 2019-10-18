@@ -23,12 +23,23 @@ if (!(formURL && userID && formID)) {
 
 // Since Mailchimp uses custom field names that vary between forms, use the following
 // to map those to logical entities
-const FIELDS = {
-  email: 'MERGE0',
-  firstName: 'MERGE1',
-  lastName: 'MERGE2',
-  organization: 'MERGE3',
-  use: 'MERGE4',
+
+// for test form:
+// export const FIELDS = {
+//   email: 'MERGE0',
+//   firstName: 'MERGE1',
+//   lastName: 'MERGE2',
+//   organization: 'MERGE3',
+//   use: 'MERGE4',
+// }
+
+// for SARP form
+export const FIELDS = {
+  email: 'EMAIL',
+  firstName: 'FNAME',
+  lastName: 'LNAME',
+  organization: 'MMERGE5',
+  use: 'MMERGE6',
 }
 
 const Wrapper = styled(Box).attrs({ pt: '1rem' })``
@@ -202,14 +213,14 @@ const DownloadForm = ({ onCancel, onContinue }) => {
 
     // Mailchimp doesn't have CORS support, so we have to use JSONP to submit form data.
     // yuck!
+
+    // Note: we have to add -json to the end of the regular form URL, make sure it is formatted correctly in .env.*
     fetchJSONP(
-      `https://astutespruce.us20.list-manage.com/subscribe/post-json?${encodeParams(
-        {
-          u: userID,
-          id: formID,
-          ...data,
-        }
-      )}`,
+      `${formURL}-json?${encodeParams({
+        u: userID,
+        id: formID,
+        ...data,
+      })}`,
       {
         jsonpCallback: 'c',
       }

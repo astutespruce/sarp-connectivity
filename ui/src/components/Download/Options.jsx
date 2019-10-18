@@ -43,7 +43,9 @@ const Options = ({ barrierType, options, onChange }) => {
 
 Options.propTypes = {
   barrierType: PropTypes.string.isRequired,
-  options: PropTypes.object.isRequired,
+  options: PropTypes.shape({
+    unranked: PropTypes.bool,
+  }).isRequired,
   onChange: PropTypes.func.isRequired,
 }
 
