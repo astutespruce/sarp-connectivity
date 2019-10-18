@@ -8,12 +8,12 @@ import styled from 'style'
 
 const Button = styled(PrimaryButton)`
   font-size: 1.1em;
+  display: flex;
+  align-items: center;
 `
 
 const Link = styled(OutboundLink)`
   color: #fff;
-  display: flex;
-  align-items: center;
 `
 
 export const DownloadIcon = styled(FaDownload)`
@@ -23,12 +23,12 @@ export const DownloadIcon = styled(FaDownload)`
 `
 
 const DownloadButton = ({ label, downloadURL, onClick }) => (
-  <Button onClick={onClick}>
-    <Link to={downloadURL}>
+  <Link to={downloadURL}>
+    <Button onClick={onClick}>
       <DownloadIcon />
       <div>{label}</div>
-    </Link>
-  </Button>
+    </Button>
+  </Link>
 )
 
 DownloadButton.propTypes = {

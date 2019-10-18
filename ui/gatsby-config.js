@@ -15,6 +15,11 @@ module.exports = {
     mapboxToken: process.env.GATSBY_MAPBOX_API_TOKEN,
     apiHost: process.env.GATSBY_API_HOST || defaultHost,
     tileHost: process.env.GATSBY_TILE_HOST || defaultHost,
+    mailchimpConfig: {
+      formURL: process.env.GATSBY_MAILCHIMP_URL,
+      userID: process.env.GATSBY_MAILCHIMP_USER_ID,
+      formID: process.env.GATSBY_MAILCHIMP_FORM_ID,
+    },
   },
   plugins: [
     `gatsby-plugin-react-helmet`,
