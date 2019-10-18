@@ -1,4 +1,5 @@
 Southeast Aquatic Barrier Inventory - road-related barriers data download
+-------------------------------------------------------------------------
 
 Date downloaded: {{date}}
 Data version: {{version}}

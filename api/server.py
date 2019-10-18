@@ -306,7 +306,7 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
 
     filename = "aquatic_barrier_ranks_{0}.{1}".format(date.today().isoformat(), format)
 
-    # create readme
+    ### reate readme
     template_values = {
         "date": date.today(),
         "version": VERSION,
@@ -318,10 +318,14 @@ def download_dams(barrier_type="dams", layer="HUC8", format="CSV"):
 
     readme = render_template("{}_readme.txt".format(barrier_type), **template_values)
 
+    ### Create terms of use
+    terms = render_template("terms.txt", **template_values)
+
     zf_bytes = BytesIO()
     with ZipFile(zf_bytes, "w") as zf:
         zf.writestr(filename, df.to_csv(index=False))
         zf.writestr("README.txt", readme)
+        zf.writestr("TERMS_OF_USE.txt", terms)
 
     resp = make_response(zf_bytes.getvalue())
     resp.headers["Content-Disposition"] = "attachment; filename={0}".format(

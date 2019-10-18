@@ -1,0 +1,10 @@
+Southeast Aquatic Barrier Inventory - Terms of Use
+--------------------------------------------------
+
+Date downloaded: {{date}}
+Data version: {{version}}
+Downloaded from: {{url}}
+
+By downloading these data, you have agreed to the following terms:
+
+TODO:
