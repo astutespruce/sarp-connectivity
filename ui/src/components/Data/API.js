@@ -10,7 +10,12 @@ const { apiHost } = siteMetadata
  * @param {Array} units - array of objects with id property
  * @param {Map} filters - map of filter values, where filter name is key
  */
-const apiQueryParams = (units = [], filters = {}) => {
+const apiQueryParams = (
+  units = [],
+  filters = {},
+  includeUnranked = false,
+  sort = null
+) => {
   const ids = units.map(({ id }) => id)
   const filterValues = Object.entries(filters).filter(([, v]) => v.size > 0)
 
@@ -22,6 +27,13 @@ const apiQueryParams = (units = [], filters = {}) => {
     query += `&${filterValues
       .map(([k, v]) => `${k}=${Array.from(v).join(',')}`)
       .join('&')}`
+  }
+
+  if (includeUnranked) {
+    query += '&unranked=1'
+  }
+  if (sort) {
+    query += `&sort=${sort}`
   }
 
   return query
@@ -78,8 +90,17 @@ export const fetchBarrierRanks = async (
   return fetchCSV(url, undefined, autoType)
 }
 
-export const getDownloadURL = (barrierType, layer, summaryUnits, filters) =>
+export const getDownloadURL = (
+  barrierType,
+  layer,
+  summaryUnits,
+  filters,
+  includeUnranked,
+  sort
+) =>
   `${apiHost}/api/v1/${barrierType}/csv/${layer}?${apiQueryParams(
     summaryUnits,
-    filters
+    filters,
+    includeUnranked,
+    sort
   )}`

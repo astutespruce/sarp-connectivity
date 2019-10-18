@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import { Flex } from 'components/Grid'
 import { HelpText } from 'components/Text'
 import { useBarrierType } from 'components/Data'
+import { Downloader } from 'components/Download'
 import { countBy } from 'util/data'
 import { formatNumber, capitalize } from 'util/format'
 import styled, { themeGet } from 'style'
@@ -11,7 +12,6 @@ import styled, { themeGet } from 'style'
 import Histogram from './Histogram'
 import BackLink from '../BackLink'
 import StartOverButton from '../StartOverButton'
-import DownloadButton from './DownloadButton'
 import { Wrapper, Header, Footer, Title, Content } from '../styles'
 
 import { SCENARIOS } from '../../../../config/constants'
@@ -52,7 +52,7 @@ const SectionHeader = styled.div`
 `
 
 const Results = ({
-  downloadURL,
+  config,
   scenario,
   rankData,
   tierThreshold,
@@ -60,11 +60,6 @@ const Results = ({
   onBack,
 }) => {
   const barrierType = useBarrierType()
-  // const [tierThreshold, setTierThreshold] = useState(1)
-
-  const handleDownloadClick = () => {
-    console.log('download click')
-  }
 
   const scenarioLabel =
     scenario === 'ncwc'
@@ -132,18 +127,21 @@ const Results = ({
 
       <Footer>
         <StartOverButton />
-        <DownloadButton
-          label={`Download ${barrierType}`}
-          downloadURL={downloadURL}
-          onClick={handleDownloadClick}
-        />
+        <Downloader barrierType={barrierType} config={config} />
       </Footer>
     </Wrapper>
   )
 }
 
 Results.propTypes = {
-  downloadURL: PropTypes.string.isRequired,
+  config: PropTypes.shape({
+    layer: PropTypes.string.isRequired,
+    summaryUnits: PropTypes.arrayOf(
+      PropTypes.shape({ id: PropTypes.string.isRequired })
+    ).isRequired,
+    filters: PropTypes.object,
+    scenario: PropTypes.string.isRequired,
+  }).isRequired,
   scenario: PropTypes.string.isRequired,
   tierThreshold: PropTypes.number.isRequired,
   rankData: PropTypes.arrayOf(

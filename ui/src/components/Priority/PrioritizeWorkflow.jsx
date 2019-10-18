@@ -8,7 +8,6 @@ import {
   fetchBarrierInfo,
   fetchBarrierRanks,
   useBarrierType,
-  getDownloadURL,
 } from 'components/Data'
 import Sidebar, { LoadingSpinner, ErrorMessage } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
@@ -19,7 +18,6 @@ import UnitChooser from './UnitChooser'
 import LayerChooser from './LayerChooser'
 import Filters from './Filters'
 import Results from './Results'
-
 
 const Wrapper = styled(Flex)`
   height: 100%;
@@ -226,12 +224,12 @@ const Prioritize = () => {
               rankData={rankData}
               tierThreshold={tierThreshold}
               scenario={scenario}
-              downloadURL={getDownloadURL(
-                barrierType,
+              config={{
                 layer,
                 summaryUnits,
-                filters
-              )}
+                filters,
+                scenario,
+              }}
               onSetTierThreshold={handleSetTierThreshold}
               onBack={handleResultsBack}
             />
