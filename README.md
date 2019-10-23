@@ -116,7 +116,12 @@ GATSBY_SENTRY_DSN = <dsn>
 GATSBY_GOOGLE_ANALYTICS_ID = <ga id>
 GATSBY_API_HOST = <root URL of API host>
 GATSBY_TILE_HOST = <root URL of tile host>
+GATSBY_MAILCHIMP_URL = <POST URL of mailchimp subscription form>
+GATSBY_MAILCHIMP_USER_ID = <mailchimp user ID>
+GATSBY_MAILCHIMP_FORM_ID = <mailchimp audience ID for subscription form>
 ```
+
+The `MAILCHIMP_*` variables are used to capture user information for data download, and submit those to a signup form in Mailchimp.
 
 ### IMPORTANT:
 

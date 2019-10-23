@@ -1,7 +1,10 @@
 import React from 'react'
 
 import { Flex } from 'components/Grid'
-import { OutboundLink } from 'components/Link'
+import {
+  OutboundLink as BaseOutboundLink,
+  Link as BaseLink,
+} from 'components/Link'
 import styled, { themeGet } from 'style'
 
 import { siteMetadata } from '../../../gatsby-config'
@@ -22,10 +25,12 @@ const Wrapper = styled(Flex).attrs({
   font-size: 0.7rem;
 `
 
-const Link = styled(OutboundLink).attrs({
-  target: 'blank',
-  rel: 'noopener noreferrer',
-})`
+const OutboundLink = styled(BaseOutboundLink)`
+  color: #fff !important;
+  text-decoration: none;
+`
+
+const InternalLink = styled(BaseLink)`
   color: #fff !important;
   text-decoration: none;
 `
@@ -34,13 +39,15 @@ const Footer = () => {
   return (
     <Wrapper>
       <div>
-        <Link to="https://southeastaquatics.net/">
+        <OutboundLink to="https://southeastaquatics.net/">
           Southeast Aquatic Resources Partnership
-        </Link>
+        </OutboundLink>
         &nbsp;&nbsp;|&nbsp;&nbsp;
-        <Link to="https://southeastaquatics.net/about/contact-us">
+        <OutboundLink to="https://southeastaquatics.net/about/contact-us">
           Contact Us
-        </Link>
+        </OutboundLink>
+        &nbsp;&nbsp;|&nbsp;&nbsp;
+        <InternalLink to="/terms">Terms of Use</InternalLink>
       </div>
 
       <div>
@@ -49,10 +56,13 @@ const Footer = () => {
 
       <div>
         Created by the&nbsp;
-        <Link to="https://consbio.org">
+        <OutboundLink to="https://consbio.org">
           Conservation Biology Institute
-        </Link> and{' '}
-        <Link to="https://astutespruce.com">Astute Spruce, LLC</Link>
+        </OutboundLink>{' '}
+        and{' '}
+        <OutboundLink to="https://astutespruce.com">
+          Astute Spruce, LLC
+        </OutboundLink>
       </div>
     </Wrapper>
   )

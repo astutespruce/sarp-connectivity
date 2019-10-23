@@ -53,7 +53,7 @@ with open(Path(__file__).resolve().parent.parent / "ui/package.json") as infile:
     VERSION = json.loads(infile.read())["version"]
 
 # Include logo in download package
-LOGO_PATH = Path(__file__).resolve().parent.parent / "ui/src/images/sarp_logo.png"
+LOGO_PATH = Path(__file__).resolve().parent.parent / "ui/src/images/sarp_logo_oval.png"
 
 TYPES = ("dams", "barriers")
 LAYERS = ("HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4")
