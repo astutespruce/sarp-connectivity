@@ -6,7 +6,7 @@ import { Image } from 'rebass'
 import { HelpText } from 'components/Text'
 import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox as BaseHighlightBox } from 'components/Layout'
-import { Columns } from 'components/Grid'
+import { Flex, Columns } from 'components/Grid'
 import styled from 'style'
 import { formatNumber } from 'util/format'
 import { useSummaryData } from 'components/Data'
@@ -33,9 +33,10 @@ const Stats = styled.ul`
   }
 `
 
-const SARPLogo = styled(Image).attrs({ src: SARPLogoImage, width: '100%' })`
-  max-width: 300px;
-`
+const SARPLogo = styled(Image).attrs({
+  src: SARPLogoImage,
+  width: '14rem',
+})``
 
 const Inventory = () => {
   const { dams, total_barriers, miles } = useSummaryData()
@@ -101,7 +102,9 @@ const Inventory = () => {
               </li>
             </Stats>
 
-            <SARPLogo />
+            <Flex width="100%" justifyContent="center">
+              <SARPLogo />
+            </Flex>
 
             <HelpText textAlign="center" mt="1rem">
               Data version: {dataVersion} ({dataDate})

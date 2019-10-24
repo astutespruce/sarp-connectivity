@@ -9,7 +9,7 @@ import { HelpText, Text } from 'components/Text'
 import Layout from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { PageTitle, PageContainer, LargeText } from 'content/styles'
-import SARPLogoImage from 'images/sarp_logo_oval.png'
+import SARPLogoImage from 'images/sarp_logo.png'
 
 import styled from 'style'
 
