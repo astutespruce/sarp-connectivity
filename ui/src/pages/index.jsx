@@ -43,6 +43,7 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
     <DividerImage
       image={dividerImage1.childImageSharp.fluid}
       height="75vh"
+      minHeight="26rem"
       credits={{
         author:
           'Steeles Mill Dam Hitchcock Creek during removal. Peter Raabe, American Rivers.',
@@ -56,6 +57,7 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
     <DividerImage
       image={dividerImage2.childImageSharp.fluid}
       height="50vh"
+      minHeight="26rem"
       credits={{
         author:
           'Roaring River Dam Removal, Tennessee, 2017. Mark Thurman, Tennessee Wildlife Resources Agency.',

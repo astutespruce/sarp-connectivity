@@ -15,8 +15,6 @@ import { siteMetadata } from '../../../gatsby-config'
 import { config, sources, basemapLayers } from './config'
 import Coords from './Coords'
 
-console.log('process.env', process.env)
-
 // This wrapper must be positioned relative for the map to be able to lay itself out properly
 const Wrapper = styled.div`
   position: relative;

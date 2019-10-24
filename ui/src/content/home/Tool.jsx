@@ -1,5 +1,6 @@
 import React from 'react'
-import { Image } from 'rebass/styled-components'
+import { graphql, useStaticQuery } from 'gatsby'
+import Img from 'gatsby-image'
 import { FaChartBar, FaSearchLocation } from 'react-icons/fa'
 
 import { Text } from 'components/Text'
@@ -7,11 +8,8 @@ import { Link } from 'components/Link'
 import { SecondaryButton as Button } from 'components/Button'
 import { Columns, Flex } from 'components/Grid'
 import styled, { themeGet } from 'style'
-import SummarizeImage from 'images/summarize.jpg'
-import PrioritizeImage from 'images/prioritize.jpg'
 
 import { Section, Title, NarrowColumn, WideColumn } from '../styles'
-
 
 const Header = styled(Flex).attrs({ alignItems: 'center' })`
   font-size: 2rem;
@@ -21,10 +19,6 @@ const Header = styled(Flex).attrs({ alignItems: 'center' })`
 
 const Subtitle = styled(Text)`
   margin-left: 0.25em;
-`
-
-const Screenshot = styled(Image).attrs({ width: '100%' })`
-  border-radius: 0.25rem;
 `
 
 const BarIcon = styled(FaChartBar)`
@@ -38,6 +32,32 @@ const SearchIcon = styled(FaSearchLocation)`
 `
 
 const Tool = () => {
+  const {
+    prioritize: {
+      childImageSharp: { fluid: prioritizeImage },
+    },
+    summarize: {
+      childImageSharp: { fluid: summarizeImage },
+    },
+  } = useStaticQuery(graphql`
+    query {
+      prioritize: file(relativePath: { eq: "prioritize.jpg" }) {
+        childImageSharp {
+          fluid(maxWidth: 640, quality: 100) {
+            ...GatsbyImageSharpFluid_withWebp
+          }
+        }
+      }
+      summarize: file(relativePath: { eq: "summarize.jpg" }) {
+        childImageSharp {
+          fluid(maxWidth: 640, quality: 100) {
+            ...GatsbyImageSharpFluid_withWebp
+          }
+        }
+      }
+    }
+  `)
+
   return (
     <Section>
       <Title>
@@ -45,12 +65,11 @@ const Tool = () => {
         latest inventory data:
       </Title>
       <Header>
-            <BarIcon />
-            <Subtitle>Summarize the inventory across the region</Subtitle>
-          </Header>
+        <BarIcon />
+        <Subtitle>Summarize the inventory across the region</Subtitle>
+      </Header>
       <Columns>
         <WideColumn>
-          
           <p>
             Explore summaries of the inventory across the region by state,
             county, or different levels of watersheds and ecoregions.
@@ -73,21 +92,20 @@ const Tool = () => {
         </WideColumn>
         <NarrowColumn>
           <Link to="/summary">
-            <Screenshot src={SummarizeImage} alt="Summary View" />
+            <Img fluid={summarizeImage} alt="Summarize View" />
           </Link>
         </NarrowColumn>
       </Columns>
 
-<br/>
-<br/>
+      <br />
+      <br />
 
       <Header>
-            <SearchIcon />
-            <Subtitle>Prioritize aquatic barriers for removal</Subtitle>
-          </Header>
+        <SearchIcon />
+        <Subtitle>Prioritize aquatic barriers for removal</Subtitle>
+      </Header>
       <Columns>
         <WideColumn>
-          
           <p>
             Identify barriers for further investigation based on the criteria
             that matter to you.
@@ -110,7 +128,7 @@ const Tool = () => {
         </WideColumn>
         <NarrowColumn>
           <Link to="/priority">
-            <Screenshot src={PrioritizeImage} alt="Priority View" />
+            <Img fluid={prioritizeImage} alt="Priority View" />
           </Link>
         </NarrowColumn>
       </Columns>

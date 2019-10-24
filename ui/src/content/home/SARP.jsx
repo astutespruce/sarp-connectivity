@@ -1,13 +1,13 @@
 import React from 'react'
+import { graphql, useStaticQuery } from 'gatsby'
+import Img from 'gatsby-image'
 import { Image } from 'rebass/styled-components'
 
 import { Text } from 'components/Text'
 import { Link, OutboundLink } from 'components/Link'
-import { Columns, } from 'components/Grid'
+import { Columns } from 'components/Grid'
 import styled from 'style'
 import SARPLogoImage from 'images/sarp_logo.png'
-import ForestStreamImage from 'images/6882770647_60c0d68a9c_z.jpg'
-import GeorgiaACTImage from 'images/GA_ACT_small.jpg'
 
 import {
   Section,
@@ -21,17 +21,40 @@ const SARPLogo = styled(Image).attrs({ src: SARPLogoImage, width: '100%' })`
   max-width: 300px;
 `
 
-const Photo = styled(Image).attrs({ width: '100%' })`
-  border-radius: 0.25rem;
+const MinorTitle = styled(Text).attrs({ as: 'h3', m: 0 })`
+  font-weight: normal;
+  font-size: 1.75rem;
 `
-
-const MinorTitle = styled(Text).attrs({as: 'h3', m: 0})`
-font-weight: normal;
-font-size: 1.75rem;
-`
-
 
 const SARP = () => {
+  const {
+    forestStreamPhoto: {
+      childImageSharp: { fluid: forestStreamPhoto },
+    },
+    gaTeamPhoto: {
+      childImageSharp: { fluid: gaTeamPhoto },
+    },
+  } = useStaticQuery(graphql`
+    query {
+      forestStreamPhoto: file(
+        relativePath: { eq: "6882770647_60c0d68a9c_z.jpg" }
+      ) {
+        childImageSharp {
+          fluid(maxWidth: 640, quality: 85) {
+            ...GatsbyImageSharpFluid_withWebp
+          }
+        }
+      }
+      gaTeamPhoto: file(relativePath: { eq: "GA_ACT_small.jpg" }) {
+        childImageSharp {
+          fluid(maxWidth: 640, quality: 85) {
+            ...GatsbyImageSharpFluid_withWebp
+          }
+        }
+      }
+    }
+  `)
+
   return (
     <>
       <Section>
@@ -61,12 +84,16 @@ const SARP = () => {
       </Section>
       <Section>
         <Columns>
-          <NarrowColumn  ml={[0, 0, '1rem']} mr={[0, 0, '1rem']}>
-            <Photo src={ForestStreamImage}/>
+          <NarrowColumn ml={[0, 0, '1rem']} mr={[0, 0, '1rem']}>
+            <Img
+              fluid={forestStreamPhoto}
+              alt="Sam D. Hamilton Noxubee National Wildlife Refuge"
+            />
             Photo:{' '}
             <ImageCredits>
               <OutboundLink to="https://www.flickr.com/photos/usfwssoutheast/6882770647/in/album-72157629334467105/">
-                Sam D. Hamilton Noxubee National Wildlife Refuge in Mississippi. U.S. Fish and Wildlife Service.
+                Sam D. Hamilton Noxubee National Wildlife Refuge in Mississippi.
+                U.S. Fish and Wildlife Service.
               </OutboundLink>
             </ImageCredits>
           </NarrowColumn>
@@ -105,15 +132,10 @@ const SARP = () => {
           </WideColumn>
 
           <NarrowColumn>
-            <Photo
-              src={GeorgiaACTImage}
-              alt="Georgia Aquatic Connectivity Team"
-            />
+            <Img fluid={gaTeamPhoto} alt="Georgia Aquatic Connectivity Team" />
             <ImageCredits>
-                Photo:{' '}
-              <OutboundLink
-                to="https://www.southeastaquatics.net/news/white-dam-removal-motivates-georgia-conservation-practitioners"
-              >
+              Photo:{' '}
+              <OutboundLink to="https://www.southeastaquatics.net/news/white-dam-removal-motivates-georgia-conservation-practitioners">
                 Georgia Aquatic Connectivity Team
               </OutboundLink>
             </ImageCredits>
@@ -121,7 +143,7 @@ const SARP = () => {
         </Columns>
       </Section>
 
-      <Section mt='4rem'>
+      <Section mt="4rem">
         <Columns>
           <WideColumn>
             <MinorTitle>Get involved!</MinorTitle>

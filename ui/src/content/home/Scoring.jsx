@@ -1,4 +1,6 @@
 import React from 'react'
+import { graphql, useStaticQuery } from 'gatsby'
+import Img from 'gatsby-image'
 import { Image } from 'rebass/styled-components'
 import { FaExclamationTriangle } from 'react-icons/fa'
 
@@ -7,7 +9,6 @@ import { Link, OutboundLink } from 'components/Link'
 import { Columns, Column as BaseColumn, Flex } from 'components/Grid'
 import { HighlightBox } from 'components/Layout'
 import styled, { themeGet } from 'style'
-import DamPhoto from 'images/9272554306_b34bf886f4_z.jpg'
 import NetworkGraphicSVG from 'images/functional_network.svg'
 
 import {
@@ -41,15 +42,31 @@ const WarningIcon = styled(FaExclamationTriangle)`
   width: 1.5em;
   height: 1em;
   color: ${themeGet('colors.highlight.500')};
-  display: inline;
+  display: inline-block;
   margin-right: 0.25em;
 `
 
 const NetworkGraphic = styled(Image).attrs({ src: NetworkGraphicSVG })`
-  height: 30rem;
+  height: 22rem;
 `
 
 const Scoring = () => {
+  const {
+    damPhoto: {
+      childImageSharp: { fluid: damPhoto },
+    },
+  } = useStaticQuery(graphql`
+    query {
+      damPhoto: file(relativePath: { eq: "9272554306_b34bf886f4_z.jpg" }) {
+        childImageSharp {
+          fluid(maxWidth: 640, quality: 85) {
+            ...GatsbyImageSharpFluid_withWebp
+          }
+        }
+      }
+    }
+  `)
+
   return (
     <>
       <Section id="prioritize">
@@ -87,7 +104,7 @@ const Scoring = () => {
             </p>
           </WideColumn>
           <NarrowColumn>
-            <Photo src={DamPhoto} alt="Hartwell Dam" />
+            <Img fluid={damPhoto} alt="Hartwell Dam" />
             <ImageCredits>
               <OutboundLink to="https://www.flickr.com/photos/savannahcorps/9272554306/">
                 Hartwell Dam, Georgia. Billy Birdwell, U.S. Army Corps of
