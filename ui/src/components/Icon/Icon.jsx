@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Image as BaseImage } from 'rebass'
+import { Image as BaseImage } from 'rebass/styled-components'
 
 import styled, { theme } from 'style'
 

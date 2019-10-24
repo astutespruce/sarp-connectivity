@@ -1,4 +1,4 @@
-import { Flex, Box as BaseBox } from '@rebass/grid'
+import { Flex, Box as BaseBox } from 'reflexbox/styled-components'
 import { display } from 'styled-system'
 
 import styled from 'style'

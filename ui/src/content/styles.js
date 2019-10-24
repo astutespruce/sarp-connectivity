@@ -1,7 +1,7 @@
 import { Box, Container, Column as BaseColumn } from 'components/Grid'
 
 import { Text } from 'components/Text'
-import {Flex} from 'components/Grid'
+import { Flex } from 'components/Grid'
 import styled, { themeGet } from 'style'
 
 export const PageContainer = styled(Container).attrs({
@@ -98,7 +98,7 @@ export const StepNumber = styled(Flex)`
 `
 
 export const Divider = styled.div`
-height: 0.5rem;
-background-color: ${themeGet('colors.primary.800')};
-margin-bottom: 2rem;
+  height: 0.5rem;
+  background-color: ${themeGet('colors.primary.800')};
+  margin-bottom: 2rem;
 `

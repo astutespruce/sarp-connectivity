@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import useForm from 'react-hook-form'
 import fetchJSONP from 'fetch-jsonp'
 import { FaSync, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa'
-import { Image } from 'rebass'
+import { Image } from 'rebass/styled-components'
 
 import { Button } from 'components/Button'
 import { Text } from 'components/Text'

@@ -59,7 +59,7 @@ const TitleContainer = styled(Container).attrs({
 
 const Title = styled(Text).attrs({
   as: 'h1',
-  fontSize: '3rem',
+  fontSize: ['3rem'],
 })`
   color: #fff;
   margin: 0 0 0.5rem 0;

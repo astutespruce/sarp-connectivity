@@ -1,5 +1,4 @@
 import React from 'react'
-
 import { Link } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
 import { Columns, Column as BaseColumn } from 'components/Grid'
@@ -59,7 +58,7 @@ const Top = () => {
               actionable information to assist barrier removal projects.
               <br />
               <br />
-              <Link to="#prioritize">Read more...</Link>
+              <Link to="/#prioritize">Read more...</Link>
             </HighlightBox>
           </Column>
 

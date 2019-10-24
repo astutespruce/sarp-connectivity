@@ -9,6 +9,10 @@ exports.onCreateWebpackConfig = ({ actions, stage, loaders }) => {
     resolve: {
       modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     },
+    // per https://github.com/gatsbyjs/gatsby/issues/564
+    node: {
+      fs: 'empty',
+    },
   }
 
   // when building HTML, window is not defined, so Leaflet causes the build to blow up

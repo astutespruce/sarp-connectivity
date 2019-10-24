@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
-import { Image } from 'rebass'
+import { Image } from 'rebass/styled-components'
 
 import { Box, Flex } from 'components/Grid'
 import { OutboundLink } from 'components/Link'

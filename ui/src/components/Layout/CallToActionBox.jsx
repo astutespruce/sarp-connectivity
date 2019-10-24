@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Text } from 'rebass'
+import { Text } from 'rebass/styled-components'
 
 import { Box, Flex } from 'components/Grid'
 import { Link } from 'components/Link'

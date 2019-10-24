@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 
 import React from 'react'
-import { Image } from 'rebass'
+import { Image } from 'rebass/styled-components'
 
 import { HelpText } from 'components/Text'
 import { Link, OutboundLink } from 'components/Link'
@@ -69,7 +69,7 @@ const Inventory = () => {
             This inventory consists of datasets from local, state, and federal
             partners. It is supplemented with input from partners with on the
             ground knowledge of specific structures.{' '}
-            <Link to="#example">
+            <Link to="/#example">
               See an example of how the inventory can assist local partners to
               identify and prioritize barriers for removal.
             </Link>

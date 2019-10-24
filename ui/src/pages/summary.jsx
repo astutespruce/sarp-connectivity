@@ -3,7 +3,6 @@ import React, { useState, useCallback } from 'react'
 import { Flex } from 'components/Grid'
 import Layout from 'components/Layout'
 import Sidebar from 'components/Sidebar'
-import { BarrierTypeProvider } from 'components/Data'
 import { TopBar, TopBarToggle } from 'components/Map'
 import { Map, UnitDetails, SoutheastSummary } from 'components/Summary'
 import BarrierDetails from 'components/BarrierDetails'
@@ -75,13 +74,11 @@ const SummaryPage = () => {
   if (selectedBarrier !== null) {
     // have to use provider here, barrier details expects to get barrierType from context
     sidebarContent = (
-      // <BarrierTypeProvider barrierType={barrierType}>
       <BarrierDetails
         barrierType={barrierType}
         barrier={selectedBarrier}
         onClose={handleBarrierDetailsClose}
       />
-      // </BarrierTypeProvider>
     )
   } else if (selectedUnit !== null) {
     sidebarContent = (

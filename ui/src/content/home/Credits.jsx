@@ -1,5 +1,5 @@
 import React from 'react'
-import { Image } from 'rebass'
+import { Image } from 'rebass/styled-components'
 
 import { OutboundLink } from 'components/Link'
 import { Columns } from 'components/Grid'

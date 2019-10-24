@@ -233,6 +233,29 @@ const PriorityMap = ({
     ]
   )
 
+  const selectUnitById = useCallback(
+    (id, layer) => {
+      const [feature] = mapRef.current.querySourceFeatures('sarp', {
+        sourceLayer: layer,
+        filter: ['==', 'id', id],
+      })
+
+      if (feature !== undefined) {
+        onSelectUnit({ ...feature.properties, layerId: layer })
+      }
+      return feature
+    },
+    [onSelectUnit]
+  )
+
+  // Debounce updates to the filter to prevent frequent redraws
+  // which have bad performance with high numbers of dams
+  const [debouncedSetRankFilter] = useDebouncedCallback((field, threshold) => {
+    const { current: map } = mapRef
+    map.setFilter(topRank.id, ['<=', field, threshold])
+    map.setFilter(lowerRank.id, ['>', field, threshold])
+  }, 200)
+
   // If map allows unit selection, make layers visible for the activeLayer, so that user can select from them
   // otherwise just highlight those currently selected
   useEffect(() => {
@@ -403,29 +426,6 @@ const PriorityMap = ({
 
     debouncedSetRankFilter(`${scenario}_tier`, tierThreshold)
   }, [tierThreshold, scenario, debouncedSetRankFilter])
-
-  // Debounce updates to the filter to prevent frequent redraws
-  // which have bad performance with high numbers of dams
-  const [debouncedSetRankFilter] = useDebouncedCallback((field, threshold) => {
-    const { current: map } = mapRef
-    map.setFilter(topRank.id, ['<=', field, threshold])
-    map.setFilter(lowerRank.id, ['>', field, threshold])
-  }, 200)
-
-  const selectUnitById = useCallback(
-    (id, layer) => {
-      const [feature] = mapRef.current.querySourceFeatures('sarp', {
-        sourceLayer: layer,
-        filter: ['==', 'id', id],
-      })
-
-      if (feature !== undefined) {
-        onSelectUnit({ ...feature.properties, layerId: layer })
-      }
-      return feature
-    },
-    [onSelectUnit]
-  )
 
   const getLegend = () => {
     const pointLayers = [

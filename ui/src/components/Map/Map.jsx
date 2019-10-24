@@ -15,6 +15,8 @@ import { siteMetadata } from '../../../gatsby-config'
 import { config, sources, basemapLayers } from './config'
 import Coords from './Coords'
 
+console.log('process.env', process.env)
+
 // This wrapper must be positioned relative for the map to be able to lay itself out properly
 const Wrapper = styled.div`
   position: relative;
@@ -36,11 +38,12 @@ if (!mapboxToken) {
 
 const { bounds, styleID, minZoom, maxZoom } = config
 
-const Map = ({ searchFeature, onCreateMap }) => {
-  // if there is no window, we cannot render this component
-  if (!hasWindow) {
-    return null
-  }
+const Map = ({ onCreateMap }) => {
+  // TODO: how to handle this
+  // // if there is no window, we cannot render this component
+  // if (!hasWindow) {
+  //   return null
+  // }
 
   const mapNode = useRef(null)
   const [map, setMap] = useState(null)
@@ -99,12 +102,9 @@ const Map = ({ searchFeature, onCreateMap }) => {
 }
 
 Map.propTypes = {
-  searchFeature: SearchFeaturePropType,
   onCreateMap: PropTypes.func.isRequired,
 }
 
-Map.defaultProps = {
-  searchFeature: null,
-}
+Map.defaultProps = {}
 
 export default Map

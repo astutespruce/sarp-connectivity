@@ -1,10 +1,15 @@
+// load appropriate dotenv file
+require('dotenv').config({
+  path: `.env.${process.env.NODE_ENV}`,
+})
+const { version, date } = require('./package.json')
+
 const defaultHost = `https://connectivity.sarpdata.com`
-const package = require('./package.json')
 
 module.exports = {
   siteMetadata: {
-    version: package.version,
-    date: package.date,
+    version,
+    date,
     siteUrl: process.env.GATSBY_SITE_URL || defaultHost,
     title: `Southeast Aquatic Barrier Prioritization Tool`,
     shortTitle: `Southeast Aquatic Barrier Tool`,

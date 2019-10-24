@@ -15,6 +15,7 @@ const Wrapper = styled(Flex).attrs({
   left: 0;
   right: 0;
   z-index: 10000;
+  overflow: auto;
 `
 
 const Background = styled.div`
