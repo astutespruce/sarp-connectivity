@@ -11,7 +11,6 @@ import Footer from './Footer'
 
 import { siteMetadata } from '../../../gatsby-config'
 
-
 const Wrapper = styled(Flex).attrs({ flexDirection: 'column' })`
   height: 100%;
 `
@@ -19,6 +18,7 @@ const Wrapper = styled(Flex).attrs({ flexDirection: 'column' })`
 const Content = styled.div`
   flex: 1 1 auto;
   overflow-y: auto;
+  height: 100%;
 `
 
 const Layout = ({ children, title }) => {
