@@ -27,7 +27,7 @@ const Header = styled(Flex).attrs({
 })`
   background: #f6f6f2;
   border-bottom: 1px solid #ddd;
-  flex: 0;
+  flex: 0 0 auto;
   line-height: 1.3;
 `
 
