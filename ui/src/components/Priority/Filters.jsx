@@ -16,7 +16,6 @@ import SubmitButton from './SubmitButton'
 import StartOverButton from './StartOverButton'
 import { Wrapper, Header, Footer, Title, Content } from './styles'
 
-
 const CountContainer = styled(Flex).attrs({
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -48,6 +47,11 @@ const Filters = ({ onBack, onSubmit }) => {
 
   const { filteredCount, hasFilters } = state
 
+  const handleBack = () => {
+    resetFilters()
+    onBack()
+  }
+
   const handleReset = () => {
     resetFilters()
   }
@@ -55,7 +59,7 @@ const Filters = ({ onBack, onSubmit }) => {
   return (
     <Wrapper>
       <Header>
-        <BackLink label="modify area of interest" onClick={onBack} />
+        <BackLink label="modify area of interest" onClick={handleBack} />
         <Title>Filter {barrierType}</Title>
 
         <CountContainer>
