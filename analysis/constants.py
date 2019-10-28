@@ -183,7 +183,7 @@ EXCLUDE_SNAP2018 = [5, 10]
 
 # Used to filter dams by Recon
 # based on guidance from Kat
-DROP_RECON = [7, 19]
+DROP_RECON = [5, 7, 19]
 DROP_FEASIBILITY = [7, 8]
 
 # These are excluded from network analysis / prioritization, but included for mapping
@@ -196,9 +196,9 @@ RECON_TO_FEASIBILITY = {
     2: 3,
     3: 2,
     4: 1,
-    5: 0,  # should be removed from analysis
+    5: 7,  # should be removed from analysis
     6: 2,
-    7: 0,  # should be removed from analysis
+    7: 8,  # should be removed from analysis
     8: 6,
     9: 6,
     10: 6,
@@ -206,10 +206,10 @@ RECON_TO_FEASIBILITY = {
     13: 6,
     14: 4,
     15: 5,
-    16: 0,  # should be excluded from analysis
+    16: 9,
     17: 6,
     18: 6,
-    19: 0,  # should be removed from analysis
+    19: 10,  # should be removed from analysis
     20: 5,
     21: 6,
 }
@@ -227,6 +227,8 @@ RECON_TO_FEASIBILITY = {
 #   # 6: 'Unknown',
 #   # 7: 'Error',
 #   # 8: 'Dam removed for conservation benefit'
+#   # 9: 'Invasive species barrier',
+#   # 10: 'Proposed dam'
 # }
 
 

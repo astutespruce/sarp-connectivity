@@ -164,7 +164,7 @@ df.loc[exclude_idx, "excluded"] = True
 to_snap = df.loc[~(df.dropped | df.excluded), ["geometry", "HUC2", "id"]].copy()
 print("Attempting to snap {:,} small barriers".format(len(to_snap)))
 
-snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
+snapped = snap_by_region(to_snap, REGION_GROUPS, default_tolerance=SNAP_TOLERANCE)
 
 # join back to master
 df = update_from_snapped(df, snapped)

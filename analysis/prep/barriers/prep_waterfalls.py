@@ -98,7 +98,7 @@ print("Starting snapping for {} waterfalls".format(len(df)))
 
 # retain only fields needed for snapping
 to_snap = df.loc[~df.dropped, ["geometry", "HUC2", "id"]]
-snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
+snapped = snap_by_region(to_snap, REGION_GROUPS, default_tolerance=SNAP_TOLERANCE)
 
 # join back to master
 df = update_from_snapped(df, snapped)

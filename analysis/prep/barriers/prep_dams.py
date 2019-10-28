@@ -226,10 +226,20 @@ df.loc[exclude_idx, "excluded"] = True
 
 
 ### Snap by region group
-to_snap = df.loc[~(df.dropped | df.excluded), ["geometry", "HUC2", "id"]].copy()
+
+# If SNAP2018==2, these are NABD dams and potentially large, but not immediately on the network.
+# If SNAP2018==4, these were visually verified by SARP as being on network, but may
+# be larger dams and > 100 m off channel.  Snap up to 250 meters for these.
+
+to_snap = df.loc[
+    ~(df.dropped | df.excluded), ["geometry", "HUC2", "id", "SNAP2018"]
+].copy()
+to_snap["tolerance"] = SNAP_TOLERANCE
+to_snap.loc[to_snap.SNAP2018.isin([2, 4]), "tolerance"] = 250
+
 print("Attempting to snap {:,} dams".format(len(to_snap)))
 
-snapped = snap_by_region(to_snap, REGION_GROUPS, SNAP_TOLERANCE)
+snapped = snap_by_region(to_snap, REGION_GROUPS)
 
 
 # join back to master

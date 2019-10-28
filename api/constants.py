@@ -1,5 +1,3 @@
-
-
 def unique(items):
     """Convert a sorted list of items into a unique list, taking the 
     first occurrence of each duplicate item.
@@ -21,7 +19,6 @@ def unique(items):
             s.add(item)
 
     return result
-
 
 
 # Summary unit fields
@@ -57,7 +54,7 @@ FILTER_FIELDS = [
     "GainMilesClass",
     "TESppClass",
     "StreamOrderClass",
-    "OwnerType"
+    "OwnerType",
 ]
 
 DAM_FILTER_FIELDS = [
@@ -74,7 +71,6 @@ SB_FILTER_FIELDS = [
     "RoadTypeClass",
     "SeverityClass",
 ] + FILTER_FIELDS
-
 
 
 ### Fields used for export
@@ -207,10 +203,12 @@ FEASIBILITY_DOMAIN = {
     3: "Possibly feasible",
     4: "Likely feasible",
     5: "No conservation benefit",
+    9: "Invasive species barrier",
     # not shown to user
     6: "Unknown",
     7: "Error",
     8: "Dam removed for conservation benefit",
+    10: "Proposed dam",
 }
 
 

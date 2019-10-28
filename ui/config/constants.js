@@ -85,6 +85,7 @@ export const FEASIBILITY = {
   4: 'Likely feasible',
   5: 'No conservation benefit',
   6: 'Unknown',
+  9: 'Invasive species barrier',
   // not shown to user
   // 7: 'Error',
   // 8: 'Dam removed for conservation benefit'
