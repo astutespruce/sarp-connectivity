@@ -11,6 +11,13 @@ const Column = styled(BaseColumn).attrs({
 })`
   display: flex;
   flex-direction: column;
+  min-width: 18rem;
+  margin-top: 2rem;
+`
+
+const HighlightColumns = styled(Columns)`
+  margin-top: -2rem;
+  flex-wrap: wrap;
 `
 
 const Top = () => {

@@ -26,7 +26,9 @@ const Photo = styled(Image).attrs({ width: '100%' })`
   border-radius: 0.25rem;
 `
 
-const Column = styled(BaseColumn).attrs({ width: ['100%', '100%', '50%'] })``
+const Column = styled(BaseColumn).attrs({ width: ['100%', '100%', '50%'] })`
+  min-width: 18rem;
+`
 
 const List = styled.ul`
   li {
