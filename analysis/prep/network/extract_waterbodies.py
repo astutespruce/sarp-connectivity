@@ -20,7 +20,7 @@ from nhdnet.io import serialize_df, deserialize_df, serialize_sindex, to_shp
 from analysis.constants import REGIONS, REGION_GROUPS, CRS, EXCLUDE_IDs
 
 MIN_SQ_KM = 0.001
-RESERVOIR_COLS = ["wbID", "NHDPlusID", "FType", "AreaSqKm", "geometry"]
+RESERVOIR_COLS = ["NHDPlusID", "FType", "AreaSqKm", "geometry"]
 
 
 src_dir = Path("data/nhd/source/huc4")
@@ -33,7 +33,7 @@ for region, HUC2s in REGION_GROUPS.items():
 
     region_dir = out_dir / region
 
-    if os.path.exists(region_dir / "reservoir.feather"):
+    if os.path.exists(region_dir / "waterbodies.feather"):
         print("Skipping existing region {}".format(region))
         continue
 
@@ -51,9 +51,6 @@ for region, HUC2s in REGION_GROUPS.items():
             df = gp.read_file(gdb, layer="NHDWaterbody")
             df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
-            # add our own ID
-            df["wbID"] = df.index.values.astype("uint32") + 1
-
             df = df.loc[df.AreaSqKm >= MIN_SQ_KM][RESERVOIR_COLS].copy()
 
             df.geometry = df.geometry.apply(to2D)
@@ -67,6 +64,9 @@ for region, HUC2s in REGION_GROUPS.items():
     print("--------------------")
     print("Extracted {:,} waterbodies in this region".format(len(merged)))
     df = merged
+
+    # add our own ID
+    df["wbID"] = df.index.values.astype("uint32") + 1
 
     ### Join waterbodies to flowlines
     # Keep only the waterbodies that intersect flowlines
@@ -92,15 +92,15 @@ for region, HUC2s in REGION_GROUPS.items():
     joined = joined.loc[joined.lineID.notnull(), ["wbID", "lineID", "length"]]
     joined.lineID = joined.lineID.astype("uint32")
 
-    serialize_df(
-        joined[["wbID", "lineID"]].reset_index(drop=True),
-        region_dir / "waterbody_flowline_joins.feather",
-    )
-
     wb_stats = (
         joined.groupby("wbID")
         .agg({"length": "sum", "lineID": "count"})
         .rename(columns={"lineID": "numSegments", "length": "flowlineLength"})
+    )
+
+    serialize_df(
+        joined[["wbID", "lineID"]].join(wb_stats, on="wbID").reset_index(drop=True),
+        region_dir / "waterbody_flowline_joins.feather",
     )
 
     print("Dropping all waterbodies that do not intersect flowlines")
@@ -140,6 +140,5 @@ for region, HUC2s in REGION_GROUPS.items():
     print("serialize done in {:.0f}s".format(time() - serialize_start))
 
     print("Region done in {:.0f}s".format(time() - region_start))
-
 
 print("Done in {:.2f}s\n============================".format(time() - start))
