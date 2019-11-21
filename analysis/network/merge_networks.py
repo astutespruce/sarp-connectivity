@@ -139,7 +139,7 @@ network_stats = calculate_network_stats(updated_network, barrier_joins)
 # because there is no barrier at the bottom of the joined network, we never
 # need to assign stats on the upstream side of a barrier in this update
 cross_region_stats = cross_region.join(network_stats, on="downstream_network")[
-    ["downstream_network", "upstream_network", "miles"]
+    ["downstream_network", "upstream_network", "miles", "free_miles"]
 ]
 
 ### Update barrier joins for all regions
@@ -166,10 +166,15 @@ for region in CONNECTED_REGIONS:
         barrier_networks.loc[idx, "downNetID"] = barrier_networks.loc[
             idx
         ].downstream_network.astype("uint64")
-        barrier_networks.loc[idx, "DownstreamMiles"] = barrier_networks.loc[idx].miles
+        barrier_networks.loc[idx, "FreeDownstreamMiles"] = barrier_networks.loc[
+            idx
+        ].free_miles
+        barrier_networks.loc[idx, "TotalDownstreamMiles"] = barrier_networks.loc[
+            idx
+        ].miles
 
         barrier_networks = barrier_networks.drop(
-            columns=["miles", "downstream_network"]
+            columns=["miles", "free_miles", "downstream_network"]
         )
 
     else:
@@ -182,8 +187,13 @@ for region in CONNECTED_REGIONS:
         ).miles.drop_duplicates()
         barrier_networks = barrier_networks.join(stats, on="downNetID")
         idx = barrier_networks.loc[barrier_networks.miles.notnull()].index
-        barrier_networks.loc[idx, "DownstreamMiles"] = barrier_networks.loc[idx].miles
-        barrier_networks = barrier_networks.drop(columns=["miles"])
+        barrier_networks.loc[idx, "FreeDownstreamMiles"] = barrier_networks.loc[
+            idx
+        ].free_miles
+        barrier_networks.loc[idx, "TotalDownstreamMiles"] = barrier_networks.loc[
+            idx
+        ].miles
+        barrier_networks = barrier_networks.drop(columns=["miles", "free_miles"])
 
     serialize_df(
         barrier_networks.reset_index(drop=False), out_dir / "barriers_network.feather"

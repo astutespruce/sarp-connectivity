@@ -1,11 +1,11 @@
 def unique(items):
-    """Convert a sorted list of items into a unique list, taking the 
+    """Convert a sorted list of items into a unique list, taking the
     first occurrence of each duplicate item.
-    
+
     Parameters
     ----------
     items : list-like
-    
+
     Returns
     -------
     list
@@ -30,8 +30,10 @@ METRIC_FIELDS = [
     "Landcover",
     "Sinuosity",
     "SizeClasses",
-    "UpstreamMiles",
-    "DownstreamMiles",
+    "TotalUpstreamMiles",
+    "TotalDownstreamMiles",
+    "FreeUpstreamMiles",
+    "FreeDownstreamMiles",
     "GainMiles",
     "TotalNetworkMiles",
 ]

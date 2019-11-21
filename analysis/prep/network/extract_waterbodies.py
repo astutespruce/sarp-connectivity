@@ -22,6 +22,10 @@ from analysis.constants import REGIONS, REGION_GROUPS, CRS, EXCLUDE_IDs
 MIN_SQ_KM = 0.001
 RESERVOIR_COLS = ["NHDPlusID", "FType", "AreaSqKm", "geometry"]
 
+# Exclude swamp/marsh (466), estuaries (493), playas (361).
+# NOTE: they do not cut the flowlines in the same
+# way as other waterbodies, so they will cause issues.
+EXCLUDE_FTYPE = [361, 466, 493]
 
 src_dir = Path("data/nhd/source/huc4")
 out_dir = Path("data/nhd/flowlines")
@@ -33,9 +37,10 @@ for region, HUC2s in REGION_GROUPS.items():
 
     region_dir = out_dir / region
 
-    if os.path.exists(region_dir / "waterbodies.feather"):
-        print("Skipping existing region {}".format(region))
-        continue
+    # FIXME:
+    # if os.path.exists(region_dir / "waterbodies.feather"):
+    #     print("Skipping existing region {}".format(region))
+    #     continue
 
     region_start = time()
 
@@ -51,7 +56,9 @@ for region, HUC2s in REGION_GROUPS.items():
             df = gp.read_file(gdb, layer="NHDWaterbody")
             df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
-            df = df.loc[df.AreaSqKm >= MIN_SQ_KM][RESERVOIR_COLS].copy()
+            df = df.loc[(df.AreaSqKm >= MIN_SQ_KM) & (~df.FType.isin(EXCLUDE_FTYPE))][
+                RESERVOIR_COLS
+            ].copy()
 
             df.geometry = df.geometry.apply(to2D)
             df = df.to_crs(CRS)
@@ -71,10 +78,12 @@ for region, HUC2s in REGION_GROUPS.items():
     ### Join waterbodies to flowlines
     # Keep only the waterbodies that intersect flowlines
     print("Reading flowlines...")
-    flowlines = from_geofeather(region_dir / "flowline.feather")[
-        ["geometry", "lineID", "length"]
-    ]
-    joins = deserialize_df(region_dir / "flowline_joins.feather")
+    flowlines = from_geofeather(
+        region_dir / "flowline.feather", columns=["geometry", "lineID", "length"]
+    )
+    joins = deserialize_df(
+        region_dir / "flowline_joins.feather", columns=["downstream_id", "upstream_id"]
+    )
 
     print(
         "Creating spatial index on waterbodies and flowlines, this might take a while..."

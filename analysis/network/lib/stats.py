@@ -9,7 +9,7 @@ data_dir = Path("data")
 
 def calculate_network_stats(df, barrier_joins):
     """Calculation of network statistics, for each functional network.
-    
+
     Parameters
     ----------
     df : Pandas DataFrame
@@ -19,7 +19,10 @@ def calculate_network_stats(df, barrier_joins):
         * size class
 
     barrier_barrier_joins : Pandas DataFrame
-        contains ...TODO: 
+        contains:
+        * upstream_id
+        * downstream_id
+        * kind
 
 
     Returns
@@ -90,20 +93,25 @@ def calculate_network_stats(df, barrier_joins):
 
 
 def calculate_geometry_stats(df):
-    """Calculate total network miles, length-weighted sinuosity, and count of segments
-    
+    """Calculate total network miles, free-flowing miles (not in waterbodies),
+    length-weighted sinuosity, and count of segments
+
     Parameters
     ----------
     df : DataFrame
-        must have length and sinuosity, and be indexed on networkID
-    
+        must have length, sinuosity, waterbody, and be indexed on networkID
+
     Returns
     -------
     DataFrame
-        contains miles, sinuosity, segments
+        contains miles, free_miles, sinuosity, segments
     """
 
-    network_length = df.groupby(level=0).length.sum()
+    network_length = df.groupby(level=0)[["length"]].sum()
+    free_length = (
+        df.loc[~df.waterbody].groupby(level=0).length.sum().rename("free_length")
+    )
+
     temp_df = df[["length", "sinuosity"]].join(network_length, rsuffix="_total")
 
     # Calculate length-weighted sinuosity
@@ -111,26 +119,28 @@ def calculate_geometry_stats(df):
         (temp_df.sinuosity * (temp_df.length / temp_df.length_total))
         .groupby(level=0)
         .sum()
+        .rename("sinuosity")
     )
 
+    lengths = network_length.join(free_length)
+    lengths.free_length = lengths.free_length.fillna(0)
+
     # convert meters to miles
-    return pd.DataFrame(
-        data={
-            "miles": network_length * 0.000621371,
-            "sinuosity": wtd_sinuosity,
-            "segments": df.groupby(level=0).size(),
-        }
+    miles = (lengths * 0.000621371).rename(
+        columns={"length": "miles", "free_length": "free_miles"}
     )
+
+    return miles.join(wtd_sinuosity).join(df.groupby(level=0).size().rename("segments"))
 
 
 def calculate_floodplain_stats(df):
     """Calculate percent of floodplain covered by natural landcover.
-    
+
     Parameters
     ----------
     df : DataFrame
         network data frame, must have NHDPlusID and be indexed on networkID
-    
+
     Returns
     -------
     Series

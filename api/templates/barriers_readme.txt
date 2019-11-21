@@ -25,7 +25,7 @@ barriers is not complete or comprehensive across the region, and depends on the 
 completeness of existing data and level of partner feedback. Some areas of the region are more complete than others but none
 should be considered 100% complete.
 
-All network analyses were conducted using the NHD High Resolution Plus dataset 
+All network analyses were conducted using the NHD High Resolution Plus dataset
 (https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution).
 
 If you are able to help improve the inventory by sharing data or assisting with field
@@ -67,10 +67,12 @@ StreamOrder: NHDPlus Modified Strahler stream order. -1 = not available.
 Landcover: average amount of the river floodplain in the upstream network that is in natural landcover types. -1 = not available.
 Sinuosity: length-weighted sinuosity of the upstream river network.  Sinuosity is the ratio between the straight-line distance between the endpoints for each stream reach and the total stream reach length. -1 = not available.
 SizeClasses: number of unique upstream size classes that could be gained by removal of this dam. -1 = not available.
-UpstreamMiles: number of miles in the upstream river network from this dam. -1 = not available.
-DownstreamMiles: number of miles in the complete downstream river network from this dam.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path. -1 = not available.
-GainMiles: absolute number of miles that could be gained by removal of this dam.  Calculated as the minimum of the upstream and downstream network lengths. -1 = not available.
-TotalNetworkMiles: upstream plus downstream network miles. -1 = not available.
+TotalUpstreamMiles: number of miles in the upstream river network from this dam, including miles in waterbodies. -1 = not available.
+TotalDownstreamMiles: number of miles in the complete downstream river network from this dam, including miles in waterbodies.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path. -1 = not available.
+FreeUpstreamMiles: number of free-flowing miles in the upstream river network (TotalUpstreamMiles minus miles in waterbodies).  Uses for ranking, since there may be major reservoirs downstream of a given barrier that should not be considered as part of connected network. -1 = not available.
+FreeDownstreamMiles: number of free-flowing miles in the downstream river network (TotalDownstreamMiles minus miles in waterbodies). -1 = not available.
+GainMiles: absolute number of miles that could be gained by removal of this dam.  Calculated as the minimum of the TotalUpstreamMiles and FreeDownstreamMiles. -1 = not available.
+TotalNetworkMiles: sum of TotalUpstreamMiles and FreeDownstreamMiles. -1 = not available.
 
 SE_NC_tier: network connectivity tier for all on-network barriers within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the barriers within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.
 SE_WC_tier: watershed condition tier for all on-network barriers within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the barriers within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.

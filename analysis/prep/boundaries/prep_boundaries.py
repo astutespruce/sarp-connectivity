@@ -26,6 +26,8 @@ from analysis.constants import (
 data_dir = Path("./data")
 boundaries_dir = data_dir / "boundaries"
 
+src_dir = boundaries_dir / "source"
+
 # intermediate stores projected data that haven't been intersected to region
 intermediate_dir = boundaries_dir / "intermediate"
 out_dir = boundaries_dir
@@ -54,17 +56,6 @@ to_shp(
     boundaries_dir / "HUC6_prj.shp",
 )
 
-### HUC8s - used for visualization; not needed for spatial joins
-df = gp.read_file(intermediate_dir / "HUC8_prj.shp")[["geometry", "HUC8", "NAME"]]
-df.sindex
-
-# Select out within the SARP boundary
-in_sarp = gp.sjoin(df, bnd)
-df = df.loc[df.HUC8.isin(in_sarp.HUC8)]
-to_shp(
-    df.reset_index().rename(columns={"HUC8": "id", "NAME": "name"}),
-    boundaries_dir / "HUC8_prj.shp",
-)
 
 ### HUC12s - primary for all spatial joins (other codes can be derived from HUC12)
 df = gp.read_file(intermediate_dir / "HUC12_prj.shp")[["geometry", "HUC12", "NAME"]]
@@ -163,12 +154,12 @@ to_shp(
 
 ### Protected areas
 print("Extracting protected areas...")
-df = gp.read_file(intermediate_dir / "protected_areas.shp").rename(
-    columns={"type": "otype"}
-)
+df = gp.read_file(intermediate_dir / "protected_areas.shp")
+df.sort = df.sort.fillna(255).astype("uint8")  # missing values should sort to bottom
 
-
-# partner_federal = ["US Fish and Wildlife Service", "US Forest Service", "USDA Forest Service"]
+# sort on 'sort' so that later when we do spatial joins and get multiple hits, we take the ones with
+# the lowest sort value (1 = highest priority) first.
+df = df.sort_values(by="sort")
 
 # partner federal agencies to call out specifically
 # map of substrings to search for specific owners
@@ -180,7 +171,12 @@ partner_federal = {
         "U.S. Fish and Wildlife Service",
         "U.S. Fish & Wildlife Service",
     ],
-    "USDA Forest Service": ["USFS", "USDA FOREST SERVICE", "US Forest Service"],
+    "USDA Forest Service": [
+        "USFS",
+        "USDA FOREST SERVICE",
+        "US Forest Service",
+        "USDA Forest Service",
+    ],
 }
 
 has_owner = df.owner.notnull()
@@ -208,5 +204,52 @@ df["ProtectedLand"] = (
 )
 
 # only save owner type
-df = df[["geometry", "OwnerType", "ProtectedLand"]].reset_index(drop=True)
+df = df[["geometry", "OwnerType", "ProtectedLand", "sort"]].reset_index(drop=True)
 to_geofeather(df, boundaries_dir / "protected_areas.feather")
+
+
+### Priority layers
+# These are joined on HUC8 codes
+usfs = gp.read_file(src_dir / "Priority_Areas.gdb", layer="USFS_Priority")[
+    ["HUC_8"]
+].set_index("HUC_8")
+usfs["usfs"] = True
+
+coa = gp.read_file(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[
+    ["HUC_8"]
+].set_index("HUC_8")
+coa["coa"] = True
+
+sebio = (
+    gp.read_file(src_dir / "Priority_Areas.gdb", layer="SE_Biodiversity")[
+        ["SARP_HUC8_COAs_2015_WebMercator_HUC_8", "NewRanks_ATPrioritySum"]
+    ]
+    .rename(
+        columns={
+            "SARP_HUC8_COAs_2015_WebMercator_HUC_8": "HUC_8",
+            "NewRanks_ATPrioritySum": "priority",
+        }
+    )
+    .set_index("HUC_8")
+)
+
+# pull out the top 10%  (90th percentile)
+threshold = sebio.priority.quantile([0.9]).iloc[0]
+sebio = sebio.loc[sebio.priority >= threshold].drop(columns=["priority"])
+sebio["sebio"] = True
+
+priorities = usfs.join(coa, how="outer").join(sebio, how="outer").fillna(False)
+
+
+### HUC8s - used for visualization; not needed for spatial joins
+df = gp.read_file(intermediate_dir / "HUC8_prj.shp")[["geometry", "HUC8", "NAME"]]
+df.sindex
+
+# Select out within the SARP boundary
+in_sarp = gp.sjoin(df, bnd)
+df = df.loc[df.HUC8.isin(in_sarp.HUC8)].join(priorities, on="HUC8")
+df[priorities.columns] = df[priorities.columns].fillna(False)
+to_shp(
+    df.reset_index().rename(columns={"HUC8": "id", "NAME": "name"}),
+    boundaries_dir / "HUC8_prj.shp",
+)

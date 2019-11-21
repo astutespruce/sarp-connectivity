@@ -13,14 +13,14 @@ nhd_dir = data_dir / "nhd/flowlines"
 def cut_flowlines_at_barriers(region, barriers):
     """Read in flowlines and joins between segments, cut flowlines at barriers, and return updated
     flowlines, joins, and joins at each of the barriers
-    
+
     Parameters
     ----------
     region : str
         ID of region group
     barriers : GeoDataFrame
         Barriers to cut the network
-    
+
     Returns
     -------
     (GeoDataFrame, DataFrame, DataFrame)
@@ -40,6 +40,15 @@ def cut_flowlines_at_barriers(region, barriers):
         "Read {:,} flowlines in {:.2f}s".format(len(flowlines), time() - flowline_start)
     )
 
+    # Flag segments that are within waterbodies
+    wb_joins = deserialize_df(
+        nhd_dir / region / "waterbody_flowline_joins.feather",
+        columns=["wbID", "lineID"],
+    )
+
+    flowlines["waterbody"] = False
+    flowlines.loc[flowlines.index.isin(wb_joins.lineID), "waterbody"] = True
+
     ### Cut flowlines at barriers
     cut_start = time()
 
@@ -57,7 +66,7 @@ def cut_flowlines_at_barriers(region, barriers):
 
 def save_cut_flowlines(out_dir, flowlines, joins, barrier_joins):
     """Save cut flowline data frames to disk.
-    
+
     Parameters
     ----------
     out_dir : str

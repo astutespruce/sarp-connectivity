@@ -1,7 +1,7 @@
 """
 Preprocess dams into data needed by API and tippecanoe for creating vector tiles.
 
-Input: 
+Input:
 * Dam inventory from SARP, including all network metrics and summary unit IDs (HUC12, ECO3, ECO4, State, County, etc).
 
 Outputs:
@@ -152,6 +152,7 @@ df.to_csv(
 serialize_df(df[DAM_API_FIELDS].reset_index(), api_dir / "dams.feather")
 
 # Drop fields that can be calculated on frontend
+# FIXME:
 keep_fields = [
     c for c in DAM_API_FIELDS if not c in {"GainMiles", "TotalUpstreamMiles"}
 ] + ["SinuosityClass"]

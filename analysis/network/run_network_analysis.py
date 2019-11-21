@@ -34,7 +34,8 @@ from analysis.network.lib.networks import create_networks
 data_dir = Path("data")
 
 start = time()
-for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES):
+# FIXME
+for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES[1:2]):
     print(
         "\n\n###### Processing region {0}: {1} networks #####".format(
             region, network_type
@@ -116,7 +117,13 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES):
     upstream_networks = (
         barrier_joins[["upstream_id"]]
         .join(network_stats, on="upstream_id")
-        .rename(columns={"upstream_id": "upNetID", "miles": "UpstreamMiles"})
+        .rename(
+            columns={
+                "upstream_id": "upNetID",
+                "miles": "TotalUpstreamMiles",
+                "free_miles": "FreeUpstreamMiles",
+            }
+        )
     )
 
     downstream_networks = (
@@ -124,7 +131,15 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES):
         .join(
             network_df.reset_index().set_index("lineID").networkID, on="downstream_id"
         )
-        .join(network_stats.miles.rename("DownstreamMiles"), on="networkID")
+        .join(
+            network_stats[["free_miles", "miles"]].rename(
+                columns={
+                    "free_miles": "FreeDownstreamMiles",
+                    "miles": "TotalDownstreamMiles",
+                }
+            ),
+            on="networkID",
+        )
         .rename(columns={"networkID": "downNetID"})
         .drop(columns=["downstream_id"])
     )
@@ -143,7 +158,14 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES):
     for col in ["upNetID", "downNetID", "segments"]:
         barrier_networks[col] = barrier_networks[col].astype("uint32")
 
-    for col in ["UpstreamMiles", "DownstreamMiles", "sinuosity", "natfldpln"]:
+    for col in [
+        "TotalUpstreamMiles",
+        "FreeUpstreamMiles",
+        "TotalDownstreamMiles",
+        "FreeDownstreamMiles",
+        "sinuosity",
+        "natfldpln",
+    ]:
         barrier_networks[col] = barrier_networks[col].astype("float32")
 
     barrier_networks.sizeclasses = barrier_networks.sizeclasses.astype("uint8")
