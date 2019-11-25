@@ -10,7 +10,7 @@ from nhdnet.io import to_shp
 from analysis.constants import (
     SARP_STATES,
     RECON_TO_FEASIBILITY,
-    DAM_COLS,
+    DAM_FS_COLS,
     CRS,
     SMALL_BARRIER_COLS,
 )
@@ -22,13 +22,12 @@ token = os.getenv("AGOL_TOKEN", None)
 if not token:
     raise ValueError("AGOL_TOKEN must be defined in your .env file")
 
+print("token", token)
 
 # TODO:
 # Puerto Rico:  https://arcg.is/1qLnOP
 
 TARGET_WKID = 102003
-
-
 SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_Dams_Snapped_For_Editing_Feb42019/FeatureServer/0"
 SMALL_BARRIERS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_RoadBarriers_01212019/FeatureServer/0"
 
@@ -41,7 +40,7 @@ SMALL_BARRIERS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/s
 #     for s in list_services(ROOT_URL, token=token)
 #     if s["type"] == "FeatureServer"
 # ]
-#
+
 # DAM_URLS = dict()
 # for id, state in SARP_STATES.items():
 #     state = state.replace(" ", "_")
@@ -86,7 +85,7 @@ start = time()
 ### Download and merge state feature services
 merged = None
 # Services have varying casing of SNAP2018
-dam_cols = DAM_COLS + ["Snap2018"]
+dam_cols = DAM_FS_COLS
 for state, url in DAM_URLS.items():
     download_start = time()
 
@@ -94,7 +93,8 @@ for state, url in DAM_URLS.items():
     df = download_fs(url, fields=dam_cols, token=token, target_wkid=TARGET_WKID).rename(
         columns={
             "SARPUniqueID": "SARPID",
-            "Snap2018": "SNAP2018",
+            "Snap2018": "ManualReview",
+            "SNAP2018": "ManualReview",
             "PotentialFeasibility": "Feasibility",
             "Barrier_Name": "Name",
             "Other_Barrier_Name": "OtherName",
@@ -123,8 +123,15 @@ print("Projecting dams...")
 # Drop dams without locations and project
 df = df.loc[df.geometry.notnull()].copy().to_crs(CRS)
 
-
 print("Merged {:,} dams in SARP states".format(len(df)))
+
+missing_sarpid = df.loc[df.SARPID.isnull()]
+if len(missing_sarpid):
+    print(
+        "--------------------------\nWARNING: {:,} dams are missing SARPID\n----------------------------"
+    )
+
+
 to_geofeather(df, out_dir / "sarp_dams.feather")
 
 
@@ -133,7 +140,7 @@ download_start = time()
 print("---- Downloading Snapped Dams ----")
 df = download_fs(
     SNAPPED_URL, fields=["AnalysisID", "SNAP2018"], token=token, target_wkid=TARGET_WKID
-)
+).rename(columns={"SNAP2018": "ManualReview"})
 
 print("Projecting manually snapped dams...")
 df = df.loc[df.geometry.notnull()].to_crs(CRS)
@@ -142,7 +149,7 @@ print(
     "Downloaded {:,} snapped dams in {:.2f}s".format(len(df), time() - download_start)
 )
 
-df.SNAP2018 = df.SNAP2018.fillna(0).astype("uint8")
+df.ManualReview = df.ManualReview.fillna(0).astype("uint8")
 to_geofeather(df, out_dir / "manually_snapped_dams.feather")
 
 ### Download small barriers
@@ -163,13 +170,19 @@ df = download_fs(
 )
 
 print("Projecting small barriers...")
-df = df.loc[df.geometry.notnull()].to_crs(CRS)
+df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
 
 print(
     "Downloaded {:,} small barriers in {:.2f}s".format(len(df), time() - download_start)
 )
 
-# df.SNAP2018 = df.SNAP2018.fillna(0).astype("uint8")
+missing_sarpid = df.loc[df.SARPID.isnull()]
+if len(missing_sarpid):
+    print(
+        "--------------------------\nWARNING: {:,} small barriers are missing SARPID\n----------------------------"
+    )
+
+
 to_geofeather(df, out_dir / "sarp_small_barriers.feather")
 
 

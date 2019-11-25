@@ -13,7 +13,7 @@ import os
 
 import geopandas as gp
 from geofeather import to_geofeather
-from nhdnet.io import to_shp
+from nhdnet.io import to_shp, serialize_df
 
 from analysis.constants import (
     CRS,
@@ -210,10 +210,15 @@ to_geofeather(df, boundaries_dir / "protected_areas.feather")
 
 ### Priority layers
 # These are joined on HUC8 codes
-usfs = gp.read_file(src_dir / "Priority_Areas.gdb", layer="USFS_Priority")[
-    ["HUC_8"]
-].set_index("HUC_8")
-usfs["usfs"] = True
+usfs = (
+    gp.read_file(src_dir / "Priority_Areas.gdb", layer="USFS_Priority")[
+        ["HUC_8", "USFS_Priority"]
+    ]
+    .set_index("HUC_8")
+    .rename(columns={"USFS_Priority": "usfs"})
+)
+# usfs["usfs"] = True
+
 
 coa = gp.read_file(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[
     ["HUC_8"]
@@ -238,7 +243,15 @@ threshold = sebio.priority.quantile([0.9]).iloc[0]
 sebio = sebio.loc[sebio.priority >= threshold].drop(columns=["priority"])
 sebio["sebio"] = True
 
-priorities = usfs.join(coa, how="outer").join(sebio, how="outer").fillna(False)
+priorities = usfs.join(coa, how="outer").join(sebio, how="outer")
+priorities.usfs = priorities.usfs.fillna(0).astype("uint8")
+priorities.coa = priorities.coa.fillna(False)
+priorities.sebio = priorities.sebio.fillna(False)
+
+serialize_df(
+    priorities.reset_index().rename(columns={"HUC_8": "HUC8"}),
+    out_dir / "priorities.feather",
+)
 
 
 ### HUC8s - used for visualization; not needed for spatial joins
@@ -249,6 +262,11 @@ df.sindex
 in_sarp = gp.sjoin(df, bnd)
 df = df.loc[df.HUC8.isin(in_sarp.HUC8)].join(priorities, on="HUC8")
 df[priorities.columns] = df[priorities.columns].fillna(False)
+
+df.usfs = df.usfs.fillna(0).astype("uint8")
+df.coa = df.coa.fillna(False)
+df.sebio = df.sebio.fillna(False)
+
 to_shp(
     df.reset_index().rename(columns={"HUC8": "id", "NAME": "name"}),
     boundaries_dir / "HUC8_prj.shp",

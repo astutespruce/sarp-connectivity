@@ -1,7 +1,7 @@
 """
 Extract small barriers from original data source, process for use in network analysis, and convert to feather format.
 1. Cleanup data values (as needed)
-2. Filter out barriers not to be included in analysis (based on Potential_Project and Snap2018)
+2. Filter out barriers not to be included in analysis (based on Potential_Project and ManualReview)
 3. Snap to networks by HUC2
 4. Remove duplicate barriers
 
@@ -28,8 +28,8 @@ from analysis.constants import (
     DUPLICATE_TOLERANCE,
     KEEP_POTENTIAL_PROJECT,
     DROP_POTENTIAL_PROJECT,
-    DROP_SNAP2018,
-    EXCLUDE_SNAP2018,
+    DROP_MANUALREVIEW,
+    EXCLUDE_MANUALREVIEW,
     BARRIER_CONDITION_TO_DOMAIN,
     POTENTIAL_TO_SEVERITY,
     ROAD_TYPE_TO_DOMAIN,
@@ -136,9 +136,9 @@ df.loc[drop_idx, "dropped"] = True
 
 ### Drop any small barriers that should be completely dropped from analysis
 # based on manual QA/QC
-# NOTE: small barriers currently do not have any values set for SNAP2018
-drop_idx = df.PotentialProject.isin(DROP_POTENTIAL_PROJECT) | df.SNAP2018.isin(
-    DROP_SNAP2018
+# NOTE: small barriers currently do not have any values set for ManualReview
+drop_idx = df.PotentialProject.isin(DROP_POTENTIAL_PROJECT) | df.ManualReview.isin(
+    DROP_MANUALREVIEW
 )
 print(
     "Dropped {:,} small barriers from all analysis and mapping".format(
@@ -148,9 +148,9 @@ print(
 df.loc[drop_idx, "dropped"] = True
 
 ### Exclude barriers that should not be analyzed or prioritized based on manual QA
-# NOTE: small barriers currently do not have any values set for SNAP2018
-exclude_idx = ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT) | df.SNAP2018.isin(
-    EXCLUDE_SNAP2018
+# NOTE: small barriers currently do not have any values set for ManualReview
+exclude_idx = ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT) | df.ManualReview.isin(
+    EXCLUDE_MANUALREVIEW
 )
 
 print(
@@ -172,9 +172,15 @@ df = update_from_snapped(df, snapped)
 
 # Remove duplicates after snapping, in case any snapped to the same position
 # These are completely dropped from the analysis from here on out
-# Sort by descending severity before deduplication so that most severe barrier is retained
+# Sort by ascending order of the boolean attributes that indicate barriers are to be dropped / excluded
+# so that if one of a duplicate cluster was dropped / excluded, the rest are too.
+# Then Sort by descending severity before deduplication so that most severe barrier is retained
 df = mark_duplicates(
-    df.sort_values("SeverityClass", ascending=False), DUPLICATE_TOLERANCE
+    df.sort_values(
+        by=["dropped", "excluded", "snapped", "SeverityClass"],
+        ascending=[True, True, True, False],
+    ),
+    DUPLICATE_TOLERANCE,
 )
 df = df.sort_values("id")
 print(

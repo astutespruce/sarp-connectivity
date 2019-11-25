@@ -108,9 +108,11 @@ CRS = {
 
 
 # NOTE: not all feature services have all columns
-DAM_COLS = [
+DAM_FS_COLS = [
     "SARPUniqueID",
-    "SNAP2018",
+    "AnalysisID",  # needed to be able to join to manually snapped dams.  TODO: will be replaced by SARPUniqueID
+    "SNAP2018", # renamed to ManualReview
+    "Snap2018",  # renamed to ManualReview
     "NIDID",
     "SourceDBID",
     "Barrier_Name",
@@ -126,10 +128,30 @@ DAM_COLS = [
     "PotentialFeasibility",  # only present in NC
 ]
 
+DAM_COLS = [
+    "SARPID",
+    "AnalysisID",  # needed to be able to join to manually snapped dams.  TODO: will be replaced by SARPUniqueID for joins instead.
+    "ManualReview",  # renamed from SNAP2018
+    "NIDID",
+    "SourceDBID",
+    "Barrier_Name",
+    "Other_Barrier_Name",
+    "River",
+    "PurposeCategory",
+    "Year_Completed",
+    "Height",
+    "StructureCondition",
+    "ConstructionMaterial",
+    "DB_Source",
+    "Recon",
+    "PotentialFeasibility",
+]
+
+
 SMALL_BARRIER_COLS = [
     "SARPUniqueID",
     "AnalysisId",
-    "SNAP2018",
+    "ManualReview",
     "LocalID",
     "Crossing_Code",
     "StreamName",
@@ -176,10 +198,10 @@ DROP_POTENTIAL_PROJECT = ["No", "No Barrier", "No Crossing", "Past Project"]
 # Used to filter small barriers and dams by SNAP2018, based on guidance from Kat
 # Note: dropped barriers are still shown on the map, but not included in the network analysis
 # Note: 0 value indicates N/A
-DROP_SNAP2018 = [6, 8]
+DROP_MANUALREVIEW = [6, 8]
 
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_SNAP2018 = [5, 10]
+EXCLUDE_MANUALREVIEW = [5, 10]
 
 # Used to filter dams by Recon
 # based on guidance from Kat
@@ -187,7 +209,7 @@ DROP_RECON = [5, 7, 19]
 DROP_FEASIBILITY = [7, 8]
 
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_RECON = [16]
+EXCLUDE_RECON = [16, 22]
 
 # Applies to Recon values, omitted values should be filtered out
 RECON_TO_FEASIBILITY = {
@@ -212,6 +234,7 @@ RECON_TO_FEASIBILITY = {
     19: 10,  # should be removed from analysis
     20: 5,
     21: 6,
+    22: 11,
 }
 
 # Associated recon values
@@ -224,11 +247,11 @@ RECON_TO_FEASIBILITY = {
 #   5: 'No conservation benefit',
 #   6: 'Unknown',
 #   # not shown to user
-#   # 6: 'Unknown',
 #   # 7: 'Error',
 #   # 8: 'Dam removed for conservation benefit'
 #   # 9: 'Invasive species barrier',
 #   # 10: 'Proposed dam'
+#   # 11: 'Fish passage installed'
 # }
 
 
@@ -311,13 +334,7 @@ OWNERTYPE_TO_DOMAIN = {
 
 # Map of owner type domain above to whether or not the land is
 # considered public
-OWNERTYPE_TO_PUBLIC_LAND = {
-    1: True,
-    2: True,
-    3: True,
-    4: True,
-    5: True
-}
+OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True}
 
 # NHDPlusIDs to exclude when extracting flowlines (e.g., within Chesapeake Bay)
 # indexed by HUC4

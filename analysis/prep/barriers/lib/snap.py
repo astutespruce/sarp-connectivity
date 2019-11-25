@@ -50,9 +50,10 @@ def snap_by_region(df, regions, default_tolerance=None):
 
         print("Reading flowlines")
         flowlines = (
-            deserialize_gdf(region_dir / "flowline.feather")[
-                ["geometry", "lineID", "NHDPlusID", "streamorder", "sizeclass"]
-            ]
+            deserialize_gdf(
+                region_dir / "flowline.feather",
+                columns=["geometry", "lineID", "NHDPlusID", "streamorder", "sizeclass"],
+            )
             .rename(columns={"streamorder": "StreamOrder", "sizeclass": "SizeClass"})
             .set_index("lineID", drop=False)
         )
