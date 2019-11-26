@@ -91,6 +91,7 @@ for region, HUC2s in REGION_GROUPS.items():
                     "geometry",
                     "lineID",
                     "NHDPlusID",
+                    "FType",
                     "length",
                     "sinuosity",
                     "sizeclass",

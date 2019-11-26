@@ -28,18 +28,17 @@ RESERVOIR_COLS = ["NHDPlusID", "FType", "AreaSqKm", "geometry"]
 EXCLUDE_FTYPE = [361, 466, 493]
 
 src_dir = Path("data/nhd/source/huc4")
-out_dir = Path("data/nhd/flowlines")
+nhd_dir = Path("data/nhd")
 
 start = time()
 
 for region, HUC2s in REGION_GROUPS.items():
     print("\n----- {} ------\n".format(region))
 
-    region_dir = out_dir / region
+    out_dir = nhd_dir / "waterbodies" / region
 
-    if os.path.exists(region_dir / "waterbodies.feather"):
-        print("Skipping existing region {}".format(region))
-        continue
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
 
     region_start = time()
 
@@ -72,36 +71,54 @@ for region, HUC2s in REGION_GROUPS.items():
 
     print("--------------------")
     print("Extracted {:,} waterbodies in this region".format(len(merged)))
-    df = merged
+    df = merged.reset_index(drop=True)
 
     # add our own ID
-    df["wbID"] = df.index.values.astype("uint32") + 1
+    df["wbID"] = df.index.values.copy()
+    df.wbID = df.wbID.astype("uint32") + 1
 
     ### Join waterbodies to flowlines
     # Keep only the waterbodies that intersect flowlines
     print("Reading flowlines...")
     flowlines = from_geofeather(
-        region_dir / "flowline.feather", columns=["geometry", "lineID", "length"]
-    )
+        nhd_dir / "flowlines" / region / "flowline.feather",
+        columns=["geometry", "lineID", "length"],
+    ).set_index("lineID")
     joins = deserialize_df(
-        region_dir / "flowline_joins.feather", columns=["downstream_id", "upstream_id"]
+        nhd_dir / "flowlines" / region / "flowline_joins.feather",
+        columns=["downstream_id", "upstream_id"],
     )
 
     print(
         "Creating spatial index on waterbodies and flowlines, this might take a while..."
     )
-    df.sindex
+
+    wb = df[["geometry", "wbID"]]
+    wb.sindex
+
+    lines = flowlines[["geometry"]]
     flowlines.sindex
 
     print("Joining waterbodies to flowines")
-    joined = gp.sjoin(
-        df[["wbID", "geometry"]],
-        flowlines[["lineID", "length", "geometry"]],
-        how="left",
-        op="contains",
+    joined = gp.sjoin(wb, lines, how="inner", op="intersects").rename(
+        columns={"index_right": "lineID"}
     )
-    joined = joined.loc[joined.lineID.notnull(), ["wbID", "lineID", "length"]]
-    joined.lineID = joined.lineID.astype("uint32")
+
+    # join in flowline geometry and attributes
+    joined = joined.join(flowlines.rename(columns={"geometry": "line"}), on="lineID")
+
+    # drop any that just touch; these are typically segments that are already cut at the waterbody
+    print("Identifying touching flowlines and dropping them...")
+
+    # TODO: double check this, since it may eliminate any that are on the inside too
+    only_touch = joined.geometry.touches(gp.GeoSeries(joined.line))
+    joined = joined.loc[~only_touch].copy()
+
+    # intersect with lines and tally stats based on the intersection
+    print("Cutting flowlines by waterbodies...")
+    joined["geometry"] = joined.geometry.intersection(gp.GeoSeries(joined.line))
+    joined = joined.drop(columns=["line"])
+    joined["length"] = joined.length
 
     wb_stats = (
         joined.groupby("wbID")
@@ -112,45 +129,64 @@ for region, HUC2s in REGION_GROUPS.items():
 
     serialize_df(
         joined[["wbID", "lineID"]].join(wb_stats, on="wbID").reset_index(drop=True),
-        region_dir / "waterbody_flowline_joins.feather",
+        out_dir / "waterbody_flowline_joins.feather",
     )
 
     print("Dropping all waterbodies that do not intersect flowlines")
-    df = df.join(wb_stats, on="wbID", how="inner")
+    df = df.join(wb_stats, on="wbID", how="inner").reset_index(drop=True)
 
     print("serializing {:,} waterbodies to feather".format(len(df)))
-    to_geofeather(df.reset_index(drop=True), region_dir / "waterbodies.feather")
+    to_geofeather(df, out_dir / "waterbodies.feather")
 
-    # Find the downstream most point(s) on the flowline for each waterbody
-    in_wb = flowlines.loc[flowlines.lineID.isin(joined.lineID)]
-    drain_ids = joins.loc[
-        joins.upstream_id.isin(in_wb.lineID) & (~joins.downstream_id.isin(in_wb.lineID))
-    ].upstream_id
+    ### Find the downstream most point(s) on the flowline for each waterbody
+    # this is used for snapping barriers, if possible
+    tmp = joined[["lineID", "wbID"]].set_index("lineID")
+    drains = (
+        joins.loc[joins.upstream_id.isin(joined.lineID)]
+        .join(tmp.wbID.rename("upstream_wbID"), on="upstream_id")
+        .join(tmp.wbID.rename("downstream_wbID"), on="downstream_id")
+    )
+
+    # Only keep those that terminate outside the same waterbody as the upstream end
+    drains = drains.loc[drains.upstream_wbID != drains.downstream_wbID].copy()
 
     drain_pts = (
-        in_wb.loc[in_wb.lineID.isin(drain_ids), ["lineID", "geometry"]]
-        .join(joined.set_index("lineID")[["wbID"]], on="lineID")
+        joined.loc[joined.lineID.isin(drains.upstream_id)]
         .join(wb_stats, on="wbID")
         .join(df.set_index("wbID")[["AreaSqKm"]], on="wbID")
+        .reset_index(drop=True)
     )
+
+    # Remove any flowlines that cross waterbodies (these were originally due to pipelines)
+    # drain_pts = drain_pts.loc[drain_pts.geometry.type != "MultiLineString"].copy()
+    idx = drain_pts.loc[drain_pts.geometry.type == "MultiLineString"].index
+    if len(idx):
+        print(
+            "WARNING: there are {:,} flowlines that were cut into multiple parts within waterbodies".format(
+                len(idx)
+            )
+        )
+
+        # take the first of each
+        drain_pts.loc[idx, "geometry"] = drain_pts.loc[idx].geometry.apply(
+            lambda g: g[0]
+        )
 
     # create a point from the last coordinate, which is the furthest one downstream
     drain_pts.geometry = drain_pts.geometry.apply(
         lambda g: Point(np.column_stack(g.xy)[-1])
     )
 
-    to_geofeather(
-        drain_pts.reset_index(drop=True), region_dir / "waterbody_drain_points.feather"
-    )
+    to_geofeather(drain_pts, out_dir / "waterbody_drain_points.feather")
 
     print("serializing to shp")
-    serialize_start = time()
-    to_shp(df.reset_index(drop=True), region_dir / "waterbodies.shp")
-
-    to_shp(drain_pts.reset_index(drop=True), region_dir / "waterbody_drain_points.shp")
-
-    print("serialize done in {:.0f}s".format(time() - serialize_start))
+    to_shp(df, out_dir / "waterbodies.shp")
+    to_shp(drain_pts, out_dir / "waterbody_drain_points.shp")
 
     print("Region done in {:.0f}s".format(time() - region_start))
+
+
+# TODO: merge!
+
 
 print("Done in {:.2f}s\n============================".format(time() - start))
