@@ -37,10 +37,9 @@ for region, HUC2s in REGION_GROUPS.items():
 
     region_dir = out_dir / region
 
-    # FIXME:
-    # if os.path.exists(region_dir / "waterbodies.feather"):
-    #     print("Skipping existing region {}".format(region))
-    #     continue
+    if os.path.exists(region_dir / "waterbodies.feather"):
+        print("Skipping existing region {}".format(region))
+        continue
 
     region_start = time()
 
@@ -62,6 +61,9 @@ for region, HUC2s in REGION_GROUPS.items():
 
             df.geometry = df.geometry.apply(to2D)
             df = df.to_crs(CRS)
+
+            df.AreaSqKm = df.AreaSqKm.astype("float32")
+            df.FType = df.FType.astype("uint16")
 
             if merged is None:
                 merged = df
@@ -106,6 +108,7 @@ for region, HUC2s in REGION_GROUPS.items():
         .agg({"length": "sum", "lineID": "count"})
         .rename(columns={"lineID": "numSegments", "length": "flowlineLength"})
     )
+    wb_stats.numSegments = wb_stats.numSegments.astype("uint16")
 
     serialize_df(
         joined[["wbID", "lineID"]].join(wb_stats, on="wbID").reset_index(drop=True),

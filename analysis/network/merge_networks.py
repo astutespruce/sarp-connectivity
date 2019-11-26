@@ -16,7 +16,6 @@ from nhdnet.io import (
     deserialize_df,
     to_shp,
     deserialize_dfs,
-    deserialize_gdfs,
 )
 
 from analysis.constants import REGION_GROUPS, CRS, NETWORK_TYPES, CONNECTED_REGIONS
