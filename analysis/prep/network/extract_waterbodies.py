@@ -40,6 +40,9 @@ for region, HUC2s in REGION_GROUPS.items():
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
+    if os.path.exists(out_dir / "waterbodies.feather"):
+        continue
+
     region_start = time()
 
     merged = None
@@ -75,7 +78,7 @@ for region, HUC2s in REGION_GROUPS.items():
 
     # add our own ID
     df["wbID"] = df.index.values.copy()
-    df.wbID = df.wbID.astype("uint32") + 1
+    df.wbID = (df.wbID + 1).astype("uint32")
 
     ### Join waterbodies to flowlines
     # Keep only the waterbodies that intersect flowlines
@@ -97,26 +100,83 @@ for region, HUC2s in REGION_GROUPS.items():
     wb.sindex
 
     lines = flowlines[["geometry"]]
-    flowlines.sindex
+    lines.sindex
 
     print("Joining waterbodies to flowines")
+
+    join_start = time()
     joined = gp.sjoin(wb, lines, how="inner", op="intersects").rename(
         columns={"index_right": "lineID"}
     )
+    print("Joined {:,} flowlines in {:,}".format(len(joined), time() - join_start))
 
     # join in flowline geometry and attributes
     joined = joined.join(flowlines.rename(columns={"geometry": "line"}), on="lineID")
 
-    # drop any that just touch; these are typically segments that are already cut at the waterbody
-    print("Identifying touching flowlines and dropping them...")
+    ### Rerun the spatial join on the subset of waterbodies and flowlines that intersect
+    # No idea why this is faster than just running .contains() on the line, but it is.
 
-    # TODO: double check this, since it may eliminate any that are on the inside too
-    only_touch = joined.geometry.touches(gp.GeoSeries(joined.line))
-    joined = joined.loc[~only_touch].copy()
+    print("Identifying flowlines that are completely contained by waterbodies...")
 
-    # intersect with lines and tally stats based on the intersection
-    print("Cutting flowlines by waterbodies...")
-    joined["geometry"] = joined.geometry.intersection(gp.GeoSeries(joined.line))
+    # Extract waterbodies that had joins, and rebuild index
+    wb = wb.loc[wb.wbID.isin(joined.wbID)].copy()
+    wb.sindex
+
+    # Figure out those that are contained, so we can sidestep cutting them.
+    # Extract subset of the lines that we intersected above, which are
+    # completely contained by waterbodies.
+
+    lines = lines.loc[lines.index.isin(joined.lineID)].copy()
+    lines.sindex
+
+    join_start = time()
+    contained = gp.sjoin(wb, lines, how="inner", op="contains").rename(
+        columns={"index_right": "lineID"}
+    )
+    print(
+        "Identified {:,} flowlines contained by waterbodies in {:,}".format(
+            len(contained), time() - join_start
+        )
+    )
+
+    # NOTE: some lines may be touched by multiple polygons, but should only be contained by one
+    # any that aren't completely contained should be evaluated via intersection
+    contained["contained"] = True
+    joined = (
+        joined.set_index(["wbID", "lineID"])
+        .join(contained.set_index(["wbID", "lineID"]).contained)
+        .reset_index()
+    )
+    joined.contained = joined.contained.fillna(False)
+
+    # Copy the contained lines across as geometry
+    lines = gp.GeoSeries(joined.line)
+    idx = joined.contained
+    joined.loc[idx, "geometry"] = lines.loc[idx]
+
+    # Run the intersection on the remainder
+    print("Cutting flowlines by waterbodies, this might take a really long while...")
+    # WARNING: intersection may produce a variety of geometry type outputs: Point, MultiPoint, etc
+    # Only LineString is valid
+    cut_start = time()
+    idx = ~joined.contained
+    joined.loc[idx, "geometry"] = joined.loc[idx].geometry.intersection(lines.loc[idx])
+
+    ### Cleanup geometry issues
+    # MultiLineStrings are cases where they cross the edge, likely due to poor position of flowline
+    # within waterbody.  Just grab the original uncut line.
+    idx = joined.geometry.type == "MultiLineString"
+    joined.loc[idx, "geometry"] = gp.GeoSeries(joined[idx].line)
+
+    # Drop everything else (Point, MultiPoint)
+    joined = joined.loc[joined.geometry.type == "LineString"].copy()
+
+    print(
+        "Retained {:,} flowlines after cutting in {:,}".format(
+            len(contained), time() - cut_start
+        )
+    )
+
     joined = joined.drop(columns=["line"])
     joined["length"] = joined.length
 
@@ -126,6 +186,7 @@ for region, HUC2s in REGION_GROUPS.items():
         .rename(columns={"lineID": "numSegments", "length": "flowlineLength"})
     )
     wb_stats.numSegments = wb_stats.numSegments.astype("uint16")
+    wb_stats.flowlineLength = wb_stats.flowlineLength.astype("float32")
 
     serialize_df(
         joined[["wbID", "lineID"]].join(wb_stats, on="wbID").reset_index(drop=True),
@@ -154,39 +215,22 @@ for region, HUC2s in REGION_GROUPS.items():
         joined.loc[joined.lineID.isin(drains.upstream_id)]
         .join(wb_stats, on="wbID")
         .join(df.set_index("wbID")[["AreaSqKm"]], on="wbID")
+        .drop(columns=["length", "contained"])
         .reset_index(drop=True)
     )
-
-    # Remove any flowlines that cross waterbodies (these were originally due to pipelines)
-    # drain_pts = drain_pts.loc[drain_pts.geometry.type != "MultiLineString"].copy()
-    idx = drain_pts.loc[drain_pts.geometry.type == "MultiLineString"].index
-    if len(idx):
-        print(
-            "WARNING: there are {:,} flowlines that were cut into multiple parts within waterbodies".format(
-                len(idx)
-            )
-        )
-
-        # take the first of each
-        drain_pts.loc[idx, "geometry"] = drain_pts.loc[idx].geometry.apply(
-            lambda g: g[0]
-        )
 
     # create a point from the last coordinate, which is the furthest one downstream
     drain_pts.geometry = drain_pts.geometry.apply(
         lambda g: Point(np.column_stack(g.xy)[-1])
     )
 
+    drain_pts.wbID = drain_pts.wbID.astype("uint32")
+    drain_pts.lineID = drain_pts.lineID.astype("uint32")
+    drain_pts.flowlineLength = drain_pts.flowlineLength.astype("float32")
+
     to_geofeather(drain_pts, out_dir / "waterbody_drain_points.feather")
 
-    print("serializing to shp")
-    to_shp(df, out_dir / "waterbodies.shp")
-    to_shp(drain_pts, out_dir / "waterbody_drain_points.shp")
-
     print("Region done in {:.0f}s".format(time() - region_start))
-
-
-# TODO: merge!
 
 
 print("Done in {:.2f}s\n============================".format(time() - start))
