@@ -43,7 +43,7 @@ wb.id = wb.id.astype("uint32")
 print("Reading flowline attributes...")
 lineAtts = deserialize_dfs(
     [nhd_dir / "flowlines" / region / "flowline.feather" for region in REGION_GROUPS],
-    columns=["lineID", "NHDPlusID", "streamorder", "sizeclass"],
+    columns=["lineID", "NHDPlusID", "streamorder", "sizeclass", "loop"],
 ).set_index("lineID")
 print("Read {:,} flowlines".format(len(lineAtts)))
 
@@ -67,6 +67,7 @@ drains = (
     .rename(
         columns={
             "src": "region",
+            "wbID": "regionWBID",
             "flowlineLength": "wbFlowlineLength",
             "numSegments": "wbSegments",
             "AreaSqKm": "wbAreaKM2",

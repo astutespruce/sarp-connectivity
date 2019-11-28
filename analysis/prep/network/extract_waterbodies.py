@@ -17,10 +17,10 @@ from nhdnet.geometry.polygons import to2D
 from nhdnet.io import serialize_df, deserialize_df, serialize_sindex, to_shp
 
 
-from analysis.constants import REGIONS, REGION_GROUPS, CRS, EXCLUDE_IDs
+from analysis.constants import REGIONS, REGION_GROUPS, CRS
 
 MIN_SQ_KM = 0.001
-RESERVOIR_COLS = ["NHDPlusID", "FType", "AreaSqKm", "geometry"]
+KEEP_COLS = ["NHDPlusID", "FType", "AreaSqKm", "geometry"]
 
 # Exclude swamp/marsh (466), estuaries (493), playas (361).
 # NOTE: they do not cut the flowlines in the same
@@ -58,7 +58,7 @@ for region, HUC2s in REGION_GROUPS.items():
             df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
             df = df.loc[(df.AreaSqKm >= MIN_SQ_KM) & (~df.FType.isin(EXCLUDE_FTYPE))][
-                RESERVOIR_COLS
+                KEEP_COLS
             ].copy()
 
             df.geometry = df.geometry.apply(to2D)
