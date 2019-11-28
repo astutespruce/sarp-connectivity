@@ -35,12 +35,6 @@ wb = (
 )
 print("Read {:,} waterbodies".format(len(wb)))
 
-# TODO: remove on next full rerun of extract_waterbodies.py
-wb.AreaSqKm = wb.AreaSqKm.astype("float32")
-wb.FType = wb.FType.astype("uint16")
-wb.numSegments = wb.numSegments.astype("uint16")
-wb.flowlineLength = wb.flowlineLength.astype("float32")
-
 # Add a new global wbID
 wb["id"] = wb.index.copy() + 1
 wb.id = wb.id.astype("uint32")
@@ -73,7 +67,6 @@ drains = (
     .rename(
         columns={
             "src": "region",
-            "wbID": "regionWBID",
             "flowlineLength": "wbFlowlineLength",
             "numSegments": "wbSegments",
             "AreaSqKm": "wbAreaKM2",
@@ -87,13 +80,6 @@ print("Read {:,} waterbody drain points".format(len(drains)))
 # Add an internal ID, since there may be multiple drain points per waterbody
 drains["id"] = drains.index.copy() + 1
 drains.id = drains.id.astype("uint32")
-
-# TODO: remove on next full rerun of extract_waterbodies.py
-drains.regionWBID = drains.regionWBID.astype("uint32")
-drains.lineID = drains.lineID.astype("uint32")
-drains.wbFlowlineLength = drains.wbFlowlineLength.astype("float32")
-drains.wbAreaKM2 = drains.wbAreaKM2.astype("float32")
-drains.wbSegments = drains.wbSegments.astype("uint16")
 
 # join to waterbodies to get global ID
 drains = drains.join(

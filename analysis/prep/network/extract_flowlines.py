@@ -96,6 +96,7 @@ for region, HUC2s in REGION_GROUPS.items():
                     "sinuosity",
                     "sizeclass",
                     "streamorder",
+                    "loop",
                 ]
             ]
 
