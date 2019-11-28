@@ -17,12 +17,12 @@ python-dotenv = "*"
 [dev-packages]
 pylint = "*"
 black = "==19.3b0"
-geopandas = "*"
+geopandas = ">=0.6.2"
 requests = "*"
-rtree = "*"
 nhdnet = {editable = true,path = "./../nhdnet"}
 sarp-connectivity = {editable = true,path = "."}
 geofeather = {editable = true,path = "./../geofeather"}
+rtree = ">=0.9.1"
 
 [requires]
 python_version = "3.7"
