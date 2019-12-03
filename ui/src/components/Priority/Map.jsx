@@ -6,6 +6,7 @@ import { useCrossfilter } from 'components/Crossfilter'
 import { useBarrierType } from 'components/Data'
 import {
   Map,
+  DropDownLayerChooser,
   Legend,
   SearchFeaturePropType,
   toGeoJSONPoints,
@@ -25,6 +26,8 @@ import {
   pointLegends,
   topRank,
   lowerRank,
+  priorityWatersheds,
+  priorityWatershedLegends,
 } from './layers'
 
 const emptyFeatureCollection = {
@@ -52,6 +55,7 @@ const PriorityMap = ({
     state: { filters },
   } = useCrossfilter()
   const mapRef = useRef(null)
+  const [priorityLayerState, setPriorityLayerState] = useState({})
 
   // first layer of system is default on init
   // const [visibleLayer, setVisibleLayer] = useState(layers.filter(({system: lyrSystem}) => lyrSystem === system)[0])
@@ -81,6 +85,11 @@ const PriorityMap = ({
         })
       }
 
+      // Add the priority watersheds under everything else
+      priorityWatersheds.forEach(lyr => {
+        map.addLayer(lyr)
+      })
+
       // Initially the mask and boundary are visible
       map.addLayer(maskFill)
       map.addLayer(maskOutline)
@@ -95,9 +104,9 @@ const PriorityMap = ({
 
           if (parent) {
             map.addLayer({
-              'source-layer': parent,
-              minzoom,
-              maxzoom,
+              'source-layer': parent.id,
+              minzoom: parent.minzoom || minzoom,
+              maxzoom: parent.maxzoom || maxzoom,
               ...parentOutline,
               id: `${layer}-${parentOutline.id}`,
             })
@@ -107,7 +116,6 @@ const PriorityMap = ({
           unitLayers.forEach(({ id, ...rest }) => {
             const layerId = `${layer}-${id}`
             const unitLayer = { ...config, ...rest, id: layerId }
-            // map.addLayer({ ...config, ...rest, id: layerId })
 
             if (id === 'unit-fill') {
               unitLayer.paint['fill-opacity'] = [
@@ -427,6 +435,20 @@ const PriorityMap = ({
     debouncedSetRankFilter(`${scenario}_tier`, tierThreshold)
   }, [tierThreshold, scenario, debouncedSetRankFilter])
 
+  const handlePriorityLayerChange = useCallback(visiblePriorityLayers => {
+    const { current: map } = mapRef
+    if (!map) return
+
+    // toggle layers on or off on the map
+    Object.entries(visiblePriorityLayers).forEach(([id, visible]) => {
+      const visibility = visible ? 'visible' : 'none'
+      map.setLayoutProperty(`${id}-priority-fill`, 'visibility', visibility)
+      map.setLayoutProperty(`${id}-priority-outline`, 'visibility', visibility)
+    })
+
+    setPriorityLayerState(visiblePriorityLayers)
+  }, [])
+
   const getLegend = () => {
     const pointLayers = [
       includedPoint,
@@ -452,25 +474,31 @@ const PriorityMap = ({
       lowerRank: lowerRankLegend,
     } = pointLegends
 
-    const patches = [
-      {
-        color: 'rgba(0,0,0,0.15)',
-        label: `area with no inventoried ${barrierType}`,
-      },
-    ]
+    const circles = []
+    const patches = []
+    let footnote = null
 
+    if (Math.max(...Object.values(priorityLayerState))) {
+      const priorityEntries = Object.entries(priorityLayerState)
+        .filter(([id, visible]) => visible)
+        .forEach(([id]) => {
+          patches.push(priorityWatershedLegends[id])
+        })
+    }
+
+    // if no layer is selected for choosing summary areas
     if (activeLayer === null) {
       if (!isWithinZoom[excludedPoint.id]) {
-        return {
-          footnote: `zoom in to see ${barrierType} available for analysis`,
-        }
-      }
-      const circles = [
-        {
+        // return {
+        //   footnote: `zoom in to see ${barrierType} available for analysis`,
+        // }
+        footnote = `zoom in to see ${barrierType} available for analysis`
+      } else {
+        circles.push({
           ...excludedLegend,
           label: `${barrierType} available for analysis`,
-        },
-      ]
+        })
+      }
 
       if (isWithinZoom[backgroundPoint.id]) {
         circles.push({
@@ -479,26 +507,26 @@ const PriorityMap = ({
         })
       }
 
-      return {
-        circles,
-      }
+      // return {
+      //   circles,
+      // }
     }
 
-    if (rankedBarriers.length > 0) {
+    // may need to be mutually exclusive of above
+    else if (rankedBarriers.length > 0) {
       if (!isWithinZoom[topRank.id]) {
-        return {
-          footnote: `Zoom in further to see top-ranked ${barrierType}`,
-        }
-      }
-
-      const tierLabel =
-        tierThreshold === 1 ? 'tier 1' : `tiers 1 - ${tierThreshold}`
-      const circles = [
-        {
+        // return {
+        //   footnote: `Zoom in further to see top-ranked ${barrierType}`,
+        // }
+        footnote = `Zoom in further to see top-ranked ${barrierType}`
+      } else {
+        const tierLabel =
+          tierThreshold === 1 ? 'tier 1' : `tiers 1 - ${tierThreshold}`
+        circles.push({
           ...topRankLegend,
           label: `Top-ranked ${barrierType} (${tierLabel})`,
-        },
-      ]
+        })
+      }
 
       if (isWithinZoom[lowerRank.id]) {
         circles.push({
@@ -521,50 +549,74 @@ const PriorityMap = ({
         })
       }
 
-      return {
-        circles,
+      // return {
+      //   circles,
+      // }
+    } else {
+      // either in select units or filter step
+      if (isWithinZoom[includedPoint.id]) {
+        circles.push({
+          ...includedLegend,
+          label: `selected ${barrierType}`,
+        })
+      } else {
+        footnote = `zoom in to see selected ${barrierType}`
+        // return {
+        //   patches,
+        //   footnote: `zoom in to see selected ${barrierType}`,
+        // }
       }
-    }
 
-    // either in select units or filter step
-
-    if (!isWithinZoom[includedPoint.id]) {
-      return {
-        patches,
-        footnote: `zoom in to see selected ${barrierType}`,
+      if (isWithinZoom[excludedPoint.id]) {
+        circles.push({
+          ...excludedLegend,
+          label: `not selected ${barrierType}`,
+        })
       }
-    }
 
-    const circles = [
-      {
-        ...includedLegend,
-        label: `selected ${barrierType}`,
-      },
-    ]
+      if (isWithinZoom[backgroundPoint.id]) {
+        circles.push({
+          ...backgroundLegend,
+          label: `${barrierType} not available for analysis`,
+        })
+      }
 
-    if (isWithinZoom[excludedPoint.id]) {
-      circles.push({
-        ...excludedLegend,
-        label: `not selected ${barrierType}`,
-      })
-    }
-
-    if (isWithinZoom[backgroundPoint.id]) {
-      circles.push({
-        ...backgroundLegend,
-        label: `${barrierType} not available for analysis`,
-      })
+      if (allowUnitSelect) {
+        patches.push({
+          id: 'summaryAreas',
+          entries: [
+            {
+              color: 'rgba(0,0,0,0.15)',
+              label: `area with no inventoried ${barrierType}`,
+            },
+          ],
+        })
+      }
     }
 
     return {
-      patches: allowUnitSelect ? patches : null,
+      patches,
       circles,
+      footnote,
     }
   }
 
   return (
     <>
       <Map onCreateMap={handleCreateMap} {...props} />
+      <DropDownLayerChooser
+        label="Priority Watersheds"
+        options={[
+          { id: 'usfs', label: 'USDA Forest Service Priority Watersheds' },
+          { id: 'coa', label: 'Conservation Opportunity Areas' },
+          {
+            id: 'sebio',
+            label:
+              'Southeast Biodiversity Analysis - High Aquatic Biodiversity',
+          },
+        ]}
+        onChange={handlePriorityLayerChange}
+      />
       <Legend {...getLegend()} />
     </>
   )

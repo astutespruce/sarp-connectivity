@@ -21,7 +21,7 @@ rm $TMPDIR/mask.json
 
 ### Watersheds
 
-HUC6
+# HUC6
 echo "Generating HUC6 tiles..."
 ogr2ogr -t_srs EPSG:4326 -f GeoJSON $TMPDIR/HUC6.json $DATADIR/HUC6_prj.shp
 tippecanoe -f -z 8 -l HUC6 -o $TILEDIR/HUC6.mbtiles  -T id:string $TMPDIR/HUC6.json

@@ -9,7 +9,7 @@ import ErrorMessage from './ErrorMessage'
 
 // This sidebar is responsive: it shrinks a bit in smaller viewports, then eventually expands to fill the full width
 const Wrapper = styled(Box).attrs({
-  width: ['100%', '25rem'],
+  width: ['100%', '27rem'],
   flex: '0 0 auto',
 })`
   border-right: 1px solid ${themeGet('colors.grey.800')};

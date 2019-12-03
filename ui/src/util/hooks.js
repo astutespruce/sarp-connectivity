@@ -59,3 +59,22 @@ export const useIsEqualMemo = (callback, dependencies) => {
 export const useIsEqualCallback = (callback, dependencies) => {
   return useCallback(callback, dependencies.map(d => memoizedIsEqual(d)))
 }
+
+/**
+ * useEffect hook that skips first call during initial rendering of component.
+ * Adapted from: https://stackoverflow.com/a/54895884
+ * @param {function} fn
+ * @param {Array} deps - dependencies for useEffect
+ */
+export const useEffectSkipFirst = (f, deps) => {
+  const isFirst = useRef(true)
+
+  useEffect(() => {
+    if (isFirst.current) {
+      isFirst.current = false
+      return
+    }
+
+    f()
+  }, deps)
+}

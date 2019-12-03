@@ -89,6 +89,9 @@ export const FEASIBILITY = {
   // not shown to user
   // 7: 'Error',
   // 8: 'Dam removed for conservation benefit'
+  // 9: 'Invasive species barrier',
+  // 10: 'Proposed dam',
+  // 11: 'Fish passage installed'
 }
 
 export const HEIGHT = {

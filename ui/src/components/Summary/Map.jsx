@@ -330,12 +330,12 @@ const SummaryMap = ({
       })
       .reverse()
 
-    const patches = colors.map((color, i) => ({
+    const patchEntries = colors.map((color, i) => ({
       color,
       label: labels[i],
     }))
 
-    patches.push({
+    patchEntries.push({
       color: 'rgba(0,0,0,0.15)',
       label: `no inventoried ${barrierType}`,
     })
@@ -357,7 +357,7 @@ const SummaryMap = ({
     return {
       layerTitle: title,
       legendEntries: {
-        patches,
+        patches: [{ id: 'summaryAreas', entries: patchEntries }],
         circles,
       },
     }

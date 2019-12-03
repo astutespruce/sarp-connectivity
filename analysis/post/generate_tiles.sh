@@ -19,7 +19,7 @@ tippecanoe -f -Z5 -z14 -B6 -pk -pg -pe -ai -o $WORKDIR/barriers_with_networks.mb
 # NOTE: this is a much larger dataset, so we need to more aggressively drop points from tiles.
 tippecanoe -f -Z9 -z14 -B10 -pg -pe --drop-densest-as-needed -o $WORKDIR/barriers_background.mbtiles -l background -T name:string -T stream:string -T road:string -T sarpid:string -T localid:string -T crossingcode:string -T source:string -T stream:string -T road:string -T roadtype:string -T crossingtype:string -T condition:string -T potentialproject:string $WORKDIR/barriers_background.csv
 
-# Merge into a single tileset8
+# Merge into a single tileset
 tile-join -f --no-tile-size-limit -o $OUTDIR/sarp_barriers.mbtiles $WORKDIR/barriers_with_networks.mbtiles $WORKDIR/barriers_background.mbtiles
 
 

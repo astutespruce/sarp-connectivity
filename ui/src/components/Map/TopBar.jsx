@@ -1,4 +1,3 @@
-
 import { Flex } from 'components/Grid'
 import { ToggleButton } from 'components/Button'
 
@@ -12,6 +11,7 @@ export const TopBar = styled(Flex).attrs({ alignItems: 'center', p: '0.5rem' })`
   background: #fff;
   border-radius: 0 0 0.25rem 0.25rem;
   box-shadow: 1px 1px 8px #333;
+  font-size: small;
 `
 
 export const TopBarToggle = styled(ToggleButton)`
@@ -20,6 +20,6 @@ export const TopBarToggle = styled(ToggleButton)`
   button {
     text-transform: lowercase;
     padding: 0.25rem 0.5rem;
-    font-size: 0.9rem;
+    font-size: small;
   }
 `

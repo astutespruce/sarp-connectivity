@@ -30,6 +30,21 @@ const Title = styled(Text).attrs({
   margin-bottom: 0.25em;
 `
 
+const PatchGroup = styled(Box)`
+  &:not(:first-child) {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid ${themeGet('colors.grey.100')};
+  }
+`
+
+const PatchGroupLabel = styled(Text).attrs({
+  mt: '0.5rem',
+  fontWeight: 'bold',
+  fontSize: 'small',
+  lineHeight: 1.2,
+})``
+
 const Patch = styled.div`
   width: 20px;
   height: 1em;
@@ -58,12 +73,14 @@ const CircleRow = styled(Flex).attrs({ alignItems: 'flex-start', py: '0.5em' })`
 
 const PatchRow = styled(Flex)`
   &:first-child ${Patch} {
-    border-radius: 3px 3px 0 0;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
     border-top-width: 1px;
   }
 
   &:last-child ${Patch} {
-    border-radius: 0 0 3px 3px;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
   }
 `
 
@@ -92,11 +109,18 @@ const Legend = ({ title, patches, circles, footnote }) => {
 
           {patches && (
             <div>
-              {patches.map(({ color, label }) => (
-                <PatchRow key={color}>
-                  <Patch style={{ backgroundColor: color }} />
-                  <Label>{label}</Label>
-                </PatchRow>
+              {patches.map(({ id, label, entries }) => (
+                <PatchGroup key={id}>
+                  {label ? <PatchGroupLabel>{label}</PatchGroupLabel> : null}
+                  <div>
+                    {entries.map(({ color, label }) => (
+                      <PatchRow key={color}>
+                        <Patch style={{ backgroundColor: color }} />
+                        <Label>{label}</Label>
+                      </PatchRow>
+                    ))}
+                  </div>
+                </PatchGroup>
               ))}
             </div>
           )}
@@ -136,8 +160,14 @@ Legend.propTypes = {
   ),
   patches: PropTypes.arrayOf(
     PropTypes.shape({
-      color: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
+      id: PropTypes.string.isRequired,
+      label: PropTypes.string,
+      entries: PropTypes.arrayOf(
+        PropTypes.shape({
+          color: PropTypes.string.isRequired,
+          label: PropTypes.string.isRequired,
+        }).isRequired
+      ),
     })
   ),
   footnote: PropTypes.string,

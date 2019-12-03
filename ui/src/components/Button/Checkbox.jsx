@@ -9,9 +9,10 @@ const HTMLCheckbox = styled.input.attrs({ type: 'checkbox' })`
 
 const Label = styled.label`
   font-weight: bold;
-  font-size: 1.2rem;
+  font-size: 1.2em;
   position: relative;
-  padding-left: 2rem;
+  padding-left: 32px;
+  display: block;
 
   /* box */
   &::before {
@@ -19,10 +20,10 @@ const Label = styled.label`
     position: absolute;
     left: 0;
     display: inline-block;
-    height: 1.5rem;
-    width: 1.5rem;
+    height: 24px;
+    width: 24px;
     border: 1px solid ${themeGet('colors.grey.700')};
-    border-radius: 0.25rem;
+    border-radius: 0.25em;
     cursor: pointer;
     background-color: #fff;
     transition: background-color 250ms ease-in;
@@ -59,15 +60,15 @@ const Label = styled.label`
   }
 `
 
-const Checkbox = ({ id, checked, label, onChange }) => {
+const Checkbox = ({ id, checked, label, onChange, ...props }) => {
   const handleChange = ({ target: { checked: isChecked } }) => {
     onChange(isChecked)
   }
   return (
-    <>
+    <div {...props}>
       <HTMLCheckbox id={id} checked={checked} onChange={handleChange} />
       <Label htmlFor={id}>{label}</Label>
-    </>
+    </div>
   )
 }
 

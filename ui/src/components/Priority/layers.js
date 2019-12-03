@@ -51,7 +51,10 @@ export const unitOutline = {
   },
   paint: {
     'line-opacity': 1,
-    'line-width': 0.5,
+    'line-width': {
+      base: 0.1,
+      stops: [[4, 0.1], [8, 0.5]],
+    },
     'line-color': '#0B1CF4',
   },
 }
@@ -70,7 +73,10 @@ export const parentOutline = {
   },
   paint: {
     'line-opacity': 1,
-    'line-width': 2,
+    'line-width': {
+      base: 1,
+      stops: [[4, 0.1], [8, 2]],
+    },
     'line-color': '#0B1CF4',
   },
 }
@@ -242,5 +248,153 @@ export const pointHighlight = {
     'circle-radius': 14,
     'circle-stroke-width': 3,
     'circle-stroke-color': '#f03b20',
+  },
+}
+
+const priorityFillStyle = {
+  // id: // provided by specific layer
+  source: 'sarp',
+  'source-layer': 'HUC8',
+  type: 'fill',
+  minzoom: 0,
+  maxzoom: 24,
+  layout: {
+    visibility: 'none',
+  },
+  // filter: // provided by specific layer
+  // paint: // provided by specific layer
+}
+
+const priorityOutlineStyle = {
+  // id: // provided by specific layer
+  'source-layer': 'HUC8',
+  source: 'sarp',
+  type: 'line',
+  minzoom: 0,
+  maxzoom: 24,
+  layout: {
+    visibility: 'none',
+  },
+  // filter: // provided by specific layer
+  paint: {
+    'line-opacity': 0.2,
+    'line-width': {
+      base: 0.1,
+      stops: [[4, 0.1], [8, 0.5]],
+    },
+    'line-color': '#AAAAAA',
+  },
+}
+
+const usfsPriorityFill = {
+  ...priorityFillStyle,
+  id: 'usfs-priority-fill',
+  filter: ['>', 'usfs', 0],
+  paint: {
+    'fill-opacity': 0.4,
+    'fill-color': [
+      'match',
+      ['get', 'usfs'],
+      1,
+      '#31a354',
+      2,
+      '#addd8e',
+      3,
+      '#f7fcb9',
+      '#FFF',
+    ],
+  },
+}
+
+const usfsPriorityOutline = {
+  ...priorityOutlineStyle,
+  id: 'usfs-priority-outline',
+  filter: ['>', 'usfs', 0],
+}
+
+const coaPriorityFill = {
+  ...priorityFillStyle,
+  id: 'coa-priority-fill',
+  filter: ['>', 'coa', 0],
+  paint: {
+    'fill-opacity': 0.4,
+    'fill-color': '#d95f0e',
+  },
+}
+
+const coaPriorityOutline = {
+  ...priorityOutlineStyle,
+  id: 'coa-priority-outline',
+  filter: ['>', 'coa', 0],
+}
+
+const sebioPriorityFill = {
+  ...priorityFillStyle,
+  id: 'sebio-priority-fill',
+  filter: ['>', 'sebio', 0],
+  paint: {
+    'fill-opacity': 0.4,
+    'fill-color': [
+      'match',
+      ['get', 'sebio'],
+      1,
+      '#3182bd',
+      2,
+      '#9ecae1',
+      '#FFF',
+    ],
+  },
+}
+
+const sebioPriorityOutline = {
+  ...priorityOutlineStyle,
+  id: 'sebio-priority-outline',
+  filter: ['>', 'sebio', 0],
+}
+
+export const priorityWatersheds = [
+  usfsPriorityFill,
+  usfsPriorityOutline,
+  coaPriorityFill,
+  coaPriorityOutline,
+  sebioPriorityFill,
+  sebioPriorityOutline,
+]
+
+export const priorityWatershedLegends = {
+  usfs: {
+    id: 'usfs',
+    label: 'USFS Priority',
+    entries: [
+      {
+        color: '#31a35499',
+        label: 'highest',
+      },
+      {
+        color: '#addd8e99',
+        label: 'moderate',
+      },
+      {
+        color: '#f7fcb999',
+        label: 'lowest',
+      },
+    ],
+  },
+  coa: {
+    id: 'coa',
+    entries: [
+      {
+        color: '#d95f0e99',
+        label: 'Conservation opportunity areas',
+      },
+    ],
+  },
+  sebio: {
+    id: 'sebio',
+    label: 'Southeast aquatic biodiversity',
+    entries: [
+      { color: '#3182bd99', label: 'highest' },
+      { color: '#9ecae199', label: 'high' },
+    ],
   },
 }
