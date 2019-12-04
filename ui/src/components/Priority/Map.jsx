@@ -603,21 +603,22 @@ const PriorityMap = ({
 
   return (
     <>
-      <Map onCreateMap={handleCreateMap} {...props} />
-      <DropDownLayerChooser
-        label="Priority Watersheds"
-        options={[
-          { id: 'usfs', label: 'USDA Forest Service Priority Watersheds' },
-          { id: 'coa', label: 'Conservation Opportunity Areas' },
-          {
-            id: 'sebio',
-            label:
-              'Southeast Biodiversity Analysis - High Aquatic Biodiversity',
-          },
-        ]}
-        onChange={handlePriorityLayerChange}
-      />
-      <Legend {...getLegend()} />
+      <Map onCreateMap={handleCreateMap} {...props}>
+        <DropDownLayerChooser
+          label="Priority Watersheds"
+          options={[
+            { id: 'usfs', label: 'USDA Forest Service Priority Watersheds' },
+            { id: 'coa', label: 'Conservation Opportunity Areas' },
+            {
+              id: 'sebio',
+              label:
+                'Southeast Biodiversity Analysis - High Aquatic Biodiversity',
+            },
+          ]}
+          onChange={handlePriorityLayerChange}
+        />
+        <Legend {...getLegend()} />
+      </Map>
     </>
   )
 }

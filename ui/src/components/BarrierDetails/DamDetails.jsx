@@ -167,9 +167,8 @@ const DamDetails = ({
       <SectionHeader>Other information</SectionHeader>
       <List>
         <li>
-          Connectivity Tool ID: {id} (data version: {dataVersion})
+          SARP ID: {sarpid} (data version: {dataVersion})
         </li>
-        <li>SARP ID: {sarpid}</li>
         {!isEmptyString(nidid) ? (
           <li>
             National inventory of dams ID:{' '}

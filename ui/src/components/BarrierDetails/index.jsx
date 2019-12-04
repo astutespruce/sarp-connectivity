@@ -60,6 +60,7 @@ const Tabs = styled(BaseTabs)`
 const Tab = styled(BaseTab)`
   overflow-y: auto;
   padding: 1rem;
+  height: 100%;
 `
 
 const Footer = styled(Flex).attrs({
@@ -81,8 +82,8 @@ const MailIcon = styled(FaEnvelope)`
 const tierToPercent = tier => (100 * (19 - (tier - 1))) / 20
 
 const BarrierDetails = ({ barrier, barrierType: barrierTypeProp, onClose }) => {
-  const { id, sarpid, name, hasnetwork, countyname, State, ncwc_tier } = barrier
-  
+  const { sarpid, name, hasnetwork, countyname, State, ncwc_tier } = barrier
+
   // get barrier type from prop, if passed in directly, otherwise get from context
   const contextBarrierType = useBarrierType()
   const barrierType = barrierTypeProp || contextBarrierType
@@ -164,7 +165,7 @@ const BarrierDetails = ({ barrier, barrierType: barrierTypeProp, onClose }) => {
         <a
           href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
             barrierType === 'dams' ? 'dam' : 'road-related barrier'
-          }: ${sarpid} (Connectivity Tool ID: ${id} in data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+          }: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
         >
           <MailIcon /> Report a problem with this barrier
         </a>

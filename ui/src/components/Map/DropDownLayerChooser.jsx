@@ -20,7 +20,7 @@ const Wrapper = styled(MapControlWrapper)`
   background-color: ${({ isOpen }) => (isOpen ? '#eee' : '#fff')};
   border: none;
   padding: 7px;
-  z-index: 20000;
+  z-index: 10000;
 `
 
 const Icon = styled(FaLayerGroup)`

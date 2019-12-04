@@ -39,8 +39,6 @@ const BarrierDetails = ({
 }) => {
   const isCrossing = isEmptyString(crossingtype)
 
-  window.stream = stream
-
   return (
     <div>
       <Section>
@@ -156,10 +154,11 @@ const BarrierDetails = ({
         <React.Fragment>
           <SectionHeader>Other information</SectionHeader>
           <List>
-            <li>
-              Connectivity Tool ID: {id} (data version: {dataVersion})
-            </li>
-            {!isCrossing ? <li>SARP ID: {sarpid}</li> : null}
+            {!isCrossing ? (
+              <li>
+                SARP ID: {sarpid} (data version: {dataVersion})
+              </li>
+            ) : null}
 
             {!isEmptyString(source) ? <li>Source: {source}</li> : null}
           </List>

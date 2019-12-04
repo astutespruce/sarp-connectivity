@@ -188,7 +188,6 @@ const SummaryMap = ({
         // dam or barrier
         onSelectBarrier({
           ...properties,
-          ...feature,
           hasnetwork: sourceLayer !== 'background',
         })
       }

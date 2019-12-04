@@ -36,7 +36,7 @@ if (!mapboxToken) {
 
 const { bounds, styleID, minZoom, maxZoom } = config
 
-const Map = ({ onCreateMap }) => {
+const Map = ({ children, onCreateMap }) => {
   // TODO: how to handle this
   // // if there is no window, we cannot render this component
   // if (!hasWindow) {
@@ -93,6 +93,7 @@ const Map = ({ onCreateMap }) => {
           <Coords map={map} />
           <GoToLocation map={map} />
           <BasemapSelector map={map} basemaps={basemapLayers} />
+          {children}
         </>
       )}
     </Wrapper>
@@ -100,6 +101,7 @@ const Map = ({ onCreateMap }) => {
 }
 
 Map.propTypes = {
+  children: PropTypes.oneOfType([PropTypes.node, PropTypes.element]),
   onCreateMap: PropTypes.func.isRequired,
 }
 
