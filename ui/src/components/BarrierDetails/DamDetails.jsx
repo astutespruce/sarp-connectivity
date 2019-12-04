@@ -13,6 +13,8 @@ import {
   PURPOSE,
   RECON,
   OWNERTYPE,
+  USFS_PRIORITY,
+  SE_BIODIVERSITY,
 } from '../../../config/constants'
 
 const { version: dataVersion } = siteMetadata
@@ -35,6 +37,9 @@ const DamDetails = ({
   tespp,
   recon,
   ownertype,
+  usfs,
+  coa,
+  sebio,
   // metrics
   upstreammiles,
   downstreammiles,
@@ -160,6 +165,15 @@ const DamDetails = ({
             No feasibility information is available for this barrier.
           </li>
         )}
+
+        {/* watershed priorities */}
+        {usfs > 0 && <li>USFS watershed priority: {USFS_PRIORITY[usfs]}</li>}
+        {coa > 0 && <li>Within a SARP conservation opportunity area</li>}
+        {sebio > 0 && (
+          <li>
+            Southeast aquatic biodiversity hotspot: {SE_BIODIVERSITY[sebio]}
+          </li>
+        )}
       </List>
     </Section>
 
@@ -206,6 +220,9 @@ DamDetails.propTypes = {
   tespp: PropTypes.number,
   recon: PropTypes.number,
   ownertype: PropTypes.number,
+  usfs: PropTypes.number,
+  coa: PropTypes.number,
+  sebio: PropTypes.number,
   upstreammiles: PropTypes.number,
   downstreammiles: PropTypes.number,
   sinuosityclass: PropTypes.number,
@@ -225,6 +242,9 @@ DamDetails.defaultProps = {
   tespp: 0,
   recon: 0,
   ownertype: null,
+  usfs: 0,
+  coa: 0,
+  sebio: 0,
   upstreammiles: null,
   downstreammiles: null,
   sinuosityclass: null,

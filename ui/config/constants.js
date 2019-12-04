@@ -17,7 +17,7 @@ export const STATE_FIPS = {
 }
 
 export const RECON = {
-  0: 'Not yet evaluated',
+  0: 'Feasibility not yet evaluated',
   2: 'Dam needs follow-up with landowner',
   3: 'Removal is unlikely.  Social conditions unfavorable',
   4: 'Removal is extremely infeasible.  Large reservoirs, etc.',
@@ -254,3 +254,21 @@ export const SARP_BOUNDS = [
   -64.5126611,
   44.26093852,
 ]
+
+export const USFS_PRIORITY = {
+  1: 'highest',
+  2: 'moderate',
+  3: 'lowest',
+  0: 'not a priority / not assessed',
+}
+
+export const COA = {
+  1: 'conservation opportunity area',
+  0: 'not a conservation opportunity area',
+}
+
+export const SE_BIODIVERSITY = {
+  1: 'highest biodiversity',
+  2: 'high biodiversity',
+  0: 'lower biodiversity / not assessed',
+}

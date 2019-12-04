@@ -607,12 +607,11 @@ const PriorityMap = ({
         <DropDownLayerChooser
           label="Priority Watersheds"
           options={[
-            { id: 'usfs', label: 'USDA Forest Service Priority Watersheds' },
-            { id: 'coa', label: 'Conservation Opportunity Areas' },
+            { id: 'usfs', label: 'USFS priority watersheds' },
+            { id: 'coa', label: 'SARP conservation opportunity areas' },
             {
               id: 'sebio',
-              label:
-                'Southeast Biodiversity Analysis - High Aquatic Biodiversity',
+              label: 'Southeast aquatic biodiversity hotspots',
             },
           ]}
           onChange={handlePriorityLayerChange}

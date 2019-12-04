@@ -52,7 +52,7 @@ const CloseIcon = styled(FaTimesCircle)`
 `
 
 const Content = styled(Box).attrs({ py: '1rem', px: '0.5rem' })`
-  width: 15rem;
+  width: 16rem;
 `
 
 const Row = styled(Flex).attrs({ alignItems: 'flex-start' })`
@@ -74,8 +74,6 @@ const DropDownLayerChooser = ({ label, options, onChange }) => {
       {}
     )
   })
-
-  console.log('render dropdown layer chooser')
 
   const toggle = () => {
     setIsOpen(prevIsOpen => !prevIsOpen)

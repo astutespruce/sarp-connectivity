@@ -30,6 +30,8 @@ METRIC_FIELDS = [
     "Landcover",
     "Sinuosity",
     "SizeClasses",
+    "UpstreamMiles",
+    "DownstreamMiles",
     "TotalUpstreamMiles",
     "TotalDownstreamMiles",
     "FreeUpstreamMiles",
@@ -57,6 +59,9 @@ FILTER_FIELDS = [
     "TESppClass",
     "StreamOrderClass",
     "OwnerType",
+    "USFS",
+    "COA",
+    "SEBIO",
 ]
 
 DAM_FILTER_FIELDS = [
@@ -95,6 +100,10 @@ DAM_CORE_FIELDS = [
     "TESpp",
     "OwnerType",
     "ProtectedLand",
+    # Priority watersheds
+    "USFS",
+    "COA",
+    "SEBIO",
     "Basin",
 ]
 
@@ -143,6 +152,10 @@ SB_CORE_FIELDS = [
     "TESpp",
     "OwnerType",
     "ProtectedLand",
+    # Priority watersheds
+    # "USFS",
+    # "COA",
+    # "SEBIO",
     "Basin",
 ]
 
@@ -338,4 +351,22 @@ OWNERTYPE_DOMAIN = {
 }
 
 BOOLEAN_DOMAIN = {False: "no", True: "yes"}
+
+USFS_PRIORITY_DOMAIN = {
+    0: "Not a priority / not assessed",
+    1: "Highest priority",
+    2: "Moderate priority",
+    3: "Lowest priority",
+}
+
+COA_DOMAIN = {
+    0: "Not a conservation opportunity area",
+    1: "Conservation opportunity area",
+}
+
+SEBIO_DOMAIN = {
+    0: "Lower biodiversity / not assessed",
+    1: "Highest biodiversity",
+    2: "High biodiversity",
+}
 

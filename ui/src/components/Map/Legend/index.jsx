@@ -12,7 +12,7 @@ const Wrapper = styled(MapControlWrapper)`
   z-index: 1000;
   right: 10px;
   bottom: 24px;
-  max-width: 160px;
+  max-width: 12rem;
   padding: 10px;
   box-shadow: 1px 1px 8px #333;
   cursor: pointer;
@@ -40,6 +40,7 @@ const PatchGroup = styled(Box)`
 
 const PatchGroupLabel = styled(Text).attrs({
   mt: '0.5rem',
+  mb: '0.5rem',
   fontWeight: 'bold',
   fontSize: 'small',
   lineHeight: 1.2,

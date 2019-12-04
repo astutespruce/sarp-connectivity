@@ -10,6 +10,8 @@ import {
   SINUOSITY,
   BARRIER_SEVERITY,
   OWNERTYPE,
+  USFS_PRIORITY,
+  SE_BIODIVERSITY,
 } from '../../../config/constants'
 
 const { version: dataVersion } = siteMetadata
@@ -29,6 +31,9 @@ const BarrierDetails = ({
   condition,
   tespp,
   ownertype,
+  usfs,
+  coa,
+  sebio,
   severityclass,
   // metrics
   upstreammiles,
@@ -150,6 +155,24 @@ const BarrierDetails = ({
         )}
       </List>
 
+      {usfs + coa + sebio > 0 && (
+        <Section>
+          <SectionHeader>Conservation Benefit</SectionHeader>
+          <List>
+            {/* watershed priorities */}
+            {usfs > 0 && (
+              <li>USFS watershed priority: {USFS_PRIORITY[usfs]}</li>
+            )}
+            {coa > 0 && <li>Within a SARP conservation opportunity area</li>}
+            {sebio > 0 && (
+              <li>
+                Southeast aquatic biodiversity hotspot: {SE_BIODIVERSITY[sebio]}
+              </li>
+            )}
+          </List>
+        </Section>
+      )}
+
       {!isEmptyString(source) || !isCrossing ? (
         <React.Fragment>
           <SectionHeader>Other information</SectionHeader>
@@ -183,6 +206,9 @@ BarrierDetails.propTypes = {
   severityclass: PropTypes.number,
   tespp: PropTypes.number,
   ownertype: PropTypes.number,
+  usfs: PropTypes.number,
+  coa: PropTypes.number,
+  sebio: PropTypes.number,
   upstreammiles: PropTypes.number,
   downstreammiles: PropTypes.number,
   sinuosityclass: PropTypes.number,
@@ -201,6 +227,9 @@ BarrierDetails.defaultProps = {
   condition: null,
   tespp: null,
   ownertype: null,
+  usfs: 0,
+  coa: 0,
+  sebio: 0,
   upstreammiles: null,
   downstreammiles: null,
   sinuosityclass: null,

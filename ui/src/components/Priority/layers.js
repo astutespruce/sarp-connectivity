@@ -318,7 +318,7 @@ const coaPriorityFill = {
   filter: ['>', 'coa', 0],
   paint: {
     'fill-opacity': 0.4,
-    'fill-color': '#d95f0e',
+    'fill-color': '#3182bd',
   },
 }
 
@@ -338,9 +338,9 @@ const sebioPriorityFill = {
       'match',
       ['get', 'sebio'],
       1,
-      '#3182bd',
+      '#d95f0e',
       2,
-      '#9ecae1',
+      '#fec44f',
       '#FFF',
     ],
   },
@@ -384,17 +384,17 @@ export const priorityWatershedLegends = {
     id: 'coa',
     entries: [
       {
-        color: '#d95f0e99',
-        label: 'Conservation opportunity areas',
+        color: '#3182bd99',
+        label: 'SARP conservation opportunity areas',
       },
     ],
   },
   sebio: {
     id: 'sebio',
-    label: 'Southeast aquatic biodiversity',
+    label: 'Southeast aquatic biodiversity hotspots',
     entries: [
-      { color: '#3182bd99', label: 'highest' },
-      { color: '#9ecae199', label: 'high' },
+      { color: '#d95f0e99', label: 'highest biodiversity' },
+      { color: '#fec44f99', label: 'high biodiversity' },
     ],
   },
 }

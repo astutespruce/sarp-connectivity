@@ -31,6 +31,9 @@ from api.constants import (
     BARRIER_SEVERITY_DOMAIN,
     BOOLEAN_DOMAIN,
     OWNERTYPE_DOMAIN,
+    USFS_PRIORITY_DOMAIN,
+    COA_DOMAIN,
+    SEBIO_DOMAIN,
 )
 
 app = Flask(__name__)
@@ -152,7 +155,7 @@ def query(barrier_type="dams", layer="HUC8"):
         fields = SB_FILTER_FIELDS
 
     df = df.loc[df[layer].isin(ids)][fields].copy()
-    log.info("selected {} dams".format(len(df.index)))
+    log.info("selected {} {}".format(len(df.index), barrier_type))
 
     resp = make_response(
         df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
@@ -253,7 +256,7 @@ def download(barrier_type="dams", layer="HUC8", format="CSV"):
     ----------
     layer : str (default: HUC8)
         Layer to use for subsetting by ID.  One of: HUC6, HUC8, HUC12, State, ... TBD
-            
+
     format : str (default: csv)
         Format for download.  One of: csv, shp
     """
@@ -337,6 +340,9 @@ def download(barrier_type="dams", layer="HUC8", format="CSV"):
 
     df.OwnerType = df.OwnerType.map(OWNERTYPE_DOMAIN)
     df.ProtectedLand = df.ProtectedLand.map(BOOLEAN_DOMAIN)
+    df.USFS = df.USFS.map(USFS_PRIORITY_DOMAIN)
+    df.COA = df.COA.map(COA_DOMAIN)
+    df.SEBIO = df.SEBIO.map(SEBIO_DOMAIN)
 
     if barrier_type == "dams":
         df.Condition = df.Condition.map(DAM_CONDITION_DOMAIN)

@@ -12,6 +12,9 @@ import {
   DAM_CONDITION,
   BARRIER_CONDITION,
   OWNERTYPE,
+  USFS_PRIORITY,
+  COA,
+  SE_BIODIVERSITY,
 } from './constants'
 
 const getIntKeys = obj =>
@@ -32,6 +35,33 @@ const getEntries = obj => {
 }
 
 const sizeclassValues = [0, 1, 2, 3, 4, 5, 6, 7]
+
+const priorityFilters = [
+  {
+    field: 'usfs',
+    title: 'USFS watershed priority',
+    sort: false,
+    hideEmpty: true,
+    help: '',
+    ...getEntries(USFS_PRIORITY),
+  },
+  {
+    field: 'coa',
+    title: 'SARP conservation opportunity areas',
+    sort: false,
+    hideEmpty: true,
+    help: '',
+    ...getEntries(COA),
+  },
+  {
+    field: 'sebio',
+    title: 'Southeast aquatic biodiversity hotspots',
+    sort: false,
+    hideEmpty: true,
+    help: '',
+    ...getEntries(SE_BIODIVERSITY),
+  },
+]
 
 // Each filter needs to have a dimension above that matches the key here
 const dams = [
@@ -110,6 +140,7 @@ const dams = [
       'This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.',
     ...getEntries(OWNERTYPE),
   },
+  ...priorityFilters,
 ]
 
 const barriers = [
@@ -169,6 +200,7 @@ const barriers = [
       'This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.',
     ...getEntries(OWNERTYPE),
   },
+  // ...priorityFilters // FIXME
 ]
 
 export const FILTERS = {

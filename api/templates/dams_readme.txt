@@ -52,6 +52,10 @@ TESpp: Number of federally threatened or endangered aquatic species within the s
 OwnerType: Land ownership type.  This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.
 ProtectedLand: Indicates if the dam occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.
 
+USFS: U.S. Forest Service (USFS) priority watersheds within USFS Southeast Region.
+COA: SARP conservation opportunity areas.
+SEBIO: Southeast biodiversity hotspots.
+
 Basin: Name of the hydrologic basin (HUC6) where the dam occurs.
 HUC6: Hydrologic basin identifier where the dam occurs.
 HUC8: Hydrologic subbasin identifier where the dam occurs.
