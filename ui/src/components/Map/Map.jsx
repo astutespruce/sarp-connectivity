@@ -37,12 +37,6 @@ if (!mapboxToken) {
 const { bounds, styleID, minZoom, maxZoom } = config
 
 const Map = ({ children, onCreateMap }) => {
-  // TODO: how to handle this
-  // // if there is no window, we cannot render this component
-  // if (!hasWindow) {
-  //   return null
-  // }
-
   const mapNode = useRef(null)
   const [map, setMap] = useState(null)
 

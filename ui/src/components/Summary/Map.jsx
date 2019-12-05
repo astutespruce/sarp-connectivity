@@ -185,9 +185,16 @@ const SummaryMap = ({
           layerId: sourceLayer,
         })
       } else {
+        const {
+          geometry: {
+            coordinates: [lon, lat],
+          },
+        } = feature
         // dam or barrier
         onSelectBarrier({
           ...properties,
+          lat,
+          lon,
           hasnetwork: sourceLayer !== 'background',
         })
       }
@@ -285,9 +292,11 @@ const SummaryMap = ({
     // otherwise, zoom and attempt to select it
 
     let feature = selectFeatureByID(id, layer)
+
     if (!feature) {
       map.once('moveend', () => {
         feature = selectFeatureByID(id, layer)
+
         // source may still be loading, try again in 1 second
         if (!feature) {
           setTimeout(() => {
@@ -303,10 +312,17 @@ const SummaryMap = ({
   const { layerTitle, legendEntries } = useMemo(() => {
     const { current: map } = mapRef
 
-    const layer = layers.filter(
+    const [layer] = layers.filter(
       ({ system: lyrSystem, fill: { minzoom, maxzoom } }) =>
-        lyrSystem === system && zoom >= minzoom && zoom < maxzoom
-    )[0]
+        lyrSystem === system && zoom >= minzoom && zoom <= maxzoom
+    )
+
+    if (layer === undefined) {
+      return {
+        layerTitle: '',
+        legendEntries: [],
+      }
+    }
 
     const {
       title,
@@ -398,4 +414,5 @@ SummaryMap.defaultProps = {
   selectedBarrier: null,
 }
 
+// construct only once
 export default memo(SummaryMap)

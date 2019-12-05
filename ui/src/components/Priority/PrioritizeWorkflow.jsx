@@ -169,7 +169,6 @@ const Prioritize = () => {
     // don't show details when selecting units
     if (curStep === 'select') return
 
-    // console.log('selected feature', feature)
     setSelectedBarrier(feature)
   }
 

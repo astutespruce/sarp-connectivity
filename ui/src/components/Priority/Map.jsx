@@ -79,8 +79,9 @@ const PriorityMap = ({
           const [feature] = map.queryRenderedFeatures(point, {
             layers: [layerId],
           })
+          // only call handler if there was a feature
           if (feature) {
-            onClick(feature.properties)
+            onClick(feature)
           }
         })
       }
@@ -126,7 +127,9 @@ const PriorityMap = ({
                 0,
               ]
 
-              handleLayerClick(layerId, onSelectUnit)
+              handleLayerClick(layerId, ({ properties }) =>
+                onSelectUnit(properties)
+              )
             }
 
             map.addLayer(unitLayer)
@@ -146,8 +149,16 @@ const PriorityMap = ({
         source: barrierType,
       })
       handleLayerClick(backgroundPoint.id, feature => {
+        const {
+          properties,
+          geometry: {
+            coordinates: [lon, lat],
+          },
+        } = feature
         onSelectBarrier({
-          ...feature,
+          ...properties,
+          lat,
+          lon,
           hasnetwork: false,
         })
       })
@@ -162,8 +173,16 @@ const PriorityMap = ({
       // units are selected
       map.addLayer({ ...pointConfig, ...excludedPoint })
       handleLayerClick(excludedPoint.id, feature => {
+        const {
+          properties,
+          geometry: {
+            coordinates: [lon, lat],
+          },
+        } = feature
         onSelectBarrier({
-          ...feature,
+          ...properties,
+          lat,
+          lon,
           hasnetwork: true,
         })
       })
@@ -173,8 +192,16 @@ const PriorityMap = ({
         ...includedPoint,
       })
       handleLayerClick(includedPoint.id, feature => {
+        const {
+          properties,
+          geometry: {
+            coordinates: [lon, lat],
+          },
+        } = feature
         onSelectBarrier({
-          ...feature,
+          ...properties,
+          lat,
+          lon,
           hasnetwork: true,
         })
       })
@@ -211,12 +238,21 @@ const PriorityMap = ({
       }
 
       const handleRankLayerClick = feature => {
-        const barrier = getBarrierById(feature.id)
+        const {
+          properties,
+          geometry: {
+            coordinates: [lon, lat],
+          },
+        } = feature
+
+        const barrier = getBarrierById(properties.id)
 
         if (barrier) {
           onSelectBarrier({
             ...barrier.properties,
-            ...feature,
+            lat,
+            lon,
+            ...properties,
             hasnetwork: true,
           })
         }

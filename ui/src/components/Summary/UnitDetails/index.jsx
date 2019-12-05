@@ -64,6 +64,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   const { id, layerId, name = '', dams = 0, total_barriers = 0 } = summaryUnit
 
   const layerConfig = layers.filter(({ id: lyrID }) => lyrID === layerId)[0]
+
   let { title: layerTitle } = layerConfig
 
   let title = name || id

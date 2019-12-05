@@ -1,4 +1,4 @@
-import React, { useState, useMemo, memo } from 'react'
+import React, { useState, useMemo, useEffect, memo } from 'react'
 import PropTypes from 'prop-types'
 
 import styled, { themeGet } from 'style'
@@ -57,18 +57,29 @@ const icons = {
 const BasemapSelector = ({ map, basemaps }) => {
   const [isOpen, setIsOpen] = useState(false)
 
+  useEffect(() => {
+    Object.entries(basemaps).map(([group, layers]) => {
+      layers.forEach(({ id, source, ...rest }) => {
+        // due to the way hot reloading works with the map, this gets called
+        // on hot module reload and breaks because layers were already added to the map
+
+        if (!map.getSource(id)) {
+          map.addSource(id, source)
+        }
+        if (!map.getLayer(id)) {
+          map.addLayer({
+            ...rest,
+            id,
+            source: id,
+          })
+        }
+      })
+    })
+  }, [basemaps])
+
   // memoize construction of options to avoid doing this on every render
   const options = useMemo(() => {
     const basemapOptions = Object.entries(basemaps).map(([group, layers]) => {
-      layers.forEach(({ id, source, ...rest }) => {
-        map.addSource(id, source)
-        map.addLayer({
-          ...rest,
-          id,
-          source: id,
-        })
-      })
-
       const { id } = layers[0]
       return {
         id,
@@ -161,4 +172,5 @@ BasemapSelector.propTypes = {
   ).isRequired,
 }
 
+// Only construct once, when the map boots
 export default memo(BasemapSelector)

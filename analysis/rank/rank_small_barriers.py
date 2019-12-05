@@ -183,10 +183,6 @@ df = df[keep_fields].copy()
 # Rename columns for easier use
 df = df.rename(columns={"County": "CountyName", "COUNTYFIPS": "County"})
 
-# add duplicate lat / lon for tippecanoe to use
-df["latitude"] = df.lat
-df["longitude"] = df.lon
-
 # Fill N/A values and fix dtypes
 str_cols = df.dtypes.loc[df.dtypes == "object"].index
 df[str_cols] = df[str_cols].fillna("")
@@ -257,9 +253,6 @@ combined.protectedland = combined.protectedland.fillna(0).astype("uint8")
 combined.ownertype = combined.ownertype.fillna(-1).astype("int8")
 combined.severityclass = combined.severityclass.fillna(0).astype("uint8")
 
-# Duplicate latitude / longitude columns in again
-combined["latitude"] = combined.lat
-combined["longitude"] = combined.lon
 
 print("Writing combined file")
 combined.to_csv(

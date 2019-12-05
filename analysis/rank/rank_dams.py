@@ -171,13 +171,6 @@ df[str_cols] = df[str_cols].fillna("")
 # Fix boolean types
 df.ProtectedLand = df.ProtectedLand.astype("uint8")
 
-# create duplicate columns for those dropped by tippecanoe
-# tippecanoe will use these ones and leave lat / lon
-# so that we can use them for display in the frontend
-# TODO: can this be replaced with the actual geometry available to mapbox GL?
-df["latitude"] = df.lat
-df["longitude"] = df.lon
-
 
 with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork"])
 without_networks = df.loc[~df.HasNetwork].drop(columns=["HasNetwork"])
@@ -190,7 +183,7 @@ with_networks.rename(
 )
 
 # Drop metrics, tiers, and units used only for filtering
-keep_fields = DAM_CORE_FIELDS + ["CountyName", "State", "latitude", "longitude"]
+keep_fields = DAM_CORE_FIELDS + ["CountyName", "State"]
 
 
 without_networks[keep_fields].rename(
