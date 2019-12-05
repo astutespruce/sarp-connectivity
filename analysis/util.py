@@ -26,3 +26,28 @@ def spatial_join(left, right):
     joined.index.name = left.index.name
 
     return joined
+
+
+def append(target_df, df):
+    """Append df to the end of target_df.
+
+    Intended to be used in a loop where you are appending multiple dataframes
+    together.
+
+    Parameters
+    ----------
+    target_df : GeoDataFrame or DataFrame
+        May be none for the first append operation.  If so, the df
+        will be returned.
+    df : GeoDataFrame or DataFrame
+        dataframe to append
+
+    Returns
+    -------
+    GeoDataFrame or DataFrame
+    """
+
+    if target_df is None:
+        return df
+
+    return target_df.append(df, ignore_index=True, sort=False)

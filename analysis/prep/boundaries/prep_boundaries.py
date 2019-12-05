@@ -210,6 +210,9 @@ to_geofeather(df, boundaries_dir / "protected_areas.feather")
 
 ### Priority layers
 # These are joined on HUC8 codes
+
+# USFS: 1=highest priority, 3=lowest priority
+# based on USFS SE Region analysis May, 2010
 usfs = (
     gp.read_file(src_dir / "Priority_Areas.gdb", layer="USFS_Priority")[
         ["HUC_8", "USFS_Priority"]
@@ -217,13 +220,21 @@ usfs = (
     .set_index("HUC_8")
     .rename(columns={"USFS_Priority": "usfs"})
 )
-# usfs["usfs"] = True
+
+# take the lowest value (highest priority) for duplicate watersheds
+usfs = usfs.groupby(level=0).min()
 
 
+# Conservation opportunity areas
+# 1 = COA
 coa = gp.read_file(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[
     ["HUC_8"]
 ].set_index("HUC_8")
-coa["coa"] = True
+coa["coa"] = 1
+
+# take the lowest value (highest priority) for duplicate watersheds
+coa = coa.groupby(level=0).min()
+
 
 sebio = (
     gp.read_file(src_dir / "Priority_Areas.gdb", layer="SE_Biodiversity")[
@@ -238,15 +249,25 @@ sebio = (
     .set_index("HUC_8")
 )
 
-# pull out the top 10%  (90th percentile)
-threshold = sebio.priority.quantile([0.9]).iloc[0]
-sebio = sebio.loc[sebio.priority >= threshold].drop(columns=["priority"])
-sebio["sebio"] = True
+# 1 = highest 10% (90th percentile), 2 = highest 10%-25%
+# below this threshold didn't seem useful on the map
+p75, p90 = sebio.priority.quantile([0.75, 0.9])
+sebio.loc[sebio.priority >= p75, "sebio"] = 2
+sebio.loc[sebio.priority >= p90, "sebio"] = 1
 
-priorities = usfs.join(coa, how="outer").join(sebio, how="outer")
-priorities.usfs = priorities.usfs.fillna(0).astype("uint8")
-priorities.coa = priorities.coa.fillna(False)
-priorities.sebio = priorities.sebio.fillna(False)
+# drop the rest
+sebio = sebio[["sebio"]].dropna(subset=["sebio"]).astype("uint8")
+
+# take the lowest value (highest priority) for duplicate watersheds
+sebio = sebio.groupby(level=0).min()
+
+# 0 = not priority for a given priority dataset
+priorities = (
+    usfs.join(coa, how="outer").join(sebio, how="outer").fillna(0).astype("uint8")
+)
+
+# drop duplicates
+priorities = priorities.reset_index().drop_duplicates().set_index("HUC_8")
 
 serialize_df(
     priorities.reset_index().rename(columns={"HUC_8": "HUC8"}),
@@ -261,13 +282,9 @@ df.sindex
 # Select out within the SARP boundary
 in_sarp = gp.sjoin(df, bnd)
 df = df.loc[df.HUC8.isin(in_sarp.HUC8)].join(priorities, on="HUC8")
-df[priorities.columns] = df[priorities.columns].fillna(False)
-
-df.usfs = df.usfs.fillna(0).astype("uint8")
-df.coa = df.coa.fillna(False)
-df.sebio = df.sebio.fillna(False)
+df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")
 
 to_shp(
-    df.reset_index().rename(columns={"HUC8": "id", "NAME": "name"}),
+    df.reset_index(drop=True).rename(columns={"HUC8": "id", "NAME": "name"}),
     boundaries_dir / "HUC8_prj.shp",
 )

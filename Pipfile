@@ -23,6 +23,8 @@ nhdnet = {editable = true,path = "./../nhdnet"}
 sarp-connectivity = {editable = true,path = "."}
 geofeather = {editable = true,path = "./../geofeather"}
 rtree = ">=0.9.1"
+shapely = "==1.7a2"
+fiona = "*"
 
 [requires]
 python_version = "3.7"

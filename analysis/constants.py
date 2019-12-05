@@ -107,6 +107,14 @@ CRS = {
 }
 
 
+# Exclude swamp/marsh (466), estuaries (493), playas (361).
+# NOTE: they do not cut the flowlines in the same
+# way as other waterbodies, so they will cause issues.
+WATERBODY_EXCLUDE_FTYPES = [361, 466, 493]
+
+WATERBODY_MIN_SIZE = 0.0025
+
+
 # NOTE: not all feature services have all columns
 DAM_FS_COLS = [
     "SARPUniqueID",
