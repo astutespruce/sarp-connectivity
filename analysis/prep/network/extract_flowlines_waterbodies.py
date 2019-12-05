@@ -149,13 +149,21 @@ for region, HUC2s in list(REGION_GROUPS.items()):
     # This correctly catches polygons that are EXACTLY the same.
     # It will miss those that are NEARLY the same.
     waterbodies["hash"] = waterbodies.geometry.apply(lambda g: hash(g.wkb))
-    waterbodies = gp.GeoDataFrame(
-        waterbodies.groupby("hash").first().reset_index(drop=True), crs=waterbodies.crs
+
+    id_map = (
+        waterbodies.set_index("wbID")[["hash"]]
+        .join(waterbodies.groupby("hash").wbID.first(), on="hash")
+        .wbID
     )
+    # extract out where they are not equal; these are the ones to drop
+    waterbodies = waterbodies.loc[waterbodies.wbID.isin(id_map)].reset_index(drop=True)
     print("{:,} waterbodies remain after removing duplicates".format(len(waterbodies)))
 
     # remove their corresponding joins
-    wb_joins = wb_joins.loc[wb_joins.wbID.isin(waterbodies.wbID)].copy()
+    ix = wb_joins.loc[~wb_joins.wbID.isin(id_map)].index
+    # update IDs using map
+    wb_joins.loc[ix, "wbID"] = wb_joins.loc[ix].wbID.map(id_map)
+    wb_joins = wb_joins.drop_duplicates().reset_index(drop=True)
 
     ### Update the missing upstream_ids at the joins between HUCs.
     # These are the segments that are immediately DOWNSTREAM of segments that flow into this HUC4
