@@ -120,10 +120,10 @@ ogr2ogr -t_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 
 
 ### Protected Areas
 
-Kat extracted protected area data from CBI Protected Areas and TNC Secured Lands and merged them together.
+Kat extracted protected area data from CBI Protected Areas and TNC Secured Lands and merged them together. Kat later obtained a boundaries layer from USFS, and overlayed this over the top (11/4/2019). Because this causes multiple owner type polygons to occur in the same location, the `Preference` attribute is added, so that we can sort on ascending preference to assign the most appropriate ownership to a given barrier (nulls assigned arbitrary high value).
 
 ```
-ogr2ogr -t_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs" -sql "SELECT OwnerType as otype, OwnerName as owner, EasementHolderType as etype from CBI_PADUS_NCED_TNC_Combine2019_Clip" ../intermediate/protected_areas.shp Protected_Areas_2019.gdb CBI_PADUS_NCED_TNC_Combine2019_Clip
+ogr2ogr -t_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs" -sql "SELECT OwnerType as otype, OwnerName as owner, EasementHolderType as etype, Preference as sort from CBI_PADUS_NCED_TNC_USFS_Combine2019" ../intermediate/protected_areas.shp Protected_Areas_2019.gdb CBI_PADUS_NCED_TNC_USFS_Combine2019
 ```
 
 ## 2. Extract areas within SARP HUC4 boundary and processing

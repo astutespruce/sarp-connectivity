@@ -30,8 +30,6 @@ METRIC_FIELDS = [
     "Landcover",
     "Sinuosity",
     "SizeClasses",
-    "UpstreamMiles",
-    "DownstreamMiles",
     "TotalUpstreamMiles",
     "TotalDownstreamMiles",
     "FreeUpstreamMiles",

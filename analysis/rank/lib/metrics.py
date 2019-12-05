@@ -18,11 +18,14 @@ def update_network_metrics(df):
     df.loc[idx, "SizeClasses"] = df.loc[idx].SizeClasses - 1
 
     # Calculate miles GAINED if barrier is removed
-    # this is the lesser of the upstream or downstream lengths
-    df["GainMiles"] = df[["UpstreamMiles", "DownstreamMiles"]].min(axis=1)
+    # this is the lesser of the upstream or free downstream lengths.
+    # Non-free miles downstream (downstream waterbodies) are omitted from this analysis.
+    df["GainMiles"] = df[["TotalUpstreamMiles", "FreeDownstreamMiles"]].min(axis=1)
 
-    # TotalNetworkMiles is sum of upstream and downstream miles
-    df["TotalNetworkMiles"] = df[["UpstreamMiles", "DownstreamMiles"]].sum(axis=1)
+    # TotalNetworkMiles is sum of upstream and free downstream miles
+    df["TotalNetworkMiles"] = df[["TotalUpstreamMiles", "FreeDownstreamMiles"]].sum(
+        axis=1
+    )
 
     for column in ("StreamOrder", "Landcover", "SizeClasses"):
         df[column] = df[column].fillna(-1).astype("int8")
@@ -31,8 +34,10 @@ def update_network_metrics(df):
     for column in (
         "Sinuosity",
         "GainMiles",
-        "UpstreamMiles",
-        "DownstreamMiles",
+        "TotalUpstreamMiles",
+        "FreeUpstreamMiles",
+        "TotalDownstreamMiles",
+        "FreeDownstreamMiles",
         "GainMiles",
         "TotalNetworkMiles",
     ):

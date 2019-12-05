@@ -36,13 +36,23 @@ const BarrierDetails = ({
   sebio,
   severityclass,
   // metrics
-  upstreammiles,
-  downstreammiles,
+  freeupstreammiles,
+  freedownstreammiles,
+  totalupstreammiles,
+  totaldownstreammiles,
   sinuosityclass,
   landcover,
   sizeclasses,
 }) => {
   const isCrossing = isEmptyString(crossingtype)
+
+  // network lengths in waterbodies
+  const upstreamWBmiles = hasnetwork
+    ? totalupstreammiles - freeupstreammiles
+    : 0
+  const downstreamWBmiles = hasnetwork
+    ? totaldownstreammiles - freedownstreammiles
+    : 0
 
   return (
     <div>
@@ -90,15 +100,38 @@ const BarrierDetails = ({
         {hasnetwork ? (
           <React.Fragment>
             <li>
-              <b>{formatNumber(Math.min(upstreammiles, downstreammiles))}</b>{' '}
-              miles could be gained by removing this barrier
-              <List>
+              <b>
+                {formatNumber(
+                  Math.min(totalupstreammiles, freedownstreammiles)
+                )}{' '}
+                miles
+              </b>{' '}
+              could be gained by removing this barrier, based on:
+              <List style={{ marginTop: '0.5rem' }}>
                 <li>
-                  {formatNumber(upstreammiles)} miles in the upstream network
+                  <b>{formatNumber(totalupstreammiles)} total miles</b> in the
+                  upstream network
+                  {upstreamWBmiles > 0 && (
+                    <>
+                      {' '}
+                      <i>including</i> {formatNumber(upstreamWBmiles)} miles in
+                      reservoirs and waterbodies
+                    </>
+                  )}
+                  .
                 </li>
+
                 <li>
-                  {formatNumber(downstreammiles)} miles in the downstream
-                  network
+                  <b>{formatNumber(freedownstreammiles)} free-flowing miles</b>{' '}
+                  in the downstream network
+                  {downstreamWBmiles > 0 && (
+                    <>
+                      {' '}
+                      <i>plus</i> {formatNumber(downstreamWBmiles)} miles in
+                      reservoirs and waterbodies
+                    </>
+                  )}
+                  .
                 </li>
               </List>
             </li>
@@ -209,8 +242,10 @@ BarrierDetails.propTypes = {
   usfs: PropTypes.number,
   coa: PropTypes.number,
   sebio: PropTypes.number,
-  upstreammiles: PropTypes.number,
-  downstreammiles: PropTypes.number,
+  freeupstreammiles: PropTypes.number,
+  totalupstreammiles: PropTypes.number,
+  freedownstreammiles: PropTypes.number,
+  totaldownstreammiles: PropTypes.number,
   sinuosityclass: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
@@ -230,8 +265,10 @@ BarrierDetails.defaultProps = {
   usfs: 0,
   coa: 0,
   sebio: 0,
-  upstreammiles: null,
-  downstreammiles: null,
+  freeupstreammiles: null,
+  totalupstreammiles: null,
+  freedownstreammiles: null,
+  totaldownstreammiles: null,
   sinuosityclass: null,
   landcover: null,
   sizeclasses: null,

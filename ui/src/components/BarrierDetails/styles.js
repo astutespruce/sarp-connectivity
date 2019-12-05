@@ -1,9 +1,12 @@
 import { Text } from 'components/Text'
+import { Box } from 'components/Grid'
 import styled, { themeGet } from 'style'
 
 export const Section = styled.div`
   &:not(:first-child) {
-    margin-top: 1rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid ${themeGet('colors.grey.200')};
   }
 `
 
@@ -14,13 +17,12 @@ export const SectionHeader = styled(Text).attrs({
 })``
 
 export const List = styled.ul`
-  /* color: ${themeGet('colors.grey.800')}; */
   list-style: disc;
   margin-top: 0;
   li {
     margin-bottom: 0;
   }
-  li + li {
-    margin-top: 0.25rem;
+  li:not(:first-child) {
+    margin-top: 0.5rem;
   }
 `

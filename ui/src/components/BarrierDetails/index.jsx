@@ -145,7 +145,10 @@ const BarrierDetails = ({ barrier, barrierType: barrierTypeProp, onClose }) => {
           <Title>{!isEmptyString(name) ? name : defaultName}</Title>
           {!(isEmptyString(countyname) || isEmptyString(State)) && (
             <Subtitle>
-              {countyname}, {State}
+              <i>
+                {countyname} County, {State}
+              </i>
+              <br />
             </Subtitle>
           )}
         </TitleWrapper>

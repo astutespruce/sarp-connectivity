@@ -152,9 +152,8 @@ df.to_csv(
 serialize_df(df[DAM_API_FIELDS].reset_index(), api_dir / "dams.feather")
 
 # Drop fields that can be calculated on frontend
-# FIXME:
 keep_fields = [
-    c for c in DAM_API_FIELDS if not c in {"GainMiles", "TotalUpstreamMiles"}
+    c for c in DAM_API_FIELDS if not c in {"GainMiles", "TotalNetworkMiles"}
 ] + ["SinuosityClass"]
 df = df[keep_fields].copy()
 

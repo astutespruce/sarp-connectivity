@@ -1,6 +1,8 @@
 from pathlib import Path
 import geopandas as gp
+
 from geofeather import from_geofeather
+from nhdnet.io import deserialize_df
 
 from analysis.util import spatial_join
 
@@ -11,11 +13,11 @@ boundaries_dir = data_dir / "boundaries"
 
 def add_spatial_joins(df):
     """Add spatial joins of data provided by API, but not needed for network analysis.
-    
+
     Parameters
     ----------
     df : GeoDataFrame
-    
+
     Returns
     -------
     GeoDataFrame
@@ -29,7 +31,15 @@ def add_spatial_joins(df):
     df.OwnerType = df.OwnerType.fillna(-1).astype("int8")
     df.ProtectedLand = df.ProtectedLand.fillna(False).astype("bool")
 
-    # TODO: other spatial joins - priority layers?
+    ### Priority layers
+    print("Joining to priority watersheds")
+    priorities = (
+        deserialize_df(boundaries_dir / "priorities.feather")
+        .set_index("HUC8")
+        .rename(columns={"usfs": "USFS", "coa": "COA", "sebio": "SEBIO"})
+    )
+    df = df.join(priorities, on="HUC8")
+    df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")
 
     return df
 
