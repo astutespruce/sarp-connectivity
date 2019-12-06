@@ -13,6 +13,7 @@ gunicorn = "*"
 raven = {version = "*",extras = ["flask"]}
 requests = "*"
 python-dotenv = "*"
+networkx = "*"
 
 [dev-packages]
 pylint = "*"

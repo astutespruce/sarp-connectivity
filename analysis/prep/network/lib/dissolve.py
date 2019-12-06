@@ -9,9 +9,23 @@ from analysis.util import flatten_series
 
 
 def dissolve_waterbodies(df, joins, avoid_features):
+    """Dissolve waterbodies that overlap, duplicate, or otherwise touch each other.
+    Unless they intersect with avoid_features, in which case they are not dissolved.
 
+    Parameters
+    ----------
+    df : GeoDataFrame
+        waterbodies
+    joins : DataFrame
+        waterbody / flowline joins
+    avoid_features : GeoDataFrame
+        Features that indicate a given waterbody should not be dissolved with its neighbors.
+        May contain features like dams, that represent meaningful breaks between waterbodies.
+        WARNING: these will not be spatially deduplicated.
+    """
     ### Join waterbodies to themselves to find overlaps
     # TODO: implment our own alternative to sjoin that avoids self-combinations
+    start = time()
     print("Identifying overlapping / adjacent waterbodies")
     wb = df[["geometry"]].copy()
     wb.sindex
@@ -50,7 +64,11 @@ def dissolve_waterbodies(df, joins, avoid_features):
 
         ### Dissolve groups
         # automatically takes the first FType
-        print("Dissolving adjacent polygons, this might take a while...")
+        print(
+            "Dissolving {:,} adjacent polygons into {:,} new polygons, this might take a while...".format(
+                len(to_agg), len(groups.unique())
+            )
+        )
         # Shouldn't need to explode any multipolygons: .explode()
         dissolved = to_agg.dissolve(by="group").reset_index(drop=True)
         dissolved["AreaSqKm"] = (dissolved.geometry.area * 1e-6).astype("float32")
@@ -74,3 +92,6 @@ def dissolve_waterbodies(df, joins, avoid_features):
         # Just in case
         joins = joins.drop_duplicates().reset_index(drop=True)
 
+    print("Done resolving overlapping waterbodies in {:.2f}s")
+
+    return df, joins

@@ -144,7 +144,7 @@ for region, HUC2s in list(REGION_GROUPS.items()):
     wb_joins = merged_waterbody_joins.reset_index(drop=True)
 
     ### Deduplicate waterbodies that are duplicated between adjacent HUC4s
-    print("Removing duplicate waterbodies")
+    print("Removing duplicate waterbodies, starting with {:,}".format(len(waterbodies)))
     # Calculate a hash of the WKB bytes of the polygon.
     # This correctly catches polygons that are EXACTLY the same.
     # It will miss those that are NEARLY the same.
@@ -156,7 +156,11 @@ for region, HUC2s in list(REGION_GROUPS.items()):
         .wbID
     )
     # extract out where they are not equal; these are the ones to drop
-    waterbodies = waterbodies.loc[waterbodies.wbID.isin(id_map)].reset_index(drop=True)
+    waterbodies = (
+        waterbodies.loc[waterbodies.wbID.isin(id_map)]
+        .drop(columns=["hash"])
+        .reset_index(drop=True)
+    )
     print("{:,} waterbodies remain after removing duplicates".format(len(waterbodies)))
 
     # remove their corresponding joins

@@ -344,10 +344,18 @@ OWNERTYPE_TO_DOMAIN = {
 # considered public
 OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True}
 
-# NHDPlusIDs to exclude when extracting flowlines (e.g., within Chesapeake Bay)
-# indexed by HUC4
-EXCLUDE_IDs = {
-    "0208": [
+# NHDPlusIDs to exclude when extracting flowlines (e.g., )
+# All joins will be evaluated; if they don't connect to anything else
+# they will be marked as downstream terminals
+# indexed by region
+EXCLUDE_IDS= {
+    '02': [
+        # invalid: should have been coded as a loop
+        # corresponds to non-loop fix below
+        10000300073811,
+        10000300021333,
+
+        # within Chesapeake Bay
         10000300159048,
         10000300159054,
         10000300023678,
@@ -1117,3 +1125,14 @@ EXCLUDE_IDs = {
     ]
 }
 
+# List of NHDPlusIDs to convert from loops to non-loops;
+# they are coded incorrectly in NHD
+# WARNING: you must remove the corresponding segments that
+# were previously identified as loops
+CONVERT_TO_NONLOOP = {
+    '02': [
+        10000300070616,
+        10000300132189,
+        10000300132190,
+    ]
+}
