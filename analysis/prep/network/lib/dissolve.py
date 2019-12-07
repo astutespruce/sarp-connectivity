@@ -26,7 +26,6 @@ def dissolve_waterbodies(df, joins, avoid_features):
     ### Join waterbodies to themselves to find overlaps
     # TODO: implment our own alternative to sjoin that avoids self-combinations
     start = time()
-    print("Identifying overlapping / adjacent waterbodies")
     wb = df[["geometry"]].copy()
     wb.sindex
     to_agg = gp.sjoin(wb, wb).join(df[["FType"]])

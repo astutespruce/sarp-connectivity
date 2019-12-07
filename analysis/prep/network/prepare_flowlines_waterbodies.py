@@ -20,6 +20,7 @@ from nhdnet.nhd.joins import (
 from analysis.constants import REGION_GROUPS, EXCLUDE_IDS, CONVERT_TO_NONLOOP
 from analysis.util import flatten_series
 from analysis.prep.network.lib.dissolve import dissolve_waterbodies
+from analysis.prep.network.lib.cut import cut_lines_by_waterbodies
 
 # Threshold for dropping pipelines
 # above this drop any pipelines from the network (some in region 2 at ~ 200m are pipelines we want to drop)
@@ -119,7 +120,7 @@ for region, HUC2s in REGION_GROUPS.items():
     groups = groups.join(flowlines[["length"]], on="lineID")
     stats = groups.groupby("group").agg({"length": "sum"})
     drop_groups = stats.loc[stats.length >= MAX_PIPELINE_LENGTH].index
-    drop_ids = groups.loc[groups.group.isin(drop_groups.index)].lineID
+    drop_ids = groups.loc[groups.group.isin(drop_groups)].lineID
 
     print(
         "Dropping {:,} pipelines that are greater than the max allowed length".format(
@@ -139,7 +140,7 @@ for region, HUC2s in REGION_GROUPS.items():
     # TODO: watch for pipelines that intersect with non-pipelines at other places than their terminals
     # we want to drop these too
 
-    ### Aggregate waterbodies that are in contact / overlapping
+    ### Aggregate waterbodies that are in contact / overlapping each other
     waterbodies = from_geofeather(src_dir / region / "waterbodies.feather").set_index(
         "wbID"
     )
@@ -153,44 +154,45 @@ for region, HUC2s in REGION_GROUPS.items():
     )
     # End TODO:
 
+    # Drop any waterbodies and waterbody joins to flowlines that are no longer present
+    # based on above processing of flowlines
+    wb_joins = wb_joins.loc[wb_joins.lineID.isin(flowlines.index)].copy()
+    to_drop = ~waterbodies.index.isin(wb_joins.wbID)
+    print(
+        "Dropping {:,} waterbodies that no longer intersect with the flowlines retained above".format(
+            to_drop.sum()
+        )
+    )
+    waterbodies = waterbodies.loc[~to_drop].copy()
+
     # Overlay and dissolve
+    print("Dissolving adjacent waterbodies (where appropriate)")
     waterbodies, wb_joins = dissolve_waterbodies(waterbodies, wb_joins, nhd_lines)
     print("{:,} waterbodies after dissolve".format(len(waterbodies)))
 
-    # Drop any waterbody joins to flowlines that are no longer present
-    wb_joins = wb_joins.loc[wb_joins.lineID.isin(flowlines.index)].copy()
-
+    ### Refine overlaps between remaining waterbodies and flowlines
     print("Processing intersections between waterbodies and flowlines")
-
-    # Extract line segments that overlap for further analysis
-    wb_lines = gp.GeoDataFrame(
-        wb_joins.join(flowlines[["geometry", "length"]], on="lineID"), crs=flowlines.crs
-    )
-    wb_lines.sindex
-
-    wb = waterbodies[["geometry"]]
-    wb.sindex
-
-    join_start = time()
-    inside_lines = gp.sjoin(wb_lines, wb, how="inner", op="within")[["wbID", "lineID"]]
-    print(
-        "Identified {:,} flowlines completely contained by waterbodies in {:.2f}s".format(
-            len(inside_lines), time() - join_start
-        )
-    )
-    inside_lines["inside"] = True
-    wb_lines = wb_lines.join(
-        inside_lines.set_index(["wbID", "lineID"]), on=["wbID", "lineID"]
-    )
-    wb_lines.inside = wb_lines.inside.fillna(False)
-
-    to_cut = wb_lines.loc[~wb_lines.inside].join(
-        wb.geometry.rename("waterbody"), on="wbID"
+    flowlines, joins, waterbodies, wb_joins = cut_lines_by_waterbodies(
+        flowlines, joins, waterbodies, wb_joins
     )
 
-    # Most polygons only touch, find the ones that cross for further evaluation
-    # this is SLOW!!
-    crosses = to_cut.geometry.crosses(gp.GeoSeries(to_cut.waterbody).boundary)
+    # intersect the new flowlines back to the waterbody geometry to identify those that are inside or not
+    # intersection = new_lines.intersection(gp.GeoSeries(new_lines.waterbody))
+    # temp = gp.GeoDataFrame(
+    #     new_lines[["level_1", "lineID", "wbID"]]
+    #     .join(intersection.rename("geometry"))
+    #     .join(flowlines["length"].rename("origLength"), on="lineID"),
+    #     crs=flowlines.crs,
+    # )
+
+    # need to remove from flowlines and add new ones
+
+    # TODO: watch for places where there is a difference between total length of cut parts and original line
+    # these indicate shared edges and need a different method
+
+    # NOTE: all that are not inside touch, but only some of those that touch cross
+
+    # any that don't cross and are not inside can now be dropped from joins and wb_lines
 
     # TODO: IMPORTANT: cut flowlines by waterbodies
 
