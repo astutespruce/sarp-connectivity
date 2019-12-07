@@ -28,8 +28,10 @@ nhd_lines = from_geofeather(
 )
 nhd_lines.sindex
 
+start = time()
+for region, HUC2s in list(REGION_GROUPS.items())[-1:]:
+    region_start = time()
 
-for region, HUC2s in list(REGION_GROUPS.items())[:-1]:
     print("\n----- {} ------\n".format(region))
 
     out_dir = nhd_dir / "clean" / region
@@ -152,3 +154,7 @@ for region, HUC2s in list(REGION_GROUPS.items())[:-1]:
     flowlines.reset_index().to_file(out_dir / "flowlines.shp")
     waterbodies.reset_index().to_file(out_dir / "waterbodies.shp")
     drains.to_file(out_dir / "waterbody_drain_points.shp")
+
+    print("Region done in {:.2}s".format(time() - region_start))
+
+print("==============\nAll done in {:.2}s".format(time() - start))

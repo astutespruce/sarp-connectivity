@@ -8,6 +8,7 @@ from nhdnet.nhd.joins import update_joins
 
 
 def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
+    start = time()
     ### Extract line segments that overlap for further analysis
     intersect_wb = flowlines.loc[
         wb_joins.lineID.unique(), ["geometry", "length"]
@@ -191,7 +192,6 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     new_lines.lineID = new_lines.lineID.astype("uint32")
 
     ### Update waterbody joins
-    print("Updating waterbody joins...")
     # remove joins replaced by above
     ix = new_lines.set_index(["origLineID", "wbID"]).index
     wb_joins = wb_joins.loc[~wb_joins.index.isin(ix)].copy()
@@ -208,7 +208,6 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     )
 
     ### Update flowline joins
-    print("Updating flowline joins...")
     # transform new lines to create new joins
     l = new_lines.groupby("origLineID").lineID
     # the first new line per original line is the furthest upstream, so use its
@@ -247,7 +246,6 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     )
 
     ### Update flowlines
-    print("Updating flowlines...")
     print(
         "Removing {:,} flowlines now replaced by new segments".format(
             len(new_lines.origLineID.unique())
@@ -277,7 +275,6 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     flowlines.waterbody = flowlines.waterbody.fillna(False)
 
     ### Update waterbodies and calculate flowline stats
-    print("Updating waterbodies and calculating stats...")
     wb_joins = wb_joins.reset_index()
     stats = (
         wb_joins.join(flowlines.length.rename("flowlineLength"), on="lineID")
@@ -287,7 +284,6 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     )
     waterbodies = waterbodies.loc[waterbodies.index.isin(wb_joins.wbID)].join(stats)
 
-    ### Waterbody drain points
-    # TODO: !!!
+    print("Done cutting flowlines by waterbodies in {:.2f}s".format(time() - start))
 
     return flowlines, joins, waterbodies, wb_joins

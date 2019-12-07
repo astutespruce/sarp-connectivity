@@ -73,11 +73,34 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
         )
     )
 
-    # drop any terminal joins before traversing network
-    # otherwise the 0's close the loop
+    # Drop any isolated pipelines
+    # these either are one segment long, or are upstream / downstream terminals for
+    # non-pipeline segments
+    join_idx = index_joins(
+        pjoins, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+    drop_ids = join_idx.loc[
+        (join_idx.upstream_id == join_idx.downstream_id)
+        | (
+            ((join_idx.upstream_id == 0) & (~join_idx.downstream_id.isin(pids)))
+            | ((join_idx.downstream_id == 0) & (~join_idx.upstream_id.isin(pids)))
+        )
+    ].index
+    print("Removing {:,} isolated segments".format(len(drop_ids)))
+
+    # remove from flowlines, joins, pjoins
+    flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
+    joins = remove_joins(
+        joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+    pjoins = remove_joins(
+        pjoins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+
+    # Only keep joins between pipelines
     pjoins = pjoins.loc[
-        ~((pjoins.upstream_id == 0) | (pjoins.downstream_id == 0))
-    ].copy()
+        (pjoins.upstream_id.isin(pids) & pjoins.downstream_id.isin(pids))
+    ]
 
     # create a network of pipelines to group them together
     network = nx.from_pandas_edgelist(pjoins, "downstream_id", "upstream_id")
@@ -98,6 +121,7 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
             len(drop_ids)
         )
     )
+
     flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
     joins = remove_joins(
         joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
@@ -107,8 +131,5 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     joins.loc[joins.downstream_id == 0, "downstream"] = 0
     joins.loc[joins.downstream_id == 0, "type"] = "terminal"
     joins.loc[joins.upstream_id == 0, "upstream"] = 0
-
-    # TODO: watch for pipelines that intersect with non-pipelines at other places than their terminals
-    # we want to drop these too
 
     return flowlines, joins
