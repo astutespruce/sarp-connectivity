@@ -64,7 +64,7 @@ def dissolve_waterbodies(df, joins, avoid_features):
         ### Dissolve groups
         # automatically takes the first FType
         print(
-            "Dissolving {:,} adjacent polygons into {:,} new polygons, this might take a while...".format(
+            "Dissolving {:,} adjacent polygons into {:,} new polygons...".format(
                 len(to_agg), len(groups.unique())
             )
         )
@@ -91,6 +91,6 @@ def dissolve_waterbodies(df, joins, avoid_features):
         # Just in case
         joins = joins.drop_duplicates().reset_index(drop=True)
 
-    print("Done resolving overlapping waterbodies in {:.2f}s")
+    print("Done resolving overlapping waterbodies in {:.2f}s".format(time() - start))
 
     return df, joins

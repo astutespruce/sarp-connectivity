@@ -23,9 +23,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     wb = waterbodies[["geometry"]]
     wb.sindex
 
-    print(
-        "Identifying flowlines completely within waterbodies, this might take a while"
-    )
+    print("Identifying flowlines completely within waterbodies...")
     join_start = time()
     inside = (
         gp.sjoin(intersect_wb, wb, how="inner", op="within")[["index_right"]]
@@ -62,9 +60,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
 
     wb_joins = wb_joins.set_index(["lineID", "wbID"])
 
-    print(
-        "Determining which flowlines actually cross into waterbodies, this might take a while"
-    )
+    print("Determining which flowlines actually cross into waterbodies...")
     # Most lines only touch waterbodies
     # find the ones that cross for further evaluation
     # this is SLOW!!
@@ -82,6 +78,12 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     # WARNING: if lines share a common edge, they will be dropped here
     to_cut = to_cut[crosses].copy()
     boundary = boundary[crosses]
+
+    print(
+        "Cutting {:,} flowlines that intersect with waterbodies (not all may be retained)".format(
+            len(to_cut)
+        )
+    )
 
     # Fun fact: all new segments from differences are oriented from the upstream end of the
     # original line to the downstream end
@@ -144,6 +146,12 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     # Remove any that are unchanged from intersection analysis
     new_lines = new_lines.loc[~new_lines.index.isin(is_within.index)].copy()
 
+    print(
+        "Created {:,} new flowlines by splitting at waterbody edges".format(
+            len(new_lines)
+        )
+    )
+
     ### These are our final new lines to add
     # remove their lineIDs from flowlines and append
     # replace their outer joins to these ones and add intermediates
@@ -183,6 +191,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     new_lines.lineID = new_lines.lineID.astype("uint32")
 
     ### Update waterbody joins
+    print("Updating waterbody joins...")
     # remove joins replaced by above
     ix = new_lines.set_index(["origLineID", "wbID"]).index
     wb_joins = wb_joins.loc[~wb_joins.index.isin(ix)].copy()
@@ -198,7 +207,8 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
         .set_index(["lineID", "wbID"])
     )
 
-    ### Update joins
+    ### Update flowline joins
+    print("Updating flowline joins...")
     # transform new lines to create new joins
     l = new_lines.groupby("origLineID").lineID
     # the first new line per original line is the furthest upstream, so use its
@@ -237,6 +247,12 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     )
 
     ### Update flowlines
+    print("Updating flowlines...")
+    print(
+        "Removing {:,} flowlines now replaced by new segments".format(
+            len(new_lines.origLineID.unique())
+        )
+    )
     # remove originals now replaced by cut versions here
     flowlines = (
         flowlines.loc[~flowlines.index.isin(new_lines.origLineID)]
@@ -260,11 +276,18 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     ] = True
     flowlines.waterbody = flowlines.waterbody.fillna(False)
 
-    # fix data types
+    ### Update waterbodies and calculate flowline stats
+    print("Updating waterbodies and calculating stats...")
+    wb_joins = wb_joins.reset_index()
+    stats = (
+        wb_joins.join(flowlines.length.rename("flowlineLength"), on="lineID")
+        .groupby("wbID")
+        .flowlineLength.sum()
+        .astype("float32")
+    )
+    waterbodies = waterbodies.loc[waterbodies.index.isin(wb_joins.wbID)].join(stats)
 
-    # TODO: figure out gap between flowlines with waterbody true and len(wb_joins)
+    ### Waterbody drain points
+    # TODO: !!!
 
-    # TODO: return updated flowlines (with bool for in_wb), joins, waterbodies (with stats), wb_joins
-
-    # TODO: waterbody stats
-    return flowlines, joins, waterbodies, wb_joins.reset_index()
+    return flowlines, joins, waterbodies, wb_joins
