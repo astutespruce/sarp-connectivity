@@ -14,6 +14,7 @@ from analysis.constants import REGION_GROUPS, EXCLUDE_IDS, CONVERT_TO_NONLOOP
 from analysis.prep.network.lib.dissolve import dissolve_waterbodies
 from analysis.prep.network.lib.cut import cut_lines_by_waterbodies
 from analysis.prep.network.lib.lines import remove_pipelines, remove_flowlines
+from analysis.prep.network.lib.drains import create_drain_points
 
 MAX_PIPELINE_LENGTH = 150  # meters
 
@@ -28,7 +29,7 @@ nhd_lines = from_geofeather(
 nhd_lines.sindex
 
 
-for region, HUC2s in list(REGION_GROUPS.items())[:1]:
+for region, HUC2s in list(REGION_GROUPS.items())[:-1]:
     print("\n----- {} ------\n".format(region))
 
     out_dir = nhd_dir / "clean" / region
@@ -103,8 +104,6 @@ for region, HUC2s in list(REGION_GROUPS.items())[:1]:
     )
     waterbodies = waterbodies.loc[~to_drop].copy()
 
-    print("------------------")
-
     # Overlay and dissolve
     print("Dissolving adjacent waterbodies (where appropriate)")
 
@@ -113,17 +112,23 @@ for region, HUC2s in list(REGION_GROUPS.items())[:1]:
 
     print("------------------")
 
-    ### Refine overlaps between remaining waterbodies and flowlines
+    ### Cut flowlines by waterbodies
     print("Processing intersections between waterbodies and flowlines")
     flowlines, joins, waterbodies, wb_joins = cut_lines_by_waterbodies(
         flowlines, joins, waterbodies, wb_joins
     )
 
+    # FIXME: remove
     print(
         "Now have {:,} flowlines, {:,} waterbodies, {:,} waterbody-flowline joins".format(
             len(flowlines), len(waterbodies), len(wb_joins)
         )
     )
+
+    print("------------------")
+
+    print("Identifying waterbody drain points")
+    drains = create_drain_points(flowlines, joins, waterbodies, wb_joins)
 
     print("------------------")
 
@@ -139,8 +144,11 @@ for region, HUC2s in list(REGION_GROUPS.items())[:1]:
         wb_joins.reset_index(drop=True), out_dir / "waterbody_flowline_joins.feather"
     )
 
+    print("Serializing {:,} drain points".format(len(drains)))
+    to_geofeather(drains, out_dir / "waterbody_drain_points.feather")
+
     # Serialize to shapefiles
     print("Serializing to shapefile")
     flowlines.reset_index().to_file(out_dir / "flowlines.shp")
     waterbodies.reset_index().to_file(out_dir / "waterbodies.shp")
-
+    drains.to_file(out_dir / "waterbody_drain_points.shp")
