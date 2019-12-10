@@ -31,7 +31,7 @@ nhd_lines = from_geofeather(
 nhd_lines.sindex
 
 start = time()
-for region, HUC2s in list(REGION_GROUPS.items())[1]:
+for region, HUC2s in list(REGION_GROUPS.items())[4:-1]:
     region_start = time()
 
     print("\n----- {} ------\n".format(region))
@@ -127,12 +127,6 @@ for region, HUC2s in list(REGION_GROUPS.items())[1]:
 
     ### Cut flowlines by waterbodies
 
-    # TEMPORARY: this shimmed until pygeos support is available in geopandas
-    # doing these operations in native geopandas is extremely slow.
-    # To get around this, we load and do certain operations in pygeos.
-    # WARNING: Due to incompatibilities between shapely and pygeos, this may
-    # break in future versions, and is also why we have to do intersections in shapely
-    # instead of pygeos here.
     print("Processing intersections between waterbodies and flowlines")
     flowlines, joins, waterbodies, wb_joins = cut_lines_by_waterbodies(
         flowlines, joins, waterbodies, wb_joins, out_dir

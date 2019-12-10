@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "753f930a3555b26a3f1fef741ce5a0360bde9a4cd2a6667170e87b843fd99788"
+            "sha256": "ea2b008332f788c2bfea8d695dd88b89f920f1e23f94b632d56ab106ccd25f04"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -218,6 +218,13 @@
             ],
             "version": "==0.15.1"
         },
+        "pygeos": {
+            "hashes": [
+                "sha256:a10d819bf99bc83258c21342323a047b9808186e656c7e10c8f4d2dde6379a7f"
+            ],
+            "index": "pypi",
+            "version": "==0.5"
+        },
         "python-dateutil": {
             "hashes": [
                 "sha256:73ebfe9dbf22e832286dafa60473e4cd239f8592f699aa5adaf10050e6e1823c",
@@ -346,6 +353,13 @@
                 "sha256:6c7d52d529a78712491974f975c33473f430c0f7beb18c0d7a402a743dcb460a"
             ],
             "version": "==0.5.0"
+        },
+        "decorator": {
+            "hashes": [
+                "sha256:54c38050039232e1db4ad7375cfce6748d7b41c29e95a081c8a6d2c30364a2ce",
+                "sha256:5d19b92a3c8f7f101c8dd86afd86b0f061a8ce4540ab8cd401fa2542756bce6d"
+            ],
+            "version": "==4.4.1"
         },
         "feather-format": {
             "hashes": [
@@ -509,6 +523,14 @@
             ],
             "version": "==2.5.0"
         },
+        "networkx": {
+            "hashes": [
+                "sha256:cdfbf698749a5014bf2ed9db4a07a5295df1d3a53bf80bf3cbd61edf9df05fa1",
+                "sha256:f8f4ff0b6f96e4f9b16af6b84622597b5334bf9cae8cf9b2e42e7985d5c95c64"
+            ],
+            "index": "pypi",
+            "version": "==2.4"
+        },
         "nhdnet": {
             "editable": true,
             "path": "./../nhdnet"
@@ -587,6 +609,13 @@
             ],
             "version": "==0.15.1"
         },
+        "pygeos": {
+            "hashes": [
+                "sha256:a10d819bf99bc83258c21342323a047b9808186e656c7e10c8f4d2dde6379a7f"
+            ],
+            "index": "pypi",
+            "version": "==0.5"
+        },
         "pylint": {
             "hashes": [
                 "sha256:3db5468ad013380e987410a8d6956226963aed94ecb5f9d3a28acca6d9ac36cd",
@@ -661,13 +690,10 @@
         },
         "rtree": {
             "hashes": [
-                "sha256:4d223b9676922f384ceef62db4562d31b8ae1e841ebeeaa64fd16bd9419f83f1",
-                "sha256:53f5507f38b8b7a13b13ae729927ada490ea2391e7b045a51bc65aa3227efe66",
-                "sha256:c9fe2cad21affad400c6d59836bae83b7e062a9fef9a15f08eda48b6f40e1290",
-                "sha256:e30451ef8bd25324ffeab6fd4e0c1ae2b1a44a9dada8149413cb7a2cb40f3f36"
+                "sha256:6a34b25f588e1563e45af251a8469b43a125d972eb2fa66e9ce96ed29f06c454"
             ],
             "index": "pypi",
-            "version": "==0.9.1"
+            "version": "==0.9.2"
         },
         "sarp-connectivity": {
             "editable": true,

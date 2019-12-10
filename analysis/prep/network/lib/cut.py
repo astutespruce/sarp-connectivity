@@ -8,55 +8,41 @@ from geofeather import to_geofeather
 
 from nhdnet.geometry.lines import calculate_sinuosity
 from nhdnet.nhd.joins import update_joins
-from analysis.pygeos_compat import to_pygeos
+from analysis.pygeos_compat import to_pygeos, from_pygeos
+
+# TEMPORARY: this shimmed until pygeos support is available in geopandas
+# doing these operations in native geopandas is extremely slow.
+# To get around this, we load and do certain operations in pygeos.
+# WARNING: Due to incompatibilities between shapely and pygeos, this may
+# break in future versions, and is also why we have to do intersections in shapely
+# instead of pygeos here.
 
 
-# def get_contained_ids(geoms):
-#     """Return the list of flowline IDs that are completely contained by waterbodies.
+def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
+    """
+    Cut lines by waterbodies.
+    1. Intersects all previously intersected flowlines with waterbodies.
+    2. For those that cross but are not completely contained by waterbodies, cut them.
+    3. Evaluate the cuts, only those that have substantive cuts inside and outside are retained as cuts.
+    4. Any flowlines that are not contained or crossing waterbodies are dropped from joins
 
-#     WARNING: this deliberately simplifies the operation to only looking at the endpoints
-#     of the lines, to avoid a whole class of issues of the flowline exiting then re-entering
-#     the waterbody (those are just bad data in NHD).
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+        flowline joins
+    waterbodies : GeoDataFrame
+    wb_joins : DataFrame
+        waterbody flowline joins
+    outdir : pathlib.Path
+        output directory for writing error files, if needed
 
-#     Parameters
-#     ----------
-#     geoms : DataFrame
-#         data frame containing pygeos geometries for flowlines ('geometry'), and
-#         waterbodies ('waterbody'), indexed by lineID
+    Returns
+    -------
+    tuple of (GeoDataFrame, DataFrame, GeoDataFrame, DataFrame)
+        (flowlines, joins, waterbodies, waterbody joins)
+    """
 
-#     Returns
-#     -------
-#     Series
-#         ids of flowlines that are completely contained
-#     """
-
-#     ### extract a simple line from the endpoints only.
-#     # this is to simplify the interpretation of flowlines contained by waterbodies.
-#     start = time()
-
-#     p1 = pg.get_point(geoms.geometry, 0)
-#     x1 = pg.get_x(p1)
-#     y1 = pg.get_y(p1)
-
-#     p2 = pg.get_point(geoms.geometry, -1)
-#     x2 = pg.get_x(p2)
-#     y2 = pg.get_y(p2)
-
-#     lines = pg.linestrings(np.column_stack([x1, x2]), np.column_stack([y1, y2]))
-
-#     contained = pg.contains(geoms.waterbody, lines)
-#     ix = contained.loc[contained].index
-
-#     print(
-#         "Found {:,} flowlines completely within waterbodies in {:.2f}s".format(
-#             len(ix), time() - start
-#         )
-#     )
-
-#     return ix
-
-
-def cut_lines_by_waterbodies(flowlines, joins, waterbodies, out_dir):
     start = time()
 
     print("Converting geometries to pygeos")
@@ -65,7 +51,8 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, out_dir):
     fl_geom["geometry"] = to_pygeos(fl_geom.geometry)
 
     # WARNING: if geometry is not valid, conversion will create extra records and will
-    # fail later processing
+    # fail later processing.  To keep conversion from growing rows on invalid geoms,
+    # use a dataframe instead
     wb_geom = waterbodies[["geometry"]].copy()
     wb_geom["waterbody"] = to_pygeos(wb_geom.geometry)
     print("Conversion done in {:.2f}s".format(time() - convert_start))
@@ -80,7 +67,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, out_dir):
         repair_start = time()
         wb_geom.loc[ix, "waterbody"] = pg.buffer(wb_geom.waterbody, 0)
         waterbodies.loc[ix, "geometry"] = from_pygeos(wb_geom.loc[ix].waterbody)
-        print("Repaired geometry in {:,}s".format(time() - repair_start))
+        print("Repaired geometry in {:.2f}s".format(time() - repair_start))
 
     wb_joins = wb_joins.set_index(["lineID", "wbID"])
     geoms = wb_joins.join(fl_geom, how="inner").join(wb_geom.waterbody)
@@ -155,14 +142,20 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, out_dir):
 
     # TODO: reimplement the following
     # Due to GEOS conflicts between pygeos and shapely, we need to cut the geometries using shapely
-    to_cut = (
+    # can do this all in pygeos once merged into geopandas.
+    to_cut = gp.GeoDataFrame(
         geoms[[]]
         .join(flowlines[["geometry", "length"]])
-        .join(waterbodies.geometry.rename("waterbody"))
+        .join(waterbodies.geometry.rename("waterbody")),
+        crs=flowlines.crs,
     )
+    boundary = gp.GeoSeries(to_cut.waterbody).boundary
 
     # Fun fact: all new segments from differences are oriented from the upstream end of the
     # original line to the downstream end
+    # WARNING: this isn't perfect - not all lines cut by waterbody boundaries are perfectly contained
+    # by waterbodies
+    print("Cutting flowlines...")
     cut_start = time()
     difference = to_cut.difference(boundary)
     length = difference.length
@@ -175,21 +168,28 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, out_dir):
     new_lines = (
         gp.GeoDataFrame(difference.rename("geometry").reset_index(), crs=flowlines.crs)
         .explode()
-        .reset_index()
-        .join(wb.geometry.rename("waterbody"), on="wbID")
-        .join(flowlines["length"].rename("origLength"), on="lineID")
-        .set_index(["lineID", "wbID"])
+        .reset_index(drop=True)
+    )
+
+    # Create pygeos geoms again for the exploded lines
+    geoms = new_lines[["lineID", "wbID", "geometry"]].copy()
+    geoms["geometry"] = to_pygeos(geoms.geometry)
+    geoms = geoms.join(wb_geom.waterbody, on="wbID").join(
+        flowlines.length.rename("origLength"), on="lineID"
     )
 
     # mark those parts of the cut lines that are within waterbodies
-    new_lines["iswithin"] = new_lines.within(gp.GeoSeries(new_lines.waterbody))
+    geoms["iswithin"] = pg.contains(geoms.waterbody, geoms.geometry)
+    # we can do this because indices are still the same
+    new_lines["iswithin"] = geoms.iswithin
 
-    # calculate total length of parts within and outside waterbodies
-    new_lines["length"] = (new_lines.length).astype("float32")
+    # calculate total length of within and outside parts
+    geoms["length"] = pg.length(geoms.geometry)
     length = (
-        new_lines.reset_index()
-        .groupby(["lineID", "wbID", "iswithin"])
-        .agg({"length": "sum", "origLength": "first"})
+        # geoms.reset_index()
+        geoms.groupby(["lineID", "wbID", "iswithin"]).agg(
+            {"length": "sum", "origLength": "first"}
+        )
     )
 
     # Anything within 1 meter of original length is considered unchanged
@@ -210,22 +210,18 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, out_dir):
         .iswithin
     )
 
-    # For any that are unchanged and within waterbodies, set them to the inside and remove from here
-    ix = is_within.loc[is_within].index
-    wb_lines.loc[wb_lines.index.isin(ix), "inside"] = True
-
     # For any that are unchanged and NOT within waterbodies,
-    # remove them from wb_lines and wb_joins
+    # remove them from wb_joins
     ix = is_within.loc[~is_within].index
-    wb_lines = wb_lines.loc[~wb_lines.index.isin(ix)].copy()
     wb_joins = wb_joins.loc[~wb_joins.index.isin(ix)].copy()
 
     # Remove any that are unchanged from intersection analysis
-    new_lines = new_lines.loc[~new_lines.index.isin(is_within.index)].copy()
+    new_lines = new_lines.set_index(["lineID", "wbID"])
+    new_lines = new_lines.loc[~new_lines.index.isin(is_within.index)].reset_index()
 
     print(
-        "Created {:,} new flowlines by splitting at waterbody edges in {:.2f}".format(
-            len(new_lines), time() - cut_start
+        "Created {:,} new flowlines by splitting {:,} flowlines at waterbody edges in {:.2f}".format(
+            len(new_lines), len(new_lines.lineID.unique()), time() - cut_start
         )
     )
 
@@ -235,14 +231,10 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, out_dir):
 
     # Join in previous line information from flowlines
     new_lines = (
-        new_lines.reset_index()
-        .set_index("lineID")
+        new_lines.set_index("lineID")
         .join(flowlines.drop(columns=["geometry", "length", "sinuosity"]))
         .reset_index()
-        .drop(columns=["origLength", "waterbody", "level_0"])
-        .rename(
-            columns={"lineID": "origLineID", "iswithin": "waterbody", "level_1": "i"}
-        )
+        .rename(columns={"lineID": "origLineID", "iswithin": "waterbody"})
     )
 
     error = new_lines.groupby("origLineID").wbID.unique().apply(len).max() > 1
@@ -257,7 +249,8 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, out_dir):
         """
         )
 
-    # recalculate sinuosity
+    # recalculate length and sinuosity
+    new_lines["length"] = new_lines.geometry.length.astype("float32")
     new_lines["sinuosity"] = new_lines.geometry.apply(calculate_sinuosity).astype(
         "float32"
     )
@@ -322,11 +315,6 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, out_dir):
     )
 
     ### Update flowlines
-    print(
-        "Removing {:,} flowlines now replaced by new segments".format(
-            len(new_lines.origLineID.unique())
-        )
-    )
     # remove originals now replaced by cut versions here
     flowlines = (
         flowlines.loc[~flowlines.index.isin(new_lines.origLineID)]
@@ -343,10 +331,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, out_dir):
     # Update waterbody bool for other flowlines based on those that completely intersected
     # above
     flowlines.loc[
-        flowlines.index.isin(
-            wb_lines.loc[wb_lines.inside].reset_index().lineID.unique()
-        ),
-        "waterbody",
+        flowlines.index.isin(wb_joins.index.get_level_values(0).unique()), "waterbody"
     ] = True
     flowlines.waterbody = flowlines.waterbody.fillna(False)
 

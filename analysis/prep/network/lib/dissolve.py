@@ -22,7 +22,13 @@ def dissolve_waterbodies(df, joins, avoid_features):
         Features that indicate a given waterbody should not be dissolved with its neighbors.
         May contain features like dams, that represent meaningful breaks between waterbodies.
         WARNING: these will not be spatially deduplicated.
+
+    Returns
+    -------
+    tuple of (GeoDataFrame, DataFrame)
+        (waterbodies, waterbody joins)
     """
+
     ### Join waterbodies to themselves to find overlaps
     # TODO: implment our own alternative to sjoin that avoids self-combinations
     start = time()
