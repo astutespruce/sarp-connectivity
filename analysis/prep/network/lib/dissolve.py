@@ -88,7 +88,7 @@ def dissolve_waterbodies(df, joins, avoid_features):
         ix = joins.loc[joins.wbID.isin(groups.index)].index
         joins.loc[ix, "wbID"] = joins.loc[ix].wbID.map(groups)
 
-        # Just in case
+        # Group together ones that were dissolved above
         joins = joins.drop_duplicates().reset_index(drop=True)
 
     print("Done resolving overlapping waterbodies in {:.2f}s".format(time() - start))

@@ -4,9 +4,10 @@ from time import time
 
 import pandas as pd
 import geopandas as gp
-
+import pygeos as pg
 from shapely.geometry import Point
 from geofeather import to_geofeather, from_geofeather
+
 from nhdnet.io import serialize_df, deserialize_df, serialize_sindex, to_shp
 
 from analysis.constants import REGION_GROUPS, EXCLUDE_IDS, CONVERT_TO_NONLOOP
@@ -15,6 +16,7 @@ from analysis.prep.network.lib.dissolve import dissolve_waterbodies
 from analysis.prep.network.lib.cut import cut_lines_by_waterbodies
 from analysis.prep.network.lib.lines import remove_pipelines, remove_flowlines
 from analysis.prep.network.lib.drains import create_drain_points
+from analysis.pygeos_compat import from_geofeather_as_geos, to_pygeos
 
 MAX_PIPELINE_LENGTH = 150  # meters
 
@@ -29,7 +31,7 @@ nhd_lines = from_geofeather(
 nhd_lines.sindex
 
 start = time()
-for region, HUC2s in list(REGION_GROUPS.items())[-1:]:
+for region, HUC2s in list(REGION_GROUPS.items())[1]:
     region_start = time()
 
     print("\n----- {} ------\n".format(region))
@@ -112,15 +114,30 @@ for region, HUC2s in list(REGION_GROUPS.items())[-1:]:
     waterbodies, wb_joins = dissolve_waterbodies(waterbodies, wb_joins, nhd_lines)
     print("{:,} waterbodies after dissolve".format(len(waterbodies)))
 
+    # Make sure that all empty joins are dropped
+    wb_joins = wb_joins.loc[
+        wb_joins.lineID.isin(flowlines.index) & wb_joins.wbID.isin(waterbodies.index)
+    ].copy()
+
+    # TEMP
+    print("Serializing {:,} dissolved waterbodies".format(len(waterbodies)))
+    to_geofeather(waterbodies.reset_index(), out_dir / "dissolved_waterbodies.feather")
+
     print("------------------")
 
     ### Cut flowlines by waterbodies
+
+    # TEMPORARY: this shimmed until pygeos support is available in geopandas
+    # doing these operations in native geopandas is extremely slow.
+    # To get around this, we load and do certain operations in pygeos.
+    # WARNING: Due to incompatibilities between shapely and pygeos, this may
+    # break in future versions, and is also why we have to do intersections in shapely
+    # instead of pygeos here.
     print("Processing intersections between waterbodies and flowlines")
     flowlines, joins, waterbodies, wb_joins = cut_lines_by_waterbodies(
-        flowlines, joins, waterbodies, wb_joins
+        flowlines, joins, waterbodies, wb_joins, out_dir
     )
 
-    # FIXME: remove
     print(
         "Now have {:,} flowlines, {:,} waterbodies, {:,} waterbody-flowline joins".format(
             len(flowlines), len(waterbodies), len(wb_joins)
@@ -155,6 +172,6 @@ for region, HUC2s in list(REGION_GROUPS.items())[-1:]:
     waterbodies.reset_index().to_file(out_dir / "waterbodies.shp")
     drains.to_file(out_dir / "waterbody_drain_points.shp")
 
-    print("Region done in {:.2}s".format(time() - region_start))
+    print("Region done in {:.2f}s".format(time() - region_start))
 
-print("==============\nAll done in {:.2}s".format(time() - start))
+print("==============\nAll done in {:.2f}s".format(time() - start))

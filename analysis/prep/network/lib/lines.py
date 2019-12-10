@@ -1,3 +1,6 @@
+from time import time
+
+
 import pandas as pd
 import geopandas as gp
 import numpy as np
@@ -63,6 +66,8 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
 	tuple of (GeoDataFrame, DataFrame)
 		(flowlines, joins)
 	"""
+
+    start = time()
     pids = flowlines.loc[flowlines.FType == 428].index
     pjoins = find_joins(
         joins, pids, downstream_col="downstream_id", upstream_col="upstream_id"
@@ -131,5 +136,7 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     joins.loc[joins.downstream_id == 0, "downstream"] = 0
     joins.loc[joins.downstream_id == 0, "type"] = "terminal"
     joins.loc[joins.upstream_id == 0, "upstream"] = 0
+
+    print("Done processing pipelines in {:.2f}s".format(time() - start))
 
     return flowlines, joins
