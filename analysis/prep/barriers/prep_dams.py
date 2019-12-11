@@ -18,8 +18,10 @@ import geopandas as gp
 import numpy as np
 
 from nhdnet.io import deserialize_sindex, deserialize_df, to_shp
-from nhdnet.geometry.lines import snap_to_line, snap_to_waterbody_points
-from nhdnet.geometry.points import mark_duplicates
+from nhdnet.geometry.lines import snap_to_line
+from nhdnet.geometry.points import mark_duplicates, find_nearby
+
+from analysis.prep.barriers.lib.points import find_neighborhoods
 
 pd.options.display.max_rows = 250
 
@@ -45,7 +47,9 @@ from analysis.prep.barriers.lib.snap import (
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
 
-DUPLICATE_TOLERANCE = 30
+DUPLICATE_TOLERANCE = 50
+
+# TODO: verify this is good
 # Snap barriers by 150 meters
 SNAP_TOLERANCE = 150
 
@@ -134,6 +138,7 @@ print("Compiled {:,} dams".format(len(df)))
 ### Add IDs for internal use
 # internal ID
 df["id"] = df.index.astype("uint32")
+df = df.set_index("id", drop=False)
 
 ### Add tracking fields
 # dropped: records that should not be included in any later analysis
@@ -146,6 +151,11 @@ df["excluded"] = False
 # NOTE: the first instance of a set of duplicates is NOT marked as a duplicate,
 # only following ones are.
 df["duplicate"] = False
+df[
+    "dup_sort"
+] = (
+    9999
+)  # duplicate sort will be assigned lower values to find preferred entry w/in dups
 
 # snapped: records that snapped to the aquatic network and ready for network analysis
 df["snapped"] = False
@@ -167,6 +177,9 @@ for column in ("Year", "Feasibility", "ManualReview"):
 # these are invasive species barriers
 df.loc[df.Recon == 16, "ManualReview"] = 10
 
+# Reset manual review for dams that were previously not snapped, but are not reviewed
+df.loc[df.ManualReview.isin([7, 9]), "ManualReview"] = 0
+
 
 # Round height to nearest foot.  There are no dams between 0 and 1 foot, so fill all
 # na as 0
@@ -183,9 +196,14 @@ df.River = df.River.str.title()
 ids = df.loc[df.Name.str.count("\r") > 0].index
 df.loc[ids, "Name"] = df.loc[ids].Name.apply(lambda v: v.split("\r")[0])
 
+
+# Identify estimated dams
+ix = df.Name.str.count("Estimated Dam") > 0
+df.loc[ix, "ManualReview"] = 20  # indicates estimated dam
+
 # Replace estimated dam names if another name is available
-ids = (df.Name.str.count("Estimated Dam") > 0) & (df.OtherName.str.len() > 0)
-df.loc[ids, "Name"] = df.loc[ids].OtherName
+ix = ix & (df.OtherName.str.len() > 0)
+df.loc[ix, "Name"] = df.loc[ids].OtherName
 
 
 # Fix years between 0 and 100; assume they were in the 1900s
@@ -220,58 +238,20 @@ print("{:,} dams are outside HUC12 / states".format(len(df.loc[drop_idx])))
 df.loc[drop_idx, "dropped"] = True
 
 
-### Drop any dams that should be completely dropped from analysis
-# based on manual QA/QC
+### Drop any dams that should be completely dropped from analysis based on manual QA/QC.
+# Also Drop dams with "dike" in the name (but not "dam");
+# these were manually checked by Kat, and either off network or otherwise not dams.
 drop_idx = (
     df.Recon.isin(DROP_RECON)
     | df.Feasibility.isin(DROP_FEASIBILITY)
     | df.ManualReview.isin(DROP_MANUALREVIEW)
+    | (
+        (df.Name.str.lower().str.contains(" dike"))
+        & (~df.Name.str.lower().str.contains(" dam"))
+    )
 )
 
 df.loc[drop_idx, "dropped"] = True
-
-
-### Drop duplicate NIDID records
-# TODO: WIP!
-
-# Find any where one of the duplicates for an NIDID was dropped;
-# we may need to drop the others too if they are close
-# by_nidid = df.loc[(df.NIDID != "")].groupby("NIDID")
-# count_by_nidid = by_nidid.size()
-# dup_nidid = count_by_nidid.loc[count_by_nidid > 1].index
-# maybe_dropped = df.loc[
-#     (df.NIDID.isin(dup_nidid)) & (df.NIDID.isin(df.loc[df.dropped].NIDID))
-# ].copy()
-
-
-# by_nidid = df.loc[(df.NIDID != "") & (~df.dropped)].groupby("NIDID")
-# count_by_nidid = by_nidid.size()
-# dup_nidid = count_by_nidid.loc[count_by_nidid > 1].index
-# dups = df.loc[df.NIDID.isin(dup_nidid)].copy()
-
-# # Assign empty ManualReview to high value
-# dups.loc[dups.ManualReview == 0, "ManualReview"] = 999
-# dups = dups.sort_values(by="ManualReview")
-
-
-### Drop dams with "dike" in the name (but not "dam")
-# these were manually checked by Kat, and either off network or otherwise not dams.
-# This must be done AFTER deduplicating NIDID
-df.loc[
-    (df.Name.str.lower().str.contains(" dike"))
-    & (~df.Name.str.lower().str.contains(" dam")),
-    "dropped",
-] = True
-
-
-# NOTE: these have varying attributes, so try to take the non-zero values where available
-# ManualReview 7,9 are not meaningful,
-# For any given duplicate set, if there is a ManualReview == 1 available, use that
-
-# If one that is dropped has same NIDID and is very close to one that has missing or blah ManualReview, consider dropping those too
-
-
-print("Dropped {:,} dams from all analysis and mapping".format(len(df.loc[df.dropped])))
 
 
 ### Exclude dams that should not be analyzed or prioritized based on manual QA
@@ -285,8 +265,93 @@ df.loc[exclude_idx, "excluded"] = True
 print("Excluded {:,} dams from analysis".format(len(df.loc[df.excluded])))
 
 
+### First pass deduplication
+# Assign dup_sort, lower numbers = higher priority to keep from duplicate group
+# Start from lower priorities and override with lower values
+
+# Prefer dams with River to those that do not
+df.loc[df.River != "", "dup_sort"] = 5
+
+# Prefer dams that have been reconned to those that haven't
+df.loc[df.Recon > 0, "dup_sort"] = 4
+
+# Prefer dams with height or year to those that do not
+df.loc[(df.Year > 0) | (df.Height > 0), "dup_sort"] = 3
+
+# NABD dams should be reasonably high priority
+df.loc[df.ManualReview == 2, "dup_sort"] = 2
+
+# manually snapped and reviewed dams should be highest priority
+df.loc[df.ManualReview == 4, "dup_sort"] = 1
+
+
+### Remove duplicates within 10 m;
+# from those that were hand-checked on the map, they are duplicates of each other
+# drop any duplicate clusters that have one or among them that was dropped
+groups = (
+    find_neighborhoods(df, 10)
+    .join(df[["dropped", "excluded", "ManualReview", "dup_sort"]])
+    .sort_values(by="dup_sort")
+)
+grouped = groups.groupby("group")
+count = grouped.size().rename("dup_count")
+groups = groups.join(count, on="group")
+keep = groups.reset_index().rename(columns={"index": "id"}).groupby("group").first()
+
+dups = groups.loc[~groups.index.isin(keep.id.unique())].index
+
+print("Found {:,} duplicates before snapping".format(len(dups)))
+
+# mark duplicates and combine in dup group info
+df.loc[df.index.isin(dups), "duplicate"] = True
+df = df.join(groups.rename(columns={"group": "dup_group"})[["dup_group", "dup_count"]])
+
+# Drop all records from any groups that have a dropped record
+# UNLESS the one being kept is manually reviewed and not dropped
+trusted_keepers = keep.loc[(keep.ManualReview == 4) & ~keep.dropped]
+drop_groups = grouped.dropped.max()
+drop_groups = drop_groups.loc[
+    drop_groups & ~drop_groups.index.isin(trusted_keepers.index)
+].index
+
+print(
+    "Dropped {:,} dams that were in duplicate groups with dams that were dropped".format(
+        len(df.loc[df.dup_group.isin(drop_groups) & ~df.dropped])
+    )
+)
+
+df.loc[df.dup_group.isin(drop_groups), "dropped"] = True
+
+
+# Exclude all records from groups that have an excluded record
+exclude_groups = grouped.excluded.max()
+exclude_groups = exclude_groups.loc[
+    exclude_groups & ~exclude_groups.index.isin(trusted_keepers.index)
+].index
+
+print(
+    "Excluded {:,} dams that were in duplicate groups with dams that were excluded".format(
+        len(df.loc[df.dup_group.isin(exclude_groups) & ~df.excluded])
+    )
+)
+
+df.loc[df.dup_group.isin(exclude_groups), "excluded"] = True
+
+
+# TODO: (LONG TERM) check distance from kept point to all the others
+
+
+print("Dropped {:,} dams from all analysis and mapping".format(len(df.loc[df.dropped])))
+
+
 # FIXME:
 to_geofeather(df.reset_index(drop=True), "/tmp/pre-snap.feather")
+
+
+### Deduplicate manually snapped dams and snap nearby ones to them
+# NABD dams (ManualReview == 2) should probably snap to bigger reservoirs, if possible
+trusted = df.loc[df.ManualReview == 4]
+estimated = df.loc[df.ManualReview == 20]
 
 
 ### Snap to waterbody drain points and flowlines
@@ -303,8 +368,8 @@ to_snap.loc[to_snap.ManualReview.isin([2, 4]), "tolerance"] = 250
 
 print("Attempting to snap {:,} dams".format(len(to_snap)))
 
-# Snap to waterbody drain points
-snapped = snap_to_waterbody_points(to_snap)
+# # Snap to waterbody drain points
+# snapped = snap_to_waterbody_points(to_snap)
 
 
 ### TODO: points that snap to within-waterbody segments are suspect, watch for duplicates

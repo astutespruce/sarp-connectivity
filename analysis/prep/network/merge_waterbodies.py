@@ -4,6 +4,7 @@ be multiple drain points from a given waterbody.  Some of these are valid,
 e.g., underground pipelines on different flowlines than natural drainage flowline.
 """
 
+import os
 from pathlib import Path
 from time import time
 import pandas as pd
@@ -13,10 +14,19 @@ import geopandas as gp
 from nhdnet.io import serialize_sindex, to_shp, deserialize_gdfs, deserialize_dfs
 
 
-from analysis.constants import REGION_GROUPS, REGIONS
-
+from analysis.constants import (
+    REGION_GROUPS,
+    REGIONS,
+    LARGE_WB_AREA,
+    LARGE_WB_FLOWLINE_LENGTH,
+)
 
 nhd_dir = Path("data/nhd")
+out_dir = nhd_dir / "merged"
+
+if not os.path.exists(out_dir):
+    os.makedirs(out_dir)
+
 
 start = time()
 
@@ -25,7 +35,7 @@ print("Reading waterbodies...")
 wb = (
     deserialize_gdfs(
         [
-            nhd_dir / "waterbodies" / region / "waterbodies.feather"
+            nhd_dir / "clean" / region / "waterbodies.feather"
             for region in REGION_GROUPS
         ],
         src=[region for region in REGION_GROUPS],
@@ -35,46 +45,22 @@ wb = (
 )
 print("Read {:,} waterbodies".format(len(wb)))
 
-# Add a new global wbID
-wb["id"] = wb.index.copy() + 1
-wb.id = wb.id.astype("uint32")
 
-
-print("Reading flowline attributes...")
-lineAtts = deserialize_dfs(
-    [nhd_dir / "flowlines" / region / "flowline.feather" for region in REGION_GROUPS],
-    columns=["lineID", "NHDPlusID", "streamorder", "sizeclass", "loop"],
-).set_index("lineID")
-print("Read {:,} flowlines".format(len(lineAtts)))
+# print("Reading flowline attributes...")
+# lineAtts = deserialize_dfs(
+#     [nhd_dir / "flowlines" / region / "flowline.feather" for region in REGION_GROUPS],
+#     columns=["lineID", "NHDPlusID", "streamorder", "sizeclass", "loop"],
+# ).set_index("lineID")
+# print("Read {:,} flowlines".format(len(lineAtts)))
 
 print("Reading waterbody drain points...")
-drains = (
-    deserialize_gdfs(
-        [
-            nhd_dir / "waterbodies" / region / "waterbody_drain_points.feather"
-            for region in REGION_GROUPS
-        ],
-        src=[region for region in REGION_GROUPS],
-        columns=[
-            "geometry",
-            "wbID",
-            "lineID",
-            "flowlineLength",
-            "numSegments",
-            "AreaSqKm",
-        ],
-    )
-    .rename(
-        columns={
-            "src": "region",
-            "wbID": "regionWBID",
-            "flowlineLength": "wbFlowlineLength",
-            "numSegments": "wbSegments",
-            "AreaSqKm": "wbAreaKM2",
-        }
-    )
-    .reset_index(drop=True)
-)
+drains = deserialize_gdfs(
+    [
+        nhd_dir / "clean" / region / "waterbody_drain_points.feather"
+        for region in REGION_GROUPS
+    ],
+    src=[region for region in REGION_GROUPS],
+).reset_index(drop=True)
 
 print("Read {:,} waterbody drain points".format(len(drains)))
 
@@ -82,25 +68,24 @@ print("Read {:,} waterbody drain points".format(len(drains)))
 drains["id"] = drains.index.copy() + 1
 drains.id = drains.id.astype("uint32")
 
-# join to waterbodies to get global ID
-drains = drains.join(
-    wb.set_index(["region", "wbID"]).id.rename("wbID"), on=["region", "regionWBID"]
-)
-
-# join to line atts to get NHDPlusID, etc
-drains = drains.join(lineAtts, on="lineID")
-
-
 print("Serializing waterbodies...")
-to_geofeather(wb, nhd_dir / "waterbodies" / "waterbodies.feather")
+to_geofeather(wb, out_dir / "waterbodies.feather")
+
+# Extract large waterbodies
+# Arbitrary cutoffs, but per visual inspection looks reasonable
+large_wb = wb.loc[
+    (wb.flowlineLength >= LARGE_WB_FLOWLINE_LENGTH) & (wb.AreaSqKm >= LARGE_WB_AREA)
+].reset_index(drop=True)
+to_geofeather(large_wb, out_dir / "large_waterbodies.feather")
+
 
 print("Serializing waterbody drain points...")
-to_geofeather(drains, nhd_dir / "waterbodies" / "waterbody_drain_points.feather")
-serialize_sindex(drains, nhd_dir / "waterbodies" / "waterbody_drain_points.sidx")
+to_geofeather(drains, out_dir / "waterbody_drain_points.feather")
 
 print("Serializing to shapefiles...")
-to_shp(wb, nhd_dir / "waterbodies" / "waterbodies.shp")
-to_shp(drains, nhd_dir / "waterbodies" / "waterbody_drain_points.shp")
+to_shp(wb, out_dir / "waterbodies.shp")
+to_shp(large_wb, out_dir / "large_waterbodies.shp")
+to_shp(drains, out_dir / "waterbody_drain_points.shp")
 
 
 print("Done in {:.2f}s\n============================".format(time() - start))
