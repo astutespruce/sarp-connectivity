@@ -59,6 +59,8 @@ def flatten_series(series):
     """Convert a series, which may have iterables, into a flattened series,
     repeating index values as necessary.
 
+    NOTE: this can also be done using .explode() on the pandas Series or DataFrame.
+
     Parameters
     ----------
     series : Series

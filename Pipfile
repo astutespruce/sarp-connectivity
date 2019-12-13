@@ -13,8 +13,6 @@ gunicorn = "*"
 raven = {version = "*",extras = ["flask"]}
 requests = "*"
 python-dotenv = "*"
-networkx = "*"
-pygeos = "*"
 
 [dev-packages]
 pylint = "*"
@@ -28,7 +26,7 @@ rtree = ">=0.9.1"
 shapely = "==1.7a2"
 fiona = "*"
 networkx = "*"
-pygeos = "*"
+pygeos = {editable = true,path = "./../pygeos"}
 
 [requires]
 python_version = "3.7"

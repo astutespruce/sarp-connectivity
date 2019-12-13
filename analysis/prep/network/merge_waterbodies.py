@@ -78,6 +78,9 @@ large_wb = wb.loc[
 ].reset_index(drop=True)
 to_geofeather(large_wb, out_dir / "large_waterbodies.feather")
 
+large_drains = drains.loc[drains.wbID.isin(large_wb.wbID)].reset_index(drop=True)
+to_geofeather(large_drains, out_dir / "large_waterbody_drain_points.feather")
+
 
 print("Serializing waterbody drain points...")
 to_geofeather(drains, out_dir / "waterbody_drain_points.feather")
@@ -86,6 +89,7 @@ print("Serializing to shapefiles...")
 to_shp(wb, out_dir / "waterbodies.shp")
 to_shp(large_wb, out_dir / "large_waterbodies.shp")
 to_shp(drains, out_dir / "waterbody_drain_points.shp")
+to_shp(large_drains, out_dir / "large_waterbody_drain_points.shp")
 
 
 print("Done in {:.2f}s\n============================".format(time() - start))

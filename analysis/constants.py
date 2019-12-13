@@ -204,7 +204,7 @@ DROP_POTENTIAL_PROJECT = ["No", "No Barrier", "No Crossing", "Past Project"]
 
 
 # Used to filter small barriers and dams by SNAP2018, based on guidance from Kat
-# Note: dropped barriers are still shown on the map, but not included in the network analysis
+# Note: dropped barriers are NOT shown on the map, but not included in the network analysis
 # Note: 0 value indicates N/A
 DROP_MANUALREVIEW = [6, 8]
 
@@ -343,6 +343,15 @@ OWNERTYPE_TO_DOMAIN = {
 # Map of owner type domain above to whether or not the land is
 # considered public
 OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True}
+
+
+# Arbitrary cutoffs, but per visual inspection looks reasonable
+LARGE_WB_FLOWLINE_LENGTH = 1000
+LARGE_WB_AREA = 0.25
+
+# Arbitrary cutoff, but seemed reasonable from visual inspection
+MAX_PIPELINE_LENGTH = 150  # meters
+
 
 # NHDPlusIDs to exclude when extracting flowlines (e.g., )
 # All joins will be evaluated; if they don't connect to anything else

@@ -50,9 +50,6 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
     fl_geom = flowlines.loc[flowlines.index.isin(wb_joins.lineID), ["geometry"]].copy()
     fl_geom["geometry"] = to_pygeos(fl_geom.geometry)
 
-    # WARNING: if geometry is not valid, conversion will create extra records and will
-    # fail later processing.  To keep conversion from growing rows on invalid geoms,
-    # use a dataframe instead
     wb_geom = waterbodies[["geometry"]].copy()
     wb_geom["waterbody"] = to_pygeos(wb_geom.geometry)
     print("Conversion done in {:.2f}s".format(time() - convert_start))
@@ -65,10 +62,11 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
 
         # Buffer by 0 to fix
         repair_start = time()
-        wb_geom.loc[ix, "waterbody"] = pg.buffer(wb_geom.waterbody, 0)
+        wb_geom.loc[ix, "waterbody"] = pg.buffer(wb_geom.loc[ix].waterbody, 0)
         waterbodies.loc[ix, "geometry"] = from_pygeos(wb_geom.loc[ix].waterbody)
         print("Repaired geometry in {:.2f}s".format(time() - repair_start))
 
+    # Set indices and create combined geometry object for analysis
     wb_joins = wb_joins.set_index(["lineID", "wbID"])
     geoms = wb_joins.join(fl_geom, how="inner").join(wb_geom.waterbody)
 
@@ -140,48 +138,41 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
         ].copy()
         geoms = geoms.loc[geoms.index.isin(wb_joins.index)].copy()
 
-    # TODO: reimplement the following
-    # Due to GEOS conflicts between pygeos and shapely, we need to cut the geometries using shapely
-    # can do this all in pygeos once merged into geopandas.
-    to_cut = gp.GeoDataFrame(
-        geoms[[]]
-        .join(flowlines[["geometry", "length"]])
-        .join(waterbodies.geometry.rename("waterbody")),
-        crs=flowlines.crs,
-    )
-    boundary = gp.GeoSeries(to_cut.waterbody).boundary
-
     # Fun fact: all new segments from differences are oriented from the upstream end of the
     # original line to the downstream end
     # WARNING: this isn't perfect - not all lines cut by waterbody boundaries are perfectly contained
     # by waterbodies
     print("Cutting flowlines...")
     cut_start = time()
-    difference = to_cut.difference(boundary)
-    length = difference.length
-    error = ((length - to_cut["length"]).abs() > 1).sum()
-    if error:
+    geoms = geoms[["geometry", "waterbody"]].join(flowlines.length.rename("origLength"))
+    geoms["geometry"] = pg.difference(geoms.geometry, pg.boundary(geoms.waterbody))
+
+    # Some geometries are not valid - discard?
+    errors = ~pg.is_valid(geoms.geometry)
+    if errors.max():
+        print("WARNING: geometry errors for {:,} cut lines".format(errors.sum()))
+        # TODO: drop these?
+
+    length = pg.length(geoms.geometry)
+    error = (length - geoms.origLength).abs() > 1
+    if error.sum():
         print(
-            "WARNING: {:,} lines were not completely cut by waterbodies (maybe shared edge?).\nThere are now missing edges"
+            "WARNING: {:,} lines were not completely cut by waterbodies (maybe shared edge?).\nThese will not be cut".format(
+                error.sum()
+            )
         )
 
-    new_lines = (
-        gp.GeoDataFrame(difference.rename("geometry").reset_index(), crs=flowlines.crs)
-        .explode()
-        .reset_index(drop=True)
-    )
+        # remove these from the cut geoms and retain their originals
+        geoms = geoms.loc[~error].copy()
 
-    # Create pygeos geoms again for the exploded lines
-    geoms = new_lines[["lineID", "wbID", "geometry"]].copy()
-    geoms["geometry"] = to_pygeos(geoms.geometry)
-    geoms = geoms.join(wb_geom.waterbody, on="wbID").join(
-        flowlines.length.rename("origLength"), on="lineID"
+    # Explode the multilines into single line segments
+    geoms["geometry"] = geoms.geometry.apply(
+        lambda g: [pg.get_geometry(g, i) for i in range(0, pg.get_num_geometries(g))]
     )
+    geoms = geoms.explode("geometry")
 
     # mark those parts of the cut lines that are within waterbodies
     geoms["iswithin"] = pg.contains(geoms.waterbody, geoms.geometry)
-    # we can do this because indices are still the same
-    new_lines["iswithin"] = geoms.iswithin
 
     # calculate total length of within and outside parts
     geoms["length"] = pg.length(geoms.geometry)
@@ -216,12 +207,13 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
     wb_joins = wb_joins.loc[~wb_joins.index.isin(ix)].copy()
 
     # Remove any that are unchanged from intersection analysis
-    new_lines = new_lines.set_index(["lineID", "wbID"])
-    new_lines = new_lines.loc[~new_lines.index.isin(is_within.index)].reset_index()
+    geoms = geoms.loc[~geoms.index.isin(is_within.index)].copy()
 
     print(
         "Created {:,} new flowlines by splitting {:,} flowlines at waterbody edges in {:.2f}".format(
-            len(new_lines), len(new_lines.lineID.unique()), time() - cut_start
+            len(geoms),
+            len(geoms.index.get_level_values(0).unique()),
+            time() - cut_start,
         )
     )
 
@@ -231,11 +223,16 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
 
     # Join in previous line information from flowlines
     new_lines = (
-        new_lines.set_index("lineID")
+        geoms[["geometry", "length", "iswithin"]]
+        .reset_index()
+        .set_index("lineID")
         .join(flowlines.drop(columns=["geometry", "length", "sinuosity"]))
         .reset_index()
         .rename(columns={"lineID": "origLineID", "iswithin": "waterbody"})
     )
+    new_lines["geometry"] = from_pygeos(new_lines.geometry)
+
+    new_lines = gp.GeoDataFrame(new_lines, crs=flowlines.crs)
 
     error = new_lines.groupby("origLineID").wbID.unique().apply(len).max() > 1
     if error:
@@ -250,7 +247,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
         )
 
     # recalculate length and sinuosity
-    new_lines["length"] = new_lines.geometry.length.astype("float32")
+    new_lines["length"] = new_lines["length"].astype("float32")
     new_lines["sinuosity"] = new_lines.geometry.apply(calculate_sinuosity).astype(
         "float32"
     )

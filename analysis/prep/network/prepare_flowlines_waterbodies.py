@@ -1,3 +1,29 @@
+"""Transforms raw (minimally processed) NHD data into formats and structures
+for use in the rest of this data pipeline.
+
+This depends on data created in `extract_flowlines_waterbodies.py` and `extract_nhd_lines.py`:
+- data/nhd/raw/<region>/flowlines.feather
+- data/nhd/raw/<region>/flowline_joins.feather
+- data/nhd/raw/<region>/waterbodies.feather
+- data/nhd/raw/<region>/waterbody_flowline_joins.feather
+- data/nhd/extra/nhd_lines.feather
+
+It removes flowlines that are specifically excluded, are loops, or longer pipelines.
+
+It dissolves waterbodies except where they are divided by NHD lines (these are typically dams between parts of reservoirs).
+
+It then intersects the flowlines with the waterbodies and builds the final mapping of flowlines to waterbodies.
+
+It calculates waterbody drain points from the lowest downstream intersection point of flowlines and their respective waterbodies.
+
+It produces data in `data/nhd/clean/<region>`
+- flowlines.feather
+- flowline_joins.feather
+- waterbodies.feather
+- waterbody_flowline_joins.feather
+"""
+
+
 from pathlib import Path
 import os
 from time import time
@@ -10,7 +36,12 @@ from geofeather import to_geofeather, from_geofeather
 
 from nhdnet.io import serialize_df, deserialize_df, serialize_sindex, to_shp
 
-from analysis.constants import REGION_GROUPS, EXCLUDE_IDS, CONVERT_TO_NONLOOP
+from analysis.constants import (
+    REGION_GROUPS,
+    EXCLUDE_IDS,
+    CONVERT_TO_NONLOOP,
+    MAX_PIPELINE_LENGTH,
+)
 
 from analysis.prep.network.lib.dissolve import dissolve_waterbodies
 from analysis.prep.network.lib.cut import cut_lines_by_waterbodies
@@ -18,20 +49,13 @@ from analysis.prep.network.lib.lines import remove_pipelines, remove_flowlines
 from analysis.prep.network.lib.drains import create_drain_points
 from analysis.pygeos_compat import from_geofeather_as_geos, to_pygeos
 
-MAX_PIPELINE_LENGTH = 150  # meters
 
 nhd_dir = Path("data/nhd")
 src_dir = nhd_dir / "raw"
 
 
-# load NHDlines - these indicate dam lines that need to remain cut across adjacent waterbodies
-nhd_lines = from_geofeather(
-    nhd_dir / "extra" / "nhd_lines.feather", columns=["geometry"]
-)
-nhd_lines.sindex
-
 start = time()
-for region, HUC2s in list(REGION_GROUPS.items())[4:-1]:
+for region, HUC2s in list(REGION_GROUPS.items())[2:3]:  # TODO: 3:4
     region_start = time()
 
     print("\n----- {} ------\n".format(region))
@@ -87,7 +111,11 @@ for region, HUC2s in list(REGION_GROUPS.items())[4:-1]:
         "wbID"
     )
     wb_joins = deserialize_df(src_dir / region / "waterbody_flowline_joins.feather")
-    print("Read {:,} waterbodies".format(len(waterbodies)))
+    print(
+        "Read {:,} waterbodies and {:,} flowine / waterbody joins".format(
+            len(waterbodies), len(wb_joins)
+        )
+    )
 
     # TODO: remove this on next full rerun of extract_flowlines...
     waterbodies = waterbodies.drop(columns=["hash"], errors="ignore")
@@ -111,7 +139,7 @@ for region, HUC2s in list(REGION_GROUPS.items())[4:-1]:
     # Overlay and dissolve
     print("Dissolving adjacent waterbodies (where appropriate)")
 
-    waterbodies, wb_joins = dissolve_waterbodies(waterbodies, wb_joins, nhd_lines)
+    waterbodies, wb_joins = dissolve_waterbodies(waterbodies, wb_joins)
     print("{:,} waterbodies after dissolve".format(len(waterbodies)))
 
     # Make sure that all empty joins are dropped

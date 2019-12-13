@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ea2b008332f788c2bfea8d695dd88b89f920f1e23f94b632d56ab106ccd25f04"
+            "sha256": "dac17271384cf0821b05383836757c5241b009149a494fb57e3ba382c630ac97"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -42,13 +42,6 @@
                 "sha256:5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7"
             ],
             "version": "==7.0"
-        },
-        "decorator": {
-            "hashes": [
-                "sha256:54c38050039232e1db4ad7375cfce6748d7b41c29e95a081c8a6d2c30364a2ce",
-                "sha256:5d19b92a3c8f7f101c8dd86afd86b0f061a8ce4540ab8cd401fa2542756bce6d"
-            ],
-            "version": "==4.4.1"
         },
         "feather-format": {
             "hashes": [
@@ -136,14 +129,6 @@
             ],
             "version": "==1.1.1"
         },
-        "networkx": {
-            "hashes": [
-                "sha256:cdfbf698749a5014bf2ed9db4a07a5295df1d3a53bf80bf3cbd61edf9df05fa1",
-                "sha256:f8f4ff0b6f96e4f9b16af6b84622597b5334bf9cae8cf9b2e42e7985d5c95c64"
-            ],
-            "index": "pypi",
-            "version": "==2.4"
-        },
         "numpy": {
             "hashes": [
                 "sha256:0a7a1dd123aecc9f0076934288ceed7fd9a81ba3919f11a855a7887cbe82a02f",
@@ -217,13 +202,6 @@
                 "sha256:f5af4cd64c774693af560576a6b8039d165596b1921031ca5d739bd2e7e0554b"
             ],
             "version": "==0.15.1"
-        },
-        "pygeos": {
-            "hashes": [
-                "sha256:a10d819bf99bc83258c21342323a047b9808186e656c7e10c8f4d2dde6379a7f"
-            ],
-            "index": "pypi",
-            "version": "==0.5"
         },
         "python-dateutil": {
             "hashes": [
@@ -610,11 +588,8 @@
             "version": "==0.15.1"
         },
         "pygeos": {
-            "hashes": [
-                "sha256:a10d819bf99bc83258c21342323a047b9808186e656c7e10c8f4d2dde6379a7f"
-            ],
-            "index": "pypi",
-            "version": "==0.5"
+            "editable": true,
+            "path": "./../pygeos"
         },
         "pylint": {
             "hashes": [
@@ -690,10 +665,10 @@
         },
         "rtree": {
             "hashes": [
-                "sha256:6a34b25f588e1563e45af251a8469b43a125d972eb2fa66e9ce96ed29f06c454"
+                "sha256:55c046a98e8d84235792de1f18635f680d7b4085264fbced6b073f28fcbe353a"
             ],
             "index": "pypi",
-            "version": "==0.9.2"
+            "version": "==0.9.3"
         },
         "sarp-connectivity": {
             "editable": true,
