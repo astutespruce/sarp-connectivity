@@ -41,6 +41,7 @@ from analysis.constants import (
     EXCLUDE_IDS,
     CONVERT_TO_NONLOOP,
     MAX_PIPELINE_LENGTH,
+    WATERBODY_MIN_SIZE,
 )
 
 from analysis.prep.network.lib.dissolve import dissolve_waterbodies
@@ -55,7 +56,7 @@ src_dir = nhd_dir / "raw"
 
 
 start = time()
-for region, HUC2s in list(REGION_GROUPS.items())[2:3]:  # TODO: 3:4
+for region, HUC2s in list(REGION_GROUPS.items())[2:3]:
     region_start = time()
 
     print("\n----- {} ------\n".format(region))
@@ -123,6 +124,11 @@ for region, HUC2s in list(REGION_GROUPS.items())[2:3]:  # TODO: 3:4
     waterbodies.loc[idx, "geometry"] = waterbodies.loc[idx].geometry.apply(
         lambda g: g[0]
     )
+
+    # raise min size
+    waterbodies = waterbodies.loc[waterbodies.AreaSqKm >= WATERBODY_MIN_SIZE].copy()
+    wb_joins = wb_joins.loc[wb_joins.wbID.isin(waterbodies.index)].copy()
+
     # End TODO:
 
     # Drop any waterbodies and waterbody joins to flowlines that are no longer present
@@ -148,8 +154,14 @@ for region, HUC2s in list(REGION_GROUPS.items())[2:3]:  # TODO: 3:4
     ].copy()
 
     # TEMP
+    print("Serializing flowlines before later processing")
+    to_geofeather(flowlines.reset_index(), out_dir / "temp_flowlines.feather")
+    serialize_df(joins.reset_index(), out_dir / "temp_flowline_joins.feather")
     print("Serializing {:,} dissolved waterbodies".format(len(waterbodies)))
     to_geofeather(waterbodies.reset_index(), out_dir / "dissolved_waterbodies.feather")
+    serialize_df(
+        wb_joins.reset_index(drop=True), out_dir / "dissolved_waterbody_joins.feather"
+    )
 
     print("------------------")
 

@@ -112,7 +112,18 @@ CRS = {
 # way as other waterbodies, so they will cause issues.
 WATERBODY_EXCLUDE_FTYPES = [361, 466, 493]
 
-WATERBODY_MIN_SIZE = 0.0025
+# Arbitrary limit to try and optimize processing time.  There are LOTS of little ones.
+# Approx 5 acres
+WATERBODY_MIN_SIZE = 0.02
+
+# Arbitrary cutoffs, but per visual inspection looks reasonable
+LARGE_WB_FLOWLINE_LENGTH = 1000
+LARGE_WB_AREA = 0.25
+
+# Arbitrary cutoff, but seemed reasonable from visual inspection
+MAX_PIPELINE_LENGTH = 150  # meters
+
+
 
 
 # NOTE: not all feature services have all columns
@@ -344,13 +355,6 @@ OWNERTYPE_TO_DOMAIN = {
 # considered public
 OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True}
 
-
-# Arbitrary cutoffs, but per visual inspection looks reasonable
-LARGE_WB_FLOWLINE_LENGTH = 1000
-LARGE_WB_AREA = 0.25
-
-# Arbitrary cutoff, but seemed reasonable from visual inspection
-MAX_PIPELINE_LENGTH = 150  # meters
 
 
 # NHDPlusIDs to exclude when extracting flowlines (e.g., )

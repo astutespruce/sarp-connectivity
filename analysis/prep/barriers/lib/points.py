@@ -16,8 +16,8 @@ def find_neighborhoods(df, distance=100):
     network = nx.from_pandas_edgelist(nearby.reset_index(), "index", "index_right")
     components = pd.Series(nx.connected_components(network)).apply(list)
     return (
-        pd.DataFrame(flatten_series(components))
+        pd.DataFrame(components.explode().rename("index_right").reset_index(drop=True))
         .reset_index()
-        .rename(columns={"index": "group", 0: "index"})
+        .rename(columns={"index": "group", "index_right": "index"})
         .set_index("index")
     )

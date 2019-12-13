@@ -28,13 +28,18 @@ def dissolve_waterbodies(df, joins):
     ### Join waterbodies to themselves to find overlaps
     # TODO: implment our own alternative to sjoin that avoids self-combinations
     start = time()
+    print("Creating spatial index on waterbodies...")
     wb = df[["geometry"]].copy()
     wb.sindex
     to_agg = gp.sjoin(wb, wb).join(df[["FType"]])
 
     # drop the self-intersections
     to_agg = to_agg.loc[to_agg.index != to_agg.index_right].copy()
-    print("Found {:,} waterbodies that touch or overlap".format(len(to_agg.index)))
+    print(
+        "Found {:,} waterbodies that touch or overlap".format(
+            len(to_agg.index.unique())
+        )
+    )
 
     if len(to_agg):
         # Figure out which polygons are only touching at a single vertex
@@ -71,9 +76,11 @@ def dissolve_waterbodies(df, joins):
             "Buffering {:,} unique waterbodies before dissolving...".format(len(to_agg))
         )
         buffer_start = time()
-        to_agg["geometry"] = to_agg.buffer(0.1)
+        # TODO: use pg, and simplify since this creates a large number of vertices by default
+        to_agg["geometry"] = to_agg.buffer(0.1, resolution=1).simplify(0.1)
         print("Buffer completed in {:.2f}s".format(time() - buffer_start))
 
+        print("Dissolving...")
         dissolve_start = time()
         # NOTE: automatically takes the first FType
         dissolved = to_agg.dissolve(by="group").reset_index(drop=True)
