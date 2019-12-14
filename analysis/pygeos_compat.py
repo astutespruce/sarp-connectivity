@@ -33,7 +33,7 @@ def from_pygeos(geometries):
     return gp.GeoSeries(np.vectorize(load_wkb, otypes=[np.object])(wkb))
 
 
-def from_geofeather_as_geos(path, columns=None):
+def from_geofeather_as_pygeos(path, columns=None):
     """Deserialize a pandas.DataFrame containing a GeoDataFrame stored in a feather file.
 
     WARNING: this is a very temporary shim until pygeos support lands in geopandas.  The only
@@ -55,7 +55,6 @@ def from_geofeather_as_geos(path, columns=None):
     -------
     pandas.DataFrame
     """
-
     if columns is not None and "geometry" not in columns:
         raise ValueError(
             "'geometry' must be included in list of columns to read from feather file"
@@ -117,7 +116,28 @@ vec_query = np.vectorize(
 )
 
 
-def sjoin(left, right, predicate="intersects"):
+def sjoin(left, right, predicate="intersects", how="inner"):
+    """Use pygeos to do a spatial join.
+    NOTE: This seems to be faster than geopandas where there are fewer intersections per feature on left;
+    it is slower than goepandas where there are many intersections per feature
+    (will be better once there are prepared geoms in pygeos).
+
+    Parameters
+    ----------
+    left : Series or ndarray
+        left geometries, will form basis of index that is returned
+    right : Series or ndarray
+        right geometries, their indices will be returned where thy meet predicate
+    predicate : str, optional (default: "intersects")
+        name of pygeos predicate function (any of the pygeos predicates should work: intersects, contains, within, overlaps, crosses)
+    how : str, optional (default: "inner")
+        one of "inner" or "left"; "right" is not supported at this time.
+
+    Returns
+    -------
+    Series
+        indexed on index of left, containing values of right
+    """
     if isinstance(left, pd.Series):
         left_values = left.values
         left_index = left.index
@@ -143,5 +163,24 @@ def sjoin(left, right, predicate="intersects"):
     )
     # need to explode and then apply indices
     hits = pd.Series(hits, index=left_index).explode()
-    return hits.map(pd.Series(right_index))
+    series = hits.map(pd.Series(right_index)).rename("index_right")
+
+    if how == "inner":
+        series = series.dropna().astype(right_index.dtype)
+
+    return series
+
+
+# NOTE: geometry column is a pygeos geom
+def dissolve(df, by):
+    grouped = df.groupby(by=by)
+    atts = grouped[df.columns.drop("geometry")].first()
+    geoms = grouped.geometry.apply(pg.union_all)
+    return atts.join(geoms)
+
+
+def to_gdf(df, crs):
+    df = df.copy()
+    df["geometry"] = from_pygeos(df.geometry)
+    return gp.GeoDataFrame(df, crs=crs)
 

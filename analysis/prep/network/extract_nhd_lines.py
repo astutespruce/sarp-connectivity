@@ -13,7 +13,7 @@ from geofeather import to_geofeather, from_geofeather
 from nhdnet.geometry.lines import to2D
 from nhdnet.io import serialize_df, deserialize_df, serialize_sindex, to_shp
 
-from analysis.constants import REGIONS, REGION_GROUPS, CRS, EXCLUDE_IDs
+from analysis.constants import REGIONS, REGION_GROUPS, CRS
 
 KEEP_COLS = ["NHDPlusID", "FType", "FCode", "GNIS_Name", "geometry"]
 
@@ -58,12 +58,12 @@ for region, HUC2s in REGION_GROUPS.items():
 
             df.FType = df.FType.astype("uint16")
             df.FCode = df.FCode.astype("uint16")
+            df["HUC2"] = HUC2
 
             if merged is None:
                 merged = df
             else:
-                merged = merged.append(df, ignore_index=True)
-
+                merged = merged.append(df, ignore_index=True, sort=False)
 
 print("Extracted {:,} NHD lines".format(len(merged)))
 df = merged.reset_index(drop=True)
