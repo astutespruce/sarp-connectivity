@@ -9,13 +9,7 @@ import networkx as nx
 from geofeather import to_geofeather, from_geofeather
 import geopandas as gp
 
-from nhdnet.io import (
-    serialize_sindex,
-    to_shp,
-    deserialize_gdfs,
-    deserialize_dfs,
-    deserialize_df,
-)
+from nhdnet.io import to_shp, deserialize_df
 from nhdnet.nhd.joins import find_joins
 
 from analysis.pygeos_compat import (
@@ -28,30 +22,30 @@ from analysis.pygeos_compat import (
     to_gdf,
 )
 
-from analysis.constants import REGION_GROUPS
+from analysis.constants import REGION_GROUPS, CRS
 from analysis.util import append
 
 nhd_dir = Path("data/nhd")
 src_dir = nhd_dir / "clean"
+out_dir = nhd_dir / "merged"
 
-print("Reading NHD lines")
 
-
-nhd_lines = from_geofeather(nhd_dir / "extra" / "nhd_lines.feather")
+### Merge NHD lines and areas that represent dams and dam-related features
+print("Reading NHD lines and areas, and merging...")
+nhd_lines = from_geofeather_as_pygeos(nhd_dir / "extra" / "nhd_lines.feather")
 nhd_lines = nhd_lines.loc[
     (nhd_lines.FType.isin([343, 369, 398])) & nhd_lines.geometry.notnull()
 ].copy()
 # create buffers (5m) to merge with NHD areas
-nhd_lines["geometry"] = pg.buffer(to_pygeos(nhd_lines.geometry), 5, quadsegs=1)
+nhd_lines["geometry"] = pg.buffer(nhd_lines.geometry, 5, quadsegs=1)
 
 # All NHD areas indicate a dam-related feature
-nhd_areas = from_geofeather(nhd_dir / "extra" / "nhd_areas.feather")
+nhd_areas = from_geofeather_as_pygeos(nhd_dir / "extra" / "nhd_areas.feather")
 nhd_areas = nhd_areas.loc[nhd_areas.geometry.notnull()].copy()
-nhd_areas["geometry"] = to_pygeos(nhd_areas.geometry)
 
 # Dissolve adjacent nhd lines and waterbodies together
 nhd_dams = nhd_lines.append(nhd_areas, ignore_index=True, sort=False)
-nearby = sjoin(nhd_dams.g, nhd_dams.g)
+nearby = sjoin(nhd_dams.geometry, nhd_dams.geometry)
 network = nx.from_pandas_edgelist(nearby.reset_index(), "index", "index_right")
 components = pd.Series(nx.connected_components(network)).apply(list)
 groups = (
@@ -62,7 +56,7 @@ groups = (
 )
 
 nhd_dams = nhd_dams.join(groups)
-# Extract composite names
+# Extract composite names for the group
 name = (
     nhd_dams.groupby("group")
     .GNIS_Name.unique()
@@ -77,16 +71,24 @@ nhd_dams = (
     .set_index("id")
 )
 
+# cleanup invalid geometries
+ix = ~pg.is_valid(nhd_dams.geometry)
+nhd_dams.loc[ix, "geometry"] = pg.buffer(nhd_dams.loc[ix].geometry, 0.1, quadsegs=1)
+
+print("Serializing original NHD dam areas...")
+tmp = to_gdf(nhd_dams, crs=CRS).reset_index()
+to_geofeather(tmp, out_dir / "nhd_dams_source.feather")
+to_shp(tmp, out_dir / "nhd_dams_source.shp")
+
 
 start = time()
 merged = None
 
-for region, HUC2s in list(REGION_GROUPS.items())[0:1]:
+for region, HUC2s in list(REGION_GROUPS.items()):
     region_start = time()
 
     print("\n----- {} ------\n".format(region))
 
-    # TODO: read into pygeos directly instead
     print("Reading flowlines...")
     flowlines = from_geofeather_as_pygeos(
         nhd_dir / "clean" / region / "flowlines.feather"
@@ -112,7 +114,6 @@ for region, HUC2s in list(REGION_GROUPS.items())[0:1]:
     intersection = pg.intersection(dams.geometry, dams.line)
     ix = pg.get_type_id(intersection).isin([1, 5])
     dams = dams.loc[ix].copy()
-    # TODO: drop those that have tiny lengths?
 
     print("Deduplicating joins...")
     # Some joins will have multiple flowlines
@@ -179,17 +180,20 @@ for region, HUC2s in list(REGION_GROUPS.items())[0:1]:
 
     dams = dams.dropna(subset=["pt"])
 
-    # Convert back to geodataframe
-    dams = to_gdf(
-        dams[["id", "lineID", "pt"]].rename(columns={"pt": "geometry"}),
-        crs=nhd_lines.crs,
-    )
+    dams = dams[["id", "lineID", "pt"]].rename(columns={"pt": "geometry"})
     dams.id = dams.id.astype("uint32")
     dams.lineID = dams.lineID.astype("uint32")
 
     # Concat to merged dams
     merged = append(merged, dams)
 
+dams = to_gdf(merged.reset_index(drop=True), crs=CRS)
+print("Found {:,} NHD dam / flowline crossings".format(len(dams)))
+
+
+print("Serializing...")
+to_geofeather(dams, out_dir / "nhd_dams.feather")
+to_shp(dams, out_dir / "nhd_dams.shp")
 
 #### Old code - tries to use network topology to reduce set of lines per dam:
 # counts = downstreams.apply(len)

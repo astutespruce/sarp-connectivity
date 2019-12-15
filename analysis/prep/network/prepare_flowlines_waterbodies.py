@@ -48,7 +48,7 @@ from analysis.prep.network.lib.dissolve import dissolve_waterbodies
 from analysis.prep.network.lib.cut import cut_lines_by_waterbodies
 from analysis.prep.network.lib.lines import remove_pipelines, remove_flowlines
 from analysis.prep.network.lib.drains import create_drain_points
-from analysis.pygeos_compat import from_geofeather_as_geos, to_pygeos
+from analysis.pygeos_compat import to_pygeos
 
 
 nhd_dir = Path("data/nhd")
@@ -56,7 +56,7 @@ src_dir = nhd_dir / "raw"
 
 
 start = time()
-for region, HUC2s in list(REGION_GROUPS.items())[2:3]:
+for region, HUC2s in list(REGION_GROUPS.items()):
     region_start = time()
 
     print("\n----- {} ------\n".format(region))
@@ -91,12 +91,12 @@ for region, HUC2s in list(REGION_GROUPS.items())[2:3]:
         joins.loc[joins.downstream.isin(convert_ids), "loop"] = False
 
     ### Drop remaining loops
-    loop_ids = flowlines.loc[flowlines.loop].index
-    print("Dropping remaining {:,} loops".format(len(loop_ids)))
-    flowlines = flowlines.loc[~flowlines.index.isin(loop_ids)].drop(columns=["loop"])
-    joins = joins.loc[~joins.loop].drop(columns=["loop"])
+    # loop_ids = flowlines.loc[flowlines.loop].index
+    # print("Dropping remaining {:,} loops".format(len(loop_ids)))
+    # flowlines = flowlines.loc[~flowlines.index.isin(loop_ids)].drop(columns=["loop"])
+    # joins = joins.loc[~joins.loop].drop(columns=["loop"])
 
-    print("{:,} flowlines after dropping loops".format(len(flowlines)))
+    # print("{:,} flowlines after dropping loops".format(len(flowlines)))
 
     print("------------------")
 
