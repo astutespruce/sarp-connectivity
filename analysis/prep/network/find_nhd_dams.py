@@ -16,7 +16,7 @@ from nhdnet.io import (
     deserialize_dfs,
     deserialize_df,
 )
-from nhdnet.nhd.joins import find_joins, index_joins, find_downstream_terminals
+from nhdnet.nhd.joins import find_joins
 
 from analysis.pygeos_compat import (
     to_pygeos,
@@ -25,11 +25,14 @@ from analysis.pygeos_compat import (
     split_multi_geoms,
     sjoin,
     dissolve,
+    to_gdf,
 )
 
 from analysis.constants import REGION_GROUPS
+from analysis.util import append
 
 nhd_dir = Path("data/nhd")
+src_dir = nhd_dir / "clean"
 
 print("Reading NHD lines")
 
@@ -76,6 +79,8 @@ nhd_dams = (
 
 
 start = time()
+merged = None
+
 for region, HUC2s in list(REGION_GROUPS.items())[0:1]:
     region_start = time()
 
@@ -86,7 +91,10 @@ for region, HUC2s in list(REGION_GROUPS.items())[0:1]:
     flowlines = from_geofeather_as_pygeos(
         nhd_dir / "clean" / region / "flowlines.feather"
     ).set_index("lineID")
-    joins = deserialize_df(src_dir / region / "flowline_joins.feather")
+    joins = deserialize_df(
+        src_dir / region / "flowline_joins.feather",
+        columns=["downstream_id", "upstream_id"],
+    )
 
     dams = nhd_dams.loc[nhd_dams.HUC2.isin(HUC2s)]
 
@@ -104,52 +112,39 @@ for region, HUC2s in list(REGION_GROUPS.items())[0:1]:
     intersection = pg.intersection(dams.geometry, dams.line)
     ix = pg.get_type_id(intersection).isin([1, 5])
     dams = dams.loc[ix].copy()
+    # TODO: drop those that have tiny lengths?
 
     print("Deduplicating joins...")
     # Some joins will have multiple flowlines
     # aggregate these to their lowest common flowline
+    # TODO: not needed, most dams have > 1 line due to splits at the dam
     counts = dams.groupby("id").size()
-    lineIDs = dams.loc[dams.id.isin(counts.loc[counts > 1].index)].lineID
+    ix = dams.id.isin(counts.loc[counts > 1].index)
 
-    # extract overlapping nodes and build subnetworks
     j = find_joins(
-        joins, lineIDs, downstream_col="downstream_id", upstream_col="upstream_id"
+        joins,
+        dams.lineID.unique(),
+        downstream_col="downstream_id",
+        upstream_col="upstream_id",
     )
-    # downstream-most segments are those that terminate in a segment not in our set here
-    downstreams = find_downstream_terminals(
-        j, downstream_col="downstream_id", upstream_col="upstream_id"
+    grouped = dams.groupby("id")
+
+    def find_downstreams(ids):
+        return j.loc[
+            j.upstream_id.isin(ids) & ~j.downstream_id.isin(ids)
+        ].upstream_id.unique()
+
+    lines_by_dam = grouped.lineID.unique()
+    downstreams = lines_by_dam.apply(find_downstreams).explode()
+
+    # Now can just reduce dams back to these lineIDs
+    dams = (
+        dams[["id", "geometry"]]
+        .join(downstreams, on="id", how="inner")
+        .drop_duplicates(subset=["id", "lineID"])
+        .join(flowlines.geometry.rename("line"), on="lineID")
+        .reset_index(drop=True)
     )
-    nodes = j.loc[
-        (j.upstream_id != 0) & (j.downstream_id != 0), ["downstream_id", "upstream_id"]
-    ]
-    # use undirected graph for finding neighbors
-    network = nx.from_pandas_edgelist(nodes, "upstream_id", "downstream_id")
-    components = pd.Series(nx.connected_components(network)).apply(list)
-
-    # WARNING: this might blow up if there are true terminals (downstream == 0)
-    downstream_for_group = components.apply(lambda c: np.intersect1d(c, downstreams)[0])
-    nets = (
-        pd.DataFrame(components.explode().rename("lineID"))
-        .reset_index()
-        .rename(columns={"index": "netID"})
-        .set_index("lineID")
-    )
-
-    # FIXME: id==10171 is not getting a netID, and so is being left as dups
-    # these aren't showing up in above
-
-    # logic error - we are assigning further upstream than we should
-
-    # netID == nan are single segment joins, not a problem
-    dams = dams.join(nets, on="lineID", how="left").join(
-        downstream_for_group.rename("newLineID"), on="netID", how="left"
-    )
-    ix = dams.netID.notnull()
-    dams.loc[ix, "lineID"] = dams.loc[ix].newLineID.astype("uint32")
-    dams = dams.drop(columns=["netID", "newLineID"]).drop_duplicates(
-        subset=["id", "lineID"]
-    )
-
     print("Found {:,} joins between NHD dams and flowlines".format(len(dams)))
 
     ### Extract representative point
@@ -173,3 +168,76 @@ for region, HUC2s in list(REGION_GROUPS.items())[0:1]:
     ).dropna()
     dams.loc[pt.index, "pt"] = pt
 
+    # Few should be dropped at this point, since all should have overlapped at least by a point
+    errors = dams.pt.isnull()
+    if errors.max():
+        print(
+            "{:,} dam / flowline joins could not be represented as points and were dropped".format(
+                errors.sum()
+            )
+        )
+
+    dams = dams.dropna(subset=["pt"])
+
+    # Convert back to geodataframe
+    dams = to_gdf(
+        dams[["id", "lineID", "pt"]].rename(columns={"pt": "geometry"}),
+        crs=nhd_lines.crs,
+    )
+    dams.id = dams.id.astype("uint32")
+    dams.lineID = dams.lineID.astype("uint32")
+
+    # Concat to merged dams
+    merged = append(merged, dams)
+
+
+#### Old code - tries to use network topology to reduce set of lines per dam:
+# counts = downstreams.apply(len)
+# ix = dams.loc[dams.id.isin(counts.loc[counts == 1].index)].index
+# dams.loc[ix, "newLineID"] = dams.loc[ix].id.apply(lambda id: downstreams.loc[id][0])
+# dams.loc[dams.id.isin(ids)].id.apply(lambda id: downstreams.loc[id][0])
+# ix = lines_by_dam.loc[counts == 1]
+# where len of downstreams is null, can set that as the lineID of the dam
+# if > 1, need to build subnetworks
+
+# # Following logic doesn't work for lineIDs shared between dams
+# lineIDs = dams.loc[dams.id.isin(counts.loc[counts > 1].index)].lineID
+
+# # extract overlapping nodes and build subnetworks
+# # NOTE: this must be for edges that are in lineIDs
+# j = joins.loc[joins.upstream_id.isin(lineIDs) & joins.downstream_id.isin(lineIDs)]
+
+# # downstream-most segments are those that terminate in a segment not in our set here
+# downstreams = find_downstream_terminals(
+#     j, downstream_col="downstream_id", upstream_col="upstream_id"
+# )
+# nodes = j.loc[
+#     (j.upstream_id != 0) & (j.downstream_id != 0), ["downstream_id", "upstream_id"]
+# ]
+# use undirected graph for finding neighbors
+# network = nx.from_pandas_edgelist(nodes, "upstream_id", "downstream_id")
+# components = pd.Series(nx.connected_components(network)).apply(list)
+
+# # WARNING: this might blow up if there are true terminals (downstream == 0)
+# downstream_for_group = components.apply(lambda c: np.intersect1d(c, downstreams)[0])
+# nets = (
+#     pd.DataFrame(components.explode().rename("lineID"))
+#     .reset_index()
+#     .rename(columns={"index": "netID"})
+#     .set_index("lineID")
+# )
+
+# # netID == nan are single segment joins, not a problem
+# dams = dams.join(nets, on="lineID", how="left").join(
+#     downstream_for_group.rename("newLineID"), on="netID", how="left"
+# )
+# ix = dams.netID.notnull()
+# dams.loc[ix, "lineID"] = dams.loc[ix].newLineID.astype("uint32")
+# dams = (
+#     dams.drop(columns=["netID", "newLineID"])
+#     .drop_duplicates(subset=["id", "lineID"])
+#     .drop(columns=["line"])
+# )
+
+# # join back to flowlines to get updated line
+# dams = dams.join(flowlines.geometry.rename("line"), on="lineID")

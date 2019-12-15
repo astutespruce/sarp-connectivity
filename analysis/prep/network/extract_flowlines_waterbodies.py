@@ -27,7 +27,6 @@ from geofeather import to_geofeather
 from nhdnet.nhd.extract import extract_flowlines, extract_waterbodies
 from nhdnet.io import serialize_df, serialize_sindex, to_shp
 
-
 from analysis.constants import (
     REGIONS,
     REGION_GROUPS,
@@ -43,8 +42,8 @@ out_dir = Path("data/nhd/raw")
 
 start = time()
 
-# useful slices are :3, 3:5, 5:
-for region, HUC2s in list(REGION_GROUPS.items()):
+# useful slices are [:2], [2:4], [4:]
+for region, HUC2s in list(REGION_GROUPS.items())[4:]:
     print("\n----- {} ------\n".format(region))
 
     region_dir = out_dir / region
@@ -209,37 +208,3 @@ for region, HUC2s in list(REGION_GROUPS.items()):
 
 print("Done in {:.2f}s\n============================".format(time() - start))
 
-
-# FIXME: add a post-processing step for this
-# Exclude flowlines as needed
-
-# if HUC4 in EXCLUDE_IDs:
-#     exclude_ids = EXCLUDE_IDs[HUC4]
-#     flowlines = flowlines.loc[~flowlines.NHDPlusID.isin(exclude_ids)].copy()
-
-#     # update downstream end of joins
-#     downstream_idx = joins.loc[joins.downstream.isin(exclude_ids)].index
-#     joins.loc[downstream_idx, "downstream_id"] = 0
-#     joins.loc[downstream_idx, "downstream"] = 0
-#     joins.loc[downstream_idx, "type"] = "terminal"
-
-#     # remove upstream end of joins
-#     joins = joins.loc[~joins.upstream.isin(exclude_ids)].copy()
-
-#     # reset dtypes
-#     joins.downstream = joins.downstream.astype("uint64")
-#     joins.downstream_id = joins.downstream_id.astype("uint32")
-
-#     print(
-#         "Removed excluded flowlines, now have {:,}".format(len(flowlines))
-#     )
-
-# FIXME: do this in later step
-# * FIXME: flowline.sidx: serialized bounding box data used to reconstruct the spatial index for flowlines
-# TODO: use .to_file() method instead of to_shp()
-# serialize_sindex(merged, region_dir / "flowline.sidx")
-
-# print("serializing to shp")
-# serialize_start = time()
-# to_shp(merged.reset_index(drop=True), region_dir / "flowline.shp")
-# print("serialize done in {:.0f}s".format(time() - serialize_start))

@@ -6,6 +6,24 @@ from shapely.geometry import Point
 
 
 def create_drain_points(flowlines, joins, waterbodies, wb_joins):
+    """Create drain points from furthest downstream point of flowlines that overlap with waterbodies.
+
+    WARNING: If multiple flowlines intersect at the drain point, there will be multiple drain points at the same location
+
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+        flowline joins
+    waterbodies : GeoDataFrame
+    wb_joins : DataFrame
+        waterbody / flowline joins
+
+    Returns
+    -------
+    GeoDataFrame
+        Drain points dataframe
+    """
     start = time()
 
     ### Find the downstream most point(s) on the flowline for each waterbody
