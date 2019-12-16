@@ -173,6 +173,22 @@ def sjoin(left, right, predicate="intersects", how="inner"):
 
 # NOTE: geometry column is a pygeos geom
 def dissolve(df, by):
+    """Dissolve a DataFrame by grouping records using "by".
+
+    NOTE: the first record is used for all non-geometry columns.
+
+    Parameters
+    ----------
+    df : DataFrame
+        must contain pygeos geometry in "geometry" column
+    by : str
+        name of field for grouping records to dissolve together
+
+    Returns
+    -------
+    GeoDataFrame
+        dissolved geometries, indexed using "by" column from grouping
+    """
     grouped = df.groupby(by=by)
     atts = grouped[df.columns.drop("geometry")].first()
     geoms = grouped.geometry.apply(pg.union_all)
@@ -180,7 +196,36 @@ def dissolve(df, by):
 
 
 def to_gdf(df, crs):
+    """ Convert a data frame that has pygeos geometry to a GeoDataFrame
+
+    Parameters
+    ----------
+    df : DataFrame
+        must have pygeos geometry in "geometry" column
+    crs : geopandas CRS object
+
+    Returns
+    -------
+    GeoDataFrame
+    """
     df = df.copy()
     df["geometry"] = from_pygeos(df.geometry)
     return gp.GeoDataFrame(df, crs=crs)
 
+
+def get_hash(series):
+    """Calculate hash of each geometry for easy equality check.
+
+    The hash is based on the WKB of the geometry.
+
+    Parameters
+    ----------
+    series : Series
+        contains pygeos geometries
+
+    Returns
+    -------
+    Series
+        hash codes for each geometry
+    """
+    return to_wkb(series).apply(lambda wkb: hash(wkb))

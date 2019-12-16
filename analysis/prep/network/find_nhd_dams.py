@@ -24,11 +24,14 @@ from analysis.pygeos_compat import (
 
 from analysis.constants import REGION_GROUPS, CRS
 from analysis.util import append
+from analysis.prep.barriers.lib.points import find_nearest
 
 nhd_dir = Path("data/nhd")
 src_dir = nhd_dir / "clean"
 out_dir = nhd_dir / "merged"
 
+
+start = time()
 
 ### Merge NHD lines and areas that represent dams and dam-related features
 print("Reading NHD lines and areas, and merging...")
@@ -70,20 +73,15 @@ nhd_dams = (
     .rename(columns={"group": "id"})
     .set_index("id")
 )
+nhd_dams.GNIS_Name = nhd_dams.GNIS_Name.fillna("")
 
 # cleanup invalid geometries
 ix = ~pg.is_valid(nhd_dams.geometry)
 nhd_dams.loc[ix, "geometry"] = pg.buffer(nhd_dams.loc[ix].geometry, 0.1, quadsegs=1)
 
-print("Serializing original NHD dam areas...")
-tmp = to_gdf(nhd_dams, crs=CRS).reset_index()
-to_geofeather(tmp, out_dir / "nhd_dams_source.feather")
-to_shp(tmp, out_dir / "nhd_dams_source.shp")
 
-
-start = time()
+### Intersect with flowlines by region
 merged = None
-
 for region, HUC2s in list(REGION_GROUPS.items()):
     region_start = time()
 
@@ -91,20 +89,20 @@ for region, HUC2s in list(REGION_GROUPS.items()):
 
     print("Reading flowlines...")
     flowlines = from_geofeather_as_pygeos(
-        nhd_dir / "clean" / region / "flowlines.feather"
+        src_dir / region / "flowlines.feather"
     ).set_index("lineID")
     joins = deserialize_df(
         src_dir / region / "flowline_joins.feather",
         columns=["downstream_id", "upstream_id"],
     )
 
-    dams = nhd_dams.loc[nhd_dams.HUC2.isin(HUC2s)]
+    dams = nhd_dams.loc[nhd_dams.HUC2.isin(HUC2s)].copy()
 
     print("Joining {:,} NHD dams to {:,} flowlines".format(len(dams), len(flowlines)))
     join_start = time()
     dams = (
         pd.DataFrame(sjoin(dams.geometry, flowlines.geometry).rename("lineID"))
-        .join(dams.geometry)
+        .join(dams[["GNIS_Name", "geometry"]])
         .join(flowlines.geometry.rename("line"), on="lineID")
     ).reset_index()
     print("Join elapsed {:.2f}s".format(time() - join_start))
@@ -118,29 +116,41 @@ for region, HUC2s in list(REGION_GROUPS.items()):
     print("Deduplicating joins...")
     # Some joins will have multiple flowlines
     # aggregate these to their lowest common flowline
-    # TODO: not needed, most dams have > 1 line due to splits at the dam
-    counts = dams.groupby("id").size()
-    ix = dams.id.isin(counts.loc[counts > 1].index)
-
     j = find_joins(
         joins,
         dams.lineID.unique(),
         downstream_col="downstream_id",
         upstream_col="upstream_id",
     )
-    grouped = dams.groupby("id")
 
     def find_downstreams(ids):
-        return j.loc[
-            j.upstream_id.isin(ids) & ~j.downstream_id.isin(ids)
+        if len(ids) == 1:
+            return ids
+
+        # multiple segments, find the dowstream ones
+        dam_joins = find_joins(
+            j, ids, downstream_col="downstream_id", upstream_col="upstream_id"
+        )
+        return dam_joins.loc[
+            dam_joins.upstream_id.isin(ids) & ~dam_joins.downstream_id.isin(ids)
         ].upstream_id.unique()
 
+    grouped = dams.groupby("id")
     lines_by_dam = grouped.lineID.unique()
-    downstreams = lines_by_dam.apply(find_downstreams).explode()
+
+    # NOTE: downstreams is indexed on id, not dams.index
+    downstreams = (
+        lines_by_dam.apply(find_downstreams)
+        .reset_index()
+        .explode("lineID")
+        .drop_duplicates()
+        .set_index("id")
+        .lineID
+    )
 
     # Now can just reduce dams back to these lineIDs
     dams = (
-        dams[["id", "geometry"]]
+        dams[["id", "GNIS_Name", "geometry"]]
         .join(downstreams, on="id", how="inner")
         .drop_duplicates(subset=["id", "lineID"])
         .join(flowlines.geometry.rename("line"), on="lineID")
@@ -187,13 +197,72 @@ for region, HUC2s in list(REGION_GROUPS.items()):
     # Concat to merged dams
     merged = append(merged, dams)
 
-dams = to_gdf(merged.reset_index(drop=True), crs=CRS)
+    print("Region done in {:.2f}s".format(time() - region_start))
+
+
+dams = merged.reset_index(drop=True)
 print("Found {:,} NHD dam / flowline crossings".format(len(dams)))
 
+### Associate with waterbodies, so that we know which waterbodies are claimed
+print("Joining to waterbodies...")
+wb = from_geofeather_as_pygeos(nhd_dir / "merged" / "waterbodies.feather").set_index(
+    "wbID"
+)
+drains = from_geofeather_as_pygeos(
+    nhd_dir / "merged" / "waterbody_drain_points.feather"
+).set_index("id")
+
+join_start = time()
+# join from waterbodies to dams, due to the large difference in footprints
+# then invert
+joined = (
+    sjoin(wb.geometry, dams.geometry, how="left")
+    .rename("id")
+    .reset_index()
+    .drop_duplicates()
+    .dropna(subset=["id"])
+    .astype("uint32")
+    .set_index("id")
+)
+
+dams = dams.join(joined, how="left")
+print(
+    "Found {:,} dams in waterbodies in {:.2f}s".format(len(joined), time() - join_start)
+)
+
+print("Finding nearest waterbody drain for those that didn't join to waterbodies")
+
+# some might be immediately downstream, find the closest drain within 250m
+nearest_start = time()
+ix = dams.wbID.isnull()
+nearest_drains = find_nearest(
+    dams.loc[ix].geometry, drains.set_index("wbID").geometry, 250
+)
+
+dams.loc[nearest_drains.index, "wbID"] = nearest_drains
+print(
+    "Found {:,} nearest neighbors in {:.2f}s".format(
+        len(nearest_drains), time() - nearest_start
+    )
+)
+
+print("{:,} dams not associated with waterbodies".format(dams.wbID.isnull().sum()))
+
+dams.wbID = dams.wbID.fillna(-1)
 
 print("Serializing...")
-to_geofeather(dams, out_dir / "nhd_dams.feather")
-to_shp(dams, out_dir / "nhd_dams.shp")
+dams = to_gdf(dams, crs=CRS).reset_index(drop=True)
+to_geofeather(dams, out_dir / "nhd_dams_pt.feather")
+to_shp(dams, out_dir / "nhd_dams_pt.shp")
+
+nhd_dams = to_gdf(
+    nhd_dams.loc[nhd_dams.index.isin(dams.id.unique())], crs=CRS
+).reset_index()
+to_geofeather(nhd_dams, out_dir / "nhd_dams_poly.feather")
+# TODO: exporting to shapefile segfaults, not sure why
+
+print("==============\nAll done in {:.2f}s".format(time() - start))
+
 
 #### Old code - tries to use network topology to reduce set of lines per dam:
 # counts = downstreams.apply(len)

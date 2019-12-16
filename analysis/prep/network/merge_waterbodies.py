@@ -46,6 +46,10 @@ wb = (
 )
 print("Read {:,} waterbodies".format(len(wb)))
 
+# TEMP: can remove on next full run of prepare_flowlines_waterbodies.feather
+wb.wbID = wb.wbID.astype("uint32")
+
+
 print("Serializing waterbodies...")
 to_geofeather(wb, out_dir / "waterbodies.feather")
 
@@ -96,7 +100,9 @@ drains.loc[ix, "lineID"] = drains.loc[ix].downstream_id.astype("uint32")
 drains = drains.drop(columns=["downstream_id"])
 
 # Take the first instance for each duplicate
-drains = gp.GeoDataFrame(drains.groupby(["lineID", "wbID"]).first().reset_index(), crs=wb.crs)
+drains = gp.GeoDataFrame(
+    drains.groupby(["lineID", "wbID"]).first().reset_index(), crs=wb.crs
+)
 
 # TODO: check if there are multiple identical downstreams
 # This is harder to do properly.
@@ -109,7 +115,7 @@ drains = gp.GeoDataFrame(drains.groupby(["lineID", "wbID"]).first().reset_index(
 
 
 # Add an internal ID, since there may be multiple drain points per waterbody
-drains["drainID"] = drains.index.copy() + 1
+drains["id"] = drains.index.copy() + 1
 drains.id = drains.id.astype("uint32")
 
 
