@@ -46,7 +46,7 @@ def window(points, tolerance):
     return pg.box(*bounds.T)
 
 
-def within_distance(source, target, distance=100):
+def near(source, target, distance):
     """Return target geometries within distance of source geometries.
 
     Only returns records from source that intersected at least one feature in target.
@@ -57,7 +57,7 @@ def within_distance(source, target, distance=100):
         contains pygeos geometries
     target : Series
         contains target pygeos geometries to search against
-    distance : number, optional (default 100)
+    distance : number
         radius within which to find target geometries
 
     Returns
@@ -73,19 +73,20 @@ def within_distance(source, target, distance=100):
     near = (
         near.reset_index()
         .join(series, on=left_index_name)
-        .join(target.rename("geometry_right"), on="index_right")
+        .join(target.rename("geometry_right"), on=right_index_name)
     )
     near["distance"] = pg.distance(near.geometry, near.geometry_right)
     return (
         near.loc[
             near.distance <= distance, [left_index_name, right_index_name, "distance"]
         ]
+        .sort_values(by=[left_index_name, "distance"])
         .set_index(left_index_name)
         .copy()
     )
 
 
-def find_nearest(source, target, distance):
+def nearest(source, target, distance):
     """Find the nearest target geometry for each record in source, if one
     can be found within distance.
 
@@ -100,18 +101,14 @@ def find_nearest(source, target, distance):
 
     Returns
     -------
-    Series
-        indexed by original index of series, has index of reference for each
-        nearest reference geom.
+    DataFrame
+        indexed by original index of source, has index of target for each
+        nearest target geom.
+        Includes distance
     """
     left_index_name = source.index.name or "index"
     right_index_name = target.index.name or "index_right"
-    near = (
-        within_distance(source, target, distance)
-        .reset_index()
-        .sort_values(by=[left_index_name, "distance"])
-    )
-    return near.groupby(left_index_name).first()["index_right"].rename(right_index_name)
+    return near(source, target, distance).reset_index().groupby(left_index_name).first()
 
 
 def find_neighborhoods(series, tolerance=100):
