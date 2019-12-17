@@ -138,7 +138,7 @@ The `date` property needs to be set to the date the data were last downloaded.
 
 ## Credits
 
-This project was made possible in partnership with the [Southeast Aquatic Resources Partnership](https://southeastaquatics.net/) (SARP).
+This project was made possible in partnership with the [Southeast Aquatic Resources Partnership](https://southeastaquatics.net/) (SARP). Kat Hoenke (SARP Spatial Ecologist and Data Manager) provided all data from SARP used in this project.
 
 It was supported in part by grants from the [U.S. Fish and Wildlife Service Fish Passage Program](https://www.fws.gov/fisheries/fish-passage.html), [Gulf Coastal Plains and Ozarks Landscape Conservation Cooperative](https://gcpolcc.org/), and [Florida State Wildlife Grants Program](https://myfwc.com/conservation/special-initiatives/fwli/grant/).
 

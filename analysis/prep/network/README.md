@@ -1,8 +1,10 @@
 # Southeast Aquatic Barrier Inventory Data Processing - Network Data Preparation
 
+This stage involves processing NHD data and related data into data structures that are ready to use for snapping and network analysis. These should only need to be rerun when you need more HUC4s than are currently included in the analysis, need to update NHD data, or need to resolve logic errors in the data extraction pipeline.
+
 ## Overall workflow:
 
-1. Download NHDPlus High Resolution (HR) data for all applicable HUC4s that have dams.
+1. Download NHD High Resolution Plus data for all applicable HUC4s that have dams.
 2. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
 3. Run `extract_flowlines_waterbodies.py` to extract flowlines, flowline joins, waterbodies, and flowline / waterbody joins for each region group.
 4. Run `extract_nhd_lines.py` and `extract_nhd_areas.py` to extract dam-related features and waterfalls from other NHD datasets.
@@ -20,6 +22,8 @@ Feather files are used as a compact, fast I/O file format for these data.
 ### 1. Download NHDPlus HR data:
 
 Run `download.py`. This will download NHDPlus HR data by HUC4 into `data/nhd/source/huc4`. For now, you need to unzip these files manually into that directory.
+
+WARNING: NHD HR+ data are currently in beta.  There are data issues, including, but not limited to miscoded flowlines, spurious NHD areas, and fragemented adjacent waterbodies.
 
 ### 2. Run any special preprocessing scripts or hand-inspect NHD data
 

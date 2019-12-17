@@ -1,6 +1,13 @@
 # Southeast Aquatic Barrier Inventory Data Processing
 
-This project involves several data processing steps to work from raw aquatic network and barrier data to outputs of the network and connectivity analyses:
+This project involves several data processing steps to work from raw aquatic network and barrier data to outputs of the network and connectivity analyses.
+
+IMPORTANT:
+All data processing is performed using the SARP standard coordinate reference system (CRS), which is based on CONUS Albers Equal Area Projection. The CRS definition is in `analysis/constants.py::CRS`.
+
+NOTE:
+There are many constants used throughout the tool. These include things like the minimum waterbody size to extract, maximum length of pipelines to keep, etc.
+Most are contained in `analysis/constants.py` so that they can be used from various scripts.
 
 ## Data preparation:
 

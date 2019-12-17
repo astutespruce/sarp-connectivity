@@ -1,5 +1,7 @@
 # Southeast Aquatic Barrier Inventory Data Processing - Aquatic Barriers
 
+This is the main data flow for updating barrier data, each time new barriers need to be processed for use in the tool.
+
 Barriers are extracted from multiple sources for the network connectivity and barrier prioritization analyses. These include:
 
 -   waterfalls
@@ -9,9 +11,14 @@ Barriers are extracted from multiple sources for the network connectivity and ba
 
 The output of the processing steps below are full barriers datasets in `data/barriers/master` and a subset of dams, small barriers, and waterfalls that were snapped to the aquatic network in `data/barriers/snapped`.
 
+The full datasets include attributes that identify whether they were dropped (removed from all analyses and not shown on map), excluded (removed from all analyses but shown on map), snapped, or duplicates.
+
+WARNING:
+There are many duplicate dams within the inventory. Some occur very near each others, others are quite far away (>250m). The scripts try to identify likely duplicates and remove them from analysis.
+
 ## ArcGIS Online token
 
-You must set `AGOL_TOKEN` in an `.env` file in the root of this project. It must be set to a valid ArcGIS Online token, and must have access to the SARP datasets. To get this token, go to one of the SARP web maps for the inventory, sign in, and get the token from the URL.
+You must set `AGOL_TOKEN` in an `.env` file in the root of this project. It must be set to a current, valid ArcGIS Online token, and must have access to the SARP datasets. To get this token, go to one of the SARP web maps for the inventory, sign in, and get the token from the URL.
 
 ## Data sources:
 

@@ -1,5 +1,9 @@
 # Southeast Aquatic Barrier Inventory Data Processing - Boundary Data Prep
 
+This involves extracting boundary information within the SARP region that is used to attribute barriers, summarize barrier information, and identify barriers that are outside the region.
+
+This should only need to run when new boundary data are available.
+
 ## Overall workflow
 
 1. Create summary units for analysis. These are joined to barriers and used for summary display on the map.
@@ -7,8 +11,8 @@
 3. Create vector tiles of all summary units that include name and ID in a standardized way. This only needs to be done again when summary units are modified or new ones are added.
 
 Naming conventions:
-`*_prj.shp` denotes a shapefile in the CONUS Albers projection of the inventory
-`*_wgs84.shp` denotes a shapefile in WGS84 projection for use in `tippecanoe`
+`*_prj.shp` denotes a shapefile in the CONUS Albers projection of the SARP inventory.
+`*_wgs84.shp` denotes a shapefile in WGS84 projection for use in `tippecanoe`.
 
 ## 1. Create summary units
 
@@ -25,7 +29,7 @@ If needed (e.g., projected states but not yet extracted to SARP HUC4 boundary), 
 
 ### SARP States boundary
 
-All states in the SARP region (defined by `/analysis/prep/prep_boundaries.py::SARP_STATES`) were extracted from the CENSUS tiger states dataset, and dissolved.
+All states in the SARP region (defined by `/analysis/prep/prep_boundaries.py::SARP_STATES`) were extracted from the CENSUS tiger states dataset and dissolved.
 
 SARP inverse boundary (for masking):
 Create a GeoJSON polygon for world bounds using GeoJSON.io. In ArcGIS, erase from this
@@ -120,7 +124,7 @@ ogr2ogr -t_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 
 
 ### Protected Areas
 
-Kat extracted protected area data from CBI Protected Areas and TNC Secured Lands and merged them together. Kat later obtained a boundaries layer from USFS, and overlayed this over the top (11/4/2019). Because this causes multiple owner type polygons to occur in the same location, the `Preference` attribute is added, so that we can sort on ascending preference to assign the most appropriate ownership to a given barrier (nulls assigned arbitrary high value).
+Kat Hoenke (SARP) extracted protected area data from CBI Protected Areas and TNC Secured Lands and merged them together. Kat later obtained a boundaries layer from USFS, and overlayed this over the top (11/4/2019). Because this causes multiple owner type polygons to occur in the same location, the `Preference` attribute is added, so that we can sort on ascending preference to assign the most appropriate ownership to a given barrier (nulls assigned arbitrary high value).
 
 ```
 ogr2ogr -t_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs" -sql "SELECT OwnerType as otype, OwnerName as owner, EasementHolderType as etype, Preference as sort from CBI_PADUS_NCED_TNC_USFS_Combine2019" ../intermediate/protected_areas.shp Protected_Areas_2019.gdb CBI_PADUS_NCED_TNC_USFS_Combine2019
