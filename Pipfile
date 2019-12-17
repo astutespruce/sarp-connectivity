@@ -17,16 +17,15 @@ python-dotenv = "*"
 [dev-packages]
 pylint = "*"
 black = "==19.3b0"
-geopandas = ">=0.6.2"
 requests = "*"
 nhdnet = {editable = true,path = "./../nhdnet"}
 sarp-connectivity = {editable = true,path = "."}
 geofeather = {editable = true,path = "./../geofeather"}
 rtree = ">=0.9.1"
 shapely = "==1.7a2"
-fiona = "*"
 networkx = "*"
 pygeos = {editable = true,path = "./../pygeos"}
+geopandas = "*"
 
 [requires]
 python_version = "3.7"

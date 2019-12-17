@@ -88,15 +88,15 @@ def find_nearest(series, reference, tolerance):
     buffered = pg.buffer(series, tolerance)
     left_index_name = series.index.name or "index"
     right_index_name = reference.index.name or "index_right"
-    joined = pd.DataFrame(
-        sjoin(buffered, reference, how="inner").rename(right_index_name)
-    )
+    joined = pd.DataFrame(sjoin(buffered, reference, how="inner"))
     joined = (
         joined.join(series)
-        .join(reference.rename("right_geom"), on=right_index_name)
+        .join(reference.rename("right_geom"), on="index_right")
         .reset_index()
     )
     joined["dist"] = pg.distance(joined.geometry, joined.right_geom)
     joined = joined.sort_values(by=[left_index_name, "dist"])
-    return joined.groupby(left_index_name).first()[right_index_name]
+    return (
+        joined.groupby(left_index_name).first()["index_right"].rename(right_index_name)
+    )
 

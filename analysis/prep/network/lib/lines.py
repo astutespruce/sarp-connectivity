@@ -14,8 +14,6 @@ from nhdnet.nhd.joins import (
     remove_joins,
 )
 
-from analysis.util import flatten_series
-
 
 def remove_flowlines(flowlines, joins, ids):
     """Remove flowlines specified by ids from flowlines and joins
@@ -78,14 +76,16 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
         )
     )
 
-    # Drop any isolated pipelines
+    # Drop any isolated pipelines no matter what size
     # these either are one segment long, or are upstream / downstream terminals for
     # non-pipeline segments
     join_idx = index_joins(
         pjoins, downstream_col="downstream_id", upstream_col="upstream_id"
     )
     drop_ids = join_idx.loc[
-        (join_idx.upstream_id == join_idx.downstream_id)
+        (
+            join_idx.upstream_id == join_idx.downstream_id
+        )  # has upstream and downstream of 0s
         | (
             ((join_idx.upstream_id == 0) & (~join_idx.downstream_id.isin(pids)))
             | ((join_idx.downstream_id == 0) & (~join_idx.upstream_id.isin(pids)))
@@ -101,23 +101,20 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     pjoins = remove_joins(
         pjoins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
     )
+    join_idx = join_idx.loc[~join_idx.index.isin(drop_ids)].copy()
 
-    # logic error: we should be dropping long pipelines that are between regular segments, we still want to drop these
+    # Find single connectors between non-pipeline segments
+    # drop those > max_pipeline_length
+    singles = join_idx.loc[
+        ~(join_idx.upstream_id.isin(pids) | join_idx.downstream_id.isin(pids))
+    ].join(flowlines["length"])
+    drop_ids = singles.loc[singles.length >= max_pipeline_length].index
 
-    contiguous_pjoins = pjoins.loc[
-        (pjoins.upstream_id.isin(pids) & pjoins.downstream_id.isin(pids))
-    ]
-
-    isolated = pjoins.loc[~pjoins.index.isin(contiguous_pjoins.index)]
-    # drop any that are > max_pipeline_length
-    drop_ids = np.intersect1d(
-        np.append(isolated.upstream_id, isolated.downstream_id), pids
+    print(
+        "Found {:,} pipeline segments between flowlines that are > {:,}m; they will be dropped".format(
+            len(drop_ids), max_pipeline_length
+        )
     )
-
-    ix = flowlines.loc[drop_ids, "length"] > max_pipeline_length
-    ix = ix.loc[ix].index.astype("uint32")
-
-    print("Removing {:,} non-contiguous segments".format(len(ix)))
 
     # remove from flowlines, joins, pjoins
     flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
@@ -127,11 +124,11 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     pjoins = remove_joins(
         pjoins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
     )
+    join_idx = join_idx.loc[~join_idx.index.isin(drop_ids)].copy()
 
-    # create a network of pipelines to group them together
-
-    # have to remove any that start or end in 0's
-    nodes = pjoins.loc[(pjoins.upstream_id != 0) & (pjoins.downstream_id != 0)]
+    ### create a network of pipelines to group them together
+    # Only use contiguous pipelines; those that are not contiguous should have been handled above
+    nodes = pjoins.loc[pjoins.upstream_id.isin(pids) & pjoins.downstream_id.isin(pids)]
     network = nx.from_pandas_edgelist(nodes, "downstream_id", "upstream_id")
     components = pd.Series(nx.connected_components(network)).apply(list)
 
@@ -146,8 +143,8 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     drop_ids = groups.loc[groups.group.isin(drop_groups)].lineID
 
     print(
-        "Dropping {:,} pipelines that are greater than the max allowed length".format(
-            len(drop_ids)
+        "Dropping {:,} pipelines that are greater than {:,}".format(
+            len(drop_ids), max_pipeline_length
         )
     )
 

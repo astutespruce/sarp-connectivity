@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from time import time
 
@@ -199,6 +198,8 @@ for region, HUC2s in list(REGION_GROUPS.items()):
 
     print("Region done in {:.2f}s".format(time() - region_start))
 
+
+print("----------------------------------------------")
 
 dams = merged.reset_index(drop=True)
 print("Found {:,} NHD dam / flowline crossings".format(len(dams)))

@@ -229,3 +229,24 @@ def get_hash(series):
         hash codes for each geometry
     """
     return to_wkb(series).apply(lambda wkb: hash(wkb))
+
+
+def connect_points(start, end):
+    """Convert a series or array of points to an array or series of lines.
+
+    Parameters
+    ----------
+    start : Series or ndarray
+    end : Series or ndarray
+
+    Returns
+    -------
+    Series or ndarray
+    """
+    x1 = pg.get_x(start)
+    y1 = pg.get_y(start)
+    x2 = pg.get_x(end)
+    y2 = pg.get_y(end)
+
+    return pg.linestrings(np.array([[x1, x2], [y1, y2]]).T)
+

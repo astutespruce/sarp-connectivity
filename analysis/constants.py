@@ -121,16 +121,14 @@ LARGE_WB_FLOWLINE_LENGTH = 1000
 LARGE_WB_AREA = 0.25
 
 # Arbitrary cutoff, but seemed reasonable from visual inspection
-MAX_PIPELINE_LENGTH = 150  # meters
-
-
+MAX_PIPELINE_LENGTH = 250  # meters
 
 
 # NOTE: not all feature services have all columns
 DAM_FS_COLS = [
     "SARPUniqueID",
     "AnalysisID",  # needed to be able to join to manually snapped dams.  TODO: will be replaced by SARPUniqueID
-    "SNAP2018", # renamed to ManualReview
+    "SNAP2018",  # renamed to ManualReview
     "Snap2018",  # renamed to ManualReview
     "NIDID",
     "SourceDBID",
@@ -356,18 +354,16 @@ OWNERTYPE_TO_DOMAIN = {
 OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True}
 
 
-
 # NHDPlusIDs to exclude when extracting flowlines (e.g., )
 # All joins will be evaluated; if they don't connect to anything else
 # they will be marked as downstream terminals
 # indexed by region
-EXCLUDE_IDS= {
-    '02': [
+EXCLUDE_IDS = {
+    "02": [
         # invalid: should have been coded as a loop
         # corresponds to non-loop fix below
         10000300073811,
         10000300021333,
-
         # within Chesapeake Bay
         10000300159048,
         10000300159054,
@@ -1142,10 +1138,5 @@ EXCLUDE_IDS= {
 # they are coded incorrectly in NHD
 # WARNING: you must remove the corresponding segments that
 # were previously identified as loops
-CONVERT_TO_NONLOOP = {
-    '02': [
-        10000300070616,
-        10000300132189,
-        10000300132190,
-    ]
-}
+CONVERT_TO_NONLOOP = {"02": [10000300070616, 10000300132189, 10000300132190]}
+

@@ -35,6 +35,7 @@ from shapely.geometry import Point
 from geofeather import to_geofeather, from_geofeather
 
 from nhdnet.io import serialize_df, deserialize_df, serialize_sindex, to_shp
+from nhdnet.nhd.joins import remove_joins
 
 from analysis.constants import (
     REGION_GROUPS,
@@ -72,6 +73,14 @@ for region, HUC2s in list(REGION_GROUPS.items()):
     joins = deserialize_df(src_dir / region / "flowline_joins.feather")
     print("Read {:,} flowlines".format(len(flowlines)))
 
+    ### Drop underground conduits
+    ix = flowlines.loc[flowlines.FType == 420].index
+    print("Removing {:,} underground conduits".format(len(ix)))
+    flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
+    joins = remove_joins(
+        joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+
     ### Manual fixes for flowlines
     exclude_ids = EXCLUDE_IDS.get(region, [])
     if exclude_ids:
@@ -89,14 +98,6 @@ for region, HUC2s in list(REGION_GROUPS.items()):
         flowlines.loc[flowlines.NHDPlusID.isin(convert_ids), "loop"] = False
         joins.loc[joins.upstream.isin(convert_ids), "loop"] = False
         joins.loc[joins.downstream.isin(convert_ids), "loop"] = False
-
-    ### Drop remaining loops
-    # loop_ids = flowlines.loc[flowlines.loop].index
-    # print("Dropping remaining {:,} loops".format(len(loop_ids)))
-    # flowlines = flowlines.loc[~flowlines.index.isin(loop_ids)].drop(columns=["loop"])
-    # joins = joins.loc[~joins.loop].drop(columns=["loop"])
-
-    # print("{:,} flowlines after dropping loops".format(len(flowlines)))
 
     print("------------------")
 
@@ -153,15 +154,15 @@ for region, HUC2s in list(REGION_GROUPS.items()):
         wb_joins.lineID.isin(flowlines.index) & wb_joins.wbID.isin(waterbodies.index)
     ].copy()
 
-    # TEMP
-    print("Serializing flowlines before later processing")
-    to_geofeather(flowlines.reset_index(), out_dir / "temp_flowlines.feather")
-    serialize_df(joins.reset_index(), out_dir / "temp_flowline_joins.feather")
-    print("Serializing {:,} dissolved waterbodies".format(len(waterbodies)))
-    to_geofeather(waterbodies.reset_index(), out_dir / "dissolved_waterbodies.feather")
-    serialize_df(
-        wb_joins.reset_index(drop=True), out_dir / "dissolved_waterbody_joins.feather"
-    )
+    ### If needed, output intermediates for troubleshooting
+    # print("Serializing flowlines before later processing")
+    # to_geofeather(flowlines.reset_index(), out_dir / "temp_flowlines.feather")
+    # serialize_df(joins.reset_index(), out_dir / "temp_flowline_joins.feather")
+    # print("Serializing {:,} dissolved waterbodies".format(len(waterbodies)))
+    # to_geofeather(waterbodies.reset_index(), out_dir / "dissolved_waterbodies.feather")
+    # serialize_df(
+    #     wb_joins.reset_index(drop=True), out_dir / "dissolved_waterbody_joins.feather"
+    # )
 
     print("------------------")
 
@@ -182,6 +183,9 @@ for region, HUC2s in list(REGION_GROUPS.items()):
 
     print("Identifying waterbody drain points")
     drains = create_drain_points(flowlines, joins, waterbodies, wb_joins)
+
+    # fix index data type issues
+    waterbodies.index = waterbodies.index.astype("uint32")
 
     print("------------------")
 
