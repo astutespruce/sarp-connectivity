@@ -27,7 +27,7 @@ These large and small barriers are analyzed to produce 2 groups of outputs:
 
 ## Data processing
 
-Data processing steps are detailed in `/analysis/README.md`.
+Data processing steps are detailed in [/analysis/README.md](analysis).
 
 ## Architecture
 
