@@ -21,7 +21,7 @@ See [analysis/prep/network/README.md](prep/network).
 
 Boundary datasets, such as states, counties, and watersheds, are joined to barriers during processing and are also displayed on maps. These boundaries are obtained from various sources, extracted within the SARP region, and projected to a standard projection.
 
-See [`analysis/prep/boundaries/README.md`](prep/boundaries).
+See [analysis/prep/boundaries/README.md](prep/boundaries).
 
 ### 3. Aquatic barrier data
 
