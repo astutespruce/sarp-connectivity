@@ -6,7 +6,7 @@ This project involves several data processing steps to work from raw aquatic net
 
 The National Hydrography Dataset - High-Resolution Plus version is pre-processed to extract flowlines and joins between flowlines that are used in the remainder of the analysis.
 
-See `analysis/prep/network/README.md`
+See [`analysis/prep/network/README.md`](prep/network/README.md)
 
 ## 2. Boundary data preparation
 
