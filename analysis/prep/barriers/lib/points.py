@@ -7,7 +7,7 @@ import networkx as nx
 from analysis.pygeos_compat import to_pygeos, sjoin
 
 
-def connect(start, end):
+def connect_points(start, end):
     """Convert a series or array of points to an array or series of lines.
 
     Parameters
@@ -19,12 +19,27 @@ def connect(start, end):
     -------
     Series or ndarray
     """
+
+    is_series = False
+
+    if isinstance(start, pd.Series):
+        is_series = True
+        index = start.index
+        start = start.values
+    if isinstance(end, pd.Series):
+        end = end.values
+
     x1 = pg.get_x(start)
     y1 = pg.get_y(start)
     x2 = pg.get_x(end)
     y2 = pg.get_y(end)
 
-    return pg.linestrings(np.array([[x1, x2], [y1, y2]]).T)
+    lines = pg.linestrings(np.array([[x1, x2], [y1, y2]]).T)
+
+    if is_series:
+        return pd.Series(lines, index=index)
+
+    return lines
 
 
 def window(points, tolerance):
@@ -116,7 +131,7 @@ def nearest(source, target, distance):
     return near(source, target, distance).reset_index().groupby(left_index_name).first()
 
 
-def find_neighborhoods(series, tolerance=100):
+def neighborhoods(source, tolerance=100):
     """Find the neighborhoods for a given set of geometries.
     Neighborhoods are those where geometries overlap by distance; this gets
     at the outer neighborhood: if A,B; A,C; and C,D are each neighbors
@@ -124,7 +139,7 @@ def find_neighborhoods(series, tolerance=100):
 
     Parameters
     ----------
-    series : Series
+    source : Series
         contains pygeos geometries
     tolerance : int, optional (default 100)
         max distance between pairs of geometries
@@ -135,20 +150,20 @@ def find_neighborhoods(series, tolerance=100):
     """
 
     left_index_name = source.index.name or "index"
-    nearby = sjoin(window(series, tolerance), series, how="inner")
+    nearby = sjoin(window(source, tolerance), source, how="inner")
     # drop self-intersections
     nearby = (
-        nearby.loc[joined.index != joined]
+        nearby.loc[nearby.index != nearby]
         .reset_index()
-        .join(series, on=left_index_name)
-        .join(series.rename("right"), on="index_right")
+        .join(source, on=left_index_name)
+        .join(source.rename("right"), on="index_right")
     )
-    dist = pg.distance(nearby.geometry, joined.right)
+    dist = pg.distance(nearby.geometry, nearby.right)
     nearby = nearby.loc[dist <= tolerance].set_index(left_index_name)
 
     # Find all nodes that are neighbors of each other
     # WARNING: not all neighbors within a neighborhood are within distance of each other
-    index_name = series.index.name or "index"
+    index_name = source.index.name or "index"
     network = nx.from_pandas_edgelist(nearby.reset_index(), index_name, "index_right")
     components = pd.Series(nx.connected_components(network)).apply(list)
     return (
@@ -156,4 +171,5 @@ def find_neighborhoods(series, tolerance=100):
         .reset_index()
         .rename(columns={"index": "group", "index_right": index_name})
         .set_index(index_name)
+        .group
     )

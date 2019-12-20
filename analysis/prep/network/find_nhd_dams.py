@@ -12,11 +12,11 @@ import geopandas as gp
 from nhdnet.io import deserialize_df
 from nhdnet.nhd.joins import find_joins
 
-from analysis.pygeos_compat import split_multi_geoms, sjoin, dissolve, to_gdf
+from analysis.pygeos_compat import sjoin, dissolve, to_gdf
 
 from analysis.constants import REGION_GROUPS, CRS
 from analysis.util import append
-from analysis.prep.barriers.lib.points import nearest
+from analysis.prep.barriers.lib.points import nearest, neighborhoods
 
 nhd_dir = Path("data/nhd")
 src_dir = nhd_dir / "clean"
@@ -38,12 +38,12 @@ nhd_lines["geometry"] = pg.buffer(nhd_lines.geometry, 5, quadsegs=1)
 # All NHD areas indicate a dam-related feature
 nhd_areas = from_geofeather(extra_dir / "nhd_areas.feather")
 nhd_areas = nhd_areas.loc[nhd_areas.geometry.notnull()].copy()
+# buffer polygons slightly so we can dissolve touching ones together.
+nhd_areas["geometry"] = pg.buffer(nhd_areas.geometry, 5)
 
 # Dissolve adjacent nhd lines and waterbodies together
 nhd_dams = nhd_lines.append(nhd_areas, ignore_index=True, sort=False)
-# buffer polygons slightly so we can dissolve touching ones together.
-nhd_dams["geometry"] = pg.buffer(nhd_dams.geometry, 5)
-nearby = sjoin(nhd_dams.geometry, nhd_dams.geometry)
+nearby = sjoin(nhd_dams.geometry, nhd_dams.geometry, how="inner")
 network = nx.from_pandas_edgelist(nearby.reset_index(), "index", "index_right")
 components = pd.Series(nx.connected_components(network)).apply(list)
 groups = (
