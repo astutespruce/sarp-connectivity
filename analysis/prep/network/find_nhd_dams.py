@@ -5,36 +5,30 @@ import numpy as np
 import pandas as pd
 import pygeos as pg
 import networkx as nx
-from geofeather import to_geofeather, from_geofeather
+from geofeather.pygeos import to_geofeather, from_geofeather
+from pgpkg import to_gpkg
 import geopandas as gp
 
-from nhdnet.io import to_shp, deserialize_df
+from nhdnet.io import deserialize_df
 from nhdnet.nhd.joins import find_joins
 
-from analysis.pygeos_compat import (
-    to_pygeos,
-    from_pygeos,
-    from_geofeather_as_pygeos,
-    split_multi_geoms,
-    sjoin,
-    dissolve,
-    to_gdf,
-)
+from analysis.pygeos_compat import split_multi_geoms, sjoin, dissolve, to_gdf
 
 from analysis.constants import REGION_GROUPS, CRS
 from analysis.util import append
-from analysis.prep.barriers.lib.points import find_nearest
+from analysis.prep.barriers.lib.points import nearest
 
 nhd_dir = Path("data/nhd")
 src_dir = nhd_dir / "clean"
 out_dir = nhd_dir / "merged"
+extra_dir = nhd_dir / "extra"
 
 
 start = time()
 
 ### Merge NHD lines and areas that represent dams and dam-related features
 print("Reading NHD lines and areas, and merging...")
-nhd_lines = from_geofeather_as_pygeos(nhd_dir / "extra" / "nhd_lines.feather")
+nhd_lines = from_geofeather(extra_dir / "nhd_lines.feather")
 nhd_lines = nhd_lines.loc[
     (nhd_lines.FType.isin([343, 369, 398])) & nhd_lines.geometry.notnull()
 ].copy()
@@ -42,11 +36,13 @@ nhd_lines = nhd_lines.loc[
 nhd_lines["geometry"] = pg.buffer(nhd_lines.geometry, 5, quadsegs=1)
 
 # All NHD areas indicate a dam-related feature
-nhd_areas = from_geofeather_as_pygeos(nhd_dir / "extra" / "nhd_areas.feather")
+nhd_areas = from_geofeather(extra_dir / "nhd_areas.feather")
 nhd_areas = nhd_areas.loc[nhd_areas.geometry.notnull()].copy()
 
 # Dissolve adjacent nhd lines and waterbodies together
 nhd_dams = nhd_lines.append(nhd_areas, ignore_index=True, sort=False)
+# buffer polygons slightly so we can dissolve touching ones together.
+nhd_dams["geometry"] = pg.buffer(nhd_dams.geometry, 5)
 nearby = sjoin(nhd_dams.geometry, nhd_dams.geometry)
 network = nx.from_pandas_edgelist(nearby.reset_index(), "index", "index_right")
 components = pd.Series(nx.connected_components(network)).apply(list)
@@ -87,9 +83,9 @@ for region, HUC2s in list(REGION_GROUPS.items()):
     print("\n----- {} ------\n".format(region))
 
     print("Reading flowlines...")
-    flowlines = from_geofeather_as_pygeos(
-        src_dir / region / "flowlines.feather"
-    ).set_index("lineID")
+    flowlines = from_geofeather(src_dir / region / "flowlines.feather").set_index(
+        "lineID"
+    )
     joins = deserialize_df(
         src_dir / region / "flowline_joins.feather",
         columns=["downstream_id", "upstream_id"],
@@ -206,10 +202,8 @@ print("Found {:,} NHD dam / flowline crossings".format(len(dams)))
 
 ### Associate with waterbodies, so that we know which waterbodies are claimed
 print("Joining to waterbodies...")
-wb = from_geofeather_as_pygeos(nhd_dir / "merged" / "waterbodies.feather").set_index(
-    "wbID"
-)
-drains = from_geofeather_as_pygeos(
+wb = from_geofeather(nhd_dir / "merged" / "waterbodies.feather").set_index("wbID")
+drains = from_geofeather(
     nhd_dir / "merged" / "waterbody_drain_points.feather"
 ).set_index("id")
 
@@ -236,9 +230,7 @@ print("Finding nearest waterbody drain for those that didn't join to waterbodies
 # some might be immediately downstream, find the closest drain within 250m
 nearest_start = time()
 ix = dams.wbID.isnull()
-nearest_drains = find_nearest(
-    dams.loc[ix].geometry, drains.set_index("wbID").geometry, 250
-)
+nearest_drains = nearest(dams.loc[ix].geometry, drains.set_index("wbID").geometry, 250)
 
 dams.loc[nearest_drains.index, "wbID"] = nearest_drains
 print(
@@ -252,15 +244,16 @@ print("{:,} dams not associated with waterbodies".format(dams.wbID.isnull().sum(
 dams.wbID = dams.wbID.fillna(-1)
 
 print("Serializing...")
-dams = to_gdf(dams, crs=CRS).reset_index(drop=True)
-to_geofeather(dams, out_dir / "nhd_dams_pt.feather")
-to_shp(dams, out_dir / "nhd_dams_pt.shp")
+# dams = to_gdf(dams, crs=CRS).reset_index(drop=True)
+dams = dams.reset_index()
+to_geofeather(dams, out_dir / "nhd_dams_pt.feather", crs=CRS)
+to_gpkg(dams, out_dir / "nhd_dams_pt")
 
-nhd_dams = to_gdf(
-    nhd_dams.loc[nhd_dams.index.isin(dams.id.unique())], crs=CRS
-).reset_index()
-to_geofeather(nhd_dams, out_dir / "nhd_dams_poly.feather")
-# TODO: exporting to shapefile segfaults, not sure why
+nhd_dams = nhd_dams.loc[nhd_dams.index.isin(dams.id.unique())].reset_index()
+to_geofeather(nhd_dams, out_dir / "nhd_dams_poly.feather", crs=CRS)
+to_gpkg(nhd_dams, out_dir / "nhd_dams_poly")
+
+# TODO: exporting to shapefile segfaults, not sure why.  Issue likely with conversion to shapely geoms
 
 print("==============\nAll done in {:.2f}s".format(time() - start))
 

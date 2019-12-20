@@ -43,7 +43,12 @@ def window(points, tolerance):
         polygon windows
     """
     bounds = pg.bounds(points) + [-tolerance, -tolerance, tolerance, tolerance]
-    return pg.box(*bounds.T)
+    windows = pg.box(*bounds.T)
+
+    if isinstance(points, pd.Series):
+        return pd.Series(windows, index=points.index)
+
+    return windows
 
 
 def near(source, target, distance):
@@ -72,7 +77,7 @@ def near(source, target, distance):
     near = sjoin(window(source, distance), target, how="inner").rename(right_index_name)
     near = (
         near.reset_index()
-        .join(series, on=left_index_name)
+        .join(source, on=left_index_name)
         .join(target.rename("geometry_right"), on=right_index_name)
     )
     near["distance"] = pg.distance(near.geometry, near.geometry_right)

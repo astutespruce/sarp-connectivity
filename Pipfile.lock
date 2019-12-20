@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "29a31abb91ce8f90d1a3171f54d0285ff843a255f5aaedf7a496586376277cc8"
+            "sha256": "b956acbf08cd6ad708599e5f8b47e0779da2da25b0af65f1300cdd29193ed9a5"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -563,6 +563,10 @@
             "index": "pypi",
             "version": "==0.25.3"
         },
+        "pgpkg": {
+            "editable": true,
+            "path": "./../pgpkg"
+        },
         "pyarrow": {
             "hashes": [
                 "sha256:030d67418b129eb14a1c1f1af06b1a48c8074005d704789725ea6f5addaf3b26",
@@ -684,6 +688,8 @@
                 "sha256:66aab79043fbf176f09e53c6fd9939d61a23ca97ed010722b95957025437f474",
                 "sha256:673b61161c8e396a569eabf67cbaf63628f13848ea7f7103a260fd19a4da154c",
                 "sha256:911284f46bd7e449ae77ef6e7a97b2f9acca48f683265608fc2e0bf937d864bb",
+                "sha256:967690e8e858223cfb7c1e01b8de5612e65f95694809f5b860228f8b47cb351f",
+                "sha256:9beb242abc5b24b01cc32cb2029ae848c7fcf25a082fc3e41b9fd64f5e2cbefa",
                 "sha256:d215b086761c86117e605429452af0875149bf61cbc7e3cc62f490e65aba9600",
                 "sha256:d90f957f8643045b24f8953ec6a1f1edfca4baf359338b027e5976f3796746b2"
             ],

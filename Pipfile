@@ -26,6 +26,7 @@ shapely = "==1.7a2"
 networkx = "*"
 pygeos = {editable = true,path = "./../pygeos"}
 geopandas = "*"
+pgpkg = {editable = true,path = "./../pgpkg"}
 
 [requires]
 python_version = "3.7"
