@@ -32,9 +32,6 @@ from analysis.prep.barriers.lib.points import (
 )
 from analysis.pygeos_compat import to_pygeos, from_pygeos
 
-pd.options.display.max_rows = 250
-
-
 from analysis.constants import (
     REGION_GROUPS,
     REGIONS,
@@ -49,10 +46,14 @@ from analysis.constants import (
 )
 
 from analysis.prep.barriers.lib.snap import (
-    snap_to_waterbody_points,
-    snap_by_region,
-    update_from_snapped,
+    snap_to_nhd_dams,
+    snap_to_waterbodies,
+    snap_to_flowlines
+    # snap_by_region,
+    # update_from_snapped,
+    export_snap_dist_lines,
 )
+
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
 
@@ -61,11 +62,6 @@ from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 DUPLICATE_TOLERANCE = 50  # TODO: verify this is producing good results
 # Snap barriers by 150 meters
 SNAP_TOLERANCE = 150  # TODO: verify this is producing good results
-# distance from edge of an NHD dam poly to be considered associated
-NHD_DAM_TOLERANCE = 50
-# dams will initially snap by SNAP_TOLERANCE, but any that are within waterbodies and don't snap elsewhere
-# will snap to their waterbody's drain up to this tolerance
-WB_DRAIN_MAX_TOLERANCE = 250
 
 
 data_dir = Path("data")
@@ -409,277 +405,16 @@ to_snap["geometry"] = to_pygeos(to_snap.geometry)
 # Save original locations so we can map the snap line between original and new locations
 original_locations = to_snap.copy()
 
-print("Snapping to NHD dams...")
-# NOTE: id is not unique for points
-nhd_dams_poly = (
-    from_geofeather_as_pygeos(nhd_dir / "merged" / "nhd_dams_poly.feather")
-    .rename(columns={"id": "damID"})
-    .set_index("damID")
-    .drop(columns=["index"], errors="ignore")
-)
-nhd_dams = (
-    from_geofeather_as_pygeos(nhd_dir / "merged" / "nhd_dams_pt.feather")
-    .rename(columns={"id": "damID"})
-    .set_index("damID")
-)
-# set nulls back to na
-nhd_dams.wbID = nhd_dams.wbID.replace(-1, np.nan)
 
+### Snap to NHD dams
+df, to_snap = snap_to_nhd_dams(df, to_snap, tolerance=SNAP_TOLERANCE)
 
-### Find dams that are really close (50m) to NHD dam polygons
-# Those that have multiple dams nearby are usually part of a dam complex
-snap_start = time()
-near_nhd = nearest(to_snap.geometry, nhd_dams_poly.geometry, NHD_DAM_TOLERANCE)[
-    ["damID"]
-]
+### Snap to waterbodies
+df, to_snap = snap_to_waterbodies(df, to_snap, tolerance=SNAP_TOLERANCE)
 
-# snap to nearest dam point for that dam (some are > 1 km away)
-# NOTE: this will multiple entries for some dams
-near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(
-    nhd_dams, on="damID"
-)
-near_nhd["snap_dist"] = pg.distance(near_nhd.geometry, near_nhd.source_pt)
-near_nhd = (
-    near_nhd.reset_index().sort_values(by=["id", "snap_dist"]).groupby("id").first()
-)
+### Snap to flowlines
+df, to_snap = snap_to_flowlines(df, to_snap, tolerance=SNAP_TOLERANCE)
 
-ix = near_nhd.index
-df.loc[ix, "snapped"] = True
-df.loc[ix, "geometry"] = from_pygeos(near_nhd.geometry)
-df.loc[ix, "snap_dist"] = near_nhd.snap_dist
-df.loc[ix, "snap_ref_id"] = near_nhd.damID
-df.loc[ix, "lineID"] = near_nhd.lineID
-df.loc[ix, "wbID"] = near_nhd.wbID
-df.loc[ix, "log"] = "snapped: within {}m of NHD dam polygon".format(NHD_DAM_TOLERANCE)
-
-to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-print(
-    "Snapped {:,} dams to NHD dam polygons in {:.2f}s".format(
-        len(ix), time() - snap_start
-    )
-)
-
-### Find dams that are close (within snapping tolerance) of NHD dam points
-snap_start = time()
-tmp = nhd_dams.reset_index()  # reset index so we have unique index to join on
-near_nhd = nearest(to_snap.geometry, tmp.geometry, SNAP_TOLERANCE).rename(
-    columns={"distance": "snap_dist"}
-)
-near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(
-    tmp, on="index_right"
-)
-near_nhd = (
-    near_nhd.reset_index().sort_values(by=["id", "snap_dist"]).groupby("id").first()
-)
-
-ix = near_nhd.index
-df.loc[ix, "snapped"] = True
-df.loc[ix, "geometry"] = from_pygeos(near_nhd.geometry)
-df.loc[ix, "snap_dist"] = near_nhd.snap_dist
-df.loc[ix, "snap_ref_id"] = near_nhd.damID
-df.loc[ix, "lineID"] = near_nhd.lineID
-df.loc[ix, "wbID"] = near_nhd.wbID
-df.loc[
-    ix, "log"
-] = "snapped: within {}m of NHD dam point but >{}m from NHD dam polygon".format(
-    SNAP_TOLERANCE, NHD_DAM_TOLERANCE
-)
-
-to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-print(
-    "Snapped {:,} dams to NHD dam points in {:.2f}s".format(
-        len(ix), time() - snap_start
-    )
-)
-
-### TODO: identify any NHD dam points that didn't get claimed  (need to do this after snapping others)
-
-
-### Attempt to snap to waterbody drain points for major waterbodies
-# Use larger tolerance for larger waterbodies
-print("Snapping to waterbodies and drain points..")
-wb = from_geofeather_as_pygeos(nhd_dir / "merged" / "waterbodies.feather").set_index(
-    "wbID"
-)
-drains = (
-    from_geofeather_as_pygeos(nhd_dir / "merged" / "waterbody_drain_points.feather")
-    .rename(columns={"id": "drainID"})
-    .set_index("drainID")
-)
-
-### First pass - find the dams that are contained by waterbodies
-# have to do this in geopandas since it performs better than pygeos
-# until pygeos has prepared geoms
-d = to_gdf(to_snap, crs=CRS)
-wbd = to_gdf(wb, crs=CRS)
-d.sindex
-wbd.sindex
-contained_start = time()
-in_wb = gp.sjoin(d, wbd, how="inner").index_right.rename("wbID")
-
-# update wbID in dataset, but this doesn't mean it is snapped
-ix = in_wb.index
-df.loc[ix, "wbID"] = in_wb
-
-print(
-    "Found {:,} dams in waterbodies in {:.2f}s".format(
-        len(in_wb), time() - contained_start
-    )
-)
-
-print("Finding nearest drain points...")
-snap_start = time()
-# join back to pygeos geoms and join to drains
-# NOTE: this may produce multiple drains for some waterbodies
-in_wb = (
-    pd.DataFrame(in_wb)
-    .join(to_snap.geometry)
-    .join(
-        drains.reset_index()
-        .set_index("wbID")[["geometry", "drainID", "lineID"]]
-        .rename(columns={"geometry": "drain"}),
-        on="wbID",
-    )
-    .dropna(subset=["drain"])
-)
-in_wb["snap_dist"] = pg.distance(in_wb.geometry, in_wb.drain)
-
-# drop any that are > 500 m away, these aren't useful
-in_wb = in_wb.loc[in_wb.snap_dist <= 500].copy()
-
-# take the closest drain point
-in_wb = (
-    in_wb.reset_index().sort_values(by=["index", "snap_dist"]).groupby("index").first()
-)
-
-# Any that are within the snap tolerance just snap to that drain
-close_enough = in_wb.loc[in_wb.snap_dist <= SNAP_TOLERANCE]
-ix = close_enough.index
-df.loc[ix, "snapped"] = True
-df.loc[ix, "geometry"] = from_pygeos(close_enough.drain)
-df.loc[ix, "snap_dist"] = close_enough.snap_dist
-df.loc[ix, "snap_ref_id"] = close_enough.drainID
-df.loc[ix, "lineID"] = close_enough.lineID
-df.loc[ix, "wbID"] = close_enough.wbID
-df.loc[
-    ix, "log"
-] = "snapped: within {}m of drain point for waterbody that contains this dam".format(
-    SNAP_TOLERANCE
-)
-
-to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-
-print(
-    "Found {:,} dams within {}m of the drain points for their waterbody in {:.2f}s".format(
-        len(ix), SNAP_TOLERANCE, time() - snap_start
-    )
-)
-
-
-# Any that are > tolerance away from their own drain, but within tolerance of another drain
-# should snap to the other drain; these are in chains of multiple waterbodies.
-# Visually confirmed this by looking at several.
-snap_start = time()
-further = in_wb.loc[in_wb.snap_dist > SNAP_TOLERANCE].copy()
-nearest_drains = nearest(further.geometry, drains.geometry, SNAP_TOLERANCE)
-
-maybe_near_neighbor = further.join(nearest_drains, rsuffix="_nearest")
-
-ix = maybe_near_neighbor.loc[
-    maybe_near_neighbor.distance < maybe_near_neighbor.snap_dist
-].index
-near_neighbor = (
-    (
-        maybe_near_neighbor.loc[ix]
-        .drop(columns=["drain", "drainID", "wbID", "lineID", "snap_dist"])
-        .rename(columns={"drainID_nearest": "drainID", "distance": "snap_dist"})
-        .join(
-            drains[["geometry", "lineID", "wbID"]].rename(
-                columns={"geometry": "drain"}
-            ),
-            on="drainID",
-        )
-    )
-    .sort_values(by="snap_dist")
-    .groupby(level=0)
-    .first()
-)
-
-
-df.loc[ix, "snapped"] = True
-df.loc[ix, "geometry"] = from_pygeos(near_neighbor.drain)
-df.loc[ix, "snap_dist"] = near_neighbor.snap_dist
-df.loc[ix, "snap_ref_id"] = near_neighbor.drainID
-df.loc[ix, "lineID"] = near_neighbor.lineID
-df.loc[ix, "wbID"] = near_neighbor.wbID
-df.loc[ix, "log"] = "snapped: within {}m of drain point for adjacent waterbody".format(
-    SNAP_TOLERANCE
-)
-
-to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-
-print(
-    "Found {:,} dams within {}m of the drain points for an adjacent waterbody in {:.2f}s".format(
-        len(ix), SNAP_TOLERANCE, time() - snap_start
-    )
-)
-
-# Any that remain and are < 250 in their waterbody snap to nearest drain
-further = further.loc[
-    ~further.index.isin(ix) & (further.snap_dist <= WB_DRAIN_MAX_TOLERANCE)
-].copy()
-
-ix = further.index
-df.loc[ix, "snapped"] = True
-df.loc[ix, "geometry"] = from_pygeos(further.drain)
-df.loc[ix, "snap_dist"] = further.snap_dist
-df.loc[ix, "snap_ref_id"] = further.drainID
-df.loc[ix, "lineID"] = further.lineID
-df.loc[ix, "wbID"] = further.wbID
-df.loc[
-    ix, "log"
-] = "snapped: within {}-{}m of drain point of waterbody that contains this dam".format(
-    SNAP_TOLERANCE, WB_DRAIN_MAX_TOLERANCE
-)
-
-to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-
-print(
-    "Found {:,} dams within {} - {}m of the drain points for their waterbody".format(
-        len(ix), SNAP_TOLERANCE, WB_DRAIN_MAX_TOLERANCE
-    )
-)
-
-### Find the ones that are not in a waterbody but within tolerance of a drain
-# Visually inspected several that had multiple waterbodies nearby
-# in all cases, the nearest one was sufficient
-print("Finding nearest waterbody drains for unsnapped dams...")
-snap_start = time()
-nearest_drains = nearest(to_snap.geometry, drains.geometry, SNAP_TOLERANCE)
-
-nearest_drains = nearest_drains.join(to_snap.geometry).join(
-    drains[["geometry", "wbID", "lineID"]].rename(columns={"geometry": "drain"}),
-    on="drainID",
-)
-
-ix = nearest_drains.index
-df.loc[ix, "snapped"] = True
-df.loc[ix, "geometry"] = from_pygeos(nearest_drains.drain)
-df.loc[ix, "snap_dist"] = nearest_drains.snap_dist
-df.loc[ix, "snap_ref_id"] = nearest_drains.drainID
-df.loc[ix, "lineID"] = nearest_drains.lineID
-df.loc[ix, "wbID"] = nearest_drains.wbID
-df.loc[ix, "log"] = "snapped: within {} drain point of waterbody".format(
-    SNAP_TOLERANCE, WB_DRAIN_MAX_TOLERANCE
-)
-
-to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-
-print(
-    "Found {:,} dams within {}m of waterbody drain points".format(
-        len(ix), SNAP_TOLERANCE
-    )
-)
 
 
 # tmp = further.loc[ix, ["geometry", "drainID_nearest"]].join(drains.geometry.rename('nearest_drain'), on="drainID_nearest")#.join(further.loc[ix].geometry.rename("near_pt"))
@@ -727,117 +462,8 @@ print(
 
 
 ### Checkpoint
-tmp = df.loc[
-    df.snapped, ["geometry", "Name", "SARPID", "snapped", "snap_dist", "log"]
-].join(original_locations.geometry.rename("orig_pt"))
-tmp["new_pt"] = to_pygeos(tmp.geometry)
-tmp["geometry"] = connect_points(tmp.new_pt, tmp.orig_pt)
 
-to_gpkg(
-    tmp.drop(columns=["new_pt", "orig_pt"]).reset_index(drop=True),
-    "/tmp/snap_lines",
-    crs=CRS,
-)
-to_gpkg(
-    tmp.drop(columns=["geometry", "new_pt"])
-    .rename(columns={"orig_pt": "geometry"})
-    .reset_index(drop=True),
-    "/tmp/pre_snap",
-    crs=CRS,
-)
-to_gpkg(
-    tmp.drop(columns=["geometry", "orig_pt"])
-    .rename(columns={"new_pt": "geometry"})
-    .reset_index(drop=True),
-    "/tmp/post_snap",
-    crs=CRS,
-)
 ### End checkpoint
-
-
-# Still in progress
-# TODO: if found nearest in suspect ones, snap to nearby
-# otherwise drop suspect ones
-
-
-ids = in_wb.loc[nearest_drain.index].wbID.unique()
-t = in_wb.loc[nearest_drain.index].join(wb.geometry.rename("wb"), on="wbID")
-
-
-# TODO: may need to do a mini-network analysis for these to make sure we don't jump networks?
-
-
-### TODO: only for those that don't have a closer drain point
-ix = in_wb.index
-df.loc[ix, "geometry"] = in_wb.drain
-df.loc[ix, "snapped"] = True
-df.loc[ix, "snap_dist"] = in_wb.snap_dist
-df.loc[ix, "snap_type"] = "in waterbody, snapped drain"
-df.loc[ix, "snap_ref_id"] = in_wb.drainID
-df.loc[ix, "wbID"] = in_wb.wbID
-
-
-# first pass filter, find all combos of buffers around waterbody drains and dams
-# buffer the drains, there are fewer of them
-wb_start = time()
-buffered = pg.buffer(drains.geometry, 1000)
-joined = sjoin(buffered, to_snap.geometry.head())
-print("Elapsed {:.2f}s".format(time() - wb_start))
-
-
-contained_start = time()
-# in_wb = (
-#     sjoin(wb.geometry, to_snap.geometry, how="left")
-#     .rename("id")
-#     .reset_index()
-#     .drop_duplicates()
-#     .dropna(subset=["id"])
-#     .astype("uint32")
-#     .set_index("id")
-# )
-print("Elapsed {:.2f}s".format(time() - contained_start))
-
-
-# Find nearest waterbodies - if the dam is in the waterbody it should be the closest waterbody
-
-
-# NOTE: have to do this from the waterbody side and invert
-buffered = pg.buffer(to_snap.geometry, 30)
-nearest_wb = (
-    sjoin(wb.geometry, buffered, how="left")
-    .rename("id")
-    .reset_index()
-    .drop_duplicates()
-    .dropna(subset=["id"])
-    .astype("uint32")
-    .set_index("id")
-)
-
-
-# nearest_wb = to_snap[["geometry"]].join(nearest_wb, how="left")
-print("Elapsed {:.2f}s".format(time() - snap_start))
-
-
-# nearest_wb = (
-#     sjoin(wb.geometry.head(100), buffered.head(100), how="left")
-#     .rename("id")
-#     .reset_index()
-#     .drop_duplicates()
-#     .dropna(subset=["id"])
-#     .astype("uint32")
-#     .set_index("id")
-# )
-
-
-# nearest_wb = find_nearest(wb.geometry, df.geometry, 30, how="left").rename()
-print("Elapsed {:.2f}s".format(time() - snap_start))
-# print(
-#     "Snapped {:,} dams to NHD dams in {:.2f}s".format(
-#         len(nearest_dams), time() - snap_start
-#     )
-# )
-
-### end in progress 12/15
 
 
 ### Deduplicate manually snapped dams and snap nearby ones to them
