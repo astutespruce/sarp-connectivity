@@ -353,7 +353,7 @@ def snap_to_waterbodies(df, to_snap, tolerance):
 
 def snap_to_flowlines(df, to_snap, tolerance):
     # FIXME
-    for region, HUC2s in list(REGION_GROUPS.items())[:1]:
+    for region, HUC2s in list(REGION_GROUPS.items()):
         region_start = time()
 
         print("\n----- {} ------\n".format(region))
@@ -362,35 +362,28 @@ def snap_to_flowlines(df, to_snap, tolerance):
         flowlines = from_geofeather_as_pygeos(
             nhd_dir / "clean" / region / "flowlines.feather"
         ).set_index("lineID")
-        # joins = deserialize_df(
-        #     nhd_dir / "clean" / region / "flowline_joins.feather",
-        #     columns=["downstream_id", "upstream_id"],
-        # )
 
         in_region = to_snap.loc[to_snap.HUC2.isin(HUC2s)]
-        print("Selected {:,} barriers in region".format(len(in_region)))
+        print("Selected {:,} barriers in region to snap against {:,} flowlines".format(len(in_region), len(flowlines)))
 
         print("Finding nearest flowlines...")
-        near_lines = near(in_region.geometry, flowlines.geometry, tolerance)
-        near_lines = (
-            near_lines.sort_values(by="distance")
-            .groupby(level=0)
-            .first()
-            .join(in_region.geometry)
+        lines = nearest(in_region.geometry, flowlines.geometry, tolerance)
+        lines = (
+            lines.join(in_region.geometry)
             .join(flowlines.geometry.rename("line"), on="lineID")
         )
 
         # project the point to the line,
         # find out its distance on the line,
         # then interpolate its new coordinates
-        near_lines["geometry"] = pg.line_interpolate_point(near_lines.line, pg.line_locate_point(near_lines.line, near_lines.geometry))
+        lines["geometry"] = pg.line_interpolate_point(lines.line, pg.line_locate_point(lines.line, lines.geometry))
 
-        ix = near_lines.index
+        ix = lines.index
         df.loc[ix, "snapped"] = True
-        df.loc[ix, "geometry"] = from_pygeos(near_lines.geometry)
-        df.loc[ix, "snap_dist"] = near_lines.snap_dist
-        df.loc[ix, "snap_ref_id"] = near_lines.lineID
-        df.loc[ix, "lineID"] = near_lines.lineID
+        df.loc[ix, "geometry"] = from_pygeos(lines.geometry)
+        df.loc[ix, "snap_dist"] = lines.distance
+        df.loc[ix, "snap_ref_id"] = lines.lineID
+        df.loc[ix, "lineID"] = lines.lineID
         df.loc[ix, "log"] = "snapped: within {}m of flowline".format(tolerance)
 
         to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
@@ -402,7 +395,6 @@ def snap_to_flowlines(df, to_snap, tolerance):
         )
 
     # TODO: flag those that joined to loops
-
 
     return df, to_snap
 

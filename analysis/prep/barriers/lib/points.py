@@ -87,16 +87,15 @@ def near(source, target, distance):
         includes distance
     """
 
-    def single_query(source_geom, search_window, target, tree, tolerance):
+    def single_query(source_geom, search_window, tree, tolerance):
         """Query the spatial index based on source_geom and return
-        indices of all geometries in target that are <= tolerance
+        indices of all geometries in tree that are <= tolerance
 
         Parameters
         ----------
         source_geom : pygeos geometry object
         search_window : pygeos geometry object
             search window is bounds of original geometry plus padding of tolerance on all sides
-        target : ndarray of pygeos geometry objects
         tree : pygeos STRtree
         tolerance : number
             distance within which to keep hits from spatial index
@@ -106,10 +105,10 @@ def near(source, target, distance):
         ndarray of indices of target
         """
         hits = tree.query(search_window)
-        return hits[pg.distance(source_geom, target[hits]) <= tolerance]
+        return hits[pg.distance(source_geom, tree.geometries[hits]) <= tolerance]
 
     query = np.vectorize(
-        single_query, otypes=[np.ndarray], excluded=["target", "tree", "tolerance"]
+        single_query, otypes=[np.ndarray], excluded=["tree", "tolerance"]
     )
 
     if isinstance(source, pd.Series):
@@ -133,18 +132,17 @@ def near(source, target, distance):
     tree = pg.STRtree(target_values)
 
     # retrieve indices from target that are within tolerance
-    near = query(
+    hits = query(
         source_values,
         # use a search window for spatial index based on tolerance
         window(source_values, distance),
-        target=target_values,
         tree=tree,
         tolerance=distance,
     )
 
     # need to explode and then apply indices to get back to original index values
-    near = (
-        pd.Series(near, index=source_index)
+    hits = (
+        pd.Series(hits, index=source_index)
         .explode()
         .dropna()
         .map(pd.Series(target_index))
@@ -154,14 +152,14 @@ def near(source, target, distance):
 
     # join back to source and target geometries so we can calculate distance
     # TODO: figure out a way to just use the distance we calculated above
-    near = (
-        pd.DataFrame(near)
+    hits = (
+        pd.DataFrame(hits)
         .join(source.geometry)
         .join(pd.Series(target, name="geometry_right"), on=target_index_name)
     )
-    near["distance"] = pg.distance(near.geometry, near.geometry_right)
+    hits["distance"] = pg.distance(hits.geometry, hits.geometry_right)
     return (
-        near.drop(columns=["geometry", "geometry_right"])
+        hits.drop(columns=["geometry", "geometry_right"])
         .sort_values(by="distance")
         .copy()
     )

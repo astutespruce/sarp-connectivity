@@ -62,18 +62,16 @@ def explode(series):
 ### WIP: basic STRtree based spatial join
 
 
-def query(left_geom, right, tree, predicate):
+def query(left_geom, tree, predicate):
     """Query strtree and return indices of right that intersect left
-    right, tree, predicate must be called by keyword
+    tree, predicate must be called by keyword
     """
     hits = tree.query(left_geom)
-    return hits[predicate(left_geom, right[hits])]
+    return hits[predicate(left_geom, tree.geometries[hits])]
 
 
 # vectorized
-vec_query = np.vectorize(
-    query, otypes=[np.ndarray], excluded=["right", "tree", "predicate"]
-)
+query_tree = np.vectorize(query, otypes=[np.ndarray], excluded=["tree", "predicate"])
 
 
 def sjoin(left, right, predicate="intersects", how="inner"):
@@ -118,9 +116,7 @@ def sjoin(left, right, predicate="intersects", how="inner"):
     predicate_func = getattr(pg, predicate)
 
     # hits are in 0-based indicates of right
-    hits = vec_query(
-        left_values, right=right_values, tree=tree, predicate=predicate_func
-    )
+    hits = query_tree(left_values, tree=tree, predicate=predicate_func)
     # need to explode and then apply indices
     hits = pd.Series(hits, index=left_index).explode()
     series = hits.map(pd.Series(right_index)).rename("index_right")
