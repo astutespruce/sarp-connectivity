@@ -42,26 +42,27 @@ def connect_points(start, end):
     return lines
 
 
-def window(points, tolerance):
-    """Return windows around points, based on point as center +/- tolerance.
+def window(geometries, distance):
+    """Return windows around geometries bounds +/- distance
 
     Parameters
     ----------
-    points : Series or ndarray
-        points to window
-    tolerance : number
+    geometries : Series or ndarray
+        geometries to window
+    distance : number or ndarray
         radius of window
+        if ndarry, must match length of geometries
 
     Returns
     -------
     Series or ndarray
         polygon windows
     """
-    bounds = pg.bounds(points) + [-tolerance, -tolerance, tolerance, tolerance]
-    windows = pg.box(*bounds.T)
+    minx, miny, maxx, maxy = pg.bounds(geometries).T
+    windows = pg.box(minx - distance, miny - distance, maxx + distance, maxy + distance)
 
-    if isinstance(points, pd.Series):
-        return pd.Series(windows, index=points.index)
+    if isinstance(geometries, pd.Series):
+        return pd.Series(windows, index=geometries.index)
 
     return windows
 
@@ -77,8 +78,9 @@ def near(source, target, distance):
         contains pygeos geometries
     target : Series
         contains target pygeos geometries to search against
-    distance : number
-        radius within which to find target geometries
+    distance : number or ndarray
+        radius within which to find target geometries.
+        If ndarray, must be equal length to source.
 
     Returns
     -------
@@ -87,7 +89,7 @@ def near(source, target, distance):
         includes distance
     """
 
-    def single_query(source_geom, search_window, tree, tolerance):
+    def single_query(source_geom, search_window, tolerance, tree):
         """Query the spatial index based on source_geom and return
         indices of all geometries in tree that are <= tolerance
 
@@ -96,9 +98,9 @@ def near(source, target, distance):
         source_geom : pygeos geometry object
         search_window : pygeos geometry object
             search window is bounds of original geometry plus padding of tolerance on all sides
-        tree : pygeos STRtree
         tolerance : number
             distance within which to keep hits from spatial index
+        tree : pygeos STRtree
 
         Returns
         -------
@@ -107,8 +109,10 @@ def near(source, target, distance):
         hits = tree.query(search_window)
         return hits[pg.distance(source_geom, tree.geometries[hits]) <= tolerance]
 
+    # vectorized version takes geometries, windows of equal length,
+    # and tolerance as a number or ndarray of equal length
     query = np.vectorize(
-        single_query, otypes=[np.ndarray], excluded=["tree", "tolerance"]
+        single_query, otypes=[np.ndarray], excluded=["tree"]  # , "tolerance"
     )
 
     if isinstance(source, pd.Series):
@@ -122,7 +126,7 @@ def near(source, target, distance):
     if isinstance(target, pd.Series):
         target_values = target.values
         target_index = target.index
-        target_index_name = target.index.name
+        target_index_name = target.index.name or "index_right"
 
     else:
         target_values = target
@@ -136,8 +140,8 @@ def near(source, target, distance):
         source_values,
         # use a search window for spatial index based on tolerance
         window(source_values, distance),
+        distance,
         tree=tree,
-        tolerance=distance,
     )
 
     # need to explode and then apply indices to get back to original index values
@@ -146,7 +150,7 @@ def near(source, target, distance):
         .explode()
         .dropna()
         .map(pd.Series(target_index))
-        .rename(target_index_name)
+        .rename("index_right")
         .astype(target_index.dtype)
     )
 
@@ -154,12 +158,14 @@ def near(source, target, distance):
     # TODO: figure out a way to just use the distance we calculated above
     hits = (
         pd.DataFrame(hits)
-        .join(source.geometry)
-        .join(pd.Series(target, name="geometry_right"), on=target_index_name)
+        .join(pd.Series(source, name="geometry"))
+        .join(pd.Series(target, name="geometry_right"), on="index_right")
     )
     hits["distance"] = pg.distance(hits.geometry, hits.geometry_right)
+
     return (
         hits.drop(columns=["geometry", "geometry_right"])
+        .rename(columns={"index_right": target_index_name})
         .sort_values(by="distance")
         .copy()
     )
@@ -175,8 +181,9 @@ def nearest(source, target, distance):
         contains pygeos geometries
     target : Series
         contains target pygeos geometries to search against
-    distance : number, optional (default 100)
+    distance : number or ndarray
         radius within which to find target geometries
+        If ndarray, must be equal length to source.
 
     Returns
     -------
@@ -185,8 +192,12 @@ def nearest(source, target, distance):
         nearest target geom.
         Includes distance
     """
-    left_index_name = source.index.name or "index"
-    return near(source, target, distance).reset_index().groupby(left_index_name).first()
+    source_index_name = source.index.name or "index"
+
+    # results coming from near() already sorted by distance
+    return (
+        near(source, target, distance).reset_index().groupby(source_index_name).first()
+    )
 
 
 def neighborhoods(source, tolerance=100):

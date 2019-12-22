@@ -74,3 +74,22 @@ def flatten_series(series):
         np.concatenate(series.values), index=np.repeat(series.index, series.apply(len))
     )
 
+
+def ndarray_append_strings(*args):
+    if len(args) < 2:
+        raise ValueError("Must have at least 2 values to append per element")
+
+    def get_str(value):
+        if (
+            isinstance(value, np.ndarray) or isinstance(value, pd.Series)
+        ) and not value.dtype == "O":
+            return value.astype("str")
+        return str(value)
+
+    result = get_str(args[0]) + get_str(args[1])
+
+    for i in range(2, len(args)):
+        result = result + get_str(args[i])
+
+    return result
+

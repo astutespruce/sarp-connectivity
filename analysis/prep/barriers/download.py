@@ -128,7 +128,9 @@ print("Merged {:,} dams in SARP states".format(len(df)))
 missing_sarpid = df.loc[df.SARPID.isnull()]
 if len(missing_sarpid):
     print(
-        "--------------------------\nWARNING: {:,} dams are missing SARPID\n----------------------------"
+        "--------------------------\nWARNING: {:,} dams are missing SARPID\n----------------------------".format(
+            len(missing_sarpid)
+        )
     )
 
 
@@ -179,7 +181,9 @@ print(
 missing_sarpid = df.loc[df.SARPID.isnull()]
 if len(missing_sarpid):
     print(
-        "--------------------------\nWARNING: {:,} small barriers are missing SARPID\n----------------------------"
+        "--------------------------\nWARNING: {:,} small barriers are missing SARPID\n----------------------------".format(
+            len(missing_sarpid)
+        )
     )
 
 
