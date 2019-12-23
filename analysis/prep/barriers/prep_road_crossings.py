@@ -1,7 +1,7 @@
 """
 Preprocess road / stream crossings into data needed by tippecanoe for creating vector tiles.
 
-Input: 
+Input:
 * USGS Road / Stream crossings, projected to match SARP standard projection (Albers CONUS).
 * pre-processed and snapped small barriers
 
@@ -23,10 +23,12 @@ import geopandas as gp
 from nhdnet.io import deserialize_df
 from nhdnet.geometry.points import add_lat_lon, mark_duplicates
 
-from analysis.constants import CRS, DUPLICATE_TOLERANCE
+from analysis.constants import CRS
 from analysis.util import spatial_join
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
+
+DUPLICATE_TOLERANCE = 10  # meters
 
 start = time()
 

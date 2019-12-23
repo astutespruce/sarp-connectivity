@@ -32,8 +32,9 @@ nhd_lines = from_geofeather(extra_dir / "nhd_lines.feather")
 nhd_lines = nhd_lines.loc[
     (nhd_lines.FType.isin([343, 369, 398])) & nhd_lines.geometry.notnull()
 ].copy()
-# create buffers (5m) to merge with NHD areas
-nhd_lines["geometry"] = pg.buffer(nhd_lines.geometry, 5, quadsegs=1)
+# create buffers (10m) to merge with NHD areas
+# from visual inspection, this helps coalesce those that are in pairs
+nhd_lines["geometry"] = pg.buffer(nhd_lines.geometry, 10, quadsegs=1)
 
 # All NHD areas indicate a dam-related feature
 nhd_areas = from_geofeather(extra_dir / "nhd_areas.feather")

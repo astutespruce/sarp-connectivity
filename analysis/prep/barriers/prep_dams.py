@@ -2,27 +2,35 @@
 Extract dams from original data source, process for use in network analysis, and convert to feather format.
 1. Cleanup data values (as needed)
 2. Filter out dams not to be included in analysis (based on Feasibility and ManualReview)
-3. Snap to networks by HUC2 and merge into single data frame
+3. Snap to NHD dams, waterbodies, and flowlines
 4. Remove duplicate dams
 
 This creates 2 files:
 `barriers/master/dams.feather` - master dams dataset, including coordinates updated from snapping
 `barriers/snapped/dams.feather` - snapped dams dataset for network analysis
+
+
+This creates several QA/QC files:
+- `barriers/qa/dams/pre_snap_to_post_snap.gpkg`: lines between the original coordinate and the snapped coordinate (snapped barriers only)
+- `barriers/qa/dams/pre_snap.gpkg`: original, unsnapped coordinate (snapped barriers only)
+- `barriers/qa/dams/post_snap.gpkg`: snapped coordinate (snapped barriers only)
+- `barriers/qa/dams/duplicate_areas.gpkg`: dissolved buffers around duplicate barriers (duplicates only)
 """
 
 from pathlib import Path
 from time import time
 import pandas as pd
-from geofeather import to_geofeather, from_geofeather
-from geofeather.pygeos import from_geofeather as from_geofeather_as_pygeos
+from geofeather import from_geofeather
+from geofeather.pygeos import (
+    from_geofeather as from_geofeather_as_pygeos,
+    to_geofeather,
+)
 from pgpkg import to_gpkg
 import geopandas as gp
 import numpy as np
 
-from nhdnet.io import deserialize_sindex, deserialize_df, to_shp
+from nhdnet.io import deserialize_sindex, deserialize_df, deserialize_dfs
 from nhdnet.geometry.lines import snap_to_line
-
-# from nhdnet.geometry.points import mark_duplicates, find_nearby
 
 from analysis.prep.barriers.lib.points import (
     nearest,
@@ -37,6 +45,10 @@ from analysis.prep.barriers.lib.snap import (
     snap_to_flowlines,
     snap_to_large_waterbodies,
     export_snap_dist_lines,
+)
+from analysis.prep.barriers.lib.duplicates import (
+    find_duplicates,
+    export_duplicate_areas,
 )
 
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
@@ -55,10 +67,8 @@ from analysis.constants import (
 
 
 ### Custom tolerance values for dams
-# Dams within 50 meters are considered duplicates
-DUPLICATE_TOLERANCE = 50  # TODO: verify this is producing good results
-
-SNAP_TOLERANCE = {"likely on network": 150, "likely off network": 50}
+SNAP_TOLERANCE = {"default": 150, "likely off network": 50}
+DUPLICATE_TOLERANCE = {"default": 10, "likely duplicate": 50}
 
 
 data_dir = Path("data")
@@ -82,7 +92,6 @@ start = time()
 print("Reading dams in SARP states")
 df = from_geofeather(src_dir / "sarp_dams.feather")
 print("Read {:,} dams in SARP states".format(len(df)))
-
 
 ### Read in non-SARP states and join in
 # these are for states that overlap with HUC4s that overlap with SARP states
@@ -127,7 +136,6 @@ snapped_df = from_geofeather(
 snapped_df = snapped_df.loc[~snapped_df.ManualReview.isin([7, 9])]
 
 # Join to snapped and bring across updated geometry and ManualReview
-
 df = df.join(snapped_df, on="AnalysisID", rsuffix="_snap")
 
 idx = df.loc[df.geometry_snap.notnull()].index
@@ -220,7 +228,6 @@ df.loc[(df.Height >= 50) & (df.Height < 100), "HeightClass"] = 5
 df.loc[df.Height >= 100, "HeightClass"] = 6
 df.HeightClass = df.HeightClass.astype("uint8")
 
-
 ### Spatial joins
 df = add_spatial_joins(df)
 
@@ -233,14 +240,6 @@ df["dropped"] = False
 
 # excluded: records that should be retained in dataset but not used in analysis
 df["excluded"] = False
-
-# duplicate: records that are duplicates of another record that was retained
-# NOTE: the first instance of a set of duplicates is NOT marked as a duplicate,
-# only following ones are.
-df["duplicate"] = False
-# duplicate sort will be assigned lower values to find preferred entry w/in dups
-df["dup_sort"] = 9999
-
 
 # Drop any that didn't intersect HUCs or states
 drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()
@@ -298,19 +297,20 @@ print(
 )
 
 
-# FIXME:
-# to_geofeather(df.reset_index(drop=True), "/tmp/pre-snap.feather")
-# raise ("FOO")
+### Convert to pygeos format for following operations
+df = pd.DataFrame(df.copy())
+df["geometry"] = to_pygeos(df.geometry)
+
 
 ### Snap dams
 # snapped: records that snapped to the aquatic network and ready for network analysis
 df["snapped"] = False
-df["snap_log"] = ""
+df["snap_log"] = "not snapped"
 df["snap_ref_id"] = np.nan  # id of feature from snap type this was snapped to
 df["snap_dist"] = np.nan
 df["lineID"] = np.nan  # line to which dam was snapped
 df["wbID"] = np.nan  # waterbody ID where dam is either contained or snapped
-df["snap_tolerance"] = SNAP_TOLERANCE["likely on network"]
+df["snap_tolerance"] = SNAP_TOLERANCE["default"]
 # Dams likely to be off network get a much smaller tolerance
 df.loc[df.ManualReview.isin([20, 21]), "snap_tolerance"] = SNAP_TOLERANCE[
     "likely off network"
@@ -324,9 +324,6 @@ print(
 
 # IMPORTANT: do not snap manually reviewed, off-network dams!
 to_snap = df.loc[df.ManualReview != 5].copy()
-
-# NOTE: temporary, convert geoms to pygeos
-to_snap["geometry"] = to_pygeos(to_snap.geometry)
 
 # Save original locations so we can map the snap line between original and new locations
 original_locations = to_snap.copy()
@@ -348,270 +345,102 @@ df, to_snap = snap_to_large_waterbodies(df, to_snap)
 print(
     "Snapped {:,} dams in {:.2f}s".format(len(df.loc[df.snapped]), time() - snap_start)
 )
+
+print("---------------------------------")
 print("\nSnapping statistics")
 print(df.groupby("snap_log").size())
 print("---------------------------------\n")
 
+
 ### Save results from snapping for QA
-tmp = pd.DataFrame(df.copy())
-tmp["geometry"] = to_pygeos(tmp.geometry)
 export_snap_dist_lines(df.loc[df.snapped], original_locations, qa_dir, prefix="dams_")
 
-### TODO: dedup and assign new flowline IDs to members of dup group
+### De-duplicate dams that are very close
+# duplicate: records that are duplicates of another record that was retained
+# NOTE: the first instance of a set of duplicates is NOT marked as a duplicate,
+# only following ones are.
+df["duplicate"] = False
+df["dup_group"] = np.nan
+df["dup_count"] = np.nan
+# duplicate sort will be assigned lower values to find preferred entry w/in dups
+df["dup_sort"] = 9999
+df["dup_log"] = "not a duplicate"
+
+# Assign dup_sort, lower numbers = higher priority to keep from duplicate group
+# Start from lower priorities and override with lower values
+
+# Prefer dams with River to those that do not
+df.loc[df.River != "", "dup_sort"] = 5
+
+# Prefer dams that have been reconned to those that haven't
+df.loc[df.Recon > 0, "dup_sort"] = 4
+
+# Prefer dams with height or year to those that do not
+df.loc[(df.Year > 0) | (df.Height > 0), "dup_sort"] = 3
+
+# NABD dams should be reasonably high priority
+df.loc[df.ManualReview == 2, "dup_sort"] = 2
+
+# manually reviewed dams should be highest priority (4=onstream, 5=offstream)
+df.loc[df.ManualReview.isin([4, 5]), "dup_sort"] = 1
 
 
-# ### First pass deduplication - TODO: re-enable
-# # Assign dup_sort, lower numbers = higher priority to keep from duplicate group
-# # Start from lower priorities and override with lower values
-
-# # Prefer dams with River to those that do not
-# df.loc[df.River != "", "dup_sort"] = 5
-
-# # Prefer dams that have been reconned to those that haven't
-# df.loc[df.Recon > 0, "dup_sort"] = 4
-
-# # Prefer dams with height or year to those that do not
-# df.loc[(df.Year > 0) | (df.Height > 0), "dup_sort"] = 3
-
-# # NABD dams should be reasonably high priority
-# df.loc[df.ManualReview == 2, "dup_sort"] = 2
-
-# # manually reviewed dams should be highest priority (4=onstream, 5=offstream)
-# df.loc[df.ManualReview.isin([4, 5]), "dup_sort"] = 1
-
-
-### TODO: re-enable AFTER snapping
-### Remove duplicates within 10 m;
+dedup_start = time()
+# Dams within 10 meters are very likely duplicates of each other
 # from those that were hand-checked on the map, they are duplicates of each other
-# drop any duplicate clusters that have one or among them that was dropped
-# groups = (
-#     find_neighborhoods(df, 10)
-#     .join(df[["dropped", "excluded", "ManualReview", "dup_sort"]])
-#     .sort_values(by="dup_sort")
-# )
-# grouped = groups.groupby("group")
-# count = grouped.size().rename("dup_count")
-# groups = groups.join(count, on="group")
-# keep = groups.reset_index().rename(columns={"index": "id"}).groupby("group").first()
-
-# dups = groups.loc[~groups.index.isin(keep.id.unique())].index
-
-# print("Found {:,} duplicates before snapping".format(len(dups)))
-
-# # mark duplicates and combine in dup group info
-# df.loc[df.index.isin(dups), "duplicate"] = True
-# df = df.join(groups.rename(columns={"group": "dup_group"})[["dup_group", "dup_count"]])
-
-# # Drop all records from any groups that have a dropped record
-# # UNLESS the one being kept is manually reviewed and not dropped
-# trusted_keepers = keep.loc[(keep.ManualReview == 4) & ~keep.dropped]
-# drop_groups = grouped.dropped.max()
-# drop_groups = drop_groups.loc[
-#     drop_groups & ~drop_groups.index.isin(trusted_keepers.index)
-# ].index
-
-# print(
-#     "Dropped {:,} dams that were in duplicate groups with dams that were dropped".format(
-#         len(df.loc[df.dup_group.isin(drop_groups) & ~df.dropped])
-#     )
-# )
-
-# df.loc[df.dup_group.isin(drop_groups), "dropped"] = True
-
-
-# # Exclude all records from groups that have an excluded record
-# exclude_groups = grouped.excluded.max()
-# exclude_groups = exclude_groups.loc[
-#     exclude_groups & ~exclude_groups.index.isin(trusted_keepers.index)
-# ].index
-
-# print(
-#     "Excluded {:,} dams that were in duplicate groups with dams that were excluded".format(
-#         len(df.loc[df.dup_group.isin(exclude_groups) & ~df.excluded])
-#     )
-# )
-
-# df.loc[df.dup_group.isin(exclude_groups), "excluded"] = True
-
-
-# # TODO: (LONG TERM) check distance from kept point to all the others
-
-# print(
-#     "First stage deduplication complete, now have {:,} dropped, {:,} excluded, {:,} duplicates, {:,} kept".format(
-#         df.dropped.sum(),
-#         df.excluded.sum(),
-#         df.duplicate.sum(),
-#         len(df.loc[~(df.dropped | df.excluded | df.duplicate)]),
-#     )
-# )
-
-#### End TODO: re-enable dedup stage 1
-
-
-### TODO: join to line atts
-
-
-### Deduplicate manually snapped dams and snap nearby ones to them
-# NABD dams (ManualReview == 2) should probably snap to bigger reservoirs, if possible
-# TODO: exclude estimated ones that were dropped
-# trusted = df.loc[df.ManualReview == 4]
-# estimated = df.loc[df.ManualReview == 20]
-
-
-### Snap based on NHD Lines and Areas that identify dams
-
-# print("Loading large waterbodies...")
-# large_wb = from_geofeather(nhd_dir / "merged" / "large_waterbodies.feather")
-# large_drains = from_geofeather(
-#     nhd_dir / "merged" / "large_waterbody_drain_points.feather"
-# ).rename(columns={"id": "drainID"})
-# large_drains.sindex
-
-# print("Loading NHD dam areas...")
-# nhd_lines = from_geofeather(nhd_dir / "extra" / "nhd_lines.feather")
-# nhd_areas = from_geofeather(nhd_dir / "extra" / "nhd_areas.feather")
-
-# # extract dams and drop missing geoms
-# nhd_lines = nhd_lines.loc[(nhd_lines.FType == 343) & nhd_lines.geometry.notnull()].copy()
-# nhd_areas = nhd_areas.loc[(nhd_areas.FType == 343) & nhd_areas.geometry.notnull()].copy()
-
-# # TODO: intersect the lines with flowlines; these represent real dams that may not be captured in the inventory
-
-
-# # buffer lines by 30m, buffer areas by 30m, merge, and dissolve
-# buffered = np.append(pg.buffer(to_pygeos(nhd_lines.geometry), 30), pg.buffer(to_pygeos(nhd_areas.geometry), 30))
-# buffered = pg.union_all(buffered)
-
-# # explode parts
-# buffered = np.array([pg.get_geometry(buffered, i) for i in range(0, pg.get_num_geometries(buffered))])
-# nhd_dams = gp.GeoDataFrame(from_pygeos(buffered).rename('geometry'), crs=df.crs)
-# nhd_dams['nhdid'] = nhd_dams.index.copy().astype('uint16')
-
-# ### Intersect with waterbody drains
-# nhd_dams.sindex
-# large_drains.sindex
-# dam_drains = gp.sjoin(nhd_dams, large_drains, how='inner')
-# # NOTE: there are duplicate drains for some dams
-
-# # sort by waterbody size and take largest waterbody
-# dam_drains = dam_drains.sort_values(by='AreaSqKm', ascending=False).groupby('nhdid').first().reset_index()
-
-# # join in drain geometry
-# dam_drains = dam_drains.join(large_drains.set_index('drainID').geometry.rename('drain'), on='drainID')
-# dam_drains = gp.GeoDataFrame(dam_drains[['nhdid', 'geometry', 'lineID', 'wbID', 'drainID', 'drain']], crs=large_drains.crs)
-
-# # This will be the larger set
-# dams_no_drains = nhd_dams.loc[~nhd_dams.nhdid.isin(dam_drains.nhdid.unique())].copy()
-# # TODO: figure out how to bring flowlines in here
-
-# # now intersect with dams and find closest drain
-
-# df.sindex
-# dam_drains.sindex
-# dams = gp.sjoin(df[['geometry']], dam_drains, how='inner')
-# print("Found {:,} dams associated with NHD dams that have waterbody drains".format(len(dams)))
-
-
-# for any that don't have drains, need to intersect with flowlines
-
-
-### Intersect with NHD dams
-# Dams that are close to NHD dams are trusted
-# nhd_dams.sindex
-# df.sindex
-# dams = gp.sjoin(df[['geometry']], nhd_dams, how='inner')
-# # introducing dups?
-# dams = dams.join(nhd_dams.geometry.rename('nhd_dam'), on='index_right').drop(columns=['index_right'])
-# print("Found {:,} dams overlapping NHD dams".format(len(dams)))
-
-# NOTE: there are duplicate dams at some of these; once we find appropriate point for each we'll snap and reduce dups
-
-
-# # Find the nearest waterbody drain within tolerance distance of nhd_areas
-# large_drains.sindex
-# dam_drains = gp.sjoin(dams.set_geometry('nhd_dam'), large_drains, how='inner')
-
-# print("Found {:,} waterbody drains overlapping with NHD dams".format(len(dam_drains)))
-# # if there isn't one close by, snap to the closest flowline that intersects the nhd area
-
-
-### Snap to waterbody drain points and flowlines
-
-
-# Find all dams within large waterbodies
-# There are some that are just randomly within large waterbodies
-# others are at the fringes and are valid dams (there are multiple waterbodies but NHD only has one, or we merged them)
-
-# to_snap.sindex
-
-# for those that are within large waterbodies,
-# attempt to snap to the nearest drain if within 1 km (arbitrary limit)
-# FIXME: This is producing dups, where there are multiple drains per WB, need to find the closest for each
-
-# Analyze dams that are completely within waterbodies or within 30m of their edge
-print("Analyzing dams completely within large waterbodies or within 30m of them...")
-buffered = to_snap.copy()
-buffered["geometry"] = buffered.geometry.buffer(30)
-
-large_wb.sindex
-buffered.sindex
-in_wb = gp.sjoin(buffered, large_wb, how="inner").join(
-    large_drains.set_index("wbID").geometry.rename("drain"), on="wbID"
+df, to_dedup = find_duplicates(
+    df, to_dedup=df.copy(), tolerance=DUPLICATE_TOLERANCE["default"]
 )
-in_wb["snap_dist"] = in_wb.geometry.distance(gp.GeoSeries(in_wb.drain))
+
+# Search a bit further for duplicates from estimated dams that snapped
+# hand-checked these on the map, these look very likely to be real duplicates
+next_group_id = df.dup_group.max() + 1
+to_dedup = to_dedup.loc[to_dedup.snapped & df.ManualReview.isin([20, 21])].copy()
+df, to_dedup = find_duplicates(
+    df,
+    to_dedup,
+    tolerance=DUPLICATE_TOLERANCE["likely duplicate"],
+    next_group_id=next_group_id,
+)
 
 print(
-    "Found {:,} dams within large waterbodies, snapped {:,} to drain points of those waterbodies".format(
-        len(in_wb)
+    "Found {:,} total duplicates in {:.2f}s".format(
+        len(df.loc[df.duplicate]), time() - dedup_start
     )
 )
+print("---------------------------------")
+print("\nDe-duplication statistics")
+print(df.groupby("dup_log").size())
+print("---------------------------------\n")
+
+# Export duplicate areas for QA
+dups = df.loc[df.dup_group.notnull()].copy()
+dups.dup_group = dups.dup_group.astype("uint16")
+dups["dup_tolerance"] = DUPLICATE_TOLERANCE["default"]
+ix = dups.snapped & dups.ManualReview.isin([20, 21])
+dups.loc[ix, "dup_tolerance"] = DUPLICATE_TOLERANCE["likely duplicate"]
+
+export_duplicate_areas(dups, qa_dir / "dams_duplicate_areas")
 
 
-# If ManualReview==2, these are NABD dams and potentially large, but not always correctly located on the network.
-# If ManualReview==4, these were visually verified by SARP as being on network, but may
-# be larger dams and > 100 m off channel.  Snap up to 250 meters for these.
+### Join to line atts
+flowlines = deserialize_dfs(
+    [nhd_dir / "clean" / region / "flowlines.feather" for region in REGION_GROUPS],
+    columns=["lineID", "NHDPlusID", "sizeclass", "streamorder", "loop", "waterbody"],
+).set_index("lineID")
 
-to_snap = df.loc[
-    ~(df.dropped | df.excluded), ["geometry", "HUC2", "id", "ManualReview"]
-].copy()
-to_snap["tolerance"] = SNAP_TOLERANCE
-to_snap.loc[to_snap.ManualReview.isin([2, 4]), "tolerance"] = 250
+df = df.join(flowlines, on="lineID")
 
-print("Attempting to snap {:,} dams".format(len(to_snap)))
-
-# # Snap to waterbody drain points
-# snapped = snap_to_waterbody_points(to_snap)
-
-
-### TODO: points that snap to within-waterbody segments are suspect, watch for duplicates
-
-
-# Snap to flowlines
-snapped = snap_by_region(to_snap, REGION_GROUPS)
-
-
-# join back to master
-df = update_from_snapped(df, snapped)
-
-
-# Remove duplicates after snapping, in case any snapped to the same position
-# These are completely dropped from the analysis from here on out
-# Sort by ascending order of the boolean attributes that indicate barriers are to be dropped / excluded
-# so that if one of a duplicate cluster was dropped / excluded, the rest are too.
-df = mark_duplicates(
-    df.sort_values(by=["dropped", "excluded", "snapped"]), DUPLICATE_TOLERANCE
-)
-df = df.sort_values("id")
-print("{:,} duplicate dams removed after snapping".format(len(df.loc[df.duplicate])))
+### All done processing!
 
 print("\n--------------\n")
 df = df.reset_index(drop=True)
 
 print("Serializing {:,} dams to master file".format(len(df)))
-to_geofeather(df, master_dir / "dams.feather")
+to_geofeather(df, master_dir / "dams.feather", crs=CRS)
 
-print("writing shapefiles for QA/QC")
-to_shp(df, qa_dir / "dams.shp")
+print("writing GIS for QA/QC")
+to_gpkg(df, qa_dir / "dams", crs=CRS)
 
 
 # Extract out only the snapped ones
@@ -621,7 +450,9 @@ df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped dams".format(len(df)))
 to_geofeather(
-    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]], snapped_dir / "dams.feather"
+    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]],
+    snapped_dir / "dams.feather",
+    crs=CRS,
 )
 
 print("All done in {:.2f}s".format(time() - start))

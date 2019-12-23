@@ -2,30 +2,49 @@
 Extract small barriers from original data source, process for use in network analysis, and convert to feather format.
 1. Cleanup data values (as needed)
 2. Filter out barriers not to be included in analysis (based on Potential_Project and ManualReview)
-3. Snap to networks by HUC2
+3. Snap to flowlines
 4. Remove duplicate barriers
+5. Remove barriers that duplicate dams
+
+NOTE: this must be run AFTER running prep_dams.py, because it deduplicates against existing dams.
 
 This creates 2 files:
 `barriers/master/small_barriers.feather` - master barriers dataset, including coordinates updated from snapping
 `barriers/snapped/small_barriers.feather` - snapped barriers dataset for network analysis
+
+This creates several QA/QC files:
+- `barriers/qa/small_barriers_pre_snap_to_post_snap.gpkg`: lines between the original coordinate and the snapped coordinate (snapped barriers only)
+- `barriers/qa/small_barriers_pre_snap.gpkg`: original, unsnapped coordinate (snapped barriers only)
+- `barriers/qa/small_barriers_post_snap.gpkg`: snapped coordinate (snapped barriers only)
+- `barriers/qa/small_barriers_duplicate_areas.gpkg`: dissolved buffers around duplicate barriers (duplicates only)
 """
 
 from pathlib import Path
 from time import time
 import pandas as pd
-from geofeather import to_geofeather, from_geofeather
+from geofeather import from_geofeather
+from geofeather.pygeos import (
+    to_geofeather,
+    from_geofeather as from_geofeather_as_pygeos,
+)
 import geopandas as gp
 import numpy as np
+from pgpkg import to_gpkg
 
-from nhdnet.io import deserialize_df, deserialize_sindex, to_shp
-from nhdnet.geometry.points import mark_duplicates, add_lat_lon
-from nhdnet.geometry.lines import snap_to_line
+from nhdnet.io import deserialize_dfs
 
+from analysis.pygeos_compat import to_pygeos
+from analysis.prep.barriers.lib.points import nearest
+from analysis.prep.barriers.lib.snap import snap_to_flowlines, export_snap_dist_lines
+from analysis.prep.barriers.lib.duplicates import (
+    find_duplicates,
+    export_duplicate_areas,
+)
+from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.constants import (
     REGION_GROUPS,
     REGIONS,
     CRS,
-    DUPLICATE_TOLERANCE,
     KEEP_POTENTIAL_PROJECT,
     DROP_POTENTIAL_PROJECT,
     DROP_MANUALREVIEW,
@@ -36,14 +55,14 @@ from analysis.constants import (
     CROSSING_TYPE_TO_DOMAIN,
 )
 
-from analysis.prep.barriers.lib.snap import snap_by_region, update_from_snapped
-from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
-
 # Snap barriers by 50 meters
 SNAP_TOLERANCE = 50
+DUPLICATE_TOLERANCE = 10  # meters
+
 
 data_dir = Path("data")
 boundaries_dir = data_dir / "boundaries"
+nhd_dir = data_dir / "nhd"
 barriers_dir = data_dir / "barriers"
 src_dir = barriers_dir / "source"
 master_dir = barriers_dir / "master"
@@ -52,33 +71,13 @@ qa_dir = barriers_dir / "qa"
 
 start = time()
 
-
 df = from_geofeather(src_dir / "sarp_small_barriers.feather")
 print("Read {:,} small barriers".format(len(df)))
-
-# Rename all columns that have underscores
-
 
 ### Add IDs for internal use
 # internal ID
 df["id"] = df.index.astype("uint32")
-
-
-### Add tracking fields
-# dropped: records that should not be included in any later analysis
-df["dropped"] = False
-
-# excluded: records that should be retained in dataset but not used in analysis
-df["excluded"] = False
-
-# duplicate: records that are duplicates of another record that was retained
-# NOTE: the first instance of a set of duplicates is NOT marked as a duplicate,
-# only following ones are.
-df["duplicate"] = False
-
-# snapped: records that snapped to the aquatic network and ready for network analysis
-df["snapped"] = False
-
+df = df.set_index("id", drop=False)
 
 ######### Fix data issues
 
@@ -127,6 +126,14 @@ df["RoadTypeClass"] = df.RoadType.map(ROAD_TYPE_TO_DOMAIN)
 ### Spatial joins
 df = add_spatial_joins(df)
 
+
+### Add tracking fields
+# dropped: records that should not be included in any later analysis
+df["dropped"] = False
+
+# excluded: records that should be retained in dataset but not used in analysis
+df["excluded"] = False
+
 # Drop any that didn't intersect HUCs or states
 drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()
 print("{:,} small barriers are outside HUC12 / states".format(len(df.loc[drop_idx])))
@@ -160,34 +167,97 @@ print(
 )
 df.loc[exclude_idx, "excluded"] = True
 
-### Snap by region group
-to_snap = df.loc[~(df.dropped | df.excluded), ["geometry", "HUC2", "id"]].copy()
-print("Attempting to snap {:,} small barriers".format(len(to_snap)))
 
-snapped = snap_by_region(to_snap, REGION_GROUPS, default_tolerance=SNAP_TOLERANCE)
+### Convert to pygeos format for following operations
+df = pd.DataFrame(df.copy())
+df["geometry"] = to_pygeos(df.geometry)
 
-# join back to master
-df = update_from_snapped(df, snapped)
+### Snap barriers
+print("Snapping {:,} small barriers".format(len(df)))
 
+df["snapped"] = False
+df["snap_log"] = "not snapped"
+df["lineID"] = np.nan  # line to which dam was snapped
+df["snap_tolerance"] = SNAP_TOLERANCE
 
-# Remove duplicates after snapping, in case any snapped to the same position
-# These are completely dropped from the analysis from here on out
-# Sort by ascending order of the boolean attributes that indicate barriers are to be dropped / excluded
-# so that if one of a duplicate cluster was dropped / excluded, the rest are too.
-# Then Sort by descending severity before deduplication so that most severe barrier is retained
-df = mark_duplicates(
-    df.sort_values(
-        by=["dropped", "excluded", "snapped", "SeverityClass"],
-        ascending=[True, True, True, False],
-    ),
-    DUPLICATE_TOLERANCE,
-)
-df = df.sort_values("id")
+# Save original locations so we can map the snap line between original and new locations
+original_locations = df.copy()
+
+# Snap to flowlines
+snap_start = time()
+df, to_snap = snap_to_flowlines(df, to_snap=df.copy())
 print(
-    "{} duplicate small barriers removed after snapping".format(
-        len(df.loc[df.duplicate])
+    "Snapped {:,} small barriers in {:.2f}s".format(
+        len(df.loc[df.snapped]), time() - snap_start
     )
 )
+
+print("---------------------------------")
+print("\nSnapping statistics")
+print(df.groupby("snap_log").size())
+print("---------------------------------\n")
+
+
+### Save results from snapping for QA
+export_snap_dist_lines(
+    df.loc[df.snapped], original_locations, qa_dir, prefix="small_barriers_"
+)
+
+
+print("\n--------------\n")
+
+### Remove duplicates after snapping, in case any snapped to the same position
+print("Removing duplicates...")
+
+df["duplicate"] = False
+df["dup_group"] = np.nan
+df["dup_count"] = np.nan
+df["dup_log"] = "not a duplicate"
+
+# Duplicate sort is opposite of SeverityClass
+df["dup_sort"] = df.SeverityClass.map(
+    {np.nan: 9999, 0: 9999, 1: 3, 2: 2, 3: 1}  # highest sort, highest severity
+)
+
+dedup_start = time()
+df, to_dedup = find_duplicates(df, to_dedup=df.copy(), tolerance=DUPLICATE_TOLERANCE)
+print(
+    "Found {:,} total duplicates in {:.2f}s".format(
+        len(df.loc[df.duplicate]), time() - dedup_start
+    )
+)
+
+print("---------------------------------")
+print("\nDe-duplication statistics")
+print(df.groupby("dup_log").size())
+print("---------------------------------\n")
+
+# Export duplicate areas for QA
+dups = df.loc[df.dup_group.notnull()].copy()
+dups.dup_group = dups.dup_group.astype("uint16")
+dups["dup_tolerance"] = DUPLICATE_TOLERANCE
+export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas")
+
+
+### Deduplicate by dams
+# any that are within duplicate tolerance of dams may be duplicating those dams
+dams = from_geofeather_as_pygeos(master_dir / "dams.feather")
+near_dams = nearest(df.geometry, dams.geometry, DUPLICATE_TOLERANCE)
+
+ix = near_dams.index
+df.loc[ix, "duplicate"] = True
+df.loc[ix, "dup_log"] = "Within {}m of an existing dam".format(DUPLICATE_TOLERANCE)
+
+print("Found {} small barriers within {}m of dams".format(len(ix), DUPLICATE_TOLERANCE))
+
+### Join to line atts
+flowlines = deserialize_dfs(
+    [nhd_dir / "clean" / region / "flowlines.feather" for region in REGION_GROUPS],
+    columns=["lineID", "NHDPlusID", "sizeclass", "streamorder", "loop", "waterbody"],
+).set_index("lineID")
+
+df = df.join(flowlines, on="lineID")
+
 
 print("\n--------------\n")
 
@@ -197,8 +267,8 @@ print("Serializing {:,} small barriers".format(len(df)))
 to_geofeather(df, master_dir / "small_barriers.feather")
 
 
-print("writing shapefiles for QA/QC")
-to_shp(df, qa_dir / "small_barriers.shp")
+print("writing GIS for QA/QC")
+to_gpkg(df, qa_dir / "small_barriers")
 
 
 # Extract out only the snapped ones

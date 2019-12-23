@@ -14,7 +14,7 @@ from nhdnet.geometry.lines import snap_to_line
 from nhdnet.geometry.points import snap_to_point
 
 from analysis.prep.barriers.lib.points import nearest, near, connect_points
-from analysis.pygeos_compat import from_pygeos, to_pygeos, to_gdf
+from analysis.pygeos_compat import to_gdf
 from analysis.constants import CRS, REGION_GROUPS, REGIONS
 from analysis.util import ndarray_append_strings
 
@@ -85,7 +85,7 @@ def snap_to_nhd_dams(df, to_snap):
 
     ix = near_nhd.index
     df.loc[ix, "snapped"] = True
-    df.loc[ix, "geometry"] = from_pygeos(near_nhd.geometry)
+    df.loc[ix, "geometry"] = near_nhd.geometry
     df.loc[ix, "snap_dist"] = near_nhd.snap_dist
     df.loc[ix, "snap_ref_id"] = near_nhd.damID
     df.loc[ix, "lineID"] = near_nhd.lineID
@@ -116,7 +116,7 @@ def snap_to_nhd_dams(df, to_snap):
 
     ix = near_nhd.index
     df.loc[ix, "snapped"] = True
-    df.loc[ix, "geometry"] = from_pygeos(near_nhd.geometry)
+    df.loc[ix, "geometry"] = near_nhd.geometry
     df.loc[ix, "snap_dist"] = near_nhd.snap_dist
     df.loc[ix, "snap_ref_id"] = near_nhd.damID
     df.loc[ix, "lineID"] = near_nhd.lineID
@@ -224,7 +224,7 @@ def snap_to_waterbodies(df, to_snap):
     close_enough = in_wb.loc[in_wb.snap_dist <= in_wb.snap_tolerance]
     ix = close_enough.index
     df.loc[ix, "snapped"] = True
-    df.loc[ix, "geometry"] = from_pygeos(close_enough.drain)
+    df.loc[ix, "geometry"] = close_enough.drain
     df.loc[ix, "snap_dist"] = close_enough.snap_dist
     df.loc[ix, "snap_ref_id"] = close_enough.drainID
     df.loc[ix, "lineID"] = close_enough.lineID
@@ -273,7 +273,7 @@ def snap_to_waterbodies(df, to_snap):
     )
 
     df.loc[ix, "snapped"] = True
-    df.loc[ix, "geometry"] = from_pygeos(near_neighbor.drain)
+    df.loc[ix, "geometry"] = near_neighbor.drain
     df.loc[ix, "snap_dist"] = near_neighbor.snap_dist
     df.loc[ix, "snap_ref_id"] = near_neighbor.drainID
     df.loc[ix, "lineID"] = near_neighbor.lineID
@@ -299,7 +299,7 @@ def snap_to_waterbodies(df, to_snap):
 
     ix = further.index
     df.loc[ix, "snapped"] = True
-    df.loc[ix, "geometry"] = from_pygeos(further.drain)
+    df.loc[ix, "geometry"] = further.drain
     df.loc[ix, "snap_dist"] = further.snap_dist
     df.loc[ix, "snap_ref_id"] = further.drainID
     df.loc[ix, "lineID"] = further.lineID
@@ -333,7 +333,7 @@ def snap_to_waterbodies(df, to_snap):
 
     ix = nearest_drains.index
     df.loc[ix, "snapped"] = True
-    df.loc[ix, "geometry"] = from_pygeos(nearest_drains.drain)
+    df.loc[ix, "geometry"] = nearest_drains.drain
     df.loc[ix, "snap_dist"] = nearest_drains.distance
     df.loc[ix, "snap_ref_id"] = nearest_drains.drainID
     df.loc[ix, "lineID"] = nearest_drains.lineID
@@ -414,7 +414,7 @@ def snap_to_flowlines(df, to_snap):
 
         ix = lines.index
         df.loc[ix, "snapped"] = True
-        df.loc[ix, "geometry"] = from_pygeos(lines.geometry)
+        df.loc[ix, "geometry"] = lines.geometry
         df.loc[ix, "snap_dist"] = lines.distance
         df.loc[ix, "snap_ref_id"] = lines.lineID
         df.loc[ix, "lineID"] = lines.lineID
@@ -494,7 +494,7 @@ def snap_to_large_waterbodies(df, to_snap):
 
     ix = near_wb.index
     df.loc[ix, "snapped"] = True
-    df.loc[ix, "geometry"] = from_pygeos(near_wb.drain)
+    df.loc[ix, "geometry"] = near_wb.drain
     df.loc[ix, "snap_dist"] = near_wb.distance
     df.loc[ix, "snap_ref_id"] = near_wb.drainID
     df.loc[ix, "lineID"] = near_wb.lineID

@@ -86,9 +86,6 @@ REGION_GROUPS = {
     "13": ["13"],
 }
 
-# All barriers that are within 10 meters of each other are reduced to the first one
-# Note: Dams within 30 meters of each other are considered duplicates
-DUPLICATE_TOLERANCE = 10  # meters
 
 # Use USGS CONUS Albers (EPSG:102003): https://epsg.io/102003    (same as other SARP datasets)
 # use Proj4 syntax, since GeoPandas doesn't properly recognize it's EPSG Code.
