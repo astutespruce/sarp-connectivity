@@ -165,7 +165,7 @@ df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {0} snapped waterfalls".format(len(df)))
 to_geofeather(
-    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]],
+    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "waterbody"]],
     snapped_dir / "waterfalls.feather",
 )
 

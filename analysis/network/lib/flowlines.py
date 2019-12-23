@@ -3,16 +3,19 @@ from time import time
 from geofeather import from_geofeather, to_geofeather
 
 from nhdnet.nhd.cut import cut_flowlines
+from nhdnet.nhd.joins import find_joins
 from nhdnet.io import deserialize_df, to_shp, serialize_df
 from analysis.constants import REGION_GROUPS
 
 data_dir = Path("data")
-nhd_dir = data_dir / "nhd/flowlines"
+nhd_dir = data_dir / "nhd/clean"
 
 
 def cut_flowlines_at_barriers(region, barriers):
     """Read in flowlines and joins between segments, cut flowlines at barriers, and return updated
     flowlines, joins, and joins at each of the barriers
+
+    NOTE: loops are dropped from the analysis.
 
     Parameters
     ----------
@@ -31,23 +34,25 @@ def cut_flowlines_at_barriers(region, barriers):
     print("Reading flowlines...")
     flowline_start = time()
     flowlines = (
-        from_geofeather(nhd_dir / region / "flowline.feather")
+        from_geofeather(nhd_dir / region / "flowlines.feather")
         .set_index("lineID", drop=False)
         .drop(columns=["HUC2"], errors="ignore")
     )
     joins = deserialize_df(nhd_dir / region / "flowline_joins.feather")
+
+    # Fix data issue; remove on next full run of prepare_flowlines_waterbodies.py
+    ix = flowlines.loc[flowlines.loop].index
+    joins.loc[joins.upstream_id.isin(ix) | joins.downstream_id.isin(ix), "loop"] = True
+    joins.loop = joins.loop.fillna(False)
+
+    ix = flowlines.loop == True
+    print("Found {:,} loops, dropping...".format(ix.sum()))
+    flowlines = flowlines.loc[~ix].copy()
+    joins = joins.loc[~joins.loop].copy()
+
     print(
         "Read {:,} flowlines in {:.2f}s".format(len(flowlines), time() - flowline_start)
     )
-
-    # Flag segments that are within waterbodies
-    wb_joins = deserialize_df(
-        nhd_dir / region / "waterbody_flowline_joins.feather",
-        columns=["wbID", "lineID"],
-    )
-
-    flowlines["waterbody"] = False
-    flowlines.loc[flowlines.index.isin(wb_joins.lineID), "waterbody"] = True
 
     ### Cut flowlines at barriers
     cut_start = time()
@@ -81,7 +86,7 @@ def save_cut_flowlines(out_dir, flowlines, joins, barrier_joins):
     print("serializing {:,} cut flowlines...".format(len(flowlines)))
     start = time()
 
-    to_geofeather(flowlines.reset_index(drop=True), out_dir / "flowline.feather")
+    to_geofeather(flowlines.reset_index(drop=True), out_dir / "flowlines.feather")
     serialize_df(joins, out_dir / "flowline_joins.feather", index=False)
     serialize_df(
         barrier_joins.reset_index(drop=True),

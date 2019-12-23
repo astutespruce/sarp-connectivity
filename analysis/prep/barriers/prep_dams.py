@@ -217,7 +217,6 @@ df.loc[df.Year == 9999, "Year"] = 0
 # Calculate feasibility
 df["Feasibility"] = df.Recon.map(RECON_TO_FEASIBILITY).astype("uint8")
 
-
 # Calculate height class
 df["HeightClass"] = 0  # Unknown
 df.loc[(df.Height > 0) & (df.Height < 5), "HeightClass"] = 1
@@ -450,7 +449,7 @@ df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped dams".format(len(df)))
 to_geofeather(
-    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID"]],
+    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "waterbody"]],
     snapped_dir / "dams.feather",
     crs=CRS,
 )

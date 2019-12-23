@@ -28,16 +28,14 @@ from pathlib import Path
 import os
 from time import time
 
-import pandas as pd
-import geopandas as gp
 import pygeos as pg
-from shapely.geometry import Point
-from geofeather import to_geofeather, from_geofeather
-
-from nhdnet.io import serialize_df, deserialize_df, serialize_sindex, to_shp
+from geofeather.pygeos import to_geofeather, from_geofeather
+from pgpkg import to_gpkg
+from nhdnet.io import serialize_df, deserialize_df
 from nhdnet.nhd.joins import remove_joins
 
 from analysis.constants import (
+    CRS,
     REGION_GROUPS,
     EXCLUDE_IDS,
     CONVERT_TO_NONLOOP,
@@ -49,7 +47,6 @@ from analysis.prep.network.lib.dissolve import dissolve_waterbodies
 from analysis.prep.network.lib.cut import cut_lines_by_waterbodies
 from analysis.prep.network.lib.lines import remove_pipelines, remove_flowlines
 from analysis.prep.network.lib.drains import create_drain_points
-from analysis.pygeos_compat import to_pygeos
 
 
 nhd_dir = Path("data/nhd")
@@ -57,7 +54,7 @@ src_dir = nhd_dir / "raw"
 
 
 start = time()
-for region, HUC2s in list(REGION_GROUPS.items()):
+for region, HUC2s in list(REGION_GROUPS.items())[4:]:
     region_start = time()
 
     print("\n----- {} ------\n".format(region))
@@ -121,9 +118,12 @@ for region, HUC2s in list(REGION_GROUPS.items()):
 
     # TODO: remove this on next full rerun of extract_flowlines...
     waterbodies = waterbodies.drop(columns=["hash"], errors="ignore")
-    idx = waterbodies.loc[waterbodies.geometry.type == "MultiPolygon"].index
+    # Convert multipolygons to single part poylgons
+    idx = (
+        pg.get_type_id(waterbodies.geometry) == 6
+    )  # idx = waterbodies.loc[waterbodies.geometry.type == "MultiPolygon"].index
     waterbodies.loc[idx, "geometry"] = waterbodies.loc[idx].geometry.apply(
-        lambda g: g[0]
+        lambda g: pg.get_geometry(g, 0)
     )
 
     # raise min size
@@ -173,6 +173,18 @@ for region, HUC2s in list(REGION_GROUPS.items()):
         flowlines, joins, waterbodies, wb_joins, out_dir
     )
 
+    # Update dtypes
+    joins.upstream = joins.upstream.astype("uint64")
+    joins.downstream = joins.downstream.astype("uint64")
+    joins.upstream_id = joins.upstream_id.astype("uint32")
+    joins.downstream_id = joins.downstream_id.astype("uint32")
+
+    # TODO: fix joins that are getting assigned null for loop
+    # these appear to be coming from segments cut by waterbodies
+    # ix = flowlines.loc[flowlines.loop].index
+    # joins.loc[joins.upstream_id.isin(ix) | joins.downstream_id.isin(ix), "loop"] = True
+    # joins.loop = joins.loop.fillna(False)
+
     print(
         "Now have {:,} flowlines, {:,} waterbodies, {:,} waterbody-flowline joins".format(
             len(flowlines), len(waterbodies), len(wb_joins)
@@ -191,24 +203,23 @@ for region, HUC2s in list(REGION_GROUPS.items()):
 
     print("Serializing {:,} flowlines".format(len(flowlines)))
     flowlines = flowlines.reset_index()
-    to_geofeather(flowlines, out_dir / "flowlines.feather")
-    serialize_sindex(flowlines, out_dir / "flowlines.sidx")
+    to_geofeather(flowlines, out_dir / "flowlines.feather", crs=CRS)
     serialize_df(joins.reset_index(drop=True), out_dir / "flowline_joins.feather")
 
     print("Serializing {:,} waterbodies".format(len(waterbodies)))
-    to_geofeather(waterbodies.reset_index(), out_dir / "waterbodies.feather")
+    to_geofeather(waterbodies.reset_index(), out_dir / "waterbodies.feather", crs=CRS)
     serialize_df(
         wb_joins.reset_index(drop=True), out_dir / "waterbody_flowline_joins.feather"
     )
 
     print("Serializing {:,} drain points".format(len(drains)))
-    to_geofeather(drains, out_dir / "waterbody_drain_points.feather")
+    to_geofeather(drains, out_dir / "waterbody_drain_points.feather", crs=CRS)
 
-    # Serialize to shapefiles
-    print("Serializing to shapefile")
-    flowlines.reset_index().to_file(out_dir / "flowlines.shp")
-    waterbodies.reset_index().to_file(out_dir / "waterbodies.shp")
-    drains.to_file(out_dir / "waterbody_drain_points.shp")
+    # Serialize to GIS files
+    print("Serializing to GIS files")
+    to_gpkg(flowlines.reset_index(), "flowlines", crs=CRS)
+    to_gpkg(waterbodies.reset_index(), "waterbodies", crs=CRS)
+    to_gpkg(drains, "waterbody_drain_points", crs=CRS)
 
     print("Region done in {:.2f}s".format(time() - region_start))
 

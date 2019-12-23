@@ -2,7 +2,7 @@ from time import time
 
 import geopandas as gp
 import numpy as np
-from shapely.geometry import Point
+import pygeos as pg
 
 
 def create_drain_points(flowlines, joins, waterbodies, wb_joins):
@@ -39,18 +39,18 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     drains = drains.loc[drains.upstream_wbID != drains.downstream_wbID].copy()
 
     # Join in stats from waterbodies and geometries from flowlines
-    drain_pts = gp.GeoDataFrame(
+    drain_pts = (
         wb_joins.loc[wb_joins.lineID.isin(drains.upstream_id)]
         .join(waterbodies[["AreaSqKm", "flowlineLength"]], on="wbID")
         .join(flowlines.geometry, on="lineID")
-        .reset_index(drop=True),
-        crs=flowlines.crs,
+        .reset_index(drop=True)
     )
 
     # create a point from the last coordinate, which is the furthest one downstream
-    drain_pts.geometry = drain_pts.geometry.apply(
-        lambda g: Point(np.column_stack(g.xy)[-1])
-    )
+    # drain_pts.geometry = drain_pts.geometry.apply(
+    #     lambda g: Point(np.column_stack(g.xy)[-1])
+    # )
+    drain_pts["geometry"] = pg.get_point(drain_pts.geometry, -1)
 
     drain_pts.wbID = drain_pts.wbID.astype("uint32")
     drain_pts.lineID = drain_pts.lineID.astype("uint32")

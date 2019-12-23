@@ -18,14 +18,16 @@ barriers_dir = Path("data/barriers/snapped")
 def read_barriers(region, mode):
     """Read files created by prep_dams.py, prep_waterfalls.py, prep_small_barriers.py
     Merge together and assign uniqueID for internal use in network analysis
-    
+
+    NOTE: barriers on loops are dropped
+
     Parameters
     ----------
     region : str
         region group identifier, e.g., "02"
     mode : str
         One of "natural", "dams", "small_barriers"
-    
+
     Returns
     -------
     GeoDataFrame
@@ -76,6 +78,10 @@ def read_barriers(region, mode):
 
     barriers.barrierID = barriers.barrierID.astype("uint64")
 
+    ix = barriers.loop == True
+    print("Found {:,} barriers on loops, dropping".format(ix.sum()))
+    barriers = barriers.loc[~ix].copy()
+
     print("Extracted {:,} barriers in {:.2f}s".format(len(barriers), time() - start))
 
     return barriers[
@@ -85,7 +91,7 @@ def read_barriers(region, mode):
 
 def save_barriers(out_dir, barriers):
     """Save consolidated barriers to disk for QA.
-    
+
     Parameters
     ----------
     out_dir : str

@@ -1,8 +1,8 @@
 from time import time
 
-
 import pandas as pd
 import geopandas as gp
+import pygeos as pg
 import numpy as np
 import networkx as nx
 
@@ -154,10 +154,48 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     )
 
     # update NHDPlusIDs to match zeroed out ids
-    joins.loc[joins.downstream_id == 0, "downstream"] = 0
-    joins.loc[joins.downstream_id == 0, "type"] = "terminal"
-    joins.loc[joins.upstream_id == 0, "upstream"] = 0
+    # joins.loc[joins.downstream_id == 0, "downstream"] = 0
+    joins.loc[
+        (joins.downstream_id == 0) & (joins.type == "internal"), "type"
+    ] = "former_pipeline_join"
+    # joins.loc[joins.upstream_id == 0, "upstream"] = 0
 
     print("Done processing pipelines in {:.2f}s".format(time() - start))
 
     return flowlines, joins
+
+
+# pygeos version of nhdnet.geometry.lines::calculate_sinuosity
+def calculate_sinuosity(geometries):
+    """Calculate sinuosity of the line.
+
+    This is the length of the line divided by the distance between the endpoints of the line.
+    By definition, it is always >=1.
+
+    Parameters
+    ----------
+    geometries : Series or ndarray of pygeos geometries
+
+    Returns
+    -------
+    Series or ndarray
+        sinuosity values
+    """
+
+    # By definition, sinuosity should not be less than 1
+    first = pg.get_point(geometries, 0)
+    last = pg.get_point(geometries, -1)
+    straight_line_distance = pg.distance(first, last)
+
+    sinuosity = np.ones((len(geometries),)).astype("float32")
+
+    # if there is no straight line distance there can be no sinuosity
+    ix = straight_line_distance > 0
+
+    # by definition, all values must be at least 1, so clip lower bound
+    sinuosity[ix] = (pg.length(geometries[ix]) / straight_line_distance).clip(1)
+
+    if isinstance(geometries, pd.Series):
+        return pd.Series(sinuosity, index=geometries.index)
+
+    return sinuosity
