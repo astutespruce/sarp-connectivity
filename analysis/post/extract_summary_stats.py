@@ -1,6 +1,6 @@
 """Summarize dams and small barriers by summary units (HUC6, HUC8, etc).
 
-This creates a summary CSV file for each type of summary unit, with a count of dams, 
+This creates a summary CSV file for each type of summary unit, with a count of dams,
 small barriers, and average gained miles for each summary unit.
 
 It also calculates high-level summary statistics for the summary region, which
@@ -65,20 +65,15 @@ print("Reading barriers")
 # dams = dams.loc[~dams.duplicate].copy()
 
 # For dams, we want only those that were not dropped or duplicates
-# this matches the ones coming out of the rankiknkg
+# this matches the ones coming out of the ranking
 # read in dams with network results
 dams = (
     read_dataframe(api_dir / "dams.feather")
     .set_index("id", drop=False)[["id", "HasNetwork", "GainMiles"] + SUMMARY_UNITS]
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
-# dams = dams.join(dams_network).rename(columns={"HasNetwork": "OnNetwork"})
 dams.OnNetwork = dams.OnNetwork.fillna(False)
-# dams["OffNetwork"] = ~dams.OnNetwork
 
-# dams = dams[
-#     ["id", "GainMiles", "OnNetwork", "OffNetwork", "Dropped"] + SUMMARY_UNITS
-# ].copy()
 
 # Read in ALL barriers and drop those that are duplicates
 barriers = read_dataframe(src_dir / "small_barriers.feather").set_index(

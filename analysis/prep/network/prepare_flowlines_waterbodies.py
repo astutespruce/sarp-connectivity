@@ -217,9 +217,9 @@ for region, HUC2s in list(REGION_GROUPS.items())[4:]:
 
     # Serialize to GIS files
     print("Serializing to GIS files")
-    to_gpkg(flowlines.reset_index(), "flowlines", crs=CRS)
-    to_gpkg(waterbodies.reset_index(), "waterbodies", crs=CRS)
-    to_gpkg(drains, "waterbody_drain_points", crs=CRS)
+    to_gpkg(flowlines.reset_index(), out_dir / "flowlines", crs=CRS)
+    to_gpkg(waterbodies.reset_index(), out_dir / "waterbodies", crs=CRS)
+    to_gpkg(drains, out_dir / "waterbody_drain_points", crs=CRS)
 
     print("Region done in {:.2f}s".format(time() - region_start))
 

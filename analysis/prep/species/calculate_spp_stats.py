@@ -5,7 +5,6 @@
 3. Read in aggregated species / HUC12 info
 4. Fix species name issues for select species
 5. Assign ECOS T & E in addition to those already present from states
-6. Extract out only T & E occurrences, and aggregate to number of T & E species per HUC12
 
 Beware: Some species have incorrect spellings!  Some have many variants of common name!
 
@@ -14,13 +13,14 @@ Beware: Some species have incorrect spellings!  Some have many variants of commo
 from pathlib import Path
 from time import time
 import pandas as pd
-from nhdnet.io import deserialize_df, serialize_df
+import geopandas as gp
+from nhdnet.io import serialize_df
 
 start = time()
 data_dir = Path("data")
 src_dir = data_dir / "species/source"
 out_dir = data_dir / "species/derived"
-qa_dir = data_dir / "species/qa"
+gdb = src_dir / "Final_Species_Table_12202019.gdb"
 
 ############### Extract USFWS official listing information ######################
 print("Reading T&E species list")
@@ -79,84 +79,49 @@ endangered_df = listed_df.loc[listed_df.official_status == "E"].SNAME.unique()
 threatened_df = listed_df.loc[listed_df.official_status == "T"].SNAME.unique()
 
 
-############## Extract species points ######################
-# Run aggregate_spp_occurrences.py first!
-print("Reading Species HUC12 data")
-df = deserialize_df(out_dir / "spp_HUC12_occurrence.feather")
-# df = pd.read_csv(out_dir / "species_HUC12.csv", dtype={"HUC12": str}).fillna(
-#     {"status": ""}
-# )
+### Extract occurrence table from SARP
 
-print("Cleaning and aggregating data")
-
-# Fix Atlantic sturgeon (Acipenser ox*); it has multiple variants of the wrong spelling
-# There are other species that have wrong spelling, but they aren't T&E, so we aren't fixing here
-index = df.SNAME.str.startswith("Acipenser oxyrhynchus")
-df.loc[index, "SNAME"] = df.loc[index].SNAME.str.replace("oxyrhynchus", "oxyrinchus")
-
-
-# Apply T & E status from official listing info
-# Always apply E status
-# Only apply T status if status is not E
-df.loc[df.SNAME.isin(threatened_df) & (df.status != "E"), "status"] = "T"
-df.loc[df.SNAME.isin(endangered_df), "status"] = "E"
-
-
-### Temporary: join official T&E status in and cross-check
-# To simplify the join, apply the highest listing to all occurrences, this is the most conservative
-# Flatten to single record for each species
-# listed_df = (
-#     listed_df.groupby(["SNAME", "official_status"])
-#     .size()
-#     .reset_index()
-#     .drop(columns=[0])
-#     .set_index(["SNAME"])
-# )
-# # Write out file for verification
-# df.join(listed_df, on="SNAME").fillna({"official_status": ""}).groupby(
-#     ["SNAME", "status", "official_status"]
-# ).size().reset_index().to_csv("data/src/tmp/spp_huc12_status.csv", index=False)
-
-
-# At this point, assume that all T&E status is current, and aggregate up to count of unique T & E species per HUC12
-# Then count unique species by HUC12
-count_df = (
-    df.loc[df.status.isin(["T", "E"])]
-    .groupby(["HUC12", "SNAME"])
-    .first()
-    .reset_index()
-    .groupby(["HUC12"])
-    .size()
-    .reset_index()
-    .rename(columns={0: "NumTEspp"})
+print("Reading species occurrence data...")
+df = gp.read_file(gdb)[
+    [
+        "HUC12_Code",
+        "Species_Name",
+        "Common_Name",
+        "Historical",
+        "Federal_Status",
+        "State_Status",
+        "SGCN_Listing",
+        "Regional_SGCN",
+        # "ConcernLevel",
+        # "Num_States",
+    ]
+].rename(
+    columns={
+        "HUC12_Code": "HUC12",
+        "Species_Name": "SNAME",
+        "Common_Name": "CNAME",
+        "Federal_Status": "federal",
+        "State_Status": "state",
+        "SGCN_Listing": "sgcn",
+        "Regional_SGCN": "regional",
+    }
 )
 
-# Save counts by HUC12 to join to barriers
-serialize_df(count_df, out_dir / "spp_HUC12.feather")
+# Some species have a bunch of duplicates
+df = df.drop_duplicates()
 
-## generate statistics of species and status
-species_stats_df = (
-    df.loc[df.status.isin(["T", "E"])]
-    # aggregate to unique species per HUC
-    .groupby(["HUC12", "status", "SNAME"])
-    .first()
-    .reset_index()
-    # aggregate count of HUCs per species
-    .groupby(["status", "SNAME"])
-    .size()
-    .reset_index()
-    .rename(columns={0: "CountHUC12"})
-)
+# Update to overcome taxonomic issues
+df.loc[df.federal.isnull() & df.SNAME.isin(endangered_df), "federal"] = "LE"
+df.loc[df.federal.isnull() & df.SNAME.isin(threatened_df), "federal"] = "LT"
 
-species_stats_df.to_csv(qa_dir / "species_stats.csv")
+df["te"] = False
+df.loc[df.federal.notnull(), "te"] = True
 
-status_stats_df = (
-    species_stats_df.groupby(["status"])
-    .size()
-    .reset_index()
-    .rename(columns={0: "CountSpp"})
-)
+df["other"] = False
+df.loc[(df.state.notnull() | df.sgcn.notnull() | df.regional.notnull()), "other"] = True
 
-status_stats_df.to_csv(qa_dir / "status_stats.csv")
+counts = df.groupby("HUC12").agg({"te": "sum", "other": "sum"}).astype("uint8")
+
+serialize_df(counts.reset_index(), out_dir / "spp_HUC12.feather")
 
 print("All done in {:.2}s".format(time() - start))

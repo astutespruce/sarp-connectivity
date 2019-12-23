@@ -168,7 +168,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
 
     others = types[~(is_point | is_line)].unique()
     # GeometryCollection indicates a mess, skip those
-    if others:
+    if len(others):
         print(
             "WARNING: Found other types of geometric intersection: {} (n={:,}), these will be dropped".format(
                 others, len(types[~(is_point | is_line)])
@@ -331,8 +331,6 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
                     .reset_index()
                     .rename(columns={"lineID": "origLineID", "iswithin": "waterbody"})
                 )
-                # new_lines["geometry"] = from_pygeos(new_lines.geometry)
-                # new_lines = gp.GeoDataFrame(new_lines, crs=flowlines.crs)
 
                 error = (
                     new_lines.groupby("origLineID").wbID.unique().apply(len).max() > 1
