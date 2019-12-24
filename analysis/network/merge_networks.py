@@ -11,12 +11,7 @@ import geopandas as gp
 from shapely.geometry import MultiLineString
 from geofeather import from_geofeather, to_geofeather
 
-from nhdnet.io import (
-    serialize_df,
-    deserialize_df,
-    to_shp,
-    deserialize_dfs,
-)
+from nhdnet.io import serialize_df, deserialize_df, deserialize_dfs, to_shp
 
 from analysis.constants import REGION_GROUPS, CRS, NETWORK_TYPES, CONNECTED_REGIONS
 from analysis.network.lib.stats import calculate_network_stats
@@ -25,14 +20,15 @@ data_dir = Path("data")
 
 start = time()
 
-network_type = NETWORK_TYPES[0]
+# VARY THIS between 0 and 2
+network_type = NETWORK_TYPES[1]
 print("Processing {}".format(network_type))
 
 ### Read in original joins to find the ones that cross regions
 print("Reading joins...")
 joins = deserialize_dfs(
     [
-        data_dir / "nhd/flowlines" / region / "flowline_joins.feather"
+        data_dir / "nhd/clean" / region / "flowline_joins.feather"
         for region in CONNECTED_REGIONS
     ],
     src=[region for region in CONNECTED_REGIONS],
@@ -144,6 +140,7 @@ cross_region_stats = cross_region.join(network_stats, on="downstream_network")[
 ### Update barrier joins for all regions
 print("------------------- Updating barrier networks -----------")
 for region in CONNECTED_REGIONS:
+    print("Processing {}...".format(region))
     out_dir = data_dir / "networks" / region / network_type
 
     ### Update barrier networks with the new IDs and stats
@@ -155,7 +152,7 @@ for region in CONNECTED_REGIONS:
     # because there are no barriers on the lower Mississippi River (downstream part of merged network).
     # (meaning, we don't have to update the upstream networks of any barriers, since there are none)
 
-    if region in cross_region.from_region:
+    if region in cross_region.from_region.values:
         # In one of the upstream regions, we need to update their downNetID and DownstreamMiles
         # join to the stats based on their original downstream networkID
         barrier_networks = barrier_networks.join(
@@ -181,9 +178,9 @@ for region in CONNECTED_REGIONS:
 
         # Get only the new downstream miles, and drop the multiple incoming records
         # since there is one per upstream_network
-        stats = cross_region_stats.set_index(
-            "downstream_network"
-        ).miles.drop_duplicates()
+        stats = cross_region_stats.set_index("downstream_network")[
+            ["miles", "free_miles"]
+        ].drop_duplicates()
         barrier_networks = barrier_networks.join(stats, on="downNetID")
         idx = barrier_networks.loc[barrier_networks.miles.notnull()].index
         barrier_networks.loc[idx, "FreeDownstreamMiles"] = barrier_networks.loc[
