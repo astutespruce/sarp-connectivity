@@ -36,7 +36,9 @@ def add_spatial_joins(df):
     priorities = (
         deserialize_df(boundaries_dir / "priorities.feather")
         .set_index("HUC8")
-        .rename(columns={"usfs": "USFS", "coa": "COA", "sebio": "SEBIO"})
+        .rename(columns={"usfs": "USFS", "coa": "COA"})
+        .drop(columns=["sebio"])
+        # TODO: , "sebio": "SEBIO"
     )
     df = df.join(priorities, on="HUC8")
     df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")

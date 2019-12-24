@@ -55,11 +55,12 @@ FILTER_FIELDS = [
     "SizeClasses",
     "GainMilesClass",
     "TESppClass",
+    "OtherSppClass",
     "StreamOrderClass",
     "OwnerType",
     "USFS",
     "COA",
-    "SEBIO",
+    # "SEBIO",
 ]
 
 DAM_FILTER_FIELDS = [
@@ -96,12 +97,13 @@ DAM_CORE_FIELDS = [
     "Recon",
     "Feasibility",
     "TESpp",
+    "OtherSpp",
     "OwnerType",
     "ProtectedLand",
     # Priority watersheds
     "USFS",
     "COA",
-    "SEBIO",
+    # "SEBIO",
     "Basin",
 ]
 
@@ -148,11 +150,12 @@ SB_CORE_FIELDS = [
     "PotentialProject",
     "SeverityClass",
     "TESpp",
+    "OtherSpp",
     "OwnerType",
     "ProtectedLand",
     # Priority watersheds
-    # "USFS",
-    # "COA",
+    "USFS",
+    "COA",
     # "SEBIO",
     "Basin",
 ]

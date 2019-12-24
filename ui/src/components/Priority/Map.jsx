@@ -645,10 +645,10 @@ const PriorityMap = ({
           options={[
             { id: 'usfs', label: 'USFS priority watersheds' },
             { id: 'coa', label: 'SARP conservation opportunity areas' },
-            {
-              id: 'sebio',
-              label: 'Southeast aquatic biodiversity hotspots',
-            },
+            // {
+            //   id: 'sebio',
+            //   label: 'Southeast aquatic biodiversity hotspots',
+            // },
           ]}
           onChange={handlePriorityLayerChange}
         />

@@ -141,8 +141,10 @@ const Scoring = () => {
               <OutboundLink to="https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution">
                 USGS High Resolution National Hydrography Dataset
               </OutboundLink>
-              &nbsp;(NHDPlus). Where possible, their locations were manually
-              inspected to verify their correct position on the aquatic network.
+              &nbsp;(NHDPlus), except in Puerto Rico, where they were snapped to
+              the USGS Medium Resolution version. Where possible, their
+              locations were manually inspected to verify their correct position
+              on the aquatic network.
               <br />
               <br />
             </p>

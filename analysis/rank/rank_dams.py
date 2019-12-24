@@ -59,22 +59,29 @@ df = (
             "index",
             "dup_group",
             "dup_count",
-            "snap_dist",
+            "dup_sort",
+            "dup_log" "snap_dist",
+            "snap_tolerance",
+            "snap_log",
             "snapped",
             "ProtectedLand",
+            "lineID",
+            "wbID",
+            "waterbody",
+            "src",
+            "kind",
+            "log",
         ],
         errors="ignore",
     )
-    .rename(
-        columns={
-            "SARPUniqueID": "SARPID"  # TODO: remove on next full run of download & analysis
-        }
-    )
+    .rename(columns={"streamorder": "StreamOrder"})
 )
 
 # drop any that should be DROPPED (dropped or duplicate) from the analysis
 # NOTE: excluded ones are retained but don't have networks
+# Also NOTE: ones on loops are retained but also don't have networks
 df = df.loc[~(df.dropped | df.duplicate)].copy()
+
 
 ### Read in network outputs and join to master
 print("Reading network outputs")
@@ -98,7 +105,7 @@ networks = (
 
 # Select out only dams because we are joining on "id"
 # which may have duplicates across barrier types
-networks = networks.loc[networks.kind == "dam"].copy()
+networks = networks.loc[networks.kind == "dam"].drop(columns=["kind"]).copy()
 
 # All barriers that came out of network analysis have networks
 networks["HasNetwork"] = True
@@ -107,15 +114,27 @@ networks["HasNetwork"] = True
 df = df.join(networks.set_index("id"))
 df.HasNetwork = df.HasNetwork.fillna(False)
 
+### Read and merge in Puerto Rico
+pr = from_geofeather(
+    barriers_dir / "pr_dams.feather", columns=list(df.columns) + ["id"]
+)
+pr = pr.loc[~pr.dropped].copy()
+pr["HasNetwork"] = True
+
+df = df.reset_index().append(pr, ignore_index=True, sort=False).set_index("id")
+
 
 print("Read {:,} dams ({:,} have networks)".format(len(df), len(df.loc[df.HasNetwork])))
 
 ### Join in T&E Spp stats
-spp_df = deserialize_df(data_dir / "species/derived/spp_HUC12.feather").set_index(
-    "HUC12"
+spp_df = (
+    deserialize_df(data_dir / "species/derived/spp_HUC12.feather")
+    .rename(columns={"te": "TESpp", "other": "OtherSpp"})
+    .set_index("HUC12")
 )
-df = df.join(spp_df.NumTEspp.rename("TESpp"), on="HUC12")
+df = df.join(spp_df, on="HUC12")
 df.TESpp = df.TESpp.fillna(0).astype("uint8")
+df.OtherSpp = df.OtherSpp.fillna(0).astype("uint8")
 
 
 ### Update network metrics and calculate classes

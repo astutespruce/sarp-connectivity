@@ -53,14 +53,14 @@ const priorityFilters = [
     help: '',
     ...getEntries(COA),
   },
-  {
-    field: 'sebio',
-    title: 'Southeast aquatic biodiversity hotspots',
-    sort: false,
-    hideEmpty: true,
-    help: '',
-    ...getEntries(SE_BIODIVERSITY),
-  },
+  // {
+  //   field: 'sebio',
+  //   title: 'Southeast aquatic biodiversity hotspots',
+  //   sort: false,
+  //   hideEmpty: true,
+  //   help: '',
+  //   ...getEntries(SE_BIODIVERSITY),
+  // },
 ]
 
 // Each filter needs to have a dimension above that matches the key here
@@ -93,10 +93,18 @@ const dams = [
   },
   {
     field: 'tesppclass',
-    title: 'Number of Threatened & Endangered Species',
+    title: 'Number of Federally-Listed Threatened & Endangered Species',
     hideEmpty: true,
     help:
-      'Note: This information is based on occurrences of one or more federally threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+      'Note: This information is based on occurrences of one or more federally- threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    ...getEntries(RARESPP),
+  },
+  {
+    field: 'othersppclass',
+    title: 'Number of State and Regional Species of Greatest Conservation Need',
+    hideEmpty: true,
+    help:
+      'Note: This information is based on occurrences of one or more state threatened or endangered aquatic species, other species of Greatest Conservation Need within the region, that occur within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
     ...getEntries(RARESPP),
   },
   {
@@ -185,10 +193,18 @@ const barriers = [
   },
   {
     field: 'tesppclass',
-    title: 'Number of Threatened and Endangered Species',
+    title: 'Number of Federally-Listed Threatened and Endangered Species',
     hideEmpty: true,
     help:
-      'Note: This information is based on occurrences of one or more federally threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+      'Note: This information is based on occurrences of one or more federally-listed threatened or endangered aquatic species within the same subwatershed as the barrier.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    ...getEntries(RARESPP),
+  },
+  {
+    field: 'othersppclass',
+    title: 'Number of State and Regional Species of Greatest Conservation Need',
+    hideEmpty: true,
+    help:
+      'Note: This information is based on occurrences of one or more state-listed threatened or endangered aquatic species, other species of Greatest Conservation Need within the region, that occur within the same subwatershed as the barrier.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
     ...getEntries(RARESPP),
   },
   {
@@ -200,7 +216,7 @@ const barriers = [
       'This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.',
     ...getEntries(OWNERTYPE),
   },
-  // ...priorityFilters // FIXME
+  ...priorityFilters,
 ]
 
 export const FILTERS = {

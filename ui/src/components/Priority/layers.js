@@ -357,8 +357,8 @@ export const priorityWatersheds = [
   usfsPriorityOutline,
   coaPriorityFill,
   coaPriorityOutline,
-  sebioPriorityFill,
-  sebioPriorityOutline,
+  // sebioPriorityFill,
+  // sebioPriorityOutline,
 ]
 
 export const priorityWatershedLegends = {

@@ -1,10 +1,12 @@
 from pathlib import Path
+import os
 from time import time
 
 import pandas as pd
 import geopandas as gp
 import numpy as np
 import pygeos as pg
+from shapely.geometry import MultiLineString
 
 from pgpkg import to_gpkg
 from geofeather import to_geofeather
@@ -12,7 +14,7 @@ from geofeather import to_geofeather
 from nhdnet.io import deserialize_df
 from nhdnet.geometry.points import to2D
 
-from analysis.pygeos_compat import to_pygeos
+from analysis.pygeos_compat import to_pygeos, from_pygeos
 from analysis.prep.network.lib.lines import calculate_sinuosity
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.constants import (
@@ -25,19 +27,6 @@ from analysis.constants import (
     RECON_TO_FEASIBILITY,
 )
 
-
-data_dir = Path("data")
-boundaries_dir = data_dir / "boundaries"
-nhd_dir = data_dir / "nhd"
-barriers_dir = data_dir / "barriers"
-src_dir = barriers_dir / "source"
-master_dir = barriers_dir / "master"
-snapped_dir = barriers_dir / "snapped"
-qa_dir = barriers_dir / "qa"
-gdb = src_dir / "PR_Dec2019.gdb"
-
-dams_layer = "Puerto_Inventory_Dec2019_Indicators"
-network_layer = "PR_Functional_River_Network"
 
 NET_COLS = ["batNetID", "StreamOrde", "geometry"]
 
@@ -61,6 +50,25 @@ DAM_COLS = [
     "USBatNetID",
     "DSBatNetID",
 ]
+
+
+data_dir = Path("data")
+boundaries_dir = data_dir / "boundaries"
+nhd_dir = data_dir / "nhd"
+barriers_dir = data_dir / "barriers"
+src_dir = barriers_dir / "source"
+master_dir = barriers_dir / "master"
+qa_dir = barriers_dir / "qa"
+network_dir = data_dir / "networks/21/dams"
+gdb = src_dir / "PR_Dec2019.gdb"
+
+dams_layer = "Puerto_Inventory_Dec2019_Indicators"
+network_layer = "PR_Functional_River_Network"
+
+
+if not os.path.exists(network_dir):
+    os.makedirs(network_dir)
+
 
 start = time()
 print("Reading Puerto Rico networks...")
@@ -137,6 +145,9 @@ df = gp.read_file(gdb, layer=dams_layer)[["geometry"] + DAM_COLS].rename(
 print("Read {:,} dams in Puerto Rico".format(len(df)))
 
 ### Standardize data
+# SARPID is a string in other places
+df["SARPID"] = df.SARPID.astype("str")
+
 
 # Calculate IDs so that they fall after existing dam IDs
 dams = deserialize_df(master_dir / "dams.feather", columns=["id"])
@@ -284,6 +295,47 @@ print(
 
 df = df.reset_index(drop=True)
 
+
+### Create final networks
+# derive other stats from those already in network data
+network_stats = (
+    network_stats.join(df[["upNetID", "natfldpln", "sizeclasses"]].set_index("upNetID"))
+    .join(df.groupby("downNetID").size().rename("up_ndams"))
+    .fillna(0)
+)
+
+
+dissolved = (
+    from_pygeos(networks.geometry).groupby(level=0).apply(list).apply(MultiLineString)
+)
+
+
+# approximate output data created by normal network analysis
+networks = network_stats.join(dissolved.rename("geometry"))
+networks["networkID"] = networks.index.copy()
+networks["networkID"] = networks.networkID.astype("uint32")
+networks["barrier"] = "dam"
+networks["segments"] = networks.segments.astype("uint16")
+
+for col in ["sizeclasses", "up_ndams"]:
+    networks[col] = networks[col].astype("uint8")
+
+for col in ["miles", "free_miles", "natfldpln"]:
+    networks[col] = networks[col].astype("float32")
+
+networks = gp.GeoDataFrame(networks, crs=CRS).reset_index(drop=True)
+
+
+barriers = df[["geometry", "id", "upNetID", "downNetID"]].reset_index(drop=True)
+barriers["kind"] = "dam"
+
+print("Serializing data...")
 to_geofeather(df, master_dir / "pr_dams.feather")
+to_geofeather(networks, network_dir / "network.feather")
+networks.to_file(network_dir / "network.shp")
+
+to_geofeather(barriers, network_dir / "barriers.feather")
+barriers.to_file(network_dir / "barriers.shp")
+
 
 print("All done in {:.2f}s".format(time() - start))

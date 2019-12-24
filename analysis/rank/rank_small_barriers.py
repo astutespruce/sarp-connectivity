@@ -59,12 +59,18 @@ df = (
             "index",
             "dup_group",
             "dup_count",
-            "snap_dist",
+            "dup_log" "snap_dist",
+            "snap_tolerance",
+            "snap_log",
             "snapped",
             "ProtectedLand",
+            "log",
+            "lineID",
+            "wbID",
         ],
         errors="ignore",
     )
+    .rename(columns={"streamorder": "StreamOrder"})
 )
 
 # drop any that should be DROPPED (dropped or duplicate) from the analysis
@@ -73,18 +79,18 @@ df = df.loc[~(df.dropped | df.duplicate)].copy()
 
 
 # TODO: remove on next run of prep_small_barriers.py
-df.loc[df.Stream.str.contains("\r\n", ""), "Stream"] = "Unnamed"
-df.Road = df.Road.str.replace("\r\n", "")
+# df.loc[df.Stream.str.contains("\r\n", ""), "Stream"] = "Unnamed"
+# df.Road = df.Road.str.replace("\r\n", "")
 
-df["Name"] = ""
+# df["Name"] = ""
 
-df.loc[
-    (~df.Stream.isin(["Unknown", "Unnamed", ""]))
-    & (~df.Road.isin(["Unknown", "Unnamed", ""])),
-    "Name",
-] = (df.Stream + " / " + df.Road)
+# df.loc[
+#     (~df.Stream.isin(["Unknown", "Unnamed", ""]))
+#     & (~df.Road.isin(["Unknown", "Unnamed", ""])),
+#     "Name",
+# ] = (df.Stream + " / " + df.Road)
 
-df.Name = df.Name.fillna("")
+# df.Name = df.Name.fillna("")
 
 
 ### Read in network outputs and join to master
@@ -126,12 +132,14 @@ print(
 )
 
 ### Join in T&E Spp stats
-spp_df = deserialize_df(data_dir / "species/derived/spp_HUC12.feather").set_index(
-    "HUC12"
+spp_df = (
+    deserialize_df(data_dir / "species/derived/spp_HUC12.feather")
+    .rename(columns={"te": "TESpp", "other": "OtherSpp"})
+    .set_index("HUC12")
 )
-df = df.join(spp_df.NumTEspp.rename("TESpp"), on="HUC12")
+df = df.join(spp_df, on="HUC12")
 df.TESpp = df.TESpp.fillna(0).astype("uint8")
-
+df.OtherSpp = df.OtherSpp.fillna(0).astype("uint8")
 
 ### Update network metrics and calculate classes
 df = update_network_metrics(df)
@@ -210,8 +218,10 @@ road_crossings = from_geofeather(barriers_dir / "road_crossings.feather").rename
 
 
 # bring in TESpp
-road_crossings = road_crossings.join(spp_df.NumTEspp.rename("TESpp"), on="HUC12")
+road_crossings = road_crossings.join(spp_df, on="HUC12")
 road_crossings.TESpp = road_crossings.TESpp.fillna(0).astype("uint8")
+road_crossings.OtherSpp = road_crossings.OtherSpp.fillna(0).astype("uint8")
+
 
 # Standardize other fields before merge
 road_crossings["Source"] = "USGS"

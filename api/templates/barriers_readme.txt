@@ -49,7 +49,8 @@ Condition: condition of the barrier as of last assessment, if known.  Note: asse
 PotentialProject: reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.
 SeverityClass: potential severity of barrier, based on reconnaissance.
 
-TESpp: number of federally threatened or endangered aquatic species within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
+TESpp: number of federally-listed threatened or endangered aquatic species within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
+OtherSpp: Number of state-listed threatened or endangered, or other species of Greatest Conservation Need, within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
 OwnerType: Land ownership type.  This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.
 ProtectedLand: Indicates if the dam occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.
 

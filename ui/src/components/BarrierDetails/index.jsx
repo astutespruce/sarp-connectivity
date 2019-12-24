@@ -45,6 +45,7 @@ const Subtitle = styled(Text).attrs({ fontSize: '1rem' })``
 const Tabs = styled(BaseTabs)`
   flex: 1 1 auto;
   height: 100%;
+  overflow: hidden;
 
   ${ActiveButton} {
     border: none;

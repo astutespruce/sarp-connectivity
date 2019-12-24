@@ -1,6 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
+import { HelpText } from 'components/Text'
+
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 import { Section, SectionHeader, List } from './styles'
@@ -34,6 +36,7 @@ const DamDetails = ({
   river,
   basin,
   tespp,
+  otherspp,
   recon,
   ownertype,
   usfs,
@@ -48,14 +51,6 @@ const DamDetails = ({
   landcover,
   sizeclasses,
 }) => {
-  // network lengths in waterbodies
-  const upstreamWBmiles = hasnetwork
-    ? totalupstreammiles - freeupstreammiles
-    : 0
-  const downstreamWBmiles = hasnetwork
-    ? totaldownstreammiles - freedownstreammiles
-    : 0
-
   return (
     <div>
       <Section>
@@ -113,19 +108,17 @@ const DamDetails = ({
                   )}{' '}
                   miles
                 </b>{' '}
-                could be gained by removing this barrier, based on:
+                could be gained by removing this barrier.
                 <List style={{ marginTop: '0.5rem' }}>
                   <li>
-                    <b>{formatNumber(totalupstreammiles)} total miles</b> in the
-                    upstream network
-                    {upstreamWBmiles > 0 && (
-                      <>
-                        {' '}
-                        <i>including</i> {formatNumber(upstreamWBmiles)} miles
-                        in reservoirs and waterbodies
-                      </>
-                    )}
-                    .
+                    {formatNumber(freeupstreammiles)} free-flowing miles
+                    upstream
+                    <ul>
+                      <li>
+                        <b>{formatNumber(totalupstreammiles)} total miles</b> in
+                        the upstream network
+                      </li>
+                    </ul>
                   </li>
 
                   <li>
@@ -133,14 +126,12 @@ const DamDetails = ({
                       {formatNumber(freedownstreammiles)} free-flowing miles
                     </b>{' '}
                     in the downstream network
-                    {downstreamWBmiles > 0 && (
-                      <>
-                        {' '}
-                        <i>plus</i> {formatNumber(downstreamWBmiles)} miles in
-                        reservoirs and waterbodies
-                      </>
-                    )}
-                    .
+                    <ul>
+                      <li>
+                        {formatNumber(totaldownstreammiles)} total miles in the
+                        downstream network
+                      </li>
+                    </ul>
                   </li>
                 </List>
               </li>
@@ -159,7 +150,7 @@ const DamDetails = ({
               </li>
             </>
           ) : (
-            <li className="has-text-grey">
+            <li>
               This barrier is off-network and has no functional network
               information.
             </li>
@@ -173,20 +164,41 @@ const DamDetails = ({
           {tespp > 0 ? (
             <>
               <li>
-                <b>{tespp}</b> threatened and endangered aquatic species have
-                been found in the subwatershed containing this barrier.
-              </li>
-              <li className="has-text-grey is-size-7">
-                Note: species information is very incomplete. These species may
-                or may not be directly impacted by this barrier.
+                <b>{tespp}</b> federally-listed threatened and endangered
+                aquatic species have been found in the subwatershed containing
+                this barrier.
               </li>
             </>
           ) : (
-            <li className="has-text-grey">
-              No threatened and endangered aquatic species have been identified
-              by available data sources for this subwatershed.
+            <li>
+              No federally-listed threatened and endangered aquatic species have
+              been identified by available data sources for this subwatershed.
             </li>
           )}
+
+          {otherspp > 0 ? (
+            <>
+              <li>
+                <b>{otherspp}</b> state and regional aquatic species of greatest
+                conservation need have been found in the subwatershed containing
+                this barrier. These may include state-listed threatened and
+                endangered species.
+              </li>
+            </>
+          ) : (
+            <li>
+              No state and regional aquatic species of greatest conservation
+              need have been identified by available data sources for this
+              subwatershed.
+            </li>
+          )}
+
+          {tespp + otherspp > 0 ? (
+            <HelpText mt="1rem" fontSize="smaller">
+              Note: species information is very incomplete. These species may or
+              may not be directly impacted by this barrier.
+            </HelpText>
+          ) : null}
         </List>
       </Section>
 
@@ -196,9 +208,7 @@ const DamDetails = ({
           {recon !== null ? (
             <li>{RECON[recon]}</li>
           ) : (
-            <li className="has-text-grey">
-              No feasibility information is available for this barrier.
-            </li>
+            <li>No feasibility information is available for this barrier.</li>
           )}
 
           {/* watershed priorities */}
@@ -254,6 +264,7 @@ DamDetails.propTypes = {
   purpose: PropTypes.number,
   condition: PropTypes.number,
   tespp: PropTypes.number,
+  otherspp: PropTypes.number,
   recon: PropTypes.number,
   ownertype: PropTypes.number,
   usfs: PropTypes.number,
@@ -278,6 +289,7 @@ DamDetails.defaultProps = {
   purpose: 0,
   condition: 0,
   tespp: 0,
+  otherspp: 0,
   recon: 0,
   ownertype: null,
   usfs: 0,
