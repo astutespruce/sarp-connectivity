@@ -39,11 +39,13 @@ const sizeclassValues = [0, 1, 2, 3, 4, 5, 6, 7]
 const priorityFilters = [
   {
     field: 'usfs',
-    title: 'USFS watershed priority',
+    title: 'USFS priority watersheds',
     sort: false,
     hideEmpty: true,
-    help: '',
+    help:
+      'These include TNC critical watersheds, TNC hotspots, watersheds containing USFWS Critical Habitat, SARP priority watersheds, watersheds containing aquatic passage inventories, and EPA priority watersheds.',
     ...getEntries(USFS_PRIORITY),
+    url: '/priorities/usfs',
   },
   {
     field: 'coa',
@@ -145,7 +147,7 @@ const dams = [
     sort: true,
     hideEmpty: true,
     help:
-      'This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.',
+      'This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: this does not include most private land.',
     ...getEntries(OWNERTYPE),
   },
   ...priorityFilters,

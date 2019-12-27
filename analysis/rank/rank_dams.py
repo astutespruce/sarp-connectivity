@@ -117,7 +117,7 @@ df.HasNetwork = df.HasNetwork.fillna(False)
 ### Read and merge in Puerto Rico
 pr = from_geofeather(
     barriers_dir / "pr_dams.feather", columns=list(df.columns) + ["id"]
-)
+).rename(columns={"streamorder": "StreamOrder", "sizeclasses": "SizeClasses"})
 pr = pr.loc[~pr.dropped].copy()
 pr["HasNetwork"] = True
 
@@ -173,7 +173,7 @@ serialize_df(df[DAM_API_FIELDS].reset_index(), api_dir / "dams.feather")
 # Drop fields that can be calculated on frontend
 keep_fields = [
     c for c in DAM_API_FIELDS if not c in {"GainMiles", "TotalNetworkMiles"}
-] + ["SinuosityClass"]
+] + ["SinuosityClass", 'upNetID', 'downNetID']
 df = df[keep_fields].copy()
 
 

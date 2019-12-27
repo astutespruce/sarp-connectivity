@@ -37,6 +37,7 @@ DAM_COLS = [
     "Barrier_Name",
     "Other_Barrier_Name",
     "River",
+    "StreamOrde",
     "PurposeCategory",
     "Year_Completed",
     "Height",

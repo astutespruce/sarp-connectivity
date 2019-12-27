@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { FaTimesCircle, FaCaretDown, FaCaretRight } from 'react-icons/fa'
 
+import { OutboundLink } from 'components/Link'
 import { HelpText } from 'components/Text'
 import { useCrossfilter } from 'components/Crossfilter'
 import { Flex, Box } from 'components/Grid'
@@ -67,6 +68,7 @@ const Filter = ({
   values,
   labels,
   help,
+  url,
   isOpen: initIsOpen,
   hideEmpty,
   sort,
@@ -167,7 +169,19 @@ const Filter = ({
                 onToggleFilter={handleFilterToggle}
               />
 
-              {help && <HelpText fontSize='0.8rem'>{help}</HelpText>}
+              {help && (
+                <HelpText fontSize="0.8rem">
+                  {help}
+                  {url && (
+                    <>
+                      <br />
+                      <OutboundLink to={url} target="_blank">
+                        Read more.
+                      </OutboundLink>
+                    </>
+                  )}
+                </HelpText>
+              )}
             </Container>
           ) : (
             <EmptyMessage>No data available</EmptyMessage>
@@ -184,6 +198,7 @@ Filter.propTypes = {
   values: PropTypes.array.isRequired,
   labels: PropTypes.array,
   help: PropTypes.string,
+  url: PropTypes.string,
   isOpen: PropTypes.bool,
   hideEmpty: PropTypes.bool,
   sort: PropTypes.bool,
@@ -192,6 +207,7 @@ Filter.propTypes = {
 Filter.defaultProps = {
   labels: null,
   help: null,
+  url: null,
   isOpen: false,
   hideEmpty: false,
   sort: false,

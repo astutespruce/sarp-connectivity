@@ -8,8 +8,7 @@ OUTDIR="tiles"
 
 BARRIER_TYPE="dams"
 
-# '02'
-for region in '03' '05_06' '07_10' '08_11' '12' '13' '21'
+for region in '02' '03' '05_06' '07_10' '08_11' '12' '13' '21'
 do
     echo "Processing ${region}"
 
@@ -18,7 +17,7 @@ do
     ogr2ogr -t_srs EPSG:4326 -f GeoJSONSeq -sql "SELECT networkID from network" $TMPDIR/network.json $NETWORKDIR/$region/$BARRIER_TYPE/network.shp
 
     echo "Creating tiles"
-    tippecanoe -f -Z 9 -z 16 -l networks --use-attribute-for-id="networkID" -P -o $WORKDIR/networks$region.mbtiles $TMPDIR/network.json
+    tippecanoe -f -Z 9 -z 16 -l networks -P -pg -o $WORKDIR/networks$region.mbtiles $TMPDIR/network.json
     rm $TMPDIR/network.json
 
     echo "Done processing region"
@@ -27,7 +26,7 @@ do
 done
 
 echo "Merging regions to create final tileset"
-tile-join -f $OUTDIR/networks.mbtiles \
+tile-join -f -o $OUTDIR/networks.mbtiles \
     $WORKDIR/networks02.mbtiles \
     $WORKDIR/networks03.mbtiles \
     $WORKDIR/networks05_06.mbtiles \
