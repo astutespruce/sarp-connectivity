@@ -17,6 +17,8 @@ import {
 import { COLORS } from './config'
 import {
   layers,
+  flowlinesLayer,
+  networkHighlightLayer,
   pointLayer,
   backgroundPointLayer,
   pointHighlightLayer,
@@ -138,6 +140,9 @@ const SummaryMap = ({
       }
     )
 
+    map.addLayer(flowlinesLayer)
+    map.addLayer(networkHighlightLayer)
+
     // Add point layers
     barrierTypes.forEach(t => {
       map.addLayer({
@@ -252,17 +257,25 @@ const SummaryMap = ({
 
     // setting to empty feature collection effectively hides this layer
     let data = emptyFeatureCollection
+    let networkID = Infinity
 
     if (selectedBarrier) {
-      const { lat, lon } = selectedBarrier
+      const { lat, lon, upnetid = Infinity } = selectedBarrier
       data = {
         type: 'Point',
         coordinates: [lon, lat],
       }
+
+      // highlight upstream network
+      if (barrierType === 'dams') {
+        networkID = upnetid
+      }
     }
 
+    map.setFilter('dams_network', ['==', 'networkID', networkID])
+
     map.getSource(id).setData(data)
-  }, [selectedBarrier])
+  }, [selectedBarrier, barrierType])
 
   useEffect(() => {
     const { current: map } = mapRef

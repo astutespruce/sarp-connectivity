@@ -228,6 +228,45 @@ export const layers = [
   },
 ]
 
+export const flowlinesLayer = {
+  id: 'flowlines',
+  source: 'dams_network',
+  'source-layer': 'networks',
+  minzoom: 11,
+  type: 'line',
+  paint: {
+    'line-opacity': {
+      base: 0,
+      stops: [[11, 0], [12, 0.1], [14, 0.5], [16, 1]],
+    },
+    'line-width': {
+      base: 0.1,
+      stops: [[11, 0], [12, 0.1], [14, 0.25], [15, 0.5], [16, 1], [17, 1.5]],
+    },
+    'line-color': '#1891ac',
+  },
+}
+
+export const networkHighlightLayer = {
+  id: 'dams_network',
+  source: 'dams_network',
+  'source-layer': 'networks',
+  minzoom: 10,
+  type: 'line',
+  filter: ['==', 'networkID', Infinity],
+  paint: {
+    'line-opacity': {
+      base: 0,
+      stops: [[11, 0.1], [12, 0.1], [14, 0.5], [16, 1]],
+    },
+    'line-width': {
+      base: 0.1,
+      stops: [[10, 0], [12, 0.5], [14, 2], [15, 3], [16, 4]],
+    },
+    'line-color': '#fd8d3c',
+  },
+}
+
 // points filtered IN with networks
 export const pointLayer = {
   // id: '' // provided by specific layer

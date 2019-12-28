@@ -28,6 +28,12 @@ export const sources = {
     minzoom: 5,
     maxzoom: 12,
   },
+  dams_network: {
+    type: 'vector',
+    tiles: [`${tileHost}/services/networks/tiles/{z}/{x}/{y}.pbf`],
+    minzoom: 9,
+    maxzoom: 16,
+  },
 }
 
 export const basemapLayers = {

@@ -113,6 +113,8 @@ networks["HasNetwork"] = True
 ### Join in networks and fill N/A
 df = df.join(networks.set_index("id"))
 df.HasNetwork = df.HasNetwork.fillna(False)
+df.upNetID = df.upNetID.fillna(-1).astype('int')
+df.downNetID = df.downNetID.fillna(-1).astype('int')
 
 ### Read and merge in Puerto Rico
 pr = from_geofeather(

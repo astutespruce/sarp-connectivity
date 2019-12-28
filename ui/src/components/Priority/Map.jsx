@@ -18,6 +18,8 @@ import {
   maskOutline,
   unitLayers,
   unitHighlightLayers,
+  flowlinesLayer,
+  networkHighlightLayer,
   parentOutline,
   pointHighlight,
   backgroundPoint,
@@ -95,6 +97,11 @@ const PriorityMap = ({
       map.addLayer(maskFill)
       map.addLayer(maskOutline)
 
+      // Add flowlines and network highlight layers
+      map.addLayer(flowlinesLayer)
+      map.addLayer(networkHighlightLayer)
+
+      // Add summary unit layers
       Object.entries(unitLayerConfig).forEach(
         ([layer, { minzoom = 0, maxzoom = 24, parent }]) => {
           const config = {
@@ -365,14 +372,22 @@ const PriorityMap = ({
 
     // setting to empty feature collection effectively hides this layer
     let data = emptyFeatureCollection
+    let networkID = Infinity
 
     if (selectedBarrier) {
-      const { lat, lon } = selectedBarrier
+      const { lat, lon, upnetid = Infinity } = selectedBarrier
       data = {
         type: 'Point',
         coordinates: [lon, lat],
       }
+
+      // highlight upstream network
+      if (barrierType === 'dams') {
+        networkID = upnetid
+      }
     }
+
+    map.setFilter('dams_network', ['==', 'networkID', networkID])
 
     map.getSource(id).setData(data)
   }, [selectedBarrier])
