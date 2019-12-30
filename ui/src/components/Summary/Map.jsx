@@ -17,8 +17,7 @@ import {
 import { COLORS } from './config'
 import {
   layers,
-  flowlinesLayer,
-  networkHighlightLayer,
+  networkLayers,
   pointLayer,
   backgroundPointLayer,
   pointHighlightLayer,
@@ -74,7 +73,6 @@ const SummaryMap = ({
           'source-layer': id,
           minzoom,
           maxzoom,
-          // filter: ['>', barrierType, 0],
         }
 
         // add fill layer
@@ -140,8 +138,10 @@ const SummaryMap = ({
       }
     )
 
-    map.addLayer(flowlinesLayer)
-    map.addLayer(networkHighlightLayer)
+    // Add network layers
+    networkLayers.forEach(layer => {
+      map.addLayer(layer)
+    })
 
     // Add point layers
     barrierTypes.forEach(t => {
@@ -245,6 +245,8 @@ const SummaryMap = ({
       const visibility = barrierType === t ? 'visible' : 'none'
       map.setLayoutProperty(t, 'visibility', visibility)
       map.setLayoutProperty(`${t}-background`, 'visibility', visibility)
+      map.setLayoutProperty(`${t}_network`, 'visibility', visibility)
+      map.setFilter(`${t}_network`, ['==', 'networkID', Infinity])
     })
   }, [barrierType])
 
@@ -267,12 +269,10 @@ const SummaryMap = ({
       }
 
       // highlight upstream network
-      if (barrierType === 'dams') {
-        networkID = upnetid
-      }
+      networkID = upnetid
     }
 
-    map.setFilter('dams_network', ['==', 'networkID', networkID])
+    map.setFilter(`${barrierType}_network`, ['==', 'networkID', networkID])
 
     map.getSource(id).setData(data)
   }, [selectedBarrier, barrierType])

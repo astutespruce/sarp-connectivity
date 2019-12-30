@@ -99,7 +99,10 @@ const PriorityMap = ({
 
       // Add flowlines and network highlight layers
       map.addLayer(flowlinesLayer)
-      map.addLayer(networkHighlightLayer)
+      map.addLayer({
+        ...networkHighlightLayer,
+        source: `${barrierType}_network`,
+      })
 
       // Add summary unit layers
       Object.entries(unitLayerConfig).forEach(
@@ -381,13 +384,11 @@ const PriorityMap = ({
         coordinates: [lon, lat],
       }
 
-      // highlight upstream network
-      if (barrierType === 'dams') {
-        networkID = upnetid
-      }
+      networkID = upnetid
     }
 
-    map.setFilter('dams_network', ['==', 'networkID', networkID])
+    // highlight upstream network if set otherwise clear it
+    map.setFilter('networks', ['==', 'networkID', networkID])
 
     map.getSource(id).setData(data)
   }, [selectedBarrier])

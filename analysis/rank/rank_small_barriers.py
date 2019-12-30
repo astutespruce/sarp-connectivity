@@ -184,7 +184,7 @@ serialize_df(df[SB_API_FIELDS].reset_index(), api_dir / "small_barriers.feather"
 # Drop fields that can be calculated on frontend
 keep_fields = [
     c for c in SB_API_FIELDS if not c in {"GainMiles", "TotalNetworkMiles"}
-] + ["SinuosityClass"]
+] + ["SinuosityClass", "upNetID", "downNetID"]
 df = df[keep_fields].copy()
 
 ### Export data for use in tippecanoe to generate vector tiles

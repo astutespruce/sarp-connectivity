@@ -143,8 +143,8 @@ export const flowlinesLayer = {
 }
 
 export const networkHighlightLayer = {
-  id: 'dams_network',
-  source: 'dams_network',
+  id: 'networks',
+  // source: '', // set dynamically when map loads based on barrierType
   'source-layer': 'networks',
   minzoom: 9,
   type: 'line',

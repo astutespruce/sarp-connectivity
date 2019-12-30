@@ -20,7 +20,7 @@ start = time()
 data_dir = Path("data")
 src_dir = data_dir / "species/source"
 out_dir = data_dir / "species/derived"
-gdb = src_dir / "Final_Species_Table_12202019.gdb"
+gdb = src_dir / "Final_Species_Table_12302019.gdb"
 
 ############### Extract USFWS official listing information ######################
 print("Reading T&E species list")
@@ -114,14 +114,16 @@ df = df.drop_duplicates()
 df.loc[df.federal.isnull() & df.SNAME.isin(endangered_df), "federal"] = "LE"
 df.loc[df.federal.isnull() & df.SNAME.isin(threatened_df), "federal"] = "LT"
 
-df["te"] = False
-df.loc[df.federal.notnull(), "te"] = True
 
-df["other"] = False
-df.loc[(df.state.notnull() | df.sgcn.notnull() | df.regional.notnull()), "other"] = True
+# Convert to bool
+for col in ["federal", "state", "sgcn", "regional"]:
+    df[col] = df[col].notnull()
 
-counts = df.groupby("HUC12").agg({"te": "sum", "other": "sum"}).astype("uint8")
 
-serialize_df(counts.reset_index(), out_dir / "spp_HUC12.feather")
+counts = df.groupby("HUC12").sum().astype("uint8").reset_index()
+
+serialize_df(counts, out_dir / "spp_HUC12.feather")
+counts.to_csv(out_dir / "spp_HUC12.csv")
+
 
 print("All done in {:.2}s".format(time() - start))

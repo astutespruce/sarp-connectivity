@@ -247,9 +247,7 @@ export const flowlinesLayer = {
   },
 }
 
-export const networkHighlightLayer = {
-  id: 'dams_network',
-  source: 'dams_network',
+const networkHighlightStyle = {
   'source-layer': 'networks',
   minzoom: 10,
   type: 'line',
@@ -266,6 +264,34 @@ export const networkHighlightLayer = {
     'line-color': '#fd8d3c',
   },
 }
+
+export const flowlineLegend = {}
+
+const damNetworksHighlightLayer = {
+  ...networkHighlightStyle,
+  id: 'dams_network',
+  source: 'dams_network',
+  // visible by default
+  layout: {
+    visibility: 'visible',
+  },
+}
+
+const barrierNetworksHighlightLayer = {
+  ...networkHighlightStyle,
+  id: 'barriers_network',
+  source: 'barriers_network',
+  // hidden by default
+  layout: {
+    visibility: 'none',
+  },
+}
+
+export const networkLayers = [
+  flowlinesLayer,
+  damNetworksHighlightLayer,
+  barrierNetworksHighlightLayer,
+]
 
 // points filtered IN with networks
 export const pointLayer = {

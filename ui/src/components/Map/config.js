@@ -30,7 +30,15 @@ export const sources = {
   },
   dams_network: {
     type: 'vector',
-    tiles: [`${tileHost}/services/networks/tiles/{z}/{x}/{y}.pbf`],
+    tiles: [`${tileHost}/services/dam_networks/tiles/{z}/{x}/{y}.pbf`],
+    minzoom: 9,
+    maxzoom: 16,
+  },
+  barriers_network: {
+    type: 'vector',
+    tiles: [
+      `${tileHost}/services/small_barrier_networks/tiles/{z}/{x}/{y}.pbf`,
+    ],
     minzoom: 9,
     maxzoom: 16,
   },
