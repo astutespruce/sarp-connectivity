@@ -259,7 +259,7 @@ export const damsSecondaryLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': '#fec44f',
-    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4]] },
+    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4], [16, 6]] },
     'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
     'circle-stroke-color': '#FFFFFF',
     'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 2]] },
@@ -274,8 +274,8 @@ export const waterfallsLayer = {
   minzoom: 10,
   maxzoom: 24,
   paint: {
-    'circle-color': '#253b6e',
-    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4]] },
+    'circle-color': '#2ca25f',
+    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4], [16, 6]] },
     'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
     'circle-stroke-color': '#FFFFFF',
     'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 2]] },

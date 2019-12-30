@@ -192,10 +192,13 @@ const SummaryMap = ({
     pointLayers.forEach(id => {
       map.on('mouseenter', id, ({ features: [feature] }) => {
         map.getCanvas().style.cursor = 'pointer'
+        const prefix = feature.source === 'waterfalls' ? 'Waterfall: ' : ''
         const { name } = feature.properties
         tooltip
           .setLngLat(feature.geometry.coordinates)
-          .setHTML(`<b>${!isEmptyString(name) ? name : 'Unknown name'}</b>`)
+          .setHTML(
+            `<b>${prefix}${!isEmptyString(name) ? name : 'Unknown name'}</b>`
+          )
           .addTo(map)
       })
       map.on('mouseleave', id, () => {

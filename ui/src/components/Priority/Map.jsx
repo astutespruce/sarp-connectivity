@@ -274,15 +274,21 @@ const PriorityMap = ({
         damsSecondaryLayer.id,
         excludedPoint.id,
         includedPoint.id,
+        lowerRank.id,
+        topRank.id,
+        'waterfalls',
       ]
 
       pointLayers.forEach(id => {
         map.on('mouseenter', id, ({ features: [feature] }) => {
           map.getCanvas().style.cursor = 'pointer'
+          const prefix = feature.source === 'waterfalls' ? 'Waterfall: ' : ''
           const { name } = feature.properties
           tooltip
             .setLngLat(feature.geometry.coordinates)
-            .setHTML(`<b>${!isEmptyString(name) ? name : 'Unknown name'}</b>`)
+            .setHTML(
+              `<b>${prefix}${!isEmptyString(name) ? name : 'Unknown name'}</b>`
+            )
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
@@ -615,6 +621,17 @@ const PriorityMap = ({
           ...backgroundLegend,
           label: `${barrierType} not available for analysis`,
         })
+        // only show secondary dams & waterfalls at same time as background points
+        if (barrierType === 'barriers') {
+          circles.push({
+            ...damsSecondary,
+            label: 'dams analyzed for impacts to aquatic connectivity',
+          })
+        }
+        circles.push({
+          ...waterfalls,
+          label: 'waterfalls',
+        })
       }
     }
 
@@ -649,6 +666,18 @@ const PriorityMap = ({
         circles.push({
           ...backgroundLegend,
           label: `${barrierType} not included in analysis`,
+        })
+
+        // only show secondary dams & waterfalls at same time as background points
+        if (barrierType === 'barriers') {
+          circles.push({
+            ...damsSecondary,
+            label: 'dams analyzed for impacts to aquatic connectivity',
+          })
+        }
+        circles.push({
+          ...waterfalls,
+          label: 'waterfalls',
         })
       }
     } else {
