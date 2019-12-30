@@ -7,6 +7,7 @@ import React, {
   useMemo,
 } from 'react'
 import PropTypes from 'prop-types'
+import mapboxgl from 'mapbox-gl'
 
 import {
   Map,
@@ -14,10 +15,13 @@ import {
   interpolateExpr,
   SearchFeaturePropType,
 } from 'components/Map'
+import { isEmptyString } from 'util/string'
 import { COLORS } from './config'
 import {
   layers,
   networkLayers,
+  waterfallsLayer,
+  damsSecondaryLayer,
   pointLayer,
   backgroundPointLayer,
   pointHighlightLayer,
@@ -143,7 +147,10 @@ const SummaryMap = ({
       map.addLayer(layer)
     })
 
-    // Add point layers
+    // Add barrier point layers
+    map.addLayer(waterfallsLayer)
+    map.addLayer(damsSecondaryLayer)
+
     barrierTypes.forEach(t => {
       map.addLayer({
         id: t,
@@ -168,10 +175,34 @@ const SummaryMap = ({
     // Add barrier highlight layer.
     map.addLayer(pointHighlightLayer)
 
-    const clickLayers = barrierTypes
+    const pointLayers = barrierTypes
       .map(t => t)
       .concat(barrierTypes.map(t => `${t}-background`))
-      .concat(layers.map(({ id }) => `${id}-fill`))
+      .concat(['dams-secondary'])
+
+    const clickLayers = pointLayers.concat(layers.map(({ id }) => `${id}-fill`))
+
+    // add hover and tooltip to point layers
+    const tooltip = new mapboxgl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      anchor: 'left',
+      offset: 20,
+    })
+    pointLayers.forEach(id => {
+      map.on('mouseenter', id, ({ features: [feature] }) => {
+        map.getCanvas().style.cursor = 'pointer'
+        const { name } = feature.properties
+        tooltip
+          .setLngLat(feature.geometry.coordinates)
+          .setHTML(`<b>${!isEmptyString(name) ? name : 'Unknown name'}</b>`)
+          .addTo(map)
+      })
+      map.on('mouseleave', id, () => {
+        map.getCanvas().style.cursor = ''
+        tooltip.remove()
+      })
+    })
 
     map.on('click', ({ point }) => {
       const [feature] = map.queryRenderedFeatures(point, {
@@ -198,6 +229,7 @@ const SummaryMap = ({
         // dam or barrier
         onSelectBarrier({
           ...properties,
+          barrierType: source,
           lat,
           lon,
           hasnetwork: sourceLayer !== 'background',
@@ -245,9 +277,17 @@ const SummaryMap = ({
       const visibility = barrierType === t ? 'visible' : 'none'
       map.setLayoutProperty(t, 'visibility', visibility)
       map.setLayoutProperty(`${t}-background`, 'visibility', visibility)
+      map.setLayoutProperty(`${t}-hover`, 'visibility', visibility)
+      map.setLayoutProperty(`${t}-background-hover`, 'visibility', visibility)
       map.setLayoutProperty(`${t}_network`, 'visibility', visibility)
       map.setFilter(`${t}_network`, ['==', 'networkID', Infinity])
     })
+
+    map.setLayoutProperty(
+      'dams-secondary',
+      'visibility',
+      barrierType === 'barriers' ? 'visible' : 'none'
+    )
   }, [barrierType])
 
   useEffect(() => {
@@ -370,7 +410,7 @@ const SummaryMap = ({
 
     const circles = []
     if (map && map.getZoom() >= 12) {
-      const { primary, background } = pointLegends
+      const { primary, background, damsSecondary, waterfalls } = pointLegends
       circles.push({
         ...primary,
         label: `${barrierType} analyzed for impacts to aquatic connectivity`,
@@ -379,6 +419,18 @@ const SummaryMap = ({
       circles.push({
         ...background,
         label: `${barrierType} not analyzed`,
+      })
+
+      if (barrierType === 'barriers') {
+        circles.push({
+          ...damsSecondary,
+          label: 'dams analyzed for impacts to aquatic connectivity',
+        })
+      }
+
+      circles.push({
+        ...waterfalls,
+        label: 'waterfalls',
       })
     }
 

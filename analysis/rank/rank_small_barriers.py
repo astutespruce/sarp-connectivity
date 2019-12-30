@@ -59,7 +59,8 @@ df = (
             "index",
             "dup_group",
             "dup_count",
-            "dup_log" "snap_dist",
+            "dup_log",
+             "snap_dist",
             "snap_tolerance",
             "snap_log",
             "snapped",
@@ -76,22 +77,6 @@ df = (
 # drop any that should be DROPPED (dropped or duplicate) from the analysis
 # NOTE: excluded ones are retained but don't have networks
 df = df.loc[~(df.dropped | df.duplicate)].copy()
-
-
-# TODO: remove on next run of prep_small_barriers.py
-# df.loc[df.Stream.str.contains("\r\n", ""), "Stream"] = "Unnamed"
-# df.Road = df.Road.str.replace("\r\n", "")
-
-# df["Name"] = ""
-
-# df.loc[
-#     (~df.Stream.isin(["Unknown", "Unnamed", ""]))
-#     & (~df.Road.isin(["Unknown", "Unnamed", ""])),
-#     "Name",
-# ] = (df.Stream + " / " + df.Road)
-
-# df.Name = df.Name.fillna("")
-
 
 ### Read in network outputs and join to master
 print("Reading network outputs")

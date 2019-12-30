@@ -12,6 +12,8 @@ Beware: Some species have incorrect spellings!  Some have many variants of commo
 
 from pathlib import Path
 from time import time
+import csv
+
 import pandas as pd
 import geopandas as gp
 from nhdnet.io import serialize_df
@@ -123,7 +125,7 @@ for col in ["federal", "state", "sgcn", "regional"]:
 counts = df.groupby("HUC12").sum().astype("uint8").reset_index()
 
 serialize_df(counts, out_dir / "spp_HUC12.feather")
-counts.to_csv(out_dir / "spp_HUC12.csv")
-
+counts.to_csv(out_dir / "spp_HUC12.csv", quoting=csv.QUOTE_NONNUMERIC, index=False)
+counts.to_excel(out_dir / "spp_HUC12.xlsx")
 
 print("All done in {:.2}s".format(time() - start))

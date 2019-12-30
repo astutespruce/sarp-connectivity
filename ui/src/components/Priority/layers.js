@@ -246,6 +246,42 @@ export const lowerRank = {
   },
 }
 
+// NOTE: this is ONLY for displaying dams when small barriers are selected
+export const damsSecondaryLayer = {
+  id: 'dams-secondary',
+  source: 'dams',
+  'source-layer': 'dams',
+  layout: {
+    visibility: 'none',
+  },
+  type: 'circle',
+  minzoom: 10,
+  maxzoom: 24,
+  paint: {
+    'circle-color': '#fec44f',
+    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4]] },
+    'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
+    'circle-stroke-color': '#FFFFFF',
+    'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 2]] },
+  },
+}
+
+export const waterfallsLayer = {
+  id: 'waterfalls',
+  source: 'waterfalls',
+  'source-layer': 'waterfalls',
+  type: 'circle',
+  minzoom: 10,
+  maxzoom: 24,
+  paint: {
+    'circle-color': '#253b6e',
+    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4]] },
+    'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
+    'circle-stroke-color': '#FFFFFF',
+    'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 2]] },
+  },
+}
+
 export const pointLegends = {
   included: {
     radius: 8,
@@ -270,6 +306,14 @@ export const pointLegends = {
   lowerRank: {
     radius: 8,
     color: lowerRank.paint['circle-color'],
+  },
+  waterfalls: {
+    radius: 6,
+    color: waterfallsLayer.paint['circle-color'],
+  },
+  damsSecondary: {
+    radius: 6,
+    color: damsSecondaryLayer.paint['circle-color'],
   },
 }
 

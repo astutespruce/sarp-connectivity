@@ -183,6 +183,25 @@ SB_EXPORT_FIELDS = (
 
 SB_EXPORT_FIELDS = unique(SB_EXPORT_FIELDS)
 
+WF_CORE_FIELDS = (
+    [
+        "lat",
+        "lon",
+        "Name",
+        "LocalID",
+        "Source",
+        "Stream",
+        "Basin",
+    ]
+    + UNIT_FIELDS
+    + ["HasNetwork"]
+    + METRIC_FIELDS
+    + ["COUNTYFIPS"]
+)
+
+WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
+
+
 ### Domains for coded values in exported data
 
 # typos fixed and trailing periods removed

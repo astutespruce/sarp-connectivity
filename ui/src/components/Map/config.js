@@ -42,6 +42,12 @@ export const sources = {
     minzoom: 9,
     maxzoom: 16,
   },
+  waterfalls: {
+    type: 'vector',
+    tiles: [`${tileHost}/services/waterfalls/tiles/{z}/{x}/{y}.pbf`],
+    minzoom: 5,
+    maxzoom: 16,
+  },
 }
 
 export const basemapLayers = {

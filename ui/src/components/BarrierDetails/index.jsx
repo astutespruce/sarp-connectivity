@@ -3,7 +3,6 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { FaEnvelope } from 'react-icons/fa'
 
-import { useBarrierType } from 'components/Data'
 import { Text, HelpText } from 'components/Text'
 import { Flex, Box } from 'components/Grid'
 import { CloseButton } from 'components/Button'
@@ -82,12 +81,16 @@ const MailIcon = styled(FaEnvelope)`
 
 const tierToPercent = tier => (100 * (19 - (tier - 1))) / 20
 
-const BarrierDetails = ({ barrier, barrierType: barrierTypeProp, onClose }) => {
-  const { sarpid, name, hasnetwork, countyname, State, ncwc_tier } = barrier
-
-  // get barrier type from prop, if passed in directly, otherwise get from context
-  const contextBarrierType = useBarrierType()
-  const barrierType = barrierTypeProp || contextBarrierType
+const BarrierDetails = ({ barrier, onClose }) => {
+  const {
+    barrierType,
+    sarpid,
+    name,
+    hasnetwork,
+    countyname,
+    State,
+    ncwc_tier,
+  } = barrier
 
   const details =
     barrierType === 'dams' ? (
@@ -179,13 +182,8 @@ const BarrierDetails = ({ barrier, barrierType: barrierTypeProp, onClose }) => {
 }
 
 BarrierDetails.propTypes = {
-  barrierType: PropTypes.string,
   barrier: BarrierPropType.isRequired,
   onClose: PropTypes.func.isRequired,
-}
-
-BarrierDetails.defaultProps = {
-  barrierType: null, // will get from context via useBarrierType by default
 }
 
 export default BarrierDetails

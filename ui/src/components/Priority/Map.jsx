@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useRef, useCallback, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useDebouncedCallback } from 'use-debounce'
+import mapboxgl from 'mapbox-gl'
 
 import { useCrossfilter } from 'components/Crossfilter'
 import { useBarrierType } from 'components/Data'
@@ -11,6 +12,7 @@ import {
   SearchFeaturePropType,
   toGeoJSONPoints,
 } from 'components/Map'
+import { isEmptyString } from 'util/string'
 
 import { unitLayerConfig } from './config'
 import {
@@ -28,6 +30,8 @@ import {
   pointLegends,
   topRank,
   lowerRank,
+  damsSecondaryLayer,
+  waterfallsLayer,
   priorityWatersheds,
   priorityWatershedLegends,
 } from './layers'
@@ -167,9 +171,32 @@ const PriorityMap = ({
         } = feature
         onSelectBarrier({
           ...properties,
+          barrierType,
           lat,
           lon,
           hasnetwork: false,
+        })
+      })
+
+      // add waterfalls
+      map.addLayer(waterfallsLayer)
+      map.addLayer({
+        ...damsSecondaryLayer,
+        layout: { visibility: barrierType === 'barriers' ? 'visible' : 'none' },
+      })
+      handleLayerClick(damsSecondaryLayer.id, feature => {
+        const {
+          properties,
+          geometry: {
+            coordinates: [lon, lat],
+          },
+        } = feature
+        onSelectBarrier({
+          ...properties,
+          barrierType: 'dams',
+          lat,
+          lon,
+          hasnetwork: true,
         })
       })
 
@@ -191,6 +218,7 @@ const PriorityMap = ({
         } = feature
         onSelectBarrier({
           ...properties,
+          barrierType,
           lat,
           lon,
           hasnetwork: true,
@@ -210,6 +238,7 @@ const PriorityMap = ({
         } = feature
         onSelectBarrier({
           ...properties,
+          barrierType,
           lat,
           lon,
           hasnetwork: true,
@@ -231,6 +260,35 @@ const PriorityMap = ({
         source: 'ranked',
         ...topRank,
         filter: ['<=', `${scenario}_tier`, tierThreshold],
+      })
+
+      // add hover and tooltip to point layers
+      const tooltip = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        anchor: 'left',
+        offset: 20,
+      })
+      const pointLayers = [
+        backgroundPoint.id,
+        damsSecondaryLayer.id,
+        excludedPoint.id,
+        includedPoint.id,
+      ]
+
+      pointLayers.forEach(id => {
+        map.on('mouseenter', id, ({ features: [feature] }) => {
+          map.getCanvas().style.cursor = 'pointer'
+          const { name } = feature.properties
+          tooltip
+            .setLngLat(feature.geometry.coordinates)
+            .setHTML(`<b>${!isEmptyString(name) ? name : 'Unknown name'}</b>`)
+            .addTo(map)
+        })
+        map.on('mouseleave', id, () => {
+          map.getCanvas().style.cursor = ''
+          tooltip.remove()
+        })
       })
 
       // select barrier from tile data using ID
@@ -260,6 +318,7 @@ const PriorityMap = ({
         if (barrier) {
           onSelectBarrier({
             ...barrier.properties,
+            barrierType,
             lat,
             lon,
             ...properties,
@@ -524,6 +583,8 @@ const PriorityMap = ({
       background: backgroundLegend,
       topRank: topRankLegend,
       lowerRank: lowerRankLegend,
+      damsSecondary,
+      waterfalls,
     } = pointLegends
 
     const circles = []
@@ -541,9 +602,6 @@ const PriorityMap = ({
     // if no layer is selected for choosing summary areas
     if (activeLayer === null) {
       if (!isWithinZoom[excludedPoint.id]) {
-        // return {
-        //   footnote: `zoom in to see ${barrierType} available for analysis`,
-        // }
         footnote = `zoom in to see ${barrierType} available for analysis`
       } else {
         circles.push({
@@ -558,18 +616,11 @@ const PriorityMap = ({
           label: `${barrierType} not available for analysis`,
         })
       }
-
-      // return {
-      //   circles,
-      // }
     }
 
     // may need to be mutually exclusive of above
     else if (rankedBarriers.length > 0) {
       if (!isWithinZoom[topRank.id]) {
-        // return {
-        //   footnote: `Zoom in further to see top-ranked ${barrierType}`,
-        // }
         footnote = `Zoom in further to see top-ranked ${barrierType}`
       } else {
         const tierLabel =
@@ -600,10 +651,6 @@ const PriorityMap = ({
           label: `${barrierType} not included in analysis`,
         })
       }
-
-      // return {
-      //   circles,
-      // }
     } else {
       // either in select units or filter step
       if (isWithinZoom[includedPoint.id]) {
@@ -613,10 +660,6 @@ const PriorityMap = ({
         })
       } else {
         footnote = `zoom in to see selected ${barrierType}`
-        // return {
-        //   patches,
-        //   footnote: `zoom in to see selected ${barrierType}`,
-        // }
       }
 
       if (isWithinZoom[excludedPoint.id]) {
@@ -630,6 +673,18 @@ const PriorityMap = ({
         circles.push({
           ...backgroundLegend,
           label: `${barrierType} not available for analysis`,
+        })
+
+        // only show secondary dams & waterfalls at same time as background points
+        if (barrierType === 'barriers') {
+          circles.push({
+            ...damsSecondary,
+            label: 'dams analyzed for impacts to aquatic connectivity',
+          })
+        }
+        circles.push({
+          ...waterfalls,
+          label: 'waterfalls',
         })
       }
 

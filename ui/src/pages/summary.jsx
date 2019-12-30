@@ -72,10 +72,9 @@ const SummaryPage = () => {
   let sidebarContent = null
 
   if (selectedBarrier !== null) {
-    // have to use provider here, barrier details expects to get barrierType from context
     sidebarContent = (
       <BarrierDetails
-        barrierType={barrierType}
+        // barrierType={barrierType}
         barrier={selectedBarrier}
         onClose={handleBarrierDetailsClose}
       />

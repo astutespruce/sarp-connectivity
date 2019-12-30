@@ -50,9 +50,11 @@ def update_network_metrics(df):
     df["GainMilesClass"] = classify_gainmiles(df.GainMiles)
     df["SinuosityClass"] = classify_sinuosity(df.Sinuosity)
     df["LandcoverClass"] = classify_landcover(df.Landcover)
-    df["TESppClass"] = classify_spps(df.TESpp)
-    df["OtherSppClass"] = classify_spps(df.OtherSpp)
     df["StreamOrderClass"] = classify_streamorder(df.StreamOrder)
+
+    if "TESpp" in df.columns:
+        df["TESppClass"] = classify_spps(df.TESpp)
+        df["OtherSppClass"] = classify_spps(df.OtherSpp)
 
     return df
 

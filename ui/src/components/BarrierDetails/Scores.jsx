@@ -1,7 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import {useBarrierType} from 'components/Data'
 import { Text, HelpText as BaseHelpText } from 'components/Text'
 import BaseTabs, {
   Tab as BaseTab,
@@ -49,9 +48,7 @@ const tabs = [
   { id: 'se', label: 'Southeast' },
 ]
 
-const Scores = ({ scores }) => {
-  const barrierType = useBarrierType()
-
+const Scores = ({ barrierType, scores }) => {
   const hasCustom = scores.custom && scores.custom.ncwc
 
   const availableTabs = hasCustom ? tabs : tabs.slice(1, tabs.length)
@@ -75,6 +72,7 @@ const Scores = ({ scores }) => {
 }
 
 Scores.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   scores: PropTypes.shape({
     se: ScoresPropType.isRequired,
     state: ScoresPropType.isRequired,
