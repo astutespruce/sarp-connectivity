@@ -37,7 +37,6 @@ DAM_COLS = [
     "Barrier_Name",
     "Other_Barrier_Name",
     "River",
-    "StreamOrde",
     "PurposeCategory",
     "Year_Completed",
     "Height",
@@ -73,9 +72,6 @@ if not os.path.exists(network_dir):
 
 start = time()
 print("Reading Puerto Rico networks...")
-# TODO: Calculate network sinuosity and other network metrics and attach to above
-# need streamorder, sinuosity, length, # segments
-# need to traverse networks and count upstream barriers
 networks = (
     gp.read_file(gdb, layer=network_layer)[NET_COLS]
     .rename(columns={"batNetID": "networkID", "StreamOrde": "streamorder"})
@@ -117,7 +113,7 @@ lengths["free_miles"] = lengths.miles
 
 network_stats = lengths.join(wtd_sinuosity).join(
     networks.groupby(level=0).size().rename("segments")
-)
+).join(networks.groupby(level=0).streamorder.max())
 
 
 ### Read data for Puerto Rico
@@ -134,8 +130,6 @@ df = gp.read_file(gdb, layer=dams_layer)[["geometry"] + DAM_COLS].rename(
         "ConstructionMaterial": "Construction",
         "PurposeCategory": "Purpose",
         "StructureCondition": "Condition",
-        # "UpstreamMiles": "TotalUpstreamMiles",
-        # "DownstreamMiles": "TotalDownstreamMiles",
         "PctNatFloodplain": "natfldpln",
         "NumSizeClassGained": "sizeclasses",
         "USBatNetID": "upNetID",
@@ -148,7 +142,7 @@ print("Read {:,} dams in Puerto Rico".format(len(df)))
 ### Standardize data
 # SARPID is a string in other places
 df["SARPID"] = df.SARPID.astype("str")
-
+df['HasNetwork'] = df.upNetID.notnull()
 
 # Calculate IDs so that they fall after existing dam IDs
 dams = deserialize_df(master_dir / "dams.feather", columns=["id"])
@@ -247,6 +241,13 @@ df["dropped"] = False
 
 # excluded: records that should be retained in dataset but not used in analysis
 df["excluded"] = False
+
+# Not applicable to PR but needed to merge with other dams
+df['duplicate'] = False
+
+# Fill in other standard fields that are missing here
+df['loop'] = False
+df['sizeclass'] = None
 
 # Drop any that didn't intersect HUCs or states
 drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()

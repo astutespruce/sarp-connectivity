@@ -52,9 +52,9 @@ def update_network_metrics(df):
     df["LandcoverClass"] = classify_landcover(df.Landcover)
     df["StreamOrderClass"] = classify_streamorder(df.StreamOrder)
 
-    if "TESpp" in df.columns:
-        df["TESppClass"] = classify_spps(df.TESpp)
-        df["OtherSppClass"] = classify_spps(df.OtherSpp)
+    for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
+        if col in df.columns:
+            df["{}Class".format(col)] = classify_spps(df[col])
 
     return df
 

@@ -411,28 +411,20 @@ const coaPriorityOutline = {
   filter: ['>', 'coa', 0],
 }
 
-const sebioPriorityFill = {
+const sgcnPriorityFill = {
   ...priorityFillStyle,
-  id: 'sebio-priority-fill',
-  filter: ['>', 'sebio', 0],
+  id: 'sgcn-priority-fill',
+  filter: ['>', 'sgcn', 0],
   paint: {
     'fill-opacity': 0.4,
-    'fill-color': [
-      'match',
-      ['get', 'sebio'],
-      1,
-      '#d95f0e',
-      2,
-      '#fec44f',
-      '#FFF',
-    ],
+    'fill-color': '#d95f0e',
   },
 }
 
-const sebioPriorityOutline = {
+const sgcnPriorityOutline = {
   ...priorityOutlineStyle,
-  id: 'sebio-priority-outline',
-  filter: ['>', 'sebio', 0],
+  id: 'sgcn-priority-outline',
+  filter: ['>', 'sgcn', 0],
 }
 
 export const priorityWatersheds = [
@@ -440,8 +432,8 @@ export const priorityWatersheds = [
   usfsPriorityOutline,
   coaPriorityFill,
   coaPriorityOutline,
-  // sebioPriorityFill,
-  // sebioPriorityOutline,
+  sgcnPriorityFill,
+  sgcnPriorityOutline,
 ]
 
 export const priorityWatershedLegends = {
@@ -472,12 +464,14 @@ export const priorityWatershedLegends = {
       },
     ],
   },
-  sebio: {
-    id: 'sebio',
-    label: 'Southeast aquatic biodiversity hotspots',
+  sgcn: {
+    id: 'sgcn',
     entries: [
-      { color: '#d95f0e99', label: 'highest biodiversity' },
-      { color: '#fec44f99', label: 'high biodiversity' },
+      {
+        color: '#d95f0e99',
+        label:
+          'Watersheds with most Species of Greatest Conservation Need per state',
+      },
     ],
   },
 }

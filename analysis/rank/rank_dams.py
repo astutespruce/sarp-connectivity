@@ -63,9 +63,13 @@ df = (
             "dup_log",
             "snap_dist",
             "snap_tolerance",
+            "snap_ref_id",
             "snap_log",
             "snapped",
             "ProtectedLand",
+            "AnalysisID",
+            "NHDPlusID",
+            "SourceState",
             "lineID",
             "wbID",
             "waterbody",
@@ -75,14 +79,12 @@ df = (
         ],
         errors="ignore",
     )
-    .rename(columns={"streamorder": "StreamOrder"})
+    .rename(columns={"streamorder": "StreamOrder", "excluded": "Excluded"})
 )
 
 # drop any that should be DROPPED (dropped or duplicate) from the analysis
-# NOTE: excluded ones are retained but don't have networks
-# Also NOTE: ones on loops are retained but also don't have networks
+# NOTE: excluded ones are retained but don't have networks; ones on loops are retained but also don't have networks
 df = df.loc[~(df.dropped | df.duplicate)].copy()
-
 
 ### Read in network outputs and join to master
 print("Reading network outputs")
@@ -92,7 +94,7 @@ networks = (
             data_dir / "networks" / region / "dams/barriers_network.feather"
             for region in REGION_GROUPS
         ],
-        src=[region for region in REGION_GROUPS],
+        # src=[region for region in REGION_GROUPS],
     )
     .drop(columns=["index", "segments"], errors="ignore")
     .rename(
@@ -106,7 +108,9 @@ networks = (
 
 # Select out only dams because we are joining on "id"
 # which may have duplicates across barrier types
-networks = networks.loc[networks.kind == "dam"].drop(columns=["kind"]).copy()
+networks = (
+    networks.loc[networks.kind == "dam"].drop(columns=["kind", "barrierID"]).copy()
+)
 
 # All barriers that came out of network analysis have networks
 networks["HasNetwork"] = True
@@ -114,15 +118,25 @@ networks["HasNetwork"] = True
 ### Join in networks and fill N/A
 df = df.join(networks.set_index("id"))
 df.HasNetwork = df.HasNetwork.fillna(False)
-df.upNetID = df.upNetID.fillna(-1).astype('int')
-df.downNetID = df.downNetID.fillna(-1).astype('int')
+df.upNetID = df.upNetID.fillna(-1).astype("int")
+df.downNetID = df.downNetID.fillna(-1).astype("int")
 
 ### Read and merge in Puerto Rico
-pr = from_geofeather(
-    barriers_dir / "pr_dams.feather", columns=list(df.columns) + ["id"]
-).rename(columns={"streamorder": "StreamOrder", "sizeclasses": "SizeClasses"})
+pr = from_geofeather(barriers_dir / "pr_dams.feather").rename(
+    columns={
+        "streamorder": "StreamOrder",
+        "sizeclasses": "SizeClasses",
+        "sinuosity": "Sinuosity",
+        "natfldpln": "Landcover",
+        "excluded": "Excluded",
+    }
+)
 pr = pr.loc[~pr.dropped].copy()
-pr["HasNetwork"] = True
+
+# Fill in missing fields for compatibility
+pr["PotentialFeasibility"] = 0
+
+pr = pr[list(df.columns) + ["id"]].copy()
 
 df = df.reset_index().append(pr, ignore_index=True, sort=False).set_index("id")
 
@@ -131,13 +145,22 @@ print("Read {:,} dams ({:,} have networks)".format(len(df), len(df.loc[df.HasNet
 
 ### Join in T&E Spp stats
 spp_df = (
-    deserialize_df(data_dir / "species/derived/spp_HUC12.feather")
-    .rename(columns={"te": "TESpp", "other": "OtherSpp"})
+    deserialize_df(
+        data_dir / "species/derived/spp_HUC12.feather",
+        columns=["HUC12", "federal", "sgcn", "regional"],
+    )
+    .rename(
+        columns={
+            "federal": "TESpp",
+            "sgcn": "StateSGCNSpp",
+            "regional": "RegionalSGCNSpp",
+        }
+    )
     .set_index("HUC12")
 )
 df = df.join(spp_df, on="HUC12")
-df.TESpp = df.TESpp.fillna(0).astype("uint8")
-df.OtherSpp = df.OtherSpp.fillna(0).astype("uint8")
+for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
+    df[col] = df[col].fillna(0).astype("uint8")
 
 
 ### Update network metrics and calculate classes
@@ -169,14 +192,13 @@ df.to_csv(
     qa_dir / "dams_network_results.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
 )
 
-
 # save for API
 serialize_df(df[DAM_API_FIELDS].reset_index(), api_dir / "dams.feather")
 
 # Drop fields that can be calculated on frontend
 keep_fields = [
     c for c in DAM_API_FIELDS if not c in {"GainMiles", "TotalNetworkMiles"}
-] + ["SinuosityClass", 'upNetID', 'downNetID']
+] + ["SinuosityClass", "upNetID", "downNetID"]
 df = df[keep_fields].copy()
 
 
@@ -190,13 +212,12 @@ df = df.rename(columns={"County": "CountyName", "COUNTYFIPS": "County"})
 str_cols = df.dtypes.loc[df.dtypes == "object"].index
 df[str_cols] = df[str_cols].fillna("")
 
-# Fix boolean types
+# Update boolean fields so that they are output to CSV correctly
 df.ProtectedLand = df.ProtectedLand.astype("uint8")
+df["Excluded"] = df.Excluded.astype("uint8")
 
-
-with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork"])
+with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork", "Excluded"])
 without_networks = df.loc[~df.HasNetwork].drop(columns=["HasNetwork"])
-
 
 with_networks.rename(
     columns={k: k.lower() for k in df.columns if k not in UNIT_FIELDS}
@@ -205,8 +226,7 @@ with_networks.rename(
 )
 
 # Drop metrics, tiers, and units used only for filtering
-keep_fields = DAM_CORE_FIELDS + ["CountyName", "State"]
-
+keep_fields = DAM_CORE_FIELDS + ["CountyName", "State", "Excluded"]
 
 without_networks[keep_fields].rename(
     columns={k: k.lower() for k in df.columns if k not in UNIT_FIELDS}

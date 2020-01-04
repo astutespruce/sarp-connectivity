@@ -41,42 +41,42 @@ tile-join -f -pg -o $OUTDIR/dam_networks.mbtiles \
 
 
 
-# BARRIER_TYPE="small_barriers"
+BARRIER_TYPE="small_barriers"
 
-# # NOTE: 13 and 21 do not have small barrier networks
-# for region in '02' '03' '05_06' '07_10' '08_11' '12' # '13' '21'
-# do
-#     echo "Processing ${region}"
+# NOTE: 13 and 21 do not have small barrier networks
+for region in '02' '03' '05_06' '07_10' '08_11' '12' # '13' '21'
+do
+    echo "Processing ${region}"
 
-#     echo "Converting to GeoJSON"
-#     # Use GeoJSONSeq for faster parsing in tippecanoe, using the -P option
-#     # GPKG data are not getting the right CRS, so we provide it ourselves.
-#     # NOTE: GPKG data are already limited to networkID only
-#     ogr2ogr -t_srs EPSG:4326 -s_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs" -f GeoJSONSeq $TMPDIR/network.json $WORKDIR/small_barriers_network${region}.gpkg
+    echo "Converting to GeoJSON"
+    # Use GeoJSONSeq for faster parsing in tippecanoe, using the -P option
+    # GPKG data are not getting the right CRS, so we provide it ourselves.
+    # NOTE: GPKG data are already limited to networkID only
+    ogr2ogr -t_srs EPSG:4326 -s_srs "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs" -f GeoJSONSeq $TMPDIR/network.json $WORKDIR/small_barriers_network${region}.gpkg
 
-#     # echo "Creating tiles"
-#     tippecanoe -f -Z 9 -z 16 -l networks -P -pg -o $WORKDIR/small_barrier_networks$region.mbtiles $TMPDIR/network.json
-#     rm $TMPDIR/network.json
+    # echo "Creating tiles"
+    tippecanoe -f -Z 9 -z 16 -l networks -P -pg -o $WORKDIR/small_barrier_networks$region.mbtiles $TMPDIR/network.json
+    rm $TMPDIR/network.json
 
-#     echo "Done processing region"
-#     echo "--------------------"
-#     echo
-# done
+    echo "Done processing region"
+    echo "--------------------"
+    echo
+done
 
-# echo "Merging regions to create final tileset"
-# tile-join -f -pg -o $OUTDIR/small_barrier_networks.mbtiles \
-#     $WORKDIR/small_barrier_networks02.mbtiles \
-#     $WORKDIR/small_barrier_networks03.mbtiles \
-#     $WORKDIR/small_barrier_networks05_06.mbtiles \
-#     $WORKDIR/small_barrier_networks07_10.mbtiles \
-#     $WORKDIR/small_barrier_networks08_11.mbtiles \
-#     $WORKDIR/small_barrier_networks12.mbtiles
-
-
+echo "Merging regions to create final tileset"
+tile-join -f -pg -o $OUTDIR/small_barrier_networks.mbtiles \
+    $WORKDIR/small_barrier_networks02.mbtiles \
+    $WORKDIR/small_barrier_networks03.mbtiles \
+    $WORKDIR/small_barrier_networks05_06.mbtiles \
+    $WORKDIR/small_barrier_networks07_10.mbtiles \
+    $WORKDIR/small_barrier_networks08_11.mbtiles \
+    $WORKDIR/small_barrier_networks12.mbtiles
 
 
 
-# # In case tiles for JUST the dam upstream networks are needed
+
+
+# ########### In case tiles for JUST the dam upstream networks are needed
 # for region in '02' '03' '05_06' '07_10' '08_11' '12' '13' '21'
 # do
 #     echo "Processing ${region}"

@@ -31,9 +31,9 @@ from api.constants import (
     BARRIER_SEVERITY_DOMAIN,
     BOOLEAN_DOMAIN,
     OWNERTYPE_DOMAIN,
-    USFS_PRIORITY_DOMAIN,
-    COA_DOMAIN,
-    SEBIO_DOMAIN,
+    HUC8_USFS_DOMAIN,
+    HUC8_COA_DOMAIN,
+    HUC8_SGCN_DOMAIN
 )
 
 app = Flask(__name__)
@@ -337,12 +337,13 @@ def download(barrier_type="dams", layer="HUC8", format="CSV"):
 
     # map domain fields to values
     df.HasNetwork = df.HasNetwork.map(BOOLEAN_DOMAIN)
+    df.Excluded = df.Excluded.map(BOOLEAN_DOMAIN)
 
     df.OwnerType = df.OwnerType.map(OWNERTYPE_DOMAIN)
     df.ProtectedLand = df.ProtectedLand.map(BOOLEAN_DOMAIN)
-    df.USFS = df.USFS.map(USFS_PRIORITY_DOMAIN)
-    df.COA = df.COA.map(COA_DOMAIN)
-    df.SEBIO = df.SEBIO.map(SEBIO_DOMAIN)
+    df.HUC8_USFS = df.HUC8_USFS.map(HUC8_USFS_DOMAIN)
+    df.HUC8_COA = df.HUC8_COA.map(HUC8_COA_DOMAIN)
+    df.HUC8_SGCN = df.HUC8_SGCN.map(HUC8_SGCN_DOMAIN)
 
     if barrier_type == "dams":
         df.Condition = df.Condition.map(DAM_CONDITION_DOMAIN)

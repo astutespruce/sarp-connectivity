@@ -55,12 +55,13 @@ FILTER_FIELDS = [
     "SizeClasses",
     "GainMilesClass",
     "TESppClass",
-    "OtherSppClass",
+    "StateSGCNSppClass",
+    "RegionalSGCNSppClass",
     "StreamOrderClass",
     "OwnerType",
-    "USFS",
-    "COA",
-    # "SEBIO",
+    "HUC8_USFS",
+    "HUC8_COA",
+    "HUC8_SGCN",
 ]
 
 DAM_FILTER_FIELDS = [
@@ -97,20 +98,21 @@ DAM_CORE_FIELDS = [
     "Recon",
     "Feasibility",
     "TESpp",
-    "OtherSpp",
+    "StateSGCNSpp",
+    "RegionalSGCNSpp",
     "OwnerType",
     "ProtectedLand",
     # Priority watersheds
-    "USFS",
-    "COA",
-    # "SEBIO",
+    "HUC8_USFS",
+    "HUC8_COA",
+    "HUC8_SGCN",
     "Basin",
 ]
 
 DAM_API_FIELDS = (
     DAM_CORE_FIELDS
     + UNIT_FIELDS
-    + ["HasNetwork"]
+    + ["HasNetwork", "Excluded"]
     + METRIC_FIELDS
     + TIER_FIELDS
     + DAM_FILTER_FIELDS
@@ -123,7 +125,7 @@ DAM_API_FIELDS = unique(DAM_API_FIELDS)
 DAM_EXPORT_FIELDS = (
     DAM_CORE_FIELDS
     + UNIT_FIELDS
-    + ["HasNetwork"]
+    + ["HasNetwork", "Excluded"]
     + METRIC_FIELDS
     + TIER_FIELDS
     + CUSTOM_TIER_FIELDS
@@ -150,20 +152,21 @@ SB_CORE_FIELDS = [
     "PotentialProject",
     "SeverityClass",
     "TESpp",
-    "OtherSpp",
+    "StateSGCNSpp",
+    "RegionalSGCNSpp",
     "OwnerType",
     "ProtectedLand",
     # Priority watersheds
-    "USFS",
-    "COA",
-    # "SEBIO",
+    "HUC8_USFS",
+    "HUC8_COA",
+    "HUC8_SGCN",
     "Basin",
 ]
 
 SB_API_FIELDS = (
     SB_CORE_FIELDS
     + UNIT_FIELDS
-    + ["HasNetwork"]
+    + ["HasNetwork", "Excluded"]
     + METRIC_FIELDS
     + TIER_FIELDS
     + SB_FILTER_FIELDS
@@ -175,7 +178,7 @@ SB_API_FIELDS = unique(SB_API_FIELDS)
 SB_EXPORT_FIELDS = (
     SB_CORE_FIELDS
     + UNIT_FIELDS
-    + ["HasNetwork"]
+    + ["HasNetwork", "Excluded"]
     + METRIC_FIELDS
     + TIER_FIELDS
     + CUSTOM_TIER_FIELDS
@@ -184,19 +187,12 @@ SB_EXPORT_FIELDS = (
 SB_EXPORT_FIELDS = unique(SB_EXPORT_FIELDS)
 
 WF_CORE_FIELDS = (
-    [
-        "lat",
-        "lon",
-        "Name",
-        "LocalID",
-        "Source",
-        "Stream",
-        "Basin",
-    ]
-    + UNIT_FIELDS
-    + ["HasNetwork"]
-    + METRIC_FIELDS
-    + ["COUNTYFIPS"]
+    ["lat", "lon", "Name"]
+    # + ["LocalID", "Source", "Stream", "Basin"]
+    # + UNIT_FIELDS
+    # + ["HasNetwork"]
+    # + METRIC_FIELDS
+    # + ["COUNTYFIPS"]
 )
 
 WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
@@ -372,21 +368,20 @@ OWNERTYPE_DOMAIN = {
 
 BOOLEAN_DOMAIN = {False: "no", True: "yes"}
 
-USFS_PRIORITY_DOMAIN = {
+HUC8_USFS_DOMAIN = {
     0: "Not a priority / not assessed",
     1: "Highest priority",
     2: "Moderate priority",
     3: "Lowest priority",
 }
 
-COA_DOMAIN = {
+HUC8_COA_DOMAIN = {
     0: "Not a conservation opportunity area",
     1: "Conservation opportunity area",
 }
 
-SEBIO_DOMAIN = {
-    0: "Lower biodiversity / not assessed",
-    1: "Highest biodiversity",
-    2: "High biodiversity",
+HUC8_SGCN_DOMAIN = {
+    0: 'Not within top 10 watersheds per state',
+    1: 'Within top 10 watersheds per state'
 }
 

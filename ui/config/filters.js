@@ -12,9 +12,9 @@ import {
   DAM_CONDITION,
   BARRIER_CONDITION,
   OWNERTYPE,
-  USFS_PRIORITY,
-  COA,
-  SE_BIODIVERSITY,
+  HUC8_USFS,
+  HUC8_COA,
+  HUC8_SGCN,
 } from './constants'
 
 const getIntKeys = obj =>
@@ -38,31 +38,32 @@ const sizeclassValues = [0, 1, 2, 3, 4, 5, 6, 7]
 
 const priorityFilters = [
   {
-    field: 'usfs',
+    field: 'huc8_usfs',
     title: 'USFS priority watersheds',
     sort: false,
     hideEmpty: true,
     help:
       'These include TNC critical watersheds, TNC hotspots, watersheds containing USFWS Critical Habitat, SARP priority watersheds, watersheds containing aquatic passage inventories, and EPA priority watersheds.',
-    ...getEntries(USFS_PRIORITY),
+    ...getEntries(HUC8_USFS),
     url: '/priorities/usfs',
   },
   {
-    field: 'coa',
+    field: 'huc8_coa',
     title: 'SARP conservation opportunity areas',
     sort: false,
     hideEmpty: true,
     help: '',
-    ...getEntries(COA),
+    ...getEntries(HUC8_COA),
   },
-  // {
-  //   field: 'sebio',
-  //   title: 'Southeast aquatic biodiversity hotspots',
-  //   sort: false,
-  //   hideEmpty: true,
-  //   help: '',
-  //   ...getEntries(SE_BIODIVERSITY),
-  // },
+  {
+    field: 'huc8_sgcn',
+    title:
+      'Watersheds with most Species of Greatest Conservation Need per state',
+    sort: false,
+    hideEmpty: true,
+    help: '',
+    ...getEntries(HUC8_SGCN),
+  },
 ]
 
 // Each filter needs to have a dimension above that matches the key here

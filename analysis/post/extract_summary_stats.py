@@ -58,12 +58,6 @@ tile_dir = data_dir / "tiles"
 
 print("Reading barriers")
 
-# Read in ALL dams and drop those that are duplicates
-# dams = read_dataframe(src_dir / "dams.feather").set_index("id", drop=False)[
-#     ["id", "duplicate", "dropped", "excluded"] + SUMMARY_UNITS
-# ]
-# dams = dams.loc[~dams.duplicate].copy()
-
 # For dams, we want only those that were not dropped or duplicates
 # this matches the ones coming out of the ranking
 # read in dams with network results

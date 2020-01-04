@@ -255,20 +255,19 @@ export const SARP_BOUNDS = [
   44.26093852,
 ]
 
-export const USFS_PRIORITY = {
+export const HUC8_USFS = {
   1: 'highest',
   2: 'moderate',
   3: 'lowest',
   0: 'not a priority / not assessed',
 }
 
-export const COA = {
+export const HUC8_COA = {
   1: 'conservation opportunity area',
   0: 'not a conservation opportunity area',
 }
 
-export const SE_BIODIVERSITY = {
-  1: 'highest biodiversity',
-  2: 'high biodiversity',
-  0: 'lower biodiversity / not assessed',
+export const HUC8_SGCN = {
+  1: 'Within top 10 watersheds per state',
+  0: 'Not within top 10 watersheds per state',
 }

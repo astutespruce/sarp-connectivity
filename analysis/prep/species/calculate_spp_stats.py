@@ -126,6 +126,5 @@ counts = df.groupby("HUC12").sum().astype("uint8").reset_index()
 
 serialize_df(counts, out_dir / "spp_HUC12.feather")
 counts.to_csv(out_dir / "spp_HUC12.csv", quoting=csv.QUOTE_NONNUMERIC, index=False)
-counts.to_excel(out_dir / "spp_HUC12.xlsx")
 
 print("All done in {:.2}s".format(time() - start))

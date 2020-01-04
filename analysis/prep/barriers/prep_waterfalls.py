@@ -113,11 +113,18 @@ df["snap_tolerance"] = SNAP_TOLERANCE
 # Snap to flowlines
 snap_start = time()
 df, to_snap = snap_to_flowlines(df, to_snap=df.copy())
+df["loop"] = df.loop.fillna(False)
 print(
     "Snapped {:,} waterfalls in {:.2f}s".format(
         len(df.loc[df.snapped]), time() - snap_start
     )
 )
+print("---------------------------------")
+print("\nSnapping statistics")
+print(df.groupby("snap_log").size())
+print(df.groupby("loop").size())
+print("---------------------------------\n")
+
 
 print("\n--------------\n")
 
@@ -159,7 +166,9 @@ to_gpkg(df, qa_dir / "waterfalls")
 # to_shp(df, qa_dir / "waterfalls.shp")
 
 # Extract out only the snapped ones
-df = df.loc[df.snapped & ~df.duplicate].reset_index(drop=True)
+df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(
+    drop=True
+)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 

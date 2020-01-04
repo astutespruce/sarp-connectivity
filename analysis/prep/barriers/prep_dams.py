@@ -341,6 +341,8 @@ df, to_snap = snap_to_flowlines(df, to_snap)
 # Last ditch effort to snap major waterbody-related dams
 df, to_snap = snap_to_large_waterbodies(df, to_snap)
 
+df['loop'] = df.loop.fillna(False)
+
 print(
     "Snapped {:,} dams in {:.2f}s".format(len(df.loc[df.snapped]), time() - snap_start)
 )
@@ -348,6 +350,8 @@ print(
 print("---------------------------------")
 print("\nSnapping statistics")
 print(df.groupby("snap_log").size())
+print(df.groupby("loop").size())
+print(df.groupby("loop").size())
 print("---------------------------------\n")
 
 
@@ -443,7 +447,7 @@ to_gpkg(df, qa_dir / "dams", crs=CRS)
 
 
 # Extract out only the snapped ones
-df = df.loc[df.snapped & ~df.duplicate].reset_index(drop=True)
+df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 

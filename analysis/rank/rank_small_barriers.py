@@ -60,8 +60,9 @@ df = (
             "dup_group",
             "dup_count",
             "dup_log",
-             "snap_dist",
+            "snap_dist",
             "snap_tolerance",
+            "snap_ref_id",
             "snap_log",
             "snapped",
             "ProtectedLand",
@@ -71,8 +72,9 @@ df = (
         ],
         errors="ignore",
     )
-    .rename(columns={"streamorder": "StreamOrder"})
+    .rename(columns={"streamorder": "StreamOrder", 'excluded': 'Excluded'})
 )
+
 
 # drop any that should be DROPPED (dropped or duplicate) from the analysis
 # NOTE: excluded ones are retained but don't have networks
@@ -86,7 +88,7 @@ networks = (
             data_dir / "networks" / region / "small_barriers/barriers_network.feather"
             for region in REGION_GROUPS
         ],
-        src=[region for region in REGION_GROUPS],
+        # src=[region for region in REGION_GROUPS],
     )
     .drop(columns=["index", "segments"], errors="ignore")
     .rename(
@@ -118,13 +120,23 @@ print(
 
 ### Join in T&E Spp stats
 spp_df = (
-    deserialize_df(data_dir / "species/derived/spp_HUC12.feather")
-    .rename(columns={"te": "TESpp", "other": "OtherSpp"})
+    deserialize_df(
+        data_dir / "species/derived/spp_HUC12.feather",
+        columns=["HUC12", "federal", "sgcn", "regional"],
+    )
+    .rename(
+        columns={
+            "federal": "TESpp",
+            "sgcn": "StateSGCNSpp",
+            "regional": "RegionalSGCNSpp",
+        }
+    )
     .set_index("HUC12")
 )
 df = df.join(spp_df, on="HUC12")
-df.TESpp = df.TESpp.fillna(0).astype("uint8")
-df.OtherSpp = df.OtherSpp.fillna(0).astype("uint8")
+for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
+    df[col] = df[col].fillna(0).astype("uint8")
+
 
 ### Update network metrics and calculate classes
 df = update_network_metrics(df)
@@ -182,8 +194,9 @@ df[str_cols] = df[str_cols].fillna("")
 
 # Fix boolean types
 df.ProtectedLand = df.ProtectedLand.astype("uint8")
+df["Excluded"] = df.Excluded.astype("uint8")
 
-with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork"])
+with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork", "Excluded"])
 without_networks = df.loc[~df.HasNetwork].drop(columns=["HasNetwork"])
 
 with_networks.rename(
@@ -202,17 +215,18 @@ road_crossings = from_geofeather(barriers_dir / "road_crossings.feather").rename
 )
 
 
-# bring in TESpp
+# bring in Species info
 road_crossings = road_crossings.join(spp_df, on="HUC12")
-road_crossings.TESpp = road_crossings.TESpp.fillna(0).astype("uint8")
-road_crossings.OtherSpp = road_crossings.OtherSpp.fillna(0).astype("uint8")
+for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
+    road_crossings[col] = road_crossings[col].fillna(0).astype("uint8")
 
 
 # Standardize other fields before merge
 road_crossings["Source"] = "USGS"
+road_crossings["Excluded"] = 0
 
 # Drop fields we don't need and merge
-keep_fields = SB_CORE_FIELDS + ["CountyName", "State"]
+keep_fields = SB_CORE_FIELDS + ["CountyName", "State", "Excluded"]
 road_crossings = road_crossings[road_crossings.columns.intersection(keep_fields)]
 combined = (
     without_networks[keep_fields]

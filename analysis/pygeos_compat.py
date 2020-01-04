@@ -18,10 +18,30 @@ from feather import read_dataframe
 
 
 def to_pygeos(geoseries):
+    """Converts a GeoSeries to a Series of pygeos geometry objects.
+
+    Parameters
+    ----------
+    geoseries : GeoSeries
+
+    Returns
+    -------
+    Series
+    """
     return pd.Series(from_wkb(geoseries.apply(lambda g: g.wkb)), index=geoseries.index)
 
 
 def from_pygeos(geometries):
+    """Converts a Series or ndarray of pygeos geometry objects to a GeoSeries.
+
+    Parameters
+    ----------
+    geometries : Series or ndarray of pygeos geometry objects
+
+    Returns
+    -------
+    GeoSeries
+    """
     def load_wkb(wkb):
         return loads(wkb)
 

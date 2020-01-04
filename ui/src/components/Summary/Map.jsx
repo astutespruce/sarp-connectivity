@@ -178,7 +178,7 @@ const SummaryMap = ({
     const pointLayers = barrierTypes
       .map(t => t)
       .concat(barrierTypes.map(t => `${t}-background`))
-      .concat(['dams-secondary'])
+      .concat(['dams-secondary', 'waterfalls'])
 
     const clickLayers = pointLayers.concat(layers.map(({ id }) => `${id}-fill`))
 
@@ -280,8 +280,6 @@ const SummaryMap = ({
       const visibility = barrierType === t ? 'visible' : 'none'
       map.setLayoutProperty(t, 'visibility', visibility)
       map.setLayoutProperty(`${t}-background`, 'visibility', visibility)
-      map.setLayoutProperty(`${t}-hover`, 'visibility', visibility)
-      map.setLayoutProperty(`${t}-background-hover`, 'visibility', visibility)
       map.setLayoutProperty(`${t}_network`, 'visibility', visibility)
       map.setFilter(`${t}_network`, ['==', 'networkID', Infinity])
     })

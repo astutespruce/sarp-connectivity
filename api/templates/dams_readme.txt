@@ -48,14 +48,15 @@ Construction: material used in dam construction, if known.
 Purpose: primary purpose of dam, if known.
 Condition: condition of the dam as of last assessment, if known.  Note: assessment dates are not known.
 Feasibility: feasibility of dam removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of dams.
-TESpp: Number of federally-listed threatened or endangered aquatic species within the same subwatershed (HUC12) as the dam.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
-OtherSpp: Number of state-listed threatened or endangered, or other species of Greatest Conservation Need, within the same subwatershed (HUC12) as the dam.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
+TESpp: number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
+StateSGCN: Number of state-listed Species of Greatest Conservation Need, compiled from element occurrence data within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
+RegionalSGCN: Number of regionally-listed Species of Greatest Conservation Need, compiled from element occurrence data within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
 OwnerType: Land ownership type.  This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.
 ProtectedLand: Indicates if the dam occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.
 
-USFS: U.S. Forest Service (USFS) priority watersheds within USFS Southeast Region.
-COA: SARP conservation opportunity areas.
-SEBIO: Southeast biodiversity hotspots.
+HUC8_USFS: U.S. Forest Service (USFS) priority watersheds (HUC8 level) within USFS Southeast Region.
+HUC8_COA: SARP conservation opportunity areas.
+HUC8_SGCN: Top 10 watersheds per state based on number of Species of Greatest Conservation Need.
 
 Basin: Name of the hydrologic basin (HUC6) where the dam occurs.
 HUC6: Hydrologic basin identifier where the dam occurs.
@@ -67,6 +68,7 @@ ECO3: EPA Level 3 Ecoregion Identifier.
 ECO4: EPA Level 4 Ecoregion Identifier.
 
 HasNetwork: indicates if this dam was snapped to the aquatic network for analysis.  1 = on network, 0 = off network.  Note: network metrics and scores are not available for dams that are off network.
+Excluded: this dam was excluded from the connectivity analysis based on field reconnaissance or manual review of aerial imagery.
 StreamOrder: NHDPlus Modified Strahler stream order. -1 = not available.
 Landcover: average amount of the river floodplain in the upstream network that is in natural landcover types. -1 = not available.
 Sinuosity: length-weighted sinuosity of the upstream river network.  Sinuosity is the ratio between the straight-line distance between the endpoints for each stream reach and the total stream reach length. -1 = not available.

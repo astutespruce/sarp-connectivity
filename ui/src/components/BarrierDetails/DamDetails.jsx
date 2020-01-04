@@ -15,8 +15,7 @@ import {
   PURPOSE,
   RECON,
   OWNERTYPE,
-  USFS_PRIORITY,
-  SE_BIODIVERSITY,
+  HUC8_USFS,
 } from '../../../config/constants'
 
 const { version: dataVersion } = siteMetadata
@@ -36,12 +35,13 @@ const DamDetails = ({
   river,
   basin,
   tespp,
-  otherspp,
+  statesgcnspp,
+  regionalsgcnspp,
   recon,
   ownertype,
-  usfs,
-  coa,
-  sebio,
+  huc8_usfs,
+  huc8_coa,
+  huc8_sgcn,
   // metrics
   freeupstreammiles,
   freedownstreammiles,
@@ -176,10 +176,10 @@ const DamDetails = ({
             </li>
           )}
 
-          {otherspp > 0 ? (
+          {statesgcnspp > 0 ? (
             <>
               <li>
-                <b>{otherspp}</b> state and regional aquatic species of greatest
+                <b>{statesgcnspp}</b> state-listed aquatic species of greatest
                 conservation need have been found in the subwatershed containing
                 this barrier. These may include state-listed threatened and
                 endangered species.
@@ -187,13 +187,28 @@ const DamDetails = ({
             </>
           ) : (
             <li>
-              No state and regional aquatic species of greatest conservation
-              need have been identified by available data sources for this
+              No state-listed aquatic species of greatest conservation need have
+              been identified by available data sources for this subwatershed.
+            </li>
+          )}
+
+          {regionalsgcnspp > 0 ? (
+            <>
+              <li>
+                <b>{regionalsgcnspp}</b> regionally-listed aquatic species of
+                greatest conservation need have been found in the subwatershed
+                containing this barrier.
+              </li>
+            </>
+          ) : (
+            <li>
+              No regionally-listed aquatic species of greatest conservation need
+              have been identified by available data sources for this
               subwatershed.
             </li>
           )}
 
-          {tespp + otherspp > 0 ? (
+          {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
             <HelpText mt="1rem" fontSize="smaller">
               Note: species information is very incomplete. These species may or
               may not be directly impacted by this barrier.
@@ -212,11 +227,12 @@ const DamDetails = ({
           )}
 
           {/* watershed priorities */}
-          {usfs > 0 && <li>USFS watershed priority: {USFS_PRIORITY[usfs]}</li>}
-          {coa > 0 && <li>Within a SARP conservation opportunity area</li>}
-          {sebio > 0 && (
+          {huc8_usfs > 0 && <li>USFS watershed priority: {HUC8_USFS[usfs]}</li>}
+          {huc8_coa > 0 && <li>Within a SARP conservation opportunity area</li>}
+          {huc8_sgcn > 0 && (
             <li>
-              Southeast aquatic biodiversity hotspot: {SE_BIODIVERSITY[sebio]}
+              Watersheds with most Species of Greatest Conservation Need per
+              state
             </li>
           )}
         </List>
@@ -264,12 +280,13 @@ DamDetails.propTypes = {
   purpose: PropTypes.number,
   condition: PropTypes.number,
   tespp: PropTypes.number,
-  otherspp: PropTypes.number,
+  statesgcnspp: PropTypes.number,
+  regionalsgcnspp: PropTypes.number,
   recon: PropTypes.number,
   ownertype: PropTypes.number,
-  usfs: PropTypes.number,
-  coa: PropTypes.number,
-  sebio: PropTypes.number,
+  huc8_usfs: PropTypes.number,
+  huc8_coa: PropTypes.number,
+  huc8_sgcn: PropTypes.number,
   freeupstreammiles: PropTypes.number,
   totalupstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
@@ -289,12 +306,13 @@ DamDetails.defaultProps = {
   purpose: 0,
   condition: 0,
   tespp: 0,
-  otherspp: 0,
+  statesgcnspp: 0,
+  regionalsgcnspp: 0,
   recon: 0,
   ownertype: null,
-  usfs: 0,
-  coa: 0,
-  sebio: 0,
+  huc8_usfs: 0,
+  huc8_coa: 0,
+  huc8_sgcn: 0,
   freeupstreammiles: null,
   totalupstreammiles: null,
   freedownstreammiles: null,

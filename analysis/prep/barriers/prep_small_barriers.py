@@ -128,6 +128,8 @@ df = add_spatial_joins(df)
 
 
 ### Add tracking fields
+# master log field for status
+df["log"] = ""
 # dropped: records that should not be included in any later analysis
 df["dropped"] = False
 
@@ -139,33 +141,49 @@ drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()
 print("{:,} small barriers are outside HUC12 / states".format(len(df.loc[drop_idx])))
 # Mark dropped barriers
 df.loc[drop_idx, "dropped"] = True
+df.loc[drop_idx, "log"] = "dropped: outside HUC12 / states"
 
 
 ### Drop any small barriers that should be completely dropped from analysis
 # based on manual QA/QC
-# NOTE: small barriers currently do not have any values set for ManualReview
-drop_idx = df.PotentialProject.isin(DROP_POTENTIAL_PROJECT) | df.ManualReview.isin(
-    DROP_MANUALREVIEW
-)
+drop_idx = df.PotentialProject.isin(DROP_POTENTIAL_PROJECT)
 print(
-    "Dropped {:,} small barriers from all analysis and mapping".format(
+    "Dropped {:,} small barriers from all analysis and mapping based on PotentialProject".format(
         len(df.loc[drop_idx])
     )
 )
 df.loc[drop_idx, "dropped"] = True
+df.loc[drop_idx, "log"] = "dropped: PotentialProject one of".format(DROP_POTENTIAL_PROJECT)
+
+drop_idx = df.ManualReview.isin(DROP_MANUALREVIEW)
+print(
+    "Dropped {:,} small barriers from all analysis and mapping based on ManualReview".format(
+        len(df.loc[drop_idx])
+    )
+)
+df.loc[drop_idx, "dropped"] = True
+df.loc[drop_idx, "log"] = "dropped: ManualReview one of {}".format(DROP_MANUALREVIEW)
+
 
 ### Exclude barriers that should not be analyzed or prioritized based on manual QA
-# NOTE: small barriers currently do not have any values set for ManualReview
-exclude_idx = ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT) | df.ManualReview.isin(
-    EXCLUDE_MANUALREVIEW
-)
-
+exclude_idx = ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT)
 print(
-    "Excluded {:,} small barriers from network analysis and prioritization".format(
+    "Excluded {:,} small barriers from network analysis and prioritization based on PotentialProject".format(
         len(df.loc[exclude_idx])
     )
 )
 df.loc[exclude_idx, "excluded"] = True
+df.loc[drop_idx, "log"] = "excluded: PotentialProject not one of retained types {}".format(KEEP_POTENTIAL_PROJECT)
+
+exclude_idx = df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
+print(
+    "Excluded {:,} small barriers from network analysis and prioritization based on ManualReview".format(
+        len(df.loc[exclude_idx])
+    )
+)
+df.loc[exclude_idx, "excluded"] = True
+df.loc[drop_idx, "log"] = "excluded: ManualReview one of {}".format(EXCLUDE_MANUALREVIEW)
+
 
 
 ### Convert to pygeos format for following operations
@@ -186,6 +204,7 @@ original_locations = df.copy()
 # Snap to flowlines
 snap_start = time()
 df, to_snap = snap_to_flowlines(df, to_snap=df.copy())
+df['loop'] = df.loop.fillna(False)
 print(
     "Snapped {:,} small barriers in {:.2f}s".format(
         len(df.loc[df.snapped]), time() - snap_start
@@ -195,6 +214,7 @@ print(
 print("---------------------------------")
 print("\nSnapping statistics")
 print(df.groupby("snap_log").size())
+print(df.groupby("loop").size())
 print("---------------------------------\n")
 
 
@@ -258,7 +278,6 @@ flowlines = deserialize_dfs(
 
 df = df.join(flowlines, on="lineID")
 
-
 print("\n--------------\n")
 
 df = df.reset_index(drop=True)
@@ -272,7 +291,7 @@ to_gpkg(df, qa_dir / "small_barriers")
 
 
 # Extract out only the snapped ones
-df = df.loc[df.snapped & ~df.duplicate].reset_index(drop=True)
+df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 

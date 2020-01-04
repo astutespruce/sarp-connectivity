@@ -159,7 +159,7 @@ df.sort = df.sort.fillna(255).astype("uint8")  # missing values should sort to b
 
 # sort on 'sort' so that later when we do spatial joins and get multiple hits, we take the ones with
 # the lowest sort value (1 = highest priority) first.
-df = df.sort_values(by="sort")
+df = df.sort_values(by="sort").drop(columns=["sort"])
 
 # partner federal agencies to call out specifically
 # map of substrings to search for specific owners
@@ -204,7 +204,7 @@ df["ProtectedLand"] = (
 )
 
 # only save owner type
-df = df[["geometry", "OwnerType", "ProtectedLand", "sort"]].reset_index(drop=True)
+df = df[["geometry", "OwnerType", "ProtectedLand"]].reset_index(drop=True)
 to_geofeather(df, boundaries_dir / "protected_areas.feather")
 
 
@@ -236,42 +236,26 @@ coa["coa"] = 1
 coa = coa.groupby(level=0).min()
 
 
-sebio = (
-    gp.read_file(src_dir / "Priority_Areas.gdb", layer="SE_Biodiversity")[
-        ["SARP_HUC8_COAs_2015_WebMercator_HUC_8", "NewRanks_ATPrioritySum"]
-    ]
-    .rename(
-        columns={
-            "SARP_HUC8_COAs_2015_WebMercator_HUC_8": "HUC_8",
-            "NewRanks_ATPrioritySum": "priority",
-        }
-    )
-    .set_index("HUC_8")
-)
+# Top 10 HUC8s per state for count of SGCN
+sgcn = gp.read_file(src_dir / "SGCN_Priorities.gdb")[["HUC8"]].set_index("HUC8")
+sgcn["sgcn"] = 1
 
-# 1 = highest 10% (90th percentile), 2 = highest 10%-25%
-# below this threshold didn't seem useful on the map
-p75, p90 = sebio.priority.quantile([0.75, 0.9])
-sebio.loc[sebio.priority >= p75, "sebio"] = 2
-sebio.loc[sebio.priority >= p90, "sebio"] = 1
-
-# drop the rest
-sebio = sebio[["sebio"]].dropna(subset=["sebio"]).astype("uint8")
-
-# take the lowest value (highest priority) for duplicate watersheds
-sebio = sebio.groupby(level=0).min()
 
 # 0 = not priority for a given priority dataset
 priorities = (
-    usfs.join(coa, how="outer").join(sebio, how="outer").fillna(0).astype("uint8")
+    usfs.join(coa, how="outer").join(sgcn, how="outer").fillna(0).astype("uint8")
 )
 
 # drop duplicates
-priorities = priorities.reset_index().drop_duplicates().set_index("HUC_8")
+priorities = (
+    priorities.reset_index()
+    .drop_duplicates()
+    .rename(columns={"index": "HUC8"})
+    .reset_index(drop=True)
+)
 
 serialize_df(
-    priorities.reset_index().rename(columns={"HUC_8": "HUC8"}),
-    out_dir / "priorities.feather",
+    priorities, out_dir / "priorities.feather",
 )
 
 
@@ -281,7 +265,7 @@ df.sindex
 
 # Select out within the SARP boundary
 in_sarp = gp.sjoin(df, bnd)
-df = df.loc[df.HUC8.isin(in_sarp.HUC8)].join(priorities, on="HUC8")
+df = df.loc[df.HUC8.isin(in_sarp.HUC8)].join(priorities.set_index("HUC8"), on="HUC8")
 df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")
 
 to_shp(

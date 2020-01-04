@@ -598,6 +598,7 @@ const PriorityMap = ({
     let footnote = null
 
     if (Math.max(...Object.values(priorityLayerState))) {
+      window.p = priorityLayerState
       const priorityEntries = Object.entries(priorityLayerState)
         .filter(([id, visible]) => visible)
         .forEach(([id]) => {
@@ -745,10 +746,11 @@ const PriorityMap = ({
           options={[
             { id: 'usfs', label: 'USFS priority watersheds' },
             { id: 'coa', label: 'SARP conservation opportunity areas' },
-            // {
-            //   id: 'sebio',
-            //   label: 'Southeast aquatic biodiversity hotspots',
-            // },
+            {
+              id: 'sgcn',
+              label:
+                'Watersheds with most Species of Greatest Conservation Need per state',
+            },
           ]}
           onChange={handlePriorityLayerChange}
         />
