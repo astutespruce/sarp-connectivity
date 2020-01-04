@@ -26,6 +26,9 @@ from nhdnet.geometry.points import add_lat_lon, mark_duplicates
 from analysis.constants import CRS
 from analysis.util import spatial_join
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
+from analysis.rank.lib.spatial_joins import (
+    add_spatial_joins as add_protectedland_priorities,
+)
 
 
 DUPLICATE_TOLERANCE = 10  # meters
@@ -117,12 +120,8 @@ df.Name = df.Name.fillna("")
 # NOTE: these are used for summary stats, but not used in most of the rest of the stack
 df = add_spatial_joins(df)
 
-### Level 3 & 4 Ecoregions
-print("Joining to ecoregions")
-# Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
-eco4 = from_geofeather(boundaries_dir / "eco4.feather")[["geometry", "ECO3", "ECO4"]]
-df = spatial_join(df, eco4)
-
+### Spatial joins to protected lands and priority watersheds
+df = add_protectedland_priorities(df)
 
 print("Adding lat / lon fields")
 df = add_lat_lon(df)

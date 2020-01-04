@@ -3,6 +3,7 @@ import Crossfilter2 from 'crossfilter2'
 import { isDebug } from 'util/dom'
 import { useIsEqualMemo } from 'util/hooks'
 import { countByDimension, getFilteredCount } from './util'
+import { exception } from 'react-ga'
 
 // returns true if passed in values contains the value
 // values must be a Set
@@ -43,8 +44,6 @@ export const Crossfilter = (data, filterConfig) => {
     return initCrossfilter(data, filterConfig)
   }, [data])
 
-  // const { crossfilter, dimensions } = initCrossfilter(data, filterConfig)
-
   // create the initial state in the callback so that we only construct it once
   const [state, setState] = useState(() => {
     const count = crossfilter.size()
@@ -73,6 +72,15 @@ export const Crossfilter = (data, filterConfig) => {
     }
 
     setState(() => {
+      // validate that expected fields are present
+      if (newData.length > 0) {
+        Object.keys(dimensions).forEach(field => {
+          if (newData[0][field] === undefined) {
+            throw new Error(`Field is not present in data: ${field}`)
+          }
+        })
+      }
+
       // remove all previous records
       crossfilter.remove(() => true)
       crossfilter.add(newData)

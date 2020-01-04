@@ -1,11 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { HelpText } from 'components/Text'
-
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
-import { Section, SectionHeader, List } from './styles'
+import { Section, SectionHeader, List, Note } from './styles'
 
 import { siteMetadata } from '../../../gatsby-config'
 import {
@@ -25,6 +23,7 @@ const DamDetails = ({
   lat,
   lon,
   hasnetwork,
+  excluded,
   height,
   nidid,
   source,
@@ -150,10 +149,26 @@ const DamDetails = ({
               </li>
             </>
           ) : (
-            <li>
-              This barrier is off-network and has no functional network
-              information.
-            </li>
+            <>
+              {excluded ? (
+                <li>
+                  This dam was excluded from the connectivity analysis based on
+                  field reconnaissance or manual review of aerial imagery.
+                </li>
+              ) : (
+                <>
+                  <li>
+                    This dam is off-network and has no functional network
+                    information.
+                  </li>
+                  <Note>
+                    Not all dams could be correctly snapped to the aquatic
+                    network for analysis. Please contact us to report an error
+                    or for assistance interpreting these results.
+                  </Note>
+                </>
+              )}
+            </>
           )}
         </List>
       </Section>
@@ -209,10 +224,10 @@ const DamDetails = ({
           )}
 
           {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
-            <HelpText mt="1rem" fontSize="smaller">
+            <Note>
               Note: species information is very incomplete. These species may or
               may not be directly impacted by this barrier.
-            </HelpText>
+            </Note>
           ) : null}
         </List>
       </Section>
@@ -227,12 +242,14 @@ const DamDetails = ({
           )}
 
           {/* watershed priorities */}
-          {huc8_usfs > 0 && <li>USFS watershed priority: {HUC8_USFS[usfs]}</li>}
+          {huc8_usfs > 0 && (
+            <li>USFS watershed priority: {HUC8_USFS[huc8_usfs]}</li>
+          )}
           {huc8_coa > 0 && <li>Within a SARP conservation opportunity area</li>}
           {huc8_sgcn > 0 && (
             <li>
-              Watersheds with most Species of Greatest Conservation Need per
-              state
+              Within a watershed that is in the top 10 for this state based on
+              number of state-listed Species of Greatest Conservation Need
             </li>
           )}
         </List>
@@ -270,6 +287,7 @@ DamDetails.propTypes = {
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
+  excluded: PropTypes.bool,
   river: PropTypes.string,
   basin: PropTypes.string.isRequired,
   height: PropTypes.number,
@@ -297,6 +315,7 @@ DamDetails.propTypes = {
 }
 
 DamDetails.defaultProps = {
+  excluded: false,
   river: null,
   nidid: null,
   source: null,

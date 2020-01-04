@@ -268,6 +268,6 @@ export const HUC8_COA = {
 }
 
 export const HUC8_SGCN = {
-  1: 'Within top 10 watersheds per state',
-  0: 'Not within top 10 watersheds per state',
+  1: 'within top 10 watersheds per state',
+  0: 'not within top 10 watersheds per state',
 }

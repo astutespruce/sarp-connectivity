@@ -52,16 +52,17 @@ const priorityFilters = [
     title: 'SARP conservation opportunity areas',
     sort: false,
     hideEmpty: true,
-    help: '',
+    help:
+      "These areas were designated by each state and approved by SARP's steering committee for funding through SARP-NFHP-USFWS each year.",
     ...getEntries(HUC8_COA),
   },
   {
     field: 'huc8_sgcn',
-    title:
-      'Watersheds with most Species of Greatest Conservation Need per state',
+    title: 'Watersheds with most Species of Greatest Conservation Need',
     sort: false,
     hideEmpty: true,
-    help: '',
+    help:
+      'These watersheds are among the top 10 per state based on number of State-listed Species of Greatest Conservation Need.',
     ...getEntries(HUC8_SGCN),
   },
 ]
@@ -103,11 +104,19 @@ const dams = [
     ...getEntries(RARESPP),
   },
   {
-    field: 'othersppclass',
-    title: 'Number of State and Regional Species of Greatest Conservation Need',
+    field: 'statesgcnsppclass',
+    title: 'Number of State-listed Species of Greatest Conservation Need',
     hideEmpty: true,
     help:
-      'Note: This information is based on occurrences of one or more state threatened or endangered aquatic species, other species of Greatest Conservation Need within the region, that occur within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+      'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    ...getEntries(RARESPP),
+  },
+  {
+    field: 'regionalsgcnsppclass',
+    title: 'Number of Regionally-listed Species of Greatest Conservation Need',
+    hideEmpty: true,
+    help:
+      'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
     ...getEntries(RARESPP),
   },
   {
@@ -203,11 +212,19 @@ const barriers = [
     ...getEntries(RARESPP),
   },
   {
-    field: 'othersppclass',
-    title: 'Number of State and Regional Species of Greatest Conservation Need',
+    field: 'statesgcnsppclass',
+    title: 'Number of State-listed Species of Greatest Conservation Need',
     hideEmpty: true,
     help:
-      'Note: This information is based on occurrences of one or more state-listed threatened or endangered aquatic species, other species of Greatest Conservation Need within the region, that occur within the same subwatershed as the barrier.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+      'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    ...getEntries(RARESPP),
+  },
+  {
+    field: 'regionalsgcnsppclass',
+    title: 'Number of Regionally-listed Species of Greatest Conservation Need',
+    hideEmpty: true,
+    help:
+      'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
     ...getEntries(RARESPP),
   },
   {

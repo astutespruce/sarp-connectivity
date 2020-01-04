@@ -1,4 +1,4 @@
-import { Text } from 'components/Text'
+import { Text, HelpText } from 'components/Text'
 import { Box } from 'components/Grid'
 import styled, { themeGet } from 'style'
 
@@ -26,3 +26,8 @@ export const List = styled.ul`
     margin-top: 0.5rem;
   }
 `
+
+export const Note = styled(HelpText).attrs({
+  mt: '1rem',
+  fontSize: 'smaller',
+})``

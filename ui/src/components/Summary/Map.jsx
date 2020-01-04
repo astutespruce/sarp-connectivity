@@ -229,6 +229,7 @@ const SummaryMap = ({
             coordinates: [lon, lat],
           },
         } = feature
+
         // dam or barrier
         onSelectBarrier({
           ...properties,
