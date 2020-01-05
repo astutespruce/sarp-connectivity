@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
+import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 import { Section, SectionHeader, List, Note } from './styles'
@@ -218,13 +219,23 @@ const BarrierDetails = ({
               No regionally-listed aquatic species of greatest conservation need
               have been identified by available data sources for this
               subwatershed.
+              <Note>
+                Species information is very incomplete; important species may
+                not be represented within the available data.{' '}
+                <a href="/sgcn" target="_blank">
+                  Read more.
+                </a>
+              </Note>
             </li>
           )}
 
           {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
             <Note>
               Note: species information is very incomplete. These species may or
-              may not be directly impacted by this barrier.
+              may not be directly impacted by this barrier.{' '}
+              <a href="/sgcn" target="_blank">
+                Read more.
+              </a>
             </Note>
           ) : null}
         </List>
@@ -236,15 +247,28 @@ const BarrierDetails = ({
           <List>
             {/* watershed priorities */}
             {huc8_usfs > 0 && (
-              <li>USFS watershed priority: {HUC8_USFS[huc8_usfs]}</li>
+              <li>
+                Within USFS {HUC8_USFS[huc8_usfs]} priority watershed.{' '}
+                <a href="/usfs_priority_watersheds" target="_blank">
+                  Read more.
+                </a>
+              </li>
             )}
             {huc8_coa > 0 && (
-              <li>Within a SARP conservation opportunity area</li>
+              <li>
+                Within a SARP conservation opportunity area.{' '}
+                <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
+                  Read more.
+                </OutboundLink>
+              </li>
             )}
             {huc8_sgcn > 0 && (
               <li>
-                Within a watershed that is in the top 10 for this state based on
-                number of state-listed Species of Greatest Conservation Need
+                Within one of the top 10 watersheds in this state based on
+                number of state-listed Species of Greatest Conservation Need.{' '}
+                <a href="/sgcn" target="_blank">
+                  Read more.
+                </a>
               </li>
             )}
           </List>

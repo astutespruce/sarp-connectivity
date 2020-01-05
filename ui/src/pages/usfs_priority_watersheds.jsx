@@ -4,22 +4,13 @@ import { graphql, withPrefix } from 'gatsby'
 
 import Layout from 'components/Layout'
 import { HeaderImage } from 'components/Image'
-import { Columns } from 'components/Grid'
-import HighlightBox from 'components/Layout/HighlightBox'
-import {
-  PageTitle,
-  PageContainer,
-  Section,
-  Title,
-  Column,
-  LargeText,
-} from 'content/styles'
+import { PageTitle, PageContainer, LargeText } from 'content/styles'
 
 const LengthPage = ({ data: { headerImage } }) => (
   <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.fluid}
-      height="20vh"
+      height="30vh"
       minHeight="18rem"
       position="center"
       credits={{

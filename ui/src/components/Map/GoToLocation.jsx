@@ -269,7 +269,6 @@ const GoToLocation = ({ map }) => {
               <Label>Latitude:&nbsp;</Label>
               <Input
                 onChange={handleLatitudeChange}
-                className={`is-size-6 ${!isLatValid ? 'invalid' : ''}`}
                 value={lat}
                 isValid={isLatValid}
               />
@@ -278,7 +277,6 @@ const GoToLocation = ({ map }) => {
               <Label>Longitude:&nbsp;</Label>
               <Input
                 onChange={handleLongitudeChange}
-                className={`is-size-6 ${!isLonValid ? 'invalid' : ''}`}
                 value={lon}
                 isValid={isLonValid}
               />

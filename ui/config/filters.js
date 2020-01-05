@@ -45,7 +45,7 @@ const priorityFilters = [
     help:
       'These include TNC critical watersheds, TNC hotspots, watersheds containing USFWS Critical Habitat, SARP priority watersheds, watersheds containing aquatic passage inventories, and EPA priority watersheds.',
     ...getEntries(HUC8_USFS),
-    url: '/priorities/usfs',
+    url: '/usfs_priority_watersheds',
   },
   {
     field: 'huc8_coa',
@@ -54,6 +54,8 @@ const priorityFilters = [
     hideEmpty: true,
     help:
       "These areas were designated by each state and approved by SARP's steering committee for funding through SARP-NFHP-USFWS each year.",
+    url:
+      'https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas',
     ...getEntries(HUC8_COA),
   },
   {
@@ -63,6 +65,7 @@ const priorityFilters = [
     hideEmpty: true,
     help:
       'These watersheds are among the top 10 per state based on number of State-listed Species of Greatest Conservation Need.',
+    url: '/sgcn',
     ...getEntries(HUC8_SGCN),
   },
 ]
@@ -101,6 +104,7 @@ const dams = [
     hideEmpty: true,
     help:
       'Note: This information is based on occurrences of one or more federally- threatened or endangered aquatic species within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    url: '/sgcn',
     ...getEntries(RARESPP),
   },
   {
@@ -109,6 +113,7 @@ const dams = [
     hideEmpty: true,
     help:
       'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    url: '/sgcn',
     ...getEntries(RARESPP),
   },
   {
@@ -117,6 +122,7 @@ const dams = [
     hideEmpty: true,
     help:
       'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    url: '/sgcn',
     ...getEntries(RARESPP),
   },
   {
@@ -209,6 +215,7 @@ const barriers = [
     hideEmpty: true,
     help:
       'Note: This information is based on occurrences of one or more federally-listed threatened or endangered aquatic species within the same subwatershed as the barrier.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    url: '/sgcn',
     ...getEntries(RARESPP),
   },
   {
@@ -217,6 +224,7 @@ const barriers = [
     hideEmpty: true,
     help:
       'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    url: '/sgcn',
     ...getEntries(RARESPP),
   },
   {
@@ -225,6 +233,7 @@ const barriers = [
     hideEmpty: true,
     help:
       'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    url: '/sgcn',
     ...getEntries(RARESPP),
   },
   {

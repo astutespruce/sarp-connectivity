@@ -87,10 +87,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
 
   return (
     <Wrapper>
-      <Header
-        id="SidebarHeader"
-        className="flex-container flex-justify-center flex-align-start"
-      >
+      <Header id="SidebarHeader">
         <TitleWrapper>
           <Title>{title}</Title>
           {layerId !== 'State' && <Subtitle>{layerTitle}</Subtitle>}
@@ -109,9 +106,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
 
         {team ? (
           <div style={{ marginTop: '3rem' }}>
-            <h5 className="title is-5" style={{ marginBottom: '0.5em' }}>
-              Aquatic Connectivity Team
-            </h5>
+            <h5 style={{ marginBottom: '0.5em' }}>Aquatic Connectivity Team</h5>
             <p>
               {team.description}
               <br />

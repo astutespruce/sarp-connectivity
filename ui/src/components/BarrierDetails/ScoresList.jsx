@@ -4,7 +4,7 @@ import { ScoresPropType } from './proptypes'
 import ScoreChart from './ScoreChart'
 
 const ScoresList = ({ nc, wc, ncwc }) => (
-  <div className="priorities-list">
+  <div>
     <ScoreChart
       label="Network Connectivity Tier"
       score={nc.score}
