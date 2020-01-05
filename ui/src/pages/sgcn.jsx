@@ -22,7 +22,8 @@ const LengthPage = ({ data: { headerImage } }) => (
       minHeight="18rem"
       position="center"
       credits={{
-        author: 'U.S. Fish & Wildlife Service Southeast Region',
+        author:
+          'Appalachian elktoe | U.S. Fish & Wildlife Service Southeast Region',
         url: 'https://www.flickr.com/photos/usfwssoutheast/33643109826/',
       }}
     />
@@ -95,42 +96,6 @@ const LengthPage = ({ data: { headerImage } }) => (
             according to the above breakdown.
           </li>
         </ul>
-        {/* <br />
-        <br />
-        <ul>
-          <li>
-            TNC critical watersheds (critical watersheds for conservation of
-            imperiled fish and mussels)
-          </li>
-          <li>
-            TNC Hotspots (subbasins that contain 10 or more at-risk freshwater
-            and mussel species)
-          </li>
-          <li>
-            Watersheds with U.S. Fish and Wildlife Service Critical Habitat
-            designations
-          </li>
-          <li>
-            Southeast Aquatic Resources Partnership (SARP) priority watersheds
-            (watersheds identified by SARP as key in preserving biodiversity in
-            the southern U.S.)
-          </li>
-          <li>Watersheds containing aquatic passage inventories</li>
-          <li>
-            EPA priority watersheds (watersheds where the EPA and state partners
-            agreed to focus to protect and restore waters)
-          </li>
-        </ul>
-        <br />
-        These watersheds were identified at the subbasin (HUC8) level.
-        <br />
-        <br />
-        <a
-          href={withPrefix('USFS_R8_priority_watersheds_2010.pdf')}
-          download="USFS_R8_priority_watersheds_2010.pdf"
-        >
-          Download report.
-        </a> */}
       </LargeText>
     </PageContainer>
   </Layout>

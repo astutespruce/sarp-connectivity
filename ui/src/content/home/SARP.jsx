@@ -64,11 +64,7 @@ const SARP = () => {
           <WideColumn>
             <p>
               The&nbsp;
-              <OutboundLink
-                to="https://southeastaquatics.net/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <OutboundLink to="https://southeastaquatics.net/">
                 Southeast Aquatic Resources Partnership
               </OutboundLink>
               &nbsp; (SARP) was formed by the Southeastern Association of Fish
@@ -89,8 +85,9 @@ const SARP = () => {
               fluid={forestStreamPhoto}
               alt="Sam D. Hamilton Noxubee National Wildlife Refuge"
             />
-            Photo:{' '}
+
             <ImageCredits>
+              Photo:{' '}
               <OutboundLink to="https://www.flickr.com/photos/usfwssoutheast/6882770647/in/album-72157629334467105/">
                 Sam D. Hamilton Noxubee National Wildlife Refuge in Mississippi.
                 U.S. Fish and Wildlife Service.

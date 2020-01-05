@@ -16,9 +16,8 @@ export const Section = styled(Box)`
   color: ${themeGet('colors.grey.900')};
 
   &:not(:first-child) {
-    margin-top: 3rem;
+    margin-top: 6rem;
   }
-
   p {
     font-size: 1.1rem;
     margin: 0;

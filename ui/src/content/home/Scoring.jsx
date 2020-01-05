@@ -6,7 +6,7 @@ import { FaExclamationTriangle } from 'react-icons/fa'
 
 import { Text } from 'components/Text'
 import { Link, OutboundLink } from 'components/Link'
-import { Columns, Column as BaseColumn, Flex } from 'components/Grid'
+import { Columns, Column as BaseColumn } from 'components/Grid'
 import { HighlightBox } from 'components/Layout'
 import styled, { themeGet } from 'style'
 import NetworkGraphicSVG from 'images/functional_network.svg'
@@ -147,6 +147,10 @@ const Scoring = () => {
               on the aquatic network.
               <br />
               <br />
+              Read more about network analysis methods for{' '}
+              <Link to="/network_methods">
+                states in the Southeast
+              </Link> and <Link to="/network_methods_pr">Puerto Rico</Link>.
             </p>
 
             <Note>
