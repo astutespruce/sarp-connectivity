@@ -4,7 +4,7 @@ import Img from 'gatsby-image'
 import { Image } from 'rebass/styled-components'
 import { FaExclamationTriangle } from 'react-icons/fa'
 
-import { Text } from 'components/Text'
+import { Text, HelpText } from 'components/Text'
 import { Link, OutboundLink } from 'components/Link'
 import { Columns, Column as BaseColumn } from 'components/Grid'
 import { HighlightBox } from 'components/Layout'
@@ -36,9 +36,7 @@ const List = styled.ul`
   }
 `
 
-const Note = styled(Text)`
-  color: ${themeGet('colors.grey.600')};
-`
+const Note = styled(HelpText).attrs({ mt: '1rem' })``
 
 const WarningIcon = styled(FaExclamationTriangle)`
   width: 1.5em;

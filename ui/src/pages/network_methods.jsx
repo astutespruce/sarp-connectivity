@@ -10,12 +10,18 @@ import { Link, OutboundLink } from 'components/Link'
 import {
   PageTitle,
   PageContainer,
-  Section,
+  Section as BaseSection,
   Title,
   LargeText,
   Divider,
 } from 'content/styles'
 import styled, { themeGet } from 'style'
+
+const Section = styled(BaseSection)`
+  &:not(:first-child) {
+    margin-top: 3rem;
+  }
+`
 
 const WarningIcon = styled(FaExclamationTriangle)`
   width: 1.5em;

@@ -8,11 +8,17 @@ import { Link, OutboundLink } from 'components/Link'
 import {
   PageTitle,
   PageContainer,
-  Section,
+  Section as BaseSection,
   Title,
-  Column,
   LargeText,
 } from 'content/styles'
+import styled from 'style'
+
+const Section = styled(BaseSection)`
+  &:not(:first-child) {
+    margin-top: 3rem;
+  }
+`
 
 const LengthPage = ({ data: { headerImage } }) => (
   <Layout>

@@ -8,11 +8,17 @@ import { OutboundLink } from 'components/Link'
 import {
   PageTitle,
   PageContainer,
-  Section,
+  Section as BaseSection,
   Title,
-  Column,
   LargeText,
 } from 'content/styles'
+import styled from 'style'
+
+const Section = styled(BaseSection)`
+  &:not(:first-child) {
+    margin-top: 3rem;
+  }
+`
 
 const LengthPage = ({ data: { headerImage } }) => (
   <Layout>
@@ -43,10 +49,16 @@ const LengthPage = ({ data: { headerImage } }) => (
         occurrence data obtained from state natural heritage programs or similar
         organizations. These data were limited to aquatic species, specifically
         fishes, crayfishes, mussels, snails, and amphibians
-        <br />
-        <br />
-        We categorized species as follows:
-        <ul>
+      </LargeText>
+
+      <Section>
+        <Title>Methods</Title>
+        <p>
+          We categorized species as follows:
+          <br />
+          <br />
+        </p>
+        <ol>
           <li>
             Federally-listed species were identified based on data managed by
             the state programs or based on species lists from the U.S. Fish and
@@ -65,18 +77,22 @@ const LengthPage = ({ data: { headerImage } }) => (
             identified using a species list from the Southeast Association of
             Fish and Wildlife Agencies.
           </li>
-        </ul>
-        <br />
-        <br />
-        <Title>
-          Watersheds with most Species of Greatest Conservation Need{' '}
-        </Title>
-        We identified the top 10 watersheds for each state based on the number
-        of state-listed species of Greatest Conservation Need aggregated up to
-        the watershed (HUC8) level.
-        <br />
-        <br />
-        <br />
+        </ol>
+        <p>
+          <br />
+          We then counted the number of federally-listed threatened and
+          endangered species and Species of Greatest Conservation Need by
+          subwatershed (HUC12) and assigned to each barrier within that
+          subwatershed.
+          <br />
+          <br />
+          We identified the top 10 watersheds for each state based on the number
+          of state-listed species of Greatest Conservation Need aggregated up to
+          the watershed (HUC8) level.
+        </p>
+      </Section>
+
+      <Section>
         <Title>Caveats:</Title>
         <ul>
           <li>
@@ -96,7 +112,7 @@ const LengthPage = ({ data: { headerImage } }) => (
             according to the above breakdown.
           </li>
         </ul>
-      </LargeText>
+      </Section>
     </PageContainer>
   </Layout>
 )
