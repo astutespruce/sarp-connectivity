@@ -598,7 +598,6 @@ const PriorityMap = ({
     let footnote = null
 
     if (Math.max(...Object.values(priorityLayerState))) {
-      window.p = priorityLayerState
       const priorityEntries = Object.entries(priorityLayerState)
         .filter(([id, visible]) => visible)
         .forEach(([id]) => {
