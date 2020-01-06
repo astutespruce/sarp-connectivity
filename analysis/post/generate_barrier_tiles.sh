@@ -10,7 +10,7 @@ tippecanoe -f -Z5 -z16 -B6 -pk -pg -pe -ai -o $WORKDIR/dams_with_networks.mbtile
 tippecanoe -f -Z9 -z16 -B10 -pk -pg -pe -ai -o$WORKDIR/dams_without_networks.mbtiles -l background -T sarpid:string  -T name:string -T river:string -T excluded:bool $WORKDIR/dams_without_networks.csv
 
 # Merge into a single tileset
-tile-join -f --no-tile-size-limit -o $OUTDIR/sarp_dams.mbtiles $WORKDIR/dams_with_networks.mbtiles $WORKDIR/dams_without_networks.mbtiles
+tile-join -f --no-tile-size-limit -pg -o $OUTDIR/sarp_dams.mbtiles $WORKDIR/dams_with_networks.mbtiles $WORKDIR/dams_without_networks.mbtiles
 
 ## Small barriers with networks, and small barriers without networks + road crossings
 echo "Generating tiles for small barriers and road crossings..."
@@ -20,7 +20,7 @@ tippecanoe -f -Z5 -z16 -B6 -pk -pg -pe -ai -o $WORKDIR/barriers_with_networks.mb
 tippecanoe -f -Z9 -z16 -B10 -pg -pe --drop-densest-as-needed -o $WORKDIR/barriers_background.mbtiles -l background -T name:string -T stream:string -T road:string -T sarpid:string -T localid:string -T crossingcode:string -T source:string -T stream:string -T road:string -T roadtype:string -T crossingtype:string -T condition:string -T potentialproject:string -T excluded:bool $WORKDIR/barriers_background.csv
 
 # Merge into a single tileset
-tile-join -f -pg --no-tile-size-limit -o $OUTDIR/sarp_barriers.mbtiles $WORKDIR/barriers_with_networks.mbtiles $WORKDIR/barriers_background.mbtiles
+tile-join -f -pg --no-tile-size-limit -pg -o $OUTDIR/sarp_barriers.mbtiles $WORKDIR/barriers_with_networks.mbtiles $WORKDIR/barriers_background.mbtiles
 
 # Waterfalls with and without networks
 echo "Generating tiles for waterfalls"

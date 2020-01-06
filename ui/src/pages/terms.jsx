@@ -130,7 +130,7 @@ export const pageQuery = graphql`
       relativePath: { eq: "david-kovalenko-447548-unsplash.jpg" }
     ) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }

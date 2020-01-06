@@ -94,8 +94,6 @@ df = gp.read_file(gdb)[
         "State_Status",
         "SGCN_Listing",
         "Regional_SGCN",
-        # "ConcernLevel",
-        # "Num_States",
     ]
 ].rename(
     columns={
@@ -108,6 +106,11 @@ df = gp.read_file(gdb)[
         "Regional_SGCN": "regional",
     }
 )
+
+# fix data issues
+for col in ["SNAME", "CNAME"]:
+    df[col] = df[col].fillna("").str.strip()
+
 
 # Some species have a bunch of duplicates
 df = df.drop_duplicates()

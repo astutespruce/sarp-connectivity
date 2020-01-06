@@ -12,7 +12,7 @@ import {
   Section,
   Title,
   Column,
-  LargeText
+  LargeText,
 } from 'content/styles'
 
 const LengthPage = ({ data: { headerImage } }) => (
@@ -97,9 +97,9 @@ LengthPage.propTypes = {
 
 export const pageQuery = graphql`
   query NetworkLengthQuery {
-    headerImage: file(relativePath: { eq: "5149475130_6be3c887a8_o.jpg" }) {
+    headerImage: file(relativePath: { eq: "5149475130_b2334f1edd_4k.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }

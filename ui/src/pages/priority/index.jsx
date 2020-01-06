@@ -46,11 +46,12 @@ const StepDescription = styled(HelpText)`
 const ButtonContainer = styled(Flex).attrs({
   justifyContent: 'space-between',
 })`
-margin-bottom: 8rem;
+  margin-bottom: 8rem;
 `
 
 const Button = styled(PrimaryButton)`
-font-size: 1.5rem;`
+  font-size: 1.5rem;
+`
 
 const SearchIcon = styled(FaSearchLocation)`
   height: 0.8em;
@@ -136,21 +137,18 @@ const PrioritizePage = ({ data: { headerImage } }) => {
         <Title>Get started now</Title>
 
         <ButtonContainer>
-        <Link to="/priority/dams">
-          <Button>
-              
-            <SearchIcon />
-            Prioritize dams
-            
-          </Button>
+          <Link to="/priority/dams">
+            <Button>
+              <SearchIcon />
+              Prioritize dams
+            </Button>
           </Link>
 
           <Link to="/priority/barriers">
-          <Button>
-            <SearchIcon />
-            Prioritize road-related barriers
-            
-          </Button>
+            <Button>
+              <SearchIcon />
+              Prioritize road-related barriers
+            </Button>
           </Link>
         </ButtonContainer>
       </PageContainer>
@@ -172,7 +170,7 @@ export const pageQuery = graphql`
       }
     ) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }

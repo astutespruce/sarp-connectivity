@@ -52,7 +52,12 @@ const LengthPage = ({ data: { headerImage } }) => (
             flowlines dataset in order to create a dendritic aquatic network for
             analysis.
           </li>
-          <li>Barriers were snapped to this network.</li>
+          <li>
+            Dams were automatically snapped to the nearest segment in this
+            network within a 100m tolerance. Dams that were between 100 and 300
+            meters of the network were manually reviewed and snapped if
+            necessary.
+          </li>
           <li>
             The Barrier Assessment Tool created by The Nature Conservancy was
             used to determine the upstream functional networks for these
@@ -79,9 +84,9 @@ LengthPage.propTypes = {
 
 export const pageQuery = graphql`
   query NetworkMethodsPRPageQuery {
-    headerImage: file(relativePath: { eq: "37390837391_95a70430ab_k.jpg" }) {
+    headerImage: file(relativePath: { eq: "37390837391_fd845e232b_o.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }

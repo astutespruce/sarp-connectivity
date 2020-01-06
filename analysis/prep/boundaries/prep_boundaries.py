@@ -266,7 +266,8 @@ df.sindex
 # Select out within the SARP boundary
 in_sarp = gp.sjoin(df, bnd)
 df = df.loc[df.HUC8.isin(in_sarp.HUC8)].join(priorities.set_index("HUC8"), on="HUC8")
-df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")
+for col in ['usfs', 'coa', 'sgcn']:
+    df[col] = df[col].fillna(0).astype("uint8")
 
 to_shp(
     df.reset_index(drop=True).rename(columns={"HUC8": "id", "NAME": "name"}),

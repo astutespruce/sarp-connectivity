@@ -59,10 +59,10 @@ const LengthPage = ({ data: { headerImage } }) => (
         <br />
         <br />
         The following methods represent our best attempt to correctly snap and
-        analyze dams and road-related barriers. If you see errors in the dam
-        locations used in the analysis, or would like additional help
-        interpreting the results of the analysis, please{' '}
-        <a href="mailto:Kat@southeastaquatics.net">contact us</a>.
+        analyze dams and road-related barriers. If you see errors in the dam,
+        road-related barrier, or waterfall locations used in the analysis, or
+        would like additional help interpreting the results of the analysis,
+        please <a href="mailto:Kat@southeastaquatics.net">contact us</a>.
       </LargeText>
 
       <Section>
@@ -102,6 +102,8 @@ const LengthPage = ({ data: { headerImage } }) => (
           network. All waterfalls included in this analysis were considered
           "hard" breaks to the aquatic network, which prevent upstream or
           downstream movement of aquatic species.
+          <br />
+          <br />
         </p>
         <ol>
           <li>
@@ -144,6 +146,8 @@ const LengthPage = ({ data: { headerImage } }) => (
           dams are duplicated between these data providers. Some of these dams
           were supplemented with input from partners with on the ground
           knowledge of specific structures.
+          <br />
+          <br />
         </p>
         <ol>
           <li>
@@ -253,7 +257,9 @@ const LengthPage = ({ data: { headerImage } }) => (
           the network connectivity analysis. These represent a small subset of
           the potential road-related barriers within the region. These barriers
           were analyzed within the aquatic networks already subdivided by dams
-          above.
+          and waterfalls above.
+          <br />
+          <br />
         </p>
         <ol>
           <li>
@@ -317,9 +323,9 @@ LengthPage.propTypes = {
 
 export const pageQuery = graphql`
   query NetworkMethodsPageQuery {
-    headerImage: file(relativePath: { eq: "30557776285_1c820dd744_k.jpg" }) {
+    headerImage: file(relativePath: { eq: "30557776285_90ce5f6683_6k.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }

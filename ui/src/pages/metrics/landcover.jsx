@@ -130,7 +130,7 @@ export const pageQuery = graphql`
   query NaturalLandcoverQuery {
     headerImage: file(relativePath: { eq: "6882770647_c43a945282_o.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }

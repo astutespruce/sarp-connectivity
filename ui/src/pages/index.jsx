@@ -83,7 +83,7 @@ export const pageQuery = graphql`
   query HomePageQuery {
     headerImage: file(relativePath: { eq: "iStock-181890680.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }
@@ -94,7 +94,7 @@ export const pageQuery = graphql`
       }
     ) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }
@@ -105,7 +105,7 @@ export const pageQuery = graphql`
       }
     ) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }

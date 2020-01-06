@@ -80,7 +80,7 @@ export const pageQuery = graphql`
   query USFSPriorityPageQuery {
     headerImage: file(relativePath: { eq: "16244961613_6db5ed78f1_o.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }

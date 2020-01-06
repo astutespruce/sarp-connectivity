@@ -48,7 +48,7 @@ const LengthPage = ({ data: { headerImage } }) => (
         We compiled information on the location of these species using element
         occurrence data obtained from state natural heritage programs or similar
         organizations. These data were limited to aquatic species, specifically
-        fishes, crayfishes, mussels, snails, and amphibians
+        fishes, crayfishes, mussels, snails, and amphibians.
       </LargeText>
 
       <Section>
@@ -127,7 +127,7 @@ export const pageQuery = graphql`
   query SGCNPageQuery {
     headerImage: file(relativePath: { eq: "33643109826_51296358b0_k.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }

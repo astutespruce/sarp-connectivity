@@ -13,7 +13,6 @@ import styled, { themeGet } from 'style'
 import { PageTitle, Section, ImageCredits, PageContainer } from 'content/styles'
 import { CONNECTIVITY_TEAMS } from '../../config/constants'
 
-
 const TeamSection = styled(Section)`
   &:not(:first-child) {
     padding-top: 3rem;
@@ -40,8 +39,8 @@ const Image = styled(GatsbyImage).attrs({
 `
 
 const Credits = styled(ImageCredits)`
-text-align: right;`
-
+  text-align: right;
+`
 
 const teamImageCredits = {
   Arkansas: 'Kat Hoenke, Southeast Aquatic Resources Partnership.',
@@ -82,9 +81,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
                 <>
                   <Image fluid={images[state].childImageSharp.fluid} />
                   {teamImageCredits[state] ? (
-                    <Credits>
-                      Photo: {teamImageCredits[state]}
-                    </Credits>
+                    <Credits>Photo: {teamImageCredits[state]}</Credits>
                   ) : null}
                 </>
               ) : null}
@@ -103,7 +100,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
 
             <Image fluid={footerImage.childImageSharp.fluid} />
             <Credits>
-            Photo: Jessica Graham, Southeast Aquatic Resources Partnership.
+              Photo: Jessica Graham, Southeast Aquatic Resources Partnership.
             </Credits>
           </TeamSection>
         </div>
@@ -124,7 +121,7 @@ export const pageQuery = graphql`
   query TeamsPageQuery {
     headerImage: file(relativePath: { eq: "TN_ACT2.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }
@@ -134,7 +131,7 @@ export const pageQuery = graphql`
         node {
           state: name
           childImageSharp {
-            fluid(maxWidth: 3200) {
+            fluid(maxWidth: 3200, quality: 90) {
               src
             }
           }
@@ -142,12 +139,12 @@ export const pageQuery = graphql`
       }
     }
     footerImage: file(relativePath: { eq: "IMG_1530.jpg" }) {
-        childImageSharp {
-          fluid(maxWidth: 960) {
-            ...GatsbyImageSharpFluid_withWebp
-          }
+      childImageSharp {
+        fluid(maxWidth: 960, quality: 90) {
+          ...GatsbyImageSharpFluid_withWebp
         }
       }
+    }
   }
 `
 

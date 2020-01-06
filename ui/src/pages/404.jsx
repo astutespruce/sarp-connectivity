@@ -32,7 +32,7 @@ export const pageQuery = graphql`
   query NotFoundPageQuery {
     headerImage: file(relativePath: { eq: "25898720604_f380ee9709_k.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200) {
+        fluid(maxWidth: 3200, quality: 90) {
           ...GatsbyImageSharpFluid_withWebp
         }
       }
