@@ -127,7 +127,7 @@ TermsPage.propTypes = {
 export const pageQuery = graphql`
   query TermsOfUseImageQuery {
     headerImage: file(
-      relativePath: { eq: "david-kovalenko-447548-unsplash.jpg" }
+      relativePath: { eq: "david-kovalenko-qYMa2-P-U0M-unsplash.jpg" }
     ) {
       childImageSharp {
         fluid(maxWidth: 3200, quality: 90) {
