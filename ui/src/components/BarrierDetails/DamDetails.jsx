@@ -195,16 +195,17 @@ const DamDetails = ({
           {statesgcnspp > 0 ? (
             <>
               <li>
-                <b>{statesgcnspp}</b> state-listed aquatic species of greatest
-                conservation need have been found in the subwatershed containing
-                this barrier. These may include state-listed threatened and
-                endangered species.
+                <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
+                Conservation Need (SGCN) have been found in the subwatershed
+                containing this barrier. These may include state-listed
+                threatened and endangered species.
               </li>
             </>
           ) : (
             <li>
-              No state-listed aquatic species of greatest conservation need have
-              been identified by available data sources for this subwatershed.
+              No state-listed aquatic Species of Greatest Conservation Need
+              (SGCN) have been identified by available data sources for this
+              subwatershed.
             </li>
           )}
 

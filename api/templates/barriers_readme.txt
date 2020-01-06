@@ -50,14 +50,14 @@ PotentialProject: reconnaissance information about the crossing, including sever
 SeverityClass: potential severity of barrier, based on reconnaissance.
 
 TESpp: number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
-StateSGCN: Number of state-listed Species of Greatest Conservation Need, compiled from element occurrence data within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
-RegionalSGCN: Number of regionally-listed Species of Greatest Conservation Need, compiled from element occurrence data within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
+StateSGCN: Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
+RegionalSGCN: Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
 OwnerType: Land ownership type.  This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.
 ProtectedLand: Indicates if the dam occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.
 
 HUC8_USFS: U.S. Forest Service (USFS) priority watersheds (HUC8 level) within USFS Southeast Region.
 HUC8_COA: SARP conservation opportunity areas.
-HUC8_SGCN: Top 10 watersheds per state based on number of Species of Greatest Conservation Need.
+HUC8_SGCN: Top 10 watersheds per state based on number of Species of Greatest Conservation Need (SGCN).
 
 Basin: name of the hydrologic basin (HUC6) where the barrier occurs.
 HUC6: Hydrologic basin identifier where the barrier occurs.

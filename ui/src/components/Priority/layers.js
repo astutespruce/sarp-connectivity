@@ -470,7 +470,7 @@ export const priorityWatershedLegends = {
       {
         color: '#d95f0e99',
         label:
-          'Watersheds with most Species of Greatest Conservation Need per state',
+          'Watersheds with most Species of Greatest Conservation Need (SGCN) per state',
       },
     ],
   },

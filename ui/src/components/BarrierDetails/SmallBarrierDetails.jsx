@@ -209,15 +209,15 @@ const BarrierDetails = ({
           {regionalsgcnspp > 0 ? (
             <>
               <li>
-                <b>{regionalsgcnspp}</b> regionally-listed aquatic species of
-                greatest conservation need have been found in the subwatershed
-                containing this barrier.
+                <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of
+                Greatest Conservation Need (SGCN) have been found in the
+                subwatershed containing this barrier.
               </li>
             </>
           ) : (
             <li>
-              No regionally-listed aquatic species of greatest conservation need
-              have been identified by available data sources for this
+              No regionally-listed aquatic Species of Greatest Conservation Need
+              (SGCN) have been identified by available data sources for this
               subwatershed.
               <Note>
                 Species information is very incomplete; important species may

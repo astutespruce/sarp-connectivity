@@ -41,8 +41,8 @@ const LengthPage = ({ data: { headerImage } }) => (
       <LargeText>
         The presence of federally-listed threatened and endangered aquatic
         species and state and regionally-listed aquatic Species of Greatest
-        Conservation Need is an important factor in evaluating the priority of a
-        given barrier for removal or mitigation.
+        Conservation Need (SGCN) is an important factor in evaluating the
+        priority of a given barrier for removal or mitigation.
         <br />
         <br />
         We compiled information on the location of these species using element

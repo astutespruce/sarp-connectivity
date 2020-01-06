@@ -60,7 +60,7 @@ const priorityFilters = [
   },
   {
     field: 'huc8_sgcn',
-    title: 'Watersheds with most Species of Greatest Conservation Need',
+    title: 'Watersheds with most Species of Greatest Conservation Need (SGCN)',
     sort: false,
     hideEmpty: true,
     help:
@@ -220,7 +220,8 @@ const barriers = [
   },
   {
     field: 'statesgcnsppclass',
-    title: 'Number of State-listed Species of Greatest Conservation Need',
+    title:
+      'Number of State-listed Species of Greatest Conservation Need (SGCN)',
     hideEmpty: true,
     help:
       'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
@@ -229,7 +230,8 @@ const barriers = [
   },
   {
     field: 'regionalsgcnsppclass',
-    title: 'Number of Regionally-listed Species of Greatest Conservation Need',
+    title:
+      'Number of Regionally-listed Species of Greatest Conservation Need (SGCN)',
     hideEmpty: true,
     help:
       'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',

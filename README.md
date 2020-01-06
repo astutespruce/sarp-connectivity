@@ -1,5 +1,7 @@
 # Southeast Aquatic Barriers Inventory Visualization & Prioritization Tool
 
+https://connectivity.sarpdata.com/
+
 ## Purpose
 
 The [Southeast Aquatic Resources Partnership](https://southeastaquatics.net) has created and maintained the most complete and value-added inventory of aquatic barriers in the Southeastern U.S. This tool helps users prioritize aquatic barriers for removal and mitigation based on metrics that describe aquatic network connectivity.
@@ -8,51 +10,53 @@ Three types of barriers are considered in these analyses:
 
 #### Waterfalls:
 
-These natural barriers are considered "hard" barriers that break the aquatic network. These are not assessed for removal, but are used to constrain the available aquatic networks used to prioritize artificial barriers.
+These natural barriers are considered "hard" barriers that break the aquatic network. These are not assessed for removal but are used to constrain the available aquatic networks used to prioritize artificial barriers.
 
 #### Dams:
 
-These large artificial barriers are considered "hard" barriers that break the aquatic network. Aquatic networks, already divided by waterfalls above, are further divided by these dams. The potential gain of removing a dam is determined by ranking the connectivity metrics each dam compared to other dams. Small barriers are not included in this analysis.
+These large artificial barriers are considered "hard" barriers that break the aquatic network. Aquatic networks, already divided by waterfalls above, are further divided by these dams. The potential gain of removing a dam is determined by ranking the connectivity metrics for each dam compared to other dams. Small barriers are not included in this analysis.
 
 #### Small barriers (road / stream crossings):
 
-These barriers may or may not break the network, depending on site specific factors. They may be culverts or other small artificial barriers that may impede the flow of aquatic organisms. Aquatic networks, divided by waterfalls and dams above, are further subdivided in order to assess the network connectivity of each small barrier.
+These barriers may or may not break the network, depending on site-specific factors. These include culverts or other small artificial barriers that may impede the flow of aquatic organisms. Aquatic networks, divided by waterfalls and dams above, are further subdivided to assess the network connectivity of each small barrier.
 
 #### Outputs:
 
-These large and small barriers are analyzed to produce 2 groups of outputs:
+These large and small barriers are analyzed to produce two groups of outputs:
 
 1. network metrics for dams, based on cutting the network for all dams and waterfalls
 2. network metrics for small barriers, based on cutting the network for all dams, waterfalls, and small barriers
 
 ## Data processing
 
-Data processing steps are detailed in [/analysis/README.md](analysis).
+Data processing steps are detailed in [/analysis/README.md](analysis). Data are processed heavily before integrating into the tool.
 
 ## Architecture
 
-The user interface tier is stored in `/ui` and consists of a React-based application.
+The user interface tier is stored in `/ui` and consists of a GatsbyJS and React-based application.
 
 The backend is composed of several parts:
 
--   `/data/*.py`: data processing scripts
+-   `/analysis`: data processing scripts
 -   `/api`: flask API for requesting subsets and downloads
--   map tiles are served from `/tiles` using `mbtileserver`
+-   map tiles are served from `/tiles` using `mbtileserver` (tiles are not stored in the code repository)
 
 ## Development
 
-To develop this application, you need Python 3.6+ and NodeJS 8.9+
+To develop this application, you need Python 3.6+ and NodeJS 8.9+.
 
 `pipenv` and `npm` are used as the package managers for those languages.
 
 ### mbtileserver
 
-Install `mbtileserver` according to https://github.com/consbio/mbtileserver
-Then from appropriate directory (or if installed via `go get` and `~/go/bin` is on your `PATH`): `mbtilserver -d /<PATH TO REPO>/tiles`.
+Install `mbtileserver` according to https://github.com/consbio/mbtileserver.
+Then from appropriate directory (or if installed via `go get` and `~/go/bin` is on your `PATH`): `mbtilserver -p 8001 -d /<PATH TO REPO>/tiles`.
 
-You should now be able to open `http://localhost:8000/services` to see a listing of available tile services.
+You should now be able to open `http://localhost:8001/services` to see a listing of available tile services.
 
 ### UI Initial setup:
+
+See `ui/package.json` for NodeJS dependencies used by the UI tier.
 
 -   `cd ui`
 -   run `npm install` to install all dependencies.
@@ -67,10 +71,10 @@ GATSBY_TILE_HOST = <root URL of tile host, likely http://localhost:8001 for loca
 
 ### Flask API initial setup:
 
+See `Pipfile` for Python dependencies. The development dependencies are required for the data processing scripts.
+
 -   `cd api`
 -   run `pipenv install` to setup a Python virtual environment and install all dependencies.
-
-Running the above is also required as Python or NodeJS dependencies change.
 
 ### Development environment
 
