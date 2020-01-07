@@ -1,5 +1,4 @@
 import { Text, HelpText } from 'components/Text'
-import { Box } from 'components/Grid'
 import styled, { themeGet } from 'style'
 
 export const Section = styled.div`
@@ -29,5 +28,9 @@ export const List = styled.ul`
 
 export const Note = styled(HelpText).attrs({
   mt: '1rem',
+  fontSize: 'smaller',
+})``
+
+export const SecondaryText = styled(HelpText).attrs({
   fontSize: 'smaller',
 })``

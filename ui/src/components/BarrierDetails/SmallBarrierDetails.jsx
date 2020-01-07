@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
-import { Section, SectionHeader, List, Note } from './styles'
+import { Section, SectionHeader, List, Note, SecondaryText } from './styles'
 
 import { siteMetadata } from '../../../gatsby-config'
 import {
@@ -25,7 +25,10 @@ const BarrierDetails = ({
   hasnetwork,
   excluded,
   stream,
-  basin,
+  HUC8,
+  HUC12,
+  HUC8Name,
+  HUC12Name,
   road,
   roadtype,
   crossingtype,
@@ -59,13 +62,22 @@ const BarrierDetails = ({
             &deg; N, {formatNumber(lon, 3)}
             &deg; E
           </li>
-          {!isEmptyString(stream) ? (
+          {!isEmptyString(stream) ? <li>River or stream: {stream}</li> : null}
+          {!isEmptyString(road) ? <li>Road: {road}</li> : null}
+
+          {HUC12Name ? (
             <li>
-              Stream or river: {stream}
-              {!isEmptyString(basin) ? `, ${basin} Basin` : null}
+              {HUC12Name} Subwatershed{' '}
+              <SecondaryText>(HUC12: {HUC12})</SecondaryText>
             </li>
           ) : null}
-          {!isEmptyString(road) ? <li>Road: {road}</li> : null}
+
+          {HUC8Name ? (
+            <li>
+              {HUC8Name} Subbasin <SecondaryText>(HUC8: {HUC8})</SecondaryText>
+            </li>
+          ) : null}
+
           {ownertype && ownertype > 0 && (
             <li>Conservation land type: {OWNERTYPE[ownertype]}</li>
           )}
@@ -292,6 +304,7 @@ const BarrierDetails = ({
     </div>
   )
 }
+
 BarrierDetails.propTypes = {
   id: PropTypes.number.isRequired,
   sarpid: PropTypes.string.isRequired,
@@ -301,7 +314,10 @@ BarrierDetails.propTypes = {
   excluded: PropTypes.bool,
   source: PropTypes.string,
   stream: PropTypes.string,
-  basin: PropTypes.string,
+  HUC8: PropTypes.string,
+  HUC12: PropTypes.string,
+  HUC8Name: PropTypes.string,
+  HUC12Name: PropTypes.string,
   road: PropTypes.string,
   roadtype: PropTypes.string,
   crossingtype: PropTypes.string,
@@ -324,6 +340,10 @@ BarrierDetails.propTypes = {
 }
 
 BarrierDetails.defaultProps = {
+  HUC8: null,
+  HUC12: null,
+  HUC8Name: null,
+  HUC12Name: null,
   excluded: false,
   source: null,
   stream: null,

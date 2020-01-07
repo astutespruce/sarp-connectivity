@@ -169,9 +169,12 @@ const PriorityMap = ({
             coordinates: [lon, lat],
           },
         } = feature
+
         onSelectBarrier({
           ...properties,
           barrierType,
+          HUC8Name: getHUCName('HUC8', properties.HUC8),
+          HUC12Name: getHUCName('HUC12', properties.HUC12),
           lat,
           lon,
           hasnetwork: false,
@@ -191,9 +194,12 @@ const PriorityMap = ({
             coordinates: [lon, lat],
           },
         } = feature
+
         onSelectBarrier({
           ...properties,
           barrierType: 'dams',
+          HUC8Name: getHUCName('HUC8', properties.HUC8),
+          HUC12Name: getHUCName('HUC12', properties.HUC12),
           lat,
           lon,
           hasnetwork: true,
@@ -219,6 +225,8 @@ const PriorityMap = ({
         onSelectBarrier({
           ...properties,
           barrierType,
+          HUC8Name: getHUCName('HUC8', properties.HUC8),
+          HUC12Name: getHUCName('HUC12', properties.HUC12),
           lat,
           lon,
           hasnetwork: true,
@@ -239,6 +247,8 @@ const PriorityMap = ({
         onSelectBarrier({
           ...properties,
           barrierType,
+          HUC8Name: getHUCName('HUC8', properties.HUC8),
+          HUC12Name: getHUCName('HUC12', properties.HUC12),
           lat,
           lon,
           hasnetwork: true,
@@ -325,6 +335,8 @@ const PriorityMap = ({
           onSelectBarrier({
             ...barrier.properties,
             barrierType,
+            HUC8Name: getHUCName('HUC8', barrier.properties.HUC8),
+            HUC12Name: getHUCName('HUC12', barrier.properties.HUC12),
             lat,
             lon,
             ...properties,
@@ -351,6 +363,19 @@ const PriorityMap = ({
       tierThreshold,
     ]
   )
+
+  const getHUCName = (layer, id) => {
+    if (!id) return null
+
+    const [result] = mapRef.current.querySourceFeatures('sarp', {
+      sourceLayer: layer,
+      filter: ['==', 'id', id],
+    })
+    if (result) {
+      return result.properties.name
+    }
+    return null
+  }
 
   const selectUnitById = useCallback(
     (id, layer) => {

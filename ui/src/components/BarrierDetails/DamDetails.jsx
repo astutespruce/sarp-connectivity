@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
-import { Section, SectionHeader, List, Note } from './styles'
+import { Section, SectionHeader, List, Note, SecondaryText } from './styles'
 
 import { siteMetadata } from '../../../gatsby-config'
 import {
@@ -33,7 +33,10 @@ const DamDetails = ({
   purpose,
   condition,
   river,
-  basin,
+  HUC8,
+  HUC12,
+  HUC8Name,
+  HUC12Name,
   tespp,
   statesgcnspp,
   regionalsgcnspp,
@@ -61,12 +64,24 @@ const DamDetails = ({
             &deg; N / {formatNumber(lon, 3)}
             &deg; E
           </li>
-          <li>
-            {river && river !== '"' && river !== 'null' && river !== 'Unknown'
-              ? `${river}, `
-              : null}
-            {basin} Basin
-          </li>
+
+          {river && river !== '"' && river !== 'null' && river !== 'Unknown' ? (
+            <li>River or stream: {river}</li>
+          ) : null}
+
+          {HUC12Name ? (
+            <li>
+              {HUC12Name} Subwatershed{' '}
+              <SecondaryText>(HUC12: {HUC12})</SecondaryText>
+            </li>
+          ) : null}
+
+          {HUC8Name ? (
+            <li>
+              {HUC8Name} Subbasin <SecondaryText>(HUC8: {HUC8})</SecondaryText>
+            </li>
+          ) : null}
+
           {ownertype && ownertype > 0 && (
             <li>Conservation land type: {OWNERTYPE[ownertype]}</li>
           )}
@@ -305,7 +320,10 @@ DamDetails.propTypes = {
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
   river: PropTypes.string,
-  basin: PropTypes.string.isRequired,
+  HUC8: PropTypes.string,
+  HUC12: PropTypes.string,
+  HUC8Name: PropTypes.string,
+  HUC12Name: PropTypes.string,
   height: PropTypes.number,
   year: PropTypes.number,
   nidid: PropTypes.string,
@@ -331,6 +349,10 @@ DamDetails.propTypes = {
 }
 
 DamDetails.defaultProps = {
+  HUC8: null,
+  HUC12: null,
+  HUC8Name: null,
+  HUC12Name: null,
   excluded: false,
   river: null,
   nidid: null,

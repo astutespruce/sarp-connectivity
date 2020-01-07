@@ -224,6 +224,28 @@ const SummaryMap = ({
           layerId: sourceLayer,
         })
       } else {
+        // query HUC8 and HUC12 names to show with barrier details
+        let HUC8Name = null
+        let HUC12Name = null
+
+        if (properties.HUC8 && properties.HUC12) {
+          const [HUC8] = map.querySourceFeatures('sarp', {
+            sourceLayer: 'HUC8',
+            filter: ['==', 'id', properties.HUC8],
+          })
+          if (HUC8) {
+            HUC8Name = HUC8.properties.name
+          }
+
+          const [HUC12] = map.querySourceFeatures('sarp', {
+            sourceLayer: 'HUC12',
+            filter: ['==', 'id', properties.HUC12],
+          })
+          if (HUC12) {
+            HUC12Name = HUC12.properties.name
+          }
+        }
+
         const {
           geometry: {
             coordinates: [lon, lat],
@@ -233,6 +255,8 @@ const SummaryMap = ({
         // dam or barrier
         onSelectBarrier({
           ...properties,
+          HUC8Name,
+          HUC12Name,
           barrierType: source,
           lat,
           lon,

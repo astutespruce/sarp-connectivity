@@ -92,7 +92,9 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           <Title>{title}</Title>
           {layerId !== 'State' && <Subtitle>{layerTitle}</Subtitle>}
           {layerId === 'HUC6' || layerId === 'HUC8' || layerId === 'HUC12' ? (
-            <UnitID>HUC: {id}</UnitID>
+            <UnitID>
+              {layerId}: {id}
+            </UnitID>
           ) : null}
         </TitleWrapper>
         <CloseButton onClick={onClose} />

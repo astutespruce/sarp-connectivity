@@ -58,7 +58,9 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
         </Name>
 
         {layer === 'HUC6' || layer === 'HUC8' || layer === 'HUC12' ? (
-          <HUC>HUC: {id}</HUC>
+          <HUC>
+            {layer}: {id}
+          </HUC>
         ) : null}
 
         <Count>
