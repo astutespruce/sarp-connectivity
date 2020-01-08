@@ -4,7 +4,6 @@ import { graphql } from 'gatsby'
 
 import { Text } from 'components/Text'
 import Layout from 'components/Layout'
-import { Container } from 'components/Grid'
 import { OutboundLink } from 'components/Link'
 import { HeaderImage, GatsbyImage } from 'components/Image'
 import { extractNodes, GraphQLArrayPropType } from 'util/graphql'
@@ -132,7 +131,7 @@ export const pageQuery = graphql`
           state: name
           childImageSharp {
             fluid(maxWidth: 3200, quality: 90) {
-              src
+              ...GatsbyImageSharpFluid_withWebp
             }
           }
         }

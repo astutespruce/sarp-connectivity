@@ -12,8 +12,8 @@ RestartSec=60
 User=app
 Group=www-data
 
-WorkingDirectory=/var/www/sarp/tiles
-ExecStart=/home/app/go/bin/mbtileserver -d ./ -p 8000
+WorkingDirectory=/tiles
+ExecStart=/home/app/go/bin/mbtileserver -d /tiles -p 8000
 ExecReload=/bin/kill -USR1 $MAINPID
 
 [Install]

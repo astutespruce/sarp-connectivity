@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import Img from 'gatsby-image'
 
+import { OutboundLink } from 'components/Link'
 import { Text } from 'components/Text'
 import { Container } from 'components/Grid'
 
@@ -115,9 +116,11 @@ const HeaderImage = ({
     {credits ? (
       <ImageCredits>
         Photo:&nbsp;
-        <a href={credits.url} target="_blank" rel="noopener noreferrer">
-          {credits.author}
-        </a>
+        {credits.url ? (
+          <OutboundLink to={credits.url}>{credits.author}</OutboundLink>
+        ) : (
+          credits.author
+        )}
       </ImageCredits>
     ) : null}
   </Wrapper>
@@ -130,7 +133,7 @@ HeaderImage.propTypes = {
   title: PropTypes.string,
   subtitle: PropTypes.string,
   credits: PropTypes.shape({
-    url: PropTypes.string.isRequired,
+    url: PropTypes.string,
     author: PropTypes.string.isRequired,
   }),
   position: PropTypes.string,
