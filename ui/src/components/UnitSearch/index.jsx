@@ -69,12 +69,17 @@ const UnitSearch = ({ system, layer, onSelect }) => {
       )
     }
     // Filter out the top 10
-    const expr = new RegExp(query, 'gi')
-    const filtered = units.filter(
-      ({ name, id }) =>
-        name.search(expr) !== -1 || (showID && id.search(expr) !== -1)
-    )
-    results = filtered.slice(0, 10)
+    try {
+      // strip all special regex characters first, we don't need them here
+      const expr = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, ''), 'gi')
+      const filtered = units.filter(
+        ({ name, id }) =>
+          name.search(expr) !== -1 || (showID && id.search(expr) !== -1)
+      )
+      results = filtered.slice(0, 10)
+    } catch (ex) {
+      console.error(ex)
+    }
   }
 
   const searchLabel = layer ? LAYER_NAMES[layer] : SYSTEMS[system].toLowerCase()
