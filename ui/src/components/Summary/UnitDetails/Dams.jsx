@@ -22,12 +22,13 @@ const Dams = ({ dams, on_network_dams, miles }) => {
       This area contains:
       <List>
         <li>
-          <b>{formatNumber(dams, 0)}</b> inventoried {dams > 1 ? 'dams' : 'dam'}
+          <b>{formatNumber(dams, 0)}</b> inventoried{' '}
+          {dams === 1 ? 'dam' : 'dams'}
         </li>
         <li>
           <b>{formatNumber(on_network_dams, 0)}</b>{' '}
-          {on_network_dams > 1 ? 'dams' : 'dam'} that{' '}
-          {on_network_dams > 1 ? 'were ' : 'was '} analyzed for impacts to
+          {on_network_dams === 1 ? 'dam' : 'dams'} that{' '}
+          {on_network_dams === 1 ? 'was ' : 'were '} analyzed for impacts to
           aquatic connectivity in this tool
         </li>
         <li>
@@ -44,9 +45,9 @@ const Dams = ({ dams, on_network_dams, miles }) => {
             <br />
             <br />
             {formatNumber(offNetworkDams, 0)}{' '}
-            {offNetworkDams > 1 ? 'dams' : 'dam'} were not analyzed because they
-            were not on the aquatic network or could not be correctly located on
-            the network.
+            {offNetworkDams === 1 ? 'dam' : 'dams'} were not analyzed because
+            they were not on the aquatic network or could not be correctly
+            located on the network.
           </>
         ) : null}
       </HelpText>

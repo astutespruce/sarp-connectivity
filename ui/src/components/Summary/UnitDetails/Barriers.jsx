@@ -36,23 +36,23 @@ const Barriers = ({
       <List>
         <li>
           <b>{formatNumber(totalRoadBarriers, 0)}</b> road-related potential{' '}
-          {totalRoadBarriers > 1 ? 'barriers' : 'barrier'}
+          {totalRoadBarriers === 1 ? 'barrier' : 'barriers'}
         </li>
         <li>
-          <b>{formatNumber(total_barriers, 0)}</b>{' '}
-          {total_barriers > 1 ? 'barriers' : 'barrier'}{' '}
-          {total_barriers > 1 ? 'have ' : 'has '} been assessed for impacts to
+          <b>{formatNumber(total_barriers, 0)}</b> road-related{' '}
+          {total_barriers === 1 ? 'barrier' : 'barriers'}{' '}
+          {total_barriers === 1 ? 'has ' : 'have '} been assessed for impacts to
           aquatic organisms.
         </li>
         <li>
           <b>{formatNumber(barriers, 0)}</b> road-related{' '}
-          {barriers > 1 ? 'barriers' : 'barrier'} assessed{' '}
-          {barriers > 1 ? 'are' : 'is'} likely to impact aquatic organisms
+          {barriers === 1 ? 'barrier' : 'barriers'} assessed{' '}
+          {barriers === 1 ? 'is' : 'are'} likely to impact aquatic organisms
         </li>
         <li>
-          <b>{formatNumber(on_network_barriers, 0)}</b>{' '}
-          {on_network_barriers > 1 ? 'dams' : 'dam'} that{' '}
-          {on_network_barriers > 1 ? 'were ' : 'was '} analyzed for impacts to
+          <b>{formatNumber(on_network_barriers, 0)}</b> road-related{' '}
+          {on_network_barriers === 1 ? 'barrier' : 'barriers'} that{' '}
+          {on_network_barriers === 1 ? 'was ' : 'were '} analyzed for impacts to
           aquatic connectivity in this tool
         </li>
       </List>
@@ -68,9 +68,9 @@ const Barriers = ({
           <>
             <br />
             <br />
-            {formatNumber(offNetworkBarriers, 0)}{' '}
-            {offNetworkBarriers > 1 ? 'barriers' : 'barrier'} that{' '}
-            {offNetworkBarriers > 1 ? 'were ' : 'was '} not analyzed because
+            {formatNumber(offNetworkBarriers, 0)} road-related{' '}
+            {offNetworkBarriers === 1 ? 'barrier' : 'barriers'} that{' '}
+            {offNetworkBarriers === 1 ? 'was ' : 'were '} not analyzed because
             they were not on the aquatic network or could not be correctly
             located on the network
           </>
