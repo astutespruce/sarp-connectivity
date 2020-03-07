@@ -42,6 +42,7 @@ def from_pygeos(geometries):
     -------
     GeoSeries
     """
+
     def load_wkb(wkb):
         return loads(wkb)
 
@@ -83,11 +84,7 @@ def explode(series):
 
 
 def query(left_geom, tree, predicate):
-    """Query strtree and return indices of right that intersect left
-    tree, predicate must be called by keyword
-    """
-    hits = tree.query(left_geom)
-    return hits[predicate(left_geom, tree.geometries[hits])]
+    return tree.query(left_geom, predicate=predicate)
 
 
 # vectorized
@@ -133,10 +130,10 @@ def sjoin(left, right, predicate="intersects", how="inner"):
         right_index = np.arange(0, len(right))
 
     tree = STRtree(right_values)
-    predicate_func = getattr(pg, predicate)
 
     # hits are in 0-based indicates of right
-    hits = query_tree(left_values, tree=tree, predicate=predicate_func)
+    hits = query_tree(left_values, tree=tree, predicate=predicate)
+
     # need to explode and then apply indices
     hits = pd.Series(hits, index=left_index).explode()
     series = hits.map(pd.Series(right_index)).rename("index_right")
