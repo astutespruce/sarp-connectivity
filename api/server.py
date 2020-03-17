@@ -33,7 +33,7 @@ from api.constants import (
     OWNERTYPE_DOMAIN,
     HUC8_USFS_DOMAIN,
     HUC8_COA_DOMAIN,
-    HUC8_SGCN_DOMAIN
+    HUC8_SGCN_DOMAIN,
 )
 
 app = Flask(__name__)
@@ -248,7 +248,8 @@ def download(barrier_type="dams", layer="HUC8", format="CSV"):
 
     Query parameters:
     * id: list of ids
-    * unranked: bool (default: False)
+    * custom: bool (default: False); set to true to perform custom ranking of subset defined here
+    * unranked: bool (default: False); set to true to include unranked barriers in output
     * sort: str, one of 'NC', 'WC', 'NCWC'
     * filters are defined using a lowercased version of column name and a comma-delimited list of values
 
@@ -264,7 +265,7 @@ def download(barrier_type="dams", layer="HUC8", format="CSV"):
     args = request.args
 
     # query parameters that are NOT filters
-    query_params = ("id", "unranked", "sort")
+    query_params = ("id", "unranked", "sort", "custom")
 
     validate_type(barrier_type)
     validate_layer(layer)
@@ -281,6 +282,8 @@ def download(barrier_type="dams", layer="HUC8", format="CSV"):
     ids = [id for id in args.get("id", "").split(",") if id]
     if not ids:
         abort(400, "id must be non-empty")
+
+    custom_ranks = args.get("custom", False)
 
     if barrier_type == "dams":
         df = dams
@@ -319,21 +322,25 @@ def download(barrier_type="dams", layer="HUC8", format="CSV"):
 
     log.info("selected {} dams that meet filters".format(len(df.index)))
 
-    df = calculate_tiers(df)
+    if custom_ranks:
+        df = calculate_tiers(df)
 
     if include_unranked:
         # join back to full dataset
         tier_cols = df.columns.difference(full_df.columns)
         df = full_df.join(df[tier_cols], how="left")
 
-        df[tier_cols] = df[tier_cols].fillna(-1)
+        df[tier_cols] = df[tier_cols].fillna(-1).astype("int8")
 
-    df = df[export_columns]
+    df = df[df.columns.intersection(export_columns)]
 
     # Sort by tier
-    df = df.sort_values(
-        by=["HasNetwork", "{}_tier".format(sort)], ascending=[False, True]
-    )
+    if "{}_tier" in df.columns:
+        sort_field = "{}_tier".format(sort)
+    else:
+        sort_field = "SE_{}_tier".format(sort)
+
+    df = df.sort_values(by=["HasNetwork", sort_field], ascending=[False, True])
 
     # map domain fields to values
     df.HasNetwork = df.HasNetwork.map(BOOLEAN_DOMAIN)

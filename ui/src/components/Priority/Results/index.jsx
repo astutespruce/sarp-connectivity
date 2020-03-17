@@ -127,7 +127,11 @@ const Results = ({
 
       <Footer>
         <StartOverButton />
-        <Downloader barrierType={barrierType} config={config} />
+        <Downloader
+          barrierType={barrierType}
+          config={config}
+          customRank={true}
+        />
       </Footer>
     </Wrapper>
   )

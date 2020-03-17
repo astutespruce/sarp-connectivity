@@ -7,16 +7,15 @@ const { apiHost } = siteMetadata
 
 /**
  * Converts units and filters into query parameters for API requests
- * @param {Array} units - array of objects with id property
- * @param {Map} filters - map of filter values, where filter name is key
  */
-const apiQueryParams = (
-  units = [],
+const apiQueryParams = ({
+  summaryUnits = [],
   filters = {},
   includeUnranked = false,
-  sort = null
-) => {
-  const ids = units.map(({ id }) => id)
+  sort = null,
+  customRank = false,
+}) => {
+  const ids = summaryUnits.map(({ id }) => id)
   const filterValues = Object.entries(filters).filter(([, v]) => v.size > 0)
 
   if (!(ids.length || filterValues.length)) return ''
@@ -31,6 +30,9 @@ const apiQueryParams = (
 
   if (includeUnranked) {
     query += '&unranked=1'
+  }
+  if (customRank) {
+    query += '&custom=1'
   }
   if (sort) {
     query += `&sort=${sort}`
@@ -67,7 +69,9 @@ const fetchCSV = async (url, options, rowParser) => {
  */
 export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
   const url = `${apiHost}/api/v1/${barrierType}/query/${layer}?${apiQueryParams(
-    summaryUnits
+    {
+      summaryUnits,
+    }
   )}`
 
   return fetchCSV(url, undefined, autoType)
@@ -82,25 +86,44 @@ export const fetchBarrierRanks = async (
   summaryUnits,
   filters
 ) => {
-  const url = `${apiHost}/api/v1/${barrierType}/rank/${layer}?${apiQueryParams(
+  const url = `${apiHost}/api/v1/${barrierType}/rank/${layer}?${apiQueryParams({
     summaryUnits,
-    filters
-  )}`
+    filters,
+  })}`
 
   return fetchCSV(url, undefined, autoType)
 }
 
-export const getDownloadURL = (
+// export const getDownloadURL = (
+//   barrierType,
+//   layer,
+//   summaryUnits,
+//   filters,
+//   includeUnranked,
+//   sort,
+//   customRank = false
+// ) =>
+//   `${apiHost}/api/v1/${barrierType}/csv/${layer}?${apiQueryParams(
+//     summaryUnits,
+//     filters,
+//     includeUnranked,
+//     sort,
+//     customRank
+//   )}`
+
+export const getDownloadURL = ({
   barrierType,
   layer,
   summaryUnits,
   filters,
   includeUnranked,
-  sort
-) =>
-  `${apiHost}/api/v1/${barrierType}/csv/${layer}?${apiQueryParams(
+  sort,
+  customRank = false,
+}) =>
+  `${apiHost}/api/v1/${barrierType}/csv/${layer}?${apiQueryParams({
     summaryUnits,
     filters,
     includeUnranked,
-    sort
-  )}`
+    sort,
+    customRank,
+  })}`

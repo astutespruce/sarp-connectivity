@@ -38,7 +38,7 @@ const DownloadButton = styled(Button).attrs({ primary: true })`
   align-items: center;
 `
 
-const Downloader = ({ barrierType, config }) => {
+const Downloader = ({ barrierType, config, customRank }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [haveUserInfo, setHaveUserInfo] = useState(false)
   const [downloadOptions, setDownloadOptions] = useState({ unranked: false })
@@ -71,14 +71,15 @@ const Downloader = ({ barrierType, config }) => {
   const handleDownload = () => {
     const { layer, summaryUnits, filters, scenario } = config
 
-    const downloadURL = getDownloadURL(
+    const downloadURL = getDownloadURL({
       barrierType,
       layer,
       summaryUnits,
       filters,
-      downloadOptions.unranked,
-      scenario.toUpperCase()
-    )
+      includeUnranked: downloadOptions.unranked,
+      sort: scenario.toUpperCase(),
+      customRank,
+    })
 
     window.open(downloadURL)
     setIsOpen(false)
@@ -150,6 +151,11 @@ Downloader.propTypes = {
     filters: PropTypes.object,
     scenario: PropTypes.string.isRequired,
   }).isRequired,
+  customRank: PropTypes.bool,
+}
+
+Downloader.defaultProps = {
+  customRank: false,
 }
 
 export default Downloader

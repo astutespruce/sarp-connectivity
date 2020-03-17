@@ -89,6 +89,8 @@ State_NC_tier: network connectivity tier for the state that contains this barrie
 State_WC_tier: watershed condition tier for the state that contains this barrier.  Tier 1 represents the barriers within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.
 State_NCWC_tier: combined network connectivity and watershed condition tier for the state that contains this barrier.  Tier 1 represents the barriers within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.
 
+Optional fields (only present if you performed a custom prioritization)
+-----------------------------------------------------------------------
 NC_tier: network connectivity tier for your selected subset.  Tier 1 represents the barriers within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.
 WC_tier: watershed condition tier for your selected subset.  Tier 1 represents the barriers within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.
 NCWC_tier: combined network connectivity and watershed condition tier for your selected subset.  Tier 1 represents the barriers within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.
