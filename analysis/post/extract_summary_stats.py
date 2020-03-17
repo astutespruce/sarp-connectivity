@@ -23,6 +23,8 @@ import pandas as pd
 import numpy as np
 from feather import read_dataframe
 
+from analysis.constants import SARP_STATES
+
 # Bins are manually constructed to give reasonable looking map
 # There must be a matching number of colors in the map
 PERCENTILES = [20, 40, 60, 75, 80, 85, 90, 95, 100]
@@ -42,10 +44,7 @@ INT_COLS = [
     "total_barriers",
     "crossings",
     "on_network_dams",
-    # "off_network_dams",
     "on_network_barriers",
-    # "off_network_barriers",
-    # "dropped_barriers",
 ]
 
 
@@ -81,14 +80,9 @@ barriers_network = read_dataframe(api_dir / "small_barriers.feather").set_index(
 ]
 barriers = barriers.join(barriers_network).rename(columns={"HasNetwork": "OnNetwork"})
 barriers.OnNetwork = barriers.OnNetwork.fillna(False)
-# barriers["OffNetwork"] = ~barriers.OnNetwork
+
 # any that were not dropped were available for analysis
 barriers["Included"] = ~(barriers.dropped | barriers.excluded)
-# barriers["Dropped"] = ~barriers.Included
-
-# barriers = barriers[
-#     ["id", "OnNetwork", "OffNetwork", "Included", "Dropped"] + SUMMARY_UNITS
-# ].copy()
 
 # crossings are already de-duplicated against each other and against
 # barriers
@@ -105,16 +99,25 @@ stats = defaultdict(defaultdict)
 stats["southeast"] = {
     "dams": len(dams),
     "on_network_dams": len(dams.loc[dams.OnNetwork]),
-    # "off_network_dams": len(dams.loc[dams.OffNetwork]),
     "miles": round(dams["GainMiles"].mean().item(), 3),
     "total_barriers": len(barriers),
     "barriers": len(barriers.loc[barriers.Included]),
-    # "dropped_barriers": len(barriers.loc[barriers.Dropped]),
     "on_network_barriers": len(barriers.loc[barriers.OnNetwork]),
-    # "off_network_barriers": len(barriers.loc[barriers.OffNetwork]),
     "crossings": len(crossings),
 }
 
+# only extract core counts in states for data download page,
+# as other stats are joined to state vector tiles below
+states = []
+for state in SARP_STATES.values():
+    states.append(
+        {
+            "id": state,
+            "dams": int((dams.State == state).sum()),
+            "total_barriers": int((barriers.State == state).sum()),
+        }
+    )
+stats["State"] = states
 
 # Write the summary statistics into the UI directory so that it can be imported at build time
 # into the code
@@ -128,45 +131,27 @@ for unit in SUMMARY_UNITS:
     print("processing {}".format(unit))
 
     dam_stats = (
-        dams[[unit, "id", "OnNetwork", "GainMiles"]]  # "OffNetwork",
+        dams[[unit, "id", "OnNetwork", "GainMiles"]]
         .groupby(unit)
-        .agg(
-            {
-                "id": "count",
-                "OnNetwork": "sum",
-                # "OffNetwork": "sum",
-                "GainMiles": "mean",
-            }
-        )
+        .agg({"id": "count", "OnNetwork": "sum", "GainMiles": "mean",})
         .rename(
             columns={
                 "id": "dams",
                 "OnNetwork": "on_network_dams",
-                # "OffNetwork": "off_network_dams",
                 "GainMiles": "miles",
             }
         )
     )
 
     barriers_stats = (
-        barriers[[unit, "id", "Included", "OnNetwork"]]  # "OffNetwork", "Dropped"
+        barriers[[unit, "id", "Included", "OnNetwork"]]
         .groupby(unit)
-        .agg(
-            {
-                "id": "count",
-                "Included": "sum",
-                "OnNetwork": "sum",
-                # "OffNetwork": "sum",
-                # "Dropped": "sum",
-            }
-        )
+        .agg({"id": "count", "Included": "sum", "OnNetwork": "sum",})
         .rename(
             columns={
                 "id": "total_barriers",
                 "Included": "barriers",
                 "OnNetwork": "on_network_barriers",
-                # "OffNetwork": "off_network_barriers",
-                # "Dropped": "dropped_barriers",
             }
         )
     )

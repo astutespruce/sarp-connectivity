@@ -8,7 +8,7 @@ import styled from 'style'
 
 const Wrapper = styled.div``
 
-const Options = ({ barrierType, options, onChange }) => {
+const Options = ({ barrierType, options, customRank, onChange }) => {
   const { unranked } = options
 
   const handleUnrankedChange = checked => {
@@ -30,9 +30,10 @@ const Options = ({ barrierType, options, onChange }) => {
 
         <HelpText mt="0.5rem" ml="2rem">
           This will include {barrierType} within your selected geographic area
-          that were not prioritized in your analysis. These include any{' '}
-          {barrierType} that were not located on the aquatic network or that you
-          filtered out during your prioritization.
+          that were not prioritized in the analysis. These include any{' '}
+          {barrierType} that were not located on the aquatic network
+          {customRank && ' or that you filtered out during your prioritization'}
+          .
           {barrierType === 'barriers' &&
             '  These data only include road-related barriers that have been assessed for impacts to aquatic organisms.'}
         </HelpText>
@@ -46,6 +47,7 @@ Options.propTypes = {
   options: PropTypes.shape({
     unranked: PropTypes.bool,
   }).isRequired,
+  customRank: PropTypes.bool,
   onChange: PropTypes.func.isRequired,
 }
 

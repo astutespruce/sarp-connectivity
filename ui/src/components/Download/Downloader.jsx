@@ -38,7 +38,16 @@ const DownloadButton = styled(Button).attrs({ primary: true })`
   align-items: center;
 `
 
-const Downloader = ({ barrierType, config, customRank }) => {
+const DownloadLink = styled.span`
+  color: ${themeGet('colors.link')};
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`
+
+const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [haveUserInfo, setHaveUserInfo] = useState(false)
   const [downloadOptions, setDownloadOptions] = useState({ unranked: false })
@@ -88,12 +97,18 @@ const Downloader = ({ barrierType, config, customRank }) => {
   const showUserInfoForm = isOpen && !haveUserInfo
   const showDownloadPopup = isOpen && haveUserInfo
 
+  const labelText = label || `Download ${barrierType}`
+
   return (
     <>
-      <DownloadButton onClick={handleShow} fontSize="1.1em">
-        <DownloadIcon />
-        <div>Download {barrierType}</div>
-      </DownloadButton>
+      {asButton ? (
+        <DownloadButton onClick={handleShow} fontSize="1.1em">
+          <DownloadIcon />
+          <div>{labelText}</div>
+        </DownloadButton>
+      ) : (
+        <DownloadLink onClick={handleShow}>{labelText}</DownloadLink>
+      )}
 
       {showUserInfoForm && (
         <Modal title="Please tell us about yourself" onClose={handleClose}>
@@ -106,13 +121,14 @@ const Downloader = ({ barrierType, config, customRank }) => {
 
       {showDownloadPopup && (
         <Modal
-          title={`Download prioritized ${barrierType}`}
+          title={`Download ${customRank ? 'prioritized' : ''} ${barrierType}`}
           onClose={handleClose}
         >
           <Content>
             <DownloadOptions
               barrierType={barrierType}
               options={downloadOptions}
+              customRank={customRank}
               onChange={handleDownloadOptionsChange}
             />
 
@@ -152,10 +168,14 @@ Downloader.propTypes = {
     scenario: PropTypes.string.isRequired,
   }).isRequired,
   customRank: PropTypes.bool,
+  asButton: PropTypes.bool,
+  label: PropTypes.string,
 }
 
 Downloader.defaultProps = {
   customRank: false,
+  label: null,
+  asButton: true,
 }
 
 export default Downloader
