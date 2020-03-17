@@ -47,8 +47,6 @@ const Footer = () => {
           Contact Us
         </OutboundLink>
         &nbsp;&nbsp;|&nbsp;&nbsp;
-        <InternalLink to="/download">Download</InternalLink>
-        &nbsp;&nbsp;|&nbsp;&nbsp;
         <InternalLink to="/terms">Terms of Use</InternalLink>
       </div>
 

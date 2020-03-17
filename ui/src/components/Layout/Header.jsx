@@ -1,5 +1,5 @@
 import React from 'react'
-import { FaChartBar, FaSearchLocation } from 'react-icons/fa'
+import { FaChartBar, FaSearchLocation, FaDownload } from 'react-icons/fa'
 import { Image } from 'rebass/styled-components'
 
 import { Link } from 'components/Link'
@@ -17,7 +17,7 @@ const Wrapper = styled(Flex).attrs({
   justifyContent: 'space-between',
   py: '0.3rem',
   pl: '0.15rem',
-  pr: '1rem'
+  pr: '1rem',
 })`
   background-color: ${themeGet('colors.primary.900')};
   flex: 0 0 auto;
@@ -66,23 +66,30 @@ const NavLink = styled(Link)`
     background-color: ${themeGet('colors.primary.800')};
   }
 
-  ${({active}) => active && css`
-  background-color: ${themeGet('colors.primary.500')};
-  `}
-
+  ${({ active }) =>
+    active &&
+    css`
+      background-color: ${themeGet('colors.primary.500')};
+    `}
 `
 
 const NavItem = styled(Flex).attrs({ alignItems: 'center' })``
 
-const SummarizeLogo = styled(FaChartBar)`
+const SummarizeIcon = styled(FaChartBar)`
   width: 1em;
   height: 1em;
   margin-right: 0.25em;
 `
 
-const PrioritizeLogo = styled(FaSearchLocation)`
+const PrioritizeIcon = styled(FaSearchLocation)`
   width: 1em;
   height: 1em;
+  margin-right: 0.25em;
+`
+
+const DownloadIcon = styled(FaDownload)`
+  height: 1em;
+  width: 1em;
   margin-right: 0.25em;
 `
 
@@ -107,14 +114,28 @@ const Header = () => {
       <NavBar>
         <NavLink to="/summary" activeClassName="nav-active">
           <NavItem>
-            <SummarizeLogo />
+            <SummarizeIcon />
             <div>Summarize</div>
           </NavItem>
         </NavLink>
-        <NavLink to="/priority" activeClassName="nav-active" active={isActivePath('/priority') ? 1 : 0}>
+        <NavLink
+          to="/priority"
+          activeClassName="nav-active"
+          active={isActivePath('/priority') ? 1 : 0}
+        >
           <NavItem>
-            <PrioritizeLogo />
+            <PrioritizeIcon />
             <div>Prioritize</div>
+          </NavItem>
+        </NavLink>
+        <NavLink
+          to="/download"
+          activeClassName="nav-active"
+          active={isActivePath('/download') ? 1 : 0}
+        >
+          <NavItem>
+            <DownloadIcon />
+            <div>Download</div>
           </NavItem>
         </NavLink>
       </NavBar>
