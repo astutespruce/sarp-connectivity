@@ -58,7 +58,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
     if (formData && formData[FIELDS.email]) {
       setHaveUserInfo(true)
     }
-  }, [])
+  }, [isOpen])
 
   const handleShow = () => {
     setIsOpen(true)
