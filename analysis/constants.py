@@ -106,7 +106,6 @@ CRS = {
 CRS_WKT = """PROJCS["USA_Contiguous_Albers_Equal_Area_Conic",GEOGCS["GCS_North_American_1983",DATUM["North_American_Datum_1983",SPHEROID["GRS_1980",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Albers_Conic_Equal_Area"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["longitude_of_center",-96],PARAMETER["Standard_Parallel_1",29.5],PARAMETER["Standard_Parallel_2",45.5],PARAMETER["latitude_of_center",37.5],UNIT["Meter",1],AUTHORITY["EPSG","102003"]]"""
 
 
-
 # Exclude swamp/marsh (466), estuaries (493), playas (361).
 # NOTE: they do not cut the flowlines in the same
 # way as other waterbodies, so they will cause issues.
@@ -127,7 +126,6 @@ MAX_PIPELINE_LENGTH = 250  # meters
 # NOTE: not all feature services have all columns
 DAM_FS_COLS = [
     "SARPUniqueID",
-    "AnalysisID",  # needed to be able to join to manually snapped dams.  TODO: will be replaced by SARPUniqueID
     "SNAP2018",  # renamed to ManualReview
     "Snap2018",  # renamed to ManualReview
     "NIDID",
@@ -147,7 +145,6 @@ DAM_FS_COLS = [
 
 DAM_COLS = [
     "SARPID",
-    "AnalysisID",  # needed to be able to join to manually snapped dams.  TODO: will be replaced by SARPUniqueID for joins instead.
     "ManualReview",  # renamed from SNAP2018
     "NIDID",
     "SourceDBID",
@@ -213,12 +210,23 @@ DROP_POTENTIAL_PROJECT = ["No", "No Barrier", "No Crossing", "Past Project"]
 
 
 # Used to filter small barriers and dams by SNAP2018, based on guidance from Kat
-# Note: dropped barriers are NOT shown on the map, but not included in the network analysis
+# Note: dropped barriers are NOT shown on the map, and not included in the network analysis
 # Note: 0 value indicates N/A
-DROP_MANUALREVIEW = [6, 8]
+DROP_MANUALREVIEW = [
+    6,  # Delete: ambiguous, might be duplicate or not exist
+    8,  # Removed (no longer exists): Dam removed for conservation
+    11,  # Duplicate TODO: handle correctly
+    14,  # Error: dam does not exist
+]
 
 # These are excluded from network analysis / prioritization, but included for mapping
 EXCLUDE_MANUALREVIEW = [5, 10]
+
+ONSTREAM_MANUALREVIEW = [
+    4,  # Onstream checked by SARP
+    13,  # Onstream, did not have to move (close to correct location)
+    15,  # Onstream, moved (moved to close to correct location)
+]
 
 # Used to filter dams by Recon
 # based on guidance from Kat
@@ -1139,4 +1147,3 @@ EXCLUDE_IDS = {
 # WARNING: you must remove the corresponding segments that
 # were previously identified as loops
 CONVERT_TO_NONLOOP = {"02": [10000300070616, 10000300132189, 10000300132190]}
-

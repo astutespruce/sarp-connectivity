@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import networkx as nx
 
-from analysis.pygeos_compat import to_pygeos, sjoin, query_tree
+from analysis.pygeos_compat import to_pygeos, sjoin, sjoin_geometry
 
 
 def connect_points(start, end):
@@ -89,83 +89,18 @@ def near(source, target, distance):
         includes distance
     """
 
-    def single_query(source_geom, search_window, tolerance, tree):
-        """Query the spatial index based on source_geom and return
-        indices of all geometries in tree that are <= tolerance
-
-        Parameters
-        ----------
-        source_geom : pygeos geometry object
-        search_window : pygeos geometry object
-            search window is bounds of original geometry plus padding of tolerance on all sides
-        tolerance : number
-            distance within which to keep hits from spatial index
-        tree : pygeos STRtree
-
-        Returns
-        -------
-        ndarray of indices of target
-        """
-        hits = tree.query(search_window)
-        return hits[pg.distance(source_geom, tree.geometries[hits]) <= tolerance]
-
-    # vectorized version takes geometries, windows of equal length,
-    # and tolerance as a number or ndarray of equal length
-    query = np.vectorize(
-        single_query, otypes=[np.ndarray], excluded=["tree"]  # , "tolerance"
-    )
-
-    if isinstance(source, pd.Series):
-        source_values = source.values
-        source_index = source.index
-
-    else:
-        source_values = source
-        source_index = np.arange(0, len(source))
-
-    if isinstance(target, pd.Series):
-        target_values = target.values
-        target_index = target.index
-        target_index_name = target.index.name or "index_right"
-
-    else:
-        target_values = target
-        target_index = np.arange(0, len(target))
-        target_index_name = "index_right"
-
-    tree = pg.STRtree(target_values)
-
-    # retrieve indices from target that are within tolerance
-    hits = query(
-        source_values,
-        # use a search window for spatial index based on tolerance
-        window(source_values, distance),
-        distance,
-        tree=tree,
-    )
-
-    # need to explode and then apply indices to get back to original index values
+    # Get all indices from target_values that intersect buffers of input geometry
+    idx = sjoin_geometry(pg.buffer(source, distance), target)
     hits = (
-        pd.Series(hits, index=source_index)
-        .explode()
-        .dropna()
-        .map(pd.Series(target_index))
-        .rename("index_right")
-        .astype(target_index.dtype)
-    )
-
-    # join back to source and target geometries so we can calculate distance
-    # TODO: figure out a way to just use the distance we calculated above
-    hits = (
-        pd.DataFrame(hits)
-        .join(pd.Series(source, name="geometry"))
-        .join(pd.Series(target, name="geometry_right"), on="index_right")
+        pd.DataFrame(source)
+        .join(idx, how="inner")
+        .join(target.rename("geometry_right"), on="index_right", how="inner")
     )
     hits["distance"] = pg.distance(hits.geometry, hits.geometry_right)
 
     return (
         hits.drop(columns=["geometry", "geometry_right"])
-        .rename(columns={"index_right": target_index_name})
+        .rename(columns={"index_right": target.index.name or "index_right"})
         .sort_values(by="distance")
         .copy()
     )
@@ -195,12 +130,13 @@ def nearest(source, target, distance):
     source_index_name = source.index.name or "index"
 
     # results coming from near() already sorted by distance
+
+    # TODO: fix this; reset_index() fails if this is empty
+
     return (
         near(source, target, distance).reset_index().groupby(source_index_name).first()
     )
 
-
-def neighborhoods(source, tolerance=100):
     """Find the neighborhoods for a given set of geometries.
     Neighborhoods are those where geometries overlap by distance; this gets
     at the outer neighborhood: if A,B; A,C; and C,D are each neighbors
@@ -218,21 +154,20 @@ def neighborhoods(source, tolerance=100):
         returns neighborhoods ("group") indexed by original series index
     """
 
-    left_index_name = source.index.name or "index"
-    nearby = sjoin(window(source, tolerance), source, how="inner")
-    # drop self-intersections
-    nearby = (
-        nearby.loc[nearby.index != nearby]
-        .reset_index()
-        .join(source, on=left_index_name)
-        .join(source.rename("right"), on="index_right")
-    )
-    dist = pg.distance(nearby.geometry, nearby.right)
-    nearby = nearby.loc[dist <= tolerance].set_index(left_index_name)
 
-    # Find all nodes that are neighbors of each other
-    # WARNING: not all neighbors within a neighborhood are within distance of each other
+def neighborhoods(source, tolerance=100):
+
     index_name = source.index.name or "index"
+
+    nearby = near(source, source, distance=tolerance)
+
+    # drop self-intersections
+    nearby = nearby.loc[nearby.index != nearby[index_name]].rename(
+        columns={index_name: "index_right"}
+    )
+
+    # Find all nodes that are neighbors of each other based on network adjacency
+    # WARNING: not all neighbors within a neighborhood are within distance of each other
     network = nx.from_pandas_edgelist(nearby.reset_index(), index_name, "index_right")
     components = pd.Series(nx.connected_components(network)).apply(list)
     return (

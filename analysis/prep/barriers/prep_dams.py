@@ -20,11 +20,7 @@ This creates several QA/QC files:
 from pathlib import Path
 from time import time
 import pandas as pd
-from geofeather import from_geofeather
-from geofeather.pygeos import (
-    from_geofeather as from_geofeather_as_pygeos,
-    to_geofeather,
-)
+from geofeather.pygeos import from_geofeather, to_geofeather
 from pgpkg import to_gpkg
 import geopandas as gp
 import numpy as np
@@ -38,7 +34,6 @@ from analysis.prep.barriers.lib.points import (
     neighborhoods,
     connect_points,
 )
-from analysis.pygeos_compat import to_pygeos, from_pygeos
 from analysis.prep.barriers.lib.snap import (
     snap_to_nhd_dams,
     snap_to_waterbodies,
@@ -59,6 +54,7 @@ from analysis.constants import (
     DAM_COLS,
     DROP_MANUALREVIEW,
     EXCLUDE_MANUALREVIEW,
+    ONSTREAM_MANUALREVIEW,
     DROP_RECON,
     DROP_FEASIBILITY,
     EXCLUDE_RECON,
@@ -124,19 +120,18 @@ print("Read {:,} dams outside SARP states".format(len(outside_df)))
 df = df.append(outside_df, ignore_index=True, sort=False)
 
 ### Read in dams that have been manually snapped and join to get latest location
-# Join on AnalysisID to merged data above.
 # ONLY keep ManualReview and the location.
 print("Reading manually snapped dams...")
 snapped_df = from_geofeather(
     src_dir / "manually_snapped_dams.feather",
-    columns=["geometry", "ManualReview", "AnalysisID"],
-).set_index("AnalysisID")
+    columns=["geometry", "ManualReview", "SARPID"],
+).set_index("SARPID")
 
 # Don't pull across those that were not manually snapped
 snapped_df = snapped_df.loc[~snapped_df.ManualReview.isin([7, 9])]
 
 # Join to snapped and bring across updated geometry and ManualReview
-df = df.join(snapped_df, on="AnalysisID", rsuffix="_snap")
+df = df.join(snapped_df, on="SARPID", rsuffix="_snap")
 
 idx = df.loc[df.geometry_snap.notnull()].index
 df.loc[idx, "geometry"] = df.loc[idx].geometry_snap
@@ -271,6 +266,7 @@ drop_idx = (
     df.Name.str.lower().str.contains(" dike")
     & (~df.Name.str.lower().str.contains(" dam"))
     & ~df.dropped
+    & ~df.ManualReview.isin(ONSTREAM_MANUALREVIEW)
 )
 df.loc[drop_idx, "dropped"] = True
 df.loc[drop_idx, "log"] = "dropped: name includes dike and not dam"
@@ -297,8 +293,6 @@ print(
 
 
 ### Convert to pygeos format for following operations
-df = pd.DataFrame(df.copy())
-df["geometry"] = to_pygeos(df.geometry)
 
 
 ### Snap dams
@@ -341,8 +335,6 @@ df, to_snap = snap_to_flowlines(df, to_snap)
 # Last ditch effort to snap major waterbody-related dams
 df, to_snap = snap_to_large_waterbodies(df, to_snap)
 
-df['loop'] = df.loop.fillna(False)
-
 print(
     "Snapped {:,} dams in {:.2f}s".format(len(df.loc[df.snapped]), time() - snap_start)
 )
@@ -350,8 +342,6 @@ print(
 print("---------------------------------")
 print("\nSnapping statistics")
 print(df.groupby("snap_log").size())
-print(df.groupby("loop").size())
-print(df.groupby("loop").size())
 print("---------------------------------\n")
 
 
@@ -384,8 +374,8 @@ df.loc[(df.Year > 0) | (df.Height > 0), "dup_sort"] = 3
 # NABD dams should be reasonably high priority
 df.loc[df.ManualReview == 2, "dup_sort"] = 2
 
-# manually reviewed dams should be highest priority (4=onstream, 5=offstream)
-df.loc[df.ManualReview.isin([4, 5]), "dup_sort"] = 1
+# manually reviewed dams should be highest priority (both on and off stream)
+df.loc[df.ManualReview.isin(ONSTREAM_MANUALREVIEW + [5]), "dup_sort"] = 1
 
 
 dedup_start = time()
@@ -433,6 +423,9 @@ flowlines = deserialize_dfs(
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
+df["loop"] = df.loop.fillna(False)
+
+print(df.groupby("loop").size())
 
 ### All done processing!
 
@@ -447,7 +440,9 @@ to_gpkg(df, qa_dir / "dams", crs=CRS)
 
 
 # Extract out only the snapped ones
-df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(drop=True)
+df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(
+    drop=True
+)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 

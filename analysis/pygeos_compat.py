@@ -80,22 +80,35 @@ def explode(series):
 #     5. cut lines at points - need to figure out impl
 
 
-### WIP: basic STRtree based spatial join
+def sjoin(left, right, predicate="intersects", how="left"):
+    """Join data frames on geometry, comparable to geopandas.
+
+    NOTE: left vs right must be determined in advance for best performance, unlike geopandas.
+
+    Parameters
+    ----------
+    left : DataFrame containing pygeos geometry in "geometry" column
+    right : DataFrame containing pygeos geometry in "geometry" column
+    predicate : str, optional (default "intersects")
+    how : str, optional (default "left")
+
+    Returns
+    -------
+    pandas DataFrame
+        Includes all columns from left and all columns from right except geometry, suffixed by _right where
+        column names overlap.
+    """
+
+    # spatial join is inner to avoid recasting indices to float
+    joined = sjoin_geometry(left.geometry, right.geometry, predicate, how="inner")
+    joined = left.join(joined, how=how).join(
+        right.drop(columns=["geometry"]), on="index_right", rsuffix="_right"
+    )
+    return joined
 
 
-def query(left_geom, tree, predicate):
-    return tree.query(left_geom, predicate=predicate)
-
-
-# vectorized
-query_tree = np.vectorize(query, otypes=[np.ndarray], excluded=["tree", "predicate"])
-
-
-def sjoin(left, right, predicate="intersects", how="inner"):
-    """Use pygeos to do a spatial join.
-    NOTE: This seems to be faster than geopandas where there are fewer intersections per feature on left;
-    it is slower than goepandas where there are many intersections per feature
-    (will be better once there are prepared geoms in pygeos).
+def sjoin_geometry(left, right, predicate="intersects", how="inner"):
+    """Use pygeos to do a spatial join between 2 series or ndarrays of geometries.
 
     Parameters
     ----------
@@ -111,8 +124,12 @@ def sjoin(left, right, predicate="intersects", how="inner"):
     Returns
     -------
     Series
-        indexed on index of left, containing values of right
+        indexed on index of left, containing values of right index
     """
+
+    if not how in ("inner", "left"):
+        raise NotImplementedError("Other join types not implemented")
+
     if isinstance(left, pd.Series):
         left_values = left.values
         left_index = left.index
@@ -130,18 +147,20 @@ def sjoin(left, right, predicate="intersects", how="inner"):
         right_index = np.arange(0, len(right))
 
     tree = STRtree(right_values)
-
     # hits are in 0-based indicates of right
-    hits = query_tree(left_values, tree=tree, predicate=predicate)
-
-    # need to explode and then apply indices
-    hits = pd.Series(hits, index=left_index).explode()
-    series = hits.map(pd.Series(right_index)).rename("index_right")
+    hits = tree.query_bulk(left_values, predicate=predicate)
 
     if how == "inner":
-        series = series.dropna().astype(right_index.dtype)
+        index = left_index[hits[0]]
+        values = right_index[hits[1]]
 
-    return series
+    elif how == "left":
+        index = left_index.copy()
+        values = np.empty(shape=index.shape)
+        values.fill(np.nan)
+        values[hits[0]] = right_index[hits[1]]
+
+    return pd.Series(values, index=index, name="index_right")
 
 
 # NOTE: geometry column is a pygeos geom
@@ -202,3 +221,21 @@ def get_hash(series):
         hash codes for each geometry
     """
     return to_wkb(series).apply(lambda wkb: hash(wkb))
+
+
+def spatial_join(left, right):
+    joined = sjoin(left, right).drop(columns=["index_right"])
+
+    # WARNING: some places have overlapping areas (e.g., protected areas), this creates extra records!
+    # Take the first entry in each case
+    grouped = joined.groupby(level=0)
+    if grouped.size().max() > 1:
+        print(
+            "WARNING: multiple target areas returned in spatial join for a single point"
+        )
+
+        # extract the right side indexed by the left, and take first record
+        right = grouped[[c for c in right.columns.drop("geometry")]].first()
+        joined = left.join(right)
+
+    return joined

@@ -13,7 +13,6 @@ This creates 2 files:
 from pathlib import Path
 import pandas as pd
 from time import time
-from geofeather import from_geofeather
 from geofeather.pygeos import to_geofeather
 from pgpkg import to_gpkg
 import geopandas as gp
@@ -60,6 +59,10 @@ df = df.loc[df.geometry.y.abs() <= 90]
 ### Reproject to CONUS Albers
 df = df.to_crs(CRS)
 
+### Convert to pygeos format for following operations
+df = pd.DataFrame(df.copy())
+df["geometry"] = to_pygeos(df.geometry)
+
 
 ### Add IDs for internal use
 # internal ID
@@ -96,10 +99,6 @@ drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()
 print("{} waterfalls are outside HUC12 / states".format(len(df.loc[drop_idx])))
 df.loc[drop_idx, "dropped"] = True
 
-### Convert to pygeos format for following operations
-df = pd.DataFrame(df.copy())
-df["geometry"] = to_pygeos(df.geometry)
-
 
 ### Snap waterfalls
 print("Snapping {:,} waterfalls".format(len(df)))
@@ -113,7 +112,6 @@ df["snap_tolerance"] = SNAP_TOLERANCE
 # Snap to flowlines
 snap_start = time()
 df, to_snap = snap_to_flowlines(df, to_snap=df.copy())
-df["loop"] = df.loop.fillna(False)
 print(
     "Snapped {:,} waterfalls in {:.2f}s".format(
         len(df.loc[df.snapped]), time() - snap_start
@@ -122,7 +120,6 @@ print(
 print("---------------------------------")
 print("\nSnapping statistics")
 print(df.groupby("snap_log").size())
-print(df.groupby("loop").size())
 print("---------------------------------\n")
 
 
@@ -153,6 +150,9 @@ flowlines = deserialize_dfs(
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
+df["loop"] = df.loop.fillna(False)
+
+print(df.groupby("loop").size())
 
 ### All done processing!
 print("\n--------------\n")

@@ -22,7 +22,6 @@ setup(
     install_requires=[
         "pandas",
         "flask",
-        "feather-format",
         "flask-cors",
         "gunicorn",
         "jinja2",

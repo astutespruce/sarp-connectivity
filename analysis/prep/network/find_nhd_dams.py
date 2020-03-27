@@ -12,7 +12,7 @@ import geopandas as gp
 from nhdnet.io import deserialize_df
 from nhdnet.nhd.joins import find_joins
 
-from analysis.pygeos_compat import sjoin, dissolve, to_gdf
+from analysis.pygeos_compat import sjoin_geometry as sjoin, dissolve, to_gdf
 
 from analysis.constants import REGION_GROUPS, CRS
 from analysis.util import append

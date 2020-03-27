@@ -1,9 +1,10 @@
 from pathlib import Path
 import geopandas as gp
-from geofeather import from_geofeather
+from geofeather.pygeos import from_geofeather
 from nhdnet.io import deserialize_df
 
-from analysis.util import spatial_join
+# from analysis.util import spatial_join
+from analysis.pygeos_compat import spatial_join
 
 
 data_dir = Path("data")
@@ -12,11 +13,11 @@ boundaries_dir = data_dir / "boundaries"
 
 def add_spatial_joins(df):
     """Add spatial joins needed for network analysis.
-    
+
     Parameters
     ----------
     df : GeoDataFrame
-    
+
     Returns
     -------
     GeoDataFrame

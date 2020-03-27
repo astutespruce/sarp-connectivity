@@ -13,6 +13,7 @@ gunicorn = "*"
 raven = {version = "*",extras = ["flask"]}
 requests = "*"
 python-dotenv = "*"
+pygeos = {editable = true,path = "./../pygeos"}
 
 [dev-packages]
 pylint = "*"
@@ -28,4 +29,4 @@ pgpkg = {editable = true,path = "./../pgpkg"}
 geopandas = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"

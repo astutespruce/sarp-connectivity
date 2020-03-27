@@ -28,7 +28,8 @@ print("token", token)
 # Puerto Rico:  https://arcg.is/1qLnOP
 
 TARGET_WKID = 102003
-SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_Dams_Snapped_For_Editing_Feb42019/FeatureServer/0"
+# SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_Dams_Snapped_For_Editing_Feb42019/FeatureServer/0"
+SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Dam_Snapping_QA_Dataset_01212020/FeatureServer/0"
 SMALL_BARRIERS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_RoadBarriers_01212019/FeatureServer/0"
 
 
@@ -85,6 +86,7 @@ start = time()
 ### Download and merge state feature services
 merged = None
 # Services have varying casing of SNAP2018
+# TODO: update snap2018??
 dam_cols = DAM_FS_COLS
 for state, url in DAM_URLS.items():
     download_start = time()
@@ -107,6 +109,10 @@ for state, url in DAM_URLS.items():
     )
     df["SourceState"] = state
     print("Downloaded {:,} dams in {:.2f}s".format(len(df), time() - download_start))
+
+    missing_sarpid = df.loc[df.SARPID.isnull()]
+    if len(missing_sarpid):
+        print(f"WARNING: {len(missing_sarpid):,} dams are missing SARPID")
 
     # Add feasibility so that we can merge
     if not "Feasibility" in df.columns:
@@ -141,8 +147,11 @@ to_geofeather(df, out_dir / "sarp_dams.feather")
 download_start = time()
 print("---- Downloading Snapped Dams ----")
 df = download_fs(
-    SNAPPED_URL, fields=["AnalysisID", "SNAP2018"], token=token, target_wkid=TARGET_WKID
-).rename(columns={"SNAP2018": "ManualReview"})
+    SNAPPED_URL,
+    fields=["SARPID", "ManualReview"],
+    token=token,
+    target_wkid=TARGET_WKID,
+)
 
 print("Projecting manually snapped dams...")
 df = df.loc[df.geometry.notnull()].to_crs(CRS)

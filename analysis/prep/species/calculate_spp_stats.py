@@ -121,13 +121,23 @@ df.loc[df.federal.isnull() & df.SNAME.isin(threatened_df), "federal"] = "LT"
 
 
 # Convert to bool
-for col in ["federal", "state", "sgcn", "regional"]:
+cols = ["federal", "state", "sgcn", "regional"]
+for col in cols:
     df[col] = df[col].notnull()
 
+# Export intermediate - Kat @ SARP often needs this
+summary = df.copy()
+summary[cols] = summary[cols].astype("uint8")
+# summary.to_csv(
+#     out_dir / "spp_HUC12_summary.csv", quoting=csv.QUOTE_NONNUMERIC, index=False
+# )
+summary.to_excel(out_dir / "spp_HUC12_summary.xlsx", index=False)
 
+
+### Calculate counts per HUC12
 counts = df.groupby("HUC12").sum().astype("uint8").reset_index()
-
 serialize_df(counts, out_dir / "spp_HUC12.feather")
 counts.to_csv(out_dir / "spp_HUC12.csv", quoting=csv.QUOTE_NONNUMERIC, index=False)
+counts.to_excel(out_dir / "spp_HUC12.xlsx", index=False)
 
 print("All done in {:.2}s".format(time() - start))

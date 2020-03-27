@@ -22,11 +22,7 @@ This creates several QA/QC files:
 from pathlib import Path
 from time import time
 import pandas as pd
-from geofeather import from_geofeather
-from geofeather.pygeos import (
-    to_geofeather,
-    from_geofeather as from_geofeather_as_pygeos,
-)
+from geofeather.pygeos import to_geofeather, from_geofeather
 import geopandas as gp
 import numpy as np
 from pgpkg import to_gpkg
@@ -153,7 +149,9 @@ print(
     )
 )
 df.loc[drop_idx, "dropped"] = True
-df.loc[drop_idx, "log"] = "dropped: PotentialProject one of".format(DROP_POTENTIAL_PROJECT)
+df.loc[drop_idx, "log"] = "dropped: PotentialProject one of".format(
+    DROP_POTENTIAL_PROJECT
+)
 
 drop_idx = df.ManualReview.isin(DROP_MANUALREVIEW)
 print(
@@ -173,7 +171,11 @@ print(
     )
 )
 df.loc[exclude_idx, "excluded"] = True
-df.loc[drop_idx, "log"] = "excluded: PotentialProject not one of retained types {}".format(KEEP_POTENTIAL_PROJECT)
+df.loc[
+    drop_idx, "log"
+] = "excluded: PotentialProject not one of retained types {}".format(
+    KEEP_POTENTIAL_PROJECT
+)
 
 exclude_idx = df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
 print(
@@ -182,13 +184,10 @@ print(
     )
 )
 df.loc[exclude_idx, "excluded"] = True
-df.loc[drop_idx, "log"] = "excluded: ManualReview one of {}".format(EXCLUDE_MANUALREVIEW)
+df.loc[drop_idx, "log"] = "excluded: ManualReview one of {}".format(
+    EXCLUDE_MANUALREVIEW
+)
 
-
-
-### Convert to pygeos format for following operations
-df = pd.DataFrame(df.copy())
-df["geometry"] = to_pygeos(df.geometry)
 
 ### Snap barriers
 print("Snapping {:,} small barriers".format(len(df)))
@@ -204,7 +203,7 @@ original_locations = df.copy()
 # Snap to flowlines
 snap_start = time()
 df, to_snap = snap_to_flowlines(df, to_snap=df.copy())
-df['loop'] = df.loop.fillna(False)
+
 print(
     "Snapped {:,} small barriers in {:.2f}s".format(
         len(df.loc[df.snapped]), time() - snap_start
@@ -214,7 +213,6 @@ print(
 print("---------------------------------")
 print("\nSnapping statistics")
 print(df.groupby("snap_log").size())
-print(df.groupby("loop").size())
 print("---------------------------------\n")
 
 
@@ -261,7 +259,7 @@ export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas")
 
 ### Deduplicate by dams
 # any that are within duplicate tolerance of dams may be duplicating those dams
-dams = from_geofeather_as_pygeos(master_dir / "dams.feather")
+dams = from_geofeather(master_dir / "dams.feather")
 near_dams = nearest(df.geometry, dams.geometry, DUPLICATE_TOLERANCE)
 
 ix = near_dams.index
@@ -277,6 +275,9 @@ flowlines = deserialize_dfs(
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
+df["loop"] = df.loop.fillna(False)
+
+print(df.groupby("loop").size())
 
 print("\n--------------\n")
 
@@ -291,7 +292,9 @@ to_gpkg(df, qa_dir / "small_barriers")
 
 
 # Extract out only the snapped ones
-df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(drop=True)
+df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(
+    drop=True
+)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 

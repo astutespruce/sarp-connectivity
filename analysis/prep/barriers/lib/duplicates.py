@@ -4,7 +4,7 @@ from pgpkg import to_gpkg
 
 from analysis.prep.barriers.lib.points import neighborhoods
 from analysis.pygeos_compat import dissolve
-from analysis.constants import CRS
+from analysis.constants import CRS, ONSTREAM_MANUALREVIEW
 
 
 def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
@@ -30,6 +30,11 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
         .join(df[["dropped", "excluded", "ManualReview", "dup_sort"]])
         .sort_values(by="dup_sort")
     )
+
+    # reset drop status of those that were dropped because they were duplicates
+    # or we risk dropping clusters that include them
+    groups.loc[groups.ManualReview == 11, "dropped"] = False
+
     groups["group"] = groups.group + next_group_id
     grouped = groups.groupby("group")
     count = grouped.size().rename("dup_count")
@@ -53,7 +58,9 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
 
     # Drop all records from any groups that have a dropped record
     # UNLESS the one being kept is manually reviewed and not dropped
-    trusted_keepers = keep.loc[(keep.ManualReview == 4) & ~keep.dropped]
+    trusted_keepers = keep.loc[
+        keep.ManualReview.isin(ONSTREAM_MANUALREVIEW) & ~keep.dropped
+    ]
     drop_groups = grouped.dropped.max()
     drop_groups = drop_groups.loc[
         drop_groups & ~drop_groups.index.isin(trusted_keepers.index)

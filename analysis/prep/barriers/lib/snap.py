@@ -5,8 +5,7 @@ import numpy as np
 import geopandas as gp
 from geopandas import GeoDataFrame
 import pandas as pd
-from geofeather import from_geofeather
-from geofeather.pygeos import from_geofeather as from_geofeather_as_pygeos
+from geofeather.pygeos import from_geofeather
 from pgpkg import to_gpkg
 import pygeos as pg
 from nhdnet.io import deserialize_gdf, deserialize_sindex
@@ -14,7 +13,7 @@ from nhdnet.geometry.lines import snap_to_line
 from nhdnet.geometry.points import snap_to_point
 
 from analysis.prep.barriers.lib.points import nearest, near, connect_points
-from analysis.pygeos_compat import to_gdf
+from analysis.pygeos_compat import to_gdf, sjoin
 from analysis.constants import CRS, REGION_GROUPS, REGIONS
 from analysis.util import ndarray_append_strings
 
@@ -53,15 +52,16 @@ def snap_to_nhd_dams(df, to_snap):
     print("Snapping to NHD dams...")
     # NOTE: id is not unique for points
     nhd_dams_poly = (
-        from_geofeather_as_pygeos(nhd_dir / "merged" / "nhd_dams_poly.feather")
+        from_geofeather(nhd_dir / "merged" / "nhd_dams_poly.feather")
         .rename(columns={"id": "damID"})
         .set_index("damID")
         .drop(columns=["index"], errors="ignore")
     )
     nhd_dams = (
-        from_geofeather_as_pygeos(nhd_dir / "merged" / "nhd_dams_pt.feather")
+        from_geofeather(nhd_dir / "merged" / "nhd_dams_pt.feather")
         .rename(columns={"id": "damID"})
         .set_index("damID")
+        .drop(columns=["index"], errors="ignore")
     )
     # set nulls back to na
     nhd_dams.wbID = nhd_dams.wbID.replace(-1, np.nan)
@@ -74,7 +74,7 @@ def snap_to_nhd_dams(df, to_snap):
     )[["damID"]]
 
     # snap to nearest dam point for that dam (some are > 1 km away)
-    # NOTE: this will multiple entries for some dams
+    # NOTE: this will create multiple entries for some dams
     near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(
         nhd_dams, on="damID"
     )
@@ -163,24 +163,17 @@ def snap_to_waterbodies(df, to_snap):
     ### Attempt to snap to waterbody drain points for major waterbodies
     # Use larger tolerance for larger waterbodies
     print("Snapping to waterbodies and drain points..")
-    wb = from_geofeather_as_pygeos(
-        nhd_dir / "merged" / "waterbodies.feather"
-    ).set_index("wbID")
+    wb = from_geofeather(nhd_dir / "merged" / "waterbodies.feather").set_index("wbID")
     drains = (
-        from_geofeather_as_pygeos(nhd_dir / "merged" / "waterbody_drain_points.feather")
+        from_geofeather(nhd_dir / "merged" / "waterbody_drain_points.feather")
         .rename(columns={"id": "drainID"})
         .set_index("drainID")
     )
 
     ### First pass - find the dams that are contained by waterbodies
-    # have to do this in geopandas since it performs better than pygeos
-    # until pygeos has prepared geoms
-    d = to_gdf(to_snap, crs=CRS)
-    wbd = to_gdf(wb, crs=CRS)
-    d.sindex
-    wbd.sindex
     contained_start = time()
-    in_wb = gp.sjoin(d, wbd, how="inner").index_right.rename("wbID")
+
+    in_wb = sjoin(to_snap, wb, how="inner").index_right.rename("wbID")
 
     # update wbID in dataset, but this doesn't mean it is snapped
     ix = in_wb.index
@@ -213,6 +206,7 @@ def snap_to_waterbodies(df, to_snap):
     in_wb = in_wb.loc[in_wb.snap_dist <= 500].copy()
 
     # take the closest drain point
+    in_wb.index.name = "index"
     in_wb = (
         in_wb.reset_index()
         .sort_values(by=["index", "snap_dist"])
@@ -384,7 +378,7 @@ def snap_to_flowlines(df, to_snap):
         print("\n----- {} ------\n".format(region))
 
         print("Reading flowlines...")
-        flowlines = from_geofeather_as_pygeos(
+        flowlines = from_geofeather(
             nhd_dir / "clean" / region / "flowlines.feather"
         ).set_index("lineID")
 
@@ -395,6 +389,10 @@ def snap_to_flowlines(df, to_snap):
             )
         )
 
+        if len(in_region) == 0:
+            print("No barriers in region to snap")
+            continue
+
         print("Finding nearest flowlines...")
         # TODO: can use near instead of nearest, and persist list of near lineIDs per barrier
         # so that we can construct subnetworks with just those
@@ -402,7 +400,7 @@ def snap_to_flowlines(df, to_snap):
             in_region.geometry, flowlines.geometry, in_region.snap_tolerance
         )
         lines = lines.join(in_region.geometry).join(
-            flowlines.geometry.rename("line"), on="lineID"
+            flowlines.geometry.rename("line"), on="lineID",
         )
 
         # project the point to the line,
@@ -461,13 +459,11 @@ def snap_to_large_waterbodies(df, to_snap):
     tuple of (GeoDataFrame, DataFrame)
         (df, to_snap)
     """
-    wb = from_geofeather_as_pygeos(
-        nhd_dir / "merged" / "large_waterbodies.feather"
-    ).set_index("wbID")
+    wb = from_geofeather(nhd_dir / "merged" / "large_waterbodies.feather").set_index(
+        "wbID"
+    )
     drains = (
-        from_geofeather_as_pygeos(
-            nhd_dir / "merged" / "large_waterbody_drain_points.feather"
-        )
+        from_geofeather(nhd_dir / "merged" / "large_waterbody_drain_points.feather")
         .rename(columns={"id": "drainID"})
         .set_index("drainID")
     )

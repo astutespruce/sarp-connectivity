@@ -6,7 +6,7 @@ import geopandas as gp
 import networkx as nx
 import numpy as np
 
-from analysis.pygeos_compat import sjoin, dissolve
+from analysis.pygeos_compat import pygeos_sjoin as sjoin, dissolve
 
 
 def dissolve_waterbodies(df, joins):

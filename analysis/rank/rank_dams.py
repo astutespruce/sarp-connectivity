@@ -67,7 +67,6 @@ df = (
             "snap_log",
             "snapped",
             "ProtectedLand",
-            "AnalysisID",
             "NHDPlusID",
             "SourceState",
             "lineID",
