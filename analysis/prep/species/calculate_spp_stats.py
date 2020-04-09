@@ -17,12 +17,15 @@ import csv
 import pandas as pd
 import geopandas as gp
 from nhdnet.io import serialize_df
+from pyogrio import read_dataframe
+
 
 start = time()
 data_dir = Path("data")
 src_dir = data_dir / "species/source"
 out_dir = data_dir / "species/derived"
-gdb = src_dir / "Final_Species_Table_12302019.gdb"
+gdb = src_dir / "Occurrence_Tables_04022020.gdb"
+layer = "SpeciesSpecies_by_HUC12_ALL_MERGE_04022020"
 
 ############### Extract USFWS official listing information ######################
 print("Reading T&E species list")
@@ -84,7 +87,7 @@ threatened_df = listed_df.loc[listed_df.official_status == "T"].SNAME.unique()
 ### Extract occurrence table from SARP
 
 print("Reading species occurrence data...")
-df = gp.read_file(gdb)[
+df = read_dataframe(gdb, layer=layer, read_geometry=False)[
     [
         "HUC12_Code",
         "Species_Name",
@@ -107,8 +110,10 @@ df = gp.read_file(gdb)[
     }
 )
 
+print("Processing species data")
+
 # fix data issues
-for col in ["SNAME", "CNAME"]:
+for col in df.columns[1:]:
     df[col] = df[col].fillna("").str.strip()
 
 
@@ -123,7 +128,8 @@ df.loc[df.federal.isnull() & df.SNAME.isin(threatened_df), "federal"] = "LT"
 # Convert to bool
 cols = ["federal", "state", "sgcn", "regional"]
 for col in cols:
-    df[col] = df[col].notnull()
+    df.loc[df[col] == "No", col] = ""
+    df[col] = df[col] != ""
 
 # Export intermediate - Kat @ SARP often needs this
 summary = df.copy()
@@ -140,4 +146,4 @@ serialize_df(counts, out_dir / "spp_HUC12.feather")
 counts.to_csv(out_dir / "spp_HUC12.csv", quoting=csv.QUOTE_NONNUMERIC, index=False)
 counts.to_excel(out_dir / "spp_HUC12.xlsx", index=False)
 
-print("All done in {:.2}s".format(time() - start))
+print("All done in {:.2f}s".format(time() - start))
