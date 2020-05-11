@@ -141,6 +141,9 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
               including publication, reports, presentations, or projects. Please
               see the <b>TERMS_OF_USE.txt</b> file in your download for the
               appropriate citation and more information.
+              <br />
+              <br />
+              Coordinates are in WGS 1984.
             </HelpText>
           </Content>
 

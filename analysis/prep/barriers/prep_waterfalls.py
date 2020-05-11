@@ -13,7 +13,7 @@ This creates 2 files:
 from pathlib import Path
 import pandas as pd
 from time import time
-from geofeather.pygeos import to_geofeather
+from geofeather.pygeos import to_geofeather, from_geofeather
 from pgpkg import to_gpkg
 import geopandas as gp
 import numpy as np
@@ -22,6 +22,7 @@ from nhdnet.io import deserialize_dfs
 
 from analysis.constants import REGION_GROUPS, REGIONS, CRS
 from analysis.pygeos_compat import to_pygeos
+from analysis.prep.barriers.lib.points import nearest
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.duplicates import find_duplicates
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
@@ -55,6 +56,13 @@ print(
     )
 )
 df = df.loc[df.geometry.y.abs() <= 90]
+
+
+### Drop records that indicate waterfall is not likely a current fish passage barrier
+ix = df.fall_type.isin(["dam", "historical rapids", "historical waterfall", "rapids"])
+print("Dropping {} waterfalls that are not likely to be barriers".format(ix.sum()))
+df = df.loc[~ix].copy()
+
 
 ### Reproject to CONUS Albers
 df = df.to_crs(CRS)
@@ -142,6 +150,19 @@ print(
         len(df.loc[df.duplicate]), time() - dedup_start
     )
 )
+
+
+### Deduplicate by dams
+# any that are within duplicate tolerance of dams may be duplicating those dams
+dams = from_geofeather(master_dir / "dams.feather")
+near_dams = nearest(df.geometry, dams.geometry, DUPLICATE_TOLERANCE)
+
+ix = near_dams.index
+df.loc[ix, "duplicate"] = True
+df.loc[ix, "dup_log"] = "Within {}m of an existing dam".format(DUPLICATE_TOLERANCE)
+
+print("Found {} waterfalls within {}m of dams".format(len(ix), DUPLICATE_TOLERANCE))
+
 
 ### Join to line atts
 flowlines = deserialize_dfs(

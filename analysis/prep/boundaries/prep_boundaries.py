@@ -237,7 +237,7 @@ coa = coa.groupby(level=0).min()
 
 
 # Top 10 HUC8s per state for count of SGCN
-sgcn = gp.read_file(src_dir / "SGCN_Priorities.gdb")[["HUC8"]].set_index("HUC8")
+sgcn = gp.read_file(src_dir / "SGCN_Priorities.gdb")[["HUC_8"]].set_index("HUC_8")
 sgcn["sgcn"] = 1
 
 
@@ -259,14 +259,14 @@ serialize_df(
 )
 
 
-### HUC8s - used for visualization; not needed for spatial joins
+### HUC8s - used for visualization; not joined to barriers directly
 df = gp.read_file(intermediate_dir / "HUC8_prj.shp")[["geometry", "HUC8", "NAME"]]
 df.sindex
 
 # Select out within the SARP boundary
 in_sarp = gp.sjoin(df, bnd)
 df = df.loc[df.HUC8.isin(in_sarp.HUC8)].join(priorities.set_index("HUC8"), on="HUC8")
-for col in ['usfs', 'coa', 'sgcn']:
+for col in ["usfs", "coa", "sgcn"]:
     df[col] = df[col].fillna(0).astype("uint8")
 
 to_shp(

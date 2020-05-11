@@ -24,8 +24,8 @@ start = time()
 data_dir = Path("data")
 src_dir = data_dir / "species/source"
 out_dir = data_dir / "species/derived"
-gdb = src_dir / "Occurrence_Tables_04022020.gdb"
-layer = "SpeciesSpecies_by_HUC12_ALL_MERGE_04022020"
+gdb = src_dir / "Final_Output_Table_04272020.gdb"
+layer = "Species_Table_05012020"
 
 ############### Extract USFWS official listing information ######################
 print("Reading T&E species list")

@@ -94,23 +94,6 @@ export const fetchBarrierRanks = async (
   return fetchCSV(url, undefined, autoType)
 }
 
-// export const getDownloadURL = (
-//   barrierType,
-//   layer,
-//   summaryUnits,
-//   filters,
-//   includeUnranked,
-//   sort,
-//   customRank = false
-// ) =>
-//   `${apiHost}/api/v1/${barrierType}/csv/${layer}?${apiQueryParams(
-//     summaryUnits,
-//     filters,
-//     includeUnranked,
-//     sort,
-//     customRank
-//   )}`
-
 export const getDownloadURL = ({
   barrierType,
   layer,

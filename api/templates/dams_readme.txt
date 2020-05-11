@@ -34,8 +34,8 @@ reconnaissance, please contact us (https://southeastaquatics.net/about/contact-u
 
 File Contents:
 --------------
-lat: latitude.
-lon: longitude.
+lat: latitude in WGS84 geographic coordinates.
+lon: longitude in WGS84 geographic coordinates.
 Name: Barrier name, if available.
 SARPID: SARP Identifier.
 NIDID: National Inventory of Dams Identifier.
