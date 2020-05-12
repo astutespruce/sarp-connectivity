@@ -18,7 +18,7 @@ import csv
 import sys
 import geopandas as gp
 import pandas as pd
-from geofeather import from_geofeather, to_shp, to_geofeather
+from geofeather import from_geofeather, to_geofeather
 from nhdnet.io import deserialize_dfs, deserialize_df, serialize_df
 from nhdnet.geometry.points import add_lat_lon
 

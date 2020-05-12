@@ -15,4 +15,4 @@ Run `analysis/rank/rank_dams.py`
 
 ## Small barriers:
 
-Run `analysis/rank/rank_small barriers.py`
+Run `analysis/rank/rank_small_barriers.py`

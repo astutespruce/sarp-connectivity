@@ -23,13 +23,13 @@ NOTE: these only the subset of networks associated with small barriers, not the 
 
 Also note:
 `analysis/post/extract_dam_networks.py' can be used to extract upstream networks for dams if needed.
-This is not currently used.
+This is not currently used. (the shapefiles created by the network analysis are used instead)
 
 ### Vector tiles
 
 From the root directory of the repository, run the following shell scripts:
 
 -   `analysis/post/generate_barrier_tiles.sh`: this generates the on and off-network tilesets for dams, small barriers (off-network includes road crossings), and waterfalls, and joins summary stats to the boundary layers.
--   `analysis/post/generate_barrier_tiles.sh`: this generates the dams and small barrier networks. The networks for the dams are the complete set of networks and can be used to display flowlines on a map; the small barriers are only those networks upstream of small barriers.
+-   `analysis/post/generate_network_tiles.sh`: this generates the dams and small barrier networks. The networks for the dams are the complete set of networks and can be used to display flowlines on a map; the small barriers are only those networks upstream of small barriers.
 
 Final tiles for deployment are in `/tiles`

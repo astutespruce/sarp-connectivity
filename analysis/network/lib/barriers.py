@@ -101,7 +101,8 @@ def save_barriers(out_dir, barriers):
     print("Serializing {:,} barriers...".format(len(barriers)))
     start = time()
 
-    to_geofeather(barriers.reset_index(drop=True), out_dir / "barriers.feather")
-    to_shp(barriers, out_dir / "barriers.shp")
+    tmp = barriers.reset_index(drop=True)
+    to_geofeather(tmp, out_dir / "barriers.feather")
+    to_shp(tmp, out_dir / "barriers.shp")
 
     print("Done serializing barriers in {:.2f}s".format(time() - start))
