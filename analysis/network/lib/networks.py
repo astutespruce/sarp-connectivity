@@ -1,17 +1,21 @@
 from time import time
 
+import pandas as pd
+import numpy as np
 from nhdnet.nhd.network import generate_networks
 
 
 def create_networks(flowlines, joins, barrier_joins):
 
+    # create idx of all lines that are upstream of barriers; these are
+    # "claimed" by the barriers for network analysis.
     # remove any segments that are at the upstream-most terminals of networks
-    barrier_segments = barrier_joins.loc[barrier_joins.upstream_id != 0].set_index(
-        "upstream_id"
-    )[[]]
+    barrier_upstream_idx = barrier_joins.loc[
+        barrier_joins.upstream_id != 0
+    ].upstream_id.unique()
 
     ### Generate upstream index
-    # Remove origins, terminals, and barrier segments
+    # Remove origin_idx, terminals, and barrier segments
     # then create an index of downstream_id to all upstream_ids from it (dictionary of downstream_id to the corresponding upstream_id(s)).
     # This is so that network building can start from a downstream-most
     # line ID, and then build upward for all segments that have that as a downstream segment.
@@ -22,7 +26,7 @@ def create_networks(flowlines, joins, barrier_joins):
     upstreams = joins.loc[
         (joins.upstream_id != 0)
         & (joins.downstream_id != 0)
-        & (~joins.upstream_id.isin(barrier_segments.index)),
+        & (~joins.upstream_id.isin(barrier_upstream_idx)),
         ["downstream_id", "upstream_id"],
     ]
     upstream_index = upstreams.set_index("upstream_id").groupby("downstream_id").groups
@@ -32,37 +36,65 @@ def create_networks(flowlines, joins, barrier_joins):
     ### Get list of network root IDs
     # Create networks from all terminal nodes (have no downstream nodes) up to barriers.
     # Exclude any segments where barriers are also on the downstream terminals to prevent duplicates.
-    # Note: origins are also those that have a downstream_id but are not the upstream_id of another node
-    downstream_terminal_idx = (joins.downstream_id == 0) | (
-        ~joins.downstream_id.isin(joins.upstream_id)
+    # Note: origin_idx are also those that have a downstream_id but are not the upstream_id of another node
+
+    # anything that has no downstream is an origin
+    origin_idx = joins.loc[joins.downstream_id == 0].upstream_id.unique()
+
+    # find joins that are not marked as terminated, but do not have upstreams in the region
+    unterminated = joins.loc[
+        (joins.downstream_id != 0) & ~joins.downstream_id.isin(joins.upstream_id)
+    ]
+    # if downstream_id is not in upstream_id for region, and is in flowlines, add downstream id as origin
+    origin_idx = np.append(
+        origin_idx,
+        unterminated.loc[
+            unterminated.downstream_id.isin(flowlines.index)
+        ].downstream_id.unique(),
     )
-    origins = joins.loc[
-        (downstream_terminal_idx & (~joins.upstream_id.isin(barrier_segments.index)))
-    ].set_index("upstream_id")[[]]
+
+    # otherwise add upstream id
+    origin_idx = np.append(
+        origin_idx,
+        unterminated.loc[
+            ~unterminated.downstream_id.isin(flowlines.index)
+        ].upstream_id.unique(),
+    )
+
+    # remove any origins that have associated barriers
+    # this also ensures a unique list
+    origin_idx = np.setdiff1d(origin_idx, barrier_upstream_idx)
 
     ### Extract all origin points and barrier segments that immediately terminate upstream
-    single_segment_networks = origins.append(barrier_segments).join(
-        upstreams.set_index("downstream_id")
+    # these are single segments and don't need to go through the full logic for constructing
+    # networks.
+
+    # single segments are either origin or barrier segments that are not downstream of other segments
+    # (meaning they are at the top of the network).
+    single_segment_idx = np.setdiff1d(
+        np.append(origin_idx, barrier_upstream_idx), upstreams.downstream_id
+    ).astype("uint64")
+
+    single_segment_networks = pd.DataFrame(
+        index=pd.Series(single_segment_idx, name="lineID")
     )
-    single_segment_networks = single_segment_networks.loc[
-        single_segment_networks.upstream_id.isnull()
-    ][[]]
-    single_segment_networks.index.rename("lineID", inplace=True)
+    # their networkID is the same as the segment
     single_segment_networks["networkID"] = single_segment_networks.index
     single_segment_networks["type"] = "origin"
     single_segment_networks.loc[
-        single_segment_networks.index.isin(barrier_segments.index), "type"
+        single_segment_networks.index.isin(barrier_upstream_idx), "type"
     ] = "barrier"
 
     print(
         "{:,} networks are a single segment long".format(len(single_segment_networks))
     )
 
+    ### Find all origins that are not single segments
     # origin segments are the root of each non-barrier origin point up to barriers
     # segments are indexed by the id of the segment at the root for each network
-    origins_with_upstreams = origins.loc[
-        ~origins.index.isin(single_segment_networks.index)
-    ].index.to_series(name="networkID")
+    origins_with_upstreams = pd.Series(
+        np.setdiff1d(origin_idx, single_segment_networks.index), name="networkID"
+    )
 
     print(
         "Generating networks for {:,} origin points".format(len(origins_with_upstreams))
@@ -73,9 +105,11 @@ def create_networks(flowlines, joins, barrier_joins):
 
     # barrier segments are the root of each upstream network from each barrier
     # segments are indexed by the id of the segment at the root for each network
-    barriers_with_upstreams = barrier_segments.loc[
-        ~barrier_segments.index.isin(single_segment_networks.index)
-    ].index.to_series(name="networkID")
+    barriers_with_upstreams = pd.Series(
+        np.setdiff1d(barrier_upstream_idx, single_segment_networks.index),
+        name="networkID",
+    )
+
     print("Generating networks for {:,} barriers".format(len(barriers_with_upstreams)))
     barrier_network_segments = generate_networks(
         barriers_with_upstreams, upstream_index
