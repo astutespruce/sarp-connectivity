@@ -155,6 +155,13 @@ df = calculate_tiers(df, prefix="SE")
 df = calculate_tiers(df, group_field="State", prefix="State")
 
 
+### Sanity check
+if df.groupby(level=0).size().max() > 1:
+    raise ValueError(
+        "Error - there are duplicate barriers in the results.  Check uniqueness of IDs and joins."
+    )
+
+
 ### Output results
 print("Writing to output files...")
 

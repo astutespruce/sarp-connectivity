@@ -9,6 +9,9 @@ Outputs:
 * `data/tiles/dams_with_networks.csv`: Dams with networks for creating vector tiles in tippecanoe
 * `data/tiles/dams_without_networks.csv`: Dams without networks for creating vector tiles in tippecanoe
 
+
+TODO: add PR region number prefix to networks to keep globally unique
+
 """
 
 import os
@@ -137,6 +140,10 @@ pr["PotentialFeasibility"] = 0
 
 pr = pr[list(df.columns) + ["id"]].copy()
 
+# increment PR ids
+next_id = int(df.index.max() + 1)
+pr["id"] = (pr.id + next_id).astype("uint32")
+
 df = df.reset_index().append(pr, ignore_index=True, sort=False).set_index("id")
 
 
@@ -175,6 +182,14 @@ df = add_lat_lon(df)
 ### Calculate tiers for the region and by state
 df = calculate_tiers(df, prefix="SE")
 df = calculate_tiers(df, group_field="State", prefix="State")
+
+
+### Sanity check
+if df.groupby(level=0).size().max() > 1:
+    raise ValueError(
+        "Error - there are duplicate barriers in the results.  Check uniqueness of IDs and joins."
+    )
+
 
 ### Output results
 print("Writing to output files...")

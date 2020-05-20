@@ -6,15 +6,16 @@ import pandas as pd
 import geopandas as gp
 import numpy as np
 import pygeos as pg
+import pyogrio as pio
 from shapely.geometry import MultiLineString
 
 from pgpkg import to_gpkg
-from geofeather import to_geofeather
+from geofeather.pygeos import to_geofeather
 
 from nhdnet.io import deserialize_df
 from nhdnet.geometry.points import to2D
 
-from analysis.pygeos_compat import to_pygeos, from_pygeos
+from analysis.pygeos_compat import to_pygeos, from_pygeos, to_crs
 from analysis.prep.network.lib.lines import calculate_sinuosity
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.constants import (
@@ -72,22 +73,19 @@ if not os.path.exists(network_dir):
 
 start = time()
 print("Reading Puerto Rico networks...")
-networks = (
-    gp.read_file(gdb, layer=network_layer)[NET_COLS]
-    .rename(columns={"batNetID": "networkID", "StreamOrde": "streamorder"})
-    .set_index("networkID")
+networks = pio.read_dataframe(
+    gdb, layer=network_layer, as_pygeos=True, columns=[NET_COLS]
 )
+src_crs = networks.crs
+networks = networks.rename(
+    columns={"batNetID": "networkID", "StreamOrde": "streamorder"}
+).set_index("networkID")
 
 # convert to LineStrings
-ix = networks.loc[networks.geometry.type == "MultiLineString"].index
-networks.loc[ix, "geometry"] = networks.loc[ix].geometry.apply(lambda g: g[0])
+networks.geometry = pg.get_geometry(networks.geometry, 0)
 
 # project to crs
-networks = networks.to_crs(CRS)
-
-# convert to pygeos
-networks = pd.DataFrame(networks.copy())
-networks["geometry"] = to_pygeos(networks.geometry)
+networks.geometry = to_crs(networks.geometry, src_crs, CRS)
 
 networks["length"] = pg.length(networks.geometry)
 networks["miles"] = networks.length * 0.000621371
@@ -111,15 +109,19 @@ lengths = (network_length * 0.000621371).rename(columns={"length": "miles"})
 # Per direction from SARP, assume all lengths are free-flowing
 lengths["free_miles"] = lengths.miles
 
-network_stats = lengths.join(wtd_sinuosity).join(
-    networks.groupby(level=0).size().rename("segments")
-).join(networks.groupby(level=0).streamorder.max())
+network_stats = (
+    lengths.join(wtd_sinuosity)
+    .join(networks.groupby(level=0).size().rename("segments"))
+    .join(networks.groupby(level=0).streamorder.max())
+)
 
 
 ### Read data for Puerto Rico
 # these were analyzed using NHD Med Res. data by SARP
 print("Reading data for Puerto Rico...")
-df = gp.read_file(gdb, layer=dams_layer)[["geometry"] + DAM_COLS].rename(
+df = pio.read_dataframe(gdb, layer=dams_layer, as_pygeos=True, columns=[DAM_COLS])
+src_crs = df.crs
+df = df.rename(
     columns={
         "SARPUniqueID": "SARPID",
         "PotentialFeasibility": "Feasibility",
@@ -142,18 +144,17 @@ print("Read {:,} dams in Puerto Rico".format(len(df)))
 ### Standardize data
 # SARPID is a string in other places
 df["SARPID"] = df.SARPID.astype("str")
-df['HasNetwork'] = df.upNetID.notnull()
+df["HasNetwork"] = df.upNetID.notnull()
 
-# Calculate IDs so that they fall after existing dam IDs
-dams = deserialize_df(master_dir / "dams.feather", columns=["id"])
-next_id = (dams.id.max() + 1).astype("uint32")
-df["id"] = df.index + next_id
-df["id"] = df.id.astype("uint32")
+# WARNING: make sure to increment these when merging in with main dams dataset
+df["id"] = df.index.astype("uint32")
 df = df.set_index("id", drop=False)
 
+
 # convert to 2D and project to CRS
-df["geometry"] = df.geometry.apply(to2D)
-df = df.to_crs(CRS)
+# TODO: this is a hack that takes advantage of apply only supporting 2 dimensions
+df.geometry = pg.apply(df.geometry, lambda x: x)
+df.geometry = to_crs(df.geometry, src_crs, CRS)
 
 # We store total # size classes, rather than gained
 df["sizeclasses"] = (df.sizeclasses.fillna(0) + 1).astype("uint8")
@@ -243,11 +244,11 @@ df["dropped"] = False
 df["excluded"] = False
 
 # Not applicable to PR but needed to merge with other dams
-df['duplicate'] = False
+df["duplicate"] = False
 
 # Fill in other standard fields that are missing here
-df['loop'] = False
-df['sizeclass'] = None
+df["loop"] = False
+df["sizeclass"] = None
 
 # Drop any that didn't intersect HUCs or states
 drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()
@@ -258,7 +259,7 @@ df.loc[drop_idx, "log"] = "dropped: outside HUC12 / states"
 
 
 ### Drop any dams that should be completely dropped from analysis
-# based on manual QA/QC and other reivew.
+# based on manual QA/QC and other review.
 
 # Drop those where recon shows this as an error
 drop_idx = df.Recon.isin(DROP_RECON) & ~df.dropped
@@ -307,9 +308,8 @@ network_stats = (
 )
 
 
-dissolved = (
-    from_pygeos(networks.geometry).groupby(level=0).apply(list).apply(MultiLineString)
-)
+# aggregate network geometries
+dissolved = networks.geometry.groupby(level=0).apply(pg.union_all)
 
 
 # approximate output data created by normal network analysis
@@ -325,19 +325,15 @@ for col in ["sizeclasses", "up_ndams"]:
 for col in ["miles", "free_miles", "natfldpln"]:
     networks[col] = networks[col].astype("float32")
 
-networks = gp.GeoDataFrame(networks, crs=CRS).reset_index(drop=True)
-
+networks = networks.reset_index(drop=True)
 
 barriers = df[["geometry", "id", "upNetID", "downNetID"]].reset_index(drop=True)
 barriers["kind"] = "dam"
 
 print("Serializing data...")
-to_geofeather(df, master_dir / "pr_dams.feather")
-to_geofeather(networks, network_dir / "network.feather")
-networks.to_file(network_dir / "network.shp")
-
-to_geofeather(barriers, network_dir / "barriers.feather")
-barriers.to_file(network_dir / "barriers.shp")
+to_geofeather(df, master_dir / "pr_dams.feather", crs=CRS)
+to_geofeather(networks, network_dir / "network.feather", crs=CRS)
+to_geofeather(barriers, network_dir / "barriers.feather", crs=CRS)
 
 
 print("All done in {:.2f}s".format(time() - start))
