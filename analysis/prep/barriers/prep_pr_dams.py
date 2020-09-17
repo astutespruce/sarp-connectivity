@@ -1,3 +1,7 @@
+# TODO: pull in snapped locations
+
+raise ValueError("Reminder: pull in snapped locations of PR dams")
+
 from pathlib import Path
 import os
 from time import time
