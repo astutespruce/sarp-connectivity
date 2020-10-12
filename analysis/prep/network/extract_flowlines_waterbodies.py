@@ -40,10 +40,13 @@ from analysis.util import append
 src_dir = Path("data/nhd/source/huc4")
 out_dir = Path("data/nhd/raw")
 
+if not out_dir.exists():
+    os.makedirs(out_dir)
+
 start = time()
 
 # useful slices are [:2], [2:4], [4:]
-for region, HUC2s in list(REGION_GROUPS.items())[4:]:
+for region, HUC2s in list(REGION_GROUPS.items()):
     print("\n----- {} ------\n".format(region))
 
     region_dir = out_dir / region

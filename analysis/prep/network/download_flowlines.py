@@ -13,6 +13,8 @@ from analysis.constants import REGIONS
 
 
 nhd_dir = Path("data/nhd/source/huc4")
+if not nhd_dir.exists():
+    os.makedirs(nhd_dir)
 
 for HUC2 in REGIONS:
     for i in REGIONS[HUC2]:

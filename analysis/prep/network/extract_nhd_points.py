@@ -6,6 +6,7 @@ Point types listing: https://prd-wret.s3-us-west-2.amazonaws.com/assets/palladiu
 from pathlib import Path
 import os
 from time import time
+import sys
 
 import geopandas as gp
 from geofeather import to_geofeather, from_geofeather
@@ -32,7 +33,7 @@ if not os.path.exists(out_dir):
 start = time()
 
 merged = None
-for region, HUC2s in REGION_GROUPS.items():
+for region, HUC2s in list(REGION_GROUPS.items())[-1:]:
     print("\n----- {} ------\n".format(region))
 
     for HUC2 in HUC2s:
@@ -48,17 +49,24 @@ for region, HUC2s in REGION_GROUPS.items():
 
             df = df.loc[df.FType.isin(KEEP_FTYPES)][KEEP_COLS].copy()
 
-            df.geometry = df.geometry.apply(to2D)
-            df = df.to_crs(CRS)
-
             df.FType = df.FType.astype("uint16")
             df.FCode = df.FCode.astype("uint16")
             df["HUC2"] = HUC2
+
+            if not len(df):
+                continue
+
+            df.geometry = df.geometry.apply(to2D)
+            df = df.to_crs(CRS)
 
             if merged is None:
                 merged = df
             else:
                 merged = merged.append(df, ignore_index=True, sort=False)
+
+if merged is None or len(merged) == 0:
+    print("No NHD points available in this region, no outputs will be created.")
+    sys.exit(0)
 
 print("Extracted {:,} NHD Points".format(len(merged)))
 df = merged.reset_index(drop=True)

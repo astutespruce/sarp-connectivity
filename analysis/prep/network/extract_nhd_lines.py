@@ -33,7 +33,7 @@ if not os.path.exists(out_dir):
 start = time()
 
 merged = None
-for region, HUC2s in REGION_GROUPS.items():
+for region, HUC2s in list(REGION_GROUPS.items()):
     print("\n----- {} ------\n".format(region))
 
     for HUC2 in HUC2s:
