@@ -21,9 +21,12 @@ Note: there may be cases where Geopandas is unable to read a FGDB file.  See `nh
 from pathlib import Path
 import os
 from time import time
-import geopandas as gp
 
-from geofeather import to_geofeather
+import pandas as pd
+import geopandas as gp
+import pygeos as pg
+from pyogrio import write_dataframe
+
 from nhdnet.nhd.extract import extract_flowlines, extract_waterbodies
 from nhdnet.io import serialize_df, serialize_sindex, to_shp
 
@@ -34,6 +37,7 @@ from analysis.constants import (
     WATERBODY_EXCLUDE_FTYPES,
     WATERBODY_MIN_SIZE,
 )
+from analysis.pygeos_compat import sjoin_geometry
 from analysis.util import append
 
 
@@ -82,20 +86,6 @@ for region, HUC2s in list(REGION_GROUPS.items()):
                 )
             )
 
-            flowlines = flowlines[
-                [
-                    "geometry",
-                    "lineID",
-                    "NHDPlusID",
-                    "FType",
-                    "length",
-                    "sinuosity",
-                    "sizeclass",
-                    "streamorder",
-                    "loop",
-                ]
-            ]
-
             # Calculate lineIDs to be unique across the regions
 
             flowlines["lineID"] += huc_id
@@ -122,9 +112,19 @@ for region, HUC2s in list(REGION_GROUPS.items()):
 
             ### Only retain waterbodies that intersect flowlines
             print("Intersecting waterbodies and flowlines")
-            wb_joins = gp.sjoin(waterbodies, flowlines, how="inner", op="intersects")[
-                ["wbID", "lineID"]
-            ]
+            # use waterbodies to query flowlines since there are many more flowlines
+            wb_joins = sjoin_geometry(
+                pd.Series(waterbodies.geometry.values.data, index=waterbodies.index),
+                pd.Series(flowlines.geometry.values.data, index=flowlines.index),
+                how="inner",
+            )
+            wb_joins = (
+                waterbodies[["wbID"]]
+                .join(wb_joins, how="inner")
+                .join(flowlines[["lineID"]], on="index_right", how="inner")[
+                    ["wbID", "lineID"]
+                ]
+            )
 
             waterbodies = waterbodies.loc[waterbodies.wbID.isin(wb_joins.wbID)].copy()
             print(
@@ -150,6 +150,8 @@ for region, HUC2s in list(REGION_GROUPS.items()):
     # Calculate a hash of the WKB bytes of the polygon.
     # This correctly catches polygons that are EXACTLY the same.
     # It will miss those that are NEARLY the same.
+
+    # TODO: rework this to use pygeos
     waterbodies["hash"] = waterbodies.geometry.apply(lambda g: hash(g.wkb))
 
     id_map = (
@@ -199,13 +201,17 @@ for region, HUC2s in list(REGION_GROUPS.items()):
     # remove dead ends
     joins = joins.loc[~((joins.downstream == 0) & (joins.upstream == 0))].copy()
 
-    print("serializing {:,} flowlines to feather".format(len(flowlines)))
-    to_geofeather(flowlines, region_dir / "flowlines.feather")
+    print("serializing {:,} flowlines".format(len(flowlines)))
+    flowlines.to_feather(region_dir / "flowlines.feather")
+
+    write_dataframe(flowlines, region_dir / "flowlines.gpkg", driver="GPKG")
     serialize_df(joins, region_dir / "flowline_joins.feather", index=False)
 
-    print("serializing {:,} waterbodies to feather".format(len(waterbodies)))
-    to_geofeather(waterbodies, region_dir / "waterbodies.feather")
+    print("serializing {:,} waterbodies".format(len(waterbodies)))
+    waterbodies.to_feather(region_dir / "waterbodies.feather")
+    write_dataframe(waterbodies, region_dir / "waterbodies.gpkg", driver="GPKG")
     serialize_df(wb_joins, region_dir / "waterbody_flowline_joins.feather", index=False)
+
     print("Region done in {:.0f}s".format(time() - region_start))
 
 
