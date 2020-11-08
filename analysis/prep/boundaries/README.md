@@ -1,13 +1,35 @@
 # Southeast Aquatic Barrier Inventory Data Processing - Boundary Data Prep
 
-This involves extracting boundary information within the SARP region that is used to attribute barriers, summarize barrier information, and identify barriers that are outside the region.
+This involves extracting boundary information within the region that is used to attribute barriers, summarize barrier information, and identify barriers that are outside the region.
 
 This should only need to run when new boundary data are available.
+
+## Analysis region
+
+Processed using `analysis/prep/define_region.py`.
+
+The analysis region is boundary is defined in 2 parts:
+
+-   states in the region
+-   NHD HUC4s that intersect the state boundaries
+
+### States in region
+
+State boundaries (2019 version) were downloaded from CENSUS Tiger website.
+
+The predefined list of states is assigned in `analysis/constants.py`.
+
+### HUC4s in region
+
+Watershed boundaries were extracted from the NHD WBD national dataset downloaded
+on 10/12/2020 from: http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/
+
+############# OLD below
 
 ## Overall workflow
 
 1. Create summary units for analysis. These are joined to barriers and used for summary display on the map.
-2. Extract summary units within SARP HUC4 boundary and create geofeather files for later processing.
+2. Extract summary units within HUC4 boundary and create geofeather files for later processing.
 3. Create vector tiles of all summary units that include name and ID in a standardized way. This only needs to be done again when summary units are modified or new ones are added.
 
 Naming conventions:

@@ -8,41 +8,89 @@
 # SARP_STATES = df.NAME.to_dict()
 # SARP_STATES_FIPS = df.STATEFP.to_list()
 
-SARP_STATES = {
-    "FL": "Florida",
-    "NC": "North Carolina",
-    "LA": "Louisiana",
-    "GA": "Georgia",
+# SARP_STATES = {
+#     "FL": "Florida",
+#     "NC": "North Carolina",
+#     "LA": "Louisiana",
+#     "GA": "Georgia",
+#     "AL": "Alabama",
+#     "TX": "Texas",
+#     "SC": "South Carolina",
+#     "OK": "Oklahoma",
+#     "TN": "Tennessee",
+#     "KY": "Kentucky",
+#     "AR": "Arkansas",
+#     "MS": "Mississippi",
+#     "MO": "Missouri",
+#     "PR": "Puerto Rico",
+#     "VA": "Virginia",
+# }
+
+# # FIPS codes for the above states
+# SARP_STATES_FIPS = [
+#     "01",
+#     "05",
+#     "12",
+#     "13",
+#     "21",
+#     "22",
+#     "28",
+#     "29",
+#     "37",
+#     "40",
+#     "45",
+#     "47",
+#     "48",
+#     "51",
+#     "72",
+# ]
+
+# Full Southeast + USFWS R2 / R6 region
+STATES = {
     "AL": "Alabama",
-    "TX": "Texas",
-    "SC": "South Carolina",
-    "OK": "Oklahoma",
-    "TN": "Tennessee",
-    "KY": "Kentucky",
     "AR": "Arkansas",
-    "MS": "Mississippi",
+    "AZ": "Arizona",
+    "CO": "Colorado",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "IA": "Iowa",  # not officially part of SE / R2 & R6, but important and mostly covered anyway
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
     "MO": "Missouri",
+    "MS": "Mississippi",
+    "MT": "Montana",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "NE": "Nebraska",
+    "NM": "New Mexico",
+    "OK": "Oklahoma",
     "PR": "Puerto Rico",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
     "VA": "Virginia",
+    "WY": "Wyoming",
 }
 
-# FIPS codes for the above states
-SARP_STATES_FIPS = [
-    "01",
-    "05",
-    "12",
-    "13",
-    "21",
-    "22",
-    "28",
-    "29",
-    "37",
-    "40",
-    "45",
-    "47",
-    "48",
-    "51",
-    "72",
+SARP_STATES = [
+    "AL",
+    "AR",
+    "FL",
+    "GA",
+    "KY",
+    "LA",
+    "MO",
+    "MS",
+    "NC",
+    "OK",
+    "PR",
+    "SC",
+    "TN",
+    "TX",
+    "VA",
 ]
 
 
@@ -55,18 +103,31 @@ NETWORK_TYPES = ("natural", "dams", "small_barriers")
 
 # Mapping of region to HUC4 IDs that are present within the SARP boundary
 REGIONS = {
-    "02": [7, 8],
-    "03": list(range(1, 19)),
-    "05": [5, 7, 9, 10, 11, 13, 14],
-    "06": list(range(1, 5)),
-    "07": [10, 11, 14],
-    "08": list(range(1, 10)),
-    "10": [24, 27, 28, 29, 30],
-    "11": [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+    # "02": [7, 8],
+    # "03": list(range(1, 19)),
+    # "05": [5, 7, 9, 10, 11, 13, 14],
+    # "06": list(range(1, 5)),
+    # "07": [10, 11, 14],
+    # "08": list(range(1, 10)),
+    # "10": [24, 27, 28, 29, 30],
+    # "11": [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
     "12": list(range(1, 12)),
-    "13": [3, 4, 5, 6, 7, 8, 9],
-    # "21": [1, 2], # TODO:
+    # "13": [3, 4, 5, 6, 7, 8, 9],
+    # "21": [1, 2],
 }
+
+# Mapping of region to subregions for easier processing of giant datasets (e.g., catchments)
+SUBREGIONS = {
+    "03": [list(range(1, 8)), list(range(8, 13)), list(range(13, 19))],
+    # "07": [[10, 11, 14]],  # TODO: R2 / R6
+    # "08": [list(range(1, 10))],
+    # "10": [[24, 27, 28, 29, 30]],  # TODO: R2 / R6
+    # "11": [[1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]],  # TODO: R2 / R6
+    "12": [[1, 2, 3, 4, 7], [9, 10, 11], [5, 6, 8]],
+    # "13": [[3, 4, 5, 6, 7, 8, 9]],  # TODO: R2 / R6
+    # "21": [[1, 2]],
+}
+
 
 # Listing of regions that are connected
 CONNECTED_REGIONS = ["05_06", "07_10", "08_11"]
@@ -78,13 +139,17 @@ CONNECTED_REGIONS = ["05_06", "07_10", "08_11"]
 # from the network analysis, which cannot exceed 2 GB.
 
 REGION_GROUPS = {
-    "02": ["02"],
-    "03": ["03"],
-    "05_06": ["05", "06"],
-    "07_10": ["07", "10"],
-    "08_11": ["08", "11"],
-    "12": ["12"],
-    "13": ["13"],
+    # "02": ["02"],
+    # "03": ["03"],
+    # "05_06": ["05", "06"],
+    # "07_10": ["07", "10"],
+    # "07": ["07"],
+    # "10": ["10"],
+    # "08_11": ["08", "11"],
+    "08": ["08"],
+    # "11": ["11"],
+    # "12": ["12"],
+    # "13": ["13"],
     # "21": ["21"],
 }
 
@@ -115,7 +180,8 @@ WATERBODY_EXCLUDE_FTYPES = [361, 466, 493]
 
 # Arbitrary limit to try and optimize processing time.  There are LOTS of little ones.
 # Approx 5 acres
-WATERBODY_MIN_SIZE = 0.02
+# WATERBODY_MIN_SIZE = 0.02
+WATERBODY_MIN_SIZE = 0
 
 # Arbitrary cutoffs, but per visual inspection looks reasonable
 LARGE_WB_FLOWLINE_LENGTH = 1000
