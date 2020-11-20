@@ -23,7 +23,11 @@ Feather files are used as a compact, fast I/O file format for these data.
 
 Run `download.py`. This will download NHDPlus HR data by HUC4 into `data/nhd/source/huc4`. For now, you need to unzip these files manually into that directory.
 
-WARNING: NHD HR+ data are currently in beta.  There are data issues, including, but not limited to miscoded flowlines, spurious NHD areas, and fragemented adjacent waterbodies.
+WARNING: NHD HR+ data are currently in beta.  There are data issues, including, but not limited to miscoded flowlines, spurious NHD areas, and fragmented adjacent waterbodies.
+
+NHD data were last downloaded on 10/12/2020.
+
+
 
 ### 2. Run any special preprocessing scripts or hand-inspect NHD data
 
