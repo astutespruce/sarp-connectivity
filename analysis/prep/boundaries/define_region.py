@@ -6,7 +6,7 @@ import pygeos as pg
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 
-from analysis.constants import STATES, SARP_STATES, CRS
+from analysis.constants import STATES, SARP_STATES, CRS, GEO_CRS
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -46,6 +46,14 @@ bnd_df = gp.GeoDataFrame(
 write_dataframe(bnd_df, out_dir / "region_boundary.gpkg")
 bnd = bnd_df.geometry.values.data[0]
 
+# create mask
+world = pg.box(-180, -85, 180, 85)
+bnd_geo = pg.union_all(bnd_df.to_crs(GEO_CRS).geometry.values.data)
+mask = pg.normalize(pg.difference(world, bnd_geo))
+write_dataframe(
+    gp.GeoDataFrame({"geometry": [mask]}, crs=GEO_CRS), out_dir / "region_mask.gpkg"
+)
+
 sarp_state_df = state_df.loc[state_df.id.isin(SARP_STATES)].copy()
 sarp_state_df.to_feather(out_dir / "sarp_states.feather")
 write_dataframe(
@@ -59,6 +67,13 @@ sarp_bnd_df = gp.GeoDataFrame(
 write_dataframe(sarp_bnd_df, out_dir / "sarp_boundary.gpkg")
 sarp_bnd_df.to_feather(out_dir / "sarp_boundary.feather")
 sarp_bnd = sarp_bnd_df.geometry.values.data[0]
+
+bnd_geo = pg.union_all(sarp_bnd_df.to_crs(GEO_CRS).geometry.values.data)
+mask = pg.normalize(pg.difference(world, bnd_geo))
+write_dataframe(
+    gp.GeoDataFrame({"geometry": [mask]}, crs=GEO_CRS), out_dir / "sarp_mask.gpkg"
+)
+
 
 ### Extract HUC4 units that intersect boundaries
 

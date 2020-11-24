@@ -102,35 +102,35 @@ NETWORK_TYPES = ("natural", "dams", "small_barriers")
 
 
 # Mapping of region to HUC4 IDs that are present within the SARP boundary
-REGIONS = {
-    # "02": [7, 8],
-    # "03": list(range(1, 19)),
-    # "05": [5, 7, 9, 10, 11, 13, 14],
-    # "06": list(range(1, 5)),
-    # "07": [10, 11, 14],
-    # "08": list(range(1, 10)),
-    # "10": [24, 27, 28, 29, 30],
-    # "11": [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
-    "12": list(range(1, 12)),
-    # "13": [3, 4, 5, 6, 7, 8, 9],
-    # "21": [1, 2],
-}
+# REGIONS = {
+#     # "02": [7, 8],
+#     # "03": list(range(1, 19)),
+#     # "05": [5, 7, 9, 10, 11, 13, 14],
+#     # "06": list(range(1, 5)),
+#     # "07": [10, 11, 14],
+#     # "08": list(range(1, 10)),
+#     # "10": [24, 27, 28, 29, 30],
+#     # "11": [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+#     # "12": list(range(1, 12)),
+#     # "13": [3, 4, 5, 6, 7, 8, 9],
+#     # "21": [1, 2],
+# }
 
 # Mapping of region to subregions for easier processing of giant datasets (e.g., catchments)
-SUBREGIONS = {
-    "03": [list(range(1, 8)), list(range(8, 13)), list(range(13, 19))],
-    # "07": [[10, 11, 14]],  # TODO: R2 / R6
-    # "08": [list(range(1, 10))],
-    # "10": [[24, 27, 28, 29, 30]],  # TODO: R2 / R6
-    # "11": [[1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]],  # TODO: R2 / R6
-    "12": [[1, 2, 3, 4, 7], [9, 10, 11], [5, 6, 8]],
-    # "13": [[3, 4, 5, 6, 7, 8, 9]],  # TODO: R2 / R6
-    # "21": [[1, 2]],
-}
+# SUBREGIONS = {
+#     # "03": [list(range(1, 8)), list(range(8, 13)), list(range(13, 19))],
+#     # "07": [[10, 11, 14]],  # TODO: R2 / R6
+#     # "08": [list(range(1, 10))],
+#     # "10": [[24, 27, 28, 29, 30]],  # TODO: R2 / R6
+#     # "11": [[1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]],  # TODO: R2 / R6
+#     # "12": [[1, 2, 3, 4, 7], [9, 10, 11], [5, 6, 8]],
+#     # "13": [[3, 4, 5, 6, 7, 8, 9]],  # TODO: R2 / R6
+#     # "21": [[1, 2]],
+# }
 
 
 # Listing of regions that are connected
-CONNECTED_REGIONS = ["05_06", "07_10", "08_11"]
+# CONNECTED_REGIONS = ["05_06", "07_10", "08_11"]
 
 
 # Group regions based on which ones flow into each other
@@ -138,20 +138,20 @@ CONNECTED_REGIONS = ["05_06", "07_10", "08_11"]
 # The total size of the region group needs to be limited based on available memory and the size of the output shapefiles
 # from the network analysis, which cannot exceed 2 GB.
 
-REGION_GROUPS = {
-    # "02": ["02"],
-    # "03": ["03"],
-    # "05_06": ["05", "06"],
-    # "07_10": ["07", "10"],
-    # "07": ["07"],
-    # "10": ["10"],
-    # "08_11": ["08", "11"],
-    "08": ["08"],
-    # "11": ["11"],
-    # "12": ["12"],
-    # "13": ["13"],
-    # "21": ["21"],
-}
+# REGION_GROUPS = {
+#     # "02": ["02"],
+#     # "03": ["03"],
+#     # "05_06": ["05", "06"],
+#     # "07_10": ["07", "10"],
+#     # "07": ["07"],
+#     # "10": ["10"],
+#     # "08_11": ["08", "11"],
+#     "08": ["08"],
+#     # "11": ["11"],
+#     # "12": ["12"],
+#     # "13": ["13"],
+#     # "21": ["21"],
+# }
 
 
 # Use USGS CONUS Albers (EPSG:102003): https://epsg.io/102003    (same as other SARP datasets)
@@ -171,6 +171,8 @@ CRS = {
 }
 
 CRS_WKT = """PROJCS["USA_Contiguous_Albers_Equal_Area_Conic",GEOGCS["GCS_North_American_1983",DATUM["North_American_Datum_1983",SPHEROID["GRS_1980",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Albers_Conic_Equal_Area"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["longitude_of_center",-96],PARAMETER["Standard_Parallel_1",29.5],PARAMETER["Standard_Parallel_2",45.5],PARAMETER["latitude_of_center",37.5],UNIT["Meter",1],AUTHORITY["EPSG","102003"]]"""
+
+GEO_CRS = "EPSG:4326"
 
 
 # Exclude swamp/marsh (466), estuaries (493), playas (361).
