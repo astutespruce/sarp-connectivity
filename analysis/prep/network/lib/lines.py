@@ -4,7 +4,6 @@ import pandas as pd
 import geopandas as gp
 import pygeos as pg
 import numpy as np
-import networkx as nx
 
 from nhdnet.nhd.joins import (
     index_joins,
@@ -13,24 +12,25 @@ from nhdnet.nhd.joins import (
     create_upstream_index,
     remove_joins,
 )
+from analysis.lib.network import connected_groups
 
 
 def remove_flowlines(flowlines, joins, ids):
     """Remove flowlines specified by ids from flowlines and joins
 
-	Parameters
-	----------
-	flowlines : GeoDataFrame
-	joins : DataFrame
-		joins between flowlines
-	ids : list-like
-		list of ids of flowlines to remove
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+            joins between flowlines
+    ids : list-like
+            list of ids of flowlines to remove
 
-	Returns
-	-------
-	tuple of (GeoDataFrame, DataFrame)
-		(flowlines, joins)
-	"""
+    Returns
+    -------
+    tuple of (GeoDataFrame, DataFrame)
+            (flowlines, joins)
+    """
     # drop from flowlines
     flowlines = flowlines.loc[~flowlines.NHDPlusID.isin(ids)].copy()
 
@@ -49,21 +49,21 @@ def remove_flowlines(flowlines, joins, ids):
 
 def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     """Remove pipelines that are above max length,
-	based on contiguous length of pipeline segments.
+    based on contiguous length of pipeline segments.
 
-	Parameters
-	----------
-	flowlines : GeoDataFrame
-	joins : DataFrame
-		joins between flowlines
-	max_pipeline_length : int, optional (default: 100)
-		length above which pipelines are dropped
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+            joins between flowlines
+    max_pipeline_length : int, optional (default: 100)
+            length above which pipelines are dropped
 
-	Returns
-	-------
-	tuple of (GeoDataFrame, DataFrame)
-		(flowlines, joins)
-	"""
+    Returns
+    -------
+    tuple of (GeoDataFrame, DataFrame)
+            (flowlines, joins)
+    """
 
     start = time()
     pids = flowlines.loc[flowlines.FType == 428].index
@@ -128,19 +128,13 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
 
     ### create a network of pipelines to group them together
     # Only use contiguous pipelines; those that are not contiguous should have been handled above
-    nodes = pjoins.loc[pjoins.upstream_id.isin(pids) & pjoins.downstream_id.isin(pids)]
-    network = nx.from_pandas_edgelist(nodes, "downstream_id", "upstream_id")
-    components = pd.Series(nx.connected_components(network)).apply(list)
+    pairs = pjoins.loc[pjoins.upstream_id.isin(pids) & pjoins.downstream_id.isin(pids)]
+    groups = connected_groups(pairs, make_symmetric=True)
 
-    groups = (
-        pd.DataFrame(components.explode().rename("lineID"))
-        .reset_index()
-        .rename(columns={"index": "group"})
-    )
-    groups = groups.join(flowlines[["length"]], on="lineID")
+    groups = groups.join(flowlines[["length"]])
     stats = groups.groupby("group").agg({"length": "sum"})
     drop_groups = stats.loc[stats.length >= max_pipeline_length].index
-    drop_ids = groups.loc[groups.group.isin(drop_groups)].lineID
+    drop_ids = groups.loc[groups.group.isin(drop_groups)].index
 
     print(
         "Dropping {:,} pipelines that are greater than {:,}".format(
