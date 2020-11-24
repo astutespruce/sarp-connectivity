@@ -320,3 +320,23 @@ priorities = (
 )
 
 priorities.to_feather(out_dir / "priorities.feather")
+
+# join to HUC8 dataset for tiles
+huc8_df = gp.read_feather(out_dir / "huc8.feather")
+df = huc8_df.join(priorities.set_index("HUC_8"), on="HUC8")
+
+for col in ["usfs", "coa", "sgcn"]:
+    df[col] = df[col].fillna(0).astype("uint8")
+
+write_dataframe(df.rename(columns={"HUC8": "id"}), out_dir / "huc8_priorities.gpkg")
+
+sarp_huc8_df = gp.read_feather(out_dir / "sarp_huc8.feather")
+df = sarp_huc8_df.join(priorities.set_index("HUC_8"), on="HUC8")
+
+for col in ["usfs", "coa", "sgcn"]:
+    df[col] = df[col].fillna(0).astype("uint8")
+
+write_dataframe(
+    df.rename(columns={"HUC8": "id"}), out_dir / "sarp_huc8_priorities.gpkg"
+)
+

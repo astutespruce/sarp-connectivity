@@ -29,7 +29,7 @@ rm $TMPDIR/HUC6.json
 
 # HUC8
 echo "Generating HUC8 tiles..."
-ogr2ogr -t_srs EPSG:4326 -f GeoJSONSeq $TMPDIR/HUC8.json $DATADIR/sarp_huc8.gpkg -progress
+ogr2ogr -t_srs EPSG:4326 -f GeoJSONSeq $TMPDIR/HUC8.json $DATADIR/sarp_huc8_priorities.gpkg -progress
 tippecanoe -f -z 10 -l HUC8 -pg -P --detect-shared-borders -o $TILEDIR/HUC8.mbtiles  -T id:string $TMPDIR/HUC8.json
 rm $TMPDIR/HUC8.json
 
