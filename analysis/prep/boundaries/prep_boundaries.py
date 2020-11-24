@@ -6,159 +6,223 @@ Note: output shapefiles for creating tilesets are limited to only those areas th
 the SARP states boundary.
 
 """
-
-
 from pathlib import Path
-import os
+import warnings
 
 import geopandas as gp
-from geofeather import to_geofeather
-from nhdnet.io import to_shp, serialize_df
+import numpy as np
+import pandas as pd
+import pygeos as pg
+from pyogrio import read_dataframe, write_dataframe
 
-from analysis.constants import (
-    CRS,
-    OWNERTYPE_TO_DOMAIN,
-    SARP_STATES_FIPS,
-    OWNERTYPE_TO_PUBLIC_LAND,
+from analysis.constants import CRS, OWNERTYPE_TO_DOMAIN, OWNERTYPE_TO_PUBLIC_LAND
+
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+
+
+data_dir = Path("data")
+out_dir = data_dir / "boundaries"
+src_dir = out_dir / "source"
+county_filename = src_dir / "tl_2019_us_county/tl_2019_us_county.shp"
+
+huc4_df = gp.read_feather(out_dir / "huc4.feather")
+sarp_huc4_df = gp.read_feather(out_dir / "sarp_huc4.feather")
+
+# state outer boundaries, NOT analysis boundaries
+bnd = gp.read_feather(out_dir / "region_boundary.feather").geometry.values.data[0]
+sarp_bnd = gp.read_feather(out_dir / "sarp_boundary.feather").geometry.values.data[0]
+
+state_df = gp.read_feather(
+    out_dir / "region_states.feather", columns=["STATEFIPS", "geometry"]
 )
+states = state_df.STATEFIPS.unique()
 
-
-data_dir = Path("./data")
-boundaries_dir = data_dir / "boundaries"
-
-src_dir = boundaries_dir / "source"
-
-# intermediate stores projected data that haven't been intersected to region
-intermediate_dir = boundaries_dir / "intermediate"
-out_dir = boundaries_dir
-
-bnd = gp.read_file(boundaries_dir / "SARP_boundary_prj.shp")
-bnd.sindex
-
-
-### Process watershed boundaries
-### HUC4s that overlap with SARP region is the outer boundary for analysis
-huc4 = gp.read_file(boundaries_dir / "HUC4_prj.shp")
-huc4.sindex
-
-
-### Watersheds
-### HUC6s - used for basin names
-df = gp.read_file(intermediate_dir / "HUC6_prj.shp")[["geometry", "HUC6", "NAME"]]
-df.sindex
-to_geofeather(df, out_dir / "HUC6.feather")
-
-# Select out within the SARP boundary
-in_sarp = gp.sjoin(df, bnd)
-df = df.loc[df.HUC6.isin(in_sarp.HUC6)]
-to_shp(
-    df.reset_index().rename(columns={"HUC6": "id", "NAME": "name"}),
-    boundaries_dir / "HUC6_prj.shp",
+sarp_state_df = gp.read_feather(
+    out_dir / "sarp_states.feather", columns=["STATEFIPS", "geometry"]
 )
+sarp_states = sarp_state_df.STATEFIPS.unique()
 
 
-### HUC12s - primary for all spatial joins (other codes can be derived from HUC12)
-df = gp.read_file(intermediate_dir / "HUC12_prj.shp")[["geometry", "HUC12", "NAME"]]
-df.sindex
-to_geofeather(df, out_dir / "HUC12.feather")
-
-# Select out within the SARP boundary
-in_sarp = gp.sjoin(df, bnd)
-df = df.loc[df.HUC12.isin(in_sarp.HUC12)]
-to_shp(
-    df.reset_index().rename(columns={"HUC12": "id", "NAME": "name"}),
-    boundaries_dir / "HUC12_prj.shp",
-)
-
-### States - within HUC4 bounds
-print("Processing states")
-df = gp.read_file(intermediate_dir / "states_prj.shp")[
-    ["geometry", "NAME", "STATEFP"]
-].rename(columns={"NAME": "State", "STATEFP": "STATEFIPS"})
-df.sindex
-in_region = gp.sjoin(df, huc4)
-df = df.loc[df.STATEFIPS.isin(in_region.STATEFIPS)]
-to_geofeather(df.reset_index(drop=True), out_dir / "states.feather")
-
-# select only those within the SARP states for tilesets
-# since other states are only partially covered by data
-df = df.loc[df.STATEFIPS.isin(SARP_STATES_FIPS)]
-# Format field names for tilesets
-to_shp(
-    df.reset_index().rename(columns={"State": "id"}), boundaries_dir / "states_prj.shp"
-)
-# save as SARP boundary
-df["sarp"] = 1
-bnd = df.dissolve(by="sarp")
-to_shp(
-    bnd.reset_index()[["geometry", "sarp"]], boundaries_dir / "SARP_boundary_prj.shp"
-)
-
-
-# ### Counties - within HUC4 bounds
+### Counties - within HUC4 bounds
 print("Processing counties")
-df = gp.read_file(intermediate_dir / "counties_prj.shp")[
-    ["geometry", "NAME", "GEOID", "STATEFP"]
-].rename(columns={"NAME": "County", "GEOID": "COUNTYFIPS", "STATEFP": "STATEFIPS"})
-df.sindex
-in_region = gp.sjoin(df, huc4)
-df = df.loc[df.COUNTYFIPS.isin(in_region.COUNTYFIPS)]
-to_geofeather(df.reset_index(drop=True), out_dir / "counties.feather")
+fips = sorted(state_df.STATEFIPS.unique())
 
-# select only those within the SARP states for tilesets
-df = df.loc[df.STATEFIPS.isin(SARP_STATES_FIPS)]
-# Format field names for tilesets
-to_shp(
-    df.reset_index().rename(columns={"COUNTYFIPS": "id", "County": "name"}),
-    boundaries_dir / "counties_prj.shp",
+df = (
+    read_dataframe(
+        county_filename,
+        columns=["NAME", "GEOID", "STATEFP"],
+        where=f"STATEFP IN {tuple(fips)}",
+    )
+    .to_crs(CRS)
+    .rename(columns={"NAME": "County", "GEOID": "COUNTYFIPS", "STATEFP": "STATEFIPS"})
+)
+
+# keep only those within the region
+tree = pg.STRtree(df.geometry.values.data)
+ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
+ix.sort()
+
+df = df.iloc[ix].reset_index(drop=True)
+df.geometry = pg.make_valid(df.geometry.values.data)
+df.to_feather(out_dir / "counties.feather")
+
+# Subset these in the region and SARP for tiles
+write_dataframe(
+    df.loc[df.STATEFIPS.isin(states)].rename(
+        columns={"COUNTYFIPS": "id", "County": "name"}
+    ),
+    out_dir / "region_counties.gpkg",
+)
+write_dataframe(
+    df.loc[df.STATEFIPS.isin(sarp_states)].rename(
+        columns={"COUNTYFIPS": "id", "County": "name"}
+    ),
+    out_dir / "sarp_counties.gpkg",
 )
 
 
-### Ecoregions - within HUC4 bounds
-print("Processing ecoregions")
-df = gp.read_file(intermediate_dir / "eco3_prj.shp")[
-    ["geometry", "NA_L3CODE", "US_L3NAME"]
-].rename(columns={"NA_L3CODE": "ECO3", "US_L3NAME": "ECO3Name"})
-df.sindex
-in_region = gp.sjoin(df, huc4)
-df = df.loc[df.ECO3.isin(in_region.ECO3)]
-to_geofeather(df.reset_index(drop=True), out_dir / "eco3.feather")
+### Process Level 3 Ecoregions
+print("Processing level 3 ecoregions")
+df = (
+    read_dataframe(
+        src_dir / "us_eco_l3/us_eco_l3.shp", columns=["NA_L3CODE", "US_L3NAME"]
+    )
+    .to_crs(CRS)
+    .rename(columns={"NA_L3CODE": "ECO3", "US_L3NAME": "ECO3Name"})
+)
 
-# Select out within the SARP boundary
-df["tmp_id"] = df.index.astype("uint")
-in_sarp = gp.sjoin(df, bnd)
-df = df.loc[df.tmp_id.isin(in_sarp.tmp_id)].drop(columns=["tmp_id"])
-to_shp(
-    df.reset_index().rename(columns={"ECO3": "id", "ECO3Name": "name"}),
-    boundaries_dir / "eco3_prj.shp",
+tree = pg.STRtree(df.geometry.values.data)
+ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
+ix.sort()
+
+df = df.iloc[ix].reset_index(drop=True)
+df.geometry = pg.make_valid(df.geometry.values.data)
+df.to_feather(out_dir / "eco3.feather")
+
+
+# subset out those that intersect the region and SARP states
+# not outer HUC4 boundary
+# Drop ones only barely in region
+
+tree = pg.STRtree(df.geometry.values.data)
+ix = np.unique(tree.query(bnd, predicate="intersects"))
+ix.sort()
+
+df = df.iloc[ix].reset_index(drop=True)
+
+# calculate overlap and only keep those with > 50% overlap
+in_region = pg.intersection(df.geometry.values.data, bnd)
+pct_in_region = 100 * pg.area(in_region) / pg.area(df.geometry.values.data)
+df = df.loc[pct_in_region >= 25].reset_index(drop=True)
+
+# write out for tiles
+write_dataframe(
+    df.rename(columns={"ECO3": "id", "ECO3Name": "name"}), out_dir / "region_eco3.gpkg"
 )
 
 
-df = gp.read_file(intermediate_dir / "eco4_prj.shp")[
-    ["geometry", "US_L4CODE", "US_L4NAME", "NA_L3CODE"]
-].rename(columns={"US_L4CODE": "ECO4", "US_L4NAME": "ECO4Name", "NA_L3CODE": "ECO3"})
-df.sindex
-in_region = gp.sjoin(df, huc4)
-df = df.loc[df.ECO4.isin(in_region.ECO4)]
-to_geofeather(df.reset_index(drop=True), out_dir / "eco4.feather")
+tree = pg.STRtree(df.geometry.values.data)
+ix = np.unique(tree.query(sarp_bnd, predicate="intersects"))
+ix.sort()
+df = df.iloc[ix].reset_index(drop=True)
+in_sarp = pg.intersection(df.geometry.values.data, sarp_bnd)
+pct_in_sarp = 100 * pg.area(in_sarp) / pg.area(df.geometry.values.data)
+df = df.loc[pct_in_sarp >= 25].reset_index(drop=True)
 
-# Select out within the SARP boundary (only the parts of multipart features in SARP)
-df["tmp_id"] = df.index.astype("uint")
-in_sarp = gp.sjoin(df, bnd)
-df = df.loc[df.tmp_id.isin(in_sarp.tmp_id)].drop(columns=["tmp_id"])
-to_shp(
-    df.reset_index().rename(columns={"ECO4": "id", "ECO4Name": "name"}),
-    boundaries_dir / "eco4_prj.shp",
+# write out for tiles
+write_dataframe(
+    df.rename(columns={"ECO3": "id", "ECO3Name": "name"}), out_dir / "sarp_eco3.gpkg"
+)
+
+### Process Level 4 Ecoregions
+print("Processing level 4 ecoregions")
+df = (
+    read_dataframe(
+        src_dir / "us_eco_l4/us_eco_l4_no_st.shp",
+        columns=["US_L4CODE", "US_L4NAME", "NA_L3CODE"],
+    )
+    .to_crs(CRS)
+    .rename(columns={"US_L4CODE": "ECO4", "US_L4NAME": "ECO4Name", "NA_L3CODE": "ECO3"})
+)
+
+tree = pg.STRtree(df.geometry.values.data)
+ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
+ix.sort()
+
+df = df.iloc[ix].reset_index(drop=True)
+df.geometry = pg.make_valid(df.geometry.values.data)
+df.to_feather(out_dir / "eco4.feather")
+
+
+# subset out those that intersect the region and SARP states
+# not outer HUC4 boundary
+# Drop ones only barely in region
+
+tree = pg.STRtree(df.geometry.values.data)
+ix = np.unique(tree.query(bnd, predicate="intersects"))
+ix.sort()
+
+df = df.iloc[ix].reset_index(drop=True)
+
+# of those that are at the edge, keep only those with substantial overlap
+tree = pg.STRtree(df.geometry.values.data)
+ix = np.unique(tree.query(bnd, predicate="contains"))
+edge_df = df.loc[~df.index.isin(ix)].copy()
+in_region = pg.intersection(edge_df.geometry.values.data, bnd)
+pct_in_region = 100 * pg.area(in_region) / pg.area(edge_df.geometry.values.data)
+ix = np.append(ix, edge_df.loc[pct_in_region >= 25].index)
+df = df.iloc[ix].reset_index(drop=True)
+
+# write out for tiles
+write_dataframe(
+    df.rename(columns={"ECO4": "id", "ECO4Name": "name"}), out_dir / "region_eco4.gpkg"
+)
+
+tree = pg.STRtree(df.geometry.values.data)
+ix = np.unique(tree.query(sarp_bnd, predicate="intersects"))
+ix.sort()
+df = df.iloc[ix].reset_index(drop=True)
+tree = pg.STRtree(df.geometry.values.data)
+ix = np.unique(tree.query(sarp_bnd, predicate="contains"))
+edge_df = df.loc[~df.index.isin(ix)].copy()
+in_sarp = pg.intersection(edge_df.geometry.values.data, sarp_bnd)
+pct_in_sarp = 100 * pg.area(in_sarp) / pg.area(edge_df.geometry.values.data)
+ix = np.append(ix, edge_df.loc[pct_in_sarp >= 25].index)
+df = df.iloc[ix].reset_index(drop=True)
+
+# write out for tiles
+write_dataframe(
+    df.rename(columns={"ECO4": "id", "ECO4Name": "name"}), out_dir / "sarp_eco4.gpkg"
 )
 
 
 ### Protected areas
+
+# TODO: get protected areas for larger bounds from SARP
 print("Extracting protected areas...")
-df = gp.read_file(intermediate_dir / "protected_areas.shp")
-df.sort = df.sort.fillna(255).astype("uint8")  # missing values should sort to bottom
+df = (
+    read_dataframe(
+        src_dir / "Protected_Areas_2019.gdb",
+        layer="CBI_PADUS_NCED_TNC_USFS_Combine2019",
+    )
+    .to_crs(CRS)
+    .rename(
+        columns={
+            "OwnerType": "otype",
+            "OwnerName": "owner",
+            "EasementHolderType": "etype",
+            "Preference": "sort",
+        }
+    )
+)
+
+# this takes a while...
+print("Making geometries valid, this might take a while")
+df.geometry = pg.make_valid(df.geometry.values.data)
 
 # sort on 'sort' so that later when we do spatial joins and get multiple hits, we take the ones with
 # the lowest sort value (1 = highest priority) first.
+df.sort = df.sort.fillna(255).astype("uint8")  # missing values should sort to bottom
 df = df.sort_values(by="sort").drop(columns=["sort"])
 
 # partner federal agencies to call out specifically
@@ -205,7 +269,7 @@ df["ProtectedLand"] = (
 
 # only save owner type
 df = df[["geometry", "OwnerType", "ProtectedLand"]].reset_index(drop=True)
-to_geofeather(df, boundaries_dir / "protected_areas.feather")
+df.to_feather(out_dir / "protected_areas.feather")
 
 
 ### Priority layers
@@ -214,7 +278,7 @@ to_geofeather(df, boundaries_dir / "protected_areas.feather")
 # USFS: 1=highest priority, 3=lowest priority
 # based on USFS SE Region analysis May, 2010
 usfs = (
-    gp.read_file(src_dir / "Priority_Areas.gdb", layer="USFS_Priority")[
+    read_dataframe(src_dir / "Priority_Areas.gdb", layer="USFS_Priority")[
         ["HUC_8", "USFS_Priority"]
     ]
     .set_index("HUC_8")
@@ -227,7 +291,7 @@ usfs = usfs.groupby(level=0).min()
 
 # Conservation opportunity areas
 # 1 = COA
-coa = gp.read_file(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[
+coa = read_dataframe(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[
     ["HUC_8"]
 ].set_index("HUC_8")
 coa["coa"] = 1
@@ -237,7 +301,8 @@ coa = coa.groupby(level=0).min()
 
 
 # Top 10 HUC8s per state for count of SGCN
-sgcn = gp.read_file(src_dir / "SGCN_Priorities.gdb")[["HUC_8"]].set_index("HUC_8")
+# TODO: get updated version from SARP
+sgcn = read_dataframe(src_dir / "SGCN_Priorities.gdb")[["HUC_8"]].set_index("HUC_8")
 sgcn["sgcn"] = 1
 
 
@@ -254,22 +319,4 @@ priorities = (
     .reset_index(drop=True)
 )
 
-serialize_df(
-    priorities, out_dir / "priorities.feather",
-)
-
-
-### HUC8s - used for visualization; not joined to barriers directly
-df = gp.read_file(intermediate_dir / "HUC8_prj.shp")[["geometry", "HUC8", "NAME"]]
-df.sindex
-
-# Select out within the SARP boundary
-in_sarp = gp.sjoin(df, bnd)
-df = df.loc[df.HUC8.isin(in_sarp.HUC8)].join(priorities.set_index("HUC8"), on="HUC8")
-for col in ["usfs", "coa", "sgcn"]:
-    df[col] = df[col].fillna(0).astype("uint8")
-
-to_shp(
-    df.reset_index(drop=True).rename(columns={"HUC8": "id", "NAME": "name"}),
-    boundaries_dir / "HUC8_prj.shp",
-)
+priorities.to_feather(out_dir / "priorities.feather")
