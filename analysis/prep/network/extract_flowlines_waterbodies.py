@@ -30,7 +30,6 @@ import numpy as np
 from pyogrio import write_dataframe
 
 from nhdnet.nhd.extract import extract_flowlines, extract_waterbodies
-from nhdnet.io import serialize_df, serialize_sindex, to_shp
 
 from analysis.constants import (
     CRS,
@@ -66,8 +65,10 @@ def process_huc4s(src_dir, out_dir, huc4s):
             )
         )
 
-        # Calculate lineIDs to be unique across all HUC2s
+        flowlines["HUC4"] = huc4
+        joins["HUC4"] = huc4
 
+        # Calculate lineIDs to be unique across all HUC2s
         flowlines["lineID"] += huc_id
         # Set updated lineIDs with the HUC4 prefix
         joins.loc[joins.upstream_id != 0, "upstream_id"] += huc_id
@@ -86,6 +87,8 @@ def process_huc4s(src_dir, out_dir, huc4s):
                 len(waterbodies), time() - read_start
             )
         )
+
+        waterbodies["HUC4"] = huc4
 
         # calculate ids to be unique across region
         waterbodies["wbID"] += huc_id
@@ -158,7 +161,7 @@ def process_huc4s(src_dir, out_dir, huc4s):
     # These are the segments that are immediately DOWNSTREAM of segments that flow into this HUC4
     # We set a new UPSTREAM id for them based on the segment that is next upstream
 
-    huc_in_idx = merged_joins.loc[joins.type == "huc_in"].index
+    huc_in_idx = joins.loc[joins.type == "huc_in"].index
     cross_huc_joins = joins.loc[huc_in_idx]
 
     new_upstreams = (
@@ -180,18 +183,20 @@ def process_huc4s(src_dir, out_dir, huc4s):
     ]
 
     # remove dead ends
-    joins = joins.loc[~((joins.downstream == 0) & (joins.upstream == 0))].copy()
+    joins = joins.loc[~((joins.downstream == 0) & (joins.upstream == 0))].reset_index(
+        drop=True
+    )
 
     print("serializing {:,} flowlines".format(len(flowlines)))
     flowlines.to_feather(out_dir / "flowlines.feather")
 
     write_dataframe(flowlines, out_dir / "flowlines.gpkg", driver="GPKG")
-    serialize_df(joins, out_dir / "flowline_joins.feather", index=False)
+    joins.to_feather(out_dir / "flowline_joins.feather")
 
     print("serializing {:,} waterbodies".format(len(waterbodies)))
     waterbodies.to_feather(out_dir / "waterbodies.feather")
     write_dataframe(waterbodies, out_dir / "waterbodies.gpkg", driver="GPKG")
-    serialize_df(wb_joins, out_dir / "waterbody_flowline_joins.feather", index=False)
+    wb_joins.to_feather(out_dir / "waterbody_flowline_joins.feather")
 
 
 data_dir = Path("data")
@@ -210,13 +215,29 @@ huc4_df = pd.read_feather(
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
 # manually subset keys from above for processing
-# huc2s = ['02', '03', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '21']
-huc2s = []
+huc2s = [
+    "02",
+    "03",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "21",
+]
 
 
 for huc2 in huc2s:
     huc2_start = time()
-    print("----- {} ------".format(huc2))
+    print(f"----- {huc2} ------")
 
     huc2_dir = out_dir / huc2
     if not huc2_dir.exists():
@@ -228,4 +249,3 @@ for huc2 in huc2s:
     print("HUC2: {} done in {:.0f}s\n\n".format(huc2, time() - huc2_start))
 
 print("Done in {:.2f}s\n============================".format(time() - start))
-
