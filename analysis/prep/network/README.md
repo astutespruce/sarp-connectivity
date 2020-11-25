@@ -7,7 +7,7 @@ This stage involves processing NHD data and related data into data structures th
 1. Download NHD High Resolution Plus data for all applicable HUC4s that have dams.
 2. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
 3. Run `extract_flowlines_waterbodies.py` to extract flowlines, flowline joins, waterbodies, and flowline / waterbody joins for each region group.
-4. Run `extract_nhd_lines.py` and `extract_nhd_areas.py` to extract dam-related features and waterfalls from other NHD datasets.
+4. Run `extract_nhd_barriers.py` followed by `aggregate_nhd_barriers.py` to extract dam-related features and waterfalls from other NHD datasets.
 5. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
 6. Run `merge_waterbodies.py` to merge waterbodies to the full SARP region and create files for large waterbodies.
 7. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
@@ -15,7 +15,7 @@ This stage involves processing NHD data and related data into data structures th
 
 Now the underlying aquatic networks are ready for the network analysis.
 
-Most of the data processing is performed by region group, which is one or more NHD HUC2s that flow into each other. This is done to reduce the number of networks connected across HUC2 boundaries that need to be merged after the analysis.
+Most of the data processing is performed by HUC2 region.
 
 Feather files are used as a compact, fast I/O file format for these data.
 
@@ -23,11 +23,9 @@ Feather files are used as a compact, fast I/O file format for these data.
 
 Run `download.py`. This will download NHDPlus HR data by HUC4 into `data/nhd/source/huc4`. For now, you need to unzip these files manually into that directory.
 
-WARNING: NHD HR+ data are currently in beta.  There are data issues, including, but not limited to miscoded flowlines, spurious NHD areas, and fragmented adjacent waterbodies.
+WARNING: NHD HR+ data are currently in beta. There are data issues, including, but not limited to miscoded flowlines, spurious NHD areas, and fragmented adjacent waterbodies.
 
 NHD data were last downloaded on 10/12/2020.
-
-
 
 ### 2. Run any special preprocessing scripts or hand-inspect NHD data
 
@@ -44,11 +42,9 @@ Run `extract_flowlines_waterbodies.py` to extract the flowlines, joins between f
 
 This step should only need to be rerun if there are errors or additional HUC4s / regions are needed, or there are data updates from NHD.
 
-It takes approximately 2 hours to run across all SARP regions (separate regions can be run in separate processes, to speed up overall execution time).
-
 #### Flowlines:
 
-These data are extracted from NHDFlowline, NHDPlusFlowlineVAA, NHDPlusFloW datasets.
+These data are extracted from NHDFlowline, NHDPlusFlowlineVAA, NHDPlusFlow datasets.
 
 -   aquatic networks that cross HUC4 boundaries within each region are joined together to create contiguous networks.
 -   all coastlines (FType=566) and their joins are dropped
@@ -61,12 +57,7 @@ The output flowlines contain "loops" (secondary channels in addition to the main
 
 #### Waterbodies:
 
-These data are extracted from the NHDWaterbody dataset.
-
--   only waterbodies >= 0.02 sq km are retained. There are many below this threshold.
--   projected to SARP standard CRS
-
-This script creates a rough first pass at all flowlines that intersect waterbodies. NOTE: this is for intersection only, it includes many flowlines that intersect with but do not actually fall within waterbodies.
+These data are extracted from the NHDWaterbody dataset. Only waterbodies that intersect flowlines are retained. These are reprojected to SARP standard CRS.
 
 #### Outputs:
 
@@ -82,42 +73,27 @@ This creates a directory (`data/nhd/raw/<region>`) for each region containing:
 -   flowlines are identified using `lineID` from this point forward; this is a unique ID assigned to this specific run of the data extraction. These ids are NOT durable from one extraction to the next. These are used because the flowlines are cut, yet we retain the original NHDPlusID of each original segment to be able to relate it back to NHD.
 -   waterbodies are identified using `wbID`. These are also specific to this particular extraction.
 
-### 4. Extract NHD lines and areas
+### 4. Extract NHD barrier features
 
-Run `extract_nhd_lines.py` and `extract_nhd_areas.py' to extract extra spatial data from NHD data.
-
-Note: there is also `extract_nhd_points.py` that could be used to extract data from the NHDPoint dataset. These data were not used elsewhere in the processing chain (nearly all features already present in SARP inventory).
-
-This step should only need to be rerun if there are errors or additional HUC4s / regions are needed, or there are data updates from NHD.
-
-Data are merged across all regions.
-
-#### NHD lines:
-
-These data are extracted from the NHDLine dataset.
-
-We only extract linear features that interact with flowlines as barriers based on FType:
+Run `extract_nhd_barriers.py` to extract barriers identified as points, lines, or polygons by NHD. These include dams, dam-related features, and waterfalls with the following FTypes:
 
 -   Dam (343)
 -   Gate (369)
--   Lock Chamber (398)
--   Waterfall (487).
-
-#### NHD areas:
-
-These data are extracted from the NHDArea dataset.
-
-We only extract linear features that interact with flowlines as barriers based on FType:
-
--   Dam (343)
--   Lock (398)
+-   Lock / Lock Chamber (398)
+-   Reservoir (436)
 -   Spillway (455)
+-   Waterfall (487)
 
-#### Outputs
+This is performed individually for each HUC2. Run `aggregate_nhd_barriers.py` to aggregate these to a single dataset across the region.
 
-This creates data in `nhd/data/extra`:
+This step should only need to be rerun if there are errors or additional HUC4s / regions are needed, or there are data updates from NHD.
+
+This creates data in `nhd/data/merged`:
+`nhd_points.feather`
 `nhd_lines.feather`
-`nhd_areas.feather`
+`nhd_poly.feather`
+
+(files with the same names are available within each HUC2)
 
 ### 5. Prepare flowlines and waterbodies:
 
