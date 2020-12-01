@@ -1,6 +1,6 @@
 import pandas as pd
 import geopandas as gp
-import pygeoas as pg
+import pygeos as pg
 import numpy as np
 
 
@@ -90,7 +90,7 @@ def sjoin_geometry(left, right, predicate="intersects", how="inner"):
     return pd.Series(values, index=index, name="index_right")
 
 
-def aggregate_contiguous(df, agg=None):
+def aggregate_contiguous(df, agg=None, buffer_size=None):
     """Dissolve contiguous (intersecting) features into singular geometries.
 
     Returns GeoDataFrame indexed on original index values for features that are
@@ -103,6 +103,8 @@ def aggregate_contiguous(df, agg=None):
     agg : dict, optional (default: None)
         If present, is a dictionary of field names in df to agg operations.  Any
         field not aggregated will be set to null in the appended dissolved records.
+    buffer_size : int or float (default: None)
+        Amount to buffer polygons by before union to merge together.
 
     Returns
     -------
@@ -126,9 +128,29 @@ def aggregate_contiguous(df, agg=None):
         agg = dict()
 
     # extract singular geometry if not grouped
-    agg["geometry"] = (
-        lambda g: pg.union_all(g.values.data) if len(g.values) > 1 else g.values.data[0]
-    )
+    if buffer_size is not None:
+        agg["geometry"] = (
+            lambda g: pg.union_all(
+                pg.buffer(
+                    g.values.data,
+                    buffer_size,
+                    quadsegs=1,
+                    cap_style="flat",
+                    join_style="bevel",
+                )
+            )
+            if len(g.values) > 1
+            else g.values.data[0]
+        )
+
+    else:
+        agg["geometry"] = (
+            lambda g: pg.union_all(
+                g.values.data,
+            )
+            if len(g.values) > 1
+            else g.values.data[0]
+        )
 
     # Note: this method is 5x faster than geopandas.dissolve (until it is migrated to use pygeos)
     dissolved = (
