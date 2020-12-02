@@ -169,7 +169,7 @@ def aggregate_contiguous(df, agg=None, buffer_size=None):
     )
 
 
-def explode(df):
+def explode(df, add_position=False):
     """Explode multipart features to individual geometries
 
     Note: the fast version of this method will be available in geopandas pending
@@ -178,8 +178,77 @@ def explode(df):
     Parameters
     ----------
     df : GeoDataFrame
+    add_position : bool, optional (default: False)
+        if True, will add a column indicating position within the original index
 
     """
     parts, index = pg.get_parts(df.geometry.values.data, return_index=True)
     series = gp.GeoSeries(parts, index=df.index.take(index), name="geometry")
-    return df.drop(columns=["geometry"]).join(series)
+    df = df.drop(columns=["geometry"]).join(series)
+
+    if not add_position:
+        return df
+
+    run_start = np.r_[True, index[:-1] != index[1:]]
+    counts = np.diff(np.r_[np.nonzero(run_start)[0], len(index)])
+    position = (~run_start).cumsum()
+    position -= np.repeat(position[run_start], counts)
+    df["position"] = position
+    return df
+
+
+def cut_line_at_points(line, cut_points):
+    """Cut a pygeos line geometry at points.
+    If there are no interior points, the original line will be returned.
+
+    Parameters
+    ----------
+    line : pygeos Linestring
+    cut_points : list-like of pygeos Points
+        will be projected onto the line; those interior to the line will be
+        used to cut the line in to new segments.
+
+    Returns
+    -------
+    MultiLineStrings (or LineString, if unchanged)
+    """
+    if not pg.get_type_id(line) == 1:
+        raise ValueError("line is not a single linestring")
+
+    vertices = pg.get_point(line, range(pg.get_num_points(line)))
+    offsets = pg.line_locate_point(line, vertices)
+    cut_offsets = pg.line_locate_point(line, cut_points)
+    # only keep those that are interior to the line
+    cut_offsets = cut_offsets[(cut_offsets > 0) & (cut_offsets < offsets[-1])]
+
+    if len(cut_offsets) == 0:
+        # nothing to cut, return original
+        return line
+
+    # get coordinates of new vertices from the cut points (interpolated onto the line)
+    cut_offsets.sort()
+    cut_coords = pg.get_coordinates(pg.line_interpolate_point(line, cut_offsets))
+
+    # split vertices into bins
+    bins = np.digitize(offsets, cut_offsets)
+
+    # find the edges of the bins
+    breaks = np.r_[True, bins[:-1] != bins[1:]]
+    i = np.append(np.arange(len(bins))[breaks], [len(bins)])
+    slices = np.column_stack([i[:-1], i[1:]])
+    coords = pg.get_coordinates(line)
+
+    num_lines = len(slices)
+    lines = []
+    for i, ix in enumerate(slices):
+        c = coords[slice(*ix)]
+
+        # insert cut coords on both sides of each split
+        if i > 0:
+            c = np.vstack([cut_coords[i - 1], c])
+        if i < num_lines - 1:
+            c = np.vstack([c, cut_coords[i]])
+
+        lines.append(pg.linestrings(c))
+
+    return pg.multilinestrings(lines)

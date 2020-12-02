@@ -125,23 +125,6 @@ for huc2 in huc2s:
         "wbID"
     )
     print(f"Read {len(waterbodies):,} waterbodies")
-    # wb_joins = pd.read_feather(src_dir / huc2 / "waterbody_flowline_joins.feather")
-    # print(
-    #     "Read {:,} waterbodies and {:,} flowine / waterbody joins".format(
-    #         len(waterbodies), len(wb_joins)
-    #     )
-    # )
-
-    # Drop any waterbodies and waterbody joins to flowlines that are no longer present
-    # based on above processing of flowlines
-    # wb_joins = wb_joins.loc[wb_joins.lineID.isin(flowlines.index)].copy()
-    # to_drop = ~waterbodies.index.isin(wb_joins.wbID)
-    # print(
-    #     "Dropping {:,} waterbodies that no longer intersect with the flowlines retained above".format(
-    #         to_drop.sum()
-    #     )
-    # )
-    # waterbodies = waterbodies.loc[~to_drop].copy()
 
     # Overlay and dissolve
     print(
@@ -151,35 +134,36 @@ for huc2 in huc2s:
     waterbodies = cut_waterbodies_by_dams(waterbodies, nhd_lines)
 
     print("Dissolving adjacent waterbodies (where appropriate)")
-    waterbodies = dissolve_waterbodies(waterbodies, nhd_lines)
+    waterbodies = dissolve_waterbodies(waterbodies)
     print("{:,} waterbodies after dissolve".format(len(waterbodies)))
 
-    # Make sure that all empty joins are dropped
-    # wb_joins = wb_joins.loc[
-    #     wb_joins.lineID.isin(flowlines.index) & wb_joins.wbID.isin(waterbodies.index)
-    # ].copy()
-
     ### If needed, output intermediates for troubleshooting
-    write_dataframe(waterbodies, "/tmp/waterbodies.gpkg")
-
-    raise Foo
+    write_dataframe(waterbodies.reset_index(), "/tmp/waterbodies.gpkg")
 
     print("------------------")
 
     ### Cut flowlines by waterbodies
 
-    # TODO: load up wbJoins and select flowlines from that
-
     print("Processing intersections between waterbodies and flowlines")
+    # use cached joins to select out subset of flowlines that intersect waterbodies
+    wb_joins = pd.read_feather(src_dir / huc2 / "waterbody_flowline_joins.feather")
+
     flowlines, joins, waterbodies, wb_joins = cut_lines_by_waterbodies(
         flowlines, joins, waterbodies, wb_joins, out_dir
     )
 
-    # Update dtypes
+    # Fix dtypes
     joins.upstream = joins.upstream.astype("uint64")
     joins.downstream = joins.downstream.astype("uint64")
     joins.upstream_id = joins.upstream_id.astype("uint32")
     joins.downstream_id = joins.downstream_id.astype("uint32")
+
+    write_dataframe(flowlines.reset_index(), "/tmp/updated_flowlines.gpkg")
+    write_dataframe(waterbodies.reset_index(), "/tmp/updated_waterbodies.gpkg")
+    joins.to_feather("/tmp/updated_joins.feather")
+    wb_joins.to_feather("/tmp/updated_wb_joins.feather")
+
+    raise Foo
 
     # TODO: fix joins that are getting assigned null for loop
     # these appear to be coming from segments cut by waterbodies

@@ -4,7 +4,6 @@ from geofeather import from_geofeather, to_geofeather
 
 from nhdnet.nhd.cut import cut_flowlines
 from nhdnet.nhd.joins import find_joins
-from nhdnet.io import deserialize_df, to_shp, serialize_df
 from analysis.constants import REGION_GROUPS
 
 data_dir = Path("data")

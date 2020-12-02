@@ -36,8 +36,10 @@ def cut_waterbodies_by_dams(df, nhd_lines):
     index_name = df.index.name
     df = df.reset_index()
 
-    # Find pairs of waterbodies that intersect
-    geometry = pd.Series(df.geometry.values.data, index=df[index_name])
+    # Find pairs of waterbodies that intersect, using only the outer boundary
+    geometry = pd.Series(
+        pg.polygons(pg.get_exterior_ring(df.geometry.values.data)), index=df[index_name]
+    )
     pairs = sjoin_geometry(geometry, geometry).reset_index()
     pairs = pairs.loc[pairs[index_name] != pairs.index_right].reset_index(drop=True)
 
