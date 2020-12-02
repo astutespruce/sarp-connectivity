@@ -19,6 +19,10 @@ from analysis.constants import CRS
 # break in future versions, and is also why we have to do intersections in shapely
 # instead of pygeos here.
 
+# In order to cut a flowline, it must be at least this long, and at least
+# this different from original flowline
+CUT_TOLERANCE = 1
+
 
 def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
     """
@@ -81,34 +85,70 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
         .join(wb_geom, on="wbID")
         .join(fl_geom, on="lineID")
     )
-
-    # set this aside to use for wb_joins
-    intersect_df = df.copy()
+    print(
+        f"Identified {len(df):,} intersections between flowlines and waterbodies in {time() - join_start:.2f}s"
+    )
 
     pg.prepare(df.waterbody)
-    df = df.loc[pg.crosses(df.waterbody, df.flowline)].copy()
+
+    # find those that are completely contained
+    contained_start = time()
+    df["contains"] = pg.contains(df.waterbody, df.flowline)
     print(
-        f"Identified {len(df):,} flowlines that cross edges of waterbodies in {time() - join_start:.2f}s"
+        f"Identified {df.contains.sum():,} flowlines contained by waterbodies in {time() - contained_start:.2f}s"
     )
+
+    crosses_start = time()
+    df["crosses"] = False
+    ix = ~df.contains
+    tmp = df.loc[ix]
+    df.loc[ix, "crosses"] = pg.crosses(tmp.waterbody, tmp.flowline)
+    print(
+        f"Identified {df.contains.sum():,} flowlines that cross edge of waterbodies in {time() - crosses_start:.2f}s"
+    )
+
+    # discard any that only touch (don't cross or are contained)
+    df = df.loc[df.contains | df.crosses].copy()
 
     print("Cutting flowlines by waterbodies...")
     cut_start = time()
-    df["geometry"] = pg.intersection(df.flowline, df.waterbody)
+    ix = df.crosses
+    tmp = df.loc[ix]
+    df["geometry"] = df.flowline
+    df.loc[ix, "geometry"] = pg.intersection(tmp.flowline, tmp.waterbody)
+    df["length"] = pg.length(df.geometry)
+    df["flength"] = pg.length(df.flowline)
 
-    # Keep only single-lines; rest is noise
-    df = df.loc[pg.get_type_id(df.geometry) == 1].copy()
-
-    # keep only those with >= 10 m difference, rest is noise
-    l = pg.length(df.geometry)
-    ix = (l >= 10) & ((pg.length(df.flowline) - l).abs() >= 10)
-
-    print(
-        f"Found {ix.sum():,} segments that need to be cut by flowlines in {time() - cut_start:.2f}s"
+    # Cut only single lines (rest are noise) that are long enough and different
+    # enough from the original lines
+    df["to_cut"] = False
+    tmp = df.loc[df.crosses]
+    keep = (
+        tmp.crosses
+        & (pg.get_type_id(tmp.geometry) == 1)
+        & (tmp.length >= CUT_TOLERANCE)
+        & ((tmp.flength - tmp.length).abs() >= CUT_TOLERANCE)
     )
-    df = df.loc[ix].copy()
+    df.loc[keep[keep].index, "to_cut"] = True
+    print(
+        f"Found {df.to_cut.sum():,} segments that need to be cut by flowlines in {time() - cut_start:.2f}s"
+    )
+
+    # mark those that are completely contained or mostly within as in waterbodies
+    # except those to be cut
+    df["in_wb"] = False
+    ix = ((df.length / df.flength) >= 0.5) & (  # must be at least 50% in waterbody
+        ~df.to_cut
+    )
+    df.loc[ix, "in_wb"] = True
+
+    # Update wb_joins based on this
+    wb_joins = df.loc[ix, ["wbID", "lineID", "length"]].copy()
 
     ### Cut lines
     print("Cutting lines...")
+    df = df.loc[df.to_cut].copy()
+
     # Find the points of the new segment in the waterbody that are within flowline endpoints
     # note: since lines are oriented the same way, we know the point is interior
     # to the line if first is > 0 or last < length of flowline
@@ -117,13 +157,17 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
 
     # get index of intersected segment within the split lines
     # either it is the first segment, or it is at index 1 (for 3 lines, or second of 2 lines)
-    df["overlap_ix"] = (pg.line_locate_point(df.flowline, first) != 0).astype("uint8")
+    df["in_wb_ix"] = (pg.line_locate_point(df.flowline, first) > CUT_TOLERANCE).astype(
+        "uint8"
+    )
 
     split_lines = gp.GeoDataFrame(
         {
             "geometry": df.apply(
                 lambda row: cut_line_at_points(
-                    row.flowline, pg.get_point(row.geometry, [0, -1])
+                    row.flowline,
+                    pg.get_point(row.geometry, [0, -1]),
+                    tolerance=CUT_TOLERANCE,
                 ),
                 axis=1,
             )
@@ -133,12 +177,12 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
     ).join(
         (pg.line_locate_point(df.flowline, first) != 0)
         .astype("uint8")
-        .rename("overlap_ix")
+        .rename("in_wb_ix")
     )
     new_lines = explode(split_lines, add_position=True)
-    new_lines["overlaps"] = new_lines.overlap_ix == new_lines.position
+    new_lines["in_wb"] = new_lines.in_wb_ix == new_lines.position
     new_lines = (
-        new_lines.drop(columns=["overlap_ix", "position"])
+        new_lines.drop(columns=["in_wb_ix", "position"])
         .join(df[["wbID", "lineID"]].rename(columns={"lineID": "origLineID"}))
         .join(
             flowlines.drop(columns=["geometry", "length", "sinuosity"]), on="origLineID"
@@ -227,26 +271,27 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
         .set_index("lineID")
     )
 
-    ### recalculate waterbody joins: either contained or created above
-    print("Extracting waterbody / flowline joins")
-    ix = pg.contains(intersect_df.waterbody, intersect_df.flowline)
-    wb_joins = intersect_df.loc[ix, ["lineID", "wbID"]].append(
-        new_lines[["lineID", "wbID"]], ignore_index=True, sort=False
-    )
+    ### add to waterbody joins
     # group to get first, just in case
-    wb_joins = wb_joins.groupby(["lineID", "wbID"]).first().reset_index()
+    wb_joins = (
+        wb_joins.append(
+            new_lines.loc[new_lines.in_wb, ["wbID", "lineID", "length"]],
+            sort=False,
+            ignore_index=True,
+        )
+        .reset_index(drop=True)
+        .groupby(["lineID", "wbID"])
+        .first()
+        .reset_index()
+    )
 
     # set flag for flowlines in waterbodies
     flowlines["waterbody"] = flowlines.index.isin(wb_joins.lineID.unique())
 
-    ### Update waterbodies and calculate flowline stats
+    # calculate flowline stats
     stats = (
-        wb_joins.join(flowlines.length.rename("flowlineLength"), on="lineID")
-        .groupby("wbID")
-        .flowlineLength.sum()
-        .astype("float32")
+        wb_joins.groupby("wbID").length.sum().astype("float32").rename("flowlineLength")
     )
-    # waterbodies = waterbodies.loc[waterbodies.index.isin(wb_joins.wbID)].join(stats)
     waterbodies = waterbodies.join(stats)
     waterbodies.flowlineLength = waterbodies.flowlineLength.fillna(0)
 

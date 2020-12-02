@@ -197,7 +197,7 @@ def explode(df, add_position=False):
     return df
 
 
-def cut_line_at_points(line, cut_points):
+def cut_line_at_points(line, cut_points, tolerance=1e-6):
     """Cut a pygeos line geometry at points.
     If there are no interior points, the original line will be returned.
 
@@ -207,6 +207,9 @@ def cut_line_at_points(line, cut_points):
     cut_points : list-like of pygeos Points
         will be projected onto the line; those interior to the line will be
         used to cut the line in to new segments.
+    tolerance : float, optional (default: 1e-6)
+        minimum distance from endpoints to consider the points interior
+        to the line.
 
     Returns
     -------
@@ -219,7 +222,9 @@ def cut_line_at_points(line, cut_points):
     offsets = pg.line_locate_point(line, vertices)
     cut_offsets = pg.line_locate_point(line, cut_points)
     # only keep those that are interior to the line
-    cut_offsets = cut_offsets[(cut_offsets > 0) & (cut_offsets < offsets[-1])]
+    cut_offsets = cut_offsets[
+        (cut_offsets > tolerance) & (cut_offsets < offsets[-1] - tolerance)
+    ]
 
     if len(cut_offsets) == 0:
         # nothing to cut, return original
