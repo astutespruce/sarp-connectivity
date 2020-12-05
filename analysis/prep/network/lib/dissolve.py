@@ -50,6 +50,15 @@ def cut_waterbodies_by_dams(df, nhd_lines):
     pairs = pairs.groupby(by=[index_name, "index_right"]).first().reset_index()
 
     tmp = df[[index_name, "geometry"]].set_index(index_name)
+
+    # buffer the geometries by 0 to make valid
+    ix = ~pg.is_valid(tmp.geometry.values.data)
+    if ix.sum():
+        tmp.loc[ix, "geometry"] = pg.buffer(tmp.loc[ix].geometry.values.data, 0)
+        print(
+            f"Fixed {ix.sum()} invalid geometries before intersecting waterbodies with each other"
+        )
+
     pairs = pairs.join(tmp, how="inner", on=index_name).join(
         tmp, on="index_right", rsuffix="_right"
     )

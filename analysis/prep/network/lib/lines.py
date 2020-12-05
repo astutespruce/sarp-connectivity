@@ -148,11 +148,9 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     )
 
     # update NHDPlusIDs to match zeroed out ids
-    # joins.loc[joins.downstream_id == 0, "downstream"] = 0
     joins.loc[
         (joins.downstream_id == 0) & (joins.type == "internal"), "type"
     ] = "former_pipeline_join"
-    # joins.loc[joins.upstream_id == 0, "upstream"] = 0
 
     print("Done processing pipelines in {:.2f}s".format(time() - start))
 

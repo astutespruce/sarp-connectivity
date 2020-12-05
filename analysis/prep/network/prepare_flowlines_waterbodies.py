@@ -21,12 +21,14 @@ It produces data in `data/nhd/clean/<region>`
 - flowline_joins.feather
 - waterbodies.feather
 - waterbody_flowline_joins.feather
+- waterbody_drain_points.feather
 """
 
 
 from pathlib import Path
 import os
 from time import time
+import warnings
 
 import geopandas as gp
 import pandas as pd
@@ -51,6 +53,9 @@ from analysis.prep.network.lib.lines import remove_pipelines, remove_flowlines
 from analysis.prep.network.lib.drains import create_drain_points
 
 
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+
+
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd"
 src_dir = nhd_dir / "raw"
@@ -64,7 +69,7 @@ units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
 # manually subset keys from above for processing
 # huc2s = ['02', '03', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '21']
-huc2s = ["02"]
+huc2s = ["03"]
 
 
 start = time()
@@ -133,12 +138,11 @@ for huc2 in huc2s:
     nhd_lines = gp.read_feather(src_dir / huc2 / "nhd_lines.feather")
     waterbodies = cut_waterbodies_by_dams(waterbodies, nhd_lines)
 
-    print("Dissolving adjacent waterbodies (where appropriate)")
     waterbodies = dissolve_waterbodies(waterbodies)
     print("{:,} waterbodies after dissolve".format(len(waterbodies)))
 
-    ### If needed, output intermediates for troubleshooting
-    write_dataframe(waterbodies.reset_index(), "/tmp/waterbodies.gpkg")
+    # FIXME: remove
+    # write_dataframe(waterbodies, "/tmp/dissolved_waterbodies.gpkg")
 
     print("------------------")
 
@@ -149,7 +153,7 @@ for huc2 in huc2s:
     wb_joins = pd.read_feather(src_dir / huc2 / "waterbody_flowline_joins.feather")
 
     flowlines, joins, waterbodies, wb_joins = cut_lines_by_waterbodies(
-        flowlines, joins, waterbodies, wb_joins, out_dir
+        flowlines, joins, waterbodies, wb_joins, huc2_dir
     )
 
     # Fix dtypes
@@ -158,18 +162,13 @@ for huc2 in huc2s:
     joins.upstream_id = joins.upstream_id.astype("uint32")
     joins.downstream_id = joins.downstream_id.astype("uint32")
 
-    write_dataframe(flowlines.reset_index(), "/tmp/updated_flowlines.gpkg")
-    write_dataframe(waterbodies.reset_index(), "/tmp/updated_waterbodies.gpkg")
-    joins.to_feather("/tmp/updated_joins.feather")
-    wb_joins.to_feather("/tmp/updated_wb_joins.feather")
-
-    raise Foo
-
-    # TODO: fix joins that are getting assigned null for loop
-    # these appear to be coming from segments cut by waterbodies
-    # ix = flowlines.loc[flowlines.loop].index
-    # joins.loc[joins.upstream_id.isin(ix) | joins.downstream_id.isin(ix), "loop"] = True
-    # joins.loop = joins.loop.fillna(False)
+    # FIXME: remove
+    # write_dataframe(flowlines.reset_index(), "/tmp/updated_flowlines.gpkg")
+    # write_dataframe(waterbodies.reset_index(), "/tmp/updated_waterbodies.gpkg")
+    # flowlines.reset_index().to_feather("/tmp/updated_flowlines.feather")
+    # waterbodies.reset_index().to_feather("/tmp/updated_waterbodies.feather")
+    # joins.to_feather("/tmp/updated_joins.feather")
+    # wb_joins.to_feather("/tmp/updated_wb_joins.feather")
 
     print(
         "Now have {:,} flowlines, {:,} waterbodies, {:,} waterbody-flowline joins".format(
@@ -182,30 +181,25 @@ for huc2 in huc2s:
     print("Identifying waterbody drain points")
     drains = create_drain_points(flowlines, joins, waterbodies, wb_joins)
 
-    # fix index data type issues
-    waterbodies.index = waterbodies.index.astype("uint32")
-
     print("------------------")
 
     print("Serializing {:,} flowlines".format(len(flowlines)))
     flowlines = flowlines.reset_index()
-    to_geofeather(flowlines, out_dir / "flowlines.feather", crs=CRS)
-    serialize_df(joins.reset_index(drop=True), out_dir / "flowline_joins.feather")
+    flowlines.to_feather(huc2_dir / "flowlines.feather")
+    write_dataframe(flowlines, huc2_dir / "flowlines.gpkg")
+    joins.reset_index(drop=True).to_feather(huc2_dir / "flowline_joins.feather")
 
     print("Serializing {:,} waterbodies".format(len(waterbodies)))
-    to_geofeather(waterbodies.reset_index(), out_dir / "waterbodies.feather", crs=CRS)
-    serialize_df(
-        wb_joins.reset_index(drop=True), out_dir / "waterbody_flowline_joins.feather"
+    waterbodies = waterbodies.reset_index()
+    waterbodies.to_feather(huc2_dir / "waterbodies.feather")
+    write_dataframe(waterbodies, huc2_dir / "waterbodies.gpkg")
+    wb_joins.reset_index(drop=True).to_feather(
+        huc2_dir / "waterbody_flowline_joins.feather"
     )
 
     print("Serializing {:,} drain points".format(len(drains)))
-    to_geofeather(drains, out_dir / "waterbody_drain_points.feather", crs=CRS)
-
-    # Serialize to GIS files
-    print("Serializing to GIS files")
-    to_gpkg(flowlines.reset_index(), out_dir / "flowlines", crs=CRS)
-    to_gpkg(waterbodies.reset_index(), out_dir / "waterbodies", crs=CRS)
-    to_gpkg(drains, out_dir / "waterbody_drain_points", crs=CRS)
+    drains.to_feather(huc2_dir / "waterbody_drain_points.feather")
+    write_dataframe(drains, huc2_dir / "waterbody_drain_points.gpkg")
 
     print("Region done in {:.2f}s".format(time() - region_start))
 

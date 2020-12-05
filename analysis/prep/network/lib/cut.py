@@ -12,13 +12,6 @@ from analysis.prep.network.lib.lines import calculate_sinuosity
 from analysis.constants import CRS
 
 
-# TEMPORARY: this shimmed until pygeos support is available in geopandas
-# doing these operations in native geopandas is extremely slow.
-# To get around this, we load and do certain operations in pygeos.
-# WARNING: Due to incompatibilities between shapely and pygeos, this may
-# break in future versions, and is also why we have to do intersections in shapely
-# instead of pygeos here.
-
 # In order to cut a flowline, it must be at least this long, and at least
 # this different from original flowline
 CUT_TOLERANCE = 1
@@ -30,7 +23,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
     1. Intersects all previously intersected flowlines with waterbodies.
     2. For those that cross but are not completely contained by waterbodies, cut them.
     3. Evaluate the cuts, only those that have substantive cuts inside and outside are retained as cuts.
-    4. Any flowlines that are not contained or crossing waterbodies are dropped from joins
+    4. Any flowlines that are not contained or crossing waterbodies are dropped from wb_joins
 
     Parameters
     ----------
@@ -104,7 +97,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
     tmp = df.loc[ix]
     df.loc[ix, "crosses"] = pg.crosses(tmp.waterbody, tmp.flowline)
     print(
-        f"Identified {df.contains.sum():,} flowlines that cross edge of waterbodies in {time() - crosses_start:.2f}s"
+        f"Identified {df.crosses.sum():,} flowlines that cross edge of waterbodies in {time() - crosses_start:.2f}s"
     )
 
     # discard any that only touch (don't cross or are contained)
@@ -133,6 +126,19 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
     print(
         f"Found {df.to_cut.sum():,} segments that need to be cut by flowlines in {time() - cut_start:.2f}s"
     )
+
+    # Sanity check - we will get problems if a flowline is cut by more than one waterbody
+    errors = df.loc[df.to_cut].groupby("lineID").size() > 1
+    if errors.sum():
+        multiple_wb = gp.GeoDataFrame(
+            df.loc[errors[errors].index, ["wbID", "lineID", "geometry"]],
+            crs=waterbodies.crs,
+        )
+        write_dataframe(multiple_wb, "/tmp/multiple_wb_fl_cuts.gpkg")
+
+        raise ValueError(
+            "ERROR: one or more flowlines cut by multiple waterbodies.  See /tmp/multiple_wb_fl_cuts.gpkg"
+        )
 
     # mark those that are completely contained or mostly within as in waterbodies
     # except those to be cut
@@ -294,7 +300,12 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
     )
     waterbodies = waterbodies.join(stats)
     waterbodies.flowlineLength = waterbodies.flowlineLength.fillna(0)
+    waterbodies.index = waterbodies.index.astype("uint32")
 
-    print("Done cutting flowlines by waterbodies in {:.2f}s".format(time() - start))
+    wb_joins = wb_joins.drop(columns=["length"])
+
+    print(
+        "Done evaluating waterbody / flowline overlap in {:.2f}s".format(time() - start)
+    )
 
     return flowlines, joins, waterbodies, wb_joins
