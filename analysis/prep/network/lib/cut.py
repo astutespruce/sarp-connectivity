@@ -17,7 +17,7 @@ from analysis.constants import CRS
 CUT_TOLERANCE = 1
 
 
-def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
+def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins):
     """
     Cut lines by waterbodies.
     1. Intersects all previously intersected flowlines with waterbodies.
@@ -33,8 +33,6 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
     waterbodies : GeoDataFrame
     wb_joins : DataFrame
         waterbody flowline joins
-    out_dir : pathlib.Path
-        output directory for writing error files, if needed
 
     Returns
     -------
@@ -130,15 +128,17 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
     # Sanity check - we will get problems if a flowline is cut by more than one waterbody
     errors = df.loc[df.to_cut].groupby("lineID").size() > 1
     if errors.sum():
+        print(f"WARNING: found {errors.sum():,} flowlines cut by multiple waterbodies")
+
+        ix = df.lineID.isin(errors[errors].index)
         multiple_wb = gp.GeoDataFrame(
-            df.loc[errors[errors].index, ["wbID", "lineID", "geometry"]],
+            df.loc[ix, ["wbID", "lineID", "geometry"]],
             crs=waterbodies.crs,
         )
         write_dataframe(multiple_wb, "/tmp/multiple_wb_fl_cuts.gpkg")
 
-        raise ValueError(
-            "ERROR: one or more flowlines cut by multiple waterbodies.  See /tmp/multiple_wb_fl_cuts.gpkg"
-        )
+        # remove from consideration
+        df = df.loc[~ix].copy()
 
     # mark those that are completely contained or mostly within as in waterbodies
     # except those to be cut
@@ -152,144 +152,145 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, wb_joins, out_dir):
     wb_joins = df.loc[ix, ["wbID", "lineID", "length"]].copy()
 
     ### Cut lines
-    print("Cutting lines...")
-    df = df.loc[df.to_cut].copy()
+    if df.to_cut.sum():
+        print("Cutting lines...")
+        df = df.loc[df.to_cut].copy()
 
-    # Find the points of the new segment in the waterbody that are within flowline endpoints
-    # note: since lines are oriented the same way, we know the point is interior
-    # to the line if first is > 0 or last < length of flowline
-    first = pg.get_point(df.geometry, 0)
-    last = pg.get_point(df.geometry, -1)
+        # Find the points of the new segment in the waterbody that are within flowline endpoints
+        # note: since lines are oriented the same way, we know the point is interior
+        # to the line if first is > 0 or last < length of flowline
+        first = pg.get_point(df.geometry, 0)
+        last = pg.get_point(df.geometry, -1)
 
-    # get index of intersected segment within the split lines
-    # either it is the first segment, or it is at index 1 (for 3 lines, or second of 2 lines)
-    df["in_wb_ix"] = (pg.line_locate_point(df.flowline, first) > CUT_TOLERANCE).astype(
-        "uint8"
-    )
+        # get index of intersected segment within the split lines
+        # either it is the first segment, or it is at index 1 (for 3 lines, or second of 2 lines)
+        df["in_wb_ix"] = (
+            pg.line_locate_point(df.flowline, first) > CUT_TOLERANCE
+        ).astype("uint8")
 
-    split_lines = gp.GeoDataFrame(
-        {
-            "geometry": df.apply(
-                lambda row: cut_line_at_points(
-                    row.flowline,
-                    pg.get_point(row.geometry, [0, -1]),
-                    tolerance=CUT_TOLERANCE,
-                ),
-                axis=1,
+        split_lines = gp.GeoDataFrame(
+            {
+                "geometry": df.apply(
+                    lambda row: cut_line_at_points(
+                        row.flowline,
+                        pg.get_point(row.geometry, [0, -1]),
+                        tolerance=CUT_TOLERANCE,
+                    ),
+                    axis=1,
+                )
+            },
+            index=df.index,
+            crs=waterbodies.crs,
+        ).join(
+            (pg.line_locate_point(df.flowline, first) != 0)
+            .astype("uint8")
+            .rename("in_wb_ix")
+        )
+        new_lines = explode(split_lines, add_position=True)
+        new_lines["in_wb"] = new_lines.in_wb_ix == new_lines.position
+        new_lines = (
+            new_lines.drop(columns=["in_wb_ix", "position"])
+            .join(df[["wbID", "lineID"]].rename(columns={"lineID": "origLineID"}))
+            .join(
+                flowlines.drop(columns=["geometry", "length", "sinuosity"]),
+                on="origLineID",
             )
-        },
-        index=df.index,
-        crs=waterbodies.crs,
-    ).join(
-        (pg.line_locate_point(df.flowline, first) != 0)
-        .astype("uint8")
-        .rename("in_wb_ix")
-    )
-    new_lines = explode(split_lines, add_position=True)
-    new_lines["in_wb"] = new_lines.in_wb_ix == new_lines.position
-    new_lines = (
-        new_lines.drop(columns=["in_wb_ix", "position"])
-        .join(df[["wbID", "lineID"]].rename(columns={"lineID": "origLineID"}))
-        .join(
-            flowlines.drop(columns=["geometry", "length", "sinuosity"]), on="origLineID"
         )
-    )
 
-    # recalculate length and sinuosity
-    new_lines["length"] = pg.length(new_lines.geometry.values.data).astype("float32")
-    new_lines["sinuosity"] = calculate_sinuosity(new_lines.geometry.values.data).astype(
-        "float32"
-    )
-
-    # calculate new IDS
-    next_segment_id = int(flowlines.index.max() + 1)
-    new_lines["lineID"] = next_segment_id + np.arange(len(new_lines))
-    new_lines.lineID = new_lines.lineID.astype("uint32")
-
-    ### Update flowline joins
-    # transform new lines to create new joins
-    l = new_lines.groupby("origLineID").lineID
-    # the first new line per original line is the furthest upstream, so use its
-    # ID as the new downstream ID for anything that had this origLineID as its downstream
-    first = l.first().rename("new_downstream_id")
-    # the last new line per original line is the furthest downstream...
-    last = l.last().rename("new_upstream_id")
-
-    # Update existing joins with the new lineIDs we created at the upstream or downstream
-    # ends of segments we just created
-    joins = update_joins(
-        joins,
-        first,
-        last,
-        downstream_col="downstream_id",
-        upstream_col="upstream_id",
-    )
-
-    ### Create new line joins for any that weren't inserted above
-    # Transform all groups of new line IDs per original lineID, wbID
-    # into joins structure
-    pairs = lambda a: pd.Series(zip(a[:-1], a[1:]))
-    new_joins = (
-        new_lines.groupby(["origLineID", "wbID"])
-        .lineID.apply(pairs)
-        .apply(pd.Series)
-        .reset_index()
-        .rename(columns={0: "upstream_id", 1: "downstream_id"})
-        .join(
-            flowlines[["NHDPlusID", "loop", "HUC4"]].rename(
-                columns={"NHDPlusID": "upstream"}
-            ),
-            on="origLineID",
+        # recalculate length and sinuosity
+        new_lines["length"] = pg.length(new_lines.geometry.values.data).astype(
+            "float32"
         )
-    )
-    # NHDPlusID is same for both sides
-    new_joins["downstream"] = new_joins.upstream
-    new_joins["type"] = "internal"
-    new_joins = new_joins[
-        [
-            "upstream",
-            "downstream",
-            "upstream_id",
-            "downstream_id",
-            "type",
-            "loop",
-            "HUC4",
+        new_lines["sinuosity"] = calculate_sinuosity(
+            new_lines.geometry.values.data
+        ).astype("float32")
+
+        # calculate new IDS
+        next_segment_id = int(flowlines.index.max() + 1)
+        new_lines["lineID"] = next_segment_id + np.arange(len(new_lines))
+        new_lines.lineID = new_lines.lineID.astype("uint32")
+
+        ### Update flowline joins
+        # transform new lines to create new joins
+        l = new_lines.groupby("origLineID").lineID
+        # the first new line per original line is the furthest upstream, so use its
+        # ID as the new downstream ID for anything that had this origLineID as its downstream
+        first = l.first().rename("new_downstream_id")
+        # the last new line per original line is the furthest downstream...
+        last = l.last().rename("new_upstream_id")
+
+        # Update existing joins with the new lineIDs we created at the upstream or downstream
+        # ends of segments we just created
+        joins = update_joins(
+            joins,
+            first,
+            last,
+            downstream_col="downstream_id",
+            upstream_col="upstream_id",
+        )
+
+        ### Create new line joins for any that weren't inserted above
+        # Transform all groups of new line IDs per original lineID, wbID
+        # into joins structure
+        pairs = lambda a: pd.Series(zip(a[:-1], a[1:]))
+        new_joins = (
+            new_lines.groupby(["origLineID", "wbID"])
+            .lineID.apply(pairs)
+            .apply(pd.Series)
+            .reset_index()
+            .rename(columns={0: "upstream_id", 1: "downstream_id"})
+            .join(
+                flowlines[["NHDPlusID", "loop", "HUC4"]].rename(
+                    columns={"NHDPlusID": "upstream"}
+                ),
+                on="origLineID",
+            )
+        )
+        # NHDPlusID is same for both sides
+        new_joins["downstream"] = new_joins.upstream
+        new_joins["type"] = "internal"
+        new_joins = new_joins[
+            [
+                "upstream",
+                "downstream",
+                "upstream_id",
+                "downstream_id",
+                "type",
+                "loop",
+                "HUC4",
+            ]
         ]
-    ]
 
-    joins = (
-        joins.append(new_joins, ignore_index=True, sort=False)
-        .sort_values(["downstream_id", "upstream_id"])
-        .reset_index(drop=True)
-    )
-
-    ### remove original flowlines and append these ones
-    remove_ix = new_lines.origLineID.unique()
-    flowlines = (
-        flowlines.loc[~flowlines.index.isin(remove_ix)]
-        .reset_index()
-        .append(
-            new_lines[["lineID"] + list(flowlines.columns)],
-            ignore_index=True,
-            sort=False,
+        joins = (
+            joins.append(new_joins, ignore_index=True, sort=False)
+            .sort_values(["downstream_id", "upstream_id"])
+            .reset_index(drop=True)
         )
-        .sort_values("lineID")
-        .set_index("lineID")
-    )
 
-    ### add to waterbody joins
-    # group to get first, just in case
-    wb_joins = (
-        wb_joins.append(
+        ### remove original flowlines and append these ones
+        remove_ix = new_lines.origLineID.unique()
+        flowlines = (
+            flowlines.loc[~flowlines.index.isin(remove_ix)]
+            .reset_index()
+            .append(
+                new_lines[["lineID"] + list(flowlines.columns)],
+                ignore_index=True,
+                sort=False,
+            )
+            .sort_values("lineID")
+            .set_index("lineID")
+        )
+
+        ### add to waterbody joins
+        # group to get first, just in case
+        wb_joins = wb_joins.append(
             new_lines.loc[new_lines.in_wb, ["wbID", "lineID", "length"]],
             sort=False,
             ignore_index=True,
-        )
-        .reset_index(drop=True)
-        .groupby(["lineID", "wbID"])
-        .first()
-        .reset_index()
-    )
+        ).reset_index(drop=True)
+
+    # make sure that wb_joins is unique
+    wb_joins = wb_joins.groupby(["lineID", "wbID"]).first().reset_index()
 
     # set flag for flowlines in waterbodies
     flowlines["waterbody"] = flowlines.index.isin(wb_joins.lineID.unique())

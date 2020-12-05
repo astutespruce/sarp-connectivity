@@ -68,8 +68,24 @@ huc4_df = pd.read_feather(
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
 # manually subset keys from above for processing
-# huc2s = ['02', '03', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '21']
-huc2s = ["03"]
+huc2s = [
+    # "02",
+    # "03",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "21",
+]
 
 
 start = time()
@@ -141,9 +157,6 @@ for huc2 in huc2s:
     waterbodies = dissolve_waterbodies(waterbodies)
     print("{:,} waterbodies after dissolve".format(len(waterbodies)))
 
-    # FIXME: remove
-    # write_dataframe(waterbodies, "/tmp/dissolved_waterbodies.gpkg")
-
     print("------------------")
 
     ### Cut flowlines by waterbodies
@@ -153,7 +166,7 @@ for huc2 in huc2s:
     wb_joins = pd.read_feather(src_dir / huc2 / "waterbody_flowline_joins.feather")
 
     flowlines, joins, waterbodies, wb_joins = cut_lines_by_waterbodies(
-        flowlines, joins, waterbodies, wb_joins, huc2_dir
+        flowlines, joins, waterbodies, wb_joins
     )
 
     # Fix dtypes
@@ -161,14 +174,6 @@ for huc2 in huc2s:
     joins.downstream = joins.downstream.astype("uint64")
     joins.upstream_id = joins.upstream_id.astype("uint32")
     joins.downstream_id = joins.downstream_id.astype("uint32")
-
-    # FIXME: remove
-    # write_dataframe(flowlines.reset_index(), "/tmp/updated_flowlines.gpkg")
-    # write_dataframe(waterbodies.reset_index(), "/tmp/updated_waterbodies.gpkg")
-    # flowlines.reset_index().to_feather("/tmp/updated_flowlines.feather")
-    # waterbodies.reset_index().to_feather("/tmp/updated_waterbodies.feather")
-    # joins.to_feather("/tmp/updated_joins.feather")
-    # wb_joins.to_feather("/tmp/updated_wb_joins.feather")
 
     print(
         "Now have {:,} flowlines, {:,} waterbodies, {:,} waterbody-flowline joins".format(
@@ -201,6 +206,10 @@ for huc2 in huc2s:
     drains.to_feather(huc2_dir / "waterbody_drain_points.feather")
     write_dataframe(drains, huc2_dir / "waterbody_drain_points.gpkg")
 
-    print("Region done in {:.2f}s".format(time() - region_start))
+    print(
+        "------------------\nRegion done in {:.2f}s\n------------------\n".format(
+            time() - region_start
+        )
+    )
 
 print("==============\nAll done in {:.2f}s".format(time() - start))

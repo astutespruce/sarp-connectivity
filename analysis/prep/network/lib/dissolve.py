@@ -93,9 +93,11 @@ def cut_waterbodies_by_dams(df, nhd_lines):
     w_ix = subset_ix[np.sort(np.unique(w_ix))]
 
     # cut the split lines out of the polygons to make sure they don't union together
-    cut_lines = pg.union_all(split_lines)
+    # cut lines are unioned, and then buffered to make valid
+    # input areas are buffered to make valid too
+    cut_lines = pg.buffer(pg.union_all(split_lines), 0)
     df.loc[w_ix, "geometry"] = pg.difference(
-        df.loc[w_ix].geometry.values.data, cut_lines
+        pg.buffer(df.loc[w_ix].geometry.values.data, 0), cut_lines
     )
 
     print("Done clipping adjacent waterbodies {:.2f}s".format(time() - start))

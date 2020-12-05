@@ -43,6 +43,9 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
             "geometry",
             "FCode",
             "FType",
+            "MaxElevSmo",
+            "MinElevSmo",
+            "Slope",
             "TotDASqKm",
             "StreamOrde",
             "sizeclass",
@@ -105,7 +108,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     headwaters.geometry = pg.get_point(headwaters.geometry.values.data, 0)
     headwaters["headwaters"] = True
     print(
-        f"Found {len(headwaters)} headwaters waterbodies, adding drain points for these too"
+        f"Found {len(headwaters):,} headwaters waterbodies, adding drain points for these too"
     )
 
     drain_pts = drain_pts.append(headwaters, sort=False, ignore_index=True).reset_index(
