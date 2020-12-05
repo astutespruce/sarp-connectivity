@@ -92,16 +92,16 @@ def near(source, target, distance):
     # Get all indices from target_values that intersect buffers of input geometry
     idx = sjoin_geometry(pg.buffer(source, distance), target)
     hits = (
-        pd.DataFrame(source)
+        pd.DataFrame(source.rename("geometry"))
         .join(idx, how="inner")
         .join(target.rename("geometry_right"), on="index_right", how="inner")
     )
     hits["distance"] = pg.distance(hits.geometry, hits.geometry_right)
+    hits = hits.loc[hits.distance <= distance].sort_values(by="distance")
 
     return (
         hits.drop(columns=["geometry", "geometry_right"])
         .rename(columns={"index_right": target.index.name or "index_right"})
-        .sort_values(by="distance")
         .copy()
     )
 
@@ -131,12 +131,12 @@ def nearest(source, target, distance):
 
     # results coming from near() already sorted by distance
 
-    # TODO: fix this; reset_index() fails if this is empty
-
     return (
         near(source, target, distance).reset_index().groupby(source_index_name).first()
     )
 
+
+def neighborhoods(source, tolerance=100):
     """Find the neighborhoods for a given set of geometries.
     Neighborhoods are those where geometries overlap by distance; this gets
     at the outer neighborhood: if A,B; A,C; and C,D are each neighbors
@@ -153,10 +153,6 @@ def nearest(source, target, distance):
     Series
         returns neighborhoods ("group") indexed by original series index
     """
-
-
-def neighborhoods(source, tolerance=100):
-
     index_name = source.index.name or "index"
 
     nearby = near(source, source, distance=tolerance)
