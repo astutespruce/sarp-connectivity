@@ -8,46 +8,54 @@ Floodplain stats were generated in ArcGIS by
 Note: some catchments have no floodplain, and some have floodplains but no NHDPlusID (outside HUC4s we processed).  These are filtered out.
 """
 
+import re
 from pathlib import Path
 from time import time
+
 import pandas as pd
 import geopandas as gp
+from pyogrio import read_dataframe, list_layers
 
-from nhdnet.io import serialize_df
-from analysis.constants import REGIONS, REGION_GROUPS
+# NLCD natural landcover classes
+# descriptions here: https://www.mrlc.gov/data/legends/national-land-cover-database-2016-nlcd2016-legend
+NATURAL_TYPES = {11, 12, 31, 41, 42, 43, 51, 52, 71, 72, 73, 74, 90, 95}
 
 
-floodplains_dir = Path("data/floodplains")
-src_dir = floodplains_dir / "source"
-out_dir = floodplains_dir
-gdb_filename = "FloodplainStats2019.gdb"
-lyr = "Region{HUC2}_floodplain"
+data_dir = Path("data")
+src_dir = data_dir / "floodplains"
+gdb_filename = src_dir / "NLCD2016_Floodplain_Stats_2020_12072020.gdb"
+
+
+# layers have varying names, make a lookup from them
+layers = list_layers(gdb_filename)[:, 0]
+layers = {re.search("\d+", l).group()[-2:]: l for l in layers}
+
+
+huc4_df = pd.read_feather(
+    data_dir / "boundaries/huc4.feather", columns=["HUC2", "HUC4"]
+)
+# Convert to dict of sorted HUC4s per HUC2
+units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
+
 
 start = time()
 
-merged = None
-for group in REGION_GROUPS:
-    for HUC2 in REGION_GROUPS[group]:
-        print("Process floodplain stats for {}".format(HUC2))
-        df = gp.read_file(src_dir / gdb_filename, layer=lyr.format(HUC2=HUC2))[
-            ["NHDPlusID", "VALUE_0", "VALUE_1"]
-        ]
-        # Drop any entries that do not have a floodplain
-        df = df.dropna(subset=["NHDPlusID", "VALUE_0"])
-        df.NHDPlusID = df.NHDPlusID.astype("uint64")
-        df["HUC2"] = HUC2
+for huc2 in units.keys():
+    print(f"Processing floodplain stats for {huc2}")
 
-        # calculate total floodplain area and amount in natural landcover
-        # Note: VALUE_0 and VALUE_1 are in sq meters
-        df["floodplain_km2"] = (df["VALUE_0"] + df["VALUE_1"]) * 1e-6
-        df["nat_floodplain_km2"] = df["VALUE_1"] * 1e-6
+    out_dir = data_dir / f"nhd/clean/{huc2}"
 
-        df = df[["NHDPlusID", "HUC2", "floodplain_km2", "nat_floodplain_km2"]]
+    df = read_dataframe(gdb_filename, layer=layers[huc2])
+    df["HUC2"] = huc2
+    df["NHDPlusID"] = df.NHDIDSTR.astype("uint64")
+    cols = [c for c in df.columns if c.startswith("VALUE_")]
+    natural_cols = [c for c in cols if int(c.split("_")[1]) in NATURAL_TYPES]
 
-        if merged is None:
-            merged = df
-        else:
-            merged = merged.append(df, ignore_index=True, sort=False)
+    df["floodplain_km2"] = df[cols].sum(axis=1) * 1e-6
+    df["nat_floodplain_km2"] = df[natural_cols].sum(axis=1) * 1e-6
 
-serialize_df(merged, out_dir / "floodplain_stats.feather", index=False)
+    df[["NHDPlusID", "HUC2", "nat_floodplain_km2", "floodplain_km2"]].to_feather(
+        out_dir / "floodplain_stats.feather"
+    )
+
 print("Done in {:.2f}".format(time() - start))

@@ -155,11 +155,11 @@ Run `find_nhd_dams.py` to extract NHD dams from `nhd_lines.feather` and `nhd_are
 8. A representative point is extracted for the lowest downstream segment; typically this is the furthest upstream or downstream point along that line or the portion of that line that intersects with the NHD dam feature.
 9. Dams are attributed to the nearest waterbody or drain point (within 250m).
 
-WARNING: there are data issues apparent in the NHD lines and areas. Some features are mis-coded (e.g. dikes parallel to flowlines rather than barriers), whereas others seem spurious and not validated by the satellite imagery for the same locatin.
+WARNING: there are data issues apparent in the NHD lines and areas. Some features are mis-coded (e.g. dikes parallel to flowlines rather than barriers), whereas others seem spurious and not validated by the satellite imagery for the same location.
 
 #### Outputs:
 
-This creates `data/nhd/merged/nhd_dams.feather`
+This creates `data/nhd/merged/nhd_dams_pt.feather`
 
 ### 8. Prepare floodplain metrics
 

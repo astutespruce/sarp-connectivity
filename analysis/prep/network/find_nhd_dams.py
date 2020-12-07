@@ -235,7 +235,7 @@ for huc2 in huc2s:
 
     dams.loc[nearest_drains.index, "wbID"] = nearest_drains.wbID
     print(
-        f"Found {len(nearest_drains):,} nearest neighbors in {time() - nearest_start:.2f}s"
+        f"Found {len(nearest_drains):,} nearest drain points in {time() - nearest_start:.2f}s"
     )
 
     print(f"{dams.wbID.isnull().sum():,} dams not associated with waterbodies")
