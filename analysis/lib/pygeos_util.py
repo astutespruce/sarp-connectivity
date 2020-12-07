@@ -90,6 +90,45 @@ def sjoin_geometry(left, right, predicate="intersects", how="inner"):
     return pd.Series(values, index=index, name="index_right")
 
 
+def find_contiguous_groups(df):
+    """Finds groups of inputs that are spatially contiguous (intersects predicate).
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+
+    Returns
+    -------
+    Series
+        indexed on original index of df, contains groups
+    """
+    index_name = df.index.name or "index"
+    df = df.reset_index()
+    geometry = pd.Series(df.geometry.values.data, index=df[index_name])
+    pairs = sjoin_geometry(geometry, geometry).reset_index()
+    pairs = pairs.loc[pairs[index_name] != pairs.index_right].reset_index(drop=True)
+
+    groups = connected_groups(pairs, make_symmetric=False).astype("uint32")
+    groups.index = groups.index.astype(df[index_name].dtype)
+    groups = groups.reset_index()
+
+    # extract unmodified (discontiguous) features
+    discontiguous = np.setdiff1d(df[index_name], groups[index_name])
+    next_group = groups.group.max().item() + 1 if len(groups) else 0
+    groups = groups.append(
+        pd.DataFrame(
+            {
+                index_name: discontiguous,
+                "group": np.arange(next_group, next_group + len(discontiguous)),
+            }
+        ),
+        ignore_index=True,
+        sort=False,
+    )
+
+    return groups.set_index(index_name).group
+
+
 def aggregate_contiguous(df, agg=None, buffer_size=None):
     """Dissolve contiguous (intersecting) features into singular geometries.
 
@@ -114,12 +153,6 @@ def aggregate_contiguous(df, agg=None, buffer_size=None):
     """
 
     index_name = df.index.name or "index"
-    df = df.reset_index()
-    geometry = pd.Series(df.geometry.values.data, index=df[index_name])
-    pairs = sjoin_geometry(geometry, geometry).reset_index()
-    pairs = pairs.loc[pairs[index_name] != pairs.index_right].reset_index(drop=True)
-
-    groups = connected_groups(pairs, make_symmetric=False)
 
     if agg is not None:
         if "geometry" in agg:
@@ -149,24 +182,24 @@ def aggregate_contiguous(df, agg=None, buffer_size=None):
                 g.values.data,
             )
             if len(g.values) > 1
-            else g.values.data[0]
+            else g.values.data[0]  # also picks up any ungrouped features
         )
 
-    # Note: this method is 5x faster than geopandas.dissolve (until it is migrated to use pygeos)
-    dissolved = (
-        df.set_index(index_name).join(groups, how="inner").groupby("group").agg(agg)
-    )
+    # set incoming index to nan when geometries are dissolved
+    agg[index_name] = lambda ix: np.nan if len(ix) > 1 else ix
 
-    dissolved = gp.GeoDataFrame(dissolved, geometry="geometry", crs=df.crs)
+    # df = df.reset_index()
+
+    df = df.join(find_contiguous_groups(df)).reset_index()
+
+    # Note: this method is 5x faster than geopandas.dissolve (until it is migrated to use pygeos)
+    dissolved = gp.GeoDataFrame(
+        df.groupby("group").agg(agg), geometry="geometry", crs=df.crs
+    )
     # flatten any multipolygons
     dissolved = explode(dissolved)
 
-    # extract unmodified (discontiguous) features
-    unmodified = df.loc[~df[index_name].isin(groups.index)]
-
-    return unmodified.append(dissolved, sort=False, ignore_index=True).set_index(
-        index_name
-    )
+    return dissolved.set_index(index_name)
 
 
 def explode(df, add_position=False):

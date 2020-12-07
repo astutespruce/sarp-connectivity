@@ -17,9 +17,8 @@ def connected_groups(pairs, make_symmetric=False):
 
     Returns
     -------
-    DataFrame
-        indexed on values of left and right side of pairs, contains "group"
-        column for groups of connected nodes.
+    Series
+        indexed on values of left and right side of pairs, contains groups.
     """
 
     def _all_adj(adj_matrix, node):
@@ -66,9 +65,14 @@ def connected_groups(pairs, make_symmetric=False):
             seen.update(adj_nodes)
             groups.append(adj_nodes)
 
+    if not len(groups):
+        groups = pd.Series([], dtype="uint32", name="group")
+        groups.index.name = left_name
+        return groups
+
     groups = pd.DataFrame(pd.Series(groups).apply(list).explode().rename("next_index"))
     groups.index.name = "group"
     groups = groups.reset_index().set_index("next_index")
-    groups.index.name = None
+    groups.index.name = left_name
 
-    return groups
+    return groups.group
