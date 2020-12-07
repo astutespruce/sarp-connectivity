@@ -40,15 +40,15 @@ nhd_lines = gp.read_feather(out_dir / "nhd_lines.feather")
 nhd_lines = nhd_lines.loc[
     (nhd_lines.FType.isin([343, 369, 398])) & nhd_lines.geometry.notnull()
 ].reset_index(drop=True)
-# create buffers (10m) to merge with NHD areas
+# create buffers (5m) to merge with NHD areas
 # from visual inspection, this helps coalesce those that are in pairs
-nhd_lines["geometry"] = pg.buffer(nhd_lines.geometry.values.data, 10, quadsegs=1)
+nhd_lines["geometry"] = pg.buffer(nhd_lines.geometry.values.data, 5, quadsegs=1)
 
 # All NHD areas indicate a dam-related feature
 nhd_areas = gp.read_feather(out_dir / "nhd_poly.feather")
 nhd_areas = nhd_areas.loc[nhd_areas.geometry.notnull()].reset_index(drop=True)
 # buffer polygons slightly so we can dissolve touching ones together.
-nhd_areas["geometry"] = pg.buffer(nhd_areas.geometry.values.data, 5)
+nhd_areas["geometry"] = pg.buffer(nhd_areas.geometry.values.data, 0.001)
 
 # Dissolve adjacent nhd lines and polygons together
 nhd_dams = nhd_lines.append(nhd_areas, ignore_index=True, sort=False)
@@ -103,19 +103,21 @@ for huc2 in huc2s:
         )
         .reset_index()
         .join(dams[["GNIS_Name", "geometry"]], on="damID")
-        .join(flowlines.geometry.rename("line"), on="lineID")
+        .join(flowlines.geometry.rename("flowline"), on="lineID")
     ).reset_index(drop=True)
     print("Join elapsed {:.2f}s".format(time() - join_start))
 
     print("Extracting intersecting flowlines...")
     # Only keep the joins for lines that significantly cross (have a line / multiline and not a point)
-    intersection = pg.intersection(dams.geometry.values.data, dams.line.values.data)
-    t = pg.get_type_id(intersection)
+    dams["clipped"] = pg.intersection(
+        dams.geometry.values.data, dams.flowline.values.data
+    )
+    t = pg.get_type_id(dams.clipped)
     dams = dams.loc[(t == 1) | (t == 5)].copy()
 
-    print("Deduplicating joins...")
-    # Some joins will have multiple flowlines
-    # aggregate these to their lowest common flowline
+    print("Deduplicating joins and taking furthest upstream point...")
+
+    # aggregate to their upstream-most segments
     j = find_joins(
         joins,
         dams.lineID.unique(),
@@ -123,7 +125,7 @@ for huc2 in huc2s:
         upstream_col="upstream_id",
     )
 
-    def find_downstreams(ids):
+    def find_upstreams(ids):
         if len(ids) == 1:
             return ids
 
@@ -132,15 +134,15 @@ for huc2 in huc2s:
             j, ids, downstream_col="downstream_id", upstream_col="upstream_id"
         )
         return dam_joins.loc[
-            dam_joins.upstream_id.isin(ids) & ~dam_joins.downstream_id.isin(ids)
-        ].upstream_id.unique()
+            dam_joins.downstream_id.isin(ids) & ~dam_joins.upstream_id.isin(ids)
+        ].downstream_id.unique()
 
     grouped = dams.groupby("damID")
     lines_by_dam = grouped.lineID.unique()
 
     # NOTE: downstreams is indexed on id, not dams.index
     downstreams = (
-        lines_by_dam.apply(find_downstreams)
+        lines_by_dam.apply(find_upstreams)
         .reset_index()
         .explode("lineID")
         .drop_duplicates()
@@ -247,10 +249,16 @@ for huc2 in huc2s:
 
 print("----------------------------------------------")
 
-dams = merged.reset_index(drop=True)
-dams = gp.GeoDataFrame(dams, geometry="geometry", crs=nhd_dams.crs)
-print("Found {:,} NHD dam / flowline crossings".format(len(dams)))
+dams = merged.reset_index(drop=True).join(
+    nhd_dams.drop(columns=["geometry"]), on="damID"
+)
+nhd_dams = nhd_dams.loc[nhd_dams.index.isin(dams.damID.unique())].reset_index()
 
+print(
+    f"Found {len(nhd_dams):,} NHD dams and {len(dams):,} NHD dam / flowline crossings"
+)
+
+dams = gp.GeoDataFrame(dams, geometry="geometry", crs=nhd_dams.crs)
 dams.damID = dams.damID.astype("uint32")
 dams.lineID = dams.lineID.astype("uint32")
 
@@ -258,7 +266,7 @@ print("Serializing...")
 dams.to_feather(out_dir / "nhd_dams_pt.feather")
 write_dataframe(dams, out_dir / "nhd_dams_pt.gpkg")
 
-nhd_dams = nhd_dams.loc[nhd_dams.index.isin(dams.damID.unique())].reset_index()
+
 nhd_dams.to_feather(out_dir / "nhd_dams_poly.feather")
 write_dataframe(nhd_dams, out_dir / "nhd_dams_poly.gpkg")
 
