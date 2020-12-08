@@ -1,50 +1,6 @@
 """Constants used in other scripts."""
 
 
-# Listing of official SARP states and territories
-# can be generated from the state polygon:
-# df = gp.read_file(intermediate_dir / "states_prj.shp")[['STUSPS', 'STATEFP', 'NAME']].set_index('STUSPS')
-# df = df.loc[df.index.isin(["AL","AR","FL","GA","KY","LA","MO","MS","NC","OK","PR","SC","TN","TX","VA"])].copy()
-# SARP_STATES = df.NAME.to_dict()
-# SARP_STATES_FIPS = df.STATEFP.to_list()
-
-# SARP_STATES = {
-#     "FL": "Florida",
-#     "NC": "North Carolina",
-#     "LA": "Louisiana",
-#     "GA": "Georgia",
-#     "AL": "Alabama",
-#     "TX": "Texas",
-#     "SC": "South Carolina",
-#     "OK": "Oklahoma",
-#     "TN": "Tennessee",
-#     "KY": "Kentucky",
-#     "AR": "Arkansas",
-#     "MS": "Mississippi",
-#     "MO": "Missouri",
-#     "PR": "Puerto Rico",
-#     "VA": "Virginia",
-# }
-
-# # FIPS codes for the above states
-# SARP_STATES_FIPS = [
-#     "01",
-#     "05",
-#     "12",
-#     "13",
-#     "21",
-#     "22",
-#     "28",
-#     "29",
-#     "37",
-#     "40",
-#     "45",
-#     "47",
-#     "48",
-#     "51",
-#     "72",
-# ]
-
 # Full Southeast + USFWS R2 / R6 region
 STATES = {
     "AL": "Alabama",
@@ -210,6 +166,10 @@ DAM_FS_COLS = [
     "ConstructionMaterial",
     "DB_Source",
     "Recon",
+    "PassageFacility",
+    "Hazard",
+    "BarrierStatus",
+    "StructureCategory",
     "PotentialFeasibility",  # only present in NC
 ]
 
@@ -228,6 +188,7 @@ DAM_COLS = [
     "ConstructionMaterial",
     "DB_Source",
     "Recon",
+    "PassageFacility",
     "PotentialFeasibility",
 ]
 
@@ -256,6 +217,13 @@ SMALL_BARRIER_COLS = [
     # "SARP_Score",
     # "SE_AOP",
     # "NumberRareSpeciesHUC12", # we add this later
+]
+
+WATERFALL_COLS = [
+    "fall_id",
+    "fall_type",
+    "Source",
+    "LocalID",
 ]
 
 
@@ -430,6 +398,19 @@ OWNERTYPE_TO_DOMAIN = {
 # Map of owner type domain above to whether or not the land is
 # considered public
 OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True}
+
+PASSAGEFACILITY_TO_DOMAIN = {
+    "Unknown or None": 0,
+    "Trap & Truck": 1,
+    "Fish Ladder - unspecified": 2,
+    "Locking": 3,
+    "Rock Rapids": 4,
+    "Eelway": 5,
+    "Alaskan Steepass": 6,
+    "Herring Passage": 7,
+    "Reservation": 8,
+    "Exemption": 9,
+}
 
 
 # NHDPlusIDs to exclude when extracting flowlines (e.g., )
