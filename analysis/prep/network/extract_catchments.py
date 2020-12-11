@@ -15,7 +15,7 @@ from analysis.constants import (
     SUBREGIONS,
     CRS,
 )
-from analysis.util import append
+from analysis.lib.util import append
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -128,4 +128,3 @@ for huc2 in huc2s:
 
 
 print("Done in {:.2f}s\n============================".format(time() - start))
-

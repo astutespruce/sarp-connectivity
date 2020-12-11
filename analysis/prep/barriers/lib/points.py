@@ -2,9 +2,10 @@ import geopandas as gp
 import pygeos as pg
 import pandas as pd
 import numpy as np
-import networkx as nx
 
-from analysis.pygeos_compat import to_pygeos, sjoin, sjoin_geometry
+
+from analysis.lib.network import connected_groups
+from analysis.lib.pygeos_util import sjoin_geometry
 
 
 def connect_points(start, end):
@@ -96,13 +97,13 @@ def near(source, target, distance):
         .join(idx, how="inner")
         .join(target.rename("geometry_right"), on="index_right", how="inner")
     )
+
     hits["distance"] = pg.distance(hits.geometry, hits.geometry_right)
-    hits = hits.loc[hits.distance <= distance].sort_values(by="distance")
 
     return (
         hits.drop(columns=["geometry", "geometry_right"])
         .rename(columns={"index_right": target.index.name or "index_right"})
-        .copy()
+        .sort_values(by="distance")
     )
 
 
@@ -129,8 +130,8 @@ def nearest(source, target, distance):
     """
     source_index_name = source.index.name or "index"
 
-    # results coming from near() already sorted by distance
-
+    # results coming from near() already sorted by distance, just take the first
+    # since this will be the nearest
     return (
         near(source, target, distance).reset_index().groupby(source_index_name).first()
     )
@@ -141,6 +142,8 @@ def neighborhoods(source, tolerance=100):
     Neighborhoods are those where geometries overlap by distance; this gets
     at the outer neighborhood: if A,B; A,C; and C,D are each neighbors
     the neighborhood is A,B,C,D.
+
+    WARNING: not all neighbors within a neighborhood are within distance of each other.
 
     Parameters
     ----------
@@ -155,21 +158,15 @@ def neighborhoods(source, tolerance=100):
     """
     index_name = source.index.name or "index"
 
-    nearby = near(source, source, distance=tolerance)
+    pairs = near(source, source, distance=tolerance)
 
     # drop self-intersections
-    nearby = nearby.loc[nearby.index != nearby[index_name]].rename(
-        columns={index_name: "index_right"}
+    pairs = (
+        pairs.loc[pairs.index != pairs[index_name]]
+        .rename(columns={index_name: "index_right"})
+        .index_right.reset_index()
     )
 
-    # Find all nodes that are neighbors of each other based on network adjacency
-    # WARNING: not all neighbors within a neighborhood are within distance of each other
-    network = nx.from_pandas_edgelist(nearby.reset_index(), index_name, "index_right")
-    components = pd.Series(nx.connected_components(network)).apply(list)
-    return (
-        pd.DataFrame(components.explode().rename("index_right"))
-        .reset_index()
-        .rename(columns={"index": "group", "index_right": index_name})
-        .set_index(index_name)
-        .group
-    )
+    groups = connected_groups(pairs, make_symmetric=False).astype("uint32")
+
+    return groups

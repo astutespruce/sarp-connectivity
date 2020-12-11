@@ -37,7 +37,7 @@ from analysis.constants import (
     WATERBODY_MIN_SIZE,
 )
 from analysis.pygeos_compat import sjoin_geometry
-from analysis.util import append
+from analysis.lib.util import append
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")

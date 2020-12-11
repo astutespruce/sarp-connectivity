@@ -1,10 +1,9 @@
 from pathlib import Path
-import geopandas as gp
-from geofeather.pygeos import from_geofeather
-from nhdnet.io import deserialize_df
 
-# from analysis.util import spatial_join
-from analysis.pygeos_compat import spatial_join
+import pandas as pd
+import geopandas as gp
+
+from analysis.lib.pygeos_util import unique_sjoin
 
 
 data_dir = Path("data")
@@ -25,14 +24,15 @@ def add_spatial_joins(df):
     """
 
     print("Joining to HUC12")
-    huc12 = from_geofeather(boundaries_dir / "HUC12.feather")
+    huc12 = gp.read_feather(
+        boundaries_dir / "HUC12.feather", columns=["geometry", "HUC12"]
+    )
 
-    df = spatial_join(df, huc12)
+    df = unique_sjoin(df, huc12)
 
     # Expected: not all barriers fall cleanly within the states dataset
-    print(
-        "{:,} barriers were not assigned HUC12".format(len(df.loc[df.HUC12.isnull()]))
-    )
+    if df.HUC12.isnull().sum():
+        print(f"{df.HUC12.isnull().sum():,} barriers were not assigned HUC12")
 
     # Calculate HUC codes for other levels from HUC12
     df["HUC2"] = df["HUC12"].str.slice(0, 2)  # region
@@ -41,46 +41,40 @@ def add_spatial_joins(df):
 
     # Read in HUC6 and join in basin name
     huc6 = (
-        from_geofeather(boundaries_dir / "HUC6.feather")[["HUC6", "NAME"]]
-        .rename(columns={"NAME": "Basin"})
+        pd.read_feather(boundaries_dir / "HUC6.feather", columns=["HUC6", "name"])
+        .rename(columns={"name": "Basin"})
         .set_index("HUC6")
     )
     df = df.join(huc6, on="HUC6")
 
     print("Joining to counties")
-    counties = from_geofeather(boundaries_dir / "counties.feather")[
-        ["geometry", "County", "COUNTYFIPS", "STATEFIPS"]
-    ]
+    counties = gp.read_feather(
+        boundaries_dir / "counties.feather",
+        columns=["geometry", "County", "COUNTYFIPS", "STATEFIPS"],
+    )
 
-    df = spatial_join(df, counties)
+    df = unique_sjoin(df, counties)
 
     # Join in state name based on STATEFIPS from county
-    states = deserialize_df(boundaries_dir / "states.feather")[
-        ["STATEFIPS", "State"]
-    ].set_index("STATEFIPS")
+    states = pd.read_feather(
+        boundaries_dir / "states.feather", columns=["STATEFIPS", "State"]
+    ).set_index("STATEFIPS")
     df = df.join(states, on="STATEFIPS")
 
     # Expected: not all barriers fall cleanly within the states dataset
-    print(
-        "{:,} barriers were not assigned states".format(
-            len(df.loc[df.STATEFIPS.isnull()])
-        )
-    )
+    if df.STATEFIPS.isnull().sum():
+        print(f"{df.STATEFIPS.isnull().sum():,} barriers were not assigned states")
 
     ### Level 3 & 4 Ecoregions
     print("Joining to ecoregions")
     # Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
-    eco4 = from_geofeather(boundaries_dir / "eco4.feather")[
-        ["geometry", "ECO3", "ECO4"]
-    ]
-    df = spatial_join(df, eco4)
+    eco4 = gp.read_feather(
+        boundaries_dir / "eco4.feather", columns=["geometry", "ECO3", "ECO4"]
+    )
+    df = unique_sjoin(df, eco4)
 
     # Expected: not all barriers fall cleanly within the ecoregions dataset
-    print(
-        "{:,} barriers were not assigned ecoregions".format(
-            len(df.loc[df.ECO4.isnull()])
-        )
-    )
+    if df.ECO4.isnull().sum():
+        print(f"{df.ECO4.isnull().sum():,} barriers were not assigned ecoregions")
 
     return df
-

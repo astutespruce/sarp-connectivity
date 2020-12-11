@@ -3,19 +3,16 @@ from time import time
 
 import numpy as np
 import geopandas as gp
-from geopandas import GeoDataFrame
 import pandas as pd
-from geofeather.pygeos import from_geofeather
-from pgpkg import to_gpkg
 import pygeos as pg
-from nhdnet.io import deserialize_gdf, deserialize_sindex
+from pyogrio import write_dataframe
 from nhdnet.geometry.lines import snap_to_line
 from nhdnet.geometry.points import snap_to_point
 
 from analysis.prep.barriers.lib.points import nearest, near, connect_points
-from analysis.pygeos_compat import to_gdf, sjoin
-from analysis.constants import CRS, REGION_GROUPS, REGIONS
-from analysis.util import ndarray_append_strings
+from analysis.lib.pygeos_util import sjoin
+from analysis.constants import CRS
+from analysis.lib.util import ndarray_append_strings
 
 # distance from edge of an NHD dam poly to be considered associated
 NHD_DAM_TOLERANCE = 50
@@ -52,13 +49,13 @@ def snap_to_nhd_dams(df, to_snap):
     print("Snapping to NHD dams...")
     # NOTE: id is not unique for points
     nhd_dams_poly = (
-        from_geofeather(nhd_dir / "merged" / "nhd_dams_poly.feather")
+        gp.read_feather(nhd_dir / "merged" / "nhd_dams_poly.feather")
         .rename(columns={"id": "damID"})
         .set_index("damID")
         .drop(columns=["index"], errors="ignore")
     )
     nhd_dams = (
-        from_geofeather(nhd_dir / "merged" / "nhd_dams_pt.feather")
+        gp.read_feather(nhd_dir / "merged" / "nhd_dams_pt.feather")
         .rename(columns={"id": "damID"})
         .set_index("damID")
         .drop(columns=["index"], errors="ignore")
@@ -163,9 +160,9 @@ def snap_to_waterbodies(df, to_snap):
     ### Attempt to snap to waterbody drain points for major waterbodies
     # Use larger tolerance for larger waterbodies
     print("Snapping to waterbodies and drain points..")
-    wb = from_geofeather(nhd_dir / "merged" / "waterbodies.feather").set_index("wbID")
+    wb = gp.read_feather(nhd_dir / "merged" / "waterbodies.feather").set_index("wbID")
     drains = (
-        from_geofeather(nhd_dir / "merged" / "waterbody_drain_points.feather")
+        gp.read_feather(nhd_dir / "merged" / "waterbody_drain_points.feather")
         .rename(columns={"id": "drainID"})
         .set_index("drainID")
     )
@@ -372,42 +369,40 @@ def snap_to_flowlines(df, to_snap):
         (df, to_snap)
     """
 
-    for region, HUC2s in list(REGION_GROUPS.items()):
+    for huc2 in sorted(df.HUC2.unique()):
         region_start = time()
 
-        print("\n----- {} ------\n".format(region))
+        print(f"----- {huc2} ------")
 
-        print("Reading flowlines...")
-        flowlines = from_geofeather(
-            nhd_dir / "clean" / region / "flowlines.feather"
+        flowlines = gp.read_feather(
+            nhd_dir / "clean" / huc2 / "flowlines.feather",
+            columns=["geometry", "lineID"],
         ).set_index("lineID")
 
-        in_region = to_snap.loc[to_snap.HUC2.isin(HUC2s)]
+        in_huc2 = to_snap.loc[to_snap.HUC2 == huc2].copy()
         print(
-            "Selected {:,} barriers in region to snap against {:,} flowlines".format(
-                len(in_region), len(flowlines)
-            )
+            f"Selected {len(in_huc2):,} barriers in region to snap against {len(flowlines):,} flowlines"
         )
-
-        if len(in_region) == 0:
-            print("No barriers in region to snap")
-            continue
 
         print("Finding nearest flowlines...")
         # TODO: can use near instead of nearest, and persist list of near lineIDs per barrier
         # so that we can construct subnetworks with just those
         lines = nearest(
-            in_region.geometry, flowlines.geometry, in_region.snap_tolerance
+            pd.Series(in_huc2.geometry.values.data, index=in_huc2.index),
+            pd.Series(flowlines.geometry.values.data, index=flowlines.index),
+            in_huc2.snap_tolerance.values,
         )
-        lines = lines.join(in_region.geometry).join(
-            flowlines.geometry.rename("line"), on="lineID",
+        lines = lines.join(in_huc2.geometry).join(
+            flowlines.geometry.rename("line"),
+            on="lineID",
         )
 
         # project the point to the line,
         # find out its distance on the line,
         # then interpolate its new coordinates
         lines["geometry"] = pg.line_interpolate_point(
-            lines.line, pg.line_locate_point(lines.line, lines.geometry)
+            lines.line.values.data,
+            pg.line_locate_point(lines.line.values.data, lines.geometry.values.data),
         )
 
         ix = lines.index
@@ -459,11 +454,11 @@ def snap_to_large_waterbodies(df, to_snap):
     tuple of (GeoDataFrame, DataFrame)
         (df, to_snap)
     """
-    wb = from_geofeather(nhd_dir / "merged" / "large_waterbodies.feather").set_index(
+    wb = gp.read_feather(nhd_dir / "merged" / "large_waterbodies.feather").set_index(
         "wbID"
     )
     drains = (
-        from_geofeather(nhd_dir / "merged" / "large_waterbody_drain_points.feather")
+        gp.read_feather(nhd_dir / "merged" / "large_waterbody_drain_points.feather")
         .rename(columns={"id": "drainID"})
         .set_index("drainID")
     )
@@ -665,22 +660,19 @@ def export_snap_dist_lines(df, original_locations, out_dir, prefix=""):
     tmp["new_pt"] = tmp.geometry.copy()
     tmp["geometry"] = connect_points(tmp.new_pt, tmp.orig_pt)
 
-    to_gpkg(
+    write_dataframe(
         tmp.drop(columns=["new_pt", "orig_pt"]).reset_index(drop=True),
         out_dir / "{}pre_snap_to_post_snap".format(prefix),
-        crs=CRS,
     )
-    to_gpkg(
+    write_dataframe(
         tmp.drop(columns=["geometry", "new_pt"])
         .rename(columns={"orig_pt": "geometry"})
         .reset_index(drop=True),
         out_dir / "{}pre_snap".format(prefix),
-        crs=CRS,
     )
-    to_gpkg(
+    write_dataframe(
         tmp.drop(columns=["geometry", "orig_pt"])
         .rename(columns={"new_pt": "geometry"})
         .reset_index(drop=True),
         out_dir / "{}post_snap".format(prefix),
-        crs=CRS,
     )

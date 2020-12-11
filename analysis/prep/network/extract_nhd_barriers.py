@@ -9,7 +9,7 @@ import pygeos as pg
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS
-from analysis.util import append
+from analysis.lib.util import append
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")

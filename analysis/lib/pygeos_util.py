@@ -14,8 +14,8 @@ def sjoin(left, right, predicate="intersects", how="left"):
 
     Parameters
     ----------
-    left : DataFrame containing pygeos geometry in "geometry" column
-    right : DataFrame containing pygeos geometry in "geometry" column
+    left : GeoDataFrame
+    right : GeoDataFrame
     predicate : str, optional (default "intersects")
     how : str, optional (default "left")
 
@@ -27,7 +27,12 @@ def sjoin(left, right, predicate="intersects", how="left"):
     """
 
     # spatial join is inner to avoid recasting indices to float
-    joined = sjoin_geometry(left.geometry, right.geometry, predicate, how="inner")
+    joined = sjoin_geometry(
+        pd.Series(left.geometry.values.data, index=left.index),
+        pd.Series(right.geometry.values.data, index=right.index),
+        predicate,
+        how="inner",
+    )
     joined = left.join(joined, how=how).join(
         right.drop(columns=["geometry"]), on="index_right", rsuffix="_right"
     )
@@ -90,6 +95,39 @@ def sjoin_geometry(left, right, predicate="intersects", how="inner"):
     return pd.Series(values, index=index, name="index_right")
 
 
+def unique_sjoin(left, right):
+    """Perfom a spatial join between left and right, then remove duplicate entries
+    for right by left (e.g., feature in left overlaps multiple features in right).
+
+    This is most appropriate where left is composed entirely of point features.
+
+    All joins use a left join and intersects predicate.
+
+    Parameters
+    ----------
+    left : GeoDataFrame
+    right : GeoDataFrame
+
+    Returns
+    -------
+    GeoDataFrame
+        includes non-geometry columns of right joined to left.
+    """
+    joined = sjoin(left, right).drop(columns=["index_right"])
+
+    grouped = joined.groupby(level=0)
+    if grouped.size().max() > 1:
+        print(
+            "WARNING: multiple target areas returned in spatial join for a single point"
+        )
+
+        # extract the right side indexed by the left, and take first record
+        right = grouped[[c for c in right.columns.drop("geometry")]].first()
+        joined = left.join(right)
+
+    return joined
+
+
 def find_contiguous_groups(df):
     """Finds groups of inputs that are spatially contiguous (intersects predicate).
 
@@ -103,7 +141,7 @@ def find_contiguous_groups(df):
         indexed on original index of df, contains groups
     """
     index_name = df.index.name or "index"
-    df = df.reset_index()
+    df = df.reset_index(drop=df.index.name in df.columns)
     geometry = pd.Series(df.geometry.values.data, index=df[index_name])
     pairs = sjoin_geometry(geometry, geometry).reset_index()
     pairs = pairs.loc[pairs[index_name] != pairs.index_right].reset_index(drop=True)
@@ -290,3 +328,46 @@ def cut_line_at_points(line, cut_points, tolerance=1e-6):
         lines.append(pg.linestrings(c))
 
     return pg.multilinestrings(lines)
+
+
+def dissolve(df, by, agg=None, allow_multi=True):
+    """Dissolve a DataFrame by grouping records using "by".
+
+    Contiguous or overlapping geometries will be unioned together.
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+    by : str
+        field to dissolve by
+    agg : dict, optional (default: None)
+        If present, is a dictionary of field names in df to agg operations.  Any
+        field not aggregated will be set to null in the appended dissolved records.
+    allow_multi : bool, optional (default: True)
+        If False, geometries will
+    """
+
+    if agg is not None:
+        if "geometry" in agg:
+            raise ValueError("Cannot use user-specified aggregator for geometry")
+    else:
+        agg = dict()
+
+    agg["geometry"] = (
+        lambda g: pg.union_all(
+            g.values.data,
+        )
+        if len(g.values) > 1
+        else g.values.data[0]  # also picks up any ungrouped features
+    )
+
+    # Note: this method is 5x faster than geopandas.dissolve (until it is migrated to use pygeos)
+    dissolved = gp.GeoDataFrame(
+        df.groupby(by).agg(agg).reset_index(), geometry="geometry", crs=df.crs
+    )
+
+    if not allow_multi:
+        # flatten any multipolygons
+        dissolved = explode(dissolved).reset_index(drop=True)
+
+    return dissolved

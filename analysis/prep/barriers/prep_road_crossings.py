@@ -24,7 +24,7 @@ from nhdnet.io import deserialize_df
 from nhdnet.geometry.points import add_lat_lon, mark_duplicates
 
 from analysis.constants import CRS
-from analysis.util import spatial_join
+from analysis.lib.util import spatial_join
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.rank.lib.spatial_joins import (
     add_spatial_joins as add_protectedland_priorities,

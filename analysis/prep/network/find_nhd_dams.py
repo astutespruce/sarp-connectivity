@@ -13,7 +13,7 @@ from nhdnet.nhd.joins import find_joins
 from analysis.lib.pygeos_util import sjoin_geometry
 
 from analysis.constants import CRS
-from analysis.util import append
+from analysis.lib.util import append
 from analysis.prep.barriers.lib.points import nearest
 from analysis.lib.pygeos_util import aggregate_contiguous
 

@@ -4,7 +4,7 @@ import os
 import geopandas as gp
 from pyogrio import write_dataframe
 
-from analysis.util import append
+from analysis.lib.util import append
 
 
 huc2s = [

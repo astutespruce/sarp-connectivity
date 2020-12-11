@@ -4,7 +4,7 @@ import geopandas as gp
 from geofeather import from_geofeather
 from nhdnet.io import deserialize_df
 
-from analysis.util import spatial_join
+from analysis.lib.util import spatial_join
 
 
 data_dir = Path("data")
@@ -42,4 +42,3 @@ def add_spatial_joins(df):
     df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")
 
     return df
-
