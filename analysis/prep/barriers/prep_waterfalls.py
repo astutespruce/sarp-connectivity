@@ -16,9 +16,11 @@ from time import time
 import pandas as pd
 import geopandas as gp
 import numpy as np
+from pyogrio import write_dataframe
 
 from analysis.constants import CRS
-from analysis.pygeos_compat import to_pygeos
+
+from analysis.lib.io import read_feathers
 from analysis.prep.barriers.lib.points import nearest
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.duplicates import find_duplicates
@@ -54,7 +56,9 @@ df = gp.read_feather(src_dir / "waterfalls.feather")
 ### Drop records that indicate waterfall is not likely a current fish passage barrier
 ix = df.fall_type.isin(["dam", "historical rapids", "historical waterfall", "rapids"])
 if ix.sum():
-    print(f"Dropping {ix.sum():,} waterfalls that are not likely to be barriers")
+    print(
+        f"Dropping {ix.sum():,} waterfalls that are not likely to be current barriers"
+    )
     df = df.loc[~ix].copy()
 
 
@@ -99,7 +103,7 @@ if drop_ix.sum():
 
 
 ### Snap waterfalls
-print("Snapping {len(df):,} waterfalls")
+print(f"Snapping {len(df):,} waterfalls")
 
 # snapped: records that snapped to the aquatic network and ready for network analysis
 df["snapped"] = False
@@ -155,9 +159,9 @@ print("Found {} waterfalls within {}m of dams".format(len(ix), DUPLICATE_TOLERAN
 
 
 ### Join to line atts
-flowlines = deserialize_dfs(
-    [nhd_dir / "clean" / region / "flowlines.feather" for region in REGION_GROUPS],
-    columns=["lineID", "NHDPlusID", "sizeclass", "streamorder", "loop", "waterbody"],
+flowlines = read_feathers(
+    [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
+    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop", "waterbody"],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
@@ -170,11 +174,10 @@ print("\n--------------\n")
 df = df.reset_index(drop=True)
 
 
-to_geofeather(df, master_dir / "waterfalls.feather")
+df.to_feather(master_dir / "waterfalls.feather")
 
 print("writing GIS for QA/QC")
-to_gpkg(df, qa_dir / "waterfalls")
-# to_shp(df, qa_dir / "waterfalls.shp")
+write_dataframe(df, qa_dir / "waterfalls")
 
 # Extract out only the snapped ones
 df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(
@@ -184,8 +187,7 @@ df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {0} snapped waterfalls".format(len(df)))
-to_geofeather(
-    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "waterbody"]],
+df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "waterbody"]].to_feather(
     snapped_dir / "waterfalls.feather",
 )
 

@@ -3,31 +3,36 @@ import pandas as pd
 import numpy as np
 
 
+# DEPRECATED
 def spatial_join(left, right):
-    left.sindex
-    right.sindex
+    raise NotImplementedError("Use different spatial_join function!")
 
-    joined = gp.sjoin(left, right, how="left").drop(columns=["index_right"])
 
-    # WARNING: some places have overlapping areas (e.g., protected areas), this creates extra records!
-    # Take the first entry in each case
-    grouped = joined.groupby(level=0)
-    if grouped.size().max() > 1:
-        print(
-            "WARNING: multiple target areas returned in spatial join for a single point"
-        )
+# def spatial_join(left, right):
+#     left.sindex
+#     right.sindex
 
-        # extract the right side indexed by the left, and take first record
-        right = grouped[
-            [c for c in right.columns if not c == right._geometry_column_name]
-        ].first()
-        joined = left.join(right)
+#     joined = gp.sjoin(left, right, how="left").drop(columns=["index_right"])
 
-    # pending https://github.com/geopandas/geopandas/issues/846
-    # we have to reassign the original index name
-    joined.index.name = left.index.name
+#     # WARNING: some places have overlapping areas (e.g., protected areas), this creates extra records!
+#     # Take the first entry in each case
+#     grouped = joined.groupby(level=0)
+#     if grouped.size().max() > 1:
+#         print(
+#             "WARNING: multiple target areas returned in spatial join for a single point"
+#         )
 
-    return joined
+#         # extract the right side indexed by the left, and take first record
+#         right = grouped[
+#             [c for c in right.columns if not c == right._geometry_column_name]
+#         ].first()
+#         joined = left.join(right)
+
+#     # pending https://github.com/geopandas/geopandas/issues/846
+#     # we have to reassign the original index name
+#     joined.index.name = left.index.name
+
+#     return joined
 
 
 def append(target_df, df):
@@ -92,4 +97,3 @@ def ndarray_append_strings(*args):
         result = result + get_str(args[i])
 
     return result
-

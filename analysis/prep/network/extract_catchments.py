@@ -11,8 +11,6 @@ from pyogrio import read_dataframe, write_dataframe
 from nhdnet.nhd.extract import extract_flowlines, extract_waterbodies
 
 from analysis.constants import (
-    REGIONS,
-    SUBREGIONS,
     CRS,
 )
 from analysis.lib.util import append

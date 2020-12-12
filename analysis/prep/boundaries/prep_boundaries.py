@@ -51,19 +51,18 @@ df = (
     read_dataframe(
         county_filename,
         columns=["NAME", "GEOID", "STATEFP"],
-        where=f"STATEFP IN {tuple(fips)}",
     )
     .to_crs(CRS)
     .rename(columns={"NAME": "County", "GEOID": "COUNTYFIPS", "STATEFP": "STATEFIPS"})
 )
 
-# keep only those within the region
+# keep only those within the region HUC4 outer boundary
 tree = pg.STRtree(df.geometry.values.data)
 ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
 ix.sort()
-
 df = df.iloc[ix].reset_index(drop=True)
 df.geometry = pg.make_valid(df.geometry.values.data)
+# keep larger set for spatial joins
 df.to_feather(out_dir / "counties.feather")
 
 # Subset these in the region and SARP for tiles
@@ -90,6 +89,7 @@ df = (
     .to_crs(CRS)
     .rename(columns={"NA_L3CODE": "ECO3", "US_L3NAME": "ECO3Name"})
 )
+
 
 tree = pg.STRtree(df.geometry.values.data)
 ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
@@ -144,6 +144,7 @@ df = (
     .to_crs(CRS)
     .rename(columns={"US_L4CODE": "ECO4", "US_L4NAME": "ECO4Name", "NA_L3CODE": "ECO3"})
 )
+
 
 tree = pg.STRtree(df.geometry.values.data)
 ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
@@ -339,4 +340,3 @@ for col in ["usfs", "coa", "sgcn"]:
 write_dataframe(
     df.rename(columns={"HUC8": "id"}), out_dir / "sarp_huc8_priorities.gpkg"
 )
-

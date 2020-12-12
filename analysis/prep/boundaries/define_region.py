@@ -10,9 +10,6 @@ from analysis.constants import STATES, SARP_STATES, CRS, GEO_CRS
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
-# HUC4s predetermined not to be in region
-EXCLUDE_HUC4 = ["0204"]
-
 data_dir = Path("data")
 out_dir = data_dir / "boundaries"
 
@@ -23,7 +20,10 @@ wbd_gdb = data_dir / "nhd/source/wbd/WBD_National_GDB/WBD_National_GDB.gdb"
 ### Construct region and SARP boundaries from states
 print("Processing states...")
 state_df = (
-    read_dataframe(state_filename, columns=["STUSPS", "STATEFP", "NAME"],)
+    read_dataframe(
+        state_filename,
+        columns=["STUSPS", "STATEFP", "NAME"],
+    )
     .to_crs(CRS)
     .rename(columns={"STUSPS": "id", "NAME": "State", "STATEFP": "STATEFIPS"})
 )
@@ -41,7 +41,9 @@ write_dataframe(
 
 # dissolve to create outer state boundary
 bnd_df = gp.GeoDataFrame(
-    {"geometry": pg.union_all(state_df.geometry.values.data)}, index=[0], crs=CRS,
+    {"geometry": pg.union_all(state_df.geometry.values.data)},
+    index=[0],
+    crs=CRS,
 )
 write_dataframe(bnd_df, out_dir / "region_boundary.gpkg")
 bnd = bnd_df.geometry.values.data[0]
@@ -62,7 +64,9 @@ write_dataframe(
 )
 
 sarp_bnd_df = gp.GeoDataFrame(
-    {"geometry": pg.union_all(sarp_state_df.geometry.values.data)}, index=[0], crs=CRS,
+    {"geometry": pg.union_all(sarp_state_df.geometry.values.data)},
+    index=[0],
+    crs=CRS,
 )
 write_dataframe(sarp_bnd_df, out_dir / "sarp_boundary.gpkg")
 sarp_bnd_df.to_feather(out_dir / "sarp_boundary.feather")
@@ -107,8 +111,7 @@ huc4_df = read_dataframe(wbd_gdb, layer="WBDHU4", columns=["huc4"]).rename(
     columns={"huc4": "HUC4"}
 )
 huc4_df["HUC2"] = huc4_df.HUC4.str[:2]
-huc4_df = huc4_df.loc[huc4_df.HUC2.isin(huc2)].to_crs(CRS)
-huc4_df = huc4_df.loc[~huc4_df.HUC4.isin(EXCLUDE_HUC4)].reset_index(drop=True)
+huc4_df = huc4_df.loc[huc4_df.HUC2.isin(huc2)].to_crs(CRS).reset_index(drop=True)
 
 # Extract HUC4s that intersect
 tree = pg.STRtree(huc4_df.geometry.values.data)
@@ -192,4 +195,3 @@ sarp_huc4_df.to_feather(out_dir / "sarp_huc4.feather")
 # sarp_huc4_bnd_df = gp.GeoDataFrame({"geometry": sarp_huc4_bnd}, crs=CRS)
 # write_dataframe(sarp_huc4_df, out_dir / "sarp_huc4_boundary.gpkg")
 # sarp_huc4_bnd_df.to_feather(out_dir / "sarp_huc4_boundary.feather")
-

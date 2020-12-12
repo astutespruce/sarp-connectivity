@@ -131,7 +131,7 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     pairs = pjoins.loc[pjoins.upstream_id.isin(pids) & pjoins.downstream_id.isin(pids)]
     groups = connected_groups(pairs, make_symmetric=True)
 
-    groups = groups.join(flowlines[["length"]])
+    groups = pd.DataFrame(groups).join(flowlines[["length"]])
     stats = groups.groupby("group").agg({"length": "sum"})
     drop_groups = stats.loc[stats.length >= max_pipeline_length].index
     drop_ids = groups.loc[groups.group.isin(drop_groups)].index
