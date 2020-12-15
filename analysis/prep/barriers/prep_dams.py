@@ -32,6 +32,7 @@ from analysis.prep.barriers.lib.points import (
     connect_points,
 )
 from analysis.prep.barriers.lib.snap import (
+    snap_estimated_dams_to_drains,
     snap_to_nhd_dams,
     snap_to_waterbodies,
     snap_to_flowlines,
@@ -203,7 +204,6 @@ ix = (
     (df.Name.str.count("Estimated Dam") > 0)
     | df.Source.str.lower().str.count("estimated")
     | (df.SourceDBID.str.startswith("e"))
-    | (df.SourceDBID.str.startswith("ed"))
 )
 df.loc[ix, "ManualReview"] = 20  # indicates estimated dam
 
@@ -334,9 +334,8 @@ original_locations = to_snap.copy()
 
 snap_start = time()
 
-# Snap estimated dams to the drain point of the waterbody that contains tehm
-
-
+# Snap estimated dams to the drain point of the waterbody that contains them, if possible
+df, to_snap = snap_estimated_dams_to_drains(df, to_snap)
 
 # Snap to NHD dams
 df, to_snap = snap_to_nhd_dams(df, to_snap)

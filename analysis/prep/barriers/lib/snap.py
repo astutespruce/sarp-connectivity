@@ -12,7 +12,7 @@ from nhdnet.geometry.points import snap_to_point
 from analysis.prep.barriers.lib.points import nearest, near, connect_points
 from analysis.lib.pygeos_util import sjoin
 from analysis.constants import CRS
-from analysis.lib.util import ndarray_append_strings
+from analysis.lib.util import ndarray_append_strings, append
 
 # distance from edge of an NHD dam poly to be considered associated
 NHD_DAM_TOLERANCE = 50
@@ -24,6 +24,87 @@ WB_DRAIN_MAX_TOLERANCE = 250
 NEAR_WB_TOLERANCE = 50
 
 nhd_dir = Path("data/nhd")
+
+
+def snap_estimated_dams_to_drains(df, to_snap):
+    snap_start = time()
+
+    estimated = to_snap.loc[to_snap.ManualReview == 20].copy()
+
+    merged = None
+    for huc2 in sorted(estimated.HUC2.unique()):
+        wb = gp.read_feather(
+            nhd_dir / "clean" / huc2 / "waterbodies.feather",
+            columns=["wbID", "geometry"],
+        ).set_index("wbID")
+        drains = gp.read_feather(
+            nhd_dir / "clean" / huc2 / "waterbody_drain_points.feather",
+            columns=["wbID", "lineID", "geometry"],
+        )
+        drains.index.name = "drainID"
+
+        in_huc2 = estimated.loc[estimated.HUC2 == huc2].copy()
+
+        # Take the first intersection with waterbodies to prevent creating
+        # duplicates
+        in_wb = (
+            sjoin(in_huc2, wb, how="inner", predicate="within")
+            .index_right.rename("wbID")
+            .groupby(level=0)
+            .first()
+        )
+
+        # for those in waterbodies, snap to the nearest non-loop drain point
+        in_wb = (
+            pd.DataFrame(in_wb)
+            .join(in_huc2.geometry)
+            .join(
+                drains[["wbID", "lineID", "geometry"]]
+                .reset_index()
+                .set_index("wbID")
+                .rename(columns={"geometry": "drain"}),
+                on="wbID",
+            )
+        )
+        in_wb["snap_dist"] = pg.distance(
+            in_wb.geometry.values.data, in_wb.drain.values.data
+        )
+        grouped = in_wb.sort_values(by="snap_dist").groupby(level=0)
+        in_wb = grouped.first()
+
+        # any waterbodies that have > 2 drains are dubious fits; remove them
+        s = grouped.size()
+        ix = s[s > 2].index
+        in_wb = in_wb.loc[~in_wb.index.isin(ix)].copy()
+
+        # any that are >2,000m away are likely incorrect; some ones near that length are OK
+        in_wb = in_wb.loc[in_wb.snap_dist <= 2000].copy()
+
+        merged = append(merged, in_wb)
+
+        print(
+            f"HUC {huc2}: snapped {len(in_wb):,} of {len(in_huc2):,} estimated dams in region to waterbody drain points"
+        )
+
+    in_wb = merged
+
+    ix = in_wb.index
+    df.loc[ix, "snapped"] = True
+    df.loc[ix, "geometry"] = in_wb.drain
+    df.loc[ix, "snap_dist"] = in_wb.snap_dist
+    df.loc[ix, "snap_ref_id"] = in_wb.drainID
+    df.loc[ix, "lineID"] = in_wb.lineID
+    df.loc[ix, "wbID"] = in_wb.wbID
+    df.loc[
+        ix, "snap_log"
+    ] = "snapped: estimated dam in waterbody snapped to nearest drain point"
+
+    to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
+    print(
+        f"Snapped {len(ix):,} estimated dams to waterbody drain points in {time() - snap_start:.2f}s"
+    )
+
+    return df, to_snap
 
 
 def snap_to_nhd_dams(df, to_snap):
@@ -67,7 +148,9 @@ def snap_to_nhd_dams(df, to_snap):
     # Those that have multiple dams nearby are usually part of a dam complex
     snap_start = time()
     near_nhd = nearest(
-        to_snap.geometry, nhd_dams_poly.geometry, distance=NHD_DAM_TOLERANCE
+        pd.Series(to_snap.geometry.values.data, index=to_snap.index),
+        pd.Series(nhd_dams_poly.geometry.values.data, index=nhd_dams_poly.index),
+        distance=NHD_DAM_TOLERANCE,
     )[["damID"]]
 
     # snap to nearest dam point for that dam (some are > 1 km away)
@@ -75,7 +158,9 @@ def snap_to_nhd_dams(df, to_snap):
     near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(
         nhd_dams, on="damID"
     )
-    near_nhd["snap_dist"] = pg.distance(near_nhd.geometry, near_nhd.source_pt)
+    near_nhd["snap_dist"] = pg.distance(
+        near_nhd.geometry.values.data, near_nhd.source_pt.values.data
+    )
     near_nhd = (
         near_nhd.reset_index().sort_values(by=["id", "snap_dist"]).groupby("id").first()
     )
@@ -373,6 +458,7 @@ def snap_to_flowlines(df, to_snap):
         region_start = time()
 
         print(f"----- {huc2} ------")
+        print("Reading flowlines...")
 
         flowlines = gp.read_feather(
             nhd_dir / "clean" / huc2 / "flowlines.feather",

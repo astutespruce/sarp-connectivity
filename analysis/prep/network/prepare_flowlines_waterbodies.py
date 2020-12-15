@@ -38,7 +38,6 @@ from nhdnet.nhd.joins import remove_joins
 
 from analysis.constants import (
     CRS,
-    EXCLUDE_IDS,
     CONVERT_TO_NONLOOP,
     MAX_PIPELINE_LENGTH,
     WATERBODY_MIN_SIZE,
@@ -69,12 +68,12 @@ units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
 # manually subset keys from above for processing
 huc2s = [
-    # "02",
-    # "03",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
+    "02",
+    "03",
+    "05",
+    "06",
+    "07",
+    "08",
     "09",
     "10",
     "11",
@@ -115,8 +114,9 @@ for huc2 in huc2s:
     )
 
     ### Manual fixes for flowlines
-    exclude_ids = EXCLUDE_IDS.get(huc2, [])
-    if exclude_ids:
+    remove_filename = src_dir / huc2 / "remove_flowlines.feather"
+    if remove_filename.exists():
+        exclude_ids = pd.read_feather(remove_filename).NHDPlusID.unique()
         flowlines, joins = remove_flowlines(flowlines, joins, exclude_ids)
         print(
             "Removed {:,} excluded flowlines, now have {:,}".format(
@@ -195,6 +195,8 @@ for huc2 in huc2s:
     joins.reset_index(drop=True).to_feather(huc2_dir / "flowline_joins.feather")
 
     print("Serializing {:,} waterbodies".format(len(waterbodies)))
+    # waterbodies are losing their CRS somewhere along the way, not sure why it is failing here
+    waterbodies.set_crs(flowlines.crs, inplace=True)
     waterbodies = waterbodies.reset_index()
     waterbodies.to_feather(huc2_dir / "waterbodies.feather")
     write_dataframe(waterbodies, huc2_dir / "waterbodies.gpkg")
