@@ -12,6 +12,7 @@ This creates 2 files:
 
 from pathlib import Path
 from time import time
+import warnings
 
 import pandas as pd
 import geopandas as gp
@@ -21,11 +22,12 @@ from pyogrio import write_dataframe
 from analysis.constants import CRS
 
 from analysis.lib.io import read_feathers
-from analysis.prep.barriers.lib.points import nearest
+from analysis.lib.pygeos_util import nearest
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.duplicates import find_duplicates
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 # Snap waterfalls by 100 meters
 SNAP_TOLERANCE = 100
@@ -147,7 +149,7 @@ print(
 dams = gp.read_feather(master_dir / "dams.feather", columns=["geometry"])
 near_dams = nearest(
     pd.Series(df.geometry.values.data, index=df.index),
-    dams.geometry,
+    pd.Series(dams.geometry.values.data, index=dams.index),
     DUPLICATE_TOLERANCE,
 )
 
@@ -161,11 +163,14 @@ print("Found {} waterfalls within {}m of dams".format(len(ix), DUPLICATE_TOLERAN
 ### Join to line atts
 flowlines = read_feathers(
     [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
-    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop", "waterbody"],
+    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop"],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
+
+# Fix missing field values
 df["loop"] = df.loop.fillna(False)
+df["sizeclass"] = df.sizeclass.fillna("")
 
 print(df.groupby("loop").size())
 
@@ -177,7 +182,7 @@ df = df.reset_index(drop=True)
 df.to_feather(master_dir / "waterfalls.feather")
 
 print("writing GIS for QA/QC")
-write_dataframe(df, qa_dir / "waterfalls")
+write_dataframe(df, qa_dir / "waterfalls.gpkg")
 
 # Extract out only the snapped ones
 df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(
@@ -187,8 +192,10 @@ df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {0} snapped waterfalls".format(len(df)))
-df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "waterbody"]].to_feather(
+df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop"]].to_feather(
     snapped_dir / "waterfalls.feather",
 )
+
+write_dataframe(df, qa_dir / "snapped_waterfalls.gpkg")
 
 print("All done in {:.2f}s".format(time() - start))

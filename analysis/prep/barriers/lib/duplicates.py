@@ -3,8 +3,7 @@ import geopandas as gp
 import pygeos as pg
 from pyogrio import write_dataframe
 
-from analysis.prep.barriers.lib.points import neighborhoods
-from analysis.lib.pygeos_util import dissolve
+from analysis.lib.pygeos_util import dissolve, neighborhoods
 from analysis.constants import CRS, ONSTREAM_MANUALREVIEW
 
 
@@ -64,9 +63,16 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
 
     # Drop all records from any groups that have a dropped record
     # UNLESS the one being kept is manually reviewed and not dropped
-    trusted_keepers = keep.loc[
-        keep.ManualReview.isin(ONSTREAM_MANUALREVIEW) & ~keep.dropped
-    ]
+
+    keep_ix = keep.ManualReview.isin(ONSTREAM_MANUALREVIEW) & ~keep.dropped
+
+    # Also keep any small barriers that were not specifically excluded or dropped
+    # because they are individually evaluated
+    if "SeverityClass" in df.columns:
+        keep_ix = keep_ix | keep.id.isin(df.loc[~(df.dropped | df.excluded)].index)
+
+    trusted_keepers = keep.loc[keep_ix]
+
     drop_groups = grouped.dropped.max()
     drop_groups = drop_groups.loc[
         drop_groups & ~drop_groups.index.isin(trusted_keepers.index)
@@ -89,7 +95,7 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
 
     count_excluded = len(df.loc[df.dup_group.isin(exclude_groups) & ~df.excluded])
     print(
-        f"Excluded {count_excluded:,} dams that were in duplicate groups with dams that were excluded"
+        f"Excluded {count_excluded:,} barriers that were in duplicate groups with barriers that were excluded"
     )
 
     ix = df.dup_group.isin(exclude_groups)
@@ -110,6 +116,8 @@ def export_duplicate_areas(dups, path):
     path : str or Path
         output path
     """
+
+    print("Exporting duplicate areas")
 
     dups = dups.copy()
     dups["geometry"] = pg.buffer(dups.geometry.values.data, dups.dup_tolerance)

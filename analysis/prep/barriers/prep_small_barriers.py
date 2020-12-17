@@ -28,7 +28,6 @@ import geopandas as gp
 import numpy as np
 from pyogrio import write_dataframe
 
-from analysis.prep.barriers.lib.points import nearest
 from analysis.prep.barriers.lib.snap import snap_to_flowlines, export_snap_dist_lines
 from analysis.prep.barriers.lib.duplicates import (
     find_duplicates,
@@ -36,9 +35,8 @@ from analysis.prep.barriers.lib.duplicates import (
 )
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.lib.io import read_feathers
+from analysis.lib.pygeos_util import nearest
 from analysis.constants import (
-    REGION_GROUPS,
-    REGIONS,
     CRS,
     KEEP_POTENTIAL_PROJECT,
     DROP_POTENTIAL_PROJECT,
@@ -275,13 +273,17 @@ print(f"Found {len(ix)} small barriers within {DUPLICATE_TOLERANCE}m of dams")
 flowlines = read_feathers(
     [
         nhd_dir / "clean" / huc2 / "flowlines.feather"
-        for huc2 in df.HUC2.dropna().unique()
+        for huc2 in df.HUC2.unique()
+        if huc2
     ],
-    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop", "waterbody"],
+    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop"],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
+
+# Fix missing field values
 df["loop"] = df.loop.fillna(False)
+df["sizeclass"] = df.sizeclass.fillna("")
 
 print(df.groupby("loop").size())
 
@@ -291,10 +293,7 @@ df = df.reset_index(drop=True)
 
 print("Serializing {:,} small barriers".format(len(df)))
 df.to_feather(master_dir / "small_barriers.feather")
-
-
-print("writing GIS for QA/QC")
-write_dataframe(df, qa_dir / "small_barriers")
+write_dataframe(df, qa_dir / "small_barriers.gpkg")
 
 
 # Extract out only the snapped ones
@@ -305,8 +304,9 @@ df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped small barriers".format(len(df)))
-df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "waterbody"]].to_feather(
+df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop"]].to_feather(
     snapped_dir / "small_barriers.feather",
 )
+write_dataframe(df, qa_dir / "snapped_small_barriers.gpkg")
 
 print("All done in {:.2f}s".format(time() - start))

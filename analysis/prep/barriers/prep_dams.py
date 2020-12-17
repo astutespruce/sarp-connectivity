@@ -26,12 +26,6 @@ import geopandas as gp
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 
-from analysis.prep.barriers.lib.points import (
-    nearest,
-    near,
-    neighborhoods,
-    connect_points,
-)
 from analysis.prep.barriers.lib.snap import (
     snap_estimated_dams_to_drains,
     snap_to_nhd_dams,

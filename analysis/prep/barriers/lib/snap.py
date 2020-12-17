@@ -7,8 +7,8 @@ import pandas as pd
 import pygeos as pg
 from pyogrio import write_dataframe
 
-from analysis.prep.barriers.lib.points import nearest, near, connect_points
-from analysis.lib.pygeos_util import sjoin
+from analysis.prep.barriers.lib.points import connect_points
+from analysis.lib.pygeos_util import sjoin, nearest, near
 from analysis.constants import CRS
 from analysis.lib.util import ndarray_append_strings, append
 from analysis.lib.io import read_feathers
@@ -549,6 +549,9 @@ def export_snap_dist_lines(df, original_locations, out_dir, prefix=""):
     prefix : str
         prefix to add to filename
     """
+
+    print("Exporting snap review datasets...")
+
     tmp = df.loc[
         df.snapped, ["geometry", "Name", "SARPID", "snapped", "snap_dist", "snap_log"]
     ].join(original_locations.geometry.rename("orig_pt"))
