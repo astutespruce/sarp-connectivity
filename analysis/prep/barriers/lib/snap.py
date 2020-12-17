@@ -9,7 +9,7 @@ from pyogrio import write_dataframe
 
 from analysis.prep.barriers.lib.points import nearest, near, connect_points
 from analysis.lib.pygeos_util import sjoin
-from analysis.constants import CRS, LARGE_WB_AREA, LARGE_WB_FLOWLINE_LENGTH
+from analysis.constants import CRS
 from analysis.lib.util import ndarray_append_strings, append
 from analysis.lib.io import read_feathers
 
@@ -180,7 +180,6 @@ def snap_to_nhd_dams(df, to_snap):
     # most of these should have been picked up above
     snap_start = time()
     tmp = nhd_dams.reset_index()  # reset index so we have unique index to join on
-    tmp.index
     near_nhd = nearest(
         pd.Series(to_snap.geometry.values.data, index=to_snap.index),
         pd.Series(tmp.geometry.values.data, index=tmp.index),
@@ -188,7 +187,7 @@ def snap_to_nhd_dams(df, to_snap):
     ).rename(columns={"distance": "snap_dist"})
 
     near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(
-        tmp, on=tmp.index.name
+        tmp, on="index_right"
     )
     near_nhd = (
         near_nhd.reset_index().sort_values(by=["id", "snap_dist"]).groupby("id").first()

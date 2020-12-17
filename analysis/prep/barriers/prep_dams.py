@@ -146,10 +146,6 @@ df = df.drop(columns=[c for c in df.columns if c.endswith("_snap")])
 df = df.reset_index(drop=True)
 print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df)))
 
-# FIXME:
-# df = df.loc[df.SourceState == "PR"].copy()
-
-
 ### Add IDs for internal use
 # internal ID
 df["id"] = df.index.astype("uint32")
@@ -158,7 +154,7 @@ df = df.set_index("id", drop=False)
 
 ######### Fix data issues
 ### Set data types
-for column in ("River", "NIDID", "Source", "Name", "OtherName"):
+for column in ("River", "NIDID", "Source", "Name", "OtherName", "SourceState"):
     df[column] = df[column].fillna("").str.strip()
 
 for column in (
@@ -358,14 +354,11 @@ snap_start = time()
 
 print("-----------------")
 
-# FIXME:
-to_snap.to_feather("/tmp/to_snap.feather")
-
 
 # Snap estimated dams to the drain point of the waterbody that contains them, if possible
 df, to_snap = snap_estimated_dams_to_drains(df, to_snap)
 
-# Snap to NHD dams
+# # Snap to NHD dams
 df, to_snap = snap_to_nhd_dams(df, to_snap)
 
 # Snap to waterbodies
@@ -380,8 +373,6 @@ print("---------------------------------")
 print("\nSnapping statistics")
 print(df.groupby("snap_log").size())
 print("---------------------------------\n")
-
-print(df.loc[df.geometry.isnull()])
 
 
 ### Save results from snapping for QA
@@ -455,7 +446,8 @@ export_duplicate_areas(dups, qa_dir / "dams_duplicate_areas.gpkg")
 flowlines = read_feathers(
     [
         nhd_dir / "clean" / huc2 / "flowlines.feather"
-        for huc2 in df.HUC2.dropna().unique()
+        for huc2 in df.HUC2.unique()
+        if huc2
     ],
     columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop"],
 ).set_index("lineID")
