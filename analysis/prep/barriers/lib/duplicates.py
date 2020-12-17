@@ -1,4 +1,5 @@
 import pandas as pd
+import geopandas as gp
 import pygeos as pg
 from pyogrio import write_dataframe
 
@@ -99,7 +100,7 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
 
 
 def export_duplicate_areas(dups, path):
-    """Export duplicate barriers to a geopackage for QA.
+    """Export duplicate barriers for QA.
 
     Parameters
     ----------

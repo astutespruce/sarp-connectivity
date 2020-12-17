@@ -93,12 +93,15 @@ def near(source, target, distance):
     # Get all indices from target_values that intersect buffers of input geometry
     idx = sjoin_geometry(pg.buffer(source, distance), target)
     hits = (
-        pd.DataFrame(source.rename("geometry"))
-        .join(idx, how="inner")
+        pd.DataFrame(idx)
+        .join(source.rename("geometry"), how="inner")
         .join(target.rename("geometry_right"), on="index_right", how="inner")
     )
+    # this changes the index if hits is empty, causing downstream problems
+    if not len(hits):
+        hits.index.name = idx.index.name
 
-    hits["distance"] = pg.distance(hits.geometry, hits.geometry_right)
+    hits["distance"] = pg.distance(hits.geometry, hits.geometry_right).astype("float32")
 
     return (
         hits.drop(columns=["geometry", "geometry_right"])
@@ -128,13 +131,11 @@ def nearest(source, target, distance):
         nearest target geom.
         Includes distance
     """
-    source_index_name = source.index.name or "index"
 
     # results coming from near() already sorted by distance, just take the first
     # since this will be the nearest
-    return (
-        near(source, target, distance).reset_index().groupby(source_index_name).first()
-    )
+
+    return near(source, target, distance).groupby(level=0).first()
 
 
 def neighborhoods(source, tolerance=100):

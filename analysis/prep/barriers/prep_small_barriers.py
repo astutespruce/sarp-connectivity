@@ -21,15 +21,13 @@ This creates several QA/QC files:
 
 from pathlib import Path
 from time import time
+import warnings
+
 import pandas as pd
-from geofeather.pygeos import to_geofeather, from_geofeather
 import geopandas as gp
 import numpy as np
-from pgpkg import to_gpkg
+from pyogrio import write_dataframe
 
-from nhdnet.io import deserialize_dfs
-
-from analysis.pygeos_compat import to_pygeos
 from analysis.prep.barriers.lib.points import nearest
 from analysis.prep.barriers.lib.snap import snap_to_flowlines, export_snap_dist_lines
 from analysis.prep.barriers.lib.duplicates import (
@@ -37,6 +35,7 @@ from analysis.prep.barriers.lib.duplicates import (
     export_duplicate_areas,
 )
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
+from analysis.lib.io import read_feathers
 from analysis.constants import (
     REGION_GROUPS,
     REGIONS,
@@ -50,6 +49,8 @@ from analysis.constants import (
     ROAD_TYPE_TO_DOMAIN,
     CROSSING_TYPE_TO_DOMAIN,
 )
+
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 # Snap barriers by 50 meters
 SNAP_TOLERANCE = 50
@@ -67,8 +68,8 @@ qa_dir = barriers_dir / "qa"
 
 start = time()
 
-df = from_geofeather(src_dir / "sarp_small_barriers.feather")
-print("Read {:,} small barriers".format(len(df)))
+df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
+print(f"Read {len(df):,} small barriers")
 
 ### Add IDs for internal use
 # internal ID
@@ -90,7 +91,9 @@ df.loc[
     (~df.Stream.isin(["Unknown", "Unnamed", ""]))
     & (~df.Road.isin(["Unknown", "Unnamed", ""])),
     "Name",
-] = (df.Stream + " / " + df.Road)
+] = (
+    df.Stream + " / " + df.Road
+)
 df.Name = df.Name.fillna("")
 
 
@@ -122,6 +125,21 @@ df["RoadTypeClass"] = df.RoadType.map(ROAD_TYPE_TO_DOMAIN)
 ### Spatial joins
 df = add_spatial_joins(df)
 
+# Cleanup HUC, state, county, and ecoregion columns that weren't assigned
+for col in [
+    "HUC2",
+    "HUC6",
+    "HUC8",
+    "HUC12",
+    "Basin",
+    "County",
+    "COUNTYFIPS",
+    "STATEFIPS",
+    "State",
+    "ECO3",
+    "ECO4",
+]:
+    df[col] = df[col].fillna("")
 
 ### Add tracking fields
 # master log field for status
@@ -133,64 +151,50 @@ df["dropped"] = False
 df["excluded"] = False
 
 # Drop any that didn't intersect HUCs or states
-drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()
-print("{:,} small barriers are outside HUC12 / states".format(len(df.loc[drop_idx])))
+drop_ix = (df.HUC12 == "") | (df.STATEFIPS == "")
+print(f"{drop_ix.sum():,} small barriers are outside HUC12 / states")
 # Mark dropped barriers
-df.loc[drop_idx, "dropped"] = True
-df.loc[drop_idx, "log"] = "dropped: outside HUC12 / states"
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 
 ### Drop any small barriers that should be completely dropped from analysis
 # based on manual QA/QC
-drop_idx = df.PotentialProject.isin(DROP_POTENTIAL_PROJECT)
+drop_ix = df.PotentialProject.isin(DROP_POTENTIAL_PROJECT)
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = f"dropped: PotentialProject one of {DROP_POTENTIAL_PROJECT}"
 print(
-    "Dropped {:,} small barriers from all analysis and mapping based on PotentialProject".format(
-        len(df.loc[drop_idx])
-    )
-)
-df.loc[drop_idx, "dropped"] = True
-df.loc[drop_idx, "log"] = "dropped: PotentialProject one of".format(
-    DROP_POTENTIAL_PROJECT
+    f"Dropped {drop_ix.sum():,} small barriers from all analysis and mapping based on PotentialProject"
 )
 
-drop_idx = df.ManualReview.isin(DROP_MANUALREVIEW)
+drop_ix = df.ManualReview.isin(DROP_MANUALREVIEW)
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = f"dropped: ManualReview one of {DROP_MANUALREVIEW}"
 print(
-    "Dropped {:,} small barriers from all analysis and mapping based on ManualReview".format(
-        len(df.loc[drop_idx])
-    )
+    f"Dropped {drop_ix.sum():,} small barriers from all analysis and mapping based on ManualReview"
 )
-df.loc[drop_idx, "dropped"] = True
-df.loc[drop_idx, "log"] = "dropped: ManualReview one of {}".format(DROP_MANUALREVIEW)
-
 
 ### Exclude barriers that should not be analyzed or prioritized based on manual QA
-exclude_idx = ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT)
-print(
-    "Excluded {:,} small barriers from network analysis and prioritization based on PotentialProject".format(
-        len(df.loc[exclude_idx])
-    )
-)
-df.loc[exclude_idx, "excluded"] = True
+exclude_ix = ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT)
+df.loc[exclude_ix, "excluded"] = True
 df.loc[
-    drop_idx, "log"
-] = "excluded: PotentialProject not one of retained types {}".format(
-    KEEP_POTENTIAL_PROJECT
+    exclude_ix, "log"
+] = f"excluded: PotentialProject not one of retained types {KEEP_POTENTIAL_PROJECT}"
+print(
+    f"Excluded {exclude_ix.sum():,} small barriers from network analysis and prioritization based on PotentialProject"
 )
 
-exclude_idx = df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
+
+exclude_ix = df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
+df.loc[exclude_ix, "excluded"] = True
+df.loc[exclude_ix, "log"] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
 print(
-    "Excluded {:,} small barriers from network analysis and prioritization based on ManualReview".format(
-        len(df.loc[exclude_idx])
-    )
-)
-df.loc[exclude_idx, "excluded"] = True
-df.loc[drop_idx, "log"] = "excluded: ManualReview one of {}".format(
-    EXCLUDE_MANUALREVIEW
+    f"Excluded {exclude_ix.sum():,} small barriers from network analysis and prioritization based on ManualReview"
 )
 
 
 ### Snap barriers
-print("Snapping {:,} small barriers".format(len(df)))
+print(f"Snapping {len(df):,} small barriers")
 
 df["snapped"] = False
 df["snap_log"] = "not snapped"
@@ -200,15 +204,14 @@ df["snap_tolerance"] = SNAP_TOLERANCE
 # Save original locations so we can map the snap line between original and new locations
 original_locations = df.copy()
 
+# Only snap those that have HUC2 assigned
+to_snap = df.loc[df.HUC2 != ""].copy()
+
 # Snap to flowlines
 snap_start = time()
-df, to_snap = snap_to_flowlines(df, to_snap=df.copy())
+df, to_snap = snap_to_flowlines(df, to_snap)
 
-print(
-    "Snapped {:,} small barriers in {:.2f}s".format(
-        len(df.loc[df.snapped]), time() - snap_start
-    )
-)
+print(f"Snapped {df.snapped.sum():,} small barriers in {time() - snap_start:.2f}s")
 
 print("---------------------------------")
 print("\nSnapping statistics")
@@ -239,11 +242,7 @@ df["dup_sort"] = df.SeverityClass.map(
 
 dedup_start = time()
 df, to_dedup = find_duplicates(df, to_dedup=df.copy(), tolerance=DUPLICATE_TOLERANCE)
-print(
-    "Found {:,} total duplicates in {:.2f}s".format(
-        len(df.loc[df.duplicate]), time() - dedup_start
-    )
-)
+print(f"Found {df.duplicate.sum():,} total duplicates in {time() - dedup_start:.2f}s")
 
 print("---------------------------------")
 print("\nDe-duplication statistics")
@@ -254,24 +253,31 @@ print("---------------------------------\n")
 dups = df.loc[df.dup_group.notnull()].copy()
 dups.dup_group = dups.dup_group.astype("uint16")
 dups["dup_tolerance"] = DUPLICATE_TOLERANCE
-export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas")
+export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas.gpkg")
 
 
 ### Deduplicate by dams
 # any that are within duplicate tolerance of dams may be duplicating those dams
-dams = from_geofeather(master_dir / "dams.feather")
-near_dams = nearest(df.geometry, dams.geometry, DUPLICATE_TOLERANCE)
+dams = gp.read_feather(master_dir / "dams.feather").set_index("id")
+near_dams = nearest(
+    pd.Series(df.geometry.values.data, index=df.index),
+    pd.Series(dams.geometry.values.data, index=dams.index),
+    DUPLICATE_TOLERANCE,
+)
 
 ix = near_dams.index
 df.loc[ix, "duplicate"] = True
-df.loc[ix, "dup_log"] = "Within {}m of an existing dam".format(DUPLICATE_TOLERANCE)
+df.loc[ix, "dup_log"] = f"Within {DUPLICATE_TOLERANCE}m of an existing dam"
 
-print("Found {} small barriers within {}m of dams".format(len(ix), DUPLICATE_TOLERANCE))
+print(f"Found {len(ix)} small barriers within {DUPLICATE_TOLERANCE}m of dams")
 
 ### Join to line atts
-flowlines = deserialize_dfs(
-    [nhd_dir / "clean" / region / "flowlines.feather" for region in REGION_GROUPS],
-    columns=["lineID", "NHDPlusID", "sizeclass", "streamorder", "loop", "waterbody"],
+flowlines = read_feathers(
+    [
+        nhd_dir / "clean" / huc2 / "flowlines.feather"
+        for huc2 in df.HUC2.dropna().unique()
+    ],
+    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop", "waterbody"],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
@@ -284,11 +290,11 @@ print("\n--------------\n")
 df = df.reset_index(drop=True)
 
 print("Serializing {:,} small barriers".format(len(df)))
-to_geofeather(df, master_dir / "small_barriers.feather")
+df.to_feather(master_dir / "small_barriers.feather")
 
 
 print("writing GIS for QA/QC")
-to_gpkg(df, qa_dir / "small_barriers")
+write_dataframe(df, qa_dir / "small_barriers")
 
 
 # Extract out only the snapped ones
@@ -299,8 +305,7 @@ df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped small barriers".format(len(df)))
-to_geofeather(
-    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "waterbody"]],
+df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "waterbody"]].to_feather(
     snapped_dir / "small_barriers.feather",
 )
 

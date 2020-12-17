@@ -19,6 +19,7 @@ This creates several QA/QC files:
 
 from pathlib import Path
 from time import time
+import warnings
 
 import pandas as pd
 import geopandas as gp
@@ -56,7 +57,9 @@ from analysis.constants import (
     EXCLUDE_RECON,
     RECON_TO_FEASIBILITY,
 )
+from analysis.lib.io import read_feathers
 
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 ### Custom tolerance values for dams
 SNAP_TOLERANCE = {"default": 150, "likely off network": 50}
@@ -142,7 +145,10 @@ df = df.drop(columns=[c for c in df.columns if c.endswith("_snap")])
 
 # Reset the index so that we have a clean numbering for all rows
 df = df.reset_index(drop=True)
-print("Compiled {:,} dams".format(len(df)))
+print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df)))
+
+# FIXME:
+# df = df.loc[df.SourceState == "PR"].copy()
 
 
 ### Add IDs for internal use
@@ -244,6 +250,23 @@ df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityCla
 ### Spatial joins
 df = add_spatial_joins(df)
 
+print("-----------------")
+
+# Cleanup HUC, state, county, and ecoregion columns that weren't assigned
+for col in [
+    "HUC2",
+    "HUC6",
+    "HUC8",
+    "HUC12",
+    "Basin",
+    "County",
+    "COUNTYFIPS",
+    "STATEFIPS",
+    "State",
+    "ECO3",
+    "ECO4",
+]:
+    df[col] = df[col].fillna("")
 
 ### Add tracking fields
 # master log field for status
@@ -255,7 +278,7 @@ df["dropped"] = False
 df["excluded"] = False
 
 # Drop any that didn't intersect HUCs or states
-drop_ix = df.HUC12.isnull() | df.STATEFIPS.isnull()
+drop_ix = (df.HUC12 == "") | (df.STATEFIPS == "")
 if drop_ix.sum():
     print(f"{drop_ix.sum():,} dams are outside HUC12 / states")
     # Mark dropped barriers
@@ -326,13 +349,19 @@ print(
     )
 )
 
-# IMPORTANT: do not snap manually reviewed, off-network dams!
-to_snap = df.loc[df.ManualReview != 5].copy()
+# IMPORTANT: do not snap manually reviewed, off-network dams or ones without HUC2!
+to_snap = df.loc[(df.ManualReview != 5) & (df.HUC2 != "")].copy()
 
 # Save original locations so we can map the snap line between original and new locations
 original_locations = to_snap.copy()
 
 snap_start = time()
+
+print("-----------------")
+
+# FIXME:
+to_snap.to_feather("/tmp/to_snap.feather")
+
 
 # Snap estimated dams to the drain point of the waterbody that contains them, if possible
 df, to_snap = snap_estimated_dams_to_drains(df, to_snap)
@@ -349,14 +378,14 @@ df, to_snap = snap_to_flowlines(df, to_snap)
 # Last ditch effort to snap major waterbody-related dams
 df, to_snap = snap_to_large_waterbodies(df, to_snap)
 
-print(
-    f"Snapped {df.snapped.sum():,} dams in {time() - snap_start:.2f}s")
-)
+print(f"Snapped {df.snapped.sum():,} dams in {time() - snap_start:.2f}s")
 
 print("---------------------------------")
 print("\nSnapping statistics")
 print(df.groupby("snap_log").size())
 print("---------------------------------\n")
+
+print(df.loc[df.geometry.isnull()])
 
 
 ### Save results from snapping for QA
@@ -410,9 +439,7 @@ df, to_dedup = find_duplicates(
     next_group_id=next_group_id,
 )
 
-print(
-    "Found {df.duplicate.sum():,} total duplicates in {time() - dedup_start:.2f}s"
-)
+print(f"Found {df.duplicate.sum():,} total duplicates in {time() - dedup_start:.2f}s")
 print("---------------------------------")
 print("\nDe-duplication statistics")
 print(df.groupby("dup_log").size())
@@ -425,19 +452,26 @@ dups["dup_tolerance"] = DUPLICATE_TOLERANCE["default"]
 ix = dups.snapped & dups.ManualReview.isin([20, 21])
 dups.loc[ix, "dup_tolerance"] = DUPLICATE_TOLERANCE["likely duplicate"]
 
-export_duplicate_areas(dups, qa_dir / "dams_duplicate_areas")
+export_duplicate_areas(dups, qa_dir / "dams_duplicate_areas.gpkg")
 
 
 ### Join to line atts
-flowlines = deserialize_dfs(
-    [nhd_dir / "clean" / region / "flowlines.feather" for region in REGION_GROUPS],
-    columns=["lineID", "NHDPlusID", "sizeclass", "streamorder", "loop", "waterbody"],
+flowlines = read_feathers(
+    [
+        nhd_dir / "clean" / huc2 / "flowlines.feather"
+        for huc2 in df.HUC2.dropna().unique()
+    ],
+    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop"],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
+
+# Fix missing field values
 df["loop"] = df.loop.fillna(False)
+df["sizeclass"] = df.sizeclass.fillna("")
 
 print(df.groupby("loop").size())
+
 
 ### All done processing!
 
@@ -445,10 +479,8 @@ print("\n--------------\n")
 df = df.reset_index(drop=True)
 
 print("Serializing {:,} dams to master file".format(len(df)))
-to_geofeather(df, master_dir / "dams.feather", crs=CRS)
-
-print("writing GIS for QA/QC")
-to_gpkg(df, qa_dir / "dams", crs=CRS)
+df.to_feather(master_dir / "dams.feather")
+write_dataframe(df, qa_dir / "dams.gpkg")
 
 
 # Extract out only the snapped ones
@@ -459,10 +491,10 @@ df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped dams".format(len(df)))
-to_geofeather(
-    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "waterbody"]],
+df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop"]].to_feather(
     snapped_dir / "dams.feather",
-    crs=CRS,
 )
+write_dataframe(df, qa_dir / "snapped_dams.gpkg")
+
 
 print("All done in {:.2f}s".format(time() - start))

@@ -115,6 +115,10 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         drop=True
     )
 
+    # calculate unique index
+    huc_id = drain_pts["HUC4"].astype("uint16") * 1000000
+    drain_pts["drainID"] = drain_pts.index.values.astype("uint32") + huc_id
+
     drain_pts.wbID = drain_pts.wbID.astype("uint32")
     drain_pts.lineID = drain_pts.lineID.astype("uint32")
     drain_pts.flowlineLength = drain_pts.flowlineLength.astype("float32")

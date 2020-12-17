@@ -82,9 +82,9 @@ for huc2 in huc2s:
     print(f"----- {huc2} ------")
 
     print("Reading flowlines...")
-    flowlines = gp.read_feather(src_dir / huc2 / "flowlines.feather").set_index(
-        "lineID"
-    )
+    flowlines = gp.read_feather(
+        src_dir / huc2 / "flowlines.feather", columns=["lineID", "geometry"]
+    ).set_index("lineID")
     joins = pd.read_feather(
         src_dir / huc2 / "flowline_joins.feather",
         columns=["downstream_id", "upstream_id"],
@@ -200,10 +200,12 @@ for huc2 in huc2s:
     )
 
     ### Associate with waterbodies, so that we know which waterbodies are claimed
+    # Note: because dams are buffered slightly, they should always intersect with
+    # their neighboring waterbody (if there is one)
     print("Joining to waterbodies...")
-    waterbodies = gp.read_feather(src_dir / huc2 / "waterbodies.feather").set_index(
-        "wbID"
-    )
+    waterbodies = gp.read_feather(
+        src_dir / huc2 / "waterbodies.feather", columns=["wbID", "geometry"]
+    ).set_index("wbID")
 
     join_start = time()
     joined = (
@@ -219,9 +221,11 @@ for huc2 in huc2s:
     print(f"Found {len(joined):,} dams in waterbodies in {time() - join_start:.2f}s")
 
     print("Finding nearest waterbody drain for those that didn't join to waterbodies")
+    # We only retain the wbID
     drains = gp.read_feather(
-        src_dir / huc2 / "waterbody_drain_points.feather"
-    ).set_index("wbID")
+        src_dir / huc2 / "waterbody_drain_points.feather",
+        columns=["wbID", "geometry"],
+    )
 
     # some might be immediately downstream, find the closest drain within 250m
     nearest_start = time()
@@ -229,11 +233,11 @@ for huc2 in huc2s:
     tmp = dams.loc[ix]
     nearest_drains = nearest(
         pd.Series(tmp.geometry.values.data, index=tmp.index),
-        pd.Series(drains.geometry.values.data, index=drains.index),
+        pd.Series(drains.geometry.values.data, index=drains.wbID),
         250,
     )
-
     dams.loc[nearest_drains.index, "wbID"] = nearest_drains.wbID
+
     print(
         f"Found {len(nearest_drains):,} nearest drain points in {time() - nearest_start:.2f}s"
     )
@@ -261,6 +265,7 @@ print(
 dams = gp.GeoDataFrame(dams, geometry="geometry", crs=nhd_dams.crs)
 dams.damID = dams.damID.astype("uint32")
 dams.lineID = dams.lineID.astype("uint32")
+dams.wbID = dams.wbID.astype("uint32")
 
 print("Serializing...")
 dams.to_feather(out_dir / "nhd_dams_pt.feather")
