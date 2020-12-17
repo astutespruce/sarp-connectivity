@@ -37,7 +37,6 @@ from analysis.prep.barriers.lib.snap import (
     snap_to_nhd_dams,
     snap_to_waterbodies,
     snap_to_flowlines,
-    snap_to_large_waterbodies,
     export_snap_dist_lines,
 )
 from analysis.prep.barriers.lib.duplicates import (
@@ -374,9 +373,6 @@ df, to_snap = snap_to_waterbodies(df, to_snap)
 
 # Snap to flowlines
 df, to_snap = snap_to_flowlines(df, to_snap)
-
-# Last ditch effort to snap major waterbody-related dams
-df, to_snap = snap_to_large_waterbodies(df, to_snap)
 
 print(f"Snapped {df.snapped.sum():,} dams in {time() - snap_start:.2f}s")
 

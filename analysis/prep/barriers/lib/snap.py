@@ -475,7 +475,6 @@ def snap_to_flowlines(df, to_snap):
         region_start = time()
 
         print(f"----- {huc2} ------")
-        print("Reading flowlines...")
 
         flowlines = gp.read_feather(
             nhd_dir / "clean" / huc2 / "flowlines.feather",
@@ -528,106 +527,6 @@ def snap_to_flowlines(df, to_snap):
         )
 
     # TODO: flag those that joined to loops
-
-    return df, to_snap
-
-
-def snap_to_large_waterbodies(df, to_snap):
-    """Snap to nearest large waterbody.
-
-    NOTE: only run this on dams that could not snap to flowlines, to avoid
-    moving them far away.
-
-    This captures large dam centerpoints that are not near enough to flowlines.
-
-    Updates df with snapping results, and returns to_snap as set of dams still
-    needing to be snapped after this operation.
-
-    Parameters
-    ----------
-    df : GeoDataFrame
-        master dataset, this is where all snapping gets recorded
-    to_snap : DataFrame
-        data frame containing pygeos geometries to snap ("geometry")
-        and snapping tolerance ("snap_tolerance")
-
-    Returns
-    -------
-    tuple of (GeoDataFrame, DataFrame)
-        (df, to_snap)
-    """
-
-    print("=================\nSnapping to large waterbodies...")
-
-    for huc2 in sorted(to_snap.HUC2.unique()):
-        in_huc2 = to_snap.loc[to_snap.HUC2 == huc2].copy()
-
-        wb = gp.read_feather(
-            nhd_dir / "clean" / huc2 / "waterbodies.feather",
-            columns=["wbID", "flowlineLength", "AreaSqKm", "geometry"],
-        ).set_index("wbID")
-        wb = wb.loc[
-            (wb.flowlineLength >= LARGE_WB_FLOWLINE_LENGTH)
-            & (wb.AreaSqKm >= LARGE_WB_AREA)
-        ].copy()
-
-        drains = gp.read_feather(
-            nhd_dir / "clean" / huc2 / "waterbody_drain_points.feather",
-            columns=["drainID", "wbID", "lineID", "geometry"],
-        ).set_index("drainID")
-        drains = drains.loc[drains.wbID.isin(wb.index)].copy()
-
-        print(
-            f"HUC {huc2} selected {len(in_huc2):,} barriers in region to snap against {len(wb):,} large waterbodies"
-        )
-
-        near_wb = nearest(
-            pd.Series(to_snap.geometry.values.data, index=to_snap.index),
-            pd.Series(pg.boundary(wb.geometry.values.data), index=wb.index),
-            NEAR_WB_TOLERANCE,
-        )
-        near_wb = (
-            pd.DataFrame(near_wb)
-            .join(to_snap.geometry)
-            .join(
-                drains.reset_index()
-                .set_index("wbID")[["geometry", "drainID", "lineID"]]
-                .rename(columns={"geometry": "drain"}),
-                on="wbID",
-            )
-            .dropna(subset=["drain"])
-        )
-        near_wb["snap_dist"] = pg.distance(
-            near_wb.geometry.values.data, near_wb.drain.values.data
-        )
-
-        # drop any that are > 250 m away, these aren't useful
-        near_wb = near_wb.loc[near_wb.snap_dist <= WB_DRAIN_MAX_TOLERANCE].copy()
-
-        # take the closest drain point
-        near_wb = near_wb.sort_values(by="snap_dist").groupby(level=0).first()
-
-        ix = near_wb.index
-        df.loc[ix, "snapped"] = True
-        df.loc[ix, "geometry"] = near_wb.drain
-        df.loc[ix, "snap_dist"] = near_wb.distance
-        df.loc[ix, "snap_ref_id"] = near_wb.drainID
-        df.loc[ix, "lineID"] = near_wb.lineID
-        df.loc[ix, "wbID"] = near_wb.wbID
-
-        df.loc[ix, "snap_log"] = ndarray_append_strings(
-            "snapped: within ",
-            WB_DRAIN_MAX_TOLERANCE,
-            "m tolerance of drain point of large waterbody that is within ",
-            NEAR_WB_TOLERANCE,
-            "m of dam",
-        )
-
-        to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-
-        print(
-            f"Found {len(ix):,} dams within {NEAR_WB_TOLERANCE}m of large waterbodies and within {WB_DRAIN_MAX_TOLERANCE}m of the drain point of those waterbodies"
-        )
 
     return df, to_snap
 
