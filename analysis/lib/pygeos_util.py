@@ -113,7 +113,17 @@ def unique_sjoin(left, right):
     GeoDataFrame
         includes non-geometry columns of right joined to left.
     """
-    joined = sjoin(left, right).drop(columns=["index_right"])
+
+    if len(left) >= len(right):
+        joined = sjoin(left, right)
+    else:
+        joined = (
+            sjoin(right, left)
+            .reset_index(drop=left.index.name in left.columns)
+            .set_index(left.index.name or "index")
+        )
+
+    joined = joined.drop(columns=["index_right"])
 
     grouped = joined.groupby(level=0)
     if grouped.size().max() > 1:
