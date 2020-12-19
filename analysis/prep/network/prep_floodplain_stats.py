@@ -24,6 +24,8 @@ NATURAL_TYPES = {11, 12, 31, 41, 42, 43, 51, 52, 71, 72, 73, 74, 90, 95}
 data_dir = Path("data")
 src_dir = data_dir / "floodplains"
 gdb_filename = src_dir / "NLCD2016_Floodplain_Stats_2020_12072020.gdb"
+# fixes run later for region 02 that have to be spliced in
+region02_gdb_filename = src_dir / "Region2FixedStats.gdb"
 
 
 # layers have varying names, make a lookup from them
@@ -45,7 +47,15 @@ for huc2 in units.keys():
 
     out_dir = data_dir / f"nhd/clean/{huc2}"
 
-    df = read_dataframe(gdb_filename, layer=layers[huc2])
+    if huc2 == "02":
+        filename = region02_gdb_filename
+        layer = "Region002_Catchments_Natl_LCStats"
+    else:
+        filename = gdb_filename
+        layer = layers[huc2]
+
+    df = read_dataframe(filename, layer=layer)
+
     df["HUC2"] = huc2
     df["NHDPlusID"] = df.NHDIDSTR.astype("uint64")
     cols = [c for c in df.columns if c.startswith("VALUE_")]
