@@ -115,13 +115,34 @@ def unique_sjoin(left, right):
     """
 
     if len(left) >= len(right):
-        joined = sjoin(left, right)
-    else:
-        joined = (
-            sjoin(right, left)
-            .reset_index(drop=left.index.name in left.columns)
-            .set_index(left.index.name or "index")
+
+        joined = sjoin_geometry(
+            pd.Series(left.geometry.values.data, index=left.index),
+            pd.Series(right.geometry.values.data, index=right.index),
+            predicate="intersects",
+            how="inner",
         )
+
+    else:
+        # optimize for the case where the right side is smaller
+        # and restructure so that this is equivalent to above
+        left_index_name = left.index.name or "index"
+        joined = (
+            sjoin_geometry(
+                pd.Series(right.geometry.values.data, index=right.index),
+                pd.Series(left.geometry.values.data, index=left.index),
+                predicate="intersects",
+                how="inner",
+            )
+            .rename(left_index_name)
+            .reset_index()
+            .set_index(left_index_name)
+        )
+        joined = joined[joined.columns[0]].rename("index_right")
+
+    joined = left.join(joined, how="left").join(
+        right.drop(columns=["geometry"]), on="index_right", rsuffix="_right"
+    )
 
     joined = joined.drop(columns=["index_right"])
 
