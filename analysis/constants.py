@@ -131,6 +131,9 @@ CRS_WKT = """PROJCS["USA_Contiguous_Albers_Equal_Area_Conic",GEOGCS["GCS_North_A
 GEO_CRS = "EPSG:4326"
 
 
+# distance within which points snapping to a line will snap to endpoint of the line
+SNAP_ENDPOINT_TOLERANCE = 1  # meters
+
 # Exclude swamp/marsh (466), estuaries (493), playas (361).
 # NOTE: they do not cut the flowlines in the same
 # way as other waterbodies, so they will cause issues.

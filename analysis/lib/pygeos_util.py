@@ -323,7 +323,8 @@ def cut_line_at_points(line, cut_points, tolerance=1e-6):
     vertices = pg.get_point(line, range(pg.get_num_points(line)))
     offsets = pg.line_locate_point(line, vertices)
     cut_offsets = pg.line_locate_point(line, cut_points)
-    # only keep those that are interior to the line
+    # only keep those that are interior to the line and ignore those very close
+    # to endpoints or beyond endpoints
     cut_offsets = cut_offsets[
         (cut_offsets > tolerance) & (cut_offsets < offsets[-1] - tolerance)
     ]
@@ -334,29 +335,27 @@ def cut_line_at_points(line, cut_points, tolerance=1e-6):
 
     # get coordinates of new vertices from the cut points (interpolated onto the line)
     cut_offsets.sort()
-    cut_coords = pg.get_coordinates(pg.line_interpolate_point(line, cut_offsets))
 
-    # split vertices into bins
-    bins = np.digitize(offsets, cut_offsets)
+    # add in the last coordinate of the line
+    cut_offsets = np.append(cut_offsets, offsets[-1])
 
-    # find the edges of the bins
-    breaks = np.r_[True, bins[:-1] != bins[1:]]
-    i = np.append(np.arange(len(bins))[breaks], [len(bins)])
-    slices = np.column_stack([i[:-1], i[1:]])
+    # TODO: convert this to a pygos ufunc
     coords = pg.get_coordinates(line)
-
-    num_lines = len(slices)
+    cut_coords = pg.get_coordinates(pg.line_interpolate_point(line, cut_offsets))
     lines = []
-    for i, ix in enumerate(slices):
-        c = coords[slice(*ix)]
+    orig_ix = 0
+    for cut_ix in range(len(cut_offsets)):
+        offset = cut_offsets[cut_ix]
 
-        # insert cut coords on both sides of each split
-        if i > 0:
-            c = np.vstack([cut_coords[i - 1], c])
-        if i < num_lines - 1:
-            c = np.vstack([c, cut_coords[i]])
+        segment = []
+        if cut_ix > 0:
+            segment = [cut_coords[cut_ix - 1]]
+        while offsets[orig_ix] < offset:
+            segment.append(coords[orig_ix])
+            orig_ix += 1
 
-        lines.append(pg.linestrings(c))
+        segment.append(cut_coords[cut_ix])
+        lines.append(pg.linestrings(segment))
 
     return pg.multilinestrings(lines)
 
