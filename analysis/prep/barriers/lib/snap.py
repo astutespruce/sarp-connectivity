@@ -26,10 +26,10 @@ nhd_dir = Path("data/nhd")
 
 
 def snap_estimated_dams_to_drains(df, to_snap):
-    print("=================\nSnapping estimated dams...")
     snap_start = time()
 
     estimated = to_snap.loc[to_snap.ManualReview == 20].copy()
+    print(f"=================\nSnapping {len(estimated)} estimated dams...")
 
     for huc2 in sorted(estimated.HUC2.unique()):
         wb = gp.read_feather(

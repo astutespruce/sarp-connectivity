@@ -140,6 +140,13 @@ df = df.drop(columns=[c for c in df.columns if c.endswith("_snap")])
 df = df.reset_index(drop=True)
 print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df)))
 
+### Make sure there are not duplicates
+s = df.groupby("SARPID").size()
+if s.max() > 1:
+    print(s[s > 1].index)
+    raise ValueError("Multiple barriers with same SARPID")
+
+
 ### Add IDs for internal use
 # internal ID
 df["id"] = df.index.astype("uint32")

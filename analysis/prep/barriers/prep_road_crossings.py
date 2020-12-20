@@ -109,7 +109,6 @@ df = df.rename(columns={"FULLNAME": "Road", "GNIS_NAME": "Stream", "RDXID": "SAR
 # Cleanup fields
 df.SARPID = df.SARPID.astype("uint")
 df["id"] = df.index.astype("uint")
-df.RDXID = df.RDXID.astype("uint64")
 df.Stream = df.Stream.str.strip().fillna("")
 df.Road = df.Road.str.strip().fillna("")
 
@@ -141,8 +140,6 @@ for col in [
     "ECO4",
 ]:
     df[col] = df[col].fillna("")
-
-
 
 
 print("Adding lat / lon fields")
