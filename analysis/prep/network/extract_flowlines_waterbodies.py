@@ -29,7 +29,7 @@ import pygeos as pg
 import numpy as np
 from pyogrio import write_dataframe
 
-from nhdnet.nhd.extract import extract_flowlines, extract_waterbodies
+from analysis.prep.network.lib.extract import extract_flowlines, extract_waterbodies
 
 from analysis.constants import (
     CRS,

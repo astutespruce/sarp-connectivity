@@ -143,8 +143,9 @@ print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df
 ### Make sure there are not duplicates
 s = df.groupby("SARPID").size()
 if s.max() > 1:
-    print(s[s > 1].index)
-    raise ValueError("Multiple barriers with same SARPID")
+    print("WARNING: multiple dams with same SARPID")
+    print(s[s > 1])
+    # raise ValueError(f"Multiple dams with same SARPID: {s[s > 1].index}")
 
 
 ### Add IDs for internal use

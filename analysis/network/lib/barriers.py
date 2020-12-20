@@ -1,10 +1,9 @@
 from pathlib import Path
 from time import time
 
-from geofeather import from_geofeather, to_geofeather
+import geopandas as gp
+from pyogrio.geopandas import write_dataframe
 
-from nhdnet.io import deserialize_df, to_shp, serialize_df
-from analysis.constants import REGION_GROUPS
 
 # ID ranges for each type
 WATERFALLS_ID = 1e6
@@ -15,7 +14,7 @@ SB_ID = 3 * 1e6
 barriers_dir = Path("data/barriers/snapped")
 
 
-def read_barriers(region, mode):
+def read_barriers(huc2, mode):
     """Read files created by prep_dams.py, prep_waterfalls.py, prep_small_barriers.py
     Merge together and assign uniqueID for internal use in network analysis
 
@@ -23,8 +22,7 @@ def read_barriers(region, mode):
 
     Parameters
     ----------
-    region : str
-        region group identifier, e.g., "02"
+    huc2 : str
     mode : str
         One of "natural", "dams", "small_barriers"
 
@@ -36,10 +34,8 @@ def read_barriers(region, mode):
 
     start = time()
 
-    print("Reading waterfalls")
-    wf = from_geofeather(barriers_dir / "waterfalls.feather")
-    wf = wf.loc[wf.HUC2.isin(REGION_GROUPS[region])].copy()
-    print("Selected {:,} waterfalls".format(len(wf)))
+    wf = gp.read_feather(barriers_dir / "waterfalls.feather")
+    wf = wf.loc[wf.HUC2 == huc2].copy()
 
     wf["barrierID"] = WATERFALLS_ID + wf.id
     wf["kind"] = "waterfall"
@@ -47,10 +43,8 @@ def read_barriers(region, mode):
     barriers = wf
 
     if mode != "natural":
-        print("Reading dams")
-        dams = from_geofeather(barriers_dir / "dams.feather")
-        dams = dams.loc[dams.HUC2.isin(REGION_GROUPS[region])].copy()
-        print("Selected {:,} dams".format(len(dams)))
+        dams = gp.read_feather(barriers_dir / "dams.feather")
+        dams = dams.loc[dams.HUC2 == huc2].copy()
 
         dams["barrierID"] = DAMS_ID + dams.id
         dams["kind"] = "dam"
@@ -59,10 +53,8 @@ def read_barriers(region, mode):
             barriers = barriers.append(dams, ignore_index=True, sort=False)
 
     if mode == "small_barriers":
-        print("Reading small barriers")
-        sb = from_geofeather(barriers_dir / "small_barriers.feather")
-        sb = sb.loc[sb.HUC2.isin(REGION_GROUPS[region])].copy()
-        print("Selected {:,} small barriers".format(len(sb)))
+        sb = gp.read_feather(barriers_dir / "small_barriers.feather")
+        sb = sb.loc[sb.HUC2 == huc2].copy()
 
         sb["barrierID"] = SB_ID + sb.id
         sb["kind"] = "small_barrier"
@@ -70,19 +62,14 @@ def read_barriers(region, mode):
         if len(sb):
             barriers = barriers.append(sb, ignore_index=True, sort=False)
 
-    # Update dtypes
-    # TODO: not neeed after rerun of prep_*.py scripts
-    barriers.id = barriers.id.astype("uint32")
-    barriers.lineID = barriers.lineID.astype("uint32")
-    barriers.NHDPlusID = barriers.NHDPlusID.astype("uint64")
-
     barriers.barrierID = barriers.barrierID.astype("uint64")
 
     ix = barriers.loop == True
-    print("Found {:,} barriers on loops, dropping".format(ix.sum()))
+    print(f"Found {ix.sum():,} barriers on loops, dropping")
     barriers = barriers.loc[~ix].copy()
 
-    print("Extracted {:,} barriers in {:.2f}s".format(len(barriers), time() - start))
+    print(f"Extracted {len(barriers):,} barriers in {time() - start:.2f}s")
+    print(barriers.groupby("kind").size())
 
     return barriers[
         ["geometry", "id", "lineID", "NHDPlusID", "barrierID", "kind"]
@@ -102,7 +89,5 @@ def save_barriers(out_dir, barriers):
     start = time()
 
     tmp = barriers.reset_index(drop=True)
-    to_geofeather(tmp, out_dir / "barriers.feather")
-    to_shp(tmp, out_dir / "barriers.shp")
-
-    print("Done serializing barriers in {:.2f}s".format(time() - start))
+    tmp.to_feather(out_dir / "barriers.feather")
+    write_dataframe(tmp, out_dir / "barriers.gpkg")

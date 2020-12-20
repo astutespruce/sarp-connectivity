@@ -8,7 +8,7 @@ from pyogrio import write_dataframe
 
 from nhdnet.nhd.joins import update_joins
 from analysis.lib.pygeos_util import explode, sjoin_geometry, cut_line_at_points
-from analysis.prep.network.lib.lines import calculate_sinuosity
+from analysis.lib.flowlines import calculate_sinuosity
 from analysis.constants import CRS
 
 

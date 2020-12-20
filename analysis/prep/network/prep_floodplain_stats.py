@@ -16,6 +16,8 @@ import pandas as pd
 import geopandas as gp
 from pyogrio import read_dataframe, list_layers
 
+from analysis.lib.util import append
+
 # NLCD natural landcover classes
 # descriptions here: https://www.mrlc.gov/data/legends/national-land-cover-database-2016-nlcd2016-legend
 NATURAL_TYPES = {11, 12, 31, 41, 42, 43, 51, 52, 71, 72, 73, 74, 90, 95}
@@ -42,10 +44,11 @@ units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
 start = time()
 
+
+merged = None
+
 for huc2 in units.keys():
     print(f"Processing floodplain stats for {huc2}")
-
-    out_dir = data_dir / f"nhd/clean/{huc2}"
 
     if huc2 == "02":
         filename = region02_gdb_filename
@@ -64,8 +67,10 @@ for huc2 in units.keys():
     df["floodplain_km2"] = df[cols].sum(axis=1) * 1e-6
     df["nat_floodplain_km2"] = df[natural_cols].sum(axis=1) * 1e-6
 
-    df[["NHDPlusID", "HUC2", "nat_floodplain_km2", "floodplain_km2"]].to_feather(
-        out_dir / "floodplain_stats.feather"
+    merged = append(
+        merged, df[["NHDPlusID", "HUC2", "nat_floodplain_km2", "floodplain_km2"]]
     )
+
+merged.reset_index(drop=True).to_feather(src_dir / "floodplain_stats.feather")
 
 print("Done in {:.2f}".format(time() - start))

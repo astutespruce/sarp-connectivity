@@ -1,7 +1,6 @@
 from pathlib import Path
-import pandas as pd
 
-from nhdnet.io import deserialize_df
+import pandas as pd
 
 
 data_dir = Path("data")
@@ -149,7 +148,7 @@ def calculate_floodplain_stats(df):
 
     # Sum floodplain and natural floodplain values, and calculate percent natural floodplain
     # Read in associated floodplain info and join
-    fp_stats = deserialize_df(
+    fp_stats = pd.read_feather(
         data_dir / "floodplains" / "floodplain_stats.feather"
     ).set_index("NHDPlusID")
     df = df.join(fp_stats, on="NHDPlusID")

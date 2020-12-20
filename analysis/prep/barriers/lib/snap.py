@@ -8,10 +8,9 @@ import pygeos as pg
 from pyogrio import write_dataframe
 
 from analysis.prep.barriers.lib.points import connect_points
-from analysis.lib.pygeos_util import sjoin, nearest, near
-from analysis.constants import CRS
-from analysis.lib.util import ndarray_append_strings, append
-from analysis.lib.io import read_feathers
+from analysis.lib.pygeos_util import sjoin, nearest
+from analysis.constants import CRS, SNAP_ENDPOINT_TOLERANCE
+from analysis.lib.util import ndarray_append_strings
 
 # distance from edge of an NHD dam poly to be considered associated
 NHD_DAM_TOLERANCE = 50
@@ -454,6 +453,9 @@ def snap_to_flowlines(df, to_snap):
     Updates df with snapping results, and returns to_snap as set of dams still
     needing to be snapped after this operation.
 
+    If dams are within SNAP_ENDPOINT_TOLERANCE of the endpoints of the line, they
+    will be snapped to the endpoint instead of closest point on line.
+
     Parameters
     ----------
     df : GeoDataFrame
@@ -499,10 +501,23 @@ def snap_to_flowlines(df, to_snap):
 
         # project the point to the line,
         # find out its distance on the line,
+        lines['line_pos'] = pg.line_locate_point(lines.line.values.data, lines.geometry.values.data)
+
+        # if within tolerance of start point, snap to start
+        ix = lines['line_pos'] <= SNAP_ENDPOINT_TOLERANCE
+        lines.loc[ix, 'line_pos'] = 0
+
+        # if within tolerance of endpoint, snap to end
+        end = pg.length(lines.line.values.data)
+        ix = lines['line_pos'] >= end - SNAP_ENDPOINT_TOLERANCE
+        lines.loc[ix, 'line_pos'] = end[ix]
+
         # then interpolate its new coordinates
         lines["geometry"] = pg.line_interpolate_point(
             lines.line.values.data,
-            pg.line_locate_point(lines.line.values.data, lines.geometry.values.data),
+            lines[
+                'line_pos'
+            ]
         )
 
         ix = lines.index

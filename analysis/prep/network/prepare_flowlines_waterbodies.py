@@ -47,8 +47,9 @@ from analysis.prep.network.lib.dissolve import (
     cut_waterbodies_by_dams,
     dissolve_waterbodies,
 )
+from analysis.lib.flowlines import remove_flowlines
 from analysis.prep.network.lib.cut import cut_lines_by_waterbodies
-from analysis.prep.network.lib.lines import remove_pipelines, remove_flowlines
+from analysis.prep.network.lib.lines import remove_pipelines
 from analysis.prep.network.lib.drains import create_drain_points
 
 

@@ -1,50 +1,13 @@
 from time import time
 
 import pandas as pd
-import geopandas as gp
-import pygeos as pg
-import numpy as np
 
 from nhdnet.nhd.joins import (
     index_joins,
     find_joins,
-    find_join,
-    create_upstream_index,
     remove_joins,
 )
 from analysis.lib.network import connected_groups
-
-
-def remove_flowlines(flowlines, joins, ids):
-    """Remove flowlines specified by ids from flowlines and joins
-
-    Parameters
-    ----------
-    flowlines : GeoDataFrame
-    joins : DataFrame
-            joins between flowlines
-    ids : list-like
-            list of ids of flowlines to remove
-
-    Returns
-    -------
-    tuple of (GeoDataFrame, DataFrame)
-            (flowlines, joins)
-    """
-    # drop from flowlines
-    flowlines = flowlines.loc[~flowlines.NHDPlusID.isin(ids)].copy()
-
-    # IDs are based on NHDPlusID, make sure to use correct columns for joins
-    joins = remove_joins(
-        joins, ids, downstream_col="downstream", upstream_col="upstream"
-    )
-
-    # update our ids to match zeroed out ids
-    joins.loc[joins.downstream == 0, "downstream_id"] = 0
-    joins.loc[joins.downstream == 0, "type"] = "terminal"
-    joins.loc[joins.upstream == 0, "upstream_id"] = 0
-
-    return flowlines, joins
 
 
 def remove_pipelines(flowlines, joins, max_pipeline_length=100):
@@ -155,39 +118,3 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     print("Done processing pipelines in {:.2f}s".format(time() - start))
 
     return flowlines, joins
-
-
-# pygeos version of nhdnet.geometry.lines::calculate_sinuosity
-def calculate_sinuosity(geometries):
-    """Calculate sinuosity of the line.
-
-    This is the length of the line divided by the distance between the endpoints of the line.
-    By definition, it is always >=1.
-
-    Parameters
-    ----------
-    geometries : Series or ndarray of pygeos geometries
-
-    Returns
-    -------
-    Series or ndarray
-        sinuosity values
-    """
-
-    # By definition, sinuosity should not be less than 1
-    first = pg.get_point(geometries, 0)
-    last = pg.get_point(geometries, -1)
-    straight_line_distance = pg.distance(first, last)
-
-    sinuosity = np.ones((len(geometries),)).astype("float32")
-
-    # if there is no straight line distance there can be no sinuosity
-    ix = straight_line_distance > 0
-
-    # by definition, all values must be at least 1, so clip lower bound
-    sinuosity[ix] = (pg.length(geometries[ix]) / straight_line_distance).clip(1)
-
-    if isinstance(geometries, pd.Series):
-        return pd.Series(sinuosity, index=geometries.index)
-
-    return sinuosity
