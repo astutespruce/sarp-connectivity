@@ -314,7 +314,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
     # extract flowlines that are not split by barriers and merge in new flowlines
     unsplit_segments = flowlines.loc[~flowlines.index.isin(split_segments.index)]
     updated_flowlines = unsplit_segments.append(
-        new_flowlines, ignore_index=True, sort=False
+        new_flowlines.drop(columns=["origLineID", "position"]),
+        ignore_index=True,
+        sort=False,
     ).set_index("lineID", drop=False)
 
     print(f"Done cutting flowlines in {time() - start:.2}s")
