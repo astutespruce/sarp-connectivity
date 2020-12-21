@@ -99,6 +99,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
         updated flowlines, updated joins, barrier joins (upstream / downstream flowline ID per barrier)
     """
 
+    start = time()
     print(f"Starting number of segments: {len(flowlines):,}")
     print(f"Cutting in {len(barriers):,} barriers")
 
@@ -316,6 +317,8 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
         new_flowlines, ignore_index=True, sort=False
     ).set_index("lineID", drop=False)
 
+    print(f"Done cutting flowlines in {time() - start:.2}s")
+
     return updated_flowlines, updated_joins, barrier_joins
 
 
@@ -345,8 +348,6 @@ def save_cut_flowlines(out_dir, flowlines, joins, barrier_joins):
     barrier_joins.reset_index(drop=True).to_feather(
         out_dir / "barrier_joins.feather",
     )
-
-    print(f"Done serializing cut flowlines in {time() - start:.2f}s")
 
 
 def remove_flowlines(flowlines, joins, ids):

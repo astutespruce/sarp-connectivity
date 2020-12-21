@@ -36,7 +36,7 @@ from analysis.constants import (
     WATERBODY_EXCLUDE_FTYPES,
     WATERBODY_MIN_SIZE,
 )
-from analysis.pygeos_compat import sjoin_geometry
+from analysis.lib.pygeos_util import sjoin_geometry
 from analysis.lib.util import append
 
 

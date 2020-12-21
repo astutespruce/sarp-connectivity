@@ -44,10 +44,7 @@ huc4_df = pd.read_feather(
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
 # manually subset keys from above for processing
-huc2s = [
-    "02",
-    # "03", "05", "06", "07", "08", "10", "11", "12", "13", "21"
-]
+huc2s = ["02", "03", "05", "06", "07", "08", "10", "11", "12", "13", "21"]
 
 
 start = time()
@@ -79,8 +76,8 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
     joins = pd.read_feather(nhd_dir / huc2 / "flowline_joins.feather")
 
     ### TEMP: limit flowlines and joins to HUC4s in SARP region above
-    flowlines = flowlines.loc[flowlines.huc4.isin(units[huc2])].copy()
-    joins = joins.loc[joins.huc4.isin(units[huc2])].copy()
+    flowlines = flowlines.loc[flowlines.HUC4.isin(units[huc2])].copy()
+    joins = joins.loc[joins.HUC4.isin(units[huc2])].copy()
 
     # limit barriers to these flowlines
     barriers = barriers.loc[barriers.lineID.isin(flowlines.index)].copy()
@@ -222,6 +219,7 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
         pd.Series(network_df.geometry.values.data, index=network_df.index)
         .groupby(level=0)
         .apply(pg.multilinestrings)
+        .rename("geometry")
     )
 
     networks = (
@@ -237,6 +235,6 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
     networks.to_feather(out_dir / "network.feather")
     write_dataframe(networks, out_dir / "network.gpkg")
 
-    print(f"Region done in {time() - region_start:.2f}s")
+    print(f"Region done in {time() - region_start:.2f}s\n\n")
 
 print("All done in {:.2f}s".format(time() - start))
