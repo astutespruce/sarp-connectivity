@@ -18,20 +18,23 @@ import os
 from pathlib import Path
 from time import time
 import csv
-import sys
+import warnings
+
+import pygeos as pg
 import geopandas as gp
 import pandas as pd
-from geofeather import from_geofeather, to_geofeather
-from nhdnet.io import deserialize_dfs, deserialize_df, serialize_df
-from nhdnet.geometry.points import add_lat_lon
+from pyogrio import write_dataframe
 
-
-from analysis.constants import REGION_GROUPS
 from analysis.network.lib.barriers import DAMS_ID
 from analysis.rank.lib.spatial_joins import add_spatial_joins
 from analysis.rank.lib.tiers import calculate_tiers
 from analysis.rank.lib.metrics import update_network_metrics
 from api.constants import SB_API_FIELDS, SB_CORE_FIELDS, UNIT_FIELDS
+from analysis.lib.util import append
+
+
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+
 
 start = time()
 
@@ -47,11 +50,19 @@ if not os.path.exists(api_dir):
 if not os.path.exists(tile_dir):
     os.makedirs(tile_dir)
 
+# TODO: expand to full region
+huc4_df = pd.read_feather(
+    data_dir / "boundaries/sarp_huc4.feather", columns=["HUC2", "HUC4"]
+)
+# Convert to dict of sorted HUC4s per HUC2
+units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
+huc2s = sorted(units.keys())
+
 
 ### Read in master
 print("Reading master...")
 df = (
-    from_geofeather(barriers_dir / "small_barriers.feather")
+    gp.read_feather(barriers_dir / "small_barriers.feather")
     .set_index("id")
     .drop(
         columns=[
@@ -72,7 +83,7 @@ df = (
         ],
         errors="ignore",
     )
-    .rename(columns={"streamorder": "StreamOrder", "excluded": "Excluded"})
+    .rename(columns={"StreamOrde": "StreamOrder", "excluded": "Excluded"})
 )
 
 
@@ -82,27 +93,39 @@ df = df.loc[~(df.dropped | df.duplicate)].copy()
 
 ### Read in network outputs and join to master
 print("Reading network outputs")
-networks = (
-    deserialize_dfs(
-        [
-            data_dir / "networks" / region / "small_barriers/barriers_network.feather"
-            for region in REGION_GROUPS
-        ],
-        # src=[region for region in REGION_GROUPS],
+merged = None
+for huc2 in huc2s:
+    # if from a HUC2 that was merged with adjacent HUC2s
+    merged_filename = (
+        data_dir / "networks/merged" / huc2 / "small_barriers/barriers_network.feather"
     )
-    .drop(columns=["index", "segments"], errors="ignore")
-    .rename(
-        columns={
-            "sinuosity": "Sinuosity",
-            "natfldpln": "Landcover",
-            "sizeclasses": "SizeClasses",
-        }
-    )
-)
+    if merged_filename.exists():
+        network_df = pd.read_feather(merged_filename)
 
-# Select out only dams because we are joining on "id"
-# which may have duplicates across barrier types
-networks = networks.loc[networks.kind == "small_barrier"].copy()
+    else:
+        network_df = pd.read_feather(
+            data_dir / "networks" / huc2 / "dams/barriers_network.feather"
+        )
+
+    network_df = (
+        network_df.loc[network_df.kind == "small_barrier"]
+        .drop(columns=["index", "segments", "kind", "barrierID"], errors="ignore")
+        .rename(
+            columns={
+                "sinuosity": "Sinuosity",
+                "natfldpln": "Landcover",
+                "sizeclasses": "SizeClasses",
+            }
+        )
+    )
+
+    merged = append(merged, network_df)
+
+networks = merged.reset_index(drop=True)
+
+# fix data type issues
+networks.up_nsbs = networks.up_nsbs.astype("uint32")
+
 
 # All barriers that came out of network analysis have networks
 networks["HasNetwork"] = True
@@ -112,15 +135,11 @@ df = df.join(networks.set_index("id"))
 df.HasNetwork = df.HasNetwork.fillna(False)
 
 
-print(
-    "Read {:,} small barriers ({:,} have networks)".format(
-        len(df), len(df.loc[df.HasNetwork])
-    )
-)
+print(f"Read {len(df):,} small barriers ({df.HasNetwork.sum():,} have networks)")
 
 ### Join in T&E Spp stats
 spp_df = (
-    deserialize_df(
+    pd.read_feather(
         data_dir / "species/derived/spp_HUC12.feather",
         columns=["HUC12", "federal", "sgcn", "regional"],
     )
@@ -148,7 +167,10 @@ df = add_spatial_joins(df)
 
 ### Add lat / lon
 print("Adding lat / lon fields")
-df = add_lat_lon(df)
+geo = df[["geometry"]].to_crs(epsg=4326)
+geo["lat"] = pg.get_x(geo.geometry.values.data).astype("float32")
+geo["lon"] = pg.get_y(geo.geometry.values.data).astype("float32")
+df = df.join(geo[["lat", "lon"]])
 
 ### Calculate tiers for the region and by state
 df = calculate_tiers(df, prefix="SE")
@@ -168,7 +190,8 @@ print("Writing to output files...")
 
 # Full results for SARP
 print("Saving full results to feather")
-to_geofeather(df.reset_index(), qa_dir / "small_barriers_network_results.feather")
+df.reset_index().to_feather(qa_dir / "small_barriers_network_results.feather")
+write_dataframe(df.reset_index(), qa_dir / "small_barriers_network_results.gpkg")
 
 # drop geometry, not needed from here on out
 df = df.drop(columns=["geometry"])
@@ -183,7 +206,7 @@ df.to_csv(
 
 # Drop any fields we don't need for API or tippecanoe
 # save for API
-serialize_df(df[SB_API_FIELDS].reset_index(), api_dir / "small_barriers.feather")
+df[SB_API_FIELDS].reset_index().to_feather(api_dir / "small_barriers.feather")
 
 # Drop fields that can be calculated on frontend
 keep_fields = [
@@ -217,7 +240,7 @@ with_networks.rename(
 
 ### Combine barriers that don't have networks with road / stream crossings
 print("Reading road / stream crossings")
-road_crossings = from_geofeather(barriers_dir / "road_crossings.feather").rename(
+road_crossings = gp.read_feather(barriers_dir / "road_crossings.feather").rename(
     columns={"County": "CountyName"}
 )
 
@@ -275,4 +298,4 @@ combined.to_csv(
     tile_dir / "barriers_background.csv", index=False, quoting=csv.QUOTE_NONNUMERIC
 )
 
-print("Done in {:.2f}".format(time() - start))
+print(f"Done in {time() - start:.2f}")

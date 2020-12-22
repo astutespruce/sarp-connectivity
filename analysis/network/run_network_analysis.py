@@ -49,7 +49,7 @@ huc2s = ["02", "03", "05", "06", "07", "08", "10", "11", "12", "13", "21"]
 
 start = time()
 
-for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
+for huc2, network_type in product(huc2s, NETWORK_TYPES[1:]):
     region_start = time()
 
     print(f"----- {huc2} ({network_type}) ------")
