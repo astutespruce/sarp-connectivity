@@ -19,9 +19,9 @@ from pathlib import Path
 from collections import defaultdict
 import csv
 import json
+
 import pandas as pd
 import numpy as np
-from feather import read_dataframe
 
 from analysis.constants import SARP_STATES
 
@@ -34,7 +34,6 @@ PERCENTILES = [20, 40, 60, 75, 80, 85, 90, 95, 100]
 # The values from these fields in the dams / small_barriers data must exactly match
 # the IDs for those units set when the vector tiles of those units are created, otherwise
 # they won't join properly in the frontend.
-# TODO: can COUNTYFIPS be renamed as county?
 
 SUMMARY_UNITS = ["State", "COUNTYFIPS", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4"]
 
@@ -61,7 +60,7 @@ print("Reading barriers")
 # this matches the ones coming out of the ranking
 # read in dams with network results
 dams = (
-    read_dataframe(api_dir / "dams.feather")
+    pd.read_feather(api_dir / "dams.feather")
     .set_index("id", drop=False)[["id", "HasNetwork", "GainMiles"] + SUMMARY_UNITS]
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
@@ -69,13 +68,13 @@ dams.OnNetwork = dams.OnNetwork.fillna(False)
 
 
 # Read in ALL barriers and drop those that are duplicates
-barriers = read_dataframe(src_dir / "small_barriers.feather").set_index(
+barriers = pd.read_feather(src_dir / "small_barriers.feather").set_index(
     "id", drop=False
 )[["id", "duplicate", "dropped", "excluded"] + SUMMARY_UNITS]
 barriers = barriers.loc[~barriers.duplicate].copy()
 
 # read in barriers with network results
-barriers_network = read_dataframe(api_dir / "small_barriers.feather").set_index("id")[
+barriers_network = pd.read_feather(api_dir / "small_barriers.feather").set_index("id")[
     ["HasNetwork"]
 ]
 barriers = barriers.join(barriers_network).rename(columns={"HasNetwork": "OnNetwork"})
@@ -86,7 +85,10 @@ barriers["Included"] = ~(barriers.dropped | barriers.excluded)
 
 # crossings are already de-duplicated against each other and against
 # barriers
-crossings = read_dataframe(src_dir / "road_crossings.feather")
+
+crossings = pd.read_feather(
+    src_dir / "road_crossings.feather", columns=["id"] + SUMMARY_UNITS
+)
 
 
 # Set NA so that we don't include these values in our statistics
@@ -109,7 +111,7 @@ stats["southeast"] = {
 # only extract core counts in states for data download page,
 # as other stats are joined to state vector tiles below
 states = []
-for state in SARP_STATES.values():
+for state in SARP_STATES:
     states.append(
         {
             "id": state,
@@ -133,7 +135,13 @@ for unit in SUMMARY_UNITS:
     dam_stats = (
         dams[[unit, "id", "OnNetwork", "GainMiles"]]
         .groupby(unit)
-        .agg({"id": "count", "OnNetwork": "sum", "GainMiles": "mean",})
+        .agg(
+            {
+                "id": "count",
+                "OnNetwork": "sum",
+                "GainMiles": "mean",
+            }
+        )
         .rename(
             columns={
                 "id": "dams",
@@ -146,7 +154,13 @@ for unit in SUMMARY_UNITS:
     barriers_stats = (
         barriers[[unit, "id", "Included", "OnNetwork"]]
         .groupby(unit)
-        .agg({"id": "count", "Included": "sum", "OnNetwork": "sum",})
+        .agg(
+            {
+                "id": "count",
+                "Included": "sum",
+                "OnNetwork": "sum",
+            }
+        )
         .rename(
             columns={
                 "id": "total_barriers",
@@ -172,4 +186,3 @@ for unit in SUMMARY_UNITS:
     merged.to_csv(
         tile_dir / "{}.csv".format(unit), index_label="id", quoting=csv.QUOTE_NONNUMERIC
     )
-

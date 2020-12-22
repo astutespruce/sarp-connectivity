@@ -94,7 +94,6 @@ df = df.loc[~(df.dropped | df.duplicate)].copy()
 print("Reading network outputs")
 merged = None
 for huc2 in huc2s:
-    print(f"Processing {huc2}...")
     # if from a HUC2 that was merged with adjacent HUC2s
     merged_filename = (
         data_dir / "networks/merged" / huc2 / "small_barriers/barriers_network.feather"
@@ -104,7 +103,7 @@ for huc2 in huc2s:
 
     else:
         network_df = pd.read_feather(
-            data_dir / "networks" / huc2 / "dams/barriers_network.feather"
+            data_dir / "networks" / huc2 / "small_barriers/barriers_network.feather"
         )
 
     network_df = (

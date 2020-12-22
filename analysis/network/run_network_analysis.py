@@ -42,9 +42,10 @@ huc4_df = pd.read_feather(
 )
 # Convert to dict of sorted HUC4s per HUC2
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
+huc2s = sorted(units.keys())
 
 # manually subset keys from above for processing
-huc2s = ["02", "03", "05", "06", "07", "08", "10", "11", "12", "13", "21"]
+# huc2s = ["02", "03", "05", "06", "07", "08", "10", "11", "12", "13", "21"]
 
 
 start = time()
