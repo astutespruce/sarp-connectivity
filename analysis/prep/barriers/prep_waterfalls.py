@@ -74,6 +74,14 @@ df = df.set_index("id", drop=False)
 df.Source = df.Source.str.strip()
 df.loc[df.Source == "Amy Cottrell, Auburn", "Source"] = "Amy Cotrell, Auburn University"
 
+df.Name = df.Name.fillna("").str.strip()
+df.LocalID = df.LocalID.fillna("").str.strip()
+df.Stream = df.Stream.fillna("").str.strip()
+df.GNIS_Name = df.GNIS_Name.fillna("").str.strip()
+ix = (df.Stream == "") & (df.GNIS_Name != "")
+df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
+
+
 ### Add persistant sourceID based on original IDs
 df["sourceID"] = df.LocalID
 ix = ~df.fall_id.isnull()

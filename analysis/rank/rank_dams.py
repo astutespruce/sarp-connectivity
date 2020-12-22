@@ -25,7 +25,6 @@ import geopandas as gp
 import pandas as pd
 from pyogrio import write_dataframe
 
-from analysis.network.lib.barriers import DAMS_ID
 from analysis.rank.lib.spatial_joins import add_spatial_joins
 from analysis.rank.lib.tiers import calculate_tiers
 from analysis.rank.lib.metrics import update_network_metrics

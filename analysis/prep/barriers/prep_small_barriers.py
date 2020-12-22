@@ -71,9 +71,9 @@ print(f"Read {len(df):,} small barriers")
 
 
 ### Make sure there are not duplicates
-s = df.groupby('SARPID').size()
+s = df.groupby("SARPID").size()
 if s.max() > 1:
-    print(s[s>1].index)
+    print(s[s > 1].index)
     raise ValueError("Multiple barriers with same SARPID")
 
 

@@ -25,7 +25,6 @@ import geopandas as gp
 import pandas as pd
 from pyogrio import write_dataframe
 
-from analysis.network.lib.barriers import DAMS_ID
 from analysis.rank.lib.spatial_joins import add_spatial_joins
 from analysis.rank.lib.tiers import calculate_tiers
 from analysis.rank.lib.metrics import update_network_metrics
@@ -95,6 +94,7 @@ df = df.loc[~(df.dropped | df.duplicate)].copy()
 print("Reading network outputs")
 merged = None
 for huc2 in huc2s:
+    print(f"Processing {huc2}...")
     # if from a HUC2 that was merged with adjacent HUC2s
     merged_filename = (
         data_dir / "networks/merged" / huc2 / "small_barriers/barriers_network.feather"

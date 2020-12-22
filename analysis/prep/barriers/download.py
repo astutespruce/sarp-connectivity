@@ -208,6 +208,11 @@ df = download_fs(WATERFALLS_URL, fields=WATERFALL_COLS, token=token)
 print("Projecting waterfalls.")
 df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
 
+df = df.rename(
+    columns={"gnis_name_": "GNIS_Name", "watercours": "Stream", "name": "Name"}
+)
+
+
 print("Downloaded {:,} waterfalls in {:.2f}s".format(len(df), time() - download_start))
 
 

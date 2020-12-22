@@ -226,6 +226,9 @@ WATERFALL_COLS = [
     "fall_type",
     "Source",
     "LocalID",
+    "name",
+    "gnis_name_",
+    "watercours",
 ]
 
 
