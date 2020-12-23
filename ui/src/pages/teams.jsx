@@ -72,9 +72,22 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
                 {team.description}
                 <br />
                 <br />
+                {team.url !== undefined ? (
+                  <>
+                    Please see the{' '}
+                    <OutboundLink to={team.url}>
+                      {state} Aquatic Connectivity Team website
+                    </OutboundLink>
+                    .
+                    <br />
+                    <br />
+                  </>
+                ) : null}
                 For more information, please contact{' '}
-                <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a>
-                .
+                <a href={`mailto:${team.contact.email}`}>
+                  {team.contact.name}
+                </a>{' '}
+                ({team.contact.org}).
               </p>
               {images[state] ? (
                 <>
