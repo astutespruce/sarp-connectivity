@@ -236,14 +236,15 @@ export const CONNECTIVITY_TEAMS = {
       email: 'ebullard@tnc.org',
     },
   },
-  // Virginia: {
-  //   description: '',
-  //   contact: {
-  //     name: '',
-  //     org: '',
-  //     email: ''
-  //   }
-  // }
+  Virginia: {
+    description:
+      'The Virginia Dam Removal Task Force is an Aquatic Connectivity Team in the State of Virginia. It has members from many different organizations that have been collaborating to identify and implement high priority projects. Many partnerships have been built from this team, including the Virginia DOT Who has been working with the Team to replace culverts.',
+    contact: {
+      name: 'Jessie Thomas-Blate',
+      org: 'American Rivers',
+      email: 'jthomas@americanrivers.org',
+    },
+  },
 }
 
 export const SYSTEMS = {

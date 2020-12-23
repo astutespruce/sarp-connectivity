@@ -28,6 +28,7 @@ tippecanoe -f -z 8 -l HUC6 -pg -P --detect-shared-borders -o $TILEDIR/HUC6.mbtil
 rm $TMPDIR/HUC6.json
 
 # HUC8
+# NOTE: this includes priority values assigned at the HUC8 level
 echo "Generating HUC8 tiles..."
 ogr2ogr -t_srs EPSG:4326 -f GeoJSONSeq $TMPDIR/HUC8.json $DATADIR/sarp_huc8_priorities.gpkg -progress
 tippecanoe -f -z 10 -l HUC8 -pg -P --detect-shared-borders -o $TILEDIR/HUC8.mbtiles  -T id:string $TMPDIR/HUC8.json
