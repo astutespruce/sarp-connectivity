@@ -73,8 +73,8 @@ df = df.loc[~(df.dropped | df.duplicate)].copy()
 ### Add lat / lon
 print("Adding lat / lon fields")
 geo = df[["geometry"]].to_crs(epsg=4326)
-geo["lat"] = pg.get_x(geo.geometry.values.data).astype("float32")
-geo["lon"] = pg.get_y(geo.geometry.values.data).astype("float32")
+geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
+geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
 df = df.join(geo[["lat", "lon"]])
 
 
