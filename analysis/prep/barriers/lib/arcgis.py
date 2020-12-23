@@ -80,7 +80,8 @@ def download_fs(url, fields=None, token=None, target_wkid=None):
 
     # Get the total count we can query
     svc_info = get_json(url, token=token)
-    batch_size = max(svc_info["maxRecordCount"], svc_info["standardMaxRecordCount"])
+    # batch_size = max(svc_info["maxRecordCount"], svc_info["standardMaxRecordCount"])
+    batch_size = svc_info["standardMaxRecordCount"]
 
     query = {"where": "1=1", "resultType": "standard", "outFields": "*", "f": "geojson"}
 
@@ -95,25 +96,28 @@ def download_fs(url, fields=None, token=None, target_wkid=None):
 
         missing_fields = set(fields).difference(fields_present)
         if len(missing_fields):
-            print("Requested fields are not present: {}".format(missing_fields))
+            print(f"Requested fields are not present: {missing_fields}")
 
         query["outFields"] = ",".join(request_fields)
 
     # Get total count we expect
     count = get_json(
-        "{}/query".format(url),
+        f"{url}/query",
         params={"where": "1=1", "returnCountOnly": "true"},
         token=token,
     )["count"]
 
     batches = ceil(count / batch_size)
-    print("Downloading {:,} records in {:,} requests".format(count, batches))
+    print(
+        f"Downloading {count:,} records in {batches:,} requests of up to {batch_size:,} records"
+    )
 
     # Download and merge data frames
     merged = None
     for offset in range(0, batches * batch_size, batch_size):
         query["resultOffset"] = offset
-        features = get_json("{}/query".format(url), params=query, token=token)
+        features = get_json(f"{url}/query", params=query, token=token)
+
         df = gp.GeoDataFrame.from_features(features, crs="EPSG:4326")
 
         if merged is None:

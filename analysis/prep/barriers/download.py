@@ -125,9 +125,14 @@ for state, url in DAM_URLS.items():
 
 df = merged
 
+ix = df.geometry.isnull()
+if ix.sum():
+    print(f"WARNING: {ix.sum()} dams are missing geometry values")
+    print(df.loc[ix].groupby("SourceState").size())
+    df = df.loc[~ix].copy()
+
 print("Projecting dams...")
-# Drop dams without locations and project
-df = df.loc[df.geometry.notnull()].copy().to_crs(CRS).reset_index(drop=True)
+df = df.copy().to_crs(CRS).reset_index(drop=True)
 
 print("Merged {:,} dams in SARP states".format(len(df)))
 
@@ -147,10 +152,10 @@ df.to_feather(out_dir / "sarp_dams.feather")
 
 ### Download manually snapped dams
 download_start = time()
-print("---- Downloading Snapped Dams ----")
+print("\n---- Downloading Snapped Dams ----")
 df = download_fs(
     SNAPPED_URL,
-    fields=["SARPID", "ManualReview"],
+    fields=["SARPID", "ManualReview", "dropped", "excluded", "duplicate", "snapped"],
     token=token,
 )
 
@@ -166,7 +171,7 @@ df.to_feather(out_dir / "manually_snapped_dams.feather")
 
 ### Download small barriers
 download_start = time()
-print("---- Downloading Small Barriers ----")
+print("\n---- Downloading Small Barriers ----")
 df = download_fs(SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token).rename(
     columns={
         "Crossing_Code": "CrossingCode",
@@ -180,7 +185,12 @@ df = download_fs(SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token).ren
 )
 
 print("Projecting small barriers...")
-df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
+ix = df.geometry.isnull()
+if ix.sum():
+    print(f"WARNING: {ix.sum()} small barriers are missing geometry values")
+    df = df.loc[~ix].copy()
+
+df = df.to_crs(CRS).reset_index(drop=True)
 
 print(
     "Downloaded {:,} small barriers in {:.2f}s".format(len(df), time() - download_start)
@@ -202,7 +212,7 @@ df.to_feather(out_dir / "sarp_small_barriers.feather")
 
 ### Download waterfalls
 download_start = time()
-print("---- Downloading waterfalls ----")
+print("\n---- Downloading waterfalls ----")
 df = download_fs(WATERFALLS_URL, fields=WATERFALL_COLS, token=token)
 
 print("Projecting waterfalls.")
