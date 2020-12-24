@@ -3,10 +3,7 @@ from pathlib import Path
 from time import time
 import warnings
 
-
 from dotenv import load_dotenv
-import requests
-
 
 from analysis.constants import (
     SARP_STATES,

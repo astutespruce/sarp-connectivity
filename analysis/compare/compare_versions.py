@@ -1,94 +1,157 @@
+from logging import currentframe
 from pathlib import Path
-from datetime import date
 
 import pandas as pd
-import geopandas as gp
 
+current_version = "Dec2020"
 prev_version = "May2020"
 
 data_dir = Path("data/barriers/master")
 out_dir = Path("data/versions")
 
 
-cols = [
-    "ManualReview",
-    "Recon",
-    "Feasibility",
-    "dropped",
-    "excluded",
-    "duplicate",
-    "snapped",
-]
 had_manual_review = [4, 5, 8, 10, 11, 13, 14, 15]
 
-read_cols = ["SARPID"] + cols
+summary_unit_cols = ["State", "HUC2"]
 
-df = pd.read_feather(data_dir / "dams.feather", columns=read_cols)
-prev = pd.read_feather(
-    data_dir / "archive" / prev_version / "dams.feather",
-    columns=read_cols,
-)
 
-filename = out_dir / f"dams_{date.today()}_vs_{prev_version}"
+status_cols = ["dropped", "excluded", "duplicate", "snapped"]
 
-with pd.ExcelWriter(f"{filename}.xlsx") as xlsx, open(f"{filename}.md", "w") as out:
-    out.write(f"# Dams {date.today()} vs {prev_version}\n\n")
+common_cols = [
+    "ManualReview",
+]
 
-    stats = pd.DataFrame(
-        {"latest": [len(df)], "prev": [len(prev)], "diff": [len(df) - len(prev)]}
+barrier_cols = {
+    "dams": [
+        "Recon",
+        "Feasibility",
+    ],
+    "small_barriers": [
+        "PotentialProject",
+        "SeverityClass",
+    ],
+}
+
+
+for barrier_type in ["dams", "small_barriers"]:
+    print(f"Processing {barrier_type}...")
+
+    cols = summary_unit_cols + status_cols + common_cols + barrier_cols[barrier_type]
+
+    read_cols = ["SARPID"] + cols
+    df = pd.read_feather(data_dir / f"{barrier_type}.feather", columns=read_cols)
+    prev = pd.read_feather(
+        data_dir / "archive" / prev_version / f"{barrier_type}.feather",
+        columns=read_cols,
     )
-    stats.to_excel(xlsx, sheet_name="Overall", index=False)
 
-    out.write("## Overall stats\n")
-    out.write(stats.to_markdown(index=False))
+    filename = out_dir / f"{barrier_type}_{current_version}_vs_{prev_version}"
 
-    for col in cols:
-        stats = (
-            pd.DataFrame(df.groupby(col).size().rename("latest"))
-            .join(prev.groupby(col).size().rename("prev"))
-            .fillna(0)
-            .astype("int")
+    with pd.ExcelWriter(f"{filename}.xlsx") as xlsx, open(f"{filename}.md", "w") as out:
+        out.write(f"# {current_version} vs {prev_version}\n\n")
+
+        stats = pd.DataFrame(
+            {
+                "type": [
+                    "total",
+                    "included in network analysis",
+                    "included in tool (not dropped or duplicate)",
+                    "snapped (raw)",
+                    "completely dropped (error, dam removed, etc)",
+                    "excluded from analysis (invasive barrier, etc)",
+                    "duplicate",
+                    "manually reviewed",
+                ],
+                "latest": [
+                    len(df),
+                    (df.snapped & (~(df.dropped | df.excluded | df.duplicate))).sum(),
+                    (~(df.dropped | df.duplicate)).sum(),
+                    df.snapped.sum(),
+                    df.dropped.sum(),
+                    df.excluded.sum(),
+                    df.duplicate.sum(),
+                    df.ManualReview.isin(had_manual_review).sum(),
+                ],
+                "prev": [
+                    len(prev),
+                    (
+                        prev.snapped
+                        & (~(prev.dropped | prev.excluded | prev.duplicate))
+                    ).sum(),
+                    (~(prev.dropped | prev.duplicate)).sum(),
+                    prev.snapped.sum(),
+                    prev.dropped.sum(),
+                    prev.excluded.sum(),
+                    prev.duplicate.sum(),
+                    prev.ManualReview.isin(had_manual_review).sum(),
+                ],
+            }
         )
+        stats.latest = stats.latest.astype("float32")
+        stats.prev = stats.prev.astype("float32")
         stats["diff"] = stats.latest - stats.prev
+        stats.to_excel(xlsx, sheet_name="Overall", index=False)
 
-        out.write(f"\n\n## {col}\n")
-        out.write(stats.to_markdown())
-        stats.to_excel(xlsx, sheet_name=col)
+        out.write("## Overall stats\n")
+        out.write(stats.to_markdown(index=False, floatfmt=",.0f"))
 
-    # Again for Recon but filtered by ManualReview
-    stats = (
-        pd.DataFrame(
-            df.loc[df.ManualReview.isin(had_manual_review)]
-            .groupby("Recon")
-            .size()
-            .rename("latest")
+        for col in cols:
+            if col in status_cols:
+                continue
+
+            stats = (
+                pd.DataFrame(df.groupby(col).size().rename("latest"))
+                .join(prev.groupby(col).size().rename("prev"))
+                .fillna(0)
+                .astype("int")
+            )
+            stats.latest = stats.latest.astype("float32")
+            stats.prev = stats.prev.astype("float32")
+            stats["diff"] = stats.latest - stats.prev
+
+            out.write(f"\n\n## {col} Total\n")
+            out.write(stats.to_markdown(floatfmt=",.0f"))
+            stats.to_excel(xlsx, sheet_name=f"{col}_total")
+
+        # now look at pairs of dams based on SARPID
+        joined = df.set_index("SARPID")[cols].join(
+            prev.set_index("SARPID")[cols], rsuffix="_prev"
         )
-        .join(
-            prev.loc[prev.ManualReview.isin(had_manual_review)]
-            .groupby("Recon")
-            .size()
-            .rename("prev")
-        )
-        .fillna(0)
-        .astype("int")
-    )
-    stats["diff"] = stats.latest - stats.prev
+        for col in cols:
+            if col in summary_unit_cols:
+                continue
 
-    out.write(f"\n\n## Recon for only those that were manually reviewed\n")
-    out.write(f"ManualReview one of {had_manual_review}\n\n")
-    out.write(stats.to_markdown())
-    stats.to_excel(xlsx, sheet_name="Recon (only for manually reviewed dams)")
+            prev_col = f"{col}_prev"
+            stats = joined.groupby([prev_col, col]).size().reset_index()
+            stats = stats.loc[stats[col] != stats[prev_col]].set_index([prev_col, col])
 
-    # now look at pairs of dams based on SARPID
-    joined = df.set_index("SARPID")[cols].join(
-        prev.set_index("SARPID")[cols], rsuffix="_prev"
-    )
-    for col in cols:
-        stats = joined.groupby([f"{col}_prev", col]).size().reset_index()
-        stats = stats.loc[stats[col] != stats[f"{col}_prev"]].set_index(
-            [f"{col}_prev", col]
-        )
+            if len(stats):
+                out.write(f"\n\n## {col} - change\n")
+                out.write(stats.to_markdown(floatfmt=",.0f"))
+                stats.to_excel(xlsx, sheet_name=f"{col}_change")
 
-        out.write(f"\n\n## {col} - change by dam\n")
-        out.write(stats.to_markdown())
-        stats.to_excel(xlsx, sheet_name=f"{col}_change")
+        if barrier_type == "dams":
+            # Recon filtered by ManualReview
+            stats = (
+                pd.DataFrame(
+                    df.loc[df.ManualReview.isin(had_manual_review)]
+                    .groupby("Recon")
+                    .size()
+                    .rename("latest")
+                )
+                .join(
+                    prev.loc[prev.ManualReview.isin(had_manual_review)]
+                    .groupby("Recon")
+                    .size()
+                    .rename("prev")
+                )
+                .fillna(0)
+            )
+            stats.latest = stats.latest.astype("float32")
+            stats.prev = stats.prev.astype("float32")
+            stats["diff"] = stats.latest - stats.prev
+
+            out.write(f"\n\n## Recon for only those that were manually reviewed\n")
+            out.write(f"ManualReview one of {had_manual_review}\n\n")
+            out.write(stats.to_markdown(floatfmt=",.0f"))
+            stats.to_excel(xlsx, sheet_name="Recon (only for manually reviewed)")
