@@ -76,6 +76,7 @@ df = (
             "snap_tolerance",
             "snap_ref_id",
             "snap_log",
+            "snap_group",
             "snapped",
             "ProtectedLand",
             "NHDPlusID",

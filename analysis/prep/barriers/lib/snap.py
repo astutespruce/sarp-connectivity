@@ -27,8 +27,11 @@ nhd_dir = Path("data/nhd")
 def snap_estimated_dams_to_drains(df, to_snap):
     snap_start = time()
 
-    estimated = to_snap.loc[to_snap.ManualReview == 20].copy()
-    print(f"=================\nSnapping {len(estimated)} estimated dams...")
+    # if estimated dam and was not manually reviewed and moved or verified at correct location
+    ix = (to_snap.snap_group == 1) & (~to_snap.ManualReview.isin([4, 13]))
+
+    estimated = to_snap.loc[ix].copy()
+    print(f"=================\nSnapping {len(estimated):,} estimated dams...")
 
     for huc2 in sorted(estimated.HUC2.unique()):
         wb = gp.read_feather(
@@ -501,23 +504,22 @@ def snap_to_flowlines(df, to_snap):
 
         # project the point to the line,
         # find out its distance on the line,
-        lines['line_pos'] = pg.line_locate_point(lines.line.values.data, lines.geometry.values.data)
+        lines["line_pos"] = pg.line_locate_point(
+            lines.line.values.data, lines.geometry.values.data
+        )
 
         # if within tolerance of start point, snap to start
-        ix = lines['line_pos'] <= SNAP_ENDPOINT_TOLERANCE
-        lines.loc[ix, 'line_pos'] = 0
+        ix = lines["line_pos"] <= SNAP_ENDPOINT_TOLERANCE
+        lines.loc[ix, "line_pos"] = 0
 
         # if within tolerance of endpoint, snap to end
         end = pg.length(lines.line.values.data)
-        ix = lines['line_pos'] >= end - SNAP_ENDPOINT_TOLERANCE
-        lines.loc[ix, 'line_pos'] = end[ix]
+        ix = lines["line_pos"] >= end - SNAP_ENDPOINT_TOLERANCE
+        lines.loc[ix, "line_pos"] = end[ix]
 
         # then interpolate its new coordinates
         lines["geometry"] = pg.line_interpolate_point(
-            lines.line.values.data,
-            lines[
-                'line_pos'
-            ]
+            lines.line.values.data, lines["line_pos"]
         )
 
         ix = lines.index
