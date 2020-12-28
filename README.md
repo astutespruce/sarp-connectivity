@@ -87,10 +87,6 @@ To start the development server (on port 8000, by default):
 -   `cd ui`
 -   `gatsby develop`
 
-To start the frontend application (on port 3000, by default:
-`cd ui && yarn start`
-Then open `http://localhost:3000` in your browser.
-
 #### Flask API:
 
 To start the report server (on port 5000, by default):

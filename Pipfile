@@ -13,7 +13,7 @@ gunicorn = "*"
 raven = {version = "*",extras = ["flask"]}
 requests = "*"
 python-dotenv = "*"
-pygeos = {editable = true,path = "./../pygeos"}
+geopandas = "*"
 
 [dev-packages]
 pylint = "*"
@@ -21,12 +21,12 @@ black = "==19.10b0"
 requests = "*"
 nhdnet = {editable = true,path = "./../nhdnet"}
 sarp-connectivity = {editable = true,path = "."}
-geofeather = {editable = true,path = "./../geofeather"}
 rtree = ">=0.9.3"
 networkx = "*"
-pygeos = {editable = true,path = "./../pygeos"}
 pgpkg = {editable = true,path = "./../pgpkg"}
-geopandas = "*"
+geofeather = {editable = true,path = "./../geofeather"}
+pyogrio = {editable = true,path = "./../pyogrio"}
+pygeos = "*"
 
 [requires]
 python_version = "3.8"
