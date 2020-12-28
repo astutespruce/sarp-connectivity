@@ -11,6 +11,7 @@ import {
   SINUOSITY,
   DAM_CONDITION,
   CONSTRUCTION,
+  PASSAGEFACILITY,
   PURPOSE,
   RECON,
   OWNERTYPE,
@@ -32,6 +33,7 @@ const DamDetails = ({
   construction,
   purpose,
   condition,
+  passagefacility,
   river,
   HUC8,
   HUC12,
@@ -105,6 +107,13 @@ const DamDetails = ({
           {condition && DAM_CONDITION[condition] ? (
             <li>
               Structural condition: {DAM_CONDITION[condition].toLowerCase()}
+            </li>
+          ) : null}
+
+          {passagefacility && PASSAGEFACILITY[passagefacility] ? (
+            <li>
+              Passage facility type:{' '}
+              {PASSAGEFACILITY[passagefacility].toLowerCase()}
             </li>
           ) : null}
         </List>
@@ -331,6 +340,7 @@ DamDetails.propTypes = {
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.number,
+  passagefacility: PropTypes.number,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
@@ -362,6 +372,7 @@ DamDetails.defaultProps = {
   construction: 0,
   purpose: 0,
   condition: 0,
+  passagefacility: 0,
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,

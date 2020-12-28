@@ -11,6 +11,7 @@ import {
   ROAD_TYPE,
   DAM_CONDITION,
   BARRIER_CONDITION,
+  PASSAGEFACILITY_CLASS,
   OWNERTYPE,
   HUC8_USFS,
   HUC8_COA,
@@ -156,6 +157,15 @@ const dams = [
     help:
       'Note: purpose information is only available for a small number of dams.  Not all data sources recorded this information.',
     ...getEntries(PURPOSE),
+  },
+  {
+    field: 'passagefacilityclass',
+    title: 'Fish Passage Facility Present',
+    sort: false,
+    hideEmpty: false,
+    help:
+      'Note: fish passage facility information is only available for a small number of dams.  Not all data sources recorded this information.',
+    ...getEntries(PASSAGEFACILITY_CLASS),
   },
   {
     field: 'ownertype',

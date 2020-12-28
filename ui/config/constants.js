@@ -87,7 +87,6 @@ export const FEASIBILITY = {
   4: 'Likely feasible',
   5: 'No conservation benefit',
   6: 'Unknown',
-  // 9: 'Invasive species barrier',
   // not shown to user
   // 7: 'Error',
   // 8: 'Dam removed for conservation benefit'
@@ -178,6 +177,28 @@ export const OWNERTYPE = {
 export const PASSAGEFACILITY_CLASS = {
   0: 'No known fish passage structure',
   1: 'Fish passage structure present',
+}
+
+export const PASSAGEFACILITY = {
+  0: 'Unknown or None',
+  1: 'Trap & Truck',
+  2: 'Fish Ladder - unspecified',
+  3: 'Locking',
+  4: 'Rock Rapids',
+  5: 'Eelway',
+  6: 'Alaskan Steeppass',
+  7: 'Herring Passage',
+  8: 'Reservation',
+  9: 'Exemption',
+  10: 'Notch',
+  11: 'Denil Fishway',
+  12: 'Fish Lift',
+  13: 'Partial Breach',
+  14: 'Removal',
+  15: 'Pool and Weir Fishway',
+  16: 'Vertical Slot Fishway',
+  17: 'Nature-like Fishway',
+  18: 'Bypass Channel Fishway',
 }
 
 export const CONNECTIVITY_TEAMS = {

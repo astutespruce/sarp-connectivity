@@ -3,12 +3,11 @@ import json
 from pathlib import Path
 from io import BytesIO
 from zipfile import ZipFile
-import time
 import logging
 from datetime import date
+
 import pandas as pd
-from feather import read_dataframe
-from flask import Flask, abort, request, send_file, make_response, render_template
+from flask import Flask, abort, request, make_response, render_template
 from flask_cors import CORS
 from raven.contrib.flask import Sentry
 from raven.handlers.logging import SentryHandler
@@ -28,6 +27,7 @@ from api.constants import (
     PURPOSE_DOMAIN,
     CONSTRUCTION_DOMAIN,
     DAM_CONDITION_DOMAIN,
+    PASSAGEFACILITY_DOMAIN,
     BARRIER_SEVERITY_DOMAIN,
     BOOLEAN_DOMAIN,
     OWNERTYPE_DOMAIN,
@@ -70,10 +70,10 @@ barrier_filter_field_map = {f.lower(): f for f in SB_FILTER_FIELDS}
 # Read source data into memory
 try:
     data_dir = Path("data/api")
-    dams = read_dataframe(data_dir / "dams.feather").set_index(["id"])
+    dams = pd.read_feather(data_dir / "dams.feather").set_index(["id"])
     dams_with_networks = dams.loc[dams.HasNetwork]
 
-    barriers = read_dataframe(data_dir / "small_barriers.feather").set_index(["id"])
+    barriers = pd.read_feather(data_dir / "small_barriers.feather").set_index(["id"])
     barriers_with_networks = barriers.loc[barriers.HasNetwork]
 
     print("Data loaded")
@@ -357,6 +357,7 @@ def download(barrier_type="dams", layer="HUC8", format="CSV"):
         df.Construction = df.Construction.map(CONSTRUCTION_DOMAIN)
         df.Purpose = df.Purpose.map(PURPOSE_DOMAIN)
         df.Feasibility = df.Feasibility.map(FEASIBILITY_DOMAIN)
+        df.PassageFacility = df.PassageFacility.map(PASSAGEFACILITY_DOMAIN)
 
     else:
         df.SeverityClass = df.SeverityClass.map(BARRIER_SEVERITY_DOMAIN)

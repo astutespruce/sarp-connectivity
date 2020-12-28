@@ -3,6 +3,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 import { Text } from 'components/Text'
+import { OutboundLink } from 'components/Link'
 import { CloseButton } from 'components/Button'
 import { Box, Flex } from 'components/Grid'
 import { Downloader } from 'components/Download'
@@ -108,13 +109,27 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
 
         {team ? (
           <div style={{ marginTop: '3rem' }}>
-            <h5 style={{ marginBottom: '0.5em' }}>Aquatic Connectivity Team</h5>
+            <h5 style={{ marginBottom: '0.5em' }}>
+              {title} Aquatic Connectivity Team
+            </h5>
             <p>
               {team.description}
               <br />
               <br />
+              {team.url !== undefined ? (
+                <>
+                  Please see the{' '}
+                  <OutboundLink to={team.url}>
+                    {title} Aquatic Connectivity Team website
+                  </OutboundLink>
+                  .
+                  <br />
+                  <br />
+                </>
+              ) : null}
               For more information, please contact{' '}
-              <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a>.
+              <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a> (
+              {team.contact.org}).
             </p>
           </div>
         ) : null}
