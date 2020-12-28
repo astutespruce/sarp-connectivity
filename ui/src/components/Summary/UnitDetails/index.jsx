@@ -69,15 +69,18 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   let { title: layerTitle } = layerConfig
 
   let title = name || id
+  let state = null
   if (layerId === 'County') {
     title = `${name} County`
-    layerTitle = STATE_FIPS[id.slice(0, 2)]
+    state = STATE_FIPS[id.slice(0, 2)]
+    layerTitle = state
   }
 
-  let team = null
   if (layerId === 'State') {
-    team = CONNECTIVITY_TEAMS[id]
+    state = id
   }
+
+  const team = state ? CONNECTIVITY_TEAMS[state] : null
 
   const hasBarriers = barrierType === 'dams' ? dams > 0 : total_barriers > 0
   const downloaderConfig = {
@@ -110,7 +113,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
         {team ? (
           <div style={{ marginTop: '3rem' }}>
             <h5 style={{ marginBottom: '0.5em' }}>
-              {title} Aquatic Connectivity Team
+              {state} Aquatic Connectivity Team
             </h5>
             <p>
               {team.description}
@@ -120,7 +123,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
                 <>
                   Please see the{' '}
                   <OutboundLink to={team.url}>
-                    {title} Aquatic Connectivity Team website
+                    {state} Aquatic Connectivity Team website
                   </OutboundLink>
                   .
                   <br />
