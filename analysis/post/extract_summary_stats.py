@@ -110,16 +110,23 @@ stats["southeast"] = {
 
 # only extract core counts in states for data download page,
 # as other stats are joined to state vector tiles below
-states = []
-for state in SARP_STATES:
-    states.append(
+# TODO: expand to full region states
+states = sorted(
+    pd.read_feather(
+        "data/boundaries/sarp_states.feather", columns=["State"]
+    ).State.unique()
+)
+
+state_stats = []
+for state in states:
+    state_stats.append(
         {
             "id": state,
             "dams": int((dams.State == state).sum()),
             "total_barriers": int((barriers.State == state).sum()),
         }
     )
-stats["State"] = states
+stats["State"] = state_stats
 
 # Write the summary statistics into the UI directory so that it can be imported at build time
 # into the code
