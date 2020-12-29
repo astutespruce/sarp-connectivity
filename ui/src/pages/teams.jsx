@@ -50,7 +50,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
   const images = groupBy(extractNodes(imagesSharp), 'state')
 
   return (
-    <Layout>
+    <Layout title="Aquatic Connectivity Teams">
       <HeaderImage
         image={headerImage.childImageSharp.fluid}
         height="40vh"

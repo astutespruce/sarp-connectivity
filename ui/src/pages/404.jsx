@@ -6,7 +6,7 @@ import Layout from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 
 const IndexPage = ({ data: { headerImage } }) => (
-  <Layout>
+  <Layout title="NOT FOUND">
     <HeaderImage
       image={headerImage.childImageSharp.fluid}
       height="100%"

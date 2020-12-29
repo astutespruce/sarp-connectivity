@@ -34,7 +34,7 @@ const WarningIcon = styled(FaExclamationTriangle)`
 const Note = styled(HelpText).attrs({ mt: '1rem' })``
 
 const LengthPage = ({ data: { headerImage } }) => (
-  <Layout>
+  <Layout title="Network Analysis Methods">
     <HeaderImage
       image={headerImage.childImageSharp.fluid}
       height="30vh"
