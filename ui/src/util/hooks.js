@@ -1,6 +1,6 @@
 // ideas adapted from: https://github.com/kentcdodds/use-deep-compare-effect/blob/master/src/index.js
 import { useRef, useEffect, useMemo, useCallback } from 'react'
-import deepEqual from 'dequal'
+import { dequal } from 'dequal/lite'
 
 const isSetEqual = (setA, setB) => {
   if (setA === setB) {
@@ -31,7 +31,7 @@ export const memoizedIsEqual = value => {
     if (!isSetEqual(value, ref.current)) {
       ref.current = value
     }
-  } else if (!deepEqual(value, ref.current)) {
+  } else if (!dequal(value, ref.current)) {
     ref.current = value
   }
 
@@ -44,7 +44,10 @@ export const memoizedIsEqual = value => {
  * @param {Array} dependencies
  */
 export const useIsEqualEffect = (callback, dependencies) => {
-  useEffect(callback, dependencies.map(d => memoizedIsEqual(d)))
+  useEffect(
+    callback,
+    dependencies.map(d => memoizedIsEqual(d))
+  )
 }
 
 /**
@@ -53,11 +56,17 @@ export const useIsEqualEffect = (callback, dependencies) => {
  * @param {Array} dependencies
  */
 export const useIsEqualMemo = (callback, dependencies) => {
-  return useMemo(callback, dependencies.map(d => memoizedIsEqual(d)))
+  return useMemo(
+    callback,
+    dependencies.map(d => memoizedIsEqual(d))
+  )
 }
 
 export const useIsEqualCallback = (callback, dependencies) => {
-  return useCallback(callback, dependencies.map(d => memoizedIsEqual(d)))
+  return useCallback(
+    callback,
+    dependencies.map(d => memoizedIsEqual(d))
+  )
 }
 
 /**

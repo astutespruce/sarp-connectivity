@@ -3,7 +3,6 @@ import Crossfilter2 from 'crossfilter2'
 import { isDebug } from 'util/dom'
 import { useIsEqualMemo } from 'util/hooks'
 import { countByDimension, getFilteredCount } from './util'
-import { exception } from 'react-ga'
 
 // returns true if passed in values contains the value
 // values must be a Set

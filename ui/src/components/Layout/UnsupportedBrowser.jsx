@@ -1,46 +1,36 @@
 import React from 'react'
-import { Container, Box } from 'components/Grid'
+import { Container, Flex, Box } from 'components/Grid'
 import { FaExclamationTriangle } from 'react-icons/fa'
 
-import styled, { themeGet } from 'style'
+import styled from 'style'
 
 const IconHeader = styled.h1`
   text-align: center;
 `
 
 const StyledIcon = styled(FaExclamationTriangle)`
-  height: 8rem;
-  width: 8rem;
+  height: 7rem;
+  width: 7rem;
   margin-right: 1rem;
-  color: #fff;
-`
-
-const WarningBox = styled(Box)`
-  margin: 2rem;
-  padding: 2rem;
-  background-color: ${themeGet('colors.primary.500')};
-  border-radius: 2rem;
-
-  h1 {
-    color: #fff;
-  }
 `
 
 const UnsupportedBrowser = () => (
-  <Container>
-    <WarningBox>
+  <Container pt="3rem">
+    <Flex>
       <IconHeader>
         <StyledIcon />
       </IconHeader>
-      <h1>
-        Unfortunately, you are using an unsupported version of Internet
-        Explorer.
-        <br />
-        <br />
-        Please use a modern browser such as Google Chrome, Firefox, or Microsoft
-        Edge.
-      </h1>
-    </WarningBox>
+      <Box>
+        <h1>
+          Unfortunately, you are using an unsupported version of Internet
+          Explorer.
+        </h1>
+        <p>
+          Please use a modern browser such as Google Chrome, Firefox, or
+          Microsoft Edge.
+        </p>
+      </Box>
+    </Flex>
   </Container>
 )
 

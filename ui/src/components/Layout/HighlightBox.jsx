@@ -30,8 +30,7 @@ const Content = styled(Text)`
   color: ${themeGet('colors.primary.900')};
 `
 
-const HighlightBox = ({ icon, title, children, ...props }) => {
-  return (
+const HighlightBox = ({ icon, title, children, ...props }) => (
     <Wrapper {...props}>
       <Header>
         {icon ? <Icon name={icon} size="4rem" mr="0.25rem" /> : null}
@@ -40,7 +39,6 @@ const HighlightBox = ({ icon, title, children, ...props }) => {
       <Content>{children}</Content>
     </Wrapper>
   )
-}
 
 HighlightBox.propTypes = {
   icon: PropTypes.string,

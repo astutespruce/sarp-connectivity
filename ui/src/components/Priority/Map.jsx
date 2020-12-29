@@ -291,6 +291,7 @@ const PriorityMap = ({
 
       pointLayers.forEach(id => {
         map.on('mouseenter', id, ({ features: [feature] }) => {
+          /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
           const prefix = feature.source === 'waterfalls' ? 'Waterfall: ' : ''
           const { name } = feature.properties
@@ -302,6 +303,7 @@ const PriorityMap = ({
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
+          /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = ''
           tooltip.remove()
         })
@@ -394,7 +396,7 @@ const PriorityMap = ({
 
   // Debounce updates to the filter to prevent frequent redraws
   // which have bad performance with high numbers of dams
-  const [debouncedSetRankFilter] = useDebouncedCallback((field, threshold) => {
+  const {callback: debouncedSetRankFilter} = useDebouncedCallback((field, threshold) => {
     const { current: map } = mapRef
     map.setFilter(topRank.id, ['<=', field, threshold])
     map.setFilter(lowerRank.id, ['>', field, threshold])

@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { OutboundLink as Link } from 'gatsby-plugin-google-analytics'
+import { OutboundLink as Link } from 'gatsby-plugin-google-gtag'
 import PropTypes from 'prop-types'
 
 const OutboundLink = ({ to, target, rel, children, ...props }) => (

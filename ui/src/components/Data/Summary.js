@@ -1,7 +1,7 @@
 import { graphql, useStaticQuery } from 'gatsby'
 
-export const useSummaryData = () => {
-  return useStaticQuery(graphql`
+export const useSummaryData = () =>
+  useStaticQuery(graphql`
     query summaryQuery {
       summaryStatsJson {
         southeast {
@@ -16,4 +16,3 @@ export const useSummaryData = () => {
       }
     }
   `).summaryStatsJson.southeast
-}

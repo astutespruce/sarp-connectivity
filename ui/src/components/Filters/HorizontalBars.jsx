@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import PropTypes from 'prop-types'
-import deepEqual from 'dequal'
+import { dequal } from 'dequal/lite'
 
 import Bar from './HorizontalBar'
 
@@ -40,5 +40,5 @@ HorizontalBars.defaultProps = {
 export default memo(
   HorizontalBars,
   ({ data: prevData, max: prevMax }, { data: nextData, max: nextMax }) =>
-    deepEqual(prevData, nextData) && prevMax === nextMax
+    dequal(prevData, nextData) && prevMax === nextMax
 )
