@@ -119,11 +119,11 @@ const Filter = ({
   }, [filterValues, counts, isOpen])
 
   const toggle = () => {
-    setIsOpen(prev => !prev)
+    setIsOpen((prev) => !prev)
   }
 
   const handleFilterToggle = useIsEqualCallback(
-    value => {
+    (value) => {
       // NOTE: do not mutate filter values or things break
       // (not seen as a state update and memoized function above doesn't fire)!
       // Copy instead.
@@ -151,12 +151,10 @@ const Filter = ({
           {isOpen ? <CaretDown /> : <CaretRight />}
           <div>{title}</div>
         </Title>
-        {
-          <ResetIcon
-            onClick={handleReset}
-            visible={filterValues.size > 0 ? 'visible' : 'hidden'}
-          />
-        }
+        <ResetIcon
+          onClick={handleReset}
+          visible={filterValues.size > 0 ? 'visible' : 'hidden'}
+        />
       </Header>
 
       {isOpen && (

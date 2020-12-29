@@ -70,9 +70,9 @@ const LengthPage = ({ data: { headerImage } }) => (
         <ol>
           <li>
             All coastline and underground conduit segments were first removed
-            from the NHDPlusHR flowlines dataset. "Loops" were retained for
-            purposes of snapping waterfalls and barriers below, but barriers
-            that snapped to these loops were excluded from the network
+            from the NHDPlusHR flowlines dataset. &quot;Loops&quot; were
+            retained for purposes of snapping waterfalls and barriers below, but
+            barriers that snapped to these loops were excluded from the network
             connectivity analysis.
           </li>
           <li>
@@ -100,8 +100,8 @@ const LengthPage = ({ data: { headerImage } }) => (
         <p>
           Waterfalls are used to define natural breaks within the aquatic
           network. All waterfalls included in this analysis were considered
-          "hard" breaks to the aquatic network, which prevent upstream or
-          downstream movement of aquatic species.
+          &quot;hard&quot; breaks to the aquatic network, which prevent upstream
+          or downstream movement of aquatic species.
           <br />
           <br />
         </p>
@@ -172,7 +172,8 @@ const LengthPage = ({ data: { headerImage } }) => (
           <li>
             For each waterbody extracted above, the downstream-most point(s) on
             any intersecting flowlines were extracted and used as reference
-            points for snapping dams. These are called "drain points" below.
+            points for snapping dams. These are called &quot;drain points&quot;
+            below.
           </li>
           <li>
             Dams were snapped to the above dam-related features if they fell
@@ -192,10 +193,10 @@ const LengthPage = ({ data: { headerImage } }) => (
             were snapped to the nearest drain point of that waterbody if they
             were within 150 meters (50 for those likely off-network). Any that
             were closer to the drain point of another waterbody were snapped to
-            that other waterbody's drain point instead (these occur where there
-            are chains of waterbodies), otherwise those that were within 250
-            meters of the drain point of the waterbody that contains them were
-            snapped to that point.
+            that other waterbody&apos;s drain point instead (these occur where
+            there are chains of waterbodies), otherwise those that were within
+            250 meters of the drain point of the waterbody that contains them
+            were snapped to that point.
           </li>
           <li>
             Remaining dams not in waterbodies were snapped to the nearest

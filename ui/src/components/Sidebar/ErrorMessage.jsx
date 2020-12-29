@@ -27,17 +27,15 @@ export const Label = styled.div`
   font-size: 2rem;
 `
 
-const Error = ({ children }) => {
-  return (
-    <Wrapper>
-      <Flex alignItems="center" mb="1rem">
-        <WarningIcon />
-        <Label>Whoops!</Label>
-      </Flex>
-      {children}
-    </Wrapper>
-  )
-}
+const Error = ({ children }) => (
+  <Wrapper>
+    <Flex alignItems="center" mb="1rem">
+      <WarningIcon />
+      <Label>Whoops!</Label>
+    </Flex>
+    {children}
+  </Wrapper>
+)
 
 Error.propTypes = {
   children: PropTypes.node.isRequired,

@@ -15,6 +15,7 @@ export const groupBy = (records, groupField) =>
 export const countBy = (records, groupField) =>
   records.reduce((prev, record) => {
     const group = record[groupField]
+    /* eslint-disable-next-line no-param-reassign */
     prev[group] = (prev[group] || 0) + 1
     return prev
   }, {})

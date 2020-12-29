@@ -99,7 +99,7 @@ const Legend = ({ title, patches, circles, footnote }) => {
   }
 
   const toggleOpen = () => {
-    setIsOpen(prevIsOpen => !prevIsOpen)
+    setIsOpen((prevIsOpen) => !prevIsOpen)
   }
 
   return (
@@ -114,10 +114,10 @@ const Legend = ({ title, patches, circles, footnote }) => {
                 <PatchGroup key={id}>
                   {label ? <PatchGroupLabel>{label}</PatchGroupLabel> : null}
                   <div>
-                    {entries.map(({ color, label }) => (
+                    {entries.map(({ color, label: patchLabel }) => (
                       <PatchRow key={color}>
                         <Patch style={{ backgroundColor: color }} />
-                        <Label>{label}</Label>
+                        <Label>{patchLabel}</Label>
                       </PatchRow>
                     ))}
                   </div>
@@ -130,7 +130,7 @@ const Legend = ({ title, patches, circles, footnote }) => {
 
           {circles && (
             <div>
-              {circles.map(point => (
+              {circles.map((point) => (
                 <CircleRow key={point.color}>
                   <Circle {...point} />
                   <Label>{point.label}</Label>

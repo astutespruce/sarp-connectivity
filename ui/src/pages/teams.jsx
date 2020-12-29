@@ -65,7 +65,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
         <PageTitle>Aquatic Connectivity Teams</PageTitle>
 
         <div>
-          {Object.entries(CONNECTIVITY_TEAMS).map(([state, team], i) => (
+          {Object.entries(CONNECTIVITY_TEAMS).map(([state, team]) => (
             <TeamSection key={state}>
               <Subtitle>{state}</Subtitle>
               <p>

@@ -17,11 +17,10 @@ export const hasGeolocation =
  *
  * @param {Object} data
  */
-export const encodeParams = obj => {
-  return Object.keys(obj)
-    .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
+export const encodeParams = (obj) =>
+  Object.keys(obj)
+    .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
     .join('&')
-}
 
 export const saveToStorage = (key, data) => {
   if (!hasWindow) return
@@ -29,6 +28,5 @@ export const saveToStorage = (key, data) => {
   window.localStorage.setItem(key, JSON.stringify(data))
 }
 
-export const getFromStorage = key => {
-  return JSON.parse(window.localStorage.getItem(key))
-}
+export const getFromStorage = (key) =>
+  JSON.parse(window.localStorage.getItem(key))

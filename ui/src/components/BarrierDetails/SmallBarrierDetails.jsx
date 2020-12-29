@@ -17,7 +17,6 @@ import {
 const { version: dataVersion } = siteMetadata
 
 const BarrierDetails = ({
-  id,
   sarpid,
   lat,
   lon,
@@ -105,7 +104,7 @@ const BarrierDetails = ({
       <SectionHeader>Functional network information</SectionHeader>
       <List>
         {hasnetwork ? (
-          <React.Fragment>
+          <>
             <li>
               <b>
                 {formatNumber(
@@ -150,7 +149,7 @@ const BarrierDetails = ({
               The upstream network has <b>{SINUOSITY[sinuosityclass]}</b>{' '}
               sinuosity
             </li>
-          </React.Fragment>
+          </>
         ) : (
           <>
             {excluded ? (
@@ -288,7 +287,7 @@ const BarrierDetails = ({
       )}
 
       {!isEmptyString(source) || !isCrossing ? (
-        <React.Fragment>
+        <>
           <SectionHeader>Other information</SectionHeader>
           <List>
             {!isCrossing ? (
@@ -299,14 +298,13 @@ const BarrierDetails = ({
 
             {!isEmptyString(source) ? <li>Source: {source}</li> : null}
           </List>
-        </React.Fragment>
+        </>
       ) : null}
     </div>
   )
 }
 
 BarrierDetails.propTypes = {
-  id: PropTypes.number.isRequired,
   sarpid: PropTypes.string.isRequired,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
@@ -347,7 +345,6 @@ BarrierDetails.defaultProps = {
   excluded: false,
   source: null,
   stream: null,
-  basin: null,
   road: null,
   roadtype: null,
   crossingtype: null,

@@ -58,7 +58,7 @@ const BasemapSelector = ({ map, basemaps }) => {
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
-    Object.entries(basemaps).map(([group, layers]) => {
+    Object.values(basemaps).forEach((layers) => {
       layers.forEach(({ id, source, ...rest }) => {
         // due to the way hot reloading works with the map, this gets called
         // on hot module reload and breaks because layers were already added to the map
@@ -75,11 +75,11 @@ const BasemapSelector = ({ map, basemaps }) => {
         }
       })
     })
-  }, [basemaps])
+  }, [map, basemaps])
 
   // memoize construction of options to avoid doing this on every render
   const options = useMemo(() => {
-    const basemapOptions = Object.entries(basemaps).map(([group, layers]) => {
+    const basemapOptions = Object.values(basemaps).map((layers) => {
       const { id } = layers[0]
       return {
         id,
@@ -95,21 +95,21 @@ const BasemapSelector = ({ map, basemaps }) => {
         layers: [],
       },
     ].concat(basemapOptions)
-  }, [basemaps, map])
+  }, [basemaps])
 
   const [basemap, setBasemap] = useState(options[0])
 
-  const handleBasemapClick = newBasemap => {
+  const handleBasemapClick = (newBasemap) => {
     setIsOpen(false)
 
     if (newBasemap.id === basemap.id) return
 
-    setBasemap(prevBasemap => {
-      prevBasemap.layers.forEach(layer => {
+    setBasemap((prevBasemap) => {
+      prevBasemap.layers.forEach((layer) => {
         map.setLayoutProperty(layer, 'visibility', 'none')
       })
 
-      newBasemap.layers.forEach(layer => {
+      newBasemap.layers.forEach((layer) => {
         map.setLayoutProperty(layer, 'visibility', 'visible')
       })
       return newBasemap
@@ -139,7 +139,7 @@ const BasemapSelector = ({ map, basemaps }) => {
           </BasemapContainer>
           {options
             .filter(({ id }) => id !== nextBasemap.id)
-            .map(altBasemap => (
+            .map((altBasemap) => (
               <BasemapContainer key={altBasemap.id}>
                 <Label>{altBasemap.id}</Label>
                 <Basemap

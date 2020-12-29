@@ -59,102 +59,100 @@ const SearchIcon = styled(FaSearchLocation)`
   margin-right: 0.25em;
 `
 
-const PrioritizePage = ({ data: { headerImage } }) => {
-  return (
-    <Layout title="Prioritize">
-      <HeaderImage
-        image={headerImage.childImageSharp.fluid}
-        height="20vh"
-        minHeight="18rem"
-        position="center"
-        credits={{
-          author: 'American Public Power Association',
-          url: 'https://unsplash.com/photos/FUeb2npsblQ',
-        }}
-      />
+const PrioritizePage = ({ data: { headerImage } }) => (
+  <Layout title="Prioritize">
+    <HeaderImage
+      image={headerImage.childImageSharp.fluid}
+      height="20vh"
+      minHeight="18rem"
+      position="center"
+      credits={{
+        author: 'American Public Power Association',
+        url: 'https://unsplash.com/photos/FUeb2npsblQ',
+      }}
+    />
 
-      <PageContainer>
-        <PageTitle>Prioritize barriers for removal</PageTitle>
+    <PageContainer>
+      <PageTitle>Prioritize barriers for removal</PageTitle>
 
-        <Subtitle>
-          To prioritize barriers, you will work through the following steps:
-        </Subtitle>
+      <Subtitle>
+        To prioritize barriers, you will work through the following steps:
+      </Subtitle>
 
-        <Step>
-          <StepHeader>
-            <StepNumber>
-              <div>1</div>
-            </StepNumber>
-            <StepTitle>Select area of interest.</StepTitle>
-          </StepHeader>
-          <StepDescription>
-            You can select areas using state, county, watershed, and ecoregion
-            boundaries.
-          </StepDescription>
-        </Step>
+      <Step>
+        <StepHeader>
+          <StepNumber>
+            <div>1</div>
+          </StepNumber>
+          <StepTitle>Select area of interest.</StepTitle>
+        </StepHeader>
+        <StepDescription>
+          You can select areas using state, county, watershed, and ecoregion
+          boundaries.
+        </StepDescription>
+      </Step>
 
-        <Step>
-          <StepHeader>
-            <StepNumber>
-              <div>2</div>
-            </StepNumber>
-            <StepTitle>Filter barriers.</StepTitle>
-          </StepHeader>
-          <StepDescription>
-            You can filter barriers by feasibility, height, and other key
-            characteristics to select those that best meet your needs.
-          </StepDescription>
-        </Step>
+      <Step>
+        <StepHeader>
+          <StepNumber>
+            <div>2</div>
+          </StepNumber>
+          <StepTitle>Filter barriers.</StepTitle>
+        </StepHeader>
+        <StepDescription>
+          You can filter barriers by feasibility, height, and other key
+          characteristics to select those that best meet your needs.
+        </StepDescription>
+      </Step>
 
-        <Step>
-          <StepHeader>
-            <StepNumber>
-              <div>3</div>
-            </StepNumber>
-            <StepTitle>Explore priorities on the map.</StepTitle>
-          </StepHeader>
-          <StepDescription>
-            Once you have defined your area of interest and selected the
-            barriers you want, you can explore them on the map.
-          </StepDescription>
-        </Step>
+      <Step>
+        <StepHeader>
+          <StepNumber>
+            <div>3</div>
+          </StepNumber>
+          <StepTitle>Explore priorities on the map.</StepTitle>
+        </StepHeader>
+        <StepDescription>
+          Once you have defined your area of interest and selected the barriers
+          you want, you can explore them on the map.
+        </StepDescription>
+      </Step>
 
-        <Step>
-          <StepHeader>
-            <StepNumber>
-              <div>4</div>
-            </StepNumber>
-            <StepTitle>Download prioritized barriers.</StepTitle>
-          </StepHeader>
-          <StepDescription>
-            You can download the inventory for your area of interest and perform
-            offline work.
-          </StepDescription>
-        </Step>
+      <Step>
+        <StepHeader>
+          <StepNumber>
+            <div>4</div>
+          </StepNumber>
+          <StepTitle>Download prioritized barriers.</StepTitle>
+        </StepHeader>
+        <StepDescription>
+          You can download the inventory for your area of interest and perform
+          offline work.
+        </StepDescription>
+      </Step>
 
-        <Divider />
+      <Divider />
 
-        <Title>Get started now</Title>
+      <Title>Get started now</Title>
 
-        <ButtonContainer>
-          <Link to="/priority/dams">
-            <Button>
-              <SearchIcon />
-              Prioritize dams
-            </Button>
-          </Link>
+      <ButtonContainer>
+        <Link to="/priority/dams">
+          <Button>
+            <SearchIcon />
+            Prioritize dams
+          </Button>
+        </Link>
 
-          <Link to="/priority/barriers">
-            <Button>
-              <SearchIcon />
-              Prioritize road-related barriers
-            </Button>
-          </Link>
-        </ButtonContainer>
-      </PageContainer>
-    </Layout>
-  )
-}
+        <Link to="/priority/barriers">
+          <Button>
+            <SearchIcon />
+            Prioritize road-related barriers
+          </Button>
+        </Link>
+      </ButtonContainer>
+    </PageContainer>
+  </Layout>
+)
 
 PrioritizePage.propTypes = {
   data: PropTypes.shape({

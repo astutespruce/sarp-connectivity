@@ -35,13 +35,11 @@ const Label = styled.div`
   color: ${themeGet('colors.grey.700')};
 `
 
-const LoadingSpinner = () => {
-  return (
-    <Wrapper>
-      <Spinner />
-      <Label>Loading...</Label>
-    </Wrapper>
-  )
-}
+const LoadingSpinner = () => (
+  <Wrapper>
+    <Spinner />
+    <Label>Loading...</Label>
+  </Wrapper>
+)
 
 export default LoadingSpinner

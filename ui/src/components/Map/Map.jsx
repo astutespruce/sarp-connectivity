@@ -1,15 +1,13 @@
 /* eslint-disable max-len, no-underscore-dangle */
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import React, { useLayoutEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import styled from 'style'
-import { hasWindow } from 'util/dom'
 import { getCenterAndZoom } from './util'
 import BasemapSelector from './BasemapSelector'
 import GoToLocation from './GoToLocation'
-import { SearchFeaturePropType } from './proptypes'
 
 import { siteMetadata } from '../../../gatsby-config'
 import { config, sources, basemapLayers } from './config'
@@ -76,7 +74,7 @@ const Map = ({ children, onCreateMap }) => {
     return () => {
       mapObj.remove()
     }
-  }, [])
+  }, [onCreateMap])
 
   return (
     <Wrapper>
@@ -99,6 +97,8 @@ Map.propTypes = {
   onCreateMap: PropTypes.func.isRequired,
 }
 
-Map.defaultProps = {}
+Map.defaultProps = {
+  children: null,
+}
 
 export default Map

@@ -25,7 +25,7 @@ const Coords = ({ map }) => {
     map.on('mouseout', () => {
       setCoords({})
     })
-  }, [])
+  }, [map])
 
   return (
     lat !== undefined &&

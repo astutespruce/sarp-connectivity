@@ -72,15 +72,15 @@ export const useBoundsData = () => {
     }
 
     // for HUC and ECO units, add prefix for ID
-    SYSTEM_UNITS.HUC.forEach(layer => {
-      data[layer] = rawData[layer].map(item => ({
+    SYSTEM_UNITS.HUC.forEach((layer) => {
+      data[layer] = rawData[layer].map((item) => ({
         ...item,
         layer,
       }))
     })
 
-    SYSTEM_UNITS.ECO.forEach(layer => {
-      data[layer] = rawData[layer].map(item => ({
+    SYSTEM_UNITS.ECO.forEach((layer) => {
+      data[layer] = rawData[layer].map((item) => ({
         ...item,
         layer,
       }))

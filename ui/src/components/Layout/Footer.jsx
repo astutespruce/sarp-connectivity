@@ -35,37 +35,35 @@ const InternalLink = styled(BaseLink)`
   text-decoration: none;
 `
 
-const Footer = () => {
-  return (
-    <Wrapper>
-      <div>
-        <OutboundLink to="https://southeastaquatics.net/">
-          Southeast Aquatic Resources Partnership
-        </OutboundLink>
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        <OutboundLink to="https://southeastaquatics.net/about/contact-us">
-          Contact Us
-        </OutboundLink>
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        <InternalLink to="/terms">Terms of Use</InternalLink>
-      </div>
+const Footer = () => (
+  <Wrapper>
+    <div>
+      <OutboundLink to="https://southeastaquatics.net/">
+        Southeast Aquatic Resources Partnership
+      </OutboundLink>
+      &nbsp;&nbsp;|&nbsp;&nbsp;
+      <OutboundLink to="https://southeastaquatics.net/about/contact-us">
+        Contact Us
+      </OutboundLink>
+      &nbsp;&nbsp;|&nbsp;&nbsp;
+      <InternalLink to="/terms">Terms of Use</InternalLink>
+    </div>
 
-      <div>
-        Data version: {dataVersion} ({dataDate})
-      </div>
+    <div>
+      Data version: {dataVersion} ({dataDate})
+    </div>
 
-      <div>
-        Created by the&nbsp;
-        <OutboundLink to="https://consbio.org">
-          Conservation Biology Institute
-        </OutboundLink>{' '}
-        and{' '}
-        <OutboundLink to="https://astutespruce.com">
-          Astute Spruce, LLC
-        </OutboundLink>
-      </div>
-    </Wrapper>
-  )
-}
+    <div>
+      Created by the&nbsp;
+      <OutboundLink to="https://consbio.org">
+        Conservation Biology Institute
+      </OutboundLink>{' '}
+      and{' '}
+      <OutboundLink to="https://astutespruce.com">
+        Astute Spruce, LLC
+      </OutboundLink>
+    </div>
+  </Wrapper>
+)
 
 export default Footer

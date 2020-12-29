@@ -72,7 +72,7 @@ const Results = ({
   const tiers = Array.from({ length: 20 }, (_, i) => i + 1)
 
   // convert to full histogram
-  const counts = tiers.map(tier => tierCounts[tier] || 0)
+  const counts = tiers.map((tier) => tierCounts[tier] || 0)
 
   const handleThresholdChange = ({ target: { value } }) => {
     onSetTierThreshold(21 - value)
@@ -127,11 +127,7 @@ const Results = ({
 
       <Footer>
         <StartOverButton />
-        <Downloader
-          barrierType={barrierType}
-          config={config}
-          customRank={true}
-        />
+        <Downloader barrierType={barrierType} config={config} customRank />
       </Footer>
     </Wrapper>
   )

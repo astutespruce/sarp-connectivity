@@ -68,7 +68,7 @@ const PriorityMap = ({
   const [zoom, setZoom] = useState(0)
 
   const handleCreateMap = useCallback(
-    map => {
+    (map) => {
       mapRef.current = map
 
       map.on('zoomend', () => {
@@ -93,7 +93,7 @@ const PriorityMap = ({
       }
 
       // Add the priority watersheds under everything else
-      priorityWatersheds.forEach(lyr => {
+      priorityWatersheds.forEach((lyr) => {
         map.addLayer(lyr)
       })
 
@@ -162,7 +162,7 @@ const PriorityMap = ({
         ...backgroundPoint,
         source: barrierType,
       })
-      handleLayerClick(backgroundPoint.id, feature => {
+      handleLayerClick(backgroundPoint.id, (feature) => {
         const {
           properties,
           geometry: {
@@ -187,7 +187,7 @@ const PriorityMap = ({
         ...damsSecondaryLayer,
         layout: { visibility: barrierType === 'barriers' ? 'visible' : 'none' },
       })
-      handleLayerClick(damsSecondaryLayer.id, feature => {
+      handleLayerClick(damsSecondaryLayer.id, (feature) => {
         const {
           properties,
           geometry: {
@@ -215,7 +215,7 @@ const PriorityMap = ({
       // all points are initially excluded from analysis until their
       // units are selected
       map.addLayer({ ...pointConfig, ...excludedPoint })
-      handleLayerClick(excludedPoint.id, feature => {
+      handleLayerClick(excludedPoint.id, (feature) => {
         const {
           properties,
           geometry: {
@@ -237,7 +237,7 @@ const PriorityMap = ({
         ...pointConfig,
         ...includedPoint,
       })
-      handleLayerClick(includedPoint.id, feature => {
+      handleLayerClick(includedPoint.id, (feature) => {
         const {
           properties,
           geometry: {
@@ -289,7 +289,7 @@ const PriorityMap = ({
         'waterfalls',
       ]
 
-      pointLayers.forEach(id => {
+      pointLayers.forEach((id) => {
         map.on('mouseenter', id, ({ features: [feature] }) => {
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
@@ -314,7 +314,7 @@ const PriorityMap = ({
       // we are reasonably sure these data are available for querying
       // NOTE: these data are not available at the same zoom levels as
       // the ranked data
-      const getBarrierById = id => {
+      const getBarrierById = (id) => {
         const [feature] = map.querySourceFeatures(barrierType, {
           sourceLayer: barrierType,
           filter: ['==', 'id', id],
@@ -323,7 +323,7 @@ const PriorityMap = ({
         return feature
       }
 
-      const handleRankLayerClick = feature => {
+      const handleRankLayerClick = (feature) => {
         const {
           properties,
           geometry: {
@@ -396,11 +396,14 @@ const PriorityMap = ({
 
   // Debounce updates to the filter to prevent frequent redraws
   // which have bad performance with high numbers of dams
-  const {callback: debouncedSetRankFilter} = useDebouncedCallback((field, threshold) => {
-    const { current: map } = mapRef
-    map.setFilter(topRank.id, ['<=', field, threshold])
-    map.setFilter(lowerRank.id, ['>', field, threshold])
-  }, 200)
+  const { callback: debouncedSetRankFilter } = useDebouncedCallback(
+    (field, threshold) => {
+      const { current: map } = mapRef
+      map.setFilter(topRank.id, ['<=', field, threshold])
+      map.setFilter(lowerRank.id, ['>', field, threshold])
+    },
+    200
+  )
 
   // If map allows unit selection, make layers visible for the activeLayer, so that user can select from them
   // otherwise just highlight those currently selected
@@ -410,7 +413,7 @@ const PriorityMap = ({
     if (!map) return
 
     // toggle visibility of layers so that we only show those layers for the activeLayer
-    Object.keys(unitLayerConfig).forEach(layer => {
+    Object.keys(unitLayerConfig).forEach((layer) => {
       // only show the unit fill and boundary if we allow selection
       const visibility =
         layer === activeLayer && allowUnitSelect ? 'visible' : 'none'
@@ -579,7 +582,7 @@ const PriorityMap = ({
     debouncedSetRankFilter(`${scenario}_tier`, tierThreshold)
   }, [tierThreshold, scenario, debouncedSetRankFilter])
 
-  const handlePriorityLayerChange = useCallback(visiblePriorityLayers => {
+  const handlePriorityLayerChange = useCallback((visiblePriorityLayers) => {
     const { current: map } = mapRef
     if (!map) return
 
@@ -625,7 +628,7 @@ const PriorityMap = ({
     let footnote = null
 
     if (Math.max(...Object.values(priorityLayerState))) {
-      const priorityEntries = Object.entries(priorityLayerState)
+      Object.entries(priorityLayerState)
         .filter(([id, visible]) => visible)
         .forEach(([id]) => {
           patches.push(priorityWatershedLegends[id])

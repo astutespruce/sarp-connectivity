@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react'
+import React, { createContext, useContext } from 'react'
 import PropTypes from 'prop-types'
 
 import { Crossfilter } from './Crossfilter'
@@ -27,6 +27,4 @@ Provider.propTypes = {
 /**
  * Return crossfilter {state, setFilter, resetFilters, filterConfig} values
  */
-export const useCrossfilter = () => {
-  return useContext(Context)
-}
+export const useCrossfilter = () => useContext(Context)

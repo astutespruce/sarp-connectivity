@@ -48,9 +48,9 @@ const LengthPage = ({ data: { headerImage } }) => (
         <Title>Methods</Title>
         <ol>
           <li>
-            All coastline and "loop" segments were first removed from the NHD
-            flowlines dataset in order to create a dendritic aquatic network for
-            analysis.
+            All coastline and &quot;loop&quot; segments were first removed from
+            the NHD flowlines dataset in order to create a dendritic aquatic
+            network for analysis.
           </li>
           <li>
             Dams were automatically snapped to the nearest segment in this
