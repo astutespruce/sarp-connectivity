@@ -141,10 +141,10 @@ const Scoring = () => {
               on the aquatic network.
               <br />
               <br />
-              Read more about network analysis methods for{' '}
               <Link to="/network_methods">
-                states in the Southeast
-              </Link> and <Link to="/network_methods_pr">Puerto Rico</Link>.
+                Read more about network analysis methods
+              </Link>
+              .
             </p>
 
             <Note>

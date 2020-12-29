@@ -48,9 +48,9 @@ const LengthPage = ({ data: { headerImage } }) => (
     />
 
     <PageContainer>
-      <PageTitle>Network Analysis - Southeastern States</PageTitle>
+      <PageTitle>Network Analysis Methods</PageTitle>
       <LargeText>
-        Barriers in all states in the Southeast U.S. were analyzed using the{' '}
+        Barriers in the Southeast U.S. were analyzed using the{' '}
         <OutboundLink to="https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution">
           National Hydrography Dataset - High Resolution Plus
         </OutboundLink>{' '}
@@ -82,11 +82,10 @@ const LengthPage = ({ data: { headerImage } }) => (
             connectivity.
           </li>
           <li>
-            All waterbodies &gt;0.02 square kilometers were extracted from the
-            NHDPlusHR waterbody dataset and intersected with the flowlines to
-            determine flowlines that are within waterbodies. Flowlines outside
-            these waterbodies were considered free-flowing for the network
-            connectivity analysis.
+            All waterbodies were extracted from the NHDPlusHR waterbody dataset
+            and intersected with the flowlines to determine flowlines that are
+            within waterbodies. Flowlines outside these waterbodies were
+            considered free-flowing for the network connectivity analysis.
           </li>
           <li>
             In some regions, network segments were manually removed from the
@@ -174,6 +173,12 @@ const LengthPage = ({ data: { headerImage } }) => (
             any intersecting flowlines were extracted and used as reference
             points for snapping dams. These are called &quot;drain points&quot;
             below.
+          </li>
+          <li>
+            Estimated dams based on a previous analysis by SARP using smaller
+            waterbodies and flowlines that were not otherwise accounted for in
+            the barrier inventory were snapped to the nearest drain point of the
+            waterbody they were contained within, up to 2 kilometers away.
           </li>
           <li>
             Dams were snapped to the above dam-related features if they fell
