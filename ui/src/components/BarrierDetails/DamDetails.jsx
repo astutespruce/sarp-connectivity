@@ -109,7 +109,7 @@ const DamDetails = ({
           </li>
         ) : null}
 
-        {passagefacility && PASSAGEFACILITY[passagefacility] ? (
+        {PASSAGEFACILITY[passagefacility] ? (
           <li>
             Passage facility type:{' '}
             {PASSAGEFACILITY[passagefacility].toLowerCase()}

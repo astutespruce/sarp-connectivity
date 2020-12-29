@@ -74,7 +74,7 @@ const Map = ({ children, onCreateMap }) => {
     return () => {
       mapObj.remove()
     }
-  }, [onCreateMap])
+  }, []) // intentionally omitting onCreateMap from deps list
 
   return (
     <Wrapper>
