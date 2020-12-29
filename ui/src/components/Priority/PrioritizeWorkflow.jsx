@@ -11,6 +11,7 @@ import {
 } from 'components/Data'
 import Sidebar, { LoadingSpinner, ErrorMessage } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
+import { trackPrioritize } from 'util/analytics'
 import styled from 'style'
 
 import Map from './Map'
@@ -77,21 +78,21 @@ const Prioritize = () => {
     setScenario('ncwc')
   }
 
-  const handleSearch = useCallback(nextSearchFeature => {
+  const handleSearch = useCallback((nextSearchFeature) => {
     setSearchFeature(nextSearchFeature)
   }, [])
 
-  const handleSetLayer = nextLayer => {
+  const handleSetLayer = (nextLayer) => {
     setSearchFeature(null)
     setSummaryUnits([])
     setLayer(nextLayer)
   }
 
   // Toggle selected unit in or out of selection
-  const handleSelectUnit = unit => {
+  const handleSelectUnit = (unit) => {
     const { id } = unit
 
-    setSummaryUnits(prevSummaryUnits => {
+    setSummaryUnits((prevSummaryUnits) => {
       // NOTE: we are always creating a new object,
       // because we cannot mutate the underlying object
       // without causing the setSummaryUnits call to be a no-op
@@ -153,18 +154,18 @@ const Prioritize = () => {
     fetchData()
   }
 
-  const handleSetScenario = nextScenario => {
+  const handleSetScenario = (nextScenario) => {
     setScenario(nextScenario)
   }
 
-  const handleSetTierThreshold = newThreshold => {
+  const handleSetTierThreshold = (newThreshold) => {
     setTierThreshold(newThreshold)
   }
 
   // WARNING: this is passed into map at construction type, any
   // local state referenced here is not updated when the callback
   // is later called.  To get around that, use reference to step instead.
-  const handleSelectBarrier = feature => {
+  const handleSelectBarrier = (feature) => {
     const { current: curStep } = stepRef
     // don't show details when selecting units
     if (curStep === 'select') return
@@ -233,6 +234,17 @@ const Prioritize = () => {
               onBack={handleResultsBack}
             />
           )
+
+          trackPrioritize({
+            barrierType,
+            unitType: layer,
+            details: `ids: [${
+              summaryUnits ? summaryUnits.map(({ id }) => id) : 'none'
+            }], filters: ${
+              filters ? Object.keys(filters) : 'none'
+            }, scenario: ${scenario}`,
+          })
+
           break
         }
         default: {

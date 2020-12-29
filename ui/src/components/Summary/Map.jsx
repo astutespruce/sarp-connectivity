@@ -49,6 +49,22 @@ const SummaryMap = ({
 
   const [zoom, setZoom] = useState(0)
 
+  const selectFeatureByID = useCallback((id, layer) => {
+    const { current: map } = mapRef
+
+    if (!map) return null
+
+    const [feature] = map.querySourceFeatures('sarp', {
+      sourceLayer: layer,
+      filter: ['==', 'id', id],
+    })
+
+    if (feature !== undefined) {
+      onSelectUnit({ ...feature.properties, layerId: layer })
+    }
+    return feature
+  }, []) // onSelectUnit intentionally omitted here
+
   const handleCreateMap = useCallback((map) => {
     mapRef.current = map
 
@@ -470,18 +486,6 @@ const SummaryMap = ({
       },
     }
   }, [system, barrierType, zoom])
-
-  const selectFeatureByID = useCallback((id, layer) => {
-    const [feature] = mapRef.current.querySourceFeatures('sarp', {
-      sourceLayer: layer,
-      filter: ['==', 'id', id],
-    })
-
-    if (feature !== undefined) {
-      onSelectUnit({ ...feature.properties, layerId: layer })
-    }
-    return feature
-  }, []) // onSelectUnit intentionally omitted here
 
   return (
     <>

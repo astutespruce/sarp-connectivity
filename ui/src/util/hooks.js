@@ -16,7 +16,7 @@ const isSetEqual = (setA, setB) => {
     return false
   }
 
-  return Array.from(setA).filter(d => !setB.has(d)).length === 0
+  return Array.from(setA).filter((d) => !setB.has(d)).length === 0
 }
 
 /**
@@ -24,7 +24,7 @@ const isSetEqual = (setA, setB) => {
  *
  * @param {any} value
  */
-export const memoizedIsEqual = value => {
+export const memoizedIsEqual = (value) => {
   const ref = useRef(null)
 
   if (value instanceof Set) {
@@ -46,7 +46,7 @@ export const memoizedIsEqual = value => {
 export const useIsEqualEffect = (callback, dependencies) => {
   useEffect(
     callback,
-    dependencies.map(d => memoizedIsEqual(d))
+    dependencies.map((d) => memoizedIsEqual(d))
   )
 }
 
@@ -58,14 +58,14 @@ export const useIsEqualEffect = (callback, dependencies) => {
 export const useIsEqualMemo = (callback, dependencies) => {
   return useMemo(
     callback,
-    dependencies.map(d => memoizedIsEqual(d))
+    dependencies.map((d) => memoizedIsEqual(d))
   )
 }
 
 export const useIsEqualCallback = (callback, dependencies) => {
   return useCallback(
     callback,
-    dependencies.map(d => memoizedIsEqual(d))
+    dependencies.map((d) => memoizedIsEqual(d))
   )
 }
 

@@ -4,22 +4,20 @@ import { dequal } from 'dequal/lite'
 
 import Bar from './HorizontalBar'
 
-const HorizontalBars = ({ data, max, showCount, onToggleFilter }) => {
-  return (
-    <>
-      {data.map(({ value, ...props }) => (
-        <Bar
-          key={value}
-          value={value}
-          {...props}
-          max={max}
-          showCount={showCount}
-          onClick={onToggleFilter}
-        />
-      ))}
-    </>
-  )
-}
+const HorizontalBars = ({ data, max, showCount, onToggleFilter }) => (
+  <>
+    {data.map(({ value, ...props }) => (
+      <Bar
+        key={value}
+        value={value}
+        {...props}
+        max={max}
+        showCount={showCount}
+        onClick={onToggleFilter}
+      />
+    ))}
+  </>
+)
 
 HorizontalBars.propTypes = {
   data: PropTypes.arrayOf(
