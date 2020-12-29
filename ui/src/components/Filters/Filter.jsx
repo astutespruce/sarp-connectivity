@@ -21,11 +21,6 @@ const Header = styled(Flex).attrs({
   justifyContent: 'space-between',
 })``
 
-// const Toggle = styled(Flex).attrs({ alignItems: 'flex-start', flex: 1 })`
-//   cursor: pointer;
-//   font-weight: bold;
-// `
-
 const ResetIcon = styled(FaTimesCircle).attrs({
   size: '1rem',
 })`
