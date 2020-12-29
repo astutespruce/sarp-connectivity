@@ -71,6 +71,7 @@
     "clean": "gatsby clean",
     "develop": "gatsby develop",
     "format": "prettier --write src/**/*.{js,jsx}",
+    "lint:css": "stylelint '**/*.jsx'",
     "start": "npm run develop",
     "serve": "gatsby serve",
     "predeploy": "npm run clean && npm run build",

@@ -21,10 +21,10 @@ const Header = styled(Flex).attrs({
   justifyContent: 'space-between',
 })``
 
-const Title = styled(Flex).attrs({ alignItems: 'flex-start', flex: 1 })`
-  cursor: pointer;
-  font-weight: bold;
-`
+// const Toggle = styled(Flex).attrs({ alignItems: 'flex-start', flex: 1 })`
+//   cursor: pointer;
+//   font-weight: bold;
+// `
 
 const ResetIcon = styled(FaTimesCircle).attrs({
   size: '1rem',
@@ -147,10 +147,14 @@ const Filter = ({
   return (
     <Wrapper>
       <Header>
-        <Title onClick={toggle}>
+        <Flex
+          alignItems="flex-start"
+          style={{ flex: '1 1 auto', cursor: 'pointer', fontWeight: 'bold' }}
+          onClick={toggle}
+        >
           {isOpen ? <CaretDown /> : <CaretRight />}
           <div>{title}</div>
-        </Title>
+        </Flex>
         <ResetIcon
           onClick={handleReset}
           visible={filterValues.size > 0 ? 'visible' : 'hidden'}
