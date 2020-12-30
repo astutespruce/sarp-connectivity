@@ -16,7 +16,7 @@ import {
 } from 'content/styles'
 
 const ComplexityPage = ({ data: { headerImage } }) => (
-  <Layout>
+  <Layout title="Network Complexity">
     <HeaderImage
       image={headerImage.childImageSharp.fluid}
       height="20vh"

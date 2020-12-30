@@ -21,53 +21,89 @@ It produces data in `data/nhd/clean/<region>`
 - flowline_joins.feather
 - waterbodies.feather
 - waterbody_flowline_joins.feather
+- waterbody_drain_points.feather
 """
 
 
 from pathlib import Path
 import os
 from time import time
+import warnings
 
+import geopandas as gp
+import pandas as pd
 import pygeos as pg
-from geofeather.pygeos import to_geofeather, from_geofeather
-from pgpkg import to_gpkg
-from nhdnet.io import serialize_df, deserialize_df
+from pyogrio import read_dataframe, write_dataframe
 from nhdnet.nhd.joins import remove_joins
 
 from analysis.constants import (
     CRS,
-    REGION_GROUPS,
-    EXCLUDE_IDS,
     CONVERT_TO_NONLOOP,
     MAX_PIPELINE_LENGTH,
     WATERBODY_MIN_SIZE,
 )
 
-from analysis.prep.network.lib.dissolve import dissolve_waterbodies
+from analysis.prep.network.lib.dissolve import (
+    cut_waterbodies_by_dams,
+    dissolve_waterbodies,
+)
+from analysis.lib.flowlines import remove_flowlines
 from analysis.prep.network.lib.cut import cut_lines_by_waterbodies
-from analysis.prep.network.lib.lines import remove_pipelines, remove_flowlines
+from analysis.prep.network.lib.lines import remove_pipelines
 from analysis.prep.network.lib.drains import create_drain_points
 
 
-nhd_dir = Path("data/nhd")
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+
+
+data_dir = Path("data")
+nhd_dir = data_dir / "nhd"
 src_dir = nhd_dir / "raw"
+out_dir = nhd_dir / "clean"
+
+huc4_df = pd.read_feather(
+    data_dir / "boundaries/huc4.feather", columns=["HUC2", "HUC4"]
+)
+# Convert to dict of sorted HUC4s per HUC2
+units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
+
+# manually subset keys from above for processing
+huc2s = [
+    "02",
+    "03",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "21",
+]
 
 
 start = time()
-for region, HUC2s in list(REGION_GROUPS.items())[4:]:
+# for region, HUC2s in list(REGION_GROUPS.items())[4:]:
+for huc2 in huc2s:
     region_start = time()
 
-    print("\n----- {} ------\n".format(region))
+    print(f"----- {huc2} ------")
 
-    out_dir = nhd_dir / "clean" / region
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
+    huc2_dir = out_dir / huc2
+    if not os.path.exists(huc2_dir):
+        os.makedirs(huc2_dir)
 
     print("Reading flowlines...")
-    flowlines = from_geofeather(src_dir / region / "flowlines.feather").set_index(
+    flowlines = gp.read_feather(src_dir / huc2 / "flowlines.feather").set_index(
         "lineID"
     )
-    joins = deserialize_df(src_dir / region / "flowline_joins.feather")
+    joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
     print("Read {:,} flowlines".format(len(flowlines)))
 
     ### Drop underground conduits
@@ -79,8 +115,9 @@ for region, HUC2s in list(REGION_GROUPS.items())[4:]:
     )
 
     ### Manual fixes for flowlines
-    exclude_ids = EXCLUDE_IDS.get(region, [])
-    if exclude_ids:
+    remove_filename = src_dir / huc2 / "remove_flowlines.feather"
+    if remove_filename.exists():
+        exclude_ids = pd.read_feather(remove_filename).NHDPlusID.unique()
         flowlines, joins = remove_flowlines(flowlines, joins, exclude_ids)
         print(
             "Removed {:,} excluded flowlines, now have {:,}".format(
@@ -89,7 +126,7 @@ for region, HUC2s in list(REGION_GROUPS.items())[4:]:
         )
 
     ### Fix segments that should not have been coded as loops
-    convert_ids = CONVERT_TO_NONLOOP.get(region, [])
+    convert_ids = CONVERT_TO_NONLOOP.get(huc2, [])
     if convert_ids:
         print("Converting {:,} loops to non-loops".format(len(convert_ids)))
         flowlines.loc[flowlines.NHDPlusID.isin(convert_ids), "loop"] = False
@@ -106,84 +143,38 @@ for region, HUC2s in list(REGION_GROUPS.items())[4:]:
     print("------------------")
 
     ### Aggregate waterbodies that are in contact / overlapping each other
-    waterbodies = from_geofeather(src_dir / region / "waterbodies.feather").set_index(
+    waterbodies = gp.read_feather(src_dir / huc2 / "waterbodies.feather").set_index(
         "wbID"
     )
-    wb_joins = deserialize_df(src_dir / region / "waterbody_flowline_joins.feather")
-    print(
-        "Read {:,} waterbodies and {:,} flowine / waterbody joins".format(
-            len(waterbodies), len(wb_joins)
-        )
-    )
-
-    # TODO: remove this on next full rerun of extract_flowlines...
-    waterbodies = waterbodies.drop(columns=["hash"], errors="ignore")
-    # Convert multipolygons to single part poylgons
-    idx = (
-        pg.get_type_id(waterbodies.geometry) == 6
-    )  # idx = waterbodies.loc[waterbodies.geometry.type == "MultiPolygon"].index
-    waterbodies.loc[idx, "geometry"] = waterbodies.loc[idx].geometry.apply(
-        lambda g: pg.get_geometry(g, 0)
-    )
-
-    # raise min size
-    waterbodies = waterbodies.loc[waterbodies.AreaSqKm >= WATERBODY_MIN_SIZE].copy()
-    wb_joins = wb_joins.loc[wb_joins.wbID.isin(waterbodies.index)].copy()
-
-    # End TODO:
-
-    # Drop any waterbodies and waterbody joins to flowlines that are no longer present
-    # based on above processing of flowlines
-    wb_joins = wb_joins.loc[wb_joins.lineID.isin(flowlines.index)].copy()
-    to_drop = ~waterbodies.index.isin(wb_joins.wbID)
-    print(
-        "Dropping {:,} waterbodies that no longer intersect with the flowlines retained above".format(
-            to_drop.sum()
-        )
-    )
-    waterbodies = waterbodies.loc[~to_drop].copy()
+    print(f"Read {len(waterbodies):,} waterbodies")
 
     # Overlay and dissolve
-    print("Dissolving adjacent waterbodies (where appropriate)")
+    print(
+        "Processing adjacent waterbodies to clip shared edges that must be preserved..."
+    )
+    nhd_lines = gp.read_feather(src_dir / huc2 / "nhd_lines.feather")
+    waterbodies = cut_waterbodies_by_dams(waterbodies, nhd_lines)
 
-    waterbodies, wb_joins = dissolve_waterbodies(waterbodies, wb_joins)
+    waterbodies = dissolve_waterbodies(waterbodies)
     print("{:,} waterbodies after dissolve".format(len(waterbodies)))
-
-    # Make sure that all empty joins are dropped
-    wb_joins = wb_joins.loc[
-        wb_joins.lineID.isin(flowlines.index) & wb_joins.wbID.isin(waterbodies.index)
-    ].copy()
-
-    ### If needed, output intermediates for troubleshooting
-    # print("Serializing flowlines before later processing")
-    # to_geofeather(flowlines.reset_index(), out_dir / "temp_flowlines.feather")
-    # serialize_df(joins.reset_index(), out_dir / "temp_flowline_joins.feather")
-    # print("Serializing {:,} dissolved waterbodies".format(len(waterbodies)))
-    # to_geofeather(waterbodies.reset_index(), out_dir / "dissolved_waterbodies.feather")
-    # serialize_df(
-    #     wb_joins.reset_index(drop=True), out_dir / "dissolved_waterbody_joins.feather"
-    # )
 
     print("------------------")
 
     ### Cut flowlines by waterbodies
 
     print("Processing intersections between waterbodies and flowlines")
+    # use cached joins to select out subset of flowlines that intersect waterbodies
+    wb_joins = pd.read_feather(src_dir / huc2 / "waterbody_flowline_joins.feather")
+
     flowlines, joins, waterbodies, wb_joins = cut_lines_by_waterbodies(
-        flowlines, joins, waterbodies, wb_joins, out_dir
+        flowlines, joins, waterbodies, wb_joins
     )
 
-    # Update dtypes
+    # Fix dtypes
     joins.upstream = joins.upstream.astype("uint64")
     joins.downstream = joins.downstream.astype("uint64")
     joins.upstream_id = joins.upstream_id.astype("uint32")
     joins.downstream_id = joins.downstream_id.astype("uint32")
-
-    # TODO: fix joins that are getting assigned null for loop
-    # these appear to be coming from segments cut by waterbodies
-    # ix = flowlines.loc[flowlines.loop].index
-    # joins.loc[joins.upstream_id.isin(ix) | joins.downstream_id.isin(ix), "loop"] = True
-    # joins.loop = joins.loop.fillna(False)
 
     print(
         "Now have {:,} flowlines, {:,} waterbodies, {:,} waterbody-flowline joins".format(
@@ -196,31 +187,32 @@ for region, HUC2s in list(REGION_GROUPS.items())[4:]:
     print("Identifying waterbody drain points")
     drains = create_drain_points(flowlines, joins, waterbodies, wb_joins)
 
-    # fix index data type issues
-    waterbodies.index = waterbodies.index.astype("uint32")
-
     print("------------------")
 
     print("Serializing {:,} flowlines".format(len(flowlines)))
     flowlines = flowlines.reset_index()
-    to_geofeather(flowlines, out_dir / "flowlines.feather", crs=CRS)
-    serialize_df(joins.reset_index(drop=True), out_dir / "flowline_joins.feather")
+    flowlines.to_feather(huc2_dir / "flowlines.feather")
+    write_dataframe(flowlines, huc2_dir / "flowlines.gpkg")
+    joins.reset_index(drop=True).to_feather(huc2_dir / "flowline_joins.feather")
 
     print("Serializing {:,} waterbodies".format(len(waterbodies)))
-    to_geofeather(waterbodies.reset_index(), out_dir / "waterbodies.feather", crs=CRS)
-    serialize_df(
-        wb_joins.reset_index(drop=True), out_dir / "waterbody_flowline_joins.feather"
+    # waterbodies are losing their CRS somewhere along the way, not sure why it is failing here
+    waterbodies.set_crs(flowlines.crs, inplace=True)
+    waterbodies = waterbodies.reset_index()
+    waterbodies.to_feather(huc2_dir / "waterbodies.feather")
+    write_dataframe(waterbodies, huc2_dir / "waterbodies.gpkg")
+    wb_joins.reset_index(drop=True).to_feather(
+        huc2_dir / "waterbody_flowline_joins.feather"
     )
 
     print("Serializing {:,} drain points".format(len(drains)))
-    to_geofeather(drains, out_dir / "waterbody_drain_points.feather", crs=CRS)
+    drains.to_feather(huc2_dir / "waterbody_drain_points.feather")
+    write_dataframe(drains, huc2_dir / "waterbody_drain_points.gpkg")
 
-    # Serialize to GIS files
-    print("Serializing to GIS files")
-    to_gpkg(flowlines.reset_index(), out_dir / "flowlines", crs=CRS)
-    to_gpkg(waterbodies.reset_index(), out_dir / "waterbodies", crs=CRS)
-    to_gpkg(drains, out_dir / "waterbody_drain_points", crs=CRS)
-
-    print("Region done in {:.2f}s".format(time() - region_start))
+    print(
+        "------------------\nRegion done in {:.2f}s\n------------------\n".format(
+            time() - region_start
+        )
+    )
 
 print("==============\nAll done in {:.2f}s".format(time() - start))

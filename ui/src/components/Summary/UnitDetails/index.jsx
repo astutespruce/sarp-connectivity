@@ -3,6 +3,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 import { Text } from 'components/Text'
+import { OutboundLink } from 'components/Link'
 import { CloseButton } from 'components/Button'
 import { Box, Flex } from 'components/Grid'
 import { Downloader } from 'components/Download'
@@ -68,15 +69,18 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   let { title: layerTitle } = layerConfig
 
   let title = name || id
+  let state = null
   if (layerId === 'County') {
     title = `${name} County`
-    layerTitle = STATE_FIPS[id.slice(0, 2)]
+    state = STATE_FIPS[id.slice(0, 2)]
+    layerTitle = state
   }
 
-  let team = null
   if (layerId === 'State') {
-    team = CONNECTIVITY_TEAMS[id]
+    state = id
   }
+
+  const team = state ? CONNECTIVITY_TEAMS[state] : null
 
   const hasBarriers = barrierType === 'dams' ? dams > 0 : total_barriers > 0
   const downloaderConfig = {
@@ -108,13 +112,27 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
 
         {team ? (
           <div style={{ marginTop: '3rem' }}>
-            <h5 style={{ marginBottom: '0.5em' }}>Aquatic Connectivity Team</h5>
+            <h5 style={{ marginBottom: '0.5em' }}>
+              {state} Aquatic Connectivity Team
+            </h5>
             <p>
               {team.description}
               <br />
               <br />
+              {team.url !== undefined ? (
+                <>
+                  Please see the{' '}
+                  <OutboundLink to={team.url}>
+                    {state} Aquatic Connectivity Team website
+                  </OutboundLink>
+                  .
+                  <br />
+                  <br />
+                </>
+              ) : null}
               For more information, please contact{' '}
-              <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a>.
+              <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a> (
+              {team.contact.org}).
             </p>
           </div>
         ) : null}

@@ -1,8 +1,11 @@
 from time import time
 
+import pandas as pd
 import geopandas as gp
 import numpy as np
 import pygeos as pg
+
+from analysis.lib.pygeos_util import sjoin_geometry
 
 
 def create_drain_points(flowlines, joins, waterbodies, wb_joins):
@@ -26,6 +29,30 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     """
     start = time()
 
+    tmp_waterbodies = waterbodies[
+        [
+            "FCode",
+            "FType",
+            "AreaSqKm",
+            "flowlineLength",
+        ]
+    ].rename(columns={"FCode": "wbFCode", "FType": "wbFType"})
+
+    tmp_flowlines = flowlines[
+        [
+            "geometry",
+            "FCode",
+            "FType",
+            "MaxElevSmo",
+            "MinElevSmo",
+            "Slope",
+            "TotDASqKm",
+            "StreamOrde",
+            "sizeclass",
+            "HUC4",
+        ]
+    ].rename(columns={"FCode": "lineFCode", "FType": "lineFType"})
+
     ### Find the downstream most point(s) on the flowline for each waterbody
     # this is used for snapping barriers, if possible
     tmp = wb_joins[["lineID", "wbID"]].set_index("lineID")
@@ -39,22 +66,63 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     drains = drains.loc[drains.upstream_wbID != drains.downstream_wbID].copy()
 
     # Join in stats from waterbodies and geometries from flowlines
+    # TODO: add "GNIS_Name" for waterbodies once available in source data
     drain_pts = (
         wb_joins.loc[wb_joins.lineID.isin(drains.upstream_id)]
-        .join(waterbodies[["AreaSqKm", "flowlineLength"]], on="wbID")
-        .join(flowlines.geometry, on="lineID")
+        .join(
+            tmp_waterbodies,
+            on="wbID",
+        )
+        .join(
+            tmp_flowlines,
+            on="lineID",
+        )
         .reset_index(drop=True)
     )
 
     # create a point from the last coordinate, which is the furthest one downstream
-    # drain_pts.geometry = drain_pts.geometry.apply(
-    #     lambda g: Point(np.column_stack(g.xy)[-1])
-    # )
-    drain_pts["geometry"] = pg.get_point(drain_pts.geometry, -1)
+    drain_pts.geometry = pg.get_point(drain_pts.geometry.values.data, -1)
+    drain_pts["headwaters"] = False
+
+    ### Extract the drain points of upstream headwaters waterbodies
+    # these are flowlines that originate at an waterbody
+    wb_geom = waterbodies.loc[waterbodies.flowlineLength == 0].geometry
+    wb_geom = pd.Series(wb_geom.values.data, index=wb_geom.index)
+    fl_geom = pd.Series(flowlines.geometry.values.data, index=flowlines.index)
+    headwaters = (
+        sjoin_geometry(wb_geom, fl_geom, predicate="intersects")
+        .rename("lineID")
+        .reset_index()
+    )
+    headwaters = (
+        headwaters.join(
+            tmp_waterbodies,
+            on="wbID",
+        )
+        .join(
+            tmp_flowlines,
+            on="lineID",
+        )
+        .reset_index(drop=True)
+    )
+    headwaters.geometry = pg.get_point(headwaters.geometry.values.data, 0)
+    headwaters["headwaters"] = True
+    print(
+        f"Found {len(headwaters):,} headwaters waterbodies, adding drain points for these too"
+    )
+
+    drain_pts = drain_pts.append(headwaters, sort=False, ignore_index=True).reset_index(
+        drop=True
+    )
+
+    # calculate unique index
+    huc_id = drain_pts["HUC4"].astype("uint16") * 1000000
+    drain_pts["drainID"] = drain_pts.index.values.astype("uint32") + huc_id
 
     drain_pts.wbID = drain_pts.wbID.astype("uint32")
     drain_pts.lineID = drain_pts.lineID.astype("uint32")
     drain_pts.flowlineLength = drain_pts.flowlineLength.astype("float32")
+    drain_pts = gp.GeoDataFrame(drain_pts, geometry="geometry", crs=flowlines.crs)
 
     print(
         "Done extracting {:,} waterbody drain points in {:.2f}s".format(
@@ -62,4 +130,4 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         )
     )
 
-    return drain_pts.reset_index(drop=True)
+    return drain_pts

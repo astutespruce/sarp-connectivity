@@ -19,13 +19,7 @@ setup(
     url="https://github.com/astutespruce/sarp-connectivity",
     author="Brendan C. Ward",
     keywords="aquatic connectivity hydrography",
-    install_requires=[
-        "pandas",
-        "flask",
-        "flask-cors",
-        "gunicorn",
-        "jinja2",
-        "raven",
-    ],
-    extras_require={"dev": ["black", "pylint", "geopandas", "rtree"]},
+    # see Pipfile for dependencies
+    install_requires=[],
+    extras_require={"dev": ["black", "pylint"]},
 )

@@ -49,7 +49,23 @@ const SummaryMap = ({
 
   const [zoom, setZoom] = useState(0)
 
-  const handleCreateMap = useCallback(map => {
+  const selectFeatureByID = useCallback((id, layer) => {
+    const { current: map } = mapRef
+
+    if (!map) return null
+
+    const [feature] = map.querySourceFeatures('sarp', {
+      sourceLayer: layer,
+      filter: ['==', 'id', id],
+    })
+
+    if (feature !== undefined) {
+      onSelectUnit({ ...feature.properties, layerId: layer })
+    }
+    return feature
+  }, []) // onSelectUnit intentionally omitted here
+
+  const handleCreateMap = useCallback((map) => {
     mapRef.current = map
 
     map.on('zoomend', () => {
@@ -143,7 +159,7 @@ const SummaryMap = ({
     )
 
     // Add network layers
-    networkLayers.forEach(layer => {
+    networkLayers.forEach((layer) => {
       map.addLayer(layer)
     })
 
@@ -151,7 +167,7 @@ const SummaryMap = ({
     map.addLayer(waterfallsLayer)
     map.addLayer(damsSecondaryLayer)
 
-    barrierTypes.forEach(t => {
+    barrierTypes.forEach((t) => {
       map.addLayer({
         id: t,
         source: t,
@@ -176,8 +192,8 @@ const SummaryMap = ({
     map.addLayer(pointHighlightLayer)
 
     const pointLayers = barrierTypes
-      .map(t => t)
-      .concat(barrierTypes.map(t => `${t}-background`))
+      .map((t) => t)
+      .concat(barrierTypes.map((t) => `${t}-background`))
       .concat(['dams-secondary', 'waterfalls'])
 
     const clickLayers = pointLayers.concat(layers.map(({ id }) => `${id}-fill`))
@@ -189,8 +205,9 @@ const SummaryMap = ({
       anchor: 'left',
       offset: 20,
     })
-    pointLayers.forEach(id => {
+    pointLayers.forEach((id) => {
       map.on('mouseenter', id, ({ features: [feature] }) => {
+        /* eslint-disable-next-line no-param-reassign */
         map.getCanvas().style.cursor = 'pointer'
         const prefix = feature.source === 'waterfalls' ? 'Waterfall: ' : ''
         const { name } = feature.properties
@@ -202,6 +219,7 @@ const SummaryMap = ({
           .addTo(map)
       })
       map.on('mouseleave', id, () => {
+        /* eslint-disable-next-line no-param-reassign */
         map.getCanvas().style.cursor = ''
         tooltip.remove()
       })
@@ -277,7 +295,7 @@ const SummaryMap = ({
     // show or hide layers as necessary
     layers.forEach(({ id, system: lyrSystem }) => {
       const visibility = lyrSystem === system ? 'visible' : 'none'
-      subLayers.forEach(suffix => {
+      subLayers.forEach((suffix) => {
         map.setLayoutProperty(`${id}-${suffix}`, 'visibility', visibility)
       })
     })
@@ -301,7 +319,7 @@ const SummaryMap = ({
     })
 
     // toggle barriers layer
-    barrierTypes.forEach(t => {
+    barrierTypes.forEach((t) => {
       const visibility = barrierType === t ? 'visible' : 'none'
       map.setLayoutProperty(t, 'visibility', visibility)
       map.setLayoutProperty(`${t}-background`, 'visibility', visibility)
@@ -386,7 +404,7 @@ const SummaryMap = ({
     }
 
     map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
-  }, [searchFeature])
+  }, [searchFeature, selectFeatureByID])
 
   const { layerTitle, legendEntries } = useMemo(() => {
     const { current: map } = mapRef
@@ -409,7 +427,7 @@ const SummaryMap = ({
     } = layer
     // flip the order of colors and bins since we are displaying from top to bottom
     // add opacity to color
-    const colors = COLORS.count[bins.length].map(c => `${c}4d`).reverse()
+    const colors = COLORS.count[bins.length].map((c) => `${c}4d`).reverse()
 
     const labels = bins
       .map((bin, i) => {
@@ -468,18 +486,6 @@ const SummaryMap = ({
       },
     }
   }, [system, barrierType, zoom])
-
-  const selectFeatureByID = (id, layer) => {
-    const [feature] = mapRef.current.querySourceFeatures('sarp', {
-      sourceLayer: layer,
-      filter: ['==', 'id', id],
-    })
-
-    if (feature !== undefined) {
-      onSelectUnit({ ...feature.properties, layerId: layer })
-    }
-    return feature
-  }
 
   return (
     <>

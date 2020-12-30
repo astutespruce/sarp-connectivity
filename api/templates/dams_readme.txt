@@ -47,6 +47,7 @@ Height: dam height in feet, if available.  0 = data not available.
 Construction: material used in dam construction, if known.
 Purpose: primary purpose of dam, if known.
 Condition: condition of the dam as of last assessment, if known.  Note: assessment dates are not known.
+PassageFacility: type of fish passage facility, if known.
 Feasibility: feasibility of dam removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of dams.
 TESpp: number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.
 StateSGCNSpp: Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the barrier.  Note: Rare species information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.

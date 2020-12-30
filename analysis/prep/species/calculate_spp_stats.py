@@ -16,7 +16,6 @@ import csv
 
 import pandas as pd
 import geopandas as gp
-from nhdnet.io import serialize_df
 from pyogrio import read_dataframe
 
 
@@ -142,8 +141,8 @@ summary.to_excel(out_dir / "spp_HUC12_summary.xlsx", index=False)
 
 ### Calculate counts per HUC12
 counts = df.groupby("HUC12").sum().astype("uint8").reset_index()
-serialize_df(counts, out_dir / "spp_HUC12.feather")
-counts.to_csv(out_dir / "spp_HUC12.csv", quoting=csv.QUOTE_NONNUMERIC, index=False)
+counts.to_feather(out_dir / "spp_HUC12.feather")
+# counts.to_csv(out_dir / "spp_HUC12.csv", quoting=csv.QUOTE_NONNUMERIC, index=False)
 counts.to_excel(out_dir / "spp_HUC12.xlsx", index=False)
 
 print("All done in {:.2f}s".format(time() - start))

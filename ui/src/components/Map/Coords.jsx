@@ -5,7 +5,7 @@ import styled from 'style'
 
 const Wrapper = styled.div`
   position: absolute;
-  bottom: 0px;
+  bottom: 0;
   left: 110px;
   padding: 4px 8px;
   z-index: 2000;
@@ -25,7 +25,7 @@ const Coords = ({ map }) => {
     map.on('mouseout', () => {
       setCoords({})
     })
-  }, [])
+  }, [map])
 
   return (
     lat !== undefined &&

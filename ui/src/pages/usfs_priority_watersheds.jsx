@@ -7,7 +7,10 @@ import { HeaderImage } from 'components/Image'
 import { PageTitle, PageContainer, LargeText } from 'content/styles'
 
 const LengthPage = ({ data: { headerImage } }) => (
-  <Layout>
+  <Layout
+    title="U.S. Forest Service Southern Region Priority Watersheds for Aquatic
+  Conservation"
+  >
     <HeaderImage
       image={headerImage.childImageSharp.fluid}
       height="30vh"

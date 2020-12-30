@@ -75,6 +75,8 @@ export const DAM_CONDITION = {
   2: 'Fair',
   3: 'Poor',
   4: 'Unsatisfactory',
+  5: 'Dam failed',
+  6: 'Dam breached',
 }
 
 export const FEASIBILITY = {
@@ -85,7 +87,6 @@ export const FEASIBILITY = {
   4: 'Likely feasible',
   5: 'No conservation benefit',
   6: 'Unknown',
-  // 9: 'Invasive species barrier',
   // not shown to user
   // 7: 'Error',
   // 8: 'Dam removed for conservation benefit'
@@ -113,7 +114,7 @@ export const GAINMILES = {
   5: '>= 100 miles',
 }
 
-export const RARESPP = { 0: '0', 1: '1', 2: '1 - 4', 3: '5 - 9', 4: '>= 10' }
+export const RARESPP = { 0: '0', 1: '1', 2: '2 - 4', 3: '5 - 9', 4: '>= 10' }
 
 export const STREAMORDER = {
   1: '1',
@@ -173,21 +174,78 @@ export const OWNERTYPE = {
   8: 'Other private conservation land',
 }
 
+export const PASSAGEFACILITY_CLASS = {
+  0: 'No known fish passage structure',
+  1: 'Fish passage structure present',
+}
+
+export const PASSAGEFACILITY = {
+  0: 'Unknown or None',
+  1: 'Trap & Truck',
+  2: 'Fish Ladder - unspecified',
+  3: 'Locking',
+  4: 'Rock Rapids',
+  5: 'Eelway',
+  6: 'Alaskan Steeppass',
+  7: 'Herring Passage',
+  8: 'Reservation',
+  9: 'Exemption',
+  10: 'Notch',
+  11: 'Denil Fishway',
+  12: 'Fish Lift',
+  13: 'Partial Breach',
+  14: 'Removal',
+  15: 'Pool and Weir Fishway',
+  16: 'Vertical Slot Fishway',
+  17: 'Nature-like Fishway',
+  18: 'Bypass Channel Fishway',
+}
+
 export const CONNECTIVITY_TEAMS = {
-  Georgia: {
-    description:
-      'Georgia has a state-based Aquatic Connectivity Team (ACT) that is co-lead by SARP and The Nature Conservancy (TNC) and includes members from all sectors including various state, federal, NGO, and private corporations/companies that are all interested in addressing aquatic connectivity. This team has been instrumental in increasing the knowledge of barriers through reconnaissance and field assessments since inception.',
-    contact: {
-      name: 'Kat Hoenke',
-      email: 'kat@southeastaquatics.net',
-    },
-  },
   Arkansas: {
     description:
       'Arkansas kicked off a state-based Aquatic Connectivity Team (ACT) in early 2018 currently led by the Arkansas Natural Heritage Commission. The group, officially titled the Arkansas Stream Heritage Partnership, consists of over 50 members from all sectors including various state, federal, NGO, and private corporations/companies working to address aquatic connectivity in the state. This team has been working with SARP to consolidate data held by individual entities as well as those that are not readily available in an effort to be accurately reflect the number of barriers across the state. This team has been active in identifying and securing funding for various projects.',
     contact: {
       name: 'Darrell Bowman',
+      org: 'Arkansas Natural Heritage Commission',
       email: 'darrell.bowman@agfc.ar.gov',
+    },
+  },
+  Florida: {
+    description:
+      'The Florida Aquatic Connectivity Team initiated in 2018, following efforts to improve the inventory of dams and road stream crossings within the State through Florida State Wildlife Grant funding. Following the completion of this assessment project, the team began with an in person dam removal workshop held in Tallahassee, and two in person webinars for the southern portion of the State. The FL ACT seeks to improve aquatic connectivity through dam removal, road stream crossing barrier remediation and floodplain restoration. The FL ACT is led by the Florida Fish and Wildlife Commission (Florida FWC) and SARP.',
+    contact: {
+      name: 'B.J. Jamison',
+      org: 'Florida Fish and Wildlife Commission',
+      email: 'bj.jamison@myfwc.com',
+    },
+  },
+  Georgia: {
+    description:
+      'Georgia has a state-based Aquatic Connectivity Team (ACT) that is co-lead by SARP and The Nature Conservancy (TNC) and includes members from all sectors including various state, federal, NGO, and private corporations/companies that are all interested in addressing aquatic connectivity. This team has been instrumental in increasing the knowledge of barriers through reconnaissance and field assessments since inception.',
+    contact: {
+      name: 'Kat Hoenke',
+      org: 'Southeast Aquatic Resources Partnership',
+      email: 'kat@southeastaquatics.net',
+    },
+    url: 'https://www.ga-act.org/',
+  },
+  'North Carolina': {
+    description:
+      'The North Carolina Aquatic Connectivity Team was initiated in 2011, and is led by American Rivers. This ACT holds yearly in person meetings as well as quarterly webinars. Over the years, this Team has had much success through the removal of multiple dams, and is currently working with SARP to perform feasibility reconnaissance on all of the dams in the SARP inventory.',
+    contact: {
+      name: 'Erin McCombs',
+      org: 'American Rivers',
+      email: 'emccombs@americanrivers.org',
+    },
+  },
+  'South Carolina': {
+    description:
+      'The South Carolina Aquatic Connectivity Team was initiated in the Spring of 2019. It is a collaborative group consisting of multiple partners who hope to work together to remove and remediate barriers to aquatic organism passage throughout the state. The SC ACT held a kickoff workshop and several subcommittee calls to discuss current projects, identification of new projects, and culvert assessments. The SC ACT is co-led by American Rivers and SARP.',
+    contact: {
+      name: 'Gerrit Jobsis',
+      org: 'American Rivers',
+      email: 'gjobsis@americanrivers.org',
     },
   },
   Tennessee: {
@@ -195,15 +253,17 @@ export const CONNECTIVITY_TEAMS = {
       'Tennessee has had an active Aquatic Connectivity Team (ACT) since 2010 and led by The Nature Conservancy with support from American Rivers and the Tennessee Wildlife Resources Agency. Annual in person meetings and quarterly teleconferences support the coordinations and collaboration among team members across all sectors. Numerous projects have been identified and executed by various members as well as assessments conducted to better understand the level of aquatic fragmentation.',
     contact: {
       name: 'Rob Bullard',
+      org: 'The Nature Conservancy',
       email: 'ebullard@tnc.org',
     },
   },
-  'North Carolina': {
+  Virginia: {
     description:
-      'The North Carolina Aquatic Connectivity Team was initiated in 2011, and is led by American Rivers. This ACT holds yearly in person meetings as well as quarterly webinars. Over the years, this Team has had much success through the removal of multiple dams, and is currently working with SARP to perform feasibility reconnaissance on all of the dams in the SARP inventory.',
+      'The Virginia Dam Removal Task Force is an Aquatic Connectivity Team in the State of Virginia. It has members from many different organizations that have been collaborating to identify and implement high priority projects. Many partnerships have been built from this team, including the Virginia DOT Who has been working with the Team to replace culverts.',
     contact: {
-      name: 'Erin McCombs',
-      email: 'emccombs@americanrivers.org',
+      name: 'Jessie Thomas-Blate',
+      org: 'American Rivers',
+      email: 'jthomas@americanrivers.org',
     },
   },
 }

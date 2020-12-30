@@ -6,9 +6,8 @@ import { DefaultButton, PrimaryButton } from './Button'
 import ButtonGroup from './ButtonGroup'
 
 const Button = styled(PrimaryButton)`
-flex: 1 1 auto;
+  flex: 1 1 auto;
 `
-
 
 const InactiveButton = styled(DefaultButton)`
   background-color: ${themeGet('colors.primary.100')};
@@ -17,7 +16,7 @@ const InactiveButton = styled(DefaultButton)`
 `
 
 const ToggleButton = ({ value, options, onChange, ...props }) => {
-  const handleClick = newValue => {
+  const handleClick = (newValue) => {
     if (newValue === value) return
 
     onChange(newValue)

@@ -1,7 +1,6 @@
-import { Box, Container, Column as BaseColumn } from 'components/Grid'
+import { Box, Container, Column as BaseColumn, Flex } from 'components/Grid'
 
 import { Text } from 'components/Text'
-import { Flex } from 'components/Grid'
 import styled, { themeGet } from 'style'
 
 export const PageContainer = styled(Container).attrs({

@@ -18,20 +18,22 @@ import os
 from pathlib import Path
 from time import time
 import csv
-import sys
+import warnings
+
+import pygeos as pg
 import geopandas as gp
 import pandas as pd
-from geofeather import from_geofeather, to_geofeather
-from nhdnet.io import deserialize_dfs, deserialize_df, serialize_df
-from nhdnet.geometry.points import add_lat_lon
+from pyogrio import write_dataframe
 
-
-from analysis.constants import REGION_GROUPS
-from analysis.network.lib.barriers import DAMS_ID
 from analysis.rank.lib.spatial_joins import add_spatial_joins
 from analysis.rank.lib.tiers import calculate_tiers
 from analysis.rank.lib.metrics import update_network_metrics
 from api.constants import DAM_API_FIELDS, UNIT_FIELDS, DAM_CORE_FIELDS
+from analysis.lib.util import append
+
+
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+
 
 start = time()
 
@@ -47,14 +49,20 @@ if not os.path.exists(api_dir):
 if not os.path.exists(tile_dir):
     os.makedirs(tile_dir)
 
-# split this into tile dir vs api
-out_dir = data_dir / "derived"
+
+# TODO: expand to full region
+huc4_df = pd.read_feather(
+    data_dir / "boundaries/sarp_huc4.feather", columns=["HUC2", "HUC4"]
+)
+# Convert to dict of sorted HUC4s per HUC2
+units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
+huc2s = sorted(units.keys())
 
 
 ### Read in master
 print("Reading master...")
 df = (
-    from_geofeather(barriers_dir / "dams.feather")
+    gp.read_feather(barriers_dir / "dams.feather")
     .set_index("id")
     .drop(
         columns=[
@@ -68,6 +76,7 @@ df = (
             "snap_tolerance",
             "snap_ref_id",
             "snap_log",
+            "snap_group",
             "snapped",
             "ProtectedLand",
             "NHDPlusID",
@@ -81,7 +90,7 @@ df = (
         ],
         errors="ignore",
     )
-    .rename(columns={"streamorder": "StreamOrder", "excluded": "Excluded"})
+    .rename(columns={"StreamOrde": "StreamOrder", "excluded": "Excluded"})
 )
 
 # drop any that should be DROPPED (dropped or duplicate) from the analysis
@@ -89,30 +98,37 @@ df = (
 df = df.loc[~(df.dropped | df.duplicate)].copy()
 
 ### Read in network outputs and join to master
-print("Reading network outputs")
-networks = (
-    deserialize_dfs(
-        [
-            data_dir / "networks" / region / "dams/barriers_network.feather"
-            for region in REGION_GROUPS
-        ],
-        # src=[region for region in REGION_GROUPS],
-    )
-    .drop(columns=["index", "segments"], errors="ignore")
-    .rename(
-        columns={
-            "sinuosity": "Sinuosity",
-            "natfldpln": "Landcover",
-            "sizeclasses": "SizeClasses",
-        }
-    )
-)
 
-# Select out only dams because we are joining on "id"
-# which may have duplicates across barrier types
-networks = (
-    networks.loc[networks.kind == "dam"].drop(columns=["kind", "barrierID"]).copy()
-)
+print("Reading network outputs")
+merged = None
+for huc2 in huc2s:
+    # if from a HUC2 that was merged with adjacent HUC2s
+    merged_filename = (
+        data_dir / "networks/merged" / huc2 / "dams/barriers_network.feather"
+    )
+    if merged_filename.exists():
+        network_df = pd.read_feather(merged_filename)
+
+    else:
+        network_df = pd.read_feather(
+            data_dir / "networks" / huc2 / "dams/barriers_network.feather"
+        )
+
+    network_df = (
+        network_df.loc[network_df.kind == "dam"]
+        .drop(columns=["index", "segments", "kind", "barrierID"], errors="ignore")
+        .rename(
+            columns={
+                "sinuosity": "Sinuosity",
+                "natfldpln": "Landcover",
+                "sizeclasses": "SizeClasses",
+            }
+        )
+    )
+
+    merged = append(merged, network_df)
+
+networks = merged.reset_index(drop=True)
 
 # All barriers that came out of network analysis have networks
 networks["HasNetwork"] = True
@@ -123,35 +139,11 @@ df.HasNetwork = df.HasNetwork.fillna(False)
 df.upNetID = df.upNetID.fillna(-1).astype("int")
 df.downNetID = df.downNetID.fillna(-1).astype("int")
 
-### Read and merge in Puerto Rico
-pr = from_geofeather(barriers_dir / "pr_dams.feather").rename(
-    columns={
-        "streamorder": "StreamOrder",
-        "sizeclasses": "SizeClasses",
-        "sinuosity": "Sinuosity",
-        "natfldpln": "Landcover",
-        "excluded": "Excluded",
-    }
-)
-pr = pr.loc[~pr.dropped].copy()
-
-# Fill in missing fields for compatibility
-pr["PotentialFeasibility"] = 0
-
-pr = pr[list(df.columns) + ["id"]].copy()
-
-# increment PR ids
-next_id = int(df.index.max() + 1)
-pr["id"] = (pr.id + next_id).astype("uint32")
-
-df = df.reset_index().append(pr, ignore_index=True, sort=False).set_index("id")
-
-
-print("Read {:,} dams ({:,} have networks)".format(len(df), len(df.loc[df.HasNetwork])))
+print(f"Read {len(df):,} dams ({df.HasNetwork.sum():,} have networks)")
 
 ### Join in T&E Spp stats
 spp_df = (
-    deserialize_df(
+    pd.read_feather(
         data_dir / "species/derived/spp_HUC12.feather",
         columns=["HUC12", "federal", "sgcn", "regional"],
     )
@@ -177,7 +169,11 @@ df = add_spatial_joins(df)
 
 ### Add lat / lon
 print("Adding lat / lon fields")
-df = add_lat_lon(df)
+geo = df[["geometry"]].to_crs(epsg=4326)
+geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
+geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
+df = df.join(geo[["lat", "lon"]])
+
 
 ### Calculate tiers for the region and by state
 df = calculate_tiers(df, prefix="SE")
@@ -196,7 +192,8 @@ print("Writing to output files...")
 
 # Full results for SARP
 print("Saving full results to feather")
-to_geofeather(df.reset_index(), qa_dir / "dams_network_results.feather")
+df.reset_index().to_feather(qa_dir / "dams_network_results.feather")
+write_dataframe(df.reset_index(), qa_dir / "dams_network_results.gpkg")
 
 # drop geometry, not needed from here on out
 df = df.drop(columns=["geometry"])
@@ -207,7 +204,7 @@ df.to_csv(
 )
 
 # save for API
-serialize_df(df[DAM_API_FIELDS].reset_index(), api_dir / "dams.feather")
+df[DAM_API_FIELDS].reset_index().to_feather(api_dir / "dams.feather")
 
 # Drop fields that can be calculated on frontend
 keep_fields = [
@@ -251,4 +248,4 @@ without_networks[keep_fields].rename(
 )
 
 
-print("Done in {:.2f}".format(time() - start))
+print(f"Done in {time() - start:.2f}")

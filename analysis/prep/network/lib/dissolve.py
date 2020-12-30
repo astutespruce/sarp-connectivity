@@ -6,137 +6,149 @@ import geopandas as gp
 import networkx as nx
 import numpy as np
 
-from analysis.pygeos_compat import pygeos_sjoin as sjoin, dissolve
+from analysis.lib.pygeos_util import aggregate_contiguous, sjoin_geometry
 
 
-def dissolve_waterbodies(df, joins):
+def cut_waterbodies_by_dams(df, nhd_lines):
+    """Some large waterbody complexes are divided by dams; these breaks
+    need to be preserved.  This is done by finding the shared edges between
+    adjacent waterbodies that fall near NHD lines (which include dams), and then
+    clipping these out of the waterbodies to ensure they do not dissolve together.
+
+    These use a buffer of 0.0001 meters around the shared edges to cut out from
+    waterbodies.
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+    nhd_lines : GeoDataFrame
+
+    Returns
+    -------
+    GeoDataFrame
+        Contains waterbodies that have been updated to clip out adjacent edges
+        that are close to NHD lines.
+    """
+    print("Cutting edges of adjacent waterbodies where they overlap with dams")
+
+    start = time()
+
+    index_name = df.index.name
+    df = df.reset_index()
+
+    # Find pairs of waterbodies that intersect, using only the outer boundary
+    geometry = pd.Series(
+        pg.polygons(pg.get_exterior_ring(df.geometry.values.data)), index=df[index_name]
+    )
+    pairs = sjoin_geometry(geometry, geometry).reset_index()
+    pairs = pairs.loc[pairs[index_name] != pairs.index_right].reset_index(drop=True)
+
+    # extract unique pairs (dedup symmetric pairs)
+    pairs = pd.DataFrame(
+        {index_name: pairs.min(axis=1), "index_right": pairs.max(axis=1)}
+    )
+    pairs = pairs.groupby(by=[index_name, "index_right"]).first().reset_index()
+
+    tmp = df[[index_name, "geometry"]].set_index(index_name)
+
+    # buffer the geometries by 0 to make valid
+    ix = ~pg.is_valid(tmp.geometry.values.data)
+    if ix.sum():
+        tmp.loc[ix, "geometry"] = pg.buffer(tmp.loc[ix].geometry.values.data, 0)
+        print(
+            f"Fixed {ix.sum()} invalid geometries before intersecting waterbodies with each other"
+        )
+
+    pairs = pairs.join(tmp, how="inner", on=index_name).join(
+        tmp, on="index_right", rsuffix="_right"
+    )
+
+    i = pg.intersection(pairs.geometry.values.data, pairs.geometry_right.values.data)
+    parts = pg.get_parts(pg.get_parts(pg.get_parts(i)))
+    # extract only the lines or polygons
+    t = pg.get_type_id(parts)
+    parts = parts[(t == 1) | (t == 3)].copy()
+    # buffer slightly and merge
+    split_lines = pg.get_parts(pg.union_all(pg.buffer(parts, 0.0001)))
+
+    # now find the ones that are close to nhd_lines
+    # buffer NHD lines by 100m, union, then split into parts for better indexing
+    # NOTE: we use "within" predicate here to capture only those split lines that
+    # are closely related to NHD lines, instead of partially intersecting.
+    ref_lines = pg.get_parts(
+        pg.union_all(pg.buffer(nhd_lines.geometry.values.data, 100))
+    )
+
+    tree = pg.STRtree(ref_lines)
+    ix = tree.query_bulk(split_lines, predicate="within")[0]
+    split_lines = split_lines[np.unique(ix)]
+
+    # find the waterbodies that these intersect
+    overlap_ix = np.unique(np.concatenate([pairs[index_name], pairs.index_right]))
+    subset_ix = df.loc[df[index_name].isin(overlap_ix)].index
+    tree = pg.STRtree(df.loc[subset_ix].geometry.values.data)
+    w_ix = tree.query_bulk(split_lines, predicate="intersects")[1]
+
+    # apply waterbody index back to original index
+    w_ix = subset_ix[np.sort(np.unique(w_ix))]
+
+    # cut the split lines out of the polygons to make sure they don't union together
+    # cut lines are unioned, and then buffered to make valid
+    # input areas are buffered to make valid too
+    cut_lines = pg.buffer(pg.union_all(split_lines), 0)
+    df.loc[w_ix, "geometry"] = pg.difference(
+        pg.buffer(df.loc[w_ix].geometry.values.data, 0), cut_lines
+    )
+
+    print("Done clipping adjacent waterbodies {:.2f}s".format(time() - start))
+
+    return df.set_index(index_name)
+
+
+def dissolve_waterbodies(df):
     """Dissolve waterbodies that overlap, duplicate, or otherwise touch each other.
-
-    WARNING: some adjacent waterbodies are divided by dams, etc.  These will need to be
-    accounted for later when snapping dams.
 
     Parameters
     ----------
     df : GeoDataFrame
         waterbodies
-    joins : DataFrame
-        waterbody / flowline joins
 
     Returns
     -------
-    tuple of (GeoDataFrame, DataFrame)
-        (waterbodies, waterbody joins)
+    GeoDataFrame
+        updated waterbodies with overlapping ones dissolved together
     """
+    print("Dissolving contiguous waterbodies")
 
-    ### Join waterbodies to themselves to find overlaps
     start = time()
-    to_agg = pd.DataFrame(sjoin(df.geometry, df.geometry))
 
-    # drop the self-intersections
-    to_agg = to_agg.loc[to_agg.index != to_agg.index_right].copy()
-    print(
-        "Found {:,} waterbodies that touch or overlap".format(
-            len(to_agg.index.unique())
-        )
-    )
+    index_name = df.index.name
+    df = df.reset_index()
 
-    if len(to_agg):
-        # Use network (mathematical, not aquatic) adjacency analysis
-        # to identify all sets of waterbodies that touch.
-        # Construct an identity map from all wbIDs to their newID (will be new wbID after dissolve)
-        grouped = to_agg.groupby(level=0).index_right.unique()
-        network = nx.from_pandas_edgelist(
-            grouped.explode()
-            .reset_index()
-            .rename(columns={"wbID": "index", "index_right": "wbID"}),
-            "index",
-            "wbID",
-        )
+    dissolved = aggregate_contiguous(
+        df,
+        agg={
+            index_name: lambda x: 0,
+            "NHDPlusID": lambda x: 0,
+            "FType": lambda x: 0,
+            "FCode": lambda x: 0,
+            "HUC4": "first",
+        },
+    ).reset_index(drop=True)
 
-        components = pd.Series(nx.connected_components(network)).apply(list)
-        groups = pd.DataFrame(components.explode().rename("wbID"))
+    print(f"Dissolved {len(df) - len(dissolved)} adjacent waterbodies")
 
-        next_id = df.index.max() + 1
-        groups["group"] = (next_id + groups.index).astype("uint32")
-        groups = groups.set_index("wbID")
+    # fill in missing data
+    ix = dissolved.loc[dissolved.wbID == 0].index
+    next_id = df[index_name].max() + 1
+    dissolved.loc[ix, index_name] = next_id + np.arange(len(ix), dtype="uint32")
+    dissolved[index_name] = dissolved[index_name].astype("uint32")
+    dissolved.loc[ix, "AreaSqKm"] = (
+        pg.area(dissolved.loc[ix].geometry.values.data) * 1e-6
+    ).astype("float32")
 
-        # assign group to polygons to aggregate
-        to_agg = (
-            to_agg.join(groups)
-            .reset_index()
-            .drop(columns=["index_right"])
-            .drop_duplicates()
-            .set_index("wbID")
-            .join(df[["geometry", "FType"]])
-        )
-
-        ### Dissolve groups
-        # Buffer geometries slightly to make sure that any which intersect actually overlap
-        print(
-            "Buffering {:,} unique waterbodies before dissolving...".format(len(to_agg))
-        )
-        buffer_start = time()
-        # TODO: use pg, and simplify since this creates a large number of vertices by default
-        to_agg["geometry"] = pg.simplify(
-            pg.buffer(to_agg.geometry, 0.1, quadsegs=1), 0.1
-        )
-        print("Buffer completed in {:.2f}s".format(time() - buffer_start))
-
-        print("Dissolving...")
-        dissolve_start = time()
-
-        # NOTE: automatically takes the first FType
-        # dissolved = to_agg.dissolve(by="group").reset_index(drop=True)
-        dissolved = dissolve(to_agg, by="group")
-
-        errors = (
-            pg.get_type_id(dissolved.geometry) == pg.GeometryType.MULTIPOLYGON.value
-        )
-        if errors.max():
-            print(
-                "WARNING: Dissolve created {:,} multipolygons, these will cause errors later!".format(
-                    errors.sum()
-                )
-            )
-
-        # this may create multipolygons if polygons that are dissolved don't sufficiently share overlapping geometries.
-        # for these, we want to retain them as individual polygons
-        # dissolved = dissolved.explode().reset_index(drop=True)
-        # WARNING: this doesn't work with our logic below for figuring out groups associated with original wbIDs
-        # since after exploding, we don't know what wbID went into what group
-
-        # assign new IDs and update fields
-        next_id = df.index.max() + 1
-        dissolved["wbID"] = (next_id + dissolved.index).astype("uint32")
-        dissolved["AreaSqKm"] = (pg.area(dissolved.geometry) * 1e-6).astype("float32")
-        dissolved["NHDPlusID"] = 0
-        dissolved.NHDPlusID = dissolved.NHDPlusID.astype("uint64")
-        dissolved.wbID = dissolved.wbID.astype("uint32")
-
-        print(
-            "Dissolved {:,} adjacent polygons into {:,} new polygons in {:.2f}s".format(
-                len(to_agg), len(dissolved), time() - dissolve_start
-            )
-        )
-
-        # remove waterbodies that were dissolved, and append the result
-        # of the dissolve
-        df = (
-            df.loc[~df.index.isin(to_agg.index)]
-            .reset_index()
-            .append(dissolved, ignore_index=True, sort=False)
-            .set_index("wbID")
-        )
-
-        # update joins
-        ix = joins.loc[joins.wbID.isin(groups.index)].index
-
-        # NOTE: this mapping will not work if explode() is used above
-        joins.loc[ix, "wbID"] = joins.loc[ix].wbID.map(groups.group)
-
-        # Group together ones that were dissolved above
-        joins = joins.drop_duplicates().reset_index(drop=True)
+    df = dissolved.set_index(index_name)
 
     print("Done resolving overlapping waterbodies in {:.2f}s".format(time() - start))
 
-    return df, joins
+    return df

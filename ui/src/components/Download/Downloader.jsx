@@ -9,6 +9,7 @@ import { Box, Flex } from 'components/Grid'
 import { Button } from 'components/Button'
 import Modal from 'components/Modal'
 import { getFromStorage } from 'util/dom'
+import { trackDownload } from 'util/analytics'
 import styled, { themeGet } from 'style'
 
 import UserInfoForm, { FIELDS } from './UserInfoForm'
@@ -68,7 +69,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
     setIsOpen(false)
   }
 
-  const handleDownloadOptionsChange = options => {
+  const handleDownloadOptionsChange = (options) => {
     setDownloadOptions(options)
   }
 
@@ -92,6 +93,16 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
 
     window.open(downloadURL)
     setIsOpen(false)
+
+    trackDownload({
+      barrierType,
+      unitType: layer,
+      details: `ids: [${
+        summaryUnits ? summaryUnits.map(({ id }) => id) : 'none'
+      }], filters: ${
+        filters ? Object.keys(filters) : 'none'
+      }, scenario: ${scenario}, include unranked: ${downloadOptions.unranked}`,
+    })
   }
 
   const showUserInfoForm = isOpen && !haveUserInfo

@@ -4,7 +4,7 @@ import Img from 'gatsby-image'
 import { Image } from 'rebass/styled-components'
 import { FaExclamationTriangle } from 'react-icons/fa'
 
-import { Text, HelpText } from 'components/Text'
+import { HelpText } from 'components/Text'
 import { Link, OutboundLink } from 'components/Link'
 import { Columns, Column as BaseColumn } from 'components/Grid'
 import { HighlightBox } from 'components/Layout'
@@ -21,10 +21,6 @@ import {
   StepHeader,
   StepNumber,
 } from '../styles'
-
-const Photo = styled(Image).attrs({ width: '100%' })`
-  border-radius: 0.25rem;
-`
 
 const Column = styled(BaseColumn).attrs({ width: ['100%', '100%', '50%'] })`
   min-width: 18rem;
@@ -145,10 +141,10 @@ const Scoring = () => {
               on the aquatic network.
               <br />
               <br />
-              Read more about network analysis methods for{' '}
               <Link to="/network_methods">
-                states in the Southeast
-              </Link> and <Link to="/network_methods_pr">Puerto Rico</Link>.
+                Read more about network analysis methods
+              </Link>
+              .
             </p>
 
             <Note>

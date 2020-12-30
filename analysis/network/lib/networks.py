@@ -31,7 +31,7 @@ def create_networks(flowlines, joins, barrier_joins):
     ]
     upstream_index = upstreams.set_index("upstream_id").groupby("downstream_id").groups
 
-    print("Index complete in {:.2f}s".format(time() - index_start))
+    print(f"Index complete in {time() - index_start:.2f}s")
 
     ### Get list of network root IDs
     # Create networks from all terminal nodes (have no downstream nodes) up to barriers.
@@ -85,9 +85,7 @@ def create_networks(flowlines, joins, barrier_joins):
         single_segment_networks.index.isin(barrier_upstream_idx), "type"
     ] = "barrier"
 
-    print(
-        "{:,} networks are a single segment long".format(len(single_segment_networks))
-    )
+    print(f"{len(single_segment_networks):,} networks are a single segment long")
 
     ### Find all origins that are not single segments
     # origin segments are the root of each non-barrier origin point up to barriers
@@ -96,9 +94,7 @@ def create_networks(flowlines, joins, barrier_joins):
         np.setdiff1d(origin_idx, single_segment_networks.index), name="networkID"
     )
 
-    print(
-        "Generating networks for {:,} origin points".format(len(origins_with_upstreams))
-    )
+    print(f"Generating networks for {len(origins_with_upstreams):,} origin points")
 
     origin_network_segments = generate_networks(origins_with_upstreams, upstream_index)
     origin_network_segments["type"] = "origin"
@@ -110,7 +106,7 @@ def create_networks(flowlines, joins, barrier_joins):
         name="networkID",
     )
 
-    print("Generating networks for {:,} barriers".format(len(barriers_with_upstreams)))
+    print(f"Generating networks for {len(barriers_with_upstreams):,} barriers")
     barrier_network_segments = generate_networks(
         barriers_with_upstreams, upstream_index
     )
@@ -144,9 +140,7 @@ def create_networks(flowlines, joins, barrier_joins):
 
     if len(multiple_upstreams):
         print(
-            "Merging multiple upstream networks for barriers at network junctions, affects {} networks".format(
-                len(multiple_upstreams)
-            )
+            f"Merging multiple upstream networks for barriers at network junctions, affects {len(multiple_upstreams)} networks"
         )
 
         # For each barrier with multiple upstreams, coalesce their networkIDs

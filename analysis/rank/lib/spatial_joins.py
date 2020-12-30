@@ -1,10 +1,9 @@
 from pathlib import Path
+
+import pandas as pd
 import geopandas as gp
 
-from geofeather import from_geofeather
-from nhdnet.io import deserialize_df
-
-from analysis.util import spatial_join
+from analysis.lib.pygeos_util import unique_sjoin
 
 
 data_dir = Path("data")
@@ -26,15 +25,16 @@ def add_spatial_joins(df):
 
     ### Protected lands
     print("Joining to protected areas")
-    protected = from_geofeather(boundaries_dir / "protected_areas.feather")
-    df = spatial_join(df, protected)
+    protected = gp.read_feather(boundaries_dir / "protected_areas.feather")
+    df = unique_sjoin(df, protected)
     df.OwnerType = df.OwnerType.fillna(-1).astype("int8")
     df.ProtectedLand = df.ProtectedLand.fillna(False).astype("bool")
 
     ### Priority layers
     print("Joining to priority watersheds")
     priorities = (
-        deserialize_df(boundaries_dir / "priorities.feather")
+        pd.read_feather(boundaries_dir / "priorities.feather")
+        .rename(columns={"HUC_8": "HUC8"})
         .set_index("HUC8")
         .rename(columns={"usfs": "HUC8_USFS", "coa": "HUC8_COA", "sgcn": "HUC8_SGCN"})
     )
@@ -42,4 +42,3 @@ def add_spatial_joins(df):
     df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")
 
     return df
-

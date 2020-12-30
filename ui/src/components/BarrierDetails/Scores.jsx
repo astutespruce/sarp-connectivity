@@ -19,7 +19,8 @@ const HelpText = styled(BaseHelpText).attrs({
 })``
 
 const Tabs = styled(BaseTabs)`
-  ${ActiveButton}, ${InactiveButton} {
+  ${ActiveButton},
+  ${InactiveButton} {
     border-left: none !important;
     border-right: none !important;
     border-top: none !important;

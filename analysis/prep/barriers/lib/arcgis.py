@@ -18,14 +18,14 @@ CRS_LUT = {
 }
 
 
-def getJSON(url, params=None, token=None, **kwargs):
+def get_json(url, params=None, token=None, **kwargs):
     """Make JSON request, wrapped in exception handling
-    
+
     Parameters
     ----------
     url : str
     token: str (optional)
-    
+
     Raises
     ------
     HTTPError
@@ -35,9 +35,10 @@ def getJSON(url, params=None, token=None, **kwargs):
     if params is None:
         params = {}
 
-    response = requests.get(
-        url, params={**params, "f": "json", "token": token}, **kwargs
-    ).json()
+    if "f" not in params:
+        params["f"] = "json"
+
+    response = requests.get(url, params={**params, "token": token}, **kwargs).json()
     if "error" in response:
         raise HTTPError(
             "Error making request: {}\n{}".format(
@@ -50,21 +51,21 @@ def getJSON(url, params=None, token=None, **kwargs):
 
 def list_services(url, token=None):
     """Given a root ArcGIS server / ArcGIS Online services endpoint, return the list of services.
-    
+
     Parameters
     ----------
     url : str
         services endpoint
     token : str, optional
         token, if required to access secured services
-    
+
     Returns
     -------
     list
         contains {'name': <>, 'type': <>, 'url': <>} for each service
     """
 
-    return getJSON(url, params={"f": "json", "token": token})["services"]
+    return get_json(url, params={"f": "json", "token": token})["services"]
 
 
 def download_fs(url, fields=None, token=None, target_wkid=None):
@@ -78,10 +79,11 @@ def download_fs(url, fields=None, token=None, target_wkid=None):
     """
 
     # Get the total count we can query
-    svc_info = getJSON(url, token=token)
-    batch_size = max(svc_info["maxRecordCount"], svc_info["standardMaxRecordCount"])
+    svc_info = get_json(url, token=token)
+    # batch_size = max(svc_info["maxRecordCount"], svc_info["standardMaxRecordCount"])
+    batch_size = svc_info["standardMaxRecordCount"]
 
-    query = {"where": "1=1", "resultType": "standard", "outFields": "*"}
+    query = {"where": "1=1", "resultType": "standard", "outFields": "*", "f": "geojson"}
 
     if target_wkid:
         query["outSR"] = target_wkid
@@ -94,27 +96,29 @@ def download_fs(url, fields=None, token=None, target_wkid=None):
 
         missing_fields = set(fields).difference(fields_present)
         if len(missing_fields):
-            print("Requested fields are not present: {}".format(missing_fields))
+            print(f"Requested fields are not present: {missing_fields}")
 
         query["outFields"] = ",".join(request_fields)
 
     # Get total count we expect
-    count = getJSON(
-        "{}/query".format(url),
+    count = get_json(
+        f"{url}/query",
         params={"where": "1=1", "returnCountOnly": "true"},
         token=token,
     )["count"]
 
     batches = ceil(count / batch_size)
-    print("Downloading {:,} records in {:,} requests".format(count, batches))
+    print(
+        f"Downloading {count:,} records in {batches:,} requests of up to {batch_size:,} records"
+    )
 
     # Download and merge data frames
     merged = None
     for offset in range(0, batches * batch_size, batch_size):
         query["resultOffset"] = offset
-        response = getJSON("{}/query".format(url), params=query, token=token)
+        features = get_json(f"{url}/query", params=query, token=token)
 
-        df = fs_json_to_gdf(response)
+        df = gp.GeoDataFrame.from_features(features, crs="EPSG:4326")
 
         if merged is None:
             merged = df
@@ -128,12 +132,12 @@ def fs_json_to_gdf(fs_json):
     """Convert ArcGIS Feature Service JSON response to geopandas GeoDataFrame.
 
     Note: only points are supported at this time.
-    
+
     Parameters
     ----------
     fs_json : dict
         JSON response from ESRI feature service layer query
-    
+
     Returns
     -------
     geopandas.GeoDataFrame

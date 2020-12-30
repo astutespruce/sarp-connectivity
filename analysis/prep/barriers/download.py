@@ -1,11 +1,9 @@
 import os
 from pathlib import Path
 from time import time
-from dotenv import load_dotenv
-import requests
+import warnings
 
-from geofeather import to_geofeather
-from nhdnet.io import to_shp
+from dotenv import load_dotenv
 
 from analysis.constants import (
     SARP_STATES,
@@ -13,8 +11,12 @@ from analysis.constants import (
     DAM_FS_COLS,
     CRS,
     SMALL_BARRIER_COLS,
+    WATERFALL_COLS,
 )
 from analysis.prep.barriers.lib.arcgis import download_fs, list_services
+
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+
 
 # Load the token from the .env file in the root of this project
 load_dotenv()
@@ -22,16 +24,10 @@ token = os.getenv("AGOL_TOKEN", None)
 if not token:
     raise ValueError("AGOL_TOKEN must be defined in your .env file")
 
-print("token", token)
 
-# TODO:
-# Puerto Rico:  https://arcg.is/1qLnOP
-
-TARGET_WKID = 102003
-# SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_Dams_Snapped_For_Editing_Feb42019/FeatureServer/0"
 SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Dam_Snapping_QA_Dataset_01212020/FeatureServer/0"
 SMALL_BARRIERS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_RoadBarriers_01212019/FeatureServer/0"
-
+WATERFALLS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/SARP_Waterfall_Database_01212020/FeatureServer/0"
 
 ### When needed: generate list of dam inventory services
 # Root services URL for USFWS R4
@@ -76,7 +72,7 @@ DAM_URLS = {
     "MS": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Mississippi_Dam_Inventory_11192018/FeatureServer/0",
     "MO": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/MissouriDams/FeatureServer/0",
     "VA": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Virginia_Dam_Inventory_11_12_2018/FeatureServer/0",
-    "PR": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Puerto_Rico_Dam_Inventory_12202019/FeatureServer/0"
+    "PR": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Puerto_Rico_Dam_Inventory_12202019/FeatureServer/0",
 }
 
 
@@ -93,7 +89,7 @@ for state, url in DAM_URLS.items():
     download_start = time()
 
     print("---- Downloading {} ----".format(state))
-    df = download_fs(url, fields=dam_cols, token=token, target_wkid=TARGET_WKID).rename(
+    df = download_fs(url, fields=dam_cols, token=token).rename(
         columns={
             "SARPUniqueID": "SARPID",
             "Snap2018": "ManualReview",
@@ -111,9 +107,9 @@ for state, url in DAM_URLS.items():
     df["SourceState"] = state
     print("Downloaded {:,} dams in {:.2f}s".format(len(df), time() - download_start))
 
-    missing_sarpid = df.loc[df.SARPID.isnull()]
-    if len(missing_sarpid):
-        print(f"WARNING: {len(missing_sarpid):,} dams are missing SARPID")
+    ix = df.SARPID.isnull()
+    if ix.max():
+        print(f"WARNING: {ix.sum():,} dams are missing SARPID")
 
     # Add feasibility so that we can merge
     if not "Feasibility" in df.columns:
@@ -126,50 +122,54 @@ for state, url in DAM_URLS.items():
 
 df = merged
 
+ix = df.geometry.isnull()
+if ix.sum():
+    print(f"WARNING: {ix.sum()} dams are missing geometry values")
+    print(df.loc[ix].groupby("SourceState").size())
+    df = df.loc[~ix].copy()
+
 print("Projecting dams...")
-# Drop dams without locations and project
-df = df.loc[df.geometry.notnull()].copy().to_crs(CRS)
+df = df.copy().to_crs(CRS).reset_index(drop=True)
 
 print("Merged {:,} dams in SARP states".format(len(df)))
 
-missing_sarpid = df.loc[df.SARPID.isnull()]
-if len(missing_sarpid):
+ix = df.SARPID.isnull()
+if ix.max():
     print(
         "--------------------------\nWARNING: {:,} dams are missing SARPID\n----------------------------".format(
-            len(missing_sarpid)
+            ix.sum()
         )
     )
 
+# DEBUG ONLY - SARPID must be present; follow up with SARP if not
+df.SARPID = df.SARPID.fillna("").astype("str")
 
-to_geofeather(df, out_dir / "sarp_dams.feather")
+df.to_feather(out_dir / "sarp_dams.feather")
 
 
 ### Download manually snapped dams
 download_start = time()
-print("---- Downloading Snapped Dams ----")
+print("\n---- Downloading Snapped Dams ----")
 df = download_fs(
     SNAPPED_URL,
-    fields=["SARPID", "ManualReview"],
+    fields=["SARPID", "ManualReview", "dropped", "excluded", "duplicate", "snapped"],
     token=token,
-    target_wkid=TARGET_WKID,
 )
 
 print("Projecting manually snapped dams...")
-df = df.loc[df.geometry.notnull()].to_crs(CRS)
+df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
 
 print(
     "Downloaded {:,} snapped dams in {:.2f}s".format(len(df), time() - download_start)
 )
 
 df.ManualReview = df.ManualReview.fillna(0).astype("uint8")
-to_geofeather(df, out_dir / "manually_snapped_dams.feather")
+df.to_feather(out_dir / "manually_snapped_dams.feather")
 
 ### Download small barriers
 download_start = time()
-print("---- Downloading Small Barriers ----")
-df = download_fs(
-    SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token, target_wkid=TARGET_WKID
-).rename(
+print("\n---- Downloading Small Barriers ----")
+df = download_fs(SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token).rename(
     columns={
         "Crossing_Code": "CrossingCode",
         "Potential_Project": "PotentialProject",
@@ -182,22 +182,48 @@ df = download_fs(
 )
 
 print("Projecting small barriers...")
-df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
+ix = df.geometry.isnull()
+if ix.sum():
+    print(f"WARNING: {ix.sum()} small barriers are missing geometry values")
+    df = df.loc[~ix].copy()
+
+df = df.to_crs(CRS).reset_index(drop=True)
 
 print(
     "Downloaded {:,} small barriers in {:.2f}s".format(len(df), time() - download_start)
 )
 
-missing_sarpid = df.loc[df.SARPID.isnull()]
-if len(missing_sarpid):
+ix = df.SARPID.isnull()
+if ix.max():
     print(
         "--------------------------\nWARNING: {:,} small barriers are missing SARPID\n----------------------------".format(
-            len(missing_sarpid)
+            ix.sum()
         )
     )
 
+# DEBUG ONLY - SARPID must be present; follow up with SARP if not
+df.SARPID = df.SARPID.fillna("").astype("str")
 
-to_geofeather(df, out_dir / "sarp_small_barriers.feather")
+df.to_feather(out_dir / "sarp_small_barriers.feather")
+
+
+### Download waterfalls
+download_start = time()
+print("\n---- Downloading waterfalls ----")
+df = download_fs(WATERFALLS_URL, fields=WATERFALL_COLS, token=token)
+
+print("Projecting waterfalls.")
+df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
+
+df = df.rename(
+    columns={"gnis_name_": "GNIS_Name", "watercours": "Stream", "name": "Name"}
+)
+
+
+print("Downloaded {:,} waterfalls in {:.2f}s".format(len(df), time() - download_start))
+
+
+df.to_feather(out_dir / "waterfalls.feather")
 
 
 print("---------------\nAll done in {:.2f}s".format(time() - start))

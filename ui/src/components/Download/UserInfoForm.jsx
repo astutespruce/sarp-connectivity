@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'
 import PropTypes from 'prop-types'
-import useForm from 'react-hook-form'
+import {useForm} from 'react-hook-form'
 import fetchJSONP from 'fetch-jsonp'
 import { FaSync, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa'
 import { Image } from 'rebass/styled-components'
@@ -131,6 +131,7 @@ const RowLabel = styled(Flex).attrs({
 
 const Error = styled(Text).attrs({ fontSize: '0.8rem' })`
   color: ${themeGet('colors.highlight.500')};
+  overflow-wrap: normal;
 `
 
 const Buttons = styled(Flex).attrs({
@@ -225,9 +226,7 @@ const DownloadForm = ({ onCancel, onContinue }) => {
         jsonpCallback: 'c',
       }
     )
-      .then(response => {
-        return response.json()
-      })
+      .then(response => response.json())
       .then(({ result, msg }) => {
         console.log('json', result, msg)
         if (result === 'error') {

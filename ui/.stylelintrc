@@ -13,6 +13,10 @@
     "stylelint-config-styled-components"
   ],
   "rules": {
-    "property-no-vendor-prefix": true
+    "property-no-vendor-prefix": true,
+    "rule-empty-line-before": null,
+    "value-keyword-case": null,
+    "declaration-empty-line-before": null,
+    "declaration-colon-newline-after": null
   }
 }

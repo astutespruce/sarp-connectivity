@@ -1,5 +1,5 @@
 """
-Extract NHD File Geodatabases (FGDB) for all HUC4s within each region group (set of HUC2s).
+Extract NHD File Geodatabases (FGDB) for all HUC4s within each HUC2.
 
 Data are downloaded using `nhd/download.py::download_huc4`.
 
@@ -21,122 +21,105 @@ Note: there may be cases where Geopandas is unable to read a FGDB file.  See `nh
 from pathlib import Path
 import os
 from time import time
-import geopandas as gp
+import warnings
 
-from geofeather import to_geofeather
-from nhdnet.nhd.extract import extract_flowlines, extract_waterbodies
-from nhdnet.io import serialize_df, serialize_sindex, to_shp
+import pandas as pd
+import geopandas as gp
+import pygeos as pg
+import numpy as np
+from pyogrio import write_dataframe
+
+from analysis.prep.network.lib.extract import extract_flowlines, extract_waterbodies
 
 from analysis.constants import (
-    REGIONS,
-    REGION_GROUPS,
     CRS,
     WATERBODY_EXCLUDE_FTYPES,
     WATERBODY_MIN_SIZE,
 )
-from analysis.util import append
+from analysis.lib.pygeos_util import sjoin_geometry
+from analysis.lib.util import append
 
 
-src_dir = Path("data/nhd/source/huc4")
-out_dir = Path("data/nhd/raw")
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
-if not out_dir.exists():
-    os.makedirs(out_dir)
 
-start = time()
-
-# useful slices are [:2], [2:4], [4:]
-for region, HUC2s in list(REGION_GROUPS.items()):
-    print("\n----- {} ------\n".format(region))
-
-    region_dir = out_dir / region
-    if not os.path.exists(region_dir):
-        os.makedirs(region_dir)
-
-    # if os.path.exists(region_dir / "flowline.feather"):
-    #     print("Skipping existing region {}".format(region))
-    #     continue
-
-    region_start = time()
-
+def process_huc4s(src_dir, out_dir, huc4s):
     merged_flowlines = None
     merged_joins = None
     merged_waterbodies = None
     merged_waterbody_joins = None
 
-    for HUC2 in HUC2s:
-        for i in REGIONS[HUC2]:
-            HUC4 = "{0}{1:02d}".format(HUC2, i)
-            print("\n\n------------------- Reading {} -------------------".format(HUC4))
+    for huc4 in huc4s:
+        print(f"------------------- Reading {huc4} -------------------")
 
-            huc_id = int(HUC4) * 1000000
+        huc_id = int(huc4) * 1000000
 
-            gdb = src_dir / HUC4 / "NHDPLUS_H_{HUC4}_HU4_GDB.gdb".format(HUC4=HUC4)
+        gdb = src_dir / huc4 / f"NHDPLUS_H_{huc4}_HU4_GDB.gdb"
 
-            ### Read flowlines and joins
-            read_start = time()
-            flowlines, joins = extract_flowlines(gdb, target_crs=CRS)
-            print(
-                "Read {:,} flowlines in  {:.0f} seconds".format(
-                    len(flowlines), time() - read_start
-                )
+        ### Read flowlines and joins
+        read_start = time()
+        flowlines, joins = extract_flowlines(gdb, target_crs=CRS)
+        print(
+            "Read {:,} flowlines in  {:.0f} seconds".format(
+                len(flowlines), time() - read_start
             )
+        )
 
-            flowlines = flowlines[
-                [
-                    "geometry",
-                    "lineID",
-                    "NHDPlusID",
-                    "FType",
-                    "length",
-                    "sinuosity",
-                    "sizeclass",
-                    "streamorder",
-                    "loop",
-                ]
-            ]
+        flowlines["HUC4"] = huc4
+        joins["HUC4"] = huc4
 
-            # Calculate lineIDs to be unique across the regions
+        # Calculate lineIDs to be unique across all HUC2s
+        flowlines["lineID"] += huc_id
+        # Set updated lineIDs with the HUC4 prefix
+        joins.loc[joins.upstream_id != 0, "upstream_id"] += huc_id
+        joins.loc[joins.downstream_id != 0, "downstream_id"] += huc_id
 
-            flowlines["lineID"] += huc_id
-            # Set updated lineIDs with the HUC4 prefix
-            joins.loc[joins.upstream_id != 0, "upstream_id"] += huc_id
-            joins.loc[joins.downstream_id != 0, "downstream_id"] += huc_id
-
-            ### Read waterbodies
-            read_start = time()
-            waterbodies = extract_waterbodies(
-                gdb,
-                target_crs=CRS,
-                exclude_ftypes=WATERBODY_EXCLUDE_FTYPES,
-                min_area=WATERBODY_MIN_SIZE,
+        ### Read waterbodies
+        read_start = time()
+        waterbodies = extract_waterbodies(
+            gdb,
+            target_crs=CRS,
+            exclude_ftypes=WATERBODY_EXCLUDE_FTYPES,
+            min_area=WATERBODY_MIN_SIZE,
+        )
+        print(
+            "Read {:,} waterbodies in  {:.0f} seconds".format(
+                len(waterbodies), time() - read_start
             )
-            print(
-                "Read {:,} waterbodies in  {:.0f} seconds".format(
-                    len(waterbodies), time() - read_start
-                )
-            )
+        )
 
-            # calculate ids to be unique across region
-            waterbodies["wbID"] += huc_id
+        waterbodies["HUC4"] = huc4
 
-            ### Only retain waterbodies that intersect flowlines
-            print("Intersecting waterbodies and flowlines")
-            wb_joins = gp.sjoin(waterbodies, flowlines, how="inner", op="intersects")[
+        # calculate ids to be unique across region
+        waterbodies["wbID"] += huc_id
+
+        ### Only retain waterbodies that intersect flowlines
+        print("Intersecting waterbodies and flowlines")
+        # use waterbodies to query flowlines since there are many more flowlines
+        wb_joins = sjoin_geometry(
+            pd.Series(waterbodies.geometry.values.data, index=waterbodies.index),
+            pd.Series(flowlines.geometry.values.data, index=flowlines.index),
+            how="inner",
+        )
+        wb_joins = (
+            waterbodies[["wbID"]]
+            .join(wb_joins, how="inner")
+            .join(flowlines[["lineID"]], on="index_right", how="inner")[
                 ["wbID", "lineID"]
             ]
+        )
 
-            waterbodies = waterbodies.loc[waterbodies.wbID.isin(wb_joins.wbID)].copy()
-            print(
-                "Retained {:,} waterbodies that intersect flowlines".format(
-                    len(waterbodies)
-                )
+        waterbodies = waterbodies.loc[waterbodies.wbID.isin(wb_joins.wbID)].copy()
+        print(
+            "Retained {:,} waterbodies that intersect flowlines".format(
+                len(waterbodies)
             )
+        )
 
-            merged_flowlines = append(merged_flowlines, flowlines)
-            merged_joins = append(merged_joins, joins)
-            merged_waterbodies = append(merged_waterbodies, waterbodies)
-            merged_waterbody_joins = append(merged_waterbody_joins, wb_joins)
+        merged_flowlines = append(merged_flowlines, flowlines)
+        merged_joins = append(merged_joins, joins)
+        merged_waterbodies = append(merged_waterbodies, waterbodies)
+        merged_waterbody_joins = append(merged_waterbody_joins, wb_joins)
 
     print("--------------------")
 
@@ -150,7 +133,10 @@ for region, HUC2s in list(REGION_GROUPS.items()):
     # Calculate a hash of the WKB bytes of the polygon.
     # This correctly catches polygons that are EXACTLY the same.
     # It will miss those that are NEARLY the same.
-    waterbodies["hash"] = waterbodies.geometry.apply(lambda g: hash(g.wkb))
+
+    waterbodies["hash"] = np.apply_along_axis(
+        np.vectorize(hash), axis=0, arr=pg.to_wkb(waterbodies.geometry.values.data)
+    )
 
     id_map = (
         waterbodies.set_index("wbID")[["hash"]]
@@ -175,7 +161,7 @@ for region, HUC2s in list(REGION_GROUPS.items()):
     # These are the segments that are immediately DOWNSTREAM of segments that flow into this HUC4
     # We set a new UPSTREAM id for them based on the segment that is next upstream
 
-    huc_in_idx = merged_joins.loc[joins.type == "huc_in"].index
+    huc_in_idx = joins.loc[joins.type == "huc_in"].index
     cross_huc_joins = joins.loc[huc_in_idx]
 
     new_upstreams = (
@@ -197,17 +183,69 @@ for region, HUC2s in list(REGION_GROUPS.items()):
     ]
 
     # remove dead ends
-    joins = joins.loc[~((joins.downstream == 0) & (joins.upstream == 0))].copy()
+    joins = joins.loc[~((joins.downstream == 0) & (joins.upstream == 0))].reset_index(
+        drop=True
+    )
 
-    print("serializing {:,} flowlines to feather".format(len(flowlines)))
-    to_geofeather(flowlines, region_dir / "flowlines.feather")
-    serialize_df(joins, region_dir / "flowline_joins.feather", index=False)
+    print("serializing {:,} flowlines".format(len(flowlines)))
+    flowlines.to_feather(out_dir / "flowlines.feather")
 
-    print("serializing {:,} waterbodies to feather".format(len(waterbodies)))
-    to_geofeather(waterbodies, region_dir / "waterbodies.feather")
-    serialize_df(wb_joins, region_dir / "waterbody_flowline_joins.feather", index=False)
-    print("Region done in {:.0f}s".format(time() - region_start))
+    write_dataframe(flowlines, out_dir / "flowlines.gpkg", driver="GPKG")
+    joins.to_feather(out_dir / "flowline_joins.feather")
 
+    print("serializing {:,} waterbodies".format(len(waterbodies)))
+    waterbodies.to_feather(out_dir / "waterbodies.feather")
+    write_dataframe(waterbodies, out_dir / "waterbodies.gpkg", driver="GPKG")
+    wb_joins.to_feather(out_dir / "waterbody_flowline_joins.feather")
+
+
+data_dir = Path("data")
+src_dir = data_dir / "nhd/source/huc4"
+out_dir = data_dir / "nhd/raw"
+
+if not out_dir.exists():
+    os.makedirs(out_dir)
+
+start = time()
+
+huc4_df = pd.read_feather(
+    data_dir / "boundaries/huc4.feather", columns=["HUC2", "HUC4"]
+)
+# Convert to dict of sorted HUC4s per HUC2
+units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
+
+# manually subset keys from above for processing
+huc2s = [
+    "02",
+    "03",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "21",
+]
+
+
+for huc2 in huc2s:
+    huc2_start = time()
+    print(f"----- {huc2} ------")
+
+    huc2_dir = out_dir / huc2
+    if not huc2_dir.exists():
+        os.makedirs(huc2_dir)
+
+    process_huc4s(src_dir, huc2_dir, units[huc2])
+
+    print("--------------------")
+    print("HUC2: {} done in {:.0f}s\n\n".format(huc2, time() - huc2_start))
 
 print("Done in {:.2f}s\n============================".format(time() - start))
-

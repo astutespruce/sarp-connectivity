@@ -17,7 +17,7 @@ import {
 } from 'content/styles'
 
 const LandcoverPage = ({ data: { headerImage } }) => (
-  <Layout>
+  <Layout title="Floodplain Natural Landcover">
     <HeaderImage
       image={headerImage.childImageSharp.fluid}
       height="20vh"

@@ -16,7 +16,7 @@ import {
 } from 'content/styles'
 
 const LengthPage = ({ data: { headerImage } }) => (
-  <Layout>
+  <Layout title="Network Length">
     <HeaderImage
       image={headerImage.childImageSharp.fluid}
       height="20vh"

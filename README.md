@@ -37,9 +37,9 @@ The user interface tier is stored in `/ui` and consists of a GatsbyJS and React-
 
 The backend is composed of several parts:
 
--   `/analysis`: data processing scripts
--   `/api`: flask API for requesting subsets and downloads
--   map tiles are served from `/tiles` using `mbtileserver` (tiles are not stored in the code repository)
+- `/analysis`: data processing scripts
+- `/api`: flask API for requesting subsets and downloads
+- map tiles are served from `/tiles` using `mbtileserver` (tiles are not stored in the code repository)
 
 ## Development
 
@@ -58,8 +58,8 @@ You should now be able to open `http://localhost:8001/services` to see a listing
 
 See `ui/package.json` for NodeJS dependencies used by the UI tier.
 
--   `cd ui`
--   run `npm install` to install all dependencies.
+- `cd ui`
+- run `npm install` to install all dependencies.
 
 The following environment variables must be sent in `/ui/.env.development`:
 
@@ -69,12 +69,12 @@ GATSBY_API_HOST = <root URL of API host, likely http://localhost/:5000 for local
 GATSBY_TILE_HOST = <root URL of tile host, likely http://localhost:8001 for local mbtileserver >
 ```
 
-### Flask API initial setup:
+### API initial setup:
 
 See `Pipfile` for Python dependencies. The development dependencies are required for the data processing scripts.
 
--   `cd api`
--   run `pipenv install` to setup a Python virtual environment and install all dependencies.
+- `cd api`
+- run `pipenv install` to setup a Python virtual environment and install all dependencies.
 
 ### Development environment
 
@@ -84,29 +84,20 @@ The user interface is built using GatsbyJS.
 
 To start the development server (on port 8000, by default):
 
--   `cd ui`
--   `gatsby develop`
+- `cd ui`
+- `gatsby develop`
 
-To start the frontend application (on port 3000, by default:
-`cd ui && yarn start`
-Then open `http://localhost:3000` in your browser.
+#### Run API:
 
-#### Flask API:
+Within an active Python environment (`pipenv shell`).
 
-To start the report server (on port 5000, by default):
+To start the API server (on port 5000, by default), with reloading:
 
 ```
-export FLASK_APP=api.server
-export FLASK_ENV=development
-pipenv run flask run
+uvicorn api.server:app --reload --port 5000
 ```
 
-Alternatively, you can run flask from within your virtual environment:
-
-```
-pipenv shell
-flask run
-```
+The API loads environment variables from `.env` in the root of this project.
 
 ## Deployment
 
@@ -132,9 +123,9 @@ The `MAILCHIMP_*` variables are used to capture user information for data downlo
 The `version` number and `date` needs to be set properly for each release in `ui/package.json`.
 This generally should follow [semantic versioning](https://semver.org/) wherein with `X.Y.Z`:
 
--   `X` refers to a major version, and includes major updates to the inventory data, network data, or analysis methods.
--   `Y` refers to a minor version, and includes minor updates to the inventory data (e.g., downloading a new set of data with more barriers) but no substantive change to the overall approach or data used. This should be incremented on every download from the inventory that includes new data.
--   `Z` refers to a bug fix version, and is used when new results are released due to bugs in the analysis code.
+- `X` refers to a major version, and includes major updates to the inventory data, network data, or analysis methods.
+- `Y` refers to a minor version, and includes minor updates to the inventory data (e.g., downloading a new set of data with more barriers) but no substantive change to the overall approach or data used. This should be incremented on every download from the inventory that includes new data.
+- `Z` refers to a bug fix version, and is used when new results are released due to bugs in the analysis code.
 
 This version is displayed to end users as the data version.
 

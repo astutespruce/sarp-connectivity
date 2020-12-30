@@ -1,25 +1,23 @@
 import React, { memo } from 'react'
 import PropTypes from 'prop-types'
-import deepEqual from 'dequal'
+import { dequal } from 'dequal/lite'
 
 import Bar from './HorizontalBar'
 
-const HorizontalBars = ({ data, max, showCount, onToggleFilter }) => {
-  return (
-    <>
-      {data.map(({ value, ...props }) => (
-        <Bar
-          key={value}
-          value={value}
-          {...props}
-          max={max}
-          showCount={showCount}
-          onClick={onToggleFilter}
-        />
-      ))}
-    </>
-  )
-}
+const HorizontalBars = ({ data, max, showCount, onToggleFilter }) => (
+  <>
+    {data.map(({ value, ...props }) => (
+      <Bar
+        key={value}
+        value={value}
+        {...props}
+        max={max}
+        showCount={showCount}
+        onClick={onToggleFilter}
+      />
+    ))}
+  </>
+)
 
 HorizontalBars.propTypes = {
   data: PropTypes.arrayOf(
@@ -40,5 +38,5 @@ HorizontalBars.defaultProps = {
 export default memo(
   HorizontalBars,
   ({ data: prevData, max: prevMax }, { data: nextData, max: nextMax }) =>
-    deepEqual(prevData, nextData) && prevMax === nextMax
+    dequal(prevData, nextData) && prevMax === nextMax
 )

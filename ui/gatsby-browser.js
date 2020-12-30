@@ -1,21 +1,21 @@
-import GoogleAnalytics from 'react-ga'
-import * as Sentry from '@sentry/browser'
+import * as Sentry from '@sentry/react'
 
 import { siteMetadata } from './gatsby-config'
 
-/**
- * Initialize Google Analytics and Sentry
- */
+const { sentryDSN } = siteMetadata
 export const onClientEntry = () => {
-  const { googleAnalyticsId, sentryDSN } = siteMetadata
-
-  if (googleAnalyticsId) {
-    GoogleAnalytics.initialize(googleAnalyticsId)
-  }
-
   if (sentryDSN) {
     Sentry.init({
       dsn: sentryDSN,
+      beforeSend(event, { originalException: error }) {
+        if (error && error.message) {
+          // this error happens when ResizeObserver not able to deliver all observations within a single animation frame
+          if (error.message.match(/ResizeObserver loop limit exceeded/i)) {
+            return null
+          }
+        }
+        return event
+      },
     })
     window.Sentry = Sentry
   }

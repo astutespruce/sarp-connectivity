@@ -4,16 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flask = "*"
 pandas = "*"
 feather-format = "*"
-flask-cors = "*"
 gunicorn = "*"
 "jinja2" = "*"
-raven = {version = "*",extras = ["flask"]}
 requests = "*"
 python-dotenv = "*"
-pygeos = {editable = true,path = "./../pygeos"}
+geopandas = "*"
+fastapi = "*"
+uvicorn = {extras = ["standard"],version = "*"}
+sentry-sdk = "*"
 
 [dev-packages]
 pylint = "*"
@@ -21,12 +21,9 @@ black = "==19.10b0"
 requests = "*"
 nhdnet = {editable = true,path = "./../nhdnet"}
 sarp-connectivity = {editable = true,path = "."}
-geofeather = {editable = true,path = "./../geofeather"}
 rtree = ">=0.9.3"
-networkx = "*"
-pygeos = {editable = true,path = "./../pygeos"}
-pgpkg = {editable = true,path = "./../pgpkg"}
-geopandas = "*"
+pyogrio = {editable = true,path = "./../pyogrio"}
+pygeos = "*"
 
 [requires]
 python_version = "3.8"

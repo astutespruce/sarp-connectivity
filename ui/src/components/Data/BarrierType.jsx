@@ -12,6 +12,4 @@ Provider.propTypes = {
   barrierType: PropTypes.string.isRequired, // "dams" or "barriers"
 }
 
-export const useBarrierType = () => {
-  return useContext(Context)
-}
+export const useBarrierType = () => useContext(Context)

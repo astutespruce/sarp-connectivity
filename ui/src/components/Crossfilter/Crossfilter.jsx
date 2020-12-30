@@ -3,11 +3,10 @@ import Crossfilter2 from 'crossfilter2'
 import { isDebug } from 'util/dom'
 import { useIsEqualMemo } from 'util/hooks'
 import { countByDimension, getFilteredCount } from './util'
-import { exception } from 'react-ga'
 
 // returns true if passed in values contains the value
 // values must be a Set
-export const hasValue = filterValues => value => filterValues.has(value)
+export const hasValue = (filterValues) => (value) => filterValues.has(value)
 
 /**
  * Initialize crossfilter from the data and filters
@@ -18,10 +17,10 @@ const initCrossfilter = (data, filterConfig) => {
   const crossfilter = Crossfilter2(data)
 
   const dimensions = {}
-  filterConfig.forEach(filter => {
+  filterConfig.forEach((filter) => {
     const { field, isArray, getValue } = filter
     // default `getValue` function is identify function for field
-    const dimensionFunction = getValue || (record => record[field])
+    const dimensionFunction = getValue || ((record) => record[field])
 
     const dimension = crossfilter.dimension(dimensionFunction, !!isArray)
     dimension.config = filter
@@ -40,9 +39,10 @@ const initCrossfilter = (data, filterConfig) => {
 
 export const Crossfilter = (data, filterConfig) => {
   // Memoize construction of crossfilter and dimensions, so they only get created once
-  const { crossfilter, dimensions } = useIsEqualMemo(() => {
-    return initCrossfilter(data, filterConfig)
-  }, [data])
+  const { crossfilter, dimensions } = useIsEqualMemo(
+    () => initCrossfilter(data, filterConfig),
+    [data]
+  )
 
   // create the initial state in the callback so that we only construct it once
   const [state, setState] = useState(() => {
@@ -66,7 +66,7 @@ export const Crossfilter = (data, filterConfig) => {
     return initialState
   })
 
-  const setData = newData => {
+  const setData = (newData) => {
     if (isDebug) {
       console.log('setData')
     }
@@ -74,7 +74,7 @@ export const Crossfilter = (data, filterConfig) => {
     setState(() => {
       // validate that expected fields are present
       if (newData.length > 0) {
-        Object.keys(dimensions).forEach(field => {
+        Object.keys(dimensions).forEach((field) => {
           if (newData[0][field] === undefined) {
             throw new Error(`Field is not present in data: ${field}`)
           }
@@ -110,7 +110,7 @@ export const Crossfilter = (data, filterConfig) => {
       )
     }
 
-    setState(prevState => {
+    setState((prevState) => {
       if (isDebug) {
         console.log('setFilter', field, filterValue)
         console.log('Prev state', prevState)
@@ -137,7 +137,7 @@ export const Crossfilter = (data, filterConfig) => {
       }
 
       const hasFilters =
-        Object.values(newFilters).filter(filter => filter && filter.size > 0)
+        Object.values(newFilters).filter((filter) => filter && filter.size > 0)
           .length > 0
 
       const newState = {
@@ -158,7 +158,7 @@ export const Crossfilter = (data, filterConfig) => {
   }
 
   const resetFilters = () => {
-    setState(prevState => {
+    setState((prevState) => {
       if (isDebug) {
         console.log('resetFilters')
         console.log('Prev state', prevState)
@@ -167,7 +167,7 @@ export const Crossfilter = (data, filterConfig) => {
       const { filters: prevFilters } = prevState
 
       // reset the filters on the dimenions
-      Object.keys(prevFilters).forEach(field => {
+      Object.keys(prevFilters).forEach((field) => {
         dimensions[field].filterAll()
       })
 

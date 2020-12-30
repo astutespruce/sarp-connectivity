@@ -15,13 +15,8 @@ const Column = styled(BaseColumn).attrs({
   margin-top: 2rem;
 `
 
-const HighlightColumns = styled(Columns)`
-  margin-top: -2rem;
-  flex-wrap: wrap;
-`
 
-const Top = () => {
-  return (
+const Top = () =>  (
     <>
       <LargeText>
         Aquatic connectivity is essential. Fish and other aquatic organisms
@@ -85,6 +80,5 @@ const Top = () => {
       </Section>
     </>
   )
-}
 
 export default Top

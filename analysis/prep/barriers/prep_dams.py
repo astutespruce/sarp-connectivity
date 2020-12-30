@@ -19,26 +19,18 @@ This creates several QA/QC files:
 
 from pathlib import Path
 from time import time
+import warnings
+
 import pandas as pd
-from geofeather.pygeos import from_geofeather, to_geofeather
-from pgpkg import to_gpkg
 import geopandas as gp
 import numpy as np
+from pyogrio import read_dataframe, write_dataframe
 
-from nhdnet.io import deserialize_sindex, deserialize_df, deserialize_dfs
-from nhdnet.geometry.lines import snap_to_line
-
-from analysis.prep.barriers.lib.points import (
-    nearest,
-    near,
-    neighborhoods,
-    connect_points,
-)
 from analysis.prep.barriers.lib.snap import (
+    snap_estimated_dams_to_drains,
     snap_to_nhd_dams,
     snap_to_waterbodies,
     snap_to_flowlines,
-    snap_to_large_waterbodies,
     export_snap_dist_lines,
 )
 from analysis.prep.barriers.lib.duplicates import (
@@ -48,8 +40,6 @@ from analysis.prep.barriers.lib.duplicates import (
 
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.constants import (
-    REGION_GROUPS,
-    REGIONS,
     CRS,
     DAM_COLS,
     DROP_MANUALREVIEW,
@@ -60,7 +50,9 @@ from analysis.constants import (
     EXCLUDE_RECON,
     RECON_TO_FEASIBILITY,
 )
+from analysis.lib.io import read_feathers
 
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 ### Custom tolerance values for dams
 SNAP_TOLERANCE = {"default": 150, "likely off network": 50}
@@ -75,10 +67,10 @@ src_dir = barriers_dir / "source"
 master_dir = barriers_dir / "master"
 snapped_dir = barriers_dir / "snapped"
 qa_dir = barriers_dir / "qa"
-dams_filename = "Raw_Featureservice_SARPUniqueID.gdb"
-gdb = src_dir / dams_filename
+
 
 # dams that fall outside SARP
+outside_gdb = src_dir / "Raw_Featureservice_SARPUniqueID.gdb"
 outside_layer = "Dams_Non_SARP_States_09052019"
 
 start = time()
@@ -86,19 +78,21 @@ start = time()
 
 ### Read in SARP states and merge
 print("Reading dams in SARP states")
-df = from_geofeather(src_dir / "sarp_dams.feather")
-print("Read {:,} dams in SARP states".format(len(df)))
+df = gp.read_feather(src_dir / "sarp_dams.feather")
+print(f"Read {len(df):,} dams in SARP states")
 
 ### Read in non-SARP states and join in
 # these are for states that overlap with HUC4s that overlap with SARP states
 print(
     "Reading dams that fall outside SARP states, but within HUC4s that overlap with SARP states..."
 )
+outside_df = read_dataframe(outside_gdb, layer=outside_layer).drop(columns=["SARPID"])
+# add in missing columns
+outside_df["PassageFacility"] = np.nan
+outside_df["BarrierStatus"] = np.nan
 outside_df = (
-    gp.read_file(gdb, layer=outside_layer)
     # SARPID is Old, use SARPUniqueID for it instead
-    .drop(columns=["SARPID"])
-    .rename(columns={"SARPUniqueID": "SARPID", "Snap2018": "ManualReview"})[
+    outside_df.rename(columns={"SARPUniqueID": "SARPID", "Snap2018": "ManualReview"})[
         DAM_COLS + ["geometry"]
     ]
     .to_crs(CRS)
@@ -115,36 +109,73 @@ outside_df = (
         }
     )
 )
-print("Read {:,} dams outside SARP states".format(len(outside_df)))
+print(f"Read {len(outside_df):,} dams outside SARP states")
 
 df = df.append(outside_df, ignore_index=True, sort=False)
 
-### Read in dams that have been manually snapped and join to get latest location
-# ONLY keep ManualReview and the location.
+### Read in dams that have been manually reviewed
 print("Reading manually snapped dams...")
-snapped_df = from_geofeather(
+snapped_df = gp.read_feather(
     src_dir / "manually_snapped_dams.feather",
-    columns=["geometry", "ManualReview", "SARPID"],
-).set_index("SARPID")
+)
 
-# Don't pull across those that were not manually snapped
-snapped_df = snapped_df.loc[~snapped_df.ManualReview.isin([7, 9])]
+# Don't pull across those that were not manually snapped or are missing key fields
+# 0,1: not reviewed,
+# 7,9: assumed offstream but attempt to snap
+# 20,21: dams with lower confidence assigned automatically in previous run
+snapped_df = snapped_df.loc[
+    snapped_df.SARPID.notnull()
+    & snapped_df.geometry.notnull()
+    & (~snapped_df.ManualReview.isin([0, 1, 7, 9, 20, 21]))
+].set_index("SARPID")
+
+for col in ["dropped", "excluded", "duplicate", "snapped"]:
+    snapped_df[col] = (
+        snapped_df[col].map({"True": True, "False": False}).astype("bool_")
+    )
+
+# Drop any that were marked as in correct location, but were not previously snapped;
+# these are errors
+ix = (snapped_df.ManualReview == 13) & ~snapped_df.snapped
+if ix.sum():
+    print(
+        f"Dropping {ix.sum()} dams marked as in correct location but were not previously snapped (errors)"
+    )
+    snapped_df = snapped_df.loc[~ix].copy()
+
+# Drop any that were marked as duplicates manually and also automatically
+ix = (snapped_df.ManualReview == 11) & snapped_df.duplicate
+snapped_df = snapped_df.loc[~ix].copy()
+
+snapped_df = snapped_df[["geometry", "ManualReview"]].copy()
 
 # Join to snapped and bring across updated geometry and ManualReview
 df = df.join(snapped_df, on="SARPID", rsuffix="_snap")
 
-idx = df.loc[df.geometry_snap.notnull()].index
-df.loc[idx, "geometry"] = df.loc[idx].geometry_snap
-
 # override with manually snapped assignment
-df.loc[idx, "ManualReview"] = df.loc[idx].ManualReview_snap
+ix = df.ManualReview_snap.notnull()
+df.loc[ix, "ManualReview"] = df.loc[ix].ManualReview_snap
+
+# Only update geometry from snapped where snapped is likely to be manually moved
+# or where validated prior location
+ix = df.ManualReview_snap.isin([4, 5, 13, 15])
+df.loc[ix, "geometry"] = df.loc[ix].geometry_snap
+
+print(f"Updated {ix.sum():,} dam locations based on snapped / manual review dataset")
+
 # drop snap columns
+df = df.drop(columns=[c for c in df.columns if c.endswith("_snap")])
 
 # Reset the index so that we have a clean numbering for all rows
-df = df.drop(columns=[c for c in df.columns if c.endswith("_snap")]).reset_index(
-    drop=True
-)
-print("Compiled {:,} dams".format(len(df)))
+df = df.reset_index(drop=True)
+print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df)))
+
+### Make sure there are not duplicates
+s = df.groupby("SARPID").size()
+if s.max() > 1:
+    print("WARNING: multiple dams with same SARPID")
+    print(s[s > 1])
+    # raise ValueError(f"Multiple dams with same SARPID: {s[s > 1].index}")
 
 
 ### Add IDs for internal use
@@ -155,13 +186,21 @@ df = df.set_index("id", drop=False)
 
 ######### Fix data issues
 ### Set data types
-for column in ("River", "NIDID", "Source", "Name", "OtherName"):
+for column in ("River", "NIDID", "Source", "Name", "OtherName", "SourceState"):
     df[column] = df[column].fillna("").str.strip()
 
-for column in ("Construction", "Condition", "Purpose", "Recon"):
+for column in (
+    "Construction",
+    "Condition",
+    "Purpose",
+    "Recon",
+    "ManualReview",
+    "PassageFacility",
+    "BarrierStatus",
+):
     df[column] = df[column].fillna(0).astype("uint8")
 
-for column in ("Year", "Feasibility", "ManualReview"):
+for column in ("Year", "Feasibility"):
     df[column] = df[column].fillna(0).astype("uint16")
 
 
@@ -171,6 +210,12 @@ df.loc[df.Recon == 16, "ManualReview"] = 10
 
 # Reset manual review for dams that were previously not snapped, but are not reviewed
 df.loc[df.ManualReview.isin([7, 9]), "ManualReview"] = 0
+
+# Update dam condition based on BarrierStatus and Recon
+df.loc[df.Recon == 18, "Condition"] = 5  # dam failed
+df.loc[
+    df.BarrierStatus.isin([2, 3]), "Condition"
+] = 6  # dam breached (but we don't know if this was on purpose)
 
 
 # Round height to nearest foot.  There are no dams between 0 and 1 foot, so fill all
@@ -186,26 +231,6 @@ df.River = df.River.str.title()
 # Fix name issue - 3 dams have duplicate dam names with line breaks, which breaks tippecanoe
 ids = df.loc[df.Name.str.count("\r") > 0].index
 df.loc[ids, "Name"] = df.loc[ids].Name.apply(lambda v: v.split("\r")[0]).fillna("")
-
-
-# Identify estimated dams
-# these were generated by SARP from analysis of small waterbodies
-ix = (
-    (df.Name.str.count("Estimated Dam") > 0)
-    | df.Source.str.lower().str.count("estimated")
-    | (df.SourceDBID.str.startswith("e"))
-    | (df.SourceDBID.str.startswith("ed"))
-)
-df.loc[ix, "ManualReview"] = 20  # indicates estimated dam
-
-# Replace estimated dam names if another name is available
-ix = ix & (df.OtherName.str.len() > 0)
-df.loc[ix, "Name"] = df.loc[ix].OtherName
-
-
-# Amber Ignatius ACF dams are often features that don't have associated flowlines,
-# flag so we don't snap to flowlines that aren't really close
-df.loc[df.Source.str.count("Amber Ignatius") > 0, "ManualReview"] = 21
 
 
 # Fix years between 0 and 100; assume they were in the 1900s
@@ -227,9 +252,31 @@ df.loc[(df.Height >= 50) & (df.Height < 100), "HeightClass"] = 5
 df.loc[df.Height >= 100, "HeightClass"] = 6
 df.HeightClass = df.HeightClass.astype("uint8")
 
+# Convert PassageFacility to a boolean for filtering
+df["PassageFacilityClass"] = 0  # uknown or no facility
+df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
+
+
 ### Spatial joins
 df = add_spatial_joins(df)
 
+print("-----------------")
+
+# Cleanup HUC, state, county, and ecoregion columns that weren't assigned
+for col in [
+    "HUC2",
+    "HUC6",
+    "HUC8",
+    "HUC12",
+    "Basin",
+    "County",
+    "COUNTYFIPS",
+    "STATEFIPS",
+    "State",
+    "ECO3",
+    "ECO4",
+]:
+    df[col] = df[col].fillna("")
 
 ### Add tracking fields
 # master log field for status
@@ -241,94 +288,117 @@ df["dropped"] = False
 df["excluded"] = False
 
 # Drop any that didn't intersect HUCs or states
-drop_idx = df.HUC12.isnull() | df.STATEFIPS.isnull()
-print("{:,} dams are outside HUC12 / states".format(len(df.loc[drop_idx])))
-# Mark dropped barriers
-df.loc[drop_idx, "dropped"] = True
-df.loc[drop_idx, "log"] = "dropped: outside HUC12 / states"
+drop_ix = (df.HUC12 == "") | (df.STATEFIPS == "")
+if drop_ix.sum():
+    print(f"{drop_ix.sum():,} dams are outside HUC12 / states")
+    # Mark dropped barriers
+    df.loc[drop_ix, "dropped"] = True
+    df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 
 ### Drop any dams that should be completely dropped from analysis
 # based on manual QA/QC and other reivew.
 
 # Drop those where recon shows this as an error
-drop_idx = df.Recon.isin(DROP_RECON) & ~df.dropped
-df.loc[drop_idx, "dropped"] = True
-df.loc[drop_idx, "log"] = "dropped: Recon one of {}".format(DROP_RECON)
+drop_ix = df.Recon.isin(DROP_RECON) & ~df.dropped
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = f"dropped: Recon one of {DROP_RECON}"
 
 # Drop those where recon shows this as an error
-drop_idx = df.Feasibility.isin(DROP_FEASIBILITY) & ~df.dropped
-df.loc[drop_idx, "dropped"] = True
-df.loc[drop_idx, "log"] = "dropped: Feasibility one of {}".format(DROP_FEASIBILITY)
+drop_ix = df.Feasibility.isin(DROP_FEASIBILITY) & ~df.dropped
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = f"dropped: Feasibility one of {DROP_FEASIBILITY}"
 
 # Drop those that were manually reviewed off-network or errors
-drop_idx = df.ManualReview.isin(DROP_MANUALREVIEW) & ~df.dropped
-df.loc[drop_idx, "dropped"] = True
-df.loc[drop_idx, "log"] = "dropped: ManualReview one of {}".format(DROP_MANUALREVIEW)
+drop_ix = df.ManualReview.isin(DROP_MANUALREVIEW) & ~df.dropped
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = f"dropped: ManualReview one of {DROP_MANUALREVIEW}"
 
 # From Kat: if the dam includes "dike" in the name and not "dam", it is not really a dam
-drop_idx = (
+drop_ix = (
     df.Name.str.lower().str.contains(" dike")
     & (~df.Name.str.lower().str.contains(" dam"))
     & ~df.dropped
     & ~df.ManualReview.isin(ONSTREAM_MANUALREVIEW)
 )
-df.loc[drop_idx, "dropped"] = True
-df.loc[drop_idx, "log"] = "dropped: name includes dike and not dam"
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = "dropped: name includes dike and not dam"
 
-print("Dropped {:,} dams from all analysis and mapping".format(len(df.loc[df.dropped])))
+print(f"Dropped {df.dropped.sum():,} dams from all analysis and mapping")
 
 
 ### Exclude dams that should not be analyzed or prioritized based on manual QA
 exclude_idx = df.Recon.isin(EXCLUDE_RECON) | df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
 df.loc[exclude_idx, "excluded"] = True
-df.loc[exclude_idx, "log"] = "excluded: Recon one of {}".format(EXCLUDE_RECON)
+df.loc[exclude_idx, "log"] = f"excluded: Recon one of {EXCLUDE_RECON}"
 
 exclude_idx = df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
 df.loc[exclude_idx, "excluded"] = True
-df.loc[exclude_idx, "log"] = "excluded: ManualReview one of {}".format(
-    EXCLUDE_MANUALREVIEW
-)
+df.loc[exclude_idx, "log"] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
 
-print(
-    "Excluded {:,} dams from analysis and prioritization".format(
-        len(df.loc[df.excluded])
-    )
-)
-
-
-### Convert to pygeos format for following operations
+print(f"Excluded {df.excluded.sum():,} dams from analysis and prioritization")
 
 
 ### Snap dams
 # snapped: records that snapped to the aquatic network and ready for network analysis
 df["snapped"] = False
+df["snap_group"] = 0  # 0 = default, 1 = estimated, 2 = Amber Ignatius ACF dams
+df["snap_tolerance"] = SNAP_TOLERANCE["default"]
 df["snap_log"] = "not snapped"
 df["snap_ref_id"] = np.nan  # id of feature from snap type this was snapped to
 df["snap_dist"] = np.nan
 df["lineID"] = np.nan  # line to which dam was snapped
 df["wbID"] = np.nan  # waterbody ID where dam is either contained or snapped
-df["snap_tolerance"] = SNAP_TOLERANCE["default"]
+
+
+### Mark dam snapping groups
+# estimated dams or likely off-network dams will get lower snapping tolerance
+
+# Identify estimated dams
+# these were generated by SARP from analysis of small waterbodies
+# NOTE: this MUST be done AFTER dropping / excluding barriers
+ix = (
+    (df.Name.str.count("Estimated Dam") > 0)
+    | df.Source.str.lower().str.count("estimated")
+    | (df.SourceDBID.str.startswith("e"))
+)
+
+df.loc[ix, "snap_group"] = 1  # indicates estimated dam
+
+# Replace estimated dam names if another name is available
+ix = ix & (df.OtherName.str.len() > 0)
+df.loc[ix, "Name"] = df.loc[ix].OtherName
+
+
+# Amber Ignatius ACF dams are often features that don't have associated flowlines,
+# flag so we don't snap to flowlines that aren't really close
+# NOTE: this MUST be done AFTER dropping / excluding barriers
+df.loc[df.Source.str.count("Amber Ignatius") > 0, "snap_group"] = 2
+
+
 # Dams likely to be off network get a much smaller tolerance
-df.loc[df.ManualReview.isin([20, 21]), "snap_tolerance"] = SNAP_TOLERANCE[
+df.loc[df.snap_group.isin([1, 2]), "snap_tolerance"] = SNAP_TOLERANCE[
     "likely off network"
 ]
 print(
-    "Setting snap tolerance to {}m for {:,} dams likely off network".format(
-        SNAP_TOLERANCE["likely off network"],
-        len(df.loc[df.ManualReview.isin([20, 21])]),
-    )
+    f"Setting snap tolerance to {SNAP_TOLERANCE['likely off network']}m for {df.snap_group.isin([1,2]).sum():,} dams likely off network"
 )
 
-# IMPORTANT: do not snap manually reviewed, off-network dams!
-to_snap = df.loc[df.ManualReview != 5].copy()
+# IMPORTANT: do not snap manually reviewed, off-network dams, duplicates, or ones without HUC2!
+to_snap = df.loc[(~df.ManualReview.isin([5, 11])) & (df.HUC2 != "")].copy()
 
 # Save original locations so we can map the snap line between original and new locations
 original_locations = to_snap.copy()
 
 snap_start = time()
 
-# Snap to NHD dams
+print("-----------------")
+
+
+# Snap estimated dams to the drain point of the waterbody that contains them, if possible
+df, to_snap = snap_estimated_dams_to_drains(df, to_snap)
+
+# # Snap to NHD dams
 df, to_snap = snap_to_nhd_dams(df, to_snap)
 
 # Snap to waterbodies
@@ -337,12 +407,7 @@ df, to_snap = snap_to_waterbodies(df, to_snap)
 # Snap to flowlines
 df, to_snap = snap_to_flowlines(df, to_snap)
 
-# Last ditch effort to snap major waterbody-related dams
-df, to_snap = snap_to_large_waterbodies(df, to_snap)
-
-print(
-    "Snapped {:,} dams in {:.2f}s".format(len(df.loc[df.snapped]), time() - snap_start)
-)
+print(f"Snapped {df.snapped.sum():,} dams in {time() - snap_start:.2f}s")
 
 print("---------------------------------")
 print("\nSnapping statistics")
@@ -358,11 +423,17 @@ export_snap_dist_lines(df.loc[df.snapped], original_locations, qa_dir, prefix="d
 # NOTE: the first instance of a set of duplicates is NOT marked as a duplicate,
 # only following ones are.
 df["duplicate"] = False
+df["dup_log"] = "not a duplicate"
 df["dup_group"] = np.nan
 df["dup_count"] = np.nan
 # duplicate sort will be assigned lower values to find preferred entry w/in dups
 df["dup_sort"] = 9999
-df["dup_log"] = "not a duplicate"
+
+# assign duplicate status for any that were manually reviewed as such
+ix = df.ManualReview == 11
+df.loc[ix, "duplicate"] = True
+df.loc[ix, "dup_log"] = "Manually reviewed as duplicate"
+
 
 # Assign dup_sort, lower numbers = higher priority to keep from duplicate group
 # Start from lower priorities and override with lower values
@@ -384,16 +455,21 @@ df.loc[df.ManualReview.isin(ONSTREAM_MANUALREVIEW + [5]), "dup_sort"] = 1
 
 
 dedup_start = time()
+
+# Exclude those where ManualReview indicated duplicate (these are also dropped),
+# otherwise this cascades to drop other barriers in this group; at least one of
+# which should be kept
+to_dedup = df.loc[~df.duplicate].copy()
+
+
 # Dams within 10 meters are very likely duplicates of each other
 # from those that were hand-checked on the map, they are duplicates of each other
-df, to_dedup = find_duplicates(
-    df, to_dedup=df.copy(), tolerance=DUPLICATE_TOLERANCE["default"]
-)
+df, to_dedup = find_duplicates(df, to_dedup, tolerance=DUPLICATE_TOLERANCE["default"])
 
 # Search a bit further for duplicates from estimated dams that snapped
 # hand-checked these on the map, these look very likely to be real duplicates
 next_group_id = df.dup_group.max() + 1
-to_dedup = to_dedup.loc[to_dedup.snapped & df.ManualReview.isin([20, 21])].copy()
+to_dedup = to_dedup.loc[to_dedup.snapped & df.snap_group.isin([1, 2])].copy()
 df, to_dedup = find_duplicates(
     df,
     to_dedup,
@@ -401,11 +477,7 @@ df, to_dedup = find_duplicates(
     next_group_id=next_group_id,
 )
 
-print(
-    "Found {:,} total duplicates in {:.2f}s".format(
-        len(df.loc[df.duplicate]), time() - dedup_start
-    )
-)
+print(f"Found {df.duplicate.sum():,} total duplicates in {time() - dedup_start:.2f}s")
 print("---------------------------------")
 print("\nDe-duplication statistics")
 print(df.groupby("dup_log").size())
@@ -415,22 +487,30 @@ print("---------------------------------\n")
 dups = df.loc[df.dup_group.notnull()].copy()
 dups.dup_group = dups.dup_group.astype("uint16")
 dups["dup_tolerance"] = DUPLICATE_TOLERANCE["default"]
-ix = dups.snapped & dups.ManualReview.isin([20, 21])
+ix = dups.snapped & dups.snap_group.isin([1, 2])
 dups.loc[ix, "dup_tolerance"] = DUPLICATE_TOLERANCE["likely duplicate"]
 
-export_duplicate_areas(dups, qa_dir / "dams_duplicate_areas")
+export_duplicate_areas(dups, qa_dir / "dams_duplicate_areas.gpkg")
 
 
 ### Join to line atts
-flowlines = deserialize_dfs(
-    [nhd_dir / "clean" / region / "flowlines.feather" for region in REGION_GROUPS],
-    columns=["lineID", "NHDPlusID", "sizeclass", "streamorder", "loop", "waterbody"],
+flowlines = read_feathers(
+    [
+        nhd_dir / "clean" / huc2 / "flowlines.feather"
+        for huc2 in df.HUC2.unique()
+        if huc2
+    ],
+    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop"],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
+
+# Fix missing field values
 df["loop"] = df.loop.fillna(False)
+df["sizeclass"] = df.sizeclass.fillna("")
 
 print(df.groupby("loop").size())
+
 
 ### All done processing!
 
@@ -438,10 +518,8 @@ print("\n--------------\n")
 df = df.reset_index(drop=True)
 
 print("Serializing {:,} dams to master file".format(len(df)))
-to_geofeather(df, master_dir / "dams.feather", crs=CRS)
-
-print("writing GIS for QA/QC")
-to_gpkg(df, qa_dir / "dams", crs=CRS)
+df.to_feather(master_dir / "dams.feather")
+write_dataframe(df, qa_dir / "dams.gpkg")
 
 
 # Extract out only the snapped ones
@@ -452,10 +530,10 @@ df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped dams".format(len(df)))
-to_geofeather(
-    df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "waterbody"]],
+df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop"]].to_feather(
     snapped_dir / "dams.feather",
-    crs=CRS,
 )
+write_dataframe(df, qa_dir / "snapped_dams.gpkg")
+
 
 print("All done in {:.2f}s".format(time() - start))

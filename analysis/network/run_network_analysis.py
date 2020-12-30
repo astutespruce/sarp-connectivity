@@ -13,54 +13,95 @@ from pathlib import Path
 import os
 from time import time
 from itertools import product
+import warnings
 
 import geopandas as gp
+import pygeos as pg
 import pandas as pd
 import numpy as np
-from shapely.geometry import MultiLineString
-from geofeather import from_geofeather, to_geofeather
+from pyogrio import write_dataframe
 
-from nhdnet.nhd.cut import cut_flowlines
-from nhdnet.nhd.network import generate_networks
-from nhdnet.io import deserialize_df, to_shp, serialize_df
 
-from analysis.constants import REGION_GROUPS, NETWORK_TYPES, CONNECTED_REGIONS
+from analysis.constants import NETWORK_TYPES
 
 from analysis.network.lib.stats import calculate_network_stats
 from analysis.network.lib.barriers import read_barriers, save_barriers
-from analysis.network.lib.flowlines import cut_flowlines_at_barriers, save_cut_flowlines
+from analysis.lib.flowlines import cut_flowlines_at_barriers, save_cut_flowlines
 from analysis.network.lib.networks import create_networks
 
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+
+
 data_dir = Path("data")
+nhd_dir = data_dir / "nhd/clean"
+
+
+# TODO: expand to full region
+huc4_df = pd.read_feather(
+    data_dir / "boundaries/sarp_huc4.feather", columns=["HUC2", "HUC4"]
+)
+# Convert to dict of sorted HUC4s per HUC2
+units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
+huc2s = sorted(units.keys())
+
+# manually subset keys from above for processing
+# huc2s = ["02", "03", "05", "06", "07", "08", "10", "11", "12", "13", "21"]
+
 
 start = time()
-# FIXME
-for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES[1:2]):
-    print(
-        "\n\n###### Processing region {0}: {1} networks #####".format(
-            region, network_type
-        )
-    )
 
-    out_dir = data_dir / "networks" / region / network_type
+for huc2, network_type in product(huc2s, NETWORK_TYPES[1:]):
+    region_start = time()
 
-    if region in CONNECTED_REGIONS:
-        out_dir = out_dir / "raw"
+    print(f"----- {huc2} ({network_type}) ------")
+
+    out_dir = data_dir / "networks" / huc2 / network_type
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    region_start = time()
-
     ##################### Read Barrier data #################
-    print("------------------- Preparing Barriers ----------")
-
-    barriers = read_barriers(region, network_type)
+    barriers = read_barriers(huc2, network_type)
     save_barriers(out_dir, barriers)
 
     ##################### Cut flowlines at barriers #################
     print("------------------- Cutting Flowlines -----------")
-    flowlines, joins, barrier_joins = cut_flowlines_at_barriers(region, barriers)
+    ### Read NHD flowlines and joins
+    print("Reading flowlines...")
+    flowline_start = time()
+    flowlines = (
+        gp.read_feather(nhd_dir / huc2 / "flowlines.feather")
+        .set_index("lineID", drop=False)
+        .drop(columns=["HUC2"], errors="ignore")
+    )
+    joins = pd.read_feather(nhd_dir / huc2 / "flowline_joins.feather")
+
+    ### TEMP: limit flowlines and joins to HUC4s in SARP region above
+    flowlines = flowlines.loc[flowlines.HUC4.isin(units[huc2])].copy()
+    joins = joins.loc[joins.HUC4.isin(units[huc2])].copy()
+
+    # limit barriers to these flowlines
+    barriers = barriers.loc[barriers.lineID.isin(flowlines.index)].copy()
+
+    ### END TEMP
+
+    # drop all loops from the analysis
+    ix = flowlines.loop == True
+    print("Found {:,} loops, dropping...".format(ix.sum()))
+    flowlines = flowlines.loc[~ix].copy()
+    joins = joins.loc[~joins.loop].copy()
+    flowlines = flowlines.drop(columns=["loop"])
+    joins = joins.drop(columns=["loop"])
+
+    print(f"Read {len(flowlines):,} flowlines in {time() - flowline_start:.2f}s")
+
+    # since all other lineIDs use HUC4 prefixes, this should be unique
+    # Use the first HUC2 for the region group
+    next_segment_id = int(huc2) * 1000000 + 1
+
+    flowlines, joins, barrier_joins = cut_flowlines_at_barriers(
+        flowlines, joins, barriers, next_segment_id=next_segment_id
+    )
 
     barrier_joins = barrier_joins.join(barriers.kind)
 
@@ -86,15 +127,12 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES[1:2]):
     ].copy()
 
     print(
-        "{0:,} networks created in {1:.2f}s".format(
-            len(network_df.index.unique()), time() - network_start
-        )
+        f"{len(network_df.index.unique()):,} networks created in {time() - network_start:.2f}s"
     )
 
     print("Serializing network segments")
-    serialize_df(
-        network_df.drop(columns=["geometry"]).reset_index(),
-        out_dir / "network_segments.feather",
+    pd.DataFrame(network_df.drop(columns=["geometry"])).reset_index().to_feather(
+        out_dir / "network_segments.feather"
     )
 
     ##################### Network stats #################
@@ -106,9 +144,9 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES[1:2]):
     # WARNING: because not all flowlines have associated catchments, they are missing
     # natfldpln
 
-    print("done calculating network stats in {0:.2f}".format(time() - stats_start))
+    print(f"done calculating network stats in {time() - stats_start:.2f}")
 
-    serialize_df(network_stats.reset_index(), out_dir / "network_stats.feather")
+    network_stats.reset_index().to_feather(out_dir / "network_stats.feather")
 
     #### Calculate up and downstream network attributes for barriers
 
@@ -170,7 +208,7 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES[1:2]):
 
     barrier_networks.sizeclasses = barrier_networks.sizeclasses.astype("uint8")
 
-    serialize_df(barrier_networks.reset_index(), out_dir / "barriers_network.feather")
+    barrier_networks.reset_index().to_feather(out_dir / "barriers_network.feather")
 
     # TODO: if downstream network extends off this HUC, it will be null in the above and AbsoluteGainMin will be wrong
 
@@ -179,10 +217,10 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES[1:2]):
     dissolve_start = time()
 
     dissolved_lines = (
-        network_df[["geometry"]]
+        pd.Series(network_df.geometry.values.data, index=network_df.index)
         .groupby(level=0)
-        .geometry.apply(list)
-        .apply(MultiLineString)
+        .apply(pg.multilinestrings)
+        .rename("geometry")
     )
 
     networks = (
@@ -191,16 +229,13 @@ for region, network_type in product(REGION_GROUPS.keys(), NETWORK_TYPES[1:2]):
         .sort_values(by="networkID")
     )
 
-    print("Network dissolve done in {0:.2f}".format(time() - dissolve_start))
+    print(f"Network dissolve done in {time() - dissolve_start:.2f}")
 
     print("Serializing network")
-    to_geofeather(networks.reset_index(drop=True), out_dir / "network.feather")
+    networks = networks.reset_index(drop=True)
+    networks.to_feather(out_dir / "network.feather")
+    write_dataframe(networks, out_dir / "network.gpkg")
 
-    if not region in CONNECTED_REGIONS:
-        print("Writing dissolved network shapefile")
-        to_shp(networks, out_dir / "network.shp")
-
-    print("Region done in {:.2f}s".format(time() - region_start))
+    print(f"Region done in {time() - region_start:.2f}s\n\n")
 
 print("All done in {:.2f}s".format(time() - start))
-

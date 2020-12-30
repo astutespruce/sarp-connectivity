@@ -15,7 +15,7 @@ exports.onCreateWebpackConfig = ({ actions, stage, loaders }) => {
     },
   }
 
-  // when building HTML, window is not defined, so Leaflet causes the build to blow up
+  // when building HTML, window is not defined, so Mapbox-GL causes the build to blow up
   if (stage === 'build-html') {
     config.module = {
       rules: [

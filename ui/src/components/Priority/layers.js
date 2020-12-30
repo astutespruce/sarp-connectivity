@@ -53,7 +53,10 @@ export const unitOutline = {
     'line-opacity': 1,
     'line-width': {
       base: 0.1,
-      stops: [[4, 0.1], [8, 0.5]],
+      stops: [
+        [4, 0.1],
+        [8, 0.5],
+      ],
     },
     'line-color': '#0B1CF4',
   },
@@ -75,7 +78,10 @@ export const parentOutline = {
     'line-opacity': 1,
     'line-width': {
       base: 1,
-      stops: [[4, 0.1], [8, 2]],
+      stops: [
+        [4, 0.1],
+        [8, 2],
+      ],
     },
     'line-color': '#0B1CF4',
   },
@@ -115,7 +121,7 @@ export const unitHighlightOutline = {
   paint: {
     'line-opacity': 1,
     'line-width': 2,
-    'line-color': '#fd8d3c',
+    'line-color': '#000',
   },
 }
 
@@ -132,11 +138,20 @@ export const flowlinesLayer = {
   paint: {
     'line-opacity': {
       base: 0,
-      stops: [[10, 0.1], [12, 0.5], [14, 1]],
+      stops: [
+        [10, 0.1],
+        [12, 0.5],
+        [14, 1],
+      ],
     },
     'line-width': {
       base: 0.1,
-      stops: [[10, 0.1], [11, 0.5], [15, 1], [17, 1.5]],
+      stops: [
+        [10, 0.1],
+        [11, 0.5],
+        [15, 1],
+        [17, 1.5],
+      ],
     },
     'line-color': '#1891ac',
   },
@@ -152,11 +167,22 @@ export const networkHighlightLayer = {
   paint: {
     'line-opacity': {
       base: 0,
-      stops: [[10, 0.1], [11, 0.5], [14, 1], [16, 1]],
+      stops: [
+        [10, 0.1],
+        [11, 0.5],
+        [14, 1],
+        [16, 1],
+      ],
     },
     'line-width': {
       base: 0.1,
-      stops: [[10, 0.1], [11, 1], [14, 2.5], [15, 3], [16, 4]],
+      stops: [
+        [10, 0.1],
+        [11, 1],
+        [14, 2.5],
+        [15, 3],
+        [16, 4],
+      ],
     },
     'line-color': '#fd8d3c',
   },
@@ -171,10 +197,25 @@ export const backgroundPoint = {
   maxzoom: 24,
   paint: {
     'circle-color': '#999',
-    'circle-radius': { stops: [[10, 0.5], [14, 4]] },
-    'circle-opacity': { stops: [[10, 0.5], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [10, 0.5],
+        [14, 4],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [10, 0.5],
+        [14, 1],
+      ],
+    },
     'circle-stroke-color': '#666',
-    'circle-stroke-width': { stops: [[10, 0], [14, 1]] },
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [14, 1],
+      ],
+    },
   },
 }
 
@@ -190,9 +231,26 @@ export const excludedPoint = {
   paint: {
     'circle-color': '#fbb4b9',
     'circle-stroke-color': '#c51b8a',
-    'circle-radius': { stops: [[7, 0.5], [10, 4], [14, 6]] },
-    'circle-opacity': { stops: [[10, 0.5], [14, 1]] },
-    'circle-stroke-width': { stops: [[10, 0], [11, 0.25], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [7, 0.5],
+        [10, 4],
+        [14, 6],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [10, 0.5],
+        [14, 1],
+      ],
+    },
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [11, 0.25],
+        [14, 1],
+      ],
+    },
   },
 }
 
@@ -207,10 +265,29 @@ export const includedPoint = {
   filter: ['==', 'id', 'Infinity'], // will be filtered using "in" or "!in"
   paint: {
     'circle-color': '#c51b8a',
-    'circle-radius': { stops: [[5, 1], [6, 2], [14, 8]] },
-    'circle-opacity': { stops: [[5, 0.2], [6, 0.5], [7, 1]] },
+    'circle-radius': {
+      stops: [
+        [5, 1],
+        [6, 2],
+        [14, 8],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [5, 0.2],
+        [6, 0.5],
+        [7, 1],
+      ],
+    },
     'circle-stroke-color': '#FFFFFF',
-    'circle-stroke-width': { stops: [[7, 0], [8, 0.25], [10, 1], [14, 3]] },
+    'circle-stroke-width': {
+      stops: [
+        [7, 0],
+        [8, 0.25],
+        [10, 1],
+        [14, 3],
+      ],
+    },
   },
 }
 
@@ -223,10 +300,26 @@ export const topRank = {
   // filter:  // provided by specific layer
   paint: {
     'circle-color': '#c51b8a',
-    'circle-radius': { stops: [[5, 4], [6, 6], [14, 8]] },
-    'circle-opacity': { stops: [[5, 0.5], [6, 1]] },
+    'circle-radius': {
+      stops: [
+        [5, 4],
+        [6, 6],
+        [14, 8],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [5, 0.5],
+        [6, 1],
+      ],
+    },
     'circle-stroke-color': '#FFFFFF',
-    'circle-stroke-width': { stops: [[5, 2], [14, 3]] },
+    'circle-stroke-width': {
+      stops: [
+        [5, 2],
+        [14, 3],
+      ],
+    },
   },
 }
 
@@ -240,9 +333,28 @@ export const lowerRank = {
   paint: {
     'circle-color': '#2c7fb8',
     'circle-stroke-color': '#FFFFFF',
-    'circle-radius': { stops: [[5, 1], [7, 4], [10, 6], [14, 8]] },
-    'circle-opacity': { stops: [[5, 0.5], [7, 0.5], [8, 1]] },
-    'circle-stroke-width': { stops: [[5, 0], [8, 1], [14, 3]] },
+    'circle-radius': {
+      stops: [
+        [5, 1],
+        [7, 4],
+        [10, 6],
+        [14, 8],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [5, 0.5],
+        [7, 0.5],
+        [8, 1],
+      ],
+    },
+    'circle-stroke-width': {
+      stops: [
+        [5, 0],
+        [8, 1],
+        [14, 3],
+      ],
+    },
   },
 }
 
@@ -259,10 +371,29 @@ export const damsSecondaryLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': '#fec44f',
-    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4], [16, 6]] },
-    'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [10, 1],
+        [12, 2],
+        [14, 4],
+        [16, 6],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [10, 0.25],
+        [12, 0.5],
+        [14, 1],
+      ],
+    },
     'circle-stroke-color': '#FFFFFF',
-    'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 2]] },
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [12, 1],
+        [14, 2],
+      ],
+    },
   },
 }
 
@@ -275,10 +406,29 @@ export const waterfallsLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': '#2ca25f',
-    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4], [16, 6]] },
-    'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [10, 1],
+        [12, 2],
+        [14, 4],
+        [16, 6],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [10, 0.25],
+        [12, 0.5],
+        [14, 1],
+      ],
+    },
     'circle-stroke-color': '#FFFFFF',
-    'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 2]] },
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [12, 1],
+        [14, 2],
+      ],
+    },
   },
 }
 
@@ -363,7 +513,10 @@ const priorityOutlineStyle = {
     'line-opacity': 0.2,
     'line-width': {
       base: 0.1,
-      stops: [[4, 0.1], [8, 0.5]],
+      stops: [
+        [4, 0.1],
+        [8, 0.5],
+      ],
     },
     'line-color': '#AAAAAA',
   },

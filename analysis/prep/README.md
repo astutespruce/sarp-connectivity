@@ -1,12 +1,12 @@
 # Southeast Aquatic Barrier Inventory Data Processing - Data Preparation
 
-## 1. Aquatic network data
-
-See [analysis/prep/network/README.md](network).
-
-## 2. Boundary data
+## 1. Boundary data
 
 See [analysis/prep/boundaries/README.md](boundaries).
+
+## 2. Aquatic network data
+
+See [analysis/prep/network/README.md](network).
 
 ### 3. Aquatic barrier data
 

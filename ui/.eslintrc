@@ -24,6 +24,7 @@
     }
   },
   "rules": {
+    "camelcase": 0, // if we have snake case, it is on purpose
     "no-use-before-define": 0,
     "import/no-extraneous-dependencies": 0,
     "import/prefer-default-export": 0,
@@ -31,6 +32,7 @@
     "react/forbid-prop-types": 0,
     "react/display-name": 1,
     "react/react-in-jsx-scope": 0,
+    "react/jsx-props-no-spreading": 0, // if we have prop spreading, it is on purpose
     "react/jsx-filename-extension": [
       1,
       {

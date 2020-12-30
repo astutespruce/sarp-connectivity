@@ -35,6 +35,7 @@ const Overlay = styled.div`
   left: 0;
   right: 0;
   background: linear-gradient(
+    to bottom,
     0,
     rgba(0, 0, 0, 0),
     1rem,

@@ -50,7 +50,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
   const images = groupBy(extractNodes(imagesSharp), 'state')
 
   return (
-    <Layout>
+    <Layout title="Aquatic Connectivity Teams">
       <HeaderImage
         image={headerImage.childImageSharp.fluid}
         height="40vh"
@@ -65,16 +65,29 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
         <PageTitle>Aquatic Connectivity Teams</PageTitle>
 
         <div>
-          {Object.entries(CONNECTIVITY_TEAMS).map(([state, team], i) => (
+          {Object.entries(CONNECTIVITY_TEAMS).map(([state, team]) => (
             <TeamSection key={state}>
               <Subtitle>{state}</Subtitle>
               <p>
                 {team.description}
                 <br />
                 <br />
+                {team.url !== undefined ? (
+                  <>
+                    Please see the{' '}
+                    <OutboundLink to={team.url}>
+                      {state} Aquatic Connectivity Team website
+                    </OutboundLink>
+                    .
+                    <br />
+                    <br />
+                  </>
+                ) : null}
                 For more information, please contact{' '}
-                <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a>
-                .
+                <a href={`mailto:${team.contact.email}`}>
+                  {team.contact.name}
+                </a>{' '}
+                ({team.contact.org}).
               </p>
               {images[state] ? (
                 <>

@@ -70,6 +70,7 @@ DAM_FILTER_FIELDS = [
     "Purpose",
     "Condition",
     "HeightClass",
+    "PassageFacilityClass",
 ] + FILTER_FIELDS
 
 SB_FILTER_FIELDS = [
@@ -94,6 +95,7 @@ DAM_CORE_FIELDS = [
     "Construction",
     "Purpose",
     "Condition",
+    "PassageFacility",
     # Recon is intentionally omitted from download below
     "Recon",
     "Feasibility",
@@ -186,16 +188,7 @@ SB_EXPORT_FIELDS = (
 
 SB_EXPORT_FIELDS = unique(SB_EXPORT_FIELDS)
 
-WF_CORE_FIELDS = (
-    ["lat", "lon", "Name"]
-    # + ["LocalID", "Source", "Stream", "Basin"]
-    # + UNIT_FIELDS
-    # + ["HasNetwork"]
-    # + METRIC_FIELDS
-    # + ["COUNTYFIPS"]
-)
-
-WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
+WF_CORE_FIELDS = ["lat", "lon", "Name"]
 
 
 ### Domains for coded values in exported data
@@ -280,6 +273,8 @@ DAM_CONDITION_DOMAIN = {
     2: "Fair",
     3: "Poor",
     4: "Unsatisfactory",
+    5: "Dam failed",  # note: new code mapped from Recon
+    6: "Dam breached",  # note: new code mapped from BarrierStatus
 }
 
 
@@ -381,7 +376,43 @@ HUC8_COA_DOMAIN = {
 }
 
 HUC8_SGCN_DOMAIN = {
-    0: 'Not within top 10 watersheds per state',
-    1: 'Within top 10 watersheds per state'
+    0: "Not within top 10 watersheds per state",
+    1: "Within top 10 watersheds per state",
 }
 
+PASSAGEFACILITY_CLASS_DOMAIN = {
+    0: "No known fish passage structure",
+    1: "Fish passage structure present",
+}
+
+PASSAGEFACILITY_DOMAIN = {
+    0: "Unknown or None",
+    1: "Trap & Truck",
+    2: "Fish Ladder - unspecified",
+    3: "Locking",
+    4: "Rock Rapids",
+    5: "Eelway",
+    6: "Alaskan Steeppass",
+    7: "Herring Passage",
+    8: "Reservation",
+    9: "Exemption",
+    10: "Notch",
+    11: "Denil Fishway",
+    12: "Fish Lift",
+    13: "Partial Breach",
+    14: "Removal",
+    15: "Pool and Weir Fishway",
+    16: "Vertical Slot Fishway",
+    17: "Nature-like Fishway",
+    18: "Bypass Channel Fishway",
+}
+
+# Not used directly
+# BARRIERSTATUS_DOMAIN = {
+#     0: "Unknown",
+#     1: "Impounding",
+#     2: "Full breach",
+#     3: "Partial breach",
+#     4: "Drained",
+#     5: "Dry detention",
+# }

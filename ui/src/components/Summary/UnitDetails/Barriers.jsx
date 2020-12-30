@@ -2,11 +2,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { Text, HelpText } from 'components/Text'
-import { Box, Flex } from 'components/Grid'
+import { HelpText } from 'components/Text'
 import { formatNumber } from 'util/format'
-import { Downloader } from 'components/Download'
-import styled, { themeGet } from 'style'
+import styled from 'style'
 
 const List = styled.ul`
   margin-top: 1rem;

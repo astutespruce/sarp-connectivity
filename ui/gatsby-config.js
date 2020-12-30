@@ -27,6 +27,19 @@ module.exports = {
     },
   },
   plugins: [
+        {
+      resolve: `gatsby-plugin-google-gtag`,
+      options: {
+        trackingIds: [process.env.GATSBY_GOOGLE_ANALYTICS_ID],
+        gtagConfig: {
+          anonymize_ip: true,
+        },
+        pluginConfig: {
+          head: true,
+          respectDNT: true,
+        },
+      },
+    },
     `gatsby-plugin-react-helmet`,
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
@@ -66,12 +79,5 @@ module.exports = {
     },
     `gatsby-plugin-catch-links`,
     `gatsby-plugin-sitemap`,
-    {
-      resolve: `gatsby-plugin-google-analytics`,
-      options: {
-        trackingId: process.env.GATSBY_GOOGLE_ANALYTICS_ID,
-        anonymize: true,
-      },
-    },
   ],
 }

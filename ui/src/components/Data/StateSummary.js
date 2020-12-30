@@ -1,7 +1,7 @@
 import { graphql, useStaticQuery } from 'gatsby'
 
-export const useStateSummary = () => {
-  return useStaticQuery(graphql`
+export const useStateSummary = () =>
+  useStaticQuery(graphql`
     query stateSummaryQuery {
       allSummaryStatsJson {
         edges {
@@ -20,4 +20,3 @@ export const useStateSummary = () => {
     if (a > b) return 1
     return 0
   })
-}

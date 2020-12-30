@@ -16,7 +16,7 @@ import {
 } from 'content/styles'
 
 const SinuosityPage = ({ data: { headerImage } }) => (
-  <Layout>
+  <Layout title="Network Sinuosity">
     <HeaderImage
       image={headerImage.childImageSharp.fluid}
       height="20vh"

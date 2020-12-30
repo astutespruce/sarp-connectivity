@@ -1,9 +1,9 @@
 import { FaTimesCircle } from 'react-icons/fa'
 
-import styled, {themeGet} from 'style'
+import styled, { themeGet } from 'style'
 
 const CloseButton = styled(FaTimesCircle)`
-flex: 0 0 auto;
+  flex: 0 0 auto;
   width: 1.25rem;
   height: 1.25rem;
   cursor: pointer;
