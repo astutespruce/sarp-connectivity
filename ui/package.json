@@ -76,7 +76,7 @@
     "start": "npm run develop",
     "serve": "gatsby serve",
     "predeploy": "npm run clean && npm run build",
-    "deploy": "rm -rf /var/www/sarp/site/* && cp -r public/* /var/www/sarp/site"
+    "deploy": "rm -rf /var/www/* && cp -r public/* /var/www"
   },
   "repository": {
     "type": "git",
