@@ -185,10 +185,8 @@ def query(id: str, barrier_type: BarrierTypes = "dams", layer: Layers = "HUC8"):
     df = df.loc[df[layer].isin(ids)][fields].copy()
     log.info("selected {} {}".format(len(df.index), barrier_type))
 
-    csv_stream = StringIO(
-        df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
-    )
-    return StreamingResponse(csv_stream, media_type="text/csv")
+    csv = df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
+    return Response(content=csv, media_type="text/csv")
 
 
 @app.get("/api/v1/{barrier_type}/rank/{layer}")
@@ -257,10 +255,8 @@ def rank(
     cols = ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
     df = calculate_tiers(df)[cols]
 
-    csv_stream = StringIO(
-        df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
-    )
-    return StreamingResponse(csv_stream, media_type="text/csv")
+    csv = df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
+    return Response(content=csv, media_type="text/csv")
 
 
 @app.get("/api/v1/{barrier_type}/{format}/{layer}")
@@ -416,10 +412,10 @@ def download(
         zf.write(LOGO_PATH, "SARP_logo.png")
 
     # rewind to beginning
-    zip_stream.seek(0)
+    # zip_stream.seek(0)
 
-    return StreamingResponse(
-        zip_stream,
+    return Response(
+        content=zip_stream.getvalue(),
         media_type="application/zip",
         headers={
             "Content-Disposition": f"attachment; filename={filename.replace(format, 'zip')}"

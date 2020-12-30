@@ -1,5 +1,4 @@
-# aquaticbarriers.mockuplab.us
-:80 {
+aquaticbarriers.mockuplab.us {
   log {
     level ERROR
   }
@@ -9,27 +8,32 @@
       reverse_proxy localhost:8000
   }
 
-  encode zstd gzip
-
   route /api* {
-      reverse_proxy localhost:5000
+    @encode_paths {
+      path */query/* */rank/*
+    }
+
+      encode @encode_paths zstd gzip
+      reverse_proxy host.docker.internal:5000
   }
 
-  # most files can be cached indefinitely, they are rebuilt with new names each time
-  @cached_files {
-    path *.jpg *.jpeg *.png *.gif *.ico *.webp *.svg *.css *.js */static/*
+  route /* {
+    # most files can be cached indefinitely, they are rebuilt with new names each time
+    @cached_files {
+      path *.jpg *.jpeg *.png *.gif *.ico *.webp *.svg *.css *.js */static/*
+    }
+    header @cached_files Cache-Control "public, max-age=31536000, immutable"
+
+    # page-data, html, and site root must be fetched each time
+    @no_cache {
+      path *.html *.webmanifest */page-data/* / /priority /summary /teams /network_methods /metrics/*
+    }
+    header @no_cache Cache-Control "public, max-age:0, must-revalidate"
+
+    encode zstd gzip
+    root * /var/www
+    file_server
   }
-  header @cached_files Cache-Control "public, max-age=31536000, immutable"
-
-  # page-data, html, and site root must be fetched each time
-  @no_cache {
-    path *.html *.webmanifest */page-data/* / /priority /summary /teams /network_methods /metrics/*
-  }
-  header @no_cache Cache-Control "public, max-age:0, must-revalidate"
-
-
-  root * /var/www
-  file_server
 
   # Redirect all errors to 404.html
   handle_errors {

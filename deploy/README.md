@@ -113,7 +113,7 @@ Verify that API starts correctly:
 
 Verify that API starts correctly with gunicorn:
 
-- `/usr/local/bin/pipenv run gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 4 -b ":5000" api.server:app`
+- `/usr/local/bin/pipenv run gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 2 -b ":5000" api.server:app`
 - `CTRL-C` to exit
 
 Enable service:
