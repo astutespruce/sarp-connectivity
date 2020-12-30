@@ -36,21 +36,21 @@ const SummaryPage = () => {
   const [selectedUnit, setSelectedUnit] = useState(null)
   const [selectedBarrier, setSelectedBarrier] = useState(null)
 
-  const handleSearch = useCallback(nextSearchFeature => {
+  const handleSearch = useCallback((nextSearchFeature) => {
     setSearchFeature(nextSearchFeature)
   }, [])
 
-  const handleSetBarrierType = nextBarrierType => {
+  const handleSetBarrierType = (nextBarrierType) => {
     setBarrierType(nextBarrierType)
     setSelectedBarrier(null)
   }
 
-  const handleSetSystem = nextSystem => {
+  const handleSetSystem = (nextSystem) => {
     setSystem(nextSystem)
     setSelectedUnit(null)
   }
 
-  const handleSelectUnit = feature => {
+  const handleSelectUnit = (feature) => {
     setSelectedUnit(feature)
     setSelectedBarrier(null)
   }
@@ -60,7 +60,7 @@ const SummaryPage = () => {
     setSearchFeature(null)
   }
 
-  const handleSelectBarrier = feature => {
+  const handleSelectBarrier = (feature) => {
     setSelectedBarrier(feature)
     setSelectedUnit(null)
   }
@@ -117,8 +117,8 @@ const SummaryPage = () => {
               value={barrierType}
               options={barrierTypeOptions}
               onChange={handleSetBarrierType}
-            />
-            by
+            />{' '}
+            by{' '}
             <TopBarToggle
               value={system}
               options={systemOptions}

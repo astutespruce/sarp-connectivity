@@ -5,13 +5,15 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import styled from 'style'
+import { hasWindow } from 'util/dom'
 import { getCenterAndZoom } from './util'
 import BasemapSelector from './BasemapSelector'
 import GoToLocation from './GoToLocation'
 
-import { siteMetadata } from '../../../gatsby-config'
 import { config, sources, basemapLayers } from './config'
 import Coords from './Coords'
+
+import { siteMetadata } from '../../../gatsby-config'
 
 // This wrapper must be positioned relative for the map to be able to lay itself out properly
 const Wrapper = styled.div`
@@ -75,6 +77,11 @@ const Map = ({ children, onCreateMap }) => {
       mapObj.remove()
     }
   }, []) // intentionally omitting onCreateMap from deps list
+
+  // if there is no window, we cannot render this component
+  if (!hasWindow) {
+    return null
+  }
 
   return (
     <Wrapper>

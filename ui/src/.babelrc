@@ -1,0 +1,12 @@
+{
+  "presets": [
+    [
+      "babel-preset-gatsby",
+      {
+        "targets": {
+          "browsers": ["> 0.5% in US", "not dead", "ie >= 11"]
+        }
+      }
+    ]
+  ]
+}

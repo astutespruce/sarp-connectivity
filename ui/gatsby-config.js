@@ -27,7 +27,7 @@ module.exports = {
     },
   },
   plugins: [
-        {
+    {
       resolve: `gatsby-plugin-google-gtag`,
       options: {
         trackingIds: [process.env.GATSBY_GOOGLE_ANALYTICS_ID],

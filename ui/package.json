@@ -38,7 +38,7 @@
     "react-typography": "^0.16.19",
     "rebass": "^4.0.7",
     "reflexbox": "^4.0.6",
-    "styled-components": "^5.2.1",
+    "styled-components": "^4.4.1",
     "styled-system": "^5.1.5",
     "typography": "^0.16.19",
     "use-debounce": "^5.2.0",
@@ -46,6 +46,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
+    "babel-preset-gatsby": "^0.9.1",
     "eslint": "^7.16.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-prettier": "^7.1.0",
