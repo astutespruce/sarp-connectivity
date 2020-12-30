@@ -14,9 +14,9 @@ RestartSec=60
 User=app
 Group=www-data
 
-WorkingDirectory=/home/app/sarp
-EnvironmentFile=/home/app/sarp/.env
-ExecStart=/usr/local/bin/pipenv run gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 4 -b ":5000" api.server:app
+WorkingDirectory=/home/app/sarp-connectivity
+EnvironmentFile=/home/app/sarp-connectivity/.env
+ExecStart=/usr/local/bin/pipenv run gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 2 -b ":5000" api.server:app
 ExecReload=/bin/kill -USR1 $MAINPID
 
 [Install]

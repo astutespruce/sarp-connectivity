@@ -101,22 +101,7 @@ The API loads environment variables from `.env` in the root of this project.
 
 ## Deployment
 
-Server configuration and deployment steps are available in the [wiki](https://github.com/astutespruce/sarp-connectivity/wiki/AWS-Server-Setup).
-
-The following environment variables must be set in `/ui/.env.production` or otherwise passed to Gatsby during the build process:
-
-```
-GATSBY_MAPBOX_API_TOKEN = <token>
-GATSBY_SENTRY_DSN = <dsn>
-GATSBY_GOOGLE_ANALYTICS_ID = <ga id>
-GATSBY_API_HOST = <root URL of API host>
-GATSBY_TILE_HOST = <root URL of tile host>
-GATSBY_MAILCHIMP_URL = <POST URL of mailchimp subscription form>
-GATSBY_MAILCHIMP_USER_ID = <mailchimp user ID>
-GATSBY_MAILCHIMP_FORM_ID = <mailchimp audience ID for subscription form>
-```
-
-The `MAILCHIMP_*` variables are used to capture user information for data download, and submit those to a signup form in Mailchimp.
+Server configuration and deployment steps are available in [deploy/README.md](deploy/README.md).
 
 ### IMPORTANT:
 

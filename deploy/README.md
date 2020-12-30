@@ -86,6 +86,7 @@ Enable service
 
 - `cd ui`
 - `npm ci`
+- `npm run deploy`
 
 Create a `.env.production` file with the following:
 
