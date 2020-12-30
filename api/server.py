@@ -1,16 +1,15 @@
 from datetime import date
 from enum import Enum
 import json
-from io import BytesIO, StringIO
+from io import BytesIO
 import logging
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from fastapi import FastAPI, Form, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
-from fastapi.responses import Response, StreamingResponse
-from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import Response
 from jinja2 import Environment, FileSystemLoader
 import pandas as pd
 import sentry_sdk
