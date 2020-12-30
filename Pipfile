@@ -4,16 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-flask = "*"
 pandas = "*"
 feather-format = "*"
-flask-cors = "*"
 gunicorn = "*"
 "jinja2" = "*"
-raven = {version = "*",extras = ["flask"]}
 requests = "*"
 python-dotenv = "*"
 geopandas = "*"
+fastapi = "*"
+uvicorn = {extras = ["standard"],version = "*"}
+sentry-sdk = "*"
 
 [dev-packages]
 pylint = "*"
@@ -22,9 +22,6 @@ requests = "*"
 nhdnet = {editable = true,path = "./../nhdnet"}
 sarp-connectivity = {editable = true,path = "."}
 rtree = ">=0.9.3"
-networkx = "*"
-pgpkg = {editable = true,path = "./../pgpkg"}
-geofeather = {editable = true,path = "./../geofeather"}
 pyogrio = {editable = true,path = "./../pyogrio"}
 pygeos = "*"
 

@@ -1,19 +1,23 @@
-import os
-import json
-from pathlib import Path
-from io import BytesIO
-from zipfile import ZipFile
-import logging
 from datetime import date
+from enum import Enum
+import json
+from io import BytesIO, StringIO
+import logging
+from pathlib import Path
+from zipfile import ZipFile, ZIP_DEFLATED
 
+from fastapi import FastAPI, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.requests import Request
+from fastapi.responses import Response, StreamingResponse
+from fastapi.middleware.gzip import GZipMiddleware
+from jinja2 import Environment, FileSystemLoader
 import pandas as pd
-from flask import Flask, abort, request, make_response, render_template
-from flask_cors import CORS
-from raven.contrib.flask import Sentry
-from raven.handlers.logging import SentryHandler
-from raven.conf import setup_logging
+import sentry_sdk
+from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
-from analysis.rank.lib.tiers import calculate_tiers, SCENARIOS
+
+from analysis.rank.lib.tiers import calculate_tiers
 
 from api.constants import (
     DAM_FILTER_FIELDS,
@@ -36,38 +40,61 @@ from api.constants import (
     HUC8_SGCN_DOMAIN,
 )
 
-app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
-log = app.logger
+from api.settings import ALLOWED_ORIGINS, LOGGING_LEVEL, SENTRY_DSN
 
-SENTRY_DSN = os.getenv("SENTRY_DSN", None)
-sentry = Sentry(app, dsn=SENTRY_DSN)
-if SENTRY_DSN is not None:
-    print("Configuring Sentry logging...")
-    handler = SentryHandler(SENTRY_DSN)
-    handler.setLevel(logging.ERROR)
-    setup_logging(handler)
-else:
-    print("Sentry not configured")
-
-
-# Read version from UI package.json
-with open(Path(__file__).resolve().parent.parent / "ui/package.json") as infile:
-    VERSION = json.loads(infile.read())["version"]
-
-# Include logo in download package
-LOGO_PATH = Path(__file__).resolve().parent.parent / "ui/src/images/sarp_logo.png"
-
-TYPES = ("dams", "barriers")
-LAYERS = ("HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4")
-FORMATS = ("csv",)  # TODO: "shp"
-
-# create maps of fields to lower case equivalents
+### create maps of fields to lower case equivalents
 dam_filter_field_map = {f.lower(): f for f in DAM_FILTER_FIELDS}
 barrier_filter_field_map = {f.lower(): f for f in SB_FILTER_FIELDS}
 
 
-# Read source data into memory
+### Setup templates
+template_path = Path(__file__).parent.resolve() / "templates"
+env = Environment(loader=FileSystemLoader(template_path))
+
+### Setup logging
+log = logging.getLogger("api")
+log.setLevel(LOGGING_LEVEL)
+
+### Setup Sentry
+if SENTRY_DSN:
+    log.info("setting up sentry")
+    sentry_sdk.init(dsn=SENTRY_DSN)
+
+
+### Read version from UI package.json
+with open(Path(__file__).resolve().parent.parent / "ui/package.json") as infile:
+    VERSION = json.loads(infile.read())["version"]
+
+### Include logo in download package
+LOGO_PATH = Path(__file__).resolve().parent.parent / "ui/src/images/sarp_logo.png"
+
+### Enums for validating incoming values
+class BarrierTypes(str, Enum):
+    dams = "dams"
+    barriers = "barriers"
+
+
+class Layers(str, Enum):
+    HUC6 = "HUC6"
+    HUC8 = "HUC8"
+    HUC12 = "HUC12"
+    State = "State"
+    County = "County"
+    ECO3 = "ECO3"
+    ECO4 = "ECO4"
+
+
+class Formats(str, Enum):
+    csv = "csv"
+
+
+class Scenarios(str, Enum):
+    NC = "NC"
+    WC = "WC"
+    NCWC = "NCWC"
+
+
+### Read source data into memory
 try:
     data_dir = Path("data/api")
     dams = pd.read_feather(data_dir / "dams.feather").set_index(["id"])
@@ -78,56 +105,62 @@ try:
 
     print("Data loaded")
 
-except:
+except Exception as e:
     print("ERROR: not able to load data")
-    sentry.captureException()
+    log.error(e)
 
 
-def validate_type(barrier_type):
-    if not barrier_type in TYPES:
-        abort(
-            400,
-            "type is not valid: {0}; must be one of {1}".format(
-                barrier_type, ", ".join(TYPES)
-            ),
-        )
+### Create the main API app
+app = FastAPI()
 
 
-def validate_layer(layer):
-    if not layer in LAYERS:
-        abort(
-            400,
-            "layer is not valid: {0}; must be one of {1}".format(
-                layer, ", ".join(LAYERS)
-            ),
-        )
+### Setup middleware
+@app.middleware("http")
+async def catch_exceptions_middleware(request: Request, call_next):
+    """Middleware that wraps HTTP requests and catches exceptions.
+
+    These need to be caught here in order to ensure that the
+    CORS middleware is used for the response, otherwise the client
+    gets CORS related errors instead of the actual error.
+
+    Parameters
+    ----------
+    request : Request
+    call_next : func
+        next func in the chain to call
+    """
+    try:
+        return await call_next(request)
+
+    except Exception as ex:
+        log.error(f"Error processing request: {ex}")
+        return Response("Internal server error", status_code=500)
 
 
-def validate_format(format):
-    if not format in FORMATS:
-        abort(400, "format is not valid; must be one of {0}".format(", ".join(FORMATS)))
+### Add sentry to app
+app.add_middleware(SentryAsgiMiddleware)
+
+### Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+)
 
 
-def validate_sort(sort):
-    if not sort in SCENARIOS.keys():
-        abort(
-            400,
-            "sort is not valid; must be one of {0}".format(
-                ", ".join(list(SCENARIOS.keys()))
-            ),
-        )
-
-
-@app.route("/api/v1/<barrier_type>/query/<layer>", methods=["GET"])
-def query(barrier_type="dams", layer="HUC8"):
+@app.get("/api/v1/{barrier_type}/query/{layer}")
+def query(id: str, barrier_type: BarrierTypes = "dams", layer: Layers = "HUC8"):
     """Filter dams and return key properties for filtering.  ONLY for those with networks.
 
     Path parameters:
-    <barrier_type> : one of TYPES
-    <layer> : one of LAYERS
+    barrier_type : one of TYPES
+    layer : one of LAYERS
 
     Query parameters:
-    * id: list of ids
+    id: list of ids
 
     Parameters
     ----------
@@ -135,38 +168,36 @@ def query(barrier_type="dams", layer="HUC8"):
         Layer to use for subsetting by ID.  One of: HUC6, HUC8, HUC12, State, ... TBD
     """
 
-    validate_type(barrier_type)
-    validate_layer(layer)
-
     if layer == "County":
         layer = "COUNTYFIPS"
 
-    ids = [id for id in request.args.get("id", "").split(",") if id]
+    ids = [id for id in id.split(",") if id]
     if not ids:
-        abort(400, "id must be non-empty")
+        raise HTTPException(400, detail="id must be non-empty")
 
     if barrier_type == "dams":
         df = dams_with_networks
-        # field_map = dam_filter_field_map
         fields = DAM_FILTER_FIELDS
     else:
         df = barriers_with_networks
-        # field_map = barrier_filter_field_map
         fields = SB_FILTER_FIELDS
 
     df = df.loc[df[layer].isin(ids)][fields].copy()
     log.info("selected {} {}".format(len(df.index), barrier_type))
 
-    resp = make_response(
+    csv_stream = StringIO(
         df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
     )
-
-    resp.headers["Content-Type"] = "text/csv"
-    return resp
+    return StreamingResponse(csv_stream, media_type="text/csv")
 
 
-@app.route("/api/v1/<barrier_type>/rank/<layer>", methods=["GET"])
-def rank(barrier_type="dams", layer="HUC8"):
+@app.get("/api/v1/{barrier_type}/rank/{layer}")
+def rank(
+    request: Request,
+    id: str,
+    barrier_type: BarrierTypes = "dams",
+    layer: Layers = "HUC8",
+):
     """Rank a subset of dams data.
 
     Path parameters:
@@ -183,17 +214,12 @@ def rank(barrier_type="dams", layer="HUC8"):
         Layer to use for subsetting by ID.  One of: HUC6, HUC8, HUC12, State, ... TBD
     """
 
-    args = request.args
-
-    validate_type(barrier_type)
-    validate_layer(layer)
-
     if layer == "County":
         layer = "COUNTYFIPS"
 
-    ids = [id for id in args.get("id", "").split(",") if id]
+    ids = [id for id in id.split(",") if id]
     if not ids:
-        abort(400, "id must be non-empty")
+        raise HTTPException(400, detail="id must be non-empty")
 
     if barrier_type == "dams":
         df = dams_with_networks
@@ -204,40 +230,50 @@ def rank(barrier_type="dams", layer="HUC8"):
 
     filters = df[layer].isin(ids)
 
-    filterKeys = [a for a in request.args if not a == "id"]
-    # TODO: make this more efficient
-    for filter in filterKeys:
+    filter_keys = {q for q in request.query_params if not q == "id"}
+
+    invalid_filters = filter_keys.difference(field_map)
+    if invalid_filters:
+        raise HTTPException(
+            400, detail=f"Filters are invalid: {','.join(invalid_filters)}"
+        )
+
+    for filter in filter_keys:
         # convert all incoming to integers
-        values = [int(x) for x in request.args.get(filter).split(",")]
+        values = [int(x) for x in request.query_params.get(filter).split(",")]
         filters = filters & df[field_map[filter]].isin(values)
 
     df = df.loc[filters].copy()
     nrows = len(df.index)
 
-    log.info("selected {} dams".format(nrows))
+    log.info(f"selected {nrows} {barrier_type}")
 
-    # TODO: return a 204 instead?
     if not nrows:
-        abort(
-            404,
-            "no dams are contained in selected ids {0}:{1}".format(
-                layer, ",".join(ids)
-            ),
+        raise HTTPException(
+            404, detail=f"no barriers are contained in selected ids {layer}:{ids}"
         )
 
     # just return tiers and lat/lon
     cols = ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
     df = calculate_tiers(df)[cols]
 
-    resp = make_response(
+    csv_stream = StringIO(
         df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
     )
-    resp.headers["Content-Type"] = "text/csv"
-    return resp
+    return StreamingResponse(csv_stream, media_type="text/csv")
 
 
-@app.route("/api/v1/<barrier_type>/<format>/<layer>", methods=["GET"])
-def download(barrier_type="dams", layer="HUC8", format="CSV"):
+@app.get("/api/v1/{barrier_type}/{format}/{layer}")
+def download(
+    request: Request,
+    id: str,
+    custom: bool = False,
+    unranked=False,
+    sort: Scenarios = "NCWC",
+    barrier_type: BarrierTypes = "dams",
+    format: Formats = "csv",
+    layer: Layers = "HUC8",
+):
     """Download subset of dams or small barriers data.
 
     If `unranked` is `True`, all barriers in the summary units are downloaded.
@@ -262,28 +298,18 @@ def download(barrier_type="dams", layer="HUC8", format="CSV"):
         Format for download.  One of: csv, shp
     """
 
-    args = request.args
+    include_unranked = unranked
+    custom_ranks = custom
 
     # query parameters that are NOT filters
-    query_params = ("id", "unranked", "sort", "custom")
-
-    validate_type(barrier_type)
-    validate_layer(layer)
-    validate_format(format)
-
-    sort = args.get("sort", "NCWC")
-    validate_sort(sort)
+    exclude_query_params = ("id", "unranked", "sort", "custom")
 
     if layer == "County":
         layer = "COUNTYFIPS"
 
-    include_unranked = bool(args.get("unranked", False))
-
-    ids = [id for id in args.get("id", "").split(",") if id]
+    ids = [id for id in id.split(",") if id]
     if not ids:
-        abort(400, "id must be non-empty")
-
-    custom_ranks = args.get("custom", False)
+        raise HTTPException(400, detail="id must be non-empty")
 
     if barrier_type == "dams":
         df = dams
@@ -300,22 +326,25 @@ def download(barrier_type="dams", layer="HUC8", format="CSV"):
 
     # filter to summary units
     df = df.loc[df[layer].isin(ids)].copy()
-    log.info("selected {} dams in geographic area".format(len(df)))
+    log.info(f"selected {len(df)} dams in geographic area")
 
     if include_unranked:
         full_df = df.copy()
 
-    filters = None
-    filterKeys = [a for a in request.args if not a in query_params]
-    for filter in filterKeys:
-        # convert all incoming to integers
-        values = [int(x) for x in request.args.get(filter).split(",")]
-        filter_expr = df[field_map[filter]].isin(values)
+    filter_keys = {q for q in request.query_params if not q in exclude_query_params}
 
-        if filters is None:
-            filters = filter_expr
-        else:
-            filters = filters & filter_expr
+    invalid_filters = filter_keys.difference(field_map)
+    if invalid_filters:
+        raise HTTPException(
+            400, detail=f"Filters are invalid: {','.join(invalid_filters)}"
+        )
+
+    filters = None
+    for filter in filter_keys:
+        # convert all incoming to integers
+        values = [int(x) for x in request.query_params.get(filter).split(",")]
+        filter_expr = df[field_map[filter]].isin(values)
+        filters = filters & filter_expr if filters is not None else filter_expr
 
     if filters is not None:
         df = df.loc[filters].copy()
@@ -364,35 +393,35 @@ def download(barrier_type="dams", layer="HUC8", format="CSV"):
 
     filename = "aquatic_barrier_ranks_{0}.{1}".format(date.today().isoformat(), format)
 
-    ### reate readme
+    ### create readme and terms of use
     template_values = {
         "date": date.today(),
         "version": VERSION,
-        "url": request.host_url,
+        "url": request.base_url,
         "filename": filename,
         "layer": layer,
         "ids": ", ".join(ids),
     }
 
-    readme = render_template("{}_readme.txt".format(barrier_type), **template_values)
+    readme = env.get_template(f"{barrier_type}_readme.txt").render(**template_values)
+    terms = env.get_template("terms.txt").render(
+        year=date.today().year, **template_values
+    )
 
-    ### Create terms of use
-    terms = render_template("terms.txt", year=date.today().year, **template_values)
-
-    zf_bytes = BytesIO()
-    with ZipFile(zf_bytes, "w") as zf:
+    zip_stream = BytesIO()
+    with ZipFile(zip_stream, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
         zf.writestr(filename, df.to_csv(index=False))
         zf.writestr("README.txt", readme)
         zf.writestr("TERMS_OF_USE.txt", terms)
         zf.write(LOGO_PATH, "SARP_logo.png")
 
-    resp = make_response(zf_bytes.getvalue())
-    resp.headers["Content-Disposition"] = "attachment; filename={0}".format(
-        filename.replace(format, "zip")
+    # rewind to beginning
+    zip_stream.seek(0)
+
+    return StreamingResponse(
+        zip_stream,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename.replace(format, 'zip')}"
+        },
     )
-    resp.headers["Content-Type"] = "application/zip"
-    return resp
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
