@@ -1,5 +1,5 @@
 // ideas adapted from: https://github.com/kentcdodds/use-deep-compare-effect/blob/master/src/index.js
-import { useRef, useEffect, useMemo, useCallback } from 'react'
+import { useRef, useEffect, useMemo, useCallback, useState } from 'react'
 import { dequal } from 'dequal/lite'
 
 const isSetEqual = (setA, setB) => {
@@ -86,4 +86,17 @@ export const useEffectSkipFirst = (f, deps) => {
 
     f()
   }, deps)
+}
+
+/**
+ * Function that is triggered on mount of component in UI.  Useful for handling
+ * client-only components.
+ * From: https://www.joshwcomeau.com/react/the-perils-of-rehydration/
+ */
+export const useHasMounted = () => {
+  const [hasMounted, setHasMounted] = useState(false)
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
+  return hasMounted
 }

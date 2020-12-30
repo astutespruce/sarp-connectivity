@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 
 import { Flex } from 'components/Grid'
-import Layout from 'components/Layout'
+import Layout, { ClientOnly } from 'components/Layout'
 import Sidebar from 'components/Sidebar'
 import { TopBar, TopBarToggle } from 'components/Map'
 import { Map, UnitDetails, SoutheastSummary } from 'components/Summary'
@@ -74,7 +74,6 @@ const SummaryPage = () => {
   if (selectedBarrier !== null) {
     sidebarContent = (
       <BarrierDetails
-        // barrierType={barrierType}
         barrier={selectedBarrier}
         onClose={handleBarrierDetailsClose}
       />
@@ -101,30 +100,33 @@ const SummaryPage = () => {
     <Layout title="Summarize">
       <Wrapper>
         <Sidebar>{sidebarContent}</Sidebar>
+
         <MapContainer>
-          <Map
-            barrierType={barrierType}
-            system={system}
-            searchFeature={searchFeature}
-            selectedUnit={selectedUnit}
-            selectedBarrier={selectedBarrier}
-            onSelectUnit={handleSelectUnit}
-            onSelectBarrier={handleSelectBarrier}
-          />
-          <TopBar>
-            Show:
-            <TopBarToggle
-              value={barrierType}
-              options={barrierTypeOptions}
-              onChange={handleSetBarrierType}
-            />{' '}
-            by{' '}
-            <TopBarToggle
-              value={system}
-              options={systemOptions}
-              onChange={handleSetSystem}
+          <ClientOnly>
+            <Map
+              barrierType={barrierType}
+              system={system}
+              searchFeature={searchFeature}
+              selectedUnit={selectedUnit}
+              selectedBarrier={selectedBarrier}
+              onSelectUnit={handleSelectUnit}
+              onSelectBarrier={handleSelectBarrier}
             />
-          </TopBar>
+            <TopBar>
+              Show:
+              <TopBarToggle
+                value={barrierType}
+                options={barrierTypeOptions}
+                onChange={handleSetBarrierType}
+              />{' '}
+              by{' '}
+              <TopBarToggle
+                value={system}
+                options={systemOptions}
+                onChange={handleSetSystem}
+              />
+            </TopBar>
+          </ClientOnly>
         </MapContainer>
       </Wrapper>
     </Layout>
