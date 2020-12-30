@@ -1,0 +1,14 @@
+version: "3.6"
+services:
+  caddy:
+    image: caddy/caddy:2.2.1-alpine
+    restart: always
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_certs:/root/.caddy
+      - ../../ui/public:/var/www
+
+volumes:
+  caddy_certs:

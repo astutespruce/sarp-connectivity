@@ -10,7 +10,7 @@ RestartSec=60
 
 ; User and group the process will run as.
 User=app
-Group=www-data
+Group=app
 
 WorkingDirectory=/tiles
 ExecStart=/home/app/go/bin/mbtileserver -d /tiles -p 8000
