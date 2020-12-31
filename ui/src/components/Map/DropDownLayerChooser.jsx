@@ -51,7 +51,7 @@ const Content = styled(Box).attrs({ py: '1rem', px: '0.5rem' })`
 `
 
 const Row = styled(Flex).attrs({ alignItems: 'flex-start' })`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-top: 1rem;
   }
 

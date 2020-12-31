@@ -22,7 +22,7 @@ import { siteMetadata } from '../../gatsby-config'
 const { version: dataVersion, date: dataDate } = siteMetadata
 
 const Section = styled(BaseSection)`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-top: 3rem;
   }
 `

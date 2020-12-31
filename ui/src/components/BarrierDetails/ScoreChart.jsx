@@ -6,7 +6,7 @@ import { Flex } from 'components/Grid'
 import styled, { themeGet } from 'style'
 
 const Wrapper = styled.div`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-top: 3rem;
   }
 `

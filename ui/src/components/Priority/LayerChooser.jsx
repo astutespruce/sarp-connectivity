@@ -10,7 +10,7 @@ import { Content, Title } from './styles'
 const Subtitle = styled(Text).attrs({ fontSize: '1.25rem' })``
 
 const Section = styled(Box).attrs({ my: '1rem' })`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-top: 2rem;
   }
 `
@@ -32,7 +32,7 @@ const ecoLayerOptions = [
 ]
 
 const LayerChooser = ({ setLayer }) => {
-  const handleSelectLayer = layer => {
+  const handleSelectLayer = (layer) => {
     setLayer(layer)
   }
 

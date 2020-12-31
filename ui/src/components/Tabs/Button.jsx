@@ -20,10 +20,10 @@ export const ActiveButton = styled(InactiveButton)`
   color: ${themeGet('colors.grey.900')};
   border-bottom-color: transparent;
   background-color: #fff !important;
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     border-left: 1px solid ${themeGet('colors.grey.300')};
   }
-  &:not(:last-child) {
+  &:not(:last-of-type) {
     border-right: 1px solid ${themeGet('colors.grey.300')};
   }
 `

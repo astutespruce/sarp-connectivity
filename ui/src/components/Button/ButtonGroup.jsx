@@ -6,15 +6,15 @@ const ButtonGroup = styled(Flex).attrs({ alignItems: 'center' })`
     border-left: 1px solid #fff;
   }
 
-  button:first-child {
+  button:first-of-type {
     border-radius: 6px 0 0 6px;
   }
 
-  button:last-child {
+  button:last-of-type {
     border-radius: 0 6px 6px 0;
   }
 
-  button:not(:first-child):not(:last-child) {
+  button:not(:first-of-type):not(:last-of-type) {
     border-radius: 0;
   }
 `

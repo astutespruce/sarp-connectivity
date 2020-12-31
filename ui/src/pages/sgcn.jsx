@@ -15,7 +15,7 @@ import {
 import styled from 'style'
 
 const Section = styled(BaseSection)`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-top: 3rem;
   }
 `

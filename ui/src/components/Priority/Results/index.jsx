@@ -43,7 +43,7 @@ const InputLabel = styled.div`
 `
 
 const Section = styled.div`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-top: 2rem;
   }
 `

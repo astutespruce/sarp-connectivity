@@ -18,7 +18,7 @@ const Wrapper = styled.div`
 
 const BasemapContainer = styled.div`
   display: inline-block;
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-left: 0.25rem;
   }
 `

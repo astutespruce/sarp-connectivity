@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react'
 
 import { useCrossfilter } from 'components/Crossfilter'
-import { HelpText } from 'components/Text'
+import { Text, HelpText } from 'components/Text'
 import { Flex } from 'components/Grid'
 import { TopBar, TopBarToggle } from 'components/Map'
 import {
@@ -284,7 +284,8 @@ const Prioritize = () => {
 
         {step === 'results' && (
           <TopBar>
-            Show ranks for:
+            <Text>Show ranks for:</Text>
+
             <TopBarToggle
               value={scenario}
               options={scenarioOptions}

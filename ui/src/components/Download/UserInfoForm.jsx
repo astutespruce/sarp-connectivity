@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'
 import PropTypes from 'prop-types'
-import {useForm} from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import fetchJSONP from 'fetch-jsonp'
 import { FaSync, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa'
 import { Image } from 'rebass/styled-components'
@@ -73,13 +73,13 @@ const FormColumns = styled(Flex)``
 const FormColumn = styled(Box).attrs({})`
   width: 50%;
 
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-left: 2rem;
   }
 `
 
 const Row = styled(Box)`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-top: 1rem;
   }
 `
@@ -203,7 +203,7 @@ const DownloadForm = ({ onCancel, onContinue }) => {
 
   const formRef = useRef()
 
-  const onSubmit = data => {
+  const onSubmit = (data) => {
     console.log('on submit data', data)
 
     setState({
@@ -226,7 +226,7 @@ const DownloadForm = ({ onCancel, onContinue }) => {
         jsonpCallback: 'c',
       }
     )
-      .then(response => response.json())
+      .then((response) => response.json())
       .then(({ result, msg }) => {
         console.log('json', result, msg)
         if (result === 'error') {
@@ -249,7 +249,7 @@ const DownloadForm = ({ onCancel, onContinue }) => {
           onContinue()
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error(error)
         setState({ isPending: false, isError: true })
 

@@ -31,7 +31,7 @@ const Title = styled(Text).attrs({
 `
 
 const PatchGroup = styled(Box)`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-top: 0.5rem;
     padding-top: 0.5rem;
     border-top: 1px solid ${themeGet('colors.grey.100')};
@@ -67,19 +67,19 @@ const Divider = styled(Box).attrs({ mt: '0.5rem' })`
 `
 
 const CircleRow = styled(Flex).attrs({ alignItems: 'flex-start', py: '0.5em' })`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     border-top: 1px solid ${themeGet('colors.grey.100')};
   }
 `
 
 const PatchRow = styled(Flex)`
-  &:first-child ${Patch} {
+  &:first-of-type ${Patch} {
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
     border-top-width: 1px;
   }
 
-  &:last-child ${Patch} {
+  &:last-of-type ${Patch} {
     border-bottom-left-radius: 3px;
     border-bottom-right-radius: 3px;
   }

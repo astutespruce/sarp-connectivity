@@ -2,7 +2,7 @@ import { Text, HelpText } from 'components/Text'
 import styled, { themeGet } from 'style'
 
 export const Section = styled.div`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-top: 0.5rem;
     padding-top: 0.5rem;
     border-top: 1px solid ${themeGet('colors.grey.200')};
@@ -21,7 +21,7 @@ export const List = styled.ul`
   li {
     margin-bottom: 0;
   }
-  li:not(:first-child) {
+  li:not(:first-of-type) {
     margin-top: 0.5rem;
   }
 `

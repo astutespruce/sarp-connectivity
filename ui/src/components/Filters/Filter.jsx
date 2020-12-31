@@ -12,7 +12,7 @@ import styled, { themeGet } from 'style'
 import HorizontalBars from './HorizontalBars'
 
 const Wrapper = styled(Box).attrs({ py: '1rem' })`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     border-top: 1px solid ${themeGet('colors.grey.100')};
   }
 `

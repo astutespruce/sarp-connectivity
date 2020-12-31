@@ -13,7 +13,7 @@ import { PageTitle, Section, ImageCredits, PageContainer } from 'content/styles'
 import { CONNECTIVITY_TEAMS } from '../../config/constants'
 
 const TeamSection = styled(Section)`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     padding-top: 3rem;
     border-top: 1px solid ${themeGet('colors.grey.200')};
   }

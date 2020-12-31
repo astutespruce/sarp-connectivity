@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react'
 
 import { Flex } from 'components/Grid'
 import Layout, { ClientOnly } from 'components/Layout'
+import { Text } from 'components/Text'
 import Sidebar from 'components/Sidebar'
 import { TopBar, TopBarToggle } from 'components/Map'
 import { Map, UnitDetails, SoutheastSummary } from 'components/Summary'
@@ -113,13 +114,13 @@ const SummaryPage = () => {
               onSelectBarrier={handleSelectBarrier}
             />
             <TopBar>
-              Show:
+              <Text>Show:</Text>
               <TopBarToggle
                 value={barrierType}
                 options={barrierTypeOptions}
                 onChange={handleSetBarrierType}
-              />{' '}
-              by{' '}
+              />
+              <Text>by</Text>
               <TopBarToggle
                 value={system}
                 options={systemOptions}

@@ -14,7 +14,7 @@ export const PageTitle = styled(Text).attrs({ as: 'h1', fontSize: '3rem' })``
 export const Section = styled(Box)`
   color: ${themeGet('colors.grey.900')};
 
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-top: 6rem;
   }
   p {

@@ -78,7 +78,7 @@ const Row = styled(Flex).attrs({
   justifyContent: 'flex-end',
   alignItems: 'center',
 })`
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-top: 0.5rem;
   }
 `
@@ -116,7 +116,7 @@ const Button = styled(BaseButton)`
   padding: 0.25em 0.5em;
   font-weight: normal;
 
-  &:not(:first-child) {
+  &:not(:first-of-type) {
     margin-left: 0.5em;
   }
 `
@@ -141,7 +141,7 @@ const GoToLocation = ({ map }) => {
   const { isOpen, isPending, lat, lon, isLatValid, isLonValid } = state
 
   const handleLatitudeChange = ({ target: { value } }) => {
-    setState(prevState => ({
+    setState((prevState) => ({
       ...prevState,
       lat: value,
       isLatValid: value === '' || Math.abs(parseFloat(value)) < 89,
@@ -149,7 +149,7 @@ const GoToLocation = ({ map }) => {
   }
 
   const handleLongitudeChange = ({ target: { value } }) => {
-    setState(prevState => ({
+    setState((prevState) => ({
       ...prevState,
       lon: value,
       isLonValid: value === '' || Math.abs(parseFloat(value)) <= 180,
@@ -163,14 +163,14 @@ const GoToLocation = ({ map }) => {
       timestamp: new Date().getTime(),
     })
 
-    setState(prevState => ({
+    setState((prevState) => ({
       ...prevState,
       isOpen: false,
     }))
   }
 
   const handleClear = () => {
-    setState(prevState => ({
+    setState((prevState) => ({
       ...prevState,
       isOpen: false,
       lat: '',
@@ -186,7 +186,7 @@ const GoToLocation = ({ map }) => {
   }
 
   const handleToggle = () => {
-    setState(prevState => ({
+    setState((prevState) => ({
       ...prevState,
       isOpen: !prevState.isOpen,
     }))
@@ -217,9 +217,9 @@ const GoToLocation = ({ map }) => {
           timestamp: new Date().getTime(),
         })
       },
-      error => {
+      (error) => {
         console.error(error)
-        setState(prevState => ({
+        setState((prevState) => ({
           ...prevState,
           isPending: false,
         }))
