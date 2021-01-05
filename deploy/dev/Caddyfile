@@ -20,9 +20,16 @@
   route /* {
     # most files can be cached indefinitely, they are rebuilt with new names each time
     @cached_files {
-      path *.jpg *.jpeg *.png *.gif *.ico *.webp *.svg *.css *.js */static/*
+      path *.jpg *.jpeg *.png *.gif *.webp *.svg *.css *.js */static/*
+      not path /favicon*
     }
     header @cached_files Cache-Control "public, max-age=31536000, immutable"
+
+    # make sure favicons are not cached too long
+    @short_cached_files {
+      path /favicon*
+    }
+    header @short_cached_files Cache-Control "public, max-age=3600"
 
     # page-data, html, and site root must be fetched each time
     @no_cache {
