@@ -105,7 +105,7 @@ network_df.lineID = network_df.lineID.astype("uint32")
 ### Lookup network ID for downstream segments of HUC2 join
 print("Aggregating networks that cross HUC2s...")
 tmp = (
-    network_df.loc[network_df.lineID.isin(cross_region.downstream_id)]
+    network_df.loc[network_df.lineID.isin(cross_region.downstream_id.unique())]
     .reset_index()
     .set_index("lineID")
     .networkID.rename("downstream_network")
@@ -218,7 +218,7 @@ barrier_joins = barrier_joins.loc[
 
 ### Recalculate network stats for the networks that have been updated
 print("\nRecalculating network stats...")
-updated_network = network_df.loc[cross_region.new_network]
+updated_network = network_df.loc[cross_region.new_network.unique()]
 
 # network stats facing upstream for each functional network
 network_stats = calculate_network_stats(updated_network, barrier_joins)
@@ -394,6 +394,8 @@ for huc2 in connected_huc2:
 
 
 ### Update network geometries and barrier networks
+# Move networks from upstream HUC2s to downstream HUC2s
+
 # identify HUC2s that will aggregate upstream networks
 aggregate_huc2 = cross_region.groupby("new_HUC2").upstream_HUC2.unique().to_dict()
 
@@ -409,24 +411,24 @@ stats = network_stats.set_index("new_network")[
         "up_nwfs",
         "barrier",
     ]
-]
-
+].drop_duplicates()
+stats.index.name = "networkID"
 
 for huc2 in connected_huc2:
-    print(f"\nHUC2 {huc2}: moving network segments to base HUC2...")
+    print(f"\nHUC2 {huc2}: moving networks to base HUC2...")
 
     network = gp.read_feather(
         data_dir / "networks" / huc2 / network_type / "network.feather"
     )
 
-    # first, remove any segments that are now "owned" by another HUC2
+    # first, remove any networks that are now "owned" by another HUC2
     ix = network.networkID.isin(cross_region.upstream_network)
     if ix.sum() > 0:
         print(f"Removing {ix.sum()} networks now owned by a downstream HUC2")
         network = network.loc[~ix].copy()
 
     # next, for every HUC2 that is at the root of the updated networks, pull in
-    # network segments upstream
+    # networks upstream
     if huc2 in aggregate_huc2:
         for upstream_huc2 in aggregate_huc2[huc2]:
             upstream_network = gp.read_feather(
@@ -449,8 +451,6 @@ for huc2 in connected_huc2:
             )
 
             network = append(network, upstream_network)
-
-        # network = network.set_index('networkID')
 
         s = network.groupby("networkID").size()
         ix = s[s > 1].index
@@ -486,3 +486,56 @@ for huc2 in connected_huc2:
 
     network.to_feather(huc2_dir / "network.feather")
     write_dataframe(network, huc2_dir / "network.gpkg")
+
+
+### Move network segments from upstream HUC2s to downstream HUC2s
+# Note: this doesn't move associated flowlines
+for huc2 in connected_huc2:
+    print(f"\nHUC2 {huc2}: moving network segments to base HUC2...")
+
+    segments = pd.read_feather(
+        data_dir / "networks" / huc2 / network_type / "network_segments.feather"
+    )
+
+    # first, remove any segments that are now "owned" by another HUC2
+    ix = segments.networkID.isin(cross_region.upstream_network)
+    if ix.sum() > 0:
+        print(f"Removing {ix.sum()} network segments now owned by a downstream HUC2")
+        segments = segments.loc[~ix].copy()
+
+    # next, for every HUC2 that is at the root of the updated networks, pull in
+    # network segments upstream
+    if huc2 in aggregate_huc2:
+        for upstream_huc2 in aggregate_huc2[huc2]:
+            upstream_segments = pd.read_feather(
+                data_dir
+                / "networks"
+                / upstream_huc2
+                / network_type
+                / "network_segments.feather"
+            )
+
+            tmp = (
+                cross_region.loc[cross_region.new_HUC2 == huc2]
+                .set_index("upstream_network")
+                .new_network
+            )
+
+            # join in new networkID
+            upstream_segments = upstream_segments.join(tmp, on="networkID", how="inner")
+            upstream_segments.networkID = upstream_segments.new_network
+            upstream_segments = upstream_segments.drop(columns=["new_network"])
+
+            print(
+                f"Moving {len(upstream_segments)} network segments from {upstream_huc2} into {huc2}"
+            )
+
+            segments = append(segments, upstream_segments)
+
+    print("Serializing updated network...")
+    huc2_dir = out_dir / huc2 / network_type
+    if not huc2_dir.exists():
+        os.makedirs(huc2_dir)
+
+    segments = segments.reset_index(drop=True)
+    segments.to_feather(huc2_dir / "network_segments.feather")
