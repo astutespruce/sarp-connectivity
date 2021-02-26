@@ -16,6 +16,39 @@ from pyogrio import write_dataframe
 from analysis.constants import NETWORK_TYPES
 
 
+def read_flowlines(path):
+    flowlines = gp.read_feather(
+        path,
+        columns=[
+            "lineID",
+            "NHDPlusID",
+            "FCode",
+            "FType",
+            "GNIS_ID",
+            "GNIS_Name",
+            "StreamOrde",
+            "TotDASqKm",
+            "sizeclass",
+            "length",
+            "sinuosity",
+            "geometry",
+        ],
+    ).rename(
+        columns={
+            "sizeclass": "size",
+            "length": "length_m",
+        }
+    )
+    flowlines.lineID = flowlines.lineID.astype("uint32")
+    flowlines.GNIS_ID = flowlines.GNIS_ID.fillna("")
+    flowlines.GNIS_Name = flowlines.GNIS_Name.fillna("")
+
+    for col in flowlines.columns[flowlines.dtypes == "float64"]:
+        flowlines[col] = flowlines[col].astype("float32")
+
+    return flowlines
+
+
 data_dir = Path("data")
 network_dir = data_dir / "networks"
 
@@ -34,6 +67,11 @@ huc2s = sorted(units.keys())
 
 # manually subset keys from above for processing
 huc2s = ["05", "06", "07", "08", "10", "11"]
+
+
+connected_huc2 = pd.read_feather(network_dir / "merged/connected_huc2.feather")
+connected_huc2 = connected_huc2.groupby("new_HUC2").upstream_HUC2.unique().apply(list)
+
 
 floodplains = (
     pd.read_feather(
@@ -112,7 +150,7 @@ for huc2 in huc2s:
 
     ### Extract undissolved networks to shapefile
     segments = pd.read_feather(
-        network_dir / huc2 / network_type / "network_segments.feather",
+        (merged_dir or working_dir) / "network_segments.feather",
         columns=["networkID", "lineID"],
     )
     segments.lineID = segments.lineID.astype("uint32")
@@ -122,36 +160,33 @@ for huc2 in huc2s:
     segments = segments.join(networks.set_index("networkID").barrier)
     segments.barrier = segments.barrier.fillna("")
 
-    flowlines = gp.read_feather(
-        network_dir / huc2 / network_type / "flowlines.feather",
-        columns=[
-            "lineID",
-            "NHDPlusID",
-            "FCode",
-            "FType",
-            "GNIS_ID",
-            "GNIS_Name",
-            "StreamOrde",
-            "TotDASqKm",
-            "sizeclass",
-            "length",
-            "sinuosity",
-            "geometry",
-        ],
-    ).rename(
-        columns={
-            "sizeclass": "size",
-            "length": "length_m",
-        }
+    flowlines = read_flowlines(network_dir / huc2 / network_type / "flowlines.feather")
+
+    # drop any flowlines not present in the network segments
+    flowlines = flowlines.loc[flowlines.lineID.isin(segments.index.unique())]
+
+    # pull in upstream flowlines where needed
+    if huc2 in connected_huc2:
+        for upstream_huc2 in connected_huc2[huc2]:
+            upstream_flowlines = read_flowlines(
+                network_dir / upstream_huc2 / network_type / "flowlines.feather"
+            )
+            upstream_flowlines = upstream_flowlines.loc[
+                upstream_flowlines.lineID.isin(segments.index.unique())
+            ].copy()
+
+            flowlines = flowlines.append(
+                upstream_flowlines, ignore_index=True, sort=False
+            )
+
+    flowlines = (
+        flowlines.reset_index(drop=True)
+        .join(floodplains, on="NHDPlusID")
+        .join(
+            segments,
+            on="lineID",
+        )
     )
-    flowlines.lineID = flowlines.lineID.astype("uint32")
-    flowlines.GNIS_ID = flowlines.GNIS_ID.fillna("")
-    flowlines.GNIS_Name = flowlines.GNIS_Name.fillna("")
-
-    for col in flowlines.columns[flowlines.dtypes == "float64"]:
-        flowlines[col] = flowlines[col].astype("float32")
-
-    flowlines = flowlines.join(floodplains, on="NHDPlusID").join(segments, on="lineID")
 
     write_dataframe(
         flowlines, out_dir / f"region{huc2}_{network_type}_network_segments.shp"

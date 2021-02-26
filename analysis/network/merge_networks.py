@@ -397,7 +397,14 @@ for huc2 in connected_huc2:
 # Move networks from upstream HUC2s to downstream HUC2s
 
 # identify HUC2s that will aggregate upstream networks
-aggregate_huc2 = cross_region.groupby("new_HUC2").upstream_HUC2.unique().to_dict()
+aggregate_huc2 = (
+    cross_region.groupby("new_HUC2").upstream_HUC2.unique().apply(list).to_dict()
+)
+
+cross_region[["new_HUC2", "upstream_HUC2"]].reset_index(drop=True).to_feather(
+    out_dir / "connected_huc2.feather"
+)
+
 
 stats = network_stats.set_index("new_network")[
     [
