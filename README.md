@@ -38,7 +38,7 @@ The user interface tier is stored in `/ui` and consists of a GatsbyJS and React-
 The backend is composed of several parts:
 
 - `/analysis`: data processing scripts
-- `/api`: flask API for requesting subsets and downloads
+- `/api`: FastAPI for requesting subsets and downloads
 - map tiles are served from `/tiles` using `mbtileserver` (tiles are not stored in the code repository)
 
 ## Development
@@ -94,7 +94,7 @@ Within an active Python environment (`pipenv shell`).
 To start the API server (on port 5000, by default), with reloading:
 
 ```
-uvicorn api.server:app --reload --port 5000
+uvicorn api.server:app --reload --reload-dir api --port 5000
 ```
 
 The API loads environment variables from `.env` in the root of this project.

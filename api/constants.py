@@ -1,3 +1,31 @@
+from enum import Enum
+
+### Enums for validating incoming request values
+class BarrierTypes(str, Enum):
+    dams = "dams"
+    barriers = "barriers"
+
+
+class Layers(str, Enum):
+    HUC6 = "HUC6"
+    HUC8 = "HUC8"
+    HUC12 = "HUC12"
+    State = "State"
+    County = "County"
+    ECO3 = "ECO3"
+    ECO4 = "ECO4"
+
+
+class Formats(str, Enum):
+    csv = "csv"
+
+
+class Scenarios(str, Enum):
+    NC = "NC"
+    WC = "WC"
+    NCWC = "NCWC"
+
+
 def unique(items):
     """Convert a sorted list of items into a unique list, taking the
     first occurrence of each duplicate item.
@@ -72,6 +100,7 @@ DAM_FILTER_FIELDS = [
     "HeightClass",
     "PassageFacilityClass",
 ] + FILTER_FIELDS
+DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
 SB_FILTER_FIELDS = [
     "ConditionClass",
@@ -79,6 +108,7 @@ SB_FILTER_FIELDS = [
     "RoadTypeClass",
     "SeverityClass",
 ] + FILTER_FIELDS
+SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
 
 ### Fields used for export
@@ -416,3 +446,38 @@ PASSAGEFACILITY_DOMAIN = {
 #     4: "Drained",
 #     5: "Dry detention",
 # }
+
+
+# mapping of field name to domains
+DOMAINS = {
+    "HasNetwork": BOOLEAN_DOMAIN,
+    "Excluded": BOOLEAN_DOMAIN,
+    "OwnerType": OWNERTYPE_DOMAIN,
+    "ProtectedLand": BOOLEAN_DOMAIN,
+    "HUC8_USFS": HUC8_USFS_DOMAIN,
+    "HUC8_COA": HUC8_COA_DOMAIN,
+    "HUC8_SGCN": HUC8_SGCN_DOMAIN,
+    # dam fields
+    "Condition": DAM_CONDITION_DOMAIN,
+    "Construction": CONSTRUCTION_DOMAIN,
+    "Purpose": PURPOSE_DOMAIN,
+    "Feasibility": FEASIBILITY_DOMAIN,
+    "PassageFacility": PASSAGEFACILITY_DOMAIN,
+    # barrier fields
+    "SeverityClass": BARRIER_SEVERITY_DOMAIN,
+}
+
+
+def unpack_domains(df):
+    """Unpack domain codes to values.
+
+    Parameters
+    ----------
+    df : DataFrame
+    """
+    df = df.copy()
+    for field, domain in DOMAINS.items():
+        if field in df.columns:
+            df[field] = df[field].map(domain)
+
+    return df
