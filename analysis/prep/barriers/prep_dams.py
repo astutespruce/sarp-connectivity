@@ -364,6 +364,7 @@ ix = (
 )
 
 df.loc[ix, "snap_group"] = 1  # indicates estimated dam
+df["is_estimated"] = ix
 
 # Replace estimated dam names if another name is available
 ix = ix & (df.OtherName.str.len() > 0)

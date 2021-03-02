@@ -1,0 +1,17 @@
+Comprehensive Southeast Aquatic Barrier Inventory - Terms of Use
+----------------------------------------------------------------
+
+Date downloaded: {download_date}
+Data version: {data_version}
+Data publish date: {data_date}
+Downloaded from: {url}
+
+{terms_of_use}
+
+For your convenience, a small version of the SARP logo is included in this download "SARP_logo.png".
+A high resolution copy of the SARP logo can be requested from Jessica Graham via email at jessica@southeastaquatics.net.
+
+
+Citation:
+---------
+Southeast Aquatic Resources Partnership (SARP). {year}. Comprehensive Southeast Aquatic Barrier Inventory. https://southeastaquatics.net/. (dowloaded {download_date} from {url}). SARP/USFWS.

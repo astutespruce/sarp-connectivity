@@ -68,7 +68,7 @@ const fetchCSV = async (url, options, rowParser) => {
  * Fetch and parse CSV data from API for dams or small barriers
  */
 export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
-  const url = `${apiHost}/api/v1/${barrierType}/query/${layer}?${apiQueryParams(
+  const url = `${apiHost}/api/v1/internal/${barrierType}/query/${layer}?${apiQueryParams(
     {
       summaryUnits,
     }
@@ -86,10 +86,12 @@ export const fetchBarrierRanks = async (
   summaryUnits,
   filters
 ) => {
-  const url = `${apiHost}/api/v1/${barrierType}/rank/${layer}?${apiQueryParams({
-    summaryUnits,
-    filters,
-  })}`
+  const url = `${apiHost}/api/v1/internal/${barrierType}/rank/${layer}?${apiQueryParams(
+    {
+      summaryUnits,
+      filters,
+    }
+  )}`
 
   return fetchCSV(url, undefined, autoType)
 }
@@ -103,7 +105,7 @@ export const getDownloadURL = ({
   sort,
   customRank = false,
 }) =>
-  `${apiHost}/api/v1/${barrierType}/csv/${layer}?${apiQueryParams({
+  `${apiHost}/api/v1/internal/${barrierType}/csv/${layer}?${apiQueryParams({
     summaryUnits,
     filters,
     includeUnranked,

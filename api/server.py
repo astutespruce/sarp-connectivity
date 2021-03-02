@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
@@ -9,6 +11,7 @@ from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 from api.logger import log
 from api.settings import ALLOWED_ORIGINS, LOGGING_LEVEL, SENTRY_DSN
 from api.internal import router as internal_router
+from api.public import router as public_router
 
 
 ### Setup Sentry
@@ -18,7 +21,15 @@ if SENTRY_DSN:
 
 
 ### Create the main API app
-app = FastAPI()
+app = FastAPI(version="1.0")
+
+### Add logger
+@app.on_event("startup")
+async def startup_event():
+    logger = log
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("[%(asctime)s] %(levelname)s:\t%(message)s"))
+    logger.addHandler(handler)
 
 
 ### Setup middleware
@@ -58,4 +69,5 @@ app.add_middleware(
 
 
 ### Add the routes to the main app
-app.include_router(internal_router)
+app.include_router(internal_router, prefix="/api/v1/internal", include_in_schema=False)
+app.include_router(public_router, prefix="/api/v1/public")

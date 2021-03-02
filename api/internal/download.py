@@ -1,10 +1,8 @@
 from datetime import date
-import json
 from pathlib import Path
 
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
-from jinja2 import Environment, FileSystemLoader
 
 
 from api.constants import (
@@ -14,30 +12,23 @@ from api.constants import (
     DAM_EXPORT_FIELDS,
     SB_EXPORT_FIELDS,
 )
-from api.logger import log
+from api.logger import log, log_request
 from analysis.rank.lib.tiers import calculate_tiers
 from api.data import dams, barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
+from api.metadata import get_readme, get_terms
 from api.response import zip_csv_response
 
-
-### Read version from UI package.json
-with open(Path(__file__).resolve().parent.parent.parent / "ui/package.json") as infile:
-    VERSION = json.loads(infile.read())["version"]
 
 ### Include logo in download package
 LOGO_PATH = (
     Path(__file__).resolve().parent.parent.parent / "ui/src/images/sarp_logo.png"
 )
 
-### Setup templates
-template_path = Path(__file__).parent.parent.resolve() / "templates"
-env = Environment(loader=FileSystemLoader(template_path))
-
 router = APIRouter()
 
 
-@router.get("/api/v1/dams/{format}/{layer}")
+@router.get("/dams/{format}/{layer}")
 def download_dams(
     request: Request,
     extractor: DamsRecordExtractor = Depends(),
@@ -61,6 +52,8 @@ def download_dams(
     * sort: str, one of 'NC', 'WC', 'NCWC'
     * filters are defined using a lowercased version of column name and a comma-delimited list of values
     """
+
+    log_request(request)
 
     df = extractor.extract(dams).copy()
 
@@ -96,22 +89,18 @@ def download_dams(
 
     df = unpack_domains(df)
 
-    ### Create output parameters and render templates
+    ### Get metadata
     filename = f"aquatic_barrier_ranks_{date.today().isoformat()}.{format}"
 
-    template_values = {
-        "date": date.today(),
-        "version": VERSION,
-        "url": request.base_url,
-        "filename": filename,
-        "layer": extractor.layer,
-        "ids": ", ".join(extractor.ids),
-    }
-
-    readme = env.get_template("dams_readme.txt").render(**template_values)
-    terms = env.get_template("terms.txt").render(
-        year=date.today().year, **template_values
+    readme = get_readme(
+        filename=filename,
+        barrier_type="dams",
+        fields=df.columns,
+        url=request.base_url,
+        layer=extractor.layer,
+        ids=extractor.ids,
     )
+    terms = get_terms(url=request.base_url)
 
     if format == "csv":
         return zip_csv_response(
@@ -124,7 +113,7 @@ def download_dams(
     raise NotImplementedError("Other formats not yet supported")
 
 
-@router.get("/api/v1/barriers/{format}/{layer}")
+@router.get("/barriers/{format}/{layer}")
 def download_barriers(
     request: Request,
     extractor: BarriersRecordExtractor = Depends(),
@@ -148,6 +137,8 @@ def download_barriers(
     * sort: str, one of 'NC', 'WC', 'NCWC'
     * filters are defined using a lowercased version of column name and a comma-delimited list of values
     """
+
+    log_request(request)
 
     df = extractor.extract(barriers).copy()
 
@@ -186,19 +177,15 @@ def download_barriers(
     filename = "aquatic_barrier_ranks_{0}.{1}".format(date.today().isoformat(), format)
 
     ### create readme and terms of use
-    template_values = {
-        "date": date.today(),
-        "version": VERSION,
-        "url": request.base_url,
-        "filename": filename,
-        "layer": extractor.layer,
-        "ids": ", ".join(extractor.ids),
-    }
-
-    readme = env.get_template("barriers_readme.txt").render(**template_values)
-    terms = env.get_template("terms.txt").render(
-        year=date.today().year, **template_values
+    readme = get_readme(
+        filename=filename,
+        barrier_type="road-related barriers",
+        fields=df.columns,
+        url=request.base_url,
+        layer=extractor.layer,
+        ids=extractor.ids,
     )
+    terms = get_terms(url=request.base_url)
 
     if format == "csv":
         return zip_csv_response(
