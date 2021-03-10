@@ -46,12 +46,12 @@ This step should only need to be rerun if there are errors or additional HUC4s /
 
 These data are extracted from NHDFlowline, NHDPlusFlowlineVAA, NHDPlusFlow datasets.
 
--   aquatic networks that cross HUC4 boundaries within each region are joined together to create contiguous networks.
--   all coastlines (FType=566) and their joins are dropped
--   size classes are calculated (see `nhdnet::nhdnet/nhd/extract.py` for thresholds)
--   sinuosity and length are calculated
--   geometries are converted to XY LineStrings from XYZ MultiLineStrings
--   projected to SARP standard CRS
+- aquatic networks that cross HUC4 boundaries within each region are joined together to create contiguous networks.
+- all coastlines (FType=566) and their joins are dropped
+- size classes are calculated (see `nhdnet::nhdnet/nhd/extract.py` for thresholds)
+- sinuosity and length are calculated
+- geometries are converted to XY LineStrings from XYZ MultiLineStrings
+- projected to SARP standard CRS
 
 The output flowlines contain "loops" (secondary channels in addition to the main flow line). These may cause problems depending on network topology, but they are retained so that issues with NHD data can be identified and handled appropriately below. Loops are identified by the `loop` attribute.
 
@@ -63,26 +63,26 @@ These data are extracted from the NHDWaterbody dataset. Only waterbodies that in
 
 This creates a directory (`data/nhd/raw/<region>`) for each region containing:
 
--   `flowlines.feather`: flowline geometries and attributes
--   `flowline_joins.feather`: joins between flowlines to represent network topology
--   `waterbodies.feather`: waterbody geometries and attributes
--   `waterbody_flowline_joins.feather`: joins between waterbodies and flowlines.
+- `flowlines.feather`: flowline geometries and attributes
+- `flowline_joins.feather`: joins between flowlines to represent network topology
+- `waterbodies.feather`: waterbody geometries and attributes
+- `waterbody_flowline_joins.feather`: joins between waterbodies and flowlines.
 
 #### IMPORTANT:
 
--   flowlines are identified using `lineID` from this point forward; this is a unique ID assigned to this specific run of the data extraction. These ids are NOT durable from one extraction to the next. These are used because the flowlines are cut, yet we retain the original NHDPlusID of each original segment to be able to relate it back to NHD.
--   waterbodies are identified using `wbID`. These are also specific to this particular extraction.
+- flowlines are identified using `lineID` from this point forward; this is a unique ID assigned to this specific run of the data extraction. These ids are NOT durable from one extraction to the next. These are used because the flowlines are cut, yet we retain the original NHDPlusID of each original segment to be able to relate it back to NHD.
+- waterbodies are identified using `wbID`. These are also specific to this particular extraction.
 
 ### 4. Extract NHD barrier features
 
 Run `extract_nhd_barriers.py` to extract barriers identified as points, lines, or polygons by NHD. These include dams, dam-related features, and waterfalls with the following FTypes:
 
--   Dam (343)
--   Gate (369)
--   Lock / Lock Chamber (398)
--   Reservoir (436)
--   Spillway (455)
--   Waterfall (487)
+- Dam (343)
+- Gate (369)
+- Lock / Lock Chamber (398)
+- Reservoir (436)
+- Spillway (455)
+- Waterfall (487)
 
 This is performed individually for each HUC2. Run `aggregate_nhd_barriers.py` to aggregate these to a single dataset across the region.
 
@@ -118,11 +118,11 @@ WARNING: there are a number of geometry and related errors in NHD that confounds
 
 This creates "clean" data for further analysis in `data/nhd/clean/<region>`:
 
--   `flowlines.feather`: flowline geometries and attributes
--   `flowline_joins.feather`: joins between flowlines to represent network topology
--   `waterbodies.feather`: waterbody geometries and attributes
--   `waterbody_flowline_joins.feather`: joins between waterbodies and flowlines.
--   `waterbody_drain_points.feather`: drain points for each waterbody
+- `flowlines.feather`: flowline geometries and attributes
+- `flowline_joins.feather`: joins between flowlines to represent network topology
+- `waterbodies.feather`: waterbody geometries and attributes
+- `waterbody_flowline_joins.feather`: joins between waterbodies and flowlines.
+- `waterbody_drain_points.feather`: drain points for each waterbody
 
 The script outputs files with erroneous data, if errors are detected during processing. These are identified by `error_*` with a name that indicates the nature of the error.
 
@@ -136,10 +136,10 @@ Large waterbodies are those that have >= 1km of intersected flowline length and 
 
 This creates data in `data/nhd/merged`
 
--   `waterbodies.feather`
--   `waterbody_drains.feather`
--   `large_waterbodies.feather`
--   `large_waterbody_drains.feather`
+- `waterbodies.feather`
+- `waterbody_drains.feather`
+- `large_waterbodies.feather`
+- `large_waterbody_drains.feather`
 
 ### 7. Find NHD dams
 
@@ -153,7 +153,7 @@ Run `find_nhd_dams.py` to extract NHD dams from `nhd_lines.feather` and `nhd_are
 6. NHD dams are intersected with flowlines.
 7. The lowest downstream segment of each flowline that overlaps these dams is identified.
 8. A representative point is extracted for the lowest downstream segment; typically this is the furthest upstream or downstream point along that line or the portion of that line that intersects with the NHD dam feature.
-9. Dams are attributed to the nearest waterbody or drain point (within 250m).
+9. Dams are attributed to the nearest waterbody (within 50m).
 
 WARNING: there are data issues apparent in the NHD lines and areas. Some features are mis-coded (e.g. dikes parallel to flowlines rather than barriers), whereas others seem spurious and not validated by the satellite imagery for the same location.
 

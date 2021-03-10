@@ -2,7 +2,7 @@ import pandas as pd
 import geopandas as gp
 import pygeos as pg
 import numpy as np
-
+from pyogrio import write_dataframe
 
 from analysis.lib.network import connected_groups
 
@@ -284,9 +284,10 @@ def explode(df, add_position=False):
         if True, will add a column indicating position within the original index
 
     """
+    crs = df.crs
     parts, index = pg.get_parts(df.geometry.values.data, return_index=True)
     series = gp.GeoSeries(parts, index=df.index.take(index), name="geometry")
-    df = df.drop(columns=["geometry"]).join(series)
+    df = df.drop(columns=["geometry"]).join(series).set_crs(crs)
 
     if not add_position:
         return df
@@ -445,7 +446,7 @@ def near(source, target, distance):
     )
 
 
-def nearest(source, target, distance):
+def nearest(source, target, max_distance, keep_all=False):
     """Find the nearest target geometry for each record in source, if one
     can be found within distance.
 
@@ -455,9 +456,11 @@ def nearest(source, target, distance):
         contains pygeos geometries
     target : Series
         contains target pygeos geometries to search against
-    distance : number or ndarray
+    max_distance : number or ndarray
         radius within which to find target geometries
         If ndarray, must be equal length to source.
+    keep_all : bool (default: False)
+        If True, will keep all equidistant results
 
     Returns
     -------
@@ -467,10 +470,31 @@ def nearest(source, target, distance):
         Includes distance
     """
 
-    # results coming from near() already sorted by distance, just take the first
-    # since this will be the nearest
+    left_index_name = source.index.name or "index"
+    right_index_name = target.index.name or "index_right"
 
-    return near(source, target, distance).groupby(level=0).first()
+    tree = pg.STRtree(target.values.data)
+    (left_ix, right_ix), distance = tree.nearest_all(
+        source.values.data, max_distance=max_distance, return_distance=True
+    )
+
+    # Note: there may be multiple equidistant or intersected results, so we take the first
+    df = pd.DataFrame(
+        {
+            right_index_name: target.index.take(right_ix),
+            "distance": distance,
+        },
+        index=source.index.take(left_ix),
+    )
+
+    if keep_all:
+        df = df.reset_index().drop_duplicates().set_index(left_index_name)
+    else:
+        df = df.groupby(level=0).first()
+
+    df.index.name = source.index.name
+
+    return df
 
 
 def neighborhoods(source, tolerance=100):
@@ -506,3 +530,16 @@ def neighborhoods(source, tolerance=100):
     groups = connected_groups(pairs, make_symmetric=False).astype("uint32")
 
     return groups
+
+
+def write_geoms(geometries, path, crs=None):
+    """Convenience function to write an ndarray of pygeos geometries to a file
+
+    Parameters
+    ----------
+    geometries : ndarray of pygeos geometries
+    path : str
+    crs : CRS object, optional (default: None)
+    """
+    df = gp.GeoDataFrame({"geometry": geometries}, crs=crs)
+    write_dataframe(df, path)

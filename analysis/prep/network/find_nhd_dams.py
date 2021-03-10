@@ -2,7 +2,6 @@ from pathlib import Path
 from time import time
 import warnings
 
-import numpy as np
 import pandas as pd
 import pygeos as pg
 import geopandas as gp
@@ -10,11 +9,10 @@ from pyogrio import write_dataframe
 
 from nhdnet.nhd.joins import find_joins
 
-from analysis.lib.pygeos_util import sjoin_geometry
+from analysis.lib.pygeos_util import sjoin_geometry, nearest
 
 from analysis.constants import CRS
 from analysis.lib.util import append
-from analysis.prep.barriers.lib.points import nearest
 from analysis.lib.pygeos_util import aggregate_contiguous
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -81,6 +79,8 @@ for huc2 in huc2s:
 
     print(f"----- {huc2} ------")
 
+    dams = nhd_dams.loc[nhd_dams.HUC4.str[:2] == huc2].copy()
+
     print("Reading flowlines...")
     flowlines = gp.read_feather(
         src_dir / huc2 / "flowlines.feather", columns=["lineID", "geometry"]
@@ -90,7 +90,70 @@ for huc2 in huc2s:
         columns=["downstream_id", "upstream_id"],
     )
 
-    dams = nhd_dams.loc[nhd_dams.HUC4.str[:2] == huc2].copy()
+    waterbodies = gp.read_feather(
+        src_dir / huc2 / "waterbodies.feather", columns=["wbID", "geometry"]
+    ).set_index("wbID")
+
+    drains = gp.read_feather(
+        src_dir / huc2 / "waterbody_drain_points.feather",
+        columns=["wbID", "geometry"],
+    )
+
+    ### Associate with waterbodies, so that we know which waterbodies are claimed
+    # Note: because dams are buffered slightly, they should always intersect with
+    # their neighboring waterbody (if there is one)
+    print("Joining to waterbodies...")
+
+    join_start = time()
+
+    # find the nearest waterbodies up to 50m away
+    # more than that and we pick up downstream waterbodies
+    nearest_wb = nearest(
+        pd.Series(dams.geometry.values.data, index=dams.index),
+        pd.Series(waterbodies.geometry.values.data, index=waterbodies.index),
+        50,
+        keep_all=True,
+    )
+
+    # keep those that only have one waterbody
+    s = nearest_wb.groupby(level=0).size()
+    keep = nearest_wb.loc[nearest_wb.index.isin(s[s == 1].index)].copy()
+
+    # distill the others down based on drain point contained by the dam
+    tmp = (
+        nearest_wb.loc[nearest_wb.index.isin(s[s > 1].index)]
+        .join(dams.geometry)
+        .join(drains.set_index("wbID").geometry.rename("drain"), on="wbID")
+    )
+    contains = pg.contains(tmp.geometry.values.data, tmp.drain.values.data)
+    tmp = (
+        tmp.loc[contains]
+        .reset_index()
+        .groupby(["damID", "wbID"])
+        .first()
+        .reset_index()
+        .set_index("damID")
+    )
+
+    s = tmp.groupby(level=0).size()
+    errors = (s > 1).sum()
+    if errors:
+        print(
+            f"WARNING: {errors} dams contain drain points from multiple waterbodies; keeping only the first"
+        )
+
+        tmp = tmp.groupby(level=0).first()
+
+    dam_wb = (
+        keep[["wbID"]]
+        .reset_index()
+        .append(tmp[["wbID"]].reset_index(), ignore_index=True)
+        .set_index("damID")
+    )
+
+    print(
+        f"Found {len(dam_wb):,} dams associated with waterbodies and {len(dams) - len(dam_wb):,} not associated with waterbodies in {time() - join_start:,.2f}s"
+    )
 
     print("Joining {:,} NHD dams to {:,} flowlines".format(len(dams), len(flowlines)))
     join_start = time()
@@ -192,6 +255,8 @@ for huc2 in huc2s:
             f"{errors.sum():,} dam / flowline joins could not be represented as points and were dropped"
         )
 
+    # WARNING: there may be multiple points per dam at this point, due to intersections with
+    # multiple disjunct flowlines
     dams = (
         dams[["damID", "lineID", "pt"]]
         .dropna(subset=["pt"])
@@ -199,51 +264,7 @@ for huc2 in huc2s:
         .set_index("damID")
     )
 
-    ### Associate with waterbodies, so that we know which waterbodies are claimed
-    # Note: because dams are buffered slightly, they should always intersect with
-    # their neighboring waterbody (if there is one)
-    print("Joining to waterbodies...")
-    waterbodies = gp.read_feather(
-        src_dir / huc2 / "waterbodies.feather", columns=["wbID", "geometry"]
-    ).set_index("wbID")
-
-    join_start = time()
-    joined = (
-        sjoin_geometry(
-            pd.Series(dams.geometry.values.data, index=dams.index),
-            pd.Series(waterbodies.geometry.values.data, index=waterbodies.index),
-        )
-        .rename("wbID")
-        .drop_duplicates()
-    )
-
-    dams = dams.join(joined, how="left")
-    print(f"Found {len(joined):,} dams in waterbodies in {time() - join_start:.2f}s")
-
-    print("Finding nearest waterbody drain for those that didn't join to waterbodies")
-    # We only retain the wbID
-    drains = gp.read_feather(
-        src_dir / huc2 / "waterbody_drain_points.feather",
-        columns=["wbID", "geometry"],
-    )
-
-    # some might be immediately downstream, find the closest drain within 250m
-    nearest_start = time()
-    ix = dams.wbID.isnull()
-    tmp = dams.loc[ix]
-    nearest_drains = nearest(
-        pd.Series(tmp.geometry.values.data, index=tmp.index),
-        pd.Series(drains.geometry.values.data, index=drains.wbID),
-        250,
-    )
-    dams.loc[nearest_drains.index, "wbID"] = nearest_drains.wbID
-
-    print(
-        f"Found {len(nearest_drains):,} nearest drain points in {time() - nearest_start:.2f}s"
-    )
-
-    print(f"{dams.wbID.isnull().sum():,} dams not associated with waterbodies")
-
+    dams = dams.join(dam_wb)
     dams.wbID = dams.wbID.fillna(-1)
 
     print("Region done in {:.2f}s".format(time() - region_start))
@@ -265,7 +286,7 @@ print(
 dams = gp.GeoDataFrame(dams, geometry="geometry", crs=nhd_dams.crs)
 dams.damID = dams.damID.astype("uint32")
 dams.lineID = dams.lineID.astype("uint32")
-dams.wbID = dams.wbID.astype("uint32")
+dams.wbID = dams.wbID.astype("int32")
 
 print("Serializing...")
 dams.to_feather(out_dir / "nhd_dams_pt.feather")

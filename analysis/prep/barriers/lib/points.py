@@ -1,4 +1,3 @@
-import geopandas as gp
 import pygeos as pg
 import pandas as pd
 import numpy as np

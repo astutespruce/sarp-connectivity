@@ -124,9 +124,9 @@ def export_duplicate_areas(dups, path):
     dissolved = dissolve(dups[["geometry", "dup_group"]], by="dup_group")
     groups = gp.GeoDataFrame(
         dups[["id", "SARPID", "dup_group"]]
-        .join(dissolved.geometry, on="dup_group")
         .groupby("dup_group")
-        .agg({"geometry": "first", "SARPID": "unique", "id": "unique"}),
+        .agg({"SARPID": "unique", "id": "unique"})
+        .join(dissolved.geometry, on="dup_group"),
         crs=dups.crs,
     )
     groups["id"] = groups.id.apply(lambda x: ", ".join([str(s) for s in x]))
