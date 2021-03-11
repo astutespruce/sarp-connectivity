@@ -5,6 +5,7 @@ import numpy as np
 from pyogrio import write_dataframe
 
 from analysis.lib.network import connected_groups
+from analysis.lib.util import append
 
 
 def sjoin(left, right, predicate="intersects", how="left"):
@@ -474,18 +475,40 @@ def nearest(source, target, max_distance, keep_all=False):
     right_index_name = target.index.name or "index_right"
 
     tree = pg.STRtree(target.values.data)
-    (left_ix, right_ix), distance = tree.nearest_all(
-        source.values.data, max_distance=max_distance, return_distance=True
-    )
 
-    # Note: there may be multiple equidistant or intersected results, so we take the first
-    df = pd.DataFrame(
-        {
-            right_index_name: target.index.take(right_ix),
-            "distance": distance,
-        },
-        index=source.index.take(left_ix),
-    )
+    if np.isscalar(max_distance):
+        (left_ix, right_ix), distance = tree.nearest_all(
+            source.values.data, max_distance=max_distance, return_distance=True
+        )
+
+        # Note: there may be multiple equidistant or intersected results, so we take the first
+        df = pd.DataFrame(
+            {
+                right_index_name: target.index.take(right_ix),
+                "distance": distance,
+            },
+            index=source.index.take(left_ix),
+        )
+
+    else:  # array
+        merged = None
+        for d in np.unique(max_distance):
+            ix = max_distance == d
+            left = source.loc[ix]
+            (left_ix, right_ix), distance = tree.nearest_all(
+                left.values.data, max_distance=d, return_distance=True
+            )
+            merged = append(
+                merged,
+                pd.DataFrame(
+                    {
+                        left_index_name: left.index.take(left_ix),
+                        right_index_name: target.index.take(right_ix),
+                        "distance": distance,
+                    },
+                ),
+            )
+        df = merged.set_index(left_index_name)
 
     if keep_all:
         df = df.reset_index().drop_duplicates().set_index(left_index_name)

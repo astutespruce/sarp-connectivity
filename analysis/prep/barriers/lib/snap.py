@@ -146,7 +146,7 @@ def snap_to_nhd_dams(df, to_snap):
     near_nhd = nearest(
         pd.Series(to_snap.geometry.values.data, index=to_snap.index),
         pd.Series(nhd_dams_poly.geometry.values.data, index=nhd_dams_poly.index),
-        distance=NHD_DAM_TOLERANCE,
+        max_distance=NHD_DAM_TOLERANCE,
     )[["damID"]]
 
     # snap to nearest dam point for that dam (some are > 1 km away)
@@ -185,7 +185,7 @@ def snap_to_nhd_dams(df, to_snap):
     near_nhd = nearest(
         pd.Series(to_snap.geometry.values.data, index=to_snap.index),
         pd.Series(tmp.geometry.values.data, index=tmp.index),
-        distance=to_snap.snap_tolerance,
+        max_distance=to_snap.snap_tolerance,
     ).rename(columns={"distance": "snap_dist"})
 
     near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(

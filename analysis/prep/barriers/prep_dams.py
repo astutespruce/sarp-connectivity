@@ -501,7 +501,7 @@ flowlines = read_feathers(
         for huc2 in df.HUC2.unique()
         if huc2
     ],
-    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop", "HUC4"],
+    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop"],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")

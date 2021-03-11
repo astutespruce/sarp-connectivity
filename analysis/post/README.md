@@ -16,20 +16,11 @@ NOTE: this does not currently include any network analysis results for waterfall
 
 Run `analysis/post/extract_summary_stats.py` to generate an overall summary file used by the user interface in the tool, and a summary file for each of the summary units to be attached to their vector tiles.
 
-### Networks for mapping
-
-Run `analysis/post/extract_small_barrier_networks.py` to extract networks upstream of small barriers.
-NOTE: these only the subset of networks associated with small barriers, not the full aquatic network.
-
-Also note:
-`analysis/post/extract_dam_networks.py' can be used to extract upstream networks for dams if needed.
-This is not currently used. (the shapefiles created by the network analysis are used instead)
-
 ### Vector tiles
 
 From the root directory of the repository, run the following shell scripts:
 
--   `analysis/post/generate_barrier_tiles.sh`: this generates the on and off-network tilesets for dams, small barriers (off-network includes road crossings), and waterfalls, and joins summary stats to the boundary layers.
--   `analysis/post/generate_network_tiles.sh`: this generates the dams and small barrier networks. The networks for the dams are the complete set of networks and can be used to display flowlines on a map; the small barriers are only those networks upstream of small barriers.
+- `analysis/post/generate_barrier_tiles.sh`: this generates the on and off-network tilesets for dams, small barriers (off-network includes road crossings), and waterfalls, and joins summary stats to the boundary layers.
+- `analysis/post/generate_network_tiles.sh`: this generates the dams and small barrier networks. The networks for the dams are the complete set of networks and can be used to display flowlines on a map; the small barriers are only those networks upstream of small barriers.
 
 Final tiles for deployment are in `/tiles`
