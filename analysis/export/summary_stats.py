@@ -4,7 +4,7 @@ import pandas as pd
 
 from api.constants import DOMAINS
 
-current_version = "Dec2020"
+current_version = "March2021"
 
 data_dir = Path("data/barriers/master")
 out_dir = Path("data/versions")

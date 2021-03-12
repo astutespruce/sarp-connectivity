@@ -23,3 +23,8 @@ try:
 except Exception as e:
     print("ERROR: not able to load data")
     log.error(e)
+
+
+# on demand instead of in-memory
+def get_removed_dams():
+    return pd.read_feather(data_dir / "removed_dams.feather")

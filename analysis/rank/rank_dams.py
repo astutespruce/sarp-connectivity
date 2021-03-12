@@ -6,6 +6,7 @@ Input:
 
 Outputs:
 * `data/api/dams.feather`: processed dam data for use by the API
+* `data/api/removed_dams.feather`: dams that were removed for conservation
 * `data/tiles/dams_with_networks.csv`: Dams with networks for creating vector tiles in tippecanoe
 * `data/tiles/dams_without_networks.csv`: Dams without networks for creating vector tiles in tippecanoe
 
@@ -93,7 +94,30 @@ df = (
     .rename(columns={"StreamOrde": "StreamOrder", "excluded": "Excluded"})
 )
 
-# drop any that should be DROPPED (dropped or duplicate) from the analysis
+
+### Save dams that were removed, for use in API (they are otherwise dropped below)
+removed = df.loc[
+    (df.Recon == 7) | (df.ManualReview == 8),
+    [
+        "geometry",
+        "SARPID",
+        "SourceDBID",
+        "NIDID",
+        "River",
+        "Name",
+        "State",
+        "County",
+        "HUC12",
+        "duplicate",
+    ],
+].to_crs(epsg=4326)
+removed["lat"] = pg.get_y(removed.geometry.values.data).astype("float32")
+removed["lon"] = pg.get_x(removed.geometry.values.data).astype("float32")
+removed = removed.drop(columns=["geometry"])
+removed.to_feather(api_dir / "removed_dams.feather")
+
+
+### drop any that should be DROPPED (dropped or duplicate) from the analysis
 # NOTE: excluded ones are retained but don't have networks; ones on loops are retained but also don't have networks
 df = df.loc[~(df.dropped | df.duplicate)].copy()
 

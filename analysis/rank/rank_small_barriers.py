@@ -86,9 +86,10 @@ df = (
 )
 
 
-# drop any that should be DROPPED (dropped or duplicate) from the analysis
-# NOTE: excluded ones are retained but don't have networks
-df = df.loc[~(df.dropped | df.duplicate)].copy()
+# Drop any that are duplicates
+# NOTE: we retain those that were dropped because these are relevant for folks to know what
+# has been inventoried (e.g., those dropped because no barrier, etc)
+df = df.loc[~df.duplicate].copy()
 
 ### Read in network outputs and join to master
 print("Reading network outputs")

@@ -7,7 +7,7 @@ from api.constants import (
     SB_PUBLIC_EXPORT_FIELDS,
     unpack_domains,
 )
-from api.data import dams, barriers
+from api.data import dams, barriers, get_removed_dams
 from api.logger import log, log_request
 from api.response import csv_response
 
@@ -32,7 +32,10 @@ class StateRecordExtractor:
 
 
 @router.get("/dams/state")
-def query_dams(request: Request, extractor: StateRecordExtractor = Depends()):
+def query_dams(
+    request: Request,
+    extractor: StateRecordExtractor = Depends(),
+):
     """Return subset of dams based on state abbreviations.
 
     Query parameters:
@@ -41,13 +44,23 @@ def query_dams(request: Request, extractor: StateRecordExtractor = Depends()):
 
     log_request(request)
 
-    print(f"{request.url} requested by {request.client.host}")
-
     df = extractor.extract(dams)[DAM_PUBLIC_EXPORT_FIELDS].copy()
     df = df.sort_values(by="HasNetwork", ascending=False)
     df = unpack_domains(df)
 
     log.info(f"public query selected {len(df.index)} dams")
+
+    return csv_response(df)
+
+
+@router.get("/removed_dams")
+def query_removed_dams(
+    request: Request,
+):
+    """Return dams that were removed for conservation"""
+
+    log_request(request)
+    df = unpack_domains(get_removed_dams())
 
     return csv_response(df)
 
