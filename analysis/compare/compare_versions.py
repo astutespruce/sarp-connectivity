@@ -1,10 +1,12 @@
-from logging import currentframe
 from pathlib import Path
 
 import pandas as pd
 
-current_version = "Dec2020"
-prev_version = "May2020"
+pd.options.display.max_rows = 200
+
+
+current_version = "March2021"
+prev_version = "Dec2020"
 
 data_dir = Path("data/barriers/master")
 out_dir = Path("data/versions")
@@ -155,3 +157,31 @@ for barrier_type in ["dams", "small_barriers"]:
             out.write(f"ManualReview one of {had_manual_review}\n\n")
             out.write(stats.to_markdown(floatfmt=",.0f"))
             stats.to_excel(xlsx, sheet_name="Recon (only for manually reviewed)")
+
+    # compare network results
+    read_cols = ["SARPID", "HasNetwork", "TotalUpstreamMiles", "TotalDownstreamMiles"]
+    df = pd.read_feather(f"data/api/{barrier_type}.feather", columns=read_cols)
+    prev = pd.read_feather(
+        data_dir / "archive" / prev_version / f"api/{barrier_type}.feather",
+        columns=read_cols,
+    )
+
+    df = df.join(prev.set_index("SARPID"), on="SARPID", how="left", rsuffix="_prev")
+    for field in ["TotalUpstreamMiles", "TotalDownstreamMiles"]:
+        df[f"{field}_diff"] = df[field] - df[f"{field}_prev"]
+        df[f"{field}_absdiff"] = df[f"{field}_diff"].abs()
+
+        print(f"Most differences between versions for {field}")
+        print(
+            df.sort_values(by=f"{field}_absdiff", ascending=False).head(100)[
+                [
+                    "SARPID",
+                    "HasNetwork",
+                    "TotalUpstreamMiles",
+                    "TotalUpstreamMiles_prev",
+                    "TotalDownstreamMiles",
+                    "TotalDownstreamMiles_prev",
+                    f"{field}_diff",
+                ]
+            ]
+        )

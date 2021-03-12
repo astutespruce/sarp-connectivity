@@ -29,6 +29,7 @@ from analysis.network.lib.barriers import read_barriers, save_barriers
 from analysis.lib.flowlines import cut_flowlines_at_barriers, save_cut_flowlines
 from analysis.network.lib.networks import create_networks
 
+warnings.simplefilter("always")  # show geometry related warnings every time
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 
