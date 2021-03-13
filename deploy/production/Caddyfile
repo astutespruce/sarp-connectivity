@@ -10,10 +10,16 @@ connectivity.sarpdata.com {
 
   route /api* {
     @encode_paths {
-      path */query/* */rank/*
+      path */query/* */rank/* */public/*
     }
 
       encode @encode_paths zstd gzip
+      reverse_proxy localhost:5000
+  }
+
+  route /api/docs* {
+      encode zstd gzip
+      uri strip_prefix /api
       reverse_proxy localhost:5000
   }
 

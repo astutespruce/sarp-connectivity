@@ -9,7 +9,7 @@ import sentry_sdk
 from sentry_sdk.integrations.asgi import SentryAsgiMiddleware
 
 from api.logger import log
-from api.settings import ALLOWED_ORIGINS, LOGGING_LEVEL, SENTRY_DSN
+from api.settings import ALLOWED_ORIGINS, LOGGING_LEVEL, SENTRY_DSN, API_ROOT_PATH
 from api.internal import router as internal_router
 from api.public import router as public_router
 
@@ -21,7 +21,8 @@ if SENTRY_DSN:
 
 
 ### Create the main API app
-app = FastAPI(version="1.0")
+app = FastAPI(version="1.0", root_path=API_ROOT_PATH)
+path_prefix = "/api/v1" if API_ROOT_PATH is None else ""
 
 ### Add logger
 @app.on_event("startup")
@@ -69,5 +70,7 @@ app.add_middleware(
 
 
 ### Add the routes to the main app
-app.include_router(internal_router, prefix="/api/v1/internal", include_in_schema=False)
-app.include_router(public_router, prefix="/api/v1/public")
+app.include_router(
+    internal_router, prefix=f"{path_prefix}/internal", include_in_schema=False
+)
+app.include_router(public_router, prefix=f"{path_prefix}/public")
