@@ -159,19 +159,24 @@ DAM_FS_COLS = [
     "Snap2018",  # renamed to ManualReview
     "NIDID",
     "SourceDBID",
+    "DB_Source",
     "Barrier_Name",
     "Other_Barrier_Name",
     "River",
     "PurposeCategory",
     "Year_Completed",
     "Height",
+    "Length",
+    "Width",
     "StructureCondition",
     "ConstructionMaterial",
-    "DB_Source",
     "Recon",
-    "PassageFacility",
     "BarrierStatus",
     "PotentialFeasibility",  # only present in NC
+    "PassageFacility",
+    "Diversion",
+    "FishScreen",
+    "ScreenType",
 ]
 
 DAM_COLS = [

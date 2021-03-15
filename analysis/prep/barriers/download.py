@@ -60,30 +60,30 @@ WATERFALLS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/servi
 DAM_URLS = {
     "AL": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Alabama_Dam_Inventory_11_15_2018/FeatureServer/0",
     "AR": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Arkansas_Dam_Inventory_11122018/FeatureServer/0",
-    "AZ": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Arizona_Dam_Inventory_03052021/FeatureServer/0",
-    "CO": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Colorado_Dam_Inventory_03052021/FeatureServer/0",
+    "AZ": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Arizona_Dam_Inventory_03052021/FeatureServer/1",
+    "CO": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Colorado_Dam_Inventory_03052021/FeatureServer/1",
     "FL": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Florida_Dam_Inventory_Jan112019/FeatureServer/0",
     "GA": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/R4_Georgia_Dam_Inventory_12_14_2018/FeatureServer/0",
-    "IA": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Iowa_Dam_Inventory_03052021/FeatureServer/0",
-    "KS": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Kansas_Dam_Inventory_03052021/FeatureServer/0",
+    "IA": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Iowa_Dam_Inventory_03052021/FeatureServer/1",
+    "KS": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Kansas_Dam_Inventory_03052021/FeatureServer/1",
     "KY": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/R4_Kentucky_Dam_Inventory_12_01_2018/FeatureServer/0",
     "LA": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/LouisianaDams/FeatureServer/0",
     "MO": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/MissouriDams/FeatureServer/0",
     "MS": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Mississippi_Dam_Inventory_11192018/FeatureServer/0",
-    "MT": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Montana_Dam_Inventory_03052021/FeatureServer/0",
+    "MT": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Montana_Dam_Inventory_03052021/FeatureServer/1",
     "NC": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/North_Carolina_Dam_Inventory_03252019/FeatureServer/0",
-    "ND": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/North_Dakota_Dam_Inventory_03052021/FeatureServer/0",
-    "NE": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Nebraska_Dam_Inventory_03052021/FeatureServer/0",
-    "NM": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/New_Mexico_Dam_Inventory_03052021/FeatureServer/0",
+    "ND": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/North_Dakota_Dam_Inventory_03052021/FeatureServer/1",
+    "NE": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Nebraska_Dam_Inventory_03052021/FeatureServer/1",
+    "NM": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/New_Mexico_Dam_Inventory_03052021/FeatureServer/1",
     "OK": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/OklahomaDams/FeatureServer/0",
     "PR": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Puerto_Rico_Dam_Inventory_12202019/FeatureServer/0",
     "SC": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/R4_South_Carolina_Dam_Inventory_2018/FeatureServer/0",
-    "SD": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/South_Dakota_Dam_Inventory_03052021/FeatureServer/0",
+    "SD": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/South_Dakota_Dam_Inventory_03052021/FeatureServer/1",
     "TN": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Tennessee_Dam_Inventory_11_15_2018/FeatureServer/0",
     "TX": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/TexasDams/FeatureServer/0",
-    "UT": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Utah_Dam_Inventory_03052021/FeatureServer/0",
+    "UT": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Utah_Dam_Inventory_03052021/FeatureServer/1",
     "VA": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Virginia_Dam_Inventory_11_12_2018/FeatureServer/0",
-    "WY": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Wyoming_Dam_Inventory_03052021/FeatureServer/0",
+    "WY": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Wyoming_Dam_Inventory_03052021/FeatureServer/1",
 }
 
 
@@ -95,10 +95,6 @@ start = time()
 merged = None
 dam_cols = DAM_FS_COLS
 for state, url in DAM_URLS.items():
-    if state not in SARP_STATES:
-        # TODO: remove; run for all states
-        continue
-
     download_start = time()
 
     print("---- Downloading {} ----".format(state))
@@ -157,6 +153,12 @@ if ix.max():
 
 # DEBUG ONLY - SARPID must be present; follow up with SARP if not
 df.SARPID = df.SARPID.fillna("").astype("str")
+
+
+s = df.groupby("SARPID").size()
+if s.max() > 1:
+    print("WARNING: multiple dams with same SARPID")
+    print(s[s > 1])
 
 df.to_feather(out_dir / "sarp_dams.feather")
 
@@ -217,6 +219,11 @@ if ix.max():
 
 # DEBUG ONLY - SARPID must be present; follow up with SARP if not
 df.SARPID = df.SARPID.fillna("").astype("str")
+
+s = df.groupby("SARPID").size()
+if s.max() > 1:
+    print("WARNING: multiple small barriers with same SARPID")
+    print(s[s > 1])
 
 df.to_feather(out_dir / "sarp_small_barriers.feather")
 

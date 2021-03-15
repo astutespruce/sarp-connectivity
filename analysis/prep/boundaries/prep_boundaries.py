@@ -16,6 +16,7 @@ import pygeos as pg
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS, OWNERTYPE_TO_DOMAIN, OWNERTYPE_TO_PUBLIC_LAND
+from analysis.lib.pygeos_util import explode, dissolve
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -42,6 +43,33 @@ sarp_state_df = gp.read_feather(
 )
 sarp_states = sarp_state_df.STATEFIPS.unique()
 
+
+# Clip HUC4 areas outside state boundaries; these are remainder
+state_merged = pg.coverage_union_all(state_df.geometry.values.data)
+
+# find all that intersect but are not contained
+tree = pg.STRtree(huc4_df.geometry.values.data)
+intersects_ix = tree.query(state_merged, predicate="intersects")
+contains_ix = tree.query(state_merged, predicate="contains")
+ix = np.setdiff1d(intersects_ix, contains_ix)
+
+outer_huc4 = huc4_df.iloc[ix].copy()
+outer_huc4["km2"] = pg.area(outer_huc4.geometry.values.data) / 1e6
+
+# calculate geometric difference, explode, and keep non-slivers
+outer_huc4["geometry"] = pg.difference(outer_huc4.geometry.values.data, state_merged)
+outer_huc4 = explode(outer_huc4)
+outer_huc4["clip_km2"] = pg.area(outer_huc4.geometry.values.data) / 1e6
+outer_huc4["percent"] = 100 * outer_huc4.clip_km2 / outer_huc4.km2
+keep_huc4 = outer_huc4.loc[outer_huc4.clip_km2 >= 100].HUC4.unique()
+outer_huc4 = outer_huc4.loc[
+    outer_huc4.HUC4.isin(keep_huc4) & (outer_huc4.clip_km2 >= 2.5)
+].copy()
+outer_huc4 = dissolve(outer_huc4, by="HUC4", agg={"HUC2": "first"}).reset_index(
+    drop=True
+)
+outer_huc4.to_feather(out_dir / "outer_huc4.feather")
+write_dataframe(outer_huc4, out_dir / "outer_huc4.gpkg")
 
 ### Counties - within HUC4 bounds
 print("Processing counties")

@@ -2,12 +2,13 @@
 
 This is the main data flow for updating barrier data, each time new barriers need to be processed for use in the tool.
 
-Barriers are extracted from multiple sources for the network connectivity and barrier prioritization analyses. These include:
+Barriers are extracted from multiple sources for the network connectivity and barrier prioritization analyses.
+These are processed in the following order.
 
--   waterfalls
--   dams
--   small barriers (inventoried road-related crossings)
--   road crossings (non-inventoried road-related crossings)
+1. dams
+2. small barriers (inventoried road-related crossings)
+3. road crossings (non-inventoried road-related crossings)
+4. waterfalls
 
 The output of the processing steps below are full barriers datasets in `data/barriers/master` and a subset of dams, small barriers, and waterfalls that were snapped to the aquatic network in `data/barriers/snapped`.
 
@@ -22,18 +23,27 @@ You must set `AGOL_TOKEN` in an `.env` file in the root of this project. It must
 
 ## Data sources:
 
--   Waterfalls: obtained by Kat (SARP) from USGS in early 2019.
--   Dams: hosted on ArcGIS Online by state for SARP states, provided directly by Kat (SARP) for non-SARP states
--   Small barriers: hosted on ArcGIS Online
--   Road crossings: obtained by Kat (SARP) from USGS in 2018.
-
-## Waterfalls
-
-Waterfalls are processed using `analysis/prep/barriers/prep_waterfalls.py`.
-
-Waterfalls are snapped to the aquatic network and duplicates are marked.
+- Dams: hosted on ArcGIS Online by state for SARP states, provided directly by Kat (SARP) for non-SARP states
+- Small barriers: hosted on ArcGIS Online
+- Waterfalls: obtained by Kat (SARP) from USGS in early 2019.
+- Road crossings: obtained by Kat (SARP) from USGS in 2018.
+- NID: obtained by Kat and provided on 3/5/2021
+- National Anthropogenic Barriers Database (NABD): obtained by Kat and provided on 1/22/2021
 
 ## Dams
+
+### NID / NABD
+
+NID dams are used to supplement the inventory for areas outside the states analyzed in this tool.
+
+NID dams can be downloaded from: https://nid.sec.usace.army.mil/ords/NID_R.DOWNLOADFILE?InFileName=NID2019_U.xlsx
+(https://nid.sec.usace.army.mil/ords/f?p=105:19:10030994249341::NO:::)
+
+NID dams were obtained by Kat and standardized to SARP schema.
+
+These were processed and joined with NABD, which provide updated (snapped) locations of many dams in NID using `prep_nid_dams.py`.
+
+### Processing
 
 Dams for SARP states are downloaded from user-edited state-level datasets hosted on ArcGIS Online using `analysis/prep/barriers/download.py`. The individual states are standardized slightly and merged into a single dataset.
 
@@ -58,3 +68,9 @@ Small barriers are automatically snapped to the aquatic network if within 50 met
 These are processed using `analysis/prep/preprocess_road_crossings.py`. Run this before small barriers above so it can be merged in.
 
 This creates a feather file that is joined in with final small barriers dataset to create background barriers displayed on the map.
+
+## Waterfalls
+
+Waterfalls are processed using `analysis/prep/barriers/prep_waterfalls.py`.
+
+Waterfalls are snapped to the aquatic network and duplicates are marked.
