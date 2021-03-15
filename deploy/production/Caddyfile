@@ -8,18 +8,13 @@ connectivity.sarpdata.com {
       reverse_proxy localhost:8000
   }
 
-  route /api* {
+  route /api/v1* {
+    uri strip_prefix /api/v1
     @encode_paths {
-      path */query/* */rank/* */public/*
+      path */query/* */rank/* */public/* */docs/*
     }
 
       encode @encode_paths zstd gzip
-      reverse_proxy localhost:5000
-  }
-
-  route /api/docs* {
-      encode zstd gzip
-      uri strip_prefix /api
       reverse_proxy localhost:5000
   }
 
