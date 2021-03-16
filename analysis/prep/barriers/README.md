@@ -32,16 +32,34 @@ You must set `AGOL_TOKEN` in an `.env` file in the root of this project. It must
 
 ## Dams
 
-### NID / NABD
+### Prep: NID / NABD
 
-NID dams are used to supplement the inventory for areas outside the states analyzed in this tool.
+NID dams are used to supplement the inventory for HUC4s outside the core states analyzed in this tool (see `analysis/constants.py::STATES` for the list).
 
 NID dams can be downloaded from: https://nid.sec.usace.army.mil/ords/NID_R.DOWNLOADFILE?InFileName=NID2019_U.xlsx
 (https://nid.sec.usace.army.mil/ords/f?p=105:19:10030994249341::NO:::)
 
-NID dams were obtained by Kat and standardized to SARP schema.
+NID dams were obtained by Kat in early 2021 and standardized to SARP schema.
 
-These were processed and joined with NABD, which provide updated (snapped) locations of many dams in NID using `prep_nid_dams.py`.
+These were processed and joined with NABD, which provide updated (snapped) locations of many dams in NID using `special/prep_nid_dams_outer_huc4s.py`.
+
+This included joining in dams that were previously outside SARP states from prior versions of this analysis.  These include dams from the Northeast aquatic connectivity project (TNC) and dams that were manually reviewed updates of NID.
+
+This step should only be necessary to run once each time the HUC4s outside the core states in the analysis are updated or newer versions of NID are incorporated.
+
+### Prep: Dams in states outside SARP boundary
+
+Previous versions of this analysis included dams outside SARP states, which are now part of the analysis region.  Some of these were manually reviewed and possibly snapped to correct locations on the aquatic network.
+
+These are used to prepare an initial snapping dataset for areas outside SARP using `special/prep_snapping_dataset_outside_sarp.py`.
+
+This includes only those dams that do not have duplicate NIDIDs to keep the joins simple.
+
+This should only be run once to create the initial manual snapping dataset for areas outside SARP.
+
+After an initial splice with the state-level datasets, this was then exported
+to create the snapping dataset to be hosted on AGOL by SARP for non-SARP states using `special/export_snapping_dataset.py`.
+
 
 ### Processing
 

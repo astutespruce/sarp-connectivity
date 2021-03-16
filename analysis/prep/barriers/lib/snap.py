@@ -242,7 +242,7 @@ def snap_to_waterbodies(df, to_snap):
     print("=================\nSnapping to waterbodies and drain points..")
 
     for huc2 in sorted(to_snap.HUC2.unique()):
-        print(f"----- {huc2} ------")
+        print(f"\n----- {huc2} ------")
         in_huc2 = to_snap.loc[to_snap.HUC2 == huc2].copy()
 
         wb = gp.read_feather(
@@ -478,7 +478,7 @@ def snap_to_flowlines(df, to_snap):
     for huc2 in sorted(to_snap.HUC2.unique()):
         region_start = time()
 
-        print(f"----- {huc2} ------")
+        print(f"\n----- {huc2} ------")
 
         flowlines = gp.read_feather(
             nhd_dir / "clean" / huc2 / "flowlines.feather",

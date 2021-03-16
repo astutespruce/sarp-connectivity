@@ -40,8 +40,6 @@ from analysis.prep.barriers.lib.duplicates import (
 
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.constants import (
-    CRS,
-    DAM_COLS,
     DROP_MANUALREVIEW,
     EXCLUDE_MANUALREVIEW,
     ONSTREAM_MANUALREVIEW,
@@ -69,51 +67,28 @@ snapped_dir = barriers_dir / "snapped"
 qa_dir = barriers_dir / "qa"
 
 
-# dams that fall outside SARP
-outside_gdb = src_dir / "Raw_Featureservice_SARPUniqueID.gdb"
-outside_layer = "Dams_Non_SARP_States_09052019"
-
 start = time()
 
 
 ### Read in SARP states and merge
 print("Reading dams in SARP states")
 df = gp.read_feather(src_dir / "sarp_dams.feather")
-print(f"Read {len(df):,} dams in SARP states")
+print(f"Read {len(df):,} dams in region states")
 
 ### Read in non-SARP states and join in
 # these are for states that overlap with HUC4s that overlap with SARP states
 print(
-    "Reading dams that fall outside SARP states, but within HUC4s that overlap with SARP states..."
+    "Reading dams that fall outside region states, but within HUC4s that overlap with region states..."
 )
-outside_df = read_dataframe(outside_gdb, layer=outside_layer).drop(columns=["SARPID"])
-# add in missing columns
-outside_df["PassageFacility"] = np.nan
-outside_df["BarrierStatus"] = np.nan
-outside_df = (
-    # SARPID is Old, use SARPUniqueID for it instead
-    outside_df.rename(columns={"SARPUniqueID": "SARPID", "Snap2018": "ManualReview"})[
-        DAM_COLS + ["geometry"]
-    ]
-    .to_crs(CRS)
-    .rename(
-        columns={
-            "Barrier_Name": "Name",
-            "Other_Barrier_Name": "OtherName",
-            "DB_Source": "Source",
-            "Year_Completed": "Year",
-            "ConstructionMaterial": "Construction",
-            "PurposeCategory": "Purpose",
-            "StructureCondition": "Condition",
-            "Feasibility": "Feasibility",
-        }
-    )
-)
-print(f"Read {len(outside_df):,} dams outside SARP states")
+
+outside_df = gp.read_feather(src_dir / "dams_outer_huc4.feather")
+# drop any that are in the main dataset, since there are several dams at state lines
+outside_df = outside_df.loc[~outside_df.SARPID.isin(df.SARPID.unique())].copy()
+print(f"Read {len(outside_df):,} dams outer HUC4s")
 
 df = df.append(outside_df, ignore_index=True, sort=False)
 
-### Read in dams that have been manually reviewed
+### Read in dams that have been manually reviewed within SARP states
 print("Reading manually snapped dams...")
 snapped_df = gp.read_feather(
     src_dir / "manually_snapped_dams.feather",
@@ -124,9 +99,7 @@ snapped_df = gp.read_feather(
 # 7,9: assumed offstream but attempt to snap
 # 20,21: dams with lower confidence assigned automatically in previous run
 snapped_df = snapped_df.loc[
-    snapped_df.SARPID.notnull()
-    & snapped_df.geometry.notnull()
-    & (~snapped_df.ManualReview.isin([0, 1, 7, 9, 20, 21]))
+    ~snapped_df.ManualReview.isin([0, 1, 7, 9, 20, 21])
 ].set_index("SARPID")
 
 for col in ["dropped", "excluded", "duplicate", "snapped"]:
@@ -173,9 +146,7 @@ print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df
 ### Make sure there are not duplicates
 s = df.groupby("SARPID").size()
 if s.max() > 1:
-    print("WARNING: multiple dams with same SARPID")
-    print(s[s > 1])
-    # raise ValueError(f"Multiple dams with same SARPID: {s[s > 1].index}")
+    raise ValueError(f"Multiple dams with same SARPID: {s[s > 1].index}")
 
 
 ### Add IDs for internal use
@@ -186,7 +157,17 @@ df = df.set_index("id", drop=False)
 
 ######### Fix data issues
 ### Set data types
-for column in ("River", "NIDID", "Source", "Name", "OtherName", "SourceState"):
+for column in (
+    "River",
+    "NIDID",
+    "Source",
+    "Name",
+    "OtherName",
+    "SourceState",
+    "ScreenType",
+    "FishScreen",
+    "Diversion",
+):
     df[column] = df[column].fillna("").str.strip()
 
 for column in (

@@ -4,6 +4,7 @@ from time import time
 import warnings
 
 from dotenv import load_dotenv
+import geopandas as gp
 
 from analysis.constants import (
     SARP_STATES,
@@ -172,8 +173,25 @@ df = download_fs(
     token=token,
 )
 
+# drop any that do not have SARPID
+df = df.dropna(subset=["SARPID"])
+
 print("Projecting manually snapped dams...")
 df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
+
+# TODO: remove
+# temporary: splice in local snap dataset for non-SARP states until it is available online
+other_df = gp.read_feather(
+    out_dir / "snapped_outside_sarp_2021.feather",
+    columns=["SARPID", "geometry", "ManualReview"],
+)
+
+df = df.append(other_df, ignore_index=True)
+for col in ["dropped", "excluded", "snapped", "duplicate"]:
+    df[col] = df[col].fillna(0).astype("bool")
+
+# end TODO
+
 
 print(
     "Downloaded {:,} snapped dams in {:.2f}s".format(len(df), time() - download_start)

@@ -5,8 +5,8 @@ import pandas as pd
 pd.options.display.max_rows = 200
 
 
-current_version = "March2021"
-prev_version = "Dec2020"
+current_version = "March2021_expanded"
+prev_version = "March2021"
 
 data_dir = Path("data/barriers/master")
 out_dir = Path("data/versions")
@@ -171,17 +171,18 @@ for barrier_type in ["dams", "small_barriers"]:
         df[f"{field}_diff"] = df[field] - df[f"{field}_prev"]
         df[f"{field}_absdiff"] = df[f"{field}_diff"].abs()
 
-        print(f"Most differences between versions for {field}")
-        print(
-            df.sort_values(by=f"{field}_absdiff", ascending=False).head(100)[
-                [
-                    "SARPID",
-                    "HasNetwork",
-                    "TotalUpstreamMiles",
-                    "TotalUpstreamMiles_prev",
-                    "TotalDownstreamMiles",
-                    "TotalDownstreamMiles_prev",
-                    f"{field}_diff",
+        if (df[f"{field}_absdiff"] > 0.1).any():
+            print(f"Most differences between versions for {field}")
+            print(
+                df.sort_values(by=f"{field}_absdiff", ascending=False).head(100)[
+                    [
+                        "SARPID",
+                        "HasNetwork",
+                        "TotalUpstreamMiles",
+                        "TotalUpstreamMiles_prev",
+                        "TotalDownstreamMiles",
+                        "TotalDownstreamMiles_prev",
+                        f"{field}_diff",
+                    ]
                 ]
-            ]
-        )
+            )
