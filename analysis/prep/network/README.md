@@ -5,6 +5,7 @@ This stage involves processing NHD data and related data into data structures th
 ## Overall workflow:
 
 1. Download NHD High Resolution Plus data for all applicable HUC4s that have dams.
+2. Downlaod National Wetlands Inventory daata
 2. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
 3. Run `extract_flowlines_waterbodies.py` to extract flowlines, flowline joins, waterbodies, and flowline / waterbody joins for each region group.
 4. Run `extract_nhd_barriers.py` followed by `aggregate_nhd_barriers.py` to extract dam-related features and waterfalls from other NHD datasets.
@@ -21,11 +22,20 @@ Feather files are used as a compact, fast I/O file format for these data.
 
 ### 1. Download NHDPlus HR data:
 
-Run `download.py`. This will download NHDPlus HR data by HUC4 into `data/nhd/source/huc4`. For now, you need to unzip these files manually into that directory.
+Run `download_nhd.py`. This will download NHDPlus HR data by HUC4 into `data/nhd/source/huc4`. For now, you need to unzip these files manually into that directory.
 
 WARNING: NHD HR+ data are currently in beta. There are data issues, including, but not limited to miscoded flowlines, spurious NHD areas, and fragmented adjacent waterbodies.
 
 NHD data were last downloaded on 10/12/2020.
+
+
+### 2. Download National Wetlands Inventory (NWI 2020) data:
+
+NWI ponds and lakes are used to supplement the NHDWaterbody dataset downloaded above.
+
+Run `download_nwi.py`.  This will download data by HUC8 into `data/nwi/source/huc8`.
+
+
 
 ### 2. Run any special preprocessing scripts or hand-inspect NHD data
 

@@ -23,6 +23,7 @@ sarp-connectivity = {editable = true,path = "."}
 rtree = ">=0.9.3"
 pyogrio = {editable = true,path = "./../pyogrio"}
 pygeos = "*"
+httpx = "*"
 
 [requires]
 python_version = "3.8"

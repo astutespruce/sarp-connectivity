@@ -31,14 +31,10 @@ def read_flowlines(path):
             "sizeclass",
             "length",
             "sinuosity",
+            "waterbody",
             "geometry",
         ],
-    ).rename(
-        columns={
-            "sizeclass": "size",
-            "length": "length_m",
-        }
-    )
+    ).rename(columns={"sizeclass": "size", "length": "length_m",})
     flowlines.lineID = flowlines.lineID.astype("uint32")
     flowlines.GNIS_ID = flowlines.GNIS_ID.fillna("")
     flowlines.GNIS_Name = flowlines.GNIS_Name.fillna("")
@@ -66,8 +62,7 @@ units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 huc2s = sorted(units.keys())
 
 # manually subset keys from above for processing
-huc2s = ["05", "06", "07", "08", "10", "11"]
-
+huc2s = ["03"]
 
 connected_huc2 = pd.read_feather(network_dir / "merged/connected_huc2.feather")
 connected_huc2 = connected_huc2.groupby("new_HUC2").upstream_HUC2.unique().apply(list)
@@ -85,7 +80,7 @@ floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).as
     "float32"
 )
 
-network_type = NETWORK_TYPES[1]
+network_type = NETWORK_TYPES[2]
 for huc2 in huc2s:
     print(f"----- {huc2} ({network_type}) ------")
 
@@ -182,10 +177,7 @@ for huc2 in huc2s:
     flowlines = (
         flowlines.reset_index(drop=True)
         .join(floodplains, on="NHDPlusID")
-        .join(
-            segments,
-            on="lineID",
-        )
+        .join(segments, on="lineID",)
     )
 
     write_dataframe(
