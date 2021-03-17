@@ -50,7 +50,20 @@ df = df[
         "StreamOrde",
         "sizeclass",
         "loop",
-        "waterbody",
         "wbID",
     ]
 ]
+
+# calculate lat and long
+tmp = df.to_crs("EPSG:4326").set_index("SARPID")
+tmp["lat"] = pg.get_y(tmp.geometry.values.data).astype("float32")
+tmp["lon"] = pg.get_x(tmp.geometry.values.data).astype("float32")
+
+df = df.join(tmp[["lat", "lon"]], on="SARPID")
+
+write_dataframe(df, out_dir / "dam_snapping_qa_dataset_outside_sarp.gpkg")
+
+df["x"] = pg.get_x(df.geometry.values.data).astype("float32")
+df["y"] = pg.get_y(df.geometry.values.data).astype("float32")
+
+df.to_excel(out_dir / "dam_snapping_qa_dataset_outside_sarp.xlsx")
