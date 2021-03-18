@@ -139,9 +139,6 @@ SNAP_ENDPOINT_TOLERANCE = 1  # meters
 # way as other waterbodies, so they will cause issues.
 WATERBODY_EXCLUDE_FTYPES = [361, 466, 493]
 
-# Arbitrary limit to try and optimize processing time.  There are LOTS of little ones.
-# Approx 5 acres
-# WATERBODY_MIN_SIZE = 0.02
 WATERBODY_MIN_SIZE = 0
 
 # Arbitrary cutoffs, but per visual inspection looks reasonable

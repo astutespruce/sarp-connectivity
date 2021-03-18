@@ -1,38 +1,5 @@
-import geopandas as gp
 import pandas as pd
 import numpy as np
-
-
-# DEPRECATED
-def spatial_join(left, right):
-    raise NotImplementedError("Use different spatial_join function!")
-
-
-# def spatial_join(left, right):
-#     left.sindex
-#     right.sindex
-
-#     joined = gp.sjoin(left, right, how="left").drop(columns=["index_right"])
-
-#     # WARNING: some places have overlapping areas (e.g., protected areas), this creates extra records!
-#     # Take the first entry in each case
-#     grouped = joined.groupby(level=0)
-#     if grouped.size().max() > 1:
-#         print(
-#             "WARNING: multiple target areas returned in spatial join for a single point"
-#         )
-
-#         # extract the right side indexed by the left, and take first record
-#         right = grouped[
-#             [c for c in right.columns if not c == right._geometry_column_name]
-#         ].first()
-#         joined = left.join(right)
-
-#     # pending https://github.com/geopandas/geopandas/issues/846
-#     # we have to reassign the original index name
-#     joined.index.name = left.index.name
-
-#     return joined
 
 
 def append(target_df, df):
@@ -57,7 +24,10 @@ def append(target_df, df):
     if target_df is None:
         return df
 
-    return target_df.append(df, ignore_index=True, sort=False)
+    if len(df) > 0:
+        return target_df.append(df, ignore_index=True, sort=False)
+
+    return target_df
 
 
 def flatten_series(series):

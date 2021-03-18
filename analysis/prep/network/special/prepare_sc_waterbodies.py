@@ -1,10 +1,17 @@
-from pathlib import Path
-import os
-from time import time
-import warnings
-from numpy.matrixlib import defmatrix
+"""This script processes LIDAR-derived waterbodies in South Carolina to extract
+waterbodies that intersect flowlines.
 
-import pandas as pd
+Limited to HUC2 == 03.
+
+Creates the following files in `data/states/sc`:
+* `sc_waterbodies.feather`: feather file for internal use
+* `sc_waterbodies.gpkg`: Geopackage for use in GIS
+"""
+
+
+from pathlib import Path
+import warnings
+
 import geopandas as gp
 import pygeos as pg
 import numpy as np
@@ -41,10 +48,16 @@ df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
 df = explode(df)
-df["tmp"] = 1
+# make valid
+ix = ~pg.is_valid(df.geometry.values.data)
+if ix.sum():
+    print(f"Repairing {ix.sum():,} invalid waterbodies")
+    df.loc[ix, "geometry"] = pg.make_valid(df.loc[ix].geometry.values.data)
+
 
 print("Dissolving adjacent waterbodies...")
-df = dissolve(df, by="tmp")
+df["tmp"] = 1
+df = dissolve(df, by="tmp").drop(columns=["tmp"])
 df = explode(df).reset_index(drop=True)
 
 df.to_feather(src_dir / "sc_waterbodies.feather")

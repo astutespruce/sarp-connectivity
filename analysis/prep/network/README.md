@@ -7,14 +7,13 @@ This stage involves processing NHD data and related data into data structures th
 1. Run `download_nhd.py` to download NHD High Resolution Plus data for all applicable HUC4s that have dams.
 2. Run `download_nwi.py` to download National Wetlands Inventory data.
 3. Manually download state-level LIDAR waterbody datasets.
-4. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
-5. Run `extract_flowlines_waterbodies.py` to extract flowlines, flowline joins, waterbodies, and flowline / waterbody joins for each region group.
+4. Run `extract_nhd.py` to extract flowlines, flowline joins, waterbodies, NHD barriers (points, lines, polygons) for each HUC2, followed by `aggregate_nhd_barriers.py` to aggregate NHD barriers across all HUC2s.
+5. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
 6. Run `extract_nwi_waterbodies_altered_rivers` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
-7. Run `extract_nhd_barriers.py` followed by `aggregate_nhd_barriers.py` to extract dam-related features and waterfalls from other NHD datasets.
-8. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
-9. Run `merge_waterbodies.py` to merge waterbodies to the full SARP region and create files for large waterbodies.
-10. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
-11. Run `prep_floodplain_statistics.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
+7. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
+8. Run `merge_waterbodies.py` to merge waterbodies to the full SARP region and create files for large waterbodies.
+9. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
+10. Run `prep_floodplain_statistics.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
 
 Now the underlying aquatic networks are ready for the network analysis.
 
@@ -30,33 +29,20 @@ WARNING: NHD HR+ data are currently in beta. There are data issues, including, b
 
 NHD data were last downloaded on 10/12/2020.
 
-
 ### 2. Download National Wetlands Inventory (NWI 2020) data:
 
 NWI ponds and lakes are used to supplement the NHDWaterbody dataset downloaded above.
 
-Run `download_nwi.py`.  This will download data by HUC8 into `data/nwi/source/huc8`.
-
+Run `download_nwi.py`. This will download data by HUC8 into `data/nwi/source/huc8`.
 
 ### 3. Download state-level LIDAR-based waterbody data
 
 South Carolina data are available at: ftp://ftpdata.dnr.sc.gov/gisdata/elev/Hydrolines/SCHydroBreakline.zip
 These were downloaded manually on 3/17/2021 to `data/states/sc/SCBreakline.gdb.
 
+### 4. Extract flowlines, waterbodies, and NHD barriers:
 
-
-### 2. Run any special preprocessing scripts or hand-inspect NHD data
-
-To get around issues with NHD HR+ Beta data, you likely need to inspect the NHD data first for errors. Two common problems are currently solved:
-
-1. Some "loops" are miscoded; the main segment is mis-identified as a loop, whereas a pipeline may be identified as the main segment.
-2. Chesapeake Bay contains many flowlines that cause networks to be joined together across the bay. These flowlines are excluded from the analysis.
-
-The results of this analysis and preprocessing are stored in `analysis/constants.py` in `EXCLUDE_IDS` and `CONVERT_TO_NONLOOP` variables. These store lists of NHDPlusIDs that need to be acted upon.
-
-### 3. Extract flowlines and waterbodies:
-
-Run `extract_flowlines_waterbodies.py` to extract the flowlines, joins between flowlines, and waterbodies from the NHD FGDB files. This creates "raw" data extracted from NHD, with minimal processing, so that later processing steps can refine the extraction logic for network analysis without needing to go back to the raw NHD data.
+Run `extract_nhd.py` to extract the flowlines, joins between flowlines, waterbodies, and NHD barriers (points, lines, polygons) from the NHD FGDB files. This creates "raw" data extracted from NHD, with minimal processing, so that later processing steps can refine the extraction logic for network analysis without needing to go back to the raw NHD data.
 
 This step should only need to be rerun if there are errors or additional HUC4s / regions are needed, or there are data updates from NHD.
 
@@ -77,23 +63,9 @@ The output flowlines contain "loops" (secondary channels in addition to the main
 
 These data are extracted from the NHDWaterbody dataset. Only waterbodies that intersect flowlines are retained. These are reprojected to SARP standard CRS.
 
-#### Outputs:
+#### Barriers
 
-This creates a directory (`data/nhd/raw/<region>`) for each region containing:
-
-- `flowlines.feather`: flowline geometries and attributes
-- `flowline_joins.feather`: joins between flowlines to represent network topology
-- `waterbodies.feather`: waterbody geometries and attributes
-- `waterbody_flowline_joins.feather`: joins between waterbodies and flowlines.
-
-#### IMPORTANT:
-
-- flowlines are identified using `lineID` from this point forward; this is a unique ID assigned to this specific run of the data extraction. These ids are NOT durable from one extraction to the next. These are used because the flowlines are cut, yet we retain the original NHDPlusID of each original segment to be able to relate it back to NHD.
-- waterbodies are identified using `wbID`. These are also specific to this particular extraction.
-
-### 4. Extract NHD barrier features
-
-Run `extract_nhd_barriers.py` to extract barriers identified as points, lines, or polygons by NHD. These include dams, dam-related features, and waterfalls with the following FTypes:
+These include points, lines, and polygons representing dams, dam-related features, and waterfalls with the following FTypes:
 
 - Dam (343)
 - Gate (369)
@@ -102,16 +74,59 @@ Run `extract_nhd_barriers.py` to extract barriers identified as points, lines, o
 - Spillway (455)
 - Waterfall (487)
 
-This is performed individually for each HUC2. Run `aggregate_nhd_barriers.py` to aggregate these to a single dataset across the region.
+Run `aggregate_nhd_barriers.py` to aggregate data across all HUC2s.
 
-This step should only need to be rerun if there are errors or additional HUC4s / regions are needed, or there are data updates from NHD.
+#### Outputs:
 
-This creates data in `nhd/data/merged`:
-`nhd_points.feather`
-`nhd_lines.feather`
-`nhd_poly.feather`
+This creates a directory (`data/nhd/raw/<region>`) for each region containing:
 
-(files with the same names are available within each HUC2)
+- `flowlines.feather`: flowline geometries and attributes
+- `flowline_joins.feather`: joins between flowlines to represent network topology
+- `waterbodies.feather`: waterbody geometries and attributes
+- `nhd_points.feather`: NHD barrier points
+- `nhd_lines.feather`: NHD barrier lines
+- `nhd_poly.feather`: NHD barrier polygons
+
+`aggregate_nhd_barriers.py` creates a directory `data/nhd/merged` with:
+
+- `nhd_points.feather`: NHD barrier points
+- `nhd_lines.feather`: NHD barrier lines
+- `nhd_poly.feather`: NHD barrier polygons
+
+#### IMPORTANT:
+
+- flowlines are identified using `lineID` from this point forward; this is a unique ID assigned to this specific run of the data extraction. These ids are NOT durable from one extraction to the next. These are used because the flowlines are cut, yet we retain the original NHDPlusID of each original segment to be able to relate it back to NHD.
+- waterbodies are identified using `wbID`. These are also specific to this particular extraction.
+
+### 5. Run any special preprocessing scripts or hand-inspect NHD data
+
+To get around issues with NHD HR+ Beta data, you likely need to inspect the NHD data first for errors. Two common problems are currently solved:
+
+1. Some "loops" are miscoded; the main segment is mis-identified as a loop, whereas a pipeline may be identified as the main segment.
+2. Chesapeake Bay contains many flowlines that cause networks to be joined together across the bay. These flowlines are excluded from the analysis.
+
+The results of this analysis and preprocessing are stored in `analysis/constants.py` in `EXCLUDE_IDS` and `CONVERT_TO_NONLOOP` variables. These store lists of NHDPlusIDs that need to be acted upon.
+
+#### Region 2:
+
+Run `special/region2.py` to create a list of flowline IDs to exclude flowlines in Chesapeake Bay.
+
+#### South Carolina LIDAR-derived waterbodies
+
+Run `special/prepare_sc_waterbodies` to extract waterbodies that intersect flowlines.
+
+### 6. Extract NWI waterbodies and altered rivers
+
+Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect
+the above flowlines. Altered rivers are those that have been marked in NWI as
+diked, ditched, excavated, or have altered substrate.
+
+This creates a directory (`data/nwi/raw/<region>`) for each region containing:
+
+- waterbodies.feather
+- altered_rivers.feather
+
+====================================
 
 ### 5. Prepare flowlines and waterbodies:
 

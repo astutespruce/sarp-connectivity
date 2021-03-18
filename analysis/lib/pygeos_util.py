@@ -4,7 +4,7 @@ import pygeos as pg
 import numpy as np
 from pyogrio import write_dataframe
 
-from analysis.lib.network import connected_groups
+from analysis.lib.graph import find_adjacent_groups
 from analysis.lib.util import append
 
 
@@ -160,69 +160,44 @@ def unique_sjoin(left, right):
     return joined
 
 
-def find_contiguous_groups(df):
-    """Finds groups of inputs that are spatially contiguous (intersects predicate).
+def explode(df):
+    """Explode a GeoDataFrame containing multi* geometries into single parts.
+
+    Note: GeometryCollections of Multi* may need to be exploded a second time.
 
     Parameters
     ----------
     df : GeoDataFrame
-
-    Returns
-    -------
-    Series
-        indexed on original index of df, contains groups
-    """
-    index_name = df.index.name or "index"
-    df = df.reset_index(drop=df.index.name in df.columns)
-    geometry = pd.Series(df.geometry.values.data, index=df[index_name])
-    pairs = sjoin_geometry(geometry, geometry).reset_index()
-    pairs = pairs.loc[pairs[index_name] != pairs.index_right].reset_index(drop=True)
-
-    groups = connected_groups(pairs, make_symmetric=False).astype("uint32")
-    groups.index = groups.index.astype(df[index_name].dtype)
-    groups = groups.reset_index()
-
-    # extract unmodified (discontiguous) features
-    discontiguous = np.setdiff1d(df[index_name], groups[index_name])
-    next_group = groups.group.max().item() + 1 if len(groups) else 0
-    groups = groups.append(
-        pd.DataFrame(
-            {
-                index_name: discontiguous,
-                "group": np.arange(next_group, next_group + len(discontiguous)),
-            }
-        ),
-        ignore_index=True,
-        sort=False,
-    )
-
-    return groups.set_index(index_name).group
-
-
-def aggregate_contiguous(df, agg=None, buffer_size=None):
-    """Dissolve contiguous (intersecting) features into singular geometries.
-
-    Returns GeoDataFrame indexed on original index values for features that are
-    not contiguous, and appends features from the dissolve operation with null
-    indices.
-
-    Parameters
-    ----------
-    df : GeoDataFrame
-    agg : dict, optional (default: None)
-        If present, is a dictionary of field names in df to agg operations.  Any
-        field not aggregated will be set to null in the appended dissolved records.
-    buffer_size : int or float (default: None)
-        Amount to buffer polygons by before union to merge together.
 
     Returns
     -------
     GeoDataFrame
-        indexed on original index; index values will be null for new, dissolved
-        features.
     """
+    join_cols = [c for c in df.columns if not c == "geometry"]
+    geom, index = pg.get_parts(df.geometry.values.data, return_index=True)
+    return gp.GeoDataFrame(df[join_cols].take(index), geometry=geom, crs=df.crs)
 
-    index_name = df.index.name or "index"
+
+def dissolve(df, by, grid_size=None, agg=None, allow_multi=True, op="union"):
+    """Dissolve a DataFrame by grouping records using "by".
+
+    Contiguous or overlapping geometries will be unioned together.
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+        geometries must be single-part geometries
+    by : str or list-like
+        field(s) to dissolve by
+    grid_size : float
+        precision grid size, will be used in union operation
+    agg : dict, optional (default: None)
+        If present, is a dictionary of field names in df to agg operations.  Any
+        field not aggregated will be set to null in the appended dissolved records.
+    allow_multi : bool, optional (default: True)
+        If False, geometries will
+    op : str, one of {'union', 'coverage_union'}
+    """
 
     if agg is not None:
         if "geometry" in agg:
@@ -230,75 +205,82 @@ def aggregate_contiguous(df, agg=None, buffer_size=None):
     else:
         agg = dict()
 
-    # extract singular geometry if not grouped
-    if buffer_size is not None:
-        agg["geometry"] = (
-            lambda g: pg.union_all(
-                pg.buffer(
-                    g.values.data,
-                    buffer_size,
-                    quadsegs=1,
-                    cap_style="flat",
-                    join_style="bevel",
-                )
-            )
-            if len(g.values) > 1
-            else g.values.data[0]
-        )
-
-    else:
-        agg["geometry"] = (
-            lambda g: pg.union_all(
-                g.values.data,
-            )
-            if len(g.values) > 1
-            else g.values.data[0]  # also picks up any ungrouped features
-        )
-
-    # set incoming index to nan when geometries are dissolved
-    agg[index_name] = lambda ix: np.nan if len(ix) > 1 else ix
-
-    # df = df.reset_index()
-
-    df = df.join(find_contiguous_groups(df)).reset_index()
+    agg["geometry"] = lambda g: union_or_combine(
+        g.values.data, grid_size=grid_size, op=op
+    )
 
     # Note: this method is 5x faster than geopandas.dissolve (until it is migrated to use pygeos)
     dissolved = gp.GeoDataFrame(
-        df.groupby("group").agg(agg), geometry="geometry", crs=df.crs
+        df.groupby(by).agg(agg).reset_index(), geometry="geometry", crs=df.crs
     )
-    # flatten any multipolygons
-    dissolved = explode(dissolved)
 
-    return dissolved.set_index(index_name)
+    if not allow_multi:
+        # flatten any multipolygons
+        dissolved = explode(dissolved).reset_index(drop=True)
+
+    return dissolved
 
 
-def explode(df, add_position=False):
-    """Explode multipart features to individual geometries
+def union_or_combine(geometries, grid_size=None, op="union"):
+    """First does a check for overlap of geometries according to STRtree
+    intersects.  If any overlap, then will use union_all on all of them;
+    otherwise will return as a multipolygon.
 
-    Note: the fast version of this method will be available in geopandas pending
-    https://github.com/geopandas/geopandas/pull/1693
+    If only one polygon is present, it will be returned in a MultiPolygon.
+
+    If coverage_union op is provided, geometries must be polygons and
+    topologically related or this will produce bad output or fail outright.
+    See docs for coverage_union in GEOS.
 
     Parameters
     ----------
-    df : GeoDataFrame
-    add_position : bool, optional (default: False)
-        if True, will add a column indicating position within the original index
+    geometries : ndarray of single part polygons
+    grid_size : [type], optional (default: None)
+        provided to union_all; otherwise no effect
+    op : str, one of {'union', 'coverage_union'}
 
+    Returns
+    -------
+    MultiPolygon
     """
-    crs = df.crs
-    parts, index = pg.get_parts(df.geometry.values.data, return_index=True)
-    series = gp.GeoSeries(parts, index=df.index.take(index), name="geometry")
-    df = df.drop(columns=["geometry"]).join(series).set_crs(crs)
 
-    if not add_position:
-        return df
+    if not (pg.get_type_id(geometries) == 3).all():
+        print("Inputs to union or combine must be single-part geometries")
 
-    run_start = np.r_[True, index[:-1] != index[1:]]
-    counts = np.diff(np.r_[np.nonzero(run_start)[0], len(index)])
-    position = (~run_start).cumsum()
-    position -= np.repeat(position[run_start], counts)
-    df["position"] = position
-    return df
+    if len(geometries) == 1:
+        return pg.multipolygons(geometries)
+
+    tree = pg.STRtree(geometries)
+    left, right = tree.query_bulk(geometries, predicate="intersects")
+    # drop self intersections
+    ix = left != right
+    left = left[ix]
+    right = right[ix]
+
+    # no intersections, just combine parts
+    if len(left) == 0:
+        return pg.multipolygons(geometries)
+
+    # find groups of contiguous geometries and union them together individually
+    contiguous = np.sort(np.unique(np.concatenate([left, right])))
+    discontiguous = np.setdiff1d(np.arange(len(geometries), dtype="uint"), contiguous)
+    groups = find_adjacent_groups(left, right)
+
+    parts = []
+
+    if op == "coverage_union":
+        for group in groups:
+            parts.extend(pg.get_parts(pg.coverage_union_all(geometries[list(group)])))
+
+    else:
+        for group in groups:
+            parts.extend(
+                pg.get_parts(pg.union_all(geometries[list(group)], grid_size=grid_size))
+            )
+
+    parts.extend(pg.get_parts(geometries[discontiguous]))
+
+    return pg.multipolygons(parts)
 
 
 def cut_line_at_points(line, cut_points, tolerance=1e-6):
@@ -360,49 +342,6 @@ def cut_line_at_points(line, cut_points, tolerance=1e-6):
         lines.append(pg.linestrings(segment))
 
     return pg.multilinestrings(lines)
-
-
-def dissolve(df, by, agg=None, allow_multi=True):
-    """Dissolve a DataFrame by grouping records using "by".
-
-    Contiguous or overlapping geometries will be unioned together.
-
-    Parameters
-    ----------
-    df : GeoDataFrame
-    by : str
-        field to dissolve by
-    agg : dict, optional (default: None)
-        If present, is a dictionary of field names in df to agg operations.  Any
-        field not aggregated will be set to null in the appended dissolved records.
-    allow_multi : bool, optional (default: True)
-        If False, geometries will
-    """
-
-    if agg is not None:
-        if "geometry" in agg:
-            raise ValueError("Cannot use user-specified aggregator for geometry")
-    else:
-        agg = dict()
-
-    agg["geometry"] = (
-        lambda g: pg.union_all(
-            g.values.data,
-        )
-        if len(g.values) > 1
-        else g.values.data[0]  # also picks up any ungrouped features
-    )
-
-    # Note: this method is 5x faster than geopandas.dissolve (until it is migrated to use pygeos)
-    dissolved = gp.GeoDataFrame(
-        df.groupby(by).agg(agg).reset_index(), geometry="geometry", crs=df.crs
-    )
-
-    if not allow_multi:
-        # flatten any multipolygons
-        dissolved = explode(dissolved).reset_index(drop=True)
-
-    return dissolved
 
 
 def near(source, target, distance):
@@ -483,10 +422,7 @@ def nearest(source, target, max_distance, keep_all=False):
 
         # Note: there may be multiple equidistant or intersected results, so we take the first
         df = pd.DataFrame(
-            {
-                right_index_name: target.index.take(right_ix),
-                "distance": distance,
-            },
+            {right_index_name: target.index.take(right_ix), "distance": distance,},
             index=source.index.take(left_ix),
         )
 
@@ -566,3 +502,24 @@ def write_geoms(geometries, path, crs=None):
     """
     df = gp.GeoDataFrame({"geometry": geometries}, crs=crs)
     write_dataframe(df, path)
+
+
+def make_valid(geometries):
+    """Make geometries valid.
+
+    Parameters
+    ----------
+    geometries : ndarray of pygeos geometries
+
+    Returns
+    -------
+    ndarray of pygeos geometries
+    """
+
+    ix = ~pg.is_valid(geometries)
+    if ix.sum():
+        geometries = geometries.copy()
+        print(f"Repairing {ix.sum()} geometries")
+        geometries[ix] = pg.make_valid(geometries[ix])
+
+    return geometries
