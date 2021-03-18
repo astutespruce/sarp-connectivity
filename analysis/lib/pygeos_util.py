@@ -283,6 +283,38 @@ def union_or_combine(geometries, grid_size=None, op="union"):
     return pg.multipolygons(parts)
 
 
+def find_contiguous_groups(geometries):
+    """Find all adjacent geometries
+
+    Parameters
+    ----------
+    geometries : ndarray of pygeos geometries
+
+
+    Returns
+    -------
+    DataFrame indexed on the integer index of geometries
+    """
+    tree = pg.STRtree(geometries)
+    left, right = tree.query_bulk(geometries, predicate="intersects")
+    # drop self intersections
+    ix = left != right
+    left = left[ix]
+    right = right[ix]
+
+    groups = find_adjacent_groups(left, right)
+    groups = (
+        pd.DataFrame(
+            {i: list(g) for i, g in enumerate(groups)}.items(),
+            columns=["group", "index"],
+        )
+        .explode("index")
+        .set_index("index")
+    )
+
+    return groups
+
+
 def cut_line_at_points(line, cut_points, tolerance=1e-6):
     """Cut a pygeos line geometry at points.
     If there are no interior points, the original line will be returned.

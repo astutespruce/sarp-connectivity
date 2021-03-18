@@ -1,30 +1,22 @@
 from pathlib import Path
 import os
+import warnings
 
+import pandas as pd
 import geopandas as gp
 from pyogrio import write_dataframe
 
 from analysis.lib.util import append
 
 
-huc2s = [
-    "02",
-    "03",
-    "05",
-    "06",
-    "07",
-    "08",
-    "09",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "17",
-    "21",
-]
+warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+
+
+data_dir = Path("data")
+
+huc2s = sorted(
+    pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
+)
 
 src_dir = Path("data/nhd/raw")
 out_dir = Path("data/nhd/merged")
