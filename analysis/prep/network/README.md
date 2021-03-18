@@ -4,15 +4,17 @@ This stage involves processing NHD data and related data into data structures th
 
 ## Overall workflow:
 
-1. Download NHD High Resolution Plus data for all applicable HUC4s that have dams.
-2. Downlaod National Wetlands Inventory daata
-2. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
-3. Run `extract_flowlines_waterbodies.py` to extract flowlines, flowline joins, waterbodies, and flowline / waterbody joins for each region group.
-4. Run `extract_nhd_barriers.py` followed by `aggregate_nhd_barriers.py` to extract dam-related features and waterfalls from other NHD datasets.
-5. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
-6. Run `merge_waterbodies.py` to merge waterbodies to the full SARP region and create files for large waterbodies.
-7. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
-8. Run `prep_floodplain_statistics.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
+1. Run `download_nhd.py` to download NHD High Resolution Plus data for all applicable HUC4s that have dams.
+2. Run `download_nwi.py` to download National Wetlands Inventory data.
+3. Manually download state-level LIDAR waterbody datasets.
+4. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
+5. Run `extract_flowlines_waterbodies.py` to extract flowlines, flowline joins, waterbodies, and flowline / waterbody joins for each region group.
+6. Run `extract_nwi_waterbodies_altered_rivers` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
+7. Run `extract_nhd_barriers.py` followed by `aggregate_nhd_barriers.py` to extract dam-related features and waterfalls from other NHD datasets.
+8. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
+9. Run `merge_waterbodies.py` to merge waterbodies to the full SARP region and create files for large waterbodies.
+10. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
+11. Run `prep_floodplain_statistics.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
 
 Now the underlying aquatic networks are ready for the network analysis.
 
@@ -34,6 +36,12 @@ NHD data were last downloaded on 10/12/2020.
 NWI ponds and lakes are used to supplement the NHDWaterbody dataset downloaded above.
 
 Run `download_nwi.py`.  This will download data by HUC8 into `data/nwi/source/huc8`.
+
+
+### 3. Download state-level LIDAR-based waterbody data
+
+South Carolina data are available at: ftp://ftpdata.dnr.sc.gov/gisdata/elev/Hydrolines/SCHydroBreakline.zip
+These were downloaded manually on 3/17/2021 to `data/states/sc/SCBreakline.gdb.
 
 
 

@@ -9,10 +9,8 @@ import pygeos as pg
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 
-from analysis.prep.network.lib.extract import extract_flowlines, extract_waterbodies
-
 from analysis.constants import CRS
-from analysis.lib.pygeos_util import sjoin_geometry, dissolve, explode
+from analysis.lib.pygeos_util import dissolve, explode
 from analysis.lib.util import append
 
 
@@ -37,17 +35,17 @@ units = huc8_df.groupby("HUC2").HUC8.unique().apply(sorted).to_dict()
 # manually subset keys from above for processing
 huc2s = [
     # "02",
-    # "03",
+    "03",
     # "05",
     # "06",
     # "07",
     # "08",
     # "09",
-    "10",
+    # "10",
     # "11",
     # "12",
     # "13",
-    "14",
+    # "14",
     # "15",
     # "16",
     # "17",
@@ -64,24 +62,28 @@ for huc2 in huc2s:
         os.makedirs(huc2_dir)
 
     print("Reading flowlines")
-    flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather")
+    flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather", columns=[])
     tree = pg.STRtree(flowlines.geometry.values.data)
 
     waterbodies = None
     rivers = None
     for huc8 in units[huc2]:
-        print(f"Reading {huc8}")
+        print(f"Reading NWI data for {huc8}")
 
         # Extract and merge lakes and wetlands
-        df = (
-            read_dataframe(
-                f"/vsizip/{src_dir.resolve()}/{huc8}.zip/HU8_{huc8}_Watershed/HU8_{huc8}_Wetlands.shp",
-                columns=["ATTRIBUTE", "WETLAND_TY"],
-                where="WETLAND_TY in ('Lake', 'Pond', 'Riverine')",
-            )
-            .rename(columns={"ATTRIBUTE": "nwi_code", "WETLAND_TY": "nwi_type"})
-            .to_crs(CRS)
-        )
+        df = read_dataframe(
+            f"/vsizip/{src_dir.resolve()}/{huc8}.zip/HU8_{huc8}_Watershed/HU8_{huc8}_Wetlands.shp",
+            columns=["ATTRIBUTE", "WETLAND_TY"],
+            where="WETLAND_TY in ('Lake', 'Pond', 'Riverine')",
+        ).rename(columns={"ATTRIBUTE": "nwi_code", "WETLAND_TY": "nwi_type"})
+
+        # some geometries are invalid, filter them out
+        df = df.loc[pg.is_geometry(df.geometry.values.data)].copy()
+
+        if not len(df):
+            continue
+
+        df = df.to_crs(CRS)
 
         # Mark structurally altered types where
         # codes with x (excavated), d (ditched), r (artificial substrate), h (diked)
