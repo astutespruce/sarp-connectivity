@@ -12,8 +12,7 @@ from pyogrio import write_dataframe
 
 from analysis.constants import CRS
 from analysis.prep.network.lib.waterbodies import find_nhd_waterbody_breaks
-from analysis.lib.pygeos_util import explode, dissolve
-from analysis.lib.util import append
+from analysis.lib.pygeos_util import explode, dissolve, write_geoms
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -32,24 +31,24 @@ huc2s = sorted(
     pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
 )
 # manually subset keys from above for processing
-# huc2s = [
-#     "02",
-#     "03",
-#     "05",
-#     "06",
-#     "07",
-#     "08",
-#     "09",
-#     "10",
-#     "11",
-#     "12",
-#     "13",
-#     "14",
-#     "15",
-#     "16",
-#     "17",
-#     "21",
-# ]
+huc2s = [
+    # "02",
+    "03",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    "14",
+    # "15",
+    # "16",
+    # "17",
+    # "21",
+]
 
 start = time()
 
@@ -100,6 +99,7 @@ for huc2 in huc2s:
 
         if breaks is not None:
             breaks = pg.get_parts(breaks)
+            write_geoms(breaks, f"/tmp/{huc2}breaks.gpkg", crs=nhd.crs)
             print(
                 f"Cutting NHD waterbodies by {len(breaks):,} breaks at dams to prevent dissolving together"
             )
@@ -120,6 +120,9 @@ for huc2 in huc2s:
             )
 
             df = explode(df).reset_index(drop=True)
+
+    # assign a new unique wbID
+    df["wbID"] = df.index.values.astype("uint32") + 1 + int(huc2) * 1000000
 
     df.to_feather(huc2_dir / "waterbodies.feather")
     write_dataframe(df, huc2_dir / "waterbodies.gpkg")
