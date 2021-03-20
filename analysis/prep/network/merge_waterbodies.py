@@ -33,7 +33,7 @@ huc2s = sorted(
 # manually subset keys from above for processing
 huc2s = [
     # "02",
-    "03",
+    # "03",
     # "05",
     # "06",
     # "07",
@@ -121,8 +121,17 @@ for huc2 in huc2s:
 
             df = explode(df).reset_index(drop=True)
 
+    # make sure all polygons are valid
+    ix = ~pg.is_valid(df.geometry.values.data)
+    if ix.sum():
+        print(f"Repairing {ix.sum()} invalid waterbodies")
+        df.loc[ix, "geometry"] = pg.make_valid(df.loc[ix].geometry.values.data)
+        df = explode(explode(df))
+        df = df.loc[pg.get_type_id(df.geometry.values.data) == 3].reset_index()
+
     # assign a new unique wbID
     df["wbID"] = df.index.values.astype("uint32") + 1 + int(huc2) * 1000000
+    df["km2"] = pg.area(df.geometry.values.data) / 1e6
 
     df.to_feather(huc2_dir / "waterbodies.feather")
     write_dataframe(df, huc2_dir / "waterbodies.gpkg")

@@ -7,9 +7,14 @@ import pygeos as pg
 import numpy as np
 
 
-from nhdnet.nhd.joins import update_joins, remove_joins
+from nhdnet.nhd.joins import index_joins, find_joins, update_joins, remove_joins
 from pyogrio import write_dataframe
-from analysis.lib.pygeos_util import explode, cut_line_at_points
+from analysis.lib.graph import find_adjacent_groups
+from analysis.lib.pygeos_util import (
+    cut_lines_at_multipoints,
+    explode,
+    cut_line_at_points,
+)
 
 from analysis.constants import SNAP_ENDPOINT_TOLERANCE
 
@@ -77,6 +82,115 @@ def prep_new_flowlines(flowlines, new_segments):
     ).astype("float32")
 
     return new_flowlines
+
+
+def remove_pipelines(flowlines, joins, max_pipeline_length=100):
+    """Remove pipelines that are above max length,
+    based on contiguous length of pipeline segments.
+
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+            joins between flowlines
+    max_pipeline_length : int, optional (default: 100)
+            length above which pipelines are dropped
+
+    Returns
+    -------
+    tuple of (GeoDataFrame, DataFrame)
+            (flowlines, joins)
+    """
+
+    start = time()
+    pids = flowlines.loc[flowlines.FType == 428].index
+    pjoins = find_joins(
+        joins, pids, downstream_col="downstream_id", upstream_col="upstream_id"
+    )[["downstream_id", "upstream_id"]]
+    print(f"Found {len(pids):,} pipelines and {len(pjoins):,} pipeline-related joins")
+
+    # Drop any isolated pipelines no matter what size
+    # these either are one segment long, or are upstream / downstream terminals for
+    # non-pipeline segments
+    join_idx = index_joins(
+        pjoins, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+    drop_ids = join_idx.loc[
+        (
+            join_idx.upstream_id == join_idx.downstream_id
+        )  # has upstream and downstream of 0s
+        | (
+            ((join_idx.upstream_id == 0) & (~join_idx.downstream_id.isin(pids)))
+            | ((join_idx.downstream_id == 0) & (~join_idx.upstream_id.isin(pids)))
+        )
+    ].index
+    print(f"Removing {len(drop_ids):,} isolated segments")
+
+    # remove from flowlines, joins, pjoins
+    flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
+    joins = remove_joins(
+        joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+    pjoins = remove_joins(
+        pjoins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+    join_idx = join_idx.loc[~join_idx.index.isin(drop_ids)].copy()
+
+    # Find single connectors between non-pipeline segments
+    # drop those > max_pipeline_length
+    singles = join_idx.loc[
+        ~(join_idx.upstream_id.isin(pids) | join_idx.downstream_id.isin(pids))
+    ].join(flowlines["length"])
+    drop_ids = singles.loc[singles.length >= max_pipeline_length].index
+
+    print(
+        f"Found {len(drop_ids):,} pipeline segments between flowlines that are > {max_pipeline_length:,}m; they will be dropped"
+    )
+
+    # remove from flowlines, joins, pjoins
+    flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
+    joins = remove_joins(
+        joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+    pjoins = remove_joins(
+        pjoins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+    join_idx = join_idx.loc[~join_idx.index.isin(drop_ids)].copy()
+
+    ### create a network of pipelines to group them together
+    # Only use contiguous pipelines; those that are not contiguous should have been handled above
+    pairs = pjoins.loc[pjoins.upstream_id.isin(pids) & pjoins.downstream_id.isin(pids)]
+    left = pairs.downstream_id.values
+    right = pairs.upstream_id.values
+
+    # make symmetric by adding each to the end of the other
+    groups = find_adjacent_groups(np.append(left, right), np.append(right, left))
+    groups = pd.DataFrame(pd.Series(groups).apply(list).explode().rename("index"))
+    groups.index.name = "group"
+    groups = groups.reset_index().set_index("index")
+
+    groups = groups.join(flowlines[["length"]])
+    stats = groups.groupby("group").agg({"length": "sum"})
+    drop_groups = stats.loc[stats.length >= max_pipeline_length].index
+    drop_ids = groups.loc[groups.group.isin(drop_groups)].index
+
+    print(
+        f"Dropping {len(drop_ids):,} pipelines that are greater than {max_pipeline_length:,}m"
+    )
+
+    flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
+    joins = remove_joins(
+        joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+
+    # update NHDPlusIDs to match zeroed out ids
+    joins.loc[
+        (joins.downstream_id == 0) & (joins.type == "internal"), "type"
+    ] = "former_pipeline_join"
+
+    print(f"Done processing pipelines in {time() - start:.2f}s")
+
+    return flowlines, joins
 
 
 def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
@@ -202,16 +316,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
 
     # Group barriers by line so that we can split geometries in one pass
     grouped = (
-        tmp[
-            [
-                "lineID",
-                "NHDPlusID",
-                "barrierID",
-                "barriers",
-                "flowline",
-                "barrier",
-            ]
-        ]
+        tmp[["lineID", "NHDPlusID", "barrierID", "barriers", "flowline", "barrier",]]
         .groupby("lineID")
         .agg(
             {
@@ -227,8 +332,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
 
     # cut line for all barriers
     geoms = grouped.apply(
-        lambda row: cut_line_at_points(row.flowline, row.barrier),
-        axis=1,
+        lambda row: cut_line_at_points(row.flowline, row.barrier), axis=1,
     )
 
     # Split multilines into new rows
@@ -324,6 +428,115 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
     return updated_flowlines, updated_joins, barrier_joins
 
 
+def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
+    """General method for cutting flowlines at points and updating joins.
+
+    Only new flowlines are returned; any that are not cut by points are omitted.
+
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+        flowline joins
+    points : ndarray of MultiPoint or Point geometries
+        expected to match to flowlines
+    next_lineID : int
+        id of next flowline to be created
+
+    Returns
+    -------
+    (GeoDataFrame, DataFrame, ndarray)
+        new flowlines, updated joins, remove_ids (original flowline IDs that
+        need to be removed before merging in returned flowlines)
+    """
+
+    flowlines = flowlines.copy()
+    joins = joins.copy()
+
+    flowlines["geometry"] = cut_lines_at_multipoints(
+        flowlines.geometry.values.data, points
+    )
+
+    # discard any that have only one segment; they weren't split and we don't want
+    # to update them.  Split the rest into parts.
+    ix = pg.get_num_geometries(flowlines.geometry.values.data) > 1
+    flowlines = explode(
+        flowlines.loc[ix].reset_index().rename(columns={"lineID": "origLineID"})
+    ).reset_index(drop=True)
+
+    # recalculate length and sinuosity
+    flowlines["length"] = pg.length(flowlines.geometry.values.data).astype("float32")
+    flowlines["sinuosity"] = calculate_sinuosity(flowlines.geometry.values.data).astype(
+        "float32"
+    )
+
+    # calculate new ID
+    flowlines["lineID"] = (flowlines.index + next_lineID).astype("uint32")
+
+    ### Update flowline joins
+    # transform new lines to create new joins at the upstream / downstream most
+    # points of the original line
+    l = flowlines.groupby("origLineID").lineID
+    # the first new line per original line is the furthest upstream, so use its
+    # ID as the new downstream ID for anything that had this origLineID as its downstream
+    first = l.first().rename("new_downstream_id")
+    # the last new line per original line is the furthest downstream...
+    last = l.last().rename("new_upstream_id")
+
+    # Update existing joins with the new lineIDs we created at the upstream or downstream
+    # ends of segments we just created
+    joins = update_joins(
+        joins, first, last, downstream_col="downstream_id", upstream_col="upstream_id",
+    )
+
+    ### Create new line joins for any that weren't inserted above
+    # Transform all groups of new line IDs per original lineID
+    # into joins structure
+
+    atts = (
+        flowlines.groupby("origLineID")[["NHDPlusID", "loop", "HUC4"]]
+        .first()
+        .rename(columns={"NHDPlusID": "upstream"})
+    )
+
+    # function to make upstream / downstream side of join
+    pairs = lambda a: pd.Series(zip(a[:-1], a[1:]))
+    new_joins = (
+        l.apply(pairs)
+        .apply(pd.Series)
+        .reset_index()
+        .rename(columns={0: "upstream_id", 1: "downstream_id"})
+        .join(atts, on="origLineID")
+    )
+
+    # NHDPlusID is same for both sides
+    new_joins["downstream"] = new_joins.upstream
+    new_joins["type"] = "internal"
+    new_joins = new_joins[
+        [
+            "upstream",
+            "downstream",
+            "upstream_id",
+            "downstream_id",
+            "type",
+            "loop",
+            "HUC4",
+        ]
+    ]
+
+    joins = (
+        joins.append(new_joins, ignore_index=True, sort=False)
+        .sort_values(["downstream_id", "upstream_id"])
+        .reset_index(drop=True)
+    )
+
+    remove_ids = flowlines.origLineID.unique()
+
+    flowlines = flowlines.drop(columns=["origLineID"]).set_index("lineID")
+
+    return flowlines, joins, remove_ids
+
+
 def save_cut_flowlines(out_dir, flowlines, joins, barrier_joins):
     """Save cut flowline data frames to disk.
 
@@ -347,9 +560,7 @@ def save_cut_flowlines(out_dir, flowlines, joins, barrier_joins):
     flowlines.to_feather(out_dir / "flowlines.feather")
     # write_dataframe(flowlines, out_dir / "flowlines.gpkg")
     joins.reset_index(drop=True).to_feather(out_dir / "flowline_joins.feather")
-    barrier_joins.reset_index(drop=True).to_feather(
-        out_dir / "barrier_joins.feather",
-    )
+    barrier_joins.reset_index(drop=True).to_feather(out_dir / "barrier_joins.feather",)
 
 
 def remove_flowlines(flowlines, joins, ids):

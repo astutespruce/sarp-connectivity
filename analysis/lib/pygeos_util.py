@@ -376,6 +376,36 @@ def cut_line_at_points(line, cut_points, tolerance=1e-6):
     return pg.multilinestrings(lines)
 
 
+def cut_lines_at_multipoints(lines, points, tolerance=1e-6):
+    """Wraps cut_line_at_points to take array inputs.
+
+    Points will be projected onto the line; those interior to the line will be
+    used to cut the line in to new segments.
+
+    Parameters
+    ----------
+    lines : ndarray of pygeos Linestrings
+    cut_points : ndarray of pygeos MultiPoints
+
+    tolerance : float, optional (default: 1e-6)
+        minimum distance from endpoints to consider the points interior
+        to the line.
+
+    Returns
+    -------
+    ndarray of MultiLineStrings (or LineString, if unchanged)
+    """
+
+    out = []
+    for i in range(len(lines)):
+        new_line = cut_line_at_points(
+            lines[i], pg.get_parts(points[i]), tolerance=tolerance
+        )
+        out.append(new_line)
+
+    return np.array(out)
+
+
 def near(source, target, distance):
     """Return target geometries within distance of source geometries.
 
@@ -518,7 +548,8 @@ def neighborhoods(source, tolerance=100):
         .index_right.reset_index()
     )
 
-    groups = connected_groups(pairs, make_symmetric=False).astype("uint32")
+    # TODO: update to latest API
+    groups = find_adjacent_groups(pairs).astype("uint32")
 
     return groups
 

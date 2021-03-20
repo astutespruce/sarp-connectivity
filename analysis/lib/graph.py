@@ -43,6 +43,10 @@ def find_adjacent_groups(left, right):
         .right.apply(set)
         .to_dict()
     )
+
+    # TODO: update this to use faster method if we know that pairs are always unique
+    # e.g., flowline joins
+
     groups = []
     seen = set()
     for node in adj_matrix.keys():

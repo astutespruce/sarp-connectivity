@@ -29,14 +29,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     """
     start = time()
 
-    tmp_waterbodies = waterbodies[
-        [
-            "FCode",
-            "FType",
-            "AreaSqKm",
-            "flowlineLength",
-        ]
-    ].rename(columns={"FCode": "wbFCode", "FType": "wbFType"})
+    wb_atts = waterbodies[["altered", "km2", "flowlineLength"]].copy()
 
     tmp_flowlines = flowlines[
         [
@@ -66,17 +59,10 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     drains = drains.loc[drains.upstream_wbID != drains.downstream_wbID].copy()
 
     # Join in stats from waterbodies and geometries from flowlines
-    # TODO: add "GNIS_Name" for waterbodies once available in source data
     drain_pts = (
         wb_joins.loc[wb_joins.lineID.isin(drains.upstream_id)]
-        .join(
-            tmp_waterbodies,
-            on="wbID",
-        )
-        .join(
-            tmp_flowlines,
-            on="lineID",
-        )
+        .join(wb_atts, on="wbID",)
+        .join(tmp_flowlines, on="lineID",)
         .reset_index(drop=True)
     )
 
@@ -85,7 +71,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     drain_pts["headwaters"] = False
 
     ### Extract the drain points of upstream headwaters waterbodies
-    # these are flowlines that originate at an waterbody
+    # these are flowlines that originate at a waterbody
     wb_geom = waterbodies.loc[waterbodies.flowlineLength == 0].geometry
     wb_geom = pd.Series(wb_geom.values.data, index=wb_geom.index)
     fl_geom = pd.Series(flowlines.geometry.values.data, index=flowlines.index)
@@ -95,14 +81,8 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         .reset_index()
     )
     headwaters = (
-        headwaters.join(
-            tmp_waterbodies,
-            on="wbID",
-        )
-        .join(
-            tmp_flowlines,
-            on="lineID",
-        )
+        headwaters.join(wb_atts, on="wbID",)
+        .join(tmp_flowlines, on="lineID",)
         .reset_index(drop=True)
     )
     headwaters.geometry = pg.get_point(headwaters.geometry.values.data, 0)
