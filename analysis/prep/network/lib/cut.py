@@ -16,7 +16,7 @@ from analysis.lib.flowlines import calculate_sinuosity, cut_flowlines_at_points
 CUT_TOLERANCE = 1
 
 
-def cut_lines_by_waterbodies(flowlines, joins, waterbodies):
+def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     """
     Cut lines by waterbodies.
     1. Finds all intersections between waterbodies and flowlines.
@@ -30,6 +30,8 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies):
     joins : DataFrame
         flowline joins
     waterbodies : GeoDataFrame
+    next_lineID : int
+        next lineID; must be greater than all prior lines in region
 
     Returns
     -------
@@ -153,7 +155,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies):
             flowlines.loc[points.index],
             joins,
             points.geometry.values.data,
-            next_lineID=int(flowlines.index.max() + 1),
+            next_lineID=next_lineID,
         )
         print(
             f"{len(new_flowlines):,} new flowlines created in {time() - cut_start:,.2f}s"
@@ -194,6 +196,9 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies):
                 .append(new_flowlines.reset_index(), ignore_index=True)
                 .set_index("lineID")
             )
+
+    # make sure that updated joins are unique
+    joins = joins.drop_duplicates(subset=["upstream_id", "downstream_id"])
 
     # make sure that wb_joins is unique
     contained = contained.sort_values(by=["lineID", "wbID"]).drop_duplicates(
