@@ -186,8 +186,29 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
                 f"Identified {df.contains.sum():,} more flowlines contained by waterbodies in {time() - contained_start:.2f}s"
             )
 
+            # some aren't perfectly contained, add those that are mostly in
+            df["crosses"] = False
+            ix = ~df.contains
+            tmp = df.loc[ix]
+            df.loc[ix, "crosses"] = pg.crosses(tmp.waterbody, tmp.flowline)
+
+            # discard any that only touch (don't cross or are contained)
+            df = df.loc[df.contains | df.crosses].copy()
+
+            tmp = df.loc[df.crosses]
+            df["geometry"] = df.flowline
+            # use intersection to cut flowlines by waterbodies.  Note: this may produce
+            # nonlinear (e.g., geom collection) results
+            df.loc[ix, "geometry"] = pg.intersection(tmp.flowline, tmp.waterbody)
+            df["length"] = pg.length(df.geometry)
+            df["flength"] = pg.length(df.flowline)
+
+            # keep any that are contained or >= 50% in waterbody
             contained = contained.append(
-                df.loc[df.contains, ["wbID", "lineID"]], ignore_index=True
+                df.loc[
+                    df.contains | ((df.length / df.flength) >= 0.5), ["wbID", "lineID"]
+                ],
+                ignore_index=True,
             )
 
             flowlines = (

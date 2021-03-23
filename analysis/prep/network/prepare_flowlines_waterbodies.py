@@ -59,8 +59,8 @@ out_dir = nhd_dir / "clean"
 # )
 # manually subset keys from above for processing
 huc2s = [
-    # "02",
-    # "03",
+    "02",
+    "03",
     # "05",
     # "06",
     # "07",
@@ -70,7 +70,7 @@ huc2s = [
     # "11",
     # "12",
     # "13",
-    "14",
+    # "14",
     # "15",
     # "16",
     # "17",
@@ -88,48 +88,51 @@ for huc2 in huc2s:
     if not os.path.exists(huc2_dir):
         os.makedirs(huc2_dir)
 
-    # print("Reading flowlines...")
-    # flowlines = gp.read_feather(src_dir / huc2 / "flowlines.feather").set_index(
-    #     "lineID"
-    # )
-    # joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
-    # print("Read {:,} flowlines".format(len(flowlines)))
+    print("Reading flowlines...")
+    flowlines = gp.read_feather(src_dir / huc2 / "flowlines.feather").set_index(
+        "lineID"
+    )
+    joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
+    print("Read {:,} flowlines".format(len(flowlines)))
 
-    # ### Drop underground conduits
-    # ix = flowlines.loc[flowlines.FType == 420].index
-    # print("Removing {:,} underground conduits".format(len(ix)))
-    # flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
-    # joins = remove_joins(
-    #     joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
-    # )
+    ### Drop underground conduits
+    ix = flowlines.loc[flowlines.FType == 420].index
+    print("Removing {:,} underground conduits".format(len(ix)))
+    flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
+    joins = remove_joins(
+        joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
 
-    # ### Manual fixes for flowlines
-    # remove_filename = src_dir / huc2 / "remove_flowlines.feather"
-    # if remove_filename.exists():
-    #     exclude_ids = pd.read_feather(remove_filename).NHDPlusID.unique()
-    #     flowlines, joins = remove_flowlines(flowlines, joins, exclude_ids)
-    #     print(
-    #         "Removed {:,} excluded flowlines, now have {:,}".format(
-    #             len(exclude_ids), len(flowlines)
-    #         )
-    #     )
+    ### Manual fixes for flowlines
+    remove_filename = src_dir / huc2 / "remove_flowlines.feather"
+    if remove_filename.exists():
+        exclude_ids = pd.read_feather(remove_filename).NHDPlusID.unique()
+        flowlines, joins = remove_flowlines(flowlines, joins, exclude_ids)
+        print(
+            "Removed {:,} excluded flowlines, now have {:,}".format(
+                len(exclude_ids), len(flowlines)
+            )
+        )
 
-    # ### Fix segments that should not have been coded as loops
-    # convert_ids = CONVERT_TO_NONLOOP.get(huc2, [])
-    # if convert_ids:
-    #     print("Converting {:,} loops to non-loops".format(len(convert_ids)))
-    #     flowlines.loc[flowlines.NHDPlusID.isin(convert_ids), "loop"] = False
-    #     joins.loc[joins.upstream.isin(convert_ids), "loop"] = False
-    #     joins.loc[joins.downstream.isin(convert_ids), "loop"] = False
+    ### Fix segments that should not have been coded as loops
+    convert_ids = CONVERT_TO_NONLOOP.get(huc2, [])
+    if convert_ids:
+        print("Converting {:,} loops to non-loops".format(len(convert_ids)))
+        flowlines.loc[flowlines.NHDPlusID.isin(convert_ids), "loop"] = False
+        joins.loc[joins.upstream.isin(convert_ids), "loop"] = False
+        joins.loc[joins.downstream.isin(convert_ids), "loop"] = False
 
-    # print("------------------")
+    print("------------------")
 
-    # ### Drop pipelines that are > PIPELINE_MAX_LENGTH or are otherwise isolated from the network
-    # print("Evaluating pipelines")
-    # flowlines, joins = remove_pipelines(flowlines, joins, MAX_PIPELINE_LENGTH)
-    # print("{:,} flowlines after dropping pipelines".format(len(flowlines)))
+    ### Drop pipelines that are > PIPELINE_MAX_LENGTH or are otherwise isolated from the network
+    print("Evaluating pipelines")
+    flowlines, joins = remove_pipelines(flowlines, joins, MAX_PIPELINE_LENGTH)
+    print("{:,} flowlines after dropping pipelines".format(len(flowlines)))
 
-    # print("------------------")
+    # make sure that updated joins are unique
+    joins = joins.drop_duplicates(subset=["upstream_id", "downstream_id"])
+
+    print("------------------")
 
     waterbodies = gp.read_feather(
         waterbodies_dir / huc2 / "waterbodies.feather"
@@ -138,16 +141,20 @@ for huc2 in huc2s:
 
     # DEBUG
     # flowlines.reset_index().to_feather("/tmp/flowlines.feather")
-    flowlines = gp.read_feather("/tmp/flowlines.feather").set_index("lineID")
-    joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
-    waterbodies = waterbodies.head(1000)
+    # joins.reset_index(drop=True).to_feather("/tmp/flowline_joins.feather")
+    # # flowlines = gp.read_feather("/tmp/flowlines.feather").set_index("lineID")
+    # # joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
+    # waterbodies = waterbodies.head(1000)
     # end DEBUG
 
     print("------------------")
 
     ### Cut flowlines by waterbodies
     print("Processing intersections between waterbodies and flowlines")
-    flowlines, joins, wb_joins = cut_lines_by_waterbodies(flowlines, joins, waterbodies)
+    next_lineID = int(flowlines.index.max() + 1)
+    flowlines, joins, wb_joins = cut_lines_by_waterbodies(
+        flowlines, joins, waterbodies, next_lineID=next_lineID
+    )
 
     # Fix dtypes
     joins.upstream = joins.upstream.astype("uint64")

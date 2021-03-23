@@ -396,14 +396,14 @@ def cut_lines_at_multipoints(lines, points, tolerance=1e-6):
     ndarray of MultiLineStrings (or LineString, if unchanged)
     """
 
-    out = []
+    out = np.empty(shape=len(lines), dtype="object")
     for i in range(len(lines)):
         new_line = cut_line_at_points(
             lines[i], pg.get_parts(points[i]), tolerance=tolerance
         )
-        out.append(new_line)
+        out[i] = new_line
 
-    return np.array(out)
+    return out
 
 
 def near(source, target, distance):

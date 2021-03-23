@@ -104,8 +104,6 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     huc_id = drain_pts["HUC4"].astype("uint16") * 1000000
     drain_pts["drainID"] = drain_pts.index.values.astype("uint32") + huc_id
 
-    drain_pts = gp.GeoDataFrame(drain_pts, geometry="geometry", crs=flowlines.crs)
-
     # sort by drainage area so that smaller streams come first because
     # we are searching from upstream end
     drain_pts = drain_pts.sort_values(by=["wbID", "loop", "TotDASqKm"], ascending=True)
@@ -147,6 +145,10 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
             upstream_col="upstream_id",
             expand=3,
         )[["upstream_id", "downstream_id"]]
+
+        # remove any terminal points
+        pairs = pairs.loc[(pairs.upstream_id != 0) & (pairs.downstream_id != 0)]
+
         # create a directed graph facing DOWNSTREAM
         graph = DirectedGraph(pairs, source="upstream_id", target="downstream_id")
         # find all lines that are upstream of other lines
@@ -154,13 +156,15 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         upstreams = graph.find_all_parents(lines_per_wb.values)
         ix = pd.Series(upstreams).explode().dropna().unique()
         print(
-            f"Dropping {len(ix)} drains that are upstream of other drains in the same waterbody"
+            f"Dropping {len(ix):,} drains that are upstream of other drains in the same waterbody"
         )
         drain_pts = drain_pts.loc[~drain_pts.lineID.isin(ix)]
 
     drain_pts.wbID = drain_pts.wbID.astype("uint32")
     drain_pts.lineID = drain_pts.lineID.astype("uint32")
     drain_pts.flowlineLength = drain_pts.flowlineLength.astype("float32")
+
+    drain_pts = gp.GeoDataFrame(drain_pts, geometry="geometry", crs=flowlines.crs)
 
     print(
         "Done extracting {:,} waterbody drain points in {:.2f}s".format(
