@@ -9,7 +9,11 @@ This stage involves processing NHD data and related data into data structures th
 3. Manually download state-level LIDAR waterbody datasets.
 4. Run `extract_nhd.py` to extract flowlines, flowline joins, waterbodies, NHD barriers (points, lines, polygons) for each HUC2, followed by `aggregate_nhd_barriers.py` to aggregate NHD barriers across all HUC2s.
 5. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
-6. Run `extract_nwi_waterbodies_altered_rivers` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
+6. Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
+7. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies.
+
+=================== FIXME below
+
 7. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
 8. Run `merge_waterbodies.py` to merge waterbodies to the full SARP region and create files for large waterbodies.
 9. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
@@ -126,7 +130,7 @@ This creates a directory (`data/nwi/raw/<region>`) for each region containing:
 - waterbodies.feather
 - altered_rivers.feather
 
-====================================
+=================== FIXME below
 
 ### 5. Prepare flowlines and waterbodies:
 

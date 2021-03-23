@@ -27,15 +27,28 @@ if not out_dir.exists():
 
 start = time()
 
-huc8_df = pd.read_feather(data_dir / "boundaries/huc8.feather", columns=["HUC8"])
+
+huc8_df = gp.read_feather(
+    data_dir / "boundaries/huc8.feather", columns=["HUC8", "geometry"]
+)
 huc8_df["HUC2"] = huc8_df.HUC8.str[:2]
+
+# need to filter to only those that occur in the US
+states = gp.read_feather(data_dir / "boundaries/states.feather", columns=["geometry"])
+tree = pg.STRtree(huc8_df.geometry.values.data)
+left, right = tree.query_bulk(states.geometry.values.data, predicate="intersects")
+ix = np.unique(right)
+print(f"Dropping {len(huc8_df) - len(ix):,} HUC8s that are outside U.S.")
+huc8_df = huc8_df.iloc[ix].copy()
+
+
 # Convert to dict of sorted HUC8s per HUC2
 units = huc8_df.groupby("HUC2").HUC8.unique().apply(sorted).to_dict()
 
 # manually subset keys from above for processing
 huc2s = [
     # "02",
-    "03",
+    # "03",
     # "05",
     # "06",
     # "07",
@@ -49,7 +62,7 @@ huc2s = [
     # "15",
     # "16",
     # "17",
-    # "21",
+    "21",  # Missing: 21010008 (islands)
 ]
 
 
@@ -70,9 +83,14 @@ for huc2 in huc2s:
     for huc8 in units[huc2]:
         print(f"Reading NWI data for {huc8}")
 
+        filename = src_dir.resolve() / f"{huc8}.zip"
+        if not filename.exists():
+            print(f"WARNING: {filename} not found")
+            continue
+
         # Extract and merge lakes and wetlands
         df = read_dataframe(
-            f"/vsizip/{src_dir.resolve()}/{huc8}.zip/HU8_{huc8}_Watershed/HU8_{huc8}_Wetlands.shp",
+            f"/vsizip/{filename}/HU8_{huc8}_Watershed/HU8_{huc8}_Wetlands.shp",
             columns=["ATTRIBUTE", "WETLAND_TY"],
             where="WETLAND_TY in ('Lake', 'Pond', 'Riverine')",
         ).rename(columns={"ATTRIBUTE": "nwi_code", "WETLAND_TY": "nwi_type"})

@@ -4,6 +4,9 @@ import os
 from pathlib import Path
 from time import time
 
+import geopandas as gp
+import pygeos as pg
+import numpy as np
 import httpx
 
 import pandas as pd
@@ -47,14 +50,26 @@ if not out_dir.exists():
     os.makedirs(out_dir)
 
 
-huc8_df = pd.read_feather(data_dir / "boundaries/huc8.feather", columns=["HUC8"])
+huc8_df = gp.read_feather(
+    data_dir / "boundaries/huc8.feather", columns=["HUC8", "geometry"]
+)
 huc8_df["HUC2"] = huc8_df.HUC8.str[:2]
+
+# need to filter to only those that occur in the US
+states = gp.read_feather(data_dir / "boundaries/states.feather", columns=["geometry"])
+tree = pg.STRtree(huc8_df.geometry.values.data)
+left, right = tree.query_bulk(states.geometry.values.data, predicate="intersects")
+ix = np.unique(right)
+print(f"Dropping {len(huc8_df) - len(ix):,} HUC8s that are outside U.S.")
+huc8_df = huc8_df.iloc[ix].copy()
+
+
 # Convert to dict of sorted HUC8s per HUC2
 units = huc8_df.groupby("HUC2").HUC8.unique().apply(sorted).to_dict()
 
 # manually subset keys from above for processing
 huc2s = [
-    "02",
+    # "02",
     # "03",
     # "05",
     # "06",
@@ -69,7 +84,7 @@ huc2s = [
     # "15",
     # "16",
     # "17",
-    # "21",
+    # "21",  # Missing: 21010007, 21010008 (islands)
 ]
 
 start = time()

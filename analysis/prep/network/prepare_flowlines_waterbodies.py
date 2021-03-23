@@ -61,20 +61,20 @@ out_dir = nhd_dir / "clean"
 huc2s = [
     "02",
     "03",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
-    # "21",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "21",
 ]
 
 
@@ -155,6 +155,9 @@ for huc2 in huc2s:
     flowlines, joins, wb_joins = cut_lines_by_waterbodies(
         flowlines, joins, waterbodies, next_lineID=next_lineID
     )
+
+    # drop any waterbodies that no longer join to flowlines
+    waterbodies = waterbodies.loc[wb_joins.wbID.unique()].copy()
 
     # Fix dtypes
     joins.upstream = joins.upstream.astype("uint64")

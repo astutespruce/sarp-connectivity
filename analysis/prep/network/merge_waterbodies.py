@@ -43,11 +43,11 @@ huc2s = [
     # "11",
     # "12",
     # "13",
-    "14",
+    # "14",
     # "15",
     # "16",
     # "17",
-    # "21",
+    "21",
 ]
 
 start = time()
@@ -60,16 +60,20 @@ for huc2 in huc2s:
     if not huc2_dir.exists():
         os.makedirs(huc2_dir)
 
-    nwi = gp.read_feather(nwi_dir / huc2 / "waterbodies.feather")
-
-    nhd = gp.read_feather(nhd_dir / huc2 / "waterbodies.feather")
+    nhd = gp.read_feather(
+        nhd_dir / huc2 / "waterbodies.feather",
+        columns=["geometry", "FType", "GNIS_Name"],
+    )
     # determine altered types from NHD codes and names
     # note: other waterbodies may be altered but are not marked as such by NHD
     nhd["altered"] = (nhd.FType == 436) | nhd.GNIS_Name.str.lower().str.contains(
         "reservoir"
     )
 
+    nwi = gp.read_feather(nwi_dir / huc2 / "waterbodies.feather")
+
     df = nhd[["geometry", "altered"]].append(nwi[["geometry", "altered"]])
+
     altered = df.loc[df.altered].copy()
 
     if huc2 == "03":

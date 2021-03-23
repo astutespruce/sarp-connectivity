@@ -3,12 +3,9 @@ from time import time
 import geopandas as gp
 import pandas as pd
 import pygeos as pg
-import numpy as np
-from pyogrio import write_dataframe
 
-from nhdnet.nhd.joins import update_joins
-from analysis.lib.pygeos_util import explode, sjoin_geometry, cut_line_at_points
-from analysis.lib.flowlines import calculate_sinuosity, cut_flowlines_at_points
+from analysis.lib.pygeos_util import explode
+from analysis.lib.flowlines import cut_flowlines_at_points
 
 
 # In order to cut a flowline, it must be at least this long, and at least
