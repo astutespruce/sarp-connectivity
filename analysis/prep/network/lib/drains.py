@@ -5,6 +5,8 @@ import geopandas as gp
 import numpy as np
 import pygeos as pg
 
+from nhdnet.nhd.joins import find_joins
+from analysis.lib.graph import DirectedGraph
 from analysis.lib.pygeos_util import sjoin_geometry
 
 
@@ -43,14 +45,17 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
             "StreamOrde",
             "sizeclass",
             "HUC4",
+            "loop",
         ]
     ].rename(columns={"FCode": "lineFCode", "FType": "lineFType"})
 
     ### Find the downstream most point(s) on the flowline for each waterbody
-    # this is used for snapping barriers, if possible
+    # This is used for snapping barriers, if possible.
+    # Drop any where there is no flowline below the drain point (often pipelines
+    # that were removed)
     tmp = wb_joins[["lineID", "wbID"]].set_index("lineID")
     drains = (
-        joins.loc[joins.upstream_id.isin(wb_joins.lineID)]
+        joins.loc[joins.upstream_id.isin(wb_joins.lineID) & (joins.downstream_id != 0)]
         .join(tmp.wbID.rename("upstream_wbID"), on="upstream_id")
         .join(tmp.wbID.rename("downstream_wbID"), on="downstream_id")
     )
@@ -99,10 +104,63 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     huc_id = drain_pts["HUC4"].astype("uint16") * 1000000
     drain_pts["drainID"] = drain_pts.index.values.astype("uint32") + huc_id
 
+    drain_pts = gp.GeoDataFrame(drain_pts, geometry="geometry", crs=flowlines.crs)
+
+    # sort by drainage area so that smaller streams come first because
+    # we are searching from upstream end
+    drain_pts = drain_pts.sort_values(by=["wbID", "loop", "TotDASqKm"], ascending=True)
+
+    ### Deduplicate by location
+    # First deduplicate any that have the same point, and take the non-loop side if possible.
+    # Sometimes multiple lines converge at the same drain point.
+    # calculate the hash of the wkb
+    orig = len(drain_pts)
+    drain_pts["hash"] = pd.util.hash_array(pg.to_wkb(drain_pts.geometry.values.data))
+    drain_pts = drain_pts.groupby("hash").first().reset_index().drop(columns=["hash"])
+    print(f"Dropped {orig - len(drain_pts):,} drain points at duplicate locations")
+
+    ### Deduplicate drains by network topology
+    # Find the downstream-most drains for waterbodies when there are multiple.
+    # These may result from flowlines that cross in and out of waterbodies multiple
+    # times (not valid), or there may be drains on downstream loops
+    # (esp. at dams) (valid).
+
+    dups = drain_pts.groupby("wbID").size() > 1
+    if dups.sum():
+        print(
+            f"Found {dups.sum():,} waterbodies with multiple drain points; cleaing up"
+        )
+        # find all waterbodies that have duplicate drains
+        ix = drain_pts.wbID.isin(dups[dups].index)
+        wb_ids = drain_pts.loc[ix].wbID.unique()
+        # find all corresponding line IDs
+        line_ids = wb_joins.loc[wb_joins.wbID.isin(wb_ids)].lineID.unique()
+        lines_per_wb = (
+            drain_pts.loc[drain_pts.wbID.isin(wb_ids)].groupby("wbID").lineID.unique()
+        )
+        # search within 3 degrees removed from ids; this hopefully
+        # picks up any gaps where lines exit waterbodies for a ways then re-enter
+        pairs = find_joins(
+            joins,
+            line_ids,
+            downstream_col="downstream_id",
+            upstream_col="upstream_id",
+            expand=3,
+        )[["upstream_id", "downstream_id"]]
+        # create a directed graph facing DOWNSTREAM
+        graph = DirectedGraph(pairs, source="upstream_id", target="downstream_id")
+        # find all lines that are upstream of other lines
+        # these are "parents" in the directed graph
+        upstreams = graph.find_all_parents(lines_per_wb.values)
+        ix = pd.Series(upstreams).explode().dropna().unique()
+        print(
+            f"Dropping {len(ix)} drains that are upstream of other drains in the same waterbody"
+        )
+        drain_pts = drain_pts.loc[~drain_pts.lineID.isin(ix)]
+
     drain_pts.wbID = drain_pts.wbID.astype("uint32")
     drain_pts.lineID = drain_pts.lineID.astype("uint32")
     drain_pts.flowlineLength = drain_pts.flowlineLength.astype("float32")
-    drain_pts = gp.GeoDataFrame(drain_pts, geometry="geometry", crs=flowlines.crs)
 
     print(
         "Done extracting {:,} waterbody drain points in {:.2f}s".format(

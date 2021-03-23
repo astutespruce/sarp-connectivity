@@ -171,30 +171,50 @@ class DirectedGraph(object):
 
         return groups
 
+    def _is_reachable(self, node, target_nodes, max_depth=None):
+        try:
+            target_nodes = set(target_nodes)
+        except TypeError:
+            target_nodes = set([target_nodes])
+
+        if max_depth is None:
+            max_depth = self._size
+
+        depth = 0
+        seen = set()
+        next_nodes = set(self.adj_matrix.get(node, []))
+        while next_nodes and depth <= max_depth:
+            depth += 1
+            nodes = next_nodes
+            next_nodes = set()
+            for next_node in nodes:
+                if next_node in target_nodes:
+                    return True
+
+                if not next_node in seen:
+                    seen.add(next_node)
+                    next_nodes.update(self.adj_matrix.get(next_node, []))
+
+        return False
+
     def is_reachable(self, sources, targets, max_depth=None):
-        def _is_reachable(node, target_nodes, max_depth):
-            print(f"source: {node}, targets: {target_nodes}, max_depth: {max_depth}")
-            try:
-                target_nodes = set(target_nodes)
-            except TypeError:
-                target_nodes = set([target_nodes])
+        """Return True for each pair of source in sources and targets in targets
+        for which there exists a route within the adjacency matrix.
 
-            depth = 0
-            seen = set()
-            next_nodes = set(self.adj_matrix.get(node, []))
-            while next_nodes and depth <= max_depth:
-                depth += 1
-                nodes = next_nodes
-                next_nodes = set()
-                for next_node in nodes:
-                    if next_node in target_nodes:
-                        return True
+        Parameters
+        ----------
+        sources : 1d ndarray of source nodes
+        targets : 1d array of list-like of target nodes
+            must be same length as sources; list-like of targets per source
+        max_depth : [type], optional (default: None)
+            If set, will be the maximum number of descendents of each source
+            to search for a route to any of targets.  By default will search
+            through all nodes in graph.
 
-                    if not next_node in seen:
-                        seen.add(next_node)
-                        next_nodes.update(self.adj_matrix.get(next_node, []))
-
-            return False
+        Returns
+        -------
+        ndarray (bool)
+        """
 
         if not len(sources) == len(targets):
             raise ValueError("sources and targets must be same length")
@@ -204,6 +224,25 @@ class DirectedGraph(object):
 
         out = np.zeros(shape=(len(sources)), dtype="bool")
         for i in range(len(sources)):
-            out[i] = _is_reachable(sources[i], targets[i], max_depth)
+            out[i] = self._is_reachable(sources[i], targets[i], max_depth)
         return out
 
+    def find_all_parents(self, sources, max_depth=None):
+        out = np.empty(shape=(len(sources),), dtype="object")
+
+        def _find_parents(nodes, max_depth):
+            # first eliminate any for which there are no children
+            search_nodes = {n for n in nodes if n in self.adj_matrix}
+            parents = set()
+            for node in search_nodes:
+                if self._is_reachable(node, search_nodes - {node}, max_depth):
+                    parents.add(node)
+
+            return parents
+
+        if max_depth is None:
+            max_depth = self._size
+        for i in range(len(sources)):
+            out[i] = _find_parents(sources[i], max_depth=max_depth)
+
+        return out
