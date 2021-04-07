@@ -8,7 +8,7 @@ import pygeos as pg
 from pyogrio import write_dataframe
 
 from analysis.prep.barriers.lib.points import connect_points
-from analysis.lib.pygeos_util import sjoin, nearest
+from analysis.lib.geometry import sjoin, nearest
 from analysis.constants import CRS, SNAP_ENDPOINT_TOLERANCE
 from analysis.lib.util import ndarray_append_strings
 
@@ -498,8 +498,7 @@ def snap_to_flowlines(df, to_snap):
             in_huc2.snap_tolerance.values,
         )
         lines = lines.join(in_huc2.geometry).join(
-            flowlines.geometry.rename("line"),
-            on="lineID",
+            flowlines.geometry.rename("line"), on="lineID",
         )
 
         # project the point to the line,

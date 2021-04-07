@@ -17,7 +17,7 @@ from analysis.constants import NETWORK_TYPES, CRS
 from analysis.network.lib.stats import calculate_network_stats
 from analysis.lib.io import read_feathers
 from analysis.lib.util import append
-from analysis.lib.pygeos_util import explode
+from analysis.lib.geometry import explode
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -251,28 +251,14 @@ upstream_stats = (
 
 # stats for networks that terminate in another HUC2 downstream
 downstream_stats = (
-    network_stats[
-        [
-            "upstream_network",
-            "new_network",
-            "miles",
-            "free_miles",
-        ]
-    ]
+    network_stats[["upstream_network", "new_network", "miles", "free_miles",]]
     .groupby("upstream_network")
     .first()
 )
 
 # stats for networks that terminate in the same HUC2
 downstream_stats_same_huc2 = (
-    network_stats[
-        [
-            "downstream_network",
-            "new_network",
-            "miles",
-            "free_miles",
-        ]
-    ]
+    network_stats[["downstream_network", "new_network", "miles", "free_miles",]]
     .groupby("downstream_network")
     .first()
 )
@@ -326,9 +312,7 @@ for huc2 in connected_huc2:
 
     # Update any records in this HUC2 that have updated networks DOWNSTREAM of them
     barrier_networks = barrier_networks.join(
-        downstream_stats_same_huc2,
-        on="downNetID",
-        rsuffix="_right",
+        downstream_stats_same_huc2, on="downNetID", rsuffix="_right",
     )
     ix = barrier_networks.new_network.notnull()
 
@@ -347,18 +331,12 @@ for huc2 in connected_huc2:
         ].free_miles.astype("float32")
 
     barrier_networks = barrier_networks.drop(
-        columns=[
-            "new_network",
-            "miles",
-            "free_miles",
-        ]
+        columns=["new_network", "miles", "free_miles",]
     )
 
     # update any records in UPSTREAM HUC2s that have updated networks DOWNSTREAM of them
     barrier_networks = barrier_networks.join(
-        downstream_stats,
-        on="downNetID",
-        rsuffix="_right",
+        downstream_stats, on="downNetID", rsuffix="_right",
     )
     ix = barrier_networks.new_network.notnull()
 
@@ -377,11 +355,7 @@ for huc2 in connected_huc2:
         ].free_miles.astype("float32")
 
     barrier_networks = barrier_networks.drop(
-        columns=[
-            "new_network",
-            "miles",
-            "free_miles",
-        ]
+        columns=["new_network", "miles", "free_miles",]
     )
 
     huc2_dir = out_dir / huc2 / network_type

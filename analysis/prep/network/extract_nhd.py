@@ -6,8 +6,7 @@ Data are downloaded using `nhd/download.py::download_huc4`.
 Only the flowlines, joins between flowlines, and specific attributes are extracted for analysis.
 
 Due to data limitations of the FGDB / Shapefile format, NHDPlus IDs are represented natively as float64 data.
-However, float64 data are not ideal for indexing, so all IDs are converted to uint64 within this package, and
-converted back to float64 only for export to GIS.
+All IDs are converted to uint64 within this package.
 
 These are output as 3 files:
 * flowlines.feather: serialized flowline geometry and attributes
@@ -23,7 +22,6 @@ import warnings
 import pandas as pd
 import pygeos as pg
 import numpy as np
-from pyogrio import write_dataframe
 
 from analysis.prep.network.lib.nhd import (
     extract_flowlines,
@@ -38,7 +36,6 @@ from analysis.constants import (
     WATERBODY_EXCLUDE_FTYPES,
     WATERBODY_MIN_SIZE,
 )
-from analysis.lib.pygeos_util import sjoin_geometry
 from analysis.lib.util import append
 
 

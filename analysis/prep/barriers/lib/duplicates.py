@@ -3,7 +3,7 @@ import geopandas as gp
 import pygeos as pg
 from pyogrio import write_dataframe
 
-from analysis.lib.pygeos_util import dissolve, neighborhoods
+from analysis.lib.geometry import dissolve, neighborhoods
 from analysis.constants import CRS, ONSTREAM_MANUALREVIEW
 
 

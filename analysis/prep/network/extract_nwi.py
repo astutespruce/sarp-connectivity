@@ -10,7 +10,7 @@ import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS
-from analysis.lib.pygeos_util import dissolve, explode
+from analysis.lib.geometry import dissolve, explode
 from analysis.lib.util import append
 
 

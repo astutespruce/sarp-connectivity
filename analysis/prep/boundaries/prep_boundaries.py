@@ -16,7 +16,7 @@ import pygeos as pg
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS, OWNERTYPE_TO_DOMAIN, OWNERTYPE_TO_PUBLIC_LAND
-from analysis.lib.pygeos_util import explode, dissolve
+from analysis.lib.geometry import explode, dissolve
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -76,10 +76,7 @@ print("Processing counties")
 fips = sorted(state_df.STATEFIPS.unique())
 
 df = (
-    read_dataframe(
-        county_filename,
-        columns=["NAME", "GEOID", "STATEFP"],
-    )
+    read_dataframe(county_filename, columns=["NAME", "GEOID", "STATEFP"],)
     .to_crs(CRS)
     .rename(columns={"NAME": "County", "GEOID": "COUNTYFIPS", "STATEFP": "STATEFIPS"})
 )

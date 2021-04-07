@@ -1,5 +1,5 @@
 """
-Download NHD Plus HR flowline data for every HUC4 in the SARP region.
+Download NHD Plus HR flowline data for every HUC4 in the analysis region.
 """
 
 
@@ -8,8 +8,8 @@ import os
 from requests import HTTPError
 
 import pandas as pd
-from nhdnet.nhd.download import download_huc4
 
+from analysis.prep.network.lib.nhd.download import download_huc4
 
 data_dir = Path("data")
 

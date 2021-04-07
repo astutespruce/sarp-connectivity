@@ -10,12 +10,8 @@ This stage involves processing NHD data and related data into data structures th
 4. Run `extract_nhd.py` to extract flowlines, flowline joins, waterbodies, NHD barriers (points, lines, polygons) for each HUC2, followed by `aggregate_nhd_barriers.py` to aggregate NHD barriers across all HUC2s.
 5. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
 6. Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
-7. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies.
-
-=================== FIXME below
-
-7. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
-8. Run `merge_waterbodies.py` to merge waterbodies to the full SARP region and create files for large waterbodies.
+7. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region).
+8. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
 9. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
 10. Run `prep_floodplain_statistics.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
 
@@ -56,7 +52,7 @@ These data are extracted from NHDFlowline, NHDPlusFlowlineVAA, NHDPlusFlow datas
 
 - aquatic networks that cross HUC4 boundaries within each region are joined together to create contiguous networks.
 - all coastlines (FType=566) and their joins are dropped
-- size classes are calculated (see `nhdnet::nhdnet/nhd/extract.py` for thresholds)
+- size classes are calculated (see `analysis/prep/network/lib/nhd/flowlines.py` for thresholds)
 - sinuosity and length are calculated
 - geometries are converted to XY LineStrings from XYZ MultiLineStrings
 - projected to SARP standard CRS
@@ -130,9 +126,22 @@ This creates a directory (`data/nwi/raw/<region>`) for each region containing:
 - waterbodies.feather
 - altered_rivers.feather
 
-=================== FIXME below
+### 7. Merge waterbodies
 
-### 5. Prepare flowlines and waterbodies:
+Run `merge_waterbodies.py` to merge NHD, NWI, and other waterbodies. This first
+dissolves any overlapping waterbodies. It then uses the NHD data to determine
+valid breaks between adjacent waterbodies (e.g., large reservoir system with
+internal dams), based on break points that are near NHD dam lines. NHD dams are
+buffered slightly and merged with these break points, and they are used to cut the
+waterbodies back apart.
+
+Note: this may produce slight artifacts in the waterbody edges where dams are cut in
+to separate adjacent waterbodies.
+
+This creates
+`data/waterbodies/<region>/waterbodies.feather`
+
+### 6. Prepare flowlines and waterbodies:
 
 Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis. This implements the bulk of the logic to extract the appropriate flowline and waterbodies. This logic may need to be tuned to refine the network connectivity analysis.
 
@@ -142,9 +151,8 @@ This performs several steps:
 2. Recodes "loops" as needed
 3. Drops all underground conduits (FType=420)
 4. Drops pipelines (FType=428) that are isolated, at terminal ends of flowlines, or are long connectors between flowlines (>250m)
-5. Dissolves waterbodies that are touching or overlapping each other; this also deduplicates waterbodies that may result from merging multiple regions together. Note: NHDPlusID ids of the original waterbodies are dropped when they are dissolved.
-6. Flowlines are cut by waterbodies, and the waterbody / flowline joins are refined to only those flowlines that actually fall within waterbodies. Flowlines are attributed with `waterbody` to indicate if they fall within a waterbody.
-7. Waterbody "drain points" are identified by taking the furthest downstream point of each flowline network that falls within a waterbody. Due to the way that waterbodies are connected to exiting flowlines, there may be several drain points for some waterbodies (most typically have just one). Note: some large riverways are mapped as NHD waterbodies; drain points are not as meaningful for these features.
+5. Flowlines are cut by waterbodies, and flowlines are attributed with `waterbody` to indicate if they fall entirely or mostly (>50%) within a waterbody.
+6. Waterbody "drain points" are identified by taking the furthest downstream point of each flowline network that falls within a waterbody. Due to the way that waterbodies are connected to exiting flowlines, there may be multiple drain points for some waterbodies (most typically have just one). Note: some large riverways are mapped as NHD waterbodies; drain points are not as meaningful for these features.
 
 Note:
 short pipelines (<250m) between adjacent non-pipeline flowline are retained. From visual inspection, these occur at dam drain points, which means that removing them completely breaks the network and eliminates our ability to analyze the impact of those dams on network connectivity.
@@ -162,21 +170,6 @@ This creates "clean" data for further analysis in `data/nhd/clean/<region>`:
 - `waterbody_drain_points.feather`: drain points for each waterbody
 
 The script outputs files with erroneous data, if errors are detected during processing. These are identified by `error_*` with a name that indicates the nature of the error.
-
-### 6. Merge waterbodies
-
-Run `merge_waterbodies.py` after the above script completes to merge waterbodies and their associated drain points across the entire region.
-
-Large waterbodies are those that have >= 1km of intersected flowline length and are >= 0.25 sq km. From visual inspection, most appear to be impounded reservoirs.
-
-#### Outputs:
-
-This creates data in `data/nhd/merged`
-
-- `waterbodies.feather`
-- `waterbody_drains.feather`
-- `large_waterbodies.feather`
-- `large_waterbody_drains.feather`
 
 ### 7. Find NHD dams
 

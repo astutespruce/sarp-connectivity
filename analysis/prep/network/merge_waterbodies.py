@@ -11,8 +11,8 @@ from pyogrio import write_dataframe
 
 
 from analysis.constants import CRS
-from analysis.prep.network.lib.waterbodies import find_nhd_waterbody_breaks
-from analysis.lib.pygeos_util import explode, dissolve, write_geoms
+from analysis.lib.geometry import explode, dissolve, write_geoms
+from analysis.prep.network.lib.nhd import find_nhd_waterbody_breaks
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")

@@ -22,7 +22,7 @@ from pyogrio import write_dataframe
 from analysis.constants import CRS
 
 from analysis.lib.io import read_feathers
-from analysis.lib.pygeos_util import nearest
+from analysis.lib.geometry import nearest
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.duplicates import find_duplicates
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins

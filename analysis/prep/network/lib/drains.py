@@ -5,9 +5,9 @@ import geopandas as gp
 import numpy as np
 import pygeos as pg
 
-from nhdnet.nhd.joins import find_joins
+from analysis.lib.joins import find_joins
 from analysis.lib.graph import DirectedGraph
-from analysis.lib.pygeos_util import sjoin_geometry
+from analysis.lib.geometry import sjoin_geometry
 
 
 def create_drain_points(flowlines, joins, waterbodies, wb_joins):

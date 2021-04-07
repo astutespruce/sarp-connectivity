@@ -18,7 +18,6 @@ sentry-sdk = "*"
 pylint = "*"
 black = "==19.10b0"
 requests = "*"
-nhdnet = {editable = true,path = "./../nhdnet"}
 sarp-connectivity = {editable = true,path = "."}
 rtree = ">=0.9.3"
 pyogrio = {editable = true,path = "./../pyogrio"}

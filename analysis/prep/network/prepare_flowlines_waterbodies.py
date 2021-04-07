@@ -33,15 +33,18 @@ import geopandas as gp
 import pandas as pd
 import pygeos as pg
 from pyogrio import write_dataframe
-from nhdnet.nhd.joins import remove_joins
+
 
 from analysis.constants import (
     CONVERT_TO_NONLOOP,
     MAX_PIPELINE_LENGTH,
 )
-
-from analysis.lib.flowlines import remove_flowlines, remove_pipelines
-from analysis.prep.network.lib.cut import cut_lines_by_waterbodies
+from analysis.lib.joins import remove_joins
+from analysis.lib.flowlines import (
+    remove_flowlines,
+    remove_pipelines,
+    cut_lines_by_waterbodies,
+)
 from analysis.prep.network.lib.drains import create_drain_points
 
 

@@ -7,13 +7,11 @@ import pygeos as pg
 import geopandas as gp
 from pyogrio import write_dataframe
 
-from nhdnet.nhd.joins import find_joins
-
-from analysis.lib.pygeos_util import sjoin_geometry, nearest
-
 from analysis.constants import CRS
+from analysis.lib.joins import find_joins
+from analysis.lib.geometry import sjoin_geometry, nearest
 from analysis.lib.util import append
-from analysis.lib.pygeos_util import aggregate_contiguous
+from analysis.lib.geometry import aggregate_contiguous
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -95,8 +93,7 @@ for huc2 in huc2s:
     ).set_index("wbID")
 
     drains = gp.read_feather(
-        src_dir / huc2 / "waterbody_drain_points.feather",
-        columns=["wbID", "geometry"],
+        src_dir / huc2 / "waterbody_drain_points.feather", columns=["wbID", "geometry"],
     )
 
     ### Associate with waterbodies, so that we know which waterbodies are claimed

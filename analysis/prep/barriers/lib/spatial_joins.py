@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 import geopandas as gp
 
-from analysis.lib.pygeos_util import unique_sjoin
+from analysis.lib.geometry import unique_sjoin
 
 
 data_dir = Path("data")

@@ -35,7 +35,7 @@ from analysis.prep.barriers.lib.duplicates import (
 )
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.lib.io import read_feathers
-from analysis.lib.pygeos_util import nearest
+from analysis.lib.geometry import nearest
 from analysis.constants import (
     CRS,
     KEEP_POTENTIAL_PROJECT,
@@ -97,9 +97,7 @@ df.loc[
     (~df.Stream.isin(["Unknown", "Unnamed", ""]))
     & (~df.Road.isin(["Unknown", "Unnamed", ""])),
     "Name",
-] = (
-    df.Stream + " / " + df.Road
-)
+] = (df.Stream + " / " + df.Road)
 df.Name = df.Name.fillna("")
 
 
