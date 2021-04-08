@@ -37,12 +37,14 @@ from pyogrio import write_dataframe
 
 from analysis.constants import (
     CONVERT_TO_NONLOOP,
+    REMOVE_IDS,
     MAX_PIPELINE_LENGTH,
 )
 from analysis.lib.joins import remove_joins
 from analysis.lib.flowlines import (
     remove_flowlines,
     remove_pipelines,
+    remove_marine_flowlines,
     cut_lines_by_waterbodies,
 )
 from analysis.prep.network.lib.drains import create_drain_points
@@ -98,34 +100,45 @@ for huc2 in huc2s:
     joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
     print("Read {:,} flowlines".format(len(flowlines)))
 
+    print("------------------")
+
     ### Drop underground conduits
+    # TODO: remove once extract_nhd has been rerun for all areas
     ix = flowlines.loc[flowlines.FType == 420].index
-    print("Removing {:,} underground conduits".format(len(ix)))
-    flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
-    joins = remove_joins(
-        joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
-    )
+    if len(ix):
+        print("Removing {:,} underground conduits".format(len(ix)))
+        flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
+        joins = remove_joins(
+            joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
+        )
+        print("------------------")
 
     ### Manual fixes for flowlines
-    remove_filename = src_dir / huc2 / "remove_flowlines.feather"
-    if remove_filename.exists():
-        exclude_ids = pd.read_feather(remove_filename).NHDPlusID.unique()
-        flowlines, joins = remove_flowlines(flowlines, joins, exclude_ids)
-        print(
-            "Removed {:,} excluded flowlines, now have {:,}".format(
-                len(exclude_ids), len(flowlines)
-            )
-        )
+    remove_ids = REMOVE_IDS.get(huc2, [])
+    if remove_ids:
+        print(f"Removing {len(remove_ids):,} manually specified NHDPlusIDs")
+        flowlines, joins = remove_flowlines(flowlines, joins, remove_ids)
+        print("------------------")
 
     ### Fix segments that should not have been coded as loops
     convert_ids = CONVERT_TO_NONLOOP.get(huc2, [])
     if convert_ids:
-        print("Converting {:,} loops to non-loops".format(len(convert_ids)))
+        print(f"Converting {len(convert_ids):,} loops to non-loops")
         flowlines.loc[flowlines.NHDPlusID.isin(convert_ids), "loop"] = False
         joins.loc[joins.upstream.isin(convert_ids), "loop"] = False
         joins.loc[joins.downstream.isin(convert_ids), "loop"] = False
+        print("------------------")
 
-    print("------------------")
+    ### Remove any flowlines that start in marine areas
+    marine_filename = src_dir / huc2 / "nhd_marine.feather"
+    if marine_filename.exists():
+        marine = gp.read_feather(marine_filename)
+        flowlines, joins = remove_marine_flowlines(flowlines, joins, marine)
+        print("------------------")
+
+    # TODO: temporary shim until marine is attributed everywhere
+    elif not "marine" in joins.columns:
+        joins["marine"] = False
 
     ### Drop pipelines that are > PIPELINE_MAX_LENGTH or are otherwise isolated from the network
     print("Evaluating pipelines")

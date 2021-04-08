@@ -1,17 +1,5 @@
 """
 Extract NHD File Geodatabases (FGDB) for all HUC4s within each HUC2.
-
-Data are downloaded using `nhd/download.py::download_huc4`.
-
-Only the flowlines, joins between flowlines, and specific attributes are extracted for analysis.
-
-Due to data limitations of the FGDB / Shapefile format, NHDPlus IDs are represented natively as float64 data.
-All IDs are converted to uint64 within this package.
-
-These are output as 3 files:
-* flowlines.feather: serialized flowline geometry and attributes
-* flowline_joins.feather: serialized joins between adjacent flowlines, with the upstream and downstream IDs of a join
-* waterbodies.feather: serialized waterbody geometry and attributes
 """
 
 from pathlib import Path
@@ -22,6 +10,7 @@ import warnings
 import pandas as pd
 import pygeos as pg
 import numpy as np
+from pyogrio import write_dataframe
 
 from analysis.prep.network.lib.nhd import (
     extract_flowlines,
@@ -29,6 +18,8 @@ from analysis.prep.network.lib.nhd import (
     extract_barrier_points,
     extract_barrier_lines,
     extract_barrier_polygons,
+    extract_altered_rivers,
+    extract_marine,
 )
 
 from analysis.constants import (
@@ -40,7 +31,7 @@ from analysis.lib.util import append
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-warnings.filterwarnings("ignore", message=".*M values are stripped during reading.*")
+warnings.filterwarnings("ignore", message=".*geometry types are not supported*")
 
 
 def process_huc4s(src_dir, out_dir, huc4s):
@@ -50,6 +41,8 @@ def process_huc4s(src_dir, out_dir, huc4s):
     merged_points = None
     merged_lines = None
     merged_poly = None
+    merged_altered_rivers = None
+    merged_marine = None
 
     for huc4 in huc4s:
         print(f"------------------- Reading {huc4} -------------------")
@@ -130,6 +123,17 @@ def process_huc4s(src_dir, out_dir, huc4s):
         poly["id"] += huc_id
         merged_poly = append(merged_poly, poly)
 
+        ### Extract altered rivers
+        altered_rivers = extract_altered_rivers(gdb, target_crs=CRS)
+        altered_rivers.HUC4 = huc4
+        altered_rivers["id"] += huc_id
+        merged_altered_rivers = append(merged_altered_rivers, altered_rivers)
+
+        ### Extract marine
+        marine = extract_marine(gdb, target_crs=CRS)
+        marine.HUC4 = huc4
+        merged_marine = append(merged_marine, marine)
+
     print("--------------------")
 
     flowlines = merged_flowlines.reset_index(drop=True)
@@ -138,6 +142,8 @@ def process_huc4s(src_dir, out_dir, huc4s):
     points = merged_points.reset_index(drop=True)
     lines = merged_lines.reset_index(drop=True)
     poly = merged_poly.reset_index(drop=True)
+    altered_rivers = merged_altered_rivers.reset_index(drop=True)
+    marine = merged_marine.reset_index(drop=True)
 
     ### Deduplicate waterbodies that are duplicated between adjacent HUC4s
     print("Removing duplicate waterbodies, starting with {:,}".format(len(waterbodies)))
@@ -223,6 +229,18 @@ def process_huc4s(src_dir, out_dir, huc4s):
         # DEBUG:
         # write_dataframe(poly, out_dir / 'nhd_poly.gpkg')
 
+    if len(altered_rivers):
+        print(f"serializing {len(altered_rivers):,} NHD altered rivers")
+        altered_rivers.to_feather(out_dir / "nhd_altered_rivers.feather")
+        # DEBUG:
+        # write_dataframe(altered_rivers, out_dir / "nhd_altered_rivers.gpkg")
+
+    if len(marine):
+        print(f"serializing {len(marine):,} NHD marine areas")
+        marine.to_feather(out_dir / "nhd_marine.feather")
+        # DEBUG:
+        # write_dataframe(marine, out_dir / "nhd_marine.gpkg")
+
 
 data_dir = Path("data")
 src_dir = data_dir / "nhd/source/huc4"
@@ -253,10 +271,10 @@ huc2s = [
     "12",
     "13",
     # "14",
-    "15",
-    "16",
-    "17",
-    "21",
+    # "15",
+    # "16",
+    # "17",
+    # "21",
 ]
 
 

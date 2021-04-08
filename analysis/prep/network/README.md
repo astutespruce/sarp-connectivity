@@ -86,6 +86,8 @@ This creates a directory (`data/nhd/raw/<region>`) for each region containing:
 - `nhd_points.feather`: NHD barrier points
 - `nhd_lines.feather`: NHD barrier lines
 - `nhd_poly.feather`: NHD barrier polygons
+- `nhd_altered_rivers.feather`: altered river areas from NHDArea
+- `nhd_marine.feather`: marine areas: ocean, inlets, bays, and estuaries
 
 `aggregate_nhd_barriers.py` creates a directory `data/nhd/merged` with:
 
@@ -100,16 +102,11 @@ This creates a directory (`data/nhd/raw/<region>`) for each region containing:
 
 ### 5. Run any special preprocessing scripts or hand-inspect NHD data
 
-To get around issues with NHD HR+ Beta data, you likely need to inspect the NHD data first for errors. Two common problems are currently solved:
+To get around issues with NHD HR+ Beta data, you likely need to inspect the NHD data first for errors:
 
 1. Some "loops" are miscoded; the main segment is mis-identified as a loop, whereas a pipeline may be identified as the main segment.
-2. Chesapeake Bay contains many flowlines that cause networks to be joined together across the bay. These flowlines are excluded from the analysis.
 
-The results of this analysis and preprocessing are stored in `analysis/constants.py` in `EXCLUDE_IDS` and `CONVERT_TO_NONLOOP` variables. These store lists of NHDPlusIDs that need to be acted upon.
-
-#### Region 2:
-
-Run `special/region2.py` to create a list of flowline IDs to exclude flowlines in Chesapeake Bay.
+The results of this analysis and preprocessing are stored in `analysis/constants.py` in `REMOVE_IDS` and `CONVERT_TO_NONLOOP` variables. These store lists of NHDPlusIDs that need to be acted upon.
 
 #### South Carolina LIDAR-derived waterbodies
 

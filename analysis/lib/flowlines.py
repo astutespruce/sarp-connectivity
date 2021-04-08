@@ -482,6 +482,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     # NHDPlusID is same for both sides
     new_joins["downstream"] = new_joins.upstream
     new_joins["type"] = "internal"
+    new_joins["marine"] = False
     new_joins = new_joins[
         [
             "upstream",
@@ -490,6 +491,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
             "downstream_id",
             "type",
             "loop",
+            "marine",
             "HUC4",
         ]
     ]
@@ -783,3 +785,68 @@ def remove_flowlines(flowlines, joins, ids):
     joins.loc[joins.upstream == 0, "upstream_id"] = 0
 
     return flowlines, joins
+
+
+def remove_marine_flowlines(flowlines, joins, marine):
+    """Remove flowlines that originate within or are mostly within marine areas
+    for coastal HUC2s.  Marks any that have endpoints in marine areas or are
+    upstream of those removed here as terminating in marine.
+
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+    marine : GeoDataFrame
+
+    Returns
+    -------
+    (GeoDataFrame, DataFrame)
+        flowlines, joins
+    """
+
+    # Remove those that start in marine areas
+    points = pg.get_point(flowlines.geometry.values.data, 0)
+    tree = pg.STRtree(points)
+    left, right = tree.query_bulk(marine.geometry.values.data, predicate="intersects")
+    ix = flowlines.index.take(np.unique(right))
+
+    print(f"Removing {len(ix):,} flowlines that originate in marine areas")
+    # mark any that terminated in those as marine
+    joins.loc[joins.downstream_id.isin(ix), "marine"] = True
+    flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
+    joins = remove_joins(
+        joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+
+    # Mark those that end in marine areas as marine
+    endpoints = pg.get_point(flowlines.geometry.values.data, -1)
+    tree = pg.STRtree(endpoints)
+    left, right = tree.query_bulk(marine.geometry.values.data, predicate="intersects")
+    ix = flowlines.index.take(np.unique(right))
+    joins.loc[joins.upstream_id.isin(ix), "marine"] = True
+
+    # For any that end in marine but didn't originate there, check the amount of overlap;
+    # any that are >= 90% in marine should get cut
+    print("Calculating overlap of remaining lines with marine areas")
+    tmp = pd.DataFrame(
+        {
+            "lineID": flowlines.iloc[right].index,
+            "geometry": flowlines.iloc[right].geometry.values.data,
+            "marine": marine.iloc[left].geometry.values.data,
+        }
+    )
+    tmp["overlap"] = pg.intersection(tmp.geometry, tmp.marine)
+    tmp["pct_overlap"] = 100 * pg.length(tmp.overlap) / pg.length(tmp.geometry)
+
+    ix = tmp.loc[tmp.pct_overlap >= 90].lineID.unique()
+
+    print(f"Removing {len(ix):,} flowlines that mostly overlap marine areas")
+    # mark any that terminated in those as marine
+    joins.loc[joins.downstream_id.isin(ix), "marine"] = True
+    flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
+    joins = remove_joins(
+        joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+
+    return flowlines, joins
+

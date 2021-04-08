@@ -1,9 +1,15 @@
+import warnings
+
 import pygeos as pg
 import geopandas as gp
 from pyogrio import read_dataframe
 
 from analysis.lib.geometry import calculate_sinuosity
 from analysis.lib.geometry import make_valid
+from analysis.lib.joins import remove_joins
+
+
+warnings.filterwarnings("ignore", message=".*M values are stripped during reading.*")
 
 
 FLOWLINE_COLS = [
@@ -55,7 +61,7 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     print("Reading flowlines")
     flowline_cols = FLOWLINE_COLS + extra_flowline_cols
     df = read_dataframe(
-        gdb_path, layer="NHDFlowline", force_2d=True, columns=[flowline_cols]
+        gdb_path, layer="NHDFlowline", force_2d=True, columns=[flowline_cols],
     )
 
     print("Read {:,} flowlines".format(len(df)))
@@ -94,6 +100,13 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     join_df.upstream = join_df.upstream.astype("uint64")
     join_df.downstream = join_df.downstream.astype("uint64")
 
+    # set join types to make it easier to track
+    join_df["type"] = "internal"  # set default
+    # upstream-most origin points
+    join_df.loc[join_df.upstream == 0, "type"] = "origin"
+    # downstream-most termination points
+    join_df.loc[join_df.downstream == 0, "type"] = "terminal"
+
     ### Label loops for easier removal later
     # WARNING: loops may be very problematic from a network processing standpoint.
     # Include with caution.
@@ -118,11 +131,20 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     # set the downstream to 0 for any that join coastlines
     # this will enable us to mark these as downstream terminals in
     # the network analysis later
-    join_df.loc[join_df.downstream.isin(coastline_idx), "downstream"] = 0
+    join_df["marine"] = join_df.downstream.isin(coastline_idx)
+    join_df.loc[join_df.marine, "downstream"] = 0
 
     # drop any duplicates (above operation sets some joins to upstream and downstream of 0)
     join_df = join_df.drop_duplicates()
     print("{:,} features after removing coastlines".format(len(df)))
+
+    ### Filter out underground connectors
+    ix = df.loc[df.FType == 420].index
+    print("Removing {:,} underground conduits".format(len(ix)))
+    df = df.loc[~df.index.isin(ix)].copy()
+    join_df = remove_joins(
+        join_df, ix, downstream_col="downstream", upstream_col="upstream"
+    )
 
     ### Add calculated fields
     # Set our internal master IDs to the original index of the file we start from
@@ -161,14 +183,10 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     df["length"] = df.geometry.length.astype("float32")
     df["sinuosity"] = calculate_sinuosity(df.geometry.values.data).astype("float32")
 
-    # set join types to make it easier to track
-    join_df["type"] = "internal"  # set default
-    join_df.loc[join_df.upstream == 0, "type"] = "origin"
-    join_df.loc[join_df.downstream == 0, "type"] = "terminal"
-    join_df.loc[(join_df.upstream != 0) & (join_df.upstream_id == 0), "type"] = "huc_in"
-
     # drop columns not useful for later processing steps
     df = df.drop(columns=["FlowDir", "StreamCalc"])
 
-    return df, join_df
+    # calculate incoming joins (have valid upstream, but not in this HUC4)
+    join_df.loc[(join_df.upstream != 0) & (join_df.upstream_id == 0), "type"] = "huc_in"
 
+    return df, join_df

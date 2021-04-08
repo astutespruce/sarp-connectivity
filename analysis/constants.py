@@ -412,3 +412,10 @@ OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True}
 # WARNING: you must remove the corresponding segments that
 # were previously identified as loops
 CONVERT_TO_NONLOOP = {"02": [10000300070616, 10000300132189, 10000300132190]}
+
+# List of NHDPlusIDs to remove due to issues with NHD
+REMOVE_IDS = {
+    # Invalid loops
+    "02": [10000300073811, 10000300021333]
+}
+
