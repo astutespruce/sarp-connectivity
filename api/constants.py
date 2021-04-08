@@ -494,6 +494,7 @@ DOMAINS = {
     "PassageFacility": PASSAGEFACILITY_DOMAIN,
     # barrier fields
     "SeverityClass": BARRIER_SEVERITY_DOMAIN,
+    "ConditionClass": BARRIER_CONDITION_DOMAIN,
 }
 
 

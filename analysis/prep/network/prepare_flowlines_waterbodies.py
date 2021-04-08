@@ -155,14 +155,6 @@ for huc2 in huc2s:
     ).set_index("wbID")
     print(f"Read {len(waterbodies):,} waterbodies")
 
-    # DEBUG
-    # flowlines.reset_index().to_feather("/tmp/flowlines.feather")
-    # joins.reset_index(drop=True).to_feather("/tmp/flowline_joins.feather")
-    # # flowlines = gp.read_feather("/tmp/flowlines.feather").set_index("lineID")
-    # # joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
-    # waterbodies = waterbodies.head(1000)
-    # end DEBUG
-
     print("------------------")
 
     ### Cut flowlines by waterbodies
@@ -172,8 +164,8 @@ for huc2 in huc2s:
         flowlines, joins, waterbodies, next_lineID=next_lineID
     )
 
-    # drop any waterbodies that no longer join to flowlines
-    waterbodies = waterbodies.loc[wb_joins.wbID.unique()].copy()
+    # NOTE: we retain all waterbodies at this point, even if they don't overlap
+    # flowlines.  This is because we use headwaters waterbodies to calculate drain points.
 
     # Fix dtypes
     joins.upstream = joins.upstream.astype("uint64")

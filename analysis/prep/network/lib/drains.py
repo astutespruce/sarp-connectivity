@@ -79,18 +79,22 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     # these are flowlines that originate at a waterbody
     wb_geom = waterbodies.loc[waterbodies.flowlineLength == 0].geometry
     wb_geom = pd.Series(wb_geom.values.data, index=wb_geom.index)
-    fl_geom = pd.Series(flowlines.geometry.values.data, index=flowlines.index)
+    # take only the upstream most point
+    tmp_flowline_pts = tmp_flowlines.copy()
+    tmp_flowline_pts["geometry"] = pg.get_point(flowlines.geometry.values.data, 0)
+    fl_pt = pd.Series(
+        tmp_flowline_pts.geometry.values.data, index=tmp_flowline_pts.index
+    )
     headwaters = (
-        sjoin_geometry(wb_geom, fl_geom, predicate="intersects")
+        sjoin_geometry(wb_geom, fl_pt, predicate="intersects")
         .rename("lineID")
         .reset_index()
     )
     headwaters = (
         headwaters.join(wb_atts, on="wbID",)
-        .join(tmp_flowlines, on="lineID",)
+        .join(tmp_flowline_pts, on="lineID",)
         .reset_index(drop=True)
     )
-    headwaters.geometry = pg.get_point(headwaters.geometry.values.data, 0)
     headwaters["headwaters"] = True
     print(
         f"Found {len(headwaters):,} headwaters waterbodies, adding drain points for these too"
@@ -99,6 +103,8 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     drain_pts = drain_pts.append(headwaters, sort=False, ignore_index=True).reset_index(
         drop=True
     )
+
+    drain_pts = gp.GeoDataFrame(drain_pts, geometry="geometry", crs=flowlines.crs)
 
     # calculate unique index
     huc_id = drain_pts["HUC4"].astype("uint16") * 1000000
@@ -160,11 +166,11 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         )
         drain_pts = drain_pts.loc[~drain_pts.lineID.isin(ix)]
 
+    # Convert back to GeoDataFrame; above steps make it into a DataFrame
+    drain_pts = gp.GeoDataFrame(drain_pts, geometry="geometry", crs=flowlines.crs)
     drain_pts.wbID = drain_pts.wbID.astype("uint32")
     drain_pts.lineID = drain_pts.lineID.astype("uint32")
     drain_pts.flowlineLength = drain_pts.flowlineLength.astype("float32")
-
-    drain_pts = gp.GeoDataFrame(drain_pts, geometry="geometry", crs=flowlines.crs)
 
     print(
         "Done extracting {:,} waterbody drain points in {:.2f}s".format(

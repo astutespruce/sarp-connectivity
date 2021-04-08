@@ -13,8 +13,15 @@ from analysis.constants import CRS
 from analysis.lib.geometry import dissolve, explode
 from analysis.lib.util import append
 
-
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+
+
+MODIFIERS = {
+    "d": "Drained/Ditched",
+    "h": "Diked/Impounded",
+    "r": "Artificial Substrate",
+    "x": "Excavated",
+}
 
 
 data_dir = Path("data")
@@ -57,11 +64,11 @@ huc2s = [
     # "10",
     # "11",
     # "12",
-    # "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
     "21",  # Missing: 21010008 (islands)
 ]
 
@@ -106,11 +113,17 @@ for huc2 in huc2s:
         # Mark structurally altered types where
         # codes with x (excavated), d (ditched), r (artificial substrate), h (diked)
         # strip any terminal numbers then take last character
-        modifier = df.nwi_code.str.rstrip("123456789").str[-1:]
-        df["altered"] = modifier.isin(["d", "h", "r", "x"])
+
+        df["modifier"] = df.nwi_code.str.rstrip("123456789").str[-1:]
+        df["altered"] = df.modifier.isin(MODIFIERS)
 
         waterbodies = append(waterbodies, df.loc[df.nwi_type.isin(["Lake", "Pond"])])
-        rivers = append(rivers, df.loc[(df.nwi_type == "Riverine") & (df.altered)])
+        rivers = append(
+            rivers,
+            df.loc[(df.nwi_type == "Riverine") & (df.altered)].drop(
+                columns=["nwi_type"]
+            ),
+        )
 
     ### Process waterbodies
     # only keep that intersect flowlines
@@ -154,9 +167,7 @@ for huc2 in huc2s:
         print(f"Repairing {ix.sum():,} invalid rivers")
         rivers.loc[ix, "geometry"] = pg.make_valid(rivers.loc[ix].geometry.values.data)
 
-    print("Dissolving adjacent rivers")
-    rivers = dissolve(rivers, by=["altered"])
-    rivers = explode(rivers).reset_index(drop=True)
+    rivers["modifier"] = rivers.modifier.map(MODIFIERS)
 
     rivers.to_feather(huc2_dir / "altered_rivers.feather")
     write_dataframe(rivers, huc2_dir / "altered_rivers.gpkg")
