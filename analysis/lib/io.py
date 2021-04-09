@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import geopandas as gp
 
@@ -25,6 +27,9 @@ def read_feathers(paths, columns=None, geo=False, new_fields=None):
 
     merged = None
     for i, path in enumerate(paths):
+        if not Path(path).exists():
+            continue
+
         df = read_feather(path, columns=columns)
 
         if new_fields is not None:

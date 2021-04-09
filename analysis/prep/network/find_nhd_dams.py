@@ -46,7 +46,19 @@ huc2s = sorted(
 )
 
 ### Merge NHD lines and areas that represent dams and dam-related features
-print("Reading NHD lines and areas, and merging...")
+print("Reading NHD points, lines, and areas, and merging...")
+nhd_pts = read_feathers(
+    [raw_dir / huc2 / "nhd_points.feather" for huc2 in huc2s],
+    geo=True,
+    new_fields={"HUC2": huc2s},
+)
+nhd_pts = nhd_pts.loc[nhd_pts.FType.isin([343])].copy()
+nhd_pts["source"] = "NHDPoint"
+
+
+# create circular buffers to merge with others
+nhd_pts["geometry"] = pg.buffer(nhd_pts.geometry.values.data, 5)
+
 nhd_lines = read_feathers(
     [raw_dir / huc2 / "nhd_lines.feather" for huc2 in huc2s],
     geo=True,
@@ -58,9 +70,9 @@ nhd_lines = nhd_lines.loc[
 # create buffers (5m) to merge with NHD areas
 # from visual inspection, this helps coalesce those that are in pairs
 nhd_lines["geometry"] = pg.buffer(nhd_lines.geometry.values.data, 5, quadsegs=1)
+nhd_lines["source"] = "NHDLine"
 
 # All NHD areas indicate a dam-related feature
-# nhd_areas = gp.read_feather(out_dir / "nhd_poly.feather")
 nhd_areas = read_feathers(
     [raw_dir / huc2 / "nhd_poly.feather" for huc2 in huc2s],
     geo=True,
@@ -69,10 +81,13 @@ nhd_areas = read_feathers(
 nhd_areas = nhd_areas.loc[nhd_areas.geometry.notnull()].reset_index(drop=True)
 # buffer polygons slightly so we can dissolve touching ones together.
 nhd_areas["geometry"] = pg.buffer(nhd_areas.geometry.values.data, 0.001)
+nhd_areas["source"] = "NHDArea"
 
 # Dissolve adjacent nhd lines and polygons together
-nhd_dams = nhd_lines.append(nhd_areas, ignore_index=True, sort=False).reset_index(
-    drop=True
+nhd_dams = (
+    nhd_pts.append(nhd_lines, ignore_index=True, sort=False)
+    .append(nhd_areas, ignore_index=True, sort=False)
+    .reset_index(drop=True)
 )
 
 # find contiguous groups for dissolve
@@ -86,7 +101,7 @@ nhd_dams.group = nhd_dams.group.astype("uint")
 print("Dissolving overlapping dams")
 nhd_dams = dissolve(
     explode(nhd_dams),
-    by=["HUC2", "group"],
+    by=["HUC2", "source", "group"],
     agg={
         "GNIS_Name": lambda n: ", ".join({s for s in n if s}),
         # set missing NHD fields as 0
@@ -106,10 +121,8 @@ nhd_dams.damID = nhd_dams.damID.astype("uint32")
 
 nhd_dams = nhd_dams.set_index("damID")
 
-### Intersect with flowlines by huc2
-
 merged = None
-for huc2 in huc2s:
+for huc2 in huc2s[:1]:  # FIXME
     region_start = time()
 
     print(f"----- {huc2} ------")
@@ -143,8 +156,9 @@ for huc2 in huc2s:
             NEAREST_DRAIN_TOLERANCE,
             keep_all=True,
         )
-        .join(dams)
-        .join(drains.rename(columns={"geometry": "drain"}), on="drainID")
+        .join(dams.drop(columns=["geometry"]))
+        .join(drains, on="drainID")
+        .drop(columns=["distance"])
     )
 
     ### Save these based on drain points
@@ -153,12 +167,7 @@ for huc2 in huc2s:
     # A large dam may also be associated with multiple waterbodies; these also
     # appear valid.
 
-    merged = append(
-        merged,
-        near_drains.reset_index()[
-            ["damID", "lineID", "drainID", "wbID", "loop", "drain",]
-        ].rename(columns={"drain": "geometry"}),
-    )
+    merged = append(merged, near_drains.reset_index())
 
     print(
         f"Found {len(near_drains):,} dams associated with waterbodies in {time() - join_start:,.2f}s"
@@ -283,27 +292,31 @@ for huc2 in huc2s:
         .set_index("damID")
     )
 
-    print("Region done in {:.2f}s".format(time() - region_start))
-
     # Concat to merged dams
     merged = append(merged, dams.reset_index())
+
+    print("Region done in {:.2f}s".format(time() - region_start))
+
 
 print("----------------------------------------------")
 
 dams = merged.reset_index(drop=True).join(
     nhd_dams.drop(columns=["geometry"]), on="damID"
 )
+
 nhd_dams = nhd_dams.loc[nhd_dams.index.isin(dams.damID.unique())].reset_index()
 
 print(
     f"Found {len(nhd_dams):,} NHD dams and {len(dams):,} NHD dam / flowline crossings"
 )
 
+
 dams = gp.GeoDataFrame(dams, geometry="geometry", crs=nhd_dams.crs)
 dams.damID = dams.damID.astype("uint32")
 dams.lineID = dams.lineID.astype("uint32")
 dams.wbID = dams.wbID.fillna(-1).astype("int32")
 dams.drainID = dams.drainID.fillna(-1).astype("int32")
+
 
 print("Serializing...")
 dams.to_feather(out_dir / "nhd_dams_pt.feather")
