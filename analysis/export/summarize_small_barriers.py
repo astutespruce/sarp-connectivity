@@ -45,6 +45,7 @@ with pd.ExcelWriter(out_dir / f"small_barriers_{current_version}_summary.xlsx") 
         "PotentialProject",
         "SeverityClass",
         "ConditionClass",
+        "CrossingType",
         "ManualReview",
         "snapped",
         "excluded",

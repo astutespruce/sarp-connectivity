@@ -7,7 +7,7 @@ This stage involves processing NHD data and related data into data structures th
 1. Run `download_nhd.py` to download NHD High Resolution Plus data for all applicable HUC4s that have dams.
 2. Run `download_nwi.py` to download National Wetlands Inventory data.
 3. Manually download state-level LIDAR waterbody datasets.
-4. Run `extract_nhd.py` to extract flowlines, flowline joins, waterbodies, NHD barriers (points, lines, polygons) for each HUC2, followed by `aggregate_nhd_barriers.py` to aggregate NHD barriers across all HUC2s.
+4. Run `extract_nhd.py` to extract flowlines, flowline joins, waterbodies, NHD barriers (points, lines, polygons) for each HUC2.
 5. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
 6. Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
 7. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region).
@@ -74,8 +74,6 @@ These include points, lines, and polygons representing dams, dam-related feature
 - Spillway (455)
 - Waterfall (487)
 
-Run `aggregate_nhd_barriers.py` to aggregate data across all HUC2s.
-
 #### Outputs:
 
 This creates a directory (`data/nhd/raw/<region>`) for each region containing:
@@ -88,12 +86,6 @@ This creates a directory (`data/nhd/raw/<region>`) for each region containing:
 - `nhd_poly.feather`: NHD barrier polygons
 - `nhd_altered_rivers.feather`: altered river areas from NHDArea
 - `nhd_marine.feather`: marine areas: ocean, inlets, bays, and estuaries
-
-`aggregate_nhd_barriers.py` creates a directory `data/nhd/merged` with:
-
-- `nhd_points.feather`: NHD barrier points
-- `nhd_lines.feather`: NHD barrier lines
-- `nhd_poly.feather`: NHD barrier polygons
 
 #### IMPORTANT:
 
