@@ -27,9 +27,7 @@ nabd = (
 )
 
 # load previously snapped dams
-prev = gp.read_feather(
-    src_dir / "manually_snapped_dams.feather",
-)
+prev = gp.read_feather(src_dir / "manually_snapped_dams.feather",)
 prev["SourceState"] = prev.SARPID.str[:2]
 prev.ManualReview = prev.ManualReview.astype("uint8")
 prev = prev.loc[
@@ -64,11 +62,9 @@ df = df.loc[df.SourceState.isin(NONSARP_STATES)].drop_duplicates(
 df.ManualReview = df.ManualReview.fillna(0).astype("uint8")
 
 
-df = df.join(
-    prev[["ManualReview", "geometry"]],
-    on="NIDID",
-    rsuffix="_prev",
-).join(nabd.geometry.rename("nabd_geometry"), on="NIDID")
+df = df.join(prev[["ManualReview", "geometry"]], on="NIDID", rsuffix="_prev",).join(
+    nabd.geometry.rename("nabd_geometry"), on="NIDID"
+)
 
 # if previously reviewed, use that directly
 ix = (df.ManualReview == 0) & df.geometry_prev.notnull()
@@ -89,5 +85,5 @@ df = df.drop(columns=["ManualReview_prev", "geometry_prev", "nabd_geometry"])
 df = df.loc[df.ManualReview > 0].copy()
 df.ManualReview = df.ManualReview.astype("uint8")
 
-df.to_feather(src_dir / "snapped_outside_sarp_2021.feather")
-write_dataframe(df, src_dir / "snapped_outside_sarp_2021.gpkg")
+df.to_feather(src_dir / "snapped_outside_sarp_v1.feather")
+write_dataframe(df, src_dir / "snapped_outside_sarp_v1.gpkg")

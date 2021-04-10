@@ -182,7 +182,7 @@ df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
 # TODO: remove
 # temporary: splice in local snap dataset for non-SARP states until it is available online
 other_df = gp.read_feather(
-    out_dir / "snapped_outside_sarp_2021.feather",
+    out_dir / "snapped_outside_sarp_v1.feather",
     columns=["SARPID", "geometry", "ManualReview"],
 )
 

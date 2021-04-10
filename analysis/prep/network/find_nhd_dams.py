@@ -53,6 +53,10 @@ nhd_pts = read_feathers(
     new_fields={"HUC2": huc2s},
 )
 nhd_pts = nhd_pts.loc[nhd_pts.FType.isin([343])].copy()
+
+# write original points for SARP
+write_dataframe(nhd_pts, out_dir / "nhd_dam_pts_nhdpoint.gpkg")
+
 nhd_pts["source"] = "NHDPoint"
 
 
@@ -122,7 +126,7 @@ nhd_dams.damID = nhd_dams.damID.astype("uint32")
 nhd_dams = nhd_dams.set_index("damID")
 
 merged = None
-for huc2 in huc2s[:1]:  # FIXME
+for huc2 in huc2s:
     region_start = time()
 
     print(f"----- {huc2} ------")

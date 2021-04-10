@@ -162,6 +162,7 @@ DAM_FS_COLS = [
     "River",
     "PurposeCategory",
     "Year_Completed",
+    "Year_Removed",
     "Height",
     "Length",
     "Width",
@@ -186,6 +187,7 @@ DAM_COLS = [
     "River",
     "PurposeCategory",
     "Year_Completed",
+    "Year_Removed",
     "Height",
     "StructureCondition",
     "ConstructionMaterial",
@@ -194,6 +196,9 @@ DAM_COLS = [
     "PassageFacility",
     "BarrierStatus",
     "PotentialFeasibility",
+    "Diversion",
+    "FishScreen",
+    "ScreenType",
 ]
 
 
