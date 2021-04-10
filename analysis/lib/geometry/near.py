@@ -3,7 +3,7 @@ import pandas as pd
 import pygeos as pg
 
 from analysis.lib.geometry.sjoin import sjoin_geometry
-from analysis.lib.graph import find_adjacent_groups
+from analysis.lib.graph import DirectedGraph
 from analysis.lib.util import append
 
 
@@ -139,17 +139,27 @@ def neighborhoods(source, tolerance=100):
         returns neighborhoods ("group") indexed by original series index
     """
     index_name = source.index.name or "index"
+    index_right = source.index.name or "index_right"
 
-    pairs = near(source, source, distance=tolerance)
+    pairs = near(source, source, distance=tolerance)  # .reset_index()
 
     # drop self-intersections
     pairs = (
-        pairs.loc[pairs.index != pairs[index_name]]
-        .rename(columns={index_name: "index_right"})
-        .index_right.reset_index()
+        pairs.loc[pairs.index != pairs[index_right]]
+        .rename(columns={index_right: "index_right"})
+        .index_right
     )
 
-    # TODO: update to latest API
-    groups = find_adjacent_groups(pairs).astype("uint32")
+    g = DirectedGraph(pairs.reset_index(), source=index_name, target="index_right")
+
+    groups = (
+        pd.DataFrame(
+            {i: list(g) for i, g in enumerate(g.components())}.items(),
+            columns=["group", "index"],
+        )
+        .explode("index")
+        .set_index("index")
+    )
+    groups.index.name = index_name
 
     return groups

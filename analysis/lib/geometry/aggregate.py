@@ -93,6 +93,7 @@ def union_or_combine(geometries, grid_size=None, op="union"):
     # find groups of contiguous geometries and union them together individually
     contiguous = np.sort(np.unique(np.concatenate([left, right])))
     discontiguous = np.setdiff1d(np.arange(len(geometries), dtype="uint"), contiguous)
+    # TODO: update to use DirectedGraph
     groups = find_adjacent_groups(left, right)
 
     parts = []
@@ -131,6 +132,7 @@ def find_contiguous_groups(geometries):
     left = left[ix]
     right = right[ix]
 
+    # TODO: update to use DirectedGraph
     groups = find_adjacent_groups(left, right)
     groups = (
         pd.DataFrame(

@@ -41,6 +41,7 @@ from analysis.prep.barriers.lib.duplicates import (
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.constants import (
     DROP_MANUALREVIEW,
+    EXCLUDE_FEASIBILITY,
     EXCLUDE_MANUALREVIEW,
     ONSTREAM_MANUALREVIEW,
     DROP_RECON,
@@ -90,9 +91,7 @@ df = df.append(outside_df, ignore_index=True, sort=False)
 
 ### Read in dams that have been manually reviewed within SARP states
 print("Reading manually snapped dams...")
-snapped_df = gp.read_feather(
-    src_dir / "manually_snapped_dams.feather",
-)
+snapped_df = gp.read_feather(src_dir / "manually_snapped_dams.feather",)
 
 # Don't pull across those that were not manually snapped or are missing key fields
 # 0,1: not reviewed,
@@ -268,6 +267,9 @@ df["dropped"] = False
 # excluded: records that should be retained in dataset but not used in analysis
 df["excluded"] = False
 
+# removed: dam was removed for conservation but we still want to track it
+df["removed"] = (df.ManualReview == 8) | (df.Recon == 7) | (df.Feasibility == 8)
+
 # Drop any that didn't intersect HUCs or states
 drop_ix = (df.HUC12 == "") | (df.STATEFIPS == "")
 if drop_ix.sum():
@@ -309,7 +311,11 @@ print(f"Dropped {df.dropped.sum():,} dams from all analysis and mapping")
 
 
 ### Exclude dams that should not be analyzed or prioritized based on manual QA
-exclude_idx = df.Recon.isin(EXCLUDE_RECON) | df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
+exclude_idx = (
+    df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
+    | df.Recon.isin(EXCLUDE_RECON)
+    | df.Feasibility.isin(EXCLUDE_FEASIBILITY)
+)
 df.loc[exclude_idx, "excluded"] = True
 df.loc[exclude_idx, "log"] = f"excluded: Recon one of {EXCLUDE_RECON}"
 

@@ -264,13 +264,16 @@ DROP_POTENTIAL_PROJECT = ["No", "No Barrier", "No Crossing", "Past Project"]
 # Note: 0 value indicates N/A
 DROP_MANUALREVIEW = [
     6,  # Delete: ambiguous, might be duplicate or not exist
-    8,  # Removed (no longer exists): Dam removed for conservation
     11,  # Duplicate TODO: handle correctly
     14,  # Error: dam does not exist
 ]
 
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_MANUALREVIEW = [5, 10]
+EXCLUDE_MANUALREVIEW = [
+    5,  # offstream (DO NOT SNAP!)
+    8,  # Removed (no longer exists): Dam removed for conservation
+    10,  # invasive barriers
+]
 
 ONSTREAM_MANUALREVIEW = [
     4,  # Onstream checked by SARP
@@ -280,11 +283,12 @@ ONSTREAM_MANUALREVIEW = [
 
 # Used to filter dams by Recon
 # based on guidance from Kat
-DROP_RECON = [5, 7, 19]
-DROP_FEASIBILITY = [7, 8]
+DROP_RECON = [5, 19]
+DROP_FEASIBILITY = [7]
 
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_RECON = [16, 22]
+EXCLUDE_RECON = [7, 16, 22]
+EXCLUDE_FEASIBILITY = [8]
 
 # Applies to Recon values, omitted values should be filtered out
 RECON_TO_FEASIBILITY = {

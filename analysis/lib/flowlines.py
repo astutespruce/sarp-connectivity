@@ -134,6 +134,7 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     right = pairs.upstream_id.values
 
     # make symmetric by adding each to the end of the other
+    # TODO: update to use DirectedGraph
     groups = find_adjacent_groups(np.append(left, right), np.append(right, left))
     groups = pd.DataFrame(pd.Series(groups).apply(list).explode().rename("index"))
     groups.index.name = "group"

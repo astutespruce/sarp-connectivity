@@ -24,14 +24,8 @@ common_cols = [
 ]
 
 barrier_cols = {
-    "dams": [
-        "Recon",
-        "Feasibility",
-    ],
-    "small_barriers": [
-        "PotentialProject",
-        "SeverityClass",
-    ],
+    "dams": ["Recon", "Feasibility",],
+    "small_barriers": ["PotentialProject", "SeverityClass",],
 }
 
 
@@ -59,8 +53,8 @@ for barrier_type in ["dams", "small_barriers"]:
                     "included in network analysis",
                     "included in tool (not dropped or duplicate)",
                     "snapped (raw)",
-                    "completely dropped (error, dam removed, etc)",
-                    "excluded from analysis (invasive barrier, etc)",
+                    "completely dropped (error, etc)",
+                    "excluded from analysis (invasive barrier, removed, etc)",
                     "duplicate",
                     "manually reviewed",
                 ],

@@ -39,7 +39,9 @@ nhd_dir = data_dir / "nhd/clean"
 
 # TODO: expand to full region
 huc4_df = pd.read_feather(
-    data_dir / "boundaries/sarp_huc4.feather", columns=["HUC2", "HUC4"]
+    # data_dir / "boundaries/sarp_huc4.feather",
+    data_dir / "boundaries/huc4.feather",
+    columns=["HUC2", "HUC4"],
 )
 # Convert to dict of sorted HUC4s per HUC2
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
@@ -51,7 +53,7 @@ huc2s = sorted(units.keys())
 
 start = time()
 
-for huc2, network_type in product(huc2s, NETWORK_TYPES[1:]):
+for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
     region_start = time()
 
     print(f"----- {huc2} ({network_type}) ------")
