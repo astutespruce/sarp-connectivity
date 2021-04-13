@@ -1,6 +1,11 @@
+import warnings
+
 from pyogrio import read_dataframe
 
 from analysis.lib.geometry import make_valid
+
+
+warnings.filterwarnings("ignore", message=".*does not have any features to read.*")
 
 
 COLS = ["NHDPlusID", "FType", "FCode", "GNIS_Name", "geometry"]

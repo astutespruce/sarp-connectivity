@@ -48,7 +48,10 @@ units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 huc2s = sorted(units.keys())
 
 # manually subset keys from above for processing
-# huc2s = ["02", "03", "05", "06", "07", "08", "10", "11", "12", "13", "21"]
+huc2s = [
+    "02",
+    # "03", "05", "06", "07", "08", "10", "11", "12", "13", "21"
+]
 
 
 start = time()
@@ -80,12 +83,10 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
     joins = pd.read_feather(nhd_dir / huc2 / "flowline_joins.feather")
 
     ### TEMP: limit flowlines and joins to HUC4s in SARP region above
-    flowlines = flowlines.loc[flowlines.HUC4.isin(units[huc2])].copy()
-    joins = joins.loc[joins.HUC4.isin(units[huc2])].copy()
-
+    # flowlines = flowlines.loc[flowlines.HUC4.isin(units[huc2])].copy()
+    # joins = joins.loc[joins.HUC4.isin(units[huc2])].copy()
     # limit barriers to these flowlines
-    barriers = barriers.loc[barriers.lineID.isin(flowlines.index)].copy()
-
+    # barriers = barriers.loc[barriers.lineID.isin(flowlines.index)].copy()
     ### END TEMP
 
     # drop all loops from the analysis
@@ -143,7 +144,7 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
 
     stats_start = time()
 
-    network_stats = calculate_network_stats(network_df, barrier_joins)
+    network_stats = calculate_network_stats(network_df, barrier_joins, joins)
     # WARNING: because not all flowlines have associated catchments, they are missing
     # natfldpln
 
@@ -157,7 +158,12 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
 
     upstream_networks = (
         barrier_joins[["upstream_id"]]
-        .join(network_stats, on="upstream_id")
+        .join(
+            network_stats.drop(
+                columns=["marine_terminal", "flows_to_ocean", "num_downstream"]
+            ),
+            on="upstream_id",
+        )
         .rename(
             columns={
                 "upstream_id": "upNetID",
@@ -167,13 +173,22 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
         )
     )
 
+    # decrement num_downstream to remove the current barrier
+    # upstream_networks.num_downstream = upstream_networks.num_downstream.fillna(0).astype('uint16')
+    # ix = upstream_networks.num_downstream !=0
+    # upstream_networks.loc[ix, 'num_downstream'] -= 1
+
+    # upstream_networks.flows_to_ocean = upstream_networks.flows_to_ocean.fillna(False)
+
     downstream_networks = (
         barrier_joins[["downstream_id"]]
         .join(
             network_df.reset_index().set_index("lineID").networkID, on="downstream_id"
         )
         .join(
-            network_stats[["free_miles", "miles"]].rename(
+            network_stats[
+                ["free_miles", "miles", "num_downstream", "flows_to_ocean"]
+            ].rename(
                 columns={
                     "free_miles": "FreeDownstreamMiles",
                     "miles": "TotalDownstreamMiles",
@@ -191,9 +206,14 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
         upstream_networks.join(downstream_networks)
         .join(barriers[["id", "kind"]])
         .drop(columns=["barrier", "up_ndams", "up_nwfs", "up_sbs"], errors="ignore")
-        .fillna(0)
-        .drop_duplicates()
     )
+
+    barrier_networks.num_downstream = barrier_networks.num_downstream.fillna(0).astype(
+        "uint16"
+    )
+    barrier_networks.flows_to_ocean = barrier_networks.flows_to_ocean.fillna(False)
+
+    barrier_networks = barrier_networks.fillna(0).drop_duplicates()
 
     # Fix data types after all the joins
     for col in ["upNetID", "downNetID", "segments"]:

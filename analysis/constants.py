@@ -223,7 +223,7 @@ SMALL_BARRIER_COLS = [
     # "Coffman_Strong",
     # "Coffman_Medium",
     # "Coffman_Weak",
-    # "SARP_Score",
+    "SARP_Score",
     # "SE_AOP",
     # "NumberRareSpeciesHUC12", # we add this later
 ]

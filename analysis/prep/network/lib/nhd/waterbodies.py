@@ -1,6 +1,7 @@
 import pygeos as pg
 from pyogrio import read_dataframe
 
+from analysis.constants import WATERBODY_EXCLUDE_FTYPES
 from analysis.lib.geometry import make_valid
 
 
@@ -15,8 +16,9 @@ WATERBODY_COLS = [
 ]
 
 
-def extract_waterbodies(gdb_path, target_crs, exclude_ftypes=[], min_area=0):
-    """Extract waterbodies from NHDPlusHR data product.
+def extract_waterbodies(gdb_path, target_crs):
+    """Extract waterbodies from NHDPlusHR data product that are are not one of
+    the excluded types (e.g., estuary, playa, swamp/marsh).
 
     Parameters
     ----------
@@ -25,10 +27,6 @@ def extract_waterbodies(gdb_path, target_crs, exclude_ftypes=[], min_area=0):
     target_crs: GeoPandas CRS object
         target CRS to project NHD to for analysis, like length calculations.
         Must be a planar projection.
-    exclude_ftypes : list, optional (default: [])
-        list of FTypes to exclude.
-    min_area : int, optional (default: 0)
-        If provided, only waterbodies that are >= this value are retained
 
     Returns
     -------
@@ -36,18 +34,13 @@ def extract_waterbodies(gdb_path, target_crs, exclude_ftypes=[], min_area=0):
     """
     print("Reading waterbodies")
     df = read_dataframe(
-        gdb_path, layer="NHDWaterbody", columns=[WATERBODY_COLS], force_2d=True
+        gdb_path,
+        layer="NHDWaterbody",
+        columns=[WATERBODY_COLS],
+        force_2d=True,
+        where=f"FType not in {tuple(WATERBODY_EXCLUDE_FTYPES)}",
     )
     print("Read {:,} waterbodies".format(len(df)))
-
-    df = df.loc[
-        (df.AreaSqKm >= min_area) & (~df.FType.isin(exclude_ftypes))
-    ].reset_index(drop=True)
-    print(
-        "Retained {:,} waterbodies after dropping those below size threshold or in exclude FTypes".format(
-            len(df)
-        )
-    )
 
     # Convert multipolygons to polygons
     # those we checked that are true multipolygons are errors

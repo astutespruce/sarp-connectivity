@@ -101,7 +101,7 @@ class DirectedGraph(object):
             target="target",
         )
 
-    def _descendents(self, node):
+    def _descendants(self, node):
         """Traverse adjacency matrix to find all connected notes for a given
         starting node.
 
@@ -125,7 +125,7 @@ class DirectedGraph(object):
                     next_nodes.update(self.adj_matrix.get(node, []))
         return out
 
-    def descendents(self, sources):
+    def descendants(self, sources):
         """Find all desendents of sources as a 1d array (one entry per node in sources)
 
         Parameters
@@ -134,7 +134,7 @@ class DirectedGraph(object):
             1d ndarray if sources is list-like, else singular list of nodes
         """
 
-        def _descendents(node):
+        def _descendants(node):
             """Traverse graph starting from the children of node"""
             out = set()
             next_nodes = set(self.adj_matrix.get(node, []))
@@ -147,7 +147,7 @@ class DirectedGraph(object):
                         next_nodes.update(self.adj_matrix.get(next_node, []))
             return out
 
-        f = np.frompyfunc(_descendents, 1, 1)
+        f = np.frompyfunc(_descendants, 1, 1)
         return f(sources)
 
     def components(self):
@@ -164,8 +164,8 @@ class DirectedGraph(object):
         seen = set()
         for node in self.adj_matrix.keys():
             if not node in seen:
-                # add current node with all descendents
-                adj_nodes = {node} | self.descendents(node)
+                # add current node with all descendants
+                adj_nodes = {node} | self.descendants(node)
                 seen.update(adj_nodes)
                 groups.append(adj_nodes)
 
@@ -207,7 +207,7 @@ class DirectedGraph(object):
         targets : 1d array of list-like of target nodes
             must be same length as sources; list-like of targets per source
         max_depth : [type], optional (default: None)
-            If set, will be the maximum number of descendents of each source
+            If set, will be the maximum number of descendants of each source
             to search for a route to any of targets.  By default will search
             through all nodes in graph.
 

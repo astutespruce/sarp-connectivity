@@ -190,6 +190,7 @@ SB_CORE_FIELDS = [
     "Condition",
     "PotentialProject",
     "SeverityClass",
+    # "SE_AOP",  # TODO:
     "TESpp",
     "StateSGCNSpp",
     "RegionalSGCNSpp",

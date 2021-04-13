@@ -1,12 +1,18 @@
 from pathlib import Path
+from operator import itemgetter
 
+import geopandas as gp
 import pandas as pd
+import pygeos as pg
+import numpy as np
 
+from analysis.constants import GEO_CRS
+from analysis.lib.graph import DirectedGraph
 
 data_dir = Path("data")
 
 
-def calculate_network_stats(df, barrier_joins):
+def calculate_network_stats(df, barrier_joins, joins):
     """Calculation of network statistics, for each functional network.
 
     Parameters
@@ -17,12 +23,17 @@ def calculate_network_stats(df, barrier_joins):
         * sinuosity
         * size class
 
-    barrier_barrier_joins : Pandas DataFrame
+    _barrier_joins : Pandas DataFrame
         contains:
         * upstream_id
         * downstream_id
         * kind
 
+    joins_joins : Pandas DataFrame
+        contains:
+        * upstream_id
+        * downstream_id
+        * kind
 
     Returns
     -------
@@ -32,8 +43,19 @@ def calculate_network_stats(df, barrier_joins):
 
     # create series of networkID indexed by lineID
     networkID = df.reset_index().set_index("lineID").networkID
+    networkIDs = networkID.unique()
 
-    # identify all barriers that are upstream of a given network
+    ### Find those that terminate in marine
+    marine_terminals = pd.Series(
+        np.zeros(shape=(len(networkIDs),), dtype="bool"),
+        index=networkIDs,
+        name="marine_terminal",
+    )
+    marine_terminals.loc[
+        marine_terminals.index.isin(joins.loc[joins.marine].upstream_id)
+    ] = True
+
+    ### Identify all barriers that are upstream of a given network
     # by joining on their downstream line ID (downstream_id)
     barriers_upstream = (
         barrier_joins[["downstream_id", "kind"]]
@@ -43,7 +65,7 @@ def calculate_network_stats(df, barrier_joins):
     )
     barriers_upstream.networkID = barriers_upstream.networkID.astype("uint32")
 
-    # Count barriers that have a given network DOWNSTREAM of them
+    ### Count barriers that have a given network DOWNSTREAM of them
     upstream_counts = (
         barriers_upstream.groupby(["networkID", "kind"])
         .size()
@@ -59,7 +81,42 @@ def calculate_network_stats(df, barrier_joins):
         )
     )
 
-    # Extract downstream barrier type.
+    ### Count barriers that are DOWNSTREAM (linear to terminal) of each barrier
+    # create directed graph of barrier joins facing downstream
+    # Note: origins (upstream_id==0) are excluded
+    # the upstream side is already a networkID, calculate the networkID for the downstream side
+    j = (
+        barrier_joins.loc[
+            (barrier_joins.upstream_id != 0)  # & (barrier_joins.downstream_id != 0)
+        ]
+        .join(networkID, on="downstream_id")
+        .rename(columns={"networkID": "downstream_network"})
+    )
+
+    g = DirectedGraph(j, source="upstream_id", target="downstream_network")
+    # count number that are downstream of each network
+    # NOTE: this includes the barrier that creates each network
+    downstreams = pd.Series(
+        g.descendants(networkIDs), index=networkIDs, name="dowstream_network"
+    )
+
+    num_downstream = downstreams.apply(len).rename("num_downstream")
+
+    ### Calculate if any downstream network is a marine terminal
+    # create a mapping of every network to all networks downstream of it
+    tmp = downstreams.explode().dropna().astype("uint64")
+    ix = marine_terminals.loc[marine_terminals].index
+    connects_marine = tmp.loc[tmp.isin(ix)].index.unique()
+
+    # include any that are themselves marine connected
+    to_ocean = pd.Series(
+        np.zeros(shape=(len(networkIDs),), dtype="bool"),
+        index=networkIDs,
+        name="flows_to_ocean",
+    )
+    to_ocean.loc[to_ocean.index.isin(ix) | to_ocean.index.isin(connects_marine)] = True
+
+    ### Extract downstream barrier type.
     # on the downstream side of a network, there will only ever be a single barrier.
     # Identify all barriers that have a given network upstream of them.
     barriers_downstream = (
@@ -75,18 +132,25 @@ def calculate_network_stats(df, barrier_joins):
         "barrier"
     )
 
+    ### Collect results
     results = (
         calculate_geometry_stats(df)
+        .join(calculate_bounds(df))
         .join(calculate_floodplain_stats(df))
         .join(df.groupby(level=0).sizeclass.nunique().rename("sizeclasses"))
         .join(upstream_counts)
         .join(barriers_downstream)
+        .join(num_downstream)
+        .join(marine_terminals)
+        .join(to_ocean)
     )
 
     results[upstream_counts.columns] = (
-        results[upstream_counts.columns].fillna(0).astype("uint32")
+        results[upstream_counts.columns].fillna(0).astype("uint16")
     )
     results.barrier = results.barrier.fillna("")
+
+    results["num_downstream"] = results["num_downstream"].fillna(0).astype("uint16")
 
     return results
 
@@ -130,6 +194,42 @@ def calculate_geometry_stats(df):
     )
 
     return miles.join(wtd_sinuosity).join(df.groupby(level=0).size().rename("segments"))
+
+
+def calculate_bounds(df):
+    """Calculate approximate geographic bounds of each network.
+
+    Segments are first converted to bounding envelopes, then projected to
+    geographic coordinates.  The outer bounds of these are used to represent
+    the bounds of each network.
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+
+    Returns
+    -------
+    Series
+        indexed on networkID, returns a list of [xmin, ymin, xmax, ymax] rounded
+        to 5 decimal places.
+    """
+
+    # to avoid reprojecting the entire geometries, calculate the bounds of each
+    # flowline and calculate its envelope, then project that
+    envelopes = gp.GeoSeries(
+        pg.envelope(df.geometry.values.data), index=df.index, crs=df.crs
+    ).to_crs(GEO_CRS)
+
+    # save as split columns for easier management
+    columns = ["xmin", "ymin", "xmax", "ymax"]
+
+    bounds = (
+        envelopes.groupby(level=0)
+        .apply(lambda g: pg.total_bounds(g.values.data).round(5))
+        .transform({c: itemgetter(i) for i, c in enumerate(columns)})
+    )
+
+    return bounds
 
 
 def calculate_floodplain_stats(df):

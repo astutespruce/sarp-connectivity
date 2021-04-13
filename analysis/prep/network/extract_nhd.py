@@ -54,11 +54,7 @@ def process_huc4s(src_dir, out_dir, huc4s):
         ### Read flowlines and joins
         read_start = time()
         flowlines, joins = extract_flowlines(gdb, target_crs=CRS)
-        print(
-            "Read {:,} flowlines in {:.2f} seconds".format(
-                len(flowlines), time() - read_start
-            )
-        )
+        print(f"Read {len(flowlines):,} flowlines in {time() - read_start:.2f} seconds")
 
         flowlines["HUC4"] = huc4
         joins["HUC4"] = huc4
@@ -74,12 +70,7 @@ def process_huc4s(src_dir, out_dir, huc4s):
 
         ### Read waterbodies
         read_start = time()
-        waterbodies = extract_waterbodies(
-            gdb,
-            target_crs=CRS,
-            exclude_ftypes=WATERBODY_EXCLUDE_FTYPES,
-            min_area=WATERBODY_MIN_SIZE,
-        )
+        waterbodies = extract_waterbodies(gdb, target_crs=CRS)
         print(
             "Read {:,} waterbodies in  {:.2f} seconds".format(
                 len(waterbodies), time() - read_start

@@ -327,6 +327,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
 
     # Update existing joins with the new lineIDs we created at the upstream or downstream
     # ends of segments we just created
+
     updated_joins = update_joins(
         joins, first, last, downstream_col="downstream_id", upstream_col="upstream_id"
     )
@@ -369,9 +370,12 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
     )
     new_joins["downstream"] = new_joins.upstream
     new_joins["type"] = "internal"
+    new_joins["marine"] = False
 
     updated_joins = updated_joins.append(
-        new_joins[["upstream", "downstream", "upstream_id", "downstream_id", "type"]],
+        new_joins[
+            ["upstream", "downstream", "upstream_id", "downstream_id", "type", "marine"]
+        ],
         ignore_index=True,
         sort=False,
     ).sort_values(["downstream_id", "upstream_id"])
@@ -385,6 +389,13 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
         .set_index("barrierID", drop=False)
         .astype("uint32")
     )
+
+    # any join that is upstream of a barrier cannot be marine
+    updated_joins.loc[
+        updated_joins.marine
+        & updated_joins.upstream_id.isin(barrier_joins.upstream_id.unique()),
+        "marine",
+    ] = False
 
     # extract flowlines that are not split by barriers and merge in new flowlines
     unsplit_segments = flowlines.loc[~flowlines.index.isin(split_segments.index)]

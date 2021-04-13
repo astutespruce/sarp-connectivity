@@ -1,13 +1,10 @@
 import warnings
 from pyogrio import read_dataframe
-import numpy as np
-import pygeos as pg
-from pyogrio.geopandas import write_dataframe
 
-from analysis.lib.geometry import make_valid, dissolve, explode
+from analysis.lib.geometry import explode
 
 
-warnings.filterwarnings("ignore", message="does not have any features to read")
+warnings.filterwarnings("ignore", message=".*does not have any features to read.*")
 
 
 COLS = ["FType", "geometry"]
@@ -17,8 +14,6 @@ WB_FTYPES = [493]
 
 # Sea/ocean, bay/inlent,
 AREA_FTYPES = [445, 312]
-# canal/ditch, flume, foreshore, complex channels, stream/river
-# , 336, 362, 364, 537, 460
 
 
 def extract_marine(gdb_path, target_crs):
