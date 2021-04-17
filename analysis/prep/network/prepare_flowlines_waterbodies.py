@@ -37,9 +37,11 @@ from pyogrio import write_dataframe
 
 from analysis.constants import (
     CONVERT_TO_NONLOOP,
+    CONVERT_TO_MARINE,
     REMOVE_IDS,
     MAX_PIPELINE_LENGTH,
 )
+from analysis.lib.geometry import geo_bounds
 from analysis.lib.joins import remove_joins
 from analysis.lib.flowlines import (
     remove_flowlines,
@@ -59,27 +61,27 @@ src_dir = nhd_dir / "raw"
 waterbodies_dir = data_dir / "waterbodies"
 out_dir = nhd_dir / "clean"
 
-# huc2s = sorted(
-#     pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
-# )
+huc2s = sorted(
+    pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
+)
 # manually subset keys from above for processing
 huc2s = [
-    "02",
-    "03",
-    "05",
-    "06",
-    "07",
-    "08",
-    "09",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "17",
-    "21",
+    # "02",
+    # "03",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    # "14",
+    # "15",
+    # "16",
+    # "17",
+    # "21",
 ]
 
 
@@ -98,7 +100,7 @@ for huc2 in huc2s:
         "lineID"
     )
     joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
-    print("Read {:,} flowlines".format(len(flowlines)))
+    print(f"Read {len(flowlines):,} flowlines")
 
     print("------------------")
 
@@ -106,7 +108,7 @@ for huc2 in huc2s:
     # TODO: remove once extract_nhd has been rerun for all areas
     ix = flowlines.loc[flowlines.FType == 420].index
     if len(ix):
-        print("Removing {:,} underground conduits".format(len(ix)))
+        print(f"Removing {len(ix):,} underground conduits")
         flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
         joins = remove_joins(
             joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
@@ -129,6 +131,13 @@ for huc2 in huc2s:
         joins.loc[joins.downstream.isin(convert_ids), "loop"] = False
         print("------------------")
 
+    ### Fix joins that should have been marked as marine
+    marine_ids = CONVERT_TO_MARINE.get(huc2, [])
+    if marine_ids:
+        print(f"Converting {len(marine_ids):,} joins to marine")
+        joins.loc[joins.upstream.isin(marine_ids), "marine"] = True
+        print("------------------")
+
     ### Remove any flowlines that start in marine areas
     marine_filename = src_dir / huc2 / "nhd_marine.feather"
     if marine_filename.exists():
@@ -146,7 +155,7 @@ for huc2 in huc2s:
     print("{:,} flowlines after dropping pipelines".format(len(flowlines)))
 
     # make sure that updated joins are unique
-    joins = joins.drop_duplicates(subset=["upstream_id", "downstream_id"])
+    joins = joins.drop_duplicates()
 
     print("------------------")
 
@@ -193,10 +202,20 @@ for huc2 in huc2s:
 
     print("------------------")
 
+    print("Calculating flowline geographic bounds")
+    bounds = pd.DataFrame(
+        geo_bounds(flowlines.geometry.values.data),
+        columns=["xmin", "ymin", "xmax", "ymax"],
+        index=flowlines.index,
+    )
+    flowlines = flowlines.join(bounds)
+
+    print("------------------")
+
     print("Serializing {:,} flowlines".format(len(flowlines)))
     flowlines = flowlines.reset_index()
     flowlines.to_feather(huc2_dir / "flowlines.feather")
-    write_dataframe(flowlines, huc2_dir / "flowlines.gpkg")
+    write_dataframe(flowlines, huc2_dir / "flowlines.fgb")
     joins.reset_index(drop=True).to_feather(huc2_dir / "flowline_joins.feather")
 
     print("Serializing {:,} waterbodies".format(len(waterbodies)))
@@ -204,14 +223,14 @@ for huc2 in huc2s:
     waterbodies.set_crs(flowlines.crs, inplace=True)
     waterbodies = waterbodies.reset_index()
     waterbodies.to_feather(huc2_dir / "waterbodies.feather")
-    write_dataframe(waterbodies, huc2_dir / "waterbodies.gpkg")
+    write_dataframe(waterbodies, huc2_dir / "waterbodies.fgb")
     wb_joins.reset_index(drop=True).to_feather(
         huc2_dir / "waterbody_flowline_joins.feather"
     )
 
     print("Serializing {:,} drain points".format(len(drains)))
     drains.to_feather(huc2_dir / "waterbody_drain_points.feather")
-    write_dataframe(drains, huc2_dir / "waterbody_drain_points.gpkg")
+    write_dataframe(drains, huc2_dir / "waterbody_drain_points.fgb")
 
     print(
         "------------------\nRegion done in {:.2f}s\n------------------\n".format(

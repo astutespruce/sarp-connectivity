@@ -14,6 +14,7 @@ import numpy as np
 from pyogrio import write_dataframe
 
 from analysis.constants import NETWORK_TYPES, CRS
+from analysis.lib.graph import DirectedGraph
 from analysis.network.lib.stats import calculate_network_stats
 from analysis.lib.io import read_feathers
 from analysis.lib.util import append
@@ -30,9 +31,10 @@ if not out_dir.exists():
     os.makedirs(out_dir)
 
 
-# TODO: expand to full region
 huc4_df = pd.read_feather(
-    data_dir / "boundaries/sarp_huc4.feather", columns=["HUC2", "HUC4"]
+    # data_dir / "boundaries/sarp_huc4.feather",
+    data_dir / "boundaries/huc4.feather",
+    columns=["HUC2", "HUC4"],
 )
 # Convert to dict of sorted HUC4s per HUC2
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
@@ -51,15 +53,13 @@ start = time()
 # Note: since these are processed by network analysis, they already exclude loops
 joins = read_feathers(
     [src_dir / huc2 / network_type / "flowline_joins.feather" for huc2 in huc2s],
+    new_fields={"HUC2": huc2s},
 )
 
 
 ### TEMP: limit to SARP HUC4s
-joins = joins.loc[joins.HUC4.isin(huc4s)].copy()
-
+# joins = joins.loc[joins.HUC4.isin(huc4s)].copy()
 ### END TEMP
-
-joins["HUC2"] = joins.HUC4.str[:2]
 
 
 ### Extract the joins that cross region boundaries, and set new upstream IDs for them
@@ -67,26 +67,26 @@ joins["HUC2"] = joins.HUC4.str[:2]
 # original flowlines split at HUC2 join areas
 cross_region = joins.loc[(joins.type == "huc_in") & (joins.upstream_id == 0)]
 
-cross_region = cross_region.rename(columns={"HUC2": "downstream_HUC2"}).join(
-    joins.set_index("downstream")[["downstream_id", "HUC2"]].rename(
-        columns={"downstream_id": "new_upstream_id", "HUC2": "upstream_HUC2"}
-    ),
-    on="upstream",
+cross_region = (
+    cross_region.drop(columns=["upstream_id"])
+    .rename(columns={"HUC2": "downstream_HUC2"})
+    .join(
+        joins.set_index("downstream")[["downstream_id", "HUC2"]].rename(
+            columns={"downstream_id": "upstream_id", "HUC2": "upstream_HUC2"}
+        ),
+        on="upstream",
+        how="inner",
+    )
+    .drop_duplicates()
 )
-cross_region = cross_region.loc[
-    cross_region.new_upstream_id.notnull()
-].drop_duplicates()
-cross_region.upstream_id = cross_region.new_upstream_id.astype("uint64")
 
 # Sanity check
-print("{:,} flowlines cross region boundaries".format(len(cross_region)))
+print(f"{len(cross_region):,} flowlines cross region boundaries")
 print(cross_region[["upstream_HUC2", "downstream_HUC2"]])
 
 
 connected_huc2 = np.unique(
-    np.concatenate(
-        [cross_region.upstream_HUC2.unique(), cross_region.downstream_HUC2.unique()]
-    )
+    cross_region[["upstream_HUC2", "downstream_HUC2"]].values.flatten()
 )
 # drop any joins not in these HUC2s
 joins = joins.loc[joins.HUC2.isin(connected_huc2)].copy()
@@ -103,6 +103,7 @@ network_df = read_feathers(
 network_df.lineID = network_df.lineID.astype("uint32")
 
 ### Lookup network ID for downstream segments of HUC2 join
+# this finds the networkID that contains this lineID on its upper end
 print("Aggregating networks that cross HUC2s...")
 tmp = (
     network_df.loc[network_df.lineID.isin(cross_region.downstream_id.unique())]
@@ -116,45 +117,18 @@ cross_region = cross_region.join(tmp, on="downstream_id")
 # networkID of those networks.
 cross_region["upstream_network"] = cross_region["upstream_id"]
 
-# Start by assigning the downstream network as the new network for the upstreams.
-# This handles any networks that originate in one HUC2 and terminate in another
-# but do not cross multiple HUC2s
-cross_region["new_network"] = cross_region["downstream_network"]
 
-### Update new_network for any networks that cross regions
-# NOTE: this assumes that there is never more than one network that crosses a
-# a HUC2.
-# Since a given upstream can only have one downstream, build a directed adjacency
-# map from upstreams to downstreams, then traverse this to identify cases where
-# there are chains of connected regions (any single pairs already handled above)
-adj = cross_region.set_index("upstream_network").downstream_network.to_dict()
-seen = set()
-for upstream_node in adj.keys():
-    if upstream_node in seen:
-        continue
+### Traverse connected regions and determine final networkID
+# build a directed graph from upstream to downstream; the last node of this
+# is the furthest downstream and the new networkID to assign
+g = DirectedGraph(cross_region, source="upstream_network", target="downstream_network")
+ids = cross_region.upstream_network.unique()
+new_network = pd.Series(g.descendants(ids), index=ids, name="new_network").apply(
+    lambda g: list(g)[-1]
+)
 
-    next = adj[upstream_node]
-    nodes = []
+cross_region = cross_region.join(new_network, on="upstream_network")
 
-    while True:
-        nodes.append(next)
-        seen.add(next)
-
-        next = adj.get(next, None)
-        if next is None:
-            break
-
-    if len(nodes) > 1:
-        # the last node visited is the furthest downstream, that becomes the
-        # new network for this chain
-        new_downstream = nodes[-1]
-        ix = nodes[:-1]
-        cross_region.loc[
-            cross_region.downstream_network.isin(nodes[:-1]), "new_network"
-        ] = nodes[-1]
-        print(
-            f"Network originating at {new_downstream} extends upstream across multiple HUC2s"
-        )
 
 # all connected networks should now have a new_network of the furthest downstream
 print("Updated network connections:")
@@ -221,7 +195,7 @@ print("\nRecalculating network stats...")
 updated_network = network_df.loc[cross_region.new_network.unique()]
 
 # network stats facing upstream for each functional network
-network_stats = calculate_network_stats(updated_network, barrier_joins)
+network_stats = calculate_network_stats(updated_network, barrier_joins, joins)
 network_stats = cross_region[
     [
         "upstream_HUC2",
@@ -243,6 +217,10 @@ upstream_stats = (
             "segments",
             "natfldpln",
             "sizeclasses",
+            "xmin",
+            "ymin",
+            "xmax",
+            "ymax",
         ]
     ]
     .groupby("downstream_network")
@@ -251,14 +229,32 @@ upstream_stats = (
 
 # stats for networks that terminate in another HUC2 downstream
 downstream_stats = (
-    network_stats[["upstream_network", "new_network", "miles", "free_miles",]]
+    network_stats[
+        [
+            "upstream_network",
+            "new_network",
+            "miles",
+            "free_miles",
+            "num_downstream",
+            "flows_to_ocean",
+        ]
+    ]
     .groupby("upstream_network")
     .first()
 )
 
 # stats for networks that terminate in the same HUC2
 downstream_stats_same_huc2 = (
-    network_stats[["downstream_network", "new_network", "miles", "free_miles",]]
+    network_stats[
+        [
+            "downstream_network",
+            "new_network",
+            "miles",
+            "free_miles",
+            "num_downstream",
+            "flows_to_ocean",
+        ]
+    ]
     .groupby("downstream_network")
     .first()
 )
@@ -329,9 +325,22 @@ for huc2 in connected_huc2:
         barrier_networks.loc[ix, "FreeDownstreamMiles"] = barrier_networks.loc[
             ix
         ].free_miles.astype("float32")
+        # NOTE: these may not be working properly
+        barrier_networks.loc[ix, "flows_to_ocean"] = barrier_networks.loc[
+            ix
+        ].flows_to_ocean_right.astype("bool")
+        barrier_networks.loc[ix, "num_downstream"] = barrier_networks.loc[
+            ix
+        ].num_downstream_right.astype("uint16")
 
     barrier_networks = barrier_networks.drop(
-        columns=["new_network", "miles", "free_miles",]
+        columns=[
+            "new_network",
+            "miles",
+            "free_miles",
+            "num_downstream_right",
+            "flows_to_ocean_right",
+        ]
     )
 
     # update any records in UPSTREAM HUC2s that have updated networks DOWNSTREAM of them
@@ -353,6 +362,13 @@ for huc2 in connected_huc2:
         barrier_networks.loc[ix, "FreeDownstreamMiles"] = barrier_networks.loc[
             ix
         ].free_miles.astype("float32")
+        # NOTE: these may not be working properly
+        barrier_networks.loc[ix, "flows_to_ocean"] = barrier_networks.loc[
+            ix
+        ].flows_to_ocean_right.astype("bool")
+        barrier_networks.loc[ix, "num_downstream"] = barrier_networks.loc[
+            ix
+        ].num_downstream_right.astype("uint16")
 
     barrier_networks = barrier_networks.drop(
         columns=["new_network", "miles", "free_miles",]
@@ -391,6 +407,8 @@ stats = network_stats.set_index("new_network")[
         "up_ndams",
         "up_nwfs",
         "barrier",
+        "num_downstream",
+        "flows_to_ocean",
     ]
 ].drop_duplicates()
 stats.index.name = "networkID"
@@ -466,7 +484,7 @@ for huc2 in connected_huc2:
         os.makedirs(huc2_dir)
 
     network.to_feather(huc2_dir / "network.feather")
-    write_dataframe(network, huc2_dir / "network.gpkg")
+    write_dataframe(network, huc2_dir / "network.fgbg")
 
 
 ### Move network segments from upstream HUC2s to downstream HUC2s

@@ -9,7 +9,7 @@ import numpy as np
 
 from analysis.lib.joins import index_joins, find_joins, update_joins, remove_joins
 from analysis.lib.graph import find_adjacent_groups
-from analysis.lib.geometry import calculate_sinuosity
+from analysis.lib.geometry import calculate_sinuosity, geo_bounds
 
 from analysis.lib.geometry import (
     cut_lines_at_multipoints,
@@ -27,7 +27,7 @@ CUT_TOLERANCE = 1
 def prep_new_flowlines(flowlines, new_segments):
     """Add necessary attributes to new segments then append to flowlines and return.
 
-    Calculates length and sinuosity for new segments.
+    Calculates length, sinuosity, and bounding coordinates for new segments.
 
     Parameters
     ----------
@@ -42,7 +42,8 @@ def prep_new_flowlines(flowlines, new_segments):
     """
     # join in data from flowlines into new segments
     new_flowlines = new_segments.join(
-        flowlines.drop(columns=["geometry", "lineID"]), on="origLineID"
+        flowlines.drop(columns=["geometry", "lineID", "xmin", "ymin", "xmax", "ymax"]),
+        on="origLineID",
     )
 
     # calculate length and sinuosity
@@ -51,7 +52,13 @@ def prep_new_flowlines(flowlines, new_segments):
         new_flowlines.geometry.values.data
     ).astype("float32")
 
-    return new_flowlines
+    bounds = pd.DataFrame(
+        geo_bounds(new_flowlines.geometry.values.data),
+        columns=["xmin", "ymin", "xmax", "ymax"],
+        index=new_flowlines.index,
+    )
+
+    return new_flowlines.join(bounds)
 
 
 def remove_pipelines(flowlines, joins, max_pipeline_length=100):
@@ -724,7 +731,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             )
 
     # make sure that updated joins are unique
-    joins = joins.drop_duplicates(subset=["upstream_id", "downstream_id"])
+    joins = joins.drop_duplicates()
 
     # make sure that wb_joins is unique
     contained = contained.sort_values(by=["lineID", "wbID"]).drop_duplicates(

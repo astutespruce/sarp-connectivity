@@ -22,7 +22,7 @@ import numpy as np
 from pyogrio import write_dataframe
 
 
-from analysis.constants import NETWORK_TYPES
+from analysis.constants import NETWORK_TYPES, GEO_CRS
 
 from analysis.network.lib.stats import calculate_network_stats
 from analysis.network.lib.barriers import read_barriers, save_barriers
@@ -36,22 +36,27 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/clean"
 
-
-# TODO: expand to full region
 huc4_df = pd.read_feather(
-    # data_dir / "boundaries/sarp_huc4.feather",
-    data_dir / "boundaries/huc4.feather",
-    columns=["HUC2", "HUC4"],
+    data_dir / "boundaries/huc4.feather", columns=["HUC2", "HUC4"],
 )
 # Convert to dict of sorted HUC4s per HUC2
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 huc2s = sorted(units.keys())
 
 # manually subset keys from above for processing
-huc2s = [
-    "02",
-    # "03", "05", "06", "07", "08", "10", "11", "12", "13", "21"
-]
+# huc2s = [
+#     "02",
+#     "03",
+#     "05",
+#     "06",
+#     "07",
+# "08",
+#     "10",
+#     "11",
+#     "12",
+#     "13",
+#     "21",
+# ]
 
 
 start = time()
@@ -75,11 +80,13 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
     ### Read NHD flowlines and joins
     print("Reading flowlines...")
     flowline_start = time()
-    flowlines = (
-        gp.read_feather(nhd_dir / huc2 / "flowlines.feather")
-        .set_index("lineID", drop=False)
-        .drop(columns=["HUC2"], errors="ignore")
+    flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather").drop(
+        columns=["HUC2"], errors="ignore"
     )
+    # TEMP: temporary fix until this is handled in prep_flowlines_* script
+    flowlines.lineID = flowlines.lineID.astype("uint32")
+    flowlines = flowlines.set_index("lineID", drop=False)
+
     joins = pd.read_feather(nhd_dir / huc2 / "flowline_joins.feather")
 
     ### TEMP: limit flowlines and joins to HUC4s in SARP region above
@@ -159,9 +166,7 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
     upstream_networks = (
         barrier_joins[["upstream_id"]]
         .join(
-            network_stats.drop(
-                columns=["marine_terminal", "flows_to_ocean", "num_downstream"]
-            ),
+            network_stats.drop(columns=["flows_to_ocean", "num_downstream"]),
             on="upstream_id",
         )
         .rename(
@@ -172,13 +177,6 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
             }
         )
     )
-
-    # decrement num_downstream to remove the current barrier
-    # upstream_networks.num_downstream = upstream_networks.num_downstream.fillna(0).astype('uint16')
-    # ix = upstream_networks.num_downstream !=0
-    # upstream_networks.loc[ix, 'num_downstream'] -= 1
-
-    # upstream_networks.flows_to_ocean = upstream_networks.flows_to_ocean.fillna(False)
 
     downstream_networks = (
         barrier_joins[["downstream_id"]]
@@ -257,7 +255,7 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
     print("Serializing network")
     networks = networks.reset_index(drop=True)
     networks.to_feather(out_dir / "network.feather")
-    write_dataframe(networks, out_dir / "network.gpkg")
+    write_dataframe(networks, out_dir / "network.fgb")
 
     print(f"Region done in {time() - region_start:.2f}s\n\n")
 

@@ -47,9 +47,7 @@ def calculate_network_stats(df, barrier_joins, joins):
 
     ### Find those that terminate in marine
     marine_terminals = pd.Series(
-        np.zeros(shape=(len(networkIDs),), dtype="bool"),
-        index=networkIDs,
-        name="marine_terminal",
+        np.zeros(shape=(len(networkIDs),), dtype="bool"), index=networkIDs,
     )
     marine_terminals.loc[
         marine_terminals.index.isin(joins.loc[joins.marine].upstream_id)
@@ -132,16 +130,20 @@ def calculate_network_stats(df, barrier_joins, joins):
         "barrier"
     )
 
+    ### Aggregate bounds to network
+    bounds = df.groupby(level=0).agg(
+        {"xmin": "min", "ymin": "min", "xmax": "max", "ymax": "max"}
+    )
+
     ### Collect results
     results = (
         calculate_geometry_stats(df)
-        .join(calculate_bounds(df))
+        .join(bounds)
         .join(calculate_floodplain_stats(df))
         .join(df.groupby(level=0).sizeclass.nunique().rename("sizeclasses"))
         .join(upstream_counts)
         .join(barriers_downstream)
         .join(num_downstream)
-        .join(marine_terminals)
         .join(to_ocean)
     )
 
@@ -194,42 +196,6 @@ def calculate_geometry_stats(df):
     )
 
     return miles.join(wtd_sinuosity).join(df.groupby(level=0).size().rename("segments"))
-
-
-def calculate_bounds(df):
-    """Calculate approximate geographic bounds of each network.
-
-    Segments are first converted to bounding envelopes, then projected to
-    geographic coordinates.  The outer bounds of these are used to represent
-    the bounds of each network.
-
-    Parameters
-    ----------
-    df : GeoDataFrame
-
-    Returns
-    -------
-    Series
-        indexed on networkID, returns a list of [xmin, ymin, xmax, ymax] rounded
-        to 5 decimal places.
-    """
-
-    # to avoid reprojecting the entire geometries, calculate the bounds of each
-    # flowline and calculate its envelope, then project that
-    envelopes = gp.GeoSeries(
-        pg.envelope(df.geometry.values.data), index=df.index, crs=df.crs
-    ).to_crs(GEO_CRS)
-
-    # save as split columns for easier management
-    columns = ["xmin", "ymin", "xmax", "ymax"]
-
-    bounds = (
-        envelopes.groupby(level=0)
-        .apply(lambda g: pg.total_bounds(g.values.data).round(5))
-        .transform({c: itemgetter(i) for i, c in enumerate(columns)})
-    )
-
-    return bounds
 
 
 def calculate_floodplain_stats(df):

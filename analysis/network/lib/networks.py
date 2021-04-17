@@ -9,6 +9,9 @@ def generate_network(root_id, upstreams):
 
     Intended to be used within an .apply() call
 
+    WARNING: this is not robust to seeing the same ids again (i.e., from a loop);
+    those must be filtered out in advance.
+
     Parameters
     ----------
     root_id : id type (int, str)
