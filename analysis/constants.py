@@ -418,9 +418,16 @@ OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True}
 
 # List of NHDPlusIDs to convert from loops to non-loops;
 # they are coded incorrectly in NHD
-# WARNING: you must remove the corresponding segments that
+# WARNING: you may need to remove the corresponding segments that
 # were previously identified as loops
-CONVERT_TO_NONLOOP = {"02": [10000300070616, 10000300132189, 10000300132190]}
+CONVERT_TO_NONLOOP = {
+    "02": [10000300070616, 10000300132189, 10000300132190],
+    "05": [
+        # this is a loop at the junction of 05/06 that needs to be retained as a non-loop
+        # for networks to be built correctly
+        24000100384878
+    ],
+}
 
 # List of NHDPlusIDs to remove due to issues with NHD
 REMOVE_IDS = {

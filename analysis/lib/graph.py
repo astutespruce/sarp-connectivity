@@ -126,7 +126,7 @@ class DirectedGraph(object):
         return out
 
     def descendants(self, sources):
-        """Find all desendents of sources as a 1d array (one entry per node in sources)
+        """Find all descendants of sources as a 1d array (one entry per node in sources)
 
         Parameters
         ----------
@@ -148,6 +148,35 @@ class DirectedGraph(object):
             return out
 
         f = np.frompyfunc(_descendants, 1, 1)
+        return f(sources)
+
+    def terminal_descendants(self, sources):
+        """Find all terminal descendants (have no descendants themselves) of sources
+        as a 1d array (one entry per node in sources).
+
+        Parameters
+        ----------
+        nodes : list-like or singular node
+            1d ndarray if sources is list-like, else singular list of nodes
+        """
+
+        def _terminal_descendants(node):
+            """Traverse graph starting from the children of node"""
+            out = set()
+            next_nodes = set(self.adj_matrix.get(node, []))
+            while next_nodes:
+                nodes = next_nodes
+                next_nodes = set()
+                for next_node in nodes:
+                    if not next_node in out:
+                        children = self.adj_matrix.get(next_node, [])
+                        if len(children) == 0:
+                            out.add(next_node)
+                        else:
+                            next_nodes.update(children)
+            return out
+
+        f = np.frompyfunc(_terminal_descendants, 1, 1)
         return f(sources)
 
     def components(self):

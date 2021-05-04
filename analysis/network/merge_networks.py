@@ -36,9 +36,6 @@ huc4_df = pd.read_feather(
     data_dir / "boundaries/huc4.feather",
     columns=["HUC2", "HUC4"],
 )
-# Convert to dict of sorted HUC4s per HUC2
-units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
-huc4s = huc4_df.HUC4.unique()
 huc2s = huc4_df.HUC2.unique()
 
 
@@ -58,6 +55,7 @@ joins = read_feathers(
 
 
 ### TEMP: limit to SARP HUC4s
+# huc4s = huc4_df.HUC4.unique()
 # joins = joins.loc[joins.HUC4.isin(huc4s)].copy()
 ### END TEMP
 
@@ -123,9 +121,9 @@ cross_region["upstream_network"] = cross_region["upstream_id"]
 # is the furthest downstream and the new networkID to assign
 g = DirectedGraph(cross_region, source="upstream_network", target="downstream_network")
 ids = cross_region.upstream_network.unique()
-new_network = pd.Series(g.descendants(ids), index=ids, name="new_network").apply(
-    lambda g: list(g)[-1]
-)
+new_network = pd.Series(
+    g.terminal_descendants(ids), index=ids, name="new_network"
+).apply(lambda g: list(g)[0])
 
 cross_region = cross_region.join(new_network, on="upstream_network")
 
@@ -196,6 +194,10 @@ updated_network = network_df.loc[cross_region.new_network.unique()]
 
 # network stats facing upstream for each functional network
 network_stats = calculate_network_stats(updated_network, barrier_joins, joins)
+
+# TODO: update network stats for num downstream / flows to ocean across connected networks
+
+
 network_stats = cross_region[
     [
         "upstream_HUC2",
@@ -267,14 +269,14 @@ for huc2 in connected_huc2:
         data_dir / "networks" / huc2 / network_type / "barriers_network.feather"
     )
 
-    # update any barriers that are at the root of updated networks
-    barrier_networks = barrier_networks.join(
-        upstream_stats, on="upNetID", rsuffix="_right"
-    )
-    ix = barrier_networks.new_network.notnull()
-
-    if ix.sum() > 0:
+    if barrier_networks.upNetID.isin(upstream_stats.index).sum() > 0:
+        # update any barriers that are at the root of updated networks
+        barrier_networks = barrier_networks.join(
+            upstream_stats, on="upNetID", rsuffix="_right"
+        )
+        ix = barrier_networks.new_network.notnull()
         print(f"updating {ix.sum()} barriers that have updated upstream networks")
+
         barrier_networks.loc[ix, "upNetID"] = barrier_networks.loc[
             ix
         ].new_network.astype("uint32")
@@ -294,28 +296,33 @@ for huc2 in connected_huc2:
             ix
         ].sizeclasses_right.astype("uint8")
 
-    barrier_networks = barrier_networks.drop(
-        columns=[
-            "new_network",
-            "miles",
-            "free_miles",
-            "sinuosity_right",
-            "segments_right",
-            "natfldpln_right",
-            "sizeclasses_right",
-        ]
-    )
+        barrier_networks = barrier_networks.drop(
+            columns=[
+                "new_network",
+                "miles",
+                "free_miles",
+                "sinuosity_right",
+                "segments_right",
+                "natfldpln_right",
+                "sizeclasses_right",
+                "xmin_right",
+                "ymin_right",
+                "xmax_right",
+                "ymax_right",
+            ]
+        )
 
-    # Update any records in this HUC2 that have updated networks DOWNSTREAM of them
-    barrier_networks = barrier_networks.join(
-        downstream_stats_same_huc2, on="downNetID", rsuffix="_right",
-    )
-    ix = barrier_networks.new_network.notnull()
+    if barrier_networks.downNetID.isin(downstream_stats_same_huc2.index).sum() > 0:
+        # Update any records in this HUC2 that have updated networks DOWNSTREAM of them
 
-    if ix.sum() > 0:
+        barrier_networks = barrier_networks.join(
+            downstream_stats_same_huc2, on="downNetID", rsuffix="_right",
+        )
+        ix = barrier_networks.new_network.notnull()
         print(
             f"updating {ix.sum()} barriers that have updated downstream networks in this HUC2"
         )
+
         barrier_networks.loc[ix, "downNetID"] = barrier_networks.loc[
             ix
         ].new_network.astype("uint32")
@@ -333,26 +340,27 @@ for huc2 in connected_huc2:
             ix
         ].num_downstream_right.astype("uint16")
 
-    barrier_networks = barrier_networks.drop(
-        columns=[
-            "new_network",
-            "miles",
-            "free_miles",
-            "num_downstream_right",
-            "flows_to_ocean_right",
-        ]
-    )
+        barrier_networks = barrier_networks.drop(
+            columns=[
+                "new_network",
+                "miles",
+                "free_miles",
+                "num_downstream_right",
+                "flows_to_ocean_right",
+            ]
+        )
 
-    # update any records in UPSTREAM HUC2s that have updated networks DOWNSTREAM of them
-    barrier_networks = barrier_networks.join(
-        downstream_stats, on="downNetID", rsuffix="_right",
-    )
-    ix = barrier_networks.new_network.notnull()
+    if barrier_networks.downNetID.isin(downstream_stats.index).sum() > 0:
+        # update any records in UPSTREAM HUC2s that have updated networks DOWNSTREAM of them
 
-    if ix.sum() > 0:
+        barrier_networks = barrier_networks.join(
+            downstream_stats, on="downNetID", rsuffix="_right",
+        )
+        ix = barrier_networks.new_network.notnull()
         print(
             f"updating {ix.sum()} barriers that have updated dowstream networks from other HUC2"
         )
+
         barrier_networks.loc[ix, "downNetID"] = barrier_networks.loc[
             ix
         ].new_network.astype("uint32")
@@ -370,9 +378,9 @@ for huc2 in connected_huc2:
             ix
         ].num_downstream_right.astype("uint16")
 
-    barrier_networks = barrier_networks.drop(
-        columns=["new_network", "miles", "free_miles",]
-    )
+        barrier_networks = barrier_networks.drop(
+            columns=["new_network", "miles", "free_miles",]
+        )
 
     huc2_dir = out_dir / huc2 / network_type
     if not huc2_dir.exists():
@@ -456,6 +464,8 @@ for huc2 in connected_huc2:
 
         to_dissolve = network.loc[network.networkID.isin(ix)].copy()
 
+        # TODO: this is empty; it should be bringing in some from upstream
+
         # remove these, dissolve, then add back
         network = network.loc[~network.networkID.isin(ix)].copy()
 
@@ -472,10 +482,7 @@ for huc2 in connected_huc2:
         dissolved = stats.join(dissolved_lines, how="inner").reset_index()
 
         network = (
-            network.append(dissolved)
-            .sort_values(by="networkID")
-            .reset_index(drop=True)
-            .set_crs(CRS)
+            network.append(dissolved).sort_values(by="networkID").reset_index(drop=True)
         )
 
     print("Serializing updated network...")
@@ -483,8 +490,12 @@ for huc2 in connected_huc2:
     if not huc2_dir.exists():
         os.makedirs(huc2_dir)
 
+    # make sure CRS is set properly
+    network = network.set_crs(CRS, allow_override=True)
+
     network.to_feather(huc2_dir / "network.feather")
-    write_dataframe(network, huc2_dir / "network.fgbg")
+    # Note: this must be a GPKG; FlatGeobuf fails for the larger networks
+    write_dataframe(network, huc2_dir / "network.gpkg")
 
 
 ### Move network segments from upstream HUC2s to downstream HUC2s
