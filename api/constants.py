@@ -149,7 +149,7 @@ DAM_API_FIELDS = (
     + METRIC_FIELDS
     + TIER_FIELDS
     + DAM_FILTER_FIELDS
-    + ["COUNTYFIPS"]
+    + ["COUNTYFIPS", "xmin", "ymin", "xmax", "ymax"]
 )
 
 # reduce to unique list, since there are overlaps with filters and core fields
@@ -210,7 +210,7 @@ SB_API_FIELDS = (
     + METRIC_FIELDS
     + TIER_FIELDS
     + SB_FILTER_FIELDS
-    + ["COUNTYFIPS"]
+    + ["COUNTYFIPS", "xmin", "ymin", "xmax", "ymax"]
 )
 
 SB_API_FIELDS = unique(SB_API_FIELDS)

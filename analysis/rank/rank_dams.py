@@ -9,10 +9,6 @@ Outputs:
 * `data/api/removed_dams.feather`: dams that were removed for conservation
 * `data/tiles/dams_with_networks.csv`: Dams with networks for creating vector tiles in tippecanoe
 * `data/tiles/dams_without_networks.csv`: Dams without networks for creating vector tiles in tippecanoe
-
-
-TODO: add PR region number prefix to networks to keep globally unique
-
 """
 
 import os
@@ -51,9 +47,10 @@ if not os.path.exists(tile_dir):
     os.makedirs(tile_dir)
 
 
-# TODO: expand to full region
 huc4_df = pd.read_feather(
-    data_dir / "boundaries/sarp_huc4.feather", columns=["HUC2", "HUC4"]
+    # data_dir / "boundaries/sarp_huc4.feather",
+    data_dir / "boundaries/huc4.feather",
+    columns=["HUC2", "HUC4"],
 )
 # Convert to dict of sorted HUC4s per HUC2
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()

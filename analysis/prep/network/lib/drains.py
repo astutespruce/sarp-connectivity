@@ -67,20 +67,20 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     drain_pts = (
         wb_joins.loc[wb_joins.lineID.isin(drains.upstream_id)]
         .join(wb_atts, on="wbID",)
-        .join(tmp_flowlines, on="lineID",)
+        .join(tmp_flowlines[["geometry", "loop", "TotDASqKm"]], on="lineID",)
         .reset_index(drop=True)
     )
 
     # create a point from the last coordinate, which is the furthest one downstream
     drain_pts.geometry = pg.get_point(drain_pts.geometry.values.data, -1)
-    drain_pts["headwaters"] = False
 
     ### Extract the drain points of upstream headwaters waterbodies
     # these are flowlines that originate at a waterbody
+    drain_pts["headwaters"] = False
     wb_geom = waterbodies.loc[waterbodies.flowlineLength == 0].geometry
     wb_geom = pd.Series(wb_geom.values.data, index=wb_geom.index)
     # take only the upstream most point
-    tmp_flowline_pts = tmp_flowlines.copy()
+    tmp_flowline_pts = tmp_flowlines[["geometry", "loop", "TotDASqKm"]].copy()
     tmp_flowline_pts["geometry"] = pg.get_point(flowlines.geometry.values.data, 0)
     fl_pt = pd.Series(
         tmp_flowline_pts.geometry.values.data, index=tmp_flowline_pts.index
@@ -105,10 +105,6 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     )
 
     drain_pts = gp.GeoDataFrame(drain_pts, geometry="geometry", crs=flowlines.crs)
-
-    # calculate unique index
-    huc_id = drain_pts["HUC4"].astype("uint16") * 1000000
-    drain_pts["drainID"] = drain_pts.index.values.astype("uint32") + huc_id
 
     # sort by drainage area so that smaller streams come first because
     # we are searching from upstream end
@@ -165,6 +161,76 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
             f"Dropping {len(ix):,} drains that are upstream of other drains in the same waterbody"
         )
         drain_pts = drain_pts.loc[~drain_pts.lineID.isin(ix)]
+
+    ### check if drain points are on a loop and very close to the junction
+    # of the loop and nonloop (e.g., Hoover Dam, HUC2 == 15)
+    drain_pts["snap_to_junction"] = False
+    drain_pts["snap_dist"] = 0
+
+    drains_by_wb = drain_pts.groupby("wbID").size()
+    multiple_drain_wb = drains_by_wb[drains_by_wb > 1].index
+
+    # limit this to drain points on loops where there are multiple drains per waterbody
+    loop_pts = drain_pts.loc[
+        drain_pts.loop & (drain_pts.wbID.isin(multiple_drain_wb))
+    ].copy()
+
+    # search within 3 degrees removed from ids; this hopefully
+    # picks up any downstream junctions
+    pairs = find_joins(
+        joins,
+        loop_pts.lineID.unique(),
+        downstream_col="downstream_id",
+        upstream_col="upstream_id",
+        expand=3,
+    )[["upstream_id", "downstream_id"]]
+
+    # drop endpoints
+    pairs = pairs.loc[(pairs.upstream_id != 0) & (pairs.downstream_id != 0)].copy()
+
+    # find all junctions that have > 1 flowline upstream of them
+    grouped = pairs.groupby("downstream_id").size()
+    downstream_junctions = grouped[grouped > 1].index
+    # extract upstream endoint for each junction line
+    downstream_junction_pts = pd.Series(
+        pg.get_point(flowlines.loc[downstream_junctions].geometry.values.data, 0),
+        index=downstream_junctions,
+    )
+    # find the nearest junctions within 5m tolerance of drain points on loops
+    tree = pg.STRtree(downstream_junction_pts.values.data)
+    left, right = tree.nearest_all(loop_pts.geometry.values.data, max_distance=5)
+
+    # make sure they are connected on the network
+    g = DirectedGraph(pairs, source="upstream_id", target="downstream_id")
+    ix = g.is_reachable(
+        loop_pts.iloc[left].lineID.values, downstream_junction_pts.iloc[right].index
+    )
+    left = left[ix]
+    right = right[ix]
+
+    if len(left):
+        print(
+            f"Found {len(left)} drains on loops within 5m upstream of a junction, updating them..."
+        )
+        # NOTE: these are attributed to the flowline that is DOWNSTREAM of the junction point
+        # whereas other drains are attributed to the flowline upstream of themselves
+        ix = loop_pts.index.take(left)
+        drain_pts.loc[ix, "snap_to_junction"] = True
+        drain_pts.loc[ix, "snap_dist"] = pg.distance(
+            drain_pts.loc[ix].geometry.values.data,
+            downstream_junction_pts.iloc[right].values,
+        )
+        drain_pts.loc[ix, "lineID"] = downstream_junction_pts.iloc[right].index
+        drain_pts.loc[ix, "geometry"] = downstream_junction_pts.iloc[right].values
+
+    # join in line properties
+    drain_pts = drain_pts.drop(columns=["loop", "TotDASqKm"]).join(
+        tmp_flowlines.drop(columns=["geometry"]), on="lineID"
+    )
+
+    # calculate unique index
+    huc_id = drain_pts["HUC4"].astype("uint16") * 1000000
+    drain_pts["drainID"] = drain_pts.index.values.astype("uint32") + huc_id
 
     # Convert back to GeoDataFrame; above steps make it into a DataFrame
     drain_pts = gp.GeoDataFrame(drain_pts, geometry="geometry", crs=flowlines.crs)
