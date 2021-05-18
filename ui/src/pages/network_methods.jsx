@@ -36,7 +36,7 @@ const Note = styled(HelpText).attrs({ mt: '1rem' })``
 const LengthPage = ({ data: { headerImage } }) => (
   <Layout title="Network Analysis Methods">
     <HeaderImage
-      image={headerImage.childImageSharp.fluid}
+      image={headerImage.childImageSharp.gatsbyImageData}
       height="30vh"
       minHeight="18rem"
       position="center"
@@ -331,9 +331,11 @@ export const pageQuery = graphql`
   query NetworkMethodsPageQuery {
     headerImage: file(relativePath: { eq: "30557776285_90ce5f6683_6k.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

@@ -19,15 +19,14 @@ import {
 const LandcoverPage = ({ data: { headerImage } }) => (
   <Layout title="Floodplain Natural Landcover">
     <HeaderImage
-      image={headerImage.childImageSharp.fluid}
+      image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
       minHeight="18rem"
       position="center"
       credits={{
         author:
           'Loakfoma Creek, Noxubee National Wildlife Refuge, Mississippi. U.S. Fish and Wildlife Service.',
-        url:
-          'https://www.flickr.com/photos/usfwssoutheast/6882770647/in/album-72157629334467105/',
+        url: 'https://www.flickr.com/photos/usfwssoutheast/6882770647/in/album-72157629334467105/',
       }}
     />
 
@@ -130,9 +129,11 @@ export const pageQuery = graphql`
   query NaturalLandcoverQuery {
     headerImage: file(relativePath: { eq: "6882770647_c43a945282_o.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

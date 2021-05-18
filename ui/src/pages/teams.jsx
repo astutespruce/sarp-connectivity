@@ -1,11 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
+import { GatsbyImage } from 'gatsby-plugin-image'
 
 import { Text } from 'components/Text'
 import Layout from 'components/Layout'
 import { OutboundLink } from 'components/Link'
-import { HeaderImage, GatsbyImage } from 'components/Image'
+import { HeaderImage } from 'components/Image'
 import { extractNodes, GraphQLArrayPropType } from 'util/graphql'
 import { groupBy } from 'util/data'
 import styled, { themeGet } from 'style'
@@ -52,7 +53,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
   return (
     <Layout title="Aquatic Connectivity Teams">
       <HeaderImage
-        image={headerImage.childImageSharp.fluid}
+        image={headerImage.childImageSharp.gatsbyImageData}
         height="40vh"
         minHeight="22rem"
         position="center"
@@ -91,7 +92,9 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
               </p>
               {images[state] ? (
                 <>
-                  <Image fluid={images[state].childImageSharp.fluid} />
+                  <Image
+                    image={images[state].childImageSharp.gatsbyImageData}
+                  />
                   {teamImageCredits[state] ? (
                     <Credits>Photo: {teamImageCredits[state]}</Credits>
                   ) : null}
@@ -110,7 +113,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
               <br />
             </p>
 
-            <Image fluid={footerImage.childImageSharp.fluid} />
+            <Image image={footerImage.childImageSharp.gatsbyImageData} />
             <Credits>
               Photo: Jessica Graham, Southeast Aquatic Resources Partnership.
             </Credits>
@@ -133,9 +136,11 @@ export const pageQuery = graphql`
   query TeamsPageQuery {
     headerImage: file(relativePath: { eq: "TN_ACT2.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
     imagesSharp: allFile(filter: { relativeDirectory: { eq: "teams" } }) {
@@ -143,18 +148,22 @@ export const pageQuery = graphql`
         node {
           state: name
           childImageSharp {
-            fluid(maxWidth: 3200, quality: 90) {
-              ...GatsbyImageSharpFluid_withWebp
-            }
+            gatsbyImageData(
+              layout: FULL_WIDTH
+              formats: [AUTO, WEBP]
+              placeholder: BLURRED
+            )
           }
         }
       }
     }
     footerImage: file(relativePath: { eq: "IMG_1530.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 960, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

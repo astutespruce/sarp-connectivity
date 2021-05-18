@@ -8,7 +8,7 @@ import { HeaderImage } from 'components/Image'
 const IndexPage = ({ data: { headerImage } }) => (
   <Layout title="NOT FOUND">
     <HeaderImage
-      image={headerImage.childImageSharp.fluid}
+      image={headerImage.childImageSharp.gatsbyImageData}
       height="100%"
       minHeight="22rem"
       position="center"
@@ -32,9 +32,11 @@ export const pageQuery = graphql`
   query NotFoundPageQuery {
     headerImage: file(relativePath: { eq: "25898720604_f380ee9709_k.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

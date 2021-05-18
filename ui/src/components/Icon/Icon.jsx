@@ -4,7 +4,6 @@ import { Image as BaseImage } from 'rebass/styled-components'
 
 import styled, { theme } from 'style'
 
-
 const Img = styled(BaseImage)`
   flex-shrink: 0;
   margin-bottom: 0;
@@ -12,9 +11,9 @@ const Img = styled(BaseImage)`
 
 const Icon = ({ name, size, color, ...props }) => {
   /* eslint-disable-next-line */
-  const src = require(`icons/${name}.svg`)
+  const { default: src } = require(`icons/${name}.svg`)
 
-  return <Img src={src} width={size} height={size} {...props}/>
+  return <Img src={src} width={size} height={size} {...props} />
 }
 
 Icon.propTypes = {

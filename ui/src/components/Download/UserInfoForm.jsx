@@ -197,7 +197,11 @@ const DownloadForm = ({ onCancel, onContinue }) => {
     isSuccess: false,
   })
 
-  const { register, handleSubmit, errors } = useForm({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     mode: 'onBlur',
   })
 
@@ -334,7 +338,7 @@ const DownloadForm = ({ onCancel, onContinue }) => {
                   </RowLabel>
                   <Input
                     name={FIELDS.email}
-                    ref={register({
+                    {...register(FIELDS.email, {
                       required: true,
                       pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                     })}
@@ -350,7 +354,7 @@ const DownloadForm = ({ onCancel, onContinue }) => {
 
                   <Input
                     name={FIELDS.firstName}
-                    ref={register({ required: true })}
+                    {...register(FIELDS.firstName, { required: true })}
                     invalid={!!errors[FIELDS.firstName]}
                   />
                 </Row>
@@ -363,7 +367,7 @@ const DownloadForm = ({ onCancel, onContinue }) => {
 
                   <Input
                     name={FIELDS.lastName}
-                    ref={register({ required: true })}
+                    {...register(FIELDS.lastName, { required: true })}
                     invalid={!!errors[FIELDS.lastName]}
                   />
                 </Row>
@@ -380,7 +384,7 @@ const DownloadForm = ({ onCancel, onContinue }) => {
                   <TextArea
                     name={FIELDS.use}
                     rows={8}
-                    ref={register({ required: true })}
+                    {...register(FIELDS.use, { required: true })}
                     invalid={!!errors[FIELDS.use]}
                   />
                 </Row>
@@ -394,7 +398,7 @@ const DownloadForm = ({ onCancel, onContinue }) => {
               </RowLabel>
               <Input
                 name={FIELDS.organization}
-                ref={register({ required: true })}
+                {...register(FIELDS.organization, { required: true })}
                 invalid={!!errors[FIELDS.organization]}
               />
             </Row>

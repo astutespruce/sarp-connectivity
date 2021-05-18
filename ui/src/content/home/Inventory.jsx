@@ -33,11 +33,6 @@ const Stats = styled.ul`
   }
 `
 
-const SARPLogo = styled(Image).attrs({
-  src: SARPLogoImage,
-  width: '14rem',
-})``
-
 const Inventory = () => {
   const { dams, total_barriers, miles } = useSummaryData()
 
@@ -103,7 +98,7 @@ const Inventory = () => {
             </Stats>
 
             <Flex width="100%" justifyContent="center">
-              <SARPLogo />
+              <Image src={SARPLogoImage} width="224px" alt="SARP logo" />
             </Flex>
 
             <HelpText textAlign="center" mt="1rem">

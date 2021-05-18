@@ -1,6 +1,6 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
-import Img from 'gatsby-image'
+import { GatsbyImage } from 'gatsby-plugin-image'
 import { Image } from 'rebass/styled-components'
 import { FaExclamationTriangle } from 'react-icons/fa'
 
@@ -49,15 +49,18 @@ const NetworkGraphic = styled(Image).attrs({ src: NetworkGraphicSVG })`
 const Scoring = () => {
   const {
     damPhoto: {
-      childImageSharp: { fluid: damPhoto },
+      childImageSharp: { gatsbyImageData: damPhoto },
     },
   } = useStaticQuery(graphql`
     query {
       damPhoto: file(relativePath: { eq: "9272554306_b34bf886f4_z.jpg" }) {
         childImageSharp {
-          fluid(maxWidth: 640, quality: 85) {
-            ...GatsbyImageSharpFluid_withWebp
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 640
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
         }
       }
     }
@@ -100,7 +103,7 @@ const Scoring = () => {
             </p>
           </WideColumn>
           <NarrowColumn>
-            <Img fluid={damPhoto} alt="Hartwell Dam" />
+            <GatsbyImage image={damPhoto} alt="Hartwell Dam" />
             <ImageCredits>
               <OutboundLink to="https://www.flickr.com/photos/savannahcorps/9272554306/">
                 Hartwell Dam, Georgia. Billy Birdwell, U.S. Army Corps of

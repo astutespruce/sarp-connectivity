@@ -12,14 +12,13 @@ const LengthPage = ({ data: { headerImage } }) => (
   Conservation"
   >
     <HeaderImage
-      image={headerImage.childImageSharp.fluid}
+      image={headerImage.childImageSharp.gatsbyImageData}
       height="30vh"
       minHeight="18rem"
       position="center"
       credits={{
         author: 'U.S. Forest Service Southern Region',
-        url:
-          'https://www.flickr.com/photos/forest_service_southern_region/16244961613/',
+        url: 'https://www.flickr.com/photos/forest_service_southern_region/16244961613/',
       }}
     />
 
@@ -83,9 +82,11 @@ export const pageQuery = graphql`
   query USFSPriorityPageQuery {
     headerImage: file(relativePath: { eq: "16244961613_6db5ed78f1_o.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

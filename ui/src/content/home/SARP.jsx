@@ -1,6 +1,6 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
-import Img from 'gatsby-image'
+import { GatsbyImage } from 'gatsby-plugin-image'
 import { Image } from 'rebass/styled-components'
 
 import { Text } from 'components/Text'
@@ -29,10 +29,10 @@ const MinorTitle = styled(Text).attrs({ as: 'h3', m: 0 })`
 const SARP = () => {
   const {
     forestStreamPhoto: {
-      childImageSharp: { fluid: forestStreamPhoto },
+      childImageSharp: { gatsbyImageData: forestStreamPhoto },
     },
     gaTeamPhoto: {
-      childImageSharp: { fluid: gaTeamPhoto },
+      childImageSharp: { gatsbyImageData: gaTeamPhoto },
     },
   } = useStaticQuery(graphql`
     query {
@@ -40,16 +40,22 @@ const SARP = () => {
         relativePath: { eq: "6882770647_60c0d68a9c_z.jpg" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 640, quality: 85) {
-            ...GatsbyImageSharpFluid_withWebp
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 960
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
         }
       }
       gaTeamPhoto: file(relativePath: { eq: "GA_ACT_small.jpg" }) {
         childImageSharp {
-          fluid(maxWidth: 640, quality: 85) {
-            ...GatsbyImageSharpFluid_withWebp
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 640
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
         }
       }
     }
@@ -81,8 +87,8 @@ const SARP = () => {
       <Section>
         <Columns>
           <NarrowColumn ml={[0, 0, '1rem']} mr={[0, 0, '1rem']}>
-            <Img
-              fluid={forestStreamPhoto}
+            <GatsbyImage
+              image={forestStreamPhoto}
               alt="Sam D. Hamilton Noxubee National Wildlife Refuge"
             />
 
@@ -129,7 +135,10 @@ const SARP = () => {
           </WideColumn>
 
           <NarrowColumn>
-            <Img fluid={gaTeamPhoto} alt="Georgia Aquatic Connectivity Team" />
+            <GatsbyImage
+              image={gaTeamPhoto}
+              alt="Georgia Aquatic Connectivity Team"
+            />
             <ImageCredits>
               Photo:{' '}
               <OutboundLink to="https://www.southeastaquatics.net/news/white-dam-removal-motivates-georgia-conservation-practitioners">

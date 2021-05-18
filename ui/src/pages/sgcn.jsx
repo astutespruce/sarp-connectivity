@@ -23,7 +23,7 @@ const Section = styled(BaseSection)`
 const LengthPage = ({ data: { headerImage } }) => (
   <Layout title="Listed Species and Species of Greatest Conservation Need">
     <HeaderImage
-      image={headerImage.childImageSharp.fluid}
+      image={headerImage.childImageSharp.gatsbyImageData}
       height="30vh"
       minHeight="18rem"
       position="center"
@@ -127,9 +127,11 @@ export const pageQuery = graphql`
   query SGCNPageQuery {
     headerImage: file(relativePath: { eq: "33643109826_51296358b0_k.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

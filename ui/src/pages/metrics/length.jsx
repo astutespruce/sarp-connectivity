@@ -18,15 +18,14 @@ import {
 const LengthPage = ({ data: { headerImage } }) => (
   <Layout title="Network Length">
     <HeaderImage
-      image={headerImage.childImageSharp.fluid}
+      image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
       minHeight="18rem"
       position="center"
       credits={{
         author:
           'Little Tennessee River, North Carolina. U.S. Fish and Wildlife Service.',
-        url:
-          'https://www.flickr.com/photos/usfwssoutheast/5149475130/in/gallery-141606341@N03-72157697846677391/',
+        url: 'https://www.flickr.com/photos/usfwssoutheast/5149475130/in/gallery-141606341@N03-72157697846677391/',
       }}
     />
 
@@ -99,9 +98,11 @@ export const pageQuery = graphql`
   query NetworkLengthQuery {
     headerImage: file(relativePath: { eq: "5149475130_b2334f1edd_4k.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

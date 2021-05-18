@@ -1,6 +1,6 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
-import Img from 'gatsby-image'
+import { GatsbyImage as Image } from 'gatsby-plugin-image'
 import { FaChartBar, FaSearchLocation } from 'react-icons/fa'
 
 import { Text } from 'components/Text'
@@ -34,25 +34,31 @@ const SearchIcon = styled(FaSearchLocation)`
 const Tool = () => {
   const {
     prioritize: {
-      childImageSharp: { fluid: prioritizeImage },
+      childImageSharp: { gatsbyImageData: prioritizeImage },
     },
     summarize: {
-      childImageSharp: { fluid: summarizeImage },
+      childImageSharp: { gatsbyImageData: summarizeImage },
     },
   } = useStaticQuery(graphql`
     query {
       prioritize: file(relativePath: { eq: "prioritize.jpg" }) {
         childImageSharp {
-          fluid(maxWidth: 640, quality: 100) {
-            ...GatsbyImageSharpFluid_withWebp
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 640
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
         }
       }
       summarize: file(relativePath: { eq: "summarize.jpg" }) {
         childImageSharp {
-          fluid(maxWidth: 640, quality: 100) {
-            ...GatsbyImageSharpFluid_withWebp
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 640
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
         }
       }
     }
@@ -92,7 +98,7 @@ const Tool = () => {
         </WideColumn>
         <NarrowColumn>
           <Link to="/summary">
-            <Img fluid={summarizeImage} alt="Summarize View" />
+            <Image image={summarizeImage} alt="Summarize View" />
           </Link>
         </NarrowColumn>
       </Columns>
@@ -128,7 +134,7 @@ const Tool = () => {
         </WideColumn>
         <NarrowColumn>
           <Link to="/priority">
-            <Img fluid={prioritizeImage} alt="Priority View" />
+            <Image image={prioritizeImage} alt="Priority View" />
           </Link>
         </NarrowColumn>
       </Columns>

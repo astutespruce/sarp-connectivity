@@ -21,7 +21,7 @@ const SARPLogo = styled(Image).attrs({ src: SARPLogoImage })`
 const TermsPage = ({ data: { headerImage } }) => (
   <Layout title="Terms of Use">
     <HeaderImage
-      image={headerImage.childImageSharp.fluid}
+      image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
       minHeight="18rem"
       position="center"
@@ -128,9 +128,11 @@ export const pageQuery = graphql`
       relativePath: { eq: "david-kovalenko-qYMa2-P-U0M-unsplash.jpg" }
     ) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

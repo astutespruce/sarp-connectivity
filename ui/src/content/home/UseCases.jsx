@@ -1,6 +1,6 @@
 import React from 'react'
 import { useStaticQuery, graphql } from 'gatsby'
-import Img from 'gatsby-image'
+import { GatsbyImage } from 'gatsby-plugin-image'
 
 import { Box } from 'components/Grid'
 import { OutboundLink } from 'components/Link'
@@ -16,13 +16,16 @@ const UseCases = () => {
         }
       ) {
         childImageSharp {
-          fluid(maxWidth: 960) {
-            ...GatsbyImageSharpFluid_withWebp
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 960
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
         }
       }
     }
-  `).removalImage.childImageSharp.fluid
+  `).removalImage.childImageSharp.gatsbyImageData
 
   return (
     <Section id="example">
@@ -36,7 +39,7 @@ const UseCases = () => {
       </p>
 
       <Box my="2rem">
-        <Img fluid={img} />
+        <GatsbyImage image={img} />
         <ImageCredits mt="0.5rem">
           Photo:{' '}
           <OutboundLink to="https://www.nature.org/en-us/about-us/where-we-work/united-states/tennessee/stories-in-tennessee/dam-removal-opens-up-roaring-river/">

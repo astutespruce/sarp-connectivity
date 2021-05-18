@@ -24,7 +24,7 @@ const Content = styled(Container).attrs({
 const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
   <Layout>
     <HeaderImage
-      image={headerImage.childImageSharp.fluid}
+      image={headerImage.childImageSharp.gatsbyImageData}
       height="40vh"
       minHeight="22rem"
       position="center"
@@ -41,7 +41,7 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
     </Content>
 
     <DividerImage
-      image={dividerImage1.childImageSharp.fluid}
+      image={dividerImage1.childImageSharp.gatsbyImageData}
       height="75vh"
       minHeight="26rem"
       credits={{
@@ -55,7 +55,7 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
     </Content>
 
     <DividerImage
-      image={dividerImage2.childImageSharp.fluid}
+      image={dividerImage2.childImageSharp.gatsbyImageData}
       height="50vh"
       minHeight="26rem"
       credits={{
@@ -83,9 +83,11 @@ export const pageQuery = graphql`
   query HomePageQuery {
     headerImage: file(relativePath: { eq: "iStock-181890680.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
     dividerImage1: file(
@@ -94,9 +96,11 @@ export const pageQuery = graphql`
       }
     ) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
     dividerImage2: file(
@@ -105,9 +109,11 @@ export const pageQuery = graphql`
       }
     ) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

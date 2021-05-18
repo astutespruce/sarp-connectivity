@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Img from 'gatsby-image'
+import { GatsbyImage as Image } from 'gatsby-plugin-image'
 
 import { OutboundLink } from 'components/Link'
 import { Text } from 'components/Text'
@@ -17,7 +17,7 @@ const Wrapper = styled.div`
   overflow: hidden;
 `
 
-const StyledImage = styled(Img)`
+const StyledImage = styled(Image)`
   position: absolute !important;
   left: 0;
   right: 0;
@@ -102,7 +102,7 @@ const HeaderImage = ({
   position,
 }) => (
   <Wrapper height={height} minHeight={minHeight}>
-    <StyledImage fluid={image} position={position} />
+    <StyledImage image={image} position={position} alt="" />
 
     {title ? (
       <>

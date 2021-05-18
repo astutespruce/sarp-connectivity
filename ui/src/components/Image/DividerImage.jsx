@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Img from 'gatsby-image'
+import { GatsbyImage as Image } from 'gatsby-plugin-image'
 
 import styled, { themeGet } from 'style'
 
@@ -13,7 +13,7 @@ const Wrapper = styled.div`
   overflow: hidden;
 `
 
-const StyledImage = styled(Img)`
+const StyledImage = styled(Image)`
   position: absolute !important;
   left: 0;
   right: 0;
@@ -40,15 +40,9 @@ const ImageCredits = styled.div`
   }
 `
 
-const DividerImage = ({
-  image,
-  height,
-  minHeight,
-  credits,
-  position,
-}) => (
+const DividerImage = ({ image, height, minHeight, credits, position }) => (
   <Wrapper height={height} minHeight={minHeight}>
-    <StyledImage fluid={image} position={position} />
+    <StyledImage image={image} position={position} />
 
     {credits ? (
       <ImageCredits>
