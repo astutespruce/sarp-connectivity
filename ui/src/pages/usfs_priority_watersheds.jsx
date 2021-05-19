@@ -15,7 +15,6 @@ const LengthPage = ({ data: { headerImage } }) => (
       image={headerImage.childImageSharp.gatsbyImageData}
       height="30vh"
       minHeight="18rem"
-      position="center"
       credits={{
         author: 'U.S. Forest Service Southern Region',
         url: 'https://www.flickr.com/photos/forest_service_southern_region/16244961613/',

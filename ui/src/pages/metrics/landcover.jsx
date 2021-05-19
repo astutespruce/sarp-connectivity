@@ -22,7 +22,6 @@ const LandcoverPage = ({ data: { headerImage } }) => (
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
       minHeight="18rem"
-      position="center"
       credits={{
         author:
           'Loakfoma Creek, Noxubee National Wildlife Refuge, Mississippi. U.S. Fish and Wildlife Service.',

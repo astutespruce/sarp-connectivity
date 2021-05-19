@@ -27,7 +27,6 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
       image={headerImage.childImageSharp.gatsbyImageData}
       height="40vh"
       minHeight="22rem"
-      position="center"
       title="Southeast Aquatic Barrier Prioritization Tool"
       subtitle="Improve aquatic connectivity by prioritizing aquatic barriers for removal using the best
       available data."

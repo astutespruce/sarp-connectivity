@@ -65,7 +65,6 @@ const PrioritizePage = ({ data: { headerImage } }) => (
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
       minHeight="18rem"
-      position="center"
       credits={{
         author: 'American Public Power Association',
         url: 'https://unsplash.com/photos/FUeb2npsblQ',

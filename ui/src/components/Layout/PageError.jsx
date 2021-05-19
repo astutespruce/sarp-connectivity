@@ -1,31 +1,20 @@
 import React from 'react'
-import { Container, Flex, Box } from 'components/Grid'
-import { FaExclamationTriangle } from 'react-icons/fa'
+import { Container, Flex, Box, Heading, Paragraph } from 'theme-ui'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { OutboundLink } from 'components/Link'
-import styled from 'style'
 
 import { siteMetadata } from '../../../gatsby-config'
 
-const IconHeader = styled.h1`
-  text-align: center;
-`
-
-const StyledIcon = styled(FaExclamationTriangle)`
-  height: 7rem;
-  width: 7rem;
-  margin-right: 1rem;
-`
-
 const PageErrorMessage = () => (
   <Container pt="3rem">
-    <Flex>
-      <IconHeader>
-        <StyledIcon />
-      </IconHeader>
-      <Box>
-        <h1>Whoops! Something went wrong...</h1>
-        <p>
+    <Flex sx={{ alignItems: 'flex-start' }}>
+      <Box sx={{ flex: '0 0 auto' }}>
+        <ExclamationTriangle size="7rem" style={{ marginRight: '1rem' }} />
+      </Box>
+      <Box sx={{ flex: '1 1 auto' }}>
+        <Heading as="h1">Whoops! Something went wrong...</Heading>
+        <Paragraph sx={{ mt: '2rem' }}>
           We&apos;re sorry, something didn&apos;t quite work properly.
           <br />
           <br />
@@ -34,7 +23,7 @@ const PageErrorMessage = () => (
             let us know
           </OutboundLink>
           .
-        </p>
+        </Paragraph>
       </Box>
     </Flex>
   </Container>

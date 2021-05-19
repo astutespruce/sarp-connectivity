@@ -11,7 +11,6 @@ const IndexPage = ({ data: { headerImage } }) => (
       image={headerImage.childImageSharp.gatsbyImageData}
       height="100%"
       minHeight="22rem"
-      position="center"
       title="PAGE NOT FOUND"
       subtitle="However, we hope that by restoring aquatic connectivity, aquatic organisms will continue to be FOUND."
       credits={{

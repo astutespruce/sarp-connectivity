@@ -21,7 +21,6 @@ const LengthPage = ({ data: { headerImage } }) => (
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
       minHeight="18rem"
-      position="center"
       credits={{
         author:
           'Little Tennessee River, North Carolina. U.S. Fish and Wildlife Service.',

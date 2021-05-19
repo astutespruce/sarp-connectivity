@@ -2,6 +2,9 @@
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`,
 })
+
+const theme = require('./src/theme')
+
 const { version, date } = require('./package.json')
 
 const defaultHost = `https://connectivity.sarpdata.com`
@@ -26,6 +29,12 @@ module.exports = {
       formID: process.env.GATSBY_MAILCHIMP_FORM_ID,
     },
   },
+  flags: {
+    FAST_DEV: false,
+    DEV_SSR: false, // appears to throw '"filePath" is not allowed to be empty' when true
+    PARALLEL_SOURCING: false, // uses a lot of memory on staging server
+    PRESERVE_WEBPACK_CACHE: true,
+  },
   plugins: [
     {
       resolve: `gatsby-plugin-google-gtag`,
@@ -38,6 +47,13 @@ module.exports = {
           head: true,
           respectDNT: true,
         },
+      },
+    },
+    {
+      resolve: `gatsby-plugin-theme-ui`,
+      options: {
+        injectColorFlashScript: false,
+        preset: theme,
       },
     },
     `gatsby-plugin-react-helmet`,
@@ -70,12 +86,6 @@ module.exports = {
       options: {
         displayName: process.env.NODE_ENV !== `production`,
         fileName: false,
-      },
-    },
-    {
-      resolve: `gatsby-plugin-typography`,
-      options: {
-        pathToConfigModule: `./config/typography.js`,
       },
     },
     `gatsby-plugin-catch-links`,

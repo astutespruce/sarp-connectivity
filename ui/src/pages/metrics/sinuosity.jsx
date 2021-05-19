@@ -21,7 +21,6 @@ const SinuosityPage = ({ data: { headerImage } }) => (
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
       minHeight="18rem"
-      position="center"
       credits={{
         author: 'Carl Cerstrand',
         url: 'https://unsplash.com/photos/J2bNC9gW5NI',

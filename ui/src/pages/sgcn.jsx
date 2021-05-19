@@ -26,7 +26,6 @@ const LengthPage = ({ data: { headerImage } }) => (
       image={headerImage.childImageSharp.gatsbyImageData}
       height="30vh"
       minHeight="18rem"
-      position="center"
       credits={{
         author:
           'Appalachian elktoe | U.S. Fish & Wildlife Service Southeast Region',

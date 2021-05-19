@@ -56,7 +56,6 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
         image={headerImage.childImageSharp.gatsbyImageData}
         height="40vh"
         minHeight="22rem"
-        position="center"
         credits={{
           author: 'Jessica Graham, Southeast Aquatic Resources Partnership.',
         }}

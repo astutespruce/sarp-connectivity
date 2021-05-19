@@ -21,7 +21,6 @@ const ComplexityPage = ({ data: { headerImage } }) => (
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
       minHeight="18rem"
-      position="center"
       credits={{
         author: 'David Kovalenko.',
         url: 'https://unsplash.com/photos/qYMa2-P-U0M',

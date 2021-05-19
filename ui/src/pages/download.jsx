@@ -38,7 +38,6 @@ const DownloadPage = ({ data: { headerImage } }) => {
         image={headerImage.childImageSharp.gatsbyImageData}
         height="30vh"
         minHeight="18rem"
-        position="center"
         credits={{
           author: 'Mike Lewis (HeadSmart Media)',
           url: 'https://unsplash.com/photos/waAAaeC9hns',

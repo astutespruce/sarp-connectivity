@@ -39,7 +39,6 @@ const LengthPage = ({ data: { headerImage } }) => (
       image={headerImage.childImageSharp.gatsbyImageData}
       height="30vh"
       minHeight="18rem"
-      position="center"
       credits={{
         author:
           'Biologists collect and move fish from a de-watered river reach as part of Cane River Dam removal, 2016 | U.S. Fish & Wildlife Service Southeast Region',
