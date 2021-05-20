@@ -77,7 +77,11 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   return (
     <>
       {asButton ? (
-        <Button onClick={handleShow} sx={{ fontSize: '1.1em' }}>
+        <Button
+          onClick={handleShow}
+          variant="primary"
+          sx={{ fontSize: '1.1em' }}
+        >
           <Flex>
             <DownloadIcon size="1.2em" style={{ marginRight: '0.5rem' }} />
             <Text>{labelText}</Text>
@@ -150,7 +154,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
             <Button variant="secondary" onClick={handleClose}>
               Cancel
             </Button>
-            <Button onClick={handleDownload}>
+            <Button variant="primary" onClick={handleDownload}>
               <Flex sx={{ alignItems: 'center' }}>
                 <DownloadIcon size="1.2em" style={{ marginRight: '0.5rem' }} />
                 <Text>Download {barrierType}</Text>

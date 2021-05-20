@@ -1,35 +1,10 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
 import { GatsbyImage as Image } from 'gatsby-plugin-image'
-import { FaChartBar, FaSearchLocation } from 'react-icons/fa'
+import { ChartBar, SearchLocation } from '@emotion-icons/fa-solid'
+import { Box, Button, Flex, Heading, Grid, Paragraph } from 'theme-ui'
 
-import { Text } from 'components/Text'
 import { Link } from 'components/Link'
-import { SecondaryButton as Button } from 'components/Button'
-import { Columns, Flex } from 'components/Grid'
-import styled, { themeGet } from 'style'
-
-import { Section, Title, NarrowColumn, WideColumn } from '../styles'
-
-const Header = styled(Flex).attrs({ alignItems: 'center' })`
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: ${themeGet('colors.grey.900')};
-`
-
-const Subtitle = styled(Text)`
-  margin-left: 0.25em;
-`
-
-const BarIcon = styled(FaChartBar)`
-  width: 1em;
-  height: 1em;
-`
-
-const SearchIcon = styled(FaSearchLocation)`
-  width: 1em;
-  height: 1em;
-`
 
 const Tool = () => {
   const {
@@ -65,18 +40,17 @@ const Tool = () => {
   `)
 
   return (
-    <Section>
-      <Title>
+    <Box variant="boxes.section">
+      <Heading as="h2" variant="heading.section">
         The Southeast Aquatic Barrier Prioritization Tool empowers you with the
         latest inventory data:
-      </Title>
-      <Header>
-        <BarIcon />
-        <Subtitle>Summarize the inventory across the region</Subtitle>
-      </Header>
-      <Columns>
-        <WideColumn>
-          <p>
+      </Heading>
+
+      <Grid columns={[0, '5fr 3fr']} gap={5} sx={{ mt: '3rem' }}>
+        <Box>
+          <Heading as="h3">Summarize the inventory across the region</Heading>
+
+          <Paragraph sx={{ mt: '1rem' }}>
             Explore summaries of the inventory across the region by state,
             county, or different levels of watersheds and ecoregions.
             <br />
@@ -86,33 +60,27 @@ const Tool = () => {
             aquatic barriers have already been inventoried in your area! Just
             remember, the inventory is a living database, and is not yet
             comprehensive across the region.
-            <br />
-            <br />
+          </Paragraph>
+        </Box>
+        <Box>
+          <Flex sx={{ justifyContent: 'center', mb: '2rem' }}>
             <Link to="/summary">
-              <Button>
-                <BarIcon />
+              <Button variant="primary">
+                <ChartBar size="1em" />
                 &nbsp; Start summarizing
               </Button>
             </Link>
-          </p>
-        </WideColumn>
-        <NarrowColumn>
+          </Flex>
           <Link to="/summary">
             <Image image={summarizeImage} alt="Summarize View" />
           </Link>
-        </NarrowColumn>
-      </Columns>
+        </Box>
+      </Grid>
 
-      <br />
-      <br />
-
-      <Header>
-        <SearchIcon />
-        <Subtitle>Prioritize aquatic barriers for removal</Subtitle>
-      </Header>
-      <Columns>
-        <WideColumn>
-          <p>
+      <Grid columns={[0, '5fr 3fr']} gap={5} sx={{ mt: '6rem' }}>
+        <Box>
+          <Heading as="h3">Prioritize aquatic barriers for removal</Heading>
+          <Paragraph sx={{ mt: '1rem' }}>
             Identify barriers for further investigation based on the criteria
             that matter to you.
             <br />
@@ -122,23 +90,23 @@ const Tool = () => {
             filter the available barriers based on criteria such as likely
             feasibility for removal, height, and more. Once you have prioritized
             aquatic barriers, you can download a CSV file for further analysis.
-            <br />
-            <br />
+          </Paragraph>
+        </Box>
+        <Box>
+          <Flex sx={{ justifyContent: 'center', mb: '2rem' }}>
             <Link to="/priority">
               <Button>
-                <SearchIcon />
+                <SearchLocation size="1em" />
                 &nbsp; Start prioritizing
               </Button>
             </Link>
-          </p>
-        </WideColumn>
-        <NarrowColumn>
+          </Flex>
           <Link to="/priority">
             <Image image={prioritizeImage} alt="Priority View" />
           </Link>
-        </NarrowColumn>
-      </Columns>
-    </Section>
+        </Box>
+      </Grid>
+    </Box>
   )
 }
 

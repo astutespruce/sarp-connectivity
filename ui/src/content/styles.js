@@ -3,6 +3,8 @@ import { Box, Container, Flex } from 'theme-ui'
 import { Text } from 'components/Text'
 import styled, { themeGet } from 'style'
 
+import { Column as BaseColumn } from 'components/Grid'
+
 export const PageContainer = styled(Container).attrs({
   px: ['1rem', '1rem', 0],
   mt: '2rem',
@@ -11,31 +13,31 @@ export const PageContainer = styled(Container).attrs({
 
 export const PageTitle = styled(Text).attrs({ as: 'h1', fontSize: '3rem' })``
 
-// export const Section = styled(Box)`
-//   color: ${themeGet('colors.grey.900')};
+export const Section = styled(Box)`
+  color: ${themeGet('colors.grey.900')};
 
-//   &:not(:first-of-type) {
-//     margin-top: 6rem;
-//   }
-//   p {
-//     font-size: 1.1rem;
-//     margin: 0;
-//   }
+  &:not(:first-of-type) {
+    margin-top: 6rem;
+  }
+  p {
+    font-size: 1.1rem;
+    margin: 0;
+  }
 
-//   ul,
-//   ol {
-//     margin-bottom: 0;
-//     line-height: 1.2;
-//   }
+  ul,
+  ol {
+    margin-bottom: 0;
+    line-height: 1.2;
+  }
 
-//   ol li {
-//     margin: 0;
+  ol li {
+    margin: 0;
 
-//     & + li {
-//       margin-top: 0.5rem;
-//     }
-//   }
-// `
+    & + li {
+      margin-top: 0.5rem;
+    }
+  }
+`
 
 export const Title = styled(Text).attrs({
   fontSize: ['1.5rem', '2rem'],
@@ -48,21 +50,21 @@ export const Title = styled(Text).attrs({
 
 export const Subtitle = styled(Text)``
 
-// export const Column = styled(BaseColumn).attrs({
-//   width: ['100%', '100%', '50%'],
-// })`
-//   display: flex;
-//   flex-direction: column;
-// `
+export const Column = styled(BaseColumn).attrs({
+  width: ['100%', '100%', '50%'],
+})`
+  display: flex;
+  flex-direction: column;
+`
 
-// export const NarrowColumn = styled(Column).attrs({
-//   width: ['100%', '100%', '33%'],
-//   px: ['1rem', '1rem', 0],
-// })``
+export const NarrowColumn = styled(Column).attrs({
+  width: ['100%', '100%', '33%'],
+  px: ['1rem', '1rem', 0],
+})``
 
-// export const WideColumn = styled(Column).attrs({
-//   width: ['100%', '100%', '66%'],
-// })``
+export const WideColumn = styled(Column).attrs({
+  width: ['100%', '100%', '66%'],
+})``
 
 export const ImageCredits = styled(Box).attrs({})`
   color: ${themeGet('colors.grey.600')};

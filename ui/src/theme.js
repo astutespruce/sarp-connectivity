@@ -149,12 +149,6 @@ module.exports = {
       },
     },
   },
-  //   alerts: {
-  //     error: {
-  //       color: '#FFF',
-  //       bg: 'error',
-  //     },
-  //   },
   buttons: {
     default: {
       cursor: 'pointer',
@@ -163,13 +157,13 @@ module.exports = {
         bg: darken('primary', 0.1),
       },
     },
-    // primary: {
-    //   cursor: 'pointer',
-    //   bg: 'primary',
-    //   '&:hover': {
-    //     bg: darken('primary', 0.1),
-    //   },
-    // },
+    primary: {
+      cursor: 'pointer',
+      bg: 'primary',
+      '&:hover': {
+        bg: darken('primary', 0.1),
+      },
+    },
     secondary: {
       cursor: 'pointer',
       color: '#FFF',
