@@ -1,7 +1,7 @@
 import React from 'react'
 import { createPortal } from 'react-dom'
 import PropTypes from 'prop-types'
-import { Box, Flex, Heading, Text, Paragraph } from 'theme-ui'
+import { Box, Flex, Heading } from 'theme-ui'
 
 const index = ({ children, title, onClose }) => {
   const handleClose = () => {

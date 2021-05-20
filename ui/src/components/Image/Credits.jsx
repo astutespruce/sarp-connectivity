@@ -12,13 +12,13 @@ const Credits = ({ author, url, caption }) => (
       position: 'absolute',
       bottom: 0,
       right: 0,
-      color: '#FFF',
+      color: 'grey.3',
       py: '0.25rem',
       px: '1rem',
       textShadow: '1px 1px 3px #000',
-      bg: 'rgba(0,0,0,0.4)',
+      bg: 'rgba(0,0,0,0.6)',
       a: {
-        color: '#FFF',
+        color: 'grey.3',
         textDecoration: 'none',
       },
     }}

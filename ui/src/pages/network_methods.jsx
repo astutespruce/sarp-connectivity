@@ -1,39 +1,14 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
-import { FaExclamationTriangle } from 'react-icons/fa'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
+import { Box, Container, Divider, Flex, Paragraph, Heading } from 'theme-ui'
 
-import { HelpText } from 'components/Text'
 import Layout from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
-import {
-  PageTitle,
-  PageContainer,
-  Section as BaseSection,
-  Title,
-  LargeText,
-  Divider,
-} from 'content/styles'
-import styled, { themeGet } from 'style'
 
-const Section = styled(BaseSection)`
-  &:not(:first-of-type) {
-    margin-top: 3rem;
-  }
-`
-
-const WarningIcon = styled(FaExclamationTriangle)`
-  width: 1.5em;
-  height: 1em;
-  color: ${themeGet('colors.highlight.500')};
-  display: inline-block;
-  margin-right: 0.25em;
-`
-
-const Note = styled(HelpText).attrs({ mt: '1rem' })``
-
-const LengthPage = ({ data: { headerImage } }) => (
+const MethodsPage = ({ data: { headerImage } }) => (
   <Layout title="Network Analysis Methods">
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
@@ -46,9 +21,9 @@ const LengthPage = ({ data: { headerImage } }) => (
       }}
     />
 
-    <PageContainer>
-      <PageTitle>Network Analysis Methods</PageTitle>
-      <LargeText>
+    <Container>
+      <Heading as="h1">Network Analysis Methods</Heading>
+      <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
         Barriers in the Southeast U.S. were analyzed using the{' '}
         <OutboundLink to="https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution">
           National Hydrography Dataset - High Resolution Plus
@@ -62,10 +37,12 @@ const LengthPage = ({ data: { headerImage } }) => (
         road-related barrier, or waterfall locations used in the analysis, or
         would like additional help interpreting the results of the analysis,
         please <a href="mailto:Kat@southeastaquatics.net">contact us</a>.
-      </LargeText>
+      </Paragraph>
 
-      <Section>
-        <Title>Aquatic Network Preparation</Title>
+      <Box sx={{ mt: '3rem' }}>
+        <Heading as="h2" variant="heading.section">
+          Aquatic Network Preparation
+        </Heading>
         <ol>
           <li>
             All coastline and underground conduit segments were first removed
@@ -91,10 +68,12 @@ const LengthPage = ({ data: { headerImage } }) => (
             analysis (e.g., Chesapeake Bay).
           </li>
         </ol>
-      </Section>
+      </Box>
 
-      <Section>
-        <Title>Methods for Waterfalls</Title>
+      <Box sx={{ mt: '3rem' }}>
+        <Heading as="h2" variant="heading.section">
+          Methods for Waterfalls
+        </Heading>
         <p>
           Waterfalls are used to define natural breaks within the aquatic
           network. All waterfalls included in this analysis were considered
@@ -125,10 +104,12 @@ const LengthPage = ({ data: { headerImage } }) => (
             road-related barriers below.
           </li>
         </ol>
-      </Section>
+      </Box>
 
-      <Section>
-        <Title>Methods for Dams</Title>
+      <Box sx={{ mt: '3rem' }}>
+        <Heading as="h2" variant="heading.section">
+          Methods for Dams
+        </Heading>
         <p>
           The location of dams across the Southeast were compiled by SARP from a
           variety of data providers, including the{' '}
@@ -240,21 +221,28 @@ const LengthPage = ({ data: { headerImage } }) => (
             calculated based on these functional networks.
           </li>
         </ol>
-        <Note>
-          <WarningIcon /> Note: not all dams could be snapped properly. Dams
-          that were closer to loops in the aquatic network or the intersection
-          points between loops and NHD dam-related features or waterbodies were
-          snapped to those loops instead of the primary aquatic network. This
-          was done to prevent snapping dams incorrectly. In many cases where
-          these were manually reviewed, these dams are in the correct location,
-          but limitations of the network analysis methods prevent including
-          loops within the analysis. Thus, these dams were not included in the
-          analysis.
-        </Note>
-      </Section>
+        <Flex sx={{ alignItems: 'flex-start' }}>
+          <Box sx={{ flex: '0 0 auto', color: 'highlight', mr: '1em' }}>
+            <ExclamationTriangle size="1.5em" />
+          </Box>
+          <Paragraph variant="help" sx={{ fontSize: 2 }}>
+            Note: not all dams could be snapped properly. Dams that were closer
+            to loops in the aquatic network or the intersection points between
+            loops and NHD dam-related features or waterbodies were snapped to
+            those loops instead of the primary aquatic network. This was done to
+            prevent snapping dams incorrectly. In many cases where these were
+            manually reviewed, these dams are in the correct location, but
+            limitations of the network analysis methods prevent including loops
+            within the analysis. Thus, these dams were not included in the
+            analysis.
+          </Paragraph>
+        </Flex>
+      </Box>
 
-      <Section>
-        <Title>Methods for Road-Related Barriers</Title>
+      <Box sx={{ mt: '3rem' }}>
+        <Heading as="h2" variant="heading.section">
+          Methods for Road-Related Barriers
+        </Heading>
         <p>
           Only road-related barriers that have been formally assessed for
           impacts to aquatic organisms using a defined protocol and were
@@ -297,30 +285,37 @@ const LengthPage = ({ data: { headerImage } }) => (
             calculated based on these functional networks.
           </li>
         </ol>
-        <Note>
-          <WarningIcon /> Note: not all barriers could be snapped properly. The
-          snapping methods above do not include the locations of road / stream
-          crossings, which means that the snapped location of the barrier may
-          not be precisely located on the nearest road.
-        </Note>
-      </Section>
 
-      <Section>
-        <Divider />
-        <LargeText>
+        <Flex sx={{ alignItems: 'flex-start' }}>
+          <Box sx={{ flex: '0 0 auto', color: 'highlight', mr: '1em' }}>
+            <ExclamationTriangle size="1.5em" />
+          </Box>
+          <Paragraph variant="help" sx={{ fontSize: 2 }}>
+            Note: not all barriers could be snapped properly. The snapping
+            methods above do not include the locations of road / stream
+            crossings, which means that the snapped location of the barrier may
+            not be precisely located on the nearest road.
+          </Paragraph>
+        </Flex>
+      </Box>
+
+      <Divider />
+
+      <Box>
+        <Paragraph>
           For more detailed information about the analysis methods, please see
           the{' '}
           <OutboundLink to="https://github.com/astutespruce/sarp-connectivity/tree/master/analysis">
             source code repository
           </OutboundLink>{' '}
           for this project.
-        </LargeText>
-      </Section>
-    </PageContainer>
+        </Paragraph>
+      </Box>
+    </Container>
   </Layout>
 )
 
-LengthPage.propTypes = {
+MethodsPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
   }).isRequired,
@@ -340,4 +335,4 @@ export const pageQuery = graphql`
   }
 `
 
-export default LengthPage
+export default MethodsPage

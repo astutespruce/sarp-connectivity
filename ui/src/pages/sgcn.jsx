@@ -1,24 +1,11 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
+import { Box, Container, Heading, Paragraph } from 'theme-ui'
 
 import Layout from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { OutboundLink } from 'components/Link'
-import {
-  PageTitle,
-  PageContainer,
-  Section as BaseSection,
-  Title,
-  LargeText,
-} from 'content/styles'
-import styled from 'style'
-
-const Section = styled(BaseSection)`
-  &:not(:first-of-type) {
-    margin-top: 3rem;
-  }
-`
 
 const LengthPage = ({ data: { headerImage } }) => (
   <Layout title="Listed Species and Species of Greatest Conservation Need">
@@ -33,11 +20,11 @@ const LengthPage = ({ data: { headerImage } }) => (
       }}
     />
 
-    <PageContainer>
-      <PageTitle>
+    <Container>
+      <Heading as="h1">
         Listed Species and Species of Greatest Conservation Need
-      </PageTitle>
-      <LargeText>
+      </Heading>
+      <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
         The presence of federally-listed threatened and endangered aquatic
         species and state and regionally-listed aquatic Species of Greatest
         Conservation Need (SGCN) is an important factor in evaluating the
@@ -48,15 +35,13 @@ const LengthPage = ({ data: { headerImage } }) => (
         occurrence data obtained from state natural heritage programs or similar
         organizations. These data were limited to aquatic species, specifically
         fishes, crayfishes, mussels, snails, and amphibians.
-      </LargeText>
+      </Paragraph>
 
-      <Section>
-        <Title>Methods</Title>
-        <p>
-          We categorized species as follows:
-          <br />
-          <br />
-        </p>
+      <Box sx={{ mt: '3rem' }}>
+        <Heading as="h2" variant="heading.section">
+          Methods
+        </Heading>
+        <Paragraph>We categorized species as follows:</Paragraph>
         <ol>
           <li>
             Federally-listed species were identified based on data managed by
@@ -77,7 +62,7 @@ const LengthPage = ({ data: { headerImage } }) => (
             Fish and Wildlife Agencies.
           </li>
         </ol>
-        <p>
+        <Paragraph>
           <br />
           We then counted the number of federally-listed threatened and
           endangered species and Species of Greatest Conservation Need by
@@ -88,11 +73,13 @@ const LengthPage = ({ data: { headerImage } }) => (
           We identified the top 10 watersheds for each state based on the number
           of state-listed species of Greatest Conservation Need aggregated up to
           the watershed (HUC8) level.
-        </p>
-      </Section>
+        </Paragraph>
+      </Box>
 
-      <Section>
-        <Title>Caveats:</Title>
+      <Box sx={{ mt: '3rem' }}>
+        <Heading as="h2" variant="heading.section">
+          Caveats:
+        </Heading>
         <ul>
           <li>
             The presence of one or more of these species in the same
@@ -111,8 +98,8 @@ const LengthPage = ({ data: { headerImage } }) => (
             according to the above breakdown.
           </li>
         </ul>
-      </Section>
-    </PageContainer>
+      </Box>
+    </Container>
   </Layout>
 )
 

@@ -200,7 +200,6 @@ module.exports = {
   },
   boxes: {
     section: {
-      mt: '6rem',
       '&:not(:first-of-type)': {
         mt: '6rem',
       },
@@ -256,19 +255,20 @@ module.exports = {
         },
       },
     },
-    // hr: {
-    //   color: 'grey.2',
-    //   my: '2rem',
-    //   space: {
-    //     color: 'grey.2',
-    //     my: '4rem',
-    //   },
-    //   wide: {
-    //     height: '0.5rem',
-    //     bg: 'grey.9',
-    //     borderBottom: 'none',
-    //   },
-    // },
+    hr: {
+      borderBottom: '0.5rem solid',
+      borderBottomColor: 'blue.8',
+      my: '2rem',
+      //   space: {
+      //     color: 'grey.2',
+      //     my: '4rem',
+      //   },
+      //   wide: {
+      //     height: '0.5rem',
+      //     bg: 'grey.9',
+      //     borderBottom: 'none',
+      //   },
+    },
     // also used for filter bars
     progress: {
       color: 'primary',

@@ -1,22 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
-import { Image } from 'rebass/styled-components'
+import { Box, Container, Flex, Paragraph, Heading, Image } from 'theme-ui'
 
-import { Box, Flex } from 'components/Grid'
 import { OutboundLink } from 'components/Link'
-import { HelpText, Text } from 'components/Text'
 import Layout from 'components/Layout'
 import { HeaderImage } from 'components/Image'
-import { PageTitle, PageContainer, LargeText } from 'content/styles'
 import SARPLogoImage from 'images/sarp_logo.png'
-
-import styled from 'style'
-
-const SARPLogo = styled(Image).attrs({ src: SARPLogoImage })`
-  width: 32rem;
-  flex: 0 0 auto;
-`
 
 const TermsPage = ({ data: { headerImage } }) => (
   <Layout title="Terms of Use">
@@ -30,10 +20,10 @@ const TermsPage = ({ data: { headerImage } }) => (
       }}
     />
 
-    <PageContainer>
-      <PageTitle>Terms of Use</PageTitle>
+    <Container>
+      <Heading as="h1">Terms of Use</Heading>
 
-      <Text as="p">
+      <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
         The data made available through this tool represent substantial effort
         and investment from the{' '}
         <OutboundLink to="https://southeastaquatics.net/">
@@ -57,9 +47,11 @@ const TermsPage = ({ data: { headerImage } }) => (
         .
         <br />
         <br />
-      </Text>
+      </Paragraph>
 
-      <LargeText>By using this tool, you agree to the following:</LargeText>
+      <Paragraph variant="paragraph.large">
+        By using this tool, you agree to the following:
+      </Paragraph>
 
       <ol>
         <li>
@@ -70,7 +62,9 @@ const TermsPage = ({ data: { headerImage } }) => (
         </li>
       </ol>
 
-      <LargeText>In order to download data:</LargeText>
+      <Paragraph variant="paragraph.large">
+        In order to download data:
+      </Paragraph>
       <ol>
         <li>
           you will provide your name, email address, and other information to
@@ -94,14 +88,17 @@ const TermsPage = ({ data: { headerImage } }) => (
         </li>
       </ol>
 
-      <Flex mt="4rem">
-        <Box mr="2rem">
+      <Flex sx={{ mt: '4rem', alignItems: 'center' }}>
+        <Box sx={{ mr: '2rem' }}>
           <OutboundLink to={SARPLogoImage}>
-            <SARPLogo />
+            <Image
+              src={SARPLogoImage}
+              sx={{ width: '32rem', flex: '0 0 auto' }}
+            />
           </OutboundLink>
         </Box>
 
-        <HelpText>
+        <Paragraph variant="help" sx={{ fontSize: 2 }}>
           A high resolution copy of the SARP logo can be requested from Jessica
           Graham via email at{' '}
           <OutboundLink to="jessica@southeastaquatics.net">
@@ -109,9 +106,9 @@ const TermsPage = ({ data: { headerImage } }) => (
           </OutboundLink>
           . A small version can be obtained by clicking on the logo to the left
           open it in a new window.
-        </HelpText>
+        </Paragraph>
       </Flex>
-    </PageContainer>
+    </Container>
   </Layout>
 )
 
