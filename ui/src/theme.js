@@ -1,4 +1,4 @@
-const { lighten, darken } = require('@theme-ui/color')
+const { darken } = require('@theme-ui/color')
 
 module.exports = {
   useColorSchemeMediaQuery: false,
@@ -70,13 +70,19 @@ module.exports = {
   },
   layout: {
     container: {
-      maxWidth: '960px',
+      px: ['1rem', '1rem', '0px'],
+      mt: '2rem',
+      mb: '4rem',
     },
+
     // sidebar: {
     //   width: ['100%', '468px'],
     //   borderRightWidth: ['0px', '1px'],
     //   borderRightColor: 'grey.8',
     // },
+  },
+  sizes: {
+    container: '960px',
   },
   text: {
     default: {
@@ -85,11 +91,22 @@ module.exports = {
     help: {
       display: 'block',
       color: 'grey.7',
+      fontSize: 1,
+    },
+    paragraph: {
+      fontSize: [2, 3],
+      large: {
+        fontSize: '1.5rem',
+      },
     },
     heading: {
       fontFamily: 'heading',
       fontWeight: 'heading',
       lineHeight: 'heading',
+      section: {
+        fontSize: ['1.5rem', '2rem'],
+        mb: '1.5rem',
+      },
       //   bar: {
       //     textAlign: 'center',
       //     p: '1rem',
@@ -139,17 +156,24 @@ module.exports = {
   //     },
   //   },
   buttons: {
-    primary: {
+    default: {
       cursor: 'pointer',
       bg: 'primary',
       '&:hover': {
         bg: darken('primary', 0.1),
       },
     },
+    // primary: {
+    //   cursor: 'pointer',
+    //   bg: 'primary',
+    //   '&:hover': {
+    //     bg: darken('primary', 0.1),
+    //   },
+    // },
     secondary: {
       cursor: 'pointer',
-      color: 'grey.9',
-      bg: 'secondary',
+      color: '#FFF',
+      bg: 'grey.9',
       '&:hover': {
         bg: darken('secondary', 0.1),
       },
@@ -174,22 +198,14 @@ module.exports = {
       '&:hover': { color: 'grey.9' },
     },
   },
-  grids: {
-    thirds: {
-      gap: 3,
-    },
-    half: {
-      gap: 5,
+  boxes: {
+    section: {
+      mt: '6rem',
+      '&:not(:first-of-type)': {
+        mt: '6rem',
+      },
     },
   },
-  //   boxes: {
-  //     section: {
-  //       mt: '6rem',
-  //       pt: '3rem',
-  //       borderTop: '0.5rem solid',
-  //       borderTopColor: 'grey.9',
-  //     },
-  //   },
   styles: {
     root: {
       height: '100vh',
@@ -210,9 +226,6 @@ module.exports = {
       fontFamily: 'body',
       fontWeight: 'body',
       lineHeight: 'body',
-      p: {
-        fontSize: [2, 3],
-      },
       h1: {
         variant: 'text.heading',
         fontSize: [5, 6],
@@ -237,10 +250,9 @@ module.exports = {
         textDecoration: 'underline',
       },
       ul: {
-        margin: 0,
         pl: '1.25em',
         'li + li': {
-          mt: '0.25em',
+          mt: '0.5em',
         },
       },
     },

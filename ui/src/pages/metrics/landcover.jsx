@@ -1,20 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
+import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 import Layout from 'components/Layout'
 import { HeaderImage } from 'components/Image'
-import { Columns } from 'components/Grid'
 import HighlightBox from 'components/Layout/HighlightBox'
-import {
-  PageTitle,
-  PageContainer,
-  Section,
-  Title,
-  Column,
-  LargeText,
-} from 'content/styles'
 
 const LandcoverPage = ({ data: { headerImage } }) => (
   <Layout title="Floodplain Natural Landcover">
@@ -29,57 +21,45 @@ const LandcoverPage = ({ data: { headerImage } }) => (
       }}
     />
 
-    <PageContainer>
-      <PageTitle>Floodplain natural landcover</PageTitle>
-      <LargeText>
+    <Container>
+      <Heading as="h1">Floodplain natural landcover</Heading>
+      <Paragraph variant="paragraph.large">
         Rivers and streams that have a greater amount of natural landcover in
         their floodplain are more likely to have higher quality aquatic habitat.
         These areas may have more cool-water refugia for temperature sensitive
         species due to shading from the overstory, and may have fewer water
         quality issues. In contrast, rivers that have less natural landcover are
         more likely to be altered and have impaired water quality.
-      </LargeText>
+      </Paragraph>
 
-      <Section>
-        <Columns>
-          <Column>
-            <HighlightBox
-              icon="nat_landcover_low"
-              title="Low natural landcover"
-            >
-              <p>
-                Barriers with less natural landcover are less likely to
-                contribute high quality habitat for aquatic species if removed.
-              </p>
-            </HighlightBox>
-          </Column>
-          <Column>
-            <HighlightBox
-              icon="nat_landcover_high"
-              title="High natural landcover"
-            >
-              <p>
-                Barriers with aquatic networks that have more natural landcover
-                are more likely to contribute higher quality habitat if they are
-                removed.
-              </p>
-            </HighlightBox>
-          </Column>
-        </Columns>
-      </Section>
+      <Grid columns={2} gap={4} sx={{ mt: '2rem' }}>
+        <HighlightBox icon="nat_landcover_low" title="Low natural landcover">
+          <p>
+            Barriers with less natural landcover are less likely to contribute
+            high quality habitat for aquatic species if removed.
+          </p>
+        </HighlightBox>
 
-      <Section>
-        <Title>Methods:</Title>
+        <HighlightBox icon="nat_landcover_high" title="High natural landcover">
+          <p>
+            Barriers with aquatic networks that have more natural landcover are
+            more likely to contribute higher quality habitat if they are
+            removed.
+          </p>
+        </HighlightBox>
+      </Grid>
+
+      <Box variant="boxes.section">
+        <Heading as="h2" variant="heading.section">
+          Methods:
+        </Heading>
         <ol>
           <li>
             Floodplains are delineated using data derived from FATHOM Inc, which
             has modeled 30 by 30 meter 100 year floodplain boundaries. For more
             information visit:
             <br />
-            <OutboundLink
-              from="/metrics/landcover"
-              to="https://iopscience.iop.org/article/10.1088/1748-9326/aaac65/pdf"
-            >
+            <OutboundLink to="https://iopscience.iop.org/article/10.1088/1748-9326/aaac65/pdf">
               https://iopscience.iop.org/article/10.1088/1748-9326/aaac65/pdf
             </OutboundLink>
           </li>
@@ -87,10 +67,7 @@ const LandcoverPage = ({ data: { headerImage } }) => (
             Natural landcover is derived from the USDA National Landcover
             Database (NLCD) 2016 30 by 30 meter landcover raster dataset. For
             more information see:{' '}
-            <OutboundLink
-              from="/metrics/landcover"
-              to="https://www.mrlc.gov/data/nlcd-2016-land-cover-conus"
-            >
+            <OutboundLink to="https://www.mrlc.gov/data/nlcd-2016-land-cover-conus">
               https://www.mrlc.gov/data/nlcd-2016-land-cover-conus
             </OutboundLink>
             .
@@ -113,8 +90,8 @@ const LandcoverPage = ({ data: { headerImage } }) => (
             natural landcover throughout the entire functional network.
           </li>
         </ol>
-      </Section>
-    </PageContainer>
+      </Box>
+    </Container>
   </Layout>
 )
 

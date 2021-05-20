@@ -272,7 +272,7 @@ DROP_MANUALREVIEW = [
 EXCLUDE_MANUALREVIEW = [
     5,  # offstream (DO NOT SNAP!)
     8,  # Removed (no longer exists): Dam removed for conservation
-    10,  # invasive barriers
+    10,  # invasive barriers  TODO: these need to break the network, but not included in prioritization
 ]
 
 ONSTREAM_MANUALREVIEW = [

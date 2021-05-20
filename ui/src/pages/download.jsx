@@ -1,31 +1,18 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
+import { Box, Container, Heading, Paragraph } from 'theme-ui'
 
-import { HelpText } from 'components/Text'
 import Layout from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
 import { Downloader } from 'components/Download'
 import { useStateSummary } from 'components/Data'
-import {
-  PageTitle,
-  PageContainer,
-  Section as BaseSection,
-  Title,
-  LargeText,
-} from 'content/styles'
-import styled from 'style'
+
 import { formatNumber } from 'util/format'
 import { siteMetadata } from '../../gatsby-config'
 
 const { version: dataVersion, date: dataDate } = siteMetadata
-
-const Section = styled(BaseSection)`
-  &:not(:first-of-type) {
-    margin-top: 3rem;
-  }
-`
 
 const DownloadPage = ({ data: { headerImage } }) => {
   const baseConfig = { scenario: 'NCWC', layer: 'State' }
@@ -44,9 +31,9 @@ const DownloadPage = ({ data: { headerImage } }) => {
         }}
       />
 
-      <PageContainer>
-        <PageTitle>Download Aquatic Barrier Data</PageTitle>
-        <LargeText>
+      <Container>
+        <Heading as="h1">Download Aquatic Barrier Data</Heading>
+        <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
           <b>
             Data Version: {dataVersion} ({dataDate})
           </b>
@@ -73,8 +60,8 @@ const DownloadPage = ({ data: { headerImage } }) => {
           </OutboundLink>{' '}
           if you discover any issues with these data, need assistance
           interpreting or applying these data, or would like to contribute data.
-        </LargeText>
-        <HelpText>
+        </Paragraph>
+        <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 2 }}>
           Please note: this inventory consists of datasets from local, state,
           and federal partners. It is supplemented with input from partners with
           on the ground knowledge of specific structures. The information on
@@ -82,10 +69,12 @@ const DownloadPage = ({ data: { headerImage } }) => {
           depends on the availability and completeness of existing data and
           level of partner feedback. Some areas of the region are more complete
           than others but none should be considered 100% complete.
-        </HelpText>
+        </Paragraph>
 
-        <Section>
-          <Title>Download Dams by State</Title>
+        <Box variant="boxes.section" sx={{ mt: '4rem' }}>
+          <Heading as="h2" variant="heading.section">
+            Download Dams by State
+          </Heading>
           <ul>
             {states.map(({ id, dams }) => (
               <li key={`dams_${id}`}>
@@ -109,10 +98,12 @@ const DownloadPage = ({ data: { headerImage } }) => {
               })),
             }}
           />
-        </Section>
+        </Box>
 
-        <Section>
-          <Title>Download Road-related Barriers by State</Title>
+        <Box variant="boxes.section">
+          <Heading as="h2" variant="heading.section">
+            Download Road-related Barriers by State
+          </Heading>
           <ul>
             {states.map(({ id, total_barriers }) => (
               <li key={`barriers_${id}`}>
@@ -136,8 +127,8 @@ const DownloadPage = ({ data: { headerImage } }) => {
               })),
             }}
           />
-        </Section>
-      </PageContainer>
+        </Box>
+      </Container>
     </Layout>
   )
 }

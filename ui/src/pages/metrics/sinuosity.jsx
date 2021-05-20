@@ -1,19 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
+import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
 
 import Layout from 'components/Layout'
 import { HeaderImage } from 'components/Image'
-import { Columns } from 'components/Grid'
+
 import HighlightBox from 'components/Layout/HighlightBox'
-import {
-  PageTitle,
-  PageContainer,
-  Section,
-  Title,
-  Column,
-  LargeText,
-} from 'content/styles'
 
 const SinuosityPage = ({ data: { headerImage } }) => (
   <Layout title="Network Sinuosity">
@@ -27,9 +20,9 @@ const SinuosityPage = ({ data: { headerImage } }) => (
       }}
     />
 
-    <PageContainer>
-      <PageTitle>Network sinuosity</PageTitle>
-      <LargeText>
+    <Container>
+      <Heading as="h1">Network sinuosity</Heading>
+      <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
         Network sinuosity is a measure of how much the path of the river or
         stream deviates from a straight line. In general, rivers and streams
         that are more sinuous generally indicate those that have lower
@@ -37,36 +30,32 @@ const SinuosityPage = ({ data: { headerImage } }) => (
         whereas rivers that have been extensively altered tend to be less
         sinuous. Sinuosity ranges from low (&lt;1.2) to moderate (1.2 - 1.5) to
         high (&gt;1.5) (Rosgen, 1996).
-      </LargeText>
+      </Paragraph>
 
-      <Section>
-        <Columns>
-          <Column>
-            <HighlightBox icon="sinuosity_low" title="Low sinuosity">
-              <p>
-                Rivers and streams with lower sinuosity may be more altered by
-                artificial channelization and may have a lower variety of
-                in-stream habitat. Barriers with less sinuous upstream networks
-                may contribute less natural habitat if removed.
-              </p>
-            </HighlightBox>
-          </Column>
+      <Grid columns={[0, 2]} gap={4} sx={{ mt: '2rem' }}>
+        <HighlightBox icon="sinuosity_low" title="Low sinuosity">
+          <p>
+            Rivers and streams with lower sinuosity may be more altered by
+            artificial channelization and may have a lower variety of in-stream
+            habitat. Barriers with less sinuous upstream networks may contribute
+            less natural habitat if removed.
+          </p>
+        </HighlightBox>
 
-          <Column>
-            <HighlightBox icon="sinuosity_high" title="High sinuosity">
-              <p>
-                Rivers and streams with high sinuosity are likely less altered
-                by artificial channelization and may have a wider variety of
-                in-stream habitat. Barriers with more sinuous upstream networks
-                may contribute more natural habitat if removed.
-              </p>
-            </HighlightBox>
-          </Column>
-        </Columns>
-      </Section>
+        <HighlightBox icon="sinuosity_high" title="High sinuosity">
+          <p>
+            Rivers and streams with high sinuosity are likely less altered by
+            artificial channelization and may have a wider variety of in-stream
+            habitat. Barriers with more sinuous upstream networks may contribute
+            more natural habitat if removed.
+          </p>
+        </HighlightBox>
+      </Grid>
 
-      <Section>
-        <Title>Methods:</Title>
+      <Box variant="boxes.section" sx={{ mt: '6rem' }}>
+        <Heading as="h2" variant="heading.section">
+          Methods:
+        </Heading>
         <ol>
           <li>
             The sinuosity of each stream is calculated as the ratio between the
@@ -79,17 +68,19 @@ const SinuosityPage = ({ data: { headerImage } }) => (
             the overall sinuosity of each functional network.
           </li>
         </ol>
-      </Section>
-      <Section>
-        <Title>References:</Title>
+      </Box>
+      <Box variant="boxes.section">
+        <Heading as="h2" variant="heading.section">
+          References:
+        </Heading>
         <ul>
           <li>
             Rosgen, David L. 1996. Applied river morphology. Pagosa Springs,
             Colo: Wildland Hydrology.
           </li>
         </ul>
-      </Section>
-    </PageContainer>
+      </Box>
+    </Container>
   </Layout>
 )
 

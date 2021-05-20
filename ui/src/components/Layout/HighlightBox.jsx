@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Heading, Text } from 'theme-ui'
+import { Box, Flex, Heading } from 'theme-ui'
 
 import { Icon } from 'components/Icon'
 
@@ -9,7 +9,7 @@ const HighlightBox = ({ icon, title, children, ...props }) => (
     sx={{
       flex: '1 0 auto',
       p: '1rem',
-      bg: 'blue.100',
+      bg: 'blue.1',
       borderRadius: '0.5rem',
     }}
     {...props}
@@ -22,11 +22,14 @@ const HighlightBox = ({ icon, title, children, ...props }) => (
         borderBottom: '4px solid #FFF',
       }}
     >
-      {icon ? <Icon name={icon} size="4rem" mr="0.25rem" /> : null}
+      {icon ? (
+        <Icon name={icon} size="4rem" style={{ marginRight: '0.5rem' }} />
+      ) : null}
       <Heading
         as="h3"
         sx={{
           flex: '1 1 auto',
+          fontSize: '1.75rem',
           m: 0,
           fontWeight: 'normal',
           textAlign: icon ? 'unset' : 'center',
@@ -39,7 +42,7 @@ const HighlightBox = ({ icon, title, children, ...props }) => (
       sx={{
         fontSize: '1.05em',
         lineHeight: 1.5,
-        color: 'blue.9',
+        // color: 'blue.9',
       }}
     >
       {children}

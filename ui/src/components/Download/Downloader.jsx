@@ -1,52 +1,16 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
-import { FaDownload } from 'react-icons/fa'
+import { Download as DownloadIcon } from '@emotion-icons/fa-solid'
+import { Box, Button, Flex, Paragraph, Text } from 'theme-ui'
 
 import { getDownloadURL } from 'components/Data'
 import { OutboundLink } from 'components/Link'
-import { HelpText } from 'components/Text'
-import { Box, Flex } from 'components/Grid'
-import { Button } from 'components/Button'
 import Modal from 'components/Modal'
 import { getFromStorage } from 'util/dom'
 import { trackDownload } from 'util/analytics'
-import styled, { themeGet } from 'style'
 
 import UserInfoForm, { FIELDS } from './UserInfoForm'
 import DownloadOptions from './Options'
-
-const Content = styled(Box).attrs({ pt: '1rem' })`
-  max-width: 600px;
-`
-
-const Buttons = styled(Flex).attrs({
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  mt: '1rem',
-  pt: '1rem',
-})`
-  border-top: 1px solid ${themeGet('colors.grey.200')};
-`
-
-export const DownloadIcon = styled(FaDownload)`
-  height: 1.2em;
-  width: 1.2em;
-  margin-right: 0.5em;
-`
-
-const DownloadButton = styled(Button).attrs({ primary: true })`
-  display: flex;
-  align-items: center;
-`
-
-const DownloadLink = styled.span`
-  color: ${themeGet('colors.link')};
-  cursor: pointer;
-
-  &:hover {
-    text-decoration: underline;
-  }
-`
 
 const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -113,12 +77,27 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   return (
     <>
       {asButton ? (
-        <DownloadButton onClick={handleShow} fontSize="1.1em">
-          <DownloadIcon />
-          <div>{labelText}</div>
-        </DownloadButton>
+        <Button onClick={handleShow} sx={{ fontSize: '1.1em' }}>
+          <Flex>
+            <DownloadIcon size="1.2em" style={{ marginRight: '0.5rem' }} />
+            <Text>{labelText}</Text>
+          </Flex>
+        </Button>
       ) : (
-        <DownloadLink onClick={handleShow}>{labelText}</DownloadLink>
+        <Text
+          as="span"
+          onClick={handleShow}
+          sx={{
+            display: 'inline-block',
+            color: 'link',
+            cursor: 'pointer',
+            '&:hover': {
+              textDecoration: 'underline',
+            },
+          }}
+        >
+          {labelText}
+        </Text>
       )}
 
       {showUserInfoForm && (
@@ -135,7 +114,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
           title={`Download ${customRank ? 'prioritized' : ''} ${barrierType}`}
           onClose={handleClose}
         >
-          <Content>
+          <Box sx={{ maxWidth: '600px' }}>
             <DownloadOptions
               barrierType={barrierType}
               options={downloadOptions}
@@ -143,7 +122,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
               onChange={handleDownloadOptionsChange}
             />
 
-            <HelpText fontSize="small" mt="2rem">
+            <Paragraph variant="help" sx={{ mt: '2rem' }}>
               By downloading these data, you agree to the{' '}
               <OutboundLink to="/terms" target="_blank">
                 Terms of Use
@@ -155,16 +134,29 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
               <br />
               <br />
               Coordinates are in WGS 1984.
-            </HelpText>
-          </Content>
+            </Paragraph>
+          </Box>
 
-          <Buttons>
-            <Button onClick={handleClose}>Cancel</Button>
-            <DownloadButton onClick={handleDownload}>
-              <DownloadIcon />
-              <div>Download {barrierType}</div>
-            </DownloadButton>
-          </Buttons>
+          <Flex
+            sx={{
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mt: '1rem',
+              pt: '1rem',
+              borderTop: '1px solid',
+              borderTopColor: 'grey.2',
+            }}
+          >
+            <Button variant="secondary" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleDownload}>
+              <Flex sx={{ alignItems: 'center' }}>
+                <DownloadIcon size="1.2em" style={{ marginRight: '0.5rem' }} />
+                <Text>Download {barrierType}</Text>
+              </Flex>
+            </Button>
+          </Flex>
         </Modal>
       )}
     </>

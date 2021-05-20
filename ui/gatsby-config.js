@@ -30,10 +30,10 @@ module.exports = {
     },
   },
   flags: {
-    FAST_DEV: false,
+    FAST_DEV: true,
     DEV_SSR: false, // appears to throw '"filePath" is not allowed to be empty' when true
-    PARALLEL_SOURCING: false, // uses a lot of memory on staging server
-    PRESERVE_WEBPACK_CACHE: true,
+    PARALLEL_SOURCING: process.env.NODE_ENV !== `production`, // uses a lot of memory on server
+    PRESERVE_WEBPACK_CACHE: process.env.NODE_ENV === `production`,
   },
   plugins: [
     {
