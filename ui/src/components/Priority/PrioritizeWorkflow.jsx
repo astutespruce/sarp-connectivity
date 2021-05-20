@@ -2,8 +2,9 @@ import React, { useState, useCallback, useRef } from 'react'
 
 import { useCrossfilter } from 'components/Crossfilter'
 import { Text, HelpText } from 'components/Text'
+import { ToggleButton } from 'components/Button'
 import { Flex } from 'components/Grid'
-import { TopBar, TopBarToggle } from 'components/Map'
+import { TopBar } from 'components/Map'
 import {
   fetchBarrierInfo,
   fetchBarrierRanks,
@@ -284,9 +285,9 @@ const Prioritize = () => {
 
         {step === 'results' && (
           <TopBar>
-            <Text>Show ranks for:</Text>
+            <Text sx={{ mr: '0.5rem' }}>Show ranks for:</Text>
 
-            <TopBarToggle
+            <ToggleButton
               value={scenario}
               options={scenarioOptions}
               onChange={handleSetScenario}

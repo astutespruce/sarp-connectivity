@@ -74,7 +74,6 @@ module.exports = {
       mt: '2rem',
       mb: '4rem',
     },
-
     // sidebar: {
     //   width: ['100%', '468px'],
     //   borderRightWidth: ['0px', '1px'],
@@ -107,28 +106,7 @@ module.exports = {
         fontSize: ['1.5rem', '2rem'],
         mb: '1.5rem',
       },
-      //   bar: {
-      //     textAlign: 'center',
-      //     p: '1rem',
-      //     mb: '2rem',
-      //     bg: 'grey.1',
-      //     borderBottom: '1px solid',
-      //     borderTop: '1px solid',
-      //     borderBottomColor: 'grey.3',
-      //     borderTopColor: 'grey.3',
-      //   },
-      //   block: {
-      //     fontSize: [3, 4],
-      //     pb: '0.5rem',
-      //   },
     },
-    // blockHeading: {
-    //   fontFamily: 'heading',
-    //   fontWeight: 'heading',
-    //   lineHeight: 'heading',
-    //   fontSize: [3, 4],
-    //   pb: '0.5rem',
-    // },
     field: {
       display: 'block',
       wordBreak: 'break-word',
@@ -150,15 +128,16 @@ module.exports = {
     },
   },
   buttons: {
-    default: {
-      cursor: 'pointer',
-      bg: 'primary',
-      '&:hover': {
-        bg: darken('primary', 0.1),
-      },
-    },
+    // default: {
+    //   cursor: 'pointer',
+    //   bg: 'primary',
+    //   '&:hover': {
+    //     bg: darken('primary', 0.1),
+    //   },
+    // },
     primary: {
       cursor: 'pointer',
+      color: '#FFF',
       bg: 'primary',
       '&:hover': {
         bg: darken('primary', 0.1),
@@ -172,30 +151,147 @@ module.exports = {
         bg: darken('secondary', 0.1),
       },
     },
+    'toggle-active': {
+      flex: '1 1 auto',
+      // py: '0.25em',
+      // px: '0.5em',
+      cursor: 'pointer',
+      color: '#FFF',
+      bg: 'primary',
+      '&:hover': {
+        bg: darken('primary', 0.1),
+      },
+    },
+    'toggle-inactive': {
+      flex: '1 1 auto',
+      // py: '0.25em',
+      // px: '0.5em',
+      cursor: 'pointer',
+      color: 'grey.9',
+      bg: 'blue.1',
+      '&:hover': {
+        bg: darken('blue.1', 0.1),
+      },
+    },
     warning: {
       cursor: 'pointer',
-      color: '#ea1b00',
+      bg: '#ea1b00',
+      color: '#FFF',
     },
     disabled: {
       bg: 'grey.3',
     },
-    //   accent: {
-    //     cursor: 'pointer',
-    //     color: '#FFF',
-    //     bg: 'accent',
-    //   },
     close: {
+      flex: '0 0 auto',
+      display: 'flex',
+      lineHeight: 1,
+      height: '1rem',
+      width: '1rem',
+      padding: '0.1rem',
+      boxSizing: 'content-box',
+      borderRadius: '1rem',
+      alignItems: 'center',
+      justifyContent: 'center',
       cursor: 'pointer',
       outline: 'none',
-      background: 'none',
-      color: 'grey.5',
-      '&:hover': { color: 'grey.9' },
+      color: '#FFF',
+      bg: 'grey.5',
+      '&:hover': { bg: 'grey.9' },
+    },
+    'tab-inactive': {
+      cursor: 'pointer',
+      textAlign: 'center',
+      flex: '1 1 auto',
+      py: '0.25rem',
+      px: '0.5rem',
+      color: 'grey.7',
+      borderBottom: '1px solid',
+      borderBottomColor: 'grey.3',
+      '&:hover': {
+        bg: 'grey.2',
+      },
+    },
+    'tab-active': {
+      cursor: 'pointer',
+      textAlign: 'center',
+      flex: '1 1 auto',
+      py: '0.25rem',
+      px: '0.5rem',
+      color: 'text',
+      borderBottom: '1px solid transparent',
+      bg: '#FFF',
+      '&:hover': {
+        bg: 'grey.2',
+      },
+      '&:not(:first-of-type)': {
+        borderLeft: '1px solid',
+        borderLeftColor: 'grey.3',
+      },
+      '&:not(:last-of-type)': {
+        borderRight: '1px solid',
+        borderRightColor: 'grey.3',
+      },
     },
   },
   boxes: {
     section: {
       '&:not(:first-of-type)': {
         mt: '6rem',
+      },
+    },
+    step: {
+      display: 'flex',
+      flex: '0 0 auto',
+      color: '#FFF',
+      bg: 'grey.9',
+      borderRadius: '5em',
+      width: '3rem',
+      height: '3rem',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontWeight: 'bold',
+      mr: '0.75rem',
+      fontSize: '1.5rem',
+    },
+  },
+  images: {
+    basemap: {
+      border: '2px solid #FFF',
+      boxShadow: '0 1px 5px rgba(0,0,0,0.65)',
+      m: 0,
+      width: '64px',
+      height: '64px',
+      borderRadius: '64px',
+      '&:hover': {
+        boxShadow: '0 1px 5px rgba(0,0,0,1)',
+        borderColor: '#EEE',
+      },
+    },
+    'basemap-active': {
+      border: '2px solid',
+      borderColor: 'highlight',
+      boxShadow: '0 1px 5px rgba(0,0,0,0.65)',
+      m: 0,
+      width: '64px',
+      height: '64px',
+      borderRadius: '64px',
+      '&:hover': {
+        boxShadow: '0 1px 5px rgba(0,0,0,1)',
+        borderColor: '#EEE',
+      },
+    },
+  },
+  forms: {
+    'input-default': {
+      border: '1px solid',
+      borderColor: 'grey.5',
+      borderRadius: '0.25rem',
+      outline: 'none',
+      py: '0.25rem',
+      px: '0.5rem',
+      width: '100%',
+      '&:focus': {
+        borderColor: 'primary',
       },
     },
   },

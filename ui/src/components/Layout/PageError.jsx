@@ -9,11 +9,11 @@ import { siteMetadata } from '../../../gatsby-config'
 const PageErrorMessage = () => (
   <Container pt="3rem">
     <Flex sx={{ alignItems: 'flex-start' }}>
-      <Box sx={{ flex: '0 0 auto' }}>
-        <ExclamationTriangle size="7rem" style={{ marginRight: '1rem' }} />
+      <Box sx={{ flex: '0 0 auto', mr: '1rem' }}>
+        <ExclamationTriangle size="5rem" />
       </Box>
       <Box sx={{ flex: '1 1 auto' }}>
-        <Heading as="h1">Whoops! Something went wrong...</Heading>
+        <Heading as="h2">Whoops! Something went wrong...</Heading>
         <Paragraph sx={{ mt: '2rem' }}>
           We&apos;re sorry, something didn&apos;t quite work properly.
           <br />

@@ -1,28 +1,11 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
-import { Box, Flex, Heading, Paragraph, Grid, Image } from 'theme-ui'
+import { Box, Heading, Paragraph, Grid, Image } from 'theme-ui'
 
 import { Link, OutboundLink } from 'components/Link'
 
 import SARPLogoImage from 'images/sarp_logo.png'
-
-// import {
-//   Section,
-//   Title,
-//   NarrowColumn,
-//   WideColumn,
-//   ImageCredits,
-// } from '../styles'
-
-// const SARPLogo = styled(Image).attrs({ src: SARPLogoImage, width: '100%' })`
-//   max-width: 300px;
-// `
-
-// const MinorTitle = styled(Text).attrs({ as: 'h3', m: 0 })`
-//   font-weight: normal;
-//   font-size: 1.75rem;
-// `
 
 const SARP = () => {
   const {

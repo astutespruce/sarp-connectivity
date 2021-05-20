@@ -1,36 +1,32 @@
 import React, { memo } from 'react'
 import PropTypes from 'prop-types'
+import { Button, Flex } from 'theme-ui'
 
-import { Flex } from 'components/Grid'
-import styled, { themeGet } from 'style'
-import Button from './Button'
-
-const Wrapper = styled(Flex).attrs({
-  alignItem: 'center',
-  justifyContent: 'space-between',
-})`
-  background-color: ${themeGet('colors.grey.100')};
-  font-size: 0.9rem;
-  flex: 0 0 auto;
-`
-
-const TabBar = ({ tabs, activeTab, onChange, ...props }) => {
-  const handleClick = id => {
+const TabBar = ({ tabs, activeTab, onChange }) => {
+  const handleClick = (id) => {
     if (id !== activeTab) {
       onChange(id)
     }
   }
   return (
-    <Wrapper {...props}>
-      {tabs.map(tab => (
+    <Flex
+      sx={{
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        fontSize: '0.9rem',
+        flex: '0 0 auto',
+        bg: 'grey.1',
+      }}
+    >
+      {tabs.map((tab) => (
         <Button
           key={tab.id}
-          active={activeTab === tab.id}
+          variant={activeTab === tab.id ? 'tab-active' : 'tab-inactive'}
           onClick={handleClick}
           {...tab}
         />
       ))}
-    </Wrapper>
+    </Flex>
   )
 }
 

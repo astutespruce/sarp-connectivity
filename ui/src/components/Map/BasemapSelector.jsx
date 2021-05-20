@@ -1,51 +1,11 @@
 import React, { useState, useMemo, useEffect, memo } from 'react'
 import PropTypes from 'prop-types'
-
-import styled, { themeGet } from 'style'
+import { Box, Image, Text } from 'theme-ui'
 
 import LightIcon from 'images/light-v9.png'
 import StreetsIcon from 'images/esri-streets.jpg'
 import TopoIcon from 'images/esri-topo.jpg'
 import ImageryIcon from 'images/esri-imagery.jpg'
-
-const Wrapper = styled.div`
-  cursor: pointer;
-  position: absolute;
-  left: 10px;
-  bottom: 24px;
-  z-index: 999;
-`
-
-const BasemapContainer = styled.div`
-  display: inline-block;
-  &:not(:first-of-type) {
-    margin-left: 0.25rem;
-  }
-`
-
-const Label = styled.div`
-  font-size: 0.7rem;
-  text-align: center;
-  color: ${themeGet('colors.grey.700')};
-  margin-bottom: 0.25rem;
-`
-
-const Basemap = styled.img`
-  box-sizing: border-box;
-  border: 2px solid
-    ${({ isActive }) => (isActive ? themeGet('colors.highlight.500') : '#fff')};
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
-  margin: 0;
-
-  width: 64px;
-  height: 64px;
-  border-radius: 64px;
-
-  &:hover {
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 1);
-    border-color: #eee;
-  }
-`
 
 const icons = {
   'light-v9': LightIcon,
@@ -127,36 +87,83 @@ const BasemapSelector = ({ map, basemaps }) => {
   const nextBasemap = options.filter(({ id }) => id !== basemap.id)[0]
 
   return (
-    <Wrapper onMouseEnter={toggleOpen} onMouseLeave={toggleClosed}>
+    <Box
+      onMouseEnter={toggleOpen}
+      onMouseLeave={toggleClosed}
+      sx={{
+        cursor: 'pointer',
+        position: 'absolute',
+        left: '10px',
+        bottom: '24px',
+        zIndex: 999,
+      }}
+    >
       {isOpen ? (
         <>
-          <BasemapContainer>
-            <Label>{nextBasemap.id}</Label>
-            <Basemap
+          <Box
+            sx={{
+              display: 'inline-block',
+              '&:not(:first-of-type)': {
+                ml: '0.25rem',
+              },
+            }}
+          >
+            <Text
+              sx={{
+                fontSize: '0.7rem',
+                textAlign: 'center',
+                color: 'grey.7',
+                mb: '0.25rem',
+              }}
+            >
+              {nextBasemap.id}
+            </Text>
+            <Image
+              variant="basemap"
               src={nextBasemap.src}
               onClick={() => handleBasemapClick(nextBasemap)}
             />
-          </BasemapContainer>
+          </Box>
           {options
             .filter(({ id }) => id !== nextBasemap.id)
             .map((altBasemap) => (
-              <BasemapContainer key={altBasemap.id}>
-                <Label>{altBasemap.id}</Label>
-                <Basemap
-                  isActive={altBasemap.id === basemap.id}
+              <Box
+                key={altBasemap.id}
+                sx={{
+                  display: 'inline-block',
+                  '&:not(:first-of-type)': {
+                    ml: '0.25rem',
+                  },
+                }}
+              >
+                <Text
+                  sx={{
+                    fontSize: '0.7rem',
+                    textAlign: 'center',
+                    color: 'grey.7',
+                    mb: '0.25rem',
+                  }}
+                >
+                  {altBasemap.id}
+                </Text>
+                <Image
+                  variant={
+                    altBasemap.id === basemap.id ? 'basemap-active' : 'basemap'
+                  }
                   src={altBasemap.src}
                   onClick={() => handleBasemapClick(altBasemap)}
                 />
-              </BasemapContainer>
+              </Box>
             ))}
         </>
       ) : (
-        <Basemap
+        <Image
+          variant="basemap"
           src={nextBasemap.src}
           onClick={() => handleBasemapClick(nextBasemap)}
         />
       )}
-    </Wrapper>
+    </Box>
   )
 }
 

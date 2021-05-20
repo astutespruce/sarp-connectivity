@@ -1,43 +1,41 @@
 import React, { memo, useState } from 'react'
 import PropTypes from 'prop-types'
+import { Box, Heading, Flex, Input, Text } from 'theme-ui'
 
-import { Text } from 'components/Text'
-import { Box } from 'components/Grid'
-import styled, { themeGet } from 'style'
 import { useBoundsData } from 'components/Data'
 import ListItem from './ListItem'
 import { LAYER_NAMES, SYSTEMS, SYSTEM_UNITS } from '../../../config/constants'
 
-const Wrapper = styled(Box)``
+// const Wrapper = styled(Box)``
 
-const Header = styled(Text)`
-  font-size: 1.25rem;
-`
+// const Header = styled(Text)`
+//   font-size: 1.25rem;
+// `
 
-const Input = styled.input.attrs({
-  type: 'text',
-})`
-  width: 100%;
-  border: 1px solid ${themeGet('colors.grey.500')};
-  border-radius: 0.25rem;
-  outline: none;
-  padding: 0.25rem 0.5rem;
+// const Input = styled.input.attrs({
+//   type: 'text',
+// })`
+//   width: 100%;
+//   border: 1px solid ${themeGet('colors.grey.500')};
+//   border-radius: 0.25rem;
+//   outline: none;
+//   padding: 0.25rem 0.5rem;
 
-  &:focus {
-    border-color: ${themeGet('colors.primary.500')};
-  }
-`
+//   &:focus {
+//     border-color: ${themeGet('colors.primary.500')};
+//   }
+// `
 
-const List = styled.ul`
-  list-style: none;
-  margin: 0;
-`
+// const List = styled.ul`
+//   list-style: none;
+//   margin: 0;
+// `
 
-const NoResults = styled(Box).attrs({ my: '1rem' })`
-  text-align: center;
-  font-style: italic;
-  color: ${themeGet('colors.grey.600')};
-`
+// const NoResults = styled(Box).attrs({ my: '1rem' })`
+//   text-align: center;
+//   font-style: italic;
+//   color: ${themeGet('colors.grey.600')};
+// `
 
 const UnitSearch = ({ system, layer, onSelect }) => {
   const data = useBoundsData()
@@ -51,7 +49,7 @@ const UnitSearch = ({ system, layer, onSelect }) => {
     setQuery(value)
   }
 
-  const handleSelect = item => () => {
+  const handleSelect = (item) => () => {
     onSelect(item)
     setQuery('')
   }
@@ -91,9 +89,11 @@ const UnitSearch = ({ system, layer, onSelect }) => {
   }`
 
   return (
-    <Wrapper>
-      <Header>Search for {searchLabel}:</Header>
+    <Box>
+      <Text sx={{ fontSize: '1.25rem' }}>Search for {searchLabel}:</Text>
       <Input
+        type="text"
+        variant="input-default"
         placeholder={`${searchLabel}${suffix}`}
         value={query}
         onChange={handleChange}
@@ -101,8 +101,15 @@ const UnitSearch = ({ system, layer, onSelect }) => {
       {query !== '' && (
         <>
           {results.length > 0 ? (
-            <List>
-              {results.map(item => (
+            <Box
+              as="ul"
+              sx={{
+                m: '0 0 2rem 0',
+                p: 0,
+                listStyle: 'none',
+              }}
+            >
+              {results.map((item) => (
                 <ListItem
                   key={item.id}
                   {...item}
@@ -110,13 +117,22 @@ const UnitSearch = ({ system, layer, onSelect }) => {
                   onClick={handleSelect(item)}
                 />
               ))}
-            </List>
+            </Box>
           ) : (
-            <NoResults>No results match your search</NoResults>
+            <Box
+              sx={{
+                my: '1rem',
+                textAlign: 'center',
+                fontStyle: 'italic',
+                color: 'grey.6',
+              }}
+            >
+              No results match your search
+            </Box>
           )}
         </>
       )}
-    </Wrapper>
+    </Box>
   )
 }
 

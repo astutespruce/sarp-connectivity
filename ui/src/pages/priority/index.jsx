@@ -1,63 +1,20 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
-import { FaSearchLocation } from 'react-icons/fa'
+import { SearchLocation } from '@emotion-icons/fa-solid'
+import {
+  Box,
+  Container,
+  Heading,
+  Flex,
+  Button,
+  Divider,
+  Paragraph,
+} from 'theme-ui'
 
-import { Text, HelpText } from 'components/Text'
-import { PrimaryButton } from 'components/Button'
-import { Flex, Box } from 'components/Grid'
 import { Link } from 'components/Link'
 import Layout from 'components/Layout'
 import { HeaderImage } from 'components/Image'
-import {
-  PageTitle as BasePageTitle,
-  PageContainer,
-  Title,
-  StepHeader as BaseStepHeader,
-  StepNumber,
-  Divider,
-} from 'content/styles'
-import styled from 'style'
-
-const PageTitle = styled(BasePageTitle)`
-  margin-bottom: 0.5rem;
-`
-
-const Subtitle = styled(Title)`
-  font-weight: normal;
-  margin-bottom: 1rem;
-`
-
-const StepHeader = styled(BaseStepHeader)`
-  margin-bottom: 0;
-`
-
-const StepTitle = styled(Text)`
-  font-weight: bold;
-`
-
-const Step = styled(Box).attrs({ mb: '2rem' })``
-
-const StepDescription = styled(HelpText)`
-  font-size: 1.25rem;
-  margin-left: 3.5rem;
-`
-
-const ButtonContainer = styled(Flex).attrs({
-  justifyContent: 'space-between',
-})`
-  margin-bottom: 8rem;
-`
-
-const Button = styled(PrimaryButton)`
-  font-size: 1.5rem;
-`
-
-const SearchIcon = styled(FaSearchLocation)`
-  height: 0.8em;
-  width: 1em;
-  margin-right: 0.25em;
-`
 
 const PrioritizePage = ({ data: { headerImage } }) => (
   <Layout title="Prioritize">
@@ -71,85 +28,106 @@ const PrioritizePage = ({ data: { headerImage } }) => (
       }}
     />
 
-    <PageContainer>
-      <PageTitle>Prioritize barriers for removal</PageTitle>
+    <Container>
+      <Heading as="h1">Prioritize barriers for removal</Heading>
 
-      <Subtitle>
+      <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
         To prioritize barriers, you will work through the following steps:
-      </Subtitle>
+      </Paragraph>
 
-      <Step>
-        <StepHeader>
-          <StepNumber>
-            <div>1</div>
-          </StepNumber>
-          <StepTitle>Select area of interest.</StepTitle>
-        </StepHeader>
-        <StepDescription>
+      <Box sx={{ mt: '2rem' }}>
+        <Flex sx={{ alignItems: 'center' }}>
+          <Box variant="boxes.step">1</Box>
+          <Heading as="h3" sx={{ flex: '1 1 auto' }}>
+            Select area of interest.
+          </Heading>
+        </Flex>
+        <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
           You can select areas using state, county, watershed, and ecoregion
           boundaries.
-        </StepDescription>
-      </Step>
+        </Paragraph>
+      </Box>
 
-      <Step>
-        <StepHeader>
-          <StepNumber>
-            <div>2</div>
-          </StepNumber>
-          <StepTitle>Filter barriers.</StepTitle>
-        </StepHeader>
-        <StepDescription>
+      <Box sx={{ mt: '2rem' }}>
+        <Flex sx={{ alignItems: 'center' }}>
+          <Box variant="boxes.step">2</Box>
+          <Heading as="h3" sx={{ flex: '1 1 auto' }}>
+            Filter barriers.
+          </Heading>
+        </Flex>
+        <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
           You can filter barriers by feasibility, height, and other key
           characteristics to select those that best meet your needs.
-        </StepDescription>
-      </Step>
+        </Paragraph>
+      </Box>
 
-      <Step>
-        <StepHeader>
-          <StepNumber>
-            <div>3</div>
-          </StepNumber>
-          <StepTitle>Explore priorities on the map.</StepTitle>
-        </StepHeader>
-        <StepDescription>
+      <Box sx={{ mt: '2rem' }}>
+        <Flex sx={{ alignItems: 'center' }}>
+          <Box variant="boxes.step">3</Box>
+          <Heading as="h3" sx={{ flex: '1 1 auto' }}>
+            Explore priorities on the map.
+          </Heading>
+        </Flex>
+        <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
           Once you have defined your area of interest and selected the barriers
           you want, you can explore them on the map.
-        </StepDescription>
-      </Step>
+        </Paragraph>
+      </Box>
 
-      <Step>
-        <StepHeader>
-          <StepNumber>
-            <div>4</div>
-          </StepNumber>
-          <StepTitle>Download prioritized barriers.</StepTitle>
-        </StepHeader>
-        <StepDescription>
+      <Box sx={{ mt: '2rem' }}>
+        <Flex sx={{ alignItems: 'center' }}>
+          <Box variant="boxes.step">4</Box>
+          <Heading as="h3" sx={{ flex: '1 1 auto' }}>
+            Download prioritized barriers.
+          </Heading>
+        </Flex>
+        <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
           You can download the inventory for your area of interest and perform
           offline work.
-        </StepDescription>
-      </Step>
+        </Paragraph>
+      </Box>
 
       <Divider />
 
-      <Title>Get started now</Title>
+      <Heading as="h2">Get started now</Heading>
 
-      <ButtonContainer>
-        <Link to="/priority/dams">
-          <Button>
-            <SearchIcon />
-            Prioritize dams
-          </Button>
-        </Link>
+      <Flex
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%',
+          fontSize: '1.5rem',
+          mt: '1rem',
+          mb: '8rem',
+        }}
+      >
+        <Box
+          sx={{
+            flex: '1 0 auto',
+          }}
+        >
+          <Link to="/priority/dams">
+            <Button>
+              <SearchLocation size="1em" style={{ marginRight: '0.5rem' }} />
+              Prioritize dams
+            </Button>
+          </Link>
+        </Box>
 
-        <Link to="/priority/barriers">
-          <Button>
-            <SearchIcon />
-            Prioritize road-related barriers
-          </Button>
-        </Link>
-      </ButtonContainer>
-    </PageContainer>
+        <Box
+          sx={{
+            flex: '0 0 auto',
+          }}
+        >
+          <Link to="/priority/barriers">
+            <Button>
+              <SearchLocation size="1em" style={{ marginRight: '0.5rem' }} />
+              Prioritize road-related barriers
+            </Button>
+          </Link>
+        </Box>
+      </Flex>
+    </Container>
   </Layout>
 )
 

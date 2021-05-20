@@ -1,10 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { Box, Heading, Paragraph } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
-import { Section, SectionHeader, List, Note, SecondaryText } from './styles'
 
 import { siteMetadata } from '../../../gatsby-config'
 import {
@@ -52,10 +52,19 @@ const BarrierDetails = ({
   const isCrossing = isEmptyString(crossingtype)
 
   return (
-    <div>
-      <Section>
-        <SectionHeader>Location</SectionHeader>
-        <List>
+    <Box
+      sx={{
+        '&>div+div': {
+          mt: '0.5rem',
+          pt: '0.5rem',
+          borderTop: '1px solid',
+          borderTopColor: 'grey.2',
+        },
+      }}
+    >
+      <Box>
+        <Heading as="h4">Location</Heading>
+        <Box as="ul">
           <li>
             Coordinates: {formatNumber(lat, 3)}
             &deg; N, {formatNumber(lon, 3)}
@@ -67,24 +76,25 @@ const BarrierDetails = ({
           {HUC12Name ? (
             <li>
               {HUC12Name} Subwatershed{' '}
-              <SecondaryText>(HUC12: {HUC12})</SecondaryText>
+              <Paragraph variant="help">(HUC12: {HUC12})</Paragraph>
             </li>
           ) : null}
 
           {HUC8Name ? (
             <li>
-              {HUC8Name} Subbasin <SecondaryText>(HUC8: {HUC8})</SecondaryText>
+              {HUC8Name} Subbasin{' '}
+              <Paragraph variant="help">(HUC8: {HUC8})</Paragraph>
             </li>
           ) : null}
 
           {ownertype && ownertype > 0 && (
             <li>Conservation land type: {OWNERTYPE[ownertype]}</li>
           )}
-        </List>
-      </Section>
+        </Box>
+      </Box>
 
-      <SectionHeader>Barrier information</SectionHeader>
-      <List>
+      <Heading as="h4">Barrier information</Heading>
+      <Box as="ul">
         <li>
           Barrier type:{' '}
           {isCrossing
@@ -99,10 +109,10 @@ const BarrierDetails = ({
         {severityclass !== null ? (
           <li>Severity: {BARRIER_SEVERITY[severityclass]}</li>
         ) : null}
-      </List>
+      </Box>
 
-      <SectionHeader>Functional network information</SectionHeader>
-      <List>
+      <Heading as="h4">Functional network information</Heading>
+      <Box as="ul">
         {hasnetwork ? (
           <>
             <li>
@@ -113,7 +123,7 @@ const BarrierDetails = ({
                 miles
               </b>{' '}
               could be gained by removing this barrier.
-              <List style={{ marginTop: '0.5rem' }}>
+              <Box as="ul" sx={{ mt: '0.5rem' }}>
                 <li>
                   {formatNumber(freeupstreammiles)} free-flowing miles upstream
                   <ul>
@@ -134,7 +144,7 @@ const BarrierDetails = ({
                     </li>
                   </ul>
                 </li>
-              </List>
+              </Box>
             </li>
             <li>
               <b>{sizeclasses}</b> river size{' '}
@@ -170,22 +180,22 @@ const BarrierDetails = ({
                       This barrier is off-network and has no functional network
                       information.
                     </li>
-                    <Note>
+                    <Paragraph variant="help">
                       Not all barriers could be correctly snapped to the aquatic
                       network for analysis. Please contact us to report an error
                       or for assistance interpreting these results.
-                    </Note>
+                    </Paragraph>
                   </>
                 )}
               </>
             )}
           </>
         )}
-      </List>
+      </Box>
 
-      <Section>
-        <SectionHeader>Species information</SectionHeader>
-        <List>
+      <Box>
+        <Heading as="h4">Species information</Heading>
+        <Box as="ul">
           {tespp > 0 ? (
             <>
               <li>
@@ -230,32 +240,32 @@ const BarrierDetails = ({
               No regionally-listed aquatic Species of Greatest Conservation Need
               (SGCN) have been identified by available data sources for this
               subwatershed.
-              <Note>
+              <Paragraph variant="help">
                 Species information is very incomplete; important species may
                 not be represented within the available data.{' '}
                 <a href="/sgcn" target="_blank">
                   Read more.
                 </a>
-              </Note>
+              </Paragraph>
             </li>
           )}
 
           {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
-            <Note>
+            <Paragraph variant="help">
               Note: species information is very incomplete. These species may or
               may not be directly impacted by this barrier.{' '}
               <a href="/sgcn" target="_blank">
                 Read more.
               </a>
-            </Note>
+            </Paragraph>
           ) : null}
-        </List>
-      </Section>
+        </Box>
+      </Box>
 
       {huc8_usfs + huc8_coa + huc8_sgcn > 0 && (
-        <Section>
-          <SectionHeader>Conservation Benefit</SectionHeader>
-          <List>
+        <Box>
+          <Heading as="h4">Conservation Benefit</Heading>
+          <Box as="ul">
             {/* watershed priorities */}
             {huc8_usfs > 0 && (
               <li>
@@ -282,14 +292,14 @@ const BarrierDetails = ({
                 </a>
               </li>
             )}
-          </List>
-        </Section>
+          </Box>
+        </Box>
       )}
 
       {!isEmptyString(source) || !isCrossing ? (
         <>
-          <SectionHeader>Other information</SectionHeader>
-          <List>
+          <Heading as="h4">Other information</Heading>
+          <Box as="ul">
             {!isCrossing ? (
               <li>
                 SARP ID: {sarpid} (data version: {dataVersion})
@@ -297,10 +307,10 @@ const BarrierDetails = ({
             ) : null}
 
             {!isEmptyString(source) ? <li>Source: {source}</li> : null}
-          </List>
+          </Box>
         </>
       ) : null}
-    </div>
+    </Box>
   )
 }
 

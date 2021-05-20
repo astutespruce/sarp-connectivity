@@ -1,18 +1,21 @@
 /* eslint-disable camelcase */
 import React from 'react'
 import PropTypes from 'prop-types'
-import { FaEnvelope } from 'react-icons/fa'
+import { Envelope } from '@emotion-icons/fa-solid'
+import { Box, Button, Flex, Heading, Paragraph, Text } from 'theme-ui'
 
-import { Text, HelpText } from 'components/Text'
-import { Flex, Box } from 'components/Grid'
-import { CloseButton } from 'components/Button'
-import BaseTabs, {
-  Tab as BaseTab,
-  ActiveButton,
-  InactiveButton,
-} from 'components/Tabs'
+// import { Text, HelpText } from 'components/Text'
+// import { Flex, Box } from 'components/Grid'
+// import { CloseButton } from 'components/Button'
+
+import { Tab, Tabs } from 'components/Tabs'
+// import BaseTabs, {
+//   Tab as BaseTab,
+//   ActiveButton,
+//   InactiveButton,
+// } from 'components/Tabs'
 import { isEmptyString } from 'util/string'
-import styled, { themeGet } from 'style'
+// import styled, { themeGet } from 'style'
 import DamDetails from './DamDetails'
 import SmallBarrierDetails from './SmallBarrierDetails'
 import Scores from './Scores'
@@ -22,64 +25,64 @@ import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion } = siteMetadata
 
-const Header = styled(Flex).attrs({
-  justifyContent: 'space-between',
-  py: '1rem',
-  pr: '0.5rem',
-  pl: '1rem',
-})`
-  border-bottom: 4px solid ${themeGet('colors.primary.200')};
-  flex: 0 0 auto;
-`
+// const Header = styled(Flex).attrs({
+//   justifyContent: 'space-between',
+//   py: '1rem',
+//   pr: '0.5rem',
+//   pl: '1rem',
+// })`
+//   border-bottom: 4px solid ${themeGet('colors.primary.200')};
+//   flex: 0 0 auto;
+// `
 
-const TitleWrapper = styled(Box)`
-  flex: 1 1 auto;
-  margin-right: 1em;
-`
+// const TitleWrapper = styled(Box)`
+//   flex: 1 1 auto;
+//   margin-right: 1em;
+// `
 
-const Title = styled(Text).attrs({ as: 'h3', fontSize: '1.25rem', m: 0 })``
+// const Title = styled(Text).attrs({ as: 'h3', fontSize: '1.25rem', m: 0 })``
 
-const Subtitle = styled(Text).attrs({ fontSize: '1rem' })``
+// const Subtitle = styled(Text).attrs({ fontSize: '1rem' })``
 
-const Tabs = styled(BaseTabs)`
-  flex: 1 1 auto;
-  height: 100%;
-  overflow: hidden;
+// const Tabs = styled(BaseTabs)`
+//   flex: 1 1 auto;
+//   height: 100%;
+//   overflow: hidden;
 
-  ${ActiveButton} {
-    border: none;
-    padding: 0.5rem 0;
-  }
-  ${InactiveButton} {
-    background: ${themeGet('colors.primary.100')};
-    border: none;
-    padding: 0.5rem 0;
-  }
-`
+//   ${ActiveButton} {
+//     border: none;
+//     padding: 0.5rem 0;
+//   }
+//   ${InactiveButton} {
+//     background: ${themeGet('colors.primary.100')};
+//     border: none;
+//     padding: 0.5rem 0;
+//   }
+// `
 
-const Tab = styled(BaseTab)`
-  overflow-y: auto;
-  padding: 1rem;
-  height: 100%;
-`
+// const Tab = styled(BaseTab)`
+//   overflow-y: auto;
+//   padding: 1rem;
+//   height: 100%;
+// `
 
-const Footer = styled(Flex).attrs({
-  justifyContent: 'center',
-  alignItems: 'center',
-  py: '1rem',
-})`
-  flex: 0 0 auto;
-  border-top: 1px solid #ddd;
-  background: #f6f6f2;
-`
+// const Footer = styled(Flex).attrs({
+//   justifyContent: 'center',
+//   alignItems: 'center',
+//   py: '1rem',
+// })`
+//   flex: 0 0 auto;
+//   border-top: 1px solid #ddd;
+//   background: #f6f6f2;
+// `
 
-const MailIcon = styled(FaEnvelope)`
-  height: 1em;
-  width: 1em;
-  margin-right: 0.25em;
-`
+// const MailIcon = styled(FaEnvelope)`
+//   height: 1em;
+//   width: 1em;
+//   margin-right: 0.25em;
+// `
 
-const tierToPercent = tier => (100 * (19 - (tier - 1))) / 20
+const tierToPercent = (tier) => (100 * (19 - (tier - 1))) / 20
 
 const BarrierDetails = ({ barrier, onClose }) => {
   const {
@@ -110,9 +113,9 @@ const BarrierDetails = ({ barrier, onClose }) => {
     const units = ['se', 'state']
     const metrics = ['nc', 'wc', 'ncwc']
 
-    units.forEach(unit => {
+    units.forEach((unit) => {
       scores[unit] = {}
-      metrics.forEach(metric => {
+      metrics.forEach((metric) => {
         const tier = barrier[`${unit}_${metric}_tier`]
         scores[unit][metric] = {
           score: tierToPercent(tier),
@@ -124,7 +127,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     // add in custom results if available
     if (ncwc_tier) {
       scores.custom = {}
-      metrics.forEach(metric => {
+      metrics.forEach((metric) => {
         const tier = barrier[`${metric}_tier`]
         scores.custom[metric] = {
           score: tierToPercent(tier),
@@ -136,28 +139,40 @@ const BarrierDetails = ({ barrier, onClose }) => {
     scoreContent = <Scores scores={scores} barrierType={barrierType} />
   } else {
     scoreContent = (
-      <HelpText>
+      <Paragraph variant="help" sx={{ fontSize: 2 }}>
         No connectivity information is available for this barrier.
-      </HelpText>
+      </Paragraph>
     )
   }
 
   return (
     <>
-      <Header>
-        <TitleWrapper>
-          <Title>{!isEmptyString(name) ? name : defaultName}</Title>
+      <Flex
+        sx={{
+          flex: '0 0 auto',
+          justifyContent: 'space-between',
+          py: '1rem',
+          pr: '0.5rem',
+          pl: '1rem',
+          borderBottom: '4px solid',
+          borderBottomColor: 'blue.2',
+        }}
+      >
+        <Box sx={{ flex: '1 1 auto' }}>
+          <Heading as="h3" sx={{ m: 0 }}>
+            {!isEmptyString(name) ? name : defaultName}
+          </Heading>
           {!(isEmptyString(countyname) || isEmptyString(State)) && (
-            <Subtitle>
+            <Text>
               <i>
                 {countyname} County, {State}
               </i>
               <br />
-            </Subtitle>
+            </Text>
           )}
-        </TitleWrapper>
-        <CloseButton onClick={onClose} />
-      </Header>
+        </Box>
+        <Button variant="close" onClick={onClose} />
+      </Flex>
 
       <Tabs>
         <Tab id="details" label="Overview">
@@ -168,15 +183,25 @@ const BarrierDetails = ({ barrier, onClose }) => {
         </Tab>
       </Tabs>
 
-      <Footer>
+      <Flex
+        sx={{
+          flex: '0 0 auto',
+          justifyContent: 'center',
+          alignItems: 'center',
+          py: '1rem',
+          borderTop: '1px solid #DDD',
+          bg: '#f6f6f2',
+        }}
+      >
         <a
           href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
             barrierType === 'dams' ? 'dam' : 'road-related barrier'
           }: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
         >
-          <MailIcon /> Report a problem with this barrier
+          <Envelope size="1rem" style={{ marginRight: '0.25rem' }} /> Report a
+          problem with this barrier
         </a>
-      </Footer>
+      </Flex>
     </>
   )
 }

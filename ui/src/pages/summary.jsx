@@ -3,8 +3,9 @@ import React, { useState, useCallback } from 'react'
 import { Flex } from 'components/Grid'
 import Layout, { ClientOnly } from 'components/Layout'
 import { Text } from 'components/Text'
+import { ToggleButton } from 'components/Button'
 import Sidebar from 'components/Sidebar'
-import { TopBar, TopBarToggle } from 'components/Map'
+import { TopBar } from 'components/Map'
 import { Map, UnitDetails, SoutheastSummary } from 'components/Summary'
 import BarrierDetails from 'components/BarrierDetails'
 import styled from 'style'
@@ -114,14 +115,14 @@ const SummaryPage = () => {
               onSelectBarrier={handleSelectBarrier}
             />
             <TopBar>
-              <Text>Show:</Text>
-              <TopBarToggle
+              <Text sx={{ mr: '0.5rem' }}>Show:</Text>
+              <ToggleButton
                 value={barrierType}
                 options={barrierTypeOptions}
                 onChange={handleSetBarrierType}
               />
-              <Text>by</Text>
-              <TopBarToggle
+              <Text sx={{ mx: '0.5rem' }}>by</Text>
+              <ToggleButton
                 value={system}
                 options={systemOptions}
                 onChange={handleSetSystem}

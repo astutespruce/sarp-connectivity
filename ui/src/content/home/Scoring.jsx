@@ -9,20 +9,6 @@ import { HighlightBox } from 'components/Layout'
 
 import NetworkGraphicSVG from 'images/functional_network.svg'
 
-const stepCSS = {
-  color: '#FFF',
-  bg: 'grey.9',
-  borderRadius: '5em',
-  width: '3rem',
-  height: '3rem',
-  alignItems: 'center',
-  justifyContent: 'center',
-  fontWeight: 'bold',
-  mr: '0.75rem',
-  flex: '0 0 auto',
-  fontSize: '1.5rem',
-}
-
 const Scoring = () => {
   const {
     damPhoto: {
@@ -50,7 +36,7 @@ const Scoring = () => {
           How are barriers prioritized for removal?
         </Heading>
         <Flex sx={{ alignItems: 'center' }}>
-          <Flex sx={stepCSS}>1</Flex>
+          <Box variant="boxes.step">1</Box>
           <Heading as="h3" sx={{ flex: '1 1 auto', fontWeight: 'normal' }}>
             Aquatic barriers are identified and measured for their potential
             impact on aquatic organisms:
@@ -92,7 +78,7 @@ const Scoring = () => {
 
       <Box variant="boxes.section">
         <Flex sx={{ alignItems: 'center' }}>
-          <Flex sx={stepCSS}>2</Flex>
+          <Box variant="boxes.step">2</Box>
           <Heading as="h3" sx={{ flex: '1 1 auto', fontWeight: 'normal' }}>
             Aquatic barriers are measured for their impact on the aquatic
             network:
@@ -148,8 +134,7 @@ const Scoring = () => {
 
       <Box variant="boxes.section">
         <Flex sx={{ alignItems: 'center' }}>
-          <Flex sx={stepCSS}>3</Flex>
-
+          <Box variant="boxes.step">3</Box>
           <Heading as="h3" sx={{ flex: '0 0 auto', fontWeight: 'normal' }}>
             Barriers are characterized using metrics that describe the quality
             and status of their functional networks:
@@ -211,7 +196,7 @@ const Scoring = () => {
 
       <Box variant="boxes.section">
         <Flex sx={{ alignItems: 'center' }}>
-          <Flex sx={stepCSS}>4</Flex>
+          <Box variant="boxes.step">4</Box>
           <Heading as="h3" sx={{ flex: '1 1 auto', fontWeight: 'normal' }}>
             Metrics are combined and ranked to create three scenarios for
             prioritizing barriers for removal:

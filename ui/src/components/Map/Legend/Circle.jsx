@@ -1,24 +1,21 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import { Flex } from 'components/Grid'
-import styled from 'style'
-
-// sized to the max size of all patches / circles
-const Wrapper = styled(Flex).attrs({
-  justifyContent: 'flex-start',
-  alignItems: 'center',
-})`
-  width: 18px;
-  flex: 0 0 auto;
-`
+import { Flex } from 'theme-ui'
 
 const Circle = ({ radius, color, borderColor, borderWidth }) => {
   const width = 2 * borderWidth + 2 * radius
   const center = width / 2
 
   return (
-    <Wrapper>
+    <Flex
+      sx={{
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        width: '18px',
+        flex: '0 0 auto',
+      }}
+    >
       <svg style={{ width, height: width }}>
         <circle
           cx={center}
@@ -29,7 +26,7 @@ const Circle = ({ radius, color, borderColor, borderWidth }) => {
           strokeWidth={borderWidth}
         />
       </svg>
-    </Wrapper>
+    </Flex>
   )
 }
 

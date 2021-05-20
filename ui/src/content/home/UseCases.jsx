@@ -1,7 +1,7 @@
 import React from 'react'
 import { useStaticQuery, graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
-import { Box, Flex, Heading, Paragraph } from 'theme-ui'
+import { Box, Heading, Paragraph } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 

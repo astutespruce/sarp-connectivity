@@ -6,7 +6,7 @@ const UnsupportedBrowser = () => (
   <Container pt="3rem">
     <Flex>
       <Heading as="h1" sx={{ flex: '0 0 auto' }}>
-        <ExclamationTriangle size="7rem" style={{ marginRight: '1rem' }} />
+        <ExclamationTriangle size="5rem" style={{ marginRight: '1rem' }} />
       </Heading>
       <Box sx={{ flex: '1 1 auto' }}>
         <Heading as="h2">
