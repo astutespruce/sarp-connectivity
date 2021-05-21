@@ -16,10 +16,10 @@ const Barriers = ({
 
   if (totalRoadBarriers === 0) {
     return (
-      <HelpText>
+      <Paragraph variant="help">
         This area does not yet have any road-related barriers that have been
         assessed for impacts to aquatic organisms.
-      </HelpText>
+      </Paragraph>
     )
   }
 

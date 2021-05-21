@@ -298,4 +298,4 @@ GoToLocation.propTypes = {
   map: PropTypes.object.isRequired,
 }
 
-export default GoToLocation //memo(GoToLocation)
+export default memo(GoToLocation)
