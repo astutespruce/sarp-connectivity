@@ -13,7 +13,7 @@ const BackLink = ({ label, onClick }) => (
       color: 'link',
       display: 'block',
       p: 0,
-      fontSize: '0.9rem',
+      fontSize: '1rem',
       m: '-0.75rem 0 0.5rem -0.75rem',
     }}
   >

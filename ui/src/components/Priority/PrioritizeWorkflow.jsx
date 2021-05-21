@@ -1,35 +1,24 @@
 import React, { useState, useCallback, useRef } from 'react'
+import { Box, Flex, Text, Spinner } from 'theme-ui'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { useCrossfilter } from 'components/Crossfilter'
-import { Text, HelpText } from 'components/Text'
 import { ToggleButton } from 'components/Button'
-import { Flex } from 'components/Grid'
 import { TopBar } from 'components/Map'
 import {
   fetchBarrierInfo,
   fetchBarrierRanks,
   useBarrierType,
 } from 'components/Data'
-import Sidebar, { LoadingSpinner, ErrorMessage } from 'components/Sidebar'
+import { Sidebar } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
 import { trackPrioritize } from 'util/analytics'
-import styled from 'style'
 
 import Map from './Map'
 import UnitChooser from './UnitChooser'
 import LayerChooser from './LayerChooser'
 import Filters from './Filters'
 import Results from './Results'
-
-const Wrapper = styled(Flex)`
-  height: 100%;
-`
-
-const MapContainer = styled.div`
-  position: relative;
-  flex: 1 0 auto;
-  height: 100%;
-`
 
 const scenarioOptions = [
   { value: 'nc', label: 'network connectivity' },
@@ -183,17 +172,42 @@ const Prioritize = () => {
   if (selectedBarrier === null) {
     if (isError) {
       sidebarContent = (
-        <ErrorMessage>
+        <Flex
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            p: '1rem',
+            flex: '1 1 auto',
+            height: '100%',
+          }}
+        >
+          <Flex sx={{ color: 'highlight', alignItems: 'center' }}>
+            <ExclamationTriangle size="2em" />
+            <Text sx={{ ml: '0.5rem', fontSize: '2rem' }}>Whoops!</Text>
+          </Flex>
           There was an error loading these data. Please refresh your browser
           page and try again.
-          <HelpText fontSize="1rem" mt="2rem">
+          <Text variant="help" sx={{ mt: '2rem' }}>
             If it happens again, please{' '}
             <a href="mailto:kat@southeastaquatics.net">contact us</a>.
-          </HelpText>
-        </ErrorMessage>
+          </Text>
+        </Flex>
       )
     } else if (isLoading) {
-      sidebarContent = <LoadingSpinner />
+      sidebarContent = (
+        <Flex
+          sx={{
+            flex: '1 1 auto',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+          }}
+        >
+          <Spinner size="2rem" sx={{ mr: '1rem' }} />
+          <Text>Loading...</Text>
+        </Flex>
+      )
     } else {
       switch (step) {
         case 'select': {
@@ -256,7 +270,7 @@ const Prioritize = () => {
   }
 
   return (
-    <Wrapper>
+    <Flex sx={{ height: '100%' }}>
       <Sidebar>
         {selectedBarrier !== null ? (
           <BarrierDetails
@@ -268,7 +282,7 @@ const Prioritize = () => {
         )}
       </Sidebar>
 
-      <MapContainer>
+      <Box sx={{ position: 'relative', flex: '1 0 auto', height: '100%' }}>
         <Map
           allowUnitSelect={step === 'select'}
           activeLayer={layer}
@@ -294,8 +308,8 @@ const Prioritize = () => {
             />
           </TopBar>
         )}
-      </MapContainer>
-    </Wrapper>
+      </Box>
+    </Flex>
   )
 }
 

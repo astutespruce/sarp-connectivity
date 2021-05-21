@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Heading, Paragraph, Text } from 'theme-ui'
+import { Box, Heading, Text } from 'theme-ui'
 
 import { ToggleButton } from 'components/Button'
 

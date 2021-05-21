@@ -1,61 +1,13 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
-import { FaTimesCircle, FaCaretDown, FaCaretRight } from 'react-icons/fa'
+import { TimesCircle, CaretDown, CaretRight } from '@emotion-icons/fa-solid'
+import { Box, Flex, Text } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
-import { HelpText } from 'components/Text'
 import { useCrossfilter } from 'components/Crossfilter'
-import { Flex, Box } from 'components/Grid'
 import { useIsEqualCallback, useIsEqualMemo } from 'util/hooks'
 
-import styled, { themeGet } from 'style'
 import HorizontalBars from './HorizontalBars'
-
-const Wrapper = styled(Box).attrs({ py: '1rem' })`
-  &:not(:first-of-type) {
-    border-top: 1px solid ${themeGet('colors.grey.100')};
-  }
-`
-
-const Header = styled(Flex).attrs({
-  justifyContent: 'space-between',
-})``
-
-const ResetIcon = styled(FaTimesCircle).attrs({
-  size: '1rem',
-})`
-  width: 1rem;
-  height: 1rem;
-  margin-left: 1rem;
-  visibility: ${({ visible }) => visible};
-  cursor: pointer;
-  color: ${themeGet('colors.highlight.500')};
-`
-
-const CaretDown = styled(FaCaretDown)`
-  width: 1.5rem;
-  height: 1.5rem;
-  color: ${themeGet('colors.grey.900')};
-  margin-right: 0.25rem;
-`
-
-const CaretRight = styled(FaCaretRight)`
-  width: 1.5rem;
-  height: 1.5rem;
-  color: ${themeGet('colors.grey.900')};
-  margin-right: 0.25rem;
-`
-
-const Container = styled.div`
-  padding: 0.5rem 0 0 1rem;
-`
-
-const EmptyMessage = styled.div`
-  color: ${themeGet('colors.grey.700')};
-  text-align: center;
-  font-style: italic;
-  font-size: smaller;
-`
 
 const Filter = ({
   field,
@@ -140,26 +92,46 @@ const Filter = ({
   }
 
   return (
-    <Wrapper>
-      <Header>
+    <Box
+      sx={{
+        py: '1rem',
+        '&:not(:first-of-type)': {
+          borderTop: '1px solid',
+          borderTopColor: 'grey.1',
+        },
+      }}
+    >
+      <Flex sx={{ justifyContent: 'space-between' }}>
         <Flex
-          alignItems="flex-start"
-          style={{ flex: '1 1 auto', cursor: 'pointer', fontWeight: 'bold' }}
+          sx={{
+            justifyContent: 'flex-start',
+            flex: '1 1 auto',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
           onClick={toggle}
         >
-          {isOpen ? <CaretDown /> : <CaretRight />}
-          <div>{title}</div>
+          {isOpen ? <CaretDown size="1.5em" /> : <CaretRight size="1.5em" />}
+          <Text sx={{ ml: '0.25rem' }}>{title}</Text>
         </Flex>
-        <ResetIcon
+        <Box
           onClick={handleReset}
-          visible={filterValues.size > 0 ? 'visible' : 'hidden'}
-        />
-      </Header>
+          sx={{
+            flex: '0 0 auto',
+            cursor: 'pointer',
+            ml: '1rem',
+            color: 'highlight',
+            visibility: filterValues.size > 0 ? 'visible' : 'hidden',
+          }}
+        >
+          <TimesCircle size="1em" />
+        </Box>
+      </Flex>
 
       {isOpen && (
         <>
           {data.length > 0 && max > 0 ? (
-            <Container>
+            <Box sx={{ pt: '0.5rem', pl: '1rem' }}>
               <HorizontalBars
                 data={data}
                 max={max}
@@ -167,25 +139,32 @@ const Filter = ({
               />
 
               {help && (
-                <HelpText fontSize="0.8rem">
+                <Text variant="help" sx={{ fontSize: 0 }}>
                   {help}
                   {url && (
                     <>
                       <br />
-                      <OutboundLink to={url} target="_blank">
-                        Read more.
-                      </OutboundLink>
+                      <OutboundLink to={url}>Read more.</OutboundLink>
                     </>
                   )}
-                </HelpText>
+                </Text>
               )}
-            </Container>
+            </Box>
           ) : (
-            <EmptyMessage>No data available</EmptyMessage>
+            <Text
+              sx={{
+                color: 'grey.7',
+                fontStyle: 'italic',
+                fontSize: 1,
+                textAlign: 'center',
+              }}
+            >
+              No data available
+            </Text>
           )}
         </>
       )}
-    </Wrapper>
+    </Box>
   )
 }
 

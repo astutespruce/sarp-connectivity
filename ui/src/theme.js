@@ -74,11 +74,6 @@ module.exports = {
       mt: '2rem',
       mb: '4rem',
     },
-    // sidebar: {
-    //   width: ['100%', '468px'],
-    //   borderRightWidth: ['0px', '1px'],
-    //   borderRightColor: 'grey.8',
-    // },
   },
   sizes: {
     container: '960px',
@@ -91,6 +86,11 @@ module.exports = {
       display: 'block',
       color: 'grey.7',
       fontSize: 1,
+    },
+    error: {
+      color: 'highlight',
+      fontSize: '0.8rem',
+      overflowWrap: 'normal',
     },
     paragraph: {
       fontSize: [2, 3],
@@ -128,13 +128,6 @@ module.exports = {
     },
   },
   buttons: {
-    // default: {
-    //   cursor: 'pointer',
-    //   bg: 'primary',
-    //   '&:hover': {
-    //     bg: darken('primary', 0.1),
-    //   },
-    // },
     primary: {
       cursor: 'pointer',
       color: '#FFF',
@@ -142,6 +135,11 @@ module.exports = {
       '&:hover': {
         bg: darken('primary', 0.1),
       },
+    },
+    disabled: {
+      cursor: 'disabled',
+      color: '#FFF',
+      bg: 'grey.2',
     },
     secondary: {
       cursor: 'pointer',
@@ -153,8 +151,6 @@ module.exports = {
     },
     'toggle-active': {
       flex: '1 1 auto',
-      // py: '0.25em',
-      // px: '0.5em',
       cursor: 'pointer',
       color: '#FFF',
       bg: 'primary',
@@ -164,8 +160,6 @@ module.exports = {
     },
     'toggle-inactive': {
       flex: '1 1 auto',
-      // py: '0.25em',
-      // px: '0.5em',
       cursor: 'pointer',
       color: 'grey.9',
       bg: 'blue.1',
@@ -177,9 +171,6 @@ module.exports = {
       cursor: 'pointer',
       bg: '#ea1b00',
       color: '#FFF',
-    },
-    disabled: {
-      bg: 'grey.3',
     },
     close: {
       flex: '0 0 auto',
@@ -198,6 +189,11 @@ module.exports = {
       color: '#FFF',
       bg: 'grey.5',
       '&:hover': { bg: 'grey.9' },
+    },
+    link: {
+      border: 'none',
+      color: 'link',
+      bg: 'none',
     },
   },
   boxes: {
@@ -261,6 +257,40 @@ module.exports = {
         borderColor: 'primary',
       },
     },
+    'input-invalid': {
+      borderWidth: '1px 1px 1px 0.5rem',
+      borderStyle: 'solid',
+      borderColor: 'highlight',
+      borderRadius: '0.25rem',
+      outline: 'none',
+      py: '0.25rem',
+      px: '0.5rem',
+      width: '100%',
+    },
+    textarea: {
+      fontFamily: 'body',
+      border: '1px solid',
+      borderColor: 'grey.5',
+      borderRadius: '0.25rem',
+      outline: 'none',
+      py: '0.25rem',
+      px: '0.5rem',
+      width: '100%',
+      '&:focus': {
+        borderColor: 'primary',
+      },
+    },
+    'textarea-invalid': {
+      fontFamily: 'body',
+      borderWidth: '1px 1px 1px 0.5rem',
+      borderStyle: 'solid',
+      borderColor: 'highlight',
+      borderRadius: '0.25rem',
+      outline: 'none',
+      py: '0.25rem',
+      px: '0.5rem',
+      width: '100%',
+    },
   },
   styles: {
     root: {
@@ -316,21 +346,6 @@ module.exports = {
       borderBottom: '0.5rem solid',
       borderBottomColor: 'blue.8',
       my: '2rem',
-      //   space: {
-      //     color: 'grey.2',
-      //     my: '4rem',
-      //   },
-      //   wide: {
-      //     height: '0.5rem',
-      //     bg: 'grey.9',
-      //     borderBottom: 'none',
-      //   },
-    },
-    // also used for filter bars
-    progress: {
-      color: 'primary',
-      bg: 'grey.2',
-      height: '1rem',
     },
   },
 }
