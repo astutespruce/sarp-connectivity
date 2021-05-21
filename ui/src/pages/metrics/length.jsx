@@ -1,38 +1,28 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
+import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
 
 import Layout from 'components/Layout'
 import { HeaderImage } from 'components/Image'
-import { Columns } from 'components/Grid'
 import HighlightBox from 'components/Layout/HighlightBox'
-import {
-  PageTitle,
-  PageContainer,
-  Section,
-  Title,
-  Column,
-  LargeText,
-} from 'content/styles'
 
 const LengthPage = ({ data: { headerImage } }) => (
   <Layout title="Network Length">
     <HeaderImage
-      image={headerImage.childImageSharp.fluid}
+      image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
       minHeight="18rem"
-      position="center"
       credits={{
         author:
           'Little Tennessee River, North Carolina. U.S. Fish and Wildlife Service.',
-        url:
-          'https://www.flickr.com/photos/usfwssoutheast/5149475130/in/gallery-141606341@N03-72157697846677391/',
+        url: 'https://www.flickr.com/photos/usfwssoutheast/5149475130/in/gallery-141606341@N03-72157697846677391/',
       }}
     />
 
-    <PageContainer>
-      <PageTitle>Network length</PageTitle>
-      <LargeText>
+    <Container>
+      <Heading as="h1">Network length</Heading>
+      <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
         Network length measures the amount of connected aquatic network length
         that would be added to the network by removing the barrier. It is the
         smaller of either the total upstream network length or total downstream
@@ -40,34 +30,29 @@ const LengthPage = ({ data: { headerImage } }) => (
         because a barrier may have a very large upstream network, but if there
         is another barrier immediately downstream, the overall effect of
         removing this barrier will be quite small.
-      </LargeText>
+      </Paragraph>
 
-      <Section>
-        <Columns>
-          <Column>
-            <HighlightBox icon="length_low" title="Low network length">
-              <p>
-                Barriers that have small upstream or downstream networks
-                contribute relatively little connected aquatic network length if
-                removed.
-              </p>
-            </HighlightBox>
-          </Column>
+      <Grid columns={[0, 2]} gap={4} sx={{ mt: '2rem' }}>
+        <HighlightBox icon="length_low" title="Low network length">
+          <p>
+            Barriers that have small upstream or downstream networks contribute
+            relatively little connected aquatic network length if removed.
+          </p>
+        </HighlightBox>
 
-          <Column>
-            <HighlightBox icon="length_high" title="High network length">
-              <p>
-                Barriers that have large upstream and downstream networks will
-                contribute a large amount of connected aquatic network length if
-                they are removed.
-              </p>
-            </HighlightBox>
-          </Column>
-        </Columns>
-      </Section>
+        <HighlightBox icon="length_high" title="High network length">
+          <p>
+            Barriers that have large upstream and downstream networks will
+            contribute a large amount of connected aquatic network length if
+            they are removed.
+          </p>
+        </HighlightBox>
+      </Grid>
 
-      <Section>
-        <Title>Methods:</Title>
+      <Box variant="boxes.section" sx={{ mt: '6rem' }}>
+        <Heading as="h2" variant="heading.section">
+          Methods:
+        </Heading>
         <ol>
           <li>
             The total upstream length is calculated as the sum of the lengths of
@@ -84,8 +69,8 @@ const LengthPage = ({ data: { headerImage } }) => (
             lengths.
           </li>
         </ol>
-      </Section>
-    </PageContainer>
+      </Box>
+    </Container>
   </Layout>
 )
 
@@ -99,9 +84,11 @@ export const pageQuery = graphql`
   query NetworkLengthQuery {
     headerImage: file(relativePath: { eq: "5149475130_b2334f1edd_4k.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

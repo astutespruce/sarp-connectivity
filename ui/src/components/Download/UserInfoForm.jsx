@@ -2,13 +2,22 @@ import React, { useState, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { useForm } from 'react-hook-form'
 import fetchJSONP from 'fetch-jsonp'
-import { FaSync, FaExclamationTriangle, FaCheckCircle } from 'react-icons/fa'
-import { Image } from 'rebass/styled-components'
+import { ExclamationTriangle, CheckCircle } from '@emotion-icons/fa-solid'
+import {
+  Box,
+  Flex,
+  Grid,
+  Container,
+  Button,
+  Image,
+  Text,
+  Paragraph,
+  Spinner,
+  Label,
+  Input,
+  Textarea,
+} from 'theme-ui'
 
-import { Button } from 'components/Button'
-import { Text } from 'components/Text'
-import { Box, Flex } from 'components/Grid'
-import styled, { themeGet, keyframes, css } from 'style'
 import { saveToStorage, encodeParams } from 'util/dom'
 import SARPLogoImage from 'images/sarp_logo.png'
 import { siteMetadata } from '../../../gatsby-config'
@@ -42,154 +51,6 @@ export const FIELDS = {
   use: 'MMERGE6',
 }
 
-const Wrapper = styled(Box).attrs({ pt: '1rem' })``
-
-const SARPLogo = styled(Image).attrs({ src: SARPLogoImage })`
-  height: 4rem;
-  display: block;
-`
-
-const Message = styled(Text)`
-  width: 33%;
-  padding-right: 1rem;
-`
-
-const List = styled.ul`
-  margin-top: 0.5rem;
-`
-
-const Form = styled.form`
-  width: 960px;
-  margin: 0;
-`
-
-const FormContainer = styled(Box).attrs({})`
-  width: 66%;
-  padding-left: 1rem;
-`
-
-const FormColumns = styled(Flex)``
-
-const FormColumn = styled(Box).attrs({})`
-  width: 50%;
-
-  &:not(:first-of-type) {
-    margin-left: 2rem;
-  }
-`
-
-const Row = styled(Box)`
-  &:not(:first-of-type) {
-    margin-top: 1rem;
-  }
-`
-
-const Label = styled(Text).attrs({ fontSize: '1.25rem' })``
-
-const Input = styled.input`
-  width: 100%;
-  border: 1px solid ${themeGet('colors.grey.500')};
-  border-radius: 0.25rem;
-  outline: none;
-  padding: 0.25rem 0.5rem;
-
-  &:focus {
-    border-color: ${themeGet('colors.primary.500')};
-  }
-
-  ${({ invalid }) =>
-    invalid &&
-    css`
-      border-left-width: 0.5rem !important;
-      border-color: ${themeGet('colors.highlight.500')} !important;
-    `}
-`
-
-const TextArea = styled.textarea`
-  width: 100%;
-  border: 1px solid ${themeGet('colors.grey.500')};
-  border-radius: 0.25rem;
-  outline: none;
-  padding: 0.25rem 0.5rem;
-
-  &:focus {
-    border-color: ${themeGet('colors.primary.500')};
-  }
-
-  ${({ invalid }) =>
-    invalid &&
-    css`
-      border-left-width: 0.5rem !important;
-      border-color: ${themeGet('colors.highlight.500')} !important;
-    `}
-`
-
-const RowLabel = styled(Flex).attrs({
-  justifyContent: 'space-between',
-  alignItems: 'flex-end',
-})``
-
-const Error = styled(Text).attrs({ fontSize: '0.8rem' })`
-  color: ${themeGet('colors.highlight.500')};
-  overflow-wrap: normal;
-`
-
-const Buttons = styled(Flex).attrs({
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  mt: '1rem',
-  pt: '1rem',
-})`
-  border-top: 1px solid ${themeGet('colors.grey.200')};
-`
-
-const rotate = keyframes`
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-`
-
-const MessageBox = styled(Flex).attrs({
-  p: '1rem',
-  alignItems: 'center',
-  justifyContent: 'center',
-  height: '100%',
-})`
-  font-size: 1.5rem;
-  width: 600px;
-`
-
-const Spinner = styled(FaSync)`
-  height: 5rem;
-  width: 5rem;
-  animation: ${rotate} 2s linear infinite;
-  color: ${themeGet('colors.primary.500')};
-  margin-right: 1em;
-`
-
-const ErrorIcon = styled(FaExclamationTriangle)`
-  height: 2em;
-  width: 2em;
-  margin-right: 0.5em;
-  color: ${themeGet('colors.highlight.500')};
-  display: inline-block;
-`
-
-const ErrorMessage = styled(MessageBox)`
-  color: ${themeGet('colors.highlight.500')};
-`
-
-const SuccessIcon = styled(FaCheckCircle)`
-  height: 2em;
-  width: 2em;
-  margin-right: 0.5em;
-  color: ${themeGet('colors.primary.500')};
-`
-
 const DownloadForm = ({ onCancel, onContinue }) => {
   const [{ isPending, isError, isSuccess }, setState] = useState({
     isPending: false,
@@ -197,7 +58,11 @@ const DownloadForm = ({ onCancel, onContinue }) => {
     isSuccess: false,
   })
 
-  const { register, handleSubmit, errors } = useForm({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     mode: 'onBlur',
   })
 
@@ -267,48 +132,81 @@ const DownloadForm = ({ onCancel, onContinue }) => {
 
   if (isError) {
     return (
-      <Wrapper>
-        <ErrorMessage>
-          <ErrorIcon />
-          <Box>Whoops! Something went wrong saving your information.</Box>
-        </ErrorMessage>
+      <Box sx={{ pt: '1rem' }}>
+        <Flex sx={{ color: 'highlight', alignItems: 'center' }}>
+          <Box sx={{ mr: '0.5rem', flex: '0 0 auto' }}>
+            <ExclamationTriangle size="2em" />
+          </Box>
+          <Box sx={{ flex: '1 1 auto' }}>
+            Whoops! Something went wrong saving your information.
+          </Box>
+        </Flex>
 
-        <Buttons>
-          <Button onClick={handleCancel}>Cancel</Button>
-
-          <Button primary onClick={handleContinue}>
-            Continue to download anyway
+        <Flex
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: '1rem',
+            pt: '1rem',
+            borderTop: '1px solid',
+            borderTopColor: 'grey.2',
+          }}
+        >
+          <Button variant="secondary" onClick={handleCancel}>
+            Cancel
           </Button>
-        </Buttons>
-      </Wrapper>
-    )
-  }
-  if (isPending) {
-    return (
-      <Wrapper>
-        <MessageBox>
-          <Spinner />
-        </MessageBox>
-      </Wrapper>
-    )
-  }
 
-  if (isSuccess) {
+          <Button onClick={handleContinue}>Continue to download anyway</Button>
+        </Flex>
+      </Box>
+    )
+  }
+  if (isPending || isSuccess) {
     return (
-      <MessageBox>
-        <SuccessIcon />
-        <Text>Thank you!</Text>
-      </MessageBox>
+      <Flex
+        sx={{
+          p: '1rem',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          fontSize: '1.5rem',
+          width: '600px',
+        }}
+      >
+        {isPending ? (
+          <Spinner size="5rem" sx={{ color: 'primary', mr: '1em' }} />
+        ) : (
+          <>
+            <Box sx={{ color: 'primary', mr: '0.5em' }}>
+              <CheckCircle size="2em" />
+            </Box>
+            <Text>Thank you!</Text>
+          </>
+        )}
+      </Flex>
     )
   }
 
   return (
-    <Wrapper>
-      <Form ref={formRef} onSubmit={handleSubmit(onSubmit)}>
-        <Flex>
-          <Message>
-            We use this information to:
-            <List>
+    <Box sx={{ pt: '1rem' }}>
+      <Container
+        as="form"
+        ref={formRef}
+        onSubmit={handleSubmit(onSubmit)}
+        sx={{
+          m: 0,
+          label: {
+            flex: '1 1 auto',
+          },
+          'label + span': {
+            flex: '0 0 auto',
+          },
+        }}
+      >
+        <Grid columns="1fr 2fr" gap={4}>
+          <Box>
+            <Paragraph>We use this information to:</Paragraph>
+            <Box as="ul" sx={{ mt: '0.5rem' }}>
               <li>get in touch with you if we discover errors in the data</li>
               <li>
                 provide statistics about how this tool is being used to our
@@ -318,100 +216,164 @@ const DownloadForm = ({ onCancel, onContinue }) => {
                 better understand how this tool is being used so that we can
                 prioritize improvements
               </li>
-            </List>
-            <Flex justifyContent="center">
-              <SARPLogo />
+            </Box>
+            <Flex sx={{ justifyContent: 'center', mt: '1rem' }}>
+              <Image
+                src={SARPLogoImage}
+                sx={{ height: '4rem', display: 'block' }}
+              />
             </Flex>
-          </Message>
+          </Box>
 
-          <FormContainer>
-            <FormColumns>
-              <FormColumn>
-                <Row>
-                  <RowLabel>
+          <Box>
+            <Grid columns={2} gap={5}>
+              <Box
+                sx={{
+                  '&>div + div': {
+                    mt: '1rem',
+                  },
+                }}
+              >
+                <Box>
+                  <Flex
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-end',
+                    }}
+                  >
                     <Label htmlFor={FIELDS.email}>Email address:</Label>
-                    {errors[FIELDS.email] && <Error>required</Error>}
-                  </RowLabel>
+                    {errors[FIELDS.email] && (
+                      <Text variant="error">required</Text>
+                    )}
+                  </Flex>
                   <Input
                     name={FIELDS.email}
-                    ref={register({
+                    {...register(FIELDS.email, {
                       required: true,
                       pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                     })}
-                    invalid={!!errors[FIELDS.email]}
+                    variant={
+                      errors[FIELDS.email] ? 'input-invalid' : 'input-default'
+                    }
                   />
-                </Row>
+                </Box>
 
-                <Row>
-                  <RowLabel>
+                <Box>
+                  <Flex
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-end',
+                    }}
+                  >
                     <Label htmlFor={FIELDS.firstName}>First name:</Label>
-                    {errors[FIELDS.firstName] && <Error>required</Error>}
-                  </RowLabel>
+                    {errors[FIELDS.firstName] && (
+                      <Text variant="error">required</Text>
+                    )}
+                  </Flex>
 
                   <Input
                     name={FIELDS.firstName}
-                    ref={register({ required: true })}
-                    invalid={!!errors[FIELDS.firstName]}
+                    {...register(FIELDS.firstName, { required: true })}
+                    variant={
+                      errors[FIELDS.firstName]
+                        ? 'input-invalid'
+                        : 'input-default'
+                    }
                   />
-                </Row>
+                </Box>
 
-                <Row>
-                  <RowLabel>
+                <Box>
+                  <Flex
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-end',
+                    }}
+                  >
                     <Label htmlFor={FIELDS.lastName}>Last name:</Label>
-                    {errors[FIELDS.lastName] && <Error>required</Error>}
-                  </RowLabel>
+                    {errors[FIELDS.lastName] && (
+                      <Text variant="error">required</Text>
+                    )}
+                  </Flex>
 
                   <Input
                     name={FIELDS.lastName}
-                    ref={register({ required: true })}
-                    invalid={!!errors[FIELDS.lastName]}
+                    {...register(FIELDS.lastName, { required: true })}
+                    variant={
+                      errors[FIELDS.lastName]
+                        ? 'input-invalid'
+                        : 'input-default'
+                    }
                   />
-                </Row>
-              </FormColumn>
+                </Box>
+              </Box>
 
-              <FormColumn>
-                <Row>
-                  <RowLabel>
+              <Box>
+                <Box>
+                  <Flex
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-end',
+                    }}
+                  >
                     <Label htmlFor={FIELDS.use}>
                       How will you use the data?
                     </Label>
-                    {errors[FIELDS.use] && <Error>required</Error>}
-                  </RowLabel>
-                  <TextArea
+                    {errors[FIELDS.use] && (
+                      <Text variant="error">required</Text>
+                    )}
+                  </Flex>
+                  <Textarea
                     name={FIELDS.use}
                     rows={8}
-                    ref={register({ required: true })}
-                    invalid={!!errors[FIELDS.use]}
+                    {...register(FIELDS.use, { required: true })}
+                    variant={
+                      errors[FIELDS.use] ? 'input-invalid' : 'input-default'
+                    }
                   />
-                </Row>
-              </FormColumn>
-            </FormColumns>
+                </Box>
+              </Box>
+            </Grid>
 
-            <Row>
-              <RowLabel>
+            <Box sx={{ mt: '2rem' }}>
+              <Flex
+                sx={{ justifyContent: 'space-between', alignItems: 'flex-end' }}
+              >
                 <Label htmlFor={FIELDS.organization}>Organization:</Label>
-                {errors[FIELDS.organization] && <Error>required</Error>}
-              </RowLabel>
+                {errors[FIELDS.organization] && (
+                  <Text variant="error">required</Text>
+                )}
+              </Flex>
               <Input
                 name={FIELDS.organization}
-                ref={register({ required: true })}
-                invalid={!!errors[FIELDS.organization]}
+                {...register(FIELDS.organization, { required: true })}
+                variant={
+                  errors[FIELDS.organization]
+                    ? 'input-invalid'
+                    : 'input-default'
+                }
               />
-            </Row>
-          </FormContainer>
-        </Flex>
+            </Box>
+          </Box>
+        </Grid>
 
-        <Buttons>
-          <Button type="button" onClick={handleCancel}>
+        <Flex
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: '1rem',
+            pt: '1rem',
+            borderTop: '1px solid',
+            borderTopColor: 'grey.2',
+          }}
+        >
+          <Button type="button" variant="secondary" onClick={handleCancel}>
             Cancel
           </Button>
 
-          <Button type="submit" primary>
-            Continue to download
-          </Button>
-        </Buttons>
-      </Form>
-    </Wrapper>
+          <Button type="submit">Continue to download</Button>
+        </Flex>
+      </Container>
+    </Box>
   )
 }
 

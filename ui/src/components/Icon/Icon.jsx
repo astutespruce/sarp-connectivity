@@ -1,31 +1,28 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Image as BaseImage } from 'rebass/styled-components'
+import { Image } from 'theme-ui'
 
-import styled, { theme } from 'style'
-
-
-const Img = styled(BaseImage)`
-  flex-shrink: 0;
-  margin-bottom: 0;
-`
-
-const Icon = ({ name, size, color, ...props }) => {
+const Icon = ({ name, size, sx }) => {
   /* eslint-disable-next-line */
-  const src = require(`icons/${name}.svg`)
+  const { default: src } = require(`icons/${name}.svg`)
 
-  return <Img src={src} width={size} height={size} {...props}/>
+  return (
+    <Image
+      src={src}
+      sx={{ flex: '0 0 auto', mb: 0, width: size, height: size, ...sx }}
+    />
+  )
 }
 
 Icon.propTypes = {
   name: PropTypes.string.isRequired,
   size: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  color: PropTypes.string,
+  sx: PropTypes.object,
 }
 
 Icon.defaultProps = {
   size: '1em',
-  color: theme.colors.primary[500],
+  sx: {},
 }
 
 export default Icon

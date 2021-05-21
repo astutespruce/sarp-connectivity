@@ -1,65 +1,68 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-
-import { Box, Flex } from 'components/Grid'
-import { Text } from 'components/Text'
-import { PrimaryButton, WarningButton } from 'components/Button'
-import styled, { themeGet } from 'style'
-
-const Wrapper = styled(Flex).attrs({
-  justifyContent: 'center',
-  alignItems: 'center',
-})`
-  position: absolute;
-  z-index: 100000;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-`
-
-const Background = styled.div`
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(10, 10, 10, 0.86);
-  cursor: pointer;
-`
-
-const Content = styled(Box).attrs({ p: '1.25rem' })`
-  z-index: 2;
-  margin: 0 auto;
-  width: 300px;
-  position: relative;
-  border-radius: 0.5rem;
-  background: #fff;
-`
-
-const Title = styled(Text).attrs({ as: 'h4', fontSize: '1.25rem' })``
-
-const ButtonContainer = styled(Flex).attrs({ justifyContent: 'space-between' })`
-  padding-top: 1rem;
-  margin-top: 2rem;
-  border-top: 1px solid ${themeGet('colors.grey.200')};
-`
+import { Box, Button, Heading, Flex } from 'theme-ui'
 
 const Confirm = ({ title, children, onConfirm, onClose }) => (
-  <Wrapper>
-    <Background onClick={onClose} />
-    <Content>
-      <Title>{title}</Title>
+  <Flex
+    sx={{
+      justifyContent: 'center',
+      alignItems: 'center',
+      position: 'absolute',
+      zIndex: 100000,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    }}
+  >
+    <Box
+      onClick={onClose}
+      sx={{
+        position: 'absolute',
+        zIndex: 1,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        bg: 'rgba(10,10,10,0.86)',
+        cursor: 'pointer',
+      }}
+    />
+    <Box
+      sx={{
+        p: '1.25rem',
+        zIndex: 2,
+        mx: 'auto',
+        position: 'relative',
+        width: '300px',
+        borderRadius: '0.5rem',
+        bg: '#FFF',
+      }}
+    >
+      <Heading as="h4" sx={{ mb: '1rem' }}>
+        {title}
+      </Heading>
 
       {children}
 
-      <ButtonContainer>
-        <PrimaryButton onClick={onClose}>No</PrimaryButton>
-        <WarningButton onClick={onConfirm}>Yes</WarningButton>
-      </ButtonContainer>
-    </Content>
-  </Wrapper>
+      <Flex
+        sx={{
+          justifyContent: 'space-between',
+          pt: '1rem',
+          mt: '2rem',
+          borderTop: '1px solid',
+          borderTopColor: 'grey.2',
+        }}
+      >
+        <Button onClick={onClose} sx={{ flex: '0 0 auto' }}>
+          No
+        </Button>
+        <Button variant="warning" onClick={onConfirm} sx={{ flex: '0 0 auto' }}>
+          Yes
+        </Button>
+      </Flex>
+    </Box>
+  </Flex>
 )
 
 Confirm.propTypes = {

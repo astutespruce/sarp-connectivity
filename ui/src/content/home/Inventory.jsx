@@ -1,52 +1,29 @@
 /* eslint-disable camelcase */
 
 import React from 'react'
-import { Image } from 'rebass/styled-components'
+import { Box, Flex, Grid, Image, Paragraph, Heading } from 'theme-ui'
 
-import { HelpText } from 'components/Text'
 import { Link, OutboundLink } from 'components/Link'
-import { HighlightBox as BaseHighlightBox } from 'components/Layout'
-import { Flex, Columns } from 'components/Grid'
-import styled from 'style'
+import { HighlightBox } from 'components/Layout'
 import { formatNumber } from 'util/format'
 import { useSummaryData } from 'components/Data'
 import SARPLogoImage from 'images/sarp_logo.png'
 
-import { Section, Title, NarrowColumn, WideColumn } from '../styles'
 import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion, date: dataDate } = siteMetadata
-
-const HighlightBox = styled(BaseHighlightBox)`
-  h3 {
-    text-align: center;
-  }
-`
-
-const Stats = styled.ul`
-  list-style: none;
-  font-size: 1.25rem;
-  margin-left: 0;
-
-  li {
-    margin-bottom: 2rem;
-  }
-`
-
-const SARPLogo = styled(Image).attrs({
-  src: SARPLogoImage,
-  width: '14rem',
-})``
 
 const Inventory = () => {
   const { dams, total_barriers, miles } = useSummaryData()
 
   return (
-    <Section>
-      <Title>The Southeast Aquatic Barrier Inventory:</Title>
-      <Columns>
-        <WideColumn>
-          <p>
+    <Box variant="boxes.section">
+      <Heading as="h2" variant="heading.section">
+        The Southeast Aquatic Barrier Inventory:
+      </Heading>
+      <Grid columns={[0, '5fr 3fr']} gap={5} sx={{ mt: '2rem' }}>
+        <Box>
+          <Paragraph>
             This inventory is a growing and living database of dams, culverts,
             and other road crossings compiled by the{' '}
             <OutboundLink to="https://southeastaquatics.net/">
@@ -80,12 +57,31 @@ const Inventory = () => {
             existing data and level of partner feedback. Some areas of the
             region are more complete than others but none should be considered
             100% complete.
-          </p>
-        </WideColumn>
+          </Paragraph>
+        </Box>
 
-        <NarrowColumn>
+        <Box
+          sx={{
+            h3: {
+              textAlign: 'center',
+            },
+          }}
+        >
           <HighlightBox title="At a Glance" icon="">
-            <Stats>
+            <Box
+              as="ul"
+              sx={{
+                listStyle: 'none',
+                fontSize: '1.25rem',
+                mt: '1rem',
+                ml: 0,
+                p: 0,
+                lineHeight: 1.3,
+                li: {
+                  mb: '2rem',
+                },
+              }}
+            >
               <li>
                 <b>14</b> states and Puerto Rico
               </li>
@@ -100,19 +96,24 @@ const Inventory = () => {
                 <b>{formatNumber(miles, 1)}</b> miles of connected aquatic
                 network length, on average
               </li>
-            </Stats>
+            </Box>
 
-            <Flex width="100%" justifyContent="center">
-              <SARPLogo />
+            <Flex sx={{ justifyContent: 'center', width: '100%' }}>
+              <Image src={SARPLogoImage} width="224px" alt="SARP logo" />
             </Flex>
 
-            <HelpText textAlign="center" mt="1rem">
+            <Paragraph
+              sx={{
+                mt: '1rem',
+                textAlign: 'center',
+              }}
+            >
               Data version: {dataVersion} ({dataDate})
-            </HelpText>
+            </Paragraph>
           </HighlightBox>
-        </NarrowColumn>
-      </Columns>
-    </Section>
+        </Box>
+      </Grid>
+    </Box>
   )
 }
 

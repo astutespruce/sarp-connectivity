@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import PropTypes from 'prop-types'
+import { Box, Text } from 'theme-ui'
 
-import styled, { themeGet } from 'style'
 import { STATE_FIPS } from '../../../config/constants'
 
 const PREFIXES = {
@@ -9,51 +9,51 @@ const PREFIXES = {
   ECO4: 'Level 4',
 }
 
-const Wrapper = styled.li`
-  padding: 0.5em;
-  margin: 0;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-  line-height: 1.2;
-
-  &:hover {
-    background-color: ${themeGet('colors.primary.100')};
-  }
-`
-
-const Suffix = styled.span`
-  margin-left: 0.5em;
-  font-size: 0.75em;
-  color: ${themeGet('colors.grey.600')};
-  white-space: nowrap;
-  word-wrap: none;
-`
-
-const State = styled.div`
-  color: ${themeGet('colors.grey.800')};
-`
-
 const ListItem = ({ id, name, state, layer, showID, onClick }) => {
   const stateLabels = state
     ? state
         .split(',')
-        .map(s => STATE_FIPS[s])
+        .map((s) => STATE_FIPS[s])
         .sort()
         .join(', ')
     : ''
 
   return (
-    <Wrapper onClick={onClick}>
+    <Box
+      as="li"
+      onClick={onClick}
+      sx={{
+        p: '0.5em',
+        m: '0px',
+        borderBottom: '1px solid #EEE',
+        cursor: 'pointer',
+        lineHeight: 1.2,
+        '&:hover': {
+          bg: 'grey.0',
+        },
+      }}
+    >
       <b>{name}</b>
       {showID && (
-        <Suffix>
+        <Text
+          sx={{
+            display: 'inline-block',
+            ml: '0.5em',
+            fontSize: 0,
+            color: 'grey.7',
+            whiteSpace: 'nowrap',
+            wordWrap: 'none',
+          }}
+        >
           ({layer && `${PREFIXES[layer] || layer}: `}
           {id})
-        </Suffix>
+        </Text>
       )}
 
-      {stateLabels && <State>{stateLabels}</State>}
-    </Wrapper>
+      {stateLabels && (
+        <Text sx={{ fontSize: 1, color: 'grey.7' }}>{stateLabels}</Text>
+      )}
+    </Box>
   )
 }
 

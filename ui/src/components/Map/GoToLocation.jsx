@@ -1,13 +1,10 @@
 import React, { useState, useRef, memo } from 'react'
 import PropTypes from 'prop-types'
-import { FaCrosshairs, FaLocationArrow, FaTimesCircle } from 'react-icons/fa'
+import { Crosshairs, LocationArrow } from '@emotion-icons/fa-solid'
 import mapboxgl from 'mapbox-gl'
+import { Box, Button, Input, Flex, Spinner, Text } from 'theme-ui'
 
-import { Box, Flex } from 'components/Grid'
-import { Button as BaseButton } from 'components/Button'
 import { hasGeolocation } from 'util/dom'
-import styled, { themeGet, keyframes, css } from 'style'
-import { MapControlWrapper } from './styles'
 
 const navigatorOptions = {
   enableHighAccuracy: false,
@@ -15,117 +12,18 @@ const navigatorOptions = {
   timeout: 6000,
 }
 
-const Wrapper = styled(MapControlWrapper)`
-  top: 110px;
-  right: 10px;
-  line-height: 1;
-  background-color: ${({ isOpen }) => (isOpen ? '#eee' : '#fff')};
-  border: none;
-  padding: 7px;
-  z-index: 20000;
-`
-
-const Header = styled.span`
-  margin: 0 0.5em;
-  font-weight: bold;
-  font-size: 0.9em;
-  display: inline-block;
-  vertical-align: top;
-  margin-top: 4px;
-  cursor: pointer;
-`
-
-const Icon = styled(FaCrosshairs)`
-  width: 1em;
-  height: 1em;
-  margin-top: 1px;
-  cursor: pointer;
-`
-
-const spin = keyframes`
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-`
-
-const PendingIcon = styled(Icon)`
-  animation: ${spin} 2s linear infinite;
-`
-
-const ArrowIcon = styled(FaLocationArrow)`
-  width: 1em;
-  height: 1em;
-`
-
-const CloseIcon = styled(FaTimesCircle)`
-  width: 1em;
-  height: 1em;
-  color: ${themeGet('colors.grey.500')};
-  cursor: pointer;
-
-  &:hover {
-    color: ${themeGet('colors.grey.900')};
-  }
-`
-
-const Form = styled(Box).attrs({ p: '0.5rem' })``
-
-const Row = styled(Flex).attrs({
-  justifyContent: 'flex-end',
-  alignItems: 'center',
-})`
-  &:not(:first-of-type) {
-    margin-top: 0.5rem;
-  }
-`
-
-const Input = styled.input.attrs({
-  type: 'number',
-})`
-  width: 120px;
-  font-size: 0.8em;
-  outline: none;
-  margin-left: 0.25em;
-  padding: 0.25em;
-  border-radius: 0.25em;
-
-  border: 1px solid ${themeGet('colors.grey.500')};
-  &:focus {
-    border-color: ${themeGet('colors.primary.500')};
-  }
-
-  ${({ isValid }) =>
-    !isValid &&
-    css`
-      color: #ea1b00;
-      border-color: #ea1b00 !important;
-    `}
-`
-
-const Label = styled.span`
-  color: ${themeGet('colors.grey.700')};
-  font-size: 0.9em;
-`
-
-const Button = styled(BaseButton)`
-  font-size: 0.8em;
-  padding: 0.25em 0.5em;
-  font-weight: normal;
-
-  &:not(:first-of-type) {
-    margin-left: 0.5em;
-  }
-`
-
-const LinkButton = styled(Button)`
-  color: ${themeGet('colors.link')};
-  border: none;
-  background: none;
-`
+const controlCSS = {
+  position: 'absolute',
+  top: '110px',
+  right: '10px',
+  lineHeight: 1,
+  bg: '#FFF',
+  border: 'none',
+  borderRadius: '4px',
+  boxShadow: '0 0 0 2px rgba(0,0,0,0.1)',
+  padding: '7px',
+  zIndex: 2000,
+}
 
 const GoToLocation = ({ map }) => {
   const markerRef = useRef(null)
@@ -192,9 +90,7 @@ const GoToLocation = ({ map }) => {
     }))
   }
 
-  // TODO: spinner and error handling
   const handleGetMyLocation = () => {
-    // set spinner
     setState({
       ...state,
       isPending: true,
@@ -249,69 +145,157 @@ const GoToLocation = ({ map }) => {
     }
   }
 
-  return (
-    <Wrapper isOpen={isOpen}>
-      {isPending ? (
-        <PendingIcon
+  if (isPending) {
+    return (
+      <Box sx={controlCSS}>
+        <Spinner
+          size="1em"
           onClick={handleToggle}
           title="Go to latitude / longitude"
         />
-      ) : (
-        <Icon onClick={handleToggle} title="Go to latitude / longitude" />
-      )}
+      </Box>
+    )
+  }
 
-      {isOpen ? (
-        <>
-          <Header onClick={handleToggle}>Go to latitude / longitude</Header>
-          <CloseIcon onClick={handleToggle} />
-          <Form>
-            <Row>
-              <Label>Latitude:&nbsp;</Label>
-              <Input
-                onChange={handleLatitudeChange}
-                value={lat}
-                isValid={isLatValid}
-              />
-            </Row>
-            <Row>
-              <Label>Longitude:&nbsp;</Label>
-              <Input
-                onChange={handleLongitudeChange}
-                value={lon}
-                isValid={isLonValid}
-              />
-            </Row>
+  if (!isOpen) {
+    return (
+      <Box
+        sx={{
+          ...controlCSS,
+          mt: '1px',
+          cursor: 'pointer',
+          '&:hover': {
+            bg: '#EEE',
+          },
+        }}
+        onClick={handleToggle}
+        title="Go to latitude / longitude"
+      >
+        <Crosshairs size="1em" />
+      </Box>
+    )
+  }
 
-            <Row>
-              {hasGeolocation ? (
-                <LinkButton onClick={handleGetMyLocation}>
-                  <ArrowIcon />
-                  &nbsp; use my location
-                </LinkButton>
-              ) : null}
-              <Button warning onClick={handleClear}>
-                clear
-              </Button>
-              <Button
-                primary
-                disabled={
-                  !isLatValid || !isLonValid || lat === '' || lon === ''
-                }
-                onClick={handleSetLocation}
-              >
-                GO
-              </Button>
-            </Row>
-          </Form>
-        </>
-      ) : null}
-    </Wrapper>
+  const isDisabled = !isLatValid || !isLonValid || lat === '' || lon === ''
+
+  return (
+    <Box
+      sx={{
+        ...controlCSS,
+        zIndex: 20000,
+        border: '1px solid #AAA',
+        boxShadow: '1px 1px 8px #333',
+      }}
+    >
+      <Flex sx={{ alignItems: 'center' }}>
+        <Box sx={{ flex: '0 0 auto' }} onClick={handleToggle}>
+          <Crosshairs size="1em" />
+        </Box>
+
+        <Text
+          onClick={handleToggle}
+          sx={{
+            ml: '0.5em',
+            mr: '1rem',
+            flex: '1 1 auto',
+            fontWeight: 'bold',
+            fontSize: 1,
+            cursor: 'pointer',
+          }}
+        >
+          Go to latitude / longitude
+        </Text>
+
+        <Button
+          variant="close"
+          sx={{ fontSize: '0.8rem', height: '0.9rem', width: '0.9rem' }}
+          onClick={handleToggle}
+        >
+          &#10006;
+        </Button>
+      </Flex>
+
+      <Box sx={{ mt: '1rem' }}>
+        <Flex
+          sx={{
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+          }}
+        >
+          <Text variant="help">Latitude:&nbsp;</Text>
+          <Input
+            type="number"
+            onChange={handleLatitudeChange}
+            value={lat}
+            variant={isLatValid ? 'input-default' : 'input-invalid'}
+            sx={{ width: '120px', flex: '0 0 auto', ml: '1rem' }}
+          />
+        </Flex>
+
+        <Flex
+          sx={{
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            mt: '0.5rem',
+          }}
+        >
+          <Text variant="help">Longitude:&nbsp;</Text>
+          <Input
+            type="number"
+            onChange={handleLongitudeChange}
+            value={lon}
+            variant={isLonValid ? 'input-default' : 'input-invalid'}
+            sx={{ width: '120px', flex: '0 0 auto', ml: '1rem' }}
+          />
+        </Flex>
+
+        <Flex
+          sx={{
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            mt: '0.5rem',
+            fontSize: 1,
+            button: {
+              px: '0.5em',
+              py: '0.25em',
+              '&:not(:first-of-type)': {
+                ml: '0.5rem',
+              },
+            },
+          }}
+        >
+          {hasGeolocation ? (
+            <Button
+              onClick={handleGetMyLocation}
+              sx={{
+                border: 'none',
+                color: 'link',
+                backgroundColor: 'transparent !important',
+                mr: '1rem',
+              }}
+            >
+              <LocationArrow size="1em" />
+              &nbsp; use my location
+            </Button>
+          ) : null}
+          <Button variant="warning" onClick={handleClear}>
+            clear
+          </Button>
+          <Button
+            disabled={isDisabled}
+            variant={isDisabled ? 'disabled' : 'primary'}
+            onClick={handleSetLocation}
+          >
+            GO
+          </Button>
+        </Flex>
+      </Box>
+    </Box>
   )
 }
 
 GoToLocation.propTypes = {
   map: PropTypes.object.isRequired,
-  // setLocation: PropTypes.func.isRequired,
 }
 
 export default memo(GoToLocation)

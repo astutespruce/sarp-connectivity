@@ -1,10 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { Box, Text, Paragraph } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
-import { Section, SectionHeader, List, Note, SecondaryText } from './styles'
 
 import { siteMetadata } from '../../../gatsby-config'
 import {
@@ -56,10 +56,19 @@ const DamDetails = ({
   landcover,
   sizeclasses,
 }) => (
-  <div>
-    <Section>
-      <SectionHeader>Location</SectionHeader>
-      <List>
+  <Box
+    sx={{
+      '&>div+div': {
+        mt: '0.5rem',
+        pt: '0.5rem',
+        borderTop: '1px solid',
+        borderTopColor: 'grey.2',
+      },
+    }}
+  >
+    <Box>
+      <Text sx={{ fontWeight: 'bold' }}>Location</Text>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         <li>
           {formatNumber(lat, 3)}
           &deg; N / {formatNumber(lon, 3)}
@@ -73,25 +82,26 @@ const DamDetails = ({
         {HUC12Name ? (
           <li>
             {HUC12Name} Subwatershed{' '}
-            <SecondaryText>(HUC12: {HUC12})</SecondaryText>
+            <Paragraph variant="help">(HUC12: {HUC12})</Paragraph>
           </li>
         ) : null}
 
         {HUC8Name ? (
           <li>
-            {HUC8Name} Subbasin <SecondaryText>(HUC8: {HUC8})</SecondaryText>
+            {HUC8Name} Subbasin{' '}
+            <Paragraph variant="help">(HUC8: {HUC8})</Paragraph>
           </li>
         ) : null}
 
         {ownertype && ownertype > 0 && (
           <li>Conservation land type: {OWNERTYPE[ownertype]}</li>
         )}
-      </List>
-    </Section>
+      </Box>
+    </Box>
 
-    <Section>
-      <SectionHeader>Construction information</SectionHeader>
-      <List>
+    <Box>
+      <Text sx={{ fontWeight: 'bold' }}>Construction information</Text>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         <li>Barrier type: dam</li>
         {year > 0 ? <li>Constructed completed: {year}</li> : null}
         {height > 0 ? <li>Height: {height} feet</li> : null}
@@ -115,13 +125,13 @@ const DamDetails = ({
             {PASSAGEFACILITY[passagefacility].toLowerCase()}
           </li>
         ) : null}
-      </List>
-    </Section>
+      </Box>
+    </Box>
 
-    <Section>
-      <SectionHeader>Functional network information</SectionHeader>
+    <Box>
+      <Text sx={{ fontWeight: 'bold' }}>Functional network information</Text>
 
-      <List>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         {hasnetwork ? (
           <>
             <li>
@@ -132,7 +142,7 @@ const DamDetails = ({
                 miles
               </b>{' '}
               could be gained by removing this barrier.
-              <List style={{ marginTop: '0.5rem' }}>
+              <Box as="ul" sx={{ mt: '0.5rem' }}>
                 <li>
                   {formatNumber(freeupstreammiles)} free-flowing miles upstream
                   <ul>
@@ -153,7 +163,7 @@ const DamDetails = ({
                     </li>
                   </ul>
                 </li>
-              </List>
+              </Box>
             </li>
             <li>
               <b>{sizeclasses}</b> river size{' '}
@@ -182,21 +192,21 @@ const DamDetails = ({
                   This dam is off-network and has no functional network
                   information.
                 </li>
-                <Note>
+                <Paragraph variant="help" sx={{ mt: '1rem' }}>
                   Not all dams could be correctly snapped to the aquatic network
                   for analysis. Please contact us to report an error or for
                   assistance interpreting these results.
-                </Note>
+                </Paragraph>
               </>
             )}
           </>
         )}
-      </List>
-    </Section>
+      </Box>
+    </Box>
 
-    <Section>
-      <SectionHeader>Species information</SectionHeader>
-      <List>
+    <Box>
+      <Text sx={{ fontWeight: 'bold' }}>Species information</Text>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         {tespp > 0 ? (
           <>
             <li>
@@ -246,20 +256,22 @@ const DamDetails = ({
         )}
 
         {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
-          <Note>
+          <Paragraph variant="help" sx={{ mt: '1rem' }}>
             Note: species information is very incomplete. These species may or
             may not be directly impacted by this barrier.{' '}
             <a href="/sgcn" target="_blank">
               Read more.
             </a>
-          </Note>
+          </Paragraph>
         ) : null}
-      </List>
-    </Section>
+      </Box>
+    </Box>
 
-    <Section>
-      <SectionHeader>Feasibility & Conservation Benefit</SectionHeader>
-      <List>
+    <Box>
+      <Text sx={{ fontWeight: 'bold' }}>
+        Feasibility & Conservation Benefit
+      </Text>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         {recon !== null ? (
           <li>{RECON[recon]}</li>
         ) : (
@@ -292,12 +304,12 @@ const DamDetails = ({
             </a>
           </li>
         )}
-      </List>
-    </Section>
+      </Box>
+    </Box>
 
-    <Section>
-      <SectionHeader>Other information</SectionHeader>
-      <List>
+    <Box>
+      <Text sx={{ fontWeight: 'bold' }}>Other information</Text>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         <li>
           SARP ID: {sarpid} (data version: {dataVersion})
         </li>
@@ -311,9 +323,9 @@ const DamDetails = ({
         ) : null}
 
         {!isEmptyString(source) ? <li>Source: {source}</li> : null}
-      </List>
-    </Section>
-  </div>
+      </Box>
+    </Box>
+  </Box>
 )
 
 DamDetails.propTypes = {

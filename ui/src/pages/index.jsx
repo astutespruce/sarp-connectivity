@@ -1,11 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
+import { Container } from 'theme-ui'
 
 import Layout from 'components/Layout'
-import { Container } from 'components/Grid'
 import { HeaderImage, DividerImage } from 'components/Image'
-import styled from 'style'
 
 import {
   TopSection,
@@ -17,31 +16,26 @@ import {
   CreditsSection,
 } from 'content/home'
 
-const Content = styled(Container).attrs({
-  px: ['1rem', '1rem', 0],
-})``
-
 const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
   <Layout>
     <HeaderImage
-      image={headerImage.childImageSharp.fluid}
+      image={headerImage.childImageSharp.gatsbyImageData}
       height="40vh"
       minHeight="22rem"
-      position="center"
       title="Southeast Aquatic Barrier Prioritization Tool"
       subtitle="Improve aquatic connectivity by prioritizing aquatic barriers for removal using the best
       available data."
     />
 
-    <Content>
+    <Container sx={{ mt: 0 }}>
       <TopSection />
       <InventorySection />
       <ToolSection />
       <ScoringSection />
-    </Content>
+    </Container>
 
     <DividerImage
-      image={dividerImage1.childImageSharp.fluid}
+      image={dividerImage1.childImageSharp.gatsbyImageData}
       height="75vh"
       minHeight="26rem"
       credits={{
@@ -50,12 +44,12 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
       }}
     />
 
-    <Content>
+    <Container sx={{ mt: 0 }}>
       <UseCasesSection />
-    </Content>
+    </Container>
 
     <DividerImage
-      image={dividerImage2.childImageSharp.fluid}
+      image={dividerImage2.childImageSharp.gatsbyImageData}
       height="50vh"
       minHeight="26rem"
       credits={{
@@ -64,10 +58,10 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
       }}
     />
 
-    <Content>
+    <Container sx={{ mt: 0 }}>
       <SARPSection />
       <CreditsSection />
-    </Content>
+    </Container>
   </Layout>
 )
 
@@ -83,9 +77,11 @@ export const pageQuery = graphql`
   query HomePageQuery {
     headerImage: file(relativePath: { eq: "iStock-181890680.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
     dividerImage1: file(
@@ -94,9 +90,11 @@ export const pageQuery = graphql`
       }
     ) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
     dividerImage2: file(
@@ -105,9 +103,11 @@ export const pageQuery = graphql`
       }
     ) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

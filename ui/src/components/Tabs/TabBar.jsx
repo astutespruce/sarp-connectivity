@@ -1,36 +1,56 @@
 import React, { memo } from 'react'
 import PropTypes from 'prop-types'
+import { Button, Flex } from 'theme-ui'
 
-import { Flex } from 'components/Grid'
-import styled, { themeGet } from 'style'
-import Button from './Button'
+const tabCSS = {
+  fontSize: '1rem',
+  cursor: 'pointer',
+  textAlign: 'center',
+  flex: '1 1 auto',
+  p: '0.5rem',
+  color: 'grey.7',
+  bg: 'blue.1',
+  border: 'none',
+  borderRadius: 0,
+}
 
-const Wrapper = styled(Flex).attrs({
-  alignItem: 'center',
-  justifyContent: 'space-between',
-})`
-  background-color: ${themeGet('colors.grey.100')};
-  font-size: 0.9rem;
-  flex: 0 0 auto;
-`
+const activeTabCSS = {
+  ...tabCSS,
+  color: 'text',
+  fontWeight: 'bold',
+  bg: '#FFF',
+  border: 'none',
+}
 
-const TabBar = ({ tabs, activeTab, onChange, ...props }) => {
-  const handleClick = id => {
+const TabBar = ({ tabs, activeTab, onChange }) => {
+  const handleClick = (id) => () => {
     if (id !== activeTab) {
       onChange(id)
     }
   }
+
   return (
-    <Wrapper {...props}>
-      {tabs.map(tab => (
+    <Flex
+      sx={{
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        fontSize: '0.9rem',
+        flex: '0 0 auto',
+        bg: 'grey.1',
+      }}
+    >
+      {tabs.map((tab) => (
         <Button
           key={tab.id}
-          active={activeTab === tab.id}
-          onClick={handleClick}
+          sx={activeTab === tab.id ? activeTabCSS : tabCSS}
+          data={activeTab === tab.id ? 'is-active' : null}
+          onClick={handleClick(tab.id)}
           {...tab}
-        />
+        >
+          {tab.label}
+        </Button>
       ))}
-    </Wrapper>
+    </Flex>
   )
 }
 

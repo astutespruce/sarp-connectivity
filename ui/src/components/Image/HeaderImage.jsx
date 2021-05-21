@@ -1,152 +1,114 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Img from 'gatsby-image'
+import { Box, Container, Heading } from 'theme-ui'
+import { convertToBgImage } from 'gbimage-bridge'
+import BackgroundImage from 'gatsby-background-image'
 
-import { OutboundLink } from 'components/Link'
-import { Text } from 'components/Text'
-import { Container } from 'components/Grid'
-
-import styled, { themeGet } from 'style'
-
-const Wrapper = styled.div`
-  margin-top: 0;
-  height: ${({ height }) => height};
-  min-height: ${({ minHeight }) => minHeight};
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-`
-
-const StyledImage = styled(Img)`
-  position: absolute !important;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  top: 0;
-  img {
-    object-position: center ${({ position }) => position} !important;
-  }
-`
-
-const Overlay = styled.div`
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(
-    to bottom,
-    0,
-    rgba(0, 0, 0, 0),
-    1rem,
-    rgba(0, 0, 0, 0.65),
-    100%,
-    rgba(0, 0, 0, 0)
-  );
-`
-
-const TitleContainer = styled(Container).attrs({
-  py: '1rem',
-  px: '1rem',
-  mt: ['2rem', '3rem'],
-})`
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  text-shadow: 1px 1px 3px #000;
-  border-top: 3px solid #fff;
-  border-bottom: 3px solid #fff;
-`
-
-const Title = styled(Text).attrs({
-  as: 'h1',
-  fontSize: ['3rem'],
-})`
-  color: #fff;
-  margin: 0 0 0.5rem 0;
-`
-
-const Subtitle = styled(Text).attrs({
-  as: 'h3',
-  fontSize: '1.5rem',
-})`
-  font-weight: normal;
-  color: #fff;
-  margin: 0;
-`
-
-const ImageCredits = styled.div`
-  color: ${themeGet('colors.grey.300')};
-  background: rgba(0, 0, 0, 0.7);
-  position: absolute;
-  z-index: 1000;
-  bottom: 0;
-  right: 0;
-  padding: 0.5em;
-  font-size: smaller;
-  text-align: right;
-
-  a {
-    color: ${themeGet('colors.grey.300')};
-  }
-`
+import ImageCredits from './Credits'
 
 const HeaderImage = ({
   image,
   height,
   minHeight,
+  maxHeight,
   title,
   subtitle,
   credits,
-  position,
+  caption,
 }) => (
-  <Wrapper height={height} minHeight={minHeight}>
-    <StyledImage fluid={image} position={position} />
+  <BackgroundImage
+    {...convertToBgImage(image)}
+    style={{
+      height,
+      minHeight,
+      maxHeight: maxHeight || height,
+    }}
+    alt=""
+    preserveStackingContext
+  >
+    <Box
+      sx={{
+        mt: 0,
+        overflow: 'hidden',
+        width: '100%',
+        position: 'absolute',
+        zIndex: 2,
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+      }}
+    >
+      {title && (
+        <Box
+          sx={{
+            background:
+              'linear-gradient(to top, transparent 0, rgba(0,0,0,0.25) 1rem, rgba(0,0,0,0.4) 3rem)',
+            py: ['2rem', '3rem'],
+          }}
+        >
+          <Container
+            sx={{
+              p: '1rem',
+              borderTop: '3px solid #FFF',
+              borderBottom: '3px solid #FFF',
+              textShadow: '1px 1px 3px #000',
+              color: '#FFF',
+              lineHeight: 1.1,
+            }}
+          >
+            <Heading
+              as="h1"
+              sx={{
+                m: 0,
+                fontSize: '3rem',
+              }}
+            >
+              {title}
+            </Heading>
 
-    {title ? (
-      <>
-        <Overlay />
-        <TitleContainer>
-          <Title>{title}</Title>
-          {subtitle ? <Subtitle>{subtitle}</Subtitle> : null}
-        </TitleContainer>
-      </>
-    ) : null}
-
-    {credits ? (
-      <ImageCredits>
-        Photo:&nbsp;
-        {credits.url ? (
-          <OutboundLink to={credits.url}>{credits.author}</OutboundLink>
-        ) : (
-          credits.author
-        )}
-      </ImageCredits>
-    ) : null}
-  </Wrapper>
+            {subtitle && (
+              <Heading
+                as="h2"
+                sx={{
+                  margin: '0.5rem 0 0 0',
+                  fontWeight: 'normal',
+                  fontSize: '1.5rem',
+                }}
+              >
+                {subtitle}
+              </Heading>
+            )}
+          </Container>
+        </Box>
+      )}
+    </Box>
+    {credits ? <ImageCredits caption={caption} {...credits} /> : null}
+  </BackgroundImage>
 )
 
 HeaderImage.propTypes = {
   image: PropTypes.any.isRequired,
   height: PropTypes.string,
   minHeight: PropTypes.string,
+  maxHeight: PropTypes.string,
   title: PropTypes.string,
   subtitle: PropTypes.string,
   credits: PropTypes.shape({
-    url: PropTypes.string,
+    url: PropTypes.string.isRequired,
     author: PropTypes.string.isRequired,
   }),
-  position: PropTypes.string,
+  caption: PropTypes.string,
 }
 
 HeaderImage.defaultProps = {
   height: '60vh',
   minHeight: '20rem',
-  title: '',
-  subtitle: '',
+  maxHeight: null,
+  title: null,
+  subtitle: null,
   credits: null,
-  position: 'center',
+  caption: null,
 }
 
 export default HeaderImage

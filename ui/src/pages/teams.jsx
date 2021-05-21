@@ -1,45 +1,16 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
+import { GatsbyImage } from 'gatsby-plugin-image'
+import { Box, Container, Heading, Paragraph } from 'theme-ui'
 
-import { Text } from 'components/Text'
 import Layout from 'components/Layout'
 import { OutboundLink } from 'components/Link'
-import { HeaderImage, GatsbyImage } from 'components/Image'
+import { HeaderImage } from 'components/Image'
 import { extractNodes, GraphQLArrayPropType } from 'util/graphql'
 import { groupBy } from 'util/data'
-import styled, { themeGet } from 'style'
-import { PageTitle, Section, ImageCredits, PageContainer } from 'content/styles'
+
 import { CONNECTIVITY_TEAMS } from '../../config/constants'
-
-const TeamSection = styled(Section)`
-  &:not(:first-of-type) {
-    padding-top: 3rem;
-    border-top: 1px solid ${themeGet('colors.grey.200')};
-  }
-`
-
-const Subtitle = styled(Text).attrs({
-  as: 'h2',
-  fontSize: ['1.5rem', '2rem'],
-  mb: '1.5rem',
-})``
-
-const Image = styled(GatsbyImage).attrs({
-  height: ['360px', '540px', '600px'],
-  width: '100%',
-})`
-  margin-top: 1rem;
-  margin-bottom: 0.25rem;
-
-  img {
-    object-position: top;
-  }
-`
-
-const Credits = styled(ImageCredits)`
-  text-align: right;
-`
 
 const teamImageCredits = {
   Arkansas: 'Kat Hoenke, Southeast Aquatic Resources Partnership.',
@@ -52,23 +23,37 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
   return (
     <Layout title="Aquatic Connectivity Teams">
       <HeaderImage
-        image={headerImage.childImageSharp.fluid}
+        image={headerImage.childImageSharp.gatsbyImageData}
         height="40vh"
         minHeight="22rem"
-        position="center"
         credits={{
           author: 'Jessica Graham, Southeast Aquatic Resources Partnership.',
         }}
       />
 
-      <PageContainer>
-        <PageTitle>Aquatic Connectivity Teams</PageTitle>
+      <Container>
+        <Heading as="h1">Aquatic Connectivity Teams</Heading>
 
-        <div>
+        <Box sx={{ mt: '2rem' }}>
           {Object.entries(CONNECTIVITY_TEAMS).map(([state, team]) => (
-            <TeamSection key={state}>
-              <Subtitle>{state}</Subtitle>
-              <p>
+            <Box
+              key={state}
+              sx={{
+                '&:not(:first-of-type)': {
+                  mt: '6rem',
+                  pt: '3rem',
+                  borderTop: '1px solid',
+                  borderTopColor: 'grey.2',
+                },
+              }}
+            >
+              <Heading
+                as="h2"
+                sx={{ fontSize: ['1.5rem', '2rem'], mb: '1.5rem' }}
+              >
+                {state}
+              </Heading>
+              <Paragraph>
                 {team.description}
                 <br />
                 <br />
@@ -88,19 +73,45 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
                   {team.contact.name}
                 </a>{' '}
                 ({team.contact.org}).
-              </p>
+              </Paragraph>
               {images[state] ? (
                 <>
-                  <Image fluid={images[state].childImageSharp.fluid} />
+                  <Box
+                    sx={{
+                      overflow: 'hidden',
+                      height: ['360px', '540px', '600px'],
+                      mt: '1rem',
+                      mb: '0.25rem',
+                      img: {
+                        objectPosition: 'center',
+                      },
+                    }}
+                  >
+                    <GatsbyImage
+                      image={images[state].childImageSharp.gatsbyImageData}
+                      style={{ width: '100%', height: '100%' }}
+                    />
+                  </Box>
                   {teamImageCredits[state] ? (
-                    <Credits>Photo: {teamImageCredits[state]}</Credits>
+                    <Box
+                      sx={{ textAlign: 'right', color: 'grey.7', fontSize: 0 }}
+                    >
+                      Photo: {teamImageCredits[state]}
+                    </Box>
                   ) : null}
                 </>
               ) : null}
-            </TeamSection>
+            </Box>
           ))}
-          <TeamSection>
-            <p>
+          <Box
+            sx={{
+              mt: '6rem',
+              pt: '3rem',
+              borderTop: '1px solid',
+              borderTopColor: 'grey.2',
+            }}
+          >
+            <Paragraph>
               For more information about Aquatic Connectivity Teams, please see
               the{' '}
               <OutboundLink to="https://www.southeastaquatics.net/sarps-programs/southeast-aquatic-connectivity-assessment-program-seacap/connectivity-teams">
@@ -108,15 +119,28 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
               </OutboundLink>
               .<br />
               <br />
-            </p>
+            </Paragraph>
 
-            <Image fluid={footerImage.childImageSharp.fluid} />
-            <Credits>
+            <Box
+              sx={{
+                height: ['360px', '540px', '600px'],
+                mt: '1rem',
+                mb: '0.25rem',
+                img: {
+                  objectPosition: 'top',
+                },
+              }}
+            >
+              <GatsbyImage
+                image={footerImage.childImageSharp.gatsbyImageData}
+              />
+            </Box>
+            <Box sx={{ textAlign: 'right', color: 'grey.7', fontSize: 0 }}>
               Photo: Jessica Graham, Southeast Aquatic Resources Partnership.
-            </Credits>
-          </TeamSection>
-        </div>
-      </PageContainer>
+            </Box>
+          </Box>
+        </Box>
+      </Container>
     </Layout>
   )
 }
@@ -133,9 +157,11 @@ export const pageQuery = graphql`
   query TeamsPageQuery {
     headerImage: file(relativePath: { eq: "TN_ACT2.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 3200, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
     imagesSharp: allFile(filter: { relativeDirectory: { eq: "teams" } }) {
@@ -143,18 +169,22 @@ export const pageQuery = graphql`
         node {
           state: name
           childImageSharp {
-            fluid(maxWidth: 3200, quality: 90) {
-              ...GatsbyImageSharpFluid_withWebp
-            }
+            gatsbyImageData(
+              layout: FULL_WIDTH
+              formats: [AUTO, WEBP]
+              placeholder: BLURRED
+            )
           }
         }
       }
     }
     footerImage: file(relativePath: { eq: "IMG_1530.jpg" }) {
       childImageSharp {
-        fluid(maxWidth: 960, quality: 90) {
-          ...GatsbyImageSharpFluid_withWebp
-        }
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
       }
     }
   }

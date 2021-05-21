@@ -1,64 +1,28 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Img from 'gatsby-image'
+import { Box } from 'theme-ui'
+import { GatsbyImage } from 'gatsby-plugin-image'
 
-import styled, { themeGet } from 'style'
+import ImageCredits from './Credits'
 
-const Wrapper = styled.div`
-  margin: 5rem 0;
-  height: ${({ height }) => height};
-  min-height: ${({ minHeight }) => minHeight};
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-`
+const DividerImage = ({ image, height, minHeight, credits, position }) => (
+  <Box
+    sx={{
+      my: '5rem',
+      height,
+      minHeight,
+      width: '100%',
+      overflow: 'hidden',
+      position: 'relative',
+      img: {
+        objectPosition: `center ${position}`,
+      },
+    }}
+  >
+    <GatsbyImage image={image} />
 
-const StyledImage = styled(Img)`
-  position: absolute !important;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  top: 0;
-  img {
-    object-position: center ${({ position }) => position} !important;
-  }
-`
-
-const ImageCredits = styled.div`
-  color: ${themeGet('colors.grey.300')};
-  background: rgba(0, 0, 0, 0.5);
-  position: absolute;
-  z-index: 1000;
-  bottom: 0;
-  right: 0;
-  padding: 0.5em;
-  font-size: smaller;
-  text-align: right;
-
-  a {
-    color: ${themeGet('colors.grey.300')};
-  }
-`
-
-const DividerImage = ({
-  image,
-  height,
-  minHeight,
-  credits,
-  position,
-}) => (
-  <Wrapper height={height} minHeight={minHeight}>
-    <StyledImage fluid={image} position={position} />
-
-    {credits ? (
-      <ImageCredits>
-        Photo:&nbsp;
-        <a href={credits.url} target="_blank" rel="noopener noreferrer">
-          {credits.author}
-        </a>
-      </ImageCredits>
-    ) : null}
-  </Wrapper>
+    {credits ? <ImageCredits {...credits} /> : null}
+  </Box>
 )
 
 DividerImage.propTypes = {

@@ -1,47 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { Text } from 'theme-ui'
 
-import { Text, HelpText as BaseHelpText } from 'components/Text'
-import BaseTabs, {
-  Tab as BaseTab,
-  ActiveButton,
-  InactiveButton,
-} from 'components/Tabs'
-import styled, { themeGet } from 'style'
+import { Tab, Tabs } from 'components/Tabs'
 import ScoresList from './ScoresList'
 import { ScoresPropType } from './proptypes'
-
-const Title = styled(Text).attrs({ fontSize: '1.25rem' })``
-
-const HelpText = styled(BaseHelpText).attrs({
-  fontSize: '0.75rem',
-  mb: '2rem',
-})``
-
-const Tabs = styled(BaseTabs)`
-  ${ActiveButton},
-  ${InactiveButton} {
-    border-left: none !important;
-    border-right: none !important;
-    border-top: none !important;
-    background: #fff !important;
-    padding: 0 0.5rem;
-  }
-
-  ${ActiveButton} {
-    border-bottom: 3px solid ${themeGet('colors.primary.500')} !important;
-  }
-
-  ${InactiveButton} {
-    border-bottom: 3px solid #fff;
-
-    &:hover {
-      border-bottom: 3px solid ${themeGet('colors.grey.500')};
-    }
-  }
-`
-
-const Tab = styled(BaseTab)``
 
 const tabs = [
   { id: 'custom', label: 'Selected Area' },
@@ -56,13 +19,35 @@ const Scores = ({ barrierType, scores }) => {
 
   return (
     <>
-      <Title>Compare to other {barrierType} in the</Title>
-      <Tabs>
+      <Text sx={{ fontSize: '1.25rem' }}>
+        Compare to other {barrierType} in the
+      </Text>
+      <Tabs
+        sx={{
+          '>div:first-of-type': {
+            bg: 'transparent',
+          },
+          '>div:first-of-type + div': {
+            m: '-1rem -1rem 2rem',
+          },
+          button: {
+            borderBottom: '0.25rem solid',
+            borderBottomColor: 'transparent',
+            bg: 'transparent',
+            '&:hover': {
+              borderBottomColor: 'grey.2',
+            },
+          },
+          'button[data=is-active]': {
+            borderBottomColor: 'blue.5',
+          },
+        }}
+      >
         {availableTabs.map(({ id, label }) => (
           <Tab key={id} id={id} label={label}>
-            <HelpText mt="2rem">
+            <Text variant="help" sx={{ my: '2rem', fontSize: 0 }}>
               Tiers range from 20 (lowest) to 1 (highest).
-            </HelpText>
+            </Text>
 
             <ScoresList {...scores[id]} />
           </Tab>

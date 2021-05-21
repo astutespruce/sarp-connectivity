@@ -1,21 +1,23 @@
-const path = require('path')
-/**
- * Enable absolute imports with `/src` as root.
- *
- * See: https://github.com/alampros/gatsby-plugin-resolve-src/issues/4
- */
-exports.onCreateWebpackConfig = ({ actions, stage, loaders }) => {
+const path = require('path-browserify')
+
+exports.onCreateWebpackConfig = ({ actions, stage, loaders, plugins }) => {
   const config = {
     resolve: {
+      alias: {
+        path: require.resolve('path-browserify'),
+      },
+      fallback: {
+        fs: false,
+        // process: false,
+      },
+
+      // Enable absolute imports with `/src` as root.
       modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     },
-    // per https://github.com/gatsbyjs/gatsby/issues/564
-    node: {
-      fs: 'empty',
-    },
+    plugins: [plugins.provide({ process: 'process/browser' })],
   }
 
-  // when building HTML, window is not defined, so Mapbox-GL causes the build to blow up
+  // when building HTML, window is not defined, so mapbox-gl causes the build to blow up
   if (stage === 'build-html') {
     config.module = {
       rules: [

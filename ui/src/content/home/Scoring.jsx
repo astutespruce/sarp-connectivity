@@ -1,63 +1,29 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
-import Img from 'gatsby-image'
-import { Image } from 'rebass/styled-components'
-import { FaExclamationTriangle } from 'react-icons/fa'
+import { GatsbyImage } from 'gatsby-plugin-image'
+import { Box, Flex, Image, Grid, Heading, Paragraph } from 'theme-ui'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
-import { HelpText } from 'components/Text'
 import { Link, OutboundLink } from 'components/Link'
-import { Columns, Column as BaseColumn } from 'components/Grid'
 import { HighlightBox } from 'components/Layout'
-import styled, { themeGet } from 'style'
+
 import NetworkGraphicSVG from 'images/functional_network.svg'
-
-import {
-  Section,
-  Title,
-  NarrowColumn,
-  WideColumn,
-  ImageCredits,
-  Subtitle,
-  StepHeader,
-  StepNumber,
-} from '../styles'
-
-const Column = styled(BaseColumn).attrs({ width: ['100%', '100%', '50%'] })`
-  min-width: 18rem;
-`
-
-const List = styled.ul`
-  li {
-    margin: 0;
-  }
-`
-
-const Note = styled(HelpText).attrs({ mt: '1rem' })``
-
-const WarningIcon = styled(FaExclamationTriangle)`
-  width: 1.5em;
-  height: 1em;
-  color: ${themeGet('colors.highlight.500')};
-  display: inline-block;
-  margin-right: 0.25em;
-`
-
-const NetworkGraphic = styled(Image).attrs({ src: NetworkGraphicSVG })`
-  height: 22rem;
-`
 
 const Scoring = () => {
   const {
     damPhoto: {
-      childImageSharp: { fluid: damPhoto },
+      childImageSharp: { gatsbyImageData: damPhoto },
     },
   } = useStaticQuery(graphql`
     query {
       damPhoto: file(relativePath: { eq: "9272554306_b34bf886f4_z.jpg" }) {
         childImageSharp {
-          fluid(maxWidth: 640, quality: 85) {
-            ...GatsbyImageSharpFluid_withWebp
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 640
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
         }
       }
     }
@@ -65,65 +31,63 @@ const Scoring = () => {
 
   return (
     <>
-      <Section id="prioritize">
-        <Title>How are barriers prioritized for removal?</Title>
-        <StepHeader>
-          <StepNumber>
-            <div>1</div>
-          </StepNumber>
-          <Subtitle>
+      <Box id="prioritize" variant="boxes.section">
+        <Heading as="h2" variant="heading.section">
+          How are barriers prioritized for removal?
+        </Heading>
+        <Flex sx={{ alignItems: 'center' }}>
+          <Box variant="boxes.step">1</Box>
+          <Heading as="h3" sx={{ flex: '1 1 auto', fontWeight: 'normal' }}>
             Aquatic barriers are identified and measured for their potential
             impact on aquatic organisms:
-          </Subtitle>
-        </StepHeader>
-        <Columns>
-          <WideColumn>
-            <p>
+          </Heading>
+        </Flex>
+        <Grid columns={[0, '5fr 3fr']} gap={5} sx={{ mt: '2rem' }}>
+          <Box>
+            <Paragraph>
               Aquatic barriers are natural and human-made structures that impede
               the passage of aquatic organisms through the river network.
               <br />
               <br />
               They include:
-            </p>
-            <List>
+            </Paragraph>
+            <Box as="ul">
               <li>Waterfalls</li>
               <li>Dams</li>
               <li>Road-related barriers</li>
-            </List>
-            <p>
-              <br />
+            </Box>
+            <Paragraph sx={{ mt: '1rem' }}>
               Where possible, human-made barriers have been assessed using field
               reconnaissance to determine their likely impact on aquatic
               organisms as well as their feasibility of removal. You can
               leverage these characteristics to select a smaller number of
               barriers to prioritize.
-            </p>
-          </WideColumn>
-          <NarrowColumn>
-            <Img fluid={damPhoto} alt="Hartwell Dam" />
-            <ImageCredits>
+            </Paragraph>
+          </Box>
+          <Box>
+            <GatsbyImage image={damPhoto} alt="Hartwell Dam" />
+            <Box sx={{ fontSize: 0 }}>
               <OutboundLink to="https://www.flickr.com/photos/savannahcorps/9272554306/">
                 Hartwell Dam, Georgia. Billy Birdwell, U.S. Army Corps of
                 Engineers.
               </OutboundLink>
-            </ImageCredits>
-          </NarrowColumn>
-        </Columns>
-      </Section>
-      <Section>
-        <StepHeader>
-          <StepNumber>
-            <div>2</div>
-          </StepNumber>
-          <Subtitle>
+            </Box>
+          </Box>
+        </Grid>
+      </Box>
+
+      <Box variant="boxes.section">
+        <Flex sx={{ alignItems: 'center' }}>
+          <Box variant="boxes.step">2</Box>
+          <Heading as="h3" sx={{ flex: '1 1 auto', fontWeight: 'normal' }}>
             Aquatic barriers are measured for their impact on the aquatic
             network:
-          </Subtitle>
-        </StepHeader>
+          </Heading>
+        </Flex>
 
-        <Columns>
-          <WideColumn>
-            <p>
+        <Grid columns={[0, '5fr 3fr']} gap={5} sx={{ mt: '2rem' }}>
+          <Box>
+            <Paragraph>
               Functional aquatic networks are the stream and river reaches that
               extend upstream from a barrier or river mouth to either the origin
               of that stream or the next upstream barrier. They form the basis
@@ -145,158 +109,143 @@ const Scoring = () => {
                 Read more about network analysis methods
               </Link>
               .
-            </p>
+            </Paragraph>
 
-            <Note>
-              <WarningIcon />
-              Note: due to limitations of existing data sources for aquatic
-              networks, not all aquatic barriers can be correctly located on the
-              aquatic networks. These barriers are not included in the network
-              connectivity analysis and cannot be prioritized using this tool.
-              However, these data can still be downloaded from this tool and
-              used for offline analysis.
-            </Note>
-          </WideColumn>
+            <Flex sx={{ alignItems: 'flex-start', mt: '2rem' }}>
+              <Box sx={{ flex: '0 0 auto', color: 'highlight', mr: '1rem' }}>
+                <ExclamationTriangle size="1.5rem" />
+              </Box>
+              <Paragraph variant="help" sx={{ flex: '1 1 auto' }}>
+                Note: due to limitations of existing data sources for aquatic
+                networks, not all aquatic barriers can be correctly located on
+                the aquatic networks. These barriers are not included in the
+                network connectivity analysis and cannot be prioritized using
+                this tool. However, these data can still be downloaded from this
+                tool and used for offline analysis.
+              </Paragraph>
+            </Flex>
+          </Box>
 
-          <NarrowColumn display={['none', 'unset']}>
-            <NetworkGraphic />
-          </NarrowColumn>
-        </Columns>
-      </Section>
+          <Box display={['none', 'unset']}>
+            <Image src={NetworkGraphicSVG} sx={{ height: '29rem' }} />
+          </Box>
+        </Grid>
+      </Box>
 
-      <Section>
-        <StepHeader>
-          <StepNumber>
-            <div>3</div>
-          </StepNumber>
-          <Subtitle>
+      <Box variant="boxes.section">
+        <Flex sx={{ alignItems: 'center' }}>
+          <Box variant="boxes.step">3</Box>
+          <Heading as="h3" sx={{ flex: '0 0 auto', fontWeight: 'normal' }}>
             Barriers are characterized using metrics that describe the quality
             and status of their functional networks:
-          </Subtitle>
-        </StepHeader>
+          </Heading>
+        </Flex>
 
-        <Columns>
-          <Column>
-            <HighlightBox icon="length_high" title="Network Length">
-              <p>
-                Network length measures the amount of connected aquatic network
-                length that would be added to the network by removing the
-                barrier. Longer connected networks may provide more overall
-                aquatic habitat for a wider variety of organisms and better
-                support dispersal and migration.
-                <br />
-                <br />
-                <Link to="/metrics/length">Read more...</Link>
-              </p>
-            </HighlightBox>
-          </Column>
-          <Column>
-            <HighlightBox icon="size_classes_high" title="Network Complexity">
-              <p>
-                Network complexity measures the number of unique upstream size
-                classes that would be added to the network by removing the
-                barrier. A barrier that has upstream tributaries of different
-                size classes, such as small streams, small rivers, and large
-                rivers, would contribute a more complex connected aquatic
-                network if it was removed.
-                <br />
-                <Link to="/metrics/complexity">Read more...</Link>
-              </p>
-            </HighlightBox>
-          </Column>
-        </Columns>
+        <Grid columns={[0, 2]} gap={4} sx={{ mt: '2rem' }}>
+          <HighlightBox icon="length_high" title="Network Length">
+            <Paragraph>
+              Network length measures the amount of connected aquatic network
+              length that would be added to the network by removing the barrier.
+              Longer connected networks may provide more overall aquatic habitat
+              for a wider variety of organisms and better support dispersal and
+              migration.
+              <br />
+              <br />
+              <Link to="/metrics/length">Read more...</Link>
+            </Paragraph>
+          </HighlightBox>
 
-        <Columns style={{ marginTop: '2rem' }}>
-          <Column>
-            <HighlightBox icon="sinuosity_high" title="Network Sinuosity">
-              <p>
-                Network sinuosity measures the amount that the path of the river
-                or stream deviates from a straight line. In general, rivers and
-                streams that are more sinuous generally indicate those that have
-                lower alteration from human disturbance such as channelization
-                and diking.
-                <br />
-                <Link to="/metrics/sinuosity">Read more...</Link>
-              </p>
-            </HighlightBox>
-          </Column>
-          <Column>
-            <HighlightBox icon="nat_landcover_high" title="Natural Landcover">
-              <p>
-                Natural landcover measures the amount of area within the
-                floodplain of the upstream aquatic network that is in natural
-                landcover. Rivers and streams that have a greater amount of
-                natural landcover in their floodplain are more likely to have
-                higher quality aquatic habitat.
-                <br />
-                <Link to="/metrics/landcover">Read more...</Link>
-              </p>
-            </HighlightBox>
-          </Column>
-        </Columns>
-      </Section>
+          <HighlightBox icon="size_classes_high" title="Network Complexity">
+            <Paragraph>
+              Network complexity measures the number of unique upstream size
+              classes that would be added to the network by removing the
+              barrier. A barrier that has upstream tributaries of different size
+              classes, such as small streams, small rivers, and large rivers,
+              would contribute a more complex connected aquatic network if it
+              was removed.
+              <br />
+              <Link to="/metrics/complexity">Read more...</Link>
+            </Paragraph>
+          </HighlightBox>
 
-      <Section>
-        <StepHeader>
-          <StepNumber>
-            <div>4</div>
-          </StepNumber>
-          <Subtitle>
+          <HighlightBox icon="sinuosity_high" title="Network Sinuosity">
+            <Paragraph>
+              Network sinuosity measures the amount that the path of the river
+              or stream deviates from a straight line. In general, rivers and
+              streams that are more sinuous generally indicate those that have
+              lower alteration from human disturbance such as channelization and
+              diking.
+              <br />
+              <Link to="/metrics/sinuosity">Read more...</Link>
+            </Paragraph>
+          </HighlightBox>
+
+          <HighlightBox icon="nat_landcover_high" title="Natural Landcover">
+            <Paragraph>
+              Natural landcover measures the amount of area within the
+              floodplain of the upstream aquatic network that is in natural
+              landcover. Rivers and streams that have a greater amount of
+              natural landcover in their floodplain are more likely to have
+              higher quality aquatic habitat.
+              <br />
+              <Link to="/metrics/landcover">Read more...</Link>
+            </Paragraph>
+          </HighlightBox>
+        </Grid>
+      </Box>
+
+      <Box variant="boxes.section">
+        <Flex sx={{ alignItems: 'center' }}>
+          <Box variant="boxes.step">4</Box>
+          <Heading as="h3" sx={{ flex: '1 1 auto', fontWeight: 'normal' }}>
             Metrics are combined and ranked to create three scenarios for
             prioritizing barriers for removal:
-          </Subtitle>
-        </StepHeader>
-        <Columns>
-          <Column>
-            <HighlightBox title="Network Connectivity">
-              <p>
-                Aquatic barriers prioritized according to network connectivity
-                are driven exclusively on the total amount of functional aquatic
-                network that would be reconnected if a given dam was removed.
-                This is driven by the&nbsp;
-                <Link to="/metrics/length">network length</Link> metric. No
-                consideration is given to other characteristics that measure the
-                quality and condition of those networks.
-              </p>
-            </HighlightBox>
-          </Column>
+          </Heading>
+        </Flex>
+        <Grid columns={[0, 2]} gap={4} sx={{ mt: '2rem' }}>
+          <HighlightBox title="Network Connectivity">
+            <Paragraph>
+              Aquatic barriers prioritized according to network connectivity are
+              driven exclusively on the total amount of functional aquatic
+              network that would be reconnected if a given dam was removed. This
+              is driven by the&nbsp;
+              <Link to="/metrics/length">network length</Link> metric. No
+              consideration is given to other characteristics that measure the
+              quality and condition of those networks.
+            </Paragraph>
+          </HighlightBox>
 
-          <Column>
-            <HighlightBox title="Watershed Condition">
-              <p>
-                Aquatic barriers prioritized according to watershed condition
-                are driven by metrics related to the overall quality of the
-                aquatic network that would be reconnected if a given dam was
-                removed. It is based on a combination of&nbsp;
-                <Link to="/metrics/complexity">network complexity</Link>
-                ,&nbsp;
-                <Link to="/metrics/sinuosity">network sinuosity</Link>,
-                and&nbsp;
-                <Link to="/metrics/landcover">
-                  floodplain natural landcover
-                </Link>
-                . Each of these metrics is weighted equally.
-              </p>
-            </HighlightBox>
-          </Column>
-        </Columns>
+          <HighlightBox title="Watershed Condition">
+            <Paragraph>
+              Aquatic barriers prioritized according to watershed condition are
+              driven by metrics related to the overall quality of the aquatic
+              network that would be reconnected if a given dam was removed. It
+              is based on a combination of&nbsp;
+              <Link to="/metrics/complexity">network complexity</Link>
+              ,&nbsp;
+              <Link to="/metrics/sinuosity">network sinuosity</Link>, and&nbsp;
+              <Link to="/metrics/landcover">floodplain natural landcover</Link>.
+              Each of these metrics is weighted equally.
+            </Paragraph>
+          </HighlightBox>
+        </Grid>
 
         <HighlightBox
           title="Network Connectivity + Watershed Condition"
           mt="2rem"
         >
-          <p>
+          <Paragraph>
             Aquatic barriers prioritized according to combined network
             connectivity and watershed condition are driven by both the length
             and quality of the aquatic networks that would be reconnected if
             these barriers are removed. <b>Network connectivity</b> and{' '}
             <b>watershed condition</b> are weighted equally.
-          </p>
+          </Paragraph>
         </HighlightBox>
-      </Section>
+      </Box>
 
-      <Section>
-        <p>
+      <Box variant="boxes.section">
+        <Paragraph>
           To reduce the impact of outliers, such as very long functional
           networks, barriers are scored based on their relative rank within the
           overall range of unique values for a given metric. Many barriers have
@@ -313,18 +262,23 @@ const Scoring = () => {
           assigned Tier 20 (bottom tier).
           <br />
           <br />
-        </p>
-        <Note>
-          <WarningIcon />
-          Note: tiers are based on position within the range of observed scores
-          for a given area. They are <i>not</i> based on the frequency of
-          scores, such as percentiles, and therefore may have a highly uneven
-          number of barriers per tier depending on the area. In general, there
-          are fewer barriers in the top tiers than there are in the bottom
-          tiers. This is largely because many barriers share the same value for
-          a given metric.
-        </Note>
-      </Section>
+        </Paragraph>
+
+        <Flex sx={{ alignItems: 'flex-start', mt: '2rem' }}>
+          <Box sx={{ flex: '0 0 auto', color: 'highlight', mr: '1rem' }}>
+            <ExclamationTriangle size="1.5rem" />
+          </Box>
+          <Paragraph variant="help" sx={{ flex: '1 1 auto' }}>
+            Note: tiers are based on position within the range of observed
+            scores for a given area. They are <i>not</i> based on the frequency
+            of scores, such as percentiles, and therefore may have a highly
+            uneven number of barriers per tier depending on the area. In
+            general, there are fewer barriers in the top tiers than there are in
+            the bottom tiers. This is largely because many barriers share the
+            same value for a given metric.
+          </Paragraph>
+        </Flex>
+      </Box>
     </>
   )
 }

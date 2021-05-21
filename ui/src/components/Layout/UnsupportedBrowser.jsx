@@ -1,34 +1,22 @@
 import React from 'react'
-import { Container, Flex, Box } from 'components/Grid'
-import { FaExclamationTriangle } from 'react-icons/fa'
-
-import styled from 'style'
-
-const IconHeader = styled.h1`
-  text-align: center;
-`
-
-const StyledIcon = styled(FaExclamationTriangle)`
-  height: 7rem;
-  width: 7rem;
-  margin-right: 1rem;
-`
+import { Container, Flex, Box, Heading, Paragraph } from 'theme-ui'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 const UnsupportedBrowser = () => (
   <Container pt="3rem">
     <Flex>
-      <IconHeader>
-        <StyledIcon />
-      </IconHeader>
-      <Box>
-        <h1>
+      <Heading as="h1" sx={{ flex: '0 0 auto' }}>
+        <ExclamationTriangle size="5rem" style={{ marginRight: '1rem' }} />
+      </Heading>
+      <Box sx={{ flex: '1 1 auto' }}>
+        <Heading as="h2">
           Unfortunately, you are using an unsupported version of Internet
           Explorer.
-        </h1>
-        <p>
+        </Heading>
+        <Paragraph>
           Please use a modern browser such as Google Chrome, Firefox, or
           Microsoft Edge.
-        </p>
+        </Paragraph>
       </Box>
     </Flex>
   </Container>

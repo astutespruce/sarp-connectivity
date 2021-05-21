@@ -2,6 +2,9 @@
 require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`,
 })
+
+const theme = require('./src/theme')
+
 const { version, date } = require('./package.json')
 
 const defaultHost = `https://connectivity.sarpdata.com`
@@ -26,6 +29,12 @@ module.exports = {
       formID: process.env.GATSBY_MAILCHIMP_FORM_ID,
     },
   },
+  flags: {
+    FAST_DEV: true,
+    DEV_SSR: false, // appears to throw '"filePath" is not allowed to be empty' when true
+    PARALLEL_SOURCING: process.env.NODE_ENV !== `production`, // uses a lot of memory on server
+    PRESERVE_WEBPACK_CACHE: process.env.NODE_ENV === `production`,
+  },
   plugins: [
     {
       resolve: `gatsby-plugin-google-gtag`,
@@ -40,7 +49,15 @@ module.exports = {
         },
       },
     },
+    {
+      resolve: `gatsby-plugin-theme-ui`,
+      options: {
+        injectColorFlashScript: false,
+        preset: theme,
+      },
+    },
     `gatsby-plugin-react-helmet`,
+    `gatsby-plugin-image`,
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
     {
@@ -62,19 +79,6 @@ module.exports = {
       options: {
         // name the top-level type after the filename
         typeName: ({ node }) => `${node.name}Json`,
-      },
-    },
-    {
-      resolve: `gatsby-plugin-styled-components`,
-      options: {
-        displayName: process.env.NODE_ENV !== `production`,
-        fileName: false,
-      },
-    },
-    {
-      resolve: `gatsby-plugin-typography`,
-      options: {
-        pathToConfigModule: `./config/typography.js`,
       },
     },
     `gatsby-plugin-catch-links`,

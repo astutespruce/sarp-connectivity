@@ -1,25 +1,11 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { FaSearchLocation } from 'react-icons/fa'
-
-import { PrimaryButton } from 'components/Button'
-import styled from 'style'
-
-const Button = styled(PrimaryButton)`
-  font-size: 1.1em;
-  display: flex;
-  align-items: center;
-`
-
-export const SearchIcon = styled(FaSearchLocation)`
-  height: 1.2em;
-  width: 1.2em;
-  margin-right: 0.25em;
-`
+import { SearchLocation } from '@emotion-icons/fa-solid'
+import { Button } from 'theme-ui'
 
 const SubmitButton = ({ label, disabled, onClick }) => (
   <Button onClick={onClick} disabled={disabled}>
-    <SearchIcon />
+    <SearchLocation size="1.2em" style={{ marginRight: '0.25em' }} />
     {label}
   </Button>
 )

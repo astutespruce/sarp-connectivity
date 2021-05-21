@@ -1,95 +1,8 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
-
-import { Text, HelpText } from 'components/Text'
-import { Flex, Box } from 'components/Grid'
-import styled, { themeGet } from 'style'
+import { Box, Flex, Text } from 'theme-ui'
 
 import Circle from './Circle'
-import { MapControlWrapper } from '../styles'
-
-const Wrapper = styled(MapControlWrapper)`
-  z-index: 1000;
-  right: 10px;
-  bottom: 24px;
-  max-width: 12rem;
-  padding: 10px;
-  box-shadow: 1px 1px 8px #333;
-  cursor: pointer;
-
-  &:hover {
-    background: #fff;
-  }
-`
-
-const Title = styled(Text).attrs({
-  as: 'h5',
-  fontSize: '1rem',
-})`
-  line-height: 1.2;
-  margin-bottom: 0.25em;
-`
-
-const PatchGroup = styled(Box)`
-  &:not(:first-of-type) {
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid ${themeGet('colors.grey.100')};
-  }
-`
-
-const PatchGroupLabel = styled(Text).attrs({
-  mt: '0.5rem',
-  mb: '0.5rem',
-  fontWeight: 'bold',
-  fontSize: 'small',
-  lineHeight: 1.2,
-})``
-
-const Patch = styled.div`
-  width: 20px;
-  height: 1em;
-  flex: 0 0 auto;
-  border-color: ${themeGet('colors.grey.500')};
-  border-width: 0 1px 1px 1px;
-  border-style: solid;
-`
-
-const Label = styled.div`
-  font-size: 0.75rem;
-  margin-left: 0.5rem;
-  line-height: 1;
-  color: ${themeGet('colors.grey.700')};
-`
-
-const Divider = styled(Box).attrs({ mt: '0.5rem' })`
-  border-top: 1px solid ${themeGet('colors.grey.100')};
-`
-
-const CircleRow = styled(Flex).attrs({ alignItems: 'flex-start', py: '0.5em' })`
-  &:not(:first-of-type) {
-    border-top: 1px solid ${themeGet('colors.grey.100')};
-  }
-`
-
-const PatchRow = styled(Flex)`
-  &:first-of-type ${Patch} {
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
-    border-top-width: 1px;
-  }
-
-  &:last-of-type ${Patch} {
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
-  }
-`
-
-const Footnote = styled(HelpText)`
-  font-size: 0.75rem;
-  line-height: 1.2;
-  margin-top: 0.5rem;
-`
 
 const Legend = ({ title, patches, circles, footnote }) => {
   const [isOpen, setIsOpen] = useState(true)
@@ -103,48 +16,166 @@ const Legend = ({ title, patches, circles, footnote }) => {
   }
 
   return (
-    <Wrapper onClick={toggleOpen}>
+    <Box
+      title={isOpen ? 'Click to hide legend' : 'Show legend'}
+      onClick={toggleOpen}
+      sx={{
+        position: 'absolute',
+        zIndex: 1000,
+        right: '10px',
+        bottom: '24px',
+        maxWidth: '12rem',
+        p: '10px',
+        bg: '#FFF',
+        cursor: 'pointer',
+        border: '1px solid #AAA',
+        borderRadius: '4px',
+        boxShadow: '1px 1px 8px #333',
+      }}
+    >
       {isOpen ? (
         <>
-          <Title>{title}</Title>
+          <Text sx={{ mb: '0.25em', fontSize: 2, fontWeight: 'bold' }}>
+            {title}
+          </Text>
 
-          {patches && (
+          {patches && patches.length > 0 ? (
             <div>
               {patches.map(({ id, label, entries }) => (
-                <PatchGroup key={id}>
-                  {label ? <PatchGroupLabel>{label}</PatchGroupLabel> : null}
+                <Box
+                  key={id}
+                  sx={{
+                    '&:not(:first-of-type)': {
+                      mt: '0.5rem',
+                      pt: '0.5rem',
+                      borderTop: '1px solid',
+                      borderTopColor: 'grey.1',
+                    },
+                  }}
+                >
+                  {label ? (
+                    <Text
+                      sx={{
+                        my: '0.5rem',
+                        fontWeight: 'bold',
+                        fontSize: 'small',
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {label}
+                    </Text>
+                  ) : null}
                   <div>
                     {entries.map(({ color, label: patchLabel }) => (
-                      <PatchRow key={color}>
-                        <Patch style={{ backgroundColor: color }} />
-                        <Label>{patchLabel}</Label>
-                      </PatchRow>
+                      <Flex
+                        key={color}
+                        sx={{
+                          '&:first-of-type > div': {
+                            borderTopLeftRadius: '3px',
+                            borderTopRightRadius: '3px',
+                            borderTopWidth: '1px',
+                          },
+                          '&:last-of-type > div': {
+                            borderBottomLeftRadius: '3px',
+                            borderBottomRightRadius: '3px',
+                          },
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: '20px',
+                            height: '1em',
+                            flex: '0 0 auto',
+                            borderWidth: '0 1px 1px 1px',
+                            borderStyle: 'solid',
+                            borderColor: 'grey.5',
+
+                            bg: color,
+                          }}
+                        />
+                        <Text
+                          sx={{
+                            fontSize: '0.75rem',
+                            ml: '0.5rem',
+                            lineHeight: 1,
+                            color: 'grey.7',
+                          }}
+                        >
+                          {patchLabel}
+                        </Text>
+                      </Flex>
                     ))}
                   </div>
-                </PatchGroup>
+                </Box>
               ))}
             </div>
-          )}
+          ) : null}
 
-          {patches && circles && <Divider />}
+          {patches && patches.length > 0 && circles && circles.length > 0 ? (
+            <Box
+              sx={{
+                mt: '0.5rem',
+                borderTop: '1px solid',
+                borderTopColor: 'grey.1',
+              }}
+            />
+          ) : null}
 
-          {circles && (
+          {circles && circles.length > 0 ? (
             <div>
               {circles.map((point) => (
-                <CircleRow key={point.color}>
+                <Flex
+                  key={point.color}
+                  sx={{
+                    alignItems: 'flex-start',
+                    py: '0.5em',
+                    '&:not(:first-of-type)': {
+                      borderTop: '1px solid',
+                      borderTopColor: 'grey.1',
+                    },
+                  }}
+                >
                   <Circle {...point} />
-                  <Label>{point.label}</Label>
-                </CircleRow>
+                  <Text
+                    sx={{
+                      fontSize: '0.75rem',
+                      ml: '0.5rem',
+                      lineHeight: 1,
+                      color: 'grey.7',
+                    }}
+                  >
+                    {point.label}
+                  </Text>
+                </Flex>
               ))}
             </div>
-          )}
+          ) : null}
 
-          {footnote && <Footnote>{footnote}</Footnote>}
+          {footnote ? (
+            <Text
+              variant="help"
+              sx={{
+                mt: '0.5rem',
+                pt: '0.5rem',
+                lineHeight: 1.2,
+                borderTop: '1px solid',
+                borderTopColor: 'grey.1',
+                fontSize: 0,
+              }}
+            >
+              {footnote}
+            </Text>
+          ) : null}
         </>
       ) : (
-        <Title title="click to open legend">Legend</Title>
+        <Text
+          sx={{ fontSize: 1, fontWeight: 'bold' }}
+          title="click to open legend"
+        >
+          Legend
+        </Text>
       )}
-    </Wrapper>
+    </Box>
   )
 }
 

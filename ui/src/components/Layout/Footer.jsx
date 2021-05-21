@@ -1,43 +1,31 @@
 import React from 'react'
 
-import { Flex } from 'components/Grid'
-import {
-  OutboundLink as BaseOutboundLink,
-  Link as BaseLink,
-} from 'components/Link'
-import styled, { themeGet } from 'style'
+import { Box, Flex } from 'theme-ui'
+import { OutboundLink, Link } from 'components/Link'
 
 import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion, date: dataDate } = siteMetadata
 
-const Wrapper = styled(Flex).attrs({
-  as: 'footer',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  py: '0.25rem',
-  px: '0.5rem',
-})`
-  background-color: ${themeGet('colors.primary.900')};
-  color: #fff;
-  flex: 0 0 auto;
-  border-top: ${themeGet('colors.grey.900')};
-  font-size: 0.7rem;
-`
-
-const OutboundLink = styled(BaseOutboundLink)`
-  color: #fff !important;
-  text-decoration: none;
-`
-
-const InternalLink = styled(BaseLink)`
-  color: #fff !important;
-  text-decoration: none;
-`
-
 const Footer = () => (
-  <Wrapper>
-    <div>
+  <Flex
+    as="footer"
+    sx={{
+      flex: '0 0 auto',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      py: '0.25rem',
+      px: '0.5rem',
+      color: '#FFF',
+      bg: 'blue.9',
+      fontSize: '0.7rem',
+      a: {
+        textDecoration: 'none',
+        color: '#FFF',
+      },
+    }}
+  >
+    <Box>
       <OutboundLink to="https://southeastaquatics.net/">
         Southeast Aquatic Resources Partnership
       </OutboundLink>
@@ -46,14 +34,14 @@ const Footer = () => (
         Contact Us
       </OutboundLink>
       &nbsp;&nbsp;|&nbsp;&nbsp;
-      <InternalLink to="/terms">Terms of Use</InternalLink>
-    </div>
+      <Link to="/terms">Terms of Use</Link>
+    </Box>
 
-    <div>
+    <Box>
       Data version: {dataVersion} ({dataDate})
-    </div>
+    </Box>
 
-    <div>
+    <Box>
       Created by the&nbsp;
       <OutboundLink to="https://consbio.org">
         Conservation Biology Institute
@@ -62,8 +50,8 @@ const Footer = () => (
       <OutboundLink to="https://astutespruce.com">
         Astute Spruce, LLC
       </OutboundLink>
-    </div>
-  </Wrapper>
+    </Box>
+  </Flex>
 )
 
 export default Footer

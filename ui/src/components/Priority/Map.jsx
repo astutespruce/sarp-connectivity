@@ -396,14 +396,11 @@ const PriorityMap = ({
 
   // Debounce updates to the filter to prevent frequent redraws
   // which have bad performance with high numbers of dams
-  const { callback: debouncedSetRankFilter } = useDebouncedCallback(
-    (field, threshold) => {
-      const { current: map } = mapRef
-      map.setFilter(topRank.id, ['<=', field, threshold])
-      map.setFilter(lowerRank.id, ['>', field, threshold])
-    },
-    200
-  )
+  const debouncedSetRankFilter = useDebouncedCallback((field, threshold) => {
+    const { current: map } = mapRef
+    map.setFilter(topRank.id, ['<=', field, threshold])
+    map.setFilter(lowerRank.id, ['>', field, threshold])
+  }, 200)
 
   // If map allows unit selection, make layers visible for the activeLayer, so that user can select from them
   // otherwise just highlight those currently selected

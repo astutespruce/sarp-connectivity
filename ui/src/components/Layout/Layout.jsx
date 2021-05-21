@@ -1,27 +1,16 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { useErrorBoundary } from 'use-error-boundary'
+import { Box, Flex } from 'theme-ui'
 
-import SEO from 'components/SEO'
-import { Flex } from 'components/Grid'
-import styled, { ThemeProvider, theme } from 'style'
 import { isUnsupported, hasWindow } from 'util/dom'
 import UnsupportedBrowser from './UnsupportedBrowser'
 import Header from './Header'
 import Footer from './Footer'
 import PageError from './PageError'
+import SEO from './SEO'
 
 import { siteMetadata } from '../../../gatsby-config'
-
-const Wrapper = styled(Flex).attrs({ flexDirection: 'column' })`
-  height: 100%;
-`
-
-const Content = styled.div`
-  flex: 1 1 auto;
-  overflow-y: auto;
-  height: 100%;
-`
 
 const Layout = ({ children, title }) => {
   const { ErrorBoundary, didCatch } = useErrorBoundary({
@@ -40,28 +29,26 @@ const Layout = ({ children, title }) => {
   })
 
   return (
-    <ThemeProvider theme={theme}>
-      <Wrapper>
-        <SEO title={title || siteMetadata.title} />
-        <Header />
+    <Flex sx={{ height: '100%', flexDirection: 'column' }}>
+      <SEO title={title || siteMetadata.title} />
+      <Header />
 
-        <Content>
-          {isUnsupported ? (
-            <UnsupportedBrowser />
-          ) : (
-            <>
-              {didCatch ? (
-                <PageError />
-              ) : (
-                <ErrorBoundary>{children}</ErrorBoundary>
-              )}
-            </>
-          )}
-        </Content>
+      <Box sx={{ flex: '1 1 auto', overflowY: 'auto', height: '100%' }}>
+        {isUnsupported ? (
+          <UnsupportedBrowser />
+        ) : (
+          <Box sx={{ flex: '1 1 auto', overflowY: 'auto', height: '100%' }}>
+            {didCatch ? (
+              <PageError />
+            ) : (
+              <ErrorBoundary>{children}</ErrorBoundary>
+            )}
+          </Box>
+        )}
+      </Box>
 
-        <Footer />
-      </Wrapper>
-    </ThemeProvider>
+      <Footer />
+    </Flex>
   )
 }
 

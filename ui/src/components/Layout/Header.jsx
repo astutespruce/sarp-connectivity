@@ -1,145 +1,123 @@
 import React from 'react'
-import { FaChartBar, FaSearchLocation, FaDownload } from 'react-icons/fa'
-import { Image } from 'rebass/styled-components'
+import { ChartBar, SearchLocation, Download } from '@emotion-icons/fa-solid'
+import { Box, Flex, Image, Text, Heading } from 'theme-ui'
 
 import { Link } from 'components/Link'
-
-import { Text } from 'components/Text'
-import { Box, Flex } from 'components/Grid'
-import styled, { css, themeGet } from 'style'
 import LogoSVG from 'images/logo.svg'
 import { hasWindow } from 'util/dom'
 import { siteMetadata } from '../../../gatsby-config'
 
-const Wrapper = styled(Flex).attrs({
-  as: 'header',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  py: '0.3rem',
-  pl: '0.15rem',
-  pr: '1rem',
-})`
-  background-color: ${themeGet('colors.primary.900')};
-  flex: 0 0 auto;
-  border-bottom: 4px solid ${themeGet('colors.primary.800')};
-`
+const navLinkCSS = {
+  textDecoration: 'none',
+  py: '0.25rem',
+  px: '0.5rem',
+  display: 'block',
+  color: '#fff !important',
+  borderRadius: '6px',
+  '&:hover': {
+    bg: 'blue.8',
+  },
+}
 
-const SiteLogo = styled(Image).attrs({ src: LogoSVG })`
-  fill: #fff;
-  margin-right: 0.25rem;
-  width: 2rem;
-  height: 2rem;
-`
+const activeNavLinkCSS = {
+  ...navLinkCSS,
+  bg: 'primary',
+}
 
-const Title = styled(Text).attrs({
-  as: 'h1',
-  fontSize: '1.5rem',
-})`
-  margin: 0;
-  flex: 0 0 auto;
-  line-height: 1;
-
-  & * {
-    text-decoration: none;
-    color: #fff !important;
-  }
-`
-
-const NavBar = styled(Flex).attrs({
-  alignItems: 'center',
-})`
-  font-size: 1rem;
-
-  .nav-active {
-    background-color: ${themeGet('colors.primary.500')};
-  }
-`
-
-const NavLink = styled(Link)`
-  text-decoration: none;
-  padding: 0.25rem 0.5rem;
-  display: block;
-  color: #fff !important;
-  border-radius: 6px;
-
-  &:hover {
-    background-color: ${themeGet('colors.primary.800')};
-  }
-
-  ${({ active }) =>
-    active &&
-    css`
-      background-color: ${themeGet('colors.primary.500')};
-    `}
-`
-
-const NavItem = styled(Flex).attrs({ alignItems: 'center' })``
-
-const SummarizeIcon = styled(FaChartBar)`
-  width: 1em;
-  height: 1em;
-  margin-right: 0.25em;
-`
-
-const PrioritizeIcon = styled(FaSearchLocation)`
-  width: 1em;
-  height: 1em;
-  margin-right: 0.25em;
-`
-
-const DownloadIcon = styled(FaDownload)`
-  height: 1em;
-  width: 1em;
-  margin-right: 0.25em;
-`
-
-const isActivePath = path =>
+const isActivePath = (path) =>
   hasWindow && window.location.href.search(path) !== -1
 
 const Header = () => {
   const { title, shortTitle } = siteMetadata
   return (
-    <Wrapper as="header">
-      <Title>
+    <Flex
+      as="header"
+      sx={{
+        flex: '0 0 auto',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        py: '0.3rem',
+        pl: '0.15rem',
+        pr: '1rem',
+        bg: 'blue.9',
+        borderBottom: '4px solid',
+        borderBottomColor: 'blue.8',
+      }}
+    >
+      <Heading
+        as="h1"
+        sx={{
+          flex: '0 0 auto',
+          m: 0,
+          lineHeight: 1,
+          fontSize: '1.5rem',
+          'a, a:hover': {
+            textDecoration: 'none',
+            color: '#fff',
+          },
+        }}
+      >
         <Link to="/">
-          <Flex alignItems="center" flexWrap="wrap">
-            <Box mr="0.5rem">
-              <SiteLogo />
+          <Flex
+            sx={{
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Box sx={{ mr: '0.5rem' }}>
+              <Image
+                src={LogoSVG}
+                sx={{
+                  fill: '#fff',
+                  mr: '0.25rem',
+                  width: '2rem',
+                  height: '2rem',
+                }}
+              />
             </Box>
-            <Text display={['none', 'none', 'unset']}>{title}</Text>
-            <Text display={['unset', 'unset', 'none']}>{shortTitle}</Text>
+            <Text sx={{ display: ['none', 'none', 'unset'] }}>{title}</Text>
+            <Text sx={{ display: ['unset', 'unset', 'none'] }}>
+              {shortTitle}
+            </Text>
           </Flex>
         </Link>
-      </Title>
-      <NavBar>
-        <NavLink to="/summary" activeClassName="nav-active">
-          <NavItem>
-            <SummarizeIcon />
+      </Heading>
+      <Flex
+        sx={{
+          alignItems: 'center',
+          fontSize: '1rem',
+        }}
+      >
+        <Link
+          to="/summary"
+          sx={isActivePath('/summary') ? activeNavLinkCSS : navLinkCSS}
+        >
+          <Flex sx={{ alignItems: 'center' }}>
+            <ChartBar size="1em" style={{ marginRight: '0.25em' }} />
             <div>Summarize</div>
-          </NavItem>
-        </NavLink>
-        <NavLink
+          </Flex>
+        </Link>
+        <Link
           to="/priority"
           activeClassName="nav-active"
-          active={isActivePath('/priority') ? 1 : 0}
+          sx={isActivePath('/priority') ? activeNavLinkCSS : navLinkCSS}
         >
-          <NavItem>
-            <PrioritizeIcon />
+          <Flex sx={{ alignItems: 'center' }}>
+            <SearchLocation size="1em" style={{ marginRight: '0.25em' }} />
             <div>Prioritize</div>
-          </NavItem>
-        </NavLink>
-        <NavLink
+          </Flex>
+        </Link>
+        <Link
           to="/download"
-          activeClassName="nav-active"
-          active={isActivePath('/download') ? 1 : 0}
+          sx={isActivePath('/download') ? activeNavLinkCSS : navLinkCSS}
         >
-          <NavItem>
-            <DownloadIcon />
+          <Flex sx={{ alignItems: 'center' }}>
+            <Download size="1em" style={{ marginRight: '0.25em' }} />
             <div>Download</div>
-          </NavItem>
-        </NavLink>
-      </NavBar>
-    </Wrapper>
+          </Flex>
+        </Link>
+      </Flex>
+    </Flex>
   )
 }
 

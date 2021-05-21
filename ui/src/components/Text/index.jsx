@@ -1,22 +1,9 @@
-import { Text as BaseText } from 'rebass/styled-components'
-import { display, fontSize, margin } from 'styled-system'
-
-import styled, { themeGet } from 'style'
+// FIXME: remove
+import { Text } from 'theme-ui'
 
 import ExpandableParagraph from './ExpandableParagraph'
 
-// annotate Text so that it can be shown or hidden based on viewport size
-// WARNING: we had to mix in props previously available from rebass: fontSize, margin
-// watch for others that are no longer supported
-const Text = styled(BaseText)`
-  ${display}
-  ${fontSize}
-  ${margin}
-`
+// FIXME: remove
+const HelpText = Text
 
-const HelpText = styled(Text)`
-  line-height: 1.4;
-  color: ${themeGet('colors.grey.700')};
-`
-
-export { Text, HelpText, ExpandableParagraph }
+export { ExpandableParagraph, Text, HelpText }

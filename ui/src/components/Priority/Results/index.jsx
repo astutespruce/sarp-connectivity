@@ -1,55 +1,17 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { Box, Flex, Heading, Paragraph, Text } from 'theme-ui'
 
-import { Flex } from 'components/Grid'
-import { HelpText } from 'components/Text'
 import { useBarrierType } from 'components/Data'
 import { Downloader } from 'components/Download'
 import { countBy } from 'util/data'
 import { formatNumber, capitalize } from 'util/format'
-import styled, { themeGet } from 'style'
 
 import Histogram from './Histogram'
 import BackLink from '../BackLink'
 import StartOverButton from '../StartOverButton'
-import { Wrapper, Header, Footer, Title, Content } from '../styles'
 
 import { SCENARIOS } from '../../../../config/constants'
-
-const Count = styled.div`
-  color: ${themeGet('colors.grey.700')};
-`
-
-const InputContainer = styled(Flex).attrs({
-  alignItems: 'center',
-  my: '1rem',
-  mr: '1rem',
-})``
-
-const Input = styled.input.attrs({
-  type: 'range',
-  min: '1',
-  max: '20',
-  step: '1',
-})`
-  flex: 1 1 auto;
-  margin: 0 1rem;
-`
-
-const InputLabel = styled.div`
-  font-size: 0.8rem;
-  color: ${themeGet('colors.grey.700')};
-  flex: 0 0 auto;
-`
-
-const Section = styled.div`
-  &:not(:first-of-type) {
-    margin-top: 2rem;
-  }
-`
-const SectionHeader = styled.div`
-  font-weight: bold;
-`
 
 const Results = ({
   config,
@@ -79,57 +41,103 @@ const Results = ({
   }
 
   return (
-    <Wrapper>
-      <Header>
+    <Flex sx={{ flexDirection: 'column', height: '100%' }}>
+      <Box
+        sx={{
+          flex: '0 0 auto',
+          py: '1rem',
+          pr: '0.5rem',
+          pl: '1rem',
+          borderBottom: '1px solid #DDD',
+          bg: '#f6f6f2',
+        }}
+      >
         <BackLink label="modify filters" onClick={onBack} />
-        <Title>Explore results</Title>
-        <Count>
+        <Heading as="h3">Explore results</Heading>
+        <Text sx={{ color: 'grey.7' }}>
           {formatNumber(rankData.length, 0)} prioritized {barrierType}
-        </Count>
-      </Header>
+        </Text>
+      </Box>
 
-      <Content>
-        <HelpText mb="2rem">
+      <Box
+        sx={{
+          flex: '1 1 auto',
+          p: '1rem',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+        }}
+      >
+        <Paragraph variant="help">
           {capitalize(barrierType)} are binned into tiers based on where they
           fall within the value range of the <b>{scenarioLabel}</b> score. Tier
           1 includes {barrierType} that fall within the top 5% of values for
           this score, and tier 20 includes {barrierType} that fall within the
           lowest 5% of values for this score.
-        </HelpText>
+        </Paragraph>
 
-        <Section>
-          <SectionHeader>
+        <Box sx={{ mt: '2rem' }}>
+          <Text sx={{ fontWeight: 'bold' }}>
             Choose top-ranked {barrierType} for display on map
-          </SectionHeader>
+          </Text>
 
-          <InputContainer>
-            <InputLabel>Lowest tier</InputLabel>
-            <Input
+          <Flex
+            sx={{
+              alignItems: 'center',
+              my: '1rem',
+              mr: '1rem',
+              span: {
+                fontSize: 0,
+                color: 'grey.7',
+                flex: '0 0 auto',
+              },
+            }}
+          >
+            <Text>Lowest tier</Text>
+            <input
+              type="range"
+              min="1"
+              max="20"
+              step="1"
               value={21 - tierThreshold}
               onChange={handleThresholdChange}
+              style={{
+                flex: '1 1 auto',
+                margin: '0 1rem',
+              }}
             />
-            <InputLabel>Highest tier</InputLabel>
-          </InputContainer>
+            <Text>Highest tier</Text>
+          </Flex>
 
-          <HelpText>
+          <Paragraph variant="help">
             Use this slider to control the number of tiers visible on the map.
             Based on the number of {barrierType} visible for your area, you may
             be able to identify {barrierType} that are more feasible in the top
             several tiers than in the top-most tier.
-          </HelpText>
-        </Section>
+          </Paragraph>
+        </Box>
 
-        <Section>
-          <SectionHeader>Number of {barrierType} by tier</SectionHeader>
+        <Box sx={{ mt: '2rem' }}>
+          <Text sx={{ fontWeight: 'bold' }}>
+            Number of {barrierType} by tier
+          </Text>
           <Histogram counts={counts} threshold={tierThreshold} />
-        </Section>
-      </Content>
+        </Box>
+      </Box>
 
-      <Footer>
+      <Flex
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          p: '1rem',
+          flex: '0 0 auto',
+          borderTop: '1px solid #DDD',
+          bg: '#f6f6f2',
+        }}
+      >
         <StartOverButton />
         <Downloader barrierType={barrierType} config={config} customRank />
-      </Footer>
-    </Wrapper>
+      </Flex>
+    </Flex>
   )
 }
 

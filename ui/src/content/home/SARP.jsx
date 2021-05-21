@@ -1,38 +1,19 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
-import Img from 'gatsby-image'
-import { Image } from 'rebass/styled-components'
+import { GatsbyImage } from 'gatsby-plugin-image'
+import { Box, Heading, Paragraph, Grid, Image } from 'theme-ui'
 
-import { Text } from 'components/Text'
 import { Link, OutboundLink } from 'components/Link'
-import { Columns } from 'components/Grid'
-import styled from 'style'
+
 import SARPLogoImage from 'images/sarp_logo.png'
-
-import {
-  Section,
-  Title,
-  NarrowColumn,
-  WideColumn,
-  ImageCredits,
-} from '../styles'
-
-const SARPLogo = styled(Image).attrs({ src: SARPLogoImage, width: '100%' })`
-  max-width: 300px;
-`
-
-const MinorTitle = styled(Text).attrs({ as: 'h3', m: 0 })`
-  font-weight: normal;
-  font-size: 1.75rem;
-`
 
 const SARP = () => {
   const {
     forestStreamPhoto: {
-      childImageSharp: { fluid: forestStreamPhoto },
+      childImageSharp: { gatsbyImageData: forestStreamPhoto },
     },
     gaTeamPhoto: {
-      childImageSharp: { fluid: gaTeamPhoto },
+      childImageSharp: { gatsbyImageData: gaTeamPhoto },
     },
   } = useStaticQuery(graphql`
     query {
@@ -40,16 +21,22 @@ const SARP = () => {
         relativePath: { eq: "6882770647_60c0d68a9c_z.jpg" }
       ) {
         childImageSharp {
-          fluid(maxWidth: 640, quality: 85) {
-            ...GatsbyImageSharpFluid_withWebp
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 960
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
         }
       }
       gaTeamPhoto: file(relativePath: { eq: "GA_ACT_small.jpg" }) {
         childImageSharp {
-          fluid(maxWidth: 640, quality: 85) {
-            ...GatsbyImageSharpFluid_withWebp
-          }
+          gatsbyImageData(
+            layout: CONSTRAINED
+            width: 640
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
         }
       }
     }
@@ -57,12 +44,14 @@ const SARP = () => {
 
   return (
     <>
-      <Section>
-        <Title>How to get involved?</Title>
+      <Box variant="boxes.section">
+        <Heading as="h2" variant="heading.section">
+          How to get involved?
+        </Heading>
 
-        <Columns>
-          <WideColumn>
-            <p>
+        <Grid columns={[0, '5fr 3fr']} gap={5} sx={{ mt: '2rem' }}>
+          <Box>
+            <Paragraph>
               The&nbsp;
               <OutboundLink to="https://southeastaquatics.net/">
                 Southeast Aquatic Resources Partnership
@@ -71,80 +60,83 @@ const SARP = () => {
               and Wildlife Agencies (SEAFWA) to protect aquatic resources across
               political boundaries as many of our river systems cross multiple
               jurisdictional boundaries.
-            </p>
-          </WideColumn>
-          <NarrowColumn>
-            <SARPLogo />
-          </NarrowColumn>
-        </Columns>
-      </Section>
-      <Section>
-        <Columns>
-          <NarrowColumn ml={[0, 0, '1rem']} mr={[0, 0, '1rem']}>
-            <Img
-              fluid={forestStreamPhoto}
+            </Paragraph>
+          </Box>
+          <Box>
+            <Image src={SARPLogoImage} sx={{ maxWidth: '250px' }} />
+          </Box>
+        </Grid>
+      </Box>
+
+      <Box variant="boxes.section" sx={{ mt: '4rem' }}>
+        <Grid columns={[0, '3fr 5fr']} gap={5}>
+          <Box>
+            <GatsbyImage
+              image={forestStreamPhoto}
               alt="Sam D. Hamilton Noxubee National Wildlife Refuge"
             />
 
-            <ImageCredits>
+            <Box sx={{ fontSize: 0 }}>
               Photo:{' '}
               <OutboundLink to="https://www.flickr.com/photos/usfwssoutheast/6882770647/in/album-72157629334467105/">
                 Sam D. Hamilton Noxubee National Wildlife Refuge in Mississippi.
                 U.S. Fish and Wildlife Service.
               </OutboundLink>
-            </ImageCredits>
-          </NarrowColumn>
+            </Box>
+          </Box>
 
-          <WideColumn>
-            <p>
-              SARP works with partners to protect, conserve, and restore aquatic
-              resources including habitats throughout the Southeast for the
-              continuing benefit, use, and enjoyment of the American people.
-              SARP is also one of the first Fish Habitat Partnerships under the
-              the National Fish Habitat Partnership umbrella that works to
-              conserve and protect the nation’s fisheries and aquatic systems
-              through a network of 20 Fish Habitat Partnerships.
-            </p>
-          </WideColumn>
-        </Columns>
-      </Section>
-      <Section>
-        <Columns>
-          <WideColumn>
-            <p>
-              SARP and partners have been working to build a community of
-              practice surrounding barrier removal through the development of
-              state-based Aquatic Connectivity Teams (ACTs). These teams create
-              a forum that allows resource managers from all sectors to work
-              together and share resources, disseminate information, and examine
-              regulatory streamlining processes as well as project management
-              tips and techniques. These teams are active in Arkansas, Florida,
-              Georgia, North Carolina, and Tennessee.
-              <br />
-              <br />
-              <Link to="/teams">
-                Learn more about aquatic connectivity teams.
-              </Link>
-            </p>
-          </WideColumn>
+          <Paragraph>
+            SARP works with partners to protect, conserve, and restore aquatic
+            resources including habitats throughout the Southeast for the
+            continuing benefit, use, and enjoyment of the American people. SARP
+            is also one of the first Fish Habitat Partnerships under the the
+            National Fish Habitat Partnership umbrella that works to conserve
+            and protect the nation’s fisheries and aquatic systems through a
+            network of 20 Fish Habitat Partnerships.
+          </Paragraph>
+        </Grid>
+      </Box>
 
-          <NarrowColumn>
-            <Img fluid={gaTeamPhoto} alt="Georgia Aquatic Connectivity Team" />
-            <ImageCredits>
+      <Box variant="boxes.section" sx={{ mt: '4rem' }}>
+        <Grid columns={[0, '5fr 3fr']} gap={5}>
+          <Paragraph>
+            SARP and partners have been working to build a community of practice
+            surrounding barrier removal through the development of state-based
+            Aquatic Connectivity Teams (ACTs). These teams create a forum that
+            allows resource managers from all sectors to work together and share
+            resources, disseminate information, and examine regulatory
+            streamlining processes as well as project management tips and
+            techniques. These teams are active in Arkansas, Florida, Georgia,
+            North Carolina, and Tennessee.
+            <br />
+            <br />
+            <Link to="/teams">
+              Learn more about aquatic connectivity teams.
+            </Link>
+          </Paragraph>
+
+          <Box>
+            <GatsbyImage
+              image={gaTeamPhoto}
+              alt="Georgia Aquatic Connectivity Team"
+            />
+            <Box sx={{ fontSize: 0 }}>
               Photo:{' '}
               <OutboundLink to="https://www.southeastaquatics.net/news/white-dam-removal-motivates-georgia-conservation-practitioners">
                 Georgia Aquatic Connectivity Team
               </OutboundLink>
-            </ImageCredits>
-          </NarrowColumn>
-        </Columns>
-      </Section>
+            </Box>
+          </Box>
+        </Grid>
+      </Box>
 
-      <Section mt="4rem">
-        <Columns>
-          <WideColumn>
-            <MinorTitle>Get involved!</MinorTitle>
-            <p>
+      <Box variant="boxes.section" sx={{ mt: '4rem' }}>
+        <Grid columns={[0, '5fr 3fr']} gap={5}>
+          <Box>
+            <Heading as="h2" sx={{ fontWeight: 'normal' }}>
+              Get involved!
+            </Heading>
+            <Paragraph sx={{ mt: '1rem' }}>
               You can help improve the inventory by sharing data, assisting with
               field reconnaissance to evaluate the impact of aquatic barriers,
               joining an <Link to="/teams">Aquatic Connectivity Team</Link>, or
@@ -154,19 +146,21 @@ const SARP = () => {
               <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn
               more about how you can help improve aquatic connectivity in the
               Southeast.
-            </p>
-          </WideColumn>
+            </Paragraph>
+          </Box>
 
-          <NarrowColumn>
-            <MinorTitle>Need Help?</MinorTitle>
-            <p>
+          <Box>
+            <Heading as="h2" sx={{ fontWeight: 'normal' }}>
+              Need Help?
+            </Heading>
+            <Paragraph sx={{ mt: '1rem' }}>
               If you are not able to get what you need from this tool or if you
               need to report an issue, please&nbsp;
               <a href="mailto:kat@southeastaquatics.net">let us know</a>!
-            </p>
-          </NarrowColumn>
-        </Columns>
-      </Section>
+            </Paragraph>
+          </Box>
+        </Grid>
+      </Box>
     </>
   )
 }
