@@ -81,13 +81,6 @@ module.exports = {
         typeName: ({ node }) => `${node.name}Json`,
       },
     },
-    {
-      resolve: `gatsby-plugin-styled-components`,
-      options: {
-        displayName: process.env.NODE_ENV !== `production`,
-        fileName: false,
-      },
-    },
     `gatsby-plugin-catch-links`,
     `gatsby-plugin-sitemap`,
   ],
