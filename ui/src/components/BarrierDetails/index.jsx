@@ -159,7 +159,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
         }}
       >
         <Box sx={{ flex: '1 1 auto' }}>
-          <Heading as="h3" sx={{ m: 0 }}>
+          <Heading as="h3" sx={{ m: 0, fontSize: '1.25rem' }}>
             {!isEmptyString(name) ? name : defaultName}
           </Heading>
           {!(isEmptyString(countyname) || isEmptyString(State)) && (
@@ -171,10 +171,17 @@ const BarrierDetails = ({ barrier, onClose }) => {
             </Text>
           )}
         </Box>
-        <Button variant="close" onClick={onClose} />
+        <Button variant="close" onClick={onClose}>
+          &#10006;
+        </Button>
       </Flex>
 
-      <Tabs>
+      <Tabs
+        sx={{
+          flex: '1 1 auto',
+          overflow: 'hidden',
+        }}
+      >
         <Tab id="details" label="Overview">
           {details}
         </Tab>

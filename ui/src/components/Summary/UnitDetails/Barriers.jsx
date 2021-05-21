@@ -1,14 +1,9 @@
 /* eslint-disable camelcase */
 import React from 'react'
 import PropTypes from 'prop-types'
+import { Box, Paragraph } from 'theme-ui'
 
-import { HelpText } from 'components/Text'
 import { formatNumber } from 'util/format'
-import styled from 'style'
-
-const List = styled.ul`
-  margin-top: 1rem;
-`
 
 const Barriers = ({
   barriers,
@@ -30,8 +25,9 @@ const Barriers = ({
 
   return (
     <>
-      This area contains:
-      <List>
+      <Paragraph>This area contains:</Paragraph>
+
+      <Box as="ul" sx={{ mt: '1rem' }}>
         <li>
           <b>{formatNumber(totalRoadBarriers, 0)}</b> road-related potential{' '}
           {totalRoadBarriers === 1 ? 'barrier' : 'barriers'}
@@ -53,10 +49,9 @@ const Barriers = ({
           {on_network_barriers === 1 ? 'was ' : 'were '} analyzed for impacts to
           aquatic connectivity in this tool
         </li>
-      </List>
-      <HelpText>
-        <br />
-        <br />
+      </Box>
+
+      <Paragraph variant="help" sx={{ mt: '2rem' }}>
         Note: These statistics are based on <i>inventoried</i> road-related
         barriers that have been assessed for impacts to aquatic organisms.
         Because the inventory is incomplete in many areas, areas with a high
@@ -73,7 +68,7 @@ const Barriers = ({
             located on the network
           </>
         ) : null}
-      </HelpText>
+      </Paragraph>
     </>
   )
 }

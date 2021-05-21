@@ -1,65 +1,15 @@
 /* eslint-disable camelcase */
 import React from 'react'
 import PropTypes from 'prop-types'
+import { Box, Button, Heading, Flex, Paragraph, Text } from 'theme-ui'
 
-import { Text } from 'components/Text'
 import { OutboundLink } from 'components/Link'
-import { CloseButton } from 'components/Button'
-import { Box, Flex } from 'components/Grid'
 import { Downloader } from 'components/Download'
-import styled, { themeGet } from 'style'
+
 import { layers } from '../layers'
 import Barriers from './Barriers'
 import Dams from './Dams'
 import { STATE_FIPS, CONNECTIVITY_TEAMS } from '../../../../config/constants'
-
-const Wrapper = styled(Flex).attrs({
-  flexDirection: 'column',
-})`
-  height: 100%;
-`
-
-const Header = styled(Flex).attrs({
-  py: '1rem',
-  pl: '1rem',
-  pr: '0.5rem',
-  justifyContent: 'center',
-  alignItems: 'flex-start',
-})`
-  background: #f6f6f2;
-  border-bottom: 1px solid #ddd;
-  flex: 0 0 auto;
-  line-height: 1.3;
-`
-
-const Footer = styled(Flex).attrs({
-  justifyContent: 'flex-end',
-  p: '1rem',
-})`
-  flex-grow: 0 0 auto;
-  border-top: 1px solid #ddd;
-  background: #f6f6f2;
-`
-
-const TitleWrapper = styled.div`
-  flex-grow: 1;
-`
-
-const Title = styled(Text).attrs({ as: 'h3', fontSize: '1.25rem', m: 0 })``
-
-const Subtitle = styled(Text).attrs({ fontSize: '1.25rem' })``
-
-const UnitID = styled(Text)`
-  color: ${themeGet('colors.grey.700')};
-`
-
-const Content = styled(Box).attrs({
-  p: '1rem',
-})`
-  flex: 1;
-  height: 100%;
-  overflow-y: auto;
-`
 
 const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   const { id, layerId, name = '', dams = 0, total_barriers = 0 } = summaryUnit
@@ -90,20 +40,45 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   }
 
   return (
-    <Wrapper>
-      <Header id="SidebarHeader">
-        <TitleWrapper>
-          <Title>{title}</Title>
-          {layerId !== 'State' && <Subtitle>{layerTitle}</Subtitle>}
+    <Flex sx={{ flexDirection: 'column', height: '100%' }}>
+      <Flex
+        sx={{
+          py: '1rem',
+          pl: '1rem',
+          pr: '0.5rem',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          borderBottom: '1px solid #DDD',
+          bg: '#f6f6f2',
+          lineHeight: 1.2,
+        }}
+      >
+        <Box sx={{ flex: '1 1 auto' }}>
+          <Heading as="h3" sx={{ m: 0, fontSize: '1.25rem' }}>
+            {title}
+          </Heading>
+          {layerId !== 'State' && (
+            <Text sx={{ fontSize: '1.25rem' }}>{layerTitle}</Text>
+          )}
           {layerId === 'HUC6' || layerId === 'HUC8' || layerId === 'HUC12' ? (
-            <UnitID>
+            <Text sx={{ color: 'grey.7' }}>
               {layerId}: {id}
-            </UnitID>
+            </Text>
           ) : null}
-        </TitleWrapper>
-        <CloseButton onClick={onClose} />
-      </Header>
-      <Content>
+        </Box>
+
+        <Button variant="close" onClick={onClose}>
+          &#10006;
+        </Button>
+      </Flex>
+      <Box
+        sx={{
+          p: '1rem',
+          flex: '1 1 auto',
+          height: '100%',
+          overflowY: 'auto',
+        }}
+      >
         {barrierType === 'dams' ? (
           <Dams {...summaryUnit} />
         ) : (
@@ -111,11 +86,11 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
         )}
 
         {team ? (
-          <div style={{ marginTop: '3rem' }}>
-            <h5 style={{ marginBottom: '0.5em' }}>
+          <Box sx={{ mt: '3rem' }}>
+            <Heading as="h5" style={{ marginBottom: '0.5em' }}>
               {state} Aquatic Connectivity Team
-            </h5>
-            <p>
+            </Heading>
+            <Paragraph>
               {team.description}
               <br />
               <br />
@@ -133,17 +108,25 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
               For more information, please contact{' '}
               <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a> (
               {team.contact.org}).
-            </p>
-          </div>
+            </Paragraph>
+          </Box>
         ) : null}
-      </Content>
+      </Box>
 
       {hasBarriers ? (
-        <Footer>
+        <Flex
+          sx={{
+            justifyContent: 'flex-end',
+            p: '1rem',
+            flex: '0 0 auto',
+            borderTop: '1px solid #DDD',
+            bg: '#f6f6f2',
+          }}
+        >
           <Downloader barrierType={barrierType} config={downloaderConfig} />
-        </Footer>
+        </Flex>
       ) : null}
-    </Wrapper>
+    </Flex>
   )
 }
 

@@ -184,7 +184,8 @@ module.exports = {
     close: {
       flex: '0 0 auto',
       display: 'flex',
-      lineHeight: 1,
+      lineHeight: 1.2,
+      overflow: 'hidden',
       height: '1rem',
       width: '1rem',
       padding: '0.1rem',
@@ -197,40 +198,6 @@ module.exports = {
       color: '#FFF',
       bg: 'grey.5',
       '&:hover': { bg: 'grey.9' },
-    },
-    'tab-inactive': {
-      cursor: 'pointer',
-      textAlign: 'center',
-      flex: '1 1 auto',
-      py: '0.25rem',
-      px: '0.5rem',
-      color: 'grey.7',
-      borderBottom: '1px solid',
-      borderBottomColor: 'grey.3',
-      '&:hover': {
-        bg: 'grey.2',
-      },
-    },
-    'tab-active': {
-      cursor: 'pointer',
-      textAlign: 'center',
-      flex: '1 1 auto',
-      py: '0.25rem',
-      px: '0.5rem',
-      color: 'text',
-      borderBottom: '1px solid transparent',
-      bg: '#FFF',
-      '&:hover': {
-        bg: 'grey.2',
-      },
-      '&:not(:first-of-type)': {
-        borderLeft: '1px solid',
-        borderLeftColor: 'grey.3',
-      },
-      '&:not(:last-of-type)': {
-        borderRight: '1px solid',
-        borderRightColor: 'grey.3',
-      },
     },
   },
   boxes: {

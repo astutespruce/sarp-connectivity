@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Heading, Paragraph } from 'theme-ui'
+import { Box, Paragraph, Text } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
@@ -63,8 +63,8 @@ const BarrierDetails = ({
       }}
     >
       <Box>
-        <Heading as="h4">Location</Heading>
-        <Box as="ul">
+        <Text sx={{ fontWeight: 'bold' }}>Location</Text>
+        <Box as="ul" sx={{ mt: '0.5rem' }}>
           <li>
             Coordinates: {formatNumber(lat, 3)}
             &deg; N, {formatNumber(lon, 3)}
@@ -93,109 +93,117 @@ const BarrierDetails = ({
         </Box>
       </Box>
 
-      <Heading as="h4">Barrier information</Heading>
-      <Box as="ul">
-        <li>
-          Barrier type:{' '}
-          {isCrossing
-            ? 'road / stream crossing'
-            : 'road-related potential barrier'}
-        </li>
-        {!isEmptyString(roadtype) ? <li>Road type: {roadtype}</li> : null}
-        {!isEmptyString(crossingtype) ? (
-          <li>Crossing type: {crossingtype}</li>
-        ) : null}
-        {!isEmptyString(condition) ? <li>Condition: {condition}</li> : null}
-        {severityclass !== null ? (
-          <li>Severity: {BARRIER_SEVERITY[severityclass]}</li>
-        ) : null}
-      </Box>
-
-      <Heading as="h4">Functional network information</Heading>
-      <Box as="ul">
-        {hasnetwork ? (
-          <>
-            <li>
-              <b>
-                {formatNumber(
-                  Math.min(totalupstreammiles, freedownstreammiles)
-                )}{' '}
-                miles
-              </b>{' '}
-              could be gained by removing this barrier.
-              <Box as="ul" sx={{ mt: '0.5rem' }}>
-                <li>
-                  {formatNumber(freeupstreammiles)} free-flowing miles upstream
-                  <ul>
-                    <li>
-                      <b>{formatNumber(totalupstreammiles)} total miles</b> in
-                      the upstream network
-                    </li>
-                  </ul>
-                </li>
-
-                <li>
-                  <b>{formatNumber(freedownstreammiles)} free-flowing miles</b>{' '}
-                  in the downstream network
-                  <ul>
-                    <li>
-                      {formatNumber(totaldownstreammiles)} total miles in the
-                      downstream network
-                    </li>
-                  </ul>
-                </li>
-              </Box>
-            </li>
-            <li>
-              <b>{sizeclasses}</b> river size{' '}
-              {sizeclasses === 1 ? 'class' : 'classes'} could be gained by
-              removing this barrier
-            </li>
-            <li>
-              <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain is
-              composed of natural landcover
-            </li>
-            <li>
-              The upstream network has <b>{SINUOSITY[sinuosityclass]}</b>{' '}
-              sinuosity
-            </li>
-          </>
-        ) : (
-          <>
-            {excluded ? (
-              <li>
-                This dam was excluded from the connectivity analysis based on
-                field reconnaissance or manual review of aerial imagery.
-              </li>
-            ) : (
-              <>
-                {isCrossing ? (
-                  <li>
-                    This crossing has not yet been evaluated for aquatic
-                    connectivity.
-                  </li>
-                ) : (
-                  <>
-                    <li>
-                      This barrier is off-network and has no functional network
-                      information.
-                    </li>
-                    <Paragraph variant="help">
-                      Not all barriers could be correctly snapped to the aquatic
-                      network for analysis. Please contact us to report an error
-                      or for assistance interpreting these results.
-                    </Paragraph>
-                  </>
-                )}
-              </>
-            )}
-          </>
-        )}
+      <Box>
+        <Text sx={{ fontWeight: 'bold' }}>Barrier information</Text>
+        <Box as="ul" sx={{ mt: '0.5rem' }}>
+          <li>
+            Barrier type:{' '}
+            {isCrossing
+              ? 'road / stream crossing'
+              : 'road-related potential barrier'}
+          </li>
+          {!isEmptyString(roadtype) ? <li>Road type: {roadtype}</li> : null}
+          {!isEmptyString(crossingtype) ? (
+            <li>Crossing type: {crossingtype}</li>
+          ) : null}
+          {!isEmptyString(condition) ? <li>Condition: {condition}</li> : null}
+          {severityclass !== null ? (
+            <li>Severity: {BARRIER_SEVERITY[severityclass]}</li>
+          ) : null}
+        </Box>
       </Box>
 
       <Box>
-        <Heading as="h4">Species information</Heading>
-        <Box as="ul">
+        <Text sx={{ fontWeight: 'bold' }}>Functional network information</Text>
+        <Box as="ul" sx={{ mt: '0.5rem' }}>
+          {hasnetwork ? (
+            <>
+              <li>
+                <b>
+                  {formatNumber(
+                    Math.min(totalupstreammiles, freedownstreammiles)
+                  )}{' '}
+                  miles
+                </b>{' '}
+                could be gained by removing this barrier.
+                <Box as="ul" sx={{ mt: '0.5rem' }}>
+                  <li>
+                    {formatNumber(freeupstreammiles)} free-flowing miles
+                    upstream
+                    <ul>
+                      <li>
+                        <b>{formatNumber(totalupstreammiles)} total miles</b> in
+                        the upstream network
+                      </li>
+                    </ul>
+                  </li>
+
+                  <li>
+                    <b>
+                      {formatNumber(freedownstreammiles)} free-flowing miles
+                    </b>{' '}
+                    in the downstream network
+                    <ul>
+                      <li>
+                        {formatNumber(totaldownstreammiles)} total miles in the
+                        downstream network
+                      </li>
+                    </ul>
+                  </li>
+                </Box>
+              </li>
+              <li>
+                <b>{sizeclasses}</b> river size{' '}
+                {sizeclasses === 1 ? 'class' : 'classes'} could be gained by
+                removing this barrier
+              </li>
+              <li>
+                <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain
+                is composed of natural landcover
+              </li>
+              <li>
+                The upstream network has <b>{SINUOSITY[sinuosityclass]}</b>{' '}
+                sinuosity
+              </li>
+            </>
+          ) : (
+            <>
+              {excluded ? (
+                <li>
+                  This dam was excluded from the connectivity analysis based on
+                  field reconnaissance or manual review of aerial imagery.
+                </li>
+              ) : (
+                <>
+                  {isCrossing ? (
+                    <li>
+                      This crossing has not yet been evaluated for aquatic
+                      connectivity.
+                    </li>
+                  ) : (
+                    <>
+                      <li>
+                        This barrier is off-network and has no functional
+                        network information.
+                      </li>
+                      <Paragraph variant="help">
+                        Not all barriers could be correctly snapped to the
+                        aquatic network for analysis. Please contact us to
+                        report an error or for assistance interpreting these
+                        results.
+                      </Paragraph>
+                    </>
+                  )}
+                </>
+              )}
+            </>
+          )}
+        </Box>
+      </Box>
+
+      <Box>
+        <Text sx={{ fontWeight: 'bold' }}>Species information</Text>
+        <Box as="ul" sx={{ mt: '0.5rem' }}>
           {tespp > 0 ? (
             <>
               <li>
@@ -240,7 +248,7 @@ const BarrierDetails = ({
               No regionally-listed aquatic Species of Greatest Conservation Need
               (SGCN) have been identified by available data sources for this
               subwatershed.
-              <Paragraph variant="help">
+              <Paragraph variant="help" sx={{ mt: '1rem' }}>
                 Species information is very incomplete; important species may
                 not be represented within the available data.{' '}
                 <a href="/sgcn" target="_blank">
@@ -251,7 +259,7 @@ const BarrierDetails = ({
           )}
 
           {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
-            <Paragraph variant="help">
+            <Paragraph variant="help" sx={{ mt: '1rem' }}>
               Note: species information is very incomplete. These species may or
               may not be directly impacted by this barrier.{' '}
               <a href="/sgcn" target="_blank">
@@ -264,8 +272,8 @@ const BarrierDetails = ({
 
       {huc8_usfs + huc8_coa + huc8_sgcn > 0 && (
         <Box>
-          <Heading as="h4">Conservation Benefit</Heading>
-          <Box as="ul">
+          <Text sx={{ fontWeight: 'bold' }}>Conservation Benefit</Text>
+          <Box as="ul" sx={{ mt: '0.5rem' }}>
             {/* watershed priorities */}
             {huc8_usfs > 0 && (
               <li>
@@ -298,8 +306,8 @@ const BarrierDetails = ({
 
       {!isEmptyString(source) || !isCrossing ? (
         <>
-          <Heading as="h4">Other information</Heading>
-          <Box as="ul">
+          <Text sx={{ fontWeight: 'bold' }}>Other information</Text>
+          <Box as="ul" sx={{ mt: '0.5rem' }}>
             {!isCrossing ? (
               <li>
                 SARP ID: {sarpid} (data version: {dataVersion})

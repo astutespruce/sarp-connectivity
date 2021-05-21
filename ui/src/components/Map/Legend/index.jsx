@@ -35,9 +35,9 @@ const Legend = ({ title, patches, circles, footnote }) => {
     >
       {isOpen ? (
         <>
-          <Heading as="h4" sx={{ mb: '0.25em' }}>
+          <Text sx={{ mb: '0.25em', fontSize: 2, fontWeight: 'bold' }}>
             {title}
-          </Heading>
+          </Text>
 
           {patches && patches.length > 0 ? (
             <div>
@@ -168,9 +168,12 @@ const Legend = ({ title, patches, circles, footnote }) => {
           ) : null}
         </>
       ) : (
-        <Heading as="h5" title="click to open legend">
+        <Text
+          sx={{ fontSize: 1, fontWeight: 'bold' }}
+          title="click to open legend"
+        >
           Legend
-        </Heading>
+        </Text>
       )}
     </Box>
   )

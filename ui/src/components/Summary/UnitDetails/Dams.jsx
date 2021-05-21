@@ -1,26 +1,26 @@
 /* eslint-disable camelcase */
 import React from 'react'
 import PropTypes from 'prop-types'
+import { Box, Paragraph } from 'theme-ui'
 
-import { HelpText } from 'components/Text'
 import { formatNumber } from 'util/format'
-import styled from 'style'
-
-const List = styled.ul`
-  margin-top: 1rem;
-`
 
 const Dams = ({ dams, on_network_dams, miles }) => {
   const offNetworkDams = dams - on_network_dams
 
   if (dams === 0) {
-    return <HelpText>This area does not yet have any inventoried dams</HelpText>
+    return (
+      <Paragraph variant="help">
+        This area does not yet have any inventoried dams
+      </Paragraph>
+    )
   }
 
   return (
     <>
-      This area contains:
-      <List>
+      <Paragraph>This area contains:</Paragraph>
+
+      <Box as="ul" sx={{ mt: '1rem' }}>
         <li>
           <b>{formatNumber(dams, 0)}</b> inventoried{' '}
           {dams === 1 ? 'dam' : 'dams'}
@@ -34,9 +34,8 @@ const Dams = ({ dams, on_network_dams, miles }) => {
         <li>
           <b>{formatNumber(miles, 2)}</b> miles of connected rivers and streams
         </li>
-      </List>
-      <HelpText>
-        <br />
+      </Box>
+      <Paragraph variant="help" sx={{ mt: '2rem' }}>
         Note: These statistics are based on <i>inventoried</i> dams. Because the
         inventory is incomplete in many areas, areas with a high number of dams
         may simply represent areas that have a more complete inventory.
@@ -50,7 +49,7 @@ const Dams = ({ dams, on_network_dams, miles }) => {
             located on the network.
           </>
         ) : null}
-      </HelpText>
+      </Paragraph>
     </>
   )
 }

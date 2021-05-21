@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Heading, Paragraph } from 'theme-ui'
+import { Box, Text, Paragraph } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
@@ -67,8 +67,8 @@ const DamDetails = ({
     }}
   >
     <Box>
-      <Heading as="h4">Location</Heading>
-      <Box as="ul">
+      <Text sx={{ fontWeight: 'bold' }}>Location</Text>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         <li>
           {formatNumber(lat, 3)}
           &deg; N / {formatNumber(lon, 3)}
@@ -100,8 +100,8 @@ const DamDetails = ({
     </Box>
 
     <Box>
-      <Heading as="h4">Construction information</Heading>
-      <Box as="ul">
+      <Text sx={{ fontWeight: 'bold' }}>Construction information</Text>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         <li>Barrier type: dam</li>
         {year > 0 ? <li>Constructed completed: {year}</li> : null}
         {height > 0 ? <li>Height: {height} feet</li> : null}
@@ -129,9 +129,9 @@ const DamDetails = ({
     </Box>
 
     <Box>
-      <Heading as="h4">Functional network information</Heading>
+      <Text sx={{ fontWeight: 'bold' }}>Functional network information</Text>
 
-      <Box as="ul">
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         {hasnetwork ? (
           <>
             <li>
@@ -192,7 +192,7 @@ const DamDetails = ({
                   This dam is off-network and has no functional network
                   information.
                 </li>
-                <Paragraph variant="help">
+                <Paragraph variant="help" sx={{ mt: '1rem' }}>
                   Not all dams could be correctly snapped to the aquatic network
                   for analysis. Please contact us to report an error or for
                   assistance interpreting these results.
@@ -205,8 +205,8 @@ const DamDetails = ({
     </Box>
 
     <Box>
-      <Heading as="h4">Species information</Heading>
-      <Box as="ul">
+      <Text sx={{ fontWeight: 'bold' }}>Species information</Text>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         {tespp > 0 ? (
           <>
             <li>
@@ -256,7 +256,7 @@ const DamDetails = ({
         )}
 
         {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
-          <Paragraph variant="help">
+          <Paragraph variant="help" sx={{ mt: '1rem' }}>
             Note: species information is very incomplete. These species may or
             may not be directly impacted by this barrier.{' '}
             <a href="/sgcn" target="_blank">
@@ -268,8 +268,10 @@ const DamDetails = ({
     </Box>
 
     <Box>
-      <Heading as="h4">Feasibility & Conservation Benefit</Heading>
-      <Box as="ul">
+      <Text sx={{ fontWeight: 'bold' }}>
+        Feasibility & Conservation Benefit
+      </Text>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         {recon !== null ? (
           <li>{RECON[recon]}</li>
         ) : (
@@ -306,8 +308,8 @@ const DamDetails = ({
     </Box>
 
     <Box>
-      <Heading as="h4">Other information</Heading>
-      <Box as="ul">
+      <Text sx={{ fontWeight: 'bold' }}>Other information</Text>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
         <li>
           SARP ID: {sarpid} (data version: {dataVersion})
         </li>

@@ -5,7 +5,7 @@ import { Flex } from 'theme-ui'
 import TabBar from './TabBar'
 import TabContainer from './TabContainer'
 
-const Tabs = ({ children }) => {
+const Tabs = ({ children, sx }) => {
   const tabs = children.map(({ props: { id, label } }) => ({ id, label }))
   const firstTab = tabs[0].id
 
@@ -16,7 +16,7 @@ const Tabs = ({ children }) => {
   }
 
   return (
-    <Flex sx={{ flexDirection: 'column' }}>
+    <Flex sx={{ flexDirection: 'column', ...sx }}>
       <TabBar tabs={tabs} activeTab={tab} onChange={handleTabChange} />
       <TabContainer activeTab={tab}>{children}</TabContainer>
     </Flex>
@@ -25,6 +25,11 @@ const Tabs = ({ children }) => {
 
 Tabs.propTypes = {
   children: PropTypes.arrayOf(PropTypes.node).isRequired,
+  sx: PropTypes.object,
+}
+
+Tabs.defaultProps = {
+  sx: {},
 }
 
 export default Tabs

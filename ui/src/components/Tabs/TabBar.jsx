@@ -2,12 +2,33 @@ import React, { memo } from 'react'
 import PropTypes from 'prop-types'
 import { Button, Flex } from 'theme-ui'
 
+const tabCSS = {
+  fontSize: '1rem',
+  cursor: 'pointer',
+  textAlign: 'center',
+  flex: '1 1 auto',
+  p: '0.5rem',
+  color: 'grey.7',
+  bg: 'blue.1',
+  border: 'none',
+  borderRadius: 0,
+}
+
+const activeTabCSS = {
+  ...tabCSS,
+  color: 'text',
+  fontWeight: 'bold',
+  bg: '#FFF',
+  border: 'none',
+}
+
 const TabBar = ({ tabs, activeTab, onChange }) => {
-  const handleClick = (id) => {
+  const handleClick = (id) => () => {
     if (id !== activeTab) {
       onChange(id)
     }
   }
+
   return (
     <Flex
       sx={{
@@ -21,10 +42,13 @@ const TabBar = ({ tabs, activeTab, onChange }) => {
       {tabs.map((tab) => (
         <Button
           key={tab.id}
-          variant={activeTab === tab.id ? 'tab-active' : 'tab-inactive'}
-          onClick={handleClick}
+          sx={activeTab === tab.id ? activeTabCSS : tabCSS}
+          data={activeTab === tab.id ? 'is-active' : null}
+          onClick={handleClick(tab.id)}
           {...tab}
-        />
+        >
+          {tab.label}
+        </Button>
       ))}
     </Flex>
   )
