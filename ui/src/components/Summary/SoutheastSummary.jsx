@@ -86,7 +86,7 @@ const SoutheastSummary = ({ barrierType, system, onSearch }) => {
         </li>
       </Box>
 
-      <Paragraph>
+      <Paragraph sx={{ mb: '2rem' }}>
         <br />
         <br />
         Click on a summary unit the map for more information about that area.
