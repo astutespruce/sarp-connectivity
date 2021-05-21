@@ -14,15 +14,6 @@ module.exports = {
     highlight: '#ee7d14',
     // used for filters and selected points
     accent: '#c51b8a',
-
-    // primary: {
-    //   100: '#e0f2fb',
-    //   200: '#cce5f2',
-    //   500: '#1891ac',
-    //   800: '#1f5f8b',
-    //   900: '#253b6e',
-    // },
-
     blue: {
       1: '#e0f2fb',
       2: '#cce5f2',
@@ -30,14 +21,6 @@ module.exports = {
       8: '#1f5f8b',
       9: '#253b6e',
     },
-
-    // secondary: {
-    //   500: '#1891ac',
-    //   600: '#147b92',
-    // },
-    // highlight: {
-    //   500: '#ee7d14',
-    // },
     grey: {
       0: '#f8f9f9',
       1: '#ebedee',
@@ -50,9 +33,6 @@ module.exports = {
       8: '#5f6e78',
       9: '#374047',
     },
-    // accent: {
-    //   500: '#c51b8a',
-    // },
   },
   fonts: {
     body: 'Verdana,Geneva,sans-serif',
@@ -189,11 +169,6 @@ module.exports = {
       color: '#FFF',
       bg: 'grey.5',
       '&:hover': { bg: 'grey.9' },
-    },
-    link: {
-      border: 'none',
-      color: 'link',
-      bg: 'none',
     },
   },
   boxes: {

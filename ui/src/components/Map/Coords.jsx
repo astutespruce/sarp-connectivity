@@ -1,17 +1,6 @@
 import React, { useState, memo, useEffect } from 'react'
 import PropTypes from 'prop-types'
-
-import styled from 'style'
-
-const Wrapper = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 110px;
-  padding: 4px 8px;
-  z-index: 2000;
-  background: rgba(255, 255, 255, 0.5);
-  font-size: 0.75rem;
-`
+import { Box } from 'theme-ui'
 
 const Coords = ({ map }) => {
   const [{ lat, lng }, setCoords] = useState({})
@@ -30,10 +19,21 @@ const Coords = ({ map }) => {
   return (
     lat !== undefined &&
     lng !== undefined && (
-      <Wrapper>
+      <Box
+        sx={{
+          position: 'absolute',
+          bottom: 0,
+          left: '110px',
+          py: '4px',
+          px: '8px',
+          zIndex: 2000,
+          bg: 'rgba(255,255,255,0.5)',
+          fontSize: '0.75rem',
+        }}
+      >
         {Math.round(lat * 100000) / 100000}° N,&nbsp;
         {Math.round(lng * 100000) / 100000}° E
-      </Wrapper>
+      </Box>
     )
   )
 }

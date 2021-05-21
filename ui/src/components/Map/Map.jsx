@@ -3,28 +3,15 @@ import React, { useLayoutEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { Box } from 'theme-ui'
 
-import styled from 'style'
 import { getCenterAndZoom } from './util'
 import BasemapSelector from './BasemapSelector'
 import GoToLocation from './GoToLocation'
-
 import { config, sources, basemapLayers } from './config'
 import Coords from './Coords'
 
 import { siteMetadata } from '../../../gatsby-config'
-
-// This wrapper must be positioned relative for the map to be able to lay itself out properly
-const Wrapper = styled.div`
-  position: relative;
-  flex: 1 0 auto;
-  height: 100%;
-  z-index: 1;
-
-  .mapboxgl-canvas {
-    outline: none;
-  }
-`
 
 const { mapboxToken } = siteMetadata
 if (!mapboxToken) {
@@ -79,8 +66,16 @@ const Map = ({ children, onCreateMap }) => {
   }, []) // intentionally omitting onCreateMap from deps list
 
   return (
-    <Wrapper>
-      <div ref={mapNode} style={{ width: '100%', height: '100%' }} />
+    <Box
+      sx={{
+        // This wrapper must be positioned relative for the map to be able to lay itself out properly
+        position: 'relative',
+        flex: '1 0 auto',
+        height: '100%',
+        zIndex: 1,
+      }}
+    >
+      <Box ref={mapNode} sx={{ width: '100%', height: '100%' }} />
 
       {map && (
         <>
@@ -90,7 +85,7 @@ const Map = ({ children, onCreateMap }) => {
           {children}
         </>
       )}
-    </Wrapper>
+    </Box>
   )
 }
 

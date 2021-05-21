@@ -1,41 +1,10 @@
 import React, { memo, useState } from 'react'
 import PropTypes from 'prop-types'
-import { Box, Heading, Flex, Input, Text } from 'theme-ui'
+import { Box, Input, Text } from 'theme-ui'
 
 import { useBoundsData } from 'components/Data'
 import ListItem from './ListItem'
 import { LAYER_NAMES, SYSTEMS, SYSTEM_UNITS } from '../../../config/constants'
-
-// const Wrapper = styled(Box)``
-
-// const Header = styled(Text)`
-//   font-size: 1.25rem;
-// `
-
-// const Input = styled.input.attrs({
-//   type: 'text',
-// })`
-//   width: 100%;
-//   border: 1px solid ${themeGet('colors.grey.500')};
-//   border-radius: 0.25rem;
-//   outline: none;
-//   padding: 0.25rem 0.5rem;
-
-//   &:focus {
-//     border-color: ${themeGet('colors.primary.500')};
-//   }
-// `
-
-// const List = styled.ul`
-//   list-style: none;
-//   margin: 0;
-// `
-
-// const NoResults = styled(Box).attrs({ my: '1rem' })`
-//   text-align: center;
-//   font-style: italic;
-//   color: ${themeGet('colors.grey.600')};
-// `
 
 const UnitSearch = ({ system, layer, onSelect }) => {
   const data = useBoundsData()

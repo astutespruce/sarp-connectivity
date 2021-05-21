@@ -1,65 +1,23 @@
 import React, { memo, useState } from 'react'
 import PropTypes from 'prop-types'
-import { FaLayerGroup, FaTimesCircle } from 'react-icons/fa'
+import { LayerGroup } from '@emotion-icons/fa-solid'
+import { Box, Button, Flex, Text } from 'theme-ui'
 
-import { Flex, Box } from 'components/Grid'
 import { Checkbox } from 'components/Button'
 import { useEffectSkipFirst } from 'util/hooks'
-import styled, { themeGet } from 'style'
-import { MapControlWrapper } from './styles'
 
-const Wrapper = styled(MapControlWrapper)`
-  top: 150px;
-  right: 10px;
-  line-height: 1;
-  background-color: ${({ isOpen }) => (isOpen ? '#eee' : '#fff')};
-  border: none;
-  padding: 7px;
-  z-index: 10000;
-`
-
-const Icon = styled(FaLayerGroup)`
-  width: 1em;
-  height: 1em;
-  margin-top: 1px;
-  cursor: pointer;
-`
-
-const Header = styled.span`
-  margin: 0 0.5em;
-  font-weight: bold;
-  font-size: 0.9em;
-  display: inline-block;
-  vertical-align: top;
-  margin-top: 4px;
-  cursor: pointer;
-`
-
-const CloseIcon = styled(FaTimesCircle)`
-  width: 1em;
-  height: 1em;
-  color: ${themeGet('colors.grey.500')};
-  cursor: pointer;
-
-  &:hover {
-    color: ${themeGet('colors.grey.900')};
-  }
-`
-
-const Content = styled(Box).attrs({ py: '1rem', px: '0.5rem' })`
-  width: 16rem;
-`
-
-const Row = styled(Flex).attrs({ alignItems: 'flex-start' })`
-  &:not(:first-of-type) {
-    margin-top: 1rem;
-  }
-
-  & label {
-    font-size: small !important;
-    font-weight: normal !important;
-  }
-`
+const controlCSS = {
+  position: 'absolute',
+  top: '150px',
+  right: '10px',
+  lineHeight: 1,
+  bg: '#FFF',
+  border: 'none',
+  borderRadius: '4px',
+  boxShadow: '0 0 0 2px rgba(0,0,0,0.1)',
+  padding: '7px',
+  zIndex: 2000,
+}
 
 const DropDownLayerChooser = ({ options, onChange }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -67,7 +25,7 @@ const DropDownLayerChooser = ({ options, onChange }) => {
     options.reduce((prev, { id }) => Object.assign(prev, { [id]: false }), {})
   )
 
-  const toggle = () => {
+  const handleToggle = () => {
     setIsOpen((prevIsOpen) => !prevIsOpen)
   }
 
@@ -82,34 +40,83 @@ const DropDownLayerChooser = ({ options, onChange }) => {
     onChange(checkboxState)
   }, [checkboxState])
 
+  if (!isOpen) {
+    return (
+      <Box
+        sx={{
+          ...controlCSS,
+          cursor: 'pointer',
+          '&:hover': {
+            bg: '#EEE',
+          },
+        }}
+        onClick={handleToggle}
+        title="Show / hide map layers"
+      >
+        <LayerGroup size="1em" />
+      </Box>
+    )
+  }
+
   return (
-    <Wrapper isOpen={isOpen}>
-      {isOpen ? (
-        <>
-          <Flex justifyContent="space-between" alignItems="center">
-            <div>
-              <Icon onClick={toggle} />
-              <Header onClick={toggle}>Show / hide map layers</Header>
-            </div>
-            <CloseIcon onClick={toggle} />
-          </Flex>
-          <Content>
-            {options.map(({ id, label: checkboxLabel }) => (
-              <Row key={id}>
-                <Checkbox
-                  id={id}
-                  checked={checkboxState[id]}
-                  label={checkboxLabel}
-                  onChange={toggleCheckbox(id)}
-                />
-              </Row>
-            ))}
-          </Content>
-        </>
-      ) : (
-        <Icon onClick={toggle} title="Show / hide map layers" />
-      )}
-    </Wrapper>
+    <Box
+      sx={{
+        ...controlCSS,
+        zIndex: 20000,
+        border: '1px solid #AAA',
+        boxShadow: '1px 1px 8px #333',
+      }}
+    >
+      <Flex sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ flex: '0 0 auto' }} onClick={handleToggle}>
+          <LayerGroup size="1em" />
+        </Box>
+        <Text
+          onClick={handleToggle}
+          sx={{
+            mx: '0.5em',
+            flex: '1 1 auto',
+            fontWeight: 'bold',
+            fontSize: 1,
+            cursor: 'pointer',
+          }}
+        >
+          Show / hide map layers
+        </Text>
+
+        <Button
+          variant="close"
+          sx={{ fontSize: '0.8rem', height: '0.9rem', width: '0.9rem' }}
+          onClick={handleToggle}
+        >
+          &#10006;
+        </Button>
+      </Flex>
+      <Box
+        sx={{
+          mt: '1rem',
+          maxWidth: '16rem',
+          label: {
+            fontSize: 1,
+            lineHeight: 1.3,
+          },
+          '&>div + div': {
+            mt: '0.5em',
+          },
+        }}
+      >
+        {options.map(({ id, label: checkboxLabel }) => (
+          <Box key={id}>
+            <Checkbox
+              id={id}
+              checked={checkboxState[id]}
+              label={checkboxLabel}
+              onChange={toggleCheckbox(id)}
+            />
+          </Box>
+        ))}
+      </Box>
+    </Box>
   )
 }
 

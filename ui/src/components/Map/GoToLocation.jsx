@@ -5,8 +5,6 @@ import mapboxgl from 'mapbox-gl'
 import { Box, Button, Input, Flex, Spinner, Text } from 'theme-ui'
 
 import { hasGeolocation } from 'util/dom'
-// import styled, { themeGet, keyframes, css } from 'style'
-// import { MapControlWrapper } from './styles'
 
 const navigatorOptions = {
   enableHighAccuracy: false,
@@ -22,33 +20,10 @@ const controlCSS = {
   bg: '#FFF',
   border: 'none',
   borderRadius: '4px',
-  boxShadow: '0 0 2px rgba(0,0,0,0.1)',
+  boxShadow: '0 0 0 2px rgba(0,0,0,0.1)',
   padding: '7px',
-  zIndex: 20000,
+  zIndex: 2000,
 }
-
-/* const Input = styled.input.attrs({
-  type: 'number',
-})`
-  width: 120px;
-  font-size: 0.8em;
-  outline: none;
-  margin-left: 0.25em;
-  padding: 0.25em;
-  border-radius: 0.25em;
-
-  border: 1px solid ${themeGet('colors.grey.500')};
-  &:focus {
-    border-color: ${themeGet('colors.primary.500')};
-  }
-
-  ${({ isValid }) =>
-    !isValid &&
-    css`
-      color: #ea1b00;
-      border-color: #ea1b00 !important;
-    `}
-` */
 
 const GoToLocation = ({ map }) => {
   const markerRef = useRef(null)
@@ -115,9 +90,7 @@ const GoToLocation = ({ map }) => {
     }))
   }
 
-  // TODO: spinner and error handling
   const handleGetMyLocation = () => {
-    // set spinner
     setState({
       ...state,
       isPending: true,
@@ -186,12 +159,19 @@ const GoToLocation = ({ map }) => {
 
   if (!isOpen) {
     return (
-      <Box sx={{ ...controlCSS, mt: '1px', cursor: 'pointer' }}>
-        <Crosshairs
-          size="1em"
-          onClick={handleToggle}
-          title="Go to latitude / longitude"
-        />
+      <Box
+        sx={{
+          ...controlCSS,
+          mt: '1px',
+          cursor: 'pointer',
+          '&:hover': {
+            bg: '#EEE',
+          },
+        }}
+        onClick={handleToggle}
+        title="Go to latitude / longitude"
+      >
+        <Crosshairs size="1em" />
       </Box>
     )
   }
@@ -199,22 +179,27 @@ const GoToLocation = ({ map }) => {
   const isDisabled = !isLatValid || !isLonValid || lat === '' || lon === ''
 
   return (
-    <Box sx={controlCSS}>
-      <Flex>
-        <Box sx={{ flex: '0 0 auto' }}>
-          <Crosshairs size="1em" onClick={handleToggle} />
+    <Box
+      sx={{
+        ...controlCSS,
+        zIndex: 20000,
+        border: '1px solid #AAA',
+        boxShadow: '1px 1px 8px #333',
+      }}
+    >
+      <Flex sx={{ alignItems: 'center' }}>
+        <Box sx={{ flex: '0 0 auto' }} onClick={handleToggle}>
+          <Crosshairs size="1em" />
         </Box>
 
         <Text
           onClick={handleToggle}
           sx={{
-            mx: '0.5em',
+            ml: '0.5em',
+            mr: '1rem',
             flex: '1 1 auto',
             fontWeight: 'bold',
-            fontSize: '0.9em',
-            display: 'inline-block',
-            verticalAlign: 'top',
-            mt: '4px',
+            fontSize: 1,
             cursor: 'pointer',
           }}
         >
@@ -280,7 +265,15 @@ const GoToLocation = ({ map }) => {
           }}
         >
           {hasGeolocation ? (
-            <Button onClick={handleGetMyLocation} variant="link">
+            <Button
+              onClick={handleGetMyLocation}
+              sx={{
+                border: 'none',
+                color: 'link',
+                backgroundColor: 'transparent !important',
+                mr: '1rem',
+              }}
+            >
               <LocationArrow size="1em" />
               &nbsp; use my location
             </Button>
@@ -303,7 +296,6 @@ const GoToLocation = ({ map }) => {
 
 GoToLocation.propTypes = {
   map: PropTypes.object.isRequired,
-  // setLocation: PropTypes.func.isRequired,
 }
 
-export default memo(GoToLocation)
+export default GoToLocation //memo(GoToLocation)

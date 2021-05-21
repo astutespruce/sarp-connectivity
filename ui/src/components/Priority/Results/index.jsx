@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Heading, Input, Paragraph, Text } from 'theme-ui'
+import { Box, Flex, Heading, Paragraph, Text } from 'theme-ui'
 
 import { useBarrierType } from 'components/Data'
 import { Downloader } from 'components/Download'
@@ -12,16 +12,6 @@ import BackLink from '../BackLink'
 import StartOverButton from '../StartOverButton'
 
 import { SCENARIOS } from '../../../../config/constants'
-
-// const Input = styled.input.attrs({
-//   type: 'range',
-//   min: '1',
-//   max: '20',
-//   step: '1',
-// })`
-//   flex: 1 1 auto;
-//   margin: 0 1rem;
-// `
 
 const Results = ({
   config,

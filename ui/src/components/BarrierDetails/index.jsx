@@ -4,18 +4,9 @@ import PropTypes from 'prop-types'
 import { Envelope } from '@emotion-icons/fa-solid'
 import { Box, Button, Flex, Heading, Paragraph, Text } from 'theme-ui'
 
-// import { Text, HelpText } from 'components/Text'
-// import { Flex, Box } from 'components/Grid'
-// import { CloseButton } from 'components/Button'
-
 import { Tab, Tabs } from 'components/Tabs'
-// import BaseTabs, {
-//   Tab as BaseTab,
-//   ActiveButton,
-//   InactiveButton,
-// } from 'components/Tabs'
+
 import { isEmptyString } from 'util/string'
-// import styled, { themeGet } from 'style'
 import DamDetails from './DamDetails'
 import SmallBarrierDetails from './SmallBarrierDetails'
 import Scores from './Scores'
@@ -24,63 +15,6 @@ import { BarrierPropType } from './proptypes'
 import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion } = siteMetadata
-
-// const Header = styled(Flex).attrs({
-//   justifyContent: 'space-between',
-//   py: '1rem',
-//   pr: '0.5rem',
-//   pl: '1rem',
-// })`
-//   border-bottom: 4px solid ${themeGet('colors.primary.200')};
-//   flex: 0 0 auto;
-// `
-
-// const TitleWrapper = styled(Box)`
-//   flex: 1 1 auto;
-//   margin-right: 1em;
-// `
-
-// const Title = styled(Text).attrs({ as: 'h3', fontSize: '1.25rem', m: 0 })``
-
-// const Subtitle = styled(Text).attrs({ fontSize: '1rem' })``
-
-// const Tabs = styled(BaseTabs)`
-//   flex: 1 1 auto;
-//   height: 100%;
-//   overflow: hidden;
-
-//   ${ActiveButton} {
-//     border: none;
-//     padding: 0.5rem 0;
-//   }
-//   ${InactiveButton} {
-//     background: ${themeGet('colors.primary.100')};
-//     border: none;
-//     padding: 0.5rem 0;
-//   }
-// `
-
-// const Tab = styled(BaseTab)`
-//   overflow-y: auto;
-//   padding: 1rem;
-//   height: 100%;
-// `
-
-// const Footer = styled(Flex).attrs({
-//   justifyContent: 'center',
-//   alignItems: 'center',
-//   py: '1rem',
-// })`
-//   flex: 0 0 auto;
-//   border-top: 1px solid #ddd;
-//   background: #f6f6f2;
-// `
-
-// const MailIcon = styled(FaEnvelope)`
-//   height: 1em;
-//   width: 1em;
-//   margin-right: 0.25em;
-// `
 
 const tierToPercent = (tier) => (100 * (19 - (tier - 1))) / 20
 

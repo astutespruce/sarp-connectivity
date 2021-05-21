@@ -1,11 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
+import { Container } from 'theme-ui'
 
 import Layout from 'components/Layout'
-import { Container } from 'components/Grid'
 import { HeaderImage, DividerImage } from 'components/Image'
-import styled from 'style'
 
 import {
   TopSection,
@@ -16,10 +15,6 @@ import {
   SARPSection,
   CreditsSection,
 } from 'content/home'
-
-const Content = styled(Container).attrs({
-  px: ['1rem', '1rem', 0],
-})``
 
 const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
   <Layout>
@@ -32,12 +27,12 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
       available data."
     />
 
-    <Content>
+    <Container sx={{ mt: 0 }}>
       <TopSection />
       <InventorySection />
       <ToolSection />
       <ScoringSection />
-    </Content>
+    </Container>
 
     <DividerImage
       image={dividerImage1.childImageSharp.gatsbyImageData}
@@ -49,9 +44,9 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
       }}
     />
 
-    <Content>
+    <Container sx={{ mt: 0 }}>
       <UseCasesSection />
-    </Content>
+    </Container>
 
     <DividerImage
       image={dividerImage2.childImageSharp.gatsbyImageData}
@@ -63,10 +58,10 @@ const IndexPage = ({ data: { headerImage, dividerImage1, dividerImage2 } }) => (
       }}
     />
 
-    <Content>
+    <Container sx={{ mt: 0 }}>
       <SARPSection />
       <CreditsSection />
-    </Content>
+    </Container>
   </Layout>
 )
 
