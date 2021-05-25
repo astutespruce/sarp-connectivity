@@ -47,13 +47,11 @@ export const interpolateExpr = (property, domain, range) => [
   ...flatzip(domain, range),
 ]
 
-
-
 export const toGeoJSONPoint = (record, x = 'lon', y = 'lat') => {
   const properties = {}
   Object.keys(record)
-    .filter(f => f !== x && f !== y)
-    .forEach(f => {
+    .filter((f) => f !== x && f !== y)
+    .forEach((f) => {
       properties[f] = record[f]
     })
 
@@ -74,9 +72,21 @@ export const toGeoJSONPoint = (record, x = 'lon', y = 'lat') => {
   return feature
 }
 
-export const toGeoJSONPoints = records => ({
+export const toGeoJSONPoints = (records) => ({
   type: 'FeatureCollection',
-  features: records.map(r => toGeoJSONPoint(r)),
+  features: records.map((r) => toGeoJSONPoint(r)),
 })
 
-
+/**
+ * Returns an async function that can be used to get a blob from the map's canvas
+ * @param {Object} map - Mapbox GL object
+ * @returns
+ */
+export const mapToBlob = async (map) =>
+  new Promise((resolve) => {
+    map.once('idle', () => {
+      map.getCanvas().toBlob(resolve)
+    })
+    // force redraw if needed
+    map.triggerRepaint()
+  })

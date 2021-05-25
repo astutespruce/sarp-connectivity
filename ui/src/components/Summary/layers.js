@@ -13,7 +13,12 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[2, 0.4], [4, 0.25], [5, 0.25], [6, 0.1]],
+          stops: [
+            [2, 0.4],
+            [4, 0.25],
+            [5, 0.25],
+            [6, 0.1],
+          ],
         },
       },
     },
@@ -50,7 +55,11 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[6, 0.1], [7, 0.25], [8, 0.1]],
+          stops: [
+            [6, 0.1],
+            [7, 0.25],
+            [8, 0.1],
+          ],
         },
       },
     },
@@ -60,7 +69,12 @@ export const layers = [
       paint: {
         'line-width': {
           base: 0.1,
-          stops: [[6, 0.1], [8, 0.5], [8, 1.5], [9, 2.5]],
+          stops: [
+            [6, 0.1],
+            [8, 0.5],
+            [8, 1.5],
+            [9, 2.5],
+          ],
         },
       },
     },
@@ -79,7 +93,13 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[8, 0.1], [9, 0.25], [11, 0.25], [12, 0.15], [14, 0]],
+          stops: [
+            [8, 0.1],
+            [9, 0.25],
+            [11, 0.25],
+            [12, 0.15],
+            [14, 0],
+          ],
         },
       },
     },
@@ -89,7 +109,10 @@ export const layers = [
       paint: {
         'line-width': {
           base: 0.1,
-          stops: [[8, 0.1], [9.5, 0.5]],
+          stops: [
+            [8, 0.1],
+            [9.5, 0.5],
+          ],
         },
       },
     },
@@ -108,7 +131,12 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[2, 0.4], [4, 0.25], [6, 0.25], [7, 0.1]],
+          stops: [
+            [2, 0.4],
+            [4, 0.25],
+            [6, 0.25],
+            [7, 0.1],
+          ],
         },
       },
     },
@@ -145,7 +173,13 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[7, 0.1], [8, 0.25], [11, 0.25], [12, 0.15], [14, 0]],
+          stops: [
+            [7, 0.1],
+            [8, 0.25],
+            [11, 0.25],
+            [12, 0.15],
+            [14, 0],
+          ],
         },
       },
     },
@@ -155,7 +189,12 @@ export const layers = [
       paint: {
         'line-width': {
           base: 0.1,
-          stops: [[6, 0.1], [8, 0.5], [10, 1], [12, 1.5]],
+          stops: [
+            [6, 0.1],
+            [8, 0.5],
+            [10, 1],
+            [12, 1.5],
+          ],
         },
       },
     },
@@ -174,7 +213,12 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[2, 0.4], [4, 0.25], [6, 0.25], [7, 0.1]],
+          stops: [
+            [2, 0.4],
+            [4, 0.25],
+            [6, 0.25],
+            [7, 0.1],
+          ],
         },
       },
     },
@@ -211,7 +255,13 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[5, 0.1], [6, 0.25], [9, 0.25], [10, 0.15], [14, 0]],
+          stops: [
+            [5, 0.1],
+            [6, 0.25],
+            [9, 0.25],
+            [10, 0.15],
+            [14, 0],
+          ],
         },
       },
     },
@@ -221,7 +271,12 @@ export const layers = [
       paint: {
         'line-width': {
           base: 0.1,
-          stops: [[6, 0.1], [8, 0.5], [10, 1], [12, 1.5]],
+          stops: [
+            [6, 0.1],
+            [8, 0.5],
+            [10, 1],
+            [12, 1.5],
+          ],
         },
       },
     },
@@ -237,11 +292,23 @@ export const flowlinesLayer = {
   paint: {
     'line-opacity': {
       base: 0,
-      stops: [[11, 0], [12, 0.1], [14, 0.5], [16, 1]],
+      stops: [
+        [11, 0],
+        [12, 0.1],
+        [14, 0.5],
+        [16, 1],
+      ],
     },
     'line-width': {
       base: 0.1,
-      stops: [[11, 0], [12, 0.1], [14, 0.25], [15, 0.5], [16, 1], [17, 1.5]],
+      stops: [
+        [11, 0],
+        [12, 0.1],
+        [14, 0.25],
+        [15, 0.5],
+        [16, 1],
+        [17, 1.5],
+      ],
     },
     'line-color': '#1891ac',
   },
@@ -255,11 +322,22 @@ const networkHighlightStyle = {
   paint: {
     'line-opacity': {
       base: 0,
-      stops: [[11, 0.1], [12, 0.1], [14, 0.5], [16, 1]],
+      stops: [
+        [11, 0.1],
+        [12, 0.1],
+        [14, 0.5],
+        [16, 1],
+      ],
     },
     'line-width': {
       base: 0.1,
-      stops: [[10, 0], [12, 0.5], [14, 2], [15, 3], [16, 4]],
+      stops: [
+        [10, 0],
+        [12, 0.5],
+        [14, 2],
+        [15, 3],
+        [16, 4],
+      ],
     },
     'line-color': '#fd8d3c',
   },
@@ -302,10 +380,29 @@ export const waterfallsLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': '#2ca25f',
-    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4], [16, 6]] },
-    'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [10, 1],
+        [12, 2],
+        [14, 4],
+        [16, 6],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [10, 0.25],
+        [12, 0.5],
+        [14, 1],
+      ],
+    },
     'circle-stroke-color': '#FFFFFF',
-    'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 2]] },
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [12, 1],
+        [14, 2],
+      ],
+    },
   },
 }
 
@@ -322,10 +419,29 @@ export const damsSecondaryLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': '#fec44f',
-    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4], [16, 6]] },
-    'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [10, 1],
+        [12, 2],
+        [14, 4],
+        [16, 6],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [10, 0.25],
+        [12, 0.5],
+        [14, 1],
+      ],
+    },
     'circle-stroke-color': '#FFFFFF',
-    'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 2]] },
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [12, 1],
+        [14, 2],
+      ],
+    },
   },
 }
 
@@ -339,10 +455,29 @@ export const pointLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': '#c51b8a',
-    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4], [16, 8]] },
-    'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [10, 1],
+        [12, 2],
+        [14, 4],
+        [16, 8],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [10, 0.25],
+        [12, 0.5],
+        [14, 1],
+      ],
+    },
     'circle-stroke-color': '#FFFFFF',
-    'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 3]] },
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [12, 1],
+        [14, 3],
+      ],
+    },
   },
 }
 
@@ -355,10 +490,26 @@ export const backgroundPointLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': '#999',
-    'circle-radius': { stops: [[12, 1], [14, 3], [16, 6]] },
-    'circle-opacity': { stops: [[12, 0.5], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [12, 1],
+        [14, 3],
+        [16, 6],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [12, 0.5],
+        [14, 1],
+      ],
+    },
     'circle-stroke-color': '#666',
-    'circle-stroke-width': { stops: [[12, 0], [14, 1]] },
+    'circle-stroke-width': {
+      stops: [
+        [12, 0],
+        [14, 1],
+      ],
+    },
   },
 }
 
