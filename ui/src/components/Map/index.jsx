@@ -5,7 +5,12 @@ import TopBar from './TopBar'
 import DropDownLayerChooser from './DropDownLayerChooser'
 import Legend from './Legend'
 import { SearchFeaturePropType } from './proptypes'
-import { interpolateExpr, toGeoJSONPoints, mapToBlob } from './util'
+import {
+  interpolateExpr,
+  toGeoJSONPoints,
+  mapToBlob,
+  mapToDataURL,
+} from './util'
 
 export {
   Map,
@@ -18,4 +23,5 @@ export {
   interpolateExpr,
   toGeoJSONPoints,
   mapToBlob,
+  mapToDataURL,
 }

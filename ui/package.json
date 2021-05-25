@@ -13,6 +13,9 @@
     "@sentry/react": "^6.4.0",
     "@theme-ui/color": "^0.8.4",
     "@theme-ui/components": "^0.8.4",
+    "assert": "^2.0.0",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^5.7.1",
     "crossfilter2": "^1.5.4",
     "d3-dsv": "^2.0.0",
     "dequal": "^2.0.2",
@@ -41,9 +44,11 @@
     "react-helmet": "^6.1.0",
     "react-hook-form": "^7.6.1",
     "react-icons": "^4.2.0",
+    "stream-browserify": "^3.0.0",
     "theme-ui": "^0.8.4",
     "use-debounce": "^6.0.1",
-    "use-error-boundary": "^2.0.4"
+    "use-error-boundary": "^2.0.4",
+    "util": "^0.12.3"
   },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^7.14.3",

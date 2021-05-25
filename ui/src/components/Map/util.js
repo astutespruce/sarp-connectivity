@@ -90,3 +90,12 @@ export const mapToBlob = async (map) =>
     // force redraw if needed
     map.triggerRepaint()
   })
+
+export const mapToDataURL = async (map) =>
+  new Promise((resolve) => {
+    map.once('idle', () => {
+      resolve(map.getCanvas().toDataURL('image/png'))
+    })
+    // force redraw if needed
+    map.triggerRepaint()
+  })

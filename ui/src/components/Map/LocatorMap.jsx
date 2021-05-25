@@ -102,9 +102,10 @@ const LocatorMap = ({
     })
 
     const [xmin, ymin, xmax, ymax] = bounds
-    // markerRef.current.setLngLat([(xmin + xmax) / 2, (ymin + ymax) / 2])
-
-    // TODO:
+    map.getSource('marker').setData({
+      type: 'Point',
+      coordinates: [(xmin + xmax) / 2, (ymin + ymax) / 2],
+    })
   }, [center, zoom, bounds])
 
   return (
