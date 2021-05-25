@@ -87,6 +87,7 @@ const ExportMap = ({
   barrierID,
   networkID,
   onCreateMap,
+  onUpdateBasemap,
 }) => {
   const mapNode = useRef(null)
   const [map, setMap] = useState(null)
@@ -121,11 +122,34 @@ const ExportMap = ({
     window.exportMap = mapObj // for easier debugging and querying via console
 
     mapObj.addControl(new mapboxgl.NavigationControl(), 'top-right')
+    mapObj.addControl(
+      new mapboxgl.ScaleControl({ unit: 'imperial' }),
+      'bottom-right'
+    )
 
     mapObj.on('load', () => {
       // add sources
       Object.entries(sources).forEach(([id, source]) => {
         mapObj.addSource(id, source)
+      })
+
+      // add basemap sources and layers
+      Object.values(basemapLayers).forEach((layers) => {
+        layers.forEach(({ id, source, ...rest }) => {
+          // due to the way hot reloading works with the map, this gets called
+          // on hot module reload and breaks because layers were already added to the map
+
+          if (!mapObj.getSource(id)) {
+            mapObj.addSource(id, source)
+          }
+          if (!mapObj.getLayer(id)) {
+            mapObj.addLayer({
+              ...rest,
+              id,
+              source: id,
+            })
+          }
+        })
       })
 
       // Add flowlines and network highlight layers
@@ -188,11 +212,29 @@ const ExportMap = ({
         border: '1px solid #AAA',
       }}
     >
-      <Box ref={mapNode} sx={{ width: '100%', height: '100%' }} />
+      <Box
+        ref={mapNode}
+        sx={{
+          width: '100%',
+          height: '100%',
+          '.mapboxgl-ctrl-logo': {
+            display: 'none',
+          },
+          '.mapboxgl-ctrl-attrib': {
+            display: 'none',
+          },
+        }}
+      />
 
       {map && (
         <>
-          <BasemapSelector map={map} basemaps={basemapLayers} />
+          <BasemapSelector
+            map={map}
+            basemaps={basemapLayers}
+            onUpdate={onUpdateBasemap}
+            size="40px"
+            bottom="10px"
+          />
         </>
       )}
     </Box>
@@ -211,6 +253,7 @@ ExportMap.propTypes = {
   barrierID: PropTypes.number.isRequired,
   networkID: PropTypes.number.isRequired,
   onCreateMap: PropTypes.func.isRequired,
+  onUpdateBasemap: PropTypes.func.isRequired,
 }
 
 ExportMap.defaultProps = {

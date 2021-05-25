@@ -14,10 +14,12 @@ const icons = {
   topo: TopoIcon,
 }
 
-const BasemapSelector = ({ map, basemaps }) => {
+const BasemapSelector = ({ map, basemaps, size, bottom, left, onUpdate }) => {
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
+    if (!map) return
+
     Object.values(basemaps).forEach((layers) => {
       layers.forEach(({ id, source, ...rest }) => {
         // due to the way hot reloading works with the map, this gets called
@@ -50,7 +52,7 @@ const BasemapSelector = ({ map, basemaps }) => {
 
     return [
       {
-        id: 'grey',
+        id: 'light-v9',
         src: icons['light-v9'],
         layers: [],
       },
@@ -74,6 +76,8 @@ const BasemapSelector = ({ map, basemaps }) => {
       })
       return newBasemap
     })
+
+    onUpdate(newBasemap.id)
   }
 
   const toggleOpen = () => {
@@ -93,8 +97,8 @@ const BasemapSelector = ({ map, basemaps }) => {
       sx={{
         cursor: 'pointer',
         position: 'absolute',
-        left: '10px',
-        bottom: '24px',
+        left,
+        bottom,
         zIndex: 999,
       }}
     >
@@ -121,6 +125,10 @@ const BasemapSelector = ({ map, basemaps }) => {
             <Image
               variant="basemap"
               src={nextBasemap.src}
+              sx={{
+                width: size,
+                height: size,
+              }}
               onClick={() => handleBasemapClick(nextBasemap)}
             />
           </Box>
@@ -151,6 +159,10 @@ const BasemapSelector = ({ map, basemaps }) => {
                     altBasemap.id === basemap.id ? 'basemap-active' : 'basemap'
                   }
                   src={altBasemap.src}
+                  sx={{
+                    width: size,
+                    height: size,
+                  }}
                   onClick={() => handleBasemapClick(altBasemap)}
                 />
               </Box>
@@ -160,6 +172,10 @@ const BasemapSelector = ({ map, basemaps }) => {
         <Image
           variant="basemap"
           src={nextBasemap.src}
+          sx={{
+            width: size,
+            height: size,
+          }}
           onClick={() => handleBasemapClick(nextBasemap)}
         />
       )}
@@ -177,6 +193,17 @@ BasemapSelector.propTypes = {
       })
     )
   ).isRequired,
+  size: PropTypes.string,
+  bottom: PropTypes.string,
+  left: PropTypes.string,
+  onUpdate: PropTypes.func,
+}
+
+BasemapSelector.defaultProps = {
+  size: '64px',
+  bottom: '24px',
+  left: '10px',
+  onUpdate: () => {},
 }
 
 // Only construct once, when the map boots

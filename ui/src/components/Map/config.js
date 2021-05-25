@@ -97,7 +97,11 @@ export const basemapLayers = {
       },
       paint: {
         'raster-opacity': {
-          stops: [[10, 0.1], [12, 0.5], [14, 1]],
+          stops: [
+            [10, 0.1],
+            [12, 0.5],
+            [14, 1],
+          ],
         },
       },
     },
@@ -136,4 +140,13 @@ export const basemapLayers = {
       },
     },
   ],
+}
+
+// used for downloadable reports
+export const basemapAttribution = {
+  imagery: '© Mapbox, © OpenStreetMap',
+  'light-v9': '© Mapbox, © OpenStreetMap',
+  topo: 'Esri, HERE, Garmin, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), © OpenStreetMap contributors, and the GIS User Community',
+  streets:
+    'Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, © OpenStreetMap contributors, and the GIS User Community',
 }

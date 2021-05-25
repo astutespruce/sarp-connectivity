@@ -23,14 +23,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Helvetica-Oblique',
     fontSize: 12,
   },
-  map: {
-    border: '1pt solid #AAA',
+  mapBorder: {
+    border: '1 solid #AAA',
   },
+  map: {},
   locatorMap: {
+    width: 150,
+    height: 150,
     marginTop: 24,
-    border: '1pt solid #AAA',
-    width: 200,
-    height: 200,
   },
   pageNumber: {
     position: 'absolute',
@@ -57,9 +57,13 @@ const BarrierReport = ({ name, county, state, map, locatorMap }) => (
         </Text>
       </View>
 
-      <Image src={map} style={styles.map} />
+      <View style={styles.mapBorder}>
+        <Image src={map} />
+      </View>
 
-      <Image src={locatorMap} style={styles.locatorMap} />
+      <View style={[styles.mapBorder, styles.locatorMap]}>
+        <Image src={locatorMap} />
+      </View>
 
       <Text
         style={styles.pageNumber}
@@ -74,6 +78,8 @@ BarrierReport.propTypes = {
   name: PropTypes.string.isRequired,
   county: PropTypes.string.isRequired,
   state: PropTypes.string.isRequired,
+  map: PropTypes.string.isRequired,
+  locatorMap: PropTypes.string.isRequired,
 }
 
 export default BarrierReport
