@@ -250,8 +250,8 @@ ExportMap.propTypes = {
 }
 
 ExportMap.defaultProps = {
-  width: '800px',
-  height: '540px',
+  width: '538pt', // 7.5in once border is added
+  height: '418pt', // 5.8in
   center: null,
   zoom: null,
   bounds: null,

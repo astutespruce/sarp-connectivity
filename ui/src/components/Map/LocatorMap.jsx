@@ -135,8 +135,8 @@ LocatorMap.propTypes = {
 }
 
 LocatorMap.defaultProps = {
-  width: '200px',
-  height: '200px',
+  width: '142pt', // 2in once 2pt border added
+  height: '142pt',
   styleID: defaultStyleID,
 }
 

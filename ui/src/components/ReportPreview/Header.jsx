@@ -17,7 +17,7 @@ const Header = ({
     <Box sx={{ flex: '1 1 auto', mr: '2rem' }}>
       <Text sx={{ fontSize: '2rem', fontWeight: 'bold' }}>{name}</Text>
       <Text sx={{ fontStyle: 'italic' }}>
-        {county}, {state}
+        {county} County, {state}
       </Text>
     </Box>
     <Box sx={{ flex: '0 0 auto', textAlign: 'right' }}>

@@ -1,5 +1,10 @@
+import React from 'react'
+import PropTypes from 'prop-types'
+import { View } from '@react-pdf/renderer'
+
 import { pointLegends } from 'components/Summary/layers'
 import { capitalize } from 'util/format'
+import LegendElement from './elements/LegendElement'
 
 export const getLegendEntries = ({ name, barrierType }) => {
   const entries = [
@@ -50,3 +55,22 @@ export const getLegendEntries = ({ name, barrierType }) => {
 
   return entries
 }
+
+const Legend = ({ barrierType, name }) => {
+  const entries = getLegendEntries({ barrierType, name })
+
+  return (
+    <View>
+      {entries.map((entry) => (
+        <LegendElement key={entry.label} {...entry} />
+      ))}
+    </View>
+  )
+}
+
+Legend.propTypes = {
+  barrierType: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+}
+
+export default Legend

@@ -148,9 +148,6 @@ const TestExportPage = () => {
   }, [])
 
   const handleExport = useCallback(async () => {
-    const { current: exportMap } = exportMapRef
-    const { current: locatorMap } = locatorMapRef
-
     setState((prevState) => ({
       ...prevState,
       isPending: true,
@@ -158,8 +155,8 @@ const TestExportPage = () => {
     }))
 
     const [mapImage, locatorMapImage] = await Promise.all([
-      mapToDataURL(exportMap),
-      mapToDataURL(locatorMap),
+      mapToDataURL(exportMapRef.current),
+      mapToDataURL(locatorMapRef.current),
     ])
 
     // get scale component
@@ -174,13 +171,17 @@ const TestExportPage = () => {
 
     pdf(
       <BarrierReport
-        name="John Wilson Dam"
-        county="Newberry County"
-        state="South Carolina"
         map={mapImage}
         scale={scale}
+        // FIXME:
+        // scale={{
+        //   width: 85,
+        //   label: '500 ft',
+        // }}
         attribution={attribution}
         locatorMap={locatorMapImage}
+        barrierType={barrierType}
+        barrier={barrier}
       />
     )
       .toBlob()
@@ -209,7 +210,7 @@ const TestExportPage = () => {
 
   return (
     <Box sx={{ overflow: 'auto', height: '100%', fontFamily: 'Helvetica' }}>
-      <Container sx={{ width: '800px', pb: '4rem', mb: '4rem' }}>
+      <Container sx={{ width: '540pt', pb: '4rem', mb: '4rem' }}>
         <Flex
           sx={{
             justifyContent: 'space-between',

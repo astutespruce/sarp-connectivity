@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box } from 'theme-ui'
 
-import { getLegendEntries } from 'components/Report/legend'
+import { getLegendEntries } from 'components/Report/Legend'
 import LegendElement from './LegendElement'
 
 const Legend = ({ barrierType, name }) => {
