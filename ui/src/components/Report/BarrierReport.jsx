@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import {
   Document,
   Image,
+  Link,
   Page,
   View,
   Text,
@@ -18,6 +19,10 @@ const styles = StyleSheet.create({
   },
   header: { marginBottom: 24 },
   title: { fontWeight: 'bold', fontFamily: 'Helvetica-Bold', fontSize: 24 },
+  link: {
+    textDecoration: 'underline',
+    color: '#1891ac',
+  },
   subtitle: {
     fontStyle: 'italic',
     fontFamily: 'Helvetica-Oblique',
@@ -32,14 +37,28 @@ const styles = StyleSheet.create({
     height: 150,
     marginTop: 24,
   },
+  footer: {
+    position: 'absolute',
+    display: 'flex',
+    justifyContent: 'space-between',
+    bottom: 30,
+    left: '0.5in',
+    right: '0.5in',
+    color: 'grey',
+  },
+  createdBy: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    fontSize: 10,
+  },
   pageNumber: {
     position: 'absolute',
-    fontSize: 12,
-    bottom: 30,
-    left: 0,
+    bottom: 0,
     right: 0,
-    textAlign: 'center',
-    color: 'grey',
+    left: 0,
+    textAlign: 'right',
+    fontSize: 12,
   },
 })
 
@@ -65,11 +84,22 @@ const BarrierReport = ({ name, county, state, map, locatorMap }) => (
         <Image src={locatorMap} />
       </View>
 
-      <Text
-        style={styles.pageNumber}
-        render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
-        fixed
-      />
+      <View fixed style={styles.footer}>
+        <Text style={styles.createdBy} fixed>
+          Created by the{' '}
+          <Link src="https://connectivity.sarpdata.com/" style={styles.link}>
+            Southeast Aquatic Barrier Prioritization Tool
+          </Link>{' '}
+          on {new Date().toLocaleDateString()}.
+        </Text>
+        <Text
+          style={styles.pageNumber}
+          fixed
+          render={({ pageNumber, totalPages }) =>
+            `page ${pageNumber} of ${totalPages}`
+          }
+        />
+      </View>
     </Page>
   </Document>
 )

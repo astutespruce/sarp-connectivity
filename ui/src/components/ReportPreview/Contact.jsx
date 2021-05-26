@@ -1,8 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Text } from 'theme-ui'
+import { Box, Text } from 'theme-ui'
 
-const Contact = ({ barrierType, sarpid, dataVersion }) => (
+import { siteMetadata } from '../../../gatsby-config'
+
+const { version: dataVersion } = siteMetadata
+
+const Contact = ({ barrierType, sarpid }) => (
   <Box sx={{ bg: 'grey.1', borderRadius: '1rem', p: '1rem' }}>
     <Text sx={{ fontWeight: 'bold', fontSize: 3 }}>Contact us</Text>
     <Box sx={{ mt: '0.5rem' }}>
@@ -28,7 +32,6 @@ const Contact = ({ barrierType, sarpid, dataVersion }) => (
 Contact.propTypes = {
   barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-  dataVersion: PropTypes.string.isRequired,
 }
 
 export default Contact
