@@ -136,19 +136,12 @@ const ExportMap = ({
       // add basemap sources and layers
       Object.values(basemapLayers).forEach((layers) => {
         layers.forEach(({ id, source, ...rest }) => {
-          // due to the way hot reloading works with the map, this gets called
-          // on hot module reload and breaks because layers were already added to the map
-
-          if (!mapObj.getSource(id)) {
-            mapObj.addSource(id, source)
-          }
-          if (!mapObj.getLayer(id)) {
-            mapObj.addLayer({
-              ...rest,
-              id,
-              source: id,
-            })
-          }
+          mapObj.addSource(id, source)
+          mapObj.addLayer({
+            ...rest,
+            id,
+            source: id,
+          })
         })
       })
 

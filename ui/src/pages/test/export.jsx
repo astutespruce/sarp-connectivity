@@ -13,7 +13,20 @@ import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
 
 import { BarrierReport } from 'components/Report'
-import { Header, Legend, MapAttribution } from 'components/ReportPreview'
+import {
+  Construction,
+  Contact,
+  Credits,
+  Feasibility,
+  Header,
+  IDInfo,
+  Legend,
+  Location,
+  MapAttribution,
+  Network,
+  Scores,
+  Species,
+} from 'components/ReportPreview'
 import {
   ExportMap,
   LocatorMap,
@@ -49,7 +62,7 @@ const barrier = {
   tespp: 0,
   statesgcnspp: 6,
   regionalsgcnspp: 0,
-  ownertype: -1,
+  ownertype: 1,
   protectedland: 0,
   huc8_usfs: 0,
   huc8_coa: 0,
@@ -87,9 +100,12 @@ const barrier = {
   sinuosityclass: 0,
   upnetid: 3014872,
   downnetid: 3779393756,
-  // spliced in from frontend
-  lon: -81.7414140701294,
+  HUC8Name: 'Saluda',
+  HUC12Name: 'Lower Little River-Saluda River',
+  barrierType: 'dams',
   lat: 34.20447326183114,
+  lon: -81.7414140701294,
+  hasnetwork: true,
 }
 
 const { id, name, upnetid = Infinity, countyname, State, lat, lon } = barrier
@@ -193,9 +209,7 @@ const TestExportPage = () => {
 
   return (
     <Box sx={{ overflow: 'auto', height: '100%', fontFamily: 'Helvetica' }}>
-      <Container
-        sx={{ width: '800px', pb: '4rem', mb: '4rem', height: '100%' }}
-      >
+      <Container sx={{ width: '800px', pb: '4rem', mb: '4rem' }}>
         <Flex
           sx={{
             justifyContent: 'space-between',
@@ -232,8 +246,8 @@ const TestExportPage = () => {
           lat={lat}
           lon={lon}
         />
-        {/*
-        <Flex
+
+        {/* <Flex
           sx={{
             width: '100%',
             height: '200px',
@@ -307,6 +321,43 @@ const TestExportPage = () => {
           </Box>
           <Legend barrierType={barrierType} name={name} />
         </Flex>
+
+        <Flex sx={{ justifyContent: 'space-between', mt: '3rem' }}>
+          <Box sx={{ flex: '1 1 auto', width: '50%', mr: '2rem' }}>
+            <Location {...barrier} />
+          </Box>
+          <Box sx={{ flex: '1 1 auto', width: '50%' }}>
+            <Construction {...barrier} />
+          </Box>
+        </Flex>
+
+        <Flex sx={{ justifyContent: 'space-between', mt: '3rem' }}>
+          <Box sx={{ flex: '1 1 auto', width: '50%', mr: '2rem' }}>
+            <Network {...barrier} />
+          </Box>
+          <Box sx={{ flex: '1 1 auto', width: '50%' }}>
+            <Scores barrierType={barrierType} {...barrier} />
+          </Box>
+        </Flex>
+
+        <Box sx={{ mt: '3rem' }}>
+          <Species {...barrier} />
+        </Box>
+
+        <Box sx={{ mt: '3rem' }}>
+          <Feasibility {...barrier} />
+        </Box>
+        <Box sx={{ mt: '3rem' }}>
+          <IDInfo {...barrier} />
+        </Box>
+
+        <Box sx={{ mt: '3rem' }}>
+          <Contact barrierType={barrierType} {...barrier} />
+        </Box>
+
+        <Box sx={{ mt: '3rem' }}>
+          <Credits />
+        </Box>
       </Container>
     </Box>
   )

@@ -53,6 +53,7 @@ const SummaryPage = () => {
   }
 
   const handleSelectBarrier = (feature) => {
+    console.log(JSON.stringify(feature))
     setSelectedBarrier(feature)
     setSelectedUnit(null)
   }

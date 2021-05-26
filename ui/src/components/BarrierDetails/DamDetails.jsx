@@ -269,7 +269,7 @@ const DamDetails = ({
 
     <Box>
       <Text sx={{ fontWeight: 'bold' }}>
-        Feasibility & Conservation Benefit
+        Feasibility & conservation benefit
       </Text>
       <Box as="ul" sx={{ mt: '0.5rem' }}>
         {recon !== null ? (

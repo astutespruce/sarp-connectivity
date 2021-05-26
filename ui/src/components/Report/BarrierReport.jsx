@@ -49,7 +49,7 @@ const BarrierReport = ({ name, county, state, map, locatorMap }) => (
     creator="Southeast Aquatic Barrier Prioritization Tool"
     language="en-us"
   >
-    <Page style={styles.page}>
+    <Page style={styles.page} size="LETTER">
       <View style={styles.header}>
         <Text style={styles.title}>{name}</Text>
         <Text style={styles.subtitle}>
