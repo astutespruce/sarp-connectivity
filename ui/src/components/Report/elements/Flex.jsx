@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 
 import { View } from '@react-pdf/renderer'
 
-const Flex = ({ children, style }) => (
+const Flex = ({ children, style, ...props }) => (
   <View
     style={{
       display: 'flex',
@@ -11,6 +11,7 @@ const Flex = ({ children, style }) => (
       flexWrap: 'nowrap',
       ...style,
     }}
+    {...props}
   >
     {children}
   </View>

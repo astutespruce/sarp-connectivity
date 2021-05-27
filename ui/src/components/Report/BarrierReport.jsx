@@ -1,13 +1,22 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Document, Page, Text, StyleSheet } from '@react-pdf/renderer'
+import { Document, Page, StyleSheet, View } from '@react-pdf/renderer'
 
+import Construction from './Construction'
+import Contact from './Contact'
+import Credits from './Credits'
+import Feasibility from './Feasibility'
 import Footer from './Footer'
 import Header from './Header'
+import IDInfo from './IDInfo'
 import Legend from './Legend'
-import Map from './Map'
+import Location from './Location'
 import LocatorMap from './LocatorMap'
-import { Flex, List, ListItem } from './elements'
+import Map from './Map'
+import Network from './Network'
+import Scores from './Scores'
+import Species from './Species'
+import { Flex } from './elements'
 
 const styles = StyleSheet.create({
   page: {
@@ -53,47 +62,43 @@ const BarrierReport = ({
       </Page>
 
       <Page style={styles.page} size="LETTER">
-        <List title="List header">
-          <ListItem>
-            <Text>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-              enim ad minim veniam, quis nostrud exercitation ullamco laboris
-              nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-              reprehenderit in voluptate velit esse cillum dolore eu fugiat
-              nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-              sunt in culpa qui officia deserunt mollit anim id est laborum.
-            </Text>
-          </ListItem>
-          <ListItem>
-            <Text>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-              enim ad minim veniam, quis nostrud exercitation ullamco laboris
-              nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-              reprehenderit in voluptate velit esse cillum dolore eu fugiat
-              nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-              sunt in culpa qui officia deserunt mollit anim id est laborum.
-            </Text>
-          </ListItem>
-          <ListItem>
-            <Text>
-              <Text style={{ fontFamily: 'Helvetica-Bold', display: 'inline' }}>
-                Bold text{' '}
-              </Text>
-              regular text
-            </Text>
-          </ListItem>
-        </List>
+        <Flex wrap={false}>
+          <View style={{ flex: '1 1 50%', marginRight: 36 }}>
+            <Location {...barrier} />
+          </View>
+          <View style={{ flex: '1 1 50%' }}>
+            <Construction barrierType={barrierType} {...barrier} />
+          </View>
+        </Flex>
 
-        <List title="Another list header" marginTop={24}>
-          <ListItem>
-            <Text>List item 1 goes here</Text>
-          </ListItem>
-          <ListItem>
-            <Text>List item 2 goes here</Text>
-          </ListItem>
-        </List>
+        <Flex style={{ marginTop: 24 }} wrap={false}>
+          <View style={{ flex: '1 1 50%', marginRight: 36 }}>
+            <Network {...barrier} />
+          </View>
+          <View style={{ flex: '1 1 50%' }}>
+            <Scores {...barrier} />
+          </View>
+        </Flex>
+
+        <View style={{ marginTop: 24 }} wrap={false}>
+          <Species {...barrier} />
+        </View>
+
+        <View style={{ marginTop: 24 }} wrap={false}>
+          <Feasibility {...barrier} />
+        </View>
+
+        <View style={{ marginTop: 24 }} wrap={false}>
+          <IDInfo {...barrier} />
+        </View>
+
+        <View style={{ marginTop: 24 }} wrap={false}>
+          <Contact barrierType={barrierType} {...barrier} />
+        </View>
+
+        <View style={{ marginTop: 24 }} wrap={false}>
+          <Credits />
+        </View>
 
         <Footer />
       </Page>

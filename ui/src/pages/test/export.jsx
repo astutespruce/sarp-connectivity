@@ -348,6 +348,7 @@ const TestExportPage = () => {
         <Box sx={{ mt: '3rem' }}>
           <Feasibility {...barrier} />
         </Box>
+
         <Box sx={{ mt: '3rem' }}>
           <IDInfo {...barrier} />
         </Box>
@@ -356,7 +357,7 @@ const TestExportPage = () => {
           <Contact barrierType={barrierType} {...barrier} />
         </Box>
 
-        <Box sx={{ mt: '3rem' }}>
+        <Box sx={{ mt: '2rem' }}>
           <Credits />
         </Box>
       </Container>

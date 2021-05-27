@@ -3,32 +3,39 @@ import PropTypes from 'prop-types'
 
 import { Text, View } from '@react-pdf/renderer'
 
-const List = ({ title, children, marginTop }) => (
-  <View style={{ marginTop }}>
-    <Text
-      style={{
-        fontFamily: 'Helvetica-Bold',
-        fontSize: 14,
-        marginBottom: 4,
-      }}
-    >
-      {title}
-    </Text>
+import Bold from './Bold'
+
+const List = ({ title, note, children, style }) => (
+  <View style={style}>
+    <View style={{ marginBottom: 4 }}>
+      <Bold
+        style={{
+          fontSize: 14,
+        }}
+      >
+        {title}
+      </Bold>
+      {note ? (
+        <Text style={{ color: '#7f8a93', fontSize: 10 }}>{note}</Text>
+      ) : null}
+    </View>
     <View>{children}</View>
   </View>
 )
 
 List.propTypes = {
   title: PropTypes.string.isRequired,
+  note: PropTypes.string,
   children: PropTypes.oneOfType([
     PropTypes.node,
     PropTypes.arrayOf(PropTypes.node),
   ]).isRequired,
-  marginTop: PropTypes.number,
+  style: PropTypes.object,
 }
 
 List.defaultProps = {
-  marginTop: 0,
+  note: null,
+  style: {},
 }
 
 export default List

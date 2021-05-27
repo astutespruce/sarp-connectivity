@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 
 import { Circle, Svg, View } from '@react-pdf/renderer'
 
-const ListItem = ({ children }) => (
+const ListItem = ({ children, style }) => (
   <View
     style={{
       marginBottom: 4,
@@ -11,6 +11,7 @@ const ListItem = ({ children }) => (
       flexDirection: 'row',
       alignItems: 'flex-start',
       flexWrap: 'nowrap',
+      ...style,
     }}
   >
     <View style={{ flex: '0 0 16' }}>
@@ -27,6 +28,11 @@ ListItem.propTypes = {
     PropTypes.node,
     PropTypes.arrayOf(PropTypes.node),
   ]).isRequired,
+  style: PropTypes.object,
+}
+
+ListItem.defaultProps = {
+  style: {},
 }
 
 export default ListItem

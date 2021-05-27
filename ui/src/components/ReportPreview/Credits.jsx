@@ -1,13 +1,12 @@
 import React from 'react'
-import { Box, Flex, Image, Text } from 'theme-ui'
+import { Box, Flex, Image } from 'theme-ui'
 
 import SARPLogoImage from 'images/sarp_logo.png'
 
 const Credits = () => (
   <Box>
-    <Text sx={{ fontWeight: 'bold', fontSize: 3 }}>Credits</Text>
-    <Flex sx={{ mt: '0.5rem', alignItems: 'center' }}>
-      <Box>
+    <Flex sx={{ mt: '0.5rem', fontSize: 1 }}>
+      <Box sx={{ flex: '1 1 auto' }}>
         This report was created using the{' '}
         <a href="https://connectivity.sarpdata.com/">
           Southeast Aquatic Barrier Prioritization Tool
@@ -34,7 +33,7 @@ const Credits = () => (
         .
       </Box>
       <Box sx={{ flex: '0 0 auto', ml: '2rem' }}>
-        <Image src={SARPLogoImage} sx={{ width: '200px' }} />
+        <Image src={SARPLogoImage} sx={{ width: '100pt' }} />
       </Box>
     </Flex>
   </Box>
