@@ -57,59 +57,6 @@ SARP_STATES = [
 NETWORK_TYPES = ("natural", "dams", "small_barriers")
 
 
-# Mapping of region to HUC4 IDs that are present within the SARP boundary
-# REGIONS = {
-#     # "02": [7, 8],
-#     # "03": list(range(1, 19)),
-#     # "05": [5, 7, 9, 10, 11, 13, 14],
-#     # "06": list(range(1, 5)),
-#     # "07": [10, 11, 14],
-#     # "08": list(range(1, 10)),
-#     # "10": [24, 27, 28, 29, 30],
-#     # "11": [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
-#     # "12": list(range(1, 12)),
-#     # "13": [3, 4, 5, 6, 7, 8, 9],
-#     # "21": [1, 2],
-# }
-
-# Mapping of region to subregions for easier processing of giant datasets (e.g., catchments)
-# SUBREGIONS = {
-#     # "03": [list(range(1, 8)), list(range(8, 13)), list(range(13, 19))],
-#     # "07": [[10, 11, 14]],  # TODO: R2 / R6
-#     # "08": [list(range(1, 10))],
-#     # "10": [[24, 27, 28, 29, 30]],  # TODO: R2 / R6
-#     # "11": [[1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]],  # TODO: R2 / R6
-#     # "12": [[1, 2, 3, 4, 7], [9, 10, 11], [5, 6, 8]],
-#     # "13": [[3, 4, 5, 6, 7, 8, 9]],  # TODO: R2 / R6
-#     # "21": [[1, 2]],
-# }
-
-
-# Listing of regions that are connected
-# CONNECTED_REGIONS = ["05_06", "07_10", "08_11"]
-
-
-# Group regions based on which ones flow into each other
-# Note: many of these flow into region 08, which is not yet available
-# The total size of the region group needs to be limited based on available memory and the size of the output shapefiles
-# from the network analysis, which cannot exceed 2 GB.
-
-# REGION_GROUPS = {
-#     # "02": ["02"],
-#     # "03": ["03"],
-#     # "05_06": ["05", "06"],
-#     # "07_10": ["07", "10"],
-#     # "07": ["07"],
-#     # "10": ["10"],
-#     # "08_11": ["08", "11"],
-#     "08": ["08"],
-#     # "11": ["11"],
-#     # "12": ["12"],
-#     # "13": ["13"],
-#     # "21": ["21"],
-# }
-
-
 # Use USGS CONUS Albers (EPSG:102003): https://epsg.io/102003    (same as other SARP datasets)
 # use Proj4 syntax, since GeoPandas doesn't properly recognize it's EPSG Code.
 # CRS = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
@@ -215,6 +162,7 @@ SMALL_BARRIER_COLS = [
     "CrossingConditionId",
     "Potential_Project",
     "Source",
+    "SARP_Score",
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",
@@ -223,7 +171,6 @@ SMALL_BARRIER_COLS = [
     # "Coffman_Strong",
     # "Coffman_Medium",
     # "Coffman_Weak",
-    "SARP_Score",
     # "SE_AOP",
     # "NumberRareSpeciesHUC12", # we add this later
 ]
@@ -272,8 +219,8 @@ DROP_MANUALREVIEW = [
 EXCLUDE_MANUALREVIEW = [
     5,  # offstream (DO NOT SNAP!)
     8,  # Removed (no longer exists): Dam removed for conservation
-    10,  # invasive barriers  TODO: these need to break the network, but not included in prioritization
 ]
+
 
 ONSTREAM_MANUALREVIEW = [
     4,  # Onstream checked by SARP
@@ -287,8 +234,20 @@ DROP_RECON = [5, 19]
 DROP_FEASIBILITY = [7]
 
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_RECON = [7, 16, 22]
+EXCLUDE_RECON = [7, 22]
 EXCLUDE_FEASIBILITY = [8]
+
+UNRANKED_MANUALREVIEW = [
+    10,  # invasive barriers; these break the network, but not included in prioritization
+]
+
+UNRANKED_RECON = [
+    16  # invasive barriers; these break the network, but not included in prioritization
+]
+
+UNRANKED_FEASIBILITY = [
+    9  # invasive barriers; these break the network, but not included in prioritization
+]
 
 # Applies to Recon values, omitted values should be filtered out
 RECON_TO_FEASIBILITY = {
@@ -414,6 +373,38 @@ OWNERTYPE_TO_DOMAIN = {
 # Map of owner type domain above to whether or not the land is
 # considered public
 OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True}
+
+
+# Map of NHD FCode to stream type
+FCODE_TO_STREAMTYPE = {
+    -1: 0,  # not a stream / river or not snapped to one
+    46000: 1,  # stream / river
+    46006: 1,  # stream / river (perennial)
+    46003: 2,  # stream / river (intermittent)
+    46007: 2,  # stream / river (ephemeral)
+    55800: 3,  # artificial path
+    33600: 4,  # canal / ditch
+    33601: 4,  # canal / ditch
+    33603: 4,  # canal / ditch
+    33400: 3,  # unspecified connector
+    42800: 5,  # pipeline
+    42801: 5,  # pipeline
+    42802: 5,  # pipeline
+    42803: 5,  # pipeline
+    42804: 5,  # pipeline
+    42805: 5,  # pipeline
+    42806: 5,  # pipeline
+    42807: 5,  # pipeline
+    42808: 5,  # pipeline
+    42809: 5,  # pipeline
+    42810: 5,  # pipeline
+    42811: 5,  # pipeline
+    42812: 5,  # pipeline
+    42813: 5,  # pipeline
+    42814: 5,  # pipeline
+    42815: 5,  # pipeline
+    42816: 5,  # pipeline
+}
 
 
 # List of NHDPlusIDs to convert from loops to non-loops;

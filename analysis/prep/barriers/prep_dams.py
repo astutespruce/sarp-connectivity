@@ -21,10 +21,9 @@ from pathlib import Path
 from time import time
 import warnings
 
-import pandas as pd
 import geopandas as gp
 import numpy as np
-from pyogrio import read_dataframe, write_dataframe
+from pyogrio import write_dataframe
 
 from analysis.prep.barriers.lib.snap import (
     snap_estimated_dams_to_drains,
@@ -40,14 +39,18 @@ from analysis.prep.barriers.lib.duplicates import (
 
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.constants import (
+    DROP_FEASIBILITY,
     DROP_MANUALREVIEW,
+    DROP_RECON,
     EXCLUDE_FEASIBILITY,
     EXCLUDE_MANUALREVIEW,
-    ONSTREAM_MANUALREVIEW,
-    DROP_RECON,
-    DROP_FEASIBILITY,
     EXCLUDE_RECON,
+    ONSTREAM_MANUALREVIEW,
     RECON_TO_FEASIBILITY,
+    UNRANKED_FEASIBILITY,
+    UNRANKED_MANUALREVIEW,
+    UNRANKED_RECON,
+    FCODE_TO_STREAMTYPE,
 )
 from analysis.lib.io import read_feathers
 
@@ -145,7 +148,9 @@ print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df
 ### Make sure there are not duplicates
 s = df.groupby("SARPID").size()
 if s.max() > 1:
-    raise ValueError(f"Multiple dams with same SARPID: {s[s > 1].index}")
+    warnings.warn(f"Multiple dams with same SARPID: {s[s > 1].index.values}")
+    # FIXME:
+    # raise ValueError(f"Multiple dams with same SARPID: {s[s > 1].index}")
 
 
 ### Add IDs for internal use
@@ -256,7 +261,7 @@ for col in [
     "ECO3",
     "ECO4",
 ]:
-    df[col] = df[col].fillna("")
+    df[col] = df[col].fillna("").astype("str")
 
 ### Add tracking fields
 # master log field for status
@@ -267,8 +272,11 @@ df["dropped"] = False
 # excluded: records that should be retained in dataset but not used in analysis
 df["excluded"] = False
 
+# unranked: records that should break the network but not be used for ranking
+df["unranked"] = False
+
 # removed: dam was removed for conservation but we still want to track it
-df["removed"] = (df.ManualReview == 8) | (df.Recon == 7) | (df.Feasibility == 8)
+df["removed"] = False
 
 # Drop any that didn't intersect HUCs or states
 drop_ix = (df.HUC12 == "") | (df.STATEFIPS == "")
@@ -277,7 +285,6 @@ if drop_ix.sum():
     # Mark dropped barriers
     df.loc[drop_ix, "dropped"] = True
     df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
-
 
 ### Drop any dams that should be completely dropped from analysis
 # based on manual QA/QC and other reivew.
@@ -309,21 +316,43 @@ df.loc[drop_ix, "log"] = "dropped: name includes dike and not dam"
 
 print(f"Dropped {df.dropped.sum():,} dams from all analysis and mapping")
 
-
 ### Exclude dams that should not be analyzed or prioritized based on manual QA
-exclude_idx = (
+df["excluded"] = (
     df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
     | df.Recon.isin(EXCLUDE_RECON)
     | df.Feasibility.isin(EXCLUDE_FEASIBILITY)
 )
-df.loc[exclude_idx, "excluded"] = True
-df.loc[exclude_idx, "log"] = f"excluded: Recon one of {EXCLUDE_RECON}"
 
-exclude_idx = df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
-df.loc[exclude_idx, "excluded"] = True
-df.loc[exclude_idx, "log"] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
-
+df.loc[
+    df.Feasibility.isin(EXCLUDE_FEASIBILITY), "log"
+] = f"excluded: Feasibility one of {EXCLUDE_FEASIBILITY}"
+df.loc[df.Recon.isin(EXCLUDE_RECON), "log"] = f"excluded: Recon one of {EXCLUDE_RECON}"
+df.loc[
+    df.ManualReview.isin(EXCLUDE_MANUALREVIEW), "log"
+] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
 print(f"Excluded {df.excluded.sum():,} dams from analysis and prioritization")
+
+
+### Mark any dams that should cut the network but be excluded from rankiing
+unranked_idx = ()
+df["unranked"] = (
+    df.ManualReview.isin(UNRANKED_MANUALREVIEW)
+    | df.Recon.isin(UNRANKED_RECON)
+    | df.Feasibility.isin(UNRANKED_FEASIBILITY)
+)
+df.loc[
+    df.Feasibility.isin(UNRANKED_FEASIBILITY), "log"
+] = f"unranked: Feasibility one of {UNRANKED_FEASIBILITY}"
+df.loc[
+    df.Recon.isin(UNRANKED_RECON), "log"
+] = f"unranked: Recon one of {UNRANKED_RECON}"
+df.loc[
+    df.ManualReview.isin(UNRANKED_MANUALREVIEW), "log"
+] = f"unranked: ManualReview one of {UNRANKED_MANUALREVIEW}"
+
+### Mark any that were removed so that we can show these on the map
+df["removed"] = (df.ManualReview == 8) | (df.Recon == 7) | (df.Feasibility == 8)
+df.loc[df.removed, "log"] = f"removed: dam was removed for conservation"
 
 
 ### Snap dams
@@ -373,7 +402,9 @@ print(
 )
 
 # IMPORTANT: do not snap manually reviewed, off-network dams, duplicates, or ones without HUC2!
-to_snap = df.loc[(~df.ManualReview.isin([5, 11])) & (df.HUC2 != "")].copy()
+to_snap = df.loc[
+    (~df.ManualReview.isin([5, 11])) & (df.HUC2 != "") & (df.STATEFIPS != "")
+].copy()
 
 # Save original locations so we can map the snap line between original and new locations
 original_locations = to_snap.copy()
@@ -381,7 +412,6 @@ original_locations = to_snap.copy()
 snap_start = time()
 
 print("-----------------")
-
 
 # Snap estimated dams to the drain point of the waterbody that contains them, if possible
 df, to_snap = snap_estimated_dams_to_drains(df, to_snap)
@@ -488,17 +518,24 @@ flowlines = read_feathers(
         for huc2 in df.HUC2.unique()
         if huc2
     ],
-    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop"],
+    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "FCode", "loop"],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
 
+# calculate stream type
+df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE)
+
+# calculate intermittent + ephemeral
+df["intermittent"] = ~df.FCode.isin([46003, 46007])
+
+
 # Fix missing field values
 df["loop"] = df.loop.fillna(False)
 df["sizeclass"] = df.sizeclass.fillna("")
+df["FCode"] = df.FCode.fillna(-1).astype("int32")
 
 print(df.groupby("loop").size())
-
 
 ### All done processing!
 

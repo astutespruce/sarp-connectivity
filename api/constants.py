@@ -476,6 +476,16 @@ MANUALREVIEW_DOMAIN = {
 }
 
 
+STREAMTYPE_DOMAIN = {
+    0: "Not on a stream / river",  # not snapped to flowline,
+    1: "Perennial stream / river",
+    2: "Intermittent stream / river",
+    3: "Artificial path / unspecified connector",
+    4: "Canal / ditch",
+    5: "Pipeline",
+}
+
+
 # mapping of field name to domains
 DOMAINS = {
     "HasNetwork": BOOLEAN_DOMAIN,
