@@ -107,11 +107,11 @@ const SARP = () => {
             resources, disseminate information, and examine regulatory
             streamlining processes as well as project management tips and
             techniques. These teams are active in Arkansas, Florida, Georgia,
-            North Carolina, and Tennessee.
+            North Carolina, South Carolina, Tennessee, and Virginia.
             <br />
             <br />
-            <Link to="/teams">
-              Learn more about aquatic connectivity teams.
+            <Link to="/regions/southeast/teams">
+              Learn more about aquatic connectivity teams in the Southeast.
             </Link>
           </Paragraph>
 
@@ -139,8 +139,12 @@ const SARP = () => {
             <Paragraph sx={{ mt: '1rem' }}>
               You can help improve the inventory by sharing data, assisting with
               field reconnaissance to evaluate the impact of aquatic barriers,
-              joining an <Link to="/teams">Aquatic Connectivity Team</Link>, or
-              even by reporting issues with the inventory data in this tool.
+              joining an{' '}
+              <Link to="/regions/southeast/teams">
+                Aquatic Connectivity Team
+              </Link>
+              , or even by reporting issues with the inventory data in this
+              tool.
               <br />
               <br />
               <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn

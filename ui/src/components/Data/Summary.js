@@ -4,7 +4,37 @@ export const useSummaryData = () =>
   useStaticQuery(graphql`
     query summaryQuery {
       summaryStatsJson {
-        southeast {
+        # FIXME:
+        total: southeast {
+          dams
+          total_barriers
+          barriers
+          crossings
+          miles
+          on_network_barriers
+          on_network_dams
+        }
+        se: southeast {
+          dams
+          total_barriers
+          barriers
+          crossings
+          miles
+          on_network_barriers
+          on_network_dams
+        }
+        # FIXME:
+        sw: southeast {
+          dams
+          total_barriers
+          barriers
+          crossings
+          miles
+          on_network_barriers
+          on_network_dams
+        }
+        # FIXME:
+        gpiw: southeast {
           dams
           total_barriers
           barriers
@@ -15,4 +45,4 @@ export const useSummaryData = () =>
         }
       }
     }
-  `).summaryStatsJson.southeast
+  `).summaryStatsJson

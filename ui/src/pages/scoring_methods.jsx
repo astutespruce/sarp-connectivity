@@ -1,80 +1,78 @@
 import React from 'react'
-import { graphql, useStaticQuery } from 'gatsby'
+import PropTypes from 'prop-types'
+import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
-import { Box, Flex, Image, Grid, Heading, Paragraph } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
+import { Box, Container, Flex, Grid, Image, Paragraph, Heading } from 'theme-ui'
 
+import Layout, { HighlightBox } from 'components/Layout'
+import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
-import { HighlightBox } from 'components/Layout'
-
 import NetworkGraphicSVG from 'images/functional_network.svg'
 
-const Scoring = () => {
-  const {
+const ScoringMethodsPage = ({
+  data: {
+    headerImage: {
+      childImageSharp: { gatsbyImageData: headerImage },
+    },
     damPhoto: {
       childImageSharp: { gatsbyImageData: damPhoto },
     },
-  } = useStaticQuery(graphql`
-    query {
-      damPhoto: file(relativePath: { eq: "9272554306_b34bf886f4_z.jpg" }) {
-        childImageSharp {
-          gatsbyImageData(
-            layout: CONSTRAINED
-            width: 640
-            formats: [AUTO, WEBP]
-            placeholder: BLURRED
-          )
-        }
-      }
-    }
-  `)
+  },
+}) => (
+  <Layout title="Prioritizing aquatic barriers for removal">
+    <HeaderImage
+      image={headerImage}
+      height="30vh"
+      minHeight="18rem"
+      credits={{
+        author:
+          'Biologists collect and move fish from a de-watered river reach as part of Cane River Dam removal, 2016 | U.S. Fish & Wildlife Service Southeast Region',
+        url: 'https://www.flickr.com/photos/usfwssoutheast/30557776285/',
+      }}
+    />
 
-  return (
-    <>
-      <Box id="prioritize" variant="boxes.section">
-        <Heading as="h2" variant="heading.section">
-          How are barriers prioritized for removal?
+    <Container>
+      <Heading as="h1">Prioritizing aquatic barriers for removal</Heading>
+      <Flex sx={{ alignItems: 'center', mt: '3rem' }}>
+        <Box variant="boxes.step">1</Box>
+        <Heading as="h3" sx={{ flex: '1 1 auto', fontWeight: 'normal' }}>
+          Aquatic barriers are identified and measured for their potential
+          impact on aquatic organisms:
         </Heading>
-        <Flex sx={{ alignItems: 'center' }}>
-          <Box variant="boxes.step">1</Box>
-          <Heading as="h3" sx={{ flex: '1 1 auto', fontWeight: 'normal' }}>
-            Aquatic barriers are identified and measured for their potential
-            impact on aquatic organisms:
-          </Heading>
-        </Flex>
-        <Grid columns={[0, '5fr 3fr']} gap={5} sx={{ mt: '2rem' }}>
-          <Box>
-            <Paragraph>
-              Aquatic barriers are natural and human-made structures that impede
-              the passage of aquatic organisms through the river network.
-              <br />
-              <br />
-              They include:
-            </Paragraph>
-            <Box as="ul">
-              <li>Waterfalls</li>
-              <li>Dams</li>
-              <li>Road-related barriers</li>
-            </Box>
-            <Paragraph sx={{ mt: '1rem' }}>
-              Where possible, human-made barriers have been assessed using field
-              reconnaissance to determine their likely impact on aquatic
-              organisms as well as their feasibility of removal. You can
-              leverage these characteristics to select a smaller number of
-              barriers to prioritize.
-            </Paragraph>
+      </Flex>
+      <Grid columns={[0, '5fr 3fr']} gap={5} sx={{ mt: '2rem' }}>
+        <Box>
+          <Paragraph>
+            Aquatic barriers are natural and human-made structures that impede
+            the passage of aquatic organisms through the river network.
+            <br />
+            <br />
+            They include:
+          </Paragraph>
+          <Box as="ul">
+            <li>Waterfalls</li>
+            <li>Dams</li>
+            <li>Road-related barriers</li>
           </Box>
-          <Box>
-            <GatsbyImage image={damPhoto} alt="Hartwell Dam" />
-            <Box sx={{ fontSize: 0 }}>
-              <OutboundLink to="https://www.flickr.com/photos/savannahcorps/9272554306/">
-                Hartwell Dam, Georgia. Billy Birdwell, U.S. Army Corps of
-                Engineers.
-              </OutboundLink>
-            </Box>
+          <Paragraph sx={{ mt: '1rem' }}>
+            Where possible, human-made barriers have been assessed using field
+            reconnaissance to determine their likely impact on aquatic organisms
+            as well as their feasibility of removal. You can leverage these
+            characteristics to select a smaller number of barriers to
+            prioritize.
+          </Paragraph>
+        </Box>
+        <Box>
+          <GatsbyImage image={damPhoto} alt="Hartwell Dam" />
+          <Box sx={{ fontSize: 0 }}>
+            <OutboundLink to="https://www.flickr.com/photos/savannahcorps/9272554306/">
+              Hartwell Dam, Georgia. Billy Birdwell, U.S. Army Corps of
+              Engineers.
+            </OutboundLink>
           </Box>
-        </Grid>
-      </Box>
+        </Box>
+      </Grid>
 
       <Box variant="boxes.section">
         <Flex sx={{ alignItems: 'center' }}>
@@ -279,8 +277,43 @@ const Scoring = () => {
           </Paragraph>
         </Flex>
       </Box>
-    </>
-  )
+    </Container>
+  </Layout>
+)
+
+ScoringMethodsPage.propTypes = {
+  data: PropTypes.shape({
+    headerImage: PropTypes.object.isRequired,
+    damPhoto: PropTypes.object.isRequired,
+  }).isRequired,
 }
 
-export default Scoring
+export const pageQuery = graphql`
+  query ScoringMethodsPageQuery {
+    headerImage: file(
+      relativePath: {
+        eq: "Steeles_Mill_Dam_Hitchcock_Creek_during_removal__Peter_Raabe_A.jpg"
+      }
+    ) {
+      childImageSharp {
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
+      }
+    }
+    damPhoto: file(relativePath: { eq: "9272554306_b34bf886f4_z.jpg" }) {
+      childImageSharp {
+        gatsbyImageData(
+          layout: CONSTRAINED
+          width: 640
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
+      }
+    }
+  }
+`
+
+export default ScoringMethodsPage

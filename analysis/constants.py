@@ -49,6 +49,21 @@ SARP_STATES = [
     "VA",
 ]
 
+# Great Plains / Intermountain West
+GP_IW_STATES = [
+    "CO",
+    "IA",  # TEMP:
+    "KS",
+    "MT",
+    "ND",
+    "NE",
+    "SD",
+    "WY",
+    "UT",
+]
+
+SOUTHWEST_STATES = ["AZ", "NM", "OK", "TX"]
+
 
 # NETWORK_TYPES determines the type of network analysis we are doing
 # natural: only include waterfalls in analysis
