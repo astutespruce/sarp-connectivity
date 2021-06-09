@@ -42,11 +42,7 @@ const Footer = () => (
     </Box>
 
     <Box>
-      Created by the&nbsp;
-      <OutboundLink to="https://consbio.org">
-        Conservation Biology Institute
-      </OutboundLink>{' '}
-      and{' '}
+      Created by
       <OutboundLink to="https://astutespruce.com">
         Astute Spruce, LLC
       </OutboundLink>

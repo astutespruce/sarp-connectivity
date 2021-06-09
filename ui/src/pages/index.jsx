@@ -67,19 +67,6 @@ export const pageQuery = graphql`
         )
       }
     }
-    # dividerImage2: file(
-    #   relativePath: {
-    #     eq: "Roaring_River_dam_removal_-_All_the_Partners_-_DSC_0178.jpg"
-    #   }
-    # ) {
-    #   childImageSharp {
-    #     gatsbyImageData(
-    #       layout: FULL_WIDTH
-    #       formats: [AUTO, WEBP]
-    #       placeholder: BLURRED
-    #     )
-    #   }
-    # }
   }
 `
 
