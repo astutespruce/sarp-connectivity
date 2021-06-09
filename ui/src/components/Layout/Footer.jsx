@@ -42,7 +42,7 @@ const Footer = () => (
     </Box>
 
     <Box>
-      Created by
+      Created by{' '}
       <OutboundLink to="https://astutespruce.com">
         Astute Spruce, LLC
       </OutboundLink>
