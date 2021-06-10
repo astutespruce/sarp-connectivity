@@ -86,8 +86,7 @@ def save_barriers(out_dir, barriers):
     """
 
     print("Serializing {:,} barriers...".format(len(barriers)))
-    start = time()
 
     tmp = barriers.reset_index(drop=True)
     tmp.to_feather(out_dir / "barriers.feather")
-    write_dataframe(tmp, out_dir / "barriers.gpkg")
+    write_dataframe(tmp, out_dir / "barriers.fgb")

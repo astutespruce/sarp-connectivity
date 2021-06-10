@@ -53,6 +53,7 @@ def unique(items):
 # Summary unit fields
 UNIT_FIELDS = ["HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4"]
 
+
 # metric fields that are only valid for barriers with networks
 METRIC_FIELDS = [
     "StreamOrder",
@@ -123,6 +124,7 @@ DAM_CORE_FIELDS = [
     "River",
     "Year",
     "Height",
+    "Width",
     "Construction",
     "Purpose",
     "Condition",
@@ -139,18 +141,29 @@ DAM_CORE_FIELDS = [
     "HUC8_USFS",
     "HUC8_COA",
     "HUC8_SGCN",
+    # Watershed names
     "Basin",
+    "Subbasin",
+    "Subwatershed",
 ]
 
 DAM_API_FIELDS = (
     DAM_CORE_FIELDS
     + UNIT_FIELDS
-    + ["HasNetwork", "Excluded"]
+    + [
+        "HasNetwork",
+        "Excluded",
+        "Ranked",
+        "Intermittent",
+        "FlowsToOcean",
+        "NumBarriersDownstream",
+    ]
     + METRIC_FIELDS
     + TIER_FIELDS
     + DAM_FILTER_FIELDS
-    + ["COUNTYFIPS", "xmin", "ymin", "xmax", "ymax"]
+    + ["COUNTYFIPS"]
 )
+# TODO: add "xmin", "ymin", "xmax", "ymax"?
 
 # reduce to unique list, since there are overlaps with filters and core fields
 DAM_API_FIELDS = unique(DAM_API_FIELDS)
@@ -158,7 +171,14 @@ DAM_API_FIELDS = unique(DAM_API_FIELDS)
 DAM_EXPORT_FIELDS = (
     DAM_CORE_FIELDS
     + UNIT_FIELDS
-    + ["HasNetwork", "Excluded"]
+    + [
+        "HasNetwork",
+        "Excluded",
+        "Ranked",
+        "Intermittent",
+        "FlowsToOcean",
+        "NumBarriersDownstream",
+    ]
     + METRIC_FIELDS
     + TIER_FIELDS
     + CUSTOM_TIER_FIELDS
@@ -190,7 +210,7 @@ SB_CORE_FIELDS = [
     "Condition",
     "PotentialProject",
     "SeverityClass",
-    # "SE_AOP",  # TODO:
+    "SARP_Score",
     "TESpp",
     "StateSGCNSpp",
     "RegionalSGCNSpp",
@@ -200,25 +220,43 @@ SB_CORE_FIELDS = [
     "HUC8_USFS",
     "HUC8_COA",
     "HUC8_SGCN",
+    # Watershed names
     "Basin",
+    "Subbasin",
+    "Subwatershed",
 ]
 
 SB_API_FIELDS = (
     SB_CORE_FIELDS
     + UNIT_FIELDS
-    + ["HasNetwork", "Excluded"]
+    + [
+        "HasNetwork",
+        "Excluded",
+        "Ranked",
+        "Intermittent",
+        "FlowsToOcean",
+        "NumBarriersDownstream",
+    ]
     + METRIC_FIELDS
     + TIER_FIELDS
     + SB_FILTER_FIELDS
-    + ["COUNTYFIPS", "xmin", "ymin", "xmax", "ymax"]
+    + ["COUNTYFIPS"]
 )
+# TODO: add "xmin", "ymin", "xmax", "ymax"?
 
 SB_API_FIELDS = unique(SB_API_FIELDS)
 
 SB_EXPORT_FIELDS = (
     SB_CORE_FIELDS
     + UNIT_FIELDS
-    + ["HasNetwork", "Excluded"]
+    + [
+        "HasNetwork",
+        "Excluded",
+        "Ranked",
+        "Intermittent",
+        "FlowsToOcean",
+        "NumBarriersDownstream",
+    ]
     + METRIC_FIELDS
     + TIER_FIELDS
     + CUSTOM_TIER_FIELDS
@@ -485,11 +523,16 @@ STREAMTYPE_DOMAIN = {
     5: "Pipeline",
 }
 
+BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
+
 
 # mapping of field name to domains
 DOMAINS = {
     "HasNetwork": BOOLEAN_DOMAIN,
     "Excluded": BOOLEAN_DOMAIN,
+    "Ranked": BOOLEAN_DOMAIN,
+    "Intermittent": BOOLEAN_OFFNETWORK_DOMAIN,
+    "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
     "OwnerType": OWNERTYPE_DOMAIN,
     "ProtectedLand": BOOLEAN_DOMAIN,
     "HUC8_USFS": HUC8_USFS_DOMAIN,
@@ -598,6 +641,7 @@ FIELD_DEFINITIONS = {
     "River": "River name where {type} occurs, if available.",
     "Year": "year that construction was completed, if available.  0 = data not available.",
     "Height": "{type} height in feet, if available.  0 = data not available.",
+    "Width": "{type} width in feet, if available.  0 = data not available.",
     "Construction": "material used in {type} construction, if known.",
     "Purpose": "primary purpose of {type}, if known.",
     "PassageFacility": "type of fish passage facility, if known.",
@@ -611,6 +655,7 @@ FIELD_DEFINITIONS = {
     "CrossingType": "type of road / stream crossing, if known.",
     "PotentialProject": "reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.",
     "SeverityClass": "potential severity of barrier, based on reconnaissance.",
+    "SARP_Score": "SARP small barrier score",  # FIXME: get metadata from Kat
     # other general fields
     "Condition": "condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
     "TESpp": "number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the {type}. Note: rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
@@ -622,6 +667,8 @@ FIELD_DEFINITIONS = {
     "HUC8_COA": "SARP conservation opportunity areas.",
     "HUC8_SGCN": "Top 10 watersheds per state based on number of Species of Greatest Conservation Need (SGCN).",
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",
+    "Subbasin": "Name of the hydrologic subbasin (HUC8) where the {type} occurs.",
+    "Subwatershed": "Name of the hydrologic subwatershed (HUC12) where the {type} occurs.",
     "HUC6": "Hydrologic basin identifier where the {type} occurs.",
     "HUC8": "Hydrologic subbasin identifier where the {type} occurs.",
     "HUC12": "Hydrologic subwatershed identifier where the {type} occurs.",
@@ -631,7 +678,9 @@ FIELD_DEFINITIONS = {
     "ECO4": "EPA Level 4 Ecoregion Identifier.",
     "HasNetwork": "indicates if this {type} was snapped to the aquatic network for analysis.  1 = on network, 0 = off network.  Note: network metrics and scores are not available for {type}s that are off network.",
     "Excluded": "this {type} was excluded from the connectivity analysis based on field reconnaissance or manual review of aerial imagery.",
+    "Ranked": "this {type} was included for prioritization.  Some barriers that are beneficial to restricting the movement of invasive species are excluded from ranking.",
     "StreamOrder": "NHDPlus Modified Strahler stream order. -1 = not available.",
+    "Intermittent": "indicates if this {type} was snapped to a a stream or river reach coded by NHDPlusHR as an intermittent or ephemeral.",
     "Landcover": "average amount of the river floodplain in the upstream network that is in natural landcover types.  -1 = not available.",
     "Sinuosity": "length-weighted sinuosity of the upstream river network.  Sinuosity is the ratio between the straight-line distance between the endpoints for each stream reach and the total stream reach length. -1 = not available.",
     "SizeClasses": "number of unique upstream size classes that could be gained by removal of this {type}. -1 = not available.",
@@ -641,6 +690,8 @@ FIELD_DEFINITIONS = {
     "FreeDownstreamMiles": "number of free-flowing miles in the downstream river network (TotalDownstreamMiles minus miles in waterbodies). -1 = not available.",
     "GainMiles": "absolute number of miles that could be gained by removal of this {type}.  Calculated as the minimum of the TotalUpstreamMiles and FreeDownstreamMiles. -1 = not available.",
     "TotalNetworkMiles": "sum of TotalUpstreamMiles and FreeDownstreamMiles. -1 = not available.",
+    "FlowsToOcean": "indicates if this {type} was snapped to a stream or river that flows into the ocean.  Note: only HUC2s that are immediately adjacent to the ocean were evaluated for this metric.",
+    "NumBarriersDownstream": "number of barriers downstream to the downstream-most point of the downstream river network, which may be the ocean.  -1 = not available (not on network).",
     "SE_NC_tier": "network connectivity tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "SE_WC_tier": "watershed condition tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "SE_NCWC_tier": "combined network connectivity and watershed condition tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",

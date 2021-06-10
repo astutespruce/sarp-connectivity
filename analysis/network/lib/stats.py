@@ -130,15 +130,15 @@ def calculate_network_stats(df, barrier_joins, joins):
         "barrier"
     )
 
-    ### Aggregate bounds to network
-    bounds = df.groupby(level=0).agg(
-        {"xmin": "min", "ymin": "min", "xmax": "max", "ymax": "max"}
-    )
+    ### Aggregate bounds to network (currently unused and expensive to create)
+    # bounds = df.groupby(level=0).agg(
+    #     {"xmin": "min", "ymin": "min", "xmax": "max", "ymax": "max"}
+    # )
 
     ### Collect results
     results = (
         calculate_geometry_stats(df)
-        .join(bounds)
+        # .join(bounds)
         .join(calculate_floodplain_stats(df))
         .join(df.groupby(level=0).sizeclass.nunique().rename("sizeclasses"))
         .join(upstream_counts)

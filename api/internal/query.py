@@ -6,7 +6,7 @@ from api.constants import (
     DAM_FILTER_FIELDS,
     SB_FILTER_FIELDS,
 )
-from api.data import dams_with_networks, barriers_with_networks
+from api.data import ranked_dams, ranked_barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
 from api.logger import log, log_request
 from api.response import csv_response
@@ -28,7 +28,7 @@ def query_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
 
     log_request(request)
 
-    df = extractor.extract(dams_with_networks)[DAM_FILTER_FIELDS].copy()
+    df = extractor.extract(ranked_dams)[DAM_FILTER_FIELDS].copy()
     log.info(f"query selected {len(df.index)} dams")
 
     return csv_response(df)
@@ -47,7 +47,7 @@ def query_barriers(request: Request, extractor: BarriersRecordExtractor = Depend
 
     log_request(request)
 
-    df = extractor.extract(barriers_with_networks)[SB_FILTER_FIELDS].copy()
+    df = extractor.extract(ranked_barriers)[SB_FILTER_FIELDS].copy()
     log.info(f"barriers query selected {len(df.index)} barriers")
 
     return csv_response(df)

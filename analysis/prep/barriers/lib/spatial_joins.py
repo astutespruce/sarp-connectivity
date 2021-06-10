@@ -25,8 +25,8 @@ def add_spatial_joins(df):
 
     print("Joining to HUC12")
     huc12 = gp.read_feather(
-        boundaries_dir / "HUC12.feather", columns=["geometry", "HUC12"]
-    )
+        boundaries_dir / "HUC12.feather", columns=["geometry", "HUC12", "name"],
+    ).rename(columns={"name": "Subwatershed"})
 
     df = unique_sjoin(df, huc12)
 
@@ -39,13 +39,19 @@ def add_spatial_joins(df):
     df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
     df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
 
-    # Read in HUC6 and join in basin name
+    # Read in HUC6...HUC12 and join in names
     huc6 = (
         pd.read_feather(boundaries_dir / "HUC6.feather", columns=["HUC6", "name"])
         .rename(columns={"name": "Basin"})
         .set_index("HUC6")
     )
-    df = df.join(huc6, on="HUC6")
+    huc8 = (
+        pd.read_feather(boundaries_dir / "HUC8.feather", columns=["HUC8", "name"])
+        .rename(columns={"name": "Subbasin"})
+        .set_index("HUC8")
+    )
+
+    df = df.join(huc6, on="HUC6").join(huc8, on="HUC8")
 
     print("Joining to counties")
     counties = gp.read_feather(

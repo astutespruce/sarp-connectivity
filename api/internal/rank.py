@@ -8,7 +8,7 @@ from api.constants import (
     TIER_FIELDS,
     CUSTOM_TIER_FIELDS,
 )
-from api.data import dams_with_networks, barriers_with_networks
+from api.data import ranked_dams, ranked_barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
 from api.logger import log, log_request
 from api.response import csv_response
@@ -31,7 +31,7 @@ def rank_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
 
     log_request(request)
 
-    df = extractor.extract(dams_with_networks).copy()
+    df = extractor.extract(ranked_dams).copy()
     log.info(f"selected {len(df)} dams for ranking")
 
     # just return tiers and lat/lon
@@ -55,7 +55,7 @@ def rank_barriers(request: Request, extractor: BarriersRecordExtractor = Depends
 
     log_request(request)
 
-    df = extractor.extract(barriers_with_networks).copy()
+    df = extractor.extract(ranked_barriers).copy()
     log.info(f"selected {len(df)} barriers for ranking")
 
     # just return tiers and lat/lon

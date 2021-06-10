@@ -203,9 +203,10 @@ df.loc[
 ] = 6  # dam breached (but we don't know if this was on purpose)
 
 
-# Round height to nearest foot.  There are no dams between 0 and 1 foot, so fill all
-# na as 0
+# Round height and width to nearest foot.
+# There are no dams between 0 and 1 foot, so fill all na as 0.
 df.Height = df.Height.fillna(0).round().astype("uint16")
+df.Width = df.Width.fillna(0).round().astype("uint16")
 
 # Cleanup names
 # Standardize the casing of the name
@@ -254,6 +255,8 @@ for col in [
     "HUC8",
     "HUC12",
     "Basin",
+    "Subbasin",
+    "Subwatershed",
     "County",
     "COUNTYFIPS",
     "STATEFIPS",
@@ -333,7 +336,7 @@ df.loc[
 print(f"Excluded {df.excluded.sum():,} dams from analysis and prioritization")
 
 
-### Mark any dams that should cut the network but be excluded from rankiing
+### Mark any dams that should cut the network but be excluded from ranking
 unranked_idx = ()
 df["unranked"] = (
     df.ManualReview.isin(UNRANKED_MANUALREVIEW)
@@ -353,6 +356,9 @@ df.loc[
 ### Mark any that were removed so that we can show these on the map
 df["removed"] = (df.ManualReview == 8) | (df.Recon == 7) | (df.Feasibility == 8)
 df.loc[df.removed, "log"] = f"removed: dam was removed for conservation"
+print(
+    f"Marked {df.unranked.sum():,} dams beneficial to containing invasives to omit from ranking"
+)
 
 
 ### Snap dams

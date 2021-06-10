@@ -13,10 +13,10 @@ data_dir = Path("data/api")
 
 try:
     dams = pd.read_feather(data_dir / "dams.feather").set_index(["id"])
-    dams_with_networks = dams.loc[dams.HasNetwork]
+    ranked_dams = dams.loc[dams.Ranked]
 
     barriers = pd.read_feather(data_dir / "small_barriers.feather").set_index(["id"])
-    barriers_with_networks = barriers.loc[barriers.HasNetwork]
+    ranked_barriers = barriers.loc[barriers.Ranked]
 
     print("Data loaded")
 
