@@ -42,10 +42,12 @@ from analysis.constants import (
     DROP_POTENTIAL_PROJECT,
     DROP_MANUALREVIEW,
     EXCLUDE_MANUALREVIEW,
+    UNRANKED_MANUALREVIEW,
     BARRIER_CONDITION_TO_DOMAIN,
     POTENTIAL_TO_SEVERITY,
     ROAD_TYPE_TO_DOMAIN,
     CROSSING_TYPE_TO_DOMAIN,
+    FCODE_TO_STREAMTYPE,
 )
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -136,6 +138,8 @@ for col in [
     "HUC8",
     "HUC12",
     "Basin",
+    "Subbasin",
+    "Subwatershed",
     "County",
     "COUNTYFIPS",
     "STATEFIPS",
@@ -153,6 +157,13 @@ df["dropped"] = False
 
 # excluded: records that should be retained in dataset but not used in analysis
 df["excluded"] = False
+
+# unranked: records that should break the network but not be used for ranking
+df["unranked"] = False
+
+# removed: barriers was removed for conservation but we still want to track it
+df["removed"] = False
+
 
 # Drop any that didn't intersect HUCs or states
 drop_ix = (df.HUC12 == "") | (df.STATEFIPS == "")
@@ -179,22 +190,35 @@ print(
 )
 
 ### Exclude barriers that should not be analyzed or prioritized based on manual QA
-exclude_ix = ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT)
-df.loc[exclude_ix, "excluded"] = True
+df["excluded"] = (
+    ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT)
+) | df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
 df.loc[
-    exclude_ix, "log"
+    ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT), "log"
 ] = f"excluded: PotentialProject not one of retained types {KEEP_POTENTIAL_PROJECT}"
+
+df.loc[
+    df.ManualReview.isin(EXCLUDE_MANUALREVIEW), "log"
+] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
+
 print(
-    f"Excluded {exclude_ix.sum():,} small barriers from network analysis and prioritization based on PotentialProject"
+    f"Excluded {df.excluded.sum():,} small barriers from network analysis and prioritization"
+)
+
+### Mark any barriers that should cut the network but be excluded from ranking
+unranked_idx = ()
+df["unranked"] = df.ManualReview.isin(UNRANKED_MANUALREVIEW)
+df.loc[
+    df.ManualReview.isin(UNRANKED_MANUALREVIEW), "log"
+] = f"unranked: ManualReview one of {UNRANKED_MANUALREVIEW}"
+print(
+    f"Marked {df.unranked.sum():,} small barriers beneficial to containing invasives to omit from ranking"
 )
 
 
-exclude_ix = df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
-df.loc[exclude_ix, "excluded"] = True
-df.loc[exclude_ix, "log"] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
-print(
-    f"Excluded {exclude_ix.sum():,} small barriers from network analysis and prioritization based on ManualReview"
-)
+### Mark any that were removed so that we can show these on the map
+df["removed"] = df.ManualReview == 8
+df.loc[df.removed, "log"] = f"removed: barrier was removed for conservation"
 
 
 ### Snap barriers
@@ -282,14 +306,22 @@ flowlines = read_feathers(
         for huc2 in df.HUC2.unique()
         if huc2
     ],
-    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop"],
+    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "FCode", "loop"],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
 
+# calculate stream type
+df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE)
+
+# calculate intermittent + ephemeral
+df["intermittent"] = ~df.FCode.isin([46003, 46007])
+
+
 # Fix missing field values
 df["loop"] = df.loop.fillna(False)
 df["sizeclass"] = df.sizeclass.fillna("")
+df["FCode"] = df.FCode.fillna(-1).astype("int32")
 
 print(df.groupby("loop").size())
 

@@ -57,6 +57,26 @@ huc4_df = pd.read_feather(
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 huc2s = sorted(units.keys())
 
+# manually subset keys from above for processing
+huc2s = [
+    "02",
+    # "03",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    "14",
+    # "15",
+    # "16",
+    # "17",
+    # "21",
+]
+
 
 ### Read in master
 print("Reading master...")
@@ -82,7 +102,13 @@ df = (
         ],
         errors="ignore",
     )
-    .rename(columns={"StreamOrde": "StreamOrder", "excluded": "Excluded"})
+    .rename(
+        columns={
+            "StreamOrde": "StreamOrder",
+            "excluded": "Excluded",
+            "intermittent": "Intermittent",
+        }
+    )
 )
 
 
@@ -115,6 +141,8 @@ for huc2 in huc2s:
                 "sinuosity": "Sinuosity",
                 "natfldpln": "Landcover",
                 "sizeclasses": "SizeClasses",
+                "flows_to_ocean": "FlowsToOcean",
+                "num_downstream": "NumBarriersDownstream",
             }
         )
     )
@@ -133,7 +161,14 @@ networks["HasNetwork"] = True
 ### Join in networks and fill N/A
 df = df.join(networks.set_index("id"))
 df.HasNetwork = df.HasNetwork.fillna(False)
+df.upNetID = df.upNetID.fillna(-1).astype("int")
+df.downNetID = df.downNetID.fillna(-1).astype("int")
+df.Intermittent = df.Intermittent.fillna(-1).astype("int8")
+df.FlowsToOcean = df.FlowsToOcean.fillna(-1).astype("int8")
+df.NumBarriersDownstream = df.NumBarriersDownstream.fillna(-1).astype("int")
 
+df["Ranked"] = df.HasNetwork & (~df.unranked)
+df = df.drop(columns=["unranked"])
 
 print(f"Read {len(df):,} small barriers ({df.HasNetwork.sum():,} have networks)")
 

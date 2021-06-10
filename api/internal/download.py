@@ -61,8 +61,8 @@ def download_dams(
     if unranked:
         full_df = df.copy()
 
-    # can only calculate ranks for those that have networks
-    df = df.loc[df.HasNetwork]
+    # can only calculate ranks for those that have networks and are not excluded from ranking
+    df = df.loc[df.Ranked]
 
     # calculate custom ranks
     if custom:

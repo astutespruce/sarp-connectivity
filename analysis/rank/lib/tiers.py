@@ -25,7 +25,7 @@ def calculate_score(series, ascending=True):
     """Calculate score based on the rank of a row's value within the sorted array of unique values.
     By default, the smallest unique value receives the lowest score, and the largest unique value
     receives the highest score.
-    
+
     Parameters
     ----------
     series : Pandas.Series
@@ -33,7 +33,7 @@ def calculate_score(series, ascending=True):
     ascending : boolean (default: True)
         If True, unique values are sorted in ascending order, meaning that the lowest score is the
         lowest unique value in the series, and the highest score is the length of the unique values.
-    
+
     Returns
     -------
     pandas.Series, dtype is float64
@@ -58,7 +58,7 @@ def calculate_score(series, ascending=True):
 def calculate_composite_score(dataframe, weights=None):
     """Calculate composite, weighted score across one or more columns.
     The lowest tier (1) is the highest 95% of the composite score range.
-    
+
     Parameters
     ----------
     dataframe : DataFrame
@@ -67,12 +67,12 @@ def calculate_composite_score(dataframe, weights=None):
         list-like of weights.  It is up to caller to make sure these sum to 1.  By default,
         if no weights are provided, all columns are weighted equally.  If provided, must
         be same length as dataframe.columns
-    
+
     Raises
     ------
     ValueError
         raised if weights are not the same length as number of columns in dataframe
-    
+
     Returns
     -------
     pandas.Series, dtype is float64
@@ -125,7 +125,7 @@ def calculate_tiers(df, group_field=None, prefix=""):
     each scenario's inputs.
 
     Calculations will only be performed where the "HasNetwork" field is true; otherwise results will be -1.
-    
+
     Parameters
     ----------
     df : pandas.DataFrame
@@ -134,11 +134,11 @@ def calculate_tiers(df, group_field=None, prefix=""):
         Name of a column to use for grouping tier calculation (all scores will be based on values within each group).
     prefix: str, optional (default: "")
         Prefix to add to the resulting score and tier fields.
-    
+
     Returns
     -------
     pandas.DataFrame
-        returns data frame with a score field (_score) and tier field (_tier) for each scenario. 
+        returns data frame with a score field (_score) and tier field (_tier) for each scenario.
         Scores are on a 0-100 (percent) scale.
     """
 
@@ -146,8 +146,9 @@ def calculate_tiers(df, group_field=None, prefix=""):
     if group_field is not None:
         columns.append(group_field)
 
-    # Subset just the metrics fields for just those records with networks
-    results = df.loc[df.HasNetwork, columns].copy()
+    # Subset just the metrics fields for just those records with networks that are
+    # to be ranked (exclude unranked beneficial invasive barriers)
+    results = df.loc[df.Ranked, columns].copy()
 
     groups = results[group_field].unique() if group_field is not None else [None]
 

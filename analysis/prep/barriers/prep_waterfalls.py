@@ -19,7 +19,7 @@ import geopandas as gp
 import numpy as np
 from pyogrio import write_dataframe
 
-from analysis.constants import CRS
+from analysis.constants import FCODE_TO_STREAMTYPE
 
 from analysis.lib.io import read_feathers
 from analysis.lib.geometry import nearest
@@ -171,14 +171,22 @@ print("Found {} waterfalls within {}m of dams".format(len(ix), DUPLICATE_TOLERAN
 ### Join to line atts
 flowlines = read_feathers(
     [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
-    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "loop"],
+    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "FCode", "loop"],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
 
+# calculate stream type
+df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE)
+
+# calculate intermittent + ephemeral
+df["intermittent"] = ~df.FCode.isin([46003, 46007])
+
+
 # Fix missing field values
 df["loop"] = df.loop.fillna(False)
 df["sizeclass"] = df.sizeclass.fillna("")
+df["FCode"] = df.FCode.fillna(-1).astype("int32")
 
 print(df.groupby("loop").size())
 

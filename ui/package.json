@@ -44,6 +44,7 @@
     "react-helmet": "^6.1.0",
     "react-hook-form": "^7.6.1",
     "react-icons": "^4.2.0",
+    "react-query": "^3.16.1",
     "stream-browserify": "^3.0.0",
     "theme-ui": "^0.8.4",
     "use-debounce": "^6.0.1",
