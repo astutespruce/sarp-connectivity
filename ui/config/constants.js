@@ -1,19 +1,19 @@
 export const STATE_FIPS = {
-  '12': 'Florida',
-  '37': 'North Carolina',
-  '22': 'Louisiana',
-  '13': 'Georgia',
+  12: 'Florida',
+  37: 'North Carolina',
+  22: 'Louisiana',
+  13: 'Georgia',
   '01': 'Alabama',
-  '48': 'Texas',
-  '45': 'South Carolina',
-  '40': 'Oklahoma',
-  '47': 'Tennessee',
-  '21': 'Kentucky',
+  48: 'Texas',
+  45: 'South Carolina',
+  40: 'Oklahoma',
+  47: 'Tennessee',
+  21: 'Kentucky',
   '05': 'Arkansas',
-  '28': 'Mississippi',
-  '29': 'Missouri',
-  '72': 'Puerto Rico',
-  '51': 'Virginia',
+  28: 'Mississippi',
+  29: 'Missouri',
+  72: 'Puerto Rico',
+  51: 'Virginia',
 }
 
 export const RECON = {
@@ -133,7 +133,7 @@ export const SINUOSITY = {
 
 export const BARRIER_SEVERITY = {
   0: 'Unknown',
-  // 1: "Not a barrier",
+  1: 'Not a barrier',
   2: 'Moderate barrier',
   3: 'Major barrier',
 }
@@ -309,10 +309,7 @@ export const LAYER_ZOOM = {
 
 // Bounds around all selected HUC6s
 export const SARP_BOUNDS = [
-  -107.87000919,
-  17.62370026,
-  -64.5126611,
-  44.26093852,
+  -107.87000919, 17.62370026, -64.5126611, 44.26093852,
 ]
 
 export const HUC8_USFS = {

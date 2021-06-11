@@ -30,15 +30,12 @@ const styles = StyleSheet.create({
   },
 })
 
-const Report = ({
-  barrierType,
-  barrier,
-  map,
-  locatorMap,
-  attribution,
-  scale,
-}) => {
-  const { name, county, state, hasnetwork } = barrier
+const Report = ({ barrierType, data, map, locatorMap, attribution, scale }) => {
+  const { county, state, hasnetwork, sarpid } = data
+  const name =
+    data.name || barrierType === 'dams'
+      ? `Unknown dam name (SARPID: ${sarpid})`
+      : `Unnamed crossing (SARPID ${sarpid})`
 
   return (
     <Document
@@ -49,7 +46,7 @@ const Report = ({
       language="en-us"
     >
       <Page style={styles.page} size="LETTER">
-        <Header {...barrier} />
+        <Header {...data} />
 
         <Map map={map} attribution={attribution} scale={scale} />
 
@@ -64,10 +61,10 @@ const Report = ({
       <Page style={styles.page} size="LETTER">
         <Flex wrap={false}>
           <View style={{ flex: '1 1 50%', marginRight: 36 }}>
-            <Location {...barrier} />
+            <Location {...data} />
           </View>
           <View style={{ flex: '1 1 50%' }}>
-            <Construction barrierType={barrierType} {...barrier} />
+            <Construction barrierType={barrierType} {...data} />
           </View>
         </Flex>
 
@@ -78,29 +75,29 @@ const Report = ({
               marginRight: 36,
             }}
           >
-            <Network barrierType={barrierType} {...barrier} />
+            <Network barrierType={barrierType} {...data} />
           </View>
           {hasnetwork ? (
             <View style={{ flex: '1 1 50%' }}>
-              <Scores barrierType={barrierType} {...barrier} />
+              <Scores barrierType={barrierType} {...data} />
             </View>
           ) : null}
         </Flex>
 
         <View style={{ marginTop: 24 }} wrap={false}>
-          <Species {...barrier} />
+          <Species {...data} />
         </View>
 
         <View style={{ marginTop: 24 }} wrap={false}>
-          <Feasibility {...barrier} />
+          <Feasibility {...data} />
         </View>
 
         <View style={{ marginTop: 24 }} wrap={false}>
-          <IDInfo {...barrier} />
+          <IDInfo {...data} />
         </View>
 
         <View style={{ marginTop: 24 }} wrap={false}>
-          <Contact barrierType={barrierType} {...barrier} />
+          <Contact barrierType={barrierType} {...data} />
         </View>
 
         <View style={{ marginTop: 24 }} wrap={false}>
@@ -115,7 +112,7 @@ const Report = ({
 
 Report.propTypes = {
   barrierType: PropTypes.string.isRequired,
-  barrier: PropTypes.object.isRequired,
+  data: PropTypes.object.isRequired,
   map: PropTypes.string.isRequired,
   locatorMap: PropTypes.string.isRequired,
   attribution: PropTypes.string.isRequired,

@@ -74,7 +74,6 @@ export const pointHighlightLayer = {
  * Override of browser's devicePixelRatio adapted from: https://github.com/mpetroff/print-maps/blob/master/js/script.js
  */
 
-// TODO: props: selectedID
 const ExportMap = ({
   width,
   height,
@@ -147,12 +146,16 @@ const ExportMap = ({
 
       // Add flowlines and network highlight layers
       mapObj.addLayer(flowlinesLayer)
-      mapObj.addLayer({
+
+      const netHighlightLayer = {
         ...networkHighlightLayer,
-        // id: `${barrierType}_network`,
         source: `${barrierType}_network`,
-        filter: ['==', 'networkID', networkID],
-      })
+      }
+      if (networkID !== null) {
+        netHighlightLayer.filter = ['==', 'networkID', networkID]
+      }
+
+      mapObj.addLayer(netHighlightLayer)
 
       // Add barrier point layers
       mapObj.addLayer(waterfallsLayer)
@@ -244,7 +247,7 @@ ExportMap.propTypes = {
   styleID: PropTypes.string,
   barrierType: PropTypes.string.isRequired,
   barrierID: PropTypes.number.isRequired,
-  networkID: PropTypes.number.isRequired,
+  networkID: PropTypes.number,
   onCreateMap: PropTypes.func.isRequired,
   onUpdateBasemap: PropTypes.func.isRequired,
 }
@@ -257,6 +260,7 @@ ExportMap.defaultProps = {
   bounds: null,
   padding: 0.1,
   styleID: defaultStyleID,
+  networkID: null,
 }
 
 export default ExportMap

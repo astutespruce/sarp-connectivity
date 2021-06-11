@@ -9,10 +9,10 @@ import { Preview } from 'components/ReportPreview'
 
 import { Layout, PageError, PageLoading } from 'components/Layout'
 
-const DamReport = ({ sarpid, uri }) => {
+const BarrierReport = ({ barrierType, sarpid, uri }) => {
   const { isLoading, error, data } = useQuery(
     uri,
-    async () => fetchBarrierDetails('dams', sarpid),
+    async () => fetchBarrierDetails(barrierType, sarpid),
     {
       // FIXME:
       //   staleTime: 60 * 60 * 1000, // 60 minutes
@@ -48,22 +48,24 @@ const DamReport = ({ sarpid, uri }) => {
 
   return (
     <Layout title={name}>
-      <Preview barrierType="dams" data={data} />
+      <Preview barrierType={barrierType} data={data} />
     </Layout>
   )
 }
 
-DamReport.propTypes = {}
+BarrierReport.propTypes = {}
 
 // Since these come from the router, they may be undefined during prop validation
-DamReport.propTypes = {
+BarrierReport.propTypes = {
+  barrierType: PropTypes.string,
   sarpid: PropTypes.string,
   uri: PropTypes.string,
 }
 
-DamReport.defaultProps = {
+BarrierReport.defaultProps = {
+  barrierType: null,
   sarpid: null,
   uri: null,
 }
 
-export default DamReport
+export default BarrierReport

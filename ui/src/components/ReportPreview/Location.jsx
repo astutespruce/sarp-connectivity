@@ -33,10 +33,14 @@ const Location = ({
         {huc12 ? (
           <>
             <li>
-              Subwatershed: {subwatershed} (HUC12: {huc12})
+              Subwatershed: {subwatershed}
+              <br />
+              (HUC12: {huc12})
             </li>
             <li>
-              Subbasin: {subbasin} (HUC8: {huc8})
+              Subbasin: {subbasin}
+              <br />
+              (HUC8: {huc8})
             </li>
           </>
         ) : null}

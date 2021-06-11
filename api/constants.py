@@ -159,6 +159,7 @@ DAM_API_FIELDS = (
         "NumBarriersDownstream",
         "upNetID",
         "downNetID",
+        "SinuosityClass",
     ]
     + METRIC_FIELDS
     + TIER_FIELDS
@@ -240,6 +241,7 @@ SB_API_FIELDS = (
         "NumBarriersDownstream",
         "upNetID",
         "downNetID",
+        "SinuosityClass",
     ]
     + METRIC_FIELDS
     + TIER_FIELDS

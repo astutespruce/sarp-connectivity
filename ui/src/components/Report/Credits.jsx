@@ -16,7 +16,7 @@ const Credits = () => (
         Southeast Aquatic Resources Partnership
       </Link>
       .{'\n\n'}
-      This project was supported in part by grants from the&nbsp;
+      This project was supported in part by grants from the{'\n'}
       <Link href="https://www.fws.gov/fisheries/fish-passage.html">
         U.S. Fish and Wildlife Service Fish Passage Program
       </Link>

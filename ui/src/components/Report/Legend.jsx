@@ -43,7 +43,7 @@ export const getLegendEntries = ({ name, barrierType }) => {
     entries.push({
       ...damsSecondary,
       type: 'circle',
-      label: 'dams analyzed for impacts to aquatic connectivity',
+      label: 'Dams analyzed for impacts to aquatic connectivity',
     })
   }
 

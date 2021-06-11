@@ -36,9 +36,12 @@ import Scores from './Scores'
 import Species from './Species'
 
 const Preview = ({ barrierType, data }) => {
-  const { id, sarpid, name, upnetid, county, state, lat, lon, hasnetwork } =
-    data
-  const initCenter = [lon, lat]
+  const { id, sarpid, upnetid, county, state, lat, lon, hasnetwork } = data
+
+  const name =
+    data.name || barrierType === 'dams'
+      ? `Unknown dam name (SARPID: ${sarpid})`
+      : `Unnamed crossing (SARPID ${sarpid})`
 
   const [{ attribution, hasError, isPending }, setState] = useState({
     attribution: basemapAttribution['light-v9'],
@@ -103,7 +106,7 @@ const Preview = ({ barrierType, data }) => {
         attribution={attribution}
         locatorMap={locatorMapImage}
         barrierType={barrierType}
-        barrier={data}
+        data={data}
       />
     )
       .toBlob()
@@ -167,7 +170,7 @@ const Preview = ({ barrierType, data }) => {
         <ExportMap
           barrierID={id}
           networkID={upnetid}
-          center={initCenter}
+          center={[lon, lat]}
           zoom={13.5}
           barrierType={barrierType}
           onCreateMap={handleCreateExportMap}
@@ -192,7 +195,7 @@ const Preview = ({ barrierType, data }) => {
             <Location {...data} />
           </Box>
           <Box sx={{ flex: '1 1 auto', width: '50%' }}>
-            <Construction {...data} />
+            <Construction barrierType={barrierType} {...data} />
           </Box>
         </Flex>
 
