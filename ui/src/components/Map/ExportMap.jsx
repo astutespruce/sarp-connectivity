@@ -100,12 +100,6 @@ const ExportMap = ({
         ? getCenterAndZoom(mapNode.current, bounds, padding)
         : { center: centerProp, zoom: zoomProp }
 
-    // TODO: set pixel ratio
-    // const actualPixelRatio = window.devicePixelRatio;
-    // Object.defineProperty(window, 'devicePixelRatio', {
-    //     get: function() {return dpi / 96}
-    // });
-
     // Token must be set before constructing map
     mapboxgl.accessToken = mapboxToken
 

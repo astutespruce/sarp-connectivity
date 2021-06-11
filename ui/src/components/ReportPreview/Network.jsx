@@ -53,6 +53,7 @@ const Network = ({
 
   return (
     <Box>
+      {header}
       <Box as="ul" sx={{ mt: '0.5rem' }}>
         <li>
           <b>

@@ -46,7 +46,7 @@ const Report = ({ barrierType, data, map, locatorMap, attribution, scale }) => {
       language="en-us"
     >
       <Page style={styles.page} size="LETTER">
-        <Header {...data} />
+        <Header {...data} name={name} />
 
         <Map map={map} attribution={attribution} scale={scale} />
 

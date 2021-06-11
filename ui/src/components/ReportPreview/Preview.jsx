@@ -56,7 +56,6 @@ const Preview = ({ barrierType, data }) => {
     exportMapRef.current = map
 
     map.on('moveend', () => {
-      console.log('bounds updated')
       const [ll, ur] = map.getBounds().toArray()
       setState((prevState) => ({
         ...prevState,
