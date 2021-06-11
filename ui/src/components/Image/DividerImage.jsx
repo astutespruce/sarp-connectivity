@@ -19,7 +19,7 @@ const DividerImage = ({ image, height, minHeight, credits, position }) => (
       },
     }}
   >
-    <GatsbyImage image={image} />
+    <GatsbyImage image={image} alt="" />
 
     {credits ? <ImageCredits {...credits} /> : null}
   </Box>

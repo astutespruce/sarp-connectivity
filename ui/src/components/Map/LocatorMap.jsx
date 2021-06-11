@@ -26,18 +26,9 @@ const mapCSS = {
 }
 
 // NOTE: bounds prop is for the associated bounds; we draw a rectangle for those here
-const LocatorMap = ({
-  width,
-  height,
-  center,
-  zoom,
-  bounds,
-  styleID,
-  onCreateMap,
-}) => {
+const LocatorMap = ({ width, height, center, zoom, styleID, onCreateMap }) => {
   const mapNode = useRef(null)
   const mapRef = useRef(null)
-  //   const markerRef = useRef(null)
 
   // construct the map within an effect that has no dependencies
   // this allows us to construct it only once at the time the
@@ -60,15 +51,13 @@ const LocatorMap = ({
     window.locatorMap = mapObj // for easier debugging and querying via console
 
     mapObj.on('load', () => {
-      const [xmin, ymin, xmax, ymax] = bounds
-
       mapObj.addLayer({
         id: 'marker',
         source: {
           type: 'geojson',
           data: {
             type: 'Point',
-            coordinates: [(xmin + xmax) / 2, (ymin + ymax) / 2],
+            coordinates: center,
           },
         },
         type: 'circle',
@@ -101,12 +90,11 @@ const LocatorMap = ({
       zoom,
     })
 
-    const [xmin, ymin, xmax, ymax] = bounds
     map.getSource('marker').setData({
       type: 'Point',
-      coordinates: [(xmin + xmax) / 2, (ymin + ymax) / 2],
+      coordinates: center,
     })
-  }, [center, zoom, bounds])
+  }, [center, zoom])
 
   return (
     <Box
@@ -129,7 +117,6 @@ LocatorMap.propTypes = {
   height: PropTypes.string,
   center: PropTypes.arrayOf(PropTypes.number).isRequired,
   zoom: PropTypes.number.isRequired,
-  bounds: PropTypes.arrayOf(PropTypes.number).isRequired,
   styleID: PropTypes.string,
   onCreateMap: PropTypes.func.isRequired,
 }

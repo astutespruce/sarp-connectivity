@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useRef } from 'react'
+import PropTypes from 'prop-types'
 import {
   Box,
   Container,
   Flex,
   Button,
-  Image,
   Spinner,
   Paragraph,
   Text,
@@ -12,21 +12,7 @@ import {
 import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
 
-import { BarrierReport } from 'components/Report'
-import {
-  Construction,
-  Contact,
-  Credits,
-  Feasibility,
-  Header,
-  IDInfo,
-  Legend,
-  Location,
-  MapAttribution,
-  Network,
-  Scores,
-  Species,
-} from 'components/ReportPreview'
+import { Report } from 'components/Report'
 import {
   ExportMap,
   LocatorMap,
@@ -36,89 +22,29 @@ import {
 
 import { PageError } from 'components/Layout'
 
-const initBounds = [
-  -81.75491755391782, 34.202167532091835, -81.71679157217531,
-  34.225793798992214,
-]
-const barrierType = 'dams'
-const initZoom = 13.5
-const initCenter = [-81.73324540257454, 34.214985614638195]
+import Construction from './Construction'
+import Contact from './Contact'
+import Credits from './Credits'
+import Feasibility from './Feasibility'
+import Header from './Header'
+import IDInfo from './IDInfo'
+import Legend from './Legend'
+import Location from './Location'
+import MapAttribution from './MapAttribution'
+import Network from './Network'
+import Scores from './Scores'
+import Species from './Species'
 
-const barrier = {
-  id: 109572,
-  name: 'John Wilson Dam',
-  sarpid: 'SC2527',
-  nidid: 'SC02841',
-  source: 'SEACAP-Unsnapped:  Unique NID 2013 dams not found*',
-  river: 'Turner Branch',
-  year: 0,
-  height: 22,
-  construction: 6,
-  purpose: 1,
-  condition: 0,
-  passagefacility: 0,
-  recon: 0,
-  feasibility: 0,
-  tespp: 0,
-  statesgcnspp: 6,
-  regionalsgcnspp: 0,
-  ownertype: 1,
-  protectedland: 0,
-  huc8_usfs: 0,
-  huc8_coa: 0,
-  huc8_sgcn: 1,
-  basin: 'Santee',
-  HUC6: '030501',
-  HUC8: '03050109',
-  HUC12: '030501090908',
-  State: 'South Carolina',
-  countyname: 'Newberry',
-  ECO3: '8.3.4',
-  ECO4: '45b',
-  streamorder: 2,
-  landcover: 85,
-  sinuosity: 1.034000039100647,
-  sizeclasses: 0,
-  totalupstreammiles: 1.8530000448226929,
-  totaldownstreammiles: 2741.5029296875,
-  freeupstreammiles: 1.3450000286102295,
-  freedownstreammiles: 2381.72607421875,
-  se_nc_tier: 18,
-  se_wc_tier: 13,
-  se_ncwc_tier: 15,
-  state_nc_tier: 10,
-  state_wc_tier: 12,
-  state_ncwc_tier: 11,
-  heightclass: 3,
-  passagefacilityclass: 0,
-  gainmilesclass: 1,
-  tesppclass: 0,
-  statesgcnsppclass: 3,
-  regionalsgcnsppclass: 0,
-  streamorderclass: 2,
-  County: '45071',
-  sinuosityclass: 0,
-  upnetid: 3014872,
-  downnetid: 3779393756,
-  HUC8Name: 'Saluda',
-  HUC12Name: 'Lower Little River-Saluda River',
-  barrierType: 'dams',
-  lat: 34.20447326183114,
-  lon: -81.7414140701294,
-  hasnetwork: true,
-}
+const Preview = ({ barrierType, data }) => {
+  const { id, sarpid, name, upnetid, county, state, lat, lon, hasnetwork } =
+    data
+  const initCenter = [lon, lat]
 
-const { id, name, upnetid = Infinity, countyname, State, lat, lon } = barrier
-
-const TestExportPage = () => {
-  const [{ center, bounds, attribution, hasError, isPending }, setState] =
-    useState({
-      attribution: basemapAttribution['light-v9'],
-      center: initCenter,
-      bounds: initBounds,
-      hasError: false,
-      isPending: false,
-    })
+  const [{ attribution, hasError, isPending }, setState] = useState({
+    attribution: basemapAttribution['light-v9'],
+    hasError: false,
+    isPending: false,
+  })
 
   const exportMapRef = useRef(null)
   const locatorMapRef = useRef(null)
@@ -127,6 +53,7 @@ const TestExportPage = () => {
     exportMapRef.current = map
 
     map.on('moveend', () => {
+      console.log('bounds updated')
       const [ll, ur] = map.getBounds().toArray()
       setState((prevState) => ({
         ...prevState,
@@ -170,18 +97,13 @@ const TestExportPage = () => {
     }
 
     pdf(
-      <BarrierReport
+      <Report
         map={mapImage}
         scale={scale}
-        // FIXME:
-        // scale={{
-        //   width: 85,
-        //   label: '500 ft',
-        // }}
         attribution={attribution}
         locatorMap={locatorMapImage}
         barrierType={barrierType}
-        barrier={barrier}
+        barrier={data}
       />
     )
       .toBlob()
@@ -191,7 +113,7 @@ const TestExportPage = () => {
           isPending: false,
           hasError: false,
         }))
-        saveAs(blob, `${id}_barrier_report.pdf`)
+        saveAs(blob, `${sarpid}_barrier_report.pdf`)
       })
       .catch((error) => {
         // TODO: log to sentry?
@@ -240,70 +162,13 @@ const TestExportPage = () => {
           </Box>
         </Flex>
 
-        <Header
-          name={name}
-          county={countyname}
-          state={State}
-          lat={lat}
-          lon={lon}
-        />
-
-        {/* <Flex
-          sx={{
-            width: '100%',
-            height: '200px',
-            bg: 'grey.1',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            zIndex: 1,
-          }}
-        >
-          ... map goes here ...
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: '10px',
-              right: '10px',
-              width: '85px',
-              fontSize: '10px',
-              color: '#333',
-              border: '2px solid #333',
-              borderTopWidth: 0,
-              bg: 'rgba(255,255,255, 0.75)',
-              px: '5px',
-              py: '2px',
-            }}
-          >
-            500 ft
-          </Box>
-        </Flex>
-
-        <MapAttribution attribution={attribution} />
-
-        <Flex sx={{ mt: '2rem' }}>
-          <Flex
-            sx={{
-              flex: '0 0 auto',
-              width: '200px',
-              height: '200px',
-              bg: 'grey.1',
-              mr: '2rem',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            ... locator map ...
-          </Flex>
-
-          <Legend barrierType={barrierType} name={name} />
-        </Flex> */}
+        <Header name={name} county={county} state={state} lat={lat} lon={lon} />
 
         <ExportMap
           barrierID={id}
           networkID={upnetid}
           center={initCenter}
-          zoom={initZoom}
+          zoom={13.5}
           barrierType={barrierType}
           onCreateMap={handleCreateExportMap}
           onUpdateBasemap={handleUpdateBasemap}
@@ -314,9 +179,8 @@ const TestExportPage = () => {
         <Flex sx={{ mt: '2rem' }}>
           <Box sx={{ flex: '0 0 auto', mr: '2rem' }}>
             <LocatorMap
-              center={center}
+              center={[lon, lat]}
               zoom={5}
-              bounds={bounds}
               onCreateMap={handleCreateLocatorMap}
             />
           </Box>
@@ -325,36 +189,38 @@ const TestExportPage = () => {
 
         <Flex sx={{ justifyContent: 'space-between', mt: '3rem' }}>
           <Box sx={{ flex: '1 1 auto', width: '50%', mr: '2rem' }}>
-            <Location {...barrier} />
+            <Location {...data} />
           </Box>
           <Box sx={{ flex: '1 1 auto', width: '50%' }}>
-            <Construction {...barrier} />
+            <Construction {...data} />
           </Box>
         </Flex>
 
         <Flex sx={{ justifyContent: 'space-between', mt: '3rem' }}>
           <Box sx={{ flex: '1 1 auto', width: '50%', mr: '2rem' }}>
-            <Network {...barrier} />
+            <Network {...data} />
           </Box>
-          <Box sx={{ flex: '1 1 auto', width: '50%' }}>
-            <Scores barrierType={barrierType} {...barrier} />
-          </Box>
+          {hasnetwork ? (
+            <Box sx={{ flex: '1 1 auto', width: '50%' }}>
+              <Scores barrierType={barrierType} {...data} />
+            </Box>
+          ) : null}
         </Flex>
 
         <Box sx={{ mt: '3rem' }}>
-          <Species {...barrier} />
+          <Species {...data} />
         </Box>
 
         <Box sx={{ mt: '3rem' }}>
-          <Feasibility {...barrier} />
+          <Feasibility {...data} />
         </Box>
 
         <Box sx={{ mt: '3rem' }}>
-          <IDInfo {...barrier} />
+          <IDInfo {...data} />
         </Box>
 
         <Box sx={{ mt: '3rem' }}>
-          <Contact barrierType={barrierType} {...barrier} />
+          <Contact barrierType={barrierType} {...data} />
         </Box>
 
         <Box sx={{ mt: '2rem' }}>
@@ -365,4 +231,20 @@ const TestExportPage = () => {
   )
 }
 
-export default TestExportPage
+Preview.propTypes = {
+  barrierType: PropTypes.string.isRequired,
+  data: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    sarpid: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    lat: PropTypes.number.isRequired,
+    lon: PropTypes.number.isRequired,
+    county: PropTypes.string.isRequired,
+    state: PropTypes.string.isRequired,
+    upnetid: PropTypes.number,
+    hasnetwork: PropTypes.bool,
+    // other props validated by subcomponents
+  }).isRequired,
+}
+
+export default Preview

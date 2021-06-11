@@ -1,3 +1,3 @@
-import BarrierReport from './BarrierReport'
+import Report from './Report'
 
-export { BarrierReport }
+export { Report }

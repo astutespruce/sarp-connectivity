@@ -33,8 +33,7 @@ class StateRecordExtractor:
 
 @router.get("/dams/state")
 def query_dams(
-    request: Request,
-    extractor: StateRecordExtractor = Depends(),
+    request: Request, extractor: StateRecordExtractor = Depends(),
 ):
     """Return subset of dams based on state abbreviations.
 
@@ -54,9 +53,7 @@ def query_dams(
 
 
 @router.get("/removed_dams")
-def query_removed_dams(
-    request: Request,
-):
+def query_removed_dams(request: Request,):
     """Return dams that were removed for conservation"""
 
     log_request(request)

@@ -157,6 +157,8 @@ DAM_API_FIELDS = (
         "Intermittent",
         "FlowsToOcean",
         "NumBarriersDownstream",
+        "upNetID",
+        "downNetID",
     ]
     + METRIC_FIELDS
     + TIER_FIELDS
@@ -236,6 +238,8 @@ SB_API_FIELDS = (
         "Intermittent",
         "FlowsToOcean",
         "NumBarriersDownstream",
+        "upNetID",
+        "downNetID",
     ]
     + METRIC_FIELDS
     + TIER_FIELDS

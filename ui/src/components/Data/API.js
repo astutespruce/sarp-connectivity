@@ -96,6 +96,17 @@ export const fetchBarrierRanks = async (
   return fetchCSV(url, undefined, autoType)
 }
 
+export const fetchBarrierDetails = async (barrierType, sarpid) => {
+  const url = `${apiHost}/api/v1/internal/${barrierType}/details/${sarpid}`
+
+  const request = await fetch(url)
+  const response = await request.json()
+  if (response.detail) {
+    return null // not found
+  }
+  return response
+}
+
 export const getDownloadURL = ({
   barrierType,
   layer,

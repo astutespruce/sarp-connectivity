@@ -6,13 +6,20 @@ import { List, ListItem } from './elements'
 
 import { OWNERTYPE } from '../../../config/constants'
 
-const Location = ({ river, HUC12Name, HUC12, HUC8Name, HUC8, ownertype }) => {
+const Location = ({
+  river,
+  subwatershed,
+  subbasin,
+  huc12,
+  huc8,
+  ownertype,
+}) => {
   const hasRiver =
     river && river !== '"' && river !== 'null' && river !== 'Unknown'
 
   const hasOwner = ownertype && ownertype > 0
 
-  if (!(hasRiver || HUC12 || hasOwner)) {
+  if (!(hasRiver || huc12 || hasOwner)) {
     return null
   }
 
@@ -24,16 +31,16 @@ const Location = ({ river, HUC12Name, HUC12, HUC8Name, HUC8, ownertype }) => {
         </ListItem>
       ) : null}
 
-      {HUC12 ? (
+      {huc12 ? (
         <>
           <ListItem>
             <Text>
-              Subwatershed: {HUC12Name} (HUC12: {HUC12})
+              Subwatershed: {subwatershed} {'\n'} (HUC12: {huc12})
             </Text>
           </ListItem>
           <ListItem>
             <Text>
-              Subbasin: {HUC8Name} (HUC8: {HUC8})
+              Subbasin: {subbasin} {'\n'} (HUC8: {huc8})
             </Text>
           </ListItem>
         </>
@@ -49,19 +56,19 @@ const Location = ({ river, HUC12Name, HUC12, HUC8Name, HUC8, ownertype }) => {
 
 Location.propTypes = {
   river: PropTypes.string,
-  HUC12: PropTypes.string,
-  HUC8: PropTypes.string,
-  HUC12Name: PropTypes.string,
-  HUC8Name: PropTypes.string,
+  huc12: PropTypes.string,
+  huc8: PropTypes.string,
+  subwatershed: PropTypes.string,
+  subbasin: PropTypes.string,
   ownertype: PropTypes.number,
 }
 
 Location.defaultProps = {
   river: null,
-  HUC12: null,
-  HUC8: null,
-  HUC12Name: null,
-  HUC8Name: null,
+  huc12: null,
+  huc8: null,
+  subwatershed: null,
+  subbasin: null,
   ownertype: null,
 }
 

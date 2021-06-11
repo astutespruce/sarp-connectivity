@@ -7,7 +7,7 @@ import { siteMetadata } from '../../../gatsby-config'
 const { version: dataVersion } = siteMetadata
 
 const Contact = ({ barrierType, sarpid }) => (
-  <Box sx={{ bg: 'grey.1', borderRadius: '1rem', p: '1rem' }}>
+  <Box sx={{ bg: 'grey.1', borderRadius: '0.5rem', p: '1rem' }}>
     <Text sx={{ fontWeight: 'bold', fontSize: 3 }}>Contact us</Text>
     <Box sx={{ mt: '0.5rem' }}>
       <Text>

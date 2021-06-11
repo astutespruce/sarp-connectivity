@@ -24,6 +24,7 @@
     "gatsby": "^3.5.0",
     "gatsby-background-image": "^1.5.3",
     "gatsby-plugin-catch-links": "^3.5.0",
+    "gatsby-plugin-create-client-paths": "^3.7.1",
     "gatsby-plugin-google-gtag": "^3.5.0",
     "gatsby-plugin-image": "^1.5.0",
     "gatsby-plugin-manifest": "^3.5.0",

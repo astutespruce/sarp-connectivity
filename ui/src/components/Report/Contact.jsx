@@ -8,7 +8,7 @@ import { siteMetadata } from '../../../gatsby-config'
 const { version: dataVersion } = siteMetadata
 
 const Contact = ({ barrierType, sarpid }) => (
-  <View style={{ backgroundColor: '#ebedee', borderRadius: 12, padding: 12 }}>
+  <View style={{ backgroundColor: '#ebedee', borderRadius: 6, padding: 12 }}>
     <Section title="Contact us">
       <Text>
         If you see an issue with the details for this barrier, please{' '}
