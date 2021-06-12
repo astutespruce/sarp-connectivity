@@ -30,7 +30,7 @@ def calculate_sinuosity(geometries):
     ix = straight_line_distance > 0
 
     # by definition, all values must be at least 1, so clip lower bound
-    sinuosity[ix] = (pg.length(geometries[ix]) / straight_line_distance).clip(1)
+    sinuosity[ix] = (pg.length(geometries[ix]) / straight_line_distance[ix]).clip(1)
 
     if isinstance(geometries, pd.Series):
         return pd.Series(sinuosity, index=geometries.index)
