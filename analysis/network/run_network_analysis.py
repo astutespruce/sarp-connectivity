@@ -50,18 +50,23 @@ huc2s = sorted(units.keys())
 #     "05",
 #     "06",
 #     "07",
-# "08",
+#     "08",
+#     "09",
 #     "10",
 #     "11",
 #     "12",
 #     "13",
+#     "14",
+#     "15",
+#     "16",
+#     "17",
 #     "21",
 # ]
 
 
 start = time()
 
-for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
+for huc2, network_type in product(huc2s, NETWORK_TYPES[1:]):
     region_start = time()
 
     print(f"----- {huc2} ({network_type}) ------")
@@ -254,8 +259,9 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:2]):
 
     print("Serializing network")
     networks = networks.reset_index(drop=True)
-    networks.to_feather(out_dir / "network.feather")
-    write_dataframe(networks, out_dir / "network.fgb")
+    # networks.to_feather(out_dir / "network.feather")
+    # use GPKG as primary store to save space
+    write_dataframe(networks, out_dir / "network.gpkg")
 
     print(f"Region done in {time() - region_start:.2f}s\n\n")
 

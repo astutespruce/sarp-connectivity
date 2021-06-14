@@ -1,11 +1,11 @@
 /* eslint-disable camelcase */
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Envelope } from '@emotion-icons/fa-solid'
+import { Envelope, FileDownload } from '@emotion-icons/fa-solid'
 import { Box, Button, Flex, Heading, Paragraph, Text } from 'theme-ui'
 
 import { Tab, Tabs } from 'components/Tabs'
-
+import { Link } from 'components/Link'
 import { isEmptyString } from 'util/string'
 import DamDetails from './DamDetails'
 import SmallBarrierDetails from './SmallBarrierDetails'
@@ -37,7 +37,9 @@ const BarrierDetails = ({ barrier, onClose }) => {
     )
 
   const defaultName =
-    barrierType === 'dams' ? 'Unknown name' : 'Unnamed crossing'
+    barrierType === 'dams'
+      ? `Unknown dam name (SARPID: ${sarpid})`
+      : `Unnamed crossing (SARPID: ${sarpid})`
 
   let scoreContent = null
   if (hasnetwork) {
@@ -81,10 +83,8 @@ const BarrierDetails = ({ barrier, onClose }) => {
 
   return (
     <>
-      <Flex
+      <Box
         sx={{
-          flex: '0 0 auto',
-          justifyContent: 'space-between',
           py: '1rem',
           pr: '0.5rem',
           pl: '1rem',
@@ -92,24 +92,51 @@ const BarrierDetails = ({ barrier, onClose }) => {
           borderBottomColor: 'blue.2',
         }}
       >
-        <Box sx={{ flex: '1 1 auto' }}>
-          <Heading as="h3" sx={{ m: 0, fontSize: '1.25rem' }}>
-            {!isEmptyString(name) ? name : defaultName}
-          </Heading>
-          {!(isEmptyString(countyname) || isEmptyString(State)) && (
-            <Text>
-              <i>
-                {countyname} County, {State}
-              </i>
-              <br />
-            </Text>
-          )}
-        </Box>
-        <Button variant="close" onClick={onClose}>
-          &#10006;
-        </Button>
-      </Flex>
+        <Flex
+          sx={{
+            flex: '0 0 auto',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Box sx={{ flex: '1 1 auto' }}>
+            <Heading as="h3" sx={{ m: 0, fontSize: '1.25rem' }}>
+              {!isEmptyString(name) ? name : defaultName}
+            </Heading>
 
+            {!(isEmptyString(countyname) || isEmptyString(State)) && (
+              <Text>
+                <i>
+                  {countyname} County, {State}
+                </i>
+                <br />
+              </Text>
+            )}
+          </Box>
+          <Button variant="close" onClick={onClose}>
+            &#10006;
+          </Button>
+        </Flex>
+        <Box>
+          <a
+            href={`/report/${barrierType}/${sarpid}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Flex
+              sx={{
+                alignItems: 'center',
+                flex: '1 1 auto',
+                mt: '0.15rem',
+              }}
+            >
+              <Box sx={{ flex: '0 0 auto', color: 'link', mr: '0.25rem' }}>
+                <FileDownload size="1em" />
+              </Box>
+              <Text>Create PDF report</Text>
+            </Flex>
+          </a>
+        </Box>
+      </Box>
       <Tabs
         sx={{
           flex: '1 1 auto',
@@ -129,7 +156,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
           flex: '0 0 auto',
           justifyContent: 'center',
           alignItems: 'center',
-          py: '1rem',
+          py: '0.5rem',
           borderTop: '1px solid #DDD',
           bg: '#f6f6f2',
         }}

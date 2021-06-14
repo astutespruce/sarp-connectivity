@@ -115,14 +115,14 @@ class DirectedGraph(object):
         set of adjacent nodes
         """
         out = set()
-        next_nodes = {node}
+        next_nodes = set(self.adj_matrix.get(node, []))
         while next_nodes:
             nodes = next_nodes
             next_nodes = set()
-            for node in nodes:
-                if not node in out:
-                    out.add(node)
-                    next_nodes.update(self.adj_matrix.get(node, []))
+            for next_node in nodes:
+                if not next_node in out:
+                    out.add(next_node)
+                    next_nodes.update(self.adj_matrix.get(next_node, []))
         return out
 
     def descendants(self, sources):
@@ -134,20 +134,7 @@ class DirectedGraph(object):
             1d ndarray if sources is list-like, else singular list of nodes
         """
 
-        def _descendants(node):
-            """Traverse graph starting from the children of node"""
-            out = set()
-            next_nodes = set(self.adj_matrix.get(node, []))
-            while next_nodes:
-                nodes = next_nodes
-                next_nodes = set()
-                for next_node in nodes:
-                    if not next_node in out:
-                        out.add(next_node)
-                        next_nodes.update(self.adj_matrix.get(next_node, []))
-            return out
-
-        f = np.frompyfunc(_descendants, 1, 1)
+        f = np.frompyfunc(self._descendants, 1, 1)
         return f(sources)
 
     def terminal_descendants(self, sources):

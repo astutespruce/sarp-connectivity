@@ -1,12 +1,8 @@
 from pathlib import Path
-from operator import itemgetter
 
-import geopandas as gp
 import pandas as pd
-import pygeos as pg
 import numpy as np
 
-from analysis.constants import GEO_CRS
 from analysis.lib.graph import DirectedGraph
 
 data_dir = Path("data")

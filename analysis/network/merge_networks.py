@@ -11,7 +11,7 @@ import pandas as pd
 import geopandas as gp
 import pygeos as pg
 import numpy as np
-from pyogrio import write_dataframe
+from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import NETWORK_TYPES, CRS
 from analysis.lib.graph import DirectedGraph
@@ -190,12 +190,10 @@ barrier_joins = barrier_joins.loc[
 
 ### Recalculate network stats for the networks that have been updated
 print("\nRecalculating network stats...")
-updated_network = network_df.loc[cross_region.new_network.unique()]
+# updated_network = network_df.loc[cross_region.new_network.unique()]
 
 # network stats facing upstream for each functional network
-network_stats = calculate_network_stats(updated_network, barrier_joins, joins)
-
-# TODO: update network stats for num downstream / flows to ocean across connected networks
+network_stats = calculate_network_stats(network_df, barrier_joins, joins)
 
 
 network_stats = cross_region[
@@ -219,10 +217,10 @@ upstream_stats = (
             "segments",
             "natfldpln",
             "sizeclasses",
-            "xmin",
-            "ymin",
-            "xmax",
-            "ymax",
+            # "xmin",
+            # "ymin",
+            # "xmax",
+            # "ymax",
         ]
     ]
     .groupby("downstream_network")
@@ -297,19 +295,8 @@ for huc2 in connected_huc2:
         ].sizeclasses_right.astype("uint8")
 
         barrier_networks = barrier_networks.drop(
-            columns=[
-                "new_network",
-                "miles",
-                "free_miles",
-                "sinuosity_right",
-                "segments_right",
-                "natfldpln_right",
-                "sizeclasses_right",
-                "xmin_right",
-                "ymin_right",
-                "xmax_right",
-                "ymax_right",
-            ]
+            columns=["new_network", "miles", "free_miles",]
+            + [c for c in barrier_networks.columns if c.endswith("_right")]
         )
 
     if barrier_networks.downNetID.isin(downstream_stats_same_huc2.index).sum() > 0:
@@ -332,7 +319,6 @@ for huc2 in connected_huc2:
         barrier_networks.loc[ix, "FreeDownstreamMiles"] = barrier_networks.loc[
             ix
         ].free_miles.astype("float32")
-        # NOTE: these may not be working properly
         barrier_networks.loc[ix, "flows_to_ocean"] = barrier_networks.loc[
             ix
         ].flows_to_ocean_right.astype("bool")
@@ -341,13 +327,8 @@ for huc2 in connected_huc2:
         ].num_downstream_right.astype("uint16")
 
         barrier_networks = barrier_networks.drop(
-            columns=[
-                "new_network",
-                "miles",
-                "free_miles",
-                "num_downstream_right",
-                "flows_to_ocean_right",
-            ]
+            columns=["new_network", "miles", "free_miles",]
+            + [c for c in barrier_networks.columns if c.endswith("_right")]
         )
 
     if barrier_networks.downNetID.isin(downstream_stats.index).sum() > 0:
@@ -370,7 +351,6 @@ for huc2 in connected_huc2:
         barrier_networks.loc[ix, "FreeDownstreamMiles"] = barrier_networks.loc[
             ix
         ].free_miles.astype("float32")
-        # NOTE: these may not be working properly
         barrier_networks.loc[ix, "flows_to_ocean"] = barrier_networks.loc[
             ix
         ].flows_to_ocean_right.astype("bool")
@@ -380,6 +360,7 @@ for huc2 in connected_huc2:
 
         barrier_networks = barrier_networks.drop(
             columns=["new_network", "miles", "free_miles",]
+            + [c for c in barrier_networks.columns if c.endswith("_right")]
         )
 
     huc2_dir = out_dir / huc2 / network_type
@@ -424,8 +405,8 @@ stats.index.name = "networkID"
 for huc2 in connected_huc2:
     print(f"\nHUC2 {huc2}: moving networks to base HUC2...")
 
-    network = gp.read_feather(
-        data_dir / "networks" / huc2 / network_type / "network.feather"
+    network = read_dataframe(
+        data_dir / "networks" / huc2 / network_type / "network.gpkg"
     )
 
     # first, remove any networks that are now "owned" by another HUC2
@@ -438,8 +419,8 @@ for huc2 in connected_huc2:
     # networks upstream
     if huc2 in aggregate_huc2:
         for upstream_huc2 in aggregate_huc2[huc2]:
-            upstream_network = gp.read_feather(
-                data_dir / "networks" / upstream_huc2 / network_type / "network.feather"
+            upstream_network = read_dataframe(
+                data_dir / "networks" / upstream_huc2 / network_type / "network.gpkg"
             )
 
             tmp = (
@@ -493,8 +474,9 @@ for huc2 in connected_huc2:
     # make sure CRS is set properly
     network = network.set_crs(CRS, allow_override=True)
 
-    network.to_feather(huc2_dir / "network.feather")
+    # network.to_feather(huc2_dir / "network.feather")
     # Note: this must be a GPKG; FlatGeobuf fails for the larger networks
+    # use GPKG as primary data store
     write_dataframe(network, huc2_dir / "network.gpkg")
 
 

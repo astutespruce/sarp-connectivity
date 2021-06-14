@@ -194,6 +194,8 @@ df.HasNetwork = df.HasNetwork.fillna(False)
 df.upNetID = df.upNetID.fillna(-1).astype("int")
 df.downNetID = df.downNetID.fillna(-1).astype("int")
 df.Intermittent = df.Intermittent.fillna(-1).astype("int8")
+df.loc[~df.HasNetwork, "Intermittent"] = -1
+
 df.FlowsToOcean = df.FlowsToOcean.fillna(-1).astype("int8")
 df.NumBarriersDownstream = df.NumBarriersDownstream.fillna(-1).astype("int")
 
@@ -259,18 +261,21 @@ write_dataframe(df.reset_index(), qa_dir / "dams_network_results.gpkg")
 # drop geometry, not needed from here on out
 df = df.drop(columns=["geometry"])
 
-print("Saving full results to CSV")
-df.to_csv(
-    qa_dir / "dams_network_results.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
-)
+# Debug
+# print("Saving full results to CSV")
+# df.to_csv(
+#     qa_dir / "dams_network_results.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
+# )
 
 # save for API
 df[DAM_API_FIELDS].reset_index().to_feather(api_dir / "dams.feather")
 
 # Drop fields that can be calculated on frontend
 keep_fields = [
-    c for c in DAM_API_FIELDS if not c in {"GainMiles", "TotalNetworkMiles"}
-] + ["SinuosityClass", "upNetID", "downNetID"]
+    c
+    for c in DAM_API_FIELDS
+    if not c in {"GainMiles", "TotalNetworkMiles", "Sinuosity"}
+]
 df = df[keep_fields].copy()
 
 
@@ -292,7 +297,11 @@ with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork", "Excluded"])
 without_networks = df.loc[~df.HasNetwork].drop(columns=["HasNetwork"])
 
 with_networks.rename(
-    columns={k: k.lower() for k in df.columns if k not in UNIT_FIELDS}
+    columns={
+        k: k.lower()
+        for k in df.columns
+        if k not in UNIT_FIELDS + ["Subbasin", "Subwatershed"]
+    }
 ).to_csv(
     tile_dir / "dams_with_networks.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
 )
@@ -301,7 +310,11 @@ with_networks.rename(
 keep_fields = DAM_CORE_FIELDS + ["CountyName", "State", "Excluded"]
 
 without_networks[keep_fields].rename(
-    columns={k: k.lower() for k in df.columns if k not in UNIT_FIELDS}
+    columns={
+        k: k.lower()
+        for k in df.columns
+        if k not in UNIT_FIELDS + ["Subbasin", "Subwatershed"]
+    }
 ).to_csv(
     tile_dir / "dams_without_networks.csv",
     index_label="id",
