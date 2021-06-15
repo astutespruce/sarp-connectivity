@@ -24,6 +24,7 @@ const BarrierDetails = ({
   hasnetwork,
   excluded,
   stream,
+  intermittent,
   HUC8,
   HUC12,
   HUC8Name,
@@ -72,6 +73,10 @@ const BarrierDetails = ({
           </li>
           {!isEmptyString(stream) ? <li>River or stream: {stream}</li> : null}
           {!isEmptyString(road) ? <li>Road: {road}</li> : null}
+
+          {intermittent ? (
+            <li>Located on a reach that has intermittent or ephemeral flow</li>
+          ) : null}
 
           {HUC12Name ? (
             <li>
@@ -330,6 +335,7 @@ BarrierDetails.propTypes = {
   excluded: PropTypes.bool,
   source: PropTypes.string,
   stream: PropTypes.string,
+  intermittent: PropTypes.string,
   HUC8: PropTypes.string,
   HUC12: PropTypes.string,
   HUC8Name: PropTypes.string,
@@ -363,6 +369,7 @@ BarrierDetails.defaultProps = {
   excluded: false,
   source: null,
   stream: null,
+  intermittent: false,
   road: null,
   roadtype: null,
   crossingtype: null,

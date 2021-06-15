@@ -57,24 +57,24 @@ units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 huc2s = sorted(units.keys())
 
 # manually subset keys from above for processing
-huc2s = [
-    "02",
-    # "03",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    "14",
-    # "15",
-    # "16",
-    # "17",
-    # "21",
-]
+# huc2s = [
+#     "02",
+#     # "03",
+#     # "05",
+#     # "06",
+#     # "07",
+#     # "08",
+#     # "09",
+#     # "10",
+#     # "11",
+#     # "12",
+#     # "13",
+#     "14",
+#     # "15",
+#     # "16",
+#     # "17",
+#     # "21",
+# ]
 
 
 ### Read in master
@@ -291,6 +291,7 @@ df[str_cols] = df[str_cols].fillna("")
 
 # Update boolean fields so that they are output to CSV correctly
 df.ProtectedLand = df.ProtectedLand.astype("uint8")
+df.Ranked = df.Ranked.astype("uint8")
 df["Excluded"] = df.Excluded.astype("uint8")
 
 with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork", "Excluded"])

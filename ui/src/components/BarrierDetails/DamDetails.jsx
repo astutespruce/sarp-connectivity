@@ -35,6 +35,7 @@ const DamDetails = ({
   condition,
   passagefacility,
   river,
+  intermittent,
   HUC8,
   HUC12,
   HUC8Name,
@@ -77,6 +78,10 @@ const DamDetails = ({
 
         {river && river !== '"' && river !== 'null' && river !== 'Unknown' ? (
           <li>River or stream: {river}</li>
+        ) : null}
+
+        {intermittent ? (
+          <li>Located on a reach that has intermittent or ephemeral flow</li>
         ) : null}
 
         {HUC12Name ? (
@@ -335,6 +340,7 @@ DamDetails.propTypes = {
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
   river: PropTypes.string,
+  intermittent: PropTypes.bool,
   HUC8: PropTypes.string,
   HUC12: PropTypes.string,
   HUC8Name: PropTypes.string,
@@ -371,6 +377,7 @@ DamDetails.defaultProps = {
   HUC12Name: null,
   excluded: false,
   river: null,
+  intermittent: false,
   nidid: null,
   source: null,
   height: 0,

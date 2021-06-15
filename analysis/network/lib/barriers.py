@@ -72,7 +72,7 @@ def read_barriers(huc2, mode):
     print(barriers.groupby("kind").size())
 
     return barriers[
-        ["geometry", "id", "lineID", "NHDPlusID", "barrierID", "kind"]
+        ["geometry", "id", "lineID", "NHDPlusID", "barrierID", "kind", "intermittent"]
     ].set_index("barrierID", drop=False)
 
 

@@ -18,12 +18,11 @@ import warnings
 import geopandas as gp
 import pygeos as pg
 import pandas as pd
-import numpy as np
 from pyogrio import write_dataframe
 
 
-from analysis.constants import NETWORK_TYPES, GEO_CRS
-
+from analysis.constants import NETWORK_TYPES
+from analysis.lib.joins import remove_joins
 from analysis.network.lib.stats import calculate_network_stats
 from analysis.network.lib.barriers import read_barriers, save_barriers
 from analysis.lib.flowlines import cut_flowlines_at_barriers, save_cut_flowlines
@@ -31,6 +30,9 @@ from analysis.network.lib.networks import create_networks
 
 warnings.simplefilter("always")  # show geometry related warnings every time
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+
+
+PERENNIAL_ONLY = False  # if true, will only build networks from perennial flowlines
 
 
 data_dir = Path("data")
@@ -46,38 +48,47 @@ huc2s = sorted(units.keys())
 # manually subset keys from above for processing
 # huc2s = [
 #     "02",
-#     "03",
-#     "05",
-#     "06",
-#     "07",
-#     "08",
-#     "09",
-#     "10",
-#     "11",
-#     "12",
-#     "13",
-#     "14",
-#     "15",
-#     "16",
-#     "17",
-#     "21",
+#     #     "03",
+#     #     "05",
+#     #     "06",
+#     #     "07",
+#     #     "08",
+#     #     "09",
+#     #     "10",
+#     #     "11",
+#     #     "12",
+#     #     "13",
+#     #     "14",
+#     #     "15",
+#     #     "16",
+#     #     "17",
+#     #     "21",
 # ]
 
 
 start = time()
+
+scenario_dir = "perennial" if PERENNIAL_ONLY else "all"
 
 for huc2, network_type in product(huc2s, NETWORK_TYPES[1:]):
     region_start = time()
 
     print(f"----- {huc2} ({network_type}) ------")
 
-    out_dir = data_dir / "networks" / huc2 / network_type
+    out_dir = data_dir / "networks" / scenario_dir / huc2 / network_type
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
     ##################### Read Barrier data #################
     barriers = read_barriers(huc2, network_type)
+
+    if PERENNIAL_ONLY:
+        print(
+            f"Dropping {barriers.intermittent.sum():,} barriers on intermittent flowlines"
+        )
+        barriers = barriers.loc[~barriers.intermittent].copy()
+
     save_barriers(out_dir, barriers)
 
     ##################### Cut flowlines at barriers #################
@@ -103,11 +114,24 @@ for huc2, network_type in product(huc2s, NETWORK_TYPES[1:]):
 
     # drop all loops from the analysis
     ix = flowlines.loop == True
-    print("Found {:,} loops, dropping...".format(ix.sum()))
+    print(f"Found {ix.sum():,} loops, dropping...")
     flowlines = flowlines.loc[~ix].copy()
     joins = joins.loc[~joins.loop].copy()
     flowlines = flowlines.drop(columns=["loop"])
     joins = joins.drop(columns=["loop"])
+
+    # drop intermittent / ephemeral flowlines
+    if PERENNIAL_ONLY:
+        # TODO: move this part to prep_flowlines_waterbodies.py
+        ix = flowlines.FCode.isin([46003, 46007])
+        print(f"Found {ix.sum():,} intermittent flowlines, dropping...")
+        flowlines = flowlines.loc[~ix].copy()
+        joins = remove_joins(
+            joins,
+            ix[ix].index,
+            downstream_col="downstream_id",
+            upstream_col="upstream_id",
+        )
 
     print(f"Read {len(flowlines):,} flowlines in {time() - flowline_start:.2f}s")
 

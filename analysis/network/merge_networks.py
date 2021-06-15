@@ -23,8 +23,12 @@ from analysis.lib.geometry import explode
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 
+PERENNIAL_ONLY = False  # if true, will only build networks from perennial flowlines
+
+
 data_dir = Path("data")
-src_dir = data_dir / "networks"
+scenario_dir = "perennial" if PERENNIAL_ONLY else "all"
+src_dir = data_dir / "networks" / scenario_dir
 out_dir = src_dir / "merged"
 
 if not out_dir.exists():
@@ -94,7 +98,12 @@ joins = joins.loc[joins.HUC2.isin(connected_huc2)].copy()
 print("\nReading network segments...")
 network_df = read_feathers(
     [
-        data_dir / "networks" / huc2 / network_type / "network_segments.feather"
+        data_dir
+        / "networks"
+        / scenario_dir
+        / huc2
+        / network_type
+        / "network_segments.feather"
         for huc2 in connected_huc2
     ],
 ).set_index("networkID")
@@ -174,7 +183,12 @@ network_df = network_df.drop(columns=["new_network"]).set_index("networkID")
 print("Reading barrier joins...")
 barrier_joins = read_feathers(
     [
-        data_dir / "networks" / huc2 / network_type / "barrier_joins.feather"
+        data_dir
+        / "networks"
+        / scenario_dir
+        / huc2
+        / network_type
+        / "barrier_joins.feather"
         for huc2 in connected_huc2
     ],
 ).set_index("barrierID")
@@ -264,7 +278,12 @@ downstream_stats_same_huc2 = (
 for huc2 in connected_huc2:
     print(f"\nHUC2 {huc2}: updating barrier networks...")
     barrier_networks = pd.read_feather(
-        data_dir / "networks" / huc2 / network_type / "barriers_network.feather"
+        data_dir
+        / "networks"
+        / scenario_dir
+        / huc2
+        / network_type
+        / "barriers_network.feather"
     )
 
     if barrier_networks.upNetID.isin(upstream_stats.index).sum() > 0:
@@ -406,7 +425,7 @@ for huc2 in connected_huc2:
     print(f"\nHUC2 {huc2}: moving networks to base HUC2...")
 
     network = read_dataframe(
-        data_dir / "networks" / huc2 / network_type / "network.gpkg"
+        data_dir / "networks" / scenario_dir / huc2 / network_type / "network.gpkg"
     )
 
     # first, remove any networks that are now "owned" by another HUC2
@@ -420,7 +439,12 @@ for huc2 in connected_huc2:
     if huc2 in aggregate_huc2:
         for upstream_huc2 in aggregate_huc2[huc2]:
             upstream_network = read_dataframe(
-                data_dir / "networks" / upstream_huc2 / network_type / "network.gpkg"
+                data_dir
+                / "networks"
+                / scenario_dir
+                / upstream_huc2
+                / network_type
+                / "network.gpkg"
             )
 
             tmp = (
@@ -486,7 +510,12 @@ for huc2 in connected_huc2:
     print(f"\nHUC2 {huc2}: moving network segments to base HUC2...")
 
     segments = pd.read_feather(
-        data_dir / "networks" / huc2 / network_type / "network_segments.feather"
+        data_dir
+        / "networks"
+        / scenario_dir
+        / huc2
+        / network_type
+        / "network_segments.feather"
     )
 
     # first, remove any segments that are now "owned" by another HUC2
@@ -502,6 +531,7 @@ for huc2 in connected_huc2:
             upstream_segments = pd.read_feather(
                 data_dir
                 / "networks"
+                / scenario_dir
                 / upstream_huc2
                 / network_type
                 / "network_segments.feather"

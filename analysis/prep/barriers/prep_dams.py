@@ -533,7 +533,7 @@ df = df.join(flowlines, on="lineID")
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE)
 
 # calculate intermittent + ephemeral
-df["intermittent"] = ~df.FCode.isin([46003, 46007])
+df["intermittent"] = df.FCode.isin([46003, 46007])
 
 
 # Fix missing field values
@@ -561,9 +561,9 @@ df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped dams".format(len(df)))
-df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop"]].to_feather(
-    snapped_dir / "dams.feather",
-)
+df[
+    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
+].to_feather(snapped_dir / "dams.feather",)
 write_dataframe(df, qa_dir / "snapped_dams.gpkg")
 
 

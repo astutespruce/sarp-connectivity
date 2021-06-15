@@ -40,6 +40,7 @@ const Scores = ({
         <Text style={{ color: '#7f8a93' }}>
           This {typeLabel} was excluded from prioritization because it provides
           an ecological benefit by restricting the movement of invasive aquatic
+          species.
         </Text>
       </View>
     )

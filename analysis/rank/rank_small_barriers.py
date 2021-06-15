@@ -164,6 +164,8 @@ df.HasNetwork = df.HasNetwork.fillna(False)
 df.upNetID = df.upNetID.fillna(-1).astype("int")
 df.downNetID = df.downNetID.fillna(-1).astype("int")
 df.Intermittent = df.Intermittent.fillna(-1).astype("int8")
+df.loc[~df.HasNetwork, "Intermittent"] = -1
+
 df.FlowsToOcean = df.FlowsToOcean.fillna(-1).astype("int8")
 df.NumBarriersDownstream = df.NumBarriersDownstream.fillna(-1).astype("int")
 
@@ -231,12 +233,13 @@ write_dataframe(df.reset_index(), qa_dir / "small_barriers_network_results.gpkg"
 # drop geometry, not needed from here on out
 df = df.drop(columns=["geometry"])
 
-print("Saving full results to CSV")
-df.to_csv(
-    qa_dir / "small_barriers_network_results.csv",
-    index_label="id",
-    quoting=csv.QUOTE_NONNUMERIC,
-)
+# DEBUG
+# print("Saving full results to CSV")
+# df.to_csv(
+#     qa_dir / "small_barriers_network_results.csv",
+#     index_label="id",
+#     quoting=csv.QUOTE_NONNUMERIC,
+# )
 
 
 # Drop any fields we don't need for API or tippecanoe
@@ -259,6 +262,7 @@ df[str_cols] = df[str_cols].fillna("")
 
 # Fix boolean types
 df.ProtectedLand = df.ProtectedLand.astype("uint8")
+df.Ranked = df.Ranked.astype("uint8")
 df["Excluded"] = df.Excluded.astype("uint8")
 
 with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork", "Excluded"])

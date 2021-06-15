@@ -5,7 +5,6 @@ import { Envelope, FileDownload } from '@emotion-icons/fa-solid'
 import { Box, Button, Flex, Heading, Paragraph, Text } from 'theme-ui'
 
 import { Tab, Tabs } from 'components/Tabs'
-import { Link } from 'components/Link'
 import { isEmptyString } from 'util/string'
 import DamDetails from './DamDetails'
 import SmallBarrierDetails from './SmallBarrierDetails'
@@ -19,15 +18,10 @@ const { version: dataVersion } = siteMetadata
 const tierToPercent = (tier) => (100 * (19 - (tier - 1))) / 20
 
 const BarrierDetails = ({ barrier, onClose }) => {
-  const {
-    barrierType,
-    sarpid,
-    name,
-    hasnetwork,
-    countyname,
-    State,
-    ncwc_tier,
-  } = barrier
+  const { barrierType, sarpid, name, ranked, countyname, State, ncwc_tier } =
+    barrier
+
+  const typeLabel = barrierType === 'dams' ? 'dam' : 'road-related barrier'
 
   const details =
     barrierType === 'dams' ? (
@@ -42,7 +36,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
       : `Unnamed crossing (SARPID: ${sarpid})`
 
   let scoreContent = null
-  if (hasnetwork) {
+  if (ranked) {
     // Transform properties to priorities: <unit>_<metric>_score
     // For now, we are using tier to save space in data transport, so convert them to percent
     const scores = {}
@@ -75,9 +69,18 @@ const BarrierDetails = ({ barrier, onClose }) => {
     scoreContent = <Scores scores={scores} barrierType={barrierType} />
   } else {
     scoreContent = (
-      <Paragraph variant="help" sx={{ fontSize: 2 }}>
-        No connectivity information is available for this barrier.
-      </Paragraph>
+      <>
+        <Paragraph variant="help" sx={{ fontSize: 2 }}>
+          No connectivity scores are available for this barrier.
+        </Paragraph>
+        {!ranked ? (
+          <Paragraph variant="help">
+            This {typeLabel} was excluded from prioritization because it
+            provides an ecological benefit by restricting the movement of
+            invasive aquatic species.
+          </Paragraph>
+        ) : null}
+      </>
     )
   }
 
@@ -162,9 +165,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
         }}
       >
         <a
-          href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
-            barrierType === 'dams' ? 'dam' : 'road-related barrier'
-          }: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+          href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${typeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
         >
           <Envelope size="1rem" style={{ marginRight: '0.25rem' }} /> Report a
           problem with this barrier
