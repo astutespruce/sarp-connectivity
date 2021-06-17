@@ -1,101 +1,140 @@
-from time import time
-
 import pandas as pd
 import numpy as np
 
-
-def generate_network(root_id, upstreams):
-    """Generate the upstream network from a starting id.
-
-    Intended to be used within an .apply() call
-
-    WARNING: this is not robust to seeing the same ids again (i.e., from a loop);
-    those must be filtered out in advance.
-
-    Parameters
-    ----------
-    root_id : id type (int, str)
-        starting segment id that forms the root node of the upstream network
-    upstreams : dict
-        Dictionary created from Pandas groupby().groups - keys are downstream_ids, values are upstream_ids
-
-    Returns
-    -------
-    list of all upstream ids in network traversing upward from root_id
-    """
-
-    network = [root_id]
-    ids = [root_id]
-    while len(ids):
-        upstream_ids = []
-        for id in ids:
-            upstream_ids.extend(upstreams.get(id, []))
-
-        ids = upstream_ids
-        network.extend(ids)
-
-    return network
+from analysis.lib.graph import DirectedGraph
 
 
-def generate_networks(root_ids, upstreams):
-    """Generate the upstream networks for each root ID in root_ids.
-    IMPORTANT: this will produce multiple upstream networks from a given starting point
-    if the starting point is located at the junction of multiple upstream networks.
+def connect_huc2s(joins):
+    """Find all connected groups of HUC2s.
+
+    This reads in all flowline joins for all HUC2s and detects those that cross
+    HUC2 boundaries to determine which HUC2s are connected.
 
     Parameters
     ----------
-    root_ids : pandas.Series
-        Series of root IDs (downstream-most ID) for each network to be created
-    upstreams : dict
-        Dictionary created from Pandas groupby().groups - keys are downstream_ids, values are upstream_ids
+    joins : DataFrame
+        contains HUC2, downstream_id, upstream_id, downstream, type
 
     Returns
     -------
-    pandas.DataFrame
-        Contains networkID based on the value in root_id for each network, and the associated lineIDs in that network
+    (groups, joins)
+        groups: list of sets; each set contains one or more HUC2s
+        joins: updated joins across HUC2 boundaries
     """
 
-    # create the list of upstream segments per root ID
-    network_segments = root_ids.apply(
-        lambda id: generate_network(id, upstreams)
-    ).rename("lineID")
+    ### Extract the joins that cross region boundaries, and set new upstream IDs for them
+    # We can join on the ids we generate (upstream_id, downstream_id) because there are no
+    # original flowlines split at HUC2 join areas
+    cross_region = joins.loc[(joins.type == "huc_in") & (joins.upstream_id == 0)]
 
-    # transform into a flat dataframe, with one entry per lineID in each network
-    return pd.DataFrame(
-        {
-            "networkID": np.repeat(root_ids, network_segments.apply(len)),
-            "lineID": np.concatenate(network_segments.values),
-        }
+    cross_region = (
+        cross_region.drop(columns=["upstream_id"])
+        .rename(columns={"HUC2": "downstream_HUC2"})
+        .join(
+            joins.set_index("downstream")[["downstream_id", "HUC2"]].rename(
+                columns={"downstream_id": "upstream_id", "HUC2": "upstream_HUC2"}
+            ),
+            on="upstream",
+            how="inner",
+        )
+        .drop_duplicates()
     )
 
+    # update joins to include those that cross region boundaries
+    for row in cross_region.itertuples():
+        # update the upstream side of the join
+        ix = joins.upstream_id == row.upstream_id
+        joins.loc[ix, "downstream"] = row.downstream
+        joins.loc[ix, "downstream_id"] = row.downstream_id
+        joins.loc[ix, "type"] = "huc2_join"
+        # update the downstream side of the join
+        ix = (joins.downstream_id == row.downstream_id) & (joins.upstream_id == 0)
+        joins.loc[ix, "upstream_id"] = row.upstream_id
 
-def create_networks(flowlines, joins, barrier_joins):
+    joins = joins.drop_duplicates(subset=["downstream_id", "upstream_id"])
 
-    # create idx of all lines that are upstream of barriers; these are
-    # "claimed" by the barriers for network analysis.
-    # remove any segments that are at the upstream-most terminals of networks
+    # make symmetric pairs of HUC2s so that we get all those that are connected
+    tmp = cross_region[["upstream_HUC2", "downstream_HUC2"]]
+    source = np.append(tmp.upstream_HUC2, tmp.downstream_HUC2)
+    target = np.append(tmp.downstream_HUC2, tmp.upstream_HUC2)
+
+    # Create a graph to coalesce into connected components
+    g = DirectedGraph.from_arrays(source, target)
+    connected_huc2 = g.components()
+
+    isolated_huc2 = [
+        {huc2}
+        for huc2 in np.setdiff1d(
+            joins.HUC2.unique(),
+            np.unique(
+                np.append(cross_region.upstream_HUC2, cross_region.downstream_HUC2)
+            ),
+        )
+    ]
+
+    return (connected_huc2 + isolated_huc2), joins
+
+
+def generate_networks(network_graph, root_ids):
+    """
+    Parameters
+    ----------
+    network_graph : DirectedGraph
+        graph facing upstream
+    root_ids : pandas.Series
+        Series of root IDs (downstream-most ID) for each network to be created
+    """
+
+    segments = pd.Series(
+        network_graph.descendants(root_ids), index=root_ids, name="lineID",
+    ).explode()
+    segments.index.name = "networkID"
+    segments = segments.reset_index()
+    # append in network roots too
+    segments = segments.append(
+        pd.DataFrame({"networkID": root_ids, "lineID": root_ids}), ignore_index=True,
+    )
+
+    return segments.sort_values(by=["networkID", "lineID"])
+
+
+def create_networks(joins, barrier_joins, lineIDs):
+    """Create networks that start from natural origins in network or from
+    barriers.
+
+    Parameters
+    ----------
+    joins : DataFrame
+        contains upstream_id, downstream_id
+    barrier_joins : DataFrame
+        contains upstream_id, downstream_id; indexed on barrierID
+    lineIDs : ndarray
+        flowline IDs within analysis area
+
+    Returns
+    -------
+    DataFrame
+        contains networkID and lineID
+    """
+
+    # lineIDs of flowlines immediately upstream of barriers
     barrier_upstream_idx = barrier_joins.loc[
         barrier_joins.upstream_id != 0
     ].upstream_id.unique()
 
-    ### Generate upstream index
-    # Remove origin_idx, terminals, and barrier segments
-    # then create an index of downstream_id to all upstream_ids from it (dictionary of downstream_id to the corresponding upstream_id(s)).
-    # This is so that network building can start from a downstream-most
-    # line ID, and then build upward for all segments that have that as a downstream segment.
-    # NOTE: this looks backward but is correct for the way that grouping works.
-    print("Generating upstream index...")
-    index_start = time()
-
+    # extract flowline joins that are not at the endpoints of the network and
+    # are not cut by barriers
     upstreams = joins.loc[
         (joins.upstream_id != 0)
         & (joins.downstream_id != 0)
         & (~joins.upstream_id.isin(barrier_upstream_idx)),
         ["downstream_id", "upstream_id"],
     ]
-    upstream_index = upstreams.set_index("upstream_id").groupby("downstream_id").groups
 
-    print(f"Index complete in {time() - index_start:.2f}s")
+    # create a directed graph facing upstream
+    network_graph = DirectedGraph(
+        upstreams, source="downstream_id", target="upstream_id"
+    )
 
     ### Get list of network root IDs
     # Create networks from all terminal nodes (have no downstream nodes) up to barriers.
@@ -113,7 +152,7 @@ def create_networks(flowlines, joins, barrier_joins):
     origin_idx = np.append(
         origin_idx,
         unterminated.loc[
-            unterminated.downstream_id.isin(flowlines.index)
+            unterminated.downstream_id.isin(lineIDs)
         ].downstream_id.unique(),
     )
 
@@ -121,7 +160,7 @@ def create_networks(flowlines, joins, barrier_joins):
     origin_idx = np.append(
         origin_idx,
         unterminated.loc[
-            ~unterminated.downstream_id.isin(flowlines.index)
+            ~unterminated.downstream_id.isin(lineIDs)
         ].upstream_id.unique(),
     )
 
@@ -160,7 +199,9 @@ def create_networks(flowlines, joins, barrier_joins):
 
     print(f"Generating networks for {len(origins_with_upstreams):,} origin points")
 
-    origin_network_segments = generate_networks(origins_with_upstreams, upstream_index)
+    origin_network_segments = generate_networks(
+        network_graph, origins_with_upstreams.values
+    )
     origin_network_segments["type"] = "origin"
 
     # barrier segments are the root of each upstream network from each barrier
@@ -172,7 +213,7 @@ def create_networks(flowlines, joins, barrier_joins):
 
     print(f"Generating networks for {len(barriers_with_upstreams):,} barriers")
     barrier_network_segments = generate_networks(
-        barriers_with_upstreams, upstream_index
+        network_graph, barriers_with_upstreams.values
     )
     barrier_network_segments["type"] = "barrier"
 
@@ -216,10 +257,5 @@ def create_networks(flowlines, joins, barrier_joins):
             network_df.loc[
                 network_df.networkID.isin(upstream_ids), ["networkID"]
             ] = networkID
-
-    # Join back to flowlines, dropping anything that didn't get networks
-    network_df = flowlines.join(network_df.set_index("lineID"), how="inner").set_index(
-        "networkID"
-    )
 
     return network_df

@@ -37,6 +37,9 @@ def calculate_network_stats(df, barrier_joins, joins):
         Summary statistics, with one row per functional network.
     """
 
+    # find the HUC2 of the network origin
+    root_huc2 = df.loc[df.index == df.lineID].HUC2.rename("origin_HUC2")
+
     # create series of networkID indexed by lineID
     networkID = df.reset_index().set_index("lineID").networkID
     networkIDs = networkID.unique()
@@ -141,6 +144,7 @@ def calculate_network_stats(df, barrier_joins, joins):
         .join(barriers_downstream)
         .join(num_downstream)
         .join(to_ocean)
+        .join(root_huc2)
     )
 
     results[upstream_counts.columns] = (
@@ -210,9 +214,11 @@ def calculate_floodplain_stats(df):
 
     # Sum floodplain and natural floodplain values, and calculate percent natural floodplain
     # Read in associated floodplain info and join
-    fp_stats = pd.read_feather(
-        data_dir / "floodplains" / "floodplain_stats.feather"
-    ).set_index("NHDPlusID")
+    fp_stats = (
+        pd.read_feather(data_dir / "floodplains" / "floodplain_stats.feather")
+        .set_index("NHDPlusID")
+        .drop(columns=["HUC2"])
+    )
     df = df.join(fp_stats, on="NHDPlusID")
 
     pct_nat_df = df[["floodplain_km2", "nat_floodplain_km2"]].groupby(level=0).sum()

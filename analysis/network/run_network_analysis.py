@@ -22,11 +22,10 @@ from pyogrio import write_dataframe
 
 
 from analysis.constants import NETWORK_TYPES
+from analysis.lib.io import read_feathers
 from analysis.lib.joins import remove_joins
 from analysis.network.lib.stats import calculate_network_stats
-from analysis.network.lib.barriers import read_barriers, save_barriers
-from analysis.lib.flowlines import cut_flowlines_at_barriers, save_cut_flowlines
-from analysis.network.lib.networks import create_networks
+from analysis.network.lib.networks import create_networks, connect_huc2s
 
 warnings.simplefilter("always")  # show geometry related warnings every time
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -37,22 +36,24 @@ PERENNIAL_ONLY = False  # if true, will only build networks from perennial flowl
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/clean"
+src_dir = data_dir / "networks/raw"
+out_dir = data_dir / "networks/clean"
 
-huc4_df = pd.read_feather(
-    data_dir / "boundaries/huc4.feather", columns=["HUC2", "HUC4"],
-)
-# Convert to dict of sorted HUC4s per HUC2
-units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
-huc2s = sorted(units.keys())
+if not out_dir.exists():
+    os.makedirs(out_dir)
+
+huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"])
+huc2s = huc2_df.HUC2.sort_values().values
+
 
 # manually subset keys from above for processing
 # huc2s = [
-#     "02",
+#     # "02",
 #     #     "03",
-#     #     "05",
-#     #     "06",
+#     "05",
+#     "06",
 #     #     "07",
-#     #     "08",
+#     "08",
 #     #     "09",
 #     #     "10",
 #     #     "11",
@@ -68,225 +69,256 @@ huc2s = sorted(units.keys())
 
 start = time()
 
-scenario_dir = "perennial" if PERENNIAL_ONLY else "all"
+barriers = pd.read_feather(
+    src_dir / "all_barriers.feather",
+    columns=["id", "barrierID", "loop", "intermittent", "kind", "HUC2"],
+)
+perennial_barriers = barriers.loc[~barriers.intermittent].barrierID.unique()
 
-for huc2, network_type in product(huc2s, NETWORK_TYPES[1:]):
-    region_start = time()
+print("Finding connected HUC2s")
+joins = read_feathers(
+    [src_dir / huc2 / "flowline_joins.feather" for huc2 in huc2s],
+    columns=[
+        "upstream",
+        "downstream",
+        "type",
+        "marine",
+        "upstream_id",
+        "downstream_id",
+    ],
+    new_fields={"HUC2": huc2s},
+)
 
-    print(f"----- {huc2} ({network_type}) ------")
+groups, joins = connect_huc2s(joins)
+print(f"Found {len(groups)} HUC2 groups in {time() - start:,.2f}s")
 
-    out_dir = data_dir / "networks" / scenario_dir / huc2 / network_type
+# persist table of connected HUC2s
+connected_huc2s = pd.DataFrame({"HUC2": groups}).explode(column="HUC2")
+connected_huc2s["group"] = connected_huc2s.index.astype("uint8")
+connected_huc2s.reset_index(drop=True).to_feather(
+    data_dir / "networks/connected_huc2s.feather"
+)
 
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
 
-    ##################### Read Barrier data #################
-    barriers = read_barriers(huc2, network_type)
+for group in groups:
+    group_start = time()
 
-    if PERENNIAL_ONLY:
-        print(
-            f"Dropping {barriers.intermittent.sum():,} barriers on intermittent flowlines"
-        )
-        barriers = barriers.loc[~barriers.intermittent].copy()
+    for huc2 in group:
+        huc2_dir = out_dir / huc2
+        if not huc2_dir.exists():
+            os.makedirs(huc2_dir)
 
-    save_barriers(out_dir, barriers)
+    print(f"\n===========================\nCreating networks for {group}")
 
-    ##################### Cut flowlines at barriers #################
-    print("------------------- Cutting Flowlines -----------")
-    ### Read NHD flowlines and joins
-    print("Reading flowlines...")
-    flowline_start = time()
-    flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather").drop(
-        columns=["HUC2"], errors="ignore"
-    )
-    # TEMP: temporary fix until this is handled in prep_flowlines_* script
-    flowlines.lineID = flowlines.lineID.astype("uint32")
-    flowlines = flowlines.set_index("lineID", drop=False)
+    group_joins = joins.loc[
+        joins.HUC2.isin(group), ["downstream_id", "upstream_id", "marine"]
+    ]
 
-    joins = pd.read_feather(nhd_dir / huc2 / "flowline_joins.feather")
+    barrier_joins = read_feathers(
+        [src_dir / huc2 / "barrier_joins.feather" for huc2 in group],
+        columns=["barrierID", "upstream_id", "downstream_id", "kind"],
+        new_fields={"HUC2": huc2s},
+    ).set_index("barrierID", drop=False)
 
-    ### TEMP: limit flowlines and joins to HUC4s in SARP region above
-    # flowlines = flowlines.loc[flowlines.HUC4.isin(units[huc2])].copy()
-    # joins = joins.loc[joins.HUC4.isin(units[huc2])].copy()
-    # limit barriers to these flowlines
-    # barriers = barriers.loc[barriers.lineID.isin(flowlines.index)].copy()
-    ### END TEMP
+    dam_joins = barrier_joins.loc[barrier_joins.kind.isin(["waterfall", "dam"])]
 
-    # drop all loops from the analysis
-    ix = flowlines.loop == True
-    print(f"Found {ix.sum():,} loops, dropping...")
-    flowlines = flowlines.loc[~ix].copy()
-    joins = joins.loc[~joins.loop].copy()
-    flowlines = flowlines.drop(columns=["loop"])
-    joins = joins.drop(columns=["loop"])
-
-    # drop intermittent / ephemeral flowlines
-    if PERENNIAL_ONLY:
-        # TODO: move this part to prep_flowlines_waterbodies.py
-        ix = flowlines.FCode.isin([46003, 46007])
-        print(f"Found {ix.sum():,} intermittent flowlines, dropping...")
-        flowlines = flowlines.loc[~ix].copy()
-        joins = remove_joins(
-            joins,
-            ix[ix].index,
-            downstream_col="downstream_id",
-            upstream_col="upstream_id",
-        )
-
-    print(f"Read {len(flowlines):,} flowlines in {time() - flowline_start:.2f}s")
-
-    # since all other lineIDs use HUC4 prefixes, this should be unique
-    # Use the first HUC2 for the region group
-    next_segment_id = int(huc2) * 1000000 + 1
-
-    flowlines, joins, barrier_joins = cut_flowlines_at_barriers(
-        flowlines, joins, barriers, next_segment_id=next_segment_id
-    )
-
-    barrier_joins = barrier_joins.join(barriers.kind)
-
-    save_cut_flowlines(out_dir, flowlines, joins, barrier_joins)
-
-    ##################### Create networks #################
-    # IMPORTANT: the following analysis allows for multiple upstream networks from an origin or barrier
-    # this happens when the barrier is perfectly snapped to the junction of >= 2 upstream networks.
-    # When this is encountered, these networks are merged together and assigned the ID of the first segment
-    # of the first upstream network.
-
-    print("------------------- Creating networks -----------")
-    network_start = time()
-
-    network_df = create_networks(flowlines, joins, barrier_joins)
-
-    # For any barriers that had multiple upstreams, those were coalesced to a single network above
-    # So drop any dangling upstream references (those that are not in networks and non-zero)
-    # NOTE: these are not persisted because we want the original barrier_joins to reflect multiple upstreams
-    barrier_joins = barrier_joins.loc[
-        barrier_joins.upstream_id.isin(network_df.index)
-        | (barrier_joins.upstream_id == 0)
-    ].copy()
-
-    print(
-        f"{len(network_df.index.unique()):,} networks created in {time() - network_start:.2f}s"
-    )
-
-    print("Serializing network segments")
-    pd.DataFrame(network_df.drop(columns=["geometry"])).reset_index().to_feather(
-        out_dir / "network_segments.feather"
-    )
-
-    ##################### Network stats #################
-    print("------------------- Calculating network stats -----------")
-
-    stats_start = time()
-
-    network_stats = calculate_network_stats(network_df, barrier_joins, joins)
-    # WARNING: because not all flowlines have associated catchments, they are missing
-    # natfldpln
-
-    print(f"done calculating network stats in {time() - stats_start:.2f}")
-
-    network_stats.reset_index().to_feather(out_dir / "network_stats.feather")
-
-    #### Calculate up and downstream network attributes for barriers
-
-    print("calculating upstream and downstream networks for barriers")
-
-    upstream_networks = (
-        barrier_joins[["upstream_id"]]
-        .join(
-            network_stats.drop(columns=["flows_to_ocean", "num_downstream"]),
-            on="upstream_id",
-        )
-        .rename(
-            columns={
-                "upstream_id": "upNetID",
-                "miles": "TotalUpstreamMiles",
-                "free_miles": "FreeUpstreamMiles",
-            }
-        )
-    )
-
-    downstream_networks = (
-        barrier_joins[["downstream_id"]]
-        .join(
-            network_df.reset_index().set_index("lineID").networkID, on="downstream_id"
-        )
-        .join(
-            network_stats[
-                ["free_miles", "miles", "num_downstream", "flows_to_ocean"]
-            ].rename(
-                columns={
-                    "free_miles": "FreeDownstreamMiles",
-                    "miles": "TotalDownstreamMiles",
-                }
-            ),
-            on="networkID",
-        )
-        .rename(columns={"networkID": "downNetID"})
-        .drop(columns=["downstream_id"])
-    )
-
-    # Note: the join creates duplicates if there are multiple upstream or downstream
-    # networks for a given barrier, so we drop these duplicates after the join just to be sure.
-    barrier_networks = (
-        upstream_networks.join(downstream_networks)
-        .join(barriers[["id", "kind"]])
-        .drop(columns=["barrier", "up_ndams", "up_nwfs", "up_sbs"], errors="ignore")
-    )
-
-    barrier_networks.num_downstream = barrier_networks.num_downstream.fillna(0).astype(
-        "uint16"
-    )
-    barrier_networks.flows_to_ocean = barrier_networks.flows_to_ocean.fillna(False)
-
-    barrier_networks = barrier_networks.fillna(0).drop_duplicates()
-
-    # Fix data types after all the joins
-    for col in ["upNetID", "downNetID", "segments"]:
-        barrier_networks[col] = barrier_networks[col].astype("uint32")
-
-    for col in [
-        "TotalUpstreamMiles",
-        "FreeUpstreamMiles",
-        "TotalDownstreamMiles",
-        "FreeDownstreamMiles",
+    # Note: only includes columns used later for network stats
+    flowline_cols = [
+        "NHDPlusID",
+        "intermittent",
+        "waterbody",
+        "sizeclass",
+        "length",
         "sinuosity",
-        "natfldpln",
-    ]:
-        barrier_networks[col] = barrier_networks[col].astype("float32")
+    ]
+    flowlines = read_feathers(
+        [src_dir / huc2 / "flowlines.feather" for huc2 in group],
+        columns=["lineID",] + flowline_cols,
+        new_fields={"HUC2": huc2s},
+    ).set_index("lineID")
 
-    barrier_networks.sizeclasses = barrier_networks.sizeclasses.astype("uint8")
+    perennial_flowlines = flowlines.loc[~flowlines.intermittent].index
 
-    barrier_networks.reset_index().to_feather(out_dir / "barriers_network.feather")
+    ### Build networks for each of 4 scenarios:
+    # 1. all dams on all flowlines
+    # 2. dams on perennial flowlines using only perennial flowlines in network
+    # 3. all small barriers on all flowlines;
+    # 4. small barriers on perennial flowlines using only perennial flowlines in network
+    scenarios = {
+        "dams_all": {
+            "joins": group_joins,
+            "barrier_joins": dam_joins,
+            "lineIDs": flowlines.index,
+        },
+        "dams_perennial": {
+            "joins": remove_joins(
+                group_joins.copy(),
+                flowlines.loc[flowlines.intermittent].index,
+                downstream_col="downstream_id",
+                upstream_col="upstream_id",
+            ),
+            "barrier_joins": dam_joins.loc[dam_joins.index.isin(perennial_barriers)],
+            "lineIDs": perennial_flowlines,
+        },
+        "small_barriers_all": {
+            "joins": group_joins,
+            "barrier_joins": barrier_joins,
+            "lineIDs": flowlines.index,
+        },
+        "small_barriers_perennial": {
+            "joins": remove_joins(
+                group_joins.copy(),
+                flowlines.loc[flowlines.intermittent].index,
+                downstream_col="downstream_id",
+                upstream_col="upstream_id",
+            ),
+            "barrier_joins": barrier_joins.loc[
+                barrier_joins.index.isin(perennial_barriers)
+            ],
+            "lineIDs": perennial_flowlines,
+        },
+    }
 
-    # TODO: if downstream network extends off this HUC, it will be null in the above and AbsoluteGainMin will be wrong
+    for scenario, config in list(scenarios.items()):
+        print(f"-------------------------\nCreating networks for {scenario}")
+        network_start = time()
 
-    ##################### Dissolve networks on networkID ########################
-    print("Dissolving networks")
-    dissolve_start = time()
+        network_joins = config["joins"]
+        network_barrier_joins = config["barrier_joins"]
 
-    dissolved_lines = (
-        pd.Series(network_df.geometry.values.data, index=network_df.index)
-        .groupby(level=0)
-        .apply(pg.multilinestrings)
-        .rename("geometry")
-    )
+        networks = (
+            create_networks(network_joins, network_barrier_joins, config["lineIDs"])
+            .set_index("lineID")
+            .networkID
+        )
+        print(
+            f"{len(networks.index.unique()):,} networks created in {time() - network_start:.2f}s"
+        )
 
-    networks = (
-        gp.GeoDataFrame(network_stats.join(dissolved_lines), crs=flowlines.crs)
-        .reset_index()
-        .sort_values(by="networkID")
-    )
+        flowlines = flowlines.join(networks.rename(scenario))
 
-    print(f"Network dissolve done in {time() - dissolve_start:.2f}")
+        network_df = (
+            flowlines[flowline_cols + ["HUC2"]]
+            .join(networks, how="inner")
+            .reset_index()
+            .set_index("networkID")
+        )
 
-    print("Serializing network")
-    networks = networks.reset_index(drop=True)
-    # networks.to_feather(out_dir / "network.feather")
-    # use GPKG as primary store to save space
-    write_dataframe(networks, out_dir / "network.gpkg")
+        # For any barriers that had multiple upstreams, those were coalesced to a single network above
+        # So drop any dangling upstream references (those that are not in networks and non-zero)
+        # NOTE: these are not persisted because we want the original barrier_joins to reflect multiple upstreams
+        network_barrier_joins = network_barrier_joins.loc[
+            network_barrier_joins.upstream_id.isin(networks.index)
+            | (network_barrier_joins.upstream_id == 0)
+        ].copy()
 
-    print(f"Region done in {time() - region_start:.2f}s\n\n")
+        print("Calculating network stats...")
+        network_stats = calculate_network_stats(
+            network_df, network_barrier_joins, network_joins
+        )
+        # WARNING: because not all flowlines have associated catchments, they are missing
+        # natfldpln
+
+        # save network stats to the HUC2 where the network originates
+        for huc2 in sorted(network_stats.origin_HUC2.unique()):
+            network_stats.loc[
+                network_stats.origin_HUC2 == huc2
+            ].reset_index().to_feather(
+                out_dir / huc2 / f"network_stats__{scenario}.feather"
+            )
+
+        #### Calculate up and downstream network attributes for barriers
+        print("calculating upstream and downstream networks for barriers")
+
+        upstream_networks = (
+            network_barrier_joins[["upstream_id"]]
+            .join(
+                network_stats.drop(columns=["flows_to_ocean", "num_downstream"]),
+                on="upstream_id",
+            )
+            .rename(
+                columns={
+                    "upstream_id": "upNetID",
+                    "miles": "TotalUpstreamMiles",
+                    "free_miles": "FreeUpstreamMiles",
+                }
+            )
+        )
+
+        downstream_networks = (
+            network_barrier_joins[["downstream_id"]]
+            .join(
+                network_df.reset_index().set_index("lineID").networkID,
+                on="downstream_id",
+            )
+            .join(
+                network_stats[
+                    ["free_miles", "miles", "num_downstream", "flows_to_ocean"]
+                ].rename(
+                    columns={
+                        "free_miles": "FreeDownstreamMiles",
+                        "miles": "TotalDownstreamMiles",
+                    }
+                ),
+                on="networkID",
+            )
+            .rename(columns={"networkID": "downNetID"})
+            .drop(columns=["downstream_id"])
+        )
+
+        # Note: the join creates duplicates if there are multiple upstream or downstream
+        # networks for a given barrier, so we drop these duplicates after the join just to be sure.
+        barrier_networks = (
+            upstream_networks.join(downstream_networks)
+            .join(
+                barriers.set_index("barrierID")[["id", "kind", "intermittent", "HUC2"]]
+            )
+            .drop(columns=["barrier", "up_ndams", "up_nwfs", "up_sbs"], errors="ignore")
+        )
+
+        # fill missing data
+        barrier_networks.origin_HUC2 = barrier_networks.origin_HUC2.fillna("")
+        barrier_networks.num_downstream = barrier_networks.num_downstream.fillna(
+            0
+        ).astype("uint16")
+        barrier_networks.flows_to_ocean = barrier_networks.flows_to_ocean.fillna(False)
+        barrier_networks = barrier_networks.fillna(0).drop_duplicates()
+
+        # Fix data types after all the joins
+        for col in ["upNetID", "downNetID", "segments"]:
+            barrier_networks[col] = barrier_networks[col].astype("uint32")
+
+        for col in [
+            "TotalUpstreamMiles",
+            "FreeUpstreamMiles",
+            "TotalDownstreamMiles",
+            "FreeDownstreamMiles",
+            "sinuosity",
+            "natfldpln",
+        ]:
+            barrier_networks[col] = barrier_networks[col].astype("float32")
+
+        barrier_networks.sizeclasses = barrier_networks.sizeclasses.astype("uint8")
+
+        # save barriers by the HUC2 where they are located
+        for huc2 in sorted(barrier_networks.HUC2.unique()):
+            barrier_networks.loc[
+                barrier_networks.HUC2 == huc2
+            ].reset_index().to_feather(
+                out_dir / huc2 / f"barriers_network__{scenario}.feather"
+            )
+
+    print("-------------------------\n")
+
+    # all flowlines without networks marked -1
+    for col in scenarios.keys():
+        flowlines[col] = flowlines[col].fillna(-1).astype("int64")
+
+    # save network segments in the HUC2 where they are located
+    print("Serializing network segments")
+    for huc2 in sorted(flowlines.HUC2.unique()):
+        flowlines.reset_index().to_feather(out_dir / huc2 / "network_segments.feather")
+
+    print(f"group done in {time() - group_start:.2f}s\n\n")
 
 print("All done in {:.2f}s".format(time() - start))
