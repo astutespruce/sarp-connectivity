@@ -420,10 +420,36 @@ CONVERT_TO_NONLOOP = {
     ],
 }
 
+# List of NHDPlusIDs to convert from non-loops to loops based on inspection of
+# the network topology
+CONVERT_TO_LOOP = {
+    "03": [15000600190797],
+    "07": [22000200040459],
+    "10": [
+        23001200078773,
+        23001200056308,
+        23000900105437,
+        23000900021463,
+        23000900147355,
+    ],
+    "12": [30000600405017, 30000600473005, 30000600322829, 30000100041107],
+    "14": [41000500061307, 41000500103219],
+    "15": [
+        40000500295847,
+        40000500338303,
+        40000200002386,
+        40000200028407,
+        40000200028408,
+        40000200037070,
+        40000400082917,
+        40000300030341,
+    ],
+}
+
 # List of NHDPlusIDs to remove due to issues with NHD
 REMOVE_IDS = {
     # Invalid loops
-    "02": [10000300073811, 10000300021333]
+    "02": [10000300073811, 10000300021333],
 }
 
 # List of NHDPlusIDs that flow into marine based on visual inspection

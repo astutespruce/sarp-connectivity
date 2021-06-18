@@ -101,32 +101,9 @@ class DirectedGraph(object):
             target="target",
         )
 
-    def _descendants(self, node):
-        """Traverse adjacency matrix to find all connected notes for a given
-        starting node.
-
-        Parameters
-        ----------
-        node : number or string
-            Starting node from which to find all adjacent nodes
-
-        Returns
-        -------
-        set of adjacent nodes
-        """
-        out = set()
-        next_nodes = set(self.adj_matrix.get(node, []))
-        while next_nodes:
-            nodes = next_nodes
-            next_nodes = set()
-            for next_node in nodes:
-                if not next_node in out:
-                    out.add(next_node)
-                    next_nodes.update(self.adj_matrix.get(next_node, []))
-        return out
-
     def descendants(self, sources):
-        """Find all descendants of sources as a 1d array (one entry per node in sources)
+        """Find all descendants of sources as a 1d array (one entry per node in
+        sources) using a breadth-first search.
 
         Parameters
         ----------
@@ -134,7 +111,31 @@ class DirectedGraph(object):
             1d ndarray if sources is list-like, else singular list of nodes
         """
 
-        f = np.frompyfunc(self._descendants, 1, 1)
+        def _descendants(node):
+            """Traverse adjacency matrix using breadth-first search to find all
+            connected notes for a given starting node.
+
+            Parameters
+            ----------
+            node : number or string
+                Starting node from which to find all adjacent nodes
+
+            Returns
+            -------
+            set of adjacent nodes
+            """
+            out = set()
+            next_nodes = set(self.adj_matrix.get(node, []))
+            while next_nodes:
+                nodes = next_nodes
+                next_nodes = set()
+                for next_node in nodes:
+                    if not next_node in out:
+                        out.add(next_node)
+                        next_nodes.update(self.adj_matrix.get(next_node, []))
+            return out
+
+        f = np.frompyfunc(_descendants, 1, 1)
         return f(sources)
 
     def terminal_descendants(self, sources):
@@ -262,3 +263,35 @@ class DirectedGraph(object):
             out[i] = _find_parents(sources[i], max_depth=max_depth)
 
         return out
+
+    def find_loops(self, sources, max_depth=None):
+        # use depth-first search to create a list of loops that join to nodes
+        # already seen during traversal
+
+        if max_depth is None:
+            max_depth = self._size
+
+        seen = set()
+        loops = set()
+        for start_node in sources:
+            depth = 0
+            stack = [start_node]
+            prev_node = start_node
+            while stack:
+                depth += 1
+                if max_depth and depth >= max_depth:
+                    break
+
+                node = stack.pop()
+                # print(f"{depth}: visiting {node}")
+                if node in seen:
+                    # add parent node; it is the loop
+                    loops.add(prev_node)
+                    # print(f"loop: {prev_node} => {node}")
+                else:
+                    seen.add(node)
+                    stack.extend(reversed(self.adj_matrix.get(node, [])))
+
+                prev_node = node
+
+        return loops

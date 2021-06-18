@@ -36,6 +36,7 @@ from pyogrio import write_dataframe
 
 
 from analysis.constants import (
+    CONVERT_TO_LOOP,
     CONVERT_TO_NONLOOP,
     CONVERT_TO_MARINE,
     REMOVE_IDS,
@@ -120,6 +121,15 @@ for huc2 in huc2s:
     if remove_ids:
         print(f"Removing {len(remove_ids):,} manually specified NHDPlusIDs")
         flowlines, joins = remove_flowlines(flowlines, joins, remove_ids)
+        print("------------------")
+
+    ### Fix segments that should have been coded as loops
+    convert_ids = CONVERT_TO_LOOP.get(huc2, [])
+    if convert_ids:
+        print(f"Converting {len(convert_ids):,} non-loops to loops")
+        flowlines.loc[flowlines.NHDPlusID.isin(convert_ids), "loop"] = True
+        joins.loc[joins.upstream.isin(convert_ids), "loop"] = True
+        joins.loc[joins.downstream.isin(convert_ids), "loop"] = True
         print("------------------")
 
     ### Fix segments that should not have been coded as loops

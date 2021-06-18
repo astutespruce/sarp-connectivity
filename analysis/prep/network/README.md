@@ -8,7 +8,7 @@ This stage involves processing NHD data and related data into data structures th
 2. Run `download_nwi.py` to download National Wetlands Inventory data.
 3. Manually download state-level LIDAR waterbody datasets.
 4. Run `extract_nhd.py` to extract flowlines, flowline joins, waterbodies, NHD barriers (points, lines, polygons) for each HUC2.
-5. Run any special pre-processing scripts in `special` (e.g., `region2.py`)
+5. Run any special pre-processing scripts in `special` (e.g., `region2.py`, `find_loops.py`)
 6. Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
 7. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region).
 8. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
@@ -96,9 +96,14 @@ This creates a directory (`data/nhd/raw/<region>`) for each region containing:
 
 To get around issues with NHD HR+ Beta data, you likely need to inspect the NHD data first for errors:
 
-1. Some "loops" are miscoded; the main segment is mis-identified as a loop, whereas a pipeline may be identified as the main segment.
+1. Some "loops" are miscoded; the main segment is mis-identified as a loop, whereas a pipeline may be identified as the main segment. Other loops are simply not coded as such.
 
 The results of this analysis and preprocessing are stored in `analysis/constants.py` in `REMOVE_IDS` and `CONVERT_TO_NONLOOP` variables. These store lists of NHDPlusIDs that need to be acted upon.
+
+Use `special/find_loops.py` to help find the loops to add to `analysis/constants.py`.
+
+NOTE: `find_loops.py` will find loops, but not necessarily the correct NHDPlusID for the actual
+loop due to traversal order. Use this to manually search for the correct loop to exclude.
 
 #### South Carolina LIDAR-derived waterbodies
 
