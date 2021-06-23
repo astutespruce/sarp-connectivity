@@ -93,6 +93,8 @@ LARGE_WB_FLOWLINE_LENGTH = 1000
 LARGE_WB_AREA = 0.25
 
 # Arbitrary cutoff, but seemed reasonable from visual inspection
+# WARNING: there are dams that have longer pipelines; these can usually be detected
+# after building networks by inspecting the flows_to_ocean attribute.
 MAX_PIPELINE_LENGTH = 250  # meters
 
 
@@ -418,6 +420,7 @@ CONVERT_TO_NONLOOP = {
         # for networks to be built correctly
         24000100384878
     ],
+    "10": [23001300034513],
 }
 
 # List of NHDPlusIDs to convert from non-loops to loops based on inspection of
@@ -469,5 +472,43 @@ CONVERT_TO_MARINE = {
     ],
     "12": [30000800214326, 30000100041238, 30000100041306, 30000100041205],
     "13": [35000100017108],
+}
+
+
+# List of NHDPlusIDs that are of pipeline type and greater than MAX_PIPELINE_LENGTH
+# but must be kept as they flow through dams; removing them would break networks
+KEEP_PIPELINES = {
+    "05": [24000900019974,],
+    "10": [23001800189071, 23001900161939, 23001900224128, 23001300078800],
+    "11": [
+        21000300167343,
+        21000100003686,
+        21000100195231,
+        21000200033207,
+        21000200088822,
+        21001200028686,
+    ],
+    "17": [55001200060404],
+}
+
+
+# List of NHDPlusIDs that are exit points draining a given HUC2
+# NOTE: these are only applicable for HUC2s that drain into other HUCS2s outside the analysis region
+# they are not specified for HUC2s that can be traversed to the ocean
+HUC2_EXITS = {
+    "09": [65000200059360, 65000100013652],
+    "14": [41000100046769, 41000100047124],
+    # NOTE: this is an irrigation ditch
+    "15": [40000200002291],
+    # Note: 16 is internally draining and omitted here
+    # Note: 17 has many exit points because it is a partial HUC2; most of these
+    # can be removed if the whole HUC2 is analyzed
+    "17": [
+        55001200000017,
+        55001200064544,
+        55001100042595,
+        55001100129754,
+        55001100087083,
+    ],
 }
 

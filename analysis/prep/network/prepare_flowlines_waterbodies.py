@@ -41,6 +41,7 @@ from analysis.constants import (
     CONVERT_TO_MARINE,
     REMOVE_IDS,
     MAX_PIPELINE_LENGTH,
+    KEEP_PIPELINES,
 )
 from analysis.lib.geometry import geo_bounds
 from analysis.lib.joins import remove_joins
@@ -161,7 +162,8 @@ for huc2 in huc2s:
 
     ### Drop pipelines that are > PIPELINE_MAX_LENGTH or are otherwise isolated from the network
     print("Evaluating pipelines")
-    flowlines, joins = remove_pipelines(flowlines, joins, MAX_PIPELINE_LENGTH)
+    keep_ids = KEEP_PIPELINES.get(huc2, [])
+    flowlines, joins = remove_pipelines(flowlines, joins, MAX_PIPELINE_LENGTH, keep_ids)
     print("{:,} flowlines after dropping pipelines".format(len(flowlines)))
 
     # make sure that updated joins are unique

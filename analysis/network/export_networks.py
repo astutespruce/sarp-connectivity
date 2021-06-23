@@ -30,6 +30,11 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         .rename(columns={scenario: "networkID"})
         .set_index("lineID")
     )
+
+    # FIXME: remove, debug only
+    s = segments.groupby(level=0).size()
+    print("dups", s[s > 1])
+
     stats = read_feathers(
         [
             src_dir / "clean" / huc2 / f"network_stats__{scenario}.feather"
@@ -37,16 +42,19 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         ]
     ).set_index("networkID")
 
+    # use smaller data types for smaller output files
+    for col in ["miles", "free_miles", "sinuosity"]:
+        stats[col] = stats[col].round(5).astype("float32")
+
+    # natural floodplain is missing for several catchments; fill with -1
+    for col in ["natfldpln", "sizeclasses"]:
+        stats[col] = stats[col].fillna(-1).astype("int8")
+
+    stats.segments = stats.segments.astype("uint32")
+
     # create output files by HUC2 based on where the segments occur
-
-    # flowlines = read_feathers(
-    #     [src_dir / "raw" / huc2 / "flowlines.feather" for huc2 in group],
-    #     columns=["lineID", "geometry"],
-    #     geo=True,
-    # )
-
     for huc2 in group:
-        print(f"Dissolving networks in {huc2}")
+        print(f"Dissolving networks in {huc2}...")
         flowlines = gp.read_feather(
             src_dir / "raw" / huc2 / "flowlines.feather", columns=["lineID", "geometry"]
         ).set_index("lineID")
@@ -61,10 +69,11 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         )
 
         networks = (
-            gp.GeoDataFrame(pd.DataFrame(flowlines).join(stats), crs=CRS)
+            gp.GeoDataFrame(pd.DataFrame(flowlines).join(stats, how="inner"), crs=CRS)
             .reset_index()
             .sort_values(by="networkID")
         )
 
+        print("Serializing dissolved networks...")
         write_dataframe(networks, out_dir / f"region{huc2}_{scenario}_networks.{ext}")
 

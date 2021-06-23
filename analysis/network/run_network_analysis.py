@@ -12,13 +12,9 @@ data/networks/<region>/<network type>/*
 from pathlib import Path
 import os
 from time import time
-from itertools import product
 import warnings
 
-import geopandas as gp
-import pygeos as pg
 import pandas as pd
-from pyogrio import write_dataframe
 
 
 from analysis.constants import NETWORK_TYPES
@@ -29,9 +25,6 @@ from analysis.network.lib.networks import create_networks, connect_huc2s
 
 warnings.simplefilter("always")  # show geometry related warnings every time
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
-
-PERENNIAL_ONLY = False  # if true, will only build networks from perennial flowlines
 
 
 data_dir = Path("data")
@@ -47,24 +40,24 @@ huc2s = huc2_df.HUC2.sort_values().values
 
 
 # manually subset keys from above for processing
-# huc2s = [
-#     # "02",
-#     #     "03",
-#     "05",
-#     "06",
-#     #     "07",
-#     "08",
-#     #     "09",
-#     #     "10",
-#     #     "11",
-#     #     "12",
-#     #     "13",
-#     #     "14",
-#     #     "15",
-#     #     "16",
-#     #     "17",
-#     #     "21",
-# ]
+huc2s = [
+    #     "02",
+    #     "03",
+    #     # "05",
+    #     # "06",
+    #     #     "07",
+    #     # "08",
+    # "09",
+    #     #     "10",
+    #     #     "11",
+    #     "12",
+    #     "13",
+    # "14",
+    # "15",
+    #     "16",
+    "17",
+    #     "21",
+]
 
 
 start = time()
@@ -103,7 +96,10 @@ connected_huc2s.reset_index(drop=True).to_feather(
 for group in groups:
     group_start = time()
 
-    for huc2 in group:
+    group_huc2s = sorted(group)
+
+    # create output directories
+    for huc2 in group_huc2s:
         huc2_dir = out_dir / huc2
         if not huc2_dir.exists():
             os.makedirs(huc2_dir)
@@ -111,13 +107,13 @@ for group in groups:
     print(f"\n===========================\nCreating networks for {group}")
 
     group_joins = joins.loc[
-        joins.HUC2.isin(group), ["downstream_id", "upstream_id", "marine"]
+        joins.HUC2.isin(group), ["downstream_id", "upstream_id", "type", "marine"]
     ]
 
     barrier_joins = read_feathers(
-        [src_dir / huc2 / "barrier_joins.feather" for huc2 in group],
+        [src_dir / huc2 / "barrier_joins.feather" for huc2 in group_huc2s],
         columns=["barrierID", "upstream_id", "downstream_id", "kind"],
-        new_fields={"HUC2": huc2s},
+        new_fields={"HUC2": group_huc2s},
     ).set_index("barrierID", drop=False)
 
     dam_joins = barrier_joins.loc[barrier_joins.kind.isin(["waterfall", "dam"])]
@@ -132,9 +128,9 @@ for group in groups:
         "sinuosity",
     ]
     flowlines = read_feathers(
-        [src_dir / huc2 / "flowlines.feather" for huc2 in group],
+        [src_dir / huc2 / "flowlines.feather" for huc2 in group_huc2s],
         columns=["lineID",] + flowline_cols,
-        new_fields={"HUC2": huc2s},
+        new_fields={"HUC2": group_huc2s},
     ).set_index("lineID")
 
     perennial_flowlines = flowlines.loc[~flowlines.intermittent].index
@@ -216,8 +212,15 @@ for group in groups:
         network_stats = calculate_network_stats(
             network_df, network_barrier_joins, network_joins
         )
+
         # WARNING: because not all flowlines have associated catchments, they are missing
         # natfldpln
+
+        # fix data types
+        for col in ["miles", "free_miles", "sinuosity", "natfldpln"]:
+            network_stats[col] = network_stats[col].astype("float32")
+
+        network_stats.segments = network_stats.segments.astype("uint32")
 
         # save network stats to the HUC2 where the network originates
         for huc2 in sorted(network_stats.origin_HUC2.unique()):
@@ -233,7 +236,9 @@ for group in groups:
         upstream_networks = (
             network_barrier_joins[["upstream_id"]]
             .join(
-                network_stats.drop(columns=["flows_to_ocean", "num_downstream"]),
+                network_stats.drop(
+                    columns=["flows_to_ocean", "num_downstream", "exits_region"]
+                ),
                 on="upstream_id",
             )
             .rename(
@@ -253,7 +258,13 @@ for group in groups:
             )
             .join(
                 network_stats[
-                    ["free_miles", "miles", "num_downstream", "flows_to_ocean"]
+                    [
+                        "free_miles",
+                        "miles",
+                        "num_downstream",
+                        "flows_to_ocean",
+                        "exits_region",
+                    ]
                 ].rename(
                     columns={
                         "free_miles": "FreeDownstreamMiles",
@@ -282,6 +293,7 @@ for group in groups:
             0
         ).astype("uint16")
         barrier_networks.flows_to_ocean = barrier_networks.flows_to_ocean.fillna(False)
+        barrier_networks.exits_region = barrier_networks.exits_region.fillna(False)
         barrier_networks = barrier_networks.fillna(0).drop_duplicates()
 
         # Fix data types after all the joins
@@ -301,7 +313,7 @@ for group in groups:
         barrier_networks.sizeclasses = barrier_networks.sizeclasses.astype("uint8")
 
         # save barriers by the HUC2 where they are located
-        for huc2 in sorted(barrier_networks.HUC2.unique()):
+        for huc2 in group_huc2s:
             barrier_networks.loc[
                 barrier_networks.HUC2 == huc2
             ].reset_index().to_feather(
@@ -310,14 +322,19 @@ for group in groups:
 
     print("-------------------------\n")
 
+    s = flowlines.groupby(level=0).size()
+    print("dups", s[s > 1])
+
     # all flowlines without networks marked -1
     for col in scenarios.keys():
         flowlines[col] = flowlines[col].fillna(-1).astype("int64")
 
     # save network segments in the HUC2 where they are located
     print("Serializing network segments")
-    for huc2 in sorted(flowlines.HUC2.unique()):
-        flowlines.reset_index().to_feather(out_dir / huc2 / "network_segments.feather")
+    for huc2 in group_huc2s:
+        flowlines.loc[flowlines.HUC2 == huc2].reset_index().to_feather(
+            out_dir / huc2 / "network_segments.feather"
+        )
 
     print(f"group done in {time() - group_start:.2f}s\n\n")
 

@@ -3,6 +3,8 @@ import numpy as np
 
 from analysis.lib.graph import DirectedGraph
 
+from analysis.constants import HUC2_EXITS
+
 
 def connect_huc2s(joins):
     """Find all connected groups of HUC2s.
@@ -51,7 +53,16 @@ def connect_huc2s(joins):
         ix = (joins.downstream_id == row.downstream_id) & (joins.upstream_id == 0)
         joins.loc[ix, "upstream_id"] = row.upstream_id
 
-    joins = joins.drop_duplicates(subset=["downstream_id", "upstream_id"])
+    joins = joins.drop_duplicates(subset=["downstream_id", "upstream_id"]).copy()
+
+    # add information about the HUC2 drain points
+    huc2_exits = set()
+    for exits in HUC2_EXITS.values():
+        huc2_exits.update(exits)
+
+    joins.loc[
+        (joins.downstream == 0) & joins.upstream.isin(huc2_exits), "type"
+    ] = "huc2_drain"
 
     # make symmetric pairs of HUC2s so that we get all those that are connected
     tmp = cross_region[["upstream_HUC2", "downstream_HUC2"]]

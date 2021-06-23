@@ -19,17 +19,18 @@ def calculate_network_stats(df, barrier_joins, joins):
         * sinuosity
         * size class
 
-    _barrier_joins : Pandas DataFrame
+    barrier_joins : Pandas DataFrame
         contains:
         * upstream_id
         * downstream_id
         * kind
 
-    joins_joins : Pandas DataFrame
+    joins : Pandas DataFrame
         contains:
         * upstream_id
         * downstream_id
-        * kind
+        * type
+        * marine
 
     Returns
     -------
@@ -50,6 +51,15 @@ def calculate_network_stats(df, barrier_joins, joins):
     )
     marine_terminals.loc[
         marine_terminals.index.isin(joins.loc[joins.marine].upstream_id)
+    ] = True
+
+    ### Find those that terminate in HUC2 drain points
+    # Note: only applicable for those that exit into HUC2s outside the analysis region
+    huc2_drains = pd.Series(
+        np.zeros(shape=(len(networkIDs),), dtype="bool"), index=networkIDs
+    )
+    huc2_drains.loc[
+        huc2_drains.index.isin(joins.loc[joins.type == "huc2_drain"].upstream_id)
     ] = True
 
     ### Identify all barriers that are upstream of a given network
@@ -99,7 +109,7 @@ def calculate_network_stats(df, barrier_joins, joins):
 
     num_downstream = downstreams.apply(len).rename("num_downstream")
 
-    ### Calculate if any downstream network is a marine terminal
+    ### Calculate if any downstream network is a marine terminal or exits HUC2s
     # create a mapping of every network to all networks downstream of it
     tmp = downstreams.explode().dropna().astype("uint64")
     ix = marine_terminals.loc[marine_terminals].index
@@ -112,6 +122,17 @@ def calculate_network_stats(df, barrier_joins, joins):
         name="flows_to_ocean",
     )
     to_ocean.loc[to_ocean.index.isin(ix) | to_ocean.index.isin(connects_marine)] = True
+
+    ix = huc2_drains.loc[huc2_drains].index
+    connects_to_exit = tmp.loc[tmp.isin(ix)].index.unique()
+    exits_region = pd.Series(
+        np.zeros(shape=(len(networkIDs),), dtype="bool"),
+        index=networkIDs,
+        name="exits_region",
+    )
+    exits_region.loc[
+        exits_region.index.isin(ix) | exits_region.index.isin(connects_to_exit)
+    ] = True
 
     ### Extract downstream barrier type.
     # on the downstream side of a network, there will only ever be a single barrier.
@@ -144,6 +165,7 @@ def calculate_network_stats(df, barrier_joins, joins):
         .join(barriers_downstream)
         .join(num_downstream)
         .join(to_ocean)
+        .join(exits_region)
         .join(root_huc2)
     )
 
