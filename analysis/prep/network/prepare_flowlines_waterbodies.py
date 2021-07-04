@@ -42,6 +42,8 @@ from analysis.constants import (
     REMOVE_IDS,
     MAX_PIPELINE_LENGTH,
     KEEP_PIPELINES,
+    JOIN_FIXES,
+    REMOVE_JOINS,
 )
 from analysis.lib.geometry import geo_bounds
 from analysis.lib.joins import remove_joins
@@ -75,7 +77,7 @@ huc2s = [
     # "07",
     # "08",
     # "09",
-    # "10",
+    "10",
     # "11",
     # "12",
     # "13",
@@ -105,6 +107,36 @@ for huc2 in huc2s:
     print(f"Read {len(flowlines):,} flowlines")
 
     print("------------------")
+
+    ### Manual fixes to joins
+    join_fixes = JOIN_FIXES.get(huc2, [])
+    if join_fixes:
+        print(f"Fixing {len(join_fixes)} joins based on manual updates")
+        for fix in join_fixes:
+            ix = (joins.upstream == fix["upstream"]) & (
+                joins.downstream == fix["downstream"]
+            )
+            if "new_upstream" in fix:
+                joins.loc[ix, "upstream"] = fix["new_upstream"]
+                joins.loc[ix, "upstream_id"] = flowlines.loc[
+                    flowlines.NHDPlusID == fix["new_upstream"]
+                ].index[0]
+
+            if "new_downstream" in fix:
+                joins.loc[ix, "downstream"] = fix["new_downstream"]
+                joins.loc[ix, "downstream_id"] = flowlines.loc[
+                    flowlines.NHDPlusID == fix["new_downstream"]
+                ].index[0]
+
+    ### Manually remove joins
+    to_remove = REMOVE_JOINS.get(huc2, [])
+    if to_remove:
+        print(f"Removing {len(to_remove)} joins based on manual review")
+        for entry in to_remove:
+            ix = (joins.upstream == entry["upstream"]) & (
+                joins.downstream == entry["downstream"]
+            )
+            joins = joins.loc[~ix].copy()
 
     ### Drop underground conduits
     # TODO: remove once extract_nhd has been rerun for all areas
@@ -214,13 +246,14 @@ for huc2 in huc2s:
 
     print("------------------")
 
-    print("Calculating flowline geographic bounds")
-    bounds = pd.DataFrame(
-        geo_bounds(flowlines.geometry.values.data),
-        columns=["xmin", "ymin", "xmax", "ymax"],
-        index=flowlines.index,
-    )
-    flowlines = flowlines.join(bounds)
+    # NOTE: not currently used and very slow
+    # print("Calculating flowline geographic bounds")
+    # bounds = pd.DataFrame(
+    #     geo_bounds(flowlines.geometry.values.data),
+    #     columns=["xmin", "ymin", "xmax", "ymax"],
+    #     index=flowlines.index,
+    # )
+    # flowlines = flowlines.join(bounds)
 
     print("------------------")
 

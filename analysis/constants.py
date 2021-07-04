@@ -514,6 +514,36 @@ KEEP_PIPELINES = {
     "21": [85000100010153],
 }
 
+# data structure of NHDPlusIDs where upstream, downstream are the original values (used to join into data)
+# to be replaced with new_upstream or new_downstream
+# IMPORTANT: this only works where the original flowlines have not been split
+JOIN_FIXES = {
+    "10": [
+        # These two segments are Teton River into Marias River, which are backwards in NHD
+        {
+            "upstream": 23001300022801,
+            "downstream": 23001300034513,
+            "new_upstream": 23001300034497,
+        },
+        {
+            "upstream": 23001300034513,
+            "downstream": 0,
+            "new_downstream": 23001300080880,
+        },
+    ]
+}
+
+### data structure of NHDPlusIDs where upstream, downstream are the original values (used to join into data)
+# to be removed; they are likely replaced by other fixes
+REMOVE_JOINS = {
+    "10": [
+        {
+            'upstream': 23001300034497,
+            'downstream': 0
+        }
+    ]
+}
+
 
 # List of NHDPlusIDs that are exit points draining a given HUC2
 # NOTE: these are only applicable for HUC2s that drain into other HUCS2s outside the analysis region

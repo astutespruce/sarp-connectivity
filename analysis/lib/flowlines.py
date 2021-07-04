@@ -42,7 +42,10 @@ def prep_new_flowlines(flowlines, new_segments):
     """
     # join in data from flowlines into new segments
     new_flowlines = new_segments.join(
-        flowlines.drop(columns=["geometry", "lineID", "xmin", "ymin", "xmax", "ymax"]),
+        flowlines.drop(
+            columns=["geometry", "lineID", "xmin", "ymin", "xmax", "ymax"],
+            errors="ignore",
+        ),
         on="origLineID",
     )
 
