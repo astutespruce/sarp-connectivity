@@ -169,6 +169,9 @@ def calculate_network_stats(df, barrier_joins, joins):
         .join(root_huc2)
     )
 
+    # any that flow into ocean also leave the HUC2
+    results.loc[results.flows_to_ocean, "exits_region"] = True
+
     results[upstream_counts.columns] = (
         results[upstream_counts.columns].fillna(0).astype("uint16")
     )
