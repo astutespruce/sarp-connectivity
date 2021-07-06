@@ -238,6 +238,11 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
         segments.linepos
         >= pg.length(segments.flowline.values.data) - SNAP_ENDPOINT_TOLERANCE
     )
+
+    # if line length is < SNAP_ENDPOINT_TOLERANCE, then barrier could be tagged
+    # to both sides, which is incorrect.  Default to on_downstream.
+    segments.loc[segments.on_upstream & segments.on_downstream, "on_upstream"] = False
+
     print(
         f"{segments.on_upstream.sum():,} barriers on upstream point of their segments"
     )
