@@ -35,30 +35,6 @@ out_dir = data_dir / "networks/clean"
 if not out_dir.exists():
     os.makedirs(out_dir)
 
-huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"])
-huc2s = huc2_df.HUC2.sort_values().values
-
-
-# manually subset keys from above for processing
-huc2s = [
-    #     "02",
-    #     "03",
-    #     # "05",
-    #     # "06",
-    #     #     "07",
-    #     # "08",
-    # "09",
-    #     #     "10",
-    #     #     "11",
-    #     "12",
-    #     "13",
-    # "14",
-    # "15",
-    #     "16",
-    "17",
-    #     "21",
-]
-
 
 start = time()
 
@@ -67,6 +43,30 @@ barriers = pd.read_feather(
     columns=["id", "barrierID", "loop", "intermittent", "kind", "HUC2"],
 )
 perennial_barriers = barriers.loc[~barriers.intermittent].barrierID.unique()
+
+
+huc2s = sorted([huc2 for huc2 in barriers.HUC2.unique() if huc2])
+
+# manually subset keys from above for processing
+# huc2s = [
+# "02",
+# "03",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "21",
+# ]
+
 
 print("Finding connected HUC2s")
 joins = read_feathers(
@@ -204,7 +204,7 @@ for group in groups:
         # So drop any dangling upstream references (those that are not in networks and non-zero)
         # NOTE: these are not persisted because we want the original barrier_joins to reflect multiple upstreams
         network_barrier_joins = network_barrier_joins.loc[
-            network_barrier_joins.upstream_id.isin(networks.index)
+            network_barrier_joins.upstream_id.isin(networks.unique())
             | (network_barrier_joins.upstream_id == 0)
         ].copy()
 

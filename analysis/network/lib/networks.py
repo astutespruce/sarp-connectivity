@@ -241,6 +241,7 @@ def create_networks(joins, barrier_joins, lineIDs):
             sort=False,
             ignore_index=False,
         )
+        .reset_index(drop=True)
     )
     network_df.networkID = network_df.networkID.astype("uint32")
     network_df.lineID = network_df.lineID.astype("uint32")
@@ -251,7 +252,7 @@ def create_networks(joins, barrier_joins, lineIDs):
     # Group by barrierID
     upstream_count = barrier_joins.groupby(level=0).size()
     multiple_upstreams = barrier_joins.loc[
-        barrier_joins.index.isin(upstream_count.loc[upstream_count > 1].index)
+        barrier_joins.index.isin(upstream_count.loc[upstream_count > 1].index.unique())
     ]
 
     if len(multiple_upstreams):
