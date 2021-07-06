@@ -167,7 +167,6 @@ for column in (
     "Source",
     "Name",
     "OtherName",
-    "SourceState",
     "ScreenType",
     "FishScreen",
     "Diversion",

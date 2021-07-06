@@ -297,6 +297,7 @@ for group in groups:
         barrier_networks = barrier_networks.fillna(0).drop_duplicates()
 
         # Fix data types after all the joins
+        # NOTE: upNetID or downNetID may be 0 if there aren't networks on that side
         for col in ["upNetID", "downNetID", "segments"]:
             barrier_networks[col] = barrier_networks[col].astype("uint32")
 

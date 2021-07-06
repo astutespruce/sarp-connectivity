@@ -4,6 +4,11 @@ import warnings
 
 from analysis.constants import SARP_STATES
 from analysis.lib.io import read_feathers
+from analysis.rank.lib.metrics import (
+    classify_gainmiles,
+    classify_sinuosity,
+    classify_landcover,
+)
 from analysis.rank.lib.tiers import calculate_tiers
 from analysis.lib.util import append
 
@@ -74,6 +79,24 @@ def get_network_results(df, barrier_type, network_scenario="all"):
     # select barrier type
     networks = networks.loc[networks.kind == barrier_type[:-1]].drop(columns=["kind"])
 
+    # Convert dtypes to allow missing data when joined to barriers later
+    # NOTE: upNetID or downNetID may be 0 if there aren't networks on that side, but
+    # we set to int dtype instead of uint to allow -1 for missing data later
+    for col in ["upNetID", "downNetID"]:
+        networks[col] = networks[col].astype("int")
+
+    for col in ["NumBarriersDownstream"]:
+        networks[col] = networks[col].astype("int16")
+
+    for column in ("Landcover", "SizeClasses", "FlowsToOcean"):
+        networks[column] = networks[column].astype("int8")
+
+    # sanity check to make sure no duplicate networks
+    if networks.groupby(level=0).size().max() > 1:
+        raise Exception(
+            f"ERROR: multiple networks found for some {barrier_type} in {network_scenario} networks"
+        )
+
     # join in source state (provided by SARP, not spatial state)
     networks = networks.join(df[["unranked", "SourceState"]])
 
@@ -81,9 +104,6 @@ def get_network_results(df, barrier_type, network_scenario="all"):
     # calculate size classes GAINED instead of total
     # doesn't apply to those that don't have upstream networks
     networks.loc[networks.SizeClasses > 0, "SizeClasses"] -= 1
-
-    for column in ("Landcover", "SizeClasses"):
-        networks[column] = networks[column].fillna(-1).astype("int8")
 
     # Calculate miles GAINED if barrier is removed
     # this is the lesser of the upstream or free downstream lengths.
@@ -93,7 +113,7 @@ def get_network_results(df, barrier_type, network_scenario="all"):
     )
 
     # TotalNetworkMiles is sum of upstream and free downstream miles
-    networks["TotalNetworkMiles"] = df[
+    networks["TotalNetworkMiles"] = networks[
         ["TotalUpstreamMiles", "FreeDownstreamMiles"]
     ].sum(axis=1)
 
@@ -108,6 +128,11 @@ def get_network_results(df, barrier_type, network_scenario="all"):
         "TotalNetworkMiles",
     ):
         networks[column] = networks[column].round(3).fillna(-1).astype("float32")
+
+    # Calculate network metric classes
+    networks["GainMilesClass"] = classify_gainmiles(networks.GainMiles)
+    networks["SinuosityClass"] = classify_sinuosity(networks.Sinuosity)
+    networks["LandcoverClass"] = classify_landcover(networks.Landcover)
 
     # only calculate ranks / tiers for ranked barriers
     # (exclude unranked invasive spp. barriers)

@@ -1,32 +1,18 @@
-"""
-Preprocess dams into data needed by API and tippecanoe for creating vector tiles.
-
-Input:
-* Dam inventory from SARP, including all network metrics and summary unit IDs (HUC12, ECO3, ECO4, State, County, etc).
-
-Outputs:
-* `data/api/dams.feather`: processed dam data for use by the API
-* `data/api/removed_dams.feather`: dams that were removed for conservation
-* `data/tiles/dams_with_networks.csv`: Dams with networks for creating vector tiles in tippecanoe
-* `data/tiles/dams_without_networks.csv`: Dams without networks for creating vector tiles in tippecanoe
-"""
-
+import csv
 import os
 from pathlib import Path
 from time import time
-import csv
 import warnings
 
-import pygeos as pg
-import geopandas as gp
+import numpy as np
 import pandas as pd
-from pyogrio import write_dataframe
+import geopandas as gp
+import pygeos as pg
 
+from analysis.rank.lib.networks import get_network_results
 from analysis.rank.lib.spatial_joins import add_spatial_joins
-from analysis.rank.lib.tiers import calculate_tiers
-from analysis.rank.lib.metrics import update_network_metrics
+from analysis.rank.lib.metrics import classify_streamorder, classify_spps
 from api.constants import DAM_API_FIELDS, UNIT_FIELDS, DAM_CORE_FIELDS
-from analysis.lib.util import append
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -36,7 +22,6 @@ start = time()
 
 data_dir = Path("data")
 barriers_dir = data_dir / "barriers/master"
-qa_dir = data_dir / "barriers/qa"
 api_dir = data_dir / "api"
 tile_dir = data_dir / "tiles"
 
@@ -45,36 +30,6 @@ if not os.path.exists(api_dir):
 
 if not os.path.exists(tile_dir):
     os.makedirs(tile_dir)
-
-
-huc4_df = pd.read_feather(
-    # data_dir / "boundaries/sarp_huc4.feather",
-    data_dir / "boundaries/huc4.feather",
-    columns=["HUC2", "HUC4"],
-)
-# Convert to dict of sorted HUC4s per HUC2
-units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
-huc2s = sorted(units.keys())
-
-# manually subset keys from above for processing
-# huc2s = [
-#     "02",
-#     # "03",
-#     # "05",
-#     # "06",
-#     # "07",
-#     # "08",
-#     # "09",
-#     # "10",
-#     # "11",
-#     # "12",
-#     # "13",
-#     "14",
-#     # "15",
-#     # "16",
-#     # "17",
-#     # "21",
-# ]
 
 
 ### Read in master
@@ -98,7 +53,6 @@ df = (
             "snapped",
             "ProtectedLand",
             "NHDPlusID",
-            "SourceState",
             "lineID",
             "wbID",
             "waterbody",
@@ -150,59 +104,10 @@ removed.to_feather(api_dir / "removed_dams.feather")
 # NOTE: excluded ones are retained but don't have networks; ones on loops are retained but also don't have networks
 df = df.loc[~(df.dropped | df.duplicate)].copy()
 
-### Read in network outputs and join to master
+### Classify StreamOrder
+df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
+df["StreamOrderClass"] = classify_streamorder(df.StreamOrder)
 
-print("Reading network outputs")
-merged = None
-for huc2 in huc2s:
-    # if from a HUC2 that was merged with adjacent HUC2s
-    merged_filename = (
-        data_dir / "networks/merged" / huc2 / "dams/barriers_network.feather"
-    )
-    if merged_filename.exists():
-        network_df = pd.read_feather(merged_filename)
-
-    else:
-        network_df = pd.read_feather(
-            data_dir / "networks" / huc2 / "dams/barriers_network.feather"
-        )
-
-    network_df = (
-        network_df.loc[network_df.kind == "dam"]
-        .drop(columns=["index", "segments", "kind", "barrierID"], errors="ignore")
-        .rename(
-            columns={
-                "sinuosity": "Sinuosity",
-                "natfldpln": "Landcover",
-                "sizeclasses": "SizeClasses",
-                "flows_to_ocean": "FlowsToOcean",
-                "num_downstream": "NumBarriersDownstream",
-            }
-        )
-    )
-
-    merged = append(merged, network_df)
-
-networks = merged.reset_index(drop=True)
-
-# All barriers that came out of network analysis have networks
-networks["HasNetwork"] = True
-
-### Join in networks and fill N/A
-df = df.join(networks.set_index("id"))
-df.HasNetwork = df.HasNetwork.fillna(False)
-df.upNetID = df.upNetID.fillna(-1).astype("int")
-df.downNetID = df.downNetID.fillna(-1).astype("int")
-df.Intermittent = df.Intermittent.fillna(-1).astype("int8")
-df.loc[~df.HasNetwork, "Intermittent"] = -1
-
-df.FlowsToOcean = df.FlowsToOcean.fillna(-1).astype("int8")
-df.NumBarriersDownstream = df.NumBarriersDownstream.fillna(-1).astype("int")
-
-df["Ranked"] = df.HasNetwork & (~df.unranked)
-df = df.drop(columns=["unranked"])
-
-print(f"Read {len(df):,} dams ({df.HasNetwork.sum():,} have networks)")
 
 ### Join in T&E Spp stats
 spp_df = (
@@ -222,12 +127,10 @@ spp_df = (
 df = df.join(spp_df, on="HUC12")
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
     df[col] = df[col].fillna(0).astype("uint8")
+    df[f"{col}Class"] = classify_spps(df[col])
 
 
-### Update network metrics and calculate classes
-df = update_network_metrics(df)
-
-### Add spatial joins to other units
+### Add spatial joins to other things, like priority watersheds
 df = add_spatial_joins(df)
 
 ### Add lat / lon
@@ -238,65 +141,96 @@ geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
 df = df.join(geo[["lat", "lon"]])
 
 
-### Calculate tiers for the region and by state
-df = calculate_tiers(df, prefix="SE")
-df = calculate_tiers(df, group_field="State", prefix="State")
+### Get network results
+networks = {
+    "all": get_network_results(df, "dams", "all"),
+    # FlowsToOcean and NumBarriersDownstream are less relevant for perennial networks
+    "perennial": get_network_results(df, "dams", "perennial").drop(
+        columns=["FlowsToOcean", "NumBarriersDownstream"], errors="ignore"
+    ),
+}
+
+# True if the barrier was snapped to a network and has network results in the
+# all networks scenario
+df["HasNetwork"] = df.index.isin(networks["all"].index)
+df["Ranked"] = df.HasNetwork & (~df.unranked)
+
+# intermittent is not applicable if it doesn't have a network
+df["Intermittent"] = df["Intermittent"].astype("int8")
+df.loc[~df.HasNetwork, "Intermittent"] = -1
 
 
-### Sanity check
-if df.groupby(level=0).size().max() > 1:
-    raise ValueError(
-        "Error - there are duplicate barriers in the results.  Check uniqueness of IDs and joins."
+### Write out data for API
+for network_scenario in ["all", "perennial"]:
+    network = networks[network_scenario]
+    tmp = df.join(network)
+
+    # fill columns and set proper type
+    for col in network.columns:
+        tmp[col] = tmp[col].fillna(-1).astype(network[col].dtype)
+
+    ### Sanity check
+    if tmp.groupby(level=0).size().max() > 1:
+        raise ValueError(
+            f"Error - there are duplicate barriers in the results for dams in {network_scenario} .  Check uniqueness of IDs and joins."
+        )
+
+    print(f"Writing to output files for {network_scenario}...")
+
+    # Full results for SARP QA/QC
+    tmp.reset_index().to_feather(
+        barriers_dir.parent / "qa" / f"dams_{network_scenario}__network_results.feather"
+    )
+
+    # save for API
+    tmp[np.intersect1d(DAM_API_FIELDS, tmp.columns)].reset_index().to_feather(
+        api_dir / f"dams_{network_scenario}.feather"
     )
 
 
-### Output results
-print("Writing to output files...")
-
-# Full results for SARP
-print("Saving full results to feather")
-df.reset_index().to_feather(qa_dir / "dams_network_results.feather")
-write_dataframe(df.reset_index(), qa_dir / "dams_network_results.gpkg")
-
-# drop geometry, not needed from here on out
-df = df.drop(columns=["geometry"])
-
-# Debug
-# print("Saving full results to CSV")
-# df.to_csv(
-#     qa_dir / "dams_network_results.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
-# )
-
-# save for API
-df[DAM_API_FIELDS].reset_index().to_feather(api_dir / "dams.feather")
-
+### Export data for generating tiles
 # Drop fields that can be calculated on frontend
 keep_fields = [
     c
     for c in DAM_API_FIELDS
     if not c in {"GainMiles", "TotalNetworkMiles", "Sinuosity"}
 ]
-df = df[keep_fields].copy()
 
+# Note: this drops geometry, which is no longer needed
+df = pd.DataFrame(df[np.intersect1d(df.columns, keep_fields)]).rename(
+    columns={"County": "CountyName", "COUNTYFIPS": "County"}
+)
 
-# Rename columns for easier use
-df = df.rename(columns={"County": "CountyName", "COUNTYFIPS": "County"})
+# join in both networks, suffixing perennial networks
+all_network_cols = np.intersect1d(networks["all"].columns, keep_fields)
+perennial_network_cols = np.intersect1d(networks["perennial"].columns, keep_fields)
+df = df.join(networks["all"][all_network_cols]).join(
+    networks["perennial"][perennial_network_cols], rsuffix="_perennial",
+)
 
+# fill missing data and set dtypes
+for col in all_network_cols:
+    df[col] = df[col].fillna(-1).astype(networks["all"][col].dtype)
 
-### Export data for use in tippecanoe to generate vector tiles
+for col in perennial_network_cols:
+    df[f"{col}_perennial"] = (
+        df[f"{col}_perennial"].fillna(-1).astype(networks["perennial"][col].dtype)
+    )
+
 
 # Fill N/A values and fix dtypes
 str_cols = df.dtypes.loc[df.dtypes == "object"].index
 df[str_cols] = df[str_cols].fillna("")
 
 # Update boolean fields so that they are output to CSV correctly
-df.ProtectedLand = df.ProtectedLand.astype("uint8")
-df.Ranked = df.Ranked.astype("uint8")
-df["Excluded"] = df.Excluded.astype("uint8")
+for col in ["ProtectedLand", "Ranked", "Excluded"]:
+    df[col] = df[col].astype("uint8")
+
 
 with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork", "Excluded"])
 without_networks = df.loc[~df.HasNetwork].drop(columns=["HasNetwork"])
 
+# lowercase all fields except unit fields
 with_networks.rename(
     columns={
         k: k.lower()
@@ -308,7 +242,9 @@ with_networks.rename(
 )
 
 # Drop metrics, tiers, and units used only for filtering
-keep_fields = DAM_CORE_FIELDS + ["CountyName", "State", "Excluded"]
+keep_fields = np.intersect1d(
+    without_networks.columns, DAM_CORE_FIELDS + ["CountyName", "State", "Excluded"]
+)
 
 without_networks[keep_fields].rename(
     columns={
