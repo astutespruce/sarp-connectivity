@@ -1,6 +1,5 @@
 """Constants used in other scripts."""
 
-
 # Full Southeast + USFWS R2 / R6 region
 STATES = {
     "AL": "Alabama",
@@ -31,6 +30,7 @@ STATES = {
     "WY": "Wyoming",
 }
 
+
 SARP_STATES = [
     "AL",
     "AR",
@@ -48,6 +48,26 @@ SARP_STATES = [
     "TX",
     "VA",
 ]
+
+
+# Note: some states overlap multiple regions
+REGION_STATES = {
+    # Southeast is SARP states
+    "se": SARP_STATES,
+    # great plains / intermountain west
+    "gpiw": [
+        "CO",
+        "IA",  # NOTE: temporary member
+        "KS",
+        "MT",
+        "ND",
+        "NE",
+        "SD",
+        "WY",
+        "UT",
+    ],
+    "sw": ["AZ", "NM", "OK", "TX"],
+}
 
 
 # NETWORK_TYPES determines the type of network analysis we are doing
