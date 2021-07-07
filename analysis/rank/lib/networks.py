@@ -50,7 +50,7 @@ def get_network_results(df, barrier_type, network_scenario="all"):
     Parameters
     ----------
     df : DataFrame
-        barriers data; must contain SourceState and unranked
+        barriers data; must contain State and unranked
     barrier_type : {"dams", "small_barriers"}
     network_scenario : {"all", "perennial"}, optional (default: "all")
 
@@ -98,7 +98,7 @@ def get_network_results(df, barrier_type, network_scenario="all"):
         )
 
     # join in source state (provided by SARP, not spatial state)
-    networks = networks.join(df[["unranked", "SourceState"]])
+    networks = networks.join(df[["unranked", "State"]])
 
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total
@@ -141,7 +141,7 @@ def get_network_results(df, barrier_type, network_scenario="all"):
     ### Calculate regional tiers for SARP (Southeast) region
     # NOTE: this is limited to SARP region; other regions are not ranked at regional level
     # TODO: consider deprecating this
-    ix = to_rank.SourceState.isin(SARP_STATES)
+    ix = to_rank.State.isin(SARP_STATES)
     sarp_tiers = calculate_tiers(to_rank.loc[ix])
     sarp_tiers = sarp_tiers.rename(
         columns={col: f"SE_{col}" for col in sarp_tiers.columns}
@@ -149,10 +149,10 @@ def get_network_results(df, barrier_type, network_scenario="all"):
 
     ### Calculate state tiers
     state_tiers = None
-    for state in to_rank.SourceState.unique():
+    for state in to_rank.State.unique():
         state_tiers = append(
             state_tiers,
-            calculate_tiers(to_rank.loc[to_rank.SourceState == state]).reset_index(),
+            calculate_tiers(to_rank.loc[to_rank.State == state]).reset_index(),
         )
 
     state_tiers = state_tiers.set_index("id").rename(
@@ -163,4 +163,4 @@ def get_network_results(df, barrier_type, network_scenario="all"):
     for col in [col for col in networks.columns if col.endswith("_tier")]:
         networks[col] = networks[col].fillna(-1).astype("int8")
 
-    return networks.drop(columns=["unranked", "SourceState"])
+    return networks.drop(columns=["unranked", "State"])

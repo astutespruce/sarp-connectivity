@@ -142,10 +142,11 @@ df = df.join(geo[["lat", "lon"]])
 
 
 ### Get network results
+tmp = df[["SourceState", "unranked"]].rename(columns={"SourceState": "State"})
 networks = {
-    "all": get_network_results(df, "dams", "all"),
+    "all": get_network_results(tmp, "dams", "all"),
     # FlowsToOcean and NumBarriersDownstream are less relevant for perennial networks
-    "perennial": get_network_results(df, "dams", "perennial").drop(
+    "perennial": get_network_results(tmp, "dams", "perennial").drop(
         columns=["FlowsToOcean", "NumBarriersDownstream"], errors="ignore"
     ),
 }
@@ -217,8 +218,6 @@ for col in perennial_network_cols:
         df[f"{col}_perennial"].fillna(-1).astype(networks["perennial"][col].dtype)
     )
 
-
-# Fill N/A values and fix dtypes
 str_cols = df.dtypes.loc[df.dtypes == "object"].index
 df[str_cols] = df[str_cols].fillna("")
 
