@@ -5,7 +5,7 @@ import pandas as pd
 pd.options.display.max_rows = 200
 
 
-current_version = "March2021_expanded"
+current_version = "DEV"
 prev_version = "March2021"
 
 data_dir = Path("data/barriers/master")
@@ -154,7 +154,7 @@ for barrier_type in ["dams", "small_barriers"]:
 
     # compare network results
     read_cols = ["SARPID", "HasNetwork", "TotalUpstreamMiles", "TotalDownstreamMiles"]
-    df = pd.read_feather(f"data/api/{barrier_type}.feather", columns=read_cols)
+    df = pd.read_feather(f"data/api/{barrier_type}_all.feather", columns=read_cols)
     prev = pd.read_feather(
         data_dir / "archive" / prev_version / f"api/{barrier_type}.feather",
         columns=read_cols,

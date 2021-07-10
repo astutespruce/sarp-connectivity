@@ -3,31 +3,33 @@
 This creates a summary CSV file for each type of summary unit, with a count of dams,
 small barriers, and average gained miles for each summary unit.
 
-It also calculates high-level summary statistics for the summary region, which
+It also calculates high-level summary statistics for each region (e.g., Southeast), which
 is included in the user interface code at build time for display on the homepage
 and elsewhere.
+
+These statistics are based on:
+* dams: not dropped or duplicate
+* small_barriers: not duplicate (dropped dams are included in stats)
 
 This is run AFTER running `rank_dams.py` and `rank_small_barriers.py`
 
 Inputs:
-* `data/api/dams.feather`
-* `data/api/small_barriers.feather`
+* `data/api/dams_all.feather`
+* `data/api/dams_perennial.feather`
+* `data/api/small_barriers_all.feather`
+* `data/api/small_barriers_perennial.feather`
 
 """
 
 from pathlib import Path
-from collections import defaultdict
 import csv
 import json
+import subprocess
 
 import pandas as pd
 import numpy as np
 
-from analysis.constants import SARP_STATES
-
-# Bins are manually constructed to give reasonable looking map
-# There must be a matching number of colors in the map
-PERCENTILES = [20, 40, 60, 75, 80, 85, 90, 95, 100]
+from analysis.constants import STATES, REGION_STATES
 
 # Note: states are identified by name, whereas counties are uniquely identified by
 # FIPS code.
@@ -44,6 +46,8 @@ INT_COLS = [
     "crossings",
     "on_network_dams",
     "on_network_barriers",
+    "perennial_dams",
+    "perennial_barriers",
 ]
 
 
@@ -51,74 +55,124 @@ data_dir = Path("data")
 src_dir = data_dir / "barriers/master"
 api_dir = data_dir / "api"
 ui_data_dir = Path("ui/data")
-tile_dir = data_dir / "tiles"
+src_tile_dir = data_dir / "tiles"
+out_tile_dir = Path("tiles")
+tmp_dir = Path("/tmp")
 
 
-print("Reading barriers")
+states = (
+    pd.read_feather("data/boundaries/states.feather", columns=["id", "State"])
+    .set_index("id")
+    .State.to_dict()
+)
 
-# For dams, we want only those that were not dropped or duplicates
-# this matches the ones coming out of the ranking
-# read in dams with network results
+
+### Read dams
 dams = (
-    pd.read_feather(api_dir / "dams.feather")
-    .set_index("id", drop=False)[["id", "HasNetwork", "GainMiles"] + SUMMARY_UNITS]
+    pd.read_feather(
+        api_dir / f"dams_all.feather",
+        columns=["id", "HasNetwork", "GainMiles"] + SUMMARY_UNITS,
+    )
+    .set_index("id", drop=False)
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
-dams.OnNetwork = dams.OnNetwork.fillna(False)
+# Set NA so that we don't include these values in our statistics
+dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
 
+perennial_dams = (
+    pd.read_feather(
+        api_dir / "dams_perennial.feather",
+        # columns=["id", "HasNetwork", "GainMiles"]
+    )
+    .set_index("id")
+    .rename(columns={"HasNetwork": "OnNetwork"})
+)
+perennial_dams.loc[perennial_dams.GainMiles == -1, "GainMiles"] = np.nan
 
-# Read in ALL barriers and drop those that are duplicates
-barriers = pd.read_feather(src_dir / "small_barriers.feather").set_index(
-    "id", drop=False
-)[["id", "duplicate", "dropped", "excluded"] + SUMMARY_UNITS]
-barriers = barriers.loc[~barriers.duplicate].copy()
+dams = dams.join(perennial_dams, rsuffix="_perennial")
 
-# read in barriers with network results
-barriers_network = pd.read_feather(api_dir / "small_barriers.feather").set_index("id")[
-    ["HasNetwork"]
-]
-barriers = barriers.join(barriers_network).rename(columns={"HasNetwork": "OnNetwork"})
-barriers.OnNetwork = barriers.OnNetwork.fillna(False)
+### Read road-related barriers
+barriers = (
+    pd.read_feather(
+        api_dir / "small_barriers_all.feather",
+        columns=["id", "HasNetwork", "GainMiles"] + SUMMARY_UNITS,
+    )
+    .set_index("id", drop=False)
+    .rename(columns={"HasNetwork": "OnNetwork"})
+)
+perennial_barriers = (
+    pd.read_feather(
+        api_dir / "small_barriers_perennial.feather", columns=["id", "HasNetwork"]
+    )
+    .set_index("id")
+    .rename(columns={"HasNetwork": "OnNetwork"})
+)
+barriers_master = pd.read_feather(
+    "data/barriers/master/small_barriers.feather", columns=["id", "dropped", "excluded"]
+).set_index("id")
 
-# any that were not dropped were available for analysis
+barriers = barriers.join(perennial_barriers, rsuffix="_perennial").join(barriers_master)
+
+# barriers that were not dropped or excluded are likely to have impacts
 barriers["Included"] = ~(barriers.dropped | barriers.excluded)
 
-# crossings are already de-duplicated against each other and against
+### Read road / stream crossings
+# NOTE: crossings are already de-duplicated against each other and against
 # barriers
-
 crossings = pd.read_feather(
     src_dir / "road_crossings.feather", columns=["id"] + SUMMARY_UNITS
 )
 
 
-# Set NA so that we don't include these values in our statistics
-dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
-
-
-stats = defaultdict(defaultdict)
-
-# Calculate summary statistics for the entire region
-stats["southeast"] = {
-    "dams": len(dams),
-    "on_network_dams": len(dams.loc[dams.OnNetwork]),
-    "miles": round(dams["GainMiles"].mean().item(), 3),
-    "total_barriers": len(barriers),
-    "barriers": len(barriers.loc[barriers.Included]),
-    "on_network_barriers": len(barriers.loc[barriers.OnNetwork]),
-    "crossings": len(crossings),
+# Calculate summary stats for entire analysis area
+stats = {
+    "total": {
+        "dams": len(dams),
+        "on_network_dams": dams.OnNetwork.sum(),
+        # NOTE: perennial dams are on-network (raw networks) but not on intermittent segments
+        "perennial_dams": dams.OnNetwork_perennial.sum(),
+        "miles": round(dams.GainMiles.mean().item(), 3),
+        "perennial_miles": round(dams.GainMiles_perennial.mean().item(), 3),
+        "total_barriers": len(barriers),
+        "barriers": barriers.Included.sum(),
+        "on_network_barriers": barriers.OnNetwork.sum(),
+        "perennial_barriers": barriers.OnNetwork_perennial.sum(),
+        "crossings": len(crossings),
+    }
 }
+
+# Calculate stats for regions
+# NOTE: these are groupings of states and some states may be in multiple regions
+region_stats = []
+for region, region_states in REGION_STATES.items():
+    region_states = [states[s] for s in region_states]
+    region_dams = dams.loc[dams.State.isin(region_states)]
+    region_barriers = barriers.loc[barriers.State.isin(region_states)]
+    region_crossings = crossings.loc[crossings.State.isin(region_states)]
+
+    region_stats.append(
+        {
+            "id": region,
+            "dams": len(region_dams),
+            "on_network_dams": region_dams.OnNetwork.sum(),
+            "perennial_dams": region_dams.OnNetwork_perennial.sum(),
+            "miles": round(region_dams.GainMiles.mean().item(), 3),
+            "perennial_miles": round(region_dams.GainMiles_perennial.mean().item(), 3),
+            "total_barriers": len(region_barriers),
+            "barriers": region_barriers.Included.sum(),
+            "on_network_barriers": region_barriers.OnNetwork.sum(),
+            "perennial_barriers": region_barriers.OnNetwork_perennial.sum(),
+            "crossings": len(region_crossings),
+        }
+    )
+
+stats["region"] = region_stats
+
 
 # only extract core counts in states for data download page,
 # as other stats are joined to state vector tiles below
-# TODO: expand to full region states
-states = sorted(
-    pd.read_feather(
-        "data/boundaries/sarp_states.feather", columns=["State"]
-    ).State.unique()
-)
-
 state_stats = []
-for state in states:
+for state in sorted(STATES.values()):
     state_stats.append(
         {
             "id": state,
@@ -136,36 +190,51 @@ with open(ui_data_dir / "summary_stats.json", "w") as outfile:
 
 # Calculate summary statistics for each type of summary unit
 # These are joined to vector tiles
+mbtiles_files = []
 for unit in SUMMARY_UNITS:
-    print("processing {}".format(unit))
+    print(f"processing {unit}")
 
     dam_stats = (
-        dams[[unit, "id", "OnNetwork", "GainMiles"]]
+        dams[
+            [
+                unit,
+                "id",
+                "OnNetwork",
+                "OnNetwork_perennial",
+                "GainMiles",
+                "GainMiles_perennial",
+            ]
+        ]
         .groupby(unit)
         .agg(
             {
                 "id": "count",
                 "OnNetwork": "sum",
+                "OnNetwork_perennial": "sum",
                 "GainMiles": "mean",
+                "GainMiles_perennial": "mean",
             }
         )
         .rename(
             columns={
                 "id": "dams",
                 "OnNetwork": "on_network_dams",
+                "OnNetwork_perennial": "perennial_dams",
                 "GainMiles": "miles",
+                "GainMiles_perennial": "perennial_miles",
             }
         )
     )
 
     barriers_stats = (
-        barriers[[unit, "id", "Included", "OnNetwork"]]
+        barriers[[unit, "id", "Included", "OnNetwork", "OnNetwork_perennial"]]
         .groupby(unit)
         .agg(
             {
                 "id": "count",
                 "Included": "sum",
                 "OnNetwork": "sum",
+                "OnNetwork_perennial": "sum",
             }
         )
         .rename(
@@ -173,6 +242,7 @@ for unit in SUMMARY_UNITS:
                 "id": "total_barriers",
                 "Included": "barriers",
                 "OnNetwork": "on_network_barriers",
+                "OnNetwork_perennial": "perennial_barriers",
             }
         )
     )
@@ -186,10 +256,46 @@ for unit in SUMMARY_UNITS:
     )
     merged[INT_COLS] = merged[INT_COLS].astype("uint32")
     merged.miles = merged.miles.round(3)
+    merged.perennial_miles = merged.perennial_miles.round(3)
 
     unit = "County" if unit == "COUNTYFIPS" else unit
 
     # Write summary CSV for each unit type
     merged.to_csv(
-        tile_dir / "{}.csv".format(unit), index_label="id", quoting=csv.QUOTE_NONNUMERIC
+        tmp_dir / f"{unit}.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
     )
+
+    # join to tiles
+    mbtiles_filename = f"{tmp_dir}/{unit}_summary.mbtiles"
+    mbtiles_files.append(mbtiles_filename)
+    ret = subprocess.run(
+        [
+            "tile-join",
+            "-f",
+            "-pg",
+            "-o",
+            mbtiles_filename,
+            "-c",
+            f"{tmp_dir}/{unit}.csv",
+            f"{src_tile_dir}/{unit}.mbtiles",
+        ]
+    )
+    ret.check_returncode()
+
+
+# join all summary tiles together
+print("Merging all summary tiles")
+ret = subprocess.run(
+    [
+        "tile-join",
+        "-f",
+        "-pg",
+        "--no-tile-size-limit",
+        "-o",
+        f"{out_tile_dir}/summary.mbtiles",
+        f"{src_tile_dir}/mask.mbtiles",
+        f"{src_tile_dir}/boundary.mbtiles",
+    ]
+    + mbtiles_files
+)
+ret.check_returncode()

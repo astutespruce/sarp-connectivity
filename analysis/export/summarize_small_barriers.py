@@ -4,13 +4,13 @@ import pandas as pd
 
 from api.constants import DOMAINS
 
-current_version = "March2021"
+current_version = "DEV"
 
 data_dir = Path("data/barriers/master")
 out_dir = Path("data/versions")
 
 df = pd.read_feather(data_dir / "small_barriers.feather")
-api_df = pd.read_feather("data/api/small_barriers.feather")
+api_df = pd.read_feather("data/api/small_barriers_all.feather")
 
 
 with pd.ExcelWriter(out_dir / f"small_barriers_{current_version}_summary.xlsx") as xlsx:

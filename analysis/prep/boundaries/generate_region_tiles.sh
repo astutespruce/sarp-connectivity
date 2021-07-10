@@ -43,12 +43,12 @@ rm $TMPDIR/HUC12.json
 ### States and counties
 echo "Generating state tiles..."
 ogr2ogr -t_srs EPSG:4326 -f GeoJSONSeq $TMPDIR/states.json $DATADIR/region_states.gpkg -progress
-tippecanoe -f -z 8 -l State -pg -P --detect-shared-borders -o $TILEDIR/states.mbtiles $TMPDIR/states.json
+tippecanoe -f -z 8 -l State -pg -P --detect-shared-borders -o $TILEDIR/State.mbtiles $TMPDIR/states.json
 rm $TMPDIR/states.json
 
 echo "Generating county tiles..."
 ogr2ogr -t_srs EPSG:4326 -f GeoJSONSeq $TMPDIR/counties.json $DATADIR/region_counties.gpkg -progress
-tippecanoe -f -Z 3 -z 12 -pg -P --detect-shared-borders -l County -o $TILEDIR/counties.mbtiles $TMPDIR/counties.json
+tippecanoe -f -Z 3 -z 12 -pg -P --detect-shared-borders -l County -o $TILEDIR/County.mbtiles $TMPDIR/counties.json
 rm $TMPDIR/counties.json
 
 ### Ecoregions

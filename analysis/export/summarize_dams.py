@@ -4,13 +4,13 @@ import pandas as pd
 
 from api.constants import DOMAINS
 
-current_version = "March2021"
+current_version = "DEV"
 
 data_dir = Path("data/barriers/master")
 out_dir = Path("data/versions")
 
 df = pd.read_feather(data_dir / "dams.feather")
-api_df = pd.read_feather("data/api/dams.feather")
+api_df = pd.read_feather("data/api/dams_all.feather")
 
 # temporary shim (TODO: remove)
 df["is_estimated"] = df.snap_group == 1
