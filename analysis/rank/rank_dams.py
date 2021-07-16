@@ -59,6 +59,7 @@ df = (
             "src",
             "kind",
             "log",
+            "SourceState",
         ],
         errors="ignore",
     )
@@ -142,29 +143,25 @@ df = df.join(geo[["lat", "lon"]])
 
 
 ### Get network results
-tmp = df[["SourceState", "unranked"]].rename(columns={"SourceState": "State"})
 networks = {
-    "all": get_network_results(tmp, "dams", "all"),
+    "all": get_network_results(df, "dams", "all"),
     # FlowsToOcean and NumBarriersDownstream are less relevant for perennial networks
-    "perennial": get_network_results(tmp, "dams", "perennial").drop(
+    "perennial": get_network_results(df, "dams", "perennial").drop(
         columns=["FlowsToOcean", "NumBarriersDownstream"], errors="ignore"
     ),
 }
-
-# True if the barrier was snapped to a network and has network results in the
-# all networks scenario
-df["HasNetwork"] = df.index.isin(networks["all"].index)
-df["Ranked"] = df.HasNetwork & (~df.unranked)
-
-# intermittent is not applicable if it doesn't have a network
-df["Intermittent"] = df["Intermittent"].astype("int8")
-df.loc[~df.HasNetwork, "Intermittent"] = -1
-
 
 ### Write out data for API
 for network_scenario in ["all", "perennial"]:
     network = networks[network_scenario]
     tmp = df.join(network)
+
+    tmp["HasNetwork"] = tmp.index.isin(network.index)
+    tmp["Ranked"] = tmp.HasNetwork & (~tmp.unranked)
+
+    # intermittent is not applicable if it doesn't have a network
+    tmp["Intermittent"] = tmp["Intermittent"].astype("int8")
+    tmp.loc[~tmp.HasNetwork, "Intermittent"] = -1
 
     # fill columns and set proper type
     for col in network.columns:
@@ -187,6 +184,16 @@ for network_scenario in ["all", "perennial"]:
     tmp[np.intersect1d(DAM_API_FIELDS, tmp.columns)].reset_index().to_feather(
         api_dir / f"dams_{network_scenario}.feather"
     )
+
+
+# True if the barrier was snapped to a network and has network results in the
+# all networks scenario
+df["HasNetwork"] = df.index.isin(networks["all"].index)
+df["Ranked"] = df.HasNetwork & (~df.unranked)
+
+# intermittent is not applicable if it doesn't have a network
+df["Intermittent"] = df["Intermittent"].astype("int8")
+df.loc[~df.HasNetwork, "Intermittent"] = -1
 
 
 ### Export data for generating tiles
