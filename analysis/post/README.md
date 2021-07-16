@@ -14,14 +14,19 @@ NOTE: this does not currently include any network analysis results for waterfall
 
 ### Summary statistics
 
-Run `analysis/post/extract_summary_stats.py` to generate an overall summary file used by the user interface in the tool, and a summary file for each of the summary units to be attached to their vector tiles.
+Run `analysis/post/extract_summary_stats.py` to generate an overall summary file used by the user interface in the tool.
 
 ### Vector tiles
 
-From the root directory of the repository, run the following shell scripts:
+Final tiles for deployment are output to `/tiles`
 
-- `analysis/post/generate_barrier_tiles.sh`: this generates the on and off-network tilesets for dams, small barriers (off-network includes road crossings), and waterfalls, and joins summary stats to the boundary layers.
-- `analysis/post/generate_network_tiles.sh`: this generates the dams and small barrier networks. The networks for the dams are the complete set of networks and can be used to display flowlines on a map; the small barriers are only those networks upstream of small barriers.
-- `analysis/post/generate_summary_tiles.sh`: this generates summary unit tiles with statistics from the barriers
+Run the following Python scripts to generate summary vector tiles and network vector tiles:
 
-Final tiles for deployment are in `/tiles`
+- `analysis/post/create_summary_tiles.py`
+- `analysis/post/create_network_tiles.py`
+
+Run the following shell script to create barrier tiles:
+
+- `analysis/post/generate_barrier_tiles.sh`
+
+This generates the on and off-network tilesets for dams, small barriers (off-network includes road crossings), and waterfalls, and joins summary stats to the boundary layers.

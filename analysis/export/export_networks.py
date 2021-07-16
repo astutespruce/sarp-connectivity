@@ -16,7 +16,7 @@ if not out_dir.exists():
     os.makedirs(out_dir)
 
 
-scenario = "dams_all"
+scenario = "dams_perennial"
 ext = "gpkg"
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
@@ -56,7 +56,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
     for huc2 in group:
         print(f"Dissolving networks in {huc2}...")
         flowlines = gp.read_feather(
-            src_dir / "raw" / huc2 / "flowlines.feather", columns=["lineID", "geometry"]
+            src_dir / "raw" / huc2 / "flowlines.feather", columns=["lineID", "geometry", "intermittent", "StreamOrde"]
         ).set_index("lineID")
         flowlines = flowlines.join(segments)
 
