@@ -95,6 +95,8 @@ for huc2 in huc2s:
     flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather").drop(
         columns=["HUC2"], errors="ignore"
     )
+    print(f"Read {len(flowlines):,} flowlines in {time() - flowline_start:.2f}s")
+
     # TEMP: temporary fix until this is handled in prep_flowlines_* script
     flowlines.lineID = flowlines.lineID.astype("uint32")
     flowlines = flowlines.set_index("lineID", drop=False)
@@ -109,7 +111,11 @@ for huc2 in huc2s:
     # add intermittent status
     # TODO: move to prepare_flowlines_waterbodies.py ?
     flowlines["intermittent"] = flowlines.FCode.isin([46003, 46007])
-    print(f"Read {len(flowlines):,} flowlines in {time() - flowline_start:.2f}s")
+
+    # add altered status
+    # TODO: move to prepare_flowlines_waterbodies.py (combine with NWI)
+    # canals / ditches & pipelines considered altered
+    flowlines["altered"] = flowlines.FType.isin([336, 428])
 
     # since all other lineIDs use HUC4 prefixes, this should be unique
     # Use the first HUC2 for the region group

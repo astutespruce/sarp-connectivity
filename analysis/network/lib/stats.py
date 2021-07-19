@@ -7,6 +7,8 @@ from analysis.lib.graph import DirectedGraph
 
 data_dir = Path("data")
 
+METERS_TO_MILES = 0.000621371
+
 
 def calculate_network_stats(df, barrier_joins, joins):
     """Calculation of network statistics, for each functional network.
@@ -18,6 +20,8 @@ def calculate_network_stats(df, barrier_joins, joins):
         * length
         * sinuosity
         * size class
+        * altered
+        * intermittent
 
     barrier_joins : Pandas DataFrame
         contains:
@@ -155,12 +159,16 @@ def calculate_network_stats(df, barrier_joins, joins):
     #     {"xmin": "min", "ymin": "min", "xmax": "max", "ymax": "max"}
     # )
 
+    sizeclasses = (
+        df.groupby(level=0).sizeclass.nunique().astype("uint8").rename("sizeclasses")
+    )
+
     ### Collect results
     results = (
         calculate_geometry_stats(df)
         # .join(bounds)
         .join(calculate_floodplain_stats(df))
-        .join(df.groupby(level=0).sizeclass.nunique().rename("sizeclasses"))
+        .join(sizeclasses)
         .join(upstream_counts)
         .join(barriers_downstream)
         .join(num_downstream)
@@ -184,43 +192,75 @@ def calculate_network_stats(df, barrier_joins, joins):
 
 def calculate_geometry_stats(df):
     """Calculate total network miles, free-flowing miles (not in waterbodies),
-    length-weighted sinuosity, and count of segments
+    free-flowing unaltered miles (not in waterbodies, not altered), total
+    perennial miles, total free-flowing unaltered perennial miles,
+    length-weighted sinuosity, and count of segments.
 
     Parameters
     ----------
     df : DataFrame
-        must have length, sinuosity, waterbody, and be indexed on networkID
+        must have length, sinuosity, waterbody, altered, and perennial, and be indexed on networkID
 
     Returns
     -------
     DataFrame
-        contains miles, free_miles, sinuosity, segments
+        contains total_miles, free_miles, *_miles, sinuosity, segments
     """
 
-    network_length = df.groupby(level=0)[["length"]].sum()
-    free_length = (
-        df.loc[~df.waterbody].groupby(level=0).length.sum().rename("free_length")
+    total_length = df["length"].groupby(level=0).sum().rename("total")
+    perennial_length = (
+        df.loc[~df.intermittent, "length"].groupby(level=0).sum().rename("perennial")
+    )
+    free_length = df.loc[~df.waterbody, "length"].groupby(level=0).sum().rename("free")
+    unaltered_length = (
+        df.loc[~df.altered, "length"].groupby(level=0).sum().rename("unaltered")
+    )
+    perennial_unaltered_length = (
+        df.loc[~(df.intermittent | df.altered), "length"]
+        .groupby(level=0)
+        .sum()
+        .rename("perennial_unaltered")
+    )
+    free_unaltered_length = (
+        df.loc[~(df.waterbody | df.altered), "length"]
+        .groupby(level=0)
+        .sum()
+        .rename("free_unaltered")
+    )
+    perennial_free_unaltered_length = (
+        df.loc[~(df.intermittent | df.waterbody | df.altered), "length"]
+        .groupby(level=0)
+        .sum()
+        .rename("perennial_free_unaltered")
     )
 
-    temp_df = df[["length", "sinuosity"]].join(network_length, rsuffix="_total")
+    lengths = (
+        pd.DataFrame(total_length)
+        .join(perennial_length)
+        .join(free_length)
+        .join(unaltered_length)
+        .join(perennial_unaltered_length)
+        .join(free_unaltered_length)
+        .join(perennial_free_unaltered_length)
+        .fillna(0)
+        * METERS_TO_MILES
+    ).astype("float32")
+    lengths.columns = [f"{c}_miles" for c in lengths.columns]
+
+    temp_df = df[["length", "sinuosity"]].join(total_length)
 
     # Calculate length-weighted sinuosity
     wtd_sinuosity = (
-        (temp_df.sinuosity * (temp_df.length / temp_df.length_total))
+        (temp_df.sinuosity * (temp_df.length / temp_df.total))
         .groupby(level=0)
         .sum()
+        .astype("float32")
         .rename("sinuosity")
     )
 
-    lengths = network_length.join(free_length)
-    lengths.free_length = lengths.free_length.fillna(0)
+    segments = df.groupby(level=0).size().astype("uint32").rename("segments")
 
-    # convert meters to miles
-    miles = (lengths * 0.000621371).rename(
-        columns={"length": "miles", "free_length": "free_miles"}
-    )
-
-    return miles.join(wtd_sinuosity).join(df.groupby(level=0).size().rename("segments"))
+    return lengths.join(wtd_sinuosity).join(segments)
 
 
 def calculate_floodplain_stats(df):

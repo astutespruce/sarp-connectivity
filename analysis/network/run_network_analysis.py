@@ -42,7 +42,7 @@ barriers = pd.read_feather(
     src_dir / "all_barriers.feather",
     columns=["id", "barrierID", "loop", "intermittent", "kind", "HUC2"],
 )
-perennial_barriers = barriers.loc[~barriers.intermittent].barrierID.unique()
+# perennial_barriers = barriers.loc[~barriers.intermittent].barrierID.unique()
 
 
 huc2s = sorted([huc2 for huc2 in barriers.HUC2.unique() if huc2])
@@ -122,6 +122,7 @@ for group in groups:
     flowline_cols = [
         "NHDPlusID",
         "intermittent",
+        "altered",
         "waterbody",
         "sizeclass",
         "length",
@@ -133,50 +134,24 @@ for group in groups:
         new_fields={"HUC2": group_huc2s},
     ).set_index("lineID")
 
-    perennial_flowlines = flowlines.loc[~flowlines.intermittent].index
+    # perennial_flowlines = flowlines.loc[~flowlines.intermittent].index
 
-    ### Build networks for each of 4 scenarios:
-    # 1. all dams on all flowlines
-    # 2. dams on perennial flowlines using only perennial flowlines in network
-    # 3. all small barriers on all flowlines;
-    # 4. small barriers on perennial flowlines using only perennial flowlines in network
-    scenarios = {
-        "dams_all": {
+    ### Build networks for dams and small barriers
+    barrier_types = {
+        "dams": {
             "joins": group_joins,
             "barrier_joins": dam_joins,
             "lineIDs": flowlines.index,
         },
-        "dams_perennial": {
-            "joins": remove_joins(
-                group_joins.copy(),
-                flowlines.loc[flowlines.intermittent].index,
-                downstream_col="downstream_id",
-                upstream_col="upstream_id",
-            ),
-            "barrier_joins": dam_joins.loc[dam_joins.index.isin(perennial_barriers)],
-            "lineIDs": perennial_flowlines,
-        },
-        "small_barriers_all": {
+        "small_barriers": {
             "joins": group_joins,
             "barrier_joins": barrier_joins,
             "lineIDs": flowlines.index,
         },
-        "small_barriers_perennial": {
-            "joins": remove_joins(
-                group_joins.copy(),
-                flowlines.loc[flowlines.intermittent].index,
-                downstream_col="downstream_id",
-                upstream_col="upstream_id",
-            ),
-            "barrier_joins": barrier_joins.loc[
-                barrier_joins.index.isin(perennial_barriers)
-            ],
-            "lineIDs": perennial_flowlines,
-        },
     }
 
-    for scenario, config in list(scenarios.items()):
-        print(f"-------------------------\nCreating networks for {scenario}")
+    for barrier_type, config in list(barrier_types.items()):
+        print(f"-------------------------\nCreating networks for {barrier_type}")
         network_start = time()
 
         network_joins = config["joins"]
@@ -191,7 +166,7 @@ for group in groups:
             f"{len(networks.index.unique()):,} networks created in {time() - network_start:.2f}s"
         )
 
-        flowlines = flowlines.join(networks.rename(scenario))
+        flowlines = flowlines.join(networks.rename(barrier_type))
 
         network_df = (
             flowlines[flowline_cols + ["HUC2"]]
@@ -212,22 +187,15 @@ for group in groups:
         network_stats = calculate_network_stats(
             network_df, network_barrier_joins, network_joins
         )
-
         # WARNING: because not all flowlines have associated catchments, they are missing
         # natfldpln
-
-        # fix data types
-        for col in ["miles", "free_miles", "sinuosity", "natfldpln"]:
-            network_stats[col] = network_stats[col].astype("float32")
-
-        network_stats.segments = network_stats.segments.astype("uint32")
 
         # save network stats to the HUC2 where the network originates
         for huc2 in sorted(network_stats.origin_HUC2.unique()):
             network_stats.loc[
                 network_stats.origin_HUC2 == huc2
             ].reset_index().to_feather(
-                out_dir / huc2 / f"network_stats__{scenario}.feather"
+                out_dir / huc2 / f"network_stats__{barrier_type}.feather"
             )
 
         #### Calculate up and downstream network attributes for barriers
@@ -244,8 +212,13 @@ for group in groups:
             .rename(
                 columns={
                     "upstream_id": "upNetID",
-                    "miles": "TotalUpstreamMiles",
+                    "total_miles": "TotalUpstreamMiles",
+                    "perennial_miles": "PerennialUpstreamMiles",
                     "free_miles": "FreeUpstreamMiles",
+                    "unaltered_miles": "UnalteredUpstreamMiles",
+                    "perennial_unaltered_miles": "PerennialUnalteredUpstreamMiles",
+                    "free_unaltered_miles": "FreeUnalteredUpstreamMiles",
+                    "perennial_free_unaltered_miles": "PerennialFreeUnalteredUpstreamMiles",
                 }
             )
         )
@@ -259,16 +232,26 @@ for group in groups:
             .join(
                 network_stats[
                     [
+                        "total_miles",
+                        "perennial_miles",
                         "free_miles",
-                        "miles",
+                        "unaltered_miles",
+                        "perennial_unaltered_miles",
+                        "free_unaltered_miles",
+                        "perennial_free_unaltered_miles",
                         "num_downstream",
                         "flows_to_ocean",
                         "exits_region",
                     ]
                 ].rename(
                     columns={
+                        "total_miles": "TotalDownstreamMiles",
+                        "perennial_miles": "PerennialDownstreamMiles",
                         "free_miles": "FreeDownstreamMiles",
-                        "miles": "TotalDownstreamMiles",
+                        "unaltered_miles": "UnalteredDownstreamMiles",
+                        "perennial_unaltered_miles": "PerennialUnalteredDownstreamMiles",
+                        "free_unaltered_miles": "FreeUnalteredDownstreamMiles",
+                        "perennial_free_unaltered_miles": "PerennialFreeUnalteredDownstreamMiles",
                     }
                 ),
                 on="networkID",
@@ -301,11 +284,9 @@ for group in groups:
         for col in ["upNetID", "downNetID", "segments"]:
             barrier_networks[col] = barrier_networks[col].astype("uint32")
 
-        for col in [
-            "TotalUpstreamMiles",
-            "FreeUpstreamMiles",
-            "TotalDownstreamMiles",
-            "FreeDownstreamMiles",
+        length_cols = [c for c in barrier_networks.columns if c.endswith("Miles")]
+
+        for col in length_cols + [
             "sinuosity",
             "natfldpln",
         ]:
@@ -318,7 +299,7 @@ for group in groups:
             barrier_networks.loc[
                 barrier_networks.HUC2 == huc2
             ].reset_index().to_feather(
-                out_dir / huc2 / f"barriers_network__{scenario}.feather"
+                out_dir / huc2 / f"barriers_network__{barrier_type}.feather"
             )
 
     print("-------------------------\n")
@@ -327,7 +308,7 @@ for group in groups:
     print("dups", s[s > 1])
 
     # all flowlines without networks marked -1
-    for col in scenarios.keys():
+    for col in barrier_types.keys():
         flowlines[col] = flowlines[col].fillna(-1).astype("int64")
 
     # save network segments in the HUC2 where they are located

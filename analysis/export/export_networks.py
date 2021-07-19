@@ -4,6 +4,7 @@ from pathlib import Path
 import pandas as pd
 import geopandas as gp
 import pygeos as pg
+from pygeos.creation import multilinestrings
 from pyogrio import write_dataframe
 
 from analysis.constants import CRS
@@ -16,7 +17,7 @@ if not out_dir.exists():
     os.makedirs(out_dir)
 
 
-scenario = "dams_perennial"
+barrier_type = "dams"
 ext = "gpkg"
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
@@ -25,9 +26,9 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
     segments = (
         read_feathers(
             [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
-            columns=["lineID", scenario],
+            columns=["lineID", barrier_type],
         )
-        .rename(columns={scenario: "networkID"})
+        .rename(columns={barrier_type: "networkID"})
         .set_index("lineID")
     )
 
@@ -37,13 +38,14 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 
     stats = read_feathers(
         [
-            src_dir / "clean" / huc2 / f"network_stats__{scenario}.feather"
+            src_dir / "clean" / huc2 / f"network_stats__{barrier_type}.feather"
             for huc2 in group
         ]
     ).set_index("networkID")
 
     # use smaller data types for smaller output files
-    for col in ["miles", "free_miles", "sinuosity"]:
+    length_cols = [c for c in stats.columns if c.endswith("_miles")]
+    for col in length_cols + ["sinuosity"]:
         stats[col] = stats[col].round(5).astype("float32")
 
     # natural floodplain is missing for several catchments; fill with -1
@@ -55,25 +57,49 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
     # create output files by HUC2 based on where the segments occur
     for huc2 in group:
         print(f"Dissolving networks in {huc2}...")
-        flowlines = gp.read_feather(
-            src_dir / "raw" / huc2 / "flowlines.feather", columns=["lineID", "geometry", "intermittent", "StreamOrde"]
-        ).set_index("lineID")
+        flowlines = (
+            gp.read_feather(
+                src_dir / "raw" / huc2 / "flowlines.feather",
+                columns=[
+                    "lineID",
+                    "geometry",
+                    "intermittent",
+                    "altered",
+                    "sizeclass",
+                    "StreamOrde",
+                ],
+            )
+            .set_index("lineID")
+            .rename(columns={"StreamOrde": "streamorder"})
+        )
         flowlines = flowlines.join(segments)
 
-        # aggregate to multilinestrings by networkID
-        flowlines = (
-            pd.Series(flowlines.geometry.values.data, index=flowlines.networkID)
-            .groupby(level=0)
-            .apply(pg.multilinestrings)
+        # aggregate to multilinestrings by combinations of networkID, altered, intermittent
+        networks = pd.DataFrame(flowlines)
+        networks["geometry"] = networks.geometry.values.data
+        networks = gp.GeoDataFrame(
+            networks.groupby(["networkID", "intermittent", "altered"])
+            .geometry.apply(pg.multilinestrings)
             .rename("geometry")
+            .reset_index()
+            .set_index("networkID")
+            .join(stats, how="inner")
+            .reset_index()
+            .sort_values(by="networkID"),
+            crs=CRS,
         )
 
-        networks = (
-            gp.GeoDataFrame(pd.DataFrame(flowlines).join(stats, how="inner"), crs=CRS)
-            .reset_index()
-            .sort_values(by="networkID")
-        )
+        # Set plotting symbol
+        networks["symbol"] = "normal"
+        networks.loc[networks.altered, "symbol"] = "altered"
+        # currently overrides altered since both come from NHD
+        networks.loc[networks.intermittent, "symbol"] = "intermittent"
+        networks.loc[
+            networks.intermittent & networks.altered, "symbol"
+        ] = "altered_intermittent"
 
         print("Serializing dissolved networks...")
-        write_dataframe(networks, out_dir / f"region{huc2}_{scenario}_networks.{ext}")
+        write_dataframe(
+            networks, out_dir / f"region{huc2}_{barrier_type}_networks.{ext}"
+        )
 
