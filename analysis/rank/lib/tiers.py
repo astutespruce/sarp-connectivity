@@ -1,6 +1,4 @@
 from collections import OrderedDict
-from functools import reduce
-from time import time
 
 import numpy as np
 import pandas as pd
@@ -10,15 +8,17 @@ SCENARIOS = OrderedDict(
     {
         # NetworkConnectivity
         "NC": ["GainMiles"],
-        # Watershed Condition
+        "PNC": ["PerennialGainMiles"],
+        # Watershed Condition (same for both perennial and total)
         "WC": ["Sinuosity", "Landcover", "SizeClasses"],
         # Network Connectivity Plus Watershed Condition
         "NCWC": ["NC", "WC"],
+        "PNCWC": ["PNC", "WC"],
     }
 )
 
 # Metric fields that are inputs of the above scenarios
-METRICS = ["GainMiles", "Sinuosity", "Landcover", "SizeClasses"]
+METRICS = ["GainMiles", "PerennialGainMiles", "Sinuosity", "Landcover", "SizeClasses"]
 
 
 def calculate_score(series, ascending=True):

@@ -207,11 +207,11 @@ def calculate_geometry_stats(df):
         contains total_miles, free_miles, *_miles, sinuosity, segments
     """
 
+    # total lengths used for upstream network
     total_length = df["length"].groupby(level=0).sum().rename("total")
     perennial_length = (
         df.loc[~df.intermittent, "length"].groupby(level=0).sum().rename("perennial")
     )
-    free_length = df.loc[~df.waterbody, "length"].groupby(level=0).sum().rename("free")
     unaltered_length = (
         df.loc[~df.altered, "length"].groupby(level=0).sum().rename("unaltered")
     )
@@ -221,31 +221,46 @@ def calculate_geometry_stats(df):
         .sum()
         .rename("perennial_unaltered")
     )
+
+    # free lengths used for downstream network; these deduct lengths in waterbodies
+    free_length = df.loc[~df.waterbody, "length"].groupby(level=0).sum().rename("free")
+    free_perennial = (
+        df.loc[~(df.intermittent | df.waterbody), "length"]
+        .groupby(level=0)
+        .sum()
+        .rename("free_perennial")
+    )
     free_unaltered_length = (
         df.loc[~(df.waterbody | df.altered), "length"]
         .groupby(level=0)
         .sum()
         .rename("free_unaltered")
     )
-    perennial_free_unaltered_length = (
+    free_perennial_unaltered = (
         df.loc[~(df.intermittent | df.waterbody | df.altered), "length"]
         .groupby(level=0)
         .sum()
-        .rename("perennial_free_unaltered")
+        .rename("free_perennial_unaltered")
     )
 
     lengths = (
         pd.DataFrame(total_length)
         .join(perennial_length)
-        .join(free_length)
         .join(unaltered_length)
         .join(perennial_unaltered_length)
+        .join(free_length)
+        .join(free_perennial)
         .join(free_unaltered_length)
-        .join(perennial_free_unaltered_length)
+        .join(free_perennial_unaltered)
         .fillna(0)
         * METERS_TO_MILES
     ).astype("float32")
     lengths.columns = [f"{c}_miles" for c in lengths.columns]
+
+    # calculate percent altered
+    lengths["pct_altered"] = 100 * (
+        (lengths.total_miles - lengths.unaltered_miles) / lengths.total_miles
+    )
 
     temp_df = df[["length", "sinuosity"]].join(total_length)
 

@@ -49,6 +49,8 @@ SARP_STATES = [
     "VA",
 ]
 
+SARP_STATE_NAMES = [STATES[s] for s in SARP_STATES]
+
 
 # Note: some states overlap multiple regions
 REGION_STATES = {

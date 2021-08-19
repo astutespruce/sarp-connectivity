@@ -23,8 +23,10 @@ class Formats(str, Enum):
 
 class Scenarios(str, Enum):
     NC = "NC"
+    PNC = "PNC"
     WC = "WC"
     NCWC = "NCWC"
+    PNCWC = "PNCWC"
 
 
 def unique(items):
@@ -61,24 +63,31 @@ METRIC_FIELDS = [
     "Sinuosity",
     "SizeClasses",
     "TotalUpstreamMiles",
+    "PerennialUpstreamMiles",
     "TotalDownstreamMiles",
-    "FreeUpstreamMiles",
     "FreeDownstreamMiles",
+    "FreePerennialDownstreamMiles",
     "GainMiles",
+    "PerennialGainMiles",
     "TotalNetworkMiles",
+    "TotalPerennialNetworkMiles",
 ]
 
 TIER_FIELDS = [
     "SE_NC_tier",
     "SE_WC_tier",
     "SE_NCWC_tier",
+    "SE_PNC_tier",
+    "SE_PNCWC_tier",
     "State_NC_tier",
     "State_WC_tier",
     "State_NCWC_tier",
+    "State_PNC_tier",
+    "State_PNCWC_tier",
 ]
 
 # Only present when custom prioritization is performed
-CUSTOM_TIER_FIELDS = ["NC_tier", "WC_tier", "NCWC_tier"]
+CUSTOM_TIER_FIELDS = ["NC_tier", "WC_tier", "NCWC_tier", "PNC_tier", "PNCWC_tier"]
 
 
 FILTER_FIELDS = [
@@ -166,10 +175,24 @@ DAM_API_FIELDS = (
     + DAM_FILTER_FIELDS
     + ["COUNTYFIPS"]
 )
-# TODO: add "xmin", "ymin", "xmax", "ymax"?
 
 # reduce to unique list, since there are overlaps with filters and core fields
 DAM_API_FIELDS = unique(DAM_API_FIELDS)
+
+# Drop fields that can be calculated on frontend
+DAM_TILE_FIELDS = [
+    c
+    for c in DAM_API_FIELDS
+    if not c
+    in {
+        "GainMiles",
+        "PerennialGainMiles",
+        "TotalNetworkMiles",
+        "TotalPerennialNetworkMiles",
+        "Sinuosity",
+    }
+]
+
 
 DAM_EXPORT_FIELDS = (
     DAM_CORE_FIELDS
@@ -248,9 +271,23 @@ SB_API_FIELDS = (
     + SB_FILTER_FIELDS
     + ["COUNTYFIPS"]
 )
-# TODO: add "xmin", "ymin", "xmax", "ymax"?
 
 SB_API_FIELDS = unique(SB_API_FIELDS)
+
+
+SB_TILE_FIELDS = [
+    c
+    for c in SB_API_FIELDS
+    if not c
+    in {
+        "GainMiles",
+        "PerennialGainMiles",
+        "TotalNetworkMiles",
+        "TotalPerennialNetworkMiles",
+        "Sinuosity",
+    }
+]
+
 
 SB_EXPORT_FIELDS = (
     SB_CORE_FIELDS

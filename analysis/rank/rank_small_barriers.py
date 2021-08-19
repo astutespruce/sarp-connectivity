@@ -4,7 +4,6 @@ from pathlib import Path
 from time import time
 import warnings
 
-import numpy as np
 import pandas as pd
 import geopandas as gp
 import pygeos as pg
@@ -13,7 +12,7 @@ from analysis.constants import STATES
 from analysis.rank.lib.networks import get_network_results
 from analysis.rank.lib.metrics import classify_streamorder, classify_spps
 from analysis.rank.lib.spatial_joins import add_spatial_joins
-from api.constants import SB_API_FIELDS, SB_CORE_FIELDS, UNIT_FIELDS
+from api.constants import SB_API_FIELDS, SB_CORE_FIELDS, UNIT_FIELDS, SB_TILE_FIELDS
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -25,6 +24,7 @@ data_dir = Path("data")
 barriers_dir = data_dir / "barriers/master"
 api_dir = data_dir / "api"
 tile_dir = data_dir / "tiles"
+qa_dir = data_dir / "networks/qa"
 
 if not os.path.exists(api_dir):
     os.makedirs(api_dir)
@@ -32,6 +32,8 @@ if not os.path.exists(api_dir):
 if not os.path.exists(tile_dir):
     os.makedirs(tile_dir)
 
+if not os.path.exists(qa_dir):
+    os.makedirs(qa_dir)
 
 ### Read in master
 print("Reading master...")
@@ -111,88 +113,55 @@ df = df.join(geo[["lat", "lon"]])
 
 
 ### Get network results
-networks = {
-    "all": get_network_results(df, "small_barriers", "all"),
-    # FlowsToOcean and NumBarriersDownstream are less relevant for perennial networks
-    "perennial": get_network_results(df, "small_barriers", "perennial").drop(
-        columns=["FlowsToOcean", "NumBarriersDownstream"], errors="ignore"
-    ),
-}
+networks = get_network_results(df, "small_barriers")
 
-### Write out data for API
-for network_scenario in ["all", "perennial"]:
-    network = networks[network_scenario]
-    tmp = df.join(network)
-
-    tmp["HasNetwork"] = tmp.index.isin(network.index)
-    tmp["Ranked"] = tmp.HasNetwork & (~tmp.unranked)
-
-    # intermittent is not applicable if it doesn't have a network
-    tmp["Intermittent"] = tmp["Intermittent"].astype("int8")
-    tmp.loc[~tmp.HasNetwork, "Intermittent"] = -1
-
-    # fill columns and set proper type
-    for col in network.columns:
-        tmp[col] = tmp[col].fillna(-1).astype(network[col].dtype)
-
-    ### Sanity check
-    if tmp.groupby(level=0).size().max() > 1:
-        raise ValueError(
-            f"Error - there are duplicate barriers in the results for small_barriers in {network_scenario} .  Check uniqueness of IDs and joins."
-        )
-
-    print(f"Writing to output files for {network_scenario}...")
-
-    # Full results for SARP QA/QC
-    tmp.reset_index().to_feather(
-        barriers_dir.parent
-        / "qa"
-        / f"small_barriers_{network_scenario}__network_results.feather"
-    )
-
-    # save for API
-    tmp[np.intersect1d(SB_API_FIELDS, tmp.columns)].reset_index().to_feather(
-        api_dir / f"small_barriers_{network_scenario}.feather"
-    )
-
+df = df.join(networks)
 
 # True if the barrier was snapped to a network and has network results in the
 # all networks scenario
-df["HasNetwork"] = df.index.isin(networks["all"].index)
+df["HasNetwork"] = df.index.isin(networks.index)
 df["Ranked"] = df.HasNetwork & (~df.unranked)
 
 # intermittent is not applicable if it doesn't have a network
 df["Intermittent"] = df["Intermittent"].astype("int8")
 df.loc[~df.HasNetwork, "Intermittent"] = -1
 
+# fill columns and set proper type
+for col in networks.columns:
+    df[col] = df[col].fillna(-1).astype(networks[col].dtype)
+
+### Sanity check
+if df.groupby(level=0).size().max() > 1:
+    raise ValueError(
+        "Error - there are duplicate barriers in the results for small_barriers.  Check uniqueness of IDs and joins."
+    )
+
+
+
+### Write out data for API
+print(f"Writing to output files...")
+
+# Full results for SARP QA/QC
+df.reset_index().to_feather(
+    qa_dir
+    / "small_barriers_network_results.feather"
+)
+
+# save for API
+df[df.columns.intersection(SB_API_FIELDS)].reset_index().to_feather(
+    api_dir / f"small_barriers.feather"
+)
+
+
+
 
 ### Export data for generating tiles
-# Drop fields that can be calculated on frontend
-keep_fields = [
-    c for c in SB_API_FIELDS if not c in {"GainMiles", "TotalNetworkMiles", "Sinuosity"}
-]
-
 # Note: this drops geometry, which is no longer needed
-df = pd.DataFrame(df[np.intersect1d(df.columns, keep_fields)]).rename(
+df = pd.DataFrame(df[df.columns.intersection(SB_TILE_FIELDS)]).rename(
     columns={"County": "CountyName", "COUNTYFIPS": "County"}
 )
 
-# join in both networks, suffixing perennial networks
-all_network_cols = np.intersect1d(networks["all"].columns, keep_fields)
-perennial_network_cols = np.intersect1d(networks["perennial"].columns, keep_fields)
-df = df.join(networks["all"][all_network_cols]).join(
-    networks["perennial"][perennial_network_cols], rsuffix="_perennial",
-)
-
-# fill missing data and set dtypes
-for col in all_network_cols:
-    df[col] = df[col].fillna(-1).astype(networks["all"][col].dtype)
-
-for col in perennial_network_cols:
-    df[f"{col}_perennial"] = (
-        df[f"{col}_perennial"].fillna(-1).astype(networks["perennial"][col].dtype)
-    )
-
+# Set string field nulls to blank strings
 str_cols = df.dtypes.loc[df.dtypes == "object"].index
 df[str_cols] = df[str_cols].fillna("")
 

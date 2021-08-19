@@ -4,7 +4,6 @@ from pathlib import Path
 import pandas as pd
 import geopandas as gp
 import pygeos as pg
-from pygeos.creation import multilinestrings
 from pyogrio import write_dataframe
 
 from analysis.constants import CRS
@@ -92,7 +91,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         # Set plotting symbol
         networks["symbol"] = "normal"
         networks.loc[networks.altered, "symbol"] = "altered"
-        # currently overrides altered since both come from NHD
+        # currently overrides altered since both come from NHD (mutually exclusive in source data)
         networks.loc[networks.intermittent, "symbol"] = "intermittent"
         networks.loc[
             networks.intermittent & networks.altered, "symbol"

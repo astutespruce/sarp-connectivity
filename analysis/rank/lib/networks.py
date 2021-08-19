@@ -1,8 +1,7 @@
 from pathlib import Path
-from time import time
 import warnings
 
-from analysis.constants import SARP_STATES
+from analysis.constants import SARP_STATE_NAMES
 from analysis.lib.io import read_feathers
 from analysis.rank.lib.metrics import (
     classify_gainmiles,
@@ -21,9 +20,15 @@ NETWORK_COLUMNS = [
     "upNetID",
     "downNetID",
     "TotalUpstreamMiles",
+    "PerennialUpstreamMiles",
+    "UnalteredUpstreamMiles",
+    "PerennialUnalteredUpstreamMiles",
     "TotalDownstreamMiles",
-    "FreeUpstreamMiles",
     "FreeDownstreamMiles",
+    "FreePerennialDownstreamMiles",
+    "FreeUnalteredDownstreamMiles",
+    "FreePerennialUnalteredDownstreamMiles",
+    "PercentAltered",
     "sinuosity",
     "natfldpln",
     "sizeclasses",
@@ -41,7 +46,7 @@ NETWORK_COLUMN_NAMES = {
 }
 
 
-def get_network_results(df, barrier_type, network_scenario="all"):
+def get_network_results(df, barrier_type):
     """Read network results, calculate derived metric classes, and calculate
     tiers.
 
@@ -52,7 +57,6 @@ def get_network_results(df, barrier_type, network_scenario="all"):
     df : DataFrame
         barriers data; must contain State and unranked
     barrier_type : {"dams", "small_barriers"}
-    network_scenario : {"all", "perennial"}, optional (default: "all")
 
     Returns
     -------
@@ -65,9 +69,7 @@ def get_network_results(df, barrier_type, network_scenario="all"):
     networks = (
         read_feathers(
             [
-                Path("data/networks/clean")
-                / huc2
-                / f"barriers_network__{barrier_type}_{network_scenario}.feather"
+                Path("data/networks/clean") / huc2 / f"{barrier_type}_network.feather"
                 for huc2 in huc2s
             ],
             columns=NETWORK_COLUMNS,
@@ -94,10 +96,9 @@ def get_network_results(df, barrier_type, network_scenario="all"):
     # sanity check to make sure no duplicate networks
     if networks.groupby(level=0).size().max() > 1:
         raise Exception(
-            f"ERROR: multiple networks found for some {barrier_type} in {network_scenario} networks"
+            f"ERROR: multiple networks found for some {barrier_type} networks"
         )
 
-    # join in source state (provided by SARP, not spatial state)
     networks = networks.join(df[["unranked", "State"]])
 
     # update data types and calculate total fields
@@ -111,26 +112,27 @@ def get_network_results(df, barrier_type, network_scenario="all"):
     networks["GainMiles"] = networks[["TotalUpstreamMiles", "FreeDownstreamMiles"]].min(
         axis=1
     )
+    networks["PerennialGainMiles"] = networks[
+        ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
+    ].min(axis=1)
 
     # TotalNetworkMiles is sum of upstream and free downstream miles
     networks["TotalNetworkMiles"] = networks[
         ["TotalUpstreamMiles", "FreeDownstreamMiles"]
     ].sum(axis=1)
+    networks["TotalPerennialNetworkMiles"] = networks[
+        ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
+    ].sum(axis=1)
 
     # Round floating point columns to 3 decimals
-    for column in (
-        "Sinuosity",
-        "GainMiles",
-        "TotalUpstreamMiles",
-        "FreeUpstreamMiles",
-        "TotalDownstreamMiles",
-        "FreeDownstreamMiles",
-        "TotalNetworkMiles",
-    ):
+    for column in [c for c in networks.columns if c.endswith("Miles")] + ["Sinuosity"]:
         networks[column] = networks[column].round(3).fillna(-1).astype("float32")
 
     # Calculate network metric classes
     networks["GainMilesClass"] = classify_gainmiles(networks.GainMiles)
+    networks["PerennialGainMilesClass"] = classify_gainmiles(
+        networks.PerennialGainMiles
+    )
     networks["SinuosityClass"] = classify_sinuosity(networks.Sinuosity)
     networks["LandcoverClass"] = classify_landcover(networks.Landcover)
 
@@ -141,13 +143,13 @@ def get_network_results(df, barrier_type, network_scenario="all"):
     ### Calculate regional tiers for SARP (Southeast) region
     # NOTE: this is limited to SARP region; other regions are not ranked at regional level
     # TODO: consider deprecating this
-    ix = to_rank.State.isin(SARP_STATES)
+    ix = to_rank.State.isin(SARP_STATE_NAMES)
     sarp_tiers = calculate_tiers(to_rank.loc[ix])
     sarp_tiers = sarp_tiers.rename(
         columns={col: f"SE_{col}" for col in sarp_tiers.columns}
     )
 
-    ### Calculate state tiers
+    ### Calculate state tiers for each of total and perennial
     state_tiers = None
     for state in to_rank.State.unique():
         state_tiers = append(
