@@ -11,10 +11,8 @@ These statistics are based on:
 This is run AFTER running `rank_dams.py` and `rank_small_barriers.py`
 
 Inputs:
-* `data/api/dams_all.feather`
-* `data/api/dams_perennial.feather`
-* `data/api/small_barriers_all.feather`
-* `data/api/small_barriers_perennial.feather`
+* `data/api/dams.feather`
+* `data/api/small_barriers.feather`
 
 Outputs:
 * `ui/data/summary_stats.json
@@ -45,45 +43,30 @@ states = (
 ### Read dams
 dams = (
     pd.read_feather(
-        api_dir / f"dams_all.feather",
-        columns=["id", "HasNetwork", "GainMiles", "State"],
+        api_dir / f"dams.feather",
+        columns=["id", "HasNetwork", "GainMiles", "PerennialGainMiles", "State"],
     )
     .set_index("id", drop=False)
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
 # Set NA so that we don't include these values in our statistics
 dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
+dams.loc[dams.PerennialGainMiles == -1, "PerennialGainMiles"] = np.nan
 
-perennial_dams = (
-    pd.read_feather(api_dir / "dams_perennial.feather",)
-    .set_index("id")
-    .rename(columns={"HasNetwork": "OnNetwork"})
-)
-perennial_dams.loc[perennial_dams.GainMiles == -1, "GainMiles"] = np.nan
-
-dams = dams.join(perennial_dams, rsuffix="_perennial")
 
 ### Read road-related barriers
 barriers = (
     pd.read_feather(
-        api_dir / "small_barriers_all.feather",
-        columns=["id", "HasNetwork", "GainMiles", "State"],
+        api_dir / "small_barriers_all.feather", columns=["id", "HasNetwork", "State"],
     )
     .set_index("id", drop=False)
-    .rename(columns={"HasNetwork": "OnNetwork"})
-)
-perennial_barriers = (
-    pd.read_feather(
-        api_dir / "small_barriers_perennial.feather", columns=["id", "HasNetwork"]
-    )
-    .set_index("id")
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
 barriers_master = pd.read_feather(
     "data/barriers/master/small_barriers.feather", columns=["id", "dropped", "excluded"]
 ).set_index("id")
 
-barriers = barriers.join(perennial_barriers, rsuffix="_perennial").join(barriers_master)
+barriers = barriers.join(barriers_master)
 
 # barriers that were not dropped or excluded are likely to have impacts
 barriers["Included"] = ~(barriers.dropped | barriers.excluded)
@@ -99,15 +82,11 @@ stats = {
     "total": {
         "dams": len(dams),
         "on_network_dams": int(dams.OnNetwork.sum()),
-        # NOTE: perennial dams are on-network (raw networks) but not on intermittent segments
-        "perennial_dams": int(dams.OnNetwork_perennial.sum()),
-        # TODO: this may not be useful for entire data extent; revisit / remove
         "miles": round(dams.GainMiles.mean().item(), 3),
-        "perennial_miles": round(dams.GainMiles_perennial.mean().item(), 3),
+        "perennial_miles": round(dams.PerennialGainMiles.mean().item(), 3),
         "total_barriers": len(barriers),
         "barriers": int(barriers.Included.sum()),
         "on_network_barriers": int(barriers.OnNetwork.sum()),
-        "perennial_barriers": int(barriers.OnNetwork_perennial.sum()),
         "crossings": len(crossings),
     }
 }
@@ -126,13 +105,11 @@ for region, region_states in REGION_STATES.items():
             "id": region,
             "dams": len(region_dams),
             "on_network_dams": int(region_dams.OnNetwork.sum()),
-            "perennial_dams": int(region_dams.OnNetwork_perennial.sum()),
             "miles": round(region_dams.GainMiles.mean().item(), 3),
-            "perennial_miles": round(region_dams.GainMiles_perennial.mean().item(), 3),
+            "perennial_miles": round(region_dams.PerennialGainMiles.mean().item(), 3),
             "total_barriers": len(region_barriers),
             "barriers": int(region_barriers.Included.sum()),
             "on_network_barriers": int(region_barriers.OnNetwork.sum()),
-            "perennial_barriers": int(region_barriers.OnNetwork_perennial.sum()),
             "crossings": len(region_crossings),
         }
     )

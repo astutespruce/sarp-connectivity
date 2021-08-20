@@ -11,10 +11,8 @@ These statistics are based on:
 This is run AFTER running `rank_dams.py` and `rank_small_barriers.py`
 
 Inputs:
-* `data/api/dams_all.feather`
-* `data/api/dams_perennial.feather`
-* `data/api/small_barriers_all.feather`
-* `data/api/small_barriers_perennial.feather`
+* `data/api/dams.feather`
+* `data/api/small_barriers.feather`
 
 Outputs:
 * `/tiles/summary.mbtiles
@@ -23,7 +21,6 @@ Outputs:
 
 from pathlib import Path
 import csv
-import json
 import subprocess
 
 import pandas as pd
@@ -44,8 +41,6 @@ INT_COLS = [
     "crossings",
     "on_network_dams",
     "on_network_barriers",
-    "perennial_dams",
-    "perennial_barriers",
 ]
 
 
@@ -68,48 +63,31 @@ states = (
 ### Read dams
 dams = (
     pd.read_feather(
-        api_dir / f"dams_all.feather",
-        columns=["id", "HasNetwork", "GainMiles"] + SUMMARY_UNITS,
+        api_dir / f"dams.feather",
+        columns=["id", "HasNetwork", "GainMiles", "PerennialGainMiles"] + SUMMARY_UNITS,
     )
     .set_index("id", drop=False)
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
 # Set NA so that we don't include these values in our statistics
 dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
+dams.loc[dams.PerennialGainMiles == -1, "PerennialGainMiles"] = np.nan
 
-perennial_dams = (
-    pd.read_feather(
-        api_dir / "dams_perennial.feather",
-        # columns=["id", "HasNetwork", "GainMiles"]
-    )
-    .set_index("id")
-    .rename(columns={"HasNetwork": "OnNetwork"})
-)
-perennial_dams.loc[perennial_dams.GainMiles == -1, "GainMiles"] = np.nan
-
-dams = dams.join(perennial_dams, rsuffix="_perennial")
 
 ### Read road-related barriers
 barriers = (
     pd.read_feather(
-        api_dir / "small_barriers_all.feather",
-        columns=["id", "HasNetwork", "GainMiles"] + SUMMARY_UNITS,
+        api_dir / "small_barriers.feather",
+        columns=["id", "HasNetwork"] + SUMMARY_UNITS,
     )
     .set_index("id", drop=False)
-    .rename(columns={"HasNetwork": "OnNetwork"})
-)
-perennial_barriers = (
-    pd.read_feather(
-        api_dir / "small_barriers_perennial.feather", columns=["id", "HasNetwork"]
-    )
-    .set_index("id")
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
 barriers_master = pd.read_feather(
     "data/barriers/master/small_barriers.feather", columns=["id", "dropped", "excluded"]
 ).set_index("id")
 
-barriers = barriers.join(perennial_barriers, rsuffix="_perennial").join(barriers_master)
+barriers = barriers.join(barriers_master)
 
 # barriers that were not dropped or excluded are likely to have impacts
 barriers["Included"] = ~(barriers.dropped | barriers.excluded)
@@ -129,54 +107,35 @@ for unit in SUMMARY_UNITS:
     print(f"processing {unit}")
 
     dam_stats = (
-        dams[
-            [
-                unit,
-                "id",
-                "OnNetwork",
-                "OnNetwork_perennial",
-                "GainMiles",
-                "GainMiles_perennial",
-            ]
-        ]
+        dams[[unit, "id", "OnNetwork", "GainMiles", "PerennialGainMiles",]]
         .groupby(unit)
         .agg(
             {
                 "id": "count",
                 "OnNetwork": "sum",
-                "OnNetwork_perennial": "sum",
                 "GainMiles": "mean",
-                "GainMiles_perennial": "mean",
+                "PerennialGainMiles": "mean",
             }
         )
         .rename(
             columns={
                 "id": "dams",
                 "OnNetwork": "on_network_dams",
-                "OnNetwork_perennial": "perennial_dams",
                 "GainMiles": "miles",
-                "GainMiles_perennial": "perennial_miles",
+                "PerennialGainMiles": "perennial_miles",
             }
         )
     )
 
     barriers_stats = (
-        barriers[[unit, "id", "Included", "OnNetwork", "OnNetwork_perennial"]]
+        barriers[[unit, "id", "Included", "OnNetwork"]]
         .groupby(unit)
-        .agg(
-            {
-                "id": "count",
-                "Included": "sum",
-                "OnNetwork": "sum",
-                "OnNetwork_perennial": "sum",
-            }
-        )
+        .agg({"id": "count", "Included": "sum", "OnNetwork": "sum",})
         .rename(
             columns={
                 "id": "total_barriers",
                 "Included": "barriers",
                 "OnNetwork": "on_network_barriers",
-                "OnNetwork_perennial": "perennial_barriers",
             }
         )
     )
