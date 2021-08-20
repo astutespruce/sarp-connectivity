@@ -99,10 +99,8 @@ const Scoring = () => {
               <OutboundLink to="https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution">
                 USGS High Resolution National Hydrography Dataset
               </OutboundLink>
-              &nbsp;(NHDPlus), except in Puerto Rico, where they were snapped to
-              the USGS Medium Resolution version. Where possible, their
-              locations were manually inspected to verify their correct position
-              on the aquatic network.
+              &nbsp;(NHDPlus). Where possible, their locations were manually
+              inspected to verify their correct position on the aquatic network.
               <br />
               <br />
               <Link to="/network_methods">
@@ -135,7 +133,7 @@ const Scoring = () => {
       <Box variant="boxes.section">
         <Flex sx={{ alignItems: 'center' }}>
           <Box variant="boxes.step">3</Box>
-          <Heading as="h3" sx={{ flex: '0 0 auto', fontWeight: 'normal' }}>
+          <Heading as="h3" sx={{ fontWeight: 'normal' }}>
             Barriers are characterized using metrics that describe the quality
             and status of their functional networks:
           </Heading>
@@ -168,15 +166,14 @@ const Scoring = () => {
             </Paragraph>
           </HighlightBox>
 
-          <HighlightBox icon="sinuosity_high" title="Network Sinuosity">
+          <HighlightBox icon="sinuosity_high" title="Percent Unaltered">
             <Paragraph>
-              Network sinuosity measures the amount that the path of the river
-              or stream deviates from a straight line. In general, rivers and
-              streams that are more sinuous generally indicate those that have
-              lower alteration from human disturbance such as channelization and
-              diking.
+              Altered river and stream segments are those that are specifically
+              identified as canals or ditches. These represent areas where the
+              hydrography, flow, and water quality may be highly altered
+              compared to natural conditions.
               <br />
-              <Link to="/metrics/sinuosity">Read more...</Link>
+              <Link to="/metrics/unaltered">Read more...</Link>
             </Paragraph>
           </HighlightBox>
 
@@ -223,7 +220,7 @@ const Scoring = () => {
               is based on a combination of&nbsp;
               <Link to="/metrics/complexity">network complexity</Link>
               ,&nbsp;
-              <Link to="/metrics/sinuosity">network sinuosity</Link>, and&nbsp;
+              <Link to="/metrics/unaltered">percent unaltered</Link>, and&nbsp;
               <Link to="/metrics/landcover">floodplain natural landcover</Link>.
               Each of these metrics is weighted equally.
             </Paragraph>

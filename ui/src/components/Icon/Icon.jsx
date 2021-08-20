@@ -2,13 +2,14 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Image } from 'theme-ui'
 
-const Icon = ({ name, size, sx }) => {
+const Icon = ({ name, size, sx, ...props }) => {
   /* eslint-disable-next-line */
   const { default: src } = require(`icons/${name}.svg`)
 
   return (
     <Image
       src={src}
+      {...props}
       sx={{ flex: '0 0 auto', mb: 0, width: size, height: size, ...sx }}
     />
   )

@@ -1,18 +1,21 @@
 import { graphql, useStaticQuery } from 'gatsby'
 
+// FIXME: temporary shim to support Southeast data in new data structure
 export const useSummaryData = () =>
   useStaticQuery(graphql`
     query summaryQuery {
       summaryStatsJson {
-        southeast {
+        regions: region {
+          id
           dams
           total_barriers
           barriers
           crossings
           miles
+          perennial_miles
           on_network_barriers
           on_network_dams
         }
       }
     }
-  `).summaryStatsJson.southeast
+  `).summaryStatsJson.regions.filter(({ id }) => id === 'se')[0]

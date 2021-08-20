@@ -216,7 +216,7 @@ const MethodsPage = ({ data: { headerImage } }) => (
           <li>
             Metrics for <Link to="/metrics/length">network length</Link>,{' '}
             <Link to="/metrics/complexity">network complexity</Link>,{' '}
-            <Link to="/metrics/sinuosity">sinuosity</Link>, and{' '}
+            <Link to="/metrics/unaltered">percent unaltered</Link>, and{' '}
             <Link to="/metrics/landcover">natural landcover</Link> were
             calculated based on these functional networks.
           </li>
@@ -280,7 +280,7 @@ const MethodsPage = ({ data: { headerImage } }) => (
           <li>
             Metrics for <Link to="/metrics/length">network length</Link>,{' '}
             <Link to="/metrics/complexity">network complexity</Link>,{' '}
-            <Link to="/metrics/sinuosity">sinuosity</Link>, and{' '}
+            <Link to="/metrics/unaltered">percent unaltered</Link>, and{' '}
             <Link to="/metrics/landcover">natural landcover</Link> were
             calculated based on these functional networks.
           </li>
