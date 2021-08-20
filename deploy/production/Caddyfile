@@ -19,6 +19,9 @@ connectivity.sarpdata.com {
   }
 
   route /* {
+    # redirect teams page
+    redir /teams /regions/southeast/teams 301
+
     # most files can be cached indefinitely, they are rebuilt with new names each time
     @cached_files {
       path *.jpg *.jpeg *.png *.gif *.webp *.svg *.css *.js */static/*
@@ -35,7 +38,7 @@ connectivity.sarpdata.com {
 
     # page-data, html, and site root must be fetched each time
     @no_cache {
-      path *.html *.webmanifest */page-data/* / /priority /summary /teams /network_methods /metrics/*
+      path *.html *.webmanifest */page-data/* / /priority /summary /network_methods /metrics/* /regions/*
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
 

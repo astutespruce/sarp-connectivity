@@ -10,7 +10,7 @@ import { HeaderImage } from 'components/Image'
 import { extractNodes, GraphQLArrayPropType } from 'util/graphql'
 import { groupBy } from 'util/data'
 
-import { CONNECTIVITY_TEAMS } from '../../config/constants'
+import { CONNECTIVITY_TEAMS } from '../../../../config/constants'
 
 const teamImageCredits = {
   Arkansas: 'Kat Hoenke, Southeast Aquatic Resources Partnership.',
@@ -21,7 +21,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
   const images = groupBy(extractNodes(imagesSharp), 'state')
 
   return (
-    <Layout title="Aquatic Connectivity Teams">
+    <Layout title="Southeast Aquatic Connectivity Teams">
       <HeaderImage
         image={headerImage.childImageSharp.gatsbyImageData}
         height="40vh"
@@ -35,7 +35,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
         <Heading as="h1">Aquatic Connectivity Teams</Heading>
 
         <Box sx={{ mt: '2rem' }}>
-          {Object.entries(CONNECTIVITY_TEAMS).map(([state, team]) => (
+          {Object.entries(CONNECTIVITY_TEAMS.southeast).map(([state, team]) => (
             <Box
               key={state}
               sx={{

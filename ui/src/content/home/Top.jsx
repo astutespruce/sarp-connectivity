@@ -45,7 +45,7 @@ const Top = () => (
           information to assist barrier removal projects.
           <br />
           <br />
-          <Link to="/#prioritize">Read more...</Link>
+          <Link to="/scoring_methods">Read more...</Link>
         </HighlightBox>
 
         <HighlightBox title="Teams" icon="team">
@@ -55,8 +55,9 @@ const Top = () => (
           projects.
           <br />
           <br />
-          <br />
-          <Link to="/teams">Read more...</Link>
+          <Link to="/regions/southeast/teams">
+            Southeast Aquatic Connectivity Teams
+          </Link>
         </HighlightBox>
       </Grid>
     </Box>

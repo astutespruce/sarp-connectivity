@@ -1,17 +1,15 @@
 import TopSection from './Top'
 import InventorySection from './Inventory'
+import RegionSection from './Regions'
 import ToolSection from './Tool'
-import ScoringSection from './Scoring'
-import UseCasesSection from './UseCases'
-import SARPSection from './SARP'
+import GetInvolvedSection from './GetInvolvedSection'
 import CreditsSection from './Credits'
 
 export {
   TopSection,
   InventorySection,
+  RegionSection,
   ToolSection,
-  ScoringSection,
-  UseCasesSection,
-  SARPSection,
+  GetInvolvedSection,
   CreditsSection,
 }

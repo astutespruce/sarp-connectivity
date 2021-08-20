@@ -10,13 +10,15 @@ import { formatNumber } from 'util/format'
 
 const SoutheastSummary = ({ barrierType, system, onSearch }) => {
   const {
-    dams,
-    on_network_dams,
-    miles,
-    total_barriers,
-    barriers,
-    on_network_barriers,
-    crossings,
+    se: {
+      dams,
+      on_network_dams,
+      miles,
+      total_barriers,
+      barriers,
+      on_network_barriers,
+      crossings,
+    },
   } = useSummaryData()
   const offNetworkDams = dams - on_network_dams
   const offNetworkBarriers = barriers - on_network_barriers
@@ -56,8 +58,8 @@ const SoutheastSummary = ({ barrierType, system, onSearch }) => {
           <br />
           <br />
           {formatNumber(offNetworkDams, 0)} dams were not analyzed because they
-          were not on the aquatic network or could not be correctly located on
-          the aquatic network.
+          could not be correctly located on the aquatic network or were
+          otherwise excluded from the analysis.
         </Paragraph>
       </Box>
     )
@@ -101,9 +103,9 @@ const SoutheastSummary = ({ barrierType, system, onSearch }) => {
         have a more complete inventory.
         <br />
         <br />
-        {formatNumber(offNetworkBarriers, 0)} road-related barriers were not
-        analyzed because they were not on the aquatic network or could not be
-        correctly located on the aquatic network.
+        {formatNumber(offNetworkBarriers, 0)} road-related barriers could not be
+        correctly located on the aquatic network or were otherwise excluded from
+        the analysis.
       </Paragraph>
     </Box>
   )
