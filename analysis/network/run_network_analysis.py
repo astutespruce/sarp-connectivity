@@ -202,6 +202,7 @@ for group in groups:
                     "upstream_id": "upNetID",
                     "total_miles": "TotalUpstreamMiles",
                     "perennial_miles": "PerennialUpstreamMiles",
+                    "altered_miles": "AlteredUpstreamMiles",
                     "unaltered_miles": "UnalteredUpstreamMiles",
                     "perennial_unaltered_miles": "PerennialUnalteredUpstreamMiles",
                     "pct_altered": "PercentAltered",
@@ -221,6 +222,7 @@ for group in groups:
                         "total_miles",
                         "free_miles",
                         "free_perennial_miles",
+                        "free_altered_miles",
                         "free_unaltered_miles",
                         "free_perennial_unaltered_miles",
                         "num_downstream",
@@ -232,6 +234,7 @@ for group in groups:
                         "total_miles": "TotalDownstreamMiles",
                         "free_miles": "FreeDownstreamMiles",
                         "free_perennial_miles": "FreePerennialDownstreamMiles",
+                        "free_altered_miles": "FreeAlteredDownstreamMiles",
                         "free_unaltered_miles": "FreeUnalteredDownstreamMiles",
                         "free_perennial_unaltered_miles": "FreePerennialUnalteredDownstreamMiles",
                     }
