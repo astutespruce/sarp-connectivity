@@ -22,14 +22,10 @@ start = time()
 data_dir = Path("data")
 barriers_dir = data_dir / "barriers/master"
 api_dir = data_dir / "api"
-tile_dir = data_dir / "tiles"
 qa_dir = data_dir / "networks/qa"
 
 if not os.path.exists(api_dir):
     os.makedirs(api_dir)
-
-if not os.path.exists(tile_dir):
-    os.makedirs(tile_dir)
 
 if not os.path.exists(qa_dir):
     os.makedirs(qa_dir)
@@ -176,59 +172,9 @@ print("Writing to output files...")
 # Full results for SARP QA/QC
 df.reset_index().to_feather(qa_dir / f"dams_network_results.feather")
 
-# save for API
+# save for API and tiles
 df[df.columns.intersection(DAM_API_FIELDS)].reset_index().to_feather(
     api_dir / f"dams.feather"
 )
-
-
-### Export data for generating tiles
-
-# Note: this drops geometry, which is no longer needed
-df = pd.DataFrame(df[df.columns.intersection(DAM_TILE_FIELDS)]).rename(
-    columns={"County": "CountyName", "COUNTYFIPS": "County"}
-)
-
-# Set string field nulls to blank strings
-str_cols = df.dtypes.loc[df.dtypes == "object"].index
-df[str_cols] = df[str_cols].fillna("")
-
-
-# Update boolean fields so that they are output to CSV correctly
-for col in ["ProtectedLand", "Ranked", "Excluded"]:
-    df[col] = df[col].astype("uint8")
-
-
-with_networks = df.loc[df.HasNetwork].drop(columns=["HasNetwork", "Excluded"])
-without_networks = df.loc[~df.HasNetwork].drop(columns=["HasNetwork"])
-
-# lowercase all fields except unit fields
-with_networks.rename(
-    columns={
-        k: k.lower()
-        for k in df.columns
-        if k not in UNIT_FIELDS + ["Subbasin", "Subwatershed"]
-    }
-).to_csv(
-    tile_dir / "dams_with_networks.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
-)
-
-# Drop metrics, tiers, and units used only for filtering
-keep_fields = without_networks.columns.intersection(
-    DAM_CORE_FIELDS + ["CountyName", "State", "Excluded"]
-)
-
-without_networks[keep_fields].rename(
-    columns={
-        k: k.lower()
-        for k in df.columns
-        if k not in UNIT_FIELDS + ["Subbasin", "Subwatershed"]
-    }
-).to_csv(
-    tile_dir / "dams_without_networks.csv",
-    index_label="id",
-    quoting=csv.QUOTE_NONNUMERIC,
-)
-
 
 print(f"Done in {time() - start:.2f}")
