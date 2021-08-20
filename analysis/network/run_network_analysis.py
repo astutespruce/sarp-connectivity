@@ -124,7 +124,6 @@ for group in groups:
         "waterbody",
         "sizeclass",
         "length",
-        "sinuosity",
     ]
     flowlines = read_feathers(
         [src_dir / huc2 / "flowlines.feather" for huc2 in group_huc2s],
@@ -205,7 +204,8 @@ for group in groups:
                     "altered_miles": "AlteredUpstreamMiles",
                     "unaltered_miles": "UnalteredUpstreamMiles",
                     "perennial_unaltered_miles": "PerennialUnalteredUpstreamMiles",
-                    "pct_altered": "PercentAltered",
+                    "pct_unaltered": "PercentUnaltered",
+                    "pct_perennial_unaltered": "PercentPerennialUnaltered",
                 }
             )
         )
@@ -272,7 +272,6 @@ for group in groups:
         length_cols = [c for c in barrier_networks.columns if c.endswith("Miles")]
 
         for col in length_cols + [
-            "sinuosity",
             "natfldpln",
         ]:
             barrier_networks[col] = barrier_networks[col].astype("float32")

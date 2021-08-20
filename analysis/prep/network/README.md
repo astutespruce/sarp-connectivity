@@ -53,7 +53,7 @@ These data are extracted from NHDFlowline, NHDPlusFlowlineVAA, NHDPlusFlow datas
 - aquatic networks that cross HUC4 boundaries within each region are joined together to create contiguous networks.
 - all coastlines (FType=566) and their joins are dropped
 - size classes are calculated (see `analysis/prep/network/lib/nhd/flowlines.py` for thresholds)
-- sinuosity and length are calculated
+- length is calculated
 - geometries are converted to XY LineStrings from XYZ MultiLineStrings
 - projected to SARP standard CRS
 

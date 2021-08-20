@@ -9,13 +9,6 @@ def classify_gainmiles(series):
     ).astype("int8")
 
 
-def classify_sinuosity(series):
-    bins = [-1, 0, 1.2, 1.5001] + [series.max() + 1]
-    return np.asarray(
-        pd.cut(series, bins, right=False, labels=np.arange(-1, len(bins) - 2))
-    ).astype("int8")
-
-
 def classify_landcover(series):
     bins = [-1, 0, 50, 75, 90] + [series.max() + 1]
     return np.asarray(

@@ -60,7 +60,6 @@ UNIT_FIELDS = ["HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4"]
 METRIC_FIELDS = [
     "StreamOrder",
     "Landcover",
-    "Sinuosity",
     "SizeClasses",
     "TotalUpstreamMiles",
     "PerennialUpstreamMiles",
@@ -82,16 +81,25 @@ TIER_FIELDS = [
     "SE_WC_tier",
     "SE_NCWC_tier",
     "SE_PNC_tier",
+    "SE_PWC_tier",
     "SE_PNCWC_tier",
     "State_NC_tier",
     "State_WC_tier",
     "State_NCWC_tier",
     "State_PNC_tier",
+    "State_PWC_tier",
     "State_PNCWC_tier",
 ]
 
 # Only present when custom prioritization is performed
-CUSTOM_TIER_FIELDS = ["NC_tier", "WC_tier", "NCWC_tier", "PNC_tier", "PNCWC_tier"]
+CUSTOM_TIER_FIELDS = [
+    "NC_tier",
+    "WC_tier",
+    "NCWC_tier",
+    "PNC_tier",
+    "PWC_tier",
+    "PNCWC_tier",
+]
 
 
 FILTER_FIELDS = [
@@ -172,7 +180,6 @@ DAM_API_FIELDS = (
         "NumBarriersDownstream",
         "upNetID",
         "downNetID",
-        "SinuosityClass",
     ]
     + METRIC_FIELDS
     + TIER_FIELDS
@@ -193,7 +200,8 @@ DAM_TILE_FIELDS = [
         "PerennialGainMiles",
         "TotalNetworkMiles",
         "TotalPerennialNetworkMiles",
-        "Sinuosity",
+        "PercentUnaltered",
+        "PercentPerennialUnaltered",
     }
 ]
 
@@ -268,7 +276,6 @@ SB_API_FIELDS = (
         "NumBarriersDownstream",
         "upNetID",
         "downNetID",
-        "SinuosityClass",
     ]
     + METRIC_FIELDS
     + TIER_FIELDS
@@ -288,7 +295,8 @@ SB_TILE_FIELDS = [
         "PerennialGainMiles",
         "TotalNetworkMiles",
         "TotalPerennialNetworkMiles",
-        "Sinuosity",
+        "PercentUnaltered",
+        "PercentPerennialUnaltered",
     }
 ]
 
@@ -436,12 +444,6 @@ LANDCOVER_DOMAIN = {
     3: ">= 90",
 }
 
-SINUOSITY_DOMAIN = {
-    # -1: "no network", # filter this out
-    0: "low",  # <1.2
-    1: "moderate",  # 1.2 - 1.5
-    2: "high",  # > 1.5
-}
 
 STREAM_ORDER_DOMAIN = {
     # -1: "no network", # filter this out
@@ -729,12 +731,13 @@ FIELD_DEFINITIONS = {
     "StreamOrder": "NHDPlus Modified Strahler stream order. -1 = not available.",
     "Intermittent": "indicates if this {type} was snapped to a a stream or river reach coded by NHDPlusHR as an intermittent or ephemeral. -1 = not available.",
     "Landcover": "average amount of the river floodplain in the upstream network that is in natural landcover types.  -1 = not available.",
-    "Sinuosity": "length-weighted sinuosity of the upstream river network.  Sinuosity is the ratio between the straight-line distance between the endpoints for each stream reach and the total stream reach length. -1 = not available.",
     "SizeClasses": "number of unique upstream size classes that could be gained by removal of this {type}. -1 = not available.",
     "TotalUpstreamMiles": "number of miles in the upstream river network from this {type}, including miles in waterbodies. -1 = not available.",
     "PerennialUpstreamMiles": "number of perennial miles in the upstream river network from this {type}, including miles in waterbodies.  Perennial segments are all those not specifically coded by NHD as ephemeral or intermittent, and include other types, such as canals and ditches that may not actually be perennial.  Networks are constructed using all flowlines, not just perennial segments. -1 = not available.",
     "AlteredUpstreamMiles": "number of altered miles in the upstream river network from this {type}, including miles in waterbodies.  Limited to segments specifically coded by NHD as canals or ditches. -1 = not available.",
     "UnalteredUpstreamMiles": "number of unaltered miles in the upstream river network from this {type}, including miles in waterbodies.  Unaltered miles exclude segments specifically coded by NHD as canals or ditches. -1 = not available.",
+    "PercentUnaltered": "percent of the total upstream river network length from this {type} that is not specifically coded as NHD as canals or ditches.  -1 = not available.",
+    "PercentPerennialUnaltered": "percent of the perennial upstream river network length from this {type} that is not specifically coded as NHD as canals or ditches.  -1 = not available.",
     "TotalDownstreamMiles": "number of miles in the complete downstream river network from this {type}, including miles in waterbodies.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path.  -1 = not available.",
     "FreeDownstreamMiles": "number of free-flowing miles in the downstream river network (TotalDownstreamMiles minus miles in waterbodies). -1 = not available.",
     "FreePerennialDownstreamMiles": "number of free-flowing perennial miles in the downstream river network.  Excludes miles in waterbodies.  See PerennialUpstreamMiles. -1 = not available.",
@@ -750,16 +753,19 @@ FIELD_DEFINITIONS = {
     "SE_WC_tier": "watershed condition tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "SE_NCWC_tier": "combined network connectivity and watershed condition tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "SE_PNC_tier": "perennial network connectivity tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
+    "SE_PWC_tier": "perennial watershed condition tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "SE_PNCWC_tier": "combined perennial network connectivity and watershed condition tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_NC_tier": "network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_WC_tier": "watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_NCWC_tier": "combined network connectivity and watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_PNC_tier": "network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
+    "State_PWC_tier": "perennial watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_PNCWC_tier": "combined perennial network connectivity and watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "NC_tier": "network connectivity tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "WC_tier": "watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "NCWC_tier": "combined network connectivity and watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "PNC_tier": "perennial network connectivity tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
+    "PWC_tier": "perennial watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "PNCWC_tier": "combined perennial network connectivity and watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
 }
 

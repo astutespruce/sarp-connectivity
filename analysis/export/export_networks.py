@@ -37,15 +37,18 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 
     stats = read_feathers(
         [
-            src_dir / "clean" / huc2 / f"network_stats__{barrier_type}.feather"
+            src_dir / "clean" / huc2 / f"{barrier_type}_network_stats.feather"
             for huc2 in group
         ]
     ).set_index("networkID")
 
     # use smaller data types for smaller output files
     length_cols = [c for c in stats.columns if c.endswith("_miles")]
-    for col in length_cols + ["sinuosity"]:
+    for col in length_cols:
         stats[col] = stats[col].round(5).astype("float32")
+
+    for col in [c for c in stats.columns if c.startswith("pct_")]:
+        stats[col] = stats[col].fillna(0).astype("int8")
 
     # natural floodplain is missing for several catchments; fill with -1
     for col in ["natfldpln", "sizeclasses"]:

@@ -5,7 +5,6 @@ from analysis.constants import SARP_STATE_NAMES
 from analysis.lib.io import read_feathers
 from analysis.rank.lib.metrics import (
     classify_gainmiles,
-    classify_sinuosity,
     classify_landcover,
 )
 from analysis.rank.lib.tiers import calculate_tiers
@@ -28,8 +27,8 @@ NETWORK_COLUMNS = [
     "FreePerennialDownstreamMiles",
     "FreeUnalteredDownstreamMiles",
     "FreePerennialUnalteredDownstreamMiles",
-    "PercentAltered",
-    "sinuosity",
+    "PercentUnaltered",
+    "PercentPerennialUnaltered",
     "natfldpln",
     "sizeclasses",
     "num_downstream",
@@ -38,7 +37,6 @@ NETWORK_COLUMNS = [
 
 
 NETWORK_COLUMN_NAMES = {
-    "sinuosity": "Sinuosity",
     "natfldpln": "Landcover",
     "sizeclasses": "SizeClasses",
     "flows_to_ocean": "FlowsToOcean",
@@ -77,6 +75,9 @@ def get_network_results(df, barrier_type):
         .rename(columns=NETWORK_COLUMN_NAMES)
         .set_index("id")
     )
+
+    # FIXME: temporary fix
+    networks.PercentPerennialUnaltered = networks.PercentPerennialUnaltered.fillna(0)
 
     # select barrier type
     networks = networks.loc[networks.kind == barrier_type[:-1]].drop(columns=["kind"])
@@ -125,7 +126,7 @@ def get_network_results(df, barrier_type):
     ].sum(axis=1)
 
     # Round floating point columns to 3 decimals
-    for column in [c for c in networks.columns if c.endswith("Miles")] + ["Sinuosity"]:
+    for column in [c for c in networks.columns if c.endswith("Miles")]:
         networks[column] = networks[column].round(3).fillna(-1).astype("float32")
 
     # Calculate network metric classes
@@ -133,7 +134,6 @@ def get_network_results(df, barrier_type):
     networks["PerennialGainMilesClass"] = classify_gainmiles(
         networks.PerennialGainMiles
     )
-    networks["SinuosityClass"] = classify_sinuosity(networks.Sinuosity)
     networks["LandcoverClass"] = classify_landcover(networks.Landcover)
 
     # only calculate ranks / tiers for ranked barriers

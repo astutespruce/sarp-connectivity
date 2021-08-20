@@ -9,16 +9,24 @@ SCENARIOS = OrderedDict(
         # NetworkConnectivity
         "NC": ["GainMiles"],
         "PNC": ["PerennialGainMiles"],
-        # Watershed Condition (same for both perennial and total)
-        "WC": ["Sinuosity", "Landcover", "SizeClasses"],
+        # Watershed Condition
+        "WC": ["PercentUnaltered", "Landcover", "SizeClasses"],
+        "PWC": ["PercentPerennialUnaltered", "Landcover", "SizeClasses"],
         # Network Connectivity Plus Watershed Condition
         "NCWC": ["NC", "WC"],
-        "PNCWC": ["PNC", "WC"],
+        "PNCWC": ["PNC", "PWC"],
     }
 )
 
 # Metric fields that are inputs of the above scenarios
-METRICS = ["GainMiles", "PerennialGainMiles", "Sinuosity", "Landcover", "SizeClasses"]
+METRICS = [
+    "GainMiles",
+    "PerennialGainMiles",
+    "PercentUnaltered",
+    "PercentPerennialUnaltered",
+    "Landcover",
+    "SizeClasses",
+]
 
 
 def calculate_score(series, ascending=True):

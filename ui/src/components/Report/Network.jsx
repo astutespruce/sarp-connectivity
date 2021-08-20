@@ -6,8 +6,6 @@ import { formatNumber } from 'util/format'
 
 import { Bold, List, ListItem } from './elements'
 
-import { SINUOSITY } from '../../../config/constants'
-
 const Network = ({
   barrierType,
   hasnetwork,
@@ -15,7 +13,6 @@ const Network = ({
   freedownstreammiles,
   freeupstreammiles,
   totaldownstreammiles,
-  sinuosityclass,
   landcover,
   sizeclasses,
   excluded,
@@ -115,12 +112,6 @@ const Network = ({
           is composed of natural landcover
         </Text>
       </ListItem>
-      <ListItem>
-        <Text>
-          The upstream network has <Bold>{SINUOSITY[sinuosityclass]}</Bold>{' '}
-          sinuosity
-        </Text>
-      </ListItem>
     </List>
   )
 }
@@ -133,7 +124,6 @@ Network.propTypes = {
   totalupstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   totaldownstreammiles: PropTypes.number,
-  sinuosityclass: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
 }
@@ -144,7 +134,6 @@ Network.defaultProps = {
   totalupstreammiles: null,
   freedownstreammiles: null,
   totaldownstreammiles: null,
-  sinuosityclass: null,
   landcover: null,
   sizeclasses: null,
 }

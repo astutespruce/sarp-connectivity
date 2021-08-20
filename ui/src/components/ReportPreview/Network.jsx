@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import { Box, Paragraph, Text } from 'theme-ui'
 
 import { formatNumber } from 'util/format'
-import { SINUOSITY } from '../../../config/constants'
 
 const Network = ({
   hasnetwork,
@@ -12,7 +11,6 @@ const Network = ({
   freedownstreammiles,
   freeupstreammiles,
   totaldownstreammiles,
-  sinuosityclass,
   landcover,
   sizeclasses,
 }) => {
@@ -93,9 +91,6 @@ const Network = ({
           <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain is
           composed of natural landcover
         </li>
-        <li>
-          The upstream network has <b>{SINUOSITY[sinuosityclass]}</b> sinuosity
-        </li>
       </Box>
     </Box>
   )
@@ -108,7 +103,6 @@ Network.propTypes = {
   totalupstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   totaldownstreammiles: PropTypes.number,
-  sinuosityclass: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
 }
@@ -119,7 +113,6 @@ Network.defaultProps = {
   totalupstreammiles: null,
   freedownstreammiles: null,
   totaldownstreammiles: null,
-  sinuosityclass: null,
   landcover: null,
   sizeclasses: null,
 }

@@ -8,7 +8,6 @@ import { isEmptyString } from 'util/string'
 
 import { siteMetadata } from '../../../gatsby-config'
 import {
-  SINUOSITY,
   DAM_CONDITION,
   CONSTRUCTION,
   PASSAGEFACILITY,
@@ -53,7 +52,6 @@ const DamDetails = ({
   freedownstreammiles,
   totalupstreammiles,
   totaldownstreammiles,
-  sinuosityclass,
   landcover,
   sizeclasses,
 }) => (
@@ -178,10 +176,6 @@ const DamDetails = ({
             <li>
               <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain is
               composed of natural landcover
-            </li>
-            <li>
-              The upstream network has <b>{SINUOSITY[sinuosityclass]}</b>{' '}
-              sinuosity
             </li>
           </>
         ) : (
@@ -365,7 +359,6 @@ DamDetails.propTypes = {
   totalupstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   totaldownstreammiles: PropTypes.number,
-  sinuosityclass: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
 }
@@ -398,7 +391,6 @@ DamDetails.defaultProps = {
   totalupstreammiles: null,
   freedownstreammiles: null,
   totaldownstreammiles: null,
-  sinuosityclass: null,
   landcover: null,
   sizeclasses: null,
 }

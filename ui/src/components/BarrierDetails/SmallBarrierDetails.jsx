@@ -8,7 +8,6 @@ import { isEmptyString } from 'util/string'
 
 import { siteMetadata } from '../../../gatsby-config'
 import {
-  SINUOSITY,
   BARRIER_SEVERITY,
   OWNERTYPE,
   HUC8_USFS,
@@ -46,7 +45,6 @@ const BarrierDetails = ({
   freedownstreammiles,
   totalupstreammiles,
   totaldownstreammiles,
-  sinuosityclass,
   landcover,
   sizeclasses,
 }) => {
@@ -165,10 +163,6 @@ const BarrierDetails = ({
               <li>
                 <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain
                 is composed of natural landcover
-              </li>
-              <li>
-                The upstream network has <b>{SINUOSITY[sinuosityclass]}</b>{' '}
-                sinuosity
               </li>
             </>
           ) : (
@@ -356,7 +350,6 @@ BarrierDetails.propTypes = {
   totalupstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   totaldownstreammiles: PropTypes.number,
-  sinuosityclass: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
 }
@@ -386,7 +379,6 @@ BarrierDetails.defaultProps = {
   totalupstreammiles: null,
   freedownstreammiles: null,
   totaldownstreammiles: null,
-  sinuosityclass: null,
   landcover: null,
   sizeclasses: null,
 }

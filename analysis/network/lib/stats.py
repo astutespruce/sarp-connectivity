@@ -18,7 +18,6 @@ def calculate_network_stats(df, barrier_joins, joins):
     df : Pandas DataFrame
         data frame including the basic metrics for each flowline segment, including:
         * length
-        * sinuosity
         * size class
         * altered
         * intermittent
@@ -193,18 +192,19 @@ def calculate_network_stats(df, barrier_joins, joins):
 def calculate_geometry_stats(df):
     """Calculate total network miles, free-flowing miles (not in waterbodies),
     free-flowing unaltered miles (not in waterbodies, not altered), total
-    perennial miles, total free-flowing unaltered perennial miles,
-    length-weighted sinuosity, and count of segments.
+    perennial miles, total free-flowing unaltered perennial miles, and count of
+    segments.
 
     Parameters
     ----------
     df : DataFrame
-        must have length, sinuosity, waterbody, altered, and perennial, and be indexed on networkID
+        must have length, waterbody, altered, and perennial, and be indexed on
+        networkID
 
     Returns
     -------
     DataFrame
-        contains total_miles, free_miles, *_miles, sinuosity, segments
+        contains total_miles, free_miles, *_miles, segments
     """
 
     # total lengths used for upstream network
@@ -269,24 +269,21 @@ def calculate_geometry_stats(df):
     lengths.columns = [f"{c}_miles" for c in lengths.columns]
 
     # calculate percent altered
-    lengths["pct_altered"] = 100 * (
-        (lengths.total_miles - lengths.unaltered_miles) / lengths.total_miles
+    lengths["pct_unaltered"] = (
+        100 * (lengths.unaltered_miles / lengths.total_miles)
+    ).astype("float32")
+    # Note: if there are no perennial miles, this should be 0
+    lengths["pct_perennial_unaltered"] = 0
+    lengths.loc[lengths.perennial_miles > 0, "pct_perennial_unaltered"] = 100 * (
+        lengths.perennial_unaltered_miles / lengths.perennial_miles
     )
-
-    temp_df = df[["length", "sinuosity"]].join(total_length)
-
-    # Calculate length-weighted sinuosity
-    wtd_sinuosity = (
-        (temp_df.sinuosity * (temp_df.length / temp_df.total))
-        .groupby(level=0)
-        .sum()
-        .astype("float32")
-        .rename("sinuosity")
+    lengths["pct_perennial_unaltered"] = lengths.pct_perennial_unaltered.astype(
+        "float32"
     )
 
     segments = df.groupby(level=0).size().astype("uint32").rename("segments")
 
-    return lengths.join(wtd_sinuosity).join(segments)
+    return lengths.join(segments)
 
 
 def calculate_floodplain_stats(df):
