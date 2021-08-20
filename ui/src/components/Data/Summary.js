@@ -1,10 +1,22 @@
 import { graphql, useStaticQuery } from 'gatsby'
+import { groupBy } from 'util/data'
 
-// FIXME: temporary shim to support Southeast data in new data structure
-export const useSummaryData = () =>
-  useStaticQuery(graphql`
+export const useSummaryData = () => {
+  const {
+    summaryStatsJson: { total, regions },
+  } = useStaticQuery(graphql`
     query summaryQuery {
       summaryStatsJson {
+        total {
+          dams
+          total_barriers
+          barriers
+          crossings
+          miles
+          perennial_miles
+          on_network_barriers
+          on_network_dams
+        }
         regions: region {
           id
           dams
@@ -16,35 +28,12 @@ export const useSummaryData = () =>
           on_network_barriers
           on_network_dams
         }
-        se: southeast {
-          dams
-          total_barriers
-          barriers
-          crossings
-          miles
-          on_network_barriers
-          on_network_dams
-        }
-        # FIXME:
-        sw: southeast {
-          dams
-          total_barriers
-          barriers
-          crossings
-          miles
-          on_network_barriers
-          on_network_dams
-        }
-        # FIXME:
-        gpiw: southeast {
-          dams
-          total_barriers
-          barriers
-          crossings
-          miles
-          on_network_barriers
-          on_network_dams
-        }
       }
     }
-  `).summaryStatsJson.regions.filter(({ id }) => id === 'se')[0]
+  `)
+
+  return {
+    total,
+    ...groupBy(regions, 'id'),
+  }
+}

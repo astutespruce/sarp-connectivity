@@ -56,7 +56,7 @@ const Top = () => (
           <br />
           <br />
           <Link to="/regions/southeast/teams">
-            Southeast Aquatic Connectivity Teams
+            Learn more about Southeast Aquatic Connectivity Teams
           </Link>
         </HighlightBox>
       </Grid>

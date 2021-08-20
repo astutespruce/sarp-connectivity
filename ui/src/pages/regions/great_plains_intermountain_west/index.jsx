@@ -101,20 +101,15 @@ const GPIWRegionPage = ({ data: { headerImage } }) => {
               }}
             >
               <li>
-                <b>{formatNumber(dams, 0)}</b> inventoried dams
+                <b>{formatNumber(dams, 0)}</b> inventoried dams.
               </li>
               <li>
                 <b>{formatNumber(on_network_dams, 0)}</b> dams that have been
-                analyzed for their impacts to aquatic connectivity in this tool
+                analyzed for their impacts to aquatic connectivity in this tool.
               </li>
               <li>
                 <b>{formatNumber(miles, 0)}</b> miles of connected rivers and
-                streams on average across the region
-              </li>
-              <li>
-                <b>{formatNumber(miles, 0)}</b> miles of connected perennial
-                rivers and streams on average across the region (excluding
-                ephemeral and intermittent streams)
+                streams on average across the region.
               </li>
             </Box>
             <Paragraph variant="help" sx={{ mt: '2rem' }}>

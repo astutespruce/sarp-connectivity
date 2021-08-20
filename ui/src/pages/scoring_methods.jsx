@@ -5,7 +5,7 @@ import { GatsbyImage } from 'gatsby-plugin-image'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { Box, Container, Flex, Grid, Image, Paragraph, Heading } from 'theme-ui'
 
-import Layout, { HighlightBox } from 'components/Layout'
+import { Layout, HighlightBox } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
 import NetworkGraphicSVG from 'images/functional_network.svg'
@@ -27,8 +27,7 @@ const ScoringMethodsPage = ({
       minHeight="18rem"
       credits={{
         author:
-          'Biologists collect and move fish from a de-watered river reach as part of Cane River Dam removal, 2016 | U.S. Fish & Wildlife Service Southeast Region',
-        url: 'https://www.flickr.com/photos/usfwssoutheast/30557776285/',
+          'Steeles Mill Dam Hitchcock Creek during removal. Peter Raabe, American Rivers.',
       }}
     />
 
