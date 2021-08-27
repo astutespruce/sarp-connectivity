@@ -4,27 +4,27 @@ const { tileHost } = siteMetadata
 
 export const config = {
   // Bounds around all selected HUC6s
-  bounds: [-107.87000919, 17.62370026, -64.5126611, 44.26093852],
+  bounds: [-116.049153, 17.831509, -65.168503, 49.0011],
   styleID: 'light-v9',
   minZoom: 2,
   maxZoom: 24,
 }
 
 export const sources = {
-  sarp: {
+  summary: {
     type: 'vector',
     maxzoom: 8,
-    tiles: [`${tileHost}/services/sarp_summary/tiles/{z}/{x}/{y}.pbf`],
+    tiles: [`${tileHost}/services/summary/tiles/{z}/{x}/{y}.pbf`],
   },
   dams: {
     type: 'vector',
-    tiles: [`${tileHost}/services/sarp_dams/tiles/{z}/{x}/{y}.pbf`],
+    tiles: [`${tileHost}/services/dams/tiles/{z}/{x}/{y}.pbf`],
     minzoom: 5,
     maxzoom: 12,
   },
   barriers: {
     type: 'vector',
-    tiles: [`${tileHost}/services/sarp_barriers/tiles/{z}/{x}/{y}.pbf`],
+    tiles: [`${tileHost}/services/small_barriers/tiles/{z}/{x}/{y}.pbf`],
     minzoom: 5,
     maxzoom: 12,
   },

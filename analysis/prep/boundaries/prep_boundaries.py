@@ -30,8 +30,10 @@ huc4_df = gp.read_feather(out_dir / "huc4.feather")
 sarp_huc4_df = gp.read_feather(out_dir / "sarp_huc4.feather")
 
 # state outer boundaries, NOT analysis boundaries
-bnd = gp.read_feather(out_dir / "region_boundary.feather").geometry.values.data[0]
-sarp_bnd = gp.read_feather(out_dir / "sarp_boundary.feather").geometry.values.data[0]
+bnd_df = gp.read_feather(out_dir / "region_boundary.feather")
+
+bnd = bnd_df.loc[bnd_df.id == "total"].geometry.values.data[0]
+sarp_bnd = bnd_df.loc[bnd_df.id == "se"].geometry.values.data[0]
 
 state_df = gp.read_feather(
     out_dir / "region_states.feather", columns=["STATEFIPS", "geometry"]

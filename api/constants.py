@@ -322,7 +322,7 @@ SB_PUBLIC_EXPORT_FIELDS = unique(
     SB_CORE_FIELDS + UNIT_FIELDS + ["HasNetwork", "Excluded"] + METRIC_FIELDS
 )
 
-WF_CORE_FIELDS = ["lat", "lon", "Name"]
+WF_CORE_FIELDS = ["HUC8", "HUC12", "lat", "lon", "Name", "intermittent"]
 
 
 ### Domains for coded values in exported data

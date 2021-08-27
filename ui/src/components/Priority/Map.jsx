@@ -177,7 +177,8 @@ const PriorityMap = ({
           HUC12Name: getHUCName('HUC12', properties.HUC12),
           lat,
           lon,
-          hasnetwork: false,
+          hasnetwork: properties.hasnetwork || false,
+          ranked: properties.ranked || false,
         })
       })
 
@@ -202,7 +203,7 @@ const PriorityMap = ({
           HUC12Name: getHUCName('HUC12', properties.HUC12),
           lat,
           lon,
-          hasnetwork: true,
+          hasnetwork: properties.hasnetwork || false,
         })
       })
 
@@ -230,6 +231,7 @@ const PriorityMap = ({
           lat,
           lon,
           hasnetwork: true,
+          ranked: true,
         })
       })
 
@@ -252,6 +254,7 @@ const PriorityMap = ({
           lat,
           lon,
           hasnetwork: true,
+          ranked: true,
         })
       })
 
@@ -343,6 +346,7 @@ const PriorityMap = ({
             lon,
             ...properties,
             hasnetwork: true,
+            ranked: true,
           })
         }
       }
@@ -369,7 +373,7 @@ const PriorityMap = ({
   const getHUCName = (layer, id) => {
     if (!id) return null
 
-    const [result] = mapRef.current.querySourceFeatures('sarp', {
+    const [result] = mapRef.current.querySourceFeatures('summary', {
       sourceLayer: layer,
       filter: ['==', 'id', id],
     })
@@ -381,7 +385,7 @@ const PriorityMap = ({
 
   const selectUnitById = useCallback(
     (id, layer) => {
-      const [feature] = mapRef.current.querySourceFeatures('sarp', {
+      const [feature] = mapRef.current.querySourceFeatures('summary', {
         sourceLayer: layer,
         filter: ['==', 'id', id],
       })

@@ -1,8 +1,9 @@
 export const maskFill = {
-  id: 'sarp-mask',
-  source: 'sarp',
+  id: 'mask',
+  source: 'summary',
   'source-layer': 'mask',
   type: 'fill',
+  filter: ['==', ['get', 'id'], 'total'],
   paint: {
     'fill-opacity': 0.6,
     'fill-color': '#AAA',
@@ -10,10 +11,11 @@ export const maskFill = {
 }
 
 export const maskOutline = {
-  id: 'sarp-outline',
-  source: 'sarp',
+  id: 'mask-outline',
+  source: 'summary',
   'source-layer': 'boundary',
   type: 'line',
+  filter: ['==', ['get', 'id'], 'total'],
   paint: {
     'line-opacity': 0.8,
     'line-width': 2,
@@ -24,7 +26,7 @@ export const maskOutline = {
 // Used to capture click events from the unit layer
 export const unitFill = {
   id: 'unit-fill',
-  source: 'sarp',
+  source: 'summary',
   // 'source-layer': '', // provided by specific layer
   // minzoom: 0, // provided by specific layer
   // maxzoom: 24, // provided by specific layer
@@ -39,7 +41,7 @@ export const unitFill = {
 
 export const unitOutline = {
   id: 'unit-outline',
-  source: 'sarp',
+  source: 'summary',
   // 'source-layer': '', // provided by specific layer
   // minzoom: 0, // provided by specific layer
   // maxzoom: 24, // provided by specific layer
@@ -64,7 +66,7 @@ export const unitOutline = {
 
 export const parentOutline = {
   id: 'unit-parent-outline',
-  source: 'sarp',
+  source: 'summary',
   // 'source-layer': '', // provided by specific layer
   // minzoom: 0, // provided by specific layer
   // maxzoom: 24, // provided by specific layer
@@ -90,7 +92,7 @@ export const parentOutline = {
 // highlight is visible at all scales
 export const unitHighlightFill = {
   id: 'unit-highlight-fill',
-  source: 'sarp',
+  source: 'summary',
   // 'source-layer': '', // provided by specific layer
   type: 'fill',
   minzoom: 0,
@@ -108,7 +110,7 @@ export const unitHighlightFill = {
 export const unitHighlightOutline = {
   id: 'unit-highlight-outline',
   type: 'line',
-  source: 'sarp',
+  source: 'summary',
   // 'source-layer': '', // provided by specific layer
   minzoom: 0,
   maxzoom: 24,
@@ -486,7 +488,7 @@ export const pointHighlight = {
 
 const priorityFillStyle = {
   // id: // provided by specific layer
-  source: 'sarp',
+  source: 'summary',
   'source-layer': 'HUC8',
   type: 'fill',
   minzoom: 0,
@@ -501,7 +503,7 @@ const priorityFillStyle = {
 const priorityOutlineStyle = {
   // id: // provided by specific layer
   'source-layer': 'HUC8',
-  source: 'sarp',
+  source: 'summary',
   type: 'line',
   minzoom: 0,
   maxzoom: 24,

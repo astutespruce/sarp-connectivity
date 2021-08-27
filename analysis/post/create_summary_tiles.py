@@ -25,6 +25,7 @@ import subprocess
 
 import pandas as pd
 import numpy as np
+from pyogrio import read_dataframe
 
 # Note: states are identified by name, whereas counties are uniquely identified by
 # FIPS code.
@@ -46,6 +47,7 @@ INT_COLS = [
 
 data_dir = Path("data")
 src_dir = data_dir / "barriers/master"
+bnd_dir = data_dir / "boundaries"
 api_dir = data_dir / "api"
 ui_data_dir = Path("ui/data")
 src_tile_dir = data_dir / "tiles"
@@ -106,6 +108,19 @@ mbtiles_files = []
 for unit in SUMMARY_UNITS:
     print(f"processing {unit}")
 
+    if unit == "State":
+        units = read_dataframe(
+            bnd_dir / "region_states.gpkg", columns=["id"], read_geometry=False
+        ).set_index("id")
+    elif unit == "COUNTYFIPS":
+        units = read_dataframe(
+            bnd_dir / "region_counties.gpkg", columns=["id"], read_geometry=False
+        ).set_index("id")
+    else:
+        units = pd.read_feather(bnd_dir / f"{unit}.feather", columns=[unit]).set_index(
+            unit
+        )
+
     dam_stats = (
         dams[[unit, "id", "OnNetwork", "GainMiles", "PerennialGainMiles",]]
         .groupby(unit)
@@ -143,8 +158,9 @@ for unit in SUMMARY_UNITS:
     crossing_stats = crossings[[unit, "id"]].groupby(unit).size().rename("crossings")
 
     merged = (
-        dam_stats.join(barriers_stats, how="outer")
-        .join(crossing_stats, how="outer")
+        units.join(dam_stats, how="left")
+        .join(barriers_stats, how="left")
+        .join(crossing_stats, how="left")
         .fillna(0)
     )
     merged[INT_COLS] = merged[INT_COLS].astype("uint32")

@@ -50,7 +50,11 @@ const SARP = () => {
         </Box>
 
         <Box>
-          <GatsbyImage image={damRemovalTeamPhoto} />
+          <GatsbyImage
+            image={damRemovalTeamPhoto}
+            alt="Roaring River Dam Removal, Tennessee, 2017. Mark Thurman, Tennessee
+            Wildlife Resources Agency."
+          />
           <Text variant="help">
             Roaring River Dam Removal, Tennessee, 2017. Mark Thurman, Tennessee
             Wildlife Resources Agency.

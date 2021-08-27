@@ -9,7 +9,7 @@ TMPDIR="/tmp"
 DATADIR="data/boundaries"
 TILEDIR="data/tiles"
 
-### SARP boundary and mask
+### Region boundary and mask
 echo "Generating boundary and mask tiles..."
 ogr2ogr -t_srs EPSG:4326 -f GeoJSONSeq $TMPDIR/boundary.json $DATADIR/region_boundary.gpkg -progress
 tippecanoe -f -z 8 -l boundary -pg -P -o $TILEDIR/boundary.mbtiles $TMPDIR/boundary.json
