@@ -16,6 +16,8 @@ const Scores = ({
   state_wc_tier,
   state_ncwc_tier,
 }) => {
+  console.log('scores', hasnetwork, ranked)
+
   if (!hasnetwork) {
     return null
   }

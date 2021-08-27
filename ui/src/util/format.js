@@ -1,4 +1,4 @@
-export const formatPercent = percent => {
+export const formatPercent = (percent) => {
   if (percent === 0) {
     return '0'
   }
@@ -39,10 +39,21 @@ export const formatNumber = (number, decimals = null) => {
   const factor = 10 ** targetDecimals
 
   // format to localeString, and manually set the desired number of decimal places
-  return (Math.round(number * factor) / factor).toLocaleString(undefined, {
-    minimumFractionDigits: targetDecimals,
-    maximumFractionDigits: targetDecimals,
-  })
+  let formatted = (Math.round(number * factor) / factor).toLocaleString(
+    undefined,
+    {
+      minimumFractionDigits: targetDecimals,
+      maximumFractionDigits: targetDecimals,
+    }
+  )
+  if (formatted.length > 1 && formatted.endsWith('0')) {
+    formatted = formatted.slice(0, formatted.length - 1)
+  }
+  if (formatted.endsWith('.')) {
+    formatted = formatted.slice(0, formatted.length - 1)
+  }
+  return formatted
 }
 
-export const capitalize = (word) => `${word.slice(0,1).toUpperCase()}${word.slice(1)}`
+export const capitalize = (word) =>
+  `${word.slice(0, 1).toUpperCase()}${word.slice(1)}`

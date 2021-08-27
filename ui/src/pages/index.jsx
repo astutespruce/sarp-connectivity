@@ -32,16 +32,6 @@ const IndexPage = ({ data: { headerImage } }) => (
       <RegionSection />
       <ToolSection />
 
-      {/* <DividerImage
-      image={dividerImage2.childImageSharp.gatsbyImageData}
-      height="50vh"
-      minHeight="26rem"
-      credits={{
-        author:
-          'Roaring River Dam Removal, Tennessee, 2017. Mark Thurman, Tennessee Wildlife Resources Agency.',
-      }}
-    /> */}
-
       <GetInvolvedSection />
       <CreditsSection />
     </Container>
@@ -51,8 +41,6 @@ const IndexPage = ({ data: { headerImage } }) => (
 IndexPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
-    dividerImage1: PropTypes.object.isRequired,
-    dividerImage2: PropTypes.object.isRequired,
   }).isRequired,
 }
 

@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react'
 import { Box, Flex, Text } from 'theme-ui'
 
-import Layout, { ClientOnly } from 'components/Layout'
+import { Layout, ClientOnly } from 'components/Layout'
 
 import { ToggleButton } from 'components/Button'
 import { Sidebar } from 'components/Sidebar'
@@ -53,7 +53,7 @@ const SummaryPage = () => {
   }
 
   const handleSelectBarrier = (feature) => {
-    console.log(JSON.stringify(feature))
+    console.log('selected:', feature)
     setSelectedBarrier(feature)
     setSelectedUnit(null)
   }

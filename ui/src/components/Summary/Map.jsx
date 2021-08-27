@@ -54,7 +54,7 @@ const SummaryMap = ({
 
     if (!map) return null
 
-    const [feature] = map.querySourceFeatures('sarp', {
+    const [feature] = map.querySourceFeatures('summary', {
       sourceLayer: layer,
       filter: ['==', 'id', id],
     })
@@ -89,7 +89,7 @@ const SummaryMap = ({
 
         // base config for each layer
         const config = {
-          source: 'sarp',
+          source: 'summary',
           'source-layer': id,
           minzoom,
           maxzoom,
@@ -235,7 +235,7 @@ const SummaryMap = ({
 
       const { source, sourceLayer, properties } = feature
 
-      if (source === 'sarp') {
+      if (source === 'summary') {
         // summary unit layer
         onSelectUnit({
           ...properties,
@@ -247,7 +247,7 @@ const SummaryMap = ({
         let HUC12Name = null
 
         if (properties.HUC8 && properties.HUC12) {
-          const [HUC8] = map.querySourceFeatures('sarp', {
+          const [HUC8] = map.querySourceFeatures('summary', {
             sourceLayer: 'HUC8',
             filter: ['==', 'id', properties.HUC8],
           })
@@ -255,7 +255,7 @@ const SummaryMap = ({
             HUC8Name = HUC8.properties.name
           }
 
-          const [HUC12] = map.querySourceFeatures('sarp', {
+          const [HUC12] = map.querySourceFeatures('summary', {
             sourceLayer: 'HUC12',
             filter: ['==', 'id', properties.HUC12],
           })
@@ -278,7 +278,11 @@ const SummaryMap = ({
           barrierType: source,
           lat,
           lon,
-          hasnetwork: sourceLayer !== 'background',
+          hasnetwork:
+            sourceLayer === 'background'
+              ? properties.hasnetwork || false
+              : true,
+          ranked: sourceLayer !== 'background',
         })
       }
     })

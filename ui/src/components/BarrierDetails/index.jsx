@@ -18,8 +18,16 @@ const { version: dataVersion } = siteMetadata
 const tierToPercent = (tier) => (100 * (19 - (tier - 1))) / 20
 
 const BarrierDetails = ({ barrier, onClose }) => {
-  const { barrierType, sarpid, name, ranked, countyname, State, ncwc_tier } =
-    barrier
+  const {
+    barrierType,
+    sarpid,
+    name,
+    hasnetwork,
+    ranked,
+    countyname,
+    State,
+    ncwc_tier,
+  } = barrier
 
   const typeLabel = barrierType === 'dams' ? 'dam' : 'road-related barrier'
 
@@ -40,8 +48,12 @@ const BarrierDetails = ({ barrier, onClose }) => {
     // Transform properties to priorities: <unit>_<metric>_score
     // For now, we are using tier to save space in data transport, so convert them to percent
     const scores = {}
-    const units = ['se', 'state']
+    const units = ['state']
     const metrics = ['nc', 'wc', 'ncwc']
+
+    if (barrier.se_ncwc_tier !== -1) {
+      units.push('se')
+    }
 
     units.forEach((unit) => {
       scores[unit] = {}
@@ -73,13 +85,18 @@ const BarrierDetails = ({ barrier, onClose }) => {
         <Paragraph variant="help" sx={{ fontSize: 2 }}>
           No connectivity scores are available for this barrier.
         </Paragraph>
-        {!ranked ? (
-          <Paragraph variant="help">
+        {hasnetwork ? (
+          <Paragraph variant="help" sx={{ mt: '1rem' }}>
             This {typeLabel} was excluded from prioritization because it
             provides an ecological benefit by restricting the movement of
             invasive aquatic species.
           </Paragraph>
-        ) : null}
+        ) : (
+          <Paragraph variant="help" sx={{ mt: '1rem' }}>
+            This {typeLabel} is off-network and has no functional network
+            information or related ranking.
+          </Paragraph>
+        )}
       </>
     )
   }
@@ -88,7 +105,8 @@ const BarrierDetails = ({ barrier, onClose }) => {
     <>
       <Box
         sx={{
-          py: '1rem',
+          pt: '0.5rem',
+          pb: '1rem',
           pr: '0.5rem',
           pl: '1rem',
           borderBottom: '4px solid',

@@ -72,7 +72,7 @@ const BarrierDetails = ({
           {!isEmptyString(stream) ? <li>River or stream: {stream}</li> : null}
           {!isEmptyString(road) ? <li>Road: {road}</li> : null}
 
-          {intermittent ? (
+          {intermittent === 1 ? (
             <li>Located on a reach that has intermittent or ephemeral flow</li>
           ) : null}
 
@@ -346,10 +346,14 @@ BarrierDetails.propTypes = {
   huc8_usfs: PropTypes.number,
   huc8_coa: PropTypes.number,
   huc8_sgcn: PropTypes.number,
-  freeupstreammiles: PropTypes.number,
   totalupstreammiles: PropTypes.number,
+  perennialupstreammiles: PropTypes.number,
+  alteredupstreammiles: PropTypes.number,
+  unalteredupstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
-  totaldownstreammiles: PropTypes.number,
+  freeperennialdownstreammiles: PropTypes.number,
+  freealtereddownstreammiles: PropTypes.number,
+  freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
 }
@@ -375,10 +379,14 @@ BarrierDetails.defaultProps = {
   huc8_usfs: 0,
   huc8_coa: 0,
   huc8_sgcn: 0,
-  freeupstreammiles: null,
-  totalupstreammiles: null,
-  freedownstreammiles: null,
-  totaldownstreammiles: null,
+  totalupstreammiles: 0,
+  perennialupstreammiles: 0,
+  alteredupstreammiles: 0,
+  unalteredupstreammiles: 0,
+  freedownstreammiles: 0,
+  freeperennialdownstreammiles: 0,
+  freealtereddownstreammiles: 0,
+  freeunaltereddownstreammiles: 0,
   landcover: null,
   sizeclasses: null,
 }
