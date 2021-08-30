@@ -74,6 +74,8 @@ METRIC_FIELDS = [
     "PerennialGainMiles",
     "TotalNetworkMiles",
     "TotalPerennialNetworkMiles",
+    "PercentUnaltered",
+    "PercentPerennialUnaltered",
 ]
 
 TIER_FIELDS = [

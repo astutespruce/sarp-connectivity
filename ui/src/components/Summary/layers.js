@@ -550,3 +550,27 @@ export const pointHighlightLayer = {
     'circle-stroke-color': '#f03b20',
   },
 }
+
+export const pointHoverLayer = {
+  id: 'point-hover',
+  source: {
+    type: 'geojson',
+    data: null,
+  },
+  type: 'circle',
+  minzoom: 7,
+  maxzoom: 24,
+  paint: {
+    'circle-color': '#fd8d3c',
+    'circle-radius': {
+      stops: [
+        [10, 2],
+        [12, 3],
+        [14, 5],
+        [16, 9],
+      ],
+    },
+    'circle-stroke-width': 1,
+    'circle-stroke-color': '#f03b20',
+  },
+}

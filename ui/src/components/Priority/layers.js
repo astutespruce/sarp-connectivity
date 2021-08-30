@@ -304,8 +304,8 @@ export const topRank = {
     'circle-color': '#c51b8a',
     'circle-radius': {
       stops: [
-        [5, 4],
-        [6, 6],
+        [6, 2],
+        [8, 6],
         [14, 8],
       ],
     },
@@ -338,7 +338,7 @@ export const lowerRank = {
     'circle-radius': {
       stops: [
         [5, 1],
-        [7, 4],
+        [8, 4],
         [10, 6],
         [14, 8],
       ],
@@ -482,6 +482,29 @@ export const pointHighlight = {
     'circle-color': '#fd8d3c',
     'circle-radius': 14,
     'circle-stroke-width': 3,
+    'circle-stroke-color': '#f03b20',
+  },
+}
+
+export const pointHover = {
+  id: 'point-hover',
+  source: {
+    type: 'geojson',
+    data: null,
+  },
+  type: 'circle',
+  minzoom: 7,
+  maxzoom: 24,
+  paint: {
+    'circle-color': '#fd8d3c',
+    'circle-radius': {
+      stops: [
+        [6, 2],
+        [8, 6],
+        [14, 8],
+      ],
+    },
+    'circle-stroke-width': 1,
     'circle-stroke-color': '#f03b20',
   },
 }

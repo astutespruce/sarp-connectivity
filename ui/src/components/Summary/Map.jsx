@@ -25,6 +25,7 @@ import {
   pointLayer,
   backgroundPointLayer,
   pointHighlightLayer,
+  pointHoverLayer,
   pointLegends,
 } from './layers'
 
@@ -188,7 +189,8 @@ const SummaryMap = ({
       })
     })
 
-    // Add barrier highlight layer.
+    // Add barrier highlight layers
+    map.addLayer(pointHoverLayer)
     map.addLayer(pointHighlightLayer)
 
     const pointLayers = barrierTypes
@@ -207,18 +209,32 @@ const SummaryMap = ({
     })
     pointLayers.forEach((id) => {
       map.on('mouseenter', id, ({ features: [feature] }) => {
+        if (map.getZoom() <= 7) {
+          return
+        }
+
+        const {
+          geometry: { coordinates },
+        } = feature
+        map.getSource(pointHoverLayer.id).setData({
+          type: 'Point',
+          coordinates,
+        })
+
         /* eslint-disable-next-line no-param-reassign */
         map.getCanvas().style.cursor = 'pointer'
         const prefix = feature.source === 'waterfalls' ? 'Waterfall: ' : ''
         const { name } = feature.properties
         tooltip
-          .setLngLat(feature.geometry.coordinates)
+          .setLngLat(coordinates)
           .setHTML(
             `<b>${prefix}${!isEmptyString(name) ? name : 'Unknown name'}</b>`
           )
           .addTo(map)
       })
       map.on('mouseleave', id, () => {
+        map.getSource(pointHoverLayer.id).setData(emptyFeatureCollection)
+
         /* eslint-disable-next-line no-param-reassign */
         map.getCanvas().style.cursor = ''
         tooltip.remove()

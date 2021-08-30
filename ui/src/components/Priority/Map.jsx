@@ -24,6 +24,7 @@ import {
   networkHighlightLayer,
   parentOutline,
   pointHighlight,
+  pointHover,
   backgroundPoint,
   excludedPoint,
   includedPoint,
@@ -61,6 +62,7 @@ const PriorityMap = ({
     state: { filters },
   } = useCrossfilter()
   const mapRef = useRef(null)
+  const highlightRef = useRef(null) // {layerId, id}
   const [priorityLayerState, setPriorityLayerState] = useState({})
 
   // first layer of system is default on init
@@ -275,6 +277,9 @@ const PriorityMap = ({
         filter: ['<=', `${scenario}_tier`, tierThreshold],
       })
 
+      // Add layer for highlight
+      map.addLayer(pointHover)
+
       // add hover and tooltip to point layers
       const tooltip = new mapboxgl.Popup({
         closeButton: false,
@@ -294,18 +299,50 @@ const PriorityMap = ({
 
       pointLayers.forEach((id) => {
         map.on('mouseenter', id, ({ features: [feature] }) => {
+          if (map.getZoom() <= 7) {
+            return
+          }
+
+          const {
+            properties: { id: barrierId },
+            geometry: {
+              coordinates,
+            },
+          } = feature
+
+          let barrierName = ''
+          if (id.startsWith('rank-')) {
+            // get barrier details from tiles
+            const barrier = getBarrierById(barrierId)
+            if (!barrier) {
+              return
+            }
+            barrierName = barrier.properties.name
+          } else {
+            barrierName = feature.properties.name
+          }
+
+          map.getSource(pointHover.id).setData({
+            type: 'Point',
+            coordinates,
+          })
+
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
           const prefix = feature.source === 'waterfalls' ? 'Waterfall: ' : ''
-          const { name } = feature.properties
+
           tooltip
-            .setLngLat(feature.geometry.coordinates)
+            .setLngLat(coordinates)
             .setHTML(
-              `<b>${prefix}${!isEmptyString(name) ? name : 'Unknown name'}</b>`
+              `<b>${prefix}${
+                !isEmptyString(barrierName) ? barrierName : 'Unknown name'
+              }</b>`
             )
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
+          map.getSource(pointHover.id).setData(emptyFeatureCollection)
+
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = ''
           tooltip.remove()

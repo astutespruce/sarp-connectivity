@@ -66,7 +66,7 @@ def download_dams(
 
     # calculate custom ranks
     if custom:
-        df = calculate_tiers(df)
+        df = df.join(calculate_tiers(df))
 
     if unranked:
         # join back to full dataset
@@ -147,11 +147,11 @@ def download_barriers(
         full_df = df.copy()
 
     # can only calculate ranks for those that have networks
-    df = df.loc[df.HasNetwork]
+    df = df.loc[df.Ranked]
 
     # calculate custom ranks
     if custom:
-        df = calculate_tiers(df)
+        df = df.join(calculate_tiers(df))
 
     if unranked:
         # join back to full dataset
