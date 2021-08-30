@@ -77,7 +77,8 @@ def download_dams(
 
     log.info(f"selected {len(df)} dams for download")
 
-    df = df[df.columns.intersection(DAM_EXPORT_FIELDS)]
+    cols = [c for c in DAM_EXPORT_FIELDS if c in set(df.columns)]
+    df = df[cols]
 
     # Sort by tier
     if f"{sort}_tier" in df.columns:
@@ -162,7 +163,8 @@ def download_barriers(
 
     log.info(f"selected {len(df)} barriers for download")
 
-    df = df[df.columns.intersection(SB_EXPORT_FIELDS)]
+    cols = [c for c in SB_EXPORT_FIELDS if c in set(df.columns)]
+    df = df[cols]
 
     # Sort by tier
     if f"{sort}_tier" in df.columns:

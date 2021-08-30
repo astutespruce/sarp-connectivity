@@ -62,7 +62,6 @@ const PriorityMap = ({
     state: { filters },
   } = useCrossfilter()
   const mapRef = useRef(null)
-  const highlightRef = useRef(null) // {layerId, id}
   const [priorityLayerState, setPriorityLayerState] = useState({})
 
   // first layer of system is default on init
@@ -305,9 +304,7 @@ const PriorityMap = ({
 
           const {
             properties: { id: barrierId },
-            geometry: {
-              coordinates,
-            },
+            geometry: { coordinates },
           } = feature
 
           let barrierName = ''
