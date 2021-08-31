@@ -46,7 +46,7 @@ NETWORK_COLUMN_NAMES = {
 }
 
 
-def get_network_results(df, barrier_type):
+def get_network_results(df, network_type, barrier_type=None, rank=True):
     """Read network results, calculate derived metric classes, and calculate
     tiers.
 
@@ -56,7 +56,12 @@ def get_network_results(df, barrier_type):
     ----------
     df : DataFrame
         barriers data; must contain State and unranked
-    barrier_type : {"dams", "small_barriers"}
+    network_type : {"dams", "small_barriers"}
+        network scenario
+    barrier_type : {"dams", "small_barriers", "waterfalls"}, optional (default: None)
+        if present, used to filter barrier kind from network results
+    rank : bool, optional (default: True)
+        if True, results will include tiers for the Southeast and state level
 
     Returns
     -------
@@ -64,12 +69,14 @@ def get_network_results(df, barrier_type):
         Contains network metrics and tiers
     """
 
+    barrier_type = barrier_type or network_type
+
     huc2s = [huc2 for huc2 in df.HUC2.unique() if huc2]
 
     networks = (
         read_feathers(
             [
-                Path("data/networks/clean") / huc2 / f"{barrier_type}_network.feather"
+                Path("data/networks/clean") / huc2 / f"{network_type}_network.feather"
                 for huc2 in huc2s
             ],
             columns=NETWORK_COLUMNS,
@@ -102,7 +109,7 @@ def get_network_results(df, barrier_type):
             f"ERROR: multiple networks found for some {barrier_type} networks"
         )
 
-    networks = networks.join(df[["unranked", "State"]])
+    networks = networks.join(df[df.columns.intersection(["unranked", "State"])])
 
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total
@@ -137,6 +144,9 @@ def get_network_results(df, barrier_type):
         networks.PerennialGainMiles
     )
     networks["LandcoverClass"] = classify_landcover(networks.Landcover)
+
+    if not rank:
+        return networks.drop(columns=["unranked", "State"], errors="ignore")
 
     # only calculate ranks / tiers for ranked barriers
     # (exclude unranked invasive spp. barriers)

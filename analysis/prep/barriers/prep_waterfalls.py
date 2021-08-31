@@ -54,6 +54,7 @@ print("Reading waterfalls")
 
 df = gp.read_feather(src_dir / "waterfalls.feather")
 
+df.fall_type = df.fall_type.fillna("").str.strip()
 
 ### Drop records that indicate waterfall is not likely a current fish passage barrier
 ix = df.fall_type.isin(["dam", "historical rapids", "historical waterfall", "rapids"])

@@ -46,7 +46,12 @@ export const formatNumber = (number, decimals = null) => {
       maximumFractionDigits: targetDecimals,
     }
   )
-  if (formatted.length > 1 && formatted.endsWith('0')) {
+  // trim trailing 0's after decimal
+  if (
+    formatted.length > 1 &&
+    formatted.indexOf('.') > 0 &&
+    formatted.endsWith('0')
+  ) {
     formatted = formatted.slice(0, formatted.length - 1)
   }
   if (formatted.endsWith('.')) {

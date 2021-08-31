@@ -185,6 +185,36 @@ const PriorityMap = ({
 
       // add waterfalls
       map.addLayer(waterfallsLayer)
+      handleLayerClick(waterfallsLayer.id, (feature) => {
+        const {
+          properties,
+          geometry: {
+            coordinates: [lon, lat],
+          },
+        } = feature
+
+        // promote network fields
+        const networkFields = {}
+        Object.keys(properties)
+          .filter((k) => k.endsWith(barrierType))
+          .forEach((field) => {
+            networkFields[field.split('_')[0]] = properties[field]
+          })
+
+        onSelectBarrier({
+          ...properties,
+          ...networkFields,
+          barrierType: 'waterfalls',
+          HUC8Name: getHUCName('HUC8', properties.HUC8),
+          HUC12Name: getHUCName('HUC12', properties.HUC12),
+          lat,
+          lon,
+          hasnetwork: properties.hasnetwork,
+          ranked: false,
+        })
+      })
+
+      // add secondary dams layer
       map.addLayer({
         ...damsSecondaryLayer,
         layout: { visibility: barrierType === 'barriers' ? 'visible' : 'none' },

@@ -1,3 +1,9 @@
+export const barrierTypeLabels = {
+  dams: 'Dam',
+  barriers: 'Road-related barrier',
+  waterfalls: 'Waterfall',
+}
+
 export const STATE_FIPS = {
   '01': 'Alabama',
   '04': 'Arizona',

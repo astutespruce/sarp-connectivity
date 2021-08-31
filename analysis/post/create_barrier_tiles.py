@@ -17,6 +17,7 @@ from api.constants import (
 )
 from analysis.constants import GEO_CRS
 from analysis.post.lib.tiles import get_col_types
+from analysis.rank.lib.spatial_joins import add_spatial_joins
 
 api_dir = Path("data/api")
 barriers_dir = Path("data/barriers/master")
@@ -170,7 +171,7 @@ ranked_barriers.to_csv(csv_filename, index_label="id", quoting=csv.QUOTE_NONNUME
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z5", "-z16", "-B6"]
-    + ["-l", "dams"]
+    + ["-l", "barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(ranked_barriers, bool_cols={"protectedland"})
     + [str(csv_filename)],
@@ -216,6 +217,7 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 # Standardize other fields before merge
 road_crossings["Source"] = "USGS"
 road_crossings["Excluded"] = 0
+road_crossings.SARPID = "cr" + road_crossings.SARPID.astype(str)
 
 road_crossing_fields = road_crossings.columns.intersection(
     SB_CORE_FIELDS + ["HUC8", "HUC12", "CountyName", "State", "HasNetwork", "Excluded"]
@@ -284,7 +286,7 @@ ret = subprocess.run(
 ret.check_returncode()
 
 
-print("Joining small barriers tilesets")
+# print("Joining small barriers tilesets")
 mbtiles_filename = out_dir / "small_barriers.mbtiles"
 ret = subprocess.run(
     tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
@@ -295,31 +297,7 @@ print(f"Created small barriers tiles in {time() - start:,.2f}s")
 
 ### Create waterfalls tiles
 print("Creating waterfalls tiles")
-df = (
-    gp.read_feather(barriers_dir / "waterfalls.feather")
-    .set_index("id")
-    .drop(
-        columns=[
-            "level_0",
-            "index",
-            "dup_group",
-            "dup_count",
-            "dup_log",
-            "snap_dist",
-            "snap_tolerance",
-            "snap_log",
-            "log",
-            "lineID",
-            "wbID",
-        ],
-        errors="ignore",
-    )
-    .rename(columns={"StreamOrde": "StreamOrder",})
-)
-
-# set intermittent to -1 where waterfalls were not snapped to networks
-df.intermittent = df.intermittent.astype("int8")
-df.loc[~df.snapped, "intermittent"] = -1
+df = pd.read_feather(api_dir / "waterfalls.feather")
 
 to_lowercase = {
     k: k.lower()
@@ -327,22 +305,13 @@ to_lowercase = {
     if k not in UNIT_FIELDS + ["Subbasin", "Subwatershed"]
 }
 
-# drop any that should be DROPPED (dropped or duplicate) from the analysis
-# NOTE: excluded ones are retained but don't have networks
-df = df.loc[~(df.dropped | df.duplicate)].copy()
-
-### Add lat / lon
-print("Adding lat / lon fields")
-geo = df[["geometry"]].to_crs(GEO_CRS)
-geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
-geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
-df = df.join(geo[["lat", "lon"]])
-
-df = df[WF_CORE_FIELDS].copy()
 
 # Fill N/A values and fix dtypes
 str_cols = df.dtypes.loc[df.dtypes == "object"].index
 df[str_cols] = df[str_cols].fillna("")
+
+for col in ["HasNetwork", "ProtectedLand", "Excluded"]:
+    df[col] = df[col].astype("uint8")
 
 df = df.rename(columns=to_lowercase)
 
@@ -357,7 +326,7 @@ ret = subprocess.run(
     + ["-Z5", "-z16", "-B6"]
     + ["-l", "waterfalls"]
     + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(df)
+    + get_col_types(df, bool_cols={"protectedland", "excluded", "hasnetwork"})
     + [str(csv_filename)]
 )
 ret.check_returncode()

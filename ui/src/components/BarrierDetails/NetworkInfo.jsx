@@ -14,6 +14,7 @@ const inactiveSideCSS = {
 }
 
 const NetworkInfo = ({
+  barrierType,
   totalupstreammiles,
   perennialupstreammiles,
   alteredupstreammiles,
@@ -40,7 +41,7 @@ const NetworkInfo = ({
   return (
     <Box {...props}>
       <Entry sx={{ pb: '1rem' }}>
-        <Table sx={{ fontSize: 1 }} columns="5fr 2.5fr 2.5fr">
+        <Table sx={{ fontSize: 1 }} columns="11rem 1fr 1fr">
           <Row>
             <Box />
             <Box sx={{ fontSize: 0 }}>
@@ -105,66 +106,79 @@ const NetworkInfo = ({
             <Box>{formatNumber(freeunaltereddownstreammiles)}</Box>
           </Row>
         </Table>
-        <Table
-          columns="5fr 2.5fr 2.5fr"
-          sx={{
-            mt: '0.25rem',
-            pt: '0.25rem',
-            fontSize: 1,
-            borderTop: '3px solid',
-            borderTopColor: 'grey.2',
-          }}
-        >
-          <Row>
-            <Box>
-              <b>Total miles gained</b>
-            </Box>
-            <Box
-              sx={
-                gainMilesSide === 'upstream' ? activeSideCSS : inactiveSideCSS
-              }
-            >
-              {formatNumber(totalupstreammiles)}
-            </Box>
-            <Box
-              sx={
-                gainMilesSide === 'downstream' ? activeSideCSS : inactiveSideCSS
-              }
-            >
-              {formatNumber(freedownstreammiles)}
-            </Box>
-          </Row>
-          <Row>
-            <Box>
-              <b>Perennial miles gained</b>
-            </Box>
-            <Box
-              sx={
-                perennialGainMilesSide === 'upstream'
-                  ? activeSideCSS
-                  : inactiveSideCSS
-              }
-            >
-              {formatNumber(perennialupstreammiles)}
-            </Box>
-            <Box
-              sx={
-                perennialGainMilesSide === 'downstream'
-                  ? activeSideCSS
-                  : inactiveSideCSS
-              }
-            >
-              {formatNumber(freeperennialdownstreammiles)}
-            </Box>
-          </Row>
-        </Table>
+
+        {barrierType !== 'waterfalls' ? (
+          <Table
+            columns="11rem 1fr 1fr"
+            sx={{
+              mt: '0.25rem',
+              pt: '0.25rem',
+              fontSize: 1,
+              borderTop: '3px solid',
+              borderTopColor: 'grey.2',
+            }}
+          >
+            <Row>
+              <Box>
+                <b>Total miles gained</b>
+              </Box>
+              <Box
+                sx={
+                  gainMilesSide === 'upstream' ? activeSideCSS : inactiveSideCSS
+                }
+              >
+                {formatNumber(totalupstreammiles)}
+              </Box>
+              <Box
+                sx={
+                  gainMilesSide === 'downstream'
+                    ? activeSideCSS
+                    : inactiveSideCSS
+                }
+              >
+                {formatNumber(freedownstreammiles)}
+              </Box>
+            </Row>
+            <Row>
+              <Box>
+                <b>Perennial miles gained</b>
+              </Box>
+              <Box
+                sx={
+                  perennialGainMilesSide === 'upstream'
+                    ? activeSideCSS
+                    : inactiveSideCSS
+                }
+              >
+                {formatNumber(perennialupstreammiles)}
+              </Box>
+              <Box
+                sx={
+                  perennialGainMilesSide === 'downstream'
+                    ? activeSideCSS
+                    : inactiveSideCSS
+                }
+              >
+                {formatNumber(freeperennialdownstreammiles)}
+              </Box>
+            </Row>
+          </Table>
+        ) : null}
       </Entry>
 
-      <Entry>
-        <b>{sizeclasses}</b> river size{' '}
-        {sizeclasses === 1 ? 'class' : 'classes'} could be gained by removing
-        this barrier
-      </Entry>
+      {barrierType === 'waterfalls' ? (
+        <Entry>
+          <b>{sizeclasses}</b> river size{' '}
+          {sizeclasses === 1 ? 'class is' : 'classes are'} upstream of this
+          waterfall
+        </Entry>
+      ) : (
+        <Entry>
+          <b>{sizeclasses}</b> river size{' '}
+          {sizeclasses === 1 ? 'class' : 'classes'} could be gained by removing
+          this barrier
+        </Entry>
+      )}
       <Entry>
         <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain is
         composed of natural landcover
@@ -174,6 +188,7 @@ const NetworkInfo = ({
 }
 
 NetworkInfo.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,

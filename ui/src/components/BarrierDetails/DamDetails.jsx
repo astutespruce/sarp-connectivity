@@ -23,6 +23,7 @@ import NetworkInfo from './NetworkInfo'
 const { version: dataVersion } = siteMetadata
 
 const DamDetails = ({
+  barrierType,
   sarpid,
   lat,
   lon,
@@ -148,6 +149,7 @@ const DamDetails = ({
     <Section title="Functional network information">
       {hasnetwork ? (
         <NetworkInfo
+          barrierType={barrierType}
           totalupstreammiles={totalupstreammiles}
           perennialupstreammiles={perennialupstreammiles}
           alteredupstreammiles={alteredupstreammiles}
@@ -248,23 +250,23 @@ const DamDetails = ({
       )}
 
       {/* watershed priorities */}
-      {huc8_usfs > 0 && (
+      {huc8_usfs > 0 ? (
         <Entry>
           Within USFS {HUC8_USFS[huc8_usfs]} priority watershed.{' '}
           <a href="/usfs_priority_watersheds" target="_blank">
             Read more.
           </a>
         </Entry>
-      )}
-      {huc8_coa > 0 && (
+      ) : null}
+      {huc8_coa > 0 ? (
         <Entry>
           Within a SARP conservation opportunity area.{' '}
           <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
             Read more.
           </OutboundLink>
         </Entry>
-      )}
-      {huc8_sgcn > 0 && (
+      ) : null}
+      {huc8_sgcn > 0 ? (
         <Entry>
           Within one of the top 10 watersheds in this state based on number of
           state-listed Species of Greatest Conservation Need.{' '}
@@ -272,7 +274,7 @@ const DamDetails = ({
             Read more.
           </a>
         </Entry>
-      )}
+      ) : null}
     </Section>
 
     <Section title="Other information">
@@ -298,6 +300,7 @@ const DamDetails = ({
 )
 
 DamDetails.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,

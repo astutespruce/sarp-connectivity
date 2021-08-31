@@ -8,8 +8,10 @@ import { Tab, Tabs } from 'components/Tabs'
 import { isEmptyString } from 'util/string'
 import DamDetails from './DamDetails'
 import SmallBarrierDetails from './SmallBarrierDetails'
+import WaterfallDetails from './WaterfallDetails'
 import Scores from './Scores'
 import { BarrierPropType } from './proptypes'
+import { barrierTypeLabels } from '../../../config/constants'
 
 import { siteMetadata } from '../../../gatsby-config'
 
@@ -29,19 +31,30 @@ const BarrierDetails = ({ barrier, onClose }) => {
     ncwc_tier,
   } = barrier
 
-  const typeLabel = barrierType === 'dams' ? 'dam' : 'road-related barrier'
+  const typeLabel = barrierTypeLabels[barrierType].toLowerCase()
 
-  const details =
-    barrierType === 'dams' ? (
-      <DamDetails {...barrier} />
-    ) : (
-      <SmallBarrierDetails {...barrier} />
-    )
+  let details = null
+  switch (barrierType) {
+    case 'dams': {
+      details = <DamDetails {...barrier} />
+      break
+    }
+    case 'barriers': {
+      details = <SmallBarrierDetails {...barrier} />
+      break
+    }
+    case 'waterfalls': {
+      details = <WaterfallDetails {...barrier} />
+      break
+    }
+    default: {
+      break
+    }
+  }
 
-  const defaultName =
-    barrierType === 'dams'
-      ? `Unknown dam name (SARPID: ${sarpid})`
-      : `Unnamed crossing (SARPID: ${sarpid})`
+  const defaultName = `Unknown ${typeLabel} name${
+    sarpid ? ` (SARPID: ${sarpid})` : ''
+  }`
 
   let scoreContent = null
   if (ranked) {
@@ -137,58 +150,72 @@ const BarrierDetails = ({ barrier, onClose }) => {
             &#10006;
           </Button>
         </Flex>
-        <Box>
-          <a
-            href={`/report/${barrierType}/${sarpid}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <Flex
-              sx={{
-                alignItems: 'center',
-                flex: '1 1 auto',
-                mt: '0.15rem',
-              }}
-            >
-              <Box sx={{ flex: '0 0 auto', color: 'link', mr: '0.25rem' }}>
-                <FileDownload size="1em" />
-              </Box>
-              <Text>Create PDF report</Text>
-            </Flex>
-          </a>
-        </Box>
-      </Box>
-      <Tabs
-        sx={{
-          flex: '1 1 auto',
-          overflow: 'hidden',
-        }}
-      >
-        <Tab id="details" label="Overview">
-          {details}
-        </Tab>
-        <Tab id="ranks" label="Connectivity Ranks">
-          {scoreContent}
-        </Tab>
-      </Tabs>
 
-      <Flex
-        sx={{
-          flex: '0 0 auto',
-          justifyContent: 'center',
-          alignItems: 'center',
-          py: '0.5rem',
-          borderTop: '1px solid #DDD',
-          bg: '#f6f6f2',
-        }}
-      >
-        <a
-          href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${typeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+        {barrierType !== 'waterfalls' ? (
+          <Box>
+            <a
+              href={`/report/${barrierType}/${sarpid}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Flex
+                sx={{
+                  alignItems: 'center',
+                  flex: '1 1 auto',
+                  mt: '0.15rem',
+                }}
+              >
+                <Box sx={{ flex: '0 0 auto', color: 'link', mr: '0.25rem' }}>
+                  <FileDownload size="1em" />
+                </Box>
+                <Text>Create PDF report</Text>
+              </Flex>
+            </a>
+          </Box>
+        ) : null}
+      </Box>
+
+      {barrierType === 'waterfalls' ? (
+        <Box
+          sx={{ flex: '1 1 auto', px: '1rem', pb: '1rem', overflowY: 'auto' }}
         >
-          <Envelope size="1rem" style={{ marginRight: '0.25rem' }} /> Report a
-          problem with this barrier
-        </a>
-      </Flex>
+          {details}
+        </Box>
+      ) : (
+        <Tabs
+          sx={{
+            flex: '1 1 auto',
+            overflow: 'hidden',
+          }}
+        >
+          <Tab id="details" label="Overview">
+            {details}
+          </Tab>
+          <Tab id="ranks" label="Connectivity Ranks">
+            {scoreContent}
+          </Tab>
+        </Tabs>
+      )}
+
+      {sarpid ? (
+        <Flex
+          sx={{
+            flex: '0 0 auto',
+            justifyContent: 'center',
+            alignItems: 'center',
+            py: '0.5rem',
+            borderTop: '1px solid #DDD',
+            bg: '#f6f6f2',
+          }}
+        >
+          <a
+            href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${typeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+          >
+            <Envelope size="1rem" style={{ marginRight: '0.25rem' }} /> Report a
+            problem with this barrier
+          </a>
+        </Flex>
+      ) : null}
     </>
   )
 }

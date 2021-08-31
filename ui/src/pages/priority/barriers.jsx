@@ -1,6 +1,6 @@
 import React from 'react'
 
-import Layout, { ClientOnly } from 'components/Layout'
+import { Layout, ClientOnly } from 'components/Layout'
 import { Provider as CrossfilterProvider } from 'components/Crossfilter'
 import { PrioritizeWorkflow } from 'components/Priority'
 import { BarrierTypeProvider } from 'components/Data'

@@ -324,7 +324,32 @@ SB_PUBLIC_EXPORT_FIELDS = unique(
     SB_CORE_FIELDS + UNIT_FIELDS + ["HasNetwork", "Excluded"] + METRIC_FIELDS
 )
 
-WF_CORE_FIELDS = ["HUC8", "HUC12", "lat", "lon", "Name", "intermittent"]
+WF_CORE_FIELDS = [
+    "HUC8",
+    "HUC12",
+    "lat",
+    "lon",
+    "Name",
+    "Source",
+    "Stream",
+    "FallType",
+    "StreamOrder",
+    "Intermittent",
+    "Excluded",
+    "TESpp",
+    "StateSGCNSpp",
+    "RegionalSGCNSpp",
+    "OwnerType",
+    "ProtectedLand",
+    # Priority watersheds
+    "HUC8_USFS",
+    "HUC8_COA",
+    "HUC8_SGCN",
+    # Watershed names
+    "Basin",
+    "Subbasin",
+    "Subwatershed",
+]
 
 
 ### Domains for coded values in exported data

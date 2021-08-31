@@ -286,7 +286,12 @@ const SummaryMap = ({
           },
         } = feature
 
-        // dam or barrier
+        const {
+          hasnetwork = sourceLayer !== 'background',
+          ranked = sourceLayer !== 'background' && source !== 'waterfalls',
+        } = properties
+
+        // dam, barrier, waterfall
         onSelectBarrier({
           ...properties,
           HUC8Name,
@@ -294,11 +299,8 @@ const SummaryMap = ({
           barrierType: source,
           lat,
           lon,
-          hasnetwork:
-            sourceLayer === 'background'
-              ? properties.hasnetwork || false
-              : true,
-          ranked: sourceLayer !== 'background',
+          hasnetwork,
+          ranked,
         })
       }
     })

@@ -7,7 +7,6 @@ const Entry = ({ children, sx, ...props }) => (
     {...props}
     sx={{
       display: 'inline',
-      color: 'grey.8',
       ...sx,
     }}
   >

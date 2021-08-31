@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
 import { Box, Flex, Text } from 'theme-ui'
 
 import { Layout, ClientOnly } from 'components/Layout'
@@ -24,6 +24,7 @@ const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
 const SummaryPage = () => {
   const [system, setSystem] = useState('HUC')
   const [barrierType, setBarrierType] = useState('dams')
+  const barrierTypeRef = useRef('dams') // ref that parallels above state for use in callbacks
   const [searchFeature, setSearchFeature] = useState(null)
   const [selectedUnit, setSelectedUnit] = useState(null)
   const [selectedBarrier, setSelectedBarrier] = useState(null)
@@ -34,6 +35,7 @@ const SummaryPage = () => {
 
   const handleSetBarrierType = (nextBarrierType) => {
     setBarrierType(nextBarrierType)
+    barrierTypeRef.current = nextBarrierType
     setSelectedBarrier(null)
   }
 
@@ -54,7 +56,24 @@ const SummaryPage = () => {
 
   const handleSelectBarrier = (feature) => {
     console.log('selected:', feature)
-    setSelectedBarrier(feature)
+
+    // promote appropriate network results
+    if (feature && feature.barrierType === 'waterfalls') {
+      const curBarrierType = barrierTypeRef.current
+      const networkFields = {}
+      Object.keys(feature)
+        .filter((k) => k.endsWith(curBarrierType))
+        .forEach((field) => {
+          networkFields[field.split('_')[0]] = feature[field]
+        })
+      setSelectedBarrier({
+        ...feature,
+        ...networkFields,
+      })
+    } else {
+      setSelectedBarrier(feature)
+    }
+
     setSelectedUnit(null)
   }
 

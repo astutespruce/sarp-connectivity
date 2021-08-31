@@ -8,6 +8,11 @@ Vector tiles are created to display the summary statistics by summary unit, as w
 
 Run `analysis/post/extract_summary_stats.py` to generate an overall summary file used by the user interface in the tool.
 
+### Waterfall networks
+
+Run `analysis/post/extract_waterfall_networks.py` to extract network statistics from the dams and small
+barrier network results, which is used to make tiles below.
+
 ### Vector tiles
 
 Final tiles for deployment are output to `/tiles`

@@ -19,6 +19,7 @@ import NetworkInfo from './NetworkInfo'
 const { version: dataVersion } = siteMetadata
 
 const BarrierDetails = ({
+  barrierType,
   sarpid,
   lat,
   lon,
@@ -104,11 +105,11 @@ const BarrierDetails = ({
           </Entry>
         ) : null}
 
-        {ownertype && ownertype > 0 && (
+        {ownertype && ownertype > 0 ? (
           <Entry>
             <Field>Conservation land type:</Field> {OWNERTYPE[ownertype]}
           </Entry>
-        )}
+        ) : null}
       </Section>
 
       <Section title="Barrier information">
@@ -137,6 +138,7 @@ const BarrierDetails = ({
       <Section title="Functional network information">
         {hasnetwork ? (
           <NetworkInfo
+            barrierType={barrierType}
             totalupstreammiles={totalupstreammiles}
             perennialupstreammiles={perennialupstreammiles}
             alteredupstreammiles={alteredupstreammiles}
@@ -230,47 +232,38 @@ const BarrierDetails = ({
             No regionally-listed aquatic Species of Greatest Conservation Need
             (SGCN) have been identified by available data sources for this
             subwatershed.
-            <Paragraph variant="help" sx={{ mt: '1rem' }}>
-              Species information is very incomplete; important species may not
-              be represented within the available data.{' '}
-              <a href="/sgcn" target="_blank">
-                Read more.
-              </a>
-            </Paragraph>
           </Entry>
         )}
 
-        {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
-          <Paragraph variant="help" sx={{ mt: '1rem' }}>
-            Note: species information is very incomplete. These species may or
-            may not be directly impacted by this barrier.{' '}
-            <a href="/sgcn" target="_blank">
-              Read more.
-            </a>
-          </Paragraph>
-        ) : null}
+        <Paragraph variant="help" sx={{ mt: '1rem' }}>
+          Note: species information is very incomplete. These species may or may
+          not be directly impacted by this barrier.{' '}
+          <a href="/sgcn" target="_blank">
+            Read more.
+          </a>
+        </Paragraph>
       </Section>
 
-      {huc8_usfs + huc8_coa + huc8_sgcn > 0 && (
+      {huc8_usfs + huc8_coa + huc8_sgcn > 0 ? (
         <Section title="Feasibility & conservation benefit">
           {/* watershed priorities */}
-          {huc8_usfs > 0 && (
+          {huc8_usfs > 0 ? (
             <Entry>
               Within USFS {HUC8_USFS[huc8_usfs]} priority watershed.{' '}
               <a href="/usfs_priority_watersheds" target="_blank">
                 Read more.
               </a>
             </Entry>
-          )}
-          {huc8_coa > 0 && (
+          ) : null}
+          {huc8_coa > 0 ? (
             <Entry>
               Within a SARP conservation opportunity area.{' '}
               <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
                 Read more.
               </OutboundLink>
             </Entry>
-          )}
-          {huc8_sgcn > 0 && (
+          ) : null}
+          {huc8_sgcn > 0 ? (
             <Entry>
               Within one of the top 10 watersheds in this state based on number
               of state-listed Species of Greatest Conservation Need.{' '}
@@ -278,9 +271,9 @@ const BarrierDetails = ({
                 Read more.
               </a>
             </Entry>
-          )}
+          ) : null}
         </Section>
-      )}
+      ) : null}
 
       {!isEmptyString(source) || !isCrossing ? (
         <Section title="Other information">
@@ -302,6 +295,7 @@ const BarrierDetails = ({
 }
 
 BarrierDetails.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
