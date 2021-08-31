@@ -143,7 +143,6 @@ df = df.join(geo[["lat", "lon"]])
 
 ### Get network results
 networks = get_network_results(df, "dams")
-
 df = df.join(networks)
 
 # True if the barrier was snapped to a network and has network results in the

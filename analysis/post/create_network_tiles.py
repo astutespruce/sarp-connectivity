@@ -40,13 +40,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
     print(f"\n\n===========================\nProcessing group {group}")
     segments = read_feathers(
         [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
-        columns=[
-            "lineID",
-            "dams_all",
-            "dams_perennial",
-            "small_barriers_all",
-            "small_barriers_perennial",
-        ],
+        columns=["lineID", "dams", "small_barriers",],
     ).set_index("lineID")
 
     # create output files by HUC2 based on where the segments occur

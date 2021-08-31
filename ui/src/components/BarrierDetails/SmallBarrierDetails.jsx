@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Paragraph, Text } from 'theme-ui'
 
+import { Entry, Field, Section } from 'components/Sidebar'
 import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
@@ -12,6 +13,8 @@ import {
   OWNERTYPE,
   HUC8_USFS,
 } from '../../../config/constants'
+
+import NetworkInfo from './NetworkInfo'
 
 const { version: dataVersion } = siteMetadata
 
@@ -41,10 +44,14 @@ const BarrierDetails = ({
   huc8_sgcn,
   severityclass,
   // metrics
-  freeupstreammiles,
-  freedownstreammiles,
   totalupstreammiles,
-  totaldownstreammiles,
+  perennialupstreammiles,
+  alteredupstreammiles,
+  unalteredupstreammiles,
+  freedownstreammiles,
+  freeperennialdownstreammiles,
+  freealtereddownstreammiles,
+  freeunaltereddownstreammiles,
   landcover,
   sizeclasses,
 }) => {
@@ -53,269 +60,242 @@ const BarrierDetails = ({
   return (
     <Box
       sx={{
-        '&>div+div': {
-          mt: '0.5rem',
-          pt: '0.5rem',
-          borderTop: '1px solid',
-          borderTopColor: 'grey.2',
-        },
+        mt: '-1rem',
+        mx: '-1rem',
       }}
     >
-      <Box>
-        <Text sx={{ fontWeight: 'bold' }}>Location</Text>
-        <Box as="ul" sx={{ mt: '0.5rem' }}>
-          <li>
-            Coordinates: {formatNumber(lat, 3)}
-            &deg; N, {formatNumber(lon, 3)}
-            &deg; E
-          </li>
-          {!isEmptyString(stream) ? <li>River or stream: {stream}</li> : null}
-          {!isEmptyString(road) ? <li>Road: {road}</li> : null}
+      <Section title="Location">
+        <Entry>
+          {isCrossing
+            ? 'Road / stream crossing'
+            : 'Road-related potential barrier'}{' '}
+          at {formatNumber(lat, 3)}
+          &deg; N, {formatNumber(lon, 3)}
+          &deg; E
+        </Entry>
+        {!isEmptyString(stream) ? (
+          <Entry>
+            <Field>River or stream:</Field> {stream}
+          </Entry>
+        ) : null}
+        {!isEmptyString(road) ? (
+          <Entry>
+            <Field>Road:</Field> {road}
+          </Entry>
+        ) : null}
 
-          {intermittent === 1 ? (
-            <li>Located on a reach that has intermittent or ephemeral flow</li>
-          ) : null}
+        {intermittent === 1 ? (
+          <Entry>
+            Located on a reach that has intermittent or ephemeral flow
+          </Entry>
+        ) : null}
 
-          {HUC12Name ? (
-            <li>
-              {HUC12Name} Subwatershed{' '}
-              <Paragraph variant="help">(HUC12: {HUC12})</Paragraph>
-            </li>
-          ) : null}
+        {HUC12Name ? (
+          <Entry>
+            {HUC12Name} Subwatershed{' '}
+            <Paragraph variant="help">(HUC12: {HUC12})</Paragraph>
+          </Entry>
+        ) : null}
 
-          {HUC8Name ? (
-            <li>
-              {HUC8Name} Subbasin{' '}
-              <Paragraph variant="help">(HUC8: {HUC8})</Paragraph>
-            </li>
-          ) : null}
+        {HUC8Name ? (
+          <Entry>
+            {HUC8Name} Subbasin{' '}
+            <Paragraph variant="help">(HUC8: {HUC8})</Paragraph>
+          </Entry>
+        ) : null}
 
-          {ownertype && ownertype > 0 && (
-            <li>Conservation land type: {OWNERTYPE[ownertype]}</li>
-          )}
-        </Box>
-      </Box>
+        {ownertype && ownertype > 0 && (
+          <Entry>
+            <Field>Conservation land type:</Field> {OWNERTYPE[ownertype]}
+          </Entry>
+        )}
+      </Section>
 
-      <Box>
-        <Text sx={{ fontWeight: 'bold' }}>Barrier information</Text>
-        <Box as="ul" sx={{ mt: '0.5rem' }}>
-          <li>
-            Barrier type:{' '}
-            {isCrossing
-              ? 'road / stream crossing'
-              : 'road-related potential barrier'}
-          </li>
-          {!isEmptyString(roadtype) ? <li>Road type: {roadtype}</li> : null}
-          {!isEmptyString(crossingtype) ? (
-            <li>Crossing type: {crossingtype}</li>
-          ) : null}
-          {!isEmptyString(condition) ? <li>Condition: {condition}</li> : null}
-          {severityclass !== null ? (
-            <li>Severity: {BARRIER_SEVERITY[severityclass]}</li>
-          ) : null}
-        </Box>
-      </Box>
+      <Section title="Barrier information">
+        {!isEmptyString(roadtype) ? (
+          <Entry>
+            <Field>Road type:</Field> {roadtype}
+          </Entry>
+        ) : null}
+        {!isEmptyString(crossingtype) ? (
+          <Entry>
+            <Field>Crossing type:</Field> {crossingtype}
+          </Entry>
+        ) : null}
+        {!isEmptyString(condition) ? (
+          <Entry>
+            <Field>Condition:</Field> {condition}
+          </Entry>
+        ) : null}
+        {severityclass !== null ? (
+          <Entry>
+            <Field>Severity:</Field> {BARRIER_SEVERITY[severityclass]}
+          </Entry>
+        ) : null}
+      </Section>
 
-      <Box>
-        <Text sx={{ fontWeight: 'bold' }}>Functional network information</Text>
-        <Box as="ul" sx={{ mt: '0.5rem' }}>
-          {hasnetwork ? (
-            <>
-              <li>
-                <b>
-                  {formatNumber(
-                    Math.min(totalupstreammiles, freedownstreammiles)
-                  )}{' '}
-                  miles
-                </b>{' '}
-                could be gained by removing this barrier.
-                <Box as="ul" sx={{ mt: '0.5rem' }}>
-                  <li>
-                    {formatNumber(freeupstreammiles)} free-flowing miles
-                    upstream
-                    <ul>
-                      <li>
-                        <b>{formatNumber(totalupstreammiles)} total miles</b> in
-                        the upstream network
-                      </li>
-                    </ul>
-                  </li>
-
-                  <li>
-                    <b>
-                      {formatNumber(freedownstreammiles)} free-flowing miles
-                    </b>{' '}
-                    in the downstream network
-                    <ul>
-                      <li>
-                        {formatNumber(totaldownstreammiles)} total miles in the
-                        downstream network
-                      </li>
-                    </ul>
-                  </li>
-                </Box>
-              </li>
-              <li>
-                <b>{sizeclasses}</b> river size{' '}
-                {sizeclasses === 1 ? 'class' : 'classes'} could be gained by
-                removing this barrier
-              </li>
-              <li>
-                <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain
-                is composed of natural landcover
-              </li>
-            </>
-          ) : (
-            <>
-              {excluded ? (
-                <li>
-                  This dam was excluded from the connectivity analysis based on
-                  field reconnaissance or manual review of aerial imagery.
-                </li>
-              ) : (
-                <>
-                  {isCrossing ? (
-                    <li>
-                      This crossing has not yet been evaluated for aquatic
-                      connectivity.
-                    </li>
-                  ) : (
-                    <>
-                      <li>
+      <Section title="Functional network information">
+        {hasnetwork ? (
+          <NetworkInfo
+            totalupstreammiles={totalupstreammiles}
+            perennialupstreammiles={perennialupstreammiles}
+            alteredupstreammiles={alteredupstreammiles}
+            unalteredupstreammiles={unalteredupstreammiles}
+            freedownstreammiles={freedownstreammiles}
+            freeperennialdownstreammiles={freeperennialdownstreammiles}
+            freealtereddownstreammiles={freealtereddownstreammiles}
+            freeunaltereddownstreammiles={freeunaltereddownstreammiles}
+            sizeclasses={sizeclasses}
+            landcover={landcover}
+          />
+        ) : (
+          <>
+            {excluded ? (
+              <Entry>
+                This road-related barrier was excluded from the connectivity
+                analysis based on field reconnaissance or manual review of
+                aerial imagery.
+              </Entry>
+            ) : (
+              <>
+                {isCrossing ? (
+                  <Entry>
+                    This crossing has not yet been evaluated for aquatic
+                    connectivity.
+                  </Entry>
+                ) : (
+                  <>
+                    <Entry>
+                      <Text>
                         This barrier is off-network and has no functional
                         network information.
-                      </li>
-                      <Paragraph variant="help">
+                      </Text>
+                      <Paragraph variant="help" sx={{ mt: '1rem' }}>
                         Not all barriers could be correctly snapped to the
                         aquatic network for analysis. Please contact us to
                         report an error or for assistance interpreting these
                         results.
                       </Paragraph>
-                    </>
-                  )}
-                </>
-              )}
-            </>
-          )}
-        </Box>
-      </Box>
+                    </Entry>
+                  </>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </Section>
 
-      <Box>
-        <Text sx={{ fontWeight: 'bold' }}>Species information</Text>
-        <Box as="ul" sx={{ mt: '0.5rem' }}>
-          {tespp > 0 ? (
-            <>
-              <li>
-                <b>{tespp}</b> federally-listed threatened and endangered
-                aquatic species have been found in the subwatershed containing
-                this barrier.
-              </li>
-            </>
-          ) : (
-            <li>
-              No federally-listed threatened and endangered aquatic species have
-              been identified by available data sources for this subwatershed.
-            </li>
-          )}
+      <Section title="Species information">
+        {tespp > 0 ? (
+          <>
+            <Entry>
+              <b>{tespp}</b> federally-listed threatened and endangered aquatic
+              species have been found in the subwatershed containing this
+              barrier.
+            </Entry>
+          </>
+        ) : (
+          <Entry>
+            No federally-listed threatened and endangered aquatic species have
+            been identified by available data sources for this subwatershed.
+          </Entry>
+        )}
 
-          {statesgcnspp > 0 ? (
-            <>
-              <li>
-                <b>{statesgcnspp}</b> state-listed aquatic species of greatest
-                conservation need have been found in the subwatershed containing
-                this barrier. These may include state-listed threatened and
-                endangered species.
-              </li>
-            </>
-          ) : (
-            <li>
-              No state-listed aquatic species of greatest conservation need have
-              been identified by available data sources for this subwatershed.
-            </li>
-          )}
+        {statesgcnspp > 0 ? (
+          <>
+            <Entry>
+              <b>{statesgcnspp}</b> state-listed aquatic species of greatest
+              conservation need have been found in the subwatershed containing
+              this barrier. These may include state-listed threatened and
+              endangered species.
+            </Entry>
+          </>
+        ) : (
+          <Entry>
+            No state-listed aquatic species of greatest conservation need have
+            been identified by available data sources for this subwatershed.
+          </Entry>
+        )}
 
-          {regionalsgcnspp > 0 ? (
-            <>
-              <li>
-                <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of
-                Greatest Conservation Need (SGCN) have been found in the
-                subwatershed containing this barrier.
-              </li>
-            </>
-          ) : (
-            <li>
-              No regionally-listed aquatic Species of Greatest Conservation Need
-              (SGCN) have been identified by available data sources for this
-              subwatershed.
-              <Paragraph variant="help" sx={{ mt: '1rem' }}>
-                Species information is very incomplete; important species may
-                not be represented within the available data.{' '}
-                <a href="/sgcn" target="_blank">
-                  Read more.
-                </a>
-              </Paragraph>
-            </li>
-          )}
-
-          {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
+        {regionalsgcnspp > 0 ? (
+          <>
+            <Entry>
+              <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of
+              Greatest Conservation Need (SGCN) have been found in the
+              subwatershed containing this barrier.
+            </Entry>
+          </>
+        ) : (
+          <Entry>
+            No regionally-listed aquatic Species of Greatest Conservation Need
+            (SGCN) have been identified by available data sources for this
+            subwatershed.
             <Paragraph variant="help" sx={{ mt: '1rem' }}>
-              Note: species information is very incomplete. These species may or
-              may not be directly impacted by this barrier.{' '}
+              Species information is very incomplete; important species may not
+              be represented within the available data.{' '}
               <a href="/sgcn" target="_blank">
                 Read more.
               </a>
             </Paragraph>
-          ) : null}
-        </Box>
-      </Box>
+          </Entry>
+        )}
+
+        {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
+          <Paragraph variant="help" sx={{ mt: '1rem' }}>
+            Note: species information is very incomplete. These species may or
+            may not be directly impacted by this barrier.{' '}
+            <a href="/sgcn" target="_blank">
+              Read more.
+            </a>
+          </Paragraph>
+        ) : null}
+      </Section>
 
       {huc8_usfs + huc8_coa + huc8_sgcn > 0 && (
-        <Box>
-          <Text sx={{ fontWeight: 'bold' }}>Conservation Benefit</Text>
-          <Box as="ul" sx={{ mt: '0.5rem' }}>
-            {/* watershed priorities */}
-            {huc8_usfs > 0 && (
-              <li>
-                Within USFS {HUC8_USFS[huc8_usfs]} priority watershed.{' '}
-                <a href="/usfs_priority_watersheds" target="_blank">
-                  Read more.
-                </a>
-              </li>
-            )}
-            {huc8_coa > 0 && (
-              <li>
-                Within a SARP conservation opportunity area.{' '}
-                <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
-                  Read more.
-                </OutboundLink>
-              </li>
-            )}
-            {huc8_sgcn > 0 && (
-              <li>
-                Within one of the top 10 watersheds in this state based on
-                number of state-listed Species of Greatest Conservation Need.{' '}
-                <a href="/sgcn" target="_blank">
-                  Read more.
-                </a>
-              </li>
-            )}
-          </Box>
-        </Box>
+        <Section title="Feasibility & conservation benefit">
+          {/* watershed priorities */}
+          {huc8_usfs > 0 && (
+            <Entry>
+              Within USFS {HUC8_USFS[huc8_usfs]} priority watershed.{' '}
+              <a href="/usfs_priority_watersheds" target="_blank">
+                Read more.
+              </a>
+            </Entry>
+          )}
+          {huc8_coa > 0 && (
+            <Entry>
+              Within a SARP conservation opportunity area.{' '}
+              <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
+                Read more.
+              </OutboundLink>
+            </Entry>
+          )}
+          {huc8_sgcn > 0 && (
+            <Entry>
+              Within one of the top 10 watersheds in this state based on number
+              of state-listed Species of Greatest Conservation Need.{' '}
+              <a href="/sgcn" target="_blank">
+                Read more.
+              </a>
+            </Entry>
+          )}
+        </Section>
       )}
 
       {!isEmptyString(source) || !isCrossing ? (
-        <>
-          <Text sx={{ fontWeight: 'bold' }}>Other information</Text>
-          <Box as="ul" sx={{ mt: '0.5rem' }}>
-            {!isCrossing ? (
-              <li>
-                SARP ID: {sarpid} (data version: {dataVersion})
-              </li>
-            ) : null}
+        <Section title="Other information">
+          {!isCrossing ? (
+            <Entry>
+              <Field>SARP ID:</Field> {sarpid} (data version: {dataVersion})
+            </Entry>
+          ) : null}
 
-            {!isEmptyString(source) ? <li>Source: {source}</li> : null}
-          </Box>
-        </>
+          {!isEmptyString(source) ? (
+            <Entry>
+              <Field>Source:</Field> {source}
+            </Entry>
+          ) : null}
+        </Section>
       ) : null}
     </Box>
   )
@@ -329,7 +309,7 @@ BarrierDetails.propTypes = {
   excluded: PropTypes.bool,
   source: PropTypes.string,
   stream: PropTypes.string,
-  intermittent: PropTypes.string,
+  intermittent: PropTypes.number,
   HUC8: PropTypes.string,
   HUC12: PropTypes.string,
   HUC8Name: PropTypes.string,

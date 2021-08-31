@@ -107,7 +107,7 @@ print(f"Now have {len(df):,} road crossings")
 
 df = df.rename(columns={"FULLNAME": "Road", "GNIS_NAME": "Stream", "RDXID": "SARPID"})
 # Cleanup fields
-df.SARPID = df.SARPID.astype("uint")
+df.SARPID = df.SARPID.astype("str")  # match dtype of SARPID elsewhere
 df["id"] = df.index.astype("uint")
 df.Stream = df.Stream.str.strip().fillna("")
 df.Road = df.Road.str.strip().fillna("")

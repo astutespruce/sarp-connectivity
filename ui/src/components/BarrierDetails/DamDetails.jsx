@@ -70,7 +70,7 @@ const DamDetails = ({
   >
     <Section title="Location">
       <Entry>
-        {formatNumber(lat, 3)}
+        Dam at {formatNumber(lat, 3)}
         &deg; N / {formatNumber(lon, 3)}
         &deg; E
       </Entry>
@@ -101,17 +101,14 @@ const DamDetails = ({
         </Entry>
       ) : null}
 
-      {ownertype && ownertype > 0 && (
+      {ownertype && ownertype > 0 ? (
         <Entry>
           <Field>Conservation land type:</Field> {OWNERTYPE[ownertype]}
         </Entry>
-      )}
+      ) : null}
     </Section>
 
     <Section title="Construction information">
-      <Entry>
-        <Field>Barrier type:</Field> dam
-      </Entry>
       {year > 0 ? (
         <Entry>
           <Field>Constructed completed:</Field> {year}
@@ -191,7 +188,7 @@ const DamDetails = ({
         <>
           <Entry>
             <b>{tespp}</b> federally-listed threatened and endangered aquatic
-            species have been found in the subwatershed containing this barrier.
+            species have been found in the subwatershed containing this dam.
           </Entry>
         </>
       ) : (
@@ -206,8 +203,8 @@ const DamDetails = ({
           <Entry>
             <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
             Conservation Need (SGCN) have been found in the subwatershed
-            containing this barrier. These may include state-listed threatened
-            and endangered species.
+            containing this dam. These may include state-listed threatened and
+            endangered species.
           </Entry>
         </>
       ) : (
@@ -222,7 +219,7 @@ const DamDetails = ({
           <Entry>
             <b>{regionalsgcnspp}</b> regionally-listed aquatic species of
             greatest conservation need have been found in the subwatershed
-            containing this barrier.
+            containing this dam.
           </Entry>
         </>
       ) : (
@@ -235,7 +232,7 @@ const DamDetails = ({
       {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
         <Paragraph variant="help" sx={{ mt: '1rem' }}>
           Note: species information is very incomplete. These species may or may
-          not be directly impacted by this barrier.{' '}
+          not be directly impacted by this dam.{' '}
           <a href="/sgcn" target="_blank">
             Read more.
           </a>
@@ -247,7 +244,7 @@ const DamDetails = ({
       {recon !== null ? (
         <Entry>{RECON[recon]}</Entry>
       ) : (
-        <Entry>No feasibility information is available for this barrier.</Entry>
+        <Entry>No feasibility information is available for this dam.</Entry>
       )}
 
       {/* watershed priorities */}
@@ -280,18 +277,22 @@ const DamDetails = ({
 
     <Section title="Other information">
       <Entry>
-        SARP ID: {sarpid} (data version: {dataVersion})
+        <Field>SARP ID:</Field> {sarpid} (data version: {dataVersion})
       </Entry>
       {!isEmptyString(nidid) ? (
         <Entry>
-          National inventory of dams ID:{' '}
+          <Field>National inventory of dams ID:</Field>{' '}
           <OutboundLink to="http://nid.usace.army.mil/cm_apex/f?p=838:12">
             {nidid}
           </OutboundLink>
         </Entry>
       ) : null}
 
-      {!isEmptyString(source) ? <Entry>Source: {source}</Entry> : null}
+      {!isEmptyString(source) ? (
+        <Entry>
+          <Field>Source:</Field> {source}
+        </Entry>
+      ) : null}
     </Section>
   </Box>
 )
