@@ -126,7 +126,7 @@ barrier_networks = get_network_results(
     ],
     errors="ignore",
 )
-barrier_networks.columns = [f"{c}_barriers" for c in barrier_networks.columns]
+barrier_networks.columns = [f"{c}_small_barriers" for c in barrier_networks.columns]
 df = df.join(dam_networks).join(barrier_networks)
 
 for col in dam_networks.columns:

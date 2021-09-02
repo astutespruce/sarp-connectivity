@@ -37,11 +37,11 @@ SUMMARY_UNITS = ["State", "COUNTYFIPS", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4"]
 
 INT_COLS = [
     "dams",
-    "barriers",
-    "total_barriers",
+    "small_barriers",
+    "total_small_barriers",
     "crossings",
     "on_network_dams",
-    "on_network_barriers",
+    "on_network_small_barriers",
 ]
 
 
@@ -148,9 +148,9 @@ for unit in SUMMARY_UNITS:
         .agg({"id": "count", "Included": "sum", "OnNetwork": "sum",})
         .rename(
             columns={
-                "id": "total_barriers",
-                "Included": "barriers",
-                "OnNetwork": "on_network_barriers",
+                "id": "total_small_barriers",
+                "Included": "small_barriers",
+                "OnNetwork": "on_network_small_barriers",
             }
         )
     )

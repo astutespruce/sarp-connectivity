@@ -1,10 +1,9 @@
 from enum import Enum
-from typing import OrderedDict
 
 ### Enums for validating incoming request values
 class BarrierTypes(str, Enum):
     dams = "dams"
-    barriers = "barriers"
+    small_barriers = "small_barriers"
 
 
 class Layers(str, Enum):
@@ -65,6 +64,7 @@ METRIC_FIELDS = [
     "PerennialUpstreamMiles",
     "AlteredUpstreamMiles",
     "UnalteredUpstreamMiles",
+    "PerennialUnalteredUpstreamMiles",
     "TotalDownstreamMiles",
     "FreeDownstreamMiles",
     "FreePerennialDownstreamMiles",
@@ -145,6 +145,7 @@ DAM_CORE_FIELDS = [
     "NIDID",
     "Source",
     "River",
+    "Intermittent",
     "Year",
     "Height",
     "Width",
@@ -177,7 +178,6 @@ DAM_API_FIELDS = (
         "HasNetwork",
         "Excluded",
         "Ranked",
-        "Intermittent",
         "FlowsToOcean",
         "NumBarriersDownstream",
         "upNetID",
@@ -211,14 +211,7 @@ DAM_TILE_FIELDS = [
 DAM_EXPORT_FIELDS = (
     DAM_CORE_FIELDS
     + UNIT_FIELDS
-    + [
-        "HasNetwork",
-        "Excluded",
-        "Ranked",
-        "Intermittent",
-        "FlowsToOcean",
-        "NumBarriersDownstream",
-    ]
+    + ["HasNetwork", "Excluded", "Ranked", "FlowsToOcean", "NumBarriersDownstream",]
     + METRIC_FIELDS
     + TIER_FIELDS
     + CUSTOM_TIER_FIELDS
@@ -244,6 +237,7 @@ SB_CORE_FIELDS = [
     "CrossingCode",
     "Source",
     "Stream",
+    "Intermittent",
     "Road",
     "RoadType",
     "CrossingType",
@@ -273,7 +267,6 @@ SB_API_FIELDS = (
         "HasNetwork",
         "Excluded",
         "Ranked",
-        "Intermittent",
         "FlowsToOcean",
         "NumBarriersDownstream",
         "upNetID",
@@ -287,7 +280,7 @@ SB_API_FIELDS = (
 
 SB_API_FIELDS = unique(SB_API_FIELDS)
 
-
+# Drop fields from tiles that are calculated on frontend
 SB_TILE_FIELDS = [
     c
     for c in SB_API_FIELDS
@@ -306,14 +299,7 @@ SB_TILE_FIELDS = [
 SB_EXPORT_FIELDS = (
     SB_CORE_FIELDS
     + UNIT_FIELDS
-    + [
-        "HasNetwork",
-        "Excluded",
-        "Ranked",
-        "Intermittent",
-        "FlowsToOcean",
-        "NumBarriersDownstream",
-    ]
+    + ["HasNetwork", "Excluded", "Ranked", "FlowsToOcean", "NumBarriersDownstream",]
     + METRIC_FIELDS
     + TIER_FIELDS
     + CUSTOM_TIER_FIELDS
@@ -763,8 +749,9 @@ FIELD_DEFINITIONS = {
     "PerennialUpstreamMiles": "number of perennial miles in the upstream river network from this {type}, including miles in waterbodies.  Perennial segments are all those not specifically coded by NHD as ephemeral or intermittent, and include other types, such as canals and ditches that may not actually be perennial.  Networks are constructed using all flowlines, not just perennial segments. -1 = not available.",
     "AlteredUpstreamMiles": "number of altered miles in the upstream river network from this {type}, including miles in waterbodies.  Limited to segments specifically coded by NHD as canals or ditches. -1 = not available.",
     "UnalteredUpstreamMiles": "number of unaltered miles in the upstream river network from this {type}, including miles in waterbodies.  Unaltered miles exclude segments specifically coded by NHD as canals or ditches. -1 = not available.",
+    "PerennialUnalteredUpstreamMiles": "number of unaltered perennial miles in the upstream river network from this {type}, including miles in waterbodies.  Unaltered miles exclude segments specifically coded by NHD as canals or ditches. -1 = not available.",
     "PercentUnaltered": "percent of the total upstream river network length from this {type} that is not specifically coded as NHD as canals or ditches.  -1 = not available.",
-    "PercentPerennialUnaltered": "percent of the perennial upstream river network length from this {type} that is not specifically coded as NHD as canals or ditches.  -1 = not available.",
+    "PercentPerennialUnaltered": "percent of the perennial upstream river network length from this {type} that is not specifically coded as NHD as canals or ditches.  See PerennialUpstreamMiles.  -1 = not available.",
     "TotalDownstreamMiles": "number of miles in the complete downstream river network from this {type}, including miles in waterbodies.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path.  -1 = not available.",
     "FreeDownstreamMiles": "number of free-flowing miles in the downstream river network (TotalDownstreamMiles minus miles in waterbodies). -1 = not available.",
     "FreePerennialDownstreamMiles": "number of free-flowing perennial miles in the downstream river network.  Excludes miles in waterbodies.  See PerennialUpstreamMiles. -1 = not available.",

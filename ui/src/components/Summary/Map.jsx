@@ -15,6 +15,7 @@ import {
   interpolateExpr,
   SearchFeaturePropType,
 } from 'components/Map'
+import { capitalize } from 'util/format'
 import { isEmptyString } from 'util/string'
 import { COLORS } from './config'
 import {
@@ -29,7 +30,9 @@ import {
   pointLegends,
 } from './layers'
 
-const barrierTypes = ['dams', 'barriers']
+import { barrierTypeLabels } from '../../../config/constants'
+
+const barrierTypes = ['dams', 'small_barriers']
 
 const emptyFeatureCollection = {
   type: 'FeatureCollection',
@@ -170,19 +173,19 @@ const SummaryMap = ({
 
     barrierTypes.forEach((t) => {
       map.addLayer({
-        id: t,
+        id: `${t}-background`,
         source: t,
-        'source-layer': t,
-        ...pointLayer,
+        ...backgroundPointLayer,
         layout: {
           visibility: barrierType === t ? 'visible' : 'none',
         },
       })
 
       map.addLayer({
-        id: `${t}-background`,
+        id: t,
         source: t,
-        ...backgroundPointLayer,
+        'source-layer': t,
+        ...pointLayer,
         layout: {
           visibility: barrierType === t ? 'visible' : 'none',
         },
@@ -223,7 +226,12 @@ const SummaryMap = ({
 
         /* eslint-disable-next-line no-param-reassign */
         map.getCanvas().style.cursor = 'pointer'
-        const prefix = feature.source === 'waterfalls' ? 'Waterfall: ' : ''
+        const prefix = barrierTypeLabels[feature.source]
+          ? `${capitalize(barrierTypeLabels[feature.source]).slice(
+              0,
+              barrierTypeLabels[feature.source].length - 1
+            )}: `
+          : ''
         const { name } = feature.properties
         tooltip
           .setLngLat(coordinates)
@@ -345,14 +353,13 @@ const SummaryMap = ({
       const visibility = barrierType === t ? 'visible' : 'none'
       map.setLayoutProperty(t, 'visibility', visibility)
       map.setLayoutProperty(`${t}-background`, 'visibility', visibility)
-      map.setLayoutProperty(`${t}_network`, 'visibility', visibility)
-      map.setFilter(`${t}_network`, ['==', 'networkID', Infinity])
+      map.setFilter('network-highlight', ['==', 'networkID', Infinity])
     })
 
     map.setLayoutProperty(
       'dams-secondary',
       'visibility',
-      barrierType === 'barriers' ? 'visible' : 'none'
+      barrierType === 'small_barriers' ? 'visible' : 'none'
     )
   }, [barrierType])
 
@@ -378,7 +385,7 @@ const SummaryMap = ({
       networkID = upnetid
     }
 
-    map.setFilter(`${barrierType}_network`, ['==', 'networkID', networkID])
+    map.setFilter('network-highlight', ['==', ['get', barrierType], networkID])
 
     map.getSource(id).setData(data)
   }, [selectedBarrier, barrierType])
@@ -487,7 +494,7 @@ const SummaryMap = ({
         label: `${barrierType} not analyzed`,
       })
 
-      if (barrierType === 'barriers') {
+      if (barrierType === 'small_barriers') {
         circles.push({
           ...damsSecondary,
           label: 'dams analyzed for impacts to aquatic connectivity',

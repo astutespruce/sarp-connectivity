@@ -5,7 +5,7 @@ import { Flex } from 'theme-ui'
 const ButtonGroup = ({ children, sx }) => (
   <Flex
     sx={{
-      alignItems: 'center',
+      alignItems: 'stretch',
       'button + button': {
         borderLeft: '1px solid #FFF',
       },

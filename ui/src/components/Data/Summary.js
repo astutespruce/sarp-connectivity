@@ -9,23 +9,23 @@ export const useSummaryData = () => {
       summaryStatsJson {
         total {
           dams
-          total_barriers
-          barriers
+          total_small_barriers
+          small_barriers
           crossings
           miles
           perennial_miles
-          on_network_barriers
+          on_network_small_barriers
           on_network_dams
         }
         regions: region {
           id
           dams
-          total_barriers
-          barriers
+          total_small_barriers
+          small_barriers
           crossings
           miles
           perennial_miles
-          on_network_barriers
+          on_network_small_barriers
           on_network_dams
         }
       }

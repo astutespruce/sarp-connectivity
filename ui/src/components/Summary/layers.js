@@ -5,7 +5,7 @@ export const layers = [
     title: 'Basin',
     bins: {
       dams: [100, 500, 750, 1000, 1500, 2000, 2500, 5000, 25000],
-      barriers: [10, 100, 200, 300, 500, 1000, 2500],
+      small_barriers: [10, 100, 200, 300, 500, 1000, 2500],
     },
     fill: {
       minzoom: 0,
@@ -47,7 +47,7 @@ export const layers = [
     title: 'Subbasin',
     bins: {
       dams: [10, 50, 100, 200, 250, 300, 400, 500, 5000],
-      barriers: [25, 50, 100, 150, 1500],
+      small_barriers: [25, 50, 100, 150, 1500],
     },
     fill: {
       minzoom: 6,
@@ -85,7 +85,7 @@ export const layers = [
     title: 'Subwatershed',
     bins: {
       dams: [1, 10, 25, 100, 200],
-      barriers: [1, 10, 25, 100, 200],
+      small_barriers: [1, 10, 25, 100, 200],
     },
     fill: {
       minzoom: 8,
@@ -123,7 +123,7 @@ export const layers = [
     title: 'Level 3 Ecoregion',
     bins: {
       dams: [100, 250, 500, 1000, 2500, 5000, 7500, 10000, 25000],
-      barriers: [10, 100, 250, 500, 1000, 2500, 10000],
+      small_barriers: [10, 100, 250, 500, 1000, 2500, 10000],
     },
     fill: {
       minzoom: 0,
@@ -165,7 +165,7 @@ export const layers = [
     title: 'Level 4 Ecoregion',
     bins: {
       dams: [10, 100, 250, 500, 750, 1000, 1500, 2000, 10000],
-      barriers: [10, 50, 100, 250, 500, 1000, 2000],
+      small_barriers: [10, 50, 100, 250, 500, 1000, 2000],
     },
     fill: {
       minzoom: 7,
@@ -205,7 +205,7 @@ export const layers = [
     title: 'State',
     bins: {
       dams: [500, 1000, 5000, 10000, 15000, 20000, 25000],
-      barriers: [100, 250, 500, 1000, 2500, 5000, 10000],
+      small_barriers: [100, 250, 500, 1000, 2500, 5000, 10000],
     },
     fill: {
       minzoom: 0,
@@ -247,7 +247,7 @@ export const layers = [
     title: 'County',
     bins: {
       dams: [10, 50, 100, 250, 1000],
-      barriers: [10, 25, 50, 100, 500],
+      small_barriers: [10, 25, 50, 100, 500],
     },
     fill: {
       minzoom: 5,
@@ -285,9 +285,9 @@ export const layers = [
 
 export const flowlinesLayer = {
   id: 'flowlines',
-  source: 'dams_network',
+  source: 'networks',
   'source-layer': 'networks',
-  minzoom: 11,
+  minzoom: 6,
   type: 'line',
   paint: {
     'line-opacity': {
@@ -314,16 +314,18 @@ export const flowlinesLayer = {
   },
 }
 
-const networkHighlightStyle = {
+const networkHighlightLayer = {
+  id: 'network-highlight',
+  source: 'networks',
   'source-layer': 'networks',
-  minzoom: 10,
+  minzoom: 6,
   type: 'line',
-  filter: ['==', 'networkID', Infinity],
+  filter: ['==', 'dams', Infinity],
   paint: {
     'line-opacity': {
       base: 0,
       stops: [
-        [11, 0.1],
+        [6, 0.1],
         [12, 0.1],
         [14, 0.5],
         [16, 1],
@@ -332,8 +334,9 @@ const networkHighlightStyle = {
     'line-width': {
       base: 0.1,
       stops: [
-        [10, 0],
-        [12, 0.5],
+        [6, 0.1],
+        [8, 0.5],
+        [12, 1],
         [14, 2],
         [15, 3],
         [16, 4],
@@ -345,31 +348,7 @@ const networkHighlightStyle = {
 
 export const flowlineLegend = {}
 
-const damNetworksHighlightLayer = {
-  ...networkHighlightStyle,
-  id: 'dams_network',
-  source: 'dams_network',
-  // visible by default
-  layout: {
-    visibility: 'visible',
-  },
-}
-
-const barrierNetworksHighlightLayer = {
-  ...networkHighlightStyle,
-  id: 'barriers_network',
-  source: 'barriers_network',
-  // hidden by default
-  layout: {
-    visibility: 'none',
-  },
-}
-
-export const networkLayers = [
-  flowlinesLayer,
-  damNetworksHighlightLayer,
-  barrierNetworksHighlightLayer,
-]
+export const networkLayers = [flowlinesLayer, networkHighlightLayer]
 
 export const waterfallsLayer = {
   id: 'waterfalls',

@@ -9,8 +9,8 @@ import { FILTERS } from '../../../config/filters'
 const PrioritizeBarriersPage = () => (
   <Layout title="Prioritize road-related barriers">
     <ClientOnly>
-      <BarrierTypeProvider barrierType="barriers">
-        <CrossfilterProvider filterConfig={FILTERS.barriers}>
+      <BarrierTypeProvider barrierType="small_barriers">
+        <CrossfilterProvider filterConfig={FILTERS.smallBarriers}>
           <PrioritizeWorkflow />
         </CrossfilterProvider>
       </BarrierTypeProvider>

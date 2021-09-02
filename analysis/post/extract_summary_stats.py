@@ -84,9 +84,9 @@ stats = {
         "on_network_dams": int(dams.OnNetwork.sum()),
         "miles": round(dams.GainMiles.mean().item(), 3),
         "perennial_miles": round(dams.PerennialGainMiles.mean().item(), 3),
-        "total_barriers": len(barriers),
-        "barriers": int(barriers.Included.sum()),
-        "on_network_barriers": int(barriers.OnNetwork.sum()),
+        "total_small_barriers": len(barriers),
+        "small_barriers": int(barriers.Included.sum()),
+        "on_network_small_barriers": int(barriers.OnNetwork.sum()),
         "crossings": len(crossings),
     }
 }
@@ -107,9 +107,9 @@ for region, region_states in REGION_STATES.items():
             "on_network_dams": int(region_dams.OnNetwork.sum()),
             "miles": round(region_dams.GainMiles.mean().item(), 3),
             "perennial_miles": round(region_dams.PerennialGainMiles.mean().item(), 3),
-            "total_barriers": len(region_barriers),
-            "barriers": int(region_barriers.Included.sum()),
-            "on_network_barriers": int(region_barriers.OnNetwork.sum()),
+            "total_small_barriers": len(region_barriers),
+            "small_barriers": int(region_barriers.Included.sum()),
+            "on_network_small_barriers": int(region_barriers.OnNetwork.sum()),
             "crossings": len(region_crossings),
         }
     )
@@ -125,7 +125,7 @@ for state in sorted(STATES.values()):
         {
             "id": state,
             "dams": int((dams.State == state).sum()),
-            "total_barriers": int((barriers.State == state).sum()),
+            "total_small_barriers": int((barriers.State == state).sum()),
         }
     )
 stats["State"] = state_stats

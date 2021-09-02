@@ -4,7 +4,7 @@ import { Box, Text } from 'theme-ui'
 
 import { Table, Row } from 'components/Table'
 import { Entry } from 'components/Sidebar'
-import { formatNumber } from 'util/format'
+import { formatNumber, formatPercent } from 'util/format'
 
 const activeSideCSS = {
   fontWeight: 'bold',
@@ -37,6 +37,10 @@ const NetworkInfo = ({
   )
   const perennialGainMilesSide =
     perennialGainMiles === perennialupstreammiles ? 'upstream' : 'downstream'
+
+  const percentAltered = totalupstreammiles
+    ? (100 * alteredupstreammiles) / totalupstreammiles
+    : 0
 
   return (
     <Box {...props}>
@@ -165,6 +169,14 @@ const NetworkInfo = ({
           </Table>
         ) : null}
       </Entry>
+
+      {totalupstreammiles > 0 ? (
+        <Entry>
+          <b>{formatPercent(percentAltered)}%</b> of the upstream network is in
+          stream channels altered from natural conditions (coded as canals or
+          ditches).
+        </Entry>
+      ) : null}
 
       {barrierType === 'waterfalls' ? (
         <Entry>

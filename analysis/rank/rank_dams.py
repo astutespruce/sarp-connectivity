@@ -11,7 +11,7 @@ import pygeos as pg
 from analysis.rank.lib.networks import get_network_results
 from analysis.rank.lib.spatial_joins import add_spatial_joins
 from analysis.rank.lib.metrics import classify_streamorder, classify_spps
-from api.constants import DAM_API_FIELDS, UNIT_FIELDS, DAM_CORE_FIELDS, DAM_TILE_FIELDS
+from api.constants import DAM_API_FIELDS
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")

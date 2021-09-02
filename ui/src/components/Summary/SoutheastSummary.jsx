@@ -14,16 +14,16 @@ const SoutheastSummary = ({ barrierType, system, onSearch }) => {
       dams,
       on_network_dams,
       miles,
-      total_barriers,
-      barriers,
-      on_network_barriers,
+      total_small_barriers,
+      small_barriers,
+      on_network_small_barriers,
       crossings,
     },
   } = useSummaryData()
   const offNetworkDams = dams - on_network_dams
-  const offNetworkBarriers = barriers - on_network_barriers
+  const offNetworkBarriers = small_barriers - on_network_small_barriers
 
-  const totalRoadBarriers = total_barriers + crossings
+  const totalRoadBarriers = total_small_barriers + crossings
 
   if (barrierType === 'dams') {
     return (
@@ -75,16 +75,16 @@ const SoutheastSummary = ({ barrierType, system, onSearch }) => {
           road-related aquatic barriers
         </li>
         <li>
-          <b>{formatNumber(total_barriers, 0)}</b> that have been assessed for
-          impacts to aquatic organisms
+          <b>{formatNumber(total_small_barriers, 0)}</b> that have been assessed
+          for impacts to aquatic organisms
         </li>
         <li>
-          <b>{formatNumber(barriers, 0)}</b> road-related barriers assessed so
-          far that are likely to impact aquatic organisms
+          <b>{formatNumber(small_barriers, 0)}</b> road-related barriers
+          assessed so far that are likely to impact aquatic organisms
         </li>
         <li>
-          <b>{formatNumber(on_network_barriers, 0)}</b> that have been evaluated
-          for their impacts to aquatic connectivity in this tool
+          <b>{formatNumber(on_network_small_barriers, 0)}</b> that have been
+          evaluated for their impacts to aquatic connectivity in this tool
         </li>
       </Box>
 

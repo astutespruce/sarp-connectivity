@@ -11,6 +11,7 @@ import { trackDownload } from 'util/analytics'
 
 import UserInfoForm, { FIELDS } from './UserInfoForm'
 import DownloadOptions from './Options'
+import { barrierTypeLabels } from '../../../config/constants'
 
 const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -72,7 +73,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   const showUserInfoForm = isOpen && !haveUserInfo
   const showDownloadPopup = isOpen && haveUserInfo
 
-  const labelText = label || `Download ${barrierType}`
+  const labelText = label || `Download ${barrierTypeLabels[barrierType]}`
 
   return (
     <>
@@ -115,7 +116,9 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
 
       {showDownloadPopup && (
         <Modal
-          title={`Download ${customRank ? 'prioritized' : ''} ${barrierType}`}
+          title={`Download ${customRank ? 'prioritized' : ''} ${
+            barrierTypeLabels[barrierType]
+          }`}
           onClose={handleClose}
         >
           <Box sx={{ maxWidth: '600px' }}>

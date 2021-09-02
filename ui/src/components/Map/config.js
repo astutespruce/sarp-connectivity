@@ -22,24 +22,16 @@ export const sources = {
     minzoom: 5,
     maxzoom: 12,
   },
-  barriers: {
+  small_barriers: {
     type: 'vector',
     tiles: [`${tileHost}/services/small_barriers/tiles/{z}/{x}/{y}.pbf`],
     minzoom: 5,
     maxzoom: 12,
   },
-  dams_network: {
+  networks: {
     type: 'vector',
-    tiles: [`${tileHost}/services/dam_networks/tiles/{z}/{x}/{y}.pbf`],
-    minzoom: 9,
-    maxzoom: 16,
-  },
-  barriers_network: {
-    type: 'vector',
-    tiles: [
-      `${tileHost}/services/small_barrier_networks/tiles/{z}/{x}/{y}.pbf`,
-    ],
-    minzoom: 9,
+    tiles: [`${tileHost}/services/networks/tiles/{z}/{x}/{y}.pbf`],
+    minzoom: 6,
     maxzoom: 16,
   },
   waterfalls: {

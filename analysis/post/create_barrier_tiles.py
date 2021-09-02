@@ -12,12 +12,9 @@ from api.constants import (
     DAM_TILE_FIELDS,
     SB_CORE_FIELDS,
     SB_TILE_FIELDS,
-    WF_CORE_FIELDS,
     UNIT_FIELDS,
 )
-from analysis.constants import GEO_CRS
 from analysis.post.lib.tiles import get_col_types
-from analysis.rank.lib.spatial_joins import add_spatial_joins
 
 api_dir = Path("data/api")
 barriers_dir = Path("data/barriers/master")
@@ -35,7 +32,7 @@ tilejoin_args = [
 ]
 
 
-### Create dams tiles
+## Create dams tiles
 start = time()
 df = (
     pd.read_feather(api_dir / "dams.feather", columns=["id"] + DAM_TILE_FIELDS)
@@ -57,55 +54,54 @@ for col in str_cols:
 
 # Update boolean fields so that they are output to CSV correctly
 # NOTE: these must be manually set for tippecanoe via bool_cols param to get_col_types
-for col in ["HasNetwork", "ProtectedLand", "Excluded"]:
+for col in ["ProtectedLand", "Excluded"]:
     df[col] = df[col].astype("uint8")
 
 
-# Create tiles for ranked dams with networks
+### Create tiles for ranked dams with networks
 print("Creating tiles for dams with networks")
 
-csv_filename = tmp_dir / "ranked_dams.csv"
-mbtiles_filename = tmp_dir / "ranked_dams.mbtiles"
+csv_filename = tmp_dir / "dams.csv"
+mbtiles_filename = tmp_dir / "dams.mbtiles"
 mbtiles_files = [mbtiles_filename]
-ranked_dams = (
-    df.loc[df.Ranked]
-    .drop(columns=["HasNetwork", "Ranked", "Excluded"])
+dams = (
+    df.loc[df.HasNetwork]
+    .drop(columns=["HasNetwork", "Excluded"])
     .rename(columns=to_lowercase)
 )
 
-ranked_dams.to_csv(csv_filename, index_label="id", quoting=csv.QUOTE_NONNUMERIC)
+dams["ranked"] = dams.ranked.astype("uint8")
+
+dams.to_csv(csv_filename, index_label="id", quoting=csv.QUOTE_NONNUMERIC)
 
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z5", "-z16", "-B6"]
     + ["-l", "dams"]
     + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(ranked_dams, bool_cols={"protectedland"})
+    + get_col_types(dams, bool_cols={"protectedland", "ranked"})
     + [str(csv_filename)]
 )
 ret.check_returncode()
 
 
-# Create tiles for dams unranked dams
-# NOTE: Ranked is HasNetwork + ~unranked (from master)
-print("Creating tiles for unranked dams")
+# Create tiles for dams without networks (these are never ranked)
+print("Creating tiles for dams without networks")
 
-unranked_dams = df.loc[~df.Ranked]
+other_dams = df.loc[~df.HasNetwork].drop(columns=["HasNetwork", "Ranked"])
 
 # Drop metrics, tiers, and units used only for filtering
 # keep HUC8, HUC12 since these are used to get names for those on frontend
-keep_fields = unranked_dams.columns.intersection(
-    DAM_CORE_FIELDS
-    + ["HUC8", "HUC12"]
-    + ["CountyName", "State", "HasNetwork", "Excluded"]
+keep_fields = other_dams.columns.intersection(
+    DAM_CORE_FIELDS + ["HUC8", "HUC12"] + ["CountyName", "State", "Excluded"]
 )
-unranked_dams = unranked_dams[keep_fields].rename(columns=to_lowercase)
+other_dams = other_dams[keep_fields].rename(columns=to_lowercase)
 
 
-# csv_filename = tmp_dir / "unranked_dams.csv"
-mbtiles_filename = tmp_dir / "unranked_dams.mbtiles"
+csv_filename = tmp_dir / "other_dams.csv"
+mbtiles_filename = tmp_dir / "other_dams.mbtiles"
 mbtiles_files.append(mbtiles_filename)
-unranked_dams.to_csv(
+other_dams.to_csv(
     csv_filename, index_label="id", quoting=csv.QUOTE_NONNUMERIC,
 )
 
@@ -114,9 +110,7 @@ ret = subprocess.run(
     + ["-Z9", "-z16", "-B10"]
     + ["-l", "background"]
     + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(
-        unranked_dams, bool_cols={"protectedland", "excluded", "hasnetwork"}
-    )
+    + get_col_types(other_dams, bool_cols={"protectedland", "excluded"})
     + [str(csv_filename)]
 )
 ret.check_returncode()
@@ -130,7 +124,7 @@ ret = subprocess.run(
 
 print(f"Created dam tiles in {time() - start:,.2f}s")
 
-
+####################################################################
 ### Create small barrier tiles
 start = time()
 df = (
@@ -155,41 +149,42 @@ for col in ["ProtectedLand", "Excluded"]:
 
 
 # Create tiles for small barriers with networks
-print("Creating tiles for small barriers with networks")
+print("Creating tiles for ranked small barriers with networks")
 
-csv_filename = tmp_dir / "ranked_small_barriers.csv"
-mbtiles_filename = tmp_dir / "ranked_small_barriers.mbtiles"
+csv_filename = tmp_dir / "small_barriers.csv"
+mbtiles_filename = tmp_dir / "small_barriers.mbtiles"
 mbtiles_files = [mbtiles_filename]
-ranked_barriers = (
-    df.loc[df.Ranked]
-    .drop(columns=["HasNetwork", "Ranked", "Excluded"])
+barriers = (
+    df.loc[df.HasNetwork]
+    .drop(columns=["HasNetwork", "Excluded"])
     .rename(columns=to_lowercase)
 )
 
-ranked_barriers.to_csv(csv_filename, index_label="id", quoting=csv.QUOTE_NONNUMERIC)
+barriers["ranked"] = barriers.ranked.astype("uint8")
+
+barriers.to_csv(csv_filename, index_label="id", quoting=csv.QUOTE_NONNUMERIC)
 
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z5", "-z16", "-B6"]
-    + ["-l", "barriers"]
+    + ["-l", "small_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(ranked_barriers, bool_cols={"protectedland"})
+    + get_col_types(barriers, bool_cols={"protectedland", "ranked"})
     + [str(csv_filename)],
 )
 ret.check_returncode()
 
 
 ### Combine barriers that don't have networks with road / stream crossings
-unranked_barriers = df.loc[~df.Ranked].copy()
+other_barriers = df.loc[~df.HasNetwork].drop(columns=["Ranked", "HasNetwork"])
 
 # Drop metrics, tiers, and units used only for filtering
-keep_fields = unranked_barriers.columns.intersection(
-    SB_CORE_FIELDS
-    + ["HUC8", "HUC12"]
-    + ["CountyName", "State", "HasNetwork", "Excluded"]
+keep_fields = other_barriers.columns.intersection(
+    SB_CORE_FIELDS + ["HUC8", "HUC12"] + ["CountyName", "State", "Excluded"]
 )
-unranked_barriers = unranked_barriers[keep_fields].copy()
+other_barriers = other_barriers[keep_fields].copy()
 
+### Read in road crossings to join with small barriers
 print("Reading road / stream crossings")
 road_crossings = gp.read_feather(barriers_dir / "road_crossings.feather").rename(
     columns={"County": "CountyName"}
@@ -220,11 +215,11 @@ road_crossings["Excluded"] = 0
 road_crossings.SARPID = "cr" + road_crossings.SARPID.astype(str)
 
 road_crossing_fields = road_crossings.columns.intersection(
-    SB_CORE_FIELDS + ["HUC8", "HUC12", "CountyName", "State", "HasNetwork", "Excluded"]
+    SB_CORE_FIELDS + ["HUC8", "HUC12", "CountyName", "State", "Excluded"]
 )
 
 combined = (
-    unranked_barriers.append(
+    other_barriers.append(
         road_crossings[road_crossing_fields], ignore_index=True, sort=False
     )
     .rename(columns=to_lowercase)
@@ -254,7 +249,6 @@ cols = [
 combined[cols] = combined[cols].fillna("").astype(str)
 
 for col in [
-    "hasnetwork",
     "excluded",
     "protectedland",
     "ownertype",
@@ -263,9 +257,12 @@ for col in [
     combined[col] = combined[col].fillna(0).astype("uint8")
 
 
+combined["intermittent"] = combined.intermittent.fillna(-1).astype("int8")
+
+
 print("Creating tiles for small barriers and road crossings without networks")
 
-csv_filename = tmp_dir / "small_barriers_background.csv"
+# csv_filename = tmp_dir / "small_barriers_background.csv"
 mbtiles_filename = tmp_dir / "small_barriers_background.mbtiles"
 mbtiles_files.append(mbtiles_filename)
 
@@ -278,9 +275,7 @@ ret = subprocess.run(
     + ["-Z9", "-z16", "-B10"]
     + ["-l", "background"]
     + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(
-        unranked_barriers, bool_cols={"protectedland", "excluded", "hasnetwork"},
-    )
+    + get_col_types(combined, bool_cols={"protectedland", "excluded"},)
     + [str(csv_filename)]
 )
 ret.check_returncode()
@@ -294,7 +289,7 @@ ret = subprocess.run(
 
 print(f"Created small barriers tiles in {time() - start:,.2f}s")
 
-
+#######################################
 ### Create waterfalls tiles
 print("Creating waterfalls tiles")
 df = pd.read_feather(api_dir / "waterfalls.feather")

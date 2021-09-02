@@ -11,7 +11,7 @@ import Histogram from './Histogram'
 import BackLink from '../BackLink'
 import StartOverButton from '../StartOverButton'
 
-import { SCENARIOS } from '../../../../config/constants'
+import { SCENARIOS, barrierTypeLabels } from '../../../../config/constants'
 
 const Results = ({
   config,
@@ -22,6 +22,7 @@ const Results = ({
   onBack,
 }) => {
   const barrierType = useBarrierType()
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
 
   const scenarioLabel =
     scenario === 'ncwc'
@@ -55,7 +56,7 @@ const Results = ({
         <BackLink label="modify filters" onClick={onBack} />
         <Heading as="h3">Explore results</Heading>
         <Text sx={{ color: 'grey.7' }}>
-          {formatNumber(rankData.length, 0)} prioritized {barrierType}
+          {formatNumber(rankData.length, 0)} prioritized {barrierTypeLabel}
         </Text>
       </Box>
 
@@ -68,16 +69,16 @@ const Results = ({
         }}
       >
         <Paragraph variant="help">
-          {capitalize(barrierType)} are binned into tiers based on where they
-          fall within the value range of the <b>{scenarioLabel}</b> score. Tier
-          1 includes {barrierType} that fall within the top 5% of values for
-          this score, and tier 20 includes {barrierType} that fall within the
-          lowest 5% of values for this score.
+          {capitalize(barrierTypeLabel)} are binned into tiers based on where
+          they fall within the value range of the <b>{scenarioLabel}</b> score.
+          Tier 1 includes {barrierTypeLabel} that fall within the top 5% of
+          values for this score, and tier 20 includes {barrierTypeLabel} that
+          fall within the lowest 5% of values for this score.
         </Paragraph>
 
         <Box sx={{ mt: '2rem' }}>
           <Text sx={{ fontWeight: 'bold' }}>
-            Choose top-ranked {barrierType} for display on map
+            Choose top-ranked {barrierTypeLabel} for display on map
           </Text>
 
           <Flex
@@ -110,15 +111,15 @@ const Results = ({
 
           <Paragraph variant="help">
             Use this slider to control the number of tiers visible on the map.
-            Based on the number of {barrierType} visible for your area, you may
-            be able to identify {barrierType} that are more feasible in the top
-            several tiers than in the top-most tier.
+            Based on the number of {barrierTypeLabel} visible for your area, you
+            may be able to identify {barrierTypeLabel} that are more feasible in
+            the top several tiers than in the top-most tier.
           </Paragraph>
         </Box>
 
         <Box sx={{ mt: '2rem' }}>
           <Text sx={{ fontWeight: 'bold' }}>
-            Number of {barrierType} by tier
+            Number of {barrierTypeLabel} by tier
           </Text>
           <Histogram counts={counts} threshold={tierThreshold} />
         </Box>

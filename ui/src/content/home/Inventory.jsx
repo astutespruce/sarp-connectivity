@@ -12,7 +12,7 @@ const { version: dataVersion, date: dataDate } = siteMetadata
 
 const Inventory = () => {
   const {
-    total: { dams, total_barriers, miles },
+    total: { dams, total_small_barriers, miles },
   } = useSummaryData()
 
   return (
@@ -78,8 +78,8 @@ const Inventory = () => {
                 <b>{formatNumber(dams, 0)}</b> dams
               </li>
               <li>
-                <b>{formatNumber(total_barriers, 0)}</b> road-related barriers
-                assessed for impact to aquatic organisms
+                <b>{formatNumber(total_small_barriers, 0)}</b> road-related
+                barriers assessed for impact to aquatic organisms
               </li>
               <li>
                 <b>{formatNumber(miles, 1)}</b> miles of connected aquatic

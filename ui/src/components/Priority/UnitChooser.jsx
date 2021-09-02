@@ -11,7 +11,7 @@ import BackLink from './BackLink'
 import StartOverButton from './StartOverButton'
 import SubmitButton from './SubmitButton'
 import UnitListItem from './UnitListItem'
-import { LAYER_ZOOM } from '../../../config/constants'
+import { LAYER_ZOOM, barrierTypeLabels } from '../../../config/constants'
 
 const getPluralLabel = (layer) => {
   switch (layer) {
@@ -69,6 +69,7 @@ const UnitChooser = ({
   setSearchFeature,
 }) => {
   const barrierType = useBarrierType()
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
   const [searchValue, setSearchValue] = useState('')
 
   const pluralLabel = getPluralLabel(layer)
@@ -87,12 +88,15 @@ const UnitChooser = ({
         total = summaryUnits.reduce((out, v) => out + v.on_network_dams, 0)
         break
       }
-      case 'barriers': {
+      case 'small_barriers': {
         offNetworkCount = summaryUnits.reduce(
-          (out, v) => out + (v.barriers - v.on_network_barriers),
+          (out, v) => out + (v.small_barriers - v.on_network_small_barriers),
           0
         )
-        total = summaryUnits.reduce((out, v) => out + v.on_network_barriers, 0)
+        total = summaryUnits.reduce(
+          (out, v) => out + v.on_network_small_barriers,
+          0
+        )
         break
       }
       default: {
@@ -181,10 +185,11 @@ const UnitChooser = ({
             </Text>
             {offNetworkCount > 0 ? (
               <Text variant="help" sx={{ pb: '2rem' }}>
-                Note: only {barrierType} that have been evaluated for aquatic
-                network connectivity are available for prioritization. There are{' '}
-                <b>{formatNumber(offNetworkCount, 0)}</b> {barrierType} not
-                available for prioritization in your selected area.
+                Note: only {barrierTypeLabel} that have been evaluated for
+                aquatic network connectivity are available for prioritization.
+                There are <b>{formatNumber(offNetworkCount, 0)}</b>{' '}
+                {barrierTypeLabel} not available for prioritization in your
+                selected area.
               </Text>
             ) : null}
           </>
@@ -218,7 +223,7 @@ const UnitChooser = ({
         <SubmitButton
           disabled={summaryUnits.size === 0 || total === 0}
           onClick={onSubmit}
-          label={`Select ${barrierType} in this area`}
+          label={`Select ${barrierTypeLabel} in this area`}
         />
       </Flex>
     </Flex>

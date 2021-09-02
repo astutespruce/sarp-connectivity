@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { Box, Container, Heading, Paragraph } from 'theme-ui'
 
-import Layout from 'components/Layout'
+import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
 import { Downloader } from 'components/Download'
@@ -105,12 +105,15 @@ const DownloadPage = ({ data: { headerImage } }) => {
             Download Road-related Barriers by State
           </Heading>
           <ul>
-            {states.map(({ id, total_barriers }) => (
+            {states.map(({ id, total_small_barriers }) => (
               <li key={`barriers_${id}`}>
                 <Downloader
-                  label={`${id} (${formatNumber(total_barriers, 0)} barriers)`}
+                  label={`${id} (${formatNumber(
+                    total_small_barriers,
+                    0
+                  )} barriers)`}
                   asButton={false}
-                  barrierType="barriers"
+                  barrierType="small_barriers"
                   config={{ ...baseConfig, summaryUnits: [{ id }] }}
                 />
               </li>
@@ -119,7 +122,7 @@ const DownloadPage = ({ data: { headerImage } }) => {
           <br />
           <Downloader
             label="Download all states"
-            barrierType="barriers"
+            barrierType="small_barriers"
             config={{
               ...baseConfig,
               summaryUnits: states.map(({ id }) => ({

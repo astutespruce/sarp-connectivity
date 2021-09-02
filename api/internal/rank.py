@@ -41,7 +41,7 @@ def rank_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
     return csv_response(df)
 
 
-@router.get("/barriers/rank/{layer}")
+@router.get("/small_barriers/rank/{layer}")
 def rank_barriers(request: Request, extractor: BarriersRecordExtractor = Depends()):
     """Rank a subset of small barriers data.
 

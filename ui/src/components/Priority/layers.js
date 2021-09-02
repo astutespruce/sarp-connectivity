@@ -133,7 +133,7 @@ export const unitHighlightLayers = [unitHighlightFill, unitHighlightOutline]
 
 export const flowlinesLayer = {
   id: 'flowlines',
-  source: 'dams_network',
+  source: 'networks',
   'source-layer': 'networks',
   minzoom: 9,
   type: 'line',
@@ -160,18 +160,18 @@ export const flowlinesLayer = {
 }
 
 export const networkHighlightLayer = {
-  id: 'networks',
-  // source: '', // set dynamically when map loads based on barrierType
+  id: 'network-highlight',
+  source: 'networks',
   'source-layer': 'networks',
-  minzoom: 9,
+  minzoom: 6,
   type: 'line',
-  filter: ['==', 'networkID', Infinity],
+  filter: ['==', 'dams', Infinity],
   paint: {
     'line-opacity': {
       base: 0,
       stops: [
-        [10, 0.1],
-        [11, 0.5],
+        [6, 0.1],
+        [10, 0.5],
         [14, 1],
         [16, 1],
       ],
@@ -179,7 +179,8 @@ export const networkHighlightLayer = {
     'line-width': {
       base: 0.1,
       stops: [
-        [10, 0.1],
+        [6, 0.1],
+        [8, 0.5],
         [11, 1],
         [14, 2.5],
         [15, 3],

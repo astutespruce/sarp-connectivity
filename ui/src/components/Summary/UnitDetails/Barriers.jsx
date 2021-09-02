@@ -6,13 +6,13 @@ import { Box, Paragraph } from 'theme-ui'
 import { formatNumber } from 'util/format'
 
 const Barriers = ({
-  barriers,
-  on_network_barriers,
-  total_barriers,
+  small_barriers,
+  on_network_small_barriers,
+  total_small_barriers,
   crossings,
 }) => {
-  const totalRoadBarriers = total_barriers + crossings
-  const offNetworkBarriers = barriers - on_network_barriers
+  const totalRoadBarriers = total_small_barriers + crossings
+  const offNetworkBarriers = small_barriers - on_network_small_barriers
 
   if (totalRoadBarriers === 0) {
     return (
@@ -33,21 +33,22 @@ const Barriers = ({
           {totalRoadBarriers === 1 ? 'barrier' : 'barriers'}
         </li>
         <li>
-          <b>{formatNumber(total_barriers, 0)}</b> road-related{' '}
-          {total_barriers === 1 ? 'barrier' : 'barriers'}{' '}
-          {total_barriers === 1 ? 'has ' : 'have '} been assessed for impacts to
-          aquatic organisms.
+          <b>{formatNumber(total_small_barriers, 0)}</b> road-related{' '}
+          {total_small_barriers === 1 ? 'barrier' : 'barriers'}{' '}
+          {total_small_barriers === 1 ? 'has ' : 'have '} been assessed for
+          impacts to aquatic organisms.
         </li>
         <li>
-          <b>{formatNumber(barriers, 0)}</b> road-related{' '}
-          {barriers === 1 ? 'barrier' : 'barriers'} assessed{' '}
-          {barriers === 1 ? 'is' : 'are'} likely to impact aquatic organisms
+          <b>{formatNumber(small_barriers, 0)}</b> road-related{' '}
+          {small_barriers === 1 ? 'barrier' : 'barriers'} assessed{' '}
+          {small_barriers === 1 ? 'is' : 'are'} likely to impact aquatic
+          organisms
         </li>
         <li>
-          <b>{formatNumber(on_network_barriers, 0)}</b> road-related{' '}
-          {on_network_barriers === 1 ? 'barrier' : 'barriers'} that{' '}
-          {on_network_barriers === 1 ? 'was ' : 'were '} analyzed for impacts to
-          aquatic connectivity in this tool
+          <b>{formatNumber(on_network_small_barriers, 0)}</b> road-related{' '}
+          {on_network_small_barriers === 1 ? 'barrier' : 'barriers'} that{' '}
+          {on_network_small_barriers === 1 ? 'was ' : 'were '} analyzed for
+          impacts to aquatic connectivity in this tool
         </li>
       </Box>
 
@@ -74,16 +75,16 @@ const Barriers = ({
 }
 
 Barriers.propTypes = {
-  barriers: PropTypes.number,
-  total_barriers: PropTypes.number,
-  on_network_barriers: PropTypes.number,
+  small_barriers: PropTypes.number,
+  total_small_barriers: PropTypes.number,
+  on_network_small_barriers: PropTypes.number,
   crossings: PropTypes.number,
 }
 
 Barriers.defaultProps = {
-  barriers: 0,
-  total_barriers: 0,
-  on_network_barriers: 0,
+  small_barriers: 0,
+  total_small_barriers: 0,
+  on_network_small_barriers: 0,
   crossings: 0,
 }
 

@@ -31,7 +31,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     ncwc_tier,
   } = barrier
 
-  const typeLabel = barrierTypeLabels[barrierType].toLowerCase()
+  const typeLabel = barrierTypeLabels[barrierType]
 
   let details = null
   switch (barrierType) {
@@ -39,7 +39,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
       details = <DamDetails {...barrier} />
       break
     }
-    case 'barriers': {
+    case 'small_barriers': {
       details = <SmallBarrierDetails {...barrier} />
       break
     }

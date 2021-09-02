@@ -9,7 +9,7 @@ import { HeaderImage } from 'components/Image'
 import HighlightBox from 'components/Layout/HighlightBox'
 
 const PercentUnalteredPage = ({ data: { headerImage } }) => (
-  <Layout title="Percent Unaltered">
+  <Layout title="Channel Alteration">
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
@@ -21,7 +21,7 @@ const PercentUnalteredPage = ({ data: { headerImage } }) => (
     />
 
     <Container>
-      <Heading as="h1">Percent unaltered</Heading>
+      <Heading as="h1">Channel alteration</Heading>
       <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
         Altered river and stream segments are those that are specifically
         identified as canals or ditches. These represent areas where the
@@ -29,8 +29,8 @@ const PercentUnalteredPage = ({ data: { headerImage } }) => (
         natural conditions.
         <br />
         <br />
-        Percent unaltered is based on the amount of the total network length
-        that is not in altered river and stream segments.
+        Networks are characterized by the percent of their total network length
+        that is in altered river and stream segments.
       </Paragraph>
 
       <Grid columns={[0, 2]} gap={4} sx={{ mt: '2rem' }}>

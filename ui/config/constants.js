@@ -1,7 +1,7 @@
 export const barrierTypeLabels = {
-  dams: 'Dam',
-  barriers: 'Road-related barrier',
-  waterfalls: 'Waterfall',
+  dams: 'dams',
+  small_barriers: 'road-related barriers',
+  waterfalls: 'waterfalls',
 }
 
 export const STATE_FIPS = {

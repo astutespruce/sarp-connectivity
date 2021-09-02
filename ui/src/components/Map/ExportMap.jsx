@@ -154,7 +154,7 @@ const ExportMap = ({
       // Add barrier point layers
       mapObj.addLayer(waterfallsLayer)
 
-      if (barrierType === 'barriers') {
+      if (barrierType === 'small_barriers') {
         mapObj.addLayer(damsSecondaryLayer)
       }
 

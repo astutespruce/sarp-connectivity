@@ -39,7 +39,7 @@ export const getLegendEntries = ({ name, barrierType }) => {
     )} not analyzed for impacts to aquatic connectivity`,
   })
 
-  if (barrierType === 'barriers') {
+  if (barrierType === 'small_barriers') {
     entries.push({
       ...damsSecondary,
       type: 'circle',

@@ -114,7 +114,7 @@ def download_dams(
     raise NotImplementedError("Other formats not yet supported")
 
 
-@router.get("/barriers/{format}/{layer}")
+@router.get("/small_barriers/{format}/{layer}")
 def download_barriers(
     request: Request,
     extractor: BarriersRecordExtractor = Depends(),

@@ -31,7 +31,7 @@ def get_dam(request: Request, sarp_id: str):
     return JSONResponse(content=dam.to_dict(orient="records")[0])
 
 
-@router.get("/barriers/details/{sarp_id}")
+@router.get("/small_barriers/details/{sarp_id}")
 def get_small_barrier(request: Request, sarp_id: str):
     log_request(request)
 

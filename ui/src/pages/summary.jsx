@@ -13,7 +13,7 @@ import { SYSTEMS } from '../../config/constants'
 
 const barrierTypeOptions = [
   { value: 'dams', label: 'dams' },
-  { value: 'barriers', label: 'road-related barriers' },
+  { value: 'small_barriers', label: 'road-related barriers' },
 ]
 
 const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({

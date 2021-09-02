@@ -163,7 +163,7 @@ const ScoringMethodsPage = ({
             </Paragraph>
           </HighlightBox>
 
-          <HighlightBox icon="sinuosity_high" title="Percent Unaltered">
+          <HighlightBox icon="sinuosity_high" title="Channel Alteration">
             <Paragraph>
               Altered river and stream segments are those that are specifically
               identified as canals or ditches. These represent areas where the

@@ -23,7 +23,6 @@ import geopandas as gp
 
 
 from analysis.constants import CRS
-from analysis.lib.util import spatial_join
 from analysis.prep.barriers.lib.duplicates import mark_duplicates
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.rank.lib.spatial_joins import (

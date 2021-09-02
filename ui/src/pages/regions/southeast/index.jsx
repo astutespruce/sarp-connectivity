@@ -15,7 +15,7 @@ import {
 
 import { useSummaryData } from 'components/Data'
 import { Link, OutboundLink } from 'components/Link'
-import Layout from 'components/Layout'
+import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { formatNumber } from 'util/format'
 import SARPLogoImage from 'images/sarp_logo.png'
@@ -40,17 +40,17 @@ const SERegionPage = ({
       dams,
       on_network_dams,
       miles,
-      total_barriers,
-      barriers,
-      on_network_barriers,
+      total_small_barriers,
+      small_barriers,
+      on_network_small_barriers,
       crossings,
     },
   } = useSummaryData()
 
   const offNetworkDams = dams - on_network_dams
-  const offNetworkBarriers = barriers - on_network_barriers
+  const offNetworkBarriers = small_barriers - on_network_small_barriers
 
-  const totalRoadBarriers = total_barriers + crossings
+  const totalRoadBarriers = total_small_barriers + crossings
 
   return (
     <Layout title="Southeast Aquatic Connectivity Program">
