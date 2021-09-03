@@ -112,6 +112,7 @@ FILTER_FIELDS = [
     "RegionalSGCNSppClass",
     "StreamOrderClass",
     "OwnerType",
+    "Intermittent",
     "HUC8_USFS",
     "HUC8_COA",
     "HUC8_SGCN",

@@ -297,6 +297,11 @@ export const PASSAGEFACILITY = {
   18: 'Bypass Channel Fishway',
 }
 
+export const INTERMITTENT = {
+  0: 'No',
+  1: 'Yes',
+}
+
 export const CONNECTIVITY_TEAMS = {
   southeast: {
     Arkansas: {
