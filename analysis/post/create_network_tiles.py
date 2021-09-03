@@ -9,11 +9,16 @@ from pyogrio import write_dataframe
 
 from analysis.constants import GEO_CRS
 from analysis.lib.io import read_feathers
+from analysis.lib.geometry.lines import aggregate_lines
 
 src_dir = Path("data/networks")
 intermediate_dir = Path("data/tiles")
 out_dir = Path("tiles")
 tmp_dir = Path("/tmp")
+
+
+# map sizeclass string to uint for smaller files
+sizeclasses = {"1a": 0, "1b": 1, "2": 2, "3a": 3, "3b": 4, "4": 4, "5": 5}
 
 
 tippecanoe_args = [
@@ -58,15 +63,25 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 
         flowlines = gp.read_feather(
             src_dir / "raw" / huc2 / "flowlines.feather",
-            columns=["lineID", "geometry", "intermittent", "sizeclass",],
+            columns=["lineID", "geometry", "intermittent", "sizeclass", "altered"],
         ).set_index("lineID")
         flowlines = flowlines.join(segments)
 
+        # remap sizeclass to uint8
+        flowlines["sizeclass"] = flowlines.sizeclass.map(sizeclasses).astype("uint8")
+
+        # aggregate to MultiLineStrings for smaller outputs
+        print("Aggregating flowlines to networks")
+        flowlines = aggregate_lines(
+            flowlines,
+            by=["dams", "small_barriers", "sizeclass", "intermittent", "altered"],
+        ).sort_values(by="dams")
+
         mbtiles_files = []
 
-        ### Zoom 6
+        ### Zoom 6: simplify
         print("Extracting largest flowlines")
-        largest = flowlines.loc[flowlines.sizeclass.isin(["3a", "3b", "4", "5"])].copy()
+        largest = flowlines.loc[flowlines.sizeclass >= 3].copy()
         largest["geometry"] = pg.simplify(
             largest.geometry.values.data, 100, preserve_topology=True
         )
@@ -90,11 +105,9 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         # remove JSON file
         json_filename.unlink()
 
-        ### Zoom 7-9
+        ### Zoom 7-9: simplify and dissolve
         print("Extracting large flowlines")
-        large = flowlines.loc[
-            flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
-        ].copy()
+        large = flowlines.loc[flowlines.sizeclass >= 1].copy()
         large["geometry"] = pg.simplify(
             large.geometry.values.data, 100, preserve_topology=True
         )

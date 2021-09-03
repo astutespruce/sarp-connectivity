@@ -1,3 +1,4 @@
+import geopandas as gp
 import numpy as np
 import pandas as pd
 import pygeos as pg
@@ -127,3 +128,29 @@ def cut_lines_at_multipoints(lines, points, tolerance=1e-6):
         out[i] = new_line
 
     return out
+
+
+def aggregate_lines(df, by):
+    """Like dissolve, but aggregates lines to multilinestrings instead of
+    unioning them together, which is much slower.
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+    by : string or list-like
+        field(s) to aggregate by
+
+    Returns
+    -------
+    GeoDataFrame of multilinestrings
+    """
+
+    tmp = pd.DataFrame(df.copy())
+    tmp["geometry"] = tmp.geometry.values.data
+    return gp.GeoDataFrame(
+        tmp.groupby(by=by)
+        .geometry.apply(pg.multilinestrings)
+        .rename("geometry")
+        .reset_index(),
+        crs=df.crs,
+    )
