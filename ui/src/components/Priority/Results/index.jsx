@@ -15,7 +15,8 @@ import { SCENARIOS, barrierTypeLabels } from '../../../../config/constants'
 
 const Results = ({
   config,
-  scenario,
+  scenario: rawScenario,
+  resultsType,
   rankData,
   tierThreshold,
   onSetTierThreshold,
@@ -23,11 +24,16 @@ const Results = ({
 }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
+  const scenario = resultsType === 'perennial' ? `p${rawScenario}` : rawScenario
+  console.log('scenario', rawScenario, resultsType, `|${scenario}|`)
 
-  const scenarioLabel =
-    scenario === 'ncwc'
-      ? 'combined network connectivity and watershed condition'
-      : SCENARIOS[scenario].toLowerCase()
+  let scenarioLabel = SCENARIOS[scenario].toLowerCase()
+  if (scenario === 'ncwc') {
+    scenarioLabel = 'combined network connectivity and watershed condition'
+  } else if (scenario === 'pncwc') {
+    scenarioLabel =
+      'combined perennial network connectivity and watershed condition'
+  }
 
   // count records by tier
   const tierCounts = countBy(rankData, `${scenario}_tier`)
@@ -152,6 +158,7 @@ Results.propTypes = {
     scenario: PropTypes.string.isRequired,
   }).isRequired,
   scenario: PropTypes.string.isRequired,
+  resultsType: PropTypes.string.isRequired,
   tierThreshold: PropTypes.number.isRequired,
   rankData: PropTypes.arrayOf(
     PropTypes.shape({

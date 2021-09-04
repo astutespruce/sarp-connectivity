@@ -387,6 +387,9 @@ export const SCENARIOS = {
   nc: 'Network Connectivity',
   wc: 'Watershed Condition',
   ncwc: 'Combined',
+  pnc: 'Perennial Network Connectivity',
+  pwc: 'Perennial Watershed Condition',
+  pncwc: 'Perennial Combined',
 }
 
 export const LAYER_NAMES = {

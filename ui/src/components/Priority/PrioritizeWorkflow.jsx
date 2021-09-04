@@ -26,24 +26,51 @@ const scenarioOptions = [
   { value: 'ncwc', label: 'combined' },
 ]
 
+const resultTypeOptions = [
+  {
+    value: 'full',
+    label: 'full networks',
+  },
+  {
+    value: 'perennial',
+    label: 'perennial segments only',
+  },
+]
+
 const Prioritize = () => {
   const barrierType = useBarrierType()
   const {
     state: { filters },
     setData: setFilterData,
   } = useCrossfilter()
+
+  // individually-managed states
   const [selectedBarrier, setSelectedBarrier] = useState(null)
-  const [searchFeature, setSearchFeature] = useState(null)
-  const [layer, setLayer] = useState(null)
-  const [summaryUnits, setSummaryUnits] = useState([])
-  const [rankData, setRankData] = useState([])
-  const [scenario, setScenario] = useState('ncwc')
-  const [tierThreshold, setTierThreshold] = useState(1)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isError, setIsError] = useState(false)
   const [step, setStep] = useState('select')
   const stepRef = useRef(step) // need to keep a ref to use in callback below
 
-  const [isLoading, setIsLoading] = useState(true)
-  const [isError, setIsError] = useState(false)
+  const [
+    {
+      searchFeature,
+      layer,
+      summaryUnits,
+      rankData,
+      scenario,
+      resultsType,
+      tierThreshold,
+    },
+    setState,
+  ] = useState({
+    searchFeature: null,
+    layer: null,
+    summaryUnits: [],
+    rankData: [],
+    scenario: 'ncwc',
+    resultsType: 'full',
+    tierThreshold: 1,
+  })
 
   // keep the reference in sync
   stepRef.current = step
@@ -63,26 +90,36 @@ const Prioritize = () => {
 
   const handleResultsBack = () => {
     setStep('filter')
-    setRankData([])
-    setTierThreshold(1)
-    setScenario('ncwc')
+    setState((prevState) => ({
+      ...prevState,
+      rankData: [],
+      scenario: 'ncwc',
+      resultsType: 'full',
+      tierThreshold: 1,
+    }))
   }
 
   const handleSearch = useCallback((nextSearchFeature) => {
-    setSearchFeature(nextSearchFeature)
+    setState((prevState) => ({
+      ...prevState,
+      searchFeature: nextSearchFeature,
+    }))
   }, [])
 
   const handleSetLayer = (nextLayer) => {
-    setSearchFeature(null)
-    setSummaryUnits([])
-    setLayer(nextLayer)
+    setState((prevState) => ({
+      ...prevState,
+      searchFeature: null,
+      summaryUnits: [],
+      layer: nextLayer,
+    }))
   }
 
   // Toggle selected unit in or out of selection
   const handleSelectUnit = (unit) => {
     const { id } = unit
 
-    setSummaryUnits((prevSummaryUnits) => {
+    setState(({ summaryUnits: prevSummaryUnits, ...prevState }) => {
       // NOTE: we are always creating a new object,
       // because we cannot mutate the underlying object
       // without causing the setSummaryUnits call to be a no-op
@@ -90,18 +127,22 @@ const Prioritize = () => {
         ({ id: unitId }) => unitId === id
       )
 
+      let nextSummaryUnits = prevSummaryUnits
       if (index === -1) {
         // add it
-        return prevSummaryUnits.concat([unit])
+        nextSummaryUnits = prevSummaryUnits.concat([unit])
+      } else {
+        // remove it
+        nextSummaryUnits = prevSummaryUnits
+          .slice(0, index)
+          .concat(prevSummaryUnits.slice(index + 1))
       }
-
-      // remove it
-      return prevSummaryUnits
-        .slice(0, index)
-        .concat(prevSummaryUnits.slice(index + 1))
+      return {
+        ...prevState,
+        summaryUnits: nextSummaryUnits,
+        searchFeature: null,
+      }
     })
-
-    setSearchFeature(null)
   }
 
   const loadBarrierInfo = () => {
@@ -133,7 +174,10 @@ const Prioritize = () => {
       )
 
       if (csv) {
-        setRankData(csv)
+        setState((prevState) => ({
+          ...prevState,
+          rankData: csv,
+        }))
         setStep('results')
         setIsLoading(false)
       } else {
@@ -145,11 +189,18 @@ const Prioritize = () => {
   }
 
   const handleSetScenario = (nextScenario) => {
-    setScenario(nextScenario)
+    setState((prevState) => ({ ...prevState, scenario: nextScenario }))
+  }
+
+  const handleSetResultsType = (nextResultsType) => {
+    setState((prevState) => ({
+      ...prevState,
+      resultsType: nextResultsType,
+    }))
   }
 
   const handleSetTierThreshold = (newThreshold) => {
-    setTierThreshold(newThreshold)
+    setState((prevState) => ({ ...prevState, tierThreshold: newThreshold }))
   }
 
   // WARNING: this is passed into map at construction type, any
@@ -239,6 +290,7 @@ const Prioritize = () => {
               rankData={rankData}
               tierThreshold={tierThreshold}
               scenario={scenario}
+              resultsType={resultsType}
               config={{
                 layer,
                 summaryUnits,
@@ -300,11 +352,16 @@ const Prioritize = () => {
         {step === 'results' && (
           <TopBar>
             <Text sx={{ mr: '0.5rem' }}>Show ranks for:</Text>
-
             <ToggleButton
               value={scenario}
               options={scenarioOptions}
               onChange={handleSetScenario}
+            />
+            <Text sx={{ mx: '0.5rem' }}>for</Text>
+            <ToggleButton
+              value={resultsType}
+              options={resultTypeOptions}
+              onChange={handleSetResultsType}
             />
           </TopBar>
         )}
