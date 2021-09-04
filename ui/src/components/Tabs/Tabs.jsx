@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { Flex } from 'theme-ui'
 
@@ -10,6 +10,16 @@ const Tabs = ({ children, sx }) => {
   const firstTab = tabs[0].id
 
   const [tab, setTab] = useState(firstTab)
+
+  // if active tab is no longer one of children, reset to first tab
+  useEffect(() => {
+    if (
+      children.map(({ props: { id } }) => id).filter((id) => id === tab)
+        .length === 0
+    ) {
+      setTab(firstTab)
+    }
+  }, [children, firstTab, tab])
 
   const handleTabChange = (id) => {
     setTab(id)
