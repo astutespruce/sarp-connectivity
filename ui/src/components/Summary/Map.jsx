@@ -353,8 +353,11 @@ const SummaryMap = ({
       const visibility = barrierType === t ? 'visible' : 'none'
       map.setLayoutProperty(t, 'visibility', visibility)
       map.setLayoutProperty(`${t}-background`, 'visibility', visibility)
-      map.setFilter('network-highlight', ['==', 'networkID', Infinity])
     })
+
+    // clear highlighted networks
+    map.setFilter('network-highlight', ['==', 'dams', Infinity])
+    map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
 
     map.setLayoutProperty(
       'dams-secondary',
@@ -385,7 +388,16 @@ const SummaryMap = ({
       networkID = upnetid
     }
 
-    map.setFilter('network-highlight', ['==', ['get', barrierType], networkID])
+    map.setFilter('network-highlight', [
+      'all',
+      ['==', ['get', 'intermittent'], false],
+      ['==', ['get', barrierType], networkID],
+    ])
+    map.setFilter('network-intermittent-highlight', [
+      'all',
+      ['==', ['get', 'intermittent'], true],
+      ['==', ['get', barrierType], networkID],
+    ])
 
     map.getSource(id).setData(data)
   }, [selectedBarrier, barrierType])
@@ -507,11 +519,31 @@ const SummaryMap = ({
       })
     }
 
+    let lines = null
+    if (zoom >= 11) {
+      lines = [
+        {
+          id: 'intermittent',
+          label: 'intermittent / ephemeral stream reach',
+          color: '#1891ac',
+          lineStyle: 'dashed',
+          lineWidth: '2px',
+        },
+        {
+          id: 'altered',
+          label: 'altered stream reach (canal / ditch)',
+          color: 'red',
+          lineWidth: '2px',
+        },
+      ]
+    }
+
     return {
       layerTitle: title,
       legendEntries: {
         patches: [{ id: 'summaryAreas', entries: patchEntries }],
         circles,
+        lines,
       },
     }
   }, [system, barrierType, zoom])

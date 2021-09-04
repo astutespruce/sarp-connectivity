@@ -70,6 +70,9 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         # remap sizeclass to uint8
         flowlines["sizeclass"] = flowlines.sizeclass.map(sizeclasses).astype("uint8")
 
+        # TODO: combine intermittent and altered into a single uint value
+
+
         # aggregate to MultiLineStrings for smaller outputs
         print("Aggregating flowlines to networks")
         flowlines = aggregate_lines(

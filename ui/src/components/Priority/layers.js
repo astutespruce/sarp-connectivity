@@ -135,31 +135,46 @@ export const flowlinesLayer = {
   id: 'flowlines',
   source: 'networks',
   'source-layer': 'networks',
+  filter: ['==', ['get', 'intermittent'], false],
   minzoom: 9,
   type: 'line',
   paint: {
     'line-opacity': {
-      base: 0,
+      base: 0.1,
       stops: [
         [10, 0.1],
         [12, 0.5],
         [14, 1],
       ],
     },
-    'line-width': {
-      base: 0.1,
-      stops: [
-        [10, 0.1],
-        [11, 0.5],
-        [15, 1],
-        [17, 1.5],
-      ],
-    },
-    'line-color': '#1891ac',
+    'line-width': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      6,
+      0.1,
+      10,
+      ['*', ['get', 'sizeclass'], 0.5],
+      12,
+      ['+', ['get', 'sizeclass'], 0.5],
+      14,
+      ['+', ['get', 'sizeclass'], 1],
+    ],
+    'line-color': ['case', ['==', ['get', 'altered'], 0], '#1891ac', 'red'],
   },
 }
 
-export const networkHighlightLayer = {
+const intermittentFlowlinesLayer = {
+  ...flowlinesLayer,
+  id: 'flowlines-intermittent',
+  filter: ['==', ['get', 'intermittent'], true],
+  paint: {
+    ...flowlinesLayer.paint,
+    'line-dasharray': [3, 2],
+  },
+}
+
+const networkHighlightLayer = {
   id: 'network-highlight',
   source: 'networks',
   'source-layer': 'networks',
@@ -167,29 +182,27 @@ export const networkHighlightLayer = {
   type: 'line',
   filter: ['==', 'dams', Infinity],
   paint: {
-    'line-opacity': {
-      base: 0,
-      stops: [
-        [6, 0.1],
-        [10, 0.5],
-        [14, 1],
-        [16, 1],
-      ],
-    },
-    'line-width': {
-      base: 0.1,
-      stops: [
-        [6, 0.1],
-        [8, 0.5],
-        [11, 1],
-        [14, 2.5],
-        [15, 3],
-        [16, 4],
-      ],
-    },
+    'line-opacity': 1,
+    'line-width': flowlinesLayer.paint['line-width'],
     'line-color': '#fd8d3c',
   },
 }
+
+const intermittentNetworkHighlightLayer = {
+  ...networkHighlightLayer,
+  id: 'network-intermittent-highlight',
+  paint: {
+    ...networkHighlightLayer.paint,
+    'line-dasharray': [3, 2],
+  },
+}
+
+export const networkLayers = [
+  flowlinesLayer,
+  intermittentFlowlinesLayer,
+  networkHighlightLayer,
+  intermittentNetworkHighlightLayer,
+]
 
 export const backgroundPoint = {
   id: 'point-no-network',

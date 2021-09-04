@@ -287,7 +287,8 @@ export const flowlinesLayer = {
   id: 'flowlines',
   source: 'networks',
   'source-layer': 'networks',
-  minzoom: 6,
+  filter: ['==', ['get', 'intermittent'], false],
+  minzoom: 11,
   type: 'line',
   paint: {
     'line-opacity': {
@@ -299,56 +300,59 @@ export const flowlinesLayer = {
         [16, 1],
       ],
     },
-    'line-width': {
-      base: 0.1,
-      stops: [
-        [11, 0],
-        [12, 0.1],
-        [14, 0.25],
-        [15, 0.5],
-        [16, 1],
-        [17, 1.5],
-      ],
-    },
-    'line-color': '#1891ac',
+    'line-width': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      11,
+      ['*', ['get', 'sizeclass'], 0.5],
+      12,
+      ['+', ['get', 'sizeclass'], 0.5],
+      14,
+      ['+', ['get', 'sizeclass'], 1],
+    ],
+    'line-color': ['case', ['==', ['get', 'altered'], 0], '#1891ac', 'red'],
+  },
+}
+
+export const intermittentFlowlinesLayer = {
+  ...flowlinesLayer,
+  id: 'flowlines-intermittent',
+  filter: ['==', ['get', 'intermittent'], true],
+  paint: {
+    ...flowlinesLayer.paint,
+    'line-dasharray': [3, 2],
   },
 }
 
 const networkHighlightLayer = {
+  ...flowlinesLayer,
   id: 'network-highlight',
-  source: 'networks',
-  'source-layer': 'networks',
-  minzoom: 6,
-  type: 'line',
   filter: ['==', 'dams', Infinity],
   paint: {
-    'line-opacity': {
-      base: 0,
-      stops: [
-        [6, 0.1],
-        [12, 0.1],
-        [14, 0.5],
-        [16, 1],
-      ],
-    },
-    'line-width': {
-      base: 0.1,
-      stops: [
-        [6, 0.1],
-        [8, 0.5],
-        [12, 1],
-        [14, 2],
-        [15, 3],
-        [16, 4],
-      ],
-    },
+    ...flowlinesLayer.paint,
+    'line-opacity': 1,
     'line-color': '#fd8d3c',
+  },
+}
+
+const intermittentNetworkHighlightLayer = {
+  ...networkHighlightLayer,
+  id: 'network-intermittent-highlight',
+  paint: {
+    ...networkHighlightLayer.paint,
+    'line-dasharray': [3, 2],
   },
 }
 
 export const flowlineLegend = {}
 
-export const networkLayers = [flowlinesLayer, networkHighlightLayer]
+export const networkLayers = [
+  flowlinesLayer,
+  intermittentFlowlinesLayer,
+  networkHighlightLayer,
+  intermittentNetworkHighlightLayer,
+]
 
 export const waterfallsLayer = {
   id: 'waterfalls',

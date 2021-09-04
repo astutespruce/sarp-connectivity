@@ -21,8 +21,7 @@ import {
   maskOutline,
   unitLayers,
   unitHighlightLayers,
-  flowlinesLayer,
-  networkHighlightLayer,
+  networkLayers,
   parentOutline,
   pointHighlight,
   pointHover,
@@ -108,8 +107,9 @@ const PriorityMap = ({
       map.addLayer(maskOutline)
 
       // Add flowlines and network highlight layers
-      map.addLayer(flowlinesLayer)
-      map.addLayer(networkHighlightLayer)
+      networkLayers.forEach((layer) => {
+        map.addLayer(layer)
+      })
 
       // Add summary unit layers
       Object.entries(unitLayerConfig).forEach(
@@ -547,22 +547,35 @@ const PriorityMap = ({
     // setting to empty feature collection effectively hides this layer
     let data = emptyFeatureCollection
     let networkID = Infinity
+    let networkType = barrierType
 
     if (selectedBarrier) {
-      const { lat, lon, upnetid = Infinity } = selectedBarrier
+      console.log('selected', selectedBarrier)
+      const {
+        lat,
+        lon,
+        upnetid = Infinity,
+        networkType: barrierNetworkType = barrierType,
+      } = selectedBarrier
       data = {
         type: 'Point',
         coordinates: [lon, lat],
       }
 
       networkID = upnetid
+      networkType = barrierNetworkType
     }
 
     // highlight upstream network if set otherwise clear it
     map.setFilter('network-highlight', [
-      '==',
-      selectedBarrier.networkType || barrierType,
-      networkID,
+      'all',
+      ['==', ['get', 'intermittent'], false],
+      ['==', ['get', networkType], networkID],
+    ])
+    map.setFilter('network-intermittent-highlight', [
+      'all',
+      ['==', ['get', 'intermittent'], true],
+      ['==', ['get', networkType], networkID],
     ])
 
     map.getSource(id).setData(data)
@@ -705,6 +718,21 @@ const PriorityMap = ({
 
     const circles = []
     const patches = []
+    const lines = [
+      {
+        id: 'intermittent',
+        label: 'intermittent / ephemeral stream reach',
+        color: '#1891ac',
+        lineStyle: 'dashed',
+        lineWidth: '2px',
+      },
+      {
+        id: 'altered',
+        label: 'altered stream reach (canal / ditch)',
+        color: 'red',
+        lineWidth: '2px',
+      },
+    ]
     let footnote = null
 
     if (Math.max(...Object.values(priorityLayerState))) {
@@ -843,6 +871,7 @@ const PriorityMap = ({
     return {
       patches,
       circles,
+      lines,
       footnote,
     }
   }
