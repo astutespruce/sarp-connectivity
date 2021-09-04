@@ -62,7 +62,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     // For now, we are using tier to save space in data transport, so convert them to percent
     const scores = {}
     const units = ['state']
-    const metrics = ['nc', 'wc', 'ncwc']
+    const metrics = ['nc', 'wc', 'ncwc', 'pnc', 'pwc', 'pncwc']
 
     if (barrier.se_ncwc_tier !== -1) {
       units.push('se')

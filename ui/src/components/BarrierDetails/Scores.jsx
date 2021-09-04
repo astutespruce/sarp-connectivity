@@ -5,6 +5,7 @@ import { Text } from 'theme-ui'
 import { Tab, Tabs } from 'components/Tabs'
 import ScoresList from './ScoresList'
 import { ScoresPropType } from './proptypes'
+import { barrierTypeLabels } from '../../../config/constants'
 
 const tabs = [
   { id: 'custom', label: 'Selected Area' },
@@ -27,31 +28,20 @@ const Scores = ({ barrierType, scores }) => {
 
   return (
     <>
-      <Text sx={{ fontSize: '1.25rem' }}>
-        Compare to other {barrierType} in the{' '}
+      <Text variant="help" sx={{ mb: '1rem', fontSize: 0 }}>
+        Tiers range from 20 (lowest) to 1 (highest).
+      </Text>
+      <Text>
+        Compare to other {barrierTypeLabels[barrierType]} in the{' '}
         {availableTabs.length === 1 ? 'state:' : null}
       </Text>
 
       {availableTabs.length > 1 ? (
         <Tabs
           sx={{
-            '>div:first-of-type': {
-              bg: 'transparent',
-            },
-            '>div:first-of-type + div': {
-              m: '-1rem -1rem 2rem',
-            },
-            button: {
-              borderBottom: '0.25rem solid',
-              borderBottomColor: 'transparent',
-              bg: 'transparent',
-              '&:hover': {
-                borderBottomColor: 'grey.2',
-              },
-            },
-            'button[data=is-active]': {
-              borderBottomColor: 'blue.5',
-            },
+            borderTop: '2px solid',
+            borderTopColor: 'grey.2',
+            mx: '-0.75rem',
           }}
         >
           {availableTabs.map(({ id, label }) => (
