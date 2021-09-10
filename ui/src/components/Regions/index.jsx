@@ -1,4 +1,5 @@
+import RegionActionLinks from './RegionActionLinks'
 import RegionStats from './RegionStats'
 import RegionStatesTable from './RegionStatesTable'
 
-export { RegionStats, RegionStatesTable }
+export { RegionActionLinks, RegionStats, RegionStatesTable }

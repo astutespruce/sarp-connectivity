@@ -1,37 +1,49 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
-import { Box, Container, Divider, Grid, Heading, Paragraph } from 'theme-ui'
+import { GatsbyImage } from 'gatsby-plugin-image'
+
+import {
+  Box,
+  Container,
+  Divider,
+  Grid,
+  Heading,
+  Paragraph,
+  Text,
+} from 'theme-ui'
 
 import { useSummaryData } from 'components/Data'
+
 import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
+import {
+  RegionActionLinks,
+  RegionStats,
+  RegionStatesTable,
+} from 'components/Regions'
+
 import { formatNumber } from 'util/format'
 
-import { REGION_STATES, STATES } from '../../../../config/constants'
+import { REGION_STATES } from '../../../../config/constants'
 
-const GPIWRegionPage = ({ data: { headerImage } }) => {
-  const {
-    gpiw: {
-      dams,
-      onNetworkDams,
-      miles,
-      totalSmallBarriers,
-      smallBarriers,
-      onNetworkSmallBarriers,
-      crossings,
+const GPIWRegionPage = ({
+  data: {
+    headerImage: {
+      childImageSharp: { gatsbyImageData: headerImage },
     },
-  } = useSummaryData()
-
-  const offNetworkDams = dams - onNetworkDams
-  const offNetworkBarriers = smallBarriers - onNetworkSmallBarriers
-
-  const totalRoadBarriers = totalSmallBarriers + crossings
+    map: {
+      childImageSharp: { gatsbyImageData: map },
+    },
+  },
+}) => {
+  const { gpiw } = useSummaryData()
+  const { dams } = gpiw
 
   return (
     <Layout title="Great Plains & Intermountain West Aquatic Connectivity">
       <HeaderImage
-        image={headerImage.childImageSharp.gatsbyImageData}
+        image={headerImage}
         height="20vh"
         minHeight="18rem"
         credits={{
@@ -41,79 +53,59 @@ const GPIWRegionPage = ({ data: { headerImage } }) => {
       />
 
       <Container>
-        <Heading as="h1">
-          Great Plains &amp; Intermountain West Aquatic Connectivity
-        </Heading>
+        <Heading as="h1">Great Plains & Intermountain West Region</Heading>
 
-        <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
+        <Grid columns={2} gap={5} sx={{ mt: '2rem' }}>
           <Box>
-            <Paragraph>Content about this region goes here</Paragraph>
-          </Box>
-
-          <Box>
-            <Heading as="h4">
-              Includes <b>{REGION_STATES.gpiw.length}</b> states:
-            </Heading>
-            <Box
-              as="ul"
-              sx={{
-                'li + li': {
-                  mt: 0,
-                },
-              }}
-            >
-              {REGION_STATES.gpiw.map((id) => (
-                <li key={id}>{STATES[id]}</li>
-              ))}
+            <Box sx={{ border: '1px solid', borderColor: 'grey.4' }}>
+              <GatsbyImage
+                image={map}
+                alt="Great Plains & Intermountain West region map"
+                sx={{ border: '1px solid', borderColor: 'grey.3' }}
+              />
             </Box>
+            <Text sx={{ fontSize: 1, color: 'grey.7' }}>
+              Map of {formatNumber(dams)} inventoried dams in the Great Plains &
+              Intermountain West.
+            </Text>
+          </Box>
+          <Box>
+            <Heading as="h4" sx={{ mb: '0.5rem' }}>
+              Includes {REGION_STATES.gpiw.length} states with:
+            </Heading>
+
+            <RegionStats {...gpiw} />
           </Box>
         </Grid>
 
+        <RegionActionLinks region="gpiw" />
+
+        <Box variant="boxes.section">
+          <Heading as="h2" variant="heading.section">
+            Statistics by state:
+          </Heading>
+          <Box sx={{ mt: '0.5rem' }}>
+            <RegionStatesTable region="gpiw" {...gpiw} />
+          </Box>
+        </Box>
+
         <Divider sx={{ my: '4rem' }} />
 
-        <Box>
-          <Heading as="h2">Regional statistics:</Heading>
-
-          <Grid columns={3} gap={4} sx={{ mt: '2rem' }}>
-            <Box
-              as="ul"
-              sx={{
-                listStyle: 'none',
-                fontSize: '1.25rem',
-                mt: '1rem',
-                ml: 0,
-                p: 0,
-                lineHeight: 1.3,
-                li: {
-                  mb: '2rem',
-                },
-              }}
-            >
-              <li>
-                <b>{formatNumber(dams, 0)}</b> inventoried dams.
-              </li>
-              <li>
-                <b>{formatNumber(onNetworkDams, 0)}</b> dams that have been
-                analyzed for their impacts to aquatic connectivity in this tool.
-              </li>
-              <li>
-                <b>{formatNumber(miles, 0)}</b> miles of connected rivers and
-                streams on average across the region.
-              </li>
-            </Box>
-            <Paragraph variant="help" sx={{ mt: '2rem' }}>
-              Note: These statistics are based on <i>inventoried</i> dams and
-              road-related barriers. Because the inventory is incomplete in many
-              areas, areas with a high number of dams may simply represent areas
-              that have a more complete inventory.
-              <br />
-              <br />
-              {formatNumber(offNetworkDams, 0)} dams and{' '}
-              {formatNumber(offNetworkBarriers, 0)} road-related barriers were
-              not analyzed because they could not be correctly located on the
-              aquatic network or were otherwise excluded from the analysis.
-            </Paragraph>
-          </Grid>
+        <Box variant="boxes.section">
+          <Heading as="h2" variant="heading.section">
+            You can help!
+          </Heading>
+          <Paragraph sx={{ mt: '1rem' }}>
+            You can help improve the inventory You can help improve the
+            inventory by sharing data, assisting with field reconnaissance to
+            evaluate the impact of aquatic barriers, or even by reporting issues
+            with the inventory data in this tool.
+            <br />
+            <br />
+            <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn
+            more about how you can help improve aquatic connectivity in the
+            Great Plains & Intermountain West.
+          </Paragraph>
         </Box>
       </Container>
     </Layout>
@@ -123,6 +115,7 @@ const GPIWRegionPage = ({ data: { headerImage } }) => {
 GPIWRegionPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
+    map: PropTypes.isRequired,
   }).isRequired,
 }
 
@@ -131,6 +124,15 @@ export const pageQuery = graphql`
     headerImage: file(
       relativePath: { eq: "dillon-fancher-E1FpiiUhRJ0-unsplash.jpg" }
     ) {
+      childImageSharp {
+        gatsbyImageData(
+          layout: FULL_WIDTH
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
+      }
+    }
+    map: file(relativePath: { eq: "maps/gpiw.png" }) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH

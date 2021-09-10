@@ -42,7 +42,7 @@ const RegionStatesTable = ({
                 borderBottom: '2px solid',
                 borderBottomColor: 'grey.3',
                 textAlign: 'left',
-                py: '0.25em',
+                py: '0.5em',
               },
               'th:first-of-type': {
                 width: '12em',
@@ -92,7 +92,7 @@ const RegionStatesTable = ({
             </tr>
           </thead>
           <tbody>
-            {REGION_STATES.se.map((id) => (
+            {regionStates.map(({ id }) => (
               <tr key={id}>
                 <td>{STATES[id]}</td>
                 <td>{formatNumber(stateData[STATES[id]].dams)} dams </td>
