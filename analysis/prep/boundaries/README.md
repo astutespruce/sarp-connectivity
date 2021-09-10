@@ -11,13 +11,13 @@
 
 The analysis region is defined in 2 variants:
 
--   full region
--   SARP region (for 2020 update)
+- full region
+- SARP region (for 2020 update)
 
 Each analysis region is based on 2 parts
 
--   states in the region
--   NHD HUC4s that intersect the state boundaries
+- states in the region
+- NHD HUC4s that intersect the state boundaries
 
 The analysis boundary is based on the outer edge of all HUC4s that intersect
 the states within the region (with exceptions). However, local barrier inventory
@@ -29,11 +29,11 @@ The analysis regions are created using `analysis/prep/define_region.py`.
 
 This produces 5 main output files for each analysis region:
 
--   state boundaries
--   analysis state boundary (dissolved states)
--   HUC2
--   HUC4
--   analysis boundary (dissolved HUC4)
+- state boundaries
+- analysis state boundary (dissolved states)
+- HUC2
+- HUC4
+- analysis boundary (dissolved HUC4)
 
 For each of above, a GPKG file is written for use in GIS, and feather file
 for use later in the analysis pipeline.
@@ -56,9 +56,9 @@ and are joined to the barrier inventory during the analysis.
 
 These include:
 
--   HUC6
--   HUC8
--   HUC12
+- HUC6
+- HUC8
+- HUC12
 
 These are extracted using `analysis/prep/boundaries/extract_watersheds.py`.
 
@@ -88,8 +88,8 @@ Vector tiles are are created for each of the boundary layers.
 
 Depending on which analysis region you are creating tiles for, run one of:
 
--   `analysis/prep/boundaries/generate_region_tiles.sh`
--   `analysis/prep/boundaries/generate_sarp_tiles.sh`
+- `analysis/prep/boundaries/generate_region_tiles.sh`
+- `analysis/prep/boundaries/generate_sarp_tiles.sh`
 
 Both create files with the same name in the same location, because only one
 set is intended to be used at a time within this project.

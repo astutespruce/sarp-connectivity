@@ -718,7 +718,10 @@ const PriorityMap = ({
 
     const circles = []
     const patches = []
-    const lines = [
+    let lines = null
+
+    if (zoom > 6) {
+    lines=[
       {
         id: 'intermittent',
         label: 'intermittent / ephemeral stream reach',
@@ -733,6 +736,8 @@ const PriorityMap = ({
         lineWidth: '2px',
       },
     ]
+  }
+
     let footnote = null
 
     if (Math.max(...Object.values(priorityLayerState))) {

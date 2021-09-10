@@ -18,6 +18,8 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   const [haveUserInfo, setHaveUserInfo] = useState(false)
   const [downloadOptions, setDownloadOptions] = useState({ unranked: false })
 
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
+
   useEffect(() => {
     // If the user previously entered their contact info, don't ask them for it again
     const formData = getFromStorage('downloadForm')
@@ -73,7 +75,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   const showUserInfoForm = isOpen && !haveUserInfo
   const showDownloadPopup = isOpen && haveUserInfo
 
-  const labelText = label || `Download ${barrierTypeLabels[barrierType]}`
+  const labelText = label || `Download ${barrierTypeLabel}`
 
   return (
     <>
@@ -160,7 +162,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
             <Button variant="primary" onClick={handleDownload}>
               <Flex sx={{ alignItems: 'center' }}>
                 <DownloadIcon size="1.2em" style={{ marginRight: '0.5rem' }} />
-                <Text>Download {barrierType}</Text>
+                <Text>Download {barrierTypeLabel}</Text>
               </Flex>
             </Button>
           </Flex>

@@ -105,11 +105,11 @@ const DownloadPage = ({ data: { headerImage } }) => {
             Download Road-related Barriers by State
           </Heading>
           <ul>
-            {states.map(({ id, total_small_barriers }) => (
+            {states.map(({ id, totalSmallBarriers }) => (
               <li key={`barriers_${id}`}>
                 <Downloader
                   label={`${id} (${formatNumber(
-                    total_small_barriers,
+                    totalSmallBarriers,
                     0
                   )} barriers)`}
                   asButton={false}

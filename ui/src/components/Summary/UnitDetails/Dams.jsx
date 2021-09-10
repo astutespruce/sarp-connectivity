@@ -5,8 +5,8 @@ import { Box, Paragraph } from 'theme-ui'
 
 import { formatNumber } from 'util/format'
 
-const Dams = ({ dams, on_network_dams, miles }) => {
-  const offNetworkDams = dams - on_network_dams
+const Dams = ({ dams, onNetworkDams, miles }) => {
+  const offNetworkDams = dams - onNetworkDams
 
   if (dams === 0) {
     return (
@@ -26,9 +26,9 @@ const Dams = ({ dams, on_network_dams, miles }) => {
           {dams === 1 ? 'dam' : 'dams'}
         </li>
         <li>
-          <b>{formatNumber(on_network_dams, 0)}</b>{' '}
-          {on_network_dams === 1 ? 'dam' : 'dams'} that{' '}
-          {on_network_dams === 1 ? 'was ' : 'were '} analyzed for impacts to
+          <b>{formatNumber(onNetworkDams, 0)}</b>{' '}
+          {onNetworkDams === 1 ? 'dam' : 'dams'} that{' '}
+          {onNetworkDams === 1 ? 'was ' : 'were '} analyzed for impacts to
           aquatic connectivity in this tool
         </li>
         <li>
@@ -56,13 +56,13 @@ const Dams = ({ dams, on_network_dams, miles }) => {
 
 Dams.propTypes = {
   dams: PropTypes.number,
-  on_network_dams: PropTypes.number,
+  onNetworkDams: PropTypes.number,
   miles: PropTypes.number,
 }
 
 Dams.defaultProps = {
   dams: 0,
-  on_network_dams: 0,
+  onNetworkDams: 0,
   miles: 0,
 }
 

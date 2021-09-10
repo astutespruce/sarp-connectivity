@@ -1,3 +1,5 @@
+import { toCamelCase } from 'util/format'
+
 export const groupBy = (records, groupField) =>
   records.reduce(
     (prev, record) => Object.assign(prev, { [record[groupField]]: record }),
@@ -35,3 +37,14 @@ export const reduceToObject = (keyField, valueGetter) => [
     Object.assign(prev, { [key]: valueGetter ? valueGetter(rest) : rest }),
   {},
 ]
+
+/**
+ * Convert snake_case fields to camelCase fields
+ * @param {Object} obj
+ * @returns object
+ */
+export const toCamelCaseFields = (obj) =>
+  Object.entries(obj).reduce(
+    (prev, [key, value]) => Object.assign(prev, { [toCamelCase(key)]: value }),
+    {}
+  )

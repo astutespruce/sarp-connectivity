@@ -25,7 +25,6 @@ const Results = ({
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const scenario = resultsType === 'perennial' ? `p${rawScenario}` : rawScenario
-  console.log('scenario', rawScenario, resultsType, `|${scenario}|`)
 
   let scenarioLabel = SCENARIOS[scenario].toLowerCase()
   if (scenario === 'ncwc') {

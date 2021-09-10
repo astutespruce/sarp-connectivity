@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Paragraph } from 'theme-ui'
@@ -6,13 +5,13 @@ import { Box, Paragraph } from 'theme-ui'
 import { formatNumber } from 'util/format'
 
 const Barriers = ({
-  small_barriers,
-  on_network_small_barriers,
-  total_small_barriers,
+  smallBarriers,
+  onNetworkSmallBarriers,
+  totalSmallBarriers,
   crossings,
 }) => {
-  const totalRoadBarriers = total_small_barriers + crossings
-  const offNetworkBarriers = small_barriers - on_network_small_barriers
+  const totalRoadBarriers = totalSmallBarriers + crossings
+  const offNetworkBarriers = smallBarriers - onNetworkSmallBarriers
 
   if (totalRoadBarriers === 0) {
     return (
@@ -33,22 +32,22 @@ const Barriers = ({
           {totalRoadBarriers === 1 ? 'barrier' : 'barriers'}
         </li>
         <li>
-          <b>{formatNumber(total_small_barriers, 0)}</b> road-related{' '}
-          {total_small_barriers === 1 ? 'barrier' : 'barriers'}{' '}
-          {total_small_barriers === 1 ? 'has ' : 'have '} been assessed for
+          <b>{formatNumber(totalSmallBarriers, 0)}</b> road-related{' '}
+          {totalSmallBarriers === 1 ? 'barrier' : 'barriers'}{' '}
+          {totalSmallBarriers === 1 ? 'has ' : 'have '} been assessed for
           impacts to aquatic organisms.
         </li>
         <li>
-          <b>{formatNumber(small_barriers, 0)}</b> road-related{' '}
-          {small_barriers === 1 ? 'barrier' : 'barriers'} assessed{' '}
-          {small_barriers === 1 ? 'is' : 'are'} likely to impact aquatic
+          <b>{formatNumber(smallBarriers, 0)}</b> road-related{' '}
+          {smallBarriers === 1 ? 'barrier' : 'barriers'} assessed{' '}
+          {smallBarriers === 1 ? 'is' : 'are'} likely to impact aquatic
           organisms
         </li>
         <li>
-          <b>{formatNumber(on_network_small_barriers, 0)}</b> road-related{' '}
-          {on_network_small_barriers === 1 ? 'barrier' : 'barriers'} that{' '}
-          {on_network_small_barriers === 1 ? 'was ' : 'were '} analyzed for
-          impacts to aquatic connectivity in this tool
+          <b>{formatNumber(onNetworkSmallBarriers, 0)}</b> road-related{' '}
+          {onNetworkSmallBarriers === 1 ? 'barrier' : 'barriers'} that{' '}
+          {onNetworkSmallBarriers === 1 ? 'was ' : 'were '} analyzed for impacts
+          to aquatic connectivity in this tool
         </li>
       </Box>
 
@@ -75,16 +74,16 @@ const Barriers = ({
 }
 
 Barriers.propTypes = {
-  small_barriers: PropTypes.number,
-  total_small_barriers: PropTypes.number,
-  on_network_small_barriers: PropTypes.number,
+  smallBarriers: PropTypes.number,
+  totalSmallBarriers: PropTypes.number,
+  onNetworkSmallBarriers: PropTypes.number,
   crossings: PropTypes.number,
 }
 
 Barriers.defaultProps = {
-  small_barriers: 0,
-  total_small_barriers: 0,
-  on_network_small_barriers: 0,
+  smallBarriers: 0,
+  totalSmallBarriers: 0,
+  onNetworkSmallBarriers: 0,
   crossings: 0,
 }
 

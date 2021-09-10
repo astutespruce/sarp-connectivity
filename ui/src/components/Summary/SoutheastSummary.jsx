@@ -12,18 +12,18 @@ const SoutheastSummary = ({ barrierType, system, onSearch }) => {
   const {
     se: {
       dams,
-      on_network_dams,
+      onNetworkDams,
       miles,
-      total_small_barriers,
-      small_barriers,
-      on_network_small_barriers,
+      totalSmallBarriers,
+      smallBarriers,
+      onNetworkSmallBarriers,
       crossings,
     },
   } = useSummaryData()
-  const offNetworkDams = dams - on_network_dams
-  const offNetworkBarriers = small_barriers - on_network_small_barriers
+  const offNetworkDams = dams - onNetworkDams
+  const offNetworkBarriers = smallBarriers - onNetworkSmallBarriers
 
-  const totalRoadBarriers = total_small_barriers + crossings
+  const totalRoadBarriers = totalSmallBarriers + crossings
 
   if (barrierType === 'dams') {
     return (
@@ -34,8 +34,8 @@ const SoutheastSummary = ({ barrierType, system, onSearch }) => {
             <b>{formatNumber(dams, 0)}</b> inventoried dams
           </li>
           <li>
-            <b>{formatNumber(on_network_dams, 0)}</b> dams that have been
-            analyzed for their impacts to aquatic connectivity in this tool
+            <b>{formatNumber(onNetworkDams, 0)}</b> dams that have been analyzed
+            for their impacts to aquatic connectivity in this tool
           </li>
           <li>
             <b>{formatNumber(miles, 0)}</b> miles of connected rivers and
@@ -75,15 +75,15 @@ const SoutheastSummary = ({ barrierType, system, onSearch }) => {
           road-related aquatic barriers
         </li>
         <li>
-          <b>{formatNumber(total_small_barriers, 0)}</b> that have been assessed
+          <b>{formatNumber(totalSmallBarriers, 0)}</b> that have been assessed
           for impacts to aquatic organisms
         </li>
         <li>
-          <b>{formatNumber(small_barriers, 0)}</b> road-related barriers
-          assessed so far that are likely to impact aquatic organisms
+          <b>{formatNumber(smallBarriers, 0)}</b> road-related barriers assessed
+          so far that are likely to impact aquatic organisms
         </li>
         <li>
-          <b>{formatNumber(on_network_small_barriers, 0)}</b> that have been
+          <b>{formatNumber(onNetworkSmallBarriers, 0)}</b> that have been
           evaluated for their impacts to aquatic connectivity in this tool
         </li>
       </Box>

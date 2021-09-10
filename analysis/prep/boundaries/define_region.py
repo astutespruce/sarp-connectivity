@@ -1,5 +1,7 @@
+import json
 from pathlib import Path
 import warnings
+
 
 import geopandas as gp
 import pygeos as pg
@@ -56,11 +58,17 @@ write_dataframe(bnd_df, out_dir / "region_boundary.gpkg")
 bnd = bnd_df.geometry.values.data[0]
 sarp_bnd = bnd_df.loc[bnd_df.id == "se"].geometry.values.data[0]
 
+bnd_geo = bnd_df.to_crs(GEO_CRS)
+bounds = {id: bnd_geo.loc[id].geometry.bounds for id in bnd_geo.id.unique()}
+
+# used to render maps
+with open(out_dir / "region_bounds.json", "w") as out:
+    out.write(json.dumps(bounds))
+
 # create mask
 world = pg.box(-180, -85, 180, 85)
-bnd_mask = bnd_df.to_crs(GEO_CRS)
+bnd_mask = bnd_geo.copy()
 bnd_mask["geometry"] = pg.normalize(pg.difference(world, bnd_mask.geometry.values.data))
-
 write_dataframe(bnd_mask, out_dir / "region_mask.gpkg")
 
 

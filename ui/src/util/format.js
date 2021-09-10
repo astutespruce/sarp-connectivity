@@ -62,3 +62,12 @@ export const formatNumber = (number, decimals = null) => {
 
 export const capitalize = (word) =>
   `${word.slice(0, 1).toUpperCase()}${word.slice(1)}`
+
+export const toCamelCase = (value) => {
+  if (!value) return value
+
+  return value
+    .split('_')
+    .map((part, i) => (i === 0 ? part : capitalize(part)))
+    .join('')
+}

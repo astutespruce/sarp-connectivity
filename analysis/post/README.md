@@ -22,3 +22,14 @@ Run the following Python scripts to generate barrier, summary, and network vecto
 - `analysis/post/create_barrier_tiles.py`
 - `analysis/post/create_summary_tiles.py`
 - `analysis/post/create_network_tiles.py`
+
+### Region boundary maps
+
+Each region includes a boundary map in the user interface. These are generated
+using [`mbgl-renderer`](https://github.com/consbio/mbgl-renderer).
+
+From within the `maps` directory, make sure that NodeJS 10 is installed and currently active (newer NodeJS versions NOT supported).
+
+Then run `npm ci` if necessary to install `mbgl-renderer` and other dependencies.
+
+Then run `npm run maps` to create maps for each of the regions; these are automatically saved to the `ui/src/images/maps` directory.

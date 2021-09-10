@@ -8,6 +8,7 @@ import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
 import { Map, UnitDetails, SoutheastSummary } from 'components/Summary'
 import BarrierDetails from 'components/BarrierDetails'
+import { toCamelCaseFields } from 'util/data'
 
 import { SYSTEMS } from '../../config/constants'
 
@@ -45,7 +46,7 @@ const SummaryPage = () => {
   }
 
   const handleSelectUnit = (feature) => {
-    setSelectedUnit(feature)
+    setSelectedUnit(toCamelCaseFields(feature))
     setSelectedBarrier(null)
   }
 

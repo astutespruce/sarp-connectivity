@@ -1,57 +1,169 @@
 import React from 'react'
-import { Box, Divider, Grid, Paragraph, Heading } from 'theme-ui'
+import { Box, Button, Divider, Flex, Grid, Heading, Text } from 'theme-ui'
+import { GatsbyImage } from 'gatsby-plugin-image'
+import { useStaticQuery, graphql } from 'gatsby'
 
 import { Link } from 'components/Link'
+import { useSummaryData } from 'components/Data'
+import { RegionStats } from 'components/Regions'
 
-const Regions = () => (
-  <Box variant="boxes.section">
-    <Divider sx={{ mb: '4rem' }} />
-    <Heading as="h2" variant="heading.section">
-      Explore the inventory by region:
-    </Heading>
+import { REGION_STATES } from '../../../config/constants'
 
-    <Grid columns={[0, '1fr 2fr']} gap={4} sx={{ mt: '2rem' }}>
-      <Box sx={{ height: '8rem', width: '100%', bg: 'grey.1' }}>
-        SARP region map image
-      </Box>
-      <Box>
-        <Link to="/regions/southeast">
-          <Heading as="h3" sx={{ fontWeight: 'normal' }}>
-            Southeast region
-          </Heading>
-        </Link>
-        <Paragraph>Brief overview / key stats</Paragraph>
-      </Box>
-    </Grid>
+const Regions = () => {
+  const { gpiw, se, sw } = useSummaryData()
+  const {
+    gpiwMap: {
+      childImageSharp: { gatsbyImageData: gpiwMap },
+    },
+    seMap: {
+      childImageSharp: { gatsbyImageData: seMap },
+    },
+    swMap: {
+      childImageSharp: { gatsbyImageData: swMap },
+    },
+  } = useStaticQuery(graphql`
+    query {
+      gpiwMap: file(relativePath: { eq: "maps/gpiw.png" }) {
+        childImageSharp {
+          gatsbyImageData(
+            layout: FULL_WIDTH
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
+        }
+      }
+      seMap: file(relativePath: { eq: "maps/se.png" }) {
+        childImageSharp {
+          gatsbyImageData(
+            layout: FULL_WIDTH
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
+        }
+      }
+      swMap: file(relativePath: { eq: "maps/sw.png" }) {
+        childImageSharp {
+          gatsbyImageData(
+            layout: FULL_WIDTH
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
+        }
+      }
+    }
+  `)
 
-    <Grid columns={[0, '1fr 2fr']} gap={4} sx={{ mt: '3rem' }}>
-      <Box sx={{ height: '8rem', width: '100%', bg: 'grey.1' }}>
-        Mountain / Prairie region map image
-      </Box>
-      <Box>
-        <Link to="/regions/great_plains_intermountain_west">
-          <Heading as="h3" sx={{ fontWeight: 'normal' }}>
-            Great Plains &amp; Intermountain West
-          </Heading>
-        </Link>
-        <Paragraph>Brief overview / key stats</Paragraph>
-      </Box>
-    </Grid>
+  return (
+    <Box variant="boxes.section">
+      <Divider sx={{ mb: '4rem' }} />
+      <Heading as="h2" variant="heading.section">
+        Explore the inventory by region:
+      </Heading>
 
-    <Grid columns={[0, '1fr 2fr']} gap={4} sx={{ mt: '3rem' }}>
-      <Box sx={{ height: '8rem', width: '100%', bg: 'grey.1' }}>
-        Southwest region map image
+      <Box sx={{ mt: '2rem' }}>
+        <Flex sx={{ justifyContent: 'space-between' }}>
+          <Box>
+            <Link to="/regions/southeast">
+              <Heading
+                as="h3"
+                sx={{
+                  fontWeight: 'normal',
+                }}
+              >
+                Southeast
+              </Heading>
+            </Link>
+          </Box>
+          <Box>
+            <Link to="/regions/southeast">
+              <Button>Explore Southeast</Button>
+            </Link>
+          </Box>
+        </Flex>
+        <Text>
+          Includes <b>{REGION_STATES.se.length - 1}</b> states and Puerto Rico
+        </Text>
+
+        <Grid columns={[0, '1fr 2fr']} gap={4}>
+          <Box>
+            <Link to="/regions/southeast">
+              <Box sx={{ border: '1px solid', borderColor: 'grey.4' }}>
+                <GatsbyImage image={seMap} alt="Southeast region map" />
+              </Box>
+            </Link>
+          </Box>
+          <RegionStats {...se} />
+        </Grid>
       </Box>
-      <Box>
-        <Link to="/regions/southwest">
-          <Heading as="h3" sx={{ fontWeight: 'normal' }}>
-            Southwest region
-          </Heading>
-        </Link>
-        <Paragraph>Brief overview / key stats</Paragraph>
+
+      <Box sx={{ mt: '5rem' }}>
+        <Flex sx={{ justifyContent: 'space-between' }}>
+          <Box>
+            <Link to="/regions/great_plains_intermountain_west">
+              <Heading as="h3" sx={{ fontWeight: 'normal' }}>
+                Great Plains &amp; Intermountain West
+              </Heading>
+            </Link>
+          </Box>
+          <Box>
+            <Link to="/regions/great_plains_intermountain_west">
+              <Button>Explore Great Plains &amp; Intermountain West</Button>
+            </Link>
+          </Box>
+        </Flex>
+
+        <Text>
+          Includes <b>{REGION_STATES.gpiw.length}</b> states
+        </Text>
+
+        <Grid columns={[0, '1fr 2fr']} gap={4}>
+          <Box>
+            <Link to="/regions/great_plains_intermountain_west">
+              <Box sx={{ border: '1px solid', borderColor: 'grey.4' }}>
+                <GatsbyImage
+                  image={gpiwMap}
+                  alt="Mountain / Prairie region map"
+                />
+              </Box>
+            </Link>
+          </Box>
+          <RegionStats {...gpiw} />
+        </Grid>
       </Box>
-    </Grid>
-  </Box>
-)
+
+      <Box sx={{ mt: '5rem' }}>
+        <Flex sx={{ justifyContent: 'space-between' }}>
+          <Box>
+            <Link to="/regions/southwest">
+              <Heading as="h3" sx={{ fontWeight: 'normal' }}>
+                Southwest
+              </Heading>
+            </Link>
+          </Box>
+          <Box>
+            <Link to="/regions/southwest">
+              <Button>Explore Southwest</Button>
+            </Link>
+          </Box>
+        </Flex>
+
+        <Text>
+          Includes <b>{REGION_STATES.sw.length}</b> states
+        </Text>
+
+        <Grid columns={[0, '1fr 2fr']} gap={4}>
+          <Box>
+            <Link to="/regions/southwest">
+              <Box sx={{ border: '1px solid', borderColor: 'grey.4' }}>
+                <GatsbyImage image={swMap} alt="Southwest region map" />
+              </Box>
+            </Link>
+          </Box>
+          <RegionStats {...sw} />
+        </Grid>
+      </Box>
+    </Box>
+  )
+}
 
 export default Regions

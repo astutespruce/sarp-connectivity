@@ -9,24 +9,24 @@ export const useSummaryData = () => {
       summaryStatsJson {
         total {
           dams
-          total_small_barriers
-          small_barriers
+          onNetworkDams: on_network_dams
+          totalSmallBarriers: total_small_barriers
+          smallBarriers: small_barriers
+          onNetworkSmallBarriers: on_network_small_barriers
           crossings
           miles
-          perennial_miles
-          on_network_small_barriers
-          on_network_dams
+          perennialMiles: perennial_miles
         }
         regions: region {
           id
           dams
-          total_small_barriers
-          small_barriers
+          onNetworkDams: on_network_dams
+          totalSmallBarriers: total_small_barriers
+          smallBarriers: small_barriers
+          onNetworkSmallBarriers: on_network_small_barriers
           crossings
           miles
-          perennial_miles
-          on_network_small_barriers
-          on_network_dams
+          perennialMiles: perennial_miles
         }
       }
     }

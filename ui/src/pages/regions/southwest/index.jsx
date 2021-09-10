@@ -14,19 +14,19 @@ const SWRegionPage = ({ data: { headerImage } }) => {
   const {
     sw: {
       dams,
-      on_network_dams,
+      onNetworkDams,
       miles,
-      total_small_barriers,
-      small_barriers,
-      on_network_small_barriers,
+      totalSmallBarriers,
+      smallBarriers,
+      onNetworkSmallBarriers,
       crossings,
     },
   } = useSummaryData()
 
-  const offNetworkDams = dams - on_network_dams
-  const offNetworkBarriers = small_barriers - on_network_small_barriers
+  const offNetworkDams = dams - onNetworkDams
+  const offNetworkBarriers = smallBarriers - onNetworkSmallBarriers
 
-  const totalRoadBarriers = total_small_barriers + crossings
+  const totalRoadBarriers = totalSmallBarriers + crossings
 
   return (
     <Layout title="Southwest Aquatic Connectivity">
@@ -91,7 +91,7 @@ const SWRegionPage = ({ data: { headerImage } }) => {
                 <b>{formatNumber(dams, 0)}</b> inventoried dams.
               </li>
               <li>
-                <b>{formatNumber(on_network_dams, 0)}</b> dams that have been
+                <b>{formatNumber(onNetworkDams, 0)}</b> dams that have been
                 analyzed for their impacts to aquatic connectivity in this tool.
               </li>
               <li>

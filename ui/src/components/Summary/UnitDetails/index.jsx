@@ -24,7 +24,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
     layerId,
     name = '',
     dams = 0,
-    total_small_barriers = 0,
+    totalSmallBarriers = 0,
   } = summaryUnit
 
   const layerConfig = layers.filter(({ id: lyrID }) => lyrID === layerId)[0]
@@ -45,8 +45,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
 
   const team = state ? teams[state] : null
 
-  const hasBarriers =
-    barrierType === 'dams' ? dams > 0 : total_small_barriers > 0
+  const hasBarriers = barrierType === 'dams' ? dams > 0 : totalSmallBarriers > 0
   const downloaderConfig = {
     layer: layerId,
     summaryUnits: [{ id }],
@@ -151,10 +150,10 @@ UnitDetails.propTypes = {
     layerId: PropTypes.string.isRequired,
     name: PropTypes.string,
     dams: PropTypes.number,
-    on_network_dams: PropTypes.number,
-    small_barriers: PropTypes.number,
-    total_small_barriers: PropTypes.number,
-    on_network_small_barriers: PropTypes.number,
+    onNetworkDams: PropTypes.number,
+    smallBarriers: PropTypes.number,
+    totalSmallBarriers: PropTypes.number,
+    onNetworkSmallBarriers: PropTypes.number,
     crossings: PropTypes.number,
     miles: PropTypes.number,
   }).isRequired,
