@@ -4,7 +4,6 @@ from time import time
 import warnings
 
 from dotenv import load_dotenv
-import geopandas as gp
 
 from analysis.constants import (
     SARP_STATES,
@@ -151,6 +150,7 @@ if ix.max():
             ix.sum()
         )
     )
+    print(df.loc[ix].groupby("State").size())
 
 # DEBUG ONLY - SARPID must be present; follow up with SARP if not
 df.SARPID = df.SARPID.fillna("").astype("str")

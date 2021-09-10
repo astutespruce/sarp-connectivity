@@ -28,9 +28,12 @@ const RegionActionLinks = ({ region }) => (
         width: '100%',
       }}
     >
-      <Text>Want to explore summary statistics in an interative map?</Text>
+      <Text>
+        Explore how many dams or road-related barriers there are in a state,
+        county, watershed, or ecoregion.
+      </Text>
       <Flex sx={{ justifyContent: 'center', mt: '1rem' }}>
-        <Link to="/summary">
+        <Link to={`/summary/?region=${region}`}>
           <Button variant="primary">
             <ChartBar size="1em" />
             &nbsp; Start summarizing
@@ -44,7 +47,10 @@ const RegionActionLinks = ({ region }) => (
         width: '100%',
       }}
     >
-      <Text>Want to prioritize barriers for further investigation?</Text>
+      <Text>
+        Identify and rank dams or road-related barriers that reconnect the most
+        high-quality aquatic networks.
+      </Text>
       <Flex sx={{ justifyContent: 'center', mt: '1rem' }}>
         <Link to="/priority">
           <Button>

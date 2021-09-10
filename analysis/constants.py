@@ -166,6 +166,7 @@ DAM_COLS = [
     "Recon",
     "PassageFacility",
     "BarrierStatus",
+    "BarrierSeverity",
     "PotentialFeasibility",
     "Diversion",
     "FishScreen",

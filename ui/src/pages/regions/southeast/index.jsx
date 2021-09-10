@@ -48,8 +48,6 @@ const SERegionPage = ({
 }) => {
   const { se } = useSummaryData()
 
-  const { dams } = se
-
   return (
     <Layout title="Southeast Region">
       <HeaderImage
@@ -75,7 +73,8 @@ const SERegionPage = ({
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(dams)} inventoried dams in the southeast.
+              Map of {formatNumber(se.dams)} inventoried dams in the Southeast
+              region.
             </Text>
           </Box>
           <Box>

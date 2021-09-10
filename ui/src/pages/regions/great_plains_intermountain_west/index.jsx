@@ -38,10 +38,9 @@ const GPIWRegionPage = ({
   },
 }) => {
   const { gpiw } = useSummaryData()
-  const { dams } = gpiw
 
   return (
-    <Layout title="Great Plains & Intermountain West Aquatic Connectivity">
+    <Layout title="Great Plains & Intermountain West Region">
       <HeaderImage
         image={headerImage}
         height="20vh"
@@ -65,8 +64,8 @@ const GPIWRegionPage = ({
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(dams)} inventoried dams in the Great Plains &
-              Intermountain West.
+              Map of {formatNumber(gpiw.dams)} inventoried dams in the Great
+              Plains & Intermountain West region.
             </Text>
           </Box>
           <Box>
