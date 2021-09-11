@@ -1,5 +1,5 @@
 import Map from './Map'
 import UnitDetails from './UnitDetails'
-import SoutheastSummary from './SoutheastSummary'
+import RegionSummary from './RegionSummary'
 
-export { Map, UnitDetails, SoutheastSummary }
+export { Map, UnitDetails, RegionSummary }

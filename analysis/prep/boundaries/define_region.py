@@ -153,38 +153,3 @@ sarp_huc4_df = huc4_df.loc[huc4_df.HUC4.isin(sarp_huc4)].reset_index(drop=True)
 write_dataframe(sarp_huc4_df, out_dir / "sarp_huc4.gpkg")
 sarp_huc4_df.to_feather(out_dir / "sarp_huc4.feather")
 
-
-### Extract states in HUC4 boundary (not used)
-# tree = pg.STRtree(huc4_df.geometry.values.data)
-# ix = np.unique(
-#     tree.query_bulk(state_df.geometry.values.data, predicate="intersects")[0]
-# )
-# ix.sort()
-
-# state_df = state_df.iloc[ix].reset_index(drop=True)
-# write_dataframe(state_df, out_dir / "states.gpkg")
-# state_df.to_feather(out_dir / "states.feather")
-
-
-# tree = pg.STRtree(sarp_huc4_df.geometry.values.data)
-# ix = np.unique(
-#     tree.query_bulk(state_df.geometry.values.data, predicate="intersects")[0]
-# )
-# ix.sort()
-
-# sarp_state_df = state_df.iloc[ix].reset_index(drop=True)
-# write_dataframe(sarp_state_df, out_dir / "sarp_states.gpkg")
-# sarp_state_df.to_feather(out_dir / "sarp_states.feather")
-
-
-# ### create dissolved huc4 boundary (super slow and not used)
-# print("Creating dissolved HUC4 boundary")
-# huc4_bnd = pg.union_all(huc4_df.geometry.values.data)
-# huc4_bnd_df = gp.GeoDataFrame({"geometry": huc4_bnd}, crs=CRS)
-# write_dataframe(huc4_df, out_dir / "region_huc4_boundary.gpkg")
-# huc4_bnd_df.to_feather(out_dir / "region_huc4_boundary.feather")
-
-# sarp_huc4_bnd = pg.union_all(sarp_huc4_df.geometry.values.data)
-# sarp_huc4_bnd_df = gp.GeoDataFrame({"geometry": sarp_huc4_bnd}, crs=CRS)
-# write_dataframe(sarp_huc4_df, out_dir / "sarp_huc4_boundary.gpkg")
-# sarp_huc4_bnd_df.to_feather(out_dir / "sarp_huc4_boundary.feather")

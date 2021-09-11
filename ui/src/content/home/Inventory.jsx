@@ -7,12 +7,13 @@ import { formatNumber } from 'util/format'
 import { useSummaryData } from 'components/Data'
 
 import { siteMetadata } from '../../../gatsby-config'
+import { STATES } from '../../../config/constants'
 
 const { version: dataVersion, date: dataDate } = siteMetadata
 
 const Inventory = () => {
   const {
-    total: { dams, totalSmallBarriers, miles },
+    total: { dams, totalSmallBarriers },
   } = useSummaryData()
 
   return (
@@ -72,18 +73,15 @@ const Inventory = () => {
               }}
             >
               <li>
-                <b>26</b> states and Puerto Rico
+                <b>{Object.keys(STATES).length - 1}</b> states and Puerto Rico
               </li>
               <li>
-                <b>{formatNumber(dams, 0)}</b> dams
+                <b>{formatNumber(dams, 0)}</b> inventoried dams
               </li>
+
               <li>
                 <b>{formatNumber(totalSmallBarriers, 0)}</b> road-related
                 barriers assessed for impact to aquatic organisms
-              </li>
-              <li>
-                <b>{formatNumber(miles, 1)}</b> miles of connected aquatic
-                network length, on average
               </li>
             </Box>
 
@@ -96,15 +94,14 @@ const Inventory = () => {
               Data version: {dataVersion} ({dataDate})
             </Paragraph>
           </HighlightBox>
+          <Paragraph variant="help" sx={{ mt: '1rem' }}>
+            Note: the information on barriers is not yet complete or
+            comprehensive. It depends on the availability and completeness of
+            existing data and level of partner feedback. Some states are more
+            complete than others but none should be considered 100% complete.
+          </Paragraph>
         </Box>
       </Grid>
-
-      <Paragraph variant="help" sx={{ mt: '2rem' }}>
-        Note: the information on barriers is not yet complete or comprehensive.
-        It depends on the availability and completeness of existing data and
-        level of partner feedback. Some states are more complete than others but
-        none should be considered 100% complete.
-      </Paragraph>
     </Box>
   )
 }

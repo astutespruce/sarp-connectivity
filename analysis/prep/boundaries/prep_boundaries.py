@@ -6,6 +6,7 @@ Note: output shapefiles for creating tilesets are limited to only those areas th
 the SARP states boundary.
 
 """
+import json
 from pathlib import Path
 import warnings
 
@@ -15,7 +16,12 @@ import pandas as pd
 import pygeos as pg
 from pyogrio import read_dataframe, write_dataframe
 
-from analysis.constants import CRS, OWNERTYPE_TO_DOMAIN, OWNERTYPE_TO_PUBLIC_LAND
+from analysis.constants import (
+    CRS,
+    GEO_CRS,
+    OWNERTYPE_TO_DOMAIN,
+    OWNERTYPE_TO_PUBLIC_LAND,
+)
 from analysis.lib.geometry import explode, dissolve
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -24,6 +30,7 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 data_dir = Path("data")
 out_dir = data_dir / "boundaries"
 src_dir = out_dir / "source"
+ui_dir = Path("ui/data")
 county_filename = src_dir / "tl_2019_us_county/tl_2019_us_county.shp"
 
 huc4_df = gp.read_feather(out_dir / "huc4.feather")
@@ -77,30 +84,31 @@ write_dataframe(outer_huc4, out_dir / "outer_huc4.gpkg")
 print("Processing counties")
 fips = sorted(state_df.STATEFIPS.unique())
 
-df = (
+county_df = (
     read_dataframe(county_filename, columns=["NAME", "GEOID", "STATEFP"],)
     .to_crs(CRS)
     .rename(columns={"NAME": "County", "GEOID": "COUNTYFIPS", "STATEFP": "STATEFIPS"})
 )
 
 # keep only those within the region HUC4 outer boundary
-tree = pg.STRtree(df.geometry.values.data)
+tree = pg.STRtree(county_df.geometry.values.data)
 ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
 ix.sort()
-df = df.iloc[ix].reset_index(drop=True)
-df.geometry = pg.make_valid(df.geometry.values.data)
+county_df = county_df.iloc[ix].reset_index(drop=True)
+county_df.geometry = pg.make_valid(county_df.geometry.values.data)
+
 # keep larger set for spatial joins
-df.to_feather(out_dir / "counties.feather")
+county_df.to_feather(out_dir / "counties.feather")
 
 # Subset these in the region and SARP for tiles
 write_dataframe(
-    df.loc[df.STATEFIPS.isin(states)].rename(
+    county_df.loc[county_df.STATEFIPS.isin(states)].rename(
         columns={"COUNTYFIPS": "id", "County": "name"}
     ),
     out_dir / "region_counties.gpkg",
 )
 write_dataframe(
-    df.loc[df.STATEFIPS.isin(sarp_states)].rename(
+    county_df.loc[county_df.STATEFIPS.isin(sarp_states)].rename(
         columns={"COUNTYFIPS": "id", "County": "name"}
     ),
     out_dir / "sarp_counties.gpkg",
@@ -222,6 +230,71 @@ df = df.iloc[ix].reset_index(drop=True)
 write_dataframe(
     df.rename(columns={"ECO4": "id", "ECO4Name": "name"}), out_dir / "sarp_eco4.gpkg"
 )
+
+### Extract bounds and names for unit search in user interface
+print("Projecting geometries to geographic coordinates for search index")
+print("Processing state and county")
+state_geo_df = (
+    gp.read_feather(
+        out_dir / "region_states.feather", columns=["geometry", "STATEFIPS"]
+    )
+    .rename(columns={"STATEFIPS": "id"})
+    .to_crs(GEO_CRS)
+)
+state_geo_df["bbox"] = pg.bounds(state_geo_df.geometry.values.data).round(1).tolist()
+
+
+county_geo_df = (
+    county_df.loc[county_df.STATEFIPS.isin(states)]
+    .rename(columns={"COUNTYFIPS": "id", "County": "name", "STATEFIPS": "state"})
+    .to_crs(GEO_CRS)
+)
+county_geo_df["bbox"] = pg.bounds(county_geo_df.geometry.values.data).round(2).tolist()
+
+
+out = {
+    "State": state_geo_df[["id", "bbox"]]
+    .sort_values(by="id")
+    .to_dict(orient="records"),
+    "County": county_geo_df[["id", "name", "state", "bbox"]]
+    .sort_values(by="id")
+    .to_dict(orient="records"),
+}
+
+
+for unit in ["HUC6", "HUC8", "HUC12", "ECO3", "ECO4"]:
+    print(f"Processing {unit}")
+    df = (
+        gp.read_feather(out_dir / f"{unit.lower()}.feather")
+        .rename(columns={unit: "id", "ECO3Name": "name", "ECO4Name": "name"})
+        .to_crs(GEO_CRS)
+    )
+    df["bbox"] = pg.bounds(df.geometry.values.data).round(2).tolist()
+
+    # spatially join to states
+    tree = pg.STRtree(state_geo_df.geometry.values.data)
+    left, right = tree.query_bulk(df.geometry.values.data, predicate="intersects")
+    unit_states = (
+        pd.DataFrame(
+            {
+                "id": df.id.values.take(left),
+                "state": state_geo_df.id.values.take(right),
+            }
+        )
+        .groupby("id")["state"]
+        .apply(list)
+    )
+
+    df = df.join(unit_states, on="id")
+    df["state"] = df.state.fillna("").apply(lambda x: ",".join(x))
+    out[unit] = (
+        df[["id", "name", "state", "bbox"]]
+        .sort_values(by="id")
+        .to_dict(orient="records")
+    )
+
+with open(ui_dir / "unit_bounds.json", "w") as outfile:
+    outfile.write(json.dumps(out))
 
 
 ### Protected areas

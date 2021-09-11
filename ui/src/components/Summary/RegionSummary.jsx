@@ -7,28 +7,36 @@ import { Box, Paragraph } from 'theme-ui'
 import UnitSearch from 'components/UnitSearch'
 import { useSummaryData } from 'components/Data'
 import { formatNumber } from 'util/format'
+import { getQueryParams } from 'util/dom'
+
+import { REGIONS } from '../../../config/constants'
 
 const SoutheastSummary = ({ barrierType, system, onSearch }) => {
+  const { region = 'total' } = getQueryParams()
+
+  console.log('region', region)
+
   const {
-    se: {
+    [region]: {
       dams,
       onNetworkDams,
-      miles,
       totalSmallBarriers,
       smallBarriers,
       onNetworkSmallBarriers,
       crossings,
     },
   } = useSummaryData()
+
   const offNetworkDams = dams - onNetworkDams
   const offNetworkBarriers = smallBarriers - onNetworkSmallBarriers
-
   const totalRoadBarriers = totalSmallBarriers + crossings
+
+  const regionName = region === 'total' ? 'full analysis area' : REGIONS[region]
 
   if (barrierType === 'dams') {
     return (
       <Box sx={{ p: '1rem', overflowY: 'auto', height: '100%' }}>
-        <Paragraph>Across the Southeast, there are:</Paragraph>
+        <Paragraph>Across the {regionName}, there are:</Paragraph>
         <Box as="ul" sx={{ mt: '1rem' }}>
           <li>
             <b>{formatNumber(dams, 0)}</b> inventoried dams
@@ -36,10 +44,6 @@ const SoutheastSummary = ({ barrierType, system, onSearch }) => {
           <li>
             <b>{formatNumber(onNetworkDams, 0)}</b> dams that have been analyzed
             for their impacts to aquatic connectivity in this tool
-          </li>
-          <li>
-            <b>{formatNumber(miles, 0)}</b> miles of connected rivers and
-            streams on average across the region
           </li>
         </Box>
 
@@ -68,7 +72,7 @@ const SoutheastSummary = ({ barrierType, system, onSearch }) => {
   // otherwise barriers
   return (
     <Box sx={{ p: '1rem', overflowY: 'auto', height: '100%' }}>
-      <Paragraph>Across the Southeast, there are:</Paragraph>
+      <Paragraph>Across the {regionName}, there are:</Paragraph>
       <Box as="ul" sx={{ mt: '1rem' }}>
         <li>
           <b>{formatNumber(totalRoadBarriers, 0)}</b> or more potential

@@ -4,6 +4,12 @@ export const barrierTypeLabels = {
   waterfalls: 'waterfalls',
 }
 
+export const REGIONS = {
+  gpiw: 'Great Plains & Intermountain West',
+  se: 'Southeast',
+  sw: 'Southwest',
+}
+
 export const STATE_FIPS = {
   '01': 'Alabama',
   '04': 'Arizona',

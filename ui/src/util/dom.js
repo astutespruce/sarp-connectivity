@@ -30,3 +30,17 @@ export const saveToStorage = (key, data) => {
 
 export const getFromStorage = (key) =>
   JSON.parse(window.localStorage.getItem(key))
+
+/**
+ * Extract query params into a key / value object
+ * @returns Object
+ */
+export const getQueryParams = () => {
+  if (!(hasWindow && window.URLSearchParams)) {
+    return {}
+  }
+
+  return [
+    ...new window.URLSearchParams(window.location.search).entries(),
+  ].reduce((prev, [key, value]) => Object.assign(prev, { [key]: value }), {})
+}

@@ -5,7 +5,7 @@ import { Box, Paragraph } from 'theme-ui'
 
 import { formatNumber } from 'util/format'
 
-const Dams = ({ dams, onNetworkDams, miles }) => {
+const Dams = ({ dams, onNetworkDams }) => {
   const offNetworkDams = dams - onNetworkDams
 
   if (dams === 0) {
@@ -30,9 +30,6 @@ const Dams = ({ dams, onNetworkDams, miles }) => {
           {onNetworkDams === 1 ? 'dam' : 'dams'} that{' '}
           {onNetworkDams === 1 ? 'was ' : 'were '} analyzed for impacts to
           aquatic connectivity in this tool
-        </li>
-        <li>
-          <b>{formatNumber(miles, 2)}</b> miles of connected rivers and streams
         </li>
       </Box>
       <Paragraph variant="help" sx={{ mt: '2rem' }}>

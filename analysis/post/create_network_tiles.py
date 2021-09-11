@@ -10,6 +10,7 @@ from pyogrio import write_dataframe
 from analysis.constants import GEO_CRS
 from analysis.lib.io import read_feathers
 from analysis.lib.geometry.lines import aggregate_lines
+from analysis.post.lib.tiles import get_col_types
 
 src_dir = Path("data/networks")
 intermediate_dir = Path("data/tiles")
@@ -28,8 +29,6 @@ tippecanoe_args = [
     "networks",
     "-P",
     "-pg",
-    "-T",
-    "intermittent:bool",
 ]
 
 start = time()
@@ -70,17 +69,24 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         # remap sizeclass to uint8
         flowlines["sizeclass"] = flowlines.sizeclass.map(sizeclasses).astype("uint8")
 
-        # TODO: combine intermittent and altered into a single uint value
-
+        # combine intermittent and altered into a single uint value
+        flowlines["mapcode"] = 0
+        flowlines.loc[flowlines.intermittent, "mapcode"] = 1
+        flowlines.loc[(~flowlines.intermittent) & flowlines.altered, "mapcode"] = 2
+        flowlines.loc[flowlines.intermittent & flowlines.altered, "mapcode"] = 3
+        flowlines.mapcode = flowlines.mapcode.astype("uint8")
+        flowlines = flowlines.drop(columns=["intermittent", "altered"])
 
         # aggregate to MultiLineStrings for smaller outputs
         print("Aggregating flowlines to networks")
         flowlines = aggregate_lines(
-            flowlines,
-            by=["dams", "small_barriers", "sizeclass", "intermittent", "altered"],
+            flowlines, by=["dams", "small_barriers", "sizeclass", "mapcode"],
         ).sort_values(by="dams")
 
         mbtiles_files = []
+        col_types = get_col_types(
+            flowlines[["dams", "small_barriers", "sizeclass", "mapcode"]]
+        )
 
         ### Zoom 6: simplify
         print("Extracting largest flowlines")
@@ -97,11 +103,14 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             largest.to_crs(GEO_CRS), json_filename, driver="GeoJSONSeq",
         )
 
+        del largest
+
         print("Creating tiles for largest flowlines")
         ret = subprocess.run(
             tippecanoe_args
             + ["-Z", "6", "-z", "6"]
             + ["-o", f"{str(mbtiles_filename)}", str(json_filename)]
+            + col_types
         )
         ret.check_returncode()
 
@@ -123,11 +132,14 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             large.to_crs(GEO_CRS), json_filename, driver="GeoJSONSeq",
         )
 
+        del large
+
         print("Creating tiles for large flowlines")
         ret = subprocess.run(
             tippecanoe_args
             + ["-Z", "7", "-z", " 9"]
             + ["-o", f"{str(mbtiles_filename)}", str(json_filename)]
+            + col_types
         )
         ret.check_returncode()
         json_filename.unlink()
@@ -145,11 +157,14 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             flowlines, json_filename, driver="GeoJSONSeq",
         )
 
+        del flowlines
+
         print("Creating tiles for all flowlines")
         ret = subprocess.run(
             tippecanoe_args
             + ["-Z", "10", "-z", " 16"]
             + ["-o", f"{str(mbtiles_filename)}", str(json_filename)]
+            + col_types
         )
         ret.check_returncode()
         json_filename.unlink()

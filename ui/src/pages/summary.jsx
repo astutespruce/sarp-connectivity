@@ -6,7 +6,7 @@ import { Layout, ClientOnly } from 'components/Layout'
 import { ToggleButton } from 'components/Button'
 import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
-import { Map, UnitDetails, SoutheastSummary } from 'components/Summary'
+import { Map, UnitDetails, RegionSummary } from 'components/Summary'
 import BarrierDetails from 'components/BarrierDetails'
 import { toCamelCaseFields } from 'util/data'
 
@@ -101,7 +101,7 @@ const SummaryPage = () => {
     )
   } else {
     sidebarContent = (
-      <SoutheastSummary
+      <RegionSummary
         barrierType={barrierType}
         system={system}
         onSearch={handleSearch}
