@@ -287,7 +287,7 @@ export const flowlinesLayer = {
   id: 'flowlines',
   source: 'networks',
   'source-layer': 'networks',
-  filter: ['==', ['get', 'intermittent'], false],
+  filter: ['==', 'mapcode', 0],
   minzoom: 11,
   type: 'line',
   paint: {
@@ -311,14 +311,14 @@ export const flowlinesLayer = {
       14,
       ['+', ['get', 'sizeclass'], 1],
     ],
-    'line-color': ['case', ['==', ['get', 'altered'], 0], '#1891ac', 'red'],
+    'line-color': ['case', ['<', ['get', 'mapcode'], 2], '#1891ac', 'red'],
   },
 }
 
 export const intermittentFlowlinesLayer = {
   ...flowlinesLayer,
   id: 'flowlines-intermittent',
-  filter: ['==', ['get', 'intermittent'], true],
+  filter: ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
   paint: {
     ...flowlinesLayer.paint,
     'line-dasharray': [3, 2],

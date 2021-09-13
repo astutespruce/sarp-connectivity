@@ -403,13 +403,13 @@ const SummaryMap = ({
 
     map.setFilter('network-highlight', [
       'all',
-      ['==', ['get', 'intermittent'], false],
-      ['==', ['get', barrierType], networkID],
+      ['==', 'mapcode', 0],
+      ['==', barrierType, networkID],
     ])
     map.setFilter('network-intermittent-highlight', [
       'all',
-      ['==', ['get', 'intermittent'], true],
-      ['==', ['get', barrierType], networkID],
+      ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
+      ['==', barrierType, networkID],
     ])
 
     map.getSource(id).setData(data)

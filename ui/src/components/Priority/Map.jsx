@@ -569,12 +569,12 @@ const PriorityMap = ({
     // highlight upstream network if set otherwise clear it
     map.setFilter('network-highlight', [
       'all',
-      ['==', ['get', 'intermittent'], false],
+      ['==', ['get', 'mapcode'], 0],
       ['==', ['get', networkType], networkID],
     ])
     map.setFilter('network-intermittent-highlight', [
       'all',
-      ['==', ['get', 'intermittent'], true],
+      ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
       ['==', ['get', networkType], networkID],
     ])
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
+import { CaretDown } from '@emotion-icons/fa-solid'
 
 import Circle from './Circle'
 
@@ -35,9 +36,20 @@ const Legend = ({ title, patches, circles, lines, footnote }) => {
     >
       {isOpen ? (
         <>
-          <Text sx={{ mb: '0.25em', fontSize: 2, fontWeight: 'bold' }}>
-            {title}
-          </Text>
+          <Flex
+            sx={{
+              alignItems: 'center',
+              mb: '0.25em',
+              fontSize: 2,
+              fontWeight: 'bold',
+            }}
+          >
+            <Box sx={{ mr: '0.25rem' }}>
+              <CaretDown size="1.5em" />
+            </Box>
+
+            <Text>{title}</Text>
+          </Flex>
 
           {patches && patches.length > 0 ? (
             <div>
