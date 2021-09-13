@@ -243,6 +243,12 @@ state_geo_df = (
 )
 state_geo_df["bbox"] = pg.bounds(state_geo_df.geometry.values.data).round(1).tolist()
 
+states_geo = (
+    gp.read_feather(out_dir / "states.feather", columns=["geometry", "STATEFIPS"])
+    .rename(columns={"STATEFIPS": "id"})
+    .to_crs(GEO_CRS)
+)
+
 
 county_geo_df = (
     county_df.loc[county_df.STATEFIPS.isin(states)]
@@ -262,26 +268,28 @@ out = {
 }
 
 
-for unit in ["HUC6", "HUC8", "HUC12", "ECO3", "ECO4"]:
+for unit in ["HUC6", "HUC8", "HUC12", "ECO3", "ECO4"][3:]:
     print(f"Processing {unit}")
     df = (
         gp.read_feather(out_dir / f"{unit.lower()}.feather")
         .rename(columns={unit: "id", "ECO3Name": "name", "ECO4Name": "name"})
         .to_crs(GEO_CRS)
     )
+
+    if unit in ["ECO3", "ECO4"]:
+        df = dissolve(df, by="id", agg={"name": "first"})
+
     df["bbox"] = pg.bounds(df.geometry.values.data).round(2).tolist()
 
     # spatially join to states
-    tree = pg.STRtree(state_geo_df.geometry.values.data)
+    tree = pg.STRtree(states_geo.geometry.values.data)
     left, right = tree.query_bulk(df.geometry.values.data, predicate="intersects")
     unit_states = (
         pd.DataFrame(
-            {
-                "id": df.id.values.take(left),
-                "state": state_geo_df.id.values.take(right),
-            }
+            {"id": df.id.values.take(left), "state": states_geo.id.values.take(right),}
         )
         .groupby("id")["state"]
+        .unique()
         .apply(list)
     )
 

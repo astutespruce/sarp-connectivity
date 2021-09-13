@@ -9,6 +9,7 @@ import { TopBar } from 'components/Map'
 import { Map, UnitDetails, RegionSummary } from 'components/Summary'
 import BarrierDetails from 'components/BarrierDetails'
 import { toCamelCaseFields } from 'util/data'
+import { getQueryParams } from 'util/dom'
 
 import { SYSTEMS } from '../../config/constants'
 
@@ -29,6 +30,8 @@ const SummaryPage = () => {
   const [searchFeature, setSearchFeature] = useState(null)
   const [selectedUnit, setSelectedUnit] = useState(null)
   const [selectedBarrier, setSelectedBarrier] = useState(null)
+
+  const { region = 'total' } = getQueryParams()
 
   const handleSearch = useCallback((nextSearchFeature) => {
     setSearchFeature(nextSearchFeature)
@@ -102,6 +105,7 @@ const SummaryPage = () => {
   } else {
     sidebarContent = (
       <RegionSummary
+        region={region}
         barrierType={barrierType}
         system={system}
         onSearch={handleSearch}
@@ -123,6 +127,7 @@ const SummaryPage = () => {
         >
           <ClientOnly>
             <Map
+              region={region}
               barrierType={barrierType}
               system={system}
               searchFeature={searchFeature}

@@ -7,15 +7,10 @@ import { Box, Paragraph } from 'theme-ui'
 import UnitSearch from 'components/UnitSearch'
 import { useSummaryData } from 'components/Data'
 import { formatNumber } from 'util/format'
-import { getQueryParams } from 'util/dom'
 
 import { REGIONS } from '../../../config/constants'
 
-const SoutheastSummary = ({ barrierType, system, onSearch }) => {
-  const { region = 'total' } = getQueryParams()
-
-  console.log('region', region)
-
+const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
   const {
     [region]: {
       dams,
@@ -116,9 +111,14 @@ const SoutheastSummary = ({ barrierType, system, onSearch }) => {
 }
 
 SoutheastSummary.propTypes = {
+  region: PropTypes.string,
   barrierType: PropTypes.string.isRequired,
   system: PropTypes.string.isRequired,
   onSearch: PropTypes.func.isRequired,
+}
+
+SoutheastSummary.defaultProps = {
+  region: 'total',
 }
 
 export default SoutheastSummary
