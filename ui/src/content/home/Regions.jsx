@@ -74,11 +74,6 @@ const Regions = () => {
               </Heading>
             </Link>
           </Box>
-          <Box>
-            <Link to="/regions/southeast">
-              <Button>Explore Southeast</Button>
-            </Link>
-          </Box>
         </Flex>
         <Text>
           Includes <b>{REGION_STATES.se.length - 1}</b> states and Puerto Rico
@@ -92,7 +87,17 @@ const Regions = () => {
               </Box>
             </Link>
           </Box>
-          <RegionStats {...se} />
+          <Flex sx={{ flexDirection: 'column' }}>
+            <Box sx={{ flex: '0 0 auto' }}>
+              <RegionStats {...se} />
+            </Box>
+            <Box sx={{ height: '100%', flex: '1 1 auto' }} />
+            <Box sx={{ textAlign: 'center', flex: '0 0 auto' }}>
+              <Link to="/regions/southeast">
+                <Button>Explore Southeast</Button>
+              </Link>
+            </Box>
+          </Flex>
         </Grid>
       </Box>
 
@@ -103,11 +108,6 @@ const Regions = () => {
               <Heading as="h3" sx={{ fontWeight: 'normal' }}>
                 Great Plains &amp; Intermountain West
               </Heading>
-            </Link>
-          </Box>
-          <Box>
-            <Link to="/regions/great_plains_intermountain_west">
-              <Button>Explore Great Plains &amp; Intermountain West</Button>
             </Link>
           </Box>
         </Flex>
@@ -127,7 +127,17 @@ const Regions = () => {
               </Box>
             </Link>
           </Box>
-          <RegionStats {...gpiw} />
+          <Flex sx={{ flexDirection: 'column' }}>
+            <Box sx={{ flex: '0 0 auto' }}>
+              <RegionStats {...gpiw} />
+            </Box>
+            <Box sx={{ height: '100%', flex: '1 1 auto' }} />
+            <Box sx={{ textAlign: 'center', flex: '0 0 auto' }}>
+              <Link to="/regions/great_plains_intermountain_west">
+                <Button>Explore Great Plains &amp; Intermountain West</Button>
+              </Link>
+            </Box>
+          </Flex>
         </Grid>
       </Box>
 
@@ -138,11 +148,6 @@ const Regions = () => {
               <Heading as="h3" sx={{ fontWeight: 'normal' }}>
                 Southwest
               </Heading>
-            </Link>
-          </Box>
-          <Box>
-            <Link to="/regions/southwest">
-              <Button>Explore Southwest</Button>
             </Link>
           </Box>
         </Flex>
@@ -159,7 +164,18 @@ const Regions = () => {
               </Box>
             </Link>
           </Box>
-          <RegionStats {...sw} />
+
+          <Flex sx={{ flexDirection: 'column' }}>
+            <Box sx={{ flex: '0 0 auto' }}>
+              <RegionStats {...sw} />
+            </Box>
+            <Box sx={{ height: '100%', flex: '1 1 auto' }} />
+            <Box sx={{ textAlign: 'center', flex: '0 0 auto' }}>
+              <Link to="/regions/southwest">
+                <Button>Explore Southwest</Button>
+              </Link>
+            </Box>
+          </Flex>
         </Grid>
       </Box>
     </Box>

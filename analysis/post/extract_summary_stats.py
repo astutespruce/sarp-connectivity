@@ -43,16 +43,11 @@ states = (
 ### Read dams
 dams = (
     pd.read_feather(
-        api_dir / f"dams.feather",
-        columns=["id", "HasNetwork", "GainMiles", "PerennialGainMiles", "State"],
+        api_dir / f"dams.feather", columns=["id", "HasNetwork", "Recon", "State"],
     )
     .set_index("id", drop=False)
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
-# Set NA so that we don't include these values in our statistics
-dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
-dams.loc[dams.PerennialGainMiles == -1, "PerennialGainMiles"] = np.nan
-
 
 ### Read road-related barriers
 barriers = (
@@ -82,8 +77,7 @@ stats = {
     "total": {
         "dams": len(dams),
         "on_network_dams": int(dams.OnNetwork.sum()),
-        "miles": round(dams.GainMiles.mean().item(), 3),
-        "perennial_miles": round(dams.PerennialGainMiles.mean().item(), 3),
+        "recon_dams": int((dams.Recon > 0).sum()),
         "total_small_barriers": len(barriers),
         "small_barriers": int(barriers.Included.sum()),
         "on_network_small_barriers": int(barriers.OnNetwork.sum()),
@@ -105,8 +99,7 @@ for region, region_states in REGION_STATES.items():
             "id": region,
             "dams": len(region_dams),
             "on_network_dams": int(region_dams.OnNetwork.sum()),
-            "miles": round(region_dams.GainMiles.mean().item(), 3),
-            "perennial_miles": round(region_dams.PerennialGainMiles.mean().item(), 3),
+            "recon_dams": int((region_dams.Recon > 0).sum()),
             "total_small_barriers": len(region_barriers),
             "small_barriers": int(region_barriers.Included.sum()),
             "on_network_small_barriers": int(region_barriers.OnNetwork.sum()),

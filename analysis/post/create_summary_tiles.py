@@ -37,10 +37,11 @@ SUMMARY_UNITS = ["State", "COUNTYFIPS", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4"]
 
 INT_COLS = [
     "dams",
+    "recon_dams",
+    "on_network_dams",
     "small_barriers",
     "total_small_barriers",
     "crossings",
-    "on_network_dams",
     "on_network_small_barriers",
 ]
 
@@ -66,15 +67,12 @@ states = (
 dams = (
     pd.read_feather(
         api_dir / f"dams.feather",
-        columns=["id", "HasNetwork", "GainMiles", "PerennialGainMiles"] + SUMMARY_UNITS,
+        columns=["id", "HasNetwork", "Recon"] + SUMMARY_UNITS,
     )
     .set_index("id", drop=False)
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
-# Set NA so that we don't include these values in our statistics
-dams.loc[dams.GainMiles == -1, "GainMiles"] = np.nan
-dams.loc[dams.PerennialGainMiles == -1, "PerennialGainMiles"] = np.nan
-
+dams["Recon"] = dams.Recon > 0
 
 ### Read road-related barriers
 barriers = (
@@ -122,22 +120,14 @@ for unit in SUMMARY_UNITS:
         )
 
     dam_stats = (
-        dams[[unit, "id", "OnNetwork", "GainMiles", "PerennialGainMiles",]]
+        dams[[unit, "id", "OnNetwork", "Recon"]]
         .groupby(unit)
-        .agg(
-            {
-                "id": "count",
-                "OnNetwork": "sum",
-                "GainMiles": "mean",
-                "PerennialGainMiles": "mean",
-            }
-        )
+        .agg({"id": "count", "OnNetwork": "sum", "Recon": "sum"})
         .rename(
             columns={
                 "id": "dams",
                 "OnNetwork": "on_network_dams",
-                "GainMiles": "miles",
-                "PerennialGainMiles": "perennial_miles",
+                "Recon": "recon_dams",
             }
         )
     )
@@ -164,8 +154,6 @@ for unit in SUMMARY_UNITS:
         .fillna(0)
     )
     merged[INT_COLS] = merged[INT_COLS].astype("uint32")
-    merged.miles = merged.miles.round(3)
-    merged.perennial_miles = merged.perennial_miles.round(3)
 
     unit = "County" if unit == "COUNTYFIPS" else unit
 
