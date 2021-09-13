@@ -3,10 +3,10 @@ import { groupBy } from 'util/data'
 
 export const useSummaryData = () => {
   const {
-    summaryStatsJson: { total, regions },
+    stats: { total, regions },
   } = useStaticQuery(graphql`
     query summaryQuery {
-      summaryStatsJson {
+      stats: summaryStatsJson {
         total {
           dams
           onNetworkDams: on_network_dams

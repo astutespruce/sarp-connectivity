@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 import warnings
 
@@ -14,6 +13,7 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 
 data_dir = Path("data")
 out_dir = data_dir / "boundaries"
+ui_dir = Path("ui/data")
 
 state_filename = data_dir / "boundaries/source/tl_2019_us_state/tl_2019_us_state.shp"
 wbd_gdb = data_dir / "nhd/source/wbd/WBD_National_GDB/WBD_National_GDB.gdb"
@@ -59,11 +59,11 @@ bnd = bnd_df.geometry.values.data[0]
 sarp_bnd = bnd_df.loc[bnd_df.id == "se"].geometry.values.data[0]
 
 bnd_geo = bnd_df.to_crs(GEO_CRS)
-bounds = {id: bnd_geo.loc[id].geometry.bounds for id in bnd_geo.id.unique()}
+bnd_geo["bbox"] = pg.bounds(bnd_geo.geometry.values.data).round(2).tolist()
 
 # used to render maps
-with open(out_dir / "region_bounds.json", "w") as out:
-    out.write(json.dumps(bounds))
+with open(ui_dir / "region_bounds.json", "w") as out:
+    out.write(bnd_geo[["id", "bbox"]].to_json(orient="records"))
 
 # create mask
 world = pg.box(-180, -85, 180, 85)

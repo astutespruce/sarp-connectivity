@@ -18,7 +18,7 @@ const width = 600
 const height = 456
 
 const regions = JSON.parse(
-  fs.readFileSync('../../../data/boundaries/region_bounds.json')
+  fs.readFileSync('../../../ui/data/region_bounds.json')
 )
 
 const style = {

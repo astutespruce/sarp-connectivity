@@ -20,10 +20,10 @@ if (!mapboxToken) {
   )
 }
 
-const { bounds, styleID, minZoom, maxZoom } = config
+const { bounds: configBounds, styleID, minZoom, maxZoom } = config
 
 // IMPORTANT: this component can only be rendered client-side after re-hydration
-const Map = ({ children, onCreateMap }) => {
+const Map = ({ bounds, children, onCreateMap }) => {
   const mapNode = useRef(null)
   const [map, setMap] = useState(null)
 
@@ -90,11 +90,13 @@ const Map = ({ children, onCreateMap }) => {
 }
 
 Map.propTypes = {
+  bounds: PropTypes.arrayOf(PropTypes.number),
   children: PropTypes.oneOfType([PropTypes.node, PropTypes.element]),
   onCreateMap: PropTypes.func.isRequired,
 }
 
 Map.defaultProps = {
+  bounds: configBounds,
   children: null,
 }
 

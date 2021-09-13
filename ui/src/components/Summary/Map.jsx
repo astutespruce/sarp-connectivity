@@ -9,6 +9,7 @@ import React, {
 import PropTypes from 'prop-types'
 import mapboxgl from 'mapbox-gl'
 
+import { useRegionBounds } from 'components/Data/RegionBounds'
 import {
   Map,
   Legend,
@@ -28,6 +29,7 @@ import {
   pointHighlightLayer,
   pointHoverLayer,
   pointLegends,
+  regionLayers,
 } from './layers'
 
 import { barrierTypeLabels } from '../../../config/constants'
@@ -40,6 +42,7 @@ const emptyFeatureCollection = {
 }
 
 const SummaryMap = ({
+  region,
   system,
   barrierType,
   selectedUnit,
@@ -49,6 +52,7 @@ const SummaryMap = ({
   onSelectBarrier,
   ...props
 }) => {
+  const regionBounds = useRegionBounds()
   const mapRef = useRef(null)
 
   const [zoom, setZoom] = useState(0)
@@ -161,6 +165,15 @@ const SummaryMap = ({
         })
       }
     )
+
+    // Add mask / boundary layers
+    regionLayers.forEach((l) => {
+      const layer = {
+        ...l,
+        filter: ['==', 'id', region],
+      }
+      map.addLayer(layer)
+    })
 
     // Add network layers
     networkLayers.forEach((layer) => {
@@ -550,13 +563,18 @@ const SummaryMap = ({
 
   return (
     <>
-      <Map onCreateMap={handleCreateMap} {...props} />
+      <Map
+        onCreateMap={handleCreateMap}
+        {...props}
+        bounds={regionBounds[region].bbox}
+      />
       <Legend title={layerTitle} {...legendEntries} />
     </>
   )
 }
 
 SummaryMap.propTypes = {
+  region: PropTypes.string,
   system: PropTypes.string.isRequired,
   barrierType: PropTypes.string.isRequired,
   selectedUnit: PropTypes.object,
@@ -567,6 +585,7 @@ SummaryMap.propTypes = {
 }
 
 SummaryMap.defaultProps = {
+  region: 'total',
   selectedUnit: null,
   searchFeature: null,
   selectedBarrier: null,

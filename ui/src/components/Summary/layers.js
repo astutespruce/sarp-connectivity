@@ -557,3 +557,31 @@ export const pointHoverLayer = {
     'circle-stroke-color': '#f03b20',
   },
 }
+
+export const regionLayers = [
+  {
+    id: 'region-mask',
+    source: 'summary',
+    'source-layer': 'mask',
+    type: 'fill',
+    maxzoom: 8,
+    filter: ['==', ['get', 'id'], 'total'],
+    paint: {
+      'fill-opacity': 0.6,
+      'fill-color': '#AAA',
+    },
+  },
+  {
+    id: 'region-bounds',
+    source: 'summary',
+    'source-layer': 'boundary',
+    type: 'line',
+    maxzoom: 8,
+    filter: ['==', ['get', 'id'], 'total'],
+    paint: {
+      'line-opacity': 0.8,
+      'line-width': 2,
+      'line-color': '#4A0025',
+    },
+  },
+]
