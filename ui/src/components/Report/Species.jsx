@@ -1,77 +1,82 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Text } from '@react-pdf/renderer'
+import { Text, View } from '@react-pdf/renderer'
 
-import { Bold, List, ListItem } from './elements'
+import { formatNumber } from 'util/format'
 
-const Species = ({ tespp, statesgcnspp, regionalsgcnspp }) => (
-  <List title="Species information">
-    {tespp > 0 ? (
-      <>
-        <ListItem>
+import { Bold, Flex, Section } from './elements'
+
+const has = (num) => (num === 1 ? 'has' : 'have')
+
+const Species = ({ tespp, statesgcnspp, regionalsgcnspp, ...props }) => {
+  const colWidth = 1 / (tespp > 0) + (statesgcnspp > 0) + (regionalsgcnspp > 0)
+
+  return (
+    <Section title="Species information" {...props}>
+      <Flex>
+        <View
+          style={{
+            flex: `1 1 ${colWidth}%`,
+          }}
+        >
           <Text>
-            <Bold>{tespp}</Bold> federally-listed threatened and endangered
-            aquatic species have been found in the subwatershed containing this
+            <Bold>
+              {formatNumber(tespp)} federally-listed threatened and endangered
+              aquatic species
+            </Bold>{' '}
+            {has(tespp)} been found in the subwatershed containing this barrier.
+          </Text>
+        </View>
+
+        <View
+          style={{
+            flex: `1 1 ${colWidth}%`,
+            marginLeft: 14,
+            paddingLeft: 14,
+            borderLeft: '1px solid #cfd3d6',
+          }}
+        >
+          <Text>
+            <Bold>
+              {statesgcnspp} state-listed aquatic Species of Greatest
+              Conservation Need (SGCN)
+            </Bold>{' '}
+            {has(statesgcnspp)} been found in the subwatershed containing this
             barrier.
           </Text>
-        </ListItem>
-      </>
-    ) : (
-      <ListItem>
-        <Text>
-          No federally-listed threatened and endangered aquatic species have
-          been identified by available data sources for this subwatershed.
-        </Text>
-      </ListItem>
-    )}
+        </View>
 
-    {statesgcnspp > 0 ? (
-      <>
-        <ListItem>
+        <View
+          style={{
+            flex: `1 1 ${colWidth}%`,
+            marginLeft: 14,
+            paddingLeft: 14,
+            borderLeft: '1px solid #cfd3d6',
+          }}
+        >
           <Text>
-            <Bold>{statesgcnspp}</Bold> state-listed aquatic Species of Greatest
-            Conservation Need (SGCN) have been found in the subwatershed
-            containing this barrier. These may include state-listed threatened
-            and endangered species.
+            <Bold>
+              {regionalsgcnspp} regionally-listed aquatic species of greatest
+              conservation need
+            </Bold>{' '}
+            {has(regionalsgcnspp)} been identified by available data sources for
+            this subwatershed.
           </Text>
-        </ListItem>
-      </>
-    ) : (
-      <ListItem>
-        <Text>
-          No state-listed aquatic Species of Greatest Conservation Need (SGCN)
-          have been identified by available data sources for this subwatershed.
-        </Text>
-      </ListItem>
-    )}
+        </View>
+      </Flex>
 
-    {regionalsgcnspp > 0 ? (
-      <>
-        <ListItem>
-          <Text>
-            <Bold>{regionalsgcnspp}</Bold> regionally-listed aquatic species of
-            greatest conservation need have been found in the subwatershed
-            containing this barrier.
-          </Text>
-        </ListItem>
-      </>
-    ) : (
-      <ListItem>
-        <Text>
-          No regionally-listed aquatic species of greatest conservation need
-          have been identified by available data sources for this subwatershed.
-        </Text>
-      </ListItem>
-    )}
-
-    {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
-      <Text style={{ color: '#7f8a93', marginTop: 8 }}>
-        Note: species information is very incomplete. These species may or may
-        not be directly impacted by this barrier.
+      <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
+        Note: State and regionally listed species of greatest conservation need
+        may include state-listed threatened and endangered species. Species
+        information is very incomplete and only includes species that have been
+        identified by available data sources for this subwatershed. These
+        species may or may not be directly impacted by this barrier. The absence
+        of species in the available data does not necessarily indicate the
+        absence of species in the subwatershed.
       </Text>
-    ) : null}
-  </List>
-)
+    </Section>
+  )
+}
 
 Species.propTypes = {
   tespp: PropTypes.number,

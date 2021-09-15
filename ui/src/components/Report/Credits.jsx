@@ -4,8 +4,8 @@ import { Image, Text } from '@react-pdf/renderer'
 import SARPLogoImage from 'images/sarp_logo.png'
 import { Flex, Link } from './elements'
 
-const Credits = () => (
-  <Flex>
+const Credits = (props) => (
+  <Flex {...props}>
     <Text style={{ flex: '1 1 auto', marginRight: 36, fontSize: 10 }}>
       This report was created using the{' '}
       <Link href="https://connectivity.sarpdata.com/">

@@ -5,13 +5,6 @@ import { Box, Grid, Heading, Paragraph, Text } from 'theme-ui'
 import { Table, Row } from 'components/Table'
 import { formatNumber, formatPercent } from 'util/format'
 
-const activeSideCSS = {
-  fontWeight: 'bold',
-}
-const inactiveSideCSS = {
-  visibility: 'hidden',
-}
-
 const Network = ({
   barrierType,
   totalupstreammiles,
@@ -165,7 +158,8 @@ const Network = ({
             <Box>Perennial miles</Box>
             <Box
               sx={{
-                fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
+                fontWeight:
+                  perennialGainMilesSide === 'upstream' ? 'bold' : 'inherited',
               }}
             >
               {formatNumber(perennialupstreammiles)}
@@ -173,7 +167,9 @@ const Network = ({
             <Box
               sx={{
                 fontWeight:
-                  gainMilesSide === 'downstream' ? 'bold' : 'inherited',
+                  perennialGainMilesSide === 'downstream'
+                    ? 'bold'
+                    : 'inherited',
               }}
             >
               {formatNumber(freeperennialdownstreammiles)}
@@ -207,6 +203,7 @@ const Network = ({
 }
 
 Network.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
   totalupstreammiles: PropTypes.number,

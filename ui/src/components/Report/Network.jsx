@@ -2,53 +2,67 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
-import { formatNumber } from 'util/format'
+import { formatNumber, formatPercent } from 'util/format'
 
-import { Bold, List, ListItem } from './elements'
+import { Bold, Flex, Italic, Section } from './elements'
+
+const columnCSS = {
+  marginLeft: 14,
+  paddingLeft: 14,
+  borderLeft: '1px solid #cfd3d6',
+}
 
 const Network = ({
   barrierType,
-  hasnetwork,
   totalupstreammiles,
+  perennialupstreammiles,
+  alteredupstreammiles,
+  unalteredupstreammiles,
   freedownstreammiles,
-  freeupstreammiles,
-  totaldownstreammiles,
-  landcover,
+  freeperennialdownstreammiles,
+  freealtereddownstreammiles,
+  freeunaltereddownstreammiles,
   sizeclasses,
+  landcover,
   excluded,
+  hasnetwork,
+  ...props
 }) => {
-  const typeLabel = barrierType === 'dams' ? 'dam' : 'road-related barrier'
+  const barrierTypeLabel =
+    barrierType === 'dams' ? 'dam' : 'road-related barrier'
+  const gainmiles = Math.min(totalupstreammiles, freedownstreammiles)
+  const gainMilesSide =
+    gainmiles === totalupstreammiles ? 'upstream' : 'downstream'
 
-  const header = (
-    <View style={{ marginBottom: 4 }}>
-      <Bold
-        style={{
-          fontSize: 14,
-        }}
-      >
-        Functional network information
-      </Bold>
-    </View>
+  const perennialGainMiles = Math.min(
+    perennialupstreammiles,
+    freeperennialdownstreammiles
   )
+  const perennialGainMilesSide =
+    perennialGainMiles === perennialupstreammiles ? 'upstream' : 'downstream'
+
+  const percentAltered = totalupstreammiles
+    ? (100 * alteredupstreammiles) / totalupstreammiles
+    : 0
+
+  const colWidth = totalupstreammiles > 0 ? 1 / 4 : 1 / 3
 
   if (excluded) {
     return (
-      <View>
-        {header}
+      <Section title="Functional network information" {...props}>
         <Text>
-          This {typeLabel} was excluded from the connectivity analysis based on
-          field reconnaissance or manual review of aerial imagery.
+          This {barrierTypeLabel} was excluded from the connectivity analysis
+          based on field reconnaissance or manual review of aerial imagery.
         </Text>
-      </View>
+      </Section>
     )
   }
 
   if (!hasnetwork) {
     return (
-      <View>
-        {header}
+      <Section title="Functional network information" {...props}>
         <Text>
-          This {typeLabel} is off-network and has no functional network
+          This {barrierTypeLabel} is off-network and has no functional network
           information.
           {'\n\n'}
         </Text>
@@ -57,62 +71,198 @@ const Network = ({
           network for analysis. Please contact us to report an error or for
           assistance interpreting these results.
         </Text>
-      </View>
+      </Section>
     )
   }
 
   return (
-    <List title="Functional network information">
-      <ListItem>
-        <Text>
-          <Bold>
-            {formatNumber(Math.min(totalupstreammiles, freedownstreammiles))}{' '}
-            miles
-          </Bold>{' '}
-          could be gained by removing this {typeLabel}.
-        </Text>
-
-        <ListItem style={{ marginTop: 4 }}>
+    <Section title="Functional network information" {...props}>
+      <Flex>
+        <View
+          style={{
+            flex: `1 1 ${colWidth}%`,
+          }}
+        >
           <Text>
-            {formatNumber(freeupstreammiles)} free-flowing miles upstream
+            <Bold>{formatNumber(gainmiles)} total miles</Bold> could be
+            reconnected by removing this {barrierTypeLabel}, including{' '}
+            <Bold>{formatNumber(perennialGainMiles)} miles</Bold> of perennial
+            segments.
           </Text>
+        </View>
 
-          <ListItem style={{ marginTop: 4 }}>
+        {totalupstreammiles > 0 ? (
+          <View
+            style={{
+              flex: `1 1 ${colWidth}%`,
+              ...columnCSS,
+            }}
+          >
             <Text>
-              <Bold>{formatNumber(totalupstreammiles)} total miles</Bold> in the
-              upstream network
+              <Bold>
+                {formatPercent(percentAltered)}% of the upstream network
+              </Bold>{' '}
+              is in stream channels known to be altered from natural conditions.
             </Text>
-          </ListItem>
-        </ListItem>
+          </View>
+        ) : null}
 
-        <ListItem>
+        <View
+          style={{
+            flex: `1 1 ${colWidth}%`,
+            ...columnCSS,
+          }}
+        >
           <Text>
-            <Bold>{formatNumber(freedownstreammiles)} free-flowing miles</Bold>{' '}
-            in the downstream network
+            <Bold>
+              {sizeclasses} river size {sizeclasses === 1 ? 'class' : 'classes'}
+            </Bold>{' '}
+            could be gained by removing this barrier.
           </Text>
+        </View>
 
-          <ListItem style={{ marginTop: 4 }}>
+        <View
+          style={{
+            flex: `1 1 ${colWidth}%`,
+            ...columnCSS,
+          }}
+        >
+          <Text>
+            <Bold>
+              {formatNumber(landcover, 0)}% of the upstream floodplain
+            </Bold>{' '}
+            is composed of natural landcover.
+          </Text>
+        </View>
+      </Flex>
+
+      <View style={{ marginTop: 36 }}>
+        <Flex>
+          <View style={{ flex: '1 1 160pt' }}>
             <Text>
-              {formatNumber(totaldownstreammiles)} total miles in the downstream
-              network
+              <Italic>Network statistics:</Italic>
             </Text>
-          </ListItem>
-        </ListItem>
-      </ListItem>
-      <ListItem>
-        <Text>
-          <Bold>{sizeclasses}</Bold> river size{' '}
-          {sizeclasses === 1 ? 'class' : 'classes'} could be gained by removing
-          this {typeLabel}
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>
+              <Bold>upstream network</Bold>
+            </Text>
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>
+              <Bold>downstream network</Bold>
+            </Text>
+          </View>
+        </Flex>
+
+        <Flex
+          style={{
+            borderTop: '1px solid #dee1e3',
+            marginTop: 6,
+            paddingTop: 6,
+          }}
+        >
+          <View style={{ flex: '1 1 160pt' }}>
+            <Text>Total miles</Text>
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>
+              {gainMilesSide === 'upstream' ? (
+                <Bold>{formatNumber(totalupstreammiles)}</Bold>
+              ) : (
+                <>{formatNumber(totalupstreammiles)}</>
+              )}
+            </Text>
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>
+              {gainMilesSide === 'downstream' ? (
+                <Bold>{formatNumber(freedownstreammiles)}</Bold>
+              ) : (
+                <>{formatNumber(freedownstreammiles)}</>
+              )}
+            </Text>
+          </View>
+        </Flex>
+
+        <Flex
+          style={{
+            borderTop: '1px solid #dee1e3',
+            marginTop: 6,
+            paddingTop: 6,
+          }}
+        >
+          <View style={{ flex: '1 1 160pt' }}>
+            <Text>Perennial miles</Text>
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>
+              {perennialGainMilesSide === 'upstream' ? (
+                <Bold>{formatNumber(perennialupstreammiles)}</Bold>
+              ) : (
+                <>{formatNumber(perennialupstreammiles)}</>
+              )}
+            </Text>
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>
+              {perennialGainMilesSide === 'downstream' ? (
+                <Bold>{formatNumber(freeperennialdownstreammiles)}</Bold>
+              ) : (
+                <>{formatNumber(freeperennialdownstreammiles)}</>
+              )}
+            </Text>
+          </View>
+        </Flex>
+
+        <Flex
+          style={{
+            borderTop: '1px solid #dee1e3',
+            marginTop: 6,
+            paddingTop: 6,
+          }}
+        >
+          <View style={{ flex: '1 1 160pt' }}>
+            <Text>Altered miles</Text>
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>{formatNumber(alteredupstreammiles)}</Text>
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>{formatNumber(freealtereddownstreammiles)}</Text>
+          </View>
+        </Flex>
+
+        <Flex
+          style={{
+            borderTop: '1px solid #dee1e3',
+            marginTop: 6,
+            paddingTop: 6,
+          }}
+        >
+          <View style={{ flex: '1 1 160pt' }}>
+            <Text>Unaltered miles</Text>
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>{formatNumber(unalteredupstreammiles)}</Text>
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>{formatNumber(freeunaltereddownstreammiles)}</Text>
+          </View>
+        </Flex>
+
+        <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
+          Note: downstream lengths are limited to free-flowing segments only;
+          these exclude lengths within waterbodies in the downstream network.
+          Perennial miles are the sum of lengths of all segments not
+          specifically coded as ephemeral or intermittent within the functional
+          network. Perennial segments are not necessarily contiguous. Altered
+          miles are those that are specifically coded as canals or ditches, and
+          do not necessarily include all forms of alteration of the stream
+          channel.
         </Text>
-      </ListItem>
-      <ListItem>
-        <Text>
-          <Bold>{formatNumber(landcover, 0)}%</Bold> of the upstream floodplain
-          is composed of natural landcover
-        </Text>
-      </ListItem>
-    </List>
+      </View>
+    </Section>
   )
 }
 
@@ -120,22 +270,30 @@ Network.propTypes = {
   barrierType: PropTypes.string.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
-  freeupstreammiles: PropTypes.number,
   totalupstreammiles: PropTypes.number,
+  perennialupstreammiles: PropTypes.number,
+  alteredupstreammiles: PropTypes.number,
+  unalteredupstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
-  totaldownstreammiles: PropTypes.number,
+  freeperennialdownstreammiles: PropTypes.number,
+  freealtereddownstreammiles: PropTypes.number,
+  freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
 }
 
 Network.defaultProps = {
   excluded: false,
-  freeupstreammiles: null,
-  totalupstreammiles: null,
-  freedownstreammiles: null,
-  totaldownstreammiles: null,
-  landcover: null,
-  sizeclasses: null,
+  totalupstreammiles: 0,
+  perennialupstreammiles: 0,
+  alteredupstreammiles: 0,
+  unalteredupstreammiles: 0,
+  freedownstreammiles: 0,
+  freeperennialdownstreammiles: 0,
+  freealtereddownstreammiles: 0,
+  freeunaltereddownstreammiles: 0,
+  landcover: 0,
+  sizeclasses: 0,
 }
 
 export default Network

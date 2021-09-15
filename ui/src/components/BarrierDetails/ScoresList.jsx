@@ -47,7 +47,7 @@ const ScoresList = ({ nc, wc, ncwc, pnc, pwc, pncwc }) => (
         />
         <Text variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
           Note: perennial network connectivity is based on the total perennial
-          (non-intermittent or ephemeral) length in a given network. Perennial
+          (non-intermi ttent or ephemeral) length in a given network. Perennial
           watershed condition is based partly upon the percent of the perennial
           stream reaches that are not altered (canals / ditches).
         </Text>

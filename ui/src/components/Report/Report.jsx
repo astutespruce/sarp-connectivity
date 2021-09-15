@@ -2,7 +2,6 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Document, Page, StyleSheet, View } from '@react-pdf/renderer'
 
-import Construction from './Construction'
 import Contact from './Contact'
 import Credits from './Credits'
 import Feasibility from './Feasibility'
@@ -10,7 +9,7 @@ import Footer from './Footer'
 import Header from './Header'
 import IDInfo from './IDInfo'
 import Legend from './Legend'
-import Location from './Location'
+import LocationConstruction from './LocationConstruction'
 import { LocatorMap, Map } from './Map'
 import Network from './Network'
 import Scores from './Scores'
@@ -58,50 +57,35 @@ const Report = ({ barrierType, data, map, locatorMap, attribution, scale }) => {
       </Page>
 
       <Page style={styles.page} size="LETTER">
-        <Flex wrap={false}>
-          <View style={{ flex: '1 1 50%', marginRight: 36 }}>
-            <Location {...data} />
-          </View>
-          <View style={{ flex: '1 1 50%' }}>
-            <Construction barrierType={barrierType} {...data} />
-          </View>
-        </Flex>
+        <LocationConstruction barrierType={barrierType} {...data} />
 
-        <Flex style={{ marginTop: 24 }} wrap={false}>
-          <View
-            style={{
-              flex: `1 1 ${hasnetwork ? '50%' : '100%'}`,
-              marginRight: 36,
-            }}
-          >
-            <Network barrierType={barrierType} {...data} />
-          </View>
-          {hasnetwork ? (
-            <View style={{ flex: '1 1 50%' }}>
-              <Scores barrierType={barrierType} {...data} />
-            </View>
-          ) : null}
-        </Flex>
+        <Network
+          style={{ marginTop: 48 }}
+          barrierType={barrierType}
+          {...data}
+        />
 
-        <View style={{ marginTop: 24 }} wrap={false}>
-          <Species {...data} />
-        </View>
+        {hasnetwork ? (
+          <Scores
+            style={{ marginTop: 24 }}
+            barrierType={barrierType}
+            {...data}
+          />
+        ) : null}
 
-        <View style={{ marginTop: 24 }} wrap={false}>
-          <Feasibility {...data} />
-        </View>
+        <Feasibility style={{ marginTop: 48 }} {...data} />
 
-        <View style={{ marginTop: 24 }} wrap={false}>
-          <IDInfo {...data} />
-        </View>
+        <Species style={{ marginTop: 24 }} {...data} />
 
-        <View style={{ marginTop: 24 }} wrap={false}>
-          <Contact barrierType={barrierType} {...data} />
-        </View>
+        <IDInfo style={{ marginTop: 24 }} {...data} />
 
-        <View style={{ marginTop: 24 }} wrap={false}>
-          <Credits />
-        </View>
+        <Contact
+          style={{ marginTop: 24 }}
+          barrierType={barrierType}
+          {...data}
+        />
+
+        <Credits style={{ marginTop: 24 }} />
 
         <Footer />
       </Page>

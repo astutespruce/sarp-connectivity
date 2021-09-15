@@ -89,7 +89,9 @@ const Scores = ({
           </Row>
           <Row>
             <Box>
-              Combined network connectivity &amp; watershed condition tier
+              Combined network connectivity &amp;
+              <br />
+              watershed condition tier
             </Box>
             <Box>{state_ncwc_tier}</Box>
             <Box>{state_pncwc_tier}</Box>
@@ -125,7 +127,8 @@ const Scores = ({
             </Row>
             <Row>
               <Box>
-                Combined network connectivity &amp; watershed condition tier
+                Combined network connectivity &amp; <br />
+                watershed condition tier
               </Box>
               <Box>{se_ncwc_tier}</Box>
               <Box>{se_pncwc_tier}</Box>

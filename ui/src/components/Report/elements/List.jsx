@@ -7,24 +7,26 @@ import Bold from './Bold'
 
 const List = ({ title, note, children, style }) => (
   <View style={style}>
-    <View style={{ marginBottom: 4 }}>
-      <Bold
-        style={{
-          fontSize: 14,
-        }}
-      >
-        {title}
-      </Bold>
-      {note ? (
-        <Text style={{ color: '#7f8a93', fontSize: 10 }}>{note}</Text>
-      ) : null}
-    </View>
+    {title ? (
+      <View style={{ marginBottom: 4 }}>
+        <Bold
+          style={{
+            fontSize: 14,
+          }}
+        >
+          {title}
+        </Bold>
+        {note ? (
+          <Text style={{ color: '#7f8a93', fontSize: 10 }}>{note}</Text>
+        ) : null}
+      </View>
+    ) : null}
     <View>{children}</View>
   </View>
 )
 
 List.propTypes = {
-  title: PropTypes.string.isRequired,
+  title: PropTypes.string,
   note: PropTypes.string,
   children: PropTypes.oneOfType([
     PropTypes.node,
@@ -34,6 +36,7 @@ List.propTypes = {
 }
 
 List.defaultProps = {
+  title: null,
   note: null,
   style: {},
 }

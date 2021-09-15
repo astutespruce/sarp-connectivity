@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react'
 import PropTypes from 'prop-types'
+import { FilePdf } from '@emotion-icons/fa-solid'
 import {
   Box,
   Container,
@@ -24,14 +25,13 @@ import Feasibility from './Feasibility'
 import Header from './Header'
 import IDInfo from './IDInfo'
 import Legend from './Legend'
-// import Location from './Location'
 import { Attribution, LocatorMap, Map } from './Map'
 import Network from './Network'
 import Scores from './Scores'
 import Species from './Species'
 
 const Preview = ({ barrierType, data }) => {
-  const { id, sarpid, upnetid, county, state, lat, lon, hasnetwork } = data
+  const { id, sarpid, upnetid, county, state, lat, lon } = data
 
   const name =
     data.name || barrierType === 'dams'
@@ -159,7 +159,14 @@ const Preview = ({ barrierType, data }) => {
                 </Flex>
               </Button>
             ) : (
-              <Button onClick={handleExport}>Export to PDF</Button>
+              <Button onClick={handleExport}>
+                <Flex sx={{ alignItems: 'center' }}>
+                  <Box sx={{ flex: '0 0 auto', mr: '0.5rem' }}>
+                    <FilePdf size="1em" />
+                  </Box>
+                  <Text sx={{ flex: '0 0 auto' }}>Export to PDF</Text>
+                </Flex>
+              </Button>
             )}
           </Box>
         </Flex>
@@ -212,11 +219,11 @@ const Preview = ({ barrierType, data }) => {
             {...data}
           />
 
-          <Feasibility sx={{ mt: '3rem' }} {...data} />
-
           <Network sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
 
           <Scores sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
+
+          <Feasibility sx={{ mt: '3rem' }} {...data} />
 
           <Species sx={{ mt: '3rem' }} {...data} />
 

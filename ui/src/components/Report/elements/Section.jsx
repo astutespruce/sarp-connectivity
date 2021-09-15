@@ -6,8 +6,18 @@ import { View } from '@react-pdf/renderer'
 import Bold from './Bold'
 
 const Section = ({ title, children, style }) => (
-  <View style={style}>
-    <Bold style={{ fontSize: 14, marginBottom: 6 }}>{title}</Bold>
+  <View style={style} wrap={false}>
+    <Bold
+      style={{
+        fontSize: 14,
+        marginBottom: 14,
+        padding: '6pt 12pt',
+        lineHeight: 1,
+        backgroundColor: '#ebedee',
+      }}
+    >
+      {title}
+    </Bold>
     {children}
   </View>
 )
