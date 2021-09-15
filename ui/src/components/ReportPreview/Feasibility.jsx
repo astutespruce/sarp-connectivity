@@ -2,15 +2,13 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Text } from 'theme-ui'
+import { Box, Heading } from 'theme-ui'
 
 import { RECON, HUC8_USFS } from '../../../config/constants'
 
-const Feasibility = ({ recon, huc8_coa, huc8_sgcn, huc8_usfs }) => (
-  <Box>
-    <Text sx={{ fontWeight: 'bold', fontSize: 3 }}>
-      Feasibility & conservation benefit
-    </Text>
+const Feasibility = ({ recon, huc8_coa, huc8_sgcn, huc8_usfs, ...props }) => (
+  <Box {...props}>
+    <Heading as="h3">Feasibility & conservation benefit</Heading>
 
     <Box as="ul" sx={{ mt: '0.5rem' }}>
       {recon !== null ? (

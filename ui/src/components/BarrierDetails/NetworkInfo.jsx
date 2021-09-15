@@ -25,6 +25,8 @@ const NetworkInfo = ({
   freeunaltereddownstreammiles,
   sizeclasses,
   landcover,
+  fontSize,
+  headerFontSize,
   ...props
 }) => {
   const gainmiles = Math.min(totalupstreammiles, freedownstreammiles)
@@ -45,16 +47,16 @@ const NetworkInfo = ({
   return (
     <Box {...props}>
       <Entry sx={{ pb: '1rem' }}>
-        <Table sx={{ fontSize: 1 }} columns="11rem 1fr 1fr">
+        <Table sx={{ fontSize }} columns="11rem 1fr 1fr">
           <Row>
             <Box />
-            <Box sx={{ fontSize: 0 }}>
+            <Box sx={{ fontSize: headerFontSize }}>
               <b>Upstream</b>
             </Box>
-            <Box sx={{ fontSize: 0 }}>
+            <Box sx={{ fontSize: headerFontSize }}>
               <b>Downstream</b>
               <br />
-              <Text sx={{ fontSize: 0, color: 'grey.7' }}>
+              <Text sx={{ fontSize: headerFontSize, color: 'grey.7' }}>
                 free-flowing miles only
               </Text>
             </Box>
@@ -117,7 +119,7 @@ const NetworkInfo = ({
             sx={{
               mt: '0.25rem',
               pt: '0.25rem',
-              fontSize: 1,
+              fontSize,
               borderTop: '3px solid',
               borderTopColor: 'grey.2',
             }}
@@ -200,6 +202,8 @@ const NetworkInfo = ({
 }
 
 NetworkInfo.propTypes = {
+  fontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  headerFontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   barrierType: PropTypes.string.isRequired,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
@@ -214,6 +218,8 @@ NetworkInfo.propTypes = {
 }
 
 NetworkInfo.defaultProps = {
+  fontSize: 1,
+  headerFontSize: 0,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,

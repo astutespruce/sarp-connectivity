@@ -11,8 +11,7 @@ import Header from './Header'
 import IDInfo from './IDInfo'
 import Legend from './Legend'
 import Location from './Location'
-import LocatorMap from './LocatorMap'
-import Map from './Map'
+import { LocatorMap, Map } from './Map'
 import Network from './Network'
 import Scores from './Scores'
 import Species from './Species'
@@ -46,7 +45,7 @@ const Report = ({ barrierType, data, map, locatorMap, attribution, scale }) => {
       language="en-us"
     >
       <Page style={styles.page} size="LETTER">
-        <Header {...data} name={name} />
+        <Header barrierType={barrierType} {...data} name={name} />
 
         <Map map={map} attribution={attribution} scale={scale} />
 

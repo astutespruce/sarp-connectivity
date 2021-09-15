@@ -5,7 +5,7 @@ import { Text, View } from '@react-pdf/renderer'
 import { formatNumber } from 'util/format'
 import { Flex } from './elements'
 
-const Header = ({ name, county, state, lat, lon }) => (
+const Header = ({ barrierType, name, county, state, lat, lon }) => (
   <Flex
     style={{
       marginBottom: 6,
@@ -19,28 +19,31 @@ const Header = ({ name, county, state, lat, lon }) => (
       >
         {name}
       </Text>
-      <Text
-        style={{
-          fontStyle: 'italic',
-          fontFamily: 'Helvetica-Oblique',
-          fontSize: 12,
-        }}
-      >
-        {county} County, {state}
-      </Text>
-    </View>
-
-    <View sx={{ flex: '0 0 80' }}>
-      <Text>
-        {`${formatNumber(lat, 3)}° N`}
-        {'\n'}
-        {`${formatNumber(lon, 3)}° E`}
-      </Text>
+      <Flex style={{ justifyContent: 'space-beteween' }}>
+        <Text style={{ flex: '1 1 auto' }}>
+          {barrierType === 'dams' ? 'Dam' : 'Road-related barrier'} at{' '}
+          {formatNumber(lat, 3)}
+          &deg; N / {formatNumber(lon, 3)}
+          &deg; E
+        </Text>
+        <Text
+          style={{
+            flex: '0 0 200',
+            fontStyle: 'italic',
+            fontFamily: 'Helvetica-Oblique',
+            fontSize: 12,
+            textAlign: 'right',
+          }}
+        >
+          {county} County, {state}
+        </Text>
+      </Flex>
     </View>
   </Flex>
 )
 
 Header.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   county: PropTypes.string.isRequired,
   state: PropTypes.string.isRequired,

@@ -13,24 +13,19 @@ import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
 
 import { Report } from 'components/Report'
-import {
-  ExportMap,
-  LocatorMap,
-  mapToDataURL,
-  basemapAttribution,
-} from 'components/Map'
+import { mapToDataURL, basemapAttribution } from 'components/Map'
 
 import { PageError } from 'components/Layout'
 
-import Construction from './Construction'
+import LocationConstruction from './LocationConstruction'
 import Contact from './Contact'
 import Credits from './Credits'
 import Feasibility from './Feasibility'
 import Header from './Header'
 import IDInfo from './IDInfo'
 import Legend from './Legend'
-import Location from './Location'
-import MapAttribution from './MapAttribution'
+// import Location from './Location'
+import { Attribution, LocatorMap, Map } from './Map'
 import Network from './Network'
 import Scores from './Scores'
 import Species from './Species'
@@ -40,8 +35,8 @@ const Preview = ({ barrierType, data }) => {
 
   const name =
     data.name || barrierType === 'dams'
-      ? `Unknown dam name (SARPID: ${sarpid})`
-      : `Unnamed crossing (SARPID ${sarpid})`
+      ? `Dam: unknown name (SARPID: ${sarpid})`
+      : `Crossing: unknown name (SARPID ${sarpid})`
 
   const [{ attribution, hasError, isPending }, setState] = useState({
     attribution: basemapAttribution['light-v9'],
@@ -115,7 +110,12 @@ const Preview = ({ barrierType, data }) => {
           isPending: false,
           hasError: false,
         }))
-        saveAs(blob, `${sarpid}_barrier_report.pdf`)
+        saveAs(
+          blob,
+          `${sarpid}_${
+            barrierType === 'dams' ? 'dam' : 'road_related_barrier'
+          }_report.pdf`
+        )
       })
       .catch((error) => {
         // TODO: log to sentry?
@@ -164,9 +164,16 @@ const Preview = ({ barrierType, data }) => {
           </Box>
         </Flex>
 
-        <Header name={name} county={county} state={state} lat={lat} lon={lon} />
+        <Header
+          barrierType={barrierType}
+          name={name}
+          county={county}
+          state={state}
+          lat={lat}
+          lon={lon}
+        />
 
-        <ExportMap
+        <Map
           barrierID={id}
           networkID={upnetid}
           center={[lon, lat]}
@@ -176,7 +183,7 @@ const Preview = ({ barrierType, data }) => {
           onUpdateBasemap={handleUpdateBasemap}
         />
 
-        <MapAttribution attribution={attribution} />
+        <Attribution attribution={attribution} />
 
         <Flex sx={{ mt: '2rem' }}>
           <Box sx={{ flex: '0 0 auto', mr: '2rem' }}>
@@ -189,44 +196,35 @@ const Preview = ({ barrierType, data }) => {
           <Legend barrierType={barrierType} name={name} />
         </Flex>
 
-        <Flex sx={{ justifyContent: 'space-between', mt: '3rem' }}>
-          <Box sx={{ flex: '1 1 auto', width: '50%', mr: '2rem' }}>
-            <Location {...data} />
-          </Box>
-          <Box sx={{ flex: '1 1 auto', width: '50%' }}>
-            <Construction barrierType={barrierType} {...data} />
-          </Box>
-        </Flex>
+        <Box
+          sx={{
+            h3: {
+              bg: 'grey.1',
+              py: '0.5rem',
+              px: '1rem',
+              mb: '0.5rem',
+            },
+          }}
+        >
+          <LocationConstruction
+            sx={{ mt: '3rem' }}
+            barrierType={barrierType}
+            {...data}
+          />
 
-        <Flex sx={{ justifyContent: 'space-between', mt: '3rem' }}>
-          <Box sx={{ flex: '1 1 auto', width: '50%', mr: '2rem' }}>
-            <Network {...data} />
-          </Box>
-          {hasnetwork ? (
-            <Box sx={{ flex: '1 1 auto', width: '50%' }}>
-              <Scores barrierType={barrierType} {...data} />
-            </Box>
-          ) : null}
-        </Flex>
+          <Feasibility sx={{ mt: '3rem' }} {...data} />
 
-        <Box sx={{ mt: '3rem' }}>
-          <Species {...data} />
-        </Box>
+          <Network sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
 
-        <Box sx={{ mt: '3rem' }}>
-          <Feasibility {...data} />
-        </Box>
+          <Scores sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
 
-        <Box sx={{ mt: '3rem' }}>
-          <IDInfo {...data} />
-        </Box>
+          <Species sx={{ mt: '3rem' }} {...data} />
 
-        <Box sx={{ mt: '3rem' }}>
-          <Contact barrierType={barrierType} {...data} />
-        </Box>
+          <IDInfo sx={{ mt: '3rem' }} {...data} />
 
-        <Box sx={{ mt: '2rem' }}>
-          <Credits />
+          <Contact sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
+
+          <Credits sx={{ mt: '2rem' }} />
         </Box>
       </Container>
     </Box>

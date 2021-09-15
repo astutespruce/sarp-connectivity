@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Text } from 'theme-ui'
+import { Box, Heading } from 'theme-ui'
 
 import { isEmptyString } from 'util/string'
 
@@ -8,9 +8,9 @@ import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion } = siteMetadata
 
-const IDInfo = ({ sarpid, nidid, source }) => (
-  <Box>
-    <Text sx={{ fontWeight: 'bold', fontSize: 3 }}>Data sources</Text>
+const IDInfo = ({ sarpid, nidid, source, ...props }) => (
+  <Box {...props}>
+    <Heading as="h3">Data sources</Heading>
     <Box as="ul" sx={{ mt: '0.5rem' }}>
       <li>
         SARP ID: {sarpid} (data version: {dataVersion})

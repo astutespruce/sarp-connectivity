@@ -6,6 +6,7 @@ import { Box, Flex, Text } from 'theme-ui'
 import { formatNumber } from 'util/format'
 
 const Header = ({
+  barrierType,
   name,
   county,
   state,
@@ -14,23 +15,25 @@ const Header = ({
   lon,
 }) => (
   <Flex sx={{ alignItems: 'flex-end', mb: ' 0.5rem', lineHeight: 1.2 }}>
-    <Box sx={{ flex: '1 1 auto', mr: '2rem' }}>
+    <Box sx={{ flex: '1 1 auto' }}>
       <Text sx={{ fontSize: '2rem', fontWeight: 'bold' }}>{name}</Text>
-      <Text sx={{ fontStyle: 'italic' }}>
-        {county} County, {state}
-      </Text>
-    </Box>
-    <Box sx={{ flex: '0 0 auto', textAlign: 'right' }}>
-      {formatNumber(lat, 3)}
-      &deg; N
-      <br />
-      {formatNumber(lon, 3)}
-      &deg; E
+      <Flex sx={{ justifyContent: 'space-between' }}>
+        <Text sx={{ flex: '1 1 auto' }}>
+          {barrierType === 'dams' ? 'Dam' : 'Road-related barrier'} at{' '}
+          {formatNumber(lat, 3)}
+          &deg; N / {formatNumber(lon, 3)}
+          &deg; E
+        </Text>
+        <Text sx={{ flex: '0 0 auto', fontStyle: 'italic' }}>
+          {county} County, {state}
+        </Text>
+      </Flex>
     </Box>
   </Flex>
 )
 
 Header.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   county: PropTypes.string.isRequired,
   state: PropTypes.string.isRequired,

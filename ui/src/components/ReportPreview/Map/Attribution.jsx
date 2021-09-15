@@ -4,7 +4,7 @@ import { Flex, Image, Text } from 'theme-ui'
 
 import MapboxLogo from 'images/mapbox-logo.png'
 
-const MapAttribution = ({ attribution }) => (
+const Attribution = ({ attribution }) => (
   <Flex sx={{ alignItems: 'center', mt: '0.25rem', lineHeight: 1.1 }}>
     <Image
       src={MapboxLogo}
@@ -16,8 +16,8 @@ const MapAttribution = ({ attribution }) => (
   </Flex>
 )
 
-MapAttribution.propTypes = {
+Attribution.propTypes = {
   attribution: PropTypes.string.isRequired,
 }
 
-export default MapAttribution
+export default Attribution

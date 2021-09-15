@@ -3,8 +3,8 @@ import { Box, Flex, Image } from 'theme-ui'
 
 import SARPLogoImage from 'images/sarp_logo.png'
 
-const Credits = () => (
-  <Box>
+const Credits = (props) => (
+  <Box {...props}>
     <Flex sx={{ mt: '0.5rem', fontSize: 1 }}>
       <Box sx={{ flex: '1 1 auto' }}>
         This report was created using the{' '}
