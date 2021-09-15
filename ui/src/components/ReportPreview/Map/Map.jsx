@@ -6,18 +6,23 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Box } from 'theme-ui'
 
 import {
-  flowlinesLayer,
   pointLayer,
+  pointHighlightLayer,
   damsSecondaryLayer,
   waterfallsLayer,
   backgroundPointLayer,
 } from 'components/Summary/layers'
 
-import { getCenterAndZoom } from './util'
-import BasemapSelector from './BasemapSelector'
-import { config, sources, basemapLayers } from './config'
+import {
+  BasemapSelector,
+  getCenterAndZoom,
+  networkLayers,
+  config,
+  sources,
+  basemapLayers,
+} from 'components/Map'
 
-import { siteMetadata } from '../../../gatsby-config'
+import { siteMetadata } from '../../../../gatsby-config'
 
 const { mapboxToken } = siteMetadata
 if (!mapboxToken) {
@@ -28,53 +33,12 @@ if (!mapboxToken) {
 
 const { styleID: defaultStyleID } = config
 
-const networkHighlightLayer = {
-  id: 'network-highlight',
-  'source-layer': 'networks',
-  minzoom: 10,
-  type: 'line',
-  filter: ['==', 'networkID', Infinity],
-  paint: {
-    'line-opacity': 0.75,
-    'line-width': {
-      base: 1,
-      stops: [
-        [12, 1],
-        [14, 2],
-        [15, 3],
-        [16, 4],
-      ],
-    },
-    'line-color': '#fd8d3c',
-  },
-}
-
-export const pointHighlightLayer = {
-  id: 'point-highlight',
-  type: 'circle',
-  minzoom: 10,
-  maxzoom: 24,
-  paint: {
-    'circle-color': '#fd8d3c',
-    'circle-radius': {
-      base: 1,
-      stops: [
-        [10, 6],
-        [14, 12],
-        [16, 14],
-      ],
-    },
-    'circle-stroke-width': 3,
-    'circle-stroke-color': '#f03b20',
-  },
-}
-
 /**
  * A map component that supports export to image.
  * Override of browser's devicePixelRatio adapted from: https://github.com/mpetroff/print-maps/blob/master/js/script.js
  */
 
-const ExportMap = ({
+const Map = ({
   width,
   height,
   center: centerProp,
@@ -112,7 +76,7 @@ const ExportMap = ({
       maxZoom: 18,
       preserveDrawingBuffer: true,
     })
-    window.exportMap = mapObj // for easier debugging and querying via console
+    window.previewMap = mapObj // for easier debugging and querying via console
 
     mapObj.addControl(new mapboxgl.NavigationControl(), 'top-right')
     mapObj.addControl(
@@ -138,18 +102,17 @@ const ExportMap = ({
         })
       })
 
-      // Add flowlines and network highlight layers
-      mapObj.addLayer(flowlinesLayer)
-
-      const netHighlightLayer = {
-        ...networkHighlightLayer,
-        source: `${barrierType}_network`,
-      }
-      if (networkID !== null) {
-        netHighlightLayer.filter = ['==', 'networkID', networkID]
-      }
-
-      mapObj.addLayer(netHighlightLayer)
+      // Add network layers
+      networkLayers.forEach((layer) => {
+        if (layer.id.endsWith('-highlight')) {
+          mapObj.addLayer({
+            ...layer,
+            filter: ['==', barrierType, networkID],
+          })
+        } else {
+          mapObj.addLayer(layer)
+        }
+      })
 
       // Add barrier point layers
       mapObj.addLayer(waterfallsLayer)
@@ -231,7 +194,7 @@ const ExportMap = ({
   )
 }
 
-ExportMap.propTypes = {
+Map.propTypes = {
   width: PropTypes.string,
   height: PropTypes.string,
   center: PropTypes.arrayOf(PropTypes.number),
@@ -246,7 +209,7 @@ ExportMap.propTypes = {
   onUpdateBasemap: PropTypes.func.isRequired,
 }
 
-ExportMap.defaultProps = {
+Map.defaultProps = {
   width: '538pt', // 7.5in once border is added
   height: '418pt', // 5.8in
   center: null,
@@ -257,4 +220,4 @@ ExportMap.defaultProps = {
   networkID: null,
 }
 
-export default ExportMap
+export default Map

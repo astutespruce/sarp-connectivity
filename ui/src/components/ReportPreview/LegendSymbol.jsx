@@ -2,11 +2,23 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex } from 'theme-ui'
 
-const LegendSymbol = ({ type, color, borderColor, borderWidth }) => {
+const LegendSymbol = ({
+  type,
+  color,
+  borderColor,
+  borderWidth,
+  borderStyle,
+}) => {
   if (type === 'line') {
     return (
       <Flex sx={{ alignItems: 'center', flex: '0 0 auto' }}>
-        <Box sx={{ width: '1rem', height: `${borderWidth}px`, bg: color }} />
+        {/* <Box sx={{ width: '1rem', height: `${borderWidth}px`, bg: color }} /> */}
+        <Box
+          sx={{
+            width: '1rem',
+            borderTop: `${borderWidth}px ${borderStyle} ${color}`,
+          }}
+        />
       </Flex>
     )
   }
@@ -31,11 +43,13 @@ LegendSymbol.propTypes = {
   color: PropTypes.string.isRequired,
   borderColor: PropTypes.string,
   borderWidth: PropTypes.number,
+  borderStyle: PropTypes.string,
 }
 
 LegendSymbol.defaultProps = {
   borderColor: null,
   borderWidth: null,
+  borderStyle: 'solid',
 }
 
 export default LegendSymbol

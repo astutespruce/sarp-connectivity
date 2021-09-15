@@ -21,6 +21,19 @@ export const getLegendEntries = ({ name, barrierType }) => {
       label: `Upstream network from ${name}`,
       borderWidth: 2,
     },
+    {
+      label: 'intermittent / ephemeral stream reach',
+      color: '#1891ac',
+      type: 'line',
+      borderStyle: 'dashed',
+      borderWidth: 2,
+    },
+    {
+      color: 'red',
+      label: 'altered stream reach (canal / ditch)',
+      type: 'line',
+      borderWidth: 2,
+    },
   ]
   const { primary, background, damsSecondary, waterfalls } = pointLegends
   entries.push({

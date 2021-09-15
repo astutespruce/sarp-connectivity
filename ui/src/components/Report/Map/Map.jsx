@@ -4,7 +4,7 @@ import { Image, View, Text } from '@react-pdf/renderer'
 
 import MapboxLogo from 'images/mapbox-logo.png'
 
-import { Flex } from './elements'
+import { Flex } from '../elements'
 
 // NOTE: scale width is adjusted from pixels to points
 // pt = 0.75*px

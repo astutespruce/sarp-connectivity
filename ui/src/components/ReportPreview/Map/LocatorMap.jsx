@@ -5,9 +5,9 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Box } from 'theme-ui'
 
-import { config } from './config'
+import { config } from 'components/Map'
 
-import { siteMetadata } from '../../../gatsby-config'
+import { siteMetadata } from '../../../../gatsby-config'
 
 const { mapboxToken } = siteMetadata
 if (!mapboxToken) {

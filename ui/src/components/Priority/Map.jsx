@@ -11,6 +11,7 @@ import {
   Legend,
   SearchFeaturePropType,
   toGeoJSONPoints,
+  networkLayers,
 } from 'components/Map'
 import { capitalize } from 'util/format'
 import { isEmptyString } from 'util/string'
@@ -21,7 +22,6 @@ import {
   maskOutline,
   unitLayers,
   unitHighlightLayers,
-  networkLayers,
   parentOutline,
   pointHighlight,
   pointHover,
@@ -569,13 +569,13 @@ const PriorityMap = ({
     // highlight upstream network if set otherwise clear it
     map.setFilter('network-highlight', [
       'all',
-      ['==', ['get', 'mapcode'], 0],
-      ['==', ['get', networkType], networkID],
+      ['==', 'mapcode', 0],
+      ['==',  networkType, networkID],
     ])
     map.setFilter('network-intermittent-highlight', [
       'all',
       ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
-      ['==', ['get', networkType], networkID],
+      ['==', networkType, networkID],
     ])
 
     map.getSource(id).setData(data)
@@ -721,22 +721,22 @@ const PriorityMap = ({
     let lines = null
 
     if (zoom > 6) {
-    lines=[
-      {
-        id: 'intermittent',
-        label: 'intermittent / ephemeral stream reach',
-        color: '#1891ac',
-        lineStyle: 'dashed',
-        lineWidth: '2px',
-      },
-      {
-        id: 'altered',
-        label: 'altered stream reach (canal / ditch)',
-        color: 'red',
-        lineWidth: '2px',
-      },
-    ]
-  }
+      lines = [
+        {
+          id: 'intermittent',
+          label: 'intermittent / ephemeral stream reach',
+          color: '#1891ac',
+          lineStyle: 'dashed',
+          lineWidth: '2px',
+        },
+        {
+          id: 'altered',
+          label: 'altered stream reach (canal / ditch)',
+          color: 'red',
+          lineWidth: '2px',
+        },
+      ]
+    }
 
     let footnote = null
 

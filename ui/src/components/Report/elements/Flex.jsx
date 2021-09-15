@@ -18,7 +18,10 @@ const Flex = ({ children, style, ...props }) => (
 )
 
 Flex.propTypes = {
-  children: PropTypes.arrayOf(PropTypes.node).isRequired,
+  children: PropTypes.oneOfType([
+    PropTypes.node,
+    PropTypes.arrayOf(PropTypes.node),
+  ]).isRequired,
   style: PropTypes.object,
 }
 

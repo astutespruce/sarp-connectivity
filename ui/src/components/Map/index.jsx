@@ -1,29 +1,34 @@
+import BasemapSelector from './BasemapSelector'
 import Map from './Map'
-import ExportMap from './ExportMap'
-import LocatorMap from './LocatorMap'
 import TopBar from './TopBar'
 import DropDownLayerChooser from './DropDownLayerChooser'
 import Legend from './Legend'
 import { SearchFeaturePropType } from './proptypes'
-import { basemapAttribution } from './config'
+import { basemapAttribution, basemapLayers, config, sources } from './config'
 import {
+  getCenterAndZoom,
   interpolateExpr,
   toGeoJSONPoints,
   mapToBlob,
   mapToDataURL,
 } from './util'
+import { networkLayers } from './layers'
 
 export {
+  BasemapSelector,
   Map,
-  ExportMap,
-  LocatorMap,
   TopBar,
   DropDownLayerChooser,
   Legend,
   SearchFeaturePropType,
+  getCenterAndZoom,
   interpolateExpr,
   toGeoJSONPoints,
   mapToBlob,
   mapToDataURL,
   basemapAttribution,
+  basemapLayers,
+  networkLayers,
+  config,
+  sources,
 }

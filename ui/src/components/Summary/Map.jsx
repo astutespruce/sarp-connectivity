@@ -15,13 +15,13 @@ import {
   Legend,
   interpolateExpr,
   SearchFeaturePropType,
+  networkLayers,
 } from 'components/Map'
 import { capitalize } from 'util/format'
 import { isEmptyString } from 'util/string'
 import { COLORS } from './config'
 import {
   layers,
-  networkLayers,
   waterfallsLayer,
   damsSecondaryLayer,
   pointLayer,

@@ -2,7 +2,13 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Circle, Line, Svg, View } from '@react-pdf/renderer'
 
-const LegendSymbol = ({ type, color, borderColor, borderWidth }) => {
+const LegendSymbol = ({
+  type,
+  color,
+  borderColor,
+  borderWidth,
+  borderStyle,
+}) => {
   if (type === 'line') {
     return (
       <View style={{ flex: '0 0 16' }}>
@@ -14,6 +20,7 @@ const LegendSymbol = ({ type, color, borderColor, borderWidth }) => {
             y2={6}
             fill={color}
             strokeWidth={borderWidth}
+            strokeDasharray={borderStyle === 'dashed' ? '4, 1' : null}
             stroke={color}
           />
         </Svg>
@@ -41,11 +48,13 @@ LegendSymbol.propTypes = {
   color: PropTypes.string.isRequired,
   borderColor: PropTypes.string,
   borderWidth: PropTypes.number,
+  borderStyle: PropTypes.string,
 }
 
 LegendSymbol.defaultProps = {
   borderColor: null,
   borderWidth: null,
+  borderStyle: null,
 }
 
 export default LegendSymbol
