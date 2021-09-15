@@ -72,6 +72,11 @@ const Preview = ({ barrierType, data }) => {
   }, [])
 
   const handleExport = useCallback(async () => {
+    if (!(locatorMapRef.current && exportMapRef.current)) {
+      // not done loading yet
+      return
+    }
+
     setState((prevState) => ({
       ...prevState,
       isPending: true,

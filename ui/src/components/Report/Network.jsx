@@ -4,7 +4,10 @@ import { Text, View } from '@react-pdf/renderer'
 
 import { formatNumber, formatPercent } from 'util/format'
 
-import { Bold, Flex, Italic, Section } from './elements'
+import { Bold, Flex, Italic, Link, Section } from './elements'
+import { siteMetadata } from '../../../gatsby-config'
+
+const { version: dataVersion } = siteMetadata
 
 const columnCSS = {
   marginLeft: 14,
@@ -13,6 +16,7 @@ const columnCSS = {
 }
 
 const Network = ({
+  sarpid,
   barrierType,
   totalupstreammiles,
   perennialupstreammiles,
@@ -68,8 +72,15 @@ const Network = ({
         </Text>
         <Text style={{ color: '#7f8a93' }}>
           Not all {barrierType} could be correctly snapped to the aquatic
-          network for analysis. Please contact us to report an error or for
-          assistance interpreting these results.
+          network for analysis. Please{' '}
+          <Link
+            href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
+              barrierType === 'dams' ? 'dam' : 'road-related barrier'
+            }: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+          >
+            contact us
+          </Link>{' '}
+          to report an error or for assistance interpreting these results.
         </Text>
       </Section>
     )
@@ -267,6 +278,7 @@ const Network = ({
 }
 
 Network.propTypes = {
+  sarpid: PropTypes.string.isRequired,
   barrierType: PropTypes.string.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,

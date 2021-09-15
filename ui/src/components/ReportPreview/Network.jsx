@@ -5,6 +5,10 @@ import { Box, Grid, Heading, Paragraph, Text } from 'theme-ui'
 import { Table, Row } from 'components/Table'
 import { formatNumber, formatPercent } from 'util/format'
 
+import { siteMetadata } from '../../../gatsby-config'
+
+const { version: dataVersion } = siteMetadata
+
 const Network = ({
   barrierType,
   totalupstreammiles,
@@ -19,6 +23,7 @@ const Network = ({
   landcover,
   excluded,
   hasnetwork,
+  sarpid,
   ...props
 }) => {
   const barrierTypeLabel =
@@ -62,8 +67,15 @@ const Network = ({
 
         <Paragraph variant="help" sx={{ mt: '0.5rem' }}>
           Not all dams could be correctly snapped to the aquatic network for
-          analysis. Please contact us to report an error or for assistance
-          interpreting these results.
+          analysis. Please{' '}
+          <a
+            href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
+              barrierType === 'dams' ? 'dam' : 'road-related barrier'
+            }: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+          >
+            contact us
+          </a>{' '}
+          to report an error or for assistance interpreting these results.
         </Paragraph>
       </Box>
     )
@@ -216,6 +228,7 @@ Network.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
+  sarpid: PropTypes.string.isRequired,
 }
 
 Network.defaultProps = {

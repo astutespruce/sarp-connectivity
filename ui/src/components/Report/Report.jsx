@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Document, Page, StyleSheet, View } from '@react-pdf/renderer'
+import { Document, Page, StyleSheet } from '@react-pdf/renderer'
 
 import Contact from './Contact'
 import Credits from './Credits'
@@ -75,9 +75,9 @@ const Report = ({ barrierType, data, map, locatorMap, attribution, scale }) => {
 
         <Feasibility style={{ marginTop: 48 }} {...data} />
 
-        <Species style={{ marginTop: 24 }} {...data} />
+        <Species style={{ marginTop: 32 }} {...data} />
 
-        <IDInfo style={{ marginTop: 24 }} {...data} />
+        <IDInfo style={{ marginTop: 32 }} {...data} />
 
         <Contact
           style={{ marginTop: 24 }}

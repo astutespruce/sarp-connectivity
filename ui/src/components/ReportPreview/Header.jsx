@@ -5,19 +5,11 @@ import { Box, Flex, Text } from 'theme-ui'
 
 import { formatNumber } from 'util/format'
 
-const Header = ({
-  barrierType,
-  name,
-  county,
-  state,
-
-  lat,
-  lon,
-}) => (
+const Header = ({ barrierType, name, county, state, lat, lon }) => (
   <Flex sx={{ alignItems: 'flex-end', mb: ' 0.5rem', lineHeight: 1.2 }}>
     <Box sx={{ flex: '1 1 auto' }}>
       <Text sx={{ fontSize: '2rem', fontWeight: 'bold' }}>{name}</Text>
-      <Flex sx={{ justifyContent: 'space-between' }}>
+      <Flex sx={{ justifyContent: 'space-between', mt: '0.5rem' }}>
         <Text sx={{ flex: '1 1 auto' }}>
           {barrierType === 'dams' ? 'Dam' : 'Road-related barrier'} at{' '}
           {formatNumber(lat, 3)}

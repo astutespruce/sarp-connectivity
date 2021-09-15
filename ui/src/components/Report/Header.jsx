@@ -19,7 +19,7 @@ const Header = ({ barrierType, name, county, state, lat, lon }) => (
       >
         {name}
       </Text>
-      <Flex style={{ justifyContent: 'space-beteween' }}>
+      <Flex style={{ justifyContent: 'space-beteween', marginTop: 12 }}>
         <Text style={{ flex: '1 1 auto' }}>
           {barrierType === 'dams' ? 'Dam' : 'Road-related barrier'} at{' '}
           {formatNumber(lat, 3)}
