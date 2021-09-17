@@ -4,6 +4,12 @@ export const barrierTypeLabels = {
   waterfalls: 'waterfalls',
 }
 
+export const barrierTypeLabelSingular = {
+  dams: 'dam',
+  small_barriers: 'road-related barrier',
+  waterfalls: 'waterfall',
+}
+
 export const REGIONS = {
   gpiw: 'Great Plains & Intermountain West',
   se: 'Southeast',

@@ -11,7 +11,7 @@ import SmallBarrierDetails from './SmallBarrierDetails'
 import WaterfallDetails from './WaterfallDetails'
 import Scores from './Scores'
 import { BarrierPropType } from './proptypes'
-import { barrierTypeLabels } from '../../../config/constants'
+import { barrierTypeLabelSingular } from '../../../config/constants'
 
 import { siteMetadata } from '../../../gatsby-config'
 
@@ -29,9 +29,14 @@ const BarrierDetails = ({ barrier, onClose }) => {
     countyname,
     State,
     ncwc_tier,
+    crossingtype,
   } = barrier
 
-  const typeLabel = barrierTypeLabels[barrierType]
+  const isCrossing = isEmptyString(crossingtype)
+
+  const typeLabel = isCrossing
+    ? 'road / stream crossing'
+    : barrierTypeLabelSingular[barrierType]
 
   let details = null
   switch (barrierType) {
@@ -52,9 +57,12 @@ const BarrierDetails = ({ barrier, onClose }) => {
     }
   }
 
-  const defaultName = `Unknown ${typeLabel} name${
+  let defaultName = `Unknown ${typeLabel} name${
     sarpid ? ` (SARPID: ${sarpid})` : ''
   }`
+  if (isCrossing) {
+    defaultName = 'Unknown road / stream crossing name'
+  }
 
   let scoreContent = null
   if (ranked) {
@@ -105,10 +113,15 @@ const BarrierDetails = ({ barrier, onClose }) => {
             invasive aquatic species.
           </Paragraph>
         ) : (
-          <Paragraph variant="help" sx={{ mt: '1rem' }}>
-            This {typeLabel} is off-network and has no functional network
-            information or related ranking.
-          </Paragraph>
+          <>
+            {isCrossing ? (
+              <Paragraph variant="help" sx={{ mt: '1rem' }}>
+                This {typeLabel} has not yet been evaluated for impacts to
+                aquatic organisms and does not yet have functional network
+                information or related ranking.
+              </Paragraph>
+            ) : null}
+          </>
         )}
       </>
     )
@@ -151,7 +164,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
           </Button>
         </Flex>
 
-        {barrierType !== 'waterfalls' ? (
+        {barrierType !== 'waterfalls' && !isCrossing ? (
           <Box>
             <a
               href={`/report/${barrierType}/${sarpid}`}

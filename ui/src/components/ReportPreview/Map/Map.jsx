@@ -134,11 +134,18 @@ const Map = ({
         ...backgroundPointLayer,
       })
 
-      // Add barrier highlight layer.
+      // Add barrier highlight layer for both on and off-network barriers.
       mapObj.addLayer({
         ...pointHighlightLayer,
         source: barrierType,
         'source-layer': barrierType,
+        filter: ['==', ['get', 'id'], barrierID],
+      })
+      mapObj.addLayer({
+        ...pointHighlightLayer,
+        id: 'point-background-highlight',
+        source: barrierType,
+        'source-layer': 'background',
         filter: ['==', ['get', 'id'], barrierID],
       })
 

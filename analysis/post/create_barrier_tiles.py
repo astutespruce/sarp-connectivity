@@ -182,13 +182,14 @@ other_barriers = df.loc[~df.HasNetwork].drop(columns=["Ranked", "HasNetwork"])
 keep_fields = other_barriers.columns.intersection(
     SB_CORE_FIELDS + ["HUC8", "HUC12"] + ["CountyName", "State", "Excluded"]
 )
-other_barriers = other_barriers[keep_fields].copy()
+other_barriers = other_barriers[keep_fields].reset_index()
 
 ### Read in road crossings to join with small barriers
 print("Reading road / stream crossings")
 road_crossings = gp.read_feather(barriers_dir / "road_crossings.feather").rename(
     columns={"County": "CountyName"}
 )
+
 
 # bring in Species info
 spp_df = (
@@ -212,7 +213,6 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 # Standardize other fields before merge
 road_crossings["Source"] = "USGS"
 road_crossings["Excluded"] = 0
-road_crossings.SARPID = "cr" + road_crossings.SARPID.astype(str)
 
 road_crossing_fields = road_crossings.columns.intersection(
     SB_CORE_FIELDS + ["HUC8", "HUC12", "CountyName", "State", "Excluded"]
@@ -225,9 +225,6 @@ combined = (
     .rename(columns=to_lowercase)
     .reset_index(drop=True)
 )
-
-# create a new consolidated ID
-combined["id"] = combined.index.values.astype("uint32")
 
 # Fill in N/A values
 cols = [
