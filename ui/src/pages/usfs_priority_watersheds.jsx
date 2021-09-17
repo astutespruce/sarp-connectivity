@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { graphql, withPrefix } from 'gatsby'
 import { Container, Paragraph, Heading } from 'theme-ui'
 
-import Layout from 'components/Layout'
+import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 
 const LengthPage = ({ data: { headerImage } }) => (

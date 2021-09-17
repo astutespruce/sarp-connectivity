@@ -1,23 +1,20 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
-import { Box, Container, Heading, Paragraph } from 'theme-ui'
+import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
 
 import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
-import { Downloader } from 'components/Download'
-import { useStateSummary } from 'components/Data'
+import { StateDownloadTable } from 'components/Download'
+import { useSummaryData } from 'components/Data'
 
-import { formatNumber } from 'util/format'
 import { siteMetadata } from '../../gatsby-config'
 
 const { version: dataVersion, date: dataDate } = siteMetadata
 
 const DownloadPage = ({ data: { headerImage } }) => {
-  const baseConfig = { scenario: 'NCWC', layer: 'State' }
-
-  const states = useStateSummary()
+  const { total } = useSummaryData()
 
   return (
     <Layout title="Download Aquatic Barrier Data">
@@ -33,104 +30,60 @@ const DownloadPage = ({ data: { headerImage } }) => {
 
       <Container>
         <Heading as="h1">Download Aquatic Barrier Data</Heading>
-        <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
-          <b>
-            Data Version: {dataVersion} ({dataDate})
-          </b>
-          <br />
-          <br />
-          The following download options include the latest available data
-          within this tool. These data are subject to change at any point due to
-          improvements to the inventory of aquatic barriers or improvements to
-          the network connectivity analyses used by this tool. These data
-          include priorities evaluated at the regional and state levels.
-          <br />
-          <br />
-          To select a different area for download or perform a custom
-          prioritization, use the <Link to="/priority">Prioritize</Link> page.
-          <br />
-          <br />
-          Please review the <Link to="/terms">Terms of Use</Link> before
-          downloading data.
-          <br />
-          <br />
-          Please{' '}
-          <OutboundLink to="https://southeastaquatics.net/about/contact-us">
-            Contact Us
-          </OutboundLink>{' '}
-          if you discover any issues with these data, need assistance
-          interpreting or applying these data, or would like to contribute data.
-        </Paragraph>
-        <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 2 }}>
-          Please note: this inventory consists of datasets from local, state,
-          and federal partners. It is supplemented with input from partners with
-          on the ground knowledge of specific structures. The information on
-          barriers is not complete or comprehensive across the region, and
-          depends on the availability and completeness of existing data and
-          level of partner feedback. Some areas of the region are more complete
-          than others but none should be considered 100% complete.
-        </Paragraph>
 
-        <Box variant="boxes.section" sx={{ mt: '4rem' }}>
-          <Heading as="h2" variant="heading.section">
-            Download Dams by State
-          </Heading>
-          <ul>
-            {states.map(({ id, dams }) => (
-              <li key={`dams_${id}`}>
-                <Downloader
-                  label={`${id} (${formatNumber(dams, 0)} dams)`}
-                  asButton={false}
-                  barrierType="dams"
-                  config={{ ...baseConfig, summaryUnits: [{ id }] }}
-                />
-              </li>
-            ))}
-          </ul>
-          <br />
-          <Downloader
-            label="Download all states"
-            barrierType="dams"
-            config={{
-              ...baseConfig,
-              summaryUnits: states.map(({ id }) => ({
-                id,
-              })),
-            }}
-          />
-        </Box>
+        <Grid columns={[0, '2.5fr 1fr']} gap={4} sx={{ mt: '2rem' }}>
+          <Box>
+            <Paragraph>
+              To select a different area for download or perform a custom
+              prioritization, use the <Link to="/priority">Prioritize</Link>{' '}
+              page.
+              <br />
+              <br />
+              The following download options include the latest available data
+              within this tool. These data are subject to change at any point
+              due to improvements to the inventory of aquatic barriers or
+              improvements to the network connectivity analyses used by this
+              tool. These data include priorities evaluated at the regional
+              (Southeast only) and state levels.
+              <br />
+              <br />
+              The inventory consists of datasets from local, state, and federal
+              partners. It is supplemented with input from partners with on the
+              ground knowledge of specific structures. The information on
+              barriers is not complete or comprehensive and depends on the
+              availability and completeness of existing data and level of
+              partner feedback. Some areas are more complete than others but
+              none should be considered 100% complete.
+            </Paragraph>
+          </Box>
+          <Box sx={{ p: '1rem', bg: 'blue.1', borderRadius: '0.5rem' }}>
+            <Paragraph>
+              <b>
+                Data Version: {dataVersion} ({dataDate})
+              </b>
+            </Paragraph>
+            <Paragraph
+              sx={{
+                mt: '1rem',
+                pt: '1rem',
+                borderTop: '4px solid #FFF',
+              }}
+            >
+              <OutboundLink to="https://southeastaquatics.net/about/contact-us">
+                Contact Us
+              </OutboundLink>{' '}
+              if you discover any issues with these data, need assistance
+              interpreting or applying these data, or would like to contribute
+              data.
+              <br />
+              <br />
+              Please review the <Link to="/terms">Terms of Use</Link> before
+              downloading data.
+            </Paragraph>
+          </Box>
+        </Grid>
 
-        <Box variant="boxes.section">
-          <Heading as="h2" variant="heading.section">
-            Download Road-related Barriers by State
-          </Heading>
-          <ul>
-            {states.map(({ id, totalSmallBarriers }) => (
-              <li key={`barriers_${id}`}>
-                <Downloader
-                  label={`${id} (${formatNumber(
-                    totalSmallBarriers,
-                    0
-                  )} barriers)`}
-                  asButton={false}
-                  barrierType="small_barriers"
-                  config={{ ...baseConfig, summaryUnits: [{ id }] }}
-                />
-              </li>
-            ))}
-          </ul>
-          <br />
-          <Downloader
-            label="Download all states"
-            barrierType="small_barriers"
-            config={{
-              ...baseConfig,
-              summaryUnits: states.map(({ id }) => ({
-                id,
-              })),
-            }}
-          />
-        </Box>
+        <StateDownloadTable region="total" {...total} sx={{ mt: '4rem' }} />
       </Container>
     </Layout>
   )

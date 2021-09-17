@@ -34,8 +34,6 @@ const SummaryPage = ({ location }) => {
 
   const { region = 'total' } = getQueryParams(location)
 
-  console.log('location', location)
-
   const handleSearch = useCallback((nextSearchFeature) => {
     setSearchFeature(nextSearchFeature)
   }, [])

@@ -4,7 +4,7 @@ import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
 import { Box, Container, Heading, Paragraph } from 'theme-ui'
 
-import Layout from 'components/Layout'
+import { Layout } from 'components/Layout'
 import { OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
 

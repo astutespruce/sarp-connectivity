@@ -52,7 +52,7 @@ dams = (
 ### Read road-related barriers
 barriers = (
     pd.read_feather(
-        api_dir / "small_barriers_all.feather", columns=["id", "HasNetwork", "State"],
+        api_dir / "small_barriers.feather", columns=["id", "HasNetwork", "State"],
     )
     .set_index("id", drop=False)
     .rename(columns={"HasNetwork": "OnNetwork"})
@@ -118,7 +118,9 @@ for state in sorted(STATES.values()):
         {
             "id": state,
             "dams": int((dams.State == state).sum()),
+            "recon_dams": int((dams.loc[dams.State == state].Recon > 0).sum()),
             "total_small_barriers": int((barriers.State == state).sum()),
+            "small_barriers": int(region_barriers.Included.sum()),
         }
     )
 stats["State"] = state_stats

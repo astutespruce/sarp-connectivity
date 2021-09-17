@@ -26,10 +26,8 @@ Run `run_network_analysis.py` to create networks for dams and small barriers, fo
 This creates the following output files:
 
 - `networks/clean/<HUC2>/network_segments.feather`: lookup of lineID to networkID, for each of the 4 scenarios above; for flowlines located in this HUC2
-- `networks/clean/<HUC2>/network_stats__dams_all.feather`: network stats for dams on all networks; for networks that originate in this HUC2
-- `networks/clean/<HUC2>/network_stats__small_barriers_all.feather`
-- `networks/clean/<HUC2>/network_stats__dams_perennial.feather`
-- `networks/clean/<HUC2>/network_stats__small_barriers_perennial.feather`
+- `networks/clean/<HUC2>/network_stats__dams.feather`: network stats for dams on all networks; for networks that originate in this HUC2
+- `networks/clean/<HUC2>/network_stats__small_barriers.feather`
 
 IMPORTANT: there may be multiple upstream networks from a given barrier or origin point. If this is encountered, the multiple networks
 are merged together into a single network.

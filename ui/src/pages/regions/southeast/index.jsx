@@ -15,15 +15,11 @@ import {
 } from 'theme-ui'
 
 import { useSummaryData } from 'components/Data'
-
+import { StateDownloadTable } from 'components/Download'
 import { Link, OutboundLink } from 'components/Link'
 import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
-import {
-  RegionActionLinks,
-  RegionStats,
-  RegionStatesTable,
-} from 'components/Regions'
+import { RegionActionLinks, RegionStats } from 'components/Regions'
 
 import { formatNumber } from 'util/format'
 import SARPLogoImage from 'images/sarp_logo.png'
@@ -78,7 +74,7 @@ const SERegionPage = ({
             </Text>
           </Box>
           <Box>
-            <Heading as="h4" sx={{ mb: '0.5rem' }}>
+            <Heading as="h4" sx={{ mb: '1rem' }}>
               Includes {REGION_STATES.se.length - 1} states and Puerto Rico
               with:
             </Heading>
@@ -159,7 +155,7 @@ const SERegionPage = ({
             Statistics by state:
           </Heading>
           <Box sx={{ mt: '0.5rem' }}>
-            <RegionStatesTable region="se" {...se} />
+            <StateDownloadTable region="se" {...se} />
           </Box>
         </Box>
 

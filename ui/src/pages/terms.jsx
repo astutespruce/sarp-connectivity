@@ -4,7 +4,7 @@ import { graphql } from 'gatsby'
 import { Box, Container, Flex, Paragraph, Heading, Image } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
-import Layout from 'components/Layout'
+import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import SARPLogoImage from 'images/sarp_logo.png'
 

@@ -14,14 +14,10 @@ import {
 } from 'theme-ui'
 
 import { useSummaryData } from 'components/Data'
-
+import { StateDownloadTable } from 'components/Download'
 import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
-import {
-  RegionActionLinks,
-  RegionStats,
-  RegionStatesTable,
-} from 'components/Regions'
+import { RegionActionLinks, RegionStats } from 'components/Regions'
 
 import { formatNumber } from 'util/format'
 
@@ -69,7 +65,7 @@ const SWRegionPage = ({
             </Text>
           </Box>
           <Box>
-            <Heading as="h4" sx={{ mb: '0.5rem' }}>
+            <Heading as="h4" sx={{ mb: '1rem' }}>
               Includes {REGION_STATES.gpiw.length} states with:
             </Heading>
 
@@ -84,7 +80,7 @@ const SWRegionPage = ({
             Statistics by state:
           </Heading>
           <Box sx={{ mt: '0.5rem' }}>
-            <RegionStatesTable region="sw" {...sw} />
+            <StateDownloadTable region="sw" {...sw} />
           </Box>
         </Box>
 

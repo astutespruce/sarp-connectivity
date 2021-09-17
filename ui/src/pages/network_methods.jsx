@@ -4,7 +4,7 @@ import { graphql } from 'gatsby'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { Box, Container, Divider, Flex, Paragraph, Heading } from 'theme-ui'
 
-import Layout from 'components/Layout'
+import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
 

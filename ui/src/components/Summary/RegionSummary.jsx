@@ -2,7 +2,7 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Paragraph } from 'theme-ui'
+import { Box, Paragraph, Divider } from 'theme-ui'
 
 import UnitSearch from 'components/UnitSearch'
 import { useSummaryData } from 'components/Data'
@@ -14,6 +14,7 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
   const {
     [region]: {
       dams,
+      reconDams,
       onNetworkDams,
       totalSmallBarriers,
       smallBarriers,
@@ -24,33 +25,38 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
 
   const offNetworkDams = dams - onNetworkDams
   const offNetworkBarriers = smallBarriers - onNetworkSmallBarriers
-  const totalRoadBarriers = totalSmallBarriers + crossings
 
   const regionName = region === 'total' ? 'full analysis area' : REGIONS[region]
 
   if (barrierType === 'dams') {
     return (
       <Box sx={{ p: '1rem', overflowY: 'auto', height: '100%' }}>
-        <Paragraph>Across the {regionName}, there are:</Paragraph>
-        <Box as="ul" sx={{ mt: '1rem' }}>
+        <Paragraph sx={{ fontSize: [3, 4] }}>
+          Across the {regionName}, there are:
+        </Paragraph>
+        <Paragraph sx={{ mt: '0.5rem' }}>
+          <b>{formatNumber(dams, 0)}</b> inventoried dams, including:
+        </Paragraph>
+        <Box as="ul" sx={{ mt: '0.5rem', fontSize: 3 }}>
           <li>
-            <b>{formatNumber(dams, 0)}</b> inventoried dams
+            <b>{formatNumber(reconDams)}</b> that have been reconned for social
+            feasibility of removal
           </li>
           <li>
-            <b>{formatNumber(onNetworkDams, 0)}</b> dams that have been analyzed
-            for their impacts to aquatic connectivity in this tool
+            <b>{formatNumber(onNetworkDams, 0)}</b> have been analyzed for their
+            impacts to aquatic connectivity in this tool
           </li>
         </Box>
 
+        <Divider />
+
         <Paragraph sx={{ mb: '2rem' }}>
-          <br />
-          <br />
           Click on a summary unit the map for more information about that area.
         </Paragraph>
 
         <UnitSearch system={system} onSelect={onSearch} />
 
-        <Paragraph variant="help" sx={{ mt: '2rem' }}>
+        <Paragraph variant="help" sx={{ mt: '3rem' }}>
           Note: These statistics are based on <i>inventoried</i> dams. Because
           the inventory is incomplete in many areas, areas with a high number of
           dams may simply represent areas that have a more complete inventory.
@@ -67,35 +73,37 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
   // otherwise barriers
   return (
     <Box sx={{ p: '1rem', overflowY: 'auto', height: '100%' }}>
-      <Paragraph>Across the {regionName}, there are:</Paragraph>
-      <Box as="ul" sx={{ mt: '1rem' }}>
-        <li>
-          <b>{formatNumber(totalRoadBarriers, 0)}</b> or more potential
-          road-related aquatic barriers
-        </li>
+      <Paragraph sx={{ fontSize: [3, 4] }}>
+        Across the {regionName}, there are:
+      </Paragraph>
+      <Paragraph sx={{ mt: '0.5rem' }}>
+        <b>{formatNumber(totalSmallBarriers + crossings, 0)}</b> or more
+        potential road-related aquatic barriers, including:
+      </Paragraph>
+      <Box as="ul" sx={{ mt: '1rem', fontSize: 3 }}>
         <li>
           <b>{formatNumber(totalSmallBarriers, 0)}</b> that have been assessed
           for impacts to aquatic organisms
         </li>
         <li>
-          <b>{formatNumber(smallBarriers, 0)}</b> road-related barriers assessed
-          so far that are likely to impact aquatic organisms
+          <b>{formatNumber(smallBarriers, 0)}</b> that have been assessed so far
+          that are likely to impact aquatic organisms
         </li>
         <li>
           <b>{formatNumber(onNetworkSmallBarriers, 0)}</b> that have been
-          evaluated for their impacts to aquatic connectivity in this tool
+          analyzed for their impacts to aquatic connectivity in this tool
         </li>
       </Box>
 
+      <Divider />
+
       <Paragraph sx={{ mb: '2rem' }}>
-        <br />
-        <br />
         Click on a summary unit the map for more information about that area.
       </Paragraph>
 
       <UnitSearch system={system} onSelect={onSearch} />
 
-      <Paragraph variant="help">
+      <Paragraph variant="help" sx={{ mt: '3rem' }}>
         Note: These statistics are based on <i>inventoried</i> road-related
         barriers. Because the inventory is incomplete in many areas, areas with
         a high number of road-related barriers may simply represent areas that

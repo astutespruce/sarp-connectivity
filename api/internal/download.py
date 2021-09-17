@@ -75,7 +75,7 @@ def download_dams(
 
         df[tier_cols] = df[tier_cols].fillna(-1).astype("int8")
 
-    log.info(f"selected {len(df)} dams for download")
+    log.info(f"selected {len(df):,} dams for download")
 
     cols = [c for c in DAM_EXPORT_FIELDS if c in set(df.columns)]
     df = df[cols]
@@ -161,7 +161,7 @@ def download_barriers(
 
         df[tier_cols] = df[tier_cols].fillna(-1).astype("int8")
 
-    log.info(f"selected {len(df)} barriers for download")
+    log.info(f"selected {len(df):,} barriers for download")
 
     cols = [c for c in SB_EXPORT_FIELDS if c in set(df.columns)]
     df = df[cols]

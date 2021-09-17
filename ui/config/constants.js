@@ -122,6 +122,7 @@ export const REGION_STATES = {
     'UT',
   ],
   sw: ['AZ', 'NM', 'OK', 'TX'],
+  total: Object.keys(STATES).sort(),
 }
 
 export const RECON = {

@@ -9,6 +9,7 @@ export const useStateSummary = () =>
             State {
               id
               dams
+              reconDams: recon_dams
               totalSmallBarriers: total_small_barriers
             }
           }

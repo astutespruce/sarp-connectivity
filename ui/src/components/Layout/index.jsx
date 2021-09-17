@@ -5,5 +5,3 @@ import PageError from './PageError'
 import PageLoading from './PageLoading'
 
 export { Layout, HighlightBox, ClientOnly, PageError, PageLoading }
-
-export default Layout
