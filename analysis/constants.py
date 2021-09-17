@@ -177,6 +177,7 @@ DAM_COLS = [
 SMALL_BARRIER_COLS = [
     "SARPUniqueID",
     "AnalysisId",
+    "Recon",
     "ManualReview",
     "LocalID",
     "Crossing_Code",

@@ -81,14 +81,14 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "gatsby build",
+    "build": "NODE_OPTIONS=--max_old_space_size=1024 GATSBY_CPU_COUNT=1 gatsby build",
     "clean": "gatsby clean",
     "develop": "gatsby develop",
     "format": "prettier --write src/**/*.{js,jsx}",
     "lint:css": "stylelint '**/*.jsx'",
     "start": "npm run develop",
     "serve": "gatsby serve",
-    "predeploy": "npm run clean && npm run build",
+    "predeploy": "npm run build",
     "deploy": "rm -rf /var/www/* && cp -r public/* /var/www"
   },
   "repository": {
