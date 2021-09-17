@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useState,
   useMemo,
+  useLayoutEffect,
 } from 'react'
 import PropTypes from 'prop-types'
 import mapboxgl from 'mapbox-gl'
@@ -560,6 +561,20 @@ const SummaryMap = ({
       },
     }
   }, [system, barrierType, zoom])
+
+  useLayoutEffect(() => {
+    const { current: map } = mapRef
+
+    if (!map) return
+
+    regionLayers.forEach(({ id }) => {
+      map.setFilter(id, ['==', 'id', region])
+    })
+
+    map.fitBounds(regionBounds[region].bbox, { padding: 100 })
+  }, 
+  // regionBounds deliberately omitted
+  [region])
 
   return (
     <>

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react'
+import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
 
 import { Layout, ClientOnly } from 'components/Layout'
@@ -23,7 +24,7 @@ const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
   label,
 }))
 
-const SummaryPage = () => {
+const SummaryPage = ({ location }) => {
   const [system, setSystem] = useState('HUC')
   const [barrierType, setBarrierType] = useState('dams')
   const barrierTypeRef = useRef('dams') // ref that parallels above state for use in callbacks
@@ -31,7 +32,9 @@ const SummaryPage = () => {
   const [selectedUnit, setSelectedUnit] = useState(null)
   const [selectedBarrier, setSelectedBarrier] = useState(null)
 
-  const { region = 'total' } = getQueryParams()
+  const { region = 'total' } = getQueryParams(location)
+
+  console.log('location', location)
 
   const handleSearch = useCallback((nextSearchFeature) => {
     setSearchFeature(nextSearchFeature)
@@ -157,6 +160,12 @@ const SummaryPage = () => {
   )
 }
 
-SummaryPage.propTypes = {}
+SummaryPage.propTypes = {
+  location: PropTypes.object,
+}
+
+SummaryPage.defaultProps = {
+  location: null,
+}
 
 export default SummaryPage

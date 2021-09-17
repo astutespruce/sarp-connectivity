@@ -33,14 +33,14 @@ export const getFromStorage = (key) =>
 
 /**
  * Extract query params into a key / value object
+ * @param {Object} location - location object from Gatsby
  * @returns Object
  */
-export const getQueryParams = () => {
-  if (!(hasWindow && window.URLSearchParams)) {
-    return {}
-  }
+export const getQueryParams = (location) => {
+  if (!location) return []
 
-  return [
-    ...new window.URLSearchParams(window.location.search).entries(),
-  ].reduce((prev, [key, value]) => Object.assign(prev, { [key]: value }), {})
+  return [...new window.URLSearchParams(location.search).entries()].reduce(
+    (prev, [key, value]) => Object.assign(prev, { [key]: value }),
+    {}
+  )
 }
