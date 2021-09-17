@@ -486,6 +486,27 @@ CROSSING_TYPE_DOMAIN = {
     6: "Buried stream",
 }
 
+DIVERSION_DOMAIN = {
+    0: "Unknown",
+    1: "Yes",
+    2: 'No'
+}
+
+FISHSCREEN_DOMAIN = {
+    0: "Unknown",
+    1: "Yes",
+    2: 'No'
+}
+
+SCREENTYPE_DOMAIN = {
+0: 'Unknown',
+1: 'Horizontal',
+2: 'Vertical',
+3: 'Cone',
+4: 'Pipe',
+5: 'Drum',
+6: 'Other'
+}
 
 ROAD_TYPE_DOMAIN = {0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad"}
 
@@ -609,6 +630,9 @@ DOMAINS = {
     "Purpose": PURPOSE_DOMAIN,
     "Feasibility": FEASIBILITY_DOMAIN,
     "PassageFacility": PASSAGEFACILITY_DOMAIN,
+    "Diversion": DIVERSION_DOMAIN,
+    "FishScreen": FISHSCREEN_DOMAIN,
+    "ScreenType": SCREENTYPE_DOMAIN,
     # barrier fields
     "SeverityClass": BARRIER_SEVERITY_DOMAIN,
     "ConditionClass": BARRIER_CONDITION_DOMAIN,

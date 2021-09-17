@@ -10,12 +10,9 @@ Outputs:
 `data/barriers/intermediate/road_crossings.feather`: road / stream crossing data for merging in with small barriers that do not have networks
 """
 
-import sys
-import os
 from pathlib import Path
 from time import time
 import warnings
-
 
 from pyogrio import read_dataframe, write_dataframe
 import pygeos as pg
@@ -42,14 +39,26 @@ src_dir = barriers_dir / "source"
 out_dir = barriers_dir / "master"
 qa_dir = barriers_dir / "qa"
 
-gdb = src_dir / "RoadCrossings_USGS_10292018.gdb"
+gdb = src_dir / "NHDPlusV2_TIGERroads2014.gdb"
 
 print("Reading road crossings")
 
+
+huc4 = gp.read_feather(boundaries_dir / "huc4.feather", columns=["geometry"])
+
 df = read_dataframe(
-    gdb, columns=["FULLNAME", "GNIS_NAME", "RDXID"], force_2d=True
+    gdb,
+    layer="Rdx_Tiger2014_NHDPlusV2_NoAtt_wAdd",
+    columns=["FULLNAME", "GNIS_NAME", "RDXID"],
+    force_2d=True,
 ).to_crs(CRS)
 print("Read {:,} road crossings".format(len(df)))
+
+tree = pg.STRtree(df.geometry.values.data)
+ix = tree.query_bulk(huc4.geometry.values.data, predicate="intersects")[1]
+
+df = df.take(ix)
+print("Selected {:,} road crossings in region".format(len(df)))
 
 df["id"] = df.index.astype("uint32")
 df = df.set_index("id", drop=False)

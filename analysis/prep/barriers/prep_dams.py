@@ -167,11 +167,11 @@ for column in (
     "Source",
     "Name",
     "OtherName",
-    "ScreenType",
-    "FishScreen",
-    "Diversion",
 ):
     df[column] = df[column].fillna("").str.strip()
+
+df["BarrierSeverity"] = df.BarrierSeverity.fillna("Unknown").str.strip()
+
 
 for column in (
     "Construction",
@@ -181,6 +181,9 @@ for column in (
     "ManualReview",
     "PassageFacility",
     "BarrierStatus",
+    "Diversion",
+    "FishScreen",
+    "ScreenType",
 ):
     df[column] = df[column].fillna(0).astype("uint8")
 
@@ -523,10 +526,24 @@ flowlines = read_feathers(
         for huc2 in df.HUC2.unique()
         if huc2
     ],
-    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "FCode", "loop"],
+    columns=[
+        "lineID",
+        "NHDPlusID",
+        "GNIS_Name",
+        "sizeclass",
+        "StreamOrde",
+        "FCode",
+        "loop",
+    ],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
+
+# Add name from snapped flowline if not already present
+df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()
+ix = (df.River == "") & (df.GNIS_Name != "")
+df.loc[ix, "River"] = df.loc[ix].GNIS_Name
+df = df.drop(columns=["GNIS_Name"])
 
 # calculate stream type
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE)

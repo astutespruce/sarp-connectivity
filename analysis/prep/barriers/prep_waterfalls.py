@@ -82,6 +82,8 @@ df.GNIS_Name = df.GNIS_Name.fillna("").str.strip()
 ix = (df.Stream == "") & (df.GNIS_Name != "")
 df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
 
+df = df.drop(columns=["GNIS_Name"])
+
 
 ### Add persistant sourceID based on original IDs
 df["sourceID"] = df.LocalID
@@ -172,10 +174,26 @@ print("Found {} waterfalls within {}m of dams".format(len(ix), DUPLICATE_TOLERAN
 ### Join to line atts
 flowlines = read_feathers(
     [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
-    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "FCode", "loop"],
+    columns=[
+        "lineID",
+        "NHDPlusID",
+        "GNIS_Name",
+        "sizeclass",
+        "StreamOrde",
+        "FCode",
+        "loop",
+    ],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
+
+
+# Add name from snapped flowline if not already present
+df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()
+ix = (df.Stream == "") & (df.GNIS_Name != "")
+df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
+df = df.drop(columns=["GNIS_Name"])
+
 
 # calculate stream type
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE)
