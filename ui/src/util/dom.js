@@ -37,7 +37,7 @@ export const getFromStorage = (key) =>
  * @returns Object
  */
 export const getQueryParams = (location) => {
-  if (!location) return []
+  if (!(location && hasWindow)) return []
 
   return [...new window.URLSearchParams(location.search).entries()].reduce(
     (prev, [key, value]) => Object.assign(prev, { [key]: value }),
