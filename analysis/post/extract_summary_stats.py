@@ -73,15 +73,23 @@ crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "
 
 
 # Calculate summary stats for entire analysis area
+# NOTE: this is limited to the states fully within the analysis region and excludes
+# HUC4s that cross their borders
+
+analysis_states = STATES.values()
+analysis_dams = dams.loc[dams.State.isin(analysis_states)]
+analysis_barriers = barriers.loc[barriers.State.isin(analysis_states)]
+analysis_crossings = crossings.loc[crossings.State.isin(analysis_states)]
+
 stats = {
     "total": {
-        "dams": len(dams),
-        "on_network_dams": int(dams.OnNetwork.sum()),
-        "recon_dams": int((dams.Recon > 0).sum()),
-        "total_small_barriers": len(barriers),
-        "small_barriers": int(barriers.Included.sum()),
-        "on_network_small_barriers": int(barriers.OnNetwork.sum()),
-        "crossings": len(crossings),
+        "dams": len(analysis_dams),
+        "on_network_dams": int(analysis_dams.OnNetwork.sum()),
+        "recon_dams": int((analysis_dams.Recon > 0).sum()),
+        "total_small_barriers": len(analysis_barriers),
+        "small_barriers": int(analysis_barriers.Included.sum()),
+        "on_network_small_barriers": int(analysis_barriers.OnNetwork.sum()),
+        "crossings": len(analysis_crossings),
     }
 }
 

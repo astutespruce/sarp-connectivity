@@ -23,7 +23,7 @@ const StateDownloadTable = ({
   ...props
 }) => {
   const stateData = groupBy(useStateSummary(), 'id')
-  const regionStates = REGION_STATES[region].map((id) => ({ id }))
+  const regionStates = REGION_STATES[region].map((id) => ({ id: STATES[id] }))
 
   const offNetworkDams = dams - onNetworkDams
   const offNetworkBarriers = smallBarriers - onNetworkSmallBarriers
@@ -100,12 +100,10 @@ const StateDownloadTable = ({
           <tbody>
             {regionStates.map(({ id }) => (
               <tr key={id}>
-                <td>{STATES[id]}</td>
-                <td>{formatNumber(stateData[STATES[id]].dams)}</td>
-                <td>{formatNumber(stateData[STATES[id]].reconDams)}</td>
-                <td>
-                  {formatNumber(stateData[STATES[id]].totalSmallBarriers)}
-                </td>
+                <td>{id}</td>
+                <td>{formatNumber(stateData[id].dams)}</td>
+                <td>{formatNumber(stateData[id].reconDams)}</td>
+                <td>{formatNumber(stateData[id].totalSmallBarriers)}</td>
                 <td>
                   <Downloader
                     label="dams"
@@ -113,7 +111,7 @@ const StateDownloadTable = ({
                     barrierType="dams"
                     config={{
                       ...downloadConfig,
-                      summaryUnits: [{ id: STATES[id] }],
+                      summaryUnits: [{ id }],
                     }}
                   />
                 </td>
@@ -124,7 +122,7 @@ const StateDownloadTable = ({
                     barrierType="small_barriers"
                     config={{
                       ...downloadConfig,
-                      summaryUnits: [{ id: STATES[id] }],
+                      summaryUnits: [{ id }],
                     }}
                   />
                 </td>
@@ -132,15 +130,7 @@ const StateDownloadTable = ({
             ))}
 
             <tr>
-              <td>
-                {region === 'total' ? (
-                  <>
-                    Full analysis area<sup>1</sup>
-                  </>
-                ) : (
-                  'Total'
-                )}
-              </td>
+              <td>Total</td>
               <td>{formatNumber(dams)}</td>
               <td>{formatNumber(reconDams)}</td>
               <td>{formatNumber(totalSmallBarriers)}</td>
@@ -151,10 +141,7 @@ const StateDownloadTable = ({
                   barrierType="dams"
                   config={{
                     ...downloadConfig,
-                    summaryUnits:
-                      region === 'total'
-                        ? [{ id: '*' }]
-                        : regionStates.map(({ id }) => STATES[id]),
+                    summaryUnits: regionStates,
                   }}
                 />
               </td>
@@ -165,10 +152,7 @@ const StateDownloadTable = ({
                   barrierType="small_barriers"
                   config={{
                     ...downloadConfig,
-                    summaryUnits:
-                      region === 'total'
-                        ? [{ id: '*' }]
-                        : regionStates.map(({ id }) => STATES[id]),
+                    summaryUnits: regionStates,
                   }}
                 />
               </td>
@@ -179,14 +163,6 @@ const StateDownloadTable = ({
 
       <Grid columns={[0, 2]} gap={4} sx={{ mt: '2rem' }}>
         <Paragraph variant="help">
-          {region === 'total' ? (
-            <>
-              <sup>1</sup>Includes dams and barriers within HUC4 watersheds that
-              cross state boundaries outside of the states above.
-              <br />
-              <br />
-            </>
-          ) : null}
           <b>{formatNumber(offNetworkDams, 0)} inventoried dams</b> and{' '}
           <b>
             {formatNumber(offNetworkBarriers, 0)} inventoried road-related
