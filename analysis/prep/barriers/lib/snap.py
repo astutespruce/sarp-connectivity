@@ -46,18 +46,20 @@ def snap_estimated_dams_to_drains(df, to_snap):
 
         in_huc2 = estimated.loc[estimated.HUC2 == huc2].copy()
 
-        # Take the first intersection with waterbodies to prevent creating
-        # duplicates
+        # Some estimated dams are just barely outside their waterbodies
+        # so we take the nearest waterbody for each, within a tolerance of 1m
+        tree = pg.STRtree(wb.geometry.values.data)
+        left, right = tree.nearest_all(in_huc2.geometry.values.data, max_distance=1)
+        # take the first in case of duplicates
         in_wb = (
-            sjoin(in_huc2, wb, how="inner", predicate="within")
-            .index_right.rename("wbID")
-            .groupby(level=0)
+            pd.DataFrame(
+                {
+                    "id": in_huc2.index.values.take(left),
+                    "wbID": wb.index.values.take(right),
+                }
+            )
+            .groupby("id")
             .first()
-        )
-
-        # for those in waterbodies, snap to the nearest non-loop drain point
-        in_wb = (
-            pd.DataFrame(in_wb)
             .join(in_huc2.geometry)
             .join(
                 drains[["wbID", "lineID", "geometry"]]
@@ -67,6 +69,7 @@ def snap_estimated_dams_to_drains(df, to_snap):
                 on="wbID",
             )
         )
+
         in_wb["snap_dist"] = pg.distance(
             in_wb.geometry.values.data, in_wb.drain.values.data
         )
