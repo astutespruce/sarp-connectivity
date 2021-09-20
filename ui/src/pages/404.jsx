@@ -3,6 +3,7 @@ import { graphql, useStaticQuery } from 'gatsby'
 
 import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
+import { hasWindow } from 'util/dom'
 
 const IndexPage = () => {
   const {
@@ -26,6 +27,12 @@ const IndexPage = () => {
       }
     `
   )
+
+  if (!hasWindow) {
+    // prevents initial load of this page for client-only pages that are still loading
+    return null
+  }
+
   return (
     <Layout title="NOT FOUND">
       <HeaderImage

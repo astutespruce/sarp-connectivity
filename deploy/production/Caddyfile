@@ -45,6 +45,12 @@ connectivity.sarpdata.com {
     encode zstd gzip
     root * /var/www
     file_server
+
+    # Capture client only routes and route through 404 to force loading on client side
+    route /report/* {
+      try_files {path} 404.html
+    }
+
   }
 
   # Redirect all errors to 404.html
