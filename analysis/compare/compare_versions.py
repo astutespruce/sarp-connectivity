@@ -2,6 +2,9 @@ from pathlib import Path
 
 import pandas as pd
 
+from api.constants import DOMAINS
+
+
 pd.options.display.max_rows = 200
 
 
@@ -43,8 +46,8 @@ for barrier_type in ["dams", "small_barriers"]:
 
     filename = out_dir / f"{barrier_type}_{current_version}_vs_{prev_version}"
 
-    with pd.ExcelWriter(f"{filename}.xlsx") as xlsx, open(f"{filename}.md", "w") as out:
-        out.write(f"# {current_version} vs {prev_version}\n\n")
+    with pd.ExcelWriter(f"{filename}.xlsx") as xlsx, open(f"{filename}.md", "w") as md:
+        md.write(f"# {current_version} vs {prev_version}\n\n")
 
         stats = pd.DataFrame(
             {
@@ -88,8 +91,8 @@ for barrier_type in ["dams", "small_barriers"]:
         stats["diff"] = stats.latest - stats.prev
         stats.to_excel(xlsx, sheet_name="Overall", index=False)
 
-        out.write("## Overall stats\n")
-        out.write(stats.to_markdown(index=False, floatfmt=",.0f"))
+        md.write("## Overall stats\n")
+        md.write(stats.to_markdown(index=False, floatfmt=",.0f"))
 
         for col in cols:
             if col in status_cols:
@@ -101,82 +104,121 @@ for barrier_type in ["dams", "small_barriers"]:
                 .fillna(0)
                 .astype("int")
             )
+
+            if col in DOMAINS:
+                stats.index = (
+                    stats.index.astype(str)
+                    + ": "
+                    + stats.index.map(DOMAINS[col]).fillna("")
+                )
+
             stats.latest = stats.latest.astype("float32")
             stats.prev = stats.prev.astype("float32")
             stats["diff"] = stats.latest - stats.prev
 
-            out.write(f"\n\n## {col} Total\n")
-            out.write(stats.to_markdown(floatfmt=",.0f"))
+            md.write(f"\n\n## {col} Total\n")
+            md.write(stats.to_markdown(floatfmt=",.0f"))
             stats.to_excel(xlsx, sheet_name=f"{col}_total")
 
         # now look at pairs of dams based on SARPID
         joined = df.set_index("SARPID")[cols].join(
             prev.set_index("SARPID")[cols], rsuffix="_prev"
         )
+
         for col in cols:
             if col in summary_unit_cols:
                 continue
 
             prev_col = f"{col}_prev"
             stats = joined.groupby([prev_col, col]).size().reset_index()
-            stats = stats.loc[stats[col] != stats[prev_col]].set_index([prev_col, col])
+            stats = (
+                stats.loc[stats[col] != stats[prev_col]]
+                .set_index([prev_col, col])
+                .reset_index()
+            )
+
+            if col in DOMAINS:
+                stats[col] = (
+                    stats[col].astype(str)
+                    + ": "
+                    + stats[col].map(DOMAINS[col]).fillna("")
+                )
+                prev_col = f"{col}_prev"
+                stats[prev_col] = (
+                    stats[prev_col].astype(str)
+                    + ": "
+                    + stats[prev_col].map(DOMAINS[col]).fillna("")
+                )
 
             if len(stats):
-                out.write(f"\n\n## {col} - change\n")
-                out.write(stats.to_markdown(floatfmt=",.0f"))
-                stats.to_excel(xlsx, sheet_name=f"{col}_change")
+                stats.columns = ["prev", "latest", "diff"]
+                md.write(f"\n\n## {col} - change\n")
+                md.write(stats.to_markdown(floatfmt=",.0f", index=False))
+                stats.to_excel(xlsx, sheet_name=f"{col}_change", index=False)
 
         if barrier_type == "dams":
             # Recon filtered by ManualReview
             stats = (
                 pd.DataFrame(
-                    df.loc[df.ManualReview.isin(had_manual_review)]
-                    .groupby("Recon")
-                    .size()
-                    .rename("latest")
-                )
-                .join(
                     prev.loc[prev.ManualReview.isin(had_manual_review)]
                     .groupby("Recon")
                     .size()
                     .rename("prev")
                 )
+                .join(
+                    df.loc[df.ManualReview.isin(had_manual_review)]
+                    .groupby("Recon")
+                    .size()
+                    .rename("latest")
+                )
                 .fillna(0)
             )
+            stats.index = (
+                stats.index.astype(str)
+                + ": "
+                + stats.index.map(DOMAINS["Recon"]).fillna("")
+            )
+
             stats.latest = stats.latest.astype("float32")
             stats.prev = stats.prev.astype("float32")
             stats["diff"] = stats.latest - stats.prev
 
-            out.write(f"\n\n## Recon for only those that were manually reviewed\n")
-            out.write(f"ManualReview one of {had_manual_review}\n\n")
-            out.write(stats.to_markdown(floatfmt=",.0f"))
+            md.write(f"\n\n## Recon for only those that were manually reviewed\n")
+            md.write(f"ManualReview one of {had_manual_review}\n\n")
+            md.write(stats.to_markdown(floatfmt=",.0f"))
             stats.to_excel(xlsx, sheet_name="Recon (only for manually reviewed)")
 
     # compare network results
     read_cols = ["SARPID", "HasNetwork", "TotalUpstreamMiles", "TotalDownstreamMiles"]
-    df = pd.read_feather(f"data/api/{barrier_type}_all.feather", columns=read_cols)
+    df = pd.read_feather(f"data/api/{barrier_type}.feather", columns=read_cols)
     prev = pd.read_feather(
         data_dir / "archive" / prev_version / f"api/{barrier_type}.feather",
         columns=read_cols,
     )
 
     df = df.join(prev.set_index("SARPID"), on="SARPID", how="left", rsuffix="_prev")
+
     for field in ["TotalUpstreamMiles", "TotalDownstreamMiles"]:
         df[f"{field}_diff"] = df[field] - df[f"{field}_prev"]
         df[f"{field}_absdiff"] = df[f"{field}_diff"].abs()
 
-        if (df[f"{field}_absdiff"] > 0.1).any():
-            print(f"Most differences between versions for {field}")
+        diffs = df.loc[df[f"{field}_absdiff"] > 0.1]
+        if len(diffs):
             print(
-                df.sort_values(by=f"{field}_absdiff", ascending=False).head(100)[
-                    [
-                        "SARPID",
-                        "HasNetwork",
-                        "TotalUpstreamMiles",
-                        "TotalUpstreamMiles_prev",
-                        "TotalDownstreamMiles",
-                        "TotalDownstreamMiles_prev",
-                        f"{field}_diff",
-                    ]
-                ]
+                f"Found {len(diffs):,} {barrier_type} with >10% difference in {field} from previous version"
             )
+            diffs.sort_values(by=f"{field}_absdiff", ascending=False)[
+                [
+                    "SARPID",
+                    "HasNetwork",
+                    "TotalUpstreamMiles",
+                    "TotalUpstreamMiles_prev",
+                    "TotalDownstreamMiles",
+                    "TotalDownstreamMiles_prev",
+                    f"{field}_diff",
+                ]
+            ]
+            df.dropna(subset=[f"{field}_diff"]).to_csv(
+                f"/tmp/{barrier_type}__{field}_diff.csv", index=False
+            )
+

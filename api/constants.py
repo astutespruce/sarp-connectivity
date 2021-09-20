@@ -364,6 +364,7 @@ RECON_DOMAIN = {
     19: "Proposed dam",
     20: "Farm pond - no conservation benefit",
     21: "Potential thermal issues",
+    22: "Duplicate fish passage project structure",
 }
 
 # Created here to capture values below
@@ -486,26 +487,18 @@ CROSSING_TYPE_DOMAIN = {
     6: "Buried stream",
 }
 
-DIVERSION_DOMAIN = {
-    0: "Unknown",
-    1: "Yes",
-    2: 'No'
-}
+DIVERSION_DOMAIN = {0: "Unknown", 1: "Yes", 2: "No"}
 
-FISHSCREEN_DOMAIN = {
-    0: "Unknown",
-    1: "Yes",
-    2: 'No'
-}
+FISHSCREEN_DOMAIN = {0: "Unknown", 1: "Yes", 2: "No"}
 
 SCREENTYPE_DOMAIN = {
-0: 'Unknown',
-1: 'Horizontal',
-2: 'Vertical',
-3: 'Cone',
-4: 'Pipe',
-5: 'Drum',
-6: 'Other'
+    0: "Unknown",
+    1: "Horizontal",
+    2: "Vertical",
+    3: "Cone",
+    4: "Pipe",
+    5: "Drum",
+    6: "Other",
 }
 
 ROAD_TYPE_DOMAIN = {0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad"}

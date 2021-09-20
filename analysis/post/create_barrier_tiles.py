@@ -38,6 +38,7 @@ df = (
     pd.read_feather(api_dir / "dams.feather", columns=["id"] + DAM_TILE_FIELDS)
     .set_index("id")
     .rename(columns={"County": "CountyName", "COUNTYFIPS": "County"})
+    .sort_values(by="StreamOrder", ascending=False)
 )
 
 to_lowercase = {
@@ -129,8 +130,8 @@ print(f"Created dam tiles in {time() - start:,.2f}s")
 start = time()
 df = (
     pd.read_feather(api_dir / "small_barriers.feather", columns=["id"] + SB_TILE_FIELDS)
-    .set_index("id")
     .rename(columns={"County": "CountyName", "COUNTYFIPS": "County"})
+    .sort_values(by="StreamOrder", ascending=False)
 )
 
 to_lowercase = {
@@ -162,7 +163,7 @@ barriers = (
 
 barriers["ranked"] = barriers.ranked.astype("uint8")
 
-barriers.to_csv(csv_filename, index_label="id", quoting=csv.QUOTE_NONNUMERIC)
+barriers.to_csv(csv_filename, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -182,13 +183,16 @@ other_barriers = df.loc[~df.HasNetwork].drop(columns=["Ranked", "HasNetwork"])
 keep_fields = other_barriers.columns.intersection(
     SB_CORE_FIELDS + ["HUC8", "HUC12"] + ["CountyName", "State", "Excluded"]
 )
-other_barriers = other_barriers[keep_fields].reset_index()
+other_barriers = other_barriers[keep_fields].copy()
 
 ### Read in road crossings to join with small barriers
 print("Reading road / stream crossings")
 road_crossings = gp.read_feather(barriers_dir / "road_crossings.feather").rename(
     columns={"County": "CountyName"}
 )
+
+if road_crossings.id.min() < df.id.max() + 1:
+    raise ValueError("Road crossings have overlapping ids with small barriers")
 
 
 # bring in Species info
