@@ -3,8 +3,8 @@
 ## Server
 
 - Create an EC2 micro server based on Ubuntu 20.04 LTS
-- Set root volume to have 12 GB of space
-- Create a second volume with 20 GB of space
+- Set root volume to have 20 GB of space (need large /tmp folder space for uploading tiles)
+- Create a second volume with 20 GB of space (/tiles)
 - Create an elastic IP and assign to that instance
 - Create a 4 GB swap file according to instructions here: https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04
   - `sudo fallocate -l 4G /swapfile`
@@ -12,8 +12,7 @@
   - `sudo mkswap /swapfile`
   - `sudo swapon /swapfile`
   - add this to `/etc/fstab`: `/swapfile none swap sw 0 0`
-
-* Format and mount 20 GB secondary volume
+- Format and mount 20 GB secondary volume
   - use `lsblk` to list volumes; it should be listed as `xvdb`
   - `sudo mkfs -t ext4 /dev/xvdb`
   - `sudo mkdir /tiles`

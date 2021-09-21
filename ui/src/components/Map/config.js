@@ -20,13 +20,13 @@ export const sources = {
     type: 'vector',
     tiles: [`${tileHost}/services/dams/tiles/{z}/{x}/{y}.pbf`],
     minzoom: 5,
-    maxzoom: 12,
+    maxzoom: 16,
   },
   small_barriers: {
     type: 'vector',
     tiles: [`${tileHost}/services/small_barriers/tiles/{z}/{x}/{y}.pbf`],
     minzoom: 5,
-    maxzoom: 12,
+    maxzoom: 16,
   },
   networks: {
     type: 'vector',
