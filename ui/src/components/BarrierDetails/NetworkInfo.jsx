@@ -1,8 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Text } from 'theme-ui'
+import { Box, Flex, Text } from 'theme-ui'
 
 import { Table, Row } from 'components/Table'
+import { InfoTooltip } from 'components/Tooltip'
 import { Entry } from 'components/Sidebar'
 import { formatNumber, formatPercent } from 'util/format'
 
@@ -63,7 +64,18 @@ const NetworkInfo = ({
           </Row>
 
           <Row>
-            <Box>Total miles</Box>
+            <Box>
+              <Text sx={{ display: 'inline' }}>Total miles</Text>
+              <InfoTooltip>
+                Total miles upstream is the sum of all river and stream lengths
+                in the upstream functional network.
+                <br />
+                <br />
+                Total miles downstream is the sum of all river and stream
+                lengths in the functional network immediately downstream of this
+                network, excluding all lengths within waterbodies.
+              </InfoTooltip>
+            </Box>
             <Box
               sx={{
                 fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
@@ -82,7 +94,21 @@ const NetworkInfo = ({
           </Row>
 
           <Row>
-            <Box>Perennial miles</Box>
+            <Box>
+              <Text sx={{ display: 'inline' }}>Perennial miles</Text>
+              <InfoTooltip>
+                Total perennial miles upstream is the sum of all perennial reach
+                lengths in the upstream functional network. Perennial reaches
+                are all those that are not specifically identified as ephemeral
+                or intermittent. Perennial reaches are not necessarily
+                contiguous.
+                <br />
+                <br />
+                Total perennial miles downstream is the sum of all perennial
+                reach lengths in the functional network immediately downstream
+                of this network, excluding all lengths within waterbodies.
+              </InfoTooltip>
+            </Box>
             <Box
               sx={{
                 fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
@@ -101,13 +127,36 @@ const NetworkInfo = ({
           </Row>
 
           <Row>
-            <Box>Altered miles</Box>
+            <Box>
+              <Text sx={{ display: 'inline' }}>Altered miles</Text>
+              <InfoTooltip>
+                Total altered miles upstream is the sum of all reach lengths
+                specifically identified as altered (canal / ditch).
+                <br />
+                <br />
+                Total altered miles downstream is the sum of all altered reach
+                lengths in the functional network immediately downstream of this
+                network, excluding all lengths within waterbodies.
+              </InfoTooltip>
+            </Box>
             <Box>{formatNumber(alteredupstreammiles)}</Box>
             <Box>{formatNumber(freealtereddownstreammiles)}</Box>
           </Row>
 
           <Row>
-            <Box>Unaltered miles</Box>
+            <Box>
+              <Text sx={{ display: 'inline' }}>Unaltered miles</Text>
+
+              <InfoTooltip>
+                Total unaltered miles upstream is the sum of all reach lengths
+                not specifically identified as altered (canal / ditch).
+                <br />
+                <br />
+                Total unaltered miles downstream is the sum of all unaltered
+                reach lengths in the functional network immediately downstream
+                of this network, excluding all lengths within waterbodies.
+              </InfoTooltip>
+            </Box>
             <Box>{formatNumber(unalteredupstreammiles)}</Box>
             <Box>{formatNumber(freeunaltereddownstreammiles)}</Box>
           </Row>
@@ -126,7 +175,14 @@ const NetworkInfo = ({
           >
             <Row>
               <Box>
-                <b>Total miles gained</b>
+                <Text sx={{ fontWeight: 'bold', display: 'inline' }}>
+                  Total miles gained
+                </Text>
+                <InfoTooltip>
+                  The total miles that could be gained by removing this barrier
+                  is the lesser of the upstream or downstream total functional
+                  network miles.
+                </InfoTooltip>
               </Box>
               <Box
                 sx={
@@ -147,7 +203,14 @@ const NetworkInfo = ({
             </Row>
             <Row>
               <Box>
-                <b>Perennial miles gained</b>
+                <Text sx={{ fontWeight: 'bold', display: 'inline' }}>
+                  Perennial miles gained
+                </Text>
+                <InfoTooltip>
+                  The total perennial miles that could be gained by removing
+                  this barrier is the lesser of the upstream or downstream
+                  perennial miles.
+                </InfoTooltip>
               </Box>
               <Box
                 sx={

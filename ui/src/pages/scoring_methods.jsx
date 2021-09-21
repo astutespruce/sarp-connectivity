@@ -165,7 +165,7 @@ const ScoringMethodsPage = ({
 
           <HighlightBox icon="sinuosity_high" title="Channel Alteration">
             <Paragraph>
-              Altered river and stream segments are those that are specifically
+              Altered river and stream reaches are those that are specifically
               identified as canals or ditches. These represent areas where the
               hydrography, flow, and water quality may be highly altered
               compared to natural conditions.

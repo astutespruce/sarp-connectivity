@@ -74,7 +74,7 @@ const Scores = ({
               <b>full network</b>
             </Box>
             <Box>
-              <b>perennial segments only</b>
+              <b>perennial reaches only</b>
             </Box>
           </Row>
           <Row>

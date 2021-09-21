@@ -33,7 +33,7 @@ const resultTypeOptions = [
   },
   {
     value: 'perennial',
-    label: 'perennial segments only',
+    label: 'perennial reaches only',
   },
 ]
 

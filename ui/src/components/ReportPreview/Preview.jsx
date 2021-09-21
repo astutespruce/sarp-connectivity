@@ -36,7 +36,7 @@ const Preview = ({ barrierType, data }) => {
   const name =
     data.name || barrierType === 'dams'
       ? `Dam: unknown name (SARPID: ${sarpid})`
-      : `Crossing: unknown name (SARPID ${sarpid})`
+      : `Road-related barrier: unknown name (SARPID ${sarpid})`
 
   const [{ attribution, hasError, isPending }, setState] = useState({
     attribution: basemapAttribution['light-v9'],
@@ -123,7 +123,6 @@ const Preview = ({ barrierType, data }) => {
         )
       })
       .catch((error) => {
-        // TODO: log to sentry?
         console.error(error)
         setState((prevState) => ({
           ...prevState,

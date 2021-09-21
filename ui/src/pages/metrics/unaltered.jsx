@@ -23,14 +23,14 @@ const PercentUnalteredPage = ({ data: { headerImage } }) => (
     <Container>
       <Heading as="h1">Channel alteration</Heading>
       <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
-        Altered river and stream segments are those that are specifically
+        Altered river and stream reaches are those that are specifically
         identified as canals or ditches. These represent areas where the
         hydrography, flow, and water quality may be highly altered compared to
         natural conditions.
         <br />
         <br />
         Networks are characterized by the percent of their total network length
-        that is in altered river and stream segments.
+        that is in altered river and stream reaches.
       </Paragraph>
 
       <Grid columns={[0, 2]} gap={4} sx={{ mt: '2rem' }}>
@@ -61,12 +61,12 @@ const PercentUnalteredPage = ({ data: { headerImage } }) => (
         </Heading>
         <ol>
           <li>
-            Stream and river segments are identified as altered where they are
+            Stream and river reaches are identified as altered where they are
             specifically coded by NHD as canals or ditches.
           </li>
           <li>The total length of the network is calculated.</li>
           <li>
-            The total length of unaltered segments within the network is
+            The total length of unaltered reaches within the network is
             calculated.
           </li>
           <li>percent unaltered = 100 * (unaltered length / total length)</li>

@@ -69,7 +69,7 @@ const Scores = ({
           </View>
           <View style={{ flex: '1 1 60pt' }}>
             <Text>
-              <Bold>perennial segments only</Bold>
+              <Bold>perennial reaches only</Bold>
             </Text>
           </View>
         </Flex>

@@ -45,7 +45,7 @@ const MethodsPage = ({ data: { headerImage } }) => (
         </Heading>
         <ol>
           <li>
-            All coastline and underground conduit segments were first removed
+            All coastline and underground conduit reaches were first removed
             from the NHDPlusHR flowlines dataset. &quot;Loops&quot; were
             retained for purposes of snapping waterfalls and barriers below, but
             barriers that snapped to these loops were excluded from the network
@@ -64,7 +64,7 @@ const MethodsPage = ({ data: { headerImage } }) => (
             considered free-flowing for the network connectivity analysis.
           </li>
           <li>
-            In some regions, network segments were manually removed from the
+            In some regions, network reaches were manually removed from the
             analysis (e.g., Chesapeake Bay).
           </li>
         </ol>

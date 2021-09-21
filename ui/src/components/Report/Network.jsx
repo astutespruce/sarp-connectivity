@@ -98,7 +98,7 @@ const Network = ({
             <Bold>{formatNumber(gainmiles)} total miles</Bold> could be
             reconnected by removing this {barrierTypeLabel}, including{' '}
             <Bold>{formatNumber(perennialGainMiles)} miles</Bold> of perennial
-            segments.
+            reaches.
           </Text>
         </View>
 
@@ -263,14 +263,13 @@ const Network = ({
         </Flex>
 
         <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
-          Note: downstream lengths are limited to free-flowing segments only;
+          Note: downstream lengths are limited to free-flowing reaches only;
           these exclude lengths within waterbodies in the downstream network.
-          Perennial miles are the sum of lengths of all segments not
-          specifically coded as ephemeral or intermittent within the functional
-          network. Perennial segments are not necessarily contiguous. Altered
-          miles are those that are specifically coded as canals or ditches, and
-          do not necessarily include all forms of alteration of the stream
-          channel.
+          Perennial miles are the sum of lengths of all reaches not specifically
+          coded as ephemeral or intermittent within the functional network.
+          Perennial reaches are not necessarily contiguous. Altered miles are
+          those that are specifically coded as canals or ditches, and do not
+          necessarily include all forms of alteration of the stream channel.
         </Text>
       </View>
     </Section>

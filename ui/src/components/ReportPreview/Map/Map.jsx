@@ -72,7 +72,7 @@ const Map = ({
       style: `mapbox://styles/mapbox/${styleID}`,
       center,
       zoom: zoom || 0,
-      minZoom: 10,
+      minZoom: 7,
       maxZoom: 18,
       preserveDrawingBuffer: true,
     })
@@ -107,6 +107,7 @@ const Map = ({
         if (layer.id.endsWith('-highlight')) {
           mapObj.addLayer({
             ...layer,
+            minzoom: 6,
             filter: ['==', barrierType, networkID],
           })
         } else {
@@ -139,6 +140,7 @@ const Map = ({
         ...pointHighlightLayer,
         source: barrierType,
         'source-layer': barrierType,
+        minzoom: 6,
         filter: ['==', ['get', 'id'], barrierID],
       })
       mapObj.addLayer({
@@ -146,6 +148,7 @@ const Map = ({
         id: 'point-background-highlight',
         source: barrierType,
         'source-layer': 'background',
+        minzoom: 9,
         filter: ['==', ['get', 'id'], barrierID],
       })
 

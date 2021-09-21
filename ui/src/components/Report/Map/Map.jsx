@@ -27,7 +27,7 @@ const Map = ({
       <Image
         src={map}
         style={{
-          position: 'position',
+          position: 'relative',
           top: 0,
           bottom: 0,
           left: 0,
@@ -38,7 +38,7 @@ const Map = ({
         }}
       />
 
-      <Text
+      <View
         style={{
           width: scaleWidth * 0.75,
           height: 16,
@@ -58,11 +58,15 @@ const Map = ({
           style={{
             fontSize: 7,
             color: '#333',
+            position: 'absolute',
+            top: 4,
+            left: 4,
+            zIndex: 2,
           }}
         >
           {scaleLabel}
         </Text>
-      </Text>
+      </View>
     </View>
     <Flex style={{ alignItems: 'center', marginTop: 4 }}>
       <View style={{ flex: '0 0 50', height: 12, marginRight: 12 }}>

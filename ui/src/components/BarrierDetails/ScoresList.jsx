@@ -28,7 +28,7 @@ const ScoresList = ({ nc, wc, ncwc, pnc, pwc, pncwc }) => (
       </Box>
     </Section>
 
-    <Section title="Perennial segments only" sx={{ mt: '2rem' }}>
+    <Section title="Perennial reaches only" sx={{ mt: '2rem' }}>
       <Box sx={{ pr: '1rem' }}>
         <ScoreChart
           label="Perennial Network Connectivity Tier"
