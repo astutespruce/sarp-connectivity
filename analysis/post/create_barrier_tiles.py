@@ -132,6 +132,7 @@ df = (
     pd.read_feather(api_dir / "small_barriers.feather", columns=["id"] + SB_TILE_FIELDS)
     .rename(columns={"County": "CountyName", "COUNTYFIPS": "County"})
     .sort_values(by="StreamOrder", ascending=False)
+    .set_index("id")
 )
 
 to_lowercase = {
@@ -163,7 +164,7 @@ barriers = (
 
 barriers["ranked"] = barriers.ranked.astype("uint8")
 
-barriers.to_csv(csv_filename, index=False, quoting=csv.QUOTE_NONNUMERIC)
+barriers.to_csv(csv_filename, quoting=csv.QUOTE_NONNUMERIC)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -187,11 +188,13 @@ other_barriers = other_barriers[keep_fields].copy()
 
 ### Read in road crossings to join with small barriers
 print("Reading road / stream crossings")
-road_crossings = gp.read_feather(barriers_dir / "road_crossings.feather").rename(
-    columns={"County": "CountyName"}
+road_crossings = (
+    gp.read_feather(barriers_dir / "road_crossings.feather")
+    .rename(columns={"County": "CountyName"})
+    .set_index("id")
 )
 
-if road_crossings.id.min() < df.id.max() + 1:
+if road_crossings.index.min() < df.index.max() + 1:
     raise ValueError("Road crossings have overlapping ids with small barriers")
 
 
@@ -223,12 +226,18 @@ road_crossing_fields = road_crossings.columns.intersection(
 )
 
 combined = (
-    other_barriers.append(
-        road_crossings[road_crossing_fields], ignore_index=True, sort=False
+    other_barriers.reset_index()
+    .append(
+        road_crossings[road_crossing_fields].reset_index(),
+        ignore_index=True,
+        sort=False,
     )
     .rename(columns=to_lowercase)
     .reset_index(drop=True)
 )
+combined["id"] = combined.id.astype("uint")
+combined = combined.set_index("id")
+
 
 # Fill in N/A values
 cols = [
@@ -268,7 +277,7 @@ mbtiles_filename = tmp_dir / "small_barriers_background.mbtiles"
 mbtiles_files.append(mbtiles_filename)
 
 combined.to_csv(
-    tmp_dir / csv_filename, index=False, quoting=csv.QUOTE_NONNUMERIC,
+    tmp_dir / csv_filename, quoting=csv.QUOTE_NONNUMERIC,
 )
 
 ret = subprocess.run(

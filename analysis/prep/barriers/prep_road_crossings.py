@@ -115,7 +115,10 @@ print(f"Now have {len(df):,} road crossings")
 
 df = df.rename(columns={"FULLNAME": "Road", "GNIS_NAME": "Stream", "RDXID": "SARPID"})
 # Cleanup fields
-df.SARPID = "cr" + df.SARPID.round().astype(str)  # match dtype of SARPID elsewhere
+
+# match dtype of SARPID elsewhere
+df.SARPID = "cr" + df.SARPID.round().astype(int).astype(str)
+
 # make sure that id is unique of small barriers
 df["id"] = (barriers.id.max() + 100000 + df.index.astype("uint")).astype("uint")
 df.Stream = df.Stream.str.strip().fillna("")
