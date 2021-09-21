@@ -5,6 +5,7 @@ exports.onCreateWebpackConfig = ({ actions, stage, loaders, plugins }) => {
     resolve: {
       alias: {
         assert: require.resolve('assert'),
+        os: require.resolve('os-browserify/browser'),
         path: require.resolve('path-browserify'),
         stream: require.resolve('stream-browserify'),
         util: require.resolve('util'),

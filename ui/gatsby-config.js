@@ -34,6 +34,7 @@ module.exports = {
     DEV_SSR: false, // appears to throw '"filePath" is not allowed to be empty' when true
     PARALLEL_SOURCING: process.env.NODE_ENV !== `production`, // uses a lot of memory on server
     PRESERVE_WEBPACK_CACHE: process.env.NODE_ENV === `production`,
+    LMDB_STORE: true,
   },
   plugins: [
     {

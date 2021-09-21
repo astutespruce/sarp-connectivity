@@ -6,9 +6,14 @@ import { CaretDown } from '@emotion-icons/fa-solid'
 import Circle from './Circle'
 
 const Legend = ({ title, patches, circles, lines, footnote }) => {
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(false)
 
-  if (!(patches || circles || footnote)) {
+  const hasElements =
+    (patches && patches.length > 0) ||
+    (circles && circles.length > 0) ||
+    (lines && lines.length > 0)
+
+  if (!(hasElements || footnote)) {
     return null
   }
 
@@ -44,9 +49,11 @@ const Legend = ({ title, patches, circles, lines, footnote }) => {
               fontWeight: 'bold',
             }}
           >
-            <Box sx={{ mr: '0.25rem' }}>
-              <CaretDown size="1.5em" />
-            </Box>
+            {hasElements ? (
+              <Box sx={{ mr: '0.25rem' }}>
+                <CaretDown size="1.5em" />
+              </Box>
+            ) : null}
 
             <Text>{title}</Text>
           </Flex>
