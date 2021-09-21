@@ -16,8 +16,8 @@ if not out_dir.exists():
     os.makedirs(out_dir)
 
 
-barrier_type = "dams"
-ext = "gpkg"
+barrier_type = "small_barriers"
+ext = "shp"
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
@@ -80,7 +80,8 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         networks = pd.DataFrame(flowlines)
         networks["geometry"] = networks.geometry.values.data
         networks = gp.GeoDataFrame(
-            networks.groupby(["networkID", "intermittent", "altered"])
+            networks.groupby(["networkID"])
+            # networks.groupby(["networkID", "intermittent", "altered"])
             .geometry.apply(pg.multilinestrings)
             .rename("geometry")
             .reset_index()
@@ -92,13 +93,13 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         )
 
         # Set plotting symbol
-        networks["symbol"] = "normal"
-        networks.loc[networks.altered, "symbol"] = "altered"
-        # currently overrides altered since both come from NHD (mutually exclusive in source data)
-        networks.loc[networks.intermittent, "symbol"] = "intermittent"
-        networks.loc[
-            networks.intermittent & networks.altered, "symbol"
-        ] = "altered_intermittent"
+        # networks["symbol"] = "normal"
+        # networks.loc[networks.altered, "symbol"] = "altered"
+        # # currently overrides altered since both come from NHD (mutually exclusive in source data)
+        # networks.loc[networks.intermittent, "symbol"] = "intermittent"
+        # networks.loc[
+        #     networks.intermittent & networks.altered, "symbol"
+        # ] = "altered_intermittent"
 
         print("Serializing dissolved networks...")
         write_dataframe(
