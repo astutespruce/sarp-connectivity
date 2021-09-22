@@ -264,11 +264,23 @@ def snap_to_waterbodies(df, to_snap):
         ### First pass - find the dams that are contained by waterbodies
         contained_start = time()
 
-        in_wb = sjoin(in_huc2, wb, how="inner").index_right.rename("wbID")
+        # Join to nearest waterbodies within 1m (basically inside)
+        # and keep only the first match
+        tree = pg.STRtree(wb.geometry.values.data)
+        left, right = tree.nearest_all(in_huc2.geometry.values.data, max_distance=1)
+        in_wb = (
+            pd.DataFrame(
+                {
+                    "id": in_huc2.index.values.take(left),
+                    "wbID": wb.index.values.take(right),
+                }
+            )
+            .groupby("id")
+            .first()
+        )
 
         # update wbID in dataset, but this doesn't mean it is snapped
-        ix = in_wb.index
-        df.loc[ix, "wbID"] = in_wb
+        df.loc[in_wb.index, "wbID"] = in_wb.wbID
 
         print(
             f"Found {len(in_wb):,} dams in waterbodies in {time() - contained_start:.2f}s"
@@ -281,8 +293,7 @@ def snap_to_waterbodies(df, to_snap):
         # NOTE: this may bring in multiple drains for some waterbodies, we take the
         # closest drain below
         in_wb = (
-            pd.DataFrame(in_wb)
-            .join(to_snap[["geometry", "snap_tolerance"]])
+            in_wb.join(to_snap[["geometry", "snap_tolerance"]])
             .join(
                 drains.reset_index()
                 .set_index("wbID")[["drainID", "lineID", "geometry"]]
