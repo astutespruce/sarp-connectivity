@@ -29,10 +29,10 @@ const BarrierDetails = ({ barrier, onClose }) => {
     countyname,
     State,
     ncwc_tier,
-    crossingtype,
   } = barrier
 
-  const isCrossing = isEmptyString(crossingtype)
+  const isCrossing =
+    barrierType === 'small_barriers' && sarpid && sarpid.startsWith('cr')
 
   const typeLabel = isCrossing
     ? 'road / stream crossing'

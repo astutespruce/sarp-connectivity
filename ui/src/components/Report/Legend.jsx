@@ -18,7 +18,7 @@ export const getLegendEntries = ({ name, barrierType }) => {
     {
       color: '#fd8d3c',
       type: 'line',
-      label: `Upstream network from ${name}`,
+      label: 'Upstream network',
       borderWidth: 2,
     },
     {
