@@ -22,9 +22,7 @@ const HighlightBox = ({ icon, title, children, ...props }) => (
         borderBottom: '4px solid #FFF',
       }}
     >
-      {icon ? (
-        <Icon name={icon} size="4rem" style={{ marginRight: '0.5rem' }} />
-      ) : null}
+      {icon ? <Icon name={icon} size="4rem" sx={{ mr: '0.5rem' }} /> : null}
       <Heading
         as="h3"
         sx={{

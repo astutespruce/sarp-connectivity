@@ -37,12 +37,14 @@ from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.lib.io import read_feathers
 from analysis.lib.geometry import nearest
 from analysis.constants import (
-    CRS,
     KEEP_POTENTIAL_PROJECT,
     DROP_POTENTIAL_PROJECT,
     DROP_MANUALREVIEW,
+    DROP_RECON,
     EXCLUDE_MANUALREVIEW,
+    EXCLUDE_RECON,
     UNRANKED_MANUALREVIEW,
+    UNRANKED_RECON,
     BARRIER_CONDITION_TO_DOMAIN,
     POTENTIAL_TO_SEVERITY,
     ROAD_TYPE_TO_DOMAIN,
@@ -85,6 +87,10 @@ df["id"] = df.index.astype("uint32")
 df = df.set_index("id", drop=False)
 
 ######### Fix data issues
+df["ManualReview"] = df.ManualReview.fillna(0).astype("uint8")
+df["Recon"] = df.Recon.fillna(0).astype("uint8")
+df["SARP_Score"] = df.SARP_Score.fillna(0).astype("float32")
+
 
 # Fix mixed casing of values
 for column in ("CrossingType", "RoadType", "Stream", "Road"):
@@ -182,6 +188,12 @@ print(
     f"Dropped {drop_ix.sum():,} small barriers from all analysis and mapping based on PotentialProject"
 )
 
+
+# Drop those where recon shows this as an error
+drop_ix = df.Recon.isin(DROP_RECON) & ~df.dropped
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = f"dropped: Recon one of {DROP_RECON}"
+
 drop_ix = df.ManualReview.isin(DROP_MANUALREVIEW)
 df.loc[drop_ix, "dropped"] = True
 df.loc[drop_ix, "log"] = f"dropped: ManualReview one of {DROP_MANUALREVIEW}"
@@ -191,23 +203,29 @@ print(
 
 ### Exclude barriers that should not be analyzed or prioritized based on manual QA
 df["excluded"] = (
-    ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT)
-) | df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
+    (~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT))
+    | df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
+    | df.Recon.isin(EXCLUDE_RECON)
+)
+
 df.loc[
     ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT), "log"
 ] = f"excluded: PotentialProject not one of retained types {KEEP_POTENTIAL_PROJECT}"
-
+df.loc[df.Recon.isin(EXCLUDE_RECON), "log"] = f"excluded: Recon one of {EXCLUDE_RECON}"
 df.loc[
     df.ManualReview.isin(EXCLUDE_MANUALREVIEW), "log"
 ] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
-
 print(
     f"Excluded {df.excluded.sum():,} small barriers from network analysis and prioritization"
 )
 
 ### Mark any barriers that should cut the network but be excluded from ranking
-unranked_idx = ()
-df["unranked"] = df.ManualReview.isin(UNRANKED_MANUALREVIEW)
+df["unranked"] = df.ManualReview.isin(UNRANKED_MANUALREVIEW) | df.Recon.isin(
+    UNRANKED_RECON
+)
+df.loc[
+    df.Recon.isin(UNRANKED_RECON), "log"
+] = f"unranked: Recon one of {UNRANKED_RECON}"
 df.loc[
     df.ManualReview.isin(UNRANKED_MANUALREVIEW), "log"
 ] = f"unranked: ManualReview one of {UNRANKED_MANUALREVIEW}"
@@ -233,7 +251,11 @@ df["snap_tolerance"] = SNAP_TOLERANCE
 original_locations = df.copy()
 
 # Only snap those that have HUC2 assigned
-to_snap = df.loc[df.HUC2 != ""].copy()
+# IMPORTANT: do not snap manually reviewed, off-network dams, duplicates, or ones without HUC2!
+to_snap = df.loc[
+    (~df.ManualReview.isin([5, 11])) & (df.HUC2 != "") & (df.STATEFIPS != "")
+].copy()
+
 
 # Snap to flowlines
 snap_start = time()
@@ -306,16 +328,31 @@ flowlines = read_feathers(
         for huc2 in df.HUC2.unique()
         if huc2
     ],
-    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "FCode", "loop"],
+    columns=[
+        "lineID",
+        "NHDPlusID",
+        "GNIS_Name",
+        "sizeclass",
+        "StreamOrde",
+        "FCode",
+        "loop",
+    ],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
+
+# Add name from snapped flowline if not already present
+df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()
+ix = (df.Stream == "") & (df.GNIS_Name != "")
+df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
+df = df.drop(columns=["GNIS_Name"])
+
 
 # calculate stream type
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE)
 
 # calculate intermittent + ephemeral
-df["intermittent"] = ~df.FCode.isin([46003, 46007])
+df["intermittent"] = df.FCode.isin([46003, 46007])
 
 
 # Fix missing field values
@@ -342,9 +379,9 @@ df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped small barriers".format(len(df)))
-df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop"]].to_feather(
-    snapped_dir / "small_barriers.feather",
-)
+df[
+    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
+].to_feather(snapped_dir / "small_barriers.feather",)
 write_dataframe(df, qa_dir / "snapped_small_barriers.gpkg")
 
 print("All done in {:.2f}s".format(time() - start))

@@ -11,9 +11,9 @@ const ScoreChart = ({ label, score, tier }) => (
       },
     }}
   >
-    <Text>{label}</Text>
-    <Flex sx={{ alignItems: 'center', mt: '1rem' }}>
-      <Text sx={{ flex: '0 0 auto', color: 'grey.7' }}>Low</Text>
+    <Text sx={{ fontSize: 1 }}>{label}</Text>
+    <Flex sx={{ alignItems: 'center', mt: '0.5rem' }}>
+      <Text sx={{ flex: '0 0 auto', color: 'grey.7', fontSize: 0 }}>Low</Text>
       <Box
         sx={{
           flex: '1 1 auto',
@@ -40,14 +40,13 @@ const ScoreChart = ({ label, score, tier }) => (
             ml: '-1rem',
             textAlign: 'center',
             color: '#FFF',
-
             left: `${score}%`,
           }}
         >
           {tier}
         </Box>
       </Box>
-      <Text sx={{ flex: '0 0 auto', color: 'grey.7' }}>High</Text>
+      <Text sx={{ flex: '0 0 auto', color: 'grey.7', fontSize: 0 }}>High</Text>
     </Flex>
   </Box>
 )

@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from fastapi.requests import Request
+import numpy as np
 
 from api.constants import DAM_FILTER_FIELD_MAP, SB_FILTER_FIELD_MAP, Layers
 
@@ -38,7 +39,11 @@ class RecordExtractor:
                 ]
 
     def extract(self, df):
-        ix = df[self.layer].isin(self.ids)
+        # special case, select all
+        if self.ids == ["*"]:
+            ix = np.ones(shape=(len(df)), dtype="bool")
+        else:
+            ix = df[self.layer].isin(self.ids)
 
         for key, values in self.filters.items():
             ix = ix & df[key].isin(values)

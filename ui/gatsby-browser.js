@@ -1,6 +1,15 @@
+import React from 'react'
+
 import * as Sentry from '@sentry/react'
+import { QueryClient, QueryClientProvider } from 'react-query'
 
 import { siteMetadata } from './gatsby-config'
+
+const queryClient = new QueryClient()
+
+export const wrapRootElement = ({ element }) => (
+  <QueryClientProvider client={queryClient}>{element}</QueryClientProvider>
+)
 
 const { sentryDSN } = siteMetadata
 export const onClientEntry = () => {

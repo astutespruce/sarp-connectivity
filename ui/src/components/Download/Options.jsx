@@ -3,9 +3,11 @@ import PropTypes from 'prop-types'
 import { Box, Paragraph } from 'theme-ui'
 
 import { Checkbox } from 'components/Button'
+import { barrierTypeLabels } from '../../../config/constants'
 
 const Options = ({ barrierType, options, customRank, onChange }) => {
   const { unranked } = options
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
 
   const handleUnrankedChange = () => {
     onChange({
@@ -18,7 +20,7 @@ const Options = ({ barrierType, options, customRank, onChange }) => {
     <Box sx={{ alignItems: 'flex-start', mt: '1rem' }}>
       <Checkbox
         id="unranked"
-        label={`Include unranked ${barrierType}?`}
+        label={`Include unranked ${barrierTypeLabel}?`}
         checked={unranked}
         onChange={handleUnrankedChange}
         sx={{
@@ -28,11 +30,11 @@ const Options = ({ barrierType, options, customRank, onChange }) => {
       />
 
       <Paragraph sx={{ color: 'grey.7', mt: '1rem' }}>
-        This will include {barrierType} within your selected geographic area
-        that were not prioritized in the analysis. These include any{' '}
-        {barrierType} that were not located on the aquatic network
+        This will include {barrierTypeLabel} within your selected geographic
+        area that were not prioritized in the analysis. These include any{' '}
+        {barrierTypeLabel} that were not located on the aquatic network
         {customRank && ' or that you filtered out during your prioritization'}.
-        {barrierType === 'barriers' &&
+        {barrierType === 'small_barriers' &&
           '  These data only include road-related barriers that have been assessed for impacts to aquatic organisms.'}
       </Paragraph>
     </Box>

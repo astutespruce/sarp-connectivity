@@ -4,7 +4,7 @@ import requests
 from requests import HTTPError
 import pandas as pd
 import geopandas as gp
-from shapely.geometry import Point
+
 
 # Mapping of ESRI WKID to proj4 strings
 CRS_LUT = {
@@ -102,9 +102,7 @@ def download_fs(url, fields=None, token=None, target_wkid=None):
 
     # Get total count we expect
     count = get_json(
-        f"{url}/query",
-        params={"where": "1=1", "returnCountOnly": "true"},
-        token=token,
+        f"{url}/query", params={"where": "1=1", "returnCountOnly": "true"}, token=token,
     )["count"]
 
     batches = ceil(count / batch_size)
@@ -127,42 +125,3 @@ def download_fs(url, fields=None, token=None, target_wkid=None):
 
     return merged
 
-
-def fs_json_to_gdf(fs_json):
-    """Convert ArcGIS Feature Service JSON response to geopandas GeoDataFrame.
-
-    Note: only points are supported at this time.
-
-    Parameters
-    ----------
-    fs_json : dict
-        JSON response from ESRI feature service layer query
-
-    Returns
-    -------
-    geopandas.GeoDataFrame
-    """
-
-    # Convert feature array to a DataFrame
-    temp = pd.DataFrame(fs_json["features"])
-
-    # Drop bad geometries
-    temp = temp.loc[temp.geometry.notnull()].copy()
-
-    # Extract attributes into a new DataFrame
-    # Each attribute is a columm
-    atts = temp.attributes.apply(pd.Series)
-
-    # Process geometry to appropriate type
-    # SHORTCUT: we only deal in points here
-    xy = temp.geometry.apply(pd.Series)
-    points = xy.apply(list, axis=1).apply(Point)
-
-    srs_json = fs_json["spatialReference"]
-    spatial_ref = srs_json.get("wkid", srs_json.get("wkt"))
-    if not spatial_ref in CRS_LUT:
-        raise ValueError("Unsupported CRS: {}".format(spatial_ref))
-
-    crs = CRS_LUT[spatial_ref]
-
-    return gp.GeoDataFrame(atts, geometry=points, crs=crs)

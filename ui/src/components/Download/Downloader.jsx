@@ -11,11 +11,14 @@ import { trackDownload } from 'util/analytics'
 
 import UserInfoForm, { FIELDS } from './UserInfoForm'
 import DownloadOptions from './Options'
+import { barrierTypeLabels } from '../../../config/constants'
 
 const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [haveUserInfo, setHaveUserInfo] = useState(false)
   const [downloadOptions, setDownloadOptions] = useState({ unranked: false })
+
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
 
   useEffect(() => {
     // If the user previously entered their contact info, don't ask them for it again
@@ -72,7 +75,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   const showUserInfoForm = isOpen && !haveUserInfo
   const showDownloadPopup = isOpen && haveUserInfo
 
-  const labelText = label || `Download ${barrierType}`
+  const labelText = label || `Download ${barrierTypeLabel}`
 
   return (
     <>
@@ -115,7 +118,9 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
 
       {showDownloadPopup && (
         <Modal
-          title={`Download ${customRank ? 'prioritized' : ''} ${barrierType}`}
+          title={`Download ${customRank ? 'prioritized' : ''} ${
+            barrierTypeLabels[barrierType]
+          }`}
           onClose={handleClose}
         >
           <Box sx={{ maxWidth: '600px' }}>
@@ -157,7 +162,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
             <Button variant="primary" onClick={handleDownload}>
               <Flex sx={{ alignItems: 'center' }}>
                 <DownloadIcon size="1.2em" style={{ marginRight: '0.5rem' }} />
-                <Text>Download {barrierType}</Text>
+                <Text>Download {barrierTypeLabel}</Text>
               </Flex>
             </Button>
           </Flex>

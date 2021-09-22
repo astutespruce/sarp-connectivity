@@ -36,12 +36,12 @@ def rank_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
 
     # just return tiers and lat/lon
     cols = ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
-    df = calculate_tiers(df)[cols]
+    df = df.join(calculate_tiers(df))[cols]
 
     return csv_response(df)
 
 
-@router.get("/barriers/rank/{layer}")
+@router.get("/small_barriers/rank/{layer}")
 def rank_barriers(request: Request, extractor: BarriersRecordExtractor = Depends()):
     """Rank a subset of small barriers data.
 
@@ -60,6 +60,6 @@ def rank_barriers(request: Request, extractor: BarriersRecordExtractor = Depends
 
     # just return tiers and lat/lon
     cols = ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
-    df = calculate_tiers(df)[cols]
+    df = df.join(calculate_tiers(df))[cols]
 
     return csv_response(df)

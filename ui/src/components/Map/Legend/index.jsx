@@ -1,13 +1,19 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
+import { CaretDown } from '@emotion-icons/fa-solid'
 
 import Circle from './Circle'
 
-const Legend = ({ title, patches, circles, footnote }) => {
-  const [isOpen, setIsOpen] = useState(true)
+const Legend = ({ title, patches, circles, lines, footnote }) => {
+  const [isOpen, setIsOpen] = useState(false)
 
-  if (!(patches || circles || footnote)) {
+  const hasElements =
+    (patches && patches.length > 0) ||
+    (circles && circles.length > 0) ||
+    (lines && lines.length > 0)
+
+  if (!(hasElements || footnote)) {
     return null
   }
 
@@ -35,9 +41,22 @@ const Legend = ({ title, patches, circles, footnote }) => {
     >
       {isOpen ? (
         <>
-          <Text sx={{ mb: '0.25em', fontSize: 2, fontWeight: 'bold' }}>
-            {title}
-          </Text>
+          <Flex
+            sx={{
+              alignItems: 'center',
+              mb: '0.25em',
+              fontSize: 2,
+              fontWeight: 'bold',
+            }}
+          >
+            {hasElements ? (
+              <Box sx={{ mr: '0.25rem' }}>
+                <CaretDown size="1.5em" />
+              </Box>
+            ) : null}
+
+            <Text>{title}</Text>
+          </Flex>
 
           {patches && patches.length > 0 ? (
             <div>
@@ -151,6 +170,66 @@ const Legend = ({ title, patches, circles, footnote }) => {
             </div>
           ) : null}
 
+          {((patches && patches.length > 0) ||
+            (circles && circles.length > 0)) &&
+          lines &&
+          lines.length > 0 ? (
+            <Box
+              sx={{
+                mt: '0.5rem',
+                borderTop: '1px solid',
+                borderTopColor: 'grey.1',
+              }}
+            />
+          ) : null}
+
+          {lines && lines.length > 0 ? (
+            <div>
+              {lines.map(
+                ({
+                  id,
+                  label: lineLabel,
+                  color,
+                  lineWidth = '1px',
+                  lineStyle = 'solid',
+                }) => (
+                  <Flex
+                    key={id}
+                    sx={{
+                      alignItems: 'flex-start',
+                      py: '0.5em',
+                      '&:not(:first-of-type)': {
+                        borderTop: '1px solid',
+                        borderTopColor: 'grey.1',
+                      },
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        flex: '0 0 auto',
+                        width: '1.1rem',
+                        height: '0.5rem',
+                        borderBottomWidth: lineWidth,
+                        borderBottomColor: color,
+                        borderBottomStyle: lineStyle,
+                      }}
+                    />
+                    <Text
+                      sx={{
+                        fontSize: '0.75rem',
+                        ml: '0.5rem',
+                        lineHeight: 1,
+                        color: 'grey.7',
+                      }}
+                    >
+                      {lineLabel}
+                    </Text>
+                  </Flex>
+                )
+              )}
+            </div>
+          ) : null}
+
           {footnote ? (
             <Text
               variant="help"
@@ -202,6 +281,15 @@ Legend.propTypes = {
       ),
     })
   ),
+  lines: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+      lineWidth: PropTypes.string,
+      lineStyle: PropTypes.string,
+    })
+  ),
   footnote: PropTypes.string,
 }
 
@@ -209,6 +297,7 @@ Legend.defaultProps = {
   title: 'Legend',
   circles: null,
   patches: null,
+  lines: null,
   footnote: null,
 }
 

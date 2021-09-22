@@ -2,7 +2,7 @@ import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
 import { GatsbyImage as Image } from 'gatsby-plugin-image'
 import { ChartBar, SearchLocation } from '@emotion-icons/fa-solid'
-import { Box, Button, Flex, Heading, Grid, Paragraph } from 'theme-ui'
+import { Box, Button, Flex, Divider, Heading, Grid, Paragraph } from 'theme-ui'
 
 import { Link } from 'components/Link'
 
@@ -41,25 +41,26 @@ const Tool = () => {
 
   return (
     <Box variant="boxes.section">
+      <Divider sx={{ mb: '4rem' }} />
+
       <Heading as="h2" variant="heading.section">
-        The Southeast Aquatic Barrier Prioritization Tool empowers you with the
-        latest inventory data:
+        Get started using this tool:
       </Heading>
 
       <Grid columns={[0, '5fr 3fr']} gap={5} sx={{ mt: '3rem' }}>
         <Box>
-          <Heading as="h3">Summarize the inventory across the region</Heading>
+          <Heading as="h3">Summarize the inventory</Heading>
 
           <Paragraph sx={{ mt: '1rem' }}>
-            Explore summaries of the inventory across the region by state,
-            county, or different levels of watersheds and ecoregions.
+            Explore summaries of the inventory by state, county, or different
+            levels of watersheds and ecoregions.
             <br />
             <br />
             These summaries are a good way to become familiar with the level of
-            aquatic fragmentation across the Southeast. Find out how many
-            aquatic barriers have already been inventoried in your area! Just
-            remember, the inventory is a living database, and is not yet
-            comprehensive across the region.
+            aquatic fragmentation for many states across the U.S. Find out how
+            many aquatic barriers have already been inventoried in your area!
+            Just remember, the inventory is a living database, and is not yet
+            comprehensive across these states.
           </Paragraph>
         </Box>
         <Box>

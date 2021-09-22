@@ -1,15 +1,13 @@
 from pathlib import Path
-from operator import itemgetter
 
-import geopandas as gp
 import pandas as pd
-import pygeos as pg
 import numpy as np
 
-from analysis.constants import GEO_CRS
 from analysis.lib.graph import DirectedGraph
 
 data_dir = Path("data")
+
+METERS_TO_MILES = 0.000621371
 
 
 def calculate_network_stats(df, barrier_joins, joins):
@@ -20,26 +18,31 @@ def calculate_network_stats(df, barrier_joins, joins):
     df : Pandas DataFrame
         data frame including the basic metrics for each flowline segment, including:
         * length
-        * sinuosity
         * size class
+        * altered
+        * intermittent
 
-    _barrier_joins : Pandas DataFrame
+    barrier_joins : Pandas DataFrame
         contains:
         * upstream_id
         * downstream_id
         * kind
 
-    joins_joins : Pandas DataFrame
+    joins : Pandas DataFrame
         contains:
         * upstream_id
         * downstream_id
-        * kind
+        * type
+        * marine
 
     Returns
     -------
     Pandas DataFrame
         Summary statistics, with one row per functional network.
     """
+
+    # find the HUC2 of the network origin
+    root_huc2 = df.loc[df.index == df.lineID].HUC2.rename("origin_HUC2")
 
     # create series of networkID indexed by lineID
     networkID = df.reset_index().set_index("lineID").networkID
@@ -51,6 +54,15 @@ def calculate_network_stats(df, barrier_joins, joins):
     )
     marine_terminals.loc[
         marine_terminals.index.isin(joins.loc[joins.marine].upstream_id)
+    ] = True
+
+    ### Find those that terminate in HUC2 drain points
+    # Note: only applicable for those that exit into HUC2s outside the analysis region
+    huc2_drains = pd.Series(
+        np.zeros(shape=(len(networkIDs),), dtype="bool"), index=networkIDs
+    )
+    huc2_drains.loc[
+        huc2_drains.index.isin(joins.loc[joins.type == "huc2_drain"].upstream_id)
     ] = True
 
     ### Identify all barriers that are upstream of a given network
@@ -100,7 +112,7 @@ def calculate_network_stats(df, barrier_joins, joins):
 
     num_downstream = downstreams.apply(len).rename("num_downstream")
 
-    ### Calculate if any downstream network is a marine terminal
+    ### Calculate if any downstream network is a marine terminal or exits HUC2s
     # create a mapping of every network to all networks downstream of it
     tmp = downstreams.explode().dropna().astype("uint64")
     ix = marine_terminals.loc[marine_terminals].index
@@ -113,6 +125,17 @@ def calculate_network_stats(df, barrier_joins, joins):
         name="flows_to_ocean",
     )
     to_ocean.loc[to_ocean.index.isin(ix) | to_ocean.index.isin(connects_marine)] = True
+
+    ix = huc2_drains.loc[huc2_drains].index
+    connects_to_exit = tmp.loc[tmp.isin(ix)].index.unique()
+    exits_region = pd.Series(
+        np.zeros(shape=(len(networkIDs),), dtype="bool"),
+        index=networkIDs,
+        name="exits_region",
+    )
+    exits_region.loc[
+        exits_region.index.isin(ix) | exits_region.index.isin(connects_to_exit)
+    ] = True
 
     ### Extract downstream barrier type.
     # on the downstream side of a network, there will only ever be a single barrier.
@@ -135,17 +158,26 @@ def calculate_network_stats(df, barrier_joins, joins):
     #     {"xmin": "min", "ymin": "min", "xmax": "max", "ymax": "max"}
     # )
 
+    sizeclasses = (
+        df.groupby(level=0).sizeclass.nunique().astype("uint8").rename("sizeclasses")
+    )
+
     ### Collect results
     results = (
         calculate_geometry_stats(df)
         # .join(bounds)
         .join(calculate_floodplain_stats(df))
-        .join(df.groupby(level=0).sizeclass.nunique().rename("sizeclasses"))
+        .join(sizeclasses)
         .join(upstream_counts)
         .join(barriers_downstream)
         .join(num_downstream)
         .join(to_ocean)
+        .join(exits_region)
+        .join(root_huc2)
     )
+
+    # any that flow into ocean also leave the HUC2
+    results.loc[results.flows_to_ocean, "exits_region"] = True
 
     results[upstream_counts.columns] = (
         results[upstream_counts.columns].fillna(0).astype("uint16")
@@ -159,43 +191,99 @@ def calculate_network_stats(df, barrier_joins, joins):
 
 def calculate_geometry_stats(df):
     """Calculate total network miles, free-flowing miles (not in waterbodies),
-    length-weighted sinuosity, and count of segments
+    free-flowing unaltered miles (not in waterbodies, not altered), total
+    perennial miles, total free-flowing unaltered perennial miles, and count of
+    segments.
 
     Parameters
     ----------
     df : DataFrame
-        must have length, sinuosity, waterbody, and be indexed on networkID
+        must have length, waterbody, altered, and perennial, and be indexed on
+        networkID
 
     Returns
     -------
     DataFrame
-        contains miles, free_miles, sinuosity, segments
+        contains total_miles, free_miles, *_miles, segments
     """
 
-    network_length = df.groupby(level=0)[["length"]].sum()
-    free_length = (
-        df.loc[~df.waterbody].groupby(level=0).length.sum().rename("free_length")
+    # total lengths used for upstream network
+    total_length = df["length"].groupby(level=0).sum().rename("total")
+    perennial_length = (
+        df.loc[~df.intermittent, "length"].groupby(level=0).sum().rename("perennial")
     )
-
-    temp_df = df[["length", "sinuosity"]].join(network_length, rsuffix="_total")
-
-    # Calculate length-weighted sinuosity
-    wtd_sinuosity = (
-        (temp_df.sinuosity * (temp_df.length / temp_df.length_total))
+    altered_length = (
+        df.loc[df.altered, "length"].groupby(level=0).sum().rename("altered")
+    )
+    unaltered_length = (
+        df.loc[~df.altered, "length"].groupby(level=0).sum().rename("unaltered")
+    )
+    perennial_unaltered_length = (
+        df.loc[~(df.intermittent | df.altered), "length"]
         .groupby(level=0)
         .sum()
-        .rename("sinuosity")
+        .rename("perennial_unaltered")
     )
 
-    lengths = network_length.join(free_length)
-    lengths.free_length = lengths.free_length.fillna(0)
-
-    # convert meters to miles
-    miles = (lengths * 0.000621371).rename(
-        columns={"length": "miles", "free_length": "free_miles"}
+    # free lengths used for downstream network; these deduct lengths in waterbodies
+    free_length = df.loc[~df.waterbody, "length"].groupby(level=0).sum().rename("free")
+    free_perennial = (
+        df.loc[~(df.intermittent | df.waterbody), "length"]
+        .groupby(level=0)
+        .sum()
+        .rename("free_perennial")
+    )
+    free_altered_length = (
+        df.loc[df.altered & (~df.waterbody), "length"]
+        .groupby(level=0)
+        .sum()
+        .rename("free_altered")
+    )
+    free_unaltered_length = (
+        df.loc[~(df.waterbody | df.altered), "length"]
+        .groupby(level=0)
+        .sum()
+        .rename("free_unaltered")
+    )
+    free_perennial_unaltered = (
+        df.loc[~(df.intermittent | df.waterbody | df.altered), "length"]
+        .groupby(level=0)
+        .sum()
+        .rename("free_perennial_unaltered")
     )
 
-    return miles.join(wtd_sinuosity).join(df.groupby(level=0).size().rename("segments"))
+    lengths = (
+        pd.DataFrame(total_length)
+        .join(perennial_length)
+        .join(altered_length)
+        .join(unaltered_length)
+        .join(perennial_unaltered_length)
+        .join(free_length)
+        .join(free_perennial)
+        .join(free_altered_length)
+        .join(free_unaltered_length)
+        .join(free_perennial_unaltered)
+        .fillna(0)
+        * METERS_TO_MILES
+    ).astype("float32")
+    lengths.columns = [f"{c}_miles" for c in lengths.columns]
+
+    # calculate percent altered
+    lengths["pct_unaltered"] = (
+        100 * (lengths.unaltered_miles / lengths.total_miles)
+    ).astype("float32")
+    # Note: if there are no perennial miles, this should be 0
+    lengths["pct_perennial_unaltered"] = 0
+    lengths.loc[lengths.perennial_miles > 0, "pct_perennial_unaltered"] = 100 * (
+        lengths.perennial_unaltered_miles / lengths.perennial_miles
+    )
+    lengths["pct_perennial_unaltered"] = lengths.pct_perennial_unaltered.astype(
+        "float32"
+    )
+
+    segments = df.groupby(level=0).size().astype("uint32").rename("segments")
+
+    return lengths.join(segments)
 
 
 def calculate_floodplain_stats(df):
@@ -214,9 +302,11 @@ def calculate_floodplain_stats(df):
 
     # Sum floodplain and natural floodplain values, and calculate percent natural floodplain
     # Read in associated floodplain info and join
-    fp_stats = pd.read_feather(
-        data_dir / "floodplains" / "floodplain_stats.feather"
-    ).set_index("NHDPlusID")
+    fp_stats = (
+        pd.read_feather(data_dir / "floodplains" / "floodplain_stats.feather")
+        .set_index("NHDPlusID")
+        .drop(columns=["HUC2"])
+    )
     df = df.join(fp_stats, on="NHDPlusID")
 
     pct_nat_df = df[["floodplain_km2", "nat_floodplain_km2"]].groupby(level=0).sum()

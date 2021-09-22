@@ -5,7 +5,7 @@ export const layers = [
     title: 'Basin',
     bins: {
       dams: [100, 500, 750, 1000, 1500, 2000, 2500, 5000, 25000],
-      barriers: [10, 100, 200, 300, 500, 1000, 2500],
+      small_barriers: [10, 100, 200, 300, 500, 1000, 2500],
     },
     fill: {
       minzoom: 0,
@@ -13,7 +13,12 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[2, 0.4], [4, 0.25], [5, 0.25], [6, 0.1]],
+          stops: [
+            [2, 0.4],
+            [4, 0.25],
+            [5, 0.25],
+            [6, 0.1],
+          ],
         },
       },
     },
@@ -42,7 +47,7 @@ export const layers = [
     title: 'Subbasin',
     bins: {
       dams: [10, 50, 100, 200, 250, 300, 400, 500, 5000],
-      barriers: [25, 50, 100, 150, 1500],
+      small_barriers: [25, 50, 100, 150, 1500],
     },
     fill: {
       minzoom: 6,
@@ -50,7 +55,11 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[6, 0.1], [7, 0.25], [8, 0.1]],
+          stops: [
+            [6, 0.1],
+            [7, 0.25],
+            [8, 0.1],
+          ],
         },
       },
     },
@@ -60,7 +69,12 @@ export const layers = [
       paint: {
         'line-width': {
           base: 0.1,
-          stops: [[6, 0.1], [8, 0.5], [8, 1.5], [9, 2.5]],
+          stops: [
+            [6, 0.1],
+            [8, 0.5],
+            [8, 1.5],
+            [9, 2.5],
+          ],
         },
       },
     },
@@ -71,7 +85,7 @@ export const layers = [
     title: 'Subwatershed',
     bins: {
       dams: [1, 10, 25, 100, 200],
-      barriers: [1, 10, 25, 100, 200],
+      small_barriers: [1, 10, 25, 100, 200],
     },
     fill: {
       minzoom: 8,
@@ -79,7 +93,13 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[8, 0.1], [9, 0.25], [11, 0.25], [12, 0.15], [14, 0]],
+          stops: [
+            [8, 0.1],
+            [9, 0.25],
+            [11, 0.25],
+            [12, 0.15],
+            [14, 0],
+          ],
         },
       },
     },
@@ -89,7 +109,10 @@ export const layers = [
       paint: {
         'line-width': {
           base: 0.1,
-          stops: [[8, 0.1], [9.5, 0.5]],
+          stops: [
+            [8, 0.1],
+            [9.5, 0.5],
+          ],
         },
       },
     },
@@ -100,7 +123,7 @@ export const layers = [
     title: 'Level 3 Ecoregion',
     bins: {
       dams: [100, 250, 500, 1000, 2500, 5000, 7500, 10000, 25000],
-      barriers: [10, 100, 250, 500, 1000, 2500, 10000],
+      small_barriers: [10, 100, 250, 500, 1000, 2500, 10000],
     },
     fill: {
       minzoom: 0,
@@ -108,7 +131,12 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[2, 0.4], [4, 0.25], [6, 0.25], [7, 0.1]],
+          stops: [
+            [2, 0.4],
+            [4, 0.25],
+            [6, 0.25],
+            [7, 0.1],
+          ],
         },
       },
     },
@@ -137,7 +165,7 @@ export const layers = [
     title: 'Level 4 Ecoregion',
     bins: {
       dams: [10, 100, 250, 500, 750, 1000, 1500, 2000, 10000],
-      barriers: [10, 50, 100, 250, 500, 1000, 2000],
+      small_barriers: [10, 50, 100, 250, 500, 1000, 2000],
     },
     fill: {
       minzoom: 7,
@@ -145,7 +173,13 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[7, 0.1], [8, 0.25], [11, 0.25], [12, 0.15], [14, 0]],
+          stops: [
+            [7, 0.1],
+            [8, 0.25],
+            [11, 0.25],
+            [12, 0.15],
+            [14, 0],
+          ],
         },
       },
     },
@@ -155,7 +189,12 @@ export const layers = [
       paint: {
         'line-width': {
           base: 0.1,
-          stops: [[6, 0.1], [8, 0.5], [10, 1], [12, 1.5]],
+          stops: [
+            [6, 0.1],
+            [8, 0.5],
+            [10, 1],
+            [12, 1.5],
+          ],
         },
       },
     },
@@ -166,7 +205,7 @@ export const layers = [
     title: 'State',
     bins: {
       dams: [500, 1000, 5000, 10000, 15000, 20000, 25000],
-      barriers: [100, 250, 500, 1000, 2500, 5000, 10000],
+      small_barriers: [100, 250, 500, 1000, 2500, 5000, 10000],
     },
     fill: {
       minzoom: 0,
@@ -174,7 +213,12 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[2, 0.4], [4, 0.25], [6, 0.25], [7, 0.1]],
+          stops: [
+            [2, 0.4],
+            [4, 0.25],
+            [6, 0.25],
+            [7, 0.1],
+          ],
         },
       },
     },
@@ -203,7 +247,7 @@ export const layers = [
     title: 'County',
     bins: {
       dams: [10, 50, 100, 250, 1000],
-      barriers: [10, 25, 50, 100, 500],
+      small_barriers: [10, 25, 50, 100, 500],
     },
     fill: {
       minzoom: 5,
@@ -211,7 +255,13 @@ export const layers = [
       paint: {
         'fill-opacity': {
           base: 0.25,
-          stops: [[5, 0.1], [6, 0.25], [9, 0.25], [10, 0.15], [14, 0]],
+          stops: [
+            [5, 0.1],
+            [6, 0.25],
+            [9, 0.25],
+            [10, 0.15],
+            [14, 0],
+          ],
         },
       },
     },
@@ -221,77 +271,19 @@ export const layers = [
       paint: {
         'line-width': {
           base: 0.1,
-          stops: [[6, 0.1], [8, 0.5], [10, 1], [12, 1.5]],
+          stops: [
+            [6, 0.1],
+            [8, 0.5],
+            [10, 1],
+            [12, 1.5],
+          ],
         },
       },
     },
   },
 ]
 
-export const flowlinesLayer = {
-  id: 'flowlines',
-  source: 'dams_network',
-  'source-layer': 'networks',
-  minzoom: 11,
-  type: 'line',
-  paint: {
-    'line-opacity': {
-      base: 0,
-      stops: [[11, 0], [12, 0.1], [14, 0.5], [16, 1]],
-    },
-    'line-width': {
-      base: 0.1,
-      stops: [[11, 0], [12, 0.1], [14, 0.25], [15, 0.5], [16, 1], [17, 1.5]],
-    },
-    'line-color': '#1891ac',
-  },
-}
-
-const networkHighlightStyle = {
-  'source-layer': 'networks',
-  minzoom: 10,
-  type: 'line',
-  filter: ['==', 'networkID', Infinity],
-  paint: {
-    'line-opacity': {
-      base: 0,
-      stops: [[11, 0.1], [12, 0.1], [14, 0.5], [16, 1]],
-    },
-    'line-width': {
-      base: 0.1,
-      stops: [[10, 0], [12, 0.5], [14, 2], [15, 3], [16, 4]],
-    },
-    'line-color': '#fd8d3c',
-  },
-}
-
 export const flowlineLegend = {}
-
-const damNetworksHighlightLayer = {
-  ...networkHighlightStyle,
-  id: 'dams_network',
-  source: 'dams_network',
-  // visible by default
-  layout: {
-    visibility: 'visible',
-  },
-}
-
-const barrierNetworksHighlightLayer = {
-  ...networkHighlightStyle,
-  id: 'barriers_network',
-  source: 'barriers_network',
-  // hidden by default
-  layout: {
-    visibility: 'none',
-  },
-}
-
-export const networkLayers = [
-  flowlinesLayer,
-  damNetworksHighlightLayer,
-  barrierNetworksHighlightLayer,
-]
 
 export const waterfallsLayer = {
   id: 'waterfalls',
@@ -302,10 +294,29 @@ export const waterfallsLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': '#2ca25f',
-    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4], [16, 6]] },
-    'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [10, 1],
+        [12, 2],
+        [14, 4],
+        [16, 6],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [10, 0.25],
+        [12, 0.5],
+        [14, 1],
+      ],
+    },
     'circle-stroke-color': '#FFFFFF',
-    'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 2]] },
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [12, 1],
+        [14, 2],
+      ],
+    },
   },
 }
 
@@ -322,10 +333,29 @@ export const damsSecondaryLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': '#fec44f',
-    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4], [16, 6]] },
-    'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [10, 1],
+        [12, 2],
+        [14, 4],
+        [16, 6],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [10, 0.25],
+        [12, 0.5],
+        [14, 1],
+      ],
+    },
     'circle-stroke-color': '#FFFFFF',
-    'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 2]] },
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [12, 1],
+        [14, 2],
+      ],
+    },
   },
 }
 
@@ -339,10 +369,29 @@ export const pointLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': '#c51b8a',
-    'circle-radius': { stops: [[10, 1], [12, 2], [14, 4], [16, 8]] },
-    'circle-opacity': { stops: [[10, 0.25], [12, 0.5], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [10, 1],
+        [12, 2],
+        [14, 4],
+        [16, 8],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [10, 0.25],
+        [12, 0.5],
+        [14, 1],
+      ],
+    },
     'circle-stroke-color': '#FFFFFF',
-    'circle-stroke-width': { stops: [[10, 0], [12, 1], [14, 3]] },
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [12, 1],
+        [14, 3],
+      ],
+    },
   },
 }
 
@@ -355,10 +404,26 @@ export const backgroundPointLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': '#999',
-    'circle-radius': { stops: [[12, 1], [14, 3], [16, 6]] },
-    'circle-opacity': { stops: [[12, 0.5], [14, 1]] },
+    'circle-radius': {
+      stops: [
+        [12, 1],
+        [14, 3],
+        [16, 6],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [12, 0.5],
+        [14, 1],
+      ],
+    },
     'circle-stroke-color': '#666',
-    'circle-stroke-width': { stops: [[12, 0], [14, 1]] },
+    'circle-stroke-width': {
+      stops: [
+        [12, 0],
+        [14, 1],
+      ],
+    },
   },
 }
 
@@ -399,3 +464,55 @@ export const pointHighlightLayer = {
     'circle-stroke-color': '#f03b20',
   },
 }
+
+export const pointHoverLayer = {
+  id: 'point-hover',
+  source: {
+    type: 'geojson',
+    data: null,
+  },
+  type: 'circle',
+  minzoom: 7,
+  maxzoom: 24,
+  paint: {
+    'circle-color': '#fd8d3c',
+    'circle-radius': {
+      stops: [
+        [10, 2],
+        [12, 3],
+        [14, 5],
+        [16, 9],
+      ],
+    },
+    'circle-stroke-width': 1,
+    'circle-stroke-color': '#f03b20',
+  },
+}
+
+export const regionLayers = [
+  {
+    id: 'region-mask',
+    source: 'summary',
+    'source-layer': 'mask',
+    type: 'fill',
+    maxzoom: 8,
+    filter: ['==', ['get', 'id'], 'total'],
+    paint: {
+      'fill-opacity': 0.6,
+      'fill-color': '#AAA',
+    },
+  },
+  {
+    id: 'region-bounds',
+    source: 'summary',
+    'source-layer': 'boundary',
+    type: 'line',
+    maxzoom: 8,
+    filter: ['==', ['get', 'id'], 'total'],
+    paint: {
+      'line-opacity': 0.8,
+      'line-width': 2,
+      'line-color': '#4A0025',
+    },
+  },
+]

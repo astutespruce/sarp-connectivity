@@ -4,7 +4,7 @@ import { graphql } from 'gatsby'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { Box, Container, Divider, Flex, Paragraph, Heading } from 'theme-ui'
 
-import Layout from 'components/Layout'
+import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
 
@@ -45,7 +45,7 @@ const MethodsPage = ({ data: { headerImage } }) => (
         </Heading>
         <ol>
           <li>
-            All coastline and underground conduit segments were first removed
+            All coastline and underground conduit reaches were first removed
             from the NHDPlusHR flowlines dataset. &quot;Loops&quot; were
             retained for purposes of snapping waterfalls and barriers below, but
             barriers that snapped to these loops were excluded from the network
@@ -64,7 +64,7 @@ const MethodsPage = ({ data: { headerImage } }) => (
             considered free-flowing for the network connectivity analysis.
           </li>
           <li>
-            In some regions, network segments were manually removed from the
+            In some regions, network reaches were manually removed from the
             analysis (e.g., Chesapeake Bay).
           </li>
         </ol>
@@ -216,7 +216,7 @@ const MethodsPage = ({ data: { headerImage } }) => (
           <li>
             Metrics for <Link to="/metrics/length">network length</Link>,{' '}
             <Link to="/metrics/complexity">network complexity</Link>,{' '}
-            <Link to="/metrics/sinuosity">sinuosity</Link>, and{' '}
+            <Link to="/metrics/unaltered">percent unaltered</Link>, and{' '}
             <Link to="/metrics/landcover">natural landcover</Link> were
             calculated based on these functional networks.
           </li>
@@ -280,7 +280,7 @@ const MethodsPage = ({ data: { headerImage } }) => (
           <li>
             Metrics for <Link to="/metrics/length">network length</Link>,{' '}
             <Link to="/metrics/complexity">network complexity</Link>,{' '}
-            <Link to="/metrics/sinuosity">sinuosity</Link>, and{' '}
+            <Link to="/metrics/unaltered">percent unaltered</Link>, and{' '}
             <Link to="/metrics/landcover">natural landcover</Link> were
             calculated based on these functional networks.
           </li>

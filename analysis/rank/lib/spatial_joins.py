@@ -27,7 +27,7 @@ def add_spatial_joins(df):
     print("Joining to protected areas")
     protected = gp.read_feather(boundaries_dir / "protected_areas.feather")
     df = unique_sjoin(df, protected)
-    df.OwnerType = df.OwnerType.fillna(-1).astype("int8")
+    df.OwnerType = df.OwnerType.fillna(0).astype("uint8")
     df.ProtectedLand = df.ProtectedLand.fillna(False).astype("bool")
 
     ### Priority layers

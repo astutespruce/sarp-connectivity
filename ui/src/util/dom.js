@@ -30,3 +30,17 @@ export const saveToStorage = (key, data) => {
 
 export const getFromStorage = (key) =>
   JSON.parse(window.localStorage.getItem(key))
+
+/**
+ * Extract query params into a key / value object
+ * @param {Object} location - location object from Gatsby
+ * @returns Object
+ */
+export const getQueryParams = (location) => {
+  if (!(location && hasWindow)) return []
+
+  return [...new window.URLSearchParams(location.search).entries()].reduce(
+    (prev, [key, value]) => Object.assign(prev, { [key]: value }),
+    {}
+  )
+}

@@ -1,17 +1,19 @@
 from pathlib import Path
 import warnings
 
+
 import geopandas as gp
 import pygeos as pg
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 
-from analysis.constants import STATES, SARP_STATES, CRS, GEO_CRS
+from analysis.constants import STATES, SARP_STATES, CRS, GEO_CRS, REGION_STATES
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 data_dir = Path("data")
 out_dir = data_dir / "boundaries"
+ui_dir = Path("ui/data")
 
 state_filename = data_dir / "boundaries/source/tl_2019_us_state/tl_2019_us_state.shp"
 wbd_gdb = data_dir / "nhd/source/wbd/WBD_National_GDB/WBD_National_GDB.gdb"
@@ -20,10 +22,7 @@ wbd_gdb = data_dir / "nhd/source/wbd/WBD_National_GDB/WBD_National_GDB.gdb"
 ### Construct region and SARP boundaries from states
 print("Processing states...")
 state_df = (
-    read_dataframe(
-        state_filename,
-        columns=["STUSPS", "STATEFP", "NAME"],
-    )
+    read_dataframe(state_filename, columns=["STUSPS", "STATEFP", "NAME"],)
     .to_crs(CRS)
     .rename(columns={"STUSPS": "id", "NAME": "State", "STATEFP": "STATEFIPS"})
 )
@@ -39,44 +38,38 @@ write_dataframe(
     out_dir / "region_states.gpkg",
 )
 
-# dissolve to create outer state boundary
+# dissolve to create outer state boundary for total analysis area and regions
 bnd_df = gp.GeoDataFrame(
-    {"geometry": pg.union_all(state_df.geometry.values.data)},
-    index=[0],
+    [{"geometry": pg.union_all(state_df.geometry.values.data), "id": "total"},]
+    + [
+        {
+            "geometry": pg.union_all(
+                state_df.loc[
+                    state_df.id.isin(REGION_STATES[region])
+                ].geometry.values.data
+            ),
+            "id": region,
+        }
+        for region in REGION_STATES
+    ],
     crs=CRS,
 )
 write_dataframe(bnd_df, out_dir / "region_boundary.gpkg")
 bnd = bnd_df.geometry.values.data[0]
+sarp_bnd = bnd_df.loc[bnd_df.id == "se"].geometry.values.data[0]
+
+bnd_geo = bnd_df.to_crs(GEO_CRS)
+bnd_geo["bbox"] = pg.bounds(bnd_geo.geometry.values.data).round(2).tolist()
+
+# used to render maps
+with open(ui_dir / "region_bounds.json", "w") as out:
+    out.write(bnd_geo[["id", "bbox"]].to_json(orient="records"))
 
 # create mask
 world = pg.box(-180, -85, 180, 85)
-bnd_geo = pg.union_all(bnd_df.to_crs(GEO_CRS).geometry.values.data)
-mask = pg.normalize(pg.difference(world, bnd_geo))
-write_dataframe(
-    gp.GeoDataFrame({"geometry": [mask]}, crs=GEO_CRS), out_dir / "region_mask.gpkg"
-)
-
-sarp_state_df = state_df.loc[state_df.id.isin(SARP_STATES)].copy()
-sarp_state_df.to_feather(out_dir / "sarp_states.feather")
-write_dataframe(
-    sarp_state_df[["State", "geometry"]].rename(columns={"State": "id"}),
-    out_dir / "sarp_states.gpkg",
-)
-
-sarp_bnd_df = gp.GeoDataFrame(
-    {"geometry": pg.union_all(sarp_state_df.geometry.values.data)},
-    index=[0],
-    crs=CRS,
-)
-write_dataframe(sarp_bnd_df, out_dir / "sarp_boundary.gpkg")
-sarp_bnd_df.to_feather(out_dir / "sarp_boundary.feather")
-sarp_bnd = sarp_bnd_df.geometry.values.data[0]
-
-bnd_geo = pg.union_all(sarp_bnd_df.to_crs(GEO_CRS).geometry.values.data)
-mask = pg.normalize(pg.difference(world, bnd_geo))
-write_dataframe(
-    gp.GeoDataFrame({"geometry": [mask]}, crs=GEO_CRS), out_dir / "sarp_mask.gpkg"
-)
+bnd_mask = bnd_geo.copy()
+bnd_mask["geometry"] = pg.normalize(pg.difference(world, bnd_mask.geometry.values.data))
+write_dataframe(bnd_mask, out_dir / "region_mask.gpkg")
 
 
 ### Extract HUC4 units that intersect boundaries
@@ -160,38 +153,3 @@ sarp_huc4_df = huc4_df.loc[huc4_df.HUC4.isin(sarp_huc4)].reset_index(drop=True)
 write_dataframe(sarp_huc4_df, out_dir / "sarp_huc4.gpkg")
 sarp_huc4_df.to_feather(out_dir / "sarp_huc4.feather")
 
-
-### Extract states in HUC4 boundary (not used)
-# tree = pg.STRtree(huc4_df.geometry.values.data)
-# ix = np.unique(
-#     tree.query_bulk(state_df.geometry.values.data, predicate="intersects")[0]
-# )
-# ix.sort()
-
-# state_df = state_df.iloc[ix].reset_index(drop=True)
-# write_dataframe(state_df, out_dir / "states.gpkg")
-# state_df.to_feather(out_dir / "states.feather")
-
-
-# tree = pg.STRtree(sarp_huc4_df.geometry.values.data)
-# ix = np.unique(
-#     tree.query_bulk(state_df.geometry.values.data, predicate="intersects")[0]
-# )
-# ix.sort()
-
-# sarp_state_df = state_df.iloc[ix].reset_index(drop=True)
-# write_dataframe(sarp_state_df, out_dir / "sarp_states.gpkg")
-# sarp_state_df.to_feather(out_dir / "sarp_states.feather")
-
-
-# ### create dissolved huc4 boundary (super slow and not used)
-# print("Creating dissolved HUC4 boundary")
-# huc4_bnd = pg.union_all(huc4_df.geometry.values.data)
-# huc4_bnd_df = gp.GeoDataFrame({"geometry": huc4_bnd}, crs=CRS)
-# write_dataframe(huc4_df, out_dir / "region_huc4_boundary.gpkg")
-# huc4_bnd_df.to_feather(out_dir / "region_huc4_boundary.feather")
-
-# sarp_huc4_bnd = pg.union_all(sarp_huc4_df.geometry.values.data)
-# sarp_huc4_bnd_df = gp.GeoDataFrame({"geometry": sarp_huc4_bnd}, crs=CRS)
-# write_dataframe(sarp_huc4_df, out_dir / "sarp_huc4_boundary.gpkg")
-# sarp_huc4_bnd_df.to_feather(out_dir / "sarp_huc4_boundary.feather")

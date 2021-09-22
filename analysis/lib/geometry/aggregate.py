@@ -4,7 +4,7 @@ import pygeos as pg
 import numpy as np
 
 from analysis.lib.geometry.explode import explode
-from analysis.lib.graph import find_adjacent_groups
+from analysis.lib.graph import DirectedGraph
 
 
 def dissolve(df, by, grid_size=None, agg=None, allow_multi=True, op="union"):
@@ -73,11 +73,24 @@ def union_or_combine(geometries, grid_size=None, op="union"):
     MultiPolygon
     """
 
-    if not (pg.get_type_id(geometries) == 3).all():
+    geom_types = np.unique(pg.get_type_id(geometries))
+
+    if set(geom_types) - {0, 1, 3}:
         print("Inputs to union or combine must be single-part geometries")
 
+    if geom_types[0] == 0:
+        multi_type = pg.points
+    elif geom_types[0] == 1:
+        multi_type = pg.multilinestrings
+    elif geom_types[0] == 3:
+        multi_type = pg.multipolygons
+    else:
+        raise ValueError(
+            f"Aggregate geometry type not supported for GeometryType {geom_types[0]}"
+        )
+
     if len(geometries) == 1:
-        return pg.multipolygons(geometries)
+        return multi_type(geometries)
 
     tree = pg.STRtree(geometries)
     left, right = tree.query_bulk(geometries, predicate="intersects")
@@ -88,13 +101,12 @@ def union_or_combine(geometries, grid_size=None, op="union"):
 
     # no intersections, just combine parts
     if len(left) == 0:
-        return pg.multipolygons(geometries)
+        return multi_type(geometries)
 
     # find groups of contiguous geometries and union them together individually
     contiguous = np.sort(np.unique(np.concatenate([left, right])))
     discontiguous = np.setdiff1d(np.arange(len(geometries), dtype="uint"), contiguous)
-    # TODO: update to use DirectedGraph
-    groups = find_adjacent_groups(left, right)
+    groups = DirectedGraph.from_arrays(left, right).components()
 
     parts = []
 
@@ -110,7 +122,7 @@ def union_or_combine(geometries, grid_size=None, op="union"):
 
     parts.extend(pg.get_parts(geometries[discontiguous]))
 
-    return pg.multipolygons(parts)
+    return multi_type(parts)
 
 
 def find_contiguous_groups(geometries):
@@ -132,8 +144,7 @@ def find_contiguous_groups(geometries):
     left = left[ix]
     right = right[ix]
 
-    # TODO: update to use DirectedGraph
-    groups = find_adjacent_groups(left, right)
+    groups = DirectedGraph.from_arrays(left, right).components()
     groups = (
         pd.DataFrame(
             {i: list(g) for i, g in enumerate(groups)}.items(),

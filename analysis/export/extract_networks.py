@@ -30,7 +30,6 @@ def read_flowlines(path):
             "TotDASqKm",
             "sizeclass",
             "length",
-            "sinuosity",
             "waterbody",
             "geometry",
         ],

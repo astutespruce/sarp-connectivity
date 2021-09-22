@@ -12,7 +12,20 @@ import Dams from './Dams'
 import { STATE_FIPS, CONNECTIVITY_TEAMS } from '../../../../config/constants'
 
 const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
-  const { id, layerId, name = '', dams = 0, total_barriers = 0 } = summaryUnit
+  const teams = {}
+  Object.values(CONNECTIVITY_TEAMS).forEach((region) => {
+    Object.entries(region).forEach(([state, info]) => {
+      teams[state] = info
+    })
+  })
+
+  const {
+    id,
+    layerId,
+    name = '',
+    dams = 0,
+    totalSmallBarriers = 0,
+  } = summaryUnit
 
   const layerConfig = layers.filter(({ id: lyrID }) => lyrID === layerId)[0]
 
@@ -30,9 +43,9 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
     state = id
   }
 
-  const team = state ? CONNECTIVITY_TEAMS[state] : null
+  const team = state ? teams[state] : null
 
-  const hasBarriers = barrierType === 'dams' ? dams > 0 : total_barriers > 0
+  const hasBarriers = barrierType === 'dams' ? dams > 0 : totalSmallBarriers > 0
   const downloaderConfig = {
     layer: layerId,
     summaryUnits: [{ id }],
@@ -137,10 +150,10 @@ UnitDetails.propTypes = {
     layerId: PropTypes.string.isRequired,
     name: PropTypes.string,
     dams: PropTypes.number,
-    on_network_dams: PropTypes.number,
-    barriers: PropTypes.number,
-    total_barriers: PropTypes.number,
-    on_network_barriers: PropTypes.number,
+    onNetworkDams: PropTypes.number,
+    smallBarriers: PropTypes.number,
+    totalSmallBarriers: PropTypes.number,
+    onNetworkSmallBarriers: PropTypes.number,
     crossings: PropTypes.number,
     miles: PropTypes.number,
   }).isRequired,

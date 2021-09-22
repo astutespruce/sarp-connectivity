@@ -1,8 +1,9 @@
 export const maskFill = {
-  id: 'sarp-mask',
-  source: 'sarp',
+  id: 'mask',
+  source: 'summary',
   'source-layer': 'mask',
   type: 'fill',
+  filter: ['==', ['get', 'id'], 'total'],
   paint: {
     'fill-opacity': 0.6,
     'fill-color': '#AAA',
@@ -10,10 +11,11 @@ export const maskFill = {
 }
 
 export const maskOutline = {
-  id: 'sarp-outline',
-  source: 'sarp',
+  id: 'mask-outline',
+  source: 'summary',
   'source-layer': 'boundary',
   type: 'line',
+  filter: ['==', ['get', 'id'], 'total'],
   paint: {
     'line-opacity': 0.8,
     'line-width': 2,
@@ -24,7 +26,7 @@ export const maskOutline = {
 // Used to capture click events from the unit layer
 export const unitFill = {
   id: 'unit-fill',
-  source: 'sarp',
+  source: 'summary',
   // 'source-layer': '', // provided by specific layer
   // minzoom: 0, // provided by specific layer
   // maxzoom: 24, // provided by specific layer
@@ -39,7 +41,7 @@ export const unitFill = {
 
 export const unitOutline = {
   id: 'unit-outline',
-  source: 'sarp',
+  source: 'summary',
   // 'source-layer': '', // provided by specific layer
   // minzoom: 0, // provided by specific layer
   // maxzoom: 24, // provided by specific layer
@@ -64,7 +66,7 @@ export const unitOutline = {
 
 export const parentOutline = {
   id: 'unit-parent-outline',
-  source: 'sarp',
+  source: 'summary',
   // 'source-layer': '', // provided by specific layer
   // minzoom: 0, // provided by specific layer
   // maxzoom: 24, // provided by specific layer
@@ -90,7 +92,7 @@ export const parentOutline = {
 // highlight is visible at all scales
 export const unitHighlightFill = {
   id: 'unit-highlight-fill',
-  source: 'sarp',
+  source: 'summary',
   // 'source-layer': '', // provided by specific layer
   type: 'fill',
   minzoom: 0,
@@ -108,7 +110,7 @@ export const unitHighlightFill = {
 export const unitHighlightOutline = {
   id: 'unit-highlight-outline',
   type: 'line',
-  source: 'sarp',
+  source: 'summary',
   // 'source-layer': '', // provided by specific layer
   minzoom: 0,
   maxzoom: 24,
@@ -128,65 +130,6 @@ export const unitHighlightOutline = {
 export const unitLayers = [unitFill, unitOutline]
 
 export const unitHighlightLayers = [unitHighlightFill, unitHighlightOutline]
-
-export const flowlinesLayer = {
-  id: 'flowlines',
-  source: 'dams_network',
-  'source-layer': 'networks',
-  minzoom: 9,
-  type: 'line',
-  paint: {
-    'line-opacity': {
-      base: 0,
-      stops: [
-        [10, 0.1],
-        [12, 0.5],
-        [14, 1],
-      ],
-    },
-    'line-width': {
-      base: 0.1,
-      stops: [
-        [10, 0.1],
-        [11, 0.5],
-        [15, 1],
-        [17, 1.5],
-      ],
-    },
-    'line-color': '#1891ac',
-  },
-}
-
-export const networkHighlightLayer = {
-  id: 'networks',
-  // source: '', // set dynamically when map loads based on barrierType
-  'source-layer': 'networks',
-  minzoom: 9,
-  type: 'line',
-  filter: ['==', 'networkID', Infinity],
-  paint: {
-    'line-opacity': {
-      base: 0,
-      stops: [
-        [10, 0.1],
-        [11, 0.5],
-        [14, 1],
-        [16, 1],
-      ],
-    },
-    'line-width': {
-      base: 0.1,
-      stops: [
-        [10, 0.1],
-        [11, 1],
-        [14, 2.5],
-        [15, 3],
-        [16, 4],
-      ],
-    },
-    'line-color': '#fd8d3c',
-  },
-}
 
 export const backgroundPoint = {
   id: 'point-no-network',
@@ -302,8 +245,8 @@ export const topRank = {
     'circle-color': '#c51b8a',
     'circle-radius': {
       stops: [
-        [5, 4],
-        [6, 6],
+        [6, 2],
+        [8, 6],
         [14, 8],
       ],
     },
@@ -336,7 +279,7 @@ export const lowerRank = {
     'circle-radius': {
       stops: [
         [5, 1],
-        [7, 4],
+        [8, 4],
         [10, 6],
         [14, 8],
       ],
@@ -484,9 +427,32 @@ export const pointHighlight = {
   },
 }
 
+export const pointHover = {
+  id: 'point-hover',
+  source: {
+    type: 'geojson',
+    data: null,
+  },
+  type: 'circle',
+  minzoom: 7,
+  maxzoom: 24,
+  paint: {
+    'circle-color': '#fd8d3c',
+    'circle-radius': {
+      stops: [
+        [6, 2],
+        [8, 6],
+        [14, 8],
+      ],
+    },
+    'circle-stroke-width': 1,
+    'circle-stroke-color': '#f03b20',
+  },
+}
+
 const priorityFillStyle = {
   // id: // provided by specific layer
-  source: 'sarp',
+  source: 'summary',
   'source-layer': 'HUC8',
   type: 'fill',
   minzoom: 0,
@@ -501,7 +467,7 @@ const priorityFillStyle = {
 const priorityOutlineStyle = {
   // id: // provided by specific layer
   'source-layer': 'HUC8',
-  source: 'sarp',
+  source: 'summary',
   type: 'line',
   minzoom: 0,
   maxzoom: 24,

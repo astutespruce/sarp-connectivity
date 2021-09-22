@@ -1,19 +1,22 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
+import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
 
-import Layout, { ClientOnly } from 'components/Layout'
+import { Layout, ClientOnly } from 'components/Layout'
 
 import { ToggleButton } from 'components/Button'
 import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
-import { Map, UnitDetails, SoutheastSummary } from 'components/Summary'
+import { Map, UnitDetails, RegionSummary } from 'components/Summary'
 import BarrierDetails from 'components/BarrierDetails'
+import { toCamelCaseFields } from 'util/data'
+import { getQueryParams } from 'util/dom'
 
 import { SYSTEMS } from '../../config/constants'
 
 const barrierTypeOptions = [
   { value: 'dams', label: 'dams' },
-  { value: 'barriers', label: 'road-related barriers' },
+  { value: 'small_barriers', label: 'road-related barriers' },
 ]
 
 const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
@@ -21,12 +24,15 @@ const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
   label,
 }))
 
-const SummaryPage = () => {
+const SummaryPage = ({ location }) => {
   const [system, setSystem] = useState('HUC')
   const [barrierType, setBarrierType] = useState('dams')
+  const barrierTypeRef = useRef('dams') // ref that parallels above state for use in callbacks
   const [searchFeature, setSearchFeature] = useState(null)
   const [selectedUnit, setSelectedUnit] = useState(null)
   const [selectedBarrier, setSelectedBarrier] = useState(null)
+
+  const { region = 'total' } = getQueryParams(location)
 
   const handleSearch = useCallback((nextSearchFeature) => {
     setSearchFeature(nextSearchFeature)
@@ -34,6 +40,7 @@ const SummaryPage = () => {
 
   const handleSetBarrierType = (nextBarrierType) => {
     setBarrierType(nextBarrierType)
+    barrierTypeRef.current = nextBarrierType
     setSelectedBarrier(null)
   }
 
@@ -43,7 +50,7 @@ const SummaryPage = () => {
   }
 
   const handleSelectUnit = (feature) => {
-    setSelectedUnit(feature)
+    setSelectedUnit(toCamelCaseFields(feature))
     setSelectedBarrier(null)
   }
 
@@ -53,7 +60,25 @@ const SummaryPage = () => {
   }
 
   const handleSelectBarrier = (feature) => {
-    setSelectedBarrier(feature)
+    console.log('selected:', feature)
+
+    // promote appropriate network results
+    if (feature && feature.barrierType === 'waterfalls') {
+      const curBarrierType = barrierTypeRef.current
+      const networkFields = {}
+      Object.keys(feature)
+        .filter((k) => k.endsWith(curBarrierType))
+        .forEach((field) => {
+          networkFields[field.split('_')[0]] = feature[field]
+        })
+      setSelectedBarrier({
+        ...feature,
+        ...networkFields,
+      })
+    } else {
+      setSelectedBarrier(feature)
+    }
+
     setSelectedUnit(null)
   }
 
@@ -80,7 +105,8 @@ const SummaryPage = () => {
     )
   } else {
     sidebarContent = (
-      <SoutheastSummary
+      <RegionSummary
+        region={region}
         barrierType={barrierType}
         system={system}
         onSearch={handleSearch}
@@ -102,6 +128,7 @@ const SummaryPage = () => {
         >
           <ClientOnly>
             <Map
+              region={region}
               barrierType={barrierType}
               system={system}
               searchFeature={searchFeature}
@@ -131,6 +158,12 @@ const SummaryPage = () => {
   )
 }
 
-SummaryPage.propTypes = {}
+SummaryPage.propTypes = {
+  location: PropTypes.object,
+}
+
+SummaryPage.defaultProps = {
+  location: null,
+}
 
 export default SummaryPage

@@ -34,7 +34,7 @@ def query_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
     return csv_response(df)
 
 
-@router.get("/barriers/query/{layer}")
+@router.get("/small_barriers/query/{layer}")
 def query_barriers(request: Request, extractor: BarriersRecordExtractor = Depends()):
     """Return subset of small barriers based on summary unit ids within layer.
 

@@ -5,6 +5,7 @@ import { Text } from 'theme-ui'
 import { Tab, Tabs } from 'components/Tabs'
 import ScoresList from './ScoresList'
 import { ScoresPropType } from './proptypes'
+import { barrierTypeLabels } from '../../../config/constants'
 
 const tabs = [
   { id: 'custom', label: 'Selected Area' },
@@ -14,45 +15,44 @@ const tabs = [
 
 const Scores = ({ barrierType, scores }) => {
   const hasCustom = scores.custom && scores.custom.ncwc
+  const hasSoutheast = scores.se && scores.se.ncwc
 
-  const availableTabs = hasCustom ? tabs : tabs.slice(1, tabs.length)
+  const availableTabs = []
+  if (hasCustom) {
+    availableTabs.push(tabs[0])
+  }
+  availableTabs.push(tabs[1])
+  if (hasSoutheast) {
+    availableTabs.push(tabs[2])
+  }
 
   return (
     <>
-      <Text sx={{ fontSize: '1.25rem' }}>
-        Compare to other {barrierType} in the
+      <Text variant="help" sx={{ mb: '1rem', fontSize: 0 }}>
+        Tiers range from 20 (lowest) to 1 (highest).
       </Text>
-      <Tabs
-        sx={{
-          '>div:first-of-type': {
-            bg: 'transparent',
-          },
-          '>div:first-of-type + div': {
-            m: '-1rem -1rem 2rem',
-          },
-          button: {
-            borderBottom: '0.25rem solid',
-            borderBottomColor: 'transparent',
-            bg: 'transparent',
-            '&:hover': {
-              borderBottomColor: 'grey.2',
-            },
-          },
-          'button[data=is-active]': {
-            borderBottomColor: 'blue.5',
-          },
-        }}
-      >
-        {availableTabs.map(({ id, label }) => (
-          <Tab key={id} id={id} label={label}>
-            <Text variant="help" sx={{ my: '2rem', fontSize: 0 }}>
-              Tiers range from 20 (lowest) to 1 (highest).
-            </Text>
+      <Text>
+        Compare to other {barrierTypeLabels[barrierType]} in the{' '}
+        {availableTabs.length === 1 ? 'state:' : null}
+      </Text>
 
-            <ScoresList {...scores[id]} />
-          </Tab>
-        ))}
-      </Tabs>
+      {availableTabs.length > 1 ? (
+        <Tabs
+          sx={{
+            borderTop: '2px solid',
+            borderTopColor: 'grey.2',
+            mx: '-0.75rem',
+          }}
+        >
+          {availableTabs.map(({ id, label }) => (
+            <Tab key={id} id={id} label={label}>
+              <ScoresList {...scores[id]} />
+            </Tab>
+          ))}
+        </Tabs>
+      ) : (
+        <ScoresList {...scores[availableTabs[0].id]} />
+      )}
     </>
   )
 }
@@ -60,7 +60,7 @@ const Scores = ({ barrierType, scores }) => {
 Scores.propTypes = {
   barrierType: PropTypes.string.isRequired,
   scores: PropTypes.shape({
-    se: ScoresPropType.isRequired,
+    se: ScoresPropType,
     state: ScoresPropType.isRequired,
     custom: ScoresPropType,
   }).isRequired,

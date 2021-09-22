@@ -1,6 +1,5 @@
 """Constants used in other scripts."""
 
-
 # Full Southeast + USFWS R2 / R6 region
 STATES = {
     "AL": "Alabama",
@@ -31,6 +30,7 @@ STATES = {
     "WY": "Wyoming",
 }
 
+
 SARP_STATES = [
     "AL",
     "AR",
@@ -48,6 +48,28 @@ SARP_STATES = [
     "TX",
     "VA",
 ]
+
+SARP_STATE_NAMES = [STATES[s] for s in SARP_STATES]
+
+
+# Note: some states overlap multiple regions
+REGION_STATES = {
+    # Southeast is SARP states
+    "se": SARP_STATES,
+    # great plains / intermountain west
+    "gpiw": [
+        "CO",
+        "IA",  # NOTE: temporary member
+        "KS",
+        "MT",
+        "ND",
+        "NE",
+        "SD",
+        "WY",
+        "UT",
+    ],
+    "sw": ["AZ", "NM", "OK", "TX"],
+}
 
 
 # NETWORK_TYPES determines the type of network analysis we are doing
@@ -93,6 +115,8 @@ LARGE_WB_FLOWLINE_LENGTH = 1000
 LARGE_WB_AREA = 0.25
 
 # Arbitrary cutoff, but seemed reasonable from visual inspection
+# WARNING: there are dams that have longer pipelines; these can usually be detected
+# after building networks by inspecting the flows_to_ocean attribute.
 MAX_PIPELINE_LENGTH = 250  # meters
 
 
@@ -122,6 +146,7 @@ DAM_FS_COLS = [
     "Diversion",
     "FishScreen",
     "ScreenType",
+    "BarrierSeverity",
 ]
 
 DAM_COLS = [
@@ -142,6 +167,7 @@ DAM_COLS = [
     "Recon",
     "PassageFacility",
     "BarrierStatus",
+    "BarrierSeverity",
     "PotentialFeasibility",
     "Diversion",
     "FishScreen",
@@ -151,7 +177,7 @@ DAM_COLS = [
 
 SMALL_BARRIER_COLS = [
     "SARPUniqueID",
-    "AnalysisId",
+    "Recon",
     "ManualReview",
     "LocalID",
     "Crossing_Code",
@@ -272,7 +298,8 @@ RECON_TO_FEASIBILITY = {
     19: 10,  # should be removed from analysis
     20: 5,
     21: 6,
-    22: 11,
+    22: 11,  # should be removed from analysis
+    23: 11,  # should be removed from analysis
 }
 
 # Associated recon values
@@ -418,12 +445,50 @@ CONVERT_TO_NONLOOP = {
         # for networks to be built correctly
         24000100384878
     ],
+    "10": [23001300034513, 23001300009083, 23001300078683, 23001300043943],
+}
+
+# List of NHDPlusIDs to convert from non-loops to loops based on inspection of
+# the network topology
+CONVERT_TO_LOOP = {
+    "03": [15000600190797],
+    "07": [22000200040459],
+    "10": [
+        23001200078773,
+        23001200056308,
+        23000900105437,
+        23000900021463,
+        23000900147355,
+        23001300009084,
+        23001300078800,
+    ],
+    "12": [
+        30000600405017,
+        30000600473005,
+        30000600322829,
+        30000100041107,
+        30000600358059,
+        30000100041107,
+        30000600405017,
+        30000600473005,
+    ],
+    "14": [41000500061307, 41000500103219],
+    "15": [
+        40000500295847,
+        40000500338303,
+        40000200002386,
+        40000200028407,
+        40000200028408,
+        40000200037070,
+        40000400082917,
+        40000300030341,
+    ],
 }
 
 # List of NHDPlusIDs to remove due to issues with NHD
 REMOVE_IDS = {
     # Invalid loops
-    "02": [10000300073811, 10000300021333]
+    "02": [10000300073811, 10000300021333],
 }
 
 # List of NHDPlusIDs that flow into marine based on visual inspection
@@ -443,5 +508,200 @@ CONVERT_TO_MARINE = {
     ],
     "12": [30000800214326, 30000100041238, 30000100041306, 30000100041205],
     "13": [35000100017108],
+    "15": [
+        # not sure why Sea of Cortez is missing; only tried to get larger flowlines
+        40000100109305,
+        40000100063029,
+        40000100076858,
+        40000100047410,
+        40000100047193,
+        40000200019148,
+        40000200045053,
+        40000100063066,
+        40000100030662,
+        40000100045950,
+        40000100076853,
+        40000100001623,
+        40000100078479,
+        40000100030661,
+        40000100109150,
+        40000100063029,
+        40000100047645,
+        40000100001679,
+        40000100016964,
+        40000100032417,
+        40000100076858,
+        40000100047685,
+        40000100047686,
+        40000100063067,
+        40000100109187,
+        40000100017000,
+        40000100063070,
+        40000100001715,
+        40000100017001,
+        40000100109152,
+        40000100016967,
+        40000100063030,
+        40000100109151,
+        40000100109153,
+        40000100109155,
+        40000100016970,
+        40000100063031,
+        40000100047593,
+        40000100122808,
+        40000100107531,
+        40000100122809,
+        40000100032240,
+        40000100047410,
+        40000100016768,
+        40000100108886,
+        40000100078233,
+        40000100001269,
+        40000100001242,
+        40000100047216,
+        40000100093593,
+        40000100108755,
+        40000100047218,
+        40000100031951,
+        40000100062602,
+        40000100047193,
+        40000100047194,
+        40000100108732,
+        40000100078120,
+        40000100001245,
+        40000100015372,
+        40000100092443,
+        40000100030648,
+        40000100000001,
+        40000100016389,
+        40000100046974,
+        40000100016387,
+        40000100016338,
+        40000100093330,
+        40000100000808,
+        40000100000747,
+        40000100031432,
+        40000100077558,
+        40000100046545,
+        40000100000606,
+        40000100061775,
+        40000100000468,
+        40000100107954,
+        40000100061707,
+        40000100107861,
+        40000100046251,
+        40000100122810,
+        40000100092750,
+        40000100061669,
+        40000100107841,
+        40000100046247,
+        40000100015654,
+        40000200021993,
+        40000200030671,
+        40000200056366,
+        40000200047448,
+        40000200004051,
+        40000200038593,
+        40000200003898,
+        40000200064738,
+        40000200021128,
+        40000200038262,
+        40000200038150,
+        40000200046714,
+        40000200064305,
+        40000200003384,
+        40000200046627,
+        40000200029305,
+        40000200011917,
+        40000200020689,
+        40000200037816,
+        40000200046432,
+        40000200069667,
+        40000200019148,
+        40000200002612,
+        40000200001852,
+        40000200010314,
+    ],
+}
+
+
+# List of NHDPlusIDs that are of pipeline type and greater than MAX_PIPELINE_LENGTH
+# but must be kept as they flow through dams; removing them would break networks
+KEEP_PIPELINES = {
+    "02": [10000200114743],
+    "05": [24000900019974,],
+    "10": [23001800189071, 23001900161939, 23001900224128, 23001300078800],
+    "11": [
+        21000300167343,
+        21000100003686,
+        21000100195231,
+        21000200033207,
+        21000200088822,
+        21001200028686,
+        21000300088386,
+    ],
+    "12": [
+        30000200076102,
+        30000200079902,
+        30000200050128,
+        30000200094873,
+        30000700052449,
+        30000600420287,
+        30000600395555,
+        30000400078280,
+        30000200014136,
+    ],
+    "13": [35000600209336],
+    "14": [41000300075075, 41000300083432],
+    "17": [55001200060404],
+    "21": [85000100010153],
+}
+
+# data structure of NHDPlusIDs where upstream, downstream are the original values (used to join into data)
+# to be replaced with new_upstream or new_downstream
+# IMPORTANT: this only works where the original flowlines have not been split
+JOIN_FIXES = {
+    "10": [
+        # These two segments are Teton River into Marias River, which are backwards in NHD
+        {
+            "upstream": 23001300022801,
+            "downstream": 23001300034513,
+            "new_upstream": 23001300034497,
+        },
+        {
+            "upstream": 23001300034513,
+            "downstream": 0,
+            "new_downstream": 23001300080880,
+        },
+    ]
+}
+
+### data structure of NHDPlusIDs where upstream, downstream are the original values (used to join into data)
+# to be removed; they are likely replaced by other fixes
+REMOVE_JOINS = {"10": [{"upstream": 23001300034497, "downstream": 0}]}
+
+
+# List of NHDPlusIDs that are exit points draining a given HUC2
+# NOTE: these are only applicable for HUC2s that drain into other HUCS2s outside the analysis region
+# they are not specified for HUC2s that can be traversed to the ocean
+HUC2_EXITS = {
+    "09": [65000200059360, 65000100013652],
+    "14": [41000100046769, 41000100047124],
+    "15": [
+        # NOTE: the first two are irrigation ditches
+        40000200002291,
+        40000200063130,
+        40000100060519,
+    ],
+    # Note: 16 is internally draining and omitted here
+    # Note: 17 has many exit points because it is a partial HUC2; most of these
+    # can be removed if the whole HUC2 is analyzed
+    "17": [
+        55001200000017,
+        55001200064544,
+        55001100042595,
+        55001100129754,
+        55001100087083,
+    ],
 }
 

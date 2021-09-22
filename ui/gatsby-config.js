@@ -14,8 +14,8 @@ module.exports = {
     version,
     date,
     siteUrl: process.env.GATSBY_SITE_URL || defaultHost,
-    title: `Southeast Aquatic Barrier Prioritization Tool`,
-    shortTitle: `Southeast Aquatic Barrier Tool`,
+    title: `Aquatic Barrier Prioritization Tool`,
+    shortTitle: `Aquatic Barrier Tool`,
     description: `A tool to help prioritize aquatic barriers for removal or mitigation.`,
     author: `Brendan C. Ward`,
     googleAnalyticsId: process.env.GATSBY_GOOGLE_ANALYTICS_ID,
@@ -34,6 +34,7 @@ module.exports = {
     DEV_SSR: false, // appears to throw '"filePath" is not allowed to be empty' when true
     PARALLEL_SOURCING: process.env.NODE_ENV !== `production`, // uses a lot of memory on server
     PRESERVE_WEBPACK_CACHE: process.env.NODE_ENV === `production`,
+    LMDB_STORE: true,
   },
   plugins: [
     {
@@ -60,6 +61,12 @@ module.exports = {
     `gatsby-plugin-image`,
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
+    {
+      resolve: `gatsby-plugin-create-client-paths`,
+      options: {
+        prefixes: [`/report/*`],
+      },
+    },
     {
       resolve: `gatsby-source-filesystem`,
       options: {

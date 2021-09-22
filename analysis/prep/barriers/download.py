@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 import geopandas as gp
 
 from analysis.constants import (
-    SARP_STATES,
     RECON_TO_FEASIBILITY,
     DAM_FS_COLS,
     CRS,
@@ -57,7 +56,6 @@ WATERFALLS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/servi
 
 
 # Root URLS of feature service
-# Note: PR is not yet available
 DAM_URLS = {
     "AL": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Alabama_Dam_Inventory_11_15_2018/FeatureServer/0",
     "AR": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Arkansas_Dam_Inventory_11122018/FeatureServer/0",
@@ -151,6 +149,7 @@ if ix.max():
             ix.sum()
         )
     )
+    print(df.loc[ix].groupby("State").size())
 
 # DEBUG ONLY - SARPID must be present; follow up with SARP if not
 df.SARPID = df.SARPID.fillna("").astype("str")

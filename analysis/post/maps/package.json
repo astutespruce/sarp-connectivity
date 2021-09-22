@@ -1,0 +1,19 @@
+{
+  "name": "sarp-connectivity-region-maps",
+  "version": "0.1.0",
+  "description": "Generate region maps for SARP Connectivity Tool",
+  "main": "index.js",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "esm": "^3.2.25",
+    "mbgl-renderer": "^0.7.2"
+  },
+  "devDependencies": {
+    "prettier": "^2.3.2"
+  },
+  "scripts": {
+    "maps": "node -r esm index.js"
+  },
+  "author": "Brendan C. Ward",
+  "license": "MIT"
+}

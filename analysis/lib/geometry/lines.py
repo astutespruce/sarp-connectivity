@@ -1,3 +1,4 @@
+import geopandas as gp
 import numpy as np
 import pandas as pd
 import pygeos as pg
@@ -30,7 +31,7 @@ def calculate_sinuosity(geometries):
     ix = straight_line_distance > 0
 
     # by definition, all values must be at least 1, so clip lower bound
-    sinuosity[ix] = (pg.length(geometries[ix]) / straight_line_distance).clip(1)
+    sinuosity[ix] = (pg.length(geometries[ix]) / straight_line_distance[ix]).clip(1)
 
     if isinstance(geometries, pd.Series):
         return pd.Series(sinuosity, index=geometries.index)
@@ -127,3 +128,29 @@ def cut_lines_at_multipoints(lines, points, tolerance=1e-6):
         out[i] = new_line
 
     return out
+
+
+def aggregate_lines(df, by):
+    """Like dissolve, but aggregates lines to multilinestrings instead of
+    unioning them together, which is much slower.
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+    by : string or list-like
+        field(s) to aggregate by
+
+    Returns
+    -------
+    GeoDataFrame of multilinestrings
+    """
+
+    tmp = pd.DataFrame(df.copy())
+    tmp["geometry"] = tmp.geometry.values.data
+    return gp.GeoDataFrame(
+        tmp.groupby(by=by)
+        .geometry.apply(pg.multilinestrings)
+        .rename("geometry")
+        .reset_index(),
+        crs=df.crs,
+    )

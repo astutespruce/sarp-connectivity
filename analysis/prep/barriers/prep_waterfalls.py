@@ -54,6 +54,7 @@ print("Reading waterfalls")
 
 df = gp.read_feather(src_dir / "waterfalls.feather")
 
+df.fall_type = df.fall_type.fillna("").str.strip()
 
 ### Drop records that indicate waterfall is not likely a current fish passage barrier
 ix = df.fall_type.isin(["dam", "historical rapids", "historical waterfall", "rapids"])
@@ -80,6 +81,8 @@ df.Stream = df.Stream.fillna("").str.strip()
 df.GNIS_Name = df.GNIS_Name.fillna("").str.strip()
 ix = (df.Stream == "") & (df.GNIS_Name != "")
 df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
+
+df = df.drop(columns=["GNIS_Name"])
 
 
 ### Add persistant sourceID based on original IDs
@@ -171,16 +174,32 @@ print("Found {} waterfalls within {}m of dams".format(len(ix), DUPLICATE_TOLERAN
 ### Join to line atts
 flowlines = read_feathers(
     [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
-    columns=["lineID", "NHDPlusID", "sizeclass", "StreamOrde", "FCode", "loop"],
+    columns=[
+        "lineID",
+        "NHDPlusID",
+        "GNIS_Name",
+        "sizeclass",
+        "StreamOrde",
+        "FCode",
+        "loop",
+    ],
 ).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
+
+
+# Add name from snapped flowline if not already present
+df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()
+ix = (df.Stream == "") & (df.GNIS_Name != "")
+df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
+df = df.drop(columns=["GNIS_Name"])
+
 
 # calculate stream type
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE)
 
 # calculate intermittent + ephemeral
-df["intermittent"] = ~df.FCode.isin([46003, 46007])
+df["intermittent"] = df.FCode.isin([46003, 46007])
 
 
 # Fix missing field values
@@ -208,9 +227,9 @@ df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {0} snapped waterfalls".format(len(df)))
-df[["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop"]].to_feather(
-    snapped_dir / "waterfalls.feather",
-)
+df[
+    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
+].to_feather(snapped_dir / "waterfalls.feather",)
 
 write_dataframe(df, qa_dir / "snapped_waterfalls.gpkg")
 

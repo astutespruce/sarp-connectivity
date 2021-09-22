@@ -43,13 +43,13 @@ NID dams were obtained by Kat in early 2021 and standardized to SARP schema.
 
 These were processed and joined with NABD, which provide updated (snapped) locations of many dams in NID using `special/prep_nid_dams_outer_huc4s.py`.
 
-This included joining in dams that were previously outside SARP states from prior versions of this analysis.  These include dams from the Northeast aquatic connectivity project (TNC) and dams that were manually reviewed updates of NID.
+This included joining in dams that were previously outside SARP states from prior versions of this analysis. These include dams from the Northeast aquatic connectivity project (TNC) and dams that were manually reviewed updates of NID.
 
 This step should only be necessary to run once each time the HUC4s outside the core states in the analysis are updated or newer versions of NID are incorporated.
 
 ### Prep: Dams in states outside SARP boundary
 
-Previous versions of this analysis included dams outside SARP states, which are now part of the analysis region.  Some of these were manually reviewed and possibly snapped to correct locations on the aquatic network.
+Previous versions of this analysis included dams outside SARP states, which are now part of the analysis region. Some of these were manually reviewed and possibly snapped to correct locations on the aquatic network.
 
 These are used to prepare an initial snapping dataset for areas outside SARP using `special/prep_snapping_dataset_outside_sarp.py`.
 
@@ -59,7 +59,6 @@ This should only be run once to create the initial manual snapping dataset for a
 
 After an initial splice with the state-level datasets, this was then exported
 to create the snapping dataset to be hosted on AGOL by SARP for non-SARP states using `special/export_snapping_dataset.py`.
-
 
 ### Processing
 

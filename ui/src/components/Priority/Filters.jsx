@@ -12,9 +12,11 @@ import { formatNumber } from 'util/format'
 import BackLink from './BackLink'
 import SubmitButton from './SubmitButton'
 import StartOverButton from './StartOverButton'
+import { barrierTypeLabels } from '../../../config/constants'
 
 const Filters = ({ onBack, onSubmit }) => {
   const barrierType = useBarrierType()
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
   const { state, filterConfig, resetFilters } = useCrossfilter()
 
   const { filteredCount, hasFilters } = state
@@ -48,7 +50,7 @@ const Filters = ({ onBack, onSubmit }) => {
         <BackLink label="modify area of interest" onClick={handleBack} />
 
         <Heading as="h3" sx={{ fontSize: '1.5rem' }}>
-          Filter {barrierType}
+          Filter {barrierTypeLabel}
         </Heading>
 
         <Flex
@@ -87,8 +89,8 @@ const Filters = ({ onBack, onSubmit }) => {
         <Box sx={{ color: 'grey.7', fontSize: 2, mb: '1rem' }}>
           <ExpandableParagraph
             variant="help"
-            snippet={`[OPTIONAL] Use the filters below to select the ${barrierType} that meet
-        your needs. Click on a bar to select ${barrierType} with that value.`}
+            snippet={`[OPTIONAL] Use the filters below to select the ${barrierTypeLabel} that meet
+        your needs. Click on a bar to select ${barrierTypeLabel} with that value.`}
           >
             [OPTIONAL] Use the filters below to select the {barrierType} that
             meet your needs. Click on a bar to select {barrierType} with that
@@ -119,7 +121,7 @@ const Filters = ({ onBack, onSubmit }) => {
         <SubmitButton
           disabled={filteredCount === 0}
           onClick={onSubmit}
-          label={`Prioritize ${barrierType}`}
+          label={`Prioritize ${barrierTypeLabel}`}
         />
       </Flex>
     </Flex>

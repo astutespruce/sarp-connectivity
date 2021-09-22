@@ -117,20 +117,23 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     # get last point, is furthest downstream
     tmp = df.loc[df.index.isin(ix), ["geometry"]].copy()
     tmp["geometry"] = pg.get_point(tmp.geometry.values.data, -1)
-    tree = pg.STRtree(df.geometry.values.data)
-    left, right = tree.query_bulk(tmp.geometry.values.data, predicate="intersects")
+
+    target = df.loc[~df.index.isin(ix)]
+
+    # only search against other flowlines
+    tree = pg.STRtree(target.geometry.values.data)
+    # search within a tolerance of 0.001, these are very very close
+    left, right = tree.nearest_all(tmp.geometry.values.data, max_distance=0.001)
 
     pairs = pd.DataFrame(
         {
             "left": tmp.index.take(left),
-            "right": df.index.take(right),
+            "right": target.index.take(right),
             "source": tmp.geometry.values.data.take(left),
             # take upstream / downstream points of matched lines
             "upstream_target": pg.get_point(df.geometry.values.data.take(right), 0),
         }
     )
-    # drop self-intersections
-    pairs = pairs.loc[pairs.left != pairs.right]
 
     # drop any pairs where the other side is also a terminal (these appear as
     # V shaped tiny networks that need to be left as is)

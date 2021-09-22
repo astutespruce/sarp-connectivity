@@ -9,7 +9,8 @@ export const useStateSummary = () =>
             State {
               id
               dams
-              total_barriers
+              reconDams: recon_dams
+              totalSmallBarriers: total_small_barriers
             }
           }
         }

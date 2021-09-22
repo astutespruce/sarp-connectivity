@@ -42,7 +42,10 @@ def prep_new_flowlines(flowlines, new_segments):
     """
     # join in data from flowlines into new segments
     new_flowlines = new_segments.join(
-        flowlines.drop(columns=["geometry", "lineID", "xmin", "ymin", "xmax", "ymax"]),
+        flowlines.drop(
+            columns=["geometry", "lineID", "xmin", "ymin", "xmax", "ymax"],
+            errors="ignore",
+        ),
         on="origLineID",
     )
 
@@ -52,16 +55,19 @@ def prep_new_flowlines(flowlines, new_segments):
         new_flowlines.geometry.values.data
     ).astype("float32")
 
-    bounds = pd.DataFrame(
-        geo_bounds(new_flowlines.geometry.values.data),
-        columns=["xmin", "ymin", "xmax", "ymax"],
-        index=new_flowlines.index,
-    )
+    # Not currently used
+    # bounds = pd.DataFrame(
+    #     geo_bounds(new_flowlines.geometry.values.data),
+    #     columns=["xmin", "ymin", "xmax", "ymax"],
+    #     index=new_flowlines.index,
+    # )
 
-    return new_flowlines.join(bounds)
+    # return new_flowlines.join(bounds)
+
+    return new_flowlines
 
 
-def remove_pipelines(flowlines, joins, max_pipeline_length=100):
+def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
     """Remove pipelines that are above max length,
     based on contiguous length of pipeline segments.
 
@@ -69,9 +75,12 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     ----------
     flowlines : GeoDataFrame
     joins : DataFrame
-            joins between flowlines
+        joins between flowlines
     max_pipeline_length : int, optional (default: 100)
-            length above which pipelines are dropped
+        length above which pipelines are dropped
+    keep_ids : list-like (default: None)
+        list of pipeline IDs to keep
+
 
     Returns
     -------
@@ -80,7 +89,12 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100):
     """
 
     start = time()
-    pids = flowlines.loc[flowlines.FType == 428].index
+
+    keep_ids = keep_ids or []
+
+    pids = flowlines.loc[
+        (flowlines.FType == 428) & (~flowlines.NHDPlusID.isin(keep_ids))
+    ].index
     pjoins = find_joins(
         joins, pids, downstream_col="downstream_id", upstream_col="upstream_id"
     )[["downstream_id", "upstream_id"]]
@@ -224,6 +238,11 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
         segments.linepos
         >= pg.length(segments.flowline.values.data) - SNAP_ENDPOINT_TOLERANCE
     )
+
+    # if line length is < SNAP_ENDPOINT_TOLERANCE, then barrier could be tagged
+    # to both sides, which is incorrect.  Default to on_downstream.
+    segments.loc[segments.on_upstream & segments.on_downstream, "on_upstream"] = False
+
     print(
         f"{segments.on_upstream.sum():,} barriers on upstream point of their segments"
     )

@@ -1,6 +1,4 @@
 from collections import OrderedDict
-from functools import reduce
-from time import time
 
 import numpy as np
 import pandas as pd
@@ -10,15 +8,25 @@ SCENARIOS = OrderedDict(
     {
         # NetworkConnectivity
         "NC": ["GainMiles"],
+        "PNC": ["PerennialGainMiles"],
         # Watershed Condition
-        "WC": ["Sinuosity", "Landcover", "SizeClasses"],
+        "WC": ["PercentUnaltered", "Landcover", "SizeClasses"],
+        "PWC": ["PercentPerennialUnaltered", "Landcover", "SizeClasses"],
+        # Network Connectivity Plus Watershed Condition
+        "NCWC": ["NC", "WC"],
+        "PNCWC": ["PNC", "PWC"],
     }
 )
-# Add combination last to ensure it runs last
-SCENARIOS["NCWC"] = ["NC", "WC"]  # Network Connectivity Plus Watershed Condition
 
 # Metric fields that are inputs of the above scenarios
-METRICS = ["GainMiles", "Sinuosity", "Landcover", "SizeClasses"]
+METRICS = [
+    "GainMiles",
+    "PerennialGainMiles",
+    "PercentUnaltered",
+    "PercentPerennialUnaltered",
+    "Landcover",
+    "SizeClasses",
+]
 
 
 def calculate_score(series, ascending=True):
@@ -120,11 +128,9 @@ def calculate_tier(series):
     return (np.digitize(relative_value, bins) + 1).astype("uint8")
 
 
-def calculate_tiers(df, group_field=None, prefix=""):
+def calculate_tiers(df):
     """Calculate tiers for each input scenario, which is based on combining scores for
     each scenario's inputs.
-
-    Calculations will only be performed where the "HasNetwork" field is true; otherwise results will be -1.
 
     Parameters
     ----------
@@ -132,62 +138,27 @@ def calculate_tiers(df, group_field=None, prefix=""):
         Input data frame containing at least all input fields
     group_field: str, optional (default: None)
         Name of a column to use for grouping tier calculation (all scores will be based on values within each group).
-    prefix: str, optional (default: "")
-        Prefix to add to the resulting score and tier fields.
 
     Returns
     -------
     pandas.DataFrame
-        returns data frame with a score field (_score) and tier field (_tier) for each scenario.
-        Scores are on a 0-100 (percent) scale.
+        returns data frame indexed on original index, with a score field (_score)
+        and tier field (_tier) for each scenario. Scores are on a 0-100 (percent)
+        scale.
     """
 
-    columns = METRICS.copy()
-    if group_field is not None:
-        columns.append(group_field)
+    # calculate scores for individual fields
+    results = pd.DataFrame(
+        {f"{field}_score": calculate_score(df[field]) for field in METRICS},
+        index=df.index,
+    )
 
-    # Subset just the metrics fields for just those records with networks that are
-    # to be ranked (exclude unranked beneficial invasive barriers)
-    results = df.loc[df.Ranked, columns].copy()
+    # calculate composite score and tier
+    for scenario, inputs in SCENARIOS.items():
+        input_scores = [f"{field}_score" for field in inputs]
+        results[f"{scenario}_score"] = calculate_composite_score(results[input_scores])
+        results[f"{scenario}_tier"] = calculate_tier(results[f"{scenario}_score"])
 
-    groups = results[group_field].unique() if group_field is not None else [None]
-
-    for group in groups:
-        row_index = (
-            results[group_field] == group if group is not None else results.index
-        )
-        # calculate score for each input field
-        for field in METRICS:
-            results.loc[row_index, "{}_score".format(field)] = calculate_score(
-                results.loc[row_index, field]
-            )
-
-        # calculate composite score and tier
-        for scenario, inputs in SCENARIOS.items():
-            input_scores = ["{}_score".format(field) for field in inputs]
-            score_field = "{}_score".format(scenario)
-
-            results.loc[row_index, score_field] = calculate_composite_score(
-                results.loc[row_index][input_scores]
-            )
-            results.loc[row_index, "{}_tier".format(scenario)] = calculate_tier(
-                results.loc[row_index, score_field]
-            )
-
-    results_fields = results.columns.drop(columns)
-    score_fields = [c for c in results_fields if c.endswith("_score")]
-
-    # convert scores to percent scale
-    results[score_fields] = (results[score_fields] * 100).round()
-
-    # join back to original and fill N/A and fix dtypes
-    df = df.join(results[results_fields])
-    df[results_fields] = df[results_fields].fillna(-1).astype("int8")
-
-    if prefix:
-        df = df.rename(
-            columns={field: "{0}_{1}".format(prefix, field) for field in results_fields}
-        )
-
-    return df
+    # only return tier columns
+    return results[[col for col in results.columns if col.endswith("_tier")]]
 

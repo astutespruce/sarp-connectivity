@@ -9,7 +9,7 @@ export const Provider = ({ children, barrierType }) => (
 
 Provider.propTypes = {
   children: PropTypes.oneOfType([PropTypes.node, PropTypes.element]).isRequired,
-  barrierType: PropTypes.string.isRequired, // "dams" or "barriers"
+  barrierType: PropTypes.string.isRequired, // "dams" or "small_barriers"
 }
 
 export const useBarrierType = () => useContext(Context)

@@ -13,7 +13,7 @@ import {
 } from 'theme-ui'
 
 import { Link } from 'components/Link'
-import Layout from 'components/Layout'
+import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 
 const PrioritizePage = ({ data: { headerImage } }) => (

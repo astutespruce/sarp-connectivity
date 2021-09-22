@@ -5,30 +5,37 @@ import React, {
   useCallback,
   useState,
   useMemo,
+  useLayoutEffect,
 } from 'react'
 import PropTypes from 'prop-types'
 import mapboxgl from 'mapbox-gl'
 
+import { useRegionBounds } from 'components/Data/RegionBounds'
 import {
   Map,
   Legend,
   interpolateExpr,
   SearchFeaturePropType,
+  networkLayers,
 } from 'components/Map'
+import { capitalize } from 'util/format'
 import { isEmptyString } from 'util/string'
 import { COLORS } from './config'
 import {
   layers,
-  networkLayers,
   waterfallsLayer,
   damsSecondaryLayer,
   pointLayer,
   backgroundPointLayer,
   pointHighlightLayer,
+  pointHoverLayer,
   pointLegends,
+  regionLayers,
 } from './layers'
 
-const barrierTypes = ['dams', 'barriers']
+import { barrierTypeLabels } from '../../../config/constants'
+
+const barrierTypes = ['dams', 'small_barriers']
 
 const emptyFeatureCollection = {
   type: 'FeatureCollection',
@@ -36,6 +43,7 @@ const emptyFeatureCollection = {
 }
 
 const SummaryMap = ({
+  region,
   system,
   barrierType,
   selectedUnit,
@@ -45,6 +53,7 @@ const SummaryMap = ({
   onSelectBarrier,
   ...props
 }) => {
+  const regionBounds = useRegionBounds()
   const mapRef = useRef(null)
 
   const [zoom, setZoom] = useState(0)
@@ -54,7 +63,7 @@ const SummaryMap = ({
 
     if (!map) return null
 
-    const [feature] = map.querySourceFeatures('sarp', {
+    const [feature] = map.querySourceFeatures('summary', {
       sourceLayer: layer,
       filter: ['==', 'id', id],
     })
@@ -89,7 +98,7 @@ const SummaryMap = ({
 
         // base config for each layer
         const config = {
-          source: 'sarp',
+          source: 'summary',
           'source-layer': id,
           minzoom,
           maxzoom,
@@ -158,6 +167,15 @@ const SummaryMap = ({
       }
     )
 
+    // Add mask / boundary layers
+    regionLayers.forEach((l) => {
+      const layer = {
+        ...l,
+        filter: ['==', 'id', region],
+      }
+      map.addLayer(layer)
+    })
+
     // Add network layers
     networkLayers.forEach((layer) => {
       map.addLayer(layer)
@@ -169,6 +187,15 @@ const SummaryMap = ({
 
     barrierTypes.forEach((t) => {
       map.addLayer({
+        id: `${t}-background`,
+        source: t,
+        ...backgroundPointLayer,
+        layout: {
+          visibility: barrierType === t ? 'visible' : 'none',
+        },
+      })
+
+      map.addLayer({
         id: t,
         source: t,
         'source-layer': t,
@@ -177,18 +204,10 @@ const SummaryMap = ({
           visibility: barrierType === t ? 'visible' : 'none',
         },
       })
-
-      map.addLayer({
-        id: `${t}-background`,
-        source: t,
-        ...backgroundPointLayer,
-        layout: {
-          visibility: barrierType === t ? 'visible' : 'none',
-        },
-      })
     })
 
-    // Add barrier highlight layer.
+    // Add barrier highlight layers
+    map.addLayer(pointHoverLayer)
     map.addLayer(pointHighlightLayer)
 
     const pointLayers = barrierTypes
@@ -207,18 +226,37 @@ const SummaryMap = ({
     })
     pointLayers.forEach((id) => {
       map.on('mouseenter', id, ({ features: [feature] }) => {
+        if (map.getZoom() <= 7) {
+          return
+        }
+
+        const {
+          geometry: { coordinates },
+        } = feature
+        map.getSource(pointHoverLayer.id).setData({
+          type: 'Point',
+          coordinates,
+        })
+
         /* eslint-disable-next-line no-param-reassign */
         map.getCanvas().style.cursor = 'pointer'
-        const prefix = feature.source === 'waterfalls' ? 'Waterfall: ' : ''
+        const prefix = barrierTypeLabels[feature.source]
+          ? `${capitalize(barrierTypeLabels[feature.source]).slice(
+              0,
+              barrierTypeLabels[feature.source].length - 1
+            )}: `
+          : ''
         const { name } = feature.properties
         tooltip
-          .setLngLat(feature.geometry.coordinates)
+          .setLngLat(coordinates)
           .setHTML(
             `<b>${prefix}${!isEmptyString(name) ? name : 'Unknown name'}</b>`
           )
           .addTo(map)
       })
       map.on('mouseleave', id, () => {
+        map.getSource(pointHoverLayer.id).setData(emptyFeatureCollection)
+
         /* eslint-disable-next-line no-param-reassign */
         map.getCanvas().style.cursor = ''
         tooltip.remove()
@@ -235,7 +273,7 @@ const SummaryMap = ({
 
       const { source, sourceLayer, properties } = feature
 
-      if (source === 'sarp') {
+      if (source === 'summary') {
         // summary unit layer
         onSelectUnit({
           ...properties,
@@ -247,7 +285,7 @@ const SummaryMap = ({
         let HUC12Name = null
 
         if (properties.HUC8 && properties.HUC12) {
-          const [HUC8] = map.querySourceFeatures('sarp', {
+          const [HUC8] = map.querySourceFeatures('summary', {
             sourceLayer: 'HUC8',
             filter: ['==', 'id', properties.HUC8],
           })
@@ -255,7 +293,7 @@ const SummaryMap = ({
             HUC8Name = HUC8.properties.name
           }
 
-          const [HUC12] = map.querySourceFeatures('sarp', {
+          const [HUC12] = map.querySourceFeatures('summary', {
             sourceLayer: 'HUC12',
             filter: ['==', 'id', properties.HUC12],
           })
@@ -270,7 +308,12 @@ const SummaryMap = ({
           },
         } = feature
 
-        // dam or barrier
+        const {
+          hasnetwork = sourceLayer !== 'background',
+          ranked = sourceLayer !== 'background' && source !== 'waterfalls',
+        } = properties
+
+        // dam, barrier, waterfall
         onSelectBarrier({
           ...properties,
           HUC8Name,
@@ -278,7 +321,8 @@ const SummaryMap = ({
           barrierType: source,
           lat,
           lon,
-          hasnetwork: sourceLayer !== 'background',
+          hasnetwork,
+          ranked,
         })
       }
     })
@@ -323,14 +367,16 @@ const SummaryMap = ({
       const visibility = barrierType === t ? 'visible' : 'none'
       map.setLayoutProperty(t, 'visibility', visibility)
       map.setLayoutProperty(`${t}-background`, 'visibility', visibility)
-      map.setLayoutProperty(`${t}_network`, 'visibility', visibility)
-      map.setFilter(`${t}_network`, ['==', 'networkID', Infinity])
     })
+
+    // clear highlighted networks
+    map.setFilter('network-highlight', ['==', 'dams', Infinity])
+    map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
 
     map.setLayoutProperty(
       'dams-secondary',
       'visibility',
-      barrierType === 'barriers' ? 'visible' : 'none'
+      barrierType === 'small_barriers' ? 'visible' : 'none'
     )
   }, [barrierType])
 
@@ -356,7 +402,16 @@ const SummaryMap = ({
       networkID = upnetid
     }
 
-    map.setFilter(`${barrierType}_network`, ['==', 'networkID', networkID])
+    map.setFilter('network-highlight', [
+      'all',
+      ['==', 'mapcode', 0],
+      ['==', barrierType, networkID],
+    ])
+    map.setFilter('network-intermittent-highlight', [
+      'all',
+      ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
+      ['==', barrierType, networkID],
+    ])
 
     map.getSource(id).setData(data)
   }, [selectedBarrier, barrierType])
@@ -465,7 +520,7 @@ const SummaryMap = ({
         label: `${barrierType} not analyzed`,
       })
 
-      if (barrierType === 'barriers') {
+      if (barrierType === 'small_barriers') {
         circles.push({
           ...damsSecondary,
           label: 'dams analyzed for impacts to aquatic connectivity',
@@ -478,24 +533,63 @@ const SummaryMap = ({
       })
     }
 
+    let lines = null
+    if (zoom >= 11) {
+      lines = [
+        {
+          id: 'intermittent',
+          label: 'intermittent / ephemeral stream reach',
+          color: '#1891ac',
+          lineStyle: 'dashed',
+          lineWidth: '2px',
+        },
+        {
+          id: 'altered',
+          label: 'altered stream reach (canal / ditch)',
+          color: 'red',
+          lineWidth: '2px',
+        },
+      ]
+    }
+
     return {
       layerTitle: title,
       legendEntries: {
         patches: [{ id: 'summaryAreas', entries: patchEntries }],
         circles,
+        lines,
       },
     }
   }, [system, barrierType, zoom])
 
+  useLayoutEffect(() => {
+    const { current: map } = mapRef
+
+    if (!map) return
+
+    regionLayers.forEach(({ id }) => {
+      map.setFilter(id, ['==', 'id', region])
+    })
+
+    map.fitBounds(regionBounds[region].bbox, { padding: 100 })
+  }, 
+  // regionBounds deliberately omitted
+  [region])
+
   return (
     <>
-      <Map onCreateMap={handleCreateMap} {...props} />
+      <Map
+        onCreateMap={handleCreateMap}
+        {...props}
+        bounds={regionBounds[region].bbox}
+      />
       <Legend title={layerTitle} {...legendEntries} />
     </>
   )
 }
 
 SummaryMap.propTypes = {
+  region: PropTypes.string,
   system: PropTypes.string.isRequired,
   barrierType: PropTypes.string.isRequired,
   selectedUnit: PropTypes.object,
@@ -506,6 +600,7 @@ SummaryMap.propTypes = {
 }
 
 SummaryMap.defaultProps = {
+  region: 'total',
   selectedUnit: null,
   searchFeature: null,
   selectedBarrier: null,

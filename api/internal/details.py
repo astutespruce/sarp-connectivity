@@ -23,7 +23,7 @@ def get_dam(request: Request, sarp_id: str):
 
     # in case there are multiple dams per SARPID, take the first
     # (data error, should only present during testing)
-    dam = matches.iloc[0:1].copy()
+    dam = matches.iloc[0:1].reset_index()
     dam.columns = [c.lower() for c in dam.columns]
 
     # use the bulk converter to dict (otherwise float32 serialization issues)
@@ -31,7 +31,7 @@ def get_dam(request: Request, sarp_id: str):
     return JSONResponse(content=dam.to_dict(orient="records")[0])
 
 
-@router.get("/barriers/details/{sarp_id}")
+@router.get("/small_barriers/details/{sarp_id}")
 def get_small_barrier(request: Request, sarp_id: str):
     log_request(request)
 
@@ -41,7 +41,7 @@ def get_small_barrier(request: Request, sarp_id: str):
 
     # in case there are multiple dams per SARPID, take the first
     # (data error, should only present during testing)
-    barrier = matches.iloc[0:1].copy()
+    barrier = matches.iloc[0:1].reset_index()
     barrier.columns = [c.lower() for c in barrier.columns]
 
     # use the bulk converter to dict (otherwise float32 serialization issues)

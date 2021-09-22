@@ -11,7 +11,9 @@ import {
   Legend,
   SearchFeaturePropType,
   toGeoJSONPoints,
+  networkLayers,
 } from 'components/Map'
+import { capitalize } from 'util/format'
 import { isEmptyString } from 'util/string'
 
 import { unitLayerConfig } from './config'
@@ -20,10 +22,9 @@ import {
   maskOutline,
   unitLayers,
   unitHighlightLayers,
-  flowlinesLayer,
-  networkHighlightLayer,
   parentOutline,
   pointHighlight,
+  pointHover,
   backgroundPoint,
   excludedPoint,
   includedPoint,
@@ -35,6 +36,8 @@ import {
   priorityWatersheds,
   priorityWatershedLegends,
 } from './layers'
+
+import { barrierTypeLabels } from '../../../config/constants'
 
 const emptyFeatureCollection = {
   type: 'FeatureCollection',
@@ -57,6 +60,8 @@ const PriorityMap = ({
   ...props
 }) => {
   const barrierType = useBarrierType()
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
+
   const {
     state: { filters },
   } = useCrossfilter()
@@ -102,10 +107,8 @@ const PriorityMap = ({
       map.addLayer(maskOutline)
 
       // Add flowlines and network highlight layers
-      map.addLayer(flowlinesLayer)
-      map.addLayer({
-        ...networkHighlightLayer,
-        source: `${barrierType}_network`,
+      networkLayers.forEach((layer) => {
+        map.addLayer(layer)
       })
 
       // Add summary unit layers
@@ -177,15 +180,48 @@ const PriorityMap = ({
           HUC12Name: getHUCName('HUC12', properties.HUC12),
           lat,
           lon,
-          hasnetwork: false,
+          hasnetwork: properties.hasnetwork || false,
+          ranked: properties.ranked || false,
         })
       })
 
       // add waterfalls
       map.addLayer(waterfallsLayer)
+      handleLayerClick(waterfallsLayer.id, (feature) => {
+        const {
+          properties,
+          geometry: {
+            coordinates: [lon, lat],
+          },
+        } = feature
+
+        // promote network fields
+        const networkFields = {}
+        Object.keys(properties)
+          .filter((k) => k.endsWith(barrierType))
+          .forEach((field) => {
+            networkFields[field.split('_')[0]] = properties[field]
+          })
+
+        onSelectBarrier({
+          ...properties,
+          ...networkFields,
+          barrierType: 'waterfalls',
+          HUC8Name: getHUCName('HUC8', properties.HUC8),
+          HUC12Name: getHUCName('HUC12', properties.HUC12),
+          lat,
+          lon,
+          hasnetwork: properties.hasnetwork,
+          ranked: false,
+        })
+      })
+
+      // add secondary dams layer
       map.addLayer({
         ...damsSecondaryLayer,
-        layout: { visibility: barrierType === 'barriers' ? 'visible' : 'none' },
+        layout: {
+          visibility: barrierType === 'small_barriers' ? 'visible' : 'none',
+        },
       })
       handleLayerClick(damsSecondaryLayer.id, (feature) => {
         const {
@@ -202,7 +238,8 @@ const PriorityMap = ({
           HUC12Name: getHUCName('HUC12', properties.HUC12),
           lat,
           lon,
-          hasnetwork: true,
+          hasnetwork: true, // this only shows on-network dams
+          networkType: 'dams', // only show against dams network
         })
       })
 
@@ -230,6 +267,7 @@ const PriorityMap = ({
           lat,
           lon,
           hasnetwork: true,
+          ranked: true,
         })
       })
 
@@ -252,6 +290,7 @@ const PriorityMap = ({
           lat,
           lon,
           hasnetwork: true,
+          ranked: true,
         })
       })
 
@@ -272,6 +311,9 @@ const PriorityMap = ({
         filter: ['<=', `${scenario}_tier`, tierThreshold],
       })
 
+      // Add layer for highlight
+      map.addLayer(pointHover)
+
       // add hover and tooltip to point layers
       const tooltip = new mapboxgl.Popup({
         closeButton: false,
@@ -291,18 +333,54 @@ const PriorityMap = ({
 
       pointLayers.forEach((id) => {
         map.on('mouseenter', id, ({ features: [feature] }) => {
+          if (map.getZoom() <= 7) {
+            return
+          }
+
+          const {
+            properties: { id: barrierId },
+            geometry: { coordinates },
+          } = feature
+
+          let barrierName = ''
+          if (id.startsWith('rank-')) {
+            // get barrier details from tiles
+            const barrier = getBarrierById(barrierId)
+            if (!barrier) {
+              return
+            }
+            barrierName = barrier.properties.name
+          } else {
+            barrierName = feature.properties.name
+          }
+
+          map.getSource(pointHover.id).setData({
+            type: 'Point',
+            coordinates,
+          })
+
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
-          const prefix = feature.source === 'waterfalls' ? 'Waterfall: ' : ''
-          const { name } = feature.properties
+
+          const prefix = barrierTypeLabels[feature.source]
+            ? `${capitalize(barrierTypeLabels[feature.source]).slice(
+                0,
+                barrierTypeLabels[feature.source].length - 1
+              )}: `
+            : ''
+
           tooltip
-            .setLngLat(feature.geometry.coordinates)
+            .setLngLat(coordinates)
             .setHTML(
-              `<b>${prefix}${!isEmptyString(name) ? name : 'Unknown name'}</b>`
+              `<b>${prefix}${
+                !isEmptyString(barrierName) ? barrierName : 'Unknown name'
+              }</b>`
             )
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
+          map.getSource(pointHover.id).setData(emptyFeatureCollection)
+
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = ''
           tooltip.remove()
@@ -343,6 +421,7 @@ const PriorityMap = ({
             lon,
             ...properties,
             hasnetwork: true,
+            ranked: true,
           })
         }
       }
@@ -369,7 +448,7 @@ const PriorityMap = ({
   const getHUCName = (layer, id) => {
     if (!id) return null
 
-    const [result] = mapRef.current.querySourceFeatures('sarp', {
+    const [result] = mapRef.current.querySourceFeatures('summary', {
       sourceLayer: layer,
       filter: ['==', 'id', id],
     })
@@ -381,7 +460,7 @@ const PriorityMap = ({
 
   const selectUnitById = useCallback(
     (id, layer) => {
-      const [feature] = mapRef.current.querySourceFeatures('sarp', {
+      const [feature] = mapRef.current.querySourceFeatures('summary', {
         sourceLayer: layer,
         filter: ['==', 'id', id],
       })
@@ -468,22 +547,39 @@ const PriorityMap = ({
     // setting to empty feature collection effectively hides this layer
     let data = emptyFeatureCollection
     let networkID = Infinity
+    let networkType = barrierType
 
     if (selectedBarrier) {
-      const { lat, lon, upnetid = Infinity } = selectedBarrier
+      console.log('selected', selectedBarrier)
+      const {
+        lat,
+        lon,
+        upnetid = Infinity,
+        networkType: barrierNetworkType = barrierType,
+      } = selectedBarrier
       data = {
         type: 'Point',
         coordinates: [lon, lat],
       }
 
       networkID = upnetid
+      networkType = barrierNetworkType
     }
 
     // highlight upstream network if set otherwise clear it
-    map.setFilter('networks', ['==', 'networkID', networkID])
+    map.setFilter('network-highlight', [
+      'all',
+      ['==', 'mapcode', 0],
+      ['==',  networkType, networkID],
+    ])
+    map.setFilter('network-intermittent-highlight', [
+      'all',
+      ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
+      ['==', networkType, networkID],
+    ])
 
     map.getSource(id).setData(data)
-  }, [selectedBarrier])
+  }, [barrierType, selectedBarrier])
 
   // if map allows filter, show selected vs unselected points, and make those without networks
   // background points
@@ -622,6 +718,26 @@ const PriorityMap = ({
 
     const circles = []
     const patches = []
+    let lines = null
+
+    if (zoom > 6) {
+      lines = [
+        {
+          id: 'intermittent',
+          label: 'intermittent / ephemeral stream reach',
+          color: '#1891ac',
+          lineStyle: 'dashed',
+          lineWidth: '2px',
+        },
+        {
+          id: 'altered',
+          label: 'altered stream reach (canal / ditch)',
+          color: 'red',
+          lineWidth: '2px',
+        },
+      ]
+    }
+
     let footnote = null
 
     if (Math.max(...Object.values(priorityLayerState))) {
@@ -635,21 +751,21 @@ const PriorityMap = ({
     // if no layer is selected for choosing summary areas
     if (activeLayer === null) {
       if (!isWithinZoom[excludedPoint.id]) {
-        footnote = `zoom in to see ${barrierType} available for analysis`
+        footnote = `zoom in to see ${barrierTypeLabel} available for analysis`
       } else {
         circles.push({
           ...excludedLegend,
-          label: `${barrierType} available for analysis`,
+          label: `${barrierTypeLabel} available for analysis`,
         })
       }
 
       if (isWithinZoom[backgroundPoint.id]) {
         circles.push({
           ...backgroundLegend,
-          label: `${barrierType} not available for analysis`,
+          label: `${barrierTypeLabel} not available for analysis`,
         })
         // only show secondary dams & waterfalls at same time as background points
-        if (barrierType === 'barriers') {
+        if (barrierType === 'small_barriers') {
           circles.push({
             ...damsSecondary,
             label: 'dams analyzed for impacts to aquatic connectivity',
@@ -665,38 +781,38 @@ const PriorityMap = ({
     // may need to be mutually exclusive of above
     else if (rankedBarriers.length > 0) {
       if (!isWithinZoom[topRank.id]) {
-        footnote = `Zoom in further to see top-ranked ${barrierType}`
+        footnote = `Zoom in further to see top-ranked ${barrierTypeLabel}`
       } else {
         const tierLabel =
           tierThreshold === 1 ? 'tier 1' : `tiers 1 - ${tierThreshold}`
         circles.push({
           ...topRankLegend,
-          label: `Top-ranked ${barrierType} (${tierLabel})`,
+          label: `Top-ranked ${barrierTypeLabel} (${tierLabel})`,
         })
       }
 
       if (isWithinZoom[lowerRank.id]) {
         circles.push({
           ...lowerRankLegend,
-          label: `lower-ranked ${barrierType}`,
+          label: `lower-ranked ${barrierTypeLabel}`,
         })
       }
 
       if (isWithinZoom[excludedPoint.id]) {
         circles.push({
           ...excludedLegend,
-          label: `not selected ${barrierType}`,
+          label: `not selected ${barrierTypeLabel}`,
         })
       }
 
       if (isWithinZoom[backgroundPoint.id]) {
         circles.push({
           ...backgroundLegend,
-          label: `${barrierType} not included in analysis`,
+          label: `${barrierTypeLabel} not included in analysis`,
         })
 
         // only show secondary dams & waterfalls at same time as background points
-        if (barrierType === 'barriers') {
+        if (barrierType === 'small_barriers') {
           circles.push({
             ...damsSecondary,
             label: 'dams analyzed for impacts to aquatic connectivity',
@@ -712,27 +828,27 @@ const PriorityMap = ({
       if (isWithinZoom[includedPoint.id]) {
         circles.push({
           ...includedLegend,
-          label: `selected ${barrierType}`,
+          label: `selected ${barrierTypeLabel}`,
         })
       } else {
-        footnote = `zoom in to see selected ${barrierType}`
+        footnote = `zoom in to see selected ${barrierTypeLabel}`
       }
 
       if (isWithinZoom[excludedPoint.id]) {
         circles.push({
           ...excludedLegend,
-          label: `not selected ${barrierType}`,
+          label: `not selected ${barrierTypeLabel}`,
         })
       }
 
       if (isWithinZoom[backgroundPoint.id]) {
         circles.push({
           ...backgroundLegend,
-          label: `${barrierType} not available for analysis`,
+          label: `${barrierTypeLabel} not available for analysis`,
         })
 
         // only show secondary dams & waterfalls at same time as background points
-        if (barrierType === 'barriers') {
+        if (barrierType === 'small_barriers') {
           circles.push({
             ...damsSecondary,
             label: 'dams analyzed for impacts to aquatic connectivity',
@@ -750,7 +866,7 @@ const PriorityMap = ({
           entries: [
             {
               color: 'rgba(0,0,0,0.15)',
-              label: `area with no inventoried ${barrierType}`,
+              label: `area with no inventoried ${barrierTypeLabel}`,
             },
           ],
         })
@@ -760,6 +876,7 @@ const PriorityMap = ({
     return {
       patches,
       circles,
+      lines,
       footnote,
     }
   }

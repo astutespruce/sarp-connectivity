@@ -1,3 +1,4 @@
 import Downloader from './Downloader'
+import StateDownloadTable from './StateDownloadTable'
 
-export { Downloader }
+export { Downloader, StateDownloadTable }

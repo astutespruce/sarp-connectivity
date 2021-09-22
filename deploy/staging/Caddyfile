@@ -1,0 +1,64 @@
+aquaticbarriers.mockuplab.us {
+  log {
+    level ERROR
+  }
+
+  route /services* {
+      header Cache-Control "public, max-age=3600, must-revalidate"
+      reverse_proxy localhost:8000
+  }
+
+  route /api/v1* {
+    uri strip_prefix /api/v1
+    @encode_paths {
+      path */query/* */rank/* */public/* */docs/* */details/*
+    }
+
+      encode @encode_paths zstd gzip
+      reverse_proxy localhost:5000
+  }
+
+  route /* {
+    # redirect teams page
+    redir /teams /regions/southeast/teams 301
+
+    # most files can be cached indefinitely, they are rebuilt with new names each time
+    @cached_files {
+      path *.jpg *.jpeg *.png *.gif *.webp *.svg *.css *.js */static/*
+      not path /favicon*
+    }
+    header @cached_files Cache-Control "public, max-age=31536000, immutable"
+
+    # make sure favicons are not cached too long
+    @short_cached_files {
+      path /favicon*
+    }
+    header @short_cached_files Cache-Control "public, max-age=3600"
+
+
+    # page-data, html, and site root must be fetched each time
+    @no_cache {
+      path *.html *.webmanifest */page-data/* / /priority /summary /network_methods /metrics/* /regions/*
+    }
+    header @no_cache Cache-Control "public, max-age:0, must-revalidate"
+
+    encode zstd gzip
+    root * /var/www
+    file_server
+
+    # Capture client only routes and route through 404 to force loading on client side
+    route /report/* {
+      try_files {path} 404.html
+    }
+
+  }
+
+  # Redirect all errors to 404.html
+  handle_errors {
+      @404 {
+          expression {http.error.status_code} == 404
+      }
+      rewrite @404 /404.html
+      file_server
+  }
+}
