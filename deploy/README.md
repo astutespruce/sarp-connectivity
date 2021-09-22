@@ -2,7 +2,7 @@
 
 ## Server
 
-- Create an EC2 micro server based on Ubuntu 20.04 LTS
+- Create an EC2 T3a.small server based on Ubuntu 20.04 LTS
 - Set root volume to have 20 GB of space (need large /tmp folder space for uploading tiles)
 - Create a second volume with 20 GB of space (/tiles)
 - Create an elastic IP and assign to that instance
@@ -13,11 +13,11 @@
   - `sudo swapon /swapfile`
   - add this to `/etc/fstab`: `/swapfile none swap sw 0 0`
 - Format and mount 20 GB secondary volume
-  - use `lsblk` to list volumes; it should be listed as `xvdb`
-  - `sudo mkfs -t ext4 /dev/xvdb`
+  - use `lsblk` to list volumes; it should be listed as `nvme1n1`
+  - `sudo mkfs -t ext4 /dev/nvme1n1`
   - `sudo mkdir /tiles`
-  - `sudo mount /dev/xvdb /tiles/`
-  - add this to `/etc/fstab`: `/dev/xvdb /tiles ext4 defaults,nofail`
+  - `sudo mount /dev/nvme1n1 /tiles/`
+  - add this to `/etc/fstab`: `/dev/nvme1n1 /tiles ext4 defaults,nofail`
 
 ## Setup accounts and directories
 
@@ -51,6 +51,7 @@ The application is managed by the `app` user account.
 
 ## Install and build mbtileserver
 
+- install `unzip`: `sudo apt-get update && sudo apt-get install -y unzip`
 - Find the latest release on https://github.com/consbio/mbtileserver/releases and download the zip file for the correct architecture (`wget https://github.com/consbio/mbtileserver/releases/download/v0.7.0/mbtileserver_v0.7.0_linux_amd64.zip`).
 - unzip, rename to `mbtileserver`, and make executable (`chmod 777 mbtileserver`)
 - `sudo su app`
@@ -73,7 +74,12 @@ Enable service
 ## Install Caddy
 
 - as `ubuntu` user
-- follow instructions [here](https://caddyserver.com/docs/download) to install on Ubuntu
+- follow instructions [here](https://caddyserver.com/docs/download) to install on Ubuntu:
+  - `sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https`
+  - `curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo tee /etc/apt/trusted.gpg.d/caddy-stable.asc`
+  - `curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list`
+  - `sudo apt update`
+  - `sudo apt install caddy`
 - the service file is installed to `/lib/systemd/system/caddy.service`
 - copy `deploy/production/Caddyfile` from this directory in the repo to `/etc/caddy/Caddyfile`
 - edit the caddyfile if necessary for the environment (e.g., staging)
@@ -86,7 +92,8 @@ Enable service
 
 ## Install node dependencies
 
-- `cd ui`
+- as `app` user
+- `cd ~/sarp-connectivity/ui`
 
 Create a `.env.production` file with the following:
 
