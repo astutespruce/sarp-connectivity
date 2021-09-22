@@ -251,7 +251,11 @@ df["snap_tolerance"] = SNAP_TOLERANCE
 original_locations = df.copy()
 
 # Only snap those that have HUC2 assigned
-to_snap = df.loc[df.HUC2 != ""].copy()
+# IMPORTANT: do not snap manually reviewed, off-network dams, duplicates, or ones without HUC2!
+to_snap = df.loc[
+    (~df.ManualReview.isin([5, 11])) & (df.HUC2 != "") & (df.STATEFIPS != "")
+].copy()
+
 
 # Snap to flowlines
 snap_start = time()
