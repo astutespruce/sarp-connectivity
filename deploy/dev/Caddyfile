@@ -8,9 +8,9 @@
       reverse_proxy localhost:8000
   }
 
-  route /api* {
+  route /api/v1* {
     @encode_paths {
-      path */query/* */rank/*
+      path */query/* */rank/* */public/* */docs/* */details/*
     }
 
       encode @encode_paths zstd gzip

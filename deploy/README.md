@@ -100,6 +100,13 @@ Enable service
 - `sudo apt-get install -y python3-pip`
 - `sudo pip3 install pipenv`
 
+Create a `.env` in the root of the repository with the following:
+
+```
+SENTRY_DSN=<sentry DSN>
+API_ROOT_PATH=/api/v1
+```
+
 ## Install node dependencies
 
 - as `app` user

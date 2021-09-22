@@ -11,7 +11,7 @@ connectivity.sarpdata.com {
   route /api/v1* {
     uri strip_prefix /api/v1
     @encode_paths {
-      path */query/* */rank/* */public/* */docs/*
+      path */query/* */rank/* */public/* */docs/* */details/*
     }
 
       encode @encode_paths zstd gzip

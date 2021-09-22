@@ -1,6 +1,7 @@
 /* eslint-disable max-len, no-underscore-dangle */
 import React, { useLayoutEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
+// exclude Mapbox GL from babel transpilation per https://docs.mapbox.com/mapbox-gl-js/guides/migrate-to-v2/
 import mapboxgl from '!mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { Box } from 'theme-ui'
