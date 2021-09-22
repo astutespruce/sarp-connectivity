@@ -39,6 +39,11 @@ The application is managed by the `app` user account.
 - `mkdir data`
 - `mkdir data/api`
 
+## Grant ubuntu user write permissions
+
+- as `ubuntu` user
+- `sudo chown -R app:ubuntu sarp-connectivity`
+
 ## Copy tiles up
 
 - on local (dev) machine, copy contents of `tiles` directory to server: `rsync -azvhP --append *.mbtiles sarp:/tmp`
@@ -57,7 +62,12 @@ The application is managed by the `app` user account.
 - `sudo su app`
 - `mkdir /home/app/go`
 - `mkdir /home/app/go/bin`
+
+as `ubuntu` user
+
 - `mv /tmp/mbtileserver /home/app/go/bin
+- copy `services/mbtileserver.service` to `/etc/systemd/system/`
+- `sudo systemctl enable mbtileserver`
 
 Enable service
 
@@ -113,14 +123,15 @@ GATSBY_MAILCHIMP_FORM_ID=<form id>
 
 ## Install Python dependencies
 
-- as `ubuntu` user
+- as `app` user
 - `cd `~/sarp-connectivity`
 - `pipenv install --skip-lock`
+- `pipenv shell`
 - `pip install -e .`
 
 Verify that API starts correctly:
 
-- `uvicorn api.server:app --reload --port 5000`
+- `uvicorn api.server:app --port 5000`
 - `CTRL-C` to exit
 
 Verify that API starts correctly with gunicorn:
