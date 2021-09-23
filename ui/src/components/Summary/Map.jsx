@@ -8,7 +8,10 @@ import React, {
   useLayoutEffect,
 } from 'react'
 import PropTypes from 'prop-types'
-import mapboxgl from 'mapbox-gl'
+
+// exclude Mapbox GL from babel transpilation per https://docs.mapbox.com/mapbox-gl-js/guides/migrate-to-v2/
+/* eslint-disable-next-line */
+import mapboxgl from '!mapbox-gl'
 
 import { useRegionBounds } from 'components/Data/RegionBounds'
 import {
@@ -562,19 +565,21 @@ const SummaryMap = ({
     }
   }, [system, barrierType, zoom])
 
-  useLayoutEffect(() => {
-    const { current: map } = mapRef
+  useLayoutEffect(
+    () => {
+      const { current: map } = mapRef
 
-    if (!map) return
+      if (!map) return
 
-    regionLayers.forEach(({ id }) => {
-      map.setFilter(id, ['==', 'id', region])
-    })
+      regionLayers.forEach(({ id }) => {
+        map.setFilter(id, ['==', 'id', region])
+      })
 
-    map.fitBounds(regionBounds[region].bbox, { padding: 100 })
-  }, 
-  // regionBounds deliberately omitted
-  [region])
+      map.fitBounds(regionBounds[region].bbox, { padding: 100 })
+    },
+    // regionBounds deliberately omitted
+    [region]
+  )
 
   return (
     <>

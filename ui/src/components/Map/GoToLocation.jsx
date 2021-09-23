@@ -1,8 +1,11 @@
 import React, { useState, useRef, memo } from 'react'
 import PropTypes from 'prop-types'
 import { Crosshairs, LocationArrow } from '@emotion-icons/fa-solid'
-import mapboxgl from 'mapbox-gl'
 import { Box, Button, Input, Flex, Spinner, Text } from 'theme-ui'
+
+// exclude Mapbox GL from babel transpilation per https://docs.mapbox.com/mapbox-gl-js/guides/migrate-to-v2/
+/* eslint-disable-next-line */
+import mapboxgl from '!mapbox-gl'
 
 import { hasGeolocation } from 'util/dom'
 

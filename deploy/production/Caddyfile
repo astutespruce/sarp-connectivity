@@ -38,7 +38,7 @@ connectivity.sarpdata.com {
 
     # page-data, html, and site root must be fetched each time
     @no_cache {
-      path *.html *.webmanifest */page-data/* / /priority /summary /network_methods /metrics/* /regions/*
+      path *.html *.webmanifest */page-data/* / /priority /summary /network_methods /metrics/* /regions/* /report/*
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
 

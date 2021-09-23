@@ -1,7 +1,10 @@
 import React, { memo, useEffect, useRef, useCallback, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useDebouncedCallback } from 'use-debounce'
-import mapboxgl from 'mapbox-gl'
+
+// exclude Mapbox GL from babel transpilation per https://docs.mapbox.com/mapbox-gl-js/guides/migrate-to-v2/
+/* eslint-disable-next-line */
+import mapboxgl from '!mapbox-gl'
 
 import { useCrossfilter } from 'components/Crossfilter'
 import { useBarrierType } from 'components/Data'
