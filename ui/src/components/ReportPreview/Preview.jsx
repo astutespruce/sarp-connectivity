@@ -33,10 +33,14 @@ import Species from './Species'
 const Preview = ({ barrierType, data }) => {
   const { id, sarpid, upnetid, county, state, lat, lon } = data
 
-  const name =
-    data.name || barrierType === 'dams'
+  console.log('data name', data, data.name)
+
+  const defaultName =
+    barrierType === 'dams'
       ? `Dam: unknown name (SARPID: ${sarpid})`
       : `Road-related barrier: unknown name (SARPID ${sarpid})`
+
+  const name = data.name || defaultName
 
   const [{ attribution, hasError, isPending }, setState] = useState({
     attribution: basemapAttribution['light-v9'],
