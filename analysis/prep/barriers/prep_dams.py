@@ -46,6 +46,7 @@ from analysis.constants import (
     EXCLUDE_MANUALREVIEW,
     EXCLUDE_RECON,
     ONSTREAM_MANUALREVIEW,
+    OFFSTREAM_MANUALREVIEW,
     RECON_TO_FEASIBILITY,
     UNRANKED_FEASIBILITY,
     UNRANKED_MANUALREVIEW,
@@ -374,6 +375,10 @@ df["snap_dist"] = np.nan
 df["lineID"] = np.nan  # line to which dam was snapped
 df["wbID"] = np.nan  # waterbody ID where dam is either contained or snapped
 
+# log dams excluded from snapping
+df.loc[
+    df.ManualReview.isin(OFFSTREAM_MANUALREVIEW), "snap_log"
+] = f"exluded from snapping (manual review one of {OFFSTREAM_MANUALREVIEW})"
 
 ### Mark dam snapping groups
 # estimated dams or likely off-network dams will get lower snapping tolerance
@@ -411,7 +416,9 @@ print(
 
 # IMPORTANT: do not snap manually reviewed, off-network dams, duplicates, or ones without HUC2!
 to_snap = df.loc[
-    (~df.ManualReview.isin([5, 11])) & (df.HUC2 != "") & (df.STATEFIPS != "")
+    (~df.ManualReview.isin(OFFSTREAM_MANUALREVIEW))
+    & (df.HUC2 != "")
+    & (df.STATEFIPS != "")
 ].copy()
 
 # Save original locations so we can map the snap line between original and new locations

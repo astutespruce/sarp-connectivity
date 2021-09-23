@@ -33,8 +33,6 @@ import Species from './Species'
 const Preview = ({ barrierType, data }) => {
   const { id, sarpid, upnetid, county, state, lat, lon } = data
 
-  console.log('data name', data, data.name)
-
   const defaultName =
     barrierType === 'dams'
       ? `Dam: unknown name (SARPID: ${sarpid})`

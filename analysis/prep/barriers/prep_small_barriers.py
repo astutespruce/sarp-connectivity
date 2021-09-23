@@ -43,6 +43,7 @@ from analysis.constants import (
     DROP_RECON,
     EXCLUDE_MANUALREVIEW,
     EXCLUDE_RECON,
+    OFFSTREAM_MANUALREVIEW,
     UNRANKED_MANUALREVIEW,
     UNRANKED_RECON,
     BARRIER_CONDITION_TO_DOMAIN,
@@ -247,13 +248,21 @@ df["snap_log"] = "not snapped"
 df["lineID"] = np.nan  # line to which dam was snapped
 df["snap_tolerance"] = SNAP_TOLERANCE
 
+# log dams excluded from snapping
+df.loc[
+    df.ManualReview.isin(OFFSTREAM_MANUALREVIEW), "snap_log"
+] = f"exluded from snapping (manual review one of {OFFSTREAM_MANUALREVIEW})"
+
+
 # Save original locations so we can map the snap line between original and new locations
 original_locations = df.copy()
 
 # Only snap those that have HUC2 assigned
 # IMPORTANT: do not snap manually reviewed, off-network dams, duplicates, or ones without HUC2!
 to_snap = df.loc[
-    (~df.ManualReview.isin([5, 11])) & (df.HUC2 != "") & (df.STATEFIPS != "")
+    (~df.ManualReview.isin(OFFSTREAM_MANUALREVIEW))
+    & (df.HUC2 != "")
+    & (df.STATEFIPS != "")
 ].copy()
 
 

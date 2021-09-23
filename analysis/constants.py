@@ -254,6 +254,8 @@ ONSTREAM_MANUALREVIEW = [
     15,  # Onstream, moved (moved to close to correct location)
 ]
 
+OFFSTREAM_MANUALREVIEW = [5, 11]  # offstream, checked by SARP  # duplicate, delete
+
 # Used to filter dams by Recon
 # based on guidance from Kat
 DROP_RECON = [5, 19]
