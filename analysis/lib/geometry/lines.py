@@ -154,3 +154,94 @@ def aggregate_lines(df, by):
         .reset_index(),
         crs=df.crs,
     )
+
+
+def angle(points, starts, ends):
+    """Calculate the angle formed at each triple of start, point, end.
+
+    Values close to 180 degrees indicate a relatively straight line.
+
+    Vectorized adaptation of https://github.com/martinfleis/momepy/blob/v0.5.0/momepy/shape.py#L748-L868
+
+    All inputs must be the same shape.
+
+    Parameters
+    ----------
+    points : ndarray of shape (n, 2)
+        array of x,y coordinates for points to calculate angle
+    starts : ndarray of shape (n, 2)
+        array of x,y coordinates for starting point of each line segment
+    ends : ndarray of shape (n, 2)
+        array of x,y coordinates for ending point of each line segment
+
+    Returns
+    -------
+    ndarray of shape (1,)
+        angle in degrees
+    """
+
+    left = starts - points
+    right = ends - points
+    cosine_angle = np.diag(np.inner(left, right)) / (
+        np.linalg.norm(left, axis=1) * np.linalg.norm(right, axis=1)
+    )
+    return np.degrees(np.arccos(cosine_angle))
+
+
+def perpindicular_distance(points, starts, ends):
+    """Calculate the perpindicular distance to point in points based on a line
+    between starts and ends.
+
+    Vectorized adaptation of https://dougfenstermacher.com/blog/simplification-summarization
+
+    All inputs must be the same shape
+
+    Parameters
+    ----------
+    points : ndarray of shape (n, 2)
+        array of x,y coordinates for points to calculate perpindicular distance
+    starts : ndarray of shape (n, 2)
+        array of x,y coordinates for starting point of each line segment
+    ends : ndarray of shape (n, 2)
+        array of x,y coordinates for ending point of each line segment
+
+    Returns
+    -------
+    ndarray of shape (1,)
+        perpindicular distance
+    """
+
+    if not (points.shape == starts.shape and points.shape == ends.shape):
+        raise ValueError("All inputs must be same shape")
+
+    delta = ends - starts
+
+    return np.abs(np.cross(delta, (points - starts))) / np.linalg.norm(delta, axis=1)
+
+
+def triangle_area(a, b, c):
+    """Calculate the triangular area of the triangle formed between each triple
+    of a, b, c.
+
+    Vectorized adaptation of https://dougfenstermacher.com/blog/simplification-summarization
+
+    All inputs must have the same shape.
+
+    Parameters
+    ----------
+    a : ndarray of shape (n, 2)
+    b : ndarray of shape (n, 2)
+    c : ndarray of shape (n, 2)
+
+    Returns
+    -------
+    ndarray of shape (1,)
+        area of each triangle
+    """
+    left = a - b
+    right = c - b
+    ldist = np.linalg.norm(left, axis=1)
+    rdist = np.linalg.norm(right, axis=1)
+    cosine_angle = np.diag(np.inner(left, right)) / (ldist * rdist)
+    theta = np.arccos(cosine_angle)
+    return 0.5 * ldist * rdist * np.sin(theta)
