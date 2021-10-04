@@ -113,7 +113,7 @@ const Network = ({
               <Bold>
                 {formatPercent(percentAltered)}% of the upstream network
               </Bold>{' '}
-              is in stream channels known to be altered from natural conditions.
+              is in altered stream channels (coded as canals / ditches).
             </Text>
           </View>
         ) : null}

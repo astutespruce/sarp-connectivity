@@ -110,7 +110,7 @@ const Network = ({
         {totalupstreammiles > 0 ? (
           <Box>
             <b>{formatPercent(percentAltered)}% of the upstream network</b> is
-            in stream channels known to be altered from natural conditions.
+            in altered stream channels (coded as canals / ditches).
           </Box>
         ) : null}
 
