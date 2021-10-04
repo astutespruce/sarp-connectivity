@@ -2,7 +2,7 @@ const flowlinesLayer = {
   id: 'flowlines',
   source: 'networks',
   'source-layer': 'networks',
-  filter: ['==', 'mapcode', 0],
+  filter: ['any', ['==', 'mapcode', 0], ['==', 'mapcode', 2]],
   minzoom: 11,
   type: 'line',
   paint: {

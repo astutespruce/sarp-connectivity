@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Text } from 'theme-ui'
+import { Box, Text } from 'theme-ui'
 
 import { Table, Row } from 'components/Table'
 import { InfoTooltip } from 'components/Tooltip'
@@ -238,8 +238,7 @@ const NetworkInfo = ({
       {totalupstreammiles > 0 ? (
         <Entry>
           <b>{formatPercent(percentAltered)}%</b> of the upstream network is in
-          stream channels altered from natural conditions (coded as canals or
-          ditches).
+          altered stream channels (coded as canals / ditches)
         </Entry>
       ) : null}
 
