@@ -156,7 +156,7 @@ def aggregate_lines(df, by):
     )
 
 
-def angle(points, starts, ends):
+def vertex_angle(points, starts, ends):
     """Calculate the angle formed at each triple of start, point, end.
 
     Values close to 180 degrees indicate a relatively straight line.
@@ -245,3 +245,20 @@ def triangle_area(a, b, c):
     cosine_angle = np.diag(np.inner(left, right)) / (ldist * rdist)
     theta = np.arccos(cosine_angle)
     return 0.5 * ldist * rdist * np.sin(theta)
+
+
+def segment_length(coords):
+    """Calculate the vectorized length between each vertex in coords as an
+    alternative to creating geometry objects.
+
+    Parameters
+    ----------
+    coords : ndarray of shape (n,2)
+        x,y pairs
+
+    Returns
+    -------
+    ndarray of shape(n,)
+        lengths in units of coordinates
+    """
+    return np.linalg.norm((coords[1:] - coords[:-1]), axis=1)
