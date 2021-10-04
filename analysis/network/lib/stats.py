@@ -212,6 +212,9 @@ def calculate_geometry_stats(df):
     perennial_length = (
         df.loc[~df.intermittent, "length"].groupby(level=0).sum().rename("perennial")
     )
+    intermittent_length = (
+        df.loc[df.intermittent, "length"].groupby(level=0).sum().rename("intermittent")
+    )
     altered_length = (
         df.loc[df.altered, "length"].groupby(level=0).sum().rename("altered")
     )
@@ -232,6 +235,12 @@ def calculate_geometry_stats(df):
         .groupby(level=0)
         .sum()
         .rename("free_perennial")
+    )
+    free_intermittent = (
+        df.loc[df.intermittent & (~df.waterbody), "length"]
+        .groupby(level=0)
+        .sum()
+        .rename("free_intermittent")
     )
     free_altered_length = (
         df.loc[df.altered & (~df.waterbody), "length"]
@@ -255,11 +264,13 @@ def calculate_geometry_stats(df):
     lengths = (
         pd.DataFrame(total_length)
         .join(perennial_length)
+        .join(intermittent_length)
         .join(altered_length)
         .join(unaltered_length)
         .join(perennial_unaltered_length)
         .join(free_length)
         .join(free_perennial)
+        .join(free_intermittent)
         .join(free_altered_length)
         .join(free_unaltered_length)
         .join(free_perennial_unaltered)

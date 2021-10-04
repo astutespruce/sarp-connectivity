@@ -41,6 +41,10 @@ const NetworkInfo = ({
   const perennialGainMilesSide =
     perennialGainMiles === perennialupstreammiles ? 'upstream' : 'downstream'
 
+  const intermittentupstreammiles = totalupstreammiles - perennialupstreammiles
+  const freeintermittentdownstreammiles =
+    freedownstreammiles - freeperennialdownstreammiles
+
   const percentAltered = totalupstreammiles
     ? (100 * alteredupstreammiles) / totalupstreammiles
     : 0
@@ -81,7 +85,7 @@ const NetworkInfo = ({
                 fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(totalupstreammiles)}
+              {formatNumber(totalupstreammiles, 2)}
             </Box>
             <Box
               sx={{
@@ -89,7 +93,7 @@ const NetworkInfo = ({
                   gainMilesSide === 'downstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(freedownstreammiles)}
+              {formatNumber(freedownstreammiles, 2)}
             </Box>
           </Row>
 
@@ -114,7 +118,7 @@ const NetworkInfo = ({
                 fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(perennialupstreammiles)}
+              {formatNumber(perennialupstreammiles, 2)}
             </Box>
             <Box
               sx={{
@@ -122,7 +126,41 @@ const NetworkInfo = ({
                   gainMilesSide === 'downstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(freeperennialdownstreammiles)}
+              {formatNumber(freeperennialdownstreammiles, 2)}
+            </Box>
+          </Row>
+
+          <Row>
+            <Box>
+              <Text sx={{ display: 'inline' }}>
+                Intermittent / ephemeral miles
+              </Text>
+              <InfoTooltip>
+                Total ephemeral and intermittent miles upstream is the sum of
+                all ephemeral and intermittent reach lengths in the upstream
+                functional network.
+                <br />
+                <br />
+                Total ephemeral and intermittent miles downstream is the sum of
+                all ephemeral and intermittent reach lengths in the functional
+                network immediately downstream of this network, excluding all
+                lengths within waterbodies.
+              </InfoTooltip>
+            </Box>
+            <Box
+              sx={{
+                fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
+              }}
+            >
+              {formatNumber(intermittentupstreammiles, 2)}
+            </Box>
+            <Box
+              sx={{
+                fontWeight:
+                  gainMilesSide === 'downstream' ? 'bold' : 'inherited',
+              }}
+            >
+              {formatNumber(freeintermittentdownstreammiles, 2)}
             </Box>
           </Row>
 
@@ -139,8 +177,8 @@ const NetworkInfo = ({
                 network, excluding all lengths within waterbodies.
               </InfoTooltip>
             </Box>
-            <Box>{formatNumber(alteredupstreammiles)}</Box>
-            <Box>{formatNumber(freealtereddownstreammiles)}</Box>
+            <Box>{formatNumber(alteredupstreammiles, 2)}</Box>
+            <Box>{formatNumber(freealtereddownstreammiles, 2)}</Box>
           </Row>
 
           <Row>
@@ -157,8 +195,8 @@ const NetworkInfo = ({
                 of this network, excluding all lengths within waterbodies.
               </InfoTooltip>
             </Box>
-            <Box>{formatNumber(unalteredupstreammiles)}</Box>
-            <Box>{formatNumber(freeunaltereddownstreammiles)}</Box>
+            <Box>{formatNumber(unalteredupstreammiles, 2)}</Box>
+            <Box>{formatNumber(freeunaltereddownstreammiles, 2)}</Box>
           </Row>
         </Table>
 
@@ -189,7 +227,7 @@ const NetworkInfo = ({
                   gainMilesSide === 'upstream' ? activeSideCSS : inactiveSideCSS
                 }
               >
-                {formatNumber(totalupstreammiles)}
+                {formatNumber(totalupstreammiles, 2)}
               </Box>
               <Box
                 sx={
@@ -198,7 +236,7 @@ const NetworkInfo = ({
                     : inactiveSideCSS
                 }
               >
-                {formatNumber(freedownstreammiles)}
+                {formatNumber(freedownstreammiles, 2)}
               </Box>
             </Row>
             <Row>
@@ -219,7 +257,7 @@ const NetworkInfo = ({
                     : inactiveSideCSS
                 }
               >
-                {formatNumber(perennialupstreammiles)}
+                {formatNumber(perennialupstreammiles, 2)}
               </Box>
               <Box
                 sx={
@@ -228,7 +266,7 @@ const NetworkInfo = ({
                     : inactiveSideCSS
                 }
               >
-                {formatNumber(freeperennialdownstreammiles)}
+                {formatNumber(freeperennialdownstreammiles, 2)}
               </Box>
             </Row>
           </Table>

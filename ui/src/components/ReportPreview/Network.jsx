@@ -39,6 +39,10 @@ const Network = ({
   const perennialGainMilesSide =
     perennialGainMiles === perennialupstreammiles ? 'upstream' : 'downstream'
 
+  const intermittentupstreammiles = totalupstreammiles - perennialupstreammiles
+  const freeintermittentdownstreammiles =
+    freedownstreammiles - freeperennialdownstreammiles
+
   const percentAltered = totalupstreammiles
     ? (100 * alteredupstreammiles) / totalupstreammiles
     : 0
@@ -102,9 +106,10 @@ const Network = ({
         }}
       >
         <Box>
-          <b>{formatNumber(gainmiles)} total miles</b> could be reconnected by
-          removing this {barrierTypeLabel}, including{' '}
-          <b>{formatNumber(perennialGainMiles)} miles</b> of perennial reaches.
+          <b>{formatNumber(gainmiles, 2)} total miles</b> could be reconnected
+          by removing this {barrierTypeLabel}, including{' '}
+          <b>{formatNumber(perennialGainMiles, 2)} miles</b> of perennial
+          reaches.
         </Box>
 
         {totalupstreammiles > 0 ? (
@@ -154,7 +159,7 @@ const Network = ({
                 fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(totalupstreammiles)}
+              {formatNumber(totalupstreammiles, 2)}
             </Box>
             <Box
               sx={{
@@ -162,7 +167,7 @@ const Network = ({
                   gainMilesSide === 'downstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(freedownstreammiles)}
+              {formatNumber(freedownstreammiles, 2)}
             </Box>
           </Row>
 
@@ -174,7 +179,7 @@ const Network = ({
                   perennialGainMilesSide === 'upstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(perennialupstreammiles)}
+              {formatNumber(perennialupstreammiles, 2)}
             </Box>
             <Box
               sx={{
@@ -184,20 +189,26 @@ const Network = ({
                     : 'inherited',
               }}
             >
-              {formatNumber(freeperennialdownstreammiles)}
+              {formatNumber(freeperennialdownstreammiles, 2)}
             </Box>
           </Row>
 
           <Row>
+            <Box>Ephemeral / intermittent miles</Box>
+            <Box>{formatNumber(intermittentupstreammiles, 2)}</Box>
+            <Box>{formatNumber(freeintermittentdownstreammiles, 2)}</Box>
+          </Row>
+
+          <Row>
             <Box>Altered miles</Box>
-            <Box>{formatNumber(alteredupstreammiles)}</Box>
-            <Box>{formatNumber(freealtereddownstreammiles)}</Box>
+            <Box>{formatNumber(alteredupstreammiles, 2)}</Box>
+            <Box>{formatNumber(freealtereddownstreammiles, 2)}</Box>
           </Row>
 
           <Row>
             <Box>Unaltered miles</Box>
-            <Box>{formatNumber(unalteredupstreammiles)}</Box>
-            <Box>{formatNumber(freeunaltereddownstreammiles)}</Box>
+            <Box>{formatNumber(unalteredupstreammiles, 2)}</Box>
+            <Box>{formatNumber(freeunaltereddownstreammiles, 2)}</Box>
           </Row>
         </Table>
       </Box>

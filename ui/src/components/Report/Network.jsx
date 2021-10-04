@@ -45,6 +45,10 @@ const Network = ({
   const perennialGainMilesSide =
     perennialGainMiles === perennialupstreammiles ? 'upstream' : 'downstream'
 
+  const intermittentupstreammiles = totalupstreammiles - perennialupstreammiles
+  const freeintermittentdownstreammiles =
+    freedownstreammiles - freeperennialdownstreammiles
+
   const percentAltered = totalupstreammiles
     ? (100 * alteredupstreammiles) / totalupstreammiles
     : 0
@@ -179,18 +183,18 @@ const Network = ({
           <View style={{ flex: '1 1 auto' }}>
             <Text>
               {gainMilesSide === 'upstream' ? (
-                <Bold>{formatNumber(totalupstreammiles)}</Bold>
+                <Bold>{formatNumber(totalupstreammiles, 2)}</Bold>
               ) : (
-                <>{formatNumber(totalupstreammiles)}</>
+                <>{formatNumber(totalupstreammiles, 2)}</>
               )}
             </Text>
           </View>
           <View style={{ flex: '1 1 auto' }}>
             <Text>
               {gainMilesSide === 'downstream' ? (
-                <Bold>{formatNumber(freedownstreammiles)}</Bold>
+                <Bold>{formatNumber(freedownstreammiles, 2)}</Bold>
               ) : (
-                <>{formatNumber(freedownstreammiles)}</>
+                <>{formatNumber(freedownstreammiles, 2)}</>
               )}
             </Text>
           </View>
@@ -209,20 +213,38 @@ const Network = ({
           <View style={{ flex: '1 1 auto' }}>
             <Text>
               {perennialGainMilesSide === 'upstream' ? (
-                <Bold>{formatNumber(perennialupstreammiles)}</Bold>
+                <Bold>{formatNumber(perennialupstreammiles, 2)}</Bold>
               ) : (
-                <>{formatNumber(perennialupstreammiles)}</>
+                <>{formatNumber(perennialupstreammiles, 2)}</>
               )}
             </Text>
           </View>
           <View style={{ flex: '1 1 auto' }}>
             <Text>
               {perennialGainMilesSide === 'downstream' ? (
-                <Bold>{formatNumber(freeperennialdownstreammiles)}</Bold>
+                <Bold>{formatNumber(freeperennialdownstreammiles, 2)}</Bold>
               ) : (
-                <>{formatNumber(freeperennialdownstreammiles)}</>
+                <>{formatNumber(freeperennialdownstreammiles, 2)}</>
               )}
             </Text>
+          </View>
+        </Flex>
+
+        <Flex
+          style={{
+            borderTop: '1px solid #dee1e3',
+            marginTop: 6,
+            paddingTop: 6,
+          }}
+        >
+          <View style={{ flex: '1 1 160pt' }}>
+            <Text>Ephemeral / intermittent miles</Text>
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>{formatNumber(intermittentupstreammiles, 2)}</Text>
+          </View>
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>{formatNumber(freeintermittentdownstreammiles, 2)}</Text>
           </View>
         </Flex>
 
@@ -237,10 +259,10 @@ const Network = ({
             <Text>Altered miles</Text>
           </View>
           <View style={{ flex: '1 1 auto' }}>
-            <Text>{formatNumber(alteredupstreammiles)}</Text>
+            <Text>{formatNumber(alteredupstreammiles, 2)}</Text>
           </View>
           <View style={{ flex: '1 1 auto' }}>
-            <Text>{formatNumber(freealtereddownstreammiles)}</Text>
+            <Text>{formatNumber(freealtereddownstreammiles, 2)}</Text>
           </View>
         </Flex>
 
@@ -255,10 +277,10 @@ const Network = ({
             <Text>Unaltered miles</Text>
           </View>
           <View style={{ flex: '1 1 auto' }}>
-            <Text>{formatNumber(unalteredupstreammiles)}</Text>
+            <Text>{formatNumber(unalteredupstreammiles, 2)}</Text>
           </View>
           <View style={{ flex: '1 1 auto' }}>
-            <Text>{formatNumber(freeunaltereddownstreammiles)}</Text>
+            <Text>{formatNumber(freeunaltereddownstreammiles, 2)}</Text>
           </View>
         </Flex>
 

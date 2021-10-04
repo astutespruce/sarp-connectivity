@@ -62,12 +62,14 @@ METRIC_FIELDS = [
     "SizeClasses",
     "TotalUpstreamMiles",
     "PerennialUpstreamMiles",
+    "IntermittentUpstreamMiles",
     "AlteredUpstreamMiles",
     "UnalteredUpstreamMiles",
     "PerennialUnalteredUpstreamMiles",
     "TotalDownstreamMiles",
     "FreeDownstreamMiles",
     "FreePerennialDownstreamMiles",
+    "FreeIntermittentDownstreamMiles",
     "FreeAlteredDownstreamMiles",
     "FreeUnalteredDownstreamMiles",
     "GainMiles",
@@ -195,6 +197,8 @@ DAM_TILE_FIELDS = [
     for c in DAM_API_FIELDS
     if not c
     in {
+        "IntermittentUpstreamMiles",
+        "FreeIntermittentDownstreamMiles",
         "GainMiles",
         "PerennialGainMiles",
         "TotalNetworkMiles",
@@ -283,6 +287,8 @@ SB_TILE_FIELDS = [
     for c in SB_API_FIELDS
     if not c
     in {
+        "IntermittentUpstreamMiles",
+        "FreeIntermittentDownstreamMiles",
         "GainMiles",
         "PerennialGainMiles",
         "TotalNetworkMiles",
@@ -775,6 +781,7 @@ FIELD_DEFINITIONS = {
     "SizeClasses": "number of unique upstream size classes that could be gained by removal of this {type}. -1 = not available.",
     "TotalUpstreamMiles": "number of miles in the upstream river network from this {type}, including miles in waterbodies. -1 = not available.",
     "PerennialUpstreamMiles": "number of perennial miles in the upstream river network from this {type}, including miles in waterbodies.  Perennial reaches are all those not specifically coded by NHD as ephemeral or intermittent, and include other types, such as canals and ditches that may not actually be perennial.  Networks are constructed using all flowlines, not just perennial reaches. -1 = not available.",
+    "IntermittentUpstreamMiles": "number of ephemeral and intermittent miles in the upstream river network from this {type}, including miles in waterbodies.  Ephemeral and intermittent reaches are all those that are specifically coded by NHD as ephemeral or intermittent, and specifically excludes other types, such as canals and ditches that may actually be ephemeral or intermittent in their flow frequency.  -1 = not available.",
     "AlteredUpstreamMiles": "number of altered miles in the upstream river network from this {type}, including miles in waterbodies.  Limited to reaches specifically coded by NHD as canals or ditches. -1 = not available.",
     "UnalteredUpstreamMiles": "number of unaltered miles in the upstream river network from this {type}, including miles in waterbodies.  Unaltered miles exclude reaches specifically coded by NHD as canals or ditches. -1 = not available.",
     "PerennialUnalteredUpstreamMiles": "number of unaltered perennial miles in the upstream river network from this {type}, including miles in waterbodies.  Unaltered miles exclude reaches specifically coded by NHD as canals or ditches. -1 = not available.",
@@ -783,6 +790,7 @@ FIELD_DEFINITIONS = {
     "TotalDownstreamMiles": "number of miles in the complete downstream river network from this {type}, including miles in waterbodies.  Note: this measures the length of the complete downstream network including all tributaries, and is not limited to the shortest downstream path.  -1 = not available.",
     "FreeDownstreamMiles": "number of free-flowing miles in the downstream river network (TotalDownstreamMiles minus miles in waterbodies). -1 = not available.",
     "FreePerennialDownstreamMiles": "number of free-flowing perennial miles in the downstream river network.  Excludes miles in waterbodies.  See PerennialUpstreamMiles. -1 = not available.",
+    "FreeIntermittentDownstreamMiles": "number of free-flowing ephemeral and intermittent miles in the downstream river network.  Excludes miles in waterbodies.  See IntermittentUpstreamMiles. -1 = not available.",
     "FreeAlteredDownstreamMiles": "number of free-flowing altered miles in the downstream river network from this {type}.  Excludes miles in waterbodies or reaches specifically coded by NHD as canals or ditches. -1 = not available.",
     "FreeUnalteredDownstreamMiles": "number of free-flowing altered miles in the downstream river network from this {type}.  Limited to reaches specifically coded by NHD as canals or ditches.  Excludes miles in waterbodies. -1 = not available.",
     "GainMiles": "absolute number of miles that could be gained by removal of this {type}.  Calculated as the minimum of the TotalUpstreamMiles and FreeDownstreamMiles. -1 = not available.",
