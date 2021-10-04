@@ -143,6 +143,7 @@ DAM_FS_COLS = [
     "BarrierStatus",
     "PotentialFeasibility",  # only present in NC
     "PassageFacility",
+    "StructureCategory",
     "Diversion",
     "FishScreen",
     "ScreenType",
@@ -241,10 +242,19 @@ DROP_MANUALREVIEW = [
     14,  # Error: dam does not exist
 ]
 
+DROP_STRUCTURECATEGORY = [
+    3  # Diversion (canal / ditch) without associated dam structure
+]
+
 # These are excluded from network analysis / prioritization, but included for mapping
 EXCLUDE_MANUALREVIEW = [
     5,  # offstream (DO NOT SNAP!)
     8,  # Removed (no longer exists): Dam removed for conservation
+]
+
+EXCLUDE_PASSAGEFACILITY = [
+    13,  # Natural Breach
+    14,  # Removal
 ]
 
 

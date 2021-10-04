@@ -42,9 +42,11 @@ from analysis.constants import (
     DROP_FEASIBILITY,
     DROP_MANUALREVIEW,
     DROP_RECON,
+    DROP_STRUCTURECATEGORY,
     EXCLUDE_FEASIBILITY,
     EXCLUDE_MANUALREVIEW,
     EXCLUDE_RECON,
+    EXCLUDE_PASSAGEFACILITY,
     ONSTREAM_MANUALREVIEW,
     OFFSTREAM_MANUALREVIEW,
     RECON_TO_FEASIBILITY,
@@ -185,6 +187,7 @@ for column in (
     "Diversion",
     "FishScreen",
     "ScreenType",
+    "StructureCategory"
 ):
     df[column] = df[column].fillna(0).astype("uint8")
 
@@ -320,6 +323,11 @@ drop_ix = (
 df.loc[drop_ix, "dropped"] = True
 df.loc[drop_ix, "log"] = "dropped: name includes dike and not dam"
 
+# Drop any that are diversions (irrigation ditches) without an associated structure
+drop_ix = (df.StructureCategory.isin(DROP_STRUCTURECATEGORY)) & ~df.dropped
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = f"dropped: StructureCategory one of {DROP_STRUCTURECATEGORY}"
+
 print(f"Dropped {df.dropped.sum():,} dams from all analysis and mapping")
 
 ### Exclude dams that should not be analyzed or prioritized based on manual QA
@@ -327,8 +335,10 @@ df["excluded"] = (
     df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
     | df.Recon.isin(EXCLUDE_RECON)
     | df.Feasibility.isin(EXCLUDE_FEASIBILITY)
+    | df.PassageFacility.isin(EXCLUDE_PASSAGEFACILITY)
 )
 
+df.loc[df.PassageFacility.isin(EXCLUDE_PASSAGEFACILITY), 'log'] = f"excluded: PassageFacility one of {EXCLUDE_PASSAGEFACILITY}"
 df.loc[
     df.Feasibility.isin(EXCLUDE_FEASIBILITY), "log"
 ] = f"excluded: Feasibility one of {EXCLUDE_FEASIBILITY}"

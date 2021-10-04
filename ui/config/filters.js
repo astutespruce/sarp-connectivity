@@ -1,6 +1,5 @@
 import {
   HEIGHT,
-  CONSTRUCTION,
   PURPOSE,
   FEASIBILITY,
   RARESPP,
@@ -14,7 +13,6 @@ import {
   BARRIER_CONDITION,
   PASSAGEFACILITY_CLASS,
   OWNERTYPE,
-  HUC8_USFS,
   HUC8_COA,
   HUC8_SGCN,
 } from './constants'
@@ -39,15 +37,6 @@ const getEntries = (obj) => {
 const sizeclassValues = [0, 1, 2, 3, 4, 5, 6, 7]
 
 const priorityFilters = [
-  {
-    field: 'huc8_usfs',
-    title: 'USFS priority watersheds',
-    sort: false,
-    hideEmpty: true,
-    help: 'These include TNC critical watersheds, TNC hotspots, watersheds containing USFWS Critical Habitat, SARP priority watersheds, watersheds containing aquatic passage inventories, and EPA priority watersheds.',
-    ...getEntries(HUC8_USFS),
-    url: '/usfs_priority_watersheds',
-  },
   {
     field: 'huc8_coa',
     title: 'SARP conservation opportunity areas',
@@ -89,12 +78,6 @@ const dams = [
     ...getEntries(HEIGHT),
   },
   {
-    field: 'sizeclasses',
-    title: 'Upstream Size Classes',
-    values: sizeclassValues,
-    labels: sizeclassValues,
-  },
-  {
     field: 'tesppclass',
     title: 'Number of Federally-Listed Threatened & Endangered Species',
     hideEmpty: true,
@@ -105,14 +88,6 @@ const dams = [
   {
     field: 'statesgcnsppclass',
     title: 'Number of State-listed Species of Greatest Conservation Need',
-    hideEmpty: true,
-    help: 'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
-    url: '/sgcn',
-    ...getEntries(RARESPP),
-  },
-  {
-    field: 'regionalsgcnsppclass',
-    title: 'Number of Regionally-listed Species of Greatest Conservation Need',
     hideEmpty: true,
     help: 'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
     url: '/sgcn',
@@ -130,14 +105,6 @@ const dams = [
     hideEmpty: true,
     help: 'Note: condition information is only available for a small number of dams.  Not all data sources recorded this information.',
     ...getEntries(DAM_CONDITION),
-  },
-  {
-    field: 'construction',
-    title: 'Dam Construction Materials',
-    sort: true,
-    hideEmpty: true,
-    help: 'Note: construction information is only available for a small number of dams.  Not all data sources recorded this information.',
-    ...getEntries(CONSTRUCTION),
   },
   {
     field: 'purpose',
@@ -209,12 +176,6 @@ const smallBarriers = [
     ...getEntries(BARRIER_CONDITION),
   },
   {
-    field: 'sizeclasses',
-    title: 'Upstream Size Classes',
-    values: sizeclassValues,
-    labels: sizeclassValues,
-  },
-  {
     field: 'tesppclass',
     title: 'Number of Federally-Listed Threatened and Endangered Species',
     hideEmpty: true,
@@ -226,15 +187,6 @@ const smallBarriers = [
     field: 'statesgcnsppclass',
     title:
       'Number of State-listed Species of Greatest Conservation Need (SGCN)',
-    hideEmpty: true,
-    help: 'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
-    url: '/sgcn',
-    ...getEntries(RARESPP),
-  },
-  {
-    field: 'regionalsgcnsppclass',
-    title:
-      'Number of Regionally-listed Species of Greatest Conservation Need (SGCN)',
     hideEmpty: true,
     help: 'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
     url: '/sgcn',

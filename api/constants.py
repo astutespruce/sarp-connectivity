@@ -105,22 +105,18 @@ CUSTOM_TIER_FIELDS = [
 
 
 FILTER_FIELDS = [
-    "SizeClasses",
     "GainMilesClass",
     "TESppClass",
     "StateSGCNSppClass",
-    "RegionalSGCNSppClass",
     "StreamOrderClass",
     "OwnerType",
     "Intermittent",
-    "HUC8_USFS",
     "HUC8_COA",
     "HUC8_SGCN",
 ]
 
 DAM_FILTER_FIELDS = [
     "Feasibility",
-    "Construction",
     "Purpose",
     "Condition",
     "HeightClass",
@@ -601,6 +597,20 @@ STREAMTYPE_DOMAIN = {
 }
 
 BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
+
+
+STRUCTURECATEGORY_DOMAIN = {
+    0: "Unknown",
+    1: "Fish Management",
+    2: "Road Crossing",
+    3: "Diversion",
+    4: "Culvert",
+    5: "Natural",
+    6: "Non-structural",
+    7: "Debris",
+    8: "Other",
+    9: "Dam",
+}
 
 
 # mapping of field name to domains

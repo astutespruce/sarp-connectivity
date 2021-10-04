@@ -149,7 +149,7 @@ if ix.max():
             ix.sum()
         )
     )
-    print(df.loc[ix].groupby("State").size())
+    print(df.loc[ix].groupby("SourceState").size())
 
 # DEBUG ONLY - SARPID must be present; follow up with SARP if not
 df.SARPID = df.SARPID.fillna("").astype("str")
