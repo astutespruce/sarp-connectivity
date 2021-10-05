@@ -54,6 +54,7 @@ from analysis.constants import (
     UNRANKED_MANUALREVIEW,
     UNRANKED_RECON,
     FCODE_TO_STREAMTYPE,
+    DAM_BARRIER_SEVERITY_TO_DOMAIN,
 )
 from analysis.lib.io import read_feathers
 
@@ -187,7 +188,7 @@ for column in (
     "Diversion",
     "FishScreen",
     "ScreenType",
-    "StructureCategory"
+    "StructureCategory",
 ):
     df[column] = df[column].fillna(0).astype("uint8")
 
@@ -247,6 +248,14 @@ df.HeightClass = df.HeightClass.astype("uint8")
 # Convert PassageFacility to a boolean for filtering
 df["PassageFacilityClass"] = 0  # uknown or no facility
 df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
+
+# Convert BarrierSeverity to a domain
+df["BarrierSeverity"] = (
+    df.BarrierSeverity.fillna("")
+    .str.strip()
+    .map(DAM_BARRIER_SEVERITY_TO_DOMAIN)
+    .astype("uint8")
+)
 
 
 ### Spatial joins
@@ -338,7 +347,9 @@ df["excluded"] = (
     | df.PassageFacility.isin(EXCLUDE_PASSAGEFACILITY)
 )
 
-df.loc[df.PassageFacility.isin(EXCLUDE_PASSAGEFACILITY), 'log'] = f"excluded: PassageFacility one of {EXCLUDE_PASSAGEFACILITY}"
+df.loc[
+    df.PassageFacility.isin(EXCLUDE_PASSAGEFACILITY), "log"
+] = f"excluded: PassageFacility one of {EXCLUDE_PASSAGEFACILITY}"
 df.loc[
     df.Feasibility.isin(EXCLUDE_FEASIBILITY), "log"
 ] = f"excluded: Feasibility one of {EXCLUDE_FEASIBILITY}"

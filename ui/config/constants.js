@@ -315,6 +315,25 @@ export const INTERMITTENT = {
   1: 'Yes',
 }
 
+export const DAM_BARRIER_SEVERITY = {
+  0: 'Unknown',
+  1: 'Complete',
+  2: 'Partial',
+  3: 'Partial Passability - Non Salmonid',
+  4: 'Partial Passability - Salmonid',
+  5: 'Seasonbly Passable - Non Salmonid',
+  6: 'Seasonably Passable - Salmonid',
+  7: 'No Barrier',
+}
+
+export const PERCENT_ALTERED = {
+  // -1: no network
+  0: '0 - 9%',
+  1: '10 - 49%',
+  2: '50 - 89%',
+  3: '90 - 100%',
+}
+
 export const CONNECTIVITY_TEAMS = {
   southeast: {
     Arkansas: {

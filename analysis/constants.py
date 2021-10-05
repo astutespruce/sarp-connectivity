@@ -173,6 +173,7 @@ DAM_COLS = [
     "Diversion",
     "FishScreen",
     "ScreenType",
+    "StructureCategory",
 ]
 
 
@@ -392,6 +393,18 @@ ROAD_TYPE_TO_DOMAIN = {
 }
 
 BARRIER_CONDITION_TO_DOMAIN = {"Failing": 1, "New": 4, "OK": 3, "Poor": 2, "Unknown": 0}
+
+DAM_BARRIER_SEVERITY_TO_DOMAIN = {
+    "": 0,
+    "Unknown": 0,
+    "Complete": 1,
+    "Partial": 2,
+    "Partial Passability - Non Salmonid": 3,
+    "Partial Passability - Salmonid": 4,
+    "Seasonbly Passable - Non Salmonid": 5,
+    "Seasonably Passable - Salmonid": 6,
+    "No Barrier": 7,
+}
 
 OWNERTYPE_TO_DOMAIN = {
     # Unknown types are not useful

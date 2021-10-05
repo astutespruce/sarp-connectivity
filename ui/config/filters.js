@@ -10,6 +10,8 @@ import {
   CROSSING_TYPE,
   ROAD_TYPE,
   DAM_CONDITION,
+  DAM_BARRIER_SEVERITY,
+  PERCENT_ALTERED,
   BARRIER_CONDITION,
   PASSAGEFACILITY_CLASS,
   OWNERTYPE,
@@ -33,8 +35,6 @@ const getEntries = (obj) => {
     labels: values.map((key) => obj[key]),
   }
 }
-
-const sizeclassValues = [0, 1, 2, 3, 4, 5, 6, 7]
 
 const priorityFilters = [
   {
@@ -115,6 +115,14 @@ const dams = [
     ...getEntries(PURPOSE),
   },
   {
+    field: 'barrierseverity',
+    title: 'Barrier Passability',
+    sort: false,
+    hideEmpty: true,
+    help: 'Note: barrier passability information is only available for a small number of dams.  Not all data sources recorded this information.',
+    ...getEntries(DAM_BARRIER_SEVERITY),
+  },
+  {
     field: 'passagefacilityclass',
     title: 'Fish Passage Facility Present',
     sort: false,
@@ -137,6 +145,14 @@ const dams = [
     hideEmpty: false,
     help: 'Note: intermittent / ephemeral status is assigned in the underlying NHD data and is not consistently assigned for all stream reaches.  Non-intermittent reaches may have perennial flow or be assigned to a different stream reach type which precludes intermittent / ephemeral status.',
     ...getEntries(INTERMITTENT),
+  },
+  {
+    field: 'percentalteredclass',
+    title: 'Percent of upstream network in altered stream channels',
+    sort: false,
+    hideEmpty: false,
+    help: 'Note: altered stream channels are those that are assigned in the underlying NHD data as canals and ditches and is not consistently assigned for all stream reaches.',
+    ...getEntries(PERCENT_ALTERED),
   },
   ...priorityFilters,
 ]
@@ -207,6 +223,14 @@ const smallBarriers = [
     hideEmpty: false,
     help: 'Note: intermittent / ephemeral status is assigned in the underlying NHD data and is not consistently assigned for all stream reaches.  Non-intermittent reaches may have perennial flow or be assigned to a different stream reach type which precludes intermittent / ephemeral status.',
     ...getEntries(INTERMITTENT),
+  },
+  {
+    field: 'percentalteredclass',
+    title: 'Percent of upstream network in altered stream channels',
+    sort: false,
+    hideEmpty: false,
+    help: 'Note: altered stream channels are those that are assigned in the underlying NHD data as canals and ditches and is not consistently assigned for all stream reaches.',
+    ...getEntries(PERCENT_ALTERED),
   },
   ...priorityFilters,
 ]

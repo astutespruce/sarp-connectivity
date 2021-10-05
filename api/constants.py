@@ -111,6 +111,7 @@ FILTER_FIELDS = [
     "TESppClass",
     "StateSGCNSppClass",
     "StreamOrderClass",
+    "PercentAlteredClass",
     "OwnerType",
     "Intermittent",
     "HUC8_COA",
@@ -122,6 +123,7 @@ DAM_FILTER_FIELDS = [
     "Purpose",
     "Condition",
     "HeightClass",
+    "BarrierSeverity",
     "PassageFacilityClass",
 ] + FILTER_FIELDS
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
@@ -152,6 +154,7 @@ DAM_CORE_FIELDS = [
     "Purpose",
     "Condition",
     "PassageFacility",
+    "BarrierSeverity",
     # Recon is intentionally omitted from download below
     "Recon",
     "Feasibility",
@@ -503,6 +506,18 @@ SCREENTYPE_DOMAIN = {
     6: "Other",
 }
 
+DAM_BARRIER_SEVERITY_DOMAIN = {
+    0: "Unknown",
+    1: "Complete",
+    2: "Partial",
+    3: "Partial Passability - Non Salmonid",
+    4: "Partial Passability - Salmonid",
+    5: "Seasonbly Passable - Non Salmonid",
+    6: "Seasonably Passable - Salmonid",
+    7: "No Barrier",
+}
+
+
 ROAD_TYPE_DOMAIN = {0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad"}
 
 BARRIER_CONDITION_DOMAIN = {0: "Unknown", 1: "Failing", 2: "Poor", 3: "OK", 4: "New"}
@@ -605,18 +620,19 @@ STREAMTYPE_DOMAIN = {
 BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
 
 
-STRUCTURECATEGORY_DOMAIN = {
-    0: "Unknown",
-    1: "Fish Management",
-    2: "Road Crossing",
-    3: "Diversion",
-    4: "Culvert",
-    5: "Natural",
-    6: "Non-structural",
-    7: "Debris",
-    8: "Other",
-    9: "Dam",
-}
+# Not exported
+# STRUCTURECATEGORY_DOMAIN = {
+#     0: "Unknown",
+#     1: "Fish Management",
+#     2: "Road Crossing",
+#     3: "Diversion",
+#     4: "Culvert",
+#     5: "Natural",
+#     6: "Non-structural",
+#     7: "Debris",
+#     8: "Other",
+#     9: "Dam",
+# }
 
 
 # mapping of field name to domains
@@ -642,6 +658,7 @@ DOMAINS = {
     "Diversion": DIVERSION_DOMAIN,
     "FishScreen": FISHSCREEN_DOMAIN,
     "ScreenType": SCREENTYPE_DOMAIN,
+    "BarrierSeverity": DAM_BARRIER_SEVERITY_DOMAIN,
     # barrier fields
     "SeverityClass": BARRIER_SEVERITY_DOMAIN,
     "ConditionClass": BARRIER_CONDITION_DOMAIN,
@@ -742,6 +759,7 @@ FIELD_DEFINITIONS = {
     "Purpose": "primary purpose of {type}, if known.",
     "PassageFacility": "type of fish passage facility, if known.",
     "Feasibility": "feasibility of {type} removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of {type}s.",
+    "BarrierSeverity": "passability of the barrier, if known",
     # barrier-specific fields
     "LocalID": "local identifier.",
     "CrossingCode": "crossing identifier.",

@@ -172,7 +172,7 @@ df["unranked"] = False
 df["removed"] = False
 
 
-# Drop any that didn't intersect HUCs or states
+# Drop any that didn't intersect HUCs or states (including those outside analysis region)
 drop_ix = (df.HUC12 == "") | (df.STATEFIPS == "")
 print(f"{drop_ix.sum():,} small barriers are outside HUC12 / states")
 # Mark dropped barriers

@@ -9,7 +9,11 @@ import pygeos as pg
 
 from analysis.rank.lib.networks import get_network_results
 from analysis.rank.lib.spatial_joins import add_spatial_joins
-from analysis.rank.lib.metrics import classify_streamorder, classify_spps
+from analysis.rank.lib.metrics import (
+    classify_percent_altered,
+    classify_streamorder,
+    classify_spps,
+)
 from api.constants import DAM_API_FIELDS
 
 
@@ -152,6 +156,12 @@ df["Ranked"] = df.HasNetwork & (~df.unranked)
 # intermittent is not applicable if it doesn't have a network
 df["Intermittent"] = df["Intermittent"].astype("int8")
 df.loc[~df.HasNetwork, "Intermittent"] = -1
+
+### Classify PercentAltered
+df["PercentAltered"] = -1
+df.loc[df.HasNetwork, "PercentAltered"] = 100 - df.loc[df.HasNetwork].PercentUnaltered
+df["PercentAlteredClass"] = classify_percent_altered(df.PercentAltered)
+
 
 # fill columns and set proper type
 for col in networks.columns:

@@ -3,10 +3,7 @@ import warnings
 
 from analysis.constants import SARP_STATE_NAMES
 from analysis.lib.io import read_feathers
-from analysis.rank.lib.metrics import (
-    classify_gainmiles,
-    classify_landcover,
-)
+from analysis.rank.lib.metrics import classify_gainmiles
 from analysis.rank.lib.tiers import calculate_tiers
 from analysis.lib.util import append
 
@@ -143,7 +140,6 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
     networks["PerennialGainMilesClass"] = classify_gainmiles(
         networks.PerennialGainMiles
     )
-    networks["LandcoverClass"] = classify_landcover(networks.Landcover)
 
     if not rank:
         return networks.drop(columns=["unranked", "State"], errors="ignore")
