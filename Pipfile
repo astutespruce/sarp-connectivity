@@ -13,6 +13,7 @@ geopandas = "*"
 fastapi = "*"
 uvicorn = {extras = ["standard"],version = "*"}
 sentry-sdk = "*"
+tqdm = "*"
 
 [dev-packages]
 pylint = "*"

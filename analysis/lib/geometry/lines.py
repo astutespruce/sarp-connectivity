@@ -185,6 +185,14 @@ def vertex_angle(points, starts, ends):
     cosine_angle = np.diag(np.inner(left, right)) / (
         np.linalg.norm(left, axis=1) * np.linalg.norm(right, axis=1)
     )
+
+    # fill with value of np.degrees(np.pi), which is equivalent to np.degrees(np.arccos(-1))
+    out = np.ones(len(points), dtype="float64") * 180
+
+    # cannot calculate arccos of -1
+    ix = ~np.isclose(cosine_angle, -1)
+    out[ix] = np.degrees(np.arccos(cosine_angle[ix]))
+
     return np.degrees(np.arccos(cosine_angle))
 
 
@@ -243,8 +251,13 @@ def triangle_area(a, b, c):
     ldist = np.linalg.norm(left, axis=1)
     rdist = np.linalg.norm(right, axis=1)
     cosine_angle = np.diag(np.inner(left, right)) / (ldist * rdist)
-    theta = np.arccos(cosine_angle)
-    return 0.5 * ldist * rdist * np.sin(theta)
+    out = np.zeros(len(b), dtype="float64")
+
+    # cannot calculate arccos of -1
+    ix = ~np.isclose(cosine_angle, -1)
+    theta = np.arccos(cosine_angle[ix])
+    out[ix] = 0.5 * ldist[ix] * rdist[ix] * np.sin(theta)
+    return out
 
 
 def segment_length(coords):
@@ -262,3 +275,28 @@ def segment_length(coords):
         lengths in units of coordinates
     """
     return np.linalg.norm((coords[1:] - coords[:-1]), axis=1)
+
+
+def simplify_vw(coords, epsilon, return_indices=False):
+    # TODO: optimize so that we don't keep recalculating areas
+    mask = np.ones(len(coords), dtype="bool")
+    index = np.arange(len(mask))
+
+    while mask.sum() > 2:
+        keep_coords = coords[mask]
+        a = keep_coords[:-2]
+        b = keep_coords[1:-1]
+        c = keep_coords[2:]
+        area = triangle_area(a, b, c)
+
+        min_area = np.nanmin(area)
+        if min_area >= epsilon:
+            break
+
+        drop_index = index[mask][1:-1][np.isclose(area, min_area)]
+        mask[drop_index] = False
+
+    if return_indices:
+        return coords[mask], index[mask]
+
+    return coords[mask]
