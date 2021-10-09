@@ -2,6 +2,7 @@ from pathlib import Path
 from time import time
 
 import geopandas as gp
+from numba.core.decorators import njit
 import numpy as np
 import pandas as pd
 import pygeos as pg
@@ -13,7 +14,7 @@ from analysis.lib.geometry.lines import (
     vertex_angle,
     perpindicular_distance,
     segment_length,
-    simplify_vw,
+    simplify_vw_numba,
 )
 
 
@@ -28,12 +29,12 @@ MAX_SIMPLIFY_AREA = 100  # m2 or total area of waterbody / 100, whichever is sma
 MAX_TRIANGLE_AREA_RATIO = (
     0.01  # do not drop triangles that are greater than 1% of polygon area
 )
-MIN_DAM_WIDTH = 50  # meters; min width straight line must be in order to consider it a likely dam face
+MIN_DAM_WIDTH = 30  # meters; min width straight line must be in order to consider it a likely dam face
 MAX_WIDTH_RATIO = 0.45  # the total length of the extracted dam can be no longer than this amount of the total ring length
 MAX_GAP = (
     5  # meters; max space between 2 adjacent straight lines to consider them connected
 )
-# MAX_DRAIN_DIST = 1  # meters; distance between line segments and drain
+MAX_DRAIN_DIST = 1  # meters; distance between line segments and drain
 MAX_PERPINDICULAR_DISTANCE = 2  # meters; maximum perpindicular distance of a nearly straight vertex that can be dropped
 MIN_INTERIOR_DIST = 1  # meters; minimum distance drain must be from edge of segment for segment to be considered a dam
 
@@ -55,20 +56,32 @@ def find_dam_faces(huc2):
     joined["waterbody"] = joined.waterbody.values.data
 
     start = time()
-    out = []
-    for drainID, row in tqdm(joined.iterrows(), total=len(joined)):
-        segments = find_dam_face_from_waterbody(row.waterbody, row.geometry)
-        for segment in segments:
-            out.append({"geometry": segment, "drainID": drainID})
 
-    df = (
-        gp.GeoDataFrame(out, geometry="geometry", crs=wb.crs)
-        .set_index("drainID")
-        .join(drains.drop(columns=["geometry"]))
+    index, segments = loop(
+        joined.waterbody.values, joined.geometry.values, joined.index.values
     )
 
+    # NOTE: this may have duplicate geometries where there are widely spaced drains on the same long waterbody edge
+    df = gp.GeoDataFrame(
+        {"geometry": segments, "width": pg.length(segments)}, index=index, crs=wb.crs
+    ).join(drains.drop(columns=["geometry"]))
+    df.index.name = "drainID"
+
     print(f"Elapsed {time() - start:,.2f}s")
-    write_dataframe(df, "/tmp/extracted_dams.fgb")
+    write_dataframe(df, "/tmp/extracted.fgb")
+
+    return df
+
+
+def loop(waterbodies, drains, index):
+    out_index = []
+    out_segments = []
+    for i in tqdm(range(len(index))):
+        segments = find_dam_face_from_waterbody(waterbodies[i], drains[i])
+        out_segments.extend(segments)
+        out_index.extend([index[i]] * len(segments))
+
+    return np.array(out_index), np.array(out_segments)
 
 
 def find_dam_face_from_waterbody(waterbody, drain_pt):
@@ -97,40 +110,44 @@ def find_dam_face_from_waterbody(waterbody, drain_pt):
 
     coords = pg.get_coordinates(pts)
 
-    # first run a simplification process to extract the major shape and bends
-    # then run the straight line algorithm
-    simp_coords, simp_ix = simplify_vw(
-        coords, min(MAX_SIMPLIFY_AREA, total_area / 100), return_indices=True
-    )
+    if len(coords) > 2:
+        # first run a simplification process to extract the major shape and bends
+        # then run the straight line algorithm
+        simp_coords, simp_ix = simplify_vw_numba(
+            coords, min(MAX_SIMPLIFY_AREA, total_area / 100)
+        )
 
-    # FIXME: remove
-    # write_geoms([pg.linestrings(coords)], "/tmp/line.fgb", crs=wb.crs)
-    # write_geoms([pg.linestrings(simp_coords)], "/tmp/simplified.fgb", crs=wb.crs)
+        # FIXME: remove
+        # write_geoms([pg.linestrings(simp_coords)], "/tmp/simplified.fgb", crs=wb.crs)
 
-    ### Loop up to 5 times or until the min angle of retained points
-    # is greater than MAX_STRAIGHT_ANGLE or there are only the endpoints
-    keep_coords = simp_coords
-    keep_ix = simp_ix
+        ### Loop up to 5 times or until the min angle of retained points
+        # is greater than MAX_STRAIGHT_ANGLE or there are only the endpoints
+        keep_coords = simp_coords
+        keep_ix = simp_ix
 
-    for i in range(0, 5):
-        a = keep_coords[:-2]
-        b = keep_coords[1:-1]
-        c = keep_coords[2:]
+        for i in range(0, 5):
+            a = keep_coords[:-2]
+            b = keep_coords[1:-1]
+            c = keep_coords[2:]
 
-        angles = np.abs(vertex_angle(b, a, c) - 180)
-        distance = perpindicular_distance(b, a, c)
-        area = triangle_area(a, b, c)
+            angles = np.abs(vertex_angle(b, a, c) - 180)
+            distance = perpindicular_distance(b, a, c)
+            area = triangle_area(a, b, c)
 
-        keep_pts = angles >= MAX_STRAIGHT_ANGLE
+            keep_pts = angles >= MAX_STRAIGHT_ANGLE
 
-        # if there are no interior points to drop, then stop
-        if (~keep_pts).sum() == 0:
-            break
+            # if there are no interior points to drop, then stop
+            if (~keep_pts).sum() == 0:
+                break
 
-        # Keep the endpoints too
-        keep_pts = np.insert(keep_pts, [0, len(a)], True)
-        keep_ix = keep_ix[keep_pts]
-        keep_coords = coords[keep_ix]
+            # Keep the endpoints too
+            keep_pts = np.insert(keep_pts, [0, len(a)], True)
+            keep_ix = keep_ix[keep_pts]
+            keep_coords = coords[keep_ix]
+
+    else:
+        keep_coords = coords
+        keep_ix = np.arange(len(coords))
 
     # FIXME: remove
     # write_geoms([pg.linestrings(keep_coords)], f'/tmp/straight.fgb', crs=wb.crs)
@@ -153,8 +170,8 @@ def find_dam_face_from_waterbody(waterbody, drain_pt):
 
     # only keep the segments that are close to the drain
     segments = segments[
-        pg.intersects(segments, drain_pt)
-    ]  # pg.buffer(drain_pt, MAX_DRAIN_DIST))
+        pg.intersects(segments, pg.buffer(drain_pt, MAX_DRAIN_DIST)),
+    ]
 
     if not len(segments):
         return segments
