@@ -4,17 +4,17 @@ from time import time
 import geopandas as gp
 from numba.core.decorators import njit
 import numpy as np
+from numpy.lib.function_base import extract
 import pandas as pd
 import pygeos as pg
 from pyogrio import write_dataframe
 from tqdm.auto import tqdm
 
-from analysis.lib.geometry.lines import (
-    triangle_area,
-    vertex_angle,
-    perpindicular_distance,
-    segment_length,
-    simplify_vw_numba,
+
+from analysis.lib.geometry.lines import segment_length
+from analysis.lib.geometry.speedups.lines import (
+    simplify_vw,
+    extract_straight_segments,
 )
 
 
@@ -23,7 +23,7 @@ from analysis.lib.geometry.io import write_geoms
 # Extract no more than 50 vertices on each side for complex waterbodies;
 # 50 is arbitrary max number of vertices to extract on each side, could be less
 MAX_SIDE_PTS = 50
-MAX_STRAIGHT_ANGLE = 10
+MAX_STRAIGHT_ANGLE = 10  # 180 degrees +/- this value is considered straight
 MIN_TRIANGLE_AREA = 1  # m2; if angle is > MAX_STRAIGHT_ANGLE but less than MIN_TRIANGLE_AREA, these can be dropped
 MAX_SIMPLIFY_AREA = 100  # m2 or total area of waterbody / 100, whichever is smaller
 MAX_TRIANGLE_AREA_RATIO = (
@@ -68,7 +68,7 @@ def find_dam_faces(huc2):
     df.index.name = "drainID"
 
     print(f"Elapsed {time() - start:,.2f}s")
-    write_dataframe(df, "/tmp/extracted.fgb")
+    write_dataframe(df, "/tmp/extracted2.fgb")
 
     return df
 
@@ -113,44 +113,23 @@ def find_dam_face_from_waterbody(waterbody, drain_pt):
     if len(coords) > 2:
         # first run a simplification process to extract the major shape and bends
         # then run the straight line algorithm
-        simp_coords, simp_ix = simplify_vw_numba(
+        simp_coords, simp_ix = simplify_vw(
             coords, min(MAX_SIMPLIFY_AREA, total_area / 100)
         )
 
-        # FIXME: remove
-        # write_geoms([pg.linestrings(simp_coords)], "/tmp/simplified.fgb", crs=wb.crs)
+        if len(simp_coords) > 2:
+            keep_coords, ix = extract_straight_segments(
+                simp_coords, max_angle=MAX_STRAIGHT_ANGLE, loops=5
+            )
+            keep_ix = simp_ix.take(ix)
 
-        ### Loop up to 5 times or until the min angle of retained points
-        # is greater than MAX_STRAIGHT_ANGLE or there are only the endpoints
-        keep_coords = simp_coords
-        keep_ix = simp_ix
-
-        for i in range(0, 5):
-            a = keep_coords[:-2]
-            b = keep_coords[1:-1]
-            c = keep_coords[2:]
-
-            angles = np.abs(vertex_angle(b, a, c) - 180)
-            distance = perpindicular_distance(b, a, c)
-            area = triangle_area(a, b, c)
-
-            keep_pts = angles >= MAX_STRAIGHT_ANGLE
-
-            # if there are no interior points to drop, then stop
-            if (~keep_pts).sum() == 0:
-                break
-
-            # Keep the endpoints too
-            keep_pts = np.insert(keep_pts, [0, len(a)], True)
-            keep_ix = keep_ix[keep_pts]
-            keep_coords = coords[keep_ix]
+        else:
+            keep_coords = simp_coords
+            keep_ix = simp_ix
 
     else:
         keep_coords = coords
         keep_ix = np.arange(len(coords))
-
-    # FIXME: remove
-    # write_geoms([pg.linestrings(keep_coords)], f'/tmp/straight.fgb', crs=wb.crs)
 
     ### Calculate the length of each run and drop any that are not sufficiently long
     lengths = segment_length(keep_coords)
@@ -164,9 +143,6 @@ def find_dam_face_from_waterbody(waterbody, drain_pt):
         segments.append(pg.linestrings(coords[start : end + 1]))
 
     segments = np.array(segments)
-
-    # FIXME: remove
-    # write_geoms(segments, f'/tmp/segments.fgb', crs=wb.crs)
 
     # only keep the segments that are close to the drain
     segments = segments[

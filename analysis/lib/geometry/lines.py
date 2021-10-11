@@ -2,7 +2,6 @@ import geopandas as gp
 import numpy as np
 import pandas as pd
 import pygeos as pg
-from numba import njit
 
 
 def calculate_sinuosity(geometries):
@@ -191,7 +190,7 @@ def vertex_angle(points, starts, ends):
     out = np.ones(len(points), dtype="float64") * 180
 
     # cannot calculate arccos of -1
-    ix = ~np.isclose(cosine_angle, -1)
+    ix = cosine_angle > -1
     out[ix] = np.degrees(np.arccos(cosine_angle[ix]))
 
     return np.degrees(np.arccos(cosine_angle))
@@ -261,43 +260,6 @@ def triangle_area(a, b, c):
     return out
 
 
-@njit("f8[:](f8[:,:], f8[:,:], f8[:,:])")
-def triangle_area_numba(a, b, c):
-    """Calculate the triangular area of the triangle formed between each triple
-    of a, b, c.
-
-    About 2x faster than regular version above.
-
-    Vectorized adaptation of https://dougfenstermacher.com/blog/simplification-summarization
-
-    All inputs must have the same shape.
-
-    Parameters
-    ----------
-    a : ndarray of shape (n, 2)
-    b : ndarray of shape (n, 2)
-    c : ndarray of shape (n, 2)
-
-    Returns
-    -------
-    ndarray of shape (1,)
-        area of each triangle
-    """
-
-    left = a - b
-    right = c - b
-    out = np.zeros(len(b), dtype="float64")
-    for i in range(a.shape[0]):
-        ld = np.linalg.norm(left[i])
-        rd = np.linalg.norm(right[i])
-        x = np.dot(left[i], right[i]) / (ld * rd)
-
-        # cannot calculate arccos of -1
-        if x > -1:
-            out[i] = 0.5 * ld * rd * np.sin(np.arccos(x))
-    return out
-
-
 def segment_length(coords):
     """Calculate the vectorized length between each vertex in coords as an
     alternative to creating geometry objects.
@@ -353,78 +315,26 @@ def simplify_vw(coords, epsilon):
     return coords[mask], index[mask]
 
 
-@njit("b1[:](f8[:], f8)")
-def is_min_area(a, b):
-    # np.isclose is not currently available in numba
-    return np.abs(a - b) <= 1e-5
+def extract_straight_segments(coords, max_angle=10, loops=5):
+    index = np.arange(len(coords))
 
+    keep_coords = coords
+    keep_ix = index
 
-@njit("Tuple((f8[:,:], i8[:]))(f8[:,:], f8)")
-def simplify_vw_numba(coords, epsilon):
-    """Vectorized Visvalingam-Whyatt simplification.
+    for i in range(0, 5):
+        angles = np.abs(
+            vertex_angle(keep_coords[1:-1], keep_coords[:-2], keep_coords[2:]) - 180
+        )
+        keep_pts = angles >= max_angle
 
-    Parameters
-    ----------
-    coords : ndarray of shape (n,2)
-        x,y pairs
-    epsilon : float
-        min area required to retain a triangle
-
-    Returns
-    -------
-    (indexes, simplified_coords)
-        tuple of indexes of the retained coordinates and the simplified coordinates
-    """
-
-    mask = np.ones(len(coords), dtype="bool")
-    index = np.arange(len(mask))
-    area = triangle_area_numba(coords[:-2], coords[1:-1], coords[2:])
-
-    min_area = np.nanmin(area)
-    # NOTE: drop_index is in absolute position
-    drop_index = index[1:-1][is_min_area(area, min_area)]
-    mask[drop_index] = False
-
-    while min_area < epsilon and mask.sum() > 2:
-        # set area for drop_index to nan to exclude from min
-        # NOTE: this is shifted left to correct position
-        area[drop_index - 1] = np.nan
-
-        # update areas for all new triangles formed after dropping vertices at
-        # drop_index
-        for i in drop_index:
-            keep_index = index[mask]
-            left_index = keep_index[keep_index < i][-2:]
-            right_index = keep_index[keep_index > i][:2]
-
-            if len(left_index) == 2 and len(right_index) > 0:
-                far_left, left = left_index
-                right = right_index[0]
-                area[left - 1] = triangle_area_numba(
-                    coords[far_left : far_left + 1],
-                    coords[left : left + 1],
-                    coords[right : right + 1],
-                )[0]
-
-            if len(right_index) == 2 and len(left_index) > 0:
-                left = left_index[-1]
-                right, far_right = right_index
-                area[right - 1] = triangle_area_numba(
-                    coords[left : left + 1],
-                    coords[right : right + 1],
-                    coords[far_right : far_right + 1],
-                )[0]
-
-        # find next smallest area
-        min_area = np.nanmin(area)
-        if min_area >= epsilon:
+        # if there are no interior points to drop, then stop
+        if (~keep_pts).sum() == 0:
             break
 
-        drop_index = index[1:-1][is_min_area(area, min_area) & mask[1:-1]]
-        if len(drop_index) == 0:
-            break
+        # Keep the endpoints too
+        keep_pts = np.insert(keep_pts, [0, len(keep_coords) - 2], True)
+        keep_ix = keep_ix[keep_pts]
+        keep_coords = coords[keep_ix]
 
-        mask[drop_index] = False
-
-    return coords[mask], index[mask]
+    return keep_coords, keep_ix
 
