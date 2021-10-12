@@ -2,12 +2,9 @@ from pathlib import Path
 from time import time
 
 import geopandas as gp
-from numba.core.decorators import njit
 import numpy as np
-from numpy.lib.function_base import extract
 import pandas as pd
 import pygeos as pg
-from pyogrio import write_dataframe
 from tqdm.auto import tqdm
 
 
@@ -18,65 +15,54 @@ from analysis.lib.geometry.speedups.lines import (
 )
 
 
-from analysis.lib.geometry.io import write_geoms
-
-# Extract no more than 50 vertices on each side for complex waterbodies;
-# 50 is arbitrary max number of vertices to extract on each side, could be less
+# Extract no more than 50 vertices (arbitrary) on each side for complex waterbodies;
 MAX_SIDE_PTS = 50
 MAX_STRAIGHT_ANGLE = 10  # 180 degrees +/- this value is considered straight
-MIN_TRIANGLE_AREA = 1  # m2; if angle is > MAX_STRAIGHT_ANGLE but less than MIN_TRIANGLE_AREA, these can be dropped
 MAX_SIMPLIFY_AREA = 100  # m2 or total area of waterbody / 100, whichever is smaller
-MAX_TRIANGLE_AREA_RATIO = (
-    0.01  # do not drop triangles that are greater than 1% of polygon area
-)
 MIN_DAM_WIDTH = 30  # meters; min width straight line must be in order to consider it a likely dam face
 MAX_WIDTH_RATIO = 0.45  # the total length of the extracted dam can be no longer than this amount of the total ring length
-MAX_GAP = (
-    5  # meters; max space between 2 adjacent straight lines to consider them connected
-)
 MAX_DRAIN_DIST = 1  # meters; distance between line segments and drain
-MAX_PERPINDICULAR_DISTANCE = 2  # meters; maximum perpindicular distance of a nearly straight vertex that can be dropped
 MIN_INTERIOR_DIST = 1  # meters; minimum distance drain must be from edge of segment for segment to be considered a dam
 
 
 nhd_dir = Path("data/nhd/clean")
 
 
-def find_dam_faces(huc2):
-    wb = gp.read_feather(nhd_dir / huc2 / "waterbodies.feather").set_index("wbID")
-    drains = gp.read_feather(
-        nhd_dir / huc2 / "waterbody_drain_points.feather"
-    ).set_index("drainID")
+def find_dam_faces(drains, waterbodies):
+    # drop any on large size classes; these do not reliably pick up actual dams correctly
+    drains = drains.loc[drains.sizeclass.isin(["1a", "1b", "2"])]
 
     # convert to plain dataframe
     joined = pd.DataFrame(
-        drains[["geometry", "wbID"]].join(wb.geometry.rename("waterbody"), on="wbID",)
+        drains[["geometry", "wbID"]].join(
+            waterbodies.geometry.rename("waterbody"), on="wbID",
+        )
     )
     joined["geometry"] = joined.geometry.values.data
     joined["waterbody"] = joined.waterbody.values.data
 
-    start = time()
-
-    index, segments = loop(
+    ids, segments = loop(
         joined.waterbody.values, joined.geometry.values, joined.index.values
     )
 
     # NOTE: this may have duplicate geometries where there are widely spaced drains on the same long waterbody edge
     df = gp.GeoDataFrame(
-        {"geometry": segments, "width": pg.length(segments)}, index=index, crs=wb.crs
-    ).join(drains.drop(columns=["geometry"]))
-    df.index.name = "drainID"
-
-    print(f"Elapsed {time() - start:,.2f}s")
-    write_dataframe(df, "/tmp/extracted2.fgb")
+        {"drainID": ids, "geometry": segments, "width": pg.length(segments)},
+        crs=drains.crs,
+    ).join(drains.drop(columns=["geometry"]), on="drainID")
 
     return df
 
 
-def loop(waterbodies, drains, index):
+def loop(waterbodies, drains, index, verbose=False):
     out_index = []
     out_segments = []
-    for i in tqdm(range(len(index))):
+
+    iter = range(len(index))
+    if verbose:
+        iter = tqdm(iter)
+
+    for i in iter:
         segments = find_dam_face_from_waterbody(waterbodies[i], drains[i])
         out_segments.extend(segments)
         out_index.extend([index[i]] * len(segments))

@@ -109,6 +109,10 @@ def simplify_vw(coords, epsilon):
     area = triangle_area(coords[:-2], coords[1:-1], coords[2:])
 
     min_area = np.nanmin(area)
+    # nothing to simplify
+    if min_area >= epsilon:
+        return coords[mask], index[mask]
+
     # NOTE: drop_index is in absolute position
     drop_index = index[1:-1][is_min_area(area, min_area)]
     mask[drop_index] = False
@@ -159,10 +163,27 @@ def simplify_vw(coords, epsilon):
 
 @njit("Tuple((f8[:,:], i8[:]))(f8[:,:], f8, i8)")
 def extract_straight_segments(coords, max_angle=10, loops=5):
+    """Extracts coordinates and indices of the significant vertices by
+    repeatedly dropping any vertices that are less than 180° +/- max_angle.
+
+    Parameters
+    ----------
+    coords : ndarray of shape (n,2)
+        x,y pairs
+    max_angle : int or float, optional (default: 10)
+        maximum difference from 180° that an angle can still be considered
+        "straight" enough
+    loops : int, optional (default: 5)
+        number of times to repeatedly drop low angles, by default 5
+
+    Returns
+    -------
+    (array of retained coordinates, array of integer indexes of retained coordinates)
+    """
     mask = np.ones(len(coords), dtype="bool")
     index = np.arange(len(mask))
 
-    for i in range(0, 5):
+    for i in range(0, loops):
         keep_coords = coords[mask]
         angles = np.abs(
             vertex_angle(keep_coords[1:-1], keep_coords[:-2], keep_coords[2:]) - 180
