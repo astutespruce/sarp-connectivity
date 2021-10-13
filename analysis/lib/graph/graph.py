@@ -73,8 +73,8 @@ class DirectedGraph(object):
         # save only unique combinations of source => target
         df = df.drop_duplicates(subset=[source, target])
 
-        self._size = len(df)
         self.adj_matrix = df.set_index(target).groupby(source).groups
+        self._size = len(self.adj_matrix)
 
     def __len__(self):
         return self._size

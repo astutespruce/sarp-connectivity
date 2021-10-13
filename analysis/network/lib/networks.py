@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from analysis.lib.graph import DirectedGraph
+from analysis.lib.graph.speedups import DirectedGraph
 
 from analysis.constants import HUC2_EXITS
 
@@ -27,20 +27,22 @@ def connect_huc2s(joins):
     ### Extract the joins that cross region boundaries, and set new upstream IDs for them
     # We can join on the ids we generate (upstream_id, downstream_id) because there are no
     # original flowlines split at HUC2 join areas
-    cross_region = joins.loc[(joins.type == "huc_in") & (joins.upstream_id == 0)]
 
-    cross_region = (
-        cross_region.drop(columns=["upstream_id"])
-        .rename(columns={"HUC2": "downstream_HUC2"})
-        .join(
-            joins.set_index("downstream")[["downstream_id", "HUC2"]].rename(
-                columns={"downstream_id": "upstream_id", "HUC2": "upstream_HUC2"}
-            ),
-            on="upstream",
-            how="inner",
-        )
-        .drop_duplicates()
-    )
+    cross_region = joins.loc[
+        (joins.type == "huc_in") & (joins.upstream_id == 0),
+        ["upstream", "downstream", "downstream_id", "type", "HUC2"],
+    ].rename(columns={"HUC2": "downstream_HUC2"})
+
+    cross_region = cross_region.join(
+        joins.loc[
+            joins.downstream.isin(cross_region.upstream),
+            ["downstream", "downstream_id", "HUC2"],
+        ]
+        .set_index("downstream")
+        .rename(columns={"downstream_id": "upstream_id", "HUC2": "upstream_HUC2"}),
+        on="upstream",
+        how="inner",
+    ).drop_duplicates()
 
     # update joins to include those that cross region boundaries
     for row in cross_region.itertuples():
@@ -70,8 +72,12 @@ def connect_huc2s(joins):
     target = np.append(tmp.downstream_HUC2, tmp.upstream_HUC2)
 
     # Create a graph to coalesce into connected components
-    g = DirectedGraph.from_arrays(source, target)
+    # Note: these are temporarily converted to int64 to use DirectedGraph
+    g = DirectedGraph(source.astype("int64"), target.astype("int64"))
     connected_huc2 = g.components()
+
+    # convert back to strings
+    connected_huc2 = [{f"{huc2:02}" for huc2 in group} for group in connected_huc2]
 
     isolated_huc2 = [
         {huc2}
@@ -140,11 +146,11 @@ def create_networks(joins, barrier_joins, lineIDs):
         & (joins.downstream_id != 0)
         & (~joins.upstream_id.isin(barrier_upstream_idx)),
         ["downstream_id", "upstream_id"],
-    ]
+    ].drop_duplicates(subset=["downstream_id", "upstream_id"])
 
     # create a directed graph facing upstream
     network_graph = DirectedGraph(
-        upstreams, source="downstream_id", target="upstream_id"
+        upstreams.downstream_id.values, upstreams.upstream_id.values
     )
 
     ### Get list of network root IDs

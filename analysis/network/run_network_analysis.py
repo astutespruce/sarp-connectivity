@@ -19,7 +19,6 @@ import pandas as pd
 
 from analysis.constants import NETWORK_TYPES
 from analysis.lib.io import read_feathers
-from analysis.lib.joins import remove_joins
 from analysis.network.lib.stats import calculate_network_stats
 from analysis.network.lib.networks import create_networks, connect_huc2s
 
