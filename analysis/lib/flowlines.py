@@ -1,4 +1,3 @@
-from pathlib import Path
 from time import time
 
 import geopandas as gp
@@ -9,7 +8,7 @@ import numpy as np
 
 from analysis.lib.joins import index_joins, find_joins, update_joins, remove_joins
 from analysis.lib.graph import find_adjacent_groups
-from analysis.lib.geometry import calculate_sinuosity, geo_bounds
+from analysis.lib.geometry import calculate_sinuosity
 
 from analysis.lib.geometry import (
     cut_lines_at_multipoints,
