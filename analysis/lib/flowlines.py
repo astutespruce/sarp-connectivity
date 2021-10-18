@@ -55,15 +55,6 @@ def prep_new_flowlines(flowlines, new_segments):
         new_flowlines.geometry.values.data
     ).astype("float32")
 
-    # Not currently used
-    # bounds = pd.DataFrame(
-    #     geo_bounds(new_flowlines.geometry.values.data),
-    #     columns=["xmin", "ymin", "xmax", "ymax"],
-    #     index=new_flowlines.index,
-    # )
-
-    # return new_flowlines.join(bounds)
-
     return new_flowlines
 
 

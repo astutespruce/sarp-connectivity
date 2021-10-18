@@ -42,7 +42,7 @@ def vertex_offsets(coords):
     return out
 
 
-@njit(", f8[:,:], f8[:,:])")
+@njit("f8[:](f8[:,:],f8[:,:],f8[:,:])")
 def vertex_angle(points, starts, ends):
     """Calculate the angle formed at each triple of start, point, end.
 
@@ -329,14 +329,15 @@ def cut_line_at_points(coords, cut_offsets):
 
 
 def cut_lines_at_points(coords, cut_offsets):
-    """Cut lines represented by coords at cut_offsets
+    """Cut lines represented by cutting at cut_offsets along each line.
 
     Parameters
     ----------
-    coords : list-like
+    coords : list-like of coordinate arrays (one sub-array per line)
         coordinates for each line
     cut_offsets : list-like
-        offset of cut points on their corresponding lines
+        offset of cut points on their corresponding lines, must be same length
+        as coords
 
     Returns
     -------

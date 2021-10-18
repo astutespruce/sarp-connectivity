@@ -93,7 +93,7 @@ for huc2 in huc2s:
     print("Reading flowlines...")
     flowline_start = time()
     flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather").drop(
-        columns=["HUC2"], errors="ignore"
+        columns=["HUC2", "xmin", "xmax", "ymin", "ymax"], errors="ignore"
     )
     print(f"Read {len(flowlines):,} flowlines in {time() - flowline_start:.2f}s")
 
