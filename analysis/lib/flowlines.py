@@ -13,8 +13,9 @@ from analysis.lib.geometry import calculate_sinuosity
 from analysis.lib.geometry import (
     cut_lines_at_multipoints,
     explode,
-    cut_line_at_points,
 )
+
+from analysis.lib.geometry.speedups.lines import cut_lines_at_points
 
 from analysis.constants import SNAP_ENDPOINT_TOLERANCE
 
@@ -309,10 +310,22 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
     tmp = pd.DataFrame(split_segments.copy())
     tmp.flowline = tmp.flowline.values.data
     tmp.barrier = tmp.barrier.values.data
+    tmp["pos"] = pg.line_locate_point(tmp.flowline.values, tmp.barrier.values)
 
     # Group barriers by line so that we can split geometries in one pass
     grouped = (
-        tmp[["lineID", "NHDPlusID", "barrierID", "barriers", "flowline", "barrier",]]
+        tmp[
+            [
+                "lineID",
+                "NHDPlusID",
+                "barrierID",
+                "barriers",
+                "flowline",
+                "barrier",
+                "pos",
+            ]
+        ]
+        .sort_values(by=["lineID", "pos"])
         .groupby("lineID")
         .agg(
             {
@@ -321,21 +334,23 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
                 "flowline": "first",
                 "barrierID": list,
                 "barriers": "first",
-                "barrier": list,
+                "barrier": list,  # TODO: remove
+                "pos": list,
             }
         )
     )
 
     # cut line for all barriers
-    geoms = grouped.apply(
-        lambda row: cut_line_at_points(row.flowline, row.barrier), axis=1,
+    outer_ix, inner_ix, lines = cut_lines_at_points(
+        grouped.flowline.apply(lambda x: pg.get_coordinates(x)).values,
+        grouped.pos.apply(np.array).values,
     )
-
-    # Split multilines into new rows
-    new_segments = (
-        explode(gp.GeoDataFrame(geometry=geoms, crs=flowlines.crs), add_position=True)
-        .reset_index()
-        .rename(columns={"lineID": "origLineID"})
+    new_segments = gp.GeoDataFrame(
+        {
+            "origLineID": grouped.index.take(outer_ix),
+            "position": inner_ix,
+            "geometry": lines,
+        }
     )
     new_segments["lineID"] = next_segment_id + new_segments.index
 

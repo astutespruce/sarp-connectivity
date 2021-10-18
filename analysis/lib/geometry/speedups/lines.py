@@ -1,11 +1,48 @@
 import numpy as np
-from numba import jit, njit
+from numba import njit
 import pygeos as pg
 
-from analysis.lib.geometry.lines import segment_length
+
+@njit("f8[:](f8[:,:])")
+def segment_length(coords):
+    """Calculate the vectorized length between each vertex in coords as an
+    alternative to creating geometry objects.
+
+    Parameters
+    ----------
+    coords : ndarray of shape (n,2)
+        x,y pairs
+
+    Returns
+    -------
+    ndarray of shape(n-1,)
+        lengths in units of coordinates
+    """
+    diff = coords[1:] - coords[:-1]
+    return np.sqrt(diff[:, 0] * diff[:, 0] + diff[:, 1] * diff[:, 1])
 
 
-@njit("f8[:](f8[:,:], f8[:,:], f8[:,:])")
+@njit("f8[:](f8[:,:])")
+def vertex_offsets(coords):
+    """Calculate the line offset (position) for each vertex in the line.
+
+    Parameters
+    ----------
+    coords : ndarray of shape (n,2)
+        x,y pairs of thecoordinates in the lne
+
+    Returns
+    -------
+    ndarray of shape(n,)
+        offsets of each coordinate along the line
+    """
+    out = np.empty(coords.shape[0], dtype=coords.dtype)
+    out[0] = 0
+    out[1:] = np.cumsum(segment_length(coords))
+    return out
+
+
+@njit(", f8[:,:], f8[:,:])")
 def vertex_angle(points, starts, ends):
     """Calculate the angle formed at each triple of start, point, end.
 
@@ -202,16 +239,14 @@ def extract_straight_segments(coords, max_angle=10, loops=5):
     return coords[mask], index[mask]
 
 
-@njit("Tuple((f8[:,:], i8[:]))(f8[:,:],f8[:],f8[:])")
-def split_coords(coords, offsets, cut_offsets):
+@njit("Tuple((f8[:,:], i8[:]))(f8[:,:],f8[:])")
+def split_coords(coords, cut_offsets):
     """Split coordinates representing a single line at cut_offsets.
 
     Parameters
     ----------
     coords : ndarray of shape (n, 2)
         coordinates
-    offsets : ndarray of shape (n,)
-        point offsets of each vertex in coords above along line.
     cut_offsets : ndarray of shape (m,)
         offsets along line to cut into line
 
@@ -221,6 +256,7 @@ def split_coords(coords, offsets, cut_offsets):
         tuple of split coords of shape (n, 2), index of new lines in coords of
         shape (n,)
     """
+    offsets = vertex_offsets(coords)
     # get the index of the existing vertex to the right of the cut point
     segment_ix = np.digitize(cut_offsets, offsets, right=True)
     # only add 1 extra vertex for each existing vertex, otherwise we add 2
@@ -274,39 +310,50 @@ def split_coords(coords, offsets, cut_offsets):
     return out_coords, out_ix
 
 
-@jit(nopython=False, forceobj=True)
-def cut_line_at_points(line, cut_points, tolerance=1e-6):
-    """Cut a pygeos line geometry at points.
-    If there are no interior points, the original line will be returned.
+def cut_line_at_points(coords, cut_offsets):
+    """Cut a pygeos line geometry at points.  The points must be interior
+    to the line.
 
     Parameters
     ----------
-    line : pygeos Linestring
-    cut_points : list-like of pygeos Points
-        will be projected onto the line; those interior to the line will be
-        used to cut the line in to new segments.
-    tolerance : float, optional (default: 1e-6)
-        minimum distance from endpoints to consider the points interior
-        to the line.
+    coords : ndarray of shape (2,n)
+        line coordinates
+    cut_points : list-like of offsets projected onto the line
 
     Returns
     -------
-    MultiLineStrings (or LineString, if unchanged)
+    MultiLineStrings
     """
-    coords = pg.get_coordinates(line)
-    offsets = np.insert(np.cumsum(segment_length(coords)), 0, 0)
-    cut_offsets = pg.line_locate_point(line, cut_points)
-    cut_offsets = cut_offsets[
-        (cut_offsets > tolerance) & (cut_offsets < offsets[-1] - tolerance)
-    ]
-
-    if len(cut_offsets) == 0:
-        # nothing to cut, return original
-        return line
-
-    # get coordinates of new vertices from the cut points (interpolated onto the line)
-    # FIXME: these need to be sorted before calling into here
-    cut_offsets.sort()
-
-    new_coords, line_ix = split_coords(coords, offsets, cut_offsets)
+    new_coords, line_ix = split_coords(coords, cut_offsets)
     return pg.multilinestrings(pg.linestrings(new_coords, indices=line_ix))
+
+
+def cut_lines_at_points(coords, cut_offsets):
+    """Cut lines represented by coords at cut_offsets
+
+    Parameters
+    ----------
+    coords : list-like
+        coordinates for each line
+    cut_offsets : list-like
+        offset of cut points on their corresponding lines
+
+    Returns
+    -------
+    (outer_ix, inner_ix, lines)
+        tuple of arrays of outer index, inner index of split line within original
+        line, and pygeos LineString.
+    """
+
+    outer_ix = []
+    inner_ix = []
+    lines = []
+    for i in range(len(coords)):
+        new_coords, line_ix = split_coords(coords[i], cut_offsets[i])
+        outer_ix.append(i)
+        l = pg.linestrings(new_coords, indices=line_ix)  # multiple lines
+        outer_ix.extend([i] * (len(l) - 1))
+        inner_ix.extend(np.arange(len(l)))
+        lines.extend(l)
+
+    return outer_ix, inner_ix, lines
