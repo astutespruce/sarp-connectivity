@@ -145,6 +145,7 @@ def aggregate_lines(df, by):
     GeoDataFrame of multilinestrings
     """
 
+    # convert to DataFrame, so that we can get at pygeos geometries directly in apply
     tmp = pd.DataFrame(df.copy())
     tmp["geometry"] = tmp.geometry.values.data
     return gp.GeoDataFrame(

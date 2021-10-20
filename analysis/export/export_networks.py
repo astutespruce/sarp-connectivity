@@ -8,6 +8,7 @@ from pyogrio import write_dataframe
 
 from analysis.constants import CRS
 from analysis.lib.io import read_feathers
+from analysis.lib.geometry.lines import aggregate_lines
 
 src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")
@@ -17,11 +18,12 @@ if not out_dir.exists():
 
 
 barrier_type = "small_barriers"
-ext = "shp"
+ext = "fgb"
 
-groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
+# groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
-for group in groups_df.groupby("group").HUC2.apply(set).values:
+# for group in groups_df.groupby("group").HUC2.apply(set).values:
+for group in [{"02"}]:
     segments = (
         read_feathers(
             [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
@@ -77,29 +79,22 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         flowlines = flowlines.join(segments)
 
         # aggregate to multilinestrings by combinations of networkID, altered, intermittent
-        networks = pd.DataFrame(flowlines)
-        networks["geometry"] = networks.geometry.values.data
-        networks = gp.GeoDataFrame(
-            networks.groupby(["networkID"])
-            # networks.groupby(["networkID", "intermittent", "altered"])
-            .geometry.apply(pg.multilinestrings)
-            .rename("geometry")
-            .reset_index()
+        networks = (
+            aggregate_lines(flowlines, by=["networkID", "altered", "intermittent"])
             .set_index("networkID")
             .join(stats, how="inner")
             .reset_index()
-            .sort_values(by="networkID"),
-            crs=CRS,
+            .sort_values(by="networkID")
         )
 
         # Set plotting symbol
-        # networks["symbol"] = "normal"
-        # networks.loc[networks.altered, "symbol"] = "altered"
-        # # currently overrides altered since both come from NHD (mutually exclusive in source data)
-        # networks.loc[networks.intermittent, "symbol"] = "intermittent"
-        # networks.loc[
-        #     networks.intermittent & networks.altered, "symbol"
-        # ] = "altered_intermittent"
+        networks["symbol"] = "normal"
+        networks.loc[networks.altered, "symbol"] = "altered"
+        # currently overrides altered since both come from NHD (mutually exclusive in source data)
+        networks.loc[networks.intermittent, "symbol"] = "intermittent"
+        networks.loc[
+            networks.intermittent & networks.altered, "symbol"
+        ] = "altered_intermittent"
 
         print("Serializing dissolved networks...")
         write_dataframe(

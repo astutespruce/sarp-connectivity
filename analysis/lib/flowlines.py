@@ -436,7 +436,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
         sort=False,
     ).set_index("lineID", drop=False)
 
-    print(f"Done cutting flowlines in {time() - start:.2}s")
+    print(f"Done cutting flowlines in {time() - start:.2f}s")
 
     return updated_flowlines, updated_joins, barrier_joins
 
