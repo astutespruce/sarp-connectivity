@@ -28,12 +28,16 @@ const styles = StyleSheet.create({
   },
 })
 
-const Report = ({ barrierType, data, map, locatorMap, attribution, scale }) => {
-  const { county, state, hasnetwork, sarpid } = data
-  const name =
-    data.name || barrierType === 'dams'
-      ? `Unknown dam name (SARPID: ${sarpid})`
-      : `Unnamed crossing (SARPID ${sarpid})`
+const Report = ({
+  barrierType,
+  data,
+  name,
+  map,
+  locatorMap,
+  attribution,
+  scale,
+}) => {
+  const { county, state, hasnetwork } = data
 
   return (
     <Document
@@ -96,6 +100,7 @@ const Report = ({ barrierType, data, map, locatorMap, attribution, scale }) => {
 Report.propTypes = {
   barrierType: PropTypes.string.isRequired,
   data: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
   map: PropTypes.string.isRequired,
   locatorMap: PropTypes.string.isRequired,
   attribution: PropTypes.string.isRequired,

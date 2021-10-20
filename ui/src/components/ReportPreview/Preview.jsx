@@ -108,6 +108,7 @@ const Preview = ({ barrierType, data }) => {
         locatorMap={locatorMapImage}
         barrierType={barrierType}
         data={data}
+        name={name}
       />
     )
       .toBlob()
