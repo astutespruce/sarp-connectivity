@@ -31,7 +31,7 @@ export const sources = {
   networks: {
     type: 'vector',
     tiles: [`${tileHost}/services/networks/tiles/{z}/{x}/{y}.pbf`],
-    minzoom: 6,
+    minzoom: 5,
     maxzoom: 16,
   },
   waterfalls: {
