@@ -8,8 +8,8 @@ import pygeos as pg
 from pyogrio import write_dataframe
 
 from analysis.prep.barriers.lib.points import connect_points
-from analysis.lib.geometry import sjoin, nearest
-from analysis.constants import CRS, SNAP_ENDPOINT_TOLERANCE
+from analysis.lib.geometry import nearest
+from analysis.constants import SNAP_ENDPOINT_TOLERANCE
 from analysis.lib.util import ndarray_append_strings
 
 # distance from edge of an NHD dam poly to be considered associated

@@ -19,12 +19,13 @@ from analysis.lib.geometry import (
     find_contiguous_groups,
 )
 from analysis.lib.io import read_feathers
+from analysis.lib.graph.speedups.graph import DirectedGraph
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 
-# consider dam associated with waterbody drain if within 50m
-NEAREST_DRAIN_TOLERANCE = 50
+# consider dam associated with waterbody drain if within 15m
+MAX_DRAIN_DISTANCE = 15
 
 
 data_dir = Path("data")
@@ -53,7 +54,7 @@ nhd_pts = read_feathers(
 nhd_pts = nhd_pts.loc[nhd_pts.FType.isin([343])].copy()
 
 # write original points for SARP
-write_dataframe(nhd_pts, out_dir / "nhd_dam_pts_nhdpoint.gpkg")
+write_dataframe(nhd_pts, out_dir / "nhd_dam_pts_nhdpoint.fgb")
 
 nhd_pts["source"] = "NHDPoint"
 
@@ -140,43 +141,9 @@ for huc2 in huc2s:
         columns=["downstream_id", "upstream_id"],
     )
 
-    drains = gp.read_feather(
-        clean_dir / huc2 / "waterbody_drain_points.feather",
-        columns=["wbID", "drainID", "lineID", "loop", "geometry"],
-    ).set_index("drainID")
-
-    ### Associate with waterbody drain points
-    print("Joining to waterbody drain points...")
-    join_start = time()
-
-    # find the nearest waterbodies up to 50m away
-    # more than that and we pick up downstream waterbodies
-    near_drains = (
-        nearest(
-            pd.Series(dams.geometry.values.data, index=dams.index),
-            pd.Series(drains.geometry.values.data, index=drains.index),
-            NEAREST_DRAIN_TOLERANCE,
-            keep_all=True,
-        )
-        .join(dams.drop(columns=["geometry"]))
-        .join(drains, on="drainID")
-        .drop(columns=["distance"])
-    )
-
-    ### Save these based on drain points
-    # Note: we now have multiple records per dam because there may be multiple
-    # nearest intersecting drains for these.
-    # A large dam may also be associated with multiple waterbodies; these also
-    # appear valid.
-
-    merged = append(merged, near_drains.reset_index())
-
-    print(
-        f"Found {len(near_drains):,} dams associated with waterbodies in {time() - join_start:,.2f}s"
-    )
-
-    ### Intersect the remainder with flowlines to find the intersection points
-    dams = dams.loc[~dams.index.isin(near_drains.index)].copy()
+    ### Find all intersection points with flowlines
+    # we do this before looking for adjacent drain points, since there may be
+    # multiple flowlines of different networks associated with a given dam
 
     print(f"Joining {len(dams):,} NHD dams to {len(flowlines):,} flowlines")
     join_start = time()
@@ -191,7 +158,7 @@ for huc2 in huc2s:
         .join(dams.geometry, on="damID")
         .join(flowlines.geometry.rename("flowline"), on="lineID")
     ).reset_index(drop=True)
-    print(f"Found {len(dams)} joins in {time() - join_start:.2f}s")
+    print(f"Found {len(dams):,} joins in {time() - join_start:.2f}s")
 
     print("Extracting intersecting flowlines...")
     # Only keep the joins for lines that significantly cross (have a line / multiline and not a point)
@@ -229,7 +196,7 @@ for huc2 in huc2s:
         .explode("lineID")
         .drop_duplicates()
         .set_index("damID")
-        .lineID
+        .lineID.astype("uint32")
     )
 
     # Now can just reduce dams back to these lineIDs
@@ -244,10 +211,6 @@ for huc2 in huc2s:
         .reset_index(drop=True)
     )
     print(f"Found {len(dams):,} joins between NHD dams and flowlines")
-
-    # the first point is the furthest upstream; use this to represent the dam
-    # if input is a multiline, take the first geometry
-    # dams["geometry"] = pg.get_point(pg.get_geometry(dams.flowline.values.data, 0), 0)
 
     ### Extract representative point
     # Look at either end of overlapping line and use that as representative point.
@@ -288,13 +251,103 @@ for huc2 in huc2s:
     # WARNING: there may be multiple points per dam at this point, due to intersections with
     # multiple disjunct flowlines
     dams = (
-        dams[["damID", "lineID", "pt", "loop",]]
-        .dropna(subset=["pt"])
-        .rename(columns={"pt": "geometry"})
-        .set_index("damID")
+        dams[["damID", "lineID", "geometry", "pt", "loop",]].dropna(subset=["pt"])
+        # .rename(columns={"pt": "geometry"})
+    )
+    dams.index.name = "damPtID"
+
+    ### Associate with waterbody drain points
+    print("Joining to waterbody drain points...")
+    join_start = time()
+
+    drains = gp.read_feather(
+        clean_dir / huc2 / "waterbody_drain_points.feather",
+        columns=["wbID", "drainID", "lineID", "loop", "geometry"],
+    ).set_index("drainID")
+
+    # find any waterbody drain points within MAX_DRAIN_DISTANCE of dam polygons
+
+    # Find the nearest dam polygon for each drain, within MAX_DRAIN_DISTANCE
+    # We do it this way because the dam may intersect or affect multiple drain points
+    # so we can't always take the first or nearest from the dam's perspective
+    tmp_dams = dams.groupby("damID").geometry.first()
+    tree = pg.STRtree(tmp_dams.values.data)
+    drain_ix, dam_ix = tree.nearest_all(
+        drains.geometry.values.data, max_distance=MAX_DRAIN_DISTANCE
+    )
+    near_drains = pd.DataFrame(
+        {"drainID": drains.index.values.take(drain_ix),},
+        index=pd.Series(tmp_dams.index.values.take(dam_ix), name="damID"),
+    ).join(drains, on="drainID")
+
+    # near_drains = pd.DataFrame(
+    #         {
+    #             "damID"
+    #             "drainID": drains.index.values.take(drain_ix),
+    #         },
+    #         index=pd.Series(dams.index.values.take(dam_ix), name="damPtID"),
+    #     ).join(drains, on="drainID")
+
+    # If the drain is immediately upstream or downstream on the same subnetwork
+    # up to 4 nodes away, use the drain point instead
+    tmp_joins = joins.loc[joins.upstream_id != 0]
+    g = DirectedGraph(
+        tmp_joins.downstream_id.values.astype("int64"),
+        tmp_joins.upstream_id.values.astype("int64"),
     )
 
-    # Concat to merged dams
+    # find all combinations of dam crossing points and drain points
+    tmp = (
+        dams[["damID", "lineID", "pt"]]
+        .reset_index()
+        .join(
+            near_drains[["drainID", "wbID", "lineID", "loop", "geometry"]].rename(
+                columns={"lineID": "drainLineID"}
+            ),
+            on="damID",
+            how="inner",
+        )
+    )
+    tmp["lineID"] = tmp.lineID.astype("int64")
+    tmp["drainLineID"] = tmp.drainLineID.astype("int64")
+    # some drains are at exact same point as extracted flowline crossing point
+    tmp["same_subnet"] = tmp.lineID == tmp.drainLineID
+    ix = ~tmp.same_subnet
+    tmp.loc[ix, "same_subnet"] = g.is_reachable(
+        tmp.loc[ix].lineID.values, tmp.loc[ix].drainLineID.values, 4
+    )
+    # try from other direction
+    ix = ~tmp.same_subnet
+    tmp.loc[ix, "same_subnet"] = g.is_reachable(
+        tmp.loc[ix].drainLineID.values, tmp.loc[ix].lineID.values, 4
+    )
+
+    tmp = tmp.loc[tmp.same_subnet].copy()
+    # take the closest drain to the crossing point if there are multiple on the
+    # same flowline
+    tmp["dist"] = pg.distance(tmp.geometry.values.data, tmp.pt.values.data)
+    use_drains = (
+        tmp.sort_values(by=["damPtID", "dist"], ascending=True)
+        .drop(columns=["same_subnet", "dist", "pt", "lineID"])
+        .groupby("damPtID")
+        .first()
+    )
+
+    dams = dams.join(
+        use_drains[["drainID", "wbID", "drainLineID", "loop", "geometry"]].rename(
+            columns={"geometry": "drain", "loop": "drainLoop"}
+        )
+    )
+    ix = dams.drainID.notnull()
+    print(
+        f"Found {ix.sum():,} dams associated with waterbodies in {time() - join_start:,.2f}s"
+    )
+    dams["geometry"] = dams.pt.values
+    dams.loc[ix, "geometry"] = dams.loc[ix].drain.values.data
+    dams.loc[ix, "lineID"] = dams.loc[ix].drainLineID.astype("uint32")
+    dams.loc[ix, "loop"] = dams.loc[ix].drainLoop.astype("bool")
+
+    dams = dams.drop(columns=["drain", "drainLineID", "drainLoop", "pt"])
     merged = append(merged, dams.reset_index())
 
     print("Region done in {:.2f}s".format(time() - region_start))
@@ -318,16 +371,16 @@ dams.damID = dams.damID.astype("uint32")
 dams.lineID = dams.lineID.astype("uint32")
 dams.wbID = dams.wbID.fillna(-1).astype("int32")
 dams.drainID = dams.drainID.fillna(-1).astype("int32")
-
+dams.loop = dams.loop.astype("bool")
 
 print("Serializing...")
 dams.to_feather(out_dir / "nhd_dams_pt.feather")
-write_dataframe(dams, out_dir / "nhd_dams_pt.gpkg")
+write_dataframe(dams, out_dir / "nhd_dams_pt.fgb")
 
 
 nhd_dams = nhd_dams.reset_index()
 nhd_dams.to_feather(out_dir / "nhd_dams_poly.feather")
-write_dataframe(nhd_dams, out_dir / "nhd_dams_poly.gpkg")
+write_dataframe(nhd_dams, out_dir / "nhd_dams_poly.fgb")
 
 
 print("==============\nAll done in {:.2f}s".format(time() - start))

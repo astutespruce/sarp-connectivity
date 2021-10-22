@@ -1,8 +1,6 @@
-from collections import defaultdict
 from numba import types
 from numba import njit
 from numba.typed import List
-
 import numpy as np
 
 
@@ -52,6 +50,82 @@ def components(adj_matrix):
     return groups
 
 
+@njit
+def _is_reachable_pair(adj_matrix, source_node, target_node, max_depth):
+    """Return True for which there exists a route within the adjacency matrix
+    between source_node and target_node that is less than max_depth.
+
+    Parameters
+    ----------
+    adj_matrix : dict of numba lists
+        adjacency list created from above function
+    source_node : int
+        source node ID
+    target_node : int
+        target node ID
+    max_depth : int
+        number of vertices to traverse searching for route from source to target nodes
+
+    Returns
+    -------
+    bool
+        True if there is a route from source_node to target_node
+    """
+    depth = 0
+    seen = set()
+    next_nodes = set(adj_matrix[source_node])
+
+    # breadth-first traversal up to max_depth
+    while next_nodes and depth <= max_depth:
+        depth += 1
+        nodes = next_nodes
+        next_nodes = set()
+        for next_node in nodes:
+            if next_node == target_node:
+                return True
+
+            if not next_node in seen:
+                seen.add(next_node)
+                if next_node in adj_matrix:
+                    next_nodes.update(adj_matrix[next_node])
+
+    return False
+
+
+@njit
+def is_reachable(adj_matrix, sources, targets, max_depth=None):
+    """Return True for each pair in sources and targets for which there exists a
+    route within the adjacency matrix.
+
+    Parameters
+    ----------
+    sources : 1d ndarray of source nodes
+    targets : 1d array of target nodes
+        must be same length as source
+    max_depth : int, optional (default: None)
+        If set, will be the maximum number of descendants of each source
+        to search for a route to any of targets.  By default will search
+        through all nodes in graph.
+
+    Returns
+    -------
+    ndarray (bool)
+    """
+
+    if not len(sources) == len(targets):
+        raise ValueError("sources and targets must be same length")
+
+    max_depth = max_depth or len(adj_matrix)
+
+    out = np.zeros(shape=sources.shape, dtype="bool")
+    for i in range(len(sources)):
+        out[i] = sources[i] in adj_matrix and _is_reachable_pair(
+            adj_matrix, sources[i], targets[i], max_depth
+        )
+
+    return out
+
+
 class DirectedGraph(object):
     def __init__(self, source, target):
         """Create DirectedGraph from source and target ndarrays.
@@ -76,3 +150,6 @@ class DirectedGraph(object):
 
     def descendants(self, sources):
         return descendants(self.adj_matrix, sources)
+
+    def is_reachable(self, sources, targets, max_depth=None):
+        return is_reachable(self.adj_matrix, sources, targets, max_depth)
