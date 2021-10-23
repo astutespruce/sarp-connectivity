@@ -134,7 +134,8 @@ for huc2 in huc2s:
 
     print("Reading flowlines...")
     flowlines = gp.read_feather(
-        clean_dir / huc2 / "flowlines.feather", columns=["lineID", "loop", "geometry"]
+        clean_dir / huc2 / "flowlines.feather",
+        columns=["lineID", "loop", "geometry", "sizeclass"],
     ).set_index("lineID")
     joins = pd.read_feather(
         clean_dir / huc2 / "flowline_joins.feather",
@@ -204,10 +205,7 @@ for huc2 in huc2s:
         dams[["damID", "geometry"]]
         .join(downstreams, on="damID", how="inner")
         .drop_duplicates(subset=["damID", "lineID"])
-        .join(
-            flowlines[["geometry", "loop"]].rename(columns={"geometry": "flowline"}),
-            on="lineID",
-        )
+        .join(flowlines.geometry.rename("flowline"), on="lineID",)
         .reset_index(drop=True)
     )
     print(f"Found {len(dams):,} joins between NHD dams and flowlines")
@@ -251,7 +249,7 @@ for huc2 in huc2s:
     # WARNING: there may be multiple points per dam at this point, due to intersections with
     # multiple disjunct flowlines
     dams = (
-        dams[["damID", "lineID", "geometry", "pt", "loop",]].dropna(subset=["pt"])
+        dams[["damID", "lineID", "geometry", "pt",]].dropna(subset=["pt"])
         # .rename(columns={"pt": "geometry"})
     )
     dams.index.name = "damPtID"
@@ -262,7 +260,7 @@ for huc2 in huc2s:
 
     drains = gp.read_feather(
         clean_dir / huc2 / "waterbody_drain_points.feather",
-        columns=["wbID", "drainID", "lineID", "loop", "geometry"],
+        columns=["wbID", "drainID", "lineID", "geometry"],
     ).set_index("drainID")
 
     # find any waterbody drain points within MAX_DRAIN_DISTANCE of dam polygons
@@ -301,7 +299,7 @@ for huc2 in huc2s:
         dams[["damID", "lineID", "pt"]]
         .reset_index()
         .join(
-            near_drains[["drainID", "wbID", "lineID", "loop", "geometry"]].rename(
+            near_drains[["drainID", "wbID", "lineID", "geometry"]].rename(
                 columns={"lineID": "drainLineID"}
             ),
             on="damID",
@@ -334,8 +332,8 @@ for huc2 in huc2s:
     )
 
     dams = dams.join(
-        use_drains[["drainID", "wbID", "drainLineID", "loop", "geometry"]].rename(
-            columns={"geometry": "drain", "loop": "drainLoop"}
+        use_drains[["drainID", "wbID", "drainLineID", "geometry"]].rename(
+            columns={"geometry": "drain"}
         )
     )
     ix = dams.drainID.notnull()
@@ -345,10 +343,17 @@ for huc2 in huc2s:
     dams["geometry"] = dams.pt.values
     dams.loc[ix, "geometry"] = dams.loc[ix].drain.values.data
     dams.loc[ix, "lineID"] = dams.loc[ix].drainLineID.astype("uint32")
-    dams.loc[ix, "loop"] = dams.loc[ix].drainLoop.astype("bool")
 
-    dams = dams.drop(columns=["drain", "drainLineID", "drainLoop", "pt"])
-    merged = append(merged, dams.reset_index())
+    dams = dams.drop(columns=["drain", "drainLineID", "pt"]).join(
+        flowlines[["loop", "sizeclass"]], on="lineID"
+    )
+
+    # drop duplicates
+    dams = dams.reset_index().drop_duplicates(
+        subset=["damPtID", "damID", "lineID", "geometry"]
+    )
+
+    merged = append(merged, dams)
 
     print("Region done in {:.2f}s".format(time() - region_start))
 
