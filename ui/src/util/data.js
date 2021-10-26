@@ -48,3 +48,22 @@ export const toCamelCaseFields = (obj) =>
     (prev, [key, value]) => Object.assign(prev, { [toCamelCase(key)]: value }),
     {}
   )
+
+/**
+ * Split an array into elements that meet the condition and elements that don't.
+ * @param {Array} arr - input array
+ * @param {Function} conditionFunc - if true, elements are added to first array
+ * otherwise they are added to second array
+ */
+export const splitArray = (arr, conditionFunc) => {
+  const out = [[], []]
+  arr.forEach((elem) => {
+    if (conditionFunc(elem)) {
+      out[0].push(elem)
+    } else {
+      out[1].push(elem)
+    }
+  })
+
+  return out
+}

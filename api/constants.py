@@ -759,7 +759,7 @@ FIELD_DEFINITIONS = {
     "Purpose": "primary purpose of {type}, if known.",
     "PassageFacility": "type of fish passage facility, if known.",
     "Feasibility": "feasibility of {type} removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of {type}s.",
-    "BarrierSeverity": "passability of the barrier, if known",
+    "BarrierSeverity": "passability of the barrier, if known.",
     # barrier-specific fields
     "LocalID": "local identifier.",
     "CrossingCode": "crossing identifier.",

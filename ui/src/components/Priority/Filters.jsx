@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { TimesCircle } from '@emotion-icons/fa-solid'
 import { Box, Flex, Heading, Text } from 'theme-ui'
@@ -8,6 +8,7 @@ import { Filter } from 'components/Filters'
 import { useCrossfilter } from 'components/Crossfilter'
 import { ExpandableParagraph } from 'components/Text'
 import { formatNumber } from 'util/format'
+import { splitArray } from 'util/data'
 
 import BackLink from './BackLink'
 import SubmitButton from './SubmitButton'
@@ -19,7 +20,7 @@ const Filters = ({ onBack, onSubmit }) => {
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const { state, filterConfig, resetFilters } = useCrossfilter()
 
-  const { filteredCount, hasFilters } = state
+  const { filteredCount, hasFilters, emptyDimensions } = state
 
   const handleBack = () => {
     resetFilters()
@@ -29,6 +30,15 @@ const Filters = ({ onBack, onSubmit }) => {
   const handleReset = () => {
     resetFilters()
   }
+
+  const [visibleFilters, hiddenFilters] = useMemo(
+    () =>
+      splitArray(
+        filterConfig,
+        ({ field }) => emptyDimensions.indexOf(field) === -1
+      ),
+    [emptyDimensions, filterConfig]
+  )
 
   return (
     <Flex
@@ -80,30 +90,50 @@ const Filters = ({ onBack, onSubmit }) => {
 
       <Box
         sx={{
-          p: '1rem',
+          px: '1rem',
+          pt: '0.5rem',
           overflowY: 'auto',
           overflowX: 'hidden',
           flex: '1 1 auto',
         }}
       >
-        <Box sx={{ color: 'grey.7', fontSize: 2, mb: '1rem' }}>
+        <Box sx={{ color: 'grey.7', fontSize: 2, mb: '0.5rem' }}>
           <ExpandableParagraph
             variant="help"
             snippet={`[OPTIONAL] Use the filters below to select the ${barrierTypeLabel} that meet
         your needs. Click on a bar to select ${barrierTypeLabel} with that value.`}
           >
-            [OPTIONAL] Use the filters below to select the {barrierType} that
-            meet your needs. Click on a bar to select {barrierType} with that
-            value. Click on the bar again to unselect. You can combine multiple
-            values across multiple filters to select the {barrierType} that
-            match ANY of those values within a filter and also have the values
-            selected across ALL filters.
+            <Text variant="help" sx={{ display: 'inline' }}>
+              [OPTIONAL] Use the filters below to select the {barrierType} that
+              meet your needs. Click on a bar to select {barrierType} with that
+              value. Click on the bar again to unselect. You can combine
+              multiple values across multiple filters to select the{' '}
+              {barrierType} that match ANY of those values within a filter and
+              also have the values selected across ALL filters.
+            </Text>
           </ExpandableParagraph>
         </Box>
 
-        {filterConfig.map((filter) => (
+        {visibleFilters.map((filter) => (
           <Filter key={filter.field} {...filter} />
         ))}
+
+        {hiddenFilters.length > 0 ? (
+          <Box
+            sx={{
+              pt: '0.5rem',
+              pb: '1rem',
+              borderTop: '1px solid',
+              borderTopColor: 'grey.1',
+            }}
+          >
+            <Text variant="help">
+              The following filters do not have sufficient unique values to
+              support using them in this area:{' '}
+              {hiddenFilters.map(({ title }) => title).join(', ')}.
+            </Text>
+          </Box>
+        ) : null}
       </Box>
 
       <Flex

@@ -86,13 +86,18 @@ export const Crossfilter = (data, filterConfig) => {
       crossfilter.add(newData)
       const count = crossfilter.size()
 
+      const dimensionCounts = countByDimension(dimensions)
+
       const newState = {
         data: newData,
         count,
         filteredCount: count,
         filters: {},
         hasFilters: false,
-        dimensionCounts: countByDimension(dimensions),
+        dimensionCounts,
+        emptyDimensions: Object.keys(dimensionCounts).filter(
+          (id) => Object.keys(dimensionCounts[id]).length <= 1
+        ),
       }
 
       if (isDebug) {
@@ -192,7 +197,6 @@ export const Crossfilter = (data, filterConfig) => {
   return {
     setData,
     setFilter,
-    // setBounds,
     resetFilters,
     state,
 
