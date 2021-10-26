@@ -168,7 +168,7 @@ export const excludedPoint = {
   // source: "" // provided by specific layer
   // 'source-layer': '', // provided by specific layer
   type: 'circle',
-  minzoom: 7,
+  minzoom: 4,
   maxzoom: 24,
   // filter:  [], // will be filtered using "in" or "!in"
   paint: {
@@ -176,7 +176,9 @@ export const excludedPoint = {
     'circle-stroke-color': '#c51b8a',
     'circle-radius': {
       stops: [
-        [7, 0.5],
+        [4, 0.5],
+        [5, 1],
+        [9, 2],
         [10, 4],
         [14, 6],
       ],
@@ -203,15 +205,16 @@ export const includedPoint = {
   // source: "" // provided by specific layer
   // 'source-layer': '', // provided by specific layer
   type: 'circle',
-  minzoom: 5,
+  minzoom: 2,
   maxzoom: 24,
   filter: ['==', 'id', 'Infinity'], // will be filtered using "in" or "!in"
   paint: {
     'circle-color': '#c51b8a',
     'circle-radius': {
       stops: [
+        [4, 0.5],
         [5, 1],
-        [6, 2],
+        [9, 2],
         [14, 8],
       ],
     },
@@ -238,7 +241,7 @@ export const topRank = {
   id: 'rank-top',
   source: 'ranked',
   type: 'circle',
-  minzoom: 5,
+  minzoom: 4,
   maxzoom: 24,
   // filter:  // provided by specific layer
   paint: {
@@ -270,7 +273,7 @@ export const lowerRank = {
   id: 'rank-low',
   source: 'ranked',
   type: 'circle',
-  minzoom: 5,
+  minzoom: 4,
   maxzoom: 24,
   // filter:  // provided by specific layer
   paint: {
