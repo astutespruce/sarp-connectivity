@@ -2,6 +2,9 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
+import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails'
+import { formatNumber } from 'util/format'
+
 import { Flex, List, ListItem, Section } from './elements'
 
 import {
@@ -32,6 +35,7 @@ const Location = ({
   huc12,
   huc8,
   ownertype,
+  sarp_score,
 }) => {
   const hasRiver =
     river && river !== '"' && river !== 'null' && river !== 'Unknown'
@@ -130,6 +134,16 @@ const Location = ({
                     <Text>Severity: {BARRIER_SEVERITY[severityclass]}</Text>
                   </ListItem>
                 ) : null}
+
+                {sarp_score >= 0 ? (
+                  <ListItem>
+                    <Text>
+                      SARP Aquatic Organism Passage Score:{' '}
+                      {formatNumber(sarp_score, 1)} (
+                      {classifySARPScore(sarp_score)})
+                    </Text>
+                  </ListItem>
+                ) : null}
               </>
             )}
           </List>
@@ -149,7 +163,9 @@ const Location = ({
 
             {intermittent === 1 ? (
               <ListItem>
-                Located on a reach that has intermittent or ephemeral flow
+                <Text>
+                  Located on a reach that has intermittent or ephemeral flow
+                </Text>
               </ListItem>
             ) : null}
 
@@ -198,6 +214,7 @@ Location.propTypes = {
   subwatershed: PropTypes.string,
   subbasin: PropTypes.string,
   ownertype: PropTypes.number,
+  sarp_score: PropTypes.number,
 }
 
 Location.defaultProps = {
@@ -218,6 +235,7 @@ Location.defaultProps = {
   subwatershed: null,
   subbasin: null,
   ownertype: null,
+  sarp_score: -1,
 }
 
 export default Location

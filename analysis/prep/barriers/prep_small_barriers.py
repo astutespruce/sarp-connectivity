@@ -90,7 +90,9 @@ df = df.set_index("id", drop=False)
 ######### Fix data issues
 df["ManualReview"] = df.ManualReview.fillna(0).astype("uint8")
 df["Recon"] = df.Recon.fillna(0).astype("uint8")
-df["SARP_Score"] = df.SARP_Score.fillna(0).astype("float32")
+df["SARP_Score"] = df.SARP_Score.fillna(-1).astype("float32")
+# per guidance from Kat, make any where potential project is "No Barrier" as -1
+df.loc[df.PotentialProject.isin(["No Barrier", "No"]), "SARP_Score"] = -1
 
 
 # Fix mixed casing of values

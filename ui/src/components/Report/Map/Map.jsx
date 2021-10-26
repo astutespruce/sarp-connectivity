@@ -20,7 +20,7 @@ const Map = ({
         border: '1 solid #AAA',
         position: 'relative',
         width: 540,
-        height: 420,
+        height: 396,
         zIndex: 0,
       }}
     >
@@ -34,7 +34,7 @@ const Map = ({
           right: 0,
           zIndex: 2, // WARNING: due to a bug in react-pdf, zIndex is evaluated incorrectly
           width: 538,
-          height: 420,
+          height: 396,
         }}
       />
 

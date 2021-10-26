@@ -224,7 +224,7 @@ Map.propTypes = {
 
 Map.defaultProps = {
   width: '538pt', // 7.5in once border is added
-  height: '418pt', // 5.8in
+  height: '396pt', // 5.5
   center: null,
   zoom: null,
   bounds: null,

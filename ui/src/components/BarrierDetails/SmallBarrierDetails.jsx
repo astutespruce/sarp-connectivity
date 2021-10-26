@@ -18,6 +18,29 @@ import NetworkInfo from './NetworkInfo'
 
 const { version: dataVersion } = siteMetadata
 
+export const classifySARPScore = (score) => {
+  // assumes -1 (NODATA) already filtered out
+  if (score < 0.2) {
+    return 'severe barrier'
+  }
+  if (score < 0.4) {
+    return 'significant barrier'
+  }
+  if (score < 0.6) {
+    return 'moderate barrier'
+  }
+  if (score < 0.8) {
+    return 'minor barrier'
+  }
+  if (score < 1) {
+    return 'insignificant barrier'
+  }
+  if (score >= 1) {
+    return 'no barrier'
+  }
+  return 'not calculated'
+}
+
 const BarrierDetails = ({
   barrierType,
   sarpid,
@@ -36,6 +59,7 @@ const BarrierDetails = ({
   roadtype,
   crossingtype,
   condition,
+  sarp_score,
   tespp,
   statesgcnspp,
   regionalsgcnspp,
@@ -131,6 +155,12 @@ const BarrierDetails = ({
         {severityclass !== null ? (
           <Entry>
             <Field>Severity:</Field> {BARRIER_SEVERITY[severityclass]}
+          </Entry>
+        ) : null}
+        {sarp_score >= 0 ? (
+          <Entry>
+            <Field>SARP Aquatic Organism Passage Score:</Field>{' '}
+            {formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)})
           </Entry>
         ) : null}
       </Section>
@@ -330,6 +360,7 @@ BarrierDetails.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
+  sarp_score: PropTypes.number,
 }
 
 BarrierDetails.defaultProps = {
@@ -363,6 +394,7 @@ BarrierDetails.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: null,
   sizeclasses: null,
+  sarp_score: -1,
 }
 
 export default BarrierDetails

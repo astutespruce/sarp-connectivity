@@ -2,14 +2,14 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Grid, Heading, Text } from 'theme-ui'
 
+import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails'
 import { formatNumber } from 'util/format'
-
-import { OWNERTYPE } from '../../../config/constants'
 
 import {
   DAM_CONDITION,
   CONSTRUCTION,
   PASSAGEFACILITY,
+  OWNERTYPE,
   PURPOSE,
   BARRIER_SEVERITY,
 } from '../../../config/constants'
@@ -33,6 +33,7 @@ const LocationConstruction = ({
   roadtype,
   crossingtype,
   severityclass,
+  sarp_score,
   ...props
 }) => {
   const hasRiver =
@@ -87,6 +88,13 @@ const LocationConstruction = ({
               {severityclass !== null ? (
                 <li>Severity: {BARRIER_SEVERITY[severityclass]}</li>
               ) : null}
+              {sarp_score >= 0 ? (
+                <li>
+                  SARP Aquatic Organism Passage Score:{' '}
+                  {formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)}
+                  )
+                </li>
+              ) : null}
             </>
           )}
         </Box>
@@ -132,6 +140,7 @@ LocationConstruction.propTypes = {
   roadtype: PropTypes.string,
   crossingtype: PropTypes.string,
   severityclass: PropTypes.number,
+  sarp_score: PropTypes.number,
 }
 
 LocationConstruction.defaultProps = {
@@ -145,6 +154,7 @@ LocationConstruction.defaultProps = {
   roadtype: null,
   crossingtype: null,
   severityclass: null,
+  sarp_score: -1,
 }
 
 export default LocationConstruction
