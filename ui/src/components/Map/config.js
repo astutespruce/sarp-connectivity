@@ -19,13 +19,13 @@ export const sources = {
   dams: {
     type: 'vector',
     tiles: [`${tileHost}/services/dams/tiles/{z}/{x}/{y}.pbf`],
-    minzoom: 5,
+    minzoom: 2,
     maxzoom: 16,
   },
   small_barriers: {
     type: 'vector',
     tiles: [`${tileHost}/services/small_barriers/tiles/{z}/{x}/{y}.pbf`],
-    minzoom: 5,
+    minzoom: 2,
     maxzoom: 16,
   },
   networks: {
@@ -37,7 +37,7 @@ export const sources = {
   waterfalls: {
     type: 'vector',
     tiles: [`${tileHost}/services/waterfalls/tiles/{z}/{x}/{y}.pbf`],
-    minzoom: 5,
+    minzoom: 2,
     maxzoom: 16,
   },
 }

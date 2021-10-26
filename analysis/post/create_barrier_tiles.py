@@ -5,7 +5,6 @@ from time import time
 
 import pandas as pd
 import geopandas as gp
-import pygeos as pg
 
 from api.constants import (
     DAM_CORE_FIELDS,
@@ -168,7 +167,7 @@ barriers.to_csv(csv_filename, quoting=csv.QUOTE_NONNUMERIC)
 
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z5", "-z16", "-B6"]
+    + ["-Z2", "-z16", "-B6"]
     + ["-l", "small_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(barriers, bool_cols={"protectedland", "ranked"})

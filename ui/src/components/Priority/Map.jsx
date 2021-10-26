@@ -86,19 +86,19 @@ const PriorityMap = ({
       // set for initial load too
       setZoom(map.getZoom())
 
-      // Hookup map on click handler to call onClick with the properties
-      // of the feature selected
-      const handleLayerClick = (layerId, onClick) => {
-        map.on('click', layerId, ({ point }) => {
-          const [feature] = map.queryRenderedFeatures(point, {
-            layers: [layerId],
-          })
-          // only call handler if there was a feature
-          if (feature) {
-            onClick(feature)
-          }
-        })
-      }
+      const pointLayers = [
+        backgroundPoint.id,
+        damsSecondaryLayer.id,
+        excludedPoint.id,
+        includedPoint.id,
+        lowerRank.id,
+        topRank.id,
+        'waterfalls',
+      ]
+
+      const clickLayers = pointLayers.concat(
+        Object.keys(unitLayerConfig).map((id) => `${id}-unit-fill`)
+      )
 
       // Add the priority watersheds under everything else
       priorityWatersheds.forEach((lyr) => {
@@ -146,10 +146,6 @@ const PriorityMap = ({
                 0.25,
                 0,
               ]
-
-              handleLayerClick(layerId, ({ properties }) =>
-                onSelectUnit(properties)
-              )
             }
 
             map.addLayer(unitLayer)
@@ -168,56 +164,9 @@ const PriorityMap = ({
         ...backgroundPoint,
         source: barrierType,
       })
-      handleLayerClick(backgroundPoint.id, (feature) => {
-        const {
-          properties,
-          geometry: {
-            coordinates: [lon, lat],
-          },
-        } = feature
-
-        onSelectBarrier({
-          ...properties,
-          barrierType,
-          HUC8Name: getHUCName('HUC8', properties.HUC8),
-          HUC12Name: getHUCName('HUC12', properties.HUC12),
-          lat,
-          lon,
-          hasnetwork: properties.hasnetwork || false,
-          ranked: properties.ranked || false,
-        })
-      })
 
       // add waterfalls
       map.addLayer(waterfallsLayer)
-      handleLayerClick(waterfallsLayer.id, (feature) => {
-        const {
-          properties,
-          geometry: {
-            coordinates: [lon, lat],
-          },
-        } = feature
-
-        // promote network fields
-        const networkFields = {}
-        Object.keys(properties)
-          .filter((k) => k.endsWith(barrierType))
-          .forEach((field) => {
-            networkFields[field.split('_')[0]] = properties[field]
-          })
-
-        onSelectBarrier({
-          ...properties,
-          ...networkFields,
-          barrierType: 'waterfalls',
-          HUC8Name: getHUCName('HUC8', properties.HUC8),
-          HUC12Name: getHUCName('HUC12', properties.HUC12),
-          lat,
-          lon,
-          hasnetwork: properties.hasnetwork,
-          ranked: false,
-        })
-      })
 
       // add secondary dams layer
       map.addLayer({
@@ -225,25 +174,6 @@ const PriorityMap = ({
         layout: {
           visibility: barrierType === 'small_barriers' ? 'visible' : 'none',
         },
-      })
-      handleLayerClick(damsSecondaryLayer.id, (feature) => {
-        const {
-          properties,
-          geometry: {
-            coordinates: [lon, lat],
-          },
-        } = feature
-
-        onSelectBarrier({
-          ...properties,
-          barrierType: 'dams',
-          HUC8Name: getHUCName('HUC8', properties.HUC8),
-          HUC12Name: getHUCName('HUC12', properties.HUC12),
-          lat,
-          lon,
-          hasnetwork: true, // this only shows on-network dams
-          networkType: 'dams', // only show against dams network
-        })
       })
 
       // add filter point layers
@@ -255,46 +185,9 @@ const PriorityMap = ({
       // all points are initially excluded from analysis until their
       // units are selected
       map.addLayer({ ...pointConfig, ...excludedPoint })
-      handleLayerClick(excludedPoint.id, (feature) => {
-        const {
-          properties,
-          geometry: {
-            coordinates: [lon, lat],
-          },
-        } = feature
-        onSelectBarrier({
-          ...properties,
-          barrierType,
-          HUC8Name: getHUCName('HUC8', properties.HUC8),
-          HUC12Name: getHUCName('HUC12', properties.HUC12),
-          lat,
-          lon,
-          hasnetwork: true,
-          ranked: true,
-        })
-      })
-
       map.addLayer({
         ...pointConfig,
         ...includedPoint,
-      })
-      handleLayerClick(includedPoint.id, (feature) => {
-        const {
-          properties,
-          geometry: {
-            coordinates: [lon, lat],
-          },
-        } = feature
-        onSelectBarrier({
-          ...properties,
-          barrierType,
-          HUC8Name: getHUCName('HUC8', properties.HUC8),
-          HUC12Name: getHUCName('HUC12', properties.HUC12),
-          lat,
-          lon,
-          hasnetwork: true,
-          ranked: true,
-        })
       })
 
       // Add layers for ranks
@@ -324,19 +217,10 @@ const PriorityMap = ({
         anchor: 'left',
         offset: 20,
       })
-      const pointLayers = [
-        backgroundPoint.id,
-        damsSecondaryLayer.id,
-        excludedPoint.id,
-        includedPoint.id,
-        lowerRank.id,
-        topRank.id,
-        'waterfalls',
-      ]
 
       pointLayers.forEach((id) => {
         map.on('mouseenter', id, ({ features: [feature] }) => {
-          if (map.getZoom() <= 7) {
+          if (map.getZoom() < 9) {
             return
           }
 
@@ -404,36 +288,86 @@ const PriorityMap = ({
         return feature
       }
 
-      const handleRankLayerClick = (feature) => {
+      // Add barrier highlight layer.
+      map.addLayer(pointHighlight)
+
+      map.on('click', ({ point }) => {
+        const features = map.queryRenderedFeatures(point, {
+          layers: clickLayers,
+        })
+
+        const [feature] = features
+
+        // only call handler if there was a feature
+        if (!feature) {
+          onSelectBarrier(null)
+          return
+        }
+
         const {
+          source,
+          sourceLayer,
           properties,
           geometry: {
             coordinates: [lon, lat],
           },
         } = feature
 
-        const barrier = getBarrierById(properties.id)
-
-        if (barrier) {
-          onSelectBarrier({
-            ...barrier.properties,
-            barrierType,
-            HUC8Name: getHUCName('HUC8', barrier.properties.HUC8),
-            HUC12Name: getHUCName('HUC12', barrier.properties.HUC12),
-            lat,
-            lon,
-            ...properties,
-            hasnetwork: true,
-            ranked: true,
-          })
+        if (source === 'summary') {
+          onSelectUnit(properties)
+          return
         }
-      }
 
-      handleLayerClick(lowerRank.id, handleRankLayerClick)
-      handleLayerClick(topRank.id, handleRankLayerClick)
+        if (map.getZoom() < 9) {
+          // don't allow selection of points below zoom 9
+          const [unitLayerFeature] = features.filter(
+            ({ source: lyrSource }) => lyrSource === 'summary'
+          )
+          if (unitLayerFeature) {
+            onSelectUnit(unitLayerFeature.properties)
+          }
+          return
+        }
 
-      // Add barrier highlight layer.
-      map.addLayer(pointHighlight)
+        // note: these are hard-coded for some types
+        const {
+          hasnetwork = sourceLayer !== 'background',
+          ranked = sourceLayer !== 'background' && source !== 'waterfalls',
+        } = properties
+
+        let rankedBarrierProperties = {}
+        if (source === 'ranked') {
+          const rankedBarrier = getBarrierById(properties.id)
+          if (!rankedBarrier) {
+            return
+          }
+          rankedBarrierProperties = rankedBarrier.properties
+        }
+
+        // promote network fields
+        const networkFields = {}
+        if (hasnetwork) {
+          Object.keys(properties)
+            .filter((k) => k.endsWith(barrierType))
+            .forEach((field) => {
+              networkFields[field.split('_')[0]] = properties[field]
+            })
+        }
+
+        onSelectBarrier({
+          ...properties,
+          ...networkFields,
+          ...rankedBarrierProperties,
+          barrierType: source === 'ranked' ? barrierType : source,
+          networkType: source === 'dams' ? 'dams' : undefined,
+          HUC8Name: getHUCName('HUC8', properties.HUC8),
+          HUC12Name: getHUCName('HUC12', properties.HUC12),
+          lat,
+          lon,
+          hasnetwork,
+          ranked,
+        })
+      })
 
       // let consumers of map know that it is now fully loaded
       map.once('idle', onMapLoad)
@@ -573,7 +507,7 @@ const PriorityMap = ({
     map.setFilter('network-highlight', [
       'all',
       ['==', 'mapcode', 0],
-      ['==',  networkType, networkID],
+      ['==', networkType, networkID],
     ])
     map.setFilter('network-intermittent-highlight', [
       'all',

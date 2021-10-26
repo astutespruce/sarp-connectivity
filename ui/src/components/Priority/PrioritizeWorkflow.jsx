@@ -45,7 +45,6 @@ const Prioritize = () => {
   } = useCrossfilter()
 
   // individually-managed states
-  const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
   const [step, setStep] = useState('select')
@@ -53,6 +52,7 @@ const Prioritize = () => {
 
   const [
     {
+      selectedBarrier,
       searchFeature,
       layer,
       summaryUnits,
@@ -63,6 +63,7 @@ const Prioritize = () => {
     },
     setState,
   ] = useState({
+    selectedBarrier: null,
     searchFeature: null,
     layer: null,
     summaryUnits: [],
@@ -139,6 +140,7 @@ const Prioritize = () => {
       }
       return {
         ...prevState,
+        selectedBarrier: null,
         summaryUnits: nextSummaryUnits,
         searchFeature: null,
       }
@@ -207,15 +209,17 @@ const Prioritize = () => {
   // local state referenced here is not updated when the callback
   // is later called.  To get around that, use reference to step instead.
   const handleSelectBarrier = (feature) => {
-    const { current: curStep } = stepRef
-    // don't show details when selecting units
-    if (curStep === 'select') return
-
-    setSelectedBarrier(feature)
+    setState((prevState) => ({
+      ...prevState,
+      selectedBarrier: feature,
+    }))
   }
 
   const handleDetailsClose = () => {
-    setSelectedBarrier(null)
+    setState((prevState) => ({
+      ...prevState,
+      selectedBarrier: null,
+    }))
   }
 
   let sidebarContent = null
