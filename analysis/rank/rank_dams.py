@@ -8,7 +8,6 @@ import geopandas as gp
 import pygeos as pg
 
 from analysis.rank.lib.networks import get_network_results
-from analysis.rank.lib.spatial_joins import add_spatial_joins
 from analysis.rank.lib.metrics import (
     classify_percent_altered,
     classify_streamorder,
@@ -65,13 +64,7 @@ df = (
         ],
         errors="ignore",
     )
-    .rename(
-        columns={
-            "StreamOrde": "StreamOrder",
-            "excluded": "Excluded",
-            "intermittent": "Intermittent",
-        }
-    )
+    .rename(columns={"excluded": "Excluded", "intermittent": "Intermittent",})
 )
 
 
@@ -108,40 +101,10 @@ removed.to_feather(api_dir / "removed_dams.feather")
 df = df.loc[~(df.dropped | df.duplicate)].copy()
 
 ### Classify StreamOrder
-df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
 df["StreamOrderClass"] = classify_streamorder(df.StreamOrder)
 
-
-### Join in T&E Spp stats
-spp_df = (
-    pd.read_feather(
-        data_dir / "species/derived/spp_HUC12.feather",
-        columns=["HUC12", "federal", "sgcn", "regional"],
-    )
-    .rename(
-        columns={
-            "federal": "TESpp",
-            "sgcn": "StateSGCNSpp",
-            "regional": "RegionalSGCNSpp",
-        }
-    )
-    .set_index("HUC12")
-)
-df = df.join(spp_df, on="HUC12")
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
-    df[col] = df[col].fillna(0).astype("uint8")
     df[f"{col}Class"] = classify_spps(df[col])
-
-
-### Add spatial joins to other things, like priority watersheds
-df = add_spatial_joins(df)
-
-### Add lat / lon
-print("Adding lat / lon fields")
-geo = df[["geometry"]].to_crs(epsg=4326)
-geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
-geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
-df = df.join(geo[["lat", "lon"]])
 
 
 ### Get network results

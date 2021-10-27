@@ -15,11 +15,12 @@ from time import time
 import warnings
 
 import pandas as pd
+import pygeos as pg
 import geopandas as gp
 import numpy as np
 from pyogrio import write_dataframe
 
-from analysis.constants import FCODE_TO_STREAMTYPE
+from analysis.constants import FCODE_TO_STREAMTYPE, GEO_CRS
 
 from analysis.lib.io import read_feathers
 from analysis.lib.geometry import nearest
@@ -70,6 +71,13 @@ if ix.sum():
 df["id"] = df.index.astype("uint32")
 df = df.set_index("id", drop=False)
 
+### Add lat / lon and drop geometry
+print("Adding lat / lon fields")
+geo = df[["geometry"]].to_crs(GEO_CRS)
+geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
+geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
+df = df.join(geo[["lat", "lon"]])
+
 
 ### Cleanup data
 df.Source = df.Source.str.strip()
@@ -81,6 +89,8 @@ df.Stream = df.Stream.fillna("").str.strip()
 df.GNIS_Name = df.GNIS_Name.fillna("").str.strip()
 ix = (df.Stream == "") & (df.GNIS_Name != "")
 df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
+
+df.FallType = df.FallType.fillna("")
 
 df = df.drop(columns=["GNIS_Name"])
 
@@ -149,9 +159,7 @@ df["ManualReview"] = 0  # not meaningful for waterfalls
 dedup_start = time()
 df, to_dedup = find_duplicates(df, to_dedup=df.copy(), tolerance=DUPLICATE_TOLERANCE)
 print(
-    "Found {:,} total duplicates in {:.2f}s".format(
-        len(df.loc[df.duplicate]), time() - dedup_start
-    )
+    f"Found {len(df.loc[df.duplicate]):,} total duplicates in {time() - dedup_start:.2f}s"
 )
 
 
@@ -166,27 +174,32 @@ near_dams = nearest(
 
 ix = near_dams.index
 df.loc[ix, "duplicate"] = True
-df.loc[ix, "dup_log"] = "Within {}m of an existing dam".format(DUPLICATE_TOLERANCE)
+df.loc[ix, "dup_log"] = f"Within {DUPLICATE_TOLERANCE}m of an existing dam"
 
-print("Found {} waterfalls within {}m of dams".format(len(ix), DUPLICATE_TOLERANCE))
+print(f"Found {len(ix)} waterfalls within {DUPLICATE_TOLERANCE}m of dams")
 
 
 ### Join to line atts
-flowlines = read_feathers(
-    [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
-    columns=[
-        "lineID",
-        "NHDPlusID",
-        "GNIS_Name",
-        "sizeclass",
-        "StreamOrde",
-        "FCode",
-        "loop",
-    ],
-).set_index("lineID")
+flowlines = (
+    read_feathers(
+        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
+        columns=[
+            "lineID",
+            "NHDPlusID",
+            "GNIS_Name",
+            "sizeclass",
+            "StreamOrde",
+            "FCode",
+            "loop",
+        ],
+    )
+    .rename(columns={"StreamOrde": "StreamOrder"})
+    .set_index("lineID")
+)
 
 df = df.join(flowlines, on="lineID")
 
+df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
 
 # Add name from snapped flowline if not already present
 df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()

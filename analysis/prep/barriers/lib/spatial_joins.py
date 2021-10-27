@@ -83,4 +83,41 @@ def add_spatial_joins(df):
     if df.ECO4.isnull().sum():
         print(f"{df.ECO4.isnull().sum():,} barriers were not assigned ecoregions")
 
+    ### Protected lands
+    print("Joining to protected areas")
+    protected = gp.read_feather(boundaries_dir / "protected_areas.feather")
+    df = unique_sjoin(df, protected)
+    df.OwnerType = df.OwnerType.fillna(0).astype("uint8")
+    df.ProtectedLand = df.ProtectedLand.fillna(False).astype("bool")
+
+    ### Priority layers
+    print("Joining to priority watersheds")
+    priorities = (
+        pd.read_feather(boundaries_dir / "priorities.feather")
+        .rename(columns={"HUC_8": "HUC8"})
+        .set_index("HUC8")
+        .rename(columns={"usfs": "HUC8_USFS", "coa": "HUC8_COA", "sgcn": "HUC8_SGCN"})
+    )
+    df = df.join(priorities, on="HUC8")
+    df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")
+
+    ### Join in T&E Spp stats
+    spp_df = (
+        pd.read_feather(
+            data_dir / "species/derived/spp_HUC12.feather",
+            columns=["HUC12", "federal", "sgcn", "regional"],
+        )
+        .rename(
+            columns={
+                "federal": "TESpp",
+                "sgcn": "StateSGCNSpp",
+                "regional": "RegionalSGCNSpp",
+            }
+        )
+        .set_index("HUC12")
+    )
+    df = df.join(spp_df, on="HUC12")
+    for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
+        df[col] = df[col].fillna(0).astype("uint8")
+
     return df

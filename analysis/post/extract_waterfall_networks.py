@@ -1,19 +1,11 @@
-import csv
 from pathlib import Path
-from time import time
 
 import pandas as pd
 import geopandas as gp
-import pygeos as pg
 
-from api.constants import (
-    WF_CORE_FIELDS,
-    UNIT_FIELDS,
-)
-from analysis.constants import GEO_CRS
+from api.constants import WF_CORE_FIELDS
 from analysis.rank.lib.metrics import classify_streamorder, classify_spps
 from analysis.rank.lib.networks import get_network_results
-from analysis.rank.lib.spatial_joins import add_spatial_joins
 
 data_dir = Path("data")
 api_dir = data_dir / "api"
@@ -43,7 +35,6 @@ df = (
     )
     .rename(
         columns={
-            "StreamOrde": "StreamOrder",
             "excluded": "Excluded",
             "intermittent": "Intermittent",
             "fall_type": "FallType",
@@ -57,43 +48,14 @@ df = df.loc[~(df.dropped | df.duplicate)].copy()
 
 
 ### Classify StreamOrder
-df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
 df["StreamOrderClass"] = classify_streamorder(df.StreamOrder)
 
 
-df.FallType = df.FallType.fillna("")
-
-### Join in T&E Spp stats
-spp_df = (
-    pd.read_feather(
-        data_dir / "species/derived/spp_HUC12.feather",
-        columns=["HUC12", "federal", "sgcn", "regional"],
-    )
-    .rename(
-        columns={
-            "federal": "TESpp",
-            "sgcn": "StateSGCNSpp",
-            "regional": "RegionalSGCNSpp",
-        }
-    )
-    .set_index("HUC12")
-)
-df = df.join(spp_df, on="HUC12")
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
-    df[col] = df[col].fillna(0).astype("uint8")
     df[f"{col}Class"] = classify_spps(df[col])
 
-
-### Add spatial joins to other things, like priority watersheds
-df = add_spatial_joins(df)
-
-
-### Add lat / lon and drop geometry
-print("Adding lat / lon fields")
-geo = df[["geometry"]].to_crs(GEO_CRS)
-geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
-geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
-df = pd.DataFrame(df.join(geo[["lat", "lon"]]).drop(columns=["geometry"]))
+# drop geometry; no longer needed
+df = pd.DataFrame(df.drop(columns=["geometry"]))
 
 
 ### Get network results

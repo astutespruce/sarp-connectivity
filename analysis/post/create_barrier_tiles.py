@@ -196,26 +196,6 @@ road_crossings = (
 if road_crossings.index.min() < df.index.max() + 1:
     raise ValueError("Road crossings have overlapping ids with small barriers")
 
-
-# bring in Species info
-spp_df = (
-    pd.read_feather(
-        "data/species/derived/spp_HUC12.feather",
-        columns=["HUC12", "federal", "sgcn", "regional"],
-    )
-    .rename(
-        columns={
-            "federal": "TESpp",
-            "sgcn": "StateSGCNSpp",
-            "regional": "RegionalSGCNSpp",
-        }
-    )
-    .set_index("HUC12")
-)
-road_crossings = road_crossings.join(spp_df, on="HUC12")
-for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
-    road_crossings[col] = road_crossings[col].fillna(0).astype("uint8")
-
 # Standardize other fields before merge
 road_crossings["Source"] = "USGS"
 road_crossings["Excluded"] = 0

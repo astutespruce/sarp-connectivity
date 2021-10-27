@@ -19,12 +19,9 @@ import pygeos as pg
 import geopandas as gp
 
 
-from analysis.constants import CRS
+from analysis.constants import CRS, GEO_CRS
 from analysis.prep.barriers.lib.duplicates import mark_duplicates
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
-from analysis.rank.lib.spatial_joins import (
-    add_spatial_joins as add_protectedland_priorities,
-)
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -94,6 +91,14 @@ barriers["kind"] = "barrier"
 df["joinID"] = (df.index * 1e6).astype("uint32")
 df["kind"] = "crossing"
 
+
+### Add lat / lon and drop geometry
+print("Adding lat / lon fields")
+geo = df[["geometry"]].to_crs(GEO_CRS)
+geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
+geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
+df = df.join(geo[["lat", "lon"]])
+
 merged = barriers[["kind", "geometry"]].append(
     df[["joinID", "kind", "geometry"]], sort=False, ignore_index=True
 )
@@ -134,8 +139,6 @@ df.Name = df.Name.fillna("")
 # NOTE: these are used for summary stats, but not used in most of the rest of the stack
 df = add_spatial_joins(df)
 
-### Spatial joins to protected lands and priority watersheds
-df = add_protectedland_priorities(df)
 
 # Cleanup HUC, state, county, and ecoregion columns that weren't assigned
 for col in [

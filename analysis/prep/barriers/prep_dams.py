@@ -22,6 +22,7 @@ from time import time
 import warnings
 
 import geopandas as gp
+import pygeos as pg
 import numpy as np
 from pyogrio import write_dataframe
 
@@ -39,6 +40,7 @@ from analysis.prep.barriers.lib.duplicates import (
 
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.constants import (
+    GEO_CRS,
     DROP_FEASIBILITY,
     DROP_MANUALREVIEW,
     DROP_RECON,
@@ -161,6 +163,13 @@ if s.max() > 1:
 # internal ID
 df["id"] = df.index.astype("uint32")
 df = df.set_index("id", drop=False)
+
+### Add lat / lon
+print("Adding lat / lon fields")
+geo = df[["geometry"]].to_crs(GEO_CRS)
+geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
+geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
+df = df.join(geo[["lat", "lon"]])
 
 
 ######### Fix data issues
@@ -548,24 +557,30 @@ export_duplicate_areas(dups, qa_dir / "dams_duplicate_areas.gpkg")
 
 
 ### Join to line atts
-flowlines = read_feathers(
-    [
-        nhd_dir / "clean" / huc2 / "flowlines.feather"
-        for huc2 in df.HUC2.unique()
-        if huc2
-    ],
-    columns=[
-        "lineID",
-        "NHDPlusID",
-        "GNIS_Name",
-        "sizeclass",
-        "StreamOrde",
-        "FCode",
-        "loop",
-    ],
-).set_index("lineID")
+flowlines = (
+    read_feathers(
+        [
+            nhd_dir / "clean" / huc2 / "flowlines.feather"
+            for huc2 in df.HUC2.unique()
+            if huc2
+        ],
+        columns=[
+            "lineID",
+            "NHDPlusID",
+            "GNIS_Name",
+            "sizeclass",
+            "StreamOrde",
+            "FCode",
+            "loop",
+        ],
+    )
+    .rename(columns={"StreamOrde": "StreamOrder"})
+    .set_index("lineID")
+)
 
 df = df.join(flowlines, on="lineID")
+
+df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
 
 # Add name from snapped flowline if not already present
 df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()
