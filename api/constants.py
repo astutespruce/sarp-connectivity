@@ -155,6 +155,7 @@ DAM_CORE_FIELDS = [
     "Condition",
     "PassageFacility",
     "BarrierSeverity",
+    "Diversion",
     # Recon is intentionally omitted from download below
     "Recon",
     "Feasibility",
@@ -760,6 +761,7 @@ FIELD_DEFINITIONS = {
     "PassageFacility": "type of fish passage facility, if known.",
     "Feasibility": "feasibility of {type} removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of {type}s.",
     "BarrierSeverity": "passability of the barrier, if known.",
+    "Diversion": "is this dam a diversion?",
     # barrier-specific fields
     "LocalID": "local identifier.",
     "CrossingCode": "crossing identifier.",

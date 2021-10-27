@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Grid, Heading, Text } from 'theme-ui'
+import { Box, Grid, Heading } from 'theme-ui'
 
 import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails'
 import { formatNumber } from 'util/format'
@@ -34,6 +34,7 @@ const LocationConstruction = ({
   crossingtype,
   severityclass,
   sarp_score,
+  diversion,
   ...props
 }) => {
   const hasRiver =
@@ -63,6 +64,9 @@ const LocationConstruction = ({
                   Construction material:{' '}
                   {CONSTRUCTION[construction].toLowerCase()}
                 </li>
+              ) : null}
+              {diversion === 1 ? (
+                <li>Diversion: this dam is a diversion structure</li>
               ) : null}
               {purpose && PURPOSE[purpose] ? (
                 <li>Purpose: {PURPOSE[purpose].toLowerCase()}</li>
@@ -130,6 +134,13 @@ const LocationConstruction = ({
 
 LocationConstruction.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  river: PropTypes.string,
+  intermittent: PropTypes.bool,
+  subbasin: PropTypes.string,
+  subwatershed: PropTypes.string,
+  huc8: PropTypes.string,
+  huc12: PropTypes.string,
+  ownertype: PropTypes.number,
   height: PropTypes.number,
   width: PropTypes.number,
   year: PropTypes.number,
@@ -141,9 +152,17 @@ LocationConstruction.propTypes = {
   crossingtype: PropTypes.string,
   severityclass: PropTypes.number,
   sarp_score: PropTypes.number,
+  diversion: PropTypes.number,
 }
 
 LocationConstruction.defaultProps = {
+  river: null,
+  intermittent: 0,
+  subbasin: null,
+  subwatershed: null,
+  huc8: null,
+  huc12: null,
+  ownertype: null,
   height: 0,
   width: 0,
   year: 0,
@@ -155,6 +174,7 @@ LocationConstruction.defaultProps = {
   crossingtype: null,
   severityclass: null,
   sarp_score: -1,
+  diversion: 0,
 }
 
 export default LocationConstruction

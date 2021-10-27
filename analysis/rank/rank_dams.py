@@ -52,7 +52,6 @@ df = (
             "snap_log",
             "snap_group",
             "snapped",
-            "ProtectedLand",
             "NHDPlusID",
             "lineID",
             "wbID",

@@ -36,6 +36,7 @@ const Location = ({
   huc8,
   ownertype,
   sarp_score,
+  diversion,
 }) => {
   const hasRiver =
     river && river !== '"' && river !== 'null' && river !== 'Unknown'
@@ -85,6 +86,11 @@ const Location = ({
                       Construction material:{' '}
                       {CONSTRUCTION[construction].toLowerCase()}
                     </Text>
+                  </ListItem>
+                ) : null}
+                {diversion === 1 ? (
+                  <ListItem>
+                    <Text>Diversion: this dam is a diversion structure</Text>
                   </ListItem>
                 ) : null}
                 {purpose && PURPOSE[purpose] ? (
@@ -215,6 +221,7 @@ Location.propTypes = {
   subbasin: PropTypes.string,
   ownertype: PropTypes.number,
   sarp_score: PropTypes.number,
+  diversion: PropTypes.number,
 }
 
 Location.defaultProps = {
@@ -236,6 +243,7 @@ Location.defaultProps = {
   subbasin: null,
   ownertype: null,
   sarp_score: -1,
+  diversion: 0,
 }
 
 export default Location

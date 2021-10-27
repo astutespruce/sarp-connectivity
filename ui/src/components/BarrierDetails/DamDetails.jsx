@@ -34,6 +34,7 @@ const DamDetails = ({
   source,
   year,
   construction,
+  diversion,
   purpose,
   condition,
   passagefacility,
@@ -124,6 +125,11 @@ const DamDetails = ({
         <Entry>
           <Field>Construction material:</Field>{' '}
           {CONSTRUCTION[construction].toLowerCase()}
+        </Entry>
+      ) : null}
+      {diversion === 1 ? (
+        <Entry>
+          <Field>Diversion:</Field> this dam is a diversion structure
         </Entry>
       ) : null}
       {purpose && PURPOSE[purpose] ? (
@@ -338,6 +344,7 @@ DamDetails.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
+  diversion: PropTypes.number,
 }
 
 DamDetails.defaultProps = {
@@ -374,6 +381,7 @@ DamDetails.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: null,
   sizeclasses: null,
+  diversion: 0,
 }
 
 export default DamDetails

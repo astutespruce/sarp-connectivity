@@ -50,7 +50,6 @@ df = (
             "snap_ref_id",
             "snap_log",
             "snapped",
-            "ProtectedLand",
             "log",
             "lineID",
             "wbID",
