@@ -334,6 +334,15 @@ export const PERCENT_ALTERED = {
   3: '90 - 100%',
 }
 
+export const WATERBODY_SIZECLASS = {
+  '-1': 'Not associated with a pond or lake',
+  0: 'Pond (< 0.01 km2)',
+  1: 'Very small lake (0.01 - 0.09 km2)',
+  2: 'Small lake (0.1 - 0.9 km2)',
+  3: 'Medium lake (1 - 9.9 km2)',
+  4: 'Large lake (>= 10 km2)',
+}
+
 export const CONNECTIVITY_TEAMS = {
   southeast: {
     Arkansas: {

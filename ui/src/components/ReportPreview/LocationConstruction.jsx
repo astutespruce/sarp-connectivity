@@ -12,6 +12,7 @@ import {
   OWNERTYPE,
   PURPOSE,
   BARRIER_SEVERITY,
+  WATERBODY_SIZECLASS,
 } from '../../../config/constants'
 
 const LocationConstruction = ({
@@ -35,6 +36,8 @@ const LocationConstruction = ({
   severityclass,
   sarp_score,
   diversion,
+  waterbodykm2,
+  waterbodysizeclass,
   ...props
 }) => {
   const hasRiver =
@@ -105,6 +108,21 @@ const LocationConstruction = ({
         <Box as="ul">
           {hasRiver ? <li>River or stream: {river}</li> : null}
 
+          {barrierType === 'dams' && waterbodysizeclass >= 0 ? (
+            <li>
+              Size of associated pond or lake:
+              <br />
+              {waterbodykm2 > 0.1
+                ? `${formatNumber(waterbodykm2, 2)} k`
+                : `${formatNumber(waterbodykm2 * 1e6)} `}
+              m<sup>2</sup> (
+              {WATERBODY_SIZECLASS[waterbodysizeclass]
+                .split(' (')[0]
+                .toLowerCase()}
+              )
+            </li>
+          ) : null}
+
           {intermittent === 1 ? (
             <li>Located on a reach that has intermittent or ephemeral flow</li>
           ) : null}
@@ -135,7 +153,7 @@ const LocationConstruction = ({
 LocationConstruction.propTypes = {
   barrierType: PropTypes.string.isRequired,
   river: PropTypes.string,
-  intermittent: PropTypes.bool,
+  intermittent: PropTypes.number,
   subbasin: PropTypes.string,
   subwatershed: PropTypes.string,
   huc8: PropTypes.string,
@@ -153,6 +171,8 @@ LocationConstruction.propTypes = {
   severityclass: PropTypes.number,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
+  waterbodykm2: PropTypes.number,
+  waterbodysizeclass: PropTypes.number,
 }
 
 LocationConstruction.defaultProps = {
@@ -175,6 +195,8 @@ LocationConstruction.defaultProps = {
   severityclass: null,
   sarp_score: -1,
   diversion: 0,
+  waterbodykm2: -1,
+  waterbodysizeclass: -1,
 }
 
 export default LocationConstruction

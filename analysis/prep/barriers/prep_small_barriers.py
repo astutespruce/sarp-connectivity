@@ -89,13 +89,6 @@ if s.max() > 1:
 df["id"] = df.index.astype("uint32")
 df = df.set_index("id", drop=False)
 
-### Add lat / lon
-print("Adding lat / lon fields")
-geo = df[["geometry"]].to_crs(GEO_CRS)
-geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
-geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
-df = df.join(geo[["lat", "lon"]])
-
 
 ######### Fix data issues
 df["ManualReview"] = df.ManualReview.fillna(0).astype("uint8")
@@ -389,8 +382,14 @@ df["FCode"] = df.FCode.fillna(-1).astype("int32")
 
 print(df.groupby("loop").size())
 
-print("\n--------------\n")
+### Add lat / lon
+print("Adding lat / lon fields")
+geo = df[["geometry"]].to_crs(GEO_CRS)
+geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
+geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
+df = df.join(geo[["lat", "lon"]])
 
+print("\n--------------\n")
 df = df.reset_index(drop=True)
 
 print("Serializing {:,} small barriers".format(len(df)))

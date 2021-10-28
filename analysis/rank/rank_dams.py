@@ -68,31 +68,32 @@ df = (
 
 
 ### Save dams that were removed, for use in API (they are otherwise dropped below)
-removed = df.loc[
-    (df.Recon == 7) | (df.ManualReview == 8),
-    [
-        "geometry",
-        "Name",
-        "SARPID",
-        "NIDID",
-        "Source",
-        "SourceDBID",
-        "River",
-        "Year",
-        "Height",
-        "Construction",
-        "Purpose",
-        "State",
-        "County",
-        "HUC8",
-        "HUC12",
-        "duplicate",
-    ],
-].to_crs(epsg=4326)
-removed["lat"] = pg.get_y(removed.geometry.values.data).astype("float32")
-removed["lon"] = pg.get_x(removed.geometry.values.data).astype("float32")
-removed = removed.drop(columns=["geometry"])
-removed.to_feather(api_dir / "removed_dams.feather")
+removed = pd.DataFrame(
+    df.loc[
+        (df.Recon == 7) | (df.ManualReview == 8),
+        [
+            "lat",
+            "lon",
+            "Name",
+            "SARPID",
+            "NIDID",
+            "Source",
+            "SourceDBID",
+            "River",
+            "Year",
+            "Year_Removed",
+            "Height",
+            "Construction",
+            "Purpose",
+            "State",
+            "County",
+            "HUC8",
+            "HUC12",
+            "duplicate",
+        ],
+    ]
+)
+removed.reset_index().to_feather(api_dir / "removed_dams.feather")
 
 
 ### drop any that should be DROPPED (dropped or duplicate) from the analysis

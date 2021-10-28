@@ -28,6 +28,8 @@ tilejoin_args = [
     "-f",
     "-pg",
     "--no-tile-size-limit",
+    "--attribution",
+    '<a href="https://southeastaquatics.net/">Southeast Aquatic Resources Partnership</>',
 ]
 
 

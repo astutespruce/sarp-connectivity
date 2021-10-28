@@ -125,6 +125,7 @@ DAM_FILTER_FIELDS = [
     "HeightClass",
     "BarrierSeverity",
     "PassageFacilityClass",
+    "WaterbodySizeClass",
 ] + FILTER_FIELDS
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
@@ -156,6 +157,8 @@ DAM_CORE_FIELDS = [
     "PassageFacility",
     "BarrierSeverity",
     "Diversion",
+    "WaterbodyKM2",
+    "WaterbodySizeClass",
     # Recon is intentionally omitted from download below
     "Recon",
     "Feasibility",
@@ -476,6 +479,16 @@ STREAM_ORDER_DOMAIN = {
     6: ">= 6",
 }
 
+WATERBODY_SIZECLASS_DOMAIN = {
+    -1: "Not associated with a pond or lake",
+    0: "Pond (< 0.01 km2)",
+    1: "Very small lake (0.01 - 0.09 km2)",
+    2: "Small lake (0.1 - 0.9 km2)",
+    3: "Medium lake (1 - 9.9 km2)",
+    4: "Large lake (>= 10 km2)",
+}
+
+
 BARRIER_SEVERITY_DOMAIN = {
     0: "Unknown",
     1: "Not a barrier",  # includes minor barriers
@@ -660,6 +673,7 @@ DOMAINS = {
     "FishScreen": FISHSCREEN_DOMAIN,
     "ScreenType": SCREENTYPE_DOMAIN,
     "BarrierSeverity": DAM_BARRIER_SEVERITY_DOMAIN,
+    "WaterbodySizeClass": WATERBODY_SIZECLASS_DOMAIN,
     # barrier fields
     "SeverityClass": BARRIER_SEVERITY_DOMAIN,
     "ConditionClass": BARRIER_CONDITION_DOMAIN,
@@ -762,6 +776,8 @@ FIELD_DEFINITIONS = {
     "Feasibility": "feasibility of {type} removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of {type}s.",
     "BarrierSeverity": "passability of the barrier, if known.",
     "Diversion": "is this dam a diversion?",
+    "WaterbodyKM2": "area of associated waterbody in square kilometers.  -1 = no associated waterbody",
+    "WaterbodySizeClass": "size class of associated waterbody.",
     # barrier-specific fields
     "LocalID": "local identifier.",
     "CrossingCode": "crossing identifier.",

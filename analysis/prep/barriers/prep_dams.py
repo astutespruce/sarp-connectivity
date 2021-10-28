@@ -37,6 +37,7 @@ from analysis.prep.barriers.lib.duplicates import (
     find_duplicates,
     export_duplicate_areas,
 )
+from analysis.lib.waterbodies import classify_waterbody_size
 
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.constants import (
@@ -59,6 +60,7 @@ from analysis.constants import (
     DAM_BARRIER_SEVERITY_TO_DOMAIN,
 )
 from analysis.lib.io import read_feathers
+
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -164,13 +166,6 @@ if s.max() > 1:
 df["id"] = df.index.astype("uint32")
 df = df.set_index("id", drop=False)
 
-### Add lat / lon
-print("Adding lat / lon fields")
-geo = df[["geometry"]].to_crs(GEO_CRS)
-geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
-geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
-df = df.join(geo[["lat", "lon"]])
-
 
 ######### Fix data issues
 ### Set data types
@@ -201,7 +196,7 @@ for column in (
 ):
     df[column] = df[column].fillna(0).astype("uint8")
 
-for column in ("Year", "Feasibility"):
+for column in ("Year", "Year_Removed", "Feasibility"):
     df[column] = df[column].fillna(0).astype("uint16")
 
 
@@ -255,8 +250,9 @@ df.loc[df.Height >= 100, "HeightClass"] = 6
 df.HeightClass = df.HeightClass.astype("uint8")
 
 # Convert PassageFacility to a boolean for filtering
-df["PassageFacilityClass"] = 0  # uknown or no facility
-df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
+df["PassageFacilityClass"] = (
+    (df.PassageFacility > 0) & (df.PassageFacility != 9)
+).astype("uint8")
 
 # Convert BarrierSeverity to a domain
 df["BarrierSeverity"] = (
@@ -601,6 +597,36 @@ df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
 
 print(df.groupby("loop").size())
+
+
+### Join waterbody properties
+wb = (
+    read_feathers(
+        [
+            nhd_dir / "clean" / huc2 / "waterbodies.feather"
+            for huc2 in df.HUC2.unique()
+            if huc2
+        ],
+        columns=["wbID", "km2"],
+    )
+    .rename(columns={"km2": "WaterbodyKM2"})
+    .set_index("wbID")
+)
+
+wb["WaterbodySizeClass"] = classify_waterbody_size(wb.WaterbodyKM2)
+
+df = df.join(wb, on="wbID")
+df.WaterbodyKM2 = df.WaterbodyKM2.fillna(-1).astype("float32")
+df.WaterbodySizeClass = df.WaterbodySizeclass.fillna(-1).astype("int8")
+
+
+### Add lat / lon (must be done after snapping!)
+print("Adding lat / lon fields")
+geo = df[["geometry"]].to_crs(GEO_CRS)
+geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
+geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
+df = df.join(geo[["lat", "lon"]])
+
 
 ### All done processing!
 

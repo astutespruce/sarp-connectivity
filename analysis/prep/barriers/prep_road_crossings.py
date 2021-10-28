@@ -92,13 +92,6 @@ df["joinID"] = (df.index * 1e6).astype("uint32")
 df["kind"] = "crossing"
 
 
-### Add lat / lon and drop geometry
-print("Adding lat / lon fields")
-geo = df[["geometry"]].to_crs(GEO_CRS)
-geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
-geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
-df = df.join(geo[["lat", "lon"]])
-
 merged = barriers[["kind", "geometry"]].append(
     df[["joinID", "kind", "geometry"]], sort=False, ignore_index=True
 )

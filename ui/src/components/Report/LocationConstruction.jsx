@@ -14,6 +14,7 @@ import {
   PASSAGEFACILITY,
   PURPOSE,
   BARRIER_SEVERITY,
+  WATERBODY_SIZECLASS,
 } from '../../../config/constants'
 
 const Location = ({
@@ -37,15 +38,13 @@ const Location = ({
   ownertype,
   sarp_score,
   diversion,
+  waterbodykm2,
+  waterbodysizeclass,
 }) => {
   const hasRiver =
     river && river !== '"' && river !== 'null' && river !== 'Unknown'
 
   const hasOwner = ownertype && ownertype > 0
-
-  // if (!(hasRiver || huc12 || hasOwner)) {
-  //   return null
-  // }
 
   return (
     <Section title="Location & construction information">
@@ -167,6 +166,22 @@ const Location = ({
               </ListItem>
             ) : null}
 
+            {barrierType === 'dams' && waterbodysizeclass >= 0 ? (
+              <ListItem>
+                <Text>Size of associated pond or lake:</Text>
+                <Text>
+                  {waterbodykm2 > 0.1
+                    ? `${formatNumber(waterbodykm2, 2)} k`
+                    : `${formatNumber(waterbodykm2 * 1e6)} `}
+                  m<sup>2</sup> (
+                  {WATERBODY_SIZECLASS[waterbodysizeclass]
+                    .split(' (')[0]
+                    .toLowerCase()}
+                  )
+                </Text>
+              </ListItem>
+            ) : null}
+
             {intermittent === 1 ? (
               <ListItem>
                 <Text>
@@ -222,6 +237,8 @@ Location.propTypes = {
   ownertype: PropTypes.number,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
+  waterbodykm2: PropTypes.number,
+  waterbodysizeclass: PropTypes.number,
 }
 
 Location.defaultProps = {
@@ -244,6 +261,8 @@ Location.defaultProps = {
   ownertype: null,
   sarp_score: -1,
   diversion: 0,
+  waterbodykm2: -1,
+  waterbodysizeclass: -1,
 }
 
 export default Location

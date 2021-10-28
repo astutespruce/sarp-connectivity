@@ -11,6 +11,7 @@ import {
   ROAD_TYPE,
   DAM_CONDITION,
   DAM_BARRIER_SEVERITY,
+  WATERBODY_SIZECLASS,
   PERCENT_ALTERED,
   BARRIER_CONDITION,
   PASSAGEFACILITY_CLASS,
@@ -153,6 +154,14 @@ const dams = [
     hideEmpty: false,
     help: 'Note: altered stream channels are those that are assigned in the underlying NHD data as canals and ditches and is not consistently assigned for all stream reaches.',
     ...getEntries(PERCENT_ALTERED),
+  },
+  {
+    field: 'waterbodysizeclass',
+    title: 'Size of associated pond or lake',
+    sort: false,
+    hideEmpty: false,
+    help: 'Note: dams are associated with ponds or lakes extracted from NHD and the National Wetlands Inventory (NWI) if they spatially overlap; the associated pond or lake is not necessarily a result of an impoundment created by the dam.  Many small lakes and ponds are not present in NHD and NWI.',
+    ...getEntries(WATERBODY_SIZECLASS),
   },
   ...priorityFilters,
 ]

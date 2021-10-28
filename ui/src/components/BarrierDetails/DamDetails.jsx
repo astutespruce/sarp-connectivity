@@ -16,6 +16,7 @@ import {
   RECON,
   OWNERTYPE,
   HUC8_USFS,
+  WATERBODY_SIZECLASS,
 } from '../../../config/constants'
 
 import NetworkInfo from './NetworkInfo'
@@ -39,6 +40,8 @@ const DamDetails = ({
   condition,
   passagefacility,
   river,
+  waterbodykm2,
+  waterbodysizeclass,
   intermittent,
   HUC8,
   HUC12,
@@ -80,6 +83,18 @@ const DamDetails = ({
       {river && river !== '"' && river !== 'null' && river !== 'Unknown' ? (
         <Entry>
           <Field>River or stream:</Field> {river}
+        </Entry>
+      ) : null}
+
+      {waterbodysizeclass >= 0 ? (
+        <Entry>
+          <Field>Size of associated pond or lake:</Field>{' '}
+          {waterbodykm2 > 0.1
+            ? `${formatNumber(waterbodykm2, 2)} k`
+            : `${formatNumber(waterbodykm2 * 1e6)} `}
+          m<sup>2</sup> (
+          {WATERBODY_SIZECLASS[waterbodysizeclass].split(' (')[0].toLowerCase()}
+          )
         </Entry>
       ) : null}
 
@@ -345,6 +360,8 @@ DamDetails.propTypes = {
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
   diversion: PropTypes.number,
+  waterbodykm2: PropTypes.number,
+  waterbodysizeclass: PropTypes.number,
 }
 
 DamDetails.defaultProps = {
@@ -382,6 +399,8 @@ DamDetails.defaultProps = {
   landcover: null,
   sizeclasses: null,
   diversion: 0,
+  waterbodykm2: -1,
+  waterbodysizeclass: -1,
 }
 
 export default DamDetails
