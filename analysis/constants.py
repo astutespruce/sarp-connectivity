@@ -148,32 +148,7 @@ DAM_FS_COLS = [
     "FishScreen",
     "ScreenType",
     "BarrierSeverity",
-]
-
-DAM_COLS = [
-    "SARPID",
-    "ManualReview",  # renamed from SNAP2018
-    "NIDID",
-    "SourceDBID",
-    "Barrier_Name",
-    "Other_Barrier_Name",
-    "River",
-    "PurposeCategory",
-    "Year_Completed",
-    "Year_Removed",
-    "Height",
-    "StructureCondition",
-    "ConstructionMaterial",
-    "DB_Source",
-    "Recon",
-    "PassageFacility",
-    "BarrierStatus",
-    "BarrierSeverity",
-    "PotentialFeasibility",
-    "Diversion",
-    "FishScreen",
-    "ScreenType",
-    "StructureCategory",
+    "LowheadDam",
 ]
 
 
@@ -204,6 +179,7 @@ SMALL_BARRIER_COLS = [
 ]
 
 WATERFALL_COLS = [
+    "SARPUniqueId",
     "fall_id",
     "fall_type",
     "Source",
@@ -211,6 +187,9 @@ WATERFALL_COLS = [
     "name",
     "gnis_name_",
     "watercours",
+    "Recon",
+    "ManualReview",
+    "BarrierSeverity",
 ]
 
 

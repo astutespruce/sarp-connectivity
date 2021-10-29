@@ -20,7 +20,14 @@ import geopandas as gp
 import numpy as np
 from pyogrio import write_dataframe
 
-from analysis.constants import FCODE_TO_STREAMTYPE, GEO_CRS
+from analysis.constants import (
+    FCODE_TO_STREAMTYPE,
+    GEO_CRS,
+    DROP_RECON,
+    DROP_MANUALREVIEW,
+    EXCLUDE_RECON,
+    EXCLUDE_MANUALREVIEW,
+)
 
 from analysis.lib.io import read_feathers
 from analysis.lib.geometry import nearest
@@ -32,7 +39,7 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 
 # Snap waterfalls by 100 meters
 SNAP_TOLERANCE = 100
-DUPLICATE_TOLERANCE = 10
+DUPLICATE_TOLERANCE = 50
 
 
 data_dir = Path("data")
@@ -53,17 +60,11 @@ sarp_huc4 = pd.read_feather(
 
 print("Reading waterfalls")
 
-df = gp.read_feather(src_dir / "waterfalls.feather")
+df = gp.read_feather(src_dir / "waterfalls.feather").rename(
+    columns={"fall_type": "FallType"}
+)
 
-df.fall_type = df.fall_type.fillna("").str.strip()
-
-### Drop records that indicate waterfall is not likely a current fish passage barrier
-ix = df.fall_type.isin(["dam", "historical rapids", "historical waterfall", "rapids"])
-if ix.sum():
-    print(
-        f"Dropping {ix.sum():,} waterfalls that are not likely to be current barriers"
-    )
-    df = df.loc[~ix].copy()
+df.FallType = df.FallType.fillna("").str.strip()
 
 
 ### Add IDs for internal use
@@ -83,8 +84,6 @@ df.GNIS_Name = df.GNIS_Name.fillna("").str.strip()
 ix = (df.Stream == "") & (df.GNIS_Name != "")
 df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
 
-df.FallType = df.FallType.fillna("")
-
 df = df.drop(columns=["GNIS_Name"])
 
 
@@ -98,10 +97,6 @@ df.loc[ix, "sourceID"] = df.loc[ix].fall_id.astype("int").astype("str")
 df = add_spatial_joins(df)
 
 
-### TEMP: drop those outside SARP HUC4s
-df = df.loc[df.HUC12.str[:4].isin(sarp_huc4)].copy()
-
-
 ### Add tracking fields
 # dropped: records that should not be included in any later analysis
 df["dropped"] = False
@@ -110,16 +105,58 @@ df["dropped"] = False
 # NOTE: no waterfalls are currently excluded from analysis
 df["excluded"] = False
 
+df["log"] = ""
 
-# Drop any that didn't intersect HUCs or states
+
+# Remove any that didn't intersect HUCs or states; these are outside the analysis region
 drop_ix = df.HUC12.isnull() | df.STATEFIPS.isnull()
 if drop_ix.sum():
     print(f"{drop_ix.sum():,} waterfalls are outside HUC12 / states")
-    df.loc[drop_ix, "dropped"] = True
+    df = df.loc[~drop_ix].copy()
 
+
+# Drop those where recon shows this as an error
+drop_ix = df.Recon.isin(DROP_RECON) & ~df.dropped
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = f"dropped: Recon one of {DROP_RECON}"
+
+drop_ix = df.ManualReview.isin(DROP_MANUALREVIEW)
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = f"dropped: ManualReview one of {DROP_MANUALREVIEW}"
+
+# Drop manually-identified waterfalls that should be removed
+drop_ix = df.SARPID.isin(
+    ["f12317", "f13156", "f1557", "f12275", "f92", "f1951", "f7500", "f13457"]
+)
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = f"dropped: removed specific ids"
+
+# Drop records that indicate waterfall is not likely a current fish passage barrier
+drop_types = ["dam", "historical rapids", "historical waterfall", "rapids"]
+drop_ix = df.FallType.isin(drop_types)
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = f"dropped: type one of {drop_types}"
+
+print(
+    f"Dropped {drop_ix.sum():,} waterfalls from all analysis and mapping based on ManualReview, Recon, type, or ID"
+)
+
+### Exclude barriers that should not be analyzed or prioritized based on manual QA
+df["excluded"] = df.ManualReview.isin(EXCLUDE_MANUALREVIEW) | df.Recon.isin(
+    EXCLUDE_RECON
+)
+
+df.loc[df.Recon.isin(EXCLUDE_RECON), "log"] = f"excluded: Recon one of {EXCLUDE_RECON}"
+df.loc[
+    df.ManualReview.isin(EXCLUDE_MANUALREVIEW), "log"
+] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
+print(
+    f"Excluded {df.excluded.sum():,} small barriers from network analysis and prioritization"
+)
 
 ### Snap waterfalls
 print(f"Snapping {len(df):,} waterfalls")
+write_dataframe(df.reset_index(drop=True), qa_dir / "waterfalls_pre_snap.fgb")
 
 # snapped: records that snapped to the aquatic network and ready for network analysis
 df["snapped"] = False
@@ -158,7 +195,7 @@ print(
 
 ### Deduplicate by dams
 # any that are within duplicate tolerance of dams may be duplicating those dams
-dams = gp.read_feather(master_dir / "dams.feather", columns=["geometry"])
+dams = gp.read_feather(master_dir / "dams.feather", columns=["geometry", "sizeclass"])
 near_dams = nearest(
     pd.Series(df.geometry.values.data, index=df.index),
     pd.Series(dams.geometry.values.data, index=dams.index),
@@ -249,3 +286,4 @@ df[
 write_dataframe(df, qa_dir / "snapped_waterfalls.gpkg")
 
 print("All done in {:.2f}s".format(time() - start))
+

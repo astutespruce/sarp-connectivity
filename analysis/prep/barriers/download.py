@@ -248,7 +248,9 @@ df.to_feather(out_dir / "sarp_small_barriers.feather")
 ### Download waterfalls
 download_start = time()
 print("\n---- Downloading waterfalls ----")
-df = download_fs(WATERFALLS_URL, fields=WATERFALL_COLS, token=token)
+df = download_fs(WATERFALLS_URL, fields=WATERFALL_COLS, token=token).rename(
+    columns={"SARPUniqueId": "SARPID",}
+)
 
 print("Projecting waterfalls.")
 df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
