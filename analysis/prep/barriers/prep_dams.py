@@ -208,16 +208,42 @@ df.loc[df.Recon == 16, "ManualReview"] = 10
 df.loc[df.ManualReview.isin([7, 9]), "ManualReview"] = 0
 
 # Update dam condition based on BarrierStatus and Recon
-df.loc[df.Recon == 18, "Condition"] = 5  # dam failed
-df.loc[
-    df.BarrierStatus.isin([2, 3]), "Condition"
-] = 6  # dam breached (but we don't know if this was on purpose)
+# dam failed
+df.loc[df.Recon == 18, "Condition"] = 5
+# dam breached (but we don't know if this was on purpose)
+df.loc[df.BarrierStatus.isin([2, 3]), "Condition"] = 6
 
 
 # Round height and width to nearest foot.
 # There are no dams between 0 and 1 foot, so fill all na as 0.
 df.Height = df.Height.fillna(0).round().astype("uint16")
 df.Width = df.Width.fillna(0).round().astype("uint16")
+
+df.LowheadDam = df.LowheadDam.fillna(-1).astype("int8")
+
+# manually reviewed dams > 5ft that are highly likely to be lowhead dams
+df.loc[
+    df.SARPID.isin(
+        [
+            "NC3047",
+            "NC248",
+            "VA1999",
+            "NC01012",
+            "NC00446",
+            "NC01637",
+            "NC6267",
+            "NC6283",
+            "NC01218",
+            "TN1752",
+            "AL00919",
+        ]
+    ),
+    "LowheadDam",
+] = 1
+
+
+# TODO: from Kat: if in NC and source is Aquatic Obstruction Inventory, also set lowhead dam
+
 
 # Cleanup names
 # Standardize the casing of the name
@@ -255,6 +281,9 @@ df["PassageFacilityClass"] = (
 ).astype("uint8")
 
 # Convert BarrierSeverity to a domain
+# FIXME: temporary fix
+df.BarrierSeverity = df.BarrierSeverity.str.replace("Seasonbly", "Seasonably")
+
 df["BarrierSeverity"] = (
     df.BarrierSeverity.fillna("")
     .str.strip()
@@ -617,7 +646,22 @@ wb["WaterbodySizeClass"] = classify_waterbody_size(wb.WaterbodyKM2)
 
 df = df.join(wb, on="wbID")
 df.WaterbodyKM2 = df.WaterbodyKM2.fillna(-1).astype("float32")
-df.WaterbodySizeClass = df.WaterbodySizeclass.fillna(-1).astype("int8")
+df.WaterbodySizeClass = df.WaterbodySizeClass.fillna(-1).astype("int8")
+
+
+### Update lowhead dam status with estimated lowhead dams
+# from Kat: if ImpoundmentType==1 (run of the river), it is likely a lowhead dam;
+# limit this to <= 15 feet based on review against aerial imagery (very few over 15 feet are lowhead)
+# ignore estimated dams or ones on very small streams
+df.loc[
+    (df.LowheadDam == -1)
+    & (df.ImpoundmentType == 1)
+    & (df.Height <= 25)
+    & (~df.is_estimated)
+    & (df.snapped)
+    & (df.sizeclass != "1a"),
+    "LowheadDam",
+] = 2
 
 
 ### Add lat / lon (must be done after snapping!)

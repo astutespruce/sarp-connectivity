@@ -11,6 +11,7 @@ import {
   ROAD_TYPE,
   DAM_CONDITION,
   DAM_BARRIER_SEVERITY,
+  LOWHEAD_DAM,
   WATERBODY_SIZECLASS,
   PERCENT_ALTERED,
   BARRIER_CONDITION,
@@ -122,6 +123,14 @@ const dams = [
     hideEmpty: true,
     help: 'Note: barrier passability information is only available for a small number of dams.  Not all data sources recorded this information.',
     ...getEntries(DAM_BARRIER_SEVERITY),
+  },
+  {
+    field: 'lowheaddam',
+    title: 'Lowhead Dams',
+    sort: false,
+    hideEmpty: false,
+    help: 'Note: lowhead dam status is only available for a small number of dams.  Not all data sources recorded this information.  Likely lowhead dams are those specifically marked as run-of-river dams with a height <= 15 ft.',
+    ...getEntries(LOWHEAD_DAM),
   },
   {
     field: 'passagefacilityclass',

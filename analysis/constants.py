@@ -149,6 +149,7 @@ DAM_FS_COLS = [
     "ScreenType",
     "BarrierSeverity",
     "LowheadDam",
+    "ImpoundmentType",
 ]
 
 
@@ -380,7 +381,7 @@ DAM_BARRIER_SEVERITY_TO_DOMAIN = {
     "Partial": 2,
     "Partial Passability - Non Salmonid": 3,
     "Partial Passability - Salmonid": 4,
-    "Seasonbly Passable - Non Salmonid": 5,
+    "Seasonably Passable - Non Salmonid": 5,
     "Seasonably Passable - Salmonid": 6,
     "No Barrier": 7,
 }

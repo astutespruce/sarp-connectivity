@@ -22,6 +22,7 @@ const Location = ({
   construction,
   purpose,
   condition,
+  lowheaddam,
   passagefacility,
   year,
   height,
@@ -84,6 +85,13 @@ const Location = ({
                     <Text>
                       Construction material:{' '}
                       {CONSTRUCTION[construction].toLowerCase()}
+                    </Text>
+                  </ListItem>
+                ) : null}
+                {lowheaddam >= 1 ? (
+                  <ListItem>
+                    <Text>
+                      This is {lowheaddam === 2 ? 'likely' : ''} a lowhead dam
                     </Text>
                   </ListItem>
                 ) : null}
@@ -237,6 +245,7 @@ Location.propTypes = {
   ownertype: PropTypes.number,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
+  lowheaddam: PropTypes.number,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
 }
@@ -261,6 +270,7 @@ Location.defaultProps = {
   ownertype: null,
   sarp_score: -1,
   diversion: 0,
+  lowheaddam: -1,
   waterbodykm2: -1,
   waterbodysizeclass: -1,
 }

@@ -38,6 +38,7 @@ const DamDetails = ({
   diversion,
   purpose,
   condition,
+  lowheaddam,
   passagefacility,
   river,
   waterbodykm2,
@@ -141,6 +142,9 @@ const DamDetails = ({
           <Field>Construction material:</Field>{' '}
           {CONSTRUCTION[construction].toLowerCase()}
         </Entry>
+      ) : null}
+      {lowheaddam >= 1 ? (
+        <Entry>This is {lowheaddam === 2 ? 'likely' : ''} a lowhead dam</Entry>
       ) : null}
       {diversion === 1 ? (
         <Entry>
@@ -360,6 +364,7 @@ DamDetails.propTypes = {
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
   diversion: PropTypes.number,
+  lowheaddam: PropTypes.number,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
 }
@@ -399,6 +404,7 @@ DamDetails.defaultProps = {
   landcover: null,
   sizeclasses: null,
   diversion: 0,
+  lowheaddam: -1,
   waterbodykm2: -1,
   waterbodysizeclass: -1,
 }

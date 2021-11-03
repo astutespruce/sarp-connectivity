@@ -258,11 +258,14 @@ def snap_to_waterbodies(df, to_snap):
 
     ### Attempt to snap to waterbody drain points for major waterbodies
     # Use larger tolerance for larger waterbodies
+    # NOTE: this specifically excludes known lowhead dams from snapping to waterbodies
     print("=================\nSnapping to waterbodies and drain points..")
 
     for huc2 in sorted(to_snap.HUC2.unique()):
         print(f"\n----- {huc2} ------")
-        in_huc2 = to_snap.loc[to_snap.HUC2 == huc2].copy()
+        in_huc2 = to_snap.loc[
+            (to_snap.HUC2 == huc2) & (~to_snap.LowheadDam == 1)
+        ].copy()
 
         wb = gp.read_feather(
             nhd_dir / "clean" / huc2 / "waterbodies.feather",

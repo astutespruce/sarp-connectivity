@@ -124,6 +124,7 @@ DAM_FILTER_FIELDS = [
     "Condition",
     "HeightClass",
     "BarrierSeverity",
+    "LowheadDam",
     "PassageFacilityClass",
     "WaterbodySizeClass",
 ] + FILTER_FIELDS
@@ -157,6 +158,7 @@ DAM_CORE_FIELDS = [
     "PassageFacility",
     "BarrierSeverity",
     "Diversion",
+    "LowheadDam",
     "WaterbodyKM2",
     "WaterbodySizeClass",
     # Recon is intentionally omitted from download below
@@ -508,6 +510,9 @@ CROSSING_TYPE_DOMAIN = {
 
 DIVERSION_DOMAIN = {0: "Unknown", 1: "Yes", 2: "No"}
 
+# Note: -1 and 2 are made up here, not part of original domain
+LOWHEADDAM_DOMAIN = {-1: "Unknown", 0: "No", 1: "Yes", 2: "Likely"}
+
 FISHSCREEN_DOMAIN = {0: "Unknown", 1: "Yes", 2: "No"}
 
 SCREENTYPE_DOMAIN = {
@@ -670,6 +675,7 @@ DOMAINS = {
     "Feasibility": FEASIBILITY_DOMAIN,
     "PassageFacility": PASSAGEFACILITY_DOMAIN,
     "Diversion": DIVERSION_DOMAIN,
+    "LowheadDam": LOWHEADDAM_DOMAIN,
     "FishScreen": FISHSCREEN_DOMAIN,
     "ScreenType": SCREENTYPE_DOMAIN,
     "BarrierSeverity": DAM_BARRIER_SEVERITY_DOMAIN,
@@ -775,7 +781,8 @@ FIELD_DEFINITIONS = {
     "PassageFacility": "type of fish passage facility, if known.",
     "Feasibility": "feasibility of {type} removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of {type}s.",
     "BarrierSeverity": "passability of the barrier, if known.",
-    "Diversion": "is this dam a diversion?",
+    "Diversion": "Identifies if dam is known to be a diversion.  Note: diversion information is available only for a small number of dams.",
+    "LowheadDam": "Identifies if dam is known or estimated to be a lowhead dam.  Note: lowhead dam information is available only for a small number of dams.",
     "WaterbodyKM2": "area of associated waterbody in square kilometers.  -1 = no associated waterbody",
     "WaterbodySizeClass": "size class of associated waterbody.",
     # barrier-specific fields

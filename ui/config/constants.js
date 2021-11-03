@@ -326,6 +326,13 @@ export const DAM_BARRIER_SEVERITY = {
   7: 'No Barrier',
 }
 
+export const LOWHEAD_DAM = {
+  '-1': 'Unknown',
+  0: 'Not a lowhead dam',
+  1: 'Lowhead dam',
+  2: 'Likely lowhead dam',
+}
+
 export const PERCENT_ALTERED = {
   // -1: no network
   0: '0 - 9%',

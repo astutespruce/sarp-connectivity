@@ -25,6 +25,7 @@ const LocationConstruction = ({
   huc12,
   ownertype,
   construction,
+  lowheaddam,
   purpose,
   condition,
   passagefacility,
@@ -66,6 +67,11 @@ const LocationConstruction = ({
                 <li>
                   Construction material:{' '}
                   {CONSTRUCTION[construction].toLowerCase()}
+                </li>
+              ) : null}
+              {lowheaddam >= 1 ? (
+                <li>
+                  This is {lowheaddam === 2 ? 'likely' : ''} a lowhead dam
                 </li>
               ) : null}
               {diversion === 1 ? (
@@ -171,6 +177,7 @@ LocationConstruction.propTypes = {
   severityclass: PropTypes.number,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
+  lowheaddam: PropTypes.number,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
 }
@@ -195,6 +202,7 @@ LocationConstruction.defaultProps = {
   severityclass: null,
   sarp_score: -1,
   diversion: 0,
+  lowheaddam: -1,
   waterbodykm2: -1,
   waterbodysizeclass: -1,
 }

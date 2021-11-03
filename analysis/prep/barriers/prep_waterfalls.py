@@ -27,6 +27,7 @@ from analysis.constants import (
     DROP_MANUALREVIEW,
     EXCLUDE_RECON,
     EXCLUDE_MANUALREVIEW,
+    DAM_BARRIER_SEVERITY_TO_DOMAIN,
 )
 
 from analysis.lib.io import read_feathers
@@ -85,6 +86,21 @@ ix = (df.Stream == "") & (df.GNIS_Name != "")
 df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
 
 df = df.drop(columns=["GNIS_Name"])
+
+
+# Convert BarrierSeverity to a domain
+# FIXME: temporary fixes
+df.BarrierSeverity = df.fillna("").BarrierSeverity.str.replace(
+    "Seasonbly", "Seasonably"
+)
+df.loc[df.BarrierSeverity.str.startswith("State of UT"), "BarrierSeverity"] = "Unknown"
+
+df["BarrierSeverity"] = (
+    df.BarrierSeverity.fillna("")
+    .str.strip()
+    .map(DAM_BARRIER_SEVERITY_TO_DOMAIN)
+    .astype("uint8")
+)
 
 
 ### Add persistant sourceID based on original IDs
