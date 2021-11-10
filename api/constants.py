@@ -531,7 +531,7 @@ DAM_BARRIER_SEVERITY_DOMAIN = {
     2: "Partial",
     3: "Partial Passability - Non Salmonid",
     4: "Partial Passability - Salmonid",
-    5: "Seasonbly Passable - Non Salmonid",
+    5: "Seasonably Passable - Non Salmonid",
     6: "Seasonably Passable - Salmonid",
     7: "No Barrier",
 }

@@ -21,7 +21,9 @@ tmp_dir = Path("/tmp")
 
 def classify_size(series):
     # map sizeclasses are 0-4, 5-9, 10-99, 100-499, 500-9999, 10000 - 24999, >25000 km2
-    bins = [-1, 0, 2, 5, 10, 50, 100, 500, 10000, 25000] + [series.max() + 1]
+    bins = [-1, 0, 2, 5, 10, 50, 100, 500, 10000, 25000] + [
+        max(series.max(), 25000) + 1
+    ]
     return np.asarray(
         pd.cut(series, bins, right=False, labels=np.arange(-1, len(bins) - 2))
     ).astype("uint8")
@@ -52,9 +54,6 @@ zoom_levels = {
 }
 
 
-# sizeclasses = {"1a": 0, "1b": 1, "2": 2, "3a": 3, "3b": 4, "4": 5, "5": 6}
-
-
 tippecanoe_args = [
     "tippecanoe",
     "-f",
@@ -71,8 +70,7 @@ groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
 region_tiles = []
 
-# for group in groups_df.groupby("group").HUC2.apply(set).values:
-for group in [{"03"}]:  # FIXME:
+for group in groups_df.groupby("group").HUC2.apply(set).values:
     group = sorted(group)
 
     print(f"\n\n===========================\nProcessing group {group}")
@@ -96,14 +94,7 @@ for group in [{"03"}]:  # FIXME:
 
         flowlines = gp.read_feather(
             src_dir / "raw" / huc2 / "flowlines.feather",
-            columns=[
-                "lineID",
-                "geometry",
-                "intermittent",
-                # "sizeclass",
-                "altered",
-                "TotDASqKm",
-            ],
+            columns=["lineID", "geometry", "intermittent", "altered", "TotDASqKm",],
         ).set_index("lineID")
         flowlines = flowlines.join(segments)
 
@@ -185,13 +176,12 @@ for group in [{"03"}]:  # FIXME:
         print(f"Region done in {(time() - huc2_start) / 60:,.2f}m")
 
 
-# FIXME:
-# print("\n\n============================\nCombining tiles for all regions")
-# mbtiles_filename = out_dir / "networks.mbtiles"
-# ret = subprocess.run(
-#     ["tile-join", "-f", "-pg", "-o", str(mbtiles_filename),]
-#     + [str(f) for f in region_tiles],
-# )
-# ret.check_returncode()
+print("\n\n============================\nCombining tiles for all regions")
+mbtiles_filename = out_dir / "networks.mbtiles"
+ret = subprocess.run(
+    ["tile-join", "-f", "-pg", "-o", str(mbtiles_filename),]
+    + [str(f) for f in region_tiles],
+)
+ret.check_returncode()
 
-# print(f"\n\n======================\nAll done in {(time() - start) / 60:,.2f}m")
+print(f"\n\n======================\nAll done in {(time() - start) / 60:,.2f}m")

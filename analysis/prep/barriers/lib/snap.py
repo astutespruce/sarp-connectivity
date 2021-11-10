@@ -25,11 +25,31 @@ nhd_dir = Path("data/nhd")
 
 
 def snap_estimated_dams_to_drains(df, to_snap):
+    """Snap estimated dams to waterbody drain points.
+
+    Dams that were estimated from waterbodies are snapped to the nearest drain
+    points (should be very small snap_dist).
+
+    Other estimated dams often occur inside / immediately adjacent to waterbodies
+    and are snapped to the nearest drain point of those waterbodies if < 2km.
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+        master dataset, this is where all snapping gets recorded
+    to_snap : DataFrame
+        data frame containing pygeos geometries to snap ("geometry")
+        and snapping tolerance ("snap_tolerance")
+
+    Returns
+    -------
+    tuple of (GeoDataFrame, DataFrame)
+        (df, to_snap)
+    """
     snap_start = time()
 
     # if estimated dam and was not manually reviewed and moved or verified at correct location
-    ix = (to_snap.snap_group == 1) & (~to_snap.ManualReview.isin([4, 13]))
-
+    ix = (to_snap.snap_group.isin([1, 3])) & (~to_snap.ManualReview.isin([4, 13]))
     estimated = to_snap.loc[ix].copy()
     print(f"=================\nSnapping {len(estimated):,} estimated dams...")
 
@@ -45,6 +65,53 @@ def snap_estimated_dams_to_drains(df, to_snap):
         ).set_index("drainID")
 
         in_huc2 = estimated.loc[estimated.HUC2 == huc2].copy()
+
+        # most estimated dams were originally derived from waterbody drain points,
+        # so process those first
+        tmp = in_huc2.loc[in_huc2.snap_group == 3]
+        if len(tmp):
+            max_drain_dist = tmp.snap_tolerance.unique()[0]
+            tree = pg.STRtree(drains.geometry.values.data)
+            left, right = tree.nearest_all(
+                tmp.geometry.values.data, max_distance=max_drain_dist
+            )
+            drain_joins = (
+                pd.DataFrame(
+                    {
+                        "id": tmp.index.values.take(left),
+                        "geometry": tmp.geometry.values.take(left),
+                        "drainID": drains.index.values.take(right),
+                        "drain": drains.geometry.values.take(right),
+                        "wbID": drains.wbID.values.take(right),
+                        "lineID": drains.lineID.values.take(right),
+                    }
+                )
+                .groupby("id")
+                .first()
+            )
+
+            drain_joins["snap_dist"] = pg.distance(
+                drain_joins.geometry.values.data, drain_joins.drain.values.data
+            )
+
+            ix = drain_joins.index
+            df.loc[ix, "snapped"] = True
+            df.loc[ix, "geometry"] = drain_joins.drain
+            df.loc[ix, "snap_dist"] = drain_joins.snap_dist
+            df.loc[ix, "snap_ref_id"] = drain_joins.drainID
+            df.loc[ix, "lineID"] = drain_joins.lineID
+            df.loc[ix, "wbID"] = drain_joins.wbID
+            df.loc[
+                ix, "snap_log"
+            ] = "snapped: dams estimated from waterbody snapped to nearest drain point"
+
+            to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
+
+            print(
+                f"HUC {huc2}: snapped {len(drain_joins):,} of {len(drain_joins):,} dams estimated from waterbodies in region to waterbody drain points"
+            )
+
+        in_huc2 = in_huc2.loc[in_huc2.snap_group == 1]
 
         # Some estimated dams are just barely outside their waterbodies
         # so we take the nearest waterbody for each, within a tolerance of 1m
@@ -263,9 +330,7 @@ def snap_to_waterbodies(df, to_snap):
 
     for huc2 in sorted(to_snap.HUC2.unique()):
         print(f"\n----- {huc2} ------")
-        in_huc2 = to_snap.loc[
-            (to_snap.HUC2 == huc2) & (~to_snap.LowheadDam == 1)
-        ].copy()
+        in_huc2 = to_snap.loc[(to_snap.HUC2 == huc2) & (to_snap.LowheadDam != 1)].copy()
 
         wb = gp.read_feather(
             nhd_dir / "clean" / huc2 / "waterbodies.feather",
