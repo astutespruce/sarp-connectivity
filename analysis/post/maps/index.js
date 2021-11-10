@@ -21,6 +21,8 @@ const regions = JSON.parse(
   fs.readFileSync('../../../ui/data/region_bounds.json')
 )
 
+console.log(regions)
+
 const style = {
   version: 8,
   sources: {
@@ -104,7 +106,7 @@ const style = {
   ],
 }
 
-Object.entries(regions).forEach(([id, bounds]) => {
+regions.forEach(({ id, bbox: bounds }) => {
   console.log(`Creating region map for ${id}`)
   style.layers[3].filter = ['==', 'id', id]
   style.layers[4].filter = ['==', 'id', id]
