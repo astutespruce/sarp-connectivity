@@ -248,8 +248,10 @@ export const topRank = {
     'circle-color': '#c51b8a',
     'circle-radius': {
       stops: [
+        [4, 0.5],
+        [5, 1],
         [6, 2],
-        [8, 6],
+        [10, 6],
         [14, 8],
       ],
     },
@@ -262,7 +264,9 @@ export const topRank = {
     'circle-stroke-color': '#FFFFFF',
     'circle-stroke-width': {
       stops: [
-        [5, 2],
+        [4, 0],
+        [6, 0.25],
+        [8, 0.5],
         [14, 3],
       ],
     },
@@ -281,24 +285,24 @@ export const lowerRank = {
     'circle-stroke-color': '#FFFFFF',
     'circle-radius': {
       stops: [
+        [4, 0.5],
         [5, 1],
-        [8, 4],
-        [10, 6],
-        [14, 8],
+        [9, 2],
+        [10, 4],
+        [14, 6],
       ],
     },
     'circle-opacity': {
       stops: [
-        [5, 0.5],
         [7, 0.5],
         [8, 1],
       ],
     },
     'circle-stroke-width': {
       stops: [
-        [5, 0],
-        [8, 1],
-        [14, 3],
+        [10, 0],
+        [11, 0.25],
+        [14, 1],
       ],
     },
   },

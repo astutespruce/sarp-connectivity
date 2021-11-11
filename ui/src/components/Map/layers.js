@@ -54,21 +54,6 @@ const networkHighlightLayer = {
   paint: {
     ...flowlinesLayer.paint,
     'line-opacity': 1,
-    'line-width': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      5,
-      1,
-      9,
-      ['*', ['get', 'sizeclass'], 0.3],
-      11,
-      ['*', ['get', 'sizeclass'], 0.6],
-      12,
-      ['+', ['get', 'sizeclass'], 0.75],
-      14,
-      ['+', ['get', 'sizeclass'], 1.5],
-    ],
     'line-color': '#fd8d3c',
   },
 }
