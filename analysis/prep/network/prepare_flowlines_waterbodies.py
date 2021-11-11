@@ -45,7 +45,7 @@ from analysis.constants import (
     JOIN_FIXES,
     REMOVE_JOINS,
 )
-from analysis.lib.geometry import geo_bounds
+
 from analysis.lib.joins import remove_joins
 from analysis.lib.flowlines import (
     remove_flowlines,
@@ -71,7 +71,7 @@ huc2s = sorted(
 # manually subset keys from above for processing
 huc2s = [
     # "02",
-    # "03",
+    "03",
     # "05",
     # "06",
     # "07",
@@ -82,7 +82,7 @@ huc2s = [
     # "12",
     # "13",
     # "14",
-    "15",
+    # "15",
     # "16",
     # "17",
     # "21",
@@ -196,7 +196,7 @@ for huc2 in huc2s:
     print("Evaluating pipelines")
     keep_ids = KEEP_PIPELINES.get(huc2, [])
     flowlines, joins = remove_pipelines(flowlines, joins, MAX_PIPELINE_LENGTH, keep_ids)
-    print("{:,} flowlines after dropping pipelines".format(len(flowlines)))
+    print(f"{len(flowlines):,} flowlines after dropping pipelines")
 
     # make sure that updated joins are unique
     joins = joins.drop_duplicates()
@@ -234,26 +234,13 @@ for huc2 in huc2s:
     waterbodies.flowlineLength = waterbodies.flowlineLength.fillna(0)
 
     print(
-        "Now have {:,} flowlines, {:,} waterbodies, {:,} waterbody-flowline joins".format(
-            len(flowlines), len(waterbodies), len(wb_joins)
-        )
+        f"Now have {len(flowlines):,} flowlines, {len(waterbodies):,} waterbodies, {len(wb_joins):,} waterbody-flowline joins"
     )
 
     print("------------------")
 
     print("Identifying waterbody drain points")
     drains = create_drain_points(flowlines, joins, waterbodies, wb_joins)
-
-    print("------------------")
-
-    # NOTE: not currently used and very slow
-    # print("Calculating flowline geographic bounds")
-    # bounds = pd.DataFrame(
-    #     geo_bounds(flowlines.geometry.values.data),
-    #     columns=["xmin", "ymin", "xmax", "ymax"],
-    #     index=flowlines.index,
-    # )
-    # flowlines = flowlines.join(bounds)
 
     print("------------------")
 

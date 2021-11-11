@@ -10,10 +10,7 @@ from analysis.lib.joins import index_joins, find_joins, update_joins, remove_joi
 from analysis.lib.graph import find_adjacent_groups
 from analysis.lib.geometry import calculate_sinuosity
 
-from analysis.lib.geometry import (
-    cut_lines_at_multipoints,
-    explode,
-)
+from analysis.lib.geometry import explode
 
 from analysis.lib.geometry.speedups.lines import cut_lines_at_points
 
@@ -22,40 +19,6 @@ from analysis.constants import SNAP_ENDPOINT_TOLERANCE
 # In order to cut a flowline, it must be at least this long, and at least
 # this different from original flowline
 CUT_TOLERANCE = 1
-
-
-def prep_new_flowlines(flowlines, new_segments):
-    """Add necessary attributes to new segments then append to flowlines and return.
-
-    Calculates length, sinuosity, and bounding coordinates for new segments.
-
-    Parameters
-    ----------
-    flowlines : GeoDataFrame
-        flowlines to append to
-    new_segments : GeoDataFrame
-        new segments to append to flowlines.
-
-    Returns
-    -------
-    GeoDataFrame
-    """
-    # join in data from flowlines into new segments
-    new_flowlines = new_segments.join(
-        flowlines.drop(
-            columns=["geometry", "lineID", "xmin", "ymin", "xmax", "ymax"],
-            errors="ignore",
-        ),
-        on="origLineID",
-    )
-
-    # calculate length and sinuosity
-    new_flowlines["length"] = new_flowlines.length
-    new_flowlines["sinuosity"] = calculate_sinuosity(
-        new_flowlines.geometry.values.data
-    ).astype("float32")
-
-    return new_flowlines
 
 
 def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
@@ -325,7 +288,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
                 "flowline": "first",
                 "barrierID": list,
                 "barriers": "first",
-                "barrier": list,  # TODO: remove
+                # "barrier": list,  # TODO: remove
                 "pos": list,
             }
         )
@@ -336,20 +299,36 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
         grouped.flowline.apply(lambda x: pg.get_coordinates(x)).values,
         grouped.pos.apply(np.array).values,
     )
-    new_segments = gp.GeoDataFrame(
+
+    lines = np.asarray(lines)
+    new_flowlines = gp.GeoDataFrame(
         {
+            "lineID": (next_segment_id + np.arange(len(outer_ix))).astype("uint32"),
             "origLineID": grouped.index.take(outer_ix),
             "position": inner_ix,
             "geometry": lines,
+            "length": pg.length(lines).astype("float32"),
+            "sinuosity": calculate_sinuosity(lines).astype("float32"),
         }
+    ).join(
+        flowlines.drop(
+            columns=[
+                "geometry",
+                "lineID",
+                "xmin",
+                "ymin",
+                "xmax",
+                "ymax",
+                "length",
+                "sinuosity",
+            ],
+            errors="ignore",
+        ),
+        on="origLineID",
     )
-    new_segments["lineID"] = next_segment_id + new_segments.index
-
-    # Add in new flowlines by copying props from original ones
-    new_flowlines = prep_new_flowlines(flowlines, new_segments)
 
     # transform new segments to create new joins
-    l = new_segments.groupby("origLineID").lineID
+    l = new_flowlines.groupby("origLineID").lineID
     # the first new line per original line is the furthest upstream, so use its
     # ID as the new downstream ID for anything that had this origLineID as its downstream
     first = l.first().rename("new_downstream_id")
@@ -374,14 +353,14 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
 
     # For all new interior joins, create upstream & downstream ids per original line
     upstream_side = (
-        new_segments.loc[~new_segments.lineID.isin(last)][
+        new_flowlines.loc[~new_flowlines.lineID.isin(last)][
             ["origLineID", "position", "lineID"]
         ]
         .set_index(["origLineID", "position"])
         .rename(columns={"lineID": "upstream_id"})
     )
 
-    downstream_side = new_segments.loc[~new_segments.lineID.isin(first)][
+    downstream_side = new_flowlines.loc[~new_flowlines.lineID.isin(first)][
         ["origLineID", "position", "lineID"]
     ].rename(columns={"lineID": "downstream_id"})
     downstream_side.position = downstream_side.position - 1
@@ -444,52 +423,77 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
 def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     """General method for cutting flowlines at points and updating joins.
 
-    Only new flowlines are returned; any that are not cut by points are omitted.
+    Only points >= SNAP_ENDPOINT_TOLERANCE are used to cut lines.
+
+    Lines are cut starting at the upstream end; the original ordering of points
+    per line is not preserved.
 
     Parameters
     ----------
     flowlines : GeoDataFrame
     joins : DataFrame
         flowline joins
-    points : ndarray of MultiPoint or Point geometries
-        expected to match to flowlines
+    points : GeoSeries
+        points to cut flowlines, must be indexed to join against flowlines;
+        one record per singular Point.
     next_lineID : int
         id of next flowline to be created
 
     Returns
     -------
-    (GeoDataFrame, DataFrame, ndarray)
-        new flowlines, updated joins, remove_ids (original flowline IDs that
-        need to be removed before merging in returned flowlines)
+    (GeoDataFrame, DataFrame)
+        Updated flowlines and joins.
+        Note: flowlines have a "new" column to identify new flowlines created here.
     """
 
-    flowlines = flowlines.copy()
-    joins = joins.copy()
+    df = flowlines.join(points.rename("point"), how="inner")
+    df["pos"] = pg.line_locate_point(df.geometry.values.data, df.point.values.data)
 
-    flowlines["geometry"] = cut_lines_at_multipoints(
-        flowlines.geometry.values.data, points
+    # only keep cut points that are sufficiently interior to the line
+    # (i.e., not too close to endpoints)
+    ix = (df.pos >= SNAP_ENDPOINT_TOLERANCE) & (
+        (df.length - df.pos).abs() >= SNAP_ENDPOINT_TOLERANCE
     )
 
-    # discard any that have only one segment; they weren't split and we don't want
-    # to update them.  Split the rest into parts.
-    ix = pg.get_num_geometries(flowlines.geometry.values.data) > 1
-    flowlines = explode(
-        flowlines.loc[ix].reset_index().rename(columns={"lineID": "origLineID"})
-    ).reset_index(drop=True)
-
-    # recalculate length and sinuosity
-    flowlines["length"] = pg.length(flowlines.geometry.values.data).astype("float32")
-    flowlines["sinuosity"] = calculate_sinuosity(flowlines.geometry.values.data).astype(
-        "float32"
+    # sort remaining cut points in ascending order on their lines
+    df = df.loc[ix].sort_values(by=["lineID", "pos"])
+    # convert to plain DataFrame so that we can extract coords
+    grouped = pd.DataFrame(df.groupby("lineID").agg({"geometry": "first", "pos": list}))
+    grouped["geometry"] = grouped.geometry.values.data
+    outer_ix, inner_ix, lines = cut_lines_at_points(
+        grouped.geometry.apply(lambda x: pg.get_coordinates(x)).values,
+        grouped.pos.apply(np.array).values,
     )
-
-    # calculate new ID
-    flowlines["lineID"] = (flowlines.index + next_lineID).astype("uint32")
+    lines = np.asarray(lines)
+    new_flowlines = gp.GeoDataFrame(
+        {
+            "lineID": (next_lineID + np.arange(len(outer_ix))).astype("uint32"),
+            "origLineID": grouped.index.take(outer_ix),
+            "geometry": lines,
+            "length": pg.length(lines).astype("float32"),
+            "sinuosity": calculate_sinuosity(lines).astype("float32"),
+        }
+    ).join(
+        flowlines.drop(
+            columns=[
+                "geometry",
+                "lineID",
+                "xmin",
+                "ymin",
+                "xmax",
+                "ymax",
+                "length",
+                "sinuosity",
+            ],
+            errors="ignore",
+        ),
+        on="origLineID",
+    )
 
     ### Update flowline joins
     # transform new lines to create new joins at the upstream / downstream most
     # points of the original line
-    l = flowlines.groupby("origLineID").lineID
+    l = new_flowlines.groupby("origLineID").lineID
     # the first new line per original line is the furthest upstream, so use its
     # ID as the new downstream ID for anything that had this origLineID as its downstream
     first = l.first().rename("new_downstream_id")
@@ -505,9 +509,8 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     ### Create new line joins for any that weren't inserted above
     # Transform all groups of new line IDs per original lineID
     # into joins structure
-
     atts = (
-        flowlines.groupby("origLineID")[["NHDPlusID", "loop", "HUC4"]]
+        new_flowlines.groupby("origLineID")[["NHDPlusID", "loop", "HUC4"]]
         .first()
         .rename(columns={"NHDPlusID": "upstream"})
     )
@@ -525,6 +528,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     # NHDPlusID is same for both sides
     new_joins["downstream"] = new_joins.upstream
     new_joins["type"] = "internal"
+    # new joins do not terminate in marine, so marine should always be false
     new_joins["marine"] = False
     new_joins = new_joins[
         [
@@ -541,15 +545,23 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
 
     joins = (
         joins.append(new_joins, ignore_index=True, sort=False)
-        .sort_values(["downstream_id", "upstream_id"])
+        .sort_values(["downstream", "upstream", "downstream_id", "upstream_id"])
         .reset_index(drop=True)
     )
 
-    remove_ids = flowlines.origLineID.unique()
+    remove_ids = new_flowlines.origLineID.unique()
+    flowlines["new"] = False
+    new_flowlines["new"] = True
+    flowlines = (
+        flowlines.loc[~flowlines.index.isin(remove_ids)]
+        .reset_index()
+        .append(
+            new_flowlines.drop(columns=["origLineID"]), ignore_index=True, sort=False
+        )
+        .set_index("lineID")
+    )
 
-    flowlines = flowlines.drop(columns=["origLineID"]).set_index("lineID")
-
-    return flowlines, joins, remove_ids
+    return flowlines, joins
 
 
 def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
@@ -577,17 +589,8 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
 
     start = time()
 
-    waterbodies = waterbodies.copy()
+    ### Find flowlines that intersect waterbodies
 
-    # Many waterbodies have interior polygons (islands); these break the analysis
-    # below for cutting lines.  Extract a new polygon from just the exterior ring
-    waterbodies["geometry"] = pg.polygons(
-        pg.get_exterior_ring(waterbodies.geometry.values.data)
-    )
-
-    # find flowlines that intersect waterbodies
-    # NOTE: this uses the outer boundary of polygons from here on out, but
-    # original waterbody geometries need to be returned at the end
     join_start = time()
     tree = pg.STRtree(flowlines.geometry.values.data)
     left, right = tree.query_bulk(
@@ -603,13 +606,29 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     )
     print(f"Found {len(df):,} waterbody / flowline joins in {time() - join_start:.2f}s")
 
-    # find those that are completely contained; these don't need further processing
+    ### Find those that are completely contained; these don't need further processing
     pg.prepare(df.waterbody.values)
+
+    # find those that are fully contained and do not touch the edge of the waterbody (contains_properly predicate)
+    # contains_properly is very fast
     contained_start = time()
-    df["contains"] = pg.contains(df.waterbody.values, df.flowline.values)
+    df["contains"] = pg.contains_properly(df.waterbody.values, df.flowline.values)
     print(
-        f"Identified {df.contains.sum():,} flowlines contained by waterbodies in {time() - contained_start:.2f}s"
+        f"Identified {df.contains.sum():,} flowlines fully within waterbodies in {time() - contained_start:.2f}s"
     )
+
+    # find those that aren't fully contained by contained and touch the edge of waterbody (contains predicate)
+    contained_start = time()
+    ix = ~df.contains
+    tmp = df.loc[ix]
+    df.loc[ix, "contains"] = pg.contains(tmp.waterbody, tmp.flowline)
+    print(
+        f"Identified {df.loc[ix].contains.sum():,} more flowlines contained by waterbodies in {time() - contained_start:.2f}s"
+    )
+
+    # Sanity check: flowlines should only ever be contained by one waterbody
+    if df.loc[df.contains].groupby("lineID").size().max() > 1:
+        raise ValueError("ERROR: one or more lines contained by multiple waterbodies")
 
     # for any that are not completely contained, find the ones that overlap
     crosses_start = time()
@@ -621,7 +640,8 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
         f"Identified {df.crosses.sum():,} flowlines that cross edge of waterbodies in {time() - crosses_start:.2f}s"
     )
 
-    # discard any that only touch (don't cross or are contained)
+    # discard any that only touch (ones that don't cross or are contained)
+    # note that we only cut the ones that cross below; contained ones are left intact
     df = df.loc[df.contains | df.crosses].copy()
 
     print("Intersecting flowlines and waterbodies...")
@@ -648,13 +668,13 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
         f"Found {df.to_cut.sum():,} segments that need to be cut by flowlines in {time() - cut_start:.2f}s"
     )
 
-    # DEBUG
+    # # DEBUG
     # write_dataframe(
-    #     flowlines.loc[np.unique(df.loc[df.to_cut].lineID)], "/tmp/to_cut_fl.gpkg"
+    #     flowlines.loc[np.unique(df.loc[df.to_cut].lineID)], "/tmp/to_cut_fl.fgb"
     # )
     # write_dataframe(
-    #     waterbodies.loc[np.unique(df.loc[df.to_cut].wbID)].drop(columns=["bnd"]),
-    #     "/tmp/to_cut_wb.gpkg",
+    #     waterbodies.loc[np.unique(df.loc[df.to_cut].wbID)],
+    #     "/tmp/to_cut_wb.fgb",
     # )
 
     # save all that are completely contained or mostly contained and not to be cut
@@ -668,31 +688,33 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     if df.to_cut.sum():
         # only work with those to cut from here on out
         df = gp.GeoDataFrame(df.loc[df.to_cut].copy(), crs=flowlines.crs)
+
+        # save waterbody ids to re-evaluate intersection after cutting
         wbID = df.wbID.unique()
 
         # calculate all geometric intersections between the flowlines and
         # waterbody exterior rings and drop any that are not points
-        # Note: these may be multipoints.
+        # Note: these may be multipoints where line crosses exterior ring of waterbody
+        # multiple times.
         # We ignore any shared edges, etc that result from the intersection; those
         # aren't helpful for cutting the lines
         print("Finding cut points...")
         df["geometry"] = pg.intersection(
             pg.get_exterior_ring(df.waterbody), df.flowline
         )
-        df = explode(explode(df[["geometry", "lineID"]])).reset_index()
+        df = explode(
+            explode(df[["geometry", "lineID", "flowline", "flength"]])
+        ).reset_index()
         df = df.loc[pg.get_type_id(df.geometry.values.data) == 0].copy()
 
-        points = df.groupby("lineID").geometry.apply(
-            lambda g: pg.multipoints(g.values.data)
+        cut_start = time()
+
+        flowlines, joins = cut_flowlines_at_points(
+            flowlines, joins, df.set_index("lineID").geometry, next_lineID=next_lineID
         )
 
-        cut_start = time()
-        new_flowlines, joins, remove_ids = cut_flowlines_at_points(
-            flowlines.loc[points.index],
-            joins,
-            points.geometry.values.data,
-            next_lineID=next_lineID,
-        )
+        new_flowlines = flowlines.loc[flowlines.new]
+
         print(
             f"{len(new_flowlines):,} new flowlines created in {time() - cut_start:,.2f}s"
         )
@@ -716,7 +738,6 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             )
 
             pg.prepare(df.waterbody.values)
-            contained_start = time()
             df["contains"] = pg.contains(df.waterbody.values, df.flowline.values)
             print(
                 f"Identified {df.contains.sum():,} more flowlines contained by waterbodies in {time() - contained_start:.2f}s"
@@ -747,12 +768,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
                 ignore_index=True,
             )
 
-            flowlines = (
-                flowlines.loc[~flowlines.index.isin(remove_ids)]
-                .reset_index()
-                .append(new_flowlines.reset_index(), ignore_index=True)
-                .set_index("lineID")
-            )
+        flowlines = flowlines.drop(columns=["new"])
 
     # make sure that updated joins are unique
     joins = joins.drop_duplicates()
