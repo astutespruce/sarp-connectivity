@@ -270,4 +270,9 @@ for huc2 in huc2s:
         )
     )
 
+    del flowlines
+    del joins
+    del waterbodies
+    del wb_joins
+
 print("==============\nAll done in {:.2f}s".format(time() - start))
