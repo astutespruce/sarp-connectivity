@@ -85,7 +85,7 @@ const NetworkInfo = ({
                 fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(totalupstreammiles, 2)}
+              {formatNumber(totalupstreammiles, 2, true)}
             </Box>
             <Box
               sx={{
@@ -93,7 +93,7 @@ const NetworkInfo = ({
                   gainMilesSide === 'downstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(freedownstreammiles, 2)}
+              {formatNumber(freedownstreammiles, 2, true)}
             </Box>
           </Row>
 
@@ -118,7 +118,7 @@ const NetworkInfo = ({
                 fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(perennialupstreammiles, 2)}
+              {formatNumber(perennialupstreammiles, 2, true)}
             </Box>
             <Box
               sx={{
@@ -126,7 +126,7 @@ const NetworkInfo = ({
                   gainMilesSide === 'downstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(freeperennialdownstreammiles, 2)}
+              {formatNumber(freeperennialdownstreammiles, 2, true)}
             </Box>
           </Row>
 
@@ -152,7 +152,7 @@ const NetworkInfo = ({
                 fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(intermittentupstreammiles, 2)}
+              {formatNumber(intermittentupstreammiles, 2, true)}
             </Box>
             <Box
               sx={{
@@ -160,7 +160,7 @@ const NetworkInfo = ({
                   gainMilesSide === 'downstream' ? 'bold' : 'inherited',
               }}
             >
-              {formatNumber(freeintermittentdownstreammiles, 2)}
+              {formatNumber(freeintermittentdownstreammiles, 2, true)}
             </Box>
           </Row>
 
@@ -177,8 +177,8 @@ const NetworkInfo = ({
                 network, excluding all lengths within waterbodies.
               </InfoTooltip>
             </Box>
-            <Box>{formatNumber(alteredupstreammiles, 2)}</Box>
-            <Box>{formatNumber(freealtereddownstreammiles, 2)}</Box>
+            <Box>{formatNumber(alteredupstreammiles, 2, true)}</Box>
+            <Box>{formatNumber(freealtereddownstreammiles, 2, true)}</Box>
           </Row>
 
           <Row>
@@ -195,8 +195,8 @@ const NetworkInfo = ({
                 of this network, excluding all lengths within waterbodies.
               </InfoTooltip>
             </Box>
-            <Box>{formatNumber(unalteredupstreammiles, 2)}</Box>
-            <Box>{formatNumber(freeunaltereddownstreammiles, 2)}</Box>
+            <Box>{formatNumber(unalteredupstreammiles, 2, true)}</Box>
+            <Box>{formatNumber(freeunaltereddownstreammiles, 2, true)}</Box>
           </Row>
         </Table>
 
@@ -227,7 +227,7 @@ const NetworkInfo = ({
                   gainMilesSide === 'upstream' ? activeSideCSS : inactiveSideCSS
                 }
               >
-                {formatNumber(totalupstreammiles, 2)}
+                {formatNumber(totalupstreammiles, 2, true)}
               </Box>
               <Box
                 sx={
@@ -236,7 +236,7 @@ const NetworkInfo = ({
                     : inactiveSideCSS
                 }
               >
-                {formatNumber(freedownstreammiles, 2)}
+                {formatNumber(freedownstreammiles, 2, true)}
               </Box>
             </Row>
             <Row>
@@ -257,7 +257,7 @@ const NetworkInfo = ({
                     : inactiveSideCSS
                 }
               >
-                {formatNumber(perennialupstreammiles, 2)}
+                {formatNumber(perennialupstreammiles, 2, true)}
               </Box>
               <Box
                 sx={
@@ -266,7 +266,7 @@ const NetworkInfo = ({
                     : inactiveSideCSS
                 }
               >
-                {formatNumber(freeperennialdownstreammiles, 2)}
+                {formatNumber(freeperennialdownstreammiles, 2, true)}
               </Box>
             </Row>
           </Table>

@@ -76,8 +76,8 @@ const DamDetails = ({
   >
     <Section title="Location">
       <Entry>
-        Dam at {formatNumber(lat, 3)}
-        &deg; N / {formatNumber(lon, 3)}
+        Dam at {formatNumber(lat, 5)}
+        &deg; N / {formatNumber(lon, 5)}
         &deg; E
       </Entry>
 

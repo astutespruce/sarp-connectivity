@@ -15,26 +15,36 @@ export const formatPercent = (percent) => {
   return Math.round(percent)
 }
 
-export const formatNumber = (number, decimals = null) => {
+export const formatNumber = (number, decimals = null, auto = false) => {
   const absNumber = Math.abs(number)
   let targetDecimals = decimals
   // guess number of decimals based on magnitude
-  if (absNumber > 1000 || Math.round(absNumber) === absNumber) {
-    targetDecimals = 0
-  } else if (absNumber > 10) {
-    targetDecimals = 1
-  } else if (absNumber > 1) {
-    targetDecimals = 2
-  } else {
-    targetDecimals = 3
+  if (targetDecimals === null || auto) {
+    if (absNumber > 100 || Math.round(absNumber) === absNumber) {
+      targetDecimals = 0
+    } else if (absNumber > 10) {
+      targetDecimals = 1
+    } else if (absNumber > 1) {
+      targetDecimals = 2
+    } else {
+      targetDecimals = 3
+    }
   }
 
-  // override targetDecimals for integer values
-  if (Math.round(absNumber) === absNumber) {
-    targetDecimals = 0
-  }
+  console.log(
+    'format: ',
+    number,
+    'decimals:',
+    decimals,
+    'targetDecimals:',
+    targetDecimals
+  )
 
-  targetDecimals = Math.min(targetDecimals, decimals || 0)
+  // targetDecimals = Math.min(targetDecimals, decimals || 0)
+
+  if (auto) {
+    targetDecimals = Math.min(targetDecimals, decimals || 10)
+  }
 
   const factor = 10 ** targetDecimals
 

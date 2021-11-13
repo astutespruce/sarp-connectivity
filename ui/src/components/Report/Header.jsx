@@ -22,8 +22,8 @@ const Header = ({ barrierType, name, county, state, lat, lon }) => (
       <Flex style={{ justifyContent: 'space-beteween', marginTop: 12 }}>
         <Text style={{ flex: '1 1 auto' }}>
           {barrierType === 'dams' ? 'Dam' : 'Road-related barrier'} at{' '}
-          {formatNumber(lat, 3)}
-          &deg; N / {formatNumber(lon, 3)}
+          {formatNumber(lat, 5)}
+          &deg; N / {formatNumber(lon, 5)}
           &deg; E
         </Text>
         <Text
