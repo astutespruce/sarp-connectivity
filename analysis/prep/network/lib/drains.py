@@ -2,7 +2,6 @@ from time import time
 
 import pandas as pd
 import geopandas as gp
-import numpy as np
 import pygeos as pg
 
 from analysis.lib.joins import find_joins
@@ -55,7 +54,10 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     # that were removed)
     tmp = wb_joins[["lineID", "wbID"]].set_index("lineID")
     drains = (
-        joins.loc[joins.upstream_id.isin(wb_joins.lineID) & (joins.downstream_id != 0)]
+        joins.loc[
+            joins.upstream_id.isin(wb_joins.lineID.unique())
+            & (joins.downstream_id != 0)
+        ]
         .join(tmp.wbID.rename("upstream_wbID"), on="upstream_id")
         .join(tmp.wbID.rename("downstream_wbID"), on="downstream_id")
     )
@@ -65,7 +67,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
 
     # Join in stats from waterbodies and geometries from flowlines
     drain_pts = (
-        wb_joins.loc[wb_joins.lineID.isin(drains.upstream_id)]
+        wb_joins.loc[wb_joins.lineID.isin(drains.upstream_id.unique())]
         .join(wb_atts, on="wbID",)
         .join(tmp_flowlines[["geometry", "loop", "TotDASqKm"]], on="lineID",)
         .reset_index(drop=True)
@@ -74,53 +76,67 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     # create a point from the last coordinate, which is the furthest one downstream
     drain_pts.geometry = pg.get_point(drain_pts.geometry.values.data, -1)
 
-    ### Extract the drain points of upstream headwaters waterbodies
-    # these are flowlines that originate at a waterbody
-    drain_pts["headwaters"] = False
-    wb_geom = waterbodies.loc[waterbodies.flowlineLength == 0].geometry
-    wb_geom = pd.Series(wb_geom.values.data, index=wb_geom.index)
-    # take only the upstream most point
-    tmp_flowline_pts = tmp_flowlines[["geometry", "loop", "TotDASqKm"]].copy()
-    tmp_flowline_pts["geometry"] = pg.get_point(flowlines.geometry.values.data, 0)
-    fl_pt = pd.Series(
-        tmp_flowline_pts.geometry.values.data, index=tmp_flowline_pts.index
-    )
-    headwaters = (
-        sjoin_geometry(wb_geom, fl_pt, predicate="intersects")
-        .rename("lineID")
-        .reset_index()
-    )
-    headwaters = (
-        headwaters.join(wb_atts, on="wbID",)
-        .join(tmp_flowline_pts, on="lineID",)
-        .reset_index(drop=True)
-    )
-    headwaters["headwaters"] = True
-    print(
-        f"Found {len(headwaters):,} headwaters waterbodies, adding drain points for these too"
-    )
+    # drop any that are downstream terminals; these are most likely waterbodies
+    # that do not have further downstream networks (e.g., flow to ocean)
+    ix = joins.loc[
+        joins.upstream_id.isin(drain_pts.lineID) & (joins.downstream_id == 0)
+    ].upstream_id
+    drain_pts = drain_pts.loc[~drain_pts.lineID.isin(ix)].copy()
 
-    drain_pts = drain_pts.append(headwaters, sort=False, ignore_index=True).reset_index(
-        drop=True
+    ### Find all drain points that share the same geometry.
+    # These are most likely multiple segments that terminate in same drain point,
+    # so we need to assign them their common downstream ID instead so that
+    # snapping dams to these works properly later (otherwise snapped to only one of segments)
+    drain_pts["hash"] = pd.util.hash_array(pg.to_wkb(drain_pts.geometry.values.data))
+    s = drain_pts.groupby("hash").size()
+    ix = drain_pts.hash.isin(s[s > 1].index)
+    if ix.sum():
+        print(f"Deduplicating {ix.sum():,} duplicate drain points")
+        # find downstream_id for each of these, and deduplicate if there are multiple
+        # downstreams, favoring the non-loops
+        j = (
+            joins.loc[
+                joins.upstream_id.isin(drain_pts.loc[ix].lineID)
+                & (joins.downstream_id != 0),
+                ["upstream_id", "downstream_id", "loop"],
+            ]
+            .sort_values(by=["upstream_id", "loop"], ascending=True)
+            .groupby("upstream_id")
+            .first()
+            .downstream_id
+        )
+
+        drain_pts = drain_pts.join(j, on="lineID")
+
+        # for those at same location that share the same downstream line, use that line instead
+        s = (
+            drain_pts.loc[drain_pts.downstream_id.notnull()]
+            .groupby("downstream_id")
+            .size()
+        )
+        ix = drain_pts.downstream_id.isin(s[s > 1].index.astype("uint32"))
+        drain_pts.loc[ix, "lineID"] = drain_pts.loc[ix].downstream_id.astype("uint32")
+        # update the line properties to match that lineID
+        lids = drain_pts.loc[ix].lineID.values
+        drain_pts.loc[ix, "flowlineLength"] = flowlines.loc[lids, "length"].values
+        drain_pts.loc[ix, "loop"] = flowlines.loc[lids].loop.values
+        drain_pts.loc[ix, "TotDASqKm"] = flowlines.loc[lids].TotDASqKm.values
+        drain_pts = drain_pts.drop(columns=["downstream_id"])
+
+    # keep the first unique drain point and sort the rest so they are oriented
+    # from upstream to downstream
+    drain_pts = (
+        drain_pts.drop(columns=["hash"])
+        .groupby(["lineID", "wbID"])
+        .first()
+        .sort_values(by="TotDASqKm", ascending=True)
+        .reset_index()
     )
 
     drain_pts = gp.GeoDataFrame(drain_pts, geometry="geometry", crs=flowlines.crs)
 
-    # sort by drainage area so that smaller streams come first because
-    # we are searching from upstream end
-    drain_pts = drain_pts.sort_values(by=["wbID", "loop", "TotDASqKm"], ascending=True)
-
-    ### Deduplicate by location
-    # First deduplicate any that have the same point, and take the non-loop side if possible.
-    # Sometimes multiple lines converge at the same drain point.
-    # calculate the hash of the wkb
-    orig = len(drain_pts)
-    drain_pts["hash"] = pd.util.hash_array(pg.to_wkb(drain_pts.geometry.values.data))
-    drain_pts = drain_pts.groupby("hash").first().reset_index().drop(columns=["hash"])
-    print(f"Dropped {orig - len(drain_pts):,} drain points at duplicate locations")
-
     ### Deduplicate drains by network topology
-    # Find the downstream-most drains for waterbodies when there are multiple.
+    # Find the downstream-most drains for waterbodies when there are multiple distinct ones per waterbody.
     # These may result from flowlines that cross in and out of waterbodies multiple
     # times (not valid), or there may be drains on downstream loops
     # (esp. at dams) (valid).
@@ -133,19 +149,20 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         # find all waterbodies that have duplicate drains
         ix = drain_pts.wbID.isin(dups[dups].index)
         wb_ids = drain_pts.loc[ix].wbID.unique()
-        # find all corresponding line IDs
+        # find all corresponding line IDs for these waterbodies
         line_ids = wb_joins.loc[wb_joins.wbID.isin(wb_ids)].lineID.unique()
         lines_per_wb = (
             drain_pts.loc[drain_pts.wbID.isin(wb_ids)].groupby("wbID").lineID.unique()
         )
-        # search within 3 degrees removed from ids; this hopefully
+        # search within 20 degrees removed from ids; this hopefully
         # picks up any gaps where lines exit waterbodies for a ways then re-enter
+        # some floodplain areas have very big loops outside waterbody
         pairs = find_joins(
             joins,
             line_ids,
             downstream_col="downstream_id",
             upstream_col="upstream_id",
-            expand=3,
+            expand=20,
         )[["upstream_id", "downstream_id"]]
 
         # remove any terminal points
@@ -222,6 +239,38 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         )
         drain_pts.loc[ix, "lineID"] = downstream_junction_pts.iloc[right].index
         drain_pts.loc[ix, "geometry"] = downstream_junction_pts.iloc[right].values
+
+    ### Extract the drain points of upstream headwaters waterbodies
+    # these are flowlines that originate at a waterbody
+    wb_geom = waterbodies.loc[waterbodies.flowlineLength == 0].geometry
+    wb_geom = pd.Series(wb_geom.values.data, index=wb_geom.index)
+    # take only the upstream most point
+    tmp_flowline_pts = tmp_flowlines[["geometry", "loop", "TotDASqKm"]].copy()
+    tmp_flowline_pts["geometry"] = pg.get_point(flowlines.geometry.values.data, 0)
+    fl_pt = pd.Series(
+        tmp_flowline_pts.geometry.values.data, index=tmp_flowline_pts.index
+    )
+    headwaters = (
+        sjoin_geometry(wb_geom, fl_pt, predicate="intersects")
+        .rename("lineID")
+        .reset_index()
+    )
+    headwaters = (
+        headwaters.join(wb_atts, on="wbID",)
+        .join(tmp_flowline_pts, on="lineID",)
+        .reset_index(drop=True)
+    )
+    headwaters["headwaters"] = True
+    headwaters["snap_to_junction"] = False
+    headwaters["snap_dist"] = 0
+    print(
+        f"Found {len(headwaters):,} headwaters waterbodies, adding drain points for these too"
+    )
+
+    drain_pts["headwaters"] = False
+    drain_pts = drain_pts.append(headwaters, sort=False, ignore_index=True).reset_index(
+        drop=True
+    )
 
     # join in line properties
     drain_pts = drain_pts.drop(columns=["loop", "TotDASqKm"]).join(

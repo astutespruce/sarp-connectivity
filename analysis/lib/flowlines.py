@@ -4,6 +4,8 @@ import geopandas as gp
 import pandas as pd
 import pygeos as pg
 import numpy as np
+from pyogrio import write_dataframe
+from analysis.lib.geometry.polygons import get_interior_rings
 
 
 from analysis.lib.joins import index_joins, find_joins, update_joins, remove_joins
@@ -452,7 +454,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     # only keep cut points that are sufficiently interior to the line
     # (i.e., not too close to endpoints)
     ix = (df.pos >= SNAP_ENDPOINT_TOLERANCE) & (
-        (df.length - df.pos).abs() >= SNAP_ENDPOINT_TOLERANCE
+        (df["length"] - df.pos).abs() >= SNAP_ENDPOINT_TOLERANCE
     )
 
     # sort remaining cut points in ascending order on their lines
@@ -673,8 +675,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     #     flowlines.loc[np.unique(df.loc[df.to_cut].lineID)], "/tmp/to_cut_fl.fgb"
     # )
     # write_dataframe(
-    #     waterbodies.loc[np.unique(df.loc[df.to_cut].wbID)],
-    #     "/tmp/to_cut_wb.fgb",
+    #     waterbodies.loc[np.unique(df.loc[df.to_cut].wbID)], "/tmp/to_cut_wb.fgb",
     # )
 
     # save all that are completely contained or mostly contained and not to be cut
@@ -687,23 +688,52 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     ### Cut lines
     if df.to_cut.sum():
         # only work with those to cut from here on out
-        df = gp.GeoDataFrame(df.loc[df.to_cut].copy(), crs=flowlines.crs)
+        df = df.loc[
+            df.to_cut, ["lineID", "flowline", "wbID", "waterbody",]
+        ].reset_index(drop=True)
 
         # save waterbody ids to re-evaluate intersection after cutting
         wbID = df.wbID.unique()
 
-        # calculate all geometric intersections between the flowlines and
-        # waterbody exterior rings and drop any that are not points
-        # Note: these may be multipoints where line crosses exterior ring of waterbody
+        # extract all intersecting interior rings for these waterbodies
+        outer_index, inner_index, rings = get_interior_rings(df.waterbody.values)
+        rings = np.asarray(rings)
+        if len(outer_index):
+            pg.prepare(rings)
+            ix = pg.intersects(rings, df.flowline.values.take(outer_index))
+            # this isn't working properly
+            outer_ix = np.asarray(outer_index)[ix]
+            tmp = pd.DataFrame(
+                {
+                    "lineID": df.lineID.values.take(outer_ix),
+                    "flowline": df.flowline.values.take(outer_ix),
+                    "wbID": df.wbID.values.take(outer_ix),
+                    "waterbody": rings[ix],
+                }
+            )
+            df = df.append(tmp, ignore_index=True, sort=False)
+
+        # extract the outer ring for original waterbodies
+        ix = pg.get_type_id(df.waterbody.values.data) == 3
+        df.loc[ix, "waterbody"] = pg.get_exterior_ring(df.loc[ix].waterbody.values.data)
+
+        # filter to those that intersect
+        df = df.loc[pg.intersects(df.flowline.values, df.waterbody.values)].copy()
+
+        # Calculate all geometric intersections between the flowlines and
+        # waterbody rings and drop any that are not points
+        # Note: these may be multipoints where line crosses the ring of waterbody
         # multiple times.
         # We ignore any shared edges, etc that result from the intersection; those
         # aren't helpful for cutting the lines
         print("Finding cut points...")
-        df["geometry"] = pg.intersection(
-            pg.get_exterior_ring(df.waterbody), df.flowline
-        )
+        df["geometry"] = pg.intersection(df.flowline.values, df.waterbody.values)
         df = explode(
-            explode(df[["geometry", "lineID", "flowline", "flength"]])
+            explode(
+                gp.GeoDataFrame(
+                    df[["geometry", "lineID", "flowline",]], crs=flowlines.crs
+                )
+            )
         ).reset_index()
         df = df.loc[pg.get_type_id(df.geometry.values.data) == 0].copy()
 
@@ -720,6 +750,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
         )
 
         if len(new_flowlines):
+            contained_start = time()
             # recalculate overlaps with waterbodies
             print("Recalculating overlaps with waterbodies")
             wb = waterbodies.loc[wbID]
