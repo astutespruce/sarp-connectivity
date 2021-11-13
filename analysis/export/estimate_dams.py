@@ -71,10 +71,12 @@ for huc2 in huc2s:
 df = merged.reset_index(drop=True)
 
 dams = gp.read_feather(data_dir / "barriers/master/dams.feather")
-dams = dams.loc[dams.wbID.notnull()].copy()
+# drop any that were previously estimated
+dams = dams.loc[
+    dams.wbID.notnull() & (~dams.Source.isin(["Estimated Dams OCT 2021"]))
+].copy()
 
 has_dam = df.wbID.isin(dams.wbID.unique())
-
 
 states = gp.read_feather("data/boundaries/states.feather", columns=["id", "geometry"])
 tree = pg.STRtree(df.geometry.values.data)
