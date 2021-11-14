@@ -150,7 +150,8 @@ def create_networks(joins, barrier_joins, lineIDs):
 
     # create a directed graph facing upstream
     network_graph = DirectedGraph(
-        upstreams.downstream_id.values, upstreams.upstream_id.values
+        upstreams.downstream_id.values.astype("int64"),
+        upstreams.upstream_id.values.astype("int64"),
     )
 
     ### Get list of network root IDs

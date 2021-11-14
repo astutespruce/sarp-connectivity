@@ -161,8 +161,61 @@ print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df
 s = df.groupby("SARPID").size()
 if s.max() > 1:
     warnings.warn(f"Multiple dams with same SARPID: {s[s > 1].index.values}")
-    # FIXME:
-    # raise ValueError(f"Multiple dams with same SARPID: {s[s > 1].index}")
+
+
+### FIXME: TEMPORARY
+# remove SARPIDs for estimated dams that are no longer present in latest results
+ids = [
+    "AL17927",
+    "AL18909",
+    "AL19202",
+    "AL19287",
+    "AL19496",
+    "AL20255",
+    "AL20981",
+    "AL21738",
+    "AL22076",
+    "AL22483",
+    "AL22643",
+    "AL23292",
+    "AL24385",
+    "AL25185",
+    "AR8137",
+    "AR9493",
+    "AR11113",
+    "MS8070",
+    "MS10951",
+    "MS11068",
+    "MS11824",
+    "MS12514",
+    "MS14081",
+    "MS14474",
+    "MS14910",
+    "MS15687",
+    "MS16010",
+    "MS17379",
+    "MS17790",
+    "MS17998",
+    "MS19764",
+    "MS22395",
+    "OK22811",
+    "SC5098",
+    "SC5506",
+    "SC6779",
+    "SC7370",
+    "SC10150",
+    "SC11004",
+    "SC11912",
+    "SC12823",
+    "SC14020",
+    "SC17047",
+    "SC17208",
+    "SC17911",
+    "SC18863",
+    "SC19033",
+]
+
+df = df.loc[~df.SARPID.isin(ids)]
 
 
 ### Add IDs for internal use
@@ -217,7 +270,10 @@ df.loc[df.BarrierStatus.isin([2, 3]), "Condition"] = 6
 # Round height and width to nearest foot.
 # There are no dams between 0 and 1 foot, so fill all na as 0.
 df.Height = df.Height.fillna(0).round().astype("uint16")
+# coerce length to width
+df.Length = df.Length.fillna(0).round().astype("uint16")
 df.Width = df.Width.fillna(0).round().astype("uint16")
+df.Width = df[["Width", "Length"]].max(axis=1).astype("uint16")
 
 df.LowheadDam = df.LowheadDam.fillna(-1).astype("int8")
 
@@ -438,6 +494,22 @@ df["snap_dist"] = np.nan
 df["lineID"] = np.nan  # line to which dam was snapped
 df["wbID"] = np.nan  # waterbody ID where dam is either contained or snapped
 
+
+# for dams that are marked as on network or from NABD that have a width,
+# use their width to determine snap tolerance (convert feet to meters, rounded up to nearest 100m)
+# limited to 1000m
+ix = df.ManualReview.isin([2, 4]) & (df.Width > 0)
+width_tolerance = np.clip(
+    (np.ceil((df.loc[ix].Width.values * 0.3048) / 100) * 100).round().astype("int64"),
+    0,
+    1000,
+)
+
+df.loc[ix, "snap_tolerance"] = np.max(
+    [df.loc[ix].snap_tolerance.values, width_tolerance], axis=0
+)
+
+
 # log dams excluded from snapping
 df.loc[
     df.ManualReview.isin(OFFSTREAM_MANUALREVIEW), "snap_log"
@@ -469,7 +541,9 @@ df.loc[ix, "Name"] = df.loc[ix].OtherName
 df.loc[df.Source.str.count("Amber Ignatius") > 0, "snap_group"] = 2
 
 # Identify dams estimated from waterbodies
-df.loc[df.Source.isin(["Estimated Dams OCT 2021"]), "snap_group"] = 3
+ix = df.Source.isin(["Estimated Dams OCT 2021"])
+df.loc[ix, "snap_group"] = 3
+df.loc[ix, "Name"] = "Estimated Dam: " + df.loc[ix].SARPID
 
 # Dams likely to be off network get a much smaller tolerance
 df.loc[df.snap_group.isin([1, 2]), "snap_tolerance"] = SNAP_TOLERANCE[
@@ -641,7 +715,7 @@ df["loop"] = df.loop.fillna(False)
 df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
 
-print(df.groupby("loop").size())
+print("dams on loops:\n", df.groupby("loop").size())
 
 
 ### Join waterbody properties

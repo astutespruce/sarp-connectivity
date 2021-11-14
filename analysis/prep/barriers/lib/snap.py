@@ -8,14 +8,17 @@ import pygeos as pg
 from pyogrio import write_dataframe
 
 from analysis.prep.barriers.lib.points import connect_points
-from analysis.lib.geometry import nearest
+from analysis.lib.geometry import nearest, near
 from analysis.constants import SNAP_ENDPOINT_TOLERANCE
 from analysis.lib.util import ndarray_append_strings
 
 # distance from edge of an NHD dam poly to be considered associated
 NHD_DAM_TOLERANCE = 50
+# max distance (lesser of this or snap tolerance of dam) from NHD dam point to be considered related
+NHD_DAM_PT_TOLERANCE = 250
 # dams will initially snap by SNAP_TOLERANCE, but any that are within waterbodies and don't snap elsewhere
-# will snap to their waterbody's drain up to this tolerance
+# will snap to their waterbody's drain up to this tolerance.  Likewise, those that
+# are not within waterbodies will snap up to this distance (lesser of this distance or their snap_tolerance)
 WB_DRAIN_MAX_TOLERANCE = 250
 
 # dams within this distance will be considered for possible relationship to a waterbody
@@ -212,11 +215,52 @@ def snap_to_nhd_dams(df, to_snap):
     nhd_dams.wbID = nhd_dams.wbID.replace(-1, np.nan)
 
     ### Find dams that are really close (50m) to NHD dam polygons
+    near_nhd_pt = nearest(
+        pd.Series(to_snap.geometry.values.data, index=to_snap.index),
+        pd.Series(nhd_dams.geometry.values.data, index=nhd_dams.index),
+        max_distance=NHD_DAM_TOLERANCE,
+    )[["damID"]]
+    near_nhd_pt = near_nhd_pt.join(to_snap.geometry.rename("source_pt")).join(
+        nhd_dams, on="damID"
+    )
+    near_nhd_pt.reset_index().drop_duplicates(
+        subset=["id", "damID", "lineID", "geometry"]
+    ).set_index("id")
+    near_nhd_pt["snap_dist"] = pg.distance(
+        near_nhd_pt.geometry.values.data, near_nhd_pt.source_pt.values.data
+    )
+    # take the largest, nonloop
+    near_nhd_pt = (
+        near_nhd_pt.reset_index()
+        .sort_values(
+            by=["id", "sizeclass", "loop", "snap_dist"],
+            ascending=[True, False, True, True],
+        )
+        .groupby("id")
+        .first()
+    )
+
+    ix = near_nhd_pt.index
+    df.loc[ix, "snapped"] = True
+    df.loc[ix, "geometry"] = near_nhd_pt.geometry
+    df.loc[ix, "snap_dist"] = near_nhd_pt.snap_dist
+    df.loc[ix, "snap_ref_id"] = near_nhd_pt.damID
+    df.loc[ix, "lineID"] = near_nhd_pt.lineID
+    df.loc[ix, "wbID"] = near_nhd_pt.wbID
+    df.loc[
+        ix, "snap_log"
+    ] = f"snapped: within {NHD_DAM_TOLERANCE}m tolerance of NHD dam point"
+    to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
+    print(
+        f"Snapped {len(ix):,} dams within {NHD_DAM_TOLERANCE} to NHD dam points in {time() - snap_start:.2f}s"
+    )
+
+    ### Find dams that are really close (50m) to NHD dam polygons
     # Those that have multiple dams nearby are usually part of a dam complex
-    near_nhd = nearest(
+    near_nhd = near(
         pd.Series(to_snap.geometry.values.data, index=to_snap.index),
         pd.Series(nhd_dams_poly.geometry.values.data, index=nhd_dams_poly.index),
-        max_distance=NHD_DAM_TOLERANCE,
+        distance=NHD_DAM_TOLERANCE,
     )[["damID"]]
 
     # snap to nearest dam point for that dam (some are > 1 km away)
@@ -267,7 +311,7 @@ def snap_to_nhd_dams(df, to_snap):
     near_nhd = nearest(
         pd.Series(to_snap.geometry.values.data, index=to_snap.index),
         pd.Series(tmp.geometry.values.data, index=tmp.index),
-        max_distance=to_snap.snap_tolerance,
+        max_distance=np.clip(to_snap.snap_tolerance.values, 0, NHD_DAM_PT_TOLERANCE),
     ).rename(columns={"distance": "snap_dist"})
 
     near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(
@@ -290,13 +334,9 @@ def snap_to_nhd_dams(df, to_snap):
     df.loc[ix, "snap_ref_id"] = near_nhd.damID
     df.loc[ix, "lineID"] = near_nhd.lineID
     df.loc[ix, "wbID"] = near_nhd.wbID
-    df.loc[ix, "snap_log"] = ndarray_append_strings(
-        "snapped: within ",
-        to_snap.loc[ix].snap_tolerance,
-        "m tolerance of NHD dam point but >",
-        NHD_DAM_TOLERANCE,
-        "m from NHD dam polygon",
-    )
+    df.loc[
+        ix, "snap_log"
+    ] = f"snapped: within {NHD_DAM_PT_TOLERANCE}m tolerance of NHD dam point but >{NHD_DAM_TOLERANCE}m from NHD dam polygon"
     to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
     print(f"Snapped {len(ix):,} dams to NHD dam points in {time() - snap_start:.2f}s")
 
@@ -437,7 +477,9 @@ def snap_to_waterbodies(df, to_snap):
         nearest_drains = nearest(
             pd.Series(not_in_wb.geometry.values.data, index=not_in_wb.index),
             pd.Series(drains.geometry.values.data, index=drains.index),
-            to_snap.snap_tolerance,
+            max_distance=np.clip(
+                not_in_wb.snap_tolerance.values, 0, WB_DRAIN_MAX_TOLERANCE
+            ),
         )
 
         # join in all drains for waterbody of nearest drain point
@@ -477,18 +519,14 @@ def snap_to_waterbodies(df, to_snap):
         df.loc[ix, "lineID"] = nearest_drains.lineID
         df.loc[ix, "wbID"] = nearest_drains.wbID
 
-        df.loc[ix, "snap_log"] = ndarray_append_strings(
-            "snapped: within ",
-            to_snap.loc[ix].snap_tolerance,
-            "m tolerance of drain point of waterbody (dam not in waterbody)",
-        )
+        df.loc[
+            ix, "snap_log"
+        ] = f"snapped: within {WB_DRAIN_MAX_TOLERANCE}m or less of drain point of waterbody (dam not in waterbody)"
 
         to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
 
         print(
-            "Found {:,} dams within {}m of waterbody drain points".format(
-                len(ix), to_snap.snap_tolerance.max()
-            )
+            f"Found {len(ix):,} dams within {WB_DRAIN_MAX_TOLERANCE}m or less of waterbody drain points"
         )
 
     return df, to_snap
