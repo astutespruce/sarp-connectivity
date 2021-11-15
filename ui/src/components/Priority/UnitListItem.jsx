@@ -5,7 +5,7 @@ import { Box, Flex, Button, Text } from 'theme-ui'
 
 import { useBarrierType } from 'components/Data'
 import { formatNumber } from 'util/format'
-import { STATE_FIPS } from '../../../config/constants'
+import { STATE_FIPS, barrierTypeLabels } from '../../../config/constants'
 
 const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
   const { id } = unit
@@ -43,7 +43,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
         ) : null}
 
         <Text sx={{ fontSize: '0.9rem', color: 'grey.6' }}>
-          ({formatNumber(count)} {barrierType})
+          ({formatNumber(count)} {barrierTypeLabels[barrierType]})
         </Text>
       </Box>
 
