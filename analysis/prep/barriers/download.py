@@ -5,6 +5,7 @@ import warnings
 
 from dotenv import load_dotenv
 import geopandas as gp
+import numpy as np
 
 from analysis.constants import (
     RECON_TO_FEASIBILITY,
@@ -121,7 +122,8 @@ for state, url in DAM_URLS.items():
 
     # Add feasibility so that we can merge
     if not "Feasibility" in df.columns:
-        df["Feasibility"] = df.Recon.map(RECON_TO_FEASIBILITY)
+        # we backfill this later
+        df["Feasibility"] = np.nan
 
     if merged is None:
         merged = df

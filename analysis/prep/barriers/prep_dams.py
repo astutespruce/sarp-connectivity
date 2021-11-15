@@ -318,8 +318,10 @@ df.loc[df.Year == 20151, "Year"] = 2015
 df.loc[df.Year == 9999, "Year"] = 0
 
 ### Calculate classes
-# Calculate feasibility
-df["Feasibility"] = df.Recon.map(RECON_TO_FEASIBILITY).astype("uint8")
+# Calculate feasibility from Recon if not already set
+ix = df.Feasibility.isnull()
+df.loc[ix, "Feasibility"] = df.loc[ix].Recon.map(RECON_TO_FEASIBILITY)
+df["Feasibility"] = df.Feasibility.astype("uint8")
 
 # Calculate height class
 df["HeightClass"] = 0  # Unknown
@@ -543,7 +545,7 @@ df.loc[df.Source.str.count("Amber Ignatius") > 0, "snap_group"] = 2
 # Identify dams estimated from waterbodies
 ix = df.Source.isin(["Estimated Dams OCT 2021"])
 df.loc[ix, "snap_group"] = 3
-df.loc[ix, "Name"] = "Estimated Dam: " + df.loc[ix].SARPID
+df.loc[ix, "Name"] = "Estimated (" + df.loc[ix].SARPID + ")"
 
 # Dams likely to be off network get a much smaller tolerance
 df.loc[df.snap_group.isin([1, 2]), "snap_tolerance"] = SNAP_TOLERANCE[
