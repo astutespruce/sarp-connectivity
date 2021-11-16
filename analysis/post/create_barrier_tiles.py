@@ -56,7 +56,7 @@ for col in str_cols:
 
 # Update boolean fields so that they are output to CSV correctly
 # NOTE: these must be manually set for tippecanoe via bool_cols param to get_col_types
-for col in ["ProtectedLand", "Excluded"]:
+for col in ["ProtectedLand", "Excluded", "Estimated"]:
     df[col] = df[col].astype("uint8")
 
 

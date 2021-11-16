@@ -29,6 +29,7 @@ const LocationConstruction = ({
   purpose,
   condition,
   passagefacility,
+  estimated,
   year,
   height,
   width,
@@ -41,22 +42,23 @@ const LocationConstruction = ({
   waterbodysizeclass,
   ...props
 }) => {
+  let barrierTypeLabel = barrierType === 'dams' ? 'dam' : 'road-related barrier'
+  if (barrierType === 'dams' && estimated) {
+    barrierTypeLabel = 'estimated dam'
+  }
+
   const hasRiver =
     river && river !== '"' && river !== 'null' && river !== 'Unknown'
 
   const hasOwner = ownertype && ownertype > 0
 
-  // if (barrierType === 'dams') {
   return (
     <Box {...props}>
       <Heading as="h3">Location & construction information</Heading>
 
       <Grid columns={2} gap={4}>
         <Box as="ul">
-          <li>
-            Barrier type:{' '}
-            {barrierType === 'dams' ? 'dam' : 'road-related barrier'}
-          </li>
+          <li>Barrier type: {barrierTypeLabel}</li>
 
           {barrierType === 'dams' ? (
             <>
@@ -172,6 +174,7 @@ LocationConstruction.propTypes = {
   purpose: PropTypes.number,
   condition: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   passagefacility: PropTypes.number,
+  estimated: PropTypes.number,
   roadtype: PropTypes.string,
   crossingtype: PropTypes.string,
   severityclass: PropTypes.number,
@@ -197,6 +200,7 @@ LocationConstruction.defaultProps = {
   purpose: 0,
   condition: 0,
   passagefacility: 0,
+  estimated: 0,
   roadtype: null,
   crossingtype: null,
   severityclass: null,

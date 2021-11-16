@@ -24,6 +24,7 @@ const Location = ({
   condition,
   lowheaddam,
   passagefacility,
+  estimated,
   year,
   height,
   width,
@@ -42,6 +43,11 @@ const Location = ({
   waterbodykm2,
   waterbodysizeclass,
 }) => {
+  let barrierTypeLabel = barrierType === 'dams' ? 'dam' : 'road-related barrier'
+  if (barrierType === 'dams' && estimated) {
+    barrierTypeLabel = 'estimated dam'
+  }
+
   const hasRiver =
     river && river !== '"' && river !== 'null' && river !== 'Unknown'
 
@@ -58,10 +64,7 @@ const Location = ({
         >
           <List>
             <ListItem>
-              <Text>
-                Barrier type:{' '}
-                {barrierType === 'dams' ? 'dam' : 'road-related barrier'}
-              </Text>
+              <Text>Barrier type: {barrierTypeLabel}</Text>
             </ListItem>
             {barrierType === 'dams' ? (
               <>
@@ -233,6 +236,7 @@ Location.propTypes = {
   purpose: PropTypes.number,
   condition: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   passagefacility: PropTypes.number,
+  estimated: PropTypes.number,
   roadtype: PropTypes.string,
   crossingtype: PropTypes.string,
   severityclass: PropTypes.number,
@@ -258,6 +262,7 @@ Location.defaultProps = {
   purpose: 0,
   condition: 0,
   passagefacility: 0,
+  estimated: 0,
   roadtype: null,
   crossingtype: null,
   severityclass: null,

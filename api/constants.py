@@ -147,6 +147,7 @@ DAM_CORE_FIELDS = [
     "SARPID",
     "NIDID",
     "Source",
+    "Estimated",
     "River",
     "Intermittent",
     "Year",
@@ -622,7 +623,7 @@ MANUALREVIEW_DOMAIN = {
     13: "Onstream checked by SARP - Did not have to move",
     14: "Delete (No Dam)",
     15: "Onstream - moved to correct location",
-    20: "Estimated dam (based on name containing 'Estimated')",
+    20: "Estimated dam",
     21: "Dam likely off network (source from Amber Ignatius ACF project)",
 }
 
@@ -772,6 +773,7 @@ FIELD_DEFINITIONS = {
     # dam-specific fields
     "NIDID": "National Inventory of Dams Identifier.",
     "Source": "Source of this record in the inventory.",
+    "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information",
     "River": "River name where {type} occurs, if available.",
     "Year": "year that construction was completed, if available.  0 = data not available.",
     "Height": "{type} height in feet, if available.  0 = data not available.",

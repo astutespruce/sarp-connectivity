@@ -167,7 +167,7 @@ df.loc[
     df.ManualReview.isin(EXCLUDE_MANUALREVIEW), "log"
 ] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
 print(
-    f"Excluded {df.excluded.sum():,} small barriers from network analysis and prioritization"
+    f"Excluded {df.excluded.sum():,} waterfalls from network analysis and prioritization"
 )
 
 ### Snap waterfalls

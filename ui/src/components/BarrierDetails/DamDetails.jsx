@@ -33,6 +33,7 @@ const DamDetails = ({
   height,
   nidid,
   source,
+  estimated,
   year,
   construction,
   diversion,
@@ -76,9 +77,21 @@ const DamDetails = ({
   >
     <Section title="Location">
       <Entry>
-        Dam at {formatNumber(lat, 5)}
+        {estimated === 1 ? 'Estimated dam' : 'Dam'} at {formatNumber(lat, 5)}
         &deg; N / {formatNumber(lon, 5)}
         &deg; E
+        {estimated === 1 ? (
+          <Paragraph variant="help">
+            (dam is estimated from other data sources and may be incorrect;
+            please{' '}
+            <a
+              href={`mailto:Kat@southeastaquatics.net?subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
+            >
+              let us know
+            </a>
+            . )
+          </Paragraph>
+        ) : null}
       </Entry>
 
       {river && river !== '"' && river !== 'null' && river !== 'Unknown' ? (
@@ -341,6 +354,7 @@ DamDetails.propTypes = {
   year: PropTypes.number,
   nidid: PropTypes.string,
   source: PropTypes.string,
+  estimated: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.number,
@@ -379,6 +393,7 @@ DamDetails.defaultProps = {
   intermittent: -1,
   nidid: null,
   source: null,
+  estimated: 0,
   height: 0,
   year: 0,
   construction: 0,

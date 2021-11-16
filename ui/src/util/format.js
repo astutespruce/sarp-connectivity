@@ -31,17 +31,6 @@ export const formatNumber = (number, decimals = null, auto = false) => {
     }
   }
 
-  console.log(
-    'format: ',
-    number,
-    'decimals:',
-    decimals,
-    'targetDecimals:',
-    targetDecimals
-  )
-
-  // targetDecimals = Math.min(targetDecimals, decimals || 0)
-
   if (auto) {
     targetDecimals = Math.min(targetDecimals, decimals || 10)
   }

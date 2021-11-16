@@ -63,7 +63,13 @@ df = (
         ],
         errors="ignore",
     )
-    .rename(columns={"excluded": "Excluded", "intermittent": "Intermittent",})
+    .rename(
+        columns={
+            "excluded": "Excluded",
+            "intermittent": "Intermittent",
+            "is_estimated": "Estimated",
+        }
+    )
 )
 
 
