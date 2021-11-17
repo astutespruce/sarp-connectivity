@@ -11,7 +11,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { getCenterAndZoom } from './util'
 import BasemapSelector from './BasemapSelector'
 import GoToLocation from './GoToLocation'
-import { config, sources, basemapLayers } from './config'
+import { mapConfig, sources, basemapLayers } from './config'
 import Coords from './Coords'
 
 import { siteMetadata } from '../../../gatsby-config'
@@ -23,7 +23,13 @@ if (!mapboxToken) {
   )
 }
 
-const { bounds: configBounds, styleID, minZoom, maxZoom } = config
+const {
+  bounds: configBounds,
+  styleID,
+  minZoom,
+  maxZoom,
+  projection,
+} = mapConfig
 
 // IMPORTANT: this component can only be rendered client-side after re-hydration
 const Map = ({ bounds, children, onCreateMap }) => {
@@ -46,6 +52,7 @@ const Map = ({ bounds, children, onCreateMap }) => {
       zoom: zoom || 0,
       minZoom,
       maxZoom,
+      projection,
     })
     window.map = mapObj // for easier debugging and querying via console
 

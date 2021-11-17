@@ -8,7 +8,7 @@ import { Box } from 'theme-ui'
 import mapboxgl from '!mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
-import { config } from 'components/Map'
+import { mapConfig } from 'components/Map'
 
 import { siteMetadata } from '../../../../gatsby-config'
 
@@ -19,7 +19,7 @@ if (!mapboxToken) {
   )
 }
 
-const { styleID: defaultStyleID, minZoom, maxZoom } = config
+const { styleID: defaultStyleID, minZoom, maxZoom } = mapConfig
 
 // hide the logo
 const mapCSS = {

@@ -4,7 +4,7 @@ import TopBar from './TopBar'
 import DropDownLayerChooser from './DropDownLayerChooser'
 import Legend from './Legend'
 import { SearchFeaturePropType } from './proptypes'
-import { basemapAttribution, basemapLayers, config, sources } from './config'
+import { basemapAttribution, basemapLayers, mapConfig, sources } from './config'
 import {
   getCenterAndZoom,
   interpolateExpr,
@@ -29,6 +29,6 @@ export {
   basemapAttribution,
   basemapLayers,
   networkLayers,
-  config,
+  mapConfig,
   sources,
 }

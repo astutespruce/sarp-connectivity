@@ -20,7 +20,7 @@ import {
   BasemapSelector,
   getCenterAndZoom,
   networkLayers,
-  config,
+  mapConfig,
   sources,
   basemapLayers,
 } from 'components/Map'
@@ -34,7 +34,7 @@ if (!mapboxToken) {
   )
 }
 
-const { styleID: defaultStyleID } = config
+const { styleID: defaultStyleID } = mapConfig
 
 /**
  * A map component that supports export to image.

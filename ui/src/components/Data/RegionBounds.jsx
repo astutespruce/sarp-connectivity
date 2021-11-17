@@ -8,7 +8,7 @@ export const useRegionBounds = () => {
     query regionBoundsQuery {
       bounds: allRegionBoundsJson {
         nodes {
-          id
+          id: jsonId
           bbox
         }
       }

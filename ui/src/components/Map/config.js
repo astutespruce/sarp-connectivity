@@ -2,12 +2,18 @@ import { siteMetadata } from '../../../gatsby-config'
 
 const { tileHost } = siteMetadata
 
-export const config = {
+export const mapConfig = {
   // Bounds around all selected HUC6s
   bounds: [-116.049153, 17.831509, -65.168503, 49.0011],
   styleID: 'light-v9',
-  minZoom: 2,
+  minZoom: 3,
   maxZoom: 24,
+  // To enable CONUS Albers mode
+  // projection: {
+  //   name: 'albers',
+  //   center: [-96, 37.5],
+  //   parallels: [29.5, 45.5],
+  // },
 }
 
 export const sources = {
