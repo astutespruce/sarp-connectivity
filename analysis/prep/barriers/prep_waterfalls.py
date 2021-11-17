@@ -211,7 +211,8 @@ print(
 
 ### Deduplicate by dams
 # any that are within duplicate tolerance of dams may be duplicating those dams
-dams = gp.read_feather(master_dir / "dams.feather", columns=["geometry", "sizeclass"])
+# NOTE: these are only the dams that are snapped and not dropped or excluded
+dams = gp.read_feather(snapped_dir / "dams.feather", columns=["geometry"])
 near_dams = nearest(
     pd.Series(df.geometry.values.data, index=df.index),
     pd.Series(dams.geometry.values.data, index=dams.index),

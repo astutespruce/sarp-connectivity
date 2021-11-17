@@ -94,6 +94,18 @@ df = df.set_index("id", drop=False)
 df["ManualReview"] = df.ManualReview.fillna(0).astype("uint8")
 df["Recon"] = df.Recon.fillna(0).astype("uint8")
 df["SARP_Score"] = df.SARP_Score.fillna(-1).astype("float32")
+
+
+# fix casing issues of PotentialProject
+df["PotentialProject"] = (
+    df.PotentialProject.fillna("Unassessed")
+    .str.strip()
+    .str.replace("barrier", "Barrier")
+)
+ix = df.PotentialProject == ""
+df.loc[ix, "PotentialProject"] = "Unassessed"
+
+
 # per guidance from Kat, make any where potential project is "No Barrier" as -1
 df.loc[df.PotentialProject.isin(["No Barrier", "No"]), "SARP_Score"] = -1
 
@@ -187,6 +199,7 @@ df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 ### Drop any small barriers that should be completely dropped from analysis
 # based on manual QA/QC
+# FIXME: one-off analysis
 drop_ix = df.PotentialProject.isin(DROP_POTENTIAL_PROJECT)
 df.loc[drop_ix, "dropped"] = True
 df.loc[drop_ix, "log"] = f"dropped: PotentialProject one of {DROP_POTENTIAL_PROJECT}"
@@ -208,12 +221,14 @@ print(
 )
 
 ### Exclude barriers that should not be analyzed or prioritized based on manual QA
+# FIXME: one-off analysis of all barrier types
 df["excluded"] = (
     (~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT))
     | df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
     | df.Recon.isin(EXCLUDE_RECON)
 )
 
+# FIXME:
 df.loc[
     ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT), "log"
 ] = f"excluded: PotentialProject not one of retained types {KEEP_POTENTIAL_PROJECT}"
@@ -322,7 +337,8 @@ export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas.gpkg")
 
 ### Deduplicate by dams
 # any that are within duplicate tolerance of dams may be duplicating those dams
-dams = gp.read_feather(master_dir / "dams.feather").set_index("id")
+# NOTE: these are only the dams that are snapped and not dropped or excluded
+dams = gp.read_feather(snapped_dir / "dams.feather", columns=["geometry"])
 near_dams = nearest(
     pd.Series(df.geometry.values.data, index=df.index),
     pd.Series(dams.geometry.values.data, index=dams.index),
