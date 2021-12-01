@@ -6,7 +6,7 @@ export const mapConfig = {
   // Bounds around all selected HUC6s
   bounds: [-116.049153, 17.831509, -65.168503, 49.0011],
   styleID: 'light-v9',
-  minZoom: 3,
+  minZoom: 2,
   maxZoom: 24,
   // To enable CONUS Albers mode
   // projection: {

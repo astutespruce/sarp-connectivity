@@ -212,16 +212,17 @@ export const includedPoint = {
     'circle-color': '#c51b8a',
     'circle-radius': {
       stops: [
-        [4, 0.5],
-        [5, 1],
-        [9, 2],
+        [3, 0.5],
+        [4, 1],
+        [5, 1.25],
         [14, 8],
       ],
     },
     'circle-opacity': {
       stops: [
-        [5, 0.2],
-        [6, 0.5],
+        [2, 0.1],
+        [3, 0.5],
+        [4, 0.75],
         [7, 1],
       ],
     },
@@ -241,26 +242,20 @@ export const topRank = {
   id: 'rank-top',
   source: 'ranked',
   type: 'circle',
-  minzoom: 4,
+  minzoom: 3,
   maxzoom: 24,
   // filter:  // provided by specific layer
   paint: {
     'circle-color': '#c51b8a',
     'circle-radius': {
       stops: [
-        [4, 0.5],
-        [5, 1],
-        [6, 2],
-        [10, 6],
-        [14, 8],
+        [3, 1],
+        [4, 1.5],
+        [5, 3],
+        [14, 10],
       ],
     },
-    'circle-opacity': {
-      stops: [
-        [5, 0.5],
-        [6, 1],
-      ],
-    },
+    'circle-opacity': 1,
     'circle-stroke-color': '#FFFFFF',
     'circle-stroke-width': {
       stops: [
@@ -277,7 +272,7 @@ export const lowerRank = {
   id: 'rank-low',
   source: 'ranked',
   type: 'circle',
-  minzoom: 4,
+  minzoom: 3,
   maxzoom: 24,
   // filter:  // provided by specific layer
   paint: {
@@ -285,17 +280,17 @@ export const lowerRank = {
     'circle-stroke-color': '#FFFFFF',
     'circle-radius': {
       stops: [
-        [4, 0.5],
-        [5, 1],
-        [9, 2],
-        [10, 4],
-        [14, 6],
+        [3, 0.5],
+        [4, 1],
+        [5, 1.25],
+        [14, 8],
       ],
     },
     'circle-opacity': {
       stops: [
-        [7, 0.5],
-        [8, 1],
+        [3, 0.5],
+        [4, 0.75],
+        [7, 1],
       ],
     },
     'circle-stroke-width': {

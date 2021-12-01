@@ -11,7 +11,7 @@ primary_col_style = NamedStyle(
 )
 
 
-current_version = "DEV"
+current_version = "Nov2021"
 
 data_dir = Path("data/barriers/master")
 out_dir = Path("data/versions")
