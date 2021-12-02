@@ -389,7 +389,9 @@ FEASIBILITY_DOMAIN = {
     4: "Likely feasible",
     5: "No conservation benefit",
     9: "Invasive species barrier",
-    # not shown to user
+    11: "Fish passage installed",
+    12: "Removal planned",
+    # not shown to user (filtered out for other reasons)
     6: "Unknown",
     7: "Error",
     8: "Dam removed for conservation benefit",

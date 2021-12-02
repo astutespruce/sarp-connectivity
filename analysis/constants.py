@@ -281,7 +281,7 @@ RECON_TO_FEASIBILITY = {
     8: 6,
     9: 6,
     10: 6,
-    11: 4,
+    11: 12,
     13: 6,
     14: 4,
     15: 5,
@@ -310,6 +310,7 @@ RECON_TO_FEASIBILITY = {
 #   # 9: 'Invasive species barrier',
 #   # 10: 'Proposed dam'
 #   # 11: 'Fish passage installed'
+#   # 12: 'Removal planned'
 # }
 
 

@@ -200,6 +200,7 @@ export const FEASIBILITY = {
   2: 'Likely infeasible',
   3: 'Possibly feasible',
   4: 'Likely feasible',
+  12: 'Removal planned',
   5: 'No conservation benefit',
   6: 'Unknown',
   // not shown to user
