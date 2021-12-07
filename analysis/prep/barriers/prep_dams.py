@@ -273,7 +273,6 @@ df.Height = df.Height.fillna(0).round().astype("uint16")
 # coerce length to width
 df.Length = df.Length.fillna(0).round().astype("uint16")
 df.Width = df.Width.fillna(0).round().astype("uint16")
-df.Width = df[["Width", "Length"]].max(axis=1).astype("uint16")
 
 df.LowheadDam = df.LowheadDam.fillna(-1).astype("int8")
 
@@ -497,18 +496,18 @@ df["lineID"] = np.nan  # line to which dam was snapped
 df["wbID"] = np.nan  # waterbody ID where dam is either contained or snapped
 
 
-# for dams that are marked as on network or from NABD that have a width,
-# use their width to determine snap tolerance (convert feet to meters, rounded up to nearest 100m)
+# for dams that are marked as on network or from NABD that have a length (across the stream),
+# use their length to determine snap tolerance (convert feet to meters, rounded up to nearest 100m)
 # limited to 1000m
-ix = df.ManualReview.isin([2, 4]) & (df.Width > 0)
-width_tolerance = np.clip(
-    (np.ceil((df.loc[ix].Width.values * 0.3048) / 100) * 100).round().astype("int64"),
+ix = df.ManualReview.isin([2, 4]) & (df.Length > 0)
+length_tolerance = np.clip(
+    (np.ceil((df.loc[ix].Length.values * 0.3048) / 100) * 100).round().astype("int64"),
     0,
     1000,
 )
 
 df.loc[ix, "snap_tolerance"] = np.max(
-    [df.loc[ix].snap_tolerance.values, width_tolerance], axis=0
+    [df.loc[ix].snap_tolerance.values, length_tolerance], axis=0
 )
 
 

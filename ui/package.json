@@ -85,7 +85,7 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "NODE_OPTIONS=--max_old_space_size=1024 GATSBY_CPU_COUNT=1 gatsby build",
+    "build": "NODE_OPTIONS=--max_old_space_size=2048 GATSBY_CPU_COUNT=1 gatsby build",
     "clean": "gatsby clean",
     "develop": "gatsby develop",
     "format": "prettier --write src/**/*.{js,jsx}",

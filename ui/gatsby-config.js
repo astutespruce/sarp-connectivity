@@ -32,7 +32,7 @@ module.exports = {
   flags: {
     FAST_DEV: true,
     DEV_SSR: false, // appears to throw '"filePath" is not allowed to be empty' when true
-    PARALLEL_SOURCING: process.env.NODE_ENV !== `production`, // uses a lot of memory on server
+    PARALLEL_SOURCING: false, // process.env.NODE_ENV !== `production`, // uses a lot of memory on server
   },
   plugins: [
     {
