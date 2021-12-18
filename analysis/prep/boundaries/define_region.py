@@ -55,6 +55,9 @@ bnd_df = gp.GeoDataFrame(
     crs=CRS,
 )
 write_dataframe(bnd_df, out_dir / "region_boundary.gpkg")
+bnd_df.to_feather(out_dir / "region_boundary.feather")
+
+
 bnd = bnd_df.geometry.values.data[0]
 sarp_bnd = bnd_df.loc[bnd_df.id == "se"].geometry.values.data[0]
 
@@ -132,7 +135,6 @@ huc4 = np.unique(
 huc4_df = huc4_df.loc[huc4_df.HUC4.isin(huc4)].reset_index(drop=True)
 write_dataframe(huc4_df, out_dir / "huc4.gpkg")
 huc4_df.to_feather(out_dir / "huc4.feather")
-
 
 # repeat for SARP
 tree = pg.STRtree(huc4_df.geometry.values.data)

@@ -102,22 +102,24 @@ def add_spatial_joins(df):
     df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")
 
     ### Join in T&E Spp stats
+    # note: trout is presence / absence
     spp_df = (
         pd.read_feather(
             data_dir / "species/derived/spp_HUC12.feather",
-            columns=["HUC12", "federal", "sgcn", "regional"],
+            columns=["HUC12", "federal", "sgcn", "regional", "trout"],
         )
         .rename(
             columns={
                 "federal": "TESpp",
                 "sgcn": "StateSGCNSpp",
                 "regional": "RegionalSGCNSpp",
+                "trout": "Trout",
             }
         )
         .set_index("HUC12")
     )
     df = df.join(spp_df, on="HUC12")
-    for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
+    for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp", "Trout"]:
         df[col] = df[col].fillna(0).astype("uint8")
 
     return df

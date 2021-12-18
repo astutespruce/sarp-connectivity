@@ -308,11 +308,12 @@ with open(ui_dir / "unit_bounds.json", "w") as outfile:
 ### Protected areas
 
 # TODO: get protected areas for larger bounds from SARP
-print("Extracting protected areas...")
+print("Extracting protected areas (will take a while)...")
 df = (
     read_dataframe(
-        src_dir / "Protected_Areas_2019.gdb",
-        layer="CBI_PADUS_NCED_TNC_USFS_Combine2019",
+        src_dir / "SARP_ProtectedAreas_2021.gdb",
+        layer="SARP_ProtectedArea_National_2021",
+        columns=["OwnerType", "OwnerName", "EasementHolderType", "Preference"],
     )
     .to_crs(CRS)
     .rename(
@@ -325,9 +326,16 @@ df = (
     )
 )
 
+# select those that are within the boundary
+tree = pg.STRtree(df.geometry.values.data)
+ix = tree.query(bnd, predicate="intersects")
+
+df = df.take(ix)
+
 # this takes a while...
 print("Making geometries valid, this might take a while")
 df.geometry = pg.make_valid(df.geometry.values.data)
+
 
 # sort on 'sort' so that later when we do spatial joins and get multiple hits, we take the ones with
 # the lowest sort value (1 = highest priority) first.
@@ -338,17 +346,28 @@ df = df.sort_values(by="sort").drop(columns=["sort"])
 # map of substrings to search for specific owners
 partner_federal = {
     "US Fish and Wildlife Service": [
+        "FWS",
         "USFWS",
         "USFW",
         "US FWS",
         "U.S. Fish and Wildlife Service",
+        "U. S. Fish & Wildlife Service",
         "U.S. Fish & Wildlife Service",
+        "U.S. Fish and Wildlife Service (FWS)",
+        "US Fish & Wildlife Service",
+        "US Fish and Wildlife Service",
+        "USDI FISH AND WILDLIFE SERVICE",
     ],
     "USDA Forest Service": [
+        "Forest Service",
         "USFS",
         "USDA FOREST SERVICE",
+        "USDA Forest Service",
         "US Forest Service",
         "USDA Forest Service",
+        "U.S. Forest Service",
+        "U.S. Forest Service (USFS)",
+        "United States Forest Service",
     ],
 }
 
