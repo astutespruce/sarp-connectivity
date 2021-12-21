@@ -29,8 +29,8 @@ const IndexPage = ({ data: { headerImage } }) => (
     <Container sx={{ mt: 0 }}>
       <TopSection />
       <InventorySection />
-      <RegionSection />
       <ToolSection />
+      <RegionSection />
 
       <GetInvolvedSection />
       <CreditsSection />

@@ -9,7 +9,7 @@ pd.options.display.max_rows = 200
 
 
 current_version = "DEV"
-prev_version = "March2021"
+prev_version = "Nov2021"
 
 data_dir = Path("data/barriers/master")
 out_dir = Path("data/versions")

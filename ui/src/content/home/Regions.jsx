@@ -1,6 +1,16 @@
 import React from 'react'
-import { Box, Button, Divider, Flex, Grid, Heading, Text } from 'theme-ui'
+import {
+  Box,
+  Button,
+  Divider,
+  Flex,
+  Grid,
+  Heading,
+  Paragraph,
+  Text,
+} from 'theme-ui'
 import { GatsbyImage } from 'gatsby-plugin-image'
+import { ChartBar, SearchLocation } from '@emotion-icons/fa-solid'
 import { useStaticQuery, graphql } from 'gatsby'
 
 import { Link } from 'components/Link'
@@ -62,7 +72,7 @@ const Regions = () => {
 
       <Box sx={{ mt: '2rem' }}>
         <Flex sx={{ justifyContent: 'space-between' }}>
-          <Box>
+          <Box sx={{ flex: '1 1 auto' }}>
             <Link to="/regions/southeast">
               <Heading
                 as="h3"
@@ -74,6 +84,24 @@ const Regions = () => {
               </Heading>
             </Link>
           </Box>
+          <Flex sx={{ flex: '0 0 auto' }}>
+            <Box sx={{ flex: '1 1 auto', mr: '2rem' }}>
+              <Link to="summary/?region=se">
+                <Button variant="primary">
+                  <ChartBar size="1em" />
+                  &nbsp; Start summarizing
+                </Button>
+              </Link>
+            </Box>
+            <Box sx={{ flex: '0 0 auto' }}>
+              <Link to="/priority">
+                <Button>
+                  <SearchLocation size="1em" />
+                  &nbsp; Start prioritizing
+                </Button>
+              </Link>
+            </Box>
+          </Flex>
         </Flex>
         <Text>
           Includes <b>{REGION_STATES.se.length - 1}</b> states and Puerto Rico
@@ -87,29 +115,56 @@ const Regions = () => {
               </Box>
             </Link>
           </Box>
+
           <Flex sx={{ flexDirection: 'column' }}>
             <Box sx={{ flex: '0 0 auto' }}>
               <RegionStats {...se} />
             </Box>
             <Box sx={{ height: '100%', flex: '1 1 auto' }} />
-            <Box sx={{ textAlign: 'center', flex: '0 0 auto' }}>
+
+            <Flex sx={{ justifyContent: 'flex-end' }}>
               <Link to="/regions/southeast">
-                <Button>Explore Southeast</Button>
+                Learn more about the Southeast region
               </Link>
-            </Box>
+            </Flex>
           </Flex>
         </Grid>
       </Box>
 
-      <Box sx={{ mt: '5rem' }}>
+      <Box
+        sx={{
+          mt: '5rem',
+          pt: '2rem',
+          borderTop: '1px solid',
+          borderTopColor: 'grey.3',
+        }}
+      >
         <Flex sx={{ justifyContent: 'space-between' }}>
-          <Box>
+          <Box sx={{ flex: '1 1 auto' }}>
             <Link to="/regions/great_plains_intermountain_west">
               <Heading as="h3" sx={{ fontWeight: 'normal' }}>
                 Great Plains &amp; Intermountain West
               </Heading>
             </Link>
           </Box>
+          <Flex sx={{ flex: '0 0 auto' }}>
+            <Box sx={{ flex: '1 1 auto', mr: '2rem' }}>
+              <Link to="summary/?region=gpiw">
+                <Button variant="primary">
+                  <ChartBar size="1em" />
+                  &nbsp; Start summarizing
+                </Button>
+              </Link>
+            </Box>
+            <Box sx={{ flex: '0 0 auto' }}>
+              <Link to="/priority">
+                <Button>
+                  <SearchLocation size="1em" />
+                  &nbsp; Start prioritizing
+                </Button>
+              </Link>
+            </Box>
+          </Flex>
         </Flex>
 
         <Text>
@@ -132,24 +187,51 @@ const Regions = () => {
               <RegionStats {...gpiw} />
             </Box>
             <Box sx={{ height: '100%', flex: '1 1 auto' }} />
-            <Box sx={{ textAlign: 'center', flex: '0 0 auto' }}>
+
+            <Flex sx={{ justifyContent: 'flex-end' }}>
               <Link to="/regions/great_plains_intermountain_west">
-                <Button>Explore Great Plains &amp; Intermountain West</Button>
+                Learn more about the Great Plains &amp; Intermountain West
+                region
               </Link>
-            </Box>
+            </Flex>
           </Flex>
         </Grid>
       </Box>
 
-      <Box sx={{ mt: '5rem' }}>
+      <Box
+        sx={{
+          mt: '5rem',
+          pt: '2rem',
+          borderTop: '1px solid',
+          borderTopColor: 'grey.3',
+        }}
+      >
         <Flex sx={{ justifyContent: 'space-between' }}>
-          <Box>
+          <Box sx={{ flex: '1 1 auto' }}>
             <Link to="/regions/southwest">
               <Heading as="h3" sx={{ fontWeight: 'normal' }}>
                 Southwest
               </Heading>
             </Link>
           </Box>
+          <Flex sx={{ flex: '0 0 auto' }}>
+            <Box sx={{ flex: '1 1 auto', mr: '2rem' }}>
+              <Link to="summary/?region=sw">
+                <Button variant="primary">
+                  <ChartBar size="1em" />
+                  &nbsp; Start summarizing
+                </Button>
+              </Link>
+            </Box>
+            <Box sx={{ flex: '0 0 auto' }}>
+              <Link to="/priority">
+                <Button>
+                  <SearchLocation size="1em" />
+                  &nbsp; Start prioritizing
+                </Button>
+              </Link>
+            </Box>
+          </Flex>
         </Flex>
 
         <Text>
@@ -170,13 +252,35 @@ const Regions = () => {
               <RegionStats {...sw} />
             </Box>
             <Box sx={{ height: '100%', flex: '1 1 auto' }} />
-            <Box sx={{ textAlign: 'center', flex: '0 0 auto' }}>
+
+            <Flex sx={{ justifyContent: 'flex-end' }}>
               <Link to="/regions/southwest">
-                <Button>Explore Southwest</Button>
+                Learn more about the Southwest region
               </Link>
-            </Box>
+            </Flex>
           </Flex>
         </Grid>
+      </Box>
+      <Box
+        sx={{
+          mt: '5rem',
+          pt: '2rem',
+          borderTop: '1px solid',
+          borderTopColor: 'grey.3',
+        }}
+      >
+        <Heading
+          as="h3"
+          sx={{
+            fontWeight: 'normal',
+          }}
+        >
+          Coming in 2022: Pacific Northwest
+        </Heading>
+        <Paragraph variant="help" sx={{ mt: '0.5rem' }}>
+          The Pacific Northwest (Idaho, Oregon, and Washington) will be
+          integrated into this tool by late 2022.
+        </Paragraph>
       </Box>
     </Box>
   )

@@ -30,10 +30,12 @@ const RegionStats = ({
         <b>{formatNumber(totalSmallBarriers, 0)}</b> that have been assessed for
         impacts to aquatic organisms
       </li>
-      <li>
-        <b>{formatNumber(smallBarriers, 0)}</b> of these are likely to impact
-        aquatic organisms
-      </li>
+      <Box as="ul" sx={{ ml: '1rem' }}>
+        <li>
+          <b>{formatNumber(smallBarriers, 0)}</b> of these are likely to impact
+          aquatic organisms
+        </li>
+      </Box>
     </Box>
   </Box>
 )

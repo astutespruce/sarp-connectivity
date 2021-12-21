@@ -253,8 +253,9 @@ DROP_RECON = [5, 19]
 DROP_FEASIBILITY = [7]
 
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_RECON = [7, 22]
+EXCLUDE_RECON = [7, 22, 23]
 EXCLUDE_FEASIBILITY = [8]
+EXCLUDE_BARRIER_SEVERITY = [7]  # limited to just dams
 
 UNRANKED_MANUALREVIEW = [
     10,  # invasive barriers; these break the network, but not included in prioritization

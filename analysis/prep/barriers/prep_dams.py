@@ -58,6 +58,7 @@ from analysis.constants import (
     UNRANKED_RECON,
     FCODE_TO_STREAMTYPE,
     DAM_BARRIER_SEVERITY_TO_DOMAIN,
+    EXCLUDE_BARRIER_SEVERITY,
 )
 from analysis.lib.io import read_feathers
 
@@ -230,9 +231,13 @@ for column in ("River", "NIDID", "Source", "Name", "OtherName", "SourceDBID"):
     df[column] = df[column].fillna("").str.strip()
 
 df["BarrierSeverity"] = df.BarrierSeverity.fillna("Unknown").str.strip()
-# Fix invalid values
 df.loc[df.BarrierSeverity == "Complete Barrier", "BarrierSeverity"] = "Complete"
-
+# temporary fixes
+df.BarrierSeverity = df.BarrierSeverity.str.replace(
+    "Seasonbly", "Seasonably"
+).str.replace(
+    "Partial Passibility - Non Salmonid", "Partial Passability - Non Salmonid"
+)
 
 for column in (
     "Construction",
@@ -338,14 +343,8 @@ df["PassageFacilityClass"] = (
 ).astype("uint8")
 
 # Convert BarrierSeverity to a domain
-# FIXME: temporary fix
-df.BarrierSeverity = df.BarrierSeverity.str.replace("Seasonbly", "Seasonably")
-
-df["BarrierSeverity"] = (
-    df.BarrierSeverity.fillna("")
-    .str.strip()
-    .map(DAM_BARRIER_SEVERITY_TO_DOMAIN)
-    .astype("uint8")
+df.BarrierSeverity = df.BarrierSeverity.map(DAM_BARRIER_SEVERITY_TO_DOMAIN).astype(
+    "uint8"
 )
 
 
@@ -442,6 +441,7 @@ df["excluded"] = (
     | df.Recon.isin(EXCLUDE_RECON)
     | df.Feasibility.isin(EXCLUDE_FEASIBILITY)
     | df.PassageFacility.isin(EXCLUDE_PASSAGEFACILITY)
+    | df.BarrierSeverity.isin(EXCLUDE_BARRIER_SEVERITY)
 )
 
 df.loc[
@@ -450,6 +450,9 @@ df.loc[
 df.loc[
     df.Feasibility.isin(EXCLUDE_FEASIBILITY), "log"
 ] = f"excluded: Feasibility one of {EXCLUDE_FEASIBILITY}"
+df.loc[
+    df.BarrierSeverity.isin(EXCLUDE_BARRIER_SEVERITY), "log"
+] = f"excluded: BarrierSeverity one of {EXCLUDE_BARRIER_SEVERITY}"
 df.loc[df.Recon.isin(EXCLUDE_RECON), "log"] = f"excluded: Recon one of {EXCLUDE_RECON}"
 df.loc[
     df.ManualReview.isin(EXCLUDE_MANUALREVIEW), "log"
