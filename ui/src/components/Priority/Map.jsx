@@ -57,6 +57,7 @@ const PriorityMap = ({
   scenario,
   searchFeature,
   summaryUnits,
+  bounds,
   onSelectUnit,
   onSelectBarrier,
   onMapLoad,
@@ -585,7 +586,11 @@ const PriorityMap = ({
       })
     }
 
-    map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
+    map.fitBounds(bbox, {
+      padding: 20,
+      maxZoom: fitBoundsMaxZoom,
+      duration: 500,
+    })
   }, [searchFeature, selectUnitById])
 
   useEffect(() => {
@@ -611,6 +616,14 @@ const PriorityMap = ({
 
     debouncedSetRankFilter(`${scenario}_tier`, tierThreshold)
   }, [tierThreshold, scenario, debouncedSetRankFilter])
+
+  useEffect(() => {
+    if (bounds == null) return
+    const { current: map } = mapRef
+    if (!map) return
+
+    map.fitBounds(bounds, { padding: 20, maxZoom: 14, duration: 500 })
+  }, [bounds])
 
   const handlePriorityLayerChange = useCallback((visiblePriorityLayers) => {
     const { current: map } = mapRef
@@ -858,6 +871,7 @@ PriorityMap.propTypes = {
     })
   ),
   searchFeature: SearchFeaturePropType,
+  bounds: PropTypes.arrayOf(PropTypes.number),
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
   onMapLoad: PropTypes.func.isRequired,
@@ -871,6 +885,7 @@ PriorityMap.defaultProps = {
   searchFeature: null,
   summaryUnits: [],
   rankedBarriers: [],
+  bounds: null,
 }
 
 export default memo(PriorityMap)

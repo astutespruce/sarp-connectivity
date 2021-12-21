@@ -38,7 +38,10 @@ def rank_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
     cols = ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
     df = df.join(calculate_tiers(df))[cols]
 
-    return csv_response(df)
+    # extract extent
+    bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
+
+    return csv_response(df, bounds=bounds)
 
 
 @router.get("/small_barriers/rank/{layer}")
@@ -60,6 +63,10 @@ def rank_barriers(request: Request, extractor: BarriersRecordExtractor = Depends
 
     # just return tiers and lat/lon
     cols = ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
+
     df = df.join(calculate_tiers(df))[cols]
 
-    return csv_response(df)
+    # extract extent
+    bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
+
+    return csv_response(df, bounds=bounds)

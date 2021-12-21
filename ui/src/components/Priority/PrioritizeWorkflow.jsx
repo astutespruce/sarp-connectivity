@@ -47,6 +47,7 @@ const Prioritize = () => {
   // individually-managed states
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
+  const [bounds, setBounds] = useState(null)
   const [step, setStep] = useState('select')
   const stepRef = useRef(step) // need to keep a ref to use in callback below
 
@@ -151,11 +152,18 @@ const Prioritize = () => {
     setIsLoading(true)
 
     const fetchData = async () => {
-      const { csv } = await fetchBarrierInfo(barrierType, layer, summaryUnits)
+      const { csv, bounds: newBounds = null } = await fetchBarrierInfo(
+        barrierType,
+        layer,
+        summaryUnits
+      )
 
       if (csv) {
         setFilterData(csv)
         setStep('filter')
+        if (newBounds !== null) {
+          setBounds(newBounds.split(',').map(parseFloat))
+        }
         setIsLoading(false)
       } else {
         setIsLoading(false)
@@ -168,7 +176,7 @@ const Prioritize = () => {
   const loadRankInfo = () => {
     setIsLoading(true)
     const fetchData = async () => {
-      const { csv } = await fetchBarrierRanks(
+      const { csv, bounds: newBounds } = await fetchBarrierRanks(
         barrierType,
         layer,
         summaryUnits,
@@ -181,6 +189,9 @@ const Prioritize = () => {
           rankData: csv,
         }))
         setStep('results')
+        if (newBounds !== null) {
+          setBounds(newBounds.split(',').map(parseFloat))
+        }
         setIsLoading(false)
       } else {
         setIsLoading(false)
@@ -340,6 +351,7 @@ const Prioritize = () => {
 
       <Box sx={{ position: 'relative', flex: '1 0 auto', height: '100%' }}>
         <Map
+          bounds={bounds}
           allowUnitSelect={step === 'select'}
           activeLayer={layer}
           searchFeature={searchFeature}

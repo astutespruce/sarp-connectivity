@@ -4,19 +4,26 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from fastapi.responses import Response
 
 
-def csv_response(df):
+def csv_response(df, bounds=None):
     """Write data frame to CSV and return Response with proper headers
 
     Parameters
     ----------
     df : DataFrame
+    bounds : list-like of [xmin, ymin, xmax, ymax], optional (default: None)
 
     Returns
     -------
     fastapi Response
     """
+
     csv = df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
-    return Response(content=csv, media_type="text/csv")
+    response = Response(content=csv, media_type="text/csv")
+
+    if bounds is not None:
+        response.headers["X-BOUNDS"] = ",".join(str(b) for b in bounds)
+
+    return response
 
 
 def zip_csv_response(df, filename, extra_str=None, extra_path=None):

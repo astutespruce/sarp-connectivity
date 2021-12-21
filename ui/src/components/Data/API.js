@@ -43,16 +43,17 @@ const apiQueryParams = ({
 
 const fetchCSV = async (url, options, rowParser) => {
   try {
-    const request = await fetch(url, options)
-    if (request.status !== 200) {
-      throw new Error(`Failed request to ${url}: ${request.statusText}`)
+    const response = await fetch(url, options)
+    if (response.status !== 200) {
+      throw new Error(`Failed request to ${url}: ${response.statusText}`)
     }
 
-    const rawContent = await request.text()
+    const rawContent = await response.text()
 
     return {
       error: null,
       csv: csvParse(rawContent, rowParser),
+      bounds: response.headers.get('x-bounds'),
     }
   } catch (err) {
     captureException(err)
