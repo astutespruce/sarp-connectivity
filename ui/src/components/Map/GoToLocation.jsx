@@ -3,11 +3,11 @@ import PropTypes from 'prop-types'
 import { Crosshairs, LocationArrow } from '@emotion-icons/fa-solid'
 import { Box, Button, Input, Flex, Spinner, Text } from 'theme-ui'
 
+import { hasGeolocation } from 'util/dom'
+
 // exclude Mapbox GL from babel transpilation per https://docs.mapbox.com/mapbox-gl-js/guides/migrate-to-v2/
 /* eslint-disable-next-line */
 import mapboxgl from '!mapbox-gl'
-
-import { hasGeolocation } from 'util/dom'
 
 const navigatorOptions = {
   enableHighAccuracy: false,

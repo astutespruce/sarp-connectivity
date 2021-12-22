@@ -87,5 +87,8 @@ export const useBoundsData = () => {
     })
 
     return data
-  }, [])
+  },
+  // rawData intentionally omitted
+  /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  [])
 }

@@ -12,7 +12,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="sarp-connectivity",
-    version="2.4.0",
+    version="2.4.2",
     description="Southeast Aquatic Barriers Inventory Visualization & Prioritization Tool",
     long_description=long_description,
     long_description_content_type="text/markdown",

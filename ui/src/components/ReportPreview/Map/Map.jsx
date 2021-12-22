@@ -61,110 +61,115 @@ const Map = ({
   // construct the map within an effect that has no dependencies
   // this allows us to construct it only once at the time the
   // component is constructed.
-  useLayoutEffect(() => {
-    const { center, zoom } =
-      bounds !== null
-        ? getCenterAndZoom(mapNode.current, bounds, padding)
-        : { center: centerProp, zoom: zoomProp }
+  useLayoutEffect(
+    () => {
+      const { center, zoom } =
+        bounds !== null
+          ? getCenterAndZoom(mapNode.current, bounds, padding)
+          : { center: centerProp, zoom: zoomProp }
 
-    // Token must be set before constructing map
-    mapboxgl.accessToken = mapboxToken
+      // Token must be set before constructing map
+      mapboxgl.accessToken = mapboxToken
 
-    const mapObj = new mapboxgl.Map({
-      container: mapNode.current,
-      style: `mapbox://styles/mapbox/${styleID}`,
-      center,
-      zoom: zoom || 0,
-      minZoom: 7,
-      maxZoom: 18,
-      preserveDrawingBuffer: true,
-    })
-    window.previewMap = mapObj // for easier debugging and querying via console
-
-    mapObj.addControl(new mapboxgl.NavigationControl(), 'top-right')
-    mapObj.addControl(
-      new mapboxgl.ScaleControl({ unit: 'imperial' }),
-      'bottom-right'
-    )
-
-    mapObj.on('load', () => {
-      // add sources
-      Object.entries(sources).forEach(([id, source]) => {
-        mapObj.addSource(id, source)
+      const mapObj = new mapboxgl.Map({
+        container: mapNode.current,
+        style: `mapbox://styles/mapbox/${styleID}`,
+        center,
+        zoom: zoom || 0,
+        minZoom: 7,
+        maxZoom: 18,
+        preserveDrawingBuffer: true,
       })
+      window.previewMap = mapObj // for easier debugging and querying via console
 
-      // add basemap sources and layers
-      Object.values(basemapLayers).forEach((layers) => {
-        layers.forEach(({ id, source, ...rest }) => {
+      mapObj.addControl(new mapboxgl.NavigationControl(), 'top-right')
+      mapObj.addControl(
+        new mapboxgl.ScaleControl({ unit: 'imperial' }),
+        'bottom-right'
+      )
+
+      mapObj.on('load', () => {
+        // add sources
+        Object.entries(sources).forEach(([id, source]) => {
           mapObj.addSource(id, source)
-          mapObj.addLayer({
-            ...rest,
-            id,
-            source: id,
+        })
+
+        // add basemap sources and layers
+        Object.values(basemapLayers).forEach((layers) => {
+          layers.forEach(({ id, source, ...rest }) => {
+            mapObj.addSource(id, source)
+            mapObj.addLayer({
+              ...rest,
+              id,
+              source: id,
+            })
           })
         })
-      })
 
-      // Add network layers
-      networkLayers.forEach((layer) => {
-        if (layer.id.endsWith('-highlight')) {
-          mapObj.addLayer({
-            ...layer,
-            minzoom: 6,
-            filter: ['==', barrierType, networkID],
-          })
-        } else {
-          mapObj.addLayer(layer)
+        // Add network layers
+        networkLayers.forEach((layer) => {
+          if (layer.id.endsWith('-highlight')) {
+            mapObj.addLayer({
+              ...layer,
+              minzoom: 6,
+              filter: ['==', barrierType, networkID],
+            })
+          } else {
+            mapObj.addLayer(layer)
+          }
+        })
+
+        // Add barrier point layers
+        mapObj.addLayer(waterfallsLayer)
+
+        if (barrierType === 'small_barriers') {
+          mapObj.addLayer(damsSecondaryLayer)
         }
+
+        mapObj.addLayer({
+          id: barrierType,
+          source: barrierType,
+          'source-layer': barrierType,
+          ...pointLayer,
+        })
+
+        mapObj.addLayer({
+          id: `${barrierType}-background`,
+          source: barrierType,
+          ...backgroundPointLayer,
+        })
+
+        // Add barrier highlight layer for both on and off-network barriers.
+        mapObj.addLayer({
+          ...pointHighlightLayer,
+          source: barrierType,
+          'source-layer': barrierType,
+          minzoom: 6,
+          filter: ['==', ['get', 'id'], barrierID],
+        })
+        mapObj.addLayer({
+          ...pointHighlightLayer,
+          id: 'point-background-highlight',
+          source: barrierType,
+          'source-layer': 'background',
+          minzoom: 9,
+          filter: ['==', ['get', 'id'], barrierID],
+        })
+
+        // rerender to pass map into child components
+        setMap(mapObj)
+        onCreateMap(mapObj)
       })
 
-      // Add barrier point layers
-      mapObj.addLayer(waterfallsLayer)
-
-      if (barrierType === 'small_barriers') {
-        mapObj.addLayer(damsSecondaryLayer)
+      // when this component is destroyed, remove the map
+      return () => {
+        mapObj.remove()
       }
-
-      mapObj.addLayer({
-        id: barrierType,
-        source: barrierType,
-        'source-layer': barrierType,
-        ...pointLayer,
-      })
-
-      mapObj.addLayer({
-        id: `${barrierType}-background`,
-        source: barrierType,
-        ...backgroundPointLayer,
-      })
-
-      // Add barrier highlight layer for both on and off-network barriers.
-      mapObj.addLayer({
-        ...pointHighlightLayer,
-        source: barrierType,
-        'source-layer': barrierType,
-        minzoom: 6,
-        filter: ['==', ['get', 'id'], barrierID],
-      })
-      mapObj.addLayer({
-        ...pointHighlightLayer,
-        id: 'point-background-highlight',
-        source: barrierType,
-        'source-layer': 'background',
-        minzoom: 9,
-        filter: ['==', ['get', 'id'], barrierID],
-      })
-
-      // rerender to pass map into child components
-      setMap(mapObj)
-      onCreateMap(mapObj)
-    })
-
-    // when this component is destroyed, remove the map
-    return () => {
-      mapObj.remove()
-    }
-  }, []) // intentionally omitting onCreateMap from deps list
+    },
+    // intentionally omitting onCreateMap from deps list
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    []
+  )
   // TODO: this should probably be via useCallback, so should be stable
 
   return (

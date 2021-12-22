@@ -65,7 +65,7 @@ The following environment variables must be sent in `/ui/.env.development`:
 
 ```
 GATSBY_MAPBOX_API_TOKEN = <token>
-GATSBY_API_HOST = <root URL of API host, likely http://localhost/:5000 for local flask server >
+GATSBY_API_HOST = <root URL of API host, likely http://localhost/:5000 for local fastapi server >
 GATSBY_TILE_HOST = <root URL of tile host, likely http://localhost:8001 for local mbtileserver >
 ```
 

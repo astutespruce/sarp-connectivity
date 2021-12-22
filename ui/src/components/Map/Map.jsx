@@ -39,41 +39,46 @@ const Map = ({ bounds, children, onCreateMap }) => {
   // construct the map within an effect that has no dependencies
   // this allows us to construct it only once at the time the
   // component is constructed.
-  useLayoutEffect(() => {
-    const { center, zoom } = getCenterAndZoom(mapNode.current, bounds, 0.1)
+  useLayoutEffect(
+    () => {
+      const { center, zoom } = getCenterAndZoom(mapNode.current, bounds, 0.1)
 
-    // Token must be set before constructing map
-    mapboxgl.accessToken = mapboxToken
+      // Token must be set before constructing map
+      mapboxgl.accessToken = mapboxToken
 
-    const mapObj = new mapboxgl.Map({
-      container: mapNode.current,
-      style: `mapbox://styles/mapbox/${styleID}`,
-      center,
-      zoom: zoom || 0,
-      minZoom,
-      maxZoom,
-      projection,
-    })
-    window.map = mapObj // for easier debugging and querying via console
+      const mapObj = new mapboxgl.Map({
+        container: mapNode.current,
+        style: `mapbox://styles/mapbox/${styleID}`,
+        center,
+        zoom: zoom || 0,
+        minZoom,
+        maxZoom,
+        projection,
+      })
+      window.map = mapObj // for easier debugging and querying via console
 
-    mapObj.addControl(new mapboxgl.NavigationControl(), 'top-right')
+      mapObj.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
-    mapObj.on('load', () => {
-      // add sources
-      Object.entries(sources).forEach(([id, source]) => {
-        mapObj.addSource(id, source)
+      mapObj.on('load', () => {
+        // add sources
+        Object.entries(sources).forEach(([id, source]) => {
+          mapObj.addSource(id, source)
+        })
+
+        // rerender to pass map into child components
+        setMap(mapObj)
+        onCreateMap(mapObj)
       })
 
-      // rerender to pass map into child components
-      setMap(mapObj)
-      onCreateMap(mapObj)
-    })
-
-    // when this component is destroyed, remove the map
-    return () => {
-      mapObj.remove()
-    }
-  }, []) // intentionally omitting onCreateMap from deps list
+      // when this component is destroyed, remove the map
+      return () => {
+        mapObj.remove()
+      }
+    },
+    // intentionally omitting onCreateMap from deps list
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    []
+  )
 
   return (
     <Box

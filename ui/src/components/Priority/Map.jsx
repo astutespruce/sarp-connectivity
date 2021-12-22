@@ -692,7 +692,7 @@ const PriorityMap = ({
 
     if (Math.max(...Object.values(priorityLayerState))) {
       Object.entries(priorityLayerState)
-        .filter(([id, visible]) => visible)
+        .filter(([_, visible]) => visible)
         .forEach(([id]) => {
           patches.push(priorityWatershedLegends[id])
         })

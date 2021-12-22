@@ -1,4 +1,5 @@
 import React from 'react'
+/* eslint-disable-next-line import/no-unresolved */
 import { Router } from '@reach/router'
 
 import { ClientOnly } from 'components/Layout'

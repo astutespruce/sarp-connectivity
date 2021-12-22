@@ -89,12 +89,12 @@ const StateDownloadTable = ({
         <table cellPadding="0.5rem" cellSpacing="0">
           <thead>
             <tr>
-              <th />
+              <th> </th>
               <th>Inventoried dams</th>
               <th>Reconned dams</th>
               <th>Inventoried road-related barriers</th>
-              <th />
-              <th />
+              <th> </th>
+              <th> </th>
             </tr>
           </thead>
           <tbody>

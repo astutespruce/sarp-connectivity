@@ -54,13 +54,11 @@ const Dams = ({ dams, onNetworkDams }) => {
 Dams.propTypes = {
   dams: PropTypes.number,
   onNetworkDams: PropTypes.number,
-  miles: PropTypes.number,
 }
 
 Dams.defaultProps = {
   dams: 0,
   onNetworkDams: 0,
-  miles: 0,
 }
 
 export default Dams

@@ -73,67 +73,72 @@ const Preview = ({ barrierType, data }) => {
     }))
   }, [])
 
-  const handleExport = useCallback(async () => {
-    if (!(locatorMapRef.current && exportMapRef.current)) {
-      // not done loading yet
-      return
-    }
-
-    setState((prevState) => ({
-      ...prevState,
-      isPending: true,
-      hasError: false,
-    }))
-
-    const [mapImage, locatorMapImage] = await Promise.all([
-      mapToDataURL(exportMapRef.current),
-      mapToDataURL(locatorMapRef.current),
-    ])
-
-    // get scale component
-    let scale = null
-    const scaleNode = window.document.querySelector('.mapboxgl-ctrl-scale')
-    if (scaleNode) {
-      scale = {
-        width: scaleNode.offsetWidth,
-        label: scaleNode.innerText,
+  const handleExport = useCallback(
+    async () => {
+      if (!(locatorMapRef.current && exportMapRef.current)) {
+        // not done loading yet
+        return
       }
-    }
 
-    pdf(
-      <Report
-        map={mapImage}
-        scale={scale}
-        attribution={attribution}
-        locatorMap={locatorMapImage}
-        barrierType={barrierType}
-        data={data}
-        name={name}
-      />
-    )
-      .toBlob()
-      .then((blob) => {
-        setState((prevState) => ({
-          ...prevState,
-          isPending: false,
-          hasError: false,
-        }))
-        saveAs(
-          blob,
-          `${sarpid}_${
-            barrierType === 'dams' ? 'dam' : 'road_related_barrier'
-          }_report.pdf`
-        )
-      })
-      .catch((error) => {
-        console.error(error)
-        setState((prevState) => ({
-          ...prevState,
-          isPending: false,
-          hasError: true,
-        }))
-      })
-  }, [])
+      setState((prevState) => ({
+        ...prevState,
+        isPending: true,
+        hasError: false,
+      }))
+
+      const [mapImage, locatorMapImage] = await Promise.all([
+        mapToDataURL(exportMapRef.current),
+        mapToDataURL(locatorMapRef.current),
+      ])
+
+      // get scale component
+      let scale = null
+      const scaleNode = window.document.querySelector('.mapboxgl-ctrl-scale')
+      if (scaleNode) {
+        scale = {
+          width: scaleNode.offsetWidth,
+          label: scaleNode.innerText,
+        }
+      }
+
+      pdf(
+        <Report
+          map={mapImage}
+          scale={scale}
+          attribution={attribution}
+          locatorMap={locatorMapImage}
+          barrierType={barrierType}
+          data={data}
+          name={name}
+        />
+      )
+        .toBlob()
+        .then((blob) => {
+          setState((prevState) => ({
+            ...prevState,
+            isPending: false,
+            hasError: false,
+          }))
+          saveAs(
+            blob,
+            `${sarpid}_${
+              barrierType === 'dams' ? 'dam' : 'road_related_barrier'
+            }_report.pdf`
+          )
+        })
+        .catch((error) => {
+          console.error(error)
+          setState((prevState) => ({
+            ...prevState,
+            isPending: false,
+            hasError: true,
+          }))
+        })
+    },
+    // intentionally omitting deps; they don't change
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    []
+  )
 
   if (hasError) {
     return <PageError />

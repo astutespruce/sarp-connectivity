@@ -77,260 +77,266 @@ const SummaryMap = ({
     return feature
   }, []) // onSelectUnit intentionally omitted here
 
-  const handleCreateMap = useCallback((map) => {
-    mapRef.current = map
+  const handleCreateMap = useCallback(
+    (map) => {
+      mapRef.current = map
 
-    map.on('zoomend', () => {
+      map.on('zoomend', () => {
+        setZoom(map.getZoom())
+      })
+
       setZoom(map.getZoom())
-    })
 
-    setZoom(map.getZoom())
+      layers.forEach(
+        ({
+          id,
+          system: lyrSystem,
+          minzoom = 0,
+          maxzoom = 24,
+          fill,
+          outline,
+          bins: { [barrierType]: bins },
+        }) => {
+          const colors = COLORS.count[bins.length]
+          const visibility = lyrSystem === system ? 'visible' : 'none'
 
-    layers.forEach(
-      ({
-        id,
-        system: lyrSystem,
-        minzoom = 0,
-        maxzoom = 24,
-        fill,
-        outline,
-        bins: { [barrierType]: bins },
-      }) => {
-        const colors = COLORS.count[bins.length]
-        const visibility = lyrSystem === system ? 'visible' : 'none'
+          // base config for each layer
+          const config = {
+            source: 'summary',
+            'source-layer': id,
+            minzoom,
+            maxzoom,
+          }
 
-        // base config for each layer
-        const config = {
-          source: 'summary',
-          'source-layer': id,
-          minzoom,
-          maxzoom,
+          // add fill layer
+          const fillID = `${id}-fill`
+          map.addLayer({
+            ...config,
+            ...fill,
+            id: fillID,
+            type: 'fill',
+            layout: {
+              visibility,
+            },
+            paint: {
+              'fill-opacity': fill.paint['fill-opacity'],
+              'fill-color': [
+                'match',
+                ['get', barrierType],
+                0,
+                COLORS.empty,
+                interpolateExpr(barrierType, bins, colors),
+              ],
+            },
+          })
+
+          // add outline layer
+          map.addLayer({
+            ...config,
+            ...outline,
+            id: `${id}-outline`,
+            type: 'line',
+            maxzoom: 24,
+            layout: {
+              visibility,
+              'line-cap': 'round',
+              'line-join': 'round',
+            },
+            paint: {
+              'line-opacity': 1,
+              'line-width': outline.paint['line-width'],
+              'line-color': '#CC99A8', // last color of COUNT_COLORS, then lightened several shades
+            },
+          })
+
+          // add highlight layer
+          map.addLayer({
+            ...config,
+            id: `${id}-highlight`,
+            type: 'line',
+            minzoom: 0,
+            maxzoom: 21,
+            layout: {
+              visibility,
+              'line-cap': 'round',
+              'line-join': 'round',
+            },
+            paint: {
+              'line-opacity': 1,
+              'line-width': 4,
+              'line-color': '#333',
+            },
+            filter: ['==', 'id', Infinity],
+          })
         }
+      )
 
-        // add fill layer
-        const fillID = `${id}-fill`
-        map.addLayer({
-          ...config,
-          ...fill,
-          id: fillID,
-          type: 'fill',
-          layout: {
-            visibility,
-          },
-          paint: {
-            'fill-opacity': fill.paint['fill-opacity'],
-            'fill-color': [
-              'match',
-              ['get', barrierType],
-              0,
-              COLORS.empty,
-              interpolateExpr(barrierType, bins, colors),
-            ],
-          },
-        })
-
-        // add outline layer
-        map.addLayer({
-          ...config,
-          ...outline,
-          id: `${id}-outline`,
-          type: 'line',
-          maxzoom: 24,
-          layout: {
-            visibility,
-            'line-cap': 'round',
-            'line-join': 'round',
-          },
-          paint: {
-            'line-opacity': 1,
-            'line-width': outline.paint['line-width'],
-            'line-color': '#CC99A8', // last color of COUNT_COLORS, then lightened several shades
-          },
-        })
-
-        // add highlight layer
-        map.addLayer({
-          ...config,
-          id: `${id}-highlight`,
-          type: 'line',
-          minzoom: 0,
-          maxzoom: 21,
-          layout: {
-            visibility,
-            'line-cap': 'round',
-            'line-join': 'round',
-          },
-          paint: {
-            'line-opacity': 1,
-            'line-width': 4,
-            'line-color': '#333',
-          },
-          filter: ['==', 'id', Infinity],
-        })
-      }
-    )
-
-    // Add mask / boundary layers
-    regionLayers.forEach((l) => {
-      const layer = {
-        ...l,
-        filter: ['==', 'id', region],
-      }
-      map.addLayer(layer)
-    })
-
-    // Add network layers
-    networkLayers.forEach((layer) => {
-      map.addLayer(layer)
-    })
-
-    // Add barrier point layers
-    map.addLayer(waterfallsLayer)
-    map.addLayer(damsSecondaryLayer)
-
-    barrierTypes.forEach((t) => {
-      map.addLayer({
-        id: `${t}-background`,
-        source: t,
-        ...backgroundPointLayer,
-        layout: {
-          visibility: barrierType === t ? 'visible' : 'none',
-        },
+      // Add mask / boundary layers
+      regionLayers.forEach((l) => {
+        const layer = {
+          ...l,
+          filter: ['==', 'id', region],
+        }
+        map.addLayer(layer)
       })
 
-      map.addLayer({
-        id: t,
-        source: t,
-        'source-layer': t,
-        ...pointLayer,
-        layout: {
-          visibility: barrierType === t ? 'visible' : 'none',
-        },
+      // Add network layers
+      networkLayers.forEach((layer) => {
+        map.addLayer(layer)
       })
-    })
 
-    // Add barrier highlight layers
-    map.addLayer(pointHoverLayer)
-    map.addLayer(pointHighlightLayer)
+      // Add barrier point layers
+      map.addLayer(waterfallsLayer)
+      map.addLayer(damsSecondaryLayer)
 
-    const pointLayers = barrierTypes
-      .map((t) => t)
-      .concat(barrierTypes.map((t) => `${t}-background`))
-      .concat(['dams-secondary', 'waterfalls'])
+      barrierTypes.forEach((t) => {
+        map.addLayer({
+          id: `${t}-background`,
+          source: t,
+          ...backgroundPointLayer,
+          layout: {
+            visibility: barrierType === t ? 'visible' : 'none',
+          },
+        })
 
-    const clickLayers = pointLayers.concat(layers.map(({ id }) => `${id}-fill`))
+        map.addLayer({
+          id: t,
+          source: t,
+          'source-layer': t,
+          ...pointLayer,
+          layout: {
+            visibility: barrierType === t ? 'visible' : 'none',
+          },
+        })
+      })
 
-    // add hover and tooltip to point layers
-    const tooltip = new mapboxgl.Popup({
-      closeButton: false,
-      closeOnClick: false,
-      anchor: 'left',
-      offset: 20,
-    })
-    pointLayers.forEach((id) => {
-      map.on('mouseenter', id, ({ features: [feature] }) => {
-        if (map.getZoom() <= 7) {
+      // Add barrier highlight layers
+      map.addLayer(pointHoverLayer)
+      map.addLayer(pointHighlightLayer)
+
+      const pointLayers = barrierTypes
+        .map((t) => t)
+        .concat(barrierTypes.map((t) => `${t}-background`))
+        .concat(['dams-secondary', 'waterfalls'])
+
+      const clickLayers = pointLayers.concat(
+        layers.map(({ id }) => `${id}-fill`)
+      )
+
+      // add hover and tooltip to point layers
+      const tooltip = new mapboxgl.Popup({
+        closeButton: false,
+        closeOnClick: false,
+        anchor: 'left',
+        offset: 20,
+      })
+      pointLayers.forEach((id) => {
+        map.on('mouseenter', id, ({ features: [feature] }) => {
+          if (map.getZoom() <= 7) {
+            return
+          }
+
+          const {
+            geometry: { coordinates },
+          } = feature
+          map.getSource(pointHoverLayer.id).setData({
+            type: 'Point',
+            coordinates,
+          })
+
+          /* eslint-disable-next-line no-param-reassign */
+          map.getCanvas().style.cursor = 'pointer'
+          const prefix = barrierTypeLabels[feature.source]
+            ? `${capitalize(barrierTypeLabels[feature.source]).slice(
+                0,
+                barrierTypeLabels[feature.source].length - 1
+              )}: `
+            : ''
+          const { name } = feature.properties
+          tooltip
+            .setLngLat(coordinates)
+            .setHTML(
+              `<b>${prefix}${!isEmptyString(name) ? name : 'Unknown name'}</b>`
+            )
+            .addTo(map)
+        })
+        map.on('mouseleave', id, () => {
+          map.getSource(pointHoverLayer.id).setData(emptyFeatureCollection)
+
+          /* eslint-disable-next-line no-param-reassign */
+          map.getCanvas().style.cursor = ''
+          tooltip.remove()
+        })
+      })
+
+      map.on('click', ({ point }) => {
+        const [feature] = map.queryRenderedFeatures(point, {
+          layers: clickLayers,
+        })
+        if (!feature) {
           return
         }
 
-        const {
-          geometry: { coordinates },
-        } = feature
-        map.getSource(pointHoverLayer.id).setData({
-          type: 'Point',
-          coordinates,
-        })
+        const { source, sourceLayer, properties } = feature
 
-        /* eslint-disable-next-line no-param-reassign */
-        map.getCanvas().style.cursor = 'pointer'
-        const prefix = barrierTypeLabels[feature.source]
-          ? `${capitalize(barrierTypeLabels[feature.source]).slice(
-              0,
-              barrierTypeLabels[feature.source].length - 1
-            )}: `
-          : ''
-        const { name } = feature.properties
-        tooltip
-          .setLngLat(coordinates)
-          .setHTML(
-            `<b>${prefix}${!isEmptyString(name) ? name : 'Unknown name'}</b>`
-          )
-          .addTo(map)
-      })
-      map.on('mouseleave', id, () => {
-        map.getSource(pointHoverLayer.id).setData(emptyFeatureCollection)
-
-        /* eslint-disable-next-line no-param-reassign */
-        map.getCanvas().style.cursor = ''
-        tooltip.remove()
-      })
-    })
-
-    map.on('click', ({ point }) => {
-      const [feature] = map.queryRenderedFeatures(point, {
-        layers: clickLayers,
-      })
-      if (!feature) {
-        return
-      }
-
-      const { source, sourceLayer, properties } = feature
-
-      if (source === 'summary') {
-        // summary unit layer
-        onSelectUnit({
-          ...properties,
-          layerId: sourceLayer,
-        })
-      } else {
-        // query HUC8 and HUC12 names to show with barrier details
-        let HUC8Name = null
-        let HUC12Name = null
-
-        if (properties.HUC8 && properties.HUC12) {
-          const [HUC8] = map.querySourceFeatures('summary', {
-            sourceLayer: 'HUC8',
-            filter: ['==', 'id', properties.HUC8],
+        if (source === 'summary') {
+          // summary unit layer
+          onSelectUnit({
+            ...properties,
+            layerId: sourceLayer,
           })
-          if (HUC8) {
-            HUC8Name = HUC8.properties.name
+        } else {
+          // query HUC8 and HUC12 names to show with barrier details
+          let HUC8Name = null
+          let HUC12Name = null
+
+          if (properties.HUC8 && properties.HUC12) {
+            const [HUC8] = map.querySourceFeatures('summary', {
+              sourceLayer: 'HUC8',
+              filter: ['==', 'id', properties.HUC8],
+            })
+            if (HUC8) {
+              HUC8Name = HUC8.properties.name
+            }
+
+            const [HUC12] = map.querySourceFeatures('summary', {
+              sourceLayer: 'HUC12',
+              filter: ['==', 'id', properties.HUC12],
+            })
+            if (HUC12) {
+              HUC12Name = HUC12.properties.name
+            }
           }
 
-          const [HUC12] = map.querySourceFeatures('summary', {
-            sourceLayer: 'HUC12',
-            filter: ['==', 'id', properties.HUC12],
+          const {
+            geometry: {
+              coordinates: [lon, lat],
+            },
+          } = feature
+
+          const {
+            hasnetwork = sourceLayer !== 'background',
+            ranked = sourceLayer !== 'background' && source !== 'waterfalls',
+          } = properties
+
+          // dam, barrier, waterfall
+          onSelectBarrier({
+            ...properties,
+            HUC8Name,
+            HUC12Name,
+            barrierType: source,
+            lat,
+            lon,
+            hasnetwork,
+            ranked,
           })
-          if (HUC12) {
-            HUC12Name = HUC12.properties.name
-          }
         }
-
-        const {
-          geometry: {
-            coordinates: [lon, lat],
-          },
-        } = feature
-
-        const {
-          hasnetwork = sourceLayer !== 'background',
-          ranked = sourceLayer !== 'background' && source !== 'waterfalls',
-        } = properties
-
-        // dam, barrier, waterfall
-        onSelectBarrier({
-          ...properties,
-          HUC8Name,
-          HUC12Name,
-          barrierType: source,
-          lat,
-          lon,
-          hasnetwork,
-          ranked,
-        })
-      }
-    })
+      })
+    },
     // hook deps are intentionally omitted here
-  }, [])
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    []
+  )
 
   useEffect(() => {
     const { current: map } = mapRef
@@ -578,6 +584,7 @@ const SummaryMap = ({
       map.fitBounds(regionBounds[region].bbox, { padding: 100 })
     },
     // regionBounds deliberately omitted
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
     [region]
   )
 

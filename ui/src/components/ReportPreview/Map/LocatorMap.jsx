@@ -3,12 +3,12 @@ import React, { useLayoutEffect, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { Box } from 'theme-ui'
 
+import { mapConfig } from 'components/Map'
+
 // exclude Mapbox GL from babel transpilation per https://docs.mapbox.com/mapbox-gl-js/guides/migrate-to-v2/
 /* eslint-disable-next-line */
 import mapboxgl from '!mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-
-import { mapConfig } from 'components/Map'
 
 import { siteMetadata } from '../../../../gatsby-config'
 
@@ -36,51 +36,56 @@ const LocatorMap = ({ width, height, center, zoom, styleID, onCreateMap }) => {
   // construct the map within an effect that has no dependencies
   // this allows us to construct it only once at the time the
   // component is constructed.
-  useLayoutEffect(() => {
-    // Token must be set before constructing map
-    mapboxgl.accessToken = mapboxToken
+  useLayoutEffect(
+    () => {
+      // Token must be set before constructing map
+      mapboxgl.accessToken = mapboxToken
 
-    const mapObj = new mapboxgl.Map({
-      container: mapNode.current,
-      style: `mapbox://styles/mapbox/${styleID}`,
-      center,
-      zoom: zoom || 0,
-      minZoom,
-      maxZoom,
-      preserveDrawingBuffer: true,
-      interactive: false,
-      attributionControl: false,
-    })
-    window.locatorMap = mapObj // for easier debugging and querying via console
+      const mapObj = new mapboxgl.Map({
+        container: mapNode.current,
+        style: `mapbox://styles/mapbox/${styleID}`,
+        center,
+        zoom: zoom || 0,
+        minZoom,
+        maxZoom,
+        preserveDrawingBuffer: true,
+        interactive: false,
+        attributionControl: false,
+      })
+      window.locatorMap = mapObj // for easier debugging and querying via console
 
-    mapObj.on('load', () => {
-      mapObj.addLayer({
-        id: 'marker',
-        source: {
-          type: 'geojson',
-          data: {
-            type: 'Point',
-            coordinates: center,
+      mapObj.on('load', () => {
+        mapObj.addLayer({
+          id: 'marker',
+          source: {
+            type: 'geojson',
+            data: {
+              type: 'Point',
+              coordinates: center,
+            },
           },
-        },
-        type: 'circle',
-        paint: {
-          'circle-color': '#fd8d3c',
-          'circle-radius': 8,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#f03b20',
-        },
+          type: 'circle',
+          paint: {
+            'circle-color': '#fd8d3c',
+            'circle-radius': 8,
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#f03b20',
+          },
+        })
+
+        mapRef.current = mapObj
+        onCreateMap(mapObj)
       })
 
-      mapRef.current = mapObj
-      onCreateMap(mapObj)
-    })
-
-    // when this component is destroyed, remove the map
-    return () => {
-      mapObj.remove()
-    }
-  }, []) // intentionally omitting onCreateMap from deps list
+      // when this component is destroyed, remove the map
+      return () => {
+        mapObj.remove()
+      }
+    },
+    // intentionally omitting onCreateMap from deps list
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    []
+  )
   // TODO: this should probably be via useCallback, so should be stable
 
   useEffect(() => {
