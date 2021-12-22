@@ -151,6 +151,10 @@ export const RECON = {
   18: 'Dam failed',
   19: 'Proposed dam',
   17: 'Risky for mussels',
+  20: 'Farm pond - no conservation benefit',
+  21: 'Potential thermal issues',
+  22: 'Removal unlikely; fish passage installed',
+  23: 'Duplicate fish passage project structure',
 }
 
 export const PURPOSE = {

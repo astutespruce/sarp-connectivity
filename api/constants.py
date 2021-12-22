@@ -376,7 +376,8 @@ RECON_DOMAIN = {
     19: "Proposed dam",
     20: "Farm pond - no conservation benefit",
     21: "Potential thermal issues",
-    22: "Duplicate fish passage project structure",
+    22: "Removal unlikely; fish passage installed",
+    23: "Duplicate fish passage project structure",
 }
 
 # Created here to capture values below
