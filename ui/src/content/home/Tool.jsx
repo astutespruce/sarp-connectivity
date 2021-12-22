@@ -16,7 +16,7 @@ const Tool = () => {
     },
   } = useStaticQuery(graphql`
     query {
-      prioritize: file(relativePath: { eq: "prioritize.jpg" }) {
+      prioritize: file(relativePath: { eq: "prioritize.png" }) {
         childImageSharp {
           gatsbyImageData(
             layout: CONSTRAINED
@@ -26,7 +26,7 @@ const Tool = () => {
           )
         }
       }
-      summarize: file(relativePath: { eq: "summarize.jpg" }) {
+      summarize: file(relativePath: { eq: "summarize.png" }) {
         childImageSharp {
           gatsbyImageData(
             layout: CONSTRAINED
@@ -64,7 +64,7 @@ const Tool = () => {
           </Paragraph>
         </Box>
         <Box>
-          <Flex sx={{ justifyContent: 'center', mb: '2rem' }}>
+          <Flex sx={{ justifyContent: 'flex-end', mb: '1rem' }}>
             <Link to="/summary">
               <Button variant="primary">
                 <ChartBar size="1em" />
@@ -72,9 +72,19 @@ const Tool = () => {
               </Button>
             </Link>
           </Flex>
-          <Link to="/summary">
-            <Image image={summarizeImage} alt="Summarize View" />
-          </Link>
+          <Box
+            sx={{
+              img: {
+                border: '1px solid',
+                borderColor: 'grey.3',
+                boxShadow: '1px 1px 3px #AAA',
+              },
+            }}
+          >
+            <Link to="/summary">
+              <Image image={summarizeImage} alt="Summarize View" />
+            </Link>
+          </Box>
         </Box>
       </Grid>
 
@@ -94,7 +104,7 @@ const Tool = () => {
           </Paragraph>
         </Box>
         <Box>
-          <Flex sx={{ justifyContent: 'center', mb: '2rem' }}>
+          <Flex sx={{ justifyContent: 'flex-end', mb: '1rem' }}>
             <Link to="/priority">
               <Button>
                 <SearchLocation size="1em" />
@@ -102,9 +112,11 @@ const Tool = () => {
               </Button>
             </Link>
           </Flex>
-          <Link to="/priority">
-            <Image image={prioritizeImage} alt="Priority View" />
-          </Link>
+          <Box sx={{ img: { border: '1px solid', borderColor: 'grey.3' } }}>
+            <Link to="/priority">
+              <Image image={prioritizeImage} alt="Priority View" />
+            </Link>
+          </Box>
         </Box>
       </Grid>
     </Box>

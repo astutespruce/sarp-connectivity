@@ -112,11 +112,6 @@ regions.forEach(({ id, bbox: bounds }) => {
   style.layers[4].filter = ['==', 'id', id]
   render(style, width, height, {
     token,
-    // zoom: 5,
-    // center: [
-    //   (bounds[2] - bounds[0]) / 2 + bounds[0],
-    //   (bounds[3] - bounds[1]) / 2 + bounds[1],
-    // ],
     bounds,
     padding: id === 'se' ? 10 : 20,
     tilePath,
