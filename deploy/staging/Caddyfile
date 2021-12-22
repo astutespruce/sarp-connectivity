@@ -3,6 +3,12 @@ aquaticbarriers.mockuplab.us {
     level ERROR
   }
 
+  # common headers
+  header Strict-Transport-Security "max-age=63072000; preload"
+  header X-Frame-Options "DENY"
+  header Content-Security-Policy "default-src 'self' *.googletagmanager.com *.mapbox.com *.sentry.io; connect-src *; img-src 'unsafe-inline' * data: blob:; media-src 'unsafe-inline' *; worker-src * blob:; style-src 'unsafe-inline' *; script-src 'unsafe-inline' *"
+  header X-Content-Type-Options nosniff
+
   route /services* {
       header Cache-Control "public, max-age=3600, must-revalidate"
       reverse_proxy localhost:8000
