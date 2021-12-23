@@ -14,9 +14,8 @@ const BarrierReport = ({ barrierType, sarpid, uri }) => {
     uri,
     async () => fetchBarrierDetails(barrierType, sarpid),
     {
-      // FIXME:
-      //   staleTime: 60 * 60 * 1000, // 60 minutes
-      staleTime: 1, // use then reload to force refresh of underlying data during dev
+      staleTime: 60 * 60 * 1000, // 60 minutes
+      // staleTime: 1, // use then reload to force refresh of underlying data during dev
       refetchOnWindowFocus: false,
       refetchOnMount: false,
     }

@@ -36,18 +36,16 @@
 
     # page-data, html, and site root must be fetched each time
     @no_cache {
-      path *.html *.webmanifest */page-data/* / /priority /summary /network_methods /metrics/* /regions/*
+      path *.html *.webmanifest */page-data/* / /priority /summary /network_methods /metrics/* /regions/* /report/*
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
+
+    # Capture client only routes and route through correct page to force loading on client side
+    rewrite /report/* report/index.html
 
     encode zstd gzip
     root * /var/www
     file_server
-
-    # Capture client only routes and route through 404 to force loading on client side
-    route /report/* {
-      try_files {path} 404.html
-    }
 
   }
 

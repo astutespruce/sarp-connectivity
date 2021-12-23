@@ -6,7 +6,7 @@ connectivity.sarpdata.com {
   # common headers
   header Strict-Transport-Security "max-age=63072000; preload"
   header X-Frame-Options "DENY"
-  header Content-Security-Policy "default-src 'self' *.googletagmanager.com *.mapbox.com *.sentry.io; connect-src *; img-src 'unsafe-inline' * data: blob:; media-src 'unsafe-inline' *; worker-src * blob:; style-src 'unsafe-inline' *; script-src 'unsafe-inline' *"
+  header Content-Security-Policy "default-src 'self' *.googletagmanager.com *.mapbox.com *.sentry.io; connect-src *; img-src 'unsafe-inline' * data: blob:; media-src 'unsafe-inline' *; worker-src * blob:; style-src 'unsafe-inline' *; script-src 'unsafe-inline' 'unsafe-eval' *"
   header X-Content-Type-Options nosniff
 
   route /services* {
@@ -48,15 +48,12 @@ connectivity.sarpdata.com {
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
 
+    # Capture client only routes and route through correct page to force loading on client side
+    rewrite /report/* report/index.html
+
     encode zstd gzip
     root * /var/www
     file_server
-
-    # Capture client only routes and route through 404 to force loading on client side
-    route /report/* {
-      try_files {path} 404.html
-    }
-
   }
 
   # Redirect all errors to 404.html
