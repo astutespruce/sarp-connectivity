@@ -220,8 +220,8 @@ const PriorityMap = ({
       })
 
       pointLayers.forEach((id) => {
-        map.on('mouseenter', id, ({ features: [feature] }) => {
-          if (map.getZoom() < 9) {
+        map.on('mousemove', id, ({ features: [feature] }) => {
+          if (map.getZoom() < 8) {
             return
           }
 
@@ -229,6 +229,8 @@ const PriorityMap = ({
             properties: { id: barrierId },
             geometry: { coordinates },
           } = feature
+
+          console.log('hover', barrierId)
 
           let barrierName = ''
           if (id.startsWith('rank-')) {
@@ -319,8 +321,8 @@ const PriorityMap = ({
           return
         }
 
-        if (map.getZoom() < 9) {
-          // don't allow selection of points below zoom 9
+        if (map.getZoom() < 8) {
+          // don't allow selection of points below zoom 8
           const [unitLayerFeature] = features.filter(
             ({ source: lyrSource }) => lyrSource === 'summary'
           )

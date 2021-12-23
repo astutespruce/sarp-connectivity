@@ -371,15 +371,16 @@ export const pointLayer = {
     'circle-color': '#c51b8a',
     'circle-radius': {
       stops: [
-        [10, 1],
-        [12, 2],
+        [9,1],
+        [10, 2],
+        [12, 3],
         [14, 4],
         [16, 8],
       ],
     },
     'circle-opacity': {
       stops: [
-        [10, 0.25],
+        [9, 0.25],
         [12, 0.5],
         [14, 1],
       ],
@@ -387,7 +388,7 @@ export const pointLayer = {
     'circle-stroke-color': '#FFFFFF',
     'circle-stroke-width': {
       stops: [
-        [10, 0],
+        [9, 0],
         [12, 1],
         [14, 3],
       ],

@@ -231,8 +231,8 @@ const SummaryMap = ({
         offset: 20,
       })
       pointLayers.forEach((id) => {
-        map.on('mouseenter', id, ({ features: [feature] }) => {
-          if (map.getZoom() <= 7) {
+        map.on('mousemove', id, ({ features: [feature] }) => {
+          if (map.getZoom() < 9) {
             return
           }
 
