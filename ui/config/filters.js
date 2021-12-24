@@ -3,6 +3,7 @@ import {
   PURPOSE,
   FEASIBILITY,
   RARESPP,
+  TROUT,
   STREAMORDER,
   INTERMITTENT,
   GAINMILES,
@@ -37,6 +38,8 @@ const getEntries = (obj) => {
     labels: values.map((key) => obj[key]),
   }
 }
+
+console.log(getEntries(TROUT))
 
 const priorityFilters = [
   {
@@ -94,6 +97,14 @@ const dams = [
     help: 'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
     url: '/sgcn',
     ...getEntries(RARESPP),
+  },
+  {
+    field: 'trout',
+    title: 'Trout presence / absence',
+    help: 'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    sort: false,
+    hideEmpty: false,
+    ...getEntries(TROUT),
   },
   {
     field: 'streamorderclass',
@@ -225,6 +236,14 @@ const smallBarriers = [
     help: 'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
     url: '/sgcn',
     ...getEntries(RARESPP),
+  },
+  {
+    field: 'trout',
+    title: 'Trout presence / absence',
+    help: 'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    sort: false,
+    hideEmpty: false,
+    ...getEntries(TROUT),
   },
   {
     field: 'ownertype',

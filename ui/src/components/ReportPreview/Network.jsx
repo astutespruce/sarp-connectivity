@@ -69,7 +69,7 @@ const Network = ({
           This dam is off-network and has no functional network information.
         </Text>
 
-        <Paragraph variant="help" sx={{ mt: '0.5rem' }}>
+        <Paragraph variant="help" sx={{ mt: '0.5rem', fontSize: 0 }}>
           Not all dams could be correctly snapped to the aquatic network for
           analysis. Please{' '}
           <a
@@ -212,7 +212,7 @@ const Network = ({
           </Row>
         </Table>
       </Box>
-      <Paragraph variant="help" sx={{ mt: '2rem' }}>
+      <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
         Note: downstream lengths are limited to free-flowing reaches only; these
         exclude lengths within waterbodies in the downstream network. Perennial
         miles are the sum of lengths of all reaches not specifically coded as

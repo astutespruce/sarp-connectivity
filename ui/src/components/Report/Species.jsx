@@ -6,59 +6,70 @@ import { formatNumber } from 'util/format'
 
 import { Bold, Flex, Section } from './elements'
 
-const has = (num) => (num === 1 ? 'has' : 'have')
-
-const Species = ({ tespp, statesgcnspp, regionalsgcnspp, ...props }) => (
+const Species = ({
+  barrierType,
+  tespp,
+  statesgcnspp,
+  regionalsgcnspp,
+  trout,
+  ...props
+}) => (
   <Section title="Species information" {...props}>
-    <Flex>
+    <View>
+      <Text>
+        Data sources in the subwatershed containing this{' '}
+        {barrierType === 'dams' ? 'dam' : 'road-related barrier'} have recorded:
+      </Text>
+    </View>
+
+    <Flex style={{ marginTop: 24 }}>
       <View
         style={{
-          flex: '1 1 33%',
+          flex: '1 1 25%',
         }}
       >
         <Text>
-          <Bold>
-            {formatNumber(tespp)} federally-listed threatened and endangered
-            aquatic species
-          </Bold>{' '}
-          {has(tespp)} been found in the subwatershed containing this barrier.
+          <Bold>{formatNumber(tespp)}</Bold> federally-listed threatened and
+          endangered aquatic species
         </Text>
       </View>
 
       <View
         style={{
-          flex: '1 1 33%',
+          flex: '1 1 25%',
           marginLeft: 14,
           paddingLeft: 14,
           borderLeft: '1px solid #cfd3d6',
         }}
       >
         <Text>
-          <Bold>
-            {statesgcnspp} state-listed aquatic Species of Greatest Conservation
-            Need (SGCN)
-          </Bold>{' '}
-          {has(statesgcnspp)} been found in the subwatershed containing this
-          barrier.
+          <Bold>{statesgcnspp}</Bold> state-listed aquatic Species of Greatest
+          Conservation Need (SGCN)
         </Text>
       </View>
 
       <View
         style={{
-          flex: '1 1 33%',
+          flex: '1 1 25%',
           marginLeft: 14,
           paddingLeft: 14,
           borderLeft: '1px solid #cfd3d6',
         }}
       >
         <Text>
-          <Bold>
-            {regionalsgcnspp} regionally-listed aquatic species of greatest
-            conservation need
-          </Bold>{' '}
-          {has(regionalsgcnspp)} been identified by available data sources for
-          this subwatershed.
+          <Bold>{regionalsgcnspp}</Bold> regionally-listed aquatic Species of
+          Greatest Conservation Need
         </Text>
+      </View>
+      <View
+        style={{
+          flex: '1 1 25%',
+          marginLeft: 14,
+          paddingLeft: 14,
+          borderLeft: '1px solid #cfd3d6',
+        }}
+      >
+        <Text>{trout ? 'One or more trout species' : 'No trout species'}</Text>
       </View>
     </Flex>
 
@@ -75,15 +86,18 @@ const Species = ({ tespp, statesgcnspp, regionalsgcnspp, ...props }) => (
 )
 
 Species.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
+  trout: PropTypes.number,
 }
 
 Species.defaultProps = {
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
+  trout: false,
 }
 
 export default Species

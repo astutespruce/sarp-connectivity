@@ -131,8 +131,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     <>
       <Box
         sx={{
-          pt: '0.5rem',
-          pb: '1rem',
+          py: '0.5rem',
           pr: '0.5rem',
           pl: '1rem',
           borderBottom: '4px solid',
@@ -175,7 +174,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
                 sx={{
                   alignItems: 'center',
                   flex: '1 1 auto',
-                  mt: '0.15rem',
+                  mt: '0.5rem',
                 }}
               >
                 <Box sx={{ flex: '0 0 auto', color: 'link', mr: '0.25rem' }}>

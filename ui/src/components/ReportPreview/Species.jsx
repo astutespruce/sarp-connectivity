@@ -4,14 +4,24 @@ import { Box, Heading, Grid, Paragraph } from 'theme-ui'
 
 import { formatNumber } from 'util/format'
 
-const has = (num) => (num === 1 ? 'has' : 'have')
-
-const Species = ({ tespp, statesgcnspp, regionalsgcnspp, ...props }) => (
+const Species = ({
+  barrierType,
+  tespp,
+  statesgcnspp,
+  regionalsgcnspp,
+  trout,
+  ...props
+}) => (
   <Box {...props}>
     <Heading as="h3">Species information</Heading>
 
+    <Box>
+      Data sources in the subwatershed containing this{' '}
+      {barrierType === 'dams' ? 'dam' : 'road-related barrier'} have recorded:
+    </Box>
+
     <Grid
-      columns={3}
+      columns={4}
       gap={0}
       sx={{
         mt: '1rem',
@@ -27,31 +37,21 @@ const Species = ({ tespp, statesgcnspp, regionalsgcnspp, ...props }) => (
       }}
     >
       <Box>
-        <b>
-          {formatNumber(tespp)} federally-listed threatened and endangered
-          aquatic species
-        </b>{' '}
-        {has(tespp)} been found in the subwatershed containing this barrier.
+        <b>{formatNumber(tespp)}</b> federally-listed threatened and endangered
+        aquatic species
       </Box>
       <Box>
-        <b>
-          {statesgcnspp} state-listed aquatic Species of Greatest Conservation
-          Need (SGCN)
-        </b>{' '}
-        {has(statesgcnspp)} been found in the subwatershed containing this
-        barrier.
+        <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
+        Conservation Need (SGCN)
       </Box>
       <Box>
-        <b>
-          <b>{regionalsgcnspp}</b> regionally-listed aquatic species of greatest
-          conservation need
-        </b>{' '}
-        {has(regionalsgcnspp)} been identified by available data sources for
-        this subwatershed.
+        <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of Greatest
+        Conservation Need
       </Box>
+      <Box>{trout ? 'One or more trout species' : 'No trout species'}</Box>
     </Grid>
 
-    <Paragraph variant="help" sx={{ mt: '2rem' }}>
+    <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
       Note: State and regionally listed species of greatest conservation need
       may include state-listed threatened and endangered species. Species
       information is very incomplete and only includes species that have been
@@ -64,15 +64,18 @@ const Species = ({ tespp, statesgcnspp, regionalsgcnspp, ...props }) => (
 )
 
 Species.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
+  trout: PropTypes.number,
 }
 
 Species.defaultProps = {
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
+  trout: false,
 }
 
 export default Species

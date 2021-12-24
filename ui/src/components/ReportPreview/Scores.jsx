@@ -137,7 +137,7 @@ const Scores = ({
         ) : null}
       </Box>
 
-      <Paragraph variant="help" sx={{ mt: '2rem' }}>
+      <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
         Note: perennial network connectivity is based on the total perennial
         (non-intermittent or ephemeral) length in a given network. Perennial
         watershed condition is based partly upon the percent of the perennial

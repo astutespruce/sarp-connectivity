@@ -79,7 +79,11 @@ const Report = ({
 
         <Feasibility style={{ marginTop: 48 }} {...data} />
 
-        <Species style={{ marginTop: 32 }} {...data} />
+        <Species
+          barrierType={barrierType}
+          style={{ marginTop: 32 }}
+          {...data}
+        />
 
         <IDInfo style={{ marginTop: 32 }} {...data} />
 

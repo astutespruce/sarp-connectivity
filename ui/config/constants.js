@@ -236,6 +236,8 @@ export const GAINMILES = {
 
 export const RARESPP = { 0: '0', 1: '1', 2: '2 - 4', 3: '5 - 9', 4: '>= 10' }
 
+export const TROUT = {0: 'absent or not recorded', 1: 'one or more trout species present'}
+
 export const STREAMORDER = {
   1: '1',
   2: '2',

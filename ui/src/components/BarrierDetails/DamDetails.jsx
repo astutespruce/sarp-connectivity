@@ -52,6 +52,7 @@ const DamDetails = ({
   tespp,
   statesgcnspp,
   regionalsgcnspp,
+  trout,
   recon,
   ownertype,
   huc8_usfs,
@@ -73,6 +74,7 @@ const DamDetails = ({
     sx={{
       mt: '-1rem',
       mx: '-1rem',
+      fontSize: 1,
     }}
   >
     <Section title="Location">
@@ -81,15 +83,14 @@ const DamDetails = ({
         &deg; N / {formatNumber(lon, 5)}
         &deg; E
         {estimated === 1 ? (
-          <Paragraph variant="help">
-            (dam is estimated from other data sources and may be incorrect;
+          <Paragraph variant="help" sx={{ fontSize: 0, mt: '0.5em' }}>
+            Dam is estimated from other data sources and may be incorrect;
             please{' '}
             <a
               href={`mailto:Kat@southeastaquatics.net?subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
             >
               let us know
             </a>
-            . )
           </Paragraph>
         ) : null}
       </Entry>
@@ -121,14 +122,18 @@ const DamDetails = ({
       {HUC12Name ? (
         <Entry>
           {HUC12Name} Subwatershed{' '}
-          <Paragraph variant="help">(HUC12: {HUC12})</Paragraph>
+          <Paragraph variant="help" sx={{ fontSize: 0 }}>
+            HUC12: {HUC12}
+          </Paragraph>
         </Entry>
       ) : null}
 
       {HUC8Name ? (
         <Entry>
           {HUC8Name} Subbasin{' '}
-          <Paragraph variant="help">(HUC8: {HUC8})</Paragraph>
+          <Paragraph variant="help" sx={{ fontSize: 0 }}>
+            HUC8: {HUC8}
+          </Paragraph>
         </Entry>
       ) : null}
 
@@ -212,7 +217,7 @@ const DamDetails = ({
                 This dam is off-network and has no functional network
                 information.
               </Text>
-              <Paragraph variant="help" sx={{ mt: '1rem' }}>
+              <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
                 Not all dams could be correctly snapped to the aquatic network
                 for analysis. Please contact us to report an error or for
                 assistance interpreting these results.
@@ -224,60 +229,33 @@ const DamDetails = ({
     </Section>
 
     <Section title="Species information">
-      {tespp > 0 ? (
-        <>
-          <Entry>
-            <b>{tespp}</b> federally-listed threatened and endangered aquatic
-            species have been found in the subwatershed containing this dam.
-          </Entry>
-        </>
-      ) : (
-        <Entry>
-          No federally-listed threatened and endangered aquatic species have
-          been identified by available data sources for this subwatershed.
-        </Entry>
-      )}
+      <Text sx={{ my: '0.5rem' }}>
+        Data sources in the subwatershed containing this dam have recorded:
+      </Text>
+      <Box as="ul">
+        <li>
+          <b>{tespp}</b> federally-listed threatened and endangered aquatic
+          species
+        </li>
+        <li>
+          <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
+          Conservation Need (SGCN), which include state-listed threatened and
+          endangered species
+        </li>
+        <li>
+          <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of Greatest
+          Conservation Need
+        </li>
+        <li>{trout ? 'One or more trout species' : 'No trout species'}</li>
+      </Box>
 
-      {statesgcnspp > 0 ? (
-        <>
-          <Entry>
-            <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
-            Conservation Need (SGCN) have been found in the subwatershed
-            containing this dam. These may include state-listed threatened and
-            endangered species.
-          </Entry>
-        </>
-      ) : (
-        <Entry>
-          No state-listed aquatic Species of Greatest Conservation Need (SGCN)
-          have been identified by available data sources for this subwatershed.
-        </Entry>
-      )}
-
-      {regionalsgcnspp > 0 ? (
-        <>
-          <Entry>
-            <b>{regionalsgcnspp}</b> regionally-listed aquatic species of
-            greatest conservation need have been found in the subwatershed
-            containing this dam.
-          </Entry>
-        </>
-      ) : (
-        <Entry>
-          No regionally-listed aquatic species of greatest conservation need
-          have been identified by available data sources for this subwatershed.
-        </Entry>
-      )}
-
-      {tespp + statesgcnspp + regionalsgcnspp > 0 ? (
-        <Paragraph variant="help" sx={{ mt: '1rem' }}>
-          Note: species information is very incomplete. These species may or may
-          not be directly impacted by this dam.{' '}
-          <a href="/sgcn" target="_blank">
-            Read more.
-          </a>
-        </Paragraph>
-      ) : null}
+      <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+        Note: species information is very incomplete. These species may or may
+        not be directly impacted by this dam.{' '}
+        <a href="/sgcn" target="_blank">
+          Read more.
+        </a>
+      </Paragraph>
     </Section>
 
     <Section title="Feasibility & conservation benefit">
@@ -317,7 +295,7 @@ const DamDetails = ({
 
     <Section title="Other information">
       <Entry>
-        <Field>SARP ID:</Field> {sarpid} (data version: {dataVersion})
+        <Field>SARP ID:</Field> {sarpid}
       </Entry>
       {!isEmptyString(nidid) ? (
         <Entry>
@@ -362,6 +340,7 @@ DamDetails.propTypes = {
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
+  trout: PropTypes.number,
   recon: PropTypes.number,
   ownertype: PropTypes.number,
   huc8_usfs: PropTypes.number,
@@ -403,6 +382,7 @@ DamDetails.defaultProps = {
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
+  trout: false,
   recon: 0,
   ownertype: null,
   huc8_usfs: 0,

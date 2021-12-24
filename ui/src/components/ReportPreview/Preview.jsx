@@ -237,7 +237,7 @@ const Preview = ({ barrierType, data }) => {
 
           <Feasibility sx={{ mt: '3rem' }} {...data} />
 
-          <Species sx={{ mt: '3rem' }} {...data} />
+          <Species sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
 
           <IDInfo sx={{ mt: '3rem' }} {...data} />
 

@@ -230,8 +230,6 @@ const PriorityMap = ({
             geometry: { coordinates },
           } = feature
 
-          console.log('hover', barrierId)
-
           let barrierName = ''
           if (id.startsWith('rank-')) {
             // get barrier details from tiles

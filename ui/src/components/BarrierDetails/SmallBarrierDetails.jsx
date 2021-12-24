@@ -7,7 +7,6 @@ import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 
-import { siteMetadata } from '../../../gatsby-config'
 import {
   BARRIER_SEVERITY,
   OWNERTYPE,
@@ -15,8 +14,6 @@ import {
 } from '../../../config/constants'
 
 import NetworkInfo from './NetworkInfo'
-
-const { version: dataVersion } = siteMetadata
 
 export const classifySARPScore = (score) => {
   // assumes -1 (NODATA) already filtered out
@@ -63,6 +60,7 @@ const BarrierDetails = ({
   tespp,
   statesgcnspp,
   regionalsgcnspp,
+  trout,
   ownertype,
   huc8_usfs,
   huc8_coa,
@@ -87,6 +85,7 @@ const BarrierDetails = ({
       sx={{
         mt: '-1rem',
         mx: '-1rem',
+        fontSize: 1,
       }}
     >
       <Section title="Location">
@@ -118,14 +117,18 @@ const BarrierDetails = ({
         {HUC12Name ? (
           <Entry>
             {HUC12Name} Subwatershed{' '}
-            <Paragraph variant="help">(HUC12: {HUC12})</Paragraph>
+            <Paragraph variant="help" sx={{ fontSize: 0 }}>
+              HUC12: {HUC12}
+            </Paragraph>
           </Entry>
         ) : null}
 
         {HUC8Name ? (
           <Entry>
             {HUC8Name} Subbasin{' '}
-            <Paragraph variant="help">(HUC8: {HUC8})</Paragraph>
+            <Paragraph variant="help" sx={{ fontSize: 0 }}>
+              HUC8: {HUC8}
+            </Paragraph>
           </Entry>
         ) : null}
 
@@ -202,7 +205,10 @@ const BarrierDetails = ({
                         This barrier is off-network and has no functional
                         network information.
                       </Text>
-                      <Paragraph variant="help" sx={{ mt: '1rem' }}>
+                      <Paragraph
+                        variant="help"
+                        sx={{ mt: '1rem', fontSize: 0 }}
+                      >
                         Not all barriers could be correctly snapped to the
                         aquatic network for analysis. Please contact us to
                         report an error or for assistance interpreting these
@@ -218,54 +224,28 @@ const BarrierDetails = ({
       </Section>
 
       <Section title="Species information">
-        {tespp > 0 ? (
-          <>
-            <Entry>
-              <b>{tespp}</b> federally-listed threatened and endangered aquatic
-              species have been found in the subwatershed containing this
-              barrier.
-            </Entry>
-          </>
-        ) : (
-          <Entry>
-            No federally-listed threatened and endangered aquatic species have
-            been identified by available data sources for this subwatershed.
-          </Entry>
-        )}
+        <Text sx={{ my: '0.5rem' }}>
+          Data sources in the subwatershed containing this barrier have
+          recorded:
+        </Text>
+        <Box as="ul">
+          <li>
+            <b>{tespp}</b> federally-listed threatened and endangered aquatic
+            species
+          </li>
+          <li>
+            <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
+            Conservation Need (SGCN), which include state-listed threatened and
+            endangered species
+          </li>
+          <li>
+            <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of
+            Greatest Conservation Need
+          </li>
+          <li>{trout ? 'One or more trout species' : 'No trout species'}</li>
+        </Box>
 
-        {statesgcnspp > 0 ? (
-          <>
-            <Entry>
-              <b>{statesgcnspp}</b> state-listed aquatic species of greatest
-              conservation need have been found in the subwatershed containing
-              this barrier. These may include state-listed threatened and
-              endangered species.
-            </Entry>
-          </>
-        ) : (
-          <Entry>
-            No state-listed aquatic species of greatest conservation need have
-            been identified by available data sources for this subwatershed.
-          </Entry>
-        )}
-
-        {regionalsgcnspp > 0 ? (
-          <>
-            <Entry>
-              <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of
-              Greatest Conservation Need (SGCN) have been found in the
-              subwatershed containing this barrier.
-            </Entry>
-          </>
-        ) : (
-          <Entry>
-            No regionally-listed aquatic Species of Greatest Conservation Need
-            (SGCN) have been identified by available data sources for this
-            subwatershed.
-          </Entry>
-        )}
-
-        <Paragraph variant="help" sx={{ mt: '1rem' }}>
+        <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
           Note: species information is very incomplete. These species may or may
           not be directly impacted by this barrier.{' '}
           <a href="/sgcn" target="_blank">
@@ -309,7 +289,7 @@ const BarrierDetails = ({
         <Section title="Other information">
           {!isCrossing ? (
             <Entry>
-              <Field>SARP ID:</Field> {sarpid} (data version: {dataVersion})
+              <Field>SARP ID:</Field> {sarpid}
             </Entry>
           ) : null}
 
@@ -346,6 +326,7 @@ BarrierDetails.propTypes = {
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
+  trout: PropTypes.number,
   ownertype: PropTypes.number,
   huc8_usfs: PropTypes.number,
   huc8_coa: PropTypes.number,
@@ -380,6 +361,7 @@ BarrierDetails.defaultProps = {
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
+  trout: false,
   ownertype: null,
   huc8_usfs: 0,
   huc8_coa: 0,
