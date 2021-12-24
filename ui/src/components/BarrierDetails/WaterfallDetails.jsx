@@ -28,6 +28,7 @@ const WaterfallDetails = ({
   tespp,
   statesgcnspp,
   regionalsgcnspp,
+  trout,
   ownertype,
   huc8_usfs,
   huc8_coa,
@@ -137,54 +138,28 @@ const WaterfallDetails = ({
     </Section>
 
     <Section title="Species information">
-      {tespp > 0 ? (
-        <>
-          <Entry>
-            <b>{tespp}</b> federally-listed threatened and endangered aquatic
-            species have been found in the subwatershed containing this
-            waterfall.
-          </Entry>
-        </>
-      ) : (
-        <Entry>
-          No federally-listed threatened and endangered aquatic species have
-          been identified by available data sources for this subwatershed.
-        </Entry>
-      )}
+      <Text sx={{ my: '0.5rem', mr: '0.5rem' }}>
+        Data sources in the subwatershed containing this waterfall have
+        recorded:
+      </Text>
+      <Box as="ul">
+        <li>
+          <b>{tespp}</b> federally-listed threatened and endangered aquatic
+          species
+        </li>
+        <li>
+          <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
+          Conservation Need (SGCN), which include state-listed threatened and
+          endangered species
+        </li>
+        <li>
+          <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of Greatest
+          Conservation Need
+        </li>
+        <li>{trout ? 'One or more trout species' : 'No trout species'}</li>
+      </Box>
 
-      {statesgcnspp > 0 ? (
-        <>
-          <Entry>
-            <b>{statesgcnspp}</b> state-listed aquatic species of greatest
-            conservation need have been found in the subwatershed containing
-            this waterfall. These may include state-listed threatened and
-            endangered species.
-          </Entry>
-        </>
-      ) : (
-        <Entry>
-          No state-listed aquatic species of greatest conservation need have
-          been identified by available data sources for this subwatershed.
-        </Entry>
-      )}
-
-      {regionalsgcnspp > 0 ? (
-        <>
-          <Entry>
-            <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of
-            Greatest Conservation Need (SGCN) have been found in the
-            subwatershed containing this waterfall.
-          </Entry>
-        </>
-      ) : (
-        <Entry>
-          No regionally-listed aquatic Species of Greatest Conservation Need
-          (SGCN) have been identified by available data sources for this
-          subwatershed.
-        </Entry>
-      )}
-
-      <Paragraph variant="help" sx={{ mt: '1rem' }}>
+      <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
         Note: species information is very incomplete. These species may or may
         not be directly impacted by this waterfall.{' '}
         <a href="/sgcn" target="_blank">
@@ -253,6 +228,7 @@ WaterfallDetails.propTypes = {
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
+  trout: PropTypes.number,
   ownertype: PropTypes.number,
   huc8_usfs: PropTypes.number,
   huc8_coa: PropTypes.number,
@@ -277,11 +253,12 @@ WaterfallDetails.defaultProps = {
   excluded: false,
   source: null,
   stream: null,
-  intermittent: false,
+  intermittent: -1,
   falltype: null,
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
+  trout: 0,
   ownertype: null,
   huc8_usfs: 0,
   huc8_coa: 0,

@@ -224,7 +224,7 @@ const BarrierDetails = ({
       </Section>
 
       <Section title="Species information">
-        <Text sx={{ my: '0.5rem' }}>
+        <Text sx={{ my: '0.5rem', mr: '0.5rem' }}>
           Data sources in the subwatershed containing this barrier have
           recorded:
         </Text>
@@ -352,7 +352,7 @@ BarrierDetails.defaultProps = {
   excluded: false,
   source: null,
   stream: null,
-  intermittent: false,
+  intermittent: -1,
   road: null,
   roadtype: null,
   crossingtype: null,
@@ -361,7 +361,7 @@ BarrierDetails.defaultProps = {
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
-  trout: false,
+  trout: 0,
   ownertype: null,
   huc8_usfs: 0,
   huc8_coa: 0,

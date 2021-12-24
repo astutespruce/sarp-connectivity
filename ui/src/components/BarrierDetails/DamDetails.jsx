@@ -229,7 +229,7 @@ const DamDetails = ({
     </Section>
 
     <Section title="Species information">
-      <Text sx={{ my: '0.5rem' }}>
+      <Text sx={{ my: '0.5rem', mr: '0.5rem' }}>
         Data sources in the subwatershed containing this dam have recorded:
       </Text>
       <Box as="ul">
@@ -382,7 +382,7 @@ DamDetails.defaultProps = {
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
-  trout: false,
+  trout: 0,
   recon: 0,
   ownertype: null,
   huc8_usfs: 0,

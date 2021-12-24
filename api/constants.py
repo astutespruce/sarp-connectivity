@@ -57,6 +57,9 @@ UNIT_FIELDS = ["HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4"]
 
 # metric fields that are only valid for barriers with networks
 METRIC_FIELDS = [
+    "HasNetwork",
+    "Ranked",
+    "Intermittent",
     "StreamOrder",
     "Landcover",
     "SizeClasses",
@@ -110,6 +113,7 @@ FILTER_FIELDS = [
     "GainMilesClass",
     "TESppClass",
     "StateSGCNSppClass",
+    "Trout",
     "StreamOrderClass",
     "PercentAlteredClass",
     "OwnerType",
@@ -118,7 +122,7 @@ FILTER_FIELDS = [
     "HUC8_SGCN",
 ]
 
-DAM_FILTER_FIELDS = [
+DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "Feasibility",
     "Purpose",
     "Condition",
@@ -127,84 +131,95 @@ DAM_FILTER_FIELDS = [
     "LowheadDam",
     "PassageFacilityClass",
     "WaterbodySizeClass",
-] + FILTER_FIELDS
+]
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
-SB_FILTER_FIELDS = [
+SB_FILTER_FIELDS = FILTER_FIELDS + [
     "ConditionClass",
     "CrossingTypeClass",
     "RoadTypeClass",
     "SeverityClass",
-] + FILTER_FIELDS
+]
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
 
 ### Fields used for export
-DAM_CORE_FIELDS = [
+# common API fields
+GENERAL_API_FIELDS1 = [
     "lat",
     "lon",
     "Name",
     "SARPID",
-    "NIDID",
     "Source",
-    "Estimated",
-    "River",
-    "Intermittent",
-    "Year",
-    "Height",
-    "Width",
-    "Construction",
-    "Purpose",
-    "Condition",
-    "PassageFacility",
-    "BarrierSeverity",
-    "Diversion",
-    "LowheadDam",
-    "WaterbodyKM2",
-    "WaterbodySizeClass",
-    # Recon is intentionally omitted from download below
-    "Recon",
-    "Feasibility",
-    "TESpp",
-    "StateSGCNSpp",
-    "RegionalSGCNSpp",
-    "OwnerType",
-    "ProtectedLand",
-    # Priority watersheds
-    "HUC8_USFS",
-    "HUC8_COA",
-    "HUC8_SGCN",
-    # Watershed names
-    "Basin",
-    "Subbasin",
-    "Subwatershed",
 ]
 
-DAM_API_FIELDS = (
-    DAM_CORE_FIELDS
-    + UNIT_FIELDS
-    + [
-        "HasNetwork",
-        "Excluded",
-        "Ranked",
-        "FlowsToOcean",
-        "NumBarriersDownstream",
-        "upNetID",
-        "downNetID",
+GENERAL_API_FIELDS2 = (
+    [
+        "Condition",
+        "TESpp",
+        "StateSGCNSpp",
+        "RegionalSGCNSpp",
+        "Trout",
+        "OwnerType",
+        "ProtectedLand",
+        # Priority watersheds
+        "HUC8_USFS",
+        "HUC8_COA",
+        "HUC8_SGCN",
+        # Watershed names
+        "Basin",
+        "Subbasin",
+        "Subwatershed",
     ]
+    + UNIT_FIELDS
+    + ["Excluded"]
     + METRIC_FIELDS
-    + TIER_FIELDS
-    + DAM_FILTER_FIELDS
-    + ["COUNTYFIPS"]
 )
 
-# reduce to unique list, since there are overlaps with filters and core fields
-DAM_API_FIELDS = unique(DAM_API_FIELDS)
+# This order should mostly match FIELD_DEFINITIONS below
+# NOTE: make sure the resultant set is unique!
+DAM_CORE_FIELDS = (
+    GENERAL_API_FIELDS1
+    + [
+        "NIDID",
+        "Estimated",
+        "River",
+        "Year",
+        "Height",
+        "Width",
+        "Construction",
+        "Purpose",
+        "PassageFacility",
+        "Feasibility",
+        # IMPORTANT: Recon is intentionally omitted per direction from SARP
+        # "Recon",
+        "BarrierSeverity",
+        "Diversion",
+        "LowheadDam",
+        "WaterbodyKM2",
+        "WaterbodySizeClass",
+    ]
+    + GENERAL_API_FIELDS2
+    # the following are dam-specific network results
+    + ["FlowsToOcean", "NumBarriersDownstream"]
+)
 
-# Drop fields that can be calculated on frontend
+DAM_CORE_FIELDS = unique(DAM_CORE_FIELDS)
+
+# Internal API includes tiers
+DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + TIER_FIELDS)
+DAM_API_FIELDS = unique(
+    DAM_EXPORT_FIELDS + DAM_FILTER_FIELDS + ["upNetID", "downNetID", "COUNTYFIPS"]
+)
+
+# Public API does not include tier fields
+DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
+
+
+# Drop fields that can be calculated on frontend or are not used
 DAM_TILE_FIELDS = [
     c
-    for c in DAM_API_FIELDS
+    for c in DAM_API_FIELDS + ["Recon"]
     if not c
     in {
         "IntermittentUpstreamMiles",
@@ -215,83 +230,43 @@ DAM_TILE_FIELDS = [
         "TotalPerennialNetworkMiles",
         "PercentUnaltered",
         "PercentPerennialUnaltered",
+        "FlowsToOcean",
+        "NumBarriersDownstream",
     }
 ]
 
-
-DAM_EXPORT_FIELDS = (
-    DAM_CORE_FIELDS
-    + UNIT_FIELDS
-    + ["HasNetwork", "Excluded", "Ranked", "FlowsToOcean", "NumBarriersDownstream",]
-    + METRIC_FIELDS
-    + TIER_FIELDS
-    + CUSTOM_TIER_FIELDS
-)
-# remove recon
-DAM_EXPORT_FIELDS.remove("Recon")
-
-DAM_EXPORT_FIELDS = unique(DAM_EXPORT_FIELDS)
-
-DAM_PUBLIC_EXPORT_FIELDS = unique(
-    DAM_CORE_FIELDS + UNIT_FIELDS + ["HasNetwork", "Excluded"] + METRIC_FIELDS
-)
-
-DAM_PUBLIC_EXPORT_FIELDS.remove("Recon")
+DAM_TILE_FILTER_FIELDS = unique(["lat", "lon"] + DAM_FILTER_FIELDS + UNIT_FIELDS)
 
 
-SB_CORE_FIELDS = [
-    "lat",
-    "lon",
-    "Name",
-    "SARPID",
-    "LocalID",
-    "CrossingCode",
-    "Source",
-    "Stream",
-    "Intermittent",
-    "Road",
-    "RoadType",
-    "CrossingType",
-    "Condition",
-    "PotentialProject",
-    "SeverityClass",
-    "SARP_Score",
-    "TESpp",
-    "StateSGCNSpp",
-    "RegionalSGCNSpp",
-    "OwnerType",
-    "ProtectedLand",
-    # Priority watersheds
-    "HUC8_USFS",
-    "HUC8_COA",
-    "HUC8_SGCN",
-    # Watershed names
-    "Basin",
-    "Subbasin",
-    "Subwatershed",
-]
-
-SB_API_FIELDS = (
-    SB_CORE_FIELDS
-    + UNIT_FIELDS
+SB_CORE_FIELDS = (
+    GENERAL_API_FIELDS1
     + [
-        "HasNetwork",
-        "Excluded",
-        "Ranked",
-        "FlowsToOcean",
-        "NumBarriersDownstream",
-        "upNetID",
-        "downNetID",
+        "LocalID",
+        "CrossingCode",
+        "Stream",
+        "Road",
+        "RoadType",
+        "CrossingType",
+        "PotentialProject",
+        "SeverityClass",
+        "SARP_Score",
     ]
-    + METRIC_FIELDS
-    + TIER_FIELDS
-    + SB_FILTER_FIELDS
-    + ["COUNTYFIPS"]
+    + GENERAL_API_FIELDS2
 )
 
-SB_API_FIELDS = unique(SB_API_FIELDS)
+SB_CORE_FIELDS = unique(SB_CORE_FIELDS)
 
-# Drop fields from tiles that are calculated on frontend
+# Internal API includes tiers
+SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + TIER_FIELDS)
+SB_API_FIELDS = unique(
+    SB_EXPORT_FIELDS + SB_FILTER_FIELDS + ["upNetID", "downNetID", "COUNTYFIPS"]
+)
+
+# Public API does not include tier fields
+SB_PUBLIC_EXPORT_FIELDS = SB_CORE_FIELDS
+
+
+# Drop fields from tiles that are calculated on frontend or not used
 SB_TILE_FIELDS = [
     c
     for c in SB_API_FIELDS
@@ -308,48 +283,32 @@ SB_TILE_FIELDS = [
     }
 ]
 
+SB_TILE_FILTER_FIELDS = unique(["lat", "lon"] + SB_FILTER_FIELDS + UNIT_FIELDS)
 
-SB_EXPORT_FIELDS = (
-    SB_CORE_FIELDS
-    + UNIT_FIELDS
-    + ["HasNetwork", "Excluded", "Ranked", "FlowsToOcean", "NumBarriersDownstream",]
-    + METRIC_FIELDS
-    + TIER_FIELDS
-    + CUSTOM_TIER_FIELDS
+WF_CORE_FIELDS = (
+    GENERAL_API_FIELDS1
+    + [
+        "Stream",
+        "FallType",
+        # from GENERAL_API_FIELDS2
+        "TESpp",
+        "StateSGCNSpp",
+        "RegionalSGCNSpp",
+        "Trout",
+        "OwnerType",
+        "ProtectedLand",
+        # Priority watersheds
+        "HUC8_USFS",
+        "HUC8_COA",
+        "HUC8_SGCN",
+        # Watershed names
+        "Basin",
+        "Subbasin",
+        "Subwatershed",
+        "Excluded",
+    ]
+    + ["HUC8", "HUC12", "State", "County"]
 )
-
-SB_EXPORT_FIELDS = unique(SB_EXPORT_FIELDS)
-SB_PUBLIC_EXPORT_FIELDS = unique(
-    SB_CORE_FIELDS + UNIT_FIELDS + ["HasNetwork", "Excluded"] + METRIC_FIELDS
-)
-
-WF_CORE_FIELDS = [
-    "HUC8",
-    "HUC12",
-    "lat",
-    "lon",
-    "Name",
-    "Source",
-    "Stream",
-    "FallType",
-    "StreamOrder",
-    "Intermittent",
-    "Excluded",
-    "TESpp",
-    "StateSGCNSpp",
-    "RegionalSGCNSpp",
-    "OwnerType",
-    "ProtectedLand",
-    # Priority watersheds
-    "HUC8_USFS",
-    "HUC8_COA",
-    "HUC8_SGCN",
-    # Watershed names
-    "Basin",
-    "Subbasin",
-    "Subwatershed",
-]
-
 
 ### Domains for coded values in exported data
 
@@ -805,6 +764,7 @@ FIELD_DEFINITIONS = {
     "TESpp": "number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the {type}. Note: rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "StateSGCNSpp": "Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "RegionalSGCNSpp": "Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
+    "Trout": "1 if one or more trout species are present within the same subwatershed (HUC12) as the {type}, 0 if trout species were not recorded in available natural heritage data.",
     "OwnerType": "Land ownership type. This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.",
     "HUC8_USFS": "U.S. Forest Service (USFS) priority watersheds (HUC8 level) within USFS Southeast Region.",
@@ -823,8 +783,8 @@ FIELD_DEFINITIONS = {
     "HasNetwork": "indicates if this {type} was snapped to the aquatic network for analysis.  1 = on network, 0 = off network.  Note: network metrics and scores are not available for {type}s that are off network.",
     "Excluded": "this {type} was excluded from the connectivity analysis based on field reconnaissance or manual review of aerial imagery.",
     "Ranked": "this {type} was included for prioritization.  Some barriers that are beneficial to restricting the movement of invasive species are excluded from ranking.",
-    "StreamOrder": "NHDPlus Modified Strahler stream order. -1 = not available.",
     "Intermittent": "indicates if this {type} was snapped to a a stream or river reach coded by NHDPlusHR as an intermittent or ephemeral. -1 = not available.",
+    "StreamOrder": "NHDPlus Modified Strahler stream order. -1 = not available.",
     "Landcover": "average amount of the river floodplain in the upstream network that is in natural landcover types.  -1 = not available.",
     "SizeClasses": "number of unique upstream size classes that could be gained by removal of this {type}. -1 = not available.",
     "TotalUpstreamMiles": "number of miles in the upstream river network from this {type}, including miles in waterbodies. -1 = not available.",

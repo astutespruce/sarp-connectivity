@@ -517,7 +517,7 @@ df.loc[ix, "snap_tolerance"] = np.max(
 # log dams excluded from snapping
 df.loc[
     df.ManualReview.isin(OFFSTREAM_MANUALREVIEW), "snap_log"
-] = f"exluded from snapping (manual review one of {OFFSTREAM_MANUALREVIEW})"
+] = f"excluded from snapping (manual review one of {OFFSTREAM_MANUALREVIEW})"
 
 ### Mark dam snapping groups
 # estimated dams or likely off-network dams will get lower snapping tolerance

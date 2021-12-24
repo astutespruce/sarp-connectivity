@@ -238,7 +238,6 @@ EXCLUDE_PASSAGEFACILITY = [
     14,  # Removal
 ]
 
-
 ONSTREAM_MANUALREVIEW = [
     4,  # Onstream checked by SARP
     13,  # Onstream, did not have to move (close to correct location)

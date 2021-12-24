@@ -4,8 +4,6 @@ from time import time
 import warnings
 
 import pandas as pd
-import geopandas as gp
-import pygeos as pg
 
 from analysis.rank.lib.networks import get_network_results
 from analysis.rank.lib.metrics import (
@@ -24,22 +22,23 @@ start = time()
 data_dir = Path("data")
 barriers_dir = data_dir / "barriers/master"
 api_dir = data_dir / "api"
-qa_dir = data_dir / "networks/qa"
+results_dir = data_dir / "barriers/networks"
 
 if not os.path.exists(api_dir):
     os.makedirs(api_dir)
 
-if not os.path.exists(qa_dir):
-    os.makedirs(qa_dir)
+if not os.path.exists(results_dir):
+    os.makedirs(results_dir)
 
 
 ### Read in master
 print("Reading master...")
 df = (
-    gp.read_feather(barriers_dir / "dams.feather")
+    pd.read_feather(barriers_dir / "dams.feather")
     .set_index("id")
     .drop(
         columns=[
+            "geometry",
             "level_0",
             "index",
             "dup_group",
@@ -132,7 +131,7 @@ df.loc[df.HasNetwork, "PercentAltered"] = 100 - df.loc[df.HasNetwork].PercentUna
 df["PercentAlteredClass"] = classify_percent_altered(df.PercentAltered)
 
 
-# fill columns and set proper type
+# fill network columns and set proper type
 for col in networks.columns:
     df[col] = df[col].fillna(-1).astype(networks[col].dtype)
 
@@ -146,10 +145,10 @@ if df.groupby(level=0).size().max() > 1:
 ### Write out data for API
 print("Writing to output files...")
 
-# Full results for SARP QA/QC
-df.reset_index().to_feather(qa_dir / f"dams_network_results.feather")
+# Full results for tiles, etc
+df.reset_index().to_feather(results_dir / f"dams.feather")
 
-# save for API and tiles
+# save for API
 df[df.columns.intersection(DAM_API_FIELDS)].reset_index().to_feather(
     api_dir / f"dams.feather"
 )

@@ -71,6 +71,8 @@ dam_networks = get_network_results(
         "PerennialGainMilesClass",
         "TotalNetworkMiles",
         "TotalPerennialNetworkMiles",
+        "NumBarriersDownstream",
+        "FlowsToOcean",
     ],
     errors="ignore",
 )
@@ -85,6 +87,8 @@ barrier_networks = get_network_results(
         "PerennialGainMilesClass",
         "TotalNetworkMiles",
         "TotalPerennialNetworkMiles",
+        "NumBarriersDownstream",
+        "FlowsToOcean",
     ],
     errors="ignore",
 )
