@@ -130,7 +130,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             )
             subset = flowlines.loc[flowlines.sizeclass >= size_threshold].copy()
 
-            if maxzoom <= 8:
+            if maxzoom < 8:
                 # exclude altered flowlines at low zooms
                 subset = subset.loc[subset.mapcode < 2].copy()
 
