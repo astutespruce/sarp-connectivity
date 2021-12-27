@@ -67,16 +67,12 @@ def download_dams(
     # we only do this for unfiltered states and the entire region (ranked or unranked)
     cache_filename = None
     has_filters = any(q for q in request.query_params if q in DAM_FILTER_FIELD_MAP)
-    if (
-        layer == "State"
-        and format == "csv"
-        and id
-        and not "," in id
-        and not (has_filters or custom)
-    ):
-        state = "all" if id == "*" else id
+    if layer == "State" and format == "csv" and id and not (has_filters or custom):
+        states = sorted(id.split(","))
         suffix = "_ranked" if not unranked else ""
-        cache_filename = CACHE_DIRECTORY / f"{state}{suffix}_dams_{data_version}.zip"
+        cache_filename = (
+            CACHE_DIRECTORY / f"{'_'.join(states)}{suffix}_dams_{data_version}.zip"
+        )
 
     if cache_filename and cache_filename.exists():
         return zip_file_response(cache_filename, filename.replace(".csv", ".zip"))
@@ -174,17 +170,12 @@ def download_barriers(
     # we only do this for unfiltered states and the entire region (ranked or unranked)
     cache_filename = None
     has_filters = any(q for q in request.query_params if q in DAM_FILTER_FIELD_MAP)
-    if (
-        layer == "State"
-        and format == "csv"
-        and id
-        and not "," in id
-        and not (has_filters or custom)
-    ):
-        state = "all" if id == "*" else id
+    if layer == "State" and format == "csv" and id and not (has_filters or custom):
+        states = sorted(id.split(","))
         suffix = "_ranked" if not unranked else ""
         cache_filename = (
-            CACHE_DIRECTORY / f"{state}{suffix}_small_barriers_{data_version}.zip"
+            CACHE_DIRECTORY
+            / f"{'_'.join(states)}{suffix}_small_barriers_{data_version}.zip"
         )
 
     if cache_filename and cache_filename.exists():

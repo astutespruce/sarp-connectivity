@@ -40,15 +40,7 @@ class RecordExtractor:
                 ]
 
     def extract(self, df):
-        # special case, select all
-        if self.ids == ["*"]:
-            if self.layer == "State":
-                # must be limited to states within the region (per guidance from SARP)
-                ix = df.State.isin(STATES.values())
-            else:
-                ix = np.ones(shape=(len(df)), dtype="bool")
-        else:
-            ix = df[self.layer].isin(self.ids)
+        ix = df[self.layer].isin(self.ids)
 
         for key, values in self.filters.items():
             ix = ix & df[key].isin(values)
