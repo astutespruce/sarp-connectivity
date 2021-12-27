@@ -22,7 +22,7 @@ from api.data import dams, barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
 from api.metadata import get_readme, get_terms
 from api.response import zip_csv_response, zip_file_response
-from api.settings import CACHE_DIRECTORY, data_version
+from api.settings import CACHE_DIRECTORY
 
 
 ### Include logo in download package
@@ -71,9 +71,7 @@ def download_dams(
     if layer == "State" and format == "csv" and id and not (has_filters or custom):
         state_hash = sha1(id.encode("UTF8")).hexdigest()
         suffix = "_ranked" if not unranked else ""
-        cache_filename = (
-            CACHE_DIRECTORY / f"{state_hash}{suffix}_dams_{data_version}.zip"
-        )
+        cache_filename = CACHE_DIRECTORY / f"{state_hash}{suffix}_dams.zip"
 
     if cache_filename and cache_filename.exists():
         return zip_file_response(cache_filename, filename.replace(".csv", ".zip"))
@@ -174,9 +172,7 @@ def download_barriers(
     if layer == "State" and format == "csv" and id and not (has_filters or custom):
         state_hash = sha1(id.encode("UTF8")).hexdigest()
         suffix = "_ranked" if not unranked else ""
-        cache_filename = (
-            CACHE_DIRECTORY / f"{state_hash}{suffix}_small_barriers_{data_version}.zip"
-        )
+        cache_filename = CACHE_DIRECTORY / f"{state_hash}{suffix}_small_barriers.zip"
 
     if cache_filename and cache_filename.exists():
         return zip_file_response(cache_filename, filename.replace(".csv", ".zip"))
