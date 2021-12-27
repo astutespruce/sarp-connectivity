@@ -141,7 +141,7 @@ const StateDownloadTable = ({
                   barrierType="dams"
                   config={{
                     ...downloadConfig,
-                    summaryUnits: regionStates,
+                    summaryUnits: [{ id: '*' }],
                   }}
                 />
               </td>
@@ -152,7 +152,7 @@ const StateDownloadTable = ({
                   barrierType="small_barriers"
                   config={{
                     ...downloadConfig,
-                    summaryUnits: regionStates,
+                    summaryUnits: [{ id: '*' }],
                   }}
                 />
               </td>

@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from fastapi.requests import Request
 import numpy as np
 
+from analysis.constants import STATES
 from api.constants import DAM_FILTER_FIELD_MAP, SB_FILTER_FIELD_MAP, Layers
 
 
@@ -14,7 +15,7 @@ class RecordExtractor:
 
     field_map = None  # must be set by deriving class to enable filters
 
-    def __init__(self, request: Request, id: str, layer: Layers = "HUC8"):
+    def __init__(self, request: Request, id: str, layer: Layers = "State"):
         if layer == "County":
             layer = "COUNTYFIPS"
 
@@ -41,7 +42,11 @@ class RecordExtractor:
     def extract(self, df):
         # special case, select all
         if self.ids == ["*"]:
-            ix = np.ones(shape=(len(df)), dtype="bool")
+            if self.layer == "State":
+                # must be limited to states within the region (per guidance from SARP)
+                ix = df.State.isin(STATES.values())
+            else:
+                ix = np.ones(shape=(len(df)), dtype="bool")
         else:
             ix = df[self.layer].isin(self.ids)
 

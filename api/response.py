@@ -1,7 +1,7 @@
 from io import BytesIO
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from fastapi.responses import Response
+from fastapi.responses import Response, FileResponse
 
 
 def csv_response(df, bounds=None):
@@ -26,7 +26,9 @@ def csv_response(df, bounds=None):
     return response
 
 
-def zip_csv_response(df, filename, extra_str=None, extra_path=None):
+def zip_csv_response(
+    df, filename, extra_str=None, extra_path=None, cache_filename=None
+):
     """Write data frame into CSV and include optional files within zip file.
 
     Parameters
@@ -39,6 +41,8 @@ def zip_csv_response(df, filename, extra_str=None, extra_path=None):
     extra_path : dict, optional
         if present, provides a mapping between target filenames and source filenames,
         for binary file inputs
+    cache_filename : str, optional
+        if present, the filename to be used for caching this response for future use
 
     Returns
     -------
@@ -56,10 +60,21 @@ def zip_csv_response(df, filename, extra_str=None, extra_path=None):
             for target_path, src_path in extra_path.items():
                 zf.write(src_path, target_path)
 
+    if cache_filename:
+        with open(cache_filename, "wb") as out:
+            out.write(zip_stream.getvalue())
+            zip_stream.seek(0)
+
     return Response(
         content=zip_stream.getvalue(),
         media_type="application/zip",
         headers={
             "Content-Disposition": f"attachment; filename={filename.replace('.csv', '.zip')}"
         },
+    )
+
+
+def zip_file_response(src_filename, out_filename):
+    return FileResponse(
+        src_filename, media_type="application/zip", filename=out_filename,
     )

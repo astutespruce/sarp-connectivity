@@ -4,8 +4,6 @@ from time import time
 import warnings
 
 import pandas as pd
-import geopandas as gp
-import pygeos as pg
 
 from analysis.rank.lib.networks import get_network_results
 from analysis.rank.lib.metrics import (

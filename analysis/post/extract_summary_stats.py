@@ -22,7 +22,6 @@ Outputs:
 from pathlib import Path
 import json
 
-import geopandas as gp
 import pandas as pd
 
 from analysis.constants import STATES, REGION_STATES

@@ -3,13 +3,16 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
+from analysis.constants import STATES
 
 
 from api.constants import (
+    Layers,
     Scenarios,
     Formats,
     unpack_domains,
     DAM_EXPORT_FIELDS,
+    DAM_FILTER_FIELD_MAP,
     SB_EXPORT_FIELDS,
 )
 from api.logger import log, log_request
@@ -17,7 +20,8 @@ from analysis.rank.lib.tiers import calculate_tiers
 from api.data import dams, barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
 from api.metadata import get_readme, get_terms
-from api.response import zip_csv_response
+from api.response import zip_csv_response, zip_file_response
+from api.settings import CACHE_DIRECTORY, data_version
 
 
 ### Include logo in download package
@@ -31,6 +35,8 @@ router = APIRouter()
 @router.get("/dams/{format}/{layer}")
 def download_dams(
     request: Request,
+    id: str,
+    layer: Layers = "State",
     extractor: DamsRecordExtractor = Depends(),
     custom: bool = False,
     unranked=False,
@@ -54,6 +60,26 @@ def download_dams(
     """
 
     log_request(request)
+
+    filename = f"aquatic_barrier_ranks_{date.today().isoformat()}.{format}"
+
+    # See if we already already cached the response;
+    # we only do this for unfiltered states and the entire region (ranked or unranked)
+    cache_filename = None
+    has_filters = any(q for q in request.query_params if q in DAM_FILTER_FIELD_MAP)
+    if (
+        layer == "State"
+        and format == "csv"
+        and id
+        and not "," in id
+        and not (has_filters or custom)
+    ):
+        state = "all" if id == "*" else id
+        suffix = "_ranked" if not unranked else ""
+        cache_filename = CACHE_DIRECTORY / f"{state}{suffix}_dams_{data_version}.zip"
+
+    if cache_filename and cache_filename.exists():
+        return zip_file_response(cache_filename, filename.replace(".csv", ".zip"))
 
     df = extractor.extract(dams).copy()
 
@@ -91,8 +117,6 @@ def download_dams(
     df = unpack_domains(df)
 
     ### Get metadata
-    filename = f"aquatic_barrier_ranks_{date.today().isoformat()}.{format}"
-
     readme = get_readme(
         filename=filename,
         barrier_type="dams",
@@ -109,6 +133,7 @@ def download_dams(
             filename=filename,
             extra_str={"README.txt": readme, "TERMS_OF_USE.txt": terms},
             extra_path={"SARP_logo.png": LOGO_PATH},
+            cache_filename=cache_filename,
         )
 
     raise NotImplementedError("Other formats not yet supported")
@@ -117,6 +142,8 @@ def download_dams(
 @router.get("/small_barriers/{format}/{layer}")
 def download_barriers(
     request: Request,
+    id: str,
+    layer: Layers = "State",
     extractor: BarriersRecordExtractor = Depends(),
     custom: bool = False,
     unranked=False,
@@ -140,6 +167,28 @@ def download_barriers(
     """
 
     log_request(request)
+
+    filename = "aquatic_barrier_ranks_{0}.{1}".format(date.today().isoformat(), format)
+
+    # See if we already already cached the response;
+    # we only do this for unfiltered states and the entire region (ranked or unranked)
+    cache_filename = None
+    has_filters = any(q for q in request.query_params if q in DAM_FILTER_FIELD_MAP)
+    if (
+        layer == "State"
+        and format == "csv"
+        and id
+        and not "," in id
+        and not (has_filters or custom)
+    ):
+        state = "all" if id == "*" else id
+        suffix = "_ranked" if not unranked else ""
+        cache_filename = (
+            CACHE_DIRECTORY / f"{state}{suffix}_small_barriers_{data_version}.zip"
+        )
+
+    if cache_filename and cache_filename.exists():
+        return zip_file_response(cache_filename, filename.replace(".csv", ".zip"))
 
     df = extractor.extract(barriers).copy()
 
@@ -176,8 +225,6 @@ def download_barriers(
 
     df = unpack_domains(df)
 
-    filename = "aquatic_barrier_ranks_{0}.{1}".format(date.today().isoformat(), format)
-
     ### create readme and terms of use
     readme = get_readme(
         filename=filename,
@@ -195,6 +242,7 @@ def download_barriers(
             filename=filename,
             extra_str={"README.txt": readme, "TERMS_OF_USE.txt": terms},
             extra_path={"SARP_logo.png": LOGO_PATH},
+            cache_filename=cache_filename,
         )
 
     raise NotImplementedError("Other formats not yet supported")

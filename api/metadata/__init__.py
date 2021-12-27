@@ -1,29 +1,24 @@
 from datetime import date
-import json
 from pathlib import Path
+
+from api.settings import data_version, data_date
 
 
 from api.constants import DAM_FIELD_DEFINITIONS, SB_FIELD_DEFINITIONS
 
-working_dir = Path(__file__).resolve().parent
+metadata_dir = Path(__file__).resolve().parent
 
-
-with open(working_dir.parent.parent / "ui/package.json") as infile:
-    info = json.loads(infile.read())
-    data_version = info["version"]
-    data_date = info["date"]
-
-with open(working_dir / "description.txt") as infile:
+with open(metadata_dir / "description.txt") as infile:
     description = infile.read()
 
-with open(working_dir / "terms_of_use.txt") as infile:
+with open(metadata_dir / "terms_of_use.txt") as infile:
     terms_of_use = infile.read()
 
 
-with open(working_dir / "readme_template.txt") as infile:
+with open(metadata_dir / "readme_template.txt") as infile:
     readme = infile.read()
 
-with open(working_dir / "terms_template.txt") as infile:
+with open(metadata_dir / "terms_template.txt") as infile:
     terms = infile.read()
 
 
