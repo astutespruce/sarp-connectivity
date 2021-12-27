@@ -1,4 +1,5 @@
 from datetime import date
+from hashlib import sha1
 from pathlib import Path
 
 from fastapi import APIRouter, Depends
@@ -68,10 +69,10 @@ def download_dams(
     cache_filename = None
     has_filters = any(q for q in request.query_params if q in DAM_FILTER_FIELD_MAP)
     if layer == "State" and format == "csv" and id and not (has_filters or custom):
-        states = sorted(id.split(","))
+        state_hash = sha1(id.encode("UTF8")).hexdigest()
         suffix = "_ranked" if not unranked else ""
         cache_filename = (
-            CACHE_DIRECTORY / f"{'_'.join(states)}{suffix}_dams_{data_version}.zip"
+            CACHE_DIRECTORY / f"{state_hash}{suffix}_dams_{data_version}.zip"
         )
 
     if cache_filename and cache_filename.exists():
@@ -171,11 +172,10 @@ def download_barriers(
     cache_filename = None
     has_filters = any(q for q in request.query_params if q in DAM_FILTER_FIELD_MAP)
     if layer == "State" and format == "csv" and id and not (has_filters or custom):
-        states = sorted(id.split(","))
+        state_hash = sha1(id.encode("UTF8")).hexdigest()
         suffix = "_ranked" if not unranked else ""
         cache_filename = (
-            CACHE_DIRECTORY
-            / f"{'_'.join(states)}{suffix}_small_barriers_{data_version}.zip"
+            CACHE_DIRECTORY / f"{state_hash}{suffix}_small_barriers_{data_version}.zip"
         )
 
     if cache_filename and cache_filename.exists():

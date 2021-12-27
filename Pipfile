@@ -16,6 +16,7 @@ sentry-sdk = "*"
 tqdm = "*"
 numba = "*"
 scipy = "*"
+aiofiles = "*"
 
 [dev-packages]
 pylint = "*"
