@@ -119,25 +119,29 @@ ret.check_returncode()
 print("Creating tiles for dams without networks")
 
 # Drop metrics, tiers, and units used only for filtering
-other_dams = df.loc[~df.HasNetwork].drop(
-    columns=[
-        "HUC6",
-        "ECO3",
-        "ECO4",
-        "GainMilesClass",
-        "TESppClass",
-        "StateSGCNSppClass",
-        "StreamOrderClass",
-        "PercentAlteredClass",
-        "Waterbody",
-        "WaterbodyKM2",
-        "WaterbodySizeClass",
-        "HeightClass",
-        "PassageFacilityClass",
-    ]
-    + METRIC_FIELDS
-    + TIER_FIELDS,
-    errors="ignore",
+other_dams = (
+    df.loc[~df.HasNetwork]
+    .drop(
+        columns=[
+            "HUC6",
+            "ECO3",
+            "ECO4",
+            "GainMilesClass",
+            "TESppClass",
+            "StateSGCNSppClass",
+            "StreamOrderClass",
+            "PercentAlteredClass",
+            "Waterbody",
+            "WaterbodyKM2",
+            "WaterbodySizeClass",
+            "HeightClass",
+            "PassageFacilityClass",
+        ]
+        + METRIC_FIELDS
+        + TIER_FIELDS,
+        errors="ignore",
+    )
+    .rename(columns=to_lowercase)
 )
 
 
@@ -211,7 +215,7 @@ ret = subprocess.run(
 ret.check_returncode()
 
 
-# csv_filename = tmp_dir / "small_barriers.csv"
+csv_filename = tmp_dir / "small_barriers.csv"
 mbtiles_filename = tmp_dir / "small_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
 barriers = (
