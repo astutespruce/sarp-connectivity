@@ -359,7 +359,8 @@ const Prioritize = () => {
           summaryUnits={summaryUnits}
           rankedBarriers={rankData}
           tierThreshold={tierThreshold}
-          scenario={scenario}
+          resultsType={resultsType}
+          scenario={(resultsType === 'perennial' ? 'p' : '') + scenario}
           onSelectUnit={handleSelectUnit}
           onSelectBarrier={handleSelectBarrier}
           onMapLoad={handleMapLoad}
