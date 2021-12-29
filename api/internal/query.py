@@ -34,7 +34,7 @@ def query_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
     bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
 
     df = df[DAM_FILTER_FIELDS].copy()
-    log.info(f"query selected {len(df.index)} dams")
+    log.info(f"query selected {len(df)} dams")
 
     return csv_response(df, bounds)
 
@@ -57,7 +57,7 @@ def query_barriers(request: Request, extractor: BarriersRecordExtractor = Depend
     # extract extent
     bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
 
-    df = [SB_FILTER_FIELDS].copy()
-    log.info(f"barriers query selected {len(df.index)} barriers")
+    df = df[SB_FILTER_FIELDS].copy()
+    log.info(f"barriers query selected {len(df)} barriers")
 
     return csv_response(df, bounds)

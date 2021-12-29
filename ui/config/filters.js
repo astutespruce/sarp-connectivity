@@ -39,8 +39,6 @@ const getEntries = (obj) => {
   }
 }
 
-console.log(getEntries(TROUT))
-
 const priorityFilters = [
   {
     field: 'huc8_coa',
