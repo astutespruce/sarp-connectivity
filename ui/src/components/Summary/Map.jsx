@@ -56,6 +56,7 @@ const SummaryMap = ({
   onSelectBarrier,
   ...props
 }) => {
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
   const regionBounds = useRegionBounds()
   const mapRef = useRef(null)
 
@@ -496,10 +497,10 @@ const SummaryMap = ({
     const labels = bins
       .map((bin, i) => {
         if (i === 0) {
-          return `≤ ${Math.round(bin).toLocaleString()} ${barrierType}`
+          return `≤ ${Math.round(bin).toLocaleString()}`
         }
         if (i === bins.length - 1) {
-          return `≥ ${Math.round(bin).toLocaleString()} ${barrierType}`
+          return `≥ ${Math.round(bin).toLocaleString()}`
         }
         // Use midpoint value
         return Math.round(bin).toLocaleString()
@@ -513,7 +514,7 @@ const SummaryMap = ({
 
     patchEntries.push({
       color: 'rgba(0,0,0,0.15)',
-      label: `no inventoried ${barrierType}`,
+      label: `no inventoried ${barrierTypeLabel}`,
     })
 
     const circles = []
@@ -521,7 +522,7 @@ const SummaryMap = ({
       const { primary, background, damsSecondary, waterfalls } = pointLegends
       circles.push({
         ...primary,
-        label: `${barrierType} analyzed for impacts to aquatic connectivity`,
+        label: `${barrierTypeLabel} analyzed for impacts to aquatic connectivity`,
       })
 
       circles.push({
@@ -595,7 +596,11 @@ const SummaryMap = ({
         {...props}
         bounds={regionBounds[region].bbox}
       />
-      <Legend title={layerTitle} {...legendEntries} />
+      <Legend
+        title={layerTitle}
+        subtitle={`number of ${barrierTypeLabel}`}
+        {...legendEntries}
+      />
     </>
   )
 }
