@@ -569,7 +569,7 @@ const PriorityMap = ({
       return
     }
 
-    const { id = null, layer, bbox, maxZoom: fitBoundsMaxZoom } = searchFeature
+    const { id = null, layer, bbox } = searchFeature
     // if feature is already visible, select it
     // otherwise, zoom and attempt to select it
 
@@ -588,7 +588,6 @@ const PriorityMap = ({
 
     map.fitBounds(bbox, {
       padding: 20,
-      maxZoom: fitBoundsMaxZoom,
       duration: 500,
     })
   }, [searchFeature, selectUnitById])
