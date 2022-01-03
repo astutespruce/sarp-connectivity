@@ -75,7 +75,7 @@ df = (
 ### Save dams that were removed, for use in API (they are otherwise dropped below)
 removed = pd.DataFrame(
     df.loc[
-        (df.Recon == 7) | (df.ManualReview == 8),
+        (df.Recon == 7) | (df.Feasibility == 8) | (df.ManualReview == 8),
         [
             "lat",
             "lon",
