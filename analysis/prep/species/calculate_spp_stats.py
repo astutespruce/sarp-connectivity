@@ -81,7 +81,6 @@ listed_df = listed_df.append(missing_spps, ignore_index=True)
 # Others are under review and not listed yet according to USFWS:
 # Pleurobema rubellum
 
-
 endangered_df = listed_df.loc[listed_df.official_status == "E"].SNAME.unique()
 threatened_df = listed_df.loc[listed_df.official_status == "T"].SNAME.unique()
 
@@ -91,18 +90,41 @@ trout = read_dataframe(
     gdb,
     layer=trout_layer,
     read_geometry=False,
-    columns=["HUC12_Code", "Species_Name", "Common_Name", "Historical"],
+    columns=[
+        "HUC12_Code",
+        "Species_Name",
+        "Common_Name",
+        "Historical",
+        "Federal_Status",
+        "State_Status",
+        "SGCN_Listing",
+        "Regional_SGCN",
+    ],
 ).rename(
-    columns={"HUC12_Code": "HUC12", "Species_Name": "SNAME", "Common_Name": "CNAME",}
+    columns={
+        "HUC12_Code": "HUC12",
+        "Species_Name": "SNAME",
+        "Common_Name": "CNAME",
+        "Federal_Status": "federal",
+        "State_Status": "state",
+        "SGCN_Listing": "sgcn",
+        "Regional_SGCN": "regional",
+    }
 )
-
-trout = trout.groupby(by=["HUC12", "SNAME"]).first().reset_index()
 
 # drop Trout-perch
 trout = trout.loc[trout.CNAME != "Trout-perch"].copy()
 
+# Convert to bool
+cols = ["federal", "state", "sgcn", "regional"]
+for col in cols:
+    trout.loc[trout[col] == "No", col] = ""
+    trout[col] = trout[col] != ""
+
 # drop any that are only historic
-trout = trout.loc[trout.Historical != "Yes"].reset_index()
+trout = trout.loc[trout.federal | trout.state | trout.sgcn | trout.regional].copy()
+
+trout = trout.groupby(by=["HUC12", "SNAME"]).first().reset_index()
 
 
 ### Extract occurrence table from SARP
@@ -138,8 +160,6 @@ for layer in rare_spp_layers:
 df = merged
 
 print("Processing species data")
-# drop any that are only historic
-df = df.loc[df.Historical != "Yes"].copy()
 
 # fix data issues
 for col in df.columns[1:]:
@@ -163,6 +183,9 @@ cols = ["federal", "state", "sgcn", "regional"]
 for col in cols:
     df.loc[df[col] == "No", col] = ""
     df[col] = df[col] != ""
+
+# drop any that are only historic
+df = df.loc[df.federal | df.state | df.sgcn | df.regional].copy()
 
 
 # Export intermediate - Kat @ SARP often needs this
