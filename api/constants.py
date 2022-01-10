@@ -185,6 +185,7 @@ DAM_CORE_FIELDS = (
         "Estimated",
         "River",
         "Year",
+        "YearRemoved",
         "Height",
         "Width",
         "Construction",
@@ -232,6 +233,7 @@ DAM_TILE_FIELDS = [
         "PercentPerennialUnaltered",
         "FlowsToOcean",
         "NumBarriersDownstream",
+        "YearRemoved",
     }
 ]
 
@@ -738,6 +740,7 @@ FIELD_DEFINITIONS = {
     "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information",
     "River": "River name where {type} occurs, if available.",
     "Year": "year that construction was completed, if available.  0 = data not available.",
+    "YearRemoved": "year that dam was removed, if available.  0 = data not available or dam not removed.",
     "Height": "{type} height in feet, if available.  0 = data not available.",
     "Width": "{type} width in feet, if available.  0 = data not available.",
     "Construction": "material used in {type} construction, if known.",

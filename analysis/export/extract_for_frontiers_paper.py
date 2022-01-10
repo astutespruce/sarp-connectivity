@@ -56,6 +56,9 @@ df["is_manualreviewed_offnetwork"] = df.ManualReview == 5
 df["is_manualreviewed_error"] = df.ManualReview.isin([6, 11, 14])
 df["is_estimated_manualreviewed"] = df.is_estimated & df.is_manualreviewed
 df["is_estimated_reconned"] = df.is_estimated & df.is_reconned
+df["is_estimated_reconned_or_manualreviewed"] = df.is_estimated & (
+    df.is_reconned | df.is_manualreviewed
+)
 df["is_estimated_error"] = df.is_estimated & df.is_error
 
 
@@ -78,6 +81,7 @@ status_fields = [
     "is_estimated",
     "is_estimated_manualreviewed",
     "is_estimated_reconned",
+    "is_estimated_reconned_or_manualreviewed",
     "is_estimated_error",
     "on_protectedland",
     "on_loop",
@@ -85,6 +89,7 @@ status_fields = [
 
 summary_fields = [
     "Recon",
+    "Feasibility",
     "ManualReview",
     "log",
     "snap_log",
@@ -126,6 +131,7 @@ archive = pd.DataFrame(
             "is_estimated",
             "is_estimated_manualreviewed",
             "is_estimated_reconned",
+            "is_estimated_reconned_or_manualreviewed",
             "is_estimated_error",
             "on_protectedland",
             "on_loop",
@@ -170,6 +176,7 @@ with pd.ExcelWriter(
         "is_estimated": df.is_estimated.sum(),
         "is_estimated_manualreviewed": df.is_estimated_manualreviewed.sum(),
         "is_estimated_reconned": df.is_estimated_reconned.sum(),
+        "is_estimated_reconned_or_manualreviewed": df.is_estimated_reconned_or_manualreviewed.sum(),
         "is_estimated_error": df.is_estimated_error.sum(),
         "on_protectedland": df.on_protectedland.sum(),
         "on_loop": df.on_loop.sum(),
@@ -202,6 +209,7 @@ with pd.ExcelWriter(
         "is_estimated": "sum",
         "is_estimated_manualreviewed": "sum",
         "is_estimated_reconned": "sum",
+        "is_estimated_reconned_or_manualreviewed": "sum",
         "is_estimated_error": "sum",
         "on_loop": "sum",
     }

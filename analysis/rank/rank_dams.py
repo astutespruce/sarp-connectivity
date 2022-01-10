@@ -67,6 +67,8 @@ df = (
             "excluded": "Excluded",
             "intermittent": "Intermittent",
             "is_estimated": "Estimated",
+            # FIXME: remove once rully rerun
+            "Year_Removed": "YearRemoved",
         }
     )
 )
@@ -86,7 +88,7 @@ removed = pd.DataFrame(
             "SourceDBID",
             "River",
             "Year",
-            "Year_Removed",
+            "YearRemoved",
             "Height",
             "Construction",
             "Purpose",

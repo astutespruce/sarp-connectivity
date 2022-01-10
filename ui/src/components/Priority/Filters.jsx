@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import PropTypes from 'prop-types'
-import { TimesCircle } from '@emotion-icons/fa-solid'
+import { ExclamationTriangle, TimesCircle } from '@emotion-icons/fa-solid'
 import { Box, Flex, Heading, Text } from 'theme-ui'
 
 import { useBarrierType } from 'components/Data'
@@ -114,10 +114,6 @@ const Filters = ({ onBack, onSubmit }) => {
           </ExpandableParagraph>
         </Box>
 
-        {visibleFilters.map((filter) => (
-          <Filter key={filter.field} {...filter} />
-        ))}
-
         {hiddenFilters.length > 0 ? (
           <Box
             sx={{
@@ -127,13 +123,20 @@ const Filters = ({ onBack, onSubmit }) => {
               borderTopColor: 'grey.1',
             }}
           >
-            <Text variant="help">
+            <Text variant="help" sx={{ fontSize: 0 }}>
+              <Box sx={{ display: 'inline-block', mr: '0.5em' }}>
+                <ExclamationTriangle size="1em" />
+              </Box>
               The following filters do not have sufficient unique values to
               support using them in this area:{' '}
               {hiddenFilters.map(({ title }) => title).join(', ')}.
             </Text>
           </Box>
         ) : null}
+
+        {visibleFilters.map((filter) => (
+          <Filter key={filter.field} {...filter} />
+        ))}
       </Box>
 
       <Flex

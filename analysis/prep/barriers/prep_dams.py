@@ -11,10 +11,10 @@ This creates 2 files:
 
 
 This creates several QA/QC files:
-- `barriers/qa/dams/pre_snap_to_post_snap.gpkg`: lines between the original coordinate and the snapped coordinate (snapped barriers only)
-- `barriers/qa/dams/pre_snap.gpkg`: original, unsnapped coordinate (snapped barriers only)
-- `barriers/qa/dams/post_snap.gpkg`: snapped coordinate (snapped barriers only)
-- `barriers/qa/dams/duplicate_areas.gpkg`: dissolved buffers around duplicate barriers (duplicates only)
+- `barriers/qa/dams/pre_snap_to_post_snap.fgb`: lines between the original coordinate and the snapped coordinate (snapped barriers only)
+- `barriers/qa/dams/pre_snap.fgb`: original, unsnapped coordinate (snapped barriers only)
+- `barriers/qa/dams/post_snap.fgb`: snapped coordinate (snapped barriers only)
+- `barriers/qa/dams/duplicate_areas.fgb`: dissolved buffers around duplicate barriers (duplicates only)
 """
 
 from pathlib import Path
@@ -113,6 +113,9 @@ snapped_df = gp.read_feather(src_dir / "manually_snapped_dams.feather",)
 # 0,1: not reviewed,
 # 7,9: assumed offstream but attempt to snap
 # 20,21: dams with lower confidence assigned automatically in previous run
+
+# FIXME: uncomment next line and delete following
+# snapped_df = snapped_df.loc[~snapped_df.ManualReview.isin([0, 1, 7, 9, 20, 21])]
 snapped_df = snapped_df.loc[
     ~snapped_df.ManualReview.isin([0, 1, 7, 9, 20, 21])
 ].set_index("SARPID")
@@ -135,7 +138,20 @@ if ix.sum():
 ix = (snapped_df.ManualReview == 11) & snapped_df.duplicate
 snapped_df = snapped_df.loc[~ix].copy()
 
+
+# FIXE: remove next line and replace with following
 snapped_df = snapped_df[["geometry", "ManualReview"]].copy()
+# temporary: splice in local snap dataset for non-SARP states until it is available online
+# other_df = gp.read_feather(
+#     src_dir / "snapped_outside_sarp_v1.feather",
+#     columns=["SARPID", "geometry", "ManualReview"],
+# )
+# snapped_df = (
+#     snapped_df[["SARPID", "geometry", "ManualReview"]]
+#     .append(other_df, ignore_index=True)
+#     .set_index("SARPID")
+# )
+# end TODO
 
 # Join to snapped and bring across updated geometry and ManualReview
 df = df.join(snapped_df, on="SARPID", rsuffix="_snap")
@@ -226,6 +242,15 @@ df = df.set_index("id", drop=False)
 
 
 ######### Fix data issues
+
+# Calculate feasibility from Recon if not already set
+# NOTE: this must be done before backfilling Feasibility with 0
+df.Recon = df.Recon.fillna(0).astype("uint8")
+ix = df.Feasibility.isnull()
+df.loc[ix, "Feasibility"] = df.loc[ix].Recon.map(RECON_TO_FEASIBILITY)
+df["Feasibility"] = df.Feasibility.astype("uint8")
+
+
 ### Set data types
 for column in ("River", "NIDID", "Source", "Name", "OtherName", "SourceDBID"):
     df[column] = df[column].fillna("").str.strip()
@@ -243,7 +268,6 @@ for column in (
     "Construction",
     "Condition",
     "Purpose",
-    "Recon",
     "ManualReview",
     "PassageFacility",
     "BarrierStatus",
@@ -254,7 +278,7 @@ for column in (
 ):
     df[column] = df[column].fillna(0).astype("uint8")
 
-for column in ("Year", "Year_Removed", "Feasibility"):
+for column in ("Year", "YearRemoved"):
     df[column] = df[column].fillna(0).astype("uint16")
 
 
@@ -322,10 +346,7 @@ df.loc[df.Year == 20151, "Year"] = 2015
 df.loc[df.Year == 9999, "Year"] = 0
 
 ### Calculate classes
-# Calculate feasibility from Recon if not already set
-ix = df.Feasibility.isnull()
-df.loc[ix, "Feasibility"] = df.loc[ix].Recon.map(RECON_TO_FEASIBILITY)
-df["Feasibility"] = df.Feasibility.astype("uint8")
+
 
 # Calculate height class
 df["HeightClass"] = 0  # Unknown
@@ -672,7 +693,7 @@ dups["dup_tolerance"] = DUPLICATE_TOLERANCE["default"]
 ix = dups.snapped & dups.snap_group.isin([1, 2])
 dups.loc[ix, "dup_tolerance"] = DUPLICATE_TOLERANCE["likely duplicate"]
 
-export_duplicate_areas(dups, qa_dir / "dams_duplicate_areas.gpkg")
+export_duplicate_areas(dups, qa_dir / "dams_duplicate_areas.fgb")
 
 
 ### Join to line atts
@@ -773,7 +794,7 @@ df = df.reset_index(drop=True)
 
 print("Serializing {:,} dams to master file".format(len(df)))
 df.to_feather(master_dir / "dams.feather")
-write_dataframe(df, qa_dir / "dams.gpkg")
+write_dataframe(df, qa_dir / "dams.fgb")
 
 
 # Extract out only the snapped ones
@@ -787,7 +808,7 @@ print("Serializing {:,} snapped dams".format(len(df)))
 df[
     ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
 ].to_feather(snapped_dir / "dams.feather",)
-write_dataframe(df, qa_dir / "snapped_dams.gpkg")
+write_dataframe(df, qa_dir / "snapped_dams.fgb")
 
 
 print("All done in {:.2f}s".format(time() - start))
