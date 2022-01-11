@@ -43,7 +43,7 @@ df = df.join(api_df[["HasNetwork", "Ranked"]]).rename(
 )
 
 # Exclude dams that have already been removed; these are not included in Frontiers stats
-df = df.loc[~(df.Recon == 7) | (df.Feasibility == 8) | (df.ManualReview == 8)].copy()
+df = df.loc[~((df.Recon == 7) | (df.Feasibility == 8) | (df.ManualReview == 8))].copy()
 
 
 df["in_NID"] = df.NIDID != ""

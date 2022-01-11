@@ -41,12 +41,15 @@ states = (
 
 ### Read dams
 dams = (
-    pd.read_feather(
-        api_dir / f"dams.feather", columns=["id", "HasNetwork", "Recon", "State"],
-    )
+    pd.read_feather(api_dir / f"dams.feather", columns=["id", "HasNetwork", "State"],)
     .set_index("id", drop=False)
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
+# Get recon from master
+dams_master = pd.read_feather(
+    src_dir / "dams.feather", columns=["id", "Recon"]
+).set_index("id")
+dams = dams.join(dams_master)
 
 ### Read road-related barriers
 barriers = (
