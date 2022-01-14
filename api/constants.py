@@ -208,9 +208,12 @@ DAM_CORE_FIELDS = (
 DAM_CORE_FIELDS = unique(DAM_CORE_FIELDS)
 
 # Internal API includes tiers
-DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + TIER_FIELDS)
+DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + TIER_FIELDS + CUSTOM_TIER_FIELDS)
 DAM_API_FIELDS = unique(
-    DAM_EXPORT_FIELDS + DAM_FILTER_FIELDS + ["upNetID", "downNetID", "COUNTYFIPS"]
+    DAM_CORE_FIELDS
+    + TIER_FIELDS
+    + DAM_FILTER_FIELDS
+    + ["upNetID", "downNetID", "COUNTYFIPS"]
 )
 
 # Public API does not include tier fields
@@ -259,9 +262,12 @@ SB_CORE_FIELDS = (
 SB_CORE_FIELDS = unique(SB_CORE_FIELDS)
 
 # Internal API includes tiers
-SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + TIER_FIELDS)
+SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + TIER_FIELDS + CUSTOM_TIER_FIELDS)
 SB_API_FIELDS = unique(
-    SB_EXPORT_FIELDS + SB_FILTER_FIELDS + ["upNetID", "downNetID", "COUNTYFIPS"]
+    SB_CORE_FIELDS
+    + TIER_FIELDS
+    + SB_FILTER_FIELDS
+    + ["upNetID", "downNetID", "COUNTYFIPS"]
 )
 
 # Public API does not include tier fields
