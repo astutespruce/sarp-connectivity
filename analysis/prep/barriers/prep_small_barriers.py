@@ -13,10 +13,10 @@ This creates 2 files:
 `barriers/snapped/small_barriers.feather` - snapped barriers dataset for network analysis
 
 This creates several QA/QC files:
-- `barriers/qa/small_barriers_pre_snap_to_post_snap.gpkg`: lines between the original coordinate and the snapped coordinate (snapped barriers only)
-- `barriers/qa/small_barriers_pre_snap.gpkg`: original, unsnapped coordinate (snapped barriers only)
-- `barriers/qa/small_barriers_post_snap.gpkg`: snapped coordinate (snapped barriers only)
-- `barriers/qa/small_barriers_duplicate_areas.gpkg`: dissolved buffers around duplicate barriers (duplicates only)
+- `barriers/qa/small_barriers_pre_snap_to_post_snap.fgb`: lines between the original coordinate and the snapped coordinate (snapped barriers only)
+- `barriers/qa/small_barriers_pre_snap.fgb`: original, unsnapped coordinate (snapped barriers only)
+- `barriers/qa/small_barriers_post_snap.fgb`: snapped coordinate (snapped barriers only)
+- `barriers/qa/small_barriers_duplicate_areas.fgb`: dissolved buffers around duplicate barriers (duplicates only)
 """
 
 from pathlib import Path
@@ -139,10 +139,16 @@ df.loc[
     "Condition",
 ] = "Unknown"
 
+
+df["YearRemoved"] = df.YearRemoved.fillna(0).astype("uint16")
+
 #########  Fill NaN fields and set data types
 
-for column in ("CrossingCode", "LocalID", "Source"):
+for column in ["CrossingCode", "LocalID", "Source"]:
     df[column] = df[column].fillna("").str.strip()
+
+for column in ["Editor", "EditDate"]:
+    df[column] = df[column].fillna("")
 
 
 ### Calculate classes
@@ -332,7 +338,7 @@ print("---------------------------------\n")
 dups = df.loc[df.dup_group.notnull()].copy()
 dups.dup_group = dups.dup_group.astype("uint16")
 dups["dup_tolerance"] = DUPLICATE_TOLERANCE
-export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas.gpkg")
+export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas.fgb")
 
 
 ### Deduplicate by dams
@@ -410,11 +416,11 @@ df = df.reset_index(drop=True)
 
 print("Serializing {:,} small barriers".format(len(df)))
 df.to_feather(master_dir / "small_barriers.feather")
-write_dataframe(df, qa_dir / "small_barriers.gpkg")
+write_dataframe(df, qa_dir / "small_barriers.fgb")
 
 
 # Extract out only the snapped ones
-df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(
+df = df.loc[df.snapped & (~(df.duplicate | df.dropped | df.excluded))].reset_index(
     drop=True
 )
 df.lineID = df.lineID.astype("uint32")
@@ -424,6 +430,6 @@ print("Serializing {:,} snapped small barriers".format(len(df)))
 df[
     ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
 ].to_feather(snapped_dir / "small_barriers.feather",)
-write_dataframe(df, qa_dir / "snapped_small_barriers.gpkg")
+write_dataframe(df, qa_dir / "snapped_small_barriers.fgb")
 
 print("All done in {:.2f}s".format(time() - start))

@@ -655,17 +655,17 @@ def export_snap_dist_lines(df, original_locations, out_dir, prefix=""):
 
     write_dataframe(
         tmp.drop(columns=["new_pt", "orig_pt"]).reset_index(drop=True),
-        out_dir / f"{prefix}pre_snap_to_post_snap.gpkg",
+        out_dir / f"{prefix}pre_snap_to_post_snap.fgb",
     )
     write_dataframe(
         tmp.drop(columns=["geometry", "new_pt"])
         .rename(columns={"orig_pt": "geometry"})
         .reset_index(drop=True),
-        out_dir / f"{prefix}pre_snap.gpkg",
+        out_dir / f"{prefix}pre_snap.fgb",
     )
     write_dataframe(
         tmp.drop(columns=["geometry", "orig_pt"])
         .rename(columns={"new_pt": "geometry"})
         .reset_index(drop=True),
-        out_dir / f"{prefix}post_snap.gpkg",
+        out_dir / f"{prefix}post_snap.fgb",
     )

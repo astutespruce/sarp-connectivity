@@ -286,10 +286,10 @@ df = df.reset_index(drop=True)
 df.to_feather(master_dir / "waterfalls.feather")
 
 print("writing GIS for QA/QC")
-write_dataframe(df, qa_dir / "waterfalls.gpkg")
+write_dataframe(df, qa_dir / "waterfalls.fgb")
 
 # Extract out only the snapped ones
-df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(
+df = df.loc[df.snapped & (~(df.duplicate | df.dropped | df.excluded))].reset_index(
     drop=True
 )
 df.lineID = df.lineID.astype("uint32")
@@ -300,7 +300,7 @@ df[
     ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
 ].to_feather(snapped_dir / "waterfalls.feather",)
 
-write_dataframe(df, qa_dir / "snapped_waterfalls.gpkg")
+write_dataframe(df, qa_dir / "snapped_waterfalls.fgb")
 
 print("All done in {:.2f}s".format(time() - start))
 

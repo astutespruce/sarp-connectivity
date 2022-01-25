@@ -125,6 +125,7 @@ DAM_FS_COLS = [
     "SARPUniqueID",
     "SNAP2018",  # renamed to ManualReview
     "Snap2018",  # renamed to ManualReview
+    "ManualReview",  # for western states and NC (which also has Snap2018)
     "NIDID",
     "SourceDBID",
     "DB_Source",
@@ -150,6 +151,8 @@ DAM_FS_COLS = [
     "BarrierSeverity",
     "LowheadDam",
     "ImpoundmentType",
+    "EditDate",
+    "Editor",
 ]
 
 
@@ -167,6 +170,9 @@ SMALL_BARRIER_COLS = [
     "Potential_Project",
     "Source",
     "SARP_Score",
+    "Year_Removed",
+    "EditDate",
+    "Editor",
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",
@@ -199,19 +205,19 @@ WATERFALL_COLS = [
 KEEP_POTENTIAL_PROJECT = [
     "Severe Barrier",
     "Moderate Barrier",
-    "Inaccessible",
     "Significant Barrier",
     "Indeterminate",
     "Potential Project",
     "Proposed Project",
 ]
 
-# "No Upstream Habitat", "No Upstream Channel" excluded intentionally from above
+# "No Upstream Habitat", "No Upstream Channel", "Inaccessible" excluded intentionally from above
 
 
 # Used to filter Potential_Project (small barriers)
 # These are DROPPED from all analysis and mapping
-DROP_POTENTIAL_PROJECT = ["No", "No Barrier", "No Crossing", "Past Project"]
+# TODO: pull Past Project / Completed Project into different datasets for completed projects
+DROP_POTENTIAL_PROJECT = ["No Crossing", "Past Project", "Completed Project "]
 
 
 # Used to filter small barriers and dams by SNAP2018, based on guidance from Kat
@@ -253,7 +259,7 @@ DROP_FEASIBILITY = [7]
 
 # These are excluded from network analysis / prioritization, but included for mapping
 EXCLUDE_RECON = [7, 22, 23]
-EXCLUDE_FEASIBILITY = [8]
+EXCLUDE_FEASIBILITY = [8, 13]
 EXCLUDE_BARRIER_SEVERITY = [7]  # limited to just dams
 
 UNRANKED_MANUALREVIEW = [
@@ -311,12 +317,13 @@ RECON_TO_FEASIBILITY = {
 #   # 10: 'Proposed dam'
 #   # 11: 'Fish passage installed'
 #   # 12: 'Removal planned'
+#   # 13: 'Breached - full flow'
 # }
 
 
 POTENTIAL_TO_SEVERITY = {
     "Inaccessible": 0,
-    "Indeterminate": 0,
+    "Indeterminate": 0,  # removed from processing
     "Insignificant Barrier": 1,
     "Minor Barrier": 1,
     "Moderate Barrier": 2,
@@ -326,6 +333,7 @@ POTENTIAL_TO_SEVERITY = {
     "No Upstream Habitat": 1,
     "Not Scored": 0,
     "No": 1,
+    "Completed Project": 0,  # removed from processing
     "Past Project": 0,  # removed from processing
     "Potential Project": 0,
     "Proposed Project": 0,

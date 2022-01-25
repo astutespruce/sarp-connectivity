@@ -255,6 +255,7 @@ SB_CORE_FIELDS = (
         "PotentialProject",
         "SeverityClass",
         "SARP_Score",
+        "YearRemoved",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -288,6 +289,7 @@ SB_TILE_FIELDS = [
         "TotalPerennialNetworkMiles",
         "PercentUnaltered",
         "PercentPerennialUnaltered",
+        "YearRemoved",
     }
 ]
 
@@ -359,6 +361,7 @@ FEASIBILITY_DOMAIN = {
     9: "Invasive species barrier",
     11: "Fish passage installed",
     12: "Removal planned",
+    13: "Breached - full flow",
     # not shown to user (filtered out for other reasons)
     6: "Unknown",
     7: "Error",

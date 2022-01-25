@@ -82,9 +82,15 @@ Small barriers are automatically snapped to the aquatic network if within 50 met
 
 ### Road crossings
 
-These are processed using `analysis/prep/preprocess_road_crossings.py`. Run this before small barriers above so it can be merged in.
+These are processed once for a given snapshot of the road crossings input
+dataset ("NHDPlusV2_TIGERroads2014.gdb") using
+`analysis/prep/barriers/special/prep_raw_road_crossings.py`.
 
-This creates a feather file that is joined in with final small barriers dataset to create background barriers displayed on the map.
+Then, each time small barriers are processed above, run
+`analysis/prep/barriers/prep_road_crossings.py`, which deduplicates road
+crossings against small barriers, performs spatial joins, and prepares for use
+in the analysis. These are ultimately merged in with final small barriers
+dataset to create background barriers displayed on the map.
 
 ## Waterfalls
 

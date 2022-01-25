@@ -113,45 +113,36 @@ snapped_df = gp.read_feather(src_dir / "manually_snapped_dams.feather",)
 # 0,1: not reviewed,
 # 7,9: assumed offstream but attempt to snap
 # 20,21: dams with lower confidence assigned automatically in previous run
-
-# FIXME: uncomment next line and delete following
-# snapped_df = snapped_df.loc[~snapped_df.ManualReview.isin([0, 1, 7, 9, 20, 21])]
-snapped_df = snapped_df.loc[
-    ~snapped_df.ManualReview.isin([0, 1, 7, 9, 20, 21])
-].set_index("SARPID")
+snapped_df = snapped_df.loc[~snapped_df.ManualReview.isin([0, 1, 7, 9, 20, 21])].copy()
 
 for col in ["dropped", "excluded", "duplicate", "snapped"]:
-    snapped_df[col] = (
-        snapped_df[col].map({"True": True, "False": False}).astype("bool_")
-    )
+    snapped_df[col] = snapped_df[col].map({"True": True, "False": False}).astype(bool)
 
 # Drop any that were marked as in correct location, but were not previously snapped;
 # these are errors
 ix = (snapped_df.ManualReview == 13) & ~snapped_df.snapped
 if ix.sum():
     print(
-        f"Dropping {ix.sum()} dams marked as in correct location but were not previously snapped (errors)"
+        f"Dropping {ix.sum():,} dams marked as in correct location but were not previously snapped (errors)"
     )
     snapped_df = snapped_df.loc[~ix].copy()
 
 # Drop any that were marked as duplicates manually and also automatically
 ix = (snapped_df.ManualReview == 11) & snapped_df.duplicate
-snapped_df = snapped_df.loc[~ix].copy()
+if ix.sum():
+    snapped_df = snapped_df.loc[~ix].copy()
+    print(f"Dropping {ix.sum():,} dams marked as duplicates automatically and manually")
 
-
-# FIXE: remove next line and replace with following
-snapped_df = snapped_df[["geometry", "ManualReview"]].copy()
 # temporary: splice in local snap dataset for non-SARP states until it is available online
-# other_df = gp.read_feather(
-#     src_dir / "snapped_outside_sarp_v1.feather",
-#     columns=["SARPID", "geometry", "ManualReview"],
-# )
-# snapped_df = (
-#     snapped_df[["SARPID", "geometry", "ManualReview"]]
-#     .append(other_df, ignore_index=True)
-#     .set_index("SARPID")
-# )
-# end TODO
+other_df = gp.read_feather(
+    src_dir / "snapped_outside_sarp_v1.feather",
+    columns=["SARPID", "geometry", "ManualReview"],
+)
+snapped_df = (
+    snapped_df[["SARPID", "geometry", "ManualReview"]]
+    .append(other_df, ignore_index=True)
+    .set_index("SARPID")
+)
 
 # Join to snapped and bring across updated geometry and ManualReview
 df = df.join(snapped_df, on="SARPID", rsuffix="_snap")
@@ -180,61 +171,6 @@ if s.max() > 1:
     warnings.warn(f"Multiple dams with same SARPID: {s[s > 1].index.values}")
 
 
-### FIXME: TEMPORARY
-# remove SARPIDs for estimated dams that are no longer present in latest results
-ids = [
-    "AL17927",
-    "AL18909",
-    "AL19202",
-    "AL19287",
-    "AL19496",
-    "AL20255",
-    "AL20981",
-    "AL21738",
-    "AL22076",
-    "AL22483",
-    "AL22643",
-    "AL23292",
-    "AL24385",
-    "AL25185",
-    "AR8137",
-    "AR9493",
-    "AR11113",
-    "MS8070",
-    "MS10951",
-    "MS11068",
-    "MS11824",
-    "MS12514",
-    "MS14081",
-    "MS14474",
-    "MS14910",
-    "MS15687",
-    "MS16010",
-    "MS17379",
-    "MS17790",
-    "MS17998",
-    "MS19764",
-    "MS22395",
-    "OK22811",
-    "SC5098",
-    "SC5506",
-    "SC6779",
-    "SC7370",
-    "SC10150",
-    "SC11004",
-    "SC11912",
-    "SC12823",
-    "SC14020",
-    "SC17047",
-    "SC17208",
-    "SC17911",
-    "SC18863",
-    "SC19033",
-]
-
-df = df.loc[~df.SARPID.isin(ids)]
-
-
 ### Add IDs for internal use
 # internal ID
 df["id"] = df.index.astype("uint32")
@@ -252,7 +188,16 @@ df["Feasibility"] = df.Feasibility.astype("uint8")
 
 
 ### Set data types
-for column in ("River", "NIDID", "Source", "Name", "OtherName", "SourceDBID"):
+for column in (
+    "River",
+    "NIDID",
+    "Source",
+    "Name",
+    "OtherName",
+    "SourceDBID",
+    "Editor",
+    "EditDate",
+):
     df[column] = df[column].fillna("").str.strip()
 
 df["BarrierSeverity"] = df.BarrierSeverity.fillna("Unknown").str.strip()
@@ -798,7 +743,7 @@ write_dataframe(df, qa_dir / "dams.fgb")
 
 
 # Extract out only the snapped ones
-df = df.loc[df.snapped & ~(df.duplicate | df.dropped | df.excluded)].reset_index(
+df = df.loc[df.snapped & (~(df.duplicate | df.dropped | df.excluded))].reset_index(
     drop=True
 )
 df.lineID = df.lineID.astype("uint32")

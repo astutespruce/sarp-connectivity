@@ -4,11 +4,10 @@ from time import time
 import warnings
 
 from dotenv import load_dotenv
-import geopandas as gp
+import pandas as pd
 import numpy as np
 
 from analysis.constants import (
-    RECON_TO_FEASIBILITY,
     DAM_FS_COLS,
     CRS,
     SMALL_BARRIER_COLS,
@@ -29,32 +28,6 @@ if not token:
 SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Dam_Snapping_QA_Dataset_01212020/FeatureServer/0"
 SMALL_BARRIERS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_RoadBarriers_01212019/FeatureServer/0"
 WATERFALLS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/SARP_Waterfall_Database_01212020/FeatureServer/0"
-
-### When needed: generate list of dam inventory services
-# Root services URL for USFWS R4
-# ROOT_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/"
-# services = [
-#     s["url"]
-#     for s in list_services(ROOT_URL, token=token)
-#     if s["type"] == "FeatureServer"
-# ]
-
-# DAM_URLS = dict()
-# for id, state in SARP_STATES.items():
-#     state = state.replace(" ", "_")
-#     url = next(
-#         (
-#             "{}/0".format(s)
-#             for s in services
-#             if "{}_Dam_Inventory".format(state) in s or "{}Dams".format(state) in s
-#         ),
-#         None,
-#     )
-#     if url:
-#         DAM_URLS[id] = url
-#     else:
-#         print("WARNING: {} service not found".format(state))
-
 
 # Root URLS of feature service
 DAM_URLS = {
@@ -101,18 +74,26 @@ for state, url in DAM_URLS.items():
     df = download_fs(url, fields=dam_cols, token=token).rename(
         columns={
             "SARPUniqueID": "SARPID",
-            "Snap2018": "ManualReview",
-            "SNAP2018": "ManualReview",
+            "Snap2018": "Snap2018",
+            "SNAP2018": "Snap2018",
             "PotentialFeasibility": "Feasibility",
             "Barrier_Name": "Name",
             "Other_Barrier_Name": "OtherName",
             "DB_Source": "Source",
             "Year_Completed": "Year",
+            "Year_Removed": "YearRemoved",
             "ConstructionMaterial": "Construction",
             "PurposeCategory": "Purpose",
             "StructureCondition": "Condition",
         }
     )
+
+    # NC only has SNAP2018 and ManualReview; only use ManualReview
+    if "ManualReview" in df.columns and "Snap2018" in df.columns:
+        df = df.drop(columns=["Snap2018"])
+
+    df = df.rename(columns={"Snap2018": "ManualReview"})
+
     df["SourceState"] = state
     print("Downloaded {:,} dams in {:.2f}s".format(len(df), time() - download_start))
 
@@ -162,6 +143,10 @@ if s.max() > 1:
     print("WARNING: multiple dams with same SARPID")
     print(s[s > 1])
 
+# convert from ESRI format to string
+df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
+
+
 df.to_feather(out_dir / "sarp_dams.feather")
 
 
@@ -170,7 +155,16 @@ download_start = time()
 print("\n---- Downloading Snapped Dams ----")
 df = download_fs(
     SNAPPED_URL,
-    fields=["SARPID", "ManualReview", "dropped", "excluded", "duplicate", "snapped"],
+    fields=[
+        "SARPID",
+        "ManualReview",
+        "dropped",
+        "excluded",
+        "duplicate",
+        "snapped",
+        "EditDate",
+        "Editor",
+    ],
     token=token,
 )
 
@@ -180,25 +174,15 @@ df = df.dropna(subset=["SARPID"])
 print("Projecting manually snapped dams...")
 df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
 
-# TODO: remove
-# temporary: splice in local snap dataset for non-SARP states until it is available online
-other_df = gp.read_feather(
-    out_dir / "snapped_outside_sarp_v1.feather",
-    columns=["SARPID", "geometry", "ManualReview"],
-)
-
-df = df.append(other_df, ignore_index=True)
-for col in ["dropped", "excluded", "snapped", "duplicate"]:
-    df[col] = df[col].fillna(0).astype("bool")
-
-# end TODO
-
-
 print(
     "Downloaded {:,} snapped dams in {:.2f}s".format(len(df), time() - download_start)
 )
 
 df.ManualReview = df.ManualReview.fillna(0).astype("uint8")
+
+# convert from ESRI format to string
+df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
+
 df.to_feather(out_dir / "manually_snapped_dams.feather")
 
 ### Download small barriers
@@ -213,8 +197,12 @@ df = download_fs(SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token).ren
         "RoadTypeId": "RoadType",
         "CrossingConditionId": "Condition",
         "StreamName": "Stream",
+        "Year_Removed": "YearRemoved",
     }
 )
+
+# convert from ESRI format to string
+df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
 
 print("Projecting small barriers...")
 ix = df.geometry.isnull()
