@@ -10,7 +10,6 @@ from api.constants import (
     DAM_TILE_FIELDS,
     METRIC_FIELDS,
     SB_TILE_FILTER_FIELDS,
-    SB_CORE_FIELDS,
     SB_TILE_FIELDS,
     TIER_FIELDS,
     UNIT_FIELDS,
@@ -77,15 +76,15 @@ csv_filename = tmp_dir / "dams_lt_z8.csv"
 mbtiles_filename = tmp_dir / "dams_lt_z8.mbtiles"
 mbtiles_files = [mbtiles_filename]
 
-df.loc[df.HasNetwork][DAM_TILE_FILTER_FIELDS].rename(columns=to_lowercase).to_csv(
-    csv_filename, index=False, quoting=csv.QUOTE_NONNUMERIC
-)
+tmp = df.loc[df.HasNetwork][DAM_TILE_FILTER_FIELDS].rename(columns=to_lowercase)
+tmp.to_csv(csv_filename, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z2", "-z7", "-r1.5", "-g1.5", "-B7"]
     + ["-l", "dams"]
     + ["-o", f"{str(mbtiles_filename)}"]
+    + get_col_types(tmp)
     + [str(csv_filename)]
 )
 ret.check_returncode()
@@ -201,15 +200,15 @@ csv_filename = tmp_dir / "small_barriers_lt_z8.csv"
 mbtiles_filename = tmp_dir / "small_barriers_lt_z8.mbtiles"
 mbtiles_files = [mbtiles_filename]
 
-df.loc[df.HasNetwork][SB_TILE_FILTER_FIELDS].rename(columns=to_lowercase).to_csv(
-    csv_filename, index=False, quoting=csv.QUOTE_NONNUMERIC
-)
+tmp = df.loc[df.HasNetwork][SB_TILE_FILTER_FIELDS].rename(columns=to_lowercase)
+tmp.to_csv(csv_filename, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z2", "-z7", "-r1.5", "-g1.5", "-B7"]
     + ["-l", "small_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
+    + get_col_types(tmp)
     + [str(csv_filename)]
 )
 ret.check_returncode()
