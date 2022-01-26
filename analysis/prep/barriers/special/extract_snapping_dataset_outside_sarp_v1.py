@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import warnings
 
@@ -12,9 +13,16 @@ NONSARP_STATES = list(set(STATES) - set(SARP_STATES))
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
-
 data_dir = Path("data")
 src_dir = data_dir / "barriers/source"
+out_dir = Path("/tmp/sarp")
+
+if not out_dir.exists():
+    os.makedirs(out_dir)
+
+
+### Initial version of snapping dataset For states outside SARP
+
 
 # load NABD dams (drop any that have duplicate NIDID)
 nabd = (
