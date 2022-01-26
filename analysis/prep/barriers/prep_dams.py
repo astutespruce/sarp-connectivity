@@ -182,7 +182,7 @@ df = df.set_index("id", drop=False)
 # Calculate feasibility from Recon if not already set
 # NOTE: this must be done before backfilling Feasibility with 0
 df.Recon = df.Recon.fillna(0).astype("uint8")
-ix = df.Feasibility.isnull()
+ix = df.Feasibility.isnull() | (df.Feasibility == 0)
 df.loc[ix, "Feasibility"] = df.loc[ix].Recon.map(RECON_TO_FEASIBILITY)
 df["Feasibility"] = df.Feasibility.astype("uint8")
 
