@@ -107,11 +107,6 @@ def generate_networks(network_graph, root_ids):
     ).explode()
     segments.index.name = "networkID"
     segments = segments.reset_index()
-    # append in network roots too
-    segments = segments.append(
-        pd.DataFrame({"networkID": root_ids, "lineID": root_ids}), ignore_index=True,
-    )
-
     return segments.sort_values(by=["networkID", "lineID"])
 
 

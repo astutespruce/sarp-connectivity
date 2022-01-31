@@ -157,6 +157,36 @@ def aggregate_lines(df, by):
     )
 
 
+def merge_lines(df, by):
+    """Use GEOS line merge to merge MultiLineStrings into LineStrings (where possible).
+
+    This uses aggregate_lines first to aggregate lines to MultiLineStrings.
+
+    WARNING: this can be a bit slow.
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+    by : string or list-like
+        field(s) to aggregate by
+
+    Returns
+    -------
+    GeoDataFrame of LineStrings or MultiLinestrings (if required)
+    """
+    agg = aggregate_lines(df, by)
+    agg["geometry"] = pg.line_merge(agg.geometry.values.data)
+
+    geom_type = pg.get_type_id(agg["geometry"].values.data)
+    ix = geom_type == 5
+    if ix.sum() > 0:
+        agg.loc[~ix, "geometry"] = pg.multilinestrings(
+            agg.loc[~ix].geometry.values.data, np.arange((~ix).sum())
+        )
+
+    return agg
+
+
 def vertex_angle(points, starts, ends):
     """Calculate the angle formed at each triple of start, point, end.
 

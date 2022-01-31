@@ -14,6 +14,14 @@ def make_length_dict(keys, lengths):
     return out
 
 
+@njit("(i8[:],f8[:])")
+def make_weight_dict(keys, lengths):
+    out = dict()
+    for i in range(len(keys)):
+        out[keys[i]] = lengths[i]
+    return out
+
+
 @njit
 def _dijkstra_route(adj_matrix, lengths, source_node, target_node, max_distance=None):
     """Find minimum path from source_node to target_node using Dijkstra's
@@ -81,3 +89,51 @@ def _dijkstra_route(adj_matrix, lengths, source_node, target_node, max_distance=
 
     return dist.get(target_node, None), paths.get(target_node, None)
 
+
+@njit()
+def cumulative_descendants(adj_matrix, rev_adj_matrix, root_ids, weights):
+    """Traverse networks starting from root_ids, returning each network as a set
+    of node ids.  Calculate the cumulative weight to the end of each node; this
+    is approximate where there are network loops.
+
+    Parameters
+    ----------
+    adj_matrix : adjacency matrix of parents to list of children
+    rev_adj_matrix : adjacency matrix of children to list of parents
+    root_ids : array if starting point node IDs; one per network
+    weights : dict containing weight for each node
+
+    Returns
+    -------
+    (list of sets, dict of cumulative lengths per node)
+    """
+    out = []
+    cumulative_weight = Dict.empty(types.int64, types.float64)
+    for i in range(len(root_ids)):
+        node = root_ids[i]
+        cumulative_weight[node] = weights[node]
+        collected = {node}  # per input node
+        if node in adj_matrix:
+            next_nodes = set(adj_matrix[node])
+            while next_nodes:
+                nodes = next_nodes
+                next_nodes = set()
+                for next_node in nodes:
+                    if not next_node in collected:
+                        collected.add(next_node)
+
+                        # use whichever parent node is available
+                        parent_weight = 0
+                        for parent_node in rev_adj_matrix[next_node]:
+                            if parent_node in cumulative_weight:
+                                parent_weight = cumulative_weight[parent_node]
+                                break
+
+                        cumulative_weight[next_node] = (
+                            parent_weight + weights[next_node]
+                        )
+
+                        if next_node in adj_matrix:
+                            next_nodes.update(adj_matrix[next_node])
+        out.append(collected)
+    return out, cumulative_weight

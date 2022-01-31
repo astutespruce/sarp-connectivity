@@ -21,7 +21,7 @@ def descendants(adj_matrix, root_ids):
     out = []
     for i in range(len(root_ids)):
         node = root_ids[i]
-        collected = set()  # per row
+        collected = {node}  # per root node
         if node in adj_matrix:
             next_nodes = set(adj_matrix[node])
             while next_nodes:
@@ -29,6 +29,34 @@ def descendants(adj_matrix, root_ids):
                 next_nodes = set()
                 for next_node in nodes:
                     if not next_node in collected:
+                        collected.add(next_node)
+                        if next_node in adj_matrix:
+                            next_nodes.update(adj_matrix[next_node])
+        out.append(collected)
+    return out
+
+
+@njit
+def descendants2(adj_matrix, root_ids):
+    # like the above, but with a global "seen" set
+    out = []
+    seen = set()
+    for i in range(len(root_ids)):
+        node = root_ids[i]
+
+        if node in seen:
+            print(f"already seen node: {node}")
+
+        collected = {node}  # per root node
+        seen.add(node)
+        if node in adj_matrix:
+            next_nodes = set(adj_matrix[node])
+            while next_nodes:
+                nodes = next_nodes
+                next_nodes = set()
+                for next_node in nodes:
+                    if not next_node in seen:
+                        seen.add(next_node)
                         collected.add(next_node)
                         if next_node in adj_matrix:
                             next_nodes.update(adj_matrix[next_node])
