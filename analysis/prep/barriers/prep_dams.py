@@ -186,6 +186,19 @@ ix = df.Feasibility.isnull() | (df.Feasibility == 0)
 df.loc[ix, "Feasibility"] = df.loc[ix].Recon.map(RECON_TO_FEASIBILITY)
 df["Feasibility"] = df.Feasibility.astype("uint8")
 
+# If either feasibility or recon indicate removal planned, override both to match
+ix = (df.Recon == 11) | (df.Feasibility == 12)
+df.loc[ix, "Recon"] = 11
+df.loc[ix, "Feasibility"] = 12
+
+# If invasive species barrier flag is set, update Recon and Feasibility
+ix = (df.InvasiveSpecies == 1) & (df.Recon.isin([0, 3, 4, 6, 13, 15, 17]))
+df.loc[ix, "Recon"] = 16
+df.loc[ix, "Feasibility"] = 9
+
+# drop invasive species column to prevent later confusion
+df = df.drop(columns=["InvasiveSpecies"])
+
 
 ### Set data types
 for column in (

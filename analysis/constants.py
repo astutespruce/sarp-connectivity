@@ -141,8 +141,11 @@ DAM_FS_COLS = [
     "StructureCondition",
     "ConstructionMaterial",
     "Recon",
+    "Recon2",
+    "Recon3",
+    "PotentialFeasibility",  # only present in some states, backfilled from Recon
+    "InvasiveSpecies",
     "BarrierStatus",
-    "PotentialFeasibility",  # only present in NC
     "PassageFacility",
     "StructureCategory",
     "Diversion",
