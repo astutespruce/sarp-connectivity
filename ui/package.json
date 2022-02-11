@@ -1,8 +1,8 @@
 {
   "name": "sarp-prioritization-tool",
   "description": "Southeast Aquatic Barrier Prioritization Tool",
-  "version": "2.4.4",
-  "date": "1/25/2022",
+  "version": "2.4.5",
+  "date": "2/10/2022",
   "author": "Brendan C. Ward <bcward@astutespruce.com>",
   "dependencies": {
     "@emotion-icons/fa-regular": "^3.6.0",
