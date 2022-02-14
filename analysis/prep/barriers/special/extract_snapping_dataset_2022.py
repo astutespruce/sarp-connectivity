@@ -2,12 +2,11 @@ import os
 from pathlib import Path
 import warnings
 
-import pygeos as pg
-import geopandas as gp
-import numpy as np
-from pyogrio import read_dataframe, write_dataframe
 
-from analysis.constants import CRS, DAM_FS_COLS, STATES, SARP_STATES
+import geopandas as gp
+from pyogrio import write_dataframe
+
+from analysis.constants import STATES, SARP_STATES
 
 NONSARP_STATES = list(set(STATES) - set(SARP_STATES))
 
