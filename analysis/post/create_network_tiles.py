@@ -10,7 +10,7 @@ from pyogrio import write_dataframe
 
 from analysis.constants import GEO_CRS
 from analysis.lib.io import read_feathers
-from analysis.lib.geometry.lines import aggregate_lines
+from analysis.lib.geometry.lines import merge_lines
 from analysis.post.lib.tiles import get_col_types
 
 src_dir = Path("data/networks")
@@ -111,7 +111,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 
         # aggregate to MultiLineStrings for smaller outputs
         print("Aggregating flowlines to networks")
-        flowlines = aggregate_lines(
+        flowlines = merge_lines(
             flowlines, by=["dams", "small_barriers", "sizeclass", "mapcode"],
         ).sort_values(by="dams")
 
