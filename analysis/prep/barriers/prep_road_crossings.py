@@ -19,7 +19,6 @@ import geopandas as gp
 
 
 from analysis.prep.barriers.lib.duplicates import mark_duplicates
-from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -37,6 +36,9 @@ qa_dir = barriers_dir / "qa"
 
 print("Reading road crossings")
 df = gp.read_feather(src_dir / "road_crossings.feather")
+
+# update crossingtype
+df.loc[df.crossingtype == "tiger2020 road", "crossingtype"] = "assumed culvert"
 
 
 ### Remove those that otherwise duplicate existing small barriers
@@ -67,27 +69,6 @@ print(f"Now have {len(df):,} road crossings")
 
 # make sure that id is unique of small barriers
 df["id"] = (barriers.id.max() + 100000 + df.index.astype("uint")).astype("uint")
-
-### Spatial joins to boundary layers
-# NOTE: these are used for summary stats, but not used in most of the rest of the stack
-df = add_spatial_joins(df)
-
-
-# Cleanup HUC, state, county, and ecoregion columns that weren't assigned
-for col in [
-    "HUC2",
-    "HUC6",
-    "HUC8",
-    "HUC12",
-    "Basin",
-    "County",
-    "COUNTYFIPS",
-    "STATEFIPS",
-    "State",
-    "ECO3",
-    "ECO4",
-]:
-    df[col] = df[col].fillna("")
 
 df = df.reset_index(drop=True)
 

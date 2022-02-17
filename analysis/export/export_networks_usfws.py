@@ -97,6 +97,7 @@ df = pd.read_feather(
         "HasNetwork",
         "id",
         "SARPID",
+        "State",
         "lon",
         "lat",
         "HUC12",

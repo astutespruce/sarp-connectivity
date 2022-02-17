@@ -26,7 +26,7 @@ You must set `AGOL_TOKEN` in an `.env` file in the root of this project. It must
 - Dams: hosted on ArcGIS Online by state for SARP states, provided directly by Kat (SARP) for non-SARP states
 - Small barriers: hosted on ArcGIS Online
 - Waterfalls: obtained by Kat (SARP) from USGS in early 2019.
-- Road crossings: obtained by Kat (SARP) from USGS in 2018.
+- Road crossings: downloaded from USGS in Feb 2022.
 - NID: obtained by Kat and provided on 3/5/2021
 - National Anthropogenic Barriers Database (NABD): obtained by Kat and provided on 1/22/2021
 
@@ -82,8 +82,10 @@ Small barriers are automatically snapped to the aquatic network if within 50 met
 
 ### Road crossings
 
+Downloaded from https://www.sciencebase.gov/catalog/item/6128fbf2d34e40dd9c061360 on 2/16/2022.
+
 These are processed once for a given snapshot of the road crossings input
-dataset ("NHDPlusV2_TIGERroads2014.gdb") using
+dataset ("stream_crossings_united_states_feb_2022.gpkg") using
 `analysis/prep/barriers/special/prep_raw_road_crossings.py`.
 
 Then, each time small barriers are processed above, run

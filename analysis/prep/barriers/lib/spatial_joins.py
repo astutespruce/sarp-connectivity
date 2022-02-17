@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 import geopandas as gp
 
-from analysis.lib.geometry import unique_sjoin
+from analysis.lib.geometry import sjoin_points_to_poly
 
 
 data_dir = Path("data")
@@ -28,7 +28,7 @@ def add_spatial_joins(df):
         boundaries_dir / "HUC12.feather", columns=["geometry", "HUC12", "name"],
     ).rename(columns={"name": "Subwatershed"})
 
-    df = unique_sjoin(df, huc12)
+    df = sjoin_points_to_poly(df, huc12)
 
     # Expected: not all barriers fall cleanly within the states dataset
     if df.HUC12.isnull().sum():
@@ -59,7 +59,7 @@ def add_spatial_joins(df):
         columns=["geometry", "County", "COUNTYFIPS", "STATEFIPS"],
     )
 
-    df = unique_sjoin(df, counties)
+    df = sjoin_points_to_poly(df, counties)
 
     # Join in state name based on STATEFIPS from county
     states = pd.read_feather(
@@ -77,7 +77,7 @@ def add_spatial_joins(df):
     eco4 = gp.read_feather(
         boundaries_dir / "eco4.feather", columns=["geometry", "ECO3", "ECO4"]
     )
-    df = unique_sjoin(df, eco4)
+    df = sjoin_points_to_poly(df, eco4)
 
     # Expected: not all barriers fall cleanly within the ecoregions dataset
     if df.ECO4.isnull().sum():
@@ -86,7 +86,7 @@ def add_spatial_joins(df):
     ### Protected lands
     print("Joining to protected areas")
     protected = gp.read_feather(boundaries_dir / "protected_areas.feather")
-    df = unique_sjoin(df, protected)
+    df = sjoin_points_to_poly(df, protected)
     df.OwnerType = df.OwnerType.fillna(0).astype("uint8")
     df.ProtectedLand = df.ProtectedLand.fillna(False).astype("bool")
 

@@ -91,65 +91,50 @@ def sjoin_geometry(left, right, predicate="intersects", how="inner"):
     return pd.Series(values, index=index, name="index_right")
 
 
-def unique_sjoin(left, right):
+def sjoin_points_to_poly(point_df, poly_df):
     """Perfom a spatial join between left and right, then remove duplicate entries
     for right by left (e.g., feature in left overlaps multiple features in right).
 
-    This is most appropriate where left is composed entirely of point features.
-
-    All joins use a left join and intersects predicate.
+    Returns the first spatial join for each point.
 
     Parameters
     ----------
-    left : GeoDataFrame
-    right : GeoDataFrame
+    point_df : GeoDataFrame
+    poly_df : GeoDataFrame
 
     Returns
     -------
     GeoDataFrame
-        includes non-geometry columns of right joined to left.
+        all columns of left plus all non-geometry columns from right
     """
-
-    if len(left) >= len(right):
-
-        joined = sjoin_geometry(
-            pd.Series(left.geometry.values.data, index=left.index),
-            pd.Series(right.geometry.values.data, index=right.index),
-            predicate="intersects",
-            how="inner",
+    if len(point_df) > len(poly_df):
+        tree = pg.STRtree(point_df.geometry.values.data)
+        poly_ix, pt_ix = tree.query_bulk(
+            poly_df.geometry.values.data, predicate="intersects"
         )
 
     else:
-        # optimize for the case where the right side is smaller
-        # and restructure so that this is equivalent to above
-        left_index_name = left.index.name or "index"
-        joined = (
-            sjoin_geometry(
-                pd.Series(right.geometry.values.data, index=right.index),
-                pd.Series(left.geometry.values.data, index=left.index),
-                predicate="intersects",
-                how="inner",
-            )
-            .rename(left_index_name)
-            .reset_index()
-            .set_index(left_index_name)
+        tree = pg.STRtree(poly_df.geometry.values.data)
+        pt_ix, poly_ix = tree.query_bulk(
+            point_df.geometry.values.data, predicate="intersects"
         )
-        joined = joined[joined.columns[0]].rename("index_right")
 
-    joined = left.join(joined, how="left").join(
-        right.drop(columns=["geometry"]), on="index_right", rsuffix="_right"
+    # reduce to unique poly per pt
+    j = pd.DataFrame(
+        {"index_right": poly_df.index.values.take(poly_ix)},
+        index=point_df.index.values.take(pt_ix),
     )
-
-    joined = joined.drop(columns=["index_right"])
-
-    grouped = joined.groupby(level=0)
+    grouped = j.groupby(level=0)
     if grouped.size().max() > 1:
         print(
             "WARNING: multiple target areas returned in spatial join for a single point"
         )
 
-        # extract the right side indexed by the left, and take first record
-        right = grouped[[c for c in right.columns.drop("geometry")]].first()
-        joined = left.join(right)
+        j = grouped.first()
 
-    return joined
+    return (
+        point_df.join(j.index_right, how="left")
+        .join(poly_df.drop(columns=["geometry"]), on="index_right")
+        .drop(columns=["index_right"])
+    )
+

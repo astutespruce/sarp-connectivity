@@ -14,9 +14,9 @@ from pathlib import Path
 from time import time
 import warnings
 
-from pyogrio import read_dataframe, write_dataframe
-import pygeos as pg
 import geopandas as gp
+import pygeos as pg
+from pyogrio import read_dataframe
 
 
 from analysis.constants import CRS
@@ -24,8 +24,6 @@ from analysis.prep.barriers.lib.duplicates import mark_duplicates
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
-DUPLICATE_TOLERANCE = 10  # meters
 
 start = time()
 
@@ -35,26 +33,49 @@ barriers_dir = data_dir / "barriers"
 src_dir = barriers_dir / "source"
 qa_dir = barriers_dir / "qa"
 
-gdb = src_dir / "NHDPlusV2_TIGERroads2014.gdb"
 
 print("Reading road crossings")
 
 
-huc4 = gp.read_feather(boundaries_dir / "huc4.feather", columns=["geometry"])
-
+# rename columns to match small barriers
+# NOTE: tiger2020_feature_names is a combination of multiple road names
 df = read_dataframe(
-    gdb,
-    layer="Rdx_Tiger2014_NHDPlusV2_NoAtt_wAdd",
-    columns=["FULLNAME", "GNIS_NAME", "RDXID"],
-    force_2d=True,
-).to_crs(CRS)
-print("Read {:,} road crossings".format(len(df)))
+    src_dir / "stream_crossings_united_states_feb_2022.gpkg",
+    layer="stream_crossing_sites",
+    columns=[
+        "stream_crossing_id",
+        "tiger2020_feature_names",
+        "nhdhr_gnis_stream_name",
+        "crossing_type",
+    ],
+).rename(
+    columns={
+        "tiger2020_feature_names": "Road",
+        "nhdhr_gnis_stream_name": "Stream",
+        "stream_crossing_id": "SARPID",
+        "crossing_type": "crossingtype",
+    }
+)
+print(f"Read {len(df):,} road crossings")
+
+# project HUC4 to match crossings
+huc4 = gp.read_feather(boundaries_dir / "huc4.feather", columns=["geometry"]).to_crs(
+    df.crs
+)
 
 tree = pg.STRtree(df.geometry.values.data)
 ix = tree.query_bulk(huc4.geometry.values.data, predicate="intersects")[1]
 
-df = df.take(ix)
-print("Selected {:,} road crossings in region".format(len(df)))
+df = df.take(ix).reset_index(drop=True)
+print(f"Selected {len(df):,} road crossings in region")
+
+# use original latitude / longitude (NAD83) values
+lon, lat = pg.get_coordinates(df.geometry.values.data).astype("float32").T
+df["lon"] = lon
+df["lat"] = lat
+
+# project to match SARP CRS
+df = df.to_crs(CRS)
 
 df["id"] = df.index.astype("uint32")
 df = df.set_index("id", drop=False)
@@ -65,11 +86,12 @@ df = df.set_index("id", drop=False)
 print("Removing duplicate crossings...")
 
 # round to int
-df["x"] = pg.get_x(df.geometry.values.data).astype("int")
-df["y"] = pg.get_y(df.geometry.values.data).astype("int")
+x, y = pg.get_coordinates(df.geometry.values.data).astype("int").T
+df["x"] = x
+df["y"] = y
 
 keep_ids = df[["x", "y", "id"]].groupby(["x", "y"]).first().reset_index().id
-print(f"{len(df) - len(keep_ids):,} duplicate road crossings")
+print(f"Dropping {len(df) - len(keep_ids):,} duplicate road crossings")
 
 df = df.loc[keep_ids].copy()
 
@@ -77,12 +99,15 @@ df = df.loc[keep_ids].copy()
 print("Removing nearby road crossings...")
 # consider 5 m nearby
 df = mark_duplicates(df, 5)
-print(f"{df.duplicate.sum():,} very close road crossings dropped")
-df = df.loc[~df.duplicate].drop(columns=["duplicate", "dup_count", "dup_group"])
+print(f"Dropping {df.duplicate.sum():,} very close road crossings")
+df = (
+    df.loc[~df.duplicate]
+    .drop(columns=["duplicate", "dup_count", "dup_group"])
+    .reset_index(drop=True)
+)
 
+print(f"now have {len(df):,} road crossings")
 
-# Rename columns to standardize with small barriers dataset
-df = df.rename(columns={"FULLNAME": "Road", "GNIS_NAME": "Stream", "RDXID": "SARPID"})
 # Cleanup fields
 df.Stream = df.Stream.str.strip().fillna("")
 df.Road = df.Road.str.strip().fillna("")
@@ -96,12 +121,27 @@ df.Name = df.Name.fillna("")
 # match dtype of SARPID elsewhere
 df.SARPID = "cr" + df.SARPID.round().astype(int).astype(str)
 
-print("Adding lat / lon fields")
-geo = df[["geometry"]].to_crs(epsg=4326)
-geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
-geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
-df = df.join(geo[["lat", "lon"]])
+df = add_spatial_joins(df)
+
+print(f"now have {len(df):,} road crossings after spatial joins")
+
+# Cleanup HUC, state, county, and ecoregion columns that weren't assigned
+for col in [
+    "HUC2",
+    "HUC6",
+    "HUC8",
+    "HUC12",
+    "Basin",
+    "County",
+    "COUNTYFIPS",
+    "STATEFIPS",
+    "State",
+    "ECO3",
+    "ECO4",
+]:
+    df[col] = df[col].fillna("")
+
 
 df.reset_index(drop=True).to_feather(src_dir / "road_crossings.feather")
 
-print("Done in {:.2f}".format(time() - start))
+print(f"Done in {time() - start:.2f}")
