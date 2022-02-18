@@ -9,12 +9,7 @@
 
 ## 1. Define analysis regions
 
-The analysis region is defined in 2 variants:
-
-- full region
-- SARP region (for 2020 update)
-
-Each analysis region is based on 2 parts
+The analysis region is based on 2 parts
 
 - states in the region
 - NHD HUC4s that intersect the state boundaries
@@ -33,21 +28,20 @@ This produces 5 main output files for each analysis region:
 - analysis state boundary (dissolved states)
 - HUC2
 - HUC4
-- analysis boundary (dissolved HUC4)
 
-For each of above, a GPKG file is written for use in GIS, and feather file
+For each of above, an FGB file is written for use in GIS, and feather file
 for use later in the analysis pipeline.
 
 ### States in region
 
-State boundaries (2019 version) were downloaded from CENSUS Tiger website.
+State boundaries (2021 version) were downloaded from CENSUS Tiger website.
 
 The predefined list of states is assigned in `analysis/constants.py`.
 
 ### HUC4s in region
 
 Watershed boundaries were extracted from the NHD WBD national dataset downloaded
-on 10/12/2020 from: http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/
+on 2/15/2022 from: http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/
 
 ## 2. Prepare hydrologic boundaries
 
@@ -70,7 +64,7 @@ These are processed using `analysis/prep/boundaries/prep_boundaries.py`.
 
 ### Counties
 
-County boundaries (2019 version) were downloaded from CENSUS Tiger website.
+County boundaries (2021 version) were downloaded from CENSUS Tiger website.
 
 ### EPA Ecoregions
 

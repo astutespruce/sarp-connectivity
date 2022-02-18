@@ -1,13 +1,13 @@
 from pathlib import Path
 import warnings
 
-
 import geopandas as gp
 import pygeos as pg
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 
-from analysis.constants import STATES, SARP_STATES, CRS, GEO_CRS, REGION_STATES
+from analysis.constants import STATES, CRS, GEO_CRS, REGION_STATES
+from analysis.lib.geometry import to_multipolygon
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -15,11 +15,11 @@ data_dir = Path("data")
 out_dir = data_dir / "boundaries"
 ui_dir = Path("ui/data")
 
-state_filename = data_dir / "boundaries/source/tl_2019_us_state/tl_2019_us_state.shp"
+state_filename = data_dir / "boundaries/source/tl_2021_us_state.shp"
 wbd_gdb = data_dir / "nhd/source/wbd/WBD_National_GDB/WBD_National_GDB.gdb"
 
 
-### Construct region and SARP boundaries from states
+### Construct region boundary from states
 print("Processing states...")
 state_df = (
     read_dataframe(state_filename, columns=["STUSPS", "STATEFP", "NAME"],)
@@ -27,15 +27,17 @@ state_df = (
     .rename(columns={"STUSPS": "id", "NAME": "State", "STATEFP": "STATEFIPS"})
 )
 state_df.geometry = pg.make_valid(state_df.geometry.values.data)
+state_df.geometry = to_multipolygon(state_df.geometry.values.data)
 
 # save all states for spatial joins
 state_df.to_feather(out_dir / "states.feather")
+write_dataframe(state_df, out_dir / "states.fgb")
 
 state_df = state_df.loc[state_df.id.isin(STATES.keys())].copy()
 state_df.to_feather(out_dir / "region_states.feather")
 write_dataframe(
     state_df[["State", "geometry"]].rename(columns={"State": "id"}),
-    out_dir / "region_states.gpkg",
+    out_dir / "region_states.fgb",
 )
 
 # dissolve to create outer state boundary for total analysis area and regions
@@ -54,13 +56,11 @@ bnd_df = gp.GeoDataFrame(
     ],
     crs=CRS,
 )
-write_dataframe(bnd_df, out_dir / "region_boundary.gpkg")
+bnd_df["geometry"] = to_multipolygon(bnd_df.geometry.values.data)
+write_dataframe(bnd_df, out_dir / "region_boundary.fgb")
 bnd_df.to_feather(out_dir / "region_boundary.feather")
 
-
 bnd = bnd_df.geometry.values.data[0]
-sarp_bnd = bnd_df.loc[bnd_df.id == "se"].geometry.values.data[0]
-
 bnd_geo = bnd_df.to_crs(GEO_CRS)
 bnd_geo["bbox"] = pg.bounds(bnd_geo.geometry.values.data).round(2).tolist()
 
@@ -70,9 +70,9 @@ with open(ui_dir / "region_bounds.json", "w") as out:
 
 # create mask
 world = pg.box(-180, -85, 180, 85)
-bnd_mask = bnd_geo.copy()
+bnd_mask = bnd_geo.drop(columns=["bbox"])
 bnd_mask["geometry"] = pg.normalize(pg.difference(world, bnd_mask.geometry.values.data))
-write_dataframe(bnd_mask, out_dir / "region_mask.gpkg")
+write_dataframe(bnd_mask, out_dir / "region_mask.fgb")
 
 
 ### Extract HUC4 units that intersect boundaries
@@ -88,16 +88,16 @@ huc2_df = (
 tree = pg.STRtree(huc2_df.geometry.values.data)
 
 # First extract SARP HUC2
-sarp_ix = tree.query(sarp_bnd, predicate="intersects")
-sarp_huc2_df = huc2_df.iloc[sarp_ix].reset_index(drop=True)
-write_dataframe(sarp_huc2_df, out_dir / "sarp_huc2.gpkg")
-sarp_huc2_df.to_feather(out_dir / "sarp_huc2.feather")
-sarp_huc2 = sorted(sarp_huc2_df.HUC2)
+# sarp_ix = tree.query(sarp_bnd, predicate="intersects")
+# sarp_huc2_df = huc2_df.iloc[sarp_ix].reset_index(drop=True)
+# write_dataframe(sarp_huc2_df, out_dir / "sarp_huc2.fgb")
+# sarp_huc2_df.to_feather(out_dir / "sarp_huc2.feather")
+# sarp_huc2 = sorted(sarp_huc2_df.HUC2)
 
 # Subset out HUC2 in region
 ix = tree.query(bnd, predicate="intersects")
 huc2_df = huc2_df.iloc[ix].reset_index(drop=True)
-write_dataframe(huc2_df, out_dir / "huc2.gpkg")
+write_dataframe(huc2_df, out_dir / "huc2.fgb")
 huc2_df.to_feather(out_dir / "huc2.feather")
 huc2 = sorted(huc2_df.HUC2)
 
@@ -133,25 +133,6 @@ huc4 = np.unique(
     )
 )
 huc4_df = huc4_df.loc[huc4_df.HUC4.isin(huc4)].reset_index(drop=True)
-write_dataframe(huc4_df, out_dir / "huc4.gpkg")
+write_dataframe(huc4_df, out_dir / "huc4.fgb")
 huc4_df.to_feather(out_dir / "huc4.feather")
-
-# repeat for SARP
-tree = pg.STRtree(huc4_df.geometry.values.data)
-intersects_ix = tree.query(sarp_bnd, predicate="intersects")
-contains_ix = tree.query(sarp_bnd, predicate="contains")
-edge_ix = np.setdiff1d(intersects_ix, contains_ix)
-edge_df = huc4_df.iloc[edge_ix].copy()
-edge_df["clipped"] = pg.intersection(sarp_bnd, edge_df.geometry.values.data)
-edge_df["overlap_pct"] = (
-    100 * pg.area(edge_df.clipped.values.data) / pg.area(edge_df.geometry.values.data)
-).round(3)
-
-# keep areas that overlap > 0%
-sarp_huc4 = np.unique(
-    np.append(huc4_df.iloc[contains_ix].HUC4, edge_df.loc[edge_df.overlap_pct > 0].HUC4)
-)
-sarp_huc4_df = huc4_df.loc[huc4_df.HUC4.isin(sarp_huc4)].reset_index(drop=True)
-write_dataframe(sarp_huc4_df, out_dir / "sarp_huc4.gpkg")
-sarp_huc4_df.to_feather(out_dir / "sarp_huc4.feather")
 

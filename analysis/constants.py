@@ -1,6 +1,6 @@
 """Constants used in other scripts."""
 
-# Full Southeast + USFWS R2 / R6 region
+# Full Southeast + USFWS R2 / R6 region + OR / WA / ID
 STATES = {
     "AL": "Alabama",
     "AR": "Arkansas",
@@ -9,6 +9,7 @@ STATES = {
     "FL": "Florida",
     "GA": "Georgia",
     "IA": "Iowa",  # not officially part of SE / R2 & R6, but important and mostly covered anyway
+    "ID": "Idaho",
     "KS": "Kansas",
     "KY": "Kentucky",
     "LA": "Louisiana",
@@ -20,6 +21,7 @@ STATES = {
     "NE": "Nebraska",
     "NM": "New Mexico",
     "OK": "Oklahoma",
+    "OR": "Oregon",
     "PR": "Puerto Rico",
     "SC": "South Carolina",
     "SD": "South Dakota",
@@ -27,6 +29,8 @@ STATES = {
     "TX": "Texas",
     "UT": "Utah",
     "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
     "WY": "Wyoming",
 }
 
@@ -54,8 +58,8 @@ SARP_STATE_NAMES = [STATES[s] for s in SARP_STATES]
 
 # Note: some states overlap multiple regions
 REGION_STATES = {
-    # Southeast is SARP states
-    "se": SARP_STATES,
+    # Southeast is SARP states plus WV (SECAS not SARP state)
+    "se": SARP_STATES + ["WV"],
     # great plains / intermountain west
     "gpiw": [
         "CO",
@@ -68,6 +72,7 @@ REGION_STATES = {
         "WY",
         "UT",
     ],
+    "pnw": ["ID", "OR", "WA"],
     "sw": ["AZ", "NM", "OK", "TX"],
 }
 
