@@ -1,13 +1,13 @@
-"""This script processes waterbody datasets in Oregon to extract
+"""This script processes waterbody datasets in California to extract
 waterbodies that intersect flowlines.
 
-Limited to HUC2 == 16,17,18.
+Limited to HUC2 == 16,18.
 
 This drops feature types that are not applicable as waterbodies.
 
 Creates the following files in `data/states/or`:
-* `or_waterbodies.feather`: feather file for internal use
-* `or_waterbodies.fgb`: for use in GIS
+* `ca_waterbodies.feather`: feather file for internal use
+* `ca_waterbodies.fgb`: for use in GIS
 """
 
 
@@ -29,8 +29,8 @@ warnings.filterwarnings("ignore", message=".*geometry types are not supported*")
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/raw"  # intentionally use raw flowlines
-src_dir = data_dir / "states/or"
-huc2s = ["16", "17", "18"]
+src_dir = data_dir / "states/ca"
+huc2s = ["16", "18"]
 
 print("Reading flowlines...")
 flowlines = read_feathers(
@@ -39,25 +39,53 @@ flowlines = read_feathers(
 tree = pg.STRtree(flowlines.geometry.values.data)
 
 
-### Read OR waterbody dataset
-print("Reading waterbodies...")
-df = read_dataframe(src_dir / "wb_oregon.shp", columns=["WB_HYDR_FT", "WB_CART_FT"])
-
-# metadata for attributes not available, used values from WA hydro lakes dataset
-# to deduce lookup of codes
-
-# Keep Lake, Impoundment and appropriate subtypes
+### Read CA waterbody dataset
+df = read_dataframe(src_dir / "CARIv0.3.gdb", columns=["orig_class", "name"])
+df["group"] = df.orig_class.fillna("").apply(lambda x: x.split(" - ")[0]).str.strip()
 df = df.loc[
-    df.WB_HYDR_FT.isin(["LA", "IM"])
-    & df.WB_CART_FT.isin([101, 106, 107, 109, 110, 402, 421, 902])
+    df.group.str.startswith("Lake")
+    | df.group.str.startswith("Open Water")
+    | df.group.str.contains("Pond")
+    | df.group.isin(["Lacustrine"])
 ].reset_index(drop=True)
 
-# everything besides lakes are likely impoundment / altered types
-df["altered"] = df.WB_HYDR_FT != "LA"
+# if one of the wetland code types, use same altered codes as extract_nwi.py
+df["altered"] = df.name.fillna("").str.contains("Reservoir") | (
+    df.orig_class.str.contains(" - ")
+    & (
+        df.orig_class.str.endswith("d")
+        | df.orig_class.str.endswith("h")
+        | df.orig_class.str.endswith("r")
+        | df.orig_class.str.endswith("x")
+    )
+)
+df["source"] = "cari_0.3"
+df = df.to_crs(CRS)
+
+print(f"Extracted {len(df):,} CA waterbodies")
+left, right = tree.query_bulk(df.geometry.values.data, predicate="intersects")
+df = df.iloc[np.unique(left)].reset_index(drop=True)
+print(f"Kept {len(df):,} that intersect flowlines")
+
+df = explode(df)
+ix = ~pg.is_valid(df.geometry.values.data)
+if ix.sum():
+    print(f"Repairing {ix.sum():,} invalid waterbodies")
+    df.loc[ix, "geometry"] = pg.make_valid(df.loc[ix].geometry.values.data)
+
+waterbodies = df[["geometry", "altered", "source"]].copy()
+del df
+
+
+print("Reading waterbodies...")
+df = read_dataframe(src_dir / "CA_Lakes.shp", columns=["TYPE", "GNIS_NAME"])
+df = df.loc[df.TYPE != "dry lake/playa"].reset_index(drop=True)
+
+df["altered"] = df.GNIS_NAME.fillna("").str.contains("Reservoir")
 
 df = df.to_crs(CRS)
 
-print(f"Extracted {len(df):,} OR waterbodies")
+print(f"Extracted {len(df):,} CA waterbodies")
 left, right = tree.query_bulk(df.geometry.values.data, predicate="intersects")
 df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
@@ -94,6 +122,6 @@ ix = wb.index.values.take(np.unique(left[intersection >= 0.5]))
 wb["altered"] = False
 wb.loc[ix, "altered"] = True
 
-wb.to_feather(src_dir / "or_waterbodies.feather")
-write_dataframe(wb, src_dir / "or_waterbodies.fgb")
+wb.to_feather(src_dir / "ca_waterbodies.feather")
+write_dataframe(wb, src_dir / "ca_waterbodies.fgb")
 

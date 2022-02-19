@@ -37,6 +37,14 @@ Run `download_nwi.py`. This will download data by HUC8 into `data/nwi/source/huc
 
 ### 3. Download state-level LIDAR or imagery-based waterbody data
 
+#### California
+
+California data are available at:
+
+- https://www.calfish.org/programsdata/referencelayershydrography/californiahydrography.aspx
+- https://www.sfei.org/data/california-aquatic-resource-inventory-cari-version-03-gis-data
+  These were downloaded on 2/19/2022 to `data/states/ca/CA_Lakes.shp` and `data/states/ca/CARIv0.3.gdb`.
+
 #### South Carolina
 
 South Carolina data are available at: ftp://ftpdata.dnr.sc.gov/gisdata/elev/Hydrolines/SCHydroBreakline.zip
@@ -121,6 +129,10 @@ Use `special/find_loops.py` to help find the loops to add to `analysis/constants
 
 NOTE: `find_loops.py` will find loops, but not necessarily the correct NHDPlusID for the actual
 loop due to traversal order. Use this to manually search for the correct loop to exclude.
+
+### California waterbodies
+
+Run `special/prepare_ca_waterbodies.py` to extract waterbodies that intersect flowlines.
 
 #### Oregon waterbodies
 
