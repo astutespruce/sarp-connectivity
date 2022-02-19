@@ -3,7 +3,6 @@ import os
 from time import time
 import warnings
 
-import pandas as pd
 import geopandas as gp
 import pygeos as pg
 import numpy as np
@@ -51,25 +50,27 @@ huc8_df = huc8_df.iloc[ix].copy()
 
 # Convert to dict of sorted HUC8s per HUC2
 units = huc8_df.groupby("HUC2").HUC8.unique().apply(sorted).to_dict()
+huc2s = units.keys()
 
 # manually subset keys from above for processing
 huc2s = [
-    "02",
-    "03",
+    #     "02",
+    #     "03",
     "05",
-    "06",
-    "07",
-    "08",
-    "09",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
+    #     "06",
+    #     "07",
+    # "08",
+    #     "09",
+    #     "10",
+    #     "11",
+    #     "12",
+    #     "13",
+    #     "14",
+    #     "15",
     "16",
     "17",
-    "21",  # Missing: 21010008 (islands)
+    "18",
+    #     "21",  # Missing: 21010008 (islands)
 ]
 
 
@@ -144,6 +145,11 @@ for huc2 in huc2s:
             waterbodies.loc[ix].geometry.values.data
         )
 
+    # cleanup any that collapsed to other geometry types during make valid or import
+    waterbodies = waterbodies.loc[
+        pg.get_type_id(waterbodies.geometry.values.data) == 3
+    ].reset_index()
+
     # note: nwi_code, nwi_type are discarded here since they aren't used later
     print("Dissolving adjacent waterbodies")
     waterbodies = dissolve(waterbodies, by=["altered"])
@@ -152,7 +158,7 @@ for huc2 in huc2s:
     waterbodies["km2"] = pg.area(waterbodies.geometry.values.data) / 1e6
 
     waterbodies.to_feather(huc2_dir / "waterbodies.feather")
-    write_dataframe(waterbodies, huc2_dir / "waterbodies.gpkg")
+    write_dataframe(waterbodies, huc2_dir / "waterbodies.fgb")
 
     ### Process riverine
     print(f"Extracted {len(rivers):,} NWI altered river polygons")
@@ -167,10 +173,13 @@ for huc2 in huc2s:
         print(f"Repairing {ix.sum():,} invalid rivers")
         rivers.loc[ix, "geometry"] = pg.make_valid(rivers.loc[ix].geometry.values.data)
 
+    # cleanup any that collapsed to other geometry types during make valid or import
+    rivers = rivers.loc[pg.get_type_id(rivers.geometry.values.data) == 3].reset_index()
+
     rivers["modifier"] = rivers.modifier.map(MODIFIERS)
 
     rivers.to_feather(huc2_dir / "altered_rivers.feather")
-    write_dataframe(rivers, huc2_dir / "altered_rivers.gpkg")
+    write_dataframe(rivers, huc2_dir / "altered_rivers.fgb")
 
     print("--------------------")
     print("HUC2: {} done in {:.0f}s\n\n".format(huc2, time() - huc2_start))

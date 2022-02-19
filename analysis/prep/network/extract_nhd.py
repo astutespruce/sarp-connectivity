@@ -199,38 +199,38 @@ def process_huc4s(src_dir, out_dir, huc4s):
     waterbodies.to_feather(out_dir / "waterbodies.feather")
 
     # DEBUG:
-    # write_dataframe(flowlines, out_dir / "flowlines.gpkg")
-    # write_dataframe(waterbodies, out_dir / "waterbodies.gpkg")
+    # write_dataframe(flowlines, out_dir / "flowlines.fgb")
+    # write_dataframe(waterbodies, out_dir / "waterbodies.fgb")
 
     if len(points):
         print(f"serializing {len(points):,} NHD barrier points")
         points.to_feather(out_dir / "nhd_points.feather")
         # DEBUG:
-        # write_dataframe(points, out_dir / 'nhd_points.gpkg')
+        # write_dataframe(points, out_dir / 'nhd_points.fgb')
 
     if len(lines):
         print(f"serializing {len(lines):,} NHD barrier lines")
         lines.to_feather(out_dir / "nhd_lines.feather")
         # DEBUG:
-        # write_dataframe(lines, out_dir / 'nhd_lines.gpkg')
+        # write_dataframe(lines, out_dir / 'nhd_lines.fgb')
 
     if len(poly):
         print(f"serializing {len(poly):,} NHD barrier polygons")
         poly.to_feather(out_dir / "nhd_poly.feather")
         # DEBUG:
-        # write_dataframe(poly, out_dir / 'nhd_poly.gpkg')
+        # write_dataframe(poly, out_dir / 'nhd_poly.fgb')
 
     if len(altered_rivers):
         print(f"serializing {len(altered_rivers):,} NHD altered rivers")
         altered_rivers.to_feather(out_dir / "nhd_altered_rivers.feather")
         # DEBUG:
-        # write_dataframe(altered_rivers, out_dir / "nhd_altered_rivers.gpkg")
+        # write_dataframe(altered_rivers, out_dir / "nhd_altered_rivers.fgb")
 
     if len(marine):
         print(f"serializing {len(marine):,} NHD marine areas")
         marine.to_feather(out_dir / "nhd_marine.feather")
         # DEBUG:
-        # write_dataframe(marine, out_dir / "nhd_marine.gpkg")
+        # write_dataframe(marine, out_dir / "nhd_marine.fgb")
 
 
 data_dir = Path("data")
@@ -250,22 +250,23 @@ units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
 # manually subset keys from above for processing
 huc2s = [
-    "02",
-    "03",
-    "05",
-    "06",
-    "07",
-    "08",
-    "09",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
+    # "02",
+    # "03",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    # "14",
+    # "15",
+    # "16",
     "17",
-    "21",
+    # "18",
+    # "21",
 ]
 
 

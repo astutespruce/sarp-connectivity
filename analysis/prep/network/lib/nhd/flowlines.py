@@ -4,7 +4,6 @@ import pandas as pd
 import pygeos as pg
 from pyogrio import read_dataframe
 
-from analysis.lib.geometry import calculate_sinuosity
 from analysis.lib.geometry import make_valid
 from analysis.lib.joins import remove_joins
 
@@ -31,7 +30,12 @@ VAA_COLS = [
     "Slope",
     "MinElevSmo",
     "MaxElevSmo",
+    "Divergence",
+    "LevelPathI",
+    "TerminalPa",
 ]
+
+EROMMA_COLS = ["NHDPlusID", "QAMA", "VAMA"]
 
 
 def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
@@ -80,7 +84,18 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     # NOTE: not all records in Flowlines have corresponding records in VAA
     # we drop those that do not since we need these fields.
     print("Reading VAA table and joining...")
-    vaa_df = read_dataframe(gdb_path, layer="NHDPlusFlowlineVAA", columns=[VAA_COLS])
+    vaa_df = read_dataframe(
+        gdb_path, layer="NHDPlusFlowlineVAA", columns=[VAA_COLS]
+    ).rename(
+        columns={
+            "StreamOrde": "StreamOrder",
+            "StreamLeve": "StreamLevel",
+            "MinElevSmo": "MinElev",
+            "MaxElevSmo": "MaxElev",
+            "LevelPathI": "LevelPathID",
+            "TerminalPa": "TerminalID",
+        }
+    )
 
     vaa_df.NHDPlusID = vaa_df.NHDPlusID.astype("uint64")
     vaa_df = vaa_df.set_index(["NHDPlusID"])
@@ -88,12 +103,26 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     print(f"{len(df):,} features after join to VAA")
 
     # Simplify data types for smaller files and faster IO
-    df.FType = df.FType.astype("uint16")
-    df.FCode = df.FCode.astype("uint16")
-    df.StreamOrde = df.StreamOrde.astype("uint8")
-    df.Slope = df.Slope.astype("float32")
-    df.MinElevSmo = df.MinElevSmo.astype("float32")
-    df.MaxElevSmo = df.MaxElevSmo.astype("float32")
+    for field in ["StreamOrder", "Divergence"]:
+        df[field] = df[field].astype("uint8")
+
+    for field in ["FType", "FCode"]:
+        df[field] = df[field].astype("uint16")
+
+    for field in ["Slope", "MinElev", "MaxElev"]:
+        df[field] = df[field].astype("float32")
+
+    for field in ["LevelPathID", "TerminalID"]:
+        df[field] = df[field].astype("uint64")
+
+    ### Read in EROMMA_COLS
+    flow_df = (
+        read_dataframe(gdb_path, layer="NHDPlusEROMMA", columns=EROMMA_COLS)
+        .rename(columns={"QAMA": "AnnualFlow", "VAMA": "AnnualVelocity"})
+        .set_index("NHDPlusID")
+        .astype("float32")
+    )
+    df = df.join(flow_df)
 
     ### Read in flowline joins
     print("Reading flowline joins")
@@ -230,7 +259,7 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     # WARNING: loops may be very problematic from a network processing standpoint.
     # Include with caution.
     print("Identifying loops")
-    df["loop"] = (df.StreamOrde != df.StreamCalc) | (df.FlowDir.isnull())
+    df["loop"] = (df.StreamOrder != df.StreamCalc) | (df.FlowDir.isnull())
 
     idx = df.loc[df.loop].index
     join_df["loop"] = join_df.upstream.isin(idx) | join_df.downstream.isin(idx)
@@ -264,9 +293,8 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     df.loc[drainage >= 25000, "sizeclass"] = "5"
 
     # Calculate length and sinuosity
-    print("Calculating length and sinuosity")
+    print("Calculating length")
     df["length"] = df.geometry.length.astype("float32")
-    df["sinuosity"] = calculate_sinuosity(df.geometry.values.data).astype("float32")
 
     # drop columns not useful for later processing steps
     df = df.drop(columns=["FlowDir", "StreamCalc"])

@@ -35,10 +35,27 @@ NWI ponds and lakes are used to supplement the NHDWaterbody dataset downloaded a
 
 Run `download_nwi.py`. This will download data by HUC8 into `data/nwi/source/huc8`.
 
-### 3. Download state-level LIDAR-based waterbody data
+### 3. Download state-level LIDAR or imagery-based waterbody data
+
+#### South Carolina
 
 South Carolina data are available at: ftp://ftpdata.dnr.sc.gov/gisdata/elev/Hydrolines/SCHydroBreakline.zip
-These were downloaded manually on 3/17/2021 to `data/states/sc/SCBreakline.gdb.
+These were downloaded manually on 3/17/2021 to `data/states/sc/SCBreakline.gdb`.
+
+#### Oregon
+
+Oregon data are available at: https://spatialdata.oregonexplorer.info/geoportal/details;id=3439a3c43f9f4c4499802f55898b7dd8
+
+These were downloaded on 2/19/2022 to `data/states/or/wb_oregon.shp`.
+
+#### Washington State
+
+Washinton State data are available at:
+
+- https://geo.wa.gov/datasets/wdfw::visible-surface-water/explore (more metadata at: https://geodataservices.wdfw.wa.gov/arcgis/rest/services/HP_Projects/Visible_Surface_Water/MapServer)
+- https://www.arcgis.com/sharing/rest/content/items/28a0f93c33454297b4a9d3faf3da552a/info/metadata/metadata.xml?format=default&output=html
+
+These were downloaded on 2/19/2022 to `data/states/wa/SurfaceWaterUnified_forGeoWA.gdb` and `data/states/wa/hydro.gdb`.
 
 ### 4. Extract flowlines, waterbodies, and NHD barriers:
 
@@ -105,9 +122,17 @@ Use `special/find_loops.py` to help find the loops to add to `analysis/constants
 NOTE: `find_loops.py` will find loops, but not necessarily the correct NHDPlusID for the actual
 loop due to traversal order. Use this to manually search for the correct loop to exclude.
 
+#### Oregon waterbodies
+
+Run `special/prepare_or_waterbodies.py` to extract waterbodies that intersect flowlines.
+
 #### South Carolina LIDAR-derived waterbodies
 
-Run `special/prepare_sc_waterbodies` to extract waterbodies that intersect flowlines.
+Run `special/prepare_sc_waterbodies.py` to extract waterbodies that intersect flowlines.
+
+#### Washington State imagery-derived waterbodies
+
+Run `special/prepare_wa_waterbodies.py` to extract waterbodies that intersect flowlines.
 
 ### 6. Extract NWI waterbodies and altered rivers
 
