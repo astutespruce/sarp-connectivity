@@ -9,8 +9,6 @@ import pygeos as pg
 import numpy as np
 from pyogrio import write_dataframe
 
-
-from analysis.constants import CRS
 from analysis.lib.geometry import explode, dissolve, write_geoms
 from analysis.prep.network.lib.nhd import find_nhd_waterbody_breaks
 
@@ -47,10 +45,26 @@ huc2s = [
     # "15",
     # "16",
     # "17",
-    "21",
+    # "18",
+    # "21",
 ]
 
 start = time()
+
+print("Reading state level datasets")
+
+overlaps_or_ca = False
+if set(huc2s).intersection(["16", "17", "18"]):
+    ca_wb = gp.read_feather(
+        "data/states/ca/ca_waterbodies.feather", columns=["geometry", "altered", "HUC2"]
+    )
+    or_wb = gp.read_feather(
+        "data/states/or/or_waterbodies.feather", columns=["geometry", "altered", "HUC2"]
+    )
+    wa_wb = gp.read_feather(
+        "data/states/wa/wa_waterbodies.feather", columns=["geometry", "altered"]
+    )
+
 
 for huc2 in huc2s:
     huc2_start = time()
@@ -77,9 +91,20 @@ for huc2 in huc2s:
     altered = df.loc[df.altered].copy()
 
     if huc2 == "03":
-        sc = gp.read_feather("data/states/sc/sc_waterbodies.feather", columns=[])
-        sc["altered"] = False  # unknown
-        df = df.append(sc[["geometry", "altered"]])
+        sc_wb = gp.read_feather("data/states/sc/sc_waterbodies.feather", columns=[])
+        sc_wb["altered"] = False  # unknown
+        df = df.append(sc_wb[["geometry", "altered"]], ignore_index=True)
+
+    elif huc2 == "17":
+        df = df.append(wa_wb[["geometry", "altered"]], ignore_index=True)
+
+    if overlaps_or_ca:
+        df = df.append(
+            or_wb.loc[or_wb.HUC2 == huc2, ["geometry", "altered"]], ignore_index=True
+        )
+        df = df.append(
+            ca_wb.loc[ca_wb.HUC2 == huc2, ["geometry", "altered"]], ignore_index=True
+        )
 
     print(f"Dissolving {len(df):,} waterbodies...")
     dissolve_start = time()
@@ -103,7 +128,7 @@ for huc2 in huc2s:
 
         if breaks is not None:
             breaks = pg.get_parts(breaks)
-            write_geoms(breaks, f"/tmp/{huc2}breaks.gpkg", crs=nhd.crs)
+            write_geoms(breaks, f"/tmp/{huc2}breaks.fgb", crs=nhd.crs)
             print(
                 f"Cutting NHD waterbodies by {len(breaks):,} breaks at dams to prevent dissolving together"
             )
@@ -138,7 +163,7 @@ for huc2 in huc2s:
     df["km2"] = pg.area(df.geometry.values.data) / 1e6
 
     df.to_feather(huc2_dir / "waterbodies.feather")
-    write_dataframe(df, huc2_dir / "waterbodies.gpkg")
+    write_dataframe(df, huc2_dir / "waterbodies.fgb")
 
     print("--------------------")
     print(f"HUC2: {huc2} done in {time() - huc2_start:.0f}s\n\n")

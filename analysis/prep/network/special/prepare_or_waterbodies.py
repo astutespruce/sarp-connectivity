@@ -15,6 +15,7 @@ from pathlib import Path
 import warnings
 
 import geopandas as gp
+import pandas as pd
 import pygeos as pg
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
@@ -31,6 +32,9 @@ data_dir = Path("data")
 nhd_dir = data_dir / "nhd/raw"  # intentionally use raw flowlines
 src_dir = data_dir / "states/or"
 huc2s = ["16", "17", "18"]
+
+huc2_df = gp.read_feather(data_dir / "boundaries/huc2.feather")
+huc2_df = huc2_df.loc[huc2_df.HUC2.isin(huc2s)].copy()
 
 print("Reading flowlines...")
 flowlines = read_feathers(
@@ -93,6 +97,19 @@ intersection = pg.area(
 ix = wb.index.values.take(np.unique(left[intersection >= 0.5]))
 wb["altered"] = False
 wb.loc[ix, "altered"] = True
+
+
+### Split out by HUC2
+tree = pg.STRtree(wb.geometry.values.data)
+
+# confirmed by hand, there are no waterbodies that show up in multiple HUC2s
+left, right = tree.query_bulk(huc2_df.geometry.values.data, predicate="intersects")
+
+wb = wb.join(
+    pd.DataFrame(
+        {"HUC2": huc2_df.HUC2.values.take(left)}, index=wb.index.values.take(right)
+    )
+)
 
 wb.to_feather(src_dir / "or_waterbodies.feather")
 write_dataframe(wb, src_dir / "or_waterbodies.fgb")

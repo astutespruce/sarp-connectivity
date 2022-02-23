@@ -1,3 +1,5 @@
+import numpy as np
+import pandas as pd
 import pygeos as pg
 from pyogrio import read_dataframe
 

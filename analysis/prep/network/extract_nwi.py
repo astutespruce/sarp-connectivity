@@ -22,6 +22,20 @@ MODIFIERS = {
     "x": "Excavated",
 }
 
+# see: https://www.fws.gov/wetlands/documents/NWI_Wetlands_and_Deepwater_Map_Code_Diagram.pdf
+PERMANENCE_MODIFIERS = {
+    "A": "Temporarily Flooded",
+    "B": "Seasonally Saturated",
+    "C": "Seasonally Flooded",
+    "D": "Continuously Saturated",
+    "E": "Seasonally Flooded / Saturated",
+    "F": "Semipermanently Flooded",
+    "G": "Intermittently Exposed",
+    "H": "Permanently Flooded",
+    "J": "Intermittently Flooded",
+    "K": "Artificially Flooded",
+}
+
 
 data_dir = Path("data")
 src_dir = data_dir / "nwi/source/huc8"
@@ -56,7 +70,7 @@ huc2s = units.keys()
 huc2s = [
     #     "02",
     #     "03",
-    "05",
+    # "05",
     #     "06",
     #     "07",
     # "08",
@@ -134,6 +148,12 @@ for huc2 in huc2s:
     )
     waterbodies = waterbodies.iloc[np.unique(left)].reset_index(drop=True)
     print(f"Kept {len(waterbodies):,} that intersect flowlines")
+
+    # drop intermittent / seasonal waterbodies we don't want to include;
+    # if they are permanent enough, NHD will pick them up
+    waterbodies = waterbodies.loc[
+        ~waterbodies.modifier.isin(["A", "B", "C", "D", "E", "G", "J"])
+    ].reset_index(drop=True)
 
     # TODO: explode, repair, dissolve, explode, reset index
     waterbodies = explode(waterbodies)

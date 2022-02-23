@@ -20,20 +20,16 @@ def process_huc4s(src_dir, huc4s):
 
     merged = None
     for HUC4 in huc4s:
-        print("\n\n------------------- Reading {} -------------------".format(HUC4))
+        print(f"\n\n------------------- Reading {HUC4} -------------------")
 
-        gdb = src_dir / HUC4 / "NHDPLUS_H_{HUC4}_HU4_GDB.gdb".format(HUC4=HUC4)
+        gdb = src_dir / HUC4 / f"NHDPLUS_H_{HUC4}_HU4_GDB.gdb"
 
         df = read_dataframe(gdb, layer="NHDPlusCatchment", columns=["NHDPlusID"])
         print(f"Read {len(df):,} catchments")
 
         df = df.dropna(subset=["NHDPlusID"])
 
-        print(
-            "Kept {:,} catchments after dropping those without NHDPlusID".format(
-                len(df)
-            )
-        )
+        print(f"Kept {len(df):,} catchments after dropping those without NHDPlusID")
 
         df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
@@ -72,26 +68,27 @@ units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
 # manually subset keys from above for processing
 huc2s = [
-    "02",
-    "03",
-    "05",
-    "06",
-    "07",
-    "08",
-    "09",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
+    # "02",
+    # "03",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    # "14",
+    # "15",
+    # "16",
     "17",
-    "21",
+    # "18",
+    # "21",
 ]
 
 for huc2 in huc2s:
-    print("----- {} ------".format(huc2))
+    print(f"----- {huc2} ------")
 
     huc2_dir = out_dir / huc2
     if not huc2_dir.exists():
@@ -106,18 +103,22 @@ for huc2 in huc2s:
 
             df = process_huc4s(src_dir, huc4s[i : i + MAX_HUC4s])
 
-            print("serializing {:,} catchments".format(len(df)))
+            print(f"serializing {len(df):,} catchments")
             df[["NHDPlusID", "geometry"]].to_feather(
                 huc2_dir / f"catchments_{counter}.feather"
             )
             write_dataframe(df, tmp_dir / f"region{huc2}_catchments_{counter}.shp")
 
+            del df
+
     else:
         df = process_huc4s(src_dir, huc4s)
 
-        print("serializing {:,} catchments".format(len(df)))
+        print(f"serializing {len(df):,} catchments")
         df[["NHDPlusID", "geometry"]].to_feather(huc2_dir / f"catchments.feather")
         write_dataframe(df, tmp_dir / f"region{huc2}_catchments.shp")
 
+        del df
 
-print("Done in {:.2f}s\n============================".format(time() - start))
+
+print(f"Done in {time() - start:.2f}s\n============================")
