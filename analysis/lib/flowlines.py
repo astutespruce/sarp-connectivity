@@ -4,13 +4,12 @@ import geopandas as gp
 import pandas as pd
 import pygeos as pg
 import numpy as np
-from pyogrio import write_dataframe
 from analysis.lib.geometry.polygons import get_interior_rings
 
 
 from analysis.lib.joins import index_joins, find_joins, update_joins, remove_joins
 from analysis.lib.graph import find_adjacent_groups
-from analysis.lib.geometry import calculate_sinuosity
+from analysis.lib.geometry import union_or_combine
 
 from analysis.lib.geometry import explode
 
@@ -310,20 +309,10 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
             "position": inner_ix,
             "geometry": lines,
             "length": pg.length(lines).astype("float32"),
-            "sinuosity": calculate_sinuosity(lines).astype("float32"),
         }
     ).join(
         flowlines.drop(
-            columns=[
-                "geometry",
-                "lineID",
-                "xmin",
-                "ymin",
-                "xmax",
-                "ymax",
-                "length",
-                "sinuosity",
-            ],
+            columns=["geometry", "lineID", "xmin", "ymin", "xmax", "ymax", "length",],
             errors="ignore",
         ),
         on="origLineID",
@@ -473,20 +462,10 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
             "origLineID": grouped.index.take(outer_ix),
             "geometry": lines,
             "length": pg.length(lines).astype("float32"),
-            "sinuosity": calculate_sinuosity(lines).astype("float32"),
         }
     ).join(
         flowlines.drop(
-            columns=[
-                "geometry",
-                "lineID",
-                "xmin",
-                "ymin",
-                "xmax",
-                "ymax",
-                "length",
-                "sinuosity",
-            ],
+            columns=["geometry", "lineID", "xmin", "ymin", "xmax", "ymax", "length",],
             errors="ignore",
         ),
         on="origLineID",
@@ -808,11 +787,20 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     # make sure that updated joins are unique
     joins = joins.drop_duplicates()
 
+    contained_altered = contained.loc[
+        contained.wbID.isin(waterbodies.loc[waterbodies.altered].index)
+    ].lineID.unique()
+
     # make sure that wb_joins is unique
     contained = contained.groupby(by=["lineID", "wbID"]).first().reset_index()
 
     # set flag for flowlines in waterbodies
     flowlines["waterbody"] = flowlines.index.isin(contained.lineID.unique())
+
+    # mark flowlines contained in altered waterbodies as altered
+    ix = flowlines.index.isin(contained_altered) & (~flowlines.altered)
+    flowlines.loc[ix, "altered"] = True
+    flowlines.loc[ix, "altered_src"] = "waterbodies"
 
     print(
         "Done evaluating waterbody / flowline overlap in {:.2f}s".format(time() - start)
@@ -942,3 +930,56 @@ def remove_marine_flowlines(flowlines, joins, marine):
 
     return flowlines, joins
 
+
+def mark_altered_flowlines(flowlines, nwi):
+    """Marks altered flowlines based on NHD and NWI
+
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    nwi : GeoDataFrame
+
+    Returns
+    -------
+    flowlines with additional columns: "altered", "altered_src"
+    """
+
+    # NHD canals / ditches & pipelines considered altered
+    flowlines["altered"] = flowlines.FType.isin([336, 428])
+    flowlines["altered_src"] = ""
+    flowlines.loc[flowlines.altered, "altered_src"] = "NHD"
+
+    # Overlap with NWI altered rivers is also considered altered
+    print("Overlay with NWI altered rivers to determine altered status")
+
+    # buffer by 10m before finding overlaps
+    # (seemed reasonable from visual inspection in region 15)
+    print("Buffering NWI...")
+    b = pg.get_parts(union_or_combine(pg.buffer(nwi.geometry.values.data, 10)))
+
+    # Only analyze those not marked by NHD as altered
+    unaltered = flowlines.loc[~flowlines.altered]
+
+    tree = pg.STRtree(unaltered.geometry.values.data)
+    left, right = tree.query_bulk(b, predicate="intersects")
+
+    df = pd.DataFrame(
+        {
+            "lineID": unaltered.index.values.take(right),
+            "line": unaltered.geometry.values.data.take(right),
+            "nwi": b.take(left),
+        }
+    )
+
+    df["overlap"] = pg.length(pg.intersection(df.line.values, df.nwi.values))
+    df["pct_overlap"] = df.overlap / pg.length(df.line.values)
+
+    # only keep those with an overlap of >= 50% and at least 100m
+    ix = flowlines.index.isin(
+        df.loc[(df.pct_overlap >= 0.5) & (df.overlap >= 100)].lineID
+    )
+    flowlines.loc[ix, "altered"] = True
+    flowlines.loc[ix, "altered_src"] = "NWI"
+    del df
+
+    return flowlines

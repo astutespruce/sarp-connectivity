@@ -78,12 +78,12 @@ huc2s = [
     #     "10",
     #     "11",
     #     "12",
-    #     "13",
-    #     "14",
-    #     "15",
-    "16",
-    "17",
-    "18",
+    # "13",
+    "14",
+    # "15",
+    # "16",
+    # "17",
+    # "18",
     #     "21",  # Missing: 21010008 (islands)
 ]
 
@@ -151,9 +151,10 @@ for huc2 in huc2s:
 
     # drop intermittent / seasonal waterbodies we don't want to include;
     # if they are permanent enough, NHD will pick them up
-    waterbodies = waterbodies.loc[
-        ~waterbodies.modifier.isin(["A", "B", "C", "D", "E", "G", "J"])
-    ].reset_index(drop=True)
+    if huc2 in ["13", "15", "16", "17", "18"]:
+        waterbodies = waterbodies.loc[
+            ~waterbodies.modifier.isin(["A", "B", "C", "D", "E", "G", "J"])
+        ].reset_index(drop=True)
 
     # TODO: explode, repair, dissolve, explode, reset index
     waterbodies = explode(waterbodies)

@@ -108,15 +108,6 @@ for huc2 in huc2s:
     flowlines = flowlines.loc[~flowlines.loop].drop(columns=["loop"])
     joins = joins.loc[~joins.loop].drop(columns=["loop"])
 
-    # add intermittent status
-    # TODO: move to prepare_flowlines_waterbodies.py ?
-    flowlines["intermittent"] = flowlines.FCode.isin([46003, 46007])
-
-    # add altered status
-    # TODO: move to prepare_flowlines_waterbodies.py (combine with NWI)
-    # canals / ditches & pipelines considered altered
-    flowlines["altered"] = flowlines.FType.isin([336, 428])
-
     # since all other lineIDs use HUC4 prefixes, this should be unique
     # Use the first HUC2 for the region group
     next_segment_id = int(huc2) * 1000000 + 1

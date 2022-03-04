@@ -52,6 +52,7 @@ from analysis.lib.flowlines import (
     remove_pipelines,
     remove_marine_flowlines,
     cut_lines_by_waterbodies,
+    mark_altered_flowlines,
 )
 from analysis.prep.network.lib.drains import create_drain_points
 
@@ -62,6 +63,7 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd"
 src_dir = nhd_dir / "raw"
+nwi_dir = data_dir / "nwi/raw"
 waterbodies_dir = data_dir / "waterbodies"
 out_dir = nhd_dir / "clean"
 
@@ -71,7 +73,7 @@ huc2s = sorted(
 # manually subset keys from above for processing
 huc2s = [
     # "02",
-    "03",
+    # "03",
     # "05",
     # "06",
     # "07",
@@ -85,7 +87,7 @@ huc2s = [
     # "15",
     # "16",
     # "17",
-    # "21",
+    "21",
 ]
 
 
@@ -200,6 +202,13 @@ for huc2 in huc2s:
 
     # make sure that updated joins are unique
     joins = joins.drop_duplicates()
+
+    ### Set intermittent status
+    flowlines["intermittent"] = flowlines.FCode.isin([46003, 46007])
+
+    ### Add altered status
+    nwi = gp.read_feather(nwi_dir / huc2 / "altered_rivers.feather")
+    flowlines = mark_altered_flowlines(flowlines, nwi)
 
     print("------------------")
 
