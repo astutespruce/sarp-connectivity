@@ -53,9 +53,8 @@ const WaterfallDetails = ({
   >
     <Section title="Location">
       <Entry>
-        Waterfall at {formatNumber(lat, 3)}
-        &deg; N, {formatNumber(lon, 3)}
-        &deg; E
+        Waterfall at {formatNumber(lat, 5)}, {formatNumber(lon, 5)} (&deg;N,
+        &deg;E)
       </Entry>
       {!isEmptyString(stream) ? (
         <Entry>

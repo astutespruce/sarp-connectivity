@@ -79,9 +79,8 @@ const DamDetails = ({
   >
     <Section title="Location">
       <Entry>
-        {estimated === 1 ? 'Estimated dam' : 'Dam'} at {formatNumber(lat, 5)}
-        &deg; N / {formatNumber(lon, 5)}
-        &deg; E
+        {estimated === 1 ? 'Estimated dam' : 'Dam'} at {formatNumber(lat, 5)},{' '}
+        {formatNumber(lon, 5)} (&deg;N, &deg;E)
         {estimated === 1 ? (
           <Paragraph variant="help" sx={{ fontSize: 0, mt: '0.5em' }}>
             Dam is estimated from other data sources and may be incorrect;

@@ -93,9 +93,7 @@ const BarrierDetails = ({
           {isCrossing
             ? 'Road / stream crossing'
             : 'Road-related potential barrier'}{' '}
-          at {formatNumber(lat, 5)}
-          &deg; N, {formatNumber(lon, 5)}
-          &deg; E
+          at {formatNumber(lat, 5)}, {formatNumber(lon, 5)} (&deg;N, &deg;E)
         </Entry>
         {!isEmptyString(stream) ? (
           <Entry>

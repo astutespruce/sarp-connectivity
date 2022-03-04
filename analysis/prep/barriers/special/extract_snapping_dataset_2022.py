@@ -13,7 +13,7 @@ NONSARP_STATES = list(set(STATES) - set(SARP_STATES))
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 data_dir = Path("data")
-src_dir = data_dir / "barriers/source"
+src_dir = data_dir / "barriers/source/Archive_Feb2022"
 out_dir = Path("/tmp/sarp")
 
 if not out_dir.exists():
@@ -23,7 +23,7 @@ if not out_dir.exists():
 ### Read in source inventory
 src = gp.read_feather(
     src_dir / "sarp_dams.feather",
-    columns=["geometry", "SARPID", "ManualReview", "Recon"],
+    columns=["geometry", "SARPID", "NIDID", "ManualReview", "Recon"],
 ).set_index("SARPID")
 src.ManualReview = src.ManualReview.fillna(0).astype("uint8")
 
@@ -98,6 +98,7 @@ df = gp.read_feather(
     columns=[
         "geometry",  # this is auto-snapped geometry
         "SARPID",
+        "NIDID",
         "State",
         "HUC2",
         "ManualReview",
