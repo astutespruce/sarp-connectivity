@@ -62,7 +62,7 @@ import geopandas as gp
 from pyogrio import write_dataframe
 
 from analysis.lib.io import read_feathers
-from analysis.lib.geometry.lines import aggregate_lines, merge_lines
+from analysis.lib.geometry.lines import merge_lines
 
 
 src_dir = Path("data/networks")
@@ -152,7 +152,6 @@ floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).as
 
 # HUC2s that specifically overlap SECAS states (SARP states + WV)
 for group in huc2_groups:
-
     segments = (
         read_feathers(
             [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
@@ -251,6 +250,7 @@ for group in huc2_groups:
                     "FCode",
                     "FType",
                     "TotDASqKm",
+                    "HUC4",
                 ],
             )
             .set_index("lineID")
@@ -294,3 +294,58 @@ for group in huc2_groups:
             networks, out_dir / f"region{huc2}_{barrier_type}_networks.gpkg"
         )
 
+        # region 10 only
+        # huc4_groups = [
+        #     [
+        #         "1002",
+        #         "1003",
+        #         "1004",
+        #         "1005",
+        #         "1006",
+        #         "1007",
+        #         "1008",
+        #         "1009",
+        #         "1010",
+        #         "1011",
+        #         "1012",
+        #         "1013",
+        #         "1014",
+        #         "1015",
+        #     ],
+        #     [
+        #         "1016",
+        #         "1017",
+        #         "1018",
+        #         "1019",
+        #         "1020",
+        #         "1021",
+        #         "1022",
+        #         "1023",
+        #         "1024",
+        #         "1025",
+        #         "1026",
+        #         "1027",
+        #         "1028",
+        #         "1029",
+        #         "1030",
+        #     ],
+        # ]
+        # for i, huc4_group in enumerate(huc4_groups):
+        #     networks = (
+        #         merge_lines(
+        #             flowlines.loc[flowlines.HUC4.isin(huc4_group)][
+        #                 ["networkID", "geometry"]
+        #             ],
+        #             by=["networkID"],
+        #         )
+        #         .set_index("networkID")
+        #         .join(stats, how="inner")
+        #         .reset_index()
+        #     )
+
+        #     # this currently takes a very long time for shapefiles on GDAL3.4.x due to large multilinestrings
+        #     # so write to GPKG and convert to shapefile using Docker GDAL 3.3.x
+        #     print("Serializing dissolved networks...")
+        #     write_dataframe(
+        #         networks, out_dir / f"region{huc2}_{barrier_type}_networks_{i}.gpkg"
+        #     )
