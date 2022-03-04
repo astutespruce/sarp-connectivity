@@ -505,6 +505,7 @@ CONVERT_TO_LOOP = {
         40000400082917,
         40000300030341,
     ],
+    "17": [55000400069574, 55000300390045, 55000300261512],
 }
 
 # List of NHDPlusIDs to remove due to issues with NHD

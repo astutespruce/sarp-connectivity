@@ -127,6 +127,8 @@ def is_reachable(adj_matrix, sources, targets, max_depth=None):
 
     Parameters
     ----------
+    adj_matrix : dict of numba lists
+        adjacency list created from above function
     sources : 1d ndarray of source nodes
     targets : 1d array of target nodes
         must be same length as source
@@ -152,6 +154,54 @@ def is_reachable(adj_matrix, sources, targets, max_depth=None):
         )
 
     return out
+
+
+@njit
+ """Find loops in the network.
+
+    Uses a depth-first search to create a list of loops that join to nodes
+    already seen during traversal.
+
+    Parameters
+    ----------
+    adj_matrix : dict, adjacency matrix
+    adj_matrix : dict of numba lists
+        adjacency list created from above function
+    max_depth : int, optional (default: None)
+        If set, will be the maximum number of descendants of each source
+        to search for a route to any of targets.  By default will search
+        through all nodes in graph.
+
+    Returns
+    -------
+    set of nodes that are loops
+    """
+def find_loops(adj_matrix, sources, max_depth=None):
+    if max_depth is None:
+        max_depth = len(adj_matrix)
+
+    seen = set()
+    loops = set()
+    for start_node in sources:
+        depth = 0
+        stack = [start_node]
+        prev_node = start_node
+        while len(stack):
+            depth += 1
+            if depth >= max_depth:
+                break
+
+            node = stack.pop()
+            if node in seen:
+                loops.add(prev_node)
+            else:
+                seen.add(node)
+                if node in adj_matrix:
+                    stack.extend(adj_matrix[node][::-1])
+
+            prev_node = node
+
+    return loops
 
 
 class DirectedGraph(object):
@@ -181,3 +231,6 @@ class DirectedGraph(object):
 
     def is_reachable(self, sources, targets, max_depth=None):
         return is_reachable(self.adj_matrix, sources, targets, max_depth)
+
+    def find_loops(self, sources, max_depth=None):
+        return find_loops(self.adj_matrix, sources, max_depth)
