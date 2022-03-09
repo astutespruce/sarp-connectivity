@@ -45,16 +45,21 @@ California data are available at:
 - https://www.sfei.org/data/california-aquatic-resource-inventory-cari-version-03-gis-data
   These were downloaded on 2/19/2022 to `data/states/ca/CA_Lakes.shp` and `data/states/ca/CARIv0.3.gdb`.
 
-#### South Carolina
-
-South Carolina data are available at: ftp://ftpdata.dnr.sc.gov/gisdata/elev/Hydrolines/SCHydroBreakline.zip
-These were downloaded manually on 3/17/2021 to `data/states/sc/SCBreakline.gdb`.
-
 #### Oregon
 
 Oregon data are available at: https://spatialdata.oregonexplorer.info/geoportal/details;id=3439a3c43f9f4c4499802f55898b7dd8
 
 These were downloaded on 2/19/2022 to `data/states/or/wb_oregon.shp`.
+
+#### South Carolina
+
+South Carolina data are available at: ftp://ftpdata.dnr.sc.gov/gisdata/elev/Hydrolines/SCHydroBreakline.zip
+These were downloaded manually on 3/17/2021 to `data/states/sc/SCBreakline.gdb`.
+
+#### South Dakota
+
+South Dakota waterbody data are available at https://opendata2017-09-18t192802468z-sdbit.opendata.arcgis.com/datasets/052112ac4fce4489a55c7da9aa9a702c_0/about
+These were downloaded manually on 3/8/2022 to `data/states/sd/State_Waterbodies.shp`.
 
 #### Washington State
 
@@ -141,6 +146,10 @@ Run `special/prepare_or_waterbodies.py` to extract waterbodies that intersect fl
 #### South Carolina LIDAR-derived waterbodies
 
 Run `special/prepare_sc_waterbodies.py` to extract waterbodies that intersect flowlines.
+
+#### South Dakota waterbodies
+
+Run `special/prepare_sd_waterbodies.py` to extract waterbodies that intersect flowlines.
 
 #### Washington State imagery-derived waterbodies
 

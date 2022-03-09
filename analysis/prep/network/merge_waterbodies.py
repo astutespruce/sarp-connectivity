@@ -34,18 +34,18 @@ huc2s = [
     # "03",
     # "05",
     # "06",
-    # "07",
+    "07",
     # "08",
-    # "09",
-    # "10",
+    "09",
+    "10",
     # "11",
     # "12",
     # "13",
     # "14",
     # "15",
-    # "16",
-    # "17",
-    # "18",
+    "16",
+    "17",
+    "18",
     # "21",
 ]
 
@@ -54,7 +54,9 @@ start = time()
 print("Reading state level datasets")
 
 overlaps_or_ca = False
+overlaps_sd = False
 if set(huc2s).intersection(["16", "17", "18"]):
+    overlaps_or_ca = True
     ca_wb = gp.read_feather(
         "data/states/ca/ca_waterbodies.feather", columns=["geometry", "altered", "HUC2"]
     )
@@ -64,6 +66,13 @@ if set(huc2s).intersection(["16", "17", "18"]):
     wa_wb = gp.read_feather(
         "data/states/wa/wa_waterbodies.feather", columns=["geometry", "altered"]
     )
+
+if set(huc2s).intersection(["07", "09", "10"]):
+    overlaps_sd = True
+    sd_wb = gp.read_feather(
+        "data/states/sd/sd_waterbodies.feather", columns=["geometry", "HUC2"]
+    )
+    sd_wb["altered"] = False
 
 
 for huc2 in huc2s:
@@ -104,6 +113,11 @@ for huc2 in huc2s:
         )
         df = df.append(
             ca_wb.loc[ca_wb.HUC2 == huc2, ["geometry", "altered"]], ignore_index=True
+        )
+
+    if overlaps_sd:
+        df = df.append(
+            sd_wb.loc[sd_wb.HUC2 == huc2, ["geometry", "altered"]], ignore_index=True
         )
 
     print(f"Dissolving {len(df):,} waterbodies...")
