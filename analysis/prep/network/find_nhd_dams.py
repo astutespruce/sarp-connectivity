@@ -278,14 +278,6 @@ for huc2 in huc2s:
         index=pd.Series(tmp_dams.index.values.take(dam_ix), name="damID"),
     ).join(drains, on="drainID")
 
-    # near_drains = pd.DataFrame(
-    #         {
-    #             "damID"
-    #             "drainID": drains.index.values.take(drain_ix),
-    #         },
-    #         index=pd.Series(dams.index.values.take(dam_ix), name="damPtID"),
-    #     ).join(drains, on="drainID")
-
     # If the drain is immediately upstream or downstream on the same subnetwork
     # up to 4 nodes away, use the drain point instead
     tmp_joins = joins.loc[joins.upstream_id != 0]

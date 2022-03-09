@@ -101,6 +101,11 @@ print(
 outside_df = gp.read_feather(src_dir / "dams_outer_huc4.feather")
 # drop any that are in the main dataset, since there are several dams at state lines
 outside_df = outside_df.loc[~outside_df.SARPID.isin(df.SARPID.unique())].copy()
+
+# FIXME: temporary fix
+outside_df = outside_df.loc[~outside_df.SourceState.isin(["ID", "OR", "WA"])].copy()
+
+
 print(f"Read {len(outside_df):,} dams outer HUC4s")
 
 df = df.append(outside_df, ignore_index=True, sort=False)
@@ -133,14 +138,16 @@ if ix.sum():
     snapped_df = snapped_df.loc[~ix].copy()
     print(f"Dropping {ix.sum():,} dams marked as duplicates automatically and manually")
 
-# temporary: splice in local snap dataset for non-SARP states until it is available online
-other_df = gp.read_feather(
-    src_dir / "snapped_outside_sarp_v1.feather",
-    columns=["SARPID", "geometry", "ManualReview"],
-)
+
+# FIXME: update snapped outside SARP dataset
+# other_df = gp.read_feather(
+#     src_dir / "snapped_outside_sarp_v1.feather",
+#     columns=["SARPID", "geometry", "ManualReview"],
+# )
+
 snapped_df = (
     snapped_df[["SARPID", "geometry", "ManualReview"]]
-    .append(other_df, ignore_index=True)
+    # .append(other_df, ignore_index=True)
     .set_index("SARPID")
 )
 
@@ -655,26 +662,22 @@ export_duplicate_areas(dups, qa_dir / "dams_duplicate_areas.fgb")
 
 
 ### Join to line atts
-flowlines = (
-    read_feathers(
-        [
-            nhd_dir / "clean" / huc2 / "flowlines.feather"
-            for huc2 in df.HUC2.unique()
-            if huc2
-        ],
-        columns=[
-            "lineID",
-            "NHDPlusID",
-            "GNIS_Name",
-            "sizeclass",
-            "StreamOrde",
-            "FCode",
-            "loop",
-        ],
-    )
-    .rename(columns={"StreamOrde": "StreamOrder"})
-    .set_index("lineID")
-)
+flowlines = read_feathers(
+    [
+        nhd_dir / "clean" / huc2 / "flowlines.feather"
+        for huc2 in df.HUC2.unique()
+        if huc2
+    ],
+    columns=[
+        "lineID",
+        "NHDPlusID",
+        "GNIS_Name",
+        "sizeclass",
+        "StreamOrder",
+        "FCode",
+        "loop",
+    ],
+).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
 

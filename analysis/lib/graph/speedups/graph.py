@@ -157,7 +157,8 @@ def is_reachable(adj_matrix, sources, targets, max_depth=None):
 
 
 @njit
- """Find loops in the network.
+def find_loops(adj_matrix, sources, max_depth=None):
+    """Find loops in the network.
 
     Uses a depth-first search to create a list of loops that join to nodes
     already seen during traversal.
@@ -176,7 +177,6 @@ def is_reachable(adj_matrix, sources, targets, max_depth=None):
     -------
     set of nodes that are loops
     """
-def find_loops(adj_matrix, sources, max_depth=None):
     if max_depth is None:
         max_depth = len(adj_matrix)
 
