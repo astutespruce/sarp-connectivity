@@ -22,11 +22,7 @@ from analysis.prep.network.lib.nhd import (
     extract_marine,
 )
 
-from analysis.constants import (
-    CRS,
-    WATERBODY_EXCLUDE_FTYPES,
-    WATERBODY_MIN_SIZE,
-)
+from analysis.constants import CRS
 from analysis.lib.util import append
 
 
@@ -255,7 +251,7 @@ huc2s = [
     # "05",
     # "06",
     # "07",
-    # "08",
+    "08",
     # "09",
     # "10",
     # "11",
@@ -265,7 +261,7 @@ huc2s = [
     # "15",
     # "16",
     "17",
-    # "18",
+    "18",
     # "21",
 ]
 

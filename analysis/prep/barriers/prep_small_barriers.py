@@ -358,26 +358,22 @@ df.loc[ix, "dup_log"] = f"Within {DUPLICATE_TOLERANCE}m of an existing dam"
 print(f"Found {len(ix)} small barriers within {DUPLICATE_TOLERANCE}m of dams")
 
 ### Join to line atts
-flowlines = (
-    read_feathers(
-        [
-            nhd_dir / "clean" / huc2 / "flowlines.feather"
-            for huc2 in df.HUC2.unique()
-            if huc2
-        ],
-        columns=[
-            "lineID",
-            "NHDPlusID",
-            "GNIS_Name",
-            "sizeclass",
-            "StreamOrde",
-            "FCode",
-            "loop",
-        ],
-    )
-    .rename(columns={"StreamOrde": "StreamOrder"})
-    .set_index("lineID")
-)
+flowlines = read_feathers(
+    [
+        nhd_dir / "clean" / huc2 / "flowlines.feather"
+        for huc2 in df.HUC2.unique()
+        if huc2
+    ],
+    columns=[
+        "lineID",
+        "NHDPlusID",
+        "GNIS_Name",
+        "sizeclass",
+        "StreamOrder",
+        "FCode",
+        "loop",
+    ],
+).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
 

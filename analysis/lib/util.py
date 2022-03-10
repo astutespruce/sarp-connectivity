@@ -22,7 +22,9 @@ def append(target_df, df):
     """
 
     if target_df is None:
-        return df
+        if len(df) > 0:
+            return df
+        return None
 
     if len(df) > 0:
         return target_df.append(df, ignore_index=True, sort=False)

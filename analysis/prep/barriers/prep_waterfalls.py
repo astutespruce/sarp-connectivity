@@ -54,10 +54,6 @@ qa_dir = barriers_dir / "qa"
 
 start = time()
 
-sarp_huc4 = pd.read_feather(
-    data_dir / "boundaries/sarp_huc4.feather", columns=["HUC4"]
-).HUC4.unique()
-
 
 print("Reading waterfalls")
 
@@ -129,6 +125,25 @@ drop_ix = df.HUC12.isnull() | df.STATEFIPS.isnull()
 if drop_ix.sum():
     print(f"{drop_ix.sum():,} waterfalls are outside HUC12 / states")
     df = df.loc[~drop_ix].copy()
+
+
+# Cleanup HUC, state, county, and ecoregion columns that weren't assigned
+for col in [
+    "HUC2",
+    "HUC6",
+    "HUC8",
+    "HUC12",
+    "Basin",
+    "Subbasin",
+    "Subwatershed",
+    "County",
+    "COUNTYFIPS",
+    "STATEFIPS",
+    "State",
+    "ECO3",
+    "ECO4",
+]:
+    df[col] = df[col].fillna("").astype("str")
 
 
 # Drop those where recon shows this as an error
@@ -227,22 +242,18 @@ print(f"Found {len(ix)} waterfalls within {DUPLICATE_TOLERANCE}m of dams")
 
 
 ### Join to line atts
-flowlines = (
-    read_feathers(
-        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
-        columns=[
-            "lineID",
-            "NHDPlusID",
-            "GNIS_Name",
-            "sizeclass",
-            "StreamOrde",
-            "FCode",
-            "loop",
-        ],
-    )
-    .rename(columns={"StreamOrde": "StreamOrder"})
-    .set_index("lineID")
-)
+flowlines = read_feathers(
+    [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique()],
+    columns=[
+        "lineID",
+        "NHDPlusID",
+        "GNIS_Name",
+        "sizeclass",
+        "StreamOrder",
+        "FCode",
+        "loop",
+    ],
+).set_index("lineID")
 
 df = df.join(flowlines, on="lineID")
 

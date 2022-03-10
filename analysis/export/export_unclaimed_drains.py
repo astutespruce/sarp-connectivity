@@ -40,7 +40,7 @@ drains = (
             "MaxElevSmo": "maxelev",
             "MinElevSmo": "minelev",
             "Slope": "slope",
-            "StreamOrde": "fsorder",
+            "StreamOrder": "fsorder",
             "km2": "wb_km2",
             "flowlineLength": "flength",
         }

@@ -1,14 +1,12 @@
 import os
 from pathlib import Path
 
-import pandas as pd
 import geopandas as gp
-import pygeos as pg
 from pyogrio import write_dataframe
 
 from analysis.constants import CRS
 from analysis.lib.io import read_feathers
-from analysis.lib.geometry.lines import aggregate_lines
+from analysis.lib.geometry.lines import merge_lines
 
 src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")
@@ -17,13 +15,13 @@ if not out_dir.exists():
     os.makedirs(out_dir)
 
 
-barrier_type = "small_barriers"
+barrier_type = "dams"
 ext = "fgb"
 
 # groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
-for group in [{"02"}]:
+for group in [{"17"}, {"18"}]:
     segments = (
         read_feathers(
             [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
@@ -52,6 +50,8 @@ for group in [{"02"}]:
     for col in [c for c in stats.columns if c.startswith("pct_")]:
         stats[col] = stats[col].fillna(0).astype("int8")
 
+    stats["flows_to_ocean"] = stats.flows_to_ocean.astype("uint8")
+
     # natural floodplain is missing for several catchments; fill with -1
     for col in ["natfldpln", "sizeclasses"]:
         stats[col] = stats[col].fillna(-1).astype("int8")
@@ -70,17 +70,17 @@ for group in [{"02"}]:
                     "intermittent",
                     "altered",
                     "sizeclass",
-                    "StreamOrde",
+                    "StreamOrder",
                 ],
             )
             .set_index("lineID")
-            .rename(columns={"StreamOrde": "streamorder"})
+            .rename(columns={"StreamOrder": "streamorder"})
         )
         flowlines = flowlines.join(segments)
 
         # aggregate to multilinestrings by combinations of networkID, altered, intermittent
         networks = (
-            aggregate_lines(flowlines, by=["networkID", "altered", "intermittent"])
+            merge_lines(flowlines, by=["networkID", "altered", "intermittent"])
             .set_index("networkID")
             .join(stats, how="inner")
             .reset_index()

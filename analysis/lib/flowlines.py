@@ -289,7 +289,6 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
                 "flowline": "first",
                 "barrierID": list,
                 "barriers": "first",
-                # "barrier": list,  # TODO: remove
                 "pos": list,
             }
         )

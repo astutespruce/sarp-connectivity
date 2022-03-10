@@ -246,7 +246,7 @@ for group in huc2_groups:
                     "intermittent",
                     "altered",
                     "sizeclass",
-                    "StreamOrde",
+                    "StreamOrder",
                     "NHDPlusID",
                     "FCode",
                     "FType",
@@ -256,7 +256,7 @@ for group in huc2_groups:
             .set_index("lineID")
             .rename(
                 columns={
-                    "StreamOrde": "streamord",
+                    "StreamOrder": "streamord",
                     "intermittent": "interm",
                     "length": "length_m",
                 }
