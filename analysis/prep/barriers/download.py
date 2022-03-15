@@ -6,6 +6,7 @@ import warnings
 from dotenv import load_dotenv
 import pandas as pd
 import numpy as np
+from pyogrio import read_dataframe
 
 from analysis.constants import (
     DAM_FS_COLS,
@@ -126,7 +127,34 @@ if ix.sum():
 print("Projecting dams...")
 df = df.copy().to_crs(CRS).reset_index(drop=True)
 
-print("Merged {:,} dams in SARP states".format(len(df)))
+
+### Merge in WV, provided separately instead of as feature service
+print("---- Merging in WV from local GDB ----")
+wv = (
+    read_dataframe(
+        "data/barriers/source/OuterHUC4_Dams_2022.gdb", layer="WVa_Dams_SARP_03142022"
+    )
+    .rename(
+        columns={
+            "SARPUniqueID": "SARPID",
+            "PotentialFeasibility": "Feasibility",
+            "Barrier_Name": "Name",
+            "Other_Barrier_Name": "OtherName",
+            "DB_Source": "Source",
+            "Year_Completed": "Year",
+            "Year_Removed": "YearRemoved",
+            "ConstructionMaterial": "Construction",
+            "PurposeCategory": "Purpose",
+            "StructureCondition": "Condition",
+        }
+    )
+    .to_crs(CRS)
+)
+wv["SourceState"] = "WV"
+df = df.append(wv, ignore_index=True, sort=False)
+
+
+print("Merged {:,} dams in analysis region states".format(len(df)))
 
 ix = df.SARPID.isnull() | (df.SARPID == "")
 if ix.max():

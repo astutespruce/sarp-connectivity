@@ -32,33 +32,24 @@ You must set `AGOL_TOKEN` in an `.env` file in the root of this project. It must
 
 ## Dams
 
-### Prep: NID / NABD
+### Prep: Dams in states outside SARP boundary
 
-NID dams are used to supplement the inventory for HUC4s outside the core states analyzed in this tool (see `analysis/constants.py::STATES` for the list).
+National Inventory of Dams (NID) dams are used to supplement the inventory for HUC4s outside the core states analyzed in this tool (see `analysis/constants.py::STATES` for the list).
 
-NID dams can be downloaded from: https://nid.sec.usace.army.mil/ords/NID_R.DOWNLOADFILE?InFileName=NID2019_U.xlsx
-(https://nid.sec.usace.army.mil/ords/f?p=105:19:10030994249341::NO:::)
+NID dams for outer HUC4s (HUC4s that overlap states within the analysis region, but the portions of those HUC4s that are outside those states)
+were provided by Kat @ SARP on 3/15/2022 (`OuterHUC4_Dams_2022.gdb`). These include dams from the NID (March 2022) Northeast aquatic connectivity project (TNC).
 
-NID dams were obtained by Kat in early 2021 and standardized to SARP schema.
+Kat took care of rectifying previous versions of NID and TNC data against the latest versions.
 
 These were processed and joined with NABD, which provide updated (snapped) locations of many dams in NID using `special/prep_nid_dams_outer_huc4s.py`.
 
-This included joining in dams that were previously outside SARP states from prior versions of this analysis. These include dams from the Northeast aquatic connectivity project (TNC) and dams that were manually reviewed updates of NID.
+This step should only be necessary to run once each time the HUC4s outside the core states in the analysis are updated (i.e., by adding states to the analysis region).
 
-This step should only be necessary to run once each time the HUC4s outside the core states in the analysis are updated or newer versions of NID are incorporated.
+### Prep: NABD dams
 
-### Prep: Dams in states outside SARP boundary
+The National Anthropogenic Barrier Database is used to help snap dams derived from NID, unless otherwise manually reviewed.
 
-Previous versions of this analysis included dams outside SARP states, which are now part of the analysis region. Some of these were manually reviewed and possibly snapped to correct locations on the aquatic network.
-
-These are used to prepare an initial snapping dataset for areas outside SARP using `special/prep_snapping_dataset_outside_sarp.py`.
-
-This includes only those dams that do not have duplicate NIDIDs to keep the joins simple.
-
-This should only be run once to create the initial manual snapping dataset for areas outside SARP.
-
-After an initial splice with the state-level datasets, this was then exported
-to create the snapping dataset to be hosted on AGOL by SARP for non-SARP states using `special/export_snapping_dataset.py`.
+NABD dams are prepared using `special/prep_nabd.py`.
 
 ### Processing
 

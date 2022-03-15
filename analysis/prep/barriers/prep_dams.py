@@ -87,13 +87,13 @@ qa_dir = barriers_dir / "qa"
 start = time()
 
 
-### Read in SARP states and merge
-print("Reading dams in SARP states")
+### Read dams for analysis region states states and merge
+print("Reading dams in analysis region states")
 df = gp.read_feather(src_dir / "sarp_dams.feather")
 print(f"Read {len(df):,} dams in region states")
 
 ### Read in non-SARP states and join in
-# these are for states that overlap with HUC4s that overlap with SARP states
+# these are for states that overlap with HUC4s that overlap with analysis region states
 print(
     "Reading dams that fall outside region states, but within HUC4s that overlap with region states..."
 )
@@ -101,18 +101,13 @@ print(
 outside_df = gp.read_feather(src_dir / "dams_outer_huc4.feather")
 # drop any that are in the main dataset, since there are several dams at state lines
 outside_df = outside_df.loc[~outside_df.SARPID.isin(df.SARPID.unique())].copy()
-
-# FIXME: temporary fix
-outside_df = outside_df.loc[~outside_df.SourceState.isin(["ID", "OR", "WA"])].copy()
-
-
 print(f"Read {len(outside_df):,} dams outer HUC4s")
 
 df = df.append(outside_df, ignore_index=True, sort=False)
 
-### Read in dams that have been manually reviewed within SARP states
+### Read in dams that have been manually reviewed within region states (and possibly beyond)
 print("Reading manually snapped dams...")
-snapped_df = gp.read_feather(src_dir / "manually_snapped_dams.feather",)
+snapped_df = gp.read_feather(src_dir / "manually_snapped_dams.feather")
 
 # Don't pull across those that were not manually snapped or are missing key fields
 # 0,1: not reviewed,
@@ -138,16 +133,18 @@ if ix.sum():
     snapped_df = snapped_df.loc[~ix].copy()
     print(f"Dropping {ix.sum():,} dams marked as duplicates automatically and manually")
 
+### Read in NABD dams and drop any that are already present in snapping dataset
+nabd = gp.read_feather(src_dir / "nabd.feather").set_index("NIDID")
+# join through NIDID to get SARPID
+nabd = nabd.loc[nabd.index.isin(df.NIDID)].join(
+    df[["SARPID", "NIDID"]].set_index("NIDID")
+)
+nabd = nabd.loc[~nabd.SARPID.isin(snapped_df.SARPID)].copy()
 
-# FIXME: update snapped outside SARP dataset
-# other_df = gp.read_feather(
-#     src_dir / "snapped_outside_sarp_v1.feather",
-#     columns=["SARPID", "geometry", "ManualReview"],
-# )
 
 snapped_df = (
     snapped_df[["SARPID", "geometry", "ManualReview"]]
-    # .append(other_df, ignore_index=True)
+    .append(nabd, ignore_index=True, sort=False)
     .set_index("SARPID")
 )
 
