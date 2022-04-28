@@ -58,9 +58,10 @@ write_dataframe(nhd_pts, out_dir / "nhd_dam_pts_nhdpoint.fgb")
 
 nhd_pts["source"] = "NHDPoint"
 
-
-# create circular buffers to merge with others
-nhd_pts["geometry"] = pg.buffer(nhd_pts.geometry.values.data, 5)
+# create tiny circular buffers around points to merge with others
+# WARNING: using a larger buffer causes displacement of the dam point upstream,
+# which is not desirable
+nhd_pts["geometry"] = pg.buffer(nhd_pts.geometry.values.data, 1e-6)
 
 nhd_lines = read_feathers(
     [raw_dir / huc2 / "nhd_lines.feather" for huc2 in huc2s],
@@ -260,7 +261,7 @@ for huc2 in huc2s:
 
     drains = gp.read_feather(
         clean_dir / huc2 / "waterbody_drain_points.feather",
-        columns=["wbID", "drainID", "lineID", "geometry"],
+        columns=["wbID", "drainID", "lineID", "km2", "geometry"],
     ).set_index("drainID")
 
     # find any waterbody drain points within MAX_DRAIN_DISTANCE of dam polygons
@@ -291,7 +292,7 @@ for huc2 in huc2s:
         dams[["damID", "lineID", "pt"]]
         .reset_index()
         .join(
-            near_drains[["drainID", "wbID", "lineID", "geometry"]].rename(
+            near_drains[["drainID", "wbID", "lineID", "km2", "geometry"]].rename(
                 columns={"lineID": "drainLineID"}
             ),
             on="damID",
@@ -324,7 +325,7 @@ for huc2 in huc2s:
     )
 
     dams = dams.join(
-        use_drains[["drainID", "wbID", "drainLineID", "geometry"]].rename(
+        use_drains[["drainID", "wbID", "drainLineID", "km2", "geometry"]].rename(
             columns={"geometry": "drain"}
         )
     )

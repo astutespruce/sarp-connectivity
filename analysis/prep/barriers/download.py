@@ -130,25 +130,25 @@ df = df.copy().to_crs(CRS).reset_index(drop=True)
 
 ### Merge in WV, provided separately instead of as feature service
 print("---- Merging in WV from local GDB ----")
-wv = (
-    read_dataframe(
-        "data/barriers/source/OuterHUC4_Dams_2022.gdb", layer="WVa_Dams_SARP_03142022"
-    )
-    .rename(
-        columns={
-            "SARPUniqueID": "SARPID",
-            "PotentialFeasibility": "Feasibility",
-            "Barrier_Name": "Name",
-            "Other_Barrier_Name": "OtherName",
-            "DB_Source": "Source",
-            "Year_Completed": "Year",
-            "Year_Removed": "YearRemoved",
-            "ConstructionMaterial": "Construction",
-            "PurposeCategory": "Purpose",
-            "StructureCondition": "Condition",
-        }
-    )
-    .to_crs(CRS)
+wv = read_dataframe(
+    "data/barriers/source/OuterHUC4_Dams_2022.gdb", layer="WVa_Dams_SARP_03142022"
+).to_crs(CRS)
+
+cols = [c for c in wv.columns if c in DAM_FS_COLS] + ["geometry"]
+
+wv = wv[cols].rename(
+    columns={
+        "SARPUniqueID": "SARPID",
+        "PotentialFeasibility": "Feasibility",
+        "Barrier_Name": "Name",
+        "Other_Barrier_Name": "OtherName",
+        "DB_Source": "Source",
+        "Year_Completed": "Year",
+        "Year_Removed": "YearRemoved",
+        "ConstructionMaterial": "Construction",
+        "PurposeCategory": "Purpose",
+        "StructureCondition": "Condition",
+    }
 )
 wv["SourceState"] = "WV"
 df = df.append(wv, ignore_index=True, sort=False)

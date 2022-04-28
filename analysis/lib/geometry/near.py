@@ -18,9 +18,8 @@ def near(source, target, distance):
         contains pygeos geometries
     target : Series
         contains target pygeos geometries to search against
-    distance : number or ndarray
+    distance : number
         radius within which to find target geometries.
-        If ndarray, must be equal length to source.
 
     Returns
     -------

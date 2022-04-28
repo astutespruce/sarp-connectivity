@@ -117,8 +117,6 @@ def export_duplicate_areas(dups, path):
         output path
     """
 
-    print("Exporting duplicate areas")
-
     dups = dups.copy()
     dups["geometry"] = pg.buffer(dups.geometry.values.data, dups.dup_tolerance)
     dissolved = dissolve(dups[["geometry", "dup_group"]], by="dup_group")

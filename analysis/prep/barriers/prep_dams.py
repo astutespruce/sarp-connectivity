@@ -133,13 +133,22 @@ if ix.sum():
     snapped_df = snapped_df.loc[~ix].copy()
     print(f"Dropping {ix.sum():,} dams marked as duplicates automatically and manually")
 
-### Read in NABD dams and drop any that are already present in snapping dataset
+### Read in NABD dams and drop any that are already present in snapping dataset or manually reviewed in master
 nabd = gp.read_feather(src_dir / "nabd.feather").set_index("NIDID")
 # join through NIDID to get SARPID
 nabd = nabd.loc[nabd.index.isin(df.NIDID)].join(
     df[["SARPID", "NIDID"]].set_index("NIDID")
 )
-nabd = nabd.loc[~nabd.SARPID.isin(snapped_df.SARPID)].copy()
+
+# note: 2 (NABD) is excluded because they weren't actually manually reviewed
+manually_reviewed_sarpid = df.loc[
+    df.ManualReview.isin([4, 5, 6, 8, 13, 14, 15])
+].SARPID.unique()
+
+nabd = nabd.loc[
+    (~nabd.SARPID.isin(snapped_df.SARPID))
+    & (~nabd.SARPID.isin(manually_reviewed_sarpid))
+].copy()
 
 
 snapped_df = (
@@ -157,7 +166,7 @@ df.loc[ix, "ManualReview"] = df.loc[ix].ManualReview_snap
 
 # Only update geometry from snapped where snapped is likely to be manually moved
 # or where validated prior location
-ix = df.ManualReview_snap.isin([4, 5, 13, 15])
+ix = df.ManualReview_snap.isin([2, 4, 5, 13, 15])
 df.loc[ix, "geometry"] = df.loc[ix].geometry_snap
 
 print(f"Updated {ix.sum():,} dam locations based on snapped / manual review dataset")
@@ -560,6 +569,11 @@ snap_start = time()
 
 print("-----------------")
 
+# DEBUG
+df.reset_index(drop=True).to_feather("/tmp/dams.feather")
+to_snap.reset_index(drop=True).to_feather("/tmp/to_snap.feather")
+
+
 # Snap estimated dams to the drain point of the waterbody that contains them, if possible
 df, to_snap = snap_estimated_dams_to_drains(df, to_snap)
 
@@ -604,15 +618,18 @@ df.loc[ix, "dup_log"] = "Manually reviewed as duplicate"
 # Start from lower priorities and override with lower values
 
 # Prefer dams with River to those that do not
-df.loc[df.River != "", "dup_sort"] = 5
+df.loc[df.River != "", "dup_sort"] = 6
 
 # Prefer dams that have been reconned to those that haven't
-df.loc[df.Recon > 0, "dup_sort"] = 4
+df.loc[df.Recon > 0, "dup_sort"] = 5
 
 # Prefer dams with height or year to those that do not
-df.loc[(df.Year > 0) | (df.Height > 0), "dup_sort"] = 3
+df.loc[(df.Year > 0) | (df.Height > 0), "dup_sort"] = 4
 
-# NABD dams should be reasonably high priority
+# Prefer NID dams
+df.loc[df.NIDID.notnull(), "dup_sort"] = 3
+
+# Prefer NABD dams
 df.loc[df.ManualReview == 2, "dup_sort"] = 2
 
 # manually reviewed dams should be highest priority (both on and off stream)
@@ -673,6 +690,8 @@ flowlines = read_feathers(
         "StreamOrder",
         "FCode",
         "loop",
+        "AnnualFlow",
+        "AnnualVelocity",
     ],
 ).set_index("lineID")
 
@@ -687,7 +706,7 @@ df.loc[ix, "River"] = df.loc[ix].GNIS_Name
 df = df.drop(columns=["GNIS_Name"])
 
 # calculate stream type
-df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE)
+df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")
 
 # calculate intermittent + ephemeral
 df["intermittent"] = df.FCode.isin([46003, 46007])
@@ -697,6 +716,8 @@ df["intermittent"] = df.FCode.isin([46003, 46007])
 df["loop"] = df.loop.fillna(False)
 df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
+# -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
+df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
 
 print("dams on loops:\n", df.groupby("loop").size())
 
@@ -735,6 +756,8 @@ df.loc[
     & (df.sizeclass != "1a"),
     "LowheadDam",
 ] = 2
+
+print(f"Lowhead dams: {df.groupby('LowheadDam').size()}")
 
 
 ### Add lat / lon (must be done after snapping!)
