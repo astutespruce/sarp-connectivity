@@ -404,16 +404,6 @@ drop_ix = df.ManualReview.isin(DROP_MANUALREVIEW) & ~df.dropped
 df.loc[drop_ix, "dropped"] = True
 df.loc[drop_ix, "log"] = f"dropped: ManualReview one of {DROP_MANUALREVIEW}"
 
-# From Kat: if the dam includes "dike" in the name and not "dam", it is not really a dam
-drop_ix = (
-    df.Name.str.lower().str.contains(" dike")
-    & (~df.Name.str.lower().str.contains(" dam"))
-    & ~df.dropped
-    & ~df.ManualReview.isin(ONSTREAM_MANUALREVIEW)
-)
-df.loc[drop_ix, "dropped"] = True
-df.loc[drop_ix, "log"] = "dropped: name includes dike and not dam"
-
 # Drop any that are diversions (irrigation ditches) without an associated structure
 # from Kat: anything that is partial or complete barrier should cut the network; others
 # should be dropped
@@ -475,6 +465,49 @@ df.loc[df.removed, "log"] = f"removed: dam was removed for conservation"
 print(
     f"Marked {df.unranked.sum():,} dams beneficial to containing invasives to omit from ranking"
 )
+
+### Mark dams for de-duplication
+df["duplicate"] = False
+df["dup_log"] = "not a duplicate"
+df["dup_group"] = np.nan
+df["dup_count"] = np.nan
+# duplicate sort will be assigned lower values to find preferred entry w/in dups
+df["dup_sort"] = 9999
+
+# assign duplicate status for any that were manually reviewed as such
+ix = df.ManualReview == 11
+df.loc[ix, "duplicate"] = True
+df.loc[ix, "dup_log"] = "Manually reviewed as duplicate"
+
+# Assign dup_sort, lower numbers = higher priority to keep from duplicate group
+# Prefer dams with River to those that do not
+df.loc[df.River != "", "dup_sort"] = 6
+# Prefer dams that have been reconned to those that haven't
+df.loc[df.Recon > 0, "dup_sort"] = 5
+# Prefer dams with height or year to those that do not
+df.loc[(df.Year > 0) | (df.Height > 0), "dup_sort"] = 4
+# Prefer NID dams
+df.loc[df.NIDID.notnull(), "dup_sort"] = 3
+# Prefer NABD dams
+df.loc[df.ManualReview == 2, "dup_sort"] = 2
+# manually reviewed dams should be highest priority (both on and off stream)
+df.loc[df.ManualReview.isin(ONSTREAM_MANUALREVIEW + [5]), "dup_sort"] = 1
+
+
+### Duplicate dams before snapping if possible (duplicates are not snapped since they may snap other places)
+to_dedup = df.loc[~df.duplicate].copy()
+
+# Dams within 10 meters are very likely duplicates of each other
+# from those that were hand-checked on the map, they are duplicates of each other
+df, to_dedup = find_duplicates(df, to_dedup, tolerance=DUPLICATE_TOLERANCE["default"])
+
+print(
+    f"Found {df.duplicate.sum():,} total duplicates before snapping (duplicates are not snapped)"
+)
+print("---------------------------------")
+print("\nDe-duplication statistics")
+print(df.groupby("dup_log").size())
+print("---------------------------------\n")
 
 
 ### Snap dams
@@ -558,6 +591,7 @@ print(
 # IMPORTANT: do not snap manually reviewed, off-network dams, duplicates, or ones without HUC2!
 to_snap = df.loc[
     (~df.ManualReview.isin(OFFSTREAM_MANUALREVIEW))
+    & (~df.duplicate)
     & (df.HUC2 != "")
     & (df.STATEFIPS != "")
 ].copy()
@@ -601,52 +635,20 @@ export_snap_dist_lines(df.loc[df.snapped], original_locations, qa_dir, prefix="d
 # duplicate: records that are duplicates of another record that was retained
 # NOTE: the first instance of a set of duplicates is NOT marked as a duplicate,
 # only following ones are.
-df["duplicate"] = False
-df["dup_log"] = "not a duplicate"
-df["dup_group"] = np.nan
-df["dup_count"] = np.nan
-# duplicate sort will be assigned lower values to find preferred entry w/in dups
-df["dup_sort"] = 9999
-
-# assign duplicate status for any that were manually reviewed as such
-ix = df.ManualReview == 11
-df.loc[ix, "duplicate"] = True
-df.loc[ix, "dup_log"] = "Manually reviewed as duplicate"
-
-
-# Assign dup_sort, lower numbers = higher priority to keep from duplicate group
-# Start from lower priorities and override with lower values
-
-# Prefer dams with River to those that do not
-df.loc[df.River != "", "dup_sort"] = 6
-
-# Prefer dams that have been reconned to those that haven't
-df.loc[df.Recon > 0, "dup_sort"] = 5
-
-# Prefer dams with height or year to those that do not
-df.loc[(df.Year > 0) | (df.Height > 0), "dup_sort"] = 4
-
-# Prefer NID dams
-df.loc[df.NIDID.notnull(), "dup_sort"] = 3
-
-# Prefer NABD dams
-df.loc[df.ManualReview == 2, "dup_sort"] = 2
-
-# manually reviewed dams should be highest priority (both on and off stream)
-df.loc[df.ManualReview.isin(ONSTREAM_MANUALREVIEW + [5]), "dup_sort"] = 1
-
 
 dedup_start = time()
 
 # Exclude those where ManualReview indicated duplicate (these are also dropped),
-# otherwise this cascades to drop other barriers in this group; at least one of
-# which should be kept
+# and those identified as duplicates before snapping, otherwise this cascades to
+# drop other barriers in this group; at least one of which should be kept
 to_dedup = df.loc[~df.duplicate].copy()
-
 
 # Dams within 10 meters are very likely duplicates of each other
 # from those that were hand-checked on the map, they are duplicates of each other
-df, to_dedup = find_duplicates(df, to_dedup, tolerance=DUPLICATE_TOLERANCE["default"])
+next_group_id = df.dup_group.max() + 1
+df, to_dedup = find_duplicates(
+    df, to_dedup, tolerance=DUPLICATE_TOLERANCE["default"], next_group_id=next_group_id
+)
 
 # Search a bit further for duplicates from estimated dams that snapped
 # hand-checked these on the map, these look very likely to be real duplicates
