@@ -593,21 +593,36 @@ def snap_to_flowlines(df, to_snap):
         in_huc2 = to_snap.loc[to_snap.HUC2 == huc2].copy()
         flowlines = gp.read_feather(
             nhd_dir / "clean" / huc2 / "flowlines.feather",
-            columns=["geometry", "lineID"],
+            columns=["geometry", "lineID", "loop"],
         ).set_index("lineID")
 
         print(
             f"HUC {huc2} selected {len(in_huc2):,} barriers in region to snap against {len(flowlines):,} flowlines"
         )
 
-        lines = nearest(
-            pd.Series(in_huc2.geometry.values.data, index=in_huc2.index),
-            pd.Series(flowlines.geometry.values.data, index=flowlines.index),
-            in_huc2.snap_tolerance.values,
+        # Find nearest flowlines within tolerance, then sort by nonloop and descending distance
+        tree = pg.STRtree(flowlines.geometry.values.data)
+        left, right = tree.query_bulk(
+            pg.buffer(in_huc2.geometry.values.data, in_huc2.snap_tolerance.values),
+            predicate="intersects",
         )
-        lines = lines.join(in_huc2.geometry).join(
-            flowlines.geometry.rename("line"), on="lineID",
+
+        lines = gp.GeoDataFrame(
+            {
+                "id": in_huc2.index.values.take(left),
+                "geometry": in_huc2.geometry.values.data.take(left),
+                "line": flowlines.geometry.values.data.take(right),
+                "lineID": flowlines.index.values.take(right),
+                "loop": flowlines.loop.values.take(right),
+            },
+            geometry="geometry",
+            crs=in_huc2.crs,
         )
+        lines["dist"] = pg.distance(lines.geometry.values.data, lines.line.values)
+
+        # take the closest non-loop
+        lines = lines.sort_values(by=["id", "loop", "dist"], ascending=True)
+        lines = lines.groupby("id").first()
 
         # project the point to the line,
         # find out its distance on the line,
@@ -625,14 +640,14 @@ def snap_to_flowlines(df, to_snap):
         lines.loc[ix, "line_pos"] = end[ix]
 
         # then interpolate its new coordinates
-        lines["geometry"] = pg.line_interpolate_point(
-            lines.line.values.data, lines["line_pos"]
-        )
+        projected = pg.line_interpolate_point(lines.line.values.data, lines["line_pos"])
 
         ix = lines.index
         df.loc[ix, "snapped"] = True
-        df.loc[ix, "geometry"] = lines.geometry
-        df.loc[ix, "snap_dist"] = lines.distance
+        df.loc[ix, "geometry"] = projected
+        df.loc[ix, "snap_dist"] = pg.distance(
+            lines.geometry.values.data, projected.values
+        )
         df.loc[ix, "snap_ref_id"] = lines.lineID
         df.loc[ix, "lineID"] = lines.lineID
         df.loc[ix, "snap_log"] = ndarray_append_strings(
