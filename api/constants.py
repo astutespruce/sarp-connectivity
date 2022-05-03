@@ -613,7 +613,10 @@ STREAMTYPE_DOMAIN = {
 BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
 
 
-# Not exported
+### Not exported
+# IMPOUNDMENTTYPE_DOMAIN = {1: "Run of river", 2: "Lake-like", 3: "Large reservoir"}
+
+
 # STRUCTURECATEGORY_DOMAIN = {
 #     0: "Unknown",
 #     1: "Fish Management",
@@ -625,6 +628,73 @@ BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
 #     7: "Debris",
 #     8: "Other",
 #     9: "Dam",
+# }
+
+# STRUCTURECLASS_DOMAIN = {
+#     11: "Fish Mgnt: Fishway",
+#     12: "Fish Mgnt: Fish Ladder",
+#     13: "Fish Mgnt: Fish Trap",
+#     14: "Fish Mgnt: Fish Lock",
+#     15: "Fish Mgnt: Rock-Ramp",
+#     16: "Fish Mgnt: Vertical-Slot",
+#     17: "Fish Mgnt: Baffle",
+#     21: "Road Crossing: Railroad",
+#     22: "Road Crossing: Bridge-Free Span",
+#     23: "Road Crossing: Instream Crossing",
+#     24: "Road Crossing: Road Crosses Stream",
+#     25: "Road Crossing: Bridge",
+#     26: "Road Crossing: Low Water Crossing",
+#     31: "Diversion: Unscreened",
+#     32: "Diversion: Screened",
+#     33: "Diversion: Canal",
+#     34: "Diversion: Channel",
+#     35: "Diversion: Pump",
+#     36: "Diversion: Ditch",
+#     37: "Diversion: Vertical",
+#     38: "Diversion: Centrifugal",
+#     39: "Diversion: Slant",
+#     310: "Diversion: Floodgate",
+#     311: "Diversion: Siphon",
+#     312: "Diversion: Submersible",
+#     41: "Culvert: Corrugated metal",
+#     43: "Culvert: Circular",
+#     44: "Culvert: Open Bottom",
+#     45: "Culvert: Pipe Arch",
+#     46: "Culvert: Arch",
+#     47: "Culvert: Bottomless",
+#     49: "Culvert: Pipe-multiple",
+#     411: "Culvert: Box",
+#     51: "Natural: Waterfall",
+#     511: "Natural: Cascade",
+#     52: "Natural: Beaver Dam",
+#     53: "Natural: Rocks Blockage",
+#     61: "Non-structural: High Velocity",
+#     62: "Non-structural: Temperature",
+#     63: "Non-structural: Low Flow",
+#     64: "Non-structural: Chemical",
+#     65: "Non-structural: Steep Gradient",
+#     66: "Non-structural: Oxygen Depleted",
+#     67: "Non-structural: Salinity",
+#     68: "Non-structural: Low Light",
+#     71: "Debris: Log Jam",
+#     72: "Debris: Trash (non-natural)",
+#     73: "Debris: Landslide",
+#     74: "Debris: Boulders-Rocks (man-made)",
+#     75: "Debris: Debris Jam",
+#     81: "Other: Levee",
+#     82: "Other: Gabion",
+#     83: "Other: Locks",
+#     84: "Other: Tailing",
+#     85: "Other: Waterfall (man-made)",
+#     86: "Other: Dike",
+#     97: "Dam: Buttress",
+#     98: "Dam: Arch",
+#     99: "Dam: Multi-Arch",
+#     910: "Dam: Embankment",
+#     911: "Dam: Grade",
+#     916: "Dam: Lowhead or Weir",
+#     917: "Dam: Dam Other",
+#     918: "Dam: Gravity",
 # }
 
 

@@ -1,9 +1,11 @@
+import asyncio
 import os
 from pathlib import Path
 from time import time
 import warnings
 
 from dotenv import load_dotenv
+import httpx
 import pandas as pd
 import numpy as np
 from pyogrio import read_dataframe
@@ -21,11 +23,11 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 
 # Load the token from the .env file in the root of this project
 load_dotenv()
-token = os.getenv("AGOL_TOKEN", None)
-if not token:
+TOKEN = os.getenv("AGOL_TOKEN", None)
+if not TOKEN:
     raise ValueError("AGOL_TOKEN must be defined in your .env file")
 
-
+# MAX_WORKERS = 4
 SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Dam_Snapping_QA_Dataset_01212020/FeatureServer/0"
 SMALL_BARRIERS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_RoadBarriers_01212019/FeatureServer/0"
 WATERFALLS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/SARP_Waterfall_Database_01212020/FeatureServer/0"
@@ -64,18 +66,10 @@ DAM_URLS = {
 }
 
 
-out_dir = Path("data/barriers/source")
+async def download_state_dams(client, state, token):
+    df = await download_fs(client, DAM_URLS[state], fields=DAM_FS_COLS, token=token)
 
-start = time()
-
-### Download and merge state feature services
-merged = None
-dam_cols = DAM_FS_COLS
-for state, url in DAM_URLS.items():
-    download_start = time()
-
-    print("---- Downloading {} ----".format(state))
-    df = download_fs(url, fields=dam_cols, token=token).rename(
+    df = df.rename(
         columns={
             "SARPUniqueID": "SARPID",
             "Snap2018": "Snap2018",
@@ -99,43 +93,141 @@ for state, url in DAM_URLS.items():
     df = df.rename(columns={"Snap2018": "ManualReview"})
 
     df["SourceState"] = state
-    print("Downloaded {:,} dams in {:.2f}s".format(len(df), time() - download_start))
-
-    ix = df.SARPID.isnull()
-    if ix.max():
-        print(f"WARNING: {ix.sum():,} dams are missing SARPID")
 
     # Add feasibility so that we can merge
     if not "Feasibility" in df.columns:
         # we backfill this later
         df["Feasibility"] = np.nan
 
-    if merged is None:
-        merged = df
-    else:
-        merged = merged.append(df, ignore_index=True, sort=False)
+    return df
 
-df = merged
 
-ix = df.geometry.isnull()
-if ix.sum():
-    print(f"WARNING: {ix.sum()} dams are missing geometry values")
-    print(df.loc[ix].groupby("SourceState").size())
-    print("SARPIDs:", df.loc[ix].SARPID.unique().tolist())
-    df = df.loc[~ix].copy()
+async def download_dams(token):
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(60.0, connect=60.0), http2=True
+    ) as client:
+        tasks = [
+            asyncio.ensure_future(download_state_dams(client, state, token))
+            for state in DAM_URLS
+        ]
+        completed = await asyncio.gather(*tasks)
 
-print("Projecting dams...")
-df = df.copy().to_crs(CRS).reset_index(drop=True)
+        merged = None
+        for df in completed:
+            if merged is None:
+                merged = df
+            else:
+                merged = merged.append(df, ignore_index=True, sort=False)
 
+        return merged
+
+
+async def download_snapped_dams(token):
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(60.0, connect=60.0), http2=True
+    ) as client:
+        df = await download_fs(
+            client,
+            SNAPPED_URL,
+            fields=[
+                "SARPID",
+                "ManualReview",
+                "dropped",
+                "excluded",
+                "duplicate",
+                "snapped",
+                "EditDate",
+                "Editor",
+            ],
+            token=token,
+        )
+
+        print("Projecting manually snapped dams...")
+        df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
+
+        # drop any that do not have SARPID
+        df = df.dropna(subset=["SARPID"])
+
+        df.ManualReview = df.ManualReview.fillna(0).astype("uint8")
+
+        # dates are either blank or strings MM/DD/YYYY
+        df["EditDate"] = df.EditDate.str.strip()
+
+        return df
+
+
+async def download_small_barriers(token):
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(60.0, connect=60.0), http2=True
+    ) as client:
+        df = await download_fs(
+            client, SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token
+        )
+
+        df = df.rename(
+            columns={
+                "Crossing_Code": "CrossingCode",
+                "Potential_Project": "PotentialProject",
+                "SARPUniqueID": "SARPID",
+                "CrossingTypeId": "CrossingType",
+                "RoadTypeId": "RoadType",
+                "CrossingConditionId": "Condition",
+                "StreamName": "Stream",
+                "Year_Removed": "YearRemoved",
+                "OwnerType": "RoadOwnerType",
+            }
+        )
+
+        # convert from ESRI format to string
+        df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
+
+        ix = df.geometry.isnull()
+        if ix.sum():
+            print(f"WARNING: {ix.sum()} small barriers are missing geometry values")
+            df = df.loc[~ix].copy()
+
+        df = df.to_crs(CRS).reset_index(drop=True)
+
+        return df
+
+
+async def download_waterfalls(token):
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(60.0, connect=60.0), http2=True
+    ) as client:
+        df = await download_fs(
+            client, WATERFALLS_URL, fields=WATERFALL_COLS, token=token
+        )
+        df = df.rename(
+            columns={
+                "SARPUniqueId": "SARPID",
+                "gnis_name_": "GNIS_Name",
+                "watercours": "Stream",
+                "name": "Name",
+            }
+        )
+        df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
+
+        return df
+
+
+out_dir = Path("data/barriers/source")
+
+start = time()
+
+## Download and merge state feature services
+print("\n---- Downloading State Dams ----")
+download_start = time()
+df = asyncio.run(download_dams(TOKEN))
+print("Downloaded {:,} dams in {:.2f}s".format(len(df), time() - download_start))
 
 ### Merge in WV, provided separately instead of as feature service
 print("---- Merging in WV from local GDB ----")
 wv = read_dataframe(
     "data/barriers/source/OuterHUC4_Dams_2022.gdb", layer="WVa_Dams_SARP_03142022"
-).to_crs(CRS)
+)
 
 cols = [c for c in wv.columns if c in DAM_FS_COLS] + ["geometry"]
-
 wv = wv[cols].rename(
     columns={
         "SARPUniqueID": "SARPID",
@@ -153,8 +245,18 @@ wv = wv[cols].rename(
 wv["SourceState"] = "WV"
 df = df.append(wv, ignore_index=True, sort=False)
 
-
 print("Merged {:,} dams in analysis region states".format(len(df)))
+
+ix = df.geometry.isnull()
+if ix.sum():
+    print(f"WARNING: {ix.sum()} dams are missing geometry values")
+    print(df.loc[ix].groupby("SourceState").size())
+    print("SARPIDs:", df.loc[ix].SARPID.unique().tolist())
+    df = df.loc[~ix].copy()
+    print("\n")
+
+print("Projecting dams...")
+df = df.copy().to_crs(CRS).reset_index(drop=True)
 
 ix = df.SARPID.isnull() | (df.SARPID == "")
 if ix.max():
@@ -177,72 +279,23 @@ if s.max() > 1:
 # convert from ESRI format to string
 df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
 
-
 df.to_feather(out_dir / "sarp_dams.feather")
 
 
-### Download manually snapped dams
-download_start = time()
+# ### Download manually snapped dams
 print("\n---- Downloading Snapped Dams ----")
-df = download_fs(
-    SNAPPED_URL,
-    fields=[
-        "SARPID",
-        "ManualReview",
-        "dropped",
-        "excluded",
-        "duplicate",
-        "snapped",
-        "EditDate",
-        "Editor",
-    ],
-    token=token,
-)
-
-# drop any that do not have SARPID
-df = df.dropna(subset=["SARPID"])
-
-print("Projecting manually snapped dams...")
-df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
-
+download_start = time()
+df = asyncio.run(download_snapped_dams(TOKEN))
 print(
     "Downloaded {:,} snapped dams in {:.2f}s".format(len(df), time() - download_start)
 )
 
-df.ManualReview = df.ManualReview.fillna(0).astype("uint8")
-
-# convert from ESRI format to string
-# df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
-
 df.to_feather(out_dir / "manually_snapped_dams.feather")
 
 ### Download small barriers
-download_start = time()
 print("\n---- Downloading Small Barriers ----")
-df = download_fs(SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token).rename(
-    columns={
-        "Crossing_Code": "CrossingCode",
-        "Potential_Project": "PotentialProject",
-        "SARPUniqueID": "SARPID",
-        "CrossingTypeId": "CrossingType",
-        "RoadTypeId": "RoadType",
-        "CrossingConditionId": "Condition",
-        "StreamName": "Stream",
-        "Year_Removed": "YearRemoved",
-    }
-)
-
-# convert from ESRI format to string
-df["EditDate"] = pd.to_datetime(df.EditDate, unit="ms").dt.strftime("%m/%d/%Y")
-
-print("Projecting small barriers...")
-ix = df.geometry.isnull()
-if ix.sum():
-    print(f"WARNING: {ix.sum()} small barriers are missing geometry values")
-    df = df.loc[~ix].copy()
-
-df = df.to_crs(CRS).reset_index(drop=True)
-
+download_start = time()
+df = asyncio.run(download_small_barriers(TOKEN))
 print(
     "Downloaded {:,} small barriers in {:.2f}s".format(len(df), time() - download_start)
 )
@@ -255,7 +308,7 @@ if ix.max():
         )
     )
 
-# DEBUG ONLY - SARPID must be present; follow up with SARP if not
+# # DEBUG ONLY - SARPID must be present; follow up with SARP if not
 df.SARPID = df.SARPID.fillna("").astype("str")
 
 s = df.groupby("SARPID").size()
@@ -266,23 +319,11 @@ if s.max() > 1:
 df.to_feather(out_dir / "sarp_small_barriers.feather")
 
 
-### Download waterfalls
+# ### Download waterfalls
 download_start = time()
 print("\n---- Downloading waterfalls ----")
-df = download_fs(WATERFALLS_URL, fields=WATERFALL_COLS, token=token).rename(
-    columns={"SARPUniqueId": "SARPID",}
-)
-
-print("Projecting waterfalls.")
-df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
-
-df = df.rename(
-    columns={"gnis_name_": "GNIS_Name", "watercours": "Stream", "name": "Name"}
-)
-
-
+df = asyncio.run(download_waterfalls(TOKEN))
 print("Downloaded {:,} waterfalls in {:.2f}s".format(len(df), time() - download_start))
-
 
 df.to_feather(out_dir / "waterfalls.feather")
 

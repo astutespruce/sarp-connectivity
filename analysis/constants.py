@@ -153,6 +153,7 @@ DAM_FS_COLS = [
     "BarrierStatus",
     "PassageFacility",
     "StructureCategory",
+    "StructureClass",
     "Diversion",
     "FishScreen",
     "ScreenType",
@@ -181,6 +182,7 @@ SMALL_BARRIER_COLS = [
     "Year_Removed",
     "EditDate",
     "Editor",
+    "OwnerType",
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",
@@ -418,6 +420,7 @@ OWNERTYPE_TO_DOMAIN = {
     "Easement": 7,
     "Private Conservation Land": 8,
 }
+
 
 # Map of owner type domain above to whether or not the land is
 # considered public
