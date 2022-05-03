@@ -1,13 +1,10 @@
 import os
 from pathlib import Path
-from time import time
 import warnings
 
 import geopandas as gp
 import pandas as pd
-import pygeos as pg
-import numpy as np
-from pyogrio import write_dataframe
+from pyogrio import read_dataframe, write_dataframe
 
 from analysis.lib.geometry import neighborhoods
 
@@ -46,13 +43,13 @@ groups = pd.DataFrame(
 dup_100m_postsnap = groups.SARPID.unique()
 
 
-df["dup100mpre"] = df.SARPID.isin(dup_100m_presnap)
-df["dup100mpost"] = df.SARPID.isin(dup_100m_postsnap)
+df["dup100pre"] = df.SARPID.isin(dup_100m_presnap)
+df["dup100post"] = df.SARPID.isin(dup_100m_postsnap)
 
 df["snapped_wb"] = df.wbID.notnull()
 
 qa = df.loc[
-    df.dup100mpre | df.dup100mpost | df.loop | (df.snap_dist > 150),
+    df.dup100pre | df.dup100post | df.loop | (df.snap_dist > 150),
     [
         "geometry",
         "SARPID",
@@ -62,15 +59,21 @@ qa = df.loc[
         "ManualReview",
         "Recon",
         "sizeclass",
+        "loop",
         "snap_dist",
         "snapped_wb",
         "snap_log",
         "duplicate",
         "dup_log",
-        "dup100mpre",
-        "dup100mpost",
+        "dup100pre",
+        "dup100post",
     ],
 ]
 
 write_dataframe(qa, qa_dir / "dams_for_review.fgb")
 write_dataframe(qa, out_dir / "dams_for_review.shp")
+
+### Also export snapping lines
+snap_lines = read_dataframe(qa_dir / "dams_pre_snap_to_post_snap.fgb")
+write_dataframe(snap_lines, out_dir / "dams_pre_snap_to_post_snap.shp")
+

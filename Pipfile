@@ -27,6 +27,7 @@ rtree = ">=0.9.3"
 pyogrio = {editable = true,path = "./../pyogrio"}
 pygeos = "*"
 httpx = "*"
+pymgl = "*"
 
 [requires]
 python_version = "3.8"

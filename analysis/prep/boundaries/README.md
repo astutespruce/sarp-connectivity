@@ -78,12 +78,4 @@ Kat Hoenke (SARP) extracted protected area data from CBI Protected Areas and TNC
 
 ## 4. Create boundary vector tiles
 
-Vector tiles are are created for each of the boundary layers.
-
-Depending on which analysis region you are creating tiles for, run one of:
-
-- `analysis/prep/boundaries/generate_region_tiles.sh`
-- `analysis/prep/boundaries/generate_sarp_tiles.sh`
-
-Both create files with the same name in the same location, because only one
-set is intended to be used at a time within this project.
+Vector tiles are are created for each of the boundary layers using `analysis/prep/boundaries/create_region_tiles.py`.

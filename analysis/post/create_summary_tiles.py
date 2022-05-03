@@ -1,7 +1,7 @@
 """Update summary unit map tiles with summary statistics of dams and small barriers
 within them.
 
-Base summary unit map tile are created using `analysis/prep/boundaries/generate_region_tiles.py`.
+Base summary unit map tile are created using `analysis/prep/boundaries/create_region_tiles.py`.
 
 These statistics are based on:
 * dams: not dropped or duplicate
@@ -24,7 +24,6 @@ import csv
 import subprocess
 
 import pandas as pd
-import numpy as np
 from pyogrio import read_dataframe
 
 # Note: states are identified by name, whereas counties are uniquely identified by
@@ -33,7 +32,7 @@ from pyogrio import read_dataframe
 # the IDs for those units set when the vector tiles of those units are created, otherwise
 # they won't join properly in the frontend.
 
-SUMMARY_UNITS = ["State", "COUNTYFIPS", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4"]
+SUMMARY_UNITS = ["State", "COUNTYFIPS", "HUC2", "HUC6", "HUC8", "HUC10", "HUC12", "ECO3", "ECO4"]
 
 INT_COLS = [
     "dams",
@@ -111,12 +110,12 @@ for unit in SUMMARY_UNITS:
     print(f"processing {unit}")
 
     if unit == "State":
-        units = read_dataframe(
-            bnd_dir / "region_states.gpkg", columns=["id"], read_geometry=False
+        units = pd.read_feather(
+            bnd_dir / "region_states.feather", columns=["id"]
         ).set_index("id")
     elif unit == "COUNTYFIPS":
-        units = read_dataframe(
-            bnd_dir / "region_counties.gpkg", columns=["id"], read_geometry=False
+        units = pd.read_feather(
+            bnd_dir / "region_counties.feather", columns=["id"]
         ).set_index("id")
     else:
         units = pd.read_feather(bnd_dir / f"{unit}.feather", columns=[unit]).set_index(

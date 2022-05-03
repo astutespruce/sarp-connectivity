@@ -64,35 +64,22 @@ bnd = bnd_df.geometry.values.data[0]
 bnd_geo = bnd_df.to_crs(GEO_CRS)
 bnd_geo["bbox"] = pg.bounds(bnd_geo.geometry.values.data).round(2).tolist()
 
-# used to render maps
-with open(ui_dir / "region_bounds.json", "w") as out:
-    out.write(bnd_geo[["id", "bbox"]].to_json(orient="records"))
-
 # create mask
 world = pg.box(-180, -85, 180, 85)
 bnd_mask = bnd_geo.drop(columns=["bbox"])
 bnd_mask["geometry"] = pg.normalize(pg.difference(world, bnd_mask.geometry.values.data))
-write_dataframe(bnd_mask, out_dir / "region_mask.fgb")
+bnd_mask.to_feather(out_dir / "region_mask.feather")
 
 
 ### Extract HUC4 units that intersect boundaries
-
 print("Extracting HUC2...")
-# First determine the HUC2s that overlap the region
 huc2_df = (
-    read_dataframe(wbd_gdb, layer="WBDHU2", columns=["huc2"])
+    read_dataframe(wbd_gdb, layer="WBDHU2", columns=["huc2", "name"])
     .to_crs(CRS)
     .rename(columns={"huc2": "HUC2"})
 )
 
 tree = pg.STRtree(huc2_df.geometry.values.data)
-
-# First extract SARP HUC2
-# sarp_ix = tree.query(sarp_bnd, predicate="intersects")
-# sarp_huc2_df = huc2_df.iloc[sarp_ix].reset_index(drop=True)
-# write_dataframe(sarp_huc2_df, out_dir / "sarp_huc2.fgb")
-# sarp_huc2_df.to_feather(out_dir / "sarp_huc2.feather")
-# sarp_huc2 = sorted(sarp_huc2_df.HUC2)
 
 # Subset out HUC2 in region
 ix = tree.query(bnd, predicate="intersects")

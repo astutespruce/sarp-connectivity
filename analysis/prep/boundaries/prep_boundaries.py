@@ -95,12 +95,9 @@ county_df.to_feather(out_dir / "counties.feather")
 write_dataframe(county_df, out_dir / "counties.fgb")
 
 # Subset these in the region for tiles and summary stats
-write_dataframe(
-    county_df.loc[county_df.STATEFIPS.isin(states)].rename(
+county_df.loc[county_df.STATEFIPS.isin(states)].rename(
         columns={"COUNTYFIPS": "id", "County": "name"}
-    ),
-    out_dir / "region_counties.fgb",
-)
+    ).to_feather(out_dir / "region_counties.feather")
 
 ### Process Level 3 Ecoregions
 print("Processing level 3 ecoregions")
@@ -140,9 +137,8 @@ pct_in_region = 100 * pg.area(in_region) / pg.area(df.geometry.values.data)
 df = df.loc[pct_in_region >= 25].reset_index(drop=True)
 
 # write out for tiles
-write_dataframe(
-    df.rename(columns={"ECO3": "id", "ECO3Name": "name"}), out_dir / "region_eco3.fgb"
-)
+df.rename(columns={"ECO3": "id", "ECO3Name": "name"}).to_feather(out_dir / "region_eco3.feather")
+
 
 ### Process Level 4 Ecoregions
 print("Processing level 4 ecoregions")
@@ -185,9 +181,7 @@ ix = np.append(ix, edge_df.loc[pct_in_region >= 25].index)
 df = df.iloc[ix].reset_index(drop=True)
 
 # write out for tiles
-write_dataframe(
-    df.rename(columns={"ECO4": "id", "ECO4Name": "name"}), out_dir / "region_eco4.fgb"
-)
+df.rename(columns={"ECO4": "id", "ECO4Name": "name"}).to_feather(out_dir / "region_eco4.feather")
 
 
 ### Extract bounds and names for unit search in user interface
@@ -226,7 +220,7 @@ out = {
 }
 
 
-for unit in ["HUC6", "HUC8", "HUC12", "ECO3", "ECO4"]:
+for unit in ["HUC6", "HUC8", "HUC10", "HUC12", "ECO3", "ECO4"]:
     print(f"Processing {unit}")
     df = (
         gp.read_feather(out_dir / f"{unit.lower()}.feather")
@@ -413,5 +407,5 @@ df = huc8_df.join(priorities.set_index("HUC_8"), on="HUC8")
 for col in ["usfs", "coa", "sgcn"]:
     df[col] = df[col].fillna(0).astype("uint8")
 
-write_dataframe(df.rename(columns={"HUC8": "id"}), out_dir / "huc8_priorities.fgb")
+df.rename(columns={"HUC8": "id"}).to_feather(out_dir / "huc8_priorities.feather")
 
