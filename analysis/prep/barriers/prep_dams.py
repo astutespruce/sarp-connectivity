@@ -101,7 +101,7 @@ print(
 outside_df = gp.read_feather(src_dir / "dams_outer_huc4.feather")
 # drop any that are in the main dataset, since there are several dams at state lines
 outside_df = outside_df.loc[~outside_df.SARPID.isin(df.SARPID.unique())].copy()
-print(f"Read {len(outside_df):,} dams outer HUC4s")
+print(f"Read {len(outside_df):,} dams in outer HUC4s")
 
 df = df.append(outside_df, ignore_index=True, sort=False)
 
@@ -229,11 +229,14 @@ for column in (
 df["BarrierSeverity"] = df.BarrierSeverity.fillna("Unknown").str.strip()
 df.loc[df.BarrierSeverity == "Complete Barrier", "BarrierSeverity"] = "Complete"
 # temporary fixes
-df.BarrierSeverity = df.BarrierSeverity.str.replace(
-    "Seasonbly", "Seasonably"
-).str.replace(
-    "Partial Passibility - Non Salmonid", "Partial Passability - Non Salmonid"
+df.BarrierSeverity = (
+    df.BarrierSeverity.str.replace("Seasonbly", "Seasonably")
+    .str.replace(
+        "Partial Passibility - Non Salmonid", "Partial Passability - Non Salmonid"
+    )
+    .str.replace("Salmond", "Salmonid")
 )
+
 
 for column in (
     "Construction",
@@ -249,7 +252,7 @@ for column in (
 ):
     df[column] = df[column].fillna(0).astype("uint8")
 
-for column in ("Year", "YearRemoved"):
+for column in ("Year", "YearRemoved", "StructureClass"):
     df[column] = df[column].fillna(0).astype("uint16")
 
 
@@ -292,6 +295,22 @@ df.loc[
             "TN1752",
             "AL00919",
         ]
+    ),
+    "LowheadDam",
+] = 1
+
+
+# From Kat: if StructureCategory == 916 (lowead dam / weir)
+# several are miscoded on Mississippi River and are not lowhead dams
+df.loc[
+    (df.LowheadDam == -1)
+    & (df.StructureClass == 916)
+    & (~df.Name.str.lower().str.contains("mississippi river"))
+    & (
+        ~df.SARPID.isin(
+            ["IA19114", "IA19110", "IA19207", "IA19112", "IA19019", "GA29841"]
+        )
+        & (df.Height <= 25)
     ),
     "LowheadDam",
 ] = 1
@@ -748,11 +767,11 @@ df.WaterbodySizeClass = df.WaterbodySizeClass.fillna(-1).astype("int8")
 ### Update lowhead dam status with estimated lowhead dams
 # from Kat: if ImpoundmentType==1 (run of the river), it is likely a lowhead dam;
 # limit this to <= 15 feet based on review against aerial imagery (very few over 15 feet are lowhead)
-# ignore estimated dams or ones on very small streams
+# or if height is not present.  Ignore estimated dams or ones on very small streams
 df.loc[
     (df.LowheadDam == -1)
     & (df.ImpoundmentType == 1)
-    & (df.Height <= 25)
+    & ((df.Height <= 25) | (df.Height.isnull()))
     & (~df.is_estimated)
     & (df.snapped)
     & (df.sizeclass != "1a"),

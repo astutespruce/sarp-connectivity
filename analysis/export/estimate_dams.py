@@ -3,6 +3,7 @@ from pathlib import Path
 from time import time
 
 import geopandas as gp
+import numpy as np
 import pandas as pd
 import pygeos as pg
 from pyogrio import write_dataframe
@@ -54,11 +55,13 @@ drains = (
 
 drains["intermittent"] = drains.lineFCode.isin([46003, 46007])
 
+drains.loc[drains.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
+
 
 merged = None
 for huc2 in huc2s:
     huc2_start = time()
-    print(f"Extracting dams from waterbodies in {huc2}")
+    print(f"----- Processing {huc2} ------")
     waterbodies = gp.read_feather(nhd_dir / huc2 / "waterbodies.feather").set_index(
         "wbID"
     )
