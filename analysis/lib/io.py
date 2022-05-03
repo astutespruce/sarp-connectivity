@@ -37,7 +37,7 @@ def read_feathers(paths, columns=None, geo=False, new_fields=None):
                 df[field] = values[i]
 
         merged = (
-            merged.append(df, ignore_index=True, sort=False)
+            pd.concat([merged, df], ignore_index=True, sort=False)
             if merged is not None
             else df
         )

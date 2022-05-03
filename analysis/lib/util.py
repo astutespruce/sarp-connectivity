@@ -27,7 +27,7 @@ def append(target_df, df):
         return None
 
     if len(df) > 0:
-        return target_df.append(df, ignore_index=True, sort=False)
+        return pd.concat([target_df, df], ignore_index=True, sort=False)
 
     return target_df
 

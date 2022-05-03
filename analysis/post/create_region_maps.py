@@ -17,7 +17,10 @@ if not TOKEN:
 
 
 region_tiles = Path("data/tiles/boundary.mbtiles").absolute()
+mask_tiles = Path("data/tiles/mask.mbtiles").absolute()
+state_tiles = Path("data/tiles/State.mbtiles").absolute()
 dam_tiles = Path("tiles/dams.mbtiles").absolute()
+# dam_tiles = "/tmp/tiles/dams.mbtiles"
 
 
 WIDTH = 600
@@ -36,6 +39,18 @@ STYLE = {
     "regions": {
       "type": 'vector',
       "url": f'mbtiles://{region_tiles}',
+      "minzoom": 0,
+      "maxzoom": 8,
+    },
+    "masks": {
+      "type": 'vector',
+      "url": f'mbtiles://{mask_tiles}',
+      "minzoom": 0,
+      "maxzoom": 8,
+    },
+    "states": {
+      "type": 'vector',
+      "url": f'mbtiles://{state_tiles}',
       "minzoom": 0,
       "maxzoom": 8,
     },
@@ -67,19 +82,20 @@ STYLE = {
     },
     {
       "id": 'states',
-      "source": 'regions',
+      "source": 'states',
       'source-layer': 'State',
       "type": 'line',
       "minzoom": 0,
       "maxzoom": 22,
       "paint": {
         'line-color': '#666666',
-        'line-width': 0.2,
+        'line-width': 0.3,
+        'line-opacity': 1
       },
     },
     {
       "id": 'region-mask',
-      "source": 'regions',
+      "source": 'masks',
       'source-layer': 'mask',
       "type": 'fill',
       "minzoom": 0,
