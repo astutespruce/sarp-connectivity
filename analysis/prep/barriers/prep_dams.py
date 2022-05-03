@@ -178,6 +178,7 @@ df = df.drop(columns=[c for c in df.columns if c.endswith("_snap")])
 df = df.reset_index(drop=True)
 print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df)))
 
+
 ### Make sure there are not duplicates
 s = df.groupby("SARPID").size()
 if s.max() > 1:
@@ -188,6 +189,9 @@ if s.max() > 1:
 # internal ID
 df["id"] = df.index.astype("uint32")
 df = df.set_index("id", drop=False)
+
+
+df.to_feather(qa_dir / "dams_raw.feather")
 
 
 ######### Fix data issues
