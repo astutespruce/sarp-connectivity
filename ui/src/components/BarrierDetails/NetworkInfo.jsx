@@ -169,7 +169,8 @@ const NetworkInfo = ({
               <Text sx={{ display: 'inline' }}>Altered miles</Text>
               <InfoTooltip>
                 Total altered miles upstream is the sum of all reach lengths
-                specifically identified as altered (canal / ditch).
+                specifically identified as altered (canal / ditch, within
+                reservoir, or other channel alteration).
                 <br />
                 <br />
                 Total altered miles downstream is the sum of all altered reach
@@ -187,7 +188,8 @@ const NetworkInfo = ({
 
               <InfoTooltip>
                 Total unaltered miles upstream is the sum of all reach lengths
-                not specifically identified as altered (canal / ditch).
+                not specifically identified as altered (canal / ditch, within
+                reservoir, or other channel alteration).
                 <br />
                 <br />
                 Total unaltered miles downstream is the sum of all unaltered
@@ -276,7 +278,7 @@ const NetworkInfo = ({
       {totalupstreammiles > 0 ? (
         <Entry>
           <b>{formatPercent(percentAltered)}%</b> of the upstream network is in
-          altered stream channels (coded as canals / ditches)
+          altered stream channels
         </Entry>
       ) : null}
 

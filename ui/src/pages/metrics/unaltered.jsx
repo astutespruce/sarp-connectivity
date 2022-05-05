@@ -61,13 +61,27 @@ const PercentUnalteredPage = ({ data: { headerImage } }) => (
         </Heading>
         <ol>
           <li>
-            Stream and river reaches are identified as altered where they are
-            specifically coded by NHD as canals or ditches.
+            Stream and river reaches are identified as altered where they:
+            <ol>
+              <li>are specifically coded by NHD as canals or ditches</li>
+              <li>
+                fall within a waterbody specifically coded by NHD or other data
+                source as a reservoir or one that has &quot;reservoir&quot; in
+                its name, or a waterbody specifically coded by the National
+                Wetlands Inventory (NWI) to indicate anthropogenic alteration
+                (e.g., excavated)
+              </li>
+              <li>
+                have significant overlap with a 10 meter buffer around NWI
+                riverine areas that are coded to indicate anthropogenic
+                alteration (e.g., diked/ditched)
+              </li>
+            </ol>
           </li>
-          <li>The total length of the network is calculated.</li>
+          <li>The total length of the network is calculated</li>
           <li>
             The total length of unaltered reaches within the network is
-            calculated.
+            calculated
           </li>
           <li>percent unaltered = 100 * (unaltered length / total length)</li>
         </ol>
