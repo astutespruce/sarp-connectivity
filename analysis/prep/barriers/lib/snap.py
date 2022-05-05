@@ -332,43 +332,6 @@ def snap_to_nhd_dams(df, to_snap):
         )
     )
 
-    ### Find dams that are close (within snapping tolerance) of NHD dam points
-    # most of these should have been picked up above, but this picks up ones that are
-    # greater than NHD_DAM_TOLERANCE away due to bad locations
-    # snap_start = time()
-    # tmp = nhd_dams.reset_index()  # reset index so we have unique index to join on
-    # near_nhd = nearest(
-    #     pd.Series(to_snap.geometry.values.data, index=to_snap.index),
-    #     pd.Series(tmp.geometry.values.data, index=tmp.index),
-    #     max_distance=np.clip(to_snap.snap_tolerance.values, 0, NHD_DAM_PT_TOLERANCE),
-    # ).rename(columns={"distance": "snap_dist"})
-
-    # near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(
-    #     tmp, on="index_right"
-    # )
-    # near_nhd = (
-    #     near_nhd.reset_index()
-    #     .sort_values(
-    #         by=["id", "sizeclass", "loop", "snap_dist"],
-    #         ascending=[True, False, True, True],
-    #     )
-    #     .groupby("id")
-    #     .first()
-    # )
-
-    # ix = near_nhd.index
-    # df.loc[ix, "snapped"] = True
-    # df.loc[ix, "geometry"] = near_nhd.geometry
-    # df.loc[ix, "snap_dist"] = near_nhd.snap_dist
-    # df.loc[ix, "snap_ref_id"] = near_nhd.damID
-    # df.loc[ix, "lineID"] = near_nhd.lineID
-    # df.loc[ix, "wbID"] = near_nhd.wbID
-    # df.loc[
-    #     ix, "snap_log"
-    # ] = f"snapped: within {NHD_DAM_PT_TOLERANCE}m tolerance of NHD dam point but >{NHD_DAM_TOLERANCE}m from NHD dam polygon"
-    # to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-    # print(f"Snapped {len(ix):,} dams to NHD dam points in {time() - snap_start:.2f}s")
-
     return df, to_snap
 
 
@@ -411,7 +374,7 @@ def snap_to_waterbodies(df, to_snap):
         ).set_index("drainID")
 
         print(
-            f"HUC {huc2} selected {len(in_huc2):,} barriers in region to snap against {len(wb):,} waterbodies"
+            f"Selected {len(in_huc2):,} barriers in region to snap against {len(wb):,} waterbodies"
         )
 
         ### First pass - find the dams that are contained by waterbodies
@@ -597,7 +560,7 @@ def snap_to_flowlines(df, to_snap):
         ).set_index("lineID")
 
         print(
-            f"HUC {huc2} selected {len(in_huc2):,} barriers in region to snap against {len(flowlines):,} flowlines"
+            f"Selected {len(in_huc2):,} barriers in region to snap against {len(flowlines):,} flowlines"
         )
 
         # Find nearest flowlines within tolerance, then sort by nonloop and descending distance

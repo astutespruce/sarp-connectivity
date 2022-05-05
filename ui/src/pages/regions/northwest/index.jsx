@@ -13,6 +13,7 @@ import {
   Text,
 } from 'theme-ui'
 
+import { OutboundLink } from 'components/Link'
 import { useSummaryData } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
 import { Layout } from 'components/Layout'
@@ -23,64 +24,94 @@ import { formatNumber } from 'util/format'
 
 import { REGION_STATES } from '../../../../config/constants'
 
-const SWRegionPage = ({
+const PNWRegionPage = ({
   data: {
     headerImage: {
       childImageSharp: { gatsbyImageData: headerImage },
+    },
+    salmonPhoto: {
+      childImageSharp: { gatsbyImageData: salmonPhoto },
     },
     map: {
       childImageSharp: { gatsbyImageData: map },
     },
   },
 }) => {
-  const { sw } = useSummaryData()
+  const { pnw } = useSummaryData()
 
   return (
-    <Layout title="Southwest Region">
+    <Layout title="Pacific Northwest Region">
       <HeaderImage
         image={headerImage}
         height="20vh"
         minHeight="18rem"
         credits={{
-          author: 'Mattia Bericchia',
-          url: 'https://unsplash.com/photos/svtDgQUEHfE',
+          author: 'Bureau of Land Management',
+          url: 'https://www.flickr.com/photos/blmoregon/47700011012/',
         }}
       />
 
       <Container>
-        <Heading as="h1">Southwest Region</Heading>
+        <Heading as="h1">Pacific Northwest Region</Heading>
 
         <Grid columns={2} gap={5} sx={{ mt: '2rem' }}>
           <Box>
             <Box sx={{ border: '1px solid', borderColor: 'grey.4' }}>
               <GatsbyImage
                 image={map}
-                alt="Southwest region map"
+                alt="Northwest region map"
                 sx={{ border: '1px solid', borderColor: 'grey.3' }}
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(sw.dams)} inventoried dams in the Southwest
+              Map of {formatNumber(pnw.dams)} inventoried dams in the Northwest
               region.
             </Text>
           </Box>
           <Box>
             <Heading as="h4" sx={{ mb: '1rem' }}>
-              Includes {REGION_STATES.sw.length} states with:
+              Includes {REGION_STATES.pnw.length} states with:
             </Heading>
 
-            <RegionStats {...sw} />
+            <RegionStats {...pnw} />
           </Box>
         </Grid>
 
-        <RegionActionLinks region="sw" />
+        <RegionActionLinks region="pnw" />
+
+        <Box variant="boxes.section">
+          <Heading as="h2" variant="heading.section">
+            Data Sources
+          </Heading>
+
+          <Grid columns="2fr 1fr" sx={{ mt: '0.5rem' }}>
+            <Paragraph sx={{ mr: '2rem', flex: '1 1 auto' }}>
+              TODO: content from SARP to indicate data sources in the PNW
+            </Paragraph>
+
+            <Box>
+              <GatsbyImage
+                image={salmonPhoto}
+                alt="Chum salmon, Allison Springs, WA"
+              />
+
+              <Box sx={{ fontSize: 0 }}>
+                Photo:{' '}
+                <OutboundLink to="https://www.flickr.com/photos/usfwspacific/51047491597/">
+                  Chum salmon, Allison Springs, WA. Roger Tabor / U.S. Fish and
+                  Wildlife Service.
+                </OutboundLink>
+              </Box>
+            </Box>
+          </Grid>
+        </Box>
 
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">
             Statistics by state:
           </Heading>
           <Box sx={{ mt: '0.5rem' }}>
-            <StateDownloadTable region="sw" {...sw} />
+            <StateDownloadTable region="pnw" {...pnw} />
           </Box>
         </Box>
 
@@ -99,7 +130,7 @@ const SWRegionPage = ({
             <br />
             <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn
             more about how you can help improve aquatic connectivity in the
-            Southwest.
+            Northwest.
           </Paragraph>
         </Box>
       </Container>
@@ -107,18 +138,17 @@ const SWRegionPage = ({
   )
 }
 
-SWRegionPage.propTypes = {
+PNWRegionPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
+    forestStreamPhoto: PropTypes.object.isRequired,
     map: PropTypes.isRequired,
   }).isRequired,
 }
 
 export const pageQuery = graphql`
-  query SWRegionPageQuery {
-    headerImage: file(
-      relativePath: { eq: "mattia-bericchia-svtDgQUEHfE-unsplash.jpg" }
-    ) {
+  query PNWRegionPageQuery {
+    headerImage: file(relativePath: { eq: "47700011012_3ca83183ec_5k.jpg" }) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH
@@ -127,7 +157,17 @@ export const pageQuery = graphql`
         )
       }
     }
-    map: file(relativePath: { eq: "maps/sw.png" }) {
+    salmonPhoto: file(relativePath: { eq: "51047491597_9e44ea2b53_c.jpg" }) {
+      childImageSharp {
+        gatsbyImageData(
+          layout: CONSTRAINED
+          width: 960
+          formats: [AUTO, WEBP]
+          placeholder: BLURRED
+        )
+      }
+    }
+    map: file(relativePath: { eq: "maps/pnw.png" }) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH
@@ -139,4 +179,4 @@ export const pageQuery = graphql`
   }
 `
 
-export default SWRegionPage
+export default PNWRegionPage

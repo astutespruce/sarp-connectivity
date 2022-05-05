@@ -371,8 +371,10 @@ print("-----------------")
 # Cleanup HUC, state, county, and ecoregion columns that weren't assigned
 for col in [
     "HUC2",
+    "HUC4",
     "HUC6",
     "HUC8",
+    "HUC10",
     "HUC12",
     "Basin",
     "Subbasin",

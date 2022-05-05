@@ -15,8 +15,8 @@ const PercentUnalteredPage = ({ data: { headerImage } }) => (
       height="20vh"
       minHeight="18rem"
       credits={{
-        author: 'Carl Cerstrand',
-        url: 'https://unsplash.com/photos/J2bNC9gW5NI',
+        author: 'Washington State Department of Agriculture',
+        url: 'https://www.flickr.com/photos/wsdagov/42209868424/',
       }}
     />
 
@@ -84,9 +84,7 @@ PercentUnalteredPage.propTypes = {
 
 export const pageQuery = graphql`
   query NetworkPercentUnalteredQuery {
-    headerImage: file(
-      relativePath: { eq: "carl-cerstrand-J2bNC9gW5NI-unsplash.jpg" }
-    ) {
+    headerImage: file(relativePath: { eq: "42209868424_bb2dd0f7f0_o.jpg" }) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH

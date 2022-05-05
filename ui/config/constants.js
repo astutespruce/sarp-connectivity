@@ -68,7 +68,7 @@ export const STATE_FIPS = {
   56: 'Wyoming',
   72: 'Puerto Rico',
 }
-// limited to states in SARP + R2 / R6 + IA
+// limited to states in (SARP + WV) + (R2 / R6 + IA) + PNW
 export const STATES = {
   AL: 'Alabama',
   AR: 'Arkansas',
@@ -77,6 +77,7 @@ export const STATES = {
   FL: 'Florida',
   GA: 'Georgia',
   IA: 'Iowa',
+  ID: 'Idaho',
   KS: 'Kansas',
   KY: 'Kentucky',
   LA: 'Louisiana',
@@ -88,6 +89,7 @@ export const STATES = {
   NE: 'Nebraska',
   NM: 'New Mexico',
   OK: 'Oklahoma',
+  OR: 'Oregon',
   PR: 'Puerto Rico',
   SC: 'South Carolina',
   SD: 'South Dakota',
@@ -95,6 +97,8 @@ export const STATES = {
   TX: 'Texas',
   UT: 'Utah',
   VA: 'Virginia',
+  WA: 'Washington',
+  WV: 'West Virginia',
   WY: 'Wyoming',
 }
 
@@ -115,6 +119,7 @@ export const REGION_STATES = {
     'TN',
     'TX',
     'VA',
+    'WV', // TEMP
   ],
   gpiw: [
     'CO',
@@ -127,6 +132,7 @@ export const REGION_STATES = {
     'WY',
     'UT',
   ],
+  pnw: ['ID', 'OR', 'WA'],
   sw: ['AZ', 'NM', 'OK', 'TX'],
   total: Object.keys(STATES).sort(),
 }
@@ -236,7 +242,10 @@ export const GAINMILES = {
 
 export const RARESPP = { 0: '0', 1: '1', 2: '2 - 4', 3: '5 - 9', 4: '>= 10' }
 
-export const TROUT = {0: 'absent or not recorded', 1: 'one or more trout species present'}
+export const TROUT = {
+  0: 'absent or not recorded',
+  1: 'one or more trout species present',
+}
 
 export const STREAMORDER = {
   1: '1',

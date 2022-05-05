@@ -36,8 +36,10 @@ def add_spatial_joins(df):
 
     # Calculate HUC codes for other levels from HUC12
     df["HUC2"] = df["HUC12"].str.slice(0, 2)  # region
+    df["HUC4"] = df["HUC12"].str.slice(0, 4)  # subregion
     df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
     df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
+    df["HUC10"] = df["HUC12"].str.slice(0, 10)  # watershed
 
     # Read in HUC6...HUC12 and join in names
     huc6 = (

@@ -1,14 +1,5 @@
 import React from 'react'
-import {
-  Box,
-  Button,
-  Divider,
-  Flex,
-  Grid,
-  Heading,
-  Paragraph,
-  Text,
-} from 'theme-ui'
+import { Box, Button, Divider, Flex, Grid, Heading, Text } from 'theme-ui'
 import { GatsbyImage } from 'gatsby-plugin-image'
 import { ChartBar, SearchLocation } from '@emotion-icons/fa-solid'
 import { useStaticQuery, graphql } from 'gatsby'
@@ -20,10 +11,13 @@ import { RegionStats } from 'components/Regions'
 import { REGION_STATES } from '../../../config/constants'
 
 const Regions = () => {
-  const { gpiw, se, sw } = useSummaryData()
+  const { gpiw, pnw, se, sw } = useSummaryData()
   const {
     gpiwMap: {
       childImageSharp: { gatsbyImageData: gpiwMap },
+    },
+    pnwMap: {
+      childImageSharp: { gatsbyImageData: pnwMap },
     },
     seMap: {
       childImageSharp: { gatsbyImageData: seMap },
@@ -34,6 +28,15 @@ const Regions = () => {
   } = useStaticQuery(graphql`
     query {
       gpiwMap: file(relativePath: { eq: "maps/gpiw.png" }) {
+        childImageSharp {
+          gatsbyImageData(
+            layout: FULL_WIDTH
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
+        }
+      }
+      pnwMap: file(relativePath: { eq: "maps/pnw.png" }) {
         childImageSharp {
           gatsbyImageData(
             layout: FULL_WIDTH
@@ -261,6 +264,7 @@ const Regions = () => {
           </Flex>
         </Grid>
       </Box>
+
       <Box
         sx={{
           mt: '5rem',
@@ -269,18 +273,63 @@ const Regions = () => {
           borderTopColor: 'grey.3',
         }}
       >
-        <Heading
-          as="h3"
-          sx={{
-            fontWeight: 'normal',
-          }}
-        >
-          Coming in 2022: Pacific Northwest
-        </Heading>
-        <Paragraph variant="help" sx={{ mt: '0.5rem' }}>
-          The Pacific Northwest (Idaho, Oregon, and Washington) will be
-          integrated into this tool by late 2022.
-        </Paragraph>
+        <Flex sx={{ justifyContent: 'space-between' }}>
+          <Box sx={{ flex: '1 1 auto' }}>
+            <Link to="/regions/northwest">
+              <Heading as="h3" sx={{ fontWeight: 'normal' }}>
+                Pacific Northwest
+              </Heading>
+            </Link>
+          </Box>
+          <Flex sx={{ flex: '0 0 auto' }}>
+            <Box sx={{ flex: '1 1 auto', mr: '2rem' }}>
+              <Link to="summary/?region=pnw">
+                <Button variant="primary">
+                  <ChartBar size="1em" />
+                  &nbsp; Start summarizing
+                </Button>
+              </Link>
+            </Box>
+            <Box sx={{ flex: '0 0 auto' }}>
+              <Link to="/priority">
+                <Button>
+                  <SearchLocation size="1em" />
+                  &nbsp; Start prioritizing
+                </Button>
+              </Link>
+            </Box>
+          </Flex>
+        </Flex>
+
+        <Text>
+          Includes <b>{REGION_STATES.pnw.length}</b> states
+        </Text>
+
+        <Grid columns={[0, '1fr 2fr']} gap={4}>
+          <Box>
+            <Link to="/regions/northwest">
+              <Box sx={{ border: '1px solid', borderColor: 'grey.4' }}>
+                <GatsbyImage
+                  image={pnwMap}
+                  alt="Pacific Northwest region map"
+                />
+              </Box>
+            </Link>
+          </Box>
+
+          <Flex sx={{ flexDirection: 'column' }}>
+            <Box sx={{ flex: '0 0 auto' }}>
+              <RegionStats {...pnw} />
+            </Box>
+            <Box sx={{ height: '100%', flex: '1 1 auto' }} />
+
+            <Flex sx={{ justifyContent: 'flex-end' }}>
+              <Link to="/regions/northwest">
+                Learn more about the Pacific Northwest region
+              </Link>
+            </Flex>
+          </Flex>
+        </Grid>
       </Box>
     </Box>
   )
