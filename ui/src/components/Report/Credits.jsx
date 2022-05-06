@@ -9,7 +9,7 @@ const Credits = (props) => (
     <Text style={{ flex: '1 1 auto', marginRight: 36, fontSize: 10 }}>
       This report was created using the{' '}
       <Link href="https://connectivity.sarpdata.com/">
-        Southeast Aquatic Barrier Prioritization Tool
+        Aquatic Barrier Prioritization Tool
       </Link>
       , a project of the{' '}
       <Link href="https://southeastaquatics.net/">

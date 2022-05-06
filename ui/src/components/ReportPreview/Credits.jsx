@@ -9,7 +9,7 @@ const Credits = (props) => (
       <Box sx={{ flex: '1 1 auto' }}>
         This report was created using the{' '}
         <a href="https://connectivity.sarpdata.com/">
-          Southeast Aquatic Barrier Prioritization Tool
+          Aquatic Barrier Prioritization Tool
         </a>
         , a project of the{' '}
         <a href="https://southeastaquatics.net/">

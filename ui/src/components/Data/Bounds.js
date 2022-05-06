@@ -53,42 +53,45 @@ export const useBoundsData = () => {
 
   // postprocess the data within a memoized function so that we don't
   // repeat the calculation
-  return useMemo(() => {
-    const data = {
-      // merge state name in
-      State: rawData.State.map(({ id, ...rest }) => ({
-        ...rest,
-        name: STATE_FIPS[id],
-        id: STATE_FIPS[id],
-        layer: 'State',
-      })),
+  return useMemo(
+    () => {
+      const data = {
+        // merge state name in
+        State: rawData.State.map(({ id, ...rest }) => ({
+          ...rest,
+          name: STATE_FIPS[id],
+          id: STATE_FIPS[id],
+          layer: 'State',
+        })),
 
-      // expand county name to include " County"
-      County: rawData.County.map(({ name, ...rest }) => ({
-        ...rest,
-        name: `${name} County`,
-        layer: 'County',
-      })),
-    }
+        // expand county name to include " County"
+        County: rawData.County.map(({ name, ...rest }) => ({
+          ...rest,
+          name: `${name} County`,
+          layer: 'County',
+        })),
+      }
 
-    // for HUC and ECO units, add prefix for ID
-    SYSTEM_UNITS.HUC.forEach((layer) => {
-      data[layer] = rawData[layer].map((item) => ({
-        ...item,
-        layer,
-      }))
-    })
+      // for HUC and ECO units, add prefix for ID
+      // FIXME: temporarily exclude HUC10
+      SYSTEM_UNITS.HUC.filter((layer) => rawData[layer]).forEach((layer) => {
+        data[layer] = rawData[layer].map((item) => ({
+          ...item,
+          layer,
+        }))
+      })
 
-    SYSTEM_UNITS.ECO.forEach((layer) => {
-      data[layer] = rawData[layer].map((item) => ({
-        ...item,
-        layer,
-      }))
-    })
+      SYSTEM_UNITS.ECO.forEach((layer) => {
+        data[layer] = rawData[layer].map((item) => ({
+          ...item,
+          layer,
+        }))
+      })
 
-    return data
-  },
-  // rawData intentionally omitted
-  /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  [])
+      return data
+    },
+    // rawData intentionally omitted
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    []
+  )
 }

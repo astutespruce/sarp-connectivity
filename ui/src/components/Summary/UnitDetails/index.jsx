@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Button, Heading, Flex, Paragraph, Text } from 'theme-ui'
+import { Box, Button, Heading, Flex, Text } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 import { Downloader } from 'components/Download'

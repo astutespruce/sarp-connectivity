@@ -11,7 +11,7 @@ import SmallBarrierDetails from './SmallBarrierDetails'
 import WaterfallDetails from './WaterfallDetails'
 import Scores from './Scores'
 import { BarrierPropType } from './proptypes'
-import { barrierTypeLabelSingular } from '../../../config/constants'
+import { barrierTypeLabelSingular, STATES } from '../../../config/constants'
 
 import { siteMetadata } from '../../../gatsby-config'
 
@@ -152,7 +152,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
             {!(isEmptyString(countyname) || isEmptyString(State)) && (
               <Text>
                 <i>
-                  {countyname} County, {State}
+                  {countyname} County, {STATES[State]}
                 </i>
                 <br />
               </Text>

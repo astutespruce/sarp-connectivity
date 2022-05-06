@@ -4,6 +4,7 @@ import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
 
 import { formatNumber } from 'util/format'
+import { STATES } from '../../../config/constants'
 
 const Header = ({ barrierType, name, county, state, lat, lon }) => (
   <Flex sx={{ alignItems: 'flex-end', mb: ' 0.5rem', lineHeight: 1.2 }}>
@@ -17,7 +18,7 @@ const Header = ({ barrierType, name, county, state, lat, lon }) => (
           &deg; E
         </Text>
         <Text sx={{ flex: '0 0 auto', fontStyle: 'italic' }}>
-          {county} County, {state}
+          {county} County, {STATES[state]}
         </Text>
       </Flex>
     </Box>

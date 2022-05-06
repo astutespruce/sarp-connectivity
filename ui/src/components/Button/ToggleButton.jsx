@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 import PropTypes from 'prop-types'
-import { Button } from 'theme-ui'
+import { Button, Text } from 'theme-ui'
 
 import ButtonGroup from './ButtonGroup'
 
@@ -14,13 +14,14 @@ const ToggleButton = ({ value, options, onChange, ...props }) => {
   if (value === null)
     return (
       <ButtonGroup {...props}>
-        {options.map(({ value: v, label }) => (
+        {options.map(({ value: v, label, sublabel }) => (
           <Button
             key={v}
             onClick={() => handleClick(v)}
             variant="toggle-inactive"
           >
             {label}
+            {sublabel ? <Text sx={{ fontSize: 0 }}>{sublabel}</Text> : null}
           </Button>
         ))}
       </ButtonGroup>

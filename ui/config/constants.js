@@ -443,7 +443,7 @@ export const SYSTEMS = {
 
 export const SYSTEM_UNITS = {
   ADM: ['State', 'County'],
-  HUC: ['HUC6', 'HUC8', 'HUC12'],
+  HUC: ['HUC6', 'HUC8', 'HUC10', 'HUC12'],
   ECO: ['ECO3', 'ECO4'],
 }
 
@@ -461,6 +461,7 @@ export const LAYER_NAMES = {
   County: 'County',
   HUC6: 'Basin',
   HUC8: 'Subbasin',
+  HUC10: 'Watershed',
   HUC12: 'Subwatershed',
   ECO3: 'Level 3',
   ECO4: 'Level 4',
@@ -472,6 +473,7 @@ export const LAYER_ZOOM = {
   County: 9,
   HUC6: 5,
   HUC8: 8,
+  HUC10: 9,
   HUC12: 10,
   ECO3: 4,
   ECO4: 8,

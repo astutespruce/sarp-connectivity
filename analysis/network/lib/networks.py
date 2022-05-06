@@ -231,20 +231,11 @@ def create_networks(joins, barrier_joins, lineIDs):
     barrier_network_segments["type"] = "barrier"
 
     # Append network types back together
-    network_df = (
-        single_segment_networks.reset_index()
-        .append(
-            origin_network_segments.reset_index(drop=True),
-            sort=False,
-            ignore_index=False,
-        )
-        .append(
-            barrier_network_segments.reset_index(drop=True),
-            sort=False,
-            ignore_index=False,
-        )
-        .reset_index(drop=True)
-    )
+    network_df = pd.concat([
+        single_segment_networks.reset_index(),
+        origin_network_segments.reset_index(drop=True),
+        barrier_network_segments.reset_index(drop=True)
+        ], sort=False, ignore_index=False).reset_index(drop=True)
     network_df.networkID = network_df.networkID.astype("uint32")
     network_df.lineID = network_df.lineID.astype("uint32")
 

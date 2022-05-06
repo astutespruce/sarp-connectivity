@@ -23,6 +23,8 @@ const getPluralLabel = (layer) => {
       return 'basins'
     case 'HUC8':
       return 'subbasins'
+    case 'HUC10':
+      return 'watersheds'
     case 'HUC12':
       return 'subwatersheds'
     case 'ECO3':
@@ -44,6 +46,8 @@ const getSingularLabel = (layer) => {
       return 'basin'
     case 'HUC8':
       return 'subbasin'
+    case 'HUC10':
+      return 'watershed'
     case 'HUC12':
       return 'subwatershed'
     case 'ECO3':

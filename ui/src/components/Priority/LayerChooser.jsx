@@ -10,9 +10,10 @@ const adminLayerOptions = [
 ]
 
 const hucLayerOptions = [
-  { value: 'HUC6', label: `Basin\n(HUC6)` },
-  { value: 'HUC8', label: `Subbasin\n(HUC8)` },
-  { value: 'HUC12', label: `Subwatershed\n(HUC12)` },
+  { value: 'HUC6', label: 'Basin', sublabel: '(HUC6)' },
+  { value: 'HUC8', label: 'Subbasin', sublabel: '(HUC8)' },
+  { value: 'HUC10', label: 'Watershed', sublabel: '(HUC10)' },
+  { value: 'HUC12', label: 'Subwatershed', sublabel: '(HUC12)' },
 ]
 
 const ecoLayerOptions = [

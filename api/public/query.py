@@ -25,7 +25,7 @@ class StateRecordExtractor:
         if invalid:
             raise HTTPException(400, detail=f"ids are not valid: {', '.join(invalid)}")
 
-        self.ids = {STATES[id] for id in ids}
+        self.ids = ids
 
     def extract(self, df):
         return df.loc[df.State.isin(self.ids)]

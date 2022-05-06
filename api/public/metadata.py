@@ -37,9 +37,8 @@ def get_core_metadata(url):
 
 
 # Get list of states that have dams or barriers
-state_to_abbrev = {v: k for k, v in STATES.items()}
-dam_states = sorted([state_to_abbrev[state] for state in dams.State.unique()])
-barrier_states = sorted([state_to_abbrev[state] for state in barriers.State.unique()])
+dam_states = sorted(dams.State.unique())
+barrier_states = sorted(barriers.State.unique())
 
 
 @router.get("/dams/metadata")

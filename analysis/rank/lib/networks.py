@@ -28,6 +28,8 @@ NETWORK_COLUMNS = [
     "FreePerennialUnalteredDownstreamMiles",
     "PercentUnaltered",
     "PercentPerennialUnaltered",
+    "IntermittentUpstreamMiles",
+    "FreeIntermittentDownstreamMiles",
     "natfldpln",
     "sizeclasses",
     "num_downstream",

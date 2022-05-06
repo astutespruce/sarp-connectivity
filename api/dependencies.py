@@ -1,8 +1,6 @@
 from fastapi import HTTPException
 from fastapi.requests import Request
-import numpy as np
 
-from analysis.constants import STATES
 from api.constants import DAM_FILTER_FIELD_MAP, SB_FILTER_FIELD_MAP, Layers
 
 

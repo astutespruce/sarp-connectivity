@@ -13,11 +13,14 @@ import {
 
 const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
   const { id } = unit
-  const { name = id, on_network_dams = 0, on_network_small_barriers = 0 } = unit
+  const { on_network_dams = 0, on_network_small_barriers = 0 } = unit
+  let { name = id } = unit
+
+  if (layer === 'State') {
+    name = STATES[id]
+  }
 
   const barrierType = useBarrierType()
-
-  console.log('id', id)
 
   const count =
     barrierType === 'dams' ? on_network_dams : on_network_small_barriers

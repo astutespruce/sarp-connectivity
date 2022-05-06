@@ -12,12 +12,20 @@ export const unitLayerConfig = {
       minzoom: 4,
     },
   },
-  HUC12: {
-    minzoom: 0,
+  HUC10: {
+    minzoom: 6,
     maxzoom: 24,
     parent: {
       id: 'HUC8',
       minzoom: 8,
+    },
+  },
+  HUC12: {
+    minzoom: 8,
+    maxzoom: 24,
+    parent: {
+      id: 'HUC10',
+      minzoom: 10,
     },
   },
   State: {

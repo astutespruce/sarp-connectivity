@@ -54,13 +54,6 @@ out_tile_dir = Path("tiles")
 tmp_dir = Path("/tmp")
 
 
-states = (
-    pd.read_feather("data/boundaries/states.feather", columns=["id", "State"])
-    .set_index("State")
-    .id.to_dict()
-)
-
-
 ### Read dams
 dams = (
     pd.read_feather(
@@ -76,11 +69,6 @@ dams_master = pd.read_feather(
 ).set_index("id")
 dams = dams.join(dams_master)
 dams["Recon"] = dams.Recon > 0
-
-# State name => abbrev
-dams["State"] = dams.State.map(states)
-
-
 
 ### Read road-related barriers
 barriers = (
@@ -98,9 +86,6 @@ barriers_master = pd.read_feather(
 
 barriers = barriers.join(barriers_master)
 
-# State name => abbrev
-barriers["State"] = barriers.State.map(states)
-
 # barriers that were not dropped or excluded are likely to have impacts
 barriers["Included"] = ~(barriers.dropped | barriers.excluded)
 
@@ -110,8 +95,6 @@ barriers["Included"] = ~(barriers.dropped | barriers.excluded)
 crossings = pd.read_feather(
     src_dir / "road_crossings.feather", columns=["id"] + SUMMARY_UNITS
 )
-crossings["State"] = crossings.State.map(states)
-
 
 
 # Calculate summary statistics for each type of summary unit

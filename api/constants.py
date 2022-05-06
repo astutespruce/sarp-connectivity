@@ -9,6 +9,7 @@ class BarrierTypes(str, Enum):
 class Layers(str, Enum):
     HUC6 = "HUC6"
     HUC8 = "HUC8"
+    HUC10 = "HUC10"
     HUC12 = "HUC12"
     State = "State"
     County = "County"
@@ -52,7 +53,7 @@ def unique(items):
 
 
 # Summary unit fields
-UNIT_FIELDS = ["HUC6", "HUC8", "HUC12", "State", "County", "ECO3", "ECO4"]
+UNIT_FIELDS = ["HUC6", "HUC8", "HUC10", "HUC12", "State", "County", "ECO3", "ECO4"]
 
 
 # metric fields that are only valid for barriers with networks
@@ -317,7 +318,7 @@ WF_CORE_FIELDS = (
         "Subwatershed",
         "Excluded",
     ]
-    + ["HUC8", "HUC12", "State", "County"]
+    + ["HUC8", "HUC10", "HUC12", "State", "County"]
 )
 
 ### Domains for coded values in exported data
@@ -698,53 +699,6 @@ BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
 # }
 
 
-# mapping of field name to domains
-DOMAINS = {
-    "HasNetwork": BOOLEAN_DOMAIN,
-    "Excluded": BOOLEAN_DOMAIN,
-    "Ranked": BOOLEAN_DOMAIN,
-    "Intermittent": BOOLEAN_OFFNETWORK_DOMAIN,
-    "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
-    "OwnerType": OWNERTYPE_DOMAIN,
-    "ProtectedLand": BOOLEAN_DOMAIN,
-    "HUC8_USFS": HUC8_USFS_DOMAIN,
-    "HUC8_COA": HUC8_COA_DOMAIN,
-    "HUC8_SGCN": HUC8_SGCN_DOMAIN,
-    "ManualReview": MANUALREVIEW_DOMAIN,
-    # dam fields
-    "Recon": RECON_DOMAIN,
-    "Condition": DAM_CONDITION_DOMAIN,
-    "Construction": CONSTRUCTION_DOMAIN,
-    "Purpose": PURPOSE_DOMAIN,
-    "Feasibility": FEASIBILITY_DOMAIN,
-    "PassageFacility": PASSAGEFACILITY_DOMAIN,
-    "Diversion": DIVERSION_DOMAIN,
-    "LowheadDam": LOWHEADDAM_DOMAIN,
-    "FishScreen": FISHSCREEN_DOMAIN,
-    "ScreenType": SCREENTYPE_DOMAIN,
-    "BarrierSeverity": DAM_BARRIER_SEVERITY_DOMAIN,
-    "WaterbodySizeClass": WATERBODY_SIZECLASS_DOMAIN,
-    # barrier fields
-    "SeverityClass": BARRIER_SEVERITY_DOMAIN,
-    "ConditionClass": BARRIER_CONDITION_DOMAIN,
-}
-
-
-def unpack_domains(df):
-    """Unpack domain codes to values.
-
-    Parameters
-    ----------
-    df : DataFrame
-    """
-    df = df.copy()
-    for field, domain in DOMAINS.items():
-        if field in df.columns:
-            df[field] = df[field].map(domain)
-
-    return df
-
-
 # state abbrev to name, from CENSUS Tiger
 STATES = {
     "AK": "Alaska",
@@ -805,6 +759,56 @@ STATES = {
     "WY": "Wyoming",
 }
 
+
+
+# mapping of field name to domains
+DOMAINS = {
+    "State": STATES,
+    "HasNetwork": BOOLEAN_DOMAIN,
+    "Excluded": BOOLEAN_DOMAIN,
+    "Ranked": BOOLEAN_DOMAIN,
+    "Intermittent": BOOLEAN_OFFNETWORK_DOMAIN,
+    "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
+    "OwnerType": OWNERTYPE_DOMAIN,
+    "ProtectedLand": BOOLEAN_DOMAIN,
+    "HUC8_USFS": HUC8_USFS_DOMAIN,
+    "HUC8_COA": HUC8_COA_DOMAIN,
+    "HUC8_SGCN": HUC8_SGCN_DOMAIN,
+    "ManualReview": MANUALREVIEW_DOMAIN,
+    # dam fields
+    "Recon": RECON_DOMAIN,
+    "Condition": DAM_CONDITION_DOMAIN,
+    "Construction": CONSTRUCTION_DOMAIN,
+    "Purpose": PURPOSE_DOMAIN,
+    "Feasibility": FEASIBILITY_DOMAIN,
+    "PassageFacility": PASSAGEFACILITY_DOMAIN,
+    "Diversion": DIVERSION_DOMAIN,
+    "LowheadDam": LOWHEADDAM_DOMAIN,
+    "FishScreen": FISHSCREEN_DOMAIN,
+    "ScreenType": SCREENTYPE_DOMAIN,
+    "BarrierSeverity": DAM_BARRIER_SEVERITY_DOMAIN,
+    "WaterbodySizeClass": WATERBODY_SIZECLASS_DOMAIN,
+    # barrier fields
+    "SeverityClass": BARRIER_SEVERITY_DOMAIN,
+    "ConditionClass": BARRIER_CONDITION_DOMAIN,
+}
+
+
+def unpack_domains(df):
+    """Unpack domain codes to values.
+
+    Parameters
+    ----------
+    df : DataFrame
+    """
+    df = df.copy()
+    for field, domain in DOMAINS.items():
+        if field in df.columns:
+            df[field] = df[field].map(domain)
+
+    return df
+
+
 # Lookup of field to description, for download / APIs
 # Note: replace {type} with appropriate type when rendering
 FIELD_DEFINITIONS = {
@@ -857,6 +861,7 @@ FIELD_DEFINITIONS = {
     "Subwatershed": "Name of the hydrologic subwatershed (HUC12) where the {type} occurs.",
     "HUC6": "Hydrologic basin identifier where the {type} occurs.",
     "HUC8": "Hydrologic subbasin identifier where the {type} occurs.",
+    "HUC10": "Hydrologic watershed identifier where the {type} occurs.",
     "HUC12": "Hydrologic subwatershed identifier where the {type} occurs.",
     "County": "County where {type} occurs.",
     "State": "State where {type} occurs.",

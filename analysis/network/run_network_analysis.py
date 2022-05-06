@@ -200,7 +200,7 @@ for group in groups:
                     "upstream_id": "upNetID",
                     "total_miles": "TotalUpstreamMiles",
                     "perennial_miles": "PerennialUpstreamMiles",
-                    "intermittent_miles": "PerennialIntermittentMiles",
+                    "intermittent_miles": "IntermittentUpstreamMiles",
                     "altered_miles": "AlteredUpstreamMiles",
                     "unaltered_miles": "UnalteredUpstreamMiles",
                     "perennial_unaltered_miles": "PerennialUnalteredUpstreamMiles",
