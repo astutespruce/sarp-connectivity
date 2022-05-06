@@ -42,7 +42,6 @@ bnd = bnd_df.loc[bnd_df.id == "total"].geometry.values.data[0]
 state_df = gp.read_feather(
     out_dir / "region_states.feather", columns=["STATEFIPS", "geometry"]
 )
-states = state_df.STATEFIPS.unique()
 
 # Clip HUC4 areas outside state boundaries; these are remainder
 state_merged = pg.coverage_union_all(state_df.geometry.values.data)
@@ -75,7 +74,7 @@ write_dataframe(outer_huc4, out_dir / "outer_huc4.fgb")
 
 ### Counties - within HUC4 bounds
 print("Processing counties")
-fips = sorted(state_df.STATEFIPS.unique())
+state_fips = sorted(state_df.STATEFIPS.unique())
 
 county_df = (
     read_dataframe(county_filename, columns=["NAME", "GEOID", "STATEFP"],)
@@ -95,7 +94,7 @@ county_df.to_feather(out_dir / "counties.feather")
 write_dataframe(county_df, out_dir / "counties.fgb")
 
 # Subset these in the region for tiles and summary stats
-county_df.loc[county_df.STATEFIPS.isin(states)].rename(
+county_df.loc[county_df.STATEFIPS.isin(state_fips)].rename(
         columns={"COUNTYFIPS": "id", "County": "name"}
     ).to_feather(out_dir / "region_counties.feather")
 
@@ -203,7 +202,7 @@ states_geo = (
 )
 
 county_geo_df = (
-    county_df.loc[county_df.STATEFIPS.isin(states)]
+    county_df.loc[county_df.STATEFIPS.isin(state_fips)]
     .rename(columns={"COUNTYFIPS": "id", "County": "name", "STATEFIPS": "state"})
     .to_crs(GEO_CRS)
 )

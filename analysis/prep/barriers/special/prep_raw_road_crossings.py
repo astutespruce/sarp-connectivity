@@ -136,7 +136,6 @@ for col in [
     "Basin",
     "County",
     "COUNTYFIPS",
-    "STATEFIPS",
     "State",
     "ECO3",
     "ECO4",

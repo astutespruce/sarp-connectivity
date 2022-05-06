@@ -121,7 +121,7 @@ df["log"] = ""
 
 
 # Remove any that didn't intersect HUCs or states; these are outside the analysis region
-drop_ix = df.HUC12.isnull() | df.STATEFIPS.isnull()
+drop_ix = df.HUC12.isnull() | df.State.isnull()
 if drop_ix.sum():
     print(f"{drop_ix.sum():,} waterfalls are outside HUC12 / states")
     df = df.loc[~drop_ix].copy()
@@ -140,7 +140,6 @@ for col in [
     "Subwatershed",
     "County",
     "COUNTYFIPS",
-    "STATEFIPS",
     "State",
     "ECO3",
     "ECO4",
@@ -254,6 +253,8 @@ flowlines = read_feathers(
         "StreamOrder",
         "FCode",
         "loop",
+        "AnnualFlow",
+        "AnnualVelocity",
     ],
 ).set_index("lineID")
 
@@ -279,6 +280,8 @@ df["intermittent"] = df.FCode.isin([46003, 46007])
 df["loop"] = df.loop.fillna(False)
 df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
+# -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
+df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
 
 print(df.groupby("loop").size())
 

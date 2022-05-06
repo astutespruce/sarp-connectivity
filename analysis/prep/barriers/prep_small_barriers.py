@@ -81,7 +81,7 @@ print(f"Read {len(df):,} small barriers")
 s = df.groupby("SARPID").size()
 if s.max() > 1:
     print(s[s > 1].index)
-    raise ValueError("Multiple barriers with same SARPID")
+    warnings.warn(f"Multiple small barriers with same SARPID: {s[s > 1].index.values}")
 
 
 ### Add IDs for internal use
@@ -174,7 +174,6 @@ for col in [
     "Subwatershed",
     "County",
     "COUNTYFIPS",
-    "STATEFIPS",
     "State",
     "ECO3",
     "ECO4",
@@ -198,7 +197,7 @@ df["removed"] = False
 
 
 # Drop any that didn't intersect HUCs or states (including those outside analysis region)
-drop_ix = (df.HUC12 == "") | (df.STATEFIPS == "")
+drop_ix = (df.HUC12 == "") | (df.State == "")
 print(f"{drop_ix.sum():,} small barriers are outside HUC12 / states")
 # Mark dropped barriers
 df.loc[drop_ix, "dropped"] = True
@@ -290,7 +289,7 @@ original_locations = df.copy()
 to_snap = df.loc[
     (~df.ManualReview.isin(OFFSTREAM_MANUALREVIEW))
     & (df.HUC2 != "")
-    & (df.STATEFIPS != "")
+    & (df.State != "")
 ].copy()
 
 
@@ -374,6 +373,8 @@ flowlines = read_feathers(
         "StreamOrder",
         "FCode",
         "loop",
+        "AnnualFlow",
+        "AnnualVelocity",
     ],
 ).set_index("lineID")
 
@@ -399,6 +400,8 @@ df["intermittent"] = df.FCode.isin([46003, 46007])
 df["loop"] = df.loop.fillna(False)
 df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
+# -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
+df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
 
 print(df.groupby("loop").size())
 

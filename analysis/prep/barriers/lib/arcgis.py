@@ -4,6 +4,7 @@ from math import ceil
 
 from requests import HTTPError
 import geopandas as gp
+import pandas as pd
 
 
 # Mapping of ESRI WKID to proj4 strings
@@ -140,7 +141,7 @@ async def download_fs(client, url, fields=None, token=None, target_wkid=None):
         if merged is None:
             merged = df
         else:
-            merged = merged.append(df, ignore_index=True, sort=False)
+            merged = pd.concat([merged, df], ignore_index=True, sort=False)
 
     return merged
 

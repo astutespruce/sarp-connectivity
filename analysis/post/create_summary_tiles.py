@@ -24,7 +24,6 @@ import csv
 import subprocess
 
 import pandas as pd
-from pyogrio import read_dataframe
 
 # Note: states are identified by name, whereas counties are uniquely identified by
 # FIPS code.
@@ -48,7 +47,7 @@ INT_COLS = [
 data_dir = Path("data")
 src_dir = data_dir / "barriers/master"
 bnd_dir = data_dir / "boundaries"
-api_dir = data_dir / "api"
+results_dir = data_dir / "barriers/networks"
 ui_data_dir = Path("ui/data")
 src_tile_dir = data_dir / "tiles"
 out_tile_dir = Path("tiles")
@@ -57,19 +56,20 @@ tmp_dir = Path("/tmp")
 
 states = (
     pd.read_feather("data/boundaries/states.feather", columns=["id", "State"])
-    .set_index("id")
-    .State.to_dict()
+    .set_index("State")
+    .id.to_dict()
 )
 
 
 ### Read dams
 dams = (
     pd.read_feather(
-        api_dir / f"dams.feather", columns=["id", "HasNetwork"] + SUMMARY_UNITS,
+        results_dir / f"dams.feather", columns=["id", "HasNetwork"] + SUMMARY_UNITS,
     )
     .set_index("id", drop=False)
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
+
 # Get recon from master
 dams_master = pd.read_feather(
     src_dir / "dams.feather", columns=["id", "Recon"]
@@ -77,20 +77,29 @@ dams_master = pd.read_feather(
 dams = dams.join(dams_master)
 dams["Recon"] = dams.Recon > 0
 
+# State name => abbrev
+dams["State"] = dams.State.map(states)
+
+
+
 ### Read road-related barriers
 barriers = (
     pd.read_feather(
-        api_dir / "small_barriers.feather",
+        results_dir / "small_barriers.feather",
         columns=["id", "HasNetwork"] + SUMMARY_UNITS,
     )
     .set_index("id", drop=False)
     .rename(columns={"HasNetwork": "OnNetwork"})
 )
+
 barriers_master = pd.read_feather(
     "data/barriers/master/small_barriers.feather", columns=["id", "dropped", "excluded"]
 ).set_index("id")
 
 barriers = barriers.join(barriers_master)
+
+# State name => abbrev
+barriers["State"] = barriers.State.map(states)
 
 # barriers that were not dropped or excluded are likely to have impacts
 barriers["Included"] = ~(barriers.dropped | barriers.excluded)
@@ -101,6 +110,8 @@ barriers["Included"] = ~(barriers.dropped | barriers.excluded)
 crossings = pd.read_feather(
     src_dir / "road_crossings.feather", columns=["id"] + SUMMARY_UNITS
 )
+crossings["State"] = crossings.State.map(states)
+
 
 
 # Calculate summary statistics for each type of summary unit

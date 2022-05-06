@@ -1,5 +1,42 @@
 export const layers = [
   {
+    id: 'HUC2',
+    system: 'HUC',
+    title: 'Region',
+    bins: {
+      dams: [1000, 2500, 5000, 10000, 25000, 50000, 100000],
+      small_barriers: [50, 100, 500, 1000, 2500, 5000, 10000],
+    },
+    fill: {
+      minzoom: 0,
+      maxzoom: 4,
+      paint: {
+        'fill-opacity': {
+          base: 0.1,
+          stops: [
+            [1, 0.25],
+            [2, 0.4],
+            [4, 0.25],
+          ],
+        },
+      },
+    },
+    outline: {
+      minzoom: 0,
+      maxzoom: 6,
+      paint: {
+        'line-width': {
+          base: 0.1,
+          stops: [
+            [3, 0.75],
+            [5, 1.5],
+            [6, 2],
+          ],
+        },
+      },
+    },
+  },
+  {
     id: 'HUC6',
     system: 'HUC',
     title: 'Basin',
@@ -8,13 +45,12 @@ export const layers = [
       small_barriers: [10, 100, 200, 300, 500, 1000, 2500],
     },
     fill: {
-      minzoom: 0,
+      minzoom: 4,
       maxzoom: 6,
       paint: {
         'fill-opacity': {
           base: 0.25,
           stops: [
-            [2, 0.4],
             [4, 0.25],
             [5, 0.25],
             [6, 0.1],
@@ -23,7 +59,7 @@ export const layers = [
       },
     },
     outline: {
-      minzoom: 0,
+      minzoom: 4,
       maxzoom: 9.5,
       paint: {
         'line-width': {
@@ -65,7 +101,7 @@ export const layers = [
     },
     outline: {
       minzoom: 6,
-      maxzoom: 24,
+      maxzoom: 10,
       paint: {
         'line-width': {
           base: 0.1,
@@ -80,6 +116,44 @@ export const layers = [
     },
   },
   {
+    id: 'HUC10',
+    system: 'HUC',
+    title: 'Watershed',
+    bins: {
+      dams: [5, 10, 25, 50, 100, 500, 1000],
+      small_barriers: [5, 10, 25, 50, 100, 500, 1000],
+    },
+    fill: {
+      minzoom: 7,
+      maxzoom: 9,
+      paint: {
+        'fill-opacity': {
+          base: 0.25,
+          stops: [
+            [7, 0.1],
+            [8, 0.25],
+            [9, 0.1],
+          ],
+        },
+      },
+    },
+    outline: {
+      minzoom: 7,
+      maxzoom: 24,
+      paint: {
+        'line-width': {
+          base: 0.1,
+          stops: [
+            [7, 0.1],
+            [8, 0.5],
+            [9, 1],
+            [10, 2.5],
+          ],
+        },
+      },
+    },
+  },
+  {
     id: 'HUC12',
     system: 'HUC',
     title: 'Subwatershed',
@@ -88,7 +162,7 @@ export const layers = [
       small_barriers: [1, 10, 25, 100, 200],
     },
     fill: {
-      minzoom: 8,
+      minzoom: 9,
       maxzoom: 24,
       paint: {
         'fill-opacity': {
@@ -104,7 +178,7 @@ export const layers = [
       },
     },
     outline: {
-      minzoom: 8,
+      minzoom: 9,
       maxzoom: 24,
       paint: {
         'line-width': {
@@ -371,7 +445,7 @@ export const pointLayer = {
     'circle-color': '#c51b8a',
     'circle-radius': {
       stops: [
-        [9,1],
+        [9, 1],
         [10, 2],
         [12, 3],
         [14, 4],

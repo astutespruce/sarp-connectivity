@@ -9,7 +9,11 @@ import { Downloader } from 'components/Download'
 import { layers } from '../layers'
 import Barriers from './Barriers'
 import Dams from './Dams'
-import { STATE_FIPS, CONNECTIVITY_TEAMS } from '../../../../config/constants'
+import {
+  STATE_FIPS,
+  STATES,
+  CONNECTIVITY_TEAMS,
+} from '../../../../config/constants'
 
 const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   const teams = {}
@@ -19,20 +23,17 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
     })
   })
 
-  const {
-    id,
-    layerId,
-    name = '',
-    dams = 0,
-    totalSmallBarriers = 0,
-  } = summaryUnit
+  const { id, layerId, dams = 0, totalSmallBarriers = 0 } = summaryUnit
+
+  let { name = '' } = summaryUnit
 
   const layerConfig = layers.filter(({ id: lyrID }) => lyrID === layerId)[0]
 
   let { title: layerTitle } = layerConfig
 
-  let title = name || id
+  let title = null
   let state = null
+  let team = null
   if (layerId === 'County') {
     title = `${name} County`
     state = STATE_FIPS[id.slice(0, 2)]
@@ -40,10 +41,12 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   }
 
   if (layerId === 'State') {
-    state = id
+    state = STATES[id]
+    name = state
+    team = teams[id]
   }
 
-  const team = state ? teams[state] : null
+  title = name || id
 
   const hasBarriers = barrierType === 'dams' ? dams > 0 : totalSmallBarriers > 0
   const downloaderConfig = {
@@ -70,10 +73,13 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           <Heading as="h3" sx={{ m: 0, fontSize: '1.25rem' }}>
             {title}
           </Heading>
-          {layerId !== 'State' && (
+          {layerId !== 'State' && layerId !== 'HUC2' ? (
             <Text sx={{ fontSize: '1.25rem' }}>{layerTitle}</Text>
-          )}
-          {layerId === 'HUC6' || layerId === 'HUC8' || layerId === 'HUC12' ? (
+          ) : null}
+          {layerId === 'HUC6' ||
+          layerId === 'HUC8' ||
+          layerId === 'HUC10' ||
+          layerId === 'HUC12' ? (
             <Text sx={{ color: 'grey.7' }}>
               {layerId}: {id}
             </Text>
@@ -99,11 +105,18 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
         )}
 
         {team ? (
-          <Box sx={{ mt: '3rem' }}>
+          <Box
+            sx={{
+              mt: '3rem',
+              borderTop: '1px solid',
+              borderTopColor: 'grey.1',
+              pt: '1rem',
+            }}
+          >
             <Heading as="h5" style={{ marginBottom: '0.5em' }}>
               {state} Aquatic Connectivity Team
             </Heading>
-            <Paragraph>
+            <Text sx={{ fontSize: 1 }}>
               {team.description}
               <br />
               <br />
@@ -121,7 +134,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
               For more information, please contact{' '}
               <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a> (
               {team.contact.org}).
-            </Paragraph>
+            </Text>
           </Box>
         ) : null}
       </Box>

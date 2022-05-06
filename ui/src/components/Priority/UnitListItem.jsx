@@ -5,13 +5,19 @@ import { Box, Flex, Button, Text } from 'theme-ui'
 
 import { useBarrierType } from 'components/Data'
 import { formatNumber } from 'util/format'
-import { STATE_FIPS, barrierTypeLabels } from '../../../config/constants'
+import {
+  STATE_FIPS,
+  STATES,
+  barrierTypeLabels,
+} from '../../../config/constants'
 
 const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
   const { id } = unit
   const { name = id, on_network_dams = 0, on_network_small_barriers = 0 } = unit
 
   const barrierType = useBarrierType()
+
+  console.log('id', id)
 
   const count =
     barrierType === 'dams' ? on_network_dams : on_network_small_barriers

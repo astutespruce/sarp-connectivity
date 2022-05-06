@@ -20,6 +20,7 @@ wbd_gdb = data_dir / "nhd/source/wbd/WBD_National_GDB/WBD_National_GDB.gdb"
 
 
 ### Construct region boundary from states
+# Note: STATEFIPS is needed to join to counties
 print("Processing states...")
 state_df = (
     read_dataframe(state_filename, columns=["STUSPS", "STATEFP", "NAME"],)
@@ -35,10 +36,6 @@ write_dataframe(state_df, out_dir / "states.fgb")
 
 state_df = state_df.loc[state_df.id.isin(STATES.keys())].copy()
 state_df.to_feather(out_dir / "region_states.feather")
-write_dataframe(
-    state_df[["State", "geometry"]].rename(columns={"State": "id"}),
-    out_dir / "region_states.fgb",
-)
 
 # dissolve to create outer state boundary for total analysis area and regions
 bnd_df = gp.GeoDataFrame(

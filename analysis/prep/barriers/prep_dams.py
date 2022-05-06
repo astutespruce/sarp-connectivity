@@ -381,7 +381,6 @@ for col in [
     "Subwatershed",
     "County",
     "COUNTYFIPS",
-    "STATEFIPS",
     "State",
     "ECO3",
     "ECO4",
@@ -404,7 +403,7 @@ df["unranked"] = False
 df["removed"] = False
 
 # Drop any that didn't intersect HUCs or states
-drop_ix = (df.HUC12 == "") | (df.STATEFIPS == "")
+drop_ix = (df.HUC12 == "") | (df.State == "")
 if drop_ix.sum():
     print(f"{drop_ix.sum():,} dams are outside HUC12 / states")
     # Mark dropped barriers
@@ -618,7 +617,7 @@ to_snap = df.loc[
     (~df.ManualReview.isin(OFFSTREAM_MANUALREVIEW))
     & (~df.duplicate)
     & (df.HUC2 != "")
-    & (df.STATEFIPS != "")
+    & (df.State != "")
 ].copy()
 
 # Save original locations so we can map the snap line between original and new locations

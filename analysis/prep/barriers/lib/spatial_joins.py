@@ -67,11 +67,11 @@ def add_spatial_joins(df):
     states = pd.read_feather(
         boundaries_dir / "states.feather", columns=["STATEFIPS", "State"]
     ).set_index("STATEFIPS")
-    df = df.join(states, on="STATEFIPS")
+    df = df.join(states, on="STATEFIPS").drop(columns=['STATEFIPS'])
 
     # Expected: not all barriers fall cleanly within the states dataset
-    if df.STATEFIPS.isnull().sum():
-        print(f"{df.STATEFIPS.isnull().sum():,} barriers were not assigned states")
+    if df.State.isnull().sum():
+        print(f"{df.State.isnull().sum():,} barriers were not assigned states")
 
     ### Level 3 & 4 Ecoregions
     print("Joining to ecoregions")

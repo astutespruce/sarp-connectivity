@@ -31,29 +31,66 @@ if not os.path.exists(results_dir):
     os.makedirs(results_dir)
 
 ### Read in master
+
+cols = [
+    "id",
+    "SARPID",
+    "lon",
+    "lat",
+    "Source",
+    "Name",
+    "Basin",
+    "Stream",
+    "Subbasin",
+    "Subwatershed",
+    "Recon",
+    "Condition",
+    "ConditionClass",
+    "CrossingCode",
+    "CrossingType",
+    "CrossingTypeClass",
+    "Editor",
+    "EditDate",
+    "FCode",
+    "State",
+    "COUNTYFIPS",
+    "County",
+    "HUC2",
+    "HUC4",
+    "HUC6",
+    "HUC8",
+    "HUC10",
+    "HUC12",
+    "ECO3",
+    "ECO4",
+    "HUC8_COA",
+    "HUC8_SGCN",
+    "HUC8_USFS",
+    "ManualReview",
+    "ProtectedLand",
+    "OwnerType",
+    "TESpp",
+    "StateSGCNSpp",
+    "RegionalSGCNSpp",
+    "Trout",
+    "dropped",
+    "excluded",
+    "duplicate",
+    "unranked",
+    "loop",
+    "StreamOrder",
+    "sizeclass",
+    "AnnualFlow",
+    "AnnualVelocity",
+    "stream_type",
+    "intermittent",
+]
+
+
 print("Reading master...")
 df = (
-    pd.read_feather(barriers_dir / "small_barriers.feather")
+    pd.read_feather(barriers_dir / "small_barriers.feather", columns=cols)
     .set_index("id")
-    .drop(
-        columns=[
-            "geometry",
-            "level_0",
-            "index",
-            "dup_group",
-            "dup_count",
-            "dup_log",
-            "snap_dist",
-            "snap_tolerance",
-            "snap_ref_id",
-            "snap_log",
-            "snapped",
-            "log",
-            "lineID",
-            "wbID",
-        ],
-        errors="ignore",
-    )
     .rename(columns={"excluded": "Excluded", "intermittent": "Intermittent",})
 )
 
