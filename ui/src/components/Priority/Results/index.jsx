@@ -14,7 +14,7 @@ import StartOverButton from '../StartOverButton'
 import { SCENARIOS, barrierTypeLabels } from '../../../../config/constants'
 
 const Results = ({
-  config,
+  config: rawConfig,
   scenario: rawScenario,
   resultsType,
   rankData,
@@ -32,6 +32,11 @@ const Results = ({
   } else if (scenario === 'pncwc') {
     scenarioLabel =
       'combined perennial network connectivity and watershed condition'
+  }
+
+  const config = {
+    ...rawConfig,
+    scenario,
   }
 
   // count records by tier
