@@ -2,6 +2,8 @@ from io import BytesIO
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from fastapi.responses import Response, FileResponse
+import pyarrow as pa
+from pyarrow import csv
 
 
 def csv_response(df, bounds=None):
@@ -17,8 +19,10 @@ def csv_response(df, bounds=None):
     fastapi Response
     """
 
-    csv = df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
-    response = Response(content=csv, media_type="text/csv")
+    csv_stream = BytesIO()
+    cols = ['id'] + [c.lower() for c in df.columns]
+    csv.write_csv(pa.Table.from_pandas(df.reset_index()).rename_columns(cols), csv_stream)
+    response = Response(content=csv_stream.getvalue(), media_type="text/csv")
 
     if bounds is not None:
         response.headers["X-BOUNDS"] = ",".join(str(b) for b in bounds)
@@ -48,9 +52,12 @@ def zip_csv_response(
     -------
     fastapi Response
     """
+
     zip_stream = BytesIO()
     with ZipFile(zip_stream, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
-        zf.writestr(filename, df.to_csv(index=False))
+        csv_stream = BytesIO()
+        csv.write_csv(pa.Table.from_pandas(df.reset_index(drop=True)), csv_stream)
+        zf.writestr(filename, csv_stream.getvalue())
 
         if extra_str is not None:
             for path, value in extra_str.items():
