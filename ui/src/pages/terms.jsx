@@ -6,7 +6,7 @@ import { Box, Container, Flex, Paragraph, Heading, Image } from 'theme-ui'
 import { OutboundLink } from 'components/Link'
 import { Layout } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
-import SARPLogoImage from 'images/sarp_logo.png'
+import SARPLogoImage from 'images/sarp_logo_highres.png'
 
 const TermsPage = ({ data: { headerImage } }) => (
   <Layout title="Terms of Use">
@@ -99,13 +99,8 @@ const TermsPage = ({ data: { headerImage } }) => (
         </Box>
 
         <Paragraph variant="help" sx={{ fontSize: 2 }}>
-          A high resolution copy of the SARP logo can be requested from Jessica
-          Graham via email at{' '}
-          <OutboundLink to="jessica@southeastaquatics.net">
-            jessica@southeastaquatics.net
-          </OutboundLink>
-          . A small version can be obtained by clicking on the logo to the left
-          open it in a new window.
+          A high resolution logo can be obtained by clicking on the logo to the
+          left to open it in a new window.
         </Paragraph>
       </Flex>
     </Container>

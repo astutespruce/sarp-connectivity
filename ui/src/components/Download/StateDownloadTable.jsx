@@ -23,7 +23,7 @@ const StateDownloadTable = ({
   ...props
 }) => {
   const stateData = groupBy(useStateSummary(), 'id')
-  const regionStates = REGION_STATES[region].map((id) => ({ id: STATES[id] }))
+  const regionStates = REGION_STATES[region]
 
   const offNetworkDams = dams - onNetworkDams
   const offNetworkBarriers = smallBarriers - onNetworkSmallBarriers
@@ -98,9 +98,9 @@ const StateDownloadTable = ({
             </tr>
           </thead>
           <tbody>
-            {regionStates.map(({ id }) => (
+            {regionStates.map((id) => (
               <tr key={id}>
-                <td>{id}</td>
+                <td>{STATES[id]}</td>
                 <td>{formatNumber(stateData[id].dams)}</td>
                 <td>{formatNumber(stateData[id].reconDams)}</td>
                 <td>{formatNumber(stateData[id].totalSmallBarriers)}</td>
@@ -141,7 +141,7 @@ const StateDownloadTable = ({
                   barrierType="dams"
                   config={{
                     ...downloadConfig,
-                    summaryUnits: regionStates,
+                    summaryUnits: regionStates.map((id) => ({ id })),
                   }}
                 />
               </td>
@@ -152,7 +152,7 @@ const StateDownloadTable = ({
                   barrierType="small_barriers"
                   config={{
                     ...downloadConfig,
-                    summaryUnits: regionStates,
+                    summaryUnits: regionStates.map((id) => ({ id })),
                   }}
                 />
               </td>

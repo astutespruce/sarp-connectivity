@@ -27,7 +27,7 @@ from api.settings import CACHE_DIRECTORY
 
 ### Include logo in download package
 LOGO_PATH = (
-    Path(__file__).resolve().parent.parent.parent / "ui/src/images/sarp_logo.png"
+    Path(__file__).resolve().parent.parent.parent / "ui/src/images/sarp_logo_highres.png"
 )
 
 router = APIRouter()
@@ -62,7 +62,7 @@ def download_dams(
 
     log_request(request)
 
-    filename = f"aquatic_barrier_ranks_{date.today().isoformat()}.{format}"
+    filename = f"aquatic_barrier_ranks.{format}"
 
     # See if we already already cached the response;
     # we only do this for unfiltered states and the entire region (ranked or unranked)
@@ -74,7 +74,7 @@ def download_dams(
         cache_filename = CACHE_DIRECTORY / f"{state_hash}{suffix}_dams.zip"
 
     if cache_filename and cache_filename.exists():
-        return zip_file_response(cache_filename, filename.replace(".csv", ".zip"))
+        return zip_file_response(cache_filename, filename.replace(".csv", f"_{date.today().isoformat()}.zip"))
 
     df = extractor.extract(dams).copy()
 
@@ -103,11 +103,7 @@ def download_dams(
 
     # Sort by tier
     if f"{sort}_tier" in df.columns:
-        sort_field = f"{sort}_tier"
-    else:
-        sort_field = f"SE_{sort}_tier"
-
-    df = df.sort_values(by=["HasNetwork", sort_field], ascending=[False, True])
+        df = df.sort_values(by=["HasNetwork", f"{sort}_tier"], ascending=[False, True])
 
     df = unpack_domains(df)
 
@@ -163,7 +159,7 @@ def download_barriers(
 
     log_request(request)
 
-    filename = "aquatic_barrier_ranks_{0}.{1}".format(date.today().isoformat(), format)
+    filename = f"aquatic_barrier_ranks.{format}"
 
     # See if we already already cached the response;
     # we only do this for unfiltered states and the entire region (ranked or unranked)
@@ -175,7 +171,7 @@ def download_barriers(
         cache_filename = CACHE_DIRECTORY / f"{state_hash}{suffix}_small_barriers.zip"
 
     if cache_filename and cache_filename.exists():
-        return zip_file_response(cache_filename, filename.replace(".csv", ".zip"))
+        return zip_file_response(cache_filename, filename.replace(".csv", f"_{date.today().isoformat()}.zip"))
 
     df = extractor.extract(barriers).copy()
 
@@ -204,11 +200,7 @@ def download_barriers(
 
     # Sort by tier
     if f"{sort}_tier" in df.columns:
-        sort_field = f"{sort}_tier"
-    else:
-        sort_field = f"SE_{sort}_tier"
-
-    df = df.sort_values(by=["HasNetwork", sort_field], ascending=[False, True])
+        df = df.sort_values(by=["HasNetwork", f"{sort}_tier"], ascending=[False, True])
 
     df = unpack_domains(df)
 

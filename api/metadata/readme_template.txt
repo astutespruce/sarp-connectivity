@@ -1,7 +1,6 @@
-Comprehensive Southeast Aquatic Barrier Inventory - {type}
+Comprehensive Aquatic Barrier Inventory - {type}
 --------------------------------------------------------
 
-Date downloaded: {download_date}
 Data version: {data_version}
 Data publish date: {data_date}
 Downloaded from: {url}

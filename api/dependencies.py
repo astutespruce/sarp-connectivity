@@ -43,7 +43,14 @@ class RecordExtractor:
         for key, values in self.filters.items():
             ix = ix & df[key].isin(values)
 
-        return df.loc[ix]
+        df = df.loc[ix]
+
+        # Drop southeast rank fields if they are completely absent; this is typically
+        # when states outside the Southeast are selected
+        if 'SE_NC_tier' in df.columns and df.SE_NC_tier.max() == -1:
+            df = df.drop(columns=["SE_NC_tier","SE_WC_tier", "SE_NCWC_tier", "SE_PNC_tier", "SE_PWC_tier", "SE_PNCWC_tier"], errors='ignore')
+
+        return df
 
 
 class DamsRecordExtractor(RecordExtractor):

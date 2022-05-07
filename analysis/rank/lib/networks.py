@@ -1,7 +1,7 @@
 from pathlib import Path
 import warnings
 
-from analysis.constants import SARP_STATE_NAMES
+from analysis.constants import SARP_STATES
 from analysis.lib.io import read_feathers
 from analysis.rank.lib.metrics import classify_gainmiles
 from analysis.rank.lib.tiers import calculate_tiers
@@ -153,7 +153,7 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
     ### Calculate regional tiers for SARP (Southeast) region
     # NOTE: this is limited to SARP region; other regions are not ranked at regional level
     # TODO: consider deprecating this
-    ix = to_rank.State.isin(SARP_STATE_NAMES)
+    ix = to_rank.State.isin(SARP_STATES)
     sarp_tiers = calculate_tiers(to_rank.loc[ix])
     sarp_tiers = sarp_tiers.rename(
         columns={col: f"SE_{col}" for col in sarp_tiers.columns}

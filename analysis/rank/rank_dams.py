@@ -99,6 +99,7 @@ cols = [
     "unranked",
     "is_estimated",
     "loop",
+    "NHDPlusID",
     "StreamOrder",
     "sizeclass",
     "AnnualFlow",
@@ -119,9 +120,12 @@ df = (
             "excluded": "Excluded",
             "intermittent": "Intermittent",
             "is_estimated": "Estimated",
+            "sizeclass": "StreamSizeClass"
         }
     )
 )
+
+df['NHDPlusID'] = df.NHDPlusID.fillna(-1).astype('int64')
 
 
 ### Save dams that were removed, for use in API (they are otherwise dropped below)

@@ -77,6 +77,7 @@ cols = [
     "excluded",
     "duplicate",
     "unranked",
+    "NHDPlusID",
     "loop",
     "StreamOrder",
     "sizeclass",
@@ -91,8 +92,10 @@ print("Reading master...")
 df = (
     pd.read_feather(barriers_dir / "small_barriers.feather", columns=cols)
     .set_index("id")
-    .rename(columns={"excluded": "Excluded", "intermittent": "Intermittent",})
+    .rename(columns={"excluded": "Excluded", "intermittent": "Intermittent", "sizeclass": "StreamSizeClass"})
 )
+
+df['NHDPlusID'] = df.NHDPlusID.fillna(-1).astype('int64')
 
 # Drop any that are duplicates
 # NOTE: we retain those that were dropped because these are relevant for folks to know what

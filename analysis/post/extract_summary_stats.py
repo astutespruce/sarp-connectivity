@@ -32,12 +32,6 @@ src_dir = data_dir / "barriers/master"
 api_dir = data_dir / "api"
 ui_data_dir = Path("ui/data")
 
-states = (
-    pd.read_feather("data/boundaries/states.feather", columns=["id", "State"])
-    .set_index("id")
-    .State.to_dict()
-)
-
 
 ### Read dams
 dams = (
@@ -78,7 +72,7 @@ crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "
 # NOTE: this is limited to the states fully within the analysis region and excludes
 # HUC4s that cross their borders
 
-analysis_states = STATES.values()
+analysis_states = STATES.keys()
 analysis_dams = dams.loc[dams.State.isin(analysis_states)]
 analysis_barriers = barriers.loc[barriers.State.isin(analysis_states)]
 analysis_crossings = crossings.loc[crossings.State.isin(analysis_states)]
@@ -99,7 +93,6 @@ stats = {
 # NOTE: these are groupings of states and some states may be in multiple regions
 region_stats = []
 for region, region_states in REGION_STATES.items():
-    region_states = [states[s] for s in region_states]
     region_dams = dams.loc[dams.State.isin(region_states)]
     region_barriers = barriers.loc[barriers.State.isin(region_states)]
     region_crossings = crossings.loc[crossings.State.isin(region_states)]
@@ -123,7 +116,7 @@ stats["region"] = region_stats
 # only extract core counts in states for data download page,
 # as other stats are joined to state vector tiles below
 state_stats = []
-for state in sorted(STATES.values()):
+for state in sorted(STATES.keys()):
     state_stats.append(
         {
             "id": state,

@@ -185,6 +185,8 @@ DAM_CORE_FIELDS = (
         "NIDID",
         "Estimated",
         "River",
+        "NHDPlusID",
+        "StreamSizeClass",
         "Year",
         "YearRemoved",
         "Height",
@@ -250,6 +252,7 @@ SB_CORE_FIELDS = (
         "LocalID",
         "CrossingCode",
         "Stream",
+        "NHDPlusID",
         "Road",
         "RoadType",
         "CrossingType",
@@ -257,6 +260,7 @@ SB_CORE_FIELDS = (
         "SeverityClass",
         "SARP_Score",
         "YearRemoved",
+        "StreamSizeClass"
     ]
     + GENERAL_API_FIELDS2
 )
@@ -846,6 +850,8 @@ FIELD_DEFINITIONS = {
     "SeverityClass": "potential severity of barrier, based on reconnaissance.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
     # other general fields
+    "NHDPlusID": "Unique NHD Plus High Resolution flowline identifier to which the barrier is snapped.  -1 = not snapped to a flowline.  Note: not all barriers snapped to flowlines are used in the network connectivity analysis.",
+    "StreamSizeClass": "Stream size class based on total catchment drainage area in square kilometers.  1a: <10 km2, 1b: 10-100 km2, 2: 100-518 km2, 3a: 518-2,590 km2, 3b: 2,590-10,000 km2, 4: 10,000-25,000 km2, 5: >= 25,000 km2.",
     "Condition": "condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
     "TESpp": "number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the {type}. Note: rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "StateSGCNSpp": "Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",

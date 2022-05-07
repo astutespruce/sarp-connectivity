@@ -34,9 +34,11 @@ def rank_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
     df = extractor.extract(ranked_dams).copy()
     log.info(f"selected {len(df)} dams for ranking")
 
+    df = df.join(calculate_tiers(df))
+
     # just return tiers and lat/lon
-    cols = ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
-    df = df.join(calculate_tiers(df))[cols]
+    cols = [c for c in ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS if c in df.columns]
+    df = df[cols]
 
     # extract extent
     bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
@@ -61,10 +63,11 @@ def rank_barriers(request: Request, extractor: BarriersRecordExtractor = Depends
     df = extractor.extract(ranked_barriers).copy()
     log.info(f"selected {len(df)} barriers for ranking")
 
-    # just return tiers and lat/lon
-    cols = ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
+    df = df.join(calculate_tiers(df))
 
-    df = df.join(calculate_tiers(df))[cols]
+    # just return tiers and lat/lon
+    cols = [c for c in ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS if c in df.columns]
+    df = df[cols]
 
     # extract extent
     bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)

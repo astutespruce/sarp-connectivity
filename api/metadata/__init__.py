@@ -14,7 +14,6 @@ with open(metadata_dir / "description.txt") as infile:
 with open(metadata_dir / "terms_of_use.txt") as infile:
     terms_of_use = infile.read()
 
-
 with open(metadata_dir / "readme_template.txt") as infile:
     readme = infile.read()
 
@@ -32,7 +31,6 @@ def get_readme(filename, barrier_type, fields, url, layer, ids):
 
     return readme.format(
         type=barrier_type,
-        download_date=date.today().strftime("%m/%d/%Y"),
         data_version=data_version,
         data_date=data_date,
         url=url,
@@ -46,7 +44,6 @@ def get_readme(filename, barrier_type, fields, url, layer, ids):
 
 def get_terms(url):
     return terms.format(
-        download_date=date.today().strftime("%m/%d/%Y"),
         data_version=data_version,
         data_date=data_date,
         url=url,

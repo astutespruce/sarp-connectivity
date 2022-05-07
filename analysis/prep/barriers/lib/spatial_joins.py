@@ -65,8 +65,8 @@ def add_spatial_joins(df):
 
     # Join in state name based on STATEFIPS from county
     states = pd.read_feather(
-        boundaries_dir / "states.feather", columns=["STATEFIPS", "State"]
-    ).set_index("STATEFIPS")
+        boundaries_dir / "states.feather", columns=["STATEFIPS", "id"]
+    ).set_index("STATEFIPS").rename(columns={'id': 'State'})
     df = df.join(states, on="STATEFIPS").drop(columns=['STATEFIPS'])
 
     # Expected: not all barriers fall cleanly within the states dataset

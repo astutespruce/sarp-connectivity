@@ -72,7 +72,9 @@ const BarrierDetails = ({ barrier, onClose }) => {
     const units = ['state']
     const metrics = ['nc', 'wc', 'ncwc', 'pnc', 'pwc', 'pncwc']
 
-    if (barrier.se_ncwc_tier !== -1) {
+    console.log('barrier', barrier.se_ncwc_tier)
+
+    if (barrier.se_ncwc_tier && barrier.se_ncwc_tier !== -1) {
       units.push('se')
     }
 
@@ -86,6 +88,8 @@ const BarrierDetails = ({ barrier, onClose }) => {
         }
       })
     })
+
+    console.log('scores', scores)
 
     // add in custom results if available
     if (ncwc_tier) {
