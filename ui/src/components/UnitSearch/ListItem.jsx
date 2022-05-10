@@ -38,7 +38,6 @@ const ListItem = ({ id, name, state, layer, showID, onClick }) => {
         <Box
           sx={{
             fontSize: 0,
-            // fontStyle: 'italic',
             color: 'grey.7',
             whiteSpace: 'nowrap',
             wordWrap: 'none',

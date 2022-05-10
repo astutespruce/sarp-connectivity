@@ -194,7 +194,9 @@ df.rename(columns={"ECO4": "id", "ECO4Name": "name"}).to_feather(
 print("Projecting geometries to geographic coordinates for search index")
 print("Processing state and county")
 state_geo_df = (
-    gp.read_feather(out_dir / "states.feather", columns=["geometry", "id", "State"])
+    gp.read_feather(
+        out_dir / "states.feather", columns=["geometry", "id", "State", "STATEFIPS"]
+    )
     .rename(columns={"State": "name"})
     .to_crs(GEO_CRS)
 )
@@ -203,24 +205,27 @@ state_geo_df["in_region"] = state_geo_df.id.isin(STATES)
 state_geo_df["state"] = state_geo_df.id
 state_geo_df["layer"] = "State"
 state_geo_df["priority"] = 1
+state_geo_df["key"] = state_geo_df["name"]
 
 county_geo_df = (
     county_df.loc[county_df.STATEFIPS.isin(state_fips)]
     .rename(columns={"COUNTYFIPS": "id", "County": "name"})
     .join(state_df.set_index("STATEFIPS").id.rename("state"), on="STATEFIPS")
     .to_crs(GEO_CRS)
+    .join(state_geo_df.set_index("STATEFIPS").name.rename("state_name"), on="STATEFIPS")
 )
 county_geo_df["name"] = county_geo_df["name"] + " County"
 county_geo_df["bbox"] = pg.bounds(county_geo_df.geometry.values.data).round(3).tolist()
 county_geo_df["layer"] = "County"
 county_geo_df["priority"] = 2
+county_geo_df["key"] = county_geo_df["name"] + " " + county_geo_df.state_name
 
 out = pd.concat(
     [
         state_geo_df.loc[state_geo_df.in_region][
-            ["layer", "priority", "id", "state", "name", "bbox"]
+            ["layer", "priority", "id", "state", "name", "key", "bbox"]
         ],
-        county_geo_df[["layer", "priority", "id", "state", "name", "bbox"]],
+        county_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
     ],
     sort=False,
     ignore_index=True,
@@ -263,9 +268,10 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12", "ECO3", "ECO
 
     df = df.join(unit_states, on="id")
     df["state"] = df.state.fillna("").apply(lambda x: ",".join(x))
+    df["key"] = df.name + " " + df.id
 
     out = pd.concat(
-        [out, df[["layer", "priority", "id", "state", "name", "bbox"]]],
+        [out, df[["layer", "priority", "id", "state", "name", "key", "bbox"]]],
         sort=False,
         ignore_index=True,
     )
