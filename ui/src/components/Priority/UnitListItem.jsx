@@ -42,7 +42,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
       <Box sx={{ flex: '1 1 auto', mr: '1em' }}>
         <Text sx={{ fontSize: '1.25rem' }}>
           {name}
-          {layer === 'County' ? `, ${STATE_FIPS[id.slice(0, 2)]}` : null}
+          {layer === 'County' ? ` County, ${STATE_FIPS[id.slice(0, 2)]}` : null}
         </Text>
 
         {layer === 'HUC6' || layer === 'HUC8' || layer === 'HUC12' ? (

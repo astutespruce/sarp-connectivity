@@ -1,53 +1,52 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useCallback, useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
-import { Box, Input, Text } from 'theme-ui'
+import { useQuery } from 'react-query'
+import { Box, Text } from 'theme-ui'
 
-import { useBoundsData } from 'components/Data'
+import { searchUnits } from 'components/Data/API'
+import { formatNumber } from 'util/format'
 import ListItem from './ListItem'
+import SearchField from './SearchField'
 import { LAYER_NAMES, SYSTEMS, SYSTEM_UNITS } from '../../../config/constants'
 
 const UnitSearch = ({ system, layer, onSelect }) => {
-  const data = useBoundsData()
   const [query, setQuery] = useState('')
+
+  const {
+    isLoading,
+    data: { results = [], meta: { remaining = 0 } = {} } = {},
+  } = useQuery(
+    ['search', system, layer, query],
+    async () => {
+      if (!(query && query.length >= 3)) {
+        return {}
+      }
+
+      const layers = layer !== null ? [layer] : SYSTEM_UNITS[system]
+      return searchUnits(layers, query)
+    },
+    {
+      staleTime: 60 * 60 * 1000, // 60 minutes
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    }
+  )
 
   const showID = layer
     ? !(layer === 'State' || layer === 'County')
     : system !== 'ADM'
 
-  const handleChange = ({ target: { value } }) => {
-    setQuery(value)
-  }
+  const handleChange = useCallback((value) => setQuery(value), [])
 
   const handleSelect = (item) => () => {
     onSelect(item)
     setQuery('')
   }
 
-  let results = []
-  if (query && query !== '') {
-    let units = []
-    if (layer !== null) {
-      units = data[layer]
-    } else {
-      // search all layers within system
-      units = SYSTEM_UNITS[system].reduce(
-        (collector, systemLayer) => collector.concat(data[systemLayer]),
-        []
-      )
-    }
-    // Filter out the top 10
-    try {
-      // strip all special regex characters first, we don't need them here
-      const expr = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, ''), 'gi')
-      const filtered = units.filter(
-        ({ name, id }) =>
-          name.search(expr) !== -1 || (showID && id.search(expr) !== -1)
-      )
-      results = filtered.slice(0, 10)
-    } catch (ex) {
-      console.error(ex)
-    }
-  }
+  useEffect(() => {
+    // reset the query
+    setQuery('')
+  }, [system, layer])
 
   const searchLabel = layer ? LAYER_NAMES[layer] : SYSTEMS[system].toLowerCase()
   const suffix = ` name${
@@ -60,47 +59,63 @@ const UnitSearch = ({ system, layer, onSelect }) => {
   return (
     <Box>
       <Text sx={{ fontSize: '1.25rem' }}>Search for {searchLabel}:</Text>
-      <Input
-        type="text"
-        variant="input-default"
-        placeholder={`${searchLabel}${suffix}`}
+      <SearchField
         value={query}
+        isLoading={isLoading}
+        placeholder={`${searchLabel}${suffix}`}
         onChange={handleChange}
       />
-      {query !== '' && (
-        <>
-          {results.length > 0 ? (
-            <Box
-              as="ul"
-              sx={{
-                m: '0 0 2rem 0',
-                p: 0,
-                listStyle: 'none',
-              }}
-            >
-              {results.map((item) => (
-                <ListItem
-                  key={item.id}
-                  {...item}
-                  showID={showID}
-                  onClick={handleSelect(item)}
-                />
-              ))}
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                my: '1rem',
-                textAlign: 'center',
-                fontStyle: 'italic',
-                color: 'grey.6',
-              }}
-            >
-              No results match your search
-            </Box>
-          )}
-        </>
-      )}
+
+      {results.length > 0 ? (
+        <Box
+          as="ul"
+          sx={{
+            m: 0,
+            p: 0,
+            listStyle: 'none',
+          }}
+        >
+          {results.map((item) => (
+            <ListItem
+              key={`${item.layer}-${item.id}`}
+              {...item}
+              showID={showID}
+              onClick={handleSelect(item)}
+            />
+          ))}
+        </Box>
+      ) : null}
+
+      {query.length > 0 && (results.length === 0 || query.length <= 3) ? (
+        <Box
+          sx={{
+            my: '1rem',
+            textAlign: 'center',
+            fontStyle: 'italic',
+            color: 'grey.6',
+          }}
+        >
+          {query.length < 3 ? '...keep typing...' : null}
+
+          {query.length >= 3 && results.length === 0
+            ? 'No results match your search'
+            : null}
+        </Box>
+      ) : null}
+
+      {remaining > 0 ? (
+        <Box
+          sx={{
+            my: '1rem',
+            fontSize: 1,
+            textAlign: 'center',
+            fontStyle: 'italic',
+            color: 'grey.6',
+          }}
+        >
+          ...and {formatNumber(remaining)} more...
+        </Box>
+      ) : null}
     </Box>
   )
 }

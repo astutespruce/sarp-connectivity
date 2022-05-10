@@ -2,7 +2,7 @@ import React, { memo } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
-import { STATE_FIPS } from '../../../config/constants'
+import { STATES } from '../../../config/constants'
 
 const PREFIXES = {
   ECO3: 'Level 3',
@@ -13,7 +13,7 @@ const ListItem = ({ id, name, state, layer, showID, onClick }) => {
   const stateLabels = state
     ? state
         .split(',')
-        .map((s) => STATE_FIPS[s])
+        .map((s) => STATES[s])
         .sort()
         .join(', ')
     : ''
@@ -33,26 +33,25 @@ const ListItem = ({ id, name, state, layer, showID, onClick }) => {
         },
       }}
     >
-      <b>{name}</b>
-      {showID && (
-        <Text
+      <Box sx={{ fontWeight: 'bold' }}>{name}</Box>
+      {showID ? (
+        <Box
           sx={{
-            display: 'inline-block',
-            ml: '0.5em',
             fontSize: 0,
+            // fontStyle: 'italic',
             color: 'grey.7',
             whiteSpace: 'nowrap',
             wordWrap: 'none',
           }}
         >
-          ({layer && `${PREFIXES[layer] || layer}: `}
-          {id})
-        </Text>
-      )}
+          {layer && `${PREFIXES[layer] || layer}: `}
+          {id}
+        </Box>
+      ) : null}
 
-      {stateLabels && (
+      {stateLabels ? (
         <Text sx={{ fontSize: 1, color: 'grey.7' }}>{stateLabels}</Text>
-      )}
+      ) : null}
     </Box>
   )
 }

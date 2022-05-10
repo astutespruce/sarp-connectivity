@@ -20,7 +20,7 @@ aiofiles = "*"
 
 [dev-packages]
 pylint = "*"
-black = "==19.10b0"
+black = "*"
 requests = "*"
 sarp-connectivity = {editable = true,path = "."}
 rtree = ">=0.9.3"

@@ -124,3 +124,22 @@ export const getDownloadURL = ({
     sort,
     customRank,
   })}`
+
+export const searchUnits = async (layers, query) => {
+  const url = `${apiHost}/api/v1/internal/units/search?layer=${layers.join(
+    ','
+  )}&query=${query}`
+
+  try {
+    const response = await fetch(url)
+    if (response.status !== 200) {
+      throw new Error(`Failed request to ${url}: ${response.statusText}`)
+    }
+
+    return await response.json()
+  } catch (err) {
+    captureException(err)
+
+    throw err
+  }
+}

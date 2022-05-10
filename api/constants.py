@@ -7,6 +7,7 @@ class BarrierTypes(str, Enum):
 
 
 class Layers(str, Enum):
+    HUC2 = "HUC2"
     HUC6 = "HUC6"
     HUC8 = "HUC8"
     HUC10 = "HUC10"
@@ -53,7 +54,17 @@ def unique(items):
 
 
 # Summary unit fields
-UNIT_FIELDS = ["HUC6", "HUC8", "HUC10", "HUC12", "State", "County", "ECO3", "ECO4"]
+UNIT_FIELDS = [
+    "HUC2",
+    "HUC6",
+    "HUC8",
+    "HUC10",
+    "HUC12",
+    "State",
+    "County",
+    "ECO3",
+    "ECO4",
+]
 
 
 # metric fields that are only valid for barriers with networks
@@ -260,7 +271,7 @@ SB_CORE_FIELDS = (
         "SeverityClass",
         "SARP_Score",
         "YearRemoved",
-        "StreamSizeClass"
+        "StreamSizeClass",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -764,7 +775,6 @@ STATES = {
 }
 
 
-
 # mapping of field name to domains
 DOMAINS = {
     "State": STATES,
@@ -865,6 +875,7 @@ FIELD_DEFINITIONS = {
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",
     "Subbasin": "Name of the hydrologic subbasin (HUC8) where the {type} occurs.",
     "Subwatershed": "Name of the hydrologic subwatershed (HUC12) where the {type} occurs.",
+    "HUC2": "Hydrologic region identifier where the {type} occurs",
     "HUC6": "Hydrologic basin identifier where the {type} occurs.",
     "HUC8": "Hydrologic subbasin identifier where the {type} occurs.",
     "HUC10": "Hydrologic watershed identifier where the {type} occurs.",

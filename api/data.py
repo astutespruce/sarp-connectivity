@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pyarrow.dataset as pa
 import pandas as pd
 
 from api.logger import log
@@ -21,6 +22,8 @@ try:
     print(
         f"Loaded {len(dams):,} dams ({len(ranked_dams):,} ranked), {len(barriers):,} barriers ({len(ranked_barriers):,} ranked) "
     )
+
+    units = pa.dataset(data_dir / "unit_bounds.feather", format="feather")
 
 except Exception as e:
     print("ERROR: not able to load data")
