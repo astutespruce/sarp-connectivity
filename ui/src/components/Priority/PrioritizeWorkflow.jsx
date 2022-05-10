@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react'
 import { Box, Flex, Text, Spinner } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
+import { useQueryClient } from 'react-query'
 
 import { useCrossfilter } from 'components/Crossfilter'
 import { ToggleButton } from 'components/Button'
@@ -43,6 +44,7 @@ const Prioritize = () => {
     state: { filters },
     setData: setFilterData,
   } = useCrossfilter()
+  const queryClient = useQueryClient()
 
   // individually-managed states
   const [isLoading, setIsLoading] = useState(true)
@@ -148,57 +150,68 @@ const Prioritize = () => {
     })
   }
 
-  const loadBarrierInfo = () => {
+  const loadBarrierInfo = async () => {
     setIsLoading(true)
 
-    const fetchData = async () => {
-      const { csv, bounds: newBounds = null } = await fetchBarrierInfo(
-        barrierType,
-        layer,
-        summaryUnits
-      )
-
-      if (csv) {
-        setFilterData(csv)
-        setStep('filter')
-        if (newBounds !== null) {
-          setBounds(newBounds.split(',').map(parseFloat))
-        }
-        setIsLoading(false)
-      } else {
-        setIsLoading(false)
-        setIsError(true)
+    const {
+      error,
+      csv,
+      bounds: newBounds = null,
+    } = await queryClient.fetchQuery(
+      [barrierType, layer, summaryUnits],
+      async () => fetchBarrierInfo(barrierType, layer, summaryUnits),
+      {
+        staleTime: 60 * 60 * 1000, // 60 minutes
+        // staleTime: 1, // use then reload to force refresh of underlying data during dev
+        refetchOnMount: false,
       }
+    )
+
+    if (error || !csv) {
+      setIsLoading(false)
+      setIsError(true)
+      return
     }
-    fetchData()
+
+    setFilterData(csv)
+    setStep('filter')
+    if (newBounds !== null) {
+      setBounds(newBounds.split(',').map(parseFloat))
+    }
+    setIsLoading(false)
   }
 
-  const loadRankInfo = () => {
+  const loadRankInfo = async () => {
     setIsLoading(true)
-    const fetchData = async () => {
-      const { csv, bounds: newBounds } = await fetchBarrierRanks(
-        barrierType,
-        layer,
-        summaryUnits,
-        filters
-      )
 
-      if (csv) {
-        setState((prevState) => ({
-          ...prevState,
-          rankData: csv,
-        }))
-        setStep('results')
-        if (newBounds !== null) {
-          setBounds(newBounds.split(',').map(parseFloat))
-        }
-        setIsLoading(false)
-      } else {
-        setIsLoading(false)
-        setIsError(true)
+    const {
+      error,
+      csv,
+      bounds: newBounds = null,
+    } = await queryClient.fetchQuery(
+      [barrierType, layer, summaryUnits, filters],
+      async () => fetchBarrierRanks(barrierType, layer, summaryUnits, filters),
+      {
+        staleTime: 60 * 60 * 1000, // 60 minutes
+        // staleTime: 1, // use then reload to force refresh of underlying data during dev
+        refetchOnMount: false,
       }
+    )
+
+    if (error || !csv) {
+      setIsLoading(false)
+      setIsError(true)
     }
-    fetchData()
+
+    setState((prevState) => ({
+      ...prevState,
+      rankData: csv,
+    }))
+    setStep('results')
+    if (newBounds !== null) {
+      setBounds(newBounds.split(',').map(parseFloat))
+    }
+    setIsLoading(false)
   }
 
   const handleSetScenario = (nextScenario) => {
