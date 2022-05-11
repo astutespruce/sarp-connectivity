@@ -158,8 +158,15 @@ export const REGION_STATES = {
   ],
   pnw: ['ID', 'OR', 'WA'],
   sw: ['AZ', 'NM', 'OK', 'TX'],
-  total: Object.keys(STATES).sort(),
 }
+REGION_STATES.total = [
+  ...new Set(
+    Object.values(REGION_STATES).reduce((prev, cur) => {
+      prev.push(...cur)
+      return prev
+    }, [])
+  ),
+].sort()
 
 export const RECON = {
   0: 'Feasibility not yet evaluated',

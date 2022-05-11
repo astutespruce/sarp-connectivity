@@ -2,11 +2,11 @@ import json
 from pathlib import Path
 from datetime import date
 
+import pyarrow.compute as pc
 from fastapi import APIRouter
 from fastapi.requests import Request
 
 from api.constants import (
-    STATES,
     DAM_FIELD_DEFINITIONS,
     DAM_PUBLIC_EXPORT_FIELDS,
     SB_FIELD_DEFINITIONS,
@@ -37,8 +37,8 @@ def get_core_metadata(url):
 
 
 # Get list of states that have dams or barriers
-dam_states = sorted(dams.State.unique())
-barrier_states = sorted(barriers.State.unique())
+dam_states = sorted(pc.unique(dams["State"]).tolist())
+barrier_states = sorted(pc.unique(barriers["State"]).tolist())
 
 
 @router.get("/dams/metadata")

@@ -1,5 +1,7 @@
 from fastapi import HTTPException
 from fastapi.requests import Request
+import pyarrow as pa
+import pyarrow.compute as pc
 
 from api.constants import DAM_FILTER_FIELD_MAP, SB_FILTER_FIELD_MAP, Layers
 
@@ -23,7 +25,7 @@ class RecordExtractor:
         if not ids:
             raise HTTPException(400, detail="id must be non-empty")
 
-        self.ids = ids
+        self.ids = pa.array(ids)
 
         # extract optional filters
         self.filters = dict()
@@ -33,22 +35,42 @@ class RecordExtractor:
             # convert all incoming filter keys to their uppercase field name and
             # all values to integers
             for key in filter_keys:
-                self.filters[self.field_map[key]] = [
-                    int(x) for x in request.query_params.get(key).split(",")
-                ]
+                self.filters[self.field_map[key]] = pa.array(
+                    [int(x) for x in request.query_params.get(key).split(",")]
+                )
 
     def extract(self, df):
-        ix = df[self.layer].isin(self.ids)
+        # ix = df[self.layer].isin(self.ids)
+
+        # for key, values in self.filters.items():
+        #     ix = ix & df[key].isin(values)
+
+        # df = df.loc[ix]
+
+        ix = pc.is_in(df[self.layer], self.ids)
 
         for key, values in self.filters.items():
-            ix = ix & df[key].isin(values)
+            ix = pc.and_(ix, df[key].isin(values))
+        # for key, values in filters.items():
+        #     expr = pc.and_(expr, pc.is_in(dams[DAM_FILTER_FIELD_MAP[key]], values))
 
-        df = df.loc[ix]
+        # subset = dams.filter(expr)
+        return df.filter(ix)
 
         # Drop southeast rank fields if they are completely absent; this is typically
         # when states outside the Southeast are selected
-        if 'SE_NC_tier' in df.columns and df.SE_NC_tier.max() == -1:
-            df = df.drop(columns=["SE_NC_tier","SE_WC_tier", "SE_NCWC_tier", "SE_PNC_tier", "SE_PWC_tier", "SE_PNCWC_tier"], errors='ignore')
+        if "SE_NC_tier" in df.columns and df.SE_NC_tier.max() == -1:
+            df = df.drop(
+                columns=[
+                    "SE_NC_tier",
+                    "SE_WC_tier",
+                    "SE_NCWC_tier",
+                    "SE_PNC_tier",
+                    "SE_PWC_tier",
+                    "SE_PNCWC_tier",
+                ],
+                errors="ignore",
+            )
 
         return df
 

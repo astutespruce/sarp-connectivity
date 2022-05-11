@@ -4,8 +4,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
-from analysis.constants import STATES
-
+import pyarrow as pa
 
 from api.constants import (
     Layers,
@@ -27,7 +26,8 @@ from api.settings import CACHE_DIRECTORY
 
 ### Include logo in download package
 LOGO_PATH = (
-    Path(__file__).resolve().parent.parent.parent / "ui/src/images/sarp_logo_highres.png"
+    Path(__file__).resolve().parent.parent.parent
+    / "ui/src/images/sarp_logo_highres.png"
 )
 
 router = APIRouter()
@@ -74,9 +74,11 @@ def download_dams(
         cache_filename = CACHE_DIRECTORY / f"{state_hash}{suffix}_dams.zip"
 
     if cache_filename and cache_filename.exists():
-        return zip_file_response(cache_filename, filename.replace(".csv", f"_{date.today().isoformat()}.zip"))
+        return zip_file_response(
+            cache_filename, filename.replace(".csv", f"_{date.today().isoformat()}.zip")
+        )
 
-    df = extractor.extract(dams).copy()
+    df = extractor.extract(dams).to_pandas().set_index("id")
 
     # include unranked dams - these are joined back later
     if unranked:
@@ -98,23 +100,22 @@ def download_dams(
 
     log.info(f"selected {len(df):,} dams for download")
 
-    cols = [c for c in DAM_EXPORT_FIELDS if c in set(df.columns)]
-    df = df[cols]
-
     # Sort by tier
     if f"{sort}_tier" in df.columns:
         df = df.sort_values(by=["HasNetwork", f"{sort}_tier"], ascending=[False, True])
 
+    cols = [c for c in DAM_EXPORT_FIELDS if c in set(df.columns)]
+    df = pa.Table.from_pandas(df[cols].reset_index(drop=True))
     df = unpack_domains(df)
 
     ### Get metadata
     readme = get_readme(
         filename=filename,
         barrier_type="dams",
-        fields=df.columns,
+        fields=df.schema.names,
         url=request.base_url,
         layer=extractor.layer,
-        ids=extractor.ids,
+        ids=extractor.ids.tolist(),
     )
     terms = get_terms(url=request.base_url)
 
@@ -171,9 +172,11 @@ def download_barriers(
         cache_filename = CACHE_DIRECTORY / f"{state_hash}{suffix}_small_barriers.zip"
 
     if cache_filename and cache_filename.exists():
-        return zip_file_response(cache_filename, filename.replace(".csv", f"_{date.today().isoformat()}.zip"))
+        return zip_file_response(
+            cache_filename, filename.replace(".csv", f"_{date.today().isoformat()}.zip")
+        )
 
-    df = extractor.extract(barriers).copy()
+    df = extractor.extract(barriers).to_pandas().set_index("id")
 
     # include unranked barriers - these are joined back later
     if unranked:
@@ -195,24 +198,24 @@ def download_barriers(
 
     log.info(f"selected {len(df):,} barriers for download")
 
-    cols = [c for c in SB_EXPORT_FIELDS if c in set(df.columns)]
-    df = df[cols]
-
     # Sort by tier
     if f"{sort}_tier" in df.columns:
         df = df.sort_values(by=["HasNetwork", f"{sort}_tier"], ascending=[False, True])
 
+    cols = [c for c in SB_EXPORT_FIELDS if c in set(df.columns)]
+    df = pa.Table.from_pandas(df[cols].reset_index(drop=True))
     df = unpack_domains(df)
 
     ### create readme and terms of use
     readme = get_readme(
         filename=filename,
         barrier_type="road-related barriers",
-        fields=df.columns,
+        fields=df.schema.names,
         url=request.base_url,
         layer=extractor.layer,
-        ids=extractor.ids,
+        ids=extractor.ids.tolist(),
     )
+
     terms = get_terms(url=request.base_url)
 
     if format == "csv":

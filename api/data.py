@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pyarrow.dataset as pa
+from pyarrow.feather import read_table
 import pandas as pd
 
 from api.logger import log
@@ -13,11 +14,11 @@ data_dir = Path("data/api")
 # we can do this because data do not consume much memory
 
 try:
-    dams = pd.read_feather(data_dir / "dams.feather")  # .set_index("id")
-    ranked_dams = dams.loc[dams.Ranked]
+    dams = read_table(data_dir / "dams.feather")
+    ranked_dams = dams.filter(dams["Ranked"])
 
-    barriers = pd.read_feather(data_dir / "small_barriers.feather")  # .set_index("id")
-    ranked_barriers = barriers.loc[barriers.Ranked]
+    barriers = read_table(data_dir / "small_barriers.feather")
+    ranked_barriers = barriers.filter(barriers["Ranked"])
 
     print(
         f"Loaded {len(dams):,} dams ({len(ranked_dams):,} ranked), {len(barriers):,} barriers ({len(ranked_barriers):,} ranked) "
@@ -32,4 +33,4 @@ except Exception as e:
 
 # on demand instead of in-memory
 def get_removed_dams():
-    return pd.read_feather(data_dir / "removed_dams.feather")
+    return read_table(data_dir / "removed_dams.feather")

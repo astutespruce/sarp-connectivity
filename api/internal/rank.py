@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
-
+import pyarrow as pa
 
 from analysis.rank.lib.tiers import calculate_tiers
 
@@ -31,7 +31,7 @@ def rank_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
 
     log_request(request)
 
-    df = extractor.extract(ranked_dams).copy()
+    df = extractor.extract(ranked_dams).to_pandas()
     log.info(f"selected {len(df)} dams for ranking")
 
     df = df.join(calculate_tiers(df))
@@ -47,7 +47,7 @@ def rank_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
     # extract extent
     bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
 
-    return feather_response(df, bounds=bounds)
+    return feather_response(pa.Table.from_pandas(df), bounds=bounds)
 
 
 @router.get("/small_barriers/rank/{layer}")
@@ -64,7 +64,7 @@ def rank_barriers(request: Request, extractor: BarriersRecordExtractor = Depends
 
     log_request(request)
 
-    df = extractor.extract(ranked_barriers).copy()
+    df = extractor.extract(ranked_barriers).to_pandas()
     log.info(f"selected {len(df)} barriers for ranking")
 
     df = df.join(calculate_tiers(df))
@@ -80,4 +80,4 @@ def rank_barriers(request: Request, extractor: BarriersRecordExtractor = Depends
     # extract extent
     bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
 
-    return feather_response(df, bounds=bounds)
+    return feather_response(pa.Table.from_pandas(df), bounds=bounds)

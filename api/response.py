@@ -12,7 +12,7 @@ def csv_response(df, bounds=None):
 
     Parameters
     ----------
-    df : DataFrame
+    df : pyarrow Table
     bounds : list-like of [xmin, ymin, xmax, ymax], optional (default: None)
 
     Returns
@@ -21,10 +21,9 @@ def csv_response(df, bounds=None):
     """
 
     csv_stream = BytesIO()
-    cols = ["id"] + [c.lower() for c in df.columns]
-    csv.write_csv(
-        pa.Table.from_pandas(df.reset_index(drop=True)).rename_columns(cols), csv_stream
-    )
+    cols = [c.lower() for c in df.schema.names]
+    csv.write_csv(df.rename_columns(cols), csv_stream)
+
     response = Response(content=csv_stream.getvalue(), media_type="text/csv")
 
     if bounds is not None:
@@ -38,7 +37,7 @@ def feather_response(df, bounds=None):
 
     Parameters
     ----------
-    df : DataFrame
+    df : pyarrow Table
     bounds : list-like of [xmin, ymin, xmax, ymax], optional (default: None)
 
     Returns
@@ -46,12 +45,12 @@ def feather_response(df, bounds=None):
     fastapi Response
     """
 
-    cols = [c.lower() for c in df.columns]
-    table = pa.Table.from_pandas(df.reset_index(drop=True)).rename_columns(cols)
+    cols = [c.lower() for c in df.schema.names]
+    table = df.rename_columns(cols)
 
     # discard pandas metadata and set bounds
     table = table.replace_schema_metadata(
-        {"bounds": ",".join(str(b) for b in bounds) if bounds is not None else None}
+        {"bounds": ",".join(str(b) for b in bounds) if bounds is not None else ""}
     )
 
     stream = BytesIO()
@@ -74,7 +73,7 @@ def zip_csv_response(
 
     Parameters
     ----------
-    df : DataFrame
+    df : parrow.Table
     filename : str
         output filename in zip file
     extra_str : dict, optional
@@ -93,7 +92,7 @@ def zip_csv_response(
     zip_stream = BytesIO()
     with ZipFile(zip_stream, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
         csv_stream = BytesIO()
-        csv.write_csv(pa.Table.from_pandas(df.reset_index(drop=True)), csv_stream)
+        csv.write_csv(df, csv_stream)
         zf.writestr(filename, csv_stream.getvalue())
 
         if extra_str is not None:

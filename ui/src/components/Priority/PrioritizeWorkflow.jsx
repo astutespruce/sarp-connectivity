@@ -175,7 +175,7 @@ const Prioritize = () => {
 
     setFilterData(data)
     setStep('filter')
-    if (newBounds !== null) {
+    if (newBounds) {
       setBounds(newBounds.split(',').map(parseFloat))
     }
     setIsLoading(false)
@@ -208,7 +208,7 @@ const Prioritize = () => {
       rankData: data,
     }))
     setStep('results')
-    if (newBounds !== null) {
+    if (newBounds) {
       setBounds(newBounds.split(',').map(parseFloat))
     }
     setIsLoading(false)
