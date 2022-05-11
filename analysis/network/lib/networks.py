@@ -103,7 +103,9 @@ def generate_networks(network_graph, root_ids):
     """
 
     segments = pd.Series(
-        network_graph.descendants(root_ids), index=root_ids, name="lineID",
+        network_graph.descendants(root_ids),
+        index=root_ids,
+        name="lineID",
     ).explode()
     segments.index.name = "networkID"
     segments = segments.reset_index()
@@ -189,7 +191,7 @@ def create_networks(joins, barrier_joins, lineIDs):
     # (meaning they are at the top of the network).
     single_segment_idx = np.setdiff1d(
         np.append(origin_idx, barrier_upstream_idx), upstreams.downstream_id
-    ).astype("uint64")
+    ).astype("uint32")
 
     single_segment_networks = pd.DataFrame(
         index=pd.Series(single_segment_idx, name="lineID")
@@ -231,11 +233,15 @@ def create_networks(joins, barrier_joins, lineIDs):
     barrier_network_segments["type"] = "barrier"
 
     # Append network types back together
-    network_df = pd.concat([
-        single_segment_networks.reset_index(),
-        origin_network_segments.reset_index(drop=True),
-        barrier_network_segments.reset_index(drop=True)
-        ], sort=False, ignore_index=False).reset_index(drop=True)
+    network_df = pd.concat(
+        [
+            single_segment_networks.reset_index(),
+            origin_network_segments.reset_index(drop=True),
+            barrier_network_segments.reset_index(drop=True),
+        ],
+        sort=False,
+        ignore_index=False,
+    ).reset_index(drop=True)
     network_df.networkID = network_df.networkID.astype("uint32")
     network_df.lineID = network_df.lineID.astype("uint32")
 

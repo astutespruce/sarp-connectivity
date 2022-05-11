@@ -187,9 +187,8 @@ if s.max() > 1:
 
 ### Add IDs for internal use
 # internal ID
-df["id"] = df.index.astype("uint32")
-df = df.set_index("id", drop=False)
-
+df["id"] = df.index.values.astype("uint32")
+df = df.set_index("id", drop=False)  # note: this sets index as uint64 dtype
 
 df.to_feather(qa_dir / "dams_raw.feather")
 
@@ -258,6 +257,18 @@ for column in (
 
 for column in ("Year", "YearRemoved", "StructureClass"):
     df[column] = df[column].fillna(0).astype("uint16")
+
+# Use float32 instead of float64 (still can hold nulls)
+for column in (
+    "ImpoundmentType",
+    "Height",
+    "Length",
+    "Width",
+    "Recon2",
+    "Recon3",
+    "LowheadDam",
+):
+    df[column] = df[column].astype("float32")
 
 
 # Fix Recon value that wasn't assigned to ManualReview
@@ -701,6 +712,19 @@ dups.loc[ix, "dup_tolerance"] = DUPLICATE_TOLERANCE["likely duplicate"]
 export_duplicate_areas(dups, qa_dir / "dams_duplicate_areas.fgb")
 
 
+# update data types
+for field in (
+    "snap_group",
+    "dup_sort",
+):
+    df[field] = df[field].astype("uint8")
+
+df["snap_tolerance"] = df.snap_tolerance.astype("uint16")
+
+for field in ("snap_ref_id", "snap_dist", "dup_group", "dup_count", "wbID"):
+    df[field] = df[field].astype("float32")
+
+
 ### Join to line atts
 flowlines = read_feathers(
     [
@@ -814,7 +838,9 @@ df.NHDPlusID = df.NHDPlusID.astype("uint64")
 print("Serializing {:,} snapped dams".format(len(df)))
 df[
     ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
-].to_feather(snapped_dir / "dams.feather",)
+].to_feather(
+    snapped_dir / "dams.feather",
+)
 write_dataframe(df, qa_dir / "snapped_dams.fgb")
 
 

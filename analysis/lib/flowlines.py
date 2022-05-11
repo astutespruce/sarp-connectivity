@@ -219,7 +219,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
             .join(joins.set_index("downstream_id").upstream_id, on="downstream_id")
         )
         .fillna(0)
-        .astype("uint64")
+        .astype("uint32")
     )
 
     # Barriers on downstream endpoint:
@@ -235,11 +235,13 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
             .join(joins.set_index("upstream_id").downstream_id, on="upstream_id")
         )
         .fillna(0)
-        .astype("uint64")
+        .astype("uint32")
     )
 
-    barrier_joins = upstream_barrier_joins.append(
-        downstream_barrier_joins, ignore_index=True, sort=False
+    barrier_joins = pd.concat(
+        [upstream_barrier_joins, downstream_barrier_joins],
+        ignore_index=True,
+        sort=False,
     ).set_index("barrierID", drop=False)
 
     ### Split segments have barriers that are not at endpoints
@@ -311,7 +313,15 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
         }
     ).join(
         flowlines.drop(
-            columns=["geometry", "lineID", "xmin", "ymin", "xmax", "ymax", "length",],
+            columns=[
+                "geometry",
+                "lineID",
+                "xmin",
+                "ymin",
+                "xmax",
+                "ymax",
+                "length",
+            ],
             errors="ignore",
         ),
         on="origLineID",
@@ -372,17 +382,27 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
     new_joins["type"] = "internal"
     new_joins["marine"] = False
 
-    updated_joins = updated_joins.append(
-        new_joins[
-            ["upstream", "downstream", "upstream_id", "downstream_id", "type", "marine"]
+    updated_joins = pd.concat(
+        [
+            updated_joins,
+            new_joins[
+                [
+                    "upstream",
+                    "downstream",
+                    "upstream_id",
+                    "downstream_id",
+                    "type",
+                    "marine",
+                ]
+            ],
         ],
         ignore_index=True,
         sort=False,
     ).sort_values(["downstream_id", "upstream_id"])
 
     barrier_joins = (
-        barrier_joins.append(
-            new_joins[["barrierID", "upstream_id", "downstream_id"]],
+        pd.concat(
+            [barrier_joins, new_joins[["barrierID", "upstream_id", "downstream_id"]]],
             ignore_index=True,
             sort=False,
         )
@@ -399,8 +419,8 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
 
     # extract flowlines that are not split by barriers and merge in new flowlines
     unsplit_segments = flowlines.loc[~flowlines.index.isin(split_segments.index)]
-    updated_flowlines = unsplit_segments.append(
-        new_flowlines.drop(columns=["origLineID", "position"]),
+    updated_flowlines = pd.concat(
+        [unsplit_segments, new_flowlines.drop(columns=["origLineID", "position"])],
         ignore_index=True,
         sort=False,
     ).set_index("lineID", drop=False)
@@ -464,7 +484,15 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
         }
     ).join(
         flowlines.drop(
-            columns=["geometry", "lineID", "xmin", "ymin", "xmax", "ymax", "length",],
+            columns=[
+                "geometry",
+                "lineID",
+                "xmin",
+                "ymin",
+                "xmax",
+                "ymax",
+                "length",
+            ],
             errors="ignore",
         ),
         on="origLineID",
@@ -483,7 +511,11 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     # Update existing joins with the new lineIDs we created at the upstream or downstream
     # ends of segments we just created
     joins = update_joins(
-        joins, first, last, downstream_col="downstream_id", upstream_col="upstream_id",
+        joins,
+        first,
+        last,
+        downstream_col="downstream_id",
+        upstream_col="upstream_id",
     )
 
     ### Create new line joins for any that weren't inserted above
@@ -524,7 +556,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     ]
 
     joins = (
-        joins.append(new_joins, ignore_index=True, sort=False)
+        pd.concat([joins, new_joins], ignore_index=True, sort=False)
         .sort_values(["downstream", "upstream", "downstream_id", "upstream_id"])
         .reset_index(drop=True)
     )
@@ -532,14 +564,14 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     remove_ids = new_flowlines.origLineID.unique()
     flowlines["new"] = False
     new_flowlines["new"] = True
-    flowlines = (
-        flowlines.loc[~flowlines.index.isin(remove_ids)]
-        .reset_index()
-        .append(
-            new_flowlines.drop(columns=["origLineID"]), ignore_index=True, sort=False
-        )
-        .set_index("lineID")
-    )
+    flowlines = pd.concat(
+        [
+            flowlines.loc[~flowlines.index.isin(remove_ids)].reset_index(),
+            new_flowlines.drop(columns=["origLineID"]),
+        ],
+        ignore_index=True,
+        sort=False,
+    ).set_index("lineID")
 
     return flowlines, joins
 
@@ -688,7 +720,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
                     "waterbody": rings.take(right),
                 }
             )
-            df = df.append(tmp, ignore_index=True, sort=False)
+            df = pd.concat([df, tmp], ignore_index=True, sort=False)
 
         # extract the outer ring for original waterbodies
         ix = pg.get_type_id(df.waterbody.values.data) == 3
@@ -774,11 +806,16 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             df["flength"] = pg.length(df.flowline)
 
             # keep any that are contained or >= 50% in waterbody
-            contained = contained.append(
-                df.loc[
-                    df.contains | ((df.length / df.flength) >= 0.5), ["wbID", "lineID"]
+            contained = pd.concat(
+                [
+                    contained,
+                    df.loc[
+                        df.contains | ((df.length / df.flength) >= 0.5),
+                        ["wbID", "lineID"],
+                    ],
                 ],
                 ignore_index=True,
+                sort=False,
             )
 
         flowlines = flowlines.drop(columns=["new"])
@@ -831,7 +868,9 @@ def save_cut_flowlines(out_dir, flowlines, joins, barrier_joins):
     flowlines.to_feather(out_dir / "flowlines.feather")
     # write_dataframe(flowlines, out_dir / "flowlines.gpkg")
     joins.reset_index(drop=True).to_feather(out_dir / "flowline_joins.feather")
-    barrier_joins.reset_index(drop=True).to_feather(out_dir / "barrier_joins.feather",)
+    barrier_joins.reset_index(drop=True).to_feather(
+        out_dir / "barrier_joins.feather",
+    )
 
 
 def remove_flowlines(flowlines, joins, ids):

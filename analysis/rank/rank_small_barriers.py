@@ -92,10 +92,16 @@ print("Reading master...")
 df = (
     pd.read_feather(barriers_dir / "small_barriers.feather", columns=cols)
     .set_index("id")
-    .rename(columns={"excluded": "Excluded", "intermittent": "Intermittent", "sizeclass": "StreamSizeClass"})
+    .rename(
+        columns={
+            "excluded": "Excluded",
+            "intermittent": "Intermittent",
+            "sizeclass": "StreamSizeClass",
+        }
+    )
 )
 
-df['NHDPlusID'] = df.NHDPlusID.fillna(-1).astype('int64')
+df["NHDPlusID"] = df.NHDPlusID.fillna(-1).astype("int64")
 
 # Drop any that are duplicates
 # NOTE: we retain those that were dropped because these are relevant for folks to know what
@@ -146,11 +152,13 @@ if df.groupby(level=0).size().max() > 1:
 ### Write out data for API
 print(f"Writing to output files...")
 
+df = df.reset_index()
+df["id"] = df.id.astype("uint32")
+
 # Full results for tiles, etc
-df.reset_index().to_feather(results_dir / "small_barriers.feather")
+df.to_feather(results_dir / "small_barriers.feather")
 
 # save for API
-df[df.columns.intersection(SB_API_FIELDS)].reset_index().to_feather(
+df[df.columns.intersection(["id"] + SB_API_FIELDS)].to_feather(
     api_dir / f"small_barriers.feather"
 )
-

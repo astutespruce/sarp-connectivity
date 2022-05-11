@@ -86,7 +86,7 @@ if s.max() > 1:
 
 ### Add IDs for internal use
 # internal ID
-df["id"] = df.index.astype("uint32")
+df["id"] = df.index.values.astype("uint32")
 df = df.set_index("id", drop=False)
 
 
@@ -123,7 +123,9 @@ df.loc[
     (~df.Stream.isin(["Unknown", "Unnamed", ""]))
     & (~df.Road.isin(["Unknown", "Unnamed", ""])),
     "Name",
-] = (df.Stream + " / " + df.Road)
+] = (
+    df.Stream + " / " + df.Road
+)
 df.Name = df.Name.fillna("")
 
 
@@ -287,9 +289,7 @@ original_locations = df.copy()
 # Only snap those that have HUC2 assigned
 # IMPORTANT: do not snap manually reviewed, off-network dams, duplicates, or ones without HUC2!
 to_snap = df.loc[
-    (~df.ManualReview.isin(OFFSTREAM_MANUALREVIEW))
-    & (df.HUC2 != "")
-    & (df.State != "")
+    (~df.ManualReview.isin(OFFSTREAM_MANUALREVIEW)) & (df.HUC2 != "") & (df.State != "")
 ].copy()
 
 
@@ -358,6 +358,15 @@ df.loc[ix, "dup_log"] = f"Within {DUPLICATE_TOLERANCE}m of an existing dam"
 
 print(f"Found {len(ix)} small barriers within {DUPLICATE_TOLERANCE}m of dams")
 
+
+# update data types
+df["dup_sort"] = df.dup_sort.astype("uint8")
+df["snap_tolerance"] = df.snap_tolerance.astype("uint16")
+
+for field in ("snap_ref_id", "snap_dist", "dup_group", "dup_count"):
+    df[field] = df[field].astype("float32")
+
+
 ### Join to line atts
 flowlines = read_feathers(
     [
@@ -390,7 +399,7 @@ df = df.drop(columns=["GNIS_Name"])
 
 
 # calculate stream type
-df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE)
+df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")
 
 # calculate intermittent + ephemeral
 df["intermittent"] = df.FCode.isin([46003, 46007])
@@ -430,7 +439,9 @@ df.NHDPlusID = df.NHDPlusID.astype("uint64")
 print("Serializing {:,} snapped small barriers".format(len(df)))
 df[
     ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
-].to_feather(snapped_dir / "small_barriers.feather",)
+].to_feather(
+    snapped_dir / "small_barriers.feather",
+)
 write_dataframe(df, qa_dir / "snapped_small_barriers.fgb")
 
 print("All done in {:.2f}s".format(time() - start))

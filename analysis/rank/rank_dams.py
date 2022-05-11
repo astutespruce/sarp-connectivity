@@ -120,12 +120,12 @@ df = (
             "excluded": "Excluded",
             "intermittent": "Intermittent",
             "is_estimated": "Estimated",
-            "sizeclass": "StreamSizeClass"
+            "sizeclass": "StreamSizeClass",
         }
     )
 )
 
-df['NHDPlusID'] = df.NHDPlusID.fillna(-1).astype('int64')
+df["NHDPlusID"] = df.NHDPlusID.fillna(-1).astype("int64")
 
 
 ### Save dams that were removed, for use in API (they are otherwise dropped below)
@@ -201,11 +201,15 @@ if df.groupby(level=0).size().max() > 1:
 ### Write out data for API
 print("Writing to output files...")
 
+df = df.reset_index()
+df["id"] = df.id.astype("uint32")
+
+
 # Full results for tiles, etc
-df.reset_index().to_feather(results_dir / f"dams.feather")
+df.to_feather(results_dir / f"dams.feather")
 
 # save for API
-df[df.columns.intersection(DAM_API_FIELDS)].reset_index().to_feather(
+df[df.columns.intersection(["id"] + DAM_API_FIELDS)].to_feather(
     api_dir / f"dams.feather"
 )
 

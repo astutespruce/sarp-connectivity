@@ -50,7 +50,8 @@ def calculate_network_stats(df, barrier_joins, joins):
 
     ### Find those that terminate in marine
     marine_terminals = pd.Series(
-        np.zeros(shape=(len(networkIDs),), dtype="bool"), index=networkIDs,
+        np.zeros(shape=(len(networkIDs),), dtype="bool"),
+        index=networkIDs,
     )
     marine_terminals.loc[
         marine_terminals.index.isin(joins.loc[joins.marine].upstream_id)
@@ -114,7 +115,7 @@ def calculate_network_stats(df, barrier_joins, joins):
 
     ### Calculate if any downstream network is a marine terminal or exits HUC2s
     # create a mapping of every network to all networks downstream of it
-    tmp = downstreams.explode().dropna().astype("uint64")
+    tmp = downstreams.explode().dropna().astype("uint32")
     ix = marine_terminals.loc[marine_terminals].index
     connects_marine = tmp.loc[tmp.isin(ix)].index.unique()
 
