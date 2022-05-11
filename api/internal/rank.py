@@ -11,7 +11,7 @@ from api.constants import (
 from api.data import ranked_dams, ranked_barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
 from api.logger import log, log_request
-from api.response import csv_response
+from api.response import feather_response
 
 
 router = APIRouter()
@@ -37,13 +37,17 @@ def rank_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
     df = df.join(calculate_tiers(df))
 
     # just return tiers and lat/lon
-    cols = [c for c in ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS if c in df.columns]
+    cols = [
+        c
+        for c in ["id", "lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
+        if c in df.columns
+    ]
     df = df[cols]
 
     # extract extent
     bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
 
-    return csv_response(df, bounds=bounds)
+    return feather_response(df, bounds=bounds)
 
 
 @router.get("/small_barriers/rank/{layer}")
@@ -66,10 +70,14 @@ def rank_barriers(request: Request, extractor: BarriersRecordExtractor = Depends
     df = df.join(calculate_tiers(df))
 
     # just return tiers and lat/lon
-    cols = [c for c in ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS if c in df.columns]
+    cols = [
+        c
+        for c in ["id", "lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
+        if c in df.columns
+    ]
     df = df[cols]
 
     # extract extent
     bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
 
-    return csv_response(df, bounds=bounds)
+    return feather_response(df, bounds=bounds)

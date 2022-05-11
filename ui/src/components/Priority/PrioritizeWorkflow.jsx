@@ -155,25 +155,25 @@ const Prioritize = () => {
 
     const {
       error,
-      csv,
+      data,
       bounds: newBounds = null,
     } = await queryClient.fetchQuery(
       [barrierType, layer, summaryUnits],
       async () => fetchBarrierInfo(barrierType, layer, summaryUnits),
       {
-        staleTime: 60 * 60 * 1000, // 60 minutes
+        staleTime: 30 * 60 * 1000, // 30 minutes
         // staleTime: 1, // use then reload to force refresh of underlying data during dev
         refetchOnMount: false,
       }
     )
 
-    if (error || !csv) {
+    if (error || !data) {
       setIsLoading(false)
       setIsError(true)
       return
     }
 
-    setFilterData(csv)
+    setFilterData(data)
     setStep('filter')
     if (newBounds !== null) {
       setBounds(newBounds.split(',').map(parseFloat))
@@ -186,26 +186,26 @@ const Prioritize = () => {
 
     const {
       error,
-      csv,
+      data,
       bounds: newBounds = null,
     } = await queryClient.fetchQuery(
       [barrierType, layer, summaryUnits, filters],
       async () => fetchBarrierRanks(barrierType, layer, summaryUnits, filters),
       {
-        staleTime: 60 * 60 * 1000, // 60 minutes
+        staleTime: 30 * 60 * 1000, // 30 minutes
         // staleTime: 1, // use then reload to force refresh of underlying data during dev
         refetchOnMount: false,
       }
     )
 
-    if (error || !csv) {
+    if (error || !data) {
       setIsLoading(false)
       setIsError(true)
     }
 
     setState((prevState) => ({
       ...prevState,
-      rankData: csv,
+      rankData: data,
     }))
     setStep('results')
     if (newBounds !== null) {

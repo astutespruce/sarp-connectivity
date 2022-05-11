@@ -1,4 +1,4 @@
-import { csvParse, autoType } from 'd3-dsv'
+import { tableFromIPC } from '@apache-arrow/es2015-esm'
 
 import { captureException } from 'util/log'
 import { siteMetadata } from '../../../gatsby-config'
@@ -41,32 +41,33 @@ const apiQueryParams = ({
   return query
 }
 
-const fetchCSV = async (url, options, rowParser) => {
+const fetchFeather = async (url, options) => {
   try {
     const response = await fetch(url, options)
+
     if (response.status !== 200) {
       throw new Error(`Failed request to ${url}: ${response.statusText}`)
     }
 
-    const rawContent = await response.text()
+    const data = await tableFromIPC(response.arrayBuffer())
+    const [...table] = data
 
     return {
-      error: null,
-      csv: csvParse(rawContent, rowParser),
-      bounds: response.headers.get('x-bounds'),
+      data: table.map((row) => row.toJSON()),
+      bounds: data.schema.metadata.get('bounds'),
     }
   } catch (err) {
     captureException(err)
 
     return {
       error: err,
-      csv: null,
+      data: null,
     }
   }
 }
 
 /**
- * Fetch and parse CSV data from API for dams or small barriers
+ * Fetch and parse Feather data from API for dams or small barriers
  */
 export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
   const url = `${apiHost}/api/v1/internal/${barrierType}/query/${layer}?${apiQueryParams(
@@ -75,11 +76,11 @@ export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
     }
   )}`
 
-  return fetchCSV(url, undefined, autoType)
+  return fetchFeather(url, undefined)
 }
 
 /**
- * Fetch and parse CSV data from API for dams or small barriers
+ * Fetch and parse Feather data from API for dams or small barriers
  */
 export const fetchBarrierRanks = async (
   barrierType,
@@ -94,7 +95,7 @@ export const fetchBarrierRanks = async (
     }
   )}`
 
-  return fetchCSV(url, undefined, autoType)
+  return fetchFeather(url, undefined)
 }
 
 export const fetchBarrierDetails = async (barrierType, sarpid) => {
@@ -136,7 +137,13 @@ export const searchUnits = async (layers, query) => {
       throw new Error(`Failed request to ${url}: ${response.statusText}`)
     }
 
-    return await response.json()
+    const data = await tableFromIPC(response.arrayBuffer())
+    const [...table] = data
+
+    return {
+      results: table.map((row) => row.toJSON()),
+      remaining: parseInt(data.schema.metadata.get('count'), 10) - data.numRows,
+    }
   } catch (err) {
     captureException(err)
 

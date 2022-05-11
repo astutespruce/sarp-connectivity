@@ -5,6 +5,7 @@
   "date": "2/10/2022",
   "author": "Brendan C. Ward <bcward@astutespruce.com>",
   "dependencies": {
+    "@apache-arrow/es2015-esm": "^8.0.0",
     "@emotion-icons/fa-regular": "^3.6.0",
     "@emotion-icons/fa-solid": "^3.13.0",
     "@emotion/react": "^11.4.0",
@@ -18,7 +19,6 @@
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
     "crossfilter2": "^1.5.4",
-    "d3-dsv": "^3.0.1",
     "dequal": "^2.0.2",
     "fetch-jsonp": "^1.1.3",
     "file-saver": "^2.0.5",

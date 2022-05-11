@@ -1,6 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from io import BytesIO
+
+from fastapi import APIRouter, HTTPException, Response
 from fastapi.requests import Request
 import pyarrow.compute as pc
+import pyarrow as pa
+from pyarrow.feather import write_feather
 
 from api.constants import UNIT_FIELDS
 from api.data import units
@@ -34,6 +38,9 @@ def search_units(request: Request, layer: str, query: str):
         & pc.match_substring(pc.field("key"), query.lower(), ignore_case=True)
     )
 
+    # discard pandas metadata and store count
+    matches = matches.replace_schema_metadata({"count": str(len(matches))})
+
     # find those where the substring is closest to the left of the name and
     # have the shortest names, based on priority order of different unit types
     matches = (
@@ -49,14 +56,10 @@ def search_units(request: Request, layer: str, query: str):
         ]
     )
 
-    df = matches[:10].to_pandas()
-    df["bbox"] = df.bbox.apply(list)
-    count = len(matches)
-    remaining = count - 10 if count > 10 else 0
-
-    return {
-        "meta": {"remaining": remaining},
-        "results": df[["layer", "id", "state", "name", "bbox"]].to_dict(
-            orient="records"
-        ),
-    }
+    stream = BytesIO()
+    write_feather(
+        matches[:10],
+        stream,
+        compression="uncompressed",
+    )
+    return Response(content=stream.getvalue(), media_type="application/octet-stream")

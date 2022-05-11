@@ -3,6 +3,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 from fastapi.responses import Response, FileResponse
 import pyarrow as pa
+from pyarrow.feather import write_feather
 from pyarrow import csv
 
 
@@ -20,12 +21,48 @@ def csv_response(df, bounds=None):
     """
 
     csv_stream = BytesIO()
-    cols = ['id'] + [c.lower() for c in df.columns]
-    csv.write_csv(pa.Table.from_pandas(df.reset_index()).rename_columns(cols), csv_stream)
+    cols = ["id"] + [c.lower() for c in df.columns]
+    csv.write_csv(
+        pa.Table.from_pandas(df.reset_index(drop=True)).rename_columns(cols), csv_stream
+    )
     response = Response(content=csv_stream.getvalue(), media_type="text/csv")
 
     if bounds is not None:
         response.headers["X-BOUNDS"] = ",".join(str(b) for b in bounds)
+
+    return response
+
+
+def feather_response(df, bounds=None):
+    """Write data frame to feather (Arrow IPC) and return Response with proper headers
+
+    Parameters
+    ----------
+    df : DataFrame
+    bounds : list-like of [xmin, ymin, xmax, ymax], optional (default: None)
+
+    Returns
+    -------
+    fastapi Response
+    """
+
+    cols = [c.lower() for c in df.columns]
+    table = pa.Table.from_pandas(df.reset_index(drop=True)).rename_columns(cols)
+
+    # discard pandas metadata and set bounds
+    table = table.replace_schema_metadata(
+        {"bounds": ",".join(str(b) for b in bounds) if bounds is not None else None}
+    )
+
+    stream = BytesIO()
+    write_feather(
+        table,
+        stream,
+        compression="uncompressed",
+    )
+    response = Response(
+        content=stream.getvalue(), media_type="application/octet-stream"
+    )
 
     return response
 
@@ -83,5 +120,7 @@ def zip_csv_response(
 
 def zip_file_response(src_filename, out_filename):
     return FileResponse(
-        src_filename, media_type="application/zip", filename=out_filename,
+        src_filename,
+        media_type="application/zip",
+        filename=out_filename,
     )

@@ -26,7 +26,7 @@ const UnitSearch = ({ system, layer, onSelect }) => {
       return searchUnits(layers, query)
     },
     {
-      staleTime: 60 * 60 * 1000, // 60 minutes
+      staleTime: 10 * 60 * 1000, // 10 minutes
       refetchOnWindowFocus: false,
       refetchOnMount: false,
     }
