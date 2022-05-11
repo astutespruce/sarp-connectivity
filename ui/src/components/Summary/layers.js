@@ -570,7 +570,7 @@ export const regionLayers = [
     source: 'summary',
     'source-layer': 'mask',
     type: 'fill',
-    maxzoom: 8,
+    maxzoom: 24,
     filter: ['==', ['get', 'id'], 'total'],
     paint: {
       'fill-opacity': 0.6,
@@ -582,7 +582,7 @@ export const regionLayers = [
     source: 'summary',
     'source-layer': 'boundary',
     type: 'line',
-    maxzoom: 8,
+    maxzoom: 24,
     filter: ['==', ['get', 'id'], 'total'],
     paint: {
       'line-opacity': 0.8,

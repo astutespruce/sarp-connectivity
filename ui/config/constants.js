@@ -12,6 +12,7 @@ export const barrierTypeLabelSingular = {
 
 export const REGIONS = {
   gpiw: 'Great Plains & Intermountain West',
+  pnw: 'Pacific Northwest',
   se: 'Southeast',
   sw: 'Southwest',
 }

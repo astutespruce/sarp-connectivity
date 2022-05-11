@@ -2,19 +2,14 @@ from pathlib import Path
 import subprocess
 
 import geopandas as gp
+import pygeos as pg
 from pyogrio import write_dataframe
 
 from analysis.constants import GEO_CRS
 
 SUMMARY_UNITS = ["State", "COUNTYFIPS", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4"]
 
-tippecanoe_args = [
-    "tippecanoe",
-    "-f",
-    "-P",
-    "-pg",
-    "--detect-shared-borders"
-]
+tippecanoe_args = ["tippecanoe", "-f", "-P", "-pg", "--detect-shared-borders"]
 
 
 src_dir = Path("data/boundaries")
@@ -25,6 +20,7 @@ tmp_dir = Path("/tmp")
 ### Full analysis area and regions
 print("Creating region tiles")
 df = gp.read_feather(src_dir / "region_boundary.feather").to_crs(GEO_CRS)
+bnd = df.loc[df.id == "total"].geometry.values.data[0]
 json_filename = tmp_dir / "region_boundary.json"
 write_dataframe(df, json_filename, driver="GeoJSONSeq")
 mbtiles_filename = tile_dir / "boundary.mbtiles"
@@ -56,7 +52,9 @@ json_filename.unlink()
 
 ### States
 print("Creating state tiles")
-df = gp.read_feather(src_dir / "region_states.feather", columns=['geometry', 'id']).to_crs(GEO_CRS)
+df = gp.read_feather(
+    src_dir / "region_states.feather", columns=["geometry", "id"]
+).to_crs(GEO_CRS)
 json_filename = tmp_dir / "region_states.json"
 write_dataframe(df, json_filename, driver="GeoJSONSeq")
 mbtiles_filename = tile_dir / "State.mbtiles"
@@ -72,7 +70,9 @@ json_filename.unlink()
 
 ### Counties
 print("Creating county tiles")
-df = gp.read_feather(src_dir / "region_counties.feather", columns=['geometry', 'id', 'name']).to_crs(GEO_CRS)
+df = gp.read_feather(
+    src_dir / "region_counties.feather", columns=["geometry", "id", "name"]
+).to_crs(GEO_CRS)
 json_filename = tmp_dir / "region_counties.json"
 write_dataframe(df, json_filename, driver="GeoJSONSeq")
 mbtiles_filename = tile_dir / "County.mbtiles"
@@ -88,7 +88,11 @@ json_filename.unlink()
 
 ## HUC2
 print("Creating HUC2 tiles")
-df = gp.read_feather(src_dir / "HUC2.feather").rename(columns={'HUC2': 'id'}).to_crs(GEO_CRS)
+df = (
+    gp.read_feather(src_dir / "HUC2.feather")
+    .rename(columns={"HUC2": "id"})
+    .to_crs(GEO_CRS)
+)
 json_filename = tmp_dir / "HUC2.json"
 write_dataframe(df, json_filename, driver="GeoJSONSeq")
 mbtiles_filename = tile_dir / "HUC2.mbtiles"
@@ -104,16 +108,21 @@ json_filename.unlink()
 
 ### HUC6 - HUC12
 # have to render all to zoom 14 or boundaries mismatch
-huc_zoom_levels = {
-    'HUC6': [0,14],
-    'HUC8': [0,14],
-    'HUC10': [6,14],
-    'HUC12': [8,14]
-}
+huc_zoom_levels = {"HUC6": [0, 14], "HUC8": [0, 14], "HUC10": [6, 14], "HUC12": [8, 14]}
 
 for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
     print(f"Creating tiles for {huc}")
-    df = gp.read_feather(src_dir / f"{huc}.feather").rename(columns={huc: 'id'}).to_crs(GEO_CRS)
+    df = (
+        gp.read_feather(src_dir / f"{huc}.feather")
+        .rename(columns={huc: "id"})
+        .to_crs(GEO_CRS)
+    )
+
+    # only keep units that actually overlap the region at each level
+    tree = pg.STRtree(df.geometry.values.data)
+    ix = tree.query(bnd, predicate="intersects")
+    df = df.loc[ix]
+
     json_filename = tmp_dir / f"{huc}.json"
     write_dataframe(df, json_filename, driver="GeoJSONSeq")
     mbtiles_filename = tile_dir / f"{huc}.mbtiles"
