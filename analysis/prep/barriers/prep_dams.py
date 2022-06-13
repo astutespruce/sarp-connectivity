@@ -22,6 +22,7 @@ from time import time
 import warnings
 
 import geopandas as gp
+import pandas as pd
 import pygeos as pg
 import numpy as np
 from pyogrio import write_dataframe
@@ -103,7 +104,7 @@ outside_df = gp.read_feather(src_dir / "dams_outer_huc4.feather")
 outside_df = outside_df.loc[~outside_df.SARPID.isin(df.SARPID.unique())].copy()
 print(f"Read {len(outside_df):,} dams in outer HUC4s")
 
-df = df.append(outside_df, ignore_index=True, sort=False)
+df = pd.concat([df, outside_df], ignore_index=True, sort=False)
 
 ### Read in dams that have been manually reviewed within region states (and possibly beyond)
 print("Reading manually snapped dams...")
@@ -151,11 +152,11 @@ nabd = nabd.loc[
 ].copy()
 
 
-snapped_df = (
-    snapped_df[["SARPID", "geometry", "ManualReview"]]
-    .append(nabd, ignore_index=True, sort=False)
-    .set_index("SARPID")
-)
+snapped_df = pd.concat(
+    [snapped_df[["SARPID", "geometry", "ManualReview"]], nabd],
+    ignore_index=True,
+    sort=False,
+).set_index("SARPID")
 
 # Join to snapped and bring across updated geometry and ManualReview
 df = df.join(snapped_df, on="SARPID", rsuffix="_snap")
@@ -328,8 +329,10 @@ df.loc[
         & (df.Height <= 25)
     ),
     "LowheadDam",
-] = 1
+] = 2
 
+# From Kat: many Recon == 14 are lowhead
+df.loc[(df.Recon == 14) & (df.Height <= 25), "LowheadDam"] = 2
 
 # TODO: from Kat: if in NC and source is Aquatic Obstruction Inventory, also set lowhead dam
 
@@ -800,12 +803,17 @@ df.WaterbodySizeClass = df.WaterbodySizeClass.fillna(-1).astype("int8")
 df.loc[
     (df.LowheadDam == -1)
     & (df.ImpoundmentType == 1)
-    & ((df.Height <= 25) | (df.Height.isnull()))
+    & (df.Height <= 25)
     & (~df.is_estimated)
     & (df.snapped)
     & (df.sizeclass != "1a"),
     "LowheadDam",
 ] = 2
+
+
+# Potential lowhead dams?
+# (df.Height > 0) & (df.Height<=25) & (df.WaterbodyKM2<0) & (df.snapped) & (~(df.duplicate|df.dropped|df.excluded) & (df.sizeclass!='1a'))
+
 
 print(f"Lowhead dams: {df.groupby('LowheadDam').size()}")
 
