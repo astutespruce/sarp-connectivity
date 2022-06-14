@@ -6,23 +6,23 @@ import { Checkbox } from 'components/Button'
 import { barrierTypeLabels } from '../../../config/constants'
 
 const Options = ({ barrierType, options, customRank, onChange }) => {
-  const { unranked } = options
+  const { includeUnranked } = options
   const barrierTypeLabel = barrierTypeLabels[barrierType]
 
-  const handleUnrankedChange = () => {
+  const handleIncludeUnrankedChange = () => {
     onChange({
       ...options,
-      unranked: !unranked,
+      includeUnranked: !includeUnranked,
     })
   }
 
   return (
     <Box sx={{ alignItems: 'flex-start', mt: '1rem' }}>
       <Checkbox
-        id="unranked"
+        id="includeUnranked"
         label={`Include unranked ${barrierTypeLabel}?`}
-        checked={unranked}
-        onChange={handleUnrankedChange}
+        checked={includeUnranked}
+        onChange={handleIncludeUnrankedChange}
         sx={{
           fontWeight: 'bold',
           fontSize: 3,
@@ -44,7 +44,7 @@ const Options = ({ barrierType, options, customRank, onChange }) => {
 Options.propTypes = {
   barrierType: PropTypes.string.isRequired,
   options: PropTypes.shape({
-    unranked: PropTypes.bool,
+    includeUnranked: PropTypes.bool,
   }).isRequired,
   customRank: PropTypes.bool,
   onChange: PropTypes.func.isRequired,

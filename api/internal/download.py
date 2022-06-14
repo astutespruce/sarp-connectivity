@@ -40,13 +40,13 @@ def download_dams(
     layer: Layers = "State",
     extractor: DamsRecordExtractor = Depends(),
     custom: bool = False,
-    unranked=False,
+    include_unranked=False,
     sort: Scenarios = "NCWC",
     format: Formats = "csv",
 ):
     """Download subset of dams or small barriers data.
 
-    If `unranked` is `True`, all barriers in the summary units are downloaded.
+    If `include_unranked` is `True`, all barriers in the summary units are downloaded.
 
     Path parameters:
     <layer> : one of LAYERS
@@ -55,7 +55,7 @@ def download_dams(
     Query parameters:
     * id: list of ids
     * custom: bool (default: False); set to true to perform custom ranking of subset defined here
-    * unranked: bool (default: False); set to true to include unranked barriers in output
+    * include_unranked: bool (default: False); set to true to include unranked barriers in output
     * sort: str, one of 'NC', 'WC', 'NCWC'
     * filters are defined using a lowercased version of column name and a comma-delimited list of values
     """
@@ -70,7 +70,7 @@ def download_dams(
     has_filters = any(q for q in request.query_params if q in DAM_FILTER_FIELD_MAP)
     if layer == "State" and format == "csv" and id and not (has_filters or custom):
         state_hash = sha1(id.encode("UTF8")).hexdigest()
-        suffix = "_ranked" if not unranked else ""
+        suffix = "_ranked" if not include_unranked else ""
         cache_filename = CACHE_DIRECTORY / f"{state_hash}{suffix}_dams.zip"
 
     if cache_filename and cache_filename.exists():
@@ -81,7 +81,7 @@ def download_dams(
     df = extractor.extract(dams).to_pandas().set_index("id")
 
     # include unranked dams - these are joined back later
-    if unranked:
+    if include_unranked:
         full_df = df.copy()
 
     # can only calculate ranks for those that have networks and are not excluded from ranking
@@ -91,7 +91,7 @@ def download_dams(
     if custom:
         df = df.join(calculate_tiers(df))
 
-    if unranked:
+    if include_unranked:
         # join back to full dataset
         tier_cols = df.columns.difference(full_df.columns)
         df = full_df.join(df[tier_cols], how="left")
@@ -138,13 +138,13 @@ def download_barriers(
     layer: Layers = "State",
     extractor: BarriersRecordExtractor = Depends(),
     custom: bool = False,
-    unranked=False,
+    include_unranked=False,
     sort: Scenarios = "NCWC",
     format: Formats = "csv",
 ):
     """Download subset of mall barriers data.
 
-    If `unranked` is `True`, all barriers in the summary units are downloaded.
+    If `include_unranked` is `True`, all barriers in the summary units are downloaded.
 
     Path parameters:
     <layer> : one of LAYERS
@@ -153,7 +153,7 @@ def download_barriers(
     Query parameters:
     * id: list of ids
     * custom: bool (default: False); set to true to perform custom ranking of subset defined here
-    * unranked: bool (default: False); set to true to include unranked barriers in output
+    * include_unranked: bool (default: False); set to true to include unranked barriers in output
     * sort: str, one of 'NC', 'WC', 'NCWC'
     * filters are defined using a lowercased version of column name and a comma-delimited list of values
     """
@@ -168,7 +168,7 @@ def download_barriers(
     has_filters = any(q for q in request.query_params if q in DAM_FILTER_FIELD_MAP)
     if layer == "State" and format == "csv" and id and not (has_filters or custom):
         state_hash = sha1(id.encode("UTF8")).hexdigest()
-        suffix = "_ranked" if not unranked else ""
+        suffix = "_ranked" if not include_unranked else ""
         cache_filename = CACHE_DIRECTORY / f"{state_hash}{suffix}_small_barriers.zip"
 
     if cache_filename and cache_filename.exists():
@@ -179,7 +179,7 @@ def download_barriers(
     df = extractor.extract(barriers).to_pandas().set_index("id")
 
     # include unranked barriers - these are joined back later
-    if unranked:
+    if include_unranked:
         full_df = df.copy()
 
     # can only calculate ranks for those that have networks
@@ -189,7 +189,7 @@ def download_barriers(
     if custom:
         df = df.join(calculate_tiers(df))
 
-    if unranked:
+    if include_unranked:
         # join back to full dataset
         tier_cols = df.columns.difference(full_df.columns)
         df = full_df.join(df[tier_cols], how="left")

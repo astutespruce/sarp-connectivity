@@ -110,7 +110,8 @@ const BarrierDetails = ({ barrier, onClose }) => {
           <Paragraph variant="help" sx={{ mt: '1rem' }}>
             This {typeLabel} was excluded from prioritization because it
             provides an ecological benefit by restricting the movement of
-            invasive aquatic species.
+            invasive aquatic species or is a water diversion without associated
+            barrier.
           </Paragraph>
         ) : (
           <>

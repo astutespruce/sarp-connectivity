@@ -16,7 +16,9 @@ import { barrierTypeLabels } from '../../../config/constants'
 const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [haveUserInfo, setHaveUserInfo] = useState(false)
-  const [downloadOptions, setDownloadOptions] = useState({ unranked: false })
+  const [downloadOptions, setDownloadOptions] = useState({
+    includeUnranked: false,
+  })
 
   const barrierTypeLabel = barrierTypeLabels[barrierType]
 
@@ -53,7 +55,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
       layer,
       summaryUnits,
       filters,
-      includeUnranked: downloadOptions.unranked,
+      includeUnranked: downloadOptions.includeUnranked,
       sort: scenario.toUpperCase(),
       customRank,
     })
@@ -68,7 +70,9 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
         summaryUnits ? summaryUnits.map(({ id }) => id) : 'none'
       }], filters: ${
         filters ? Object.keys(filters) : 'none'
-      }, scenario: ${scenario}, include unranked: ${downloadOptions.unranked}`,
+      }, scenario: ${scenario}, include unranked: ${
+        downloadOptions.includeUnranked
+      }`,
     })
   }
 

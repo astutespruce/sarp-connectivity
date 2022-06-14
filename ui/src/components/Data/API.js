@@ -29,7 +29,7 @@ const apiQueryParams = ({
   }
 
   if (includeUnranked) {
-    query += '&unranked=1'
+    query += '&include_unranked=1'
   }
   if (customRank) {
     query += '&custom=1'

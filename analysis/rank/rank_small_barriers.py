@@ -135,7 +135,7 @@ df = df.join(networks)
 # True if the barrier was snapped to a network and has network results in the
 # all networks scenario
 df["HasNetwork"] = df.index.isin(networks.index)
-df["Ranked"] = df.HasNetwork & (~df.unranked)
+df["Ranked"] = df.HasNetwork & (df.unranked == 0)
 
 # Intermittent is not applicable if it doesn't have a network
 df["Intermittent"] = df["Intermittent"].astype("int8")

@@ -34,7 +34,7 @@ api_df = pd.read_feather(f"data/api/{barrier_type}.feather").set_index("id")
 
 df = df.join(api_df[["HasNetwork", "Ranked"]]).rename(
     columns={
-        "unranked": "invasive",
+        "unranked": "invasive",  # NOTE: IMPORTANT: this field now includes diversions
         "HasNetwork": "has_networkresults",
         "Ranked": "ranked",
         "ProtectedLand": "on_protectedland",
@@ -262,7 +262,10 @@ with pd.ExcelWriter(
         if col in DOMAINS:
             values = df[col].astype(str) + ": " + df[col].map(DOMAINS[col]).fillna("")
 
-        crosstab = pd.crosstab(values, df.State,)
+        crosstab = pd.crosstab(
+            values,
+            df.State,
+        )
 
         sheet_name = f"{col} {barrier_type} state crosstab (total)"
         crosstab.to_excel(xlsx, sheet_name=sheet_name)
@@ -328,4 +331,3 @@ with pd.ExcelWriter(
         for row in list(ws.rows)[1:]:
             row[0].style = primary_col_style
             row[1].style = primary_col_style
-

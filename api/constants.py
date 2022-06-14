@@ -938,7 +938,7 @@ FIELD_DEFINITIONS = {
     "ECO4": "EPA Level 4 Ecoregion Identifier.",
     "HasNetwork": "indicates if this {type} was snapped to the aquatic network for analysis.  1 = on network, 0 = off network.  Note: network metrics and scores are not available for {type}s that are off network.",
     "Excluded": "this {type} was excluded from the connectivity analysis based on field reconnaissance or manual review of aerial imagery.",
-    "Ranked": "this {type} was included for prioritization.  Some barriers that are beneficial to restricting the movement of invasive species are excluded from ranking.",
+    "Ranked": "this {type} was included for prioritization.  Some barriers that are beneficial to restricting the movement of invasive species or that are water diversions without associated barriers are excluded from ranking.",
     "Intermittent": "indicates if this {type} was snapped to a a stream or river reach coded by NHDPlusHR as an intermittent or ephemeral. -1 = not available.",
     "StreamOrder": "NHDPlus Modified Strahler stream order. -1 = not available.",
     "Landcover": "average amount of the river floodplain in the upstream network that is in natural landcover types.  -1 = not available.",

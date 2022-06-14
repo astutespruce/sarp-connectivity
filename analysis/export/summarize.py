@@ -27,7 +27,10 @@ common_status_fields = [
     "loop",
 ]
 barrier_status_fields = {
-    "dams": common_status_fields + ["is_estimated",],
+    "dams": common_status_fields
+    + [
+        "is_estimated",
+    ],
     "small_barriers": common_status_fields.copy(),
 }
 
@@ -38,7 +41,10 @@ common_summary_fields = [
     "snap_log",
 ]
 barrier_summary_fields = {
-    "dams": ["Recon",] + common_summary_fields,
+    "dams": [
+        "Recon",
+    ]
+    + common_summary_fields,
     "small_barriers": common_summary_fields
     + ["PotentialProject", "SeverityClass", "ConditionClass", "CrossingType"],
 }
@@ -88,7 +94,7 @@ for barrier_type in ["dams", "small_barriers"]:
         data = {
             "total": len(df),
             "protectedland": df.ProtectedLand.sum(),
-            "invasive": df.unranked.sum(),
+            "unranked": df.unranked.sum(),
         }
 
         if barrier_type == "dams":
@@ -201,7 +207,11 @@ for barrier_type in ["dams", "small_barriers"]:
                 agg["is_manualreviewed"] = "sum"
 
             agg.update(
-                {"analyzed": "sum", "HasNetwork": "sum", "Ranked": "sum",}
+                {
+                    "analyzed": "sum",
+                    "HasNetwork": "sum",
+                    "Ranked": "sum",
+                }
             )
 
             rename_cols = {
@@ -242,7 +252,10 @@ for barrier_type in ["dams", "small_barriers"]:
                     df[col].astype(str) + ": " + df[col].map(DOMAINS[col]).fillna("")
                 )
 
-            crosstab = pd.crosstab(values, df.State,)
+            crosstab = pd.crosstab(
+                values,
+                df.State,
+            )
 
             sheet_name = f"{col} {type_label} state crosstab (total)"
             crosstab.to_excel(xlsx, sheet_name=sheet_name)
@@ -340,4 +353,3 @@ for barrier_type in ["dams", "small_barriers"]:
             md.write(f"## {col} {type_label} by HUC2\n")
             md.write(stats.to_markdown(floatfmt=",.0f", index=False))
             md.write("\n\n\n\n")
-

@@ -49,7 +49,8 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
     """Read network results, calculate derived metric classes, and calculate
     tiers.
 
-    Only barriers that are not unranked (invasive spp barriers) have tiers calculated.
+    Only barriers that are not unranked (invasive spp barriers, diversions) have
+    tiers calculated.
 
     Parameters
     ----------
