@@ -46,7 +46,6 @@ from analysis.constants import (
     DROP_FEASIBILITY,
     DROP_MANUALREVIEW,
     DROP_RECON,
-    DROP_STRUCTURECATEGORY,
     EXCLUDE_FEASIBILITY,
     EXCLUDE_MANUALREVIEW,
     EXCLUDE_RECON,
@@ -57,6 +56,7 @@ from analysis.constants import (
     UNRANKED_FEASIBILITY,
     UNRANKED_MANUALREVIEW,
     UNRANKED_RECON,
+    UNRANKED_STRUCTURECATEGORY,
     FCODE_TO_STREAMTYPE,
     DAM_BARRIER_SEVERITY_TO_DOMAIN,
     EXCLUDE_BARRIER_SEVERITY,
@@ -411,7 +411,7 @@ df["dropped"] = False
 df["excluded"] = False
 
 # unranked: records that should break the network but not be used for ranking
-df["unranked"] = False
+df["unranked"] = 0
 
 # removed: dam was removed for conservation but we still want to track it
 df["removed"] = False
@@ -442,16 +442,17 @@ drop_ix = df.ManualReview.isin(DROP_MANUALREVIEW) & ~df.dropped
 df.loc[drop_ix, "dropped"] = True
 df.loc[drop_ix, "log"] = f"dropped: ManualReview one of {DROP_MANUALREVIEW}"
 
+# FIXME: remove; outdated
 # Drop any that are diversions (irrigation ditches) without an associated structure
 # from Kat: anything that is partial or complete barrier should cut the network; others
 # should be dropped
-drop_ix = (
-    (df.StructureCategory.isin(DROP_STRUCTURECATEGORY))
-    & (df.BarrierSeverity.isin([0, 7]))
-    & (~df.dropped)
-)
-df.loc[drop_ix, "dropped"] = True
-df.loc[drop_ix, "log"] = f"dropped: StructureCategory one of {DROP_STRUCTURECATEGORY}"
+# drop_ix = (
+#     (df.StructureCategory.isin(DROP_STRUCTURECATEGORY))
+#     & (df.BarrierSeverity.isin([0, 7]))
+#     & (~df.dropped)
+# )
+# df.loc[drop_ix, "dropped"] = True
+# df.loc[drop_ix, "log"] = f"dropped: StructureCategory one of {DROP_STRUCTURECATEGORY}"
 
 print(f"Dropped {df.dropped.sum():,} dams from all analysis and mapping")
 
@@ -482,11 +483,18 @@ print(f"Excluded {df.excluded.sum():,} dams from analysis and prioritization")
 
 ### Mark any dams that should cut the network but be excluded from ranking
 unranked_idx = ()
-df["unranked"] = (
+# diverion
+df.loc[df.StructureCategory.isin(UNRANKED_STRUCTURECATEGORY), "unranked"] = 2
+# invasive barrier
+df.loc[
     df.ManualReview.isin(UNRANKED_MANUALREVIEW)
     | df.Recon.isin(UNRANKED_RECON)
-    | df.Feasibility.isin(UNRANKED_FEASIBILITY)
-)
+    | df.Feasibility.isin(UNRANKED_FEASIBILITY),
+    "unranked",
+] = 1
+df.loc[
+    df.ManualReview.isin(UNRANKED_STRUCTURECATEGORY), "log"
+] = f"unranked: StructureCategory one of {UNRANKED_STRUCTURECATEGORY}"
 df.loc[
     df.Feasibility.isin(UNRANKED_FEASIBILITY), "log"
 ] = f"unranked: Feasibility one of {UNRANKED_FEASIBILITY}"
@@ -496,13 +504,17 @@ df.loc[
 df.loc[
     df.ManualReview.isin(UNRANKED_MANUALREVIEW), "log"
 ] = f"unranked: ManualReview one of {UNRANKED_MANUALREVIEW}"
+df.unranked = df.unranked.astype("uint8")
+
+print(
+    f"Marked {(df.unranked>0).sum():,} dams to omit from ranking (diversion or prevent spread of invasives)"
+)
 
 ### Mark any that were removed so that we can show these on the map
 df["removed"] = (df.ManualReview == 8) | (df.Recon == 7) | (df.Feasibility == 8)
 df.loc[df.removed, "log"] = f"removed: dam was removed for conservation"
-print(
-    f"Marked {df.unranked.sum():,} dams beneficial to containing invasives to omit from ranking"
-)
+
+print(f"Marked {df.removed.sum():,} dams removed for conservation")
 
 ### Mark dams for de-duplication
 df["duplicate"] = False
@@ -809,11 +821,6 @@ df.loc[
     & (df.sizeclass != "1a"),
     "LowheadDam",
 ] = 2
-
-
-# Potential lowhead dams?
-# (df.Height > 0) & (df.Height<=25) & (df.WaterbodyKM2<0) & (df.snapped) & (~(df.duplicate|df.dropped|df.excluded) & (df.sizeclass!='1a'))
-
 
 print(f"Lowhead dams: {df.groupby('LowheadDam').size()}")
 

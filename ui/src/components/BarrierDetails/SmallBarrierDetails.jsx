@@ -9,6 +9,7 @@ import { isEmptyString } from 'util/string'
 
 import {
   BARRIER_SEVERITY,
+  CONSTRICTION,
   OWNERTYPE,
   HUC8_USFS,
 } from '../../../config/constants'
@@ -55,6 +56,7 @@ const BarrierDetails = ({
   road,
   roadtype,
   crossingtype,
+  constriction,
   condition,
   sarp_score,
   tespp,
@@ -153,6 +155,11 @@ const BarrierDetails = ({
         {!isEmptyString(condition) ? (
           <Entry>
             <Field>Condition:</Field> {condition}
+          </Entry>
+        ) : null}
+        {constriction ? (
+          <Entry>
+            <Field>Type of constriction:</Field> {CONSTRICTION[constriction]}
           </Entry>
         ) : null}
         {severityclass !== null ? (
@@ -321,6 +328,7 @@ BarrierDetails.propTypes = {
   road: PropTypes.string,
   roadtype: PropTypes.string,
   crossingtype: PropTypes.string,
+  constriction: PropTypes.number,
   condition: PropTypes.string,
   severityclass: PropTypes.number,
   tespp: PropTypes.number,
@@ -356,6 +364,7 @@ BarrierDetails.defaultProps = {
   road: null,
   roadtype: null,
   crossingtype: null,
+  constriction: 0,
   severityclass: null,
   condition: null,
   tespp: 0,

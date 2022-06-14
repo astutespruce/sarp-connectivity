@@ -53,6 +53,7 @@ from analysis.constants import (
     ROAD_TYPE_TO_DOMAIN,
     CROSSING_TYPE_TO_DOMAIN,
     FCODE_TO_STREAMTYPE,
+    CONSTRICTION_TO_DOMAIN,
 )
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -130,7 +131,11 @@ df.Name = df.Name.fillna("")
 
 
 # Fix issues with RoadType
-df.loc[df.RoadType.isin(("No Data", "NoData", "Nodata")), "RoadType"] = "Unknown"
+df.loc[df.RoadType.str.lower().isin(("no data", "nodata")), "RoadType"] = "Unknown"
+df["RoadType"] = df.RoadType.fillna("").apply(
+    lambda x: f"{x[0].upper()}{x[1:]}" if x else x
+)
+
 
 # Fix issues with Condition
 df.Condition = df.Condition.fillna("Unknown")
@@ -154,10 +159,24 @@ for column in ["Editor", "EditDate"]:
 
 
 ### Calculate classes
-df["ConditionClass"] = df.Condition.map(BARRIER_CONDITION_TO_DOMAIN)
-df["SeverityClass"] = df.PotentialProject.map(POTENTIAL_TO_SEVERITY)
-df["CrossingTypeClass"] = df.CrossingType.map(CROSSING_TYPE_TO_DOMAIN)
-df["RoadTypeClass"] = df.RoadType.map(ROAD_TYPE_TO_DOMAIN)
+df["ConditionClass"] = (
+    df.Condition.fillna("").str.strip().map(BARRIER_CONDITION_TO_DOMAIN).astype("uint8")
+)
+df["SeverityClass"] = (
+    df.PotentialProject.fillna("")
+    .str.strip()
+    .map(POTENTIAL_TO_SEVERITY)
+    .astype("uint8")
+)
+df["CrossingTypeClass"] = (
+    df.CrossingType.fillna("").str.strip().map(CROSSING_TYPE_TO_DOMAIN).astype("uint8")
+)
+df["RoadTypeClass"] = (
+    df.RoadType.fillna("").str.strip().map(ROAD_TYPE_TO_DOMAIN).astype("uint8")
+)
+df["Constriction"] = (
+    df.Constriction.fillna("").str.strip().map(CONSTRICTION_TO_DOMAIN).astype("uint8")
+)
 
 
 ### Spatial joins
@@ -192,7 +211,7 @@ df["dropped"] = False
 df["excluded"] = False
 
 # unranked: records that should break the network but not be used for ranking
-df["unranked"] = False
+df["unranked"] = 0
 
 # removed: barriers was removed for conservation but we still want to track it
 df["removed"] = False
@@ -208,8 +227,7 @@ df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 ### Drop any small barriers that should be completely dropped from analysis
 # based on manual QA/QC
-# FIXME: one-off analysis
-drop_ix = df.PotentialProject.isin(DROP_POTENTIAL_PROJECT)
+drop_ix = df.PotentialProject.str.strip().isin(DROP_POTENTIAL_PROJECT)
 df.loc[drop_ix, "dropped"] = True
 df.loc[drop_ix, "log"] = f"dropped: PotentialProject one of {DROP_POTENTIAL_PROJECT}"
 print(
@@ -230,14 +248,12 @@ print(
 )
 
 ### Exclude barriers that should not be analyzed or prioritized based on manual QA
-# FIXME: one-off analysis of all barrier types
 df["excluded"] = (
     (~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT))
     | df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
     | df.Recon.isin(EXCLUDE_RECON)
 )
 
-# FIXME:
 df.loc[
     ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT), "log"
 ] = f"excluded: PotentialProject not one of retained types {KEEP_POTENTIAL_PROJECT}"
@@ -250,17 +266,20 @@ print(
 )
 
 ### Mark any barriers that should cut the network but be excluded from ranking
-df["unranked"] = df.ManualReview.isin(UNRANKED_MANUALREVIEW) | df.Recon.isin(
-    UNRANKED_RECON
-)
+df.loc[
+    df.ManualReview.isin(UNRANKED_MANUALREVIEW) | df.Recon.isin(UNRANKED_RECON),
+    "unranked",
+] = 1
 df.loc[
     df.Recon.isin(UNRANKED_RECON), "log"
 ] = f"unranked: Recon one of {UNRANKED_RECON}"
 df.loc[
     df.ManualReview.isin(UNRANKED_MANUALREVIEW), "log"
 ] = f"unranked: ManualReview one of {UNRANKED_MANUALREVIEW}"
+df.unranked = df.unranked.astype("uint8")
+
 print(
-    f"Marked {df.unranked.sum():,} small barriers beneficial to containing invasives to omit from ranking"
+    f"Marked {(df.unranked>0).sum():,} small barriers beneficial to containing invasives to omit from ranking"
 )
 
 

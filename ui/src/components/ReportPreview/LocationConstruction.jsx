@@ -8,6 +8,7 @@ import { formatNumber } from 'util/format'
 import {
   DAM_CONDITION,
   CONSTRUCTION,
+  CONSTRICTION,
   PASSAGEFACILITY,
   OWNERTYPE,
   PURPOSE,
@@ -35,6 +36,7 @@ const LocationConstruction = ({
   width,
   roadtype,
   crossingtype,
+  constriction,
   severityclass,
   sarp_score,
   diversion,
@@ -99,6 +101,9 @@ const LocationConstruction = ({
             <>
               {roadtype ? <li>Road type: {roadtype}</li> : null}
               {crossingtype ? <li>Crossing type: {crossingtype}</li> : null}
+              {constriction ? (
+                <li>Type of constriction: {CONSTRICTION[constriction]}</li>
+              ) : null}
               {condition ? <li>Condition: {condition}</li> : null}
               {severityclass !== null ? (
                 <li>Severity: {BARRIER_SEVERITY[severityclass]}</li>
@@ -177,6 +182,7 @@ LocationConstruction.propTypes = {
   estimated: PropTypes.bool,
   roadtype: PropTypes.string,
   crossingtype: PropTypes.string,
+  constriction: PropTypes.number,
   severityclass: PropTypes.number,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
@@ -203,6 +209,7 @@ LocationConstruction.defaultProps = {
   estimated: false,
   roadtype: null,
   crossingtype: null,
+  constriction: 0,
   severityclass: null,
   sarp_score: -1,
   diversion: 0,

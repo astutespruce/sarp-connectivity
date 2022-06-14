@@ -46,7 +46,8 @@ tilejoin_args = [
 ### Create dams tiles
 start = time()
 df = pd.read_feather(
-    results_dir / "dams.feather", columns=["id"] + DAM_TILE_FIELDS,
+    results_dir / "dams.feather",
+    columns=["id"] + DAM_TILE_FIELDS,
 ).rename(columns={"County": "CountyName", "COUNTYFIPS": "County"})
 
 to_lowercase = {
@@ -148,7 +149,9 @@ csv_filename = tmp_dir / "other_dams.csv"
 mbtiles_filename = tmp_dir / "other_dams.mbtiles"
 mbtiles_files.append(mbtiles_filename)
 other_dams.to_csv(
-    csv_filename, index=False, quoting=csv.QUOTE_NONNUMERIC,
+    csv_filename,
+    index=False,
+    quoting=csv.QUOTE_NONNUMERIC,
 )
 
 ret = subprocess.run(
@@ -156,7 +159,10 @@ ret = subprocess.run(
     + ["-Z9", "-z16", "-B10"]
     + ["-l", "background"]
     + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(other_dams, bool_cols={"protectedland", "excluded"},)
+    + get_col_types(
+        other_dams,
+        bool_cols={"protectedland", "excluded"},
+    )
     + [str(csv_filename)]
 )
 ret.check_returncode()
@@ -278,7 +284,9 @@ road_crossing_fields = road_crossings.columns.intersection(other_barriers.column
 
 combined = (
     other_barriers.append(
-        road_crossings[road_crossing_fields], ignore_index=True, sort=False,
+        road_crossings[road_crossing_fields],
+        ignore_index=True,
+        sort=False,
     )
     .rename(columns=to_lowercase)
     .reset_index(drop=True)
@@ -304,7 +312,7 @@ cols = [
 ]
 combined[cols] = combined[cols].fillna("").astype(str)
 
-for col in ["excluded", "protectedland", "ownertype", "trout"]:
+for col in ["constriction", "excluded", "protectedland", "ownertype", "trout"]:
     combined[col] = combined[col].fillna(0).astype("uint8")
 
 
@@ -315,7 +323,9 @@ mbtiles_filename = tmp_dir / "small_barriers_background.mbtiles"
 mbtiles_files.append(mbtiles_filename)
 
 combined.to_csv(
-    tmp_dir / csv_filename, index=False, quoting=csv.QUOTE_NONNUMERIC,
+    tmp_dir / csv_filename,
+    index=False,
+    quoting=csv.QUOTE_NONNUMERIC,
 )
 
 ret = subprocess.run(
@@ -323,7 +333,10 @@ ret = subprocess.run(
     + ["-Z9", "-z16", "-B10"]
     + ["-l", "background"]
     + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(combined, bool_cols={"protectedland", "excluded"},)
+    + get_col_types(
+        combined,
+        bool_cols={"protectedland", "excluded"},
+    )
     + [str(csv_filename)]
 )
 ret.check_returncode()
@@ -361,7 +374,9 @@ df = df.rename(columns=to_lowercase)
 csv_filename = tmp_dir / "waterfalls.csv"
 mbtiles_filename = out_dir / "waterfalls.mbtiles"
 df.to_csv(
-    csv_filename, index_label="id", quoting=csv.QUOTE_NONNUMERIC,
+    csv_filename,
+    index_label="id",
+    quoting=csv.QUOTE_NONNUMERIC,
 )
 
 ret = subprocess.run(

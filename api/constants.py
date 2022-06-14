@@ -154,6 +154,7 @@ DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 SB_FILTER_FIELDS = FILTER_FIELDS + [
     "ConditionClass",
     "CrossingTypeClass",
+    "Constriction",
     "RoadTypeClass",
     "SeverityClass",
 ]
@@ -272,6 +273,7 @@ SB_CORE_FIELDS = (
         "Road",
         "RoadType",
         "CrossingType",
+        "Constriction",
         "PotentialProject",
         "SeverityClass",
         "SARP_Score",
@@ -501,6 +503,14 @@ CROSSING_TYPE_DOMAIN = {
     4: "Ford",
     5: "Dam",
     6: "Buried stream",
+}
+
+CONSTRICTION_DOMAIN = {
+    0: "Unknown",
+    1: "Spans Full Channel & Banks",
+    2: "Spans Only Bankfull/Active Channel",
+    3: "Moderate",
+    4: "Severe",
 }
 
 DIVERSION_DOMAIN = {0: "Unknown", 1: "Yes", 2: "No"}
@@ -810,6 +820,7 @@ DOMAINS = {
     # barrier fields
     "SeverityClass": BARRIER_SEVERITY_DOMAIN,
     "ConditionClass": BARRIER_CONDITION_DOMAIN,
+    "Constriction": CONSTRICTION_DOMAIN,
 }
 
 
@@ -828,7 +839,7 @@ def unpack_field(arr, lookup):
     np.array
     """
     u, inv = np.unique(arr, return_inverse=True)
-    return np.array([lookup.get(x, "") for x in u])[inv].reshape(inv.shape)
+    return np.array([lookup.get(x, "") for x in u], dtype=str)[inv].reshape(inv.shape)
 
 
 def unpack_domains(df):
@@ -896,6 +907,7 @@ FIELD_DEFINITIONS = {
     "Road": "road name, if available.",
     "RoadType": "type of road, if available.",
     "CrossingType": "type of road / stream crossing, if known.",
+    "Constriction": "type of constriction at road / stream crossing, if known.",
     "PotentialProject": "reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.",
     "SeverityClass": "potential severity of barrier, based on reconnaissance.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",

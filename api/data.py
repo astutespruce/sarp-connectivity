@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pyarrow.dataset as pa
 from pyarrow.feather import read_table
-import pandas as pd
 
 from api.logger import log
 

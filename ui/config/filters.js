@@ -9,6 +9,7 @@ import {
   GAINMILES,
   BARRIER_SEVERITY,
   CROSSING_TYPE,
+  CONSTRICTION,
   ROAD_TYPE,
   DAM_CONDITION,
   DAM_BARRIER_SEVERITY,
@@ -205,6 +206,12 @@ const smallBarriers = [
     sort: true,
     hideEmpty: true,
     ...getEntries(ROAD_TYPE),
+  },
+  {
+    field: 'constriction',
+    title: 'Type of Constriction',
+    hideEmpty: true,
+    ...getEntries(CONSTRICTION),
   },
   {
     field: 'gainmilesclass',

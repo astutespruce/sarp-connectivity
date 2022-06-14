@@ -117,7 +117,7 @@ async def download_dams(token):
             if merged is None:
                 merged = df
             else:
-                merged = merged.append(df, ignore_index=True, sort=False)
+                merged = pd.concat([merged, df], ignore_index=True, sort=False)
 
         return merged
 
@@ -243,7 +243,7 @@ wv = wv[cols].rename(
     }
 )
 wv["SourceState"] = "WV"
-df = df.append(wv, ignore_index=True, sort=False)
+df = pd.concat([df, wv], ignore_index=True, sort=False)
 
 print("Merged {:,} dams in analysis region states".format(len(df)))
 

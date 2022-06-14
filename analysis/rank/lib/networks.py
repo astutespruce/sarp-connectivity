@@ -148,7 +148,7 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
 
     # only calculate ranks / tiers for ranked barriers
     # (exclude unranked invasive spp. barriers)
-    to_rank = networks.loc[~networks.unranked]
+    to_rank = networks.loc[networks.unranked == 0]
 
     ### Calculate regional tiers for SARP (Southeast) region
     # NOTE: this is limited to SARP region; other regions are not ranked at regional level

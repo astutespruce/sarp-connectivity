@@ -305,6 +305,14 @@ export const CROSSING_TYPE = {
   6: 'Buried stream',
 }
 
+export const CONSTRICTION = {
+  0: 'Unknown',
+  1: 'Spans full channel & banks',
+  2: 'Spans only bankfull/active channel',
+  3: 'Moderate',
+  4: 'Severe',
+}
+
 export const ROAD_TYPE = {
   0: 'Unknown',
   1: 'Unpaved',

@@ -10,6 +10,7 @@ import { Flex, List, ListItem, Section } from './elements'
 import {
   DAM_CONDITION,
   CONSTRUCTION,
+  CONSTRICTION,
   OWNERTYPE,
   PASSAGEFACILITY,
   PURPOSE,
@@ -30,6 +31,7 @@ const Location = ({
   width,
   roadtype,
   crossingtype,
+  constriction,
   severityclass,
   river,
   intermittent,
@@ -138,6 +140,13 @@ const Location = ({
                     <Text>Crossing type: {crossingtype}</Text>
                   </ListItem>
                 ) : null}
+                {constriction ? (
+                  <ListItem>
+                    <Text>
+                      Type of constriction: {CONSTRICTION[constriction]}
+                    </Text>
+                  </ListItem>
+                ) : null}
 
                 {condition ? (
                   <ListItem>
@@ -239,6 +248,7 @@ Location.propTypes = {
   estimated: PropTypes.bool,
   roadtype: PropTypes.string,
   crossingtype: PropTypes.string,
+  constriction: PropTypes.number,
   severityclass: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
@@ -265,6 +275,7 @@ Location.defaultProps = {
   estimated: false,
   roadtype: null,
   crossingtype: null,
+  constriction: 0,
   severityclass: null,
   river: null,
   intermittent: 0,

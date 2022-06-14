@@ -183,6 +183,7 @@ SMALL_BARRIER_COLS = [
     "EditDate",
     "Editor",
     "OwnerType",
+    "Constriction"
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",
@@ -227,7 +228,7 @@ KEEP_POTENTIAL_PROJECT = [
 # Used to filter Potential_Project (small barriers)
 # These are DROPPED from all analysis and mapping
 # TODO: pull Past Project / Completed Project into different datasets for completed projects
-DROP_POTENTIAL_PROJECT = ["No Crossing", "Past Project", "Completed Project "]
+DROP_POTENTIAL_PROJECT = ["No Crossing", "Past Project", "Completed Project"]
 
 
 # Used to filter small barriers and dams by SNAP2018, based on guidance from Kat
@@ -237,10 +238,6 @@ DROP_MANUALREVIEW = [
     6,  # Delete: ambiguous, might be duplicate or not exist
     11,  # Duplicate TODO: handle correctly
     14,  # Error: dam does not exist
-]
-
-DROP_STRUCTURECATEGORY = [
-    3  # Diversion (canal / ditch) without associated dam structure
 ]
 
 # These are excluded from network analysis / prioritization, but included for mapping
@@ -282,6 +279,10 @@ UNRANKED_RECON = [
 
 UNRANKED_FEASIBILITY = [
     9  # invasive barriers; these break the network, but not included in prioritization
+]
+
+UNRANKED_STRUCTURECATEGORY = [
+    3  # Diversion (canal / ditch) without associated dam structure
 ]
 
 # Applies to Recon values, omitted values should be filtered out
@@ -332,6 +333,7 @@ RECON_TO_FEASIBILITY = {
 
 
 POTENTIAL_TO_SEVERITY = {
+    "": 0,
     "Inaccessible": 0,
     "Indeterminate": 0,  # removed from processing
     "Insignificant Barrier": 1,
@@ -341,13 +343,16 @@ POTENTIAL_TO_SEVERITY = {
     "No Crossing": 1,
     "No Upstream Channel": 1,
     "No Upstream Habitat": 1,
+    "Buried Stream": 1,
     "Not Scored": 0,
     "No": 1,
+    "Unassessed": 0,
     "Completed Project": 0,  # removed from processing
     "Past Project": 0,  # removed from processing
     "Potential Project": 0,
     "Proposed Project": 0,
     "Severe Barrier": 3,
+    "Severe barrier": 3,
     "Significant Barrier": 3,
     "Small Project": 0,
     "SRI Only": 0,
@@ -360,11 +365,13 @@ CROSSING_TYPE_TO_DOMAIN = {
     "Culvert": 3,
     "Dam": 5,
     "Ford": 4,
+    "Low Water Crossing": 4,
     "Inaccessible": 0,
     "Multiple Culvert": 3,
     "Multiple Culverts": 3,
     "Natural Ford": 4,
     "No Crossing": 1,
+    "None": 1,
     "No Upstream Channel": 1,
     "Other": 0,
     "Partially Inaccessible": 0,
@@ -373,6 +380,18 @@ CROSSING_TYPE_TO_DOMAIN = {
     "Unknown": 0,
     "Vented Ford": 4,
     "Vented Slab": 4,
+    "": 0,
+    "OTHER": 0,
+}
+
+CONSTRICTION_TO_DOMAIN = {
+    "Unknown": 0,
+    "": 0,
+    "No Data": 0,
+    "Spans Full Channel & Banks": 1,
+    "Spans Only Bankfull/Active Channel": 2,
+    "Moderate": 3,
+    "Severe": 4,
 }
 
 ROAD_TYPE_TO_DOMAIN = {
@@ -387,11 +406,17 @@ ROAD_TYPE_TO_DOMAIN = {
     "Trail": 1,
     "Unknown": 0,
     "Unpaved": 1,
-    "No Data": 0,
-    "Nodata": 0,
+    "": 0,
 }
 
-BARRIER_CONDITION_TO_DOMAIN = {"Failing": 1, "New": 4, "OK": 3, "Poor": 2, "Unknown": 0}
+BARRIER_CONDITION_TO_DOMAIN = {
+    "Failing": 1,
+    "New": 4,
+    "OK": 3,
+    "Poor": 2,
+    "Unknown": 0,
+    "": 0,
+}
 
 DAM_BARRIER_SEVERITY_TO_DOMAIN = {
     "": 0,
@@ -675,7 +700,9 @@ CONVERT_TO_MARINE = {
 # but must be kept as they flow through dams; removing them would break networks
 KEEP_PIPELINES = {
     "02": [10000200114743],
-    "05": [24000900019974,],
+    "05": [
+        24000900019974,
+    ],
     "10": [23001800189071, 23001900161939, 23001900224128, 23001300078800],
     "11": [
         21000300167343,
@@ -741,4 +768,3 @@ HUC2_EXITS = {
     ],
     # Note: 16 is internally draining and omitted here
 }
-

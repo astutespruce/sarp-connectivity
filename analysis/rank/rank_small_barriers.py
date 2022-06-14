@@ -57,6 +57,7 @@ cols = [
     "CrossingCode",
     "CrossingType",
     "CrossingTypeClass",
+    "Constriction",
     "Editor",
     "EditDate",
     "FCode",

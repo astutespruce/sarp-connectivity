@@ -40,37 +40,30 @@ class RecordExtractor:
                 )
 
     def extract(self, df):
-        # ix = df[self.layer].isin(self.ids)
-
-        # for key, values in self.filters.items():
-        #     ix = ix & df[key].isin(values)
-
-        # df = df.loc[ix]
-
         ix = pc.is_in(df[self.layer], self.ids)
 
         for key, values in self.filters.items():
-            ix = pc.and_(ix, df[key].isin(values))
-        # for key, values in filters.items():
-        #     expr = pc.and_(expr, pc.is_in(dams[DAM_FILTER_FIELD_MAP[key]], values))
+            ix = pc.and_(ix, pc.is_in(df[key], values))
 
-        # subset = dams.filter(expr)
-        return df.filter(ix)
+        df = df.filter(ix)
 
         # Drop southeast rank fields if they are completely absent; this is typically
         # when states outside the Southeast are selected
-        if "SE_NC_tier" in df.columns and df.SE_NC_tier.max() == -1:
-            df = df.drop(
-                columns=[
+        if "SE_NC_tier" in df.schema.names and (pc.max(df["SE_NC_tier"])).as_py() == -1:
+            cols = [
+                c
+                for c in df.schema.names
+                if not c
+                in [
                     "SE_NC_tier",
                     "SE_WC_tier",
                     "SE_NCWC_tier",
                     "SE_PNC_tier",
                     "SE_PWC_tier",
                     "SE_PNCWC_tier",
-                ],
-                errors="ignore",
-            )
+                ]
+            ]
+            df = df.select(cols)
 
         return df
 
