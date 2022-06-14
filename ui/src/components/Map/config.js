@@ -55,7 +55,7 @@ export const basemapLayers = {
       source: {
         type: 'raster',
         tiles: [
-          '//server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+          'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         ],
         attribution: 'Esri, DigitalGlobe. ...',
         tileSize: 256,
@@ -70,7 +70,7 @@ export const basemapLayers = {
       source: {
         type: 'raster',
         tiles: [
-          '//services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+          'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
         ],
         tileSize: 256,
       },
@@ -84,7 +84,7 @@ export const basemapLayers = {
       source: {
         type: 'raster',
         tiles: [
-          '//services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
+          'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}',
         ],
         tileSize: 256,
       },
@@ -110,7 +110,7 @@ export const basemapLayers = {
       source: {
         type: 'raster',
         tiles: [
-          '//services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+          'https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
         ],
         attribution: 'Esri, HERE, Garmin, ...',
         tileSize: 256,
@@ -127,7 +127,7 @@ export const basemapLayers = {
       source: {
         type: 'raster',
         tiles: [
-          '//services.arcgisonline.com/arcgis/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+          'https://services.arcgisonline.com/arcgis/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
         ],
         attribution: 'Esri, HERE, Garmin, ...',
         tileSize: 256,
