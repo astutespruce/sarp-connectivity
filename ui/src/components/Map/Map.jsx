@@ -65,6 +65,18 @@ const Map = ({ bounds, children, onCreateMap }) => {
           mapObj.addSource(id, source)
         })
 
+        // add basemap sources and layers (must be done before adding other layers)
+        Object.values(basemapLayers).forEach((layers) => {
+          layers.forEach(({ id, source, ...rest }) => {
+            mapObj.addSource(id, source)
+            mapObj.addLayer({
+              ...rest,
+              id,
+              source: id,
+            })
+          })
+        })
+
         // rerender to pass map into child components
         setMap(mapObj)
         onCreateMap(mapObj)
