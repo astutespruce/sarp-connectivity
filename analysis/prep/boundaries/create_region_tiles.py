@@ -3,11 +3,10 @@ import subprocess
 
 import geopandas as gp
 import pygeos as pg
+import pandas as pd
 from pyogrio import write_dataframe
 
 from analysis.constants import GEO_CRS
-
-SUMMARY_UNITS = ["State", "COUNTYFIPS", "HUC6", "HUC8", "HUC12", "ECO3", "ECO4"]
 
 tippecanoe_args = ["tippecanoe", "-f", "-P", "-pg", "--detect-shared-borders"]
 
@@ -117,6 +116,14 @@ for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
         .rename(columns={huc: "id"})
         .to_crs(GEO_CRS)
     )
+
+    # join watershed priorities to HUC8
+    if huc == "HUC8":
+        priorities = pd.read_feather(
+            "data/boundaries/huc8_priorities.feather",
+            columns=["id", "usfs", "coa", "sgcn"],
+        ).set_index("id")
+        df = df.join(priorities, on="id")
 
     # only keep units that actually overlap the region at each level
     tree = pg.STRtree(df.geometry.values.data)
