@@ -43,7 +43,7 @@ The backend is composed of several parts:
 
 ## Development
 
-To develop this application, you need Python 3.6+ and NodeJS 8.9+.
+To develop this application, you need Python 3.8+ and NodeJS 16+.
 
 `pipenv` and `npm` are used as the package managers for those languages.
 

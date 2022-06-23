@@ -38,10 +38,19 @@ df = (
             "excluded": "Excluded",
             "intermittent": "Intermittent",
             "fall_type": "FallType",
-            "sizeclass": "StreamSizeClass"
+            "sizeclass": "StreamSizeClass",
         }
     )
 )
+
+# flowline properties not applicable if it doesn't have a network
+df["NHDPlusID"] = df.NHDPlusID.fillna(-1).astype("int64")
+df["Intermittent"] = df["Intermittent"].astype("int8")
+df.loc[~df.snapped, "Intermittent"] = -1
+df["AnnualFlow"] = df.AnnualFlow.fillna(-1).astype("float32")
+df["AnnualVelocity"] = df.AnnualVelocity.fillna(-1).astype("float32")
+df["TotDASqKm"] = df.TotDASqKm.fillna(-1).astype("float32")
+
 
 # drop any that should be DROPPED (dropped or duplicate) from the analysis
 # NOTE: excluded ones are retained but don't have networks
@@ -105,10 +114,6 @@ for col in barrier_networks.columns:
 
 df["HasNetwork"] = df.index.isin(dam_networks.index)
 
-# set intermittent to -1 where waterfalls were not snapped to networks
-df.Intermittent = df.Intermittent.astype("int8")
-df.loc[~df.snapped, "Intermittent"] = -1
-
 
 df = df[
     WF_CORE_FIELDS
@@ -118,4 +123,3 @@ df = df[
 ].copy()
 
 df.reset_index().to_feather(api_dir / "waterfalls.feather")
-

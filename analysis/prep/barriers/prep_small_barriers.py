@@ -403,6 +403,7 @@ flowlines = read_feathers(
         "loop",
         "AnnualFlow",
         "AnnualVelocity",
+        "TotDASqKm",
     ],
 ).set_index("lineID")
 
@@ -430,6 +431,9 @@ df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
 df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
+
+for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
+    df[field] = df[field].astype("float32")
 
 print(df.groupby("loop").size())
 

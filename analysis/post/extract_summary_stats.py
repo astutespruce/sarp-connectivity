@@ -34,11 +34,10 @@ ui_data_dir = Path("ui/data")
 
 
 ### Read dams
-dams = (
-    pd.read_feather(api_dir / f"dams.feather", columns=["id", "HasNetwork", "State"],)
-    .set_index("id", drop=False)
-    .rename(columns={"HasNetwork": "OnNetwork"})
-)
+dams = pd.read_feather(
+    api_dir / f"dams.feather",
+    columns=["id", "HasNetwork", "Ranked", "State"],
+).set_index("id", drop=False)
 # Get recon from master
 dams_master = pd.read_feather(
     src_dir / "dams.feather", columns=["id", "Recon"]
@@ -46,13 +45,10 @@ dams_master = pd.read_feather(
 dams = dams.join(dams_master)
 
 ### Read road-related barriers
-barriers = (
-    pd.read_feather(
-        api_dir / "small_barriers.feather", columns=["id", "HasNetwork", "State"],
-    )
-    .set_index("id", drop=False)
-    .rename(columns={"HasNetwork": "OnNetwork"})
-)
+barriers = pd.read_feather(
+    api_dir / "small_barriers.feather",
+    columns=["id", "HasNetwork", "Ranked", "State"],
+).set_index("id", drop=False)
 barriers_master = pd.read_feather(
     "data/barriers/master/small_barriers.feather", columns=["id", "dropped", "excluded"]
 ).set_index("id")
@@ -80,11 +76,11 @@ analysis_crossings = crossings.loc[crossings.State.isin(analysis_states)]
 stats = {
     "total": {
         "dams": len(analysis_dams),
-        "on_network_dams": int(analysis_dams.OnNetwork.sum()),
+        "ranked_dams": int(analysis_dams.Ranked.sum()),
         "recon_dams": int((analysis_dams.Recon > 0).sum()),
         "total_small_barriers": len(analysis_barriers),
         "small_barriers": int(analysis_barriers.Included.sum()),
-        "on_network_small_barriers": int(analysis_barriers.OnNetwork.sum()),
+        "ranked_small_barriers": int(analysis_barriers.Ranked.sum()),
         "crossings": len(analysis_crossings),
     }
 }
@@ -101,11 +97,11 @@ for region, region_states in REGION_STATES.items():
         {
             "id": region,
             "dams": len(region_dams),
-            "on_network_dams": int(region_dams.OnNetwork.sum()),
+            "ranked_dams": int(region_dams.Ranked.sum()),
             "recon_dams": int((region_dams.Recon > 0).sum()),
             "total_small_barriers": len(region_barriers),
             "small_barriers": int(region_barriers.Included.sum()),
-            "on_network_small_barriers": int(region_barriers.OnNetwork.sum()),
+            "ranked_small_barriers": int(region_barriers.Ranked.sum()),
             "crossings": len(region_crossings),
         }
     )

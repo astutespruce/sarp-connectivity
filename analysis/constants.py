@@ -269,19 +269,19 @@ EXCLUDE_RECON = [7, 22, 23]
 EXCLUDE_FEASIBILITY = [8, 13]
 EXCLUDE_BARRIER_SEVERITY = [7]  # limited to just dams
 
-UNRANKED_MANUALREVIEW = [
+INVASIVE_MANUALREVIEW = [
     10,  # invasive barriers; these break the network, but not included in prioritization
 ]
 
-UNRANKED_RECON = [
+INVASIVE_RECON = [
     16  # invasive barriers; these break the network, but not included in prioritization
 ]
 
-UNRANKED_FEASIBILITY = [
+INVASIVE_FEASIBILITY = [
     9  # invasive barriers; these break the network, but not included in prioritization
 ]
 
-UNRANKED_STRUCTURECATEGORY = [
+NOSTRUCTURE_STRUCTURECATEGORY = [
     3  # Diversion (canal / ditch) without associated dam structure
 ]
 

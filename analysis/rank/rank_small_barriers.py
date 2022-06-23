@@ -86,12 +86,14 @@ cols = [
     "excluded",
     "duplicate",
     "unranked",
+    "invasive",
     "NHDPlusID",
     "loop",
     "StreamOrder",
     "sizeclass",
     "AnnualFlow",
     "AnnualVelocity",
+    "TotDASqKm",
     "stream_type",
     "intermittent",
 ]
@@ -105,12 +107,20 @@ df = (
         columns={
             "excluded": "Excluded",
             "intermittent": "Intermittent",
+            "invasive": "Invasive",
+            "unranked": "Unranked",
             "sizeclass": "StreamSizeClass",
         }
     )
 )
 
+# flowline properties not applicable if it doesn't have a network
 df["NHDPlusID"] = df.NHDPlusID.fillna(-1).astype("int64")
+df["Intermittent"] = df["Intermittent"].astype("int8")
+df.loc[~df.snapped, "Intermittent"] = -1
+df["AnnualFlow"] = df.AnnualFlow.fillna(-1).astype("float32")
+df["AnnualVelocity"] = df.AnnualVelocity.fillna(-1).astype("float32")
+df["TotDASqKm"] = df.TotDASqKm.fillna(-1).astype("float32")
 
 # Drop any that are duplicates
 # NOTE: we retain those that were dropped because these are relevant for folks to know what
@@ -135,11 +145,7 @@ df = df.join(networks)
 # True if the barrier was snapped to a network and has network results in the
 # all networks scenario
 df["HasNetwork"] = df.index.isin(networks.index)
-df["Ranked"] = df.HasNetwork & (df.unranked == 0)
-
-# Intermittent is not applicable if it doesn't have a network
-df["Intermittent"] = df["Intermittent"].astype("int8")
-df.loc[~df.HasNetwork, "Intermittent"] = -1
+df["Ranked"] = df.HasNetwork & (~df.Unranked)
 
 ### Classify PercentAltered
 df["PercentAltered"] = -1

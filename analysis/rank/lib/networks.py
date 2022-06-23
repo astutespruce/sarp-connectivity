@@ -55,7 +55,7 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
     Parameters
     ----------
     df : DataFrame
-        barriers data; must contain State and unranked
+        barriers data; must contain State and Unranked
     network_type : {"dams", "small_barriers"}
         network scenario
     barrier_type : {"dams", "small_barriers", "waterfalls"}, optional (default: None)
@@ -109,7 +109,7 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
             f"ERROR: multiple networks found for some {barrier_type} networks"
         )
 
-    networks = networks.join(df[df.columns.intersection(["unranked", "State"])])
+    networks = networks.join(df[df.columns.intersection(["Unranked", "State"])])
 
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total
@@ -145,11 +145,11 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
     )
 
     if not rank:
-        return networks.drop(columns=["unranked", "State"], errors="ignore")
+        return networks.drop(columns=["Unranked", "State"], errors="ignore")
 
     # only calculate ranks / tiers for ranked barriers
-    # (exclude unranked invasive spp. barriers)
-    to_rank = networks.loc[networks.unranked == 0]
+    # (exclude unranked invasive spp. barriers / no structure diversions)
+    to_rank = networks.loc[networks.Unranked == 0]
 
     ### Calculate regional tiers for SARP (Southeast) region
     # NOTE: this is limited to SARP region; other regions are not ranked at regional level
@@ -176,4 +176,4 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
     for col in [col for col in networks.columns if col.endswith("_tier")]:
         networks[col] = networks[col].fillna(-1).astype("int8")
 
-    return networks.drop(columns=["unranked", "State"])
+    return networks.drop(columns=["Unranked", "State"])

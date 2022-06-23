@@ -5,13 +5,14 @@ import warnings
 
 import pandas as pd
 
+from analysis.lib.util import pack_bits
 from analysis.rank.lib.networks import get_network_results
 from analysis.rank.lib.metrics import (
     classify_percent_altered,
     classify_streamorder,
     classify_spps,
 )
-from api.constants import DAM_API_FIELDS
+from api.constants import DAM_API_FIELDS, DAM_PACK_BITS
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -32,7 +33,7 @@ if not os.path.exists(results_dir):
 
 
 ### Read in master
-
+# cols must include all fields used in API and tiles
 cols = [
     "id",
     "SARPID",
@@ -93,10 +94,13 @@ cols = [
     "StateSGCNSpp",
     "RegionalSGCNSpp",
     "Trout",
+    "snapped",
     "dropped",
     "excluded",
     "duplicate",
     "unranked",
+    "invasive",
+    "nostructure",
     "is_estimated",
     "loop",
     "NHDPlusID",
@@ -104,6 +108,7 @@ cols = [
     "sizeclass",
     "AnnualFlow",
     "AnnualVelocity",
+    "TotDASqKm",
     "stream_type",
     "intermittent",
     "WaterbodyKM2",
@@ -120,12 +125,22 @@ df = (
             "excluded": "Excluded",
             "intermittent": "Intermittent",
             "is_estimated": "Estimated",
+            "invasive": "Invasive",
+            "nostructure": "NoStructure",
+            "unranked": "Unranked",
+            "loop": "OnLoop",
             "sizeclass": "StreamSizeClass",
         }
     )
 )
 
+# flowline properties not applicable if it doesn't have a network
 df["NHDPlusID"] = df.NHDPlusID.fillna(-1).astype("int64")
+df["Intermittent"] = df["Intermittent"].astype("int8")
+df.loc[~df.snapped, "Intermittent"] = -1
+df["AnnualFlow"] = df.AnnualFlow.fillna(-1).astype("float32")
+df["AnnualVelocity"] = df.AnnualVelocity.fillna(-1).astype("float32")
+df["TotDASqKm"] = df.TotDASqKm.fillna(-1).astype("float32")
 
 
 ### Save dams that were removed, for use in API (they are otherwise dropped below)
@@ -172,14 +187,16 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 networks = get_network_results(df, "dams")
 df = df.join(networks)
 
-# True if the barrier was snapped to a network and has network results in the
-# all networks scenario
+# True if the barrier was snapped to a network, is not a loop, has network
+# results in the all networks scenario, and is not excluded from ranking
 df["HasNetwork"] = df.index.isin(networks.index)
-df["Ranked"] = df.HasNetwork & (df.unranked == 0)
+df["Ranked"] = df.HasNetwork & (~df.Unranked)
 
-# intermittent is not applicable if it doesn't have a network
-df["Intermittent"] = df["Intermittent"].astype("int8")
-df.loc[~df.HasNetwork, "Intermittent"] = -1
+
+### Pack bits for categorical fields not used for filtering
+# IMPORTANT: this needs to happen here, before backfilling fields with -1
+df["packed"] = pack_bits(df, DAM_PACK_BITS)
+
 
 ### Classify PercentAltered
 df["PercentAltered"] = -1

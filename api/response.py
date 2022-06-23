@@ -2,7 +2,6 @@ from io import BytesIO
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from fastapi.responses import Response, FileResponse
-import pyarrow as pa
 from pyarrow.feather import write_feather
 from pyarrow import csv
 

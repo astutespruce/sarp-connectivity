@@ -24,6 +24,8 @@ import csv
 import subprocess
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.csv
 
 # Note: states are identified by name, whereas counties are uniquely identified by
 # FIPS code.
@@ -31,16 +33,26 @@ import pandas as pd
 # the IDs for those units set when the vector tiles of those units are created, otherwise
 # they won't join properly in the frontend.
 
-SUMMARY_UNITS = ["State", "COUNTYFIPS", "HUC2", "HUC6", "HUC8", "HUC10", "HUC12", "ECO3", "ECO4"]
+SUMMARY_UNITS = [
+    "State",
+    "COUNTYFIPS",
+    "HUC2",
+    "HUC6",
+    "HUC8",
+    "HUC10",
+    "HUC12",
+    "ECO3",
+    "ECO4",
+]
 
 INT_COLS = [
     "dams",
     "recon_dams",
-    "on_network_dams",
+    "ranked_dams",
     "small_barriers",
     "total_small_barriers",
     "crossings",
-    "on_network_small_barriers",
+    "ranked_small_barriers",
 ]
 
 
@@ -55,39 +67,38 @@ tmp_dir = Path("/tmp")
 
 
 ### Read dams
-dams = (
-    pd.read_feather(
-        results_dir / f"dams.feather", columns=["id", "HasNetwork"] + SUMMARY_UNITS,
-    )
-    .set_index("id", drop=False)
-    .rename(columns={"HasNetwork": "OnNetwork"})
-)
+dams = pd.read_feather(
+    results_dir / f"dams.feather",
+    columns=["id", "HasNetwork"] + SUMMARY_UNITS,
+).set_index("id", drop=False)
 
 # Get recon from master
 dams_master = pd.read_feather(
-    src_dir / "dams.feather", columns=["id", "Recon"]
+    src_dir / "dams.feather", columns=["id", "Recon", "unranked"]
 ).set_index("id")
 dams = dams.join(dams_master)
 dams["Recon"] = dams.Recon > 0
 
+dams["Ranked"] = dams.HasNetwork & (dams.unranked == 0)
+
+
 ### Read road-related barriers
-barriers = (
-    pd.read_feather(
-        results_dir / "small_barriers.feather",
-        columns=["id", "HasNetwork"] + SUMMARY_UNITS,
-    )
-    .set_index("id", drop=False)
-    .rename(columns={"HasNetwork": "OnNetwork"})
-)
+barriers = pd.read_feather(
+    results_dir / "small_barriers.feather",
+    columns=["id", "HasNetwork"] + SUMMARY_UNITS,
+).set_index("id", drop=False)
 
 barriers_master = pd.read_feather(
-    "data/barriers/master/small_barriers.feather", columns=["id", "dropped", "excluded"]
+    "data/barriers/master/small_barriers.feather",
+    columns=["id", "dropped", "excluded", "unranked"],
 ).set_index("id")
 
 barriers = barriers.join(barriers_master)
 
 # barriers that were not dropped or excluded are likely to have impacts
 barriers["Included"] = ~(barriers.dropped | barriers.excluded)
+
+barriers["Ranked"] = barriers.HasNetwork & (barriers.unranked == 0)
 
 ### Read road / stream crossings
 # NOTE: crossings are already de-duplicated against each other and against
@@ -117,27 +128,33 @@ for unit in SUMMARY_UNITS:
         )
 
     dam_stats = (
-        dams[[unit, "id", "OnNetwork", "Recon"]]
+        dams[[unit, "id", "Ranked", "Recon"]]
         .groupby(unit)
-        .agg({"id": "count", "OnNetwork": "sum", "Recon": "sum"})
+        .agg({"id": "count", "Ranked": "sum", "Recon": "sum"})
         .rename(
             columns={
                 "id": "dams",
-                "OnNetwork": "on_network_dams",
+                "Ranked": "ranked_dams",
                 "Recon": "recon_dams",
             }
         )
     )
 
     barriers_stats = (
-        barriers[[unit, "id", "Included", "OnNetwork"]]
+        barriers[[unit, "id", "Included", "Ranked"]]
         .groupby(unit)
-        .agg({"id": "count", "Included": "sum", "OnNetwork": "sum",})
+        .agg(
+            {
+                "id": "count",
+                "Included": "sum",
+                "Ranked": "sum",
+            }
+        )
         .rename(
             columns={
                 "id": "total_small_barriers",
                 "Included": "small_barriers",
-                "OnNetwork": "on_network_small_barriers",
+                "Ranked": "ranked_small_barriers",
             }
         )
     )
@@ -155,13 +172,15 @@ for unit in SUMMARY_UNITS:
     unit = "County" if unit == "COUNTYFIPS" else unit
 
     # Write summary CSV for each unit type
-    merged.to_csv(
-        tmp_dir / f"{unit}.csv", index_label="id", quoting=csv.QUOTE_NONNUMERIC
+    merged.index.name = "id"
+    pa.csv.write_csv(
+        pa.Table.from_pandas(merged.reset_index()), tmp_dir / f"{unit}.csv"
     )
 
     # join to tiles
     mbtiles_filename = f"{tmp_dir}/{unit}_summary.mbtiles"
     mbtiles_files.append(mbtiles_filename)
+
     ret = subprocess.run(
         [
             "tile-join",

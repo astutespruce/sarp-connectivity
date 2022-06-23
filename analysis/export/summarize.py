@@ -94,7 +94,8 @@ for barrier_type in ["dams", "small_barriers"]:
         data = {
             "total": len(df),
             "protectedland": df.ProtectedLand.sum(),
-            "unranked": df.unranked.sum(),
+            # FIXME: remove; why is this calculated
+            # "unranked": (df.unranked==0).sum(),
         }
 
         if barrier_type == "dams":

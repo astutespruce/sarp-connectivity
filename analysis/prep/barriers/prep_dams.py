@@ -38,6 +38,7 @@ from analysis.prep.barriers.lib.duplicates import (
     find_duplicates,
     export_duplicate_areas,
 )
+from analysis.lib.util import pack_bits
 from analysis.lib.waterbodies import classify_waterbody_size
 
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
@@ -53,10 +54,10 @@ from analysis.constants import (
     ONSTREAM_MANUALREVIEW,
     OFFSTREAM_MANUALREVIEW,
     RECON_TO_FEASIBILITY,
-    UNRANKED_FEASIBILITY,
-    UNRANKED_MANUALREVIEW,
-    UNRANKED_RECON,
-    UNRANKED_STRUCTURECATEGORY,
+    INVASIVE_FEASIBILITY,
+    INVASIVE_MANUALREVIEW,
+    INVASIVE_RECON,
+    NOSTRUCTURE_STRUCTURECATEGORY,
     FCODE_TO_STREAMTYPE,
     DAM_BARRIER_SEVERITY_TO_DOMAIN,
     EXCLUDE_BARRIER_SEVERITY,
@@ -411,7 +412,9 @@ df["dropped"] = False
 df["excluded"] = False
 
 # unranked: records that should break the network but not be used for ranking
-df["unranked"] = 0
+df["invasive"] = False
+df["nostructure"] = False  # diversions with no associated structure
+df["unranked"] = False  # combined from above fields
 
 # removed: dam was removed for conservation but we still want to track it
 df["removed"] = False
@@ -442,18 +445,6 @@ drop_ix = df.ManualReview.isin(DROP_MANUALREVIEW) & ~df.dropped
 df.loc[drop_ix, "dropped"] = True
 df.loc[drop_ix, "log"] = f"dropped: ManualReview one of {DROP_MANUALREVIEW}"
 
-# FIXME: remove; outdated
-# Drop any that are diversions (irrigation ditches) without an associated structure
-# from Kat: anything that is partial or complete barrier should cut the network; others
-# should be dropped
-# drop_ix = (
-#     (df.StructureCategory.isin(DROP_STRUCTURECATEGORY))
-#     & (df.BarrierSeverity.isin([0, 7]))
-#     & (~df.dropped)
-# )
-# df.loc[drop_ix, "dropped"] = True
-# df.loc[drop_ix, "log"] = f"dropped: StructureCategory one of {DROP_STRUCTURECATEGORY}"
-
 print(f"Dropped {df.dropped.sum():,} dams from all analysis and mapping")
 
 ### Exclude dams that should not be analyzed or prioritized based on manual QA
@@ -482,33 +473,35 @@ print(f"Excluded {df.excluded.sum():,} dams from analysis and prioritization")
 
 
 ### Mark any dams that should cut the network but be excluded from ranking
-unranked_idx = ()
 # diverion
-df.loc[df.StructureCategory.isin(UNRANKED_STRUCTURECATEGORY), "unranked"] = 2
-# invasive barrier
+df["nostructure"] = df.StructureCategory.isin(NOSTRUCTURE_STRUCTURECATEGORY)
 df.loc[
-    df.ManualReview.isin(UNRANKED_MANUALREVIEW)
-    | df.Recon.isin(UNRANKED_RECON)
-    | df.Feasibility.isin(UNRANKED_FEASIBILITY),
-    "unranked",
-] = 1
-df.loc[
-    df.ManualReview.isin(UNRANKED_STRUCTURECATEGORY), "log"
-] = f"unranked: StructureCategory one of {UNRANKED_STRUCTURECATEGORY}"
-df.loc[
-    df.Feasibility.isin(UNRANKED_FEASIBILITY), "log"
-] = f"unranked: Feasibility one of {UNRANKED_FEASIBILITY}"
-df.loc[
-    df.Recon.isin(UNRANKED_RECON), "log"
-] = f"unranked: Recon one of {UNRANKED_RECON}"
-df.loc[
-    df.ManualReview.isin(UNRANKED_MANUALREVIEW), "log"
-] = f"unranked: ManualReview one of {UNRANKED_MANUALREVIEW}"
-df.unranked = df.unranked.astype("uint8")
-
+    df.nostructure, "log"
+] = f"unranked: StructureCategory one of {NOSTRUCTURE_STRUCTURECATEGORY}"
 print(
-    f"Marked {(df.unranked>0).sum():,} dams to omit from ranking (diversion or prevent spread of invasives)"
+    f"Marked {df.nostructure.sum():,} diversions without an associated structure to omit from ranking"
 )
+
+# invasive barrier
+df["invasive"] = (
+    df.ManualReview.isin(INVASIVE_MANUALREVIEW)
+    | df.Recon.isin(INVASIVE_RECON)
+    | df.Feasibility.isin(INVASIVE_FEASIBILITY)
+)
+df.loc[
+    df.Feasibility.isin(INVASIVE_FEASIBILITY), "log"
+] = f"unranked: Feasibility one of {INVASIVE_FEASIBILITY}"
+df.loc[
+    df.Recon.isin(INVASIVE_RECON), "log"
+] = f"unranked: Recon one of {INVASIVE_RECON}"
+df.loc[
+    df.ManualReview.isin(INVASIVE_MANUALREVIEW), "log"
+] = f"unranked: ManualReview one of {INVASIVE_MANUALREVIEW}"
+print(f"Marked {df.invasive.sum():,} invasive barriers to omit from ranking")
+
+# both invasive and no structure diversions should be unranked
+df["unranked"] = df.invasive | df.nostructure
+
 
 ### Mark any that were removed so that we can show these on the map
 df["removed"] = (df.ManualReview == 8) | (df.Recon == 7) | (df.Feasibility == 8)
@@ -757,6 +750,7 @@ flowlines = read_feathers(
         "loop",
         "AnnualFlow",
         "AnnualVelocity",
+        "TotDASqKm",
     ],
 ).set_index("lineID")
 
@@ -783,6 +777,9 @@ df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
 df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
+
+for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
+    df[field] = df[field].astype("float32")
 
 print("dams on loops:\n", df.groupby("loop").size())
 
@@ -831,6 +828,21 @@ geo = df[["geometry"]].to_crs(GEO_CRS)
 geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
 geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
 df = df.join(geo[["lat", "lon"]])
+
+
+### Pack small categorical fields not used for filtering in UI into an integer
+print("Calculating packed categorical fields")
+# NOTE: packing only includes fields not used for filtering in UI
+
+# validate value ranges
+if df.Recon.max() >= 32:
+    raise ValueError("Update categorical packing, too many Recon values")
+
+if df.PassageFacility.max() >= 32:
+    raise ValueError("Update categorical packing, too many PassageFacility values")
+
+if df.HUC8_USFS.max() > 3:
+    raise ValueError("Update categorical packing, too many HUC8_USFS values")
 
 
 ### All done processing!

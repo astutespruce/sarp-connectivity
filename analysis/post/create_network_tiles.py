@@ -20,7 +20,7 @@ tmp_dir = Path("/tmp")
 
 
 def classify_size(series):
-    # map sizeclasses are 0-4, 5-9, 10-99, 100-499, 500-9999, 10000 - 24999, >25000 km2
+    # map sizeclasses are 0-2, 3-4, 5-9, 10-99, 100-499, 500-9999, 10000 - 24999, >25000 km2
     bins = [-1, 0, 2, 5, 10, 50, 100, 500, 10000, 25000] + [
         max(series.max(), 25000) + 1
     ]
@@ -76,7 +76,11 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
     print(f"\n\n===========================\nProcessing group {group}")
     segments = read_feathers(
         [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
-        columns=["lineID", "dams", "small_barriers",],
+        columns=[
+            "lineID",
+            "dams",
+            "small_barriers",
+        ],
     ).set_index("lineID")
 
     # create output files by HUC2 based on where the segments occur
@@ -94,7 +98,13 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 
         flowlines = gp.read_feather(
             src_dir / "raw" / huc2 / "flowlines.feather",
-            columns=["lineID", "geometry", "intermittent", "altered", "TotDASqKm",],
+            columns=[
+                "lineID",
+                "geometry",
+                "intermittent",
+                "altered",
+                "TotDASqKm",
+            ],
         ).set_index("lineID")
         flowlines = flowlines.join(segments)
 
@@ -112,7 +122,8 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         # aggregate to MultiLineStrings for smaller outputs
         print("Aggregating flowlines to networks")
         flowlines = merge_lines(
-            flowlines, by=["dams", "small_barriers", "sizeclass", "mapcode"],
+            flowlines,
+            by=["dams", "small_barriers", "sizeclass", "mapcode"],
         ).sort_values(by="dams")
 
         mbtiles_files = []
@@ -146,7 +157,9 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             mbtiles_files.append(mbtiles_filename)
 
             write_dataframe(
-                subset.to_crs(GEO_CRS), json_filename, driver="GeoJSONSeq",
+                subset.to_crs(GEO_CRS),
+                json_filename,
+                driver="GeoJSONSeq",
             )
 
             del subset
@@ -164,7 +177,13 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 
         print("Combining tilesets")
         ret = subprocess.run(
-            ["tile-join", "-f", "-pg", "-o", str(huc2_mbtiles_filename),]
+            [
+                "tile-join",
+                "-f",
+                "-pg",
+                "-o",
+                str(huc2_mbtiles_filename),
+            ]
             + [str(f) for f in mbtiles_files],
         )
         ret.check_returncode()
@@ -179,7 +198,13 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 print("\n\n============================\nCombining tiles for all regions")
 mbtiles_filename = out_dir / "networks.mbtiles"
 ret = subprocess.run(
-    ["tile-join", "-f", "-pg", "-o", str(mbtiles_filename),]
+    [
+        "tile-join",
+        "-f",
+        "-pg",
+        "-o",
+        str(mbtiles_filename),
+    ]
     + [str(f) for f in region_tiles],
 )
 ret.check_returncode()

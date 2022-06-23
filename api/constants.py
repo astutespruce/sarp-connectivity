@@ -190,7 +190,7 @@ GENERAL_API_FIELDS2 = (
         "Subwatershed",
     ]
     + UNIT_FIELDS
-    + ["Excluded"]
+    + ["Excluded", "Invasive", "OnLoop"]
     + METRIC_FIELDS
 )
 
@@ -204,6 +204,7 @@ DAM_CORE_FIELDS = (
         "River",
         "NHDPlusID",
         "StreamSizeClass",
+        "TotDASqKm",
         "Year",
         "YearRemoved",
         "Height",
@@ -217,6 +218,7 @@ DAM_CORE_FIELDS = (
         "BarrierSeverity",
         "Diversion",
         "LowheadDam",
+        "NoStructure",
         "WaterbodyKM2",
         "WaterbodySizeClass",
     ]
@@ -243,9 +245,10 @@ DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
 # Drop fields that can be calculated on frontend or are not used
 DAM_TILE_FIELDS = [
     c
-    for c in DAM_API_FIELDS + ["Recon"]
+    for c in DAM_API_FIELDS + ["Unranked", "packed"]
     if not c
     in {
+        "Basin",
         "IntermittentUpstreamMiles",
         "FreeIntermittentDownstreamMiles",
         "GainMiles",
@@ -257,10 +260,42 @@ DAM_TILE_FIELDS = [
         "FlowsToOcean",
         "NumBarriersDownstream",
         "YearRemoved",
+        "NHDPlusID",
+        # fields not used for tiles
+        "ProtectedLand",
+        "AnnualVelocity",
+        "AnnualFlow",
+        # included in "packed": (note: some fields included above since used for processing tiles)
+        "Excluded",
+        "OnLoop",
+        "StreamOrder",
+        "Estimated",
+        "Invasive",
+        "NoStructure",
+        "HUC8_USFS",
+        "Diversion",
+        "Recon",  # excluded from API_FIELDS (important!)
+        "PassageFacility",
     }
 ]
 
 DAM_TILE_FILTER_FIELDS = unique(["lat", "lon"] + DAM_FILTER_FIELDS + UNIT_FIELDS)
+
+# Packing structure (fields in common with small barriers to the left): field, bit_width
+DAM_PACK_BITS = [
+    ("HasNetwork", 1),
+    ("Unranked", 1),
+    ("Excluded", 1),
+    ("OnLoop", 1),
+    ("StreamOrder", 4),
+    ("Recon", 5),
+    ("HUC8_USFS", 2),
+    ("PassageFacility", 5),
+    ("Diversion", 2),
+    ("Estimated", 1),
+    ("Invasive", 1),
+    ("NoStructure", 1),
+]
 
 
 SB_CORE_FIELDS = (
@@ -279,6 +314,7 @@ SB_CORE_FIELDS = (
         "SARP_Score",
         "YearRemoved",
         "StreamSizeClass",
+        "TotDASqKm",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -301,9 +337,10 @@ SB_PUBLIC_EXPORT_FIELDS = SB_CORE_FIELDS
 # Drop fields from tiles that are calculated on frontend or not used
 SB_TILE_FIELDS = [
     c
-    for c in SB_API_FIELDS
+    for c in SB_API_FIELDS + ["loop", "unranked"]
     if not c
     in {
+        "Basin",
         "IntermittentUpstreamMiles",
         "FreeIntermittentDownstreamMiles",
         "GainMiles",
@@ -313,6 +350,8 @@ SB_TILE_FIELDS = [
         "PercentUnaltered",
         "PercentPerennialUnaltered",
         "YearRemoved",
+        "NHDPlusID",
+        "ProtectedLand",
     }
 ]
 
@@ -794,8 +833,10 @@ STATES = {
 DOMAINS = {
     "State": STATES,
     "HasNetwork": BOOLEAN_DOMAIN,
+    "OnLoop": BOOLEAN_DOMAIN,
     "Excluded": BOOLEAN_DOMAIN,
     "Ranked": BOOLEAN_DOMAIN,
+    "Invasive": BOOLEAN_DOMAIN,
     "Intermittent": BOOLEAN_OFFNETWORK_DOMAIN,
     "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
     "OwnerType": OWNERTYPE_DOMAIN,
@@ -817,6 +858,7 @@ DOMAINS = {
     "ScreenType": SCREENTYPE_DOMAIN,
     "BarrierSeverity": DAM_BARRIER_SEVERITY_DOMAIN,
     "WaterbodySizeClass": WATERBODY_SIZECLASS_DOMAIN,
+    "NoStructure": BOOLEAN_DOMAIN,
     # barrier fields
     "SeverityClass": BARRIER_SEVERITY_DOMAIN,
     "ConditionClass": BARRIER_CONDITION_DOMAIN,
@@ -886,6 +928,7 @@ FIELD_DEFINITIONS = {
     "NIDID": "National Inventory of Dams Identifier.",
     "Source": "Source of this record in the inventory.",
     "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information",
+    "NoStructure": "this location is a water diversion without an associated barrier structure and is not ranked",
     "River": "River name where {type} occurs, if available.",
     "Year": "year that construction was completed, if available.  0 = data not available.",
     "YearRemoved": "year that dam was removed, if available.  0 = data not available or dam not removed.",
@@ -914,8 +957,11 @@ FIELD_DEFINITIONS = {
     # other general fields
     "NHDPlusID": "Unique NHD Plus High Resolution flowline identifier to which the barrier is snapped.  -1 = not snapped to a flowline.  Note: not all barriers snapped to flowlines are used in the network connectivity analysis.",
     "StreamSizeClass": "Stream size class based on total catchment drainage area in square kilometers.  1a: <10 km2, 1b: 10-100 km2, 2: 100-518 km2, 3a: 518-2,590 km2, 3b: 2,590-10,000 km2, 4: 10,000-25,000 km2, 5: >= 25,000 km2.",
-    "Condition": "condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
-    "TESpp": "number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the {type}. Note: rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
+    "TotDASqKm": "Total catchment drainage area at the downstream end of the NHD Plus High Resolution flowline to which this {type} has been snapped, in square kilometers.  -1 if not snapped to flowline or otherwise not available",
+    "AnnualFlow": "Annual flow at the downstream end of the NHD Plus High Resolution flowline to which this {type} has been snapped, in square cubic feet per second.  -1 if not snapped to flowline or otherwise not available",
+    "AnnualVelocity": "Annual velocity at the downstream end of the NHD Plus High Resolution flowline to which this {type} has been snapped, in square feet per second.  -1 if not snapped to flowline or otherwise not available",
+    "Condition": "Condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
+    "TESpp": "Number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the {type}. Note: rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "StateSGCNSpp": "Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "RegionalSGCNSpp": "Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "Trout": "1 if one or more trout species are present within the same subwatershed (HUC12) as the {type}, 0 if trout species were not recorded in available natural heritage data.",
@@ -939,6 +985,8 @@ FIELD_DEFINITIONS = {
     "HasNetwork": "indicates if this {type} was snapped to the aquatic network for analysis.  1 = on network, 0 = off network.  Note: network metrics and scores are not available for {type}s that are off network.",
     "Excluded": "this {type} was excluded from the connectivity analysis based on field reconnaissance or manual review of aerial imagery.",
     "Ranked": "this {type} was included for prioritization.  Some barriers that are beneficial to restricting the movement of invasive species or that are water diversions without associated barriers are excluded from ranking.",
+    "Invasive": "this {type} is identified as a beneficial to restricting the movement of invasive species and is not ranked",
+    "OnLoop": "this {type} occurs on a loop within the NHD High Resolution aquatic network and is considered off-network for purposes of network analysis and ranking",
     "Intermittent": "indicates if this {type} was snapped to a a stream or river reach coded by NHDPlusHR as an intermittent or ephemeral. -1 = not available.",
     "StreamOrder": "NHDPlus Modified Strahler stream order. -1 = not available.",
     "Landcover": "average amount of the river floodplain in the upstream network that is in natural landcover types.  -1 = not available.",
