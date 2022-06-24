@@ -46,8 +46,8 @@ from analysis.constants import (
     EXCLUDE_MANUALREVIEW,
     EXCLUDE_RECON,
     OFFSTREAM_MANUALREVIEW,
-    UNRANKED_MANUALREVIEW,
-    UNRANKED_RECON,
+    INVASIVE_MANUALREVIEW,
+    INVASIVE_RECON,
     BARRIER_CONDITION_TO_DOMAIN,
     POTENTIAL_TO_SEVERITY,
     ROAD_TYPE_TO_DOMAIN,
@@ -211,7 +211,8 @@ df["dropped"] = False
 df["excluded"] = False
 
 # unranked: records that should break the network but not be used for ranking
-df["unranked"] = 0
+df["invasive"] = False
+df["unranked"] = False  # for now, equivalent to above
 
 # removed: barriers was removed for conservation but we still want to track it
 df["removed"] = False
@@ -266,22 +267,19 @@ print(
 )
 
 ### Mark any barriers that should cut the network but be excluded from ranking
-df.loc[
-    df.ManualReview.isin(UNRANKED_MANUALREVIEW) | df.Recon.isin(UNRANKED_RECON),
-    "unranked",
-] = 1
-df.loc[
-    df.Recon.isin(UNRANKED_RECON), "log"
-] = f"unranked: Recon one of {UNRANKED_RECON}"
-df.loc[
-    df.ManualReview.isin(UNRANKED_MANUALREVIEW), "log"
-] = f"unranked: ManualReview one of {UNRANKED_MANUALREVIEW}"
-df.unranked = df.unranked.astype("uint8")
-
-print(
-    f"Marked {(df.unranked>0).sum():,} small barriers beneficial to containing invasives to omit from ranking"
+# invasive barrier
+df["invasive"] = df.ManualReview.isin(INVASIVE_MANUALREVIEW) | df.Recon.isin(
+    INVASIVE_RECON
 )
+df.loc[
+    df.Recon.isin(INVASIVE_RECON), "log"
+] = f"unranked: Recon one of {INVASIVE_RECON}"
+df.loc[
+    df.ManualReview.isin(INVASIVE_MANUALREVIEW), "log"
+] = f"unranked: ManualReview one of {INVASIVE_MANUALREVIEW}"
+print(f"Marked {df.invasive.sum():,} invasive barriers to omit from ranking")
 
+df["unranked"] = df.invasive
 
 ### Mark any that were removed so that we can show these on the map
 df["removed"] = df.ManualReview == 8

@@ -10,21 +10,16 @@ import { barrierTypeLabels } from '../../../config/constants'
 const tabs = [
   { id: 'custom', label: 'Selected Area' },
   { id: 'state', label: 'State' },
-  { id: 'se', label: 'Southeast' },
 ]
 
 const Scores = ({ barrierType, scores }) => {
   const hasCustom = scores.custom && scores.custom.ncwc
-  const hasSoutheast = scores.se && scores.se.ncwc
 
   const availableTabs = []
   if (hasCustom) {
     availableTabs.push(tabs[0])
   }
   availableTabs.push(tabs[1])
-  if (hasSoutheast) {
-    availableTabs.push(tabs[2])
-  }
 
   return (
     <>

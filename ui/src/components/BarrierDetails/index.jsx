@@ -111,7 +111,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
             This {typeLabel} was excluded from prioritization because it
             provides an ecological benefit by restricting the movement of
             invasive aquatic species or is a water diversion without associated
-            barrier.
+            in-stream barrier.
           </Paragraph>
         ) : (
           <>

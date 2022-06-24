@@ -195,7 +195,12 @@ df["Ranked"] = df.HasNetwork & (~df.Unranked)
 
 ### Pack bits for categorical fields not used for filtering
 # IMPORTANT: this needs to happen here, before backfilling fields with -1
-df["packed"] = pack_bits(df, DAM_PACK_BITS)
+pack_cols = [e[0] for e in DAM_PACK_BITS]
+tmp = df[pack_cols].copy()
+# recode streamorder -1 to 0 for packing
+tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
+
+df["packed"] = pack_bits(tmp, DAM_PACK_BITS)
 
 
 ### Classify PercentAltered

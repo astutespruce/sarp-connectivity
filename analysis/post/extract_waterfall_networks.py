@@ -38,6 +38,7 @@ df = (
             "excluded": "Excluded",
             "intermittent": "Intermittent",
             "fall_type": "FallType",
+            "loop": "OnLoop",
             "sizeclass": "StreamSizeClass",
         }
     )

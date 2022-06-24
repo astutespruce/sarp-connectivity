@@ -5,13 +5,14 @@ import warnings
 
 import pandas as pd
 
+from analysis.lib.util import pack_bits
 from analysis.rank.lib.networks import get_network_results
 from analysis.rank.lib.metrics import (
     classify_streamorder,
     classify_spps,
     classify_percent_altered,
 )
-from api.constants import SB_API_FIELDS
+from api.constants import SB_API_FIELDS, SB_PACK_BITS
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -85,6 +86,7 @@ cols = [
     "dropped",
     "excluded",
     "duplicate",
+    "snapped",
     "unranked",
     "invasive",
     "NHDPlusID",
@@ -109,6 +111,7 @@ df = (
             "intermittent": "Intermittent",
             "invasive": "Invasive",
             "unranked": "Unranked",
+            "loop": "OnLoop",
             "sizeclass": "StreamSizeClass",
         }
     )
@@ -146,6 +149,16 @@ df = df.join(networks)
 # all networks scenario
 df["HasNetwork"] = df.index.isin(networks.index)
 df["Ranked"] = df.HasNetwork & (~df.Unranked)
+
+### Pack bits for categorical fields not used for filtering
+# IMPORTANT: this needs to happen here, before backfilling fields with -1
+pack_cols = [e[0] for e in SB_PACK_BITS]
+tmp = df[pack_cols].copy()
+# recode streamorder -1 to 0 for packing
+tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
+
+df["packed"] = pack_bits(tmp, SB_PACK_BITS)
+
 
 ### Classify PercentAltered
 df["PercentAltered"] = -1

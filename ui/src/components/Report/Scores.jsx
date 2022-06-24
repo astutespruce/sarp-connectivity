@@ -35,7 +35,7 @@ const Scores = ({
         <Text style={{ color: '#7f8a93' }}>
           This {typeLabel} was excluded from prioritization because it provides
           an ecological benefit by restricting the movement of invasive aquatic
-          species.
+          species or is a water diversion without associated in-stream barrier.
         </Text>
       </Section>
     )

@@ -101,12 +101,6 @@ METRIC_FIELDS = [
 ]
 
 TIER_FIELDS = [
-    "SE_NC_tier",
-    "SE_WC_tier",
-    "SE_NCWC_tier",
-    "SE_PNC_tier",
-    "SE_PWC_tier",
-    "SE_PNCWC_tier",
     "State_NC_tier",
     "State_WC_tier",
     "State_NCWC_tier",
@@ -245,7 +239,7 @@ DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
 # Drop fields that can be calculated on frontend or are not used
 DAM_TILE_FIELDS = [
     c
-    for c in DAM_API_FIELDS + ["Unranked", "packed"]
+    for c in DAM_API_FIELDS + ["packed"]
     if not c
     in {
         "Basin",
@@ -262,6 +256,7 @@ DAM_TILE_FIELDS = [
         "YearRemoved",
         "NHDPlusID",
         # fields not used for tiles
+        "HUC2",
         "ProtectedLand",
         "AnnualVelocity",
         "AnnualFlow",
@@ -279,20 +274,22 @@ DAM_TILE_FIELDS = [
     }
 ]
 
-DAM_TILE_FILTER_FIELDS = unique(["lat", "lon"] + DAM_FILTER_FIELDS + UNIT_FIELDS)
+DAM_TILE_FILTER_FIELDS = unique(
+    ["lat", "lon"] + DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
+)
 
 # Packing structure (fields in common with small barriers to the left): field, bit_width
 DAM_PACK_BITS = [
-    ("HasNetwork", 1),
-    ("Unranked", 1),
-    ("Excluded", 1),
-    ("OnLoop", 1),
     ("StreamOrder", 4),
     ("Recon", 5),
     ("HUC8_USFS", 2),
     ("PassageFacility", 5),
     ("Diversion", 2),
     ("Estimated", 1),
+    ("HasNetwork", 1),
+    ("Excluded", 1),
+    ("OnLoop", 1),
+    ("Unranked", 1),
     ("Invasive", 1),
     ("NoStructure", 1),
 ]
@@ -337,7 +334,7 @@ SB_PUBLIC_EXPORT_FIELDS = SB_CORE_FIELDS
 # Drop fields from tiles that are calculated on frontend or not used
 SB_TILE_FIELDS = [
     c
-    for c in SB_API_FIELDS + ["loop", "unranked"]
+    for c in SB_API_FIELDS + ["packed"]
     if not c
     in {
         "Basin",
@@ -352,10 +349,36 @@ SB_TILE_FIELDS = [
         "YearRemoved",
         "NHDPlusID",
         "ProtectedLand",
+        # fields not used for tiles
+        "HUC2",
+        "ProtectedLand",
+        "AnnualVelocity",
+        "AnnualFlow",
+        # included in "packed": (note: some fields included above since used for processing tiles)
+        "Excluded",
+        "OnLoop",
+        "StreamOrder",
+        "Invasive",
+        "HUC8_USFS",
+        "Recon",  # excluded from API_FIELDS (important!)
     }
 ]
 
-SB_TILE_FILTER_FIELDS = unique(["lat", "lon"] + SB_FILTER_FIELDS + UNIT_FIELDS)
+SB_PACK_BITS = [
+    ("StreamOrder", 4),
+    ("Recon", 5),
+    ("HUC8_USFS", 2),
+    ("HasNetwork", 1),
+    ("Excluded", 1),
+    ("OnLoop", 1),
+    ("Unranked", 1),
+    ("Invasive", 1),
+]
+
+
+SB_TILE_FILTER_FIELDS = unique(
+    ["lat", "lon"] + SB_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
+)
 
 WF_CORE_FIELDS = (
     GENERAL_API_FIELDS1
@@ -846,6 +869,7 @@ DOMAINS = {
     "HUC8_SGCN": HUC8_SGCN_DOMAIN,
     "ManualReview": MANUALREVIEW_DOMAIN,
     # dam fields
+    # note Recon domain is just used for internal exports; excluded from public exports
     "Recon": RECON_DOMAIN,
     "Condition": DAM_CONDITION_DOMAIN,
     "Construction": CONSTRUCTION_DOMAIN,
@@ -1011,12 +1035,6 @@ FIELD_DEFINITIONS = {
     "TotalPerennialNetworkMiles": "sum of PerennialUpstreamMiles and FreePerennialDownstreamMiles. -1 = not available.",
     "FlowsToOcean": "indicates if this {type} was snapped to a stream or river that flows into the ocean.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the ocean.",
     "NumBarriersDownstream": "number of barriers downstream to the downstream-most point of the downstream river network, which may be the ocean.  -1 = not available (not on network).  Note: only includes downstream barriers within the analysis region; there may be additional barriers downstream of a given network outside the analysis region.",
-    "SE_NC_tier": "network connectivity tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
-    "SE_WC_tier": "watershed condition tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
-    "SE_NCWC_tier": "combined network connectivity and watershed condition tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
-    "SE_PNC_tier": "perennial network connectivity tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
-    "SE_PWC_tier": "perennial watershed condition tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
-    "SE_PNCWC_tier": "combined perennial network connectivity and watershed condition tier for all on-network {type}s within hydrologic basins that fall completely or partly within the Southeastern US states.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_NC_tier": "network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_WC_tier": "watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_NCWC_tier": "combined network connectivity and watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",

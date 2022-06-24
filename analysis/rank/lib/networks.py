@@ -151,15 +151,6 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
     # (exclude unranked invasive spp. barriers / no structure diversions)
     to_rank = networks.loc[networks.Unranked == 0]
 
-    ### Calculate regional tiers for SARP (Southeast) region
-    # NOTE: this is limited to SARP region; other regions are not ranked at regional level
-    # TODO: consider deprecating this
-    ix = to_rank.State.isin(SARP_STATES)
-    sarp_tiers = calculate_tiers(to_rank.loc[ix])
-    sarp_tiers = sarp_tiers.rename(
-        columns={col: f"SE_{col}" for col in sarp_tiers.columns}
-    )
-
     ### Calculate state tiers for each of total and perennial
     state_tiers = None
     for state in to_rank.State.unique():
@@ -172,7 +163,7 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
         columns={col: f"State_{col}" for col in state_tiers.columns}
     )
 
-    networks = networks.join(sarp_tiers).join(state_tiers)
+    networks = networks.join(state_tiers)
     for col in [col for col in networks.columns if col.endswith("_tier")]:
         networks[col] = networks[col].fillna(-1).astype("int8")
 
