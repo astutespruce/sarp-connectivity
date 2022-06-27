@@ -1,5 +1,6 @@
 import asyncio
 from copy import deepcopy
+import httpx
 from math import ceil
 
 from requests import HTTPError
@@ -17,6 +18,47 @@ CRS_LUT = {
     # same as EPSG:5070 (CONUS albers)
     'PROJCS["NAD_1983_Albers",GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",SPHEROID["GRS_1980",6378137.0,298.257222101]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]],PROJECTION["Albers"],PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],PARAMETER["central_meridian",-96.0],PARAMETER["Standard_Parallel_1",29.5],PARAMETER["Standard_Parallel_2",45.5],PARAMETER["latitude_of_origin",23.0],UNIT["Meter",1.0]]': "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=23.0 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs",
 }
+
+
+def get_token(user, password):
+    """Generate AGOL token for user / password.
+
+    Note: this doesn't work for SARP services because they are behind OAuth login
+
+    Parameters
+    ----------
+    client: httpx.AsyncClient
+    user: str
+    password: str
+
+    Returns
+    -------
+    token: str
+    """
+    url = "https://www.arcgis.com/sharing/generateToken"
+    response = httpx.post(
+        url,
+        params={
+            "f": "json",
+        },
+        data={
+            "username": user,
+            "password": password,
+            "client": "requestip",
+            "expiration": 60,
+        },
+    )
+    response.raise_for_status()
+
+    content = response.json()
+    if "error" in content:
+        raise HTTPError(
+            "Error making request: {}\n{}".format(
+                content["error"]["message"], content["error"]["details"]
+            )
+        )
+
+    return content["token"]
 
 
 async def get_json(client, url, params=None, token=None):
@@ -144,4 +186,3 @@ async def download_fs(client, url, fields=None, token=None, target_wkid=None):
             merged = pd.concat([merged, df], ignore_index=True, sort=False)
 
     return merged
-

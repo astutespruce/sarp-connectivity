@@ -21,7 +21,7 @@ ext = "fgb"
 # groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
-for group in [{"17"}, {"18"}]:
+for group in [{"17"}]:
     segments = (
         read_feathers(
             [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
@@ -100,4 +100,3 @@ for group in [{"17"}, {"18"}]:
         write_dataframe(
             networks, out_dir / f"region{huc2}_{barrier_type}_networks.{ext}"
         )
-

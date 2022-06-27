@@ -143,7 +143,7 @@ df["AnnualVelocity"] = df.AnnualVelocity.fillna(-1).astype("float32")
 df["TotDASqKm"] = df.TotDASqKm.fillna(-1).astype("float32")
 
 
-### Save dams that were removed, for use in API (they are otherwise dropped below)
+### Extract removed dams for separate API endpoint
 removed = pd.DataFrame(
     df.loc[
         (df.Recon == 7) | (df.Feasibility == 8) | (df.ManualReview == 8),
@@ -174,6 +174,7 @@ removed.reset_index().to_feather(api_dir / "removed_dams.feather")
 
 ### drop any that should be DROPPED (dropped or duplicate) from the analysis
 # NOTE: excluded ones are retained but don't have networks; ones on loops are retained but also don't have networks
+# NOTE: removed dams are retained for download per direction from Kat
 df = df.loc[~(df.dropped | df.duplicate)].copy()
 
 ### Classify StreamOrder

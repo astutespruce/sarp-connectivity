@@ -162,6 +162,7 @@ DAM_FS_COLS = [
     "ImpoundmentType",
     "EditDate",
     "Editor",
+    "Link",
 ]
 
 

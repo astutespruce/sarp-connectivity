@@ -198,6 +198,8 @@ DAM_CORE_FIELDS = (
         "River",
         "NHDPlusID",
         "StreamSizeClass",
+        "AnnualVelocity",
+        "AnnualFlow",
         "TotDASqKm",
         "Year",
         "YearRemoved",
@@ -302,6 +304,9 @@ SB_CORE_FIELDS = (
         "CrossingCode",
         "Stream",
         "NHDPlusID",
+        "AnnualVelocity",
+        "AnnualFlow",
+        "TotDASqKm",
         "Road",
         "RoadType",
         "CrossingType",
@@ -664,6 +669,10 @@ PASSAGEFACILITY_DOMAIN = {
     16: "Vertical Slot Fishway",
     17: "Nature-like Fishway",
     18: "Bypass Channel Fishway",
+    19: "Crossvane",
+    20: "Screen Bypass",
+    21: "Fishway Unspecified",
+    22: "Other",
 }
 
 # Not used directly
