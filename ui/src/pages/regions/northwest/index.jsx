@@ -86,7 +86,14 @@ const PNWRegionPage = ({
 
           <Grid columns="2fr 1fr" sx={{ mt: '0.5rem' }}>
             <Paragraph sx={{ mr: '2rem', flex: '1 1 auto' }}>
-              TODO: content from SARP to indicate data sources in the PNW
+              Dams and road-related barriers within Washington State include
+              those maintained by the Washington State Department of Fish and
+              Wildlife, Fish Passage Division. For more information about
+              specific structures, please visit the{' '}
+              <OutboundLink to="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html">
+                fish passage web map
+              </OutboundLink>
+              .
             </Paragraph>
 
             <Box>

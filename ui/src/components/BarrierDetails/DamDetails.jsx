@@ -33,6 +33,7 @@ const DamDetails = ({
   height,
   nidid,
   source,
+  link,
   estimated,
   year,
   construction,
@@ -309,6 +310,24 @@ const DamDetails = ({
       {!isEmptyString(source) ? (
         <Entry>
           <Field>Source:</Field> {source}
+          {source.startsWith('WDFW') ? (
+            <>
+              <br />
+              Information about this barrier is maintained by the Washington
+              State Department of Fish and Wildlife, Fish Passage Division. For
+              more information about specific structures, please visit the{' '}
+              <OutboundLink to="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html">
+                fish passage web map
+              </OutboundLink>
+            </>
+          ) : null}
+        </Entry>
+      ) : null}
+
+      {!isEmptyString(link) ? (
+        <Entry>
+          <Field>More information:</Field>{' '}
+          <OutboundLink to={link}>link</OutboundLink>
         </Entry>
       ) : null}
     </Section>
@@ -332,6 +351,7 @@ DamDetails.propTypes = {
   year: PropTypes.number,
   nidid: PropTypes.string,
   source: PropTypes.string,
+  link: PropTypes.string,
   estimated: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
@@ -372,6 +392,7 @@ DamDetails.defaultProps = {
   intermittent: -1,
   nidid: null,
   source: null,
+  link: null,
   estimated: 0,
   height: 0,
   year: 0,

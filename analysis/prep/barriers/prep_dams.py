@@ -228,6 +228,7 @@ for column in (
     "SourceDBID",
     "Editor",
     "EditDate",
+    "Link",
 ):
     df[column] = df[column].fillna("").str.strip()
 

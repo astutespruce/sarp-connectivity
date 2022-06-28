@@ -42,6 +42,7 @@ cols = [
     "NIDID",
     "Source",
     "SourceDBID",
+    "Link",
     "Name",
     "OtherName",
     "Basin",

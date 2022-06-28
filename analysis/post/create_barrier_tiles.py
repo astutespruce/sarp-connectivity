@@ -124,7 +124,7 @@ write_csv(pa.Table.from_pandas(tmp.reset_index(drop=True)), csv_filename)
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z2", "-z7", "-r1.5", "-g1.5", "-B5"]
-    + ["-l", "dams"]
+    + ["-l", "ranked_dams"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(tmp)
     + [str(csv_filename)]
