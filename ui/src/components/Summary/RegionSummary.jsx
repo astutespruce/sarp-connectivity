@@ -15,16 +15,16 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
     [region]: {
       dams,
       reconDams,
-      onNetworkDams,
+      rankedDams,
       totalSmallBarriers,
       smallBarriers,
-      onNetworkSmallBarriers,
+      rankedSmallBarriers,
       crossings,
     },
   } = useSummaryData()
 
-  const offNetworkDams = dams - onNetworkDams
-  const offNetworkBarriers = smallBarriers - onNetworkSmallBarriers
+  const unrankedDams = dams - rankedDams
+  const unrankedBarriers = smallBarriers - rankedSmallBarriers
 
   const regionName = region === 'total' ? 'full analysis area' : REGIONS[region]
 
@@ -43,7 +43,7 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
             feasibility of removal
           </li>
           <li>
-            <b>{formatNumber(onNetworkDams, 0)}</b> have been analyzed for their
+            <b>{formatNumber(rankedDams, 0)}</b> have been analyzed for their
             impacts to aquatic connectivity in this tool
           </li>
         </Box>
@@ -62,7 +62,7 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
           dams may simply represent areas that have a more complete inventory.
           <br />
           <br />
-          {formatNumber(offNetworkDams, 0)} dams were not analyzed because they
+          {formatNumber(unrankedDams, 0)} dams were not analyzed because they
           could not be correctly located on the aquatic network or were
           otherwise excluded from the analysis.
         </Paragraph>
@@ -90,8 +90,8 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
           that are likely to impact aquatic organisms
         </li>
         <li>
-          <b>{formatNumber(onNetworkSmallBarriers, 0)}</b> that have been
-          analyzed for their impacts to aquatic connectivity in this tool
+          <b>{formatNumber(rankedSmallBarriers, 0)}</b> that have been analyzed
+          for their impacts to aquatic connectivity in this tool
         </li>
       </Box>
 
@@ -110,7 +110,7 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
         have a more complete inventory.
         <br />
         <br />
-        {formatNumber(offNetworkBarriers, 0)} road-related barriers could not be
+        {formatNumber(unrankedBarriers, 0)} road-related barriers could not be
         correctly located on the aquatic network or were otherwise excluded from
         the analysis.
       </Paragraph>

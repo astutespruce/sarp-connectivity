@@ -5,8 +5,8 @@ import { Box, Paragraph } from 'theme-ui'
 
 import { formatNumber } from 'util/format'
 
-const Dams = ({ dams, onNetworkDams }) => {
-  const offNetworkDams = dams - onNetworkDams
+const Dams = ({ dams, rankedDams }) => {
+  const unrankedDams = dams - rankedDams
 
   if (dams === 0) {
     return (
@@ -26,24 +26,24 @@ const Dams = ({ dams, onNetworkDams }) => {
           {dams === 1 ? 'dam' : 'dams'}
         </li>
         <li>
-          <b>{formatNumber(onNetworkDams, 0)}</b>{' '}
-          {onNetworkDams === 1 ? 'dam' : 'dams'} that{' '}
-          {onNetworkDams === 1 ? 'was ' : 'were '} analyzed for impacts to
-          aquatic connectivity in this tool
+          <b>{formatNumber(rankedDams, 0)}</b>{' '}
+          {rankedDams === 1 ? 'dam' : 'dams'} that{' '}
+          {rankedDams === 1 ? 'was ' : 'were '} analyzed for impacts to aquatic
+          connectivity in this tool
         </li>
       </Box>
       <Paragraph variant="help" sx={{ mt: '2rem' }}>
         Note: These statistics are based on <i>inventoried</i> dams. Because the
         inventory is incomplete in many areas, areas with a high number of dams
         may simply represent areas that have a more complete inventory.
-        {offNetworkDams > 0 ? (
+        {unrankedDams > 0 ? (
           <>
             <br />
             <br />
-            {formatNumber(offNetworkDams, 0)}{' '}
-            {offNetworkDams === 1 ? 'dam' : 'dams'} were not analyzed because
-            they were not on the aquatic network or could not be correctly
-            located on the network.
+            {formatNumber(unrankedDams, 0)}{' '}
+            {unrankedDams === 1 ? 'dam' : 'dams'} were not analyzed because they
+            were not on the aquatic network or could not be correctly located on
+            the network.
           </>
         ) : null}
       </Paragraph>
@@ -53,12 +53,12 @@ const Dams = ({ dams, onNetworkDams }) => {
 
 Dams.propTypes = {
   dams: PropTypes.number,
-  onNetworkDams: PropTypes.number,
+  rankedDams: PropTypes.number,
 }
 
 Dams.defaultProps = {
   dams: 0,
-  onNetworkDams: 0,
+  rankedDams: 0,
 }
 
 export default Dams

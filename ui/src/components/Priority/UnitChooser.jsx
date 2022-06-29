@@ -86,19 +86,19 @@ const UnitChooser = ({
     switch (barrierType) {
       case 'dams': {
         offNetworkCount = summaryUnits.reduce(
-          (out, v) => out + (v.dams - v.on_network_dams),
+          (out, v) => out + (v.dams - v.ranked_dams),
           0
         )
-        total = summaryUnits.reduce((out, v) => out + v.on_network_dams, 0)
+        total = summaryUnits.reduce((out, v) => out + v.ranked_dams, 0)
         break
       }
       case 'small_barriers': {
         offNetworkCount = summaryUnits.reduce(
-          (out, v) => out + (v.small_barriers - v.on_network_small_barriers),
+          (out, v) => out + (v.small_barriers - v.ranked_small_barriers),
           0
         )
         total = summaryUnits.reduce(
-          (out, v) => out + v.on_network_small_barriers,
+          (out, v) => out + v.ranked_small_barriers,
           0
         )
         break

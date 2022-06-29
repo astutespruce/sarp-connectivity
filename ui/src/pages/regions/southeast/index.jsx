@@ -222,7 +222,7 @@ const SERegionPage = ({
 SERegionPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
-    map: PropTypes.isRequired,
+    map: PropTypes.object.isRequired,
     forestStreamPhoto: PropTypes.object.isRequired,
     gaTeamPhoto: PropTypes.object.isRequired,
   }).isRequired,

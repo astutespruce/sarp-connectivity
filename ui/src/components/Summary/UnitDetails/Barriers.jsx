@@ -6,12 +6,12 @@ import { formatNumber } from 'util/format'
 
 const Barriers = ({
   smallBarriers,
-  onNetworkSmallBarriers,
+  rankedSmallBarriers,
   totalSmallBarriers,
   crossings,
 }) => {
   const totalRoadBarriers = totalSmallBarriers + crossings
-  const offNetworkBarriers = smallBarriers - onNetworkSmallBarriers
+  const unrankedBarriers = smallBarriers - rankedSmallBarriers
 
   if (totalRoadBarriers === 0) {
     return (
@@ -44,10 +44,10 @@ const Barriers = ({
           organisms
         </li>
         <li>
-          <b>{formatNumber(onNetworkSmallBarriers, 0)}</b> road-related{' '}
-          {onNetworkSmallBarriers === 1 ? 'barrier' : 'barriers'} that{' '}
-          {onNetworkSmallBarriers === 1 ? 'was ' : 'were '} analyzed for impacts
-          to aquatic connectivity in this tool
+          <b>{formatNumber(rankedSmallBarriers, 0)}</b> road-related{' '}
+          {rankedSmallBarriers === 1 ? 'barrier' : 'barriers'} that{' '}
+          {rankedSmallBarriers === 1 ? 'was ' : 'were '} analyzed for impacts to
+          aquatic connectivity in this tool
         </li>
       </Box>
 
@@ -57,13 +57,13 @@ const Barriers = ({
         Because the inventory is incomplete in many areas, areas with a high
         number of barriers may simply represent areas that have a more complete
         inventory.
-        {offNetworkBarriers > 0 ? (
+        {unrankedBarriers > 0 ? (
           <>
             <br />
             <br />
-            {formatNumber(offNetworkBarriers, 0)} road-related{' '}
-            {offNetworkBarriers === 1 ? 'barrier' : 'barriers'} that{' '}
-            {offNetworkBarriers === 1 ? 'was ' : 'were '} not analyzed because
+            {formatNumber(unrankedBarriers, 0)} road-related{' '}
+            {unrankedBarriers === 1 ? 'barrier' : 'barriers'} that{' '}
+            {unrankedBarriers === 1 ? 'was ' : 'were '} not analyzed because
             they were not on the aquatic network or could not be correctly
             located on the network
           </>
@@ -76,14 +76,14 @@ const Barriers = ({
 Barriers.propTypes = {
   smallBarriers: PropTypes.number,
   totalSmallBarriers: PropTypes.number,
-  onNetworkSmallBarriers: PropTypes.number,
+  rankedSmallBarriers: PropTypes.number,
   crossings: PropTypes.number,
 }
 
 Barriers.defaultProps = {
   smallBarriers: 0,
   totalSmallBarriers: 0,
-  onNetworkSmallBarriers: 0,
+  rankedSmallBarriers: 0,
   crossings: 0,
 }
 

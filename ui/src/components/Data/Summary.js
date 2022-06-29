@@ -9,21 +9,21 @@ export const useSummaryData = () => {
       stats: summaryStatsJson {
         total {
           dams
-          onNetworkDams: on_network_dams
+          rankedDams: ranked_dams
           reconDams: recon_dams
           totalSmallBarriers: total_small_barriers
           smallBarriers: small_barriers
-          onNetworkSmallBarriers: on_network_small_barriers
+          rankedSmallBarriers: ranked_small_barriers
           crossings
         }
         regions: region {
           id
           dams
-          onNetworkDams: on_network_dams
+          rankedDams: ranked_dams
           reconDams: recon_dams
           totalSmallBarriers: total_small_barriers
           smallBarriers: small_barriers
-          onNetworkSmallBarriers: on_network_small_barriers
+          rankedSmallBarriers: ranked_small_barriers
           crossings
         }
       }

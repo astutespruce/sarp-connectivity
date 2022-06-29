@@ -148,8 +148,8 @@ const PNWRegionPage = ({
 PNWRegionPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
-    forestStreamPhoto: PropTypes.object.isRequired,
-    map: PropTypes.isRequired,
+    salmonPhoto: PropTypes.object.isRequired,
+    map: PropTypes.object.isRequired,
   }).isRequired,
 }
 

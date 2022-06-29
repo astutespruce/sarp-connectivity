@@ -110,7 +110,7 @@ const GPIWRegionPage = ({
 GPIWRegionPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
-    map: PropTypes.isRequired,
+    map: PropTypes.object.isRequired,
   }).isRequired,
 }
 
