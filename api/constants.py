@@ -281,20 +281,19 @@ DAM_TILE_FILTER_FIELDS = unique(
     ["lat", "lon"] + DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
 )
 
-# Packing structure (fields in common with small barriers to the left): field, bit_width
 DAM_PACK_BITS = [
-    ("StreamOrder", 4),
-    ("Recon", 5),
-    ("HUC8_USFS", 2),
-    ("PassageFacility", 5),
-    ("Diversion", 2),
-    ("Estimated", 1),
-    ("HasNetwork", 1),
-    ("Excluded", 1),
-    ("OnLoop", 1),
-    ("Unranked", 1),
-    ("Invasive", 1),
-    ("NoStructure", 1),
+    {"field": "StreamOrder", "bits": 4},
+    {"field": "Recon", "bits": 5},
+    {"field": "HUC8_USFS", "bits": 2},
+    {"field": "PassageFacility", "bits": 5},
+    {"field": "Diversion", "bits": 2},
+    {"field": "Estimated", "bits": 1},
+    {"field": "HasNetwork", "bits": 1},
+    {"field": "Excluded", "bits": 1},
+    {"field": "OnLoop", "bits": 1},
+    {"field": "Unranked", "bits": 1},
+    {"field": "Invasive", "bits": 1},
+    {"field": "NoStructure", "bits": 1},
 ]
 
 
@@ -371,14 +370,14 @@ SB_TILE_FIELDS = [
 ]
 
 SB_PACK_BITS = [
-    ("StreamOrder", 4),
-    ("Recon", 5),
-    ("HUC8_USFS", 2),
-    ("HasNetwork", 1),
-    ("Excluded", 1),
-    ("OnLoop", 1),
-    ("Unranked", 1),
-    ("Invasive", 1),
+    {"field": "StreamOrder", "bits": 4},
+    {"field": "Recon", "bits": 5},
+    {"field": "HUC8_USFS", "bits": 2},
+    {"field": "HasNetwork", "bits": 1},
+    {"field": "Excluded", "bits": 1},
+    {"field": "OnLoop", "bits": 1},
+    {"field": "Unranked", "bits": 1},
+    {"field": "Invasive", "bits": 1},
 ]
 
 
@@ -410,6 +409,13 @@ WF_CORE_FIELDS = (
     ]
     + ["HUC8", "HUC10", "HUC12", "State", "County"]
 )
+
+
+TIER_BITS = 5  # holds values 0...21 after subtracting offset
+STATE_TIER_PACK_BITS = [
+    {"field": c, "bits": TIER_BITS, "value_shift": 1} for c in TIER_FIELDS
+]
+
 
 ### Domains for coded values in exported data
 

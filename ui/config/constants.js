@@ -540,3 +540,38 @@ export const HUC8_SGCN = {
   1: 'within top 10 watersheds per state',
   0: 'not within top 10 watersheds per state',
 }
+
+export const STATE_TIER_PACK_BITS = [
+  { field: 'State_NC_tier', bits: 5, value_shift: 1 },
+  { field: 'State_WC_tier', bits: 5, value_shift: 1 },
+  { field: 'State_NCWC_tier', bits: 5, value_shift: 1 },
+  { field: 'State_PNC_tier', bits: 5, value_shift: 1 },
+  { field: 'State_PWC_tier', bits: 5, value_shift: 1 },
+  { field: 'State_PNCWC_tier', bits: 5, value_shift: 1 },
+]
+
+export const DAM_PACK_BITS = [
+  { field: 'StreamOrder', bits: 4 },
+  { field: 'Recon', bits: 5 },
+  { field: 'HUC8_USFS', bits: 2 },
+  { field: 'PassageFacility', bits: 5 },
+  { field: 'Diversion', bits: 2 },
+  { field: 'Estimated', bits: 1 },
+  { field: 'HasNetwork', bits: 1 },
+  { field: 'Excluded', bits: 1 },
+  { field: 'OnLoop', bits: 1 },
+  { field: 'Unranked', bits: 1 },
+  { field: 'Invasive', bits: 1 },
+  { field: 'NoStructure', bits: 1 },
+]
+
+export const SB_PACK_BITS = [
+  { field: 'StreamOrder', bits: 4 },
+  { field: 'Recon', bits: 5 },
+  { field: 'HUC8_USFS', bits: 2 },
+  { field: 'HasNetwork', bits: 1 },
+  { field: 'Excluded', bits: 1 },
+  { field: 'OnLoop', bits: 1 },
+  { field: 'Unranked', bits: 1 },
+  { field: 'Invasive', bits: 1 },
+]

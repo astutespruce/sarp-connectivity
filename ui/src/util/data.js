@@ -67,3 +67,25 @@ export const splitArray = (arr, conditionFunc) => {
 
   return out
 }
+
+/**
+ * Unpack a previously bit-packed value.
+ *
+ * Offset is added back to value.
+ *
+ * @param {Number} packed - bit-packed value
+ * @param {Objectc} fieldBits - array of {field: <field>, bits: <num bits>, offset: <offset>} per field
+ * @returns Object of {field: value, ...}
+ */
+export const unpackBits = (packed, fieldBits) => {
+  const out = {}
+
+  let sumBits = 0
+  fieldBits.forEach(({ field, bits, value_shift = 0 }) => {
+    /* eslint-disable no-bitwise */
+    out[field] = ((packed >> sumBits) & (2 ** bits - 1)) + value_shift
+    sumBits += bits
+  })
+
+  return out
+}

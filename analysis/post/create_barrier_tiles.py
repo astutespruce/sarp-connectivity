@@ -14,6 +14,7 @@ from api.constants import (
     SB_TILE_FILTER_FIELDS,
     SB_TILE_FIELDS,
     TIER_FIELDS,
+    STATE_TIER_PACK_BITS,
     UNIT_FIELDS,
 )
 from analysis.lib.util import pack_bits
@@ -21,10 +22,6 @@ from analysis.post.lib.tiles import get_col_types
 
 # unit fields that can be dropped for sets of barriers that are not filtered
 DROP_UNIT_FIELDS = [f for f in UNIT_FIELDS if not f in {"State", "HUC8", "HUC12"}]
-
-# IMPORTANT: all values must be shifted up by 1 before packing
-TIER_BITS = 5  # holds values 0...21
-TIER_PACK_BITS = [(c, TIER_BITS) for c in TIER_FIELDS]
 
 # FIXME:
 MAX_ZOOM = 9  # 16
@@ -115,7 +112,6 @@ tmp = to_lowercase(df.loc[df.Ranked & (df.TotDASqKm >= 1)][DAM_TILE_FILTER_FIELD
 
 print(f"Creating tiles for {len(tmp):,} ranked dams with networks for zooms 2-7")
 
-
 csv_filename = tmp_dir / "dams_lt_z8.csv"
 mbtiles_filename = tmp_dir / "dams_lt_z8.mbtiles"
 mbtiles_files = [mbtiles_filename]
@@ -139,12 +135,8 @@ ranked_dams = df.loc[df.Ranked].drop(columns=["Ranked", "HasNetwork"])
 print(f"Creating tiles for {len(ranked_dams):,} ranked dams with networks")
 
 
-# Pack tier fields (subtract 1 here, add in in UI)
-# TODO: update UI to show correct tier
-for col in TIER_FIELDS:
-    ranked_dams[col] -= 1
-
-ranked_dams["StateTiers"] = pack_bits(ranked_dams, TIER_PACK_BITS)
+# Pack tier fields
+ranked_dams["StateTiers"] = pack_bits(ranked_dams, STATE_TIER_PACK_BITS)
 ranked_dams = ranked_dams.drop(columns=TIER_FIELDS)
 ranked_dams = to_lowercase(ranked_dams)
 

@@ -76,17 +76,21 @@ def pack_bits(df, field_bits):
 
     All values must fit within a uint32.
 
+    `value_shift` is optional (default: 0); if present it is the amount that
+    is added to 0 to reach minimum value of value range for unpacked value.
+
     Parameters
     ----------
     df : DataFrame
-    field_bits : list-like of (field name, bit width) for each field
+    field_bits : list-like of dicts
+        {"field": <field>, "bits": <num bits>, "value_shift": <shift>} for each field
 
     Returns
     -------
     ndarray of dtype large enough to hold all values
     """
 
-    tot_bits = sum([f[1] for f in field_bits])
+    tot_bits = sum([f["bits"] for f in field_bits])
     dtype = "uint32"
     if tot_bits <= 8:
         dtype = "uint8"
@@ -95,21 +99,21 @@ def pack_bits(df, field_bits):
     elif tot_bits > 32:
         raise ValueError(f"Packing requires {tot_bits} bits; needs to be less than 32")
 
-    field, bits = field_bits[0]
-    values = df[field].values
+    first = field_bits[0]
+    values = df[first["field"]].values - first.get("value_shift", 0)
     if values.min() < 0:
-        raise ValueError(f"Values for {field} must be >= 0")
+        raise ValueError(f"Values for {first['field']} must be >= 0")
 
     values = values.astype(dtype)
 
-    sum_bits = bits
+    sum_bits = first["bits"]
 
-    for (field, bits) in field_bits[1:]:
-        field_values = df[field].values
+    for entry in field_bits[1:]:
+        field_values = df[entry["field"]].values - entry.get("value_shift", 0)
         if field_values.min() < 0:
-            raise ValueError(f"Values for {field} must be >= 0")
+            raise ValueError(f"Values for {entry['field']} must be >= 0")
         values = values | field_values.astype(dtype) << sum_bits
-        sum_bits += bits
+        sum_bits += entry["bits"]
 
     return values
 
@@ -117,10 +121,14 @@ def pack_bits(df, field_bits):
 def unpack_bits(arr, field_bits):
     """Unpack bits in a packed integer to a DataFrame.
 
+    `value_shift` is optional (default: 0); if present it is the amount that
+    is added to 0 to reach minimum value of value range for unpacked value.
+
     Parameters
     ----------
     arr : ndarray or Series
-    field_bits : list-like of (field name, bit width) for each field
+    field_bits : list-like of dicts
+        {"field": <field>, "bits": <num bits>, "value_shift": <shift>} for each field
 
     Returns
     -------
@@ -131,13 +139,12 @@ def unpack_bits(arr, field_bits):
     if isinstance(arr, pd.Series):
         arr = arr.values
 
-    field, bits = field_bits[0]
-    values = arr & ((2**bits) - 1)
-    out = pd.DataFrame({field: values})
+    out = {}
+    sum_bits = 0
+    for entry in field_bits:
+        out[entry["field"]] = (
+            (arr >> sum_bits) & ((2 ** entry["bits"]) - 1)
+        ) + entry.get("value_shift", 0)
+        sum_bits += entry["bits"]
 
-    sum_bits = bits
-    for (field, bits) in field_bits[1:]:
-        out[field] = (arr >> sum_bits) & ((2**bits) - 1)
-        sum_bits += bits
-
-    return out
+    return pd.DataFrame(out)
