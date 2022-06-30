@@ -7,6 +7,7 @@ import { Box, Button, Flex, Heading, Paragraph, Text } from 'theme-ui'
 import { Tab, Tabs } from 'components/Tabs'
 import { isEmptyString } from 'util/string'
 import { unpackBits } from 'util/data'
+import { capitalize } from 'util/format'
 import DamDetails from './DamDetails'
 import SmallBarrierDetails from './SmallBarrierDetails'
 import WaterfallDetails from './WaterfallDetails'
@@ -92,7 +93,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
 
   const { hasnetwork = 0, invasive = 0, nostructure = 0 } = packedInfo || {}
 
-  let defaultName = `Unknown ${typeLabel} name${
+  let defaultName = `${capitalize(typeLabel)}${
     sarpid ? ` (SARPID: ${sarpid})` : ''
   }`
   if (isCrossing) {

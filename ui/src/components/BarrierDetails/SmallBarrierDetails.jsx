@@ -9,6 +9,9 @@ import { isEmptyString } from 'util/string'
 
 import {
   BARRIER_SEVERITY,
+  BARRIER_CONDITION,
+  CROSSING_TYPE,
+  ROAD_TYPE,
   CONSTRICTION,
   OWNERTYPE,
   HUC8_USFS,
@@ -54,10 +57,10 @@ const BarrierDetails = ({
   HUC8Name,
   HUC12Name,
   road,
-  roadtype,
-  crossingtype,
+  roadtypeclass,
+  crossingtypeclass,
   constriction,
-  condition,
+  conditionclass,
   sarp_score,
   tespp,
   statesgcnspp,
@@ -80,7 +83,7 @@ const BarrierDetails = ({
   landcover,
   sizeclasses,
 }) => {
-  const isCrossing = isEmptyString(crossingtype)
+  const isCrossing = sarpid.startsWith('cr')
 
   return (
     <Box
@@ -142,19 +145,19 @@ const BarrierDetails = ({
       </Section>
 
       <Section title="Barrier information">
-        {!isEmptyString(roadtype) ? (
+        {roadtypeclass ? (
           <Entry>
-            <Field>Road type:</Field> {roadtype}
+            <Field>Road type:</Field> {ROAD_TYPE[roadtypeclass]}
           </Entry>
         ) : null}
-        {!isEmptyString(crossingtype) ? (
+        {crossingtypeclass ? (
           <Entry>
-            <Field>Crossing type:</Field> {crossingtype}
+            <Field>Crossing type:</Field> {CROSSING_TYPE[crossingtypeclass]}
           </Entry>
         ) : null}
-        {!isEmptyString(condition) ? (
+        {conditionclass ? (
           <Entry>
-            <Field>Condition:</Field> {condition}
+            <Field>Condition:</Field> {BARRIER_CONDITION[conditionclass]}
           </Entry>
         ) : null}
         {constriction ? (
@@ -316,8 +319,8 @@ BarrierDetails.propTypes = {
   sarpid: PropTypes.string.isRequired,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
-  hasnetwork: PropTypes.bool.isRequired,
-  excluded: PropTypes.bool,
+  hasnetwork: PropTypes.number.isRequired,
+  excluded: PropTypes.number,
   source: PropTypes.string,
   stream: PropTypes.string,
   intermittent: PropTypes.number,
@@ -326,10 +329,10 @@ BarrierDetails.propTypes = {
   HUC8Name: PropTypes.string,
   HUC12Name: PropTypes.string,
   road: PropTypes.string,
-  roadtype: PropTypes.string,
-  crossingtype: PropTypes.string,
+  roadtypeclass: PropTypes.number,
+  crossingtypeclass: PropTypes.number,
   constriction: PropTypes.number,
-  condition: PropTypes.string,
+  conditionclass: PropTypes.number,
   severityclass: PropTypes.number,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
@@ -362,11 +365,11 @@ BarrierDetails.defaultProps = {
   stream: null,
   intermittent: -1,
   road: null,
-  roadtype: null,
-  crossingtype: null,
+  roadtypeclass: 0,
+  crossingtypeclass: 0,
   constriction: 0,
   severityclass: null,
-  condition: null,
+  conditionclass: 0,
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,

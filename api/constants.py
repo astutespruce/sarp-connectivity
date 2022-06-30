@@ -344,7 +344,6 @@ SB_TILE_FIELDS = [
     for c in SB_API_FIELDS + ["packed"]
     if not c
     in {
-        "Basin",
         "IntermittentUpstreamMiles",
         "FreeIntermittentDownstreamMiles",
         "GainMiles",
@@ -361,6 +360,11 @@ SB_TILE_FIELDS = [
         "ProtectedLand",
         "AnnualVelocity",
         "AnnualFlow",
+        "PotentialProject",
+        # fields where we only use domain rather than string values
+        "RoadType",
+        "Condition",
+        "CrossingType",
         # unit name fields are retrieved from summary tiles
         "Subbasin",
         "Subwatershed",

@@ -116,6 +116,11 @@ for column in ("CrossingType", "RoadType", "Stream", "Road"):
     df[column] = df[column].fillna("Unknown").str.title().str.strip()
     df.loc[df[column].str.len() == 0, column] = "Unknown"
 
+# Strip unknowns back out for name fields
+for column in ("Road", "Stream"):
+    df[column] = df[column].str.replace("Unknown", "")
+
+
 # Fix line returns in stream name and road name
 df.loc[df.Stream.str.contains("\r\n", ""), "Stream"] = "Unnamed"
 df.Road = df.Road.str.replace("\r\n", "")
