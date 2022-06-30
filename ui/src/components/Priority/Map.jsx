@@ -236,8 +236,6 @@ const PriorityMap = ({
             // get barrier details from tiles
             const barrier = getBarrierById(barrierId)
 
-            console.log('got barrier for info')
-
             if (!barrier) {
               return
             }
@@ -245,7 +243,9 @@ const PriorityMap = ({
             /* eslint-disable-next-line */
             barrierName = sarpidname.split('|')[1]
           } else {
-            barrierName = feature.properties.name
+            const { properties: { sarpidname = '|' } = {} } = feature
+            /* eslint-disable-next-line */
+            barrierName = sarpidname.split('|')[1]
           }
 
           map.getSource(pointHover.id).setData({
@@ -345,7 +345,7 @@ const PriorityMap = ({
           rankedBarrierProperties = rankedBarrier.properties
         }
 
-        // promote network fields
+        // promote network fields if clicking on a waterfall
         const networkFields = {}
         Object.keys(properties)
           .filter((k) => k.endsWith(barrierType))
@@ -353,17 +353,15 @@ const PriorityMap = ({
             networkFields[field.split('_')[0]] = properties[field]
           })
 
-        // FIXME: remove
-        console.log('newtork fields', networkFields)
-
         onSelectBarrier({
           ...properties,
           ...networkFields,
           ...rankedBarrierProperties,
           barrierType: source === 'ranked' ? barrierType : source,
           networkType: source === 'dams' ? 'dams' : undefined,
-          HUC8Name: getHUCName('HUC8', properties.HUC8),
-          HUC12Name: getHUCName('HUC12', properties.HUC12),
+          HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),
+          HUC12Name: getSummaryUnitName('HUC12', properties.HUC12),
+          CountyName: getSummaryUnitName('County', properties.County),
           lat,
           lon,
           ranked: source === 'ranked' || sourceLayer.startsWith('ranked_'),
@@ -387,7 +385,7 @@ const PriorityMap = ({
     ]
   )
 
-  const getHUCName = (layer, id) => {
+  const getSummaryUnitName = (layer, id) => {
     if (!id) return null
 
     const [result] = mapRef.current.querySourceFeatures('summary', {

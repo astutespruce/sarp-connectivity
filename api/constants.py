@@ -245,7 +245,6 @@ DAM_TILE_FIELDS = [
     for c in DAM_API_FIELDS + ["packed"]
     if not c
     in {
-        "Basin",
         "IntermittentUpstreamMiles",
         "FreeIntermittentDownstreamMiles",
         "GainMiles",
@@ -258,14 +257,15 @@ DAM_TILE_FIELDS = [
         "NumBarriersDownstream",
         "YearRemoved",
         "NHDPlusID",
-        # fields not used for tiles
         "Basin",
-        "Subbasin",
-        "Subwatershed",
         "HUC2",
         "ProtectedLand",
         "AnnualVelocity",
         "AnnualFlow",
+        # unit name fields are retrieved from summary tiles
+        "Subbasin",
+        "Subwatershed",
+        "County",
         # included in "packed": (note: some fields included above since used for processing tiles)
         "Excluded",
         "OnLoop",
@@ -319,7 +319,6 @@ SB_CORE_FIELDS = (
         "SARP_Score",
         "YearRemoved",
         "StreamSizeClass",
-        "TotDASqKm",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -357,14 +356,15 @@ SB_TILE_FIELDS = [
         "YearRemoved",
         "NHDPlusID",
         "ProtectedLand",
-        # fields not used for tiles
         "Basin",
-        "Subbasin",
-        "Subwatershed",
         "HUC2",
         "ProtectedLand",
         "AnnualVelocity",
         "AnnualFlow",
+        # unit name fields are retrieved from summary tiles
+        "Subbasin",
+        "Subwatershed",
+        "County",
         # included in "packed": (note: some fields included above since used for processing tiles)
         "Excluded",
         "OnLoop",
@@ -391,11 +391,29 @@ SB_TILE_FILTER_FIELDS = unique(
     ["lat", "lon"] + SB_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
 )
 
+# NOTE: waterfalls have network metrics for both dams and small barriers; these
+# are not repeated for general flowline properties
+WF_METRIC_FIELDS = [
+    c
+    for c in METRIC_FIELDS
+    if not c
+    in {
+        "HasNetwork",
+        "Ranked",
+        "Intermittent",
+        "StreamOrder",
+    }
+]
+
 WF_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
         "Stream",
         "FallType",
+        "NHDPlusID",
+        "AnnualVelocity",
+        "AnnualFlow",
+        "TotDASqKm",
         # from GENERAL_API_FIELDS2
         "TESpp",
         "StateSGCNSpp",
@@ -413,9 +431,67 @@ WF_CORE_FIELDS = (
         "Subwatershed",
         "Excluded",
     ]
-    + ["HUC8", "HUC10", "HUC12", "State", "County"]
+    + ["HUC8", "HUC10", "HUC12", "State", "County", "COUNTYFIPS"]
+    + [f"{c}_dams" for c in WF_METRIC_FIELDS]
+    + ["upNetID_dams", "downNetID_dams"]
+    + [f"{c}_small_barriers" for c in WF_METRIC_FIELDS]
+    + ["upNetID_small_barriers", "downNetID_small_barriers"]
 )
+WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
 
+
+WF_TILE_FIELDS = [
+    c
+    for c in WF_CORE_FIELDS + ["packed"]
+    if not c
+    in {
+        # network fields are for both dams
+        "FreeIntermittentDownstreamMiles_dams",
+        "GainMiles_dams",
+        "IntermittentUpstreamMiles_dams",
+        "PerennialGainMiles_dams",
+        "PercentUnaltered_dams",
+        "PercentPerennialUnaltered_dams",
+        "TotalNetworkMiles_dams",
+        "TotalPerennialNetworkMiles_dams",
+        # and small barriers
+        "FreeIntermittentDownstreamMiles_small_barriers",
+        "GainMiles_small_barriers",
+        "IntermittentUpstreamMiles_small_barriers",
+        "PerennialGainMiles_small_barriers",
+        "PercentUnaltered_small_barriers",
+        "PercentPerennialUnaltered_small_barriers",
+        "TotalNetworkMiles_small_barriers",
+        "TotalPerennialNetworkMiles_small_barriers",
+        # not used for tiles
+        "NHDPlusID",
+        "Basin",
+        "HUC2",
+        "ProtectedLand",
+        "AnnualVelocity",
+        "AnnualFlow",
+        # unit name fields are retrieved from summary tiles
+        "Subbasin",
+        "Subwatershed",
+        "County",
+        # included in "packed": (note: some fields included above since used for processing tiles)
+        "Excluded",
+        "OnLoop",
+        "StreamOrder",
+        "HUC8_USFS",
+    }
+]
+
+WF_PACK_BITS = [
+    {"field": "StreamOrder", "bits": 4},
+    {"field": "HUC8_USFS", "bits": 2},
+    {"field": "HasNetwork", "bits": 1},
+    {"field": "Excluded", "bits": 1},
+    {"field": "OnLoop", "bits": 1},
+]
+
+
+### Bit-packing for tiers
 
 TIER_BITS = 5  # holds values 0...21 after subtracting offset
 STATE_TIER_PACK_BITS = [

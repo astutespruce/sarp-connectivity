@@ -311,37 +311,6 @@ const SummaryMap = ({
             layerId: sourceLayer,
           })
         } else {
-          // query HUC8, HUC12, County names to show with barrier details
-          let HUC8Name = null
-          let HUC12Name = null
-          let CountyName = null
-
-          if (properties.HUC8 && properties.HUC12) {
-            const [HUC8] = map.querySourceFeatures('summary', {
-              sourceLayer: 'HUC8',
-              filter: ['==', 'id', properties.HUC8],
-            })
-            if (HUC8) {
-              HUC8Name = HUC8.properties.name
-            }
-
-            const [HUC12] = map.querySourceFeatures('summary', {
-              sourceLayer: 'HUC12',
-              filter: ['==', 'id', properties.HUC12],
-            })
-            if (HUC12) {
-              HUC12Name = HUC12.properties.name
-            }
-
-            const [County] = map.querySourceFeatures('summary', {
-              sourceLayer: 'County',
-              filter: ['==', 'id', properties.County],
-            })
-            if (County) {
-              CountyName = County.properties.name
-            }
-          }
-
           const {
             geometry: {
               coordinates: [lon, lat],
@@ -351,9 +320,9 @@ const SummaryMap = ({
           // dam, barrier, waterfall
           onSelectBarrier({
             ...properties,
-            HUC8Name,
-            HUC12Name,
-            CountyName,
+            HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),
+            HUC12Name: getSummaryUnitName('HUC12', properties.HUC12),
+            CountyName: getSummaryUnitName('County', properties.County),
             barrierType: source,
             lat,
             lon,
@@ -370,6 +339,19 @@ const SummaryMap = ({
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
     []
   )
+
+  const getSummaryUnitName = (layer, id) => {
+    if (!id) return null
+
+    const [result] = mapRef.current.querySourceFeatures('summary', {
+      sourceLayer: layer,
+      filter: ['==', 'id', id],
+    })
+    if (result) {
+      return result.properties.name
+    }
+    return null
+  }
 
   useEffect(() => {
     const { current: map } = mapRef

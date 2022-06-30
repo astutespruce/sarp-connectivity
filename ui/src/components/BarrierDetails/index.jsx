@@ -17,6 +17,7 @@ import {
   STATES,
   DAM_PACK_BITS,
   SB_PACK_BITS,
+  WF_PACK_BITS,
   STATE_TIER_PACK_BITS,
 } from '../../../config/constants'
 
@@ -72,9 +73,16 @@ const BarrierDetails = ({ barrier, onClose }) => {
       break
     }
     case 'waterfalls': {
-      // hard-code packedInfo since these are always on-network
-      packedInfo = { hasnetwork: 1 }
-      details = <WaterfallDetails sarpid={sarpid} name={name} {...barrier} />
+      packedInfo = unpackBits(packed, WF_PACK_BITS)
+
+      details = (
+        <WaterfallDetails
+          sarpid={sarpid}
+          name={name}
+          {...barrier}
+          {...packedInfo}
+        />
+      )
       break
     }
     default: {

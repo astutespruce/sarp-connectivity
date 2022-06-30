@@ -572,9 +572,17 @@ export const SB_PACK_BITS = [
   { field: 'streamorder', bits: 4 },
   { field: 'recon', bits: 5 },
   { field: 'huc8_usfs', bits: 2 },
-  { field: 'nasnetwork', bits: 1 },
+  { field: 'hasnetwork', bits: 1 },
   { field: 'excluded', bits: 1 },
   { field: 'onloop', bits: 1 },
   { field: 'unranked', bits: 1 },
   { field: 'invasive', bits: 1 },
+]
+
+export const WF_PACK_BITS = [
+  { field: 'streamorder', bits: 4 },
+  { field: 'huc8_usfs', bits: 2 },
+  { field: 'hasnetwork', bits: 1 },
+  { field: 'excluded', bits: 1 },
+  { field: 'onloop', bits: 1 },
 ]

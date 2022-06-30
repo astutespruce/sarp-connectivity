@@ -173,7 +173,7 @@ print(
     f"Dropped {drop_ix.sum():,} waterfalls from all analysis and mapping based on ManualReview, Recon, type, or ID"
 )
 
-### Exclude barriers that should not be analyzed or prioritized based on manual QA
+### Exclude barriers that should not be analyzed based on manual QA
 df["excluded"] = df.ManualReview.isin(EXCLUDE_MANUALREVIEW) | df.Recon.isin(
     EXCLUDE_RECON
 )
@@ -182,9 +182,7 @@ df.loc[df.Recon.isin(EXCLUDE_RECON), "log"] = f"excluded: Recon one of {EXCLUDE_
 df.loc[
     df.ManualReview.isin(EXCLUDE_MANUALREVIEW), "log"
 ] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
-print(
-    f"Excluded {df.excluded.sum():,} waterfalls from network analysis and prioritization"
-)
+print(f"Excluded {df.excluded.sum():,} waterfalls from network analysis")
 
 ### Snap waterfalls
 print(f"Snapping {len(df):,} waterfalls")
@@ -322,7 +320,7 @@ df = df.loc[df.snapped & (~(df.duplicate | df.dropped | df.excluded))].reset_ind
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
-print("Serializing {0} snapped waterfalls".format(len(df)))
+print(f"Serializing {len(df)} snapped waterfalls")
 df[
     ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
 ].to_feather(
