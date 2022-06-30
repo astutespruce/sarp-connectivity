@@ -79,7 +79,7 @@ const LocationConstruction = ({
                 </li>
               ) : null}
               {diversion === 1 ? (
-                <li>Diversion: this dam is a diversion structure</li>
+                <li>Diversion: this is a water diversion</li>
               ) : null}
               {purpose && PURPOSE[purpose] ? (
                 <li>Purpose: {PURPOSE[purpose].toLowerCase()}</li>

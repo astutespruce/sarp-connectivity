@@ -21,10 +21,12 @@ from analysis.lib.util import pack_bits
 from analysis.post.lib.tiles import get_col_types
 
 # unit fields that can be dropped for sets of barriers that are not filtered
-DROP_UNIT_FIELDS = [f for f in UNIT_FIELDS if not f in {"State", "HUC8", "HUC12"}]
+DROP_UNIT_FIELDS = [
+    f for f in UNIT_FIELDS if not f in {"State", "County", "HUC8", "HUC12"}
+]
 
 # FIXME:
-MAX_ZOOM = 9  # 16
+MAX_ZOOM = 10  # 16
 
 
 def to_lowercase(df):
@@ -89,7 +91,6 @@ for col in ["Trout"]:
     df[col] = df[col].astype("uint8")
 
 # Combine string fields
-df["WatershedName"] = df.Subbasin + "|" + df.Subwatershed
 df["SARPIDName"] = df.SARPID + "|" + df.Name
 
 df = df.drop(
@@ -97,8 +98,6 @@ df = df.drop(
         "SARPID",
         "Name",
         "CountyName",
-        "Subbasin",
-        "Subwatershed",
     ]
 )
 
@@ -277,7 +276,6 @@ print(f"Created dam tiles in {time() - start:,.2f}s")
 #     df[col] = df[col].astype("uint8")
 
 
-# df["WatershedName"] = df.Subbasin + "|" + df.Subwatershed
 # df["SARPIDName"] = df.SARPID + "|" + df.Name
 
 # df = df.drop(
@@ -285,8 +283,6 @@ print(f"Created dam tiles in {time() - start:,.2f}s")
 #         "SARPID",
 #         "Name",
 #         "CountyName",
-#         "Subbasin",
-#         "Subwatershed",
 #     ]
 # )
 

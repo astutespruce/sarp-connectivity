@@ -332,8 +332,10 @@ const PriorityMap = ({
 
         // note: these are hard-coded for some types
         const {
-          hasnetwork = sourceLayer !== 'background',
-          ranked = sourceLayer !== 'background' && source !== 'waterfalls',
+          hasnetwork = sourceLayer === 'dams' ||
+            sourceLayer === 'small_barriers' ||
+            sourceLayer === 'waterfalls',
+          ranked = sourceLayer === 'dams' || sourceLayer === 'small_barriers',
         } = properties
 
         let rankedBarrierProperties = {}

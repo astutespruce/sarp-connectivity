@@ -102,7 +102,7 @@ const Location = ({
                 ) : null}
                 {diversion === 1 ? (
                   <ListItem>
-                    <Text>Diversion: this dam is a diversion structure</Text>
+                    <Text>Diversion: this is a water diversion</Text>
                   </ListItem>
                 ) : null}
                 {purpose && PURPOSE[purpose] ? (

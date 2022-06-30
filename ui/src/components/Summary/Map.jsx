@@ -29,7 +29,8 @@ import {
   waterfallsLayer,
   damsSecondaryLayer,
   pointLayer,
-  backgroundPointLayer,
+  offnetworkPointLayer,
+  unrankedPointLayer,
   pointHighlightLayer,
   pointHoverLayer,
   pointLegends,
@@ -191,19 +192,33 @@ const SummaryMap = ({
       map.addLayer(damsSecondaryLayer)
 
       barrierTypes.forEach((t) => {
+        // off network barriers
         map.addLayer({
-          id: `${t}-background`,
+          id: `offnetwork_${t}`,
           source: t,
-          ...backgroundPointLayer,
+          'source-layer': `offnetwork_${t}`,
+          ...offnetworkPointLayer,
           layout: {
             visibility: barrierType === t ? 'visible' : 'none',
           },
         })
 
+        // on-network but unranked barriers
         map.addLayer({
-          id: t,
+          id: `unranked_${t}`,
           source: t,
-          'source-layer': t,
+          'source-layer': `unranked_${t}`,
+          ...unrankedPointLayer, // TODO: dedicated styling
+          layout: {
+            visibility: barrierType === t ? 'visible' : 'none',
+          },
+        })
+
+        // on-network ranked barriers
+        map.addLayer({
+          id: `ranked_${t}`,
+          source: t,
+          'source-layer': `ranked_${t}`,
           ...pointLayer,
           layout: {
             visibility: barrierType === t ? 'visible' : 'none',
@@ -215,9 +230,15 @@ const SummaryMap = ({
       map.addLayer(pointHoverLayer)
       map.addLayer(pointHighlightLayer)
 
-      const pointLayers = barrierTypes
-        .map((t) => t)
-        .concat(barrierTypes.map((t) => `${t}-background`))
+      // TODO: add unranked
+      const pointLayers = []
+        .concat(
+          ...barrierTypes.map((t) => [
+            `ranked_${t}`,
+            `unranked_${t}`,
+            `offnetwork_${t}`,
+          ])
+        )
         .concat(['dams-secondary', 'waterfalls'])
 
       const clickLayers = pointLayers.concat(
@@ -253,7 +274,10 @@ const SummaryMap = ({
                 barrierTypeLabels[feature.source].length - 1
               )}: `
             : ''
-          const { name } = feature.properties
+
+          const { properties: { sarpidname = '|' } = {} } = feature
+          const name = sarpidname.split('|')[1]
+
           tooltip
             .setLngLat(coordinates)
             .setHTML(
@@ -287,9 +311,10 @@ const SummaryMap = ({
             layerId: sourceLayer,
           })
         } else {
-          // query HUC8 and HUC12 names to show with barrier details
+          // query HUC8, HUC12, County names to show with barrier details
           let HUC8Name = null
           let HUC12Name = null
+          let CountyName = null
 
           if (properties.HUC8 && properties.HUC12) {
             const [HUC8] = map.querySourceFeatures('summary', {
@@ -307,6 +332,14 @@ const SummaryMap = ({
             if (HUC12) {
               HUC12Name = HUC12.properties.name
             }
+
+            const [County] = map.querySourceFeatures('summary', {
+              sourceLayer: 'County',
+              filter: ['==', 'id', properties.County],
+            })
+            if (County) {
+              CountyName = County.properties.name
+            }
           }
 
           const {
@@ -315,21 +348,20 @@ const SummaryMap = ({
             },
           } = feature
 
-          const {
-            hasnetwork = sourceLayer !== 'background',
-            ranked = sourceLayer !== 'background' && source !== 'waterfalls',
-          } = properties
-
           // dam, barrier, waterfall
           onSelectBarrier({
             ...properties,
             HUC8Name,
             HUC12Name,
+            CountyName,
             barrierType: source,
             lat,
             lon,
-            hasnetwork,
-            ranked,
+            ranked: sourceLayer.startsWith('ranked_'),
+            layer: {
+              source,
+              sourceLayer,
+            },
           })
         }
       })
@@ -375,8 +407,9 @@ const SummaryMap = ({
     // toggle barriers layer
     barrierTypes.forEach((t) => {
       const visibility = barrierType === t ? 'visible' : 'none'
-      map.setLayoutProperty(t, 'visibility', visibility)
-      map.setLayoutProperty(`${t}-background`, 'visibility', visibility)
+      map.setLayoutProperty(`ranked_${t}`, 'visibility', visibility)
+      // TODO: unranked
+      map.setLayoutProperty(`offnetwork_${t}`, 'visibility', visibility)
     })
 
     // clear highlighted networks
@@ -519,14 +552,14 @@ const SummaryMap = ({
 
     const circles = []
     if (map && map.getZoom() >= 12) {
-      const { primary, background, damsSecondary, waterfalls } = pointLegends
+      const { primary, offnetwork, damsSecondary, waterfalls } = pointLegends
       circles.push({
         ...primary,
         label: `${barrierTypeLabel} analyzed for impacts to aquatic connectivity`,
       })
 
       circles.push({
-        ...background,
+        ...offnetwork,
         label: `${barrierType} not analyzed`,
       })
 

@@ -354,6 +354,7 @@ export const layers = [
         },
       },
     },
+    z,
   },
 ]
 
@@ -398,7 +399,7 @@ export const waterfallsLayer = {
 export const damsSecondaryLayer = {
   id: 'dams-secondary',
   source: 'dams',
-  'source-layer': 'dams',
+  'source-layer': 'ranked_dams',
   layout: {
     visibility: 'none',
   },
@@ -470,10 +471,44 @@ export const pointLayer = {
   },
 }
 
-export const backgroundPointLayer = {
+// off-network barriers
+export const offnetworkPointLayer = {
   // id: '', // provided by specific layer
   // source: "" // provided by specific layer
-  'source-layer': 'background',
+  // 'source-layer': '', // provided by specific layer
+  type: 'circle',
+  minzoom: 12,
+  maxzoom: 24,
+  paint: {
+    'circle-color': '#999',
+    'circle-radius': {
+      stops: [
+        [12, 1],
+        [14, 3],
+        [16, 6],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [12, 0.5],
+        [14, 1],
+      ],
+    },
+    'circle-stroke-color': '#666',
+    'circle-stroke-width': {
+      stops: [
+        [12, 0],
+        [14, 1],
+      ],
+    },
+  },
+}
+
+// on-network but unranked barriers
+export const unrankedPointLayer = {
+  // id: '', // provided by specific layer
+  // source: "" // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
   type: 'circle',
   minzoom: 12,
   maxzoom: 24,
@@ -507,10 +542,10 @@ export const pointLegends = {
     radius: 8,
     color: pointLayer.paint['circle-color'],
   },
-  background: {
+  offnetwork: {
     radius: 6,
-    color: backgroundPointLayer.paint['circle-color'],
-    borderColor: backgroundPointLayer.paint['circle-stroke-color'],
+    color: offnetworkPointLayer.paint['circle-color'],
+    borderColor: offnetworkPointLayer.paint['circle-stroke-color'],
     borderWidth: 1,
   },
   damsSecondary: {

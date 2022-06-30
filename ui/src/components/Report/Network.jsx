@@ -29,6 +29,7 @@ const Network = ({
   sizeclasses,
   landcover,
   excluded,
+  onloop,
   hasnetwork,
   ...props
 }) => {
@@ -61,6 +62,35 @@ const Network = ({
         <Text>
           This {barrierTypeLabel} was excluded from the connectivity analysis
           based on field reconnaissance or manual review of aerial imagery.
+        </Text>
+      </Section>
+    )
+  }
+
+  if (onloop) {
+    return (
+      <Section title="Functional network information" {...props}>
+        <Text>
+          This {barrierTypeLabel} was excluded from the connectivity analysis
+          based on its position within the aquatic network.
+          {'\n\n'}
+        </Text>
+        <Text style={{ color: '#7f8a93' }}>
+          This {barrierType === 'dams' ? 'dam' : 'road-related barrier'} was
+          snapped to a secondary channel within the aquatic network according to
+          the way that primary versus secondary channels are identified within
+          the NHD High Resolution Plus dataset. This{' '}
+          {barrierType === 'dams' ? 'dam' : 'road-related barrier'} may need to
+          be repositioned to occur on the primary channel in order to be
+          included within the connectivity analysis. Please{' '}
+          <Link
+            href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
+              barrierType === 'dams' ? 'dam' : 'road-related barrier'
+            }: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+          >
+            contact us
+          </Link>{' '}
+          to report an error.
         </Text>
       </Section>
     )
@@ -307,6 +337,7 @@ Network.propTypes = {
   barrierType: PropTypes.string.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
+  onloop: PropTypes.bool,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -321,6 +352,7 @@ Network.propTypes = {
 
 Network.defaultProps = {
   excluded: false,
+  onloop: false,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,

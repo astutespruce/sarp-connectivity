@@ -541,37 +541,40 @@ export const HUC8_SGCN = {
   0: 'not within top 10 watersheds per state',
 }
 
+// Note: all pack_bits fields are lowercase in UI but uppercase on backend
+
+// tiers use just the scenario as the key here
 export const STATE_TIER_PACK_BITS = [
-  { field: 'State_NC_tier', bits: 5, value_shift: 1 },
-  { field: 'State_WC_tier', bits: 5, value_shift: 1 },
-  { field: 'State_NCWC_tier', bits: 5, value_shift: 1 },
-  { field: 'State_PNC_tier', bits: 5, value_shift: 1 },
-  { field: 'State_PWC_tier', bits: 5, value_shift: 1 },
-  { field: 'State_PNCWC_tier', bits: 5, value_shift: 1 },
+  { field: 'nc', bits: 5, value_shift: 1 },
+  { field: 'wc', bits: 5, value_shift: 1 },
+  { field: 'ncwc', bits: 5, value_shift: 1 },
+  { field: 'pnc', bits: 5, value_shift: 1 },
+  { field: 'pwc', bits: 5, value_shift: 1 },
+  { field: 'pncwc', bits: 5, value_shift: 1 },
 ]
 
 export const DAM_PACK_BITS = [
-  { field: 'StreamOrder', bits: 4 },
-  { field: 'Recon', bits: 5 },
-  { field: 'HUC8_USFS', bits: 2 },
-  { field: 'PassageFacility', bits: 5 },
-  { field: 'Diversion', bits: 2 },
-  { field: 'Estimated', bits: 1 },
-  { field: 'HasNetwork', bits: 1 },
-  { field: 'Excluded', bits: 1 },
-  { field: 'OnLoop', bits: 1 },
-  { field: 'Unranked', bits: 1 },
-  { field: 'Invasive', bits: 1 },
-  { field: 'NoStructure', bits: 1 },
+  { field: 'streamorder', bits: 4 },
+  { field: 'recon', bits: 5 },
+  { field: 'huc8_usfs', bits: 2 },
+  { field: 'passagefacility', bits: 5 },
+  { field: 'diversion', bits: 2 },
+  { field: 'estimated', bits: 1 },
+  { field: 'hasnetwork', bits: 1 },
+  { field: 'excluded', bits: 1 },
+  { field: 'onloop', bits: 1 },
+  { field: 'unranked', bits: 1 },
+  { field: 'invasive', bits: 1 },
+  { field: 'nostructure', bits: 1 },
 ]
 
 export const SB_PACK_BITS = [
-  { field: 'StreamOrder', bits: 4 },
-  { field: 'Recon', bits: 5 },
-  { field: 'HUC8_USFS', bits: 2 },
-  { field: 'HasNetwork', bits: 1 },
-  { field: 'Excluded', bits: 1 },
-  { field: 'OnLoop', bits: 1 },
-  { field: 'Unranked', bits: 1 },
-  { field: 'Invasive', bits: 1 },
+  { field: 'streamorder', bits: 4 },
+  { field: 'recon', bits: 5 },
+  { field: 'huc8_usfs', bits: 2 },
+  { field: 'nasnetwork', bits: 1 },
+  { field: 'excluded', bits: 1 },
+  { field: 'onloop', bits: 1 },
+  { field: 'unranked', bits: 1 },
+  { field: 'invasive', bits: 1 },
 ]

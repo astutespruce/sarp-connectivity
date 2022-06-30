@@ -26,24 +26,29 @@ export const sources = {
     type: 'vector',
     tiles: [`${tileHost}/services/dams/tiles/{z}/{x}/{y}.pbf`],
     minzoom: 2,
-    maxzoom: 16,
+    // FIXME:
+    // maxzoom: 16,
+    maxzoom: 10,
+    promoteId: 'id',
   },
   small_barriers: {
     type: 'vector',
     tiles: [`${tileHost}/services/small_barriers/tiles/{z}/{x}/{y}.pbf`],
     minzoom: 2,
     maxzoom: 16,
-  },
-  networks: {
-    type: 'vector',
-    tiles: [`${tileHost}/services/networks/tiles/{z}/{x}/{y}.pbf`],
-    minzoom: 5,
-    maxzoom: 16,
+    promoteId: 'id',
   },
   waterfalls: {
     type: 'vector',
     tiles: [`${tileHost}/services/waterfalls/tiles/{z}/{x}/{y}.pbf`],
     minzoom: 2,
+    maxzoom: 16,
+    promoteId: 'id',
+  },
+  networks: {
+    type: 'vector',
+    tiles: [`${tileHost}/services/networks/tiles/{z}/{x}/{y}.pbf`],
+    minzoom: 5,
     maxzoom: 16,
   },
 }

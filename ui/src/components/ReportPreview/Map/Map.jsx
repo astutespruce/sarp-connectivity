@@ -13,7 +13,7 @@ import {
   pointHighlightLayer,
   damsSecondaryLayer,
   waterfallsLayer,
-  backgroundPointLayer,
+  offnetworkPointLayer,
 } from 'components/Summary/layers'
 
 import {
@@ -134,24 +134,34 @@ const Map = ({
         })
 
         mapObj.addLayer({
-          id: `${barrierType}-background`,
+          id: `offnetwork_${barrierType}`,
           source: barrierType,
-          ...backgroundPointLayer,
+          ...offnetworkPointLayer,
         })
 
         // Add barrier highlight layer for both on and off-network barriers.
         mapObj.addLayer({
           ...pointHighlightLayer,
           source: barrierType,
-          'source-layer': barrierType,
+          'source-layer': `ranked_${barrierType}`,
           minzoom: 6,
           filter: ['==', ['get', 'id'], barrierID],
         })
+
         mapObj.addLayer({
           ...pointHighlightLayer,
-          id: 'point-background-highlight',
+          id: 'unranked-point-highlight',
           source: barrierType,
-          'source-layer': 'background',
+          'source-layer': `unranked_${barrierType}`,
+          minzoom: 9,
+          filter: ['==', ['get', 'id'], barrierID],
+        })
+
+        mapObj.addLayer({
+          ...pointHighlightLayer,
+          id: 'offnetwork-point-highlight',
+          source: barrierType,
+          'source-layer': `offnetwork_${barrierType}`,
           minzoom: 9,
           filter: ['==', ['get', 'id'], barrierID],
         })

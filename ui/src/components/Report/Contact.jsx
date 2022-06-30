@@ -9,6 +9,7 @@ const { version: dataVersion } = siteMetadata
 
 const Contact = ({ barrierType, sarpid, style }) => (
   <View
+    wrap={false}
     style={{
       ...style,
       backgroundColor: '#ebedee',

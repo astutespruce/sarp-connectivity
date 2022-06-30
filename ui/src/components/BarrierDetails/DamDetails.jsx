@@ -30,6 +30,7 @@ const DamDetails = ({
   lon,
   hasnetwork,
   excluded,
+  onloop,
   height,
   nidid,
   source,
@@ -167,7 +168,7 @@ const DamDetails = ({
       ) : null}
       {diversion === 1 ? (
         <Entry>
-          <Field>Diversion:</Field> this dam is a diversion structure
+          <Field>Diversion:</Field> this is a water diversion
         </Entry>
       ) : null}
       {purpose && PURPOSE[purpose] ? (
@@ -205,28 +206,41 @@ const DamDetails = ({
           sizeclasses={sizeclasses}
           landcover={landcover}
         />
-      ) : (
-        <>
-          {excluded ? (
-            <Entry>
-              This dam was excluded from the connectivity analysis based on
-              field reconnaissance or manual review of aerial imagery.
-            </Entry>
-          ) : (
-            <Entry>
-              <Text>
-                This dam is off-network and has no functional network
-                information.
-              </Text>
-              <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
-                Not all dams could be correctly snapped to the aquatic network
-                for analysis. Please contact us to report an error or for
-                assistance interpreting these results.
-              </Paragraph>
-            </Entry>
-          )}
-        </>
-      )}
+      ) : null}
+      {excluded && !hasnetwork ? (
+        <Entry>
+          This dam was excluded from the connectivity analysis based on field
+          reconnaissance or manual review of aerial imagery.
+        </Entry>
+      ) : null}
+      {onloop && !hasnetwork ? (
+        <Entry>
+          <Text>
+            This dam was excluded from the connectivity analysis based on its
+            position within the aquatic network.
+          </Text>
+          <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+            This dam was snapped to a secondary channel within the aquatic
+            network according to the way that primary versus secondary channels
+            are identified within the NHD High Resolution Plus dataset. This dam
+            may need to be repositioned to occur on the primary channel in order
+            to be included within the connectivity analysis. Please{' '}
+            <b>contact us</b> to report an issue with this barrier.
+          </Paragraph>
+        </Entry>
+      ) : null}
+      {!hasnetwork && !(excluded || onloop) ? (
+        <Entry>
+          <Text>
+            This dam is off-network and has no functional network information.
+          </Text>
+          <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+            Not all dams could be correctly snapped to the aquatic network for
+            analysis. Please <b>contact us</b> to report an error or for
+            assistance interpreting these results.
+          </Paragraph>
+        </Entry>
+      ) : null}
     </Section>
 
     <Section title="Species information">
@@ -339,8 +353,9 @@ DamDetails.propTypes = {
   sarpid: PropTypes.string.isRequired,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
-  hasnetwork: PropTypes.bool.isRequired,
-  excluded: PropTypes.bool,
+  hasnetwork: PropTypes.number.isRequired,
+  excluded: PropTypes.number,
+  onloop: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
   HUC8: PropTypes.string,
@@ -388,6 +403,7 @@ DamDetails.defaultProps = {
   HUC8Name: null,
   HUC12Name: null,
   excluded: false,
+  onloop: false,
   river: null,
   intermittent: -1,
   nidid: null,

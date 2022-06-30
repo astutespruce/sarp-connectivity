@@ -35,7 +35,7 @@ export const getLegendEntries = ({ name, barrierType }) => {
       borderWidth: 2,
     },
   ]
-  const { primary, background, damsSecondary, waterfalls } = pointLegends
+  const { primary, offnetwork, damsSecondary, waterfalls } = pointLegends
   entries.push({
     ...primary,
     type: 'circle',
@@ -45,7 +45,7 @@ export const getLegendEntries = ({ name, barrierType }) => {
   })
 
   entries.push({
-    ...background,
+    ...offnetwork,
     type: 'circle',
     label: `${capitalize(
       barrierType
@@ -73,7 +73,11 @@ const Legend = ({ barrierType, name }) => {
   const entries = getLegendEntries({ barrierType, name })
 
   return (
-    <View>
+    <View
+      style={{
+        flex: `1 1 auto`,
+      }}
+    >
       {entries.map((entry) => (
         <LegendElement key={entry.label} {...entry} />
       ))}

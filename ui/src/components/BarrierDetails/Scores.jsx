@@ -55,7 +55,6 @@ const Scores = ({ barrierType, scores }) => {
 Scores.propTypes = {
   barrierType: PropTypes.string.isRequired,
   scores: PropTypes.shape({
-    se: ScoresPropType,
     state: ScoresPropType.isRequired,
     custom: ScoresPropType,
   }).isRequired,

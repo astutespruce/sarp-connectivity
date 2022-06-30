@@ -259,6 +259,9 @@ DAM_TILE_FIELDS = [
         "YearRemoved",
         "NHDPlusID",
         # fields not used for tiles
+        "Basin",
+        "Subbasin",
+        "Subwatershed",
         "HUC2",
         "ProtectedLand",
         "AnnualVelocity",
@@ -355,6 +358,9 @@ SB_TILE_FIELDS = [
         "NHDPlusID",
         "ProtectedLand",
         # fields not used for tiles
+        "Basin",
+        "Subbasin",
+        "Subwatershed",
         "HUC2",
         "ProtectedLand",
         "AnnualVelocity",
