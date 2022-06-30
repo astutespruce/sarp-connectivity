@@ -26,9 +26,7 @@ export const sources = {
     type: 'vector',
     tiles: [`${tileHost}/services/dams/tiles/{z}/{x}/{y}.pbf`],
     minzoom: 2,
-    // FIXME:
-    // maxzoom: 16,
-    maxzoom: 10,
+    maxzoom: 16,
     promoteId: 'id',
   },
   small_barriers: {

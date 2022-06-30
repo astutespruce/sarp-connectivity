@@ -28,7 +28,7 @@ import {
   parentOutline,
   pointHighlight,
   pointHover,
-  backgroundPoint,
+  offnetworkPoint,
   excludedPoint,
   includedPoint,
   pointLegends,
@@ -88,7 +88,7 @@ const PriorityMap = ({
       setZoom(map.getZoom())
 
       const pointLayers = [
-        backgroundPoint.id,
+        offnetworkPoint.id,
         damsSecondaryLayer.id,
         excludedPoint.id,
         includedPoint.id,
@@ -162,8 +162,9 @@ const PriorityMap = ({
 
       // add background point layer before the others, so that it is below them in the map
       map.addLayer({
-        ...backgroundPoint,
+        ...offnetworkPoint,
         source: barrierType,
+        'source-layer': `offnetwork_${barrierType}`,
       })
 
       // add waterfalls
@@ -180,7 +181,7 @@ const PriorityMap = ({
       // add filter point layers
       const pointConfig = {
         source: barrierType,
-        'source-layer': barrierType,
+        'source-layer': `ranked_${barrierType}`,
       }
 
       // all points are initially excluded from analysis until their
@@ -234,10 +235,15 @@ const PriorityMap = ({
           if (id.startsWith('rank-')) {
             // get barrier details from tiles
             const barrier = getBarrierById(barrierId)
+
+            console.log('got barrier for info')
+
             if (!barrier) {
               return
             }
-            barrierName = barrier.properties.name
+            const { properties: { sarpidname = '|' } = {} } = barrier
+            /* eslint-disable-next-line */
+            barrierName = sarpidname.split('|')[1]
           } else {
             barrierName = feature.properties.name
           }
@@ -282,7 +288,7 @@ const PriorityMap = ({
       // the ranked data
       const getBarrierById = (id) => {
         const [feature] = map.querySourceFeatures(barrierType, {
-          sourceLayer: barrierType,
+          sourceLayer: `ranked_${barrierType}`,
           filter: ['==', 'id', id],
         })
 
@@ -330,14 +336,6 @@ const PriorityMap = ({
           return
         }
 
-        // note: these are hard-coded for some types
-        const {
-          hasnetwork = sourceLayer === 'dams' ||
-            sourceLayer === 'small_barriers' ||
-            sourceLayer === 'waterfalls',
-          ranked = sourceLayer === 'dams' || sourceLayer === 'small_barriers',
-        } = properties
-
         let rankedBarrierProperties = {}
         if (source === 'ranked') {
           const rankedBarrier = getBarrierById(properties.id)
@@ -349,13 +347,14 @@ const PriorityMap = ({
 
         // promote network fields
         const networkFields = {}
-        if (hasnetwork) {
-          Object.keys(properties)
-            .filter((k) => k.endsWith(barrierType))
-            .forEach((field) => {
-              networkFields[field.split('_')[0]] = properties[field]
-            })
-        }
+        Object.keys(properties)
+          .filter((k) => k.endsWith(barrierType))
+          .forEach((field) => {
+            networkFields[field.split('_')[0]] = properties[field]
+          })
+
+        // FIXME: remove
+        console.log('newtork fields', networkFields)
 
         onSelectBarrier({
           ...properties,
@@ -367,8 +366,11 @@ const PriorityMap = ({
           HUC12Name: getHUCName('HUC12', properties.HUC12),
           lat,
           lon,
-          hasnetwork,
-          ranked,
+          ranked: source === 'ranked' || sourceLayer.startsWith('ranked_'),
+          layer: {
+            source,
+            sourceLayer,
+          },
         })
       })
 
@@ -490,7 +492,6 @@ const PriorityMap = ({
     let networkType = barrierType
 
     if (selectedBarrier) {
-      console.log('selected', selectedBarrier)
       const {
         lat,
         lon,
@@ -644,7 +645,7 @@ const PriorityMap = ({
     const pointLayers = [
       includedPoint,
       excludedPoint,
-      backgroundPoint,
+      offnetworkPoint,
       topRank,
       lowerRank,
     ]
@@ -660,7 +661,7 @@ const PriorityMap = ({
     const {
       included: includedLegend,
       excluded: excludedLegend,
-      background: backgroundLegend,
+      offnetwork: offnetworkLegend,
       topRank: topRankLegend,
       lowerRank: lowerRankLegend,
       damsSecondary,
@@ -710,9 +711,9 @@ const PriorityMap = ({
         })
       }
 
-      if (isWithinZoom[backgroundPoint.id]) {
+      if (isWithinZoom[offnetworkPoint.id]) {
         circles.push({
-          ...backgroundLegend,
+          ...offnetworkLegend,
           label: `${barrierTypeLabel} not available for analysis`,
         })
         // only show secondary dams & waterfalls at same time as background points
@@ -756,9 +757,9 @@ const PriorityMap = ({
         })
       }
 
-      if (isWithinZoom[backgroundPoint.id]) {
+      if (isWithinZoom[offnetworkPoint.id]) {
         circles.push({
-          ...backgroundLegend,
+          ...offnetworkLegend,
           label: `${barrierTypeLabel} not included in analysis`,
         })
 
@@ -792,9 +793,9 @@ const PriorityMap = ({
         })
       }
 
-      if (isWithinZoom[backgroundPoint.id]) {
+      if (isWithinZoom[offnetworkPoint.id]) {
         circles.push({
-          ...backgroundLegend,
+          ...offnetworkLegend,
           label: `${barrierTypeLabel} not available for analysis`,
         })
 

@@ -131,10 +131,11 @@ export const unitLayers = [unitFill, unitOutline]
 
 export const unitHighlightLayers = [unitHighlightFill, unitHighlightOutline]
 
-export const backgroundPoint = {
+export const offnetworkPoint = {
   id: 'point-no-network',
-  // source: "" // provided by specific layer
-  'source-layer': 'background',
+  // id: '', // provided by specific layer
+  // source: "", // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
   type: 'circle',
   minzoom: 10,
   maxzoom: 24,
@@ -162,7 +163,39 @@ export const backgroundPoint = {
   },
 }
 
-// points filtered OUT with networks
+export const unrankedPoint = {
+  id: 'point-no-network',
+  // id: '', // provided by specific layer
+  // source: "", // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
+  type: 'circle',
+  minzoom: 10,
+  maxzoom: 24,
+  paint: {
+    'circle-color': '#999',
+    'circle-radius': {
+      stops: [
+        [10, 0.5],
+        [14, 4],
+      ],
+    },
+    'circle-opacity': {
+      stops: [
+        [10, 0.5],
+        [14, 1],
+      ],
+    },
+    'circle-stroke-color': '#666',
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [14, 1],
+      ],
+    },
+  },
+}
+
+// ranked points with networks filtered IN
 export const excludedPoint = {
   id: 'point-excluded',
   // source: "" // provided by specific layer
@@ -199,7 +232,7 @@ export const excludedPoint = {
   },
 }
 
-// points filtered IN with networks
+// ranked points with networks filtered IN
 export const includedPoint = {
   id: 'point-included',
   // source: "" // provided by specific layer
@@ -307,7 +340,7 @@ export const lowerRank = {
 export const damsSecondaryLayer = {
   id: 'dams-secondary',
   source: 'dams',
-  'source-layer': 'dams',
+  'source-layer': 'ranked_dams',
   layout: {
     visibility: 'none',
   },
@@ -388,10 +421,10 @@ export const pointLegends = {
     borderColor: `${excludedPoint.paint['circle-stroke-color']}99`,
     borderWidth: 1,
   },
-  background: {
+  offnetwork: {
     radius: 5,
-    color: backgroundPoint.paint['circle-color'],
-    borderColor: backgroundPoint.paint['circle-stroke-color'],
+    color: offnetworkPoint.paint['circle-color'],
+    borderColor: offnetworkPoint.paint['circle-stroke-color'],
     borderWidth: 1,
   },
   topRank: {

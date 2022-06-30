@@ -354,7 +354,6 @@ export const layers = [
         },
       },
     },
-    z,
   },
 ]
 
@@ -474,7 +473,7 @@ export const pointLayer = {
 // off-network barriers
 export const offnetworkPointLayer = {
   // id: '', // provided by specific layer
-  // source: "" // provided by specific layer
+  // source: "", // provided by specific layer
   // 'source-layer': '', // provided by specific layer
   type: 'circle',
   minzoom: 12,
@@ -507,7 +506,7 @@ export const offnetworkPointLayer = {
 // on-network but unranked barriers
 export const unrankedPointLayer = {
   // id: '', // provided by specific layer
-  // source: "" // provided by specific layer
+  // source: "", // provided by specific layer
   // 'source-layer': '', // provided by specific layer
   type: 'circle',
   minzoom: 12,
