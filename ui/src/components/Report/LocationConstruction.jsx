@@ -56,7 +56,7 @@ const Location = ({
   const hasOwner = ownertype && ownertype > 0
 
   return (
-    <Section title="Location & construction information">
+    <Section title="Location & construction information" wrap={false}>
       <Flex>
         <View
           style={{

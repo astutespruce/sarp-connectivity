@@ -4,13 +4,13 @@ import { Text } from '@react-pdf/renderer'
 
 import { isEmptyString } from 'util/string'
 
-import { List, ListItem, Section } from './elements'
+import { Link, List, ListItem, Section } from './elements'
 import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion } = siteMetadata
 
-const IDInfo = ({ sarpid, nidid, source, ...props }) => (
-  <Section title="Data sources" {...props}>
+const IDInfo = ({ sarpid, nidid, source, link, ...props }) => (
+  <Section title="Data sources" {...props} wrap={false}>
     <List>
       <ListItem>
         <Text>
@@ -27,7 +27,26 @@ const IDInfo = ({ sarpid, nidid, source, ...props }) => (
           <Text>Source: {source}</Text>
         </ListItem>
       ) : null}
+      {!isEmptyString(link) ? (
+        <ListItem>
+          <Text>
+            More information: <Link href={link}>{link}</Link>
+          </Text>
+        </ListItem>
+      ) : null}
     </List>
+
+    {source && source.startsWith('WDFW') ? (
+      <Text style={{ marginTop: 24 }}>
+        Information about this barrier is maintained by the Washington State
+        Department of Fish and Wildlife, Fish Passage Division. For more
+        information about specific structures, please visit the{' '}
+        <Link href="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html">
+          fish passage web map
+        </Link>
+        .
+      </Text>
+    ) : null}
   </Section>
 )
 
@@ -35,11 +54,13 @@ IDInfo.propTypes = {
   sarpid: PropTypes.string.isRequired,
   nidid: PropTypes.string,
   source: PropTypes.string,
+  link: PropTypes.string,
 }
 
 IDInfo.defaultProps = {
   nidid: null,
   source: null,
+  link: null,
 }
 
 export default IDInfo

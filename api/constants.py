@@ -1052,7 +1052,7 @@ FIELD_DEFINITIONS = {
     # dam-specific fields
     "NIDID": "National Inventory of Dams Identifier.",
     "Source": "Source of this record in the inventory.",
-    "Link": "Link to addtional information about this {type}",
+    "Link": "Link to additional information about this {type}",
     "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information",
     "NoStructure": "this location is a water diversion without an associated barrier structure and is not ranked",
     "River": "River name where {type} occurs, if available.",

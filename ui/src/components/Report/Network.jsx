@@ -58,7 +58,7 @@ const Network = ({
 
   if (excluded) {
     return (
-      <Section title="Functional network information" {...props}>
+      <Section title="Functional network information" {...props} wrap={false}>
         <Text>
           This {barrierTypeLabel} was excluded from the connectivity analysis
           based on field reconnaissance or manual review of aerial imagery.
@@ -69,7 +69,7 @@ const Network = ({
 
   if (onloop) {
     return (
-      <Section title="Functional network information" {...props}>
+      <Section title="Functional network information" {...props} wrap={false}>
         <Text>
           This {barrierTypeLabel} was excluded from the connectivity analysis
           based on its position within the aquatic network.
@@ -98,7 +98,7 @@ const Network = ({
 
   if (!hasnetwork) {
     return (
-      <Section title="Functional network information" {...props}>
+      <Section title="Functional network information" {...props} wrap={false}>
         <Text>
           This {barrierTypeLabel} is off-network and has no functional network
           information.
@@ -121,7 +121,7 @@ const Network = ({
   }
 
   return (
-    <Section title="Functional network information" {...props}>
+    <Section title="Functional network information" {...props} wrap={false}>
       <Flex>
         <View
           style={{

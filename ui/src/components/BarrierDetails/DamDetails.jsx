@@ -324,24 +324,26 @@ const DamDetails = ({
       {!isEmptyString(source) ? (
         <Entry>
           <Field>Source:</Field> {source}
-          {source.startsWith('WDFW') ? (
-            <>
-              <br />
-              Information about this barrier is maintained by the Washington
-              State Department of Fish and Wildlife, Fish Passage Division. For
-              more information about specific structures, please visit the{' '}
-              <OutboundLink to="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html">
-                fish passage web map
-              </OutboundLink>
-            </>
-          ) : null}
         </Entry>
       ) : null}
 
       {!isEmptyString(link) ? (
         <Entry>
-          <Field>More information:</Field>{' '}
-          <OutboundLink to={link}>link</OutboundLink>
+          <OutboundLink to={link}>
+            Click here for more information about this barrier
+          </OutboundLink>
+        </Entry>
+      ) : null}
+
+      {source && source.startsWith('WDFW') ? (
+        <Entry>
+          Information about this barrier is maintained by the Washington State
+          Department of Fish and Wildlife, Fish Passage Division. For more
+          information about specific structures, please visit the{' '}
+          <OutboundLink to="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html">
+            fish passage web map
+          </OutboundLink>
+          .
         </Entry>
       ) : null}
     </Section>

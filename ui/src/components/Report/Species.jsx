@@ -14,7 +14,7 @@ const Species = ({
   trout,
   ...props
 }) => (
-  <Section title="Species information" {...props}>
+  <Section title="Species information" {...props} wrap={false}>
     <View>
       <Text>
         Data sources in the subwatershed containing this{' '}

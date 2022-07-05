@@ -50,7 +50,7 @@ const Scores = ({
   }
 
   return (
-    <Section title="Connectivity ranks" {...props}>
+    <Section title="Connectivity ranks" {...props} wrap={false}>
       <Text style={{ color: '#7f8a93', fontSize: 10 }}>
         connectivity tiers range from 20 (lowest) to 1 (highest)
       </Text>

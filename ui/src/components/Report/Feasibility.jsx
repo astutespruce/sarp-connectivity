@@ -8,7 +8,7 @@ import { List, ListItem, Section } from './elements'
 import { RECON, HUC8_USFS } from '../../../config/constants'
 
 const Feasibility = ({ recon, huc8_coa, huc8_sgcn, huc8_usfs, ...props }) => (
-  <Section title="Feasibility & conservation benefit" {...props}>
+  <Section title="Feasibility & conservation benefit" {...props} wrap={false}>
     <List>
       {recon !== null ? (
         <ListItem>
