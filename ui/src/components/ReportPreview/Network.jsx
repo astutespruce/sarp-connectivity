@@ -25,7 +25,7 @@ const Network = ({
   hasnetwork,
   onloop,
   sarpid,
-  ...props
+  sx,
 }) => {
   const barrierTypeLabel =
     barrierType === 'dams' ? 'dam' : 'road-related barrier'
@@ -52,7 +52,7 @@ const Network = ({
 
   if (excluded) {
     return (
-      <Box {...props}>
+      <Box sx={sx}>
         {header}
         <Text>
           This {barrierTypeLabel} was excluded from the connectivity analysis
@@ -64,7 +64,7 @@ const Network = ({
 
   if (onloop) {
     return (
-      <Box {...props}>
+      <Box sx={sx}>
         {header}
         <Text sx={{ mt: '0.5rem' }}>
           This {barrierTypeLabel} was excluded from the connectivity analysis
@@ -91,7 +91,7 @@ const Network = ({
 
   if (!hasnetwork) {
     return (
-      <Box {...props}>
+      <Box sx={sx}>
         {header}
         <Text sx={{ mt: '0.5rem' }}>
           This dam is off-network and has no functional network information.
@@ -112,7 +112,7 @@ const Network = ({
   }
 
   return (
-    <Box {...props}>
+    <Box sx={sx}>
       {header}
 
       <Grid
@@ -267,6 +267,7 @@ Network.propTypes = {
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
   sarpid: PropTypes.string.isRequired,
+  sx: PropTypes.object,
 }
 
 Network.defaultProps = {
@@ -282,6 +283,7 @@ Network.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: 0,
   sizeclasses: 0,
+  sx: null,
 }
 
 export default Network

@@ -18,7 +18,7 @@ const Scores = ({
   state_pnc_tier,
   state_pwc_tier,
   state_pncwc_tier,
-  ...props
+  sx,
 }) => {
   if (!hasnetwork) {
     return null
@@ -30,7 +30,7 @@ const Scores = ({
 
   if (invasive) {
     return (
-      <Box {...props}>
+      <Box sx={sx}>
         {header}
         <Text>
           This {barrierTypeLabel} was excluded from prioritization because it
@@ -43,7 +43,7 @@ const Scores = ({
 
   if (nostructure) {
     return (
-      <Box {...props}>
+      <Box sx={null}>
         {header}
         <Text>
           This {barrierTypeLabel} was excluded from prioritization because it is
@@ -54,7 +54,7 @@ const Scores = ({
   }
 
   return (
-    <Box {...props}>
+    <Box sx={null}>
       {header}
       <Text variant="help" sx={{ fontSize: 0, textAlign: 'center' }}>
         connectivity tiers range from 20 (lowest) to 1 (highest)
@@ -126,6 +126,7 @@ Scores.propTypes = {
   state_pnc_tier: PropTypes.number,
   state_pwc_tier: PropTypes.number,
   state_pncwc_tier: PropTypes.number,
+  sx: PropTypes.object,
 }
 
 Scores.defaultProps = {
@@ -138,6 +139,7 @@ Scores.defaultProps = {
   state_pnc_tier: null,
   state_pwc_tier: null,
   state_pncwc_tier: null,
+  sx: null,
 }
 
 export default Scores

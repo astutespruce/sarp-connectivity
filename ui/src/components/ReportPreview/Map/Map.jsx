@@ -14,6 +14,7 @@ import {
   damsSecondaryLayer,
   waterfallsLayer,
   offnetworkPointLayer,
+  unrankedPointLayer,
 } from 'components/Summary/layers'
 
 import {
@@ -129,17 +130,25 @@ const Map = ({
         mapObj.addLayer({
           id: barrierType,
           source: barrierType,
-          'source-layer': barrierType,
+          'source-layer': `ranked_${barrierType}`,
           ...pointLayer,
+        })
+
+        mapObj.addLayer({
+          id: `unranked_${barrierType}`,
+          source: barrierType,
+          'source-layer': `unranked_${barrierType}`,
+          ...unrankedPointLayer,
         })
 
         mapObj.addLayer({
           id: `offnetwork_${barrierType}`,
           source: barrierType,
+          'source-layer': `offnetwork_${barrierType}`,
           ...offnetworkPointLayer,
         })
 
-        // Add barrier highlight layer for both on and off-network barriers.
+        // Add barrier highlight layer for on and off-network barriers.
         mapObj.addLayer({
           ...pointHighlightLayer,
           source: barrierType,

@@ -42,7 +42,7 @@ const LocationConstruction = ({
   diversion,
   waterbodykm2,
   waterbodysizeclass,
-  ...props
+  sx,
 }) => {
   let barrierTypeLabel = barrierType === 'dams' ? 'dam' : 'road-related barrier'
   if (barrierType === 'dams' && estimated) {
@@ -55,7 +55,7 @@ const LocationConstruction = ({
   const hasOwner = ownertype && ownertype > 0
 
   return (
-    <Box {...props}>
+    <Box sx={sx}>
       <Heading as="h3">Location & construction information</Heading>
 
       <Grid columns={2} gap={4}>
@@ -189,6 +189,7 @@ LocationConstruction.propTypes = {
   lowheaddam: PropTypes.number,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
+  sx: PropTypes.object,
 }
 
 LocationConstruction.defaultProps = {
@@ -216,6 +217,7 @@ LocationConstruction.defaultProps = {
   lowheaddam: -1,
   waterbodykm2: -1,
   waterbodysizeclass: -1,
+  sx: null,
 }
 
 export default LocationConstruction

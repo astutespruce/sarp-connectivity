@@ -6,8 +6,8 @@ import { Box, Heading } from 'theme-ui'
 
 import { RECON, HUC8_USFS } from '../../../config/constants'
 
-const Feasibility = ({ recon, huc8_coa, huc8_sgcn, huc8_usfs, ...props }) => (
-  <Box {...props}>
+const Feasibility = ({ recon, huc8_coa, huc8_sgcn, huc8_usfs, sx }) => (
+  <Box sx={sx}>
     <Heading as="h3">Feasibility & conservation benefit</Heading>
 
     <Box as="ul" sx={{ mt: '0.5rem' }}>
@@ -37,6 +37,7 @@ Feasibility.propTypes = {
   huc8_usfs: PropTypes.number,
   huc8_coa: PropTypes.number,
   huc8_sgcn: PropTypes.number,
+  sx: PropTypes.object,
 }
 
 Feasibility.defaultProps = {
@@ -44,6 +45,7 @@ Feasibility.defaultProps = {
   huc8_usfs: 0,
   huc8_coa: 0,
   huc8_sgcn: 0,
+  sx: null,
 }
 
 export default Feasibility

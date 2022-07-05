@@ -6,8 +6,8 @@ import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion } = siteMetadata
 
-const Contact = ({ barrierType, sarpid, ...props }) => (
-  <Box {...props}>
+const Contact = ({ barrierType, sarpid, sx }) => (
+  <Box sx={sx}>
     <Box sx={{ bg: 'grey.1', borderRadius: '0.5rem', p: '1rem' }}>
       <Text sx={{ fontWeight: 'bold', fontSize: 3 }}>Contact us</Text>
       <Box sx={{ mt: '0.5rem' }}>
@@ -34,6 +34,11 @@ const Contact = ({ barrierType, sarpid, ...props }) => (
 Contact.propTypes = {
   barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
+  sx: PropTypes.object,
+}
+
+Contact.defaultProps = {
+  sx: null,
 }
 
 export default Contact

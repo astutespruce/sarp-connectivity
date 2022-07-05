@@ -30,10 +30,10 @@ const BarrierReport = ({ barrierType, sarpid, uri }) => {
   }
 
   if (error) {
-    console.error(`Error loading dam with SARPID: ${sarpid}`)
+    console.error(`Error loading barrier with SARPID: ${sarpid}`)
 
     return (
-      <Layout title={`Error loading dam ${sarpid}`}>
+      <Layout title={`Error loading barrier ${sarpid}`}>
         <PageError />
       </Layout>
     )

@@ -1,10 +1,11 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Box, Flex, Image } from 'theme-ui'
 
 import SARPLogoImage from 'images/sarp_logo.png'
 
-const Credits = (props) => (
-  <Box {...props}>
+const Credits = ({ sx }) => (
+  <Box sx={sx}>
     <Flex sx={{ mt: '0.5rem', fontSize: 1 }}>
       <Box sx={{ flex: '1 1 auto' }}>
         This report was created using the{' '}
@@ -38,5 +39,13 @@ const Credits = (props) => (
     </Flex>
   </Box>
 )
+
+Credits.propTypes = {
+  sx: PropTypes.object,
+}
+
+Credits.defaultProps = {
+  sx: null,
+}
 
 export default Credits

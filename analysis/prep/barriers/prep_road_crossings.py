@@ -14,9 +14,9 @@ from pathlib import Path
 from time import time
 import warnings
 
-from pyogrio import write_dataframe
 import geopandas as gp
-
+import pandas as pd
+from pyogrio import write_dataframe
 
 from analysis.prep.barriers.lib.duplicates import mark_duplicates
 
@@ -50,8 +50,10 @@ barriers["kind"] = "barrier"
 df["joinID"] = (df.index * 1e6).astype("uint32")
 df["kind"] = "crossing"
 
-merged = barriers[["kind", "geometry"]].append(
-    df[["joinID", "kind", "geometry"]], sort=False, ignore_index=True
+merged = pd.concat(
+    [barriers[["kind", "geometry"]], df[["joinID", "kind", "geometry"]]],
+    sort=False,
+    ignore_index=True,
 )
 merged = mark_duplicates(merged, tolerance=DUPLICATE_TOLERANCE)
 
@@ -64,14 +66,14 @@ remove_ids = merged.loc[
 print(f"{len(remove_ids):,} crossings appear to be duplicates of existing barriers")
 
 df = df.loc[~df.joinID.isin(remove_ids)].drop(columns=["joinID", "kind"])
-print(f"Now have {len(df):,} road crossings")
-
 
 # make sure that id is unique of small barriers
 df["id"] = (barriers.id.max() + 100000 + df.index.astype("uint")).astype("uint")
 
-df = df.reset_index(drop=True)
+print(f"Serializing {len(df)} road crossings")
 
+
+df = df.reset_index(drop=True)
 df.to_feather(out_dir / "road_crossings.feather")
 write_dataframe(df, qa_dir / "road_crossings.fgb")
 

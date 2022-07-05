@@ -6,6 +6,7 @@ import pandas as pd
 import pyarrow as pa
 from pyarrow.csv import write_csv
 
+from analysis.lib.util import pack_bits
 from api.constants import (
     DAM_TILE_FILTER_FIELDS,
     DAM_TILE_FIELDS,
@@ -17,6 +18,7 @@ from api.constants import (
     TIER_FIELDS,
     STATE_TIER_PACK_BITS,
     UNIT_FIELDS,
+    SB_PACK_BITS,
 )
 from analysis.lib.util import pack_bits
 from analysis.post.lib.tiles import get_col_types
@@ -295,7 +297,7 @@ df = df.drop(
 
 ### Create tiles for ranked small barriers at low zooms
 # Below zoom 8, we only need filter fields
-csv_filename = tmp_dir / "small_barriers_lt_z8.csv"
+
 mbtiles_filename = tmp_dir / "small_barriers_lt_z8.mbtiles"
 mbtiles_files = [mbtiles_filename]
 
@@ -303,6 +305,7 @@ tmp = to_lowercase(df.loc[df.Ranked][["id"] + SB_TILE_FILTER_FIELDS])
 print(
     f"Creating tiles for {len(tmp):,} ranked small barriers with networks for zooms 2-7"
 )
+csv_filename = tmp_dir / "small_barriers_lt_z8.csv"
 write_csv(pa.Table.from_pandas(tmp.reset_index(drop=True)), csv_filename)
 
 ret = subprocess.run(
@@ -328,10 +331,11 @@ ranked_barriers["StateTiers"] = pack_bits(ranked_barriers, STATE_TIER_PACK_BITS)
 ranked_barriers = ranked_barriers.drop(columns=TIER_FIELDS)
 ranked_barriers = to_lowercase(ranked_barriers)
 
-# csv_filename = tmp_dir / "ranked_small_barriers.csv"
+
 mbtiles_filename = tmp_dir / "ranked_small_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
 
+csv_filename = tmp_dir / "ranked_small_barriers.csv"
 write_csv(pa.Table.from_pandas(ranked_barriers.reset_index(drop=True)), csv_filename)
 
 ret = subprocess.run(
@@ -367,9 +371,10 @@ print(
 
 unranked_barriers = to_lowercase(unranked_barriers)
 
-csv_filename = tmp_dir / "unranked_barriers.csv"
 mbtiles_filename = tmp_dir / "unranked_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
+
+csv_filename = tmp_dir / "unranked_barriers.csv"
 write_csv(pa.Table.from_pandas(unranked_barriers.reset_index(drop=True)), csv_filename)
 
 ret = subprocess.run(
@@ -383,7 +388,7 @@ ret = subprocess.run(
 ret.check_returncode()
 
 
-### Combine barriers that don't have networks with road / stream crossings
+# ### Combine barriers that don't have networks with road / stream crossings
 other_barriers = df.loc[~df.HasNetwork].drop(
     columns=[
         "HasNetwork",
@@ -408,19 +413,22 @@ other_barriers = df.loc[~df.HasNetwork].drop(
     errors="ignore",
 )
 
-### Read in road crossings to join with small barriers
-print("Reading road / stream crossings")
+# ### Read in road crossings to join with small barriers
+# print("Reading road / stream crossings")
 road_crossings = pd.read_feather(
     barriers_dir / "road_crossings.feather",
     columns=[
         "id",
         "lat",
         "lon",
+        "SARPID",
+        "Name",
         "County",
         "HUC8",
         "HUC12",
         "HUC8_COA",
         "HUC8_SGCN",
+        "HUC8_USFS",
         "OwnerType",
         "Road",
         "State",
@@ -429,8 +437,10 @@ road_crossings = pd.read_feather(
         "RegionalSGCNSpp",
         "StateSGCNSpp",
         "Trout",
+        "StreamOrder",
+        "loop",
     ],
-).rename(columns={"COUNTYFIPS": "County"})
+).rename(columns={"COUNTYFIPS": "County", "loop": "OnLoop"})
 
 if road_crossings.id.min() < df.id.max() + 1:
     raise ValueError("Road crossings have overlapping ids with small barriers")
@@ -440,6 +450,29 @@ road_crossings[
     "Source"
 ] = "USGS Database of Stream Crossings in the United States (2022)"
 
+road_crossings["SARPIDName"] = road_crossings.SARPID + "|" + road_crossings.Name
+
+# Note: OnLoop and StreamOrder are currently ignored because HasNetwork is always False
+road_crossings["HasNetwork"] = False
+road_crossings["Excluded"] = False
+road_crossings["Invasive"] = False
+road_crossings["Unranked"] = False
+road_crossings["Recon"] = 0
+
+pack_cols = [e["field"] for e in SB_PACK_BITS]
+tmp = road_crossings[pack_cols].copy()
+# recode streamorder -1 to 0 for packing
+tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
+
+# add packed field
+road_crossings["packed"] = pack_bits(tmp, SB_PACK_BITS)
+road_crossings = road_crossings.drop(
+    columns=pack_cols
+    + [
+        "SARPID",
+        "Name",
+    ]
+)
 
 combined = pd.concat(
     [other_barriers, road_crossings], ignore_index=True, sort=False
@@ -473,7 +506,6 @@ for col in [
     combined[col] = combined[col].fillna(0).astype("uint8")
 
 combined["SARP_Score"] = combined["SARP_Score"].fillna(-1).astype("float32")
-combined["packed"] = combined["packed"].fillna(0).astype(df.packed.dtype)
 
 combined = to_lowercase(combined)
 
@@ -482,10 +514,10 @@ print(
     f"Creating tiles for {len(combined):,} small barriers and road crossings without networks"
 )
 
-csv_filename = tmp_dir / "offnetwork_small_barriers.csv"
 mbtiles_filename = tmp_dir / "offnetwork_small_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
 
+csv_filename = tmp_dir / "offnetwork_small_barriers.csv"
 write_csv(pa.Table.from_pandas(combined.reset_index(drop=True)), csv_filename)
 
 ret = subprocess.run(
@@ -499,7 +531,7 @@ ret = subprocess.run(
 ret.check_returncode()
 
 
-# print("Joining small barriers tilesets")
+print("Joining small barriers tilesets")
 mbtiles_filename = out_dir / "small_barriers.mbtiles"
 ret = subprocess.run(
     tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]

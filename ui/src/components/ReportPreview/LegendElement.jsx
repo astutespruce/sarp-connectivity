@@ -4,8 +4,8 @@ import { Flex, Text } from 'theme-ui'
 
 import LegendSymbol from './LegendSymbol'
 
-const LegendElement = ({ label, ...props }) => (
-  <Flex sx={{}}>
+const LegendElement = ({ label, sx, ...props }) => (
+  <Flex sx={sx}>
     <LegendSymbol {...props} />
     <Text sx={{ ml: '0.5rem' }}>{label}</Text>
   </Flex>
@@ -13,6 +13,11 @@ const LegendElement = ({ label, ...props }) => (
 
 LegendElement.propTypes = {
   label: PropTypes.string.isRequired,
+  sx: PropTypes.object,
+}
+
+LegendElement.defaultProps = {
+  sx: null,
 }
 
 export default LegendElement

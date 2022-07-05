@@ -8,8 +8,8 @@ import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion } = siteMetadata
 
-const IDInfo = ({ sarpid, nidid, source, ...props }) => (
-  <Box {...props}>
+const IDInfo = ({ sarpid, nidid, source, sx }) => (
+  <Box sx={sx}>
     <Heading as="h3">Data sources</Heading>
     <Box as="ul" sx={{ mt: '0.5rem' }}>
       <li>
@@ -27,11 +27,13 @@ IDInfo.propTypes = {
   sarpid: PropTypes.string.isRequired,
   nidid: PropTypes.string,
   source: PropTypes.string,
+  sx: PropTypes.object,
 }
 
 IDInfo.defaultProps = {
   nidid: null,
   source: null,
+  sx: null,
 }
 
 export default IDInfo

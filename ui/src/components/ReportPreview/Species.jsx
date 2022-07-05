@@ -10,9 +10,9 @@ const Species = ({
   statesgcnspp,
   regionalsgcnspp,
   trout,
-  ...props
+  sx,
 }) => (
-  <Box {...props}>
+  <Box sx={sx}>
     <Heading as="h3">Species information</Heading>
 
     <Box>
@@ -69,6 +69,7 @@ Species.propTypes = {
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   trout: PropTypes.number,
+  sx: PropTypes.object,
 }
 
 Species.defaultProps = {
@@ -76,6 +77,7 @@ Species.defaultProps = {
   statesgcnspp: 0,
   regionalsgcnspp: 0,
   trout: false,
+  sx: null,
 }
 
 export default Species

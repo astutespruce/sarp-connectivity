@@ -357,7 +357,6 @@ SB_TILE_FIELDS = [
         "ProtectedLand",
         "Basin",
         "HUC2",
-        "ProtectedLand",
         "AnnualVelocity",
         "AnnualFlow",
         "PotentialProject",
