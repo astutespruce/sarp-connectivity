@@ -70,11 +70,19 @@ df = df.loc[~df.joinID.isin(remove_ids)].drop(columns=["joinID", "kind"])
 # make sure that id is unique of small barriers
 df["id"] = (barriers.id.max() + 100000 + df.index.astype("uint")).astype("uint")
 
-print(f"Serializing {len(df)} road crossings")
-
+print(f"Serializing {len(df):,} road crossings")
 
 df = df.reset_index(drop=True)
 df.to_feather(out_dir / "road_crossings.feather")
 write_dataframe(df, qa_dir / "road_crossings.fgb")
+
+
+# save snapped road crossings for later analysis
+print(f"Serializing {df.snapped.sum():,} snapped road crossings")
+df.loc[
+    df.snapped,
+    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"],
+].reset_index(drop=True).to_feather(barriers_dir / "snapped/road_crossings.feather")
+
 
 print("Done in {:.2f}".format(time() - start))

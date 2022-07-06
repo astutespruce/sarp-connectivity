@@ -357,6 +357,7 @@ POTENTIAL_TO_SEVERITY = {
     "Significant Barrier": 3,
     "Small Project": 0,
     "SRI Only": 0,
+    "Other": 0,
 }
 
 CROSSING_TYPE_TO_DOMAIN = {

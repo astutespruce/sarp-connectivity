@@ -414,7 +414,8 @@ df["excluded"] = False
 
 # unranked: records that should break the network but not be used for ranking
 df["invasive"] = False
-df["nostructure"] = False  # diversions with no associated structure
+# TEMP: no-structure barriers are excluded instead of marked as unranked
+# df["nostructure"] = False  # diversions with no associated structure
 df["unranked"] = False  # combined from above fields
 
 # removed: dam was removed for conservation but we still want to track it
@@ -429,7 +430,7 @@ if drop_ix.sum():
     df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 ### Drop any dams that should be completely dropped from analysis
-# based on manual QA/QC and other reivew.
+# based on manual QA/QC and other review.
 
 # Drop those where recon shows this as an error
 drop_ix = df.Recon.isin(DROP_RECON) & ~df.dropped
@@ -455,8 +456,12 @@ df["excluded"] = (
     | df.Feasibility.isin(EXCLUDE_FEASIBILITY)
     | df.PassageFacility.isin(EXCLUDE_PASSAGEFACILITY)
     | df.BarrierSeverity.isin(EXCLUDE_BARRIER_SEVERITY)
+    | df.StructureCategory.isin(NOSTRUCTURE_STRUCTURECATEGORY)
 )
 
+df.loc[
+    df.StructureCategory.isin(NOSTRUCTURE_STRUCTURECATEGORY), "log"
+] = f"excluded: StructureCategory one of {NOSTRUCTURE_STRUCTURECATEGORY}"
 df.loc[
     df.PassageFacility.isin(EXCLUDE_PASSAGEFACILITY), "log"
 ] = f"excluded: PassageFacility one of {EXCLUDE_PASSAGEFACILITY}"
@@ -474,14 +479,15 @@ print(f"Excluded {df.excluded.sum():,} dams from analysis and prioritization")
 
 
 ### Mark any dams that should cut the network but be excluded from ranking
-# diverion
-df["nostructure"] = df.StructureCategory.isin(NOSTRUCTURE_STRUCTURECATEGORY)
-df.loc[
-    df.nostructure, "log"
-] = f"unranked: StructureCategory one of {NOSTRUCTURE_STRUCTURECATEGORY}"
-print(
-    f"Marked {df.nostructure.sum():,} diversions without an associated structure to omit from ranking"
-)
+# diversion
+# TEMP: no-structure barriers are excluded instead of marked as unranked
+# df["nostructure"] = df.StructureCategory.isin(NOSTRUCTURE_STRUCTURECATEGORY)
+# df.loc[
+#     df.nostructure, "log"
+# ] = f"unranked: StructureCategory one of {NOSTRUCTURE_STRUCTURECATEGORY}"
+# print(
+#     f"Marked {df.nostructure.sum():,} diversions without an associated structure to omit from ranking"
+# )
 
 # invasive barrier
 df["invasive"] = (
@@ -501,7 +507,8 @@ df.loc[
 print(f"Marked {df.invasive.sum():,} invasive barriers to omit from ranking")
 
 # both invasive and no structure diversions should be unranked
-df["unranked"] = df.invasive | df.nostructure
+# df["unranked"] = df.invasive | df.nostructure
+df["unranked"] = df.invasive
 
 
 ### Mark any that were removed so that we can show these on the map

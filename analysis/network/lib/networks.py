@@ -108,6 +108,20 @@ def generate_networks(network_graph, root_ids):
         name="lineID",
     ).explode()
     segments.index.name = "networkID"
+
+    # add root to segments
+    segments = pd.concat(
+        [
+            segments.reset_index(),
+            pd.DataFrame(
+                {"lineID": root_ids, "networkID": root_ids},
+            ),
+        ],
+        ignore_index=True,
+        sort=False,
+    ).set_index("networkID")
+
+    segments.index.name = "networkID"
     segments = segments.reset_index()
     return segments.sort_values(by=["networkID", "lineID"])
 
@@ -256,7 +270,7 @@ def create_networks(joins, barrier_joins, lineIDs):
 
     if len(multiple_upstreams):
         print(
-            f"Merging multiple upstream networks for barriers at network junctions, affects {len(multiple_upstreams)} networks"
+            f"Merging multiple upstream networks for barriers at network junctions, affects {len(multiple_upstreams):,} networks"
         )
 
         # For each barrier with multiple upstreams, coalesce their networkIDs

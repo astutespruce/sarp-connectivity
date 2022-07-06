@@ -208,7 +208,8 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
     # Barriers on upstream endpoint:
     # their upstream_id is the upstream_id(s) of their segment from joins,
     # and their downstream_is is the segment they are on.
-    # NOTE: a barrier may have multiple upstreams if it occurs at a fork in the network.
+    # NOTE: a barrier may have multiple upstreams if it occurs immediately downstream
+    # of a confluence (the line it is on has multiple upstreams).
     # All terminal upstreams should be already coded as 0 in joins, but just in case
     # we assign N/A to 0.
 
@@ -237,6 +238,26 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
         .fillna(0)
         .astype("uint32")
     )
+
+    # Add sibling joins if on a confluence
+    # NOTE: a barrier may have multiple sibling upstreams if it occurs at a
+    # confluence but is snapped to the downstream endpoint of its line and other
+    # flowlines converge at that point
+    at_confluence = downstream_barrier_joins.loc[
+        downstream_barrier_joins.downstream_id != 0
+    ][["barrierID", "downstream_id"]].join(
+        joins.loc[~joins.upstream_id.isin(downstream_barrier_joins.index)]
+        .set_index("downstream_id")
+        .upstream_id,
+        on="downstream_id",
+        how="inner",
+    )
+    if len(at_confluence):
+        downstream_barrier_joins = pd.concat(
+            [downstream_barrier_joins.reset_index(), at_confluence.reset_index()],
+            ignore_index=True,
+            sort=False,
+        ).set_index("lineID")
 
     barrier_joins = pd.concat(
         [upstream_barrier_joins, downstream_barrier_joins],
