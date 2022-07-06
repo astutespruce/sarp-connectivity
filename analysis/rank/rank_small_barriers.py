@@ -12,7 +12,7 @@ from analysis.rank.lib.metrics import (
     classify_spps,
     classify_percent_altered,
 )
-from api.constants import SB_API_FIELDS, SB_PACK_BITS
+from api.constants import SB_API_FIELDS, SB_PACK_BITS, DOMAINS
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -174,6 +174,21 @@ for col in networks.columns:
 if df.groupby(level=0).size().max() > 1:
     raise ValueError(
         "Error - there are duplicate barriers in the results for small_barriers.  Check uniqueness of IDs and joins."
+    )
+
+
+### Verify domains
+print("Verifying domain values")
+failed = False
+for col in df.columns.intersection(DOMAINS.keys()):
+    diff = set(df[col].unique()).difference(DOMAINS[col].keys())
+    if diff:
+        print(f"Missing values from domain lookup: {col}: {diff}")
+        failed = True
+
+if failed:
+    raise ValueError(
+        "ERROR: stopping; one or more domain fields includes values not present in domain lookup"
     )
 
 

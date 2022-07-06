@@ -12,8 +12,7 @@ from analysis.rank.lib.metrics import (
     classify_streamorder,
     classify_spps,
 )
-from api.constants import DAM_API_FIELDS, DAM_PACK_BITS
-
+from api.constants import DAM_API_FIELDS, DAM_PACK_BITS, DOMAINS
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -221,6 +220,22 @@ if df.groupby(level=0).size().max() > 1:
     raise ValueError(
         "Error - there are duplicate barriers in the results for dams.  Check uniqueness of IDs and joins."
     )
+
+
+### Verify domains
+print("Verifying domain values")
+failed = False
+for col in df.columns.intersection(DOMAINS.keys()):
+    diff = set(df[col].unique()).difference(DOMAINS[col].keys())
+    if diff:
+        print(f"Missing values from domain lookup: {col}: {diff}")
+        failed = True
+
+if failed:
+    raise ValueError(
+        "ERROR: stopping; one or more domain fields includes values not present in domain lookup"
+    )
+
 
 ### Write out data for API
 print("Writing to output files...")
