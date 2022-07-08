@@ -17,7 +17,6 @@ import warnings
 import pandas as pd
 
 
-from analysis.constants import NETWORK_TYPES
 from analysis.lib.io import read_feathers
 from analysis.network.lib.stats import calculate_network_stats
 from analysis.network.lib.networks import create_networks, connect_huc2s
@@ -26,7 +25,9 @@ warnings.simplefilter("always")  # show geometry related warnings every time
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 
-barrier_types = NETWORK_TYPES[1:]
+# barrier_types = ["dams", "small_barriers", "road_crossings"]
+# barrier_types = ["road_crossings"]
+barrier_types = ["dams"]
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/clean"
@@ -47,24 +48,24 @@ barriers = pd.read_feather(
 huc2s = sorted([huc2 for huc2 in barriers.HUC2.unique() if huc2])
 
 # manually subset keys from above for processing
-# huc2s = [
-# "02",
-# "03",
-# "05",
-# "06",
-# "07",
-# "08",
-# "09",
-# "10",
-# "11",
-# "12",
-# "13",
-# "14",
-# "15",
-# "16",
-# "17",
-# "21",
-# ]
+huc2s = [
+    # "02",
+    # "03",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    # "14",
+    # "15",
+    # "16",
+    # "17",
+    "21",
+]
 
 
 print("Finding connected HUC2s")
@@ -113,7 +114,7 @@ for group in groups:
         [src_dir / huc2 / "barrier_joins.feather" for huc2 in group_huc2s],
         columns=["barrierID", "upstream_id", "downstream_id", "kind"],
         new_fields={"HUC2": group_huc2s},
-    ).set_index("barrierID", drop=False)
+    ).set_index("barrierID")
 
     # Note: only includes columns used later for network stats
     flowline_cols = [
@@ -126,7 +127,10 @@ for group in groups:
     ]
     flowlines = read_feathers(
         [src_dir / huc2 / "flowlines.feather" for huc2 in group_huc2s],
-        columns=["lineID",] + flowline_cols,
+        columns=[
+            "lineID",
+        ]
+        + flowline_cols,
         new_fields={"HUC2": group_huc2s},
     ).set_index("lineID")
 
@@ -136,26 +140,38 @@ for group in groups:
         network_start = time()
 
         if barrier_type == "dams":
-            network_barrier_joins = barrier_joins.loc[
+            focal_barrier_joins = barrier_joins.loc[
                 barrier_joins.kind.isin(["waterfall", "dam"])
             ]
+        elif barrier_type == "small_barriers":
+            focal_barrier_joins = barrier_joins.loc[
+                barrier_joins.kind.isin(["waterfall", "dam", "small_barrier"])
+            ]
+        elif barrier_type == "road_crossings":
+            focal_barrier_joins = barrier_joins.loc[
+                barrier_joins.kind.isin(
+                    ["waterfall", "dam", "small_barrier", "road_crossing"]
+                )
+            ]
         else:
-            network_barrier_joins = barrier_joins
+            raise ValueError("Unsupported barrier type")
 
-        networks = (
-            create_networks(group_joins, network_barrier_joins, flowlines.index,)
-            .set_index("lineID")
-            .networkID
+        upstream_networks, downstream_linear_networks = create_networks(
+            group_joins,
+            focal_barrier_joins,
+            flowlines.index,
         )
+
+        upstream_networks = upstream_networks.set_index("lineID").networkID
         print(
-            f"{len(networks.index.unique()):,} networks created in {time() - network_start:.2f}s"
+            f"{len(upstream_networks.unique()):,} networks created in {time() - network_start:.2f}s"
         )
 
-        flowlines = flowlines.join(networks.rename(barrier_type))
-
-        network_df = (
+        # join to flowlines
+        flowlines = flowlines.join(upstream_networks.rename(barrier_type))
+        up_network_df = (
             flowlines[flowline_cols + ["HUC2"]]
-            .join(networks, how="inner")
+            .join(upstream_networks, how="inner")
             .reset_index()
             .set_index("networkID")
         )
@@ -163,14 +179,23 @@ for group in groups:
         # For any barriers that had multiple upstreams, those were coalesced to a single network above
         # So drop any dangling upstream references (those that are not in networks and non-zero)
         # NOTE: these are not persisted because we want the original barrier_joins to reflect multiple upstreams
-        network_barrier_joins = network_barrier_joins.loc[
-            network_barrier_joins.upstream_id.isin(networks.unique())
-            | (network_barrier_joins.upstream_id == 0)
+        focal_barrier_joins = focal_barrier_joins.loc[
+            focal_barrier_joins.upstream_id.isin(upstream_networks.unique())
+            | (focal_barrier_joins.upstream_id == 0)
         ].copy()
 
+        down_network_df = flowlines[["length", "HUC2"]].join(
+            downstream_linear_networks.set_index("lineID").networkID, how="inner"
+        )
+
+        ### Calculate network statistics
         print("Calculating network stats...")
         network_stats = calculate_network_stats(
-            network_df, network_barrier_joins, group_joins
+            up_network_df,
+            down_network_df,
+            focal_barrier_joins,
+            barrier_joins,
+            group_joins,
         )
         # WARNING: because not all flowlines have associated catchments, they are missing
         # natfldpln
@@ -187,7 +212,7 @@ for group in groups:
         print("calculating upstream and downstream networks for barriers")
 
         upstream_networks = (
-            network_barrier_joins[["upstream_id"]]
+            focal_barrier_joins[["upstream_id"]]
             .join(
                 network_stats.drop(
                     columns=["flows_to_ocean", "num_downstream", "exits_region"]
@@ -210,10 +235,11 @@ for group in groups:
             )
         )
 
+        # these are the downstream FUNCTIONAL networks, not linear networks
         downstream_networks = (
-            network_barrier_joins[["downstream_id"]]
+            focal_barrier_joins[["downstream_id"]]
             .join(
-                network_df.reset_index().set_index("lineID").networkID,
+                up_network_df.reset_index().set_index("lineID").networkID,
                 on="downstream_id",
             )
             .join(
@@ -268,7 +294,7 @@ for group in groups:
 
         # Fix data types after all the joins
         # NOTE: upNetID or downNetID may be 0 if there aren't networks on that side
-        for col in ["upNetID", "downNetID", "segments"]:
+        for col in ["upNetID", "downNetID"]:
             barrier_networks[col] = barrier_networks[col].astype("uint32")
 
         length_cols = [c for c in barrier_networks.columns if c.endswith("Miles")]
@@ -306,4 +332,4 @@ for group in groups:
 
     print(f"group done in {time() - group_start:.2f}s\n\n")
 
-print("All done in {:.2f}s".format(time() - start))
+print(f"All done in {time() - start:.2f}s")

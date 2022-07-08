@@ -97,9 +97,10 @@ def generate_networks(network_graph, root_ids):
     Parameters
     ----------
     network_graph : DirectedGraph
-        graph facing upstream
     root_ids : pandas.Series
-        Series of root IDs (downstream-most ID) for each network to be created
+        Series of starting points for each network.  For a network facing upstream,
+        these are the downstream-most ID for each network to be created.  For
+        a network facing downstream, these are the upstream-most ID for each.
     """
 
     segments = pd.Series(
@@ -109,7 +110,7 @@ def generate_networks(network_graph, root_ids):
     ).explode()
     segments.index.name = "networkID"
 
-    # add root to segments
+    # add root to network
     segments = pd.concat(
         [
             segments.reset_index(),
@@ -152,18 +153,12 @@ def create_networks(joins, barrier_joins, lineIDs):
 
     # extract flowline joins that are not at the endpoints of the network and
     # are not cut by barriers
-    upstreams = joins.loc[
+    upstream_joins = joins.loc[
         (joins.upstream_id != 0)
         & (joins.downstream_id != 0)
         & (~joins.upstream_id.isin(barrier_upstream_idx)),
         ["downstream_id", "upstream_id"],
     ].drop_duplicates(subset=["downstream_id", "upstream_id"])
-
-    # create a directed graph facing upstream
-    network_graph = DirectedGraph(
-        upstreams.downstream_id.values.astype("int64"),
-        upstreams.upstream_id.values.astype("int64"),
-    )
 
     ### Get list of network root IDs
     # Create networks from all terminal nodes (have no downstream nodes) up to barriers.
@@ -204,7 +199,7 @@ def create_networks(joins, barrier_joins, lineIDs):
     # single segments are either origin or barrier segments that are not downstream of other segments
     # (meaning they are at the top of the network).
     single_segment_idx = np.setdiff1d(
-        np.append(origin_idx, barrier_upstream_idx), upstreams.downstream_id
+        np.append(origin_idx, barrier_upstream_idx), upstream_joins.downstream_id
     ).astype("uint32")
 
     single_segment_networks = pd.DataFrame(
@@ -219,6 +214,12 @@ def create_networks(joins, barrier_joins, lineIDs):
 
     print(f"{len(single_segment_networks):,} networks are a single segment long")
 
+    ### Create a directed graph facing upstream
+    upstream_graph = DirectedGraph(
+        upstream_joins.downstream_id.values.astype("int64"),
+        upstream_joins.upstream_id.values.astype("int64"),
+    )
+
     ### Find all origins that are not single segments
     # origin segments are the root of each non-barrier origin point up to barriers
     # segments are indexed by the id of the segment at the root for each network
@@ -229,7 +230,7 @@ def create_networks(joins, barrier_joins, lineIDs):
     print(f"Generating networks for {len(origins_with_upstreams):,} origin points")
 
     origin_network_segments = generate_networks(
-        network_graph, origins_with_upstreams.values
+        upstream_graph, origins_with_upstreams.values
     )
     origin_network_segments["type"] = "origin"
 
@@ -242,12 +243,12 @@ def create_networks(joins, barrier_joins, lineIDs):
 
     print(f"Generating networks for {len(barriers_with_upstreams):,} barriers")
     barrier_network_segments = generate_networks(
-        network_graph, barriers_with_upstreams.values
+        upstream_graph, barriers_with_upstreams.values
     )
     barrier_network_segments["type"] = "barrier"
 
     # Append network types back together
-    network_df = pd.concat(
+    up_network_df = pd.concat(
         [
             single_segment_networks.reset_index(),
             origin_network_segments.reset_index(drop=True),
@@ -256,8 +257,8 @@ def create_networks(joins, barrier_joins, lineIDs):
         sort=False,
         ignore_index=False,
     ).reset_index(drop=True)
-    network_df.networkID = network_df.networkID.astype("uint32")
-    network_df.lineID = network_df.lineID.astype("uint32")
+    up_network_df.networkID = up_network_df.networkID.astype("uint32")
+    up_network_df.lineID = up_network_df.lineID.astype("uint32")
 
     ### Handle multiple upstreams
     # A given barrier may have > 1 upstream segment, some have 3+
@@ -279,8 +280,45 @@ def create_networks(joins, barrier_joins, lineIDs):
             networkID = upstream_ids.iloc[0]
 
             # Set all upstream networks for this barrier to the ID of the first
-            network_df.loc[
-                network_df.networkID.isin(upstream_ids), ["networkID"]
+            up_network_df.loc[
+                up_network_df.networkID.isin(upstream_ids), ["networkID"]
             ] = networkID
 
-    return network_df
+    ### Extract linear networks facing downstream
+    # This assumes that there are no divergences because loops are removed
+    # from the joins
+    # NOTE: it is expected that a given lineID will be claimed as a downstream
+    # of many downstream networks.
+    print("Extracting downstream linear networks for each barrier")
+
+    # lineIDs of flowlines immediately upstream of barriers
+    barrier_downstream_idx = barrier_joins.loc[
+        barrier_joins.downstream_id != 0
+    ].downstream_id.unique()
+
+    # break joins at barriers
+    downstream_joins = joins.loc[
+        (joins.upstream_id != 0)
+        & (joins.downstream_id != 0)
+        & (~joins.downstream_id.isin(barrier_downstream_idx)),
+        ["downstream_id", "upstream_id"],
+    ].drop_duplicates(subset=["downstream_id", "upstream_id"])
+
+    downstream_graph = DirectedGraph(
+        downstream_joins.upstream_id.values.astype("int64"),
+        downstream_joins.downstream_id.values.astype("int64"),
+    )
+
+    down_network_df = generate_networks(downstream_graph, barrier_downstream_idx)
+
+    # lineIDs that are null are single-segment networks; fill them with the
+    # networkID
+    ix = down_network_df.lineID.isnull()
+    down_network_df.loc[ix, "lineID"] = down_network_df.loc[ix].networkID
+
+    down_network_df = down_network_df.drop_duplicates()
+
+    down_network_df.networkID = down_network_df.networkID.astype("uint32")
+    down_network_df.lineID = down_network_df.lineID.astype("uint32")
+
+    return (up_network_df, down_network_df)

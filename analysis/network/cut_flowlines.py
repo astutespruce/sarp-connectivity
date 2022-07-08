@@ -20,6 +20,7 @@ DEBUG = False
 WATERFALLS_ID = 1e6
 DAMS_ID = 2 * 1e6
 SB_ID = 3 * 1e6
+CROSSINGS_ID = 4 * 1e6
 
 data_dir = Path("data")
 barriers_dir = data_dir / "barriers/snapped"
@@ -30,31 +31,31 @@ huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]
 huc2s = huc2_df.HUC2.sort_values().values
 
 # manually subset keys from above for processing
-# huc2s = [
-#     "02",
-#     "03",
-#     "05",
-#     "06",
-#     "07",
-#     "08",
-#     "09",
-#     "10",
-#     "11",
-#     "12",
-#     "13",
-#     "14",
-#     "15",
-#     "16",
-#     "17",
-#     "21",
-# ]
+huc2s = [
+    # "02",
+    # "03",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    # "14",
+    # "15",
+    # "16",
+    # "17",
+    "21",
+]
 
 
 start = time()
 
 ### Aggregate barriers
-kinds = ["waterfall", "dam", "small_barrier"]
-kind_ids = [WATERFALLS_ID, DAMS_ID, SB_ID]
+kinds = ["waterfall", "dam", "small_barrier", "road_crossing"]
+kind_ids = [WATERFALLS_ID, DAMS_ID, SB_ID, CROSSINGS_ID]
 
 barriers = read_feathers(
     [barriers_dir / f"{kind}s.feather" for kind in kinds],
@@ -66,6 +67,7 @@ for kind, init_id in zip(kinds, kind_ids):
     ix = barriers.kind == kind
     barriers.loc[ix, "barrierID"] = barriers.loc[ix].id + init_id
 
+print(f"Serializing {len(barriers):,} barriers")
 barriers.barrierID = barriers.barrierID.astype("uint64")
 barriers.to_feather(out_dir / "all_barriers.feather")
 
@@ -126,7 +128,9 @@ for huc2 in huc2s:
         write_dataframe(flowlines, huc2_dir / "flowlines.gpkg")
 
     joins.reset_index(drop=True).to_feather(huc2_dir / "flowline_joins.feather")
-    barrier_joins.reset_index(drop=True).to_feather(huc2_dir / "barrier_joins.feather",)
+    barrier_joins.reset_index(drop=True).to_feather(
+        huc2_dir / "barrier_joins.feather",
+    )
 
     print(f"Region done in {time() - region_start:.2f}s\n\n")
 
