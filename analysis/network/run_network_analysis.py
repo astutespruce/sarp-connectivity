@@ -209,14 +209,21 @@ for group in groups:
             )
 
         #### Calculate up and downstream network attributes for barriers
+        # NOTE: some statistics (totd_*, miles_to_ocean, flows_to_ocean, exits_region)
+        # are evaluated from the upstream functional network (i.e., these are statistics)
+        # downstream of the barrier associated with that functional network
         print("calculating upstream and downstream networks for barriers")
 
         upstream_networks = (
             focal_barrier_joins[["upstream_id"]]
             .join(
                 network_stats.drop(
-                    columns=["flows_to_ocean", "num_downstream", "exits_region"]
-                    + [c for c in network_stats.columns if c.startswith("free_")]
+                    # columns=["flows_to_ocean", "exits_region"]
+                    columns=[
+                        c
+                        for c in network_stats.columns
+                        if c.startswith("free_")  # or c.startswith("totd_")
+                    ]
                 ),
                 on="upstream_id",
             )
@@ -252,10 +259,11 @@ for group in groups:
                         "free_altered_miles",
                         "free_unaltered_miles",
                         "free_perennial_unaltered_miles",
-                        "num_downstream",
-                        "flows_to_ocean",
-                        "exits_region",
+                        # "miles_to_outlet",
+                        # "flows_to_ocean",
+                        # "exits_region",
                     ]
+                    # + [c for c in network_stats if c.startswith("totd_")]
                 ].rename(
                     columns={
                         "total_miles": "TotalDownstreamMiles",
@@ -280,16 +288,25 @@ for group in groups:
             .join(
                 barriers.set_index("barrierID")[["id", "kind", "intermittent", "HUC2"]]
             )
-            .drop(columns=["barrier", "up_ndams", "up_nwfs", "up_sbs"], errors="ignore")
+            .drop(
+                columns=["barrier"]
+                + [
+                    c
+                    for c in network_stats.columns
+                    if c.startswith("fn_") or c.startswith("tot_")
+                ],
+                errors="ignore",
+            )
         )
 
         # fill missing data
         barrier_networks.origin_HUC2 = barrier_networks.origin_HUC2.fillna("")
-        barrier_networks.num_downstream = barrier_networks.num_downstream.fillna(
-            0
-        ).astype("uint16")
         barrier_networks.flows_to_ocean = barrier_networks.flows_to_ocean.fillna(False)
         barrier_networks.exits_region = barrier_networks.exits_region.fillna(False)
+        # if isolated network or connects to marine / exit, there are no further miles downstream from this network
+        barrier_networks.miles_to_outlet = barrier_networks.miles_to_outlet.fillna(
+            0
+        ).astype("float32")
         barrier_networks = barrier_networks.fillna(0).drop_duplicates()
 
         # Fix data types after all the joins
