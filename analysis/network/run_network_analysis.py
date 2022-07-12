@@ -259,11 +259,7 @@ for group in groups:
                         "free_altered_miles",
                         "free_unaltered_miles",
                         "free_perennial_unaltered_miles",
-                        # "miles_to_outlet",
-                        # "flows_to_ocean",
-                        # "exits_region",
                     ]
-                    # + [c for c in network_stats if c.startswith("totd_")]
                 ].rename(
                     columns={
                         "total_miles": "TotalDownstreamMiles",

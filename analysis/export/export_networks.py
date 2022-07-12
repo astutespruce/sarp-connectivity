@@ -16,12 +16,14 @@ if not out_dir.exists():
 
 
 barrier_type = "dams"
+# barrier_type = "small_barriers"
+# barrier_type = "road_crossings"
 ext = "fgb"
 
 # groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
-for group in [{"17"}]:
+for group in [{"21"}]:
     segments = (
         read_feathers(
             [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
@@ -56,8 +58,6 @@ for group in [{"17"}]:
     for col in ["natfldpln", "sizeclasses"]:
         stats[col] = stats[col].fillna(-1).astype("int8")
 
-    stats.segments = stats.segments.astype("uint32")
-
     # create output files by HUC2 based on where the segments occur
     for huc2 in group:
         print(f"Dissolving networks in {huc2}...")
@@ -80,23 +80,24 @@ for group in [{"17"}]:
 
         # aggregate to multilinestrings by combinations of networkID, altered, intermittent
         networks = (
-            merge_lines(flowlines, by=["networkID", "altered", "intermittent"])
+            # merge_lines(flowlines, by=["networkID", "altered", "intermittent"])
+            merge_lines(flowlines, by=["networkID"])
             .set_index("networkID")
             .join(stats, how="inner")
             .reset_index()
             .sort_values(by="networkID")
         )
 
-        # Set plotting symbol
-        networks["symbol"] = "normal"
-        networks.loc[networks.altered, "symbol"] = "altered"
-        # currently overrides altered since both come from NHD (mutually exclusive in source data)
-        networks.loc[networks.intermittent, "symbol"] = "intermittent"
-        networks.loc[
-            networks.intermittent & networks.altered, "symbol"
-        ] = "altered_intermittent"
+        # # Set plotting symbol
+        # networks["symbol"] = "normal"
+        # networks.loc[networks.altered, "symbol"] = "altered"
+        # # currently overrides altered since both come from NHD (mutually exclusive in source data)
+        # networks.loc[networks.intermittent, "symbol"] = "intermittent"
+        # networks.loc[
+        #     networks.intermittent & networks.altered, "symbol"
+        # ] = "altered_intermittent"
 
-        print("Serializing dissolved networks...")
+        print(f"Serializing {len(networks):,} dissolved networks...")
         write_dataframe(
             networks, out_dir / f"region{huc2}_{barrier_type}_networks.{ext}"
         )

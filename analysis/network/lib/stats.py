@@ -165,7 +165,59 @@ def calculate_network_stats(
         .sum()
     )
 
-    ### TODO: count barriers for the immediate catchment (same NHDPlusID or multiple if at confluence)
+    ### Count barriers for the immediate catchment, spanning multiple upstream
+    # networks if on the same NHDPlusID
+
+    # for every barrier join, get associated NHDPlusID
+    nhdplusID = barrier_joins.join(
+        up_network_df.reset_index().set_index("lineID")[["networkID", "NHDPlusID"]],
+        on="upstream_id",
+        how="inner",
+    ).NHDPlusID
+
+    # using the original barrier joins to preserve confluences at focal barrier_joins
+    # (they are otherwise filtered out from focal_barrier_joins) to get the NHDPlusID(s)
+    # associated with each upstream functional network
+    network_nhdplusID = (
+        barrier_joins.loc[barrier_joins.index.isin(focal_barrier_joins.index.unique())]
+        .join(nhdplusID, how="inner")
+        .join(networkID, on="upstream_id")
+        .set_index("networkID")
+        .NHDPlusID
+    )
+
+    # then for each set of upstream barriers within the functional network of a given
+    # barrier, filter those to ones on the same NHDPlusID
+    cat_barriers_upstream = (
+        (
+            upstream_joins[["downstream_id", "kind"]].join(
+                networkID, on="downstream_id", how="inner"
+            )
+        )
+        .join(nhdplusID, how="inner")
+        .join(network_nhdplusID, on="networkID", rsuffix="_network", how="inner")
+    )
+    cat_barriers_upstream = cat_barriers_upstream.loc[
+        cat_barriers_upstream.NHDPlusID == cat_barriers_upstream.NHDPlusID_network
+    ]
+
+    cat_upstream_counts = (
+        cat_barriers_upstream.groupby(["networkID", "kind"])
+        .size()
+        .rename("count")
+        .reset_index()
+        .pivot(index="networkID", columns="kind", values="count")
+        .fillna(0)
+        .astype("uint32")
+        .rename(
+            columns={
+                "dam": "cat_dams",
+                "waterfall": "cat_waterfalls",
+                "small_barrier": "cat_small_barriers",
+                "road_crossing": "cat_road_crossings",
+            }
+        )
+    )
 
     ### Count barriers that are DOWNSTREAM (linear to terminal / river outlet) of each barrier
     # using a directed graph of all network joins facing downstream
@@ -184,8 +236,6 @@ def calculate_network_stats(
     )
 
     ln_downstream_counts = (
-        # drop the entry for each barrier to avoid counting it as one of the downstream kinds
-        # ln_downstream.loc[ln_downstream.downstream_id != ln_downstream.networkID]
         ln_downstream.groupby(["networkID", "kind"])
         .size()
         .rename("count")
@@ -194,8 +244,6 @@ def calculate_network_stats(
         .fillna(0)
         .astype("uint32")
     )
-
-    # TODO: the above is missing the cutting barriers downstream
 
     # calculate total length of each downstream network
     ln_downstream_length = down_network_df.groupby("networkID").length.sum()
@@ -386,6 +434,7 @@ def calculate_network_stats(
         .join(calculate_floodplain_stats(up_network_df))
         .join(sizeclasses)
         .join(fn_upstream_counts)
+        .join(cat_upstream_counts)
         .join(tot_upstream_counts)
         .join(barrier_type_downstream)
         .join(downstream_stats)
@@ -399,9 +448,17 @@ def calculate_network_stats(
 
     count_cols = (
         fn_upstream_counts.columns.tolist()
+        + cat_upstream_counts.columns.tolist()
         + tot_upstream_counts.columns.tolist()
         + [c for c in downstream_stats.columns if c.startswith("totd_")]
     )
+
+    # make sure all count columns are at least present
+    for stat_type in ["fn", "cat", "tot", "totd"]:
+        for kind in ["waterfalls", "dams", "small_barriers", "road_crossings"]:
+            col = f"{stat_type}_{kind}"
+            if not col in results.columns:
+                results[col] = 0
 
     results[count_cols] = results[count_cols].fillna(0).astype("uint32")
     results.barrier = results.barrier.fillna("")
