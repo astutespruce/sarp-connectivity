@@ -71,25 +71,25 @@ huc2s = sorted(
     pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
 )
 # manually subset keys from above for processing
-huc2s = [
-    # "02",
-    # "03",
-    # "05",
-    # "06",
-    "07",
-    # "08",
-    "09",
-    "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    "16",
-    "17",
-    "18",
-    # "21",
-]
+# huc2s = [
+# "02",
+# "03",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "18",
+# "21",
+# ]
 
 
 start = time()
@@ -222,7 +222,7 @@ for huc2 in huc2s:
 
     ### Cut flowlines by waterbodies
     print("Processing intersections between waterbodies and flowlines")
-    next_lineID = int(flowlines.index.max() + 1)
+    next_lineID = flowlines.index.max() + np.uint32(1)
     flowlines, joins, wb_joins = cut_lines_by_waterbodies(
         flowlines, joins, waterbodies, next_lineID=next_lineID
     )

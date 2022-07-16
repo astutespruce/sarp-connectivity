@@ -7,10 +7,13 @@ import geopandas as gp
 import pygeos as pg
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
+from pyogrio.errors import DataSourceError
 
 from analysis.constants import CRS
 from analysis.lib.geometry import dissolve, explode
 from analysis.lib.util import append
+
+from analysis.prep.network.download_nwi import HUC8_ALIAS
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -68,23 +71,23 @@ huc2s = units.keys()
 
 # manually subset keys from above for processing
 huc2s = [
-    #     "02",
-    #     "03",
+    # "02",
+    # "03",
     # "05",
-    #     "06",
-    #     "07",
+    # "06",
+    # "07",
     # "08",
-    #     "09",
-    #     "10",
-    #     "11",
-    #     "12",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
     # "13",
-    "14",
+    # "14",
     # "15",
     # "16",
     # "17",
     # "18",
-    #     "21",  # Missing: 21010008 (islands)
+    # "21",  # Missing: 21010008 (islands)
 ]
 
 
@@ -105,17 +108,25 @@ for huc2 in huc2s:
     for huc8 in units[huc2]:
         print(f"Reading NWI data for {huc8}")
 
+        huc8 = HUC8_ALIAS.get(huc8, huc8)
+
         filename = src_dir.resolve() / f"{huc8}.zip"
         if not filename.exists():
             print(f"WARNING: {filename} not found")
             continue
 
         # Extract and merge lakes and wetlands
-        df = read_dataframe(
-            f"/vsizip/{filename}/HU8_{huc8}_Watershed/HU8_{huc8}_Wetlands.shp",
-            columns=["ATTRIBUTE", "WETLAND_TY"],
-            where="WETLAND_TY in ('Lake', 'Pond', 'Riverine')",
-        ).rename(columns={"ATTRIBUTE": "nwi_code", "WETLAND_TY": "nwi_type"})
+        try:
+            df = read_dataframe(
+                f"/vsizip/{filename}/HU8_{huc8}_Watershed/HU8_{huc8}_Wetlands.shp",
+                columns=["ATTRIBUTE", "WETLAND_TY"],
+                where="WETLAND_TY in ('Lake', 'Pond', 'Riverine')",
+            ).rename(columns={"ATTRIBUTE": "nwi_code", "WETLAND_TY": "nwi_type"})
+
+        except DataSourceError:
+            print(
+                f"WARNING: wetlands could not be read from {filename}; shapefile might not exist"
+            )
 
         # some geometries are invalid, filter them out
         df = df.loc[pg.is_geometry(df.geometry.values.data)].copy()

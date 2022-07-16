@@ -42,7 +42,7 @@ def extract_waterbodies(gdb_path, target_crs):
         force_2d=True,
         where=f"FType not in {tuple(WATERBODY_EXCLUDE_FTYPES)}",
     )
-    print("Read {:,} waterbodies".format(len(df)))
+    print(f"Read {len(df):,} waterbodies")
 
     # Convert multipolygons to polygons
     # those we checked that are true multipolygons are errors
@@ -55,9 +55,6 @@ def extract_waterbodies(gdb_path, target_crs):
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
     df.AreaSqKm = df.AreaSqKm.astype("float32")
     df.FType = df.FType.astype("uint16")
-
-    ### Add calculated fields
-    df["wbID"] = df.index.values.astype("uint32") + 1
 
     return df
 
@@ -134,4 +131,3 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
         return pg.union_all(np.append(split_lines, keep_nhd_lines))
 
     return None
-

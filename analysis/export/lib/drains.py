@@ -35,7 +35,8 @@ def find_dam_faces(drains, waterbodies):
     # convert to plain dataframe
     joined = pd.DataFrame(
         drains[["geometry", "wbID"]].join(
-            waterbodies.geometry.rename("waterbody"), on="wbID",
+            waterbodies.geometry.rename("waterbody"),
+            on="wbID",
         )
     )
     joined["geometry"] = joined.geometry.values.data

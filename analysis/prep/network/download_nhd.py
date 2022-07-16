@@ -24,7 +24,7 @@ if not nhd_dir.exists():
 for id in huc4:
     filename = nhd_dir / f"{id}.zip"
 
-    if not os.path.exists(filename):
+    if not filename.exists():
         try:
             download_huc4(id, filename)
 

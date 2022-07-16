@@ -27,9 +27,9 @@ Run `download_nhd.py`. This will download NHDPlus HR data by HUC4 into `data/nhd
 
 WARNING: NHD HR+ data are currently in beta. There are data issues, including, but not limited to miscoded flowlines / loops, spurious NHD areas, and fragmented adjacent waterbodies.
 
-NHD data were last downloaded on 10/12/2020.
+NHD data were last downloaded on 7/14/2022.
 
-### 2. Download National Wetlands Inventory (NWI 2020) data:
+### 2. Download National Wetlands Inventory (NWI 2022) data:
 
 NWI ponds and lakes are used to supplement the NHDWaterbody dataset downloaded above.
 

@@ -1,3 +1,4 @@
+import numpy as np
 from pyogrio import read_dataframe
 
 from analysis.lib.geometry import make_valid
@@ -40,7 +41,6 @@ def extract_barrier_points(gdb_path, target_crs):
     )
 
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
-    df["id"] = df.index.values.astype("uint32") + 1
 
     if len(df):
         df = df.to_crs(target_crs)
@@ -74,7 +74,6 @@ def extract_barrier_lines(gdb_path, target_crs):
     )
 
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
-    df["id"] = df.index.values.astype("uint32") + 1
 
     if len(df):
         df = df.to_crs(target_crs)
@@ -108,7 +107,6 @@ def extract_barrier_polygons(gdb_path, target_crs):
     )
 
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
-    df["id"] = df.index.values.astype("uint32") + 1
 
     if len(df):
         df = df.to_crs(target_crs)

@@ -39,7 +39,6 @@ def extract_altered_rivers(gdb_path, target_crs):
     )
 
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
-    df["id"] = df.index.values.astype("uint32") + 1
 
     if len(df):
         df = df.to_crs(target_crs)

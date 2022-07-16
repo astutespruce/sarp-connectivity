@@ -1,4 +1,6 @@
 import warnings
+
+import pandas as pd
 from pyogrio import read_dataframe
 
 from analysis.lib.geometry import explode
@@ -50,10 +52,9 @@ def extract_marine(gdb_path, target_crs):
         where=f"FType in ({','.join([str(t) for t in WB_FTYPES])})",
     )
 
-    df = area.append(wb)
+    df = pd.concat([area, wb], ignore_index=True, sort=False)
 
     if len(df):
         df = explode(df.to_crs(target_crs))
 
     return df
-

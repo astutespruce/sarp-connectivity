@@ -71,8 +71,14 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     # Join in stats from waterbodies and geometries from flowlines
     drain_pts = (
         wb_joins.loc[wb_joins.lineID.isin(drains.upstream_id.unique())]
-        .join(wb_atts, on="wbID",)
-        .join(tmp_flowlines[["geometry", "loop", "TotDASqKm"]], on="lineID",)
+        .join(
+            wb_atts,
+            on="wbID",
+        )
+        .join(
+            tmp_flowlines[["geometry", "loop", "TotDASqKm"]],
+            on="lineID",
+        )
         .reset_index(drop=True)
     )
 
@@ -259,8 +265,14 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         .reset_index()
     )
     headwaters = (
-        headwaters.join(wb_atts, on="wbID",)
-        .join(tmp_flowline_pts, on="lineID",)
+        headwaters.join(
+            wb_atts,
+            on="wbID",
+        )
+        .join(
+            tmp_flowline_pts,
+            on="lineID",
+        )
         .reset_index(drop=True)
     )
     headwaters["headwaters"] = True
@@ -271,9 +283,9 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     )
 
     drain_pts["headwaters"] = False
-    drain_pts = drain_pts.append(headwaters, sort=False, ignore_index=True).reset_index(
-        drop=True
-    )
+    drain_pts = pd.concat(
+        [drain_pts, headwaters], sort=False, ignore_index=True
+    ).reset_index(drop=True)
 
     # join in line properties
     drain_pts = drain_pts.drop(columns=["loop", "TotDASqKm"]).join(

@@ -1,5 +1,6 @@
 import warnings
 
+import numpy as np
 import pandas as pd
 import pygeos as pg
 from pyogrio import read_dataframe
@@ -13,6 +14,7 @@ warnings.filterwarnings("ignore", message=".*geometry types are not supported*")
 
 FLOWLINE_COLS = [
     "NHDPlusID",
+    "ReachCode",  # theoretically this can be used to join to NHD Plus Med Res
     "FlowDir",
     "FType",
     "FCode",
@@ -26,6 +28,7 @@ VAA_COLS = [
     "StreamOrde",
     "StreamLeve",
     "StreamCalc",
+    "AreaSqKm",
     "TotDASqKm",
     "Slope",
     "MinElevSmo",
@@ -38,7 +41,7 @@ VAA_COLS = [
 EROMMA_COLS = ["NHDPlusID", "QAMA", "VAMA"]
 
 
-def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
+def extract_flowlines(gdb, target_crs):
     """
     Extracts flowlines data from NHDPlusHR data product.
     Extract flowlines from NHDPlusHR data product, joins to VAA table,
@@ -47,13 +50,11 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
 
     Parameters
     ----------
-    gdb_path : str
+    gdb : str
         path to the NHD HUC4 Geodatabase
     target_crs: GeoPandas CRS object
         target CRS to project NHD to for analysis, like length calculations.
         Must be a planar projection.
-    extra_cols: list
-        List of extra field names to extract from NHDFlowline layer
 
     Returns
     -------
@@ -63,9 +64,11 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
 
     ### Read in flowline data and convert to data frame
     print("Reading flowlines")
-    flowline_cols = FLOWLINE_COLS + extra_flowline_cols
     df = read_dataframe(
-        gdb_path, layer="NHDFlowline", force_2d=True, columns=[flowline_cols],
+        gdb,
+        layer="NHDFlowline",
+        force_2d=True,
+        columns=FLOWLINE_COLS,
     )
 
     # Index on NHDPlusID for easy joins to other NHD data
@@ -84,9 +87,7 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     # NOTE: not all records in Flowlines have corresponding records in VAA
     # we drop those that do not since we need these fields.
     print("Reading VAA table and joining...")
-    vaa_df = read_dataframe(
-        gdb_path, layer="NHDPlusFlowlineVAA", columns=[VAA_COLS]
-    ).rename(
+    vaa_df = read_dataframe(gdb, layer="NHDPlusFlowlineVAA", columns=[VAA_COLS]).rename(
         columns={
             "StreamOrde": "StreamOrder",
             "StreamLeve": "StreamLevel",
@@ -117,7 +118,7 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
 
     ### Read in EROMMA_COLS
     flow_df = (
-        read_dataframe(gdb_path, layer="NHDPlusEROMMA", columns=EROMMA_COLS)
+        read_dataframe(gdb, layer="NHDPlusEROMMA", columns=EROMMA_COLS)
         .rename(columns={"QAMA": "AnnualFlow", "VAMA": "AnnualVelocity"})
         .set_index("NHDPlusID")
         .astype("float32")
@@ -127,7 +128,7 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     ### Read in flowline joins
     print("Reading flowline joins")
     join_df = read_dataframe(
-        gdb_path,
+        gdb,
         layer="NHDPlusFlow",
         read_geometry=False,
         columns=["FromNHDPID", "ToNHDPID"],
@@ -207,7 +208,7 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     if len(ids):
         # save to send to NHD
         pd.DataFrame({"NHDPlusID": ids.index.unique()}).to_csv(
-            f"/tmp/{gdb_path.stem}_bad_joins.csv", index=False
+            f"/tmp/{gdb.stem}_bad_joins.csv", index=False
         )
 
         ix = join_df.upstream.isin(ids.index)
@@ -255,6 +256,14 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
         join_df, ix, downstream_col="downstream", upstream_col="upstream"
     )
 
+    ### Filter out any flowlines where TotDASqKm is 0; these do not have associated catchments
+    # and are likely noise
+    ix = df.TotDASqKm == 0
+    df = df.loc[~ix].copy()
+    join_df = remove_joins(
+        join_df, ix, downstream_col="downstream", upstream_col="upstream"
+    )
+
     ### Label loops for easier removal later
     # WARNING: loops may be very problematic from a network processing standpoint.
     # Include with caution.
@@ -264,11 +273,11 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     idx = df.loc[df.loop].index
     join_df["loop"] = join_df.upstream.isin(idx) | join_df.downstream.isin(idx)
 
+    # drop columns not useful for later processing steps
+    df = df.drop(columns=["FlowDir", "StreamCalc"])
+
     ### Add calculated fields
-    # Set our internal master IDs to the original index of the file we start from
-    # Assume that we can always fit into a uint32, which is ~400 million records
-    # and probably bigger than anything we could ever read in
-    df["lineID"] = df.index.values.astype("uint32") + 1
+    df["lineID"] = np.arange(len(df), dtype="uint32")
     join_df = (
         join_df.join(df.lineID.rename("upstream_id"), on="upstream")
         .join(df.lineID.rename("downstream_id"), on="downstream")
@@ -292,12 +301,9 @@ def extract_flowlines(gdb_path, target_crs, extra_flowline_cols=[]):
     df.loc[(drainage >= 10000) & (drainage < 25000), "sizeclass"] = "4"
     df.loc[drainage >= 25000, "sizeclass"] = "5"
 
-    # Calculate length and sinuosity
+    # Calculate length
     print("Calculating length")
     df["length"] = df.geometry.length.astype("float32")
-
-    # drop columns not useful for later processing steps
-    df = df.drop(columns=["FlowDir", "StreamCalc"])
 
     # calculate incoming joins (have valid upstream, but not in this HUC4)
     join_df.loc[(join_df.upstream != 0) & (join_df.upstream_id == 0), "type"] = "huc_in"

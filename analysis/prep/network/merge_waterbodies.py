@@ -28,26 +28,27 @@ if not out_dir.exists():
 huc2s = sorted(
     pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
 )
+
 # manually subset keys from above for processing
-huc2s = [
-    # "02",
-    # "03",
-    # "05",
-    # "06",
-    "07",
-    # "08",
-    "09",
-    "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    "16",
-    "17",
-    "18",
-    # "21",
-]
+# huc2s = [
+# "02",
+# "03",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "18",
+# "21",
+# ]
 
 start = time()
 
@@ -95,29 +96,43 @@ for huc2 in huc2s:
 
     nwi = gp.read_feather(nwi_dir / huc2 / "waterbodies.feather")
 
-    df = nhd[["geometry", "altered"]].append(nwi[["geometry", "altered"]])
+    df = pd.concat(
+        [nhd[["geometry", "altered"]], nwi[["geometry", "altered"]]],
+        ignore_index=True,
+        sort=False,
+    )
 
     altered = df.loc[df.altered].copy()
 
     if huc2 == "03":
         sc_wb = gp.read_feather("data/states/sc/sc_waterbodies.feather", columns=[])
         sc_wb["altered"] = False  # unknown
-        df = df.append(sc_wb[["geometry", "altered"]], ignore_index=True)
+        df = pd.concat(
+            [df, sc_wb[["geometry", "altered"]]], ignore_index=True, sort=False
+        )
 
     elif huc2 == "17":
-        df = df.append(wa_wb[["geometry", "altered"]], ignore_index=True)
+        df = pd.concat(
+            [df, wa_wb[["geometry", "altered"]]], ignore_index=True, sort=False
+        )
 
     if overlaps_or_ca:
-        df = df.append(
-            or_wb.loc[or_wb.HUC2 == huc2, ["geometry", "altered"]], ignore_index=True
+        df = pd.concat(
+            [df, or_wb.loc[or_wb.HUC2 == huc2, ["geometry", "altered"]]],
+            ignore_index=True,
+            sort=False,
         )
-        df = df.append(
-            ca_wb.loc[ca_wb.HUC2 == huc2, ["geometry", "altered"]], ignore_index=True
+        df = pd.concat(
+            [df, ca_wb.loc[ca_wb.HUC2 == huc2, ["geometry", "altered"]]],
+            ignore_index=True,
+            sort=False,
         )
 
     if overlaps_sd:
-        df = df.append(
-            sd_wb.loc[sd_wb.HUC2 == huc2, ["geometry", "altered"]], ignore_index=True
+        df = pd.concat(
+            [df, sd_wb.loc[sd_wb.HUC2 == huc2, ["geometry", "altered"]]],
+            ignore_index=True,
+            sort=False,
         )
 
     print(f"Dissolving {len(df):,} waterbodies...")

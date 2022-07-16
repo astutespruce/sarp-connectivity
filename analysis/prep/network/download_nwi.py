@@ -15,9 +15,12 @@ import pandas as pd
 # Data are available within the NWI Viewer: https://www.fws.gov/wetlands/Data/Mapper.html
 # Sometimes the HUC8 is not identified correctly here; if you get a 404 error on download,
 # find the same location, download manually, and update to match the missing HUC8 code
-URL = "http://www.fws.gov/wetlands/downloads/Watershed/HU8_{huc8}_watershed.zip"
+URL = "https://www.fws.gov/wetlands/downloads/Watershed/HU8_{huc8}_watershed.zip"
 MAX_WORKERS = 2
 CONNECTION_TIMEOUT = 120  # seconds
+
+# current HUC8 to NWI HUC8 codes
+HUC8_ALIAS = {"08010300": "08020201", "10170104": "10150001"}
 
 
 async def download_huc8s(huc8s):
@@ -74,9 +77,9 @@ huc2s = [
     # "05",
     # "06",
     # "07",
-    # "08",
+    # "08",  # fix: 08010300 => 08020201
     # "09",
-    # "10",
+    # "10", # fix: 10170104 => 10150001
     # "11",
     # "12",
     # "13",
@@ -84,6 +87,7 @@ huc2s = [
     # "15",
     # "16",
     # "17",
+    # "18",
     # "21",  # Missing: 21010007, 21010008 (islands)
 ]
 
