@@ -88,11 +88,9 @@ nhd_areas["geometry"] = pg.buffer(nhd_areas.geometry.values.data, 0.001)
 nhd_areas["source"] = "NHDArea"
 
 # Dissolve adjacent nhd lines and polygons together
-nhd_dams = (
-    nhd_pts.append(nhd_lines, ignore_index=True, sort=False)
-    .append(nhd_areas, ignore_index=True, sort=False)
-    .reset_index(drop=True)
-)
+nhd_dams = pd.concat(
+    [nhd_pts, nhd_lines, nhd_areas], ignore_index=True, sort=False
+).reset_index(drop=True)
 
 # find contiguous groups for dissolve
 nhd_dams = nhd_dams.join(find_contiguous_groups(nhd_dams.geometry.values.data))
@@ -206,7 +204,10 @@ for huc2 in huc2s:
         dams[["damID", "geometry"]]
         .join(downstreams, on="damID", how="inner")
         .drop_duplicates(subset=["damID", "lineID"])
-        .join(flowlines.geometry.rename("flowline"), on="lineID",)
+        .join(
+            flowlines.geometry.rename("flowline"),
+            on="lineID",
+        )
         .reset_index(drop=True)
     )
     print(f"Found {len(dams):,} joins between NHD dams and flowlines")
@@ -250,7 +251,14 @@ for huc2 in huc2s:
     # WARNING: there may be multiple points per dam at this point, due to intersections with
     # multiple disjunct flowlines
     dams = (
-        dams[["damID", "lineID", "geometry", "pt",]].dropna(subset=["pt"])
+        dams[
+            [
+                "damID",
+                "lineID",
+                "geometry",
+                "pt",
+            ]
+        ].dropna(subset=["pt"])
         # .rename(columns={"pt": "geometry"})
     )
     dams.index.name = "damPtID"
@@ -275,7 +283,9 @@ for huc2 in huc2s:
         drains.geometry.values.data, max_distance=MAX_DRAIN_DISTANCE
     )
     near_drains = pd.DataFrame(
-        {"drainID": drains.index.values.take(drain_ix),},
+        {
+            "drainID": drains.index.values.take(drain_ix),
+        },
         index=pd.Series(tmp_dams.index.values.take(dam_ix), name="damID"),
     ).join(drains, on="drainID")
 

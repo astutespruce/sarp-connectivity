@@ -15,6 +15,7 @@ from pathlib import Path
 import warnings
 
 import geopandas as gp
+import pandas as pd
 import pygeos as pg
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
@@ -111,8 +112,8 @@ if ix.sum():
     df.loc[ix, "geometry"] = pg.make_valid(df.loc[ix].geometry.values.data)
 
 
-df = waterbodies.append(
-    df[["geometry", "altered", "source"]], ignore_index=True, sort=False
+df = pd.append(
+    [waterbodies, df[["geometry", "altered", "source"]]], ignore_index=True, sort=False
 ).reset_index(drop=True)
 
 ### Dissolve waterbodies
@@ -141,5 +142,3 @@ wb["altered"] = False
 wb.loc[ix, "altered"] = True
 
 wb.to_feather(src_dir / "wa_waterbodies.feather")
-write_dataframe(wb, src_dir / "wa_waterbodies.fgb")
-

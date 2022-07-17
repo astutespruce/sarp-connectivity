@@ -85,5 +85,3 @@ df = df.join(
 )
 
 df.to_feather(src_dir / "sd_waterbodies.feather")
-write_dataframe(df, src_dir / "sd_waterbodies.fgb")
-

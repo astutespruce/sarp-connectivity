@@ -112,5 +112,3 @@ wb = wb.join(
 )
 
 wb.to_feather(src_dir / "or_waterbodies.feather")
-write_dataframe(wb, src_dir / "or_waterbodies.fgb")
-

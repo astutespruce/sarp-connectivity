@@ -7,30 +7,30 @@ data_dir = Path("data")
 
 nhd_dir = data_dir / "nhd/raw"
 
-# huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"])
-# huc2s = huc2_df.HUC2.sort_values().values
+huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"])
+huc2s = huc2_df.HUC2.sort_values().values
 
 # manually subset keys from above for processing
-huc2s = [
-    # "02",
-    # "03",
-    "05",
-    # "06",
-    # "07",
-    "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    "16",
-    "17",
-    "18",
-    # "17",
-    # "21",
-]
+# huc2s = [
+# "02",
+# "03",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "18",
+# "17",
+# "21",
+# ]
 
 
 for huc2 in huc2s:
@@ -63,8 +63,3 @@ for huc2 in huc2s:
 
     if loops:
         print(f"Potential loops: {(', ').join([str(l) for l in loops])}")
-
-
-### FIXME: remove
-find_loops = njit()(find_loops)
-find_loops(g.adj_matrix, origins[:1].astype("int64"))

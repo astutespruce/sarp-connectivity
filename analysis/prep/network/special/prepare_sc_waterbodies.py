@@ -31,7 +31,10 @@ huc2 = "03"
 print("Reading waterbodies...")
 df = (
     read_dataframe(
-        src_dir / "SCBreakline.gdb", layer="Waterbody", force_2d=True, columns=[],
+        src_dir / "SCBreakline.gdb",
+        layer="Waterbody",
+        force_2d=True,
+        columns=[],
     )
     .rename(columns={"NAME": "name"})
     .to_crs(CRS)
@@ -61,5 +64,3 @@ df = dissolve(df, by="tmp").drop(columns=["tmp"])
 df = explode(df).reset_index(drop=True)
 
 df.to_feather(src_dir / "sc_waterbodies.feather")
-write_dataframe(df, src_dir / "sc_waterbodies.gpkg")
-

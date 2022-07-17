@@ -30,6 +30,7 @@ from time import time
 import warnings
 
 import geopandas as gp
+import numpy as np
 import pandas as pd
 import pygeos as pg
 from pyogrio import write_dataframe

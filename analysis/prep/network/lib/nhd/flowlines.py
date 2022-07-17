@@ -261,7 +261,10 @@ def extract_flowlines(gdb, target_crs):
     ix = df.TotDASqKm == 0
     df = df.loc[~ix].copy()
     join_df = remove_joins(
-        join_df, ix, downstream_col="downstream", upstream_col="upstream"
+        join_df,
+        ix[ix].index.unique(),
+        downstream_col="downstream",
+        upstream_col="upstream",
     )
 
     ### Label loops for easier removal later
