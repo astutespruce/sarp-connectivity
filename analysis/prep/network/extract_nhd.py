@@ -98,7 +98,7 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
 
         # calculate ids to be unique across region
         waterbodies["wbID"] = (
-            np.arange(len(waterbodies), dtype="uint32") + waterbodies_offset
+            np.arange(1, len(waterbodies) + 1, dtype="uint32") + waterbodies_offset
         )
         waterbodies_offset = waterbodies.wbID.max() + np.uint32(1)
 
@@ -108,21 +108,27 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
         points = extract_barrier_points(gdb, target_crs=CRS)
         if len(points):
             points.HUC4 = huc4
-            points["id"] = np.arange(len(points), dtype="uint32") + nhd_points_offset
+            points["id"] = (
+                np.arange(1, len(points) + 1, dtype="uint32") + nhd_points_offset
+            )
             nhd_points_offset = points.id.max() + np.uint32(1)
             merged_points = append(merged_points, points)
 
         lines = extract_barrier_lines(gdb, target_crs=CRS)
         if len(lines):
             lines.HUC4 = huc4
-            lines["id"] = np.arange(len(lines), dtype="uint32") + nhd_lines_offset
+            lines["id"] = (
+                np.arange(1, len(lines) + 1, dtype="uint32") + nhd_lines_offset
+            )
             nhd_lines_offset = lines.id.max() + np.uint32(1)
             merged_lines = append(merged_lines, lines)
 
         poly = extract_barrier_polygons(gdb, target_crs=CRS)
         if len(poly):
             poly.HUC4 = huc4
-            poly["id"] = np.arange(len(poly), dtype="uint32") + nhd_polygons_offset
+            poly["id"] = (
+                np.arange(1, len(poly) + 1, dtype="uint32") + nhd_polygons_offset
+            )
             nhd_polygons_offset = poly.id.max() + np.uint32(1)
             merged_poly = append(merged_poly, poly)
 

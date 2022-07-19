@@ -279,13 +279,24 @@ def extract_flowlines(gdb, target_crs):
     # drop columns not useful for later processing steps
     df = df.drop(columns=["FlowDir", "StreamCalc"])
 
+    # Cleanup invalid joins
+    join_df = join_df.loc[(join_df.upstream != 0) | (join_df.downstream != 0)].copy()
+
     ### Add calculated fields
-    df["lineID"] = np.arange(len(df), dtype="uint32")
-    join_df = (
-        join_df.join(df.lineID.rename("upstream_id"), on="upstream")
-        .join(df.lineID.rename("downstream_id"), on="downstream")
-        .fillna(0)
+    # lineIDs are 1-based because join==0 indicates endpoints of network
+    df["lineID"] = np.arange(1, len(df) + 1, dtype="uint32")
+    # add in 0 so that joining on NHDPlusID==0 works properly
+    tmp = pd.concat([df.lineID, pd.Series(np.uint32([0]), index=np.uint64([0]))])
+    join_df = join_df.join(tmp.rename("upstream_id"), on="upstream").join(
+        tmp.rename("downstream_id"), on="downstream"
     )
+
+    # calculate incoming joins (have valid upstream, but not in this HUC4)
+    join_df.loc[
+        (join_df.upstream != 0) & (join_df.upstream_id.isnull()), "type"
+    ] = "huc_in"
+
+    join_df = join_df.fillna(0)
 
     for col in ("upstream", "downstream"):
         join_df[col] = join_df[col].astype("uint64")
@@ -307,8 +318,5 @@ def extract_flowlines(gdb, target_crs):
     # Calculate length
     print("Calculating length")
     df["length"] = df.geometry.length.astype("float32")
-
-    # calculate incoming joins (have valid upstream, but not in this HUC4)
-    join_df.loc[(join_df.upstream != 0) & (join_df.upstream_id == 0), "type"] = "huc_in"
 
     return df, join_df

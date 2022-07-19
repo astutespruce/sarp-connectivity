@@ -215,6 +215,7 @@ def create_networks(joins, barrier_joins, lineIDs):
     print(f"{len(single_segment_networks):,} networks are a single segment long")
 
     ### Create a directed graph facing upstream
+    print("creating upstream graph")
     upstream_graph = DirectedGraph(
         upstream_joins.downstream_id.values.astype("int64"),
         upstream_joins.upstream_id.values.astype("int64"),
@@ -260,6 +261,13 @@ def create_networks(joins, barrier_joins, lineIDs):
     up_network_df.networkID = up_network_df.networkID.astype("uint32")
     up_network_df.lineID = up_network_df.lineID.astype("uint32")
 
+    # check for duplicates
+    s = up_network_df.groupby("lineID").size()
+    if s.max() > 1:
+        raise ValueError(
+            f"lineIDs are found in multiple networks: {s.loc[s>1].index.values.tolist()}"
+        )
+
     ### Handle multiple upstreams
     # A given barrier may have > 1 upstream segment, some have 3+
     # Some might be single segments, so we can't just focus on barrier segments
@@ -291,7 +299,7 @@ def create_networks(joins, barrier_joins, lineIDs):
     # of many downstream networks.
     print("Extracting downstream linear networks for each barrier")
 
-    # lineIDs of flowlines immediately upstream of barriers
+    # lineIDs of flowlines immediately downstream of barriers
     barrier_downstream_idx = barrier_joins.loc[
         barrier_joins.downstream_id != 0
     ].downstream_id.unique()

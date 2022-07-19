@@ -4,6 +4,7 @@ from time import time
 import warnings
 
 import geopandas as gp
+import numpy as np
 import pandas as pd
 from pyogrio import write_dataframe
 
@@ -31,24 +32,24 @@ huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]
 huc2s = huc2_df.HUC2.sort_values().values
 
 # manually subset keys from above for processing
-huc2s = [
-    # "02",
-    # "03",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
-    "21",
-]
+# huc2s = [
+# "02",
+# "03",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "21",
+# ]
 
 
 start = time()
@@ -71,9 +72,6 @@ print(f"Serializing {len(barriers):,} barriers")
 barriers.barrierID = barriers.barrierID.astype("uint64")
 barriers.to_feather(out_dir / "all_barriers.feather")
 
-if DEBUG:
-    write_dataframe(barriers, out_dir / "all_barriers.fgb")
-
 
 ### Cut flowlines in each HUC2
 for huc2 in huc2s:
@@ -94,14 +92,12 @@ for huc2 in huc2s:
     ### Read NHD flowlines and joins
     print("Reading flowlines...")
     flowline_start = time()
-    flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather").drop(
-        columns=["HUC2", "xmin", "xmax", "ymin", "ymax"], errors="ignore"
-    )
+    flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather")
     print(f"Read {len(flowlines):,} flowlines in {time() - flowline_start:.2f}s")
-
-    # TEMP: temporary fix until this is handled in prep_flowlines_* script
-    flowlines.lineID = flowlines.lineID.astype("uint32")
     flowlines = flowlines.set_index("lineID", drop=False)
+
+    # increment lineIDs before dropping loops
+    next_segment_id = flowlines.lineID.max() + np.uint32(1)
 
     joins = pd.read_feather(nhd_dir / huc2 / "flowline_joins.feather")
 
@@ -109,10 +105,6 @@ for huc2 in huc2s:
     print(f"Dropping {flowlines.loop .sum():,} loops")
     flowlines = flowlines.loc[~flowlines.loop].drop(columns=["loop"])
     joins = joins.loc[~joins.loop].drop(columns=["loop"])
-
-    # since all other lineIDs use HUC4 prefixes, this should be unique
-    # Use the first HUC2 for the region group
-    next_segment_id = int(huc2) * 1000000 + 1
 
     flowlines, joins, barrier_joins = cut_flowlines_at_barriers(
         flowlines, joins, huc2_barriers, next_segment_id=next_segment_id

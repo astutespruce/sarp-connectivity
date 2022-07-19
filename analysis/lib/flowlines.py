@@ -140,7 +140,7 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
     return flowlines, joins
 
 
-def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
+def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     """Cut flowlines by barriers.
 
     Parameters
@@ -151,8 +151,6 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
         Barriers that will be used to cut flowlines.
     joins : DataFrame
         Joins between flowlines (upstream, downstream pairs).
-    next_segment_id : int, optional
-        Used as starting point for IDs of new segments created by cutting flowlines.
 
     Returns
     -------
@@ -163,10 +161,6 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id=None):
     start = time()
     print(f"Starting number of segments: {len(flowlines):,}")
     print(f"Cutting in {len(barriers):,} barriers")
-
-    # Our segment ids are ints, so just increment from the last one we had from NHD
-    if next_segment_id is None:
-        next_segment_id = int(flowlines.index.max() + 1)
 
     # join barriers to lines and extract those that have segments (via inner join)
     segments = (

@@ -24,10 +24,20 @@ from analysis.network.lib.networks import create_networks, connect_huc2s
 warnings.simplefilter("always")  # show geometry related warnings every time
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
+# Note: only includes columns used later for network stats
+FLOWLINE_COLS = [
+    "NHDPlusID",
+    "intermittent",
+    "altered",
+    "waterbody",
+    "sizeclass",
+    "length",
+]
 
-# barrier_types = ["dams", "small_barriers", "road_crossings"]
+
+barrier_types = ["dams", "small_barriers"]  # , "road_crossings"]
 # barrier_types = ["road_crossings"]
-barrier_types = ["dams"]
+# barrier_types = ["dams"]
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/clean"
@@ -50,7 +60,7 @@ huc2s = sorted([huc2 for huc2 in barriers.HUC2.unique() if huc2])
 # manually subset keys from above for processing
 huc2s = [
     # "02",
-    # "03",
+    "03",
     # "05",
     # "06",
     # "07",
@@ -64,7 +74,7 @@ huc2s = [
     # "15",
     # "16",
     # "17",
-    "21",
+    # "21",
 ]
 
 
@@ -116,21 +126,12 @@ for group in groups:
         new_fields={"HUC2": group_huc2s},
     ).set_index("barrierID")
 
-    # Note: only includes columns used later for network stats
-    flowline_cols = [
-        "NHDPlusID",
-        "intermittent",
-        "altered",
-        "waterbody",
-        "sizeclass",
-        "length",
-    ]
     flowlines = read_feathers(
         [src_dir / huc2 / "flowlines.feather" for huc2 in group_huc2s],
         columns=[
             "lineID",
         ]
-        + flowline_cols,
+        + FLOWLINE_COLS,
         new_fields={"HUC2": group_huc2s},
     ).set_index("lineID")
 
@@ -170,7 +171,7 @@ for group in groups:
         # join to flowlines
         flowlines = flowlines.join(upstream_networks.rename(barrier_type))
         up_network_df = (
-            flowlines[flowline_cols + ["HUC2"]]
+            flowlines[FLOWLINE_COLS + ["HUC2"]]
             .join(upstream_networks, how="inner")
             .reset_index()
             .set_index("networkID")
@@ -184,12 +185,16 @@ for group in groups:
             | (focal_barrier_joins.upstream_id == 0)
         ].copy()
 
-        down_network_df = flowlines[["length", "HUC2"]].join(
-            downstream_linear_networks.set_index("lineID").networkID, how="inner"
+        down_network_df = (
+            flowlines[["length", "HUC2"]]
+            .join(downstream_linear_networks.set_index("lineID").networkID, how="inner")
+            .reset_index()
+            .set_index("networkID")
         )
 
         ### Calculate network statistics
         print("Calculating network stats...")
+        stats_start = time()
         network_stats = calculate_network_stats(
             up_network_df,
             down_network_df,
@@ -199,6 +204,8 @@ for group in groups:
         )
         # WARNING: because not all flowlines have associated catchments, they are missing
         # natfldpln
+
+        print(f"calculated stats in {time() - stats_start:.2f}s")
 
         # save network stats to the HUC2 where the network originates
         for huc2 in sorted(network_stats.origin_HUC2.unique()):
