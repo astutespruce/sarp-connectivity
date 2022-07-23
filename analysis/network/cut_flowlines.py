@@ -48,6 +48,7 @@ huc2s = huc2_df.HUC2.sort_values().values
 # "15",
 # "16",
 # "17",
+# "18"
 # "21",
 # ]
 
@@ -64,12 +65,13 @@ barriers = read_feathers(
     new_fields={"kind": kinds},
 )
 
+barriers["barrierID"] = np.uint64(0)
+
 for kind, init_id in zip(kinds, kind_ids):
     ix = barriers.kind == kind
     barriers.loc[ix, "barrierID"] = barriers.loc[ix].id + init_id
 
 print(f"Serializing {len(barriers):,} barriers")
-barriers.barrierID = barriers.barrierID.astype("uint64")
 barriers.to_feather(out_dir / "all_barriers.feather")
 
 
@@ -92,9 +94,10 @@ for huc2 in huc2s:
     ### Read NHD flowlines and joins
     print("Reading flowlines...")
     flowline_start = time()
-    flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather")
+    flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather").set_index(
+        "lineID", drop=False
+    )
     print(f"Read {len(flowlines):,} flowlines in {time() - flowline_start:.2f}s")
-    flowlines = flowlines.set_index("lineID", drop=False)
 
     # increment lineIDs before dropping loops
     next_segment_id = flowlines.lineID.max() + np.uint32(1)

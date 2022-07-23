@@ -282,7 +282,6 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     tmp = pd.DataFrame(split_segments.copy())
     tmp.flowline = tmp.flowline.values.data
     tmp.barrier = tmp.barrier.values.data
-    tmp["pos"] = pg.line_locate_point(tmp.flowline.values, tmp.barrier.values)
 
     # Group barriers by line so that we can split geometries in one pass
     grouped = (
@@ -294,10 +293,10 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
                 "barriers",
                 "flowline",
                 "barrier",
-                "pos",
+                "linepos",
             ]
         ]
-        .sort_values(by=["lineID", "pos"])
+        .sort_values(by=["lineID", "linepos"])
         .groupby("lineID")
         .agg(
             {
@@ -306,15 +305,20 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
                 "flowline": "first",
                 "barrierID": list,
                 "barriers": "first",
-                "pos": list,
+                "linepos": list,
             }
         )
     )
 
     # cut line for all barriers
+    # WARNING: this will fail with an error like
+    # "IllegalArgumentException: point array must contain 0 or >1 elements"
+    # if there are repeated coordinates in the list, which is a sign that
+    # input data were not properly deduplicated or prepared;
+    # The most common case is when road crossings are not snapped to updated flowlines
     outer_ix, inner_ix, lines = cut_lines_at_points(
         grouped.flowline.apply(lambda x: pg.get_coordinates(x)).values,
-        grouped.pos.apply(np.array).values,
+        grouped.linepos.apply(np.array).values,
     )
 
     lines = np.asarray(lines)

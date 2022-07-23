@@ -110,6 +110,7 @@ def calculate_network_stats(
             }
         )
     )
+    fn_upstream_area = up_network_df.groupby(level=0).AreaSqKm.sum().rename("fn_dakm2")
 
     ### Count TOTAL barriers of each kind in the total upstream network(s),
     # (not limited to upstream functional network) using a directed graph of
@@ -448,6 +449,7 @@ def calculate_network_stats(
         .join(calculate_floodplain_stats(up_network_df))
         .join(sizeclasses)
         .join(fn_upstream_counts)
+        .join(fn_upstream_area)
         .join(cat_upstream_counts)
         .join(tot_upstream_counts)
         .join(barrier_type_downstream)
@@ -476,6 +478,7 @@ def calculate_network_stats(
 
     results[count_cols] = results[count_cols].fillna(0).astype("uint32")
     results.barrier = results.barrier.fillna("")
+    results.miles_to_outlet = results.miles_to_outlet.fillna(0)
 
     return results
 

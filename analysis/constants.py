@@ -488,7 +488,7 @@ FCODE_TO_STREAMTYPE = {
 
 # List of NHDPlusIDs to convert from loops to non-loops;
 # they are coded incorrectly in NHD
-# WARNING: you may need to remove the corresponding segments that
+# WARNING: you may need to remove the corresponding segments or joins that
 # were previously identified as loops
 CONVERT_TO_NONLOOP = {
     "02": [10000300070616, 10000300132189, 10000300132190],
@@ -497,7 +497,44 @@ CONVERT_TO_NONLOOP = {
         # for networks to be built correctly
         24000100384878
     ],
-    "10": [23001300034513, 23001300009083, 23001300078683, 23001300043943],
+    "10": [
+        23001300034513,
+        23001300009083,
+        23001300078683,
+        23001300043943,
+    ],
+    "18": [
+        # these are to preserve the mainstem of the Link River
+        50000400082908,
+        50000400125776,
+        50000400253622,
+        # This is main part of South Fork Putah Creek
+        50000900219269,
+        50000900189338,
+        50000900397299,
+        50000900397462,
+        50000900367742,
+        50000900278888,
+        50000900397622,
+        50000900160157,
+        50000900249280,
+        50000900397804,
+        50000900427377,
+        50000900219954,
+        50000900160338,
+        50000900308919,
+        50000900427502,
+        50000900397960,
+        # this preserves the join to the Middle Fork Eel river
+        50000400146877,
+        # This perserves the join to Indian Creek
+        50000900432339,
+        50000900017559,
+        50000900432337,
+        # This preserves the join to Kittredge Canal into main network
+        # from Williamson river
+        50000400211221,
+    ],
 }
 
 # List of NHDPlusIDs to convert from non-loops to loops based on inspection of
@@ -533,9 +570,19 @@ CONVERT_TO_LOOP = {
         40000200028408,
         40000200037070,
         40000400082917,
-        40000300030341,
     ],
     "17": [55000400069574, 55000300390045, 55000300261512],
+    "18": [
+        # These are to remove a canal alongside the Link River
+        50000400339083,
+        50000400296557,
+        # this is to preserve the mainstem of Putah Creek above
+        50000900397125,
+        50000900130045,
+        # this is to preserve the Williamson River join to main network
+        # via Kittredge Canal
+        50000400299323,
+    ],
 }
 
 # List of NHDPlusIDs to remove due to issues with NHD
@@ -558,6 +605,12 @@ CONVERT_TO_MARINE = {
         15001800055997,
         15001800017440,
         15001800029679,
+        20001000056287,
+        20001000004549,
+        20001000055997,
+        20001000017440,
+        20001000055731,
+        20001000042883,
     ],
     "12": [30000800214326, 30000100041238, 30000100041306, 30000100041205],
     "13": [35000100017108],
@@ -693,8 +746,9 @@ CONVERT_TO_MARINE = {
         55000300393790,
         55000800193117,
         55000800127717,  # this is not actually marine; it is a shim for the Fraser River in CAN so that these flowlines are marked as flowing to ocean too
+        55000100856434,
     ],
-    "18": [50000400299351, 50000400256410, 50000400001171],
+    "18": [50000400299351, 50000400256410, 50000400001171, 50000900133268],
 }
 
 
@@ -728,7 +782,26 @@ KEEP_PIPELINES = {
     ],
     "13": [35000600209336],
     "14": [41000300075075, 41000300083432],
-    "17": [55001200060404, 55000900261393, 55000900055928, 55000900055929],
+    "17": [
+        55001200060404,
+        55000900261393,
+        55000900055928,
+        55000900055929,
+        # Boise River at Lucky Peak dam
+        55000700377451,
+        # drain pipe at Keystone Ferry
+        55000800273180,
+        # Chambers Creek near Steilacoom
+        55000800008877,
+    ],
+    "18": [
+        50000900133268,
+        50000400323321,
+        50000400237762,
+        50000400280625,
+        50000900123418,
+        50000900301457,
+    ],
     "21": [85000100010153],
 }
 
@@ -748,12 +821,44 @@ JOIN_FIXES = {
             "downstream": 0,
             "new_downstream": 23001300080880,
         },
-    ]
+        # This segment has a gap between North and South Shoshone River within
+        # a reservoir and should be connected
+        {"upstream": 23002600053413, "downstream": 0, "new_downstream": 23002600082094},
+        # fixes a divergence for Bijou Creek
+        {
+            "upstream": 23001900141172,
+            "downstream": 23001900199640,
+            "new_downstream": 23001900170513,
+        },
+    ],
+    "18": [
+        # Following entries fix middle fork of Eel River at confluence
+        {"upstream": 50000400146877, "downstream": 0, "new_downstream": 50000400232348},
+        {"upstream": 50000400061370, "downstream": 0, "new_downstream": 50000400146877},
+        # Following entries fix the Williamson River join to main network
+        # via Kittredge Canal; flow is in wrong direction
+        {"upstream": 50000900432337, "downstream": 0, "new_downstream": 50000900432336},
+        {"upstream": 50000900017559, "downstream": 0, "new_downstream": 50000900432337},
+    ],
 }
 
 ### data structure of NHDPlusIDs where upstream, downstream are the original values (used to join into data)
 # to be removed; they are likely replaced by other fixes
-REMOVE_JOINS = {"10": [{"upstream": 23001300034497, "downstream": 0}]}
+REMOVE_JOINS = {
+    "10": [
+        {"upstream": 23001300034497, "downstream": 0},
+        # replaced by fix above for Bijou Creek
+        {"upstream": 0, "downstream": 23001900170513},
+    ],
+    "18": [
+        # Part of fixes for Eel River above; this join is backwards flow
+        {"upstream": 50000400317905, "downstream": 50000400146877},
+        # Part of fixes for Williamson River above
+        {"upstream": 50000900254664, "downstream": 50000900432337},
+        # For fix above, this eliminates a duplicate origin point
+        {"upstream": 50000900432617, "downstream": 50000900017560},
+    ],
+}
 
 
 # List of NHDPlusIDs that are exit points draining a given HUC2

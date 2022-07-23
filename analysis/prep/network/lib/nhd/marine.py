@@ -1,6 +1,8 @@
 import warnings
 
+import numpy as np
 import pandas as pd
+import pygeos as pg
 from pyogrio import read_dataframe
 
 from analysis.lib.geometry import explode
@@ -14,7 +16,8 @@ COLS = ["FType", "geometry"]
 # estuary
 WB_FTYPES = [493]
 
-# Sea/ocean, bay/inlent,
+# Sea/ocean, bay/inlent
+# WARNING: sometimes bay/inlet is coded for parts of inland waterbodies
 AREA_FTYPES = [445, 312]
 
 
@@ -35,6 +38,7 @@ def extract_marine(gdb_path, target_crs):
     """
 
     print("Reading marine areas...")
+
     area = read_dataframe(
         gdb_path,
         layer="NHDArea",
@@ -55,6 +59,26 @@ def extract_marine(gdb_path, target_crs):
     df = pd.concat([area, wb], ignore_index=True, sort=False)
 
     if len(df):
-        df = explode(df.to_crs(target_crs))
+        df = explode(df).reset_index(drop=True)
 
-    return df
+        # only keep those that are not fully contained within land areas
+        land = explode(
+            read_dataframe(
+                gdb_path,
+                layer="NHDPlusLandSea",
+                columns=[],
+                force_2d=True,
+                where='"Land" = 1',
+            )
+        )
+        land["geometry"] = pg.make_valid(land.geometry.values.data)
+        tree = pg.STRtree(df.geometry.values.data)
+        ix = tree.query_bulk(land.geometry.values.data, predicate="contains_properly")[
+            1
+        ]
+
+        print(f"Dropping {len(ix)} areas that are fully contapined within land areas")
+
+        df = df.iloc[np.setdiff1d(df.index.values, ix)].copy()
+
+    return df.to_crs(target_crs)

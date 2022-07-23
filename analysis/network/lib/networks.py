@@ -12,6 +12,8 @@ def connect_huc2s(joins):
     This reads in all flowline joins for all HUC2s and detects those that cross
     HUC2 boundaries to determine which HUC2s are connected.
 
+    Region 03 is specifically prevented from connecting to 08.
+
     Parameters
     ----------
     joins : DataFrame
@@ -43,6 +45,10 @@ def connect_huc2s(joins):
         on="upstream",
         how="inner",
     ).drop_duplicates()
+
+    # Drop connections from region 03 into 08; these are negligible with respect
+    # to results but avoids lumping already very large analysis regions
+    cross_region = cross_region.loc[cross_region.upstream_HUC2 != "03"].copy()
 
     # update joins to include those that cross region boundaries
     for row in cross_region.itertuples():

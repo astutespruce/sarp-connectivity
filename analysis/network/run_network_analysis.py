@@ -32,12 +32,11 @@ FLOWLINE_COLS = [
     "waterbody",
     "sizeclass",
     "length",
+    "AreaSqKm",
 ]
 
 
 barrier_types = ["dams", "small_barriers"]  # , "road_crossings"]
-# barrier_types = ["road_crossings"]
-# barrier_types = ["dams"]
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/clean"
@@ -58,24 +57,25 @@ barriers = pd.read_feather(
 huc2s = sorted([huc2 for huc2 in barriers.HUC2.unique() if huc2])
 
 # manually subset keys from above for processing
-huc2s = [
-    # "02",
-    "03",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
-    # "21",
-]
+# huc2s = [
+#     "02",
+#     "03",
+#     "05",
+#     "06",
+#     "07",
+#     "08",
+#     "09",
+#     "10",
+#     "11",
+#     "12",
+#     "13",
+#     "14",
+#     "15",
+#     "16",
+#     "17",
+#     "18",
+#     "21",
+# ]
 
 
 print("Finding connected HUC2s")
