@@ -14,11 +14,15 @@ import os
 from time import time
 import warnings
 
+import numpy as np
 import pandas as pd
 
 
 from analysis.lib.io import read_feathers
-from analysis.network.lib.stats import calculate_network_stats
+from analysis.network.lib.stats import (
+    calculate_upstream_network_stats,
+    calculate_downstream_stats,
+)
 from analysis.network.lib.networks import create_networks, connect_huc2s
 
 warnings.simplefilter("always")  # show geometry related warnings every time
@@ -194,16 +198,56 @@ for group in groups:
 
         ### Calculate network statistics
         print("Calculating network stats...")
+
         stats_start = time()
-        network_stats = calculate_network_stats(
+
+        # lineIDs that terminate in marine or downstream exits of HUC2
+        marine_ids = joins.loc[joins.marine].upstream_id.unique()
+        exit_ids = joins.loc[joins.type == "huc2_drain"].upstream_id.unique()
+
+        upstream_stats = calculate_upstream_network_stats(
             up_network_df,
-            down_network_df,
             focal_barrier_joins,
             barrier_joins,
-            group_joins,
         )
         # WARNING: because not all flowlines have associated catchments, they are missing
         # natfldpln
+
+        downstream_stats = calculate_downstream_stats(
+            down_network_df, focal_barrier_joins, barrier_joins, marine_ids, exit_ids
+        )
+
+        ### Join upstream network stats to downstream network stats
+        # NOTE: a network will only have downstream stats if it is upstream of a
+        # barrier
+        network_stats = upstream_stats.join(
+            downstream_stats.join(focal_barrier_joins.upstream_id).set_index(
+                "upstream_id"
+            )
+        )
+        network_stats.index.name = "networkID"
+
+        # Fill missing data
+        for kind in ["waterfalls", "dams", "small_barriers", "road_crossings"]:
+            col = f"totd_{kind}"
+            network_stats[col] = network_stats[col].fillna(0).astype("uint32")
+
+        for col in ["flows_to_ocean", "exits_region"]:
+            network_stats[col] = network_stats[col].fillna(False).astype("bool")
+
+        network_stats.miles_to_outlet = network_stats.miles_to_outlet.fillna(0).astype(
+            "float32"
+        )
+        network_stats.barrier = network_stats.barrier.fillna("")
+
+        # set to_ocean and exits_region for functional networks that terminate
+        # in marine or leave region and have no downstream barrier
+        network_stats.loc[network_stats.index.isin(marine_ids), "flows_to_ocean"] = True
+        # if segments connect to marine they also leave the region
+        network_stats.loc[
+            network_stats.index.isin(np.unique(np.append(marine_ids, exit_ids))),
+            "exits_region",
+        ] = True
 
         print(f"calculated stats in {time() - stats_start:.2f}s")
 
@@ -219,18 +263,18 @@ for group in groups:
         # NOTE: some statistics (totd_*, miles_to_ocean, flows_to_ocean, exits_region)
         # are evaluated from the upstream functional network (i.e., these are statistics)
         # downstream of the barrier associated with that functional network
+        # WARNING: some barriers are on the upstream end or downstream end of the
+        # total network and are missing either upstream or downstream network
         print("calculating upstream and downstream networks for barriers")
 
         upstream_networks = (
             focal_barrier_joins[["upstream_id"]]
             .join(
-                network_stats.drop(
-                    # columns=["flows_to_ocean", "exits_region"]
-                    columns=[
-                        c
-                        for c in network_stats.columns
-                        if c.startswith("free_")  # or c.startswith("totd_")
-                    ]
+                # network_stats.drop(
+                #     columns=[c for c in network_stats.columns if c.startswith("free_")]
+                # ),
+                upstream_stats.drop(
+                    columns=[c for c in upstream_stats.columns if c.startswith("free_")]
                 ),
                 on="upstream_id",
             )
@@ -288,21 +332,19 @@ for group in groups:
         # networks for a given barrier, so we drop these duplicates after the join just to be sure.
         barrier_networks = (
             upstream_networks.join(downstream_networks)
+            .join(downstream_stats)
             .join(
                 barriers.set_index("barrierID")[["id", "kind", "intermittent", "HUC2"]]
-            )
-            .drop(
-                columns=["barrier"]
-                + [
-                    c
-                    for c in network_stats.columns
-                    if c.startswith("fn_") or c.startswith("tot_")
-                ],
-                errors="ignore",
             )
         )
 
         # fill missing data
+        # if there is no upstream network, the network of a barrier is in the
+        # same HUC2 as the barrier
+        ix = barrier_networks.origin_HUC2.isnull()
+        barrier_networks.loc[ix, "origin_HUC2"] = barrier_networks.loc[ix].HUC2
+
+        barrier_networks.barrier = barrier_networks.barrier.fillna("")
         barrier_networks.origin_HUC2 = barrier_networks.origin_HUC2.fillna("")
         barrier_networks.flows_to_ocean = barrier_networks.flows_to_ocean.fillna(False)
         barrier_networks.exits_region = barrier_networks.exits_region.fillna(False)
@@ -310,6 +352,24 @@ for group in groups:
         barrier_networks.miles_to_outlet = barrier_networks.miles_to_outlet.fillna(
             0
         ).astype("float32")
+        # total drainage area will be 0 for barriers at top of network
+        barrier_networks.fn_dakm2 = barrier_networks.fn_dakm2.fillna(0).astype(
+            "float32"
+        )
+
+        # Set upstream and downstream count columns to 0 where nan; these are
+        # for networks where barrier is at top of total network or bottom
+        # of total network
+        for stat_type in ["fn", "cat", "tot", "totd"]:
+            for barrier_type in [
+                "waterfalls",
+                "dams",
+                "small_barriers",
+                "road_crossings",
+            ]:
+                col = f"{stat_type}_{barrier_type}"
+                barrier_networks[col] = barrier_networks[col].fillna(0).astype("uint32")
+
         barrier_networks = barrier_networks.fillna(0).drop_duplicates()
 
         # Fix data types after all the joins

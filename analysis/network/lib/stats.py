@@ -12,10 +12,9 @@ data_dir = Path("data")
 METERS_TO_MILES = 0.000621371
 
 
-def calculate_network_stats(
-    up_network_df, down_network_df, focal_barrier_joins, barrier_joins, joins
-):
-    """Calculation of network statistics, for each functional network.
+def calculate_upstream_network_stats(up_network_df, focal_barrier_joins, barrier_joins):
+    """Calculate upstream functional network statistics.  Each network starts
+    at a downstream terminal or a barrier.
 
     Parameters
     ----------
@@ -26,11 +25,6 @@ def calculate_network_stats(
         * size class
         * altered
         * intermittent
-
-    down_network_df : Pandas DataFrame
-        downstream linear networks indexed on networkID of the lineID downstream
-        of the barrier. Includes:
-        * length
 
     focal_barrier_joins : Pandas DataFrame
         limited to the barrier joins that cut the network type being analyzed
@@ -46,21 +40,11 @@ def calculate_network_stats(
         * downstream_id
         * kind
 
-    joins : Pandas DataFrame
-        all flowline joins
-        contains:
-        * upstream_id
-        * downstream_id
-        * type
-        * marine
-
     Returns
     -------
     Pandas DataFrame
         Summary statistics, with one row per functional network.
     """
-
-    down_network_df = down_network_df.reset_index().set_index("lineID")
 
     # re-rederive all focal barriers joins from barrier joins to keep confluences
     # which are otherwise filtered out before calling here
@@ -72,6 +56,14 @@ def calculate_network_stats(
     root_huc2 = up_network_df.loc[
         up_network_df.index == up_network_df.lineID
     ].HUC2.rename("origin_HUC2")
+
+    # count unique size classes in upstream functional network
+    sizeclasses = (
+        up_network_df.groupby(level=0)
+        .sizeclass.nunique()
+        .astype("uint8")
+        .rename("sizeclasses")
+    )
 
     # create series of networkID indexed by lineID
     networkID = up_network_df.reset_index().set_index("lineID").networkID
@@ -227,222 +219,6 @@ def calculate_network_stats(
         )
     )
 
-    ### Count barriers that are DOWNSTREAM (linear to terminal / river outlet) of each barrier
-    # using a directed graph of all network joins facing downstream
-
-    # First, count all barriers by type per downstream linear network
-    # IMPORTANT: the networkID here is the DOWNSTREAM linear network ID
-    # also note that there should only ever be 1 of a network-breaking barrier
-    # type in the downstream linear network (it terminates the downstream linear network)
-    downstream_joins = barrier_joins.loc[barrier_joins.downstream_id != 0].copy()
-
-    # NOTE: ln_downstream also includes the barrier at the join
-    ln_downstream = (
-        downstream_joins[["downstream_id", "kind"]]
-        .join(down_network_df[["networkID", "length"]], on="downstream_id", how="inner")
-        .reset_index(drop=True)
-    )
-
-    ln_downstream_counts = (
-        ln_downstream.groupby(["networkID", "kind"])
-        .size()
-        .rename("count")
-        .reset_index()
-        .pivot(index="networkID", columns="kind", values="count")
-        .fillna(0)
-        .astype("uint32")
-    )
-
-    # calculate total length of each downstream network
-    ln_downstream_length = down_network_df.groupby("networkID").length.sum()
-
-    # Next use a graph of network joins facing downward to aggregate these to a
-    # total count per barrier
-
-    # extract joins between downstream linear networks using all_focal_barrier_joins
-    # to traverse confluences
-    # NOTE: these won't have any entries at top of network
-    # WARNING: this does not include entries for any confluences where one side
-    # is not part of a barrier downstream network (i.e., has no cutting barriers
-    # upstream)
-
-    downstream_network_joins = all_focal_barrier_joins.join(
-        down_network_df.networkID, on="upstream_id", how="inner"
-    ).rename(
-        columns={"networkID": "upstream_network", "downstream_id": "downstream_network"}
-    )
-
-    downstream_graph = DirectedGraph(
-        downstream_network_joins.upstream_network.values.astype("int64"),
-        downstream_network_joins.downstream_network.values.astype("int64"),
-    )
-
-    # search from the lineID immediately downstream of each focal barrier
-    # but indexed on the barrierID so that we can rejoin to networkID for barrier
-    # which might be different than upstream_id of downstream_joins because
-    # of confluences
-    search_ids = focal_barrier_joins.loc[
-        (focal_barrier_joins.upstream_id != 0)
-        & (focal_barrier_joins.downstream_id != 0)
-    ].downstream_id
-
-    # mapping of upstream functional networkID to all downstream linear network
-    # downstream of the linear network immediately below the barrier
-    next_downstreams = (
-        pd.Series(
-            downstream_graph.descendants(search_ids.values.astype("int64")),
-            index=search_ids.index,
-            name="downstream_network",
-        )
-        .explode()
-        .dropna()
-    )
-
-    # add in all entries for each barrierID to immediate downstream network
-    downstreams = (
-        all_focal_barrier_joins.loc[all_focal_barrier_joins.upstream_id != 0][
-            ["upstream_id"]
-        ]
-        .rename(columns={"upstream_id": "networkID"})
-        .join(
-            pd.concat(
-                [
-                    search_ids.reset_index().rename(
-                        columns={
-                            "downstream_id": "downstream_network",
-                        }
-                    ),
-                    next_downstreams.reset_index(),
-                ],
-                ignore_index=True,
-                sort=False,
-            ).set_index("barrierID")
-        )
-    ).drop_duplicates()
-
-    # Downstream stats quantify how many barriers / length exists on the linear
-    # downstream BELOW the upstream functional network associated with each barrier
-    # without counting that barrier itself (subtracted below)
-
-    downstream_stats = (
-        downstreams.join(ln_downstream_counts, on="downstream_network")
-        .join(ln_downstream_length, on="downstream_network")
-        .drop(columns=["downstream_network"])
-        .groupby("networkID")
-        .sum()
-        # join in count of barrier type of the upstream network so we can subtract it
-        .join(
-            network_joins.groupby(["upstream_network", "kind"])
-            .size()
-            .rename("count")
-            .reset_index()
-            .pivot(index="upstream_network", columns="kind", values="count"),
-            rsuffix="_self",
-        )
-        .fillna(0)
-    )
-    downstream_stats["length"] = (downstream_stats["length"] * METERS_TO_MILES).astype(
-        "float32"
-    )
-
-    # subtract barrier type of the upstream network from the stats
-    self_cols = [c for c in downstream_stats.columns if c.endswith("_self")]
-    for col in self_cols:
-        main_col = col.replace("_self", "")
-        downstream_stats[main_col] = downstream_stats[main_col] - downstream_stats[col]
-
-    downstream_stats = downstream_stats.drop(columns=self_cols).rename(
-        columns={
-            "dam": "totd_dams",
-            "waterfall": "totd_waterfalls",
-            "small_barrier": "totd_small_barriers",
-            "road_crossing": "totd_road_crossings",
-            "length": "miles_to_outlet",
-        }
-    )
-
-    # DEBUG: to output a downstream network based on an upstream functional networkID <nid>
-    # lids = (
-    #     downstreams.loc[downstreams.index == nid, ["downstream_network"]]
-    #     .join(
-    #         down_network_df.reset_index().set_index("networkID").lineID,
-    #         on="downstream_network",
-    #     )
-    #     .lineID.unique()
-    # )
-    # write_dataframe(flowlines.loc[flowlines.index.isin(lids)],'/tmp/test_downstream.fgb')
-
-    ### Identify networks that terminate in marine
-
-    # networks that terminate in marine
-    marine_ids = joins.loc[joins.marine].upstream_id.unique()
-
-    # networks that connect to marine via downstream linear networks
-    marine_downstream = down_network_df.loc[
-        down_network_df.index.isin(marine_ids)
-    ].networkID.unique()
-    marine_downstream_ids = downstreams.loc[
-        downstreams.downstream_network.isin(marine_downstream)
-    ].networkID.unique()
-
-    # include any that are themselves marine connected
-    to_ocean = pd.Series(
-        np.zeros(shape=(len(networkIDs),), dtype="bool"),
-        index=networkIDs,
-        name="flows_to_ocean",
-    )
-    to_ocean.loc[
-        to_ocean.index.isin(marine_ids) | to_ocean.index.isin(marine_downstream_ids)
-    ] = True
-
-    ### Identify any networks that exit HUC2s
-    # Note: only applicable for those that exit into HUC2s outside the analysis region
-    exit_ids = joins.loc[joins.type == "huc2_drain"].upstream_id.unique()
-
-    # networks directly connected to huc2 exits
-    exit_connected_ids = networkID.loc[networkID.index.isin(exit_ids)].unique()
-
-    # networks connected to huc2 exits via downstream linear networks
-    exit_downstream = down_network_df.loc[
-        down_network_df.index.isin(exit_ids)
-    ].networkID.unique()
-    exit_downstream_ids = downstreams.loc[
-        downstreams.downstream_network.isin(exit_downstream)
-    ].networkID.unique()
-
-    exits_region = pd.Series(
-        np.zeros(shape=(len(networkIDs),), dtype="bool"),
-        index=networkIDs,
-        name="exits_region",
-    )
-    exits_region.loc[
-        exits_region.index.isin(exit_connected_ids)
-        | exits_region.index.isin(exit_downstream_ids)
-        # any that connect to ocean also exit the region
-        | exits_region.index.isin(to_ocean.loc[to_ocean].index)
-    ] = True
-
-    ### Extract downstream barrier type.
-    # on the downstream side of a network, there will only be at most a single barrier.
-    # Identify all barriers that have a given network upstream of them.
-    barrier_type_downstream = (
-        focal_barrier_joins[["upstream_id", "kind"]]
-        .join(networkID, on="upstream_id", how="inner")
-        .reset_index()[["networkID", "kind"]]
-        # there are some duplicates due to a barrier having multiple upstream
-        # network segments at confluences
-        .drop_duplicates()
-        .set_index("networkID")
-        .kind.rename("barrier")
-    )
-
-    sizeclasses = (
-        up_network_df.groupby(level=0)
-        .sizeclass.nunique()
-        .astype("uint8")
-        .rename("sizeclasses")
-    )
-
     ### Collect results
     results = (
         calculate_geometry_stats(up_network_df)
@@ -452,33 +228,26 @@ def calculate_network_stats(
         .join(fn_upstream_area)
         .join(cat_upstream_counts)
         .join(tot_upstream_counts)
-        .join(barrier_type_downstream)
-        .join(downstream_stats)
-        .join(to_ocean)
-        .join(exits_region)
         .join(root_huc2)
     )
 
     # index name is getting dropped in some cases
     results.index.name = "networkID"
 
-    count_cols = (
-        fn_upstream_counts.columns.tolist()
-        + cat_upstream_counts.columns.tolist()
-        + tot_upstream_counts.columns.tolist()
-        + [c for c in downstream_stats.columns if c.startswith("totd_")]
-    )
-
     # make sure all count columns are at least present
-    for stat_type in ["fn", "cat", "tot", "totd"]:
+    for stat_type in ["fn", "cat", "tot"]:
         for kind in ["waterfalls", "dams", "small_barriers", "road_crossings"]:
             col = f"{stat_type}_{kind}"
             if not col in results.columns:
                 results[col] = 0
 
+    count_cols = (
+        fn_upstream_counts.columns.tolist()
+        + cat_upstream_counts.columns.tolist()
+        + tot_upstream_counts.columns.tolist()
+    )
+
     results[count_cols] = results[count_cols].fillna(0).astype("uint32")
-    results.barrier = results.barrier.fillna("")
-    results.miles_to_outlet = results.miles_to_outlet.fillna(0)
 
     return results
 
@@ -625,3 +394,291 @@ def calculate_floodplain_stats(df):
         .astype("float32")
         .rename("natfldpln")
     )
+
+
+def calculate_downstream_stats(
+    down_network_df, focal_barrier_joins, barrier_joins, marine_ids, exit_ids
+):
+    """Calculate downstream statistics for each barrier.  Downstream networks
+    are linear from the barrier to the downstream terminal.
+
+    Parameters
+    ----------
+    down_network_df : Pandas DataFrame
+        downstream linear networks indexed on networkID of the lineID downstream
+        of the barrier. Includes:
+        * length
+
+    focal_barrier_joins : Pandas DataFrame
+        limited to the barrier joins that cut the network type being analyzed
+        contains:
+        * upstream_id
+        * downstream_id
+        * kind
+
+    barrier_joins : Pandas DataFrame
+        all barrier joins including those that do not cut the network type being analyzed
+        contains:
+        * upstream_id
+        * downstream_id
+        * kind
+
+    marine_ids : ndarray
+        lineIDs of segments that directly connect to marine
+
+    exit_ids : ndarray
+        lineIDs of segments that directly leave the HUC2
+
+    Returns
+    -------
+    Pandas DataFrame
+        Summary statistics, with one row per barrier.
+    """
+
+    # TODO: avoid the reindexing
+    down_network_df = down_network_df.reset_index().set_index("lineID")
+
+    # re-rederive all focal barriers joins from barrier joins to keep confluences
+    # which are otherwise filtered out before calling here
+    # TODO: is there a way we can avoid removing these before calling into stats?
+    all_focal_barrier_joins = barrier_joins.loc[
+        barrier_joins.index.isin(focal_barrier_joins.index.unique())
+    ]
+
+    ### Count barriers that are DOWNSTREAM (linear to terminal / river outlet) of each barrier
+    # using a directed graph of all network joins facing downstream
+
+    # First, count all barriers by type per downstream linear network
+    # IMPORTANT: the networkID here is the DOWNSTREAM linear network ID
+    # also note that there should only ever be 1 of a network-breaking barrier
+    # type in the downstream linear network (it terminates the downstream linear network)
+    downstream_joins = barrier_joins.loc[barrier_joins.downstream_id != 0].copy()
+
+    # NOTE: ln_downstream also includes the barrier at the join
+    ln_downstream = (
+        downstream_joins[["downstream_id", "kind"]]
+        .join(down_network_df[["networkID", "length"]], on="downstream_id", how="inner")
+        .reset_index(drop=True)
+    )
+
+    ln_downstream_counts = (
+        ln_downstream.groupby(["networkID", "kind"])
+        .size()
+        .rename("count")
+        .reset_index()
+        .pivot(index="networkID", columns="kind", values="count")
+        .fillna(0)
+        .astype("uint32")
+    )
+
+    # make sure all barrier types have a count column
+    for kind in ["waterfall", "dam", "small_barrier", "road_crossing"]:
+        if not kind in ln_downstream_counts.columns:
+            ln_downstream_counts[kind] = 0
+
+    # calculate total length of each downstream network
+    ln_downstream_length = down_network_df.groupby("networkID").length.sum()
+
+    ### Use a graph of network joins facing downward to aggregate these to a
+    # total count per barrier
+
+    # extract joins between downstream linear networks using all_focal_barrier_joins
+    # to traverse confluences
+    # NOTE: these won't have any entries at top of network
+    # WARNING: this does not include entries for any confluences where one side
+    # is not part of a barrier downstream network (i.e., has no cutting barriers
+    # upstream)
+
+    downstream_network_joins = all_focal_barrier_joins.join(
+        down_network_df.networkID, on="upstream_id", how="inner"
+    ).rename(
+        columns={"networkID": "upstream_network", "downstream_id": "downstream_network"}
+    )
+
+    downstream_graph = DirectedGraph(
+        downstream_network_joins.upstream_network.values.astype("int64"),
+        downstream_network_joins.downstream_network.values.astype("int64"),
+    )
+
+    # search from the lineID immediately downstream of each focal barrier
+    # but indexed on the barrierID
+    search_ids = focal_barrier_joins.loc[
+        # (focal_barrier_joins.upstream_id != 0)
+        # &
+        (focal_barrier_joins.downstream_id != 0)
+    ].downstream_id
+
+    # mapping of barrierID to all downstream linear networks downstream of the
+    # linear network immediately below the barrier
+    next_downstreams = (
+        pd.Series(
+            downstream_graph.descendants(search_ids.values.astype("int64")),
+            index=search_ids.index,
+            name="downstream_network",
+        )
+        .explode()
+        .dropna()
+    )
+
+    # add in all entries for each barrierID to downstream network that starts
+    # from its downstream_id
+    downstreams = (
+        pd.concat(
+            [
+                search_ids.reset_index().rename(
+                    columns={
+                        "downstream_id": "downstream_network",
+                    }
+                ),
+                next_downstreams.reset_index(),
+            ],
+            ignore_index=True,
+            sort=False,
+        )
+        .drop_duplicates()
+        .set_index("barrierID")
+    )
+
+    # Downstream stats quantify how many barriers / length exists on the linear
+    # downstream BELOW the upstream functional network associated with each barrier
+    # without counting that barrier itself (subtracted below)
+
+    # count of barrier type of the barrier itself so that we can subtract it
+    # from the count of barriers at or below the barrier
+    self_counts = (
+        focal_barrier_joins.reset_index()
+        .groupby(["barrierID", "kind"])
+        .size()
+        .rename("count")
+        .reset_index()
+        .pivot(index="barrierID", columns="kind", values="count")
+    )
+
+    downstream_stats = (
+        downstreams.join(ln_downstream_counts, on="downstream_network")
+        .join(ln_downstream_length, on="downstream_network")
+        .drop(columns=["downstream_network"])
+        .groupby(level=0)
+        .sum()
+        .join(self_counts, rsuffix="_self")
+        .fillna(0)
+    )
+    downstream_stats["length"] = (downstream_stats["length"] * METERS_TO_MILES).astype(
+        "float32"
+    )
+
+    # subtract barrier type of the upstream network from the stats
+    self_cols = [c for c in downstream_stats.columns if c.endswith("_self")]
+    for col in self_cols:
+        main_col = col.replace("_self", "")
+        downstream_stats[main_col] = downstream_stats[main_col] - downstream_stats[col]
+
+    downstream_stats = downstream_stats.drop(columns=self_cols).rename(
+        columns={
+            "dam": "totd_dams",
+            "waterfall": "totd_waterfalls",
+            "small_barrier": "totd_small_barriers",
+            "road_crossing": "totd_road_crossings",
+            "length": "miles_to_outlet",
+        }
+    )
+
+    # DEBUG: to output a downstream network based on a barrierID <bid>
+    # lids = (
+    #     downstreams.loc[downstreams.index == bid, ["downstream_network"]]
+    #     .join(
+    #         down_network_df.reset_index().set_index("networkID").lineID,
+    #         on="downstream_network",
+    #     )
+    #     .lineID.unique()
+    # )
+    # write_dataframe(flowlines.loc[flowlines.index.isin(lids)],'/tmp/test_downstream.fgb')
+
+    ### Extract downstream barrier type.
+    # on the downstream side of a network, there will only be at most a single barrier.
+    # Identify all barriers that have a given network upstream of them.
+    # NOTE: there are some duplicates due to a barrier having multiple upstream
+    # network segments at confluences
+
+    barrier_type_downstream = (
+        focal_barrier_joins[["downstream_id"]]
+        .join(
+            all_focal_barrier_joins[["upstream_id", "kind"]]
+            .join(down_network_df.networkID, on="upstream_id", how="inner")
+            .reset_index()[["barrierID", "networkID", "kind"]]
+            .drop_duplicates()
+            .set_index("networkID"),
+            on="downstream_id",
+            how="inner",
+        )
+        .kind.rename("barrier")
+    )
+
+    ### Identify networks that terminate in marine
+
+    # barrierIDs of barriers that connect directly to marine
+    marine_barriers = all_focal_barrier_joins.loc[
+        all_focal_barrier_joins.upstream_id.isin(marine_ids)
+    ].index.unique()
+
+    # downstream networks that connect to marine via downstream linear networks
+    marine_downstream = down_network_df.loc[
+        down_network_df.index.isin(marine_ids)
+    ].networkID.unique()
+    marine_downstream_ids = downstreams.loc[
+        downstreams.downstream_network.isin(marine_downstream)
+    ].index.unique()
+
+    to_ocean = pd.Series(
+        np.zeros(shape=(len(focal_barrier_joins),), dtype="bool"),
+        index=focal_barrier_joins.index,
+        name="flows_to_ocean",
+    )
+    to_ocean.loc[
+        to_ocean.index.isin(marine_barriers)
+        | to_ocean.index.isin(marine_downstream_ids)
+    ] = True
+
+    ### Identify any networks that exit HUC2s
+    # Note: only applicable for those that exit into HUC2s outside the analysis region
+
+    # barrierIDs of barriers that connect directly to exits
+    exit_barriers = all_focal_barrier_joins.loc[
+        all_focal_barrier_joins.upstream_id.isin(exit_ids)
+    ].index.unique()
+
+    # networks connected to huc2 exits via downstream linear networks
+    exit_downstream = down_network_df.loc[
+        down_network_df.index.isin(exit_ids)
+    ].networkID.unique()
+    exit_downstream_ids = downstreams.loc[
+        downstreams.downstream_network.isin(exit_downstream)
+    ].index.unique()
+
+    exits_region = pd.Series(
+        np.zeros(shape=(len(focal_barrier_joins),), dtype="bool"),
+        index=focal_barrier_joins.index,
+        name="exits_region",
+    )
+    exits_region.loc[
+        exits_region.index.isin(exit_barriers)
+        | exits_region.index.isin(exit_downstream_ids)
+        # any that connect to ocean also exit the region
+        | exits_region.index.isin(to_ocean.loc[to_ocean].index)
+    ] = True
+
+    results = (
+        focal_barrier_joins[[]]
+        .join(downstream_stats)
+        .join(barrier_type_downstream)
+        .join(to_ocean)
+        .join(exits_region)
+    )
+
+    # set appropraite nodata
+    results.barrier = results.barrier.fillna("")
+    count_cols = [c for c in downstream_stats.columns if c.startswith("totd_")]
+    results[count_cols] = results[count_cols].fillna(0).astype("uint32")
+    results.miles_to_outlet = results.miles_to_outlet.fillna(0)
+
+    return results
