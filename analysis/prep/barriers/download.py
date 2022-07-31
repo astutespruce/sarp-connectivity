@@ -175,6 +175,7 @@ async def download_small_barriers(token):
                 "StreamName": "Stream",
                 "Year_Removed": "YearRemoved",
                 "OwnerType": "RoadOwnerType",
+                "Condition": "BarrierCondition",  # dams have a Condition field
             }
         )
 

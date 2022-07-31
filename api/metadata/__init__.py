@@ -26,7 +26,7 @@ def get_readme(filename, barrier_type, fields, url, layer, ids):
         DAM_FIELD_DEFINITIONS if barrier_type == "dams" else SB_FIELD_DEFINITIONS
     )
 
-    fields = {f: field_def[f] for f in fields if f in fields}
+    fields = {f: field_def[f] for f in fields if f in field_def}
     field_info = "\n".join([f"{k}: {v}" for k, v in fields.items()])
 
     return readme.format(

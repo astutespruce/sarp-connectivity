@@ -143,12 +143,12 @@ df["RoadType"] = df.RoadType.fillna("").apply(
 
 
 # Fix issues with Condition
-df.Condition = df.Condition.fillna("Unknown")
+df.BarrierCondition = df.BarrierCondition.fillna("Unknown")
 df.loc[
-    (df.Condition == "No Data")
-    | (df.Condition == "No data")
-    | (df.Condition.str.strip().str.len() == 0),
-    "Condition",
+    (df.BarrierCondition == "No Data")
+    | (df.BarrierCondition == "No data")
+    | (df.BarrierCondition.str.strip().str.len() == 0),
+    "BarrierCondition",
 ] = "Unknown"
 
 
@@ -165,7 +165,10 @@ for column in ["Editor", "EditDate"]:
 
 ### Calculate classes
 df["ConditionClass"] = (
-    df.Condition.fillna("").str.strip().map(BARRIER_CONDITION_TO_DOMAIN).astype("uint8")
+    df.BarrierCondition.fillna("")
+    .str.strip()
+    .map(BARRIER_CONDITION_TO_DOMAIN)
+    .astype("uint8")
 )
 df["SeverityClass"] = (
     df.PotentialProject.fillna("")

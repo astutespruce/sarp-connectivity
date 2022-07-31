@@ -53,7 +53,7 @@ cols = [
     "Subbasin",
     "Subwatershed",
     "Recon",
-    "Condition",
+    "BarrierCondition",
     "ConditionClass",
     "CrossingCode",
     "CrossingType",

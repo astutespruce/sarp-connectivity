@@ -1,7 +1,6 @@
 from pathlib import Path
 import warnings
 
-from analysis.constants import SARP_STATES
 from analysis.lib.io import read_feathers
 from analysis.rank.lib.metrics import classify_gainmiles
 from analysis.rank.lib.tiers import calculate_tiers
@@ -32,16 +31,53 @@ NETWORK_COLUMNS = [
     "FreeIntermittentDownstreamMiles",
     "natfldpln",
     "sizeclasses",
-    "num_downstream",
+    # "barrier",  # not used
+    "fn_dakm2",
+    "fn_waterfalls",
+    "fn_dams",
+    "fn_small_barriers",
+    "fn_road_crossings",
+    "cat_waterfalls",
+    "cat_dams",
+    "cat_small_barriers",
+    "cat_road_crossings",
+    "tot_waterfalls",
+    "tot_dams",
+    "tot_small_barriers",
+    "tot_road_crossings",
+    "totd_waterfalls",
+    "totd_dams",
+    "totd_small_barriers",
+    "totd_road_crossings",
+    "miles_to_outlet",
     "flows_to_ocean",
+    "exits_region",
 ]
 
 
 NETWORK_COLUMN_NAMES = {
     "natfldpln": "Landcover",
     "sizeclasses": "SizeClasses",
+    "fn_dakm2": "UpstreamDrainageArea",
+    "fn_dams": "UpstreamDams",
+    "fn_small_barriers": "UpstreamSmallBarriers",
+    "fn_road_crossings": "UpstreamRoadCrossings",
+    "fn_waterfalls": "UpstreamWaterfalls",
+    "cat_dams": "UpstreamCatchmentDams",
+    "cat_small_barriers": "UpstreamCatchmentSmallBarriers",
+    "cat_road_crossings": "UpstreamCatchmentRoadCrossings",
+    "cat_waterfalls": "UpstreamCatchmentWaterfalls",
+    "tot_dams": "TotalUpstreamDams",
+    "tot_small_barriers": "TotalUpstreamSmallBarriers",
+    "tot_road_crossings": "TotalUpstreamRoadCrossings",
+    "tot_waterfalls": "TotalUpstreamWaterfalls",
+    "totd_dams": "TotalDownstreamDams",
+    "totd_road_crossings": "TotalDownstreamRoadCrossings",
+    "totd_small_barriers": "TotalDownstreamSmallBarriers",
+    "totd_waterfalls": "TotalDownstreamWaterfalls",
+    "miles_to_outlet": "MilesToOutlet",
     "flows_to_ocean": "FlowsToOcean",
-    "num_downstream": "NumBarriersDownstream",
+    "exits_region": "ExitsRegion",
 }
 
 
@@ -85,9 +121,6 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
         .set_index("id")
     )
 
-    # FIXME: temporary fix
-    networks.PercentPerennialUnaltered = networks.PercentPerennialUnaltered.fillna(0)
-
     # select barrier type
     networks = networks.loc[networks.kind == barrier_type[:-1]].drop(columns=["kind"])
 
@@ -97,11 +130,18 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
     for col in ["upNetID", "downNetID"]:
         networks[col] = networks[col].astype("int")
 
-    for col in ["NumBarriersDownstream"]:
-        networks[col] = networks[col].astype("int16")
+    for stat_type in [
+        "Upstream",
+        "UpstreamCatchment",
+        "TotalUpstream",
+        "TotalDownstream",
+    ]:
+        for t in ["Waterfalls", "Dams", "SmallBarriers", "RoadCrossings"]:
+            col = f"{stat_type}{t}"
+            networks[col] = networks[col].astype("int32")
 
-    for column in ("Landcover", "SizeClasses", "FlowsToOcean"):
-        networks[column] = networks[column].astype("int8")
+    for col in ("Landcover", "SizeClasses", "FlowsToOcean", "ExitsRegion"):
+        networks[col] = networks[col].astype("int8")
 
     # sanity check to make sure no duplicate networks
     if networks.groupby(level=0).size().max() > 1:
