@@ -71,12 +71,17 @@ GATSBY_TILE_HOST = <root URL of tile host, likely http://localhost:8001 for loca
 
 ### API initial setup:
 
-See `Pipfile` for Python dependencies. The development dependencies are required for the data processing scripts.
+See `pyproject.toml` for Python dependencies. The development dependencies are required for the data processing scripts.
 
-- `cd api`
-- run `pipenv install` to setup a Python virtual environment and install all dependencies.
+Python dependencies are managed using `poetry`.
 
-### Development environment
+This project depends on some binary packages which do not always install nicely
+using `pip`. Provided that you have GEOS, GDAL, and GCC installed on your computer,
+you can build these from source:
+
+```bash
+`PIP_NO_BINARY="pygeos shapely fiona pyogrio" pip install pygeos shapely fiona pyogrio
+```
 
 #### User interface
 

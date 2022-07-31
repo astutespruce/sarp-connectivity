@@ -76,36 +76,12 @@ print("Joining to networks for dams and small barriers")
 dam_networks = get_network_results(
     df, network_type="dams", barrier_type="waterfalls", rank=False
 )
-# .drop(
-#     columns=[
-#         "GainMiles",
-#         "GainMilesClass",
-#         "PerennialGainMiles",
-#         "PerennialGainMilesClass",
-#         "TotalNetworkMiles",
-#         "TotalPerennialNetworkMiles",
-#         "NumBarriersDownstream",
-#         "FlowsToOcean",
-#     ],
-#     errors="ignore",
-# )
+
 dam_networks.columns = [f"{c}_dams" for c in dam_networks.columns]
 barrier_networks = get_network_results(
     df, network_type="small_barriers", barrier_type="waterfalls", rank=False
 )
-# .drop(
-#     columns=[
-#         "GainMiles",
-#         "GainMilesClass",
-#         "PerennialGainMiles",
-#         "PerennialGainMilesClass",
-#         "TotalNetworkMiles",
-#         "TotalPerennialNetworkMiles",
-#         "NumBarriersDownstream",
-#         "FlowsToOcean",
-#     ],
-#     errors="ignore",
-# )
+
 barrier_networks.columns = [f"{c}_small_barriers" for c in barrier_networks.columns]
 df = df.join(dam_networks).join(barrier_networks)
 
@@ -128,11 +104,6 @@ tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
 df["packed"] = pack_bits(tmp, WF_PACK_BITS)
 
 
-df = df[
-    WF_CORE_FIELDS
-    # + list(dam_networks.columns)
-    # + list(barrier_networks.columns)
-    + ["HasNetwork", "packed"]
-].copy()
+df = df[WF_CORE_FIELDS + ["HasNetwork", "packed"]].copy()
 
 df.reset_index().to_feather(api_dir / "waterfalls.feather")
