@@ -7,7 +7,7 @@ from pyogrio import read_dataframe
 
 from analysis.lib.geometry import make_valid
 from analysis.lib.joins import remove_joins
-
+from analysis.prep.network.lib.nhd.util import get_column_names
 
 warnings.filterwarnings("ignore", message=".*geometry types are not supported*")
 
@@ -20,7 +20,6 @@ FLOWLINE_COLS = [
     "FCode",
     "GNIS_ID",
     "GNIS_Name",
-    "geometry",
 ]
 
 VAA_COLS = [
@@ -64,12 +63,15 @@ def extract_flowlines(gdb, target_crs):
 
     ### Read in flowline data and convert to data frame
     print("Reading flowlines")
+    layer = "NHDFlowline"
+    read_cols, col_map = get_column_names(gdb, layer, FLOWLINE_COLS)
+
     df = read_dataframe(
         gdb,
-        layer="NHDFlowline",
+        layer=layer,
         force_2d=True,
-        columns=FLOWLINE_COLS,
-    )
+        columns=read_cols,
+    ).rename(columns=col_map)
 
     # Index on NHDPlusID for easy joins to other NHD data
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
@@ -87,15 +89,22 @@ def extract_flowlines(gdb, target_crs):
     # NOTE: not all records in Flowlines have corresponding records in VAA
     # we drop those that do not since we need these fields.
     print("Reading VAA table and joining...")
-    vaa_df = read_dataframe(gdb, layer="NHDPlusFlowlineVAA", columns=[VAA_COLS]).rename(
-        columns={
-            "StreamOrde": "StreamOrder",
-            "StreamLeve": "StreamLevel",
-            "MinElevSmo": "MinElev",
-            "MaxElevSmo": "MaxElev",
-            "LevelPathI": "LevelPathID",
-            "TerminalPa": "TerminalID",
-        }
+    layer = "NHDPlusFlowlineVAA"
+    read_cols, col_map = get_column_names(gdb, layer, VAA_COLS)
+
+    vaa_df = (
+        read_dataframe(gdb, layer=layer, columns=read_cols)
+        .rename(columns=col_map)
+        .rename(
+            columns={
+                "StreamOrde": "StreamOrder",
+                "StreamLeve": "StreamLevel",
+                "MinElevSmo": "MinElev",
+                "MaxElevSmo": "MaxElev",
+                "LevelPathI": "LevelPathID",
+                "TerminalPa": "TerminalID",
+            }
+        )
     )
 
     vaa_df.NHDPlusID = vaa_df.NHDPlusID.astype("uint64")
@@ -117,8 +126,11 @@ def extract_flowlines(gdb, target_crs):
         df[field] = df[field].astype("uint64")
 
     ### Read in EROMMA_COLS
+    layer = "NHDPlusEROMMA"
+    read_cols, col_map = get_column_names(gdb, layer, EROMMA_COLS)
     flow_df = (
-        read_dataframe(gdb, layer="NHDPlusEROMMA", columns=EROMMA_COLS)
+        read_dataframe(gdb, layer=layer, columns=read_cols)
+        .rename(columns=col_map)
         .rename(columns={"QAMA": "AnnualFlow", "VAMA": "AnnualVelocity"})
         .set_index("NHDPlusID")
         .astype("float32")
@@ -127,12 +139,18 @@ def extract_flowlines(gdb, target_crs):
 
     ### Read in flowline joins
     print("Reading flowline joins")
-    join_df = read_dataframe(
-        gdb,
-        layer="NHDPlusFlow",
-        read_geometry=False,
-        columns=["FromNHDPID", "ToNHDPID"],
-    ).rename(columns={"FromNHDPID": "upstream", "ToNHDPID": "downstream"})
+    layer = "NHDPlusFlow"
+    read_cols, col_map = get_column_names(gdb, layer, ["FromNHDPID", "ToNHDPID"])
+    join_df = (
+        read_dataframe(
+            gdb,
+            layer=layer,
+            read_geometry=False,
+            columns=read_cols,
+        )
+        .rename(columns=col_map)
+        .rename(columns={"FromNHDPID": "upstream", "ToNHDPID": "downstream"})
+    )
     join_df.upstream = join_df.upstream.astype("uint64")
     join_df.downstream = join_df.downstream.astype("uint64")
 

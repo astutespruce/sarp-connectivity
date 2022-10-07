@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 import pygeos as pg
@@ -5,6 +7,9 @@ from pyogrio import read_dataframe
 
 from analysis.constants import WATERBODY_EXCLUDE_FTYPES
 from analysis.lib.geometry import make_valid
+from analysis.prep.network.lib.nhd.util import get_column_names
+
+warnings.filterwarnings("ignore", message=".*Warning 1: organizePolygons.*")
 
 
 WATERBODY_COLS = [
@@ -14,17 +19,16 @@ WATERBODY_COLS = [
     "GNIS_ID",
     "GNIS_Name",
     "AreaSqKm",
-    "geometry",
 ]
 
 
-def extract_waterbodies(gdb_path, target_crs):
+def extract_waterbodies(gdb, target_crs):
     """Extract waterbodies from NHDPlusHR data product that are are not one of
     the excluded types (e.g., estuary, playa, swamp/marsh).
 
     Parameters
     ----------
-    gdb_path : str
+    gdb : str
         path to the NHD HUC4 Geodatabase
     target_crs: GeoPandas CRS object
         target CRS to project NHD to for analysis, like length calculations.
@@ -35,13 +39,18 @@ def extract_waterbodies(gdb_path, target_crs):
     GeoDataFrame
     """
     print("Reading waterbodies")
+
+    layer = "NHDWaterbody"
+    read_cols, col_map = get_column_names(gdb, layer, WATERBODY_COLS)
+    ftype_col = col_map.get("FType", "FType")
+
     df = read_dataframe(
-        gdb_path,
-        layer="NHDWaterbody",
-        columns=[WATERBODY_COLS],
+        gdb,
+        layer=layer,
+        columns=read_cols,
         force_2d=True,
-        where=f"FType not in {tuple(WATERBODY_EXCLUDE_FTYPES)}",
-    )
+        where=f"{ftype_col} not in {tuple(WATERBODY_EXCLUDE_FTYPES)}",
+    ).rename(columns=col_map)
     print(f"Read {len(df):,} waterbodies")
 
     # Convert multipolygons to polygons

@@ -53,7 +53,8 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
     for huc4 in huc4s:
         print(f"------------------- Reading {huc4} -------------------")
 
-        gdb = src_dir / huc4 / f"NHDPLUS_H_{huc4}_HU4_GDB.gdb"
+        # filenames vary for current NHD HR datasets; beta datasets had stable names
+        gdb = next((src_dir / huc4).glob("*.gdb"))
 
         ### Read flowlines and joins
         read_start = time()
@@ -268,10 +269,10 @@ huc4_df = pd.read_feather(
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
 huc2s = [
-    # "02",
+    "02",
     # "03",
     # "05",
-    # "06",
+    "06",
     # "07",
     # "08",
     # "09",
@@ -281,7 +282,7 @@ huc2s = [
     # "13",
     # "14",
     # "15",
-    # "16",
+    "16",
     # "17",
     # "18",
     # "21",
