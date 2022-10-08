@@ -91,7 +91,7 @@ def extract_marine(gdb, target_crs):
             1
         ]
 
-        print(f"Dropping {len(ix)} areas that are fully contapined within land areas")
+        print(f"Dropping {len(ix)} areas that are fully contained within land areas")
 
         df = df.iloc[np.setdiff1d(df.index.values, ix)].copy()
 

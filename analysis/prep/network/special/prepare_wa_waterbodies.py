@@ -112,7 +112,7 @@ if ix.sum():
     df.loc[ix, "geometry"] = pg.make_valid(df.loc[ix].geometry.values.data)
 
 
-df = pd.append(
+df = pd.concat(
     [waterbodies, df[["geometry", "altered", "source"]]], ignore_index=True, sort=False
 ).reset_index(drop=True)
 

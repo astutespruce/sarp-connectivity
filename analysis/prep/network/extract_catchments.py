@@ -1,35 +1,39 @@
 from pathlib import Path
-import os
 from time import time
 import warnings
 
 import pandas as pd
 from pyogrio import read_dataframe, write_dataframe
 
-
 from analysis.constants import CRS
 from analysis.lib.util import append
-
+from analysis.prep.network.lib.nhd.util import get_column_names
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+warnings.filterwarnings("ignore", message=".*Warning 1: organizePolygons.*")
 
 MAX_HUC4s = 5  # max number of HUC4s to include before considering a split
 
 
 def process_huc4s(src_dir, huc4s):
-
     merged = None
     for HUC4 in huc4s:
         print(f"\n\n------------------- Reading {HUC4} -------------------")
 
-        gdb = src_dir / HUC4 / f"NHDPLUS_H_{HUC4}_HU4_GDB.gdb"
+        # filenames vary for current NHD HR datasets; beta datasets had stable names
+        gdb = next((src_dir / HUC4).glob("*.gdb"))
 
-        df = read_dataframe(gdb, layer="NHDPlusCatchment", columns=["NHDPlusID"])
+        layer = "NHDPlusCatchment"
+        read_cols, col_map = get_column_names(gdb, layer, ["NHDPlusID"])
+
+        df = read_dataframe(gdb, layer=layer, columns=read_cols).rename(columns=col_map)
         print(f"Read {len(df):,} catchments")
 
-        df = df.dropna(subset=["NHDPlusID"])
+        missing = df.NHDPlusID.isnull().sum()
+        if missing:
+            df = df.dropna(subset=["NHDPlusID"])
 
-        print(f"Kept {len(df):,} catchments after dropping those without NHDPlusID")
+            print(f"Kept {len(df):,} catchments after dropping those without NHDPlusID")
 
         df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
@@ -49,14 +53,9 @@ def process_huc4s(src_dir, huc4s):
 
 data_dir = Path("data")
 src_dir = data_dir / "nhd/source/huc4"
-out_dir = data_dir / "nhd/raw"
 tmp_dir = Path("/tmp/sarp")  # only need GIS files to provide to SARP
+tmp_dir.mkdir(exist_ok=True, parents=True)
 
-if not out_dir.exists():
-    os.makedirs(out_dir)
-
-if not tmp_dir.exists():
-    os.makedirs(tmp_dir)
 
 start = time()
 
@@ -65,6 +64,8 @@ huc4_df = pd.read_feather(
 )
 # Convert to dict of sorted HUC4s per HUC2
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
+huc2s = units.keys()
+
 
 # manually subset keys from above for processing
 huc2s = [
@@ -82,17 +83,13 @@ huc2s = [
     # "14",
     # "15",
     # "16",
-    "17",
+    # "17",
     # "18",
     # "21",
 ]
 
 for huc2 in huc2s:
     print(f"----- {huc2} ------")
-
-    huc2_dir = out_dir / huc2
-    if not huc2_dir.exists():
-        os.makedirs(huc2_dir)
 
     huc4s = units[huc2]
 
@@ -104,9 +101,6 @@ for huc2 in huc2s:
             df = process_huc4s(src_dir, huc4s[i : i + MAX_HUC4s])
 
             print(f"serializing {len(df):,} catchments")
-            df[["NHDPlusID", "geometry"]].to_feather(
-                huc2_dir / f"catchments_{counter}.feather"
-            )
             write_dataframe(df, tmp_dir / f"region{huc2}_catchments_{counter}.shp")
 
             del df
@@ -115,7 +109,6 @@ for huc2 in huc2s:
         df = process_huc4s(src_dir, huc4s)
 
         print(f"serializing {len(df):,} catchments")
-        df[["NHDPlusID", "geometry"]].to_feather(huc2_dir / f"catchments.feather")
         write_dataframe(df, tmp_dir / f"region{huc2}_catchments.shp")
 
         del df
