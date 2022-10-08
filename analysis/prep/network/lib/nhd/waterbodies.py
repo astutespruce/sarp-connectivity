@@ -93,8 +93,28 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     tree = pg.STRtree(geometries)
     left, right = tree.query_bulk(nhd_lines, predicate="intersects")
 
+    # remove nhd_lines any that are completely contained in a waterbody
+    tmp = pd.DataFrame(
+        {
+            "left": left,
+            "left_geometry": nhd_lines.take(left),
+            "right": right,
+            "right_geometry": geometries.take(right),
+        }
+    )
+
+    pg.prepare(tmp.right_geometry.values)
+    tmp["contained"] = pg.contains_properly(
+        tmp.right_geometry.values, tmp.left_geometry.values
+    )
+    print(
+        f"Dropping {tmp['contained'].sum()} NHD lines that are completely contained within waterbodies"
+    )
+
+    tmp = tmp.loc[~tmp["contained"]]
+
     # add these to the return
-    keep_nhd_lines = nhd_lines[np.unique(left)]
+    keep_nhd_lines = nhd_lines[tmp.left.unique()]
 
     # find connected boundaries
     boundaries = pg.polygons(pg.get_exterior_ring(geometries))
