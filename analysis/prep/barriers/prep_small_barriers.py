@@ -167,23 +167,37 @@ for column in ["Editor", "EditDate"]:
 df["ConditionClass"] = (
     df.BarrierCondition.fillna("")
     .str.strip()
+    .str.lower()
     .map(BARRIER_CONDITION_TO_DOMAIN)
     .astype("uint8")
 )
 df["SeverityClass"] = (
     df.PotentialProject.fillna("")
     .str.strip()
+    .str.lower()
     .map(POTENTIAL_TO_SEVERITY)
     .astype("uint8")
 )
 df["CrossingTypeClass"] = (
-    df.CrossingType.fillna("").str.strip().map(CROSSING_TYPE_TO_DOMAIN).astype("uint8")
+    df.CrossingType.fillna("")
+    .str.strip()
+    .str.lower()
+    .map(CROSSING_TYPE_TO_DOMAIN)
+    .astype("uint8")
 )
 df["RoadTypeClass"] = (
-    df.RoadType.fillna("").str.strip().map(ROAD_TYPE_TO_DOMAIN).astype("uint8")
+    df.RoadType.fillna("")
+    .str.strip()
+    .str.lower()
+    .map(ROAD_TYPE_TO_DOMAIN)
+    .astype("uint8")
 )
 df["Constriction"] = (
-    df.Constriction.fillna("").str.strip().map(CONSTRICTION_TO_DOMAIN).astype("uint8")
+    df.Constriction.fillna("")
+    .str.strip()
+    .str.lower()
+    .map(CONSTRICTION_TO_DOMAIN)
+    .astype("uint8")
 )
 
 

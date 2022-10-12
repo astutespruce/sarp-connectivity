@@ -136,6 +136,7 @@ DAM_FS_COLS = [
     "DB_Source",
     "Barrier_Name",
     "Other_Barrier_Name",
+    "OwnerType",
     "River",
     "PurposeCategory",
     "Year_Completed",
@@ -159,6 +160,7 @@ DAM_FS_COLS = [
     "ScreenType",
     "BarrierSeverity",
     "LowheadDam",
+    "LowheadDam1",  # temporary, for Oregon
     "ImpoundmentType",
     "EditDate",
     "Editor",
@@ -335,95 +337,103 @@ RECON_TO_FEASIBILITY = {
 
 POTENTIAL_TO_SEVERITY = {
     "": 0,
-    "Inaccessible": 0,
-    "Indeterminate": 0,  # removed from processing
-    "Insignificant Barrier": 1,
-    "Minor Barrier": 1,
-    "Moderate Barrier": 2,
-    "No Barrier": 1,  # removed from processing
-    "No Crossing": 1,
-    "No Upstream Channel": 1,
-    "No Upstream Habitat": 1,
-    "Buried Stream": 1,
-    "Not Scored": 0,
-    "No": 1,
-    "Unassessed": 0,
-    "Completed Project": 0,  # removed from processing
-    "Past Project": 0,  # removed from processing
-    "Potential Project": 0,
-    "Proposed Project": 0,
-    "Severe Barrier": 3,
-    "Severe barrier": 3,
-    "Significant Barrier": 3,
-    "Small Project": 0,
-    "SRI Only": 0,
-    "Other": 0,
+    "na": 0,
+    "unknown": 0,
+    "inaccessible": 0,
+    "indeterminate": 0,  # removed from processing
+    "insignificant barrier": 1,
+    "minor barrier": 1,
+    "moderate barrier": 2,
+    "no barrier": 1,  # removed from processing
+    "no crossing": 1,
+    "no upstream channel": 1,
+    "no upstream habitat": 1,
+    "buried stream": 1,
+    "not scored": 0,
+    "no": 1,
+    "unassessed": 0,
+    "completed project": 0,  # removed from processing
+    "past project": 0,  # removed from processing
+    "potential project": 0,
+    "proposed project": 0,
+    "severe barrier": 3,
+    "significant barrier": 3,
+    "small project": 0,
+    "sri only": 0,
+    "other": 0,
 }
 
 CROSSING_TYPE_TO_DOMAIN = {
-    "Bridge": 2,
-    "Bridge Adequate": 2,
-    "Buried Stream": 6,
-    "Culvert": 3,
-    "Dam": 5,
-    "Ford": 4,
-    "Low Water Crossing": 4,
-    "Inaccessible": 0,
-    "Multiple Culvert": 3,
-    "Multiple Culverts": 3,
-    "Natural Ford": 4,
-    "No Crossing": 1,
-    "None": 1,
-    "No Upstream Channel": 1,
-    "Other": 0,
-    "Partially Inaccessible": 0,
-    "Removed Crossing": 1,
-    "Slab": 4,
-    "Unknown": 0,
-    "Vented Ford": 4,
-    "Vented Slab": 4,
+    "bridge": 2,
+    "bridge adequate": 2,
+    "buried stream": 6,
+    "culvert": 3,
+    "dam": 7,
+    "ford": 4,
+    "low water crossing": 4,
+    "inaccessible": 0,
+    "multiple culvert": 3,
+    "multiple culverts": 3,
+    "natural ford": 4,
+    "no crossing": 1,
+    "none": 1,
+    "no upstream channel": 1,
+    "other": 0,
+    "partially inaccessible": 0,
+    "removed crossing": 1,
+    "slab": 4,
+    "unknown": 0,
+    "vented ford": 4,
+    "vented slab": 4,
     "": 0,
-    "OTHER": 0,
+    "tide gate": 5,
+    "tidegate": 5,
 }
 
 CONSTRICTION_TO_DOMAIN = {
-    "Unknown": 0,
+    "unknown": 0,
     "": 0,
-    "No Data": 0,
-    "Spans Full Channel & Banks": 1,
-    "Spans Only Bankfull/Active Channel": 2,
-    "Moderate": 3,
-    "Severe": 4,
+    "no data": 0,
+    "spans full channel & banks": 1,
+    "not constricted": 1,
+    "spans only bankfull/active channel": 2,
+    "constricted to some degree": 3,
+    "minor": 4,
+    "moderate": 5,
+    "severe": 6,
 }
 
 ROAD_TYPE_TO_DOMAIN = {
-    "Asphalt": 2,
-    "Concrete": 2,
-    "Dirt": 1,
-    "Driveway": 0,
-    "Gravel": 1,
-    "Other": 0,
-    "Paved": 2,
-    "Railroad": 3,
-    "Trail": 1,
-    "Unknown": 0,
-    "Unpaved": 1,
+    "asphalt": 2,
+    "concrete": 2,
+    "dirt": 1,
+    "driveway": 0,
+    "gravel": 1,
+    "other": 0,
+    "paved": 2,
+    "railroad": 3,
+    "trail": 1,
+    "unknown": 0,
+    "unpaved": 1,
+    "no data": 0,
+    "nodata": 0,
     "": 0,
 }
 
 BARRIER_CONDITION_TO_DOMAIN = {
-    "Failing": 1,
-    "New": 4,
-    "OK": 3,
-    "Poor": 2,
-    "Unknown": 0,
     "": 0,
+    "unknown": 0,
+    "failing": 1,
+    "poor": 2,
+    "ok": 3,
+    "new": 4,
 }
 
 DAM_BARRIER_SEVERITY_TO_DOMAIN = {
     "": 0,
     "Unknown": 0,
     "Complete": 1,
+    "Complete Barrier": 1,
     "Partial": 2,
     "Partial Passability - Non Salmonid": 3,
     "Partial Passability - Salmonid": 4,
@@ -431,6 +441,23 @@ DAM_BARRIER_SEVERITY_TO_DOMAIN = {
     "Seasonably Passable - Salmonid": 6,
     "No Barrier": 7,
 }
+
+
+# recoded to better align with OWNERTYPE domain
+BARRIEROWNERTYPE_TO_DOMAIN = {
+    0: 0,  # <missing>
+    1: 2,  # "Federal",
+    2: 3,  # "State",
+    3: 4,  # "Local Government",
+    4: 5,  # "Public Utility",
+    5: 0,  # "Private",
+    6: 0,  # "Not Listed",
+    7: 0,  # "Unknown",
+    8: 0,  # "Other",
+    9: 6,  # "Tribe",
+    10: 1,  # "USDA Forest Service",
+}
+
 
 OWNERTYPE_TO_DOMAIN = {
     # Unknown types are not useful
@@ -491,7 +518,6 @@ FCODE_TO_STREAMTYPE = {
 # WARNING: you may need to remove the corresponding segments or joins that
 # were previously identified as loops
 CONVERT_TO_NONLOOP = {
-    "02": [10000300070616, 10000300132189, 10000300132190],
     "05": [
         # this is a loop at the junction of 05/06 that needs to be retained as a non-loop
         # for networks to be built correctly
@@ -586,10 +612,7 @@ CONVERT_TO_LOOP = {
 }
 
 # List of NHDPlusIDs to remove due to issues with NHD
-REMOVE_IDS = {
-    # Invalid loops
-    "02": [10000300073811, 10000300021333],
-}
+REMOVE_IDS = {}
 
 # List of NHDPlusIDs that flow into marine based on visual inspection
 CONVERT_TO_MARINE = {

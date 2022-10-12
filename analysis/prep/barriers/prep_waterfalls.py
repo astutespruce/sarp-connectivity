@@ -84,21 +84,6 @@ df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
 df = df.drop(columns=["GNIS_Name"])
 
 
-# Convert BarrierSeverity to a domain
-# FIXME: temporary fixes
-df.BarrierSeverity = df.fillna("").BarrierSeverity.str.replace(
-    "Seasonbly", "Seasonably"
-)
-df.loc[df.BarrierSeverity.str.startswith("State of UT"), "BarrierSeverity"] = "Unknown"
-
-df["BarrierSeverity"] = (
-    df.BarrierSeverity.fillna("")
-    .str.strip()
-    .map(DAM_BARRIER_SEVERITY_TO_DOMAIN)
-    .astype("uint8")
-)
-
-
 ### Add persistant sourceID based on original IDs
 df["sourceID"] = df.LocalID
 ix = ~df.fall_id.isnull()
@@ -158,9 +143,17 @@ df.loc[drop_ix, "log"] = f"dropped: ManualReview one of {DROP_MANUALREVIEW}"
 
 # Drop manually-identified waterfalls that should be removed
 drop_ix = df.SARPID.isin(
-    ["f12317", "f13156", "f1557", "f12275", "f92", "f1951", "f7500", "f13457",
-    # Celilo Falls are drowned by backwaters of Dalles dam
-    "f3002"
+    [
+        "f12317",
+        "f13156",
+        "f1557",
+        "f12275",
+        "f92",
+        "f1951",
+        "f7500",
+        "f13457",
+        # Celilo Falls are drowned by backwaters of Dalles dam
+        "f3002",
     ]
 )
 df.loc[drop_ix, "dropped"] = True
@@ -174,6 +167,26 @@ df.loc[drop_ix, "log"] = f"dropped: type one of {drop_types}"
 
 print(
     f"Dropped {drop_ix.sum():,} waterfalls from all analysis and mapping based on ManualReview, Recon, type, or ID"
+)
+
+### Exclude barriers based on BarrierSeverity
+
+# Convert BarrierSeverity to a domain
+df.BarrierSeverity = df.BarrierSeverity.fillna("").str.strip()
+
+# FIXME: temporary fixes
+df.loc[df.BarrierSeverity.str.startswith("State of UT"), "BarrierSeverity"] = "Unknown"
+
+
+# mark as excluded if barrier severity is unknown / no barrier
+exclude_severities = ["Unknown", "No Barrier"]
+ix = df.BarrierSeverity.isin(exclude_severities)
+df.loc[ix, "excluded"] = True
+df.loc[ix, "log"] = f"excluded: BarrierSeverity one of {', '.join(exclude_severities)}"
+
+# Convert to domain
+df["BarrierSeverity"] = df.BarrierSeverity.map(DAM_BARRIER_SEVERITY_TO_DOMAIN).astype(
+    "uint8"
 )
 
 ### Exclude barriers that should not be analyzed based on manual QA

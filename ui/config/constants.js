@@ -301,16 +301,19 @@ export const CROSSING_TYPE = {
   2: 'Bridge',
   3: 'Culvert',
   4: 'Ford',
-  5: 'Dam',
+  5: 'Tide gate',
   6: 'Buried stream',
+  7: 'Dam',
 }
 
 export const CONSTRICTION = {
   0: 'Unknown',
   1: 'Spans full channel & banks',
   2: 'Spans only bankfull/active channel',
-  3: 'Moderate',
-  4: 'Severe',
+  3: 'Constricted to some degree',
+  4: 'Minor',
+  5: 'Moderate',
+  6: 'Severe',
 }
 
 export const ROAD_TYPE = {

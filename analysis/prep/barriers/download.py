@@ -27,7 +27,7 @@ TOKEN = os.getenv("AGOL_TOKEN", None)
 if not TOKEN:
     raise ValueError("AGOL_TOKEN must be defined in your .env file")
 
-# MAX_WORKERS = 4
+
 SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Dam_Snapping_QA_Dataset_01212020/FeatureServer/0"
 SMALL_BARRIERS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_RoadBarriers_01212019/FeatureServer/0"
 WATERFALLS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/SARP_Waterfall_Database_01212020/FeatureServer/0"
@@ -83,6 +83,8 @@ async def download_state_dams(client, state, token):
             "ConstructionMaterial": "Construction",
             "PurposeCategory": "Purpose",
             "StructureCondition": "Condition",
+            "LowheadDam1": "LowheadDam",
+            "OwnerType": "BarrierOwnerType",
         }
     )
 
@@ -104,7 +106,8 @@ async def download_state_dams(client, state, token):
 
 async def download_dams(token):
     async with httpx.AsyncClient(
-        timeout=httpx.Timeout(60.0, connect=60.0), http2=True
+        timeout=httpx.Timeout(60.0, connect=60.0),
+        http2=True,
     ) as client:
         tasks = [
             asyncio.ensure_future(download_state_dams(client, state, token))
@@ -171,11 +174,10 @@ async def download_small_barriers(token):
                 "SARPUniqueID": "SARPID",
                 "CrossingTypeId": "CrossingType",
                 "RoadTypeId": "RoadType",
-                "CrossingConditionId": "Condition",
+                "CrossingConditionId": "BarrierCondition",
                 "StreamName": "Stream",
                 "Year_Removed": "YearRemoved",
-                "OwnerType": "RoadOwnerType",
-                "Condition": "BarrierCondition",  # dams have a Condition field
+                "OwnerType": "BarrierOwnerType",
             }
         )
 
@@ -241,6 +243,7 @@ wv = wv[cols].rename(
         "ConstructionMaterial": "Construction",
         "PurposeCategory": "Purpose",
         "StructureCondition": "Condition",
+        "OwnerType": "BarrierOwnerType",
     }
 )
 wv["SourceState"] = "WV"
