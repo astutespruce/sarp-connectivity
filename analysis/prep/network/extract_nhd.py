@@ -218,10 +218,33 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
         ~(joins.upstream.isin(cross_huc_joins.upstream) & (joins.type == "terminal"))
     ]
 
+    # remove the duplicate downstreams that were functionally terminals for their HUC2s but
+    # not marked as such (they had an NHDPlusID downstream but no flowlines in their HUC2)
+    ix = joins.loc[
+        (joins.downstream != 0) & (joins.downstream_id == 0)
+    ].upstream.unique()
+    joins = joins.loc[~(joins.upstream.isin(ix) & (joins.downstream_id == 0))]
+
     # remove dead ends
     joins = joins.loc[~((joins.downstream == 0) & (joins.upstream == 0))].reset_index(
         drop=True
     )
+
+    missing_downstream = joins.loc[
+        (joins.downstream != 0) & (~joins.downstream.isin(flowlines.NHDPlusID))
+    ]
+    if len(missing_downstream):
+        print("WARNING: downstream side of join is not present in flowlines")
+        print("This may be a valid HUC2 exit, or it may be an error in the data")
+        print(missing_downstream)
+
+    missing_upstream = joins.loc[
+        (joins.upstream != 0) & (~joins.upstream.isin(flowlines.NHDPlusID))
+    ]
+    if len(missing_upstream):
+        print("WARNING: upstream side of join is not present in flowlines")
+        print("This may be a valid HUC2 inlet, or it may be an error in the data")
+        print(missing_upstream)
 
     print("\n--------------------")
 
@@ -269,10 +292,10 @@ huc4_df = pd.read_feather(
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
 huc2s = [
-    "02",
+    # "02",
     # "03",
     # "05",
-    "06",
+    # "06",
     # "07",
     # "08",
     # "09",
@@ -282,7 +305,7 @@ huc2s = [
     # "13",
     # "14",
     # "15",
-    "16",
+    # "16",
     # "17",
     # "18",
     # "21",

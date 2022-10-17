@@ -13,6 +13,8 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 warnings.filterwarnings("ignore", message=".*Warning 1: organizePolygons.*")
 
 MAX_HUC4s = 5  # max number of HUC4s to include before considering a split
+# For region 17:
+# MAX_HUC4s = 3
 
 
 def process_huc4s(src_dir, huc4s):
