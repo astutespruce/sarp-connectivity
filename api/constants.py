@@ -689,10 +689,12 @@ CROSSING_TYPE_DOMAIN = {
 
 CONSTRICTION_DOMAIN = {
     0: "Unknown",
-    1: "Spans Full Channel & Banks",
-    2: "Spans Only Bankfull/Active Channel",
-    3: "Moderate",
-    4: "Severe",
+    1: "Spans full channel & banks",
+    2: "Spans only bankfull/active channel",
+    3: "Constricted to some degree",
+    4: "Minor",
+    5: "Moderate",
+    6: "Severe",
 }
 
 DIVERSION_DOMAIN = {0: "Unknown", 1: "Yes", 2: "No"}

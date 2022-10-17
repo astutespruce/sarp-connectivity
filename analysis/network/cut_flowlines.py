@@ -102,7 +102,18 @@ for huc2 in huc2s:
     # increment lineIDs before dropping loops
     next_segment_id = flowlines.lineID.max() + np.uint32(1)
 
-    joins = pd.read_feather(nhd_dir / huc2 / "flowline_joins.feather")
+    joins = pd.read_feather(
+        nhd_dir / huc2 / "flowline_joins.feather",
+        columns=[
+            "upstream",
+            "downstream",
+            "upstream_id",
+            "downstream_id",
+            "type",
+            "marine",
+            "loop",
+        ],
+    )
 
     # drop all loops from the analysis
     print(f"Dropping {flowlines.loop .sum():,} loops")

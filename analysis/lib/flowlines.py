@@ -208,14 +208,19 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     # we assign N/A to 0.
 
     upstream_barrier_joins = (
-        (
-            segments.loc[segments.on_upstream][["barrierID", "lineID"]]
-            .rename(columns={"lineID": "downstream_id"})
-            .join(joins.set_index("downstream_id").upstream_id, on="downstream_id")
+        segments.loc[segments.on_upstream][["barrierID", "lineID"]]
+        .rename(columns={"lineID": "downstream_id"})
+        .join(
+            joins.set_index("downstream_id")[["upstream_id", "type", "marine"]],
+            on="downstream_id",
         )
-        .fillna(0)
-        .astype("uint32")
     )
+
+    upstream_barrier_joins.upstream_id = upstream_barrier_joins.upstream_id.fillna(
+        0
+    ).astype("uint32")
+    upstream_barrier_joins["type"] = upstream_barrier_joins["type"].fillna("origin")
+    upstream_barrier_joins.marine = upstream_barrier_joins.marine.fillna(False)
 
     # Barriers on downstream endpoint:
     # their upstream_id is the segment they are on and their downstream_id is the
@@ -224,22 +229,30 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     # network (downstream terminal) and further downstream segments were removed due to removing
     # coastline segments.
     downstream_barrier_joins = (
-        (
-            segments.loc[segments.on_downstream][["barrierID", "lineID"]]
-            .rename(columns={"lineID": "upstream_id"})
-            .join(joins.set_index("upstream_id").downstream_id, on="upstream_id")
+        segments.loc[segments.on_downstream][["barrierID", "lineID"]]
+        .rename(columns={"lineID": "upstream_id"})
+        .join(
+            joins.set_index("upstream_id")[["downstream_id", "type", "marine"]],
+            on="upstream_id",
         )
-        .fillna(0)
-        .astype("uint32")
     )
+
+    downstream_barrier_joins.downstream_id = (
+        downstream_barrier_joins.downstream_id.fillna(0).astype("uint32")
+    )
+    downstream_barrier_joins["type"] = downstream_barrier_joins["type"].fillna(
+        "terminal"
+    )
+    downstream_barrier_joins.marine = downstream_barrier_joins.marine.fillna(False)
 
     # Add sibling joins if on a confluence
     # NOTE: a barrier may have multiple sibling upstreams if it occurs at a
     # confluence but is snapped to the downstream endpoint of its line and other
     # flowlines converge at that point
+
     at_confluence = downstream_barrier_joins.loc[
         downstream_barrier_joins.downstream_id != 0
-    ][["barrierID", "downstream_id"]].join(
+    ][["barrierID", "downstream_id", "type", "marine"]].join(
         joins.loc[~joins.upstream_id.isin(downstream_barrier_joins.index)]
         .set_index("downstream_id")
         .upstream_id,
@@ -419,22 +432,18 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         sort=False,
     ).sort_values(["downstream_id", "upstream_id"])
 
-    barrier_joins = (
-        pd.concat(
-            [barrier_joins, new_joins[["barrierID", "upstream_id", "downstream_id"]]],
-            ignore_index=True,
-            sort=False,
-        )
-        .set_index("barrierID", drop=False)
-        .astype("uint32")
-    )
+    barrier_joins = pd.concat(
+        [
+            barrier_joins,
+            new_joins[["barrierID", "upstream_id", "downstream_id", "type", "marine"]],
+        ],
+        ignore_index=True,
+        sort=False,
+    ).set_index("barrierID", drop=False)
 
-    # any join that is upstream of a barrier cannot be marine
-    updated_joins.loc[
-        updated_joins.marine
-        & updated_joins.upstream_id.isin(barrier_joins.upstream_id.unique()),
-        "marine",
-    ] = False
+    barrier_joins[["upstream_id", "downstream_id"]] = barrier_joins[
+        ["upstream_id", "downstream_id"]
+    ].astype("uint32")
 
     # extract flowlines that are not split by barriers and merge in new flowlines
     unsplit_segments = flowlines.loc[~flowlines.index.isin(split_segments.index)]

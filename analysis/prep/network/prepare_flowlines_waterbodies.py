@@ -122,15 +122,17 @@ for huc2 in huc2s:
             )
             if "new_upstream" in fix:
                 joins.loc[ix, "upstream"] = fix["new_upstream"]
-                joins.loc[ix, "upstream_id"] = flowlines.loc[
-                    flowlines.NHDPlusID == fix["new_upstream"]
-                ].index[0]
+                flowline_ix = flowlines.NHDPlusID == fix["new_upstream"]
+                # this might be absent from flowlines if at HUC2 join
+                if flowline_ix.sum():
+                    joins.loc[ix, "upstream_id"] = flowlines.loc[flowline_ix].index[0]
 
             if "new_downstream" in fix:
                 joins.loc[ix, "downstream"] = fix["new_downstream"]
-                joins.loc[ix, "downstream_id"] = flowlines.loc[
-                    flowlines.NHDPlusID == fix["new_downstream"]
-                ].index[0]
+                # this might be absent from flowlines if at HUC2 join
+                flowline_ix = flowlines.NHDPlusID == fix["new_downstream"]
+                if flowline_ix.sum():
+                    joins.loc[ix, "downstream_id"] = flowlines.loc[flowline_ix].index[0]
 
     ### Manually remove joins
     to_remove = REMOVE_JOINS.get(huc2, [])
@@ -141,17 +143,6 @@ for huc2 in huc2s:
                 joins.downstream == entry["downstream"]
             )
             joins = joins.loc[~ix].copy()
-
-    ### Drop underground conduits
-    # TODO: remove once extract_nhd has been rerun for all areas
-    ix = flowlines.loc[flowlines.FType == 420].index
-    if len(ix):
-        print(f"Removing {len(ix):,} underground conduits")
-        flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
-        joins = remove_joins(
-            joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
-        )
-        print("------------------")
 
     ### Manual fixes for flowlines
     remove_ids = REMOVE_IDS.get(huc2, [])
@@ -191,10 +182,6 @@ for huc2 in huc2s:
         marine = gp.read_feather(marine_filename)
         flowlines, joins = remove_marine_flowlines(flowlines, joins, marine)
         print("------------------")
-
-    # TODO: temporary shim until marine is attributed everywhere
-    elif not "marine" in joins.columns:
-        joins["marine"] = False
 
     ### Drop pipelines that are > PIPELINE_MAX_LENGTH or are otherwise isolated from the network
     print("Evaluating pipelines")

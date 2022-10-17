@@ -10,7 +10,6 @@ data/networks/<region>/<network type>/*
 """
 
 from pathlib import Path
-import os
 from time import time
 import warnings
 
@@ -46,9 +45,7 @@ data_dir = Path("data")
 nhd_dir = data_dir / "nhd/clean"
 src_dir = data_dir / "networks/raw"
 out_dir = data_dir / "networks/clean"
-
-if not out_dir.exists():
-    os.makedirs(out_dir)
+out_dir.mkdir(exist_ok=True, parents=True)
 
 
 start = time()
@@ -115,8 +112,7 @@ for group in groups:
     # create output directories
     for huc2 in group_huc2s:
         huc2_dir = out_dir / huc2
-        if not huc2_dir.exists():
-            os.makedirs(huc2_dir)
+        huc2_dir.mkdir(exist_ok=True, parents=True)
 
     print(f"\n===========================\nCreating networks for {group}")
 
@@ -126,7 +122,7 @@ for group in groups:
 
     barrier_joins = read_feathers(
         [src_dir / huc2 / "barrier_joins.feather" for huc2 in group_huc2s],
-        columns=["barrierID", "upstream_id", "downstream_id", "kind"],
+        columns=["barrierID", "upstream_id", "downstream_id", "kind", "marine", "type"],
         new_fields={"HUC2": group_huc2s},
     ).set_index("barrierID")
 

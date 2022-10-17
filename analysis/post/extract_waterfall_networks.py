@@ -83,7 +83,8 @@ barrier_networks = get_network_results(
 )
 
 barrier_networks.columns = [f"{c}_small_barriers" for c in barrier_networks.columns]
-df = df.join(dam_networks).join(barrier_networks)
+# copy used to defragment DataFrame (warning from pandas)
+df = df.join(dam_networks).join(barrier_networks).copy()
 
 for col in dam_networks.columns:
     df[col] = df[col].fillna(-1).astype(dam_networks[col].dtype)

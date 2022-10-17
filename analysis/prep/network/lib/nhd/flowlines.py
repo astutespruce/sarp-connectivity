@@ -132,9 +132,9 @@ def extract_flowlines(gdb, target_crs):
         read_dataframe(gdb, layer=layer, columns=read_cols)
         .rename(columns=col_map)
         .rename(columns={"QAMA": "AnnualFlow", "VAMA": "AnnualVelocity"})
-        .set_index("NHDPlusID")
-        .astype("float32")
     )
+    flow_df.NHDPlusID = flow_df.NHDPlusID.astype("uint64")
+    flow_df = flow_df.set_index("NHDPlusID").astype("float32")
     df = df.join(flow_df)
 
     ### Read in flowline joins
@@ -268,7 +268,7 @@ def extract_flowlines(gdb, target_crs):
 
     ### Filter out underground connectors
     ix = df.loc[df.FType == 420].index
-    print("Removing {:,} underground conduits".format(len(ix)))
+    print(f"Removing {len(ix):,} underground conduits")
     df = df.loc[~df.index.isin(ix)].copy()
     join_df = remove_joins(
         join_df, ix, downstream_col="downstream", upstream_col="upstream"
@@ -284,6 +284,7 @@ def extract_flowlines(gdb, target_crs):
         downstream_col="downstream",
         upstream_col="upstream",
     )
+    print(f"Removing {ix.sum():,} flowlines that have no drainage area")
 
     ### Label loops for easier removal later
     # WARNING: loops may be very problematic from a network processing standpoint.

@@ -271,7 +271,7 @@ def create_networks(joins, barrier_joins, lineIDs):
     s = up_network_df.groupby("lineID").size()
     if s.max() > 1:
         raise ValueError(
-            f"lineIDs are found in multiple networks: {s.loc[s>1].index.values.tolist()}"
+            f"lineIDs are found in multiple networks: {', '.join([str(v)  for v in s.loc[s>1].index.values.tolist()[:10]])}..."
         )
 
     ### Handle multiple upstreams

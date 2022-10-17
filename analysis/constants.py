@@ -529,6 +529,11 @@ CONVERT_TO_NONLOOP = {
         23001300078683,
         23001300043943,
     ],
+    "17": [
+        # fix flowlines at Big Sheep Creek
+        55000500146043,
+        55000500199027,
+    ],
     "18": [
         # these are to preserve the mainstem of the Link River
         50000400082908,
@@ -553,7 +558,7 @@ CONVERT_TO_NONLOOP = {
         50000900397960,
         # this preserves the join to the Middle Fork Eel river
         50000400146877,
-        # This perserves the join to Indian Creek
+        # This preserves the join to Indian Creek
         50000900432339,
         50000900017559,
         50000900432337,
@@ -597,7 +602,14 @@ CONVERT_TO_LOOP = {
         40000200037070,
         40000400082917,
     ],
-    "17": [55000400069574, 55000300390045, 55000300261512],
+    "17": [
+        55000400069574,
+        55000300390045,
+        55000300261512,
+        # fix flowlines at Big Sheep Creek
+        55000500199026,
+        55000500304567,
+    ],
     "18": [
         # These are to remove a canal alongside the Link River
         50000400339083,
@@ -612,7 +624,12 @@ CONVERT_TO_LOOP = {
 }
 
 # List of NHDPlusIDs to remove due to issues with NHD
-REMOVE_IDS = {}
+REMOVE_IDS = {
+    "17": [
+        # Fix flowlines at Big Sheep Creek
+        55000500251842
+    ],
+}
 
 # List of NHDPlusIDs that flow into marine based on visual inspection
 CONVERT_TO_MARINE = {
@@ -634,6 +651,15 @@ CONVERT_TO_MARINE = {
         20001000017440,
         20001000055731,
         20001000042883,
+        15001500182760,
+        15001500101306,
+        15000600194575,
+        15000600191114,
+        15000700048412,
+        15000700000084,
+        15001200035170,
+        20001000056286,
+        20001000017755,
     ],
     "12": [30000800214326, 30000100041238, 30000100041306, 30000100041205],
     "13": [35000100017108],
@@ -770,6 +796,11 @@ CONVERT_TO_MARINE = {
         55000800193117,
         55000800127717,  # this is not actually marine; it is a shim for the Fraser River in CAN so that these flowlines are marked as flowing to ocean too
         55000100856434,
+        55000100324331,
+        55000100497886,
+        55000100474507,
+        55000100782369,
+        55000100378844,
     ],
     "18": [50000400299351, 50000400256410, 50000400001171, 50000900133268],
 }
@@ -778,7 +809,7 @@ CONVERT_TO_MARINE = {
 # List of NHDPlusIDs that are of pipeline type and greater than MAX_PIPELINE_LENGTH
 # but must be kept as they flow through dams; removing them would break networks
 KEEP_PIPELINES = {
-    "02": [10000200114743],
+    "02": [10000200568875, 10000200523449],
     "05": [
         24000900019974,
     ],
@@ -832,6 +863,18 @@ KEEP_PIPELINES = {
 # to be replaced with new_upstream or new_downstream
 # IMPORTANT: this only works where the original flowlines have not been split
 JOIN_FIXES = {
+    "05": [
+        # this adds a missing join between the Tennessee River and the Ohio River at the junction of 05 / 06
+        {
+            "upstream": 25000100061139,
+            "downstream": 24000100644691,
+            "new_upstream": 25000102104038,
+        }
+    ],
+    "06": [
+        # this adds a missing join between the Tennessee River and the Ohio River at the junction of 05 / 06
+        {"upstream": 25000102104038, "downstream": 0, "new_downstream": 24000100644691},
+    ],
     "10": [
         # These two segments are Teton River into Marias River, which are backwards in NHD
         {
@@ -853,6 +896,11 @@ JOIN_FIXES = {
             "downstream": 23001900199640,
             "new_downstream": 23001900170513,
         },
+    ],
+    "17": [
+        # Fix disconnected network at Sage Creek
+        {"upstream": 55001100203950, "downstream": 0, "new_downstream": 55001100330944},
+        {"upstream": 0, "downstream": 55001100330944, "new_upstream": 55001100203950},
     ],
     "18": [
         # Following entries fix middle fork of Eel River at confluence
