@@ -137,34 +137,36 @@ const BarrierDetails = ({
         ) : null}
       </Section>
 
-      <Section title="Barrier information">
-        {!isEmptyString(roadtype) ? (
-          <Entry>
-            <Field>Road type:</Field> {roadtype}
-          </Entry>
-        ) : null}
-        {!isEmptyString(crossingtype) ? (
-          <Entry>
-            <Field>Crossing type:</Field> {crossingtype}
-          </Entry>
-        ) : null}
-        {!isEmptyString(condition) ? (
-          <Entry>
-            <Field>Condition:</Field> {condition}
-          </Entry>
-        ) : null}
-        {severityclass !== null ? (
-          <Entry>
-            <Field>Severity:</Field> {BARRIER_SEVERITY[severityclass]}
-          </Entry>
-        ) : null}
-        {!isCrossing && sarp_score >= 0 ? (
-          <Entry>
-            <Field>SARP Aquatic Organism Passage Score:</Field>{' '}
-            {formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)})
-          </Entry>
-        ) : null}
-      </Section>
+      {!isCrossing ? (
+        <Section title="Barrier information">
+          {!isEmptyString(roadtype) ? (
+            <Entry>
+              <Field>Road type:</Field> {roadtype}
+            </Entry>
+          ) : null}
+          {!isEmptyString(crossingtype) ? (
+            <Entry>
+              <Field>Crossing type:</Field> {crossingtype}
+            </Entry>
+          ) : null}
+          {!isEmptyString(condition) ? (
+            <Entry>
+              <Field>Condition:</Field> {condition}
+            </Entry>
+          ) : null}
+          {severityclass !== null ? (
+            <Entry>
+              <Field>Severity:</Field> {BARRIER_SEVERITY[severityclass]}
+            </Entry>
+          ) : null}
+          {sarp_score >= 0 ? (
+            <Entry>
+              <Field>SARP Aquatic Organism Passage Score:</Field>{' '}
+              {formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)})
+            </Entry>
+          ) : null}
+        </Section>
+      ) : null}
 
       <Section title="Functional network information">
         {hasnetwork ? (
