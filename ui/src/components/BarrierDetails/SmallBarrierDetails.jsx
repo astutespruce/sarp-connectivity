@@ -158,7 +158,7 @@ const BarrierDetails = ({
             <Field>Severity:</Field> {BARRIER_SEVERITY[severityclass]}
           </Entry>
         ) : null}
-        {sarp_score >= 0 ? (
+        {!isCrossing && sarp_score >= 0 ? (
           <Entry>
             <Field>SARP Aquatic Organism Passage Score:</Field>{' '}
             {formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)})
