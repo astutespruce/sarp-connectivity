@@ -54,6 +54,7 @@ from analysis.constants import (
     CROSSING_TYPE_TO_DOMAIN,
     FCODE_TO_STREAMTYPE,
     CONSTRICTION_TO_DOMAIN,
+    BARRIEROWNERTYPE_TO_DOMAIN,
 )
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -170,6 +171,12 @@ for column in ["CrossingCode", "LocalID", "Source"]:
 
 for column in ["Editor", "EditDate"]:
     df[column] = df[column].fillna("")
+
+
+# Recode BarrierOwnerType
+df.BarrierOwnerType = (
+    df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
+)
 
 
 ### Calculate classes

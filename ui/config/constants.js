@@ -342,6 +342,16 @@ export const OWNERTYPE = {
   8: 'Other private conservation land',
 }
 
+export const BARRIEROWNERTYPE = {
+  0: 'Unknown / private',
+  1: 'USDA Forest Service',
+  2: 'Federal',
+  3: 'State',
+  4: 'Local government',
+  5: 'Public utility',
+  6: 'Tribal',
+}
+
 export const PASSAGEFACILITY_CLASS = {
   0: 'No known fish passage structure',
   1: 'Fish passage structure present',

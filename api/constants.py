@@ -154,6 +154,7 @@ FILTER_FIELDS = [
     "StreamOrderClass",
     "PercentAlteredClass",
     "OwnerType",
+    "BarrierOwnerType",
     "Intermittent",
     "HUC8_COA",
     "HUC8_SGCN",
@@ -198,6 +199,7 @@ GENERAL_API_FIELDS2 = (
         "RegionalSGCNSpp",
         "Trout",
         "OwnerType",
+        "BarrierOwnerType",
         "ProtectedLand",
         # Priority watersheds
         "HUC8_USFS",
@@ -744,6 +746,18 @@ OWNERTYPE_DOMAIN = {
     8: "Other private conservation land",
 }
 
+
+BARRIEROWNERTYPE_DOMAIN = {
+    0: "Unknown / private",
+    1: "USDA Forest Service",
+    2: "Federal",
+    3: "State",
+    4: "Local government",
+    5: "Public utility",
+    6: "Tribal",
+}
+
+
 BOOLEAN_DOMAIN = {False: "no", True: "yes"}
 
 HUC8_USFS_DOMAIN = {
@@ -994,6 +1008,7 @@ DOMAINS = {
     "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
     "ExitsRegion": BOOLEAN_OFFNETWORK_DOMAIN,
     "OwnerType": OWNERTYPE_DOMAIN,
+    "BarrierOwnerType": BARRIEROWNERTYPE_DOMAIN,
     "ProtectedLand": BOOLEAN_DOMAIN,
     "HUC8_USFS": HUC8_USFS_DOMAIN,
     "HUC8_COA": HUC8_COA_DOMAIN,
@@ -1123,6 +1138,7 @@ FIELD_DEFINITIONS = {
     "RegionalSGCNSpp": "Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "Trout": "1 if one or more trout species are present within the same subwatershed (HUC12) as the {type}, 0 if trout species were not recorded in available natural heritage data.",
     "OwnerType": "Land ownership type. This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
+    "BarrierOwnerType": "Barrier ownership type, if available.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.",
     "HUC8_USFS": "U.S. Forest Service (USFS) priority watersheds (HUC8 level) within USFS Southeast Region.",
     "HUC8_COA": "SARP conservation opportunity areas.",

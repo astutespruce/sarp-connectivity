@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from time import time
 import warnings
@@ -22,14 +21,9 @@ start = time()
 data_dir = Path("data")
 barriers_dir = data_dir / "barriers/master"
 api_dir = data_dir / "api"
+api_dir.mkdir(exist_ok=True, parents=True)
 results_dir = data_dir / "barriers/networks"
-
-if not os.path.exists(api_dir):
-    os.makedirs(api_dir)
-
-if not os.path.exists(results_dir):
-    os.makedirs(results_dir)
-
+results_dir.mkdir(exist_ok=True, parents=True)
 
 ### Read in master
 # cols must include all fields used in API and tiles
@@ -90,6 +84,7 @@ cols = [
     "ManualReview",
     "ProtectedLand",
     "OwnerType",
+    "BarrierOwnerType",
     "TESpp",
     "StateSGCNSpp",
     "RegionalSGCNSpp",
