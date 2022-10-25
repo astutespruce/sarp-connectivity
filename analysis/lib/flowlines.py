@@ -8,12 +8,11 @@ from analysis.lib.geometry.polygons import get_interior_rings
 
 
 from analysis.lib.joins import index_joins, find_joins, update_joins, remove_joins
-from analysis.lib.graph import find_adjacent_groups
 from analysis.lib.geometry import union_or_combine
 
 from analysis.lib.geometry import explode
-
 from analysis.lib.geometry.speedups.lines import cut_lines_at_points
+from analysis.lib.graph.speedups import DirectedGraph
 
 from analysis.constants import SNAP_ENDPOINT_TOLERANCE
 
@@ -110,8 +109,10 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
     right = pairs.upstream_id.values
 
     # make symmetric by adding each to the end of the other
-    # TODO: update to use DirectedGraph
-    groups = find_adjacent_groups(np.append(left, right), np.append(right, left))
+    graph = DirectedGraph(
+        np.append(left, right).astype("int64"), np.append(right, left).astype("int64")
+    )
+    groups = graph.components()
     groups = pd.DataFrame(pd.Series(groups).apply(list).explode().rename("index"))
     groups.index.name = "group"
     groups = groups.reset_index().set_index("index")
@@ -988,11 +989,19 @@ def remove_marine_flowlines(flowlines, joins, marine):
 
     print(f"Removing {len(ix):,} flowlines that mostly overlap marine areas")
     # mark any that terminated in those as marine
-    joins.loc[joins.downstream_id.isin(ix), "marine"] = True
+    joins_ix = joins.downstream_id.isin(ix)
+    joins.loc[joins_ix, "marine"] = True
+    joins.loc[joins_ix, "type"] = "terminal"
+
     flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
     joins = remove_joins(
         joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
     )
+
+    # mark any new terminals as such
+    joins.loc[
+        (joins.downstream_id == 0) & (joins.type == "internal"), "type"
+    ] = "terminal"
 
     return flowlines, joins
 

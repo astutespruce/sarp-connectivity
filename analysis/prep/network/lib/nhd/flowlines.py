@@ -236,13 +236,6 @@ def extract_flowlines(gdb, target_crs):
             f"Repaired {len(ids):,} joins marked by NHD as terminals but actually joined to flowlines"
         )
 
-    # set join types to make it easier to track
-    join_df["type"] = "internal"  # set default
-    # upstream-most origin points
-    join_df.loc[join_df.upstream == 0, "type"] = "origin"
-    # downstream-most termination points
-    join_df.loc[join_df.downstream == 0, "type"] = "terminal"
-
     ### Filter out coastlines and update joins
     # WARNING: we tried filtering out pipelines (FType == 428).  It doesn't work properly;
     # there are many that go through dams and are thus needed to calculate
@@ -261,7 +254,6 @@ def extract_flowlines(gdb, target_crs):
     # the network analysis later
     join_df["marine"] = join_df.downstream.isin(coastline_idx)
     join_df.loc[join_df.marine, "downstream"] = 0
-    join_df.loc[join_df.marine, "type"] = "terminal"
 
     # drop any duplicates (above operation sets some joins to upstream and downstream of 0)
     join_df = join_df.drop_duplicates(subset=["upstream", "downstream"])
@@ -285,6 +277,13 @@ def extract_flowlines(gdb, target_crs):
         upstream_col="upstream",
     )
     print(f"Removing {ix.sum():,} flowlines that have no drainage area")
+
+    ### set join types to make it easier to track
+    join_df["type"] = "internal"  # set default
+    # upstream-most origin points
+    join_df.loc[join_df.upstream == 0, "type"] = "origin"
+    # downstream-most termination points
+    join_df.loc[join_df.downstream == 0, "type"] = "terminal"
 
     ### Label loops for easier removal later
     # WARNING: loops may be very problematic from a network processing standpoint.

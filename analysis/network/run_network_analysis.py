@@ -93,6 +93,9 @@ joins = read_feathers(
     new_fields={"HUC2": huc2s},
 )
 
+# TODO: remove once all flowlines have been re-extracted
+joins.loc[(joins.upstream == 0) & (joins.type == "internal"), "type"] = "origin"
+
 groups, joins = connect_huc2s(joins)
 print(f"Found {len(groups)} HUC2 groups in {time() - start:,.2f}s")
 
@@ -203,6 +206,7 @@ for group in groups:
 
         upstream_stats = calculate_upstream_network_stats(
             up_network_df,
+            group_joins,
             focal_barrier_joins,
             barrier_joins,
         )
@@ -266,9 +270,6 @@ for group in groups:
         upstream_networks = (
             focal_barrier_joins[["upstream_id"]]
             .join(
-                # network_stats.drop(
-                #     columns=[c for c in network_stats.columns if c.startswith("free_")]
-                # ),
                 upstream_stats.drop(
                     columns=[c for c in upstream_stats.columns if c.startswith("free_")]
                 ),
@@ -357,14 +358,18 @@ for group in groups:
         # for networks where barrier is at top of total network or bottom
         # of total network
         for stat_type in ["fn", "cat", "tot", "totd"]:
-            for barrier_type in [
+            for t in [
                 "waterfalls",
                 "dams",
                 "small_barriers",
                 "road_crossings",
+                "headwaters",
             ]:
-                col = f"{stat_type}_{barrier_type}"
-                barrier_networks[col] = barrier_networks[col].fillna(0).astype("uint32")
+                col = f"{stat_type}_{t}"
+                if col in barrier_networks.columns:
+                    barrier_networks[col] = (
+                        barrier_networks[col].fillna(0).astype("uint32")
+                    )
 
         barrier_networks = barrier_networks.fillna(0).drop_duplicates()
 
@@ -393,7 +398,8 @@ for group in groups:
     print("-------------------------\n")
 
     s = flowlines.groupby(level=0).size()
-    print("dups", s[s > 1])
+    if (s > 1).sum():
+        print("dups", s[s > 1])
 
     # all flowlines without networks marked -1
     for col in barrier_types:

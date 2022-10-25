@@ -23,6 +23,15 @@ NHD_DAM_TOLERANCE = 150
 WB_DRAIN_MAX_TOLERANCE = 250
 
 
+# if the nearest flowline (loop or nonloop) is within this value, take it
+# otherwise, try to find the nearest non-loop flowline within tolerance for that
+# barrier
+NEAREST_FLOWLINE_TOLERANCE = 25
+# if there is a non-loop within this value, always take it even if there is a
+# loop slightly closer
+ALWAYS_NONLOOP_TOLERANCE = 5
+
+
 nhd_dir = Path("data/nhd")
 
 
@@ -431,7 +440,8 @@ def snap_to_waterbodies(df, to_snap):
             in_wb.loc[in_wb.snap_dist <= in_wb.snap_tolerance]
             .reset_index()
             .sort_values(
-                by=["sizeclass", "loop", "snap_dist"], ascending=[False, True, True],
+                by=["sizeclass", "loop", "snap_dist"],
+                ascending=[False, True, True],
             )
             .groupby("id")
             .first()
@@ -478,7 +488,10 @@ def snap_to_waterbodies(df, to_snap):
         nearest_drains = (
             nearest_drains.drop(columns=["distance"])
             .join(not_in_wb[["geometry", "snap_tolerance"]])
-            .join(drains.wbID, on="drainID",)
+            .join(
+                drains.wbID,
+                on="drainID",
+            )
             .drop(columns=["drainID"])
             .join(
                 drains.reset_index()
@@ -497,7 +510,8 @@ def snap_to_waterbodies(df, to_snap):
         nearest_drains = (
             nearest_drains.loc[nearest_drains.snap_dist < nearest_drains.snap_tolerance]
             .sort_values(
-                by=["sizeclass", "loop", "snap_dist"], ascending=[False, True, True],
+                by=["sizeclass", "loop", "snap_dist"],
+                ascending=[False, True, True],
             )
             .groupby(level=0)
             .first()
@@ -524,8 +538,8 @@ def snap_to_waterbodies(df, to_snap):
     return df, to_snap
 
 
-def snap_to_flowlines(df, to_snap):
-    """Snap to nearest flowline, within tolerance
+def snap_to_flowlines(df, to_snap, nearest_nonloop=False):
+    """Snap to nearest flowline, within tolerance.
 
     Updates df with snapping results, and returns to_snap as set of dams still
     needing to be snapped after this operation.
@@ -540,6 +554,12 @@ def snap_to_flowlines(df, to_snap):
     to_snap : DataFrame
         data frame containing pygeos geometries to snap ("geometry")
         and snapping tolerance ("snap_tolerance")
+    nearest_nonloop : bool, optional (default: False)
+        If True, will try to snap the the nearest non-loop if it is within
+        ALWAYS_NONLOOP_TOLERANCE or if it is greather than
+        NEAREST_FLOWLINE_TOLERANCE and less than 2x as far away as the nearest
+        loop, otherwise it will take the nearest loop that is closer than the
+        nearest non-loop.
 
     Returns
     -------
@@ -582,10 +602,38 @@ def snap_to_flowlines(df, to_snap):
             crs=in_huc2.crs,
         )
         lines["dist"] = pg.distance(lines.geometry.values.data, lines.line.values)
+        lines = lines.sort_values(by=["id", "dist"], ascending=True)
 
-        # take the closest non-loop
-        lines = lines.sort_values(by=["id", "loop", "dist"], ascending=True)
-        lines = lines.groupby("id").first()
+        nearest_lines = lines.groupby("id").first()
+
+        if nearest_nonloop:
+            nearest_nonloop = lines.loc[~lines.loop].groupby("id").first()
+
+            tmp = nearest_lines.join(
+                nearest_nonloop[["lineID", "dist"]], rsuffix="_nonloop"
+            )
+
+            # always take the non-loop if closest is not a loop, non-loop is very close
+            # or there is not a loop within NEAREST_FLOWLINE_TOLERANCE and the non-loop is <2x futher away
+            tmp["take_nonloop"] = (
+                (~tmp.loop)
+                | (tmp.dist_nonloop <= NEAREST_FLOWLINE_TOLERANCE)
+                | (
+                    (tmp.dist > NEAREST_FLOWLINE_TOLERANCE)
+                    & (tmp.dist_nonloop <= tmp.dist * 2)
+                )
+            )
+
+            lines = pd.concat(
+                [
+                    nearest_nonloop.loc[tmp[tmp.take_nonloop].index].reset_index(),
+                    nearest_lines.loc[tmp[~tmp.take_nonloop].index].reset_index(),
+                ],
+                ignore_index=True,
+            ).set_index("id")
+
+        else:
+            lines = nearest_lines
 
         # project the point to the line,
         # find out its distance on the line,

@@ -12,7 +12,9 @@ data_dir = Path("data")
 METERS_TO_MILES = 0.000621371
 
 
-def calculate_upstream_network_stats(up_network_df, focal_barrier_joins, barrier_joins):
+def calculate_upstream_network_stats(
+    up_network_df, joins, focal_barrier_joins, barrier_joins
+):
     """Calculate upstream functional network statistics.  Each network starts
     at a downstream terminal or a barrier.
 
@@ -25,6 +27,12 @@ def calculate_upstream_network_stats(up_network_df, focal_barrier_joins, barrier
         * size class
         * altered
         * intermittent
+
+    joins : Pandas DataFrame
+        network joins:
+        * upstream_id
+        * downstream_id
+        * kind
 
     focal_barrier_joins : Pandas DataFrame
         limited to the barrier joins that cut the network type being analyzed
@@ -69,6 +77,8 @@ def calculate_upstream_network_stats(up_network_df, focal_barrier_joins, barrier
     networkID = up_network_df.reset_index().set_index("lineID").networkID
     networkIDs = pd.Series(networkID.unique(), name="networkID")
 
+    headwaters_ids = joins.loc[joins.type == "origin"].downstream_id
+
     ### Count the number of barriers of each type WITHIN or TERMINATING the upstream functional
     # network of each barrier.  Barriers of a lesser type than the one
     # used to cut the network are within the network, those of equal or greater type
@@ -76,21 +86,31 @@ def calculate_upstream_network_stats(up_network_df, focal_barrier_joins, barrier
     # that are in the lineIDs associated with the current networkID
 
     # limit barrier_joins to those with downstream IDs present within these networks
-    upstream_joins = barrier_joins.loc[
+    upstream_barrier_joins = barrier_joins.loc[
         barrier_joins.downstream_id.isin(networkID.index.unique())
     ].copy()
 
     fn_barriers_upstream = (
-        upstream_joins[["downstream_id", "kind"]]
+        upstream_barrier_joins[["downstream_id", "kind"]]
         .join(networkID, on="downstream_id", how="inner")
         .reset_index()[["networkID", "kind"]]
     )
+    # calculate the number of network origins (headwaters) in the upstream network
+    fn_headwaters_upstream = (
+        networkID.loc[headwaters_ids]
+        .reset_index()
+        .groupby("networkID")
+        .size()
+        .rename("headwaters")
+    )
+
     fn_upstream_counts = (
         fn_barriers_upstream.groupby(["networkID", "kind"])
         .size()
         .rename("count")
         .reset_index()
         .pivot(index="networkID", columns="kind", values="count")
+        .join(fn_headwaters_upstream, how="outer")
         .fillna(0)
         .astype("uint32")
         .rename(
@@ -99,6 +119,7 @@ def calculate_upstream_network_stats(up_network_df, focal_barrier_joins, barrier
                 "waterfall": "fn_waterfalls",
                 "small_barrier": "fn_small_barriers",
                 "road_crossing": "fn_road_crossings",
+                "headwaters": "fn_headwaters",
             }
         )
     )
@@ -162,6 +183,7 @@ def calculate_upstream_network_stats(up_network_df, focal_barrier_joins, barrier
                 "fn_waterfalls": "tot_waterfalls",
                 "fn_small_barriers": "tot_small_barriers",
                 "fn_road_crossings": "tot_road_crossings",
+                "fn_headwaters": "tot_headwaters",
             }
         )
         .groupby("networkID")
@@ -190,7 +212,7 @@ def calculate_upstream_network_stats(up_network_df, focal_barrier_joins, barrier
     # barrier, filter those to ones on the same NHDPlusID
     cat_barriers_upstream = (
         (
-            upstream_joins[["downstream_id", "kind"]].join(
+            upstream_barrier_joins[["downstream_id", "kind"]].join(
                 networkID, on="downstream_id", how="inner"
             )
         )

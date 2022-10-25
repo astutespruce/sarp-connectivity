@@ -58,8 +58,17 @@ from analysis.constants import (
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
-# Snap barriers by 50 meters
-SNAP_TOLERANCE = 50
+### Custom tolerance values for dams
+SNAP_TOLERANCE = {
+    "default": 50,
+    # some of the PNW points are in the correct location but NHD flowlines are
+    # less precise, need greater tolerance to line them up
+    "pnw": 75,
+    # some data sources have coordinates that are less precise; use a larger snapping tolerance
+    "bat survey": 100,
+}
+
+
 DUPLICATE_TOLERANCE = 10  # meters
 
 
@@ -314,7 +323,19 @@ print(f"Snapping {len(df):,} small barriers")
 df["snapped"] = False
 df["snap_log"] = "not snapped"
 df["lineID"] = np.nan  # line to which dam was snapped
-df["snap_tolerance"] = SNAP_TOLERANCE
+df["snap_tolerance"] = SNAP_TOLERANCE["default"]
+
+
+ix = df.Source.str.contains(
+    "WDFW Fish Passage Barrier Database"
+) | df.Source.str.contains("ODFW Fish Passage Barrier Database")
+df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["pnw"]
+
+ix = df.Source.str.contains("Bat Surveys") | df.Source.isin(
+    ["Coarse Surveys 2020-2021 "]
+)
+df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["bat survey"]
+
 
 # log dams excluded from snapping
 df.loc[
@@ -326,7 +347,7 @@ df.loc[
 original_locations = df.copy()
 
 # Only snap those that have HUC2 assigned
-# IMPORTANT: do not snap manually reviewed, off-network dams, duplicates, or ones without HUC2!
+# IMPORTANT: do not snap manually reviewed, off-network small barriers, duplicates, or ones without HUC2!
 to_snap = df.loc[
     (~df.ManualReview.isin(OFFSTREAM_MANUALREVIEW)) & (df.HUC2 != "") & (df.State != "")
 ].copy()

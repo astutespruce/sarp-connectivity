@@ -25,7 +25,6 @@ It produces data in `data/nhd/clean/<region>`
 
 
 from pathlib import Path
-import os
 from time import time
 import warnings
 
@@ -47,7 +46,6 @@ from analysis.constants import (
     REMOVE_JOINS,
 )
 
-from analysis.lib.joins import remove_joins
 from analysis.lib.flowlines import (
     remove_flowlines,
     remove_pipelines,
@@ -100,8 +98,7 @@ for huc2 in huc2s:
     print(f"----- {huc2} ------")
 
     huc2_dir = out_dir / huc2
-    if not os.path.exists(huc2_dir):
-        os.makedirs(huc2_dir)
+    huc2_dir.mkdir(exist_ok=True, parents=True)
 
     print("Reading flowlines...")
     flowlines = gp.read_feather(src_dir / huc2 / "flowlines.feather").set_index(
@@ -113,6 +110,11 @@ for huc2 in huc2s:
     print("------------------")
 
     ### Manual fixes to joins
+
+    # TODO: fix this in initial extraction from NHD
+    # any marked as internal but with no downstream should be set as terminals
+    joins.loc[(joins.downstream == 0) & (joins.type == "internal"), "type"] = "terminal"
+
     join_fixes = JOIN_FIXES.get(huc2, [])
     if join_fixes:
         print(f"Fixing {len(join_fixes)} joins based on manual updates")

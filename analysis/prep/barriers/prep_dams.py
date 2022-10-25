@@ -681,7 +681,7 @@ df, to_snap = snap_to_nhd_dams(df, to_snap)
 df, to_snap = snap_to_waterbodies(df, to_snap)
 
 # Snap to flowlines
-df, to_snap = snap_to_flowlines(df, to_snap)
+df, to_snap = snap_to_flowlines(df, to_snap, nearest_nonloop=True)
 
 print(f"Snapped {df.snapped.sum():,} dams in {time() - snap_start:.2f}s")
 
