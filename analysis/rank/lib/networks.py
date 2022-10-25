@@ -37,6 +37,7 @@ NETWORK_COLUMNS = [
     "fn_dams",
     "fn_small_barriers",
     "fn_road_crossings",
+    "fn_headwaters",
     "cat_waterfalls",
     "cat_dams",
     "cat_small_barriers",
@@ -44,6 +45,7 @@ NETWORK_COLUMNS = [
     "tot_waterfalls",
     "tot_dams",
     "tot_small_barriers",
+    "tot_headwaters",
     "tot_road_crossings",
     "totd_waterfalls",
     "totd_dams",
@@ -167,6 +169,11 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
     networks["PerennialGainMiles"] = networks[
         ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
     ].min(axis=1)
+
+    # For barriers that terminate in marine areas, their GainMiles is only based on the upstream miles
+    ix = (networks.MilesToOutlet == 0) & (networks.FlowsToOcean == 1)
+    networks.loc[ix, "GainMiles"] = networks.loc[ix].TotalUpstreamMiles
+    networks.loc[ix, "PerennialGainMiles"] = networks.loc[ix].PerennialUpstreamMiles
 
     # TotalNetworkMiles is sum of upstream and free downstream miles
     networks["TotalNetworkMiles"] = networks[
