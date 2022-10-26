@@ -4,13 +4,13 @@ import { Layout, ClientOnly, SEO } from 'components/Layout'
 import { Provider as CrossfilterProvider } from 'components/Crossfilter'
 import { PrioritizeWorkflow } from 'components/Priority'
 import { BarrierTypeProvider } from 'components/Data'
-import { FILTERS } from 'config/filters'
+import { smallBarriers } from 'filters'
 
 const PrioritizeBarriersPage = () => (
   <Layout>
     <ClientOnly>
       <BarrierTypeProvider barrierType="small_barriers">
-        <CrossfilterProvider filterConfig={FILTERS.smallBarriers}>
+        <CrossfilterProvider filterConfig={smallBarriers}>
           <PrioritizeWorkflow />
         </CrossfilterProvider>
       </BarrierTypeProvider>

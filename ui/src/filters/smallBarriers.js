@@ -1,0 +1,107 @@
+import {
+  RARESPP,
+  TROUT,
+  INTERMITTENT,
+  GAINMILES,
+  BARRIER_SEVERITY,
+  CROSSING_TYPE,
+  CONSTRICTION,
+  ROAD_TYPE,
+  PERCENT_ALTERED,
+  BARRIER_CONDITION,
+  OWNERTYPE,
+} from 'constants'
+
+import { getEntries, priorityAreaFilters } from './common'
+
+export const smallBarriers = [
+  {
+    field: 'severityclass',
+    title: 'Barrier Severity',
+    sort: true,
+    hideEmpty: true,
+    ...getEntries(BARRIER_SEVERITY),
+  },
+  {
+    field: 'crossingtypeclass',
+    title: 'Crossing Type',
+    sort: true,
+    hideEmpty: true,
+    ...getEntries(CROSSING_TYPE),
+  },
+  {
+    field: 'roadtypeclass',
+    title: 'Road Type',
+    sort: true,
+    hideEmpty: true,
+    ...getEntries(ROAD_TYPE),
+  },
+  {
+    field: 'constriction',
+    title: 'Type of Constriction',
+    hideEmpty: true,
+    ...getEntries(CONSTRICTION),
+  },
+  {
+    field: 'gainmilesclass',
+    title: 'Miles Gained',
+    ...getEntries(GAINMILES),
+  },
+  {
+    field: 'conditionclass',
+    title: 'Barrier Condition',
+    sort: true,
+    hideEmpty: true,
+    ...getEntries(BARRIER_CONDITION),
+  },
+  {
+    field: 'tesppclass',
+    title: 'Number of Federally-Listed Threatened and Endangered Species',
+    hideEmpty: true,
+    help: 'Note: This information is based on occurrences of one or more federally-listed threatened or endangered aquatic species within the same subwatershed as the barrier.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    url: '/sgcn',
+    ...getEntries(RARESPP),
+  },
+  {
+    field: 'statesgcnsppclass',
+    title:
+      'Number of State-listed Species of Greatest Conservation Need (SGCN)',
+    hideEmpty: true,
+    help: 'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    url: '/sgcn',
+    ...getEntries(RARESPP),
+  },
+  {
+    field: 'trout',
+    title: 'Trout presence / absence',
+    help: 'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+    sort: false,
+    hideEmpty: false,
+    ...getEntries(TROUT),
+  },
+  {
+    field: 'ownertype',
+    title: 'Land Ownership Type',
+    sort: true,
+    hideEmpty: true,
+    help: 'This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.',
+    ...getEntries(OWNERTYPE),
+  },
+  {
+    field: 'intermittent',
+    title: 'Located on an Intermittent / Ephemeral Stream',
+    sort: false,
+    hideEmpty: false,
+    help: 'Note: intermittent / ephemeral status is assigned in the underlying NHD data and is not consistently assigned for all stream reaches.  Non-intermittent reaches may have perennial flow or be assigned to a different stream reach type which precludes intermittent / ephemeral status.',
+    ...getEntries(INTERMITTENT),
+  },
+  {
+    field: 'percentalteredclass',
+    title: 'Percent of upstream network in altered stream channels',
+    sort: false,
+    hideEmpty: false,
+    help: 'Note: altered stream channels are those that are assigned in the underlying NHD data as canals and ditches and is not consistently assigned for all stream reaches.',
+    ...getEntries(PERCENT_ALTERED),
+  },
+  ...priorityAreaFilters,
+]

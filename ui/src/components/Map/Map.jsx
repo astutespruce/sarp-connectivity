@@ -3,6 +3,8 @@ import React, { useLayoutEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { Box } from 'theme-ui'
 
+import { siteMetadata } from 'constants'
+
 // exclude Mapbox GL from babel transpilation per https://docs.mapbox.com/mapbox-gl-js/guides/migrate-to-v2/
 /* eslint-disable-next-line */
 import mapboxgl from '!mapbox-gl'
@@ -13,8 +15,6 @@ import BasemapSelector from './BasemapSelector'
 import GoToLocation from './GoToLocation'
 import { mapConfig, sources, basemapLayers } from './config'
 import Coords from './Coords'
-
-import { siteMetadata } from 'constants'
 
 const { mapboxToken } = siteMetadata
 if (!mapboxToken) {
