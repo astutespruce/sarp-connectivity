@@ -9,6 +9,7 @@ import {
   CONSTRICTION,
   PASSAGEFACILITY,
   OWNERTYPE,
+  BARRIEROWNERTYPE,
   PURPOSE,
   BARRIER_SEVERITY,
   WATERBODY_SIZECLASS,
@@ -24,6 +25,7 @@ const LocationConstruction = ({
   huc8,
   huc12,
   ownertype,
+  barrierownertype,
   construction,
   lowheaddam,
   purpose,
@@ -51,7 +53,8 @@ const LocationConstruction = ({
   const hasRiver =
     river && river !== '"' && river !== 'null' && river !== 'Unknown'
 
-  const hasOwner = ownertype && ownertype > 0
+  const hasLandOwner = ownertype && ownertype > 0
+  const hasBarrierOwner = barrierownertype && barrierownertype > 0
 
   return (
     <Box sx={sx}>
@@ -153,8 +156,14 @@ const LocationConstruction = ({
               </li>
             </>
           ) : null}
-          {hasOwner ? (
+          {hasLandOwner ? (
             <li>Conservation land type: {OWNERTYPE[ownertype]}</li>
+          ) : null}
+
+          {hasBarrierOwner ? (
+            <li>
+              Barrier ownership type: {BARRIEROWNERTYPE[barrierownertype]}
+            </li>
           ) : null}
         </Box>
       </Grid>
@@ -171,6 +180,7 @@ LocationConstruction.propTypes = {
   huc8: PropTypes.string,
   huc12: PropTypes.string,
   ownertype: PropTypes.number,
+  barrierownertype: PropTypes.number,
   height: PropTypes.number,
   width: PropTypes.number,
   year: PropTypes.number,
@@ -199,6 +209,7 @@ LocationConstruction.defaultProps = {
   huc8: null,
   huc12: null,
   ownertype: null,
+  barrierownertype: null,
   height: 0,
   width: 0,
   year: 0,

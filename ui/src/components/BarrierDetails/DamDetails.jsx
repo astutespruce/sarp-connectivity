@@ -15,6 +15,7 @@ import {
   PURPOSE,
   RECON,
   OWNERTYPE,
+  BARRIEROWNERTYPE,
   HUC8_USFS,
   WATERBODY_SIZECLASS,
 } from 'constants'
@@ -57,6 +58,7 @@ const DamDetails = ({
   trout,
   recon,
   ownertype,
+  barrierownertype,
   huc8_usfs,
   huc8_coa,
   huc8_sgcn,
@@ -142,6 +144,13 @@ const DamDetails = ({
       {ownertype && ownertype > 0 ? (
         <Entry>
           <Field>Conservation land type:</Field> {OWNERTYPE[ownertype]}
+        </Entry>
+      ) : null}
+
+      {barrierownertype && barrierownertype > 0 ? (
+        <Entry>
+          <Field>Barrier ownership type:</Field>{' '}
+          {BARRIEROWNERTYPE[barrierownertype]}
         </Entry>
       ) : null}
     </Section>
@@ -380,6 +389,7 @@ DamDetails.propTypes = {
   trout: PropTypes.number,
   recon: PropTypes.number,
   ownertype: PropTypes.number,
+  barrierownertype: PropTypes.number,
   huc8_usfs: PropTypes.number,
   huc8_coa: PropTypes.number,
   huc8_sgcn: PropTypes.number,
@@ -424,6 +434,7 @@ DamDetails.defaultProps = {
   trout: 0,
   recon: 0,
   ownertype: null,
+  barrierownertype: null,
   huc8_usfs: 0,
   huc8_coa: 0,
   huc8_sgcn: 0,

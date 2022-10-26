@@ -8,6 +8,7 @@ import {
   CONSTRUCTION,
   CONSTRICTION,
   OWNERTYPE,
+  BARRIEROWNERTYPE,
   PASSAGEFACILITY,
   PURPOSE,
   BARRIER_SEVERITY,
@@ -39,6 +40,7 @@ const Location = ({
   huc12,
   huc8,
   ownertype,
+  barrierownertype,
   sarp_score,
   diversion,
   waterbodykm2,
@@ -52,7 +54,8 @@ const Location = ({
   const hasRiver =
     river && river !== '"' && river !== 'null' && river !== 'Unknown'
 
-  const hasOwner = ownertype && ownertype > 0
+  const hasLandOwner = ownertype && ownertype > 0
+  const hasBarrierOwner = barrierownertype && barrierownertype > 0
 
   return (
     <Section title="Location & construction information" wrap={false}>
@@ -223,9 +226,18 @@ const Location = ({
                 </ListItem>
               </>
             ) : null}
-            {hasOwner ? (
+
+            {hasLandOwner ? (
               <ListItem>
                 <Text>Conservation land type: {OWNERTYPE[ownertype]}</Text>
+              </ListItem>
+            ) : null}
+
+            {hasBarrierOwner ? (
+              <ListItem>
+                <Text>
+                  Barrier ownership type: {BARRIEROWNERTYPE[barrierownertype]}
+                </Text>
               </ListItem>
             ) : null}
           </List>
@@ -256,6 +268,7 @@ Location.propTypes = {
   subwatershed: PropTypes.string,
   subbasin: PropTypes.string,
   ownertype: PropTypes.number,
+  barrierownertype: PropTypes.number,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
@@ -283,6 +296,7 @@ Location.defaultProps = {
   subwatershed: null,
   subbasin: null,
   ownertype: null,
+  barrierownertype: null,
   sarp_score: -1,
   diversion: 0,
   lowheaddam: -1,
