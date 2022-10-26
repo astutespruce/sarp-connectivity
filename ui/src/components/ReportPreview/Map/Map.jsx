@@ -25,8 +25,7 @@ import {
   sources,
   basemapLayers,
 } from 'components/Map'
-
-import { siteMetadata } from '../../../../gatsby-config'
+import { siteMetadata } from 'constants'
 
 const { mapboxToken } = siteMetadata
 if (!mapboxToken) {

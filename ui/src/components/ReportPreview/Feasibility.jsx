@@ -4,7 +4,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Heading } from 'theme-ui'
 
-import { RECON, HUC8_USFS } from '../../../config/constants'
+import { RECON, HUC8_USFS } from 'constants'
 
 const Feasibility = ({ recon, huc8_coa, huc8_sgcn, huc8_usfs, sx }) => (
   <Box sx={sx}>

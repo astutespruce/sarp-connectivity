@@ -1,3 +1,5 @@
+export { siteMetadata } from '../gatsby-config'
+
 export const barrierTypeLabels = {
   dams: 'dams',
   small_barriers: 'road-related barriers',

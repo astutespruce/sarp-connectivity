@@ -7,8 +7,8 @@ import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 
-import { siteMetadata } from '../../../gatsby-config'
 import {
+  siteMetadata,
   DAM_CONDITION,
   CONSTRUCTION,
   PASSAGEFACILITY,
@@ -17,7 +17,7 @@ import {
   OWNERTYPE,
   HUC8_USFS,
   WATERBODY_SIZECLASS,
-} from '../../../config/constants'
+} from 'constants'
 
 import NetworkInfo from './NetworkInfo'
 

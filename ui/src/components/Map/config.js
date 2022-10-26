@@ -1,4 +1,4 @@
-import { siteMetadata } from '../../../gatsby-config'
+import { siteMetadata } from 'constants'
 
 const { tileHost } = siteMetadata
 

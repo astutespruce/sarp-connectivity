@@ -4,7 +4,7 @@ import { Layout, ClientOnly, SEO } from 'components/Layout'
 import { Provider as CrossfilterProvider } from 'components/Crossfilter'
 import { PrioritizeWorkflow } from 'components/Priority'
 import { BarrierTypeProvider } from 'components/Data'
-import { FILTERS } from '../../../config/filters'
+import { FILTERS } from 'config/filters'
 
 const dams = () => (
   <Layout>

@@ -21,6 +21,7 @@ import {
   SearchFeaturePropType,
   networkLayers,
 } from 'components/Map'
+import { barrierTypeLabels } from 'constants'
 import { capitalize } from 'util/format'
 import { isEmptyString } from 'util/string'
 import { COLORS } from './config'
@@ -36,8 +37,6 @@ import {
   pointLegends,
   regionLayers,
 } from './layers'
-
-import { barrierTypeLabels } from '../../../config/constants'
 
 const barrierTypes = ['dams', 'small_barriers']
 

@@ -3,8 +3,8 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
+import { barrierTypeLabels } from 'constants'
 import { Bold, Flex, Italic, Section } from './elements'
-import { barrierTypeLabels } from '../../../config/constants'
 
 const Scores = ({
   barrierType,

@@ -5,6 +5,15 @@ import { Envelope, FileDownload } from '@emotion-icons/fa-solid'
 import { Box, Button, Flex, Heading, Paragraph, Text } from 'theme-ui'
 
 import { Tab, Tabs } from 'components/Tabs'
+import {
+  siteMetadata,
+  barrierTypeLabelSingular,
+  STATES,
+  DAM_PACK_BITS,
+  SB_PACK_BITS,
+  WF_PACK_BITS,
+  STATE_TIER_PACK_BITS,
+} from 'constants'
 import { isEmptyString } from 'util/string'
 import { unpackBits } from 'util/data'
 import { capitalize } from 'util/format'
@@ -13,16 +22,6 @@ import SmallBarrierDetails from './SmallBarrierDetails'
 import WaterfallDetails from './WaterfallDetails'
 import Scores from './Scores'
 import { BarrierPropType } from './proptypes'
-import {
-  barrierTypeLabelSingular,
-  STATES,
-  DAM_PACK_BITS,
-  SB_PACK_BITS,
-  WF_PACK_BITS,
-  STATE_TIER_PACK_BITS,
-} from '../../../config/constants'
-
-import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion } = siteMetadata
 

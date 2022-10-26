@@ -4,13 +4,12 @@ import PropTypes from 'prop-types'
 import { Box } from 'theme-ui'
 
 import { mapConfig } from 'components/Map'
+import { siteMetadata } from 'constants'
 
 // exclude Mapbox GL from babel transpilation per https://docs.mapbox.com/mapbox-gl-js/guides/migrate-to-v2/
 /* eslint-disable-next-line */
 import mapboxgl from '!mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-
-import { siteMetadata } from '../../../../gatsby-config'
 
 const { mapboxToken } = siteMetadata
 if (!mapboxToken) {

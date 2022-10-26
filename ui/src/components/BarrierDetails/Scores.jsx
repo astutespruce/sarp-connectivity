@@ -3,9 +3,9 @@ import PropTypes from 'prop-types'
 import { Text } from 'theme-ui'
 
 import { Tab, Tabs } from 'components/Tabs'
+import { barrierTypeLabels } from 'constants'
 import ScoresList from './ScoresList'
 import { ScoresPropType } from './proptypes'
-import { barrierTypeLabels } from '../../../config/constants'
 
 const tabs = [
   { id: 'custom', label: 'Selected Area' },

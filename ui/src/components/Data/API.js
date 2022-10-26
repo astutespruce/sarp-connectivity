@@ -1,7 +1,7 @@
 import { tableFromIPC } from '@apache-arrow/es2015-esm'
 
 import { captureException } from 'util/log'
-import { siteMetadata } from '../../../gatsby-config'
+import { siteMetadata } from 'constants'
 
 const { apiHost } = siteMetadata
 

@@ -2,10 +2,10 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text } from '@react-pdf/renderer'
 
+import { siteMetadata } from 'constants'
 import { isEmptyString } from 'util/string'
 
 import { Link, List, ListItem, Section } from './elements'
-import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion } = siteMetadata
 

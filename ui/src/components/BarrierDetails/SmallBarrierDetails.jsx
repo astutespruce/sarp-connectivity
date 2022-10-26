@@ -15,7 +15,7 @@ import {
   CONSTRICTION,
   OWNERTYPE,
   HUC8_USFS,
-} from '../../../config/constants'
+} from 'constants'
 
 import NetworkInfo from './NetworkInfo'
 

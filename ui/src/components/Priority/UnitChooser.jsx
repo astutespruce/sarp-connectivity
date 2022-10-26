@@ -5,13 +5,13 @@ import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import UnitSearch from 'components/UnitSearch'
 import { useBarrierType } from 'components/Data'
+import { LAYER_ZOOM, barrierTypeLabels } from 'constants'
 import { formatNumber } from 'util/format'
 
 import BackLink from './BackLink'
 import StartOverButton from './StartOverButton'
 import SubmitButton from './SubmitButton'
 import UnitListItem from './UnitListItem'
-import { LAYER_ZOOM, barrierTypeLabels } from '../../../config/constants'
 
 const getPluralLabel = (layer) => {
   switch (layer) {

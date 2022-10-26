@@ -3,9 +3,9 @@ import { ChartBar, SearchLocation, Download } from '@emotion-icons/fa-solid'
 import { Box, Flex, Image, Text, Heading } from 'theme-ui'
 
 import { Link } from 'components/Link'
-import LogoSVG from 'images/logo.svg'
+import { siteMetadata } from 'constants'
 import { hasWindow } from 'util/dom'
-import { siteMetadata } from '../../../gatsby-config'
+import LogoSVG from 'images/logo.svg'
 
 const navLinkCSS = {
   textDecoration: 'none',

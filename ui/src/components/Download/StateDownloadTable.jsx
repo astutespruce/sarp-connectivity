@@ -3,12 +3,11 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Paragraph } from 'theme-ui'
 
 import { useStateSummary } from 'components/Data'
-
+import { REGION_STATES, STATES } from 'constants'
 import { groupBy } from 'util/data'
 import { formatNumber } from 'util/format'
 
 import Downloader from './Downloader'
-import { REGION_STATES, STATES } from '../../../config/constants'
 
 const downloadConfig = { scenario: 'NCWC', layer: 'State' }
 

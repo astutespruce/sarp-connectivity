@@ -3,7 +3,7 @@ import React from 'react'
 import { Box, Flex } from 'theme-ui'
 import { OutboundLink, Link } from 'components/Link'
 
-import { siteMetadata } from '../../../gatsby-config'
+import { siteMetadata } from 'constants'
 
 const { version: dataVersion, date: dataDate } = siteMetadata
 

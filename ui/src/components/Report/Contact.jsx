@@ -2,8 +2,8 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
+import { siteMetadata } from 'constants'
 import { Link, Section } from './elements'
-import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion } = siteMetadata
 

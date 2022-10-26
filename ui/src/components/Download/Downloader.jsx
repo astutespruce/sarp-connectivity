@@ -6,12 +6,12 @@ import { Box, Button, Flex, Paragraph, Text } from 'theme-ui'
 import { getDownloadURL } from 'components/Data'
 import { OutboundLink } from 'components/Link'
 import Modal from 'components/Modal'
+import { barrierTypeLabels } from 'constants'
 import { getFromStorage } from 'util/dom'
 import { trackDownload } from 'util/analytics'
 
 import UserInfoForm, { FIELDS } from './UserInfoForm'
 import DownloadOptions from './Options'
-import { barrierTypeLabels } from '../../../config/constants'
 
 const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   const [isOpen, setIsOpen] = useState(false)

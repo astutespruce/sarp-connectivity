@@ -14,7 +14,7 @@ import GoToLocation from './GoToLocation'
 import { mapConfig, sources, basemapLayers } from './config'
 import Coords from './Coords'
 
-import { siteMetadata } from '../../../gatsby-config'
+import { siteMetadata } from 'constants'
 
 const { mapboxToken } = siteMetadata
 if (!mapboxToken) {

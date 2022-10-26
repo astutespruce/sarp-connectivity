@@ -6,9 +6,8 @@ import { Box, Paragraph, Divider } from 'theme-ui'
 
 import UnitSearch from 'components/UnitSearch'
 import { useSummaryData } from 'components/Data'
+import { REGIONS } from 'constants'
 import { formatNumber } from 'util/format'
-
-import { REGIONS } from '../../../config/constants'
 
 const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
   const {

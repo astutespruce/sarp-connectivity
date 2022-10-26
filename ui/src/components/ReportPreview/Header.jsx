@@ -3,8 +3,8 @@ import PropTypes from 'prop-types'
 
 import { Box, Flex, Text } from 'theme-ui'
 
+import { STATES } from 'constants'
 import { formatNumber } from 'util/format'
-import { STATES } from '../../../config/constants'
 
 const Header = ({ barrierType, name, county, state, lat, lon }) => (
   <Flex sx={{ alignItems: 'flex-end', mb: ' 0.5rem', lineHeight: 1.2 }}>

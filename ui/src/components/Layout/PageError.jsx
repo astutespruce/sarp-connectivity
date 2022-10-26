@@ -3,8 +3,7 @@ import { Container, Flex, Box, Heading, Paragraph } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { OutboundLink } from 'components/Link'
-
-import { siteMetadata } from '../../../gatsby-config'
+import { siteMetadata } from 'constants'
 
 const PageErrorMessage = () => (
   <Container pt="3rem">

@@ -3,9 +3,8 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Heading, Paragraph, Text } from 'theme-ui'
 
 import { Table, Row } from 'components/Table'
+import { siteMetadata } from 'constants'
 import { formatNumber, formatPercent } from 'util/format'
-
-import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion } = siteMetadata
 

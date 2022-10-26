@@ -16,6 +16,7 @@ import {
   toGeoJSONPoints,
   networkLayers,
 } from 'components/Map'
+import { barrierTypeLabels } from 'constants'
 import { capitalize } from 'util/format'
 import { isEmptyString } from 'util/string'
 
@@ -39,8 +40,6 @@ import {
   priorityWatersheds,
   priorityWatershedLegends,
 } from './layers'
-
-import { barrierTypeLabels } from '../../../config/constants'
 
 const emptyFeatureCollection = {
   type: 'FeatureCollection',

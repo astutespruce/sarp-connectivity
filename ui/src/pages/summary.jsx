@@ -9,10 +9,9 @@ import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
 import { Map, UnitDetails, RegionSummary } from 'components/Summary'
 import BarrierDetails from 'components/BarrierDetails'
+import { SYSTEMS } from 'constants'
 import { toCamelCaseFields } from 'util/data'
 import { getQueryParams } from 'util/dom'
-
-import { SYSTEMS } from '../../config/constants'
 
 const barrierTypeOptions = [
   { value: 'dams', label: 'dams' },

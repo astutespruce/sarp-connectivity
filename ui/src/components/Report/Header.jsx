@@ -2,9 +2,9 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
+import { STATES } from 'constants'
 import { formatNumber } from 'util/format'
 import { Flex } from './elements'
-import { STATES } from '../../../config/constants'
 
 const Header = ({ barrierType, name, county, state, lat, lon }) => (
   <View style={{ marginBottom: 4 }}>

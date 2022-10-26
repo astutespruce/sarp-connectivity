@@ -4,14 +4,13 @@ import { Box, Flex, Heading, Paragraph, Text } from 'theme-ui'
 
 import { useBarrierType } from 'components/Data'
 import { Downloader } from 'components/Download'
+import { SCENARIOS, barrierTypeLabels } from 'constants'
 import { countBy } from 'util/data'
 import { formatNumber, capitalize } from 'util/format'
 
 import Histogram from './Histogram'
 import BackLink from '../BackLink'
 import StartOverButton from '../StartOverButton'
-
-import { SCENARIOS, barrierTypeLabels } from '../../../../config/constants'
 
 const Results = ({
   config: rawConfig,

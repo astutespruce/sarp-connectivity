@@ -7,13 +7,13 @@ import { useBarrierType } from 'components/Data'
 import { Filter } from 'components/Filters'
 import { useCrossfilter } from 'components/Crossfilter'
 import { ExpandableParagraph } from 'components/Text'
+import { barrierTypeLabels } from 'constants'
 import { formatNumber } from 'util/format'
 import { splitArray } from 'util/data'
 
 import BackLink from './BackLink'
 import SubmitButton from './SubmitButton'
 import StartOverButton from './StartOverButton'
-import { barrierTypeLabels } from '../../../config/constants'
 
 const Filters = ({ onBack, onSubmit }) => {
   const barrierType = useBarrierType()

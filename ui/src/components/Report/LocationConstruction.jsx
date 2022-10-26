@@ -3,10 +3,6 @@ import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
 import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails'
-import { formatNumber } from 'util/format'
-
-import { Flex, List, ListItem, Section } from './elements'
-
 import {
   DAM_CONDITION,
   CONSTRUCTION,
@@ -16,7 +12,10 @@ import {
   PURPOSE,
   BARRIER_SEVERITY,
   WATERBODY_SIZECLASS,
-} from '../../../config/constants'
+} from 'constants'
+import { formatNumber } from 'util/format'
+
+import { Flex, List, ListItem, Section } from './elements'
 
 const Location = ({
   barrierType,

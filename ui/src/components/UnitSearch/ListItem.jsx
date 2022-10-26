@@ -2,7 +2,7 @@ import React, { memo } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
-import { STATES } from '../../../config/constants'
+import { STATES } from 'constants'
 
 const PREFIXES = {
   ECO3: 'Level 3',

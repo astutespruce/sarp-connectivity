@@ -5,7 +5,7 @@ import { Box, Heading } from 'theme-ui'
 import { OutboundLink } from 'components/Link'
 import { isEmptyString } from 'util/string'
 
-import { siteMetadata } from '../../../gatsby-config'
+import { siteMetadata } from 'constants'
 
 const { version: dataVersion } = siteMetadata
 

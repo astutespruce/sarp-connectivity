@@ -21,7 +21,7 @@ import {
   OWNERTYPE,
   HUC8_COA,
   HUC8_SGCN,
-} from './constants'
+} from 'constants'
 
 const getIntKeys = (obj) =>
   Object.keys(obj)

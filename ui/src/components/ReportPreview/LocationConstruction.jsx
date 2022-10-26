@@ -3,8 +3,6 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Heading } from 'theme-ui'
 
 import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails'
-import { formatNumber } from 'util/format'
-
 import {
   DAM_CONDITION,
   CONSTRUCTION,
@@ -14,7 +12,8 @@ import {
   PURPOSE,
   BARRIER_SEVERITY,
   WATERBODY_SIZECLASS,
-} from '../../../config/constants'
+} from 'constants'
+import { formatNumber } from 'util/format'
 
 const LocationConstruction = ({
   barrierType,

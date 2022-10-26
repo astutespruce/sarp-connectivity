@@ -18,9 +18,9 @@ import {
   Textarea,
 } from 'theme-ui'
 
+import { siteMetadata } from 'constants'
 import { saveToStorage, encodeParams } from 'util/dom'
 import SARPLogoImage from 'images/sarp_logo.png'
-import { siteMetadata } from '../../../gatsby-config'
 
 const {
   mailchimpConfig: { userID, formID, formURL },

@@ -4,10 +4,9 @@ import { Box, Paragraph, Text } from 'theme-ui'
 
 import { Entry, Field, Section } from 'components/Sidebar'
 import { OutboundLink } from 'components/Link'
+import { OWNERTYPE, HUC8_USFS } from 'constants'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
-
-import { OWNERTYPE, HUC8_USFS } from '../../../config/constants'
 
 import NetworkInfo from './NetworkInfo'
 

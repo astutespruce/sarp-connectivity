@@ -5,15 +5,11 @@ import { Box, Button, Heading, Flex, Text } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 import { Downloader } from 'components/Download'
+import { STATE_FIPS, STATES, CONNECTIVITY_TEAMS } from 'constants'
 
 import { layers } from '../layers'
 import Barriers from './Barriers'
 import Dams from './Dams'
-import {
-  STATE_FIPS,
-  STATES,
-  CONNECTIVITY_TEAMS,
-} from '../../../../config/constants'
 
 const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   const teams = {}

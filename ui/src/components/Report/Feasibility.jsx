@@ -4,8 +4,8 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text } from '@react-pdf/renderer'
 
+import { RECON, HUC8_USFS } from 'constants'
 import { List, ListItem, Section } from './elements'
-import { RECON, HUC8_USFS } from '../../../config/constants'
 
 const Feasibility = ({ recon, huc8_coa, huc8_sgcn, huc8_usfs, ...props }) => (
   <Section title="Feasibility & conservation benefit" {...props} wrap={false}>
