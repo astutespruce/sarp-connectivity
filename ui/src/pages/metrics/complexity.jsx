@@ -3,12 +3,12 @@ import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import HighlightBox from 'components/Layout/HighlightBox'
 
 const ComplexityPage = ({ data: { headerImage } }) => (
-  <Layout title="Network Complexity">
+  <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
@@ -128,3 +128,5 @@ export const pageQuery = graphql`
 `
 
 export default ComplexityPage
+
+export const Head = () => <SEO title="Network Complexity" />

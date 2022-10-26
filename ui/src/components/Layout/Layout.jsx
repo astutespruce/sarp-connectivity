@@ -8,11 +8,8 @@ import UnsupportedBrowser from './UnsupportedBrowser'
 import Header from './Header'
 import Footer from './Footer'
 import PageError from './PageError'
-import SEO from './SEO'
 
-import { siteMetadata } from '../../../gatsby-config'
-
-const Layout = ({ children, title }) => {
+const Layout = ({ children }) => {
   const { ErrorBoundary, didCatch } = useErrorBoundary({
     onDidCatch: (err, errInfo) => {
       // eslint-disable-next-line no-console
@@ -30,7 +27,6 @@ const Layout = ({ children, title }) => {
 
   return (
     <Flex sx={{ height: '100%', flexDirection: 'column' }}>
-      <SEO title={title || siteMetadata.title} />
       <Header />
 
       <Box
@@ -68,11 +64,6 @@ const Layout = ({ children, title }) => {
 
 Layout.propTypes = {
   children: PropTypes.node.isRequired,
-  title: PropTypes.string,
-}
-
-Layout.defaultProps = {
-  title: '',
 }
 
 export default Layout

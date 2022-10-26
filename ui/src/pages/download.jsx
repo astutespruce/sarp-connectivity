@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
 import { StateDownloadTable } from 'components/Download'
@@ -17,7 +17,7 @@ const DownloadPage = ({ data: { headerImage } }) => {
   const { total } = useSummaryData()
 
   return (
-    <Layout title="Download Aquatic Barrier Data">
+    <Layout>
       <HeaderImage
         image={headerImage.childImageSharp.gatsbyImageData}
         height="30vh"
@@ -114,3 +114,5 @@ export const pageQuery = graphql`
 `
 
 export default DownloadPage
+
+export const Head = () => <SEO title="Download Aquatic Barrier Data" />

@@ -4,7 +4,7 @@ import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
 import { Box, Container, Heading, Paragraph } from 'theme-ui'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
 import { extractNodes, GraphQLArrayPropType } from 'util/graphql'
@@ -21,7 +21,7 @@ const TeamsPage = ({ data: { headerImage, imagesSharp, footerImage } }) => {
   const images = groupBy(extractNodes(imagesSharp), 'state')
 
   return (
-    <Layout title="Southeast Aquatic Connectivity Teams">
+    <Layout>
       <HeaderImage
         image={headerImage.childImageSharp.gatsbyImageData}
         height="40vh"
@@ -191,3 +191,5 @@ export const pageQuery = graphql`
 `
 
 export default TeamsPage
+
+export const Head = () => <SEO title="Southeast Aquatic Connectivity Teams" />

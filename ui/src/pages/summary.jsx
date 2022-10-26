@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
 
-import { Layout, ClientOnly } from 'components/Layout'
+import { Layout, ClientOnly, SEO } from 'components/Layout'
 
 import { ToggleButton } from 'components/Button'
 import { Sidebar } from 'components/Sidebar'
@@ -115,7 +115,7 @@ const SummaryPage = ({ location }) => {
   }
 
   return (
-    <Layout title="Summarize">
+    <Layout>
       <Flex sx={{ height: '100%' }}>
         <Sidebar>{sidebarContent}</Sidebar>
 
@@ -167,3 +167,5 @@ SummaryPage.defaultProps = {
 }
 
 export default SummaryPage
+
+export const Head = () => <SEO title="Summarize barriers" />

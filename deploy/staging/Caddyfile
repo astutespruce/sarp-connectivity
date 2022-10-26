@@ -9,6 +9,11 @@ aquaticbarriers.mockuplab.us {
   header Content-Security-Policy "default-src 'self' *.googletagmanager.com *.mapbox.com *.sentry.io; connect-src *; img-src 'unsafe-inline' * data: blob:; media-src 'unsafe-inline' *; worker-src * blob:; style-src 'unsafe-inline' *; script-src 'unsafe-inline' 'unsafe-eval' *"
   header X-Content-Type-Options nosniff
 
+  # Set CORS
+  header Access-Control-Allow-Origin "https://aquaticbarriers.mockuplab.us"
+  header Access-Control-Request-Method *
+  header Access-Control-Request-Headers *
+
   route /services* {
       header Cache-Control "public, max-age=3600, must-revalidate"
       reverse_proxy localhost:8000

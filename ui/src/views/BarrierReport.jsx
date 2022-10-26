@@ -23,7 +23,7 @@ const BarrierReport = ({ barrierType, sarpid, uri }) => {
 
   if (isLoading) {
     return (
-      <Layout title="Loading...">
+      <Layout>
         <PageLoading />
       </Layout>
     )
@@ -33,7 +33,7 @@ const BarrierReport = ({ barrierType, sarpid, uri }) => {
     console.error(`Error loading barrier with SARPID: ${sarpid}`)
 
     return (
-      <Layout title={`Error loading barrier ${sarpid}`}>
+      <Layout>
         <PageError />
       </Layout>
     )
@@ -43,10 +43,8 @@ const BarrierReport = ({ barrierType, sarpid, uri }) => {
     return <NotFound />
   }
 
-  const { name } = data
-
   return (
-    <Layout title={name}>
+    <Layout>
       <Preview barrierType={barrierType} data={data} />
     </Layout>
   )

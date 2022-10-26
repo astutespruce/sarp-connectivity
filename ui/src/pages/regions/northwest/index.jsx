@@ -16,7 +16,7 @@ import {
 import { OutboundLink } from 'components/Link'
 import { useSummaryData } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
 
@@ -40,7 +40,7 @@ const PNWRegionPage = ({
   const { pnw } = useSummaryData()
 
   return (
-    <Layout title="Pacific Northwest Region">
+    <Layout>
       <HeaderImage
         image={headerImage}
         height="20vh"
@@ -187,3 +187,5 @@ export const pageQuery = graphql`
 `
 
 export default PNWRegionPage
+
+export const Head = () => <SEO title="Pacific Northwest Region" />

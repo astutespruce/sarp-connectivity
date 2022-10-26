@@ -15,7 +15,7 @@ import {
 
 import { useSummaryData } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
 
@@ -36,7 +36,7 @@ const SWRegionPage = ({
   const { sw } = useSummaryData()
 
   return (
-    <Layout title="Southwest Region">
+    <Layout>
       <HeaderImage
         image={headerImage}
         height="20vh"
@@ -140,3 +140,5 @@ export const pageQuery = graphql`
 `
 
 export default SWRegionPage
+
+export const Head = () => <SEO title="Southeast Region" />

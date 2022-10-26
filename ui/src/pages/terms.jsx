@@ -4,12 +4,12 @@ import { graphql } from 'gatsby'
 import { Box, Container, Flex, Paragraph, Heading, Image } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import SARPLogoImage from 'images/sarp_logo_highres.png'
 
 const TermsPage = ({ data: { headerImage } }) => (
-  <Layout title="Terms of Use">
+  <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
@@ -130,3 +130,5 @@ export const pageQuery = graphql`
 `
 
 export default TermsPage
+
+export const Head = () => <SEO title="Terms of Use" />

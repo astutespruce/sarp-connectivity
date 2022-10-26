@@ -2,7 +2,7 @@ import React from 'react'
 /* eslint-disable-next-line import/no-unresolved */
 import { Router } from '@reach/router'
 
-import { ClientOnly } from 'components/Layout'
+import { ClientOnly, SEO } from 'components/Layout'
 import { BarrierReport } from 'views'
 
 const DynamicRouter = () => (
@@ -14,3 +14,5 @@ const DynamicRouter = () => (
 )
 
 export default DynamicRouter
+
+export const Head = () => <SEO title="Download a Report" />

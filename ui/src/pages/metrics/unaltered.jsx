@@ -3,13 +3,13 @@ import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 
 import HighlightBox from 'components/Layout/HighlightBox'
 
 const PercentUnalteredPage = ({ data: { headerImage } }) => (
-  <Layout title="Channel Alteration">
+  <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
@@ -111,3 +111,5 @@ export const pageQuery = graphql`
 `
 
 export default PercentUnalteredPage
+
+export const Head = () => <SEO title="Channel Alteration" />

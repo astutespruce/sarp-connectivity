@@ -13,11 +13,11 @@ import {
 } from 'theme-ui'
 
 import { Link } from 'components/Link'
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 
 const PrioritizePage = ({ data: { headerImage } }) => (
-  <Layout title="Prioritize">
+  <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
@@ -156,3 +156,7 @@ export const pageQuery = graphql`
 `
 
 export default PrioritizePage
+
+export const Head = () => (
+  <SEO title="Prioritize dams and road-related barriers" />
+)

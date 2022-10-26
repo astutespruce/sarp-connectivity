@@ -5,7 +5,7 @@ import { GatsbyImage } from 'gatsby-plugin-image'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { Box, Container, Flex, Grid, Image, Paragraph, Heading } from 'theme-ui'
 
-import { Layout, HighlightBox } from 'components/Layout'
+import { Layout, HighlightBox, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
 import NetworkGraphicSVG from 'images/functional_network.svg'
@@ -20,7 +20,7 @@ const ScoringMethodsPage = ({
     },
   },
 }) => (
-  <Layout title="Prioritizing aquatic barriers for removal">
+  <Layout>
     <HeaderImage
       image={headerImage}
       height="30vh"
@@ -313,3 +313,7 @@ export const pageQuery = graphql`
 `
 
 export default ScoringMethodsPage
+
+export const Head = () => (
+  <SEO title="Prioritizing aquatic barriers for removal" />
+)

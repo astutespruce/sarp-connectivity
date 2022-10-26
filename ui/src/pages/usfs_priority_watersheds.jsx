@@ -3,14 +3,11 @@ import PropTypes from 'prop-types'
 import { graphql, withPrefix } from 'gatsby'
 import { Container, Paragraph, Heading } from 'theme-ui'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 
 const LengthPage = ({ data: { headerImage } }) => (
-  <Layout
-    title="U.S. Forest Service Southern Region Priority Watersheds for Aquatic
-  Conservation"
-  >
+  <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="30vh"
@@ -91,3 +88,7 @@ export const pageQuery = graphql`
 `
 
 export default LengthPage
+
+export const Head = () => (
+  <SEO title="U.S. Forest Service Southern Region Priority Watersheds for Aquatic Conservation" />
+)
