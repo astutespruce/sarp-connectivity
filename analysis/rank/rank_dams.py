@@ -2,6 +2,7 @@ from pathlib import Path
 from time import time
 import warnings
 
+import geopandas as gp
 import pandas as pd
 
 from analysis.lib.util import pack_bits
@@ -28,6 +29,7 @@ results_dir.mkdir(exist_ok=True, parents=True)
 ### Read in master
 # cols must include all fields used in API and tiles
 cols = [
+    "geometry",
     "id",
     "SARPID",
     "lon",
@@ -113,7 +115,7 @@ cols = [
 
 print("Reading master...")
 df = (
-    pd.read_feather(barriers_dir / "dams.feather", columns=cols)
+    gp.read_feather(barriers_dir / "dams.feather", columns=cols)
     .set_index("id")
     .rename(
         columns={

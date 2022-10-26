@@ -13,6 +13,9 @@ def get_col_types(df, bool_cols=None):
     """
     out = []
     for col, dtype in df.dtypes.astype("str").to_dict().items():
+        if dtype == "geometry":
+            continue
+
         out.append("-T")
         out_type = dtype
         if dtype == "object":

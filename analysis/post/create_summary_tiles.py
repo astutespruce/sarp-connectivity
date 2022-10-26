@@ -56,6 +56,9 @@ INT_COLS = [
 ]
 
 
+# use local clone of github.com/tippecanoe
+tile_join = "../lib/tippecanoe/tile-join"
+
 data_dir = Path("data")
 src_dir = data_dir / "barriers/master"
 bnd_dir = data_dir / "boundaries"
@@ -183,7 +186,7 @@ for unit in SUMMARY_UNITS:
 
     ret = subprocess.run(
         [
-            "tile-join",
+            tile_join,
             "-f",
             "-pg",
             "-o",
@@ -200,7 +203,7 @@ for unit in SUMMARY_UNITS:
 print("Merging all summary tiles")
 ret = subprocess.run(
     [
-        "tile-join",
+        tile_join,
         "-f",
         "-pg",
         "--no-tile-size-limit",

@@ -54,12 +54,15 @@ zoom_levels = {
 }
 
 
+# use local clone of github.com/tippecanoe
+tippecanoe = "../lib/tippecanoe/tippecanoe"
+tile_join = "../lib/tippecanoe/tile-join"
+
 tippecanoe_args = [
-    "tippecanoe",
+    tippecanoe,
     "-f",
     "-l",
     "networks",
-    "-P",
     "-pg",
 ]
 
@@ -150,7 +153,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
                     subset.geometry.values.data, simplification
                 )
 
-            json_filename = tmp_dir / f"region{huc2}_{minzoom}_{maxzoom}_flowlines.json"
+            outfilename = tmp_dir / f"region{huc2}_{minzoom}_{maxzoom}_flowlines.fgb"
             mbtiles_filename = (
                 tmp_dir / f"region{huc2}_{minzoom}_{maxzoom}_flowlines.mbtiles"
             )
@@ -158,8 +161,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 
             write_dataframe(
                 subset.to_crs(GEO_CRS),
-                json_filename,
-                driver="GeoJSONSeq",
+                outfilename,
             )
 
             del subset
@@ -167,18 +169,18 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             ret = subprocess.run(
                 tippecanoe_args
                 + ["-Z", str(minzoom), "-z", str(maxzoom)]
-                + ["-o", f"{str(mbtiles_filename)}", str(json_filename)]
+                + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
                 + col_types
             )
             ret.check_returncode()
 
-            # remove JSON file
-            json_filename.unlink()
+            # remove FGB file
+            outfilename.unlink()
 
         print("Combining tilesets")
         ret = subprocess.run(
             [
-                "tile-join",
+                tile_join,
                 "-f",
                 "-pg",
                 "-o",
@@ -199,7 +201,7 @@ print("\n\n============================\nCombining tiles for all regions")
 mbtiles_filename = out_dir / "networks.mbtiles"
 ret = subprocess.run(
     [
-        "tile-join",
+        tile_join,
         "-f",
         "-pg",
         "-o",

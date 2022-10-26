@@ -11,9 +11,8 @@ from analysis.rank.lib.networks import get_network_results
 data_dir = Path("data")
 api_dir = data_dir / "api"
 barriers_dir = data_dir / "barriers/master"
-out_dir = Path("tiles")
-tmp_dir = Path("/tmp")
-
+results_dir = data_dir / "barriers/networks"
+results_dir.mkdir(exist_ok=True, parents=True)
 
 df = (
     gp.read_feather(barriers_dir / "waterfalls.feather")
@@ -66,9 +65,6 @@ df["StreamOrderClass"] = classify_streamorder(df.StreamOrder)
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
     df[f"{col}Class"] = classify_spps(df[col])
 
-# drop geometry; no longer needed
-df = pd.DataFrame(df.drop(columns=["geometry"]))
-
 
 ### Get network results
 # NOTE: we drop gain / total network miles here since these are not removable
@@ -105,6 +101,6 @@ tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
 df["packed"] = pack_bits(tmp, WF_PACK_BITS)
 
 
-df = df[WF_CORE_FIELDS + ["HasNetwork", "packed"]].copy()
+df = df[["geometry"] + WF_CORE_FIELDS + ["HasNetwork", "packed"]].copy()
 
 df.reset_index().to_feather(api_dir / "waterfalls.feather")

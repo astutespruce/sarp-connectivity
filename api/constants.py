@@ -308,7 +308,7 @@ DAM_TILE_FIELDS = [
 ]
 
 DAM_TILE_FILTER_FIELDS = unique(
-    ["lat", "lon"] + DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
+    DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
 )
 
 DAM_PACK_BITS = [
@@ -418,7 +418,7 @@ SB_PACK_BITS = [
 
 
 SB_TILE_FILTER_FIELDS = unique(
-    ["lat", "lon"] + SB_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
+    SB_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
 )
 
 # NOTE: waterfalls have network metrics for both dams and small barriers; these

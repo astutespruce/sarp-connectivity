@@ -2,9 +2,9 @@ from pathlib import Path
 import subprocess
 from time import time
 
+import geopandas as gp
 import pandas as pd
-import pyarrow as pa
-from pyarrow.csv import write_csv
+from pyogrio import write_dataframe
 
 from analysis.lib.util import pack_bits
 from api.constants import (
@@ -28,8 +28,7 @@ DROP_UNIT_FIELDS = [
     f for f in UNIT_FIELDS if not f in {"State", "County", "HUC8", "HUC12"}
 ]
 
-# FIXME:
-MAX_ZOOM = 10  # 16
+MAX_ZOOM = 16
 
 
 def to_lowercase(df):
@@ -47,9 +46,15 @@ results_dir = Path("data/barriers/networks")
 out_dir = Path("tiles")
 tmp_dir = Path("/tmp")
 
+
+# use local clone of github.com/tippecanoe
+tippecanoe = "../lib/tippecanoe/tippecanoe"
+tile_join = "../lib/tippecanoe/tile-join"
+
+
 # select zoom_level, tile_column, tile_row, length(tile_data) / 1024 as size from tiles order by size desc;
 tippecanoe_args = [
-    "tippecanoe",
+    tippecanoe,
     "-f",
     "-pg",
     "--no-tile-size-limit",
@@ -60,7 +65,7 @@ tippecanoe_args = [
 ]
 
 tilejoin_args = [
-    "tile-join",
+    tile_join,
     "-f",
     "-pg",
     "--no-tile-size-limit",
@@ -72,10 +77,11 @@ start = time()
 
 ### Create dams tiles
 df = (
-    pd.read_feather(
+    gp.read_feather(
         results_dir / "dams.feather",
-        columns=["id"] + DAM_TILE_FIELDS,
+        columns=["geometry", "id"] + DAM_TILE_FIELDS,
     )
+    .to_crs("EPSG:4326")
     .rename(columns={"COUNTYFIPS": "County"})
     .sort_values(by=["TotDASqKm"], ascending=False)
 )
@@ -110,15 +116,15 @@ df = df.drop(
 # can't show additional details
 # NOTE: only show dams on flowlines with >= 1 km2 drainage area
 tmp = to_lowercase(
-    df.loc[df.Ranked & (df.TotDASqKm >= 1)][["id"] + DAM_TILE_FILTER_FIELDS]
+    df.loc[df.Ranked & (df.TotDASqKm >= 1)][["geometry", "id"] + DAM_TILE_FILTER_FIELDS]
 )
 
 print(f"Creating tiles for {len(tmp):,} ranked dams with networks for zooms 2-7")
 
-csv_filename = tmp_dir / "dams_lt_z8.csv"
+outfilename = tmp_dir / "dams_lt_z8.fgb"
 mbtiles_filename = tmp_dir / "dams_lt_z8.mbtiles"
 mbtiles_files = [mbtiles_filename]
-write_csv(pa.Table.from_pandas(tmp.reset_index(drop=True)), csv_filename)
+write_dataframe(tmp.reset_index(), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -126,7 +132,7 @@ ret = subprocess.run(
     + ["-l", "ranked_dams"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(tmp)
-    + [str(csv_filename)]
+    + [str(outfilename)]
 )
 ret.check_returncode()
 
@@ -144,10 +150,11 @@ ranked_dams = ranked_dams.drop(columns=TIER_FIELDS)
 ranked_dams = to_lowercase(ranked_dams)
 
 
-csv_filename = tmp_dir / "ranked_dams.csv"
+outfilename = tmp_dir / "ranked_dams.fgb"
 mbtiles_filename = tmp_dir / "ranked_dams.mbtiles"
 mbtiles_files.append(mbtiles_filename)
-write_csv(pa.Table.from_pandas(ranked_dams.reset_index(drop=True)), csv_filename)
+
+write_dataframe(ranked_dams.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -155,7 +162,7 @@ ret = subprocess.run(
     + ["-l", "ranked_dams"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(ranked_dams)
-    + [str(csv_filename)]
+    + [str(outfilename)]
 )
 ret.check_returncode()
 
@@ -183,10 +190,10 @@ print(f"Creating tiles for {len(unranked_dams):,} unranked dams with networks")
 
 unranked_dams = to_lowercase(unranked_dams)
 
-csv_filename = tmp_dir / "unranked_dams.csv"
+outfilename = tmp_dir / "unranked_dams.fgb"
 mbtiles_filename = tmp_dir / "unranked_dams.mbtiles"
 mbtiles_files.append(mbtiles_filename)
-write_csv(pa.Table.from_pandas(unranked_dams.reset_index(drop=True)), csv_filename)
+write_dataframe(unranked_dams.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -194,7 +201,7 @@ ret = subprocess.run(
     + ["-l", "unranked_dams"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(unranked_dams)
-    + [str(csv_filename)]
+    + [str(outfilename)]
 )
 ret.check_returncode()
 
@@ -236,10 +243,10 @@ offnetwork_dams = (
 offnetwork_dams = to_lowercase(offnetwork_dams)
 
 
-csv_filename = tmp_dir / "offnetwork_dams.csv"
+outfilename = tmp_dir / "offnetwork_dams.fgb"
 mbtiles_filename = tmp_dir / "offnetwork_dams.mbtiles"
 mbtiles_files.append(mbtiles_filename)
-write_csv(pa.Table.from_pandas(offnetwork_dams), csv_filename)
+write_dataframe(offnetwork_dams, outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -249,7 +256,7 @@ ret = subprocess.run(
     + get_col_types(
         offnetwork_dams,
     )
-    + [str(csv_filename)]
+    + [str(outfilename)]
 )
 ret.check_returncode()
 
@@ -266,9 +273,11 @@ print(f"Created dam tiles in {time() - start:,.2f}s")
 ### Create small barrier tiles
 start = time()
 df = (
-    pd.read_feather(
-        results_dir / "small_barriers.feather", columns=["id"] + SB_TILE_FIELDS
+    gp.read_feather(
+        results_dir / "small_barriers.feather",
+        columns=["geometry", "id"] + SB_TILE_FIELDS,
     )
+    .to_crs("EPSG:4326")
     .rename(columns={"COUNTYFIPS": "County"})
     .sort_values(by=["TotDASqKm"], ascending=False)
     .drop(columns=["TotDASqKm"])
@@ -298,15 +307,15 @@ df = df.drop(
 ### Create tiles for ranked small barriers at low zooms
 # Below zoom 8, we only need filter fields
 
+outfilename = tmp_dir / "small_barriers_lt_z8.fgb"
 mbtiles_filename = tmp_dir / "small_barriers_lt_z8.mbtiles"
 mbtiles_files = [mbtiles_filename]
 
-tmp = to_lowercase(df.loc[df.Ranked][["id"] + SB_TILE_FILTER_FIELDS])
+tmp = to_lowercase(df.loc[df.Ranked][["geometry", "id"] + SB_TILE_FILTER_FIELDS])
 print(
     f"Creating tiles for {len(tmp):,} ranked small barriers with networks for zooms 2-7"
 )
-csv_filename = tmp_dir / "small_barriers_lt_z8.csv"
-write_csv(pa.Table.from_pandas(tmp.reset_index(drop=True)), csv_filename)
+write_dataframe(tmp.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -314,7 +323,7 @@ ret = subprocess.run(
     + ["-l", "ranked_small_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(tmp)
-    + [str(csv_filename)]
+    + [str(outfilename)]
 )
 ret.check_returncode()
 
@@ -331,12 +340,10 @@ ranked_barriers["StateTiers"] = pack_bits(ranked_barriers, STATE_TIER_PACK_BITS)
 ranked_barriers = ranked_barriers.drop(columns=TIER_FIELDS)
 ranked_barriers = to_lowercase(ranked_barriers)
 
-
+outfilename = tmp_dir / "ranked_small_barriers.fgb"
 mbtiles_filename = tmp_dir / "ranked_small_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
-
-csv_filename = tmp_dir / "ranked_small_barriers.csv"
-write_csv(pa.Table.from_pandas(ranked_barriers.reset_index(drop=True)), csv_filename)
+write_dataframe(ranked_barriers.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -344,7 +351,7 @@ ret = subprocess.run(
     + ["-l", "ranked_small_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(ranked_barriers)
-    + [str(csv_filename)],
+    + [str(outfilename)],
 )
 ret.check_returncode()
 
@@ -371,11 +378,10 @@ print(
 
 unranked_barriers = to_lowercase(unranked_barriers)
 
+outfilename = tmp_dir / "unranked_barriers.fgb"
 mbtiles_filename = tmp_dir / "unranked_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
-
-csv_filename = tmp_dir / "unranked_barriers.csv"
-write_csv(pa.Table.from_pandas(unranked_barriers.reset_index(drop=True)), csv_filename)
+write_dataframe(unranked_barriers.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -383,7 +389,7 @@ ret = subprocess.run(
     + ["-l", "unranked_small_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(unranked_barriers)
-    + [str(csv_filename)]
+    + [str(outfilename)]
 )
 ret.check_returncode()
 
@@ -414,33 +420,36 @@ other_barriers = df.loc[~df.HasNetwork].drop(
 )
 
 # ### Read in road crossings to join with small barriers
-# print("Reading road / stream crossings")
-road_crossings = pd.read_feather(
-    barriers_dir / "road_crossings.feather",
-    columns=[
-        "id",
-        "lat",
-        "lon",
-        "SARPID",
-        "Name",
-        "County",
-        "HUC8",
-        "HUC12",
-        "HUC8_COA",
-        "HUC8_SGCN",
-        "HUC8_USFS",
-        "OwnerType",
-        "Road",
-        "State",
-        "Stream",
-        "TESpp",
-        "RegionalSGCNSpp",
-        "StateSGCNSpp",
-        "Trout",
-        "StreamOrder",
-        "loop",
-    ],
-).rename(columns={"COUNTYFIPS": "County", "loop": "OnLoop"})
+print("Reading road / stream crossings")
+road_crossings = (
+    gp.read_feather(
+        barriers_dir / "road_crossings.feather",
+        columns=[
+            "geometry",
+            "id",
+            "SARPID",
+            "Name",
+            "County",
+            "HUC8",
+            "HUC12",
+            "HUC8_COA",
+            "HUC8_SGCN",
+            "HUC8_USFS",
+            "OwnerType",
+            "Road",
+            "State",
+            "Stream",
+            "TESpp",
+            "RegionalSGCNSpp",
+            "StateSGCNSpp",
+            "Trout",
+            "StreamOrder",
+            "loop",
+        ],
+    )
+    .to_crs("EPSG:4326")
+    .rename(columns={"COUNTYFIPS": "County", "loop": "OnLoop"})
+)
 
 if road_crossings.id.min() < df.id.max() + 1:
     raise ValueError("Road crossings have overlapping ids with small barriers")
@@ -505,6 +514,7 @@ for col in [
 ]:
     combined[col] = combined[col].fillna(0).astype("uint8")
 
+# SARP score NODATA is -1; 0 is a meaningful value
 combined["SARP_Score"] = combined["SARP_Score"].fillna(-1).astype("float32")
 
 combined = to_lowercase(combined)
@@ -514,11 +524,10 @@ print(
     f"Creating tiles for {len(combined):,} small barriers and road crossings without networks"
 )
 
+outfilename = tmp_dir / "offnetwork_small_barriers.fgb"
 mbtiles_filename = tmp_dir / "offnetwork_small_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
-
-csv_filename = tmp_dir / "offnetwork_small_barriers.csv"
-write_csv(pa.Table.from_pandas(combined.reset_index(drop=True)), csv_filename)
+write_dataframe(combined.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -526,7 +535,7 @@ ret = subprocess.run(
     + ["-l", "offnetwork_small_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(combined)
-    + [str(csv_filename)]
+    + [str(outfilename)]
 )
 ret.check_returncode()
 
@@ -543,7 +552,10 @@ print(f"Created small barriers tiles in {time() - start:,.2f}s")
 ### Create waterfalls tiles
 print("Creating waterfalls tiles")
 df = (
-    pd.read_feather("data/api/waterfalls.feather", columns=["id"] + WF_TILE_FIELDS)
+    gp.read_feather(
+        "data/api/waterfalls.feather", columns=["geometry", "id"] + WF_TILE_FIELDS
+    )
+    .to_crs("EPSG:4326")
     .rename(columns={"COUNTYFIPS": "County"})
     .sort_values(by=["TotDASqKm"], ascending=False)
 )
@@ -569,9 +581,9 @@ df = df.drop(
 
 df = to_lowercase(df)
 
-csv_filename = tmp_dir / "waterfalls.csv"
+outfilename = tmp_dir / "waterfalls.fgb"
 mbtiles_filename = out_dir / "waterfalls.mbtiles"
-write_csv(pa.Table.from_pandas(df.reset_index(drop=True)), csv_filename)
+write_dataframe(df.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -579,6 +591,6 @@ ret = subprocess.run(
     + ["-l", "waterfalls"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(df, bool_cols={"excluded", "hasnetwork"})
-    + [str(csv_filename)]
+    + [str(outfilename)]
 )
 ret.check_returncode()

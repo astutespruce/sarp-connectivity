@@ -2,7 +2,7 @@ from pathlib import Path
 from time import time
 import warnings
 
-import pandas as pd
+import geopandas as gp
 
 from analysis.lib.util import pack_bits
 from analysis.rank.lib.networks import get_network_results
@@ -30,6 +30,7 @@ results_dir.mkdir(exist_ok=True, parents=True)
 ### Read in master
 
 cols = [
+    "geometry",
     "id",
     "SARPID",
     "lon",
@@ -100,7 +101,7 @@ cols = [
 
 print("Reading master...")
 df = (
-    pd.read_feather(barriers_dir / "small_barriers.feather", columns=cols)
+    gp.read_feather(barriers_dir / "small_barriers.feather", columns=cols)
     .set_index("id")
     .rename(
         columns={
