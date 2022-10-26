@@ -243,26 +243,40 @@ const BarrierDetails = ({
       </Section>
 
       <Section title="Species information">
-        <Text sx={{ my: '0.5rem', mr: '0.5rem' }}>
-          Data sources in the subwatershed containing this barrier have
-          recorded:
-        </Text>
-        <Box as="ul">
-          <li>
-            <b>{tespp}</b> federally-listed threatened and endangered aquatic
-            species
-          </li>
-          <li>
-            <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
-            Conservation Need (SGCN), which include state-listed threatened and
-            endangered species
-          </li>
-          <li>
-            <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of
-            Greatest Conservation Need
-          </li>
-          <li>{trout ? 'One or more trout species' : 'No trout species'}</li>
-        </Box>
+        {tespp + regionalsgcnspp > 0 || trout ? (
+          <>
+            <Text sx={{ my: '0.5rem', mr: '0.5rem' }}>
+              Data sources in the subwatershed containing this barrier have
+              recorded:
+            </Text>
+            <Box as="ul">
+              <li>
+                <b>{tespp}</b> federally-listed threatened and endangered
+                aquatic species
+              </li>
+              <li>
+                <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
+                Conservation Need (SGCN), which include state-listed threatened
+                and endangered species
+              </li>
+              <li>
+                <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of
+                Greatest Conservation Need
+              </li>
+              <li>
+                {trout ? 'One or more trout species' : 'No trout species'}
+              </li>
+            </Box>
+          </>
+        ) : (
+          <Text sx={{ my: '0.5rem', mr: '0.5rem', color: 'grey.8' }}>
+            Data sources in the subwatershed containing this barrier have not
+            recorded any federally-listed threatened and endangered aquatic
+            species, state-listed aquatic Species of Greatest Conservation Need,
+            regionally-listed aquatic Species of Greatest Conservation Need, or
+            trout species.
+          </Text>
+        )}
 
         <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
           Note: species information is very incomplete. These species may or may
