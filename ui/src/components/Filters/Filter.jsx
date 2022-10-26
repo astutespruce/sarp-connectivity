@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
 import { TimesCircle, CaretDown, CaretRight } from '@emotion-icons/fa-solid'
 import { Box, Flex, Text } from 'theme-ui'
@@ -16,11 +16,11 @@ const Filter = ({
   labels,
   help,
   url,
-  isOpen: initIsOpen,
+  isOpen,
   hideEmpty,
   sort,
+  onToggle,
 }) => {
-  const [isOpen, setIsOpen] = useState(initIsOpen)
   const {
     setFilter,
     state: { filters, dimensionCounts },
@@ -65,10 +65,6 @@ const Filter = ({
     return newData
   }, [filterValues, counts, isOpen])
 
-  const toggle = () => {
-    setIsOpen((prev) => !prev)
-  }
-
   const handleFilterToggle = useIsEqualCallback(
     (value) => {
       // NOTE: do not mutate filter values or things break
@@ -109,10 +105,10 @@ const Filter = ({
             cursor: 'pointer',
             fontWeight: 'bold',
           }}
-          onClick={toggle}
+          onClick={onToggle}
         >
           {isOpen ? <CaretDown size="1.5em" /> : <CaretRight size="1.5em" />}
-          <Text sx={{ ml: '0.25rem' }}>{title}</Text>
+          <Text sx={{ ml: '0.25rem', fontSize: 1 }}>{title}</Text>
         </Flex>
         <Box
           onClick={handleReset}
@@ -178,6 +174,7 @@ Filter.propTypes = {
   isOpen: PropTypes.bool,
   hideEmpty: PropTypes.bool,
   sort: PropTypes.bool,
+  onToggle: PropTypes.func,
 }
 
 Filter.defaultProps = {
@@ -187,6 +184,7 @@ Filter.defaultProps = {
   isOpen: false,
   hideEmpty: false,
   sort: false,
+  onToggle: () => {},
 }
 
 export default Filter

@@ -1,15 +1,14 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
-import { ExclamationTriangle, TimesCircle } from '@emotion-icons/fa-solid'
+import { TimesCircle } from '@emotion-icons/fa-solid'
 import { Box, Flex, Heading, Text } from 'theme-ui'
 
 import { useBarrierType } from 'components/Data'
-import { Filter } from 'components/Filters'
+import { FilterGroup } from 'components/Filters'
 import { useCrossfilter } from 'components/Crossfilter'
 import { ExpandableParagraph } from 'components/Text'
 import { barrierTypeLabels } from 'constants'
 import { formatNumber } from 'util/format'
-import { splitArray } from 'util/data'
 
 import BackLink from './BackLink'
 import SubmitButton from './SubmitButton'
@@ -20,7 +19,7 @@ const Filters = ({ onBack, onSubmit }) => {
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const { state, filterConfig, resetFilters } = useCrossfilter()
 
-  const { filteredCount, hasFilters, emptyDimensions } = state
+  const { filteredCount, hasFilters } = state
 
   const handleBack = () => {
     resetFilters()
@@ -30,15 +29,6 @@ const Filters = ({ onBack, onSubmit }) => {
   const handleReset = () => {
     resetFilters()
   }
-
-  const [visibleFilters, hiddenFilters] = useMemo(
-    () =>
-      splitArray(
-        filterConfig,
-        ({ field }) => emptyDimensions.indexOf(field) === -1
-      ),
-    [emptyDimensions, filterConfig]
-  )
 
   return (
     <Flex
@@ -97,7 +87,7 @@ const Filters = ({ onBack, onSubmit }) => {
           flex: '1 1 auto',
         }}
       >
-        <Box sx={{ color: 'grey.7', fontSize: 2, mb: '0.5rem' }}>
+        <Box sx={{ color: 'grey.7', fontSize: 1, mb: '0.5rem' }}>
           <ExpandableParagraph
             variant="help"
             snippet={`[OPTIONAL] Use the filters below to select the ${barrierTypeLabel} that meet
@@ -114,29 +104,11 @@ const Filters = ({ onBack, onSubmit }) => {
           </ExpandableParagraph>
         </Box>
 
-        {hiddenFilters.length > 0 ? (
-          <Box
-            sx={{
-              pt: '0.5rem',
-              pb: '1rem',
-              borderTop: '1px solid',
-              borderTopColor: 'grey.1',
-            }}
-          >
-            <Text variant="help" sx={{ fontSize: 0 }}>
-              <Box sx={{ display: 'inline-block', mr: '0.5em' }}>
-                <ExclamationTriangle size="1em" />
-              </Box>
-              The following filters do not have sufficient unique values to
-              support using them in this area:{' '}
-              {hiddenFilters.map(({ title }) => title).join(', ')}.
-            </Text>
-          </Box>
-        ) : null}
-
-        {visibleFilters.map((filter) => (
-          <Filter key={filter.field} {...filter} />
-        ))}
+        <Box>
+          {filterConfig.map((group) => (
+            <FilterGroup key={group.id} {...group} />
+          ))}
+        </Box>
       </Box>
 
       <Flex
