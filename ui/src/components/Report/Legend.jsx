@@ -29,7 +29,7 @@ export const getLegendEntries = ({ name, barrierType }) => {
       borderWidth: 2,
     },
     {
-      color: 'red',
+      color: '#9370db',
       label: 'altered stream reach (canal / ditch)',
       type: 'line',
       borderWidth: 2,

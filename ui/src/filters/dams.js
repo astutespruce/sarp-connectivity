@@ -48,7 +48,7 @@ export const dams = [
         field: 'percentalteredclass',
         title: 'Percent of upstream network in altered stream channels',
         sort: false,
-        help: 'Note: altered stream channels are those that are assigned in the underlying NHD data as canals and ditches or that overlap with altered riverine areas in the National Wetlands Inventory; this status is not consistently available for all stream reaches.',
+        help: 'Note: altered reaches are those specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration); this status is not consistently available for all stream reaches.',
         ...getEntries(PERCENT_ALTERED),
       },
     ],

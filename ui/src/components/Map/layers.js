@@ -33,7 +33,7 @@ const flowlinesLayer = {
       14,
       ['*', ['+', ['get', 'sizeclass'], 0.75], 1],
     ],
-    'line-color': ['case', ['<', ['get', 'mapcode'], 2], '#1891ac', 'red'],
+    'line-color': ['case', ['<', ['get', 'mapcode'], 2], '#1891ac', '#9370db'],
   },
 }
 

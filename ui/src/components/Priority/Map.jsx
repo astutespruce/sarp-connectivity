@@ -672,16 +672,22 @@ const PriorityMap = ({
     if (zoom > 6) {
       lines = [
         {
-          id: 'intermittent',
-          label: 'intermittent / ephemeral stream reach',
+          id: 'normal',
+          label: 'stream reach',
           color: '#1891ac',
-          lineStyle: 'dashed',
           lineWidth: '2px',
         },
         {
           id: 'altered',
           label: 'altered stream reach (canal / ditch)',
-          color: 'red',
+          color: '#9370db',
+          lineWidth: '2px',
+        },
+        {
+          id: 'intermittent',
+          label: 'intermittent / ephemeral stream reach',
+          color: '#1891ac',
+          lineStyle: 'dashed',
           lineWidth: '2px',
         },
       ]

@@ -140,7 +140,7 @@ const Network = ({
         {totalupstreammiles > 0 ? (
           <Box>
             <b>{formatPercent(percentAltered)}% of the upstream network</b> is
-            in altered stream channels (coded as canals / ditches).
+            in altered stream reaches.
           </Box>
         ) : null}
 
@@ -242,8 +242,10 @@ const Network = ({
         exclude lengths within waterbodies in the downstream network. Perennial
         miles are the sum of lengths of all reaches not specifically coded as
         ephemeral or intermittent within the functional network. Perennial
-        reaches are not necessarily contiguous. Altered miles are those that are
-        specifically coded as canals or ditches, and do not necessarily include
+        reaches are not necessarily contiguous. Altered miles are the total
+        length of stream reaches that are specifically identified in NHD or the
+        National Wetlands Inventory as altered (canal / ditch, within a
+        reservoir, or other channel alteration), and do not necessarily include
         all forms of alteration of the stream channel.
       </Paragraph>
     </Box>
