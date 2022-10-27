@@ -22,6 +22,7 @@ import {
   networkLayers,
 } from 'components/Map'
 import { barrierTypeLabels } from 'constants'
+import { isEqual } from 'util/data'
 import { capitalize } from 'util/format'
 import { isEmptyString } from 'util/string'
 import { COLORS } from './config'
@@ -32,18 +33,11 @@ import {
   pointLayer,
   offnetworkPointLayer,
   unrankedPointLayer,
-  pointHighlightLayer,
-  pointHoverLayer,
   pointLegends,
   regionLayers,
 } from './layers'
 
 const barrierTypes = ['dams', 'small_barriers']
-
-const emptyFeatureCollection = {
-  type: 'FeatureCollection',
-  features: [],
-}
 
 const SummaryMap = ({
   region,
@@ -59,6 +53,8 @@ const SummaryMap = ({
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const regionBounds = useRegionBounds()
   const mapRef = useRef(null)
+  const hoverFeatureRef = useRef(null)
+  const selectedFeatureRef = useRef(null)
 
   const [zoom, setZoom] = useState(0)
 
@@ -225,10 +221,6 @@ const SummaryMap = ({
         })
       })
 
-      // Add barrier highlight layers
-      map.addLayer(pointHoverLayer)
-      map.addLayer(pointHighlightLayer)
-
       // TODO: add unranked
       const pointLayers = []
         .concat(
@@ -260,10 +252,32 @@ const SummaryMap = ({
           const {
             geometry: { coordinates },
           } = feature
-          map.getSource(pointHoverLayer.id).setData({
-            type: 'Point',
-            coordinates,
-          })
+
+          const prevFeature = hoverFeatureRef.current
+          if (prevFeature) {
+            map.setFeatureState(
+              {
+                id: prevFeature.id,
+                source: prevFeature.layer.source,
+                sourceLayer: prevFeature.layer['source-layer'],
+              },
+              {
+                highlight: false,
+              }
+            )
+          }
+
+          hoverFeatureRef.current = feature
+          map.setFeatureState(
+            {
+              id: feature.id,
+              source: feature.layer.source,
+              sourceLayer: feature.layer['source-layer'],
+            },
+            {
+              highlight: true,
+            }
+          )
 
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
@@ -285,7 +299,25 @@ const SummaryMap = ({
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
-          map.getSource(pointHoverLayer.id).setData(emptyFeatureCollection)
+          // only unhighlight if not the same as currently selected feature
+          const prevFeature = hoverFeatureRef.current
+          if (
+            prevFeature &&
+            !isEqual(prevFeature, selectedFeatureRef.current, ['id', 'layer'])
+          ) {
+            map.setFeatureState(
+              {
+                id: prevFeature.id,
+                source: prevFeature.layer.source,
+                sourceLayer: prevFeature.layer['source-layer'],
+              },
+              {
+                highlight: false,
+              }
+            )
+          }
+
+          hoverFeatureRef.current = null
 
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = ''
@@ -297,6 +329,39 @@ const SummaryMap = ({
         const [feature] = map.queryRenderedFeatures(point, {
           layers: clickLayers,
         })
+
+        // always clear out prior feature
+        const prevFeature = selectedFeatureRef.current
+        if (prevFeature) {
+          map.setFeatureState(
+            {
+              id: prevFeature.id,
+              source: prevFeature.layer.source,
+              sourceLayer: prevFeature.layer['source-layer'],
+            },
+            {
+              highlight: false,
+            }
+          )
+
+          selectedFeatureRef.current = null
+
+          if (isEqual(prevFeature, hoverFeatureRef.current, ['id', 'layer'])) {
+            const prevHoverFeature = hoverFeatureRef.current
+            map.setFeatureState(
+              {
+                id: prevHoverFeature.id,
+                source: prevHoverFeature.layer.source,
+                sourceLayer: prevHoverFeature.layer['source-layer'],
+              },
+              {
+                highlight: false,
+              }
+            )
+            hoverFeatureRef.current = null
+          }
+        }
+
         if (!feature) {
           return
         }
@@ -315,6 +380,18 @@ const SummaryMap = ({
               coordinates: [lon, lat],
             },
           } = feature
+
+          map.setFeatureState(
+            {
+              id: feature.id,
+              source: feature.layer.source,
+              sourceLayer: feature.layer['source-layer'],
+            },
+            {
+              highlight: true,
+            }
+          )
+          selectedFeatureRef.current = feature
 
           // dam, barrier, waterfall
           onSelectBarrier({
@@ -409,21 +486,43 @@ const SummaryMap = ({
 
     if (!map) return
 
-    const { id } = pointHighlightLayer
-
-    // setting to empty feature collection effectively hides this layer
-    let data = emptyFeatureCollection
     let networkID = Infinity
 
     if (selectedBarrier) {
-      const { lat, lon, upnetid = Infinity } = selectedBarrier
-      data = {
-        type: 'Point',
-        coordinates: [lon, lat],
-      }
+      const { upnetid = Infinity } = selectedBarrier
 
       // highlight upstream network
       networkID = upnetid
+    } else {
+      const prevFeature = selectedFeatureRef.current
+      if (prevFeature) {
+        map.setFeatureState(
+          {
+            id: prevFeature.id,
+            source: prevFeature.layer.source,
+            sourceLayer: prevFeature.layer['source-layer'],
+          },
+          {
+            highlight: false,
+          }
+        )
+        hoverFeatureRef.current = null
+
+        if (isEqual(prevFeature, hoverFeatureRef.current, ['id', 'layer'])) {
+          const prevHoverFeature = hoverFeatureRef.current
+          map.setFeatureState(
+            {
+              id: prevHoverFeature.id,
+              source: prevHoverFeature.layer.source,
+              sourceLayer: prevHoverFeature.layer['source-layer'],
+            },
+            {
+              highlight: false,
+            }
+          )
+          hoverFeatureRef.current = null
+        }
+      }
     }
 
     map.setFilter('network-highlight', [
@@ -436,8 +535,6 @@ const SummaryMap = ({
       ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
       ['==', barrierType, networkID],
     ])
-
-    map.getSource(id).setData(data)
   }, [selectedBarrier, barrierType])
 
   useEffect(() => {

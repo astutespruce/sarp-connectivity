@@ -10,7 +10,6 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 import {
   pointLayer,
-  pointHighlightLayer,
   damsSecondaryLayer,
   waterfallsLayer,
   offnetworkPointLayer,
@@ -25,7 +24,10 @@ import {
   sources,
   basemapLayers,
 } from 'components/Map'
+
 import { siteMetadata } from 'constants'
+
+import { pointHighlightLayer } from './layers'
 
 const { mapboxToken } = siteMetadata
 if (!mapboxToken) {

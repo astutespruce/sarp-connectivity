@@ -19,6 +19,43 @@ export const REGIONS = {
   sw: 'Southwest',
 }
 
+export const pointColors = {
+  highlight: {
+    color: '#fd8d3c',
+    strokeColor: '#f03b20',
+  },
+  included: {
+    color: '#c51b8a',
+    strokeColor: '#FFFFFF',
+  },
+  excluded: {
+    color: '#fbb4b9',
+    strokeColor: '#c51b8a',
+  },
+  offNetwork: {
+    color: '#999',
+    strokeColor: '#666',
+  },
+  damsSecondary: {
+    color: '#fec44f',
+    strokeColor: '#FFFFFF',
+  },
+  waterfalls: {
+    color: '#2ca25f',
+    strokeColor: '#FFFFFF',
+  },
+
+  // only used in prioritize
+  topRank: {
+    color: '#c51b8a',
+    strokeColor: '#FFFFFF',
+  },
+  lowerRank: {
+    color: '#2c7fb8',
+    strokeColor: '#FFFFFF',
+  },
+}
+
 export const STATE_FIPS = {
   '01': 'Alabama',
   '04': 'Arizona',

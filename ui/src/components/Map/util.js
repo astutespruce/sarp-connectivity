@@ -99,3 +99,10 @@ export const mapToDataURL = async (map) =>
     // force redraw if needed
     map.triggerRepaint()
   })
+
+export const getHighlightExpr = (defaultExpr, highlightExpr) => [
+  'case',
+  ['boolean', ['feature-state', 'highlight'], false],
+  highlightExpr,
+  defaultExpr,
+]

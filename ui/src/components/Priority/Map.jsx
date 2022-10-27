@@ -17,6 +17,7 @@ import {
   networkLayers,
 } from 'components/Map'
 import { barrierTypeLabels } from 'constants'
+import { isEqual } from 'util/data'
 import { capitalize } from 'util/format'
 import { isEmptyString } from 'util/string'
 
@@ -27,8 +28,6 @@ import {
   unitLayers,
   unitHighlightLayers,
   parentOutline,
-  pointHighlight,
-  pointHover,
   offnetworkPoint,
   excludedPoint,
   includedPoint,
@@ -69,6 +68,8 @@ const PriorityMap = ({
     state: { filters },
   } = useCrossfilter()
   const mapRef = useRef(null)
+  const hoverFeatureRef = useRef(null)
+  const selectedFeatureRef = useRef(null)
   const [priorityLayerState, setPriorityLayerState] = useState({})
 
   // first layer of system is default on init
@@ -208,9 +209,6 @@ const PriorityMap = ({
         filter: ['<=', `${scenario}_tier`, tierThreshold],
       })
 
-      // Add layer for highlight
-      map.addLayer(pointHover)
-
       // add hover and tooltip to point layers
       const tooltip = new mapboxgl.Popup({
         closeButton: false,
@@ -247,10 +245,31 @@ const PriorityMap = ({
             barrierName = sarpidname.split('|')[1]
           }
 
-          map.getSource(pointHover.id).setData({
-            type: 'Point',
-            coordinates,
-          })
+          const prevFeature = hoverFeatureRef.current
+          if (prevFeature) {
+            map.setFeatureState(
+              {
+                id: prevFeature.id,
+                source: prevFeature.layer.source,
+                sourceLayer: prevFeature.layer['source-layer'],
+              },
+              {
+                highlight: false,
+              }
+            )
+          }
+
+          hoverFeatureRef.current = feature
+          map.setFeatureState(
+            {
+              id: feature.id,
+              source: feature.layer.source,
+              sourceLayer: feature.layer['source-layer'],
+            },
+            {
+              highlight: true,
+            }
+          )
 
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
@@ -272,7 +291,25 @@ const PriorityMap = ({
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
-          map.getSource(pointHover.id).setData(emptyFeatureCollection)
+          // only unhighlight if not the same as currently selected feature
+          const prevFeature = hoverFeatureRef.current
+          if (
+            prevFeature &&
+            !isEqual(prevFeature, selectedFeatureRef.current, ['id', 'layer'])
+          ) {
+            map.setFeatureState(
+              {
+                id: prevFeature.id,
+                source: prevFeature.layer.source,
+                sourceLayer: prevFeature.layer['source-layer'],
+              },
+              {
+                highlight: false,
+              }
+            )
+          }
+
+          hoverFeatureRef.current = null
 
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = ''
@@ -294,15 +331,44 @@ const PriorityMap = ({
         return feature
       }
 
-      // Add barrier highlight layer.
-      map.addLayer(pointHighlight)
-
       map.on('click', ({ point }) => {
         const features = map.queryRenderedFeatures(point, {
           layers: clickLayers,
         })
 
         const [feature] = features
+
+        // always clear out prior feature
+        const prevFeature = selectedFeatureRef.current
+        if (prevFeature) {
+          map.setFeatureState(
+            {
+              id: prevFeature.id,
+              source: prevFeature.layer.source,
+              sourceLayer: prevFeature.layer['source-layer'],
+            },
+            {
+              highlight: false,
+            }
+          )
+
+          selectedFeatureRef.current = null
+
+          if (isEqual(prevFeature, hoverFeatureRef.current, ['id', 'layer'])) {
+            const prevHoverFeature = hoverFeatureRef.current
+            map.setFeatureState(
+              {
+                id: prevHoverFeature.id,
+                source: prevHoverFeature.layer.source,
+                sourceLayer: prevHoverFeature.layer['source-layer'],
+              },
+              {
+                highlight: false,
+              }
+            )
+            hoverFeatureRef.current = null
+          }
+        }
 
         // only call handler if there was a feature
         if (!feature) {
@@ -351,6 +417,18 @@ const PriorityMap = ({
           .forEach((field) => {
             networkFields[field.split('_')[0]] = properties[field]
           })
+
+        map.setFeatureState(
+          {
+            id: feature.id,
+            source: feature.layer.source,
+            sourceLayer: feature.layer['source-layer'],
+          },
+          {
+            highlight: true,
+          }
+        )
+        selectedFeatureRef.current = feature
 
         onSelectBarrier({
           ...properties,
@@ -481,27 +559,47 @@ const PriorityMap = ({
 
     if (!map) return
 
-    const { id } = pointHighlight
-
-    // setting to empty feature collection effectively hides this layer
-    let data = emptyFeatureCollection
     let networkID = Infinity
     let networkType = barrierType
 
     if (selectedBarrier) {
       const {
-        lat,
-        lon,
         upnetid = Infinity,
         networkType: barrierNetworkType = barrierType,
       } = selectedBarrier
-      data = {
-        type: 'Point',
-        coordinates: [lon, lat],
-      }
 
       networkID = upnetid
       networkType = barrierNetworkType
+    } else {
+      const prevFeature = selectedFeatureRef.current
+      if (prevFeature) {
+        map.setFeatureState(
+          {
+            id: prevFeature.id,
+            source: prevFeature.layer.source,
+            sourceLayer: prevFeature.layer['source-layer'],
+          },
+          {
+            highlight: false,
+          }
+        )
+        hoverFeatureRef.current = null
+
+        if (isEqual(prevFeature, hoverFeatureRef.current, ['id', 'layer'])) {
+          const prevHoverFeature = hoverFeatureRef.current
+          map.setFeatureState(
+            {
+              id: prevHoverFeature.id,
+              source: prevHoverFeature.layer.source,
+              sourceLayer: prevHoverFeature.layer['source-layer'],
+            },
+            {
+              highlight: false,
+            }
+          )
+          hoverFeatureRef.current = null
+        }
+      }
     }
 
     // highlight upstream network if set otherwise clear it
@@ -515,8 +613,6 @@ const PriorityMap = ({
       ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
       ['==', networkType, networkID],
     ])
-
-    map.getSource(id).setData(data)
   }, [barrierType, selectedBarrier])
 
   // if map allows filter, show selected vs unselected points, and make those without networks

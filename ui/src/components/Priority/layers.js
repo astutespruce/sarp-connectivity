@@ -1,3 +1,6 @@
+import { pointColors } from 'constants'
+import { getHighlightExpr } from '../Map/util'
+
 export const maskFill = {
   id: 'mask',
   source: 'summary',
@@ -140,20 +143,32 @@ export const offnetworkPoint = {
   minzoom: 10,
   maxzoom: 24,
   paint: {
-    'circle-color': '#999',
-    'circle-radius': {
-      stops: [
-        [10, 0.5],
-        [14, 4],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [10, 0.5],
-        [14, 1],
-      ],
-    },
-    'circle-stroke-color': '#666',
+    'circle-color': getHighlightExpr(
+      pointColors.offNetwork.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.offNetwork.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 2),
+      14,
+      getHighlightExpr(4, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -205,23 +220,36 @@ export const excludedPoint = {
   maxzoom: 24,
   // filter:  [], // will be filtered using "in" or "!in"
   paint: {
-    'circle-color': '#fbb4b9',
-    'circle-stroke-color': '#c51b8a',
-    'circle-radius': {
-      stops: [
-        [4, 0.5],
-        [5, 1],
-        [9, 2],
-        [10, 4],
-        [14, 6],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [10, 0.5],
-        [14, 1],
-      ],
-    },
+    'circle-color': getHighlightExpr(
+      pointColors.excluded.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.excluded.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      4,
+      getHighlightExpr(0.5, 2),
+      5,
+      getHighlightExpr(1, 5),
+      9,
+      getHighlightExpr(2, 10),
+      14,
+      getHighlightExpr(6, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -242,24 +270,43 @@ export const includedPoint = {
   maxzoom: 24,
   filter: ['==', 'id', 'Infinity'], // will be filtered using "in" or "!in"
   paint: {
-    'circle-color': '#c51b8a',
-    'circle-radius': {
-      stops: [
-        [3, 0.5],
-        [4, 1],
-        [5, 1.25],
-        [14, 8],
+    'circle-color': getHighlightExpr(
+      pointColors.included.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.included.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius':
+      // interpolate has to be top-level
+      [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        3,
+        getHighlightExpr(0.5, 2),
+        4,
+        getHighlightExpr(1, 4),
+        5,
+        getHighlightExpr(1.25, 5),
+        14,
+        getHighlightExpr(8, 14),
       ],
-    },
-    'circle-opacity': {
-      stops: [
-        [2, 0.1],
-        [3, 0.5],
-        [4, 0.75],
-        [7, 1],
-      ],
-    },
-    'circle-stroke-color': '#FFFFFF',
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      2,
+      getHighlightExpr(0.1, 1),
+      3,
+      getHighlightExpr(0.5, 1),
+      4,
+      getHighlightExpr(0.75, 1),
+      7,
+      1,
+    ],
+
     'circle-stroke-width': {
       stops: [
         [7, 0],
@@ -279,17 +326,28 @@ export const topRank = {
   maxzoom: 24,
   // filter:  // provided by specific layer
   paint: {
-    'circle-color': '#c51b8a',
-    'circle-radius': {
-      stops: [
-        [3, 1],
-        [4, 1.5],
-        [5, 3],
-        [14, 10],
-      ],
-    },
+    'circle-color': getHighlightExpr(
+      pointColors.topRank.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.topRank.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      3,
+      getHighlightExpr(1, 3),
+      4,
+      getHighlightExpr(1.5, 4),
+      5,
+      getHighlightExpr(3, 5),
+      14,
+      getHighlightExpr(10, 14),
+    ],
     'circle-opacity': 1,
-    'circle-stroke-color': '#FFFFFF',
     'circle-stroke-width': {
       stops: [
         [4, 0],
@@ -309,23 +367,38 @@ export const lowerRank = {
   maxzoom: 24,
   // filter:  // provided by specific layer
   paint: {
-    'circle-color': '#2c7fb8',
-    'circle-stroke-color': '#FFFFFF',
-    'circle-radius': {
-      stops: [
-        [3, 0.5],
-        [4, 1],
-        [5, 1.25],
-        [14, 8],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [3, 0.5],
-        [4, 0.75],
-        [7, 1],
-      ],
-    },
+    'circle-color': getHighlightExpr(
+      pointColors.lowerRank.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.lowerRank.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      3,
+      getHighlightExpr(0.5, 3),
+      4,
+      getHighlightExpr(1, 4),
+      5,
+      getHighlightExpr(1.25, 5),
+      14,
+      getHighlightExpr(8, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      3,
+      getHighlightExpr(0.5, 1),
+      4,
+      getHighlightExpr(0.75, 1),
+      7,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -348,23 +421,38 @@ export const damsSecondaryLayer = {
   minzoom: 10,
   maxzoom: 24,
   paint: {
-    'circle-color': '#fec44f',
-    'circle-radius': {
-      stops: [
-        [10, 1],
-        [12, 2],
-        [14, 4],
-        [16, 6],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [10, 0.25],
-        [12, 0.5],
-        [14, 1],
-      ],
-    },
-    'circle-stroke-color': '#FFFFFF',
+    'circle-color': getHighlightExpr(
+      pointColors.damsSecondary.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.damsSecondary.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(1, 10),
+      12,
+      getHighlightExpr(2, 14),
+      14,
+      getHighlightExpr(4, 14),
+      16,
+      getHighlightExpr(6, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.25, 1),
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -383,23 +471,38 @@ export const waterfallsLayer = {
   minzoom: 10,
   maxzoom: 24,
   paint: {
-    'circle-color': '#2ca25f',
-    'circle-radius': {
-      stops: [
-        [10, 1],
-        [12, 2],
-        [14, 4],
-        [16, 6],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [10, 0.25],
-        [12, 0.5],
-        [14, 1],
-      ],
-    },
-    'circle-stroke-color': '#FFFFFF',
+    'circle-color': getHighlightExpr(
+      pointColors.waterfalls.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.waterfalls.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(1, 10),
+      12,
+      getHighlightExpr(2, 14),
+      14,
+      getHighlightExpr(4, 14),
+      16,
+      getHighlightExpr(6, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.25, 1),
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -413,75 +516,35 @@ export const waterfallsLayer = {
 export const pointLegends = {
   included: {
     radius: 8,
-    color: includedPoint.paint['circle-color'],
+    color: pointColors.included.color,
   },
   excluded: {
     radius: 6,
-    color: `${excludedPoint.paint['circle-color']}99`,
-    borderColor: `${excludedPoint.paint['circle-stroke-color']}99`,
+    color: `${pointColors.excluded.color}99`,
+    borderColor: `${pointColors.excluded.strokeColor}99`,
     borderWidth: 1,
   },
   offnetwork: {
     radius: 5,
-    color: offnetworkPoint.paint['circle-color'],
-    borderColor: offnetworkPoint.paint['circle-stroke-color'],
+    color: pointColors.offNetwork.color,
+    borderColor: pointColors.offNetwork.strokeColor,
     borderWidth: 1,
   },
   topRank: {
     radius: 8,
-    color: topRank.paint['circle-color'],
+    color: pointColors.topRank.color,
   },
   lowerRank: {
     radius: 8,
-    color: lowerRank.paint['circle-color'],
+    color: pointColors.lowerRank.color,
   },
   waterfalls: {
     radius: 6,
-    color: waterfallsLayer.paint['circle-color'],
+    color: pointColors.waterfalls.color,
   },
   damsSecondary: {
     radius: 6,
-    color: damsSecondaryLayer.paint['circle-color'],
-  },
-}
-
-export const pointHighlight = {
-  id: 'point-highlight',
-  source: {
-    type: 'geojson',
-    data: null,
-  },
-  type: 'circle',
-  minzoom: 5,
-  maxzoom: 24,
-  paint: {
-    'circle-color': '#fd8d3c',
-    'circle-radius': 14,
-    'circle-stroke-width': 3,
-    'circle-stroke-color': '#f03b20',
-  },
-}
-
-export const pointHover = {
-  id: 'point-hover',
-  source: {
-    type: 'geojson',
-    data: null,
-  },
-  type: 'circle',
-  minzoom: 7,
-  maxzoom: 24,
-  paint: {
-    'circle-color': '#fd8d3c',
-    'circle-radius': {
-      stops: [
-        [6, 2],
-        [8, 6],
-        [14, 8],
-      ],
-    },
-    'circle-stroke-width': 1,
-    'circle-stroke-color': '#f03b20',
+    color: pointColors.damsSecondary.color,
   },
 }
 

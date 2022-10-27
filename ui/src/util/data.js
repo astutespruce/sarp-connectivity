@@ -1,3 +1,4 @@
+import { dequal } from 'dequal'
 import { toCamelCase } from 'util/format'
 
 export const groupBy = (records, groupField) =>
@@ -74,7 +75,7 @@ export const splitArray = (arr, conditionFunc) => {
  * Offset is added back to value.
  *
  * @param {Number} packed - bit-packed value
- * @param {Objectc} fieldBits - array of {field: <field>, bits: <num bits>, offset: <offset>} per field
+ * @param {Object} fieldBits - array of {field: <field>, bits: <num bits>, offset: <offset>} per field
  * @returns Object of {field: value, ...}
  */
 export const unpackBits = (packed, fieldBits) => {
@@ -89,3 +90,14 @@ export const unpackBits = (packed, fieldBits) => {
 
   return out
 }
+
+/**
+ * Tests if the left and right objects have the same values for props
+ *
+ * @param {Object} left
+ * @param {Object} right
+ * @param {Array} props - list of prop names to test for equality
+ */
+export const isEqual = (left, right, props) =>
+  props.filter((p) => left && right && dequal(left[p], right[p])).length ===
+  props.length
