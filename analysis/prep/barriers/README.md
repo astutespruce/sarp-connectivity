@@ -6,9 +6,9 @@ Barriers are extracted from multiple sources for the network connectivity and ba
 These are processed in the following order.
 
 1. dams
-2. small barriers (inventoried road-related crossings)
-3. road crossings (non-inventoried road-related crossings)
-4. waterfalls
+2. waterfalls
+3. small barriers (inventoried road-related crossings)
+4. road crossings (non-inventoried road-related crossings)
 
 The output of the processing steps below are full barriers datasets in `data/barriers/master` and a subset of dams, small barriers, and waterfalls that were snapped to the aquatic network in `data/barriers/snapped`.
 
@@ -63,13 +63,25 @@ Dams are processed using `analysis/prep/prep_dams.py`.
 
 Dams are snapped automatically to the aquatic network if within 100 meters. Dams are excluded from analysis if they did not snap to the network or were otherwise identified by various attributes (e.g., Recon). After snapping, dams are de-duplicated to remove those that are very close to each other (within 30m).
 
+## Waterfalls
+
+Waterfalls are processed using `analysis/prep/barriers/prep_waterfalls.py`.
+
+Waterfalls are snapped to the aquatic network and duplicates are marked.
+
 ## Small Barriers
 
 Small barriers are hosted on ArcGIS Online and downloaded using `analysis/prep/barriers/download.py`.
 
 Small barriers are processed using `analysis/prep/barriers/prep_small_barriers.py`.
 
-Small barriers are automatically snapped to the aquatic network if within 50 meters. Barriers are excluded from analysis if they did not snap to the network or were otherwise identified by various attributes (e.g., Feasibility). After snapping, barriers are de-duplicated to remove those that are very close to each other (within 10m).
+Small barriers are automatically snapped to the aquatic network if within 50
+meters. Barriers are excluded from analysis if they did not snap to the network
+or were otherwise identified by various attributes (e.g., Feasibility). After
+snapping, barriers are de-duplicated to remove those that are very close to each
+other (within 10m).
+
+Barriers are deduplicated against dams and waterfalls.
 
 ### Road crossings
 
@@ -84,9 +96,3 @@ Then, each time small barriers are processed above, run
 crossings against small barriers, performs spatial joins, and prepares for use
 in the analysis. These are ultimately merged in with final small barriers
 dataset to create background barriers displayed on the map.
-
-## Waterfalls
-
-Waterfalls are processed using `analysis/prep/barriers/prep_waterfalls.py`.
-
-Waterfalls are snapped to the aquatic network and duplicates are marked.

@@ -5,6 +5,7 @@ Extract small barriers from original data source, process for use in network ana
 3. Snap to flowlines
 4. Remove duplicate barriers
 5. Remove barriers that duplicate dams
+6. Mark barriers that co-occur with waterfalls (waterfalls have higher precedence)
 
 NOTE: this must be run AFTER running prep_dams.py, because it deduplicates against existing dams.
 
@@ -425,8 +426,21 @@ df.loc[ix, "dup_log"] = f"Within {DUPLICATE_TOLERANCE}m of an existing dam"
 
 print(f"Found {len(ix)} small barriers within {DUPLICATE_TOLERANCE}m of dams")
 
+### Exclude those that co-occur with waterfalls
+waterfalls = gp.read_feather(snapped_dir / "waterfalls.feather", columns=["geometry"])
+near_wf = nearest(
+    pd.Series(df.geometry.values.data, index=df.index),
+    pd.Series(waterfalls.geometry.values.data, index=waterfalls.index),
+    DUPLICATE_TOLERANCE,
+)
 
-# update data types
+# only update those that are not already dropped / excluded
+ix = df.index.isin(near_wf.index) & (~(df.excluded | df.dropped))
+df.loc[ix, "excluded"] = True
+df.loc[ix, "log"] = "excluded: co-occurs with a waterfall"
+
+
+### update data types
 df["dup_sort"] = df.dup_sort.astype("uint8")
 df["snap_tolerance"] = df.snap_tolerance.astype("uint16")
 
