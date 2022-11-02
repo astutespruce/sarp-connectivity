@@ -3,12 +3,13 @@ import pandas as pd
 import pygeos as pg
 
 from analysis.lib.geometry.sjoin import sjoin_geometry
-from analysis.lib.graph import DirectedGraph
+from analysis.lib.graph.speedups import DirectedGraph
 from analysis.lib.util import append
 
 
 def near(source, target, distance):
-    """Return target geometries within distance of source geometries.
+    """Return all target geometries within distance of source geometries.  Is
+    not limited to nearest geometries within distance.
 
     Only returns records from source that intersected at least one feature in target.
 
@@ -28,23 +29,18 @@ def near(source, target, distance):
         includes distance
     """
 
-    # Get all indices from target_values that intersect buffers of input geometry
-    idx = sjoin_geometry(pg.buffer(source, distance), target)
-    hits = (
-        pd.DataFrame(idx)
-        .join(source.rename("geometry"), how="inner")
-        .join(target.rename("geometry_right"), on="index_right", how="inner")
-    )
-    # this changes the index if hits is empty, causing downstream problems
-    if not len(hits):
-        hits.index.name = idx.index.name
+    tree = pg.STRtree(target.values)
+    left, right = tree.query_bulk(source.values, predicate="dwithin", distance=distance)
 
-    hits["distance"] = pg.distance(hits.geometry, hits.geometry_right).astype("float32")
-
-    return (
-        hits.drop(columns=["geometry", "geometry_right"])
-        .rename(columns={"index_right": target.index.name or "index_right"})
-        .sort_values(by="distance")
+    right_name = target.index.name or "index_right"
+    return pd.DataFrame(
+        {
+            right_name: target.index.take(right),
+            "distance": pg.distance(
+                source.values.take(left), target.values.take(right)
+            ),
+        },
+        source.index.take(left),
     )
 
 
@@ -145,23 +141,23 @@ def neighborhoods(source, tolerance=100):
 
     pairs = near(source, source, distance=tolerance)
 
-    # drop self-intersections
+    # drop self-intersections; we only want neighborhoods with > 1 member
     pairs = (
         pairs.loc[pairs.index != pairs[index_right]]
         .rename(columns={index_right: "index_right"})
         .index_right
     )
 
-    g = DirectedGraph(pairs.reset_index(), source=index_name, target="index_right")
+    g = DirectedGraph(pairs.index.values.astype("int64"), pairs.values.astype("int64"))
 
     groups = (
         pd.DataFrame(
             {i: list(g) for i, g in enumerate(g.components())}.items(),
-            columns=["group", "index"],
+            columns=["group", index_name],
         )
-        .explode("index")
-        .set_index("index")
+        .explode(index_name)
+        .astype(source.index.dtype)
+        .set_index(index_name)
     )
-    groups.index.name = index_name
 
     return groups

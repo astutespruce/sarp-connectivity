@@ -38,7 +38,6 @@ from analysis.prep.barriers.lib.duplicates import (
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.prep.barriers.lib.log import format_log
 from analysis.lib.io import read_feathers
-from analysis.lib.geometry import nearest
 from analysis.constants import (
     GEO_CRS,
     KEEP_POTENTIAL_PROJECT,
@@ -448,13 +447,12 @@ export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas.fgb")
 # any that are within duplicate tolerance of dams may be duplicating those dams
 # NOTE: these are only the dams that are snapped and not dropped or excluded
 dams = gp.read_feather(snapped_dir / "dams.feather", columns=["geometry"])
-near_dams = nearest(
-    pd.Series(df.geometry.values.data, index=df.index),
-    pd.Series(dams.geometry.values.data, index=dams.index),
-    DUPLICATE_TOLERANCE,
+tree = pg.STRtree(df.geometry.values.data)
+left, right = tree.query_bulk(
+    dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )
+ix = df.index.values.take(np.unique(right))
 
-ix = near_dams.index
 df.loc[ix, "duplicate"] = True
 df.loc[ix, "dup_log"] = f"Within {DUPLICATE_TOLERANCE}m of an existing dam"
 
@@ -462,14 +460,15 @@ print(f"Found {len(ix)} small barriers within {DUPLICATE_TOLERANCE}m of dams")
 
 ### Exclude those that co-occur with waterfalls
 waterfalls = gp.read_feather(snapped_dir / "waterfalls.feather", columns=["geometry"])
-near_wf = nearest(
-    pd.Series(df.geometry.values.data, index=df.index),
-    pd.Series(waterfalls.geometry.values.data, index=waterfalls.index),
-    DUPLICATE_TOLERANCE,
-)
 
-# only update those that are not already dropped / excluded
-ix = df.index.isin(near_wf.index) & (~(df.excluded | df.dropped))
+tree = pg.STRtree(df.geometry.values.data)
+left, right = tree.query_bulk(
+    waterfalls.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+)
+near_wf = df.index.values.take(np.unique(right))
+
+# only update those that are not already dropped / excluded / removed
+ix = df.index.isin(near_wf) & (~(df.excluded | df.dropped | df.removed))
 df.loc[ix, "excluded"] = True
 df.loc[ix, "log"] = "excluded: co-occurs with a waterfall"
 

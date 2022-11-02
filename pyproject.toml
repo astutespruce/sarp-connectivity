@@ -31,6 +31,9 @@ httpx = "^0.23.0"
 # wheel is built locally for Arm64
 pymgl = { path = "../pymgl/dist/pymgl-0.2.2+0.g705372e.dirty-cp310-cp310-macosx_12_0_arm64.whl" }
 
+[tool.isort]
+profile = "black"
+
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools", "wheel"]
 build-backend = "poetry.core.masonry.api"
