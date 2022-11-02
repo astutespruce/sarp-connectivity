@@ -538,7 +538,7 @@ def snap_to_waterbodies(df, to_snap):
     return df, to_snap
 
 
-def snap_to_flowlines(df, to_snap, nearest_nonloop=False):
+def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False):
     """Snap to nearest flowline, within tolerance.
 
     Updates df with snapping results, and returns to_snap as set of dams still
@@ -554,7 +554,7 @@ def snap_to_flowlines(df, to_snap, nearest_nonloop=False):
     to_snap : DataFrame
         data frame containing pygeos geometries to snap ("geometry")
         and snapping tolerance ("snap_tolerance")
-    nearest_nonloop : bool, optional (default: False)
+    find_nearest_nonloop : bool, optional (default: False)
         If True, will try to snap the the nearest non-loop if it is within
         ALWAYS_NONLOOP_TOLERANCE or if it is greather than
         NEAREST_FLOWLINE_TOLERANCE and less than 2x as far away as the nearest
@@ -606,7 +606,7 @@ def snap_to_flowlines(df, to_snap, nearest_nonloop=False):
 
         nearest_lines = lines.groupby("id").first()
 
-        if nearest_nonloop:
+        if find_nearest_nonloop:
             nearest_nonloop = lines.loc[~lines.loop].groupby("id").first()
 
             tmp = nearest_lines.join(

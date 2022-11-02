@@ -83,6 +83,7 @@ cols = [
     "Trout",
     "dropped",
     "excluded",
+    "removed",
     "duplicate",
     "snapped",
     "unranked",

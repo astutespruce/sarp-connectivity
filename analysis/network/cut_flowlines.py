@@ -66,6 +66,8 @@ barriers = read_feathers(
 )
 
 barriers["barrierID"] = np.uint64(0)
+# removed is not applicable for road crossings or waterfalls, backfill with False
+barriers["removed"] = barriers.removed.fillna(False)
 
 for kind, init_id in zip(kinds, kind_ids):
     ix = barriers.kind == kind

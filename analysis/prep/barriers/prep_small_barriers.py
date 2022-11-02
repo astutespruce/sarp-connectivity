@@ -36,16 +36,21 @@ from analysis.prep.barriers.lib.duplicates import (
     export_duplicate_areas,
 )
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
+from analysis.prep.barriers.lib.log import format_log
 from analysis.lib.io import read_feathers
 from analysis.lib.geometry import nearest
 from analysis.constants import (
     GEO_CRS,
     KEEP_POTENTIAL_PROJECT,
     DROP_POTENTIAL_PROJECT,
-    DROP_MANUALREVIEW,
+    UNRANKED_POTENTIAL_PROJECT,
+    REMOVED_POTENTIAL_PROJECT,
     DROP_RECON,
-    EXCLUDE_MANUALREVIEW,
     EXCLUDE_RECON,
+    REMOVED_RECON,
+    DROP_MANUALREVIEW,
+    EXCLUDE_MANUALREVIEW,
+    REMOVED_MANUALREVIEW,
     OFFSTREAM_MANUALREVIEW,
     INVASIVE_MANUALREVIEW,
     INVASIVE_RECON,
@@ -114,12 +119,16 @@ df["PotentialProject"] = (
     .str.strip()
     .str.replace("barrier", "Barrier")
 )
-ix = df.PotentialProject == ""
+
+# Recode No => No Barrier per guidance from SARP
+df.loc[df.PotentialProject == "No", "PotentialProject"] = "No Barrier"
+
+# mark missing and a few specific codes as unassessed, per guidance from SARP
+ix = df.PotentialProject.isin(["", "Unknown", "Small Project", "NA"])
 df.loc[ix, "PotentialProject"] = "Unassessed"
 
-
 # per guidance from Kat, make any where potential project is "No Barrier" as -1
-df.loc[df.PotentialProject.isin(["No Barrier", "No"]), "SARP_Score"] = -1
+df.loc[df.PotentialProject == "No Barrier", "SARP_Score"] = -1
 
 
 # Fix mixed casing of values
@@ -250,80 +259,101 @@ df["dropped"] = False
 df["excluded"] = False
 
 # unranked: records that should break the network but not be used for ranking
-df["invasive"] = False
-df["unranked"] = False  # for now, equivalent to above
+df["unranked"] = False  # includes invasive and barriers with no upstream
 
 # removed: barriers was removed for conservation but we still want to track it
 df["removed"] = False
 
+# invasive: records that are also unranked, but we want to track specfically as invasive for mapping
+df["invasive"] = False
 
-# Drop any that didn't intersect HUCs or states (including those outside analysis region)
+### Mark invasive barriers
+# NOTE: invasive status is not affected by other statuses
+df["invasive"] = df.ManualReview.isin(INVASIVE_MANUALREVIEW) | df.Recon.isin(
+    INVASIVE_RECON
+)
+print(f"Marked {df.invasive.sum()} barriers as invasive barriers")
+
+
+### Drop any that didn't intersect HUCs or states (including those outside analysis region)
 drop_ix = (df.HUC12 == "") | (df.State == "")
-print(f"{drop_ix.sum():,} small barriers are outside HUC12 / states")
-# Mark dropped barriers
 df.loc[drop_ix, "dropped"] = True
 df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 
+### Mark any that were removed so that we can show these on the map
+# NOTE: we don't mark these as dropped
+removed_fields = {
+    "PotentialProject": REMOVED_POTENTIAL_PROJECT,
+    "Recon": REMOVED_RECON,
+    "ManualReview": REMOVED_MANUALREVIEW,
+}
+
+for field, values in removed_fields.items():
+    ix = df[field].isin(values) & (~(df.dropped | df.removed))
+    df.loc[ix, "removed"] = True
+    df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique()))
+
+
 ### Drop any small barriers that should be completely dropped from analysis
-# based on manual QA/QC
-drop_ix = df.PotentialProject.str.strip().isin(DROP_POTENTIAL_PROJECT)
-df.loc[drop_ix, "dropped"] = True
-df.loc[drop_ix, "log"] = f"dropped: PotentialProject one of {DROP_POTENTIAL_PROJECT}"
+dropped_fields = {
+    "PotentialProject": DROP_POTENTIAL_PROJECT,
+    "Recon": DROP_RECON,
+    "ManualReview": DROP_MANUALREVIEW,
+}
+
+for field, values in dropped_fields.items():
+    ix = df[field].isin(values) & (~(df.dropped | df.removed))
+    df.loc[ix, "dropped"] = True
+    df.loc[ix, "log"] = format_log("dropped", field, sorted(df.loc[ix][field].unique()))
+
+
+### Exclude barriers that should not be analyzed or prioritized based on Recon or ManualReview
+# NOTE: other barriers are excluded based on potential project after marking unranked / removed ones
+exclude_fields = {"Recon": EXCLUDE_RECON, "ManualReview": EXCLUDE_MANUALREVIEW}
+
+for field, values in exclude_fields.items():
+    ix = df[field].isin(values) & (~(df.dropped | df.removed | df.excluded))
+    df.loc[ix, "excluded"] = True
+    df.loc[ix, "log"] = format_log(
+        "excluded", field, sorted(df.loc[ix][field].unique())
+    )
+
+
+### Mark any barriers that should cut the network but be excluded from ranking
+unranked_fields = {"invasive": [True], "PotentialProject": UNRANKED_POTENTIAL_PROJECT}
+
+for field, values in unranked_fields.items():
+    ix = df[field].isin(values) & (
+        ~(df.dropped | df.excluded | df.removed | df.unranked)
+    )
+    df.loc[ix, "unranked"] = True
+    df.loc[ix, "log"] = format_log(
+        "unranked", field, sorted(df.loc[ix][field].unique())
+    )
+
+### Exclude any other PotentialProject values that we don't specfically allow
+exclude_ix = (~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT)) & (
+    ~(df.dropped | df.excluded | df.unranked | df.removed)
+)
+df.loc[exclude_ix, "excluded"] = True
+found_values = sorted(df.loc[exclude_ix].PotentialProject.unique())
+df.loc[exclude_ix, "log"] = f"excluded: PotentialProject {found_values}"
+
+
+### Summarize counts
 print(
-    f"Dropped {drop_ix.sum():,} small barriers from all analysis and mapping based on PotentialProject"
+    f"Dropped {df.dropped.sum():,} small barriers from network analysis and prioritization"
 )
-
-
-# Drop those where recon shows this as an error
-drop_ix = df.Recon.isin(DROP_RECON) & ~df.dropped
-df.loc[drop_ix, "dropped"] = True
-df.loc[drop_ix, "log"] = f"dropped: Recon one of {DROP_RECON}"
-
-drop_ix = df.ManualReview.isin(DROP_MANUALREVIEW)
-df.loc[drop_ix, "dropped"] = True
-df.loc[drop_ix, "log"] = f"dropped: ManualReview one of {DROP_MANUALREVIEW}"
-print(
-    f"Dropped {drop_ix.sum():,} small barriers from all analysis and mapping based on ManualReview"
-)
-
-### Exclude barriers that should not be analyzed or prioritized based on manual QA
-df["excluded"] = (
-    (~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT))
-    | df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
-    | df.Recon.isin(EXCLUDE_RECON)
-)
-
-df.loc[
-    ~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT), "log"
-] = f"excluded: PotentialProject not one of retained types {KEEP_POTENTIAL_PROJECT}"
-df.loc[df.Recon.isin(EXCLUDE_RECON), "log"] = f"excluded: Recon one of {EXCLUDE_RECON}"
-df.loc[
-    df.ManualReview.isin(EXCLUDE_MANUALREVIEW), "log"
-] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
 print(
     f"Excluded {df.excluded.sum():,} small barriers from network analysis and prioritization"
 )
-
-### Mark any barriers that should cut the network but be excluded from ranking
-# invasive barrier
-df["invasive"] = df.ManualReview.isin(INVASIVE_MANUALREVIEW) | df.Recon.isin(
-    INVASIVE_RECON
+print(
+    f"Marked {df.unranked.sum():,} small barriers to break networks but not be ranked"
 )
-df.loc[
-    df.Recon.isin(INVASIVE_RECON), "log"
-] = f"unranked: Recon one of {INVASIVE_RECON}"
-df.loc[
-    df.ManualReview.isin(INVASIVE_MANUALREVIEW), "log"
-] = f"unranked: ManualReview one of {INVASIVE_MANUALREVIEW}"
-print(f"Marked {df.invasive.sum():,} invasive barriers to omit from ranking")
-
-df["unranked"] = df.invasive
-
-### Mark any that were removed so that we can show these on the map
-df["removed"] = df.ManualReview == 8
-df.loc[df.removed, "log"] = f"removed: barrier was removed for conservation"
-
+print(
+    f"Marked {df.removed.sum()} small barriers that have been removed for conservation"
+)
 
 ### Snap barriers
 print(f"Snapping {len(df):,} small barriers")
@@ -332,7 +362,6 @@ df["snapped"] = False
 df["snap_log"] = "not snapped"
 df["lineID"] = np.nan  # line to which dam was snapped
 df["snap_tolerance"] = SNAP_TOLERANCE["default"]
-
 
 ix = df.Source.str.contains(
     "WDFW Fish Passage Barrier Database"
@@ -345,20 +374,25 @@ ix = df.Source.str.contains("Bat Surveys") | df.Source.isin(
 df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["bat survey"]
 
 
-# log dams excluded from snapping
-df.loc[
-    df.ManualReview.isin(OFFSTREAM_MANUALREVIEW), "snap_log"
-] = f"exluded from snapping (manual review one of {OFFSTREAM_MANUALREVIEW})"
-
-
 # Save original locations so we can map the snap line between original and new locations
 original_locations = df.copy()
 
 # Only snap those that have HUC2 assigned
 # IMPORTANT: do not snap manually reviewed, off-network small barriers, duplicates, or ones without HUC2!
-to_snap = df.loc[
-    (~df.ManualReview.isin(OFFSTREAM_MANUALREVIEW)) & (df.HUC2 != "") & (df.State != "")
-].copy()
+exclude_snap_ix = False
+exclude_snap_fields = {
+    "HUC2": [""],
+    "State": [""],
+    "ManualReview": OFFSTREAM_MANUALREVIEW,
+}
+for field, values in exclude_snap_fields.items():
+    ix = df[field].isin(values)
+    exclude_snap_ix = exclude_snap_ix | ix
+    df.loc[ix, "snap_log"] = format_log(
+        "not snapped", field, sorted(df.loc[ix][field].unique())
+    )
+
+to_snap = df.loc[~exclude_snap_ix].copy()
 
 
 # Snap to flowlines
@@ -523,7 +557,7 @@ df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped small barriers".format(len(df)))
 df[
-    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
+    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent", "removed"]
 ].to_feather(
     snapped_dir / "small_barriers.feather",
 )

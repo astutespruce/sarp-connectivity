@@ -84,7 +84,10 @@ def nearest(source, target, max_distance, keep_all=False):
 
         # Note: there may be multiple equidistant or intersected results, so we take the first
         df = pd.DataFrame(
-            {right_index_name: target.index.take(right_ix), "distance": distance,},
+            {
+                right_index_name: target.index.take(right_ix),
+                "distance": distance,
+            },
             index=source.index.take(left_ix),
         )
 
@@ -140,7 +143,7 @@ def neighborhoods(source, tolerance=100):
     index_name = source.index.name or "index"
     index_right = source.index.name or "index_right"
 
-    pairs = near(source, source, distance=tolerance)  # .reset_index()
+    pairs = near(source, source, distance=tolerance)
 
     # drop self-intersections
     pairs = (

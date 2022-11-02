@@ -215,7 +215,7 @@ WATERFALL_COLS = [
 
 
 # Used to filter small barriers by Potential_Project (small barriers)
-# based on guidance from Kat
+# based on guidance from Kat; others are intentionally excluded
 KEEP_POTENTIAL_PROJECT = [
     "Severe Barrier",
     "Moderate Barrier",
@@ -225,13 +225,13 @@ KEEP_POTENTIAL_PROJECT = [
     "Proposed Project",
 ]
 
-# "No Upstream Habitat", "No Upstream Channel", "Inaccessible" excluded intentionally from above
+UNRANKED_POTENTIAL_PROJECT = ["No Upstream Channel", "No Upstream Habitat"]
+REMOVED_POTENTIAL_PROJECT = ["Past Project", "Completed Project"]
 
-
-# Used to filter Potential_Project (small barriers)
 # These are DROPPED from all analysis and mapping
-# TODO: pull Past Project / Completed Project into different datasets for completed projects
-DROP_POTENTIAL_PROJECT = ["No Crossing", "Past Project", "Completed Project"]
+DROP_POTENTIAL_PROJECT = ["No Crossing"]
+
+# NOTE: everything other than above is marked as excluded from analysis
 
 
 # Used to filter small barriers and dams by SNAP2018, based on guidance from Kat
@@ -239,13 +239,15 @@ DROP_POTENTIAL_PROJECT = ["No Crossing", "Past Project", "Completed Project"]
 # Note: 0 value indicates N/A
 DROP_MANUALREVIEW = [
     6,  # Delete: ambiguous, might be duplicate or not exist
-    11,  # Duplicate TODO: handle correctly
+    11,  # Duplicate
     14,  # Error: dam does not exist
 ]
 
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_MANUALREVIEW = [
-    5,  # offstream (DO NOT SNAP!)
+# NOTE: off-network barriers (5) are excluded separately because they are not allowed to snap
+EXCLUDE_MANUALREVIEW = []
+
+REMOVED_MANUALREVIEW = [
     8,  # Removed (no longer exists): Dam removed for conservation
 ]
 
@@ -260,17 +262,42 @@ ONSTREAM_MANUALREVIEW = [
     15,  # Onstream, moved (moved to close to correct location)
 ]
 
-OFFSTREAM_MANUALREVIEW = [5, 11]  # offstream, checked by SARP  # duplicate, delete
+OFFSTREAM_MANUALREVIEW = [
+    5,  # offstream, checked by SARP
+    11,  # duplicate barrier, delete from analysis
+]
 
 # Used to filter dams by Recon
 # based on guidance from Kat
-DROP_RECON = [5, 19]
-DROP_FEASIBILITY = [7]
+DROP_RECON = [
+    5,  # Dam may be removed or error (no longer visible)
+    19,  # Proposed dam
+]
+
+DROP_FEASIBILITY = [
+    7,  # Error
+]
 
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_RECON = [7, 22, 23]
-EXCLUDE_FEASIBILITY = [8, 13]
-EXCLUDE_BARRIER_SEVERITY = [7]  # limited to just dams
+REMOVED_RECON = [
+    7,  # Dam was deliberately removed
+]
+
+EXCLUDE_RECON = [
+    22,  # Removal unlikely, fish passage installed
+    23,  # duplicate fish passage project structure
+]
+
+REMOVED_FEASIBILITY = [
+    8,  # Dam removed for conservation benefit
+]
+
+EXCLUDE_FEASIBILITY = [
+    13,  # Dam breached with full flow
+]
+
+# limited to just dams
+EXCLUDE_BARRIER_SEVERITY = [7]  # No Barrier
 
 INVASIVE_MANUALREVIEW = [
     10,  # invasive barriers; these break the network, but not included in prioritization

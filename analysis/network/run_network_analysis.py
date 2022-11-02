@@ -55,6 +55,10 @@ barriers = pd.read_feather(
     columns=["id", "barrierID", "loop", "intermittent", "kind", "HUC2"],
 )
 
+# exclude all removed barriers from this analysis
+barriers = barriers.loc[~barriers.removed].reset_index(drop=True)
+
+
 huc2s = sorted([huc2 for huc2 in barriers.HUC2.unique() if huc2])
 
 # manually subset keys from above for processing
@@ -93,7 +97,7 @@ joins = read_feathers(
     new_fields={"HUC2": huc2s},
 )
 
-# TODO: remove once all flowlines have been re-extracted
+# TODO: remove once all flowlines have been re-extracted from NHD
 joins.loc[(joins.upstream == 0) & (joins.type == "internal"), "type"] = "origin"
 
 groups, joins = connect_huc2s(joins)

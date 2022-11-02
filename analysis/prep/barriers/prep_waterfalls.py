@@ -102,6 +102,9 @@ df["dropped"] = False
 # NOTE: no waterfalls are currently excluded from analysis
 df["excluded"] = False
 
+# removed is just to satisfy expected fields for barriers, not relevant
+df["removed"] = False
+
 df["log"] = ""
 
 

@@ -41,21 +41,26 @@ from analysis.prep.barriers.lib.duplicates import (
 from analysis.lib.waterbodies import classify_waterbody_size
 
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
+from analysis.prep.barriers.lib.log import format_log
 from analysis.constants import (
     GEO_CRS,
     DROP_FEASIBILITY,
-    DROP_MANUALREVIEW,
-    DROP_RECON,
     EXCLUDE_FEASIBILITY,
+    REMOVED_FEASIBILITY,
+    EXCLUDE_FEASIBILITY,
+    INVASIVE_FEASIBILITY,
+    DROP_MANUALREVIEW,
     EXCLUDE_MANUALREVIEW,
-    EXCLUDE_RECON,
-    EXCLUDE_PASSAGEFACILITY,
+    REMOVED_MANUALREVIEW,
     ONSTREAM_MANUALREVIEW,
     OFFSTREAM_MANUALREVIEW,
-    RECON_TO_FEASIBILITY,
-    INVASIVE_FEASIBILITY,
     INVASIVE_MANUALREVIEW,
+    DROP_RECON,
+    EXCLUDE_RECON,
+    REMOVED_RECON,
     INVASIVE_RECON,
+    RECON_TO_FEASIBILITY,
+    EXCLUDE_PASSAGEFACILITY,
     NOSTRUCTURE_STRUCTURECATEGORY,
     FCODE_TO_STREAMTYPE,
     DAM_BARRIER_SEVERITY_TO_DOMAIN,
@@ -420,6 +425,7 @@ df["excluded"] = False
 
 # unranked: records that should break the network but not be used for ranking
 df["invasive"] = False
+
 # TEMP: no-structure barriers are excluded instead of marked as unranked
 # df["nostructure"] = False  # diversions with no associated structure
 df["unranked"] = False  # combined from above fields
@@ -427,102 +433,83 @@ df["unranked"] = False  # combined from above fields
 # removed: dam was removed for conservation but we still want to track it
 df["removed"] = False
 
-# Drop any that didn't intersect HUCs or states
+
+### Mark invasive barriers
+# NOTE: invasive status is not affected by other statuses
+invasive_fields = {
+    "Recon": INVASIVE_RECON,
+    "Feasibility": INVASIVE_FEASIBILITY,
+    "ManualReview": INVASIVE_MANUALREVIEW,
+}
+
+for field, values in invasive_fields.items():
+    ix = df[field].isin(values)
+    df.loc[ix, "invasive"] = True
+
+
+### Drop any that didn't intersect HUCs or states (including those outside analysis region)
 drop_ix = (df.HUC12 == "") | (df.State == "")
-if drop_ix.sum():
-    print(f"{drop_ix.sum():,} dams are outside HUC12 / states")
-    # Mark dropped barriers
-    df.loc[drop_ix, "dropped"] = True
-    df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
+
+### Mark any that were removed so that we can show these on the map
+# NOTE: we don't mark these as dropped
+removed_fields = {
+    "Recon": REMOVED_RECON,
+    "Feasibility": REMOVED_FEASIBILITY,
+    "ManualReview": REMOVED_MANUALREVIEW,
+}
+
+for field, values in removed_fields.items():
+    ix = df[field].isin(values) & (~(df.dropped | df.removed))
+    df.loc[ix, "removed"] = True
+    df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique()))
+
 
 ### Drop any dams that should be completely dropped from analysis
-# based on manual QA/QC and other review.
+dropped_fields = {
+    "Recon": DROP_RECON,
+    "Feasibility": DROP_FEASIBILITY,
+    "ManualReview": DROP_MANUALREVIEW,
+}
 
-# Drop those where recon shows this as an error
-drop_ix = df.Recon.isin(DROP_RECON) & ~df.dropped
-df.loc[drop_ix, "dropped"] = True
-df.loc[drop_ix, "log"] = f"dropped: Recon one of {DROP_RECON}"
+for field, values in dropped_fields.items():
+    ix = df[field].isin(values) & (~(df.dropped | df.removed))
+    df.loc[ix, "dropped"] = True
+    df.loc[ix, "log"] = format_log("dropped", field, sorted(df.loc[ix][field].unique()))
 
-# Drop those where recon shows this as an error
-drop_ix = df.Feasibility.isin(DROP_FEASIBILITY) & ~df.dropped
-df.loc[drop_ix, "dropped"] = True
-df.loc[drop_ix, "log"] = f"dropped: Feasibility one of {DROP_FEASIBILITY}"
-
-# Drop those that were manually reviewed off-network or errors
-drop_ix = df.ManualReview.isin(DROP_MANUALREVIEW) & ~df.dropped
-df.loc[drop_ix, "dropped"] = True
-df.loc[drop_ix, "log"] = f"dropped: ManualReview one of {DROP_MANUALREVIEW}"
-
-print(f"Dropped {df.dropped.sum():,} dams from all analysis and mapping")
 
 ### Exclude dams that should not be analyzed or prioritized based on manual QA
-df["excluded"] = (
-    df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
-    | df.Recon.isin(EXCLUDE_RECON)
-    | df.Feasibility.isin(EXCLUDE_FEASIBILITY)
-    | df.PassageFacility.isin(EXCLUDE_PASSAGEFACILITY)
-    | df.BarrierSeverity.isin(EXCLUDE_BARRIER_SEVERITY)
-    | df.StructureCategory.isin(NOSTRUCTURE_STRUCTURECATEGORY)
-)
+excluded_fields = {
+    "Recon": EXCLUDE_RECON,
+    "Feasibility": EXCLUDE_FEASIBILITY,
+    "ManualReview": EXCLUDE_MANUALREVIEW,
+    "PassageFacility": EXCLUDE_PASSAGEFACILITY,
+    "BarrierSeverity": EXCLUDE_BARRIER_SEVERITY,
+    # Temp: lump diversions without structures in with other excluded barriers
+    "StructureCategory": NOSTRUCTURE_STRUCTURECATEGORY,
+}
 
-df.loc[
-    df.StructureCategory.isin(NOSTRUCTURE_STRUCTURECATEGORY), "log"
-] = f"excluded: StructureCategory one of {NOSTRUCTURE_STRUCTURECATEGORY}"
-df.loc[
-    df.PassageFacility.isin(EXCLUDE_PASSAGEFACILITY), "log"
-] = f"excluded: PassageFacility one of {EXCLUDE_PASSAGEFACILITY}"
-df.loc[
-    df.Feasibility.isin(EXCLUDE_FEASIBILITY), "log"
-] = f"excluded: Feasibility one of {EXCLUDE_FEASIBILITY}"
-df.loc[
-    df.BarrierSeverity.isin(EXCLUDE_BARRIER_SEVERITY), "log"
-] = f"excluded: BarrierSeverity one of {EXCLUDE_BARRIER_SEVERITY}"
-df.loc[df.Recon.isin(EXCLUDE_RECON), "log"] = f"excluded: Recon one of {EXCLUDE_RECON}"
-df.loc[
-    df.ManualReview.isin(EXCLUDE_MANUALREVIEW), "log"
-] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
-print(f"Excluded {df.excluded.sum():,} dams from analysis and prioritization")
+for field, values in excluded_fields.items():
+    ix = df[field].isin(values) & (~(df.dropped | df.removed | df.excluded))
+    df.loc[ix, "excluded"] = True
+    df.loc[ix, "log"] = format_log(
+        "excluded", field, sorted(df.loc[ix][field].unique())
+    )
 
 
 ### Mark any dams that should cut the network but be excluded from ranking
-# diversion
-# TEMP: no-structure barriers are excluded instead of marked as unranked
-# df["nostructure"] = df.StructureCategory.isin(NOSTRUCTURE_STRUCTURECATEGORY)
-# df.loc[
-#     df.nostructure, "log"
-# ] = f"unranked: StructureCategory one of {NOSTRUCTURE_STRUCTURECATEGORY}"
-# print(
-#     f"Marked {df.nostructure.sum():,} diversions without an associated structure to omit from ranking"
-# )
-
-# invasive barrier
-df["invasive"] = (
-    df.ManualReview.isin(INVASIVE_MANUALREVIEW)
-    | df.Recon.isin(INVASIVE_RECON)
-    | df.Feasibility.isin(INVASIVE_FEASIBILITY)
-)
-df.loc[
-    df.Feasibility.isin(INVASIVE_FEASIBILITY), "log"
-] = f"unranked: Feasibility one of {INVASIVE_FEASIBILITY}"
-df.loc[
-    df.Recon.isin(INVASIVE_RECON), "log"
-] = f"unranked: Recon one of {INVASIVE_RECON}"
-df.loc[
-    df.ManualReview.isin(INVASIVE_MANUALREVIEW), "log"
-] = f"unranked: ManualReview one of {INVASIVE_MANUALREVIEW}"
-print(f"Marked {df.invasive.sum():,} invasive barriers to omit from ranking")
-
-# both invasive and no structure diversions should be unranked
-# df["unranked"] = df.invasive | df.nostructure
-df["unranked"] = df.invasive
-
-
-### Mark any that were removed so that we can show these on the map
-df["removed"] = (df.ManualReview == 8) | (df.Recon == 7) | (df.Feasibility == 8)
-df.loc[df.removed, "log"] = f"removed: dam was removed for conservation"
-
-print(f"Marked {df.removed.sum():,} dams removed for conservation")
-
+unranked_fields = {
+    "invasive": [True],
+}
+for field, values in unranked_fields.items():
+    ix = df[field].isin(values) & (
+        ~(df.dropped | df.excluded | df.removed | df.unranked)
+    )
+    df.loc[ix, "unranked"] = True
+    df.loc[ix, "log"] = format_log(
+        "unranked", field, sorted(df.loc[ix][field].unique())
+    )
 
 ### Mark estimated dams
 # these were generated by SARP from analysis of small waterbodies or in this
@@ -610,15 +597,8 @@ df.loc[ix, "snap_tolerance"] = np.max(
     [df.loc[ix].snap_tolerance.values, length_tolerance], axis=0
 )
 
-
-# log dams excluded from snapping
-df.loc[
-    df.ManualReview.isin(OFFSTREAM_MANUALREVIEW), "snap_log"
-] = f"excluded from snapping (manual review one of {OFFSTREAM_MANUALREVIEW})"
-
 ### Mark dam snapping groups
 # estimated dams or likely off-network dams will get lower snapping tolerance
-
 
 df.loc[df.is_estimated, "snap_group"] = 1  # indicates estimated dam
 
@@ -652,12 +632,24 @@ print(
 
 
 # IMPORTANT: do not snap manually reviewed, off-network dams, duplicates, or ones without HUC2!
-to_snap = df.loc[
-    (~df.ManualReview.isin(OFFSTREAM_MANUALREVIEW))
-    & (~df.duplicate)
-    & (df.HUC2 != "")
-    & (df.State != "")
-].copy()
+# duplicates are excluded here because they may snap to different locations due
+# to different snap tolerances, so don't snap them at all
+exclude_snap_ix = False
+exclude_snap_fields = {
+    "HUC2": [""],
+    "State": [""],
+    "duplicate": [True],
+    "ManualReview": OFFSTREAM_MANUALREVIEW,
+}
+for field, values in exclude_snap_fields.items():
+    ix = df[field].isin(values)
+    exclude_snap_ix = exclude_snap_ix | ix
+    df.loc[ix, "snap_log"] = format_log(
+        "not snapped", field, sorted(df.loc[ix][field].unique())
+    )
+
+to_snap = df.loc[~exclude_snap_ix].copy()
+
 
 # Save original locations so we can map the snap line between original and new locations
 original_locations = to_snap.copy()
@@ -884,7 +876,7 @@ df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped dams".format(len(df)))
 df[
-    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
+    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent", "removed"]
 ].to_feather(
     snapped_dir / "dams.feather",
 )

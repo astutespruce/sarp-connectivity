@@ -1,10 +1,10 @@
-import pandas as pd
 import geopandas as gp
+import pandas as pd
 import pygeos as pg
 from pyogrio import write_dataframe
 
+from analysis.constants import ONSTREAM_MANUALREVIEW
 from analysis.lib.geometry import dissolve, neighborhoods
-from analysis.constants import CRS, ONSTREAM_MANUALREVIEW
 
 
 def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
@@ -25,6 +25,7 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
     tuple of (GeoDataFrame, DataFrame)
         df, to_dedup (remaining to be deduplicated)
     """
+
     groups = (
         pd.DataFrame(
             neighborhoods(
@@ -32,7 +33,7 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
                 tolerance,
             )
         )
-        .join(df[["dropped", "excluded", "ManualReview", "dup_sort"]])
+        .join(df[["dropped", "excluded", "removed", "ManualReview", "dup_sort"]])
         .sort_values(by="dup_sort")
     )
 
@@ -48,14 +49,12 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
     ix = groups.index
     df.loc[ix, "dup_group"] = groups.loc[ix].group
     df.loc[ix, "dup_count"] = groups.loc[ix].dup_count
-    df.loc[ix, "dup_log"] = "kept: duplicated by other barriers within {}m".format(
-        tolerance
-    )
+    df.loc[ix, "dup_log"] = f"kept: duplicated by other barriers within {tolerance}m"
 
     keep = groups.reset_index().rename(columns={"index": "id"}).groupby("group").first()
     ix = groups.loc[~groups.index.isin(keep.id.unique())].index
     df.loc[ix, "duplicate"] = True
-    df.loc[ix, "dup_log"] = "duplicate: other barriers within {}m".format(tolerance)
+    df.loc[ix, "dup_log"] = f"duplicate: other barriers within {tolerance}m"
 
     to_dedup = to_dedup.loc[~to_dedup.index.isin(groups.index)].copy()
 
@@ -80,7 +79,7 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
 
     count_dropped = len(df.loc[df.dup_group.isin(drop_groups) & ~df.dropped])
     print(
-        f"Dropped {count_dropped:,} barriers that were in duplicate groups with dams that were dropped"
+        f"Dropped {count_dropped:,} barriers that were in duplicate groups with barriers that were dropped"
     )
 
     ix = df.dup_group.isin(drop_groups)
@@ -126,7 +125,7 @@ def export_duplicate_areas(dups, path):
         .agg({"SARPID": "unique", "id": "unique"})
         .join(dissolved.geometry, on="dup_group"),
         crs=dups.crs,
-    )
+    ).reset_index()
     groups["id"] = groups.id.apply(lambda x: ", ".join([str(s) for s in x]))
     groups["SARPID"] = groups.SARPID.apply(lambda x: ", ".join([str(s) for s in x]))
     write_dataframe(groups, path)
