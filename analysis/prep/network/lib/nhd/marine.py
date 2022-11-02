@@ -5,7 +5,8 @@ import pandas as pd
 import pygeos as pg
 from pyogrio import read_dataframe
 
-from analysis.lib.geometry import explode
+from analysis.lib.graph.speedups import DirectedGraph
+from analysis.lib.geometry import explode, dissolve, make_valid
 from analysis.prep.network.lib.nhd.util import get_column_names
 
 
@@ -39,7 +40,7 @@ def extract_marine(gdb, target_crs):
     GeoDataFrame
     """
 
-    print("Reading marine areas...")
+    print("Reading and dissolving marine areas...")
 
     layer = "NHDArea"
     read_cols, col_map = get_column_names(gdb, layer, COLS)
@@ -68,31 +69,52 @@ def extract_marine(gdb, target_crs):
 
     df = pd.concat([area, wb], ignore_index=True, sort=False)
 
-    if len(df):
-        df = explode(df).reset_index(drop=True)
+    if not len(df):
+        return df.to_crs(target_crs)
 
-        # only keep those that are not fully contained within land areas
-        layer = "NHDPlusLandSea"
-        read_cols, col_map = get_column_names(gdb, layer, ["Land"])
-        land_col = col_map.get("Land", "Land")
+    df = explode(df).reset_index(drop=True)
+    df["geometry"] = make_valid(df.geometry.values.data)
+    df = explode(df)
+    df = df.loc[pg.get_type_id(df.geometry.values.data) == 3].reset_index(drop=True)
 
-        land = explode(
-            read_dataframe(
-                gdb,
-                layer=layer,
-                columns=[],
-                force_2d=True,
-                where=f'"{land_col}" = 1',
-            )
+    if not len(df):
+        return df.to_crs(target_crs)
+
+    # mark those we know are marine
+    df["marine"] = df.FType == 445
+
+    # find all connected parts
+    tree = pg.STRtree(df.geometry.values.data)
+    pairs = pd.DataFrame(
+        tree.query_bulk(df.geometry.values.data, predicate="intersects").T,
+        columns=["left", "right"],
+    )
+    g = DirectedGraph(
+        pairs.left.values.astype("int64"), pairs.right.values.astype("int64")
+    )
+
+    groups = (
+        pd.DataFrame(
+            {i: g for i, g in enumerate(g.components())}.items(),
+            columns=["group", "index"],
         )
-        land["geometry"] = pg.make_valid(land.geometry.values.data)
-        tree = pg.STRtree(df.geometry.values.data)
-        ix = tree.query_bulk(land.geometry.values.data, predicate="contains_properly")[
-            1
-        ]
+        .explode("index")
+        .astype("uint64")
+        .set_index("index")
+    )
 
-        print(f"Dropping {len(ix)} areas that are fully contained within land areas")
+    df = df.join(groups)
+    marine_groups = df.loc[df.marine].group.unique()
+    # mark any that have marine in their group
+    df.loc[df.group.isin(marine_groups), "marine"] = True
 
-        df = df.iloc[np.setdiff1d(df.index.values, ix)].copy()
+    df = df.loc[df.marine]
+
+    if len(df):
+        df = (
+            dissolve(df, by="marine")
+            .explode(ignore_index=True)
+            .drop(columns=["marine"])
+        )
 
     return df.to_crs(target_crs)
