@@ -533,6 +533,7 @@ STATE_TIER_PACK_BITS = [
 
 # typos fixed and trailing periods removed
 RECON_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with small barriers
     0: "Not yet evaluated",  # added
     1: "Good candidate for removal. Move forward with landowner contact",  # expanded acronym
     2: "Dam needs follow-up with landowner",
@@ -560,7 +561,7 @@ RECON_DOMAIN = {
 
 # Created here to capture values below
 FEASIBILITY_DOMAIN = {
-    # -1: "N/A",  # These are filtered out in preprocessing - not barriers
+    -1: "Not applicable",  # only used when combining with small barriers
     0: "Not assessed",
     1: "Not feasible",
     2: "Likely infeasible",
@@ -580,6 +581,7 @@ FEASIBILITY_DOMAIN = {
 
 
 PURPOSE_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with small barriers
     0: "Unknown",  # added
     1: "Agriculture",
     2: "Flood Control",
@@ -596,6 +598,7 @@ PURPOSE_DOMAIN = {
 }
 
 CONSTRUCTION_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with small barriers
     0: "Unknown",  # added
     1: "Cement",
     2: "Concrete/Roller-compacted Concrete",
@@ -611,7 +614,8 @@ CONSTRUCTION_DOMAIN = {
 }
 
 DAM_CONDITION_DOMAIN = {
-    0: "Not Rated",
+    -1: "Not applicable",  # only used when combining with small barriers
+    0: "Not rated",
     1: "Satisfactory",
     2: "Fair",
     3: "Poor",
@@ -624,6 +628,7 @@ DAM_CONDITION_DOMAIN = {
 # Created here
 # Height in feet
 HEIGHT_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with small barriers
     0: "Unknown",
     1: "< 5",
     2: "5 - 10",
@@ -675,6 +680,7 @@ WATERBODY_SIZECLASS_DOMAIN = {
 
 
 BARRIER_SEVERITY_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with dams
     0: "Unknown",
     1: "Not a barrier",  # includes minor barriers
     2: "Moderate barrier",
@@ -692,6 +698,7 @@ CROSSING_TYPE_DOMAIN = {
 }
 
 CONSTRICTION_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with dams
     0: "Unknown",
     1: "Spans full channel & banks",
     2: "Spans only bankfull/active channel",
@@ -701,14 +708,31 @@ CONSTRICTION_DOMAIN = {
     6: "Severe",
 }
 
-DIVERSION_DOMAIN = {0: "Unknown", 1: "Yes", 2: "No"}
+DIVERSION_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with small barriers
+    0: "Unknown",
+    1: "Yes",
+    2: "No",
+}
 
 # Note: -1 and 2 are made up here, not part of original domain
-LOWHEADDAM_DOMAIN = {-1: "Unknown", 0: "No", 1: "Yes", 2: "Likely"}
+LOWHEADDAM_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with small barriers
+    0: "Unknown",
+    1: "Yes",
+    2: "Likely",
+    3: "No",
+}
 
-FISHSCREEN_DOMAIN = {0: "Unknown", 1: "Yes", 2: "No"}
+FISHSCREEN_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with small barriers
+    0: "Unknown",
+    1: "Yes",
+    2: "No",
+}
 
 SCREENTYPE_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with small barriers
     0: "Unknown",
     1: "Horizontal",
     2: "Vertical",
@@ -719,6 +743,7 @@ SCREENTYPE_DOMAIN = {
 }
 
 DAM_BARRIER_SEVERITY_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with small barriers
     0: "Unknown",
     1: "Complete",
     2: "Partial",
@@ -732,7 +757,14 @@ DAM_BARRIER_SEVERITY_DOMAIN = {
 
 ROAD_TYPE_DOMAIN = {0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad"}
 
-BARRIER_CONDITION_DOMAIN = {0: "Unknown", 1: "Failing", 2: "Poor", 3: "OK", 4: "New"}
+BARRIER_CONDITION_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with dams
+    0: "Unknown",
+    1: "Failing",
+    2: "Poor",
+    3: "OK",
+    4: "New",
+}
 
 OWNERTYPE_DOMAIN = {
     0: "",  # most likely private land, but just don't say anything
@@ -783,40 +815,31 @@ PASSAGEFACILITY_CLASS_DOMAIN = {
 }
 
 PASSAGEFACILITY_DOMAIN = {
-    0: "Unknown or None",
-    1: "Trap & Truck",
-    2: "Fish Ladder - unspecified",
+    -1: "Not applicable",  # only used when combining with small barriers
+    0: "Unknown or none",
+    1: "Trap & truck",
+    2: "Fish ladder - unspecified",
     3: "Locking",
-    4: "Rock Rapids",
+    4: "Rock rapids",
     5: "Eelway",
-    6: "Alaskan Steeppass",
-    7: "Herring Passage",
+    6: "Alaskan steeppass",
+    7: "Herring passage",
     8: "Reservation",
     9: "Exemption",
     10: "Notch",
-    11: "Denil Fishway",
-    12: "Fish Lift",
-    13: "Partial Breach",
+    11: "Denil fishway",
+    12: "Fish lift",
+    13: "Partial breach",
     14: "Removal",
-    15: "Pool and Weir Fishway",
-    16: "Vertical Slot Fishway",
-    17: "Nature-like Fishway",
-    18: "Bypass Channel Fishway",
+    15: "Pool and weir fishway",
+    16: "Vertical slot fishway",
+    17: "Nature-like fishway",
+    18: "Bypass channel fishway",
     19: "Crossvane",
-    20: "Screen Bypass",
-    21: "Fishway Unspecified",
+    20: "Screen bypass",
+    21: "Fishway unspecified",
     22: "Other",
 }
-
-# Not used directly
-# BARRIERSTATUS_DOMAIN = {
-#     0: "Unknown",
-#     1: "Impounding",
-#     2: "Full breach",
-#     3: "Partial breach",
-#     4: "Drained",
-#     5: "Dry detention",
-# }
 
 MANUALREVIEW_DOMAIN = {
     0: "",
@@ -848,91 +871,6 @@ STREAMTYPE_DOMAIN = {
 }
 
 BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
-
-
-### Not exported
-# IMPOUNDMENTTYPE_DOMAIN = {1: "Run of river", 2: "Lake-like", 3: "Large reservoir"}
-
-
-# STRUCTURECATEGORY_DOMAIN = {
-#     0: "Unknown",
-#     1: "Fish Management",
-#     2: "Road Crossing",
-#     3: "Diversion",
-#     4: "Culvert",
-#     5: "Natural",
-#     6: "Non-structural",
-#     7: "Debris",
-#     8: "Other",
-#     9: "Dam",
-# }
-
-# STRUCTURECLASS_DOMAIN = {
-#     11: "Fish Mgnt: Fishway",
-#     12: "Fish Mgnt: Fish Ladder",
-#     13: "Fish Mgnt: Fish Trap",
-#     14: "Fish Mgnt: Fish Lock",
-#     15: "Fish Mgnt: Rock-Ramp",
-#     16: "Fish Mgnt: Vertical-Slot",
-#     17: "Fish Mgnt: Baffle",
-#     21: "Road Crossing: Railroad",
-#     22: "Road Crossing: Bridge-Free Span",
-#     23: "Road Crossing: Instream Crossing",
-#     24: "Road Crossing: Road Crosses Stream",
-#     25: "Road Crossing: Bridge",
-#     26: "Road Crossing: Low Water Crossing",
-#     31: "Diversion: Unscreened",
-#     32: "Diversion: Screened",
-#     33: "Diversion: Canal",
-#     34: "Diversion: Channel",
-#     35: "Diversion: Pump",
-#     36: "Diversion: Ditch",
-#     37: "Diversion: Vertical",
-#     38: "Diversion: Centrifugal",
-#     39: "Diversion: Slant",
-#     310: "Diversion: Floodgate",
-#     311: "Diversion: Siphon",
-#     312: "Diversion: Submersible",
-#     41: "Culvert: Corrugated metal",
-#     43: "Culvert: Circular",
-#     44: "Culvert: Open Bottom",
-#     45: "Culvert: Pipe Arch",
-#     46: "Culvert: Arch",
-#     47: "Culvert: Bottomless",
-#     49: "Culvert: Pipe-multiple",
-#     411: "Culvert: Box",
-#     51: "Natural: Waterfall",
-#     511: "Natural: Cascade",
-#     52: "Natural: Beaver Dam",
-#     53: "Natural: Rocks Blockage",
-#     61: "Non-structural: High Velocity",
-#     62: "Non-structural: Temperature",
-#     63: "Non-structural: Low Flow",
-#     64: "Non-structural: Chemical",
-#     65: "Non-structural: Steep Gradient",
-#     66: "Non-structural: Oxygen Depleted",
-#     67: "Non-structural: Salinity",
-#     68: "Non-structural: Low Light",
-#     71: "Debris: Log Jam",
-#     72: "Debris: Trash (non-natural)",
-#     73: "Debris: Landslide",
-#     74: "Debris: Boulders-Rocks (man-made)",
-#     75: "Debris: Debris Jam",
-#     81: "Other: Levee",
-#     82: "Other: Gabion",
-#     83: "Other: Locks",
-#     84: "Other: Tailing",
-#     85: "Other: Waterfall (man-made)",
-#     86: "Other: Dike",
-#     97: "Dam: Buttress",
-#     98: "Dam: Arch",
-#     99: "Dam: Multi-Arch",
-#     910: "Dam: Embankment",
-#     911: "Dam: Grade",
-#     916: "Dam: Lowhead or Weir",
-#     917: "Dam: Dam Other",
-#     918: "Dam: Gravity",
-# }
 
 
 # state abbrev to name, from CENSUS Tiger
@@ -1110,11 +1048,11 @@ FIELD_DEFINITIONS = {
     "Purpose": "primary purpose of {type}, if known.",
     "PassageFacility": "type of fish passage facility, if known.",
     "Feasibility": "feasibility of {type} removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of {type}s.",
-    "BarrierSeverity": "passability of the barrier, if known.",
+    "BarrierSeverity": "passability of the dam, if known.",
     "Diversion": "Identifies if dam is known to be a diversion.  Note: diversion information is available only for a small number of dams.",
     "LowheadDam": "Identifies if dam is known or estimated to be a lowhead dam.  Note: lowhead dam information is available only for a small number of dams.",
     "WaterbodyKM2": "area of associated waterbody in square kilometers.  -1 = no associated waterbody",
-    "WaterbodySizeClass": "size class of associated waterbody.",
+    "WaterbodySizeClass": "size class of associated waterbody.  -1 = no associated waterbody",
     # barrier-specific fields
     "LocalID": "local identifier.",
     "CrossingCode": "crossing identifier.",
@@ -1224,3 +1162,103 @@ DAM_FIELD_DEFINITIONS = {
 SB_FIELD_DEFINITIONS = {
     k: v.replace("{type}", "road-related barrier") for k, v in FIELD_DEFINITIONS.items()
 }
+
+
+### Domains not currently used
+
+# Not used directly
+# BARRIERSTATUS_DOMAIN = {
+#     -1: "Not applicable",
+#     0: "Unknown",
+#     1: "Impounding",
+#     2: "Full breach",
+#     3: "Partial breach",
+#     4: "Drained",
+#     5: "Dry detention",
+# }
+
+
+### Not exported
+# IMPOUNDMENTTYPE_DOMAIN = {1: "Run of river", 2: "Lake-like", 3: "Large reservoir"}
+
+
+# STRUCTURECATEGORY_DOMAIN = {
+#     -1: "Not applicable",
+#     0: "Unknown",
+#     1: "Fish Management",
+#     2: "Road Crossing",
+#     3: "Diversion",
+#     4: "Culvert",
+#     5: "Natural",
+#     6: "Non-structural",
+#     7: "Debris",
+#     8: "Other",
+#     9: "Dam",
+# }
+
+# STRUCTURECLASS_DOMAIN = {
+#     11: "Fish Mgnt: Fishway",
+#     12: "Fish Mgnt: Fish Ladder",
+#     13: "Fish Mgnt: Fish Trap",
+#     14: "Fish Mgnt: Fish Lock",
+#     15: "Fish Mgnt: Rock-Ramp",
+#     16: "Fish Mgnt: Vertical-Slot",
+#     17: "Fish Mgnt: Baffle",
+#     21: "Road Crossing: Railroad",
+#     22: "Road Crossing: Bridge-Free Span",
+#     23: "Road Crossing: Instream Crossing",
+#     24: "Road Crossing: Road Crosses Stream",
+#     25: "Road Crossing: Bridge",
+#     26: "Road Crossing: Low Water Crossing",
+#     31: "Diversion: Unscreened",
+#     32: "Diversion: Screened",
+#     33: "Diversion: Canal",
+#     34: "Diversion: Channel",
+#     35: "Diversion: Pump",
+#     36: "Diversion: Ditch",
+#     37: "Diversion: Vertical",
+#     38: "Diversion: Centrifugal",
+#     39: "Diversion: Slant",
+#     310: "Diversion: Floodgate",
+#     311: "Diversion: Siphon",
+#     312: "Diversion: Submersible",
+#     41: "Culvert: Corrugated metal",
+#     43: "Culvert: Circular",
+#     44: "Culvert: Open Bottom",
+#     45: "Culvert: Pipe Arch",
+#     46: "Culvert: Arch",
+#     47: "Culvert: Bottomless",
+#     49: "Culvert: Pipe-multiple",
+#     411: "Culvert: Box",
+#     51: "Natural: Waterfall",
+#     511: "Natural: Cascade",
+#     52: "Natural: Beaver Dam",
+#     53: "Natural: Rocks Blockage",
+#     61: "Non-structural: High Velocity",
+#     62: "Non-structural: Temperature",
+#     63: "Non-structural: Low Flow",
+#     64: "Non-structural: Chemical",
+#     65: "Non-structural: Steep Gradient",
+#     66: "Non-structural: Oxygen Depleted",
+#     67: "Non-structural: Salinity",
+#     68: "Non-structural: Low Light",
+#     71: "Debris: Log Jam",
+#     72: "Debris: Trash (non-natural)",
+#     73: "Debris: Landslide",
+#     74: "Debris: Boulders-Rocks (man-made)",
+#     75: "Debris: Debris Jam",
+#     81: "Other: Levee",
+#     82: "Other: Gabion",
+#     83: "Other: Locks",
+#     84: "Other: Tailing",
+#     85: "Other: Waterfall (man-made)",
+#     86: "Other: Dike",
+#     97: "Dam: Buttress",
+#     98: "Dam: Arch",
+#     99: "Dam: Multi-Arch",
+#     910: "Dam: Embankment",
+#     911: "Dam: Grade",
+#     916: "Dam: Lowhead or Weir",
+#     917: "Dam: Dam Other",
+#     918: "Dam: Gravity",
+# }

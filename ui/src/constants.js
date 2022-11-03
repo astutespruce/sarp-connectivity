@@ -209,25 +209,26 @@ REGION_STATES.total = [
 ].sort()
 
 export const RECON = {
+  '-1': 'Not applicable',
   0: 'Feasibility not yet evaluated',
+  1: 'Good candidate for removal. Move forward with landowner contact',
   2: 'Dam needs follow-up with landowner',
   3: 'Removal is unlikely.  Social conditions unfavorable',
   4: 'Removal is extremely infeasible.  Large reservoirs, etc.',
   5: 'Dam may be removed or error',
+  6: 'Infeasible in short term via landowner contact',
   7: 'Dam was deliberately removed',
   8: 'Dam location is incorrect and needs to be moved',
   9: 'Dam is breached and no impoundment visible',
   10: 'Dam was once considered, need to revisit',
   11: 'Removal planned',
   13: 'Unsure, need second opinion',
-  1: 'Good candidate for removal. Move forward with landowner contact',
   14: 'Take immediate action, abandoned-looking dam in poor condition',
   15: 'No conservation benefit',
   16: 'Invasive species barrier',
-  6: 'Infeasible in short term via landowner contact',
+  17: 'Risky for mussels',
   18: 'Dam failed',
   19: 'Proposed dam',
-  17: 'Risky for mussels',
   20: 'Farm pond - no conservation benefit',
   21: 'Potential thermal issues',
   22: 'Removal unlikely; fish passage installed',
@@ -235,6 +236,7 @@ export const RECON = {
 }
 
 export const PURPOSE = {
+  '-1': 'Not applicable',
   0: 'Unknown',
   1: 'Agriculture',
   2: 'Flood Control',
@@ -251,6 +253,7 @@ export const PURPOSE = {
 }
 
 export const CONSTRUCTION = {
+  '-1': 'Not applicable',
   0: 'Unknown',
   1: 'Cement',
   2: 'Concrete/Roller-compacted Concrete',
@@ -266,6 +269,7 @@ export const CONSTRUCTION = {
 }
 
 export const DAM_CONDITION = {
+  '-1': 'Not applicable',
   0: 'Not Rated',
   1: 'Satisfactory',
   2: 'Fair',
@@ -276,6 +280,7 @@ export const DAM_CONDITION = {
 }
 
 export const FEASIBILITY = {
+  '-1': 'Not applicable',
   0: 'Not assessed',
   1: 'Not feasible',
   2: 'Likely infeasible',
@@ -293,6 +298,7 @@ export const FEASIBILITY = {
 }
 
 export const HEIGHT = {
+  '-1': 'Not applicable',
   0: 'Unknown',
   1: '< 5 feet',
   2: '5 - 10 feet',
@@ -328,6 +334,7 @@ export const STREAMORDER = {
 }
 
 export const BARRIER_SEVERITY = {
+  '-1': 'Not applicable',
   0: 'Unknown',
   1: 'Not a barrier',
   2: 'Moderate barrier',
@@ -335,6 +342,7 @@ export const BARRIER_SEVERITY = {
 }
 
 export const CROSSING_TYPE = {
+  '-1': 'Not applicable',
   0: 'Unknown',
   1: 'Not a barrier',
   2: 'Bridge',
@@ -346,6 +354,7 @@ export const CROSSING_TYPE = {
 }
 
 export const CONSTRICTION = {
+  '-1': 'Not applicable',
   0: 'Unknown',
   1: 'Spans full channel & banks',
   2: 'Spans only bankfull/active channel',
@@ -356,6 +365,7 @@ export const CONSTRICTION = {
 }
 
 export const ROAD_TYPE = {
+  '-1': 'Not applicable',
   0: 'Unknown',
   1: 'Unpaved',
   2: 'Paved',
@@ -363,6 +373,7 @@ export const ROAD_TYPE = {
 }
 
 export const BARRIER_CONDITION = {
+  '-1': 'Not applicable',
   0: 'Unknown',
   1: 'Failing',
   2: 'Poor',
@@ -392,11 +403,13 @@ export const BARRIEROWNERTYPE = {
 }
 
 export const PASSAGEFACILITY_CLASS = {
+  '-1': 'Not applicable',
   0: 'No known fish passage structure',
   1: 'Fish passage structure present',
 }
 
 export const PASSAGEFACILITY = {
+  '-1': 'Not applicable',
   0: 'Unknown or None',
   1: 'Trap & Truck',
   2: 'Fish Ladder - unspecified',
@@ -424,6 +437,7 @@ export const INTERMITTENT = {
 }
 
 export const DAM_BARRIER_SEVERITY = {
+  '-1': 'Not applicable',
   0: 'Unknown',
   1: 'Complete',
   2: 'Partial',
@@ -435,10 +449,11 @@ export const DAM_BARRIER_SEVERITY = {
 }
 
 export const LOWHEAD_DAM = {
-  '-1': 'Unknown',
-  0: 'Not a lowhead dam',
+  '-1': 'Not applicable',
+  0: 'Unknown',
   1: 'Lowhead dam',
   2: 'Likely lowhead dam',
+  3: 'Not a lowhead dam',
 }
 
 export const PERCENT_ALTERED = {

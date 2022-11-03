@@ -168,7 +168,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         flowlines[["lineID", "NHDPlusID", "geometry"]]
         .rename(columns={"geometry": "flowline"})
         .join(
-            barriers[["geometry", "barrierID", "lineID"]]
+            barriers[["geometry", "id", "lineID"]]
             .set_index("lineID")
             .rename(columns={"geometry": "barrier"}),
             how="inner",
@@ -209,7 +209,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     # we assign N/A to 0.
 
     upstream_barrier_joins = (
-        segments.loc[segments.on_upstream][["barrierID", "lineID"]]
+        segments.loc[segments.on_upstream][["id", "lineID"]]
         .rename(columns={"lineID": "downstream_id"})
         .join(
             joins.set_index("downstream_id")[["upstream_id", "type", "marine"]],
@@ -230,7 +230,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     # network (downstream terminal) and further downstream segments were removed due to removing
     # coastline segments.
     downstream_barrier_joins = (
-        segments.loc[segments.on_downstream][["barrierID", "lineID"]]
+        segments.loc[segments.on_downstream][["id", "lineID"]]
         .rename(columns={"lineID": "upstream_id"})
         .join(
             joins.set_index("upstream_id")[["downstream_id", "type", "marine"]],
@@ -253,7 +253,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
 
     at_confluence = downstream_barrier_joins.loc[
         downstream_barrier_joins.downstream_id != 0
-    ][["barrierID", "downstream_id", "type", "marine"]].join(
+    ][["id", "downstream_id", "type", "marine"]].join(
         joins.loc[~joins.upstream_id.isin(downstream_barrier_joins.index)]
         .set_index("downstream_id")
         .upstream_id,
@@ -271,7 +271,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         [upstream_barrier_joins, downstream_barrier_joins],
         ignore_index=True,
         sort=False,
-    ).set_index("barrierID", drop=False)
+    ).set_index("id", drop=False)
 
     ### Split segments have barriers that are not at endpoints
 
@@ -303,7 +303,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
             [
                 "lineID",
                 "NHDPlusID",
-                "barrierID",
+                "id",
                 "barriers",
                 "flowline",
                 "barrier",
@@ -317,7 +317,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
                 "lineID": "first",
                 "NHDPlusID": "first",
                 "flowline": "first",
-                "barrierID": list,
+                "id": list,
                 "barriers": "first",
                 "linepos": list,
             }
@@ -400,11 +400,11 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     downstream_side = downstream_side.set_index(["origLineID", "position"])
 
     new_joins = (
-        grouped.barrierID.apply(pd.Series)
+        grouped.id.apply(pd.Series)
         .stack()
         .astype("uint32")
         .reset_index()
-        .rename(columns={"lineID": "origLineID", "level_1": "position", 0: "barrierID"})
+        .rename(columns={"lineID": "origLineID", "level_1": "position", 0: "id"})
         .set_index(["origLineID", "position"])
         .join(upstream_side)
         .join(downstream_side)
@@ -436,11 +436,11 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     barrier_joins = pd.concat(
         [
             barrier_joins,
-            new_joins[["barrierID", "upstream_id", "downstream_id", "type", "marine"]],
+            new_joins[["id", "upstream_id", "downstream_id", "type", "marine"]],
         ],
         ignore_index=True,
         sort=False,
-    ).set_index("barrierID", drop=False)
+    ).set_index("id", drop=False)
 
     barrier_joins[["upstream_id", "downstream_id"]] = barrier_joins[
         ["upstream_id", "downstream_id"]

@@ -182,7 +182,7 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 
 
 ### Get network results
-networks = get_network_results(df, "dams")
+networks = get_network_results(df, "dams", state_ranks=True)
 df = df.join(networks)
 
 # True if the barrier was snapped to a network, is not a loop, has network

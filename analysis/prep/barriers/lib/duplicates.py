@@ -33,7 +33,7 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
                 tolerance,
             )
         )
-        .join(df[["dropped", "excluded", "removed", "ManualReview", "dup_sort"]])
+        .join(df[["dropped", "excluded", "ManualReview", "dup_sort"]])
         .sort_values(by="dup_sort")
     )
 
@@ -129,37 +129,3 @@ def export_duplicate_areas(dups, path):
     groups["id"] = groups.id.apply(lambda x: ", ".join([str(s) for s in x]))
     groups["SARPID"] = groups.SARPID.apply(lambda x: ", ".join([str(s) for s in x]))
     write_dataframe(groups, path)
-
-
-def mark_duplicates(df, tolerance):
-    """Mark points that are within tolerance of each other to the first record.
-
-    WARNING: no evaluation of the underlying attribute values is performed,
-    only spatial de-duplication.
-
-    Parameters
-    ----------
-    df : GeoDataFrame with columns
-        "duplicate" (True if a duplicate EXCEPT first of each duplicate)
-        "dup_group" id of each set of duplicates INCLUDING the first of each duplicate
-        "dup_count" number of duplicates per duplicate group
-    tolerance : number
-        distance (in projection units) within which all points are dropped except the first.
-    """
-
-    df["temp_x"] = (pg.get_x(df.geometry.values.data) / tolerance).round().astype(
-        "int"
-    ) * tolerance
-    df["temp_y"] = (pg.get_y(df.geometry.values.data) / tolerance).round().astype(
-        "int"
-    ) * tolerance
-
-    # assign duplicate group ids
-    grouped = df.groupby(["temp_x", "temp_y"])
-    df["dup_group"] = grouped.grouper.group_info[0]
-    df = df.join(grouped.size().rename("dup_count"), on=["temp_x", "temp_y"])
-    dedup = df.drop_duplicates(subset=["dup_group"], keep="first")
-    df["duplicate"] = False
-    df.loc[~df.index.isin(dedup.index), "duplicate"] = True
-
-    return df.drop(columns=["temp_x", "temp_y"])

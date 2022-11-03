@@ -15,13 +15,14 @@ from time import time
 import warnings
 
 import geopandas as gp
+import pandas as pd
 import pygeos as pg
 from pyogrio import read_dataframe, write_dataframe
 import numpy as np
 
-from analysis.constants import CRS, FCODE_TO_STREAMTYPE
+from analysis.constants import CROSSINGS_ID_OFFSET, CRS, FCODE_TO_STREAMTYPE
+from analysis.lib.graph.speedups import DirectedGraph
 from analysis.lib.io import read_feathers
-from analysis.prep.barriers.lib.duplicates import mark_duplicates
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
@@ -29,6 +30,7 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 
 
 SNAP_TOLERANCE = 10
+DUPLICATE_TOLERANCE = 5
 
 start = time()
 
@@ -40,8 +42,37 @@ src_dir = barriers_dir / "source"
 qa_dir = barriers_dir / "qa"
 
 
-print("Reading road crossings")
+def dedup_crossings(df):
+    # we only want to dedup those that are really close, and some may be in chains of
+    # crossings, so only dedup by distance not neighborhoods
+    tree = pg.STRtree(df.geometry.values.data)
+    pairs = pd.DataFrame(
+        tree.query_bulk(
+            df.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+        ).T.astype("int64"),
+        columns=["left", "right"],
+    )
+    g = DirectedGraph(
+        df.id.take(pairs.left.values).values, df.id.take(pairs.right.values).values
+    )
 
+    # note: components accounts for self-intersections and symmetric pairs
+    groups = (
+        pd.DataFrame(
+            {i: list(g) for i, g in enumerate(g.components())}.items(),
+            columns=["group", "id"],
+        )
+        .explode("id")
+        .astype(df.id.dtype)
+    )
+
+    keep_ids = groups.groupby("group").first().id.values
+
+    print(f"Dropping {len(df)-len(keep_ids):,} very close road crossings")
+    return df.loc[df.id.isin(keep_ids)].copy()
+
+
+print("Reading road crossings")
 
 # rename columns to match small barriers
 # NOTE: tiger2020_feature_names is a combination of multiple road names
@@ -83,13 +114,13 @@ df["lat"] = lat
 # project to match SARP CRS
 df = df.to_crs(CRS)
 
-df["id"] = df.index.astype("uint32")
+df["id"] = (df.index + CROSSINGS_ID_OFFSET).astype("uint32")
 df = df.set_index("id", drop=False)
 
 # There are a bunch of crossings with identical coordinates, remove them
 # NOTE: they have different labels, but that seems like it is a result of
 # them methods used to identify the crossings (e.g., named highways, roads, etc)
-print("Removing duplicate crossings...")
+print("Removing duplicate crossings at same location...")
 
 # round to int
 x, y = pg.get_coordinates(df.geometry.values.data).astype("int").T
@@ -103,15 +134,7 @@ df = df.loc[keep_ids].copy()
 
 ### Remove crossings that are very close
 print("Removing nearby road crossings...")
-# consider 5 m nearby
-df = mark_duplicates(df, 5)
-print(f"Dropping {df.duplicate.sum():,} very close road crossings")
-df = (
-    df.loc[~df.duplicate]
-    .drop(columns=["duplicate", "dup_count", "dup_group"])
-    .reset_index(drop=True)
-)
-
+df = dedup_crossings(df)
 print(f"now have {len(df):,} road crossings")
 
 # Cleanup fields
@@ -164,16 +187,8 @@ print(df.groupby("snap_log").size())
 print("---------------------------------\n")
 
 ### Remove crossings that are very close after snapping
-print("Removing nearby road crossings...")
-# consider 5 m nearby
-df = mark_duplicates(df, 5)
-print(f"Dropping {df.duplicate.sum():,} very close road crossings")
-df = (
-    df.loc[~df.duplicate]
-    .drop(columns=["duplicate", "dup_count", "dup_group"])
-    .reset_index(drop=True)
-)
-
+print("Removing nearby road crossings after snapping...")
+df = dedup_crossings(df)
 print(f"now have {len(df):,} road crossings")
 
 
@@ -207,6 +222,9 @@ df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()
 ix = (df.Stream == "") & (df.GNIS_Name != "")
 df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
 df = df.drop(columns=["GNIS_Name"])
+
+# update crossingtype
+df.loc[df.crossingtype == "tiger2020 road", "crossingtype"] = "assumed culvert"
 
 # calculate stream type
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")

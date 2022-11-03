@@ -77,11 +77,11 @@ REGION_STATES = {
 }
 
 
-# NETWORK_TYPES determines the type of network analysis we are doing
-# natural: only include waterfalls in analysis
-# dams: include waterfalls and dams in analysis
-# small_barriers: include waterfalls, dams, and small barriers in analysis
-NETWORK_TYPES = ("natural", "dams", "small_barriers")
+# ID ranges for each type; this is added to the original index of each barrier type
+WATERFALLS_ID_OFFSET = 1  # 1 - 1M
+DAMS_ID_OFFSET = 1e6  # 1M - 5M
+SMALL_BARRIERS_ID_OFFSET = 5 * 1e6  # 5M - 10M
+CROSSINGS_ID_OFFSET = 1e7  # >= 10M
 
 
 # Use USGS CONUS Albers (EPSG:102003): https://epsg.io/102003    (same as other SARP datasets)

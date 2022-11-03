@@ -52,11 +52,14 @@ start = time()
 
 barriers = pd.read_feather(
     src_dir / "all_barriers.feather",
-    columns=["id", "barrierID", "loop", "intermittent", "kind", "HUC2"],
+    columns=["id", "loop", "removed", "intermittent", "kind", "HUC2"],
 )
 
-# exclude all removed barriers from this analysis
-barriers = barriers.loc[~barriers.removed].reset_index(drop=True)
+# exclude all removed barriers from this analysis for now
+# TODO: separate network analysis for removed barriers
+barriers = (
+    barriers.loc[~barriers.removed].drop(columns=["removed"]).reset_index(drop=True)
+)
 
 
 huc2s = sorted([huc2 for huc2 in barriers.HUC2.unique() if huc2])
@@ -129,9 +132,9 @@ for group in groups:
 
     barrier_joins = read_feathers(
         [src_dir / huc2 / "barrier_joins.feather" for huc2 in group_huc2s],
-        columns=["barrierID", "upstream_id", "downstream_id", "kind", "marine", "type"],
+        columns=["id", "upstream_id", "downstream_id", "kind", "marine", "type"],
         new_fields={"HUC2": group_huc2s},
-    ).set_index("barrierID")
+    ).set_index("id")
 
     flowlines = read_feathers(
         [src_dir / huc2 / "flowlines.feather" for huc2 in group_huc2s],
@@ -334,9 +337,7 @@ for group in groups:
         barrier_networks = (
             upstream_networks.join(downstream_networks)
             .join(downstream_stats)
-            .join(
-                barriers.set_index("barrierID")[["id", "kind", "intermittent", "HUC2"]]
-            )
+            .join(barriers.set_index("id")[["kind", "intermittent", "HUC2"]])
         )
 
         # fill missing data

@@ -140,6 +140,8 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 
 
 ### Get network results
+# NOTE: not calculating state ranks, per guidance from SARP
+# (not enough barriers to have appropriate ranks)
 networks = get_network_results(df, "small_barriers")
 
 df = df.join(networks)

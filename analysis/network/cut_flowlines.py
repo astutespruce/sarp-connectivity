@@ -17,11 +17,6 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 
 DEBUG = False
 
-# ID ranges for each type
-WATERFALLS_ID = 1e6
-DAMS_ID = 2 * 1e6
-SB_ID = 3 * 1e6
-CROSSINGS_ID = 4 * 1e6
 
 data_dir = Path("data")
 barriers_dir = data_dir / "barriers/snapped"
@@ -57,21 +52,16 @@ start = time()
 
 ### Aggregate barriers
 kinds = ["waterfall", "dam", "small_barrier", "road_crossing"]
-kind_ids = [WATERFALLS_ID, DAMS_ID, SB_ID, CROSSINGS_ID]
-
 barriers = read_feathers(
     [barriers_dir / f"{kind}s.feather" for kind in kinds],
     geo=True,
     new_fields={"kind": kinds},
-)
+).set_index("id", drop=False)
 
-barriers["barrierID"] = np.uint64(0)
+
 # removed is not applicable for road crossings or waterfalls, backfill with False
+# NOTE: removed barriers cut flowlines but are not counted toward dam / small barrier networks
 barriers["removed"] = barriers.removed.fillna(False)
-
-for kind, init_id in zip(kinds, kind_ids):
-    ix = barriers.kind == kind
-    barriers.loc[ix, "barrierID"] = barriers.loc[ix].id + init_id
 
 print(f"Serializing {len(barriers):,} barriers")
 barriers.to_feather(out_dir / "all_barriers.feather")
@@ -88,9 +78,7 @@ for huc2 in huc2s:
         os.makedirs(huc2_dir)
 
     # drop any barriers on loops in this region
-    huc2_barriers = barriers.loc[(barriers.HUC2 == huc2) & (~barriers.loop)].set_index(
-        "barrierID", drop=False
-    )
+    huc2_barriers = barriers.loc[(barriers.HUC2 == huc2)]
 
     ##################### Cut flowlines at barriers #################
     ### Read NHD flowlines and joins

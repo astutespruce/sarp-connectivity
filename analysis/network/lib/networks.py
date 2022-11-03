@@ -142,7 +142,7 @@ def create_networks(joins, barrier_joins, lineIDs):
     joins : DataFrame
         contains upstream_id, downstream_id
     barrier_joins : DataFrame
-        contains upstream_id, downstream_id; indexed on barrierID
+        contains upstream_id, downstream_id; indexed on id
     lineIDs : ndarray
         flowline IDs within analysis area
 
@@ -277,7 +277,7 @@ def create_networks(joins, barrier_joins, lineIDs):
     ### Handle multiple upstreams
     # A given barrier may have > 1 upstream segment, some have 3+
     # Some might be single segments, so we can't just focus on barrier segments
-    # Group by barrierID
+    # Group by id
     upstream_count = barrier_joins.groupby(level=0).size()
     multiple_upstreams = barrier_joins.loc[
         barrier_joins.index.isin(upstream_count.loc[upstream_count > 1].index.unique())
@@ -289,8 +289,8 @@ def create_networks(joins, barrier_joins, lineIDs):
         )
 
         # For each barrier with multiple upstreams, coalesce their networkIDs
-        for barrierID in multiple_upstreams.index.unique():
-            upstream_ids = multiple_upstreams.loc[barrierID].upstream_id
+        for id in multiple_upstreams.index.unique():
+            upstream_ids = multiple_upstreams.loc[id].upstream_id
             networkID = upstream_ids.iloc[0]
 
             # Set all upstream networks for this barrier to the ID of the first

@@ -43,6 +43,7 @@ from analysis.lib.waterbodies import classify_waterbody_size
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.prep.barriers.lib.log import format_log
 from analysis.constants import (
+    DAMS_ID_OFFSET,
     GEO_CRS,
     DROP_FEASIBILITY,
     EXCLUDE_FEASIBILITY,
@@ -194,11 +195,10 @@ if s.max() > 1:
 
 ### Add IDs for internal use
 # internal ID
-df["id"] = df.index.values.astype("uint32")
+df["id"] = (df.index.values + DAMS_ID_OFFSET).astype("uint32")
 df = df.set_index("id", drop=False)  # note: this sets index as uint64 dtype
 
 df.to_feather(qa_dir / "dams_raw.feather")
-
 
 ######### Fix data issues
 
@@ -274,7 +274,6 @@ for column in (
     "Width",
     "Recon2",
     "Recon3",
-    "LowheadDam",
 ):
     df[column] = df[column].astype("float32")
 
@@ -300,7 +299,10 @@ df.Height = df.Height.fillna(0).round().astype("uint16")
 df.Length = df.Length.fillna(0).round().astype("uint16")
 df.Width = df.Width.fillna(0).round().astype("uint16")
 
-df.LowheadDam = df.LowheadDam.fillna(-1).astype("int8")
+
+# Recode lowhead dams so that 0 = Unknown, 3 = no (originally 0), 1 = yes, 2 = likely
+df.loc[df.LowheadDam == 0, "LowheadDam"] = 3
+df.LowheadDam = df.LowheadDam.fillna(0).astype("uint8")
 
 # manually reviewed dams > 5ft that are highly likely to be lowhead dams
 df.loc[
@@ -673,7 +675,7 @@ df, to_snap = snap_to_nhd_dams(df, to_snap)
 df, to_snap = snap_to_waterbodies(df, to_snap)
 
 # Snap to flowlines
-df, to_snap = snap_to_flowlines(df, to_snap, nearest_nonloop=True)
+df, to_snap = snap_to_flowlines(df, to_snap, find_nearest_nonloop=True)
 
 print(f"Snapped {df.snapped.sum():,} dams in {time() - snap_start:.2f}s")
 
@@ -867,7 +869,7 @@ df.to_feather(master_dir / "dams.feather")
 write_dataframe(df, qa_dir / "dams.fgb")
 
 
-# Extract out only the snapped ones
+# Extract out only the snapped ones that are not on loops
 df = df.loc[df.snapped & (~(df.duplicate | df.dropped | df.excluded))].reset_index(
     drop=True
 )

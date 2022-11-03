@@ -16,13 +16,13 @@ import warnings
 
 import geopandas as gp
 import numpy as np
+import pygeos as pg
 import pandas as pd
 from pyogrio import write_dataframe
 
-from analysis.prep.barriers.lib.duplicates import mark_duplicates
-
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
+# considered to duplicate an inventoried road barriers if within this value
 DUPLICATE_TOLERANCE = 10  # meters
 
 start = time()
@@ -38,38 +38,20 @@ qa_dir = barriers_dir / "qa"
 print("Reading road crossings")
 df = gp.read_feather(src_dir / "road_crossings.feather")
 
-# update crossingtype
-df.loc[df.crossingtype == "tiger2020 road", "crossingtype"] = "assumed culvert"
-
-
 ### Remove those that otherwise duplicate existing small barriers
 print("Removing crossings that duplicate existing barriers")
 barriers = gp.read_feather(barriers_dir / "master/small_barriers.feather")
-barriers = barriers.loc[~barriers.duplicate]
-barriers["kind"] = "barrier"
 
-df["joinID"] = (df.index * 1e6).astype("uint32")
-df["kind"] = "crossing"
+tree = pg.STRtree(df.geometry.values.data)
+ix = tree.query_bulk(
+    barriers.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+)[1]
+drop_ids = df.id.values.take(ix)
 
-merged = pd.concat(
-    [barriers[["kind", "geometry"]], df[["joinID", "kind", "geometry"]]],
-    sort=False,
-    ignore_index=True,
+print(
+    f"Dropping {len(drop_ids):,} road crossings that are within {DUPLICATE_TOLERANCE} of inventoried barriers"
 )
-merged = mark_duplicates(merged, tolerance=DUPLICATE_TOLERANCE)
-
-dup_groups = merged.loc[
-    (merged.dup_count > 1) & (merged.kind == "barrier")
-].dup_group.unique()
-remove_ids = merged.loc[
-    merged.dup_group.isin(dup_groups) & (merged.kind == "crossing")
-].joinID
-print(f"{len(remove_ids):,} crossings appear to be duplicates of existing barriers")
-
-df = df.loc[~df.joinID.isin(remove_ids)].drop(columns=["joinID", "kind"])
-
-# make sure that id is unique of small barriers
-df["id"] = np.arange(len(df), dtype="uint32") + barriers.id.max() + np.uint32(100000)
+df = df.loc[~df.id.isin(drop_ids)].copy()
 
 print(f"Serializing {len(df):,} road crossings")
 
@@ -78,10 +60,10 @@ df.to_feather(out_dir / "road_crossings.feather")
 write_dataframe(df, qa_dir / "road_crossings.fgb")
 
 
-# save snapped road crossings for later analysis
+# Extract out only the snapped ones not on loops
 print(f"Serializing {df.snapped.sum():,} snapped road crossings")
 df = df.loc[
-    df.snapped,
+    df.snapped & (~df.loop),
     ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"],
 ].reset_index(drop=True)
 

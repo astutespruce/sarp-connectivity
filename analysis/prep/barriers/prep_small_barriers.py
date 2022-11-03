@@ -39,6 +39,7 @@ from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.prep.barriers.lib.log import format_log
 from analysis.lib.io import read_feathers
 from analysis.constants import (
+    SMALL_BARRIERS_ID_OFFSET,
     GEO_CRS,
     KEEP_POTENTIAL_PROJECT,
     DROP_POTENTIAL_PROJECT,
@@ -102,7 +103,7 @@ if s.max() > 1:
 
 ### Add IDs for internal use
 # internal ID
-df["id"] = df.index.values.astype("uint32")
+df["id"] = (df.index.values + SMALL_BARRIERS_ID_OFFSET).astype("uint32")
 df = df.set_index("id", drop=False)
 
 
@@ -547,10 +548,10 @@ df.to_feather(master_dir / "small_barriers.feather")
 write_dataframe(df, qa_dir / "small_barriers.fgb")
 
 
-# Extract out only the snapped ones
-df = df.loc[df.snapped & (~(df.duplicate | df.dropped | df.excluded))].reset_index(
-    drop=True
-)
+# Extract out only the snapped ones not on loops
+df = df.loc[
+    df.snapped & (~(df.duplicate | df.dropped | df.excluded | df.loop))
+].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 

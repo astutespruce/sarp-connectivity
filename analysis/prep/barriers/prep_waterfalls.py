@@ -21,6 +21,7 @@ import numpy as np
 from pyogrio import write_dataframe
 
 from analysis.constants import (
+    WATERFALLS_ID_OFFSET,
     FCODE_TO_STREAMTYPE,
     GEO_CRS,
     DROP_RECON,
@@ -66,7 +67,7 @@ df.FallType = df.FallType.fillna("").str.strip()
 
 ### Add IDs for internal use
 # internal ID
-df["id"] = df.index.values.astype("uint32")
+df["id"] = (df.index.values + WATERFALLS_ID_OFFSET).astype("uint32")
 df = df.set_index("id", drop=False)
 
 
@@ -332,10 +333,10 @@ df.to_feather(master_dir / "waterfalls.feather")
 print("writing GIS for QA/QC")
 write_dataframe(df, qa_dir / "waterfalls.fgb")
 
-# Extract out only the snapped ones
-df = df.loc[df.snapped & (~(df.duplicate | df.dropped | df.excluded))].reset_index(
-    drop=True
-)
+# Extract out only the snapped ones not on loops
+df = df.loc[
+    df.snapped & (~(df.duplicate | df.dropped | df.excluded | df.loop))
+].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 

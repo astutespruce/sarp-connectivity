@@ -85,7 +85,7 @@ NETWORK_COLUMN_NAMES = {
 }
 
 
-def get_network_results(df, network_type, barrier_type=None, rank=True):
+def get_network_results(df, network_type, barrier_type=None, state_ranks=False):
     """Read network results, calculate derived metric classes, and calculate
     tiers.
 
@@ -97,11 +97,12 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
     df : DataFrame
         barriers data; must contain State and Unranked
     network_type : {"dams", "small_barriers"}
-        network scenario
+        network scenario; note that small_barriers includes the network already
+        cut by dams
     barrier_type : {"dams", "small_barriers", "waterfalls"}, optional (default: None)
-        if present, used to filter barrier kind from network results
-    rank : bool, optional (default: True)
-        if True, results will include tiers for the Southeast and state level
+        used to filter barrier kind from network results, defaults to network_type
+    state_ranks : bool, optional (default: False)
+        if True, results will include tiers for the state level
 
     Returns
     -------
@@ -185,7 +186,7 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
 
     # Round floating point columns to 3 decimals
     for column in [c for c in networks.columns if c.endswith("Miles")]:
-        networks[column] = networks[column].round(3).fillna(-1).astype("float32")
+        networks[column] = networks[column].round(3).fillna(-1)
 
     # Calculate network metric classes
     networks["GainMilesClass"] = classify_gainmiles(networks.GainMiles)
@@ -193,7 +194,7 @@ def get_network_results(df, network_type, barrier_type=None, rank=True):
         networks.PerennialGainMiles
     )
 
-    if not rank:
+    if not state_ranks:
         return networks.drop(columns=["Unranked", "State"], errors="ignore")
 
     # only calculate ranks / tiers for ranked barriers

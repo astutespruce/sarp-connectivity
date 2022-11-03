@@ -69,13 +69,11 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 ### Get network results
 # NOTE: we drop gain / total network miles here since these are not removable
 print("Joining to networks for dams and small barriers")
-dam_networks = get_network_results(
-    df, network_type="dams", barrier_type="waterfalls", rank=False
-)
+dam_networks = get_network_results(df, network_type="dams", barrier_type="waterfalls")
 
 dam_networks.columns = [f"{c}_dams" for c in dam_networks.columns]
 barrier_networks = get_network_results(
-    df, network_type="small_barriers", barrier_type="waterfalls", rank=False
+    df, network_type="small_barriers", barrier_type="waterfalls"
 )
 
 barrier_networks.columns = [f"{c}_small_barriers" for c in barrier_networks.columns]
