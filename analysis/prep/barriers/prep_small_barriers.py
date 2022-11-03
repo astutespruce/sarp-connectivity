@@ -26,7 +26,7 @@ import warnings
 
 import pandas as pd
 import geopandas as gp
-import pygeos as pg
+import shapely
 import numpy as np
 from pyogrio import write_dataframe
 
@@ -448,7 +448,7 @@ export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas.fgb")
 # any that are within duplicate tolerance of dams may be duplicating those dams
 # NOTE: these are only the dams that are snapped and not dropped or excluded
 dams = gp.read_feather(snapped_dir / "dams.feather", columns=["geometry"])
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 left, right = tree.query_bulk(
     dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )
@@ -462,7 +462,7 @@ print(f"Found {len(ix)} small barriers within {DUPLICATE_TOLERANCE}m of dams")
 ### Exclude those that co-occur with waterfalls
 waterfalls = gp.read_feather(snapped_dir / "waterfalls.feather", columns=["geometry"])
 
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 left, right = tree.query_bulk(
     waterfalls.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )
@@ -536,8 +536,8 @@ print(df.groupby("loop").size())
 ### Add lat / lon
 print("Adding lat / lon fields")
 geo = df[["geometry"]].to_crs(GEO_CRS)
-geo["lat"] = pg.get_y(geo.geometry.values.data).astype("float32")
-geo["lon"] = pg.get_x(geo.geometry.values.data).astype("float32")
+geo["lat"] = shapely.get_y(geo.geometry.values.data).astype("float32")
+geo["lon"] = shapely.get_x(geo.geometry.values.data).astype("float32")
 df = df.join(geo[["lat", "lon"]])
 
 print("\n--------------\n")

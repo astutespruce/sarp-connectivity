@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
-import pygeos as pg
+import shapely
 import geopandas as gp
 from pyogrio import write_dataframe
 
@@ -40,10 +40,10 @@ flowlines = flowlines.loc[flowlines.lineID.isin(terminal_ids)].copy()
 
 write_dataframe(flowlines, out_dir / f"region{huc2}_flowline_terminals.fgb")
 
-tree = pg.STRtree(flowlines.geometry.values.data)
+tree = shapely.STRtree(flowlines.geometry.values.data)
 
 # extract linear rings
-# huc2_bnd.geometry = pg.get_exterior_ring(huc2_bnd.geometry.values.data)
+# huc2_bnd.geometry = shapely.get_exterior_ring(huc2_bnd.geometry.values.data)
 left, right = tree.query_bulk(huc2_bnd.geometry.values.data, predicate="intersects")
 
 df = pd.DataFrame(

@@ -5,7 +5,7 @@ from time import time
 import numpy as np
 import pandas as pd
 import geopandas as gp
-import pygeos as pg
+import shapely
 from pyogrio import write_dataframe
 
 from analysis.constants import GEO_CRS
@@ -149,7 +149,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
                 subset = subset.loc[subset.mapcode < 2].copy()
 
             if simplification:
-                subset["geometry"] = pg.simplify(
+                subset["geometry"] = shapely.simplify(
                     subset.geometry.values.data, simplification
                 )
 

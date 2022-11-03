@@ -112,7 +112,6 @@ def calculate_upstream_network_stats(
         .pivot(index="networkID", columns="kind", values="count")
         .join(fn_headwaters_upstream, how="outer")
         .fillna(0)
-        .astype("uint32")
         .rename(
             columns={
                 "dam": "fn_dams",
@@ -170,7 +169,6 @@ def calculate_upstream_network_stats(
                 .join(fn_upstream_counts, on="upstream_network")
                 .drop(columns=["upstream_network"])
                 .fillna(0)
-                .astype("uint32")
                 .reset_index(),
                 fn_upstream_counts.reset_index(),
             ],
@@ -230,7 +228,6 @@ def calculate_upstream_network_stats(
         .reset_index()
         .pivot(index="networkID", columns="kind", values="count")
         .fillna(0)
-        .astype("uint32")
         .rename(
             columns={
                 "dam": "cat_dams",
@@ -269,7 +266,7 @@ def calculate_upstream_network_stats(
         + tot_upstream_counts.columns.tolist()
     )
 
-    results[count_cols] = results[count_cols].fillna(0).astype("uint32")
+    results[count_cols] = results[count_cols].fillna(0)
 
     return results
 
@@ -411,10 +408,8 @@ def calculate_floodplain_stats(df):
 
     pct_nat_df = df[["floodplain_km2", "nat_floodplain_km2"]].groupby(level=0).sum()
 
-    return (
-        (100 * pct_nat_df.nat_floodplain_km2 / pct_nat_df.floodplain_km2)
-        .astype("float32")
-        .rename("natfldpln")
+    return (100 * pct_nat_df.nat_floodplain_km2 / pct_nat_df.floodplain_km2).rename(
+        "natfldpln"
     )
 
 
@@ -490,7 +485,6 @@ def calculate_downstream_stats(
         .reset_index()
         .pivot(index="networkID", columns="kind", values="count")
         .fillna(0)
-        .astype("uint32")
     )
 
     # make sure all barrier types have a count column
@@ -583,9 +577,7 @@ def calculate_downstream_stats(
         .join(self_counts, rsuffix="_self")
         .fillna(0)
     )
-    downstream_stats["length"] = (downstream_stats["length"] * METERS_TO_MILES).astype(
-        "float32"
-    )
+    downstream_stats["length"] = downstream_stats["length"] * METERS_TO_MILES
 
     # subtract barrier type of the upstream network from the stats
     self_cols = [c for c in downstream_stats.columns if c.endswith("_self")]
@@ -698,7 +690,7 @@ def calculate_downstream_stats(
     # set appropraite nodata
     results.barrier = results.barrier.fillna("")
     count_cols = [c for c in downstream_stats.columns if c.startswith("totd_")]
-    results[count_cols] = results[count_cols].fillna(0).astype("uint32")
+    results[count_cols] = results[count_cols].fillna(0)
     results.miles_to_outlet = results.miles_to_outlet.fillna(0)
 
     return results

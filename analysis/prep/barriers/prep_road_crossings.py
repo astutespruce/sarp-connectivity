@@ -16,7 +16,7 @@ import warnings
 
 import geopandas as gp
 import numpy as np
-import pygeos as pg
+import shapely
 import pandas as pd
 from pyogrio import write_dataframe
 
@@ -42,7 +42,7 @@ df = gp.read_feather(src_dir / "road_crossings.feather")
 print("Removing crossings that duplicate existing barriers")
 barriers = gp.read_feather(barriers_dir / "master/small_barriers.feather")
 
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 ix = tree.query_bulk(
     barriers.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )[1]

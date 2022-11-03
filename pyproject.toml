@@ -18,10 +18,10 @@ tqdm = "^4.64.0"
 numba = "^0.56.0"
 aiofiles = "^0.8.0"
 pyogrio = "^0.4.2"
-geopandas = "^0.11.1"
-pygeos = "^0.12.0"
+geopandas = "0.12.1"
 httpx = { extras = ["http2"], version = "^0.23.0" }
 scipy = "^1.9.1"
+shapely = "2.0b2"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.14.5"

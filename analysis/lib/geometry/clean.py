@@ -1,5 +1,5 @@
 import numpy as np
-import pygeos as pg
+import shapely
 
 
 def make_valid(geometries):
@@ -14,11 +14,11 @@ def make_valid(geometries):
     ndarray of pygeos geometries
     """
 
-    ix = ~pg.is_valid(geometries)
+    ix = ~shapely.is_valid(geometries)
     if ix.sum():
         geometries = geometries.copy()
         print(f"Repairing {ix.sum()} geometries")
-        geometries[ix] = pg.make_valid(geometries[ix])
+        geometries[ix] = shapely.make_valid(geometries[ix])
 
     return geometries
 
@@ -35,11 +35,11 @@ def to_multipolygon(geometries):
     -------
     ndarray of pygeos geometries, all multipolygon types
     """
-    ix = pg.get_type_id(geometries) == 3
+    ix = shapely.get_type_id(geometries) == 3
     if ix.sum():
         geometries = geometries.copy()
         geometries[ix] = np.apply_along_axis(
-            pg.multipolygons, arr=(np.expand_dims(geometries[ix], 1)), axis=1
+            shapely.multipolygons, arr=(np.expand_dims(geometries[ix], 1)), axis=1
         )
 
     return geometries

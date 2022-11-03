@@ -2,7 +2,7 @@ from pathlib import Path
 import warnings
 
 import geopandas as gp
-import pygeos as pg
+import shapely
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS
@@ -80,4 +80,3 @@ huc12_df = (
 )
 huc12_df.to_feather(out_dir / "huc12.feather")
 write_dataframe(huc12_df.rename(columns={"HUC12": "id"}), out_dir / "huc12.fgb")
-

@@ -5,7 +5,7 @@ from time import time
 import geopandas as gp
 import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 from pyogrio import write_dataframe
 
 from analysis.constants import STATES
@@ -82,7 +82,7 @@ dams = dams.loc[
 has_dam = df.wbID.isin(dams.wbID.unique())
 
 states = gp.read_feather("data/boundaries/states.feather", columns=["id", "geometry"])
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 left, right = tree.query_bulk(states.geometry.values.data, predicate="intersects")
 
 state_join = (

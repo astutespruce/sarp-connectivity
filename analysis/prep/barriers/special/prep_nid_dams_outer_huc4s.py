@@ -4,7 +4,7 @@ import warnings
 import geopandas as gp
 import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import (
@@ -60,4 +60,3 @@ df = df.loc[~df.SourceDBID.isin(drop_ids)].copy()
 
 df.to_feather(src_dir / "dams_outer_huc4.feather")
 write_dataframe(df, src_dir / "dams_outer_huc4.fgb")
-

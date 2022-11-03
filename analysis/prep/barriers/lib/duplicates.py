@@ -1,6 +1,6 @@
 import geopandas as gp
 import pandas as pd
-import pygeos as pg
+import shapely
 from pyogrio import write_dataframe
 
 from analysis.constants import ONSTREAM_MANUALREVIEW
@@ -117,7 +117,7 @@ def export_duplicate_areas(dups, path):
     """
 
     dups = dups.copy()
-    dups["geometry"] = pg.buffer(dups.geometry.values.data, dups.dup_tolerance)
+    dups["geometry"] = shapely.buffer(dups.geometry.values.data, dups.dup_tolerance)
     dissolved = dissolve(dups[["geometry", "dup_group"]], by="dup_group")
     groups = gp.GeoDataFrame(
         dups[["id", "SARPID", "dup_group"]]

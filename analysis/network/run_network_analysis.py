@@ -242,9 +242,6 @@ for group in groups:
         for col in ["flows_to_ocean", "exits_region"]:
             network_stats[col] = network_stats[col].fillna(False).astype("bool")
 
-        network_stats.miles_to_outlet = network_stats.miles_to_outlet.fillna(0).astype(
-            "float32"
-        )
         network_stats.barrier = network_stats.barrier.fillna("")
 
         # set to_ocean and exits_region for functional networks that terminate

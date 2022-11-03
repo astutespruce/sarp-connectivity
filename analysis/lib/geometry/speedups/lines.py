@@ -1,6 +1,6 @@
 import numpy as np
 from numba import njit
-import pygeos as pg
+import shapely
 
 
 @njit("f8[:](f8[:,:])")
@@ -325,7 +325,7 @@ def cut_line_at_points(coords, cut_offsets):
     MultiLineStrings
     """
     new_coords, line_ix = split_coords(coords, cut_offsets)
-    return pg.multilinestrings(pg.linestrings(new_coords, indices=line_ix))
+    return shapely.multilinestrings(shapely.linestrings(new_coords, indices=line_ix))
 
 
 def cut_lines_at_points(coords, cut_offsets):
@@ -352,7 +352,7 @@ def cut_lines_at_points(coords, cut_offsets):
     for i in range(len(coords)):
         new_coords, line_ix = split_coords(coords[i], cut_offsets[i])
         outer_ix.append(i)
-        l = pg.linestrings(new_coords, indices=line_ix)  # multiple lines
+        l = shapely.linestrings(new_coords, indices=line_ix)  # multiple lines
         outer_ix.extend([i] * (len(l) - 1))
         inner_ix.extend(np.arange(len(l)))
         lines.extend(l)

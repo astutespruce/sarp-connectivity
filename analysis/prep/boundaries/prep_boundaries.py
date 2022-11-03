@@ -11,7 +11,7 @@ import warnings
 import geopandas as gp
 import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import (
@@ -44,23 +44,25 @@ state_df = gp.read_feather(
 )
 
 # Clip HUC4 areas outside state boundaries; these are remainder
-state_merged = pg.coverage_union_all(state_df.geometry.values.data)
+state_merged = shapely.coverage_union_all(state_df.geometry.values.data)
 
 # find all that intersect but are not contained
-tree = pg.STRtree(huc4_df.geometry.values.data)
+tree = shapely.STRtree(huc4_df.geometry.values.data)
 intersects_ix = tree.query(state_merged, predicate="intersects")
 contains_ix = tree.query(state_merged, predicate="contains")
 ix = np.setdiff1d(intersects_ix, contains_ix)
 
 outer_huc4 = huc4_df.iloc[ix].copy()
-outer_huc4["km2"] = pg.area(outer_huc4.geometry.values.data) / 1e6
+outer_huc4["km2"] = shapely.area(outer_huc4.geometry.values.data) / 1e6
 
 # calculate geometric difference, explode, and keep non-slivers
 # outer HUC4s are used to clip NID dams for areas outside region states for which
 # inventoried dams are available
-outer_huc4["geometry"] = pg.difference(outer_huc4.geometry.values.data, state_merged)
+outer_huc4["geometry"] = shapely.difference(
+    outer_huc4.geometry.values.data, state_merged
+)
 outer_huc4 = explode(outer_huc4)
-outer_huc4["clip_km2"] = pg.area(outer_huc4.geometry.values.data) / 1e6
+outer_huc4["clip_km2"] = shapely.area(outer_huc4.geometry.values.data) / 1e6
 outer_huc4["percent"] = 100 * outer_huc4.clip_km2 / outer_huc4.km2
 keep_huc4 = outer_huc4.loc[outer_huc4.clip_km2 >= 100].HUC4.unique()
 outer_huc4 = outer_huc4.loc[
@@ -86,11 +88,11 @@ county_df = (
 )
 
 # keep only those within the region HUC4 outer boundary
-tree = pg.STRtree(county_df.geometry.values.data)
+tree = shapely.STRtree(county_df.geometry.values.data)
 ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
 ix.sort()
 county_df = county_df.iloc[ix].reset_index(drop=True)
-county_df.geometry = to_multipolygon(pg.make_valid(county_df.geometry.values.data))
+county_df.geometry = to_multipolygon(shapely.make_valid(county_df.geometry.values.data))
 
 # keep larger set for spatial joins
 county_df.to_feather(out_dir / "counties.feather")
@@ -112,12 +114,12 @@ df = (
 )
 
 
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
 ix.sort()
 
 df = df.iloc[ix].reset_index(drop=True)
-df.geometry = pg.make_valid(df.geometry.values.data)
+df.geometry = shapely.make_valid(df.geometry.values.data)
 
 # keep larger version for spatial joins
 df.to_feather(out_dir / "eco3.feather")
@@ -127,15 +129,15 @@ df.to_feather(out_dir / "eco3.feather")
 # not outer HUC4 boundary
 # Drop ones only barely in region for mapping / summary stats
 
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 ix = np.unique(tree.query(bnd, predicate="intersects"))
 ix.sort()
 
 df = df.iloc[ix].reset_index(drop=True)
 
 # calculate overlap and only keep those with > 25% overlap
-in_region = pg.intersection(df.geometry.values.data, bnd)
-pct_in_region = 100 * pg.area(in_region) / pg.area(df.geometry.values.data)
+in_region = shapely.intersection(df.geometry.values.data, bnd)
+pct_in_region = 100 * shapely.area(in_region) / shapely.area(df.geometry.values.data)
 df = df.loc[pct_in_region >= 25].reset_index(drop=True)
 
 # write out for tiles
@@ -156,12 +158,12 @@ df = (
 )
 
 
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
 ix.sort()
 
 df = df.iloc[ix].reset_index(drop=True)
-df.geometry = pg.make_valid(df.geometry.values.data)
+df.geometry = shapely.make_valid(df.geometry.values.data)
 df.to_feather(out_dir / "eco4.feather")
 
 
@@ -169,18 +171,20 @@ df.to_feather(out_dir / "eco4.feather")
 # not outer HUC4 boundary
 # Drop ones only barely in region
 
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 ix = np.unique(tree.query(bnd, predicate="intersects"))
 ix.sort()
 
 df = df.iloc[ix].reset_index(drop=True)
 
 # of those that are at the edge, keep only those with substantial overlap
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 ix = np.unique(tree.query(bnd, predicate="contains"))
 edge_df = df.loc[~df.index.isin(ix)].copy()
-in_region = pg.intersection(edge_df.geometry.values.data, bnd)
-pct_in_region = 100 * pg.area(in_region) / pg.area(edge_df.geometry.values.data)
+in_region = shapely.intersection(edge_df.geometry.values.data, bnd)
+pct_in_region = (
+    100 * shapely.area(in_region) / shapely.area(edge_df.geometry.values.data)
+)
 ix = np.append(ix, edge_df.loc[pct_in_region >= 25].index)
 df = df.iloc[ix].reset_index(drop=True)
 
@@ -200,7 +204,9 @@ state_geo_df = (
     .rename(columns={"State": "name"})
     .to_crs(GEO_CRS)
 )
-state_geo_df["bbox"] = pg.bounds(state_geo_df.geometry.values.data).round(3).tolist()
+state_geo_df["bbox"] = (
+    shapely.bounds(state_geo_df.geometry.values.data).round(3).tolist()
+)
 state_geo_df["in_region"] = state_geo_df.id.isin(STATES)
 state_geo_df["state"] = state_geo_df.id
 state_geo_df["layer"] = "State"
@@ -215,7 +221,9 @@ county_geo_df = (
     .join(state_geo_df.set_index("STATEFIPS").name.rename("state_name"), on="STATEFIPS")
 )
 county_geo_df["name"] = county_geo_df["name"] + " County"
-county_geo_df["bbox"] = pg.bounds(county_geo_df.geometry.values.data).round(3).tolist()
+county_geo_df["bbox"] = (
+    shapely.bounds(county_geo_df.geometry.values.data).round(3).tolist()
+)
 county_geo_df["layer"] = "County"
 county_geo_df["priority"] = 2
 county_geo_df["key"] = county_geo_df["name"] + " " + county_geo_df.state_name
@@ -242,17 +250,17 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12", "ECO3", "ECO
     if unit in ["ECO3", "ECO4"]:
         df = dissolve(df, by="id", agg={"name": "first"})
 
-    df["bbox"] = pg.bounds(df.geometry.values.data).round(3).tolist()
+    df["bbox"] = shapely.bounds(df.geometry.values.data).round(3).tolist()
     df["layer"] = unit
     df["priority"] = i + 2
 
     # only keep those that overlap the boundary
-    tree = pg.STRtree(df.geometry.values.data)
+    tree = shapely.STRtree(df.geometry.values.data)
     ix = tree.query(bnd_geo, predicate="intersects")
     df = df.loc[ix]
 
     # spatially join to states
-    tree = pg.STRtree(state_geo_df.geometry.values.data)
+    tree = shapely.STRtree(state_geo_df.geometry.values.data)
     left, right = tree.query_bulk(df.geometry.values.data, predicate="intersects")
     unit_states = (
         pd.DataFrame(
@@ -299,14 +307,14 @@ df = (
 )
 
 # select those that are within the boundary
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 ix = tree.query(bnd, predicate="intersects")
 
 df = df.take(ix)
 
 # this takes a while...
 print("Making geometries valid, this might take a while")
-df.geometry = pg.make_valid(df.geometry.values.data)
+df.geometry = shapely.make_valid(df.geometry.values.data)
 
 
 # sort on 'sort' so that later when we do spatial joins and get multiple hits, we take the ones with

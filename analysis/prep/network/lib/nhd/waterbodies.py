@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 from pyogrio import read_dataframe
 
 from analysis.constants import WATERBODY_EXCLUDE_FTYPES
@@ -55,7 +55,7 @@ def extract_waterbodies(gdb, target_crs):
 
     # Convert multipolygons to polygons
     # those we checked that are true multipolygons are errors
-    df.geometry = pg.get_geometry(df.geometry.values.data, 0)
+    df.geometry = shapely.get_geometry(df.geometry.values.data, 0)
     df.geometry = make_valid(df.geometry.values.data)
 
     print("projecting to target projection")
@@ -89,8 +89,8 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
 
     # find all nhd lines that intersect waterbodies
     # first, buffer them slightly
-    nhd_lines = pg.get_parts(pg.union_all(pg.buffer(nhd_lines, 0.1)))
-    tree = pg.STRtree(geometries)
+    nhd_lines = shapely.get_parts(shapely.union_all(shapely.buffer(nhd_lines, 0.1)))
+    tree = shapely.STRtree(geometries)
     left, right = tree.query_bulk(nhd_lines, predicate="intersects")
 
     # remove nhd_lines any that are completely contained in a waterbody
@@ -103,8 +103,8 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
         }
     )
 
-    pg.prepare(tmp.right_geometry.values)
-    tmp["contained"] = pg.contains_properly(
+    shapely.prepare(tmp.right_geometry.values)
+    tmp["contained"] = shapely.contains_properly(
         tmp.right_geometry.values, tmp.left_geometry.values
     )
     print(
@@ -117,8 +117,8 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     keep_nhd_lines = nhd_lines[tmp.left.unique()]
 
     # find connected boundaries
-    boundaries = pg.polygons(pg.get_exterior_ring(geometries))
-    tree = pg.STRtree(boundaries)
+    boundaries = shapely.polygons(shapely.get_exterior_ring(geometries))
+    tree = shapely.STRtree(boundaries)
     left, right = tree.query_bulk(boundaries, predicate="intersects")
     # drop self intersections
     ix = left != right
@@ -135,28 +135,28 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     )
 
     # calculate geometric intersection
-    i = pg.intersection(
+    i = shapely.intersection(
         geometries.take(pairs.left.values), geometries.take(pairs.right.values)
     )
 
     # extract individual parts (may be geom collections)
-    parts = pg.get_parts(pg.get_parts(pg.get_parts(i)))
+    parts = shapely.get_parts(shapely.get_parts(shapely.get_parts(i)))
 
     # extract only the lines or polygons
-    t = pg.get_type_id(parts)
-    parts = parts[((t == 1) | (t == 3)) & (~pg.is_empty(parts))].copy()
+    t = shapely.get_type_id(parts)
+    parts = parts[((t == 1) | (t == 3)) & (~shapely.is_empty(parts))].copy()
 
     # buffer and merge
-    split_lines = pg.get_parts(pg.union_all(pg.buffer(parts, 10)))
+    split_lines = shapely.get_parts(shapely.union_all(shapely.buffer(parts, 10)))
 
     # now find the ones that are within 100m of nhd lines
-    nhd_lines = pg.get_parts(nhd_lines)
-    tree = pg.STRtree(nhd_lines)
+    nhd_lines = shapely.get_parts(nhd_lines)
+    tree = shapely.STRtree(nhd_lines)
     left, right = tree.nearest_all(split_lines, max_distance=100)
 
     split_lines = split_lines[np.unique(left)]
 
     if len(split_lines) or len(keep_nhd_lines):
-        return pg.union_all(np.append(split_lines, keep_nhd_lines))
+        return shapely.union_all(np.append(split_lines, keep_nhd_lines))
 
     return None

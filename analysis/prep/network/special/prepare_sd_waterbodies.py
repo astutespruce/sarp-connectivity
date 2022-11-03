@@ -14,7 +14,7 @@ import warnings
 
 import pandas as pd
 import geopandas as gp
-import pygeos as pg
+import shapely
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 
@@ -33,7 +33,7 @@ src_dir = data_dir / "states/sd"
 huc4_df = gp.read_feather(data_dir / "boundaries/huc4.feather")
 states = gp.read_feather(data_dir / "boundaries/states.feather")
 states = states.loc[states.State == "South Dakota"].copy()
-tree = pg.STRtree(huc4_df.geometry.values.data)
+tree = shapely.STRtree(huc4_df.geometry.values.data)
 ix = tree.query(states.geometry.values.data[0], predicate="intersects")
 huc4_df = huc4_df.iloc[ix].copy()
 huc2s = sorted(huc4_df.HUC2.unique())
@@ -48,7 +48,7 @@ flowlines = read_feathers(
     geo=True,
 )
 flowlines = flowlines.loc[flowlines.HUC4.isin(huc4_df.HUC4.unique())].copy()
-tree = pg.STRtree(flowlines.geometry.values.data)
+tree = shapely.STRtree(flowlines.geometry.values.data)
 
 print("Reading waterbodies...")
 df = read_dataframe(src_dir / "Statewide_Waterbodies.shp", columns=[]).to_crs(CRS)
@@ -60,10 +60,10 @@ print(f"Kept {len(df):,} that intersect flowlines")
 
 df = explode(df)
 # make valid
-ix = ~pg.is_valid(df.geometry.values.data)
+ix = ~shapely.is_valid(df.geometry.values.data)
 if ix.sum():
     print(f"Repairing {ix.sum():,} invalid waterbodies")
-    df.loc[ix, "geometry"] = pg.make_valid(df.loc[ix].geometry.values.data)
+    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values.data)
 
 
 print("Dissolving adjacent waterbodies...")
@@ -73,7 +73,7 @@ df = explode(df).reset_index(drop=True)
 
 
 ### Split out by HUC2
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 
 # confirmed by hand, there are no waterbodies that show up in multiple HUC2s
 left, right = tree.query_bulk(huc2_df.geometry.values.data, predicate="intersects")

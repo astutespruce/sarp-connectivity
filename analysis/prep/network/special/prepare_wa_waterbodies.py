@@ -16,7 +16,7 @@ import warnings
 
 import geopandas as gp
 import pandas as pd
-import pygeos as pg
+import shapely
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 
@@ -34,7 +34,7 @@ huc2 = "17"
 
 print("Reading flowlines...")
 flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather", columns=[])
-tree = pg.STRtree(flowlines.geometry.values.data)
+tree = shapely.STRtree(flowlines.geometry.values.data)
 
 
 ### Read WA hydro waterbody dataset
@@ -70,10 +70,10 @@ df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
 df = explode(df)
-ix = ~pg.is_valid(df.geometry.values.data)
+ix = ~shapely.is_valid(df.geometry.values.data)
 if ix.sum():
     print(f"Repairing {ix.sum():,} invalid waterbodies")
-    df.loc[ix, "geometry"] = pg.make_valid(df.loc[ix].geometry.values.data)
+    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values.data)
 
 waterbodies = df[["geometry", "altered", "source"]].copy()
 del df
@@ -96,7 +96,9 @@ df["altered"] = df.WSubClass == "Manmade"
 df["source"] = "wa_visiblesurfacewater"
 
 # reduce precision of geometry to 0.25ft; we'll cleanup topology later
-df["geometry"] = pg.simplify(df.geometry.values.data, 0.25, preserve_topology=False)
+df["geometry"] = shapely.simplify(
+    df.geometry.values.data, 0.25, preserve_topology=False
+)
 
 df = df.to_crs(CRS)
 
@@ -106,10 +108,10 @@ df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
 df = explode(df)
-ix = ~pg.is_valid(df.geometry.values.data)
+ix = ~shapely.is_valid(df.geometry.values.data)
 if ix.sum():
     print(f"Repairing {ix.sum():,} invalid waterbodies")
-    df.loc[ix, "geometry"] = pg.make_valid(df.loc[ix].geometry.values.data)
+    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values.data)
 
 
 df = pd.concat(
@@ -130,13 +132,13 @@ df = df.drop(columns=["tmp"])
 
 # mark any that are more than 50% altered as altered
 altered = df.loc[df.altered]
-tree = pg.STRtree(altered.geometry.values.data)
+tree = shapely.STRtree(altered.geometry.values.data)
 left, right = tree.query_bulk(wb.geometry.values.data, predicate="intersects")
-intersection = pg.area(
-    pg.intersection(
+intersection = shapely.area(
+    shapely.intersection(
         wb.geometry.values.data.take(left), altered.geometry.values.data.take(right)
     )
-) / pg.area(wb.geometry.values.data.take(left))
+) / shapely.area(wb.geometry.values.data.take(left))
 ix = wb.index.values.take(np.unique(left[intersection >= 0.5]))
 wb["altered"] = False
 wb.loc[ix, "altered"] = True

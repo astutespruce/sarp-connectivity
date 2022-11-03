@@ -16,7 +16,7 @@ import warnings
 
 import geopandas as gp
 import pandas as pd
-import pygeos as pg
+import shapely
 from pyogrio import read_dataframe, write_dataframe
 import numpy as np
 
@@ -45,7 +45,7 @@ qa_dir = barriers_dir / "qa"
 def dedup_crossings(df):
     # we only want to dedup those that are really close, and some may be in chains of
     # crossings, so only dedup by distance not neighborhoods
-    tree = pg.STRtree(df.geometry.values.data)
+    tree = shapely.STRtree(df.geometry.values.data)
     pairs = pd.DataFrame(
         tree.query_bulk(
             df.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
@@ -100,14 +100,14 @@ print(f"Read {len(df):,} road crossings")
 huc4 = gp.read_feather(boundaries_dir / "huc4.feather", columns=["geometry"]).to_crs(
     df.crs
 )
-tree = pg.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values.data)
 ix = tree.query_bulk(huc4.geometry.values.data, predicate="intersects")[1]
 
 df = df.take(ix).reset_index(drop=True)
 print(f"Selected {len(df):,} road crossings in region")
 
 # use original latitude / longitude (NAD83) values
-lon, lat = pg.get_coordinates(df.geometry.values.data).astype("float32").T
+lon, lat = shapely.get_coordinates(df.geometry.values.data).astype("float32").T
 df["lon"] = lon
 df["lat"] = lat
 
@@ -123,7 +123,7 @@ df = df.set_index("id", drop=False)
 print("Removing duplicate crossings at same location...")
 
 # round to int
-x, y = pg.get_coordinates(df.geometry.values.data).astype("int").T
+x, y = shapely.get_coordinates(df.geometry.values.data).astype("int").T
 df["x"] = x
 df["y"] = y
 

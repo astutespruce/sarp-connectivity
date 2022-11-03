@@ -2,7 +2,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 from pyogrio import read_dataframe
 
 from analysis.lib.geometry import make_valid
@@ -78,7 +78,7 @@ def extract_flowlines(gdb, target_crs):
     df = df.set_index(["NHDPlusID"], drop=False)
 
     # convert MultiLineStrings to LineStrings (all have a single linestring)
-    df.geometry = pg.get_geometry(df.geometry.values.data, 0)
+    df.geometry = shapely.get_geometry(df.geometry.values.data, 0)
 
     print("making valid and projecting to target projection")
     df.geometry = make_valid(df.geometry.values.data)
@@ -164,12 +164,12 @@ def extract_flowlines(gdb, target_crs):
     ix = join_df.loc[join_df.downstream == 0].upstream.unique()
     # get last point, is furthest downstream
     tmp = df.loc[df.index.isin(ix), ["geometry"]].copy()
-    tmp["geometry"] = pg.get_point(tmp.geometry.values.data, -1)
+    tmp["geometry"] = shapely.get_point(tmp.geometry.values.data, -1)
 
     target = df.loc[~df.index.isin(ix)]
 
     # only search against other flowlines
-    tree = pg.STRtree(target.geometry.values.data)
+    tree = shapely.STRtree(target.geometry.values.data)
     # search within a tolerance of 0.001, these are very very close
     left, right = tree.nearest_all(tmp.geometry.values.data, max_distance=0.001)
 
@@ -179,7 +179,9 @@ def extract_flowlines(gdb, target_crs):
             "right": target.index.take(right),
             "source": tmp.geometry.values.data.take(left),
             # take upstream / downstream points of matched lines
-            "upstream_target": pg.get_point(df.geometry.values.data.take(right), 0),
+            "upstream_target": shapely.get_point(
+                df.geometry.values.data.take(right), 0
+            ),
         }
     )
 
@@ -194,16 +196,16 @@ def extract_flowlines(gdb, target_crs):
         .downstream.first()
     )
     pairs["next_downstream"] = pairs.right.map(next_downstream)
-    pairs.loc[pairs.next_downstream.notnull(), "downstream_target"] = pg.get_point(
+    pairs.loc[pairs.next_downstream.notnull(), "downstream_target"] = shapely.get_point(
         df.loc[
             pairs.loc[pairs.next_downstream.notnull()].next_downstream
         ].geometry.values.data,
         0,
     )
 
-    pairs["upstream_dist"] = pg.distance(pairs.source, pairs.upstream_target)
+    pairs["upstream_dist"] = shapely.distance(pairs.source, pairs.upstream_target)
     ix = pairs.next_downstream.notnull()
-    pairs.loc[ix, "downstream_dist"] = pg.distance(
+    pairs.loc[ix, "downstream_dist"] = shapely.distance(
         pairs.loc[ix].source, pairs.loc[ix].downstream_target
     )
 

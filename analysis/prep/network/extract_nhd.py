@@ -9,7 +9,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 
 from analysis.prep.network.lib.nhd import (
     extract_flowlines,
@@ -88,7 +88,7 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
         ### Only retain waterbodies that intersect flowlines
         print("Intersecting waterbodies and flowlines")
         # use waterbodies to query flowlines since there are many more flowlines
-        tree = pg.STRtree(flowlines.geometry.values.data)
+        tree = shapely.STRtree(flowlines.geometry.values.data)
         ix = tree.query_bulk(waterbodies.geometry.values.data, predicate="intersects")[
             0
         ]
@@ -177,7 +177,7 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
     # It will miss those that are NEARLY the same.
 
     waterbodies["hash"] = pd.util.hash_array(
-        pg.to_wkb(waterbodies.geometry.values.data)
+        shapely.to_wkb(waterbodies.geometry.values.data)
     )
 
     id_map = (

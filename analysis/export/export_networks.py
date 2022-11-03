@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import geopandas as gp
@@ -10,9 +9,7 @@ from analysis.lib.geometry.lines import merge_lines
 
 src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")
-
-if not out_dir.exists():
-    os.makedirs(out_dir)
+out_dir.mkdir(exist_ok=True, parents=True)
 
 
 barrier_type = "dams"
@@ -23,7 +20,8 @@ ext = "fgb"
 # groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
-for group in [{"21"}]:
+# for group in [{"05", "06", "07", "08", "10", "11"}]:
+for group in [{"17"}]:
     segments = (
         read_feathers(
             [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
@@ -32,10 +30,6 @@ for group in [{"21"}]:
         .rename(columns={barrier_type: "networkID"})
         .set_index("lineID")
     )
-
-    # FIXME: remove, debug only
-    s = segments.groupby(level=0).size()
-    print("dups", s[s > 1])
 
     stats = read_feathers(
         [
@@ -77,6 +71,12 @@ for group in [{"21"}]:
             .rename(columns={"StreamOrder": "streamorder"})
         )
         flowlines = flowlines.join(segments)
+
+        # FIXME: remove
+        # flowlines = flowlines.loc[
+        #     flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
+        # ]
+        # flowlines = flowlines.loc[flowlines.sizeclass.isin(["2", "3a", "3b", "4", "5"])]
 
         # aggregate to multilinestrings by combinations of networkID, altered, intermittent
         networks = (

@@ -4,7 +4,7 @@ from time import time
 import geopandas as gp
 import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 from tqdm.auto import tqdm
 
 
@@ -48,7 +48,7 @@ def find_dam_faces(drains, waterbodies):
 
     # NOTE: this may have duplicate geometries where there are widely spaced drains on the same long waterbody edge
     df = gp.GeoDataFrame(
-        {"drainID": ids, "geometry": segments, "width": pg.length(segments)},
+        {"drainID": ids, "geometry": segments, "width": shapely.length(segments)},
         crs=drains.crs,
     ).join(drains.drop(columns=["geometry"]), on="drainID")
 
@@ -72,16 +72,16 @@ def loop(waterbodies, drains, index, verbose=False):
 
 
 def find_dam_face_from_waterbody(waterbody, drain_pt):
-    total_area = pg.area(waterbody)
-    ring = pg.get_exterior_ring(pg.normalize(waterbody))
-    total_length = pg.length(ring)
-    num_pts = pg.get_num_points(ring) - 1  # drop closing coordinate
-    vertices = pg.get_point(ring, range(num_pts))
+    total_area = shapely.area(waterbody)
+    ring = shapely.get_exterior_ring(shapely.normalize(waterbody))
+    total_length = shapely.length(ring)
+    num_pts = shapely.get_num_points(ring) - 1  # drop closing coordinate
+    vertices = shapely.get_point(ring, range(num_pts))
 
     ### Extract line segments that are no more than 1/3 coordinates of polygon
     # starting from the vertex nearest the drain
     # note: lower numbers are to the right
-    tree = pg.STRtree(vertices)
+    tree = shapely.STRtree(vertices)
     ix = tree.nearest(drain_pt)[1][0]
     side_width = min(num_pts // 3, MAX_SIDE_PTS)
     left_ix = ix + side_width
@@ -95,7 +95,7 @@ def find_dam_face_from_waterbody(waterbody, drain_pt):
     if right_ix < 0:
         pts = np.append(pts, vertices[num_pts + right_ix : num_pts][::-1])
 
-    coords = pg.get_coordinates(pts)
+    coords = shapely.get_coordinates(pts)
 
     if len(coords) > 2:
         # first run a simplification process to extract the major shape and bends
@@ -127,21 +127,21 @@ def find_dam_face_from_waterbody(waterbody, drain_pt):
     # since ranges are ragged, we have to do this in a loop instead of vectorized
     segments = []
     for start, end in pairs:
-        segments.append(pg.linestrings(coords[start : end + 1]))
+        segments.append(shapely.linestrings(coords[start : end + 1]))
 
     segments = np.array(segments)
 
     # only keep the segments that are close to the drain
     segments = segments[
-        pg.intersects(segments, pg.buffer(drain_pt, MAX_DRAIN_DIST)),
+        shapely.intersects(segments, shapely.buffer(drain_pt, MAX_DRAIN_DIST)),
     ]
 
     if not len(segments):
         return segments
 
     # only keep those where the drain is interior to the line
-    pos = pg.line_locate_point(segments, drain_pt)
-    lengths = pg.length(segments)
+    pos = shapely.line_locate_point(segments, drain_pt)
+    lengths = shapely.length(segments)
 
     ix = (pos >= MIN_INTERIOR_DIST) & (pos <= (lengths - MIN_INTERIOR_DIST))
 

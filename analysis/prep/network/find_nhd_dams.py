@@ -5,7 +5,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 import geopandas as gp
 from pyogrio import write_dataframe
 
@@ -61,7 +61,7 @@ nhd_pts["source"] = "NHDPoint"
 # create tiny circular buffers around points to merge with others
 # WARNING: using a larger buffer causes displacement of the dam point upstream,
 # which is not desirable
-nhd_pts["geometry"] = pg.buffer(nhd_pts.geometry.values.data, 1e-6)
+nhd_pts["geometry"] = shapely.buffer(nhd_pts.geometry.values.data, 1e-6)
 
 nhd_lines = read_feathers(
     [raw_dir / huc2 / "nhd_lines.feather" for huc2 in huc2s],
@@ -73,7 +73,7 @@ nhd_lines = nhd_lines.loc[
 ].reset_index(drop=True)
 # create buffers (5m) to merge with NHD areas
 # from visual inspection, this helps coalesce those that are in pairs
-nhd_lines["geometry"] = pg.buffer(nhd_lines.geometry.values.data, 5, quadsegs=1)
+nhd_lines["geometry"] = shapely.buffer(nhd_lines.geometry.values.data, 5, quadsegs=1)
 nhd_lines["source"] = "NHDLine"
 
 # All NHD areas indicate a dam-related feature
@@ -84,7 +84,7 @@ nhd_areas = read_feathers(
 )
 nhd_areas = nhd_areas.loc[nhd_areas.geometry.notnull()].reset_index(drop=True)
 # buffer polygons slightly so we can dissolve touching ones together.
-nhd_areas["geometry"] = pg.buffer(nhd_areas.geometry.values.data, 0.001)
+nhd_areas["geometry"] = shapely.buffer(nhd_areas.geometry.values.data, 0.001)
 nhd_areas["source"] = "NHDArea"
 
 # Dissolve adjacent nhd lines and polygons together
@@ -116,7 +116,7 @@ nhd_dams = dissolve(
 # fill in missing values
 nhd_dams.GNIS_Name = nhd_dams.GNIS_Name.fillna("")
 
-nhd_dams.geometry = pg.make_valid(nhd_dams.geometry.values.data)
+nhd_dams.geometry = shapely.make_valid(nhd_dams.geometry.values.data)
 
 nhd_dams["damID"] = nhd_dams.index.copy()
 nhd_dams.damID = nhd_dams.damID.astype("uint32")
@@ -162,8 +162,8 @@ for huc2 in huc2s:
 
     print("Extracting intersecting flowlines...")
     # Only keep the joins for lines that significantly cross (have a line / multiline and not a point)
-    clipped = pg.intersection(dams.geometry.values.data, dams.flowline.values.data)
-    t = pg.get_type_id(clipped)
+    clipped = shapely.intersection(dams.geometry.values.data, dams.flowline.values.data)
+    t = shapely.get_type_id(clipped)
     dams = dams.loc[(t == 1) | (t == 5)].copy()
 
     # find all joins for lines that start or end at these dams
@@ -215,22 +215,22 @@ for huc2 in huc2s:
     ### Extract representative point
     # Look at either end of overlapping line and use that as representative point.
     # Otherwise intersect and extract first coordinate of overlapping line
-    last_pt = pg.get_point(dams.flowline.values.data, -1)
-    ix = pg.intersects(dams.geometry.values.data, last_pt)
+    last_pt = shapely.get_point(dams.flowline.values.data, -1)
+    ix = shapely.intersects(dams.geometry.values.data, last_pt)
     dams.loc[ix, "pt"] = last_pt[ix]
 
     # override with upstream most point when both intersect
-    first_pt = pg.get_point(dams.flowline.values.data, 0)
-    ix = pg.intersects(dams.geometry.values.data, first_pt)
+    first_pt = shapely.get_point(dams.flowline.values.data, 0)
+    ix = shapely.intersects(dams.geometry.values.data, first_pt)
     dams.loc[ix, "pt"] = first_pt[ix]
 
     ix = dams.pt.isnull()
     # WARNING: this might fail for odd intersection geoms; we always take the first line
     # below
     pt = pd.Series(
-        pg.get_point(
-            pg.get_geometry(
-                pg.intersection(
+        shapely.get_point(
+            shapely.get_geometry(
+                shapely.intersection(
                     dams.loc[ix].geometry.values.data, dams.loc[ix].flowline.values.data
                 ),
                 0,
@@ -278,7 +278,7 @@ for huc2 in huc2s:
     # We do it this way because the dam may intersect or affect multiple drain points
     # so we can't always take the first or nearest from the dam's perspective
     tmp_dams = dams.groupby("damID").geometry.first()
-    tree = pg.STRtree(tmp_dams.values.data)
+    tree = shapely.STRtree(tmp_dams.values.data)
     drain_ix, dam_ix = tree.nearest_all(
         drains.geometry.values.data, max_distance=MAX_DRAIN_DISTANCE
     )
@@ -326,7 +326,7 @@ for huc2 in huc2s:
     tmp = tmp.loc[tmp.same_subnet].copy()
     # take the closest drain to the crossing point if there are multiple on the
     # same flowline
-    tmp["dist"] = pg.distance(tmp.geometry.values.data, tmp.pt.values.data)
+    tmp["dist"] = shapely.distance(tmp.geometry.values.data, tmp.pt.values.data)
     use_drains = (
         tmp.sort_values(by=["damPtID", "dist"], ascending=True)
         .drop(columns=["same_subnet", "dist", "pt", "lineID"])

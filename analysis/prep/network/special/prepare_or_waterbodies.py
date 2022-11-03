@@ -16,7 +16,7 @@ import warnings
 
 import geopandas as gp
 import pandas as pd
-import pygeos as pg
+import shapely
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 
@@ -40,7 +40,7 @@ print("Reading flowlines...")
 flowlines = read_feathers(
     [nhd_dir / huc2 / "flowlines.feather" for huc2 in huc2s], columns=[], geo=True
 )
-tree = pg.STRtree(flowlines.geometry.values.data)
+tree = shapely.STRtree(flowlines.geometry.values.data)
 
 
 ### Read OR waterbody dataset
@@ -67,10 +67,10 @@ df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
 df = explode(df)
-ix = ~pg.is_valid(df.geometry.values.data)
+ix = ~shapely.is_valid(df.geometry.values.data)
 if ix.sum():
     print(f"Repairing {ix.sum():,} invalid waterbodies")
-    df.loc[ix, "geometry"] = pg.make_valid(df.loc[ix].geometry.values.data)
+    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values.data)
 
 
 ### Dissolve waterbodies
@@ -87,20 +87,20 @@ df = df.drop(columns=["tmp"])
 
 # mark any that are more than 50% altered as altered
 altered = df.loc[df.altered]
-tree = pg.STRtree(altered.geometry.values.data)
+tree = shapely.STRtree(altered.geometry.values.data)
 left, right = tree.query_bulk(wb.geometry.values.data, predicate="intersects")
-intersection = pg.area(
-    pg.intersection(
+intersection = shapely.area(
+    shapely.intersection(
         wb.geometry.values.data.take(left), altered.geometry.values.data.take(right)
     )
-) / pg.area(wb.geometry.values.data.take(left))
+) / shapely.area(wb.geometry.values.data.take(left))
 ix = wb.index.values.take(np.unique(left[intersection >= 0.5]))
 wb["altered"] = False
 wb.loc[ix, "altered"] = True
 
 
 ### Split out by HUC2
-tree = pg.STRtree(wb.geometry.values.data)
+tree = shapely.STRtree(wb.geometry.values.data)
 
 # confirmed by hand, there are no waterbodies that show up in multiple HUC2s
 left, right = tree.query_bulk(huc2_df.geometry.values.data, predicate="intersects")

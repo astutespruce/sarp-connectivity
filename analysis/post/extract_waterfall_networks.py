@@ -1,12 +1,13 @@
 from pathlib import Path
+import warnings
 
-import pandas as pd
 import geopandas as gp
 
 from api.constants import WF_CORE_FIELDS, WF_PACK_BITS
 from analysis.lib.util import pack_bits
 from analysis.rank.lib.metrics import classify_streamorder, classify_spps
 from analysis.rank.lib.networks import get_network_results
+
 
 data_dir = Path("data")
 api_dir = data_dir / "api"

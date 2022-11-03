@@ -4,7 +4,7 @@ from time import time
 import warnings
 
 import geopandas as gp
-import pygeos as pg
+import shapely
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 from pyogrio.errors import DataSourceError
@@ -58,7 +58,7 @@ huc8_df["HUC2"] = huc8_df.HUC8.str[:2]
 
 # need to filter to only those that occur in the US
 states = gp.read_feather(data_dir / "boundaries/states.feather", columns=["geometry"])
-tree = pg.STRtree(huc8_df.geometry.values.data)
+tree = shapely.STRtree(huc8_df.geometry.values.data)
 left, right = tree.query_bulk(states.geometry.values.data, predicate="intersects")
 ix = np.unique(right)
 print(f"Dropping {len(huc8_df) - len(ix):,} HUC8s that are outside U.S.")
@@ -101,7 +101,7 @@ for huc2 in huc2s:
 
     print("Reading flowlines")
     flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather", columns=[])
-    tree = pg.STRtree(flowlines.geometry.values.data)
+    tree = shapely.STRtree(flowlines.geometry.values.data)
 
     waterbodies = None
     rivers = None
@@ -129,7 +129,7 @@ for huc2 in huc2s:
             )
 
         # some geometries are invalid, filter them out
-        df = df.loc[pg.is_geometry(df.geometry.values.data)].copy()
+        df = df.loc[shapely.is_geometry(df.geometry.values.data)].copy()
 
         if not len(df):
             continue
@@ -170,16 +170,16 @@ for huc2 in huc2s:
     # TODO: explode, repair, dissolve, explode, reset index
     waterbodies = explode(waterbodies)
     # make valid
-    ix = ~pg.is_valid(waterbodies.geometry.values.data)
+    ix = ~shapely.is_valid(waterbodies.geometry.values.data)
     if ix.sum():
         print(f"Repairing {ix.sum():,} invalid waterbodies")
-        waterbodies.loc[ix, "geometry"] = pg.make_valid(
+        waterbodies.loc[ix, "geometry"] = shapely.make_valid(
             waterbodies.loc[ix].geometry.values.data
         )
 
     # cleanup any that collapsed to other geometry types during make valid or import
     waterbodies = waterbodies.loc[
-        pg.get_type_id(waterbodies.geometry.values.data) == 3
+        shapely.get_type_id(waterbodies.geometry.values.data) == 3
     ].reset_index()
 
     # note: nwi_code, nwi_type are discarded here since they aren't used later
@@ -187,7 +187,7 @@ for huc2 in huc2s:
     waterbodies = dissolve(waterbodies, by=["altered"])
     waterbodies = explode(waterbodies).reset_index(drop=True)
 
-    waterbodies["km2"] = pg.area(waterbodies.geometry.values.data) / 1e6
+    waterbodies["km2"] = shapely.area(waterbodies.geometry.values.data) / 1e6
 
     waterbodies.to_feather(huc2_dir / "waterbodies.feather")
     write_dataframe(waterbodies, huc2_dir / "waterbodies.fgb")
@@ -200,13 +200,17 @@ for huc2 in huc2s:
 
     rivers = explode(rivers)
     # make valid
-    ix = ~pg.is_valid(rivers.geometry.values.data)
+    ix = ~shapely.is_valid(rivers.geometry.values.data)
     if ix.sum():
         print(f"Repairing {ix.sum():,} invalid rivers")
-        rivers.loc[ix, "geometry"] = pg.make_valid(rivers.loc[ix].geometry.values.data)
+        rivers.loc[ix, "geometry"] = shapely.make_valid(
+            rivers.loc[ix].geometry.values.data
+        )
 
     # cleanup any that collapsed to other geometry types during make valid or import
-    rivers = rivers.loc[pg.get_type_id(rivers.geometry.values.data) == 3].reset_index()
+    rivers = rivers.loc[
+        shapely.get_type_id(rivers.geometry.values.data) == 3
+    ].reset_index()
 
     rivers["modifier"] = rivers.modifier.map(MODIFIERS)
 

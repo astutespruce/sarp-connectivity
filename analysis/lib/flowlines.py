@@ -2,7 +2,7 @@ from time import time
 
 import geopandas as gp
 import pandas as pd
-import pygeos as pg
+import shapely
 import numpy as np
 from analysis.lib.geometry.polygons import get_interior_rings
 
@@ -178,7 +178,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     # Calculate the position of each barrier on each segment.
     # Barriers are on upstream or downstream end of segment if they are within
     # SNAP_ENDPOINT_TOLERANCE of the ends.  Otherwise, they are splits
-    segments["linepos"] = pg.line_locate_point(
+    segments["linepos"] = shapely.line_locate_point(
         segments.flowline.values.data, segments.barrier.values.data
     )
 
@@ -186,7 +186,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     segments["on_upstream"] = segments.linepos <= SNAP_ENDPOINT_TOLERANCE
     segments["on_downstream"] = (
         segments.linepos
-        >= pg.length(segments.flowline.values.data) - SNAP_ENDPOINT_TOLERANCE
+        >= shapely.length(segments.flowline.values.data) - SNAP_ENDPOINT_TOLERANCE
     )
 
     # if line length is < SNAP_ENDPOINT_TOLERANCE, then barrier could be tagged
@@ -331,7 +331,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     # input data were not properly deduplicated or prepared;
     # The most common case is when road crossings are not snapped to updated flowlines
     outer_ix, inner_ix, lines = cut_lines_at_points(
-        grouped.flowline.apply(lambda x: pg.get_coordinates(x)).values,
+        grouped.flowline.apply(lambda x: shapely.get_coordinates(x)).values,
         grouped.linepos.apply(np.array).values,
     )
 
@@ -342,7 +342,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
             "origLineID": grouped.index.take(outer_ix),
             "position": inner_ix,
             "geometry": lines,
-            "length": pg.length(lines).astype("float32"),
+            "length": shapely.length(lines).astype("float32"),
         }
     ).join(
         flowlines.drop(
@@ -486,7 +486,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     """
 
     df = flowlines.join(points.rename("point"), how="inner")
-    df["pos"] = pg.line_locate_point(df.geometry.values.data, df.point.values.data)
+    df["pos"] = shapely.line_locate_point(df.geometry.values.data, df.point.values.data)
 
     # only keep cut points that are sufficiently interior to the line
     # (i.e., not too close to endpoints)
@@ -500,7 +500,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     grouped = pd.DataFrame(df.groupby("lineID").agg({"geometry": "first", "pos": list}))
     grouped["geometry"] = grouped.geometry.values.data
     outer_ix, inner_ix, lines = cut_lines_at_points(
-        grouped.geometry.apply(lambda x: pg.get_coordinates(x)).values,
+        grouped.geometry.apply(lambda x: shapely.get_coordinates(x)).values,
         grouped.pos.apply(np.array).values,
     )
     lines = np.asarray(lines)
@@ -509,7 +509,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
             "lineID": (next_lineID + np.arange(len(outer_ix))).astype("uint32"),
             "origLineID": grouped.index.take(outer_ix),
             "geometry": lines,
-            "length": pg.length(lines).astype("float32"),
+            "length": shapely.length(lines).astype("float32"),
         }
     ).join(
         flowlines.drop(
@@ -633,7 +633,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     ### Find flowlines that intersect waterbodies
 
     join_start = time()
-    tree = pg.STRtree(flowlines.geometry.values.data)
+    tree = shapely.STRtree(flowlines.geometry.values.data)
     left, right = tree.query_bulk(
         waterbodies.geometry.values.data, predicate="intersects"
     )
@@ -648,12 +648,12 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     print(f"Found {len(df):,} waterbody / flowline joins in {time() - join_start:.2f}s")
 
     ### Find those that are completely contained; these don't need further processing
-    pg.prepare(df.waterbody.values)
+    shapely.prepare(df.waterbody.values)
 
     # find those that are fully contained and do not touch the edge of the waterbody (contains_properly predicate)
     # contains_properly is very fast
     contained_start = time()
-    df["contains"] = pg.contains_properly(df.waterbody.values, df.flowline.values)
+    df["contains"] = shapely.contains_properly(df.waterbody.values, df.flowline.values)
     print(
         f"Identified {df.contains.sum():,} flowlines fully within waterbodies in {time() - contained_start:.2f}s"
     )
@@ -662,7 +662,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     contained_start = time()
     ix = ~df.contains
     tmp = df.loc[ix]
-    df.loc[ix, "contains"] = pg.contains(tmp.waterbody, tmp.flowline)
+    df.loc[ix, "contains"] = shapely.contains(tmp.waterbody, tmp.flowline)
     print(
         f"Identified {df.loc[ix].contains.sum():,} more flowlines contained by waterbodies in {time() - contained_start:.2f}s"
     )
@@ -676,7 +676,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     df["crosses"] = False
     ix = ~df.contains
     tmp = df.loc[ix]
-    df.loc[ix, "crosses"] = pg.crosses(tmp.waterbody, tmp.flowline)
+    df.loc[ix, "crosses"] = shapely.crosses(tmp.waterbody, tmp.flowline)
     print(
         f"Identified {df.crosses.sum():,} flowlines that cross edge of waterbodies in {time() - crosses_start:.2f}s"
     )
@@ -692,9 +692,9 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     df["geometry"] = df.flowline
     # use intersection to cut flowlines by waterbodies.  Note: this may produce
     # nonlinear (e.g., geom collection) results
-    df.loc[ix, "geometry"] = pg.intersection(tmp.flowline, tmp.waterbody)
-    df["length"] = pg.length(df.geometry)
-    df["flength"] = pg.length(df.flowline)
+    df.loc[ix, "geometry"] = shapely.intersection(tmp.flowline, tmp.waterbody)
+    df["length"] = shapely.length(df.geometry)
+    df["flength"] = shapely.length(df.flowline)
 
     # Cut lines that are long enough and different enough from the original lines
     df["to_cut"] = False
@@ -736,7 +736,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             wb_with_rings = wb.index.values.take(outer_index)
             lines_in_wb = df.loc[df.wbID.isin(wb_with_rings)].lineID.unique()
             lines_in_wb = flowlines.loc[flowlines.index.isin(lines_in_wb)].geometry
-            tree = pg.STRtree(rings)
+            tree = shapely.STRtree(rings)
             left, right = tree.query_bulk(
                 lines_in_wb.values.data, predicate="intersects"
             )
@@ -752,8 +752,10 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             df = pd.concat([df, tmp], ignore_index=True, sort=False)
 
         # extract the outer ring for original waterbodies
-        ix = pg.get_type_id(df.waterbody.values.data) == 3
-        df.loc[ix, "waterbody"] = pg.get_exterior_ring(df.loc[ix].waterbody.values.data)
+        ix = shapely.get_type_id(df.waterbody.values.data) == 3
+        df.loc[ix, "waterbody"] = shapely.get_exterior_ring(
+            df.loc[ix].waterbody.values.data
+        )
 
         # Calculate all geometric intersections between the flowlines and
         # waterbody rings and drop any that are not points
@@ -762,7 +764,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
         # We ignore any shared edges, etc that result from the intersection; those
         # aren't helpful for cutting the lines
         print("Finding cut points...")
-        df["geometry"] = pg.intersection(df.flowline.values, df.waterbody.values)
+        df["geometry"] = shapely.intersection(df.flowline.values, df.waterbody.values)
         df = explode(
             explode(
                 gp.GeoDataFrame(
@@ -771,7 +773,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             )
         ).reset_index()
         points = (
-            df.loc[pg.get_type_id(df.geometry.values.data) == 0]
+            df.loc[shapely.get_type_id(df.geometry.values.data) == 0]
             .set_index("lineID")
             .geometry
         )
@@ -797,7 +799,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             # recalculate overlaps with waterbodies
             print("Recalculating overlaps with waterbodies")
             wb = waterbodies.loc[wbID]
-            tree = pg.STRtree(new_flowlines.geometry.values.data)
+            tree = shapely.STRtree(new_flowlines.geometry.values.data)
             left, right = tree.query_bulk(
                 wb.geometry.values.data, predicate="intersects"
             )
@@ -811,8 +813,8 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
                 }
             )
 
-            pg.prepare(df.waterbody.values)
-            df["contains"] = pg.contains(df.waterbody.values, df.flowline.values)
+            shapely.prepare(df.waterbody.values)
+            df["contains"] = shapely.contains(df.waterbody.values, df.flowline.values)
             print(
                 f"Identified {df.contains.sum():,} more flowlines contained by waterbodies in {time() - contained_start:.2f}s"
             )
@@ -821,7 +823,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             df["crosses"] = False
             ix = ~df.contains
             tmp = df.loc[ix]
-            df.loc[ix, "crosses"] = pg.crosses(tmp.waterbody, tmp.flowline)
+            df.loc[ix, "crosses"] = shapely.crosses(tmp.waterbody, tmp.flowline)
 
             # discard any that only touch (don't cross or are contained)
             df = df.loc[df.contains | df.crosses].copy()
@@ -830,9 +832,9 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             df["geometry"] = df.flowline
             # use intersection to cut flowlines by waterbodies.  Note: this may produce
             # nonlinear (e.g., geom collection) results
-            df.loc[ix, "geometry"] = pg.intersection(tmp.flowline, tmp.waterbody)
-            df["length"] = pg.length(df.geometry)
-            df["flength"] = pg.length(df.flowline)
+            df.loc[ix, "geometry"] = shapely.intersection(tmp.flowline, tmp.waterbody)
+            df["length"] = shapely.length(df.geometry)
+            df["flength"] = shapely.length(df.flowline)
 
             # keep any that are contained or >= 50% in waterbody
             contained = pd.concat(
@@ -952,8 +954,8 @@ def remove_marine_flowlines(flowlines, joins, marine):
     """
 
     # Remove those that start in marine areas
-    points = pg.get_point(flowlines.geometry.values.data, 0)
-    tree = pg.STRtree(points)
+    points = shapely.get_point(flowlines.geometry.values.data, 0)
+    tree = shapely.STRtree(points)
     left, right = tree.query_bulk(marine.geometry.values.data, predicate="intersects")
     ix = flowlines.index.take(np.unique(right))
 
@@ -966,8 +968,8 @@ def remove_marine_flowlines(flowlines, joins, marine):
     )
 
     # Mark those that end in marine areas as marine
-    endpoints = pg.get_point(flowlines.geometry.values.data, -1)
-    tree = pg.STRtree(endpoints)
+    endpoints = shapely.get_point(flowlines.geometry.values.data, -1)
+    tree = shapely.STRtree(endpoints)
     left, right = tree.query_bulk(marine.geometry.values.data, predicate="intersects")
     ix = flowlines.index.take(np.unique(right))
     joins.loc[joins.upstream_id.isin(ix), "marine"] = True
@@ -982,8 +984,10 @@ def remove_marine_flowlines(flowlines, joins, marine):
             "marine": marine.iloc[left].geometry.values.data,
         }
     )
-    tmp["overlap"] = pg.intersection(tmp.geometry, tmp.marine)
-    tmp["pct_overlap"] = 100 * pg.length(tmp.overlap) / pg.length(tmp.geometry)
+    tmp["overlap"] = shapely.intersection(tmp.geometry, tmp.marine)
+    tmp["pct_overlap"] = (
+        100 * shapely.length(tmp.overlap) / shapely.length(tmp.geometry)
+    )
 
     ix = tmp.loc[tmp.pct_overlap >= 90].lineID.unique()
 
@@ -1030,12 +1034,14 @@ def mark_altered_flowlines(flowlines, nwi):
     # buffer by 10m before finding overlaps
     # (seemed reasonable from visual inspection in region 15)
     print("Buffering NWI...")
-    b = pg.get_parts(union_or_combine(pg.buffer(nwi.geometry.values.data, 10)))
+    b = shapely.get_parts(
+        union_or_combine(shapely.buffer(nwi.geometry.values.data, 10))
+    )
 
     # Only analyze those not marked by NHD as altered
     unaltered = flowlines.loc[~flowlines.altered]
 
-    tree = pg.STRtree(unaltered.geometry.values.data)
+    tree = shapely.STRtree(unaltered.geometry.values.data)
     left, right = tree.query_bulk(b, predicate="intersects")
 
     df = pd.DataFrame(
@@ -1046,8 +1052,8 @@ def mark_altered_flowlines(flowlines, nwi):
         }
     )
 
-    df["overlap"] = pg.length(pg.intersection(df.line.values, df.nwi.values))
-    df["pct_overlap"] = df.overlap / pg.length(df.line.values)
+    df["overlap"] = shapely.length(shapely.intersection(df.line.values, df.nwi.values))
+    df["pct_overlap"] = df.overlap / shapely.length(df.line.values)
 
     # only keep those with an overlap of >= 50% and at least 100m
     ix = flowlines.index.isin(

@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 
 from analysis.lib.geometry.sjoin import sjoin_geometry
 from analysis.lib.graph.speedups import DirectedGraph
@@ -29,14 +29,14 @@ def near(source, target, distance):
         includes distance
     """
 
-    tree = pg.STRtree(target.values)
+    tree = shapely.STRtree(target.values)
     left, right = tree.query_bulk(source.values, predicate="dwithin", distance=distance)
 
     right_name = target.index.name or "index_right"
     return pd.DataFrame(
         {
             right_name: target.index.take(right),
-            "distance": pg.distance(
+            "distance": shapely.distance(
                 source.values.take(left), target.values.take(right)
             ),
         },
@@ -71,7 +71,7 @@ def nearest(source, target, max_distance, keep_all=False):
     left_index_name = source.index.name or "index"
     right_index_name = target.index.name or "index_right"
 
-    tree = pg.STRtree(target.values.data)
+    tree = shapely.STRtree(target.values.data)
 
     if np.isscalar(max_distance):
         (left_ix, right_ix), distance = tree.nearest_all(

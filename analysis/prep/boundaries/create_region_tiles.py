@@ -2,7 +2,7 @@ from pathlib import Path
 import subprocess
 
 import geopandas as gp
-import pygeos as pg
+import shapely
 import pandas as pd
 from pyogrio import write_dataframe
 
@@ -126,7 +126,7 @@ for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
         df = df.join(priorities, on="id")
 
     # only keep units that actually overlap the region at each level
-    tree = pg.STRtree(df.geometry.values.data)
+    tree = shapely.STRtree(df.geometry.values.data)
     ix = tree.query(bnd, predicate="intersects")
     df = df.loc[ix]
 
