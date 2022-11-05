@@ -7,6 +7,7 @@ import {
   DAM_CONDITION,
   CONSTRUCTION,
   CONSTRICTION,
+  CROSSING_TYPE,
   PASSAGEFACILITY,
   OWNERTYPE,
   BARRIEROWNERTYPE,
@@ -102,7 +103,9 @@ const LocationConstruction = ({
           ) : (
             <>
               {roadtype ? <li>Road type: {roadtype}</li> : null}
-              {crossingtype ? <li>Crossing type: {crossingtype}</li> : null}
+              {crossingtype ? (
+                <li>Crossing type: {CROSSING_TYPE[crossingtype]}</li>
+              ) : null}
               {constriction ? (
                 <li>Type of constriction: {CONSTRICTION[constriction]}</li>
               ) : null}
@@ -190,7 +193,7 @@ LocationConstruction.propTypes = {
   passagefacility: PropTypes.number,
   estimated: PropTypes.bool,
   roadtype: PropTypes.string,
-  crossingtype: PropTypes.string,
+  crossingtype: PropTypes.number,
   constriction: PropTypes.number,
   barrierseverity: PropTypes.number,
   sarp_score: PropTypes.number,
@@ -219,7 +222,7 @@ LocationConstruction.defaultProps = {
   passagefacility: 0,
   estimated: false,
   roadtype: null,
-  crossingtype: null,
+  crossingtype: 0,
   constriction: 0,
   barrierseverity: null,
   sarp_score: -1,

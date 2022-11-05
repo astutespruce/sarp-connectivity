@@ -7,6 +7,8 @@ import {
   CONDITION,
   CONSTRUCTION,
   CONSTRICTION,
+  CROSSING_TYPE,
+  ROAD_TYPE,
   OWNERTYPE,
   BARRIEROWNERTYPE,
   PASSAGEFACILITY,
@@ -133,12 +135,12 @@ const Location = ({
               <>
                 {roadtype ? (
                   <ListItem>
-                    <Text>Road type: {roadtype}</Text>
+                    <Text>Road type: {ROAD_TYPE[roadtype]}</Text>
                   </ListItem>
                 ) : null}
                 {crossingtype ? (
                   <ListItem>
-                    <Text>Crossing type: {crossingtype}</Text>
+                    <Text>Crossing type: {CROSSING_TYPE[crossingtype]}</Text>
                   </ListItem>
                 ) : null}
                 {constriction ? (
@@ -256,8 +258,8 @@ Location.propTypes = {
   condition: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   passagefacility: PropTypes.number,
   estimated: PropTypes.bool,
-  roadtype: PropTypes.string,
-  crossingtype: PropTypes.string,
+  roadtype: PropTypes.number,
+  crossingtype: PropTypes.number,
   constriction: PropTypes.number,
   barrierseverity: PropTypes.number,
   river: PropTypes.string,
@@ -284,8 +286,8 @@ Location.defaultProps = {
   condition: 0,
   passagefacility: 0,
   estimated: false,
-  roadtype: null,
-  crossingtype: null,
+  roadtype: 0,
+  crossingtype: 0,
   constriction: 0,
   barrierseverity: null,
   river: null,

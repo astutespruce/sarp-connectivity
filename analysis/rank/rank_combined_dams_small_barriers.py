@@ -120,12 +120,10 @@ barrier_cols = [
     "Constriction",
     "CrossingCode",
     "CrossingType",
-    "CrossingTypeClass",
     "LocalID",
     "PotentialProject",
     "Road",
     "RoadType",
-    "RoadTypeClass",
     "SARP_Score",
     "Stream",
 ]
@@ -235,8 +233,8 @@ fill_columns = [
     # small barrier columns
     "BarrierStatus",
     "Constriction",
-    "CrossingTypeClass",
-    "RoadTypeClass",
+    "CrossingType",
+    "RoadType",
     "SARP_Score",
 ]
 

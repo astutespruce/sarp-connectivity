@@ -506,8 +506,8 @@ for col in cols:
 for col in [
     "BarrierSeverity",
     "Condition",
-    "CrossingTypeClass",
-    "RoadTypeClass",
+    "CrossingType",
+    "RoadType",
     "Constriction",
     "OwnerType",
     "Trout",

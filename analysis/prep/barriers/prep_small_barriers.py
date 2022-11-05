@@ -132,7 +132,7 @@ df.loc[df.PotentialProject == "No Barrier", "SARP_Score"] = -1
 
 
 # Fix mixed casing of values
-for column in ("CrossingType", "RoadType", "Stream", "Road"):
+for column in ("Stream", "Road"):
     df[column] = df[column].fillna("Unknown").str.title().str.strip()
     df.loc[df[column].str.len() == 0, column] = "Unknown"
 
@@ -173,6 +173,8 @@ for column in ["Editor", "EditDate"]:
     df[column] = df[column].fillna("")
 
 
+### Convert to domain values
+
 # Recode BarrierOwnerType
 df.BarrierOwnerType = (
     df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
@@ -196,22 +198,6 @@ df["Condition"] = (
     .astype("uint8")
 )
 
-
-### Calculate classes
-df["CrossingTypeClass"] = (
-    df.CrossingType.fillna("")
-    .str.strip()
-    .str.lower()
-    .map(CROSSING_TYPE_TO_DOMAIN)
-    .astype("uint8")
-)
-df["RoadTypeClass"] = (
-    df.RoadType.fillna("")
-    .str.strip()
-    .str.lower()
-    .map(ROAD_TYPE_TO_DOMAIN)
-    .astype("uint8")
-)
 df["Constriction"] = (
     df.Constriction.fillna("")
     .str.strip()
@@ -220,6 +206,22 @@ df["Constriction"] = (
     .astype("uint8")
 )
 
+# Convert CrossingType to domain
+df["CrossingType"] = (
+    df.CrossingType.fillna("")
+    .str.strip()
+    .str.lower()
+    .map(CROSSING_TYPE_TO_DOMAIN)
+    .astype("uint8")
+)
+
+df["RoadType"] = (
+    df.RoadType.fillna("")
+    .str.strip()
+    .str.lower()
+    .map(ROAD_TYPE_TO_DOMAIN)
+    .astype("uint8")
+)
 
 ### Spatial joins
 df = add_spatial_joins(df)

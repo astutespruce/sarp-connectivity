@@ -337,11 +337,12 @@ export const CROSSING_TYPE = {
   0: 'Unknown',
   1: 'Not a barrier',
   2: 'Bridge',
-  3: 'Culvert',
-  4: 'Ford',
-  5: 'Tide gate',
-  6: 'Buried stream',
-  7: 'Dam',
+  3: 'Ford',
+  4: 'Culvert',
+  5: 'Assumed culvert', // only for road crossings
+  6: 'Tide gate',
+  7: 'Buried stream',
+  8: 'Dam',
 }
 
 export const CONSTRICTION = {

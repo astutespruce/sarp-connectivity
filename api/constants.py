@@ -173,9 +173,9 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
 SB_FILTER_FIELDS = FILTER_FIELDS + [
-    "CrossingTypeClass",
     "Constriction",
-    "RoadTypeClass",
+    "RoadType",
+    "CrossingType",
 ]
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
@@ -385,7 +385,6 @@ SB_TILE_FIELDS = [
         "PotentialProject",
         # fields where we only use domain rather than string values
         "RoadType",
-        "CrossingType",
         # unit name fields are retrieved from summary tiles
         "Subbasin",
         "Subwatershed",
@@ -674,13 +673,16 @@ WATERBODY_SIZECLASS_DOMAIN = {
 
 
 CROSSING_TYPE_DOMAIN = {
+    -1: "Not applicable",  # when combining dams with small barriers; dam below is when dam is a crossing
     0: "Unknown",
     1: "Not a barrier",
     2: "Bridge",
-    3: "Culvert",
-    4: "Ford",
-    5: "Dam",
-    6: "Buried stream",
+    3: "Ford",
+    4: "Culvert",
+    5: "Assumed culvert",
+    6: "Tide gate",
+    7: "Buried stream",
+    8: "Dam",
 }
 
 CONSTRICTION_DOMAIN = {
@@ -946,6 +948,7 @@ DOMAINS = {
     # "NoStructure": BOOLEAN_DOMAIN,
     # barrier fields
     "Constriction": CONSTRICTION_DOMAIN,
+    "CrossingType": CROSSING_TYPE_DOMAIN,
 }
 
 

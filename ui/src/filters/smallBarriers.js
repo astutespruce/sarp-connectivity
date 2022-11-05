@@ -47,13 +47,13 @@ export const smallBarriers = [
     title: 'Road-related barrier characteristics',
     filters: [
       {
-        field: 'crossingtypeclass',
+        field: 'crossingtype',
         title: 'Crossing type',
         sort: true,
         ...getEntries(CROSSING_TYPE),
       },
       {
-        field: 'roadtypeclass',
+        field: 'roadtype',
         title: 'Road type',
         sort: true,
         ...getEntries(ROAD_TYPE),

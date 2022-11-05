@@ -20,7 +20,12 @@ import shapely
 from pyogrio import read_dataframe, write_dataframe
 import numpy as np
 
-from analysis.constants import CROSSINGS_ID_OFFSET, CRS, FCODE_TO_STREAMTYPE
+from analysis.constants import (
+    CROSSINGS_ID_OFFSET,
+    CRS,
+    FCODE_TO_STREAMTYPE,
+    CROSSING_TYPE_TO_DOMAIN,
+)
 from analysis.lib.graph.speedups import DirectedGraph
 from analysis.lib.io import read_feathers
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
@@ -138,7 +143,10 @@ print("Removing nearby road crossings...")
 df = dedup_crossings(df)
 print(f"now have {len(df):,} road crossings")
 
-# Cleanup fields
+### Cleanup fields
+# match dtype of SARPID elsewhere
+df.SARPID = "cr" + df.SARPID.round().astype(int).astype(str)
+
 df.Stream = df.Stream.str.strip().fillna("")
 df.Road = df.Road.str.strip().fillna("")
 
@@ -148,8 +156,17 @@ df.loc[
 
 df.Name = df.Name.fillna("")
 
-# match dtype of SARPID elsewhere
-df.SARPID = "cr" + df.SARPID.round().astype(int).astype(str)
+# update crossingtype and set as domain
+df.loc[df.crossingtype == "tiger2020 road", "crossingtype"] = "assumed culvert"
+
+errors = [v for v in df.crossingtype.unique() if not v in CROSSING_TYPE_TO_DOMAIN]
+if len(errors):
+    raise ValueError(
+        f"Values present in crossingtype not present in CROSSING_TYPE_TO_DOMAIN: {errors}"
+    )
+
+df["crossingtype"] = df.crossingtype.map(CROSSING_TYPE_TO_DOMAIN)
+
 
 df = add_spatial_joins(df)
 
@@ -224,8 +241,6 @@ ix = (df.Stream == "") & (df.GNIS_Name != "")
 df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
 df = df.drop(columns=["GNIS_Name"])
 
-# update crossingtype
-df.loc[df.crossingtype == "tiger2020 road", "crossingtype"] = "assumed culvert"
 
 # calculate stream type
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")

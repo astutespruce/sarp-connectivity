@@ -58,8 +58,8 @@ const BarrierDetails = ({
   HUC8Name,
   HUC12Name,
   road,
-  roadtypeclass,
-  crossingtypeclass,
+  roadtype,
+  crossingtype,
   constriction,
   condition,
   sarp_score,
@@ -154,14 +154,14 @@ const BarrierDetails = ({
       </Section>
 
       <Section title="Barrier information">
-        {roadtypeclass ? (
+        {roadtype ? (
           <Entry>
-            <Field>Road type:</Field> {ROAD_TYPE[roadtypeclass]}
+            <Field>Road type:</Field> {ROAD_TYPE[roadtype]}
           </Entry>
         ) : null}
-        {crossingtypeclass ? (
+        {crossingtype ? (
           <Entry>
-            <Field>Crossing type:</Field> {CROSSING_TYPE[crossingtypeclass]}
+            <Field>Crossing type:</Field> {CROSSING_TYPE[crossingtype]}
           </Entry>
         ) : null}
         {condition ? (
@@ -352,8 +352,8 @@ BarrierDetails.propTypes = {
   HUC8Name: PropTypes.string,
   HUC12Name: PropTypes.string,
   road: PropTypes.string,
-  roadtypeclass: PropTypes.number,
-  crossingtypeclass: PropTypes.number,
+  roadtype: PropTypes.number,
+  crossingtype: PropTypes.number,
   constriction: PropTypes.number,
   condition: PropTypes.number,
   barrierseverity: PropTypes.number,
@@ -389,8 +389,8 @@ BarrierDetails.defaultProps = {
   stream: null,
   intermittent: -1,
   road: null,
-  roadtypeclass: 0,
-  crossingtypeclass: 0,
+  roadtype: 0,
+  crossingtype: 0,
   constriction: 0,
   barrierseverity: null,
   condition: null,
