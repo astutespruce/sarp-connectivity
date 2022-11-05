@@ -98,6 +98,11 @@ start = time()
 ### Read dams for analysis region states states and merge
 print("Reading dams in analysis region states")
 df = gp.read_feather(src_dir / "sarp_dams.feather")
+
+# TODO: remove after rerunning download
+df = df.rename(columns={"Year": "YearCompleted"})
+
+
 print(f"Read {len(df):,} dams in region states")
 
 ### Read in non-SARP states and join in
@@ -107,8 +112,10 @@ print(
 )
 
 outside_df = gp.read_feather(src_dir / "dams_outer_huc4.feather")
+
 # drop any that are in the main dataset, since there are several dams at state lines
 outside_df = outside_df.loc[~outside_df.SARPID.isin(df.SARPID.unique())].copy()
+
 print(f"Read {len(outside_df):,} dams in outer HUC4s")
 
 df = pd.concat([df, outside_df], ignore_index=True, sort=False)
@@ -251,7 +258,7 @@ for column in (
 ):
     df[column] = df[column].fillna(0).astype("uint8")
 
-for column in ("Year", "YearRemoved", "StructureClass"):
+for column in ("YearCompleted", "YearRemoved", "StructureClass"):
     df[column] = df[column].fillna(0).astype("uint16")
 
 # Use float32 instead of float64 (still can hold nulls)
@@ -325,14 +332,14 @@ df.loc[ids, "Name"] = df.loc[ids].Name.apply(lambda v: v.split("\r")[0]).fillna(
 
 
 # Fix years between 0 and 100; assume they were in the 1900s
-df.loc[(df.Year > 0) & (df.Year < 100), "Year"] = df.Year + 1900
-df.loc[df.Year == 20151, "Year"] = 2015
-df.loc[df.Year == 9999, "Year"] = 0
+df.loc[(df.YearCompleted > 0) & (df.YearCompleted < 100), "YearCompleted"] = (
+    df.YearCompleted + 1900
+)
+df.loc[df.YearCompleted == 20151, "YearCompleted"] = 2015
+df.loc[df.YearCompleted == 9999, "YearCompleted"] = 0
 
 
 ### Calculate classes
-
-
 # Calculate height class
 df["HeightClass"] = 0  # Unknown
 df.loc[(df.Height > 0) & (df.Height < 5), "HeightClass"] = 1
@@ -517,8 +524,8 @@ df.loc[df.is_estimated, "dup_sort"] = 7
 df.loc[df.River != "", "dup_sort"] = 6
 # Prefer dams that have been reconned to those that haven't
 df.loc[df.Recon > 0, "dup_sort"] = 5
-# Prefer dams with height or year to those that do not
-df.loc[(df.Year > 0) | (df.Height > 0), "dup_sort"] = 4
+# Prefer dams with height or year completed to those that do not
+df.loc[(df.YearCompleted > 0) | (df.Height > 0), "dup_sort"] = 4
 # Prefer NID dams
 df.loc[df.NIDID.notnull(), "dup_sort"] = 3
 # Prefer NABD dams

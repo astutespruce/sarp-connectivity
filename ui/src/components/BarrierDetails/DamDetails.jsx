@@ -37,7 +37,7 @@ const DamDetails = ({
   source,
   link,
   estimated,
-  year,
+  yearcompleted,
   construction,
   diversion,
   purpose,
@@ -156,9 +156,9 @@ const DamDetails = ({
     </Section>
 
     <Section title="Construction information">
-      {year > 0 ? (
+      {yearcompleted > 0 ? (
         <Entry>
-          <Field>Constructed completed:</Field> {year}
+          <Field>Constructed completed:</Field> {yearcompleted}
         </Entry>
       ) : null}
       {height > 0 ? (
@@ -386,7 +386,7 @@ DamDetails.propTypes = {
   HUC8Name: PropTypes.string,
   HUC12Name: PropTypes.string,
   height: PropTypes.number,
-  year: PropTypes.number,
+  yearcompleted: PropTypes.number,
   nidid: PropTypes.string,
   source: PropTypes.string,
   link: PropTypes.string,
@@ -435,7 +435,7 @@ DamDetails.defaultProps = {
   link: null,
   estimated: 0,
   height: 0,
-  year: 0,
+  yearcompleted: 0,
   construction: 0,
   purpose: 0,
   condition: 0,

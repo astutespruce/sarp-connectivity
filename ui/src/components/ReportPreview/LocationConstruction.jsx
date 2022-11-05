@@ -33,7 +33,7 @@ const LocationConstruction = ({
   condition,
   passagefacility,
   estimated,
-  year,
+  yearcompleted,
   height,
   width,
   roadtype,
@@ -67,7 +67,9 @@ const LocationConstruction = ({
 
           {barrierType === 'dams' ? (
             <>
-              {year > 0 ? <li>Constructed completed: {year}</li> : null}
+              {yearcompleted > 0 ? (
+                <li>Constructed completed: {yearcompleted}</li>
+              ) : null}
               {height > 0 ? <li>Height: {height} feet</li> : null}
               {width > 0 ? <li>Width: {width} feet</li> : null}
               {construction && CONSTRUCTION[construction] ? (
@@ -186,7 +188,7 @@ LocationConstruction.propTypes = {
   barrierownertype: PropTypes.number,
   height: PropTypes.number,
   width: PropTypes.number,
-  year: PropTypes.number,
+  yearcompleted: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
@@ -215,7 +217,7 @@ LocationConstruction.defaultProps = {
   barrierownertype: null,
   height: 0,
   width: 0,
-  year: 0,
+  yearcompleted: 0,
   construction: 0,
   purpose: 0,
   condition: 0,

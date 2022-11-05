@@ -111,7 +111,7 @@ dam_cols = [
     "WaterbodyKM2",
     "WaterbodySizeClass",
     "Width",
-    "Year",
+    "YearCompleted",
     "is_estimated",
 ]
 
@@ -229,7 +229,7 @@ fill_columns = [
     "WaterbodyKM2",
     "WaterbodySizeClass",
     "Width",
-    "Year",
+    "YearCompleted",
     # small barrier columns
     "BarrierStatus",
     "Constriction",

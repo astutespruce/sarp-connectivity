@@ -28,7 +28,7 @@ const Location = ({
   lowheaddam,
   passagefacility,
   estimated,
-  year,
+  yearcompleted,
   height,
   width,
   roadtype,
@@ -74,9 +74,9 @@ const Location = ({
             </ListItem>
             {barrierType === 'dams' ? (
               <>
-                {year > 0 ? (
+                {yearcompleted > 0 ? (
                   <ListItem>
-                    <Text>Constructed completed: {year}</Text>
+                    <Text>Constructed completed: {yearcompleted}</Text>
                   </ListItem>
                 ) : null}
                 {height > 0 ? (
@@ -252,7 +252,7 @@ Location.propTypes = {
   barrierType: PropTypes.string.isRequired,
   height: PropTypes.number,
   width: PropTypes.number,
-  year: PropTypes.number,
+  yearcompleted: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
@@ -280,7 +280,7 @@ Location.propTypes = {
 Location.defaultProps = {
   height: 0,
   width: 0,
-  year: 0,
+  yearcompleted: 0,
   construction: 0,
   purpose: 0,
   condition: 0,

@@ -55,7 +55,7 @@ cols = [
     # "ImpoundmentType", # not used
     "Length",
     "Width",
-    "Year",
+    "YearCompleted",
     "YearRemoved",
     "removed",
     "StructureCategory",
@@ -153,7 +153,7 @@ removed = pd.DataFrame(
             "Source",
             "SourceDBID",
             "River",
-            "Year",
+            "YearCompleted",
             "YearRemoved",
             "Height",
             "Construction",
