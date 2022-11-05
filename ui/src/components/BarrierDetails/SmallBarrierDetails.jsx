@@ -9,7 +9,7 @@ import { isEmptyString } from 'util/string'
 
 import {
   BARRIER_SEVERITY,
-  BARRIER_CONDITION,
+  CONDITION,
   CROSSING_TYPE,
   ROAD_TYPE,
   CONSTRICTION,
@@ -61,7 +61,7 @@ const BarrierDetails = ({
   roadtypeclass,
   crossingtypeclass,
   constriction,
-  conditionclass,
+  condition,
   sarp_score,
   tespp,
   statesgcnspp,
@@ -72,7 +72,7 @@ const BarrierDetails = ({
   huc8_usfs,
   huc8_coa,
   huc8_sgcn,
-  severityclass,
+  barrierseverity,
   // metrics
   totalupstreammiles,
   perennialupstreammiles,
@@ -164,9 +164,9 @@ const BarrierDetails = ({
             <Field>Crossing type:</Field> {CROSSING_TYPE[crossingtypeclass]}
           </Entry>
         ) : null}
-        {conditionclass ? (
+        {condition ? (
           <Entry>
-            <Field>Condition:</Field> {BARRIER_CONDITION[conditionclass]}
+            <Field>Condition:</Field> {CONDITION[condition]}
           </Entry>
         ) : null}
         {constriction ? (
@@ -174,9 +174,9 @@ const BarrierDetails = ({
             <Field>Type of constriction:</Field> {CONSTRICTION[constriction]}
           </Entry>
         ) : null}
-        {severityclass !== null ? (
+        {barrierseverity !== null ? (
           <Entry>
-            <Field>Severity:</Field> {BARRIER_SEVERITY[severityclass]}
+            <Field>Severity:</Field> {BARRIER_SEVERITY[barrierseverity]}
           </Entry>
         ) : null}
         {!isCrossing && sarp_score >= 0 ? (
@@ -355,8 +355,8 @@ BarrierDetails.propTypes = {
   roadtypeclass: PropTypes.number,
   crossingtypeclass: PropTypes.number,
   constriction: PropTypes.number,
-  conditionclass: PropTypes.number,
-  severityclass: PropTypes.number,
+  condition: PropTypes.number,
+  barrierseverity: PropTypes.number,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
@@ -392,8 +392,8 @@ BarrierDetails.defaultProps = {
   roadtypeclass: 0,
   crossingtypeclass: 0,
   constriction: 0,
-  severityclass: null,
-  conditionclass: 0,
+  barrierseverity: null,
+  condition: null,
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,

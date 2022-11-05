@@ -85,7 +85,7 @@ NETWORK_COLUMN_NAMES = {
 }
 
 
-def get_network_results(df, network_type, barrier_type=None, state_ranks=False):
+def get_network_results(df, network_type, barrier_types=None, state_ranks=False):
     """Read network results, calculate derived metric classes, and calculate
     tiers.
 
@@ -99,8 +99,10 @@ def get_network_results(df, network_type, barrier_type=None, state_ranks=False):
     network_type : {"dams", "small_barriers"}
         network scenario; note that small_barriers includes the network already
         cut by dams
-    barrier_type : {"dams", "small_barriers", "waterfalls"}, optional (default: None)
-        used to filter barrier kind from network results, defaults to network_type
+    barrier_types : list-like, optional (default: None)
+        barrier types to extract from the network data, one or more of "dams",
+        "small_barriers", "waterfalls". If omitted, will default to match
+        network_type
     state_ranks : bool, optional (default: False)
         if True, results will include tiers for the state level
 
@@ -110,15 +112,13 @@ def get_network_results(df, network_type, barrier_type=None, state_ranks=False):
         Contains network metrics and tiers
     """
 
-    barrier_type = barrier_type or network_type
-
-    huc2s = [huc2 for huc2 in df.HUC2.unique() if huc2]
+    barrier_types = barrier_types or [network_type]
 
     networks = (
         read_feathers(
             [
                 Path("data/networks/clean") / huc2 / f"{network_type}_network.feather"
-                for huc2 in huc2s
+                for huc2 in sorted(df.HUC2.unique())
             ],
             columns=NETWORK_COLUMNS,
         )
@@ -127,7 +127,9 @@ def get_network_results(df, network_type, barrier_type=None, state_ranks=False):
     )
 
     # select barrier type
-    networks = networks.loc[networks.kind == barrier_type[:-1]].drop(columns=["kind"])
+    # NOTE: kind is the singular form of barrier type
+    kinds = [t[:-1] for t in barrier_types]
+    networks = networks.loc[networks.kind.isin(kinds)].drop(columns=["kind"])
 
     # Convert dtypes to allow missing data when joined to barriers later
     # NOTE: upNetID or downNetID may be 0 if there aren't networks on that side, but
@@ -151,7 +153,7 @@ def get_network_results(df, network_type, barrier_type=None, state_ranks=False):
     # sanity check to make sure no duplicate networks
     if networks.groupby(level=0).size().max() > 1:
         raise Exception(
-            f"ERROR: multiple networks found for some {barrier_type} networks"
+            f"ERROR: multiple networks found for some {network_type} networks"
         )
 
     networks = networks.join(df[df.columns.intersection(["Unranked", "State"])])
@@ -159,7 +161,9 @@ def get_network_results(df, network_type, barrier_type=None, state_ranks=False):
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total
     # doesn't apply to those that don't have upstream networks
-    networks.loc[networks.SizeClasses > 0, "SizeClasses"] -= 1
+    networks.loc[networks.SizeClasses > 0, "SizeClasses"] = (
+        networks.loc[networks.SizeClasses > 0, "SizeClasses"] - 1
+    )
 
     # Calculate miles GAINED if barrier is removed
     # this is the lesser of the upstream or free downstream lengths.

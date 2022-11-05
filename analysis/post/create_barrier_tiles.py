@@ -504,10 +504,10 @@ for col in cols:
     combined[col] = combined[col].fillna("").astype(str)
 
 for col in [
-    "ConditionClass",
+    "BarrierSeverity",
+    "Condition",
     "CrossingTypeClass",
     "RoadTypeClass",
-    "SeverityClass",
     "Constriction",
     "OwnerType",
     "Trout",

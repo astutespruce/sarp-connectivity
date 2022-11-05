@@ -3,6 +3,8 @@ from pathlib import Path
 import pandas as pd
 import geopandas as gp
 
+from analysis.constants import CRS
+
 
 def read_feathers(paths, columns=None, geo=False, new_fields=None):
     """Read multiple feather files into a single DataFrame.
@@ -31,6 +33,11 @@ def read_feathers(paths, columns=None, geo=False, new_fields=None):
             continue
 
         df = read_feather(path, columns=columns)
+
+        if geo:
+            # TEMP: have to explicitly set the CRS to normalize differences between
+            # CRS objects generated using different versions of Proj
+            df = df.set_crs(CRS)
 
         if new_fields is not None:
             for field, values in new_fields.items():

@@ -88,7 +88,7 @@ def extract_marine(gdb, target_crs):
     # find all connected parts
     tree = shapely.STRtree(df.geometry.values.data)
     pairs = pd.DataFrame(
-        tree.query_bulk(df.geometry.values.data, predicate="intersects").T,
+        tree.query(df.geometry.values.data, predicate="intersects").T,
         columns=["left", "right"],
     )
     g = DirectedGraph(

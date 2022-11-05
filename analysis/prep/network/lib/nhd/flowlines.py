@@ -171,7 +171,7 @@ def extract_flowlines(gdb, target_crs):
     # only search against other flowlines
     tree = shapely.STRtree(target.geometry.values.data)
     # search within a tolerance of 0.001, these are very very close
-    left, right = tree.nearest_all(tmp.geometry.values.data, max_distance=0.001)
+    left, right = tree.query_nearest(tmp.geometry.values.data, max_distance=0.001)
 
     pairs = pd.DataFrame(
         {

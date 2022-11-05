@@ -226,7 +226,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     )
     # find the nearest junctions within 5m tolerance of drain points on loops
     tree = shapely.STRtree(downstream_junction_pts.values.data)
-    left, right = tree.nearest_all(loop_pts.geometry.values.data, max_distance=5)
+    left, right = tree.query_nearest(loop_pts.geometry.values.data, max_distance=5)
 
     # make sure they are connected on the network
     g = DirectedGraph(pairs, source="upstream_id", target="downstream_id")

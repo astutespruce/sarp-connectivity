@@ -30,7 +30,7 @@ def near(source, target, distance):
     """
 
     tree = shapely.STRtree(target.values)
-    left, right = tree.query_bulk(source.values, predicate="dwithin", distance=distance)
+    left, right = tree.query(source.values, predicate="dwithin", distance=distance)
 
     right_name = target.index.name or "index_right"
     return pd.DataFrame(
@@ -74,7 +74,7 @@ def nearest(source, target, max_distance, keep_all=False):
     tree = shapely.STRtree(target.values.data)
 
     if np.isscalar(max_distance):
-        (left_ix, right_ix), distance = tree.nearest_all(
+        (left_ix, right_ix), distance = tree.query_nearest(
             source.values.data, max_distance=max_distance, return_distance=True
         )
 
@@ -92,7 +92,7 @@ def nearest(source, target, max_distance, keep_all=False):
         for d in np.unique(max_distance):
             ix = max_distance == d
             left = source.loc[ix]
-            (left_ix, right_ix), distance = tree.nearest_all(
+            (left_ix, right_ix), distance = tree.query_nearest(
                 left.values.data, max_distance=d, return_distance=True
             )
             merged = append(

@@ -343,7 +343,8 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
             "position": inner_ix,
             "geometry": lines,
             "length": shapely.length(lines).astype("float32"),
-        }
+        },
+        crs=flowlines.crs,
     ).join(
         flowlines.drop(
             columns=[
@@ -510,7 +511,8 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
             "origLineID": grouped.index.take(outer_ix),
             "geometry": lines,
             "length": shapely.length(lines).astype("float32"),
-        }
+        },
+        crs=flowlines.crs,
     ).join(
         flowlines.drop(
             columns=[
@@ -634,9 +636,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
 
     join_start = time()
     tree = shapely.STRtree(flowlines.geometry.values.data)
-    left, right = tree.query_bulk(
-        waterbodies.geometry.values.data, predicate="intersects"
-    )
+    left, right = tree.query(waterbodies.geometry.values.data, predicate="intersects")
     df = pd.DataFrame(
         {
             "lineID": flowlines.index.take(right),
@@ -737,9 +737,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             lines_in_wb = df.loc[df.wbID.isin(wb_with_rings)].lineID.unique()
             lines_in_wb = flowlines.loc[flowlines.index.isin(lines_in_wb)].geometry
             tree = shapely.STRtree(rings)
-            left, right = tree.query_bulk(
-                lines_in_wb.values.data, predicate="intersects"
-            )
+            left, right = tree.query(lines_in_wb.values.data, predicate="intersects")
 
             tmp = pd.DataFrame(
                 {
@@ -800,9 +798,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             print("Recalculating overlaps with waterbodies")
             wb = waterbodies.loc[wbID]
             tree = shapely.STRtree(new_flowlines.geometry.values.data)
-            left, right = tree.query_bulk(
-                wb.geometry.values.data, predicate="intersects"
-            )
+            left, right = tree.query(wb.geometry.values.data, predicate="intersects")
 
             df = pd.DataFrame(
                 {
@@ -956,7 +952,7 @@ def remove_marine_flowlines(flowlines, joins, marine):
     # Remove those that start in marine areas
     points = shapely.get_point(flowlines.geometry.values.data, 0)
     tree = shapely.STRtree(points)
-    left, right = tree.query_bulk(marine.geometry.values.data, predicate="intersects")
+    left, right = tree.query(marine.geometry.values.data, predicate="intersects")
     ix = flowlines.index.take(np.unique(right))
 
     print(f"Removing {len(ix):,} flowlines that originate in marine areas")
@@ -970,7 +966,7 @@ def remove_marine_flowlines(flowlines, joins, marine):
     # Mark those that end in marine areas as marine
     endpoints = shapely.get_point(flowlines.geometry.values.data, -1)
     tree = shapely.STRtree(endpoints)
-    left, right = tree.query_bulk(marine.geometry.values.data, predicate="intersects")
+    left, right = tree.query(marine.geometry.values.data, predicate="intersects")
     ix = flowlines.index.take(np.unique(right))
     joins.loc[joins.upstream_id.isin(ix), "marine"] = True
 
@@ -1042,7 +1038,7 @@ def mark_altered_flowlines(flowlines, nwi):
     unaltered = flowlines.loc[~flowlines.altered]
 
     tree = shapely.STRtree(unaltered.geometry.values.data)
-    left, right = tree.query_bulk(b, predicate="intersects")
+    left, right = tree.query(b, predicate="intersects")
 
     df = pd.DataFrame(
         {

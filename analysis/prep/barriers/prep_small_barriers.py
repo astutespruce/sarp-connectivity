@@ -55,7 +55,7 @@ from analysis.constants import (
     INVASIVE_MANUALREVIEW,
     INVASIVE_RECON,
     BARRIER_CONDITION_TO_DOMAIN,
-    POTENTIAL_TO_SEVERITY,
+    POTENTIALPROJECT_TO_SEVERITY,
     ROAD_TYPE_TO_DOMAIN,
     CROSSING_TYPE_TO_DOMAIN,
     FCODE_TO_STREAMTYPE,
@@ -103,7 +103,7 @@ if s.max() > 1:
 
 ### Add IDs for internal use
 # internal ID
-df["id"] = (df.index.values + SMALL_BARRIERS_ID_OFFSET).astype("uint32")
+df["id"] = (df.index.values + SMALL_BARRIERS_ID_OFFSET).astype("uint64")
 df = df.set_index("id", drop=False)
 
 
@@ -162,16 +162,6 @@ df["RoadType"] = df.RoadType.fillna("").apply(
 )
 
 
-# Fix issues with Condition
-df.BarrierCondition = df.BarrierCondition.fillna("Unknown")
-df.loc[
-    (df.BarrierCondition == "No Data")
-    | (df.BarrierCondition == "No data")
-    | (df.BarrierCondition.str.strip().str.len() == 0),
-    "BarrierCondition",
-] = "Unknown"
-
-
 df["YearRemoved"] = df.YearRemoved.fillna(0).astype("uint16")
 
 #########  Fill NaN fields and set data types
@@ -188,22 +178,26 @@ df.BarrierOwnerType = (
     df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
 )
 
+# Code BarrierSeverity to use same domain as dams
+df["BarrierSeverity"] = (
+    df.PotentialProject.fillna("")
+    .str.strip()
+    .str.lower()
+    .map(POTENTIALPROJECT_TO_SEVERITY)
+    .astype("uint8")
+)
 
-### Calculate classes
-df["ConditionClass"] = (
-    df.BarrierCondition.fillna("")
+# Code Condition to use same domain as dams
+df["Condition"] = (
+    df.Condition.fillna("")
     .str.strip()
     .str.lower()
     .map(BARRIER_CONDITION_TO_DOMAIN)
     .astype("uint8")
 )
-df["SeverityClass"] = (
-    df.PotentialProject.fillna("")
-    .str.strip()
-    .str.lower()
-    .map(POTENTIAL_TO_SEVERITY)
-    .astype("uint8")
-)
+
+
+### Calculate classes
 df["CrossingTypeClass"] = (
     df.CrossingType.fillna("")
     .str.strip()
@@ -423,10 +417,8 @@ df["dup_group"] = np.nan
 df["dup_count"] = np.nan
 df["dup_log"] = "not a duplicate"
 
-# Duplicate sort is opposite of SeverityClass
-df["dup_sort"] = df.SeverityClass.map(
-    {np.nan: 9999, 0: 9999, 1: 3, 2: 2, 3: 1}  # highest sort, highest severity
-)
+# Set dup_sort from BarrierSeverity, but put unknown at the end
+df["dup_sort"] = np.where(df.BarrierSeverity == 0, 9999, df.BarrierSeverity)
 
 dedup_start = time()
 df, to_dedup = find_duplicates(df, to_dedup=df.copy(), tolerance=DUPLICATE_TOLERANCE)
@@ -449,7 +441,7 @@ export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas.fgb")
 # NOTE: these are only the dams that are snapped and not dropped or excluded
 dams = gp.read_feather(snapped_dir / "dams.feather", columns=["geometry"])
 tree = shapely.STRtree(df.geometry.values.data)
-left, right = tree.query_bulk(
+left, right = tree.query(
     dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )
 ix = df.index.values.take(np.unique(right))
@@ -463,7 +455,7 @@ print(f"Found {len(ix)} small barriers within {DUPLICATE_TOLERANCE}m of dams")
 waterfalls = gp.read_feather(snapped_dir / "waterfalls.feather", columns=["geometry"])
 
 tree = shapely.STRtree(df.geometry.values.data)
-left, right = tree.query_bulk(
+left, right = tree.query(
     waterfalls.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )
 near_wf = df.index.values.take(np.unique(right))

@@ -5,7 +5,7 @@ import warnings
 import geopandas as gp
 import pandas as pd
 
-from analysis.lib.util import pack_bits
+from analysis.lib.util import pack_bits, get_signed_dtype
 from analysis.rank.lib.networks import get_network_results
 from analysis.rank.lib.metrics import (
     classify_percent_altered,
@@ -209,7 +209,7 @@ df["PercentAlteredClass"] = classify_percent_altered(df.PercentAltered)
 
 # fill network columns and set proper type
 for col in networks.columns:
-    df[col] = df[col].fillna(-1).astype(networks[col].dtype)
+    df[col] = df[col].fillna(-1).astype(get_signed_dtype(networks[col].dtype))
 
 
 ### Sanity check

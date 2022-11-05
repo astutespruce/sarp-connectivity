@@ -9,7 +9,7 @@ import {
   ROAD_TYPE,
   STREAMORDER,
   PERCENT_ALTERED,
-  BARRIER_CONDITION,
+  CONDITION,
   OWNERTYPE,
   BARRIEROWNERTYPE,
 } from 'constants'
@@ -22,7 +22,7 @@ export const smallBarriers = [
     title: 'Conservation benefits',
     filters: [
       {
-        field: 'severityclass',
+        field: 'barrierseverity',
         title: 'Barrier Severity',
         sort: true,
         ...getEntries(BARRIER_SEVERITY),
@@ -64,10 +64,10 @@ export const smallBarriers = [
         ...getEntries(CONSTRICTION),
       },
       {
-        field: 'conditionclass',
+        field: 'condition',
         title: 'Barrier condition',
         sort: true,
-        ...getEntries(BARRIER_CONDITION),
+        ...getEntries(CONDITION),
       },
     ],
   },

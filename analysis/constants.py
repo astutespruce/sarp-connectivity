@@ -1,5 +1,6 @@
 """Constants used in other scripts."""
 
+
 # Full Southeast + USFWS R2 / R6 region + OR / WA / ID
 STATES = {
     "AL": "Alabama",
@@ -85,8 +86,7 @@ CROSSINGS_ID_OFFSET = 1e7  # >= 10M
 
 
 # Use USGS CONUS Albers (EPSG:102003): https://epsg.io/102003    (same as other SARP datasets)
-# use Proj4 syntax, since GeoPandas doesn't properly recognize it's EPSG Code.
-# CRS = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
+# use Proj JSON syntax, since GeoPandas doesn't properly recognize it's EPSG Code.
 CRS = {
     "proj": "aea",
     "lat_1": 29.5,
@@ -98,9 +98,9 @@ CRS = {
     "datum": "NAD83",
     "units": "m",
     "no_defs": True,
+    "type": "crs",
 }
 
-CRS_WKT = """PROJCS["USA_Contiguous_Albers_Equal_Area_Conic",GEOGCS["GCS_North_American_1983",DATUM["North_American_Datum_1983",SPHEROID["GRS_1980",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Albers_Conic_Equal_Area"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["longitude_of_center",-96],PARAMETER["Standard_Parallel_1",29.5],PARAMETER["Standard_Parallel_2",45.5],PARAMETER["latitude_of_center",37.5],UNIT["Meter",1],AUTHORITY["EPSG","102003"]]"""
 
 GEO_CRS = "EPSG:4326"
 
@@ -362,34 +362,6 @@ RECON_TO_FEASIBILITY = {
 # }
 
 
-POTENTIAL_TO_SEVERITY = {
-    "": 0,
-    "na": 0,
-    "unknown": 0,
-    "inaccessible": 0,
-    "indeterminate": 0,  # removed from processing
-    "insignificant barrier": 1,
-    "minor barrier": 1,
-    "moderate barrier": 2,
-    "no barrier": 1,  # removed from processing
-    "no crossing": 1,
-    "no upstream channel": 1,
-    "no upstream habitat": 1,
-    "buried stream": 1,
-    "not scored": 0,
-    "no": 1,
-    "unassessed": 0,
-    "completed project": 0,  # removed from processing
-    "past project": 0,  # removed from processing
-    "potential project": 0,
-    "proposed project": 0,
-    "severe barrier": 3,
-    "significant barrier": 3,
-    "small project": 0,
-    "sri only": 0,
-    "other": 0,
-}
-
 CROSSING_TYPE_TO_DOMAIN = {
     "bridge": 2,
     "bridge adequate": 2,
@@ -447,26 +419,60 @@ ROAD_TYPE_TO_DOMAIN = {
     "": 0,
 }
 
+# Dam barrier condition comes in as domain values,
+# map small barrier condition to match
 BARRIER_CONDITION_TO_DOMAIN = {
     "": 0,
     "unknown": 0,
-    "failing": 1,
-    "poor": 2,
-    "ok": 3,
-    "new": 4,
+    "no data": 0,
+    "failing": 3,
+    "poor": 3,
+    "ok": 1,
+    "new": 1,
 }
 
+# Dams and small barriers are mapped to SEVERITY_DOMAIN
 DAM_BARRIER_SEVERITY_TO_DOMAIN = {
     "": 0,
-    "Unknown": 0,
-    "Complete": 1,
-    "Complete Barrier": 1,
-    "Partial": 2,
-    "Partial Passability - Non Salmonid": 3,
-    "Partial Passability - Salmonid": 4,
-    "Seasonably Passable - Non Salmonid": 5,
-    "Seasonably Passable - Salmonid": 6,
-    "No Barrier": 7,
+    "unknown": 0,
+    "complete": 1,
+    "complete barrier": 1,
+    "partial": 2,
+    "partial passability - non salmonid": 3,
+    "partial passibility - non salmonid": 3,
+    "partial passability - salmonid": 4,
+    "seasonably passable - non salmonid": 5,
+    "seasonably passable - non salmond": 5,
+    "seasonably passable - salmonid": 6,
+    "no barrier": 7,
+}
+
+POTENTIALPROJECT_TO_SEVERITY = {
+    "": 0,
+    "na": 0,
+    "unknown": 0,
+    "inaccessible": 0,
+    "indeterminate": 0,  # removed from processing
+    "insignificant barrier": 7,
+    "minor barrier": 7,
+    "moderate barrier": 2,
+    "no barrier": 7,  # removed from processing
+    "no crossing": 7,
+    "no upstream channel": 7,
+    "no upstream habitat": 7,
+    "buried stream": 7,
+    "not scored": 0,
+    "no": 7,
+    "unassessed": 0,
+    "completed project": 0,  # removed from processing
+    "past project": 0,  # removed from processing
+    "potential project": 0,
+    "proposed project": 0,
+    "severe barrier": 1,
+    "significant barrier": 1,
+    "small project": 0,
+    "sri only": 0,
+    "other": 0,
 }
 
 

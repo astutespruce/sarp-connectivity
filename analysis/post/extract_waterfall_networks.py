@@ -1,10 +1,9 @@
 from pathlib import Path
-import warnings
 
 import geopandas as gp
 
 from api.constants import WF_CORE_FIELDS, WF_PACK_BITS
-from analysis.lib.util import pack_bits
+from analysis.lib.util import pack_bits, get_signed_dtype
 from analysis.rank.lib.metrics import classify_streamorder, classify_spps
 from analysis.rank.lib.networks import get_network_results
 
@@ -82,10 +81,10 @@ barrier_networks.columns = [f"{c}_small_barriers" for c in barrier_networks.colu
 df = df.join(dam_networks).join(barrier_networks).copy()
 
 for col in dam_networks.columns:
-    df[col] = df[col].fillna(-1).astype(dam_networks[col].dtype)
+    df[col] = df[col].fillna(-1).astype(get_signed_dtype(dam_networks[col].dtype))
 
 for col in barrier_networks.columns:
-    df[col] = df[col].fillna(-1).astype(barrier_networks[col].dtype)
+    df[col] = df[col].fillna(-1).astype(get_signed_dtype(barrier_networks[col].dtype))
 
 
 df["HasNetwork"] = df.index.isin(dam_networks.index)

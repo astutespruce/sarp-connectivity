@@ -104,6 +104,7 @@ joins = read_feathers(
 joins.loc[(joins.upstream == 0) & (joins.type == "internal"), "type"] = "origin"
 
 groups, joins = connect_huc2s(joins)
+groups = sorted(groups)
 print(f"Found {len(groups)} HUC2 groups in {time() - start:,.2f}s")
 
 # persist table of connected HUC2s
@@ -124,12 +125,15 @@ for group in groups:
         huc2_dir = out_dir / huc2
         huc2_dir.mkdir(exist_ok=True, parents=True)
 
-    print(f"\n===========================\nCreating networks for {group}")
+    print(
+        f"\n===========================\nCreating networks for {', '.join(group_huc2s)}"
+    )
 
     group_joins = joins.loc[
         joins.HUC2.isin(group), ["downstream_id", "upstream_id", "type", "marine"]
     ]
 
+    # WARNING: set_index alters dtype of "id" column
     barrier_joins = read_feathers(
         [src_dir / huc2 / "barrier_joins.feather" for huc2 in group_huc2s],
         columns=["id", "upstream_id", "downstream_id", "kind", "marine", "type"],
@@ -391,10 +395,10 @@ for group in groups:
 
         # save barriers by the HUC2 where they are located
         for huc2 in group_huc2s:
-            barrier_networks.loc[
-                barrier_networks.HUC2 == huc2
-            ].reset_index().to_feather(
-                out_dir / huc2 / f"{barrier_type}_network.feather"
+            tmp = (
+                barrier_networks.loc[barrier_networks.HUC2 == huc2]
+                .reset_index()
+                .to_feather(out_dir / huc2 / f"{barrier_type}_network.feather")
             )
 
     print("-------------------------\n")

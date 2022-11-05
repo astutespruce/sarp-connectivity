@@ -67,7 +67,7 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
 
     # Also keep any small barriers that were not specifically excluded or dropped
     # because they are individually evaluated
-    if "SeverityClass" in df.columns:
+    if "PotentialProject" in df.columns:
         keep_ix = keep_ix | keep.id.isin(df.loc[~(df.dropped | df.excluded)].index)
 
     trusted_keepers = keep.loc[keep_ix]

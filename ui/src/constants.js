@@ -268,9 +268,8 @@ export const CONSTRUCTION = {
   11: 'Other',
 }
 
-export const DAM_CONDITION = {
-  '-1': 'Not applicable',
-  0: 'Not Rated',
+export const Condition = {
+  0: 'unknown',
   1: 'Satisfactory',
   2: 'Fair',
   3: 'Poor',
@@ -333,14 +332,6 @@ export const STREAMORDER = {
   6: '>= 6',
 }
 
-export const BARRIER_SEVERITY = {
-  '-1': 'Not applicable',
-  0: 'Unknown',
-  1: 'Not a barrier',
-  2: 'Moderate barrier',
-  3: 'Major barrier',
-}
-
 export const CROSSING_TYPE = {
   '-1': 'Not applicable',
   0: 'Unknown',
@@ -372,15 +363,6 @@ export const ROAD_TYPE = {
   3: 'Railroad',
 }
 
-export const BARRIER_CONDITION = {
-  '-1': 'Not applicable',
-  0: 'Unknown',
-  1: 'Failing',
-  2: 'Poor',
-  3: 'OK',
-  4: 'New',
-}
-
 export const OWNERTYPE = {
   1: 'US Fish and Wildlife Service land',
   2: 'USDA Forest Service land',
@@ -410,25 +392,25 @@ export const PASSAGEFACILITY_CLASS = {
 
 export const PASSAGEFACILITY = {
   '-1': 'Not applicable',
-  0: 'Unknown or None',
-  1: 'Trap & Truck',
-  2: 'Fish Ladder - unspecified',
+  0: 'Unknown or none',
+  1: 'Trap & truck',
+  2: 'Fish ladder - unspecified',
   3: 'Locking',
-  4: 'Rock Rapids',
+  4: 'Rock rapids',
   5: 'Eelway',
-  6: 'Alaskan Steeppass',
-  7: 'Herring Passage',
+  6: 'Alaskan steeppass',
+  7: 'Herring passage',
   8: 'Reservation',
   9: 'Exemption',
   10: 'Notch',
-  11: 'Denil Fishway',
-  12: 'Fish Lift',
-  13: 'Partial Breach',
+  11: 'Denil fishway',
+  12: 'Fish lift',
+  13: 'Partial breach',
   14: 'Removal',
-  15: 'Pool and Weir Fishway',
-  16: 'Vertical Slot Fishway',
-  17: 'Nature-like Fishway',
-  18: 'Bypass Channel Fishway',
+  15: 'Pool and weir fishway',
+  16: 'Vertical slot fishway',
+  17: 'Nature-like fishway',
+  18: 'Bypass channel fishway',
 }
 
 export const INTERMITTENT = {
@@ -436,16 +418,15 @@ export const INTERMITTENT = {
   1: 'Yes',
 }
 
-export const DAM_BARRIER_SEVERITY = {
-  '-1': 'Not applicable',
+export const BARRIER_SEVERITY = {
   0: 'Unknown',
   1: 'Complete',
-  2: 'Partial',
-  3: 'Partial Passability - Non Salmonid',
-  4: 'Partial Passability - Salmonid',
-  5: 'Seasonbly Passable - Non Salmonid',
-  6: 'Seasonably Passable - Salmonid',
-  7: 'No Barrier',
+  2: 'Partial passability - unspecified',
+  3: 'Partial passability - non salmonid',
+  4: 'Partial passability - salmonid',
+  5: 'Seasonbly passable - non salmonid',
+  6: 'Seasonably passable - salmonid',
+  7: 'No barrier',
 }
 
 export const LOWHEAD_DAM = {

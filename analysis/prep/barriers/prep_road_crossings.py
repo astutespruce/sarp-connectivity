@@ -43,7 +43,7 @@ print("Removing crossings that duplicate existing barriers")
 barriers = gp.read_feather(barriers_dir / "master/small_barriers.feather")
 
 tree = shapely.STRtree(df.geometry.values.data)
-ix = tree.query_bulk(
+ix = tree.query(
     barriers.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )[1]
 drop_ids = df.id.values.take(ix)

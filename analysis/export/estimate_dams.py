@@ -83,7 +83,7 @@ has_dam = df.wbID.isin(dams.wbID.unique())
 
 states = gp.read_feather("data/boundaries/states.feather", columns=["id", "geometry"])
 tree = shapely.STRtree(df.geometry.values.data)
-left, right = tree.query_bulk(states.geometry.values.data, predicate="intersects")
+left, right = tree.query(states.geometry.values.data, predicate="intersects")
 
 state_join = (
     pd.DataFrame({"state": states.id.take(left), "drain": df.index.take(right)})

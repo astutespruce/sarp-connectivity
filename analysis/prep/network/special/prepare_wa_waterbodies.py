@@ -65,7 +65,7 @@ df["source"] = "wa_hydro"
 df = df.to_crs(CRS)
 
 print(f"Extracted {len(df):,} WA hydro waterbodies")
-left, right = tree.query_bulk(df.geometry.values.data, predicate="intersects")
+left, right = tree.query(df.geometry.values.data, predicate="intersects")
 df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
@@ -103,7 +103,7 @@ df["geometry"] = shapely.simplify(
 df = df.to_crs(CRS)
 
 print(f"Extracted {len(df):,} WA surface waterbodies")
-left, right = tree.query_bulk(df.geometry.values.data, predicate="intersects")
+left, right = tree.query(df.geometry.values.data, predicate="intersects")
 df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
@@ -133,7 +133,7 @@ df = df.drop(columns=["tmp"])
 # mark any that are more than 50% altered as altered
 altered = df.loc[df.altered]
 tree = shapely.STRtree(altered.geometry.values.data)
-left, right = tree.query_bulk(wb.geometry.values.data, predicate="intersects")
+left, right = tree.query(wb.geometry.values.data, predicate="intersects")
 intersection = shapely.area(
     shapely.intersection(
         wb.geometry.values.data.take(left), altered.geometry.values.data.take(right)

@@ -56,7 +56,9 @@ qa_dir = barriers_dir / "qa"
 start = time()
 
 
-print("Reading waterfalls")
+print(
+    "\n\n----------------------------------\nReading waterfalls\n---------------------------"
+)
 
 df = gp.read_feather(src_dir / "waterfalls.feather").rename(
     columns={"fall_type": "FallType"}
@@ -67,7 +69,7 @@ df.FallType = df.FallType.fillna("").str.strip()
 
 ### Add IDs for internal use
 # internal ID
-df["id"] = (df.index.values + WATERFALLS_ID_OFFSET).astype("uint32")
+df["id"] = (df.index.values + WATERFALLS_ID_OFFSET).astype("uint64")
 df = df.set_index("id", drop=False)
 
 
@@ -176,14 +178,14 @@ print(
 ### Exclude barriers based on BarrierSeverity
 
 # Convert BarrierSeverity to a domain
-df.BarrierSeverity = df.BarrierSeverity.fillna("").str.strip()
+df.BarrierSeverity = df.BarrierSeverity.fillna("").str.strip().str.lower()
 
 # FIXME: temporary fixes
-df.loc[df.BarrierSeverity.str.startswith("State of UT"), "BarrierSeverity"] = "Unknown"
+df.loc[df.BarrierSeverity.str.startswith("state of ut"), "BarrierSeverity"] = "unknown"
 
 
 # mark as excluded if barrier severity is unknown / no barrier
-exclude_severities = ["Unknown", "No Barrier"]
+exclude_severities = ["unknown", "no barrier"]
 ix = df.BarrierSeverity.isin(exclude_severities)
 df.loc[ix, "excluded"] = True
 df.loc[ix, "log"] = f"excluded: BarrierSeverity one of {', '.join(exclude_severities)}"

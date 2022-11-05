@@ -37,6 +37,8 @@ barrier_status_fields = {
 
 common_summary_fields = [
     "ManualReview",
+    "BarrierSeverity",
+    "Condition",
     "log",
     "snap_log",
 ]
@@ -45,8 +47,7 @@ barrier_summary_fields = {
         "Recon",
     ]
     + common_summary_fields,
-    "small_barriers": common_summary_fields
-    + ["PotentialProject", "SeverityClass", "ConditionClass", "CrossingType"],
+    "small_barriers": common_summary_fields + ["PotentialProject", "CrossingType"],
 }
 
 

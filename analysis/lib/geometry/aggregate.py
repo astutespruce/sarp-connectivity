@@ -93,7 +93,7 @@ def union_or_combine(geometries, grid_size=None, op="union"):
         return multi_type(geometries)
 
     tree = shapely.STRtree(geometries)
-    left, right = tree.query_bulk(geometries, predicate="intersects")
+    left, right = tree.query(geometries, predicate="intersects")
     # drop self intersections
     ix = left != right
     left = left[ix]
@@ -142,7 +142,7 @@ def find_contiguous_groups(geometries):
     DataFrame indexed on the integer index of geometries
     """
     tree = shapely.STRtree(geometries)
-    left, right = tree.query_bulk(geometries, predicate="intersects")
+    left, right = tree.query(geometries, predicate="intersects")
     # drop self intersections
     ix = left != right
     left = left[ix]

@@ -62,7 +62,7 @@ df["altered"] = df.WB_HYDR_FT != "LA"
 df = df.to_crs(CRS)
 
 print(f"Extracted {len(df):,} OR waterbodies")
-left, right = tree.query_bulk(df.geometry.values.data, predicate="intersects")
+left, right = tree.query(df.geometry.values.data, predicate="intersects")
 df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
@@ -88,7 +88,7 @@ df = df.drop(columns=["tmp"])
 # mark any that are more than 50% altered as altered
 altered = df.loc[df.altered]
 tree = shapely.STRtree(altered.geometry.values.data)
-left, right = tree.query_bulk(wb.geometry.values.data, predicate="intersects")
+left, right = tree.query(wb.geometry.values.data, predicate="intersects")
 intersection = shapely.area(
     shapely.intersection(
         wb.geometry.values.data.take(left), altered.geometry.values.data.take(right)
@@ -103,7 +103,7 @@ wb.loc[ix, "altered"] = True
 tree = shapely.STRtree(wb.geometry.values.data)
 
 # confirmed by hand, there are no waterbodies that show up in multiple HUC2s
-left, right = tree.query_bulk(huc2_df.geometry.values.data, predicate="intersects")
+left, right = tree.query(huc2_df.geometry.values.data, predicate="intersects")
 
 wb = wb.join(
     pd.DataFrame(

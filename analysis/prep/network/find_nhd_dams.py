@@ -279,7 +279,7 @@ for huc2 in huc2s:
     # so we can't always take the first or nearest from the dam's perspective
     tmp_dams = dams.groupby("damID").geometry.first()
     tree = shapely.STRtree(tmp_dams.values.data)
-    drain_ix, dam_ix = tree.nearest_all(
+    drain_ix, dam_ix = tree.query_nearest(
         drains.geometry.values.data, max_distance=MAX_DRAIN_DISTANCE
     )
     near_drains = pd.DataFrame(

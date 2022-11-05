@@ -38,7 +38,7 @@ const LocationConstruction = ({
   roadtype,
   crossingtype,
   constriction,
-  severityclass,
+  barrierseverity,
   sarp_score,
   diversion,
   waterbodykm2,
@@ -107,8 +107,8 @@ const LocationConstruction = ({
                 <li>Type of constriction: {CONSTRICTION[constriction]}</li>
               ) : null}
               {condition ? <li>Condition: {condition}</li> : null}
-              {severityclass !== null ? (
-                <li>Severity: {BARRIER_SEVERITY[severityclass]}</li>
+              {barrierseverity !== null ? (
+                <li>Severity: {BARRIER_SEVERITY[barrierseverity]}</li>
               ) : null}
               {sarp_score >= 0 ? (
                 <li>
@@ -192,7 +192,7 @@ LocationConstruction.propTypes = {
   roadtype: PropTypes.string,
   crossingtype: PropTypes.string,
   constriction: PropTypes.number,
-  severityclass: PropTypes.number,
+  barrierseverity: PropTypes.number,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
@@ -221,7 +221,7 @@ LocationConstruction.defaultProps = {
   roadtype: null,
   crossingtype: null,
   constriction: 0,
-  severityclass: null,
+  barrierseverity: null,
   sarp_score: -1,
   diversion: 0,
   lowheaddam: -1,

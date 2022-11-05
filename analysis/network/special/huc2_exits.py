@@ -44,7 +44,7 @@ tree = shapely.STRtree(flowlines.geometry.values.data)
 
 # extract linear rings
 # huc2_bnd.geometry = shapely.get_exterior_ring(huc2_bnd.geometry.values.data)
-left, right = tree.query_bulk(huc2_bnd.geometry.values.data, predicate="intersects")
+left, right = tree.query(huc2_bnd.geometry.values.data, predicate="intersects")
 
 df = pd.DataFrame(
     {

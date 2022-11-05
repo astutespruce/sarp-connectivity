@@ -89,7 +89,7 @@ county_df = (
 
 # keep only those within the region HUC4 outer boundary
 tree = shapely.STRtree(county_df.geometry.values.data)
-ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
+ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
 ix.sort()
 county_df = county_df.iloc[ix].reset_index(drop=True)
 county_df.geometry = to_multipolygon(shapely.make_valid(county_df.geometry.values.data))
@@ -115,7 +115,7 @@ df = (
 
 
 tree = shapely.STRtree(df.geometry.values.data)
-ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
+ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
 ix.sort()
 
 df = df.iloc[ix].reset_index(drop=True)
@@ -159,7 +159,7 @@ df = (
 
 
 tree = shapely.STRtree(df.geometry.values.data)
-ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
+ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
 ix.sort()
 
 df = df.iloc[ix].reset_index(drop=True)
@@ -261,7 +261,7 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12", "ECO3", "ECO
 
     # spatially join to states
     tree = shapely.STRtree(state_geo_df.geometry.values.data)
-    left, right = tree.query_bulk(df.geometry.values.data, predicate="intersects")
+    left, right = tree.query(df.geometry.values.data, predicate="intersects")
     unit_states = (
         pd.DataFrame(
             {

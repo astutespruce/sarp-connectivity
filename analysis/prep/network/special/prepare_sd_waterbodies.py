@@ -54,7 +54,7 @@ print("Reading waterbodies...")
 df = read_dataframe(src_dir / "Statewide_Waterbodies.shp", columns=[]).to_crs(CRS)
 print(f"Extracted {len(df):,} waterbodies")
 
-left, right = tree.query_bulk(df.geometry.values.data, predicate="intersects")
+left, right = tree.query(df.geometry.values.data, predicate="intersects")
 df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
@@ -76,7 +76,7 @@ df = explode(df).reset_index(drop=True)
 tree = shapely.STRtree(df.geometry.values.data)
 
 # confirmed by hand, there are no waterbodies that show up in multiple HUC2s
-left, right = tree.query_bulk(huc2_df.geometry.values.data, predicate="intersects")
+left, right = tree.query(huc2_df.geometry.values.data, predicate="intersects")
 
 df = df.join(
     pd.DataFrame(

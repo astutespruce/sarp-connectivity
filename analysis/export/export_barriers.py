@@ -4,27 +4,32 @@
 from datetime import datetime
 from pathlib import Path
 
-import geopandas as gp
 import pandas as pd
 import pyarrow as pa
 from pyarrow.csv import write_csv
 
-from api.constants import unpack_domains, DAM_EXPORT_FIELDS, SB_EXPORT_FIELDS
+from api.constants import unpack_domains, DAM_EXPORT_FIELDS, SB_EXPORT_FIELDS, unique
+
+
+EXPORT_FIELDS = {
+    "dams": DAM_EXPORT_FIELDS,
+    "small_barriers": SB_EXPORT_FIELDS,
+    "dams_small_barriers": unique(
+        ["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS
+    ),
+}
 
 
 data_dir = Path("data/api")
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
-barrier_type = "dams"  # "small_barriers"
+barrier_type = "dams_small_barriers"  # "dams"  # "small_barriers"
 suffix = ""  # use to set a filename suffix if filtering further
 
 df = pd.read_feather(data_dir / f"{barrier_type}.feather")
 
-
-cols = DAM_EXPORT_FIELDS if barrier_type == "dams" else SB_EXPORT_FIELDS
-# not all fields are present when not doing custom ranking
-cols = [c for c in cols if c in df.columns]
+cols = [c for c in EXPORT_FIELDS[barrier_type] if c in df.columns]
 
 df = unpack_domains(df[cols])
 

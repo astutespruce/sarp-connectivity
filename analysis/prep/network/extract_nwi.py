@@ -59,7 +59,7 @@ huc8_df["HUC2"] = huc8_df.HUC8.str[:2]
 # need to filter to only those that occur in the US
 states = gp.read_feather(data_dir / "boundaries/states.feather", columns=["geometry"])
 tree = shapely.STRtree(huc8_df.geometry.values.data)
-left, right = tree.query_bulk(states.geometry.values.data, predicate="intersects")
+left, right = tree.query(states.geometry.values.data, predicate="intersects")
 ix = np.unique(right)
 print(f"Dropping {len(huc8_df) - len(ix):,} HUC8s that are outside U.S.")
 huc8_df = huc8_df.iloc[ix].copy()
@@ -154,9 +154,7 @@ for huc2 in huc2s:
     ### Process waterbodies
     # only keep that intersect flowlines
     print(f"Extracted {len(waterbodies):,} NWI lakes and ponds")
-    left, right = tree.query_bulk(
-        waterbodies.geometry.values.data, predicate="intersects"
-    )
+    left, right = tree.query(waterbodies.geometry.values.data, predicate="intersects")
     waterbodies = waterbodies.iloc[np.unique(left)].reset_index(drop=True)
     print(f"Kept {len(waterbodies):,} that intersect flowlines")
 
@@ -194,7 +192,7 @@ for huc2 in huc2s:
 
     ### Process riverine
     print(f"Extracted {len(rivers):,} NWI altered river polygons")
-    left, right = tree.query_bulk(rivers.geometry.values.data, predicate="intersects")
+    left, right = tree.query(rivers.geometry.values.data, predicate="intersects")
     rivers = rivers.iloc[np.unique(left)].reset_index(drop=True)
     print(f"Kept {len(rivers):,} that intersect flowlines")
 

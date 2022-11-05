@@ -91,7 +91,7 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     # first, buffer them slightly
     nhd_lines = shapely.get_parts(shapely.union_all(shapely.buffer(nhd_lines, 0.1)))
     tree = shapely.STRtree(geometries)
-    left, right = tree.query_bulk(nhd_lines, predicate="intersects")
+    left, right = tree.query(nhd_lines, predicate="intersects")
 
     # remove nhd_lines any that are completely contained in a waterbody
     tmp = pd.DataFrame(
@@ -119,7 +119,7 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     # find connected boundaries
     boundaries = shapely.polygons(shapely.get_exterior_ring(geometries))
     tree = shapely.STRtree(boundaries)
-    left, right = tree.query_bulk(boundaries, predicate="intersects")
+    left, right = tree.query(boundaries, predicate="intersects")
     # drop self intersections
     ix = left != right
     left = left[ix]
@@ -152,7 +152,7 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     # now find the ones that are within 100m of nhd lines
     nhd_lines = shapely.get_parts(nhd_lines)
     tree = shapely.STRtree(nhd_lines)
-    left, right = tree.nearest_all(split_lines, max_distance=100)
+    left, right = tree.query_nearest(split_lines, max_distance=100)
 
     split_lines = split_lines[np.unique(left)]
 

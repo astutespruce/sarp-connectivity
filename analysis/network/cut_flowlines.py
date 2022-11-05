@@ -10,12 +10,10 @@ from pyogrio import write_dataframe
 
 from analysis.lib.io import read_feathers
 from analysis.lib.flowlines import cut_flowlines_at_barriers
+from analysis.constants import CRS
 
 warnings.simplefilter("always")  # show geometry related warnings every time
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
-
-DEBUG = False
 
 
 data_dir = Path("data")
@@ -51,12 +49,18 @@ huc2s = huc2_df.HUC2.sort_values().values
 start = time()
 
 ### Aggregate barriers
+print("Aggregating barriers")
 kinds = ["waterfall", "dam", "small_barrier", "road_crossing"]
 barriers = read_feathers(
     [barriers_dir / f"{kind}s.feather" for kind in kinds],
     geo=True,
     new_fields={"kind": kinds},
-).set_index("id", drop=False)
+)
+
+# FIXME: remove once all barriers have been re-prepared
+barriers["id"] = barriers.id.astype("uint64")
+
+barriers = barriers.set_index("id", drop=False)
 
 
 # removed is not applicable for road crossings or waterfalls, backfill with False
@@ -84,8 +88,13 @@ for huc2 in huc2s:
     ### Read NHD flowlines and joins
     print("Reading flowlines...")
     flowline_start = time()
-    flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather").set_index(
-        "lineID", drop=False
+
+    flowlines = (
+        gp.read_feather(nhd_dir / huc2 / "flowlines.feather").set_index(
+            "lineID", drop=False
+        )
+        # TEMP: explicitly set the CRS for latest version of PROJ
+        .set_crs(CRS)
     )
     print(f"Read {len(flowlines):,} flowlines in {time() - flowline_start:.2f}s")
 
@@ -120,8 +129,6 @@ for huc2 in huc2s:
 
     flowlines = flowlines.reset_index(drop=True)
     flowlines.to_feather(huc2_dir / "flowlines.feather")
-    if DEBUG:
-        write_dataframe(flowlines, huc2_dir / "flowlines.gpkg")
 
     joins.reset_index(drop=True).to_feather(huc2_dir / "flowline_joins.feather")
     barrier_joins.reset_index(drop=True).to_feather(

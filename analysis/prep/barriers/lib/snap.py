@@ -83,7 +83,7 @@ def snap_estimated_dams_to_drains(df, to_snap):
         if len(tmp):
             max_drain_dist = tmp.snap_tolerance.unique()[0]
             tree = shapely.STRtree(drains.geometry.values.data)
-            left, right = tree.nearest_all(
+            left, right = tree.query_nearest(
                 tmp.geometry.values.data, max_distance=max_drain_dist
             )
             drain_joins = (
@@ -125,7 +125,7 @@ def snap_estimated_dams_to_drains(df, to_snap):
         # Some estimated dams are just barely outside their waterbodies
         # so we take the nearest waterbody for each, within a tolerance of 1m
         tree = shapely.STRtree(wb.geometry.values.data)
-        left, right = tree.nearest_all(in_huc2.geometry.values.data, max_distance=1)
+        left, right = tree.query_nearest(in_huc2.geometry.values.data, max_distance=1)
         # take the first in case of duplicates
         in_wb = (
             pd.DataFrame(
@@ -392,7 +392,7 @@ def snap_to_waterbodies(df, to_snap):
         # Join to nearest waterbodies within 1m (basically inside)
         # and keep only the first match
         tree = shapely.STRtree(wb.geometry.values.data)
-        left, right = tree.nearest_all(in_huc2.geometry.values.data, max_distance=1)
+        left, right = tree.query_nearest(in_huc2.geometry.values.data, max_distance=1)
         in_wb = (
             pd.DataFrame(
                 {
@@ -585,7 +585,7 @@ def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False):
 
         # Find nearest flowlines within tolerance, then sort by nonloop and descending distance
         tree = shapely.STRtree(flowlines.geometry.values.data)
-        left, right = tree.query_bulk(
+        left, right = tree.query(
             shapely.buffer(in_huc2.geometry.values.data, in_huc2.snap_tolerance.values),
             predicate="intersects",
         )

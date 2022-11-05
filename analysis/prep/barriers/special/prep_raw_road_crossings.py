@@ -47,13 +47,14 @@ def dedup_crossings(df):
     # crossings, so only dedup by distance not neighborhoods
     tree = shapely.STRtree(df.geometry.values.data)
     pairs = pd.DataFrame(
-        tree.query_bulk(
+        tree.query(
             df.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
-        ).T.astype("int64"),
+        ).T,
         columns=["left", "right"],
     )
     g = DirectedGraph(
-        df.id.take(pairs.left.values).values, df.id.take(pairs.right.values).values
+        df.id.take(pairs.left.values).values.astype("int64"),
+        df.id.take(pairs.right.values).values.astype("int64"),
     )
 
     # note: components accounts for self-intersections and symmetric pairs
@@ -66,7 +67,7 @@ def dedup_crossings(df):
         .astype(df.id.dtype)
     )
 
-    keep_ids = groups.groupby("group").first().id.values
+    keep_ids = groups.groupby("group").first().id.values.astype("uint64")
 
     print(f"Dropping {len(df)-len(keep_ids):,} very close road crossings")
     return df.loc[df.id.isin(keep_ids)].copy()
@@ -101,7 +102,7 @@ huc4 = gp.read_feather(boundaries_dir / "huc4.feather", columns=["geometry"]).to
     df.crs
 )
 tree = shapely.STRtree(df.geometry.values.data)
-ix = tree.query_bulk(huc4.geometry.values.data, predicate="intersects")[1]
+ix = tree.query(huc4.geometry.values.data, predicate="intersects")[1]
 
 df = df.take(ix).reset_index(drop=True)
 print(f"Selected {len(df):,} road crossings in region")
@@ -114,7 +115,7 @@ df["lat"] = lat
 # project to match SARP CRS
 df = df.to_crs(CRS)
 
-df["id"] = (df.index + CROSSINGS_ID_OFFSET).astype("uint32")
+df["id"] = (df.index.values + CROSSINGS_ID_OFFSET).astype("uint64")
 df = df.set_index("id", drop=False)
 
 # There are a bunch of crossings with identical coordinates, remove them

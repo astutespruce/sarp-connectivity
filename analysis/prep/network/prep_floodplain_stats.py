@@ -1,5 +1,5 @@
 """
-Floodplain stats were generated in ArcGIS by
+Floodplain stats were generated in ArcGIS by SARP:
 1. developing a floodplain mask from existing data sources and 90m around all flowlines
 2. developing a binary map of natural landcover / not natural landcover
 3. clipping landcover by floodplain mask
@@ -25,15 +25,12 @@ NATURAL_TYPES = {11, 12, 31, 41, 42, 43, 51, 52, 71, 72, 73, 74, 90, 95}
 
 data_dir = Path("data")
 src_dir = data_dir / "floodplains"
-gdb_filename = src_dir / "NLCD2016_Floodplain_Stats_2020_12072020.gdb"
-# fixes run later for region 02 that have to be spliced in
-region02_gdb_filename = src_dir / "Region2FixedStats.gdb"
+gdb_filename = src_dir / "HR_NLCD19_Floodplain_Stats_Tables_2022.gdb"
 
 
 # layers have varying names, make a lookup from them
 layers = list_layers(gdb_filename)[:, 0]
 layers = {re.search("\d+", l).group()[-2:]: l for l in layers}
-
 
 huc4_df = pd.read_feather(
     data_dir / "boundaries/huc4.feather", columns=["HUC2", "HUC4"]
@@ -44,20 +41,16 @@ units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
 start = time()
 
-
 merged = None
 
 for huc2 in units.keys():
     print(f"Processing floodplain stats for {huc2}")
 
-    if huc2 == "02":
-        filename = region02_gdb_filename
-        layer = "Region002_Catchments_Natl_LCStats"
-    else:
-        filename = gdb_filename
-        layer = layers[huc2]
+    if not huc2 in layers:
+        print(f"WARNING: region {huc2} not found in floodplain data")
+        continue
 
-    df = read_dataframe(filename, layer=layer)
+    df = read_dataframe(gdb_filename, layer=layers[huc2])
 
     df["HUC2"] = huc2
     df["NHDPlusID"] = df.NHDIDSTR.astype("uint64")
@@ -73,4 +66,4 @@ for huc2 in units.keys():
 
 merged.reset_index(drop=True).to_feather(src_dir / "floodplain_stats.feather")
 
-print("Done in {:.2f}".format(time() - start))
+print(f"Done in {time() - start:.2f}")

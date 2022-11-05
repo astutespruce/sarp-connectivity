@@ -148,6 +148,8 @@ CUSTOM_TIER_FIELDS = [
 
 FILTER_FIELDS = [
     "GainMilesClass",
+    "BarrierSeverity",
+    "Condition",
     "TESppClass",
     "StateSGCNSppClass",
     "Trout",
@@ -163,9 +165,7 @@ FILTER_FIELDS = [
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "Feasibility",
     "Purpose",
-    "Condition",
     "HeightClass",
-    "BarrierSeverity",
     "LowheadDam",
     "PassageFacilityClass",
     "WaterbodySizeClass",
@@ -173,11 +173,9 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
 SB_FILTER_FIELDS = FILTER_FIELDS + [
-    "ConditionClass",
     "CrossingTypeClass",
     "Constriction",
     "RoadTypeClass",
-    "SeverityClass",
 ]
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
@@ -194,6 +192,8 @@ GENERAL_API_FIELDS1 = [
 
 GENERAL_API_FIELDS2 = (
     [
+        "BarrierSeverity",
+        "Condition",
         "TESpp",
         "StateSGCNSpp",
         "RegionalSGCNSpp",
@@ -234,14 +234,12 @@ DAM_CORE_FIELDS = (
         "YearRemoved",
         "Height",
         "Width",
-        "Condition",
         "Construction",
         "Purpose",
         "PassageFacility",
         "Feasibility",
         # IMPORTANT: Recon is intentionally omitted per direction from SARP
         # "Recon",
-        "BarrierSeverity",
         "Diversion",
         "LowheadDam",
         # "NoStructure",
@@ -339,10 +337,8 @@ SB_CORE_FIELDS = (
         "Road",
         "RoadType",
         "CrossingType",
-        "BarrierCondition",
         "Constriction",
         "PotentialProject",
-        "SeverityClass",
         "SARP_Score",
         "YearRemoved",
         "StreamSizeClass",
@@ -389,7 +385,6 @@ SB_TILE_FIELDS = [
         "PotentialProject",
         # fields where we only use domain rather than string values
         "RoadType",
-        "BarrierCondition",
         "CrossingType",
         # unit name fields are retrieved from summary tiles
         "Subbasin",
@@ -613,9 +608,8 @@ CONSTRUCTION_DOMAIN = {
     11: "Other",
 }
 
-DAM_CONDITION_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
-    0: "Not rated",
+CONDITION_DOMAIN = {
+    0: "Unknown",
     1: "Satisfactory",
     2: "Fair",
     3: "Poor",
@@ -679,14 +673,6 @@ WATERBODY_SIZECLASS_DOMAIN = {
 }
 
 
-BARRIER_SEVERITY_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with dams
-    0: "Unknown",
-    1: "Not a barrier",  # includes minor barriers
-    2: "Moderate barrier",
-    3: "Major barrier",
-}
-
 CROSSING_TYPE_DOMAIN = {
     0: "Unknown",
     1: "Not a barrier",
@@ -742,11 +728,11 @@ SCREENTYPE_DOMAIN = {
     6: "Other",
 }
 
-DAM_BARRIER_SEVERITY_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+
+SEVERITY_DOMAIN = {
     0: "Unknown",
     1: "Complete",
-    2: "Partial",
+    2: "Partial passability - unspecified",
     3: "Partial Passability - Non Salmonid",
     4: "Partial Passability - Salmonid",
     5: "Seasonably Passable - Non Salmonid",
@@ -754,17 +740,8 @@ DAM_BARRIER_SEVERITY_DOMAIN = {
     7: "No Barrier",
 }
 
-
 ROAD_TYPE_DOMAIN = {0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad"}
 
-BARRIER_CONDITION_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with dams
-    0: "Unknown",
-    1: "Failing",
-    2: "Poor",
-    3: "OK",
-    4: "New",
-}
 
 OWNERTYPE_DOMAIN = {
     0: "",  # most likely private land, but just don't say anything
@@ -952,10 +929,11 @@ DOMAINS = {
     "HUC8_COA": HUC8_COA_DOMAIN,
     "HUC8_SGCN": HUC8_SGCN_DOMAIN,
     "ManualReview": MANUALREVIEW_DOMAIN,
+    "BarrierSeverity": SEVERITY_DOMAIN,
+    "Recon": RECON_DOMAIN,
+    "Condition": CONDITION_DOMAIN,
     # dam fields
     # note Recon domain is just used for internal exports; excluded from public exports
-    "Recon": RECON_DOMAIN,
-    "Condition": DAM_CONDITION_DOMAIN,
     "Construction": CONSTRUCTION_DOMAIN,
     "Purpose": PURPOSE_DOMAIN,
     "Feasibility": FEASIBILITY_DOMAIN,
@@ -964,12 +942,9 @@ DOMAINS = {
     "LowheadDam": LOWHEADDAM_DOMAIN,
     "FishScreen": FISHSCREEN_DOMAIN,
     "ScreenType": SCREENTYPE_DOMAIN,
-    "BarrierSeverity": DAM_BARRIER_SEVERITY_DOMAIN,
     "WaterbodySizeClass": WATERBODY_SIZECLASS_DOMAIN,
     # "NoStructure": BOOLEAN_DOMAIN,
     # barrier fields
-    "SeverityClass": BARRIER_SEVERITY_DOMAIN,
-    "ConditionClass": BARRIER_CONDITION_DOMAIN,
     "Constriction": CONSTRICTION_DOMAIN,
 }
 
@@ -1043,12 +1018,10 @@ FIELD_DEFINITIONS = {
     "YearRemoved": "year that barrier was removed, if available.  0 = data not available or not removed.",
     "Height": "{type} height in feet, if available.  0 = data not available.",
     "Width": "{type} width in feet, if available.  0 = data not available.",
-    "Condition": "Condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
     "Construction": "material used in {type} construction, if known.",
     "Purpose": "primary purpose of {type}, if known.",
     "PassageFacility": "type of fish passage facility, if known.",
     "Feasibility": "feasibility of {type} removal, based on reconnaissance.  Note: reconnaissance information is available only for a small number of {type}s.",
-    "BarrierSeverity": "passability of the dam, if known.",
     "Diversion": "Identifies if dam is known to be a diversion.  Note: diversion information is available only for a small number of dams.",
     "LowheadDam": "Identifies if dam is known or estimated to be a lowhead dam.  Note: lowhead dam information is available only for a small number of dams.",
     "WaterbodyKM2": "area of associated waterbody in square kilometers.  -1 = no associated waterbody",
@@ -1060,12 +1033,12 @@ FIELD_DEFINITIONS = {
     "Road": "road name, if available.",
     "RoadType": "type of road, if available.",
     "CrossingType": "type of road / stream crossing, if known.",
-    "BarrierCondition": "Condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
     "Constriction": "type of constriction at road / stream crossing, if known.",
     "PotentialProject": "reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.",
-    "SeverityClass": "potential severity of barrier, based on reconnaissance.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
     # other general fields
+    "BarrierSeverity": "passability of the {type}, if known.   Note: assessment dates are not known.",
+    "Condition": "Condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
     "NHDPlusID": "Unique NHD Plus High Resolution flowline identifier to which the barrier is snapped.  -1 = not snapped to a flowline.  Note: not all barriers snapped to flowlines are used in the network connectivity analysis.",
     "StreamSizeClass": "Stream size class based on total catchment drainage area in square kilometers.  1a: <10 km2, 1b: 10-100 km2, 2: 100-518 km2, 3a: 518-2,590 km2, 3b: 2,590-10,000 km2, 4: 10,000-25,000 km2, 5: >= 25,000 km2.",
     "TotDASqKm": "Total drainage area at the downstream end of the NHD Plus High Resolution flowline to which this {type} has been snapped, in square kilometers.  -1 if not snapped to flowline or otherwise not available",

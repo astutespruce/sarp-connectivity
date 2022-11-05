@@ -4,7 +4,7 @@ import { Text, View } from '@react-pdf/renderer'
 
 import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails'
 import {
-  DAM_CONDITION,
+  CONDITION,
   CONSTRUCTION,
   CONSTRICTION,
   OWNERTYPE,
@@ -32,7 +32,7 @@ const Location = ({
   roadtype,
   crossingtype,
   constriction,
-  severityclass,
+  barrierseverity,
   river,
   intermittent,
   subwatershed,
@@ -112,11 +112,10 @@ const Location = ({
                     <Text>Purpose: {PURPOSE[purpose].toLowerCase()}</Text>
                   </ListItem>
                 ) : null}
-                {condition && DAM_CONDITION[condition] ? (
+                {condition && CONDITION[condition] ? (
                   <ListItem>
                     <Text>
-                      Structural condition:{' '}
-                      {DAM_CONDITION[condition].toLowerCase()}
+                      Structural condition: {CONDITION[condition].toLowerCase()}
                     </Text>
                   </ListItem>
                 ) : null}
@@ -156,9 +155,9 @@ const Location = ({
                   </ListItem>
                 ) : null}
 
-                {severityclass !== null ? (
+                {barrierseverity !== null ? (
                   <ListItem>
-                    <Text>Severity: {BARRIER_SEVERITY[severityclass]}</Text>
+                    <Text>Severity: {BARRIER_SEVERITY[barrierseverity]}</Text>
                   </ListItem>
                 ) : null}
 
@@ -260,7 +259,7 @@ Location.propTypes = {
   roadtype: PropTypes.string,
   crossingtype: PropTypes.string,
   constriction: PropTypes.number,
-  severityclass: PropTypes.number,
+  barrierseverity: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
   huc12: PropTypes.string,
@@ -288,7 +287,7 @@ Location.defaultProps = {
   roadtype: null,
   crossingtype: null,
   constriction: 0,
-  severityclass: null,
+  barrierseverity: null,
   river: null,
   intermittent: 0,
   huc12: null,

@@ -4,7 +4,7 @@ import warnings
 
 import geopandas as gp
 
-from analysis.lib.util import pack_bits
+from analysis.lib.util import pack_bits, get_signed_dtype
 from analysis.rank.lib.networks import get_network_results
 from analysis.rank.lib.metrics import (
     classify_streamorder,
@@ -42,7 +42,7 @@ cols = [
     "RoadType",
     "RoadTypeClass",
     "PotentialProject",
-    "SeverityClass",
+    "BarrierSeverity",
     "SARP_Score",
     "YearRemoved",
     "Basin",
@@ -50,8 +50,7 @@ cols = [
     "Subbasin",
     "Subwatershed",
     "Recon",
-    "BarrierCondition",
-    "ConditionClass",
+    "Condition",
     "CrossingCode",
     "CrossingType",
     "CrossingTypeClass",
@@ -169,7 +168,7 @@ df["PercentAlteredClass"] = classify_percent_altered(df.PercentAltered)
 
 # fill network columns and set proper type
 for col in networks.columns:
-    df[col] = df[col].fillna(-1).astype(networks[col].dtype)
+    df[col] = df[col].fillna(-1).astype(get_signed_dtype(networks[col].dtype))
 
 ### Sanity check
 if df.groupby(level=0).size().max() > 1:

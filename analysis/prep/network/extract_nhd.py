@@ -89,9 +89,7 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
         print("Intersecting waterbodies and flowlines")
         # use waterbodies to query flowlines since there are many more flowlines
         tree = shapely.STRtree(flowlines.geometry.values.data)
-        ix = tree.query_bulk(waterbodies.geometry.values.data, predicate="intersects")[
-            0
-        ]
+        ix = tree.query(waterbodies.geometry.values.data, predicate="intersects")[0]
         waterbodies = waterbodies.iloc[np.unique(ix)].copy()
         print(f"Retained {len(waterbodies):,} waterbodies that intersect flowlines")
 

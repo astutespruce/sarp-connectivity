@@ -144,7 +144,7 @@ for huc2 in huc2s:
 
     # assign altered if any resulting polygons intersect altered polygons
     tree = shapely.STRtree(df.geometry.values.data)
-    left, right = tree.query_bulk(altered.geometry.values.data)
+    left, right = tree.query(altered.geometry.values.data)
     df["altered"] = False
     df.loc[np.unique(right), "altered"] = True
 
@@ -166,7 +166,7 @@ for huc2 in huc2s:
             # breaks by waterbody, then calculate difference
 
             tree = shapely.STRtree(df.geometry.values.data)
-            left, right = tree.query_bulk(breaks, predicate="intersects")
+            left, right = tree.query(breaks, predicate="intersects")
             pairs = pd.DataFrame(
                 {"break_geometry": breaks.take(left)}, index=df.index.take(right)
             )

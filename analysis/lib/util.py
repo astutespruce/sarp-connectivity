@@ -148,3 +148,31 @@ def unpack_bits(arr, field_bits):
         sum_bits += entry["bits"]
 
     return pd.DataFrame(out)
+
+
+def get_signed_dtype(dtype):
+    """Find the appropriate signed dtype for unsigned integers, allowing others
+    to pass through unchanged.
+
+    Parameters
+    ----------
+    dtype : numpy dtype
+
+    Returns
+    -------
+    str
+        numpy dtype string
+    """
+    if dtype == object:
+        return dtype
+
+    if dtype == bool:
+        return "int8"
+
+    if dtype.kind == "u":
+        bits = int(str(dtype.name).replace("uint", ""))
+        if bits < 64:
+            bits *= 2
+        return f"int{bits}"
+
+    return dtype

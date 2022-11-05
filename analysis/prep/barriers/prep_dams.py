@@ -195,7 +195,7 @@ if s.max() > 1:
 
 ### Add IDs for internal use
 # internal ID
-df["id"] = (df.index.values + DAMS_ID_OFFSET).astype("uint32")
+df["id"] = (df.index.values + DAMS_ID_OFFSET).astype("uint64")
 df = df.set_index("id", drop=False)  # note: this sets index as uint64 dtype
 
 df.to_feather(qa_dir / "dams_raw.feather")
@@ -236,18 +236,6 @@ for column in (
     "Link",
 ):
     df[column] = df[column].fillna("").str.strip()
-
-df["BarrierSeverity"] = df.BarrierSeverity.fillna("Unknown").str.strip()
-df.loc[df.BarrierSeverity == "Complete Barrier", "BarrierSeverity"] = "Complete"
-# temporary fixes
-df.BarrierSeverity = (
-    df.BarrierSeverity.str.replace("Seasonbly", "Seasonably")
-    .str.replace(
-        "Partial Passibility - Non Salmonid", "Partial Passability - Non Salmonid"
-    )
-    .str.replace("Salmond", "Salmonid")
-)
-
 
 for column in (
     "Construction",
@@ -294,7 +282,7 @@ df.loc[df.BarrierStatus.isin([2, 3]), "Condition"] = 6
 
 # Round height and width to nearest foot.
 # There are no dams between 0 and 1 foot, so fill all na as 0.
-df.Height = df.Height.fillna(0).round().astype("uint16")
+df.Height = df.Height.fillna(0).round().clip(0, 1e6).astype("uint16")
 # coerce length to width
 df.Length = df.Length.fillna(0).round().astype("uint16")
 df.Width = df.Width.fillna(0).round().astype("uint16")
@@ -303,26 +291,6 @@ df.Width = df.Width.fillna(0).round().astype("uint16")
 # Recode lowhead dams so that 0 = Unknown, 3 = no (originally 0), 1 = yes, 2 = likely
 df.loc[df.LowheadDam == 0, "LowheadDam"] = 3
 df.LowheadDam = df.LowheadDam.fillna(0).astype("uint8")
-
-# manually reviewed dams > 5ft that are highly likely to be lowhead dams
-df.loc[
-    df.SARPID.isin(
-        [
-            "NC3047",
-            "NC248",
-            "VA1999",
-            "NC01012",
-            "NC00446",
-            "NC01637",
-            "NC6267",
-            "NC6283",
-            "NC01218",
-            "TN1752",
-            "AL00919",
-        ]
-    ),
-    "LowheadDam",
-] = 1
 
 
 # From Kat: if StructureCategory == 916 (lowead dam / weir)
@@ -344,7 +312,6 @@ df.loc[
 df.loc[(df.Recon == 14) & (df.Height <= 25), "LowheadDam"] = 2
 
 # TODO: from Kat: if in NC and source is Aquatic Obstruction Inventory, also set lowhead dam
-
 
 # Cleanup names
 # Standardize the casing of the name
@@ -382,9 +349,14 @@ df["PassageFacilityClass"] = (
 ).astype("uint8")
 
 # Convert BarrierSeverity to a domain
-df.BarrierSeverity = df.BarrierSeverity.map(DAM_BARRIER_SEVERITY_TO_DOMAIN).astype(
-    "uint8"
+df.BarrierSeverity = (
+    df.BarrierSeverity.fillna("unknown")
+    .str.strip()
+    .str.lower()
+    .map(DAM_BARRIER_SEVERITY_TO_DOMAIN)
+    .astype("uint8")
 )
+
 
 # Recode BarrierOwnerType
 df.BarrierOwnerType = (

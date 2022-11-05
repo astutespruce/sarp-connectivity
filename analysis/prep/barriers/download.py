@@ -122,7 +122,7 @@ async def download_dams(token):
             else:
                 merged = pd.concat([merged, df], ignore_index=True, sort=False)
 
-        return merged
+        return merged.to_crs(CRS)
 
 
 async def download_snapped_dams(token):
@@ -174,7 +174,7 @@ async def download_small_barriers(token):
                 "SARPUniqueID": "SARPID",
                 "CrossingTypeId": "CrossingType",
                 "RoadTypeId": "RoadType",
-                "CrossingConditionId": "BarrierCondition",
+                "CrossingConditionId": "Condition",
                 "StreamName": "Stream",
                 "Year_Removed": "YearRemoved",
                 "OwnerType": "BarrierOwnerType",
@@ -228,7 +228,7 @@ print("Downloaded {:,} dams in {:.2f}s".format(len(df), time() - download_start)
 print("---- Merging in WV from local GDB ----")
 wv = read_dataframe(
     "data/barriers/source/OuterHUC4_Dams_2022.gdb", layer="WVa_Dams_SARP_03142022"
-)
+).to_crs(CRS)
 
 cols = [c for c in wv.columns if c in DAM_FS_COLS] + ["geometry"]
 wv = wv[cols].rename(
@@ -247,6 +247,7 @@ wv = wv[cols].rename(
     }
 )
 wv["SourceState"] = "WV"
+
 df = pd.concat([df, wv], ignore_index=True, sort=False)
 
 print("Merged {:,} dams in analysis region states".format(len(df)))

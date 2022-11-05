@@ -30,7 +30,7 @@ nabd["ManualReview"] = 2
 ### Select NABD within analysis HUC4s
 huc4_df = gp.read_feather(boundaries_dir / "huc4.feather")
 tree = shapely.STRtree(nabd.geometry.values.data)
-ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
+ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
 nabd = nabd.iloc[ix].copy()
 
 ### Load NID versions and determine which ones moved
@@ -42,7 +42,7 @@ prev_nid = (
     .set_index("NIDID")
 )
 tree = shapely.STRtree(prev_nid.geometry.values.data)
-ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
+ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
 prev_nid = prev_nid.iloc[ix].copy()
 
 nid = (
@@ -52,7 +52,7 @@ nid = (
     .set_index("NIDID")
 )
 tree = shapely.STRtree(nid.geometry.values.data)
-ix = np.unique(tree.query_bulk(huc4_df.geometry.values.data, predicate="intersects")[1])
+ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
 nid = nid.iloc[ix].copy()
 
 
