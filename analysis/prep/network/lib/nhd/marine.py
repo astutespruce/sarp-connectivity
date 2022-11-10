@@ -95,15 +95,13 @@ def extract_marine(gdb, target_crs):
         pairs.left.values.astype("int64"), pairs.right.values.astype("int64")
     )
 
-    groups = (
-        pd.DataFrame(
-            {i: g for i, g in enumerate(g.components())}.items(),
-            columns=["group", "index"],
-        )
-        .explode("index")
-        .astype("uint64")
-        .set_index("index")
-    )
+    groups, values = g.flat_components()
+    groups = pd.DataFrame(
+        {
+            "group": groups,
+        },
+        index=pd.Series(values, name="index").astype("uint64"),
+    ).astype("uint64")
 
     df = df.join(groups)
     marine_groups = df.loc[df.marine].group.unique()

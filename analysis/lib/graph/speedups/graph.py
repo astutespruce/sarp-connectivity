@@ -79,6 +79,25 @@ def components(adj_matrix):
 
 
 @njit
+def flat_components(adj_matrix):
+    """Same as components, but returns a tuple of group indexes and values"""
+    groups = List.empty_list(types.int64)
+    values = List.empty_list(types.int64)
+    seen = set()
+    group = 0
+    for node in adj_matrix.keys():
+        if not node in seen:
+            # add current node with all descendants
+            adj_nodes = {node} | descendants(adj_matrix, [node])[0]
+            seen.update(adj_nodes)
+            groups.extend([group] * len(adj_nodes))
+            values.extend(adj_nodes)
+            group += 1
+
+    return np.asarray(groups), np.asarray(values)
+
+
+@njit
 def _is_reachable_pair(adj_matrix, source_node, target_node, max_depth):
     """Return True for which there exists a route within the adjacency matrix
     between source_node and target_node that is less than max_depth.
@@ -225,6 +244,9 @@ class DirectedGraph(object):
 
     def components(self):
         return components(self.adj_matrix)
+
+    def flat_components(self):
+        return flat_components(self.adj_matrix)
 
     def descendants(self, sources):
         return descendants(self.adj_matrix, sources)

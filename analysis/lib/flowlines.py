@@ -112,10 +112,13 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
     graph = DirectedGraph(
         np.append(left, right).astype("int64"), np.append(right, left).astype("int64")
     )
-    groups = graph.components()
-    groups = pd.DataFrame(pd.Series(groups).apply(list).explode().rename("index"))
-    groups.index.name = "group"
-    groups = groups.reset_index().set_index("index")
+    groups, values = graph.flat_components()
+    groups = pd.DataFrame(
+        {
+            "group": groups,
+        },
+        index=values,
+    )
 
     groups = groups.join(flowlines[["length"]])
     stats = groups.groupby("group").agg({"length": "sum"})

@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import shapely
 
-from analysis.lib.geometry.sjoin import sjoin_geometry
 from analysis.lib.graph.speedups import DirectedGraph
 from analysis.lib.util import append
 
@@ -149,13 +148,9 @@ def neighborhoods(source, tolerance=100):
     )
 
     g = DirectedGraph(pairs.index.values.astype("int64"), pairs.values.astype("int64"))
-
+    groups, values = g.flat_components()
     groups = (
-        pd.DataFrame(
-            {i: list(g) for i, g in enumerate(g.components())}.items(),
-            columns=["group", index_name],
-        )
-        .explode(index_name)
+        pd.DataFrame({"group": groups}, index=pd.Series(values, name=index_name))
         .astype(source.index.dtype)
         .set_index(index_name)
     )

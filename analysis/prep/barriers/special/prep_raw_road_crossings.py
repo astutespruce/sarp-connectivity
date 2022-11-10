@@ -63,14 +63,8 @@ def dedup_crossings(df):
     )
 
     # note: components accounts for self-intersections and symmetric pairs
-    groups = (
-        pd.DataFrame(
-            {i: list(g) for i, g in enumerate(g.components())}.items(),
-            columns=["group", "id"],
-        )
-        .explode("id")
-        .astype(df.id.dtype)
-    )
+    groups, values = g.flat_components()
+    groups = pd.DataFrame({"group": groups, "id": values}).astype(df.id.dtype)
 
     keep_ids = groups.groupby("group").first().id.values.astype("uint64")
 
