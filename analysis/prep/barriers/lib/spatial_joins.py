@@ -89,7 +89,7 @@ def add_spatial_joins(df):
         pd.read_feather(boundaries_dir / "priorities.feather")
         .rename(columns={"HUC_8": "HUC8"})
         .set_index("HUC8")
-        .rename(columns={"usfs": "HUC8_USFS", "coa": "HUC8_COA", "sgcn": "HUC8_SGCN"})
+        .rename(columns={"coa": "HUC8_COA"})
     )
     df = df.join(priorities, on="HUC8")
     df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")

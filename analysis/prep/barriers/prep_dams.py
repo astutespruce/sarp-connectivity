@@ -832,9 +832,6 @@ if df.Recon.max() >= 32:
 if df.PassageFacility.max() >= 32:
     raise ValueError("Update categorical packing, too many PassageFacility values")
 
-if df.HUC8_USFS.max() > 3:
-    raise ValueError("Update categorical packing, too many HUC8_USFS values")
-
 
 ### All done processing!
 

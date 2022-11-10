@@ -570,21 +570,9 @@ export const SARP_BOUNDS = [
   -107.87000919, 17.62370026, -64.5126611, 44.26093852,
 ]
 
-export const HUC8_USFS = {
-  1: 'highest',
-  2: 'moderate',
-  3: 'lowest',
-  0: 'not a priority / not assessed',
-}
-
 export const HUC8_COA = {
   1: 'conservation opportunity area',
   0: 'not a conservation opportunity area',
-}
-
-export const HUC8_SGCN = {
-  1: 'within top 10 watersheds per state',
-  0: 'not within top 10 watersheds per state',
 }
 
 // Note: all pack_bits fields are lowercase in UI but uppercase on backend
@@ -602,7 +590,6 @@ export const STATE_TIER_PACK_BITS = [
 export const DAM_PACK_BITS = [
   { field: 'streamorder', bits: 4 },
   { field: 'recon', bits: 5 },
-  { field: 'huc8_usfs', bits: 2 },
   { field: 'passagefacility', bits: 5 },
   { field: 'diversion', bits: 2 },
   { field: 'estimated', bits: 1 },
@@ -617,7 +604,6 @@ export const DAM_PACK_BITS = [
 export const SB_PACK_BITS = [
   { field: 'streamorder', bits: 4 },
   { field: 'recon', bits: 5 },
-  { field: 'huc8_usfs', bits: 2 },
   { field: 'hasnetwork', bits: 1 },
   { field: 'excluded', bits: 1 },
   { field: 'onloop', bits: 1 },
@@ -627,7 +613,6 @@ export const SB_PACK_BITS = [
 
 export const WF_PACK_BITS = [
   { field: 'streamorder', bits: 4 },
-  { field: 'huc8_usfs', bits: 2 },
   { field: 'hasnetwork', bits: 1 },
   { field: 'excluded', bits: 1 },
   { field: 'onloop', bits: 1 },

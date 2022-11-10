@@ -290,21 +290,7 @@ df.to_feather(out_dir / "protected_areas.feather")
 ### Priority layers
 # These are joined on HUC8 codes
 
-# USFS: 1=highest priority, 3=lowest priority
-# based on USFS SE Region analysis May, 2010
-usfs = (
-    read_dataframe(src_dir / "Priority_Areas.gdb", layer="USFS_Priority")[
-        ["HUC_8", "USFS_Priority"]
-    ]
-    .set_index("HUC_8")
-    .rename(columns={"USFS_Priority": "usfs"})
-)
-
-# take the lowest value (highest priority) for duplicate watersheds
-usfs = usfs.groupby(level=0).min()
-
-
-# Conservation opportunity areas
+# Conservation opportunity areas (for now the only priority type)
 # 1 = COA
 coa = read_dataframe(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[
     ["HUC_8"]
@@ -315,16 +301,8 @@ coa["coa"] = 1
 coa = coa.groupby(level=0).min()
 
 
-# Top 10 HUC8s per state for count of SGCN
-# TODO: get updated version from SARP
-sgcn = read_dataframe(src_dir / "SGCN_Priorities.gdb")[["HUC_8"]].set_index("HUC_8")
-sgcn["sgcn"] = 1
-
-
 # 0 = not priority for a given priority dataset
-priorities = (
-    usfs.join(coa, how="outer").join(sgcn, how="outer").fillna(0).astype("uint8")
-)
+priorities = coa.fillna(0).astype("uint8")
 
 # drop duplicates
 priorities = (
@@ -340,7 +318,7 @@ priorities.to_feather(out_dir / "priorities.feather")
 huc8_df = gp.read_feather(out_dir / "huc8.feather")
 df = huc8_df.join(priorities.set_index("HUC_8"), on="HUC8")
 
-for col in ["usfs", "coa", "sgcn"]:
+for col in ["coa"]:
     df[col] = df[col].fillna(0).astype("uint8")
 
 df.rename(columns={"HUC8": "id"}).to_feather(out_dir / "huc8_priorities.feather")

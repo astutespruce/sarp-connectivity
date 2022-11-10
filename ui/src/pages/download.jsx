@@ -42,8 +42,7 @@ const DownloadPage = ({ data: { headerImage } }) => {
               within this tool. These data are subject to change at any point
               due to improvements to the inventory of aquatic barriers or
               improvements to the network connectivity analyses used by this
-              tool. These data include priorities evaluated at the regional
-              (Southeast only) and state levels.
+              tool. Dams include priorities evaluated at the state level.
               <br />
               <br />
               The inventory consists of datasets from local, state, and federal

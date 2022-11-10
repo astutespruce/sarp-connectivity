@@ -4,9 +4,9 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Heading } from 'theme-ui'
 
-import { RECON, HUC8_USFS } from 'constants'
+import { RECON } from 'constants'
 
-const Feasibility = ({ recon, huc8_coa, huc8_sgcn, huc8_usfs, sx }) => (
+const Feasibility = ({ recon, huc8_coa, sx }) => (
   <Box sx={sx}>
     <Heading as="h3">Feasibility & conservation benefit</Heading>
 
@@ -18,33 +18,22 @@ const Feasibility = ({ recon, huc8_coa, huc8_sgcn, huc8_usfs, sx }) => (
       )}
 
       {/* watershed priorities */}
-      {huc8_usfs > 0 && (
-        <li>Within USFS {HUC8_USFS[huc8_usfs]} priority watershed.</li>
-      )}
-      {huc8_coa > 0 && <li>Within a SARP conservation opportunity area.</li>}
-      {huc8_sgcn > 0 && (
-        <li>
-          Within one of the top 10 watersheds in this state based on number of
-          state-listed Species of Greatest Conservation Need.
-        </li>
-      )}
+      {huc8_coa > 0 ? (
+        <li>Within a SARP conservation opportunity area.</li>
+      ) : null}
     </Box>
   </Box>
 )
 
 Feasibility.propTypes = {
   recon: PropTypes.number,
-  huc8_usfs: PropTypes.number,
   huc8_coa: PropTypes.number,
-  huc8_sgcn: PropTypes.number,
   sx: PropTypes.object,
 }
 
 Feasibility.defaultProps = {
   recon: 0,
-  huc8_usfs: 0,
   huc8_coa: 0,
-  huc8_sgcn: 0,
   sx: null,
 }
 

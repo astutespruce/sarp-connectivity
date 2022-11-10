@@ -15,7 +15,6 @@ import {
   CONSTRICTION,
   OWNERTYPE,
   BARRIEROWNERTYPE,
-  HUC8_USFS,
 } from 'constants'
 
 import NetworkInfo from './NetworkInfo'
@@ -69,9 +68,7 @@ const BarrierDetails = ({
   trout,
   ownertype,
   barrierownertype,
-  huc8_usfs,
   huc8_coa,
-  huc8_sgcn,
   barrierseverity,
   // metrics
   totalupstreammiles,
@@ -287,34 +284,15 @@ const BarrierDetails = ({
         </Paragraph>
       </Section>
 
-      {huc8_usfs + huc8_coa + huc8_sgcn > 0 ? (
+      {huc8_coa > 0 ? (
         <Section title="Feasibility & conservation benefit">
           {/* watershed priorities */}
-          {huc8_usfs > 0 ? (
-            <Entry>
-              Within USFS {HUC8_USFS[huc8_usfs]} priority watershed.{' '}
-              <a href="/usfs_priority_watersheds" target="_blank">
-                Read more.
-              </a>
-            </Entry>
-          ) : null}
-          {huc8_coa > 0 ? (
-            <Entry>
-              Within a SARP conservation opportunity area.{' '}
-              <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
-                Read more.
-              </OutboundLink>
-            </Entry>
-          ) : null}
-          {huc8_sgcn > 0 ? (
-            <Entry>
-              Within one of the top 10 watersheds in this state based on number
-              of state-listed Species of Greatest Conservation Need.{' '}
-              <a href="/sgcn" target="_blank">
-                Read more.
-              </a>
-            </Entry>
-          ) : null}
+          <Entry>
+            Within a SARP conservation opportunity area.{' '}
+            <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
+              Read more.
+            </OutboundLink>
+          </Entry>
         </Section>
       ) : null}
 
@@ -363,9 +341,7 @@ BarrierDetails.propTypes = {
   trout: PropTypes.number,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
-  huc8_usfs: PropTypes.number,
   huc8_coa: PropTypes.number,
-  huc8_sgcn: PropTypes.number,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -400,9 +376,7 @@ BarrierDetails.defaultProps = {
   trout: 0,
   ownertype: null,
   barrierownertype: null,
-  huc8_usfs: 0,
   huc8_coa: 0,
-  huc8_sgcn: 0,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,

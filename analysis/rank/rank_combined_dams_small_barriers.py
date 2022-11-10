@@ -49,8 +49,6 @@ cols = [
     "HUC6",
     "HUC8",
     "HUC8_COA",
-    "HUC8_SGCN",
-    "HUC8_USFS",
     "ManualReview",
     "NHDPlusID",
     "Name",

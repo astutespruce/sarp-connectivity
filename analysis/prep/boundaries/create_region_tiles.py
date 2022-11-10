@@ -121,7 +121,7 @@ for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
     if huc == "HUC8":
         priorities = pd.read_feather(
             "data/boundaries/huc8_priorities.feather",
-            columns=["id", "usfs", "coa", "sgcn"],
+            columns=["id", "coa"],
         ).set_index("id")
         df = df.join(priorities, on="id")
 

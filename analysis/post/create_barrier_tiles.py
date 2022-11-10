@@ -431,8 +431,6 @@ road_crossings = (
             "HUC8",
             "HUC12",
             "HUC8_COA",
-            "HUC8_SGCN",
-            "HUC8_USFS",
             "OwnerType",
             "Road",
             "State",

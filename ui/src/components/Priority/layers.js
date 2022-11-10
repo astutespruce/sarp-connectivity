@@ -586,32 +586,6 @@ const priorityOutlineStyle = {
   },
 }
 
-const usfsPriorityFill = {
-  ...priorityFillStyle,
-  id: 'usfs-priority-fill',
-  filter: ['>', 'usfs', 0],
-  paint: {
-    'fill-opacity': 0.4,
-    'fill-color': [
-      'match',
-      ['get', 'usfs'],
-      1,
-      '#31a354',
-      2,
-      '#addd8e',
-      3,
-      '#f7fcb9',
-      '#FFF',
-    ],
-  },
-}
-
-const usfsPriorityOutline = {
-  ...priorityOutlineStyle,
-  id: 'usfs-priority-outline',
-  filter: ['>', 'usfs', 0],
-}
-
 const coaPriorityFill = {
   ...priorityFillStyle,
   id: 'coa-priority-fill',
@@ -628,66 +602,15 @@ const coaPriorityOutline = {
   filter: ['>', 'coa', 0],
 }
 
-const sgcnPriorityFill = {
-  ...priorityFillStyle,
-  id: 'sgcn-priority-fill',
-  filter: ['>', 'sgcn', 0],
-  paint: {
-    'fill-opacity': 0.4,
-    'fill-color': '#d95f0e',
-  },
-}
-
-const sgcnPriorityOutline = {
-  ...priorityOutlineStyle,
-  id: 'sgcn-priority-outline',
-  filter: ['>', 'sgcn', 0],
-}
-
-export const priorityWatersheds = [
-  usfsPriorityFill,
-  usfsPriorityOutline,
-  coaPriorityFill,
-  coaPriorityOutline,
-  sgcnPriorityFill,
-  sgcnPriorityOutline,
-]
+export const priorityWatersheds = [coaPriorityFill, coaPriorityOutline]
 
 export const priorityWatershedLegends = {
-  usfs: {
-    id: 'usfs',
-    label: 'USFS Priority',
-    entries: [
-      {
-        color: '#31a35499',
-        label: 'highest',
-      },
-      {
-        color: '#addd8e99',
-        label: 'moderate',
-      },
-      {
-        color: '#f7fcb999',
-        label: 'lowest',
-      },
-    ],
-  },
   coa: {
     id: 'coa',
     entries: [
       {
         color: '#3182bd99',
         label: 'SARP conservation opportunity areas',
-      },
-    ],
-  },
-  sgcn: {
-    id: 'sgcn',
-    entries: [
-      {
-        color: '#d95f0e99',
-        label:
-          'Watersheds with most Species of Greatest Conservation Need (SGCN) per state',
       },
     ],
   },

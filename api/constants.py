@@ -155,7 +155,6 @@ FILTER_FIELDS = [
     "BarrierOwnerType",
     "Intermittent",
     "HUC8_COA",
-    "HUC8_SGCN",
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
@@ -198,9 +197,7 @@ GENERAL_API_FIELDS2 = (
         "BarrierOwnerType",
         "ProtectedLand",
         # Priority watersheds
-        "HUC8_USFS",
         "HUC8_COA",
-        "HUC8_SGCN",
         # Watershed names
         "Basin",
         "Subbasin",
@@ -294,7 +291,6 @@ DAM_TILE_FIELDS = [
         "Estimated",
         "Invasive",
         # "NoStructure",
-        "HUC8_USFS",
         "Diversion",
         "Recon",  # excluded from API_FIELDS (important!)
         "PassageFacility",
@@ -308,7 +304,6 @@ DAM_TILE_FILTER_FIELDS = unique(
 DAM_PACK_BITS = [
     {"field": "StreamOrder", "bits": 4},
     {"field": "Recon", "bits": 5},
-    {"field": "HUC8_USFS", "bits": 2},
     {"field": "PassageFacility", "bits": 5},
     {"field": "Diversion", "bits": 2},
     {"field": "Estimated", "bits": 1},
@@ -387,7 +382,6 @@ SB_TILE_FIELDS = [
         "OnLoop",
         "StreamOrder",
         "Invasive",
-        "HUC8_USFS",
         "Recon",  # excluded from API_FIELDS (important!)
     }.union(OTHER_NETWORK_METRIC_FIELDS)
 ]
@@ -395,7 +389,6 @@ SB_TILE_FIELDS = [
 SB_PACK_BITS = [
     {"field": "StreamOrder", "bits": 4},
     {"field": "Recon", "bits": 5},
-    {"field": "HUC8_USFS", "bits": 2},
     {"field": "HasNetwork", "bits": 1},
     {"field": "Excluded", "bits": 1},
     {"field": "OnLoop", "bits": 1},
@@ -439,9 +432,7 @@ WF_CORE_FIELDS = (
         "OwnerType",
         "ProtectedLand",
         # Priority watersheds
-        "HUC8_USFS",
         "HUC8_COA",
-        "HUC8_SGCN",
         # Watershed names
         "Basin",
         "Subbasin",
@@ -495,13 +486,11 @@ WF_TILE_FIELDS = [
         "Excluded",
         "OnLoop",
         "StreamOrder",
-        "HUC8_USFS",
     }
 ]
 
 WF_PACK_BITS = [
     {"field": "StreamOrder", "bits": 4},
-    {"field": "HUC8_USFS", "bits": 2},
     {"field": "HasNetwork", "bits": 1},
     {"field": "Excluded", "bits": 1},
     {"field": "OnLoop", "bits": 1},
@@ -767,22 +756,11 @@ BARRIEROWNERTYPE_DOMAIN = {
 
 BOOLEAN_DOMAIN = {False: "no", True: "yes"}
 
-HUC8_USFS_DOMAIN = {
-    0: "Not a priority / not assessed",
-    1: "Highest priority",
-    2: "Moderate priority",
-    3: "Lowest priority",
-}
-
 HUC8_COA_DOMAIN = {
     0: "Not a conservation opportunity area",
     1: "Conservation opportunity area",
 }
 
-HUC8_SGCN_DOMAIN = {
-    0: "Not within top 10 watersheds per state",
-    1: "Within top 10 watersheds per state",
-}
 
 PASSAGEFACILITY_CLASS_DOMAIN = {
     0: "No known fish passage structure",
@@ -923,9 +901,7 @@ DOMAINS = {
     "OwnerType": OWNERTYPE_DOMAIN,
     "BarrierOwnerType": BARRIEROWNERTYPE_DOMAIN,
     "ProtectedLand": BOOLEAN_DOMAIN,
-    "HUC8_USFS": HUC8_USFS_DOMAIN,
     "HUC8_COA": HUC8_COA_DOMAIN,
-    "HUC8_SGCN": HUC8_SGCN_DOMAIN,
     "ManualReview": MANUALREVIEW_DOMAIN,
     "BarrierSeverity": SEVERITY_DOMAIN,
     "Recon": RECON_DOMAIN,
@@ -1050,9 +1026,7 @@ FIELD_DEFINITIONS = {
     "OwnerType": "Land ownership type. This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
     "BarrierOwnerType": "Barrier ownership type, if available.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.",
-    "HUC8_USFS": "U.S. Forest Service (USFS) priority watersheds (HUC8 level) within USFS Southeast Region.",
     "HUC8_COA": "SARP conservation opportunity areas.",
-    "HUC8_SGCN": "Top 10 watersheds per state based on number of Species of Greatest Conservation Need (SGCN).",
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",
     "Subbasin": "Name of the hydrologic subbasin (HUC8) where the {type} occurs.",
     "Subwatershed": "Name of the hydrologic subwatershed (HUC12) where the {type} occurs.",
