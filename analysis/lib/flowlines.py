@@ -274,7 +274,6 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     ).set_index("id", drop=False)
 
     ### Split segments have barriers that are not at endpoints
-
     split_segments = segments.loc[~(segments.on_upstream | segments.on_downstream)]
     # join in count of barriers that SPLIT this segment
     split_segments = split_segments.join(
@@ -291,6 +290,12 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     split_segments = split_segments.rename_axis("idx").sort_values(
         by=["idx", "linepos"], ascending=True
     )
+
+    # check for errors
+    s = split_segments.groupby(by=["lineID", "linepos"]).size()
+    s = s[s > 1]
+    if len(s):
+        raise ValueError(f"Multiple barriers at exact same location on flowline: {s}")
 
     # Convert to DataFrame so that geometry cols are arrays of pygeos geometries
     tmp = pd.DataFrame(split_segments.copy())

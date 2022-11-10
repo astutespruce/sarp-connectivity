@@ -238,6 +238,16 @@ def calculate_upstream_network_stats(
         )
     )
 
+    # determine the barrier type associated with this functional network
+    network_barrier = (
+        focal_barrier_joins.loc[
+            focal_barrier_joins.upstream_id != 0, ["kind", "upstream_id"]
+        ]
+        .join(networkID, on="upstream_id", how="inner")
+        .set_index("networkID")
+        .kind.rename("barrier")
+    )
+
     ### Collect results
     results = (
         calculate_geometry_stats(up_network_df)
@@ -247,6 +257,7 @@ def calculate_upstream_network_stats(
         .join(fn_upstream_area)
         .join(cat_upstream_counts)
         .join(tot_upstream_counts)
+        .join(network_barrier)
         .join(root_huc2)
     )
 
@@ -559,6 +570,7 @@ def calculate_downstream_stats(
 
     # count of barrier type of the barrier itself so that we can subtract it
     # from the count of barriers at or below the barrier
+
     self_counts = (
         focal_barrier_joins.reset_index()
         .groupby(["id", "kind"])
@@ -606,28 +618,7 @@ def calculate_downstream_stats(
     # )
     # write_dataframe(flowlines.loc[flowlines.index.isin(lids)],'/tmp/test_downstream.fgb')
 
-    ### Extract downstream barrier type.
-    # on the downstream side of a network, there will only be at most a single barrier.
-    # Identify all barriers that have a given network upstream of them.
-    # NOTE: there are some duplicates due to a barrier having multiple upstream
-    # network segments at confluences
-
-    barrier_type_downstream = (
-        focal_barrier_joins[["downstream_id"]]
-        .join(
-            all_focal_barrier_joins[["upstream_id", "kind"]]
-            .join(down_network_df.networkID, on="upstream_id", how="inner")
-            .reset_index()[["id", "networkID", "kind"]]
-            .drop_duplicates()
-            .set_index("networkID"),
-            on="downstream_id",
-            how="inner",
-        )
-        .kind.rename("barrier")
-    )
-
     ### Identify networks that terminate in marine
-
     # ids of barriers that connect directly to marine
     marine_barriers = all_focal_barrier_joins.loc[
         all_focal_barrier_joins.upstream_id.isin(marine_ids)
@@ -680,17 +671,12 @@ def calculate_downstream_stats(
     ] = True
 
     results = (
-        focal_barrier_joins[[]]
-        .join(downstream_stats)
-        .join(barrier_type_downstream)
-        .join(to_ocean)
-        .join(exits_region)
+        focal_barrier_joins[[]].join(downstream_stats).join(to_ocean).join(exits_region)
     )
 
-    # set appropraite nodata
-    results.barrier = results.barrier.fillna("")
+    # set appropriate nodata
     count_cols = [c for c in downstream_stats.columns if c.startswith("totd_")]
-    results[count_cols] = results[count_cols].fillna(0)
+    results[count_cols] = results[count_cols].fillna(0).astype("uint32")
     results.miles_to_outlet = results.miles_to_outlet.fillna(0)
 
     return results

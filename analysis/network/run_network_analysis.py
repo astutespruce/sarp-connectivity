@@ -224,6 +224,7 @@ for group in groups:
         # WARNING: because not all flowlines have associated catchments, they are missing
         # natfldpln
 
+        # downstream_stats are indexed on the ID of the barrier
         downstream_stats = calculate_downstream_stats(
             down_network_df, focal_barrier_joins, barrier_joins, marine_ids, exit_ids
         )
@@ -248,6 +249,8 @@ for group in groups:
 
         network_stats.barrier = network_stats.barrier.fillna("")
 
+        network_stats.miles_to_outlet = network_stats.miles_to_outlet.fillna(0)
+
         # set to_ocean and exits_region for functional networks that terminate
         # in marine or leave region and have no downstream barrier
         network_stats.loc[network_stats.index.isin(marine_ids), "flows_to_ocean"] = True
@@ -268,7 +271,7 @@ for group in groups:
             )
 
         #### Calculate up and downstream network attributes for barriers
-        # NOTE: some statistics (totd_*, miles_to_ocean, flows_to_ocean, exits_region)
+        # NOTE: some statistics (totd_*, miles_to_outlet, flows_to_ocean, exits_region)
         # are evaluated from the upstream functional network (i.e., these are statistics)
         # downstream of the barrier associated with that functional network
         # WARNING: some barriers are on the upstream end or downstream end of the

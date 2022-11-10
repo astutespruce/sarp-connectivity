@@ -38,20 +38,44 @@ qa_dir = barriers_dir / "qa"
 print("Reading road crossings")
 df = gp.read_feather(src_dir / "road_crossings.feather")
 
+
+tree = shapely.STRtree(df.geometry.values.data)
+
+### Remove those that co-occur with dams
+dams = gp.read_feather(barriers_dir / "master/dams.feather", columns=["geometry"])
+right = tree.query(
+    dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+)[1]
+dam_ix = df.index.values.take(np.unique(right))
+
+print(f"Found {len(dam_ix)} road crossings within {DUPLICATE_TOLERANCE}m of dams")
+
+### Remove those that co-occur with waterfalls
+waterfalls = gp.read_feather(
+    barriers_dir / "master/waterfalls.feather", columns=["geometry"]
+)
+right = tree.query(
+    waterfalls.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+)[1]
+wf_ix = df.index.values.take(np.unique(right))
+
+print(f"Found {len(wf_ix)} road crossings within {DUPLICATE_TOLERANCE}m of waterfalls")
+
 ### Remove those that otherwise duplicate existing small barriers
 print("Removing crossings that duplicate existing barriers")
 barriers = gp.read_feather(barriers_dir / "master/small_barriers.feather")
 
-tree = shapely.STRtree(df.geometry.values.data)
-ix = tree.query(
+right = tree.query(
     barriers.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )[1]
-drop_ids = df.id.values.take(ix)
+sb_ix = df.index.values.take(np.unique(right))
 
 print(
-    f"Dropping {len(drop_ids):,} road crossings that are within {DUPLICATE_TOLERANCE} of inventoried barriers"
+    f"Dropping {len(sb_ix):,} road crossings that are within {DUPLICATE_TOLERANCE} of inventoried barriers"
 )
-df = df.loc[~df.id.isin(drop_ids)].copy()
+
+drop_ix = np.unique(np.concatenate([dam_ix, wf_ix, sb_ix]))
+df = df.loc[~df.index.isin(drop_ix)].copy()
 
 print(f"Serializing {len(df):,} road crossings")
 

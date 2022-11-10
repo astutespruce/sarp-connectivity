@@ -673,16 +673,19 @@ WATERBODY_SIZECLASS_DOMAIN = {
 
 
 CROSSING_TYPE_DOMAIN = {
-    -1: "Not applicable",  # when combining dams with small barriers; dam below is when dam is a crossing
+    -1: "Not applicable",
     0: "Unknown",
-    1: "Not a barrier",
-    2: "Bridge",
-    3: "Ford",
-    4: "Culvert",
-    5: "Assumed culvert",
-    6: "Tide gate",
-    7: "Buried stream",
-    8: "Dam",
+    1: "Inaccessible",
+    2: "No crossing",
+    3: "No upstream habitat",
+    4: "Not a barrier",
+    5: "Bridge",
+    6: "Ford / low water crossing",
+    7: "Natural ford",
+    8: "Culvert",
+    9: "Assumed culvert",
+    10: "Tide gate",
+    11: "Buried stream",
 }
 
 CONSTRICTION_DOMAIN = {
