@@ -43,8 +43,7 @@ const PrioritizePage = ({ data: { headerImage } }) => (
           </Heading>
         </Flex>
         <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
-          You can select areas using state, county, watershed, and ecoregion
-          boundaries.
+          You can select areas using state, county, and watershed boundaries.
         </Paragraph>
       </Box>
 

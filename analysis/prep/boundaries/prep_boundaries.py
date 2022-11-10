@@ -103,96 +103,6 @@ county_df.loc[county_df.STATEFIPS.isin(state_fips)].rename(
     columns={"COUNTYFIPS": "id", "County": "name"}
 ).to_feather(out_dir / "region_counties.feather")
 
-### Process Level 3 Ecoregions
-print("Processing level 3 ecoregions")
-df = (
-    read_dataframe(
-        src_dir / "us_eco_l3/us_eco_l3.shp", columns=["NA_L3CODE", "US_L3NAME"]
-    )
-    .to_crs(CRS)
-    .rename(columns={"NA_L3CODE": "ECO3", "US_L3NAME": "ECO3Name"})
-)
-
-
-tree = shapely.STRtree(df.geometry.values.data)
-ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
-ix.sort()
-
-df = df.iloc[ix].reset_index(drop=True)
-df.geometry = shapely.make_valid(df.geometry.values.data)
-
-# keep larger version for spatial joins
-df.to_feather(out_dir / "eco3.feather")
-
-
-# subset out those that intersect the region states
-# not outer HUC4 boundary
-# Drop ones only barely in region for mapping / summary stats
-
-tree = shapely.STRtree(df.geometry.values.data)
-ix = np.unique(tree.query(bnd, predicate="intersects"))
-ix.sort()
-
-df = df.iloc[ix].reset_index(drop=True)
-
-# calculate overlap and only keep those with > 25% overlap
-in_region = shapely.intersection(df.geometry.values.data, bnd)
-pct_in_region = 100 * shapely.area(in_region) / shapely.area(df.geometry.values.data)
-df = df.loc[pct_in_region >= 25].reset_index(drop=True)
-
-# write out for tiles
-df.rename(columns={"ECO3": "id", "ECO3Name": "name"}).to_feather(
-    out_dir / "region_eco3.feather"
-)
-
-
-### Process Level 4 Ecoregions
-print("Processing level 4 ecoregions")
-df = (
-    read_dataframe(
-        src_dir / "us_eco_l4/us_eco_l4_no_st.shp",
-        columns=["US_L4CODE", "US_L4NAME", "NA_L3CODE"],
-    )
-    .to_crs(CRS)
-    .rename(columns={"US_L4CODE": "ECO4", "US_L4NAME": "ECO4Name", "NA_L3CODE": "ECO3"})
-)
-
-
-tree = shapely.STRtree(df.geometry.values.data)
-ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
-ix.sort()
-
-df = df.iloc[ix].reset_index(drop=True)
-df.geometry = shapely.make_valid(df.geometry.values.data)
-df.to_feather(out_dir / "eco4.feather")
-
-
-# subset out those that intersect the region
-# not outer HUC4 boundary
-# Drop ones only barely in region
-
-tree = shapely.STRtree(df.geometry.values.data)
-ix = np.unique(tree.query(bnd, predicate="intersects"))
-ix.sort()
-
-df = df.iloc[ix].reset_index(drop=True)
-
-# of those that are at the edge, keep only those with substantial overlap
-tree = shapely.STRtree(df.geometry.values.data)
-ix = np.unique(tree.query(bnd, predicate="contains"))
-edge_df = df.loc[~df.index.isin(ix)].copy()
-in_region = shapely.intersection(edge_df.geometry.values.data, bnd)
-pct_in_region = (
-    100 * shapely.area(in_region) / shapely.area(edge_df.geometry.values.data)
-)
-ix = np.append(ix, edge_df.loc[pct_in_region >= 25].index)
-df = df.iloc[ix].reset_index(drop=True)
-
-# write out for tiles
-df.rename(columns={"ECO4": "id", "ECO4Name": "name"}).to_feather(
-    out_dir / "region_eco4.feather"
-)
-
 
 ### Extract bounds and names for unit search in user interface
 print("Projecting geometries to geographic coordinates for search index")
@@ -239,16 +149,13 @@ out = pd.concat(
     ignore_index=True,
 )
 
-for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12", "ECO3", "ECO4"]):
+for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
     print(f"Processing {unit}")
     df = (
         gp.read_feather(out_dir / f"{unit.lower()}.feather")
-        .rename(columns={unit: "id", "ECO3Name": "name", "ECO4Name": "name"})
+        .rename(columns={unit: "id"})
         .to_crs(GEO_CRS)
     )
-
-    if unit in ["ECO3", "ECO4"]:
-        df = dissolve(df, by="id", agg={"name": "first"})
 
     df["bbox"] = shapely.bounds(df.geometry.values.data).round(3).tolist()
     df["layer"] = unit

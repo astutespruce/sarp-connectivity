@@ -25,7 +25,8 @@ def add_spatial_joins(df):
 
     print("Joining to HUC12")
     huc12 = gp.read_feather(
-        boundaries_dir / "HUC12.feather", columns=["geometry", "HUC12", "name"],
+        boundaries_dir / "HUC12.feather",
+        columns=["geometry", "HUC12", "name"],
     ).rename(columns={"name": "Subwatershed"})
 
     df = sjoin_points_to_poly(df, huc12)
@@ -64,26 +65,16 @@ def add_spatial_joins(df):
     df = sjoin_points_to_poly(df, counties)
 
     # Join in state name based on STATEFIPS from county
-    states = pd.read_feather(
-        boundaries_dir / "states.feather", columns=["STATEFIPS", "id"]
-    ).set_index("STATEFIPS").rename(columns={'id': 'State'})
-    df = df.join(states, on="STATEFIPS").drop(columns=['STATEFIPS'])
+    states = (
+        pd.read_feather(boundaries_dir / "states.feather", columns=["STATEFIPS", "id"])
+        .set_index("STATEFIPS")
+        .rename(columns={"id": "State"})
+    )
+    df = df.join(states, on="STATEFIPS").drop(columns=["STATEFIPS"])
 
     # Expected: not all barriers fall cleanly within the states dataset
     if df.State.isnull().sum():
         print(f"{df.State.isnull().sum():,} barriers were not assigned states")
-
-    ### Level 3 & 4 Ecoregions
-    print("Joining to ecoregions")
-    # Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
-    eco4 = gp.read_feather(
-        boundaries_dir / "eco4.feather", columns=["geometry", "ECO3", "ECO4"]
-    )
-    df = sjoin_points_to_poly(df, eco4)
-
-    # Expected: not all barriers fall cleanly within the ecoregions dataset
-    if df.ECO4.isnull().sum():
-        print(f"{df.ECO4.isnull().sum():,} barriers were not assigned ecoregions")
 
     ### Protected lands
     print("Joining to protected areas")

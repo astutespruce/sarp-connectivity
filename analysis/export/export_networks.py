@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import geopandas as gp
+import pandas as pd
 from pyogrio import write_dataframe
 
 from analysis.constants import CRS
@@ -13,15 +14,17 @@ out_dir.mkdir(exist_ok=True, parents=True)
 
 
 barrier_type = "dams"
-# barrier_type = "small_barriers"
-# barrier_type = "road_crossings"
 ext = "fgb"
 
-# groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
+groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
+
+# export_hucs = {"02", "03", "05", "06", "07", "08", "10", "11", "12", "13"}
+
 
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
-# for group in [{"05", "06", "07", "08", "10", "11"}]:
 for group in [{"17"}]:
+    group = sorted(group)
+
     segments = (
         read_feathers(
             [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
@@ -46,6 +49,11 @@ for group in [{"17"}]:
     for col in [c for c in stats.columns if c.startswith("pct_")]:
         stats[col] = stats[col].fillna(0).astype("int8")
 
+    for kind in ["waterfalls", "dams", "small_barriers", "road_crossings"]:
+        for count_type in ["fn", "tot", "totd", "cat"]:
+            col = f"{count_type}_{kind}"
+            stats[col] = stats[col].fillna(0).astype("uint32")
+
     stats["flows_to_ocean"] = stats.flows_to_ocean.astype("uint8")
 
     # natural floodplain is missing for several catchments; fill with -1
@@ -54,6 +62,9 @@ for group in [{"17"}]:
 
     # create output files by HUC2 based on where the segments occur
     for huc2 in group:
+        # if not huc2 in export_hucs:
+        #     continue
+
         print(f"Dissolving networks in {huc2}...")
         flowlines = (
             gp.read_feather(
@@ -72,21 +83,28 @@ for group in [{"17"}]:
         )
         flowlines = flowlines.join(segments)
 
-        # FIXME: remove
+        # ### To export larger flowlines only
         # flowlines = flowlines.loc[
         #     flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
         # ]
-        # flowlines = flowlines.loc[flowlines.sizeclass.isin(["2", "3a", "3b", "4", "5"])]
 
-        # aggregate to multilinestrings by combinations of networkID, altered, intermittent
+        ### To export dissolved networks
         networks = (
-            # merge_lines(flowlines, by=["networkID", "altered", "intermittent"])
             merge_lines(flowlines, by=["networkID"])
             .set_index("networkID")
             .join(stats, how="inner")
             .reset_index()
             .sort_values(by="networkID")
         )
+
+        # ### To export by plotting symbol
+        # networks = (
+        #     merge_lines(flowlines, by=["networkID", "altered", "intermittent"])
+        #     .set_index("networkID")
+        #     .join(stats, how="inner")
+        #     .reset_index()
+        #     .sort_values(by="networkID")
+        # )
 
         # # Set plotting symbol
         # networks["symbol"] = "normal"

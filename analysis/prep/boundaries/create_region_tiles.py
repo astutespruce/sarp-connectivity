@@ -144,37 +144,4 @@ for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
     json_filename.unlink()
 
 
-### ECO3
-print("Creating ECO3 tiles")
-df = gp.read_feather(src_dir / "region_eco3.feather").to_crs(GEO_CRS)
-json_filename = tmp_dir / "region_eco3.json"
-write_dataframe(df, json_filename, driver="GeoJSONSeq")
-mbtiles_filename = tile_dir / "ECO3.mbtiles"
-ret = subprocess.run(
-    tippecanoe_args
-    + ["-Z", "0", "-z", "10"]
-    + ["-l", "ECO3"]
-    + ["-T", "id:string"]
-    + ["-o", f"{str(mbtiles_filename)}", str(json_filename)]
-)
-ret.check_returncode()
-json_filename.unlink()
-
-
-### ECO4
-print("Creating ECO4 tiles")
-df = gp.read_feather(src_dir / "region_eco4.feather").to_crs(GEO_CRS)
-json_filename = tmp_dir / "region_eco4.json"
-write_dataframe(df, json_filename, driver="GeoJSONSeq")
-mbtiles_filename = tile_dir / "ECO4.mbtiles"
-ret = subprocess.run(
-    tippecanoe_args
-    + ["-Z", "3", "-z", "12"]
-    + ["-l", "ECO4"]
-    + ["-T", "id:string"]
-    + ["-o", f"{str(mbtiles_filename)}", str(json_filename)]
-)
-ret.check_returncode()
-json_filename.unlink()
-
 print("All done!")

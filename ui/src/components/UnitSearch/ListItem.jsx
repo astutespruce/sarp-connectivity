@@ -4,11 +4,6 @@ import { Box, Text } from 'theme-ui'
 
 import { STATES } from 'constants'
 
-const PREFIXES = {
-  ECO3: 'Level 3',
-  ECO4: 'Level 4',
-}
-
 const ListItem = ({ id, name, state, layer, showID, onClick }) => {
   const stateLabels = state
     ? state
@@ -43,7 +38,7 @@ const ListItem = ({ id, name, state, layer, showID, onClick }) => {
             wordWrap: 'none',
           }}
         >
-          {layer && `${PREFIXES[layer] || layer}: `}
+          {layer ? `${layer}: ` : null}
           {id}
         </Box>
       ) : null}

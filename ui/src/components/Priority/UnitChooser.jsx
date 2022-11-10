@@ -27,10 +27,6 @@ const getPluralLabel = (layer) => {
       return 'watersheds'
     case 'HUC12':
       return 'subwatersheds'
-    case 'ECO3':
-      return 'ecoregions'
-    case 'ECO4':
-      return 'ecoregions'
     default:
       return 'areas'
   }
@@ -50,18 +46,9 @@ const getSingularLabel = (layer) => {
       return 'watershed'
     case 'HUC12':
       return 'subwatershed'
-    case 'ECO3':
-      return 'ecoregion'
-    case 'ECO4':
-      return 'ecoregion'
     default:
       return 'area'
   }
-}
-
-const getSingularArticle = (layer) => {
-  if (layer === 'ECO3' || layer === 'ECO4') return 'an'
-  return 'a'
 }
 
 const UnitChooser = ({
@@ -78,7 +65,6 @@ const UnitChooser = ({
 
   const pluralLabel = getPluralLabel(layer)
   const singularLabel = getSingularLabel(layer)
-  const article = getSingularArticle(layer)
 
   let offNetworkCount = 0
   let total = 0
@@ -184,8 +170,8 @@ const UnitChooser = ({
           <>
             <Text variant="help" sx={{ py: '2rem' }}>
               Select additional {pluralLabel} by clicking on them on the map or
-              using the search above. To unselect {article} {singularLabel}, use
-              the trash button above or click on it on the map.
+              using the search above. To unselect a {singularLabel}, use the
+              trash button above or click on it on the map.
             </Text>
             {offNetworkCount > 0 ? (
               <Text variant="help" sx={{ pb: '2rem' }}>

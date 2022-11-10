@@ -39,8 +39,6 @@ cols = [
     "Basin",
     "COUNTYFIPS",
     "County",
-    "ECO3",
-    "ECO4",
     "EditDate",
     "Editor",
     "FCode",

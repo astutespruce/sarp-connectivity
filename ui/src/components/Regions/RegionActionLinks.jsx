@@ -30,7 +30,7 @@ const RegionActionLinks = ({ region }) => (
     >
       <Text>
         Explore how many dams or road-related barriers there are in a state,
-        county, watershed, or ecoregion.
+        county, or watershed.
       </Text>
       <Flex sx={{ justifyContent: 'center', mt: '1rem' }}>
         <Link to={`/summary/?region=${region}`}>

@@ -19,8 +19,6 @@ class Layers(str, Enum):
     HUC12 = "HUC12"
     State = "State"
     County = "County"
-    ECO3 = "ECO3"
-    ECO4 = "ECO4"
 
 
 class Formats(str, Enum):
@@ -67,8 +65,6 @@ UNIT_FIELDS = [
     "HUC12",
     "State",
     "County",
-    "ECO3",
-    "ECO4",
 ]
 
 
@@ -348,13 +344,10 @@ SB_CORE_FIELDS = (
 
 SB_CORE_FIELDS = unique(SB_CORE_FIELDS)
 
-# Internal API includes tiers
-SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + TIER_FIELDS + CUSTOM_TIER_FIELDS)
+# NOTE: state tiers are excluded based on SARP direction
+SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS)
 SB_API_FIELDS = unique(
-    SB_CORE_FIELDS
-    + TIER_FIELDS
-    + SB_FILTER_FIELDS
-    + ["upNetID", "downNetID", "COUNTYFIPS"]
+    SB_CORE_FIELDS + SB_FILTER_FIELDS + ["upNetID", "downNetID", "COUNTYFIPS"]
 )
 
 # Public API does not include tier fields
@@ -1070,8 +1063,6 @@ FIELD_DEFINITIONS = {
     "HUC12": "Hydrologic subwatershed identifier where the {type} occurs.",
     "County": "County where {type} occurs.",
     "State": "State where {type} occurs.",
-    "ECO3": "EPA Level 3 Ecoregion Identifier.",
-    "ECO4": "EPA Level 4 Ecoregion Identifier.",
     "HasNetwork": "indicates if this {type} was snapped to the aquatic network for analysis.  1 = on network, 0 = off network.  Note: network metrics and scores are not available for {type}s that are off network.",
     "Excluded": "this {type} was excluded from the connectivity analysis based on field reconnaissance or manual review of aerial imagery.",
     "Ranked": "this {type} was included for prioritization.  Some barriers that are beneficial to restricting the movement of invasive species or that are water diversions without associated barriers are excluded from ranking.",

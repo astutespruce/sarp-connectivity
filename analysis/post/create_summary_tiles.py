@@ -41,8 +41,6 @@ SUMMARY_UNITS = [
     "HUC8",
     "HUC10",
     "HUC12",
-    "ECO3",
-    "ECO4",
 ]
 
 INT_COLS = [

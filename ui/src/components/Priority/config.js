@@ -40,12 +40,4 @@ export const unitLayerConfig = {
       minzoom: 0,
     },
   },
-  ECO3: {
-    minzoom: 0,
-    maxzoom: 24,
-  },
-  ECO4: {
-    minzoom: 0,
-    maxzoom: 24,
-  },
 }

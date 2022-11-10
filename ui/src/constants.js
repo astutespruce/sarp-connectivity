@@ -530,13 +530,11 @@ export const CONNECTIVITY_TEAMS = {
 export const SYSTEMS = {
   ADM: 'State / County',
   HUC: 'Hydrologic unit',
-  ECO: 'Ecoregion',
 }
 
 export const SYSTEM_UNITS = {
   ADM: ['State', 'County'],
   HUC: ['HUC2', 'HUC6', 'HUC8', 'HUC10', 'HUC12'],
-  ECO: ['ECO3', 'ECO4'],
 }
 
 export const SCENARIOS = {
@@ -555,8 +553,6 @@ export const LAYER_NAMES = {
   HUC8: 'Subbasin',
   HUC10: 'Watershed',
   HUC12: 'Subwatershed',
-  ECO3: 'Level 3',
-  ECO4: 'Level 4',
 }
 
 // Ideal zoom level for each layer, e.g., when fitting bounds to a selected feature
@@ -567,8 +563,6 @@ export const LAYER_ZOOM = {
   HUC8: 8,
   HUC10: 9,
   HUC12: 10,
-  ECO3: 4,
-  ECO4: 8,
 }
 
 // Bounds around all selected HUC6s

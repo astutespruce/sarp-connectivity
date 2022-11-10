@@ -164,7 +164,7 @@ df["crossingtype"] = df.crossingtype.map(CROSSING_TYPE_TO_DOMAIN)
 
 df = add_spatial_joins(df)
 
-# Cleanup HUC, state, county, and ecoregion columns that weren't assigned
+# Cleanup HUC, state, county columns that weren't assigned
 for col in [
     "HUC2",
     "HUC4",
@@ -176,8 +176,6 @@ for col in [
     "County",
     "COUNTYFIPS",
     "State",
-    "ECO3",
-    "ECO4",
 ]:
     df[col] = df[col].fillna("")
 

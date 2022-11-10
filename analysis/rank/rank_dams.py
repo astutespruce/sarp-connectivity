@@ -78,8 +78,6 @@ cols = [
     "HUC8",
     "HUC10",
     "HUC12",
-    "ECO3",
-    "ECO4",
     "HUC8_COA",
     "HUC8_SGCN",
     "HUC8_USFS",

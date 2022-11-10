@@ -400,8 +400,6 @@ other_barriers = df.loc[~df.HasNetwork].drop(
         "HasNetwork",
         "Ranked",
         "HUC6",
-        "ECO3",
-        "ECO4",
         "GainMilesClass",
         "TESppClass",
         "StateSGCNSppClass",
