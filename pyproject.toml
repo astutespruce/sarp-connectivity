@@ -2,7 +2,7 @@
 name = "sarp-connectivity"
 # version is managed in setup.py
 version = "0.0.0"
-description = "Southeast Aquatic Barriers Inventory Visualization & Prioritization Tool"
+description = "Aquatic Barrier Inventory Visualization & Prioritization Tool"
 authors = ["Brendan Ward <bcward@astutespruce.com>"]
 license = "MIT"
 

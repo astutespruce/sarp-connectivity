@@ -9,7 +9,7 @@ import { isEmptyString } from 'util/string'
 
 import {
   siteMetadata,
-  DAM_CONDITION,
+  CONDITION,
   CONSTRUCTION,
   PASSAGEFACILITY,
   PURPOSE,
@@ -182,10 +182,10 @@ const DamDetails = ({
           <Field>Purpose:</Field> {PURPOSE[purpose].toLowerCase()}
         </Entry>
       ) : null}
-      {condition && DAM_CONDITION[condition] ? (
+      {condition && CONDITION[condition] ? (
         <Entry>
           <Field>Structural condition:</Field>{' '}
-          {DAM_CONDITION[condition].toLowerCase()}
+          {CONDITION[condition].toLowerCase()}
         </Entry>
       ) : null}
 

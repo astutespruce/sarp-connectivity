@@ -4,7 +4,7 @@ import { Box, Grid, Heading } from 'theme-ui'
 
 import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails'
 import {
-  DAM_CONDITION,
+  CONDITION,
   CONSTRUCTION,
   CONSTRICTION,
   CROSSING_TYPE,
@@ -89,9 +89,9 @@ const LocationConstruction = ({
               {purpose && PURPOSE[purpose] ? (
                 <li>Purpose: {PURPOSE[purpose].toLowerCase()}</li>
               ) : null}
-              {condition && DAM_CONDITION[condition] ? (
+              {condition && CONDITION[condition] ? (
                 <li>
-                  Structural condition: {DAM_CONDITION[condition].toLowerCase()}
+                  Structural condition: {CONDITION[condition].toLowerCase()}
                 </li>
               ) : null}
 

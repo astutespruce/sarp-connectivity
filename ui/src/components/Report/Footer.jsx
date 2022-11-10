@@ -27,7 +27,7 @@ const Footer = () => (
     >
       Created by the{' '}
       <Link href="https://connectivity.sarpdata.com/">
-        Aquatic Barrier Prioritization Tool
+        <Text>Aquatic Barrier Prioritization Tool</Text>
       </Link>{' '}
       on {new Date().toLocaleDateString()}.
     </Text>

@@ -268,7 +268,7 @@ export const CONSTRUCTION = {
   11: 'Other',
 }
 
-export const Condition = {
+export const CONDITION = {
   0: 'unknown',
   1: 'Satisfactory',
   2: 'Fair',

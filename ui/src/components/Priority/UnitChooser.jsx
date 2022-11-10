@@ -192,8 +192,8 @@ const UnitChooser = ({
               style={{ marginRight: '0.25rem' }}
             />
             Note: You can choose from {pluralLabel} outside the highlighted
-            states in the Southeast, but the barriers inventory is likely more
-            complete only where {pluralLabel} overlap the highlighted states.
+            states, but the barriers inventory is likely more complete only
+            where {pluralLabel} overlap the highlighted states.
           </Text>
         ) : null}
       </Box>

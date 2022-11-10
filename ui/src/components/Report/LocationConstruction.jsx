@@ -196,7 +196,11 @@ const Location = ({
                   {waterbodykm2 > 0.1
                     ? `${formatNumber(waterbodykm2, 2)} k`
                     : `${formatNumber(waterbodykm2 * 1e6)} `}
-                  m<sup>2</sup> (
+                  m
+                  <sup>
+                    <Text>2</Text>
+                  </sup>{' '}
+                  (
                   {WATERBODY_SIZECLASS[waterbodysizeclass]
                     .split(' (')[0]
                     .toLowerCase()}

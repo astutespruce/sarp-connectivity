@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Paragraph } from 'theme-ui'
+import { Box, Text } from 'theme-ui'
 
 import { Checkbox } from 'components/Button'
 import { barrierTypeLabels } from 'constants'
@@ -29,14 +29,14 @@ const Options = ({ barrierType, options, customRank, onChange }) => {
         }}
       />
 
-      <Paragraph sx={{ color: 'grey.7', mt: '1rem' }}>
+      <Text sx={{ color: 'grey.8', mt: '0rem', ml: '1.8rem' }}>
         This will include {barrierTypeLabel} within your selected geographic
         area that were not prioritized in the analysis. These include any{' '}
         {barrierTypeLabel} that were not located on the aquatic network
         {customRank && ' or that you filtered out during your prioritization'}.
         {barrierType === 'small_barriers' &&
           '  These data only include road-related barriers that have been assessed for impacts to aquatic organisms.'}
-      </Paragraph>
+      </Text>
     </Box>
   )
 }

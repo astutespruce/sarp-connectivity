@@ -18,7 +18,7 @@ const Footer = () => (
       px: '0.5rem',
       color: '#FFF',
       bg: 'blue.9',
-      fontSize: '0.7rem',
+      fontSize: '0.8rem',
       a: {
         textDecoration: 'none',
         color: '#FFF',

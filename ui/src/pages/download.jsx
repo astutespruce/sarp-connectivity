@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
-import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
+import { Box, Container, Grid, Heading, Paragraph, Text } from 'theme-ui'
 
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
@@ -60,13 +60,14 @@ const DownloadPage = ({ data: { headerImage } }) => {
                 Data Version: {dataVersion} ({dataDate})
               </b>
             </Paragraph>
-            <Paragraph
+            <Text
               sx={{
                 mt: '1rem',
                 pt: '1rem',
                 borderTop: '4px solid #FFF',
               }}
             >
+              Please{' '}
               <OutboundLink to="https://southeastaquatics.net/about/contact-us">
                 Contact Us
               </OutboundLink>{' '}
@@ -77,7 +78,7 @@ const DownloadPage = ({ data: { headerImage } }) => {
               <br />
               Please review the <Link to="/terms">Terms of Use</Link> before
               downloading data.
-            </Paragraph>
+            </Text>
           </Box>
         </Grid>
 

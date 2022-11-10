@@ -9,24 +9,26 @@ const Credits = (props) => (
     <Text style={{ flex: '1 1 auto', marginRight: 36, fontSize: 10 }}>
       This report was created using the{' '}
       <Link href="https://connectivity.sarpdata.com/">
-        Aquatic Barrier Prioritization Tool
+        <Text>Aquatic Barrier Prioritization Tool</Text>
       </Link>
       , a project of the{' '}
       <Link href="https://southeastaquatics.net/">
-        Southeast Aquatic Resources Partnership
+        <Text>Southeast Aquatic Resources Partnership</Text>
       </Link>
       .{'\n\n'}
       This project was supported in part by grants from the{'\n'}
       <Link href="https://www.fws.gov/fisheries/fish-passage.html">
-        U.S. Fish and Wildlife Service Fish Passage Program
+        <Text>U.S. Fish and Wildlife Service Fish Passage Program</Text>
       </Link>
       , the&nbsp;
       <Link href="https://gcpolcc.org/">
-        Gulf Coastal Plains and Ozarks Landscape Conservation Cooperative
+        <Text>
+          Gulf Coastal Plains and Ozarks Landscape Conservation Cooperative
+        </Text>
       </Link>
       , and the&nbsp;
       <Link href="https://myfwc.com/conservation/special-initiatives/fwli/grant/">
-        Florida State Wildlife Grants Program
+        <Text>Florida State Wildlife Grants Program</Text>
       </Link>
       .
     </Text>

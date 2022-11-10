@@ -7,8 +7,8 @@ import {
   STREAMORDER,
   INTERMITTENT,
   GAINMILES,
-  DAM_CONDITION,
-  DAM_BARRIER_SEVERITY,
+  CONDITION,
+  BARRIER_SEVERITY,
   LOWHEAD_DAM,
   WATERBODY_SIZECLASS,
   PERCENT_ALTERED,
@@ -37,7 +37,7 @@ export const dams = [
         sort: false,
         hideEmpty: true,
         help: 'Note: passability information is only available for a small number of dams.  Not all data sources recorded this information.',
-        ...getEntries(DAM_BARRIER_SEVERITY),
+        ...getEntries(BARRIER_SEVERITY),
       },
       {
         field: 'gainmilesclass',
@@ -70,7 +70,7 @@ export const dams = [
         sort: true,
         hideEmpty: true,
         help: 'Note: condition information is only available for a small number of dams.  Not all data sources recorded this information.',
-        ...getEntries(DAM_CONDITION),
+        ...getEntries(CONDITION),
       },
       {
         field: 'purpose',
