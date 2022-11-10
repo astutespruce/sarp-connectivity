@@ -58,13 +58,7 @@ zoom_levels = {
 tippecanoe = "../lib/tippecanoe/tippecanoe"
 tile_join = "../lib/tippecanoe/tile-join"
 
-tippecanoe_args = [
-    tippecanoe,
-    "-f",
-    "-l",
-    "networks",
-    "-pg",
-]
+tippecanoe_args = [tippecanoe, "-f", "-l", "networks", "-pg", "--visvalingam"]
 
 start = time()
 
