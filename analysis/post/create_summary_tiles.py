@@ -8,7 +8,7 @@ These statistics are based on:
 * small_barriers: not duplicate (dropped barriers are included in stats)
 * road crossings
 
-This is run AFTER running `rank_dams.py` and `rank_small_barriers.py`
+This is run AFTER running `aggregate_networks.py`
 
 Inputs:
 * `data/api/dams.feather`

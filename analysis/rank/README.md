@@ -8,10 +8,4 @@ This involves the following steps:
 2. barriers are scored and tiers are calculated for 3 scenarios: Network Connectivity (NC), Watershed Condition (WC), and Combined (NCWC), at the regional and state levels.
 3. output files are prepared for use by the API and for vector tiles.
 
-## Dams:
-
-Run `analysis/rank/rank_dams.py`
-
-## Small barriers:
-
-Run `analysis/rank/rank_small_barriers.py`
+Run `analysis/post/aggregate_networks.py`.

@@ -8,7 +8,7 @@ import geopandas as gp
 import shapely
 from pyogrio import write_dataframe
 
-from analysis.constants import GEO_CRS
+from analysis.constants import GEO_CRS, NETWORK_TYPES
 from analysis.lib.io import read_feathers
 from analysis.lib.geometry.lines import merge_lines
 from analysis.post.lib.tiles import get_col_types
@@ -20,17 +20,13 @@ tmp_dir = Path("/tmp")
 
 
 def classify_size(series):
-    # map sizeclasses are 0-2, 3-4, 5-9, 10-99, 100-499, 500-9999, 10000 - 24999, >25000 km2
+    # map sizeclasses (drainage area) are 0-2, 3-4, 5-9, 10-99, 100-499, 500-9999, 10000 - 24999, >25000 km2
     bins = [-1, 0, 2, 5, 10, 50, 100, 500, 10000, 25000] + [
         max(series.max(), 25000) + 1
     ]
     return np.asarray(
         pd.cut(series, bins, right=False, labels=np.arange(-1, len(bins) - 2))
     ).astype("uint8")
-
-
-# Simplification level in meters
-simplification = {5: 1000, 4: 500, 3: 250, 2: 100, 1: 100}
 
 
 zoom_config = [
@@ -62,6 +58,7 @@ tippecanoe_args = [tippecanoe, "-f", "-l", "networks", "-pg", "--visvalingam"]
 
 start = time()
 
+network_cols = list(NETWORK_TYPES.keys())
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
@@ -75,9 +72,8 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
         columns=[
             "lineID",
-            "dams",
-            "small_barriers",
-        ],
+        ]
+        + network_cols,
     ).set_index("lineID")
 
     # create output files by HUC2 based on where the segments occur
@@ -109,6 +105,11 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         flowlines["sizeclass"] = classify_size(flowlines.TotDASqKm)
 
         # combine intermittent and altered into a single uint value
+        # codes are:
+        # 0: regular flowline
+        # 1: intermittent flowline
+        # 2: altered flowline
+        # 3: altered intermittent flowline
         flowlines["mapcode"] = 0
         flowlines.loc[flowlines.intermittent, "mapcode"] = 1
         flowlines.loc[(~flowlines.intermittent) & flowlines.altered, "mapcode"] = 2
@@ -120,13 +121,11 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         print("Aggregating flowlines to networks")
         flowlines = merge_lines(
             flowlines,
-            by=["dams", "small_barriers", "sizeclass", "mapcode"],
-        ).sort_values(by="dams")
+            by=network_cols + ["sizeclass", "mapcode"],
+        ).sort_values(by=network_cols)
 
         mbtiles_files = []
-        col_types = get_col_types(
-            flowlines[["dams", "small_barriers", "sizeclass", "mapcode"]]
-        )
+        col_types = get_col_types(flowlines[network_cols + ["sizeclass", "mapcode"]])
 
         for level in zoom_config:
             minzoom, maxzoom = level["zoom"]

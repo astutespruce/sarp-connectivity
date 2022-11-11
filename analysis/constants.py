@@ -1,5 +1,11 @@
 """Constants used in other scripts."""
 
+# Mapping of network type to barrier kinds that break that network
+NETWORK_TYPES = {
+    "dams": ["waterfall", "dam"],
+    "small_barriers": ["waterfall", "dam", "small_barrier"],
+    # "road_crossing": ["waterfall", "dam", "small_barrier", "road_crossing"],
+}
 
 # Full Southeast + USFWS R2 / R6 region + OR / WA / ID
 STATES = {

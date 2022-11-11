@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 
 
+from analysis.constants import NETWORK_TYPES
 from analysis.lib.io import read_feathers
 from analysis.network.lib.stats import (
     calculate_upstream_network_stats,
@@ -38,8 +39,6 @@ FLOWLINE_COLS = [
     "AreaSqKm",
 ]
 
-
-barrier_types = ["dams", "small_barriers"]  # , "road_crossings"]
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/clean"
@@ -150,26 +149,11 @@ for group in groups:
     ).set_index("lineID")
 
     # Build networks for dams and again for small barriers
-    for barrier_type in barrier_types:
-        print(f"-------------------------\nCreating networks for {barrier_type}")
+    for network_type, breaking_kinds in NETWORK_TYPES.items():
+        print(f"-------------------------\nCreating networks for {network_type}")
         network_start = time()
 
-        if barrier_type == "dams":
-            focal_barrier_joins = barrier_joins.loc[
-                barrier_joins.kind.isin(["waterfall", "dam"])
-            ]
-        elif barrier_type == "small_barriers":
-            focal_barrier_joins = barrier_joins.loc[
-                barrier_joins.kind.isin(["waterfall", "dam", "small_barrier"])
-            ]
-        elif barrier_type == "road_crossings":
-            focal_barrier_joins = barrier_joins.loc[
-                barrier_joins.kind.isin(
-                    ["waterfall", "dam", "small_barrier", "road_crossing"]
-                )
-            ]
-        else:
-            raise ValueError("Unsupported barrier type")
+        focal_barrier_joins = barrier_joins.loc[barrier_joins.kind.isin(breaking_kinds)]
 
         upstream_networks, downstream_linear_networks = create_networks(
             group_joins,
@@ -183,7 +167,7 @@ for group in groups:
         )
 
         # join to flowlines
-        flowlines = flowlines.join(upstream_networks.rename(barrier_type))
+        flowlines = flowlines.join(upstream_networks.rename(network_type))
         up_network_df = (
             flowlines[FLOWLINE_COLS + ["HUC2"]]
             .join(upstream_networks, how="inner")
@@ -267,7 +251,7 @@ for group in groups:
             network_stats.loc[
                 network_stats.origin_HUC2 == huc2
             ].reset_index().to_feather(
-                out_dir / huc2 / f"{barrier_type}_network_stats.feather"
+                out_dir / huc2 / f"{network_type}_network_stats.feather"
             )
 
         #### Calculate up and downstream network attributes for barriers
@@ -401,7 +385,7 @@ for group in groups:
             tmp = (
                 barrier_networks.loc[barrier_networks.HUC2 == huc2]
                 .reset_index()
-                .to_feather(out_dir / huc2 / f"{barrier_type}_network.feather")
+                .to_feather(out_dir / huc2 / f"{network_type}_network.feather")
             )
 
     print("-------------------------\n")
@@ -411,8 +395,8 @@ for group in groups:
         print("dups", s[s > 1])
 
     # all flowlines without networks marked -1
-    for col in barrier_types:
-        flowlines[col] = flowlines[col].fillna(-1).astype("int64")
+    for network_type in NETWORK_TYPES:
+        flowlines[network_type] = flowlines[network_type].fillna(-1).astype("int64")
 
     # save network segments in the HUC2 where they are located
     print("Serializing network segments")

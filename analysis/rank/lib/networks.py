@@ -2,7 +2,7 @@ from pathlib import Path
 import warnings
 
 from analysis.lib.io import read_feathers
-from analysis.rank.lib.metrics import classify_gainmiles
+from analysis.rank.lib.metrics import classify_gainmiles, classify_percent_altered
 from analysis.rank.lib.tiers import calculate_tiers
 from analysis.lib.util import append
 
@@ -24,7 +24,7 @@ NETWORK_COLUMNS = [
     "FreePerennialDownstreamMiles",
     "FreeAlteredDownstreamMiles",
     "FreeUnalteredDownstreamMiles",
-    "FreePerennialUnalteredDownstreamMiles",
+    # "FreePerennialUnalteredDownstreamMiles",  # not nused
     "PercentUnaltered",
     "PercentPerennialUnaltered",
     "IntermittentUpstreamMiles",
@@ -158,6 +158,9 @@ def get_network_results(df, network_type, barrier_types=None, state_ranks=False)
 
     networks = networks.join(df[df.columns.intersection(["Unranked", "State"])])
 
+    networks["HasNetwork"] = True
+    networks["Ranked"] = networks.HasNetwork & (~networks.Unranked)
+
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total
     # doesn't apply to those that don't have upstream networks
@@ -165,7 +168,7 @@ def get_network_results(df, network_type, barrier_types=None, state_ranks=False)
         networks.loc[networks.SizeClasses > 0, "SizeClasses"] - 1
     )
 
-    # Calculate miles GAINED if barrier is removed
+    ### Calculate miles GAINED if barrier is removed
     # this is the lesser of the upstream or free downstream lengths.
     # Non-free miles downstream (downstream waterbodies) are omitted from this analysis.
     networks["GainMiles"] = networks[["TotalUpstreamMiles", "FreeDownstreamMiles"]].min(
@@ -192,14 +195,16 @@ def get_network_results(df, network_type, barrier_types=None, state_ranks=False)
     for column in [c for c in networks.columns if c.endswith("Miles")]:
         networks[column] = networks[column].round(3).fillna(-1)
 
-    # Calculate network metric classes
+    ### Set PercentUnaltered and PercentAltered to integers
+    networks["PercentUnaltered"] = networks.PercentUnaltered.round().astype("int8")
+    networks["PercentAltered"] = 100 - networks.PercentUnaltered
+
+    ### Calculate classes used for filtering
     networks["GainMilesClass"] = classify_gainmiles(networks.GainMiles)
-    networks["PerennialGainMilesClass"] = classify_gainmiles(
-        networks.PerennialGainMiles
-    )
+    networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
 
     if not state_ranks:
-        return networks.drop(columns=["Unranked", "State"], errors="ignore")
+        return networks.drop(columns=["Unranked", "State"])
 
     # only calculate ranks / tiers for ranked barriers
     # (exclude unranked invasive spp. barriers / no structure diversions)
