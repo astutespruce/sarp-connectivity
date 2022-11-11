@@ -106,3 +106,44 @@ export const getHighlightExpr = (defaultExpr, highlightExpr) => [
   highlightExpr,
   defaultExpr,
 ]
+
+/**
+ * Highlight an upstream functional network for a given networkID
+ * @param {Object} map - Mapbox GL map instance
+ * @param {String} networkType - dams or small_barriers
+ * @param {Number} networkID - network to highlight or Infinity to clear highlight
+ */
+export const highlightNetwork = (map, networkType, networkID) => {
+  map.setFilter('network-highlight', [
+    'all',
+    ['any', ['==', 'mapcode', 0], ['==', 'mapcode', 2]],
+    ['==', networkType, networkID],
+  ])
+  map.setFilter('network-intermittent-highlight', [
+    'all',
+    ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
+    ['==', networkType, networkID],
+  ])
+}
+
+export const setBarrierHighlight = (map, feature, highlight) => {
+  if (!feature) {
+    return
+  }
+
+  const {
+    id,
+    layer: { source, 'source-layer': sourceLayer },
+  } = feature
+
+  map.setFeatureState(
+    {
+      id,
+      source,
+      sourceLayer,
+    },
+    {
+      highlight,
+    }
+  )
+}

@@ -11,8 +11,10 @@ import {
   toGeoJSONPoints,
   mapToBlob,
   mapToDataURL,
+  highlightNetwork,
+  setBarrierHighlight,
 } from './util'
-import { networkLayers, highlightNetwork } from './layers'
+import { networkLayers } from './layers'
 
 export {
   BasemapSelector,
@@ -30,6 +32,7 @@ export {
   basemapLayers,
   networkLayers,
   highlightNetwork,
+  setBarrierHighlight,
   mapConfig,
   sources,
 }

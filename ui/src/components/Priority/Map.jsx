@@ -16,6 +16,7 @@ import {
   toGeoJSONPoints,
   networkLayers,
   highlightNetwork,
+  setBarrierHighlight,
 } from 'components/Map'
 import { barrierTypeLabels } from 'config'
 import { isEqual } from 'util/data'
@@ -246,31 +247,10 @@ const PriorityMap = ({
             barrierName = sarpidname.split('|')[1]
           }
 
-          const prevFeature = hoverFeatureRef.current
-          if (prevFeature) {
-            map.setFeatureState(
-              {
-                id: prevFeature.id,
-                source: prevFeature.layer.source,
-                sourceLayer: prevFeature.layer['source-layer'],
-              },
-              {
-                highlight: false,
-              }
-            )
-          }
+          setBarrierHighlight(map, hoverFeatureRef.current, false)
 
           hoverFeatureRef.current = feature
-          map.setFeatureState(
-            {
-              id: feature.id,
-              source: feature.layer.source,
-              sourceLayer: feature.layer['source-layer'],
-            },
-            {
-              highlight: true,
-            }
-          )
+          setBarrierHighlight(map, feature, true)
 
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
@@ -298,16 +278,7 @@ const PriorityMap = ({
             prevFeature &&
             !isEqual(prevFeature, selectedFeatureRef.current, ['id', 'layer'])
           ) {
-            map.setFeatureState(
-              {
-                id: prevFeature.id,
-                source: prevFeature.layer.source,
-                sourceLayer: prevFeature.layer['source-layer'],
-              },
-              {
-                highlight: false,
-              }
-            )
+            setBarrierHighlight(map, prevFeature, false)
           }
 
           hoverFeatureRef.current = null
@@ -342,31 +313,12 @@ const PriorityMap = ({
         // always clear out prior feature
         const prevFeature = selectedFeatureRef.current
         if (prevFeature) {
-          map.setFeatureState(
-            {
-              id: prevFeature.id,
-              source: prevFeature.layer.source,
-              sourceLayer: prevFeature.layer['source-layer'],
-            },
-            {
-              highlight: false,
-            }
-          )
+          setBarrierHighlight(map, prevFeature, false)
 
           selectedFeatureRef.current = null
 
           if (isEqual(prevFeature, hoverFeatureRef.current, ['id', 'layer'])) {
-            const prevHoverFeature = hoverFeatureRef.current
-            map.setFeatureState(
-              {
-                id: prevHoverFeature.id,
-                source: prevHoverFeature.layer.source,
-                sourceLayer: prevHoverFeature.layer['source-layer'],
-              },
-              {
-                highlight: false,
-              }
-            )
+            setBarrierHighlight(map, hoverFeatureRef.current, false)
             hoverFeatureRef.current = null
           }
         }
@@ -419,16 +371,7 @@ const PriorityMap = ({
             networkFields[field.split('_')[0]] = properties[field]
           })
 
-        map.setFeatureState(
-          {
-            id: feature.id,
-            source: feature.layer.source,
-            sourceLayer: feature.layer['source-layer'],
-          },
-          {
-            highlight: true,
-          }
-        )
+        setBarrierHighlight(map, feature, true)
         selectedFeatureRef.current = feature
 
         onSelectBarrier({
@@ -574,30 +517,11 @@ const PriorityMap = ({
     } else {
       const prevFeature = selectedFeatureRef.current
       if (prevFeature) {
-        map.setFeatureState(
-          {
-            id: prevFeature.id,
-            source: prevFeature.layer.source,
-            sourceLayer: prevFeature.layer['source-layer'],
-          },
-          {
-            highlight: false,
-          }
-        )
+        setBarrierHighlight(map, prevFeature, false)
         hoverFeatureRef.current = null
 
         if (isEqual(prevFeature, hoverFeatureRef.current, ['id', 'layer'])) {
-          const prevHoverFeature = hoverFeatureRef.current
-          map.setFeatureState(
-            {
-              id: prevHoverFeature.id,
-              source: prevHoverFeature.layer.source,
-              sourceLayer: prevHoverFeature.layer['source-layer'],
-            },
-            {
-              highlight: false,
-            }
-          )
+          setBarrierHighlight(map, hoverFeatureRef.current, false)
           hoverFeatureRef.current = null
         }
       }
