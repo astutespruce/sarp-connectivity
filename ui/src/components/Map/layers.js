@@ -51,10 +51,41 @@ const networkHighlightLayer = {
   ...flowlinesLayer,
   id: 'network-highlight',
   filter: ['==', 'dams', Infinity],
+  layout: {
+    'line-cap': 'butt',
+  },
   paint: {
     ...flowlinesLayer.paint,
     'line-opacity': 1,
     'line-color': '#fd8d3c',
+    'line-width': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      6,
+      ['*', ['-', ['get', 'sizeclass'], 10], 0.1],
+      9,
+      ['*', ['-', ['get', 'sizeclass'], 3], 0.25],
+      11,
+      ['*', ['+', ['get', 'sizeclass'], 0.25], 0.15],
+      12,
+      ['*', ['+', ['get', 'sizeclass'], 0.5], 0.25],
+      14,
+      ['*', ['+', ['get', 'sizeclass'], 1], 0.5],
+    ],
+    'line-gap-width': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      6,
+      ['*', ['-', ['get', 'sizeclass'], 10], 0.1],
+      9,
+      ['*', ['-', ['get', 'sizeclass'], 3], 0.5],
+      12,
+      ['*', ['+', ['get', 'sizeclass'], 0.5], 0.75],
+      14,
+      ['*', ['+', ['get', 'sizeclass'], 0.75], 1.5],
+    ],
   },
 }
 
@@ -63,13 +94,31 @@ const intermittentNetworkHighlightLayer = {
   id: 'network-intermittent-highlight',
   paint: {
     ...networkHighlightLayer.paint,
-    'line-dasharray': [3, 2],
   },
 }
 
 export const networkLayers = [
-  flowlinesLayer,
-  intermittentFlowlinesLayer,
   networkHighlightLayer,
   intermittentNetworkHighlightLayer,
+  flowlinesLayer,
+  intermittentFlowlinesLayer,
 ]
+
+/**
+ * Highlight an upstream functional network for a given networkID
+ * @param {Object} map - Mapbox GL map instance
+ * @param {String} networkType - dams or small_barriers
+ * @param {Number} networkID - network to highlight or Infinity to clear highlight
+ */
+export const highlightNetwork = (map, networkType, networkID) => {
+  map.setFilter('network-highlight', [
+    'all',
+    ['any', ['==', 'mapcode', 0], ['==', 'mapcode', 2]],
+    ['==', networkType, networkID],
+  ])
+  map.setFilter('network-intermittent-highlight', [
+    'all',
+    ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
+    ['==', networkType, networkID],
+  ])
+}

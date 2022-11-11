@@ -15,6 +15,7 @@ import {
   SearchFeaturePropType,
   toGeoJSONPoints,
   networkLayers,
+  highlightNetwork,
 } from 'components/Map'
 import { barrierTypeLabels } from 'config'
 import { isEqual } from 'util/data'
@@ -602,17 +603,7 @@ const PriorityMap = ({
       }
     }
 
-    // highlight upstream network if set otherwise clear it
-    map.setFilter('network-highlight', [
-      'all',
-      ['==', 'mapcode', 0],
-      ['==', networkType, networkID],
-    ])
-    map.setFilter('network-intermittent-highlight', [
-      'all',
-      ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
-      ['==', networkType, networkID],
-    ])
+    highlightNetwork(map, networkType, networkID)
   }, [barrierType, selectedBarrier])
 
   // if map allows filter, show selected vs unselected points, and make those without networks
@@ -933,18 +924,14 @@ const PriorityMap = ({
   }
 
   return (
-    <>
-      <Map onCreateMap={handleCreateMap} {...props}>
-        <DropDownLayerChooser
-          label="Priority Watersheds"
-          options={[
-            { id: 'coa', label: 'SARP conservation opportunity areas' },
-          ]}
-          onChange={handlePriorityLayerChange}
-        />
-        <Legend {...getLegend()} />
-      </Map>
-    </>
+    <Map onCreateMap={handleCreateMap} {...props}>
+      <DropDownLayerChooser
+        label="Priority Watersheds"
+        options={[{ id: 'coa', label: 'SARP conservation opportunity areas' }]}
+        onChange={handlePriorityLayerChange}
+      />
+      <Legend {...getLegend()} />
+    </Map>
   )
 }
 

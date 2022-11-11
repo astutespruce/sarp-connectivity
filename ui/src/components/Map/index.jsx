@@ -12,7 +12,7 @@ import {
   mapToBlob,
   mapToDataURL,
 } from './util'
-import { networkLayers } from './layers'
+import { networkLayers, highlightNetwork } from './layers'
 
 export {
   BasemapSelector,
@@ -29,6 +29,7 @@ export {
   basemapAttribution,
   basemapLayers,
   networkLayers,
+  highlightNetwork,
   mapConfig,
   sources,
 }

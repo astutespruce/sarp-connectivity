@@ -20,6 +20,7 @@ import {
   interpolateExpr,
   SearchFeaturePropType,
   networkLayers,
+  highlightNetwork,
 } from 'components/Map'
 import { barrierTypeLabels } from 'config'
 import { isEqual } from 'util/data'
@@ -525,16 +526,7 @@ const SummaryMap = ({
       }
     }
 
-    map.setFilter('network-highlight', [
-      'all',
-      ['==', 'mapcode', 0],
-      ['==', barrierType, networkID],
-    ])
-    map.setFilter('network-intermittent-highlight', [
-      'all',
-      ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
-      ['==', barrierType, networkID],
-    ])
+    highlightNetwork(map, barrierType, networkID)
   }, [selectedBarrier, barrierType])
 
   useEffect(() => {
