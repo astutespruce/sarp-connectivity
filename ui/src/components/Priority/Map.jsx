@@ -16,7 +16,7 @@ import {
   toGeoJSONPoints,
   networkLayers,
 } from 'components/Map'
-import { barrierTypeLabels } from 'constants'
+import { barrierTypeLabels } from 'config'
 import { isEqual } from 'util/data'
 import { capitalize } from 'util/format'
 import { isEmptyString } from 'util/string'

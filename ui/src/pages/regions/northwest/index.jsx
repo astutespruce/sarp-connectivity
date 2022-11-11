@@ -19,7 +19,7 @@ import { StateDownloadTable } from 'components/Download'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-import { REGION_STATES } from 'constants'
+import { REGION_STATES } from 'config'
 import { formatNumber } from 'util/format'
 
 const PNWRegionPage = ({

@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 import { formatNumber, formatPercent } from 'util/format'
 
 import { Bold, Flex, Italic, Link, Section } from './elements'

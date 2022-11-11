@@ -5,7 +5,7 @@ import { Box, Button, Heading, Flex, Text } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 import { Downloader } from 'components/Download'
-import { STATE_FIPS, STATES, CONNECTIVITY_TEAMS } from 'constants'
+import { STATE_FIPS, STATES, CONNECTIVITY_TEAMS } from 'config'
 
 import { layers } from '../layers'
 import Barriers from './Barriers'

@@ -4,7 +4,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text } from '@react-pdf/renderer'
 
-import { RECON } from 'constants'
+import { RECON } from 'config'
 import { List, ListItem, Section } from './elements'
 
 const Feasibility = ({ recon, huc8_coa, ...props }) => (

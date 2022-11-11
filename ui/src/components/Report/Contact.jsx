@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 import { Link, Section } from './elements'
 
 const { version: dataVersion } = siteMetadata

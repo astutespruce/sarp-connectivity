@@ -13,7 +13,7 @@ import {
   SB_PACK_BITS,
   WF_PACK_BITS,
   STATE_TIER_PACK_BITS,
-} from 'constants'
+} from 'config'
 import { isEmptyString } from 'util/string'
 import { unpackBits } from 'util/data'
 import { capitalize } from 'util/format'

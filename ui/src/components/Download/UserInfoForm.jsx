@@ -18,7 +18,7 @@ import {
   Textarea,
 } from 'theme-ui'
 
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 import { saveToStorage, encodeParams } from 'util/dom'
 import SARPLogoImage from 'images/sarp_logo.png'
 

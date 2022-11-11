@@ -15,7 +15,7 @@ import {
   PASSAGEFACILITY_CLASS,
   OWNERTYPE,
   BARRIEROWNERTYPE,
-} from 'constants'
+} from 'config'
 
 import { getEntries, priorityAreaFilters } from './common'
 

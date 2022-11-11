@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 
 const { version: dataVersion } = siteMetadata
 

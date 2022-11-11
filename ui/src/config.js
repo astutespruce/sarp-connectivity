@@ -1,3 +1,5 @@
+/* cannot call this constants.js because it collides with constants module in NodeJS */
+
 export { siteMetadata } from '../gatsby-config'
 
 export const barrierTypeLabels = {

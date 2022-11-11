@@ -7,7 +7,7 @@ import { useBarrierType } from 'components/Data'
 import { FilterGroup } from 'components/Filters'
 import { useCrossfilter } from 'components/Crossfilter'
 import { ExpandableParagraph } from 'components/Text'
-import { barrierTypeLabels } from 'constants'
+import { barrierTypeLabels } from 'config'
 import { formatNumber } from 'util/format'
 
 import BackLink from './BackLink'

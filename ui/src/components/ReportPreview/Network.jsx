@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Heading, Paragraph, Text } from 'theme-ui'
 
 import { Table, Row } from 'components/Table'
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 import { formatNumber, formatPercent } from 'util/format'
 
 const { version: dataVersion } = siteMetadata

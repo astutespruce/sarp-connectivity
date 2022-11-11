@@ -15,7 +15,7 @@ import {
   PURPOSE,
   BARRIER_SEVERITY,
   WATERBODY_SIZECLASS,
-} from 'constants'
+} from 'config'
 import { formatNumber } from 'util/format'
 
 import { Flex, List, ListItem, Section } from './elements'

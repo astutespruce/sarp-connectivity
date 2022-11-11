@@ -3,7 +3,7 @@ import React from 'react'
 import { Box, Flex } from 'theme-ui'
 import { OutboundLink, Link } from 'components/Link'
 
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 
 const { version: dataVersion, date: dataDate } = siteMetadata
 

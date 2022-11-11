@@ -75,10 +75,10 @@ Enable service
 - copy `deploy/production/service/mbtileserver.service` to `/etc/systemd/system/`
 - `sudo systemctl enable mbtileserver`
 
-## Install `nodejs` 16:
+## Install `nodejs` 18:
 
 - as `ubuntu` user
-- `curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -`
+- `curl -sL https://deb.nodesource.com/setup_18.x | sudo -E bash -`
 - `sudo apt-get update && sudo apt-get install -y nodejs`
 
 ## Install Caddy

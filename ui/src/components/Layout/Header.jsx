@@ -3,7 +3,7 @@ import { ChartBar, SearchLocation, Download } from '@emotion-icons/fa-solid'
 import { Box, Flex, Image, Text, Heading } from 'theme-ui'
 
 import { Link } from 'components/Link'
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 import { hasWindow } from 'util/dom'
 import LogoSVG from 'images/logo.svg'
 

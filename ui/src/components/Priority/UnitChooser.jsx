@@ -5,7 +5,7 @@ import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import UnitSearch from 'components/UnitSearch'
 import { useBarrierType } from 'components/Data'
-import { LAYER_ZOOM, barrierTypeLabels } from 'constants'
+import { LAYER_ZOOM, barrierTypeLabels } from 'config'
 import { formatNumber } from 'util/format'
 
 import BackLink from './BackLink'

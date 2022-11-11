@@ -7,7 +7,7 @@ import { Box, Container, Heading, Paragraph } from 'theme-ui'
 import { Layout, SEO } from 'components/Layout'
 import { OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
-import { CONNECTIVITY_TEAMS } from 'constants'
+import { CONNECTIVITY_TEAMS } from 'config'
 import { extractNodes, GraphQLArrayPropType } from 'util/graphql'
 import { groupBy } from 'util/data'
 

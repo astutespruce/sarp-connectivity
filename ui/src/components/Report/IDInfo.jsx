@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text } from '@react-pdf/renderer'
 
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 import { isEmptyString } from 'util/string'
 
 import { Link, List, ListItem, Section } from './elements'

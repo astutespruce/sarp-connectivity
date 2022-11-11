@@ -20,7 +20,7 @@ import { Link, OutboundLink } from 'components/Link'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-import { REGION_STATES } from 'constants'
+import { REGION_STATES } from 'config'
 import { formatNumber } from 'util/format'
 import SARPLogoImage from 'images/sarp_logo.png'
 

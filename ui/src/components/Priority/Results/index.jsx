@@ -4,7 +4,7 @@ import { Box, Flex, Heading, Paragraph, Text } from 'theme-ui'
 
 import { useBarrierType } from 'components/Data'
 import { Downloader } from 'components/Download'
-import { SCENARIOS, barrierTypeLabels } from 'constants'
+import { SCENARIOS, barrierTypeLabels } from 'config'
 import { countBy } from 'util/data'
 import { formatNumber, capitalize } from 'util/format'
 

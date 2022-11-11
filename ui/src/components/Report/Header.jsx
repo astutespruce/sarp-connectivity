@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
-import { STATES } from 'constants'
+import { STATES } from 'config'
 import { formatNumber } from 'util/format'
 import { Flex } from './elements'
 

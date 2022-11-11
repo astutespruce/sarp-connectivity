@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import { Box, Heading, Text, Paragraph } from 'theme-ui'
 
 import { Table, Row } from 'components/Table'
-import { barrierTypeLabels } from 'constants'
+import { barrierTypeLabels } from 'config'
 
 const Scores = ({
   barrierType,

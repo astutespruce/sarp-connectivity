@@ -17,7 +17,7 @@ import {
   OWNERTYPE,
   BARRIEROWNERTYPE,
   WATERBODY_SIZECLASS,
-} from 'constants'
+} from 'config'
 
 import NetworkInfo from './NetworkInfo'
 

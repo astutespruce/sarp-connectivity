@@ -5,7 +5,7 @@ import { Box, Heading } from 'theme-ui'
 import { OutboundLink } from 'components/Link'
 import { isEmptyString } from 'util/string'
 
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 
 const { version: dataVersion } = siteMetadata
 

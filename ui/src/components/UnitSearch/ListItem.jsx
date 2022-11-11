@@ -2,7 +2,7 @@ import React, { memo } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
-import { STATES } from 'constants'
+import { STATES } from 'config'
 
 const ListItem = ({ id, name, state, layer, showID, onClick }) => {
   const stateLabels = state

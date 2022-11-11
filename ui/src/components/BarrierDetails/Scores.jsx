@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Text } from 'theme-ui'
 
 import { Tab, Tabs } from 'components/Tabs'
-import { barrierTypeLabels } from 'constants'
+import { barrierTypeLabels } from 'config'
 import ScoresList from './ScoresList'
 import { ScoresPropType } from './proptypes'
 

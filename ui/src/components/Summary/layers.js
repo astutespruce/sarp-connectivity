@@ -1,4 +1,4 @@
-import { pointColors } from 'constants'
+import { pointColors } from 'config'
 import { getHighlightExpr } from '../Map/util'
 
 export const layers = [

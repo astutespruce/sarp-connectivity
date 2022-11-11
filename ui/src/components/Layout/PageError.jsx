@@ -3,7 +3,7 @@ import { Container, Flex, Box, Heading, Paragraph } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { OutboundLink } from 'components/Link'
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 
 const PageErrorMessage = () => (
   <Container pt="3rem">

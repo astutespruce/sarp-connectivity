@@ -25,7 +25,7 @@ import {
   basemapLayers,
 } from 'components/Map'
 
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 
 import { pointHighlightLayer } from './layers'
 

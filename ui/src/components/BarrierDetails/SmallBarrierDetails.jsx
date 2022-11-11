@@ -15,7 +15,7 @@ import {
   CONSTRICTION,
   OWNERTYPE,
   BARRIEROWNERTYPE,
-} from 'constants'
+} from 'config'
 
 import NetworkInfo from './NetworkInfo'
 

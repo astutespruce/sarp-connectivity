@@ -4,7 +4,7 @@ import { useQuery } from 'react-query'
 import { Box, Text } from 'theme-ui'
 
 import { searchUnits } from 'components/Data/API'
-import { LAYER_NAMES, SYSTEMS, SYSTEM_UNITS } from 'constants'
+import { LAYER_NAMES, SYSTEMS, SYSTEM_UNITS } from 'config'
 import { formatNumber } from 'util/format'
 import ListItem from './ListItem'
 import SearchField from './SearchField'

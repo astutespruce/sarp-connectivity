@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Paragraph } from 'theme-ui'
 
 import { useStateSummary } from 'components/Data'
-import { REGION_STATES, STATES } from 'constants'
+import { REGION_STATES, STATES } from 'config'
 import { groupBy } from 'util/data'
 import { formatNumber } from 'util/format'
 

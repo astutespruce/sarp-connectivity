@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import { Box, Flex, Button, Text } from 'theme-ui'
 
 import { useBarrierType } from 'components/Data'
-import { STATE_FIPS, STATES, barrierTypeLabels } from 'constants'
+import { STATE_FIPS, STATES, barrierTypeLabels } from 'config'
 import { formatNumber } from 'util/format'
 
 const SummaryUnitListItem = ({ layer, unit, onDelete }) => {

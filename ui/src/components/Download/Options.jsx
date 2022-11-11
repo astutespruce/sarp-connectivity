@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
 import { Checkbox } from 'components/Button'
-import { barrierTypeLabels } from 'constants'
+import { barrierTypeLabels } from 'config'
 
 const Options = ({ barrierType, options, customRank, onChange }) => {
   const { includeUnranked } = options

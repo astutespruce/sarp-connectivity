@@ -1,4 +1,4 @@
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 
 const { tileHost } = siteMetadata
 

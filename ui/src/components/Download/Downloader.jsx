@@ -6,7 +6,7 @@ import { Box, Button, Flex, Paragraph, Text } from 'theme-ui'
 import { getDownloadURL } from 'components/Data'
 import { OutboundLink } from 'components/Link'
 import Modal from 'components/Modal'
-import { barrierTypeLabels } from 'constants'
+import { barrierTypeLabels } from 'config'
 import { getFromStorage } from 'util/dom'
 import { trackDownload } from 'util/analytics'
 

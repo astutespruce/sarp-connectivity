@@ -8,7 +8,7 @@ import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
 import { StateDownloadTable } from 'components/Download'
 import { useSummaryData } from 'components/Data'
-import { siteMetadata } from 'constants'
+import { siteMetadata } from 'config'
 
 const { version: dataVersion, date: dataDate } = siteMetadata
 

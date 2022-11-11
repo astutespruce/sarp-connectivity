@@ -1,4 +1,4 @@
-import { HUC8_COA } from 'constants'
+import { HUC8_COA } from 'config'
 
 const getIntKeys = (obj) =>
   Object.keys(obj)

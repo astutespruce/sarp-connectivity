@@ -7,7 +7,7 @@ import { useStaticQuery, graphql } from 'gatsby'
 import { Link } from 'components/Link'
 import { useSummaryData } from 'components/Data'
 import { RegionStats } from 'components/Regions'
-import { REGION_STATES } from 'constants'
+import { REGION_STATES } from 'config'
 
 const Regions = () => {
   const { gpiw, pnw, se, sw } = useSummaryData()

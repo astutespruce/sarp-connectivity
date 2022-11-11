@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 
 import { Box, Flex, Text } from 'theme-ui'
 
-import { STATES } from 'constants'
+import { STATES } from 'config'
 import { formatNumber } from 'util/format'
 
 const Header = ({ barrierType, name, county, state, lat, lon }) => (
