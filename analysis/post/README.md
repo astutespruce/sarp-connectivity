@@ -12,11 +12,6 @@ Run `analysis/post/create_region_maps.py` to generate thumbnails of the ranked d
 
 Note: generating maps uses `pymgl` to render the maps, which is only available for MacOS or Ubuntu 20.04.
 
-### Waterfall networks
-
-Run `analysis/post/extract_waterfall_networks.py` to extract network statistics from the dams and small
-barrier network results, which is used to make tiles below.
-
 ### Vector tiles
 
 Final tiles for deployment are output to `/tiles`

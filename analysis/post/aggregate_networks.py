@@ -21,6 +21,9 @@ from api.constants import (
     SB_API_FIELDS,
     SB_TILE_FIELDS,
     SB_PACK_BITS,
+    WF_CORE_FIELDS,
+    WF_TILE_FIELDS,
+    WF_PACK_BITS,
     unique,
 )
 
@@ -132,6 +135,9 @@ dams["packed"] = pack_bits(tmp, DAM_PACK_BITS)
 
 # fill other network columns and set to signed dtypes
 for col in dam_networks.columns:
+    if dams[col].dtype == bool:
+        continue
+
     dams[col] = dams[col].fillna(-1).astype(get_signed_dtype(dam_networks[col].dtype))
 
 dams = dams[unique(["geometry", "Unranked"] + DAM_API_FIELDS + DAM_TILE_FIELDS)]
@@ -178,11 +184,15 @@ small_barriers["packed"] = pack_bits(tmp, SB_PACK_BITS)
 
 # set -1 when network not available for barrier
 for col in small_barrier_networks.columns:
+    if small_barriers[col].dtype == bool:
+        continue
+
     small_barriers[col] = (
         small_barriers[col]
         .fillna(-1)
         .astype(get_signed_dtype(small_barrier_networks[col].dtype))
     )
+
 
 small_barriers = small_barriers[
     unique(["geometry", "Unranked"] + SB_API_FIELDS + SB_TILE_FIELDS)
@@ -214,7 +224,6 @@ combined = pd.concat(
 combined_networks = get_network_results(
     combined,
     network_type="small_barriers",
-    barrier_types=["dams", "small_barriers"],
     state_ranks=True,
 )
 combined = combined.join(combined_networks)
@@ -222,6 +231,9 @@ for col in ["HasNetwork", "Ranked", "Estimated"]:
     combined[col] = combined[col].fillna(False)
 
 for col in combined_networks.columns:
+    if combined[col].dtype == bool:
+        continue
+
     combined[col] = (
         combined[col].fillna(-1).astype(get_signed_dtype(combined_networks[col].dtype))
     )
@@ -258,9 +270,9 @@ fill_columns = [
     "SARP_Score",
 ]
 
+dtypes = pd.concat([dams.dtypes, small_barriers.dtypes])
 for col in fill_columns:
-    orig_dtype = dams[col].dtype if col in dams.columns else small_barriers[col].dtype
-    combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
+    combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(dtypes[col]))
 
 
 verify_domains(combined)
@@ -274,3 +286,59 @@ combined.reset_index().to_feather(results_dir / "combined.feather")
 combined[unique(DAM_API_FIELDS + SB_API_FIELDS)].reset_index().to_feather(
     api_dir / f"combined.feather"
 )
+
+
+### Read waterfalls and associated networks
+print("Reading waterfalls and networks")
+waterfalls = (
+    gp.read_feather(barriers_dir / "waterfalls.feather")
+    .set_index("id")
+    .rename(columns=rename_cols)
+)
+waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
+fill_flowline_cols(waterfalls)
+
+# add stream order and species classes for filtering
+waterfalls["StreamOrderClass"] = classify_streamorder(waterfalls.StreamOrder)
+for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
+    waterfalls[f"{col}Class"] = classify_spps(waterfalls[col])
+
+# backfill Unranked for compatibility
+waterfalls["Unranked"] = False
+
+wf_dam_networks = get_network_results(
+    waterfalls, network_type="dams", state_ranks=False
+)
+wf_dam_networks.columns = [f"{c}_dams" for c in wf_dam_networks.columns]
+wf_dam_networks = wf_dam_networks.rename(
+    columns={"HasNetwork_dams": "HasNetwork", "Ranked_dams": "Ranked"}
+)
+
+wf_sb_networks = get_network_results(
+    waterfalls, network_type="small_barriers", state_ranks=False
+).drop(columns=["HasNetwork", "Ranked"])
+wf_sb_networks.columns = [f"{c}_small_barriers" for c in wf_sb_networks.columns]
+
+waterfalls = waterfalls.join(wf_dam_networks).join(wf_sb_networks).copy()
+for col in ["HasNetwork", "Ranked"]:
+    waterfalls[col] = waterfalls[col].fillna(False)
+
+pack_cols = [e["field"] for e in WF_PACK_BITS]
+tmp = waterfalls[pack_cols].copy()
+tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
+waterfalls["packed"] = pack_bits(tmp, WF_PACK_BITS)
+
+network_cols = wf_dam_networks.columns.tolist() + wf_sb_networks.columns.tolist()
+dtypes = pd.concat([wf_dam_networks.dtypes, wf_sb_networks.dtypes])
+for col in network_cols:
+    if waterfalls[col].dtype == bool:
+        continue
+
+    waterfalls[col] = waterfalls[col].fillna(-1).astype(get_signed_dtype(dtypes[col]))
+
+waterfalls = waterfalls[
+    unique(["geometry", "packed"] + unique(WF_CORE_FIELDS + WF_TILE_FIELDS))
+]
+
+print("Saving waterfalls for tiles")
+waterfalls.reset_index().to_feather(results_dir / "waterfalls.feather")

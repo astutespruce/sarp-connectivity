@@ -11,7 +11,6 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 
 NETWORK_COLUMNS = [
     "id",
-    "kind",
     "upNetID",
     "downNetID",
     "TotalUpstreamMiles",
@@ -85,7 +84,7 @@ NETWORK_COLUMN_NAMES = {
 }
 
 
-def get_network_results(df, network_type, barrier_types=None, state_ranks=False):
+def get_network_results(df, network_type, state_ranks=False):
     """Read network results, calculate derived metric classes, and calculate
     tiers.
 
@@ -99,10 +98,6 @@ def get_network_results(df, network_type, barrier_types=None, state_ranks=False)
     network_type : {"dams", "small_barriers"}
         network scenario; note that small_barriers includes the network already
         cut by dams
-    barrier_types : list-like, optional (default: None)
-        barrier types to extract from the network data, one or more of "dams",
-        "small_barriers", "waterfalls". If omitted, will default to match
-        network_type
     state_ranks : bool, optional (default: False)
         if True, results will include tiers for the state level
 
@@ -111,8 +106,6 @@ def get_network_results(df, network_type, barrier_types=None, state_ranks=False)
     DataFrame
         Contains network metrics and tiers
     """
-
-    barrier_types = barrier_types or [network_type]
 
     networks = (
         read_feathers(
@@ -126,10 +119,13 @@ def get_network_results(df, network_type, barrier_types=None, state_ranks=False)
         .set_index("id")
     )
 
-    # select barrier type
-    # NOTE: kind is the singular form of barrier type
-    kinds = [t[:-1] for t in barrier_types]
-    networks = networks.loc[networks.kind.isin(kinds)].drop(columns=["kind"])
+    # join back to df using inner join, which limits to barrier types present in df
+    networks = networks.join(
+        df[df.columns.intersection(["Unranked", "State"])], how="inner"
+    )
+
+    networks["HasNetwork"] = True
+    networks["Ranked"] = networks.HasNetwork & (~networks.Unranked)
 
     # Convert dtypes to allow missing data when joined to barriers later
     # NOTE: upNetID or downNetID may be 0 if there aren't networks on that side, but
@@ -155,11 +151,6 @@ def get_network_results(df, network_type, barrier_types=None, state_ranks=False)
         raise Exception(
             f"ERROR: multiple networks found for some {network_type} networks"
         )
-
-    networks = networks.join(df[df.columns.intersection(["Unranked", "State"])])
-
-    networks["HasNetwork"] = True
-    networks["Ranked"] = networks.HasNetwork & (~networks.Unranked)
 
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total
