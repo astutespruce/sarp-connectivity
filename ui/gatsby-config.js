@@ -57,12 +57,12 @@ module.exports = {
     `gatsby-plugin-image`,
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
-    {
-      resolve: `gatsby-plugin-create-client-paths`,
-      options: {
-        prefixes: [`/report/*`],
-      },
-    },
+    // {
+    //   resolve: ``,
+    //   options: {
+    //     prefixes: [`/report/*`],
+    //   },
+    // },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
