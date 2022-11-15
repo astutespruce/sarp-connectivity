@@ -135,6 +135,7 @@ for col in [
 ]:
     df[col] = df[col].fillna("").astype("str")
 
+df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
 
 # Drop those where recon shows this as an error
 drop_ix = df.Recon.isin(DROP_RECON) & ~df.dropped

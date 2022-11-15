@@ -149,10 +149,8 @@ def neighborhoods(source, tolerance=100):
 
     g = DirectedGraph(pairs.index.values.astype("int64"), pairs.values.astype("int64"))
     groups, values = g.flat_components()
-    groups = (
-        pd.DataFrame({"group": groups}, index=pd.Series(values, name=index_name))
-        .astype(source.index.dtype)
-        .set_index(index_name)
-    )
+    groups = pd.DataFrame(
+        {"group": groups}, index=pd.Series(values, name=index_name)
+    ).astype(source.index.dtype)
 
     return groups

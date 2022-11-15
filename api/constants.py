@@ -94,10 +94,11 @@ METRIC_FIELDS = [
     "TotalPerennialNetworkMiles",
     "PercentUnaltered",
     "PercentPerennialUnaltered",
+    "UpstreamDrainageArea",
 ]
 
-OTHER_NETWORK_METRIC_FIELDS = [
-    "UpstreamDrainageArea",
+
+UPSTREAM_COUNT_FIELDS = [
     "UpstreamWaterfalls",
     "UpstreamDams",
     "UpstreamSmallBarriers",
@@ -112,6 +113,10 @@ OTHER_NETWORK_METRIC_FIELDS = [
     "TotalUpstreamSmallBarriers",
     "TotalUpstreamRoadCrossings",
     "TotalUpstreamHeadwaters",
+]
+
+# these fields remain constant regardless of network type
+DOWNSTREAM_LINEAR_NETWORK_FIELDS = [
     "TotalDownstreamWaterfalls",
     "TotalDownstreamDams",
     "TotalDownstreamSmallBarriers",
@@ -120,6 +125,19 @@ OTHER_NETWORK_METRIC_FIELDS = [
     "FlowsToOcean",
     "ExitsRegion",
 ]
+
+# metric fields not used in tiles because they can be calculated on frontend or are not used
+UNUSED_TILE_METRIC_FIELDS = [
+    "IntermittentUpstreamMiles",
+    "FreeIntermittentDownstreamMiles",
+    "GainMiles",
+    "PerennialGainMiles",
+    "TotalNetworkMiles",
+    "TotalPerennialNetworkMiles",
+    "PercentUnaltered",
+    "PercentPerennialUnaltered",
+    "UpstreamDrainageArea",
+] + UPSTREAM_COUNT_FIELDS
 
 
 TIER_FIELDS = [
@@ -155,6 +173,10 @@ FILTER_FIELDS = [
     "BarrierOwnerType",
     "Intermittent",
     "HUC8_COA",
+    "FlowsToOcean",
+    "DownstreamOceanMilesClass",
+    "DownstreamOceanBarriersClass",
+    "CoastalHUC8",
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
@@ -206,7 +228,8 @@ GENERAL_API_FIELDS2 = (
     + UNIT_FIELDS
     + ["Excluded", "Invasive", "OnLoop"]
     + METRIC_FIELDS
-    + OTHER_NETWORK_METRIC_FIELDS
+    + UPSTREAM_COUNT_FIELDS
+    + DOWNSTREAM_LINEAR_NETWORK_FIELDS
 )
 
 # This order should mostly match FIELD_DEFINITIONS below
@@ -238,7 +261,7 @@ DAM_CORE_FIELDS = (
         # "Recon",
         "Diversion",
         "LowheadDam",
-        # "NoStructure",
+        # "NoStructure", # not currently used
         "WaterbodyKM2",
         "WaterbodySizeClass",
     ]
@@ -266,16 +289,6 @@ DAM_TILE_FIELDS = [
     for c in DAM_API_FIELDS + ["packed"]
     if not c
     in {
-        "IntermittentUpstreamMiles",
-        "FreeIntermittentDownstreamMiles",
-        "GainMiles",
-        "PerennialGainMiles",
-        "TotalNetworkMiles",
-        "TotalPerennialNetworkMiles",
-        "PercentUnaltered",
-        "PercentPerennialUnaltered",
-        "FlowsToOcean",
-        "NumBarriersDownstream",
         "YearRemoved",
         "NHDPlusID",
         "Basin",
@@ -301,7 +314,10 @@ DAM_TILE_FIELDS = [
         "Diversion",
         "Recon",  # excluded from API_FIELDS (important!)
         "PassageFacility",
-    }.union(OTHER_NETWORK_METRIC_FIELDS)
+        "TotalDownstreamSmallBarriers",
+        "TotalDownstreamRoadCrossings",
+        "ExitsRegion",
+    }.union(UNUSED_TILE_METRIC_FIELDS)
 ]
 
 DAM_TILE_FILTER_FIELDS = unique(
@@ -362,14 +378,6 @@ SB_TILE_FIELDS = [
     for c in SB_API_FIELDS + ["packed"]
     if not c
     in {
-        "IntermittentUpstreamMiles",
-        "FreeIntermittentDownstreamMiles",
-        "GainMiles",
-        "PerennialGainMiles",
-        "TotalNetworkMiles",
-        "TotalPerennialNetworkMiles",
-        "PercentUnaltered",
-        "PercentPerennialUnaltered",
         "YearRemoved",
         "NHDPlusID",
         "ProtectedLand",
@@ -390,7 +398,10 @@ SB_TILE_FIELDS = [
         "StreamOrder",
         "Invasive",
         "Recon",  # excluded from API_FIELDS (important!)
-    }.union(OTHER_NETWORK_METRIC_FIELDS)
+        # metric fields that can be calculated on frontend or not used
+        "TotalDownstreamRoadCrossings",
+        "ExitsRegion",
+    }.union(UNUSED_TILE_METRIC_FIELDS)
 ]
 
 SB_PACK_BITS = [
@@ -412,7 +423,7 @@ SB_TILE_FILTER_FIELDS = unique(
 # are not repeated for general flowline properties
 WF_METRIC_FIELDS = [
     c
-    for c in METRIC_FIELDS
+    for c in METRIC_FIELDS + UPSTREAM_COUNT_FIELDS
     if not c
     in {
         "HasNetwork",
@@ -451,6 +462,7 @@ WF_CORE_FIELDS = (
     + ["upNetID_dams", "downNetID_dams"]
     + [f"{c}_small_barriers" for c in WF_METRIC_FIELDS]
     + ["upNetID_small_barriers", "downNetID_small_barriers"]
+    + DOWNSTREAM_LINEAR_NETWORK_FIELDS
 )
 WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
 
@@ -460,25 +472,6 @@ WF_TILE_FIELDS = [
     for c in WF_CORE_FIELDS + ["packed"]
     if not c
     in {
-        # network fields are for both dams
-        "FreeIntermittentDownstreamMiles_dams",
-        "GainMiles_dams",
-        "IntermittentUpstreamMiles_dams",
-        "PerennialGainMiles_dams",
-        "PercentUnaltered_dams",
-        "PercentPerennialUnaltered_dams",
-        "TotalNetworkMiles_dams",
-        "TotalPerennialNetworkMiles_dams",
-        # and small barriers
-        "FreeIntermittentDownstreamMiles_small_barriers",
-        "GainMiles_small_barriers",
-        "IntermittentUpstreamMiles_small_barriers",
-        "PerennialGainMiles_small_barriers",
-        "PercentUnaltered_small_barriers",
-        "PercentPerennialUnaltered_small_barriers",
-        "TotalNetworkMiles_small_barriers",
-        "TotalPerennialNetworkMiles_small_barriers",
-        # not used for tiles
         "NHDPlusID",
         "Basin",
         "HUC2",
@@ -493,7 +486,11 @@ WF_TILE_FIELDS = [
         "Excluded",
         "OnLoop",
         "StreamOrder",
+        "TotalDownstreamRoadCrossings",
+        "ExitsRegion",
     }
+    .union({f"{c}_dams" for c in UNUSED_TILE_METRIC_FIELDS})
+    .union({f"{c}_small_barriers" for c in UNUSED_TILE_METRIC_FIELDS})
 ]
 
 WF_PACK_BITS = [
@@ -630,6 +627,17 @@ GAINMILES_DOMAIN = {
     5: ">= 100",
 }
 
+DOWNSTREAM_OCEAN_MILES_DOMAIN = {
+    -1: "not on aquatic network known to flow into the ocean",
+    0: "< 1 miles",
+    1: "1 - 5 miles",
+    2: "5 - 10 miles",
+    3: "10 - 25 miles",
+    4: "25 - 100 miles",
+    5: "100 - 250 miles",
+    6: ">= 250 miles",
+}
+
 RARESPP_DOMAIN = {0: "0", 1: "1", 2: "1 - 4", 3: "5 - 9", 4: ">= 10"}
 
 LANDCOVER_DOMAIN = {
@@ -650,6 +658,17 @@ STREAM_ORDER_DOMAIN = {
     5: "5",
     6: ">= 6",
 }
+
+# NOTE: barrier count depends on network type
+DOWNSTREAM_OCEAN_BARRIERS_DOMAIN = {
+    -1: "not on aquatic network known to flow into the ocean",
+    0: "0",
+    1: "1",
+    2: "2",
+    3: "5",
+    4: ">= 10",
+}
+
 
 WATERBODY_SIZECLASS_DOMAIN = {
     -1: "Not associated with a pond or lake",
@@ -831,7 +850,6 @@ STREAMTYPE_DOMAIN = {
 }
 
 BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
-
 
 # state abbrev to name, from CENSUS Tiger
 STATES = {
@@ -1093,9 +1111,9 @@ FIELD_DEFINITIONS = {
     "TotalDownstreamDams": "total number of dams between this {type} and the downstream-most point the full aquatic network on which it occurs (e.g., river mouth). -1 = not available.",
     "TotalDownstreamSmallBarriers": "total number of inventoried road-related barriers between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "TotalDownstreamRoadCrossings": "total number of uninventoried estimated road crossings between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
-    "MilesToOutlet": "miles between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
-    "FlowsToOcean": "indicates if this {type} was snapped to a stream or river that flows into the ocean.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the ocean. -1 = not available.",
-    "ExitsRegion": "indicates this {type} was snapped to a stream or river that exits the region of analysis (e.g., flows into Canada or Mexico) or flows into the ocean. -1 = not available.",
+    "MilesToOutlet": "miles between this {type} and the downstream-most point on the full aquatic network on which it occurs. -1 = not available.",
+    "FlowsToOcean": "indicates if this {type} was snapped to a stream or river that is known to flow into the ocean.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the ocean.",
+    # "ExitsRegion": "indicates this {type} was snapped to a stream or river that exits the region of analysis (e.g., flows into Canada or Mexico) or flows into the ocean.",
     "State_NC_tier": "network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_WC_tier": "watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_NCWC_tier": "combined network connectivity and watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",

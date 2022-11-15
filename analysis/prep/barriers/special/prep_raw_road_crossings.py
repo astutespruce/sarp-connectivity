@@ -180,6 +180,8 @@ for col in [
     df[col] = df[col].fillna("")
 
 
+df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
+
 # Snap to flowlines
 df["snapped"] = False
 df["snap_log"] = "not snapped"

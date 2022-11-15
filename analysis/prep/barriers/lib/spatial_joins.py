@@ -49,8 +49,10 @@ def add_spatial_joins(df):
         .set_index("HUC6")
     )
     huc8 = (
-        pd.read_feather(boundaries_dir / "HUC8.feather", columns=["HUC8", "name"])
-        .rename(columns={"name": "Subbasin"})
+        pd.read_feather(
+            boundaries_dir / "HUC8.feather", columns=["HUC8", "name", "coastal"]
+        )
+        .rename(columns={"name": "Subbasin", "coastal": "CoastalHUC8"})
         .set_index("HUC8")
     )
 

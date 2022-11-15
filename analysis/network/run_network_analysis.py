@@ -99,12 +99,17 @@ joins = read_feathers(
     new_fields={"HUC2": huc2s},
 )
 
+
 # TODO: remove once all flowlines have been re-extracted from NHD
 joins.loc[(joins.upstream == 0) & (joins.type == "internal"), "type"] = "origin"
 
 groups, joins = connect_huc2s(joins)
 groups = sorted(groups)
 print(f"Found {len(groups)} HUC2 groups in {time() - start:,.2f}s")
+
+# remove any joins after joining regions that are marine but have an upstream of 0
+# (likely due to joins with regions not included in analysis)
+joins = joins.loc[~(joins.marine & (joins.upstream_id == 0))].copy()
 
 # persist table of connected HUC2s
 connected_huc2s = pd.DataFrame({"HUC2": groups}).explode(column="HUC2")
@@ -195,10 +200,6 @@ for group in groups:
 
         stats_start = time()
 
-        # lineIDs that terminate in marine or downstream exits of HUC2
-        marine_ids = joins.loc[joins.marine].upstream_id.unique()
-        exit_ids = joins.loc[joins.type == "huc2_drain"].upstream_id.unique()
-
         upstream_stats = calculate_upstream_network_stats(
             up_network_df,
             group_joins,
@@ -207,6 +208,10 @@ for group in groups:
         )
         # WARNING: because not all flowlines have associated catchments, they are missing
         # natfldpln
+
+        # lineIDs that terminate in marine or downstream exits of HUC2
+        marine_ids = joins.loc[joins.marine].upstream_id.unique()
+        exit_ids = joins.loc[joins.type == "huc2_drain"].upstream_id.unique()
 
         # downstream_stats are indexed on the ID of the barrier
         downstream_stats = calculate_downstream_stats(
@@ -382,6 +387,7 @@ for group in groups:
 
         # save barriers by the HUC2 where they are located
         for huc2 in group_huc2s:
+            print(f"Writing {huc2}")
             tmp = (
                 barrier_networks.loc[barrier_networks.HUC2 == huc2]
                 .reset_index()

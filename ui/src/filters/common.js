@@ -19,18 +19,12 @@ export const getEntries = (obj) => {
 
 export const priorityAreaFilters = [
   {
-    id: 'priorityAreas',
-    title: 'Priority watersheds',
-    filters: [
-      {
-        field: 'huc8_coa',
-        title: 'SARP conservation opportunity areas',
-        sort: false,
-        // hideEmpty: true,
-        help: "These areas were designated by each state and approved by SARP's steering committee for funding through SARP-NFHP-USFWS each year.",
-        url: 'https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas',
-        ...getEntries(HUC8_COA),
-      },
-    ],
+    field: 'huc8_coa',
+    title: 'SARP conservation opportunity areas',
+    sort: false,
+    // hideEmpty: true,
+    help: "These areas were designated by each state and approved by SARP's steering committee for funding through SARP-NFHP-USFWS each year.",
+    url: 'https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas',
+    ...getEntries(HUC8_COA),
   },
 ]

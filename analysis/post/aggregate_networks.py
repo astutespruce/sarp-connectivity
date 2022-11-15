@@ -14,6 +14,7 @@ from analysis.rank.lib.metrics import (
 from api.constants import (
     GENERAL_API_FIELDS1,
     UNIT_FIELDS,
+    DOWNSTREAM_LINEAR_NETWORK_FIELDS,
     DOMAINS,
     DAM_API_FIELDS,
     DAM_TILE_FIELDS,
@@ -120,7 +121,6 @@ dams = dams.loc[~(dams.dropped | dams.duplicate)].copy()
 
 dam_networks = get_network_results(dams, "dams", state_ranks=True)
 
-# TODO: limit to API + TILE fields
 dams = dams.join(dam_networks)
 for col in ["HasNetwork", "Ranked"]:
     dams[col] = dams[col].fillna(False)
@@ -129,7 +129,6 @@ for col in ["HasNetwork", "Ranked"]:
 # IMPORTANT: this needs to happen here, before backfilling fields with -1
 pack_cols = [e["field"] for e in DAM_PACK_BITS]
 tmp = dams[pack_cols].copy()
-# recode streamorder -1 to 0 for packing
 tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
 dams["packed"] = pack_bits(tmp, DAM_PACK_BITS)
 
@@ -150,7 +149,8 @@ dams.reset_index().to_feather(results_dir / "dams.feather")
 # save for API
 dams[DAM_API_FIELDS].reset_index().to_feather(api_dir / f"dams.feather")
 
-
+#########################################################################################
+###
 ### Read small barriers and associated networks
 print("Reading small barriers and networks")
 small_barriers = (
@@ -208,7 +208,8 @@ small_barriers[SB_API_FIELDS].reset_index().to_feather(
     api_dir / f"small_barriers.feather"
 )
 
-
+#########################################################################################
+###
 ### Get combined networks
 combined = pd.concat(
     [
@@ -287,7 +288,8 @@ combined[unique(DAM_API_FIELDS + SB_API_FIELDS)].reset_index().to_feather(
     api_dir / f"combined.feather"
 )
 
-
+#########################################################################################
+###
 ### Read waterfalls and associated networks
 print("Reading waterfalls and networks")
 waterfalls = (
@@ -309,14 +311,18 @@ waterfalls["Unranked"] = False
 wf_dam_networks = get_network_results(
     waterfalls, network_type="dams", state_ranks=False
 )
-wf_dam_networks.columns = [f"{c}_dams" for c in wf_dam_networks.columns]
-wf_dam_networks = wf_dam_networks.rename(
-    columns={"HasNetwork_dams": "HasNetwork", "Ranked_dams": "Ranked"}
-)
+# columns that remain the same regardless of network type
+constant_cols = [
+    "HasNetwork",
+    "Ranked",
+] + DOWNSTREAM_LINEAR_NETWORK_FIELDS
+wf_dam_networks.columns = [
+    f"{c}_dams" if c not in constant_cols else c for c in wf_dam_networks.columns
+]
 
 wf_sb_networks = get_network_results(
     waterfalls, network_type="small_barriers", state_ranks=False
-).drop(columns=["HasNetwork", "Ranked"])
+).drop(columns=constant_cols)
 wf_sb_networks.columns = [f"{c}_small_barriers" for c in wf_sb_networks.columns]
 
 waterfalls = waterfalls.join(wf_dam_networks).join(wf_sb_networks).copy()

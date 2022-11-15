@@ -2,7 +2,12 @@ from pathlib import Path
 import warnings
 
 from analysis.lib.io import read_feathers
-from analysis.rank.lib.metrics import classify_gainmiles, classify_percent_altered
+from analysis.rank.lib.metrics import (
+    classify_gain_miles,
+    classify_ocean_miles,
+    classify_percent_altered,
+    classify_ocean_barriers,
+)
 from analysis.rank.lib.tiers import calculate_tiers
 from analysis.lib.util import append
 
@@ -124,37 +129,19 @@ def get_network_results(df, network_type, state_ranks=False):
         df[df.columns.intersection(["Unranked", "State"])], how="inner"
     )
 
-    networks["HasNetwork"] = True
-    networks["Ranked"] = networks.HasNetwork & (~networks.Unranked)
-
-    # Convert dtypes to allow missing data when joined to barriers later
-    # NOTE: upNetID or downNetID may be 0 if there aren't networks on that side, but
-    # we set to int dtype instead of uint to allow -1 for missing data later
-    for col in ["upNetID", "downNetID"]:
-        networks[col] = networks[col].astype("int")
-
-    for stat_type in [
-        "Upstream",
-        "UpstreamCatchment",
-        "TotalUpstream",
-        "TotalDownstream",
-    ]:
-        for t in ["Waterfalls", "Dams", "SmallBarriers", "RoadCrossings"]:
-            col = f"{stat_type}{t}"
-            networks[col] = networks[col].astype("int32")
-
-    for col in ("Landcover", "SizeClasses", "FlowsToOcean", "ExitsRegion"):
-        networks[col] = networks[col].astype("int8")
-
     # sanity check to make sure no duplicate networks
     if networks.groupby(level=0).size().max() > 1:
         raise Exception(
             f"ERROR: multiple networks found for some {network_type} networks"
         )
 
+    networks["HasNetwork"] = True
+    networks["Ranked"] = networks.HasNetwork & (~networks.Unranked)
+
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total
     # doesn't apply to those that don't have upstream networks
+    networks["SizeClasses"] = networks.SizeClasses.astype("int8")
     networks.loc[networks.SizeClasses > 0, "SizeClasses"] = (
         networks.loc[networks.SizeClasses > 0, "SizeClasses"] - 1
     )
@@ -191,8 +178,44 @@ def get_network_results(df, network_type, state_ranks=False):
     networks["PercentAltered"] = 100 - networks.PercentUnaltered
 
     ### Calculate classes used for filtering
-    networks["GainMilesClass"] = classify_gainmiles(networks.GainMiles)
+    networks["GainMilesClass"] = classify_gain_miles(networks.GainMiles)
     networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
+
+    # Diadromous related filters - must have FlowsToOcean == True
+    networks["DownstreamOceanMilesClass"] = classify_ocean_miles(networks.MilesToOutlet)
+
+    # NOTE: per guidance from SARP, do not include count of waterfalls
+    if network_type == "dams":
+        num_downstream = networks.TotalDownstreamDams
+    elif network_type == "small_barriers":
+        num_downstream = (
+            +networks.TotalDownstreamDams + networks.TotalDownstreamSmallBarriers
+        )
+
+    networks["DownstreamOceanBarriersClass"] = classify_ocean_barriers(num_downstream)
+
+    ix = ~networks.FlowsToOcean
+    networks.loc[ix, "DownstreamOceanMilesClass"] = -1
+    networks.loc[ix, "DownstreamOceanBarriersClass"] = -1
+
+    # Convert dtypes to allow missing data when joined to barriers later
+    # NOTE: upNetID or downNetID may be 0 if there aren't networks on that side, but
+    # we set to int dtype instead of uint to allow -1 for missing data later
+    for col in ["upNetID", "downNetID"]:
+        networks[col] = networks[col].astype("int")
+
+    for stat_type in [
+        "Upstream",
+        "UpstreamCatchment",
+        "TotalUpstream",
+        "TotalDownstream",
+    ]:
+        for t in ["Waterfalls", "Dams", "SmallBarriers", "RoadCrossings"]:
+            col = f"{stat_type}{t}"
+            networks[col] = networks[col].astype("int32")
+
+    for col in ("Landcover", "FlowsToOcean", "ExitsRegion"):
+        networks[col] = networks[col].astype("int8")
 
     if not state_ranks:
         return networks.drop(columns=["Unranked", "State"])

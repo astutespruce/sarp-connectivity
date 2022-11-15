@@ -243,6 +243,8 @@ for col in [
 ]:
     df[col] = df[col].fillna("")
 
+df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
+
 ### Add tracking fields
 # master log field for status
 df["log"] = ""

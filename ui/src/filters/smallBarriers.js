@@ -40,6 +40,7 @@ export const smallBarriers = [
         help: 'Note: altered reaches are those specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration); this status is not consistently available for all stream reaches.',
         ...getEntries(PERCENT_ALTERED),
       },
+      ...priorityAreaFilters,
     ],
   },
   {
@@ -142,6 +143,4 @@ export const smallBarriers = [
       },
     ],
   },
-
-  ...priorityAreaFilters,
 ]

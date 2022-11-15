@@ -210,6 +210,11 @@ REGION_STATES.total = [
   ),
 ].sort()
 
+export const BOOLEAN_FIELD = {
+  0: 'no',
+  1: 'yes',
+}
+
 export const RECON = {
   '-1': 'Not applicable',
   0: 'Feasibility not yet evaluated',
@@ -318,6 +323,17 @@ export const GAINMILES = {
   5: '>= 100 miles',
 }
 
+export const DOWNSTREAM_OCEAN_MILES = {
+  '-1': 'not on aquatic network known to flow into the ocean',
+  0: '< 1 miles',
+  1: '1 - 5 miles',
+  2: '5 - 10 miles',
+  3: '10 - 25 miles',
+  4: '25 - 100 miles',
+  5: '100 - 250 miles',
+  6: '>= 250 miles',
+}
+
 export const RARESPP = { 0: '0', 1: '1', 2: '2 - 4', 3: '5 - 9', 4: '>= 10' }
 
 export const TROUT = {
@@ -332,6 +348,16 @@ export const STREAMORDER = {
   4: '4',
   5: '5',
   6: '>= 6',
+}
+
+// TODO: suffix for small barriers
+export const DOWNSTREAM_OCEAN_BARRIERS_DOMAIN = {
+  '-1': 'not on aquatic network known to flow into the ocean',
+  0: 'no dams / waterfalls downstream',
+  1: '1 dam / waterfall downstream',
+  2: '2 dams / waterfalls downstream',
+  3: '5 dams / waterfallsdownstream',
+  4: '>= 10 dams / waterfallsdownstream',
 }
 
 export const CROSSING_TYPE = {
