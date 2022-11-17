@@ -48,13 +48,14 @@ export const pointColors = {
   },
 
   // only used in prioritize
+  ranked: {
+    strokeColor: '#FFFFFF',
+  },
   topRank: {
     color: '#c51b8a',
-    strokeColor: '#FFFFFF',
   },
   lowerRank: {
     color: '#2c7fb8',
-    strokeColor: '#FFFFFF',
   },
 }
 

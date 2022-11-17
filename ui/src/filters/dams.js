@@ -176,6 +176,4 @@ export const dams = [
       },
     ],
   },
-
-  ...priorityAreaFilters,
 ]

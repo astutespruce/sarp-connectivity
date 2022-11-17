@@ -100,11 +100,40 @@ export const mapToDataURL = async (map) =>
     map.triggerRepaint()
   })
 
+/**
+ * Create an expression to toggle style based on highlight state of point
+ * @param {Array or String} defaultExpr - expression used when point is not highlighted
+ * @param {Array or String} highlightExpr - expression used when point is highlighted
+ * @returns
+ */
 export const getHighlightExpr = (defaultExpr, highlightExpr) => [
   'case',
   ['boolean', ['feature-state', 'highlight'], false],
   highlightExpr,
   defaultExpr,
+]
+
+/**
+ * Create an expression to toggle between two expressions based on a given
+ * network scenario and tier threshold
+ * @param {String} scenario
+ * @param {Number} tierThreshold
+ * @param {Array or String} belowExpr - expression used when tier of point is <= tierThreshold
+ * @param {Array or String} aboveExpr  - expression used when tier of point is > tierThreshold
+ * @returns
+ */
+export const getTierExpr = (scenario, tierThreshold, belowExpr, aboveExpr) => [
+  'case',
+  // make sure that tier field exists in feature state, otherwise emits null warnings
+  // for following condition
+  ['!=', ['feature-state', `${scenario}_tier`], null],
+  [
+    'case',
+    ['<=', ['feature-state', `${scenario}_tier`], tierThreshold],
+    belowExpr,
+    aboveExpr,
+  ],
+  aboveExpr,
 ]
 
 /**

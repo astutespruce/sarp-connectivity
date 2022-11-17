@@ -1,5 +1,5 @@
 import { pointColors } from 'config'
-import { getHighlightExpr } from '../Map/util'
+import { getHighlightExpr, getTierExpr } from '../Map/util'
 
 export const maskFill = {
   id: 'mask',
@@ -318,35 +318,50 @@ export const includedPoint = {
   },
 }
 
-export const topRank = {
-  id: 'rank-top',
-  source: 'ranked',
-  type: 'circle',
-  minzoom: 3,
-  maxzoom: 24,
-  // filter:  // provided by specific layer
-  paint: {
-    'circle-color': getHighlightExpr(
+export const getTierPointColor = (scenario, tierThreshold) =>
+  getHighlightExpr(
+    getTierExpr(
+      scenario,
+      tierThreshold,
       pointColors.topRank.color,
-      pointColors.highlight.color
+      pointColors.lowerRank.color
     ),
+    pointColors.highlight.color
+  )
+
+// sizes fall back to match includedPoint when not top rank
+export const getTierPointSize = (scenario, tierThreshold) => [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  3,
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 1, 0.5), 3),
+  4,
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 1.5, 1), 4),
+  5,
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 3, 1.25), 5),
+  14,
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 10, 8), 14),
+]
+
+export const rankedPoint = {
+  id: 'point-ranked',
+  // source: "" // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
+  type: 'circle',
+  minzoom: 2,
+  maxzoom: 24,
+  layout: {
+    visibility: 'none',
+  },
+  // filter:  // set to match includedPoint above
+  paint: {
+    'circle-color': '#000000', // provided dynamically when added to map
     'circle-stroke-color': getHighlightExpr(
-      pointColors.topRank.strokeColor,
+      pointColors.ranked.strokeColor,
       pointColors.highlight.strokeColor
     ),
-    'circle-radius': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      3,
-      getHighlightExpr(1, 3),
-      4,
-      getHighlightExpr(1.5, 4),
-      5,
-      getHighlightExpr(3, 5),
-      14,
-      getHighlightExpr(10, 14),
-    ],
+    'circle-radius': 6, // provided dynamically when added to map
     'circle-opacity': 1,
     'circle-stroke-width': {
       stops: [
@@ -354,56 +369,6 @@ export const topRank = {
         [6, 0.25],
         [8, 0.5],
         [14, 3],
-      ],
-    },
-  },
-}
-
-export const lowerRank = {
-  id: 'rank-low',
-  source: 'ranked',
-  type: 'circle',
-  minzoom: 3,
-  maxzoom: 24,
-  // filter:  // provided by specific layer
-  paint: {
-    'circle-color': getHighlightExpr(
-      pointColors.lowerRank.color,
-      pointColors.highlight.color
-    ),
-    'circle-stroke-color': getHighlightExpr(
-      pointColors.lowerRank.strokeColor,
-      pointColors.highlight.strokeColor
-    ),
-    'circle-radius': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      3,
-      getHighlightExpr(0.5, 3),
-      4,
-      getHighlightExpr(1, 4),
-      5,
-      getHighlightExpr(1.25, 5),
-      14,
-      getHighlightExpr(8, 14),
-    ],
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      3,
-      getHighlightExpr(0.5, 1),
-      4,
-      getHighlightExpr(0.75, 1),
-      7,
-      1,
-    ],
-    'circle-stroke-width': {
-      stops: [
-        [10, 0],
-        [11, 0.25],
-        [14, 1],
       ],
     },
   },
