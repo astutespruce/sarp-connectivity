@@ -1,22 +1,19 @@
-from collections import OrderedDict
-
 import numpy as np
-import pandas as pd
+import pyarrow as pa
+import pyarrow.compute as pc
 
 
-SCENARIOS = OrderedDict(
-    {
-        # NetworkConnectivity
-        "NC": ["GainMiles"],
-        "PNC": ["PerennialGainMiles"],
-        # Watershed Condition
-        "WC": ["PercentUnaltered", "Landcover", "SizeClasses"],
-        "PWC": ["PercentPerennialUnaltered", "Landcover", "SizeClasses"],
-        # Network Connectivity Plus Watershed Condition
-        "NCWC": ["NC", "WC"],
-        "PNCWC": ["PNC", "PWC"],
-    }
-)
+SCENARIOS = {
+    # NetworkConnectivity
+    "NC": ["GainMiles"],
+    "PNC": ["PerennialGainMiles"],
+    # Watershed Condition
+    "WC": ["PercentUnaltered", "Landcover", "SizeClasses"],
+    "PWC": ["PercentPerennialUnaltered", "Landcover", "SizeClasses"],
+    # Network Connectivity Plus Watershed Condition
+    "NCWC": ["NC", "WC"],
+    "PNCWC": ["PNC", "PWC"],
+}
 
 # Metric fields that are inputs of the above scenarios
 METRICS = [
@@ -29,103 +26,101 @@ METRICS = [
 ]
 
 
-def calculate_score(series, ascending=True):
+def calculate_score(column, ascending=True):
     """Calculate score based on the rank of a row's value within the sorted array of unique values.
     By default, the smallest unique value receives the lowest score, and the largest unique value
     receives the highest score.
 
     Parameters
     ----------
-    series : Pandas.Series
-        Data series against which to extract unique values and assign scores.
+    series : pyarrow ChunkedArray
+        Array from which to extract unique values and assign scores.
     ascending : boolean (default: True)
         If True, unique values are sorted in ascending order, meaning that the lowest score is the
         lowest unique value in the series, and the highest score is the length of the unique values.
 
     Returns
     -------
-    pandas.Series, dtype is float64
-        score value for each entry in the series
+    numpy.ndarray, dtype is float64
+        score value for each entry in the array
     """
+    unique = column.unique()
+    rank_size = len(unique) - 1 or 1  # to prevent divide by 0
 
-    # Round to 3 decimal places to avoid unnecessary precision and extract unique values
-    series = series.copy().round(3)
-    unique = series.unique()
-    unique.sort()
+    sort_indices = (
+        pc.sort_indices(
+            unique, sort_keys=[("", "ascending" if ascending else "descending")]
+        )
+        .to_numpy()
+        .astype("int64")
+    )
 
-    if not ascending:
-        unique = unique[::-1]
-
-    rank = np.arange(0, unique.size, dtype="float64")
-    rank_size = (rank.size - 1) or 1  # to prevent divide by 0 error
-    score = rank / rank_size  # on a 0-1 scale
-    lut = {v: score[i] for i, v in enumerate(unique)}
-    return series.map(lut)
+    # convert position of value within sorted unique values to 0-1 scale
+    score = np.searchsorted(unique, column, sorter=sort_indices) / rank_size
+    return score
 
 
-def calculate_composite_score(dataframe, weights=None):
-    """Calculate composite, weighted score across one or more columns.
-    The lowest tier (1) is the highest 95% of the composite score range.
+def calculate_composite_score(scores, columns, weights=None):
+    """Calculate composite score calculated across columns.
 
     Parameters
     ----------
-    dataframe : DataFrame
-        data frame of score fields to combine for calculating tier
+    scores : dict
+        contains keys corresponding to columns, values are ndarrays
+    columns : list-like of column names
     weights : list-like, optional (default: None)
         list-like of weights.  It is up to caller to make sure these sum to 1.  By default,
         if no weights are provided, all columns are weighted equally.  If provided, must
         be same length as dataframe.columns
 
-    Raises
-    ------
-    ValueError
-        raised if weights are not the same length as number of columns in dataframe
-
     Returns
     -------
-    pandas.Series, dtype is float64
-        composite score
+    numpy.array, dtype is int
+        tiers
     """
 
+    num_cols = len(columns)
     if weights is None:
-        numcols = len(dataframe.columns)
-        weights = [1.0 / numcols] * numcols
+        # all columns weighted equally
+        weights = [1.0 / num_cols] * num_cols
 
-    elif not len(weights) == len(dataframe.columns):
+    elif not len(weights) == num_cols:
         raise ValueError(
             "weights must be same length as number of columns in input data frame"
         )
 
-    dataframe = dataframe.copy()  # copy so that we can modify in place
-    for i, col in enumerate(dataframe.columns):
-        dataframe[col] = dataframe[col] * weights[i]
+    score = np.sum(
+        [scores[col] * weight for col, weight in zip(columns, weights)], axis=0
+    )
 
-    return dataframe.sum(axis=1)
+    return score
 
 
-def calculate_tier(series):
-    """Calculate tiers based on 5% increments of the score range.
+def calculate_tier(scores):
+    """Calculate tiers based on 5% increments of the composite score calculated
+    across columns.
+
     The lowest tier (1) is the highest 95% of the composite score range.
 
     Parameters
     ----------
-    series : pandas.Series
-        Data series against which to assign relative tiers.
+    scores : numpy.ndarray
 
     Returns
     -------
-    pandas.Series, dtype is int
-        tiers
+    numpy.ndarray
     """
 
+    min_score, max_score = pc.min_max(scores).as_py().values()
+    score_range = (max_score - min_score) or 1  # avoid divide by 0
+
     # calculate relative score
-    series_min = max(series.min(), 0)
-    series_range = (series.max() - series_min) or 1  # to avoid divide by 0
-    relative_value = 100.0 * (series - series_min) / series_range
+    relative_score = 100.0 * (scores - min_score) / score_range
 
     # break into 5% increments, such that tier 0 is in top 95% of the relative scores
     bins = np.arange(95, -5, -5)
-    return (np.digitize(relative_value, bins) + 1).astype("uint8")
+    tiers = (np.digitize(relative_score, bins) + 1).astype("uint8")
+    return tiers
 
 
 def calculate_tiers(df):
@@ -134,31 +129,24 @@ def calculate_tiers(df):
 
     Parameters
     ----------
-    df : pandas.DataFrame
+    df : pyarrow.Table
         Input data frame containing at least all input fields
     group_field: str, optional (default: None)
         Name of a column to use for grouping tier calculation (all scores will be based on values within each group).
 
     Returns
     -------
-    pandas.DataFrame
-        returns data frame indexed on original index, with a score field (_score)
-        and tier field (_tier) for each scenario. Scores are on a 0-100 (percent)
-        scale.
+    pyarrow.Table
+        Table is in same order as input
     """
 
-    # calculate scores for individual fields
-    results = pd.DataFrame(
-        {f"{field}_score": calculate_score(df[field]) for field in METRICS},
-        index=df.index,
-    )
+    scores = {field: calculate_score(df[field]) for field in METRICS}
 
-    # calculate composite score and tier
+    tiers = {}
     for scenario, inputs in SCENARIOS.items():
-        input_scores = [f"{field}_score" for field in inputs]
-        results[f"{scenario}_score"] = calculate_composite_score(results[input_scores])
-        results[f"{scenario}_tier"] = calculate_tier(results[f"{scenario}_score"])
+        scores[scenario] = calculate_composite_score(
+            scores, columns=[field for field in inputs]
+        )
+        tiers[f"{scenario}_tier"] = calculate_tier(scores[scenario])
 
-    # only return tier columns
-    return results[[col for col in results.columns if col.endswith("_tier")]]
-
+    return pa.Table.from_pydict(tiers)

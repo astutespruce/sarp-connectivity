@@ -1,5 +1,9 @@
 from pathlib import Path
 import warnings
+import pyarrow as pa
+
+import pyarrow.compute as pc
+import numpy as np
 
 from analysis.lib.io import read_feathers
 from analysis.rank.lib.metrics import (
@@ -8,8 +12,7 @@ from analysis.rank.lib.metrics import (
     classify_percent_altered,
     classify_ocean_barriers,
 )
-from analysis.rank.lib.tiers import calculate_tiers
-from analysis.lib.util import append
+from analysis.rank.lib.tiers import calculate_tiers, METRICS
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -220,24 +223,28 @@ def get_network_results(df, network_type, state_ranks=False):
     if not state_ranks:
         return networks.drop(columns=["Unranked", "State"])
 
-    # only calculate ranks / tiers for ranked barriers
-    # (exclude unranked invasive spp. barriers / no structure diversions)
-    to_rank = networks.loc[networks.Unranked == 0]
-
     ### Calculate state tiers for each of total and perennial
-    state_tiers = None
-    for state in to_rank.State.unique():
-        state_tiers = append(
-            state_tiers,
-            calculate_tiers(to_rank.loc[to_rank.State == state]).reset_index(),
-        )
+    # (exclude unranked invasive spp. barriers / no structure diversions)
+    # NOTE: tiers are calculated using a pyarrow Table
+    to_rank = pa.Table.from_pandas(
+        networks.loc[~networks.Unranked, ["State"] + METRICS].reset_index()
+    )
 
-    state_tiers = state_tiers.set_index("id").rename(
-        columns={col: f"State_{col}" for col in state_tiers.columns}
+    merged = []
+    for state in to_rank["State"].unique():
+        subset = to_rank.filter(pc.equal(to_rank["State"], state))
+        tiers = calculate_tiers(subset).add_column(
+            0, subset.schema.field("id"), subset["id"]
+        )
+        merged.append(tiers)
+
+    state_tiers = pa.concat_tables(merged).combine_chunks().to_pandas().set_index("id")
+    state_tiers.rename(
+        columns={col: f"State_{col}" for col in state_tiers.columns}, inplace=True
     )
 
     networks = networks.join(state_tiers)
     for col in [col for col in networks.columns if col.endswith("_tier")]:
-        networks[col] = networks[col].fillna(-1).astype("int8")
+        networks[col] = networks[col].fillna(np.int8(-1)).astype("int8")
 
     return networks.drop(columns=["Unranked", "State"])

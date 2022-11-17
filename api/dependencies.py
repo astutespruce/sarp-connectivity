@@ -39,13 +39,16 @@ class RecordExtractor:
                     [int(x) for x in request.query_params.get(key).split(",")]
                 )
 
-    def extract(self, df):
-        ix = pc.is_in(df[self.layer], self.ids)
+    def extract(self, ds, columns=None, ranked=False):
+        ix = pc.field(self.layer).isin(self.ids)
+
+        if ranked:
+            ix = ix & (pc.field("Ranked") == True)
 
         for key, values in self.filters.items():
-            ix = pc.and_(ix, pc.is_in(df[key], values))
+            ix = ix & (pc.is_in(pc.field(key), values))
 
-        return df.filter(ix)
+        return ds.scanner(columns=columns, filter=ix).to_table()
 
 
 class DamsRecordExtractor(RecordExtractor):

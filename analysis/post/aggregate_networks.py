@@ -147,7 +147,10 @@ print("Saving dams for tiles and API")
 dams.reset_index().to_feather(results_dir / "dams.feather")
 
 # save for API
-dams[DAM_API_FIELDS].reset_index().to_feather(api_dir / f"dams.feather")
+tmp = dams[DAM_API_FIELDS].reset_index()
+# downcast to uint32 or it breaks in UI
+tmp["id"] = tmp.id.astype("uint32")
+tmp.to_feather(api_dir / f"dams.feather")
 
 #########################################################################################
 ###
@@ -204,9 +207,9 @@ print("Saving small barriers for tiles and API")
 small_barriers.reset_index().to_feather(results_dir / "small_barriers.feather")
 
 # save for API
-small_barriers[SB_API_FIELDS].reset_index().to_feather(
-    api_dir / f"small_barriers.feather"
-)
+tmp = small_barriers[SB_API_FIELDS].reset_index()
+tmp["id"] = tmp.id.astype("uint32")
+tmp.to_feather(api_dir / f"small_barriers.feather")
 
 #########################################################################################
 ###
@@ -284,9 +287,9 @@ print("Saving combined networks for tiles and API")
 combined.reset_index().to_feather(results_dir / "combined.feather")
 
 # save for API
-combined[unique(DAM_API_FIELDS + SB_API_FIELDS)].reset_index().to_feather(
-    api_dir / f"combined.feather"
-)
+tmp = combined[unique(DAM_API_FIELDS + SB_API_FIELDS)].reset_index()
+tmp["id"] = tmp.id.astype("uint32")
+tmp.to_feather(api_dir / f"combined.feather")
 
 #########################################################################################
 ###
@@ -347,4 +350,6 @@ waterfalls = waterfalls[
 ]
 
 print("Saving waterfalls for tiles")
-waterfalls.reset_index().to_feather(results_dir / "waterfalls.feather")
+waterfalls = waterfalls.reset_index()
+waterfalls["id"] = waterfalls.id.astype("uint32")
+waterfalls.to_feather(results_dir / "waterfalls.feather")

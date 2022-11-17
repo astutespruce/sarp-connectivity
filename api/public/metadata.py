@@ -12,7 +12,7 @@ from api.constants import (
     SB_FIELD_DEFINITIONS,
     SB_PUBLIC_EXPORT_FIELDS,
 )
-from api.data import dams, barriers
+from api.data import dams, small_barriers
 from api.metadata import description, terms_of_use
 
 
@@ -37,8 +37,12 @@ def get_core_metadata(url):
 
 
 # Get list of states that have dams or barriers
-dam_states = sorted(pc.unique(dams["State"]).tolist())
-barrier_states = sorted(pc.unique(barriers["State"]).tolist())
+dam_states = sorted(
+    pc.unique(dams.scanner(columns=["State"]).to_table()["State"]).tolist()
+)
+barrier_states = sorted(
+    pc.unique(small_barriers.scanner(columns=["State"]).to_table()["State"]).tolist()
+)
 
 
 @router.get("/dams/metadata")
@@ -48,7 +52,7 @@ def get_dams_metadata(
     """Return basic metadata describing the dams data."""
 
     metadata = {
-        "count": len(dams),
+        "count": dams.count_rows(),
         "available_states": dam_states,
         "fields": {
             k: v
@@ -69,7 +73,7 @@ def get_barriers_metadata(
     """Return basic metadata describing the small barriers data."""
 
     metadata = {
-        "count": len(barriers),
+        "count": small_barriers.count_rows(),
         "available_states": barrier_states,
         "fields": {
             k: v

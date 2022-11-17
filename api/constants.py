@@ -152,10 +152,10 @@ TIER_FIELDS = [
 # Only present when custom prioritization is performed
 CUSTOM_TIER_FIELDS = [
     "NC_tier",
-    "WC_tier",
-    "NCWC_tier",
     "PNC_tier",
+    "WC_tier",
     "PWC_tier",
+    "NCWC_tier",
     "PNCWC_tier",
 ]
 
@@ -942,6 +942,7 @@ DOMAINS = {
     "FishScreen": FISHSCREEN_DOMAIN,
     "ScreenType": SCREENTYPE_DOMAIN,
     "WaterbodySizeClass": WATERBODY_SIZECLASS_DOMAIN,
+    "Estimated": BOOLEAN_DOMAIN,
     # "NoStructure": BOOLEAN_DOMAIN,
     # barrier fields
     "Constriction": CONSTRICTION_DOMAIN,

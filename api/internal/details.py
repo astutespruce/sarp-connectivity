@@ -3,7 +3,7 @@ from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 import pyarrow.compute as pc
 
-from api.data import dams, barriers
+from api.data import dams, small_barriers
 from api.logger import log_request
 
 
@@ -33,9 +33,9 @@ def get_small_barrier(request: Request, sarp_id: str):
     log_request(request)
 
     barrier = (
-        barriers.filter(pc.equal(barriers["SARPID"], sarp_id))
+        small_barriers.filter(pc.equal(small_barriers["SARPID"], sarp_id))
         .slice(0)
-        .rename_columns([c.lower() for c in barriers.schema.names])
+        .rename_columns([c.lower() for c in small_barriers.schema.names])
     )
     if not len(barrier):
         raise HTTPException(404, detail=f"barrier not found for SARPID: {sarp_id}")

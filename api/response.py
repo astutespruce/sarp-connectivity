@@ -3,7 +3,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 from fastapi.responses import Response, FileResponse
 from pyarrow.feather import write_feather
-from pyarrow import csv
+from pyarrow.csv import write_csv
 
 
 def csv_response(df, bounds=None):
@@ -21,7 +21,7 @@ def csv_response(df, bounds=None):
 
     csv_stream = BytesIO()
     cols = [c.lower() for c in df.schema.names]
-    csv.write_csv(df.rename_columns(cols), csv_stream)
+    write_csv(df.rename_columns(cols).combine_chunks(), csv_stream)
 
     response = Response(content=csv_stream.getvalue(), media_type="text/csv")
 
@@ -91,7 +91,8 @@ def zip_csv_response(
     zip_stream = BytesIO()
     with ZipFile(zip_stream, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
         csv_stream = BytesIO()
-        csv.write_csv(df, csv_stream)
+        # combine_chunks() is necessary to avoid repeated headers
+        write_csv(df.combine_chunks(), csv_stream)
         zf.writestr(filename, csv_stream.getvalue())
 
         if extra_str is not None:

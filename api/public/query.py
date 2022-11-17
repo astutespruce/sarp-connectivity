@@ -9,7 +9,7 @@ from api.constants import (
     SB_PUBLIC_EXPORT_FIELDS,
     unpack_domains,
 )
-from api.data import dams, barriers, get_removed_dams
+from api.data import dams, small_barriers, removed_dams
 from api.logger import log, log_request
 from api.response import csv_response
 
@@ -29,8 +29,10 @@ class StateRecordExtractor:
 
         self.ids = pa.array(ids)
 
-    def extract(self, df):
-        return df.filter(pc.is_in(df["State"], self.ids))
+    def extract(self, ds, columns=None):
+        return ds.scanner(
+            columns=columns, filter=pc.is_in(pc.field("State"), self.ids)
+        ).to_table()
 
 
 @router.get("/dams/state")
@@ -46,7 +48,7 @@ def query_dams(
 
     log_request(request)
 
-    df = extractor.extract(dams).select(DAM_PUBLIC_EXPORT_FIELDS).sort_by("HasNetwork")
+    df = extractor.extract(dams, columns=DAM_PUBLIC_EXPORT_FIELDS).sort_by("HasNetwork")
     df = unpack_domains(df)
 
     log.info(f"public query selected {len(df):,} dams")
@@ -61,7 +63,7 @@ def query_removed_dams(
     """Return dams that were removed for conservation"""
 
     log_request(request)
-    df = unpack_domains(get_removed_dams())
+    df = unpack_domains(removed_dams.to_table())
 
     return csv_response(df)
 
@@ -76,13 +78,11 @@ def query_barriers(request: Request, extractor: StateRecordExtractor = Depends()
 
     log_request(request)
 
-    df = (
-        extractor.extract(barriers)
-        .select(SB_PUBLIC_EXPORT_FIELDS)
-        .sort_by("HasNetwork")
+    df = extractor.extract(small_barriers, columns=SB_PUBLIC_EXPORT_FIELDS).sort_by(
+        "HasNetwork"
     )
     df = unpack_domains(df)
 
-    log.info(f"public query selected {len(df):,} barriers")
+    log.info(f"public query selected {len(df):,} road-related barriers")
 
     return csv_response(df)

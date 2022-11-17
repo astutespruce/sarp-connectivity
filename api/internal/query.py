@@ -6,7 +6,8 @@ from api.constants import (
     DAM_FILTER_FIELDS,
     SB_FILTER_FIELDS,
 )
-from api.data import ranked_dams, ranked_barriers
+
+from api.data import dams, small_barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
 from api.logger import log, log_request
 from api.response import feather_response
@@ -28,7 +29,9 @@ def query_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
 
     log_request(request)
 
-    df = extractor.extract(ranked_dams)
+    df = extractor.extract(
+        dams, columns=["id", "lon", "lat"] + DAM_FILTER_FIELDS, ranked=True
+    )
 
     # extract extent
     xmin, xmax = pc.min_max(df["lon"]).as_py().values()
@@ -55,7 +58,9 @@ def query_barriers(request: Request, extractor: BarriersRecordExtractor = Depend
 
     log_request(request)
 
-    df = extractor.extract(ranked_barriers)
+    df = extractor.extract(
+        small_barriers, columns=["id", "lon", "lat"] + SB_FILTER_FIELDS, ranked=True
+    )
 
     # extract extent
     xmin, xmax = pc.min_max(df["lon"]).as_py().values()
