@@ -494,7 +494,11 @@ const SummaryMap = ({
       })
     }
 
-    map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
+    map.fitBounds(bbox.split(',').map(parseFloat), {
+      padding: 20,
+      fitBoundsMaxZoom,
+      duration: 500,
+    })
   }, [searchFeature, selectFeatureByID])
 
   const { layerTitle, legendEntries } = useMemo(() => {

@@ -1,16 +1,16 @@
 import React, { useState, memo } from 'react'
-import { navigate } from 'gatsby'
+import PropTypes from 'prop-types'
 import { Trash } from '@emotion-icons/fa-solid'
 import { Button } from 'theme-ui'
 
 import Confirm from 'components/Confirm'
 
-const StartOverButton = () => {
+const StartOverButton = ({ onStartOver }) => {
   const [confirmIsActive, setConfirmIsActive] = useState(false)
 
   const handleConfirm = () => {
     setConfirmIsActive(false)
-    navigate('/priority')
+    onStartOver()
   }
 
   const handleClick = () => {
@@ -39,6 +39,10 @@ const StartOverButton = () => {
       </Button>
     </>
   )
+}
+
+StartOverButton.propTypes = {
+  onStartOver: PropTypes.func.isRequired,
 }
 
 export default memo(StartOverButton)

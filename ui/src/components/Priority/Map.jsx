@@ -559,7 +559,8 @@ const PriorityMap = ({
       })
     }
 
-    map.fitBounds(bbox, {
+    // have to zoom to feature in order to fetch data for it
+    map.fitBounds(bbox.split(',').map(parseFloat), {
       padding: 20,
       duration: 500,
     })

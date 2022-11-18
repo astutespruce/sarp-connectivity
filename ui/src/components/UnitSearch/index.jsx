@@ -58,7 +58,7 @@ const UnitSearch = ({ system, layer, onSelect }) => {
 
   return (
     <Box>
-      <Text sx={{ fontSize: '1.25rem' }}>Search for {searchLabel}:</Text>
+      <Text>Search for {searchLabel}:</Text>
       <SearchField
         value={query}
         isLoading={isLoading}

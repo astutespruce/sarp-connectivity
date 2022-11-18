@@ -57,6 +57,7 @@ const UnitChooser = ({
   selectUnit,
   onBack,
   onSubmit,
+  onStartOver,
   setSearchFeature,
 }) => {
   const barrierType = useBarrierType()
@@ -119,7 +120,6 @@ const UnitChooser = ({
         <BackLink label="choose a different type of area" onClick={onBack} />
         <Heading as="h3">Choose {pluralLabel}</Heading>
       </Box>
-
       <Box
         sx={{
           flex: '1 1 auto',
@@ -208,12 +208,17 @@ const UnitChooser = ({
           bg: '#f6f6f2',
         }}
       >
-        <StartOverButton />
+        <StartOverButton onStartOver={onStartOver} />
 
         <SubmitButton
           disabled={summaryUnits.size === 0 || total === 0}
           onClick={onSubmit}
           label={`Select ${barrierTypeLabel} in this area`}
+          title={
+            summaryUnits.size === 0 || total === 0
+              ? `you must select at least one area that has ${barrierTypeLabel} available`
+              : null
+          }
         />
       </Flex>
     </Flex>
@@ -229,6 +234,7 @@ UnitChooser.propTypes = {
   ).isRequired,
   onBack: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
+  onStartOver: PropTypes.func.isRequired,
   selectUnit: PropTypes.func.isRequired,
   setSearchFeature: PropTypes.func.isRequired,
 }

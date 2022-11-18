@@ -44,21 +44,27 @@ def search_units(request: Request, layer: str, query: str):
     # find those where the substring is closest to the left of the name and
     # have the shortest names, based on priority order of different unit types
     matches = (
-        matches.append_column(
-            "name_ipos", pc.find_substring(matches["key"], query, ignore_case=True)
-        ).append_column("name_len", pc.utf8_length(matches["name"]))
-    ).sort_by(
-        [
-            ["priority", "ascending"],
-            ["name_ipos", "ascending"],
-            ["name_len", "ascending"],
-            ["state", "ascending"],
-        ]
+        pa.Table.from_pydict(
+            {
+                **{col: matches[col] for col in matches.column_names},
+                "name_ipos": pc.find_substring(matches["key"], query, ignore_case=True),
+                "name_len": pc.utf8_length(matches["name"]),
+            }
+        )
+        .sort_by(
+            [
+                ["priority", "ascending"],
+                ["name_ipos", "ascending"],
+                ["name_len", "ascending"],
+                ["state", "ascending"],
+            ]
+        )
+        .select(["id", "layer", "name", "bbox"])[:10]
     )
 
     stream = BytesIO()
     write_feather(
-        matches[:10],
+        matches,
         stream,
         compression="uncompressed",
     )

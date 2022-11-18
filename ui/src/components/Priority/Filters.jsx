@@ -14,7 +14,7 @@ import BackLink from './BackLink'
 import SubmitButton from './SubmitButton'
 import StartOverButton from './StartOverButton'
 
-const Filters = ({ onBack, onSubmit }) => {
+const Filters = ({ onBack, onSubmit, onStartOver }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const { state, filterConfig, resetFilters } = useCrossfilter()
@@ -121,12 +121,17 @@ const Filters = ({ onBack, onSubmit }) => {
           borderTop: '1px solid #DDD',
         }}
       >
-        <StartOverButton />
+        <StartOverButton onStartOver={onStartOver} />
 
         <SubmitButton
           disabled={filteredCount === 0}
           onClick={onSubmit}
           label={`Prioritize ${barrierTypeLabel}`}
+          title={
+            filteredCount === 0
+              ? `No ${barrierTypeLabel} selected for prioritization`
+              : null
+          }
         />
       </Flex>
     </Flex>
@@ -136,6 +141,7 @@ const Filters = ({ onBack, onSubmit }) => {
 Filters.propTypes = {
   onBack: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
+  onStartOver: PropTypes.func.isRequired,
 }
 
 export default Filters

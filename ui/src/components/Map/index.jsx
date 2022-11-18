@@ -7,6 +7,7 @@ import { SearchFeaturePropType } from './proptypes'
 import { basemapAttribution, basemapLayers, mapConfig, sources } from './config'
 import {
   getCenterAndZoom,
+  unionBounds,
   interpolateExpr,
   toGeoJSONPoints,
   mapToBlob,
@@ -24,6 +25,7 @@ export {
   Legend,
   SearchFeaturePropType,
   getCenterAndZoom,
+  unionBounds,
   interpolateExpr,
   toGeoJSONPoints,
   mapToBlob,

@@ -20,6 +20,7 @@ const Results = ({
   tierThreshold,
   onSetTierThreshold,
   onBack,
+  onStartOver,
 }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
@@ -144,7 +145,7 @@ const Results = ({
           bg: '#f6f6f2',
         }}
       >
-        <StartOverButton />
+        <StartOverButton onStartOver={onStartOver} />
         <Downloader barrierType={barrierType} config={config} customRank />
       </Flex>
     </Flex>
@@ -170,6 +171,7 @@ Results.propTypes = {
   ).isRequired,
   onSetTierThreshold: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
+  onStartOver: PropTypes.func.isRequired,
 }
 
 export default Results

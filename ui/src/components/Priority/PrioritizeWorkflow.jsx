@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Box, Flex, Text, Spinner } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { useQueryClient } from 'react-query'
 
 import { useCrossfilter } from 'components/Crossfilter'
 import { ToggleButton } from 'components/Button'
-import { TopBar } from 'components/Map'
+import { TopBar, mapConfig } from 'components/Map'
 import {
   fetchBarrierInfo,
   fetchBarrierRanks,
@@ -49,12 +49,10 @@ const Prioritize = () => {
   // individually-managed states
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
-  const [bounds, setBounds] = useState(null)
-  const [step, setStep] = useState('select')
-  const stepRef = useRef(step) // need to keep a ref to use in callback below
 
   const [
     {
+      step,
       selectedBarrier,
       searchFeature,
       layer,
@@ -63,9 +61,11 @@ const Prioritize = () => {
       scenario,
       resultsType,
       tierThreshold,
+      bounds,
     },
     setState,
   ] = useState({
+    step: 'select',
     selectedBarrier: null,
     searchFeature: null,
     layer: null,
@@ -74,10 +74,24 @@ const Prioritize = () => {
     scenario: 'ncwc',
     resultsType: 'full',
     tierThreshold: 1,
+    bounds: mapConfig.bounds,
   })
 
-  // keep the reference in sync
-  stepRef.current = step
+  const handleStartOver = () => {
+    setFilterData([])
+    setState(() => ({
+      step: 'select',
+      selectedBarrier: null,
+      searchFeature: null,
+      layer: null,
+      summaryUnits: [],
+      rankData: [],
+      scenario: 'ncwc',
+      resultsType: 'full',
+      tierThreshold: 1,
+      bounds: mapConfig.bounds,
+    }))
+  }
 
   const handleMapLoad = () => {
     setIsLoading(false)
@@ -89,13 +103,13 @@ const Prioritize = () => {
 
   const handleFilterBack = () => {
     setFilterData([])
-    setStep('select')
+    setState((prevState) => ({ ...prevState, step: 'select' }))
   }
 
   const handleResultsBack = () => {
-    setStep('filter')
     setState((prevState) => ({
       ...prevState,
+      step: 'filter',
       rankData: [],
       scenario: 'ncwc',
       resultsType: 'full',
@@ -174,10 +188,11 @@ const Prioritize = () => {
     }
 
     setFilterData(data)
-    setStep('filter')
-    if (newBounds) {
-      setBounds(newBounds.split(',').map(parseFloat))
-    }
+    setState(({ bounds: prevBounds, ...prevState }) => ({
+      ...prevState,
+      step: 'filter',
+      bounds: newBounds ? newBounds.split(',').map(parseFloat) : prevBounds,
+    }))
     setIsLoading(false)
   }
 
@@ -203,14 +218,12 @@ const Prioritize = () => {
       setIsError(true)
     }
 
-    setState((prevState) => ({
+    setState(({ bounds: prevBounds, ...prevState }) => ({
       ...prevState,
+      step: 'results',
       rankData: data,
+      bounds: newBounds ? newBounds.split(',').map(parseFloat) : prevBounds,
     }))
-    setStep('results')
-    if (newBounds) {
-      setBounds(newBounds.split(',').map(parseFloat))
-    }
     setIsLoading(false)
   }
 
@@ -303,6 +316,7 @@ const Prioritize = () => {
                 selectUnit={handleSelectUnit}
                 setSearchFeature={handleSearch}
                 onSubmit={loadBarrierInfo}
+                onStartOver={handleStartOver}
               />
             )
           }
@@ -310,7 +324,11 @@ const Prioritize = () => {
         }
         case 'filter': {
           sidebarContent = (
-            <Filters onBack={handleFilterBack} onSubmit={loadRankInfo} />
+            <Filters
+              onBack={handleFilterBack}
+              onSubmit={loadRankInfo}
+              onStartOver={handleStartOver}
+            />
           )
           break
         }
@@ -328,6 +346,7 @@ const Prioritize = () => {
                 scenario,
               }}
               onSetTierThreshold={handleSetTierThreshold}
+              onStartOver={handleStartOver}
               onBack={handleResultsBack}
             />
           )

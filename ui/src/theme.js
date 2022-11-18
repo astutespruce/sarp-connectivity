@@ -117,9 +117,9 @@ module.exports = {
       },
     },
     disabled: {
-      cursor: 'disabled',
+      cursor: 'not-allowed',
       color: '#FFF',
-      bg: 'grey.2',
+      bg: 'grey.4',
     },
     secondary: {
       cursor: 'pointer',

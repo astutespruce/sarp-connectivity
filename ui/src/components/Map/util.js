@@ -25,6 +25,24 @@ export const getCenterAndZoom = (mapNode, bounds, padding = 0) => {
 }
 
 /**
+ * Calculate outer bounds that contains bounds1 and bounds2
+ * @param {Array} bounds1 - [xmin, ymin, xmax, ymax] or null
+ * @param {Array} bounds2 - [xmin, ymin, xmax, ymax] or null
+ * @returns
+ */
+export const unionBounds = (bounds1, bounds2) => {
+  if (!(bounds1 && bounds2)) {
+    return bounds1 || bounds2
+  }
+  return [
+    Math.min(bounds1[0], bounds2[0]),
+    Math.min(bounds1[1], bounds2[1]),
+    Math.max(bounds1[2], bounds2[2]),
+    Math.max(bounds1[3], bounds2[3]),
+  ]
+}
+
+/**
  * Interleaves a and b arrays into a single flat array:
  * a=[1,2], b=[3,4]
  * returns [1,3,2,4]
