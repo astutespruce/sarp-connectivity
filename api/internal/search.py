@@ -59,7 +59,7 @@ def search_units(request: Request, layer: str, query: str):
                 ["state", "ascending"],
             ]
         )
-        .select(["id", "layer", "name", "bbox"])[:10]
+        .select(["id", "layer", "name", "state", "bbox"])[:10]
     )
 
     stream = BytesIO()

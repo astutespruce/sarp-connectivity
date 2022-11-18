@@ -26,28 +26,47 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
     <Flex
       as="li"
       sx={{
+        bg: count === 0 ? '#bbbbbb26' : 'inherit',
         justifyContent: 'space-between',
         borderBottom: '1px solid #EEE',
-        pb: '1em',
-        '&:not(:first-of-type)': {
-          mt: '1em',
-        },
+        mx: '-1rem',
+        px: '1rem',
+        py: '0.5em',
       }}
     >
-      <Box sx={{ flex: '1 1 auto', mr: '1em' }}>
-        <Text sx={{ fontSize: '1.25rem' }}>
+      <Box
+        sx={{
+          flex: '1 1 auto',
+          mr: '1em',
+        }}
+      >
+        <Text
+          sx={{
+            fontSize: '1rem',
+            fontWeight: count > 0 ? 'bold' : 'inherit',
+            fontStyle: count === 0 ? 'italic' : 'inherit',
+            color: count === 0 ? 'grey.8' : 'inherit',
+          }}
+        >
           {name}
           {layer === 'County' ? ` County, ${STATE_FIPS[id.slice(0, 2)]}` : null}
         </Text>
 
         {layer === 'HUC6' || layer === 'HUC8' || layer === 'HUC12' ? (
-          <Text sx={{ color: 'grey.8' }}>
+          <Text
+            sx={{
+              fontSize: '0.9rem',
+              fontStyle: count === 0 ? 'italic' : 'inherit',
+              color: count === 0 ? 'grey.8' : 'inherit',
+            }}
+          >
             {layer}: {id}
           </Text>
         ) : null}
 
         <Text sx={{ fontSize: '0.9rem', color: 'grey.6' }}>
-          ({formatNumber(count)} {barrierTypeLabels[barrierType]})
+          ({formatNumber(count)} {barrierTypeLabels[barrierType]}
+          {count === 0 ? ', not available for prioritization' : ''})
         </Text>
       </Box>
 

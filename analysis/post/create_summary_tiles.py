@@ -25,7 +25,7 @@ import subprocess
 
 import pandas as pd
 import pyarrow as pa
-import pyarrow.csv
+from pyarrow.csv import write_csv
 
 # Note: states are identified by name, whereas counties are uniquely identified by
 # FIPS code.
@@ -174,9 +174,7 @@ for unit in SUMMARY_UNITS:
 
     # Write summary CSV for each unit type
     merged.index.name = "id"
-    pa.csv.write_csv(
-        pa.Table.from_pandas(merged.reset_index()), tmp_dir / f"{unit}.csv"
-    )
+    write_csv(pa.Table.from_pandas(merged.reset_index()), tmp_dir / f"{unit}.csv")
 
     # join to tiles
     mbtiles_filename = f"{tmp_dir}/{unit}_summary.mbtiles"

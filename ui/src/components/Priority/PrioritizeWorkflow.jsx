@@ -167,13 +167,17 @@ const Prioritize = () => {
   const loadBarrierInfo = async () => {
     setIsLoading(true)
 
+    const nonzeroSummaryUnits = summaryUnits.filter(
+      ({ [barrierType]: count }) => count > 0
+    )
+
     const {
       error,
       data,
       bounds: newBounds = null,
     } = await queryClient.fetchQuery(
-      [barrierType, layer, summaryUnits],
-      async () => fetchBarrierInfo(barrierType, layer, summaryUnits),
+      [barrierType, layer, nonzeroSummaryUnits],
+      async () => fetchBarrierInfo(barrierType, layer, nonzeroSummaryUnits),
       {
         staleTime: 30 * 60 * 1000, // 30 minutes
         // staleTime: 1, // use then reload to force refresh of underlying data during dev
@@ -192,6 +196,7 @@ const Prioritize = () => {
       ...prevState,
       step: 'filter',
       bounds: newBounds ? newBounds.split(',').map(parseFloat) : prevBounds,
+      summaryUnits: nonzeroSummaryUnits,
     }))
     setIsLoading(false)
   }
