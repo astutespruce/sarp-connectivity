@@ -100,16 +100,11 @@ def download_dams(
             )
 
         # Sort by HasNetwork, tier
-        sort_field = f"{sort}_tier"
-        sort_indices = pc.sort_indices(
-            df, sort_keys=[("HasNetwork", "descending"), (sort_field, "ascending")]
-        )
-        df = df.take(sort_indices)
+        df = df.sort_by([("HasNetwork", "descending"), (f"{sort}_tier", "ascending")])
 
     else:
         # sort only HasNetwork
-        sort_indices = pc.sort_indices(df, sort_keys=[("HasNetwork", "descending")])
-        df = df.take(sort_indices)
+        df = df.sort_by([("HasNetwork", "descending")])
 
     df = unpack_domains(df.drop(["id"]))
 
@@ -203,13 +198,12 @@ def download_barriers(
                 }
             )
 
-    # Sort by tier
-    sort_field = f"{sort}_tier"
-    if sort_field in df.column_names:
-        sort_indices = pc.sort_indices(
-            df, sort_keys=[("HasNetwork", "descending"), (sort_field, "ascending")]
-        )
-        df = df.take(sort_indices)
+        # Sort by tier
+        df.sort_by([("HasNetwork", "descending"), (f"{sort}_tier", "ascending")])
+
+    else:
+        # sort only HasNetwork
+        df = df.sort_by([("HasNetwork", "descending")])
 
     df = unpack_domains(df.drop(["id"]))
 

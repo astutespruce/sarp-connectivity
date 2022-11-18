@@ -607,7 +607,7 @@ export const HUC8_COA = {
 // Note: all pack_bits fields are lowercase in UI but uppercase on backend
 
 // tiers use just the scenario as the key here
-export const STATE_TIER_PACK_BITS = [
+export const TIER_PACK_BITS = [
   { field: 'nc', bits: 5, value_shift: 1 },
   { field: 'wc', bits: 5, value_shift: 1 },
   { field: 'ncwc', bits: 5, value_shift: 1 },

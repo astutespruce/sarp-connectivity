@@ -81,7 +81,7 @@ def pack_bits(df, field_bits):
 
     Parameters
     ----------
-    df : DataFrame
+    df : DataFrame or pyarrow.Table
     field_bits : list-like of dicts
         {"field": <field>, "bits": <num bits>, "value_shift": <shift>} for each field
 
@@ -89,6 +89,8 @@ def pack_bits(df, field_bits):
     -------
     ndarray of dtype large enough to hold all values
     """
+
+    is_pandas = isinstance(df, pd.DataFrame)
 
     tot_bits = sum([f["bits"] for f in field_bits])
     dtype = "uint32"
@@ -100,7 +102,8 @@ def pack_bits(df, field_bits):
         raise ValueError(f"Packing requires {tot_bits} bits; needs to be less than 32")
 
     first = field_bits[0]
-    values = df[first["field"]].values - first.get("value_shift", 0)
+    values = df[first["field"]].values if is_pandas else df[first["field"]].to_numpy()
+    values = values - first.get("value_shift", 0)
     if values.min() < 0:
         raise ValueError(f"Values for {first['field']} must be >= 0")
 
@@ -109,7 +112,10 @@ def pack_bits(df, field_bits):
     sum_bits = first["bits"]
 
     for entry in field_bits[1:]:
-        field_values = df[entry["field"]].values - entry.get("value_shift", 0)
+        field_values = (
+            df[entry["field"]].values if is_pandas else df[entry["field"]].to_numpy()
+        )
+        field_values = field_values - entry.get("value_shift", 0)
         if field_values.min() < 0:
             raise ValueError(f"Values for {entry['field']} must be >= 0")
         values = values | field_values.astype(dtype) << sum_bits

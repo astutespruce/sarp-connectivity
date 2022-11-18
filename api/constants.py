@@ -140,7 +140,7 @@ UNUSED_TILE_METRIC_FIELDS = [
 ] + UPSTREAM_COUNT_FIELDS
 
 
-TIER_FIELDS = [
+STATE_TIER_FIELDS = [
     "State_NC_tier",
     "State_WC_tier",
     "State_NCWC_tier",
@@ -271,10 +271,10 @@ DAM_CORE_FIELDS = (
 DAM_CORE_FIELDS = unique(DAM_CORE_FIELDS)
 
 # Internal API includes tiers
-DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + TIER_FIELDS + CUSTOM_TIER_FIELDS)
+DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
 DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
-    + TIER_FIELDS
+    + STATE_TIER_FIELDS
     + DAM_FILTER_FIELDS
     + ["upNetID", "downNetID", "COUNTYFIPS"]
 )
@@ -505,7 +505,10 @@ WF_PACK_BITS = [
 
 TIER_BITS = 5  # holds values 0...21 after subtracting offset
 STATE_TIER_PACK_BITS = [
-    {"field": c, "bits": TIER_BITS, "value_shift": 1} for c in TIER_FIELDS
+    {"field": c, "bits": TIER_BITS, "value_shift": 1} for c in STATE_TIER_FIELDS
+]
+CUSTOM_TIER_PACK_BITS = [
+    {"field": c, "bits": TIER_BITS, "value_shift": 1} for c in CUSTOM_TIER_FIELDS
 ]
 
 

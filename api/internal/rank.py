@@ -4,10 +4,8 @@ import pyarrow as pa
 import pyarrow.compute as pc
 
 from analysis.rank.lib.tiers import calculate_tiers, METRICS
-
-from api.constants import (
-    TIER_FIELDS,
-)
+from analysis.lib.util import pack_bits
+from api.constants import CUSTOM_TIER_PACK_BITS
 from api.data import dams, small_barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
 from api.logger import log, log_request
@@ -43,7 +41,10 @@ def rank_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
     ymin, ymax = pc.min_max(df["lat"]).as_py().values()
     bounds = [xmin, ymin, xmax, ymax]
 
-    tiers = calculate_tiers(df).add_column(0, df.schema.field("id"), df["id"])
+    tiers = pa.Table.from_pydict(
+        {"id": df["id"], "tiers": pack_bits(calculate_tiers(df), CUSTOM_TIER_PACK_BITS)}
+    )
+
     return feather_response(tiers, bounds=bounds)
 
 
@@ -73,5 +74,8 @@ def rank_barriers(request: Request, extractor: BarriersRecordExtractor = Depends
     ymin, ymax = pc.min_max(df["lat"]).as_py().values()
     bounds = [xmin, ymin, xmax, ymax]
 
-    tiers = calculate_tiers(df).add_column(0, df.schema.field("id"), df["id"])
+    tiers = pa.Table.from_pydict(
+        {"id": df["id"], "tiers": pack_bits(calculate_tiers(df), CUSTOM_TIER_PACK_BITS)}
+    )
+
     return feather_response(tiers, bounds=bounds)

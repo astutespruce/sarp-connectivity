@@ -40,7 +40,7 @@ const Results = ({
   }
 
   // count records by tier
-  const tierCounts = countBy(rankData, `${scenario}_tier`)
+  const tierCounts = countBy(rankData, scenario)
 
   const tiers = Array.from({ length: 20 }, (_, i) => i + 1)
 

@@ -1,7 +1,8 @@
 import { tableFromIPC } from '@apache-arrow/es2015-esm'
 
+import { unpackBits } from 'util/data'
 import { captureException } from 'util/log'
-import { siteMetadata } from 'config'
+import { siteMetadata, TIER_PACK_BITS } from 'config'
 
 const { apiHost } = siteMetadata
 
@@ -95,7 +96,17 @@ export const fetchBarrierRanks = async (
     }
   )}`
 
-  return fetchFeather(url, undefined)
+  // Unpack bit-packed tiers
+  const { data: packedTiers, bounds } = await fetchFeather(url, undefined)
+  const data = packedTiers.map(({ id, tiers }) => ({
+    id,
+    ...unpackBits(tiers, TIER_PACK_BITS),
+  }))
+
+  return {
+    bounds,
+    data,
+  }
 }
 
 export const fetchBarrierDetails = async (barrierType, sarpid) => {

@@ -12,7 +12,7 @@ import {
   DAM_PACK_BITS,
   SB_PACK_BITS,
   WF_PACK_BITS,
-  STATE_TIER_PACK_BITS,
+  TIER_PACK_BITS,
 } from 'config'
 import { isEmptyString } from 'util/string'
 import { unpackBits } from 'util/data'
@@ -107,7 +107,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     const metrics = ['nc', 'wc', 'ncwc', 'pnc', 'pwc', 'pncwc']
 
     // state ranks are in a bit-packed field
-    const stateRanks = unpackBits(statetiers, STATE_TIER_PACK_BITS)
+    const stateRanks = unpackBits(statetiers, TIER_PACK_BITS)
     scores.state = {}
     metrics.forEach((metric) => {
       const tier = stateRanks[metric]

@@ -144,10 +144,10 @@ export const getTierExpr = (scenario, tierThreshold, belowExpr, aboveExpr) => [
   'case',
   // make sure that tier field exists in feature state, otherwise emits null warnings
   // for following condition
-  ['!=', ['feature-state', `${scenario}_tier`], null],
+  ['!=', ['feature-state', scenario], null],
   [
     'case',
-    ['<=', ['feature-state', `${scenario}_tier`], tierThreshold],
+    ['<=', ['feature-state', scenario], tierThreshold],
     belowExpr,
     aboveExpr,
   ],
