@@ -17,7 +17,7 @@ export const unitLayerConfig = {
     maxzoom: 24,
     parent: {
       id: 'HUC8',
-      minzoom: 8,
+      minzoom: 7,
     },
   },
   HUC12: {
@@ -25,7 +25,7 @@ export const unitLayerConfig = {
     maxzoom: 24,
     parent: {
       id: 'HUC10',
-      minzoom: 10,
+      minzoom: 9,
     },
   },
   State: {
@@ -33,7 +33,7 @@ export const unitLayerConfig = {
     maxzoom: 24,
   },
   County: {
-    minzoom: 0,
+    minzoom: 3,
     maxzoom: 24,
     parent: {
       id: 'State',

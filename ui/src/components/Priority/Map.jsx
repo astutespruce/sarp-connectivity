@@ -344,7 +344,7 @@ const PriorityMap = ({
       })
 
       // let consumers of map know that it is now fully loaded
-      map.once('idle', onMapLoad)
+      map.once('idle', () => onMapLoad(map))
     },
     [
       barrierType,

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Flex, Heading, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
-import UnitSearch from 'components/UnitSearch'
+import { UnitSearch } from 'components/UnitSearch'
 import { useBarrierType } from 'components/Data'
 import { LAYER_ZOOM, barrierTypeLabels } from 'config'
 import { formatNumber } from 'util/format'
@@ -13,7 +13,7 @@ import StartOverButton from './StartOverButton'
 import SubmitButton from './SubmitButton'
 import UnitListItem from './UnitListItem'
 
-const getPluralLabel = (layer) => {
+export const getPluralLabel = (layer) => {
   switch (layer) {
     case 'State':
       return 'states'
@@ -32,7 +32,7 @@ const getPluralLabel = (layer) => {
   }
 }
 
-const getSingularLabel = (layer) => {
+export const getSingularLabel = (layer) => {
   switch (layer) {
     case 'State':
       return 'state'
@@ -129,15 +129,9 @@ const UnitChooser = ({
         }}
       >
         {summaryUnits.length === 0 ? (
-          <Text variant="help">
+          <Text variant="help" sx={{ mb: '2rem' }}>
             Select your {pluralLabel} of interest by clicking on them in the
             map.
-            <br />
-            <br />
-            If boundaries are not currently visible on the map, zoom in further
-            until they appear.
-            <br />
-            <br />
           </Text>
         ) : (
           <Box
@@ -162,6 +156,11 @@ const UnitChooser = ({
         <UnitSearch
           layer={layer}
           value={searchValue}
+          ignoreIds={
+            summaryUnits && summaryUnits.length > 0
+              ? new Set(summaryUnits.map(({ id }) => id))
+              : null
+          }
           onChange={handleSearchChange}
           onSelect={handleSearchSelect}
         />

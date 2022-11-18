@@ -4,7 +4,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Paragraph, Divider } from 'theme-ui'
 
-import UnitSearch from 'components/UnitSearch'
+import { UnitSearch } from 'components/UnitSearch'
 import { useSummaryData } from 'components/Data'
 import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'

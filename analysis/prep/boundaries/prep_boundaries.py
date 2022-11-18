@@ -124,7 +124,7 @@ state_geo_df = (
 )
 state_geo_df["bbox"] = encode_bbox(state_geo_df.geometry.values.data)
 state_geo_df["in_region"] = state_geo_df.id.isin(STATES)
-state_geo_df["state"] = state_geo_df.id
+state_geo_df["state"] = ""  # state_geo_df.id
 state_geo_df["layer"] = "State"
 state_geo_df["priority"] = 1
 state_geo_df["key"] = state_geo_df["name"]
@@ -197,132 +197,132 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
 
 out.reset_index(drop=True).to_feather(api_dir / "unit_bounds.feather")
 
-# ### Protected areas
+### Protected areas
 
-# print("Extracting protected areas (will take a while)...")
-# df = (
-#     read_dataframe(
-#         src_dir / "SARP_ProtectedAreas_2021.gdb",
-#         layer="SARP_ProtectedArea_National_2021",
-#         columns=["OwnerType", "OwnerName", "EasementHolderType", "Preference"],
-#     )
-#     .to_crs(CRS)
-#     .rename(
-#         columns={
-#             "OwnerType": "otype",
-#             "OwnerName": "owner",
-#             "EasementHolderType": "etype",
-#             "Preference": "sort",
-#         }
-#     )
-# )
+print("Extracting protected areas (will take a while)...")
+df = (
+    read_dataframe(
+        src_dir / "SARP_ProtectedAreas_2021.gdb",
+        layer="SARP_ProtectedArea_National_2021",
+        columns=["OwnerType", "OwnerName", "EasementHolderType", "Preference"],
+    )
+    .to_crs(CRS)
+    .rename(
+        columns={
+            "OwnerType": "otype",
+            "OwnerName": "owner",
+            "EasementHolderType": "etype",
+            "Preference": "sort",
+        }
+    )
+)
 
-# # select those that are within the boundary
-# tree = shapely.STRtree(df.geometry.values.data)
-# ix = tree.query(bnd, predicate="intersects")
+# select those that are within the boundary
+tree = shapely.STRtree(df.geometry.values.data)
+ix = tree.query(bnd, predicate="intersects")
 
-# df = df.take(ix)
+df = df.take(ix)
 
-# # this takes a while...
-# print("Making geometries valid, this might take a while")
-# df.geometry = shapely.make_valid(df.geometry.values.data)
-
-
-# # sort on 'sort' so that later when we do spatial joins and get multiple hits, we take the ones with
-# # the lowest sort value (1 = highest priority) first.
-# df.sort = df.sort.fillna(255).astype("uint8")  # missing values should sort to bottom
-# df = df.sort_values(by="sort").drop(columns=["sort"])
-
-# # partner federal agencies to call out specifically
-# # map of substrings to search for specific owners
-# partner_federal = {
-#     "US Fish and Wildlife Service": [
-#         "FWS",
-#         "USFWS",
-#         "USFW",
-#         "US FWS",
-#         "U.S. Fish and Wildlife Service",
-#         "U. S. Fish & Wildlife Service",
-#         "U.S. Fish & Wildlife Service",
-#         "U.S. Fish and Wildlife Service (FWS)",
-#         "US Fish & Wildlife Service",
-#         "US Fish and Wildlife Service",
-#         "USDI FISH AND WILDLIFE SERVICE",
-#     ],
-#     "USDA Forest Service": [
-#         "Forest Service",
-#         "USFS",
-#         "USDA FOREST SERVICE",
-#         "USDA Forest Service",
-#         "US Forest Service",
-#         "USDA Forest Service",
-#         "U.S. Forest Service",
-#         "U.S. Forest Service (USFS)",
-#         "United States Forest Service",
-#     ],
-# }
-
-# has_owner = df.owner.notnull()
-# for partner, substrings in partner_federal.items():
-#     print("Finding specific federal partner {}".format(partner))
-#     # search on the primary name
-#     df.loc[has_owner & df.owner.str.contains(partner), "otype"] = partner
-
-#     for substring in substrings:
-#         df.loc[has_owner & df.owner.str.contains(substring), "otype"] = partner
-
-#     print("Found {:,} areas for that partner".format(len(df.loc[df.otype == partner])))
+# this takes a while...
+print("Making geometries valid, this might take a while")
+df.geometry = shapely.make_valid(df.geometry.values.data)
 
 
-# # convert to int groups
-# df["OwnerType"] = df.otype.map(OWNERTYPE_TO_DOMAIN)
-# # drop all that didn't get matched
-# # CAUTION: make sure the types we want are properly handled!
-# df = df.dropna(subset=["OwnerType"])
-# df.OwnerType = df.OwnerType.astype("uint8")
+# sort on 'sort' so that later when we do spatial joins and get multiple hits, we take the ones with
+# the lowest sort value (1 = highest priority) first.
+df.sort = df.sort.fillna(255).astype("uint8")  # missing values should sort to bottom
+df = df.sort_values(by="sort").drop(columns=["sort"])
 
-# # Add in public status
-# df["ProtectedLand"] = (
-#     df.OwnerType.map(OWNERTYPE_TO_PUBLIC_LAND).fillna(False).astype("bool")
-# )
+# partner federal agencies to call out specifically
+# map of substrings to search for specific owners
+partner_federal = {
+    "US Fish and Wildlife Service": [
+        "FWS",
+        "USFWS",
+        "USFW",
+        "US FWS",
+        "U.S. Fish and Wildlife Service",
+        "U. S. Fish & Wildlife Service",
+        "U.S. Fish & Wildlife Service",
+        "U.S. Fish and Wildlife Service (FWS)",
+        "US Fish & Wildlife Service",
+        "US Fish and Wildlife Service",
+        "USDI FISH AND WILDLIFE SERVICE",
+    ],
+    "USDA Forest Service": [
+        "Forest Service",
+        "USFS",
+        "USDA FOREST SERVICE",
+        "USDA Forest Service",
+        "US Forest Service",
+        "USDA Forest Service",
+        "U.S. Forest Service",
+        "U.S. Forest Service (USFS)",
+        "United States Forest Service",
+    ],
+}
 
-# # only save owner type
-# df = df[["geometry", "OwnerType", "ProtectedLand"]].reset_index(drop=True)
-# df.to_feather(out_dir / "protected_areas.feather")
+has_owner = df.owner.notnull()
+for partner, substrings in partner_federal.items():
+    print("Finding specific federal partner {}".format(partner))
+    # search on the primary name
+    df.loc[has_owner & df.owner.str.contains(partner), "otype"] = partner
+
+    for substring in substrings:
+        df.loc[has_owner & df.owner.str.contains(substring), "otype"] = partner
+
+    print("Found {:,} areas for that partner".format(len(df.loc[df.otype == partner])))
 
 
-# ### Priority layers
-# # These are joined on HUC8 codes
+# convert to int groups
+df["OwnerType"] = df.otype.map(OWNERTYPE_TO_DOMAIN)
+# drop all that didn't get matched
+# CAUTION: make sure the types we want are properly handled!
+df = df.dropna(subset=["OwnerType"])
+df.OwnerType = df.OwnerType.astype("uint8")
 
-# # Conservation opportunity areas (for now the only priority type)
-# # 1 = COA
-# coa = read_dataframe(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[
-#     ["HUC_8"]
-# ].set_index("HUC_8")
-# coa["coa"] = 1
+# Add in public status
+df["ProtectedLand"] = (
+    df.OwnerType.map(OWNERTYPE_TO_PUBLIC_LAND).fillna(False).astype("bool")
+)
 
-# # take the lowest value (highest priority) for duplicate watersheds
-# coa = coa.groupby(level=0).min()
+# only save owner type
+df = df[["geometry", "OwnerType", "ProtectedLand"]].reset_index(drop=True)
+df.to_feather(out_dir / "protected_areas.feather")
 
 
-# # 0 = not priority for a given priority dataset
-# priorities = coa.fillna(0).astype("uint8")
+### Priority layers
+# These are joined on HUC8 codes
 
-# # drop duplicates
-# priorities = (
-#     priorities.reset_index()
-#     .drop_duplicates()
-#     .rename(columns={"index": "HUC8"})
-#     .reset_index(drop=True)
-# )
+# Conservation opportunity areas (for now the only priority type)
+# 1 = COA
+coa = read_dataframe(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[
+    ["HUC_8"]
+].set_index("HUC_8")
+coa["coa"] = 1
 
-# priorities.to_feather(out_dir / "priorities.feather")
+# take the lowest value (highest priority) for duplicate watersheds
+coa = coa.groupby(level=0).min()
 
-# # join to HUC8 dataset for tiles
-# huc8_df = gp.read_feather(out_dir / "huc8.feather")
-# df = huc8_df.join(priorities.set_index("HUC_8"), on="HUC8")
 
-# for col in ["coa"]:
-#     df[col] = df[col].fillna(0).astype("uint8")
+# 0 = not priority for a given priority dataset
+priorities = coa.fillna(0).astype("uint8")
 
-# df.rename(columns={"HUC8": "id"}).to_feather(out_dir / "huc8_priorities.feather")
+# drop duplicates
+priorities = (
+    priorities.reset_index()
+    .drop_duplicates()
+    .rename(columns={"index": "HUC8"})
+    .reset_index(drop=True)
+)
+
+priorities.to_feather(out_dir / "priorities.feather")
+
+# join to HUC8 dataset for tiles
+huc8_df = gp.read_feather(out_dir / "huc8.feather")
+df = huc8_df.join(priorities.set_index("HUC_8"), on="HUC8")
+
+for col in ["coa"]:
+    df[col] = df[col].fillna(0).astype("uint8")
+
+df.rename(columns={"HUC8": "id"}).to_feather(out_dir / "huc8_priorities.feather")

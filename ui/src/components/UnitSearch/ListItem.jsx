@@ -4,7 +4,7 @@ import { Box, Text } from 'theme-ui'
 
 import { STATES } from 'config'
 
-const ListItem = ({ id, name, state, layer, showID, onClick }) => {
+const ListItem = ({ id, name, state, layer, showID, disabled, onClick }) => {
   const stateLabels = state
     ? state
         .split(',')
@@ -16,19 +16,29 @@ const ListItem = ({ id, name, state, layer, showID, onClick }) => {
   return (
     <Box
       as="li"
-      onClick={onClick}
+      onClick={!disabled ? onClick : null}
       sx={{
         p: '0.5em',
         m: '0px',
         borderBottom: '1px solid #EEE',
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         lineHeight: 1.2,
         '&:hover': {
           bg: 'grey.0',
         },
+        fontStyle: disabled ? 'italic' : 'inherit',
+        color: disabled ? 'grey.7' : 'inherit',
+        bg: disabled ? 'grey.0' : 'inherit',
       }}
     >
-      <Box sx={{ fontWeight: 'bold' }}>{name}</Box>
+      <Box sx={{ fontWeight: !disabled ? 'bold' : 'inherit' }}>
+        {name}
+        {disabled ? (
+          <Text sx={{ fontSize: 0, display: 'inline-block', ml: '0.25rem' }}>
+            (already selected)
+          </Text>
+        ) : null}
+      </Box>
       {showID ? (
         <Box
           sx={{
@@ -57,12 +67,14 @@ ListItem.propTypes = {
   state: PropTypes.string,
   layer: PropTypes.string,
   showID: PropTypes.bool,
+  disabled: PropTypes.bool,
 }
 
 ListItem.defaultProps = {
   state: '',
   layer: '',
   showID: false,
+  disabled: false,
 }
 
 export default memo(ListItem)
