@@ -198,8 +198,8 @@ def get_network_results(df, network_type, state_ranks=False):
     networks["DownstreamOceanBarriersClass"] = classify_ocean_barriers(num_downstream)
 
     ix = ~networks.FlowsToOcean
-    networks.loc[ix, "DownstreamOceanMilesClass"] = -1
-    networks.loc[ix, "DownstreamOceanBarriersClass"] = -1
+    networks.loc[ix, "DownstreamOceanMilesClass"] = 0
+    networks.loc[ix, "DownstreamOceanBarriersClass"] = 0
 
     # Convert dtypes to allow missing data when joined to barriers later
     # NOTE: upNetID or downNetID may be 0 if there aren't networks on that side, but

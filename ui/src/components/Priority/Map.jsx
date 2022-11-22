@@ -703,18 +703,18 @@ const PriorityMap = ({
     // if no layer is selected for choosing summary areas
     if (activeLayer === null) {
       if (!isWithinZoom[excludedPoint.id]) {
-        footnote = `zoom in to see ${barrierTypeLabel} available for analysis`
+        footnote = `zoom in to see ${barrierTypeLabel} available for prioritization`
       } else {
         circles.push({
           ...excludedLegend,
-          label: `${barrierTypeLabel} available for analysis`,
+          label: `${barrierTypeLabel} available for prioritization`,
         })
       }
 
       if (isWithinZoom[offnetworkPoint.id]) {
         circles.push({
           ...offnetworkLegend,
-          label: `${barrierTypeLabel} not available for analysis`,
+          label: `${barrierTypeLabel} not available for prioritization`,
         })
         // only show secondary dams & waterfalls at same time as background points
         if (barrierType === 'small_barriers') {
@@ -736,7 +736,7 @@ const PriorityMap = ({
         tierThreshold === 1 ? 'tier 1' : `tiers 1 - ${tierThreshold}`
       circles.push({
         ...topRankLegend,
-        label: `Top-ranked ${barrierTypeLabel} (${tierLabel})`,
+        label: `top-ranked ${barrierTypeLabel} (${tierLabel})`,
       })
 
       circles.push({
@@ -747,14 +747,14 @@ const PriorityMap = ({
       if (isWithinZoom[excludedPoint.id]) {
         circles.push({
           ...excludedLegend,
-          label: `not selected ${barrierTypeLabel}`,
+          label: `${barrierTypeLabel} not included in prioritization`,
         })
       }
 
       if (isWithinZoom[offnetworkPoint.id]) {
         circles.push({
           ...offnetworkLegend,
-          label: `${barrierTypeLabel} not included in analysis`,
+          label: `${barrierTypeLabel} not available for prioritization`,
         })
 
         // only show secondary dams & waterfalls at same time as background points
@@ -774,23 +774,23 @@ const PriorityMap = ({
       if (isWithinZoom[includedPoint.id]) {
         circles.push({
           ...includedLegend,
-          label: `selected ${barrierTypeLabel}`,
+          label: `${barrierTypeLabel} included in prioritization`,
         })
       } else {
-        footnote = `zoom in to see selected ${barrierTypeLabel}`
+        footnote = `zoom in to see ${barrierTypeLabel} included in prioritization`
       }
 
       if (isWithinZoom[excludedPoint.id]) {
         circles.push({
           ...excludedLegend,
-          label: `not selected ${barrierTypeLabel}`,
+          label: `${barrierTypeLabel} not included in prioritization`,
         })
       }
 
       if (isWithinZoom[offnetworkPoint.id]) {
         circles.push({
           ...offnetworkLegend,
-          label: `${barrierTypeLabel} not available for analysis`,
+          label: `${barrierTypeLabel} not available for prioritization`,
         })
 
         // only show secondary dams & waterfalls at same time as background points

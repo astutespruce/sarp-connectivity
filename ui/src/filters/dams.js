@@ -1,7 +1,7 @@
 import {
   HEIGHT,
   PURPOSE,
-  FEASIBILITY,
+  FEASIBILITYCLASS,
   RARESPP,
   TROUT,
   STREAMORDER,
@@ -15,6 +15,9 @@ import {
   PASSAGEFACILITY_CLASS,
   OWNERTYPE,
   BARRIEROWNERTYPE,
+  BOOLEAN_FIELD,
+  DOWNSTREAM_OCEAN_MILES,
+  DOWNSTREAM_OCEAN_DAMS_DOMAIN,
 } from 'config'
 
 import { getEntries, priorityAreaFilters } from './common'
@@ -26,10 +29,10 @@ export const dams = [
     title: 'Conservation benefits',
     filters: [
       {
-        field: 'feasibility',
+        field: 'feasibilityclass',
         title: 'Feasibility & conservation benefit',
         help: 'Note: feasibility is based on further reconnaissance to evaluate individual barriers. Values are provided only for those that have been evaluated. There may be more feasible or infeasible dams than are indicated above.',
-        ...getEntries(FEASIBILITY),
+        ...getEntries(FEASIBILITYCLASS, (v) => v > 0),
       },
       {
         field: 'barrierseverity',
@@ -41,7 +44,7 @@ export const dams = [
       },
       {
         field: 'gainmilesclass',
-        title: 'Miles Gained',
+        title: 'Miles gained',
         ...getEntries(GAINMILES),
       },
       {
@@ -63,7 +66,7 @@ export const dams = [
         title: 'Height',
         // hideEmpty: true,
         help: 'Note: height information is only available for a small number of dams.  Not all data sources recorded this information.',
-        ...getEntries(HEIGHT),
+        ...getEntries(HEIGHT, (v) => v > 0),
       },
       {
         field: 'condition',
@@ -79,14 +82,14 @@ export const dams = [
         sort: true,
         hideEmpty: true,
         help: 'Note: purpose information is only available for a small number of dams.  Not all data sources recorded this information.',
-        ...getEntries(PURPOSE),
+        ...getEntries(PURPOSE, (v) => v >= 0),
       },
       {
         field: 'lowheaddam',
         title: 'Is it a lowhead dam?',
         sort: false,
         help: 'Note: lowhead dam status is only available for a small number of dams.  Not all data sources recorded this information.  Likely lowhead dams are those specifically marked as run-of-river dams with a height <= 15 ft.',
-        ...getEntries(LOWHEAD_DAM),
+        ...getEntries(LOWHEAD_DAM, (v) => v >= 0),
       },
       {
         field: 'passagefacilityclass',
@@ -94,7 +97,7 @@ export const dams = [
         sort: false,
         hideEmpty: false,
         help: 'Note: fish passage facility information is only available for a small number of dams.  Not all data sources recorded this information.',
-        ...getEntries(PASSAGEFACILITY_CLASS),
+        ...getEntries(PASSAGEFACILITY_CLASS, (v) => v > 0),
       },
     ],
   },
@@ -120,6 +123,33 @@ export const dams = [
         sort: false,
         help: 'Note: dams are associated with ponds or lakes extracted from NHD and the National Wetlands Inventory (NWI) if they spatially overlap; the associated pond or lake is not necessarily a result of an impoundment created by the dam.  Many small lakes and ponds are not present in NHD and NWI.',
         ...getEntries(WATERBODY_SIZECLASS),
+      },
+    ],
+  },
+  {
+    id: 'diadromous',
+    title: 'Diadromous species',
+    filters: [
+      {
+        field: 'flowstoocean',
+        title: 'On a network that flows to ocean',
+        sort: false,
+        help: 'Note: this is limited to networks that are known to connect to marine areas identified by NHD for NHD regions included in this tool, and may not be set correctly for networks that flow through other NHD regions not included in the analysis or outside the U.S. before connecting to marine areas.',
+        ...getEntries(BOOLEAN_FIELD),
+      },
+      {
+        field: 'downstreamoceanmilesclass',
+        title: 'Miles downstream to the ocean',
+        sort: false,
+        help: 'This value is based on linear miles downstream along aquatic network to the ocean.  Note: distances close to the coast may not be accurate due to inaccuracies in how marine areas are identified with respect to the aquatic network downstream termination points.',
+        ...getEntries(DOWNSTREAM_OCEAN_MILES),
+      },
+      {
+        field: 'downstreamoceanbarriersclass',
+        title: 'Number of dams between this dam and the ocean',
+        sort: false,
+        help: 'This value is based on any dams that occur on the downstream path between this dam and the ocean.',
+        ...getEntries(DOWNSTREAM_OCEAN_DAMS_DOMAIN),
       },
     ],
   },

@@ -180,7 +180,7 @@ FILTER_FIELDS = [
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
-    "Feasibility",
+    "FeasibilityClass",
     "Purpose",
     "HeightClass",
     "LowheadDam",
@@ -209,6 +209,8 @@ GENERAL_API_FIELDS1 = [
 
 GENERAL_API_FIELDS2 = (
     [
+        "Removed",
+        "YearRemoved",
         "BarrierSeverity",
         "Condition",
         "TESpp",
@@ -247,7 +249,6 @@ DAM_CORE_FIELDS = (
         "AnnualFlow",
         "TotDASqKm",
         "YearCompleted",
-        "YearRemoved",
         "Height",
         "Length",
         "Width",
@@ -354,7 +355,6 @@ SB_CORE_FIELDS = (
         "Constriction",
         "PotentialProject",
         "SARP_Score",
-        "YearRemoved",
         "StreamSizeClass",
     ]
     + GENERAL_API_FIELDS2
@@ -551,7 +551,6 @@ FEASIBILITY_DOMAIN = {
     3: "Possibly feasible",
     4: "Likely feasible",
     5: "No conservation benefit",
-    9: "Invasive species barrier",
     11: "Fish passage installed",
     12: "Removal planned",
     13: "Breached - full flow",
@@ -559,6 +558,7 @@ FEASIBILITY_DOMAIN = {
     6: "Unknown",
     7: "Error",
     8: "Dam removed for conservation benefit",
+    9: "Invasive species barrier",
     10: "Proposed dam",
 }
 
@@ -610,14 +610,14 @@ CONDITION_DOMAIN = {
 # Created here
 # Height in feet
 HEIGHT_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
-    0: "Unknown",
-    1: "< 5",
-    2: "5 - 10",
-    3: "10 - 25",
-    4: "25 - 50",
-    5: "50 - 100",
-    6: ">= 100",
+    0: "Not applicable",  # only used when combining with small barriers
+    1: "Unknown",
+    2: "< 5",
+    3: "5 - 10",
+    4: "10 - 25",
+    5: "25 - 50",
+    6: "50 - 100",
+    7: ">= 100",
 }
 
 GAINMILES_DOMAIN = {
@@ -631,14 +631,14 @@ GAINMILES_DOMAIN = {
 }
 
 DOWNSTREAM_OCEAN_MILES_DOMAIN = {
-    -1: "not on aquatic network known to flow into the ocean",
-    0: "< 1 miles",
-    1: "1 - 5 miles",
-    2: "5 - 10 miles",
-    3: "10 - 25 miles",
-    4: "25 - 100 miles",
-    5: "100 - 250 miles",
-    6: ">= 250 miles",
+    0: "not on aquatic network known to flow into the ocean",
+    1: "< 1 miles",
+    2: "1 - 5 miles",
+    3: "5 - 10 miles",
+    4: "10 - 25 miles",
+    5: "25 - 100 miles",
+    6: "100 - 250 miles",
+    7: ">= 250 miles",
 }
 
 RARESPP_DOMAIN = {0: "0", 1: "1", 2: "1 - 4", 3: "5 - 9", 4: ">= 10"}
@@ -664,22 +664,22 @@ STREAM_ORDER_DOMAIN = {
 
 # NOTE: barrier count depends on network type
 DOWNSTREAM_OCEAN_BARRIERS_DOMAIN = {
-    -1: "not on aquatic network known to flow into the ocean",
-    0: "0",
-    1: "1",
-    2: "2",
-    3: "5",
-    4: ">= 10",
+    0: "not on aquatic network known to flow into the ocean",
+    1: "0",
+    2: "1",
+    3: "2-4",
+    4: "5-9",
+    5: ">= 10",
 }
 
 
 WATERBODY_SIZECLASS_DOMAIN = {
-    -1: "Not associated with a pond or lake",
-    0: "Pond (< 0.01 km2)",
-    1: "Very small lake (0.01 - 0.09 km2)",
-    2: "Small lake (0.1 - 0.9 km2)",
-    3: "Medium lake (1 - 9.9 km2)",
-    4: "Large lake (>= 10 km2)",
+    0: "Not associated with a pond or lake",
+    1: "Pond (< 0.01 km2)",
+    2: "Very small lake (0.01 - 0.09 km2)",
+    3: "Small lake (0.1 - 0.9 km2)",
+    4: "Medium lake (1 - 9.9 km2)",
+    5: "Large lake (>= 10 km2)",
 }
 
 
@@ -717,7 +717,7 @@ DIVERSION_DOMAIN = {
     2: "No",
 }
 
-# Note: -1 and 2 are made up here, not part of original domain
+# NOTE: values do not match original domain; they are recoded
 LOWHEADDAM_DOMAIN = {
     -1: "Not applicable",  # only used when combining with small barriers
     0: "Unknown",
@@ -756,7 +756,13 @@ SEVERITY_DOMAIN = {
     7: "No Barrier",
 }
 
-ROAD_TYPE_DOMAIN = {0: "Unknown", 1: "Unpaved", 2: "Paved", 3: "Railroad"}
+ROAD_TYPE_DOMAIN = {
+    -1: "not applicable",  # when merged with dams
+    0: "Unknown",
+    1: "Unpaved",
+    2: "Paved",
+    3: "Railroad",
+}
 
 
 OWNERTYPE_DOMAIN = {
@@ -790,10 +796,10 @@ HUC8_COA_DOMAIN = {
     1: "Conservation opportunity area",
 }
 
-
 PASSAGEFACILITY_CLASS_DOMAIN = {
-    0: "No known fish passage structure",
-    1: "Fish passage structure present",
+    0: "Not applicable",  # only used when combining with small barriers
+    1: "No known fish passage structure",
+    2: "Fish passage structure present",
 }
 
 PASSAGEFACILITY_DOMAIN = {
@@ -853,6 +859,8 @@ STREAMTYPE_DOMAIN = {
 }
 
 BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
+
+TROUT_DOMAIN = {0: "not recorded", 1: "yes"}
 
 # state abbrev to name, from CENSUS Tiger
 STATES = {
@@ -934,6 +942,8 @@ DOMAINS = {
     "BarrierSeverity": SEVERITY_DOMAIN,
     "Recon": RECON_DOMAIN,
     "Condition": CONDITION_DOMAIN,
+    "Trout": TROUT_DOMAIN,
+    "Removed": BOOLEAN_DOMAIN,
     # dam fields
     # note Recon domain is just used for internal exports; excluded from public exports
     "Construction": CONSTRUCTION_DOMAIN,
@@ -1019,6 +1029,7 @@ FIELD_DEFINITIONS = {
     # "NoStructure": "this location is a water diversion without an associated barrier structure and is not ranked",
     "River": "River name where {type} occurs, if available.",
     "YearCompleted": "year that construction was completed, if available.  0 = data not available.",
+    "Removed": "Identifies if the {type} has been removed for conservation, if known.",
     "YearRemoved": "year that barrier was removed, if available.  0 = data not available or not removed.",
     "Height": "{type} height in feet, if available.  0 = data not available.",
     "Length": "{type} length in feet, if available.  0 = data not available.",
@@ -1054,7 +1065,7 @@ FIELD_DEFINITIONS = {
     "TESpp": "Number of federally-listed threatened or endangered aquatic species, compiled from element occurrence data within the same subwatershed (HUC12) as the {type}. Note: rare species information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "StateSGCNSpp": "Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "RegionalSGCNSpp": "Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
-    "Trout": "1 if one or more trout species are present within the same subwatershed (HUC12) as the {type}, 0 if trout species were not recorded in available natural heritage data.",
+    "Trout": "Identifies if one or more trout species are present within the same subwatershed (HUC12) as the {type} based on in available natural heritage data.  Note: absence means that occurrences were not present in the available natural heritage data and should not be interpreted as true absences.",
     "OwnerType": "Land ownership type. This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
     "BarrierOwnerType": "Barrier ownership type, if available.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.",
@@ -1172,6 +1183,8 @@ SB_FIELD_DEFINITIONS = {
 #     9: "Dam",
 # }
 
+
+# NOTE: structureclass is original name and not used as a class for filtering
 # STRUCTURECLASS_DOMAIN = {
 #     11: "Fish Mgnt: Fishway",
 #     12: "Fish Mgnt: Fish Ladder",

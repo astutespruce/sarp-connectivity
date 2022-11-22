@@ -136,13 +136,13 @@ const BarrierDetails = ({
           </Entry>
         ) : null}
 
-        {ownertype && ownertype > 0 ? (
+        {ownertype !== null && ownertype > 0 ? (
           <Entry>
             <Field>Conservation land type:</Field> {OWNERTYPE[ownertype]}
           </Entry>
         ) : null}
 
-        {barrierownertype && barrierownertype > 0 ? (
+        {barrierownertype !== null && barrierownertype > 0 ? (
           <Entry>
             <Field>Barrier ownership type:</Field>{' '}
             {BARRIEROWNERTYPE[barrierownertype]}
@@ -151,22 +151,22 @@ const BarrierDetails = ({
       </Section>
 
       <Section title="Barrier information">
-        {roadtype ? (
+        {roadtype !== null && roadtype >= 0 ? (
           <Entry>
             <Field>Road type:</Field> {ROAD_TYPE[roadtype]}
           </Entry>
         ) : null}
-        {crossingtype ? (
+        {crossingtype !== null && crossingType >= 0 ? (
           <Entry>
             <Field>Crossing type:</Field> {CROSSING_TYPE[crossingtype]}
           </Entry>
         ) : null}
-        {condition ? (
+        {condition !== null && condition >= 0 ? (
           <Entry>
             <Field>Condition:</Field> {CONDITION[condition]}
           </Entry>
         ) : null}
-        {constriction ? (
+        {constriction !== null && constriction >= 0 ? (
           <Entry>
             <Field>Type of constriction:</Field> {CONSTRICTION[constriction]}
           </Entry>

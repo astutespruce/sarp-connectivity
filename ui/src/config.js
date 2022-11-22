@@ -277,7 +277,7 @@ export const CONSTRUCTION = {
 }
 
 export const CONDITION = {
-  0: 'unknown',
+  0: 'Unknown',
   1: 'Satisfactory',
   2: 'Fair',
   3: 'Poor',
@@ -286,33 +286,29 @@ export const CONDITION = {
   6: 'Dam breached',
 }
 
-export const FEASIBILITY = {
-  '-1': 'Not applicable',
-  0: 'Not assessed',
-  1: 'Not feasible',
-  2: 'Likely infeasible',
+export const FEASIBILITYCLASS = {
+  0: 'Not applicable', // only when merged with small barriers
+  1: 'Unknown',
+  2: 'Likely feasible',
   3: 'Possibly feasible',
-  4: 'Likely feasible',
-  12: 'Removal planned',
-  5: 'No conservation benefit',
-  6: 'Unknown',
+  4: 'Likely infeasible',
+  5: 'Not feasible',
+  6: 'No conservation benefit',
+  7: 'Removal planned',
+  8: 'Breached - full flow',
   // not shown to user
-  // 7: 'Error',
-  // 8: 'Dam removed for conservation benefit'
-  // 9: 'Invasive species barrier',
-  // 10: 'Proposed dam',
-  // 11: 'Fish passage installed'
+  // 10: (multiple values lumped to prevent showing in filter)
 }
 
 export const HEIGHT = {
-  '-1': 'Not applicable',
-  0: 'Unknown',
-  1: '< 5 feet',
-  2: '5 - 10 feet',
-  3: '10 - 25 feet',
-  4: '25 - 50 feet',
-  5: '50 - 100 feet',
-  6: '>= 100 feet',
+  0: 'Not applicable',
+  1: 'Unknown',
+  2: '< 5 feet',
+  3: '5 - 10 feet',
+  4: '10 - 25 feet',
+  5: '25 - 50 feet',
+  6: '50 - 100 feet',
+  7: '>= 100 feet',
 }
 
 export const GAINMILES = {
@@ -325,14 +321,14 @@ export const GAINMILES = {
 }
 
 export const DOWNSTREAM_OCEAN_MILES = {
-  '-1': 'not on aquatic network known to flow into the ocean',
-  0: '< 1 miles',
-  1: '1 - 5 miles',
-  2: '5 - 10 miles',
-  3: '10 - 25 miles',
-  4: '25 - 100 miles',
-  5: '100 - 250 miles',
-  6: '>= 250 miles',
+  0: 'not on an aquatic network known to flow into the ocean',
+  1: '< 1 miles',
+  2: '1 - 5 miles',
+  3: '5 - 10 miles',
+  4: '10 - 25 miles',
+  5: '25 - 100 miles',
+  6: '100 - 250 miles',
+  7: '>= 250 miles',
 }
 
 export const RARESPP = { 0: '0', 1: '1', 2: '2 - 4', 3: '5 - 9', 4: '>= 10' }
@@ -343,6 +339,7 @@ export const TROUT = {
 }
 
 export const STREAMORDER = {
+  // 0: 'not on aquatic network', # filtered out
   1: '1',
   2: '2',
   3: '3',
@@ -351,14 +348,22 @@ export const STREAMORDER = {
   6: '>= 6',
 }
 
-// TODO: suffix for small barriers
-export const DOWNSTREAM_OCEAN_BARRIERS_DOMAIN = {
-  '-1': 'not on aquatic network known to flow into the ocean',
-  0: 'no dams / waterfalls downstream',
-  1: '1 dam / waterfall downstream',
-  2: '2 dams / waterfalls downstream',
-  3: '5 dams / waterfallsdownstream',
-  4: '>= 10 dams / waterfallsdownstream',
+export const DOWNSTREAM_OCEAN_DAMS_DOMAIN = {
+  0: 'not on an aquatic network known to flow into the ocean',
+  1: 'no dams',
+  2: '1 dam',
+  3: '2-4 dams',
+  4: '5-9 dams',
+  5: '>= 10 dams',
+}
+
+export const DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN = {
+  0: 'not on an aquatic network known to flow into the ocean',
+  1: 'no dams / road-related barriers',
+  2: '1 dams / road-related barrier',
+  3: '2-4 dams / road-related barriers',
+  4: '5-9 dams / road-related barriers',
+  5: '>= 10 dams / road-related barriers',
 }
 
 export const CROSSING_TYPE = {
@@ -397,6 +402,7 @@ export const ROAD_TYPE = {
 }
 
 export const OWNERTYPE = {
+  0: 'Unknown (likely privately owned)',
   1: 'US Fish and Wildlife Service land',
   2: 'USDA Forest Service land',
   3: 'Federal land',
@@ -408,7 +414,7 @@ export const OWNERTYPE = {
 }
 
 export const BARRIEROWNERTYPE = {
-  0: 'Unknown / private',
+  0: 'Unknown (possibly privately owned)',
   1: 'USDA Forest Service',
   2: 'Federal',
   3: 'State',
@@ -418,9 +424,9 @@ export const BARRIEROWNERTYPE = {
 }
 
 export const PASSAGEFACILITY_CLASS = {
-  '-1': 'Not applicable',
-  0: 'No known fish passage structure',
-  1: 'Fish passage structure present',
+  0: 'Not applicable',
+  1: 'No known fish passage structure',
+  2: 'Fish passage structure present',
 }
 
 export const PASSAGEFACILITY = {
@@ -447,6 +453,7 @@ export const PASSAGEFACILITY = {
 }
 
 export const INTERMITTENT = {
+  // -1: 'off network', // filtered out
   0: 'No',
   1: 'Yes',
 }
@@ -471,20 +478,20 @@ export const LOWHEAD_DAM = {
 }
 
 export const PERCENT_ALTERED = {
-  // -1: no network
-  0: '0 - 9%',
-  1: '10 - 49%',
-  2: '50 - 89%',
-  3: '90 - 100%',
+  // 0: no network // filtered out
+  1: '0 - 9%',
+  2: '10 - 49%',
+  3: '50 - 89%',
+  4: '90 - 100%',
 }
 
 export const WATERBODY_SIZECLASS = {
-  '-1': 'Not associated with a pond or lake',
-  0: 'Pond (< 0.01 km2)',
-  1: 'Very small lake (0.01 - 0.09 km2)',
-  2: 'Small lake (0.1 - 0.9 km2)',
-  3: 'Medium lake (1 - 9.9 km2)',
-  4: 'Large lake (>= 10 km2)',
+  0: 'Not associated with a pond or lake',
+  1: 'Pond (< 0.01 km2)',
+  2: 'Very small lake (0.01 - 0.09 km2)',
+  3: 'Small lake (0.1 - 0.9 km2)',
+  4: 'Medium lake (1 - 9.9 km2)',
+  5: 'Large lake (>= 10 km2)',
 }
 
 export const CONNECTIVITY_TEAMS = {

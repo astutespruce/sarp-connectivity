@@ -102,7 +102,7 @@ const DamDetails = ({
         </Entry>
       ) : null}
 
-      {waterbodysizeclass >= 0 ? (
+      {waterbodysizeclass !== null && waterbodysizeclass > 0 ? (
         <Entry>
           <Field>Size of associated pond or lake:</Field>{' '}
           {waterbodykm2 > 0.1
@@ -138,13 +138,13 @@ const DamDetails = ({
         </Entry>
       ) : null}
 
-      {ownertype && ownertype > 0 ? (
+      {ownertype !== null && ownertype > 0 ? (
         <Entry>
           <Field>Conservation land type:</Field> {OWNERTYPE[ownertype]}
         </Entry>
       ) : null}
 
-      {barrierownertype && barrierownertype > 0 ? (
+      {barrierownertype !== null && barrierownertype > 0 ? (
         <Entry>
           <Field>Barrier ownership type:</Field>{' '}
           {BARRIEROWNERTYPE[barrierownertype]}
@@ -163,13 +163,15 @@ const DamDetails = ({
           <Field>Height:</Field> {height} feet
         </Entry>
       ) : null}
-      {construction && CONSTRUCTION[construction] ? (
+      {construction !== null &&
+      construction >= 0 &&
+      CONSTRUCTION[construction] ? (
         <Entry>
           <Field>Construction material:</Field>{' '}
           {CONSTRUCTION[construction].toLowerCase()}
         </Entry>
       ) : null}
-      {lowheaddam >= 1 ? (
+      {lowheaddam !== null && lowheaddam >= 1 ? (
         <Entry>This is {lowheaddam === 2 ? 'likely' : ''} a lowhead dam</Entry>
       ) : null}
       {diversion === 1 ? (
@@ -177,19 +179,21 @@ const DamDetails = ({
           <Field>Diversion:</Field> this is a water diversion
         </Entry>
       ) : null}
-      {purpose && PURPOSE[purpose] ? (
+      {purpose !== null && purpose >= 0 && PURPOSE[purpose] ? (
         <Entry>
           <Field>Purpose:</Field> {PURPOSE[purpose].toLowerCase()}
         </Entry>
       ) : null}
-      {condition && CONDITION[condition] ? (
+      {condition !== null && condition >= 0 && CONDITION[condition] ? (
         <Entry>
           <Field>Structural condition:</Field>{' '}
           {CONDITION[condition].toLowerCase()}
         </Entry>
       ) : null}
 
-      {PASSAGEFACILITY[passagefacility] ? (
+      {passagefacility !== null &&
+      passagefacility >= 0 &&
+      PASSAGEFACILITY[passagefacility] ? (
         <Entry>
           <Field>Passage facility type:</Field>{' '}
           {PASSAGEFACILITY[passagefacility].toLowerCase()}
@@ -292,7 +296,7 @@ const DamDetails = ({
     </Section>
 
     <Section title="Feasibility & conservation benefit">
-      {recon !== null ? (
+      {recon !== null && recon >= 0 ? (
         <Entry>{RECON[recon]}</Entry>
       ) : (
         <Entry>No feasibility information is available for this dam.</Entry>

@@ -38,7 +38,6 @@ from analysis.prep.barriers.lib.duplicates import (
     find_duplicates,
     export_duplicate_areas,
 )
-from analysis.lib.waterbodies import classify_waterbody_size
 
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 from analysis.prep.barriers.lib.log import format_log
@@ -67,6 +66,7 @@ from analysis.constants import (
     DAM_BARRIER_SEVERITY_TO_DOMAIN,
     BARRIEROWNERTYPE_TO_DOMAIN,
     EXCLUDE_BARRIER_SEVERITY,
+    FEASIBILITY_TO_DOMAIN,
 )
 from analysis.lib.io import read_feathers
 
@@ -341,19 +341,18 @@ df.loc[df.YearCompleted == 9999, "YearCompleted"] = 0
 
 ### Calculate classes
 # Calculate height class
-df["HeightClass"] = 0  # Unknown
-df.loc[(df.Height > 0) & (df.Height < 5), "HeightClass"] = 1
-df.loc[(df.Height >= 5) & (df.Height < 10), "HeightClass"] = 2
-df.loc[(df.Height >= 10) & (df.Height < 25), "HeightClass"] = 3
-df.loc[(df.Height >= 25) & (df.Height < 50), "HeightClass"] = 4
-df.loc[(df.Height >= 50) & (df.Height < 100), "HeightClass"] = 5
-df.loc[df.Height >= 100, "HeightClass"] = 6
-df.HeightClass = df.HeightClass.astype("uint8")
-
-# Convert PassageFacility to a boolean for filtering
-df["PassageFacilityClass"] = (
-    (df.PassageFacility > 0) & (df.PassageFacility != 9)
+# NOTE: 0 is reserved for missing data
+bins = [-1, 1e-6, 5, 10, 25, 50, 100, df.Height.max() + 1]
+df["HeightClass"] = np.asarray(
+    pd.cut(df.Height, bins, right=False, labels=np.arange(0, len(bins) - 1))
 ).astype("uint8")
+
+# Convert PassageFacility to class
+df["PassageFacilityClass"] = np.uint8(1)
+df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 2
+
+df["FeasibilityClass"] = df.Feasibility.map(FEASIBILITY_TO_DOMAIN)
+
 
 # Convert BarrierSeverity to a domain
 df.BarrierSeverity = (
@@ -791,11 +790,17 @@ wb = (
     .set_index("wbID")
 )
 
-wb["WaterbodySizeClass"] = classify_waterbody_size(wb.WaterbodyKM2)
+
+# classify waterbody size class (see WATERBODY_SIZECLASS_DOMAIN)
+# Note: 0 is reserved for missing data
+bins = [-1, 0, 0.01, 0.1, 1, 10] + [wb.WaterbodyKM2.max() + 1]
+wb["WaterbodySizeClass"] = np.asarray(
+    pd.cut(wb.WaterbodyKM2, bins, right=False, labels=np.arange(0, len(bins) - 1))
+)
 
 df = df.join(wb, on="wbID")
 df.WaterbodyKM2 = df.WaterbodyKM2.fillna(-1).astype("float32")
-df.WaterbodySizeClass = df.WaterbodySizeClass.fillna(-1).astype("int8")
+df.WaterbodySizeClass = df.WaterbodySizeClass.fillna(0).astype("uint8")
 
 
 ### Update lowhead dam status with estimated lowhead dams

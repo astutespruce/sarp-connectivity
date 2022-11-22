@@ -367,6 +367,24 @@ RECON_TO_FEASIBILITY = {
 #   # 13: 'Breached - full flow'
 # }
 
+# NOTE: values with 10 are NOT shown in filters in the UI
+FEASIBILITY_TO_DOMAIN = {
+    0: 1,  # not assessed
+    1: 5,  # not feasible
+    2: 4,  # likely infeasible
+    3: 3,  # possibly feasible
+    4: 2,  # likely feasible
+    5: 6,  # no conservation benefit
+    6: 1,  # unknown
+    7: 10,  # error (filtered out)
+    8: 10,  # dam removed for conservation benefit (filtered out)
+    9: 10,  # invasive species barrier (filtered out)
+    10: 10,  # proposed dam
+    11: 10,  # fish passage installed (filtered out)
+    12: 7,  # removal planned
+    13: 8,  # breached - full flow
+}
+
 
 CROSSING_TYPE_TO_DOMAIN = {
     "bridge": 5,

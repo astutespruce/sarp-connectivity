@@ -266,7 +266,7 @@ export const includedPoint = {
   // source: "" // provided by specific layer
   // 'source-layer': '', // provided by specific layer
   type: 'circle',
-  minzoom: 2,
+  minzoom: 3,
   maxzoom: 24,
   filter: ['==', 'id', 'Infinity'], // will be filtered using "in" or "!in"
   paint: {
@@ -297,8 +297,6 @@ export const includedPoint = {
       'interpolate',
       ['linear'],
       ['zoom'],
-      2,
-      getHighlightExpr(0.1, 1),
       3,
       getHighlightExpr(0.5, 1),
       4,
@@ -349,7 +347,7 @@ export const rankedPoint = {
   // source: "" // provided by specific layer
   // 'source-layer': '', // provided by specific layer
   type: 'circle',
-  minzoom: 2,
+  minzoom: 3,
   maxzoom: 24,
   layout: {
     visibility: 'none',

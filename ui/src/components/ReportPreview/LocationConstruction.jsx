@@ -9,6 +9,7 @@ import {
   CONSTRICTION,
   CROSSING_TYPE,
   PASSAGEFACILITY,
+  ROAD_TYPE,
   OWNERTYPE,
   BARRIEROWNERTYPE,
   PURPOSE,
@@ -72,13 +73,13 @@ const LocationConstruction = ({
               ) : null}
               {height > 0 ? <li>Height: {height} feet</li> : null}
               {width > 0 ? <li>Width: {width} feet</li> : null}
-              {construction && CONSTRUCTION[construction] ? (
+              {construction !== null && construction >= 0 ? (
                 <li>
                   Construction material:{' '}
                   {CONSTRUCTION[construction].toLowerCase()}
                 </li>
               ) : null}
-              {lowheaddam >= 1 ? (
+              {lowheaddam !== null && lowheaddam >= 1 ? (
                 <li>
                   This is {lowheaddam === 2 ? 'likely' : ''} a lowhead dam
                 </li>
@@ -86,16 +87,16 @@ const LocationConstruction = ({
               {diversion === 1 ? (
                 <li>Diversion: this is a water diversion</li>
               ) : null}
-              {purpose && PURPOSE[purpose] ? (
+              {purpose !== null && purpose >= 0 ? (
                 <li>Purpose: {PURPOSE[purpose].toLowerCase()}</li>
               ) : null}
-              {condition && CONDITION[condition] ? (
+              {condition !== null && condition >= 0 ? (
                 <li>
                   Structural condition: {CONDITION[condition].toLowerCase()}
                 </li>
               ) : null}
 
-              {PASSAGEFACILITY[passagefacility] ? (
+              {passagefacility !== null && passagefacility >= 0 ? (
                 <li>
                   Passage facility type:{' '}
                   {PASSAGEFACILITY[passagefacility].toLowerCase()}
@@ -104,14 +105,18 @@ const LocationConstruction = ({
             </>
           ) : (
             <>
-              {roadtype ? <li>Road type: {roadtype}</li> : null}
-              {crossingtype ? (
+              {roadtype !== null && roadtype >= 0 ? (
+                <li>Road type: {ROAD_TYPE[roadtype]}</li>
+              ) : null}
+              {crossingtype !== null && crossingtype >= 0 ? (
                 <li>Crossing type: {CROSSING_TYPE[crossingtype]}</li>
               ) : null}
-              {constriction ? (
+              {constriction !== null && constriction >= 0 ? (
                 <li>Type of constriction: {CONSTRICTION[constriction]}</li>
               ) : null}
-              {condition ? <li>Condition: {condition}</li> : null}
+              {condition !== null && condition >= 0 ? (
+                <li>Condition: {CONDITION[condition]}</li>
+              ) : null}
               {barrierseverity !== null ? (
                 <li>Severity: {BARRIER_SEVERITY[barrierseverity]}</li>
               ) : null}
@@ -128,7 +133,9 @@ const LocationConstruction = ({
         <Box as="ul">
           {hasRiver ? <li>River or stream: {river}</li> : null}
 
-          {barrierType === 'dams' && waterbodysizeclass >= 0 ? (
+          {barrierType === 'dams' &&
+          waterbodysizeclass !== null &&
+          waterbodysizeclass > 0 ? (
             <li>
               Size of associated pond or lake:
               <br />

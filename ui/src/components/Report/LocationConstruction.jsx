@@ -89,7 +89,7 @@ const Location = ({
                     <Text>Width: {width} feet</Text>
                   </ListItem>
                 ) : null}
-                {construction && CONSTRUCTION[construction] ? (
+                {construction !== null && construction >= 0 ? (
                   <ListItem>
                     <Text>
                       Construction material:{' '}
@@ -97,7 +97,7 @@ const Location = ({
                     </Text>
                   </ListItem>
                 ) : null}
-                {lowheaddam >= 1 ? (
+                {lowheaddam !== null && lowheaddam >= 1 ? (
                   <ListItem>
                     <Text>
                       This is {lowheaddam === 2 ? 'likely' : ''} a lowhead dam
@@ -109,12 +109,12 @@ const Location = ({
                     <Text>Diversion: this is a water diversion</Text>
                   </ListItem>
                 ) : null}
-                {purpose && PURPOSE[purpose] ? (
+                {purpose !== null && purpose >= 0 ? (
                   <ListItem>
                     <Text>Purpose: {PURPOSE[purpose].toLowerCase()}</Text>
                   </ListItem>
                 ) : null}
-                {condition && CONDITION[condition] ? (
+                {condition !== null && condition >= 0 ? (
                   <ListItem>
                     <Text>
                       Structural condition: {CONDITION[condition].toLowerCase()}
@@ -122,7 +122,7 @@ const Location = ({
                   </ListItem>
                 ) : null}
 
-                {PASSAGEFACILITY[passagefacility] ? (
+                {passagefacility !== null && passagefacility >= 0 ? (
                   <ListItem>
                     <Text>
                       Passage facility type:{' '}
@@ -133,17 +133,17 @@ const Location = ({
               </>
             ) : (
               <>
-                {roadtype ? (
+                {roadtype !== null && roadtype >= 0 ? (
                   <ListItem>
                     <Text>Road type: {ROAD_TYPE[roadtype]}</Text>
                   </ListItem>
                 ) : null}
-                {crossingtype ? (
+                {crossingtype !== null && crossingtype >= 0 ? (
                   <ListItem>
                     <Text>Crossing type: {CROSSING_TYPE[crossingtype]}</Text>
                   </ListItem>
                 ) : null}
-                {constriction ? (
+                {constriction !== null && constriction >= 0 ? (
                   <ListItem>
                     <Text>
                       Type of constriction: {CONSTRICTION[constriction]}
@@ -151,13 +151,13 @@ const Location = ({
                   </ListItem>
                 ) : null}
 
-                {condition ? (
+                {condition !== null && condition >= 0 ? (
                   <ListItem>
                     <Text>Condition: {condition}</Text>
                   </ListItem>
                 ) : null}
 
-                {barrierseverity !== null ? (
+                {barrierseverity !== null && barrierseverity >= 0 ? (
                   <ListItem>
                     <Text>Severity: {BARRIER_SEVERITY[barrierseverity]}</Text>
                   </ListItem>
@@ -189,7 +189,9 @@ const Location = ({
               </ListItem>
             ) : null}
 
-            {barrierType === 'dams' && waterbodysizeclass >= 0 ? (
+            {barrierType === 'dams' &&
+            waterbodysizeclass !== null &&
+            waterbodysizeclass > 0 ? (
               <ListItem>
                 <Text>Size of associated pond or lake:</Text>
                 <Text>

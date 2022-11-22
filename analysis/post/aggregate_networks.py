@@ -59,6 +59,7 @@ removed_dam_cols = (
 
 rename_cols = {
     "excluded": "Excluded",
+    "removed": "Removed",
     "intermittent": "Intermittent",
     "is_estimated": "Estimated",
     "invasive": "Invasive",
@@ -110,7 +111,7 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 
 
 # export removed dams for separate API endpoint
-pd.DataFrame(dams.loc[dams.removed, removed_dam_cols].reset_index()).to_feather(
+pd.DataFrame(dams.loc[dams.Removed, removed_dam_cols].reset_index()).to_feather(
     api_dir / "removed_dams.feather"
 )
 
@@ -137,7 +138,12 @@ for col in dam_networks.columns:
     if dams[col].dtype == bool:
         continue
 
-    dams[col] = dams[col].fillna(-1).astype(get_signed_dtype(dam_networks[col].dtype))
+    if col.endswith("Class"):
+        dams[col] = dams[col].fillna(0)
+    else:
+        dams[col] = (
+            dams[col].fillna(-1).astype(get_signed_dtype(dam_networks[col].dtype))
+        )
 
 dams = dams[unique(["geometry", "Unranked"] + DAM_API_FIELDS + DAM_TILE_FIELDS)]
 verify_domains(dams)
@@ -190,11 +196,15 @@ for col in small_barrier_networks.columns:
     if small_barriers[col].dtype == bool:
         continue
 
-    small_barriers[col] = (
-        small_barriers[col]
-        .fillna(-1)
-        .astype(get_signed_dtype(small_barrier_networks[col].dtype))
-    )
+    if col.endswith("Class"):
+        small_barriers[col] = small_barriers[col].fillna(0)
+
+    else:
+        small_barriers[col] = (
+            small_barriers[col]
+            .fillna(-1)
+            .astype(get_signed_dtype(small_barrier_networks[col].dtype))
+        )
 
 
 small_barriers = small_barriers[
@@ -238,6 +248,9 @@ for col in combined_networks.columns:
     if combined[col].dtype == bool:
         continue
 
+    if col.endswith("Class"):
+        combined[col] = combined[col].fillna(0)
+
     combined[col] = (
         combined[col].fillna(-1).astype(get_signed_dtype(combined_networks[col].dtype))
     )
@@ -276,7 +289,11 @@ fill_columns = [
 
 dtypes = pd.concat([dams.dtypes, small_barriers.dtypes])
 for col in fill_columns:
-    combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(dtypes[col]))
+    if col.endswith("Class"):
+        combined[col] = combined[col].fillna(0)
+
+    else:
+        combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(dtypes[col]))
 
 
 verify_domains(combined)
@@ -343,7 +360,13 @@ for col in network_cols:
     if waterfalls[col].dtype == bool:
         continue
 
-    waterfalls[col] = waterfalls[col].fillna(-1).astype(get_signed_dtype(dtypes[col]))
+    if col.endswith("Class"):
+        waterfalls[col] = waterfalls[col].fillna(0)
+
+    else:
+        waterfalls[col] = (
+            waterfalls[col].fillna(-1).astype(get_signed_dtype(dtypes[col]))
+        )
 
 waterfalls = waterfalls[
     unique(["geometry", "packed"] + unique(WF_CORE_FIELDS + WF_TILE_FIELDS))

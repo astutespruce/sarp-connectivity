@@ -12,6 +12,9 @@ import {
   CONDITION,
   OWNERTYPE,
   BARRIEROWNERTYPE,
+  BOOLEAN_FIELD,
+  DOWNSTREAM_OCEAN_MILES,
+  DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN,
 } from 'config'
 
 import { getEntries, priorityAreaFilters } from './common'
@@ -30,7 +33,7 @@ export const smallBarriers = [
 
       {
         field: 'gainmilesclass',
-        title: 'Miles Gained',
+        title: 'Miles gained',
         ...getEntries(GAINMILES),
       },
       {
@@ -51,18 +54,18 @@ export const smallBarriers = [
         field: 'crossingtype',
         title: 'Crossing type',
         sort: true,
-        ...getEntries(CROSSING_TYPE),
+        ...getEntries(CROSSING_TYPE, (v) => v >= 0),
       },
       {
         field: 'roadtype',
         title: 'Road type',
         sort: true,
-        ...getEntries(ROAD_TYPE),
+        ...getEntries(ROAD_TYPE, (v) => v >= 0),
       },
       {
         field: 'constriction',
         title: 'Type of constriction',
-        ...getEntries(CONSTRICTION),
+        ...getEntries(CONSTRICTION, (v) => v >= 0),
       },
       {
         field: 'condition',
@@ -86,6 +89,34 @@ export const smallBarriers = [
         title: 'Located on an Intermittent / Ephemeral Stream',
         help: 'Note: intermittent / ephemeral status is assigned in the underlying NHD data and is not consistently assigned for all stream reaches.  Non-intermittent reaches may have perennial flow or be assigned to a different stream reach type which precludes intermittent / ephemeral status.',
         ...getEntries(INTERMITTENT),
+      },
+    ],
+  },
+  {
+    id: 'diadromous',
+    title: 'Diadromous species',
+    filters: [
+      {
+        field: 'flowstoocean',
+        title: 'On a network that flows to ocean',
+        sort: false,
+        help: 'Note: this is limited to networks that are known to connect to marine areas identified by NHD for NHD regions included in this tool, and may not be set correctly for networks that flow through other NHD regions not included in the analysis or outside the U.S. before connecting to marine areas.',
+        ...getEntries(BOOLEAN_FIELD),
+      },
+      {
+        field: 'downstreamoceanmilesclass',
+        title: 'Miles downstream to the ocean',
+        sort: false,
+        help: 'This value is based on linear miles downstream along aquatic network to the ocean.  Note: distances close to the coast may not be accurate due to inaccuracies in how marine areas are identified with respect to the aquatic network downstream termination points.',
+        ...getEntries(DOWNSTREAM_OCEAN_MILES),
+      },
+      {
+        field: 'downstreamoceanbarriersclass',
+        title:
+          'Number of dams / inventoried road-related barriers between this dam and the ocean',
+        sort: false,
+        help: 'This value is based on any dams or inventoried road-related barriers that occur on the downstream path between this dam and the ocean.  Note: this does not include any road crossings that have not been evaluated for barrier severity.',
+        ...getEntries(DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN),
       },
     ],
   },
