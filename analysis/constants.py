@@ -289,17 +289,13 @@ REMOVED_RECON = [
     7,  # Dam was deliberately removed
 ]
 
-EXCLUDE_RECON = [
-    22,  # Removal unlikely, fish passage installed
-    23,  # duplicate fish passage project structure
-]
+EXCLUDE_RECON = []
 
 REMOVED_FEASIBILITY = [
     8,  # Dam removed for conservation benefit
 ]
 
 EXCLUDE_FEASIBILITY = [
-    11,  # fish passage installed
     13,  # Dam breached with full flow
 ]
 
@@ -345,8 +341,8 @@ RECON_TO_FEASIBILITY = {
     19: 10,  # should be removed from analysis
     20: 5,
     21: 6,
-    22: 11,  # should be removed from analysis
-    23: 11,  # should be removed from analysis
+    22: 11,  # exclude if BarrierSeverity == No Barrier or Unknown / blank
+    23: 11,  # exclude if BarrierSeverity == No Barrier or Unknown / blank
 }
 
 # Associated recon values
@@ -381,7 +377,7 @@ FEASIBILITY_TO_DOMAIN = {
     8: 10,  # dam removed for conservation benefit (filtered out)
     9: 10,  # invasive species barrier (filtered out)
     10: 10,  # proposed dam
-    11: 10,  # fish passage installed (filtered out)
+    11: 9,  # fish passage installed
     12: 7,  # removal planned
     13: 8,  # breached - full flow
 }

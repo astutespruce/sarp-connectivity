@@ -477,6 +477,17 @@ for field, values in excluded_fields.items():
         "excluded", field, sorted(df.loc[ix][field].unique())
     )
 
+# If Recon / Feasibility indicates fish passage installed and Barrier Severity
+# does not indicate passability issue, exclude (per guidance from SARP)
+ix = (
+    (df.Recon.isin([22, 23]) | (df.Feasibility == 11))
+    & df.BarrierSeverity.isin([0, 7])
+    & (~(df.dropped | df.removed | df.excluded))
+)
+df.loc[ix, "excluded"] = True
+df.loc[
+    ix, "log"
+] = "excluded: Recon/Feasibility indicate fish passage installed but BarrierSeverity marked as passable"
 
 ### Mark any dams that should cut the network but be excluded from ranking
 unranked_fields = {

@@ -296,6 +296,7 @@ export const FEASIBILITYCLASS = {
   6: 'No conservation benefit',
   7: 'Removal planned',
   8: 'Breached - full flow',
+  9: 'Fish passage installed',
   // not shown to user
   // 10: (multiple values lumped to prevent showing in filter)
 }
