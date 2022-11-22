@@ -606,11 +606,6 @@ export const SARP_BOUNDS = [
   -107.87000919, 17.62370026, -64.5126611, 44.26093852,
 ]
 
-export const HUC8_COA = {
-  1: 'conservation opportunity area',
-  0: 'not a conservation opportunity area',
-}
-
 // Note: all pack_bits fields are lowercase in UI but uppercase on backend
 
 // tiers use just the scenario as the key here

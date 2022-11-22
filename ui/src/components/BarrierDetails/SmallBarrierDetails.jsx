@@ -68,7 +68,6 @@ const BarrierDetails = ({
   trout,
   ownertype,
   barrierownertype,
-  huc8_coa,
   barrierseverity,
   // metrics
   totalupstreammiles,
@@ -284,18 +283,6 @@ const BarrierDetails = ({
         </Paragraph>
       </Section>
 
-      {huc8_coa > 0 ? (
-        <Section title="Feasibility & conservation benefit">
-          {/* watershed priorities */}
-          <Entry>
-            Within a SARP conservation opportunity area.{' '}
-            <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
-              Read more.
-            </OutboundLink>
-          </Entry>
-        </Section>
-      ) : null}
-
       {!isEmptyString(source) || !isCrossing ? (
         <Section title="Other information">
           {!isCrossing ? (
@@ -341,7 +328,6 @@ BarrierDetails.propTypes = {
   trout: PropTypes.number,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
-  huc8_coa: PropTypes.number,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -376,7 +362,6 @@ BarrierDetails.defaultProps = {
   trout: 0,
   ownertype: null,
   barrierownertype: null,
-  huc8_coa: 0,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,

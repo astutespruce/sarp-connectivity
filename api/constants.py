@@ -172,7 +172,6 @@ FILTER_FIELDS = [
     "OwnerType",
     "BarrierOwnerType",
     "Intermittent",
-    "HUC8_COA",
     "FlowsToOcean",
     "DownstreamOceanMilesClass",
     "DownstreamOceanBarriersClass",
@@ -220,8 +219,6 @@ GENERAL_API_FIELDS2 = (
         "OwnerType",
         "BarrierOwnerType",
         "ProtectedLand",
-        # Priority watersheds
-        "HUC8_COA",
         # Watershed names
         "Basin",
         "Subbasin",
@@ -449,8 +446,6 @@ WF_CORE_FIELDS = (
         "Trout",
         "OwnerType",
         "ProtectedLand",
-        # Priority watersheds
-        "HUC8_COA",
         # Watershed names
         "Basin",
         "Subbasin",
@@ -791,10 +786,6 @@ BARRIEROWNERTYPE_DOMAIN = {
 
 BOOLEAN_DOMAIN = {False: "no", True: "yes"}
 
-HUC8_COA_DOMAIN = {
-    0: "Not a conservation opportunity area",
-    1: "Conservation opportunity area",
-}
 
 PASSAGEFACILITY_CLASS_DOMAIN = {
     0: "Not applicable",  # only used when combining with small barriers
@@ -937,7 +928,6 @@ DOMAINS = {
     "OwnerType": OWNERTYPE_DOMAIN,
     "BarrierOwnerType": BARRIEROWNERTYPE_DOMAIN,
     "ProtectedLand": BOOLEAN_DOMAIN,
-    "HUC8_COA": HUC8_COA_DOMAIN,
     "ManualReview": MANUALREVIEW_DOMAIN,
     "BarrierSeverity": SEVERITY_DOMAIN,
     "Recon": RECON_DOMAIN,
@@ -1069,7 +1059,6 @@ FIELD_DEFINITIONS = {
     "OwnerType": "Land ownership type. This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
     "BarrierOwnerType": "Barrier ownership type, if available.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.",
-    "HUC8_COA": "SARP conservation opportunity areas.",
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",
     "Subbasin": "Name of the hydrologic subbasin (HUC8) where the {type} occurs.",
     "Subwatershed": "Name of the hydrologic subwatershed (HUC12) where the {type} occurs.",

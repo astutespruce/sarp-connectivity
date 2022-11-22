@@ -85,17 +85,6 @@ def add_spatial_joins(df):
     df.OwnerType = df.OwnerType.fillna(0).astype("uint8")
     df.ProtectedLand = df.ProtectedLand.fillna(False).astype("bool")
 
-    ### Priority layers
-    print("Joining to priority watersheds")
-    priorities = (
-        pd.read_feather(boundaries_dir / "priorities.feather")
-        .rename(columns={"HUC_8": "HUC8"})
-        .set_index("HUC8")
-        .rename(columns={"coa": "HUC8_COA"})
-    )
-    df = df.join(priorities, on="HUC8")
-    df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")
-
     ### Join in T&E Spp stats
     # note: trout is presence / absence
     spp_df = (

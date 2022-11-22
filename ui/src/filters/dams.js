@@ -138,6 +138,13 @@ export const dams = [
         ...getEntries(BOOLEAN_FIELD),
       },
       {
+        field: 'coastalhuc8',
+        title: 'Within a coastal HUC8',
+        sort: false,
+        // help: '',
+        ...getEntries(BOOLEAN_FIELD),
+      },
+      {
         field: 'downstreamoceanmilesclass',
         title: 'Miles downstream to the ocean',
         sort: false,

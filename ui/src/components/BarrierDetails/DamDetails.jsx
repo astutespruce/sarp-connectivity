@@ -58,7 +58,6 @@ const DamDetails = ({
   recon,
   ownertype,
   barrierownertype,
-  huc8_coa,
   // metrics
   totalupstreammiles,
   perennialupstreammiles,
@@ -301,16 +300,6 @@ const DamDetails = ({
       ) : (
         <Entry>No feasibility information is available for this dam.</Entry>
       )}
-
-      {/* watershed priorities */}
-      {huc8_coa > 0 ? (
-        <Entry>
-          Within a SARP conservation opportunity area.{' '}
-          <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
-            Read more.
-          </OutboundLink>
-        </Entry>
-      ) : null}
     </Section>
 
     <Section title="Other information">
@@ -386,7 +375,6 @@ DamDetails.propTypes = {
   recon: PropTypes.number,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
-  huc8_coa: PropTypes.number,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -426,10 +414,9 @@ DamDetails.defaultProps = {
   statesgcnspp: 0,
   regionalsgcnspp: 0,
   trout: 0,
-  recon: 0,
+  recon: null,
   ownertype: null,
   barrierownertype: null,
-  huc8_coa: 0,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,

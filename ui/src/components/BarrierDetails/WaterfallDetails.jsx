@@ -29,7 +29,6 @@ const WaterfallDetails = ({
   regionalsgcnspp,
   trout,
   ownertype,
-  huc8_coa,
   // metrics
   totalupstreammiles,
   perennialupstreammiles,
@@ -165,18 +164,6 @@ const WaterfallDetails = ({
       </Paragraph>
     </Section>
 
-    {huc8_coa > 0 ? (
-      <Section title="Feasibility & conservation benefit">
-        {/* watershed priorities */}
-        <Entry>
-          Within a SARP conservation opportunity area.{' '}
-          <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
-            Read more.
-          </OutboundLink>
-        </Entry>
-      </Section>
-    ) : null}
-
     {!isEmptyString(source) ? (
       <Section title="Other information">
         {!isEmptyString(source) ? (
@@ -208,7 +195,6 @@ WaterfallDetails.propTypes = {
   regionalsgcnspp: PropTypes.number,
   trout: PropTypes.number,
   ownertype: PropTypes.number,
-  huc8_coa: PropTypes.number,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -236,7 +222,6 @@ WaterfallDetails.defaultProps = {
   regionalsgcnspp: 0,
   trout: 0,
   ownertype: null,
-  huc8_coa: 0,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,

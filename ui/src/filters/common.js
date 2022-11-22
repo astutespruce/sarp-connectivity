@@ -1,5 +1,3 @@
-import { HUC8_COA } from 'config'
-
 const getIntKeys = (obj) =>
   Object.keys(obj)
     .map((k) => parseInt(k, 10))
@@ -21,15 +19,3 @@ export const getEntries = (obj, filter = null) => {
     labels: values.map((key) => obj[key]),
   }
 }
-
-export const priorityAreaFilters = [
-  {
-    field: 'huc8_coa',
-    title: 'SARP conservation opportunity areas',
-    sort: false,
-    // hideEmpty: true,
-    help: "These areas were designated by each state and approved by SARP's steering committee for funding through SARP-NFHP-USFWS each year.",
-    url: 'https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas',
-    ...getEntries(HUC8_COA),
-  },
-]

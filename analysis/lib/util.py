@@ -108,9 +108,12 @@ def pack_bits(df, field_bits):
         raise ValueError(f"Values for {first['field']} must be >= 0")
 
     values = values.astype(dtype)
+    if values.max() > (2 ** first["bits"]) - 1:
+        raise ValueError(
+            f"Values for {first['field']} cannot be stored in {first['bits']} bits"
+        )
 
     sum_bits = first["bits"]
-
     for entry in field_bits[1:]:
         field_values = (
             df[entry["field"]].values if is_pandas else df[entry["field"]].to_numpy()
@@ -118,6 +121,12 @@ def pack_bits(df, field_bits):
         field_values = field_values - entry.get("value_shift", 0)
         if field_values.min() < 0:
             raise ValueError(f"Values for {entry['field']} must be >= 0")
+
+        if field_values.max() > (2 ** entry["bits"]) - 1:
+            raise ValueError(
+                f"Values for {first['field']} cannot be stored in {entry['bits']} bits"
+            )
+
         values = values | field_values.astype(dtype) << sum_bits
         sum_bits += entry["bits"]
 
