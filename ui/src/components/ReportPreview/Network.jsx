@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Heading, Paragraph, Text } from 'theme-ui'
 
 import { Table, Row } from 'components/Table'
-import { siteMetadata } from 'config'
+import { siteMetadata, barrierTypeLabelSingular } from 'config'
 import { formatNumber, formatPercent } from 'util/format'
 
 const { version: dataVersion } = siteMetadata
@@ -26,8 +26,7 @@ const Network = ({
   sarpid,
   sx,
 }) => {
-  const barrierTypeLabel =
-    barrierType === 'dams' ? 'dam' : 'road-related barrier'
+  const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
   const gainmiles = Math.min(totalupstreammiles, freedownstreammiles)
   const gainMilesSide =
     gainmiles === totalupstreammiles ? 'upstream' : 'downstream'
@@ -93,7 +92,8 @@ const Network = ({
       <Box sx={sx}>
         {header}
         <Text sx={{ mt: '0.5rem' }}>
-          This dam is off-network and has no functional network information.
+          This {barrierTypeLabel} is off-network and has no functional network
+          information.
         </Text>
 
         <Paragraph variant="help" sx={{ mt: '0.5rem', fontSize: 0 }}>

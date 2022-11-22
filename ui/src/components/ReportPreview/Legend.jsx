@@ -17,8 +17,12 @@ const Legend = ({ barrierType, name }) => {
         },
       }}
     >
-      {entries.map((entry) => (
-        <LegendElement key={entry.label} {...entry} />
+      {entries.map((entry, i) => (
+        <LegendElement
+          key={entry.label}
+          sx={{ fontWeight: i === 0 ? 'bold' : 'inherit' }}
+          {...entry}
+        />
       ))}
     </Box>
   )

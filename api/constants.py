@@ -749,11 +749,11 @@ SEVERITY_DOMAIN = {
     0: "Unknown",
     1: "Complete",
     2: "Partial passability - unspecified",
-    3: "Partial Passability - Non Salmonid",
-    4: "Partial Passability - Salmonid",
-    5: "Seasonably Passable - Non Salmonid",
-    6: "Seasonably Passable - Salmonid",
-    7: "No Barrier",
+    3: "Partial passability - non salmonid",
+    4: "Partial passability - salmonid",
+    5: "Seasonably passable - non salmonid",
+    6: "Seasonably passable - salmonid",
+    7: "No barrier",
 }
 
 ROAD_TYPE_DOMAIN = {

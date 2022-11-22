@@ -15,7 +15,7 @@ def get_dam(request: Request, sarp_id: str):
     log_request(request)
 
     dam = (
-        dams.filter(pc.equal(dams["SARPID"], sarp_id))
+        dams.to_table(filter=pc.field("SARPID") == sarp_id)
         .slice(0)
         .rename_columns([c.lower() for c in dams.schema.names])
     )
@@ -33,7 +33,7 @@ def get_small_barrier(request: Request, sarp_id: str):
     log_request(request)
 
     barrier = (
-        small_barriers.filter(pc.equal(small_barriers["SARPID"], sarp_id))
+        small_barriers.to_table(filter=pc.field("SARPID") == sarp_id)
         .slice(0)
         .rename_columns([c.lower() for c in small_barriers.schema.names])
     )

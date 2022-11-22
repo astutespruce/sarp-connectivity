@@ -4,9 +4,11 @@ import { View } from '@react-pdf/renderer'
 
 import { pointLegends } from 'components/Summary/layers'
 import { capitalize } from 'util/format'
+import { barrierTypeLabels } from 'config'
 import LegendElement from './elements/LegendElement'
 
 export const getLegendEntries = ({ name, barrierType }) => {
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
   const entries = [
     {
       color: '#fd8d3c',
@@ -22,16 +24,22 @@ export const getLegendEntries = ({ name, barrierType }) => {
       borderWidth: 2,
     },
     {
-      label: 'intermittent / ephemeral stream reach',
       color: '#1891ac',
+      label: 'Stream reach',
       type: 'line',
-      borderStyle: 'dashed',
       borderWidth: 2,
     },
     {
       color: '#9370db',
-      label: 'altered stream reach (canal / ditch)',
+      label: 'Altered stream reach (canal / ditch)',
       type: 'line',
+      borderWidth: 2,
+    },
+    {
+      label: 'Intermittent / ephemeral stream reach',
+      color: '#1891ac',
+      type: 'line',
+      borderStyle: 'dashed',
       borderWidth: 2,
     },
   ]
@@ -40,7 +48,7 @@ export const getLegendEntries = ({ name, barrierType }) => {
     ...primary,
     type: 'circle',
     label: `${capitalize(
-      barrierType
+      barrierTypeLabel
     )} analyzed for impacts to aquatic connectivity`,
   })
 
@@ -48,7 +56,7 @@ export const getLegendEntries = ({ name, barrierType }) => {
     ...offnetwork,
     type: 'circle',
     label: `${capitalize(
-      barrierType
+      barrierTypeLabel
     )} not analyzed for impacts to aquatic connectivity`,
   })
 

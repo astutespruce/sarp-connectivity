@@ -418,10 +418,10 @@ DamDetails.defaultProps = {
   estimated: 0,
   height: 0,
   yearcompleted: 0,
-  construction: 0,
-  purpose: 0,
-  condition: 0,
-  passagefacility: 0,
+  construction: null,
+  purpose: null,
+  condition: null,
+  passagefacility: null,
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
@@ -441,9 +441,9 @@ DamDetails.defaultProps = {
   landcover: null,
   sizeclasses: null,
   diversion: 0,
-  lowheaddam: -1,
+  lowheaddam: null,
   waterbodykm2: -1,
-  waterbodysizeclass: -1,
+  waterbodysizeclass: null,
 }
 
 export default DamDetails

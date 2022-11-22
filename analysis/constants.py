@@ -299,6 +299,7 @@ REMOVED_FEASIBILITY = [
 ]
 
 EXCLUDE_FEASIBILITY = [
+    11,  # fish passage installed
     13,  # Dam breached with full flow
 ]
 
