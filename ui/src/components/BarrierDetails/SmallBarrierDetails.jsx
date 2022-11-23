@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import { Box, Paragraph, Text } from 'theme-ui'
 
 import { Entry, Field, Section } from 'components/Sidebar'
-import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 
@@ -155,7 +154,7 @@ const BarrierDetails = ({
             <Field>Road type:</Field> {ROAD_TYPE[roadtype]}
           </Entry>
         ) : null}
-        {crossingtype !== null && crossingType >= 0 ? (
+        {crossingtype !== null && crossingtype >= 0 ? (
           <Entry>
             <Field>Crossing type:</Field> {CROSSING_TYPE[crossingtype]}
           </Entry>
@@ -214,23 +213,17 @@ const BarrierDetails = ({
                     connectivity.
                   </Entry>
                 ) : (
-                  <>
-                    <Entry>
-                      <Text>
-                        This barrier is off-network and has no functional
-                        network information.
-                      </Text>
-                      <Paragraph
-                        variant="help"
-                        sx={{ mt: '1rem', fontSize: 0 }}
-                      >
-                        Not all barriers could be correctly snapped to the
-                        aquatic network for analysis. Please contact us to
-                        report an error or for assistance interpreting these
-                        results.
-                      </Paragraph>
-                    </Entry>
-                  </>
+                  <Entry>
+                    <Text>
+                      This barrier is off-network and has no functional network
+                      information.
+                    </Text>
+                    <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+                      Not all barriers could be correctly snapped to the aquatic
+                      network for analysis. Please contact us to report an error
+                      or for assistance interpreting these results.
+                    </Paragraph>
+                  </Entry>
                 )}
               </>
             )}

@@ -3,7 +3,6 @@ import PropTypes from 'prop-types'
 import { Box, Paragraph, Text } from 'theme-ui'
 
 import { Entry, Field, Section } from 'components/Sidebar'
-import { OutboundLink } from 'components/Link'
 import { OWNERTYPE } from 'config'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
