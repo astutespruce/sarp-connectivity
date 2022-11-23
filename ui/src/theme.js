@@ -75,7 +75,7 @@ module.exports = {
     paragraph: {
       fontSize: [2, 3],
       large: {
-        fontSize: '1.5rem',
+        fontSize: '1.25rem',
       },
     },
     heading: {

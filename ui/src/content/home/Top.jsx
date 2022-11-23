@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Heading, Grid, Paragraph } from 'theme-ui'
 
-import { Link } from 'components/Link'
+import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
 
 const Top = () => (
@@ -14,11 +14,25 @@ const Top = () => (
       required for their persistence through changing conditions.
       <br />
       <br />
-      Recently improved inventories of aquatic barriers enable us to describe,
-      understand, and prioritize them for removal, restoration, and mitigation.
-      Through this tool and others, we empower you by providing information on
-      documented barriers and standardized methods by which to prioritize
-      barriers of interest for restoration efforts.
+      Recently improved inventories, brought to you by the{' '}
+      <OutboundLink to="https://southeastaquatics.net/">
+        Southeast Aquatic Resources Partnership
+      </OutboundLink>{' '}
+      and partners, enable us to describe, understand, and prioritize aquatic
+      barriers for removal, restoration, and mitigation. Through this tool and
+      others, we empower you with information on documented barriers and
+      standardized methods to prioritize barriers of interest for restoration
+      efforts.
+      <br />
+      <br />
+      This tool and inventory were made possible by funding from the U.S. Fish
+      and Wildlife Service, American Rivers, the National Fish and Wildlife
+      Foundation, U.S. Forest Service, and state wildlife grant funding from
+      Florida and Texas. This effort would not be possible without the
+      collaboration of our partners from numerous state, federal, and non profit
+      organizations as well as the National Fish Habitat Partnership. Structures
+      described within this inventory are maintained within databases housed by
+      multiple entities and aggregated here for display and analysis.
     </Paragraph>
 
     <Box variant="boxes.section" sx={{ mt: '4rem' }}>
