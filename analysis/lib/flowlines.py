@@ -656,7 +656,8 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     print(f"Found {len(df):,} waterbody / flowline joins in {time() - join_start:.2f}s")
 
     ### Find those that are completely contained; these don't need further processing
-    shapely.prepare(df.waterbody.values)
+    # Due to a bug in GEOS 3.11, these fail contains test when they should pass
+    # shapely.prepare(df.waterbody.values)
 
     # find those that are fully contained and do not touch the edge of the waterbody (contains_properly predicate)
     # contains_properly is very fast
@@ -670,7 +671,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     contained_start = time()
     ix = ~df.contains
     tmp = df.loc[ix]
-    df.loc[ix, "contains"] = shapely.contains(tmp.waterbody, tmp.flowline)
+    df.loc[ix, "contains"] = shapely.contains(tmp.waterbody.values, tmp.flowline.values)
     print(
         f"Identified {df.loc[ix].contains.sum():,} more flowlines contained by waterbodies in {time() - contained_start:.2f}s"
     )
@@ -684,7 +685,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     df["crosses"] = False
     ix = ~df.contains
     tmp = df.loc[ix]
-    df.loc[ix, "crosses"] = shapely.crosses(tmp.waterbody, tmp.flowline)
+    df.loc[ix, "crosses"] = shapely.crosses(tmp.waterbody.values, tmp.flowline.values)
     print(
         f"Identified {df.crosses.sum():,} flowlines that cross edge of waterbodies in {time() - crosses_start:.2f}s"
     )
@@ -700,9 +701,16 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     df["geometry"] = df.flowline
     # use intersection to cut flowlines by waterbodies.  Note: this may produce
     # nonlinear (e.g., geom collection) results
-    df.loc[ix, "geometry"] = shapely.intersection(tmp.flowline, tmp.waterbody)
+    df.loc[ix, "geometry"] = shapely.intersection(
+        tmp.flowline.values, tmp.waterbody.values
+    )
     df["length"] = shapely.length(df.geometry)
     df["flength"] = shapely.length(df.flowline)
+    df["inside"] = (df.length / df.flength).clip(0, 1)
+
+    # also use lengths to determine those that are contained to avoid cutting
+    df.loc[(~df.contains) & (df.inside == 1), "contains"] = True
+    df.loc[df.contains, "crosses"] = False
 
     # Cut lines that are long enough and different enough from the original lines
     df["to_cut"] = False
@@ -713,7 +721,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
         & ((tmp.flength - tmp.length).abs() >= CUT_TOLERANCE)
     )
     df.loc[keep[keep].index, "to_cut"] = True
-    df["inside"] = (df.length / df.flength).clip(0, 1)
+
     print(
         f"Found {df.to_cut.sum():,} segments that need to be cut by flowlines in {time() - cut_start:.2f}s"
     )
@@ -817,10 +825,14 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
                 }
             )
 
-            shapely.prepare(df.waterbody.values)
+            # due to a bug in GEOS 3.11, polygons fail contains test that should pass
+            # after preparing geometries
+            # shapely.prepare(df.waterbody.values)
+
             df["contains"] = shapely.contains(df.waterbody.values, df.flowline.values)
+
             print(
-                f"Identified {df.contains.sum():,} more flowlines contained by waterbodies in {time() - contained_start:.2f}s"
+                f"Identified {df.contains.sum():,} flowlines contained by waterbodies after cutting {time() - contained_start:.2f}s"
             )
 
             # some aren't perfectly contained, add those that are mostly in

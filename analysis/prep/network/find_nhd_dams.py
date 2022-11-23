@@ -26,6 +26,7 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 
 # consider dam associated with waterbody drain if within 15m
 MAX_DRAIN_DISTANCE = 15
+DUPLICATE_TOLERANCE = 10
 
 
 data_dir = Path("data")
@@ -71,9 +72,12 @@ nhd_lines = read_feathers(
 nhd_lines = nhd_lines.loc[
     (nhd_lines.FType.isin([343, 369, 398])) & nhd_lines.geometry.notnull()
 ].reset_index(drop=True)
-# create buffers (5m) to merge with NHD areas
+# create buffers (10m) to merge with NHD areas
 # from visual inspection, this helps coalesce those that are in pairs
-nhd_lines["geometry"] = shapely.buffer(nhd_lines.geometry.values.data, 5, quadsegs=1)
+# NOTE: this is the same buffer distance used to cut holes out of waterbodies
+# to preserve breaks between merged waterbodies where there are NHD lines
+# see analysis/prep/network/lib/nhd/waterbodies.py
+nhd_lines["geometry"] = shapely.buffer(nhd_lines.geometry.values.data, 10)
 nhd_lines["source"] = "NHDLine"
 
 # All NHD areas indicate a dam-related feature
@@ -101,17 +105,21 @@ nhd_dams.loc[ix, "group"] = next_group + np.arange(ix.sum())
 nhd_dams.group = nhd_dams.group.astype("uint")
 
 print("Dissolving overlapping dams")
-nhd_dams = dissolve(
-    explode(nhd_dams),
-    by=["HUC2", "source", "group"],
-    agg={
-        "GNIS_Name": lambda n: ", ".join({s for s in n if s}),
-        # set missing NHD fields as 0
-        "FType": lambda n: ", ".join({str(s) for s in n}),
-        "FCode": lambda n: ", ".join({str(s) for s in n}),
-        "NHDPlusID": lambda n: ", ".join({str(s) for s in n}),
-    },
-).reset_index(drop=True)
+nhd_dams = (
+    dissolve(
+        explode(nhd_dams),
+        by=["HUC2", "source", "group"],
+        agg={
+            "GNIS_Name": lambda n: ", ".join({s for s in n if s}),
+            # set missing NHD fields as 0
+            "FType": lambda n: ", ".join({str(s) for s in n}),
+            "FCode": lambda n: ", ".join({str(s) for s in n}),
+            "NHDPlusID": lambda n: ", ".join({str(s) for s in n}),
+        },
+    )
+    .reset_index(drop=True)
+    .drop(columns=["group"])
+)
 
 # fill in missing values
 nhd_dams.GNIS_Name = nhd_dams.GNIS_Name.fillna("")
@@ -351,7 +359,7 @@ for huc2 in huc2s:
         flowlines[["loop", "sizeclass"]], on="lineID"
     )
 
-    # drop duplicates
+    # drop duplicates based on attributes
     dams = dams.reset_index().drop_duplicates(
         subset=["damPtID", "damID", "lineID", "geometry"]
     )
@@ -366,6 +374,27 @@ print("----------------------------------------------")
 dams = merged.reset_index(drop=True).join(
     nhd_dams.drop(columns=["geometry"]), on="damID"
 )
+
+
+### Drop spatial duplicates
+tree = shapely.STRtree(dams.geometry.values.data)
+left, right = tree.query(
+    dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+)
+g = DirectedGraph(left.astype("int64"), right.astype("int64"))
+groups, values = g.flat_components()
+dams = dams.join(
+    pd.DataFrame({"group": groups}, index=pd.Series(dams.index.values.take(values)))
+)
+
+dams["has_name"] = dams.GNIS_Name != ""
+
+# Dam FTypes are generally lower than other dam-related feature FTypes
+dams = dams.sort_values(
+    by=["km2", "has_name", "FType"], ascending=[False, False, True]
+).drop(columns=["has_name"])
+
+dams = dams.groupby("group").first().reset_index(drop=True)
 
 nhd_dams = nhd_dams.loc[nhd_dams.index.isin(dams.damID.unique())].reset_index()
 

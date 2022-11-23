@@ -74,6 +74,8 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     adjacent waterbodies that fall near NHD lines (which include dams) and
     buffering them by 10 meters (arbitrary, from trial and error).
 
+    This must be run against NHD waterbodies, not merged waterbodies.
+
     This should be skipped if nhd_lines is empty.
 
     Parameters
@@ -87,13 +89,16 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
         NHD lines.  Returns None if no adjacent waterbodies meet these criteria
     """
 
+    buffer_dist = 10
+
     # find all nhd lines that intersect waterbodies
     # first, buffer them slightly
     nhd_lines = shapely.get_parts(shapely.union_all(shapely.buffer(nhd_lines, 0.1)))
     tree = shapely.STRtree(geometries)
     left, right = tree.query(nhd_lines, predicate="intersects")
 
-    # remove nhd_lines any that are completely contained in a waterbody
+    # remove nhd_lines any that are completely contained in a waterbody,
+    # after accounting for 10m buffer
     tmp = pd.DataFrame(
         {
             "left": left,
@@ -104,14 +109,14 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     )
 
     shapely.prepare(tmp.right_geometry.values)
-    tmp["contained"] = shapely.contains_properly(
-        tmp.right_geometry.values, tmp.left_geometry.values
+    contained = shapely.contains_properly(
+        tmp.right_geometry.values, tmp.left_geometry.values, buffer_dist
     )
     print(
-        f"Dropping {tmp['contained'].sum()} NHD lines that are completely contained within waterbodies"
+        f"Dropping {contained.sum()} NHD lines that are completely contained within waterbodies"
     )
 
-    tmp = tmp.loc[~tmp["contained"]]
+    tmp = tmp.loc[~contained]
 
     # add these to the return
     keep_nhd_lines = nhd_lines[tmp.left.unique()]
@@ -147,7 +152,9 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     parts = parts[((t == 1) | (t == 3)) & (~shapely.is_empty(parts))].copy()
 
     # buffer and merge
-    split_lines = shapely.get_parts(shapely.union_all(shapely.buffer(parts, 10)))
+    split_lines = shapely.get_parts(
+        shapely.union_all(shapely.buffer(parts, buffer_dist))
+    )
 
     # now find the ones that are within 100m of nhd lines
     nhd_lines = shapely.get_parts(nhd_lines)
@@ -157,6 +164,8 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
     split_lines = split_lines[np.unique(left)]
 
     if len(split_lines) or len(keep_nhd_lines):
-        return shapely.union_all(np.append(split_lines, keep_nhd_lines))
+        return shapely.get_parts(
+            shapely.union_all(np.append(split_lines, keep_nhd_lines))
+        )
 
     return None
