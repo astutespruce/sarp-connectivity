@@ -39,7 +39,7 @@ def classify_percent_altered(series):
 
 def classify_ocean_miles(series):
     """classify ocean miles into bins 1...7; 0 is reserved for missing values"""
-    bins = [-1, 0, 1, 5, 10, 25, 100, 250] + [series.max() + 1]
+    bins = [-1, 0, 1, 5, 10, 25, 100, 250, 500, 1000] + [series.max() + 1]
     return np.asarray(
         pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))
     ).astype("uint8")

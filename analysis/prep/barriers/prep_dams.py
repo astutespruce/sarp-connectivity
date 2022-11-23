@@ -351,7 +351,7 @@ df["HeightClass"] = np.asarray(
 df["PassageFacilityClass"] = np.uint8(1)
 df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 2
 
-df["FeasibilityClass"] = df.Feasibility.map(FEASIBILITY_TO_DOMAIN)
+df["FeasibilityClass"] = df.Feasibility.map(FEASIBILITY_TO_DOMAIN).astype("uint8")
 
 
 # Convert BarrierSeverity to a domain

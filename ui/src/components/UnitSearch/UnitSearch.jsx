@@ -10,7 +10,10 @@ import ListItem from './ListItem'
 import SearchField from './SearchField'
 
 const UnitSearch = ({ system, layer, ignoreIds, onSelect }) => {
-  const [query, setQuery] = useState('')
+  const [{ query, activeIndex }, setState] = useState({
+    query: '',
+    activeIndex: null,
+  })
 
   const {
     isLoading,
@@ -36,16 +39,68 @@ const UnitSearch = ({ system, layer, ignoreIds, onSelect }) => {
     ? !(layer === 'State' || layer === 'County')
     : system !== 'ADM'
 
-  const handleChange = useCallback((value) => setQuery(value), [])
+  const handleChange = useCallback((value) => {
+    setState(() => ({ query: value, activeIndex: null }))
+  }, [])
 
   const handleSelect = (item) => () => {
     onSelect(item)
-    setQuery('')
+    setState(() => ({ query: '', activeIndex: null }))
   }
+
+  const handleKeyDown = useCallback(
+    ({ key }) => {
+      // clears everything
+      if (key === 'Escape') {
+        setState(() => ({ query: '', activeIndex: null }))
+        return
+      }
+
+      if (!(results && results.length > 0)) {
+        return
+      }
+
+      if (key === 'Enter' && activeIndex !== null) {
+        const item = results[activeIndex]
+        if (!(ignoreIds && ignoreIds.has(item.id))) {
+          onSelect(item)
+        }
+        setState(() => ({ query: '', activeIndex: null }))
+
+        return
+      }
+
+      let nextIndex = 0
+      if (key === 'ArrowUp' && activeIndex !== null) {
+        if (activeIndex > 0) {
+          nextIndex = activeIndex - 1
+        } else {
+          // wrap around
+          nextIndex = results.length - 1
+        }
+        setState((prevState) => ({
+          ...prevState,
+          activeIndex: nextIndex,
+        }))
+      } else if (key === 'ArrowDown' || key === 'Tab') {
+        if (activeIndex !== null) {
+          if (activeIndex < results.length - 1) {
+            nextIndex = activeIndex + 1
+          }
+          // else wrap around, handled by set = 0 above
+        }
+        setState((prevState) => ({
+          ...prevState,
+          activeIndex: nextIndex,
+        }))
+      }
+    },
+    [results, activeIndex]
+  )
 
   useEffect(() => {
     // reset the query
-    setQuery('')
+    setState(() => ({ query: '', activeIndex: null }))
   }, [system, layer])
 
   const searchLabel = layer ? LAYER_NAMES[layer] : SYSTEMS[system].toLowerCase()
@@ -57,7 +112,7 @@ const UnitSearch = ({ system, layer, ignoreIds, onSelect }) => {
   }`
 
   return (
-    <Box>
+    <Box onKeyDown={handleKeyDown}>
       <Text>Search for {searchLabel}:</Text>
       <SearchField
         value={query}
@@ -70,18 +125,19 @@ const UnitSearch = ({ system, layer, ignoreIds, onSelect }) => {
         <Box
           as="ul"
           sx={{
-            m: 0,
+            m: '2px 0 0 0',
             p: 0,
             listStyle: 'none',
           }}
         >
-          {results.map((item) => (
+          {results.map((item, i) => (
             <ListItem
               key={`${item.layer}-${item.id}`}
               {...item}
               showID={showID}
               onClick={handleSelect(item)}
               disabled={ignoreIds && ignoreIds.has(item.id)}
+              focused={i === activeIndex}
             />
           ))}
         </Box>

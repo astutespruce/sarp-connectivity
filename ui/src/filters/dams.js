@@ -20,7 +20,7 @@ import {
   DOWNSTREAM_OCEAN_DAMS_DOMAIN,
 } from 'config'
 
-import { getEntries, priorityAreaFilters } from './common'
+import { getEntries } from './common'
 
 // Each filter needs to have a dimension above that matches the key here
 export const dams = [
@@ -54,7 +54,6 @@ export const dams = [
         help: 'Note: altered reaches are those specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration); this status is not consistently available for all stream reaches.',
         ...getEntries(PERCENT_ALTERED),
       },
-      ...priorityAreaFilters,
     ],
   },
   {
@@ -139,7 +138,7 @@ export const dams = [
       },
       {
         field: 'coastalhuc8',
-        title: 'Within a coastal HUC8',
+        title: 'Within a coastal subbasin',
         sort: false,
         // help: '',
         ...getEntries(BOOLEAN_FIELD),
@@ -149,14 +148,14 @@ export const dams = [
         title: 'Miles downstream to the ocean',
         sort: false,
         help: 'This value is based on linear miles downstream along aquatic network to the ocean.  Note: distances close to the coast may not be accurate due to inaccuracies in how marine areas are identified with respect to the aquatic network downstream termination points.',
-        ...getEntries(DOWNSTREAM_OCEAN_MILES),
+        ...getEntries(DOWNSTREAM_OCEAN_MILES, (v) => v > 0),
       },
       {
         field: 'downstreamoceanbarriersclass',
         title: 'Number of dams between this dam and the ocean',
         sort: false,
         help: 'This value is based on any dams that occur on the downstream path between this dam and the ocean.',
-        ...getEntries(DOWNSTREAM_OCEAN_DAMS_DOMAIN),
+        ...getEntries(DOWNSTREAM_OCEAN_DAMS_DOMAIN, (v) => v > 0),
       },
     ],
   },

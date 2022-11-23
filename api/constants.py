@@ -633,7 +633,9 @@ DOWNSTREAM_OCEAN_MILES_DOMAIN = {
     4: "10 - 25 miles",
     5: "25 - 100 miles",
     6: "100 - 250 miles",
-    7: ">= 250 miles",
+    7: "250 - 500 miles",
+    8: "500 - 1,000 miles",
+    9: ">= 1,000 miles",
 }
 
 RARESPP_DOMAIN = {0: "0", 1: "1", 2: "1 - 4", 3: "5 - 9", 4: ">= 10"}

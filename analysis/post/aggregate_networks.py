@@ -145,6 +145,11 @@ for col in dam_networks.columns:
             dams[col].fillna(-1).astype(get_signed_dtype(dam_networks[col].dtype))
         )
 
+# Convert bool fields to uint8; none of the fields used for filtering can be
+# bool because fails on frontend
+for col in ["CoastalHUC8"]:
+    dams[col] = dams[col].astype("uint8")
+
 dams = dams[unique(["geometry", "Unranked"] + DAM_API_FIELDS + DAM_TILE_FIELDS)]
 verify_domains(dams)
 
@@ -205,6 +210,9 @@ for col in small_barrier_networks.columns:
             .fillna(-1)
             .astype(get_signed_dtype(small_barrier_networks[col].dtype))
         )
+
+for col in ["CoastalHUC8"]:
+    small_barriers[col] = small_barriers[col].astype("uint8")
 
 
 small_barriers = small_barriers[
@@ -296,6 +304,9 @@ for col in fill_columns:
         combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(dtypes[col]))
 
 
+for col in ["CoastalHUC8"]:
+    combined[col] = combined[col].astype("uint8")
+
 verify_domains(combined)
 
 
@@ -367,6 +378,9 @@ for col in network_cols:
         waterfalls[col] = (
             waterfalls[col].fillna(-1).astype(get_signed_dtype(dtypes[col]))
         )
+
+for col in ["CoastalHUC8"]:
+    waterfalls[col] = waterfalls[col].astype("uint8")
 
 waterfalls = waterfalls[
     unique(["geometry", "packed"] + unique(WF_CORE_FIELDS + WF_TILE_FIELDS))

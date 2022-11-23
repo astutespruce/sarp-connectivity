@@ -1,10 +1,27 @@
-import React, { memo } from 'react'
+import React, { useEffect, useRef, memo } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
 import { STATES } from 'config'
 
-const ListItem = ({ id, name, state, layer, showID, disabled, onClick }) => {
+const ListItem = ({
+  id,
+  name,
+  state,
+  layer,
+  showID,
+  disabled,
+  focused,
+  onClick,
+}) => {
+  const node = useRef(null)
+
+  useEffect(() => {
+    if (node.current && focused) {
+      node.current.focus()
+    }
+  }, [focused])
+
   const stateLabels = state
     ? state
         .split(',')
@@ -15,8 +32,10 @@ const ListItem = ({ id, name, state, layer, showID, disabled, onClick }) => {
 
   return (
     <Box
+      ref={node}
       as="li"
       onClick={!disabled ? onClick : null}
+      tabIndex={0}
       sx={{
         p: '0.5em',
         m: '0px',
