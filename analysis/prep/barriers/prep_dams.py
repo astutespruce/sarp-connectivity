@@ -297,8 +297,7 @@ df.Width = df.Width.fillna(0).round().astype("uint16")
 
 # Recode lowhead dams so that 0 = Unknown, 3 = no (originally 0), 1 = yes, 2 = likely
 df.loc[df.LowheadDam == 0, "LowheadDam"] = 3
-df.LowheadDam = df.LowheadDam.fillna(0).astype("uint8")
-
+df.LowheadDam = df.LowheadDam.fillna(-1).astype("int8")
 
 # From Kat: if StructureCategory == 916 (lowead dam / weir)
 # several are miscoded on Mississippi River and are not lowhead dams
@@ -319,6 +318,7 @@ df.loc[
 df.loc[(df.Recon == 14) & (df.Height <= 25), "LowheadDam"] = 2
 
 # TODO: from Kat: if in NC and source is Aquatic Obstruction Inventory, also set lowhead dam
+
 
 # Cleanup names
 # Standardize the casing of the name
@@ -781,7 +781,8 @@ df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
 df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
 
-for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
+# cast fields with missing values to float32
+for field in ["lineID", "NHDPlusID", "AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
     df[field] = df[field].astype("float32")
 
 print("dams on loops:\n", df.groupby("loop").size())

@@ -140,15 +140,6 @@ UNUSED_TILE_METRIC_FIELDS = [
 ] + UPSTREAM_COUNT_FIELDS
 
 
-STATE_TIER_FIELDS = [
-    "State_NC_tier",
-    "State_WC_tier",
-    "State_NCWC_tier",
-    "State_PNC_tier",
-    "State_PWC_tier",
-    "State_PNCWC_tier",
-]
-
 # Only present when custom prioritization is performed
 CUSTOM_TIER_FIELDS = [
     "NC_tier",
@@ -158,6 +149,9 @@ CUSTOM_TIER_FIELDS = [
     "NCWC_tier",
     "PNCWC_tier",
 ]
+
+# Only present for dams
+STATE_TIER_FIELDS = [f"State_{c}" for c in CUSTOM_TIER_FIELDS]
 
 
 FILTER_FIELDS = [
@@ -383,8 +377,6 @@ SB_TILE_FIELDS = [
         "AnnualVelocity",
         "AnnualFlow",
         "PotentialProject",
-        # fields where we only use domain rather than string values
-        "RoadType",
         # unit name fields are retrieved from summary tiles
         "Subbasin",
         "Subwatershed",
@@ -952,6 +944,7 @@ DOMAINS = {
     # barrier fields
     "Constriction": CONSTRICTION_DOMAIN,
     "CrossingType": CROSSING_TYPE_DOMAIN,
+    "RoadType": ROAD_TYPE_DOMAIN,
 }
 
 

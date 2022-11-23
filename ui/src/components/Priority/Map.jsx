@@ -18,7 +18,7 @@ import {
   setBarrierHighlight,
 } from 'components/Map'
 import { barrierTypeLabels } from 'config'
-import { isEqual } from 'util/data'
+import { isEqual, groupBy } from 'util/data'
 import { capitalize } from 'util/format'
 import { isEmptyString } from 'util/string'
 
@@ -68,6 +68,7 @@ const PriorityMap = ({
   const hoverFeatureRef = useRef(null)
   const selectedFeatureRef = useRef(null)
   const rankedBarriersRef = useRef(null)
+  const rankedBarriersIndexRef = useRef({})
   const [priorityLayerState, setPriorityLayerState] = useState({})
 
   // first layer of system is default on init
@@ -327,6 +328,7 @@ const PriorityMap = ({
         onSelectBarrier({
           ...properties,
           ...networkFields,
+          tiers: rankedBarriersIndexRef.current[properties.id] || null,
           barrierType,
           // FIXME: is this right?
           networkType: source === 'dams' ? 'dams' : undefined,
@@ -335,6 +337,7 @@ const PriorityMap = ({
           CountyName: getSummaryUnitName('County', properties.County),
           lat,
           lon,
+          // note: ranked layesr are those that can be ranked, not necessarily those that have custom ranks
           ranked: sourceLayer.startsWith('ranked_'),
           layer: {
             source,
@@ -600,6 +603,9 @@ const PriorityMap = ({
       rankedBarriers.forEach(({ id, ...rest }) => {
         map.setFeatureState({ source, sourceLayer, id }, rest)
       })
+      rankedBarriersIndexRef.current = groupBy(rankedBarriers, 'id')
+    } else {
+      rankedBarriersIndexRef.current = {}
     }
     rankedBarriersRef.current = rankedBarriers
   }, [rankedBarriers])

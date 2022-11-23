@@ -187,7 +187,7 @@ UnitSearch.propTypes = {
 UnitSearch.defaultProps = {
   layer: null,
   system: null,
-  ignoreUnits: null,
+  ignoreIds: null,
 }
 
 export default memo(UnitSearch)

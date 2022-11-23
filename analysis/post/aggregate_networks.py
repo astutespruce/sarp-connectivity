@@ -138,12 +138,11 @@ for col in dam_networks.columns:
     if dams[col].dtype == bool:
         continue
 
+    orig_dtype = dam_networks[col].dtype
     if col.endswith("Class"):
-        dams[col] = dams[col].fillna(0)
+        dams[col] = dams[col].fillna(0).astype(orig_dtype)
     else:
-        dams[col] = (
-            dams[col].fillna(-1).astype(get_signed_dtype(dam_networks[col].dtype))
-        )
+        dams[col] = dams[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
 # Convert bool fields to uint8; none of the fields used for filtering can be
 # bool because fails on frontend
@@ -201,14 +200,13 @@ for col in small_barrier_networks.columns:
     if small_barriers[col].dtype == bool:
         continue
 
+    orig_dtype = small_barrier_networks[col].dtype
     if col.endswith("Class"):
-        small_barriers[col] = small_barriers[col].fillna(0)
+        small_barriers[col] = small_barriers[col].fillna(0).astype(orig_dtype)
 
     else:
         small_barriers[col] = (
-            small_barriers[col]
-            .fillna(-1)
-            .astype(get_signed_dtype(small_barrier_networks[col].dtype))
+            small_barriers[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
         )
 
 for col in ["CoastalHUC8"]:
@@ -256,12 +254,11 @@ for col in combined_networks.columns:
     if combined[col].dtype == bool:
         continue
 
+    orig_dtype = combined_networks[col].dtype
     if col.endswith("Class"):
-        combined[col] = combined[col].fillna(0)
+        combined[col] = combined[col].fillna(0).astype(orig_dtype)
 
-    combined[col] = (
-        combined[col].fillna(-1).astype(get_signed_dtype(combined_networks[col].dtype))
-    )
+    combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
 # fill string columns
 dt = combined.dtypes
@@ -297,11 +294,13 @@ fill_columns = [
 
 dtypes = pd.concat([dams.dtypes, small_barriers.dtypes])
 for col in fill_columns:
+
+    orig_dtype = dtypes[col]
     if col.endswith("Class"):
-        combined[col] = combined[col].fillna(0)
+        combined[col] = combined[col].fillna(0).astype(orig_dtype)
 
     else:
-        combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(dtypes[col]))
+        combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
 
 for col in ["CoastalHUC8"]:
@@ -371,12 +370,13 @@ for col in network_cols:
     if waterfalls[col].dtype == bool:
         continue
 
+    orig_dtype = dtypes[col]
     if col.endswith("Class"):
-        waterfalls[col] = waterfalls[col].fillna(0)
+        waterfalls[col] = waterfalls[col].fillna(0).astype(orig_dtype)
 
     else:
         waterfalls[col] = (
-            waterfalls[col].fillna(-1).astype(get_signed_dtype(dtypes[col]))
+            waterfalls[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
         )
 
 for col in ["CoastalHUC8"]:

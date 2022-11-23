@@ -87,6 +87,7 @@ ListItem.propTypes = {
   layer: PropTypes.string,
   showID: PropTypes.bool,
   disabled: PropTypes.bool,
+  focused: PropTypes.bool,
 }
 
 ListItem.defaultProps = {
@@ -94,6 +95,7 @@ ListItem.defaultProps = {
   layer: '',
   showID: false,
   disabled: false,
+  focused: false,
 }
 
 export default memo(ListItem)

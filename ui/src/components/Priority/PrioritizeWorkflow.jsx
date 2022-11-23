@@ -273,7 +273,6 @@ const Prioritize = () => {
   }
 
   let sidebarContent = null
-  let topbarContent = null
 
   if (selectedBarrier === null) {
     if (isError) {
@@ -331,19 +330,6 @@ const Prioritize = () => {
                 onStartOver={handleStartOver}
               />
             )
-
-            if (zoom < unitLayerConfig[layer].minzoom) {
-              topbarContent = (
-                <TopBar>
-                  <Box sx={{ color: 'highlight', mt: '-3px' }}>
-                    <ExclamationTriangle size="1.25em" />
-                  </Box>
-                  <Text sx={{ ml: '0.5rem', color: 'highlight' }}>
-                    Zoom in further to select a {getSingularLabel(layer)}
-                  </Text>
-                </TopBar>
-              )
-            }
           }
           break
         }
@@ -376,23 +362,6 @@ const Prioritize = () => {
             />
           )
 
-          topbarContent = (
-            <TopBar>
-              <Text sx={{ mr: '0.5rem' }}>Show ranks for:</Text>
-              <ToggleButton
-                value={scenario}
-                options={scenarioOptions}
-                onChange={handleSetScenario}
-              />
-              <Text sx={{ mx: '0.5rem' }}>for</Text>
-              <ToggleButton
-                value={resultsType}
-                options={resultTypeOptions}
-                onChange={handleSetResultsType}
-              />
-            </TopBar>
-          )
-
           trackPrioritize({
             barrierType,
             unitType: layer,
@@ -410,6 +379,41 @@ const Prioritize = () => {
         }
       }
     }
+  }
+
+  let topbarContent = null
+  if (step === 'results') {
+    topbarContent = (
+      <TopBar>
+        <Text sx={{ mr: '0.5rem' }}>Show ranks for:</Text>
+        <ToggleButton
+          value={scenario}
+          options={scenarioOptions}
+          onChange={handleSetScenario}
+        />
+        <Text sx={{ mx: '0.5rem' }}>for</Text>
+        <ToggleButton
+          value={resultsType}
+          options={resultTypeOptions}
+          onChange={handleSetResultsType}
+        />
+      </TopBar>
+    )
+  } else if (
+    step === 'select' &&
+    layer !== null &&
+    zoom < unitLayerConfig[layer].minzoom
+  ) {
+    topbarContent = (
+      <TopBar>
+        <Box sx={{ color: 'highlight', mt: '-3px' }}>
+          <ExclamationTriangle size="1.25em" />
+        </Box>
+        <Text sx={{ ml: '0.5rem', color: 'highlight' }}>
+          Zoom in further to select a {getSingularLabel(layer)}
+        </Text>
+      </TopBar>
+    )
   }
 
   return (

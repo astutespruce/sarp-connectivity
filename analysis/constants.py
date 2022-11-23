@@ -364,7 +364,7 @@ RECON_TO_FEASIBILITY = {
 #   # 13: 'Breached - full flow'
 # }
 
-# NOTE: values with 10 are NOT shown in filters in the UI
+# NOTE: values with 10 are NOT shown in filters in the UI; 0 is reserved for missing values
 FEASIBILITY_TO_DOMAIN = {
     0: 1,  # not assessed
     1: 5,  # not feasible

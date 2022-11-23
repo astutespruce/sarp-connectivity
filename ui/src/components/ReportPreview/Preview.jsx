@@ -263,7 +263,6 @@ Preview.propTypes = {
     county: PropTypes.string.isRequired,
     state: PropTypes.string.isRequired,
     upnetid: PropTypes.number,
-    hasnetwork: PropTypes.bool,
     // other props validated by subcomponents
   }).isRequired,
 }

@@ -35,8 +35,8 @@ const BarrierDetails = ({ barrier, onClose }) => {
     CountyName,
     State,
     packed,
-    statetiers,
-    ncwc_tier, // field from custom ranking
+    statetiers = null,
+    tiers = null,
   } = barrier
 
   const [sarpid, name] = sarpidname.split('|')
@@ -106,22 +106,24 @@ const BarrierDetails = ({ barrier, onClose }) => {
     const scores = {}
     const metrics = ['nc', 'wc', 'ncwc', 'pnc', 'pwc', 'pncwc']
 
-    // state ranks are in a bit-packed field
-    const stateRanks = unpackBits(statetiers, TIER_PACK_BITS)
-    scores.state = {}
-    metrics.forEach((metric) => {
-      const tier = stateRanks[metric]
-      scores.state[metric] = {
-        score: tierToPercent(tier),
-        tier,
-      }
-    })
+    if (statetiers !== null) {
+      // state ranks are in a bit-packed field, only available for dams
+      const stateRanks = unpackBits(statetiers, TIER_PACK_BITS)
+      scores.state = {}
+      metrics.forEach((metric) => {
+        const tier = stateRanks[metric]
+        scores.state[metric] = {
+          score: tierToPercent(tier),
+          tier,
+        }
+      })
+    }
 
     // add in custom results if available
-    if (ncwc_tier) {
+    if (tiers) {
       scores.custom = {}
       metrics.forEach((metric) => {
-        const tier = barrier[`${metric}_tier`]
+        const tier = tiers[metric]
         scores.custom[metric] = {
           score: tierToPercent(tier),
           tier,

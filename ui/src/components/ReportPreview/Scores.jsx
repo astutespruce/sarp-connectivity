@@ -9,7 +9,7 @@ import { barrierTypeLabels } from 'config'
 const Scores = ({
   barrierType,
   state,
-  hasnetwork,
+  ranked,
   invasive,
   nostructure,
   state_nc_tier,
@@ -20,7 +20,12 @@ const Scores = ({
   state_pncwc_tier,
   sx,
 }) => {
-  if (!hasnetwork) {
+  if (!ranked) {
+    return null
+  }
+
+  // small barriers do not have state ranks
+  if (barrierType === 'small_barriers') {
     return null
   }
 
@@ -117,7 +122,7 @@ const Scores = ({
 Scores.propTypes = {
   barrierType: PropTypes.string.isRequired,
   state: PropTypes.string.isRequired,
-  hasnetwork: PropTypes.bool,
+  ranked: PropTypes.bool,
   invasive: PropTypes.bool,
   nostructure: PropTypes.bool,
   state_nc_tier: PropTypes.number,
@@ -130,7 +135,7 @@ Scores.propTypes = {
 }
 
 Scores.defaultProps = {
-  hasnetwork: false,
+  ranked: false,
   invasive: false,
   nostructure: false,
   state_nc_tier: null,
