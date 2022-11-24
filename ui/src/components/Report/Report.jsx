@@ -36,8 +36,11 @@ const Report = ({
   locatorMap,
   attribution,
   scale,
+  visibleLayers,
 }) => {
   const { county, state, hasnetwork } = data
+
+  console.log('visibleLayers', visibleLayers)
 
   return (
     <Document
@@ -54,7 +57,11 @@ const Report = ({
 
         <Flex>
           <LocatorMap map={locatorMap} />
-          <Legend barrierType={barrierType} name={name} />
+          <Legend
+            barrierType={barrierType}
+            name={name}
+            visibleLayers={visibleLayers}
+          />
         </Flex>
 
         <Footer />
@@ -112,6 +119,11 @@ Report.propTypes = {
     width: PropTypes.number.isRequired,
     label: PropTypes.string.isRequired,
   }).isRequired,
+  visibleLayers: PropTypes.object,
+}
+
+Report.defaultProps = {
+  visibleLayers: null,
 }
 
 export default Report

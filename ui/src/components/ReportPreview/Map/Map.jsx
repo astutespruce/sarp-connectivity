@@ -56,9 +56,51 @@ const Map = ({
   networkID,
   onCreateMap,
   onUpdateBasemap,
+  onVisibleLayerUpdate,
 }) => {
   const mapNode = useRef(null)
+  const mapRef = useRef(null)
   const [map, setMap] = useState(null)
+
+  // TODO: hook this up to map zoom / pan
+  const handleVisibleLayerUpdate = () => {
+    const { current: mapObj } = mapRef
+
+    if (!mapObj) {
+      return
+    }
+
+    const flowlineLayers = networkLayers
+      .filter(({ id }) => !id.endsWith('-highlight'))
+      .map(({ id }) => id)
+
+    const flowlines = mapObj.queryRenderedFeatures(undefined, {
+      layers: flowlineLayers,
+    })
+
+    const flowlineTypes = flowlines
+      .map(({ properties: { mapcode } }) =>
+        mapcode === 2 || mapcode === 3 ? 'alteredFlowline' : 'flowline'
+      )
+      .concat(
+        flowlines.map(({ properties: { mapcode } }) =>
+          mapcode === 1 || mapcode === 3 ? 'intermittentFlowline' : 'flowline'
+        )
+      )
+
+    const barrierLayers = [waterfallsLayer.id]
+    if (barrierType === 'small_barriers') {
+      barrierLayers.push(damsSecondaryLayer.id)
+    }
+    const barriers = mapObj.queryRenderedFeatures(undefined, {
+      layers: barrierLayers,
+    })
+
+    const visible = new Set(
+      flowlineTypes.concat(barriers.map(({ layer: { id } }) => id))
+    )
+    onVisibleLayerUpdate(visible)
+  }
 
   // construct the map within an effect that has no dependencies
   // this allows us to construct it only once at the time the
@@ -82,6 +124,7 @@ const Map = ({
         maxZoom: 18,
         preserveDrawingBuffer: true,
       })
+      mapRef.current = mapObj
       window.previewMap = mapObj // for easier debugging and querying via console
 
       mapObj.addControl(new mapboxgl.NavigationControl(), 'top-right')
@@ -125,7 +168,10 @@ const Map = ({
         mapObj.addLayer(waterfallsLayer)
 
         if (barrierType === 'small_barriers') {
-          mapObj.addLayer(damsSecondaryLayer)
+          mapObj.addLayer({
+            ...damsSecondaryLayer,
+            layout: { visibility: 'visible' },
+          })
         }
 
         mapObj.addLayer({
@@ -175,6 +221,10 @@ const Map = ({
           minzoom: 9,
           filter: ['==', ['get', 'id'], barrierID],
         })
+
+        mapObj.once('idle', handleVisibleLayerUpdate)
+        mapObj.on('zoomend', handleVisibleLayerUpdate)
+        mapObj.on('moveend', handleVisibleLayerUpdate)
 
         // rerender to pass map into child components
         setMap(mapObj)
@@ -245,6 +295,7 @@ Map.propTypes = {
   networkID: PropTypes.number,
   onCreateMap: PropTypes.func.isRequired,
   onUpdateBasemap: PropTypes.func.isRequired,
+  onVisibleLayerUpdate: PropTypes.func.isRequired,
 }
 
 Map.defaultProps = {

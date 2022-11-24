@@ -42,14 +42,20 @@ const Preview = ({ barrierType, data }) => {
 
   const name = data.name || defaultName
 
-  const [{ attribution, hasError, isPending }, setState] = useState({
-    attribution: basemapAttribution['light-v9'],
-    hasError: false,
-    isPending: false,
-  })
+  const [{ attribution, hasError, isPending, visibleLayers }, setState] =
+    useState({
+      attribution: basemapAttribution['light-v9'],
+      hasError: false,
+      isPending: false,
+      visibleLayers: null,
+    })
 
   const exportMapRef = useRef(null)
   const locatorMapRef = useRef(null)
+
+  const handleVisibleLayerUpdate = useCallback((visible) => {
+    setState((prevState) => ({ ...prevState, visibleLayers: visible }))
+  }, [])
 
   const handleCreateExportMap = useCallback((map) => {
     exportMapRef.current = map
@@ -112,6 +118,7 @@ const Preview = ({ barrierType, data }) => {
           barrierType={barrierType}
           data={data}
           name={name}
+          visibleLayers={visibleLayers}
         />
       )
         .toBlob()
@@ -137,9 +144,9 @@ const Preview = ({ barrierType, data }) => {
           }))
         })
     },
-    // intentionally omitting deps; they don't change
+    // intentionally omitting other deps; they don't change
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    []
+    [visibleLayers]
   )
 
   if (hasError) {
@@ -202,6 +209,7 @@ const Preview = ({ barrierType, data }) => {
           barrierType={barrierType}
           onCreateMap={handleCreateExportMap}
           onUpdateBasemap={handleUpdateBasemap}
+          onVisibleLayerUpdate={handleVisibleLayerUpdate}
         />
 
         <Attribution attribution={attribution} />
@@ -214,7 +222,11 @@ const Preview = ({ barrierType, data }) => {
               onCreateMap={handleCreateLocatorMap}
             />
           </Box>
-          <Legend barrierType={barrierType} name={name} />
+          <Legend
+            barrierType={barrierType}
+            name={name}
+            visibleLayers={visibleLayers}
+          />
         </Flex>
 
         <Box
