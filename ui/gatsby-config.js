@@ -57,12 +57,6 @@ module.exports = {
     `gatsby-plugin-image`,
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
-    // {
-    //   resolve: ``,
-    //   options: {
-    //     prefixes: [`/report/*`],
-    //   },
-    // },
     {
       resolve: `gatsby-source-filesystem`,
       options: {

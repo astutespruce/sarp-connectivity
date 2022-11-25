@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 import geopandas as gp
+import pyarrow as pa
+from pyarrow.dataset import dataset
 
 from analysis.constants import CRS
 
@@ -50,3 +52,30 @@ def read_feathers(paths, columns=None, geo=False, new_fields=None):
         )
 
     return merged.reset_index(drop=True)
+
+
+def read_arrow_tables(paths, columns=None, filter=None):
+    """Read multiple feather files into a single pyarrow.Table
+
+    Parameters
+    ----------
+    paths : list-like of strings or path objects
+    columns : [type], optional (default: None)
+        Columns to read from the feather files
+    filter : pyarrow.compute.Expression
+        filter to apply when reading from disk
+
+    Returns
+    -------
+    pyarrow.Table
+    """
+    merged = None
+    for path in paths:
+        if not Path(path).exists():
+            continue
+
+        table = dataset(path, format="feather").to_table(columns=columns, filter=filter)
+
+        merged = pa.concat_tables([merged, table]) if merged is not None else table
+
+    return merged.combine_chunks()
