@@ -85,12 +85,19 @@ def add_spatial_joins(df):
     df.OwnerType = df.OwnerType.fillna(0).astype("uint8")
     df.ProtectedLand = df.ProtectedLand.fillna(False).astype("bool")
 
-    ### Join in T&E Spp stats
-    # note: trout is presence / absence
+    ### Join in species stats
     spp_df = (
         pd.read_feather(
             data_dir / "species/derived/spp_HUC12.feather",
-            columns=["HUC12", "federal", "sgcn", "regional", "trout"],
+            columns=[
+                "HUC12",
+                "federal",
+                "sgcn",
+                "regional",
+                "trout",
+                "salmonid_esu",
+                "salmonid_esu_count",
+            ],
         )
         .rename(
             columns={
@@ -98,12 +105,21 @@ def add_spatial_joins(df):
                 "sgcn": "StateSGCNSpp",
                 "regional": "RegionalSGCNSpp",
                 "trout": "Trout",
+                "salmonid_esu": "SalmonidESU",
+                "salmonid_esu_count": "SalmonidESUCount",
             }
         )
         .set_index("HUC12")
     )
     df = df.join(spp_df, on="HUC12")
-    for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp", "Trout"]:
+    for col in [
+        "TESpp",
+        "StateSGCNSpp",
+        "RegionalSGCNSpp",
+        "Trout",
+        "SalmonidESUCount",
+    ]:
         df[col] = df[col].fillna(0).astype("uint8")
+    df["SalmonidESU"] = df.SalmonidESU.fillna("")
 
     return df

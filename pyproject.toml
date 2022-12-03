@@ -21,7 +21,8 @@ pyogrio = "^0.4.2"
 geopandas = "0.12.1"
 httpx = { extras = ["http2"], version = "^0.23.0" }
 scipy = "^1.9.1"
-shapely = "2.0b2"
+shapely = "2.0rc1"
+openpyxl = "^3.0.10"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.14.5"

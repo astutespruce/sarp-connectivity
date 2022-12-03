@@ -292,9 +292,8 @@ df.to_feather(out_dir / "protected_areas.feather")
 
 
 ### Priority layers
-# These are joined on HUC8 codes
 
-# Conservation opportunity areas (for now the only priority type)
+# Conservation opportunity areas (for now the only priority type) joined to HUC8
 # 1 = COA
 coa = read_dataframe(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[
     ["HUC_8"]
@@ -303,7 +302,6 @@ coa["coa"] = 1
 
 # take the lowest value (highest priority) for duplicate watersheds
 coa = coa.groupby(level=0).min()
-
 
 # 0 = not priority for a given priority dataset
 priorities = coa.fillna(0).astype("uint8")
@@ -315,8 +313,6 @@ priorities = (
     .rename(columns={"index": "HUC8"})
     .reset_index(drop=True)
 )
-
-priorities.to_feather(out_dir / "priorities.feather")
 
 # join to HUC8 dataset for tiles
 huc8_df = gp.read_feather(out_dir / "huc8.feather")

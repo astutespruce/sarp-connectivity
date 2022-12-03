@@ -16,7 +16,7 @@ const flowlineSymbols = {
   },
   alteredFlowline: {
     color: '#9370db',
-    label: 'Altered stream reach (canal / ditch)',
+    label: 'Altered stream reach (canal / ditch / reservoir)',
     type: 'line',
     borderWidth: 2,
   },

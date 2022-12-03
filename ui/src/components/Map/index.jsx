@@ -14,6 +14,10 @@ import {
   mapToDataURL,
   highlightNetwork,
   setBarrierHighlight,
+  getInArrayExpr,
+  getNotInArrayExpr,
+  getInStringExpr,
+  getNotInStringExpr,
 } from './util'
 import { networkLayers } from './layers'
 
@@ -27,6 +31,10 @@ export {
   getCenterAndZoom,
   unionBounds,
   interpolateExpr,
+  getInArrayExpr,
+  getNotInArrayExpr,
+  getInStringExpr,
+  getNotInStringExpr,
   toGeoJSONPoints,
   mapToBlob,
   mapToDataURL,

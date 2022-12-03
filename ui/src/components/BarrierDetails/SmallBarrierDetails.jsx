@@ -14,6 +14,7 @@ import {
   CONSTRICTION,
   OWNERTYPE,
   BARRIEROWNERTYPE,
+  SALMONID_ESU,
 } from 'config'
 
 import NetworkInfo from './NetworkInfo'
@@ -65,6 +66,7 @@ const BarrierDetails = ({
   statesgcnspp,
   regionalsgcnspp,
   trout,
+  salmonidesu,
   ownertype,
   barrierownertype,
   barrierseverity,
@@ -232,7 +234,7 @@ const BarrierDetails = ({
       </Section>
 
       <Section title="Species information">
-        {tespp + regionalsgcnspp > 0 || trout ? (
+        {tespp + regionalsgcnspp > 0 || trout || salmonidesu ? (
           <>
             <Text sx={{ my: '0.5rem', mr: '0.5rem' }}>
               Data sources in the subwatershed containing this barrier have
@@ -255,15 +257,24 @@ const BarrierDetails = ({
               <li>
                 {trout ? 'One or more trout species' : 'No trout species'}
               </li>
+              {salmonidesu ? (
+                <li>
+                  Within{' '}
+                  {salmonidesu
+                    .split(',')
+                    .map((code) => SALMONID_ESU[code])
+                    .join(', ')}
+                </li>
+              ) : null}
             </Box>
           </>
         ) : (
           <Text sx={{ my: '0.5rem', mr: '0.5rem', color: 'grey.8' }}>
-            Data sources in the subwatershed containing this barrier have not
+            Data sources in the subwatershed containing this dam have not
             recorded any federally-listed threatened and endangered aquatic
             species, state-listed aquatic Species of Greatest Conservation Need,
-            regionally-listed aquatic Species of Greatest Conservation Need, or
-            trout species.
+            regionally-listed aquatic Species of Greatest Conservation Need,
+            trout species, or salmon ESU / steelhead trout DPS.
           </Text>
         )}
 
@@ -319,6 +330,7 @@ BarrierDetails.propTypes = {
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   trout: PropTypes.number,
+  salmonidesu: PropTypes.string,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
   totalupstreammiles: PropTypes.number,
@@ -353,6 +365,7 @@ BarrierDetails.defaultProps = {
   statesgcnspp: 0,
   regionalsgcnspp: 0,
   trout: 0,
+  salmonidesu: null,
   ownertype: null,
   barrierownertype: null,
   totalupstreammiles: 0,

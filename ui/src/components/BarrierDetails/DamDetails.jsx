@@ -17,6 +17,7 @@ import {
   OWNERTYPE,
   BARRIEROWNERTYPE,
   WATERBODY_SIZECLASS,
+  SALMONID_ESU,
 } from 'config'
 
 import NetworkInfo from './NetworkInfo'
@@ -55,6 +56,7 @@ const DamDetails = ({
   statesgcnspp,
   regionalsgcnspp,
   trout,
+  salmonidesu,
   recon,
   ownertype,
   barrierownertype,
@@ -253,7 +255,7 @@ const DamDetails = ({
     </Section>
 
     <Section title="Species information">
-      {tespp + regionalsgcnspp > 0 || trout ? (
+      {tespp + regionalsgcnspp > 0 || trout || salmonidesu ? (
         <>
           <Text sx={{ my: '0.5rem', mr: '0.5rem' }}>
             Data sources in the subwatershed containing this dam have recorded:
@@ -273,6 +275,15 @@ const DamDetails = ({
               Greatest Conservation Need
             </li>
             <li>{trout ? 'One or more trout species' : 'No trout species'}</li>
+            {salmonidesu ? (
+              <li>
+                Within{' '}
+                {salmonidesu
+                  .split(',')
+                  .map((code) => SALMONID_ESU[code])
+                  .join(', ')}
+              </li>
+            ) : null}
           </Box>
         </>
       ) : (
@@ -280,8 +291,8 @@ const DamDetails = ({
           Data sources in the subwatershed containing this dam have not recorded
           any federally-listed threatened and endangered aquatic species,
           state-listed aquatic Species of Greatest Conservation Need,
-          regionally-listed aquatic Species of Greatest Conservation Need, or
-          trout species.
+          regionally-listed aquatic Species of Greatest Conservation Need, trout
+          species, or salmon ESU / steelhead trout DPS.
         </Text>
       )}
 
@@ -372,6 +383,7 @@ DamDetails.propTypes = {
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   trout: PropTypes.number,
+  salmonidesu: PropTypes.string,
   recon: PropTypes.number,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
@@ -414,6 +426,7 @@ DamDetails.defaultProps = {
   statesgcnspp: 0,
   regionalsgcnspp: 0,
   trout: 0,
+  salmonidesu: null,
   recon: null,
   ownertype: null,
   barrierownertype: null,

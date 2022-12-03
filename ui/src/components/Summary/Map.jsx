@@ -584,7 +584,7 @@ const SummaryMap = ({
         },
         {
           id: 'altered',
-          label: 'altered stream reach (canal / ditch)',
+          label: 'altered stream reach (canal / ditch / reservoir)',
           color: '#9370db',
           lineWidth: '2px',
         },

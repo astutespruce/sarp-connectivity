@@ -153,6 +153,14 @@ python-versions = ">=3.7"
 graph = ["objgraph (>=1.7.2)"]
 
 [[package]]
+name = "et-xmlfile"
+version = "1.1.0"
+description = "An implementation of lxml.xmlfile for the standard library"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "fastapi"
 version = "0.79.1"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
@@ -382,6 +390,17 @@ description = "NumPy is the fundamental package for array computing with Python.
 category = "main"
 optional = false
 python-versions = ">=3.8"
+
+[[package]]
+name = "openpyxl"
+version = "3.0.10"
+description = "A Python library to read/write Excel 2010 xlsx/xlsm files"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+et-xmlfile = "*"
 
 [[package]]
 name = "packaging"
@@ -657,7 +676,7 @@ tornado = ["tornado (>=5)"]
 
 [[package]]
 name = "shapely"
-version = "2.0b2"
+version = "2.0rc1"
 description = "Manipulation and analysis of geometric objects"
 category = "main"
 optional = false
@@ -667,8 +686,8 @@ python-versions = ">=3.7"
 numpy = ">=1.14"
 
 [package.extras]
-docs = ["sphinx", "numpydoc"]
-test = ["pytest"]
+docs = ["numpydoc (>=1.1.0,<1.2.0)", "matplotlib", "sphinx", "sphinx-book-theme", "sphinx-remove-toctrees"]
+test = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "six"
@@ -820,7 +839,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.12"
-content-hash = "3c0149bed5b3d26e82b99ae31066f3de38444a77c5d6abd664bdc7397df6e301"
+content-hash = "ce1c2f74889dfdeac40d14b84b1ed44d68e7befe8ffa7f53036cb5332da3f6d8"
 
 [metadata.files]
 aiofiles = [
@@ -889,6 +908,10 @@ colorama = [
 dill = [
     {file = "dill-0.3.6-py3-none-any.whl", hash = "sha256:a07ffd2351b8c678dfc4a856a3005f8067aea51d6ba6c700796a4d9e280f39f0"},
     {file = "dill-0.3.6.tar.gz", hash = "sha256:e5db55f3687856d8fbdab002ed78544e1c4559a130302693d839dfe8f93f2373"},
+]
+et-xmlfile = [
+    {file = "et_xmlfile-1.1.0-py3-none-any.whl", hash = "sha256:a2ba85d1d6a74ef63837eed693bcb89c3f752169b0e3e7ae5b16ca5e1b3deada"},
+    {file = "et_xmlfile-1.1.0.tar.gz", hash = "sha256:8eb9e2bc2f8c97e37a2dc85a09ecdcdec9d8a396530a6d5a33b30b9a92da0c5c"},
 ]
 fastapi = [
     {file = "fastapi-0.79.1-py3-none-any.whl", hash = "sha256:3c584179c64e265749e88221c860520fc512ea37e253282dab378cc503dfd7fd"},
@@ -1116,6 +1139,10 @@ numpy = [
     {file = "numpy-1.23.4-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:296d17aed51161dbad3c67ed6d164e51fcd18dbcd5dd4f9d0a9c6055dce30810"},
     {file = "numpy-1.23.4-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:4d52914c88b4930dafb6c48ba5115a96cbab40f45740239d9f4159c4ba779962"},
     {file = "numpy-1.23.4.tar.gz", hash = "sha256:ed2cc92af0efad20198638c69bb0fc2870a58dabfba6eb722c933b48556c686c"},
+]
+openpyxl = [
+    {file = "openpyxl-3.0.10-py2.py3-none-any.whl", hash = "sha256:0ab6d25d01799f97a9464630abacbb34aafecdcaa0ef3cba6d6b3499867d0355"},
+    {file = "openpyxl-3.0.10.tar.gz", hash = "sha256:e47805627aebcf860edb4edf7987b1309c1b3632f3750538ed962bbcc3bd7449"},
 ]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
@@ -1358,39 +1385,39 @@ sentry-sdk = [
     {file = "sentry_sdk-1.10.1-py2.py3-none-any.whl", hash = "sha256:06c0fa9ccfdc80d7e3b5d2021978d6eb9351fa49db9b5847cf4d1f2a473414ad"},
 ]
 shapely = [
-    {file = "shapely-2.0b2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:9f93782ca0406846c3e14931c1afa9bc46de63f2eb985589b037746eb7e5de4a"},
-    {file = "shapely-2.0b2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:944a662b3cb5b98e6e15df299ac6b1dc0ebab794030555a2d51e59dce2349af6"},
-    {file = "shapely-2.0b2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:b5dbafbe12f48bf43e631f5164b9bf702344df9d22ae476801c69f8702330065"},
-    {file = "shapely-2.0b2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:32cdf2b30e068e77b15d90b10a90a2b4b74da70eea5e8b243c982dfd2fe43d94"},
-    {file = "shapely-2.0b2-cp310-cp310-win32.whl", hash = "sha256:4d76e01bd5e0bf2e817f2eeddf4c6e7ed200530c65818a5f8883b8e5cdb5dbf9"},
-    {file = "shapely-2.0b2-cp310-cp310-win_amd64.whl", hash = "sha256:b13a61096795186e55dd6f41f240f81141d1938d10fdaf59f387df576dab91c0"},
-    {file = "shapely-2.0b2-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:22b820047ddef0e3ead2e01028e5412dc75b8c70c1d60e7f8e972e716119cae1"},
-    {file = "shapely-2.0b2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:d6008c310e6589a8df2ff7f307f7b24dba1f588c04edec905f9a69adc632bb67"},
-    {file = "shapely-2.0b2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:0630112087213a9ab34e878be1267cedb2c10a3a20560ab1c8802fa58dd7bb58"},
-    {file = "shapely-2.0b2-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:252940416bf6c34ea38b5584f91fcfaa2f651fcbad58e6b4ec2f844880b7c27b"},
-    {file = "shapely-2.0b2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4ef19fb9402e5cb6301d578c6c49859d35d0948c9b4f189ffe7429da1ae03332"},
-    {file = "shapely-2.0b2-cp311-cp311-win32.whl", hash = "sha256:130536b8b4db588c2b6e3bce4d9e9d7d14e4f40e92dbecb25fbe765ae6530aee"},
-    {file = "shapely-2.0b2-cp311-cp311-win_amd64.whl", hash = "sha256:bb95f5f08bcd34f8d810bfd3514c4580881e95f155fe9d8840c2c7e620ce46b0"},
-    {file = "shapely-2.0b2-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:c758e7458174896b59c41d4c388a0e95d4e4bf6fda60226631182d74bb2bbc4e"},
-    {file = "shapely-2.0b2-cp37-cp37m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:c7f4a90e9437b274c930dd0e2716a737274e1c254e596ec022b7a32a8164f102"},
-    {file = "shapely-2.0b2-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4ec85206455124a5a9973a277984d64b8c7bf875ec6c368b96262d0012dd81a8"},
-    {file = "shapely-2.0b2-cp37-cp37m-win32.whl", hash = "sha256:d1c23672549c7a87ede495fb6a96ce4746706e54ac7513199fb9279b703667d8"},
-    {file = "shapely-2.0b2-cp37-cp37m-win_amd64.whl", hash = "sha256:528f93e933db7f8f98ddcc8fdcf4977f4e4c22e32af9b03846d9464c615c5a33"},
-    {file = "shapely-2.0b2-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:1e477c7da8e03d1bc15e670784f3295bc81ad7e27ec38458461e9172f0cca084"},
-    {file = "shapely-2.0b2-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:d96d7c606dc4646d844a7332e873ee26eba874e237a414d7b4d83a11b114a0b5"},
-    {file = "shapely-2.0b2-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:f3afc54b5389a7387d13f1d3ed1e46af3b6a5def1cbb0da02bfcf701750a6743"},
-    {file = "shapely-2.0b2-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a6aca100dae965853b64fcb0940f53e4ddf4a24e3d7d7f4619c8912e128d74c4"},
-    {file = "shapely-2.0b2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4f956f5b1ca00cf1e8c79c6e39ba1f653b133d1947239cbba60f87050616effb"},
-    {file = "shapely-2.0b2-cp38-cp38-win32.whl", hash = "sha256:4276845b4f585add71b99163cbe080db3a1c1bcfc4843dad1fdd24e49a9f10f3"},
-    {file = "shapely-2.0b2-cp38-cp38-win_amd64.whl", hash = "sha256:308cb4a4a60ca9b3a067475f6257da533593b831d5c835c90b5f4e860b77dce7"},
-    {file = "shapely-2.0b2-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:5e8d78668bfed82be6d9ad80cc4585ae5731520821be12a723adbcdfc601a8fa"},
-    {file = "shapely-2.0b2-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:190a2b84b115580b513337d5ba5322b5bd310816e7ffcf80c3a3cec42063b13b"},
-    {file = "shapely-2.0b2-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:c6f3e56ce1ca5c69c0a7d6d33cdaed8df95408a6230d7dd36ba6b4eb297eb9a7"},
-    {file = "shapely-2.0b2-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a7d75ac5885438ea777bb93b1ef41d2965ec1374f51d0b0891d9089545c8fb85"},
-    {file = "shapely-2.0b2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:efec2db2368f34f8efd7e5739f900c8f9d5868b089b1dad108ecfcf9f8278cd4"},
-    {file = "shapely-2.0b2-cp39-cp39-win32.whl", hash = "sha256:40318da326133a35b0adba5a82ee8a55e0f773811f284afc9051f4daaab96f86"},
-    {file = "shapely-2.0b2-cp39-cp39-win_amd64.whl", hash = "sha256:8553ebc294a45471d1cd1341af0834032d4ddd32597108f59227f22e3fc0a029"},
-    {file = "shapely-2.0b2.tar.gz", hash = "sha256:4345ea7a75f6933325dbe82bdec14b4b4b16b15f6543eb5f5525f363430573d1"},
+    {file = "shapely-2.0rc1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:0a4b5d4e3e100565c45efa9c3b2b5b1115d78f7e5c930f745e335b9639847266"},
+    {file = "shapely-2.0rc1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:92bb6a571a5bd854b2da21d04df5675157d637c8ea06334f45972186f2b846f7"},
+    {file = "shapely-2.0rc1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:4ecc8bf234f2f78cdf50cc65970643b46258595bc15bcf87e9ff4861ec8894ed"},
+    {file = "shapely-2.0rc1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a135f311eaa734fcd79dcee7e5e71483b17c3ba5a6699fe71138b7e1de9252a5"},
+    {file = "shapely-2.0rc1-cp310-cp310-win32.whl", hash = "sha256:e955afe990343e2d8d8a70e3adaa615e8c47528340ecac258ae31921e29a37ea"},
+    {file = "shapely-2.0rc1-cp310-cp310-win_amd64.whl", hash = "sha256:d60550c97dc142b8c14ee3d5142b50b4abb22466feb5b5bbd4bb0113af5689bc"},
+    {file = "shapely-2.0rc1-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:c524d15c5b31c1d98a8dc38c13964d2b87fc0ac0bbf044333d2a8b87326e170d"},
+    {file = "shapely-2.0rc1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:a45558a2e2bedae10a54d37b0d25c8eb1229d383f940c6204c2c941ca86e51b9"},
+    {file = "shapely-2.0rc1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:423d652a4fc8ad95a9c4153e0ae13ce9410d0030b8bbc24f6a04909e6d519c07"},
+    {file = "shapely-2.0rc1-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:7a0a35a2b43e21f95257349248eafc72dad85e6e9fd3d41f04b20e5d48249823"},
+    {file = "shapely-2.0rc1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:61efe106c48c167ee83c7c11e1adf32a9cd4a2433ad0ff909c94feea85624744"},
+    {file = "shapely-2.0rc1-cp311-cp311-win32.whl", hash = "sha256:c75da1ee2629fed835a6c562c5c8242cca7922f0faa0f4b6a08313e637ea35ca"},
+    {file = "shapely-2.0rc1-cp311-cp311-win_amd64.whl", hash = "sha256:22d95232077d01eb16867aa6ecff9f9177bd3a415ecfa00a9f775354805cf9f9"},
+    {file = "shapely-2.0rc1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:a8aea92fdf8bb2c233cd65b8673911ff96b372a897a5e418fd6d84e459db4461"},
+    {file = "shapely-2.0rc1-cp37-cp37m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:31eaf3f44c24eaa2a8f1480eaab696bc18f8bfb6ed2a894383b348d58cc0d3c3"},
+    {file = "shapely-2.0rc1-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c65c51514a320ceec95c91d54b6cadc14478e6c262ef299e619c23e95ad49ad6"},
+    {file = "shapely-2.0rc1-cp37-cp37m-win32.whl", hash = "sha256:e1ba3df6416d1a064165b6069b3ab59e0aca283de8d5e7ffee20640b9692dc9c"},
+    {file = "shapely-2.0rc1-cp37-cp37m-win_amd64.whl", hash = "sha256:85effb329fd455500e26c77c00eec1babb75c12aaeddac30778ec3f08994223a"},
+    {file = "shapely-2.0rc1-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:87f7ec1045e6e9da79243ac61c8aae986e135603c8f653d5fbedce0a21e880b6"},
+    {file = "shapely-2.0rc1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:0329c8cd75093f33a6bae668b466386ee5b2cc9f84e6db50e06af122a54d4971"},
+    {file = "shapely-2.0rc1-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:ceebebbdd2581be67e48d6d98fb83f2e807b29dcb3ffe51742261f1908c24902"},
+    {file = "shapely-2.0rc1-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a58e7309cab4ea55f7c90859e0f32a451bc1d9cc2700fb534a25ae1939ee16a5"},
+    {file = "shapely-2.0rc1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:16cc1cea91ae2790cf82d268ede9d1a833ac04ec0d74b2eaeb98060179a9c6ec"},
+    {file = "shapely-2.0rc1-cp38-cp38-win32.whl", hash = "sha256:aa3d1d463de704e9884e00969a6f5eb45ad9a1d6178bbe35f15cc7dd54f2e19b"},
+    {file = "shapely-2.0rc1-cp38-cp38-win_amd64.whl", hash = "sha256:d67f833dd0c320ee666675b9da47278d39f125d56947e6fdaf9f0174199e8602"},
+    {file = "shapely-2.0rc1-cp39-cp39-macosx_10_9_universal2.whl", hash = "sha256:9c5fe972139f4e962ef7be1981a1f61f7a35f624636be74c1d207aecffb092d0"},
+    {file = "shapely-2.0rc1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:5a9b22e969567d7c129a66893ebf87b3ef49b95b61e877a0a962992fa7ee6c48"},
+    {file = "shapely-2.0rc1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:8a35ce3fed5b1515708524d0e47890ac12b68a9a1169f4305e6a66bb882239b6"},
+    {file = "shapely-2.0rc1-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f856a9d928e92f2007e75ec2ffaa1275b45d8ecb81a556a4857a513a6eccb257"},
+    {file = "shapely-2.0rc1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:987621072b8bed9679495145be6fe3deacf3b395be96ab5531df85d185ef44dd"},
+    {file = "shapely-2.0rc1-cp39-cp39-win32.whl", hash = "sha256:d3f89d358a2e2ed7d4f34135624cc5ebbdaebd877f638c852e0be7eff5b1b096"},
+    {file = "shapely-2.0rc1-cp39-cp39-win_amd64.whl", hash = "sha256:d666e929142b1db3b49af223be80e8f8ebf8a519f475f8ab64802e5c5b16d5f2"},
+    {file = "shapely-2.0rc1.tar.gz", hash = "sha256:f09cdfd0d9a2d239afc92c299dabe4510fabb63ca7abf683eb48532fd63e63bd"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},

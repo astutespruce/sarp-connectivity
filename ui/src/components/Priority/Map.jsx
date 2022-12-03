@@ -1,4 +1,11 @@
-import React, { memo, useEffect, useRef, useCallback, useState } from 'react'
+import React, {
+  memo,
+  useEffect,
+  useRef,
+  useCallback,
+  useState,
+  useMemo,
+} from 'react'
 import PropTypes from 'prop-types'
 import { useDebouncedCallback } from 'use-debounce'
 
@@ -16,6 +23,10 @@ import {
   networkLayers,
   highlightNetwork,
   setBarrierHighlight,
+  getInArrayExpr,
+  getNotInArrayExpr,
+  getInStringExpr,
+  getNotInStringExpr,
 } from 'components/Map'
 import { barrierTypeLabels } from 'config'
 import { isEqual, groupBy } from 'util/data'
@@ -63,6 +74,7 @@ const PriorityMap = ({
 
   const {
     state: { filters },
+    filterConfig,
   } = useCrossfilter()
   const mapRef = useRef(null)
   const hoverFeatureRef = useRef(null)
@@ -71,8 +83,23 @@ const PriorityMap = ({
   const rankedBarriersIndexRef = useRef({})
   const [priorityLayerState, setPriorityLayerState] = useState({})
 
+  const filterConfigIndex = useMemo(
+    () => {
+      const allFilters = filterConfig.reduce(
+        (prev, { filters: groupFilters }) => {
+          prev.push(...groupFilters)
+          return prev
+        },
+        []
+      )
+
+      return groupBy(allFilters, 'field')
+    },
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    []
+  )
+
   // first layer of system is default on init
-  // const [visibleLayer, setVisibleLayer] = useState(layers.filter(({system: lyrSystem}) => lyrSystem === system)[0])
   const [zoom, setZoom] = useState(0)
 
   const handleCreateMap = useCallback(
@@ -497,47 +524,63 @@ const PriorityMap = ({
 
   // if map allows filter, show selected vs unselected points, and make those without networks
   // background points
-  useEffect(() => {
-    const { current: map } = mapRef
+  useEffect(
+    () => {
+      const { current: map } = mapRef
 
-    if (!map) return
+      if (!map) return
 
-    const ids = summaryUnits.map(({ id }) => id)
+      const ids = summaryUnits.map(({ id }) => id)
 
-    if (!(activeLayer || ids.length > 0)) {
-      // if no summary units are selected, reset filters on barriers
-      map.setFilter(includedPoint.id, ['==', 'id', Infinity])
-      map.setFilter(excludedPoint.id, null)
-      return
-    }
+      if (!(activeLayer || ids.length > 0)) {
+        // if no summary units are selected, reset filters on barriers
+        map.setFilter(includedPoint.id, ['==', 'id', Infinity])
+        map.setFilter(excludedPoint.id, null)
+        return
+      }
 
-    // Construct filter expressions for each active filter
-    const filterEntries = Object.entries(filters || {}).filter(
-      ([, v]) => v && v.size > 0
-    )
+      // Construct filter expressions for each active filter
+      const filterEntries = Object.entries(filters || {}).filter(
+        ([, v]) => v && v.size > 0
+      )
 
-    const includedByFilters = filterEntries.map(([field, values]) => [
-      'in',
-      field,
-      ...Array.from(values),
-    ])
-    const excludedByFilters = filterEntries.map(([field, values]) => [
-      '!in',
-      field,
-      ...Array.from(values),
-    ])
+      const hasActiveUnits = ids && ids.length > 0
+      const insideActiveUnitsExpr = hasActiveUnits
+        ? getInArrayExpr(activeLayer, ids)
+        : // ['in', ['get', activeLayer], ...ids]
+          true
 
-    // update barrier layers to select those that are in selected units
-    map.setFilter(includedPoint.id, [
-      'all',
-      ['in', activeLayer, ...ids],
-      ...includedByFilters,
-    ])
-    map.setFilter(excludedPoint.id, [
-      'all',
-      ['any', ['!in', activeLayer, ...ids], ...excludedByFilters],
-    ])
-  }, [activeLayer, summaryUnits, filters])
+      const outsideActiveUnitsExpr = hasActiveUnits
+        ? getNotInArrayExpr(activeLayer, ids)
+        : true
+
+      const includedByFilters = filterEntries.map(([field, values]) =>
+        filterConfigIndex[field].isArray
+          ? getInStringExpr(field, values)
+          : getInArrayExpr(field, values)
+      )
+      const excludedByFilters = filterEntries.map(([field, values]) =>
+        filterConfigIndex[field].isArray
+          ? getNotInStringExpr(field, values)
+          : getNotInArrayExpr(field, values)
+      )
+
+      // update barrier layers to select those that are in selected units
+      map.setFilter(includedPoint.id, [
+        'all',
+        insideActiveUnitsExpr,
+        ...includedByFilters,
+      ])
+      map.setFilter(excludedPoint.id, [
+        'all',
+        outsideActiveUnitsExpr,
+        ...excludedByFilters,
+      ])
+    },
+    // filterConfigIndex intentionally excluded
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    [activeLayer, summaryUnits, filters]
+  )
 
   useEffect(() => {
     const { current: map } = mapRef
@@ -681,7 +724,7 @@ const PriorityMap = ({
         },
         {
           id: 'altered',
-          label: 'altered stream reach (canal / ditch)',
+          label: 'altered stream reach (canal / ditch / reservoir)',
           color: '#9370db',
           lineWidth: '2px',
         },

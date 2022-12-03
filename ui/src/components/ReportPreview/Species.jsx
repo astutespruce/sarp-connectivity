@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Heading, Grid, Paragraph } from 'theme-ui'
 
+import { SALMONID_ESU } from 'config'
 import { formatNumber } from 'util/format'
 
 const Species = ({
@@ -10,6 +11,7 @@ const Species = ({
   statesgcnspp,
   regionalsgcnspp,
   trout,
+  salmonidesu,
   sx,
 }) => (
   <Box sx={sx}>
@@ -48,7 +50,20 @@ const Species = ({
         <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of Greatest
         Conservation Need
       </Box>
-      <Box>{trout ? 'One or more trout species' : 'No trout species'}</Box>
+      <Box>
+        {trout ? 'One or more trout species' : 'No trout species'}
+        {salmonidesu ? (
+          <>
+            <br />
+            <br />
+            Within{' '}
+            {salmonidesu
+              .split(',')
+              .map((code) => SALMONID_ESU[code])
+              .join(', ')}
+          </>
+        ) : null}
+      </Box>
     </Grid>
 
     <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
@@ -69,6 +84,7 @@ Species.propTypes = {
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   trout: PropTypes.number,
+  salmonidesu: PropTypes.string,
   sx: PropTypes.object,
 }
 
@@ -76,7 +92,8 @@ Species.defaultProps = {
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
-  trout: false,
+  trout: 0,
+  salmonidesu: null,
   sx: null,
 }
 

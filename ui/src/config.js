@@ -497,6 +497,34 @@ export const WATERBODY_SIZECLASS = {
   5: 'Large lake (>= 10 km2)',
 }
 
+// NOTE: these are encoded into a comma-delimited field
+export const SALMONID_ESU = {
+  CKNR: 'Chinook ESU',
+  CKSP: 'Spring-run Chinook ESU',
+  CKSS: 'Spring/summer-run Chinook ESU',
+  CKSF: 'Summer/fall-run Chinook ESU',
+  CKFA: 'Fall-run Chinook ESU',
+  CKWI: 'Winter-run Chinook ESU',
+  CMNR: 'Chum ESU',
+  CMSU: 'Summer-run Chum ESU',
+  CMSF: 'Summer/fall-run Chum ESU',
+  CONR: 'Coho ESU',
+  PKO: 'Odd year Pink ESU',
+  PKE: 'Even year Pink ESU',
+  SENR: 'Sockeye ESU',
+  SDNR: 'Steelhead trout DPS',
+}
+
+export const SALMONID_ESU_COUNT = {
+  0: 'none present',
+  1: '1',
+  2: '2',
+  3: '3',
+  4: '4',
+  5: '5',
+  6: '6',
+}
+
 export const CONNECTIVITY_TEAMS = {
   southeast: {
     AR: {

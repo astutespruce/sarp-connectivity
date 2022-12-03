@@ -1,6 +1,8 @@
 import {
   RARESPP,
   TROUT,
+  SALMONID_ESU,
+  SALMONID_ESU_COUNT,
   INTERMITTENT,
   GAINMILES,
   BARRIER_SEVERITY,
@@ -150,7 +152,7 @@ export const smallBarriers = [
         field: 'tesppclass',
         title: 'Number of Federally-Listed Threatened and Endangered Species',
         hideEmpty: true,
-        help: 'Note: This information is based on occurrences of one or more federally-listed threatened or endangered aquatic species within the same subwatershed as the barrier.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+        help: 'Note: This information is based on occurrences of one or more federally-listed threatened or endangered aquatic species within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
         url: '/sgcn',
         ...getEntries(RARESPP),
       },
@@ -166,10 +168,19 @@ export const smallBarriers = [
       {
         field: 'trout',
         title: 'Trout presence / absence',
-        help: 'Note: This information is based on occurrences within the same subwatershed as the dam.  These species may or may not be impacted by this dam.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+        help: 'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
         sort: false,
         hideEmpty: false,
         ...getEntries(TROUT),
+      },
+      {
+        field: 'salmonidesucount',
+        title:
+          'Number of salmon Evolutionarily Significant Units / Steelhead trout Discrete Population Segments',
+        help: 'This information is based on the presence of salmon Evolutionarily Significant Units (ESU) or steelhead trout Discrete Population Segments (DPS) within the same watershed as the barrier, as provided by NOAA at the subwatershed level. These species may or may not be impacted by this barrier.',
+        sort: false,
+        hideEmpty: false,
+        ...getEntries(SALMONID_ESU_COUNT),
       },
     ],
   },

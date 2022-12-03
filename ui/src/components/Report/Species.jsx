@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
+import { SALMONID_ESU } from 'config'
 import { formatNumber } from 'util/format'
 
 import { Bold, Flex, Section } from './elements'
@@ -12,6 +13,7 @@ const Species = ({
   statesgcnspp,
   regionalsgcnspp,
   trout,
+  salmonidesu,
   ...props
 }) => (
   <Section title="Species information" {...props} wrap={false}>
@@ -70,6 +72,17 @@ const Species = ({
         }}
       >
         <Text>{trout ? 'One or more trout species' : 'No trout species'}</Text>
+        {salmonidesu ? (
+          <View style={{ marginTop: 14 }}>
+            <Text>
+              Within{' '}
+              {salmonidesu
+                .split(',')
+                .map((code) => SALMONID_ESU[code])
+                .join(', ')}
+            </Text>
+          </View>
+        ) : null}
       </View>
     </Flex>
 
@@ -91,13 +104,15 @@ Species.propTypes = {
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   trout: PropTypes.number,
+  salmonidesu: PropTypes.string,
 }
 
 Species.defaultProps = {
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
-  trout: false,
+  trout: 0,
+  salmonidesu: null,
 }
 
 export default Species

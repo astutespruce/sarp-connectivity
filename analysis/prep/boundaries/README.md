@@ -62,6 +62,11 @@ Additional boundaries are joined to the barrier inventory during the analysis.
 
 These are processed using `analysis/prep/boundaries/prep_boundaries.py`.
 
+Additional watershed-level priorities are joined during this processing. These
+include:
+
+- SARP Conservation Opportunity Areas at HUC8 level (provided by SARP)
+
 ### Counties
 
 County boundaries (2021 version) were downloaded from CENSUS Tiger website.

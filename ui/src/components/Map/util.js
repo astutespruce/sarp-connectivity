@@ -194,3 +194,50 @@ export const setBarrierHighlight = (map, feature, highlight) => {
     }
   )
 }
+
+/**
+ * Construct Mapbox GL filter expression where field value must be in list of values
+ * @param {String} field
+ * @param {Iterable} values - list of values where field value must be present
+ * @returns
+ */
+export const getInArrayExpr = (field, values) => [
+  'in',
+  ['get', field],
+  ['literal', Array.from(values)],
+]
+
+/**
+ * Construct Mapbox GL filter expression where field value must not be in list of values
+ * @param {String} field
+ * @param {Iterable} values - list of values where field value must be present
+ * @returns
+ */
+export const getNotInArrayExpr = (field, values) => [
+  '!',
+  ['in', ['get', field], ['literal', Array.from(values)]],
+]
+
+/**
+ * Construct Mapbox GL filter expression where at least one of the strings in
+ * values must be a substring of the string in the field value
+ * @param {String} field
+ * @param {Iterable} values
+ * @returns
+ */
+export const getInStringExpr = (field, values) => [
+  'any',
+  ...Array.from(values).map((v) => ['!=', ['index-of', v, ['get', field]], -1]),
+]
+
+/**
+ * Construct Mapbox GL filter expression where none of the values must be a
+ * substring of the string in the field value
+ * @param {String} field
+ * @param {Iterable} values
+ * @returns
+ */
+export const getNotInStringExpr = (field, values) => [
+  'all',
+  ...Array.from(values).map((v) => ['==', ['index-of', v, ['get', field]], -1]),
+]

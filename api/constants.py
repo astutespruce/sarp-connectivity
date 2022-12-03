@@ -56,6 +56,10 @@ def unique(items):
     return result
 
 
+# Fields that have multiple values present, encoded as comma-delimited string
+MULTIPLE_VALUE_FIELDS = ["SalmonidESU"]
+
+
 # Summary unit fields
 UNIT_FIELDS = [
     "HUC2",
@@ -161,6 +165,8 @@ FILTER_FIELDS = [
     "TESppClass",
     "StateSGCNSppClass",
     "Trout",
+    "SalmonidESU",
+    "SalmonidESUCount",
     "StreamOrderClass",
     "PercentAlteredClass",
     "OwnerType",
