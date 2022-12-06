@@ -2,13 +2,13 @@ import React, { useState, useMemo, useEffect, memo } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Image, Text } from 'theme-ui'
 
-import LightIcon from 'images/light-v9.png'
+import LightIcon from 'images/light-v10.png'
 import StreetsIcon from 'images/esri-streets.jpg'
 import TopoIcon from 'images/esri-topo.jpg'
 import ImageryIcon from 'images/esri-imagery.jpg'
 
 const icons = {
-  'light-v9': LightIcon,
+  'light-v10': LightIcon,
   imagery: ImageryIcon,
   streets: StreetsIcon,
   topo: TopoIcon,
@@ -52,8 +52,8 @@ const BasemapSelector = ({ map, basemaps, size, bottom, left, onUpdate }) => {
 
     return [
       {
-        id: 'light-v9',
-        src: icons['light-v9'],
+        id: 'light-v10',
+        src: icons['light-v10'],
         layers: [],
       },
     ].concat(basemapOptions)

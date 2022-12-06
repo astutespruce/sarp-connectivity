@@ -17,7 +17,7 @@ const flowlinesLayer = {
         [9, 1],
       ],
     },
-    // NOTE: size classes start at 0, so we add to them before scaling
+    // NOTE: size classes are 0-10
     'line-width': [
       'interpolate',
       ['linear'],
@@ -25,9 +25,9 @@ const flowlinesLayer = {
       6,
       ['*', ['-', ['get', 'sizeclass'], 10], 0.1],
       9,
-      ['*', ['-', ['get', 'sizeclass'], 3], 0.25],
+      ['*', ['-', ['get', 'sizeclass'], 5], 0.1],
       11,
-      ['*', ['+', ['get', 'sizeclass'], 0.25], 0.15],
+      ['*', ['+', ['get', 'sizeclass'], 0.25], 0.1],
       12,
       ['*', ['+', ['get', 'sizeclass'], 0.5], 0.25],
       14,

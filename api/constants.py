@@ -315,6 +315,7 @@ DAM_TILE_FIELDS = [
         "TotalDownstreamSmallBarriers",
         "TotalDownstreamRoadCrossings",
         "ExitsRegion",
+        "removed",
     }.union(UNUSED_TILE_METRIC_FIELDS)
 ]
 
@@ -396,6 +397,7 @@ SB_TILE_FIELDS = [
         # metric fields that can be calculated on frontend or not used
         "TotalDownstreamRoadCrossings",
         "ExitsRegion",
+        "removed",
     }.union(UNUSED_TILE_METRIC_FIELDS)
 ]
 
@@ -442,6 +444,7 @@ WF_CORE_FIELDS = (
         "StateSGCNSpp",
         "RegionalSGCNSpp",
         "Trout",
+        "SalmonidESU",
         "OwnerType",
         "ProtectedLand",
         # Watershed names
@@ -481,6 +484,11 @@ WF_TILE_FIELDS = [
         "StreamOrder",
         "TotalDownstreamRoadCrossings",
         "ExitsRegion",
+        # Not used
+        "HUC10",
+        "OwnerType",
+        "CoastalHUC8",
+        "removed",
     }
     .union({f"{c}_dams" for c in UNUSED_TILE_METRIC_FIELDS})
     .union({f"{c}_small_barriers" for c in UNUSED_TILE_METRIC_FIELDS})

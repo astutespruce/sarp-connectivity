@@ -81,7 +81,7 @@ df = df.set_index("id", drop=False)
 
 
 ### Cleanup data
-df.FallType = df.FallType.fillna("").str.strip()
+df.FallType = df.FallType.fillna("").str.strip().str.lower()
 
 df.Source = df.Source.str.strip()
 df.loc[df.Source == "Amy Cottrell, Auburn", "Source"] = "Amy Cotrell, Auburn University"

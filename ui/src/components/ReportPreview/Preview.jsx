@@ -44,7 +44,7 @@ const Preview = ({ barrierType, data }) => {
 
   const [{ attribution, hasError, isPending, visibleLayers }, setState] =
     useState({
-      attribution: basemapAttribution['light-v9'],
+      attribution: basemapAttribution['light-v10'],
       hasError: false,
       isPending: false,
       visibleLayers: null,

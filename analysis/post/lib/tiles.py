@@ -1,3 +1,8 @@
+from api.constants import (
+    UNIT_FIELDS,
+)
+
+
 def get_col_types(df, bool_cols=None):
     """Convert pandas types to tippecanoe data types.
 
@@ -32,3 +37,13 @@ def get_col_types(df, bool_cols=None):
         out.append(f"{col}:{out_type}")
 
     return out
+
+
+def to_lowercase(df):
+    return df.rename(
+        columns={
+            k: k.lower()
+            for k in df.columns
+            if k not in UNIT_FIELDS + ["Subbasin", "Subwatershed"]
+        }
+    )

@@ -20,13 +20,12 @@ intermediate_dir = Path("data/tiles")
 out_dir = Path("tiles")
 tmp_dir = Path("/tmp")
 
-# map sizeclasses (drainage area) are 1:0-2 km2, 2: 3-4, 3: 5-9, 4: 10-99, 5: 50-100, 6: 100-499, 7: 500-9999, 8: 10000 - 24999, 9: >25000 km2
-# note: need value >0 because of how these are styled in UI
-sizeclasses = [0, 2, 5, 10, 50, 100, 500, 10000, 25000]
+# map sizeclasses
+sizeclasses = [2, 5, 25, 100, 250, 500, 5000, 25000, 50000, 500000, 2000000]
 
 
 def classify_size(series):
-    bins = sizeclasses + [max(series.max(), 25000) + 1]
+    bins = sizeclasses + [max(series.max(), 2000000) + 1]
     return np.asarray(
         pd.cut(series, bins, right=False, labels=np.arange(1, len(bins)))
     ).astype("uint8")
@@ -42,7 +41,7 @@ zoom_config = [
     },
     {
         "zoom": [5, 5],
-        "sizeclass": 6,
+        "sizeclass": 7,
         "streamlevel": 5,
         "simplification": 1000,
         "scope": "national",
@@ -71,7 +70,12 @@ zoom_config = [
         "simplification": 50,
         "scope": "national",
     },
-    {"zoom": [10, 10], "sizeclass": 1, "simplification": 10},
+    {
+        "zoom": [10, 10],
+        "sizeclass": 1,
+        "simplification": 10,
+        "scope": "national",
+    },
     {"zoom": [11, 16], "sizeclass": 0, "simplification": 0},
 ]
 

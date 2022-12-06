@@ -57,7 +57,12 @@ const Map = ({ bounds, children, onCreateMap }) => {
       })
       window.map = mapObj // for easier debugging and querying via console
 
-      mapObj.addControl(new mapboxgl.NavigationControl(), 'top-right')
+      mapObj.addControl(
+        new mapboxgl.NavigationControl({ showCompass: false }),
+        'top-right'
+      )
+
+      mapObj.dragRotate.disable()
 
       mapObj.on('load', () => {
         // add sources

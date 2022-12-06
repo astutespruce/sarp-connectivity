@@ -1,3 +1,5 @@
+// @refresh reset
+
 import { siteMetadata } from 'config'
 
 const { tileHost } = siteMetadata
@@ -5,9 +7,10 @@ const { tileHost } = siteMetadata
 export const mapConfig = {
   // Bounds around all selected HUC6s
   bounds: [-124.9022044, 17.83087146, -65.16797072, 52.88065373],
-  styleID: 'light-v9',
+  styleID: 'light-v10',
   minZoom: 2,
   maxZoom: 24,
+  projection: 'mercator',
   // To enable CONUS Albers mode
   // projection: {
   //   name: 'albers',
@@ -146,7 +149,7 @@ export const basemapLayers = {
 // used for downloadable reports
 export const basemapAttribution = {
   imagery: '© Mapbox, © OpenStreetMap',
-  'light-v9': '© Mapbox, © OpenStreetMap',
+  'light-v10': '© Mapbox, © OpenStreetMap',
   topo: 'Esri, HERE, Garmin, Intermap, increment P Corp., GEBCO, USGS, FAO, NPS, NRCAN, GeoBase, IGN, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), © OpenStreetMap contributors, and the GIS User Community',
   streets:
     'Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, © OpenStreetMap contributors, and the GIS User Community',
