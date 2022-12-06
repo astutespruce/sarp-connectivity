@@ -39,7 +39,7 @@ from analysis.prep.barriers.lib.duplicates import (
     export_duplicate_areas,
 )
 
-from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
+from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
 from analysis.prep.barriers.lib.log import format_log
 from analysis.constants import (
     DAMS_ID_OFFSET,
@@ -198,6 +198,16 @@ print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df
 s = df.groupby("SARPID").size()
 if s.max() > 1:
     warnings.warn(f"Multiple dams with same SARPID: {s[s > 1].index.values}")
+
+
+### drop any that are outside analysis HUC2s
+df = df.join(get_huc2(df))
+drop_ix = df.HUC2.isnull()
+if drop_ix.sum():
+    print(
+        f"{drop_ix.sum():,} dams are outside analysis HUC2s; these are dropped from master dataset"
+    )
+    df = df.loc[~drop_ix].copy()
 
 
 ### Add IDs for internal use
@@ -369,31 +379,6 @@ df.BarrierOwnerType = (
     df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
 )
 
-
-### Spatial joins
-df = add_spatial_joins(df)
-
-print("-----------------")
-
-# Cleanup HUC, state, county columns that weren't assigned
-for col in [
-    "HUC2",
-    "HUC4",
-    "HUC6",
-    "HUC8",
-    "HUC10",
-    "HUC12",
-    "Basin",
-    "Subbasin",
-    "Subwatershed",
-    "County",
-    "COUNTYFIPS",
-    "State",
-]:
-    df[col] = df[col].fillna("").astype("str")
-
-df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
-
 ### Add tracking fields
 # master log field for status
 df["log"] = ""
@@ -426,11 +411,6 @@ for field, values in invasive_fields.items():
     ix = df[field].isin(values)
     df.loc[ix, "invasive"] = True
 
-
-### Drop any that didn't intersect HUCs or states (including those outside analysis region)
-drop_ix = (df.HUC12 == "") | (df.State == "")
-df.loc[drop_ix, "dropped"] = True
-df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 ### Mark any that were removed so that we can show these on the map
 # NOTE: we don't mark these as dropped
@@ -622,13 +602,11 @@ print(
 )
 
 
-# IMPORTANT: do not snap manually reviewed, off-network dams, duplicates, or ones without HUC2!
+# IMPORTANT: do not snap manually reviewed, off-network dams, or duplicates
 # duplicates are excluded here because they may snap to different locations due
 # to different snap tolerances, so don't snap them at all
 exclude_snap_ix = False
 exclude_snap_fields = {
-    "HUC2": [""],
-    "State": [""],
     "duplicate": [True],
     "ManualReview": OFFSTREAM_MANUALREVIEW,
 }
@@ -735,6 +713,36 @@ df["snap_tolerance"] = df.snap_tolerance.astype("uint16")
 for field in ("snap_ref_id", "snap_dist", "dup_group", "dup_count", "wbID"):
     df[field] = df[field].astype("float32")
 
+print("-----------------")
+
+
+### Spatial joins
+df = add_spatial_joins(df.drop(columns=["HUC2"]))
+
+# Cleanup HUC, state, county columns that weren't assigned
+for col in [
+    "HUC2",
+    "HUC4",
+    "HUC6",
+    "HUC8",
+    "HUC10",
+    "HUC12",
+    "Basin",
+    "Subbasin",
+    "Subwatershed",
+    "County",
+    "COUNTYFIPS",
+    "State",
+]:
+    df[col] = df[col].fillna("").astype("str")
+
+df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
+
+### Drop any that didn't intersect HUCs or states (including those outside analysis region)
+drop_ix = (df.HUC12 == "") | (df.State == "")
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
+
 
 ### Join to line atts
 flowlines = read_feathers(
@@ -838,7 +846,6 @@ geo = df[["geometry"]].to_crs(GEO_CRS)
 geo["lat"] = shapely.get_y(geo.geometry.values.data).astype("float32")
 geo["lon"] = shapely.get_x(geo.geometry.values.data).astype("float32")
 df = df.join(geo[["lat", "lon"]])
-
 
 ### Pack small categorical fields not used for filtering in UI into an integer
 print("Calculating packed categorical fields")

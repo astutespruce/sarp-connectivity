@@ -35,7 +35,7 @@ from analysis.lib.io import read_feathers
 from analysis.lib.geometry import nearest
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.duplicates import find_duplicates
-from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
+from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -64,7 +64,14 @@ df = gp.read_feather(src_dir / "waterfalls.feather").rename(
     columns={"fall_type": "FallType"}
 )
 
-df.FallType = df.FallType.fillna("").str.strip()
+### drop any that are outside analysis HUC2s
+df = df.join(get_huc2(df))
+drop_ix = df.HUC2.isnull()
+if drop_ix.sum():
+    print(
+        f"{drop_ix.sum():,} waterfalls are outside analysis HUC2s; these are dropped from master dataset"
+    )
+    df = df.loc[~drop_ix].copy()
 
 
 ### Add IDs for internal use
@@ -74,6 +81,8 @@ df = df.set_index("id", drop=False)
 
 
 ### Cleanup data
+df.FallType = df.FallType.fillna("").str.strip()
+
 df.Source = df.Source.str.strip()
 df.loc[df.Source == "Amy Cottrell, Auburn", "Source"] = "Amy Cotrell, Auburn University"
 
@@ -93,10 +102,6 @@ ix = ~df.fall_id.isnull()
 df.loc[ix, "sourceID"] = df.loc[ix].fall_id.astype("int").astype("str")
 
 
-### Spatial joins
-df = add_spatial_joins(df)
-
-
 ### Add tracking fields
 # dropped: records that should not be included in any later analysis
 df["dropped"] = False
@@ -110,32 +115,6 @@ df["removed"] = False
 
 df["log"] = ""
 
-
-# Remove any that didn't intersect HUCs or states; these are outside the analysis region
-drop_ix = df.HUC12.isnull() | df.State.isnull()
-if drop_ix.sum():
-    print(f"{drop_ix.sum():,} waterfalls are outside HUC12 / states")
-    df = df.loc[~drop_ix].copy()
-
-
-# Cleanup HUC, state, county columns that weren't assigned
-for col in [
-    "HUC2",
-    "HUC4",
-    "HUC6",
-    "HUC8",
-    "HUC10",
-    "HUC12",
-    "Basin",
-    "Subbasin",
-    "Subwatershed",
-    "County",
-    "COUNTYFIPS",
-    "State",
-]:
-    df[col] = df[col].fillna("").astype("str")
-
-df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
 
 # Drop those where recon shows this as an error
 drop_ix = df.Recon.isin(DROP_RECON) & ~df.dropped
@@ -217,6 +196,7 @@ df["snap_tolerance"] = SNAP_TOLERANCE
 
 # Snap to flowlines
 snap_start = time()
+
 df, to_snap = snap_to_flowlines(df, to_snap=df.copy())
 print(f"Snapped {len(df.loc[df.snapped]):,} waterfalls in {time() - snap_start:.2f}s")
 print("---------------------------------")
@@ -243,7 +223,6 @@ print(
     f"Found {len(df.loc[df.duplicate]):,} total duplicates in {time() - dedup_start:.2f}s"
 )
 
-
 ### Deduplicate by dams
 # any that are within duplicate tolerance of dams may be duplicating those dams
 # NOTE: these are only the dams that are snapped and not dropped or excluded
@@ -267,6 +246,39 @@ df["snap_tolerance"] = df.snap_tolerance.astype("uint16")
 
 for field in ("snap_ref_id", "snap_dist", "dup_group", "dup_count"):
     df[field] = df[field].astype("float32")
+
+
+### Spatial joins
+df = add_spatial_joins(df.drop(columns=["HUC2"]))
+
+drop_ix = df.HUC12.isnull()
+if drop_ix.sum():
+    print(f"{drop_ix.sum():,} waterfalls are outside analysis HUC12s")
+    df = df.loc[~drop_ix].copy()
+
+# Cleanup HUC, state, county columns that weren't assigned
+for col in [
+    "HUC2",
+    "HUC4",
+    "HUC6",
+    "HUC8",
+    "HUC10",
+    "HUC12",
+    "Basin",
+    "Subbasin",
+    "Subwatershed",
+    "County",
+    "COUNTYFIPS",
+    "State",
+]:
+    df[col] = df[col].fillna("").astype("str")
+
+df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
+
+### Drop any that didn't intersect HUCs or states (including those outside analysis region)
+drop_ix = (df.HUC12 == "") | (df.State == "")
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 ### Join to line atts
 flowlines = read_feathers(

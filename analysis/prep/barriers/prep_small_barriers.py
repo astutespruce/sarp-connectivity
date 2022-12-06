@@ -35,7 +35,7 @@ from analysis.prep.barriers.lib.duplicates import (
     find_duplicates,
     export_duplicate_areas,
 )
-from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
+from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
 from analysis.prep.barriers.lib.log import format_log
 from analysis.lib.io import read_feathers
 from analysis.constants import (
@@ -101,6 +101,16 @@ if s.max() > 1:
     warnings.warn(f"Multiple small barriers with same SARPID: {s[s > 1].index.values}")
 
 
+### drop any that are outside analysis HUC2s
+df = df.join(get_huc2(df))
+drop_ix = df.HUC2.isnull()
+if drop_ix.sum():
+    print(
+        f"{drop_ix.sum():,} small barriers are outside analysis HUC2s; these are dropped from master dataset"
+    )
+    df = df.loc[~drop_ix].copy()
+
+
 ### Add IDs for internal use
 # internal ID
 df["id"] = (df.index.values + SMALL_BARRIERS_ID_OFFSET).astype("uint64")
@@ -127,8 +137,11 @@ df.loc[df.PotentialProject == "No", "PotentialProject"] = "No Barrier"
 ix = df.PotentialProject.isin(["", "Unknown", "Small Project", "NA"])
 df.loc[ix, "PotentialProject"] = "Unassessed"
 
-# per guidance from Kat, make any where potential project is "No Barrier" as -1
-df.loc[df.PotentialProject == "No Barrier", "SARP_Score"] = -1
+# per guidance from Kat, anything where SARP_Score is 0 and potential project is
+# not severe barrier is not set correctly, set it to -1 (null)
+df.loc[
+    (df.SARP_Score == 0) & (df.PotentialProject != "Severe Barrier"), "SARP_Score"
+] = -1
 
 
 # Fix mixed casing of values
@@ -223,28 +236,6 @@ df["RoadType"] = (
     .astype("uint8")
 )
 
-### Spatial joins
-df = add_spatial_joins(df)
-
-# Cleanup HUC, state, county columns that weren't assigned
-for col in [
-    "HUC2",
-    "HUC4",
-    "HUC6",
-    "HUC8",
-    "HUC10",
-    "HUC12",
-    "Basin",
-    "Subbasin",
-    "Subwatershed",
-    "County",
-    "COUNTYFIPS",
-    "State",
-]:
-    df[col] = df[col].fillna("")
-
-df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
-
 ### Add tracking fields
 # master log field for status
 df["log"] = ""
@@ -269,13 +260,6 @@ df["invasive"] = df.ManualReview.isin(INVASIVE_MANUALREVIEW) | df.Recon.isin(
     INVASIVE_RECON
 )
 print(f"Marked {df.invasive.sum()} barriers as invasive barriers")
-
-
-### Drop any that didn't intersect HUCs or states (including those outside analysis region)
-drop_ix = (df.HUC12 == "") | (df.State == "")
-df.loc[drop_ix, "dropped"] = True
-df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
-
 
 ### Mark any that were removed so that we can show these on the map
 # NOTE: we don't mark these as dropped
@@ -373,12 +357,9 @@ df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["bat survey"]
 # Save original locations so we can map the snap line between original and new locations
 original_locations = df.copy()
 
-# Only snap those that have HUC2 assigned
 # IMPORTANT: do not snap manually reviewed, off-network small barriers, duplicates, or ones without HUC2!
 exclude_snap_ix = False
 exclude_snap_fields = {
-    "HUC2": [""],
-    "State": [""],
     "ManualReview": OFFSTREAM_MANUALREVIEW,
 }
 for field, values in exclude_snap_fields.items():
@@ -475,6 +456,35 @@ df["snap_tolerance"] = df.snap_tolerance.astype("uint16")
 for field in ("snap_ref_id", "snap_dist", "dup_group", "dup_count"):
     df[field] = df[field].astype("float32")
 
+
+### Spatial joins
+df = add_spatial_joins(df.drop(columns=["HUC2"]))
+
+print("-----------------")
+
+# Cleanup HUC, state, county columns that weren't assigned
+for col in [
+    "HUC2",
+    "HUC4",
+    "HUC6",
+    "HUC8",
+    "HUC10",
+    "HUC12",
+    "Basin",
+    "Subbasin",
+    "Subwatershed",
+    "County",
+    "COUNTYFIPS",
+    "State",
+]:
+    df[col] = df[col].fillna("").astype("str")
+
+df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
+
+### Drop any that didn't intersect HUCs or states (including those outside analysis region)
+drop_ix = (df.HUC12 == "") | (df.State == "")
+df.loc[drop_ix, "dropped"] = True
+df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 ### Join to line atts
 flowlines = read_feathers(

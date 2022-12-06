@@ -2,12 +2,42 @@ from pathlib import Path
 
 import pandas as pd
 import geopandas as gp
+from shapely import STRtree
 
 from analysis.lib.geometry import sjoin_points_to_poly
 
 
 data_dir = Path("data")
 boundaries_dir = data_dir / "boundaries"
+
+
+def get_huc2(df):
+    """Find the HUC2 that contains each point
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+
+    Returns
+    -------
+    pandas.Series
+        indexed on index of df
+    """
+
+    huc2 = gp.read_feather(
+        boundaries_dir / "huc2.feather", columns=["HUC2", "geometry"]
+    ).explode(ignore_index=True)
+    tree = STRtree(df.geometry.values.data)
+    left, right = tree.query(huc2.geometry.values.data, predicate="intersects")
+    huc2 = (
+        pd.DataFrame(
+            {"HUC2": huc2.HUC2.values.take(left)}, index=df.index.values.take(right)
+        )
+        .groupby(level=0)
+        .HUC2.first()
+    )
+
+    return huc2
 
 
 def add_spatial_joins(df):

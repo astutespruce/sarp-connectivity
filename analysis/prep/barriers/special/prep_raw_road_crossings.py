@@ -97,13 +97,21 @@ df = read_dataframe(
 print(f"Read {len(df):,} road crossings")
 
 # project HUC4 to match crossings
-huc4 = gp.read_feather(boundaries_dir / "huc4.feather", columns=["geometry"]).to_crs(
-    df.crs
-)
+huc4 = gp.read_feather(
+    boundaries_dir / "huc4.feather", columns=["geometry", "HUC4"]
+).to_crs(df.crs)
 tree = shapely.STRtree(df.geometry.values.data)
-ix = tree.query(huc4.geometry.values.data, predicate="intersects")[1]
+left, right = tree.query(huc4.geometry.values.data, predicate="intersects")
+huc4_join = (
+    pd.DataFrame(
+        {"HUC4": huc4.HUC4.values.take(left)}, index=df.index.values.take(right)
+    )
+    .groupby(level=0)
+    .HUC4.first()
+)
 
-df = df.take(ix).reset_index(drop=True)
+df = df.join(huc4_join, how="inner").reset_index(drop=True)
+df["HUC2"] = df.HUC4.str[:2]
 print(f"Selected {len(df):,} road crossings in region")
 
 # use original latitude / longitude (NAD83) values
@@ -162,26 +170,6 @@ if len(errors):
 df["crossingtype"] = df.crossingtype.map(CROSSING_TYPE_TO_DOMAIN)
 
 
-df = add_spatial_joins(df)
-
-# Cleanup HUC, state, county columns that weren't assigned
-for col in [
-    "HUC2",
-    "HUC4",
-    "HUC6",
-    "HUC8",
-    "HUC10",
-    "HUC12",
-    "Basin",
-    "County",
-    "COUNTYFIPS",
-    "State",
-]:
-    df[col] = df[col].fillna("")
-
-
-df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
-
 # Snap to flowlines
 df["snapped"] = False
 df["snap_log"] = "not snapped"
@@ -202,6 +190,26 @@ print("---------------------------------\n")
 print("Removing nearby road crossings after snapping...")
 df = dedup_crossings(df)
 print(f"now have {len(df):,} road crossings")
+
+
+df = add_spatial_joins(df)
+
+# Cleanup HUC, state, county columns that weren't assigned
+for col in [
+    "HUC2",
+    "HUC4",
+    "HUC6",
+    "HUC8",
+    "HUC10",
+    "HUC12",
+    "Basin",
+    "County",
+    "COUNTYFIPS",
+    "State",
+]:
+    df[col] = df[col].fillna("")
+
+df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
 
 
 ### Join to line atts
