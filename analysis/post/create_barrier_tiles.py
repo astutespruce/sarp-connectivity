@@ -6,7 +6,7 @@ import geopandas as gp
 import pandas as pd
 from pyogrio import write_dataframe
 
-from analysis.lib.util import pack_bits
+from analysis.lib.compression import pack_bits
 from api.constants import (
     DAM_TILE_FILTER_FIELDS,
     DAM_TILE_FIELDS,
@@ -15,30 +15,22 @@ from api.constants import (
     SB_TILE_FILTER_FIELDS,
     SB_TILE_FIELDS,
     WF_TILE_FIELDS,
-    TIER_FIELDS,
+    STATE_TIER_FIELDS,
     STATE_TIER_PACK_BITS,
-    UNIT_FIELDS,
     SB_PACK_BITS,
 )
-from analysis.lib.util import pack_bits
-from analysis.post.lib.tiles import get_col_types
+from analysis.lib.compression import pack_bits
+from analysis.post.lib.tiles import get_col_types, to_lowercase
 
 # unit fields that can be dropped for sets of barriers that are not filtered
 DROP_UNIT_FIELDS = [
     f for f in UNIT_FIELDS if not f in {"State", "County", "HUC8", "HUC12"}
 ]
 
+
+# FIXME: debug only
+# MAX_ZOOM = 10
 MAX_ZOOM = 16
-
-
-def to_lowercase(df):
-    return df.rename(
-        columns={
-            k: k.lower()
-            for k in df.columns
-            if k not in UNIT_FIELDS + ["Subbasin", "Subwatershed"]
-        }
-    )
 
 
 barriers_dir = Path("data/barriers/master")
@@ -52,6 +44,7 @@ tippecanoe = "../lib/tippecanoe/tippecanoe"
 tile_join = "../lib/tippecanoe/tile-join"
 
 
+# To determine size of largest tile, query mbtiles file:
 # select zoom_level, tile_column, tile_row, length(tile_data) / 1024 as size from tiles order by size desc;
 tippecanoe_args = [
     tippecanoe,
@@ -75,6 +68,7 @@ tilejoin_args = [
 
 start = time()
 
+####################################################################
 ### Create dams tiles
 df = (
     gp.read_feather(
@@ -92,12 +86,6 @@ str_cols = df.dtypes.loc[df.dtypes == "object"].index
 for col in str_cols:
     df[col] = df[col].fillna("").str.replace('"', "'")
 
-
-# Update boolean fields so that they are output to CSV correctly
-# NOTE: these must be manually set for tippecanoe via bool_cols param to get_col_types
-# NOTE: none of the fields used for filtering can be bool; fails on frontend
-for col in ["Trout"]:
-    df[col] = df[col].astype("uint8")
 
 # Combine string fields
 df["SARPIDName"] = df.SARPID + "|" + df.Name
@@ -124,7 +112,7 @@ print(f"Creating tiles for {len(tmp):,} ranked dams with networks for zooms 2-7"
 outfilename = tmp_dir / "dams_lt_z8.fgb"
 mbtiles_filename = tmp_dir / "dams_lt_z8.mbtiles"
 mbtiles_files = [mbtiles_filename]
-write_dataframe(tmp.reset_index(), outfilename)
+write_dataframe(tmp.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
@@ -137,16 +125,16 @@ ret = subprocess.run(
 ret.check_returncode()
 
 
-### Create tiles for ranked dams with networks
 df = df.drop(columns=["TotDASqKm"])
 
+
+### Create tiles for ranked dams with networks
 ranked_dams = df.loc[df.Ranked].drop(columns=["Ranked", "HasNetwork"])
 print(f"Creating tiles for {len(ranked_dams):,} ranked dams with networks")
 
-
-# Pack tier fields
+# Pack tier fields; not used for filtering, only display
 ranked_dams["StateTiers"] = pack_bits(ranked_dams, STATE_TIER_PACK_BITS)
-ranked_dams = ranked_dams.drop(columns=TIER_FIELDS)
+ranked_dams = ranked_dams.drop(columns=STATE_TIER_FIELDS)
 ranked_dams = to_lowercase(ranked_dams)
 
 
@@ -183,7 +171,7 @@ unranked_dams = df.loc[df.HasNetwork & (~df.Ranked)].drop(
         "PassageFacilityClass",
     ]
     + DROP_UNIT_FIELDS
-    + TIER_FIELDS,
+    + STATE_TIER_FIELDS,
     errors="ignore",
 )
 print(f"Creating tiles for {len(unranked_dams):,} unranked dams with networks")
@@ -234,7 +222,7 @@ offnetwork_dams = (
         ]
         + DROP_UNIT_FIELDS
         + METRIC_FIELDS
-        + TIER_FIELDS,
+        + STATE_TIER_FIELDS,
         errors="ignore",
     )
     .reset_index(drop=True)
@@ -283,18 +271,12 @@ df = (
     .drop(columns=["TotDASqKm"])
 )
 
-
 # Set string field nulls to blank strings
 str_cols = df.dtypes.loc[df.dtypes == "object"].index
 for col in str_cols:
     df[col] = df[col].fillna("").str.replace('"', "'")
 
-
-# Update boolean fields so that they are output to CSV correctly
-for col in ["Trout"]:
-    df[col] = df[col].astype("uint8")
-
-
+# Combine string fields
 df["SARPIDName"] = df.SARPID + "|" + df.Name
 df = df.drop(
     columns=[
@@ -335,12 +317,11 @@ print(
     f"Creating tiles for {len(ranked_barriers):,} ranked small barriers with networks"
 )
 
-# Pack tier fields
-ranked_barriers["StateTiers"] = pack_bits(ranked_barriers, STATE_TIER_PACK_BITS)
-ranked_barriers = ranked_barriers.drop(columns=TIER_FIELDS)
+# NOTE: small barriers don't have state tier fields
 ranked_barriers = to_lowercase(ranked_barriers)
 
 outfilename = tmp_dir / "ranked_small_barriers.fgb"
+
 mbtiles_filename = tmp_dir / "ranked_small_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
 write_dataframe(ranked_barriers.reset_index(drop=True), outfilename)
@@ -368,7 +349,6 @@ unranked_barriers = df.loc[df.HasNetwork & (~df.Ranked)].drop(
         "PercentAlteredClass",
     ]
     + DROP_UNIT_FIELDS
-    + TIER_FIELDS,
     errors="ignore",
 )
 
@@ -413,7 +393,7 @@ other_barriers = df.loc[~df.HasNetwork].drop(
     ]
     + DROP_UNIT_FIELDS
     + METRIC_FIELDS
-    + TIER_FIELDS,
+    + STATE_TIER_FIELDS,
     errors="ignore",
 )
 
@@ -430,7 +410,6 @@ road_crossings = (
             "County",
             "HUC8",
             "HUC12",
-            "HUC8_COA",
             "OwnerType",
             "Road",
             "State",
@@ -544,49 +523,45 @@ ret = subprocess.run(
 
 print(f"Created small barriers tiles in {time() - start:,.2f}s")
 
-#######################################
-### Create waterfalls tiles
-print("Creating waterfalls tiles")
-df = (
-    gp.read_feather(
-        "data/api/waterfalls.feather", columns=["geometry", "id"] + WF_TILE_FIELDS
-    )
-    .to_crs("EPSG:4326")
-    .rename(columns={"COUNTYFIPS": "County"})
-    .sort_values(by=["TotDASqKm"], ascending=False)
-)
+# #######################################
+# ### Create waterfalls tiles
+# print("Creating waterfalls tiles")
+# df = (
+#     gp.read_feather(
+#         results_dir / "waterfalls.feather", columns=["geometry", "id"] + WF_TILE_FIELDS
+#     )
+#     .to_crs("EPSG:4326")
+#     .rename(columns={"COUNTYFIPS": "County"})
+#     .sort_values(by=["TotDASqKm"], ascending=False)
+# ).drop(columns=['TotDASqKm'])
 
-# Fill N/A values and fix dtypes
-str_cols = df.dtypes.loc[df.dtypes == "object"].index
-df[str_cols] = df[str_cols].fillna("")
-
-# Update boolean fields so that they are output to CSV correctly
-for col in ["Trout"]:
-    df[col] = df[col].astype("uint8")
+# # Fill N/A values and fix dtypes
+# str_cols = df.dtypes.loc[df.dtypes == "object"].index
+# df[str_cols] = df[str_cols].fillna("")
 
 
-# Combine string fields
-df["SARPIDName"] = df.SARPID + "|" + df.Name
-df = df.drop(
-    columns=[
-        "SARPID",
-        "Name",
-    ]
-)
+# # Combine string fields
+# df["SARPIDName"] = df.SARPID + "|" + df.Name
+# df = df.drop(
+#     columns=[
+#         "SARPID",
+#         "Name",
+#     ]
+# )
 
 
-df = to_lowercase(df)
+# df = to_lowercase(df)
 
-outfilename = tmp_dir / "waterfalls.fgb"
-mbtiles_filename = out_dir / "waterfalls.mbtiles"
-write_dataframe(df.reset_index(drop=True), outfilename)
+# outfilename = tmp_dir / "waterfalls.fgb"
+# mbtiles_filename = out_dir / "waterfalls.mbtiles"
+# write_dataframe(df.reset_index(drop=True), outfilename)
 
-ret = subprocess.run(
-    tippecanoe_args
-    + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
-    + ["-l", "waterfalls"]
-    + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(df, bool_cols={"excluded", "hasnetwork"})
-    + [str(outfilename)]
-)
-ret.check_returncode()
+# ret = subprocess.run(
+#     tippecanoe_args
+#     + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
+#     + ["-l", "waterfalls"]
+#     + ["-o", f"{str(mbtiles_filename)}"]
+#     + get_col_types(df)
+#     + [str(outfilename)]
+# )
+# ret.check_returncode()

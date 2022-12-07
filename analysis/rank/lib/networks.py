@@ -12,7 +12,7 @@ from analysis.rank.lib.metrics import (
     classify_percent_altered,
     classify_ocean_barriers,
 )
-from analysis.rank.lib.tiers import calculate_tiers, METRICS
+from api.lib.tiers import calculate_tiers, METRICS
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 

@@ -7,8 +7,8 @@ from api.constants import (
     STATES,
     DAM_PUBLIC_EXPORT_FIELDS,
     SB_PUBLIC_EXPORT_FIELDS,
-    unpack_domains,
 )
+from api.lib.domains import unpack_domains
 from api.data import dams, small_barriers, removed_dams
 from api.logger import log, log_request
 from api.response import csv_response

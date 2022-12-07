@@ -1,5 +1,3 @@
-from datetime import date
-from hashlib import sha1
 from pathlib import Path
 
 from fastapi import APIRouter, Depends
@@ -11,13 +9,13 @@ from api.constants import (
     Layers,
     Scenarios,
     Formats,
-    unpack_domains,
     CUSTOM_TIER_FIELDS,
     DAM_EXPORT_FIELDS,
     SB_EXPORT_FIELDS,
 )
+from api.lib.domains import unpack_domains
+from api.lib.tiers import calculate_tiers
 from api.logger import log, log_request
-from analysis.rank.lib.tiers import calculate_tiers
 from api.data import dams, small_barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
 from api.metadata import get_readme, get_terms

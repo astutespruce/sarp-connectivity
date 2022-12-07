@@ -3,8 +3,8 @@ from fastapi.requests import Request
 import pyarrow as pa
 import pyarrow.compute as pc
 
-from analysis.rank.lib.tiers import calculate_tiers, METRICS
-from analysis.lib.util import pack_bits
+from api.lib.compression import pack_bits
+from api.lib.tiers import calculate_tiers, METRICS
 from api.constants import CUSTOM_TIER_PACK_BITS
 from api.data import dams, small_barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor

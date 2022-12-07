@@ -5,7 +5,8 @@ import warnings
 import geopandas as gp
 import pandas as pd
 
-from analysis.lib.util import pack_bits, get_signed_dtype
+from analysis.lib.compression import pack_bits
+from analysis.lib.util import get_signed_dtype
 from analysis.rank.lib.networks import get_network_results
 from analysis.rank.lib.metrics import (
     classify_streamorder,
