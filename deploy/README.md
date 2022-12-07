@@ -83,6 +83,10 @@ Check `.nvmrc` and use the same major version of NodeJS.
 
 NOTE: the gatsby-cli version may need to be updated to match version of Gatsby in `package.json`
 
+Build it:
+
+- `npm run deploy`
+
 ## Install Python dependencies
 
 - as `ubuntu` user
@@ -143,9 +147,12 @@ Verify that it loaded as a service correctly:
 
 - on local (dev) machine, copy contents of `tiles` directory to server: `rsync -azvhP --append *.mbtiles sarp:/tiles/tmp` (or appropriate extra volume online just for copying data up)
 - move to `/tiles` and change ownership to `app`
+- restart mbtileserver: `sudo service mbtileserver restart`
 
 - on local (dev) machine copy `feather` files in `sarp/data/api/` to server: `rsync -azvhP --append *.feather sarp:/tmp`
 - on remote: `sudo mv /tmp/*.feather /home/app/sarp-connectivity/data/api`
+
+## Bring up API
 
 Verify that API starts correctly:
 
@@ -160,8 +167,21 @@ Verify that API starts correctly with gunicorn:
 Enable service:
 
 - as `ubuntu` user
-- copy `services/api.service` to `/etc/systemd/system/`
+- `sudo cp /home/app/sarp-connectivity/deploy/<environment>/service/api.service /etc/systemd/system/`
 - `sudo systemctl enable api`
+- `sudo service api start`
+
+Verify the service started correctly:
+
+- `sudo service api status`
+
+For more log messages:
+
+- `journalctl -u api`
+
+Verify that the API returns valid data
+
+- `https://<host>/api/v1/public/dams/metadata` should return valid JSON
 
 ## Verify services
 
@@ -172,13 +192,17 @@ Verify that each service runs properly. For `caddy`, `mbtileserver`, `api` servi
 - `sudo service <service_name> status` (look for errors or success)
 - `sudo service <service_name> stop`
 
-After that, test the first few steps of the prioritization workflow here: https://connectivity.sarpdata.com/priority
+After that, test the first few steps of the prioritization workflow here: https://<host>/priority
 
 1. Select state as unit
 2. Select a state
 3. If it shows the filters, everything is working as expected. Otherwise, if it is not showing state boundaries for selection, there is a problem with `mbtileserver`. If it is not showing filters, there is a problem with `api` service. If you can't even boot the application, it is a problem with the `caddy` service or the underlying built JS.
 
-########
-TODO:
+## On update of data
 
-- `npm run deploy`
+1. pull latest from git repository
+2. upload tiles
+3. upload feather files
+4. `npm run deploy`
+5. `sudo service mbtileserver restart`
+6. `sudo service api restart`

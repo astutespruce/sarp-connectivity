@@ -25,7 +25,7 @@ def get_dam(request: Request, sarp_id: str):
 
     # use the bulk converter to dict (otherwise float32 serialization issues)
     # and return singular first item
-    return JSONResponse(content=dam.to_pandas().to_dict(orient="records")[0])
+    return JSONResponse(content=dam.to_pylist()[0])
 
 
 @router.get("/small_barriers/details/{sarp_id}")
@@ -42,4 +42,4 @@ def get_small_barrier(request: Request, sarp_id: str):
 
     # use the bulk converter to dict (otherwise float32 serialization issues)
     # and return singular first item
-    return JSONResponse(content=barrier.to_pandas().to_dict(orient="records")[0])
+    return JSONResponse(content=barrier.to_pylist()[0])
