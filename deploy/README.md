@@ -93,7 +93,7 @@ NOTE: the gatsby-cli version may need to be updated to match version of Gatsby i
 - `curl -sSL https://install.python-poetry.org | python3 -`
 - `echo 'export PATH="/home/app/.local/bin:$PATH"' >> ~/.bashrc`
 - `source ~/.bashrc`
-- `poetry install --only main`
+- `poetry install --only main --extras deploy`
 
 To activate the shell, use `poetry shell`.
 
@@ -154,7 +154,7 @@ Verify that API starts correctly:
 
 Verify that API starts correctly with gunicorn:
 
-- `/usr/local/bin/pipenv run gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 2 -b ":5000" api.server:app`
+- `/home/app/.local/bin/poetry run gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 2 -b ":5000" api.server:app`
 - `CTRL-C` to exit
 
 Enable service:
