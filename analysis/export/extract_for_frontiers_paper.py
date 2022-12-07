@@ -10,7 +10,8 @@ from analysis.constants import (
     SARP_STATE_NAMES,
     ONSTREAM_MANUALREVIEW,
 )
-from api.constants import DOMAINS, unpack_domains
+from analysis.export.lib import unpack_domains
+from api.constants import DOMAINS
 
 primary_col_style = NamedStyle(
     name="PrimaryColumnStyle", alignment=Alignment(horizontal="left", wrap_text=True)

@@ -2,7 +2,6 @@ from enum import Enum
 
 import numpy as np
 import pyarrow as pa
-import pandas as pd
 
 
 ### Enums for validating incoming request values
@@ -983,33 +982,27 @@ def unpack_field(arr, lookup):
 def unpack_domains(df):
     """Unpack domain codes to values.
 
+    See analysis.export.lib for version for Pandas DataFrames
+
     Parameters
     ----------
-    df : DataFrame or pyarrow.Table
+    df : pyarrow.Table
     """
 
-    if isinstance(df, pd.DataFrame):
-        df = df.copy()
-        for field, domain in DOMAINS.items():
-            if field in df.columns:
-                df[field] = df[field].map(domain)
-    else:
-        schema = df.schema.remove_metadata()
-        arrays = [
-            unpack_field(df[field], DOMAINS[field]) if field in DOMAINS else df[field]
-            for field in schema.names
-        ]
+    schema = df.schema.remove_metadata()
+    arrays = [
+        unpack_field(df[field], DOMAINS[field]) if field in DOMAINS else df[field]
+        for field in schema.names
+    ]
 
-        for i, field in enumerate(schema.names):
-            if field in DOMAINS:
-                schema = schema.set(i, pa.field(field, "string"))
+    for i, field in enumerate(schema.names):
+        if field in DOMAINS:
+            schema = schema.set(i, pa.field(field, "string"))
 
-        df = pa.Table.from_arrays(
-            arrays,
-            schema=schema,
-        )
-
-    return df
+    return pa.Table.from_arrays(
+        arrays,
+        schema=schema,
+    )
 
 
 # Lookup of field to description, for download / APIs

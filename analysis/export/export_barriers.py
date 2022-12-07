@@ -8,7 +8,8 @@ import pandas as pd
 import pyarrow as pa
 from pyarrow.csv import write_csv
 
-from api.constants import unpack_domains, DAM_EXPORT_FIELDS, SB_EXPORT_FIELDS, unique
+from api.constants import DAM_EXPORT_FIELDS, SB_EXPORT_FIELDS, unique
+from analysis.export.lib import unpack_domains
 
 
 EXPORT_FIELDS = {
