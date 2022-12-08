@@ -1,38 +1,66 @@
 import React from 'react'
-import { Box, Heading, Grid, Paragraph } from 'theme-ui'
+import { Box, Heading, Grid, Image, Paragraph, Text } from 'theme-ui'
 
 import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
+import SARPLogoImage from 'images/sarp_logo.png'
 
 const Top = () => (
   <>
-    <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
-      Aquatic connectivity is essential. Fish and other aquatic organisms depend
-      on high quality, connected river networks. A legacy of human use of river
-      networks have left them fragmented by barriers such as dams and culverts.
-      Fragmentation prevents species from dispersing and accessing habitats
-      required for their persistence through changing conditions.
-      <br />
-      <br />
-      Recently improved inventories, brought to you by the{' '}
+    <Heading as="h2" sx={{ mt: '2rem' }}>
+      Aquatic connectivity is essential
+    </Heading>
+    <Text sx={{ fontSize: ['1.25rem', 4], mt: '0.5rem' }}>
+      Fish and other aquatic organisms depend on high quality, connected river
+      networks. A legacy of human use of river networks have left them
+      fragmented by barriers such as dams and culverts. Fragmentation prevents
+      species from dispersing and accessing habitats required for their
+      persistence through changing conditions.
+    </Text>
+
+    <Grid columns="3fr 1fr" sx={{ mt: '2rem' }}>
+      <Paragraph variant="paragraph.large">
+        Recently improved inventories, brought to you by the{' '}
+        <OutboundLink to="https://southeastaquatics.net/">
+          Southeast Aquatic Resources Partnership
+        </OutboundLink>{' '}
+        and partners, enable us to describe, understand, and prioritize aquatic
+        barriers for removal, restoration, and mitigation. Through this tool and
+        others, we empower you with information on documented barriers and
+        standardized methods to prioritize barriers of interest for restoration
+        efforts.
+      </Paragraph>
       <OutboundLink to="https://southeastaquatics.net/">
-        Southeast Aquatic Resources Partnership
-      </OutboundLink>{' '}
-      and partners, enable us to describe, understand, and prioritize aquatic
-      barriers for removal, restoration, and mitigation. Through this tool and
-      others, we empower you with information on documented barriers and
-      standardized methods to prioritize barriers of interest for restoration
-      efforts.
-      <br />
-      <br />
-      This tool and inventory were made possible by funding from the U.S. Fish
-      and Wildlife Service, American Rivers, the National Fish and Wildlife
-      Foundation, U.S. Forest Service, and state wildlife grant funding from
-      Florida and Texas. This effort would not be possible without the
-      collaboration of our partners from numerous state, federal, and non profit
-      organizations as well as the National Fish Habitat Partnership. Structures
-      described within this inventory are maintained within databases housed by
-      multiple entities and aggregated here for display and analysis.
+        <Image src={SARPLogoImage} />
+      </OutboundLink>
+    </Grid>
+
+    <Paragraph sx={{ mt: '2rem' }}>
+      This tool and inventory were made possible by funding from the{' '}
+      <OutboundLink to="https://www.fws.gov/program/national-fish-passage">
+        U.S. Fish and Wildlife Service
+      </OutboundLink>
+      ,{' '}
+      <OutboundLink to="https://www.americanrivers.org/">
+        American Rivers
+      </OutboundLink>
+      , the{' '}
+      <OutboundLink to="https://www.nfwf.org/">
+        National Fish and Wildlife Foundation
+      </OutboundLink>
+      ,{' '}
+      <OutboundLink to="https://www.fs.usda.gov/">
+        U.S. Forest Service
+      </OutboundLink>
+      , and state wildlife grant funding from Florida and Texas. This effort
+      would not be possible without the collaboration of our partners from
+      numerous state, federal, and non profit organizations as well as the{' '}
+      <OutboundLink to="https://www.fishhabitat.org/">
+        National Fish Habitat Partnership
+      </OutboundLink>
+      . Structures described within this inventory are maintained within
+      databases housed by multiple entities and aggregated here for display and
+      analysis.
     </Paragraph>
 
     <Box variant="boxes.section" sx={{ mt: '4rem' }}>
