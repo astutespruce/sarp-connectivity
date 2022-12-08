@@ -1,11 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Text, Paragraph } from 'theme-ui'
+import { Box, Flex, Text, Paragraph } from 'theme-ui'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { Entry, Field, Section } from 'components/Sidebar'
-import { OutboundLink } from 'components/Link'
-import { formatNumber } from 'util/format'
-import { isEmptyString } from 'util/string'
 
 import {
   siteMetadata,
@@ -14,21 +12,18 @@ import {
   PASSAGEFACILITY,
   PURPOSE,
   RECON,
-  OWNERTYPE,
-  BARRIEROWNERTYPE,
-  WATERBODY_SIZECLASS,
-  SALMONID_ESU,
 } from 'config'
 
+import IDInfo from './IDInfo'
+import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
+import SpeciesInfo from './SpeciesInfo'
 
 const { version: dataVersion } = siteMetadata
 
 const DamDetails = ({
   barrierType,
   sarpid,
-  lat,
-  lon,
   hasnetwork,
   excluded,
   onloop,
@@ -48,7 +43,6 @@ const DamDetails = ({
   waterbodykm2,
   waterbodysizeclass,
   intermittent,
-  HUC8,
   HUC12,
   HUC8Name,
   HUC12Name,
@@ -75,120 +69,82 @@ const DamDetails = ({
   <Box
     sx={{
       mt: '-1rem',
-      mx: '-1rem',
+      mx: '-0.5rem',
       fontSize: 1,
     }}
   >
     <Section title="Location">
-      <Entry>
-        {estimated === 1 ? 'Estimated dam' : 'Dam'} at {formatNumber(lat, 5)}
-        &deg; N / {formatNumber(lon, 5)}
-        &deg; E
-        {estimated === 1 ? (
-          <Paragraph variant="help" sx={{ fontSize: 0, mt: '0.5em' }}>
-            Dam is estimated from other data sources and may be incorrect;
-            please{' '}
-            <a
-              href={`mailto:Kat@southeastaquatics.net?subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
-            >
-              let us know
-            </a>
-          </Paragraph>
-        ) : null}
-      </Entry>
-
-      {river && river !== '"' && river !== 'null' && river !== 'Unknown' ? (
+      {estimated === 1 ? (
         <Entry>
-          <Field>River or stream:</Field> {river}
+          <Flex sx={{ alignItems: 'flex-start' }}>
+            <Box sx={{ color: 'grey.4', flex: '0 0 auto', mr: '0.5em' }}>
+              <ExclamationTriangle size="2.5em" />
+            </Box>
+            <Text sx={{ flex: '1 1 auto' }}>
+              Dam is estimated from other data sources and may be incorrect;
+              please{' '}
+              <a
+                href={`mailto:Kat@southeastaquatics.net?subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
+              >
+                let us know
+              </a>
+            </Text>
+          </Flex>
         </Entry>
       ) : null}
 
-      {waterbodysizeclass !== null && waterbodysizeclass > 0 ? (
-        <Entry>
-          <Field>Size of associated pond or lake:</Field>{' '}
-          {waterbodykm2 > 0.1
-            ? `${formatNumber(waterbodykm2, 2)} k`
-            : `${formatNumber(waterbodykm2 * 1e6)} `}
-          m<sup>2</sup> (
-          {WATERBODY_SIZECLASS[waterbodysizeclass].split(' (')[0].toLowerCase()}
-          )
-        </Entry>
-      ) : null}
-
-      {intermittent === 1 ? (
-        <Entry>
-          Located on a reach that has intermittent or ephemeral flow
-        </Entry>
-      ) : null}
-
-      {HUC12Name ? (
-        <Entry>
-          {HUC12Name} Subwatershed{' '}
-          <Paragraph variant="help" sx={{ fontSize: 0 }}>
-            HUC12: {HUC12}
-          </Paragraph>
-        </Entry>
-      ) : null}
-
-      {HUC8Name ? (
-        <Entry>
-          {HUC8Name} Subbasin{' '}
-          <Paragraph variant="help" sx={{ fontSize: 0 }}>
-            HUC8: {HUC8}
-          </Paragraph>
-        </Entry>
-      ) : null}
-
-      {ownertype !== null && ownertype > 0 ? (
-        <Entry>
-          <Field>Conservation land type:</Field> {OWNERTYPE[ownertype]}
-        </Entry>
-      ) : null}
-
-      {barrierownertype !== null && barrierownertype > 0 ? (
-        <Entry>
-          <Field>Barrier ownership type:</Field>{' '}
-          {BARRIEROWNERTYPE[barrierownertype]}
-        </Entry>
-      ) : null}
+      <LocationInfo
+        reachName={river}
+        HUC8Name={HUC8Name}
+        HUC12Name={HUC12Name}
+        HUC12={HUC12}
+        ownertype={ownertype}
+        barrierownertype={barrierownertype}
+      />
     </Section>
 
     <Section title="Construction information">
       {yearcompleted > 0 ? (
         <Entry>
-          <Field>Constructed completed:</Field> {yearcompleted}
+          <Field label="Constructed completed">{yearcompleted}</Field>
         </Entry>
       ) : null}
       {height > 0 ? (
         <Entry>
-          <Field>Height:</Field> {height} feet
+          <Field label="Height">{height} feet</Field>
         </Entry>
       ) : null}
       {construction !== null &&
       construction >= 0 &&
       CONSTRUCTION[construction] ? (
         <Entry>
-          <Field>Construction material:</Field>{' '}
-          {CONSTRUCTION[construction].toLowerCase()}
+          <Field label="Construction material" isUnknown={construction === 0}>
+            <Text sx={{ textAlign: 'right' }}>
+              {CONSTRUCTION[construction].toLowerCase()}
+            </Text>
+          </Field>
         </Entry>
       ) : null}
       {lowheaddam !== null && lowheaddam >= 1 ? (
         <Entry>This is {lowheaddam === 2 ? 'likely' : ''} a lowhead dam</Entry>
       ) : null}
-      {diversion === 1 ? (
-        <Entry>
-          <Field>Diversion:</Field> this is a water diversion
-        </Entry>
-      ) : null}
+      {diversion === 1 ? <Entry>This is a water diversion</Entry> : null}
       {purpose !== null && purpose >= 0 && PURPOSE[purpose] ? (
         <Entry>
-          <Field>Purpose:</Field> {PURPOSE[purpose].toLowerCase()}
+          <Field label="Purpose" isUnknown={purpose === 0}>
+            <Text sx={{ textAlign: 'right' }}>
+              {PURPOSE[purpose].toLowerCase()}
+            </Text>
+          </Field>
         </Entry>
       ) : null}
       {condition !== null && condition >= 0 && CONDITION[condition] ? (
         <Entry>
-          <Field>Structural condition:</Field>{' '}
-          {CONDITION[condition].toLowerCase()}
+          <Field label="Structural condition" isUnknown={condition === 0}>
+            <Text sx={{ textAlign: 'right' }}>
+              {CONDITION[condition].toLowerCase()}
+            </Text>
+          </Field>
         </Entry>
       ) : null}
 
@@ -196,8 +152,14 @@ const DamDetails = ({
       passagefacility >= 0 &&
       PASSAGEFACILITY[passagefacility] ? (
         <Entry>
-          <Field>Passage facility type:</Field>{' '}
-          {PASSAGEFACILITY[passagefacility].toLowerCase()}
+          <Field
+            label="Passage facility type"
+            isUnknown={passagefacility === 0}
+          >
+            <Text sx={{ textAlign: 'right' }}>
+              {PASSAGEFACILITY[passagefacility].toLowerCase()}
+            </Text>
+          </Field>
         </Entry>
       ) : null}
     </Section>
@@ -216,6 +178,9 @@ const DamDetails = ({
           freeunaltereddownstreammiles={freeunaltereddownstreammiles}
           sizeclasses={sizeclasses}
           landcover={landcover}
+          waterbodysizeclass={waterbodysizeclass}
+          waterbodykm2={waterbodykm2}
+          intermittent={intermittent}
         />
       ) : null}
       {excluded && !hasnetwork ? (
@@ -254,55 +219,15 @@ const DamDetails = ({
       ) : null}
     </Section>
 
-    <Section title="Species information">
-      {tespp + regionalsgcnspp > 0 || trout || salmonidesu ? (
-        <>
-          <Text sx={{ my: '0.5rem', mr: '0.5rem' }}>
-            Data sources in the subwatershed containing this dam have recorded:
-          </Text>
-          <Box as="ul">
-            <li>
-              <b>{tespp}</b> federally-listed threatened and endangered aquatic
-              species
-            </li>
-            <li>
-              <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
-              Conservation Need (SGCN), which include state-listed threatened
-              and endangered species
-            </li>
-            <li>
-              <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of
-              Greatest Conservation Need
-            </li>
-            <li>{trout ? 'One or more trout species' : 'No trout species'}</li>
-            {salmonidesu ? (
-              <li>
-                Within{' '}
-                {salmonidesu
-                  .split(',')
-                  .map((code) => SALMONID_ESU[code])
-                  .join(', ')}
-              </li>
-            ) : null}
-          </Box>
-        </>
-      ) : (
-        <Text sx={{ my: '0.5rem', mr: '0.5rem', color: 'grey.8' }}>
-          Data sources in the subwatershed containing this dam have not recorded
-          any federally-listed threatened and endangered aquatic species,
-          state-listed aquatic Species of Greatest Conservation Need,
-          regionally-listed aquatic Species of Greatest Conservation Need, trout
-          species, or salmon ESU / steelhead trout DPS.
-        </Text>
-      )}
-
-      <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
-        Note: species information is very incomplete. These species may or may
-        not be directly impacted by this dam.{' '}
-        <a href="/sgcn" target="_blank">
-          Read more.
-        </a>
-      </Paragraph>
+    <Section title="Species information for this subwatershed">
+      <SpeciesInfo
+        barrierType={barrierType}
+        tespp={tespp}
+        regionalsgcnspp={regionalsgcnspp}
+        statesgcnspp={statesgcnspp}
+        trout={trout}
+        salmonidesu={salmonidesu}
+      />
     </Section>
 
     <Section title="Feasibility & conservation benefit">
@@ -314,43 +239,7 @@ const DamDetails = ({
     </Section>
 
     <Section title="Other information">
-      <Entry>
-        <Field>SARP ID:</Field> {sarpid}
-      </Entry>
-      {!isEmptyString(nidid) ? (
-        <Entry>
-          <Field>National inventory of dams ID:</Field>{' '}
-          <OutboundLink to="http://nid.usace.army.mil/cm_apex/f?p=838:12">
-            {nidid}
-          </OutboundLink>
-        </Entry>
-      ) : null}
-
-      {!isEmptyString(source) ? (
-        <Entry>
-          <Field>Source:</Field> {source}
-        </Entry>
-      ) : null}
-
-      {!isEmptyString(link) ? (
-        <Entry>
-          <OutboundLink to={link}>
-            Click here for more information about this barrier
-          </OutboundLink>
-        </Entry>
-      ) : null}
-
-      {source && source.startsWith('WDFW') ? (
-        <Entry>
-          Information about this barrier is maintained by the Washington State
-          Department of Fish and Wildlife, Fish Passage Division. For more
-          information about specific structures, please visit the{' '}
-          <OutboundLink to="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html">
-            fish passage web map
-          </OutboundLink>
-          .
-        </Entry>
-      ) : null}
+      <IDInfo sarpid={sarpid} nidid={nidid} source={source} link={link} />
     </Section>
   </Box>
 )
@@ -358,14 +247,11 @@ const DamDetails = ({
 DamDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-  lat: PropTypes.number.isRequired,
-  lon: PropTypes.number.isRequired,
   hasnetwork: PropTypes.number.isRequired,
   excluded: PropTypes.number,
   onloop: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
-  HUC8: PropTypes.string,
   HUC12: PropTypes.string,
   HUC8Name: PropTypes.string,
   HUC12Name: PropTypes.string,
@@ -404,7 +290,6 @@ DamDetails.propTypes = {
 }
 
 DamDetails.defaultProps = {
-  HUC8: null,
   HUC12: null,
   HUC8Name: null,
   HUC12Name: null,

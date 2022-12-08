@@ -2,9 +2,10 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
+import { WATERBODY_SIZECLASS } from 'config'
 import { Table, Row } from 'components/Table'
 import { InfoTooltip } from 'components/Tooltip'
-import { Entry } from 'components/Sidebar'
+import { Entry, Field } from 'components/Sidebar'
 import { formatNumber, formatPercent } from 'util/format'
 
 const activeSideCSS = {
@@ -28,6 +29,9 @@ const NetworkInfo = ({
   landcover,
   fontSize,
   headerFontSize,
+  waterbodysizeclass,
+  waterbodykm2,
+  intermittent,
   ...props
 }) => {
   const gainmiles = Math.min(totalupstreammiles, freedownstreammiles)
@@ -51,9 +55,9 @@ const NetworkInfo = ({
 
   return (
     <Box {...props}>
-      <Entry sx={{ pb: '1rem' }}>
+      <Entry sx={{ pb: '1.5rem', mx: '-0.5rem' }}>
         <Table sx={{ fontSize }} columns="11rem 1fr 1fr">
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box />
             <Box sx={{ fontSize: headerFontSize }}>
               <b>Upstream</b>
@@ -67,7 +71,7 @@ const NetworkInfo = ({
             </Box>
           </Row>
 
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>Total miles</Text>
               <InfoTooltip>
@@ -97,7 +101,7 @@ const NetworkInfo = ({
             </Box>
           </Row>
 
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>Perennial miles</Text>
               <InfoTooltip>
@@ -130,7 +134,7 @@ const NetworkInfo = ({
             </Box>
           </Row>
 
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>
                 Intermittent / ephemeral miles
@@ -164,7 +168,7 @@ const NetworkInfo = ({
             </Box>
           </Row>
 
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>Altered miles</Text>
               <InfoTooltip>
@@ -182,7 +186,7 @@ const NetworkInfo = ({
             <Box>{formatNumber(freealtereddownstreammiles, 2, true)}</Box>
           </Row>
 
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>Unaltered miles</Text>
 
@@ -209,11 +213,11 @@ const NetworkInfo = ({
               mt: '0.25rem',
               pt: '0.25rem',
               fontSize,
-              borderTop: '3px solid',
-              borderTopColor: 'grey.2',
+              borderTop: '2px solid',
+              borderTopColor: 'grey.4',
             }}
           >
-            <Row>
+            <Row sx={{ px: '0.5rem' }}>
               <Box>
                 <Text sx={{ fontWeight: 'bold', display: 'inline' }}>
                   Total miles gained
@@ -241,7 +245,7 @@ const NetworkInfo = ({
                 {formatNumber(freedownstreammiles, 2, true)}
               </Box>
             </Row>
-            <Row>
+            <Row sx={{ px: '0.5rem' }}>
               <Box>
                 <Text sx={{ fontWeight: 'bold', display: 'inline' }}>
                   Perennial miles gained
@@ -277,28 +281,70 @@ const NetworkInfo = ({
 
       {totalupstreammiles > 0 ? (
         <Entry>
-          <b>{formatPercent(percentAltered)}%</b> of the upstream network is in
-          altered stream channels
+          <Field label="Percent of the upstream network in altered stream channels">
+            <Text
+              sx={{
+                fontSize: 1,
+                fontWeight: 'bold',
+              }}
+            >
+              {formatPercent(percentAltered)}%
+            </Text>
+          </Field>
         </Entry>
       ) : null}
 
-      {barrierType === 'waterfalls' ? (
-        <Entry>
-          <b>{sizeclasses}</b> river size{' '}
-          {sizeclasses === 1 ? 'class is' : 'classes are'} upstream of this
-          waterfall
-        </Entry>
-      ) : (
-        <Entry>
-          <b>{sizeclasses}</b> river size{' '}
-          {sizeclasses === 1 ? 'class' : 'classes'} could be gained by removing
-          this barrier
-        </Entry>
-      )}
       <Entry>
-        <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain is
-        composed of natural landcover
+        <Field
+          label={
+            barrierType === 'waterfalls'
+              ? 'Number of size classes upstream'
+              : 'Number of size classes that could be gained by removing this barrier'
+          }
+        >
+          <Text
+            sx={{
+              fontSize: 1,
+              fontWeight: sizeclasses > 0 ? 'bold' : 'inherit',
+            }}
+          >
+            {sizeclasses}
+          </Text>
+        </Field>
       </Entry>
+      <Entry>
+        <Field label="Percent of upstream floodplain composed of natural landcover">
+          <Text
+            sx={{
+              fontSize: 1,
+              fontWeight: 'bold',
+            }}
+          >
+            {formatNumber(landcover, 0)}%
+          </Text>
+        </Field>
+      </Entry>
+
+      {waterbodysizeclass !== null && waterbodysizeclass > 0 ? (
+        <Entry>
+          <Field label="Size of associated waterbody">
+            {waterbodykm2 > 0.1
+              ? `${formatNumber(waterbodykm2, 2)} k`
+              : `${formatNumber(waterbodykm2 * 1e6)} `}
+            m<sup>2</sup>
+            <Text sx={{ fontSize: 0, color: 'grey.8', textAlign: 'right' }}>
+              (
+              {WATERBODY_SIZECLASS[waterbodysizeclass]
+                .split(' (')[0]
+                .toLowerCase()}
+              )
+            </Text>
+          </Field>
+        </Entry>
+      ) : null}
+      {intermittent === 1 ? (
+        <Entry>On a reach that has intermittent or ephemeral flow</Entry>
+      ) : null}
     </Box>
   )
 }
@@ -317,6 +363,9 @@ NetworkInfo.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
+  waterbodysizeclass: PropTypes.number,
+  waterbodykm2: PropTypes.number,
+  intermittent: PropTypes.number,
 }
 
 NetworkInfo.defaultProps = {
@@ -332,6 +381,9 @@ NetworkInfo.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: 0,
   sizeclasses: 0,
+  waterbodysizeclass: null,
+  waterbodykm2: null,
+  intermittent: null,
 }
 
 export default NetworkInfo

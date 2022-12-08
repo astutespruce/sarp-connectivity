@@ -357,7 +357,8 @@ const PriorityMap = ({
           ...properties,
           ...networkFields,
           tiers: rankedBarriersIndexRef.current[properties.id] || null,
-          barrierType,
+          // barrierType,
+          barrierType: source,
           // FIXME: is this right?
           networkType: source === 'dams' ? 'dams' : undefined,
           HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),

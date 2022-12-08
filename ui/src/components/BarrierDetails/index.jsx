@@ -16,7 +16,7 @@ import {
 } from 'config'
 import { isEmptyString } from 'util/string'
 import { unpackBits } from 'util/data'
-import { capitalize } from 'util/format'
+import { capitalize, formatNumber } from 'util/format'
 import DamDetails from './DamDetails'
 import SmallBarrierDetails from './SmallBarrierDetails'
 import WaterfallDetails from './WaterfallDetails'
@@ -29,6 +29,8 @@ const tierToPercent = (tier) => (100 * (19 - (tier - 1))) / 20
 
 const BarrierDetails = ({ barrier, onClose }) => {
   const {
+    lat,
+    lon,
     barrierType,
     sarpidname,
     ranked,
@@ -164,8 +166,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
       <Box
         sx={{
           py: '0.5rem',
-          pr: '0.5rem',
-          pl: '1rem',
+          px: '0.5rem',
           borderBottom: '4px solid',
           borderBottomColor: 'blue.2',
         }}
@@ -177,36 +178,40 @@ const BarrierDetails = ({ barrier, onClose }) => {
           }}
         >
           <Box sx={{ flex: '1 1 auto' }}>
-            <Heading as="h3" sx={{ m: 0, fontSize: '1.25rem' }}>
+            <Heading as="h3" sx={{ m: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
               {!isEmptyString(name) ? name : defaultName}
             </Heading>
-
-            {!(isEmptyString(CountyName) || isEmptyString(State)) && (
-              <Text>
-                <i>
-                  {CountyName} County, {STATES[State]}
-                </i>
-                <br />
-              </Text>
-            )}
           </Box>
           <Button variant="close" onClick={onClose}>
             &#10006;
           </Button>
         </Flex>
 
+        <Flex sx={{ color: 'grey.8', fontSize: 1, lineHeight: 1.1 }}>
+          {!isEmptyString(State) ? (
+            <Text sx={{ flex: '1 1 auto', mr: '1rem' }}>
+              {CountyName} County, {STATES[State]}
+            </Text>
+          ) : null}
+
+          <Text sx={{ flex: '0 0 auto', textAlign: 'right' }}>
+            {formatNumber(lat, 3)}
+            &deg; N, {formatNumber(lon, 3)}
+            &deg; E
+          </Text>
+        </Flex>
+
         {barrierType !== 'waterfalls' && !isCrossing ? (
-          <Box>
+          <Box sx={{ lineHeight: 1, mt: '1.5rem' }}>
             <a
               href={`/report/${barrierType}/${sarpid}`}
               target="_blank"
               rel="noreferrer"
+              style={{ display: 'inline-block' }}
             >
               <Flex
                 sx={{
-                  alignItems: 'center',
-                  flex: '1 1 auto',
-                  mt: '0.5rem',
+                  alignItems: 'baseline',
                 }}
               >
                 <Box sx={{ flex: '0 0 auto', color: 'link', mr: '0.25rem' }}>
@@ -221,7 +226,13 @@ const BarrierDetails = ({ barrier, onClose }) => {
 
       {barrierType === 'waterfalls' ? (
         <Box
-          sx={{ flex: '1 1 auto', px: '1rem', pb: '1rem', overflowY: 'auto' }}
+          sx={{
+            flex: '1 1 auto',
+            px: '0.5rem',
+            pb: '1rem',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+          }}
         >
           {details}
         </Box>

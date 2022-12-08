@@ -7,11 +7,10 @@ const Entry = ({ children, sx, ...props }) => (
     {...props}
     sx={{
       ...sx,
-      pr: '0.5rem',
+      px: '0.5rem',
       '&:not(:first-of-type)': {
         mt: '0.5rem',
         pt: '0.25rem',
-
         borderTop: '1px solid',
         borderTopColor: 'grey.1',
       },

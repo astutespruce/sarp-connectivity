@@ -9,7 +9,7 @@ export const mapConfig = {
   bounds: [-124.9022044, 17.83087146, -65.16797072, 52.88065373],
   styleID: 'light-v10',
   minZoom: 2,
-  maxZoom: 24,
+  maxZoom: 22,
   projection: 'mercator',
   // To enable CONUS Albers mode
   // projection: {

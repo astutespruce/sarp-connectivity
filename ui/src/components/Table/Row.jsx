@@ -8,7 +8,8 @@ const Row = ({ children, sx, ...props }) => (
     {...props}
     sx={{
       '&:not(:first-of-type)': {
-        mt: '0.5em',
+        mt: '0.25em',
+        pt: '0.25em',
         borderTop: '1px solid',
         borderTopColor: 'grey.2',
       },

@@ -12,12 +12,12 @@ import {
   CROSSING_TYPE,
   ROAD_TYPE,
   CONSTRICTION,
-  OWNERTYPE,
-  BARRIEROWNERTYPE,
-  SALMONID_ESU,
 } from 'config'
 
+import IDInfo from './IDInfo'
+import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
+import SpeciesInfo from './SpeciesInfo'
 
 export const classifySARPScore = (score) => {
   // assumes -1 (NODATA) already filtered out
@@ -45,14 +45,11 @@ export const classifySARPScore = (score) => {
 const BarrierDetails = ({
   barrierType,
   sarpid,
-  lat,
-  lon,
   source,
   hasnetwork,
   excluded,
   stream,
   intermittent,
-  HUC8,
   HUC12,
   HUC8Name,
   HUC12Name,
@@ -88,98 +85,75 @@ const BarrierDetails = ({
     <Box
       sx={{
         mt: '-1rem',
-        mx: '-1rem',
+        mx: '-0.5rem',
         fontSize: 1,
       }}
     >
       <Section title="Location">
         <Entry>
-          {isCrossing
-            ? 'Road / stream crossing'
-            : 'Road-related potential barrier'}{' '}
-          at {formatNumber(lat, 5)}
-          &deg; N, {formatNumber(lon, 5)}
-          &deg; E
+          <Field label="Barrier type">
+            {isCrossing
+              ? 'Road / stream crossing'
+              : 'Road-related potential barrier'}
+          </Field>
         </Entry>
-        {!isEmptyString(stream) ? (
-          <Entry>
-            <Field>River or stream:</Field> {stream}
-          </Entry>
-        ) : null}
         {!isEmptyString(road) ? (
           <Entry>
-            <Field>Road:</Field> {road}
+            <Field label="Road">{road}</Field>
           </Entry>
         ) : null}
 
-        {intermittent === 1 ? (
-          <Entry>
-            Located on a reach that has intermittent or ephemeral flow
-          </Entry>
-        ) : null}
-
-        {HUC12Name ? (
-          <Entry>
-            {HUC12Name} Subwatershed{' '}
-            <Paragraph variant="help" sx={{ fontSize: 0 }}>
-              HUC12: {HUC12}
-            </Paragraph>
-          </Entry>
-        ) : null}
-
-        {HUC8Name ? (
-          <Entry>
-            {HUC8Name} Subbasin{' '}
-            <Paragraph variant="help" sx={{ fontSize: 0 }}>
-              HUC8: {HUC8}
-            </Paragraph>
-          </Entry>
-        ) : null}
-
-        {ownertype !== null && ownertype > 0 ? (
-          <Entry>
-            <Field>Conservation land type:</Field> {OWNERTYPE[ownertype]}
-          </Entry>
-        ) : null}
-
-        {barrierownertype !== null && barrierownertype > 0 ? (
-          <Entry>
-            <Field>Barrier ownership type:</Field>{' '}
-            {BARRIEROWNERTYPE[barrierownertype]}
-          </Entry>
-        ) : null}
+        <LocationInfo
+          reachName={stream}
+          HUC8Name={HUC8Name}
+          HUC12Name={HUC12Name}
+          HUC12={HUC12}
+          ownertype={ownertype}
+          barrierownertype={barrierownertype}
+        />
       </Section>
 
       <Section title="Barrier information">
         {roadtype !== null && roadtype >= 0 ? (
           <Entry>
-            <Field>Road type:</Field> {ROAD_TYPE[roadtype]}
+            <Field label="Road type" isUnknown={roadtype === 0}>
+              {ROAD_TYPE[roadtype]}
+            </Field>
           </Entry>
         ) : null}
         {crossingtype !== null && crossingtype >= 0 ? (
           <Entry>
-            <Field>Crossing type:</Field> {CROSSING_TYPE[crossingtype]}
+            <Field label="Crossing type" isUnknown={crossingtype === 0}>
+              {CROSSING_TYPE[crossingtype]}
+            </Field>
           </Entry>
         ) : null}
         {condition !== null && condition >= 0 ? (
           <Entry>
-            <Field>Condition:</Field> {CONDITION[condition]}
+            <Field label="Condition" isUnknown={condition === 0}>
+              {CONDITION[condition]}
+            </Field>
           </Entry>
         ) : null}
         {constriction !== null && constriction >= 0 ? (
           <Entry>
-            <Field>Type of constriction:</Field> {CONSTRICTION[constriction]}
+            <Field label="Type of constriction" isUnknown={constriction === 0}>
+              {CONSTRICTION[constriction]}
+            </Field>
           </Entry>
         ) : null}
         {barrierseverity !== null ? (
           <Entry>
-            <Field>Severity:</Field> {BARRIER_SEVERITY[barrierseverity]}
+            <Field label="Severity" isUnknown={barrierseverity === 0}>
+              {BARRIER_SEVERITY[barrierseverity]}
+            </Field>
           </Entry>
         ) : null}
         {!isCrossing && sarp_score >= 0 ? (
           <Entry>
-            <Field>SARP Aquatic Organism Passage Score:</Field>{' '}
-            {formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)})
+            <Field label="SARP Aquatic Organism Passage score">
+              {formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)})
+            </Field>
           </Entry>
         ) : null}
       </Section>
@@ -198,6 +172,7 @@ const BarrierDetails = ({
             freeunaltereddownstreammiles={freeunaltereddownstreammiles}
             sizeclasses={sizeclasses}
             landcover={landcover}
+            intermittent={intermittent}
           />
         ) : (
           <>
@@ -234,72 +209,19 @@ const BarrierDetails = ({
       </Section>
 
       <Section title="Species information">
-        {tespp + regionalsgcnspp > 0 || trout || salmonidesu ? (
-          <>
-            <Text sx={{ my: '0.5rem', mr: '0.5rem' }}>
-              Data sources in the subwatershed containing this barrier have
-              recorded:
-            </Text>
-            <Box as="ul">
-              <li>
-                <b>{tespp}</b> federally-listed threatened and endangered
-                aquatic species
-              </li>
-              <li>
-                <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
-                Conservation Need (SGCN), which include state-listed threatened
-                and endangered species
-              </li>
-              <li>
-                <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of
-                Greatest Conservation Need
-              </li>
-              <li>
-                {trout ? 'One or more trout species' : 'No trout species'}
-              </li>
-              {salmonidesu ? (
-                <li>
-                  Within{' '}
-                  {salmonidesu
-                    .split(',')
-                    .map((code) => SALMONID_ESU[code])
-                    .join(', ')}
-                </li>
-              ) : null}
-            </Box>
-          </>
-        ) : (
-          <Text sx={{ my: '0.5rem', mr: '0.5rem', color: 'grey.8' }}>
-            Data sources in the subwatershed containing this dam have not
-            recorded any federally-listed threatened and endangered aquatic
-            species, state-listed aquatic Species of Greatest Conservation Need,
-            regionally-listed aquatic Species of Greatest Conservation Need,
-            trout species, or salmon ESU / steelhead trout DPS.
-          </Text>
-        )}
-
-        <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
-          Note: species information is very incomplete. These species may or may
-          not be directly impacted by this barrier.{' '}
-          <a href="/sgcn" target="_blank">
-            Read more.
-          </a>
-        </Paragraph>
+        <SpeciesInfo
+          barrierType={barrierType}
+          tespp={tespp}
+          regionalsgcnspp={regionalsgcnspp}
+          statesgcnspp={statesgcnspp}
+          trout={trout}
+          salmonidesu={salmonidesu}
+        />
       </Section>
 
       {!isEmptyString(source) || !isCrossing ? (
         <Section title="Other information">
-          {!isCrossing ? (
-            <Entry>
-              <Field>SARP ID:</Field> {sarpid}
-            </Entry>
-          ) : null}
-
-          {!isEmptyString(source) ? (
-            <Entry>
-              <Field>Source:</Field> {source}
-            </Entry>
-          ) : null}
+          <IDInfo sarpid={!isCrossing ? sarpid : null} source={source} />
         </Section>
       ) : null}
     </Box>
@@ -309,14 +231,11 @@ const BarrierDetails = ({
 BarrierDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-  lat: PropTypes.number.isRequired,
-  lon: PropTypes.number.isRequired,
   hasnetwork: PropTypes.number.isRequired,
   excluded: PropTypes.number,
   source: PropTypes.string,
   stream: PropTypes.string,
   intermittent: PropTypes.number,
-  HUC8: PropTypes.string,
   HUC12: PropTypes.string,
   HUC8Name: PropTypes.string,
   HUC12Name: PropTypes.string,
@@ -347,7 +266,6 @@ BarrierDetails.propTypes = {
 }
 
 BarrierDetails.defaultProps = {
-  HUC8: null,
   HUC12: null,
   HUC8Name: null,
   HUC12Name: null,
