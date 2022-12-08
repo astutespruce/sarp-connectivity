@@ -15,6 +15,7 @@ const HeaderImage = ({
   subtitle,
   credits,
   caption,
+  yPosition,
 }) => (
   <BackgroundImage
     {...convertToBgImage(image)}
@@ -22,6 +23,7 @@ const HeaderImage = ({
       height,
       minHeight,
       maxHeight: maxHeight || height,
+      backgroundPosition: `center ${yPosition}`,
     }}
     alt=""
     preserveStackingContext
@@ -99,6 +101,7 @@ HeaderImage.propTypes = {
     author: PropTypes.string.isRequired,
   }),
   caption: PropTypes.string,
+  yPosition: PropTypes.string,
 }
 
 HeaderImage.defaultProps = {
@@ -109,6 +112,7 @@ HeaderImage.defaultProps = {
   subtitle: null,
   credits: null,
   caption: null,
+  yPosition: 'center',
 }
 
 export default HeaderImage

@@ -42,7 +42,13 @@ const SpeciesInfo = ({
     return (
       <>
         <Text
-          sx={{ my: '0.5rem', mr: '0.5rem', px: '0.5rem', color: 'grey.8' }}
+          sx={{
+            my: '0.5rem',
+            mr: '0.5rem',
+            px: '0.5rem',
+            color: 'grey.8',
+            fontSize: 1,
+          }}
         >
           Data sources in the subwatershed containing this {typeLabel} have not
           recorded any federally-listed threatened and endangered aquatic

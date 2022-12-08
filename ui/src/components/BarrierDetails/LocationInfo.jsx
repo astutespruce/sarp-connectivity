@@ -49,14 +49,14 @@ LocationInfo.propTypes = {
   HUC12: PropTypes.string.isRequired,
   HUC8Name: PropTypes.string.isRequired,
   HUC12Name: PropTypes.string.isRequired,
-  ownertype: 0,
-  barrierownertype: 0,
+  ownertype: PropTypes.number,
+  barrierownertype: PropTypes.number,
 }
 
 LocationInfo.defaultProps = {
   reachName: null,
-  ownertype: PropTypes.number,
-  barrierownertype: PropTypes.number,
+  ownertype: 0,
+  barrierownertype: 0,
 }
 
 export default LocationInfo

@@ -41,10 +41,23 @@ const BarrierDetails = ({ barrier, onClose }) => {
     tiers = null,
   } = barrier
 
-  const [sarpid, name] = sarpidname.split('|')
-
   const isCrossing =
     barrierType === 'small_barriers' && sarpid && sarpid.startsWith('cr')
+
+  const [sarpid, rawName] = sarpidname.split('|')
+
+  let name = ''
+  if (!isEmptyString(rawName)) {
+    name = rawName
+  } else if (isCrossing) {
+    name = 'Road / stream crossing'
+  } else if (barrierType === 'dams') {
+    name = 'Dam (unknown name)'
+  } else if (barrierType === 'small_barriers') {
+    name = 'Road-related barrier (unknown name)'
+  } else {
+    name = 'Unknown name'
+  }
 
   const typeLabel = isCrossing
     ? 'road / stream crossing'
@@ -56,21 +69,14 @@ const BarrierDetails = ({ barrier, onClose }) => {
     case 'dams': {
       packedInfo = unpackBits(packed, DAM_PACK_BITS)
 
-      details = (
-        <DamDetails sarpid={sarpid} name={name} {...barrier} {...packedInfo} />
-      )
+      details = <DamDetails sarpid={sarpid} {...barrier} {...packedInfo} />
       break
     }
     case 'small_barriers': {
       packedInfo = unpackBits(packed, SB_PACK_BITS)
 
       details = (
-        <SmallBarrierDetails
-          sarpid={sarpid}
-          name={name}
-          {...barrier}
-          {...packedInfo}
-        />
+        <SmallBarrierDetails sarpid={sarpid} {...barrier} {...packedInfo} />
       )
       break
     }
@@ -78,12 +84,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
       packedInfo = unpackBits(packed, WF_PACK_BITS)
 
       details = (
-        <WaterfallDetails
-          sarpid={sarpid}
-          name={name}
-          {...barrier}
-          {...packedInfo}
-        />
+        <WaterfallDetails sarpid={sarpid} {...barrier} {...packedInfo} />
       )
       break
     }
@@ -91,15 +92,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
       break
     }
   }
-
   const { hasnetwork = 0, invasive = 0, nostructure = 0 } = packedInfo || {}
-
-  let defaultName = `${capitalize(typeLabel)}${
-    sarpid ? ` (SARPID: ${sarpid})` : ''
-  }`
-  if (isCrossing) {
-    defaultName = 'Unknown road / stream crossing name'
-  }
 
   let scoreContent = null
   if (ranked) {
@@ -178,8 +171,8 @@ const BarrierDetails = ({ barrier, onClose }) => {
           }}
         >
           <Box sx={{ flex: '1 1 auto' }}>
-            <Heading as="h3" sx={{ m: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
-              {!isEmptyString(name) ? name : defaultName}
+            <Heading as="h3" sx={{ m: '0 0 0.5rem 0', fontSize: '1.1rem' }}>
+              {name}
             </Heading>
           </Box>
           <Button variant="close" onClick={onClose}>

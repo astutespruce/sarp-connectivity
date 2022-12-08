@@ -155,7 +155,7 @@ for column in ("Road", "Stream"):
 
 
 # Fix line returns in stream name and road name
-df.loc[df.Stream.str.contains("\r\n", ""), "Stream"] = "Unnamed"
+df.loc[df.Stream.str.contains("\r\n", ""), "Stream"] = ""
 df.Road = df.Road.str.replace("\r\n", "")
 
 df.loc[

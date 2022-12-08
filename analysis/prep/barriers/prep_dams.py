@@ -340,6 +340,7 @@ df.River = df.River.str.title()
 ids = df.loc[df.Name.str.count("\r") > 0].index
 df.loc[ids, "Name"] = df.loc[ids].Name.apply(lambda v: v.split("\r")[0]).fillna("")
 
+df.loc[(df.Diversion == 1) & (df.Name == ""), "Name"] = "Water diversion"
 
 # Fix years between 0 and 100; assume they were in the 1900s
 df.loc[(df.YearCompleted > 0) & (df.YearCompleted < 100), "YearCompleted"] = (
@@ -391,8 +392,10 @@ df["excluded"] = False
 # unranked: records that should break the network but not be used for ranking
 df["invasive"] = False
 
+# flag diversions with no associated structure
 # TEMP: no-structure barriers are excluded instead of marked as unranked
-# df["nostructure"] = False  # diversions with no associated structure
+df["nostructure"] = df.StructureCategory.isin(NOSTRUCTURE_STRUCTURECATEGORY)
+
 df["unranked"] = False  # combined from above fields
 
 # removed: dam was removed for conservation but we still want to track it
@@ -586,7 +589,7 @@ df.loc[df.Source.str.count("Amber Ignatius") > 0, "snap_group"] = 2
 # Identify dams estimated from waterbodies
 ix = df.Source.isin(["Estimated Dams OCT 2021", "Estimated Dams Summer 2022"])
 df.loc[ix, "snap_group"] = 3
-df.loc[ix, "Name"] = "Estimated (" + df.loc[ix].SARPID + ")"
+df.loc[ix, "Name"] = "Estimated dam"
 
 # Dams likely to be off network get a much smaller tolerance
 df.loc[df.snap_group.isin([1, 2]), "snap_tolerance"] = SNAP_TOLERANCE[
