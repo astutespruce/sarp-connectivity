@@ -38,6 +38,8 @@ qa_dir = barriers_dir / "qa"
 print("Reading road crossings")
 df = gp.read_feather(src_dir / "road_crossings.feather")
 
+df["Source"] = "USGS Database of Stream Crossings in the United States (2022)"
+
 
 tree = shapely.STRtree(df.geometry.values.data)
 

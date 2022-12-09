@@ -17,6 +17,7 @@ import {
 import IDInfo from './IDInfo'
 import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
+import NoNetworkInfo from './NoNetworkInfo'
 import SpeciesInfo from './SpeciesInfo'
 
 const { version: dataVersion } = siteMetadata
@@ -27,6 +28,7 @@ const DamDetails = ({
   hasnetwork,
   excluded,
   onloop,
+  unsnapped,
   height,
   nidid,
   source,
@@ -122,23 +124,16 @@ const DamDetails = ({
               <>
                 {isLowheadDam ? <br /> : null}
                 {diversion === 2 ? 'likely ' : null} water diversion
-                {nostructure === 1 ? ' without associated dam structure' : null}
+                {nostructure === 1 ? (
+                  <Text sx={{ fontSize: 0, color: 'grey.8' }}>
+                    (no associated dam structure)
+                  </Text>
+                ) : null}
               </>
             ) : null}
             {isUnspecifiedType ? 'dam' : null}
           </Field>
         </Entry>
-        {lowheaddam !== null && lowheaddam >= 1 ? (
-          <Entry>
-            This is {lowheaddam === 2 ? 'likely' : ''} a lowhead dam
-          </Entry>
-        ) : null}
-        {diversion === 1 ? (
-          <Entry>
-            This is {diversion === 2 ? 'likely' : ''} a water diversion
-            {nostructure === 1 ? ' without an associated dam structure' : ''}
-          </Entry>
-        ) : null}
 
         {yearcompleted > 0 ? (
           <Entry>
@@ -155,9 +150,7 @@ const DamDetails = ({
         CONSTRUCTION[construction] ? (
           <Entry>
             <Field label="Construction material" isUnknown={construction === 0}>
-              <Text sx={{ textAlign: 'right' }}>
-                {CONSTRUCTION[construction].toLowerCase()}
-              </Text>
+              {CONSTRUCTION[construction].toLowerCase()}
             </Field>
           </Entry>
         ) : null}
@@ -165,18 +158,14 @@ const DamDetails = ({
         {purpose !== null && purpose >= 0 && PURPOSE[purpose] ? (
           <Entry>
             <Field label="Purpose" isUnknown={purpose === 0}>
-              <Text sx={{ textAlign: 'right' }}>
-                {PURPOSE[purpose].toLowerCase()}
-              </Text>
+              {PURPOSE[purpose].toLowerCase()}
             </Field>
           </Entry>
         ) : null}
         {condition !== null && condition >= 0 && CONDITION[condition] ? (
           <Entry>
             <Field label="Structural condition" isUnknown={condition === 0}>
-              <Text sx={{ textAlign: 'right' }}>
-                {CONDITION[condition].toLowerCase()}
-              </Text>
+              {CONDITION[condition].toLowerCase()}
             </Field>
           </Entry>
         ) : null}
@@ -189,9 +178,7 @@ const DamDetails = ({
               label="Passage facility type"
               isUnknown={passagefacility === 0}
             >
-              <Text sx={{ textAlign: 'right' }}>
-                {PASSAGEFACILITY[passagefacility].toLowerCase()}
-              </Text>
+              {PASSAGEFACILITY[passagefacility].toLowerCase()}
             </Field>
           </Entry>
         ) : null}
@@ -215,42 +202,16 @@ const DamDetails = ({
             waterbodykm2={waterbodykm2}
             intermittent={intermittent}
           />
-        ) : null}
-        {excluded && !hasnetwork ? (
-          <Entry>
-            This dam was excluded from the connectivity analysis based on field
-            reconnaissance or manual review of aerial imagery.
-          </Entry>
-        ) : null}
-        {onloop && !hasnetwork ? (
-          <Entry>
-            <Text>
-              This dam was excluded from the connectivity analysis based on its
-              position within the aquatic network.
-            </Text>
-            <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
-              This dam was snapped to a secondary channel within the aquatic
-              network according to the way that primary versus secondary
-              channels are identified within the NHD High Resolution Plus
-              dataset. This dam may need to be repositioned to occur on the
-              primary channel in order to be included within the connectivity
-              analysis. Please <b>contact us</b> to report an issue with this
-              barrier.
-            </Paragraph>
-          </Entry>
-        ) : null}
-        {!hasnetwork && !(excluded || onloop) ? (
-          <Entry>
-            <Text>
-              This dam is off-network and has no functional network information.
-            </Text>
-            <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
-              Not all dams could be correctly snapped to the aquatic network for
-              analysis. Please <b>contact us</b> to report an error or for
-              assistance interpreting these results.
-            </Paragraph>
-          </Entry>
-        ) : null}
+        ) : (
+          <NoNetworkInfo
+            barrierType={barrierType}
+            unsnapped={unsnapped}
+            excluded={excluded}
+            onloop={onloop}
+            diversion={diversion}
+            nostructure={nostructure}
+          />
+        )}
       </Section>
 
       <Section title="Species information for this subwatershed">
@@ -285,6 +246,7 @@ DamDetails.propTypes = {
   hasnetwork: PropTypes.number.isRequired,
   excluded: PropTypes.number,
   onloop: PropTypes.number,
+  unsnapped: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
   HUC12: PropTypes.string,
@@ -329,8 +291,9 @@ DamDetails.defaultProps = {
   HUC12: null,
   HUC8Name: null,
   HUC12Name: null,
-  excluded: false,
-  onloop: false,
+  excluded: 0,
+  onloop: 0,
+  unsnapped: 0,
   river: null,
   intermittent: -1,
   nidid: null,

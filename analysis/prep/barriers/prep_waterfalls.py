@@ -87,8 +87,10 @@ df.Source = df.Source.str.strip()
 df.loc[df.Source == "Amy Cottrell, Auburn", "Source"] = "Amy Cotrell, Auburn University"
 
 df.Name = df.Name.fillna("").str.strip()
+df.loc[df.Name.str.lower().isin(["unknown"]), "Name"] = ""
 df.LocalID = df.LocalID.fillna("").str.strip()
 df.Stream = df.Stream.fillna("").str.strip()
+
 df.GNIS_Name = df.GNIS_Name.fillna("").str.strip()
 ix = (df.Stream == "") & (df.GNIS_Name != "")
 df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
@@ -322,7 +324,7 @@ df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
 df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
 
-for field in ["lineID", "NHDPlusID", "AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
+for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
     df[field] = df[field].astype("float32")
 
 print(df.groupby("loop").size())

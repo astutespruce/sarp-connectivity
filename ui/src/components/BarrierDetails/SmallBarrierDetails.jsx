@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Paragraph, Text } from 'theme-ui'
+import { Box, Text } from 'theme-ui'
 
 import { Entry, Field, Section } from 'components/Sidebar'
 import { formatNumber } from 'util/format'
@@ -17,6 +17,7 @@ import {
 import IDInfo from './IDInfo'
 import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
+import NoNetworkInfo from './NoNetworkInfo'
 import SpeciesInfo from './SpeciesInfo'
 
 export const classifySARPScore = (score) => {
@@ -48,6 +49,8 @@ const BarrierDetails = ({
   source,
   hasnetwork,
   excluded,
+  onloop,
+  unsnapped,
   stream,
   intermittent,
   HUC12,
@@ -78,160 +81,134 @@ const BarrierDetails = ({
   freeunaltereddownstreammiles,
   landcover,
   sizeclasses,
-}) => {
-  const isCrossing = sarpid.startsWith('cr')
-
-  return (
-    <Box
-      sx={{
-        mt: '-1rem',
-        mx: '-0.5rem',
-        fontSize: 1,
-      }}
-    >
-      <Section title="Location">
+}) => (
+  <Box
+    sx={{
+      mt: '-1rem',
+      mx: '-0.5rem',
+      fontSize: 1,
+    }}
+  >
+    <Section title="Location">
+      <Entry>
+        <Field label="Barrier type">
+          Road-related <br />
+          potential barrier
+        </Field>
+      </Entry>
+      {!isEmptyString(road) ? (
         <Entry>
-          <Field label="Barrier type">
-            {isCrossing
-              ? 'Road / stream crossing'
-              : 'Road-related potential barrier'}
+          <Field label="Road">{road}</Field>
+        </Entry>
+      ) : null}
+
+      <LocationInfo
+        reachName={stream}
+        HUC8Name={HUC8Name}
+        HUC12Name={HUC12Name}
+        HUC12={HUC12}
+        ownertype={ownertype}
+        barrierownertype={barrierownertype}
+      />
+    </Section>
+
+    <Section title="Barrier information">
+      {roadtype !== null && roadtype >= 0 ? (
+        <Entry>
+          <Field label="Road type" isUnknown={roadtype === 0}>
+            {ROAD_TYPE[roadtype]}
           </Field>
         </Entry>
-        {!isEmptyString(road) ? (
-          <Entry>
-            <Field label="Road">{road}</Field>
-          </Entry>
-        ) : null}
-
-        <LocationInfo
-          reachName={stream}
-          HUC8Name={HUC8Name}
-          HUC12Name={HUC12Name}
-          HUC12={HUC12}
-          ownertype={ownertype}
-          barrierownertype={barrierownertype}
-        />
-      </Section>
-
-      <Section title="Barrier information">
-        {roadtype !== null && roadtype >= 0 ? (
-          <Entry>
-            <Field label="Road type" isUnknown={roadtype === 0}>
-              {ROAD_TYPE[roadtype]}
-            </Field>
-          </Entry>
-        ) : null}
-        {crossingtype !== null && crossingtype >= 0 ? (
-          <Entry>
-            <Field label="Crossing type" isUnknown={crossingtype === 0}>
-              {CROSSING_TYPE[crossingtype]}
-            </Field>
-          </Entry>
-        ) : null}
-        {condition !== null && condition >= 0 ? (
-          <Entry>
-            <Field label="Condition" isUnknown={condition === 0}>
-              {CONDITION[condition]}
-            </Field>
-          </Entry>
-        ) : null}
-        {constriction !== null && constriction >= 0 ? (
-          <Entry>
-            <Field label="Type of constriction" isUnknown={constriction === 0}>
-              {CONSTRICTION[constriction]}
-            </Field>
-          </Entry>
-        ) : null}
-        {barrierseverity !== null ? (
-          <Entry>
-            <Field label="Severity" isUnknown={barrierseverity === 0}>
-              {BARRIER_SEVERITY[barrierseverity]}
-            </Field>
-          </Entry>
-        ) : null}
-        {!isCrossing && sarp_score >= 0 ? (
-          <Entry>
-            <Field label="SARP Aquatic Organism Passage score">
-              {formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)})
-            </Field>
-          </Entry>
-        ) : null}
-      </Section>
-
-      <Section title="Functional network information">
-        {hasnetwork ? (
-          <NetworkInfo
-            barrierType={barrierType}
-            totalupstreammiles={totalupstreammiles}
-            perennialupstreammiles={perennialupstreammiles}
-            alteredupstreammiles={alteredupstreammiles}
-            unalteredupstreammiles={unalteredupstreammiles}
-            freedownstreammiles={freedownstreammiles}
-            freeperennialdownstreammiles={freeperennialdownstreammiles}
-            freealtereddownstreammiles={freealtereddownstreammiles}
-            freeunaltereddownstreammiles={freeunaltereddownstreammiles}
-            sizeclasses={sizeclasses}
-            landcover={landcover}
-            intermittent={intermittent}
-          />
-        ) : (
-          <>
-            {excluded ? (
-              <Entry>
-                This road-related barrier was excluded from the connectivity
-                analysis based on field reconnaissance or manual review of
-                aerial imagery.
-              </Entry>
-            ) : (
-              <>
-                {isCrossing ? (
-                  <Entry>
-                    This crossing has not yet been evaluated for aquatic
-                    connectivity.
-                  </Entry>
-                ) : (
-                  <Entry>
-                    <Text>
-                      This barrier is off-network and has no functional network
-                      information.
-                    </Text>
-                    <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
-                      Not all barriers could be correctly snapped to the aquatic
-                      network for analysis. Please contact us to report an error
-                      or for assistance interpreting these results.
-                    </Paragraph>
-                  </Entry>
-                )}
-              </>
-            )}
-          </>
-        )}
-      </Section>
-
-      <Section title="Species information">
-        <SpeciesInfo
-          barrierType={barrierType}
-          tespp={tespp}
-          regionalsgcnspp={regionalsgcnspp}
-          statesgcnspp={statesgcnspp}
-          trout={trout}
-          salmonidesu={salmonidesu}
-        />
-      </Section>
-
-      {!isEmptyString(source) || !isCrossing ? (
-        <Section title="Other information">
-          <IDInfo sarpid={!isCrossing ? sarpid : null} source={source} />
-        </Section>
       ) : null}
-    </Box>
-  )
-}
+      {crossingtype !== null && crossingtype >= 0 ? (
+        <Entry>
+          <Field label="Crossing type" isUnknown={crossingtype === 0}>
+            {CROSSING_TYPE[crossingtype]}
+          </Field>
+        </Entry>
+      ) : null}
+      {condition !== null && condition >= 0 ? (
+        <Entry>
+          <Field label="Condition" isUnknown={condition === 0}>
+            {CONDITION[condition]}
+          </Field>
+        </Entry>
+      ) : null}
+      {constriction !== null && constriction >= 0 ? (
+        <Entry>
+          <Field label="Type of constriction" isUnknown={constriction === 0}>
+            {CONSTRICTION[constriction]}
+          </Field>
+        </Entry>
+      ) : null}
+      {barrierseverity !== null ? (
+        <Entry>
+          <Field label="Severity" isUnknown={barrierseverity === 0}>
+            {BARRIER_SEVERITY[barrierseverity]}
+          </Field>
+        </Entry>
+      ) : null}
+      {sarp_score >= 0 ? (
+        <Entry>
+          <Field label="SARP Aquatic Organism Passage score">
+            {formatNumber(sarp_score, 1)}
+            <Text sx={{ fontSize: 0, color: 'grey.8' }}>
+              ({classifySARPScore(sarp_score)})
+            </Text>
+          </Field>
+        </Entry>
+      ) : null}
+    </Section>
+
+    <Section title="Functional network information">
+      {hasnetwork ? (
+        <NetworkInfo
+          barrierType={barrierType}
+          totalupstreammiles={totalupstreammiles}
+          perennialupstreammiles={perennialupstreammiles}
+          alteredupstreammiles={alteredupstreammiles}
+          unalteredupstreammiles={unalteredupstreammiles}
+          freedownstreammiles={freedownstreammiles}
+          freeperennialdownstreammiles={freeperennialdownstreammiles}
+          freealtereddownstreammiles={freealtereddownstreammiles}
+          freeunaltereddownstreammiles={freeunaltereddownstreammiles}
+          sizeclasses={sizeclasses}
+          landcover={landcover}
+          intermittent={intermittent}
+        />
+      ) : (
+        <NoNetworkInfo
+          barrierType={barrierType}
+          unsnapped={unsnapped}
+          excluded={excluded}
+          onloop={onloop}
+        />
+      )}
+    </Section>
+
+    <Section title="Species information">
+      <SpeciesInfo
+        barrierType={barrierType}
+        tespp={tespp}
+        regionalsgcnspp={regionalsgcnspp}
+        statesgcnspp={statesgcnspp}
+        trout={trout}
+        salmonidesu={salmonidesu}
+      />
+    </Section>
+
+    <Section title="Other information">
+      <IDInfo sarpid={sarpid} source={source} />
+    </Section>
+  </Box>
+)
 
 BarrierDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
   hasnetwork: PropTypes.number.isRequired,
+  onloop: PropTypes.number,
+  unsnapped: PropTypes.number,
   excluded: PropTypes.number,
   source: PropTypes.string,
   stream: PropTypes.string,
@@ -269,7 +246,9 @@ BarrierDetails.defaultProps = {
   HUC12: null,
   HUC8Name: null,
   HUC12Name: null,
-  excluded: false,
+  excluded: 0,
+  onloop: 0,
+  unsnapped: 0,
   source: null,
   stream: null,
   intermittent: -1,

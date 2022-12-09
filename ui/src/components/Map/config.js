@@ -39,17 +39,24 @@ export const sources = {
     maxzoom: 16,
     promoteId: 'id',
   },
+  road_crossings: {
+    type: 'vector',
+    tiles: [`${tileHost}/services/road_crossings/tiles/{z}/{x}/{y}.pbf`],
+    minzoom: 9,
+    maxzoom: 16,
+    promoteId: 'id',
+  },
   waterfalls: {
     type: 'vector',
     tiles: [`${tileHost}/services/waterfalls/tiles/{z}/{x}/{y}.pbf`],
-    minzoom: 2,
+    minzoom: 9,
     maxzoom: 16,
     promoteId: 'id',
   },
   networks: {
     type: 'vector',
     tiles: [`${tileHost}/services/networks/tiles/{z}/{x}/{y}.pbf`],
-    minzoom: 5,
+    minzoom: 3,
     maxzoom: 16,
   },
 }

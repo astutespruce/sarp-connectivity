@@ -2,14 +2,22 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
 
-const unknownCSS = { fontSize: 0, color: 'grey.6' }
+const defaultCSS = { textAlign: 'right' }
+const unknownCSS = { fontSize: 0, color: 'grey.6', textAlign: 'right' }
 
 const Entry = ({ label, children, isUnknown, sx }) => (
   <Flex sx={{ justifyContent: 'space-between', alignItems: 'baseline', ...sx }}>
-    <Text sx={{ mr: '0.5em', flex: '1 1 auto', maxWidth: '80%', fontSize: 1 }}>
+    <Text
+      sx={{
+        mr: '0.5em',
+        flex: '1 1 auto',
+        maxWidth: '80%',
+        fontSize: 1,
+      }}
+    >
       {label}:
     </Text>
-    <Box sx={isUnknown ? unknownCSS : null}>{children}</Box>
+    <Box sx={isUnknown ? unknownCSS : defaultCSS}>{children}</Box>
   </Flex>
 )
 

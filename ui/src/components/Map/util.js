@@ -1,5 +1,8 @@
 import geoViewport from '@mapbox/geo-viewport'
 
+import { barrierTypeLabelSingular } from 'config'
+import { isEmptyString } from 'util/string'
+
 /**
  * Calculate the appropriate center and zoom to fit the bounds, given padding.
  * @param {Element} - map DOM node used to calculate height and width in screen pixels of map
@@ -241,3 +244,72 @@ export const getNotInStringExpr = (field, values) => [
   'all',
   ...Array.from(values).map((v) => ['==', ['index-of', v, ['get', field]], -1]),
 ]
+
+export const getBarrierTooltip = (barrierType, { sarpidname = '|' }) => {
+  const rawName = sarpidname.split('|')[1]
+
+  // const typeLabel = capitalize(barrierTypeLabelSingular[barrierType])
+  const typeLabel = barrierTypeLabelSingular[barrierType]
+  let name = ''
+  if (!isEmptyString(rawName)) {
+    switch (barrierType) {
+      case 'dams': {
+        if (
+          !(
+            rawName.toLowerCase().startsWith('estimated') ||
+            rawName.toLowerCase().startsWith('water diversion') ||
+            rawName.toLowerCase().indexOf('dam') !== -1
+          )
+        ) {
+          name = `${rawName} (${typeLabel})`
+        } else {
+          name = rawName
+        }
+        break
+      }
+      case 'waterfalls': {
+        if (!(rawName.toLowerCase().indexOf('fall') !== -1)) {
+          // name = `${typeLabel}: ${rawName}`
+          name = `${rawName} (${typeLabel})`
+        } else {
+          name = rawName
+        }
+
+        break
+      }
+      default: {
+        // name = `${typeLabel}: ${rawName}`
+        name = `${rawName} (${typeLabel})`
+      }
+    }
+  } else {
+    switch (barrierType) {
+      case 'dams': {
+        name = 'Dam (unknown name)'
+        break
+      }
+
+      case 'small_barriers': {
+        name = 'Road-related barrier (unknown name)'
+        break
+      }
+
+      case 'road_crossings': {
+        name = 'Road / stream crossing'
+        break
+      }
+
+      case 'waterfalls': {
+        name = 'Waterfall (unknown name)'
+        break
+      }
+      default: {
+        // should be caught before here
+        name = `${typeLabel}: unknown name`
+        break
+      }
+    }
+  }
+
+  return `<b>${name}</b>`
+}

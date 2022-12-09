@@ -151,7 +151,7 @@ Scores.propTypes = {
   state: PropTypes.string.isRequired,
   ranked: PropTypes.bool,
   invasive: PropTypes.bool,
-  nostructure: PropTypes.bool,
+  nostructure: PropTypes.number,
   state_nc_tier: PropTypes.number,
   state_wc_tier: PropTypes.number,
   state_ncwc_tier: PropTypes.number,

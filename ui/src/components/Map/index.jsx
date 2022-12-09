@@ -18,6 +18,7 @@ import {
   getNotInArrayExpr,
   getInStringExpr,
   getNotInStringExpr,
+  getBarrierTooltip,
 } from './util'
 import { networkLayers } from './layers'
 
@@ -43,6 +44,7 @@ export {
   networkLayers,
   highlightNetwork,
   setBarrierHighlight,
+  getBarrierTooltip,
   mapConfig,
   sources,
 }

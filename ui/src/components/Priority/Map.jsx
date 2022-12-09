@@ -28,11 +28,10 @@ import {
   getNotInArrayExpr,
   getInStringExpr,
   getNotInStringExpr,
+  getBarrierTooltip,
 } from 'components/Map'
 import { barrierTypeLabels } from 'config'
 import { isEqual, groupBy } from 'util/data'
-import { capitalize } from 'util/format'
-import { isEmptyString } from 'util/string'
 
 import { unitLayerConfig } from './config'
 import {
@@ -42,11 +41,13 @@ import {
   unitHighlightLayers,
   parentOutline,
   offnetworkPoint,
+  unrankedPoint,
   excludedPoint,
   includedPoint,
   pointLegends,
   rankedPoint,
-  damsSecondaryLayer,
+  roadCrossingPoint,
+  damsSecondaryPoint,
   waterfallsLayer,
   priorityWatersheds,
   priorityWatershedLegends,
@@ -115,12 +116,14 @@ const PriorityMap = ({
       setZoom(map.getZoom())
 
       const pointLayers = [
+        roadCrossingPoint.id,
+        damsSecondaryPoint.id,
+        waterfallsLayer.id,
+        unrankedPoint.id,
         offnetworkPoint.id,
-        damsSecondaryLayer.id,
         excludedPoint.id,
         includedPoint.id,
         rankedPoint.id,
-        'waterfalls',
       ]
 
       const clickLayers = pointLayers.concat(
@@ -186,25 +189,38 @@ const PriorityMap = ({
         }
       )
 
-      // add background point layer before the others, so that it is below them in the map
-      map.addLayer({
-        ...offnetworkPoint,
-        source: barrierType,
-        'source-layer': `offnetwork_${barrierType}`,
-      })
-
       // add waterfalls
       map.addLayer(waterfallsLayer)
 
-      // add secondary dams layer
+      // add road crossings layer
       map.addLayer({
-        ...damsSecondaryLayer,
+        ...roadCrossingPoint,
         layout: {
           visibility: barrierType === 'small_barriers' ? 'visible' : 'none',
         },
       })
 
-      // add filter point layers
+      // add secondary dams layer
+      map.addLayer({
+        ...damsSecondaryPoint,
+        layout: {
+          visibility: barrierType === 'small_barriers' ? 'visible' : 'none',
+        },
+      })
+
+      map.addLayer({
+        source: barrierType,
+        'source-layer': `offnetwork_${barrierType}`,
+        ...offnetworkPoint,
+      })
+
+      map.addLayer({
+        source: barrierType,
+        'source-layer': `unranked_${barrierType}`,
+        ...unrankedPoint,
+      })
+
+      // add primary barrier-type point layers
       const pointConfig = {
         source: barrierType,
         'source-layer': `ranked_${barrierType}`,
@@ -243,11 +259,9 @@ const PriorityMap = ({
           }
 
           const {
-            properties: { sarpidname = '|' },
+            // properties: { sarpidname = '|' },
             geometry: { coordinates },
           } = feature
-
-          const barrierName = sarpidname.split('|')[1]
 
           setBarrierHighlight(map, hoverFeatureRef.current, false)
 
@@ -257,20 +271,9 @@ const PriorityMap = ({
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
 
-          const prefix = barrierTypeLabels[feature.source]
-            ? `${capitalize(barrierTypeLabels[feature.source]).slice(
-                0,
-                barrierTypeLabels[feature.source].length - 1
-              )}: `
-            : ''
-
           tooltip
             .setLngLat(coordinates)
-            .setHTML(
-              `<b>${prefix}${
-                !isEmptyString(barrierName) ? barrierName : 'Unknown name'
-              }</b>`
-            )
+            .setHTML(getBarrierTooltip(feature.source, feature.properties))
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
@@ -366,7 +369,7 @@ const PriorityMap = ({
           CountyName: getSummaryUnitName('County', properties.County),
           lat,
           lon,
-          // note: ranked layesr are those that can be ranked, not necessarily those that have custom ranks
+          // note: ranked layers are those that can be ranked, not necessarily those that have custom ranks
           ranked: sourceLayer.startsWith('ranked_'),
           layer: {
             source,
@@ -549,8 +552,7 @@ const PriorityMap = ({
       const hasActiveUnits = ids && ids.length > 0
       const insideActiveUnitsExpr = hasActiveUnits
         ? getInArrayExpr(activeLayer, ids)
-        : // ['in', ['get', activeLayer], ...ids]
-          true
+        : false
 
       const outsideActiveUnitsExpr = hasActiveUnits
         ? getNotInArrayExpr(activeLayer, ids)

@@ -10,7 +10,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 import {
   pointLayer,
-  damsSecondaryLayer,
+  damsSecondaryPoint,
   waterfallsLayer,
   offnetworkPointLayer,
   unrankedPointLayer,
@@ -90,7 +90,7 @@ const Map = ({
 
     const barrierLayers = [waterfallsLayer.id]
     if (barrierType === 'small_barriers') {
-      barrierLayers.push(damsSecondaryLayer.id)
+      barrierLayers.push(damsSecondaryPoint.id)
     }
     const barriers = mapObj.queryRenderedFeatures(undefined, {
       layers: barrierLayers,
@@ -169,7 +169,7 @@ const Map = ({
 
         if (barrierType === 'small_barriers') {
           mapObj.addLayer({
-            ...damsSecondaryLayer,
+            ...damsSecondaryPoint,
             layout: { visibility: 'visible' },
           })
         }

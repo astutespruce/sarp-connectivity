@@ -17,7 +17,8 @@ from api.constants import (
     WF_TILE_FIELDS,
     STATE_TIER_FIELDS,
     STATE_TIER_PACK_BITS,
-    SB_PACK_BITS,
+    ROAD_CROSSING_TILE_FIELDS,
+    ROAD_CROSSING_PACK_BITS,
 )
 from analysis.lib.compression import pack_bits
 from analysis.post.lib.tiles import get_col_types, to_lowercase
@@ -27,11 +28,7 @@ DROP_UNIT_FIELDS = [
     f for f in UNIT_FIELDS if not f in {"State", "County", "HUC8", "HUC12"}
 ]
 
-
-# FIXME: debug only
-# MAX_ZOOM = 10
 MAX_ZOOM = 16
-
 
 barriers_dir = Path("data/barriers/master")
 results_dir = Path("data/barriers/networks")
@@ -70,6 +67,8 @@ start = time()
 
 ####################################################################
 ### Create dams tiles
+####################################################################
+print("-----------------Creating dam tiles------------------------\n\n")
 df = (
     gp.read_feather(
         results_dir / "dams.feather",
@@ -79,7 +78,6 @@ df = (
     .rename(columns={"COUNTYFIPS": "County"})
     .sort_values(by=["TotDASqKm"], ascending=False)
 )
-
 
 # Set string field nulls to blank strings
 str_cols = df.dtypes.loc[df.dtypes == "object"].index
@@ -127,7 +125,6 @@ ret.check_returncode()
 
 df = df.drop(columns=["TotDASqKm"])
 
-
 ### Create tiles for ranked dams with networks
 ranked_dams = df.loc[df.Ranked].drop(columns=["Ranked", "HasNetwork"])
 print(f"Creating tiles for {len(ranked_dams):,} ranked dams with networks")
@@ -169,6 +166,9 @@ unranked_dams = df.loc[df.HasNetwork & (~df.Ranked)].drop(
         "WaterbodySizeClass",
         "HeightClass",
         "PassageFacilityClass",
+        "SalmonidESUCount",
+        "DownstreamOceanMilesClass",
+        "DownstreamOceanBarriersClass",
     ]
     + DROP_UNIT_FIELDS
     + STATE_TIER_FIELDS,
@@ -216,6 +216,12 @@ offnetwork_dams = (
             "WaterbodySizeClass",
             "HeightClass",
             "PassageFacilityClass",
+            "SalmonidESUCount",
+            "FlowsToOcean",
+            "MilesToOutlet",
+            "CoastalHUC8",
+            "DownstreamOceanMilesClass",
+            "DownstreamOceanBarriersClass",
             "NHDPlusID",
             "upNetID",
             "downNetID",
@@ -259,6 +265,8 @@ print(f"Created dam tiles in {time() - start:,.2f}s")
 
 ####################################################################
 ### Create small barrier tiles
+####################################################################
+print("\n\n-----------------Creating small barrier tiles------------------------\n\n")
 start = time()
 df = (
     gp.read_feather(
@@ -347,8 +355,11 @@ unranked_barriers = df.loc[df.HasNetwork & (~df.Ranked)].drop(
         "StreamOrderClass",
         "StreamSizeClass",
         "PercentAlteredClass",
+        "SalmonidESUCount",
+        "DownstreamOceanMilesClass",
+        "DownstreamOceanBarriersClass",
     ]
-    + DROP_UNIT_FIELDS
+    + DROP_UNIT_FIELDS,
     errors="ignore",
 )
 
@@ -374,8 +385,8 @@ ret = subprocess.run(
 ret.check_returncode()
 
 
-# ### Combine barriers that don't have networks with road / stream crossings
-other_barriers = df.loc[~df.HasNetwork].drop(
+### Create tiles for small barriers without networks (these are never ranked)
+offnetwork_barriers = df.loc[~df.HasNetwork].drop(
     columns=[
         "HasNetwork",
         "Ranked",
@@ -387,6 +398,12 @@ other_barriers = df.loc[~df.HasNetwork].drop(
         "StreamSizeClass",
         "Intermittent",
         "PercentAlteredClass",
+        "SalmonidESUCount",
+        "FlowsToOcean",
+        "MilesToOutlet",
+        "CoastalHUC8",
+        "DownstreamOceanMilesClass",
+        "DownstreamOceanBarriersClass",
         "NHDPlusID",
         "upNetID",
         "downNetID",
@@ -397,123 +414,24 @@ other_barriers = df.loc[~df.HasNetwork].drop(
     errors="ignore",
 )
 
-# ### Read in road crossings to join with small barriers
-print("Reading road / stream crossings")
-road_crossings = (
-    gp.read_feather(
-        barriers_dir / "road_crossings.feather",
-        columns=[
-            "geometry",
-            "id",
-            "SARPID",
-            "Name",
-            "County",
-            "HUC8",
-            "HUC12",
-            "OwnerType",
-            "Road",
-            "State",
-            "Stream",
-            "TESpp",
-            "RegionalSGCNSpp",
-            "StateSGCNSpp",
-            "Trout",
-            "StreamOrder",
-            "loop",
-        ],
-    )
-    .to_crs("EPSG:4326")
-    .rename(columns={"COUNTYFIPS": "County", "loop": "OnLoop"})
-)
-
-if road_crossings.id.min() < df.id.max() + 1:
-    raise ValueError("Road crossings have overlapping ids with small barriers")
-
-# Standardize other fields before merge
-road_crossings[
-    "Source"
-] = "USGS Database of Stream Crossings in the United States (2022)"
-
-road_crossings["SARPIDName"] = road_crossings.SARPID + "|" + road_crossings.Name
-
-# Note: OnLoop and StreamOrder are currently ignored because HasNetwork is always False
-road_crossings["HasNetwork"] = False
-road_crossings["Excluded"] = False
-road_crossings["Invasive"] = False
-road_crossings["Unranked"] = False
-road_crossings["Recon"] = 0
-
-pack_cols = [e["field"] for e in SB_PACK_BITS]
-tmp = road_crossings[pack_cols].copy()
-# recode streamorder -1 to 0 for packing
-tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
-
-# add packed field
-road_crossings["packed"] = pack_bits(tmp, SB_PACK_BITS)
-road_crossings = road_crossings.drop(
-    columns=pack_cols
-    + [
-        "SARPID",
-        "Name",
-    ]
-)
-
-combined = pd.concat(
-    [other_barriers, road_crossings], ignore_index=True, sort=False
-).reset_index(drop=True)
-
-combined["id"] = combined.id.astype("uint")
-
-# Fill in N/A values
-cols = [
-    "SARPIDName",
-    "LocalID",
-    "CrossingCode",
-    "Source",
-    "Stream",
-    "Road",
-    "State",
-    "County",
-]
-for col in cols:
-    combined[col] = combined[col].fillna("").astype(str)
-
-for col in [
-    "BarrierSeverity",
-    "Condition",
-    "CrossingType",
-    "RoadType",
-    "Constriction",
-    "OwnerType",
-    "Trout",
-]:
-    combined[col] = combined[col].fillna(0).astype("uint8")
-
-# SARP score NODATA is -1; 0 is a meaningful value
-combined["SARP_Score"] = combined["SARP_Score"].fillna(-1).astype("float32")
-
-combined = to_lowercase(combined)
-
-
-print(
-    f"Creating tiles for {len(combined):,} small barriers and road crossings without networks"
-)
+offnetwork_barriers = to_lowercase(offnetwork_barriers)
 
 outfilename = tmp_dir / "offnetwork_small_barriers.fgb"
 mbtiles_filename = tmp_dir / "offnetwork_small_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
-write_dataframe(combined.reset_index(drop=True), outfilename)
+write_dataframe(offnetwork_barriers, outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
     + ["-l", "offnetwork_small_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(combined)
+    + get_col_types(
+        offnetwork_barriers,
+    )
     + [str(outfilename)]
 )
 ret.check_returncode()
-
 
 print("Joining small barriers tilesets")
 mbtiles_filename = out_dir / "small_barriers.mbtiles"
@@ -521,47 +439,109 @@ ret = subprocess.run(
     tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
 )
 
-print(f"Created small barriers tiles in {time() - start:,.2f}s")
-
-# #######################################
-# ### Create waterfalls tiles
-# print("Creating waterfalls tiles")
-# df = (
-#     gp.read_feather(
-#         results_dir / "waterfalls.feather", columns=["geometry", "id"] + WF_TILE_FIELDS
-#     )
-#     .to_crs("EPSG:4326")
-#     .rename(columns={"COUNTYFIPS": "County"})
-#     .sort_values(by=["TotDASqKm"], ascending=False)
-# ).drop(columns=['TotDASqKm'])
-
-# # Fill N/A values and fix dtypes
-# str_cols = df.dtypes.loc[df.dtypes == "object"].index
-# df[str_cols] = df[str_cols].fillna("")
+print(f"Created small barrier tiles in {time() - start:,.2f}s")
 
 
-# # Combine string fields
-# df["SARPIDName"] = df.SARPID + "|" + df.Name
-# df = df.drop(
-#     columns=[
-#         "SARPID",
-#         "Name",
-#     ]
-# )
+####################################################################
+### Create road crossing tiles
+####################################################################
+print("\n\n-----------------Creating road crossing tiles------------------------\n\n")
+
+df = (
+    gp.read_feather(
+        barriers_dir / "road_crossings.feather",
+        columns=["geometry", "id"] + ROAD_CROSSING_TILE_FIELDS,
+    )
+    .to_crs("EPSG:4326")
+    .rename(columns={"COUNTYFIPS": "County"})
+)
+
+# Set string field nulls to blank strings
+str_cols = df.dtypes.loc[df.dtypes == "object"].index
+for col in str_cols:
+    df[col] = df[col].fillna("").str.replace('"', "'")
+
+bool_cols = df.dtypes.loc[df.dtypes == "bool"].index
+for col in bool_cols:
+    df[col] = df[col].fillna(False).astype("uint8")
+
+# Combine string fields
+df["SARPIDName"] = df.SARPID + "|" + df.Name
+
+df = df.drop(
+    columns=[
+        "SARPID",
+        "Name",
+    ]
+)
+
+pack_cols = [e["field"] for e in ROAD_CROSSING_PACK_BITS]
+tmp = df[pack_cols].copy()
+tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
+df["packed"] = pack_bits(tmp, ROAD_CROSSING_PACK_BITS)
+df = df.drop(columns=pack_cols)
+
+df = to_lowercase(df)
+
+outfilename = tmp_dir / "road_crossings.fgb"
+mbtiles_filename = out_dir / "road_crossings.mbtiles"
+
+write_dataframe(df.reset_index(drop=True), outfilename)
+
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
+    + ["-l", "road_crossings"]
+    + ["-o", f"{str(mbtiles_filename)}"]
+    + get_col_types(df)
+    + [str(outfilename)]
+)
+ret.check_returncode()
 
 
-# df = to_lowercase(df)
+print(f"Created road crossing tiles in {time() - start:,.2f}s")
 
-# outfilename = tmp_dir / "waterfalls.fgb"
-# mbtiles_filename = out_dir / "waterfalls.mbtiles"
-# write_dataframe(df.reset_index(drop=True), outfilename)
+####################################################################
+### Create waterfalls tiles
+####################################################################
+print("\n\n-----------------Creating waterfalls tiles------------------------\n\n")
+print("Creating waterfalls tiles")
+df = (
+    gp.read_feather(
+        results_dir / "waterfalls.feather", columns=["geometry", "id"] + WF_TILE_FIELDS
+    )
+    .to_crs("EPSG:4326")
+    .rename(columns={"COUNTYFIPS": "County"})
+    .sort_values(by=["TotDASqKm"], ascending=False)
+).drop(columns=["TotDASqKm"])
 
-# ret = subprocess.run(
-#     tippecanoe_args
-#     + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
-#     + ["-l", "waterfalls"]
-#     + ["-o", f"{str(mbtiles_filename)}"]
-#     + get_col_types(df)
-#     + [str(outfilename)]
-# )
-# ret.check_returncode()
+# Fill N/A values and fix dtypes
+str_cols = df.dtypes.loc[df.dtypes == "object"].index
+df[str_cols] = df[str_cols].fillna("")
+
+
+# Combine string fields
+df["SARPIDName"] = df.SARPID + "|" + df.Name
+df = df.drop(
+    columns=[
+        "SARPID",
+        "Name",
+    ]
+)
+
+
+df = to_lowercase(df)
+
+outfilename = tmp_dir / "waterfalls.fgb"
+mbtiles_filename = out_dir / "waterfalls.mbtiles"
+write_dataframe(df.reset_index(drop=True), outfilename)
+
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
+    + ["-l", "waterfalls"]
+    + ["-o", f"{str(mbtiles_filename)}"]
+    + get_col_types(df)
+    + [str(outfilename)]
+)
+ret.check_returncode()

@@ -254,7 +254,7 @@ DAM_CORE_FIELDS = (
         # "Recon",
         "Diversion",
         "LowheadDam",
-        # "NoStructure", # not currently used
+        # "NoStructure", # not used in API / downloads, only in tiles / UI
         "WaterbodyKM2",
         "WaterbodySizeClass",
     ]
@@ -303,14 +303,14 @@ DAM_TILE_FIELDS = [
         "StreamOrder",
         "Estimated",
         "Invasive",
-        # "NoStructure",
+        "NoStructure",
         "Diversion",
         "Recon",  # excluded from API_FIELDS (important!)
         "PassageFacility",
         "TotalDownstreamSmallBarriers",
         "TotalDownstreamRoadCrossings",
         "ExitsRegion",
-        "removed",
+        "Removed",
     }.union(UNUSED_TILE_METRIC_FIELDS)
 ]
 
@@ -323,10 +323,12 @@ DAM_PACK_BITS = [
     {"field": "Recon", "bits": 5},
     {"field": "PassageFacility", "bits": 5},
     {"field": "Diversion", "bits": 2},
+    {"field": "NoStructure", "bits": 1},
     {"field": "Estimated", "bits": 1},
     {"field": "HasNetwork", "bits": 1},
     {"field": "Excluded", "bits": 1},
     {"field": "OnLoop", "bits": 1},
+    {"field": "unsnapped", "bits": 1},
     {"field": "Unranked", "bits": 1},
     {"field": "Invasive", "bits": 1},
 ]
@@ -392,7 +394,7 @@ SB_TILE_FIELDS = [
         # metric fields that can be calculated on frontend or not used
         "TotalDownstreamRoadCrossings",
         "ExitsRegion",
-        "removed",
+        "Removed",
     }.union(UNUSED_TILE_METRIC_FIELDS)
 ]
 
@@ -402,6 +404,7 @@ SB_PACK_BITS = [
     {"field": "HasNetwork", "bits": 1},
     {"field": "Excluded", "bits": 1},
     {"field": "OnLoop", "bits": 1},
+    {"field": "unsnapped", "bits": 1},
     {"field": "Unranked", "bits": 1},
     {"field": "Invasive", "bits": 1},
 ]
@@ -410,6 +413,40 @@ SB_PACK_BITS = [
 SB_TILE_FILTER_FIELDS = unique(
     SB_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
 )
+
+
+ROAD_CROSSING_TILE_FIELDS = [
+    "SARPID",
+    "Source",
+    "Name",
+    "County",
+    "State",
+    "HUC8",
+    "HUC12",
+    "Road",
+    "Stream",
+    "crossingtype",
+    "OwnerType",
+    "TESpp",
+    "RegionalSGCNSpp",
+    "StateSGCNSpp",
+    "Trout",
+    "SalmonidESU",
+    # all retained road crossings are snapped
+    "StreamOrder",
+    "intermittent",
+]
+
+# Fields that are used for filtering other barrier types can be bit-packed instead
+# for road crossings (they aren't filtered)
+ROAD_CROSSING_PACK_BITS = [
+    {"field": "StreamOrder", "bits": 4},
+    {"field": "OwnerType", "bits": 4},
+    {"field": "crossingtype", "bits": 4},
+    {"field": "Trout", "bits": 1},
+    {"field": "intermittent", "bits": 1},
+]
+
 
 # NOTE: waterfalls have network metrics for both dams and small barriers; these
 # are not repeated for general flowline properties
@@ -483,7 +520,7 @@ WF_TILE_FIELDS = [
         "HUC10",
         "OwnerType",
         "CoastalHUC8",
-        "removed",
+        "Removed",
     }
     .union({f"{c}_dams" for c in UNUSED_TILE_METRIC_FIELDS})
     .union({f"{c}_small_barriers" for c in UNUSED_TILE_METRIC_FIELDS})
@@ -494,6 +531,7 @@ WF_PACK_BITS = [
     {"field": "HasNetwork", "bits": 1},
     {"field": "Excluded", "bits": 1},
     {"field": "OnLoop", "bits": 1},
+    {"field": "unsnapped", "bits": 1},
 ]
 
 

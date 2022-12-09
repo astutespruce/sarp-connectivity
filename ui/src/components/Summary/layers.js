@@ -331,8 +331,57 @@ export const waterfallsLayer = {
   },
 }
 
+// Note: this is ONLY for display when small barriers are selected
+export const roadCrossingPoint = {
+  id: 'road-crossings',
+  source: 'road_crossings',
+  'source-layer': 'road_crossings',
+  type: 'circle',
+  minzoom: 11,
+  maxzoom: 24,
+  layout: {
+    visibility: 'none',
+  },
+  paint: {
+    'circle-color': getHighlightExpr(
+      pointColors.offNetwork.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.offNetwork.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      11,
+      getHighlightExpr(0.5, 2),
+      12,
+      getHighlightExpr(1, 2),
+      14,
+      getHighlightExpr(3, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [14, 1],
+      ],
+    },
+  },
+}
+
 // NOTE: this is ONLY for displaying dams when small barriers are selected
-export const damsSecondaryLayer = {
+export const damsSecondaryPoint = {
   id: 'dams-secondary',
   source: 'dams',
   'source-layer': 'ranked_dams',

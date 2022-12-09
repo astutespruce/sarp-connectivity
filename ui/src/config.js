@@ -5,12 +5,14 @@ export { siteMetadata } from '../gatsby-config'
 export const barrierTypeLabels = {
   dams: 'dams',
   small_barriers: 'road-related barriers',
+  road_crossings: 'road/stream crossings',
   waterfalls: 'waterfalls',
 }
 
 export const barrierTypeLabelSingular = {
   dams: 'dam',
   small_barriers: 'road-related barrier',
+  road_crossings: 'road/stream crossing',
   waterfalls: 'waterfall',
 }
 
@@ -654,13 +656,14 @@ export const DAM_PACK_BITS = [
   { field: 'recon', bits: 5 },
   { field: 'passagefacility', bits: 5 },
   { field: 'diversion', bits: 2 },
+  { field: 'nostructure', bits: 1 },
   { field: 'estimated', bits: 1 },
   { field: 'hasnetwork', bits: 1 },
   { field: 'excluded', bits: 1 },
   { field: 'onloop', bits: 1 },
+  { field: 'unsnapped', bits: 1 },
   { field: 'unranked', bits: 1 },
   { field: 'invasive', bits: 1 },
-  { field: 'nostructure', bits: 1 },
 ]
 
 export const SB_PACK_BITS = [
@@ -669,8 +672,17 @@ export const SB_PACK_BITS = [
   { field: 'hasnetwork', bits: 1 },
   { field: 'excluded', bits: 1 },
   { field: 'onloop', bits: 1 },
+  { field: 'unsnapped', bits: 1 },
   { field: 'unranked', bits: 1 },
   { field: 'invasive', bits: 1 },
+]
+
+export const RC_PACK_BITS = [
+  { field: 'streamorder', bits: 4 },
+  { field: 'ownertype', bits: 4 },
+  { field: 'crossingtype', bits: 4 },
+  { field: 'trout', bits: 1 },
+  { field: 'intermittent', bits: 1 },
 ]
 
 export const WF_PACK_BITS = [
@@ -678,4 +690,5 @@ export const WF_PACK_BITS = [
   { field: 'hasnetwork', bits: 1 },
   { field: 'excluded', bits: 1 },
   { field: 'onloop', bits: 1 },
+  { field: 'unsnapped', bits: 1 },
 ]

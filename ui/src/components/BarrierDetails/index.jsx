@@ -11,13 +11,15 @@ import {
   STATES,
   DAM_PACK_BITS,
   SB_PACK_BITS,
+  RC_PACK_BITS,
   WF_PACK_BITS,
   TIER_PACK_BITS,
 } from 'config'
 import { isEmptyString } from 'util/string'
 import { unpackBits } from 'util/data'
-import { capitalize, formatNumber } from 'util/format'
+import { formatNumber } from 'util/format'
 import DamDetails from './DamDetails'
+import RoadCrossingDetails from './RoadCrossingDetails'
 import SmallBarrierDetails from './SmallBarrierDetails'
 import WaterfallDetails from './WaterfallDetails'
 import Scores from './Scores'
@@ -41,46 +43,45 @@ const BarrierDetails = ({ barrier, onClose }) => {
     tiers = null,
   } = barrier
 
-  const isCrossing =
-    barrierType === 'small_barriers' && sarpid && sarpid.startsWith('cr')
+  const typeLabel = barrierTypeLabelSingular[barrierType]
 
   const [sarpid, rawName] = sarpidname.split('|')
 
   let name = ''
-  if (!isEmptyString(rawName)) {
-    name = rawName
-  } else if (isCrossing) {
-    name = 'Road / stream crossing'
-  } else if (barrierType === 'dams') {
-    name = 'Dam (unknown name)'
-  } else if (barrierType === 'small_barriers') {
-    name = 'Road-related barrier (unknown name)'
-  } else {
-    name = 'Unknown name'
-  }
-
-  const typeLabel = isCrossing
-    ? 'road / stream crossing'
-    : barrierTypeLabelSingular[barrierType]
-
   let details = null
   let packedInfo = null
   switch (barrierType) {
     case 'dams': {
+      name = !isEmptyString(rawName) ? rawName : 'Dam (unknown name)'
       packedInfo = unpackBits(packed, DAM_PACK_BITS)
 
       details = <DamDetails sarpid={sarpid} {...barrier} {...packedInfo} />
       break
     }
     case 'small_barriers': {
+      name = !isEmptyString(rawName)
+        ? rawName
+        : 'Road-related barrier (unknown name)'
       packedInfo = unpackBits(packed, SB_PACK_BITS)
+
+      console.log('unpacked', packedInfo)
 
       details = (
         <SmallBarrierDetails sarpid={sarpid} {...barrier} {...packedInfo} />
       )
       break
     }
+    case 'road_crossings': {
+      name = !isEmptyString(rawName) ? rawName : 'Road / stream crossing'
+      packedInfo = unpackBits(packed, RC_PACK_BITS)
+
+      details = (
+        <RoadCrossingDetails sarpid={sarpid} {...barrier} {...packedInfo} />
+      )
+      break
+    }
     case 'waterfalls': {
+      name = !isEmptyString(rawName) ? rawName : 'Waterfall (unknown name)'
       packedInfo = unpackBits(packed, WF_PACK_BITS)
 
       details = (
@@ -89,10 +90,11 @@ const BarrierDetails = ({ barrier, onClose }) => {
       break
     }
     default: {
+      name = 'Unknown name'
       break
     }
   }
-  const { hasnetwork = 0, invasive = 0, nostructure = 0 } = packedInfo || {}
+  const { hasnetwork = 0, unranked = 0 } = packedInfo || {}
 
   let scoreContent = null
   if (ranked) {
@@ -127,31 +129,6 @@ const BarrierDetails = ({ barrier, onClose }) => {
     }
 
     scoreContent = <Scores scores={scores} barrierType={barrierType} />
-  } else {
-    let reason = null
-
-    if (hasnetwork) {
-      if (invasive) {
-        reason = `This ${typeLabel} was excluded from prioritization because it provides an ecological benefit by restricting the movement of invasive aquatic species.`
-      } else if (nostructure) {
-        reason = `This ${typeLabel} was excluded from prioritization because it is a water diversion without associated in-stream barrier.`
-      } else if (isCrossing) {
-        reason = `This {typeLabel} has not yet been evaluated for impacts to aquatic organisms and does not yet have functional network information or related ranking.`
-      }
-    }
-
-    scoreContent = (
-      <>
-        <Paragraph variant="help" sx={{ fontSize: 2 }}>
-          No connectivity scores are available for this {typeLabel}.
-        </Paragraph>
-        {reason ? (
-          <Paragraph variant="help" sx={{ mt: '1rem' }}>
-            {reason}
-          </Paragraph>
-        ) : null}
-      </>
-    )
   }
 
   return (
@@ -171,7 +148,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
           }}
         >
           <Box sx={{ flex: '1 1 auto' }}>
-            <Heading as="h3" sx={{ m: '0 0 0.5rem 0', fontSize: '1.1rem' }}>
+            <Heading as="h3" sx={{ m: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
               {name}
             </Heading>
           </Box>
@@ -194,7 +171,8 @@ const BarrierDetails = ({ barrier, onClose }) => {
           </Text>
         </Flex>
 
-        {barrierType !== 'waterfalls' && !isCrossing ? (
+        {/* Only show report for dams / small barriers */}
+        {barrierType === 'dams' || barrierType === 'small_barriers' ? (
           <Box sx={{ lineHeight: 1, mt: '1.5rem' }}>
             <a
               href={`/report/${barrierType}/${sarpid}`}
@@ -217,19 +195,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
         ) : null}
       </Box>
 
-      {barrierType === 'waterfalls' ? (
-        <Box
-          sx={{
-            flex: '1 1 auto',
-            px: '0.5rem',
-            pb: '1rem',
-            overflowY: 'auto',
-            overflowX: 'hidden',
-          }}
-        >
-          {details}
-        </Box>
-      ) : (
+      {ranked ? (
         <Tabs
           sx={{
             flex: '1 1 auto',
@@ -243,27 +209,38 @@ const BarrierDetails = ({ barrier, onClose }) => {
             {scoreContent}
           </Tab>
         </Tabs>
-      )}
-
-      {sarpid ? (
-        <Flex
+      ) : (
+        // Only show details, not scores if cannot be ranked
+        <Box
           sx={{
-            flex: '0 0 auto',
-            justifyContent: 'center',
-            alignItems: 'center',
-            py: '0.5rem',
-            borderTop: '1px solid #DDD',
-            bg: '#f6f6f2',
+            flex: '1 1 auto',
+            px: '0.5rem',
+            pb: '1rem',
+            overflowY: 'auto',
+            overflowX: 'hidden',
           }}
         >
-          <a
-            href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${typeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
-          >
-            <Envelope size="1rem" style={{ marginRight: '0.25rem' }} /> Report a
-            problem with this barrier
-          </a>
-        </Flex>
-      ) : null}
+          {details}
+        </Box>
+      )}
+
+      <Flex
+        sx={{
+          flex: '0 0 auto',
+          justifyContent: 'center',
+          alignItems: 'center',
+          py: '0.5rem',
+          borderTop: '1px solid #DDD',
+          bg: '#f6f6f2',
+        }}
+      >
+        <a
+          href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${typeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+        >
+          <Envelope size="1rem" style={{ marginRight: '0.25rem' }} /> Report a
+          problem with this barrier
+        </a>
+      </Flex>
     </>
   )
 }

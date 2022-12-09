@@ -332,9 +332,28 @@ df.loc[(df.Recon == 14) & (df.Height <= 25), "LowheadDam"] = 2
 
 # Cleanup names
 # Standardize the casing of the name
-df.Name = df.Name.str.title()
-df.OtherName = df.OtherName.str.title()
-df.River = df.River.str.title()
+df.Name = df.Name.str.strip().str.title()
+df.OtherName = df.OtherName.str.strip().str.title()
+df.River = df.River.str.strip().str.title()
+
+# strip out meaningless unknown values
+df.loc[
+    df.Name.str.lower().isin(
+        [
+            "unknown",
+            "unknown dam",
+            "unknown barrier",
+            "unnamed barrier",
+            "unknown ditch",
+            "unknown diversion",
+            "unknown pond dam",
+            "unknown push up dam",
+        ]
+    ),
+    "Name",
+] = ""
+df.loc[df.Name.str.lower().str.startswith("unknown #"), "Name"] = ""
+
 
 # Fix name issue - 3 dams have duplicate dam names with line breaks, which breaks tippecanoe
 ids = df.loc[df.Name.str.count("\r") > 0].index
@@ -793,7 +812,7 @@ df["FCode"] = df.FCode.fillna(-1).astype("int32")
 df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
 
 # cast fields with missing values to float32
-for field in ["lineID", "NHDPlusID", "AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
+for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
     df[field] = df[field].astype("float32")
 
 print("dams on loops:\n", df.groupby("loop").size())

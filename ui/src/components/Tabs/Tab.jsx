@@ -7,7 +7,8 @@ const Tab = ({ id, children, sx }) => (
     id={id}
     sx={{
       flex: '1 1 auto',
-      py: '1rem',
+      pt: '0.5rem',
+      pb: '1rem',
       px: '0.5rem',
       overflowY: 'auto',
       overflowX: 'hidden',

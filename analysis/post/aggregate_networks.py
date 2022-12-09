@@ -64,6 +64,7 @@ rename_cols = {
     "intermittent": "Intermittent",
     "is_estimated": "Estimated",
     "invasive": "Invasive",
+    "nostructure": "NoStructure",
     "unranked": "Unranked",
     "loop": "OnLoop",
     "sizeclass": "StreamSizeClass",
@@ -103,6 +104,7 @@ dams = (
     .rename(columns=rename_cols)
 )
 dams["BarrierType"] = "dam"
+dams["unsnapped"] = (~dams.snapped).astype("uint8")
 fill_flowline_cols(dams)
 
 # add stream order and species classes for filtering
@@ -173,6 +175,7 @@ small_barriers = (
     .rename(columns=rename_cols)
 )
 small_barriers["BarrierType"] = "Inventoried road-related barrier"
+small_barriers["unsnapped"] = (~small_barriers.snapped).astype("uint8")
 small_barriers = small_barriers.loc[
     ~(small_barriers.dropped | small_barriers.duplicate)
 ].copy()
@@ -328,6 +331,7 @@ waterfalls = (
     .set_index("id")
     .rename(columns=rename_cols)
 )
+waterfalls["unsnapped"] = (~waterfalls.snapped).astype("uint8")
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 fill_flowline_cols(waterfalls)
 

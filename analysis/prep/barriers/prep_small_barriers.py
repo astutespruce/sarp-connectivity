@@ -144,25 +144,16 @@ df.loc[
 ] = -1
 
 
-# Fix mixed casing of values
+# Fix mixed casing of values and discard meaningless unknown values
 for column in ("Stream", "Road"):
-    df[column] = df[column].fillna("Unknown").str.title().str.strip()
-    df.loc[df[column].str.len() == 0, column] = "Unknown"
+    df[column] = df[column].fillna("").str.replace("\r\n", "").str.strip().str.title()
+    df.loc[df[column].str.len() == 0, column] = ""
+    df.loc[
+        df[column].str.lower().isin(["unknown", "unnamed", "no name", "n/a", "na", ""]),
+        column,
+    ] = ""
 
-# Strip unknowns back out for name fields
-for column in ("Road", "Stream"):
-    df[column] = df[column].str.replace("Unknown", "")
-
-
-# Fix line returns in stream name and road name
-df.loc[df.Stream.str.contains("\r\n", ""), "Stream"] = ""
-df.Road = df.Road.str.replace("\r\n", "")
-
-df.loc[
-    (~df.Stream.isin(["Unknown", "Unnamed", ""]))
-    & (~df.Road.isin(["Unknown", "Unnamed", ""])),
-    "Name",
-] = (
+df.loc[(df.Stream != "") & (df.Road != ""), "Name",] = (
     df.Stream + " / " + df.Road
 )
 df.Name = df.Name.fillna("")
@@ -532,7 +523,7 @@ df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
 df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
 
-for field in ["lineID", "NHDPlusID", "AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
+for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
     df[field] = df[field].astype("float32")
 
 print(df.groupby("loop").size())

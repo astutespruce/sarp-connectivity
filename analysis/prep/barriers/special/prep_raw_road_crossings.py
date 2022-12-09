@@ -152,10 +152,7 @@ df.SARPID = "cr" + df.SARPID.round().astype(int).astype(str)
 df.Stream = df.Stream.str.strip().fillna("")
 df.Road = df.Road.str.strip().fillna("")
 
-df.loc[
-    (df.Stream.str.strip().str.len() > 0) & (df.Road.str.strip().str.len() > 0), "Name"
-] = (df.Stream + " / " + df.Road)
-
+df.loc[(df.Stream != "") & (df.Road != ""), "Name"] = df.Stream + " / " + df.Road
 df.Name = df.Name.fillna("")
 
 # update crossingtype and set as domain
@@ -185,6 +182,10 @@ print("---------------------------------")
 print("\nSnapping statistics")
 print(df.groupby("snap_log").size())
 print("---------------------------------\n")
+
+print("Dropping any road crossings that didn't snap")
+df = df.loc[df.snapped].copy()
+
 
 ### Remove crossings that are very close after snapping
 print("Removing nearby road crossings after snapping...")
@@ -257,7 +258,7 @@ df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
 df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
 
-for field in ["lineID", "NHDPlusID", "AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
+for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
     df[field] = df[field].astype("float32")
 
 df.reset_index(drop=True).to_feather(src_dir / "road_crossings.feather")

@@ -24,16 +24,16 @@ import {
   networkLayers,
   highlightNetwork,
   setBarrierHighlight,
+  getBarrierTooltip,
 } from 'components/Map'
 import { barrierTypeLabels } from 'config'
 import { isEqual } from 'util/data'
-import { capitalize } from 'util/format'
-import { isEmptyString } from 'util/string'
 import { COLORS } from './config'
 import {
   layers,
   waterfallsLayer,
-  damsSecondaryLayer,
+  damsSecondaryPoint,
+  roadCrossingPoint,
   pointLayer,
   offnetworkPointLayer,
   unrankedPointLayer,
@@ -188,7 +188,8 @@ const SummaryMap = ({
 
       // Add barrier point layers
       map.addLayer(waterfallsLayer)
-      map.addLayer(damsSecondaryLayer)
+      map.addLayer(damsSecondaryPoint)
+      map.addLayer(roadCrossingPoint)
 
       barrierTypes.forEach((t) => {
         // off network barriers
@@ -225,7 +226,6 @@ const SummaryMap = ({
         })
       })
 
-      // TODO: add unranked
       const pointLayers = []
         .concat(
           ...barrierTypes.map((t) => [
@@ -234,7 +234,7 @@ const SummaryMap = ({
             `offnetwork_${t}`,
           ])
         )
-        .concat(['dams-secondary', 'waterfalls'])
+        .concat(['dams-secondary', 'road-crossings', 'waterfalls'])
 
       const clickLayers = pointLayers.concat(
         layers.map(({ id }) => `${id}-fill`)
@@ -263,21 +263,10 @@ const SummaryMap = ({
 
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
-          const prefix = barrierTypeLabels[feature.source]
-            ? `${capitalize(barrierTypeLabels[feature.source]).slice(
-                0,
-                barrierTypeLabels[feature.source].length - 1
-              )}: `
-            : ''
-
-          const { properties: { sarpidname = '|' } = {} } = feature
-          const name = sarpidname.split('|')[1]
 
           tooltip
             .setLngLat(coordinates)
-            .setHTML(
-              `<b>${prefix}${!isEmptyString(name) ? name : 'Unknown name'}</b>`
-            )
+            .setHTML(getBarrierTooltip(feature.source, feature.properties))
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
@@ -411,7 +400,7 @@ const SummaryMap = ({
     barrierTypes.forEach((t) => {
       const visibility = barrierType === t ? 'visible' : 'none'
       map.setLayoutProperty(`ranked_${t}`, 'visibility', visibility)
-      // TODO: unranked
+      map.setLayoutProperty(`unranked_${t}`, 'visibility', visibility)
       map.setLayoutProperty(`offnetwork_${t}`, 'visibility', visibility)
     })
 
@@ -419,10 +408,18 @@ const SummaryMap = ({
     map.setFilter('network-highlight', ['==', 'dams', Infinity])
     map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
 
+    const smallBarriersLayerVisibility =
+      barrierType === 'small_barriers' ? 'visible' : 'none'
+
     map.setLayoutProperty(
       'dams-secondary',
       'visibility',
-      barrierType === 'small_barriers' ? 'visible' : 'none'
+      smallBarriersLayerVisibility
+    )
+    map.setLayoutProperty(
+      'road-crossings',
+      'visibility',
+      smallBarriersLayerVisibility
     )
   }, [barrierType])
 
@@ -559,7 +556,7 @@ const SummaryMap = ({
 
       circles.push({
         ...offnetwork,
-        label: `${barrierType} not analyzed`,
+        label: `${barrierTypeLabel} not analyzed`,
       })
 
       if (barrierType === 'small_barriers') {
