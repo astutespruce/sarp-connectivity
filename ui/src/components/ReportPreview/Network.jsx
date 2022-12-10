@@ -10,6 +10,7 @@ const { version: dataVersion } = siteMetadata
 
 const Network = ({
   barrierType,
+  sarpid,
   totalupstreammiles,
   perennialupstreammiles,
   alteredupstreammiles,
@@ -21,9 +22,12 @@ const Network = ({
   sizeclasses,
   landcover,
   excluded,
+  diversion,
+  nostructure,
   hasnetwork,
   onloop,
-  sarpid,
+  invasive,
+  unranked,
   sx,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -49,6 +53,18 @@ const Network = ({
   const header = <Heading as="h3">Functional network information</Heading>
 
   if (excluded) {
+    if (diversion && nostructure) {
+      return (
+        <Box sx={sx}>
+          {header}
+          <Text>
+            This water diversion was excluded from the connectivity analysis
+            because it does not have an associated in-stream barrier.
+          </Text>
+        </Box>
+      )
+    }
+
     return (
       <Box sx={sx}>
         {header}
@@ -132,7 +148,7 @@ const Network = ({
       >
         <Box>
           <b>{formatNumber(gainmiles, 2, true)} total miles</b> could be
-          reconnected by removing this {barrierTypeLabel}, including{' '}
+          reconnected by removing this {barrierTypeLabel} including{' '}
           <b>{formatNumber(perennialGainMiles, 2, true)} miles</b> of perennial
           reaches.
         </Box>
@@ -148,7 +164,7 @@ const Network = ({
           <b>
             {sizeclasses} river size {sizeclasses === 1 ? 'class' : 'classes'}
           </b>{' '}
-          could be gained by removing this barrier.
+          could be gained by removing this {barrierTypeLabel}.
         </Box>
 
         <Box>
@@ -237,6 +253,22 @@ const Network = ({
           </Row>
         </Table>
       </Box>
+
+      {invasive ? (
+        <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
+          Note: this {barrierTypeLabel} is identified as a beneficial to
+          restricting the movement of invasive species and is not ranked.
+        </Paragraph>
+      ) : null}
+
+      {unranked && !invasive ? (
+        <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
+          Note: this {barrierTypeLabel} excluded from ranking based on field
+          reconnaissance, manual review of aerial imagery, or other information
+          about this {barrierTypeLabel}.
+        </Paragraph>
+      ) : null}
+
       <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
         Note: downstream lengths are limited to free-flowing reaches only; these
         exclude lengths within waterbodies in the downstream network. Perennial
@@ -254,9 +286,12 @@ const Network = ({
 
 Network.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  sarpid: PropTypes.string.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
   onloop: PropTypes.bool,
+  diversion: PropTypes.number,
+  nostructure: PropTypes.bool,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -267,13 +302,16 @@ Network.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
-  sarpid: PropTypes.string.isRequired,
+  invasive: PropTypes.bool,
+  unranked: PropTypes.bool,
   sx: PropTypes.object,
 }
 
 Network.defaultProps = {
   excluded: false,
   onloop: false,
+  diversion: 0,
+  nostructure: false,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,
@@ -284,6 +322,8 @@ Network.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: 0,
   sizeclasses: 0,
+  invasive: false,
+  unranked: false,
   sx: null,
 }
 

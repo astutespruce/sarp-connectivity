@@ -16,6 +16,13 @@ export const barrierTypeLabelSingular = {
   waterfalls: 'waterfall',
 }
 
+export const barrierNameWhenUnknown = {
+  dams: 'Dam (unknown name)',
+  small_barriers: 'Road-related barrier (unknown name)',
+  road_crossings: 'Road / stream crossing',
+  waterfalls: 'Waterfall (unknown name)',
+}
+
 export const REGIONS = {
   gpiw: 'Great Plains & Intermountain West',
   pnw: 'Pacific Northwest',

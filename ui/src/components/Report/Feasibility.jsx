@@ -2,24 +2,20 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Text } from '@react-pdf/renderer'
+import { Text, View } from '@react-pdf/renderer'
 
 import { RECON } from 'config'
-import { List, ListItem, Section } from './elements'
+import { Section } from './elements'
 
 const Feasibility = ({ recon, ...props }) => (
   <Section title="Feasibility & conservation benefit" {...props} wrap={false}>
-    <List>
+    <View>
       {recon !== null ? (
-        <ListItem>
-          <Text>{RECON[recon]}</Text>
-        </ListItem>
+        <Text>{RECON[recon]}.</Text>
       ) : (
-        <ListItem>
-          <Text>No feasibility information is available for this barrier.</Text>
-        </ListItem>
+        <Text>No feasibility information is available for this barrier.</Text>
       )}
-    </List>
+    </View>
   </Section>
 )
 

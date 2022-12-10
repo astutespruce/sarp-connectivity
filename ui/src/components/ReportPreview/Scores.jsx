@@ -48,7 +48,7 @@ const Scores = ({
 
   if (nostructure) {
     return (
-      <Box sx={null}>
+      <Box sx={sx}>
         {header}
         <Text>
           This {barrierTypeLabel} was excluded from prioritization because it is
@@ -59,7 +59,7 @@ const Scores = ({
   }
 
   return (
-    <Box sx={null}>
+    <Box sx={sx}>
       {header}
       <Text variant="help" sx={{ fontSize: 0, textAlign: 'center' }}>
         connectivity tiers range from 20 (lowest) to 1 (highest)
@@ -124,7 +124,7 @@ Scores.propTypes = {
   state: PropTypes.string.isRequired,
   ranked: PropTypes.bool,
   invasive: PropTypes.bool,
-  nostructure: PropTypes.number,
+  nostructure: PropTypes.bool,
   state_nc_tier: PropTypes.number,
   state_wc_tier: PropTypes.number,
   state_ncwc_tier: PropTypes.number,

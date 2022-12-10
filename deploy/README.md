@@ -12,8 +12,8 @@
   - `sudo mkswap /swapfile`
   - `sudo swapon /swapfile`
   - add this to `/etc/fstab`: `/swapfile none swap sw 0 0`
-- Format and mount 30 GB secondary volume, used for tiles
-  - use `lsblk` to list volumes; it should be listed as `nvme1n1`
+- Format and mount 32 GB secondary volume, used for tiles
+  - use `lsblk` to list volumes; it may be listed as `nvme1n1`
   - `sudo mkfs -t ext4 /dev/nvme1n1`
   - `sudo mkdir /tiles`
   - `sudo mount /dev/nvme1n1 /tiles/`

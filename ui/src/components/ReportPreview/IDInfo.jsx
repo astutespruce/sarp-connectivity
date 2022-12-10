@@ -2,28 +2,28 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Heading } from 'theme-ui'
 
+import { siteMetadata } from 'config'
 import { OutboundLink } from 'components/Link'
 import { isEmptyString } from 'util/string'
-
-import { siteMetadata } from 'config'
+import { Entry } from './elements'
 
 const { version: dataVersion } = siteMetadata
 
 const IDInfo = ({ sarpid, nidid, source, link, sx }) => (
   <Box sx={sx}>
     <Heading as="h3">Data sources</Heading>
-    <Box as="ul" sx={{ mt: '0.5rem' }}>
-      <li>
+    <Box sx={{ mt: '0.5rem' }}>
+      <Entry>
         SARP ID: {sarpid} (data version: {dataVersion})
-      </li>
+      </Entry>
       {!isEmptyString(nidid) ? (
-        <li>National inventory of dams ID: {nidid}</li>
+        <Entry>National inventory of dams ID: {nidid}</Entry>
       ) : null}
-      {!isEmptyString(source) ? <li>Source: {source}</li> : null}
+      {!isEmptyString(source) ? <Entry>Source: {source}</Entry> : null}
       {!isEmptyString(link) ? (
-        <li>
+        <Entry>
           More information: <OutboundLink to={link}>{link}</OutboundLink>
-        </li>
+        </Entry>
       ) : null}
     </Box>
 

@@ -1,8 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Text } from 'theme-ui'
+import { Box, Paragraph, Text } from 'theme-ui'
 
-import { WATERBODY_SIZECLASS } from 'config'
+import { barrierTypeLabelSingular } from 'config'
 import { Table, Row } from 'components/Table'
 import { InfoTooltip } from 'components/Tooltip'
 import { Entry, Field } from 'components/Sidebar'
@@ -32,8 +32,12 @@ const NetworkInfo = ({
   waterbodysizeclass,
   waterbodykm2,
   intermittent,
+  invasive,
+  unranked,
   ...props
 }) => {
+  const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
+
   const gainmiles = Math.min(totalupstreammiles, freedownstreammiles)
   const gainMilesSide =
     gainmiles === totalupstreammiles ? 'upstream' : 'downstream'
@@ -325,25 +329,23 @@ const NetworkInfo = ({
         </Field>
       </Entry>
 
-      {waterbodysizeclass !== null && waterbodysizeclass > 0 ? (
+      {invasive ? (
         <Entry>
-          <Field label="Size of associated waterbody">
-            {waterbodykm2 > 0.1
-              ? `${formatNumber(waterbodykm2, 2)} k`
-              : `${formatNumber(waterbodykm2 * 1e6)} `}
-            m<sup>2</sup>
-            <Text sx={{ fontSize: 0, color: 'grey.8', textAlign: 'right' }}>
-              (
-              {WATERBODY_SIZECLASS[waterbodysizeclass]
-                .split(' (')[0]
-                .toLowerCase()}
-              )
-            </Text>
-          </Field>
+          <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+            Note: this {barrierTypeLabel} is identified as a beneficial to
+            restricting the movement of invasive species and is not ranked.
+          </Paragraph>
         </Entry>
       ) : null}
-      {intermittent === 1 ? (
-        <Entry>On a reach that has intermittent or ephemeral flow</Entry>
+
+      {unranked && !invasive ? (
+        <Entry>
+          <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+            Note: this {barrierTypeLabel} excluded from ranking based on field
+            reconnaissance, manual review of aerial imagery, or other
+            information about this {barrierTypeLabel}.
+          </Paragraph>
+        </Entry>
       ) : null}
     </Box>
   )
@@ -366,6 +368,8 @@ NetworkInfo.propTypes = {
   waterbodysizeclass: PropTypes.number,
   waterbodykm2: PropTypes.number,
   intermittent: PropTypes.number,
+  invasive: PropTypes.number,
+  unranked: PropTypes.number,
 }
 
 NetworkInfo.defaultProps = {
@@ -384,6 +388,8 @@ NetworkInfo.defaultProps = {
   waterbodysizeclass: null,
   waterbodykm2: null,
   intermittent: null,
+  invasive: 0,
+  unranked: 0,
 }
 
 export default NetworkInfo

@@ -5,7 +5,7 @@ import { Text, View } from '@react-pdf/renderer'
 import { SALMONID_ESU } from 'config'
 import { formatNumber } from 'util/format'
 
-import { Bold, Flex, Section } from './elements'
+import { Bold, Flex, List, ListItem, Section } from './elements'
 
 const Species = ({
   barrierType,
@@ -16,7 +16,11 @@ const Species = ({
   salmonidesu,
   ...props
 }) => (
-  <Section title="Species information" {...props} wrap={false}>
+  <Section
+    title="Species information for this subwatershed"
+    {...props}
+    wrap={false}
+  >
     <View>
       <Text>
         Data sources in the subwatershed containing this{' '}
@@ -72,19 +76,25 @@ const Species = ({
         }}
       >
         <Text>{trout ? 'One or more trout species' : 'No trout species'}</Text>
-        {salmonidesu ? (
-          <View style={{ marginTop: 14 }}>
-            <Text>
-              Within{' '}
-              {salmonidesu
-                .split(',')
-                .map((code) => SALMONID_ESU[code])
-                .join(', ')}
-            </Text>
-          </View>
-        ) : null}
       </View>
     </Flex>
+
+    {salmonidesu ? (
+      <View style={{ marginTop: 14 }}>
+        <Text>
+          This subwatershed falls within the following salmon Evolutionarily
+          Significant Units (ESU) / steelhead trout Discrete Population Segments
+          (DPS):
+        </Text>
+        <List>
+          {salmonidesu.split(',').map((code) => (
+            <ListItem key={code}>
+              <Text>{SALMONID_ESU[code]}</Text>
+            </ListItem>
+          ))}
+        </List>
+      </View>
+    ) : null}
 
     <Text style={{ color: '#7f8a93', marginTop: 24, fontSize: 10 }}>
       Note: State and regionally listed species of greatest conservation need

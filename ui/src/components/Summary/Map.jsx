@@ -32,8 +32,8 @@ import { COLORS } from './config'
 import {
   layers,
   waterfallsLayer,
-  damsSecondaryPoint,
-  roadCrossingPoint,
+  damsSecondaryLayer,
+  roadCrossingsLayer,
   pointLayer,
   offnetworkPointLayer,
   unrankedPointLayer,
@@ -188,8 +188,8 @@ const SummaryMap = ({
 
       // Add barrier point layers
       map.addLayer(waterfallsLayer)
-      map.addLayer(damsSecondaryPoint)
-      map.addLayer(roadCrossingPoint)
+      map.addLayer(damsSecondaryLayer)
+      map.addLayer(roadCrossingsLayer)
 
       barrierTypes.forEach((t) => {
         // off network barriers

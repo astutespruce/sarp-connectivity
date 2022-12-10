@@ -5,36 +5,37 @@ import { Text } from '@react-pdf/renderer'
 import { siteMetadata } from 'config'
 import { isEmptyString } from 'util/string'
 
-import { Link, List, ListItem, Section } from './elements'
+import { Link, Entry, Entries, Section } from './elements'
 
 const { version: dataVersion } = siteMetadata
 
 const IDInfo = ({ sarpid, nidid, source, link, ...props }) => (
   <Section title="Data sources" {...props} wrap={false}>
-    <List>
-      <ListItem>
+    <Entries>
+      <Entry>
         <Text>
           SARP ID: {sarpid} (data version: {dataVersion})
         </Text>
-      </ListItem>
+      </Entry>
       {!isEmptyString(nidid) ? (
-        <ListItem>
+        <Entry>
           <Text>National inventory of dams ID: {nidid}</Text>
-        </ListItem>
+        </Entry>
       ) : null}
       {!isEmptyString(source) ? (
-        <ListItem>
+        <Entry>
           <Text>Source: {source}</Text>
-        </ListItem>
+        </Entry>
       ) : null}
       {!isEmptyString(link) ? (
-        <ListItem>
-          <Text>
-            More information: <Link href={link}>{link}</Link>
-          </Text>
-        </ListItem>
+        <Entry>
+          <Text>More information:</Text>
+          <Link href={link}>
+            <Text>{link}</Text>
+          </Link>
+        </Entry>
       ) : null}
-    </List>
+    </Entries>
 
     {source && source.startsWith('WDFW') ? (
       <Text style={{ marginTop: 24 }}>
@@ -42,7 +43,7 @@ const IDInfo = ({ sarpid, nidid, source, link, ...props }) => (
         Department of Fish and Wildlife, Fish Passage Division. For more
         information about specific structures, please visit the{' '}
         <Link href="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html">
-          fish passage web map
+          <Text>fish passage web map</Text>
         </Link>
         .
       </Text>

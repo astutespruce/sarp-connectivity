@@ -332,7 +332,7 @@ export const waterfallsLayer = {
 }
 
 // Note: this is ONLY for display when small barriers are selected
-export const roadCrossingPoint = {
+export const roadCrossingsLayer = {
   id: 'road-crossings',
   source: 'road_crossings',
   'source-layer': 'road_crossings',
@@ -381,7 +381,7 @@ export const roadCrossingPoint = {
 }
 
 // NOTE: this is ONLY for displaying dams when small barriers are selected
-export const damsSecondaryPoint = {
+export const damsSecondaryLayer = {
   id: 'dams-secondary',
   source: 'dams',
   'source-layer': 'ranked_dams',

@@ -1,3 +1,5 @@
+// @refresh reset
+
 import React, { useState, useCallback, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { FilePdf } from '@emotion-icons/fa-solid'
@@ -13,8 +15,10 @@ import {
 import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
 
+import { barrierNameWhenUnknown } from 'config'
 import { Report } from 'components/Report'
 import { mapToDataURL, basemapAttribution } from 'components/Map'
+import { isEmptyString } from 'util/string'
 
 import { PageError } from 'components/Layout'
 
@@ -35,12 +39,9 @@ const Preview = ({ barrierType, data }) => {
 
   console.log('data', data)
 
-  const defaultName =
-    barrierType === 'dams'
-      ? `Dam: unknown name (SARPID: ${sarpid})`
-      : `Road-related barrier: unknown name (SARPID ${sarpid})`
-
-  const name = data.name || defaultName
+  const name = !isEmptyString(data.name)
+    ? data.name
+    : barrierNameWhenUnknown[barrierType] || 'Unknown name'
 
   const [{ attribution, hasError, isPending, visibleLayers }, setState] =
     useState({
@@ -194,6 +195,7 @@ const Preview = ({ barrierType, data }) => {
 
         <Header
           barrierType={barrierType}
+          {...data}
           name={name}
           county={county}
           state={state}

@@ -30,7 +30,11 @@ const Network = ({
   landcover,
   excluded,
   onloop,
+  diversion,
+  nostructure,
   hasnetwork,
+  invasive,
+  unranked,
   ...props
 }) => {
   const barrierTypeLabel =
@@ -57,6 +61,17 @@ const Network = ({
   const colWidth = totalupstreammiles > 0 ? 1 / 4 : 1 / 3
 
   if (excluded) {
+    if (diversion && nostructure) {
+      return (
+        <Section title="Functional network information" {...props} wrap={false}>
+          <Text>
+            This water diversion was excluded from the connectivity analysis
+            because it does not have an associated in-stream barrier.
+          </Text>
+        </Section>
+      )
+    }
+
     return (
       <Section title="Functional network information" {...props} wrap={false}>
         <Text>
@@ -130,7 +145,7 @@ const Network = ({
         >
           <Text>
             <Bold>{formatNumber(gainmiles, 2, true)} total miles</Bold> could be
-            reconnected by removing this {barrierTypeLabel}, including{' '}
+            reconnected by removing this {barrierTypeLabel} including{' '}
             <Bold>{formatNumber(perennialGainMiles, 2, true)} miles</Bold> of
             perennial reaches.
           </Text>
@@ -162,7 +177,7 @@ const Network = ({
             <Bold>
               {sizeclasses} river size {sizeclasses === 1 ? 'class' : 'classes'}
             </Bold>{' '}
-            could be gained by removing this barrier.
+            could be gained by removing this {barrierTypeLabel}.
           </Text>
         </View>
 
@@ -318,6 +333,21 @@ const Network = ({
           </View>
         </Flex>
 
+        {invasive ? (
+          <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
+            Note: this {barrierTypeLabel} is identified as a beneficial to
+            restricting the movement of invasive species and is not ranked.
+          </Text>
+        ) : null}
+
+        {unranked && !invasive ? (
+          <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
+            Note: this {barrierTypeLabel} excluded from ranking based on field
+            reconnaissance, manual review of aerial imagery, or other
+            information about this {barrierTypeLabel}.
+          </Text>
+        ) : null}
+
         <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
           Note: downstream lengths are limited to free-flowing reaches only;
           these exclude lengths within waterbodies in the downstream network.
@@ -340,6 +370,8 @@ Network.propTypes = {
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
   onloop: PropTypes.bool,
+  diversion: PropTypes.number,
+  nostructure: PropTypes.bool,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -350,11 +382,15 @@ Network.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
+  invasive: PropTypes.bool,
+  unranked: PropTypes.bool,
 }
 
 Network.defaultProps = {
   excluded: false,
   onloop: false,
+  diversion: 0,
+  nostructure: false,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,
@@ -365,6 +401,8 @@ Network.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: 0,
   sizeclasses: 0,
+  invasive: false,
+  unranked: false,
 }
 
 export default Network

@@ -1,9 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Grid, Heading } from 'theme-ui'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
+import { Box, Flex, Grid, Heading, Text } from 'theme-ui'
 
 import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails'
 import {
+  siteMetadata,
+  barrierTypeLabelSingular,
   CONDITION,
   CONSTRUCTION,
   CONSTRICTION,
@@ -17,14 +20,17 @@ import {
   WATERBODY_SIZECLASS,
 } from 'config'
 import { formatNumber } from 'util/format'
+import { Entry } from './elements'
+
+const { version: dataVersion } = siteMetadata
 
 const LocationConstruction = ({
   barrierType,
+  sarpid,
   river,
   intermittent,
   subbasin,
   subwatershed,
-  huc8,
   huc12,
   ownertype,
   barrierownertype,
@@ -43,140 +49,189 @@ const LocationConstruction = ({
   barrierseverity,
   sarp_score,
   diversion,
+  nostructure,
   waterbodykm2,
   waterbodysizeclass,
+  invasive,
   sx,
 }) => {
-  let barrierTypeLabel = barrierType === 'dams' ? 'dam' : 'road-related barrier'
-  if (barrierType === 'dams' && estimated) {
-    barrierTypeLabel = 'estimated dam'
-  }
+  const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
 
   const hasRiver =
-    river && river !== '"' && river !== 'null' && river !== 'Unknown'
+    river &&
+    river !== '"' &&
+    river !== 'null' &&
+    river.toLowerCase() !== 'unknown' &&
+    river.toLowerCase() !== 'unnamed'
 
   const hasLandOwner = ownertype && ownertype > 0
   const hasBarrierOwner = barrierownertype && barrierownertype > 0
+  const isLowheadDam = lowheaddam !== null && lowheaddam >= 1
+  const isDiversion = diversion !== null && diversion >= 1
 
   return (
     <Box sx={sx}>
       <Heading as="h3">Location & construction information</Heading>
 
-      <Grid columns={2} gap={4}>
-        <Box as="ul">
-          <li>Barrier type: {barrierTypeLabel}</li>
+      <Grid columns={2} gap={0}>
+        <Box sx={{ mr: '1rem' }}>
+          <Entry>
+            {estimated ? (
+              <Flex sx={{ alignItems: 'flex-start' }}>
+                <Box sx={{ color: 'grey.4', flex: '0 0 auto', mr: '0.5em' }}>
+                  <ExclamationTriangle size="2.5em" />
+                </Box>
+                <Text sx={{ flex: '1 1 auto', lineHeight: 1.1 }}>
+                  Dam is estimated from other data sources and may be incorrect;
+                  please{' '}
+                  <a
+                    href={`mailto:Kat@southeastaquatics.net?subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
+                  >
+                    let us know
+                  </a>
+                </Text>
+              </Flex>
+            ) : (
+              <>
+                Barrier Type:{' '}
+                {isLowheadDam ? (
+                  <>
+                    {lowheaddam === 2 ? 'likely ' : null}
+                    lowhead dam{' '}
+                  </>
+                ) : null}
+                {isDiversion ? (
+                  <>
+                    {isLowheadDam ? (
+                      <>
+                        ,<br />
+                      </>
+                    ) : null}{' '}
+                    {diversion === 2 ? 'likely ' : null} water diversion
+                    {nostructure ? ' (no associated barrier structure)' : null}
+                  </>
+                ) : null}
+                {!(isLowheadDam || isDiversion) ? barrierTypeLabel : null}
+                {invasive ? (
+                  <>
+                    ,<br /> invasive species barrier
+                  </>
+                ) : null}
+              </>
+            )}
+          </Entry>
+          <Entry>
+            {hasRiver ? `On ${river} in` : 'Within'} {subwatershed}{' '}
+            Subwatershed, {subbasin} Subbasin
+            <br />
+            HUC12: {huc12}
+          </Entry>
 
+          {barrierType === 'dams' &&
+          waterbodysizeclass !== null &&
+          waterbodysizeclass > 0 ? (
+            <Entry>
+              This dam is associated with a{' '}
+              {WATERBODY_SIZECLASS[waterbodysizeclass]
+                .split(' (')[0]
+                .toLowerCase()}{' '}
+              (
+              {waterbodykm2 > 0.1
+                ? `${formatNumber(waterbodykm2, 2)} k`
+                : `${formatNumber(waterbodykm2 * 1e6)} `}
+              m<sup>2</sup>).
+            </Entry>
+          ) : null}
+
+          {intermittent ? (
+            <Entry>
+              Located on a reach that has intermittent or ephemeral flow
+            </Entry>
+          ) : null}
+
+          {hasLandOwner ? (
+            <Entry>Conservation land type: {OWNERTYPE[ownertype]}</Entry>
+          ) : null}
+
+          {hasBarrierOwner ? (
+            <Entry>
+              Barrier ownership type: {BARRIEROWNERTYPE[barrierownertype]}
+            </Entry>
+          ) : null}
+        </Box>
+
+        <Box
+          sx={{
+            borderLeft: '2px solid',
+            borderLeftColor: 'grey.1',
+            pl: '1rem',
+          }}
+        >
           {barrierType === 'dams' ? (
             <>
-              {yearcompleted > 0 ? (
-                <li>Constructed completed: {yearcompleted}</li>
-              ) : null}
-              {height > 0 ? <li>Height: {height} feet</li> : null}
-              {width > 0 ? <li>Width: {width} feet</li> : null}
-              {construction !== null && construction >= 0 ? (
-                <li>
-                  Construction material:{' '}
-                  {CONSTRUCTION[construction].toLowerCase()}
-                </li>
-              ) : null}
-              {lowheaddam !== null && lowheaddam >= 1 ? (
-                <li>
-                  This is {lowheaddam === 2 ? 'likely' : ''} a lowhead dam
-                </li>
-              ) : null}
-              {diversion === 1 ? (
-                <li>Diversion: this is a water diversion</li>
-              ) : null}
               {purpose !== null && purpose >= 0 ? (
-                <li>Purpose: {PURPOSE[purpose].toLowerCase()}</li>
+                <Entry>Purpose: {PURPOSE[purpose].toLowerCase()}</Entry>
               ) : null}
-              {condition !== null && condition >= 0 ? (
-                <li>
-                  Structural condition: {CONDITION[condition].toLowerCase()}
-                </li>
+              {yearcompleted > 0 ? (
+                <Entry>Constructed completed: {yearcompleted}</Entry>
               ) : null}
 
-              {passagefacility !== null && passagefacility >= 0 ? (
-                <li>
-                  Passage facility type:{' '}
-                  {PASSAGEFACILITY[passagefacility].toLowerCase()}
-                </li>
+              {!nostructure ? (
+                <>
+                  {height > 0 ? <Entry>Height: {height} feet</Entry> : null}
+
+                  {width > 0 ? <Entry>Width: {width} feet</Entry> : null}
+
+                  {construction !== null && construction >= 0 ? (
+                    <Entry>
+                      Construction material:{' '}
+                      {CONSTRUCTION[construction].toLowerCase()}
+                    </Entry>
+                  ) : null}
+
+                  {condition !== null && condition >= 0 ? (
+                    <Entry>
+                      Structural condition: {CONDITION[condition].toLowerCase()}
+                    </Entry>
+                  ) : null}
+
+                  {passagefacility !== null && passagefacility >= 0 ? (
+                    <Entry>
+                      Passage facility type:{' '}
+                      {PASSAGEFACILITY[passagefacility].toLowerCase()}
+                    </Entry>
+                  ) : null}
+                </>
               ) : null}
             </>
           ) : (
             <>
               {roadtype !== null && roadtype >= 0 ? (
-                <li>Road type: {ROAD_TYPE[roadtype]}</li>
+                <Entry>Road type: {ROAD_TYPE[roadtype]}</Entry>
               ) : null}
               {crossingtype !== null && crossingtype >= 0 ? (
-                <li>Crossing type: {CROSSING_TYPE[crossingtype]}</li>
+                <Entry>Crossing type: {CROSSING_TYPE[crossingtype]}</Entry>
               ) : null}
               {constriction !== null && constriction >= 0 ? (
-                <li>Type of constriction: {CONSTRICTION[constriction]}</li>
+                <Entry>
+                  Type of constriction: {CONSTRICTION[constriction]}
+                </Entry>
               ) : null}
               {condition !== null && condition >= 0 ? (
-                <li>Condition: {CONDITION[condition]}</li>
+                <Entry>Condition: {CONDITION[condition]}</Entry>
               ) : null}
               {barrierseverity !== null ? (
-                <li>Severity: {BARRIER_SEVERITY[barrierseverity]}</li>
+                <Entry>Severity: {BARRIER_SEVERITY[barrierseverity]}</Entry>
               ) : null}
               {sarp_score >= 0 ? (
-                <li>
+                <Entry>
                   SARP Aquatic Organism Passage Score:{' '}
                   {formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)}
                   )
-                </li>
+                </Entry>
               ) : null}
             </>
           )}
-        </Box>
-        <Box as="ul">
-          {hasRiver ? <li>River or stream: {river}</li> : null}
-
-          {barrierType === 'dams' &&
-          waterbodysizeclass !== null &&
-          waterbodysizeclass > 0 ? (
-            <li>
-              Size of associated pond or lake:
-              <br />
-              {waterbodykm2 > 0.1
-                ? `${formatNumber(waterbodykm2, 2)} k`
-                : `${formatNumber(waterbodykm2 * 1e6)} `}
-              m<sup>2</sup> (
-              {WATERBODY_SIZECLASS[waterbodysizeclass]
-                .split(' (')[0]
-                .toLowerCase()}
-              )
-            </li>
-          ) : null}
-
-          {intermittent === 1 ? (
-            <li>Located on a reach that has intermittent or ephemeral flow</li>
-          ) : null}
-
-          {huc12 ? (
-            <>
-              <li>
-                Subwatershed: {subwatershed}
-                <br />
-                (HUC12: {huc12})
-              </li>
-              <li>
-                Subbasin: {subbasin}
-                <br />
-                (HUC8: {huc8})
-              </li>
-            </>
-          ) : null}
-          {hasLandOwner ? (
-            <li>Conservation land type: {OWNERTYPE[ownertype]}</li>
-          ) : null}
-
-          {hasBarrierOwner ? (
-            <li>
-              Barrier ownership type: {BARRIEROWNERTYPE[barrierownertype]}
-            </li>
-          ) : null}
         </Box>
       </Grid>
     </Box>
@@ -185,11 +240,11 @@ const LocationConstruction = ({
 
 LocationConstruction.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  sarpid: PropTypes.string.isRequired,
   river: PropTypes.string,
   intermittent: PropTypes.number,
   subbasin: PropTypes.string,
   subwatershed: PropTypes.string,
-  huc8: PropTypes.string,
   huc12: PropTypes.string,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
@@ -208,8 +263,10 @@ LocationConstruction.propTypes = {
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
+  nostructure: PropTypes.bool,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
+  invasive: PropTypes.bool,
   sx: PropTypes.object,
 }
 
@@ -218,7 +275,6 @@ LocationConstruction.defaultProps = {
   intermittent: 0,
   subbasin: null,
   subwatershed: null,
-  huc8: null,
   huc12: null,
   ownertype: null,
   barrierownertype: null,
@@ -236,9 +292,11 @@ LocationConstruction.defaultProps = {
   barrierseverity: null,
   sarp_score: -1,
   diversion: 0,
+  nostructure: false,
   lowheaddam: null,
   waterbodykm2: -1,
   waterbodysizeclass: null,
+  invasive: false,
   sx: null,
 }
 

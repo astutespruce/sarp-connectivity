@@ -6,7 +6,7 @@ import { STATES } from 'config'
 import { formatNumber } from 'util/format'
 import { Flex } from './elements'
 
-const Header = ({ barrierType, name, county, state, lat, lon }) => (
+const Header = ({ name, county, state, lat, lon }) => (
   <View style={{ marginBottom: 4 }}>
     <Text
       style={{ fontFamily: 'Helvetica-Bold', fontSize: 24, lineHeight: 1.2 }}
@@ -19,29 +19,25 @@ const Header = ({ barrierType, name, county, state, lat, lon }) => (
         marginTop: 12,
       }}
     >
-      <Text style={{ flex: '1 1 auto' }}>
-        {barrierType === 'dams' ? 'Dam' : 'Road-related barrier'} at{' '}
-        {formatNumber(lat, 5)}
-        &deg; N / {formatNumber(lon, 5)}
-        &deg; E
-      </Text>
       <Text
         style={{
-          flex: '0 0 200',
-          fontStyle: 'italic',
-          fontFamily: 'Helvetica-Oblique',
+          flex: '1 1 auto',
           fontSize: 12,
-          textAlign: 'right',
+          color: '#5f6e78',
         }}
       >
         {county} County, {STATES[state]}
+      </Text>
+      <Text style={{ flex: '0 0 210', textAlign: 'right', color: '#5f6e78' }}>
+        Located at {formatNumber(lat, 5)}
+        &deg; N / {formatNumber(lon, 5)}
+        &deg; E
       </Text>
     </Flex>
   </View>
 )
 
 Header.propTypes = {
-  barrierType: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   county: PropTypes.string.isRequired,
   state: PropTypes.string.isRequired,

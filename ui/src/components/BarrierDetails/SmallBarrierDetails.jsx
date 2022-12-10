@@ -70,6 +70,8 @@ const BarrierDetails = ({
   ownertype,
   barrierownertype,
   barrierseverity,
+  invasive,
+  unranked,
   // metrics
   totalupstreammiles,
   perennialupstreammiles,
@@ -94,6 +96,12 @@ const BarrierDetails = ({
         <Field label="Barrier type">
           Road-related <br />
           potential barrier
+          {invasive ? (
+            <>
+              ,<br />
+              invasive species barrier
+            </>
+          ) : null}
         </Field>
       </Entry>
       {!isEmptyString(road) ? (
@@ -175,6 +183,8 @@ const BarrierDetails = ({
           sizeclasses={sizeclasses}
           landcover={landcover}
           intermittent={intermittent}
+          invasive={invasive}
+          unranked={unranked}
         />
       ) : (
         <NoNetworkInfo
@@ -240,6 +250,8 @@ BarrierDetails.propTypes = {
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
   sarp_score: PropTypes.number,
+  invasive: PropTypes.number,
+  unranked: PropTypes.number,
 }
 
 BarrierDetails.defaultProps = {
@@ -276,6 +288,8 @@ BarrierDetails.defaultProps = {
   landcover: null,
   sizeclasses: null,
   sarp_score: -1,
+  invasive: 0,
+  unranked: 0,
 }
 
 export default BarrierDetails

@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Heading, Grid, Paragraph } from 'theme-ui'
+import { Box, Heading, Grid, Paragraph, Text } from 'theme-ui'
 
 import { SALMONID_ESU } from 'config'
 import { formatNumber } from 'util/format'
@@ -15,7 +15,7 @@ const Species = ({
   sx,
 }) => (
   <Box sx={sx}>
-    <Heading as="h3">Species information</Heading>
+    <Heading as="h3">Species information for this subwatershed</Heading>
 
     <Box>
       Data sources in the subwatershed containing this{' '}
@@ -50,21 +50,21 @@ const Species = ({
         <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of Greatest
         Conservation Need
       </Box>
-      <Box>
-        {trout ? 'One or more trout species' : 'No trout species'}
-        {salmonidesu ? (
-          <>
-            <br />
-            <br />
-            Within{' '}
-            {salmonidesu
-              .split(',')
-              .map((code) => SALMONID_ESU[code])
-              .join(', ')}
-          </>
-        ) : null}
-      </Box>
+      <Box>{trout ? 'One or more trout species' : 'No trout species'}</Box>
     </Grid>
+
+    {salmonidesu ? (
+      <Text sx={{ mt: '1.5rem' }}>
+        This subwatershed falls within the following salmon Evolutionarily
+        Significant Units (ESU) / steelhead trout Discrete Population Segments
+        (DPS):
+        <Box as="ul" sx={{ mt: '0.25rem' }}>
+          {salmonidesu.split(',').map((code) => (
+            <li key={code}>{SALMONID_ESU[code]}</li>
+          ))}
+        </Box>
+      </Text>
+    ) : null}
 
     <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
       Note: State and regionally listed species of greatest conservation need

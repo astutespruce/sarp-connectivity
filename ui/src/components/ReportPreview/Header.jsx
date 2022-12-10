@@ -6,19 +6,18 @@ import { Box, Flex, Text } from 'theme-ui'
 import { STATES } from 'config'
 import { formatNumber } from 'util/format'
 
-const Header = ({ barrierType, name, county, state, lat, lon }) => (
+const Header = ({ name, county, state, lat, lon }) => (
   <Flex sx={{ alignItems: 'flex-end', mb: ' 0.5rem', lineHeight: 1.2 }}>
     <Box sx={{ flex: '1 1 auto' }}>
       <Text sx={{ fontSize: '2rem', fontWeight: 'bold' }}>{name}</Text>
       <Flex sx={{ justifyContent: 'space-between', mt: '0.5rem' }}>
-        <Text sx={{ flex: '1 1 auto' }}>
-          {barrierType === 'dams' ? 'Dam' : 'Road-related barrier'} at{' '}
-          {formatNumber(lat, 5)}
+        <Text sx={{ flex: '1 1 auto', color: 'grey.8' }}>
+          {county} County, {STATES[state]}
+        </Text>
+        <Text sx={{ flex: '0 0 auto', color: 'grey.8' }}>
+          Located at {formatNumber(lat, 5)}
           &deg; N / {formatNumber(lon, 5)}
           &deg; E
-        </Text>
-        <Text sx={{ flex: '0 0 auto', fontStyle: 'italic' }}>
-          {county} County, {STATES[state]}
         </Text>
       </Flex>
     </Box>
@@ -26,7 +25,6 @@ const Header = ({ barrierType, name, county, state, lat, lon }) => (
 )
 
 Header.propTypes = {
-  barrierType: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   county: PropTypes.string.isRequired,
   state: PropTypes.string.isRequired,

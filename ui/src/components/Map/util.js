@@ -1,6 +1,6 @@
 import geoViewport from '@mapbox/geo-viewport'
 
-import { barrierTypeLabelSingular } from 'config'
+import { barrierTypeLabelSingular, barrierNameWhenUnknown } from 'config'
 import { isEmptyString } from 'util/string'
 
 /**
@@ -283,32 +283,7 @@ export const getBarrierTooltip = (barrierType, { sarpidname = '|' }) => {
       }
     }
   } else {
-    switch (barrierType) {
-      case 'dams': {
-        name = 'Dam (unknown name)'
-        break
-      }
-
-      case 'small_barriers': {
-        name = 'Road-related barrier (unknown name)'
-        break
-      }
-
-      case 'road_crossings': {
-        name = 'Road / stream crossing'
-        break
-      }
-
-      case 'waterfalls': {
-        name = 'Waterfall (unknown name)'
-        break
-      }
-      default: {
-        // should be caught before here
-        name = `${typeLabel}: unknown name`
-        break
-      }
-    }
+    name = barrierNameWhenUnknown[barrierType] || 'Unknown name'
   }
 
   return `<b>${name}</b>`

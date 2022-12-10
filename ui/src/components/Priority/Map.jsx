@@ -46,8 +46,8 @@ import {
   includedPoint,
   pointLegends,
   rankedPoint,
-  roadCrossingPoint,
-  damsSecondaryPoint,
+  roadCrossingsLayer,
+  damsSecondaryLayer,
   waterfallsLayer,
   priorityWatersheds,
   priorityWatershedLegends,
@@ -116,8 +116,8 @@ const PriorityMap = ({
       setZoom(map.getZoom())
 
       const pointLayers = [
-        roadCrossingPoint.id,
-        damsSecondaryPoint.id,
+        roadCrossingsLayer.id,
+        damsSecondaryLayer.id,
         waterfallsLayer.id,
         unrankedPoint.id,
         offnetworkPoint.id,
@@ -194,7 +194,7 @@ const PriorityMap = ({
 
       // add road crossings layer
       map.addLayer({
-        ...roadCrossingPoint,
+        ...roadCrossingsLayer,
         layout: {
           visibility: barrierType === 'small_barriers' ? 'visible' : 'none',
         },
@@ -202,7 +202,7 @@ const PriorityMap = ({
 
       // add secondary dams layer
       map.addLayer({
-        ...damsSecondaryPoint,
+        ...damsSecondaryLayer,
         layout: {
           visibility: barrierType === 'small_barriers' ? 'visible' : 'none',
         },

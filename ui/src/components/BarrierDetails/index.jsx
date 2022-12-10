@@ -2,12 +2,13 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Envelope, FileDownload } from '@emotion-icons/fa-solid'
-import { Box, Button, Flex, Heading, Paragraph, Text } from 'theme-ui'
+import { Box, Button, Flex, Heading, Text } from 'theme-ui'
 
 import { Tab, Tabs } from 'components/Tabs'
 import {
   siteMetadata,
   barrierTypeLabelSingular,
+  barrierNameWhenUnknown,
   STATES,
   DAM_PACK_BITS,
   SB_PACK_BITS,
@@ -47,24 +48,20 @@ const BarrierDetails = ({ barrier, onClose }) => {
 
   const [sarpid, rawName] = sarpidname.split('|')
 
-  let name = ''
+  const name = !isEmptyString(rawName)
+    ? rawName
+    : barrierNameWhenUnknown[barrierType] || 'Unknown name'
   let details = null
   let packedInfo = null
   switch (barrierType) {
     case 'dams': {
-      name = !isEmptyString(rawName) ? rawName : 'Dam (unknown name)'
       packedInfo = unpackBits(packed, DAM_PACK_BITS)
 
       details = <DamDetails sarpid={sarpid} {...barrier} {...packedInfo} />
       break
     }
     case 'small_barriers': {
-      name = !isEmptyString(rawName)
-        ? rawName
-        : 'Road-related barrier (unknown name)'
       packedInfo = unpackBits(packed, SB_PACK_BITS)
-
-      console.log('unpacked', packedInfo)
 
       details = (
         <SmallBarrierDetails sarpid={sarpid} {...barrier} {...packedInfo} />
@@ -72,7 +69,6 @@ const BarrierDetails = ({ barrier, onClose }) => {
       break
     }
     case 'road_crossings': {
-      name = !isEmptyString(rawName) ? rawName : 'Road / stream crossing'
       packedInfo = unpackBits(packed, RC_PACK_BITS)
 
       details = (
@@ -81,7 +77,6 @@ const BarrierDetails = ({ barrier, onClose }) => {
       break
     }
     case 'waterfalls': {
-      name = !isEmptyString(rawName) ? rawName : 'Waterfall (unknown name)'
       packedInfo = unpackBits(packed, WF_PACK_BITS)
 
       details = (
@@ -90,11 +85,11 @@ const BarrierDetails = ({ barrier, onClose }) => {
       break
     }
     default: {
-      name = 'Unknown name'
+      // no-op
       break
     }
   }
-  const { hasnetwork = 0, unranked = 0 } = packedInfo || {}
+  console.log('upacked bits', packedInfo)
 
   let scoreContent = null
   if (ranked) {

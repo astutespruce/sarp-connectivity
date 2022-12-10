@@ -10,12 +10,10 @@ const Feasibility = ({ recon, sx }) => (
   <Box sx={sx}>
     <Heading as="h3">Feasibility & conservation benefit</Heading>
 
-    <Box as="ul" sx={{ mt: '0.5rem' }}>
-      {recon !== null ? (
-        <li>{RECON[recon]}</li>
-      ) : (
-        <li>No feasibility information is available for this barrier.</li>
-      )}
+    <Box sx={{ mt: '0.5rem' }}>
+      {recon !== null
+        ? RECON[recon]
+        : 'No feasibility information is available for this barrier.'}
     </Box>
   </Box>
 )

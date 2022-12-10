@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Text, Paragraph } from 'theme-ui'
+import { Box, Flex, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { Entry, Field, Section } from 'components/Sidebar'
@@ -68,10 +68,12 @@ const DamDetails = ({
   freeunaltereddownstreammiles,
   landcover,
   sizeclasses,
+  invasive,
+  unranked,
 }) => {
   const isLowheadDam = lowheaddam !== null && lowheaddam >= 1
   const isDiversion = diversion !== null && diversion >= 1
-  const isUnspecifiedType = !(isLowheadDam || isDiversion)
+  const isUnspecifiedType = !(isLowheadDam || isDiversion || invasive)
 
   return (
     <Box
@@ -126,9 +128,15 @@ const DamDetails = ({
                 {diversion === 2 ? 'likely ' : null} water diversion
                 {nostructure === 1 ? (
                   <Text sx={{ fontSize: 0, color: 'grey.8' }}>
-                    (no associated dam structure)
+                    (no associated barrier structure)
                   </Text>
                 ) : null}
+              </>
+            ) : null}
+            {invasive ? (
+              <>
+                {isLowheadDam || isDiversion ? <br /> : null}invasive species
+                barrier
               </>
             ) : null}
             {isUnspecifiedType ? 'dam' : null}
@@ -201,6 +209,8 @@ const DamDetails = ({
             waterbodysizeclass={waterbodysizeclass}
             waterbodykm2={waterbodykm2}
             intermittent={intermittent}
+            invasive={invasive}
+            unranked={unranked}
           />
         ) : (
           <NoNetworkInfo
@@ -285,6 +295,8 @@ DamDetails.propTypes = {
   lowheaddam: PropTypes.number,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
+  invasive: PropTypes.number,
+  unranked: PropTypes.number,
 }
 
 DamDetails.defaultProps = {
@@ -329,6 +341,8 @@ DamDetails.defaultProps = {
   lowheaddam: null,
   waterbodykm2: -1,
   waterbodysizeclass: null,
+  invasive: 0,
+  unranked: 0,
 }
 
 export default DamDetails

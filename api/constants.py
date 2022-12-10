@@ -220,7 +220,7 @@ GENERAL_API_FIELDS2 = (
         "Subwatershed",
     ]
     + UNIT_FIELDS
-    + ["Excluded", "Invasive", "OnLoop"]
+    + ["Excluded", "Invasive", "OnLoop", "Unranked"]
     + METRIC_FIELDS
     + UPSTREAM_COUNT_FIELDS
     + DOWNSTREAM_LINEAR_NETWORK_FIELDS
@@ -254,7 +254,7 @@ DAM_CORE_FIELDS = (
         # "Recon",
         "Diversion",
         "LowheadDam",
-        # "NoStructure", # not used in API / downloads, only in tiles / UI
+        "NoStructure",
         "WaterbodyKM2",
         "WaterbodySizeClass",
     ]
@@ -300,6 +300,7 @@ DAM_TILE_FIELDS = [
         # included in "packed": (note: some fields included above since used for processing tiles)
         "Excluded",
         "OnLoop",
+        "Unranked",
         "StreamOrder",
         "Estimated",
         "Invasive",
@@ -388,6 +389,7 @@ SB_TILE_FIELDS = [
         # included in "packed": (note: some fields included above since used for processing tiles)
         "Excluded",
         "OnLoop",
+        "Unranked",
         "StreamOrder",
         "Invasive",
         "Recon",  # excluded from API_FIELDS (important!)

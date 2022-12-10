@@ -182,16 +182,19 @@ export const unrankedPoint = {
   // source: "", // provided by specific layer
   // 'source-layer': '', // provided by specific layer
   type: 'circle',
-  minzoom: 10,
+  //FIXME:
+  minzoom: 8,
+  // minzoom: 10,
   maxzoom: 24,
   paint: {
     'circle-color': '#999',
-    'circle-radius': {
-      stops: [
-        [10, 0.5],
-        [14, 4],
-      ],
-    },
+    'circle-radius': 20,
+    // {
+    //   stops: [
+    //     [10, 0.5],
+    //     [14, 4],
+    //   ],
+    // },
     'circle-opacity': {
       stops: [
         [10, 0.5],
@@ -371,7 +374,7 @@ export const rankedPoint = {
 }
 
 // Note: this is ONLY for display when small barriers are selected
-export const roadCrossingPoint = {
+export const roadCrossingsLayer = {
   id: 'road-crossings',
   source: 'road_crossings',
   'source-layer': 'road_crossings',
@@ -420,7 +423,7 @@ export const roadCrossingPoint = {
 }
 
 // NOTE: this is ONLY for displaying dams when small barriers are selected
-export const damsSecondaryPoint = {
+export const damsSecondaryLayer = {
   id: 'dams-secondary',
   source: 'dams',
   'source-layer': 'ranked_dams',

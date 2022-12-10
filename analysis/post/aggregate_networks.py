@@ -165,6 +165,7 @@ tmp = dams[DAM_API_FIELDS].reset_index()
 tmp["id"] = tmp.id.astype("uint32")
 tmp.to_feather(api_dir / f"dams.feather")
 
+
 #########################################################################################
 ###
 ### Read small barriers and associated networks
@@ -251,7 +252,7 @@ combined_networks = get_network_results(
     state_ranks=True,
 )
 combined = combined.join(combined_networks)
-for col in ["HasNetwork", "Ranked", "Estimated"]:
+for col in ["HasNetwork", "Ranked", "Estimated", "NoStructure"]:
     combined[col] = combined[col].fillna(False)
 
 for col in combined_networks.columns:
@@ -275,6 +276,7 @@ fill_columns = [
     # dam columns
     "Construction",
     "Diversion",
+    "NoStructure",
     "Feasibility",
     "FishScreen",
     "Height",

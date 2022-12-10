@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Document, Page, StyleSheet } from '@react-pdf/renderer'
+import { Document, Font, Page, StyleSheet } from '@react-pdf/renderer'
 
 import Contact from './Contact'
 import Credits from './Credits'
@@ -27,6 +27,9 @@ const styles = StyleSheet.create({
     color: '#333',
   },
 })
+
+// disable hyphenation
+Font.registerHyphenationCallback((word) => [word])
 
 const Report = ({
   barrierType,
