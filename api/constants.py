@@ -220,7 +220,7 @@ GENERAL_API_FIELDS2 = (
         "Subwatershed",
     ]
     + UNIT_FIELDS
-    + ["Excluded", "Invasive", "OnLoop", "Unranked"]
+    + ["Excluded", "Invasive", "OnLoop"]
     + METRIC_FIELDS
     + UPSTREAM_COUNT_FIELDS
     + DOWNSTREAM_LINEAR_NETWORK_FIELDS
@@ -269,7 +269,7 @@ DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
     + STATE_TIER_FIELDS
     + DAM_FILTER_FIELDS
-    + ["upNetID", "downNetID", "COUNTYFIPS"]
+    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked"]
 )
 
 # Public API does not include tier or filter fields
@@ -300,7 +300,6 @@ DAM_TILE_FIELDS = [
         # included in "packed": (note: some fields included above since used for processing tiles)
         "Excluded",
         "OnLoop",
-        "Unranked",
         "StreamOrder",
         "Estimated",
         "Invasive",
@@ -361,7 +360,9 @@ SB_CORE_FIELDS = unique(SB_CORE_FIELDS)
 # NOTE: state tiers are excluded based on SARP direction
 SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS)
 SB_API_FIELDS = unique(
-    SB_CORE_FIELDS + SB_FILTER_FIELDS + ["upNetID", "downNetID", "COUNTYFIPS"]
+    SB_CORE_FIELDS
+    + SB_FILTER_FIELDS
+    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked"]
 )
 
 # Public API does not include tier fields
@@ -389,7 +390,6 @@ SB_TILE_FIELDS = [
         # included in "packed": (note: some fields included above since used for processing tiles)
         "Excluded",
         "OnLoop",
-        "Unranked",
         "StreamOrder",
         "Invasive",
         "Recon",  # excluded from API_FIELDS (important!)

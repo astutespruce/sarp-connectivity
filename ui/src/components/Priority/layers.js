@@ -182,19 +182,16 @@ export const unrankedPoint = {
   // source: "", // provided by specific layer
   // 'source-layer': '', // provided by specific layer
   type: 'circle',
-  //FIXME:
-  minzoom: 8,
-  // minzoom: 10,
+  minzoom: 10,
   maxzoom: 24,
   paint: {
     'circle-color': '#999',
-    'circle-radius': 20,
-    // {
-    //   stops: [
-    //     [10, 0.5],
-    //     [14, 4],
-    //   ],
-    // },
+    'circle-radius': {
+      stops: [
+        [10, 0.5],
+        [14, 4],
+      ],
+    },
     'circle-opacity': {
       stops: [
         [10, 0.5],
