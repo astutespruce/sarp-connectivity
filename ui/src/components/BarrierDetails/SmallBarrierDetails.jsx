@@ -196,7 +196,7 @@ const BarrierDetails = ({
       )}
     </Section>
 
-    <Section title="Species information">
+    <Section title="Species information for this subwatershed">
       <SpeciesInfo
         barrierType={barrierType}
         tespp={tespp}

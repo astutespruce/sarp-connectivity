@@ -9,7 +9,7 @@ import ScoreChart from './ScoreChart'
 const ScoresList = ({ nc, wc, ncwc, pnc, pwc, pncwc }) => (
   <Box sx={{ mx: '-0.5rem' }}>
     <Section title="Full networks">
-      <Box sx={{ pr: '1rem', pl: '0.5rem' }}>
+      <Box sx={{ px: '1rem' }}>
         <ScoreChart
           label="Network Connectivity Tier"
           score={nc.score}
@@ -29,7 +29,7 @@ const ScoresList = ({ nc, wc, ncwc, pnc, pwc, pncwc }) => (
     </Section>
 
     <Section title="Perennial reaches only" sx={{ mt: '2rem' }}>
-      <Box sx={{ pr: '1rem', pl: '0.5rem' }}>
+      <Box sx={{ px: '1rem' }}>
         <ScoreChart
           label="Perennial Network Connectivity Tier"
           score={pnc.score}

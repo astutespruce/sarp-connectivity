@@ -97,7 +97,7 @@ const LocationConstruction = ({
                 {isLowheadDam ? (
                   <>
                     {lowheaddam === 2 ? 'likely ' : null}
-                    lowhead dam{' '}
+                    lowhead dam
                   </>
                 ) : null}
                 {isDiversion ? (

@@ -133,15 +133,24 @@ const DamDetails = ({
                 ) : null}
               </>
             ) : null}
+
+            {isUnspecifiedType ? 'dam' : null}
             {invasive ? (
               <>
-                {isLowheadDam || isDiversion ? <br /> : null}invasive species
-                barrier
+                <br />
+                invasive species barrier
               </>
             ) : null}
-            {isUnspecifiedType ? 'dam' : null}
           </Field>
         </Entry>
+
+        {purpose !== null && purpose >= 0 && PURPOSE[purpose] ? (
+          <Entry>
+            <Field label="Purpose" isUnknown={purpose === 0}>
+              {PURPOSE[purpose].toLowerCase()}
+            </Field>
+          </Entry>
+        ) : null}
 
         {yearcompleted > 0 ? (
           <Entry>
@@ -163,13 +172,6 @@ const DamDetails = ({
           </Entry>
         ) : null}
 
-        {purpose !== null && purpose >= 0 && PURPOSE[purpose] ? (
-          <Entry>
-            <Field label="Purpose" isUnknown={purpose === 0}>
-              {PURPOSE[purpose].toLowerCase()}
-            </Field>
-          </Entry>
-        ) : null}
         {condition !== null && condition >= 0 && CONDITION[condition] ? (
           <Entry>
             <Field label="Structural condition" isUnknown={condition === 0}>
