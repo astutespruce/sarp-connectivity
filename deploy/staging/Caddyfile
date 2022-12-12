@@ -53,10 +53,12 @@ aquaticbarriers.mockuplab.us {
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
 
-    # Capture client only routes and route through correct page to force loading on client side
-    rewrite /report/* report/index.html
-
     encode zstd gzip
+
+    # Capture client only routes and route through correct page to force loading on client side
+    rewrite /report/dams/* "report/dams/[sarpid]/index.html"
+    rewrite /report/small_barriers/* "report/small_barriers/[sarpid]/index.html"
+
     root * /var/www
     file_server
   }
