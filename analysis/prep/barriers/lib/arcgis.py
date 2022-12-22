@@ -87,9 +87,7 @@ async def get_json(client, url, params=None, token=None):
     content = response.json()
     if "error" in content:
         raise HTTPError(
-            "Error making request: {}\n{}".format(
-                content["error"]["message"], content["error"]["details"]
-            )
+            f'Error making request to: {url}\n{content["error"]["message"]}\n{content["error"]["details"]}'
         )
 
     return content

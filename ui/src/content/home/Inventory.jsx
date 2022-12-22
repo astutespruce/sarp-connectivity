@@ -28,14 +28,17 @@ const Inventory = () => {
               Southeast Aquatic Resources Partnership
             </OutboundLink>{' '}
             (SARP) with the generous support from many partners and funders.
-            Originally developed within the Southeast as part of SARP&apos;s
-            Aquatic Connectivity Program, this inventory and tool have been
-            expanded to a broader geographic area to empower state-level Aquatic
-            Connectivity Teams and other collaborators with the best available
-            information on aquatic barriers. The inventory directly supports
-            prioritization of barriers by including metrics that describe
-            network connectivity, landscape condition, and presence of
-            threatened and endangered aquatic organisms.
+            Originally developed within the Southeast as part of{' '}
+            <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
+              SARP&apos;s Aquatic Connectivity Program
+            </OutboundLink>
+            , this inventory and tool have been expanded to a broader geographic
+            area to empower state-level Aquatic Connectivity Teams and other
+            collaborators with the best available information on aquatic
+            barriers. The inventory directly supports prioritization of barriers
+            by including metrics that describe network connectivity, landscape
+            condition, and presence of threatened and endangered aquatic
+            organisms.
             <br />
             <br />
             This inventory consists of datasets from local, state, and federal

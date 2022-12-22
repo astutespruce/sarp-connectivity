@@ -130,6 +130,9 @@ df["PotentialProject"] = (
     .str.replace("barrier", "Barrier")
 )
 
+# TEMP: fix bogus values
+df.loc[df.PotentialProject == "1", "PotentialProject"] = ""
+
 # Recode No => No Barrier per guidance from SARP
 df.loc[df.PotentialProject == "No", "PotentialProject"] = "No Barrier"
 

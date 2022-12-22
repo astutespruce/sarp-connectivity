@@ -9,7 +9,7 @@ import pyarrow as pa
 from pyarrow.csv import write_csv
 
 from api.constants import DAM_EXPORT_FIELDS, SB_EXPORT_FIELDS, unique
-from analysis.export.lib import unpack_domains
+from analysis.export.lib.domains import unpack_domains
 
 
 EXPORT_FIELDS = {
@@ -25,7 +25,7 @@ data_dir = Path("data/api")
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
-barrier_type = "dams_small_barriers"  # "dams"  # "small_barriers"
+barrier_type = "dams"  #  one of "dams", "small_barriers", "dams_small_barriers"
 suffix = ""  # use to set a filename suffix if filtering further
 
 df = pd.read_feather(data_dir / f"{barrier_type}.feather")

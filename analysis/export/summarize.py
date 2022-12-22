@@ -12,7 +12,7 @@ primary_col_style = NamedStyle(
 )
 
 
-current_version = "Nov2022"
+current_version = "Dec2022"
 
 data_dir = Path("data/barriers/master")
 out_dir = Path("data/versions")
@@ -83,6 +83,9 @@ for barrier_type in ["dams", "small_barriers"]:
     df.loc[df.State == "", "State"] = "<outside region states>"
 
     df = df.join(api_df, on="id")
+    df["not_dropped_or_duplicate_or_removed"] = (
+        ~(df.dropped | df.duplicate | df.removed)
+    ).astype("uint8")
     df["analyzed"] = (df.snapped & ~(df.duplicate | df.dropped | df.excluded)).astype(
         "uint8"
     )
@@ -122,6 +125,7 @@ for barrier_type in ["dams", "small_barriers"]:
         ### Totals
         data = {
             "total": len(df),
+            "not_dropped_or_duplicate_or_removed": df.not_dropped_or_duplicate_or_removed.sum(),
             "reconned": df.reconned.sum(),
             "manually_reviewed": df.manually_reviewed.sum(),
         }
@@ -166,6 +170,7 @@ for barrier_type in ["dams", "small_barriers"]:
         ### Totals by state
         agg = {
             "id": "count",
+            "not_dropped_or_duplicate_or_removed": "sum",
             "reconned": "sum",
             "manually_reviewed": "sum",
         }
@@ -235,9 +240,7 @@ for barrier_type in ["dams", "small_barriers"]:
         md.write("\n\n\n\n")
 
         for col in summary_fields:
-            agg = {
-                "id": "count",
-            }
+            agg = {"id": "count", "not_dropped_or_duplicate_or_removed": "sum"}
 
             if col != "Recon":
                 agg["reconned"] = "sum"

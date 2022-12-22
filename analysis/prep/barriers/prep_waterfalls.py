@@ -161,7 +161,9 @@ print(
 df.BarrierSeverity = df.BarrierSeverity.fillna("").str.strip().str.lower()
 
 # FIXME: temporary fixes
-df.loc[df.BarrierSeverity.str.startswith("state of ut"), "BarrierSeverity"] = "unknown"
+df.loc[
+    df.BarrierSeverity.str.lower().str.startswith("state of ut"), "BarrierSeverity"
+] = "unknown"
 
 
 # mark as excluded if barrier severity is unknown / no barrier
@@ -171,8 +173,12 @@ df.loc[ix, "excluded"] = True
 df.loc[ix, "log"] = f"excluded: BarrierSeverity one of {', '.join(exclude_severities)}"
 
 # Convert to domain
-df["BarrierSeverity"] = df.BarrierSeverity.map(DAM_BARRIER_SEVERITY_TO_DOMAIN).astype(
-    "uint8"
+df["BarrierSeverity"] = (
+    df.BarrierSeverity.fillna("unknown")
+    .str.strip()
+    .str.lower()
+    .map(DAM_BARRIER_SEVERITY_TO_DOMAIN)
+    .astype("uint8")
 )
 
 ### Exclude barriers that should not be analyzed based on manual QA

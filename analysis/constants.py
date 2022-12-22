@@ -457,8 +457,11 @@ BARRIER_CONDITION_TO_DOMAIN = {
 # Dams and small barriers are mapped to SEVERITY_DOMAIN
 DAM_BARRIER_SEVERITY_TO_DOMAIN = {
     "": 0,
+    "0": 0,  # TEMP: coding error
+    "na": 0,
     "unknown": 0,
     "complete": 1,
+    "severe barrier": 1,
     "complete barrier": 1,
     "partial": 2,
     "partial passability - non salmonid": 3,
@@ -496,6 +499,7 @@ POTENTIALPROJECT_TO_SEVERITY = {
     "small project": 0,
     "sri only": 0,
     "other": 0,
+    "no score - missing data": 0,
 }
 
 
