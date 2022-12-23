@@ -13,7 +13,7 @@ const Credits = ({ sx }) => (
           Aquatic Barrier Prioritization Tool
         </a>
         , a project of the{' '}
-        <a href="https://southeastaquatics.net/">
+        <a href="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
           Southeast Aquatic Resources Partnership
         </a>
         .

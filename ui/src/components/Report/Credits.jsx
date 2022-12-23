@@ -12,7 +12,7 @@ const Credits = (props) => (
         <Text>Aquatic Barrier Prioritization Tool</Text>
       </Link>
       , a project of the{' '}
-      <Link href="https://southeastaquatics.net/">
+      <Link href="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
         <Text>Southeast Aquatic Resources Partnership</Text>
       </Link>
       .{'\n\n'}

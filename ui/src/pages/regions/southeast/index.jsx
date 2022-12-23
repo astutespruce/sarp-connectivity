@@ -90,7 +90,7 @@ const SERegionPage = ({
           <Grid columns="2fr 1fr" sx={{ mt: '0.5rem' }}>
             <Paragraph sx={{ mr: '2rem', flex: '1 1 auto' }}>
               The&nbsp;
-              <OutboundLink to="https://southeastaquatics.net/">
+              <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
                 Southeast Aquatic Resources Partnership
               </OutboundLink>
               &nbsp; (SARP) was formed by the Southeastern Association of Fish

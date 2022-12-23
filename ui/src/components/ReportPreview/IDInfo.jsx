@@ -9,37 +9,52 @@ import { Entry } from './elements'
 
 const { version: dataVersion } = siteMetadata
 
-const IDInfo = ({ sarpid, nidid, source, link, sx }) => (
-  <Box sx={sx}>
-    <Heading as="h3">Data sources</Heading>
-    <Box sx={{ mt: '0.5rem' }}>
-      <Entry>
-        SARP ID: {sarpid} (data version: {dataVersion})
-      </Entry>
-      {!isEmptyString(nidid) ? (
-        <Entry>National inventory of dams ID: {nidid}</Entry>
-      ) : null}
-      {!isEmptyString(source) ? <Entry>Source: {source}</Entry> : null}
-      {!isEmptyString(link) ? (
+const IDInfo = ({ sarpid, nidid, source, link, sx }) => {
+  const fromWDFW = source && source.startsWith('WDFW')
+  const fromODFW = source && source.startsWith('ODFW')
+
+  return (
+    <Box sx={sx}>
+      <Heading as="h3">Data sources</Heading>
+      <Box sx={{ mt: '0.5rem' }}>
         <Entry>
-          More information: <OutboundLink to={link}>{link}</OutboundLink>
+          SARP ID: {sarpid} (data version: {dataVersion})
+        </Entry>
+        {!isEmptyString(nidid) ? (
+          <Entry>National inventory of dams ID: {nidid}</Entry>
+        ) : null}
+        {!isEmptyString(source) ? <Entry>Source: {source}</Entry> : null}
+        {!isEmptyString(link) ? (
+          <Entry>
+            More information: <OutboundLink to={link}>{link}</OutboundLink>
+          </Entry>
+        ) : null}
+      </Box>
+
+      {fromWDFW ? (
+        <Box sx={{ mt: '2rem' }}>
+          Information about this barrier is maintained by the Washington State
+          Department of Fish and Wildlife, Fish Passage Division. For more
+          information about specific structures, please visit the{' '}
+          <OutboundLink to="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html">
+            fish passage web map
+          </OutboundLink>
+          .
+        </Box>
+      ) : null}
+
+      {fromODFW ? (
+        <Entry>
+          Information about this barrier is maintained by the{' '}
+          <OutboundLink to="https://www.dfw.state.or.us/fish/passage/inventories.asp">
+            Oregon Department of Fish and Wildlife
+          </OutboundLink>
+          .
         </Entry>
       ) : null}
     </Box>
-
-    {source && source.startsWith('WDFW') ? (
-      <Box sx={{ mt: '2rem' }}>
-        Information about this barrier is maintained by the Washington State
-        Department of Fish and Wildlife, Fish Passage Division. For more
-        information about specific structures, please visit the{' '}
-        <OutboundLink to="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html">
-          fish passage web map
-        </OutboundLink>
-        .
-      </Box>
-    ) : null}
-  </Box>
-)
+  )
+}
 
 IDInfo.propTypes = {
   sarpid: PropTypes.string.isRequired,

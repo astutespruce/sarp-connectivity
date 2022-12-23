@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Button, Divider, Flex, Grid, Heading, Text } from 'theme-ui'
 import { GatsbyImage } from 'gatsby-plugin-image'
-import { ChartBar, SearchLocation } from '@emotion-icons/fa-solid'
+import { ChartBar, SearchLocation, ChevronRight } from '@emotion-icons/fa-solid'
 import { useStaticQuery, graphql } from 'gatsby'
 
 import { Link } from 'components/Link'
@@ -86,24 +86,6 @@ const Regions = () => {
               </Heading>
             </Link>
           </Box>
-          <Flex sx={{ flex: '0 0 auto' }}>
-            <Box sx={{ flex: '1 1 auto', mr: '2rem' }}>
-              <Link to="summary/?region=se">
-                <Button variant="primary">
-                  <ChartBar size="1em" />
-                  &nbsp; Start summarizing
-                </Button>
-              </Link>
-            </Box>
-            <Box sx={{ flex: '0 0 auto' }}>
-              <Link to="/priority">
-                <Button>
-                  <SearchLocation size="1em" />
-                  &nbsp; Start prioritizing
-                </Button>
-              </Link>
-            </Box>
-          </Flex>
         </Flex>
         <Text>
           Includes <b>{REGION_STATES.se.length - 1}</b> states and Puerto Rico
@@ -126,7 +108,10 @@ const Regions = () => {
 
             <Flex sx={{ justifyContent: 'flex-end' }}>
               <Link to="/regions/southeast">
-                Learn more about the Southeast region
+                <Flex sx={{ alignItems: 'center' }}>
+                  <Text>Learn more about the Southeast region</Text>
+                  <ChevronRight size="1em" />
+                </Flex>
               </Link>
             </Flex>
           </Flex>
@@ -149,24 +134,6 @@ const Regions = () => {
               </Heading>
             </Link>
           </Box>
-          <Flex sx={{ flex: '0 0 auto' }}>
-            <Box sx={{ flex: '1 1 auto', mr: '2rem' }}>
-              <Link to="summary/?region=gpiw">
-                <Button variant="primary">
-                  <ChartBar size="1em" />
-                  &nbsp; Start summarizing
-                </Button>
-              </Link>
-            </Box>
-            <Box sx={{ flex: '0 0 auto' }}>
-              <Link to="/priority">
-                <Button>
-                  <SearchLocation size="1em" />
-                  &nbsp; Start prioritizing
-                </Button>
-              </Link>
-            </Box>
-          </Flex>
         </Flex>
 
         <Text>
@@ -192,8 +159,13 @@ const Regions = () => {
 
             <Flex sx={{ justifyContent: 'flex-end' }}>
               <Link to="/regions/great_plains_intermountain_west">
-                Learn more about the Great Plains &amp; Intermountain West
-                region
+                <Flex sx={{ alignItems: 'center' }}>
+                  <Text>
+                    Learn more about the Great Plains &amp; Intermountain West
+                    region
+                  </Text>
+                  <ChevronRight size="1em" />
+                </Flex>
               </Link>
             </Flex>
           </Flex>
@@ -216,24 +188,6 @@ const Regions = () => {
               </Heading>
             </Link>
           </Box>
-          <Flex sx={{ flex: '0 0 auto' }}>
-            <Box sx={{ flex: '1 1 auto', mr: '2rem' }}>
-              <Link to="summary/?region=sw">
-                <Button variant="primary">
-                  <ChartBar size="1em" />
-                  &nbsp; Start summarizing
-                </Button>
-              </Link>
-            </Box>
-            <Box sx={{ flex: '0 0 auto' }}>
-              <Link to="/priority">
-                <Button>
-                  <SearchLocation size="1em" />
-                  &nbsp; Start prioritizing
-                </Button>
-              </Link>
-            </Box>
-          </Flex>
         </Flex>
 
         <Text>
@@ -257,7 +211,10 @@ const Regions = () => {
 
             <Flex sx={{ justifyContent: 'flex-end' }}>
               <Link to="/regions/southwest">
-                Learn more about the Southwest region
+                <Flex sx={{ alignItems: 'center' }}>
+                  <Text>Learn more about the Southwest region</Text>
+                  <ChevronRight size="1em" />
+                </Flex>
               </Link>
             </Flex>
           </Flex>
@@ -280,24 +237,6 @@ const Regions = () => {
               </Heading>
             </Link>
           </Box>
-          <Flex sx={{ flex: '0 0 auto' }}>
-            <Box sx={{ flex: '1 1 auto', mr: '2rem' }}>
-              <Link to="summary/?region=pnw">
-                <Button variant="primary">
-                  <ChartBar size="1em" />
-                  &nbsp; Start summarizing
-                </Button>
-              </Link>
-            </Box>
-            <Box sx={{ flex: '0 0 auto' }}>
-              <Link to="/priority">
-                <Button>
-                  <SearchLocation size="1em" />
-                  &nbsp; Start prioritizing
-                </Button>
-              </Link>
-            </Box>
-          </Flex>
         </Flex>
 
         <Text>
@@ -324,7 +263,10 @@ const Regions = () => {
 
             <Flex sx={{ justifyContent: 'flex-end' }}>
               <Link to="/regions/northwest">
-                Learn more about the Pacific Northwest region
+                <Flex sx={{ alignItems: 'center' }}>
+                  <Text>Learn more about the Pacific Northwest region</Text>
+                  <ChevronRight size="1em" />
+                </Flex>
               </Link>
             </Flex>
           </Flex>

@@ -2,13 +2,13 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
-
 import {
   Box,
   Container,
   Divider,
   Grid,
   Heading,
+  Image,
   Paragraph,
   Text,
 } from 'theme-ui'
@@ -21,6 +21,10 @@ import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
 import { REGION_STATES } from 'config'
 import { formatNumber } from 'util/format'
+
+import WDFWLogo from 'images/wdfw_logo.svg'
+import ODFWLogo from 'images/odfw_logo.svg'
+import IDFGLogo from 'images/idfg_logo.png'
 
 const PNWRegionPage = ({
   data: {
@@ -82,31 +86,50 @@ const PNWRegionPage = ({
             Data Sources
           </Heading>
 
-          <Grid columns="2fr 1fr" sx={{ mt: '0.5rem' }}>
-            <Paragraph sx={{ mr: '2rem', flex: '1 1 auto' }}>
-              Dams and road-related barriers within Washington State include
-              those maintained by the Washington State Department of Fish and
-              Wildlife, Fish Passage Division. For more information about
-              specific structures, please visit the{' '}
+          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '0.5rem' }}>
+            <Paragraph>
+              Records describing dams and road-related barriers within Idaho
+              include those maintained by the{' '}
+              <OutboundLink to="https://idfg.idaho.gov/data/fisheries/resources">
+                Idaho Department of Fish and Game
+              </OutboundLink>
+              .
+            </Paragraph>
+            <Box sx={{ maxWidth: '64px' }}>
+              <Image src={IDFGLogo} />
+            </Box>
+          </Grid>
+
+          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
+            <Paragraph>
+              Records describing dams and road-related barriers within Oregon
+              include those maintained by the{' '}
+              <OutboundLink to="https://www.dfw.state.or.us/fish/passage/inventories.asp">
+                Oregon Department of Fish and Wildlife
+              </OutboundLink>
+              .
+            </Paragraph>
+            <Box sx={{ maxWidth: '240px' }}>
+              <Image src={ODFWLogo} />
+            </Box>
+          </Grid>
+
+          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
+            <Paragraph>
+              Records describing dams and road-related barriers within
+              Washington State include those maintained by the{' '}
+              <OutboundLink to="https://wdfw.wa.gov/species-habitats/habitat-recovery/fish-passage">
+                Washington State Department of Fish and Wildlife, Fish Passage
+                Division
+              </OutboundLink>
+              . For more information about specific structures, please visit the{' '}
               <OutboundLink to="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html">
                 fish passage web map
               </OutboundLink>
               .
             </Paragraph>
-
-            <Box>
-              <GatsbyImage
-                image={salmonPhoto}
-                alt="Chum salmon, Allison Springs, WA"
-              />
-
-              <Box sx={{ fontSize: 0 }}>
-                Photo:{' '}
-                <OutboundLink to="https://www.flickr.com/photos/usfwspacific/51047491597/">
-                  Chum salmon, Allison Springs, WA. Roger Tabor / U.S. Fish and
-                  Wildlife Service.
-                </OutboundLink>
-              </Box>
+            <Box sx={{ maxWidth: '240px' }}>
+              <Image src={WDFWLogo} />
             </Box>
           </Grid>
         </Box>
@@ -126,17 +149,36 @@ const PNWRegionPage = ({
           <Heading as="h2" variant="heading.section">
             You can help!
           </Heading>
-          <Paragraph sx={{ mt: '1rem' }}>
-            You can help improve the inventory You can help improve the
-            inventory by sharing data, assisting with field reconnaissance to
-            evaluate the impact of aquatic barriers, or even by reporting issues
-            with the inventory data in this tool.
-            <br />
-            <br />
-            <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn
-            more about how you can help improve aquatic connectivity in the
-            Northwest.
-          </Paragraph>
+          <Grid columns="3fr 1fr" gap={4} sx={{ mt: '1rem' }}>
+            <Box>
+              <Paragraph>
+                You can help improve the inventory You can help improve the
+                inventory by sharing data, assisting with field reconnaissance
+                to evaluate the impact of aquatic barriers, or even by reporting
+                issues with the inventory data in this tool.
+                <br />
+                <br />
+                <a href="mailto:kat@southeastaquatics.net">Contact us</a> to
+                learn more about how you can help improve aquatic connectivity
+                in the Northwest.
+              </Paragraph>
+            </Box>
+
+            <Box>
+              <GatsbyImage
+                image={salmonPhoto}
+                alt="Chum salmon, Allison Springs, WA"
+              />
+
+              <Box sx={{ fontSize: 0 }}>
+                Photo:{' '}
+                <OutboundLink to="https://www.flickr.com/photos/usfwspacific/51047491597/">
+                  Chum salmon, Allison Springs, WA. Roger Tabor / U.S. Fish and
+                  Wildlife Service.
+                </OutboundLink>
+              </Box>
+            </Box>
+          </Grid>
         </Box>
       </Container>
     </Layout>

@@ -26,7 +26,7 @@ const Footer = () => (
     }}
   >
     <Box>
-      <OutboundLink to="https://southeastaquatics.net/">
+      <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
         Southeast Aquatic Resources Partnership
       </OutboundLink>
       &nbsp;&nbsp;|&nbsp;&nbsp;

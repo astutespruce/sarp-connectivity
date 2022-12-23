@@ -12,4 +12,4 @@ For your convenience, a high resolution copy of the SARP logo is included in thi
 
 Citation:
 ---------
-Southeast Aquatic Resources Partnership (SARP). {year}. Comprehensive Aquatic Barrier Inventory. https://southeastaquatics.net/. (dowloaded from {url}). SARP/USFWS.
+Southeast Aquatic Resources Partnership (SARP). {year}. Comprehensive Aquatic Barrier Inventory. https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act. (dowloaded from {url}). SARP/USFWS.

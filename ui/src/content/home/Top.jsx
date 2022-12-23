@@ -3,7 +3,8 @@ import { Box, Heading, Grid, Image, Paragraph, Text } from 'theme-ui'
 
 import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
-import SARPLogoImage from 'images/sarp_logo.png'
+import SARPLogo from 'images/sarp_logo.png'
+import NFHPLogo from 'images/nfhp_logo.svg'
 
 const Top = () => (
   <>
@@ -18,49 +19,81 @@ const Top = () => (
       persistence through changing conditions.
     </Text>
 
-    <Grid columns="3fr 1fr" sx={{ mt: '2rem' }}>
-      <Paragraph variant="paragraph.large">
-        Recently improved inventories, brought to you by the{' '}
-        <OutboundLink to="https://southeastaquatics.net/">
-          Southeast Aquatic Resources Partnership
-        </OutboundLink>{' '}
-        and partners, enable us to describe, understand, and prioritize aquatic
-        barriers for removal, restoration, and mitigation. Through this tool and
-        others, we empower you with information on documented barriers and
-        standardized methods to prioritize barriers of interest for restoration
-        efforts.
-      </Paragraph>
-      <OutboundLink to="https://southeastaquatics.net/">
-        <Image src={SARPLogoImage} />
-      </OutboundLink>
-    </Grid>
+    <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
+      Recently improved inventories, brought to you by the{' '}
+      <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
+        Southeast Aquatic Resources Partnership
+      </OutboundLink>{' '}
+      (SARP) and partners, enable us to describe, understand, and prioritize
+      aquatic barriers for removal, restoration, and mitigation. Through this
+      tool and others, we empower you with information on documented barriers
+      and standardized methods to prioritize barriers of interest for
+      restoration efforts.
+    </Paragraph>
 
+    <Grid columns="3fr 1fr" gap={5} sx={{ mt: '2rem' }}>
+      <Paragraph>
+        This tool and inventory were made possible by funding from the{' '}
+        <OutboundLink to="https://www.fws.gov/program/national-fish-passage">
+          U.S. Fish and Wildlife Service
+        </OutboundLink>
+        ,{' '}
+        <OutboundLink to="https://www.americanrivers.org/">
+          American Rivers
+        </OutboundLink>
+        , the{' '}
+        <OutboundLink to="https://www.nfwf.org/">
+          National Fish and Wildlife Foundation
+        </OutboundLink>
+        ,{' '}
+        <OutboundLink to="https://www.fs.usda.gov/">
+          U.S. Forest Service
+        </OutboundLink>
+        , and state wildlife grant funding from Florida and Texas. This effort
+        would not be possible without the collaboration of our partners from
+        numerous state, federal, and non profit organizations as well as the{' '}
+        <OutboundLink to="https://www.fishhabitat.org/">
+          National Fish Habitat Partnership
+        </OutboundLink>
+        . Structures described within this inventory are maintained within
+        databases housed by multiple entities and aggregated here for display
+        and analysis.
+      </Paragraph>
+      <Box sx={{ maxWidth: '240px' }}>
+        <Box>
+          <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
+            <Image src={SARPLogo} />
+          </OutboundLink>
+        </Box>
+        <Box sx={{ mt: '2rem' }}>
+          <OutboundLink to="">
+            <Image src={NFHPLogo} />
+          </OutboundLink>
+        </Box>
+      </Box>
+    </Grid>
     <Paragraph sx={{ mt: '2rem' }}>
-      This tool and inventory were made possible by funding from the{' '}
-      <OutboundLink to="https://www.fws.gov/program/national-fish-passage">
-        U.S. Fish and Wildlife Service
+      National barrier datasets used in this inventory include the{' '}
+      <OutboundLink to="https://nid.usace.army.mil/#/">
+        National Inventory of Dams
       </OutboundLink>
       ,{' '}
-      <OutboundLink to="https://www.americanrivers.org/">
-        American Rivers
+      <OutboundLink to="https://www.usgs.gov/data/waterfalls-and-rapids-conterminous-united-states-linked-national-hydrography-datasets-v20">
+        USGS Waterfalls of the Conterminous U.S.
       </OutboundLink>
-      , the{' '}
-      <OutboundLink to="https://www.nfwf.org/">
-        National Fish and Wildlife Foundation
+      , and{' '}
+      <OutboundLink to="https://www.usgs.gov/data/database-stream-crossings-united-states">
+        USGS Database of Stream Crossings in the U.S.
+      </OutboundLink>{' '}
+      Barriers are snapped to aquatic networks derived from the{' '}
+      <OutboundLink to="https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution">
+        USGS High Resolution National Hydrography Dataset
+      </OutboundLink>{' '}
+      supplemented with additional information from the{' '}
+      <OutboundLink to="https://www.fws.gov/program/national-wetlands-inventory">
+        National Wetlands Inventory
       </OutboundLink>
-      ,{' '}
-      <OutboundLink to="https://www.fs.usda.gov/">
-        U.S. Forest Service
-      </OutboundLink>
-      , and state wildlife grant funding from Florida and Texas. This effort
-      would not be possible without the collaboration of our partners from
-      numerous state, federal, and non profit organizations as well as the{' '}
-      <OutboundLink to="https://www.fishhabitat.org/">
-        National Fish Habitat Partnership
-      </OutboundLink>
-      . Structures described within this inventory are maintained within
-      databases housed by multiple entities and aggregated here for display and
-      analysis.
+      .
     </Paragraph>
 
     <Box variant="boxes.section" sx={{ mt: '4rem' }}>

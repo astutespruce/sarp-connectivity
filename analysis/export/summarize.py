@@ -91,6 +91,7 @@ for barrier_type in ["dams", "small_barriers"]:
     )
     df["manually_reviewed"] = df.ManualReview.isin(had_manual_review).astype("uint8")
     df["reconned"] = (df.Recon > 0).astype("uint8")
+    df["removed_not_dropped_or_duplicate"] = df.removed & (~(df.dropped | df.duplicate))
 
     if barrier_type == "dams":
         # per guidance from Kat: confirmed unless within SARP states and not reconned or is error
@@ -148,6 +149,7 @@ for barrier_type in ["dams", "small_barriers"]:
                 "snapped": df.snapped.sum(),
                 "on_loop": df.loop.sum(),
                 "removed": df.removed.sum(),
+                "removed_not_dropped_or_duplicate": df.removed_not_dropped_or_duplicate.sum(),
                 "analyzed (snapped & not excluded/dropped/duplicate)": df.analyzed.sum(),
                 "has_networkresults": df.HasNetwork.sum(),
                 "unranked (invasive)": (df.unranked == 1).sum(),
@@ -190,6 +192,7 @@ for barrier_type in ["dams", "small_barriers"]:
                 "snapped": "sum",
                 "loop": "sum",
                 "removed": "sum",
+                "removed_not_dropped_or_duplicate": "sum",
                 "analyzed": "sum",
                 "HasNetwork": "sum",
                 "unranked": "sum",
@@ -250,6 +253,7 @@ for barrier_type in ["dams", "small_barriers"]:
 
             if col != "removed":
                 agg["removed"] = "sum"
+                agg["removed_not_dropped_or_duplicate"] = "sum"
 
             if barrier_type == "dams":
                 agg["is_estimated"] = "sum"

@@ -26,7 +26,7 @@ const TermsPage = ({ data: { headerImage } }) => (
       <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
         The data made available through this tool represent substantial effort
         and investment from the{' '}
-        <OutboundLink to="https://southeastaquatics.net/">
+        <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
           Southeast Aquatic Resources Partnership
         </OutboundLink>{' '}
         (SARP) and SARP&apos;s funders, partners, and data contributors.

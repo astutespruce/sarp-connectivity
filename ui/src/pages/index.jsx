@@ -33,7 +33,6 @@ const IndexPage = ({ data: { headerImage } }) => (
       <RegionSection />
 
       <GetInvolvedSection />
-      <CreditsSection />
     </Container>
   </Layout>
 )
