@@ -139,4 +139,4 @@ export const pageQuery = graphql`
 
 export default SWRegionPage
 
-export const Head = () => <SEO title="Southeast Region" />
+export const Head = () => <SEO title="Southwest Region" />

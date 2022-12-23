@@ -31,7 +31,7 @@ const Top = () => (
       restoration efforts.
     </Paragraph>
 
-    <Grid columns="3fr 1fr" gap={5} sx={{ mt: '2rem' }}>
+    <Grid columns="4fr 1fr" gap={5} sx={{ mt: '2rem' }}>
       <Paragraph>
         This tool and inventory were made possible by funding from the{' '}
         <OutboundLink to="https://www.fws.gov/program/national-fish-passage">
@@ -55,9 +55,7 @@ const Top = () => (
         <OutboundLink to="https://www.fishhabitat.org/">
           National Fish Habitat Partnership
         </OutboundLink>
-        . Structures described within this inventory are maintained within
-        databases housed by multiple entities and aggregated here for display
-        and analysis.
+        .
       </Paragraph>
       <Box sx={{ maxWidth: '240px' }}>
         <Box>
@@ -65,7 +63,7 @@ const Top = () => (
             <Image src={SARPLogo} />
           </OutboundLink>
         </Box>
-        <Box sx={{ mt: '2rem' }}>
+        <Box sx={{ mt: '1rem' }}>
           <OutboundLink to="">
             <Image src={NFHPLogo} />
           </OutboundLink>
@@ -73,7 +71,8 @@ const Top = () => (
       </Box>
     </Grid>
     <Paragraph sx={{ mt: '2rem' }}>
-      National barrier datasets used in this inventory include the{' '}
+      In addition to state and local datasets, national barrier datasets used in
+      this inventory include the{' '}
       <OutboundLink to="https://nid.usace.army.mil/#/">
         National Inventory of Dams
       </OutboundLink>
