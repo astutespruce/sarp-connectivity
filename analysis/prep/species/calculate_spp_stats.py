@@ -27,9 +27,9 @@ data_dir = Path("data")
 bnd_dir = data_dir / "boundaries"
 src_dir = data_dir / "species/source"
 out_dir = data_dir / "species/derived"
-gdb = src_dir / "Species_Tables_Results_2021.gdb"
-rare_spp_layers = ["Southeastern_2021_update", "Western_PhaseI_States"]
-trout_layer = "Trout_HUC12_122021"
+gdb = src_dir / "Species_Results_Tables_2022.gdb"
+rare_spp_layers = ["Southeast_Table", "Western_Table"]
+trout_layer = "Trout_Filter_2022"
 
 ############### Extract USFWS official listing information ######################
 
@@ -102,7 +102,6 @@ trout = read_dataframe(
         "Federal_Status",
         "State_Status",
         "SGCN_Listing",
-        "Regional_SGCN",
     ],
 ).rename(
     columns={
@@ -112,7 +111,6 @@ trout = read_dataframe(
         "Federal_Status": "federal",
         "State_Status": "state",
         "SGCN_Listing": "sgcn",
-        "Regional_SGCN": "regional",
     }
 )
 
@@ -120,13 +118,13 @@ trout = read_dataframe(
 trout = trout.loc[trout.CNAME != "Trout-perch"].copy()
 
 # Convert to bool
-cols = ["federal", "state", "sgcn", "regional"]
+cols = ["federal", "state", "sgcn"]
 for col in cols:
     trout.loc[trout[col] == "No", col] = ""
     trout[col] = trout[col] != ""
 
 # drop any that are only historic
-trout = trout.loc[trout.federal | trout.state | trout.sgcn | trout.regional].copy()
+trout = trout.loc[trout.federal | trout.state | trout.sgcn].copy()
 
 trout = trout.groupby(by=["HUC12", "SNAME"]).first().reset_index()
 
@@ -136,18 +134,19 @@ merged = None
 for layer in rare_spp_layers:
     print(f"Reading species occurrence data: {layer}")
 
-    df = read_dataframe(gdb, layer=layer, read_geometry=False)[
-        [
-            "HUC12_Code",
-            "Species_Name",
-            "Common_Name",
-            "Historical",
-            "Federal_Status",
-            "State_Status",
-            "SGCN_Listing",
-            "Regional_SGCN",
-        ]
-    ].rename(
+    cols = [
+        "HUC12_Code",
+        "Species_Name",
+        "Common_Name",
+        "Historical",
+        "Federal_Status",
+        "State_Status",
+        "SGCN_Listing",
+    ]
+    if layer != "Western_Table":
+        cols.append("Regional_SGCN")
+
+    df = read_dataframe(gdb, layer=layer, read_geometry=False)[cols].rename(
         columns={
             "HUC12_Code": "HUC12",
             "Species_Name": "SNAME",
@@ -158,6 +157,9 @@ for layer in rare_spp_layers:
             "Regional_SGCN": "regional",
         }
     )
+
+    if not "Regional_SGCN" in df.columns:
+        df["Regional_SGCN"] = ""
 
     merged = append(merged, df)
 

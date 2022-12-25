@@ -96,22 +96,24 @@ METRIC_FIELDS = [
     "UpstreamDrainageArea",
 ]
 
-
+# Per guidance from SARP, only expose upstream functional network counts
+# and total upstream crossings (but not other total upstream counts),
+# and exclude count of downstream crossings
 UPSTREAM_COUNT_FIELDS = [
     "UpstreamWaterfalls",
     "UpstreamDams",
     "UpstreamSmallBarriers",
     "UpstreamRoadCrossings",
     "UpstreamHeadwaters",
-    "UpstreamCatchmentWaterfalls",
-    "UpstreamCatchmentDams",
-    "UpstreamCatchmentSmallBarriers",
-    "UpstreamCatchmentRoadCrossings",
-    "TotalUpstreamWaterfalls",
-    "TotalUpstreamDams",
-    "TotalUpstreamSmallBarriers",
+    # "UpstreamCatchmentWaterfalls",
+    # "UpstreamCatchmentDams",
+    # "UpstreamCatchmentSmallBarriers",
+    # "UpstreamCatchmentRoadCrossings",
+    # "TotalUpstreamWaterfalls",
+    # "TotalUpstreamDams",
+    # "TotalUpstreamSmallBarriers",
     "TotalUpstreamRoadCrossings",
-    "TotalUpstreamHeadwaters",
+    # "TotalUpstreamHeadwaters",
 ]
 
 # these fields remain constant regardless of network type
@@ -119,7 +121,7 @@ DOWNSTREAM_LINEAR_NETWORK_FIELDS = [
     "TotalDownstreamWaterfalls",
     "TotalDownstreamDams",
     "TotalDownstreamSmallBarriers",
-    "TotalDownstreamRoadCrossings",
+    # "TotalDownstreamRoadCrossings",
     "MilesToOutlet",
     "FlowsToOcean",
     "ExitsRegion",
