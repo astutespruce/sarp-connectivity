@@ -19,7 +19,7 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const { state, filterConfig, resetFilters } = useCrossfilter()
 
-  const { filteredCount, hasFilters } = state
+  const { filteredCount, hasFilters, emptyGroups } = state
 
   const handleBack = () => {
     resetFilters()
@@ -105,9 +105,11 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
         </Box>
 
         <Box>
-          {filterConfig.map((group) => (
-            <FilterGroup key={group.id} {...group} />
-          ))}
+          {filterConfig
+            .filter(({ id }) => !emptyGroups.has(id))
+            .map((group) => (
+              <FilterGroup key={group.id} {...group} />
+            ))}
         </Box>
       </Box>
 

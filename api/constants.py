@@ -591,7 +591,7 @@ FEASIBILITY_DOMAIN = {
     5: "No conservation benefit",
     11: "Fish passage installed",
     12: "Removal planned",
-    13: "Breached - full flow",
+    13: "Breached with full flow",
     # not shown to user (filtered out for other reasons)
     6: "Unknown",
     7: "Error",

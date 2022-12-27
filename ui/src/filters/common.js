@@ -19,3 +19,11 @@ export const getEntries = (obj, filter = null) => {
     labels: values.map((key) => obj[key]),
   }
 }
+
+// Only show diadromous filters if within 500 miles of coast
+export const hasDiadromousData = (records) =>
+  records &&
+  records.filter(
+    ({ downstreamoceanmilesclass }) =>
+      downstreamoceanmilesclass > 0 && downstreamoceanmilesclass < 8
+  ).length > 0

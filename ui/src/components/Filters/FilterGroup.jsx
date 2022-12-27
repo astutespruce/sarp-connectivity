@@ -17,7 +17,7 @@ const FilterGroup = ({ id, title, filters }) => {
 
   const {
     resetGroupFilters,
-    state: { filters: filterState },
+    state: { filters: filterState, emptyDimensions },
   } = useCrossfilter()
 
   const toggle = () => {
@@ -42,6 +42,14 @@ const FilterGroup = ({ id, title, filters }) => {
     filters.filter(
       ({ field }) => filterState[field] && filterState[field].size > 0
     ).length > 0
+
+  const availableFilters = filters.filter(
+    ({ field, hideIfEmpty }) => !(hideIfEmpty && emptyDimensions.has(field))
+  )
+
+  if (availableFilters.length === 0) {
+    return null
+  }
 
   return (
     <Box
@@ -76,7 +84,7 @@ const FilterGroup = ({ id, title, filters }) => {
           <Box sx={{ ml: '0.25rem' }}>
             <Text sx={{ fontWeight: 'bold' }}>{title}</Text>
             <Text sx={{ fontSize: 0, color: 'grey.7' }}>
-              {filters.length} filters
+              {availableFilters.length} filters available
             </Text>
           </Box>
         </Flex>
@@ -104,7 +112,7 @@ const FilterGroup = ({ id, title, filters }) => {
             borderLeftColor: 'grey.1',
           }}
         >
-          {filters.map((filter) => (
+          {availableFilters.map((filter) => (
             <Filter
               key={filter.field}
               {...filter}

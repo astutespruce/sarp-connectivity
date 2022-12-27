@@ -307,12 +307,12 @@ df.Width = df.Width.fillna(0).round().astype("uint16")
 
 # Recode lowhead dams so that 0 = Unknown, 3 = no (originally 0), 1 = yes, 2 = likely
 df.loc[df.LowheadDam == 0, "LowheadDam"] = 3
-df.LowheadDam = df.LowheadDam.fillna(-1).astype("int8")
+df.LowheadDam = df.LowheadDam.fillna(0).astype("uint8")
 
 # From Kat: if StructureCategory == 916 (lowead dam / weir)
 # several are miscoded on Mississippi River and are not lowhead dams
 df.loc[
-    (df.LowheadDam == -1)
+    (df.LowheadDam == 0)
     & (df.StructureClass == 916)
     & (~df.Name.str.lower().str.contains("mississippi river"))
     & (
@@ -850,7 +850,7 @@ df.WaterbodySizeClass = df.WaterbodySizeClass.fillna(0).astype("uint8")
 # limit this to <= 15 feet based on review against aerial imagery (very few over 15 feet are lowhead)
 # or if height is not present.  Ignore estimated dams or ones on very small streams
 df.loc[
-    (df.LowheadDam == -1)
+    (df.LowheadDam == 0)
     & (df.ImpoundmentType == 1)
     & (df.Height <= 25)
     & (~df.is_estimated)

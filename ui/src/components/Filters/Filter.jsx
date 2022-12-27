@@ -107,8 +107,12 @@ const Filter = ({
           }}
           onClick={onToggle}
         >
-          {isOpen ? <CaretDown size="1.5em" /> : <CaretRight size="1.5em" />}
-          <Text sx={{ ml: '0.25rem', fontSize: 1 }}>{title}</Text>
+          <Box sx={{ flex: '0 0 auto' }}>
+            {isOpen ? <CaretDown size="1.5em" /> : <CaretRight size="1.5em" />}
+          </Box>
+          <Text sx={{ ml: '0.25rem', fontSize: 1, flex: '1 1 auto' }}>
+            {title}
+          </Text>
         </Flex>
         <Box
           onClick={handleReset}

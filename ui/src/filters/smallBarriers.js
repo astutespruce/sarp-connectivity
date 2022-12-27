@@ -19,7 +19,7 @@ import {
   DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN,
 } from 'config'
 
-import { getEntries } from './common'
+import { getEntries, hasDiadromousData } from './common'
 
 export const smallBarriers = [
   {
@@ -96,12 +96,20 @@ export const smallBarriers = [
   {
     id: 'diadromous',
     title: 'Diadromous species',
+    hasData: hasDiadromousData,
     filters: [
       {
         field: 'flowstoocean',
         title: 'On a network that flows to ocean',
         sort: false,
         help: 'Note: this is limited to networks that are known to connect to marine areas identified by NHD for NHD regions included in this tool, and may not be set correctly for networks that flow through other NHD regions not included in the analysis or outside the U.S. before connecting to marine areas.',
+        ...getEntries(BOOLEAN_FIELD),
+      },
+      {
+        field: 'coastalhuc8',
+        title: 'Within a coastal subbasin',
+        sort: false,
+        // help: '',
         ...getEntries(BOOLEAN_FIELD),
       },
       {
@@ -138,7 +146,6 @@ export const smallBarriers = [
         title: 'Barrier ownership type',
         sort: true,
         hideEmpty: true,
-        // help: '', // TODO:
         ...getEntries(BARRIEROWNERTYPE),
       },
     ],
@@ -179,8 +186,22 @@ export const smallBarriers = [
           'Number of salmon Evolutionarily Significant Units / Steelhead trout Discrete Population Segments',
         help: 'This information is based on the presence of salmon Evolutionarily Significant Units (ESU) or steelhead trout Discrete Population Segments (DPS) within the same watershed as the barrier, as provided by NOAA at the subwatershed level. These species may or may not be impacted by this barrier.',
         sort: false,
-        hideEmpty: false,
+        hideEmpty: true,
+        hideIfEmpty: true,
         ...getEntries(SALMONID_ESU_COUNT),
+      },
+      {
+        field: 'salmonidesu',
+        title:
+          'Salmon Evolutionarily Significant Units / Steelhead trout Discrete Population Segments',
+        help: 'This information is based on the presence of salmon Evolutionarily Significant Units (ESU) or steelhead trout Discrete Population Segments (DPS) within the same watershed as the dam, as provided by NOAA at the subwatershed level. These species may or may not be impacted by this dam.',
+        sort: false,
+        hideEmpty: true,
+        hideIfEmpty: true,
+        isArray: true,
+        labels: Object.values(SALMONID_ESU),
+        values: Object.keys(SALMONID_ESU),
+        getValue: ({ salmonidesu }) => salmonidesu.split(','),
       },
     ],
   },

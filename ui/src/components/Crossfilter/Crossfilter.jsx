@@ -97,8 +97,15 @@ export const Crossfilter = (data, filterConfig) => {
         filters: {},
         hasFilters: false,
         dimensionCounts,
-        emptyDimensions: Object.keys(dimensionCounts).filter(
-          (id) => Object.keys(dimensionCounts[id]).length <= 1
+        emptyDimensions: new Set(
+          Object.keys(dimensionCounts).filter(
+            (id) => Object.keys(dimensionCounts[id]).length <= 1
+          )
+        ),
+        emptyGroups: new Set(
+          filterConfig
+            .filter(({ hasData }) => hasData && !hasData(newData))
+            .map(({ id }) => id)
         ),
       }
 
