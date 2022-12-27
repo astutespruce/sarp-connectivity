@@ -59,7 +59,7 @@ const ComplexityPage = ({ data: { headerImage } }) => (
           <li>
             Stream and river reaches were assigned to size classes based on
             total drainage area:
-            <ul>
+            <Box as="ul" sx={{ mb: '1rem' }}>
               <li>
                 Headwaters: &lt; 10 km
                 <sup>2</sup>
@@ -93,7 +93,7 @@ const ComplexityPage = ({ data: { headerImage } }) => (
                 Great rivers: &ge; 25,000 km
                 <sup>2</sup>
               </li>
-            </ul>
+            </Box>
           </li>
           <li>
             Each barrier is assigned the total number of unique size classes in

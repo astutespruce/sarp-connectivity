@@ -5,6 +5,7 @@ import { Box, Paragraph, Text } from 'theme-ui'
 import { Entry, Field, Section } from 'components/Sidebar'
 import { isEmptyString } from 'util/string'
 
+import DiadromousInfo from './DiadromousInfo'
 import IDInfo from './IDInfo'
 import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
@@ -41,6 +42,11 @@ const WaterfallDetails = ({
   freeunaltereddownstreammiles,
   landcover,
   sizeclasses,
+  flowstoocean,
+  milestooutlet,
+  totaldownstreamdams,
+  totaldownstreamsmallbarriers,
+  totaldownstreamwaterfalls,
 }) => (
   <Box
     sx={{
@@ -110,6 +116,18 @@ const WaterfallDetails = ({
       )}
     </Section>
 
+    {flowstoocean && milestooutlet < 500 ? (
+      <Section title="Diadromous species information">
+        <DiadromousInfo
+          barrierType={barrierType}
+          milestooutlet={milestooutlet}
+          totaldownstreamdams={totaldownstreamdams}
+          totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
+          totaldownstreamwaterfalls={totaldownstreamwaterfalls}
+        />
+      </Section>
+    ) : null}
+
     <Section title="Species information for this subwatershed">
       <SpeciesInfo
         barrierType={barrierType}
@@ -159,6 +177,11 @@ WaterfallDetails.propTypes = {
   streamsizeclass: PropTypes.string,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
+  flowstoocean: PropTypes.number,
+  milestooutlet: PropTypes.number,
+  totaldownstreamdams: PropTypes.number,
+  totaldownstreamsmallbarriers: PropTypes.number,
+  totaldownstreamwaterfalls: PropTypes.number,
 }
 
 WaterfallDetails.defaultProps = {
@@ -189,6 +212,11 @@ WaterfallDetails.defaultProps = {
   streamsizeclass: null,
   waterbodykm2: -1,
   waterbodysizeclass: null,
+  flowstoocean: 0,
+  milestooutlet: 0,
+  totaldownstreamdams: 0,
+  totaldownstreamsmallbarriers: 0,
+  totaldownstreamwaterfalls: 0,
 }
 
 export default WaterfallDetails

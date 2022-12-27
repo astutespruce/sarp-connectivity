@@ -497,8 +497,18 @@ export const PERCENT_ALTERED = {
   4: '90 - 100%',
 }
 
-// in km2
 export const STREAM_SIZECLASS = {
+  '1a': 'headwaters',
+  '1b': 'creek',
+  2: 'small river',
+  '3a': 'medium tributary river',
+  '3b': 'medium mainstem river',
+  4: 'large river',
+  5: 'great river',
+}
+
+// in km2
+export const STREAM_SIZECLASS_DRAINAGE_AREA = {
   '1a': '< 10',
   '1b': '10 - 99',
   2: '100 - 517',

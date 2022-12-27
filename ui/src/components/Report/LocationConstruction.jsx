@@ -17,6 +17,7 @@ import {
   PURPOSE,
   BARRIER_SEVERITY,
   STREAM_SIZECLASS,
+  STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
 } from 'config'
 import { formatNumber } from 'util/format'
@@ -184,8 +185,10 @@ const Location = ({
             {streamsizeclass ? (
               <Entry>
                 <Text>
-                  Total drainage area upstream:{' '}
-                  {STREAM_SIZECLASS[streamsizeclass]} km2
+                  Stream size class: {STREAM_SIZECLASS[streamsizeclass]}
+                  <br />
+                  (drainage area:{' '}
+                  {STREAM_SIZECLASS_DRAINAGE_AREA[streamsizeclass]} km2)
                 </Text>
               </Entry>
             ) : null}

@@ -14,6 +14,7 @@ import {
   RECON,
 } from 'config'
 
+import DiadromousInfo from './DiadromousInfo'
 import IDInfo from './IDInfo'
 import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
@@ -72,6 +73,11 @@ const DamDetails = ({
   sizeclasses,
   invasive,
   unranked,
+  flowstoocean,
+  milestooutlet,
+  totaldownstreamdams,
+  totaldownstreamsmallbarriers,
+  totaldownstreamwaterfalls,
 }) => {
   const isLowheadDam = lowheaddam !== null && lowheaddam >= 1
   const isDiversion = diversion !== null && diversion >= 1
@@ -234,6 +240,18 @@ const DamDetails = ({
         )}
       </Section>
 
+      {flowstoocean && milestooutlet < 500 ? (
+        <Section title="Diadromous species information">
+          <DiadromousInfo
+            barrierType={barrierType}
+            milestooutlet={milestooutlet}
+            totaldownstreamdams={totaldownstreamdams}
+            totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
+            totaldownstreamwaterfalls={totaldownstreamwaterfalls}
+          />
+        </Section>
+      ) : null}
+
       <Section title="Species information for this subwatershed">
         <SpeciesInfo
           barrierType={barrierType}
@@ -309,6 +327,12 @@ DamDetails.propTypes = {
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.number,
   unranked: PropTypes.number,
+
+  flowstoocean: PropTypes.number,
+  milestooutlet: PropTypes.number,
+  totaldownstreamdams: PropTypes.number,
+  totaldownstreamsmallbarriers: PropTypes.number,
+  totaldownstreamwaterfalls: PropTypes.number,
 }
 
 DamDetails.defaultProps = {
@@ -357,6 +381,11 @@ DamDetails.defaultProps = {
   waterbodysizeclass: null,
   invasive: 0,
   unranked: 0,
+  flowstoocean: 0,
+  milestooutlet: 0,
+  totaldownstreamdams: 0,
+  totaldownstreamsmallbarriers: 0,
+  totaldownstreamwaterfalls: 0,
 }
 
 export default DamDetails

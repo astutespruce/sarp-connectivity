@@ -7,6 +7,7 @@ import {
   OWNERTYPE,
   BARRIEROWNERTYPE,
   STREAM_SIZECLASS,
+  STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
 } from 'config'
 import { Entry, Field } from 'components/Sidebar'
@@ -65,8 +66,14 @@ const LocationInfo = ({
       ) : null}
       {streamsizeclass ? (
         <Entry>
-          <Field label="Total drainage area upstream">
-            {STREAM_SIZECLASS[streamsizeclass]} km<sup>2</sup>
+          <Field label="Stream size class">
+            {STREAM_SIZECLASS[streamsizeclass]}
+            <br />
+            <Text sx={{ fontSize: 0 }}>
+              (drainage area: {STREAM_SIZECLASS_DRAINAGE_AREA[streamsizeclass]}{' '}
+              km
+              <sup>2</sup>)
+            </Text>
           </Field>
         </Entry>
       ) : null}

@@ -91,7 +91,9 @@ const RoadCrossingDetails = ({
       <NoNetworkInfo barrierType={barrierType} />
     </Section>
 
-    <Section title="Species information">
+    {/* Note: diadromous species info not shown because these have no network */}
+
+    <Section title="Species information for this subwatershed">
       <SpeciesInfo
         barrierType={barrierType}
         tespp={tespp}
