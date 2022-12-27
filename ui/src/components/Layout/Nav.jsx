@@ -27,13 +27,13 @@ const isActivePath = (path) =>
   hasWindow && window.location.href.search(path) !== -1
 
 const regions = [
+  { label: 'Southeast', url: '/regions/southeast' },
   {
     label: 'Great Plains & Intermountain West',
     url: '/regions/great_plains_intermountain_west',
   },
-  { label: 'Pacific Northwest', url: '/regions/northwest' },
-  { label: 'Southeast', url: '/regions/southeast' },
   { label: 'Southwest', url: '/regions/southwest' },
+  { label: 'Pacific Northwest', url: '/regions/northwest' },
 ]
 
 const Nav = () => (
