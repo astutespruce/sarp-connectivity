@@ -17,6 +17,7 @@ import {
   BARRIEROWNERTYPE,
   PURPOSE,
   BARRIER_SEVERITY,
+  STREAM_SIZECLASS,
   WATERBODY_SIZECLASS,
 } from 'config'
 import { formatNumber } from 'util/format'
@@ -50,6 +51,8 @@ const LocationConstruction = ({
   sarp_score,
   diversion,
   nostructure,
+  streamorder,
+  streamsizeclass,
   waterbodykm2,
   waterbodysizeclass,
   invasive,
@@ -127,11 +130,18 @@ const LocationConstruction = ({
             HUC12: {huc12}
           </Entry>
 
+          {intermittent ? (
+            <Entry>
+              This {barrierTypeLabel} on a reach that has intermittent or
+              ephemeral flow
+            </Entry>
+          ) : null}
+
           {barrierType === 'dams' &&
           waterbodysizeclass !== null &&
           waterbodysizeclass > 0 ? (
             <Entry>
-              This dam is associated with a{' '}
+              This {barrierTypeLabel} is associated with a{' '}
               {WATERBODY_SIZECLASS[waterbodysizeclass]
                 .split(' (')[0]
                 .toLowerCase()}{' '}
@@ -143,9 +153,14 @@ const LocationConstruction = ({
             </Entry>
           ) : null}
 
-          {intermittent ? (
+          {streamorder > 0 ? (
+            <Entry>Stream order (NHD modified Strahler): {streamorder}</Entry>
+          ) : null}
+
+          {streamsizeclass ? (
             <Entry>
-              Located on a reach that has intermittent or ephemeral flow
+              Total drainage area upstream: {STREAM_SIZECLASS[streamsizeclass]}{' '}
+              km<sup>2</sup>
             </Entry>
           ) : null}
 
@@ -264,6 +279,8 @@ LocationConstruction.propTypes = {
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
   nostructure: PropTypes.bool,
+  streamorder: PropTypes.number,
+  streamsizeclass: PropTypes.string,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
@@ -294,6 +311,8 @@ LocationConstruction.defaultProps = {
   diversion: 0,
   nostructure: false,
   lowheaddam: null,
+  streamorder: 0,
+  streamsizeclass: null,
   waterbodykm2: -1,
   waterbodysizeclass: null,
   invasive: false,

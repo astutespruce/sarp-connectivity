@@ -447,13 +447,19 @@ print(f"Created small barrier tiles in {time() - start:,.2f}s")
 ####################################################################
 print("\n\n-----------------Creating road crossing tiles------------------------\n\n")
 
+# rename sizeclass after reading
+cols = (
+    ["geometry", "id"]
+    + [c for c in ROAD_CROSSING_TILE_FIELDS if not c == "StreamSizeClass"]
+    + ["sizeclass"]
+)
 df = (
     gp.read_feather(
         barriers_dir / "road_crossings.feather",
-        columns=["geometry", "id"] + ROAD_CROSSING_TILE_FIELDS,
+        columns=cols,
     )
     .to_crs("EPSG:4326")
-    .rename(columns={"COUNTYFIPS": "County"})
+    .rename(columns={"COUNTYFIPS": "County", "sizeclass": "StreamSizeClass"})
 )
 
 # Set string field nulls to blank strings
@@ -501,9 +507,9 @@ ret.check_returncode()
 
 print(f"Created road crossing tiles in {time() - start:,.2f}s")
 
-####################################################################
-### Create waterfalls tiles
-####################################################################
+###################################################################
+## Create waterfalls tiles
+###################################################################
 print("\n\n-----------------Creating waterfalls tiles------------------------\n\n")
 print("Creating waterfalls tiles")
 df = (

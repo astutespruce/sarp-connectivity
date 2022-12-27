@@ -497,6 +497,17 @@ export const PERCENT_ALTERED = {
   4: '90 - 100%',
 }
 
+// in km2
+export const STREAM_SIZECLASS = {
+  '1a': '< 10',
+  '1b': '10 - 99',
+  2: '100 - 517',
+  '3a': '518 - 2,589',
+  '3b': '2,590 - 9,999',
+  4: '10,000 - 24,999',
+  5: '>= 25,000',
+}
+
 export const WATERBODY_SIZECLASS = {
   0: 'Not associated with a pond or lake',
   1: 'Pond (< 0.01 km2)',
@@ -695,6 +706,7 @@ export const RC_PACK_BITS = [
 export const WF_PACK_BITS = [
   { field: 'streamorder', bits: 4 },
   { field: 'hasnetwork', bits: 1 },
+  { field: 'intermittent', bits: 1 },
   { field: 'excluded', bits: 1 },
   { field: 'onloop', bits: 1 },
   { field: 'unsnapped', bits: 1 },

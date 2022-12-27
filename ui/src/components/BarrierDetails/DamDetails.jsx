@@ -43,6 +43,8 @@ const DamDetails = ({
   lowheaddam,
   passagefacility,
   river,
+  streamorder,
+  streamsizeclass,
   waterbodykm2,
   waterbodysizeclass,
   intermittent,
@@ -104,12 +106,18 @@ const DamDetails = ({
         ) : null}
 
         <LocationInfo
+          barrierType={barrierType}
           reachName={river}
           HUC8Name={HUC8Name}
           HUC12Name={HUC12Name}
           HUC12={HUC12}
           ownertype={ownertype}
           barrierownertype={barrierownertype}
+          intermittent={intermittent}
+          streamorder={streamorder}
+          streamsizeclass={streamsizeclass}
+          waterbodysizeclass={waterbodysizeclass}
+          waterbodykm2={waterbodykm2}
         />
       </Section>
 
@@ -295,6 +303,8 @@ DamDetails.propTypes = {
   diversion: PropTypes.number,
   nostructure: PropTypes.number,
   lowheaddam: PropTypes.number,
+  streamorder: PropTypes.number,
+  streamsizeclass: PropTypes.string,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.number,
@@ -341,6 +351,8 @@ DamDetails.defaultProps = {
   diversion: 0,
   nostructure: 0,
   lowheaddam: null,
+  streamorder: 0,
+  streamsizeclass: null,
   waterbodykm2: -1,
   waterbodysizeclass: null,
   invasive: 0,

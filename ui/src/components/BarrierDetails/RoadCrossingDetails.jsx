@@ -30,6 +30,10 @@ const RoadCrossingDetails = ({
   trout,
   salmonidesu,
   ownertype,
+  streamorder,
+  streamsizeclass,
+  waterbodysizeclass,
+  waterbodykm2,
 }) => (
   <Box
     sx={{
@@ -49,11 +53,17 @@ const RoadCrossingDetails = ({
       ) : null}
 
       <LocationInfo
+        barrierType={barrierType}
         reachName={stream}
         HUC8Name={HUC8Name}
         HUC12Name={HUC12Name}
         HUC12={HUC12}
         ownertype={ownertype}
+        intermittent={intermittent}
+        streamorder={streamorder}
+        streamsizeclass={streamsizeclass}
+        waterbodysizeclass={waterbodysizeclass}
+        waterbodykm2={waterbodykm2}
       />
     </Section>
 
@@ -116,6 +126,10 @@ RoadCrossingDetails.propTypes = {
   trout: PropTypes.number,
   salmonidesu: PropTypes.string,
   ownertype: PropTypes.number,
+  streamorder: PropTypes.number,
+  streamsizeclass: PropTypes.string,
+  waterbodykm2: PropTypes.number,
+  waterbodysizeclass: PropTypes.number,
 }
 
 RoadCrossingDetails.defaultProps = {
@@ -134,6 +148,10 @@ RoadCrossingDetails.defaultProps = {
   trout: 0,
   salmonidesu: null,
   ownertype: null,
+  streamorder: 0,
+  streamsizeclass: null,
+  waterbodykm2: -1,
+  waterbodysizeclass: null,
 }
 
 export default RoadCrossingDetails

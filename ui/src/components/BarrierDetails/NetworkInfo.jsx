@@ -29,9 +29,6 @@ const NetworkInfo = ({
   landcover,
   fontSize,
   headerFontSize,
-  waterbodysizeclass,
-  waterbodykm2,
-  intermittent,
   invasive,
   unranked,
   ...props
@@ -365,9 +362,6 @@ NetworkInfo.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
-  waterbodysizeclass: PropTypes.number,
-  waterbodykm2: PropTypes.number,
-  intermittent: PropTypes.number,
   invasive: PropTypes.number,
   unranked: PropTypes.number,
 }
@@ -385,9 +379,6 @@ NetworkInfo.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: 0,
   sizeclasses: 0,
-  waterbodysizeclass: null,
-  waterbodykm2: null,
-  intermittent: null,
   invasive: 0,
   unranked: 0,
 }

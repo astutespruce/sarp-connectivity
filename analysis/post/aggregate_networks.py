@@ -337,12 +337,7 @@ waterfalls["unsnapped"] = (~waterfalls.snapped).astype("uint8")
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 fill_flowline_cols(waterfalls)
 
-# add stream order and species classes for filtering
-waterfalls["StreamOrderClass"] = classify_streamorder(waterfalls.StreamOrder)
-for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
-    waterfalls[f"{col}Class"] = classify_spps(waterfalls[col])
-
-# backfill Unranked for compatibility
+# backfill Unranked for compatibility (this is needed when getting networks
 waterfalls["Unranked"] = False
 
 wf_dam_networks = get_network_results(
@@ -369,6 +364,7 @@ for col in ["HasNetwork", "Ranked"]:
 pack_cols = [e["field"] for e in WF_PACK_BITS]
 tmp = waterfalls[pack_cols].copy()
 tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
+tmp.loc[tmp.Intermittent == -1, "Intermittent"] = 0
 waterfalls["packed"] = pack_bits(tmp, WF_PACK_BITS)
 
 network_cols = wf_dam_networks.columns.tolist() + wf_sb_networks.columns.tolist()

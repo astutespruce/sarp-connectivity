@@ -72,6 +72,10 @@ const BarrierDetails = ({
   barrierseverity,
   invasive,
   unranked,
+  streamorder,
+  streamsizeclass,
+  waterbodysizeclass,
+  waterbodykm2,
   // metrics
   totalupstreammiles,
   perennialupstreammiles,
@@ -111,12 +115,18 @@ const BarrierDetails = ({
       ) : null}
 
       <LocationInfo
+        barrierType={barrierType}
         reachName={stream}
         HUC8Name={HUC8Name}
         HUC12Name={HUC12Name}
         HUC12={HUC12}
         ownertype={ownertype}
         barrierownertype={barrierownertype}
+        intermittent={intermittent}
+        streamorder={streamorder}
+        streamsizeclass={streamsizeclass}
+        waterbodysizeclass={waterbodysizeclass}
+        waterbodykm2={waterbodykm2}
       />
     </Section>
 
@@ -252,6 +262,10 @@ BarrierDetails.propTypes = {
   sarp_score: PropTypes.number,
   invasive: PropTypes.number,
   unranked: PropTypes.number,
+  streamorder: PropTypes.number,
+  streamsizeclass: PropTypes.string,
+  waterbodykm2: PropTypes.number,
+  waterbodysizeclass: PropTypes.number,
 }
 
 BarrierDetails.defaultProps = {
@@ -290,6 +304,10 @@ BarrierDetails.defaultProps = {
   sarp_score: -1,
   invasive: 0,
   unranked: 0,
+  streamorder: 0,
+  streamsizeclass: null,
+  waterbodykm2: -1,
+  waterbodysizeclass: null,
 }
 
 export default BarrierDetails

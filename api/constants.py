@@ -438,6 +438,7 @@ ROAD_CROSSING_TILE_FIELDS = [
     "SalmonidESU",
     # all retained road crossings are snapped
     "StreamOrder",
+    "StreamSizeClass",
     "intermittent",
 ]
 
@@ -490,6 +491,11 @@ WF_CORE_FIELDS = (
         "Excluded",
     ]
     + ["HUC8", "HUC10", "HUC12", "State", "County", "COUNTYFIPS"]
+    + [
+        "Intermittent",
+        "StreamOrder",
+        "StreamSizeClass",
+    ]
     + [f"{c}_dams" for c in WF_METRIC_FIELDS]
     + ["upNetID_dams", "downNetID_dams"]
     + [f"{c}_small_barriers" for c in WF_METRIC_FIELDS]
@@ -518,6 +524,7 @@ WF_TILE_FIELDS = [
         "Excluded",
         "OnLoop",
         "StreamOrder",
+        "Intermittent",
         "TotalDownstreamRoadCrossings",
         "ExitsRegion",
         # Not used
@@ -533,6 +540,7 @@ WF_TILE_FIELDS = [
 WF_PACK_BITS = [
     {"field": "StreamOrder", "bits": 4},
     {"field": "HasNetwork", "bits": 1},
+    {"field": "Intermittent", "bits": 1},
     {"field": "Excluded", "bits": 1},
     {"field": "OnLoop", "bits": 1},
     {"field": "unsnapped", "bits": 1},

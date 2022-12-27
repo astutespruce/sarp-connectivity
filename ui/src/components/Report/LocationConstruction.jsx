@@ -16,6 +16,7 @@ import {
   PASSAGEFACILITY,
   PURPOSE,
   BARRIER_SEVERITY,
+  STREAM_SIZECLASS,
   WATERBODY_SIZECLASS,
 } from 'config'
 import { formatNumber } from 'util/format'
@@ -50,6 +51,8 @@ const Location = ({
   sarp_score,
   diversion,
   nostructure,
+  streamorder,
+  streamsizeclass,
   waterbodykm2,
   waterbodysizeclass,
   invasive,
@@ -148,7 +151,8 @@ const Location = ({
             {intermittent ? (
               <Entry>
                 <Text>
-                  Located on a reach that has intermittent or ephemeral flow
+                  This {barrierTypeLabel} is located on a reach that has
+                  intermittent or ephemeral flow
                 </Text>
               </Entry>
             ) : null}
@@ -158,7 +162,7 @@ const Location = ({
             waterbodysizeclass > 0 ? (
               <Entry>
                 <Text>
-                  This dam is associated with a{' '}
+                  This {barrierTypeLabel} is associated with a{' '}
                   {WATERBODY_SIZECLASS[waterbodysizeclass]
                     .split(' (')[0]
                     .toLowerCase()}{' '}
@@ -167,6 +171,21 @@ const Location = ({
                     ? `${formatNumber(waterbodykm2, 2)} k`
                     : `${formatNumber(waterbodykm2 * 1e6)} `}
                   m2 ).
+                </Text>
+              </Entry>
+            ) : null}
+
+            {streamorder > 0 ? (
+              <Entry>
+                <Text>Stream order (NHD modified Strahler): {streamorder}</Text>
+              </Entry>
+            ) : null}
+
+            {streamsizeclass ? (
+              <Entry>
+                <Text>
+                  Total drainage area upstream:{' '}
+                  {STREAM_SIZECLASS[streamsizeclass]} km2
                 </Text>
               </Entry>
             ) : null}
@@ -326,6 +345,8 @@ Location.propTypes = {
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
   nostructure: PropTypes.bool,
+  streamorder: PropTypes.number,
+  streamsizeclass: PropTypes.string,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
@@ -355,6 +376,8 @@ Location.defaultProps = {
   diversion: 0,
   lowheaddam: null,
   nostructure: false,
+  streamorder: 0,
+  streamsizeclass: null,
   waterbodykm2: -1,
   waterbodysizeclass: null,
   invasive: false,

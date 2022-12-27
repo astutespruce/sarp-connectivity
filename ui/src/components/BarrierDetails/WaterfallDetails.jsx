@@ -26,6 +26,10 @@ const WaterfallDetails = ({
   regionalsgcnspp,
   trout,
   salmonidesu,
+  streamorder,
+  streamsizeclass,
+  waterbodysizeclass,
+  waterbodykm2,
   // metrics
   totalupstreammiles,
   perennialupstreammiles,
@@ -42,14 +46,21 @@ const WaterfallDetails = ({
     sx={{
       mt: '-1rem',
       mx: '-0.5rem',
+      fontSize: 1,
     }}
   >
     <Section title="Location">
       <LocationInfo
+        barrierType={barrierType}
         reachName={stream}
         HUC8Name={HUC8Name}
         HUC12Name={HUC12Name}
         HUC12={HUC12}
+        intermittent={intermittent}
+        streamorder={streamorder}
+        streamsizeclass={streamsizeclass}
+        waterbodysizeclass={waterbodysizeclass}
+        waterbodykm2={waterbodykm2}
       />
 
       {falltype && !isEmptyString(falltype) ? (
@@ -144,6 +155,10 @@ WaterfallDetails.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
+  streamorder: PropTypes.number,
+  streamsizeclass: PropTypes.string,
+  waterbodykm2: PropTypes.number,
+  waterbodysizeclass: PropTypes.number,
 }
 
 WaterfallDetails.defaultProps = {
@@ -170,6 +185,10 @@ WaterfallDetails.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: null,
   sizeclasses: null,
+  streamorder: 0,
+  streamsizeclass: null,
+  waterbodykm2: -1,
+  waterbodysizeclass: null,
 }
 
 export default WaterfallDetails
