@@ -19,7 +19,13 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
     })
   })
 
-  const { id, layerId, dams = 0, totalSmallBarriers = 0 } = summaryUnit
+  const {
+    id,
+    layerId,
+    dams = 0,
+    totalSmallBarriers = 0,
+    crossings = 0,
+  } = summaryUnit
 
   let { name = '' } = summaryUnit
 
@@ -44,11 +50,67 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
 
   title = name || id
 
-  const hasBarriers = barrierType === 'dams' ? dams > 0 : totalSmallBarriers > 0
   const downloaderConfig = {
     layer: layerId,
     summaryUnits: [{ id }],
     scenario: 'ncwc',
+  }
+
+  let downloadButtons = null
+
+  if (barrierType === 'dams') {
+    if (dams > 0) {
+      downloadButtons = (
+        <Flex
+          sx={{
+            justifyContent: 'flex-end',
+            p: '1rem',
+            flex: '0 0 auto',
+            borderTop: '1px solid #DDD',
+            bg: '#f6f6f2',
+          }}
+        >
+          <Downloader barrierType={barrierType} config={downloaderConfig} />
+        </Flex>
+      )
+    }
+  } else if (totalSmallBarriers + crossings > 0) {
+    const showBoth = totalSmallBarriers > 0 && crossings > 0
+
+    downloadButtons = (
+      <Flex
+        sx={{
+          justifyContent: showBoth ? 'space-between' : 'flex-end',
+          p: '1rem',
+          flex: '0 0 auto',
+          borderTop: '1px solid #DDD',
+          bg: '#f6f6f2',
+          '& button': showBoth
+            ? {
+                fontSize: 1,
+                textAlign: 'left',
+                p: '0.5rem',
+              }
+            : null,
+        }}
+      >
+        {crossings > 0 ? (
+          <Downloader
+            barrierType="road_crossings"
+            config={{
+              layer: layerId,
+              summaryUnits: [{ id }],
+            }}
+          />
+        ) : null}
+
+        {showBoth ? <Box sx={{ width: '1em', flex: '0 0 auto' }} /> : null}
+
+        {totalSmallBarriers > 0 ? (
+          <Downloader barrierType={barrierType} config={downloaderConfig} />
+        ) : null}
+      </Flex>
+    )
   }
 
   return (
@@ -135,19 +197,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
         ) : null}
       </Box>
 
-      {hasBarriers ? (
-        <Flex
-          sx={{
-            justifyContent: 'flex-end',
-            p: '1rem',
-            flex: '0 0 auto',
-            borderTop: '1px solid #DDD',
-            bg: '#f6f6f2',
-          }}
-        >
-          <Downloader barrierType={barrierType} config={downloaderConfig} />
-        </Flex>
-      ) : null}
+      {downloadButtons}
     </Flex>
   )
 }

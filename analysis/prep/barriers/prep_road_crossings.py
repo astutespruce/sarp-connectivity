@@ -1,15 +1,3 @@
-"""
-Preprocess road / stream crossings into data needed by tippecanoe for creating vector tiles.
-
-Input:
-* USGS Road / Stream crossings, projected to match SARP standard projection (Albers CONUS).
-* pre-processed and snapped small barriers
-
-
-Outputs:
-`data/barriers/intermediate/road_crossings.feather`: road / stream crossing data for merging in with small barriers that do not have networks
-"""
-
 from pathlib import Path
 from time import time
 import warnings
@@ -17,8 +5,9 @@ import warnings
 import geopandas as gp
 import numpy as np
 import shapely
-import pandas as pd
 from pyogrio import write_dataframe
+
+from api.constants import ROAD_CROSSING_API_FIELDS
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -32,6 +21,7 @@ boundaries_dir = data_dir / "boundaries"
 barriers_dir = data_dir / "barriers"
 src_dir = barriers_dir / "source"
 out_dir = barriers_dir / "master"
+api_dir = data_dir / "api"
 qa_dir = barriers_dir / "qa"
 
 
@@ -79,6 +69,8 @@ print(
 drop_ix = np.unique(np.concatenate([dam_ix, wf_ix, sb_ix]))
 df = df.loc[~df.index.isin(drop_ix)].copy()
 
+
+### Export all barriers for use in counts / tiles
 print(f"Serializing {len(df):,} road crossings")
 
 df = df.reset_index(drop=True)
@@ -86,17 +78,33 @@ df.to_feather(out_dir / "road_crossings.feather")
 write_dataframe(df, qa_dir / "road_crossings.fgb")
 
 
-# Extract out only the snapped ones not on loops
+### Extract out only the snapped ones on loops for use in network analysis
+# NOTE: any that were not snapped were dropped in earlier processing
 print(f"Serializing {df.snapped.sum():,} snapped road crossings")
-df = df.loc[
+snapped = df.loc[
     df.snapped & (~df.loop),
     ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"],
 ].reset_index(drop=True)
 
-df.lineID = df.lineID.astype("uint32")
-df.NHDPlusID = df.NHDPlusID.astype("uint64")
+snapped.lineID = snapped.lineID.astype("uint32")
+snapped.NHDPlusID = snapped.NHDPlusID.astype("uint64")
 
-df.to_feather(barriers_dir / "snapped/road_crossings.feather")
+snapped.to_feather(barriers_dir / "snapped/road_crossings.feather")
+
+
+### Export for use in API
+
+df = df.rename(
+    columns={
+        "intermittent": "Intermittent",
+        "loop": "OnLoop",
+        "sizeclass": "StreamSizeClass",
+        "crossingtype": "CrossingType",
+    }
+)[["id"] + ROAD_CROSSING_API_FIELDS]
+
+
+df.to_feather(api_dir / "road_crossings.feather")
 
 
 print("Done in {:.2f}".format(time() - start))

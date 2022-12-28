@@ -6,6 +6,7 @@ import pyarrow.compute as pc
 from api.constants import (
     DAM_FILTER_FIELD_MAP,
     SB_FILTER_FIELD_MAP,
+    RC_FILTER_FIELD_MAP,
     MULTIPLE_VALUE_FIELDS,
     Layers,
 )
@@ -81,3 +82,7 @@ class DamsRecordExtractor(RecordExtractor):
 
 class BarriersRecordExtractor(RecordExtractor):
     field_map = SB_FILTER_FIELD_MAP
+
+
+class RoadCrossingsRecordExtractor(RecordExtractor):
+    field_map = RC_FILTER_FIELD_MAP

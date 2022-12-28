@@ -29,7 +29,8 @@ const Barriers = ({
       <Box as="ul" sx={{ mt: '1rem' }}>
         <li>
           <b>{formatNumber(totalRoadBarriers, 0)}</b> road-related potential{' '}
-          {totalRoadBarriers === 1 ? 'barrier' : 'barriers'}
+          {totalRoadBarriers === 1 ? 'barrier' : 'barriers'} (road/stream
+          crossings)
         </li>
         <li>
           <b>{formatNumber(totalSmallBarriers, 0)}</b> road-related{' '}

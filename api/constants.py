@@ -192,6 +192,10 @@ SB_FILTER_FIELDS = FILTER_FIELDS + [
 ]
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
+# Road crossing filters not currently used
+RC_FILTER_FIELDS = ["CrossingType"]
+RC_FILTER_FIELD_MAP = {f.lower(): f for f in RC_FILTER_FIELDS}
+
 
 ### Fields used for export
 # common API fields
@@ -419,6 +423,35 @@ SB_TILE_FILTER_FIELDS = unique(
 )
 
 
+ROAD_CROSSING_CORE_FIELDS = (
+    GENERAL_API_FIELDS1
+    + [
+        "TESpp",
+        "StateSGCNSpp",
+        "RegionalSGCNSpp",
+        "Trout",
+        "SalmonidESU",
+        "OwnerType",
+        # "BarrierOwnerType", # not available
+        "ProtectedLand",
+        # Watershed names
+        "Basin",
+        "Subbasin",
+        "Subwatershed",
+        "CrossingType",
+        # "OnLoop", # not useful
+        "Intermittent",
+        "StreamOrder",
+        "StreamSizeClass",
+    ]
+    + UNIT_FIELDS
+)
+
+ROAD_CROSSING_CORE_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS)
+
+ROAD_CROSSING_API_FIELDS = ROAD_CROSSING_CORE_FIELDS
+
+# Manually-selected subset of fields to keep size small
 ROAD_CROSSING_TILE_FIELDS = [
     "SARPID",
     "Source",
@@ -436,7 +469,7 @@ ROAD_CROSSING_TILE_FIELDS = [
     "StateSGCNSpp",
     "Trout",
     "SalmonidESU",
-    # all retained road crossings are snapped
+    # NOTE: all retained road crossings are snapped
     "StreamOrder",
     "StreamSizeClass",
     "intermittent",
@@ -449,7 +482,7 @@ ROAD_CROSSING_PACK_BITS = [
     {"field": "OwnerType", "bits": 4},
     {"field": "crossingtype", "bits": 4},
     {"field": "Trout", "bits": 1},
-    {"field": "intermittent", "bits": 1},
+    {"field": "Intermittent", "bits": 1},
 ]
 
 

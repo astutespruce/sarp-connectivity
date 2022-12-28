@@ -125,17 +125,30 @@ export const getDownloadURL = ({
   layer,
   summaryUnits,
   filters,
-  includeUnranked,
-  sort,
+  includeUnranked = null,
+  sort = null,
   customRank = false,
-}) =>
-  `${apiHost}/api/v1/internal/${barrierType}/csv/${layer}?${apiQueryParams({
+}) => {
+  const params = {
     summaryUnits,
     filters,
-    includeUnranked,
-    sort,
-    customRank,
-  })}`
+  }
+
+  if (includeUnranked !== null) {
+    params.includeUnranked = includeUnranked
+  }
+
+  if (sort !== null) {
+    params.sort = sort
+  }
+  if (customRank) {
+    params.customRank = customRank
+  }
+
+  return `${apiHost}/api/v1/internal/${barrierType}/csv/${layer}?${apiQueryParams(
+    params
+  )}`
+}
 
 export const searchUnits = async (layers, query) => {
   const url = `${apiHost}/api/v1/internal/units/search?layer=${layers.join(
