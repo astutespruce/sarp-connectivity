@@ -468,7 +468,7 @@ ROAD_CROSSING_TILE_FIELDS = [
     "RegionalSGCNSpp",
     "StateSGCNSpp",
     "Trout",
-    "SalmonidESU",
+    # "SalmonidESU", # not used for download
     # NOTE: all retained road crossings are snapped
     "StreamOrder",
     "StreamSizeClass",
