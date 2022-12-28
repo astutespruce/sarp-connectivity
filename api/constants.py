@@ -430,7 +430,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         "StateSGCNSpp",
         "RegionalSGCNSpp",
         "Trout",
-        "SalmonidESU",
+        # "SalmonidESU", # not used for downloads
         "OwnerType",
         # "BarrierOwnerType", # not available
         "ProtectedLand",
@@ -468,7 +468,7 @@ ROAD_CROSSING_TILE_FIELDS = [
     "RegionalSGCNSpp",
     "StateSGCNSpp",
     "Trout",
-    # "SalmonidESU", # not used for download
+    "SalmonidESU",
     # NOTE: all retained road crossings are snapped
     "StreamOrder",
     "StreamSizeClass",
