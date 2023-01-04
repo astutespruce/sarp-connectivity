@@ -27,8 +27,8 @@ import { getEntries, hasDiadromousData } from './common'
 // Each filter needs to have a dimension above that matches the key here
 export const dams = [
   {
-    id: 'benefits',
-    title: 'Conservation benefits',
+    id: 'social_benefits',
+    title: 'Social Benefits',
     filters: [
       {
         field: 'feasibilityclass',
@@ -37,6 +37,12 @@ export const dams = [
         hideEmpty: true,
         ...getEntries(FEASIBILITYCLASS, (v) => v > 0),
       },
+    ],
+  },
+  {
+    id: 'conservation_benefits',
+    title: 'Conservation benefits',
+    filters: [
       {
         field: 'barrierseverity',
         title: 'Passability',
