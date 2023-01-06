@@ -20,6 +20,7 @@ region_tiles = Path("data/tiles/boundary.mbtiles").absolute()
 mask_tiles = Path("data/tiles/mask.mbtiles").absolute()
 state_tiles = Path("data/tiles/State.mbtiles").absolute()
 dam_tiles = Path("tiles/dams.mbtiles").absolute()
+small_barrier_tiles = Path("tiles/small_barriers.mbtiles").absolute()
 
 
 WIDTH = 600
@@ -60,6 +61,12 @@ STYLE = {
             "minzoom": 2,
             "maxzoom": 16,
         },
+        "small_barriers": {
+            "type": "vector",
+            "url": f"mbtiles://{small_barrier_tiles}",
+            "minzoom": 2,
+            "maxzoom": 16,
+        },
     },
     "layers": [
         {"id": "basemap", "type": "raster", "source": "basemap"},
@@ -74,6 +81,23 @@ STYLE = {
                     "stops": [
                         [2, 0.5],
                         [6, 1.5],
+                    ],
+                },
+                "circle-opacity": 1,
+                "circle-color": "#1891ac",
+            },
+        },
+        {
+            "id": "small_barriers",
+            "source": "small_barriers",
+            "source-layer": "ranked_small_barriers",
+            "type": "circle",
+            "paint": {
+                "circle-radius": {
+                    "base": 0.25,
+                    "stops": [
+                        [2, 0.25],
+                        [6, 1],
                     ],
                 },
                 "circle-opacity": 1,
@@ -133,8 +157,8 @@ df = (
 for id, row in df.bounds.iterrows():
     print(f"Rendering map for {id}")
     style = deepcopy(STYLE)
-    style["layers"][3]["filter"] = ["==", "id", id]
     style["layers"][4]["filter"] = ["==", "id", id]
+    style["layers"][5]["filter"] = ["==", "id", id]
     with Map(
         json.dumps(style), WIDTH, HEIGHT, ratio=1, token=TOKEN, provider="mapbox"
     ) as map:
