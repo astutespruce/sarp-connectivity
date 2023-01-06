@@ -1,15 +1,16 @@
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
-
+import pyarrow.compute as pc
 
 from api.constants import (
     DAM_FILTER_FIELDS,
     SB_FILTER_FIELDS,
 )
-from api.data import ranked_dams, ranked_barriers
+
+from api.data import dams, small_barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
 from api.logger import log, log_request
-from api.response import csv_response
+from api.response import feather_response
 
 
 router = APIRouter()
@@ -28,15 +29,20 @@ def query_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
 
     log_request(request)
 
-    df = extractor.extract(ranked_dams)
+    df = extractor.extract(
+        dams, columns=["id", "lon", "lat"] + DAM_FILTER_FIELDS, ranked=True
+    )
 
     # extract extent
-    bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
+    xmin, xmax = pc.min_max(df["lon"]).as_py().values()
+    ymin, ymax = pc.min_max(df["lat"]).as_py().values()
+    bounds = [xmin, ymin, xmax, ymax]
 
-    df = df[DAM_FILTER_FIELDS].copy()
-    log.info(f"query selected {len(df)} dams")
+    df = df.select(["id"] + DAM_FILTER_FIELDS)
 
-    return csv_response(df, bounds)
+    log.info(f"query selected {len(df):,} dams")
+
+    return feather_response(df, bounds)
 
 
 @router.get("/small_barriers/query/{layer}")
@@ -52,12 +58,16 @@ def query_barriers(request: Request, extractor: BarriersRecordExtractor = Depend
 
     log_request(request)
 
-    df = extractor.extract(ranked_barriers)
+    df = extractor.extract(
+        small_barriers, columns=["id", "lon", "lat"] + SB_FILTER_FIELDS, ranked=True
+    )
 
     # extract extent
-    bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
+    xmin, xmax = pc.min_max(df["lon"]).as_py().values()
+    ymin, ymax = pc.min_max(df["lat"]).as_py().values()
+    bounds = [xmin, ymin, xmax, ymax]
 
-    df = df[SB_FILTER_FIELDS].copy()
-    log.info(f"barriers query selected {len(df)} barriers")
+    df = df.select(["id"] + SB_FILTER_FIELDS)
+    log.info(f"barriers query selected {len(df):,} barriers")
 
-    return csv_response(df, bounds)
+    return feather_response(df, bounds)

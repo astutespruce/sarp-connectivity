@@ -1,7 +1,7 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { hasWindow } from 'util/dom'
 
@@ -34,7 +34,7 @@ const IndexPage = () => {
   }
 
   return (
-    <Layout title="NOT FOUND">
+    <Layout>
       <HeaderImage
         image={headerImage}
         height="100%"
@@ -51,3 +51,5 @@ const IndexPage = () => {
 }
 
 export default IndexPage
+
+export const Head = () => <SEO />

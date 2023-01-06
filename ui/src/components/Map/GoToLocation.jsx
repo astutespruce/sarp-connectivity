@@ -17,7 +17,7 @@ const navigatorOptions = {
 
 const controlCSS = {
   position: 'absolute',
-  top: '110px',
+  top: '74px',
   right: '10px',
   lineHeight: 1,
   bg: '#FFF',
@@ -167,6 +167,7 @@ const GoToLocation = ({ map }) => {
           ...controlCSS,
           mt: '1px',
           cursor: 'pointer',
+          width: '29px',
           '&:hover': {
             bg: '#EEE',
           },

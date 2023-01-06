@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { Container } from 'theme-ui'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 
 import {
@@ -33,7 +33,6 @@ const IndexPage = ({ data: { headerImage } }) => (
       <RegionSection />
 
       <GetInvolvedSection />
-      <CreditsSection />
     </Container>
   </Layout>
 )
@@ -59,3 +58,5 @@ export const pageQuery = graphql`
 `
 
 export default IndexPage
+
+export const Head = () => <SEO />

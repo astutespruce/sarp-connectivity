@@ -6,17 +6,19 @@ import { Box, Button, Flex, Paragraph, Text } from 'theme-ui'
 import { getDownloadURL } from 'components/Data'
 import { OutboundLink } from 'components/Link'
 import Modal from 'components/Modal'
+import { barrierTypeLabels } from 'config'
 import { getFromStorage } from 'util/dom'
 import { trackDownload } from 'util/analytics'
 
 import UserInfoForm, { FIELDS } from './UserInfoForm'
 import DownloadOptions from './Options'
-import { barrierTypeLabels } from '../../../config/constants'
 
 const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [haveUserInfo, setHaveUserInfo] = useState(false)
-  const [downloadOptions, setDownloadOptions] = useState({ unranked: false })
+  const [downloadOptions, setDownloadOptions] = useState({
+    includeUnranked: false,
+  })
 
   const barrierTypeLabel = barrierTypeLabels[barrierType]
 
@@ -53,8 +55,11 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
       layer,
       summaryUnits,
       filters,
-      includeUnranked: downloadOptions.unranked,
-      sort: scenario.toUpperCase(),
+      includeUnranked:
+        barrierType !== 'road_crossings'
+          ? downloadOptions.includeUnranked
+          : null,
+      sort: scenario ? scenario.toUpperCase() : null,
       customRank,
     })
 
@@ -68,7 +73,9 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
         summaryUnits ? summaryUnits.map(({ id }) => id) : 'none'
       }], filters: ${
         filters ? Object.keys(filters) : 'none'
-      }, scenario: ${scenario}, include unranked: ${downloadOptions.unranked}`,
+      }, scenario: ${scenario}, include unranked: ${
+        downloadOptions.includeUnranked
+      }`,
     })
   }
 
@@ -83,11 +90,13 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
         <Button
           onClick={handleShow}
           variant="primary"
-          sx={{ fontSize: '1.1em' }}
+          sx={{ fontSize: '1.1em', flex: '1 1 auto' }}
         >
-          <Flex>
-            <DownloadIcon size="1.2em" style={{ marginRight: '0.5rem' }} />
-            <Text>{labelText}</Text>
+          <Flex sx={{ justifyContent: 'center' }}>
+            <Box sx={{ mr: '0.5rem', flex: '0 0 auto' }}>
+              <DownloadIcon size="1.2em" />
+            </Box>
+            <Text sx={{ flex: '0 1 auto' }}>{labelText}</Text>
           </Flex>
         </Button>
       ) : (
@@ -95,6 +104,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
           as="span"
           onClick={handleShow}
           sx={{
+            flex: '1 1 auto',
             display: 'inline-block',
             color: 'link',
             cursor: 'pointer',
@@ -124,12 +134,14 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
           onClose={handleClose}
         >
           <Box sx={{ maxWidth: '600px' }}>
-            <DownloadOptions
-              barrierType={barrierType}
-              options={downloadOptions}
-              customRank={customRank}
-              onChange={handleDownloadOptionsChange}
-            />
+            {barrierType !== 'road_crossings' ? (
+              <DownloadOptions
+                barrierType={barrierType}
+                options={downloadOptions}
+                customRank={customRank}
+                onChange={handleDownloadOptionsChange}
+              />
+            ) : null}
 
             <Paragraph variant="help" sx={{ mt: '2rem' }}>
               By downloading these data, you agree to the{' '}
@@ -180,7 +192,7 @@ Downloader.propTypes = {
       PropTypes.shape({ id: PropTypes.string.isRequired })
     ).isRequired,
     filters: PropTypes.object,
-    scenario: PropTypes.string.isRequired,
+    scenario: PropTypes.string,
   }).isRequired,
   customRank: PropTypes.bool,
   asButton: PropTypes.bool,

@@ -92,7 +92,7 @@ huc2s = sorted(huc2s)
 
 
 df = pd.read_feather(
-    f"data/api/{barrier_type}.feather",
+    f"data/barriers/master/archive/Feb2022/api/{barrier_type}.feather",  # FIXME:
     columns=[
         "HasNetwork",
         "id",
@@ -126,7 +126,8 @@ df = pd.read_feather(
 ).set_index("id")
 
 master = pd.read_feather(
-    f"data/barriers/master/{barrier_type}.feather", columns=["id", "NHDPlusID"]
+    f"data/barriers/master/archive/Feb2022/{barrier_type}.feather",
+    columns=["id", "NHDPlusID"],  # FIXME:
 ).set_index("id")
 df = df.loc[df.HasNetwork].join(master).drop(columns=["HasNetwork"])
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
@@ -245,18 +246,20 @@ for group in huc2_groups:
                     "intermittent",
                     "altered",
                     "sizeclass",
-                    "StreamOrde",
+                    # "StreamOrder",
+                    "StreamOrde",  # FIXME:
                     "NHDPlusID",
                     "FCode",
                     "FType",
                     "TotDASqKm",
-                    "HUC4",
+                    "HUC4",  # FIXME:
                 ],
             )
             .set_index("lineID")
             .rename(
                 columns={
-                    "StreamOrde": "streamord",
+                    # "StreamOrder": "streamord",
+                    "StreamOrde": "streamord",  # FIXME:
                     "intermittent": "interm",
                     "length": "length_m",
                 }
@@ -271,15 +274,15 @@ for group in huc2_groups:
         for col in ["interm", "altered"]:
             flowlines[col] = flowlines[col].astype("uint8")
 
-        # serialize raw segments
-        print("Serializing undissolved networks...")
-        write_dataframe(
-            flowlines.reset_index(),
-            out_dir / f"region{huc2}_{barrier_type}_segments.{ext}",
-        )
+        # # serialize raw segments
+        # print("Serializing undissolved networks...")
+        # write_dataframe(
+        #     flowlines.reset_index(),
+        #     out_dir / f"region{huc2}_{barrier_type}_segments.{ext}",
+        # )
 
-        # aggregate to multilinestrings by combinations of networkID
-        print("Dissolving networks...")
+        # # aggregate to multilinestrings by combinations of networkID
+        # print("Dissolving networks...")
         networks = (
             merge_lines(flowlines[["networkID", "geometry"]], by=["networkID"])
             .set_index("networkID")

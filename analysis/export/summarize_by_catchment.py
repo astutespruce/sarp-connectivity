@@ -4,8 +4,6 @@ from pathlib import Path
 import geopandas as gp
 import pandas as pd
 
-from analysis.constants import NETWORK_TYPES
-
 
 data_dir = Path("data")
 network_dir = data_dir / "networks"
@@ -26,7 +24,7 @@ huc2s = sorted(units.keys())
 # manually subset keys from above for processing
 huc2s = ["02", "03"]
 
-network_type = NETWORK_TYPES[1]
+network_type = "dams"
 for huc2 in huc2s:
     print(f"----- {huc2} ({network_type}) ------")
 

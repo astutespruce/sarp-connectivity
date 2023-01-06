@@ -3,6 +3,8 @@ import React, { useLayoutEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { Box } from 'theme-ui'
 
+import { siteMetadata } from 'config'
+
 // exclude Mapbox GL from babel transpilation per https://docs.mapbox.com/mapbox-gl-js/guides/migrate-to-v2/
 /* eslint-disable-next-line */
 import mapboxgl from '!mapbox-gl'
@@ -13,8 +15,6 @@ import BasemapSelector from './BasemapSelector'
 import GoToLocation from './GoToLocation'
 import { mapConfig, sources, basemapLayers } from './config'
 import Coords from './Coords'
-
-import { siteMetadata } from '../../../gatsby-config'
 
 const { mapboxToken } = siteMetadata
 if (!mapboxToken) {
@@ -57,12 +57,29 @@ const Map = ({ bounds, children, onCreateMap }) => {
       })
       window.map = mapObj // for easier debugging and querying via console
 
-      mapObj.addControl(new mapboxgl.NavigationControl(), 'top-right')
+      mapObj.addControl(
+        new mapboxgl.NavigationControl({ showCompass: false }),
+        'top-right'
+      )
+
+      mapObj.dragRotate.disable()
 
       mapObj.on('load', () => {
         // add sources
         Object.entries(sources).forEach(([id, source]) => {
           mapObj.addSource(id, source)
+        })
+
+        // add basemap sources and layers (must be done before adding other layers)
+        Object.values(basemapLayers).forEach((layers) => {
+          layers.forEach(({ id, source, ...rest }) => {
+            mapObj.addSource(id, source)
+            mapObj.addLayer({
+              ...rest,
+              id,
+              source: id,
+            })
+          })
         })
 
         // rerender to pass map into child components

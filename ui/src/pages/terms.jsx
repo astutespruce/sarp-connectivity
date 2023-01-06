@@ -4,12 +4,12 @@ import { graphql } from 'gatsby'
 import { Box, Container, Flex, Paragraph, Heading, Image } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
-import SARPLogoImage from 'images/sarp_logo.png'
+import SARPLogoImage from 'images/sarp_logo_highres.png'
 
 const TermsPage = ({ data: { headerImage } }) => (
-  <Layout title="Terms of Use">
+  <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
@@ -26,7 +26,7 @@ const TermsPage = ({ data: { headerImage } }) => (
       <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
         The data made available through this tool represent substantial effort
         and investment from the{' '}
-        <OutboundLink to="https://southeastaquatics.net/">
+        <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
           Southeast Aquatic Resources Partnership
         </OutboundLink>{' '}
         (SARP) and SARP&apos;s funders, partners, and data contributors.
@@ -99,13 +99,8 @@ const TermsPage = ({ data: { headerImage } }) => (
         </Box>
 
         <Paragraph variant="help" sx={{ fontSize: 2 }}>
-          A high resolution copy of the SARP logo can be requested from Jessica
-          Graham via email at{' '}
-          <OutboundLink to="jessica@southeastaquatics.net">
-            jessica@southeastaquatics.net
-          </OutboundLink>
-          . A small version can be obtained by clicking on the logo to the left
-          open it in a new window.
+          A high resolution logo can be obtained by clicking on the logo to the
+          left to open it in a new window.
         </Paragraph>
       </Flex>
     </Container>
@@ -135,3 +130,5 @@ export const pageQuery = graphql`
 `
 
 export default TermsPage
+
+export const Head = () => <SEO title="Terms of Use" />

@@ -2,6 +2,8 @@ from io import BytesIO
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from fastapi.responses import Response, FileResponse
+from pyarrow.feather import write_feather
+from pyarrow.csv import write_csv
 
 
 def csv_response(df, bounds=None):
@@ -9,7 +11,7 @@ def csv_response(df, bounds=None):
 
     Parameters
     ----------
-    df : DataFrame
+    df : pyarrow Table
     bounds : list-like of [xmin, ymin, xmax, ymax], optional (default: None)
 
     Returns
@@ -17,11 +19,48 @@ def csv_response(df, bounds=None):
     fastapi Response
     """
 
-    csv = df.to_csv(index_label="id", header=[c.lower() for c in df.columns])
-    response = Response(content=csv, media_type="text/csv")
+    csv_stream = BytesIO()
+    cols = [c.lower() for c in df.schema.names]
+    write_csv(df.rename_columns(cols).combine_chunks(), csv_stream)
+
+    response = Response(content=csv_stream.getvalue(), media_type="text/csv")
 
     if bounds is not None:
         response.headers["X-BOUNDS"] = ",".join(str(b) for b in bounds)
+
+    return response
+
+
+def feather_response(df, bounds=None):
+    """Write data frame to feather (Arrow IPC) and return Response with proper headers
+
+    Parameters
+    ----------
+    df : pyarrow Table
+    bounds : list-like of [xmin, ymin, xmax, ymax], optional (default: None)
+
+    Returns
+    -------
+    fastapi Response
+    """
+
+    cols = [c.lower() for c in df.schema.names]
+    table = df.rename_columns(cols)
+
+    # discard pandas metadata and set bounds
+    table = table.replace_schema_metadata(
+        {"bounds": ",".join(str(b) for b in bounds) if bounds is not None else ""}
+    )
+
+    stream = BytesIO()
+    write_feather(
+        table,
+        stream,
+        compression="uncompressed",
+    )
+    response = Response(
+        content=stream.getvalue(), media_type="application/octet-stream"
+    )
 
     return response
 
@@ -33,7 +72,7 @@ def zip_csv_response(
 
     Parameters
     ----------
-    df : DataFrame
+    df : parrow.Table
     filename : str
         output filename in zip file
     extra_str : dict, optional
@@ -48,9 +87,13 @@ def zip_csv_response(
     -------
     fastapi Response
     """
+
     zip_stream = BytesIO()
     with ZipFile(zip_stream, "w", compression=ZIP_DEFLATED, compresslevel=5) as zf:
-        zf.writestr(filename, df.to_csv(index=False))
+        csv_stream = BytesIO()
+        # combine_chunks() is necessary to avoid repeated headers
+        write_csv(df.combine_chunks(), csv_stream)
+        zf.writestr(filename, csv_stream.getvalue())
 
         if extra_str is not None:
             for path, value in extra_str.items():
@@ -76,5 +119,7 @@ def zip_csv_response(
 
 def zip_file_response(src_filename, out_filename):
     return FileResponse(
-        src_filename, media_type="application/zip", filename=out_filename,
+        src_filename,
+        media_type="application/zip",
+        filename=out_filename,
     )

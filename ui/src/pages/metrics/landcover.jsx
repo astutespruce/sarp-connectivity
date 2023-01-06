@@ -4,12 +4,12 @@ import { graphql } from 'gatsby'
 import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import HighlightBox from 'components/Layout/HighlightBox'
 
 const LandcoverPage = ({ data: { headerImage } }) => (
-  <Layout title="Floodplain Natural Landcover">
+  <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
@@ -116,3 +116,5 @@ export const pageQuery = graphql`
 `
 
 export default LandcoverPage
+
+export const Head = () => <SEO title="Floodplain Natural Landcover" />

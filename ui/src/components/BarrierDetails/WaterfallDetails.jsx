@@ -3,24 +3,21 @@ import PropTypes from 'prop-types'
 import { Box, Paragraph, Text } from 'theme-ui'
 
 import { Entry, Field, Section } from 'components/Sidebar'
-import { OutboundLink } from 'components/Link'
-import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 
-import { OWNERTYPE, HUC8_USFS } from '../../../config/constants'
-
+import DiadromousInfo from './DiadromousInfo'
+import IDInfo from './IDInfo'
+import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
+import SpeciesInfo from './SpeciesInfo'
 
 const WaterfallDetails = ({
   barrierType,
-  lat,
-  lon,
   source,
   hasnetwork,
   excluded,
   stream,
   intermittent,
-  HUC8,
   HUC12,
   HUC8Name,
   HUC12Name,
@@ -29,10 +26,11 @@ const WaterfallDetails = ({
   statesgcnspp,
   regionalsgcnspp,
   trout,
-  ownertype,
-  huc8_usfs,
-  huc8_coa,
-  huc8_sgcn,
+  salmonidesu,
+  streamorder,
+  streamsizeclass,
+  waterbodysizeclass,
+  waterbodykm2,
   // metrics
   totalupstreammiles,
   perennialupstreammiles,
@@ -44,58 +42,39 @@ const WaterfallDetails = ({
   freeunaltereddownstreammiles,
   landcover,
   sizeclasses,
+  flowstoocean,
+  milestooutlet,
+  totaldownstreamdams,
+  totaldownstreamsmallbarriers,
+  totaldownstreamwaterfalls,
 }) => (
   <Box
     sx={{
       mt: '-1rem',
-      mx: '-1rem',
+      mx: '-0.5rem',
+      fontSize: 1,
     }}
   >
     <Section title="Location">
-      <Entry>
-        Waterfall at {formatNumber(lat, 5)}, {formatNumber(lon, 5)} (&deg;N,
-        &deg;E)
-      </Entry>
-      {!isEmptyString(stream) ? (
-        <Entry>
-          <Field>River or stream:</Field> {stream}
-        </Entry>
-      ) : null}
+      <LocationInfo
+        barrierType={barrierType}
+        reachName={stream}
+        HUC8Name={HUC8Name}
+        HUC12Name={HUC12Name}
+        HUC12={HUC12}
+        intermittent={intermittent}
+        streamorder={streamorder}
+        streamsizeclass={streamsizeclass}
+        waterbodysizeclass={waterbodysizeclass}
+        waterbodykm2={waterbodykm2}
+      />
 
-      {intermittent === 1 ? (
+      {falltype && !isEmptyString(falltype) ? (
         <Entry>
-          Located on a reach that has intermittent or ephemeral flow
-        </Entry>
-      ) : null}
-
-      {HUC12Name ? (
-        <Entry>
-          {HUC12Name} Subwatershed{' '}
-          <Paragraph variant="help">(HUC12: {HUC12})</Paragraph>
-        </Entry>
-      ) : null}
-
-      {HUC8Name ? (
-        <Entry>
-          {HUC8Name} Subbasin{' '}
-          <Paragraph variant="help">(HUC8: {HUC8})</Paragraph>
-        </Entry>
-      ) : null}
-
-      {ownertype && ownertype > 0 ? (
-        <Entry>
-          <Field>Conservation land type:</Field> {OWNERTYPE[ownertype]}
+          <Field label="Waterfall type">{falltype}</Field>
         </Entry>
       ) : null}
     </Section>
-
-    {falltype && !isEmptyString(falltype) ? (
-      <Section title="Barrier information">
-        <Entry>
-          <Field>Waterfall type:</Field> {falltype}
-        </Entry>
-      </Section>
-    ) : null}
 
     <Section title="Functional network information">
       {hasnetwork ? (
@@ -111,6 +90,7 @@ const WaterfallDetails = ({
           freeunaltereddownstreammiles={freeunaltereddownstreammiles}
           sizeclasses={sizeclasses}
           landcover={landcover}
+          intermittent={intermittent}
         />
       ) : (
         <>
@@ -136,75 +116,32 @@ const WaterfallDetails = ({
       )}
     </Section>
 
-    <Section title="Species information">
-      <Text sx={{ my: '0.5rem', mr: '0.5rem' }}>
-        Data sources in the subwatershed containing this waterfall have
-        recorded:
-      </Text>
-      <Box as="ul">
-        <li>
-          <b>{tespp}</b> federally-listed threatened and endangered aquatic
-          species
-        </li>
-        <li>
-          <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
-          Conservation Need (SGCN), which include state-listed threatened and
-          endangered species
-        </li>
-        <li>
-          <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of Greatest
-          Conservation Need
-        </li>
-        <li>{trout ? 'One or more trout species' : 'No trout species'}</li>
-      </Box>
-
-      <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
-        Note: species information is very incomplete. These species may or may
-        not be directly impacted by this waterfall.{' '}
-        <a href="/sgcn" target="_blank">
-          Read more.
-        </a>
-      </Paragraph>
-    </Section>
-
-    {huc8_usfs + huc8_coa + huc8_sgcn > 0 ? (
-      <Section title="Feasibility & conservation benefit">
-        {/* watershed priorities */}
-        {huc8_usfs > 0 ? (
-          <Entry>
-            Within USFS {HUC8_USFS[huc8_usfs]} priority watershed.{' '}
-            <a href="/usfs_priority_watersheds" target="_blank">
-              Read more.
-            </a>
-          </Entry>
-        ) : null}
-        {huc8_coa > 0 ? (
-          <Entry>
-            Within a SARP conservation opportunity area.{' '}
-            <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
-              Read more.
-            </OutboundLink>
-          </Entry>
-        ) : null}
-        {huc8_sgcn > 0 ? (
-          <Entry>
-            Within one of the top 10 watersheds in this state based on number of
-            state-listed Species of Greatest Conservation Need.{' '}
-            <a href="/sgcn" target="_blank">
-              Read more.
-            </a>
-          </Entry>
-        ) : null}
+    {flowstoocean && milestooutlet < 500 ? (
+      <Section title="Diadromous species information">
+        <DiadromousInfo
+          barrierType={barrierType}
+          milestooutlet={milestooutlet}
+          totaldownstreamdams={totaldownstreamdams}
+          totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
+          totaldownstreamwaterfalls={totaldownstreamwaterfalls}
+        />
       </Section>
     ) : null}
 
+    <Section title="Species information for this subwatershed">
+      <SpeciesInfo
+        barrierType={barrierType}
+        tespp={tespp}
+        regionalsgcnspp={regionalsgcnspp}
+        statesgcnspp={statesgcnspp}
+        trout={trout}
+        salmonidesu={salmonidesu}
+      />
+    </Section>
+
     {!isEmptyString(source) ? (
       <Section title="Other information">
-        {!isEmptyString(source) ? (
-          <Entry>
-            <Field>Source:</Field> {source}
-          </Entry>
-        ) : null}
+        <IDInfo source={source} />
       </Section>
     ) : null}
   </Box>
@@ -212,14 +149,11 @@ const WaterfallDetails = ({
 
 WaterfallDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
-  lat: PropTypes.number.isRequired,
-  lon: PropTypes.number.isRequired,
-  hasnetwork: PropTypes.bool.isRequired,
-  excluded: PropTypes.bool,
+  hasnetwork: PropTypes.number.isRequired,
+  excluded: PropTypes.number,
   source: PropTypes.string,
   stream: PropTypes.string,
   intermittent: PropTypes.number,
-  HUC8: PropTypes.string,
   HUC12: PropTypes.string,
   HUC8Name: PropTypes.string,
   HUC12Name: PropTypes.string,
@@ -228,10 +162,7 @@ WaterfallDetails.propTypes = {
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   trout: PropTypes.number,
-  ownertype: PropTypes.number,
-  huc8_usfs: PropTypes.number,
-  huc8_coa: PropTypes.number,
-  huc8_sgcn: PropTypes.number,
+  salmonidesu: PropTypes.string,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -242,14 +173,22 @@ WaterfallDetails.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
+  streamorder: PropTypes.number,
+  streamsizeclass: PropTypes.string,
+  waterbodykm2: PropTypes.number,
+  waterbodysizeclass: PropTypes.number,
+  flowstoocean: PropTypes.number,
+  milestooutlet: PropTypes.number,
+  totaldownstreamdams: PropTypes.number,
+  totaldownstreamsmallbarriers: PropTypes.number,
+  totaldownstreamwaterfalls: PropTypes.number,
 }
 
 WaterfallDetails.defaultProps = {
-  HUC8: null,
   HUC12: null,
   HUC8Name: null,
   HUC12Name: null,
-  excluded: false,
+  excluded: 0,
   source: null,
   stream: null,
   intermittent: -1,
@@ -258,10 +197,7 @@ WaterfallDetails.defaultProps = {
   statesgcnspp: 0,
   regionalsgcnspp: 0,
   trout: 0,
-  ownertype: null,
-  huc8_usfs: 0,
-  huc8_coa: 0,
-  huc8_sgcn: 0,
+  salmonidesu: null,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,
@@ -272,6 +208,15 @@ WaterfallDetails.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: null,
   sizeclasses: null,
+  streamorder: 0,
+  streamsizeclass: null,
+  waterbodykm2: -1,
+  waterbodysizeclass: null,
+  flowstoocean: 0,
+  milestooutlet: 0,
+  totaldownstreamdams: 0,
+  totaldownstreamsmallbarriers: 0,
+  totaldownstreamwaterfalls: 0,
 }
 
 export default WaterfallDetails

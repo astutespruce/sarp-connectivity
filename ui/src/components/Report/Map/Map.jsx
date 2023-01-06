@@ -72,7 +72,7 @@ const Map = ({
       <View style={{ flex: '0 0 50', height: 12, marginRight: 12 }}>
         <Image src={MapboxLogo} style={{ height: 11, width: 50 }} />
       </View>
-      <Text style={{ fontSize: 9, color: '#7f8a93', flex: '1 1 auto' }}>
+      <Text style={{ fontSize: 8, color: '#7f8a93', flex: '1 1 auto' }}>
         Basemap credits: {attribution}
       </Text>
     </Flex>

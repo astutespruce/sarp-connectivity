@@ -15,7 +15,6 @@ const Histogram = ({ counts, threshold }) => {
       {counts.map((count, i) => (
         <Flex
           key={`${i}-${count}`}
-          isActive={i + 1 <= threshold}
           sx={{
             alignItems: 'center',
             mb: '0.25rem',

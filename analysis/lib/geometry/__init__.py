@@ -3,7 +3,7 @@ from analysis.lib.geometry.aggregate import (
     find_contiguous_groups,
     union_or_combine,
 )
-from analysis.lib.geometry.clean import make_valid
+from analysis.lib.geometry.clean import make_valid, to_multipolygon
 from analysis.lib.geometry.crs import to_crs, geo_bounds
 from analysis.lib.geometry.explode import explode
 from analysis.lib.geometry.io import write_geoms

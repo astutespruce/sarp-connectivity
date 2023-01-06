@@ -1,3 +1,6 @@
+import { pointColors } from 'config'
+import { getHighlightExpr, getTierExpr } from '../Map/util'
+
 export const maskFill = {
   id: 'mask',
   source: 'summary',
@@ -131,10 +134,53 @@ export const unitLayers = [unitFill, unitOutline]
 
 export const unitHighlightLayers = [unitHighlightFill, unitHighlightOutline]
 
-export const backgroundPoint = {
-  id: 'point-no-network',
-  // source: "" // provided by specific layer
-  'source-layer': 'background',
+export const offnetworkPoint = {
+  id: 'point-off-network',
+  // source: "", // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
+  type: 'circle',
+  minzoom: 10,
+  maxzoom: 24,
+  paint: {
+    'circle-color': getHighlightExpr(
+      pointColors.offNetwork.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.offNetwork.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 2),
+      14,
+      getHighlightExpr(4, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [14, 1],
+      ],
+    },
+  },
+}
+
+export const unrankedPoint = {
+  id: 'point-unranked',
+  // source: "", // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
   type: 'circle',
   minzoom: 10,
   maxzoom: 24,
@@ -162,7 +208,7 @@ export const backgroundPoint = {
   },
 }
 
-// points filtered OUT with networks
+// ranked points with networks filtered IN
 export const excludedPoint = {
   id: 'point-excluded',
   // source: "" // provided by specific layer
@@ -172,23 +218,36 @@ export const excludedPoint = {
   maxzoom: 24,
   // filter:  [], // will be filtered using "in" or "!in"
   paint: {
-    'circle-color': '#fbb4b9',
-    'circle-stroke-color': '#c51b8a',
-    'circle-radius': {
-      stops: [
-        [4, 0.5],
-        [5, 1],
-        [9, 2],
-        [10, 4],
-        [14, 6],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [10, 0.5],
-        [14, 1],
-      ],
-    },
+    'circle-color': getHighlightExpr(
+      pointColors.excluded.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.excluded.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      4,
+      getHighlightExpr(0.5, 2),
+      5,
+      getHighlightExpr(1, 5),
+      9,
+      getHighlightExpr(2, 10),
+      14,
+      getHighlightExpr(6, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -199,34 +258,51 @@ export const excludedPoint = {
   },
 }
 
-// points filtered IN with networks
+// ranked points with networks filtered IN
 export const includedPoint = {
   id: 'point-included',
   // source: "" // provided by specific layer
   // 'source-layer': '', // provided by specific layer
   type: 'circle',
-  minzoom: 2,
+  minzoom: 3,
   maxzoom: 24,
   filter: ['==', 'id', 'Infinity'], // will be filtered using "in" or "!in"
   paint: {
-    'circle-color': '#c51b8a',
-    'circle-radius': {
-      stops: [
-        [3, 0.5],
-        [4, 1],
-        [5, 1.25],
-        [14, 8],
+    'circle-color': getHighlightExpr(
+      pointColors.included.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.included.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius':
+      // interpolate has to be top-level
+      [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        3,
+        getHighlightExpr(0.5, 2),
+        4,
+        getHighlightExpr(1, 4),
+        5,
+        getHighlightExpr(1.25, 5),
+        14,
+        getHighlightExpr(8, 14),
       ],
-    },
-    'circle-opacity': {
-      stops: [
-        [2, 0.1],
-        [3, 0.5],
-        [4, 0.75],
-        [7, 1],
-      ],
-    },
-    'circle-stroke-color': '#FFFFFF',
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      3,
+      getHighlightExpr(0.5, 1),
+      4,
+      getHighlightExpr(0.75, 1),
+      7,
+      1,
+    ],
+
     'circle-stroke-width': {
       stops: [
         [7, 0],
@@ -238,25 +314,51 @@ export const includedPoint = {
   },
 }
 
-export const topRank = {
-  id: 'rank-top',
-  source: 'ranked',
+export const getTierPointColor = (scenario, tierThreshold) =>
+  getHighlightExpr(
+    getTierExpr(
+      scenario,
+      tierThreshold,
+      pointColors.topRank.color,
+      pointColors.lowerRank.color
+    ),
+    pointColors.highlight.color
+  )
+
+// sizes fall back to match includedPoint when not top rank
+export const getTierPointSize = (scenario, tierThreshold) => [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  3,
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 1, 0.5), 3),
+  4,
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 1.5, 1), 4),
+  5,
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 3, 1.25), 5),
+  14,
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 10, 8), 14),
+]
+
+export const rankedPoint = {
+  id: 'point-ranked',
+  // source: "" // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
   type: 'circle',
   minzoom: 3,
   maxzoom: 24,
-  // filter:  // provided by specific layer
+  layout: {
+    visibility: 'none',
+  },
+  // filter:  // set to match includedPoint above
   paint: {
-    'circle-color': '#c51b8a',
-    'circle-radius': {
-      stops: [
-        [3, 1],
-        [4, 1.5],
-        [5, 3],
-        [14, 10],
-      ],
-    },
+    'circle-color': '#000000', // provided dynamically when added to map
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.ranked.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': 6, // provided dynamically when added to map
     'circle-opacity': 1,
-    'circle-stroke-color': '#FFFFFF',
     'circle-stroke-width': {
       stops: [
         [4, 0],
@@ -268,35 +370,49 @@ export const topRank = {
   },
 }
 
-export const lowerRank = {
-  id: 'rank-low',
-  source: 'ranked',
+// Note: this is ONLY for display when small barriers are selected
+export const roadCrossingsLayer = {
+  id: 'road-crossings',
+  source: 'road_crossings',
+  'source-layer': 'road_crossings',
   type: 'circle',
-  minzoom: 3,
+  minzoom: 11,
   maxzoom: 24,
-  // filter:  // provided by specific layer
+  layout: {
+    visibility: 'none',
+  },
   paint: {
-    'circle-color': '#2c7fb8',
-    'circle-stroke-color': '#FFFFFF',
-    'circle-radius': {
-      stops: [
-        [3, 0.5],
-        [4, 1],
-        [5, 1.25],
-        [14, 8],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [3, 0.5],
-        [4, 0.75],
-        [7, 1],
-      ],
-    },
+    'circle-color': getHighlightExpr(
+      pointColors.offNetwork.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.offNetwork.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      11,
+      getHighlightExpr(0.5, 2),
+      12,
+      getHighlightExpr(1, 2),
+      14,
+      getHighlightExpr(3, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [10, 0],
-        [11, 0.25],
         [14, 1],
       ],
     },
@@ -307,7 +423,7 @@ export const lowerRank = {
 export const damsSecondaryLayer = {
   id: 'dams-secondary',
   source: 'dams',
-  'source-layer': 'dams',
+  'source-layer': 'ranked_dams',
   layout: {
     visibility: 'none',
   },
@@ -315,23 +431,38 @@ export const damsSecondaryLayer = {
   minzoom: 10,
   maxzoom: 24,
   paint: {
-    'circle-color': '#fec44f',
-    'circle-radius': {
-      stops: [
-        [10, 1],
-        [12, 2],
-        [14, 4],
-        [16, 6],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [10, 0.25],
-        [12, 0.5],
-        [14, 1],
-      ],
-    },
-    'circle-stroke-color': '#FFFFFF',
+    'circle-color': getHighlightExpr(
+      pointColors.damsSecondary.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.damsSecondary.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(2, 10),
+      12,
+      getHighlightExpr(3, 14),
+      14,
+      getHighlightExpr(4, 14),
+      16,
+      getHighlightExpr(6, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.25, 1),
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -350,23 +481,38 @@ export const waterfallsLayer = {
   minzoom: 10,
   maxzoom: 24,
   paint: {
-    'circle-color': '#2ca25f',
-    'circle-radius': {
-      stops: [
-        [10, 1],
-        [12, 2],
-        [14, 4],
-        [16, 6],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [10, 0.25],
-        [12, 0.5],
-        [14, 1],
-      ],
-    },
-    'circle-stroke-color': '#FFFFFF',
+    'circle-color': getHighlightExpr(
+      pointColors.waterfalls.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.waterfalls.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(1, 10),
+      12,
+      getHighlightExpr(2, 14),
+      14,
+      getHighlightExpr(4, 14),
+      16,
+      getHighlightExpr(6, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.25, 1),
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -380,75 +526,35 @@ export const waterfallsLayer = {
 export const pointLegends = {
   included: {
     radius: 8,
-    color: includedPoint.paint['circle-color'],
+    color: pointColors.included.color,
   },
   excluded: {
     radius: 6,
-    color: `${excludedPoint.paint['circle-color']}99`,
-    borderColor: `${excludedPoint.paint['circle-stroke-color']}99`,
+    color: `${pointColors.excluded.color}99`,
+    borderColor: `${pointColors.excluded.strokeColor}99`,
     borderWidth: 1,
   },
-  background: {
+  offnetwork: {
     radius: 5,
-    color: backgroundPoint.paint['circle-color'],
-    borderColor: backgroundPoint.paint['circle-stroke-color'],
+    color: pointColors.offNetwork.color,
+    borderColor: pointColors.offNetwork.strokeColor,
     borderWidth: 1,
   },
   topRank: {
     radius: 8,
-    color: topRank.paint['circle-color'],
+    color: pointColors.topRank.color,
   },
   lowerRank: {
     radius: 8,
-    color: lowerRank.paint['circle-color'],
+    color: pointColors.lowerRank.color,
   },
   waterfalls: {
     radius: 6,
-    color: waterfallsLayer.paint['circle-color'],
+    color: pointColors.waterfalls.color,
   },
   damsSecondary: {
     radius: 6,
-    color: damsSecondaryLayer.paint['circle-color'],
-  },
-}
-
-export const pointHighlight = {
-  id: 'point-highlight',
-  source: {
-    type: 'geojson',
-    data: null,
-  },
-  type: 'circle',
-  minzoom: 5,
-  maxzoom: 24,
-  paint: {
-    'circle-color': '#fd8d3c',
-    'circle-radius': 14,
-    'circle-stroke-width': 3,
-    'circle-stroke-color': '#f03b20',
-  },
-}
-
-export const pointHover = {
-  id: 'point-hover',
-  source: {
-    type: 'geojson',
-    data: null,
-  },
-  type: 'circle',
-  minzoom: 7,
-  maxzoom: 24,
-  paint: {
-    'circle-color': '#fd8d3c',
-    'circle-radius': {
-      stops: [
-        [6, 2],
-        [8, 6],
-        [14, 8],
-      ],
-    },
-    'circle-stroke-width': 1,
-    'circle-stroke-color': '#f03b20',
+    color: pointColors.damsSecondary.color,
   },
 }
 
@@ -490,32 +596,6 @@ const priorityOutlineStyle = {
   },
 }
 
-const usfsPriorityFill = {
-  ...priorityFillStyle,
-  id: 'usfs-priority-fill',
-  filter: ['>', 'usfs', 0],
-  paint: {
-    'fill-opacity': 0.4,
-    'fill-color': [
-      'match',
-      ['get', 'usfs'],
-      1,
-      '#31a354',
-      2,
-      '#addd8e',
-      3,
-      '#f7fcb9',
-      '#FFF',
-    ],
-  },
-}
-
-const usfsPriorityOutline = {
-  ...priorityOutlineStyle,
-  id: 'usfs-priority-outline',
-  filter: ['>', 'usfs', 0],
-}
-
 const coaPriorityFill = {
   ...priorityFillStyle,
   id: 'coa-priority-fill',
@@ -532,66 +612,15 @@ const coaPriorityOutline = {
   filter: ['>', 'coa', 0],
 }
 
-const sgcnPriorityFill = {
-  ...priorityFillStyle,
-  id: 'sgcn-priority-fill',
-  filter: ['>', 'sgcn', 0],
-  paint: {
-    'fill-opacity': 0.4,
-    'fill-color': '#d95f0e',
-  },
-}
-
-const sgcnPriorityOutline = {
-  ...priorityOutlineStyle,
-  id: 'sgcn-priority-outline',
-  filter: ['>', 'sgcn', 0],
-}
-
-export const priorityWatersheds = [
-  usfsPriorityFill,
-  usfsPriorityOutline,
-  coaPriorityFill,
-  coaPriorityOutline,
-  sgcnPriorityFill,
-  sgcnPriorityOutline,
-]
+export const priorityWatersheds = [coaPriorityFill, coaPriorityOutline]
 
 export const priorityWatershedLegends = {
-  usfs: {
-    id: 'usfs',
-    label: 'USFS Priority',
-    entries: [
-      {
-        color: '#31a35499',
-        label: 'highest',
-      },
-      {
-        color: '#addd8e99',
-        label: 'moderate',
-      },
-      {
-        color: '#f7fcb999',
-        label: 'lowest',
-      },
-    ],
-  },
   coa: {
     id: 'coa',
     entries: [
       {
         color: '#3182bd99',
         label: 'SARP conservation opportunity areas',
-      },
-    ],
-  },
-  sgcn: {
-    id: 'sgcn',
-    entries: [
-      {
-        color: '#d95f0e99',
-        label:
-          'Watersheds with most Species of Greatest Conservation Need (SGCN) per state',
       },
     ],
   },

@@ -13,7 +13,7 @@ from pathlib import Path
 import warnings
 
 import geopandas as gp
-import pygeos as pg
+import shapely
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 
@@ -31,7 +31,10 @@ huc2 = "03"
 print("Reading waterbodies...")
 df = (
     read_dataframe(
-        src_dir / "SCBreakline.gdb", layer="Waterbody", force_2d=True, columns=[],
+        src_dir / "SCBreakline.gdb",
+        layer="Waterbody",
+        force_2d=True,
+        columns=[],
     )
     .rename(columns={"NAME": "name"})
     .to_crs(CRS)
@@ -39,20 +42,20 @@ df = (
 
 print("Reading flowlines...")
 flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather", columns=[])
-tree = pg.STRtree(flowlines.geometry.values.data)
+tree = shapely.STRtree(flowlines.geometry.values.data)
 
 
 print(f"Extracted {len(df):,} SC waterbodies")
-left, right = tree.query_bulk(df.geometry.values.data, predicate="intersects")
+left, right = tree.query(df.geometry.values.data, predicate="intersects")
 df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
 df = explode(df)
 # make valid
-ix = ~pg.is_valid(df.geometry.values.data)
+ix = ~shapely.is_valid(df.geometry.values.data)
 if ix.sum():
     print(f"Repairing {ix.sum():,} invalid waterbodies")
-    df.loc[ix, "geometry"] = pg.make_valid(df.loc[ix].geometry.values.data)
+    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values.data)
 
 
 print("Dissolving adjacent waterbodies...")
@@ -61,5 +64,3 @@ df = dissolve(df, by="tmp").drop(columns=["tmp"])
 df = explode(df).reset_index(drop=True)
 
 df.to_feather(src_dir / "sc_waterbodies.feather")
-write_dataframe(df, src_dir / "sc_waterbodies.gpkg")
-

@@ -1,1 +1,1 @@
-from .graph import find_adjacent_groups, DirectedGraph
+from .graph import DirectedGraph

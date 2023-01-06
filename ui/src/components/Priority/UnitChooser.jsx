@@ -3,17 +3,17 @@ import PropTypes from 'prop-types'
 import { Box, Flex, Heading, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
-import UnitSearch from 'components/UnitSearch'
+import { UnitSearch } from 'components/UnitSearch'
 import { useBarrierType } from 'components/Data'
+import { LAYER_ZOOM, barrierTypeLabels } from 'config'
 import { formatNumber } from 'util/format'
 
 import BackLink from './BackLink'
 import StartOverButton from './StartOverButton'
 import SubmitButton from './SubmitButton'
 import UnitListItem from './UnitListItem'
-import { LAYER_ZOOM, barrierTypeLabels } from '../../../config/constants'
 
-const getPluralLabel = (layer) => {
+export const getPluralLabel = (layer) => {
   switch (layer) {
     case 'State':
       return 'states'
@@ -23,18 +23,16 @@ const getPluralLabel = (layer) => {
       return 'basins'
     case 'HUC8':
       return 'subbasins'
+    case 'HUC10':
+      return 'watersheds'
     case 'HUC12':
       return 'subwatersheds'
-    case 'ECO3':
-      return 'ecoregions'
-    case 'ECO4':
-      return 'ecoregions'
     default:
       return 'areas'
   }
 }
 
-const getSingularLabel = (layer) => {
+export const getSingularLabel = (layer) => {
   switch (layer) {
     case 'State':
       return 'state'
@@ -44,20 +42,13 @@ const getSingularLabel = (layer) => {
       return 'basin'
     case 'HUC8':
       return 'subbasin'
+    case 'HUC10':
+      return 'watershed'
     case 'HUC12':
       return 'subwatershed'
-    case 'ECO3':
-      return 'ecoregion'
-    case 'ECO4':
-      return 'ecoregion'
     default:
       return 'area'
   }
-}
-
-const getSingularArticle = (layer) => {
-  if (layer === 'ECO3' || layer === 'ECO4') return 'an'
-  return 'a'
 }
 
 const UnitChooser = ({
@@ -66,6 +57,7 @@ const UnitChooser = ({
   selectUnit,
   onBack,
   onSubmit,
+  onStartOver,
   setSearchFeature,
 }) => {
   const barrierType = useBarrierType()
@@ -74,7 +66,6 @@ const UnitChooser = ({
 
   const pluralLabel = getPluralLabel(layer)
   const singularLabel = getSingularLabel(layer)
-  const article = getSingularArticle(layer)
 
   let offNetworkCount = 0
   let total = 0
@@ -82,19 +73,19 @@ const UnitChooser = ({
     switch (barrierType) {
       case 'dams': {
         offNetworkCount = summaryUnits.reduce(
-          (out, v) => out + (v.dams - v.on_network_dams),
+          (out, v) => out + (v.dams - v.ranked_dams),
           0
         )
-        total = summaryUnits.reduce((out, v) => out + v.on_network_dams, 0)
+        total = summaryUnits.reduce((out, v) => out + v.ranked_dams, 0)
         break
       }
       case 'small_barriers': {
         offNetworkCount = summaryUnits.reduce(
-          (out, v) => out + (v.small_barriers - v.on_network_small_barriers),
+          (out, v) => out + (v.small_barriers - v.ranked_small_barriers),
           0
         )
         total = summaryUnits.reduce(
-          (out, v) => out + v.on_network_small_barriers,
+          (out, v) => out + v.ranked_small_barriers,
           0
         )
         break
@@ -129,7 +120,6 @@ const UnitChooser = ({
         <BackLink label="choose a different type of area" onClick={onBack} />
         <Heading as="h3">Choose {pluralLabel}</Heading>
       </Box>
-
       <Box
         sx={{
           flex: '1 1 auto',
@@ -139,15 +129,9 @@ const UnitChooser = ({
         }}
       >
         {summaryUnits.length === 0 ? (
-          <Text variant="help">
+          <Text variant="help" sx={{ mb: '2rem' }}>
             Select your {pluralLabel} of interest by clicking on them in the
             map.
-            <br />
-            <br />
-            If boundaries are not currently visible on the map, zoom in further
-            until they appear.
-            <br />
-            <br />
           </Text>
         ) : (
           <Box
@@ -172,6 +156,11 @@ const UnitChooser = ({
         <UnitSearch
           layer={layer}
           value={searchValue}
+          ignoreIds={
+            summaryUnits && summaryUnits.length > 0
+              ? new Set(summaryUnits.map(({ id }) => id))
+              : null
+          }
           onChange={handleSearchChange}
           onSelect={handleSearchSelect}
         />
@@ -180,8 +169,8 @@ const UnitChooser = ({
           <>
             <Text variant="help" sx={{ py: '2rem' }}>
               Select additional {pluralLabel} by clicking on them on the map or
-              using the search above. To unselect {article} {singularLabel}, use
-              the trash button above or click on it on the map.
+              using the search above. To unselect a {singularLabel}, use the
+              trash button above or click on it on the map.
             </Text>
             {offNetworkCount > 0 ? (
               <Text variant="help" sx={{ pb: '2rem' }}>
@@ -202,8 +191,8 @@ const UnitChooser = ({
               style={{ marginRight: '0.25rem' }}
             />
             Note: You can choose from {pluralLabel} outside the highlighted
-            states in the Southeast, but the barriers inventory is likely more
-            complete only where {pluralLabel} overlap the highlighted states.
+            states, but the barriers inventory is likely more complete only
+            where {pluralLabel} overlap the highlighted states.
           </Text>
         ) : null}
       </Box>
@@ -218,12 +207,17 @@ const UnitChooser = ({
           bg: '#f6f6f2',
         }}
       >
-        <StartOverButton />
+        <StartOverButton onStartOver={onStartOver} />
 
         <SubmitButton
           disabled={summaryUnits.size === 0 || total === 0}
           onClick={onSubmit}
           label={`Select ${barrierTypeLabel} in this area`}
+          title={
+            summaryUnits.size === 0 || total === 0
+              ? `you must select at least one area that has ${barrierTypeLabel} available`
+              : null
+          }
         />
       </Flex>
     </Flex>
@@ -239,6 +233,7 @@ UnitChooser.propTypes = {
   ).isRequired,
   onBack: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
+  onStartOver: PropTypes.func.isRequired,
   selectUnit: PropTypes.func.isRequired,
   setSearchFeature: PropTypes.func.isRequired,
 }

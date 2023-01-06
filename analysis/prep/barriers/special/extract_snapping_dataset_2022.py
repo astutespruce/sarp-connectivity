@@ -2,13 +2,8 @@ import os
 from pathlib import Path
 import warnings
 
-
 import geopandas as gp
 from pyogrio import write_dataframe
-
-from analysis.constants import STATES, SARP_STATES
-
-NONSARP_STATES = list(set(STATES) - set(SARP_STATES))
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -50,6 +45,8 @@ snapped_df = gp.read_feather(
         "excluded",
         "duplicate",
         "snapped",
+        "Editor",
+        "EditDate",
     ],
 )
 
@@ -79,10 +76,9 @@ if ix.sum():
 ix = (snapped_df.ManualReview == 11) & snapped_df.duplicate
 snapped_df = snapped_df.loc[~ix].copy()
 
-# merge in snapping dataset for expansion region
+# merge in data from outside expansion region states
 other_df = gp.read_feather(
-    src_dir / "snapped_outside_sarp_v1.feather",
-    columns=["SARPID", "geometry", "ManualReview"],
+    src_dir / "dams_outer_huc4.feather", columns=["SARPID", "geometry", "ManualReview"]
 )
 
 snapped_df = (

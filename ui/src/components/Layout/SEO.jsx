@@ -1,10 +1,13 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import Helmet from 'react-helmet'
-import { useStaticQuery, graphql } from 'gatsby'
+import { useStaticQuery, graphql, withPrefix } from 'gatsby'
 
-function SEO({ description, lang, meta, keywords, title }) {
-  const { site } = useStaticQuery(
+function SEO({ title: rawTitle }) {
+  const {
+    site: {
+      siteMetadata: { title: siteTitle, description, author },
+    },
+  } = useStaticQuery(
     graphql`
       query {
         site {
@@ -18,77 +21,61 @@ function SEO({ description, lang, meta, keywords, title }) {
     `
   )
 
-  const metaDescription = description || site.siteMetadata.description
-
-  const hasTitle = title && title !== site.siteMetadata.title
+  const title = rawTitle ? `${rawTitle} | ${siteTitle}` : siteTitle
 
   return (
-    <Helmet
-      htmlAttributes={{
-        lang,
-      }}
-      title={title}
-      titleTemplate={hasTitle ? `%s | ${site.siteMetadata.title}` : '%s'}
-      meta={[
-        {
-          name: `description`,
-          content: metaDescription,
-        },
-        {
-          property: `og:title`,
-          content: title,
-        },
-        {
-          property: `og:description`,
-          content: metaDescription,
-        },
-        {
-          property: `og:type`,
-          content: `website`,
-        },
-        {
-          name: `twitter:card`,
-          content: `summary`,
-        },
-        {
-          name: `twitter:creator`,
-          content: site.siteMetadata.author,
-        },
-        {
-          name: `twitter:title`,
-          content: title,
-        },
-        {
-          name: `twitter:description`,
-          content: metaDescription,
-        },
-      ]
-        .concat(
-          keywords.length > 0
-            ? {
-                name: `keywords`,
-                content: keywords.join(`, `),
-              }
-            : []
-        )
-        .concat(meta)}
-    />
+    <>
+      <title>{title}</title>
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, shrink-to-fit=no"
+      />
+      <meta name="lang" content="en" />
+      <meta name="description" content={description} />
+      <meta name="og:title" content={title} />
+      <meta name="og:description" content={description} />
+      <meta name="og:type" content="website" />
+      <meta name="twitter:title" content={title} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:creator" content={author} />
+      <link rel="icon" type="image/png" href={withPrefix('/favicon.ico')} />
+      <link
+        rel="icon"
+        type="image/svg+xml"
+        href={withPrefix('/favicon-64x64.svg')}
+      />
+      <link
+        rel="icon"
+        type="image/png"
+        sizes="16x16"
+        href={withPrefix('/favicon-16x16.png')}
+      />
+      <link
+        rel="icon"
+        type="image/png"
+        sizes="32x32"
+        href={withPrefix('/favicon-32x32.png')}
+      />
+      <link
+        rel="icon"
+        type="image/png"
+        sizes="64x64"
+        href={withPrefix('/favicon-64x64.png')}
+      />
+
+      {/* Have to set HTML height manually for mobile browsers */}
+      <style>{`html {height: 100%; width: 100%; margin: 0;}`}</style>
+    </>
   )
 }
 
-SEO.defaultProps = {
-  lang: `en`,
-  meta: [],
-  keywords: [],
-  description: ``,
+SEO.propTypes = {
+  title: PropTypes.string,
 }
 
-SEO.propTypes = {
-  description: PropTypes.string,
-  lang: PropTypes.string,
-  meta: PropTypes.arrayOf(PropTypes.object),
-  keywords: PropTypes.arrayOf(PropTypes.string),
-  title: PropTypes.string.isRequired,
+SEO.defaultProps = {
+  title: null,
 }
 
 export default SEO

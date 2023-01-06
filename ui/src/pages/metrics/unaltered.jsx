@@ -3,20 +3,20 @@ import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 
 import HighlightBox from 'components/Layout/HighlightBox'
 
 const PercentUnalteredPage = ({ data: { headerImage } }) => (
-  <Layout title="Channel Alteration">
+  <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
       minHeight="18rem"
       credits={{
-        author: 'Carl Cerstrand',
-        url: 'https://unsplash.com/photos/J2bNC9gW5NI',
+        author: 'Washington State Department of Agriculture',
+        url: 'https://www.flickr.com/photos/wsdagov/42209868424/',
       }}
     />
 
@@ -61,13 +61,27 @@ const PercentUnalteredPage = ({ data: { headerImage } }) => (
         </Heading>
         <ol>
           <li>
-            Stream and river reaches are identified as altered where they are
-            specifically coded by NHD as canals or ditches.
+            Stream and river reaches are identified as altered where they:
+            <ol>
+              <li>are specifically coded by NHD as canals or ditches</li>
+              <li>
+                fall within a waterbody specifically coded by NHD or other data
+                source as a reservoir or one that has &quot;reservoir&quot; in
+                its name, or a waterbody specifically coded by the National
+                Wetlands Inventory (NWI) to indicate anthropogenic alteration
+                (e.g., excavated)
+              </li>
+              <li>
+                have significant overlap with a 10 meter buffer around NWI
+                riverine areas that are coded to indicate anthropogenic
+                alteration (e.g., diked/ditched)
+              </li>
+            </ol>
           </li>
-          <li>The total length of the network is calculated.</li>
+          <li>The total length of the network is calculated</li>
           <li>
             The total length of unaltered reaches within the network is
-            calculated.
+            calculated
           </li>
           <li>percent unaltered = 100 * (unaltered length / total length)</li>
         </ol>
@@ -84,9 +98,7 @@ PercentUnalteredPage.propTypes = {
 
 export const pageQuery = graphql`
   query NetworkPercentUnalteredQuery {
-    headerImage: file(
-      relativePath: { eq: "carl-cerstrand-J2bNC9gW5NI-unsplash.jpg" }
-    ) {
+    headerImage: file(relativePath: { eq: "42209868424_bb2dd0f7f0_o.jpg" }) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH
@@ -99,3 +111,5 @@ export const pageQuery = graphql`
 `
 
 export default PercentUnalteredPage
+
+export const Head = () => <SEO title="Channel Alteration" />

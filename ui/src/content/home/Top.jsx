@@ -1,24 +1,98 @@
 import React from 'react'
-import { Box, Heading, Grid, Paragraph } from 'theme-ui'
+import { Box, Heading, Grid, Image, Paragraph, Text } from 'theme-ui'
 
-import { Link } from 'components/Link'
+import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
+import SARPLogo from 'images/sarp_logo.png'
+import NFHPLogo from 'images/nfhp_logo.svg'
 
 const Top = () => (
   <>
+    <Heading as="h2" sx={{ mt: '2rem' }}>
+      Aquatic connectivity is essential
+    </Heading>
+    <Text sx={{ fontSize: ['1.25rem', 4], mt: '0.5rem' }}>
+      Fish and other aquatic organisms depend on high quality, connected river
+      networks. A legacy of human use of river networks have left them
+      fragmented by barriers such as dams and culverts. Fragmentation prevents
+      species from dispersing and accessing habitats required for their
+      persistence through changing conditions.
+    </Text>
+
     <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
-      Aquatic connectivity is essential. Fish and other aquatic organisms depend
-      on high quality, connected river networks. A legacy of human use of river
-      networks have left them fragmented by barriers such as dams and culverts.
-      Fragmentation prevents species from dispersing and accessing habitats
-      required for their persistence through changing conditions.
-      <br />
-      <br />
-      Recently improved inventories of aquatic barriers enable us to describe,
-      understand, and prioritize them for removal, restoration, and mitigation.
-      Through this tool and others, we empower you by providing information on
-      documented barriers and standardized methods by which to prioritize
-      barriers of interest for restoration efforts.
+      Recently improved inventories, brought to you by the{' '}
+      <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
+        Southeast Aquatic Resources Partnership
+      </OutboundLink>{' '}
+      (SARP) and partners, enable us to describe, understand, and prioritize
+      aquatic barriers for removal, restoration, and mitigation. Through this
+      tool and others, we empower you with information on documented barriers
+      and standardized methods to prioritize barriers of interest for
+      restoration efforts.
+    </Paragraph>
+
+    <Grid columns="4fr 1fr" gap={5} sx={{ mt: '2rem' }}>
+      <Paragraph>
+        This tool and inventory were made possible by funding from the{' '}
+        <OutboundLink to="https://www.fws.gov/program/national-fish-passage">
+          U.S. Fish and Wildlife Service
+        </OutboundLink>
+        ,{' '}
+        <OutboundLink to="https://www.americanrivers.org/">
+          American Rivers
+        </OutboundLink>
+        , the{' '}
+        <OutboundLink to="https://www.nfwf.org/">
+          National Fish and Wildlife Foundation
+        </OutboundLink>
+        ,{' '}
+        <OutboundLink to="https://www.fs.usda.gov/">
+          U.S. Forest Service
+        </OutboundLink>
+        , and state wildlife grant funding from Florida and Texas. This effort
+        would not be possible without the collaboration of our partners from
+        numerous state, federal, and non profit organizations as well as the{' '}
+        <OutboundLink to="https://www.fishhabitat.org/">
+          National Fish Habitat Partnership
+        </OutboundLink>
+        .
+      </Paragraph>
+      <Box sx={{ maxWidth: '240px' }}>
+        <Box>
+          <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
+            <Image src={SARPLogo} />
+          </OutboundLink>
+        </Box>
+        <Box sx={{ mt: '1rem' }}>
+          <OutboundLink to="">
+            <Image src={NFHPLogo} />
+          </OutboundLink>
+        </Box>
+      </Box>
+    </Grid>
+    <Paragraph sx={{ mt: '2rem' }}>
+      In addition to state and local datasets, national barrier datasets used in
+      this inventory include the{' '}
+      <OutboundLink to="https://nid.usace.army.mil/#/">
+        National Inventory of Dams
+      </OutboundLink>
+      ,{' '}
+      <OutboundLink to="https://www.usgs.gov/data/waterfalls-and-rapids-conterminous-united-states-linked-national-hydrography-datasets-v20">
+        USGS Waterfalls of the Conterminous U.S.
+      </OutboundLink>
+      , and{' '}
+      <OutboundLink to="https://www.usgs.gov/data/database-stream-crossings-united-states">
+        USGS Database of Stream Crossings in the U.S.
+      </OutboundLink>{' '}
+      Barriers are snapped to aquatic networks derived from the{' '}
+      <OutboundLink to="https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution">
+        USGS High Resolution National Hydrography Dataset
+      </OutboundLink>{' '}
+      supplemented with additional information from the{' '}
+      <OutboundLink to="https://www.fws.gov/program/national-wetlands-inventory">
+        National Wetlands Inventory
+      </OutboundLink>
+      .
     </Paragraph>
 
     <Box variant="boxes.section" sx={{ mt: '4rem' }}>

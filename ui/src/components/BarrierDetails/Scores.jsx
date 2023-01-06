@@ -1,29 +1,55 @@
-import React from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { Text } from 'theme-ui'
 
+import { Link } from 'components/Link'
 import { Tab, Tabs } from 'components/Tabs'
+import { barrierTypeLabels } from 'config'
+import { groupBy } from 'util/data'
 import ScoresList from './ScoresList'
 import { ScoresPropType } from './proptypes'
-import { barrierTypeLabels } from '../../../config/constants'
 
 const tabs = [
   { id: 'custom', label: 'Selected Area' },
   { id: 'state', label: 'State' },
-  { id: 'se', label: 'Southeast' },
 ]
 
+const tabIndex = groupBy(tabs, 'id')
+
 const Scores = ({ barrierType, scores }) => {
-  const hasCustom = scores.custom && scores.custom.ncwc
-  const hasSoutheast = scores.se && scores.se.ncwc
+  console.log('scores', scores)
+
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
+  const prioritizePath =
+    barrierType === 'dams' ? '/priority/dams' : '/priority/barriers'
+
+  const hasCustomTiers = scores.custom && scores.custom.ncwc
+  const hasStateTiers = scores.state && scores.state.ncwc
 
   const availableTabs = []
-  if (hasCustom) {
+  if (hasCustomTiers) {
     availableTabs.push(tabs[0])
   }
-  availableTabs.push(tabs[1])
-  if (hasSoutheast) {
-    availableTabs.push(tabs[2])
+  if (hasStateTiers) {
+    availableTabs.push(tabs[1])
+  }
+
+  const [tab, setTab] = useState(
+    availableTabs.length > 0 ? availableTabs[0].id : null
+  )
+
+  const handleTabChange = (id) => {
+    setTab(id)
+  }
+
+  if (!(hasStateTiers || hasCustomTiers)) {
+    return (
+      <Text sx={{ color: 'grey.8' }}>
+        State-level ranks are not available for {barrierTypeLabel}. Instead, you
+        can <Link to={prioritizePath}>prioritize {barrierTypeLabel}</Link> for a
+        specific area.
+      </Text>
+    )
   }
 
   return (
@@ -31,10 +57,15 @@ const Scores = ({ barrierType, scores }) => {
       <Text variant="help" sx={{ mb: '1rem', fontSize: 0 }}>
         Tiers range from 20 (lowest) to 1 (highest).
       </Text>
-      <Text>
-        Compare to other {barrierTypeLabels[barrierType]} in the{' '}
-        {availableTabs.length === 1 ? 'state:' : null}
-      </Text>
+
+      {tab !== null ? (
+        <Text>
+          Compared to other {barrierTypeLabels[barrierType]} in the
+          {availableTabs.length === 1
+            ? ` ${tabIndex[tab].label.toLowerCase()}:`
+            : null}
+        </Text>
+      ) : null}
 
       {availableTabs.length > 1 ? (
         <Tabs
@@ -43,6 +74,7 @@ const Scores = ({ barrierType, scores }) => {
             borderTopColor: 'grey.2',
             mx: '-0.75rem',
           }}
+          onChange={handleTabChange}
         >
           {availableTabs.map(({ id, label }) => (
             <Tab key={id} id={id} label={label}>
@@ -60,8 +92,7 @@ const Scores = ({ barrierType, scores }) => {
 Scores.propTypes = {
   barrierType: PropTypes.string.isRequired,
   scores: PropTypes.shape({
-    se: ScoresPropType,
-    state: ScoresPropType.isRequired,
+    state: ScoresPropType,
     custom: ScoresPropType,
   }).isRequired,
 }

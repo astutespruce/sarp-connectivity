@@ -3,14 +3,14 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Heading, Paragraph, Text } from 'theme-ui'
 
 import { Table, Row } from 'components/Table'
+import { siteMetadata, barrierTypeLabelSingular } from 'config'
 import { formatNumber, formatPercent } from 'util/format'
-
-import { siteMetadata } from '../../../gatsby-config'
 
 const { version: dataVersion } = siteMetadata
 
 const Network = ({
   barrierType,
+  sarpid,
   totalupstreammiles,
   perennialupstreammiles,
   alteredupstreammiles,
@@ -22,12 +22,15 @@ const Network = ({
   sizeclasses,
   landcover,
   excluded,
+  diversion,
+  nostructure,
   hasnetwork,
-  sarpid,
-  ...props
+  onloop,
+  invasive,
+  unranked,
+  sx,
 }) => {
-  const barrierTypeLabel =
-    barrierType === 'dams' ? 'dam' : 'road-related barrier'
+  const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
   const gainmiles = Math.min(totalupstreammiles, freedownstreammiles)
   const gainMilesSide =
     gainmiles === totalupstreammiles ? 'upstream' : 'downstream'
@@ -50,32 +53,70 @@ const Network = ({
   const header = <Heading as="h3">Functional network information</Heading>
 
   if (excluded) {
+    if (diversion && nostructure) {
+      return (
+        <Box sx={sx}>
+          {header}
+          <Text>
+            This water diversion was excluded from the connectivity analysis
+            because it does not have an associated in-stream barrier.
+          </Text>
+        </Box>
+      )
+    }
+
     return (
-      <Box {...props}>
+      <Box sx={sx}>
         {header}
         <Text>
-          This dam was excluded from the connectivity analysis based on field
-          reconnaissance or manual review of aerial imagery.
+          This {barrierTypeLabel} was excluded from the connectivity analysis
+          based on field reconnaissance or manual review of aerial imagery.
         </Text>
+      </Box>
+    )
+  }
+
+  if (onloop) {
+    return (
+      <Box sx={sx}>
+        {header}
+        <Text sx={{ mt: '0.5rem' }}>
+          This {barrierTypeLabel} was excluded from the connectivity analysis
+          based on its position within the aquatic network.
+        </Text>
+
+        <Paragraph variant="help" sx={{ mt: '0.5rem', fontSize: 0 }}>
+          This {barrierTypeLabel} was snapped to a secondary channel within the
+          aquatic network according to the way that primary versus secondary
+          channels are identified within the NHD High Resolution Plus dataset.
+          This {barrierTypeLabel} may need to be repositioned to occur on the
+          primary channel in order to be included within the connectivity
+          analysis. Please{' '}
+          <a
+            href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${barrierTypeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+          >
+            contact us
+          </a>{' '}
+          to report an error.
+        </Paragraph>
       </Box>
     )
   }
 
   if (!hasnetwork) {
     return (
-      <Box {...props}>
+      <Box sx={sx}>
         {header}
         <Text sx={{ mt: '0.5rem' }}>
-          This dam is off-network and has no functional network information.
+          This {barrierTypeLabel} is off-network and has no functional network
+          information.
         </Text>
 
         <Paragraph variant="help" sx={{ mt: '0.5rem', fontSize: 0 }}>
           Not all dams could be correctly snapped to the aquatic network for
           analysis. Please{' '}
           <a
-            href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${
-              barrierType === 'dams' ? 'dam' : 'road-related barrier'
-            }: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+            href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${barrierTypeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
           >
             contact us
           </a>{' '}
@@ -86,7 +127,7 @@ const Network = ({
   }
 
   return (
-    <Box {...props}>
+    <Box sx={sx}>
       {header}
 
       <Grid
@@ -107,7 +148,7 @@ const Network = ({
       >
         <Box>
           <b>{formatNumber(gainmiles, 2, true)} total miles</b> could be
-          reconnected by removing this {barrierTypeLabel}, including{' '}
+          reconnected by removing this {barrierTypeLabel} including{' '}
           <b>{formatNumber(perennialGainMiles, 2, true)} miles</b> of perennial
           reaches.
         </Box>
@@ -115,7 +156,7 @@ const Network = ({
         {totalupstreammiles > 0 ? (
           <Box>
             <b>{formatPercent(percentAltered)}% of the upstream network</b> is
-            in altered stream channels (coded as canals / ditches).
+            in altered stream reaches.
           </Box>
         ) : null}
 
@@ -123,7 +164,7 @@ const Network = ({
           <b>
             {sizeclasses} river size {sizeclasses === 1 ? 'class' : 'classes'}
           </b>{' '}
-          could be gained by removing this barrier.
+          could be gained by removing this {barrierTypeLabel}.
         </Box>
 
         <Box>
@@ -212,13 +253,31 @@ const Network = ({
           </Row>
         </Table>
       </Box>
+
+      {invasive ? (
+        <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
+          Note: this {barrierTypeLabel} is identified as a beneficial to
+          restricting the movement of invasive species and is not ranked.
+        </Paragraph>
+      ) : null}
+
+      {unranked && !invasive ? (
+        <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
+          Note: this {barrierTypeLabel} excluded from ranking based on field
+          reconnaissance, manual review of aerial imagery, or other information
+          about this {barrierTypeLabel}.
+        </Paragraph>
+      ) : null}
+
       <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
         Note: downstream lengths are limited to free-flowing reaches only; these
         exclude lengths within waterbodies in the downstream network. Perennial
         miles are the sum of lengths of all reaches not specifically coded as
         ephemeral or intermittent within the functional network. Perennial
-        reaches are not necessarily contiguous. Altered miles are those that are
-        specifically coded as canals or ditches, and do not necessarily include
+        reaches are not necessarily contiguous. Altered miles are the total
+        length of stream reaches that are specifically identified in NHD or the
+        National Wetlands Inventory as altered (canal / ditch, within a
+        reservoir, or other channel alteration), and do not necessarily include
         all forms of alteration of the stream channel.
       </Paragraph>
     </Box>
@@ -227,8 +286,12 @@ const Network = ({
 
 Network.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  sarpid: PropTypes.string.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
+  onloop: PropTypes.bool,
+  diversion: PropTypes.number,
+  nostructure: PropTypes.bool,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -239,11 +302,16 @@ Network.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
-  sarpid: PropTypes.string.isRequired,
+  invasive: PropTypes.bool,
+  unranked: PropTypes.bool,
+  sx: PropTypes.object,
 }
 
 Network.defaultProps = {
   excluded: false,
+  onloop: false,
+  diversion: 0,
+  nostructure: false,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,
@@ -254,6 +322,9 @@ Network.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: 0,
   sizeclasses: 0,
+  invasive: false,
+  unranked: false,
+  sx: null,
 }
 
 export default Network

@@ -1,3 +1,5 @@
+// @refresh reset
+
 import React, { useState, useCallback, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { FilePdf } from '@emotion-icons/fa-solid'
@@ -13,8 +15,10 @@ import {
 import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
 
+import { barrierNameWhenUnknown } from 'config'
 import { Report } from 'components/Report'
 import { mapToDataURL, basemapAttribution } from 'components/Map'
+import { isEmptyString } from 'util/string'
 
 import { PageError } from 'components/Layout'
 
@@ -33,21 +37,26 @@ import Species from './Species'
 const Preview = ({ barrierType, data }) => {
   const { id, sarpid, upnetid, county, state, lat, lon } = data
 
-  const defaultName =
-    barrierType === 'dams'
-      ? `Dam: unknown name (SARPID: ${sarpid})`
-      : `Road-related barrier: unknown name (SARPID ${sarpid})`
+  console.log('data', data)
 
-  const name = data.name || defaultName
+  const name = !isEmptyString(data.name)
+    ? data.name
+    : barrierNameWhenUnknown[barrierType] || 'Unknown name'
 
-  const [{ attribution, hasError, isPending }, setState] = useState({
-    attribution: basemapAttribution['light-v9'],
-    hasError: false,
-    isPending: false,
-  })
+  const [{ attribution, hasError, isPending, visibleLayers }, setState] =
+    useState({
+      attribution: basemapAttribution['light-v10'],
+      hasError: false,
+      isPending: false,
+      visibleLayers: null,
+    })
 
   const exportMapRef = useRef(null)
   const locatorMapRef = useRef(null)
+
+  const handleVisibleLayerUpdate = useCallback((visible) => {
+    setState((prevState) => ({ ...prevState, visibleLayers: visible }))
+  }, [])
 
   const handleCreateExportMap = useCallback((map) => {
     exportMapRef.current = map
@@ -110,6 +119,7 @@ const Preview = ({ barrierType, data }) => {
           barrierType={barrierType}
           data={data}
           name={name}
+          visibleLayers={visibleLayers}
         />
       )
         .toBlob()
@@ -135,9 +145,9 @@ const Preview = ({ barrierType, data }) => {
           }))
         })
     },
-    // intentionally omitting deps; they don't change
+    // intentionally omitting other deps; they don't change
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    []
+    [visibleLayers]
   )
 
   if (hasError) {
@@ -185,6 +195,7 @@ const Preview = ({ barrierType, data }) => {
 
         <Header
           barrierType={barrierType}
+          {...data}
           name={name}
           county={county}
           state={state}
@@ -200,6 +211,7 @@ const Preview = ({ barrierType, data }) => {
           barrierType={barrierType}
           onCreateMap={handleCreateExportMap}
           onUpdateBasemap={handleUpdateBasemap}
+          onVisibleLayerUpdate={handleVisibleLayerUpdate}
         />
 
         <Attribution attribution={attribution} />
@@ -212,7 +224,11 @@ const Preview = ({ barrierType, data }) => {
               onCreateMap={handleCreateLocatorMap}
             />
           </Box>
-          <Legend barrierType={barrierType} name={name} />
+          <Legend
+            barrierType={barrierType}
+            name={name}
+            visibleLayers={visibleLayers}
+          />
         </Flex>
 
         <Box
@@ -261,7 +277,6 @@ Preview.propTypes = {
     county: PropTypes.string.isRequired,
     state: PropTypes.string.isRequired,
     upnetid: PropTypes.number,
-    hasnetwork: PropTypes.bool,
     // other props validated by subcomponents
   }).isRequired,
 }

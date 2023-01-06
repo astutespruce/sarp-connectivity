@@ -1,58 +1,80 @@
-import React, { memo } from 'react'
+import React, { useEffect, useRef, memo } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
-import { STATE_FIPS } from '../../../config/constants'
+import { STATES } from 'config'
 
-const PREFIXES = {
-  ECO3: 'Level 3',
-  ECO4: 'Level 4',
-}
+const ListItem = ({
+  id,
+  name,
+  state,
+  layer,
+  showID,
+  disabled,
+  focused,
+  onClick,
+}) => {
+  const node = useRef(null)
 
-const ListItem = ({ id, name, state, layer, showID, onClick }) => {
+  useEffect(() => {
+    if (node.current && focused) {
+      node.current.focus()
+    }
+  }, [focused])
+
   const stateLabels = state
     ? state
         .split(',')
-        .map((s) => STATE_FIPS[s])
+        .map((s) => STATES[s])
         .sort()
         .join(', ')
     : ''
 
   return (
     <Box
+      ref={node}
       as="li"
-      onClick={onClick}
+      onClick={!disabled ? onClick : null}
+      tabIndex={0}
       sx={{
         p: '0.5em',
         m: '0px',
         borderBottom: '1px solid #EEE',
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         lineHeight: 1.2,
         '&:hover': {
           bg: 'grey.0',
         },
+        fontStyle: disabled ? 'italic' : 'inherit',
+        color: disabled ? 'grey.7' : 'inherit',
+        bg: disabled ? 'grey.0' : 'inherit',
       }}
     >
-      <b>{name}</b>
-      {showID && (
-        <Text
+      <Box sx={{ fontWeight: !disabled ? 'bold' : 'inherit' }}>
+        {name}
+        {disabled ? (
+          <Text sx={{ fontSize: 0, display: 'inline-block', ml: '0.25rem' }}>
+            (already selected)
+          </Text>
+        ) : null}
+      </Box>
+      {showID ? (
+        <Box
           sx={{
-            display: 'inline-block',
-            ml: '0.5em',
             fontSize: 0,
             color: 'grey.7',
             whiteSpace: 'nowrap',
             wordWrap: 'none',
           }}
         >
-          ({layer && `${PREFIXES[layer] || layer}: `}
-          {id})
-        </Text>
-      )}
+          {layer ? `${layer}: ` : null}
+          {id}
+        </Box>
+      ) : null}
 
-      {stateLabels && (
+      {stateLabels ? (
         <Text sx={{ fontSize: 1, color: 'grey.7' }}>{stateLabels}</Text>
-      )}
+      ) : null}
     </Box>
   )
 }
@@ -64,12 +86,16 @@ ListItem.propTypes = {
   state: PropTypes.string,
   layer: PropTypes.string,
   showID: PropTypes.bool,
+  disabled: PropTypes.bool,
+  focused: PropTypes.bool,
 }
 
 ListItem.defaultProps = {
   state: '',
   layer: '',
   showID: false,
+  disabled: false,
+  focused: false,
 }
 
 export default memo(ListItem)

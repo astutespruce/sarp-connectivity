@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import pandas as pd
+from pyarrow.dataset import dataset
 
 from api.logger import log
 
@@ -8,25 +8,14 @@ from api.logger import log
 data_dir = Path("data/api")
 
 
-### Read source data into memory
-# we can do this because data do not consume much memory
-
 try:
-    dams = pd.read_feather(data_dir / "dams.feather").set_index("id")
-    ranked_dams = dams.loc[dams.Ranked]
+    dams = dataset(data_dir / "dams.feather", format="feather")
+    small_barriers = dataset(data_dir / "small_barriers.feather", format="feather")
+    removed_dams = dataset(data_dir / "removed_dams.feather", format="feather")
+    road_crossings = dataset(data_dir / "road_crossings.feather", format="feather")
 
-    barriers = pd.read_feather(data_dir / "small_barriers.feather").set_index("id")
-    ranked_barriers = barriers.loc[barriers.Ranked]
-
-    print(
-        f"Loaded {len(dams):,} dams ({len(ranked_dams):,} ranked), {len(barriers):,} barriers ({len(ranked_barriers):,} ranked) "
-    )
+    units = dataset(data_dir / "unit_bounds.feather", format="feather")
 
 except Exception as e:
     print("ERROR: not able to load data")
     log.error(e)
-
-
-# on demand instead of in-memory
-def get_removed_dams():
-    return pd.read_feather(data_dir / "removed_dams.feather")

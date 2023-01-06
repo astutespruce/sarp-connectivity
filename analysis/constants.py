@@ -1,6 +1,13 @@
 """Constants used in other scripts."""
 
-# Full Southeast + USFWS R2 / R6 region
+# Mapping of network type to barrier kinds that break that network
+NETWORK_TYPES = {
+    "dams": ["waterfall", "dam"],
+    "small_barriers": ["waterfall", "dam", "small_barrier"],
+    # "road_crossing": ["waterfall", "dam", "small_barrier", "road_crossing"],
+}
+
+# Full Southeast + USFWS R2 / R6 region + OR / WA / ID
 STATES = {
     "AL": "Alabama",
     "AR": "Arkansas",
@@ -9,6 +16,7 @@ STATES = {
     "FL": "Florida",
     "GA": "Georgia",
     "IA": "Iowa",  # not officially part of SE / R2 & R6, but important and mostly covered anyway
+    "ID": "Idaho",
     "KS": "Kansas",
     "KY": "Kentucky",
     "LA": "Louisiana",
@@ -20,6 +28,7 @@ STATES = {
     "NE": "Nebraska",
     "NM": "New Mexico",
     "OK": "Oklahoma",
+    "OR": "Oregon",
     "PR": "Puerto Rico",
     "SC": "South Carolina",
     "SD": "South Dakota",
@@ -27,6 +36,8 @@ STATES = {
     "TX": "Texas",
     "UT": "Utah",
     "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
     "WY": "Wyoming",
 }
 
@@ -54,8 +65,8 @@ SARP_STATE_NAMES = [STATES[s] for s in SARP_STATES]
 
 # Note: some states overlap multiple regions
 REGION_STATES = {
-    # Southeast is SARP states
-    "se": SARP_STATES,
+    # Southeast is SARP states plus WV (SECAS not SARP state)
+    "se": SARP_STATES + ["WV"],
     # great plains / intermountain west
     "gpiw": [
         "CO",
@@ -68,20 +79,20 @@ REGION_STATES = {
         "WY",
         "UT",
     ],
+    "pnw": ["ID", "OR", "WA"],
     "sw": ["AZ", "NM", "OK", "TX"],
 }
 
 
-# NETWORK_TYPES determines the type of network analysis we are doing
-# natural: only include waterfalls in analysis
-# dams: include waterfalls and dams in analysis
-# small_barriers: include waterfalls, dams, and small barriers in analysis
-NETWORK_TYPES = ("natural", "dams", "small_barriers")
+# ID ranges for each type; this is added to the original index of each barrier type
+WATERFALLS_ID_OFFSET = 1  # 1 - 1M
+DAMS_ID_OFFSET = 1e6  # 1M - 5M
+SMALL_BARRIERS_ID_OFFSET = 5 * 1e6  # 5M - 10M
+CROSSINGS_ID_OFFSET = 1e7  # >= 10M
 
 
 # Use USGS CONUS Albers (EPSG:102003): https://epsg.io/102003    (same as other SARP datasets)
-# use Proj4 syntax, since GeoPandas doesn't properly recognize it's EPSG Code.
-# CRS = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
+# use Proj JSON syntax, since GeoPandas doesn't properly recognize it's EPSG Code.
 CRS = {
     "proj": "aea",
     "lat_1": 29.5,
@@ -93,9 +104,9 @@ CRS = {
     "datum": "NAD83",
     "units": "m",
     "no_defs": True,
+    "type": "crs",
 }
 
-CRS_WKT = """PROJCS["USA_Contiguous_Albers_Equal_Area_Conic",GEOGCS["GCS_North_American_1983",DATUM["North_American_Datum_1983",SPHEROID["GRS_1980",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Albers_Conic_Equal_Area"],PARAMETER["False_Easting",0],PARAMETER["False_Northing",0],PARAMETER["longitude_of_center",-96],PARAMETER["Standard_Parallel_1",29.5],PARAMETER["Standard_Parallel_2",45.5],PARAMETER["latitude_of_center",37.5],UNIT["Meter",1],AUTHORITY["EPSG","102003"]]"""
 
 GEO_CRS = "EPSG:4326"
 
@@ -131,6 +142,7 @@ DAM_FS_COLS = [
     "DB_Source",
     "Barrier_Name",
     "Other_Barrier_Name",
+    "OwnerType",
     "River",
     "PurposeCategory",
     "Year_Completed",
@@ -148,14 +160,17 @@ DAM_FS_COLS = [
     "BarrierStatus",
     "PassageFacility",
     "StructureCategory",
+    "StructureClass",
     "Diversion",
     "FishScreen",
     "ScreenType",
     "BarrierSeverity",
     "LowheadDam",
+    "LowheadDam1",  # temporary, for Oregon
     "ImpoundmentType",
     "EditDate",
     "Editor",
+    "Link",
 ]
 
 
@@ -176,6 +191,8 @@ SMALL_BARRIER_COLS = [
     "Year_Removed",
     "EditDate",
     "Editor",
+    "OwnerType",
+    "Constriction"
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",
@@ -204,7 +221,7 @@ WATERFALL_COLS = [
 
 
 # Used to filter small barriers by Potential_Project (small barriers)
-# based on guidance from Kat
+# based on guidance from Kat; others are intentionally excluded
 KEEP_POTENTIAL_PROJECT = [
     "Severe Barrier",
     "Moderate Barrier",
@@ -214,13 +231,13 @@ KEEP_POTENTIAL_PROJECT = [
     "Proposed Project",
 ]
 
-# "No Upstream Habitat", "No Upstream Channel", "Inaccessible" excluded intentionally from above
+UNRANKED_POTENTIAL_PROJECT = ["No Upstream Channel", "No Upstream Habitat"]
+REMOVED_POTENTIAL_PROJECT = ["Past Project", "Completed Project"]
 
-
-# Used to filter Potential_Project (small barriers)
 # These are DROPPED from all analysis and mapping
-# TODO: pull Past Project / Completed Project into different datasets for completed projects
-DROP_POTENTIAL_PROJECT = ["No Crossing", "Past Project", "Completed Project "]
+DROP_POTENTIAL_PROJECT = ["No Crossing"]
+
+# NOTE: everything other than above is marked as excluded from analysis
 
 
 # Used to filter small barriers and dams by SNAP2018, based on guidance from Kat
@@ -228,17 +245,15 @@ DROP_POTENTIAL_PROJECT = ["No Crossing", "Past Project", "Completed Project "]
 # Note: 0 value indicates N/A
 DROP_MANUALREVIEW = [
     6,  # Delete: ambiguous, might be duplicate or not exist
-    11,  # Duplicate TODO: handle correctly
+    11,  # Duplicate
     14,  # Error: dam does not exist
 ]
 
-DROP_STRUCTURECATEGORY = [
-    3  # Diversion (canal / ditch) without associated dam structure
-]
-
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_MANUALREVIEW = [
-    5,  # offstream (DO NOT SNAP!)
+# NOTE: off-network barriers (5) are excluded separately because they are not allowed to snap
+EXCLUDE_MANUALREVIEW = []
+
+REMOVED_MANUALREVIEW = [
     8,  # Removed (no longer exists): Dam removed for conservation
 ]
 
@@ -253,28 +268,54 @@ ONSTREAM_MANUALREVIEW = [
     15,  # Onstream, moved (moved to close to correct location)
 ]
 
-OFFSTREAM_MANUALREVIEW = [5, 11]  # offstream, checked by SARP  # duplicate, delete
+OFFSTREAM_MANUALREVIEW = [
+    5,  # offstream, checked by SARP
+    11,  # duplicate barrier, delete from analysis
+]
 
 # Used to filter dams by Recon
 # based on guidance from Kat
-DROP_RECON = [5, 19]
-DROP_FEASIBILITY = [7]
+DROP_RECON = [
+    5,  # Dam may be removed or error (no longer visible)
+    19,  # Proposed dam
+]
+
+DROP_FEASIBILITY = [
+    7,  # Error
+]
 
 # These are excluded from network analysis / prioritization, but included for mapping
-EXCLUDE_RECON = [7, 22, 23]
-EXCLUDE_FEASIBILITY = [8, 13]
-EXCLUDE_BARRIER_SEVERITY = [7]  # limited to just dams
+REMOVED_RECON = [
+    7,  # Dam was deliberately removed
+]
 
-UNRANKED_MANUALREVIEW = [
+EXCLUDE_RECON = []
+
+REMOVED_FEASIBILITY = [
+    8,  # Dam removed for conservation benefit
+]
+
+EXCLUDE_FEASIBILITY = [
+    13,  # Dam breached with full flow
+]
+
+# limited to just dams
+EXCLUDE_BARRIER_SEVERITY = [7]  # No Barrier
+
+INVASIVE_MANUALREVIEW = [
     10,  # invasive barriers; these break the network, but not included in prioritization
 ]
 
-UNRANKED_RECON = [
+INVASIVE_RECON = [
     16  # invasive barriers; these break the network, but not included in prioritization
 ]
 
-UNRANKED_FEASIBILITY = [
+INVASIVE_FEASIBILITY = [
     9  # invasive barriers; these break the network, but not included in prioritization
+]
+
+NOSTRUCTURE_STRUCTURECATEGORY = [
+    3  # Diversion (canal / ditch) without associated dam structure
 ]
 
 # Applies to Recon values, omitted values should be filtered out
@@ -300,8 +341,8 @@ RECON_TO_FEASIBILITY = {
     19: 10,  # should be removed from analysis
     20: 5,
     21: 6,
-    22: 11,  # should be removed from analysis
-    23: 11,  # should be removed from analysis
+    22: 11,  # exclude if BarrierSeverity == No Barrier or Unknown / blank
+    23: 11,  # exclude if BarrierSeverity == No Barrier or Unknown / blank
 }
 
 # Associated recon values
@@ -323,80 +364,160 @@ RECON_TO_FEASIBILITY = {
 #   # 13: 'Breached - full flow'
 # }
 
-
-POTENTIAL_TO_SEVERITY = {
-    "Inaccessible": 0,
-    "Indeterminate": 0,  # removed from processing
-    "Insignificant Barrier": 1,
-    "Minor Barrier": 1,
-    "Moderate Barrier": 2,
-    "No Barrier": 1,  # removed from processing
-    "No Crossing": 1,
-    "No Upstream Channel": 1,
-    "No Upstream Habitat": 1,
-    "Not Scored": 0,
-    "No": 1,
-    "Completed Project": 0,  # removed from processing
-    "Past Project": 0,  # removed from processing
-    "Potential Project": 0,
-    "Proposed Project": 0,
-    "Severe Barrier": 3,
-    "Significant Barrier": 3,
-    "Small Project": 0,
-    "SRI Only": 0,
+# NOTE: values with 10 are NOT shown in filters in the UI; 0 is reserved for missing values
+FEASIBILITY_TO_DOMAIN = {
+    0: 1,  # not assessed
+    1: 5,  # not feasible
+    2: 4,  # likely infeasible
+    3: 3,  # possibly feasible
+    4: 2,  # likely feasible
+    5: 6,  # no conservation benefit
+    6: 1,  # unknown
+    7: 10,  # error (filtered out)
+    8: 10,  # dam removed for conservation benefit (filtered out)
+    9: 10,  # invasive species barrier (filtered out)
+    10: 10,  # proposed dam
+    11: 9,  # fish passage installed
+    12: 7,  # removal planned
+    13: 8,  # breached - full flow
 }
 
+
 CROSSING_TYPE_TO_DOMAIN = {
-    "Bridge": 2,
-    "Bridge Adequate": 2,
-    "Buried Stream": 6,
-    "Culvert": 3,
-    "Dam": 5,
-    "Ford": 4,
-    "Inaccessible": 0,
-    "Multiple Culvert": 3,
-    "Multiple Culverts": 3,
-    "Natural Ford": 4,
-    "No Crossing": 1,
-    "No Upstream Channel": 1,
-    "Other": 0,
-    "Partially Inaccessible": 0,
-    "Removed Crossing": 1,
-    "Slab": 4,
-    "Unknown": 0,
-    "Vented Ford": 4,
-    "Vented Slab": 4,
+    "bridge": 5,
+    "bridge adequate": 5,
+    "buried stream": 11,
+    "culvert": 8,
+    "dam": 0,  # dams should be removed from the small barriers dataset
+    "ford": 6,
+    "low water crossing": 6,
+    "inaccessible": 1,
+    "multiple culvert": 8,
+    "multiple culverts": 8,
+    "natural ford": 7,
+    "no crossing": 2,
+    "none": 0,
+    "no upstream channel": 3,
+    "other": 0,
+    "partially inaccessible": 1,
+    "removed crossing": 2,
+    "slab": 6,
+    "unknown": 0,
+    "vented ford": 6,
+    "vented slab": 6,
+    "": 0,
+    "tide gate": 10,
+    "tidegate": 10,
+    # only for uninventoried road crossings
+    "assumed culvert": 9,
+}
+
+CONSTRICTION_TO_DOMAIN = {
+    "unknown": 0,
+    "": 0,
+    "no data": 0,
+    "spans full channel & banks": 1,
+    "not constricted": 1,
+    "spans only bankfull/active channel": 2,
+    "constricted to some degree": 3,
+    "minor": 4,
+    "moderate": 5,
+    "severe": 6,
 }
 
 ROAD_TYPE_TO_DOMAIN = {
-    "Asphalt": 2,
-    "Concrete": 2,
-    "Dirt": 1,
-    "Driveway": 0,
-    "Gravel": 1,
-    "Other": 0,
-    "Paved": 2,
-    "Railroad": 3,
-    "Trail": 1,
-    "Unknown": 0,
-    "Unpaved": 1,
-    "No Data": 0,
-    "Nodata": 0,
+    "asphalt": 2,
+    "concrete": 2,
+    "dirt": 1,
+    "driveway": 0,
+    "gravel": 1,
+    "other": 0,
+    "paved": 2,
+    "railroad": 3,
+    "trail": 1,
+    "unknown": 0,
+    "unpaved": 1,
+    "no data": 0,
+    "nodata": 0,
+    "": 0,
 }
 
-BARRIER_CONDITION_TO_DOMAIN = {"Failing": 1, "New": 4, "OK": 3, "Poor": 2, "Unknown": 0}
+# Dam barrier condition comes in as domain values,
+# map small barrier condition to match
+BARRIER_CONDITION_TO_DOMAIN = {
+    "": 0,
+    "unknown": 0,
+    "no data": 0,
+    "failing": 3,
+    "poor": 3,
+    "ok": 1,
+    "new": 1,
+}
 
+# Dams and small barriers are mapped to SEVERITY_DOMAIN
 DAM_BARRIER_SEVERITY_TO_DOMAIN = {
     "": 0,
-    "Unknown": 0,
-    "Complete": 1,
-    "Partial": 2,
-    "Partial Passability - Non Salmonid": 3,
-    "Partial Passability - Salmonid": 4,
-    "Seasonably Passable - Non Salmonid": 5,
-    "Seasonably Passable - Salmonid": 6,
-    "No Barrier": 7,
+    "0": 0,  # TEMP: coding error
+    "na": 0,
+    "unknown": 0,
+    "complete": 1,
+    "severe barrier": 1,
+    "complete barrier": 1,
+    "partial": 2,
+    "partial passability - non salmonid": 3,
+    "partial passibility - non salmonid": 3,
+    "partial passability - salmonid": 4,
+    "seasonably passable - non salmonid": 5,
+    "seasonably passable - non salmond": 5,
+    "seasonably passable - salmonid": 6,
+    "no barrier": 7,
 }
+
+POTENTIALPROJECT_TO_SEVERITY = {
+    "": 0,
+    "na": 0,
+    "unknown": 0,
+    "inaccessible": 0,
+    "indeterminate": 0,  # removed from processing
+    "insignificant barrier": 7,
+    "minor barrier": 7,
+    "moderate barrier": 2,
+    "no barrier": 7,  # removed from processing
+    "no crossing": 7,
+    "no upstream channel": 7,
+    "no upstream habitat": 7,
+    "buried stream": 7,
+    "not scored": 0,
+    "no": 7,
+    "unassessed": 0,
+    "completed project": 0,  # removed from processing
+    "past project": 0,  # removed from processing
+    "potential project": 0,
+    "proposed project": 0,
+    "severe barrier": 1,
+    "significant barrier": 1,
+    "small project": 0,
+    "sri only": 0,
+    "other": 0,
+    "no score - missing data": 0,
+}
+
+
+# recoded to better align with OWNERTYPE domain
+BARRIEROWNERTYPE_TO_DOMAIN = {
+    0: 0,  # <missing>
+    1: 2,  # "Federal",
+    2: 3,  # "State",
+    3: 4,  # "Local Government",
+    4: 5,  # "Public Utility",
+    5: 0,  # "Private",
+    6: 0,  # "Not Listed",
+    7: 0,  # "Unknown",
+    8: 0,  # "Other",
+    9: 6,  # "Tribe",
+    10: 1,  # "USDA Forest Service",
+}
+
 
 OWNERTYPE_TO_DOMAIN = {
     # Unknown types are not useful
@@ -413,6 +534,7 @@ OWNERTYPE_TO_DOMAIN = {
     "Easement": 7,
     "Private Conservation Land": 8,
 }
+
 
 # Map of owner type domain above to whether or not the land is
 # considered public
@@ -453,16 +575,57 @@ FCODE_TO_STREAMTYPE = {
 
 # List of NHDPlusIDs to convert from loops to non-loops;
 # they are coded incorrectly in NHD
-# WARNING: you may need to remove the corresponding segments that
+# WARNING: you may need to remove the corresponding segments or joins that
 # were previously identified as loops
 CONVERT_TO_NONLOOP = {
-    "02": [10000300070616, 10000300132189, 10000300132190],
     "05": [
         # this is a loop at the junction of 05/06 that needs to be retained as a non-loop
         # for networks to be built correctly
         24000100384878
     ],
-    "10": [23001300034513, 23001300009083, 23001300078683, 23001300043943],
+    "10": [
+        23001300034513,
+        23001300009083,
+        23001300078683,
+        23001300043943,
+    ],
+    "17": [
+        # fix flowlines at Big Sheep Creek
+        55000500146043,
+        55000500199027,
+    ],
+    "18": [
+        # these are to preserve the mainstem of the Link River
+        50000400082908,
+        50000400125776,
+        50000400253622,
+        # This is main part of South Fork Putah Creek
+        50000900219269,
+        50000900189338,
+        50000900397299,
+        50000900397462,
+        50000900367742,
+        50000900278888,
+        50000900397622,
+        50000900160157,
+        50000900249280,
+        50000900397804,
+        50000900427377,
+        50000900219954,
+        50000900160338,
+        50000900308919,
+        50000900427502,
+        50000900397960,
+        # this preserves the join to the Middle Fork Eel river
+        50000400146877,
+        # This preserves the join to Indian Creek
+        50000900432339,
+        50000900017559,
+        50000900432337,
+        # This preserves the join to Kittredge Canal into main network
+        # from Williamson river
+        50000400211221,
+    ],
 }
 
 # List of NHDPlusIDs to convert from non-loops to loops based on inspection of
@@ -498,14 +661,34 @@ CONVERT_TO_LOOP = {
         40000200028408,
         40000200037070,
         40000400082917,
-        40000300030341,
+    ],
+    "17": [
+        55000400069574,
+        55000300390045,
+        55000300261512,
+        # fix flowlines at Big Sheep Creek
+        55000500199026,
+        55000500304567,
+    ],
+    "18": [
+        # These are to remove a canal alongside the Link River
+        50000400339083,
+        50000400296557,
+        # this is to preserve the mainstem of Putah Creek above
+        50000900397125,
+        50000900130045,
+        # this is to preserve the Williamson River join to main network
+        # via Kittredge Canal
+        50000400299323,
     ],
 }
 
 # List of NHDPlusIDs to remove due to issues with NHD
 REMOVE_IDS = {
-    # Invalid loops
-    "02": [10000300073811, 10000300021333],
+    "17": [
+        # Fix flowlines at Big Sheep Creek
+        55000500251842
+    ],
 }
 
 # List of NHDPlusIDs that flow into marine based on visual inspection
@@ -522,6 +705,21 @@ CONVERT_TO_MARINE = {
         15001800055997,
         15001800017440,
         15001800029679,
+        20001000056287,
+        20001000004549,
+        20001000055997,
+        20001000017440,
+        20001000055731,
+        20001000042883,
+        15001500182760,
+        15001500101306,
+        15000600194575,
+        15000600191114,
+        15000700048412,
+        15000700000084,
+        15001200035170,
+        20001000056286,
+        20001000017755,
     ],
     "12": [30000800214326, 30000100041238, 30000100041306, 30000100041205],
     "13": [35000100017108],
@@ -639,14 +837,42 @@ CONVERT_TO_MARINE = {
         40000200001852,
         40000200010314,
     ],
+    "17": [
+        55000100855363,
+        55000100282765,
+        55000100718685,
+        55000100872564,
+        55000100526544,
+        55000100308793,
+        55000100688852,
+        55000100751667,
+        55000800048292,
+        55000800085983,
+        55000800084485,
+        55000800008877,
+        55000300344170,
+        55000300368116,
+        55000300393790,
+        55000800193117,
+        55000800127717,  # this is not actually marine; it is a shim for the Fraser River in CAN so that these flowlines are marked as flowing to ocean too
+        55000100856434,
+        55000100324331,
+        55000100497886,
+        55000100474507,
+        55000100782369,
+        55000100378844,
+    ],
+    "18": [50000400299351, 50000400256410, 50000400001171, 50000900133268],
 }
 
 
 # List of NHDPlusIDs that are of pipeline type and greater than MAX_PIPELINE_LENGTH
 # but must be kept as they flow through dams; removing them would break networks
 KEEP_PIPELINES = {
-    "02": [10000200114743],
-    "05": [24000900019974,],
+    "02": [10000200568875, 10000200523449],
+    "05": [
+        24000900019974,
+    ],
     "10": [23001800189071, 23001900161939, 23001900224128, 23001300078800],
     "11": [
         21000300167343,
@@ -670,7 +896,26 @@ KEEP_PIPELINES = {
     ],
     "13": [35000600209336],
     "14": [41000300075075, 41000300083432],
-    "17": [55001200060404],
+    "17": [
+        55001200060404,
+        55000900261393,
+        55000900055928,
+        55000900055929,
+        # Boise River at Lucky Peak dam
+        55000700377451,
+        # drain pipe at Keystone Ferry
+        55000800273180,
+        # Chambers Creek near Steilacoom
+        55000800008877,
+    ],
+    "18": [
+        50000900133268,
+        50000400323321,
+        50000400237762,
+        50000400280625,
+        50000900123418,
+        50000900301457,
+    ],
     "21": [85000100010153],
 }
 
@@ -678,6 +923,18 @@ KEEP_PIPELINES = {
 # to be replaced with new_upstream or new_downstream
 # IMPORTANT: this only works where the original flowlines have not been split
 JOIN_FIXES = {
+    "05": [
+        # this adds a missing join between the Tennessee River and the Ohio River at the junction of 05 / 06
+        {
+            "upstream": 25000100061139,
+            "downstream": 24000100644691,
+            "new_upstream": 25000102104038,
+        }
+    ],
+    "06": [
+        # this adds a missing join between the Tennessee River and the Ohio River at the junction of 05 / 06
+        {"upstream": 25000102104038, "downstream": 0, "new_downstream": 24000100644691},
+    ],
     "10": [
         # These two segments are Teton River into Marias River, which are backwards in NHD
         {
@@ -690,12 +947,49 @@ JOIN_FIXES = {
             "downstream": 0,
             "new_downstream": 23001300080880,
         },
-    ]
+        # This segment has a gap between North and South Shoshone River within
+        # a reservoir and should be connected
+        {"upstream": 23002600053413, "downstream": 0, "new_downstream": 23002600082094},
+        # fixes a divergence for Bijou Creek
+        {
+            "upstream": 23001900141172,
+            "downstream": 23001900199640,
+            "new_downstream": 23001900170513,
+        },
+    ],
+    "17": [
+        # Fix disconnected network at Sage Creek
+        {"upstream": 55001100203950, "downstream": 0, "new_downstream": 55001100330944},
+        {"upstream": 0, "downstream": 55001100330944, "new_upstream": 55001100203950},
+    ],
+    "18": [
+        # Following entries fix middle fork of Eel River at confluence
+        {"upstream": 50000400146877, "downstream": 0, "new_downstream": 50000400232348},
+        {"upstream": 50000400061370, "downstream": 0, "new_downstream": 50000400146877},
+        # Following entries fix the Williamson River join to main network
+        # via Kittredge Canal; flow is in wrong direction
+        {"upstream": 50000900432337, "downstream": 0, "new_downstream": 50000900432336},
+        {"upstream": 50000900017559, "downstream": 0, "new_downstream": 50000900432337},
+    ],
 }
 
 ### data structure of NHDPlusIDs where upstream, downstream are the original values (used to join into data)
 # to be removed; they are likely replaced by other fixes
-REMOVE_JOINS = {"10": [{"upstream": 23001300034497, "downstream": 0}]}
+REMOVE_JOINS = {
+    "10": [
+        {"upstream": 23001300034497, "downstream": 0},
+        # replaced by fix above for Bijou Creek
+        {"upstream": 0, "downstream": 23001900170513},
+    ],
+    "18": [
+        # Part of fixes for Eel River above; this join is backwards flow
+        {"upstream": 50000400317905, "downstream": 50000400146877},
+        # Part of fixes for Williamson River above
+        {"upstream": 50000900254664, "downstream": 50000900432337},
+        # For fix above, this eliminates a duplicate origin point
+        {"upstream": 50000900432617, "downstream": 50000900017560},
+    ],
+}
 
 
 # List of NHDPlusIDs that are exit points draining a given HUC2
@@ -711,14 +1005,4 @@ HUC2_EXITS = {
         40000100060519,
     ],
     # Note: 16 is internally draining and omitted here
-    # Note: 17 has many exit points because it is a partial HUC2; most of these
-    # can be removed if the whole HUC2 is analyzed
-    "17": [
-        55001200000017,
-        55001200064544,
-        55001100042595,
-        55001100129754,
-        55001100087083,
-    ],
 }
-

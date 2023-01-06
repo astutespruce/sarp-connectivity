@@ -2,7 +2,7 @@ from time import time
 
 import pandas as pd
 import geopandas as gp
-import pygeos as pg
+import shapely
 
 from analysis.lib.joins import find_joins
 from analysis.lib.graph import DirectedGraph
@@ -37,12 +37,15 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
             "geometry",
             "FCode",
             "FType",
-            "MaxElevSmo",
-            "MinElevSmo",
+            "MaxElev",
+            "MinElev",
             "Slope",
             "TotDASqKm",
-            "StreamOrde",
+            "StreamOrder",
             "sizeclass",
+            "Divergence",
+            "AnnualFlow",
+            "AnnualVelocity",
             "HUC4",
             "loop",
         ]
@@ -68,13 +71,19 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     # Join in stats from waterbodies and geometries from flowlines
     drain_pts = (
         wb_joins.loc[wb_joins.lineID.isin(drains.upstream_id.unique())]
-        .join(wb_atts, on="wbID",)
-        .join(tmp_flowlines[["geometry", "loop", "TotDASqKm"]], on="lineID",)
+        .join(
+            wb_atts,
+            on="wbID",
+        )
+        .join(
+            tmp_flowlines[["geometry", "loop", "TotDASqKm"]],
+            on="lineID",
+        )
         .reset_index(drop=True)
     )
 
     # create a point from the last coordinate, which is the furthest one downstream
-    drain_pts.geometry = pg.get_point(drain_pts.geometry.values.data, -1)
+    drain_pts.geometry = shapely.get_point(drain_pts.geometry.values.data, -1)
 
     # drop any that are downstream terminals; these are most likely waterbodies
     # that do not have further downstream networks (e.g., flow to ocean)
@@ -87,7 +96,9 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     # These are most likely multiple segments that terminate in same drain point,
     # so we need to assign them their common downstream ID instead so that
     # snapping dams to these works properly later (otherwise snapped to only one of segments)
-    drain_pts["hash"] = pd.util.hash_array(pg.to_wkb(drain_pts.geometry.values.data))
+    drain_pts["hash"] = pd.util.hash_array(
+        shapely.to_wkb(drain_pts.geometry.values.data)
+    )
     s = drain_pts.groupby("hash").size()
     ix = drain_pts.hash.isin(s[s > 1].index)
     if ix.sum():
@@ -210,12 +221,12 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     downstream_junctions = grouped[grouped > 1].index
     # extract upstream endoint for each junction line
     downstream_junction_pts = pd.Series(
-        pg.get_point(flowlines.loc[downstream_junctions].geometry.values.data, 0),
+        shapely.get_point(flowlines.loc[downstream_junctions].geometry.values.data, 0),
         index=downstream_junctions,
     )
     # find the nearest junctions within 5m tolerance of drain points on loops
-    tree = pg.STRtree(downstream_junction_pts.values.data)
-    left, right = tree.nearest_all(loop_pts.geometry.values.data, max_distance=5)
+    tree = shapely.STRtree(downstream_junction_pts.values.data)
+    left, right = tree.query_nearest(loop_pts.geometry.values.data, max_distance=5)
 
     # make sure they are connected on the network
     g = DirectedGraph(pairs, source="upstream_id", target="downstream_id")
@@ -233,7 +244,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         # whereas other drains are attributed to the flowline upstream of themselves
         ix = loop_pts.index.take(left)
         drain_pts.loc[ix, "snap_to_junction"] = True
-        drain_pts.loc[ix, "snap_dist"] = pg.distance(
+        drain_pts.loc[ix, "snap_dist"] = shapely.distance(
             drain_pts.loc[ix].geometry.values.data,
             downstream_junction_pts.iloc[right].values,
         )
@@ -246,7 +257,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     wb_geom = pd.Series(wb_geom.values.data, index=wb_geom.index)
     # take only the upstream most point
     tmp_flowline_pts = tmp_flowlines[["geometry", "loop", "TotDASqKm"]].copy()
-    tmp_flowline_pts["geometry"] = pg.get_point(flowlines.geometry.values.data, 0)
+    tmp_flowline_pts["geometry"] = shapely.get_point(flowlines.geometry.values.data, 0)
     fl_pt = pd.Series(
         tmp_flowline_pts.geometry.values.data, index=tmp_flowline_pts.index
     )
@@ -256,8 +267,14 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         .reset_index()
     )
     headwaters = (
-        headwaters.join(wb_atts, on="wbID",)
-        .join(tmp_flowline_pts, on="lineID",)
+        headwaters.join(
+            wb_atts,
+            on="wbID",
+        )
+        .join(
+            tmp_flowline_pts,
+            on="lineID",
+        )
         .reset_index(drop=True)
     )
     headwaters["headwaters"] = True
@@ -268,9 +285,9 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     )
 
     drain_pts["headwaters"] = False
-    drain_pts = drain_pts.append(headwaters, sort=False, ignore_index=True).reset_index(
-        drop=True
-    )
+    drain_pts = pd.concat(
+        [drain_pts, headwaters], sort=False, ignore_index=True
+    ).reset_index(drop=True)
 
     # join in line properties
     drain_pts = drain_pts.drop(columns=["loop", "TotDASqKm"]).join(

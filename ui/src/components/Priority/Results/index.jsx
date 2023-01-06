@@ -4,6 +4,7 @@ import { Box, Flex, Heading, Paragraph, Text } from 'theme-ui'
 
 import { useBarrierType } from 'components/Data'
 import { Downloader } from 'components/Download'
+import { SCENARIOS, barrierTypeLabels } from 'config'
 import { countBy } from 'util/data'
 import { formatNumber, capitalize } from 'util/format'
 
@@ -11,16 +12,15 @@ import Histogram from './Histogram'
 import BackLink from '../BackLink'
 import StartOverButton from '../StartOverButton'
 
-import { SCENARIOS, barrierTypeLabels } from '../../../../config/constants'
-
 const Results = ({
-  config,
+  config: rawConfig,
   scenario: rawScenario,
   resultsType,
   rankData,
   tierThreshold,
   onSetTierThreshold,
   onBack,
+  onStartOver,
 }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
@@ -34,8 +34,13 @@ const Results = ({
       'combined perennial network connectivity and watershed condition'
   }
 
+  const config = {
+    ...rawConfig,
+    scenario,
+  }
+
   // count records by tier
-  const tierCounts = countBy(rankData, `${scenario}_tier`)
+  const tierCounts = countBy(rankData, scenario)
 
   const tiers = Array.from({ length: 20 }, (_, i) => i + 1)
 
@@ -140,7 +145,7 @@ const Results = ({
           bg: '#f6f6f2',
         }}
       >
-        <StartOverButton />
+        <StartOverButton onStartOver={onStartOver} />
         <Downloader barrierType={barrierType} config={config} customRank />
       </Flex>
     </Flex>
@@ -166,6 +171,7 @@ Results.propTypes = {
   ).isRequired,
   onSetTierThreshold: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
+  onStartOver: PropTypes.func.isRequired,
 }
 
 export default Results

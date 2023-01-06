@@ -1,3 +1,47 @@
+[tool.poetry]
+name = "sarp-connectivity"
+# version is managed in setup.py
+version = "0.0.0"
+description = "Aquatic Barrier Inventory Visualization & Prioritization Tool"
+authors = ["Brendan Ward <bcward@astutespruce.com>"]
+license = "MIT"
+packages = [{ include = "analysis" }, { include = "api" }]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+pyarrow = "10"
+python-dotenv = "^0.20.0"
+fastapi = "^0.79.0"
+uvicorn = { extras = ["standard"], version = "^0.18.2" }
+gunicorn = { version = "^20.1.0", optional = true }
+sentry-sdk = "^1.9.0"
+
+[tool.poetry.dev-dependencies]
+pylint = "^2.14.5"
+black = "^22.6.0"
+requests = "^2.28.1"
+tqdm = "^4.64.0"
+numba = "^0.56.0"
+pyogrio = "^0.4.2"
+geopandas = "0.12.1"
+pandas = "^1.4.3"
+httpx = { extras = ["http2"], version = "^0.23.0" }
+scipy = "^1.9.1"
+shapely = "2.0rc1"
+openpyxl = "^3.0.10"
+tabulate = "^0.9.0"
+
+[tool.poetry.extras]
+deploy = ["gunicorn"]
+
+# wheel is built locally for Arm64
+# must be uncommented to install
+# pymgl = { path = "../pymgl/dist/pymgl-0.2.2+0.g705372e.dirty-cp310-cp310-macosx_12_0_arm64.whl" }
+
+
+[tool.isort]
+profile = "black"
+
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta:__legacy__"
+requires = ["poetry-core>=1.0.0", "setuptools", "wheel"]
+build-backend = "poetry.core.masonry.api"

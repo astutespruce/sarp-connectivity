@@ -1,51 +1,54 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Text, Paragraph } from 'theme-ui'
+import { Box, Flex, Text } from 'theme-ui'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { Entry, Field, Section } from 'components/Sidebar'
-import { OutboundLink } from 'components/Link'
-import { formatNumber } from 'util/format'
-import { isEmptyString } from 'util/string'
 
-import { siteMetadata } from '../../../gatsby-config'
 import {
-  DAM_CONDITION,
+  siteMetadata,
+  CONDITION,
   CONSTRUCTION,
   PASSAGEFACILITY,
   PURPOSE,
   RECON,
-  OWNERTYPE,
-  HUC8_USFS,
-  WATERBODY_SIZECLASS,
-} from '../../../config/constants'
+} from 'config'
 
+import DiadromousInfo from './DiadromousInfo'
+import IDInfo from './IDInfo'
+import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
+import NoNetworkInfo from './NoNetworkInfo'
+import SpeciesInfo from './SpeciesInfo'
 
 const { version: dataVersion } = siteMetadata
 
 const DamDetails = ({
   barrierType,
   sarpid,
-  lat,
-  lon,
   hasnetwork,
   excluded,
+  onloop,
+  unsnapped,
   height,
   nidid,
   source,
+  link,
   estimated,
-  year,
+  yearcompleted,
   construction,
   diversion,
+  nostructure,
   purpose,
   condition,
   lowheaddam,
   passagefacility,
   river,
+  streamorder,
+  streamsizeclass,
   waterbodykm2,
   waterbodysizeclass,
   intermittent,
-  HUC8,
   HUC12,
   HUC8Name,
   HUC12Name,
@@ -53,11 +56,10 @@ const DamDetails = ({
   statesgcnspp,
   regionalsgcnspp,
   trout,
+  salmonidesu,
   recon,
   ownertype,
-  huc8_usfs,
-  huc8_coa,
-  huc8_sgcn,
+  barrierownertype,
   // metrics
   totalupstreammiles,
   perennialupstreammiles,
@@ -69,268 +71,230 @@ const DamDetails = ({
   freeunaltereddownstreammiles,
   landcover,
   sizeclasses,
-}) => (
-  <Box
-    sx={{
-      mt: '-1rem',
-      mx: '-1rem',
-      fontSize: 1,
-    }}
-  >
-    <Section title="Location">
-      <Entry>
-        {estimated === 1 ? 'Estimated dam' : 'Dam'} at {formatNumber(lat, 5)},{' '}
-        {formatNumber(lon, 5)} (&deg;N, &deg;E)
+  invasive,
+  unranked,
+  flowstoocean,
+  milestooutlet,
+  totaldownstreamdams,
+  totaldownstreamsmallbarriers,
+  totaldownstreamwaterfalls,
+}) => {
+  const isLowheadDam = lowheaddam !== null && lowheaddam >= 1
+  const isDiversion = diversion !== null && diversion >= 1
+  const isUnspecifiedType = !(isLowheadDam || isDiversion || invasive)
+
+  return (
+    <Box
+      sx={{
+        mt: '-1rem',
+        mx: '-0.5rem',
+        fontSize: 1,
+      }}
+    >
+      <Section title="Location">
         {estimated === 1 ? (
-          <Paragraph variant="help" sx={{ fontSize: 0, mt: '0.5em' }}>
-            Dam is estimated from other data sources and may be incorrect;
-            please{' '}
-            <a
-              href={`mailto:Kat@southeastaquatics.net?subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
-            >
-              let us know
-            </a>
-          </Paragraph>
-        ) : null}
-      </Entry>
-
-      {river && river !== '"' && river !== 'null' && river !== 'Unknown' ? (
-        <Entry>
-          <Field>River or stream:</Field> {river}
-        </Entry>
-      ) : null}
-
-      {waterbodysizeclass >= 0 ? (
-        <Entry>
-          <Field>Size of associated pond or lake:</Field>{' '}
-          {waterbodykm2 > 0.1
-            ? `${formatNumber(waterbodykm2, 2)} k`
-            : `${formatNumber(waterbodykm2 * 1e6)} `}
-          m<sup>2</sup> (
-          {WATERBODY_SIZECLASS[waterbodysizeclass].split(' (')[0].toLowerCase()}
-          )
-        </Entry>
-      ) : null}
-
-      {intermittent === 1 ? (
-        <Entry>
-          Located on a reach that has intermittent or ephemeral flow
-        </Entry>
-      ) : null}
-
-      {HUC12Name ? (
-        <Entry>
-          {HUC12Name} Subwatershed{' '}
-          <Paragraph variant="help" sx={{ fontSize: 0 }}>
-            HUC12: {HUC12}
-          </Paragraph>
-        </Entry>
-      ) : null}
-
-      {HUC8Name ? (
-        <Entry>
-          {HUC8Name} Subbasin{' '}
-          <Paragraph variant="help" sx={{ fontSize: 0 }}>
-            HUC8: {HUC8}
-          </Paragraph>
-        </Entry>
-      ) : null}
-
-      {ownertype && ownertype > 0 ? (
-        <Entry>
-          <Field>Conservation land type:</Field> {OWNERTYPE[ownertype]}
-        </Entry>
-      ) : null}
-    </Section>
-
-    <Section title="Construction information">
-      {year > 0 ? (
-        <Entry>
-          <Field>Constructed completed:</Field> {year}
-        </Entry>
-      ) : null}
-      {height > 0 ? (
-        <Entry>
-          <Field>Height:</Field> {height} feet
-        </Entry>
-      ) : null}
-      {construction && CONSTRUCTION[construction] ? (
-        <Entry>
-          <Field>Construction material:</Field>{' '}
-          {CONSTRUCTION[construction].toLowerCase()}
-        </Entry>
-      ) : null}
-      {lowheaddam >= 1 ? (
-        <Entry>This is {lowheaddam === 2 ? 'likely' : ''} a lowhead dam</Entry>
-      ) : null}
-      {diversion === 1 ? (
-        <Entry>
-          <Field>Diversion:</Field> this dam is a diversion structure
-        </Entry>
-      ) : null}
-      {purpose && PURPOSE[purpose] ? (
-        <Entry>
-          <Field>Purpose:</Field> {PURPOSE[purpose].toLowerCase()}
-        </Entry>
-      ) : null}
-      {condition && DAM_CONDITION[condition] ? (
-        <Entry>
-          <Field>Structural condition:</Field>{' '}
-          {DAM_CONDITION[condition].toLowerCase()}
-        </Entry>
-      ) : null}
-
-      {PASSAGEFACILITY[passagefacility] ? (
-        <Entry>
-          <Field>Passage facility type:</Field>{' '}
-          {PASSAGEFACILITY[passagefacility].toLowerCase()}
-        </Entry>
-      ) : null}
-    </Section>
-
-    <Section title="Functional network information">
-      {hasnetwork ? (
-        <NetworkInfo
-          barrierType={barrierType}
-          totalupstreammiles={totalupstreammiles}
-          perennialupstreammiles={perennialupstreammiles}
-          alteredupstreammiles={alteredupstreammiles}
-          unalteredupstreammiles={unalteredupstreammiles}
-          freedownstreammiles={freedownstreammiles}
-          freeperennialdownstreammiles={freeperennialdownstreammiles}
-          freealtereddownstreammiles={freealtereddownstreammiles}
-          freeunaltereddownstreammiles={freeunaltereddownstreammiles}
-          sizeclasses={sizeclasses}
-          landcover={landcover}
-        />
-      ) : (
-        <>
-          {excluded ? (
-            <Entry>
-              This dam was excluded from the connectivity analysis based on
-              field reconnaissance or manual review of aerial imagery.
-            </Entry>
-          ) : (
-            <Entry>
-              <Text>
-                This dam is off-network and has no functional network
-                information.
+          <Entry>
+            <Flex sx={{ alignItems: 'flex-start' }}>
+              <Box sx={{ color: 'grey.4', flex: '0 0 auto', mr: '0.5em' }}>
+                <ExclamationTriangle size="2.5em" />
+              </Box>
+              <Text sx={{ flex: '1 1 auto' }}>
+                Dam is estimated from other data sources and may be incorrect;
+                please{' '}
+                <a
+                  href={`mailto:Kat@southeastaquatics.net?subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
+                >
+                  let us know
+                </a>
               </Text>
-              <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
-                Not all dams could be correctly snapped to the aquatic network
-                for analysis. Please contact us to report an error or for
-                assistance interpreting these results.
-              </Paragraph>
-            </Entry>
-          )}
-        </>
-      )}
-    </Section>
+            </Flex>
+          </Entry>
+        ) : null}
 
-    <Section title="Species information">
-      <Text sx={{ my: '0.5rem', mr: '0.5rem' }}>
-        Data sources in the subwatershed containing this dam have recorded:
-      </Text>
-      <Box as="ul">
-        <li>
-          <b>{tespp}</b> federally-listed threatened and endangered aquatic
-          species
-        </li>
-        <li>
-          <b>{statesgcnspp}</b> state-listed aquatic Species of Greatest
-          Conservation Need (SGCN), which include state-listed threatened and
-          endangered species
-        </li>
-        <li>
-          <b>{regionalsgcnspp}</b> regionally-listed aquatic Species of Greatest
-          Conservation Need
-        </li>
-        <li>{trout ? 'One or more trout species' : 'No trout species'}</li>
-      </Box>
+        <LocationInfo
+          barrierType={barrierType}
+          reachName={river}
+          HUC8Name={HUC8Name}
+          HUC12Name={HUC12Name}
+          HUC12={HUC12}
+          ownertype={ownertype}
+          barrierownertype={barrierownertype}
+          intermittent={intermittent}
+          streamorder={streamorder}
+          streamsizeclass={streamsizeclass}
+          waterbodysizeclass={waterbodysizeclass}
+          waterbodykm2={waterbodykm2}
+        />
+      </Section>
 
-      <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
-        Note: species information is very incomplete. These species may or may
-        not be directly impacted by this dam.{' '}
-        <a href="/sgcn" target="_blank">
-          Read more.
-        </a>
-      </Paragraph>
-    </Section>
-
-    <Section title="Feasibility & conservation benefit">
-      {recon !== null ? (
-        <Entry>{RECON[recon]}</Entry>
-      ) : (
-        <Entry>No feasibility information is available for this dam.</Entry>
-      )}
-
-      {/* watershed priorities */}
-      {huc8_usfs > 0 ? (
+      <Section title="Construction information">
         <Entry>
-          Within USFS {HUC8_USFS[huc8_usfs]} priority watershed.{' '}
-          <a href="/usfs_priority_watersheds" target="_blank">
-            Read more.
-          </a>
-        </Entry>
-      ) : null}
-      {huc8_coa > 0 ? (
-        <Entry>
-          Within a SARP conservation opportunity area.{' '}
-          <OutboundLink to="https://southeastaquatics.net/sarps-programs/usfws-nfhap-aquatic-habitat-restoration-program/conservation-opportunity-areas">
-            Read more.
-          </OutboundLink>
-        </Entry>
-      ) : null}
-      {huc8_sgcn > 0 ? (
-        <Entry>
-          Within one of the top 10 watersheds in this state based on number of
-          state-listed Species of Greatest Conservation Need.{' '}
-          <a href="/sgcn" target="_blank">
-            Read more.
-          </a>
-        </Entry>
-      ) : null}
-    </Section>
+          <Field label="Barrier type">
+            {isLowheadDam ? (
+              <>
+                {lowheaddam === 2 ? 'likely ' : null}
+                lowhead dam{' '}
+              </>
+            ) : null}
+            {isDiversion ? (
+              <>
+                {isLowheadDam ? <br /> : null}
+                {diversion === 2 ? 'likely ' : null} water diversion
+                {nostructure === 1 ? (
+                  <Text sx={{ fontSize: 0, color: 'grey.8' }}>
+                    (no associated barrier structure)
+                  </Text>
+                ) : null}
+              </>
+            ) : null}
 
-    <Section title="Other information">
-      <Entry>
-        <Field>SARP ID:</Field> {sarpid}
-      </Entry>
-      {!isEmptyString(nidid) ? (
-        <Entry>
-          <Field>National inventory of dams ID:</Field>{' '}
-          <OutboundLink to="http://nid.usace.army.mil/cm_apex/f?p=838:12">
-            {nidid}
-          </OutboundLink>
+            {isUnspecifiedType ? 'dam' : null}
+            {invasive ? (
+              <>
+                <br />
+                invasive species barrier
+              </>
+            ) : null}
+          </Field>
         </Entry>
+
+        {purpose !== null && purpose >= 0 && PURPOSE[purpose] ? (
+          <Entry>
+            <Field label="Purpose" isUnknown={purpose === 0}>
+              {PURPOSE[purpose].toLowerCase()}
+            </Field>
+          </Entry>
+        ) : null}
+
+        {yearcompleted > 0 ? (
+          <Entry>
+            <Field label="Constructed completed">{yearcompleted}</Field>
+          </Entry>
+        ) : null}
+        {height > 0 ? (
+          <Entry>
+            <Field label="Height">{height} feet</Field>
+          </Entry>
+        ) : null}
+        {construction !== null &&
+        construction >= 0 &&
+        CONSTRUCTION[construction] ? (
+          <Entry>
+            <Field label="Construction material" isUnknown={construction === 0}>
+              {CONSTRUCTION[construction].toLowerCase()}
+            </Field>
+          </Entry>
+        ) : null}
+
+        {condition !== null && condition >= 0 && CONDITION[condition] ? (
+          <Entry>
+            <Field label="Structural condition" isUnknown={condition === 0}>
+              {CONDITION[condition].toLowerCase()}
+            </Field>
+          </Entry>
+        ) : null}
+
+        {passagefacility !== null &&
+        passagefacility >= 0 &&
+        PASSAGEFACILITY[passagefacility] ? (
+          <Entry>
+            <Field
+              label="Passage facility type"
+              isUnknown={passagefacility === 0}
+            >
+              {PASSAGEFACILITY[passagefacility].toLowerCase()}
+            </Field>
+          </Entry>
+        ) : null}
+      </Section>
+
+      <Section title="Functional network information">
+        {hasnetwork ? (
+          <NetworkInfo
+            barrierType={barrierType}
+            totalupstreammiles={totalupstreammiles}
+            perennialupstreammiles={perennialupstreammiles}
+            alteredupstreammiles={alteredupstreammiles}
+            unalteredupstreammiles={unalteredupstreammiles}
+            freedownstreammiles={freedownstreammiles}
+            freeperennialdownstreammiles={freeperennialdownstreammiles}
+            freealtereddownstreammiles={freealtereddownstreammiles}
+            freeunaltereddownstreammiles={freeunaltereddownstreammiles}
+            sizeclasses={sizeclasses}
+            landcover={landcover}
+            waterbodysizeclass={waterbodysizeclass}
+            waterbodykm2={waterbodykm2}
+            intermittent={intermittent}
+            invasive={invasive}
+            unranked={unranked}
+          />
+        ) : (
+          <NoNetworkInfo
+            barrierType={barrierType}
+            unsnapped={unsnapped}
+            excluded={excluded}
+            onloop={onloop}
+            diversion={diversion}
+            nostructure={nostructure}
+          />
+        )}
+      </Section>
+
+      {flowstoocean && milestooutlet < 500 ? (
+        <Section title="Diadromous species information">
+          <DiadromousInfo
+            barrierType={barrierType}
+            milestooutlet={milestooutlet}
+            totaldownstreamdams={totaldownstreamdams}
+            totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
+            totaldownstreamwaterfalls={totaldownstreamwaterfalls}
+          />
+        </Section>
       ) : null}
 
-      {!isEmptyString(source) ? (
-        <Entry>
-          <Field>Source:</Field> {source}
-        </Entry>
-      ) : null}
-    </Section>
-  </Box>
-)
+      <Section title="Species information for this subwatershed">
+        <SpeciesInfo
+          barrierType={barrierType}
+          tespp={tespp}
+          regionalsgcnspp={regionalsgcnspp}
+          statesgcnspp={statesgcnspp}
+          trout={trout}
+          salmonidesu={salmonidesu}
+        />
+      </Section>
+
+      <Section title="Feasibility & conservation benefit">
+        {recon !== null && recon >= 0 ? (
+          <Entry>{RECON[recon]}</Entry>
+        ) : (
+          <Entry>No feasibility information is available for this dam.</Entry>
+        )}
+      </Section>
+
+      <Section title="Other information">
+        <IDInfo sarpid={sarpid} nidid={nidid} source={source} link={link} />
+      </Section>
+    </Box>
+  )
+}
 
 DamDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-  lat: PropTypes.number.isRequired,
-  lon: PropTypes.number.isRequired,
-  hasnetwork: PropTypes.bool.isRequired,
-  excluded: PropTypes.bool,
+  hasnetwork: PropTypes.number.isRequired,
+  excluded: PropTypes.number,
+  onloop: PropTypes.number,
+  unsnapped: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
-  HUC8: PropTypes.string,
   HUC12: PropTypes.string,
   HUC8Name: PropTypes.string,
   HUC12Name: PropTypes.string,
   height: PropTypes.number,
-  year: PropTypes.number,
+  yearcompleted: PropTypes.number,
   nidid: PropTypes.string,
   source: PropTypes.string,
+  link: PropTypes.string,
   estimated: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
@@ -340,11 +304,10 @@ DamDetails.propTypes = {
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   trout: PropTypes.number,
+  salmonidesu: PropTypes.string,
   recon: PropTypes.number,
   ownertype: PropTypes.number,
-  huc8_usfs: PropTypes.number,
-  huc8_coa: PropTypes.number,
-  huc8_sgcn: PropTypes.number,
+  barrierownertype: PropTypes.number,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -356,37 +319,49 @@ DamDetails.propTypes = {
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
   diversion: PropTypes.number,
+  nostructure: PropTypes.number,
   lowheaddam: PropTypes.number,
+  streamorder: PropTypes.number,
+  streamsizeclass: PropTypes.string,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
+  invasive: PropTypes.number,
+  unranked: PropTypes.number,
+
+  flowstoocean: PropTypes.number,
+  milestooutlet: PropTypes.number,
+  totaldownstreamdams: PropTypes.number,
+  totaldownstreamsmallbarriers: PropTypes.number,
+  totaldownstreamwaterfalls: PropTypes.number,
 }
 
 DamDetails.defaultProps = {
-  HUC8: null,
   HUC12: null,
   HUC8Name: null,
   HUC12Name: null,
-  excluded: false,
+  excluded: 0,
+  onloop: 0,
+  unsnapped: 0,
   river: null,
   intermittent: -1,
   nidid: null,
   source: null,
+  link: null,
   estimated: 0,
   height: 0,
-  year: 0,
-  construction: 0,
-  purpose: 0,
-  condition: 0,
-  passagefacility: 0,
+  yearcompleted: 0,
+  construction: null,
+  purpose: null,
+  condition: null,
+  passagefacility: null,
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
   trout: 0,
-  recon: 0,
+  salmonidesu: null,
+  recon: null,
   ownertype: null,
-  huc8_usfs: 0,
-  huc8_coa: 0,
-  huc8_sgcn: 0,
+  barrierownertype: null,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,
@@ -398,9 +373,19 @@ DamDetails.defaultProps = {
   landcover: null,
   sizeclasses: null,
   diversion: 0,
-  lowheaddam: -1,
+  nostructure: 0,
+  lowheaddam: null,
+  streamorder: 0,
+  streamsizeclass: null,
   waterbodykm2: -1,
-  waterbodysizeclass: -1,
+  waterbodysizeclass: null,
+  invasive: 0,
+  unranked: 0,
+  flowstoocean: 0,
+  milestooutlet: 0,
+  totaldownstreamdams: 0,
+  totaldownstreamsmallbarriers: 0,
+  totaldownstreamwaterfalls: 0,
 }
 
 export default DamDetails

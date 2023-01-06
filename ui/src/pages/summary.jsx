@@ -2,17 +2,16 @@ import React, { useState, useCallback, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
 
-import { Layout, ClientOnly } from 'components/Layout'
+import { Layout, ClientOnly, SEO } from 'components/Layout'
 
 import { ToggleButton } from 'components/Button'
 import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
 import { Map, UnitDetails, RegionSummary } from 'components/Summary'
 import BarrierDetails from 'components/BarrierDetails'
+import { SYSTEMS } from 'config'
 import { toCamelCaseFields } from 'util/data'
 import { getQueryParams } from 'util/dom'
-
-import { SYSTEMS } from '../../config/constants'
 
 const barrierTypeOptions = [
   { value: 'dams', label: 'dams' },
@@ -115,7 +114,7 @@ const SummaryPage = ({ location }) => {
   }
 
   return (
-    <Layout title="Summarize">
+    <Layout>
       <Flex sx={{ height: '100%' }}>
         <Sidebar>{sidebarContent}</Sidebar>
 
@@ -167,3 +166,5 @@ SummaryPage.defaultProps = {
 }
 
 export default SummaryPage
+
+export const Head = () => <SEO title="Summarize barriers" />

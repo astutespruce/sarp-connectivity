@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def append(target_df, df):
@@ -22,10 +22,12 @@ def append(target_df, df):
     """
 
     if target_df is None:
-        return df
+        if len(df) > 0:
+            return df
+        return None
 
     if len(df) > 0:
-        return target_df.append(df, ignore_index=True, sort=False)
+        return pd.concat([target_df, df], ignore_index=True, sort=False)
 
     return target_df
 
@@ -67,3 +69,31 @@ def ndarray_append_strings(*args):
         result = result + get_str(args[i])
 
     return result
+
+
+def get_signed_dtype(dtype):
+    """Find the appropriate signed dtype for unsigned integers, allowing others
+    to pass through unchanged.
+
+    Parameters
+    ----------
+    dtype : numpy dtype
+
+    Returns
+    -------
+    str
+        numpy dtype string
+    """
+    if dtype == object:
+        return dtype
+
+    if dtype == bool:
+        return "int8"
+
+    if dtype.kind == "u":
+        bits = int(str(dtype.name).replace("uint", ""))
+        if bits < 64:
+            bits *= 2
+        return f"int{bits}"
+
+    return dtype

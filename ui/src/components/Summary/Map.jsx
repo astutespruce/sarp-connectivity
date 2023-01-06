@@ -1,3 +1,5 @@
+// @refresh reset
+
 import React, {
   memo,
   useEffect,
@@ -20,30 +22,26 @@ import {
   interpolateExpr,
   SearchFeaturePropType,
   networkLayers,
+  highlightNetwork,
+  setBarrierHighlight,
+  getBarrierTooltip,
 } from 'components/Map'
-import { capitalize } from 'util/format'
-import { isEmptyString } from 'util/string'
+import { barrierTypeLabels } from 'config'
+import { isEqual } from 'util/data'
 import { COLORS } from './config'
 import {
   layers,
   waterfallsLayer,
   damsSecondaryLayer,
+  roadCrossingsLayer,
   pointLayer,
-  backgroundPointLayer,
-  pointHighlightLayer,
-  pointHoverLayer,
+  offnetworkPointLayer,
+  unrankedPointLayer,
   pointLegends,
   regionLayers,
 } from './layers'
 
-import { barrierTypeLabels } from '../../../config/constants'
-
 const barrierTypes = ['dams', 'small_barriers']
-
-const emptyFeatureCollection = {
-  type: 'FeatureCollection',
-  features: [],
-}
 
 const SummaryMap = ({
   region,
@@ -59,6 +57,8 @@ const SummaryMap = ({
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const regionBounds = useRegionBounds()
   const mapRef = useRef(null)
+  const hoverFeatureRef = useRef(null)
+  const selectedFeatureRef = useRef(null)
 
   const [zoom, setZoom] = useState(0)
 
@@ -189,21 +189,36 @@ const SummaryMap = ({
       // Add barrier point layers
       map.addLayer(waterfallsLayer)
       map.addLayer(damsSecondaryLayer)
+      map.addLayer(roadCrossingsLayer)
 
       barrierTypes.forEach((t) => {
+        // off network barriers
         map.addLayer({
-          id: `${t}-background`,
+          id: `offnetwork_${t}`,
           source: t,
-          ...backgroundPointLayer,
+          'source-layer': `offnetwork_${t}`,
+          ...offnetworkPointLayer,
           layout: {
             visibility: barrierType === t ? 'visible' : 'none',
           },
         })
 
+        // on-network but unranked barriers
         map.addLayer({
-          id: t,
+          id: `unranked_${t}`,
           source: t,
-          'source-layer': t,
+          'source-layer': `unranked_${t}`,
+          ...unrankedPointLayer, // TODO: dedicated styling
+          layout: {
+            visibility: barrierType === t ? 'visible' : 'none',
+          },
+        })
+
+        // on-network ranked barriers
+        map.addLayer({
+          id: `ranked_${t}`,
+          source: t,
+          'source-layer': `ranked_${t}`,
           ...pointLayer,
           layout: {
             visibility: barrierType === t ? 'visible' : 'none',
@@ -211,14 +226,15 @@ const SummaryMap = ({
         })
       })
 
-      // Add barrier highlight layers
-      map.addLayer(pointHoverLayer)
-      map.addLayer(pointHighlightLayer)
-
-      const pointLayers = barrierTypes
-        .map((t) => t)
-        .concat(barrierTypes.map((t) => `${t}-background`))
-        .concat(['dams-secondary', 'waterfalls'])
+      const pointLayers = []
+        .concat(
+          ...barrierTypes.map((t) => [
+            `ranked_${t}`,
+            `unranked_${t}`,
+            `offnetwork_${t}`,
+          ])
+        )
+        .concat(['dams-secondary', 'road-crossings', 'waterfalls'])
 
       const clickLayers = pointLayers.concat(
         layers.map(({ id }) => `${id}-fill`)
@@ -240,29 +256,30 @@ const SummaryMap = ({
           const {
             geometry: { coordinates },
           } = feature
-          map.getSource(pointHoverLayer.id).setData({
-            type: 'Point',
-            coordinates,
-          })
+
+          setBarrierHighlight(map, hoverFeatureRef.current, false)
+          hoverFeatureRef.current = feature
+          setBarrierHighlight(map, feature, true)
 
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = 'pointer'
-          const prefix = barrierTypeLabels[feature.source]
-            ? `${capitalize(barrierTypeLabels[feature.source]).slice(
-                0,
-                barrierTypeLabels[feature.source].length - 1
-              )}: `
-            : ''
-          const { name } = feature.properties
+
           tooltip
             .setLngLat(coordinates)
-            .setHTML(
-              `<b>${prefix}${!isEmptyString(name) ? name : 'Unknown name'}</b>`
-            )
+            .setHTML(getBarrierTooltip(feature.source, feature.properties))
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
-          map.getSource(pointHoverLayer.id).setData(emptyFeatureCollection)
+          // only unhighlight if not the same as currently selected feature
+          const prevFeature = hoverFeatureRef.current
+          if (
+            prevFeature &&
+            !isEqual(prevFeature, selectedFeatureRef.current, ['id', 'layer'])
+          ) {
+            setBarrierHighlight(map, prevFeature, false)
+          }
+
+          hoverFeatureRef.current = null
 
           /* eslint-disable-next-line no-param-reassign */
           map.getCanvas().style.cursor = ''
@@ -274,6 +291,20 @@ const SummaryMap = ({
         const [feature] = map.queryRenderedFeatures(point, {
           layers: clickLayers,
         })
+
+        // always clear out prior feature
+        const prevFeature = selectedFeatureRef.current
+        if (prevFeature) {
+          setBarrierHighlight(map, prevFeature, false)
+
+          selectedFeatureRef.current = null
+
+          if (isEqual(prevFeature, hoverFeatureRef.current, ['id', 'layer'])) {
+            setBarrierHighlight(map, hoverFeatureRef.current, false)
+            hoverFeatureRef.current = null
+          }
+        }
+
         if (!feature) {
           return
         }
@@ -287,49 +318,29 @@ const SummaryMap = ({
             layerId: sourceLayer,
           })
         } else {
-          // query HUC8 and HUC12 names to show with barrier details
-          let HUC8Name = null
-          let HUC12Name = null
-
-          if (properties.HUC8 && properties.HUC12) {
-            const [HUC8] = map.querySourceFeatures('summary', {
-              sourceLayer: 'HUC8',
-              filter: ['==', 'id', properties.HUC8],
-            })
-            if (HUC8) {
-              HUC8Name = HUC8.properties.name
-            }
-
-            const [HUC12] = map.querySourceFeatures('summary', {
-              sourceLayer: 'HUC12',
-              filter: ['==', 'id', properties.HUC12],
-            })
-            if (HUC12) {
-              HUC12Name = HUC12.properties.name
-            }
-          }
-
           const {
             geometry: {
               coordinates: [lon, lat],
             },
           } = feature
 
-          const {
-            hasnetwork = sourceLayer !== 'background',
-            ranked = sourceLayer !== 'background' && source !== 'waterfalls',
-          } = properties
+          setBarrierHighlight(map, feature, true)
+          selectedFeatureRef.current = feature
 
           // dam, barrier, waterfall
           onSelectBarrier({
             ...properties,
-            HUC8Name,
-            HUC12Name,
+            HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),
+            HUC12Name: getSummaryUnitName('HUC12', properties.HUC12),
+            CountyName: getSummaryUnitName('County', properties.County),
             barrierType: source,
             lat,
             lon,
-            hasnetwork,
-            ranked,
+            ranked: sourceLayer.startsWith('ranked_'),
+            layer: {
+              source,
+              sourceLayer,
+            },
           })
         }
       })
@@ -338,6 +349,19 @@ const SummaryMap = ({
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
     []
   )
+
+  const getSummaryUnitName = (layer, id) => {
+    if (!id) return null
+
+    const [result] = mapRef.current.querySourceFeatures('summary', {
+      sourceLayer: layer,
+      filter: ['==', 'id', id],
+    })
+    if (result) {
+      return result.properties.name
+    }
+    return null
+  }
 
   useEffect(() => {
     const { current: map } = mapRef
@@ -375,18 +399,27 @@ const SummaryMap = ({
     // toggle barriers layer
     barrierTypes.forEach((t) => {
       const visibility = barrierType === t ? 'visible' : 'none'
-      map.setLayoutProperty(t, 'visibility', visibility)
-      map.setLayoutProperty(`${t}-background`, 'visibility', visibility)
+      map.setLayoutProperty(`ranked_${t}`, 'visibility', visibility)
+      map.setLayoutProperty(`unranked_${t}`, 'visibility', visibility)
+      map.setLayoutProperty(`offnetwork_${t}`, 'visibility', visibility)
     })
 
     // clear highlighted networks
     map.setFilter('network-highlight', ['==', 'dams', Infinity])
     map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
 
+    const smallBarriersLayerVisibility =
+      barrierType === 'small_barriers' ? 'visible' : 'none'
+
     map.setLayoutProperty(
       'dams-secondary',
       'visibility',
-      barrierType === 'small_barriers' ? 'visible' : 'none'
+      smallBarriersLayerVisibility
+    )
+    map.setLayoutProperty(
+      'road-crossings',
+      'visibility',
+      smallBarriersLayerVisibility
     )
   }, [barrierType])
 
@@ -395,35 +428,27 @@ const SummaryMap = ({
 
     if (!map) return
 
-    const { id } = pointHighlightLayer
-
-    // setting to empty feature collection effectively hides this layer
-    let data = emptyFeatureCollection
     let networkID = Infinity
 
     if (selectedBarrier) {
-      const { lat, lon, upnetid = Infinity } = selectedBarrier
-      data = {
-        type: 'Point',
-        coordinates: [lon, lat],
-      }
+      const { upnetid = Infinity } = selectedBarrier
 
       // highlight upstream network
       networkID = upnetid
+    } else {
+      const prevFeature = selectedFeatureRef.current
+      if (prevFeature) {
+        setBarrierHighlight(map, prevFeature, false)
+        hoverFeatureRef.current = null
+
+        if (isEqual(prevFeature, hoverFeatureRef.current, ['id', 'layer'])) {
+          setBarrierHighlight(map, hoverFeatureRef.current, false)
+          hoverFeatureRef.current = null
+        }
+      }
     }
 
-    map.setFilter('network-highlight', [
-      'all',
-      ['==', 'mapcode', 0],
-      ['==', barrierType, networkID],
-    ])
-    map.setFilter('network-intermittent-highlight', [
-      'all',
-      ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
-      ['==', barrierType, networkID],
-    ])
-
-    map.getSource(id).setData(data)
+    highlightNetwork(map, barrierType, networkID)
   }, [selectedBarrier, barrierType])
 
   useEffect(() => {
@@ -468,7 +493,11 @@ const SummaryMap = ({
       })
     }
 
-    map.fitBounds(bbox, { padding: 20, fitBoundsMaxZoom, duration: 500 })
+    map.fitBounds(bbox.split(',').map(parseFloat), {
+      padding: 20,
+      fitBoundsMaxZoom,
+      duration: 500,
+    })
   }, [searchFeature, selectFeatureByID])
 
   const { layerTitle, legendEntries } = useMemo(() => {
@@ -519,15 +548,15 @@ const SummaryMap = ({
 
     const circles = []
     if (map && map.getZoom() >= 12) {
-      const { primary, background, damsSecondary, waterfalls } = pointLegends
+      const { primary, offnetwork, damsSecondary, waterfalls } = pointLegends
       circles.push({
         ...primary,
         label: `${barrierTypeLabel} analyzed for impacts to aquatic connectivity`,
       })
 
       circles.push({
-        ...background,
-        label: `${barrierType} not analyzed`,
+        ...offnetwork,
+        label: `${barrierTypeLabel} not analyzed`,
       })
 
       if (barrierType === 'small_barriers') {
@@ -547,16 +576,22 @@ const SummaryMap = ({
     if (zoom >= 11) {
       lines = [
         {
-          id: 'intermittent',
-          label: 'intermittent / ephemeral stream reach',
+          id: 'normal',
+          label: 'stream reach',
           color: '#1891ac',
-          lineStyle: 'dashed',
           lineWidth: '2px',
         },
         {
           id: 'altered',
-          label: 'altered stream reach (canal / ditch)',
-          color: 'red',
+          label: 'altered stream reach (canal / ditch / reservoir)',
+          color: '#9370db',
+          lineWidth: '2px',
+        },
+        {
+          id: 'intermittent',
+          label: 'intermittent / ephemeral stream reach',
+          color: '#1891ac',
+          lineStyle: 'dashed',
           lineWidth: '2px',
         },
       ]

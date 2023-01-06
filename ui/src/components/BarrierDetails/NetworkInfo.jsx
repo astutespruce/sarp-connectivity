@@ -1,10 +1,11 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Text } from 'theme-ui'
+import { Box, Paragraph, Text } from 'theme-ui'
 
+import { barrierTypeLabelSingular } from 'config'
 import { Table, Row } from 'components/Table'
 import { InfoTooltip } from 'components/Tooltip'
-import { Entry } from 'components/Sidebar'
+import { Entry, Field } from 'components/Sidebar'
 import { formatNumber, formatPercent } from 'util/format'
 
 const activeSideCSS = {
@@ -28,8 +29,12 @@ const NetworkInfo = ({
   landcover,
   fontSize,
   headerFontSize,
+  invasive,
+  unranked,
   ...props
 }) => {
+  const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
+
   const gainmiles = Math.min(totalupstreammiles, freedownstreammiles)
   const gainMilesSide =
     gainmiles === totalupstreammiles ? 'upstream' : 'downstream'
@@ -51,9 +56,9 @@ const NetworkInfo = ({
 
   return (
     <Box {...props}>
-      <Entry sx={{ pb: '1rem' }}>
+      <Entry sx={{ pb: '1.5rem', mx: '-0.5rem' }}>
         <Table sx={{ fontSize }} columns="11rem 1fr 1fr">
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box />
             <Box sx={{ fontSize: headerFontSize }}>
               <b>Upstream</b>
@@ -67,7 +72,7 @@ const NetworkInfo = ({
             </Box>
           </Row>
 
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>Total miles</Text>
               <InfoTooltip>
@@ -97,7 +102,7 @@ const NetworkInfo = ({
             </Box>
           </Row>
 
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>Perennial miles</Text>
               <InfoTooltip>
@@ -130,7 +135,7 @@ const NetworkInfo = ({
             </Box>
           </Row>
 
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>
                 Intermittent / ephemeral miles
@@ -164,12 +169,13 @@ const NetworkInfo = ({
             </Box>
           </Row>
 
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>Altered miles</Text>
               <InfoTooltip>
                 Total altered miles upstream is the sum of all reach lengths
-                specifically identified as altered (canal / ditch).
+                specifically identified as altered (canal / ditch, within
+                reservoir, or other channel alteration).
                 <br />
                 <br />
                 Total altered miles downstream is the sum of all altered reach
@@ -181,13 +187,14 @@ const NetworkInfo = ({
             <Box>{formatNumber(freealtereddownstreammiles, 2, true)}</Box>
           </Row>
 
-          <Row>
+          <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>Unaltered miles</Text>
 
               <InfoTooltip>
                 Total unaltered miles upstream is the sum of all reach lengths
-                not specifically identified as altered (canal / ditch).
+                not specifically identified as altered (canal / ditch, within
+                reservoir, or other channel alteration).
                 <br />
                 <br />
                 Total unaltered miles downstream is the sum of all unaltered
@@ -207,11 +214,11 @@ const NetworkInfo = ({
               mt: '0.25rem',
               pt: '0.25rem',
               fontSize,
-              borderTop: '3px solid',
-              borderTopColor: 'grey.2',
+              borderTop: '2px solid',
+              borderTopColor: 'grey.4',
             }}
           >
-            <Row>
+            <Row sx={{ px: '0.5rem' }}>
               <Box>
                 <Text sx={{ fontWeight: 'bold', display: 'inline' }}>
                   Total miles gained
@@ -239,7 +246,7 @@ const NetworkInfo = ({
                 {formatNumber(freedownstreammiles, 2, true)}
               </Box>
             </Row>
-            <Row>
+            <Row sx={{ px: '0.5rem' }}>
               <Box>
                 <Text sx={{ fontWeight: 'bold', display: 'inline' }}>
                   Perennial miles gained
@@ -275,28 +282,68 @@ const NetworkInfo = ({
 
       {totalupstreammiles > 0 ? (
         <Entry>
-          <b>{formatPercent(percentAltered)}%</b> of the upstream network is in
-          altered stream channels (coded as canals / ditches)
+          <Field label="Percent of the upstream network in altered stream channels">
+            <Text
+              sx={{
+                fontSize: 1,
+                fontWeight: 'bold',
+              }}
+            >
+              {formatPercent(percentAltered)}%
+            </Text>
+          </Field>
         </Entry>
       ) : null}
 
-      {barrierType === 'waterfalls' ? (
-        <Entry>
-          <b>{sizeclasses}</b> river size{' '}
-          {sizeclasses === 1 ? 'class is' : 'classes are'} upstream of this
-          waterfall
-        </Entry>
-      ) : (
-        <Entry>
-          <b>{sizeclasses}</b> river size{' '}
-          {sizeclasses === 1 ? 'class' : 'classes'} could be gained by removing
-          this barrier
-        </Entry>
-      )}
       <Entry>
-        <b>{formatNumber(landcover, 0)}%</b> of the upstream floodplain is
-        composed of natural landcover
+        <Field
+          label={
+            barrierType === 'waterfalls'
+              ? 'Number of size classes upstream'
+              : 'Number of size classes that could be gained by removing this barrier'
+          }
+        >
+          <Text
+            sx={{
+              fontSize: 1,
+              fontWeight: sizeclasses > 0 ? 'bold' : 'inherit',
+            }}
+          >
+            {sizeclasses}
+          </Text>
+        </Field>
       </Entry>
+      <Entry>
+        <Field label="Percent of upstream floodplain composed of natural landcover">
+          <Text
+            sx={{
+              fontSize: 1,
+              fontWeight: 'bold',
+            }}
+          >
+            {formatNumber(landcover, 0)}%
+          </Text>
+        </Field>
+      </Entry>
+
+      {invasive ? (
+        <Entry>
+          <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+            Note: this {barrierTypeLabel} is identified as a beneficial to
+            restricting the movement of invasive species and is not ranked.
+          </Paragraph>
+        </Entry>
+      ) : null}
+
+      {unranked && !invasive ? (
+        <Entry>
+          <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+            Note: this {barrierTypeLabel} excluded from ranking based on field
+            reconnaissance, manual review of aerial imagery, or other
+            information about this {barrierTypeLabel}.
+          </Paragraph>
+        </Entry>
+      ) : null}
     </Box>
   )
 }
@@ -315,6 +362,8 @@ NetworkInfo.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
+  invasive: PropTypes.number,
+  unranked: PropTypes.number,
 }
 
 NetworkInfo.defaultProps = {
@@ -330,6 +379,8 @@ NetworkInfo.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: 0,
   sizeclasses: 0,
+  invasive: 0,
+  unranked: 0,
 }
 
 export default NetworkInfo

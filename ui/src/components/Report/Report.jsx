@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Document, Page, StyleSheet } from '@react-pdf/renderer'
+import { Document, Font, Page, StyleSheet } from '@react-pdf/renderer'
 
 import Contact from './Contact'
 import Credits from './Credits'
@@ -28,6 +28,9 @@ const styles = StyleSheet.create({
   },
 })
 
+// disable hyphenation
+Font.registerHyphenationCallback((word) => [word])
+
 const Report = ({
   barrierType,
   data,
@@ -36,8 +39,11 @@ const Report = ({
   locatorMap,
   attribution,
   scale,
+  visibleLayers,
 }) => {
   const { county, state, hasnetwork } = data
+
+  console.log('visibleLayers', visibleLayers)
 
   return (
     <Document
@@ -54,7 +60,11 @@ const Report = ({
 
         <Flex>
           <LocatorMap map={locatorMap} />
-          <Legend barrierType={barrierType} name={name} />
+          <Legend
+            barrierType={barrierType}
+            name={name}
+            visibleLayers={visibleLayers}
+          />
         </Flex>
 
         <Footer />
@@ -112,6 +122,11 @@ Report.propTypes = {
     width: PropTypes.number.isRequired,
     label: PropTypes.string.isRequired,
   }).isRequired,
+  visibleLayers: PropTypes.object,
+}
+
+Report.defaultProps = {
+  visibleLayers: null,
 }
 
 export default Report

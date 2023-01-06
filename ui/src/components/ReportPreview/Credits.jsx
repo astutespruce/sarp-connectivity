@@ -1,18 +1,19 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Box, Flex, Image } from 'theme-ui'
 
 import SARPLogoImage from 'images/sarp_logo.png'
 
-const Credits = (props) => (
-  <Box {...props}>
+const Credits = ({ sx }) => (
+  <Box sx={sx}>
     <Flex sx={{ mt: '0.5rem', fontSize: 1 }}>
       <Box sx={{ flex: '1 1 auto' }}>
         This report was created using the{' '}
         <a href="https://connectivity.sarpdata.com/">
-          Southeast Aquatic Barrier Prioritization Tool
+          Aquatic Barrier Prioritization Tool
         </a>
         , a project of the{' '}
-        <a href="https://southeastaquatics.net/">
+        <a href="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
           Southeast Aquatic Resources Partnership
         </a>
         .
@@ -38,5 +39,13 @@ const Credits = (props) => (
     </Flex>
   </Box>
 )
+
+Credits.propTypes = {
+  sx: PropTypes.object,
+}
+
+Credits.defaultProps = {
+  sx: null,
+}
 
 export default Credits

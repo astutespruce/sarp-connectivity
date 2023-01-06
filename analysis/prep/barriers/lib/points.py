@@ -1,4 +1,4 @@
-import pygeos as pg
+import shapely
 import pandas as pd
 import numpy as np
 
@@ -25,12 +25,12 @@ def connect_points(start, end):
     if isinstance(end, pd.Series):
         end = end.values
 
-    x1 = pg.get_x(start)
-    y1 = pg.get_y(start)
-    x2 = pg.get_x(end)
-    y2 = pg.get_y(end)
+    x1 = shapely.get_x(start)
+    y1 = shapely.get_y(start)
+    x2 = shapely.get_x(end)
+    y2 = shapely.get_y(end)
 
-    lines = pg.linestrings(np.array([[x1, x2], [y1, y2]]).T)
+    lines = shapely.linestrings(np.array([[x1, x2], [y1, y2]]).T)
 
     if is_series:
         return pd.Series(lines, index=index)
@@ -54,8 +54,10 @@ def window(geometries, distance):
     Series or ndarray
         polygon windows
     """
-    minx, miny, maxx, maxy = pg.bounds(geometries).T
-    windows = pg.box(minx - distance, miny - distance, maxx + distance, maxy + distance)
+    minx, miny, maxx, maxy = shapely.bounds(geometries).T
+    windows = shapely.box(
+        minx - distance, miny - distance, maxx + distance, maxy + distance
+    )
 
     if isinstance(geometries, pd.Series):
         return pd.Series(windows, index=geometries.index)

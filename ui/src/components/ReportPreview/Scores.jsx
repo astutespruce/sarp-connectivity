@@ -4,53 +4,62 @@ import PropTypes from 'prop-types'
 import { Box, Heading, Text, Paragraph } from 'theme-ui'
 
 import { Table, Row } from 'components/Table'
-import { barrierTypeLabels } from '../../../config/constants'
+import { barrierTypeLabels } from 'config'
 
 const Scores = ({
   barrierType,
   state,
-  hasnetwork,
   ranked,
+  invasive,
+  nostructure,
   state_nc_tier,
   state_wc_tier,
   state_ncwc_tier,
   state_pnc_tier,
   state_pwc_tier,
   state_pncwc_tier,
-  se_nc_tier,
-  se_wc_tier,
-  se_ncwc_tier,
-  se_pnc_tier,
-  se_pwc_tier,
-  se_pncwc_tier,
-  ...props
+  sx,
 }) => {
-  if (!hasnetwork) {
+  if (!ranked) {
     return null
   }
 
-  const hasSoutheast =
-    se_nc_tier !== null && se_nc_tier !== undefined && se_nc_tier !== -1
+  // small barriers do not have state ranks
+  if (barrierType === 'small_barriers') {
+    return null
+  }
 
   const barrierTypeLabel = barrierTypeLabels[barrierType]
 
   const header = <Heading as="h3">Connectivity ranks</Heading>
 
-  if (!ranked) {
+  if (invasive) {
     return (
-      <Box {...props}>
+      <Box sx={sx}>
         {header}
         <Text>
-          This {barrierType === 'dams' ? 'dam' : 'road-related barrier'} was
-          excluded from prioritization because it provides an ecological benefit
-          by restricting the movement of invasive aquatic species.
+          This {barrierTypeLabel} was excluded from prioritization because it
+          provides an ecological benefit by restricting the movement of invasive
+          aquatic species.
+        </Text>
+      </Box>
+    )
+  }
+
+  if (nostructure) {
+    return (
+      <Box sx={sx}>
+        {header}
+        <Text>
+          This {barrierTypeLabel} was excluded from prioritization because it is
+          a water diversion without associated in-stream barrier.
         </Text>
       </Box>
     )
   }
 
   return (
-    <Box {...props}>
+    <Box sx={sx}>
       {header}
       <Text variant="help" sx={{ fontSize: 0, textAlign: 'center' }}>
         connectivity tiers range from 20 (lowest) to 1 (highest)
@@ -97,44 +106,6 @@ const Scores = ({
             <Box>{state_pncwc_tier}</Box>
           </Row>
         </Table>
-
-        {hasSoutheast ? (
-          <Table
-            columns="22em 1fr 12em"
-            sx={{
-              mt: '2rem',
-              '> div:not(:first-of-type)': {
-                pt: '0.5rem',
-              },
-            }}
-          >
-            <Row>
-              <Box sx={{ fontStyle: 'italic' }}>
-                Compared to other {barrierTypeLabel} in the Southeast:
-              </Box>
-              <Box />
-              <Box />
-            </Row>
-            <Row>
-              <Box>Network connectivity tier</Box>
-              <Box>{se_nc_tier}</Box>
-              <Box>{se_pnc_tier}</Box>
-            </Row>
-            <Row>
-              <Box>Watershed condition tier</Box>
-              <Box>{se_wc_tier}</Box>
-              <Box>{se_pwc_tier}</Box>
-            </Row>
-            <Row>
-              <Box>
-                Combined network connectivity &amp; <br />
-                watershed condition tier
-              </Box>
-              <Box>{se_ncwc_tier}</Box>
-              <Box>{se_pncwc_tier}</Box>
-            </Row>
-          </Table>
-        ) : null}
       </Box>
 
       <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
@@ -151,37 +122,29 @@ const Scores = ({
 Scores.propTypes = {
   barrierType: PropTypes.string.isRequired,
   state: PropTypes.string.isRequired,
-  hasnetwork: PropTypes.bool,
   ranked: PropTypes.bool,
+  invasive: PropTypes.bool,
+  nostructure: PropTypes.bool,
   state_nc_tier: PropTypes.number,
   state_wc_tier: PropTypes.number,
   state_ncwc_tier: PropTypes.number,
   state_pnc_tier: PropTypes.number,
   state_pwc_tier: PropTypes.number,
   state_pncwc_tier: PropTypes.number,
-  se_nc_tier: PropTypes.number,
-  se_wc_tier: PropTypes.number,
-  se_ncwc_tier: PropTypes.number,
-  se_pnc_tier: PropTypes.number,
-  se_pwc_tier: PropTypes.number,
-  se_pncwc_tier: PropTypes.number,
+  sx: PropTypes.object,
 }
 
 Scores.defaultProps = {
-  hasnetwork: false,
   ranked: false,
+  invasive: false,
+  nostructure: false,
   state_nc_tier: null,
   state_wc_tier: null,
   state_ncwc_tier: null,
   state_pnc_tier: null,
   state_pwc_tier: null,
   state_pncwc_tier: null,
-  se_nc_tier: null,
-  se_wc_tier: null,
-  se_ncwc_tier: null,
-  se_pnc_tier: null,
-  se_pwc_tier: null,
-  se_pncwc_tier: null,
+  sx: null,
 }
 
 export default Scores

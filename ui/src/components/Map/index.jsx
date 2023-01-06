@@ -7,10 +7,18 @@ import { SearchFeaturePropType } from './proptypes'
 import { basemapAttribution, basemapLayers, mapConfig, sources } from './config'
 import {
   getCenterAndZoom,
+  unionBounds,
   interpolateExpr,
   toGeoJSONPoints,
   mapToBlob,
   mapToDataURL,
+  highlightNetwork,
+  setBarrierHighlight,
+  getInArrayExpr,
+  getNotInArrayExpr,
+  getInStringExpr,
+  getNotInStringExpr,
+  getBarrierTooltip,
 } from './util'
 import { networkLayers } from './layers'
 
@@ -22,13 +30,21 @@ export {
   Legend,
   SearchFeaturePropType,
   getCenterAndZoom,
+  unionBounds,
   interpolateExpr,
+  getInArrayExpr,
+  getNotInArrayExpr,
+  getInStringExpr,
+  getNotInStringExpr,
   toGeoJSONPoints,
   mapToBlob,
   mapToDataURL,
   basemapAttribution,
   basemapLayers,
   networkLayers,
+  highlightNetwork,
+  setBarrierHighlight,
+  getBarrierTooltip,
   mapConfig,
   sources,
 }

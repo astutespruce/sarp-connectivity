@@ -25,13 +25,13 @@ It produces data in `data/nhd/clean/<region>`
 
 
 from pathlib import Path
-import os
 from time import time
 import warnings
 
 import geopandas as gp
+import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 from pyogrio import write_dataframe
 
 
@@ -46,12 +46,12 @@ from analysis.constants import (
     REMOVE_JOINS,
 )
 
-from analysis.lib.joins import remove_joins
 from analysis.lib.flowlines import (
     remove_flowlines,
     remove_pipelines,
     remove_marine_flowlines,
     cut_lines_by_waterbodies,
+    mark_altered_flowlines,
 )
 from analysis.prep.network.lib.drains import create_drain_points
 
@@ -62,6 +62,7 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd"
 src_dir = nhd_dir / "raw"
+nwi_dir = data_dir / "nwi/raw"
 waterbodies_dir = data_dir / "waterbodies"
 out_dir = nhd_dir / "clean"
 
@@ -69,24 +70,25 @@ huc2s = sorted(
     pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
 )
 # manually subset keys from above for processing
-huc2s = [
-    # "02",
-    "03",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
-    # "21",
-]
+# huc2s = [
+# "02",
+# "03",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "18",
+# "21",
+# ]
 
 
 start = time()
@@ -96,8 +98,7 @@ for huc2 in huc2s:
     print(f"----- {huc2} ------")
 
     huc2_dir = out_dir / huc2
-    if not os.path.exists(huc2_dir):
-        os.makedirs(huc2_dir)
+    huc2_dir.mkdir(exist_ok=True, parents=True)
 
     print("Reading flowlines...")
     flowlines = gp.read_feather(src_dir / huc2 / "flowlines.feather").set_index(
@@ -109,6 +110,11 @@ for huc2 in huc2s:
     print("------------------")
 
     ### Manual fixes to joins
+
+    # TODO: fix this in initial extraction from NHD
+    # any marked as internal but with no downstream should be set as terminals
+    joins.loc[(joins.downstream == 0) & (joins.type == "internal"), "type"] = "terminal"
+
     join_fixes = JOIN_FIXES.get(huc2, [])
     if join_fixes:
         print(f"Fixing {len(join_fixes)} joins based on manual updates")
@@ -118,15 +124,17 @@ for huc2 in huc2s:
             )
             if "new_upstream" in fix:
                 joins.loc[ix, "upstream"] = fix["new_upstream"]
-                joins.loc[ix, "upstream_id"] = flowlines.loc[
-                    flowlines.NHDPlusID == fix["new_upstream"]
-                ].index[0]
+                flowline_ix = flowlines.NHDPlusID == fix["new_upstream"]
+                # this might be absent from flowlines if at HUC2 join
+                if flowline_ix.sum():
+                    joins.loc[ix, "upstream_id"] = flowlines.loc[flowline_ix].index[0]
 
             if "new_downstream" in fix:
                 joins.loc[ix, "downstream"] = fix["new_downstream"]
-                joins.loc[ix, "downstream_id"] = flowlines.loc[
-                    flowlines.NHDPlusID == fix["new_downstream"]
-                ].index[0]
+                # this might be absent from flowlines if at HUC2 join
+                flowline_ix = flowlines.NHDPlusID == fix["new_downstream"]
+                if flowline_ix.sum():
+                    joins.loc[ix, "downstream_id"] = flowlines.loc[flowline_ix].index[0]
 
     ### Manually remove joins
     to_remove = REMOVE_JOINS.get(huc2, [])
@@ -137,17 +145,6 @@ for huc2 in huc2s:
                 joins.downstream == entry["downstream"]
             )
             joins = joins.loc[~ix].copy()
-
-    ### Drop underground conduits
-    # TODO: remove once extract_nhd has been rerun for all areas
-    ix = flowlines.loc[flowlines.FType == 420].index
-    if len(ix):
-        print(f"Removing {len(ix):,} underground conduits")
-        flowlines = flowlines.loc[~flowlines.index.isin(ix)].copy()
-        joins = remove_joins(
-            joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
-        )
-        print("------------------")
 
     ### Manual fixes for flowlines
     remove_ids = REMOVE_IDS.get(huc2, [])
@@ -188,10 +185,6 @@ for huc2 in huc2s:
         flowlines, joins = remove_marine_flowlines(flowlines, joins, marine)
         print("------------------")
 
-    # TODO: temporary shim until marine is attributed everywhere
-    elif not "marine" in joins.columns:
-        joins["marine"] = False
-
     ### Drop pipelines that are > PIPELINE_MAX_LENGTH or are otherwise isolated from the network
     print("Evaluating pipelines")
     keep_ids = KEEP_PIPELINES.get(huc2, [])
@@ -200,6 +193,13 @@ for huc2 in huc2s:
 
     # make sure that updated joins are unique
     joins = joins.drop_duplicates()
+
+    ### Set intermittent status
+    flowlines["intermittent"] = flowlines.FCode.isin([46003, 46007])
+
+    ### Add altered status
+    nwi = gp.read_feather(nwi_dir / huc2 / "altered_rivers.feather")
+    flowlines = mark_altered_flowlines(flowlines, nwi)
 
     print("------------------")
 
@@ -212,7 +212,7 @@ for huc2 in huc2s:
 
     ### Cut flowlines by waterbodies
     print("Processing intersections between waterbodies and flowlines")
-    next_lineID = int(flowlines.index.max() + 1)
+    next_lineID = flowlines.index.max() + np.uint32(1)
     flowlines, joins, wb_joins = cut_lines_by_waterbodies(
         flowlines, joins, waterbodies, next_lineID=next_lineID
     )
@@ -228,7 +228,7 @@ for huc2 in huc2s:
 
     # calculate stats for flowlines in waterbodies
     tmp = wb_joins.join(flowlines.geometry, on="lineID")
-    tmp["length"] = pg.length(tmp.geometry.values.data)
+    tmp["length"] = shapely.length(tmp.geometry.values.data)
     tmp = tmp.groupby("wbID")["length"].sum().astype("float32").rename("flowlineLength")
     waterbodies = waterbodies.join(tmp)
     waterbodies.flowlineLength = waterbodies.flowlineLength.fillna(0)

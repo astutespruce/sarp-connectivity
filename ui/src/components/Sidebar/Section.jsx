@@ -20,14 +20,21 @@ const Section = ({ title, children, sx, ...props }) => (
       sx={{
         fontWeight: 'bold',
         py: '0.25rem',
-        px: '1rem',
+        px: '0.5rem',
         bg: 'grey.1',
         ...sx,
       }}
     >
       {title}
     </Box>
-    <Box sx={{ pl: '1rem', mt: '0.5rem' }}>{children}</Box>
+    <Box
+      sx={{
+        // pl: '0.5rem',
+        mt: '0.5rem',
+      }}
+    >
+      {children}
+    </Box>
   </Box>
 )
 

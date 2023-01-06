@@ -1,7 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Heading, Grid, Paragraph } from 'theme-ui'
+import { Box, Heading, Grid, Paragraph, Text } from 'theme-ui'
 
+import { SALMONID_ESU } from 'config'
 import { formatNumber } from 'util/format'
 
 const Species = ({
@@ -10,10 +11,11 @@ const Species = ({
   statesgcnspp,
   regionalsgcnspp,
   trout,
-  ...props
+  salmonidesu,
+  sx,
 }) => (
-  <Box {...props}>
-    <Heading as="h3">Species information</Heading>
+  <Box sx={sx}>
+    <Heading as="h3">Species information for this subwatershed</Heading>
 
     <Box>
       Data sources in the subwatershed containing this{' '}
@@ -51,6 +53,19 @@ const Species = ({
       <Box>{trout ? 'One or more trout species' : 'No trout species'}</Box>
     </Grid>
 
+    {salmonidesu ? (
+      <Text sx={{ mt: '1.5rem' }}>
+        This subwatershed falls within the following salmon Evolutionarily
+        Significant Units (ESU) / steelhead trout Discrete Population Segments
+        (DPS):
+        <Box as="ul" sx={{ mt: '0.25rem' }}>
+          {salmonidesu.split(',').map((code) => (
+            <li key={code}>{SALMONID_ESU[code]}</li>
+          ))}
+        </Box>
+      </Text>
+    ) : null}
+
     <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
       Note: State and regionally listed species of greatest conservation need
       may include state-listed threatened and endangered species. Species
@@ -69,13 +84,17 @@ Species.propTypes = {
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   trout: PropTypes.number,
+  salmonidesu: PropTypes.string,
+  sx: PropTypes.object,
 }
 
 Species.defaultProps = {
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
-  trout: false,
+  trout: 0,
+  salmonidesu: null,
+  sx: null,
 }
 
 export default Species

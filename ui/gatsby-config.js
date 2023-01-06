@@ -4,7 +4,6 @@ require('dotenv').config({
 })
 
 const theme = require('./src/theme')
-
 const { version, date } = require('./package.json')
 
 const defaultHost = `https://connectivity.sarpdata.com`
@@ -32,7 +31,7 @@ module.exports = {
   flags: {
     FAST_DEV: true,
     DEV_SSR: false, // appears to throw '"filePath" is not allowed to be empty' when true
-    PARALLEL_SOURCING: false, // process.env.NODE_ENV !== `production`, // uses a lot of memory on server
+    PARALLEL_SOURCING: false, // uses a lot of memory on server, so disable
   },
   plugins: [
     {
@@ -55,16 +54,9 @@ module.exports = {
         preset: theme,
       },
     },
-    `gatsby-plugin-react-helmet`,
     `gatsby-plugin-image`,
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
-    {
-      resolve: `gatsby-plugin-create-client-paths`,
-      options: {
-        prefixes: [`/report/*`],
-      },
-    },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
@@ -88,5 +80,24 @@ module.exports = {
     },
     `gatsby-plugin-catch-links`,
     `gatsby-plugin-sitemap`,
+    {
+      resolve: 'gatsby-plugin-robots-txt',
+      options: {
+        host: process.env.GATSBY_SITE_URL || `https://localhost`,
+        policy: [{ userAgent: '*', disallow: ['/services', '*/api/*'] }],
+      },
+    },
+    {
+      resolve: `gatsby-plugin-manifest`,
+      options: {
+        name: `Aquatic Barrier Prioritization Tool`,
+        short_name: `Aquatic Barrier Tool`,
+        icon: 'src/images/favicon-64x64.svg',
+        start_url: `/`,
+        background_color: `#1891ac`,
+        theme_color: `#1891ac`,
+        display: `minimal-ui`,
+      },
+    },
   ],
 }

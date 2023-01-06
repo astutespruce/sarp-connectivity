@@ -14,7 +14,6 @@ with open(metadata_dir / "description.txt") as infile:
 with open(metadata_dir / "terms_of_use.txt") as infile:
     terms_of_use = infile.read()
 
-
 with open(metadata_dir / "readme_template.txt") as infile:
     readme = infile.read()
 
@@ -22,31 +21,33 @@ with open(metadata_dir / "terms_template.txt") as infile:
     terms = infile.read()
 
 
-def get_readme(filename, barrier_type, fields, url, layer, ids):
+def get_readme(filename, barrier_type, fields, url, layer, ids, warnings=None):
     field_def = (
         DAM_FIELD_DEFINITIONS if barrier_type == "dams" else SB_FIELD_DEFINITIONS
     )
 
-    fields = {f: field_def[f] for f in fields if f in fields}
+    fields = {f: field_def[f] for f in fields if f in field_def}
     field_info = "\n".join([f"{k}: {v}" for k, v in fields.items()])
+
+    meta_description = (
+        description if not warnings else f"{description}\n\nWARNING: {warnings}"
+    )
 
     return readme.format(
         type=barrier_type,
-        download_date=date.today().strftime("%m/%d/%Y"),
         data_version=data_version,
         data_date=data_date,
         url=url,
         filename=filename,
         layer=layer,
         ids=", ".join(ids),
-        description=description,
+        description=meta_description,
         field_info=field_info,
     )
 
 
 def get_terms(url):
     return terms.format(
-        download_date=date.today().strftime("%m/%d/%Y"),
         data_version=data_version,
         data_date=data_date,
         url=url,

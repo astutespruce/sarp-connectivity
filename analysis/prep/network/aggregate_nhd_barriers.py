@@ -6,7 +6,7 @@ import pandas as pd
 import geopandas as gp
 from pyogrio import write_dataframe
 
-from analysis.lib.util import append
+from analysis.lib.io import read_feathers
 
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
@@ -26,16 +26,8 @@ if not out_dir.exists():
 
 
 for group in ["points", "lines", "poly"]:
-    merged = None
-
-    for huc2 in huc2s:
-        huc2_dir = src_dir / huc2
-
-        filename = huc2_dir / f"nhd_{group}.feather"
-        if filename.exists():
-            df = gp.read_feather(filename)
-            merged = append(merged, df)
-
-    df = merged.reset_index(drop=True)
+    df = read_feathers(
+        [src_dir / huc2 / f"nhd_{group}.feather" for huc2 in huc2s], geo=True
+    )
     df.to_feather(out_dir / f"nhd_{group}.feather")
-    write_dataframe(df, out_dir / f"nhd_{group}.gpkg")
+    write_dataframe(df, out_dir / f"nhd_{group}.fgb")

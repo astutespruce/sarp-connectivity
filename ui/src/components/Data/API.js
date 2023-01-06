@@ -1,7 +1,8 @@
-import { csvParse, autoType } from 'd3-dsv'
+import { tableFromIPC } from '@apache-arrow/es2015-esm'
 
+import { unpackBits } from 'util/data'
 import { captureException } from 'util/log'
-import { siteMetadata } from '../../../gatsby-config'
+import { siteMetadata, TIER_PACK_BITS } from 'config'
 
 const { apiHost } = siteMetadata
 
@@ -29,7 +30,7 @@ const apiQueryParams = ({
   }
 
   if (includeUnranked) {
-    query += '&unranked=1'
+    query += '&include_unranked=1'
   }
   if (customRank) {
     query += '&custom=1'
@@ -41,32 +42,33 @@ const apiQueryParams = ({
   return query
 }
 
-const fetchCSV = async (url, options, rowParser) => {
+const fetchFeather = async (url, options) => {
   try {
     const response = await fetch(url, options)
+
     if (response.status !== 200) {
       throw new Error(`Failed request to ${url}: ${response.statusText}`)
     }
 
-    const rawContent = await response.text()
+    const data = await tableFromIPC(response.arrayBuffer())
+    const [...table] = data
 
     return {
-      error: null,
-      csv: csvParse(rawContent, rowParser),
-      bounds: response.headers.get('x-bounds'),
+      data: table.map((row) => row.toJSON()),
+      bounds: data.schema.metadata.get('bounds'),
     }
   } catch (err) {
     captureException(err)
 
     return {
       error: err,
-      csv: null,
+      data: null,
     }
   }
 }
 
 /**
- * Fetch and parse CSV data from API for dams or small barriers
+ * Fetch and parse Feather data from API for dams or small barriers
  */
 export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
   const url = `${apiHost}/api/v1/internal/${barrierType}/query/${layer}?${apiQueryParams(
@@ -75,11 +77,11 @@ export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
     }
   )}`
 
-  return fetchCSV(url, undefined, autoType)
+  return fetchFeather(url, undefined)
 }
 
 /**
- * Fetch and parse CSV data from API for dams or small barriers
+ * Fetch and parse Feather data from API for dams or small barriers
  */
 export const fetchBarrierRanks = async (
   barrierType,
@@ -94,7 +96,17 @@ export const fetchBarrierRanks = async (
     }
   )}`
 
-  return fetchCSV(url, undefined, autoType)
+  // Unpack bit-packed tiers
+  const { data: packedTiers, bounds } = await fetchFeather(url, undefined)
+  const data = packedTiers.map(({ id, tiers }) => ({
+    id,
+    ...unpackBits(tiers, TIER_PACK_BITS),
+  }))
+
+  return {
+    bounds,
+    data,
+  }
 }
 
 export const fetchBarrierDetails = async (barrierType, sarpid) => {
@@ -113,14 +125,52 @@ export const getDownloadURL = ({
   layer,
   summaryUnits,
   filters,
-  includeUnranked,
-  sort,
+  includeUnranked = null,
+  sort = null,
   customRank = false,
-}) =>
-  `${apiHost}/api/v1/internal/${barrierType}/csv/${layer}?${apiQueryParams({
+}) => {
+  const params = {
     summaryUnits,
     filters,
-    includeUnranked,
-    sort,
-    customRank,
-  })}`
+  }
+
+  if (includeUnranked !== null) {
+    params.includeUnranked = includeUnranked
+  }
+
+  if (sort !== null) {
+    params.sort = sort
+  }
+  if (customRank) {
+    params.customRank = customRank
+  }
+
+  return `${apiHost}/api/v1/internal/${barrierType}/csv/${layer}?${apiQueryParams(
+    params
+  )}`
+}
+
+export const searchUnits = async (layers, query) => {
+  const url = `${apiHost}/api/v1/internal/units/search?layer=${layers.join(
+    ','
+  )}&query=${query}`
+
+  try {
+    const response = await fetch(url)
+    if (response.status !== 200) {
+      throw new Error(`Failed request to ${url}: ${response.statusText}`)
+    }
+
+    const data = await tableFromIPC(response.arrayBuffer())
+    const [...table] = data
+
+    return {
+      results: table.map((row) => row.toJSON()),
+      remaining: parseInt(data.schema.metadata.get('count'), 10) - data.numRows,
+    }
+  } catch (err) {
+    captureException(err)
+
+    throw err
+  }
+}

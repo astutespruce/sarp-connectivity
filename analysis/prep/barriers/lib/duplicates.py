@@ -1,10 +1,10 @@
-import pandas as pd
 import geopandas as gp
-import pygeos as pg
+import pandas as pd
+import shapely
 from pyogrio import write_dataframe
 
+from analysis.constants import ONSTREAM_MANUALREVIEW
 from analysis.lib.geometry import dissolve, neighborhoods
-from analysis.constants import CRS, ONSTREAM_MANUALREVIEW
 
 
 def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
@@ -25,6 +25,7 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
     tuple of (GeoDataFrame, DataFrame)
         df, to_dedup (remaining to be deduplicated)
     """
+
     groups = (
         pd.DataFrame(
             neighborhoods(
@@ -48,14 +49,12 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
     ix = groups.index
     df.loc[ix, "dup_group"] = groups.loc[ix].group
     df.loc[ix, "dup_count"] = groups.loc[ix].dup_count
-    df.loc[ix, "dup_log"] = "kept: duplicated by other barriers within {}m".format(
-        tolerance
-    )
+    df.loc[ix, "dup_log"] = f"kept: duplicated by other barriers within {tolerance}m"
 
     keep = groups.reset_index().rename(columns={"index": "id"}).groupby("group").first()
     ix = groups.loc[~groups.index.isin(keep.id.unique())].index
     df.loc[ix, "duplicate"] = True
-    df.loc[ix, "dup_log"] = "duplicate: other barriers within {}m".format(tolerance)
+    df.loc[ix, "dup_log"] = f"duplicate: other barriers within {tolerance}m"
 
     to_dedup = to_dedup.loc[~to_dedup.index.isin(groups.index)].copy()
 
@@ -68,7 +67,7 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
 
     # Also keep any small barriers that were not specifically excluded or dropped
     # because they are individually evaluated
-    if "SeverityClass" in df.columns:
+    if "PotentialProject" in df.columns:
         keep_ix = keep_ix | keep.id.isin(df.loc[~(df.dropped | df.excluded)].index)
 
     trusted_keepers = keep.loc[keep_ix]
@@ -80,7 +79,7 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
 
     count_dropped = len(df.loc[df.dup_group.isin(drop_groups) & ~df.dropped])
     print(
-        f"Dropped {count_dropped:,} barriers that were in duplicate groups with dams that were dropped"
+        f"Dropped {count_dropped:,} barriers that were in duplicate groups with barriers that were dropped"
     )
 
     ix = df.dup_group.isin(drop_groups)
@@ -117,10 +116,8 @@ def export_duplicate_areas(dups, path):
         output path
     """
 
-    print("Exporting duplicate areas")
-
     dups = dups.copy()
-    dups["geometry"] = pg.buffer(dups.geometry.values.data, dups.dup_tolerance)
+    dups["geometry"] = shapely.buffer(dups.geometry.values.data, dups.dup_tolerance)
     dissolved = dissolve(dups[["geometry", "dup_group"]], by="dup_group")
     groups = gp.GeoDataFrame(
         dups[["id", "SARPID", "dup_group"]]
@@ -128,41 +125,7 @@ def export_duplicate_areas(dups, path):
         .agg({"SARPID": "unique", "id": "unique"})
         .join(dissolved.geometry, on="dup_group"),
         crs=dups.crs,
-    )
+    ).reset_index()
     groups["id"] = groups.id.apply(lambda x: ", ".join([str(s) for s in x]))
     groups["SARPID"] = groups.SARPID.apply(lambda x: ", ".join([str(s) for s in x]))
     write_dataframe(groups, path)
-
-
-def mark_duplicates(df, tolerance):
-    """Mark points that are within tolerance of each other to the first record.
-
-    WARNING: no evaluation of the underlying attribute values is performed,
-    only spatial de-duplication.
-
-    Parameters
-    ----------
-    df : GeoDataFrame with columns
-        "duplicate" (True if a duplicate EXCEPT first of each duplicate)
-        "dup_group" id of each set of duplicates INCLUDING the first of each duplicate
-        "dup_count" number of duplicates per duplicate group
-    tolerance : number
-        distance (in projection units) within which all points are dropped except the first.
-    """
-
-    df["temp_x"] = (pg.get_x(df.geometry.values.data) / tolerance).round().astype(
-        "int"
-    ) * tolerance
-    df["temp_y"] = (pg.get_y(df.geometry.values.data) / tolerance).round().astype(
-        "int"
-    ) * tolerance
-
-    # assign duplicate group ids
-    grouped = df.groupby(["temp_x", "temp_y"])
-    df["dup_group"] = grouped.grouper.group_info[0]
-    df = df.join(grouped.size().rename("dup_count"), on=["temp_x", "temp_y"])
-    dedup = df.drop_duplicates(subset=["dup_group"], keep="first")
-    df["duplicate"] = False
-    df.loc[~df.index.isin(dedup.index), "duplicate"] = True
-
-    return df.drop(columns=["temp_x", "temp_y"])

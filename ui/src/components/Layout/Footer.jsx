@@ -3,7 +3,7 @@ import React from 'react'
 import { Box, Flex } from 'theme-ui'
 import { OutboundLink, Link } from 'components/Link'
 
-import { siteMetadata } from '../../../gatsby-config'
+import { siteMetadata } from 'config'
 
 const { version: dataVersion, date: dataDate } = siteMetadata
 
@@ -18,7 +18,7 @@ const Footer = () => (
       px: '0.5rem',
       color: '#FFF',
       bg: 'blue.9',
-      fontSize: '0.7rem',
+      fontSize: '0.8rem',
       a: {
         textDecoration: 'none',
         color: '#FFF',
@@ -26,7 +26,7 @@ const Footer = () => (
     }}
   >
     <Box>
-      <OutboundLink to="https://southeastaquatics.net/">
+      <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
         Southeast Aquatic Resources Partnership
       </OutboundLink>
       &nbsp;&nbsp;|&nbsp;&nbsp;

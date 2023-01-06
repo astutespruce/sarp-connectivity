@@ -1,6 +1,6 @@
 import geopandas as gp
 import pandas as pd
-import pygeos as pg
+import shapely
 import numpy as np
 
 from analysis.lib.geometry.explode import explode
@@ -73,17 +73,17 @@ def union_or_combine(geometries, grid_size=None, op="union"):
     MultiPolygon
     """
 
-    geom_types = np.unique(pg.get_type_id(geometries))
+    geom_types = np.unique(shapely.get_type_id(geometries))
 
     if set(geom_types) - {0, 1, 3}:
         print("Inputs to union or combine must be single-part geometries")
 
     if geom_types[0] == 0:
-        multi_type = pg.points
+        multi_type = shapely.points
     elif geom_types[0] == 1:
-        multi_type = pg.multilinestrings
+        multi_type = shapely.multilinestrings
     elif geom_types[0] == 3:
-        multi_type = pg.multipolygons
+        multi_type = shapely.multipolygons
     else:
         raise ValueError(
             f"Aggregate geometry type not supported for GeometryType {geom_types[0]}"
@@ -92,8 +92,8 @@ def union_or_combine(geometries, grid_size=None, op="union"):
     if len(geometries) == 1:
         return multi_type(geometries)
 
-    tree = pg.STRtree(geometries)
-    left, right = tree.query_bulk(geometries, predicate="intersects")
+    tree = shapely.STRtree(geometries)
+    left, right = tree.query(geometries, predicate="intersects")
     # drop self intersections
     ix = left != right
     left = left[ix]
@@ -112,15 +112,19 @@ def union_or_combine(geometries, grid_size=None, op="union"):
 
     if op == "coverage_union":
         for group in groups:
-            parts.extend(pg.get_parts(pg.coverage_union_all(geometries[list(group)])))
+            parts.extend(
+                shapely.get_parts(shapely.coverage_union_all(geometries[list(group)]))
+            )
 
     else:
         for group in groups:
             parts.extend(
-                pg.get_parts(pg.union_all(geometries[list(group)], grid_size=grid_size))
+                shapely.get_parts(
+                    shapely.union_all(geometries[list(group)], grid_size=grid_size)
+                )
             )
 
-    parts.extend(pg.get_parts(geometries[discontiguous]))
+    parts.extend(shapely.get_parts(geometries[discontiguous]))
 
     return multi_type(parts)
 
@@ -137,8 +141,8 @@ def find_contiguous_groups(geometries):
     -------
     DataFrame indexed on the integer index of geometries
     """
-    tree = pg.STRtree(geometries)
-    left, right = tree.query_bulk(geometries, predicate="intersects")
+    tree = shapely.STRtree(geometries)
+    left, right = tree.query(geometries, predicate="intersects")
     # drop self intersections
     ix = left != right
     left = left[ix]

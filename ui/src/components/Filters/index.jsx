@@ -1,3 +1,4 @@
 import Filter from './Filter'
+import FilterGroup from './FilterGroup'
 
-export {Filter}
+export { Filter, FilterGroup }

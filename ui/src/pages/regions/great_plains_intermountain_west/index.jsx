@@ -2,26 +2,29 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
-
 import {
   Box,
   Container,
   Divider,
   Grid,
   Heading,
+  Image,
   Paragraph,
   Text,
 } from 'theme-ui'
 
 import { useSummaryData } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
+import { OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-
+import { REGION_STATES } from 'config'
 import { formatNumber } from 'util/format'
 
-import { REGION_STATES } from '../../../../config/constants'
+import MTFWPLogo from 'images/mtfwp_logo.svg'
+import UTDWRLogo from 'images/utdwr_logo.svg'
+import WYGFDLogo from 'images/wygfd_logo.png'
 
 const GPIWRegionPage = ({
   data: {
@@ -36,7 +39,7 @@ const GPIWRegionPage = ({
   const { gpiw } = useSummaryData()
 
   return (
-    <Layout title="Great Plains & Intermountain West Region">
+    <Layout>
       <HeaderImage
         image={headerImage}
         height="20vh"
@@ -77,6 +80,54 @@ const GPIWRegionPage = ({
 
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">
+            Data Sources
+          </Heading>
+
+          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '0.5rem' }}>
+            <Paragraph>
+              Records describing dams and road-related barriers within Montana
+              include those maintained by the{' '}
+              <OutboundLink to="https://fwp.mt.gov/">
+                Montana Department of Fish, Wildlife, and Parks.
+              </OutboundLink>
+              .
+            </Paragraph>
+            <Box sx={{ maxWidth: '80px' }}>
+              <Image src={MTFWPLogo} />
+            </Box>
+          </Grid>
+
+          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
+            <Paragraph>
+              Records describing dams and road-related barriers within Utah
+              include those maintained by the{' '}
+              <OutboundLink to="https://wildlifemigration.utah.gov/fish-and-amphibians/barriers/">
+                Utah Barrier Assessment Inventory Tool
+              </OutboundLink>
+              .
+            </Paragraph>
+            <Box sx={{ maxWidth: '300px' }}>
+              <Image src={UTDWRLogo} />
+            </Box>
+          </Grid>
+
+          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
+            <Paragraph>
+              Information on aquatic barriers in Wyoming is a product of the{' '}
+              <OutboundLink to="https://wgfd.wyo.gov/habitat/aquatic-habitat">
+                Wyoming Game & Fish Department
+              </OutboundLink>
+              , including field data collection in coordination with the
+              Southeast Aquatic Resources Partnership.
+            </Paragraph>
+            <Box sx={{ maxWidth: '80px' }}>
+              <Image src={WYGFDLogo} />
+            </Box>
+          </Grid>
+        </Box>
+
+        <Box variant="boxes.section">
+          <Heading as="h2" variant="heading.section">
             Statistics by state:
           </Heading>
           <Box sx={{ mt: '0.5rem' }}>
@@ -110,7 +161,7 @@ const GPIWRegionPage = ({
 GPIWRegionPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
-    map: PropTypes.isRequired,
+    map: PropTypes.object.isRequired,
   }).isRequired,
 }
 
@@ -140,3 +191,7 @@ export const pageQuery = graphql`
 `
 
 export default GPIWRegionPage
+
+export const Head = () => (
+  <SEO title="Great Plains & Intermountain West Region" />
+)

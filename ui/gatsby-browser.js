@@ -22,9 +22,19 @@ export const onClientEntry = () => {
           if (error.message.match(/ResizeObserver loop limit exceeded/i)) {
             return null
           }
+          // extension errors
+          if (error.message.match(/extension context/i)) {
+            return null
+          }
         }
         return event
       },
+      denyUrls: [
+        // Chrome extensions
+        /extensions\//i,
+        /^chrome:\/\//i,
+        /^chrome-extension:\/\//i,
+      ],
     })
     window.Sentry = Sentry
   }

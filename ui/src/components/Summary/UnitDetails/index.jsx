@@ -1,15 +1,15 @@
 /* eslint-disable camelcase */
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Button, Heading, Flex, Paragraph, Text } from 'theme-ui'
+import { Box, Button, Heading, Flex, Text } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 import { Downloader } from 'components/Download'
+import { STATE_FIPS, STATES, CONNECTIVITY_TEAMS } from 'config'
 
 import { layers } from '../layers'
 import Barriers from './Barriers'
 import Dams from './Dams'
-import { STATE_FIPS, CONNECTIVITY_TEAMS } from '../../../../config/constants'
 
 const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   const teams = {}
@@ -22,17 +22,20 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   const {
     id,
     layerId,
-    name = '',
     dams = 0,
     totalSmallBarriers = 0,
+    crossings = 0,
   } = summaryUnit
+
+  let { name = '' } = summaryUnit
 
   const layerConfig = layers.filter(({ id: lyrID }) => lyrID === layerId)[0]
 
   let { title: layerTitle } = layerConfig
 
-  let title = name || id
+  let title = null
   let state = null
+  let team = null
   if (layerId === 'County') {
     title = `${name} County`
     state = STATE_FIPS[id.slice(0, 2)]
@@ -40,16 +43,74 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   }
 
   if (layerId === 'State') {
-    state = id
+    state = STATES[id]
+    name = state
+    team = teams[id]
   }
 
-  const team = state ? teams[state] : null
+  title = name || id
 
-  const hasBarriers = barrierType === 'dams' ? dams > 0 : totalSmallBarriers > 0
   const downloaderConfig = {
     layer: layerId,
     summaryUnits: [{ id }],
     scenario: 'ncwc',
+  }
+
+  let downloadButtons = null
+
+  if (barrierType === 'dams') {
+    if (dams > 0) {
+      downloadButtons = (
+        <Flex
+          sx={{
+            justifyContent: 'flex-end',
+            p: '1rem',
+            flex: '0 0 auto',
+            borderTop: '1px solid #DDD',
+            bg: '#f6f6f2',
+          }}
+        >
+          <Downloader barrierType={barrierType} config={downloaderConfig} />
+        </Flex>
+      )
+    }
+  } else if (totalSmallBarriers + crossings > 0) {
+    const showBoth = totalSmallBarriers > 0 && crossings > 0
+
+    downloadButtons = (
+      <Flex
+        sx={{
+          justifyContent: showBoth ? 'space-between' : 'flex-end',
+          p: '1rem',
+          flex: '0 0 auto',
+          borderTop: '1px solid #DDD',
+          bg: '#f6f6f2',
+          '& button': showBoth
+            ? {
+                fontSize: 1,
+                textAlign: 'left',
+                p: '0.5rem',
+              }
+            : null,
+        }}
+      >
+        {crossings > 0 ? (
+          <Downloader
+            barrierType="road_crossings"
+            config={{
+              layer: layerId,
+              summaryUnits: [{ id }],
+            }}
+          />
+        ) : null}
+
+        {showBoth ? <Box sx={{ width: '1em', flex: '0 0 auto' }} /> : null}
+
+        {totalSmallBarriers > 0 ? (
+          <Downloader barrierType={barrierType} config={downloaderConfig} />
+        ) : null}
+      </Flex>
+    )
   }
 
   return (
@@ -70,10 +131,13 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           <Heading as="h3" sx={{ m: 0, fontSize: '1.25rem' }}>
             {title}
           </Heading>
-          {layerId !== 'State' && (
+          {layerId !== 'State' && layerId !== 'HUC2' ? (
             <Text sx={{ fontSize: '1.25rem' }}>{layerTitle}</Text>
-          )}
-          {layerId === 'HUC6' || layerId === 'HUC8' || layerId === 'HUC12' ? (
+          ) : null}
+          {layerId === 'HUC6' ||
+          layerId === 'HUC8' ||
+          layerId === 'HUC10' ||
+          layerId === 'HUC12' ? (
             <Text sx={{ color: 'grey.7' }}>
               {layerId}: {id}
             </Text>
@@ -99,11 +163,18 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
         )}
 
         {team ? (
-          <Box sx={{ mt: '3rem' }}>
+          <Box
+            sx={{
+              mt: '3rem',
+              borderTop: '1px solid',
+              borderTopColor: 'grey.1',
+              pt: '1rem',
+            }}
+          >
             <Heading as="h5" style={{ marginBottom: '0.5em' }}>
               {state} Aquatic Connectivity Team
             </Heading>
-            <Paragraph>
+            <Text sx={{ fontSize: 1 }}>
               {team.description}
               <br />
               <br />
@@ -121,24 +192,12 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
               For more information, please contact{' '}
               <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a> (
               {team.contact.org}).
-            </Paragraph>
+            </Text>
           </Box>
         ) : null}
       </Box>
 
-      {hasBarriers ? (
-        <Flex
-          sx={{
-            justifyContent: 'flex-end',
-            p: '1rem',
-            flex: '0 0 auto',
-            borderTop: '1px solid #DDD',
-            bg: '#f6f6f2',
-          }}
-        >
-          <Downloader barrierType={barrierType} config={downloaderConfig} />
-        </Flex>
-      ) : null}
+      {downloadButtons}
     </Flex>
   )
 }
@@ -150,10 +209,10 @@ UnitDetails.propTypes = {
     layerId: PropTypes.string.isRequired,
     name: PropTypes.string,
     dams: PropTypes.number,
-    onNetworkDams: PropTypes.number,
+    rankedDams: PropTypes.number,
     smallBarriers: PropTypes.number,
     totalSmallBarriers: PropTypes.number,
-    onNetworkSmallBarriers: PropTypes.number,
+    unrankedSmallBarriers: PropTypes.number,
     crossings: PropTypes.number,
     miles: PropTypes.number,
   }).isRequired,

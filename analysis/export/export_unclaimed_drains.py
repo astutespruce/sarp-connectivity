@@ -4,7 +4,7 @@ import os
 
 import geopandas as gp
 import pandas as pd
-import pygeos as pg
+import shapely
 import numpy as np
 
 from pyogrio import write_dataframe
@@ -40,7 +40,7 @@ drains = (
             "MaxElevSmo": "maxelev",
             "MinElevSmo": "minelev",
             "Slope": "slope",
-            "StreamOrde": "fsorder",
+            "StreamOrder": "fsorder",
             "km2": "wb_km2",
             "flowlineLength": "flength",
         }
@@ -59,8 +59,8 @@ drains = drains.loc[~ix].copy()
 
 # Find any that are within 50m of dams and ignore those
 # This picks up any that are likely related to dams but not used for snapping
-tree = pg.STRtree(drains.geometry.values.data)
-(left, right), dist = tree.nearest_all(
+tree = shapely.STRtree(drains.geometry.values.data)
+(left, right), dist = tree.query_nearest(
     dams.geometry.values.data, max_distance=50, return_distance=True
 )
 
@@ -79,8 +79,8 @@ states = gp.read_feather(
 states = states.loc[states.state.isin(STATES.keys())].copy()
 
 print("Joining to states...")
-tree = pg.STRtree(drains.geometry.values.data)
-left, right = tree.query_bulk(states.geometry.values.data, predicate="intersects")
+tree = shapely.STRtree(drains.geometry.values.data)
+left, right = tree.query(states.geometry.values.data, predicate="intersects")
 
 tmp = (
     pd.DataFrame(
@@ -99,4 +99,3 @@ for col in ["wb_km2", "TotDASqKm"]:
 
 print("Saving to shapefile")
 write_dataframe(drains, out_dir / "unclaimed_drain_points.shp")
-

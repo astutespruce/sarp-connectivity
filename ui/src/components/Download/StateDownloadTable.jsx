@@ -3,30 +3,29 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Paragraph } from 'theme-ui'
 
 import { useStateSummary } from 'components/Data'
-
+import { REGION_STATES, STATES } from 'config'
 import { groupBy } from 'util/data'
 import { formatNumber } from 'util/format'
 
 import Downloader from './Downloader'
-import { REGION_STATES, STATES } from '../../../config/constants'
 
 const downloadConfig = { scenario: 'NCWC', layer: 'State' }
 
 const StateDownloadTable = ({
   region,
   dams,
-  onNetworkDams,
+  rankedDams,
   reconDams,
   smallBarriers,
-  onNetworkSmallBarriers,
+  rankedSmallBarriers,
   totalSmallBarriers,
   ...props
 }) => {
   const stateData = groupBy(useStateSummary(), 'id')
-  const regionStates = REGION_STATES[region].map((id) => ({ id: STATES[id] }))
+  const regionStates = REGION_STATES[region]
 
-  const offNetworkDams = dams - onNetworkDams
-  const offNetworkBarriers = smallBarriers - onNetworkSmallBarriers
+  const unrankedDams = dams - rankedDams
+  const unrankedBarriers = smallBarriers - rankedSmallBarriers
 
   return (
     <Box {...props}>
@@ -98,9 +97,9 @@ const StateDownloadTable = ({
             </tr>
           </thead>
           <tbody>
-            {regionStates.map(({ id }) => (
+            {regionStates.map((id) => (
               <tr key={id}>
-                <td>{id}</td>
+                <td>{STATES[id]}</td>
                 <td>{formatNumber(stateData[id].dams)}</td>
                 <td>{formatNumber(stateData[id].reconDams)}</td>
                 <td>{formatNumber(stateData[id].totalSmallBarriers)}</td>
@@ -141,7 +140,7 @@ const StateDownloadTable = ({
                   barrierType="dams"
                   config={{
                     ...downloadConfig,
-                    summaryUnits: regionStates,
+                    summaryUnits: regionStates.map((id) => ({ id })),
                   }}
                 />
               </td>
@@ -152,7 +151,7 @@ const StateDownloadTable = ({
                   barrierType="small_barriers"
                   config={{
                     ...downloadConfig,
-                    summaryUnits: regionStates,
+                    summaryUnits: regionStates.map((id) => ({ id })),
                   }}
                 />
               </td>
@@ -163,9 +162,9 @@ const StateDownloadTable = ({
 
       <Grid columns={[0, 2]} gap={4} sx={{ mt: '2rem' }}>
         <Paragraph variant="help">
-          <b>{formatNumber(offNetworkDams, 0)} inventoried dams</b> and{' '}
+          <b>{formatNumber(unrankedDams, 0)} inventoried dams</b> and{' '}
           <b>
-            {formatNumber(offNetworkBarriers, 0)} inventoried road-related
+            {formatNumber(unrankedBarriers, 0)} inventoried road-related
             barriers
           </b>{' '}
           were not analyzed because they could not be correctly located on the
@@ -186,19 +185,19 @@ const StateDownloadTable = ({
 StateDownloadTable.propTypes = {
   region: PropTypes.string.isRequired,
   dams: PropTypes.number,
-  onNetworkDams: PropTypes.number,
+  rankedDams: PropTypes.number,
   reconDams: PropTypes.number,
   smallBarriers: PropTypes.number,
-  onNetworkSmallBarriers: PropTypes.number,
+  rankedSmallBarriers: PropTypes.number,
   totalSmallBarriers: PropTypes.number,
 }
 
 StateDownloadTable.defaultProps = {
   dams: 0,
-  onNetworkDams: 0,
+  rankedDams: 0,
   reconDams: 0,
   smallBarriers: 0,
-  onNetworkSmallBarriers: 0,
+  rankedSmallBarriers: 0,
   totalSmallBarriers: 0,
 }
 

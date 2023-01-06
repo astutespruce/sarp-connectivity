@@ -1,17 +1,15 @@
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
+import pyarrow as pa
+import pyarrow.compute as pc
 
-
-from analysis.rank.lib.tiers import calculate_tiers
-
-from api.constants import (
-    TIER_FIELDS,
-    CUSTOM_TIER_FIELDS,
-)
-from api.data import ranked_dams, ranked_barriers
+from api.lib.compression import pack_bits
+from api.lib.tiers import calculate_tiers, METRICS
+from api.constants import CUSTOM_TIER_PACK_BITS
+from api.data import dams, small_barriers
 from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
 from api.logger import log, log_request
-from api.response import csv_response
+from api.response import feather_response
 
 
 router = APIRouter()
@@ -31,17 +29,23 @@ def rank_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
 
     log_request(request)
 
-    df = extractor.extract(ranked_dams).copy()
+    df = extractor.extract(
+        dams,
+        columns=["id", "lat", "lon"] + METRICS,
+        ranked=True,
+    )
     log.info(f"selected {len(df)} dams for ranking")
 
-    # just return tiers and lat/lon
-    cols = ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
-    df = df.join(calculate_tiers(df))[cols]
-
     # extract extent
-    bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
+    xmin, xmax = pc.min_max(df["lon"]).as_py().values()
+    ymin, ymax = pc.min_max(df["lat"]).as_py().values()
+    bounds = [xmin, ymin, xmax, ymax]
 
-    return csv_response(df, bounds=bounds)
+    tiers = pa.Table.from_pydict(
+        {"id": df["id"], "tiers": pack_bits(calculate_tiers(df), CUSTOM_TIER_PACK_BITS)}
+    )
+
+    return feather_response(tiers, bounds=bounds)
 
 
 @router.get("/small_barriers/rank/{layer}")
@@ -58,15 +62,20 @@ def rank_barriers(request: Request, extractor: BarriersRecordExtractor = Depends
 
     log_request(request)
 
-    df = extractor.extract(ranked_barriers).copy()
+    df = extractor.extract(
+        small_barriers,
+        columns=["id", "lat", "lon"] + METRICS,
+        ranked=True,
+    )
     log.info(f"selected {len(df)} barriers for ranking")
 
-    # just return tiers and lat/lon
-    cols = ["lat", "lon"] + TIER_FIELDS + CUSTOM_TIER_FIELDS
-
-    df = df.join(calculate_tiers(df))[cols]
-
     # extract extent
-    bounds = df[["lon", "lat"]].agg(["min", "max"]).values.flatten().round(3)
+    xmin, xmax = pc.min_max(df["lon"]).as_py().values()
+    ymin, ymax = pc.min_max(df["lat"]).as_py().values()
+    bounds = [xmin, ymin, xmax, ymax]
 
-    return csv_response(df, bounds=bounds)
+    tiers = pa.Table.from_pydict(
+        {"id": df["id"], "tiers": pack_bits(calculate_tiers(df), CUSTOM_TIER_PACK_BITS)}
+    )
+
+    return feather_response(tiers, bounds=bounds)

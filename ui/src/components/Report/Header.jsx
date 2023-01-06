@@ -2,48 +2,42 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
+import { STATES } from 'config'
 import { formatNumber } from 'util/format'
 import { Flex } from './elements'
 
-const Header = ({ barrierType, name, county, state, lat, lon }) => (
-  <Flex
-    style={{
-      marginBottom: 6,
-      alignItems: 'flex-end',
-      justifyContent: 'space-between',
-    }}
-  >
-    <View style={{ flex: '1 1 auto', marginRight: 24 }}>
+const Header = ({ name, county, state, lat, lon }) => (
+  <View style={{ marginBottom: 4 }}>
+    <Text
+      style={{ fontFamily: 'Helvetica-Bold', fontSize: 24, lineHeight: 1.2 }}
+    >
+      {name}
+    </Text>
+    <Flex
+      style={{
+        justifyContent: 'space-beteween',
+        marginTop: 12,
+      }}
+    >
       <Text
-        style={{ fontFamily: 'Helvetica-Bold', fontSize: 24, lineHeight: 1.2 }}
+        style={{
+          flex: '1 1 auto',
+          fontSize: 12,
+          color: '#5f6e78',
+        }}
       >
-        {name}
+        {county} County, {STATES[state]}
       </Text>
-      <Flex style={{ justifyContent: 'space-beteween', marginTop: 12 }}>
-        <Text style={{ flex: '1 1 auto' }}>
-          {barrierType === 'dams' ? 'Dam' : 'Road-related barrier'} at{' '}
-          {formatNumber(lat, 5)}
-          &deg; N / {formatNumber(lon, 5)}
-          &deg; E
-        </Text>
-        <Text
-          style={{
-            flex: '0 0 200',
-            fontStyle: 'italic',
-            fontFamily: 'Helvetica-Oblique',
-            fontSize: 12,
-            textAlign: 'right',
-          }}
-        >
-          {county} County, {state}
-        </Text>
-      </Flex>
-    </View>
-  </Flex>
+      <Text style={{ flex: '0 0 210', textAlign: 'right', color: '#5f6e78' }}>
+        Located at {formatNumber(lat, 5)}
+        &deg; N / {formatNumber(lon, 5)}
+        &deg; E
+      </Text>
+    </Flex>
+  </View>
 )
 
 Header.propTypes = {
-  barrierType: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   county: PropTypes.string.isRequired,
   state: PropTypes.string.isRequired,

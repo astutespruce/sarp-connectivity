@@ -17,14 +17,16 @@ const initCrossfilter = (data, filterConfig) => {
   const crossfilter = Crossfilter2(data)
 
   const dimensions = {}
-  filterConfig.forEach((filter) => {
-    const { field, isArray, getValue } = filter
-    // default `getValue` function is identify function for field
-    const dimensionFunction = getValue || ((record) => record[field])
+  filterConfig.forEach(({ filters }) => {
+    filters.forEach((filter) => {
+      const { field, isArray, getValue } = filter
+      // default `getValue` function is identify function for field
+      const dimensionFunction = getValue || ((record) => record[field])
 
-    const dimension = crossfilter.dimension(dimensionFunction, !!isArray)
-    dimension.config = filter
-    dimensions[field] = dimension
+      const dimension = crossfilter.dimension(dimensionFunction, !!isArray)
+      dimension.config = filter
+      dimensions[field] = dimension
+    })
   })
 
   if (isDebug) {
@@ -95,8 +97,15 @@ export const Crossfilter = (data, filterConfig) => {
         filters: {},
         hasFilters: false,
         dimensionCounts,
-        emptyDimensions: Object.keys(dimensionCounts).filter(
-          (id) => Object.keys(dimensionCounts[id]).length <= 1
+        emptyDimensions: new Set(
+          Object.keys(dimensionCounts).filter(
+            (id) => Object.keys(dimensionCounts[id]).length <= 1
+          )
+        ),
+        emptyGroups: new Set(
+          filterConfig
+            .filter(({ hasData }) => hasData && !hasData(newData))
+            .map(({ id }) => id)
         ),
       }
 
@@ -162,6 +171,51 @@ export const Crossfilter = (data, filterConfig) => {
     })
   }
 
+  const resetGroupFilters = (groupId) => {
+    setState((prevState) => {
+      if (isDebug) {
+        console.log('resetGroupFilters')
+        console.log('Prev state', prevState)
+      }
+
+      const { filters: prevFilters } = prevState
+
+      // Create new instance, don't mutate
+      const newFilters = {
+        ...prevFilters,
+      }
+
+      const groupFields = filterConfig
+        .filter(({ id }) => id === groupId)[0]
+        .filters.map(({ field }) => field)
+      groupFields.forEach((field) => {
+        const dimension = dimensions[field]
+        dimension.filterAll()
+        newFilters[field] = new Set()
+      })
+
+      const hasFilters =
+        Object.values(newFilters).filter((filter) => filter && filter.size > 0)
+          .length > 0
+
+      const newState = {
+        ...prevState,
+        data: crossfilter.allFiltered(),
+        // remove all filter entries for these fields
+        filters: newFilters,
+        hasFilters,
+        dimensionCounts: countByDimension(dimensions),
+        filteredCount: getFilteredCount(crossfilter),
+      }
+
+      if (isDebug) {
+        console.log('Next state', newState)
+      }
+
+      return newState
+    })
+  }
+
   const resetFilters = () => {
     setState((prevState) => {
       if (isDebug) {
@@ -197,6 +251,7 @@ export const Crossfilter = (data, filterConfig) => {
   return {
     setData,
     setFilter,
+    resetGroupFilters,
     resetFilters,
     state,
 

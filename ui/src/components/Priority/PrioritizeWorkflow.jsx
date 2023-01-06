@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback } from 'react'
 import { Box, Flex, Text, Spinner } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
+import { useQueryClient } from 'react-query'
 
 import { useCrossfilter } from 'components/Crossfilter'
 import { ToggleButton } from 'components/Button'
-import { TopBar } from 'components/Map'
+import { TopBar, mapConfig } from 'components/Map'
 import {
   fetchBarrierInfo,
   fetchBarrierRanks,
@@ -15,7 +16,8 @@ import BarrierDetails from 'components/BarrierDetails'
 import { trackPrioritize } from 'util/analytics'
 
 import Map from './Map'
-import UnitChooser from './UnitChooser'
+import { unitLayerConfig } from './config'
+import UnitChooser, { getSingularLabel } from './UnitChooser'
 import LayerChooser from './LayerChooser'
 import Filters from './Filters'
 import Results from './Results'
@@ -43,16 +45,15 @@ const Prioritize = () => {
     state: { filters },
     setData: setFilterData,
   } = useCrossfilter()
+  const queryClient = useQueryClient()
 
   // individually-managed states
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
-  const [bounds, setBounds] = useState(null)
-  const [step, setStep] = useState('select')
-  const stepRef = useRef(step) // need to keep a ref to use in callback below
 
   const [
     {
+      step,
       selectedBarrier,
       searchFeature,
       layer,
@@ -61,9 +62,12 @@ const Prioritize = () => {
       scenario,
       resultsType,
       tierThreshold,
+      bounds,
+      zoom,
     },
     setState,
   ] = useState({
+    step: 'select',
     selectedBarrier: null,
     searchFeature: null,
     layer: null,
@@ -72,13 +76,31 @@ const Prioritize = () => {
     scenario: 'ncwc',
     resultsType: 'full',
     tierThreshold: 1,
+    bounds: mapConfig.bounds,
+    zoom: null,
   })
 
-  // keep the reference in sync
-  stepRef.current = step
+  const handleStartOver = () => {
+    setFilterData([])
+    setState(() => ({
+      step: 'select',
+      selectedBarrier: null,
+      searchFeature: null,
+      layer: null,
+      summaryUnits: [],
+      rankData: [],
+      scenario: 'ncwc',
+      resultsType: 'full',
+      tierThreshold: 1,
+      bounds: mapConfig.bounds,
+    }))
+  }
 
-  const handleMapLoad = () => {
+  const handleMapLoad = (map) => {
     setIsLoading(false)
+    map.on('zoomend', () => {
+      setState((prevState) => ({ ...prevState, zoom: map.getZoom() }))
+    })
   }
 
   const handleUnitChooserBack = () => {
@@ -87,13 +109,13 @@ const Prioritize = () => {
 
   const handleFilterBack = () => {
     setFilterData([])
-    setStep('select')
+    setState((prevState) => ({ ...prevState, step: 'select' }))
   }
 
   const handleResultsBack = () => {
-    setStep('filter')
     setState((prevState) => ({
       ...prevState,
+      step: 'filter',
       rankData: [],
       scenario: 'ncwc',
       resultsType: 'full',
@@ -148,57 +170,72 @@ const Prioritize = () => {
     })
   }
 
-  const loadBarrierInfo = () => {
+  const loadBarrierInfo = async () => {
     setIsLoading(true)
 
-    const fetchData = async () => {
-      const { csv, bounds: newBounds = null } = await fetchBarrierInfo(
-        barrierType,
-        layer,
-        summaryUnits
-      )
+    const nonzeroSummaryUnits = summaryUnits.filter(
+      ({ [barrierType]: count }) => count > 0
+    )
 
-      if (csv) {
-        setFilterData(csv)
-        setStep('filter')
-        if (newBounds !== null) {
-          setBounds(newBounds.split(',').map(parseFloat))
-        }
-        setIsLoading(false)
-      } else {
-        setIsLoading(false)
-        setIsError(true)
+    const {
+      error,
+      data,
+      bounds: newBounds = null,
+    } = await queryClient.fetchQuery(
+      [barrierType, layer, nonzeroSummaryUnits],
+      async () => fetchBarrierInfo(barrierType, layer, nonzeroSummaryUnits),
+      {
+        staleTime: 30 * 60 * 1000, // 30 minutes
+        // staleTime: 1, // use then reload to force refresh of underlying data during dev
+        refetchOnMount: false,
       }
+    )
+
+    if (error || !data) {
+      setIsLoading(false)
+      setIsError(true)
+      return
     }
-    fetchData()
+
+    setFilterData(data)
+    setState(({ bounds: prevBounds, ...prevState }) => ({
+      ...prevState,
+      step: 'filter',
+      bounds: newBounds ? newBounds.split(',').map(parseFloat) : prevBounds,
+      summaryUnits: nonzeroSummaryUnits,
+    }))
+    setIsLoading(false)
   }
 
-  const loadRankInfo = () => {
+  const loadRankInfo = async () => {
     setIsLoading(true)
-    const fetchData = async () => {
-      const { csv, bounds: newBounds } = await fetchBarrierRanks(
-        barrierType,
-        layer,
-        summaryUnits,
-        filters
-      )
 
-      if (csv) {
-        setState((prevState) => ({
-          ...prevState,
-          rankData: csv,
-        }))
-        setStep('results')
-        if (newBounds !== null) {
-          setBounds(newBounds.split(',').map(parseFloat))
-        }
-        setIsLoading(false)
-      } else {
-        setIsLoading(false)
-        setIsError(true)
+    const {
+      error,
+      data,
+      bounds: newBounds = null,
+    } = await queryClient.fetchQuery(
+      [barrierType, layer, summaryUnits, filters],
+      async () => fetchBarrierRanks(barrierType, layer, summaryUnits, filters),
+      {
+        staleTime: 30 * 60 * 1000, // 30 minutes
+        // staleTime: 1, // use then reload to force refresh of underlying data during dev
+        refetchOnMount: false,
       }
+    )
+
+    if (error || !data) {
+      setIsLoading(false)
+      setIsError(true)
     }
-    fetchData()
+
+    setState(({ bounds: prevBounds, ...prevState }) => ({
+      ...prevState,
+      step: 'results',
+      rankData: data,
+      bounds: newBounds ? newBounds.split(',').map(parseFloat) : prevBounds,
+    }))
+    setIsLoading(false)
   }
 
   const handleSetScenario = (nextScenario) => {
@@ -220,6 +257,8 @@ const Prioritize = () => {
   // local state referenced here is not updated when the callback
   // is later called.  To get around that, use reference to step instead.
   const handleSelectBarrier = (feature) => {
+    console.log('selected', feature)
+
     setState((prevState) => ({
       ...prevState,
       selectedBarrier: feature,
@@ -288,6 +327,7 @@ const Prioritize = () => {
                 selectUnit={handleSelectUnit}
                 setSearchFeature={handleSearch}
                 onSubmit={loadBarrierInfo}
+                onStartOver={handleStartOver}
               />
             )
           }
@@ -295,7 +335,11 @@ const Prioritize = () => {
         }
         case 'filter': {
           sidebarContent = (
-            <Filters onBack={handleFilterBack} onSubmit={loadRankInfo} />
+            <Filters
+              onBack={handleFilterBack}
+              onSubmit={loadRankInfo}
+              onStartOver={handleStartOver}
+            />
           )
           break
         }
@@ -313,6 +357,7 @@ const Prioritize = () => {
                 scenario,
               }}
               onSetTierThreshold={handleSetTierThreshold}
+              onStartOver={handleStartOver}
               onBack={handleResultsBack}
             />
           )
@@ -334,6 +379,41 @@ const Prioritize = () => {
         }
       }
     }
+  }
+
+  let topbarContent = null
+  if (step === 'results') {
+    topbarContent = (
+      <TopBar>
+        <Text sx={{ mr: '0.5rem' }}>Show ranks for:</Text>
+        <ToggleButton
+          value={scenario}
+          options={scenarioOptions}
+          onChange={handleSetScenario}
+        />
+        <Text sx={{ mx: '0.5rem' }}>for</Text>
+        <ToggleButton
+          value={resultsType}
+          options={resultTypeOptions}
+          onChange={handleSetResultsType}
+        />
+      </TopBar>
+    )
+  } else if (
+    step === 'select' &&
+    layer !== null &&
+    zoom < unitLayerConfig[layer].minzoom
+  ) {
+    topbarContent = (
+      <TopBar>
+        <Box sx={{ color: 'highlight', mt: '-3px' }}>
+          <ExclamationTriangle size="1.25em" />
+        </Box>
+        <Text sx={{ ml: '0.5rem', color: 'highlight' }}>
+          Zoom in further to select a {getSingularLabel(layer)}
+        </Text>
+      </TopBar>
+    )
   }
 
   return (
@@ -366,22 +446,7 @@ const Prioritize = () => {
           onMapLoad={handleMapLoad}
         />
 
-        {step === 'results' && (
-          <TopBar>
-            <Text sx={{ mr: '0.5rem' }}>Show ranks for:</Text>
-            <ToggleButton
-              value={scenario}
-              options={scenarioOptions}
-              onChange={handleSetScenario}
-            />
-            <Text sx={{ mx: '0.5rem' }}>for</Text>
-            <ToggleButton
-              value={resultsType}
-              options={resultTypeOptions}
-              onChange={handleSetResultsType}
-            />
-          </TopBar>
-        )}
+        {topbarContent}
       </Box>
     </Flex>
   )

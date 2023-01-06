@@ -1,13 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
+import pyarrow.compute as pc
 
-from api.constants import (
-    DAM_FILTER_FIELDS,
-    SB_FILTER_FIELDS,
-)
-from api.data import dams, barriers
-from api.logger import log, log_request
+from api.data import dams, small_barriers
+from api.logger import log_request
 
 
 router = APIRouter()
@@ -17,34 +14,32 @@ router = APIRouter()
 def get_dam(request: Request, sarp_id: str):
     log_request(request)
 
-    matches = dams.loc[dams.SARPID == sarp_id]
-    if not len(matches):
-        raise HTTPException(404, detail=f"dam not found for SARPID: {sarp_id}")
+    dam = (
+        dams.to_table(filter=pc.field("SARPID") == sarp_id)
+        .slice(0)
+        .rename_columns([c.lower() for c in dams.schema.names])
+    )
 
-    # in case there are multiple dams per SARPID, take the first
-    # (data error, should only present during testing)
-    dam = matches.iloc[0:1].reset_index()
-    dam.columns = [c.lower() for c in dam.columns]
+    if not len(dam):
+        raise HTTPException(404, detail=f"dam not found for SARPID: {sarp_id}")
 
     # use the bulk converter to dict (otherwise float32 serialization issues)
     # and return singular first item
-    return JSONResponse(content=dam.to_dict(orient="records")[0])
+    return JSONResponse(content=dam.to_pylist()[0])
 
 
 @router.get("/small_barriers/details/{sarp_id}")
 def get_small_barrier(request: Request, sarp_id: str):
     log_request(request)
 
-    matches = barriers.loc[barriers.SARPID == sarp_id]
-    if not len(matches):
+    barrier = (
+        small_barriers.to_table(filter=pc.field("SARPID") == sarp_id)
+        .slice(0)
+        .rename_columns([c.lower() for c in small_barriers.schema.names])
+    )
+    if not len(barrier):
         raise HTTPException(404, detail=f"barrier not found for SARPID: {sarp_id}")
-
-    # in case there are multiple dams per SARPID, take the first
-    # (data error, should only present during testing)
-    barrier = matches.iloc[0:1].reset_index()
-    barrier.columns = [c.lower() for c in barrier.columns]
 
     # use the bulk converter to dict (otherwise float32 serialization issues)
     # and return singular first item
-    return JSONResponse(content=barrier.to_dict(orient="records")[0])
-
+    return JSONResponse(content=barrier.to_pylist()[0])

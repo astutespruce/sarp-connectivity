@@ -75,7 +75,7 @@ module.exports = {
     paragraph: {
       fontSize: [2, 3],
       large: {
-        fontSize: '1.5rem',
+        fontSize: '1.25rem',
       },
     },
     heading: {
@@ -117,9 +117,9 @@ module.exports = {
       },
     },
     disabled: {
-      cursor: 'disabled',
+      cursor: 'not-allowed',
       color: '#FFF',
-      bg: 'grey.2',
+      bg: 'grey.4',
     },
     secondary: {
       cursor: 'pointer',

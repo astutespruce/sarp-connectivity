@@ -1,7 +1,7 @@
 import geopandas as gp
 import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 
 
 def calculate_sinuosity(geometries):
@@ -21,9 +21,9 @@ def calculate_sinuosity(geometries):
     """
 
     # By definition, sinuosity should not be less than 1
-    first = pg.get_point(geometries, 0)
-    last = pg.get_point(geometries, -1)
-    straight_line_distance = pg.distance(first, last)
+    first = shapely.get_point(geometries, 0)
+    last = shapely.get_point(geometries, -1)
+    straight_line_distance = shapely.distance(first, last)
 
     sinuosity = np.ones((len(geometries),)).astype("float32")
 
@@ -31,7 +31,9 @@ def calculate_sinuosity(geometries):
     ix = straight_line_distance > 0
 
     # by definition, all values must be at least 1, so clip lower bound
-    sinuosity[ix] = (pg.length(geometries[ix]) / straight_line_distance[ix]).clip(1)
+    sinuosity[ix] = (shapely.length(geometries[ix]) / straight_line_distance[ix]).clip(
+        1
+    )
 
     if isinstance(geometries, pd.Series):
         return pd.Series(sinuosity, index=geometries.index)
@@ -57,12 +59,12 @@ def cut_line_at_points(line, cut_points, tolerance=1e-6):
     -------
     MultiLineStrings (or LineString, if unchanged)
     """
-    if not pg.get_type_id(line) == 1:
+    if not shapely.get_type_id(line) == 1:
         raise ValueError("line is not a single linestring")
 
-    vertices = pg.get_point(line, range(pg.get_num_points(line)))
-    offsets = pg.line_locate_point(line, vertices)
-    cut_offsets = pg.line_locate_point(line, cut_points)
+    vertices = shapely.get_point(line, range(shapely.get_num_points(line)))
+    offsets = shapely.line_locate_point(line, vertices)
+    cut_offsets = shapely.line_locate_point(line, cut_points)
     # only keep those that are interior to the line and ignore those very close
     # to endpoints or beyond endpoints
     cut_offsets = cut_offsets[
@@ -80,8 +82,10 @@ def cut_line_at_points(line, cut_points, tolerance=1e-6):
     cut_offsets = np.append(cut_offsets, offsets[-1])
 
     # TODO: convert this to a pygos ufunc
-    coords = pg.get_coordinates(line)
-    cut_coords = pg.get_coordinates(pg.line_interpolate_point(line, cut_offsets))
+    coords = shapely.get_coordinates(line)
+    cut_coords = shapely.get_coordinates(
+        shapely.line_interpolate_point(line, cut_offsets)
+    )
     lines = []
     orig_ix = 0
     for cut_ix in range(len(cut_offsets)):
@@ -95,9 +99,9 @@ def cut_line_at_points(line, cut_points, tolerance=1e-6):
             orig_ix += 1
 
         segment.append(cut_coords[cut_ix])
-        lines.append(pg.linestrings(segment))
+        lines.append(shapely.linestrings(segment))
 
-    return pg.multilinestrings(lines)
+    return shapely.multilinestrings(lines)
 
 
 def cut_lines_at_multipoints(lines, points, tolerance=1e-6):
@@ -123,7 +127,7 @@ def cut_lines_at_multipoints(lines, points, tolerance=1e-6):
     out = np.empty(shape=len(lines), dtype="object")
     for i in range(len(lines)):
         new_line = cut_line_at_points(
-            lines[i], pg.get_parts(points[i]), tolerance=tolerance
+            lines[i], shapely.get_parts(points[i]), tolerance=tolerance
         )
         out[i] = new_line
 
@@ -150,7 +154,7 @@ def aggregate_lines(df, by):
     tmp["geometry"] = tmp.geometry.values.data
     return gp.GeoDataFrame(
         tmp.groupby(by=by)
-        .geometry.apply(pg.multilinestrings)
+        .geometry.apply(shapely.multilinestrings)
         .rename("geometry")
         .reset_index(),
         crs=df.crs,
@@ -175,12 +179,12 @@ def merge_lines(df, by):
     GeoDataFrame of LineStrings or MultiLinestrings (if required)
     """
     agg = aggregate_lines(df, by)
-    agg["geometry"] = pg.line_merge(agg.geometry.values.data)
+    agg["geometry"] = shapely.line_merge(agg.geometry.values.data)
 
-    geom_type = pg.get_type_id(agg["geometry"].values.data)
+    geom_type = shapely.get_type_id(agg["geometry"].values.data)
     ix = geom_type == 5
     if ix.sum() > 0:
-        agg.loc[~ix, "geometry"] = pg.multilinestrings(
+        agg.loc[~ix, "geometry"] = shapely.multilinestrings(
             agg.loc[~ix].geometry.values.data, np.arange((~ix).sum())
         )
 
@@ -368,4 +372,3 @@ def extract_straight_segments(coords, max_angle=10, loops=5):
         keep_coords = coords[keep_ix]
 
     return keep_coords, keep_ix
-

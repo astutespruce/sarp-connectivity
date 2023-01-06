@@ -7,10 +7,9 @@ import os
 from time import time
 import warnings
 
-import pandas as pd
-import pygeos as pg
 import numpy as np
-from pyogrio import write_dataframe
+import pandas as pd
+import shapely
 
 from analysis.prep.network.lib.nhd import (
     extract_flowlines,
@@ -22,11 +21,7 @@ from analysis.prep.network.lib.nhd import (
     extract_marine,
 )
 
-from analysis.constants import (
-    CRS,
-    WATERBODY_EXCLUDE_FTYPES,
-    WATERBODY_MIN_SIZE,
-)
+from analysis.constants import CRS
 from analysis.lib.util import append
 
 
@@ -34,7 +29,7 @@ warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*
 warnings.filterwarnings("ignore", message=".*geometry types are not supported*")
 
 
-def process_huc4s(src_dir, out_dir, huc4s):
+def process_huc4s(huc2, src_dir, out_dir, huc4s):
     merged_flowlines = None
     merged_joins = None
     merged_waterbodies = None
@@ -44,26 +39,39 @@ def process_huc4s(src_dir, out_dir, huc4s):
     merged_altered_rivers = None
     merged_marine = None
 
+    # There are up to 4.1M flowlines after cutting by waterbodies and all barriers
+    # in the largest HUC2, so assign each HUC2 a contiguous range of 5M to ensure
+    # ids are globally unique
+    huc2_offset = np.uint32(int(huc2) * 5000000)
+    flowlines_offset = huc2_offset.copy()
+    waterbodies_offset = huc2_offset.copy()
+    nhd_points_offset = huc2_offset.copy()
+    nhd_lines_offset = huc2_offset.copy()
+    nhd_polygons_offset = huc2_offset.copy()
+    altered_rivers_offset = huc2_offset.copy()
+
     for huc4 in huc4s:
         print(f"------------------- Reading {huc4} -------------------")
 
-        huc_id = int(huc4) * 1000000
-
-        gdb = src_dir / huc4 / f"NHDPLUS_H_{huc4}_HU4_GDB.gdb"
+        # filenames vary for current NHD HR datasets; beta datasets had stable names
+        gdb = next((src_dir / huc4).glob("*.gdb"))
 
         ### Read flowlines and joins
         read_start = time()
         flowlines, joins = extract_flowlines(gdb, target_crs=CRS)
         print(f"Read {len(flowlines):,} flowlines in {time() - read_start:.2f} seconds")
 
+        flowlines = flowlines.reset_index(drop=True)
+        joins = joins.reset_index(drop=True)
+
         flowlines["HUC4"] = huc4
         joins["HUC4"] = huc4
 
-        # Calculate lineIDs to be unique across all HUC2s
-        flowlines["lineID"] += huc_id
-        # Set updated lineIDs with the HUC4 prefix
-        joins.loc[joins.upstream_id != 0, "upstream_id"] += huc_id
-        joins.loc[joins.downstream_id != 0, "downstream_id"] += huc_id
+        # set lineID range
+        flowlines["lineID"] = flowlines.lineID + flowlines_offset
+        joins.loc[joins.upstream_id != 0, "upstream_id"] += flowlines_offset
+        joins.loc[joins.downstream_id != 0, "downstream_id"] += flowlines_offset
+        flowlines_offset = flowlines.lineID.max() + np.uint32(1)
 
         merged_flowlines = append(merged_flowlines, flowlines)
         merged_joins = append(merged_joins, joins)
@@ -77,64 +85,88 @@ def process_huc4s(src_dir, out_dir, huc4s):
             )
         )
 
-        waterbodies["HUC4"] = huc4
-
-        # calculate ids to be unique across region
-        waterbodies["wbID"] += huc_id
-
         ### Only retain waterbodies that intersect flowlines
         print("Intersecting waterbodies and flowlines")
         # use waterbodies to query flowlines since there are many more flowlines
-        tree = pg.STRtree(flowlines.geometry.values.data)
-        left, right = tree.query_bulk(
-            waterbodies.geometry.values.data, predicate="intersects"
+        tree = shapely.STRtree(flowlines.geometry.values.data)
+        ix = tree.query(waterbodies.geometry.values.data, predicate="intersects")[0]
+        waterbodies = waterbodies.iloc[np.unique(ix)].copy()
+        print(f"Retained {len(waterbodies):,} waterbodies that intersect flowlines")
+
+        waterbodies["HUC4"] = huc4
+
+        # calculate ids to be unique across region
+        waterbodies["wbID"] = (
+            np.arange(1, len(waterbodies) + 1, dtype="uint32") + waterbodies_offset
         )
-        waterbodies = waterbodies.iloc[np.unique(left)].copy()
-        print(
-            "Retained {:,} waterbodies that intersect flowlines".format(
-                len(waterbodies)
-            )
-        )
+        waterbodies_offset = waterbodies.wbID.max() + np.uint32(1)
 
         merged_waterbodies = append(merged_waterbodies, waterbodies)
 
         ### Extract barrier points, lines, polygons
         points = extract_barrier_points(gdb, target_crs=CRS)
-        points.HUC4 = huc4
-        points["id"] += huc_id
-        merged_points = append(merged_points, points)
+        if len(points):
+            points.HUC4 = huc4
+            points["id"] = (
+                np.arange(1, len(points) + 1, dtype="uint32") + nhd_points_offset
+            )
+            nhd_points_offset = points.id.max() + np.uint32(1)
+            merged_points = append(merged_points, points)
 
         lines = extract_barrier_lines(gdb, target_crs=CRS)
-        lines.HUC4 = huc4
-        lines["id"] += huc_id
-        merged_lines = append(merged_lines, lines)
+        if len(lines):
+            lines.HUC4 = huc4
+            lines["id"] = (
+                np.arange(1, len(lines) + 1, dtype="uint32") + nhd_lines_offset
+            )
+            nhd_lines_offset = lines.id.max() + np.uint32(1)
+            merged_lines = append(merged_lines, lines)
 
         poly = extract_barrier_polygons(gdb, target_crs=CRS)
-        poly.HUC4 = huc4
-        poly["id"] += huc_id
-        merged_poly = append(merged_poly, poly)
+        if len(poly):
+            poly.HUC4 = huc4
+            poly["id"] = (
+                np.arange(1, len(poly) + 1, dtype="uint32") + nhd_polygons_offset
+            )
+            nhd_polygons_offset = poly.id.max() + np.uint32(1)
+            merged_poly = append(merged_poly, poly)
 
         ### Extract altered rivers
         altered_rivers = extract_altered_rivers(gdb, target_crs=CRS)
-        altered_rivers.HUC4 = huc4
-        altered_rivers["id"] += huc_id
-        merged_altered_rivers = append(merged_altered_rivers, altered_rivers)
+        if len(altered_rivers):
+            altered_rivers.HUC4 = huc4
+            altered_rivers["id"] = (
+                np.arange(len(altered_rivers), dtype="uint32") + altered_rivers_offset
+            )
+            altered_rivers_offset = altered_rivers.id.max() + np.uint32(1)
+            merged_altered_rivers = append(merged_altered_rivers, altered_rivers)
 
         ### Extract marine
         marine = extract_marine(gdb, target_crs=CRS)
-        marine.HUC4 = huc4
-        merged_marine = append(merged_marine, marine)
+        if len(marine):
+            marine.HUC4 = huc4
+            merged_marine = append(merged_marine, marine)
 
     print("--------------------")
 
     flowlines = merged_flowlines.reset_index(drop=True)
     joins = merged_joins.reset_index(drop=True)
     waterbodies = merged_waterbodies.reset_index(drop=True)
-    points = merged_points.reset_index(drop=True)
+
+    if len(points):
+        points = merged_points.reset_index(drop=True)
+    else:
+        points = None
+
     lines = merged_lines.reset_index(drop=True)
     poly = merged_poly.reset_index(drop=True)
+
     altered_rivers = merged_altered_rivers.reset_index(drop=True)
-    marine = merged_marine.reset_index(drop=True)
+
+    if merged_marine is not None:
+        marine = merged_marine.reset_index(drop=True)
+    else:
+        marine = None
 
     ### Deduplicate waterbodies that are duplicated between adjacent HUC4s
     print("Removing duplicate waterbodies, starting with {:,}".format(len(waterbodies)))
@@ -143,7 +175,7 @@ def process_huc4s(src_dir, out_dir, huc4s):
     # It will miss those that are NEARLY the same.
 
     waterbodies["hash"] = pd.util.hash_array(
-        pg.to_wkb(waterbodies.geometry.values.data)
+        shapely.to_wkb(waterbodies.geometry.values.data)
     )
 
     id_map = (
@@ -184,10 +216,33 @@ def process_huc4s(src_dir, out_dir, huc4s):
         ~(joins.upstream.isin(cross_huc_joins.upstream) & (joins.type == "terminal"))
     ]
 
+    # remove the duplicate downstreams that were functionally terminals for their HUC2s but
+    # not marked as such (they had an NHDPlusID downstream but no flowlines in their HUC2)
+    ix = joins.loc[
+        (joins.downstream != 0) & (joins.downstream_id == 0)
+    ].upstream.unique()
+    joins = joins.loc[~(joins.upstream.isin(ix) & (joins.downstream_id == 0))]
+
     # remove dead ends
     joins = joins.loc[~((joins.downstream == 0) & (joins.upstream == 0))].reset_index(
         drop=True
     )
+
+    missing_downstream = joins.loc[
+        (joins.downstream != 0) & (~joins.downstream.isin(flowlines.NHDPlusID))
+    ]
+    if len(missing_downstream):
+        print("WARNING: downstream side of join is not present in flowlines")
+        print("This may be a valid HUC2 exit, or it may be an error in the data")
+        print(missing_downstream)
+
+    missing_upstream = joins.loc[
+        (joins.upstream != 0) & (~joins.upstream.isin(flowlines.NHDPlusID))
+    ]
+    if len(missing_upstream):
+        print("WARNING: upstream side of join is not present in flowlines")
+        print("This may be a valid HUC2 inlet, or it may be an error in the data")
+        print(missing_upstream)
 
     print("\n--------------------")
 
@@ -198,39 +253,25 @@ def process_huc4s(src_dir, out_dir, huc4s):
     print(f"serializing {len(waterbodies):,} waterbodies")
     waterbodies.to_feather(out_dir / "waterbodies.feather")
 
-    # DEBUG:
-    # write_dataframe(flowlines, out_dir / "flowlines.gpkg")
-    # write_dataframe(waterbodies, out_dir / "waterbodies.gpkg")
-
-    if len(points):
+    if points is not None and len(points):
         print(f"serializing {len(points):,} NHD barrier points")
         points.to_feather(out_dir / "nhd_points.feather")
-        # DEBUG:
-        # write_dataframe(points, out_dir / 'nhd_points.gpkg')
 
     if len(lines):
         print(f"serializing {len(lines):,} NHD barrier lines")
         lines.to_feather(out_dir / "nhd_lines.feather")
-        # DEBUG:
-        # write_dataframe(lines, out_dir / 'nhd_lines.gpkg')
 
     if len(poly):
         print(f"serializing {len(poly):,} NHD barrier polygons")
         poly.to_feather(out_dir / "nhd_poly.feather")
-        # DEBUG:
-        # write_dataframe(poly, out_dir / 'nhd_poly.gpkg')
 
     if len(altered_rivers):
         print(f"serializing {len(altered_rivers):,} NHD altered rivers")
         altered_rivers.to_feather(out_dir / "nhd_altered_rivers.feather")
-        # DEBUG:
-        # write_dataframe(altered_rivers, out_dir / "nhd_altered_rivers.gpkg")
 
-    if len(marine):
+    if marine is not None and len(marine):
         print(f"serializing {len(marine):,} NHD marine areas")
         marine.to_feather(out_dir / "nhd_marine.feather")
-        # DEBUG:
-        # write_dataframe(marine, out_dir / "nhd_marine.gpkg")
 
 
 data_dir = Path("data")
@@ -248,24 +289,24 @@ huc4_df = pd.read_feather(
 # Convert to dict of sorted HUC4s per HUC2
 units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
 
-# manually subset keys from above for processing
 huc2s = [
-    "02",
-    "03",
-    "05",
-    "06",
-    "07",
-    "08",
-    "09",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "17",
-    "21",
+    # "02",
+    # "03",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    # "14",
+    # "15",
+    # "16",
+    # "17",
+    # "18",
+    # "21",
 ]
 
 
@@ -277,7 +318,7 @@ for huc2 in huc2s:
     if not huc2_dir.exists():
         os.makedirs(huc2_dir)
 
-    process_huc4s(src_dir, huc2_dir, units[huc2])
+    process_huc4s(huc2, src_dir, huc2_dir, units[huc2])
 
     print("--------------------")
     print("HUC2: {} done in {:.0f}s\n\n".format(huc2, time() - huc2_start))

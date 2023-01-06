@@ -53,7 +53,7 @@ const Tool = () => {
 
           <Paragraph sx={{ mt: '1rem' }}>
             Explore summaries of the inventory by state, county, or different
-            levels of watersheds and ecoregions.
+            levels of watersheds.
             <br />
             <br />
             These summaries are a good way to become familiar with the level of
@@ -97,10 +97,10 @@ const Tool = () => {
             <br />
             <br />
             You can select specific geographic areas for prioritization,
-            including counties, states, watersheds, and ecoregions. You can
-            filter the available barriers based on criteria such as likely
-            feasibility for removal, height, and more. Once you have prioritized
-            aquatic barriers, you can download a CSV file for further analysis.
+            including counties, states, and watersheds. You can filter the
+            available barriers based on criteria such as likely feasibility for
+            removal, height, and more. Once you have prioritized aquatic
+            barriers, you can download a CSV file for further analysis.
           </Paragraph>
         </Box>
         <Box>

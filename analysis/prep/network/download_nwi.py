@@ -5,7 +5,7 @@ from pathlib import Path
 from time import time
 
 import geopandas as gp
-import pygeos as pg
+import shapely
 import numpy as np
 import httpx
 
@@ -15,9 +15,12 @@ import pandas as pd
 # Data are available within the NWI Viewer: https://www.fws.gov/wetlands/Data/Mapper.html
 # Sometimes the HUC8 is not identified correctly here; if you get a 404 error on download,
 # find the same location, download manually, and update to match the missing HUC8 code
-URL = "http://www.fws.gov/wetlands/downloads/Watershed/HU8_{huc8}_watershed.zip"
+URL = "https://www.fws.gov/wetlands/downloads/Watershed/HU8_{huc8}_watershed.zip"
 MAX_WORKERS = 2
 CONNECTION_TIMEOUT = 120  # seconds
+
+# current HUC8 to NWI HUC8 codes
+HUC8_ALIAS = {"08010300": "08020201", "10170104": "10150001"}
 
 
 async def download_huc8s(huc8s):
@@ -57,8 +60,8 @@ huc8_df["HUC2"] = huc8_df.HUC8.str[:2]
 
 # need to filter to only those that occur in the US
 states = gp.read_feather(data_dir / "boundaries/states.feather", columns=["geometry"])
-tree = pg.STRtree(huc8_df.geometry.values.data)
-left, right = tree.query_bulk(states.geometry.values.data, predicate="intersects")
+tree = shapely.STRtree(huc8_df.geometry.values.data)
+left, right = tree.query(states.geometry.values.data, predicate="intersects")
 ix = np.unique(right)
 print(f"Dropping {len(huc8_df) - len(ix):,} HUC8s that are outside U.S.")
 huc8_df = huc8_df.iloc[ix].copy()
@@ -74,9 +77,9 @@ huc2s = [
     # "05",
     # "06",
     # "07",
-    # "08",
+    # "08",  # fix: 08010300 => 08020201
     # "09",
-    # "10",
+    # "10", # fix: 10170104 => 10150001
     # "11",
     # "12",
     # "13",
@@ -84,6 +87,7 @@ huc2s = [
     # "15",
     # "16",
     # "17",
+    # "18",
     # "21",  # Missing: 21010007, 21010008 (islands)
 ]
 

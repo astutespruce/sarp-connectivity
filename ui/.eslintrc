@@ -1,8 +1,9 @@
 {
   "extends": ["airbnb", "prettier"],
   "plugins": ["@emotion", "prettier", "react-hooks"],
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "parserOptions": {
+    "requireConfigFile": false,
     "ecmaVersion": 2017,
     "ecmaFeatures": {
       "experimentalObjectRestSpread": true,
@@ -32,6 +33,8 @@
     "react/forbid-prop-types": 0,
     "react/display-name": 1,
     "react/react-in-jsx-scope": 0,
+    "react/jsx-no-useless-fragment": 0,
+    "react/function-component-definition": 0,
     "react/jsx-filename-extension": [
       1,
       {

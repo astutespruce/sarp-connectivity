@@ -3,7 +3,18 @@ import PropTypes from 'prop-types'
 import { Box } from 'theme-ui'
 
 const Tab = ({ id, children, sx }) => (
-  <Box id={id} sx={{ flex: '1 1 auto', p: '1rem', overflowY: 'auto', ...sx }}>
+  <Box
+    id={id}
+    sx={{
+      flex: '1 1 auto',
+      pt: '0.5rem',
+      pb: '1rem',
+      px: '0.5rem',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      ...sx,
+    }}
+  >
     {children}
   </Box>
 )

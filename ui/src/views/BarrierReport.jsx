@@ -9,9 +9,9 @@ import { Preview } from 'components/ReportPreview'
 
 import { Layout, PageError, PageLoading } from 'components/Layout'
 
-const BarrierReport = ({ barrierType, sarpid, uri }) => {
+const BarrierReport = ({ barrierType, sarpid }) => {
   const { isLoading, error, data } = useQuery(
-    uri,
+    `${barrierType}:${sarpid}`,
     async () => fetchBarrierDetails(barrierType, sarpid),
     {
       staleTime: 60 * 60 * 1000, // 60 minutes
@@ -23,17 +23,17 @@ const BarrierReport = ({ barrierType, sarpid, uri }) => {
 
   if (isLoading) {
     return (
-      <Layout title="Loading...">
+      <Layout>
         <PageLoading />
       </Layout>
     )
   }
 
   if (error) {
-    console.error(`Error loading dam with SARPID: ${sarpid}`)
+    console.error(`Error loading barrier with SARPID: ${sarpid}`)
 
     return (
-      <Layout title={`Error loading dam ${sarpid}`}>
+      <Layout>
         <PageError />
       </Layout>
     )
@@ -43,10 +43,8 @@ const BarrierReport = ({ barrierType, sarpid, uri }) => {
     return <NotFound />
   }
 
-  const { name } = data
-
   return (
-    <Layout title={name}>
+    <Layout>
       <Preview barrierType={barrierType} data={data} />
     </Layout>
   )
@@ -56,15 +54,8 @@ BarrierReport.propTypes = {}
 
 // Since these come from the router, they may be undefined during prop validation
 BarrierReport.propTypes = {
-  barrierType: PropTypes.string,
-  sarpid: PropTypes.string,
-  uri: PropTypes.string,
-}
-
-BarrierReport.defaultProps = {
-  barrierType: null,
-  sarpid: null,
-  uri: null,
+  barrierType: PropTypes.string.isRequired,
+  sarpid: PropTypes.string.isRequired,
 }
 
 export default BarrierReport

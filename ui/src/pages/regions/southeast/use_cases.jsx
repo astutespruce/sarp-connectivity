@@ -4,7 +4,7 @@ import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
 import { Box, Container, Heading, Paragraph } from 'theme-ui'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
 
@@ -18,7 +18,7 @@ const SoutheastRegionUseCases = ({
     },
   },
 }) => (
-  <Layout title="Example: prioritizing a failing dam for removal">
+  <Layout>
     <HeaderImage
       image={headerImage}
       height="30vh"
@@ -108,3 +108,7 @@ export const pageQuery = graphql`
 `
 
 export default SoutheastRegionUseCases
+
+export const Head = () => (
+  <SEO title="Example: prioritizing a failing dam for removal" />
+)

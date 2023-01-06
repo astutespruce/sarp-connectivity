@@ -8,7 +8,7 @@ import { useEffectSkipFirst } from 'util/hooks'
 
 const controlCSS = {
   position: 'absolute',
-  top: '150px',
+  top: '114px',
   right: '10px',
   lineHeight: 1,
   bg: '#FFF',
@@ -46,6 +46,7 @@ const DropDownLayerChooser = ({ options, onChange }) => {
         sx={{
           ...controlCSS,
           cursor: 'pointer',
+          width: '29px',
           '&:hover': {
             bg: '#EEE',
           },

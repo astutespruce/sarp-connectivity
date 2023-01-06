@@ -13,7 +13,7 @@ User=app
 Group=app
 
 WorkingDirectory=/tiles
-ExecStart=/home/app/go/bin/mbtileserver -d /tiles -p 8000
+ExecStart=/usr/bin/mbtileserver -d /tiles -p 8000
 ExecReload=/bin/kill -USR1 $MAINPID
 
 [Install]

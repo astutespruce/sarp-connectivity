@@ -1,31 +1,11 @@
 import React from 'react'
-import { ChartBar, SearchLocation, Download } from '@emotion-icons/fa-solid'
+
 import { Box, Flex, Image, Text, Heading } from 'theme-ui'
 
 import { Link } from 'components/Link'
+import { siteMetadata } from 'config'
 import LogoSVG from 'images/logo.svg'
-import { hasWindow } from 'util/dom'
-import { siteMetadata } from '../../../gatsby-config'
-
-const navLinkCSS = {
-  textDecoration: 'none',
-  py: '0.25rem',
-  px: '0.5rem',
-  display: 'block',
-  color: '#fff !important',
-  borderRadius: '6px',
-  '&:hover': {
-    bg: 'blue.8',
-  },
-}
-
-const activeNavLinkCSS = {
-  ...navLinkCSS,
-  bg: 'primary',
-}
-
-const isActivePath = (path) =>
-  hasWindow && window.location.href.search(path) !== -1
+import Nav from './Nav'
 
 const Header = () => {
   const { title, shortTitle } = siteMetadata
@@ -82,41 +62,7 @@ const Header = () => {
           </Flex>
         </Link>
       </Heading>
-      <Flex
-        sx={{
-          alignItems: 'center',
-          fontSize: '1rem',
-        }}
-      >
-        <Link
-          to="/summary"
-          sx={isActivePath('/summary') ? activeNavLinkCSS : navLinkCSS}
-        >
-          <Flex sx={{ alignItems: 'center' }}>
-            <ChartBar size="1em" style={{ marginRight: '0.25em' }} />
-            <div>Summarize</div>
-          </Flex>
-        </Link>
-        <Link
-          to="/priority"
-          activeClassName="nav-active"
-          sx={isActivePath('/priority') ? activeNavLinkCSS : navLinkCSS}
-        >
-          <Flex sx={{ alignItems: 'center' }}>
-            <SearchLocation size="1em" style={{ marginRight: '0.25em' }} />
-            <div>Prioritize</div>
-          </Flex>
-        </Link>
-        <Link
-          to="/download"
-          sx={isActivePath('/download') ? activeNavLinkCSS : navLinkCSS}
-        >
-          <Flex sx={{ alignItems: 'center' }}>
-            <Download size="1em" style={{ marginRight: '0.25em' }} />
-            <div>Download</div>
-          </Flex>
-        </Link>
-      </Flex>
+      <Nav />
     </Flex>
   )
 }

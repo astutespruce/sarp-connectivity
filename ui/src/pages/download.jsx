@@ -1,15 +1,14 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
-import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
+import { Box, Container, Grid, Heading, Paragraph, Text } from 'theme-ui'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
 import { StateDownloadTable } from 'components/Download'
 import { useSummaryData } from 'components/Data'
-
-import { siteMetadata } from '../../gatsby-config'
+import { siteMetadata } from 'config'
 
 const { version: dataVersion, date: dataDate } = siteMetadata
 
@@ -17,7 +16,7 @@ const DownloadPage = ({ data: { headerImage } }) => {
   const { total } = useSummaryData()
 
   return (
-    <Layout title="Download Aquatic Barrier Data">
+    <Layout>
       <HeaderImage
         image={headerImage.childImageSharp.gatsbyImageData}
         height="30vh"
@@ -43,8 +42,7 @@ const DownloadPage = ({ data: { headerImage } }) => {
               within this tool. These data are subject to change at any point
               due to improvements to the inventory of aquatic barriers or
               improvements to the network connectivity analyses used by this
-              tool. These data include priorities evaluated at the regional
-              (Southeast only) and state levels.
+              tool. Dams include priorities evaluated at the state level.
               <br />
               <br />
               The inventory consists of datasets from local, state, and federal
@@ -62,13 +60,14 @@ const DownloadPage = ({ data: { headerImage } }) => {
                 Data Version: {dataVersion} ({dataDate})
               </b>
             </Paragraph>
-            <Paragraph
+            <Text
               sx={{
                 mt: '1rem',
                 pt: '1rem',
                 borderTop: '4px solid #FFF',
               }}
             >
+              Please{' '}
               <OutboundLink to="https://southeastaquatics.net/about/contact-us">
                 Contact Us
               </OutboundLink>{' '}
@@ -79,7 +78,7 @@ const DownloadPage = ({ data: { headerImage } }) => {
               <br />
               Please review the <Link to="/terms">Terms of Use</Link> before
               downloading data.
-            </Paragraph>
+            </Text>
           </Box>
         </Grid>
 
@@ -114,3 +113,5 @@ export const pageQuery = graphql`
 `
 
 export default DownloadPage
+
+export const Head = () => <SEO title="Download Aquatic Barrier Data" />

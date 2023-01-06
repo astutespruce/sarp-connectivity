@@ -12,8 +12,9 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="sarp-connectivity",
-    version="2.4.2",
-    description="Southeast Aquatic Barriers Inventory Visualization & Prioritization Tool",
+    # version must be kept in sync with ui/package.json
+    version="2.5.0",
+    description="Aquatic Barrier Inventory Visualization & Prioritization Tool",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/astutespruce/sarp-connectivity",

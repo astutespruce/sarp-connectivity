@@ -2,12 +2,42 @@ from pathlib import Path
 
 import pandas as pd
 import geopandas as gp
+from shapely import STRtree
 
 from analysis.lib.geometry import sjoin_points_to_poly
 
 
 data_dir = Path("data")
 boundaries_dir = data_dir / "boundaries"
+
+
+def get_huc2(df):
+    """Find the HUC2 that contains each point
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+
+    Returns
+    -------
+    pandas.Series
+        indexed on index of df
+    """
+
+    huc2 = gp.read_feather(
+        boundaries_dir / "huc2.feather", columns=["HUC2", "geometry"]
+    ).explode(ignore_index=True)
+    tree = STRtree(df.geometry.values.data)
+    left, right = tree.query(huc2.geometry.values.data, predicate="intersects")
+    huc2 = (
+        pd.DataFrame(
+            {"HUC2": huc2.HUC2.values.take(left)}, index=df.index.values.take(right)
+        )
+        .groupby(level=0)
+        .HUC2.first()
+    )
+
+    return huc2
 
 
 def add_spatial_joins(df):
@@ -25,7 +55,8 @@ def add_spatial_joins(df):
 
     print("Joining to HUC12")
     huc12 = gp.read_feather(
-        boundaries_dir / "HUC12.feather", columns=["geometry", "HUC12", "name"],
+        boundaries_dir / "HUC12.feather",
+        columns=["geometry", "HUC12", "name"],
     ).rename(columns={"name": "Subwatershed"})
 
     df = sjoin_points_to_poly(df, huc12)
@@ -36,8 +67,10 @@ def add_spatial_joins(df):
 
     # Calculate HUC codes for other levels from HUC12
     df["HUC2"] = df["HUC12"].str.slice(0, 2)  # region
+    df["HUC4"] = df["HUC12"].str.slice(0, 4)  # subregion
     df["HUC6"] = df["HUC12"].str.slice(0, 6)  # basin
     df["HUC8"] = df["HUC12"].str.slice(0, 8)  # subbasin
+    df["HUC10"] = df["HUC12"].str.slice(0, 10)  # watershed
 
     # Read in HUC6...HUC12 and join in names
     huc6 = (
@@ -46,8 +79,10 @@ def add_spatial_joins(df):
         .set_index("HUC6")
     )
     huc8 = (
-        pd.read_feather(boundaries_dir / "HUC8.feather", columns=["HUC8", "name"])
-        .rename(columns={"name": "Subbasin"})
+        pd.read_feather(
+            boundaries_dir / "HUC8.feather", columns=["HUC8", "name", "coastal"]
+        )
+        .rename(columns={"name": "Subbasin", "coastal": "CoastalHUC8"})
         .set_index("HUC8")
     )
 
@@ -62,26 +97,16 @@ def add_spatial_joins(df):
     df = sjoin_points_to_poly(df, counties)
 
     # Join in state name based on STATEFIPS from county
-    states = pd.read_feather(
-        boundaries_dir / "states.feather", columns=["STATEFIPS", "State"]
-    ).set_index("STATEFIPS")
-    df = df.join(states, on="STATEFIPS")
+    states = (
+        pd.read_feather(boundaries_dir / "states.feather", columns=["STATEFIPS", "id"])
+        .set_index("STATEFIPS")
+        .rename(columns={"id": "State"})
+    )
+    df = df.join(states, on="STATEFIPS").drop(columns=["STATEFIPS"])
 
     # Expected: not all barriers fall cleanly within the states dataset
-    if df.STATEFIPS.isnull().sum():
-        print(f"{df.STATEFIPS.isnull().sum():,} barriers were not assigned states")
-
-    ### Level 3 & 4 Ecoregions
-    print("Joining to ecoregions")
-    # Only need to join in ECO4 dataset since it has both ECO3 and ECO4 codes
-    eco4 = gp.read_feather(
-        boundaries_dir / "eco4.feather", columns=["geometry", "ECO3", "ECO4"]
-    )
-    df = sjoin_points_to_poly(df, eco4)
-
-    # Expected: not all barriers fall cleanly within the ecoregions dataset
-    if df.ECO4.isnull().sum():
-        print(f"{df.ECO4.isnull().sum():,} barriers were not assigned ecoregions")
+    if df.State.isnull().sum():
+        print(f"{df.State.isnull().sum():,} barriers were not assigned states")
 
     ### Protected lands
     print("Joining to protected areas")
@@ -90,23 +115,19 @@ def add_spatial_joins(df):
     df.OwnerType = df.OwnerType.fillna(0).astype("uint8")
     df.ProtectedLand = df.ProtectedLand.fillna(False).astype("bool")
 
-    ### Priority layers
-    print("Joining to priority watersheds")
-    priorities = (
-        pd.read_feather(boundaries_dir / "priorities.feather")
-        .rename(columns={"HUC_8": "HUC8"})
-        .set_index("HUC8")
-        .rename(columns={"usfs": "HUC8_USFS", "coa": "HUC8_COA", "sgcn": "HUC8_SGCN"})
-    )
-    df = df.join(priorities, on="HUC8")
-    df[priorities.columns] = df[priorities.columns].fillna(0).astype("uint8")
-
-    ### Join in T&E Spp stats
-    # note: trout is presence / absence
+    ### Join in species stats
     spp_df = (
         pd.read_feather(
             data_dir / "species/derived/spp_HUC12.feather",
-            columns=["HUC12", "federal", "sgcn", "regional", "trout"],
+            columns=[
+                "HUC12",
+                "federal",
+                "sgcn",
+                "regional",
+                "trout",
+                "salmonid_esu",
+                "salmonid_esu_count",
+            ],
         )
         .rename(
             columns={
@@ -114,12 +135,21 @@ def add_spatial_joins(df):
                 "sgcn": "StateSGCNSpp",
                 "regional": "RegionalSGCNSpp",
                 "trout": "Trout",
+                "salmonid_esu": "SalmonidESU",
+                "salmonid_esu_count": "SalmonidESUCount",
             }
         )
         .set_index("HUC12")
     )
     df = df.join(spp_df, on="HUC12")
-    for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp", "Trout"]:
+    for col in [
+        "TESpp",
+        "StateSGCNSpp",
+        "RegionalSGCNSpp",
+        "Trout",
+        "SalmonidESUCount",
+    ]:
         df[col] = df[col].fillna(0).astype("uint8")
+    df["SalmonidESU"] = df.SalmonidESU.fillna("")
 
     return df

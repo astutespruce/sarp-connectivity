@@ -13,27 +13,24 @@ import {
 } from 'theme-ui'
 
 import { Link } from 'components/Link'
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 
 const PrioritizePage = ({ data: { headerImage } }) => (
-  <Layout title="Prioritize">
+  <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
-      minHeight="18rem"
+      minHeight="12rem"
+      yPosition="top"
       credits={{
-        author: 'American Public Power Association',
-        url: 'https://unsplash.com/photos/FUeb2npsblQ',
+        author: 'Zach Dutra',
+        url: 'https://unsplash.com/photos/2d7Y5Yi3aq8',
       }}
     />
 
     <Container>
-      <Heading as="h1">Prioritize barriers for removal</Heading>
-
-      <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
-        To prioritize barriers, you will work through the following steps:
-      </Paragraph>
+      <Heading as="h2">To prioritize barriers:</Heading>
 
       <Box sx={{ mt: '2rem' }}>
         <Flex sx={{ alignItems: 'center' }}>
@@ -43,8 +40,7 @@ const PrioritizePage = ({ data: { headerImage } }) => (
           </Heading>
         </Flex>
         <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
-          You can select areas using state, county, watershed, and ecoregion
-          boundaries.
+          You can select areas using state, county, and watershed boundaries.
         </Paragraph>
       </Box>
 
@@ -140,9 +136,7 @@ PrioritizePage.propTypes = {
 export const pageQuery = graphql`
   query PrioritizeStartPageQuery {
     headerImage: file(
-      relativePath: {
-        eq: "american-public-power-association-430861-unsplash.jpg"
-      }
+      relativePath: { eq: "zack-dutra-2d7Y5Yi3aq8-unsplash.jpg" }
     ) {
       childImageSharp {
         gatsbyImageData(
@@ -156,3 +150,7 @@ export const pageQuery = graphql`
 `
 
 export default PrioritizePage
+
+export const Head = () => (
+  <SEO title="Prioritize dams and road-related barriers" />
+)

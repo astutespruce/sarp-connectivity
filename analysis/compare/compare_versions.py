@@ -22,13 +22,14 @@ summary_unit_cols = ["State", "HUC2"]
 
 status_cols = ["dropped", "excluded", "duplicate", "snapped"]
 
-common_cols = [
-    "ManualReview",
-]
+common_cols = ["ManualReview", "BarrierSeverity"]
 
 barrier_cols = {
-    "dams": ["Recon", "Feasibility",],
-    "small_barriers": ["PotentialProject", "SeverityClass",],
+    "dams": [
+        "Recon",
+        "Feasibility",
+    ],
+    "small_barriers": ["PotentialProject"],
 }
 
 
@@ -221,4 +222,3 @@ for barrier_type in ["dams", "small_barriers"]:
             df.dropna(subset=[f"{field}_diff"]).to_csv(
                 f"/tmp/{barrier_type}__{field}_diff.csv", index=False
             )
-

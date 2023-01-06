@@ -3,12 +3,12 @@ import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { Box, Container, Grid, Heading, Paragraph } from 'theme-ui'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import HighlightBox from 'components/Layout/HighlightBox'
 
 const ComplexityPage = ({ data: { headerImage } }) => (
-  <Layout title="Network Complexity">
+  <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="20vh"
@@ -59,7 +59,7 @@ const ComplexityPage = ({ data: { headerImage } }) => (
           <li>
             Stream and river reaches were assigned to size classes based on
             total drainage area:
-            <ul>
+            <Box as="ul" sx={{ mb: '1rem' }}>
               <li>
                 Headwaters: &lt; 10 km
                 <sup>2</sup>
@@ -93,7 +93,7 @@ const ComplexityPage = ({ data: { headerImage } }) => (
                 Great rivers: &ge; 25,000 km
                 <sup>2</sup>
               </li>
-            </ul>
+            </Box>
           </li>
           <li>
             Each barrier is assigned the total number of unique size classes in
@@ -128,3 +128,5 @@ export const pageQuery = graphql`
 `
 
 export default ComplexityPage
+
+export const Head = () => <SEO title="Network Complexity" />

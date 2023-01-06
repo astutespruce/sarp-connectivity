@@ -1,4 +1,44 @@
+import { pointColors } from 'config'
+import { getHighlightExpr } from '../Map/util'
+
 export const layers = [
+  {
+    id: 'HUC2',
+    system: 'HUC',
+    title: 'Region',
+    bins: {
+      dams: [1000, 2500, 5000, 10000, 25000, 50000, 100000],
+      small_barriers: [50, 100, 500, 1000, 2500, 5000, 10000],
+    },
+    fill: {
+      minzoom: 0,
+      maxzoom: 4,
+      paint: {
+        'fill-opacity': {
+          base: 0.1,
+          stops: [
+            [1, 0.25],
+            [2, 0.4],
+            [4, 0.25],
+          ],
+        },
+      },
+    },
+    outline: {
+      minzoom: 0,
+      maxzoom: 6,
+      paint: {
+        'line-width': {
+          base: 0.1,
+          stops: [
+            [3, 0.75],
+            [5, 1.5],
+            [6, 2],
+          ],
+        },
+      },
+    },
+  },
   {
     id: 'HUC6',
     system: 'HUC',
@@ -8,13 +48,12 @@ export const layers = [
       small_barriers: [10, 100, 200, 300, 500, 1000, 2500],
     },
     fill: {
-      minzoom: 0,
+      minzoom: 4,
       maxzoom: 6,
       paint: {
         'fill-opacity': {
           base: 0.25,
           stops: [
-            [2, 0.4],
             [4, 0.25],
             [5, 0.25],
             [6, 0.1],
@@ -23,7 +62,7 @@ export const layers = [
       },
     },
     outline: {
-      minzoom: 0,
+      minzoom: 4,
       maxzoom: 9.5,
       paint: {
         'line-width': {
@@ -65,7 +104,7 @@ export const layers = [
     },
     outline: {
       minzoom: 6,
-      maxzoom: 24,
+      maxzoom: 10,
       paint: {
         'line-width': {
           base: 0.1,
@@ -80,6 +119,44 @@ export const layers = [
     },
   },
   {
+    id: 'HUC10',
+    system: 'HUC',
+    title: 'Watershed',
+    bins: {
+      dams: [5, 10, 25, 50, 100, 500, 1000],
+      small_barriers: [5, 10, 25, 50, 100, 500, 1000],
+    },
+    fill: {
+      minzoom: 7,
+      maxzoom: 9,
+      paint: {
+        'fill-opacity': {
+          base: 0.25,
+          stops: [
+            [7, 0.1],
+            [8, 0.25],
+            [9, 0.1],
+          ],
+        },
+      },
+    },
+    outline: {
+      minzoom: 7,
+      maxzoom: 24,
+      paint: {
+        'line-width': {
+          base: 0.1,
+          stops: [
+            [7, 0.1],
+            [8, 0.5],
+            [9, 1],
+            [10, 2.5],
+          ],
+        },
+      },
+    },
+  },
+  {
     id: 'HUC12',
     system: 'HUC',
     title: 'Subwatershed',
@@ -88,7 +165,7 @@ export const layers = [
       small_barriers: [1, 10, 25, 100, 200],
     },
     fill: {
-      minzoom: 8,
+      minzoom: 9,
       maxzoom: 24,
       paint: {
         'fill-opacity': {
@@ -104,7 +181,7 @@ export const layers = [
       },
     },
     outline: {
-      minzoom: 8,
+      minzoom: 9,
       maxzoom: 24,
       paint: {
         'line-width': {
@@ -112,88 +189,6 @@ export const layers = [
           stops: [
             [8, 0.1],
             [9.5, 0.5],
-          ],
-        },
-      },
-    },
-  },
-  {
-    id: 'ECO3',
-    system: 'ECO',
-    title: 'Level 3 Ecoregion',
-    bins: {
-      dams: [100, 250, 500, 1000, 2500, 5000, 7500, 10000, 25000],
-      small_barriers: [10, 100, 250, 500, 1000, 2500, 10000],
-    },
-    fill: {
-      minzoom: 0,
-      maxzoom: 7,
-      paint: {
-        'fill-opacity': {
-          base: 0.25,
-          stops: [
-            [2, 0.4],
-            [4, 0.25],
-            [6, 0.25],
-            [7, 0.1],
-          ],
-        },
-      },
-    },
-    outline: {
-      minzoom: 0,
-      maxzoom: 12,
-      paint: {
-        'line-width': {
-          base: 0.1,
-          stops: [
-            [4, 0.1],
-            [5, 0.25],
-            [6, 0.5],
-            [6.5, 1.5],
-            [8, 2],
-            [9, 4],
-            [12, 6],
-          ],
-        },
-      },
-    },
-  },
-  {
-    id: 'ECO4',
-    system: 'ECO',
-    title: 'Level 4 Ecoregion',
-    bins: {
-      dams: [10, 100, 250, 500, 750, 1000, 1500, 2000, 10000],
-      small_barriers: [10, 50, 100, 250, 500, 1000, 2000],
-    },
-    fill: {
-      minzoom: 7,
-      maxzoom: 24,
-      paint: {
-        'fill-opacity': {
-          base: 0.25,
-          stops: [
-            [7, 0.1],
-            [8, 0.25],
-            [11, 0.25],
-            [12, 0.15],
-            [14, 0],
-          ],
-        },
-      },
-    },
-    outline: {
-      minzoom: 6,
-      maxzoom: 24,
-      paint: {
-        'line-width': {
-          base: 0.1,
-          stops: [
-            [6, 0.1],
-            [8, 0.5],
-            [10, 1],
-            [12, 1.5],
           ],
         },
       },
@@ -293,23 +288,39 @@ export const waterfallsLayer = {
   minzoom: 10,
   maxzoom: 24,
   paint: {
-    'circle-color': '#2ca25f',
-    'circle-radius': {
-      stops: [
-        [10, 1],
-        [12, 2],
-        [14, 4],
-        [16, 6],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [10, 0.25],
-        [12, 0.5],
-        [14, 1],
-      ],
-    },
-    'circle-stroke-color': '#FFFFFF',
+    'circle-color': getHighlightExpr(
+      pointColors.waterfalls.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.waterfalls.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(1, 10),
+      12,
+      getHighlightExpr(2, 14),
+      14,
+      getHighlightExpr(4, 14),
+      16,
+      getHighlightExpr(6, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.25, 1),
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
+
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -320,11 +331,60 @@ export const waterfallsLayer = {
   },
 }
 
+// Note: this is ONLY for display when small barriers are selected
+export const roadCrossingsLayer = {
+  id: 'road-crossings',
+  source: 'road_crossings',
+  'source-layer': 'road_crossings',
+  type: 'circle',
+  minzoom: 11,
+  maxzoom: 24,
+  layout: {
+    visibility: 'none',
+  },
+  paint: {
+    'circle-color': getHighlightExpr(
+      pointColors.offNetwork.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.offNetwork.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      11,
+      getHighlightExpr(0.5, 2),
+      12,
+      getHighlightExpr(1, 2),
+      14,
+      getHighlightExpr(3, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [14, 1],
+      ],
+    },
+  },
+}
+
 // NOTE: this is ONLY for displaying dams when small barriers are selected
 export const damsSecondaryLayer = {
   id: 'dams-secondary',
   source: 'dams',
-  'source-layer': 'dams',
+  'source-layer': 'ranked_dams',
   layout: {
     visibility: 'none',
   },
@@ -332,23 +392,38 @@ export const damsSecondaryLayer = {
   minzoom: 10,
   maxzoom: 24,
   paint: {
-    'circle-color': '#fec44f',
-    'circle-radius': {
-      stops: [
-        [10, 1],
-        [12, 2],
-        [14, 4],
-        [16, 6],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [10, 0.25],
-        [12, 0.5],
-        [14, 1],
-      ],
-    },
-    'circle-stroke-color': '#FFFFFF',
+    'circle-color': getHighlightExpr(
+      pointColors.damsSecondary.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.damsSecondary.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(1, 10),
+      12,
+      getHighlightExpr(2, 14),
+      14,
+      getHighlightExpr(4, 14),
+      16,
+      getHighlightExpr(6, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.25, 1),
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -368,24 +443,40 @@ export const pointLayer = {
   minzoom: 10,
   maxzoom: 24,
   paint: {
-    'circle-color': '#c51b8a',
-    'circle-radius': {
-      stops: [
-        [9,1],
-        [10, 2],
-        [12, 3],
-        [14, 4],
-        [16, 8],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [9, 0.25],
-        [12, 0.5],
-        [14, 1],
-      ],
-    },
-    'circle-stroke-color': '#FFFFFF',
+    'circle-color': getHighlightExpr(
+      pointColors.included.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.included.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      9,
+      getHighlightExpr(1, 9),
+      10,
+      getHighlightExpr(2, 10),
+      12,
+      getHighlightExpr(3, 12),
+      14,
+      getHighlightExpr(4, 14),
+      16,
+      getHighlightExpr(8, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      9,
+      getHighlightExpr(0.25, 1),
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [9, 0],
@@ -396,29 +487,90 @@ export const pointLayer = {
   },
 }
 
-export const backgroundPointLayer = {
+// off-network barriers
+export const offnetworkPointLayer = {
   // id: '', // provided by specific layer
-  // source: "" // provided by specific layer
-  'source-layer': 'background',
+  // source: "", // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
   type: 'circle',
   minzoom: 12,
   maxzoom: 24,
   paint: {
-    'circle-color': '#999',
-    'circle-radius': {
+    'circle-color': getHighlightExpr(
+      pointColors.offNetwork.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.offNetwork.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      getHighlightExpr(1, 12),
+      14,
+      getHighlightExpr(3, 14),
+      16,
+      getHighlightExpr(6, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
+    'circle-stroke-width': {
       stops: [
-        [12, 1],
-        [14, 3],
-        [16, 6],
-      ],
-    },
-    'circle-opacity': {
-      stops: [
-        [12, 0.5],
+        [12, 0],
         [14, 1],
       ],
     },
-    'circle-stroke-color': '#666',
+  },
+}
+
+// on-network but unranked barriers
+export const unrankedPointLayer = {
+  // id: '', // provided by specific layer
+  // source: "", // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
+  type: 'circle',
+  minzoom: 12,
+  maxzoom: 24,
+  paint: {
+    'circle-color': getHighlightExpr(
+      pointColors.offNetwork.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.offNetwork.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      getHighlightExpr(1, 12),
+      14,
+      getHighlightExpr(3, 14),
+      16,
+      getHighlightExpr(6, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
+
     'circle-stroke-width': {
       stops: [
         [12, 0],
@@ -431,62 +583,21 @@ export const backgroundPointLayer = {
 export const pointLegends = {
   primary: {
     radius: 8,
-    color: pointLayer.paint['circle-color'],
+    color: pointColors.included.color,
   },
-  background: {
+  offnetwork: {
     radius: 6,
-    color: backgroundPointLayer.paint['circle-color'],
-    borderColor: backgroundPointLayer.paint['circle-stroke-color'],
+    color: pointColors.offNetwork.color,
+    borderColor: pointColors.offNetwork.strokeColor,
     borderWidth: 1,
   },
   damsSecondary: {
     radius: 6,
-    color: damsSecondaryLayer.paint['circle-color'],
+    color: pointColors.damsSecondary.color,
   },
   waterfalls: {
     radius: 6,
-    color: waterfallsLayer.paint['circle-color'],
-  },
-}
-
-export const pointHighlightLayer = {
-  id: 'point-highlight',
-  source: {
-    type: 'geojson',
-    data: null,
-  },
-  type: 'circle',
-  minzoom: 12,
-  maxzoom: 24,
-  paint: {
-    'circle-color': '#fd8d3c',
-    'circle-radius': 14,
-    'circle-stroke-width': 3,
-    'circle-stroke-color': '#f03b20',
-  },
-}
-
-export const pointHoverLayer = {
-  id: 'point-hover',
-  source: {
-    type: 'geojson',
-    data: null,
-  },
-  type: 'circle',
-  minzoom: 7,
-  maxzoom: 24,
-  paint: {
-    'circle-color': '#fd8d3c',
-    'circle-radius': {
-      stops: [
-        [10, 2],
-        [12, 3],
-        [14, 5],
-        [16, 9],
-      ],
-    },
-    'circle-stroke-width': 1,
-    'circle-stroke-color': '#f03b20',
+    color: pointColors.waterfalls.color,
   },
 }
 
@@ -496,7 +607,7 @@ export const regionLayers = [
     source: 'summary',
     'source-layer': 'mask',
     type: 'fill',
-    maxzoom: 8,
+    maxzoom: 24,
     filter: ['==', ['get', 'id'], 'total'],
     paint: {
       'fill-opacity': 0.6,
@@ -508,7 +619,7 @@ export const regionLayers = [
     source: 'summary',
     'source-layer': 'boundary',
     type: 'line',
-    maxzoom: 8,
+    maxzoom: 24,
     filter: ['==', ['get', 'id'], 'total'],
     paint: {
       'line-opacity': 0.8,

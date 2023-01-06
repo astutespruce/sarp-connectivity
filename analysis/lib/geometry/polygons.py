@@ -1,5 +1,5 @@
 import numpy as np
-import pygeos as pg
+import shapely
 
 
 def get_interior_rings(polygons):
@@ -14,16 +14,15 @@ def get_interior_rings(polygons):
     -------
     (outer_index, inner_index, rings)
     """
-    num_rings = pg.get_num_interior_rings(polygons)
+    num_rings = shapely.get_num_interior_rings(polygons)
     outer_index = []
     inner_index = []
     rings = []
     for i in range(len(polygons)):
         if num_rings[i]:
             ix = np.arange(num_rings[i])
-            rings.extend(pg.get_interior_ring(polygons[i], ix))
+            rings.extend(shapely.get_interior_ring(polygons[i], ix))
             inner_index.extend(ix)
             outer_index.extend([i] * num_rings[i])
 
     return outer_index, inner_index, rings
-

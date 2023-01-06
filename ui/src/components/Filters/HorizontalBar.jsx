@@ -20,34 +20,12 @@ const HorizontalBar = ({
     onClick(value)
   }
 
-  // return (
-  //   <Wrapper onClick={handleClick} isExcluded={isExcluded}>
-  //     <Labels active={isFiltered}>
-  //       <Label>{label}</Label>
-  //       <Count>{formatNumber(quantity)}</Count>
-  //     </Labels>
-  //     <IndicatorWrapper>
-  //       {position > 0 && (
-  //         <>
-  //           {isFiltered ? (
-  //             <FilteredIndicator style={{ flexGrow: position }} />
-  //           ) : (
-  //             <Indicator style={{ flexGrow: position }} />
-  //           )}
-  //         </>
-  //       )}
-
-  //       {remainder > 0 && <Filler style={{ flexGrow: remainder }} />}
-  //     </IndicatorWrapper>
-  //   </Wrapper>
-  // )
-
   return (
     <Box
       sx={{
         cursor: 'pointer',
         lineHeight: 1,
-        mb: '1rem',
+        mb: '0.75rem',
         transition: 'opacity 300ms',
         opacity: isExcluded ? 0.25 : 1,
         '&:hover': {
@@ -65,7 +43,11 @@ const HorizontalBar = ({
         }}
       >
         <Text
-          sx={{ flex: '0 0 auto', fontWeight: isFiltered ? 'bold' : 'normal' }}
+          sx={{
+            flex: '0 0 auto',
+            fontWeight: isFiltered ? 'bold' : 'normal',
+            fontSize: 0,
+          }}
         >
           {label}
         </Text>

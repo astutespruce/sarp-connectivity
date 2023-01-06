@@ -5,7 +5,7 @@ import { Flex } from 'theme-ui'
 import TabBar from './TabBar'
 import TabContainer from './TabContainer'
 
-const Tabs = ({ children, sx }) => {
+const Tabs = ({ children, sx, onChange }) => {
   const tabs = children.map(({ props: { id, label } }) => ({ id, label }))
   const firstTab = tabs[0].id
 
@@ -23,6 +23,9 @@ const Tabs = ({ children, sx }) => {
 
   const handleTabChange = (id) => {
     setTab(id)
+    if (onChange) {
+      onChange(id)
+    }
   }
 
   return (
@@ -36,10 +39,12 @@ const Tabs = ({ children, sx }) => {
 Tabs.propTypes = {
   children: PropTypes.arrayOf(PropTypes.node).isRequired,
   sx: PropTypes.object,
+  onChange: PropTypes.func,
 }
 
 Tabs.defaultProps = {
   sx: {},
+  onChange: null,
 }
 
 export default Tabs

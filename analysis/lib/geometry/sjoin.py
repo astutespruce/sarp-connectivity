@@ -1,5 +1,5 @@
 import pandas as pd
-import pygeos as pg
+import shapely
 import numpy as np
 
 
@@ -74,9 +74,9 @@ def sjoin_geometry(left, right, predicate="intersects", how="inner"):
         right_values = right
         right_index = np.arange(0, len(right))
 
-    tree = pg.STRtree(right_values)
+    tree = shapely.STRtree(right_values)
     # hits are in 0-based indicates of right
-    hits = tree.query_bulk(left_values, predicate=predicate)
+    hits = tree.query(left_values, predicate=predicate)
 
     if how == "inner":
         index = left_index[hits[0]]
@@ -108,14 +108,14 @@ def sjoin_points_to_poly(point_df, poly_df):
         all columns of left plus all non-geometry columns from right
     """
     if len(point_df) > len(poly_df):
-        tree = pg.STRtree(point_df.geometry.values.data)
-        poly_ix, pt_ix = tree.query_bulk(
+        tree = shapely.STRtree(point_df.geometry.values.data)
+        poly_ix, pt_ix = tree.query(
             poly_df.geometry.values.data, predicate="intersects"
         )
 
     else:
-        tree = pg.STRtree(poly_df.geometry.values.data)
-        pt_ix, poly_ix = tree.query_bulk(
+        tree = shapely.STRtree(poly_df.geometry.values.data)
+        pt_ix, poly_ix = tree.query(
             point_df.geometry.values.data, predicate="intersects"
         )
 
@@ -137,4 +137,3 @@ def sjoin_points_to_poly(point_df, poly_df):
         .join(poly_df.drop(columns=["geometry"]), on="index_right")
         .drop(columns=["index_right"])
     )
-

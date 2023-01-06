@@ -3,15 +3,17 @@ import os
 from time import time
 import warnings
 
-import pandas as pd
 import geopandas as gp
-import pygeos as pg
+import shapely
 import numpy as np
 from pyogrio import read_dataframe, write_dataframe
+from pyogrio.errors import DataSourceError
 
 from analysis.constants import CRS
 from analysis.lib.geometry import dissolve, explode
 from analysis.lib.util import append
+
+from analysis.prep.network.download_nwi import HUC8_ALIAS
 
 warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
@@ -21,6 +23,20 @@ MODIFIERS = {
     "h": "Diked/Impounded",
     "r": "Artificial Substrate",
     "x": "Excavated",
+}
+
+# see: https://www.fws.gov/wetlands/documents/NWI_Wetlands_and_Deepwater_Map_Code_Diagram.pdf
+PERMANENCE_MODIFIERS = {
+    "A": "Temporarily Flooded",
+    "B": "Seasonally Saturated",
+    "C": "Seasonally Flooded",
+    "D": "Continuously Saturated",
+    "E": "Seasonally Flooded / Saturated",
+    "F": "Semipermanently Flooded",
+    "G": "Intermittently Exposed",
+    "H": "Permanently Flooded",
+    "J": "Intermittently Flooded",
+    "K": "Artificially Flooded",
 }
 
 
@@ -42,8 +58,8 @@ huc8_df["HUC2"] = huc8_df.HUC8.str[:2]
 
 # need to filter to only those that occur in the US
 states = gp.read_feather(data_dir / "boundaries/states.feather", columns=["geometry"])
-tree = pg.STRtree(huc8_df.geometry.values.data)
-left, right = tree.query_bulk(states.geometry.values.data, predicate="intersects")
+tree = shapely.STRtree(huc8_df.geometry.values.data)
+left, right = tree.query(states.geometry.values.data, predicate="intersects")
 ix = np.unique(right)
 print(f"Dropping {len(huc8_df) - len(ix):,} HUC8s that are outside U.S.")
 huc8_df = huc8_df.iloc[ix].copy()
@@ -51,25 +67,27 @@ huc8_df = huc8_df.iloc[ix].copy()
 
 # Convert to dict of sorted HUC8s per HUC2
 units = huc8_df.groupby("HUC2").HUC8.unique().apply(sorted).to_dict()
+huc2s = units.keys()
 
 # manually subset keys from above for processing
 huc2s = [
-    "02",
-    "03",
-    "05",
-    "06",
-    "07",
-    "08",
-    "09",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "17",
-    "21",  # Missing: 21010008 (islands)
+    # "02",
+    # "03",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    # "14",
+    # "15",
+    # "16",
+    # "17",
+    # "18",
+    # "21",  # Missing: 21010008 (islands)
 ]
 
 
@@ -83,12 +101,14 @@ for huc2 in huc2s:
 
     print("Reading flowlines")
     flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather", columns=[])
-    tree = pg.STRtree(flowlines.geometry.values.data)
+    tree = shapely.STRtree(flowlines.geometry.values.data)
 
     waterbodies = None
     rivers = None
     for huc8 in units[huc2]:
         print(f"Reading NWI data for {huc8}")
+
+        huc8 = HUC8_ALIAS.get(huc8, huc8)
 
         filename = src_dir.resolve() / f"{huc8}.zip"
         if not filename.exists():
@@ -96,14 +116,20 @@ for huc2 in huc2s:
             continue
 
         # Extract and merge lakes and wetlands
-        df = read_dataframe(
-            f"/vsizip/{filename}/HU8_{huc8}_Watershed/HU8_{huc8}_Wetlands.shp",
-            columns=["ATTRIBUTE", "WETLAND_TY"],
-            where="WETLAND_TY in ('Lake', 'Pond', 'Riverine')",
-        ).rename(columns={"ATTRIBUTE": "nwi_code", "WETLAND_TY": "nwi_type"})
+        try:
+            df = read_dataframe(
+                f"/vsizip/{filename}/HU8_{huc8}_Watershed/HU8_{huc8}_Wetlands.shp",
+                columns=["ATTRIBUTE", "WETLAND_TY"],
+                where="WETLAND_TY in ('Lake', 'Pond', 'Riverine')",
+            ).rename(columns={"ATTRIBUTE": "nwi_code", "WETLAND_TY": "nwi_type"})
+
+        except DataSourceError:
+            print(
+                f"WARNING: wetlands could not be read from {filename}; shapefile might not exist"
+            )
 
         # some geometries are invalid, filter them out
-        df = df.loc[pg.is_geometry(df.geometry.values.data)].copy()
+        df = df.loc[shapely.is_geometry(df.geometry.values.data)].copy()
 
         if not len(df):
             continue
@@ -128,49 +154,66 @@ for huc2 in huc2s:
     ### Process waterbodies
     # only keep that intersect flowlines
     print(f"Extracted {len(waterbodies):,} NWI lakes and ponds")
-    left, right = tree.query_bulk(
-        waterbodies.geometry.values.data, predicate="intersects"
-    )
+    left, right = tree.query(waterbodies.geometry.values.data, predicate="intersects")
     waterbodies = waterbodies.iloc[np.unique(left)].reset_index(drop=True)
     print(f"Kept {len(waterbodies):,} that intersect flowlines")
+
+    # drop intermittent / seasonal waterbodies we don't want to include;
+    # if they are permanent enough, NHD will pick them up
+    if huc2 in ["13", "15", "16", "17", "18"]:
+        waterbodies = waterbodies.loc[
+            ~waterbodies.modifier.isin(["A", "B", "C", "D", "E", "G", "J"])
+        ].reset_index(drop=True)
 
     # TODO: explode, repair, dissolve, explode, reset index
     waterbodies = explode(waterbodies)
     # make valid
-    ix = ~pg.is_valid(waterbodies.geometry.values.data)
+    ix = ~shapely.is_valid(waterbodies.geometry.values.data)
     if ix.sum():
         print(f"Repairing {ix.sum():,} invalid waterbodies")
-        waterbodies.loc[ix, "geometry"] = pg.make_valid(
+        waterbodies.loc[ix, "geometry"] = shapely.make_valid(
             waterbodies.loc[ix].geometry.values.data
         )
+
+    # cleanup any that collapsed to other geometry types during make valid or import
+    waterbodies = waterbodies.loc[
+        shapely.get_type_id(waterbodies.geometry.values.data) == 3
+    ].reset_index()
 
     # note: nwi_code, nwi_type are discarded here since they aren't used later
     print("Dissolving adjacent waterbodies")
     waterbodies = dissolve(waterbodies, by=["altered"])
     waterbodies = explode(waterbodies).reset_index(drop=True)
 
-    waterbodies["km2"] = pg.area(waterbodies.geometry.values.data) / 1e6
+    waterbodies["km2"] = shapely.area(waterbodies.geometry.values.data) / 1e6
 
     waterbodies.to_feather(huc2_dir / "waterbodies.feather")
-    write_dataframe(waterbodies, huc2_dir / "waterbodies.gpkg")
+    write_dataframe(waterbodies, huc2_dir / "waterbodies.fgb")
 
     ### Process riverine
     print(f"Extracted {len(rivers):,} NWI altered river polygons")
-    left, right = tree.query_bulk(rivers.geometry.values.data, predicate="intersects")
+    left, right = tree.query(rivers.geometry.values.data, predicate="intersects")
     rivers = rivers.iloc[np.unique(left)].reset_index(drop=True)
     print(f"Kept {len(rivers):,} that intersect flowlines")
 
     rivers = explode(rivers)
     # make valid
-    ix = ~pg.is_valid(rivers.geometry.values.data)
+    ix = ~shapely.is_valid(rivers.geometry.values.data)
     if ix.sum():
         print(f"Repairing {ix.sum():,} invalid rivers")
-        rivers.loc[ix, "geometry"] = pg.make_valid(rivers.loc[ix].geometry.values.data)
+        rivers.loc[ix, "geometry"] = shapely.make_valid(
+            rivers.loc[ix].geometry.values.data
+        )
+
+    # cleanup any that collapsed to other geometry types during make valid or import
+    rivers = rivers.loc[
+        shapely.get_type_id(rivers.geometry.values.data) == 3
+    ].reset_index()
 
     rivers["modifier"] = rivers.modifier.map(MODIFIERS)
 
     rivers.to_feather(huc2_dir / "altered_rivers.feather")
-    write_dataframe(rivers, huc2_dir / "altered_rivers.gpkg")
+    write_dataframe(rivers, huc2_dir / "altered_rivers.fgb")
 
     print("--------------------")
     print("HUC2: {} done in {:.0f}s\n\n".format(huc2, time() - huc2_start))

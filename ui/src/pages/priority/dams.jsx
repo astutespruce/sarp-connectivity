@@ -1,16 +1,16 @@
 import React from 'react'
 
-import { Layout, ClientOnly } from 'components/Layout'
+import { Layout, ClientOnly, SEO } from 'components/Layout'
 import { Provider as CrossfilterProvider } from 'components/Crossfilter'
 import { PrioritizeWorkflow } from 'components/Priority'
 import { BarrierTypeProvider } from 'components/Data'
-import { FILTERS } from '../../../config/filters'
+import { dams } from 'filters'
 
-const dams = () => (
-  <Layout title="Prioritize dams">
+const PrioritizeDamsPage = () => (
+  <Layout>
     <ClientOnly>
       <BarrierTypeProvider barrierType="dams">
-        <CrossfilterProvider filterConfig={FILTERS.dams}>
+        <CrossfilterProvider filterConfig={dams}>
           <PrioritizeWorkflow />
         </CrossfilterProvider>
       </BarrierTypeProvider>
@@ -18,4 +18,6 @@ const dams = () => (
   </Layout>
 )
 
-export default dams
+export default PrioritizeDamsPage
+
+export const Head = () => <SEO title="Prioritize dams" />

@@ -1,5 +1,8 @@
 import geoViewport from '@mapbox/geo-viewport'
 
+import { barrierTypeLabelSingular, barrierNameWhenUnknown } from 'config'
+import { isEmptyString } from 'util/string'
+
 /**
  * Calculate the appropriate center and zoom to fit the bounds, given padding.
  * @param {Element} - map DOM node used to calculate height and width in screen pixels of map
@@ -22,6 +25,24 @@ export const getCenterAndZoom = (mapNode, bounds, padding = 0) => {
   const zoom = Math.max(viewport.zoom - 1, 0) * (1 - padding)
 
   return { center: viewport.center, zoom }
+}
+
+/**
+ * Calculate outer bounds that contains bounds1 and bounds2
+ * @param {Array} bounds1 - [xmin, ymin, xmax, ymax] or null
+ * @param {Array} bounds2 - [xmin, ymin, xmax, ymax] or null
+ * @returns
+ */
+export const unionBounds = (bounds1, bounds2) => {
+  if (!(bounds1 && bounds2)) {
+    return bounds1 || bounds2
+  }
+  return [
+    Math.min(bounds1[0], bounds2[0]),
+    Math.min(bounds1[1], bounds2[1]),
+    Math.max(bounds1[2], bounds2[2]),
+    Math.max(bounds1[3], bounds2[3]),
+  ]
 }
 
 /**
@@ -99,3 +120,171 @@ export const mapToDataURL = async (map) =>
     // force redraw if needed
     map.triggerRepaint()
   })
+
+/**
+ * Create an expression to toggle style based on highlight state of point
+ * @param {Array or String} defaultExpr - expression used when point is not highlighted
+ * @param {Array or String} highlightExpr - expression used when point is highlighted
+ * @returns
+ */
+export const getHighlightExpr = (defaultExpr, highlightExpr) => [
+  'case',
+  ['boolean', ['feature-state', 'highlight'], false],
+  highlightExpr,
+  defaultExpr,
+]
+
+/**
+ * Create an expression to toggle between two expressions based on a given
+ * network scenario and tier threshold
+ * @param {String} scenario
+ * @param {Number} tierThreshold
+ * @param {Array or String} belowExpr - expression used when tier of point is <= tierThreshold
+ * @param {Array or String} aboveExpr  - expression used when tier of point is > tierThreshold
+ * @returns
+ */
+export const getTierExpr = (scenario, tierThreshold, belowExpr, aboveExpr) => [
+  'case',
+  // make sure that tier field exists in feature state, otherwise emits null warnings
+  // for following condition
+  ['!=', ['feature-state', scenario], null],
+  [
+    'case',
+    ['<=', ['feature-state', scenario], tierThreshold],
+    belowExpr,
+    aboveExpr,
+  ],
+  aboveExpr,
+]
+
+/**
+ * Highlight an upstream functional network for a given networkID
+ * @param {Object} map - Mapbox GL map instance
+ * @param {String} networkType - dams or small_barriers
+ * @param {Number} networkID - network to highlight or Infinity to clear highlight
+ */
+export const highlightNetwork = (map, networkType, networkID) => {
+  map.setFilter('network-highlight', [
+    'all',
+    ['any', ['==', 'mapcode', 0], ['==', 'mapcode', 2]],
+    ['==', networkType, networkID],
+  ])
+  map.setFilter('network-intermittent-highlight', [
+    'all',
+    ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
+    ['==', networkType, networkID],
+  ])
+}
+
+export const setBarrierHighlight = (map, feature, highlight) => {
+  if (!feature) {
+    return
+  }
+
+  const {
+    id,
+    layer: { source, 'source-layer': sourceLayer },
+  } = feature
+
+  map.setFeatureState(
+    {
+      id,
+      source,
+      sourceLayer,
+    },
+    {
+      highlight,
+    }
+  )
+}
+
+/**
+ * Construct Mapbox GL filter expression where field value must be in list of values
+ * @param {String} field
+ * @param {Iterable} values - list of values where field value must be present
+ * @returns
+ */
+export const getInArrayExpr = (field, values) => [
+  'in',
+  ['get', field],
+  ['literal', Array.from(values)],
+]
+
+/**
+ * Construct Mapbox GL filter expression where field value must not be in list of values
+ * @param {String} field
+ * @param {Iterable} values - list of values where field value must be present
+ * @returns
+ */
+export const getNotInArrayExpr = (field, values) => [
+  '!',
+  ['in', ['get', field], ['literal', Array.from(values)]],
+]
+
+/**
+ * Construct Mapbox GL filter expression where at least one of the strings in
+ * values must be a substring of the string in the field value
+ * @param {String} field
+ * @param {Iterable} values
+ * @returns
+ */
+export const getInStringExpr = (field, values) => [
+  'any',
+  ...Array.from(values).map((v) => ['!=', ['index-of', v, ['get', field]], -1]),
+]
+
+/**
+ * Construct Mapbox GL filter expression where none of the values must be a
+ * substring of the string in the field value
+ * @param {String} field
+ * @param {Iterable} values
+ * @returns
+ */
+export const getNotInStringExpr = (field, values) => [
+  'all',
+  ...Array.from(values).map((v) => ['==', ['index-of', v, ['get', field]], -1]),
+]
+
+export const getBarrierTooltip = (barrierType, { sarpidname = '|' }) => {
+  const rawName = sarpidname.split('|')[1]
+
+  // const typeLabel = capitalize(barrierTypeLabelSingular[barrierType])
+  const typeLabel = barrierTypeLabelSingular[barrierType]
+  let name = ''
+  if (!isEmptyString(rawName)) {
+    switch (barrierType) {
+      case 'dams': {
+        if (
+          !(
+            rawName.toLowerCase().startsWith('estimated') ||
+            rawName.toLowerCase().startsWith('water diversion') ||
+            rawName.toLowerCase().indexOf('dam') !== -1
+          )
+        ) {
+          name = `${rawName} (${typeLabel})`
+        } else {
+          name = rawName
+        }
+        break
+      }
+      case 'waterfalls': {
+        if (!(rawName.toLowerCase().indexOf('fall') !== -1)) {
+          // name = `${typeLabel}: ${rawName}`
+          name = `${rawName} (${typeLabel})`
+        } else {
+          name = rawName
+        }
+
+        break
+      }
+      default: {
+        // name = `${typeLabel}: ${rawName}`
+        name = `${rawName} (${typeLabel})`
+      }
+    }
+  } else {
+    name = barrierNameWhenUnknown[barrierType] || 'Unknown name'
+  }
+
+  return `<b>${name}</b>`
+}

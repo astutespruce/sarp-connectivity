@@ -3,11 +3,9 @@ import { Box, Grid, Paragraph, Heading } from 'theme-ui'
 
 import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
+import { siteMetadata, REGION_STATES } from 'config'
 import { formatNumber } from 'util/format'
 import { useSummaryData } from 'components/Data'
-
-import { siteMetadata } from '../../../gatsby-config'
-import { STATES } from '../../../config/constants'
 
 const { version: dataVersion, date: dataDate } = siteMetadata
 
@@ -25,19 +23,16 @@ const Inventory = () => {
         <Box>
           <Paragraph>
             This inventory is a growing and living database of dams, culverts,
-            and other road crossings compiled by the{' '}
-            <OutboundLink to="https://southeastaquatics.net/">
-              Southeast Aquatic Resources Partnership
-            </OutboundLink>{' '}
-            (SARP) with the generous support from many partners and funders.
-            Originally developed within the Southeast as part of SARP&apos;s
-            Aquatic Connectivity Program, this inventory and tool have been
-            expanded to a broader geographic area to empower state-level Aquatic
-            Connectivity Teams and other collaborators with the best available
-            information on aquatic barriers. The inventory directly supports
-            prioritization of barriers by including metrics that describe
-            network connectivity, landscape condition, and presence of
-            threatened and endangered aquatic organisms.
+            and other road crossings compiled by SARP with the generous support
+            from many partners and funders. Originally developed within the
+            Southeast as part of SARP&apos;s Aquatic Connectivity Program, this
+            inventory and tool have been expanded to a broader geographic area
+            to empower state-level Aquatic Connectivity Teams and other
+            collaborators with the best available information on aquatic
+            barriers. The inventory directly supports prioritization of barriers
+            by including metrics that describe network connectivity, landscape
+            condition, and presence of threatened and endangered aquatic
+            organisms.
             <br />
             <br />
             This inventory consists of datasets from local, state, and federal
@@ -73,7 +68,8 @@ const Inventory = () => {
               }}
             >
               <li>
-                <b>{Object.keys(STATES).length - 1}</b> states and Puerto Rico
+                <b>{Object.keys(REGION_STATES.total).length - 1}</b> states and
+                Puerto Rico
               </li>
               <li>
                 <b>{formatNumber(dams, 0)}</b> inventoried dams

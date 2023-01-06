@@ -1,9 +1,11 @@
+import asyncio
+from copy import deepcopy
+import httpx
 from math import ceil
 
-import requests
 from requests import HTTPError
-import pandas as pd
 import geopandas as gp
+import pandas as pd
 
 
 # Mapping of ESRI WKID to proj4 strings
@@ -18,11 +20,53 @@ CRS_LUT = {
 }
 
 
-def get_json(url, params=None, token=None, **kwargs):
+def get_token(user, password):
+    """Generate AGOL token for user / password.
+
+    Note: this doesn't work for SARP services because they are behind OAuth login
+
+    Parameters
+    ----------
+    client: httpx.AsyncClient
+    user: str
+    password: str
+
+    Returns
+    -------
+    token: str
+    """
+    url = "https://www.arcgis.com/sharing/generateToken"
+    response = httpx.post(
+        url,
+        params={
+            "f": "json",
+        },
+        data={
+            "username": user,
+            "password": password,
+            "client": "requestip",
+            "expiration": 60,
+        },
+    )
+    response.raise_for_status()
+
+    content = response.json()
+    if "error" in content:
+        raise HTTPError(
+            "Error making request: {}\n{}".format(
+                content["error"]["message"], content["error"]["details"]
+            )
+        )
+
+    return content["token"]
+
+
+async def get_json(client, url, params=None, token=None):
     """Make JSON request, wrapped in exception handling
 
     Parameters
     ----------
+    client: httpx.AsyncClient
     url : str
     token: str (optional)
 
@@ -38,22 +82,23 @@ def get_json(url, params=None, token=None, **kwargs):
     if "f" not in params:
         params["f"] = "json"
 
-    response = requests.get(url, params={**params, "token": token}, **kwargs).json()
-    if "error" in response:
+    response = await client.get(url, params={**params, "token": token})
+    response.raise_for_status()
+    content = response.json()
+    if "error" in content:
         raise HTTPError(
-            "Error making request: {}\n{}".format(
-                response["error"]["message"], response["error"]["details"]
-            )
+            f'Error making request to: {url}\n{content["error"]["message"]}\n{content["error"]["details"]}'
         )
 
-    return response
+    return content
 
 
-def list_services(url, token=None):
+async def list_services(client, url, token=None):
     """Given a root ArcGIS server / ArcGIS Online services endpoint, return the list of services.
 
     Parameters
     ----------
+    client: httpx.AsyncClient
     url : str
         services endpoint
     token : str, optional
@@ -65,22 +110,25 @@ def list_services(url, token=None):
         contains {'name': <>, 'type': <>, 'url': <>} for each service
     """
 
-    return get_json(url, params={"f": "json", "token": token})["services"]
+    return await get_json(client, url, params={"f": "json", "token": token})["services"]
 
 
-def download_fs(url, fields=None, token=None, target_wkid=None):
+async def download_fs(client, url, fields=None, token=None, target_wkid=None):
     """Download an ESRI FeatureService JSON to GeoDataFrame.
 
     Parameters
     ----------
+    client: httpx.AsyncClient
+    url: str
     fs_data : dict
         Dict created from FeatureService JSON
 
     """
 
+    print(f"Downloading from {url}")
+
     # Get the total count we can query
-    svc_info = get_json(url, token=token)
-    # batch_size = max(svc_info["maxRecordCount"], svc_info["standardMaxRecordCount"])
+    svc_info = await get_json(client, url, token=token)
     batch_size = svc_info["standardMaxRecordCount"]
 
     query = {"where": "1=1", "resultType": "standard", "outFields": "*", "f": "geojson"}
@@ -94,34 +142,45 @@ def download_fs(url, fields=None, token=None, target_wkid=None):
         fields_present = [f["name"] for f in svc_info["fields"]]
         request_fields = set(fields).intersection(fields_present)
 
-        missing_fields = set(fields).difference(fields_present)
-        if len(missing_fields):
-            print(f"Requested fields are not present: {missing_fields}")
+        # DEBUG:
+        # missing_fields = set(fields).difference(fields_present)
+        # if len(missing_fields):
+        #     print(f"{url}: requested fields are not present: {missing_fields}")
 
         query["outFields"] = ",".join(request_fields)
 
     # Get total count we expect
-    count = get_json(
-        f"{url}/query", params={"where": "1=1", "returnCountOnly": "true"}, token=token,
+    count = (
+        await get_json(
+            client,
+            f"{url}/query",
+            params={"where": "1=1", "returnCountOnly": "true"},
+            token=token,
+        )
     )["count"]
 
     batches = ceil(count / batch_size)
-    print(
-        f"Downloading {count:,} records in {batches:,} requests of up to {batch_size:,} records"
-    )
 
-    # Download and merge data frames
-    merged = None
+    ### Download batches and merge
+    tasks = []
     for offset in range(0, batches * batch_size, batch_size):
-        query["resultOffset"] = offset
-        features = get_json(f"{url}/query", params=query, token=token)
+        batch_query = deepcopy(query)
+        batch_query["resultOffset"] = offset
+        tasks.append(
+            asyncio.ensure_future(
+                get_json(client, f"{url}/query", params=batch_query, token=token)
+            )
+        )
 
+    completed = await asyncio.gather(*tasks)
+
+    merged = None
+    for features in completed:
         df = gp.GeoDataFrame.from_features(features, crs="EPSG:4326")
 
         if merged is None:
             merged = df
         else:
-            merged = merged.append(df, ignore_index=True, sort=False)
+            merged = pd.concat([merged, df], ignore_index=True, sort=False)
 
     return merged
-

@@ -10,14 +10,10 @@ const adminLayerOptions = [
 ]
 
 const hucLayerOptions = [
-  { value: 'HUC6', label: `Basin\n(HUC6)` },
-  { value: 'HUC8', label: `Subbasin\n(HUC8)` },
-  { value: 'HUC12', label: `Subwatershed\n(HUC12)` },
-]
-
-const ecoLayerOptions = [
-  { value: 'ECO3', label: 'Level 3' },
-  { value: 'ECO4', label: 'Level 4' },
+  { value: 'HUC6', label: 'Basin', sublabel: '(HUC6)' },
+  { value: 'HUC8', label: 'Subbasin', sublabel: '(HUC8)' },
+  { value: 'HUC10', label: 'Watershed', sublabel: '(HUC10)' },
+  { value: 'HUC12', label: 'Subwatershed', sublabel: '(HUC12)' },
 ]
 
 const LayerChooser = ({ setLayer }) => {
@@ -51,13 +47,6 @@ const LayerChooser = ({ setLayer }) => {
           Hydrologic unit
         </Heading>
         <ToggleButton options={hucLayerOptions} onChange={handleSelectLayer} />
-      </Box>
-
-      <Box sx={{ mt: '3rem' }}>
-        <Heading as="h4" sx={{ mb: '0.25rem' }}>
-          Ecoregion
-        </Heading>
-        <ToggleButton options={ecoLayerOptions} onChange={handleSelectLayer} />
       </Box>
     </Box>
   )

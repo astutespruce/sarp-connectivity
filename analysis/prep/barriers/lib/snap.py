@@ -4,25 +4,33 @@ from time import time
 import numpy as np
 import geopandas as gp
 import pandas as pd
-import pygeos as pg
+import shapely
 from pyogrio import write_dataframe
 
 from analysis.prep.barriers.lib.points import connect_points
 from analysis.lib.geometry import nearest, near
 from analysis.constants import SNAP_ENDPOINT_TOLERANCE
+from analysis.lib.io import read_feathers
 from analysis.lib.util import ndarray_append_strings
 
 # distance from edge of an NHD dam poly to be considered associated
-NHD_DAM_TOLERANCE = 50
+NHD_DAM_TOLERANCE = 150
 # max distance (lesser of this or snap tolerance of dam) from NHD dam point to be considered related
-NHD_DAM_PT_TOLERANCE = 250
+# NHD_DAM_PT_TOLERANCE = 250
 # dams will initially snap by SNAP_TOLERANCE, but any that are within waterbodies and don't snap elsewhere
 # will snap to their waterbody's drain up to this tolerance.  Likewise, those that
 # are not within waterbodies will snap up to this distance (lesser of this distance or their snap_tolerance)
 WB_DRAIN_MAX_TOLERANCE = 250
 
-# dams within this distance will be considered for possible relationship to a waterbody
-NEAR_WB_TOLERANCE = 50
+
+# if the nearest flowline (loop or nonloop) is within this value, take it
+# otherwise, try to find the nearest non-loop flowline within tolerance for that
+# barrier
+NEAREST_FLOWLINE_TOLERANCE = 25
+# if there is a non-loop within this value, always take it even if there is a
+# loop slightly closer
+ALWAYS_NONLOOP_TOLERANCE = 5
+
 
 nhd_dir = Path("data/nhd")
 
@@ -74,8 +82,8 @@ def snap_estimated_dams_to_drains(df, to_snap):
         tmp = in_huc2.loc[in_huc2.snap_group == 3]
         if len(tmp):
             max_drain_dist = tmp.snap_tolerance.unique()[0]
-            tree = pg.STRtree(drains.geometry.values.data)
-            left, right = tree.nearest_all(
+            tree = shapely.STRtree(drains.geometry.values.data)
+            left, right = tree.query_nearest(
                 tmp.geometry.values.data, max_distance=max_drain_dist
             )
             drain_joins = (
@@ -93,7 +101,7 @@ def snap_estimated_dams_to_drains(df, to_snap):
                 .first()
             )
 
-            drain_joins["snap_dist"] = pg.distance(
+            drain_joins["snap_dist"] = shapely.distance(
                 drain_joins.geometry.values.data, drain_joins.drain.values.data
             )
 
@@ -104,22 +112,20 @@ def snap_estimated_dams_to_drains(df, to_snap):
             df.loc[ix, "snap_ref_id"] = drain_joins.drainID
             df.loc[ix, "lineID"] = drain_joins.lineID
             df.loc[ix, "wbID"] = drain_joins.wbID
-            df.loc[
-                ix, "snap_log"
-            ] = "snapped: dams estimated from waterbody snapped to nearest drain point"
+            df.loc[ix, "snap_log"] = "snapped: estimated dam to nearest drain point"
 
             to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
 
             print(
-                f"HUC {huc2}: snapped {len(drain_joins):,} of {len(drain_joins):,} dams estimated from waterbodies in region to waterbody drain points"
+                f"HUC {huc2}: snapped {len(drain_joins):,} of {len(drain_joins):,} estimated dams to waterbody drain points"
             )
 
         in_huc2 = in_huc2.loc[in_huc2.snap_group == 1]
 
         # Some estimated dams are just barely outside their waterbodies
         # so we take the nearest waterbody for each, within a tolerance of 1m
-        tree = pg.STRtree(wb.geometry.values.data)
-        left, right = tree.nearest_all(in_huc2.geometry.values.data, max_distance=1)
+        tree = shapely.STRtree(wb.geometry.values.data)
+        left, right = tree.query_nearest(in_huc2.geometry.values.data, max_distance=1)
         # take the first in case of duplicates
         in_wb = (
             pd.DataFrame(
@@ -140,7 +146,7 @@ def snap_estimated_dams_to_drains(df, to_snap):
             )
         )
 
-        in_wb["snap_dist"] = pg.distance(
+        in_wb["snap_dist"] = shapely.distance(
             in_wb.geometry.values.data, in_wb.drain.values.data
         )
         grouped = in_wb.sort_values(by="snap_dist").groupby(level=0)
@@ -163,12 +169,12 @@ def snap_estimated_dams_to_drains(df, to_snap):
         df.loc[ix, "wbID"] = in_wb.wbID
         df.loc[
             ix, "snap_log"
-        ] = "snapped: estimated dam in waterbody snapped to nearest drain point"
+        ] = "snapped: estimated dam in waterbody to nearest drain point"
 
         to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
 
         print(
-            f"HUC {huc2}: snapped {len(in_wb):,} of {len(in_huc2):,} estimated dams in region to waterbody drain points"
+            f"HUC {huc2}: snapped {len(in_wb):,} of {len(in_huc2):,} estimated dams in waterbodies to waterbody drain points"
         )
 
     print(
@@ -209,16 +215,16 @@ def snap_to_nhd_dams(df, to_snap):
     # NOTE: there may be multiple points per damID
     nhd_dams = gp.read_feather(
         nhd_dir / "merged" / "nhd_dams_pt.feather",
-        columns=["damID", "wbID", "lineID", "loop", "sizeclass", "geometry"],
+        columns=["damID", "wbID", "lineID", "loop", "sizeclass", "geometry", "km2"],
     ).set_index("damID")
     # set nulls back to na
     nhd_dams.wbID = nhd_dams.wbID.replace(-1, np.nan)
 
-    ### Find dams that are really close (50m) to NHD dam polygons
+    ### Find dams that are within tolerance of NHD dam points
     near_nhd_pt = nearest(
         pd.Series(to_snap.geometry.values.data, index=to_snap.index),
         pd.Series(nhd_dams.geometry.values.data, index=nhd_dams.index),
-        max_distance=NHD_DAM_TOLERANCE,
+        max_distance=to_snap.snap_tolerance,
     )[["damID"]]
     near_nhd_pt = near_nhd_pt.join(to_snap.geometry.rename("source_pt")).join(
         nhd_dams, on="damID"
@@ -226,7 +232,7 @@ def snap_to_nhd_dams(df, to_snap):
     near_nhd_pt.reset_index().drop_duplicates(
         subset=["id", "damID", "lineID", "geometry"]
     ).set_index("id")
-    near_nhd_pt["snap_dist"] = pg.distance(
+    near_nhd_pt["snap_dist"] = shapely.distance(
         near_nhd_pt.geometry.values.data, near_nhd_pt.source_pt.values.data
     )
     # take the largest, nonloop
@@ -240,6 +246,35 @@ def snap_to_nhd_dams(df, to_snap):
         .first()
     )
 
+    # drop any that are closer to a waterbody drain point that is larger in volume
+    wb_drains = read_feathers(
+        (
+            nhd_dir / "clean" / huc2 / "waterbody_drain_points.feather"
+            for huc2 in to_snap.HUC2.unique()
+        ),
+        columns=["drainID", "wbID", "geometry", "km2"],
+        geo=True,
+    ).set_index("drainID")
+    near_drains = nearest(
+        pd.Series(to_snap.geometry.values.data, index=to_snap.index),
+        pd.Series(wb_drains.geometry.values.data, index=wb_drains.index),
+        max_distance=np.clip(to_snap.snap_tolerance, 0, 150),
+    ).join(
+        wb_drains[["wbID", "km2"]].rename(
+            columns={"wbID": "drain_wbID", "km2": "drain_wbKM2"}
+        ),
+        on="drainID",
+    )
+
+    near_nhd_pt = near_nhd_pt.join(near_drains)
+
+    drop_ix = (near_nhd_pt.snap_dist > near_nhd_pt.distance) & (
+        near_nhd_pt.km2 < near_nhd_pt.drain_wbKM2
+    )
+    drop_ids = near_nhd_pt.loc[drop_ix].index
+
+    near_nhd_pt = near_nhd_pt.loc[~near_nhd_pt.index.isin(drop_ids)].copy()
+
     ix = near_nhd_pt.index
     df.loc[ix, "snapped"] = True
     df.loc[ix, "geometry"] = near_nhd_pt.geometry
@@ -247,15 +282,16 @@ def snap_to_nhd_dams(df, to_snap):
     df.loc[ix, "snap_ref_id"] = near_nhd_pt.damID
     df.loc[ix, "lineID"] = near_nhd_pt.lineID
     df.loc[ix, "wbID"] = near_nhd_pt.wbID
-    df.loc[
-        ix, "snap_log"
-    ] = f"snapped: within {NHD_DAM_TOLERANCE}m tolerance of NHD dam point"
-    to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-    print(
-        f"Snapped {len(ix):,} dams within {NHD_DAM_TOLERANCE} to NHD dam points in {time() - snap_start:.2f}s"
+    df.loc[ix, "snap_log"] = ndarray_append_strings(
+        "snapped: within ",
+        to_snap.loc[ix].snap_tolerance,
+        "m tolerance of NHD dam point",
     )
 
-    ### Find dams that are really close (50m) to NHD dam polygons
+    to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
+    print(f"Snapped {len(ix):,} dams to NHD dam points in {time() - snap_start:.2f}s")
+
+    ### Find dams that are within tolerance of NHD dam polygons
     # Those that have multiple dams nearby are usually part of a dam complex
     near_nhd = near(
         pd.Series(to_snap.geometry.values.data, index=to_snap.index),
@@ -271,7 +307,7 @@ def snap_to_nhd_dams(df, to_snap):
     near_nhd.reset_index().drop_duplicates(
         subset=["id", "damID", "lineID", "geometry"]
     ).set_index("id")
-    near_nhd["snap_dist"] = pg.distance(
+    near_nhd["snap_dist"] = shapely.distance(
         near_nhd.geometry.values.data, near_nhd.source_pt.values.data
     )
     # Sort to prioritize larger size classes and non-loops, then distance
@@ -285,6 +321,8 @@ def snap_to_nhd_dams(df, to_snap):
         .groupby("id")
         .first()
     )
+
+    near_nhd = near_nhd.loc[~near_nhd.index.isin(drop_ids)].copy()
 
     ix = near_nhd.index
     df.loc[ix, "snapped"] = True
@@ -302,43 +340,6 @@ def snap_to_nhd_dams(df, to_snap):
             len(ix), time() - snap_start
         )
     )
-
-    ### Find dams that are close (within snapping tolerance) of NHD dam points
-    # most of these should have been picked up above, but this picks up ones that are
-    # greater than NHD_DAM_TOLERANCE away due to bad locations
-    snap_start = time()
-    tmp = nhd_dams.reset_index()  # reset index so we have unique index to join on
-    near_nhd = nearest(
-        pd.Series(to_snap.geometry.values.data, index=to_snap.index),
-        pd.Series(tmp.geometry.values.data, index=tmp.index),
-        max_distance=np.clip(to_snap.snap_tolerance.values, 0, NHD_DAM_PT_TOLERANCE),
-    ).rename(columns={"distance": "snap_dist"})
-
-    near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(
-        tmp, on="index_right"
-    )
-    near_nhd = (
-        near_nhd.reset_index()
-        .sort_values(
-            by=["id", "sizeclass", "loop", "snap_dist"],
-            ascending=[True, False, True, True],
-        )
-        .groupby("id")
-        .first()
-    )
-
-    ix = near_nhd.index
-    df.loc[ix, "snapped"] = True
-    df.loc[ix, "geometry"] = near_nhd.geometry
-    df.loc[ix, "snap_dist"] = near_nhd.snap_dist
-    df.loc[ix, "snap_ref_id"] = near_nhd.damID
-    df.loc[ix, "lineID"] = near_nhd.lineID
-    df.loc[ix, "wbID"] = near_nhd.wbID
-    df.loc[
-        ix, "snap_log"
-    ] = f"snapped: within {NHD_DAM_PT_TOLERANCE}m tolerance of NHD dam point but >{NHD_DAM_TOLERANCE}m from NHD dam polygon"
-    to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-    print(f"Snapped {len(ix):,} dams to NHD dam points in {time() - snap_start:.2f}s")
 
     return df, to_snap
 
@@ -382,7 +383,7 @@ def snap_to_waterbodies(df, to_snap):
         ).set_index("drainID")
 
         print(
-            f"HUC {huc2} selected {len(in_huc2):,} barriers in region to snap against {len(wb):,} waterbodies"
+            f"Selected {len(in_huc2):,} barriers in region to snap against {len(wb):,} waterbodies"
         )
 
         ### First pass - find the dams that are contained by waterbodies
@@ -390,8 +391,8 @@ def snap_to_waterbodies(df, to_snap):
 
         # Join to nearest waterbodies within 1m (basically inside)
         # and keep only the first match
-        tree = pg.STRtree(wb.geometry.values.data)
-        left, right = tree.nearest_all(in_huc2.geometry.values.data, max_distance=1)
+        tree = shapely.STRtree(wb.geometry.values.data)
+        left, right = tree.query_nearest(in_huc2.geometry.values.data, max_distance=1)
         in_wb = (
             pd.DataFrame(
                 {
@@ -430,7 +431,7 @@ def snap_to_waterbodies(df, to_snap):
             )
             .dropna(subset=["drain"])
         )
-        in_wb["snap_dist"] = pg.distance(
+        in_wb["snap_dist"] = shapely.distance(
             in_wb.geometry.values.data, in_wb.drain.values.data
         )
 
@@ -439,7 +440,8 @@ def snap_to_waterbodies(df, to_snap):
             in_wb.loc[in_wb.snap_dist <= in_wb.snap_tolerance]
             .reset_index()
             .sort_values(
-                by=["sizeclass", "loop", "snap_dist"], ascending=[False, True, True],
+                by=["sizeclass", "loop", "snap_dist"],
+                ascending=[False, True, True],
             )
             .groupby("id")
             .first()
@@ -486,7 +488,10 @@ def snap_to_waterbodies(df, to_snap):
         nearest_drains = (
             nearest_drains.drop(columns=["distance"])
             .join(not_in_wb[["geometry", "snap_tolerance"]])
-            .join(drains.wbID, on="drainID",)
+            .join(
+                drains.wbID,
+                on="drainID",
+            )
             .drop(columns=["drainID"])
             .join(
                 drains.reset_index()
@@ -498,14 +503,15 @@ def snap_to_waterbodies(df, to_snap):
             )
         )
 
-        nearest_drains["snap_dist"] = pg.distance(
+        nearest_drains["snap_dist"] = shapely.distance(
             nearest_drains.geometry.values.data, nearest_drains.drain.values.data
         )
         # take the nearest, largest non-loop drain point within tolerance
         nearest_drains = (
             nearest_drains.loc[nearest_drains.snap_dist < nearest_drains.snap_tolerance]
             .sort_values(
-                by=["sizeclass", "loop", "snap_dist"], ascending=[False, True, True],
+                by=["sizeclass", "loop", "snap_dist"],
+                ascending=[False, True, True],
             )
             .groupby(level=0)
             .first()
@@ -532,8 +538,8 @@ def snap_to_waterbodies(df, to_snap):
     return df, to_snap
 
 
-def snap_to_flowlines(df, to_snap):
-    """Snap to nearest flowline, within tolerance
+def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False):
+    """Snap to nearest flowline, within tolerance.
 
     Updates df with snapping results, and returns to_snap as set of dams still
     needing to be snapped after this operation.
@@ -548,6 +554,12 @@ def snap_to_flowlines(df, to_snap):
     to_snap : DataFrame
         data frame containing pygeos geometries to snap ("geometry")
         and snapping tolerance ("snap_tolerance")
+    find_nearest_nonloop : bool, optional (default: False)
+        If True, will try to snap the the nearest non-loop if it is within
+        ALWAYS_NONLOOP_TOLERANCE or if it is greather than
+        NEAREST_FLOWLINE_TOLERANCE and less than 2x as far away as the nearest
+        loop, otherwise it will take the nearest loop that is closer than the
+        nearest non-loop.
 
     Returns
     -------
@@ -564,25 +576,68 @@ def snap_to_flowlines(df, to_snap):
         in_huc2 = to_snap.loc[to_snap.HUC2 == huc2].copy()
         flowlines = gp.read_feather(
             nhd_dir / "clean" / huc2 / "flowlines.feather",
-            columns=["geometry", "lineID"],
+            columns=["geometry", "lineID", "loop"],
         ).set_index("lineID")
 
         print(
-            f"HUC {huc2} selected {len(in_huc2):,} barriers in region to snap against {len(flowlines):,} flowlines"
+            f"Selected {len(in_huc2):,} barriers in region to snap against {len(flowlines):,} flowlines"
         )
 
-        lines = nearest(
-            pd.Series(in_huc2.geometry.values.data, index=in_huc2.index),
-            pd.Series(flowlines.geometry.values.data, index=flowlines.index),
-            in_huc2.snap_tolerance.values,
+        # Find nearest flowlines within tolerance, then sort by nonloop and descending distance
+        tree = shapely.STRtree(flowlines.geometry.values.data)
+        left, right = tree.query(
+            shapely.buffer(in_huc2.geometry.values.data, in_huc2.snap_tolerance.values),
+            predicate="intersects",
         )
-        lines = lines.join(in_huc2.geometry).join(
-            flowlines.geometry.rename("line"), on="lineID",
+
+        lines = gp.GeoDataFrame(
+            {
+                "id": in_huc2.index.values.take(left),
+                "geometry": in_huc2.geometry.values.data.take(left),
+                "line": flowlines.geometry.values.data.take(right),
+                "lineID": flowlines.index.values.take(right),
+                "loop": flowlines.loop.values.take(right),
+            },
+            geometry="geometry",
+            crs=in_huc2.crs,
         )
+        lines["dist"] = shapely.distance(lines.geometry.values.data, lines.line.values)
+        lines = lines.sort_values(by=["id", "dist"], ascending=True)
+
+        nearest_lines = lines.groupby("id").first()
+
+        if find_nearest_nonloop:
+            nearest_nonloop = lines.loc[~lines.loop].groupby("id").first()
+
+            tmp = nearest_lines.join(
+                nearest_nonloop[["lineID", "dist"]], rsuffix="_nonloop"
+            )
+
+            # always take the non-loop if closest is not a loop, non-loop is very close
+            # or there is not a loop within NEAREST_FLOWLINE_TOLERANCE and the non-loop is <2x futher away
+            tmp["take_nonloop"] = (
+                (~tmp.loop)
+                | (tmp.dist_nonloop <= NEAREST_FLOWLINE_TOLERANCE)
+                | (
+                    (tmp.dist > NEAREST_FLOWLINE_TOLERANCE)
+                    & (tmp.dist_nonloop <= tmp.dist * 2)
+                )
+            )
+
+            lines = pd.concat(
+                [
+                    nearest_nonloop.loc[tmp[tmp.take_nonloop].index].reset_index(),
+                    nearest_lines.loc[tmp[~tmp.take_nonloop].index].reset_index(),
+                ],
+                ignore_index=True,
+            ).set_index("id")
+
+        else:
+            lines = nearest_lines
 
         # project the point to the line,
         # find out its distance on the line,
-        lines["line_pos"] = pg.line_locate_point(
+        lines["line_pos"] = shapely.line_locate_point(
             lines.line.values.data, lines.geometry.values.data
         )
 
@@ -591,19 +646,21 @@ def snap_to_flowlines(df, to_snap):
         lines.loc[ix, "line_pos"] = 0
 
         # if within tolerance of endpoint, snap to end
-        end = pg.length(lines.line.values.data)
+        end = shapely.length(lines.line.values.data)
         ix = lines["line_pos"] >= end - SNAP_ENDPOINT_TOLERANCE
         lines.loc[ix, "line_pos"] = end[ix]
 
         # then interpolate its new coordinates
-        lines["geometry"] = pg.line_interpolate_point(
+        projected = shapely.line_interpolate_point(
             lines.line.values.data, lines["line_pos"]
         )
 
         ix = lines.index
         df.loc[ix, "snapped"] = True
-        df.loc[ix, "geometry"] = lines.geometry
-        df.loc[ix, "snap_dist"] = lines.distance
+        df.loc[ix, "geometry"] = projected
+        df.loc[ix, "snap_dist"] = shapely.distance(
+            lines.geometry.values.data, projected.values
+        )
         df.loc[ix, "snap_ref_id"] = lines.lineID
         df.loc[ix, "lineID"] = lines.lineID
         df.loc[ix, "snap_log"] = ndarray_append_strings(
@@ -619,8 +676,6 @@ def snap_to_flowlines(df, to_snap):
                 len(ix), time() - region_start
             )
         )
-
-    # TODO: flag those that joined to loops
 
     return df, to_snap
 

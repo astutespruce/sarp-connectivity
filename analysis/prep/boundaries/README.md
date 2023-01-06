@@ -9,12 +9,7 @@
 
 ## 1. Define analysis regions
 
-The analysis region is defined in 2 variants:
-
-- full region
-- SARP region (for 2020 update)
-
-Each analysis region is based on 2 parts
+The analysis region is based on 2 parts
 
 - states in the region
 - NHD HUC4s that intersect the state boundaries
@@ -33,21 +28,20 @@ This produces 5 main output files for each analysis region:
 - analysis state boundary (dissolved states)
 - HUC2
 - HUC4
-- analysis boundary (dissolved HUC4)
 
-For each of above, a GPKG file is written for use in GIS, and feather file
+For each of above, an FGB file is written for use in GIS, and feather file
 for use later in the analysis pipeline.
 
 ### States in region
 
-State boundaries (2019 version) were downloaded from CENSUS Tiger website.
+State boundaries (2021 version) were downloaded from CENSUS Tiger website.
 
 The predefined list of states is assigned in `analysis/constants.py`.
 
 ### HUC4s in region
 
 Watershed boundaries were extracted from the NHD WBD national dataset downloaded
-on 10/12/2020 from: http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/
+on 2/15/2022 from: http://prd-tnm.s3-website-us-west-2.amazonaws.com/?prefix=StagedProducts/Hydrography/WBD/National/GDB/
 
 ## 2. Prepare hydrologic boundaries
 
@@ -68,15 +62,14 @@ Additional boundaries are joined to the barrier inventory during the analysis.
 
 These are processed using `analysis/prep/boundaries/prep_boundaries.py`.
 
+Additional watershed-level priorities are joined during this processing. These
+include:
+
+- SARP Conservation Opportunity Areas at HUC8 level (provided by SARP)
+
 ### Counties
 
-County boundaries (2019 version) were downloaded from CENSUS Tiger website.
-
-### EPA Ecoregions
-
-Level 3 and 4 ecoregions were downloaded from: https://www.epa.gov/eco-research/level-iii-and-iv-ecoregions-continental-united-states
-
-Note: ecoregions are not available for Puerto Rico.
+County boundaries (2021 version) were downloaded from CENSUS Tiger website.
 
 ### Protected Areas
 
@@ -84,12 +77,4 @@ Kat Hoenke (SARP) extracted protected area data from CBI Protected Areas and TNC
 
 ## 4. Create boundary vector tiles
 
-Vector tiles are are created for each of the boundary layers.
-
-Depending on which analysis region you are creating tiles for, run one of:
-
-- `analysis/prep/boundaries/generate_region_tiles.sh`
-- `analysis/prep/boundaries/generate_sarp_tiles.sh`
-
-Both create files with the same name in the same location, because only one
-set is intended to be used at a time within this project.
+Vector tiles are are created for each of the boundary layers using `analysis/prep/boundaries/create_region_tiles.py`.

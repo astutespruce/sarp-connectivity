@@ -14,6 +14,6 @@ export const FeaturePropType = PropTypes.shape({
 export const SearchFeaturePropType = PropTypes.shape({
   id: PropTypes.string,
   layer: PropTypes.string,
-  bbox: PropTypes.arrayOf(PropTypes.number),
+  bbox: PropTypes.string,
   maxZoom: PropTypes.number,
 })

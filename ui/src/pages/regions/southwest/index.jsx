@@ -15,13 +15,11 @@ import {
 
 import { useSummaryData } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-
+import { REGION_STATES } from 'config'
 import { formatNumber } from 'util/format'
-
-import { REGION_STATES } from '../../../../config/constants'
 
 const SWRegionPage = ({
   data: {
@@ -36,7 +34,7 @@ const SWRegionPage = ({
   const { sw } = useSummaryData()
 
   return (
-    <Layout title="Southwest Region">
+    <Layout>
       <HeaderImage
         image={headerImage}
         height="20vh"
@@ -66,7 +64,7 @@ const SWRegionPage = ({
           </Box>
           <Box>
             <Heading as="h4" sx={{ mb: '1rem' }}>
-              Includes {REGION_STATES.gpiw.length} states with:
+              Includes {REGION_STATES.sw.length} states with:
             </Heading>
 
             <RegionStats {...sw} />
@@ -99,7 +97,7 @@ const SWRegionPage = ({
             <br />
             <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn
             more about how you can help improve aquatic connectivity in the
-            Great Plains & Intermountain West.
+            Southwest.
           </Paragraph>
         </Box>
       </Container>
@@ -110,7 +108,7 @@ const SWRegionPage = ({
 SWRegionPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
-    map: PropTypes.isRequired,
+    map: PropTypes.object.isRequired,
   }).isRequired,
 }
 
@@ -140,3 +138,5 @@ export const pageQuery = graphql`
 `
 
 export default SWRegionPage
+
+export const Head = () => <SEO title="Southwest Region" />

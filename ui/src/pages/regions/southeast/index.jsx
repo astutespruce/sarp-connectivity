@@ -17,14 +17,12 @@ import {
 import { useSummaryData } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
 import { Link, OutboundLink } from 'components/Link'
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-
+import { REGION_STATES } from 'config'
 import { formatNumber } from 'util/format'
 import SARPLogoImage from 'images/sarp_logo.png'
-
-import { REGION_STATES } from '../../../../config/constants'
 
 const SERegionPage = ({
   data: {
@@ -45,7 +43,7 @@ const SERegionPage = ({
   const { se } = useSummaryData()
 
   return (
-    <Layout title="Southeast Region">
+    <Layout>
       <HeaderImage
         image={headerImage}
         height="20vh"
@@ -92,7 +90,7 @@ const SERegionPage = ({
           <Grid columns="2fr 1fr" sx={{ mt: '0.5rem' }}>
             <Paragraph sx={{ mr: '2rem', flex: '1 1 auto' }}>
               The&nbsp;
-              <OutboundLink to="https://southeastaquatics.net/">
+              <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
                 Southeast Aquatic Resources Partnership
               </OutboundLink>
               &nbsp; (SARP) was formed by the Southeastern Association of Fish
@@ -222,7 +220,7 @@ const SERegionPage = ({
 SERegionPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
-    map: PropTypes.isRequired,
+    map: PropTypes.object.isRequired,
     forestStreamPhoto: PropTypes.object.isRequired,
     gaTeamPhoto: PropTypes.object.isRequired,
   }).isRequired,
@@ -276,3 +274,5 @@ export const pageQuery = graphql`
 `
 
 export default SERegionPage
+
+export const Head = () => <SEO title="Southeast Region" />

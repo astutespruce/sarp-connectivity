@@ -20,7 +20,6 @@ const Sidebar = ({ children, allowScroll }) => (
         overflowY: allowScroll ? 'auto' : 'hidden',
         height: '100%',
       }}
-      allowScroll={allowScroll}
     >
       {children}
     </Flex>

@@ -3,8 +3,9 @@ from pathlib import Path
 from time import time
 
 import geopandas as gp
+import numpy as np
 import pandas as pd
-import pygeos as pg
+import shapely
 from pyogrio import write_dataframe
 
 from analysis.constants import STATES
@@ -44,7 +45,7 @@ drains = (
             "MaxElevSmo": "maxelev",
             "MinElevSmo": "minelev",
             "Slope": "slope",
-            "StreamOrde": "fsorder",
+            "StreamOrder": "fsorder",
             "km2": "wb_km2",
             "flowlineLength": "flength",
         }
@@ -54,11 +55,13 @@ drains = (
 
 drains["intermittent"] = drains.lineFCode.isin([46003, 46007])
 
+drains.loc[drains.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
+
 
 merged = None
 for huc2 in huc2s:
     huc2_start = time()
-    print(f"Extracting dams from waterbodies in {huc2}")
+    print(f"----- Processing {huc2} ------")
     waterbodies = gp.read_feather(nhd_dir / huc2 / "waterbodies.feather").set_index(
         "wbID"
     )
@@ -79,8 +82,8 @@ dams = dams.loc[
 has_dam = df.wbID.isin(dams.wbID.unique())
 
 states = gp.read_feather("data/boundaries/states.feather", columns=["id", "geometry"])
-tree = pg.STRtree(df.geometry.values.data)
-left, right = tree.query_bulk(states.geometry.values.data, predicate="intersects")
+tree = shapely.STRtree(df.geometry.values.data)
+left, right = tree.query(states.geometry.values.data, predicate="intersects")
 
 state_join = (
     pd.DataFrame({"state": states.id.take(left), "drain": df.index.take(right)})

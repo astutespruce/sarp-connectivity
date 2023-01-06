@@ -3,12 +3,12 @@ import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { Box, Container, Heading, Paragraph } from 'theme-ui'
 
-import { Layout } from 'components/Layout'
+import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { OutboundLink } from 'components/Link'
 
 const LengthPage = ({ data: { headerImage } }) => (
-  <Layout title="Listed Species and Species of Greatest Conservation Need">
+  <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="30vh"
@@ -124,3 +124,7 @@ export const pageQuery = graphql`
 `
 
 export default LengthPage
+
+export const Head = () => (
+  <SEO title="Listed Species and Species of Greatest Conservation Need" />
+)
