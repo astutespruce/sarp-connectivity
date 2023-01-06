@@ -41,6 +41,8 @@ const Nav = () => (
     sx={{
       alignItems: 'center',
       fontSize: '1rem',
+      position: 'relative',
+      zIndex: 10000,
     }}
   >
     <NavMenu label="Explore regions" items={regions} />

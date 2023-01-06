@@ -7,6 +7,7 @@ import pandas as pd
 from pyogrio import write_dataframe
 
 from analysis.constants import GEO_CRS
+from analysis.post.lib.tiles import get_col_types
 
 
 # use local clone of github.com/tippecanoe
@@ -32,6 +33,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z", "0", "-z", "8"]
     + ["-l", "boundary"]
+    + get_col_types(df)
     + ["-o", f"{str(mbtiles_filename)}", outfilename]
 )
 ret.check_returncode()
@@ -48,6 +50,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z", "0", "-z", "8"]
     + ["-l", "mask"]
+    + get_col_types(df)
     + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
 )
 ret.check_returncode()
@@ -66,6 +69,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z", "0", "-z", "8"]
     + ["-l", "State"]
+    + get_col_types(df)
     + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
 )
 ret.check_returncode()
@@ -84,6 +88,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z", "3", "-z", "12"]
     + ["-l", "County"]
+    + get_col_types(df)
     + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
 )
 ret.check_returncode()
@@ -104,7 +109,7 @@ ret = subprocess.run(
     tippecanoe_args
     + ["-Z", "0", "-z", "8"]
     + ["-l", "HUC2"]
-    + ["-T", "id:string"]
+    + get_col_types(df)
     + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
 )
 ret.check_returncode()
@@ -129,6 +134,7 @@ for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
             columns=["id", "coa"],
         ).set_index("id")
         df = df.join(priorities, on="id")
+        df["coa"] = df.coa.fillna(0).astype("uint8")
 
     # only keep units that actually overlap the region at each level
     tree = shapely.STRtree(df.geometry.values.data)
@@ -142,7 +148,7 @@ for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
         tippecanoe_args
         + ["-Z", str(minzoom), "-z", str(maxzoom)]
         + ["-l", huc]
-        + ["-T", "id:string"]
+        + get_col_types(df)
         + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
     )
     ret.check_returncode()

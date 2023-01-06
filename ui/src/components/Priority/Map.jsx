@@ -692,8 +692,6 @@ const PriorityMap = ({
       excludedPoint,
       offnetworkPoint,
       rankedPoint,
-      // topRank,
-      // lowerRank,
     ]
 
     const isWithinZoom = pointLayers.reduce(

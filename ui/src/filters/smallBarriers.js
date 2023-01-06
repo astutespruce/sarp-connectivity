@@ -22,8 +22,9 @@ import {
 import { getEntries, hasDiadromousData } from './common'
 
 export const smallBarriers = [
+  // { id: 'social_benefits', title: 'Social benefits', filters: [] },
   {
-    id: 'benefits',
+    id: 'conservation_benefits',
     title: 'Conservation benefits',
     filters: [
       {
