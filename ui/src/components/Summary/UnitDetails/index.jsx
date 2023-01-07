@@ -94,6 +94,12 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
             : null,
         }}
       >
+        {totalSmallBarriers > 0 ? (
+          <Downloader barrierType={barrierType} config={downloaderConfig} />
+        ) : null}
+
+        {showBoth ? <Box sx={{ width: '1em', flex: '0 0 auto' }} /> : null}
+
         {crossings > 0 ? (
           <Downloader
             barrierType="road_crossings"
@@ -102,12 +108,6 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
               summaryUnits: [{ id }],
             }}
           />
-        ) : null}
-
-        {showBoth ? <Box sx={{ width: '1em', flex: '0 0 auto' }} /> : null}
-
-        {totalSmallBarriers > 0 ? (
-          <Downloader barrierType={barrierType} config={downloaderConfig} />
         ) : null}
       </Flex>
     )

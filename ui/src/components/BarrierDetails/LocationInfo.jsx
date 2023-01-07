@@ -82,7 +82,7 @@ const LocationInfo = ({
           <Field label="Conservation land type">{OWNERTYPE[ownertype]}</Field>
         </Entry>
       ) : null}
-      {barrierownertype !== null && barrierownertype > 0 ? (
+      {barrierownertype !== null ? (
         <Entry>
           <Field label="Barrier ownership type">
             {BARRIEROWNERTYPE[barrierownertype]}
