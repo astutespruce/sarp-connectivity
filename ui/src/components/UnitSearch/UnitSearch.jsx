@@ -154,7 +154,7 @@ const UnitSearch = ({ system, layer, ignoreIds, onSelect }) => {
         >
           {query.length < 3 ? '...keep typing...' : null}
 
-          {query.length >= 3 && results.length === 0
+          {!isLoading && query.length >= 3 && results.length === 0
             ? 'No results match your search'
             : null}
         </Box>
