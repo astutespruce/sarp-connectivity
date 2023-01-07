@@ -58,8 +58,9 @@ const SWRegionPage = ({
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(sw.dams)} inventoried dams in the Southwest
-              region.
+              Map of {formatNumber(sw.dams)} inventoried dams and{' '}
+              {formatNumber(sw.smallBarriers)} road-related barriers likely to
+              impact aquatic organisms in the Southwest region.
             </Text>
           </Box>
           <Box>

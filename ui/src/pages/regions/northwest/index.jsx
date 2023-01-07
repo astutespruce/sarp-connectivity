@@ -66,8 +66,9 @@ const PNWRegionPage = ({
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(pnw.dams)} inventoried dams in the Northwest
-              region.
+              Map of {formatNumber(pnw.dams)} inventoried dams and{' '}
+              {formatNumber(pnw.smallBarriers)} road-related barriers likely to
+              impact aquatic organisms in the Northwest region.
             </Text>
           </Box>
           <Box>

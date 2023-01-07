@@ -67,8 +67,9 @@ const SERegionPage = ({
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(se.dams)} inventoried dams in the Southeast
-              region.
+              Map of {formatNumber(se.dams)} inventoried dams and{' '}
+              {formatNumber(se.smallBarriers)} road-related barriers likely to
+              impact aquatic organisms in the Southeast region.
             </Text>
           </Box>
           <Box>

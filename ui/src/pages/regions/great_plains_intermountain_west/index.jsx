@@ -63,8 +63,10 @@ const GPIWRegionPage = ({
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(gpiw.dams)} inventoried dams in the Great
-              Plains & Intermountain West region.
+              Map of {formatNumber(gpiw.dams)} inventoried dams and{' '}
+              {formatNumber(gpiw.smallBarriers)} road-related barriers likely to
+              impact aquatic organisms in the Great Plains & Intermountain West
+              region.
             </Text>
           </Box>
           <Box>
