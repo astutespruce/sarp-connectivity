@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Flex, Text } from 'theme-ui'
+import { Flex } from 'theme-ui'
 import { ChartBar, SearchLocation, Download } from '@emotion-icons/fa-solid'
 
 import { hasWindow } from 'util/dom'

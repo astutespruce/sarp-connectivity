@@ -10,7 +10,7 @@ const NavMenu = ({ label, items, ...props }) => (
     tabIndex={0}
     as="ul"
     sx={{
-      zIndex: 1000,
+      zIndex: 10000,
       position: 'relative',
       cursor: 'pointer',
       listStyle: 'none',
@@ -59,9 +59,8 @@ const NavMenu = ({ label, items, ...props }) => (
           position: 'absolute',
           width: ['100%'],
           minWidth: ['100%', '300px'],
-          zIndex: 1001,
+          zIndex: 1,
           display: 'none',
-          transform: 'translateZ(-10px)',
           right: '-1px',
         }}
       >
