@@ -90,7 +90,7 @@ const GPIWRegionPage = ({
               Records describing dams and road-related barriers within Montana
               include those maintained by the{' '}
               <OutboundLink to="https://fwp.mt.gov/">
-                Montana Department of Fish, Wildlife, and Parks.
+                Montana Department of Fish, Wildlife, and Parks
               </OutboundLink>
               .
             </Paragraph>
