@@ -110,7 +110,7 @@ def find_nhd_waterbody_breaks(geometries, nhd_lines):
 
     shapely.prepare(tmp.right_geometry.values)
     contained = shapely.contains_properly(
-        tmp.right_geometry.values, tmp.left_geometry.values, buffer_dist
+        tmp.right_geometry.values, tmp.left_geometry.values
     )
     print(
         f"Dropping {contained.sum()} NHD lines that are completely contained within waterbodies"

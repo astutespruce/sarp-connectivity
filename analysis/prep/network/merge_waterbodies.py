@@ -143,8 +143,8 @@ for huc2 in huc2s:
     print(f"Now have {len(df):,} waterbodies ({time() - dissolve_start:,.2f}s)")
 
     # assign altered if any resulting polygons intersect altered polygons
-    tree = shapely.STRtree(df.geometry.values.data)
-    left, right = tree.query(altered.geometry.values.data)
+    tree = shapely.STRtree(df.geometry.values.data.copy())
+    left, right = tree.query(altered.geometry.values)
     df["altered"] = False
     df.loc[np.unique(right), "altered"] = True
 
@@ -152,8 +152,8 @@ for huc2 in huc2s:
     nhd_lines_filename = nhd_dir / huc2 / "nhd_lines.feather"
     if nhd_lines_filename.exists():
         print("Checking for breaks between adjacent waterbodies")
-        nhd_lines = gp.read_feather(nhd_lines_filename).geometry.values.data
-        breaks = find_nhd_waterbody_breaks(nhd.geometry.values.data, nhd_lines)
+        nhd_lines = gp.read_feather(nhd_lines_filename).geometry.values
+        breaks = find_nhd_waterbody_breaks(nhd.geometry.values, nhd_lines)
 
         if breaks is not None:
             breaks = shapely.get_parts(breaks)
@@ -165,7 +165,7 @@ for huc2 in huc2s:
             # find all pairs of waterbody and breaks, aggregate
             # breaks by waterbody, then calculate difference
 
-            tree = shapely.STRtree(df.geometry.values.data)
+            tree = shapely.STRtree(df.geometry.values.data.copy())
             left, right = tree.query(breaks, predicate="intersects")
             pairs = pd.DataFrame(
                 {"break_geometry": breaks.take(left)}, index=df.index.take(right)
@@ -174,22 +174,22 @@ for huc2 in huc2s:
                 lambda g: shapely.multipolygons(g.values.data)
             )
             df.loc[grouped.index, "geometry"] = shapely.difference(
-                df.loc[grouped.index].geometry.values.data, grouped.values
+                df.loc[grouped.index].geometry.values, grouped.values
             )
 
             df = explode(df).reset_index(drop=True)
 
     # make sure all polygons are valid
-    ix = ~shapely.is_valid(df.geometry.values.data)
+    ix = ~shapely.is_valid(df.geometry.values)
     if ix.sum():
         print(f"Repairing {ix.sum()} invalid waterbodies")
-        df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values.data)
+        df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values)
         df = explode(explode(df))
-        df = df.loc[shapely.get_type_id(df.geometry.values.data) == 3].reset_index()
+        df = df.loc[shapely.get_type_id(df.geometry.values) == 3].reset_index()
 
     # assign a new unique wbID
     df["wbID"] = df.index.values.astype("uint32") + 1 + int(huc2) * 1000000
-    df["km2"] = shapely.area(df.geometry.values.data) / 1e6
+    df["km2"] = shapely.area(df.geometry.values) / 1e6
 
     df.to_feather(huc2_dir / "waterbodies.feather")
     write_dataframe(df, huc2_dir / "waterbodies.fgb")

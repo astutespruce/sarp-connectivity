@@ -82,7 +82,7 @@ def find_dam_face_from_waterbody(waterbody, drain_pt):
     # starting from the vertex nearest the drain
     # note: lower numbers are to the right
     tree = shapely.STRtree(vertices)
-    ix = tree.nearest(drain_pt)[1][0]
+    ix = tree.nearest(drain_pt)
     side_width = min(num_pts // 3, MAX_SIDE_PTS)
     left_ix = ix + side_width
     right_ix = ix - side_width
