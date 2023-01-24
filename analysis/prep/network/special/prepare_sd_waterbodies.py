@@ -22,7 +22,6 @@ from analysis.constants import CRS
 from analysis.lib.geometry import dissolve, explode
 from analysis.lib.io import read_feathers
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/raw"  # intentionally use raw flowlines

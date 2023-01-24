@@ -74,7 +74,7 @@ async def download_huc4(HUC4, client, filename):
         url = HUC4_URL_CACHE[HUC4]
 
     else:
-        url = CURRENT_DATA_URL.format(HUC4=HUC4)
+        url = BETA_DATA_URL.format(HUC4=HUC4)
 
     print(f"Requesting data from: {url}")
 

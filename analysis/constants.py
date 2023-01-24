@@ -36,6 +36,7 @@ STATES = {
     "TX": "Texas",
     "UT": "Utah",
     "VA": "Virginia",
+    "VI": "United States Virgin Islands",
     "WA": "Washington",
     "WV": "West Virginia",
     "WY": "Wyoming",
@@ -65,8 +66,8 @@ SARP_STATE_NAMES = [STATES[s] for s in SARP_STATES]
 
 # Note: some states overlap multiple regions
 REGION_STATES = {
-    # Southeast is SARP states plus WV (SECAS not SARP state)
-    "se": SARP_STATES + ["WV"],
+    # Southeast is SARP states plus VI & WV (SECAS not SARP states)
+    "se": SARP_STATES + ["VI", "WV"],
     # great plains / intermountain west
     "gpiw": [
         "CO",

@@ -37,7 +37,6 @@ from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.duplicates import find_duplicates
 from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 # Snap waterfalls by 100 meters
 SNAP_TOLERANCE = 100

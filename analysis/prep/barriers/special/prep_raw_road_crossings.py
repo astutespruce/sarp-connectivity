@@ -31,8 +31,6 @@ from analysis.lib.io import read_feathers
 from analysis.prep.barriers.lib.snap import snap_to_flowlines
 from analysis.prep.barriers.lib.spatial_joins import add_spatial_joins
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 
 SNAP_TOLERANCE = 10
 DUPLICATE_TOLERANCE = 5

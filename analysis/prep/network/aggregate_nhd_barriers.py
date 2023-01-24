@@ -9,9 +9,6 @@ from pyogrio import write_dataframe
 from analysis.lib.io import read_feathers
 
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
-
 data_dir = Path("data")
 
 huc2s = sorted(

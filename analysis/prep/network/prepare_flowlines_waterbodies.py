@@ -56,9 +56,6 @@ from analysis.lib.flowlines import (
 from analysis.prep.network.lib.drains import create_drain_points
 
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
-
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd"
 src_dir = nhd_dir / "raw"

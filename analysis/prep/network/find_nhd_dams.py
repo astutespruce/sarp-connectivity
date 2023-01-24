@@ -21,8 +21,6 @@ from analysis.lib.geometry import (
 from analysis.lib.io import read_feathers
 from analysis.lib.graph.speedups.graph import DirectedGraph
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 
 # consider dam associated with waterbody drain if within 15m
 MAX_DRAIN_DISTANCE = 15

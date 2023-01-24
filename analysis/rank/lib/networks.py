@@ -14,8 +14,6 @@ from analysis.rank.lib.metrics import (
 )
 from api.lib.tiers import calculate_tiers, METRICS
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 
 NETWORK_COLUMNS = [
     "id",

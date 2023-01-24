@@ -26,7 +26,6 @@ from analysis.network.lib.stats import (
 from analysis.network.lib.networks import create_networks, connect_huc2s
 
 warnings.simplefilter("always")  # show geometry related warnings every time
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 # Note: only includes columns used later for network stats
 FLOWLINE_COLS = [

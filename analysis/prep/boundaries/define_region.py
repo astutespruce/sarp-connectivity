@@ -9,7 +9,6 @@ from pyogrio import read_dataframe, write_dataframe
 from analysis.constants import STATES, CRS, GEO_CRS, REGION_STATES
 from analysis.lib.geometry import to_multipolygon
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 data_dir = Path("data")
 out_dir = data_dir / "boundaries"

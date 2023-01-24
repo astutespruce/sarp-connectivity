@@ -25,7 +25,6 @@ from analysis.constants import CRS
 from analysis.lib.util import append
 
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 warnings.filterwarnings("ignore", message=".*geometry types are not supported*")
 
 
