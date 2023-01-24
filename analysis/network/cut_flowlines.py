@@ -13,7 +13,6 @@ from analysis.lib.flowlines import cut_flowlines_at_barriers
 from analysis.constants import CRS
 
 warnings.simplefilter("always")  # show geometry related warnings every time
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 
 data_dir = Path("data")

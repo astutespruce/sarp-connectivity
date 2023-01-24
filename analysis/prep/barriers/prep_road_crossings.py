@@ -9,8 +9,6 @@ from pyogrio import write_dataframe
 
 from api.constants import ROAD_CROSSING_API_FIELDS
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 # considered to duplicate an inventoried road barriers if within this value
 DUPLICATE_TOLERANCE = 10  # meters
 

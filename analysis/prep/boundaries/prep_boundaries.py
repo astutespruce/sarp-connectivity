@@ -23,8 +23,6 @@ from analysis.constants import (
 )
 from analysis.lib.geometry import explode, dissolve, to_multipolygon
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 
 def encode_bbox(geometries):
     return np.apply_along_axis(

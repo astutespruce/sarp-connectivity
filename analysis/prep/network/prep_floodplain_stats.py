@@ -25,7 +25,7 @@ NATURAL_TYPES = {11, 12, 31, 41, 42, 43, 51, 52, 71, 72, 73, 74, 90, 95}
 
 data_dir = Path("data")
 src_dir = data_dir / "floodplains"
-gdb_filename = src_dir / "HR_NLCD19_Floodplain_Stats_Tables_2022.gdb"
+gdb_filename = src_dir / "HR_NLCD_Floodplain_Stats_Tables_2023.gdb"
 
 
 # layers have varying names, make a lookup from them

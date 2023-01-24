@@ -63,8 +63,6 @@ from analysis.constants import (
     BARRIEROWNERTYPE_TO_DOMAIN,
 )
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 ### Custom tolerance values for dams
 SNAP_TOLERANCE = {
     "default": 50,

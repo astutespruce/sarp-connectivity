@@ -25,7 +25,6 @@ from analysis.lib.geometry import dissolve, explode
 from analysis.lib.io import read_feathers
 
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 warnings.filterwarnings("ignore", message=".*geometry types are not supported*")
 
 data_dir = Path("data")

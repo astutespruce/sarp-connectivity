@@ -13,8 +13,6 @@ from analysis.constants import (
 )
 from analysis.lib.io import read_feathers
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 
 data_dir = Path("data")
 src_dir = data_dir / "barriers/source"

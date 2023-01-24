@@ -9,8 +9,6 @@ from pyogrio import read_dataframe, write_dataframe
 from analysis.lib.geometry import neighborhoods
 
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 # Per guidance from Kat: this is set intentionally to 100m instead of 10m, to guide
 # QAQC
 DUPLICATE_TOLERANCE = 100
@@ -76,4 +74,3 @@ write_dataframe(qa, out_dir / "dams_for_review.shp")
 ### Also export snapping lines
 snap_lines = read_dataframe(qa_dir / "dams_pre_snap_to_post_snap.fgb")
 write_dataframe(snap_lines, out_dir / "dams_pre_snap_to_post_snap.shp")
-

@@ -18,8 +18,6 @@ from analysis.constants import (
 )
 from analysis.prep.barriers.lib.arcgis import download_fs, list_services
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 
 # Load the token from the .env file in the root of this project
 load_dotenv()
@@ -61,6 +59,7 @@ DAM_URLS = {
     "TX": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/TexasDams/FeatureServer/0",
     "UT": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Utah_Dam_Inventory_03052021/FeatureServer/1",
     "VA": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Virginia_Dam_Inventory_11_12_2018/FeatureServer/0",
+    "VI": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/USVI_Dam_Inventory_01242023/FeatureServer/0",
     "WA": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Washington_Dam_Inventory_03022022/FeatureServer/0",
     "WY": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Wyoming_Dam_Inventory_03052021/FeatureServer/1",
 }
@@ -227,7 +226,9 @@ print("Downloaded {:,} dams in {:.2f}s".format(len(df), time() - download_start)
 ### Merge in WV, provided separately instead of as feature service
 print("---- Merging in WV from local GDB ----")
 wv = read_dataframe(
-    "data/barriers/source/OuterHUC4_Dams_2022.gdb", layer="WVa_Dams_SARP_03142022"
+    "data/barriers/source/OuterHUC4_Dams_2022.gdb",
+    layer="WVa_Dams_SARP_03142022",
+    force_2d=True,
 ).to_crs(CRS)
 
 cols = [c for c in wv.columns if c in DAM_FS_COLS] + ["geometry"]

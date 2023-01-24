@@ -15,8 +15,6 @@ from analysis.lib.util import append
 
 from analysis.prep.network.download_nwi import HUC8_ALIAS
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 
 MODIFIERS = {
     "d": "Drained/Ditched",

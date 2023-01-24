@@ -71,8 +71,6 @@ from analysis.constants import (
 from analysis.lib.io import read_feathers
 
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 ### Custom tolerance values for dams
 SNAP_TOLERANCE = {
     "default": 150,
@@ -510,7 +508,7 @@ for field, values in unranked_fields.items():
 # NOTE: this MUST be done AFTER dropping / excluding barriers
 # NOTE: Estimated Dams <datestamp> are estimated using methods here; others were done in other ways
 df["is_estimated"] = (
-    (df.Name.str.count("Estimated Dam") > 0)
+    df.Name.str.lower().str.contains("Estimated Dam")
     | df.Source.str.lower().str.contains("estimated dam")
     | (df.SourceDBID.str.startswith("e"))
 )
@@ -606,7 +604,9 @@ df.loc[ix, "Name"] = df.loc[ix].OtherName
 df.loc[df.Source.str.count("Amber Ignatius") > 0, "snap_group"] = 2
 
 # Identify dams estimated from waterbodies
-ix = df.Source.isin(["Estimated Dams OCT 2021", "Estimated Dams Summer 2022"])
+ix = df.Source.isin(
+    ["Estimated Dams OCT 2021", "Estimated Dams Summer 2022", "Estimated Dams JAN 2023"]
+)
 df.loc[ix, "snap_group"] = 3
 df.loc[ix, "Name"] = "Estimated dam"
 
@@ -650,8 +650,8 @@ snap_start = time()
 print("-----------------")
 
 # DEBUG
-df.reset_index(drop=True).to_feather("/tmp/dams.feather")
-to_snap.reset_index(drop=True).to_feather("/tmp/to_snap.feather")
+# df.reset_index(drop=True).to_feather("/tmp/dams.feather")
+# to_snap.reset_index(drop=True).to_feather("/tmp/to_snap.feather")
 
 
 # Snap estimated dams to the drain point of the waterbody that contains them, if possible

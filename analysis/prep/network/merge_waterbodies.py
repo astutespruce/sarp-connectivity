@@ -13,9 +13,6 @@ from analysis.lib.geometry import explode, dissolve, write_geoms
 from analysis.prep.network.lib.nhd import find_nhd_waterbody_breaks
 
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
-
 data_dir = Path("data")
 nhd_dir = data_dir / "nhd/raw"
 nwi_dir = data_dir / "nwi/raw"

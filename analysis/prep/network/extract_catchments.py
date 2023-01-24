@@ -9,7 +9,7 @@ from analysis.constants import CRS
 from analysis.lib.util import append
 from analysis.prep.network.lib.nhd.util import get_column_names
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
+
 warnings.filterwarnings("ignore", message=".*Warning 1: organizePolygons.*")
 
 MAX_HUC4s = 5  # max number of HUC4s to include before considering a split

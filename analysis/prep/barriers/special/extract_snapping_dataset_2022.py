@@ -5,7 +5,6 @@ import warnings
 import geopandas as gp
 from pyogrio import write_dataframe
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
 
 data_dir = Path("data")
 src_dir = data_dir / "barriers/source/Archive_Feb2022"

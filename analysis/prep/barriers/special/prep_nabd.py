@@ -8,8 +8,6 @@ from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 
 data_dir = Path("data")
 boundaries_dir = data_dir / "boundaries"

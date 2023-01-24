@@ -29,8 +29,6 @@ from api.constants import (
     unique,
 )
 
-warnings.filterwarnings("ignore", message=".*initial implementation of Parquet.*")
-
 
 start = time()
 
@@ -103,7 +101,6 @@ dams = (
     .set_index("id")
     .rename(columns=rename_cols)
 )
-dams["BarrierType"] = "dam"
 dams["unsnapped"] = (~dams.snapped).astype("uint8")
 fill_flowline_cols(dams)
 
@@ -175,7 +172,6 @@ small_barriers = (
     .set_index("id")
     .rename(columns=rename_cols)
 )
-small_barriers["BarrierType"] = "Inventoried road-related barrier"
 small_barriers["unsnapped"] = (~small_barriers.snapped).astype("uint8")
 small_barriers = small_barriers.loc[
     ~(small_barriers.dropped | small_barriers.duplicate)
@@ -235,6 +231,8 @@ tmp.to_feather(api_dir / f"small_barriers.feather")
 #########################################################################################
 ###
 ### Get combined networks
+dams["BarrierType"] = "dam"
+small_barriers["BarrierType"] = "Inventoried road-related barrier"
 combined = pd.concat(
     [
         dams.drop(columns=dam_networks.columns, errors="ignore").reset_index(),
@@ -320,7 +318,7 @@ print("Saving combined networks for tiles and API")
 combined.reset_index().to_feather(results_dir / "combined.feather")
 
 # save for API
-tmp = combined[unique(DAM_API_FIELDS + SB_API_FIELDS)].reset_index()
+tmp = combined[unique(DAM_API_FIELDS + SB_API_FIELDS + ["BarrierType"])].reset_index()
 tmp["id"] = tmp.id.astype("uint32")
 tmp.to_feather(api_dir / f"combined.feather")
 
