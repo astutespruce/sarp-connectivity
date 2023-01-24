@@ -27,7 +27,6 @@ data_dir = Path("data")
 src_dir = data_dir / "floodplains"
 gdb_filename = src_dir / "HR_NLCD_Floodplain_Stats_Tables_2023.gdb"
 
-
 # layers have varying names, make a lookup from them
 layers = list_layers(gdb_filename)[:, 0]
 layers = {re.search("\d+", l).group()[-2:]: l for l in layers}
@@ -55,7 +54,12 @@ for huc2 in units.keys():
     df["HUC2"] = huc2
     df["NHDPlusID"] = df.NHDIDSTR.astype("uint64")
     cols = [c for c in df.columns if c.startswith("VALUE_")]
-    natural_cols = [c for c in cols if int(c.split("_")[1]) in NATURAL_TYPES]
+
+    if huc2 == "21":
+        # region 21 is from a different landcover; VALUE_1 is natural
+        natural_cols = ["VALUE_1"]
+    else:
+        natural_cols = [c for c in cols if int(c.split("_")[1]) in NATURAL_TYPES]
 
     df["floodplain_km2"] = df[cols].sum(axis=1) * 1e-6
     df["nat_floodplain_km2"] = df[natural_cols].sum(axis=1) * 1e-6
