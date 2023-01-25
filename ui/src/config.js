@@ -672,10 +672,10 @@ export const SARP_BOUNDS = [
 // tiers use just the scenario as the key here
 export const TIER_PACK_BITS = [
   { field: 'nc', bits: 5, value_shift: 1 },
-  { field: 'wc', bits: 5, value_shift: 1 },
-  { field: 'ncwc', bits: 5, value_shift: 1 },
   { field: 'pnc', bits: 5, value_shift: 1 },
+  { field: 'wc', bits: 5, value_shift: 1 },
   { field: 'pwc', bits: 5, value_shift: 1 },
+  { field: 'ncwc', bits: 5, value_shift: 1 },
   { field: 'pncwc', bits: 5, value_shift: 1 },
 ]
 
