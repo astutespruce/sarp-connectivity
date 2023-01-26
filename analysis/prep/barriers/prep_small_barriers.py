@@ -243,6 +243,9 @@ df["unranked"] = False  # includes invasive and barriers with no upstream
 # removed: barriers was removed for conservation but we still want to track it
 df["removed"] = False
 
+# nobarrier: barriers that have been assessed and determined not to be a barrier
+df["nobarrier"] = df.BarrierSeverity == 7
+
 # invasive: records that are also unranked, but we want to track specfically as invasive for mapping
 df["invasive"] = False
 
@@ -535,6 +538,16 @@ geo = df[["geometry"]].to_crs(GEO_CRS)
 geo["lat"] = shapely.get_y(geo.geometry.values.data).astype("float32")
 geo["lon"] = shapely.get_x(geo.geometry.values.data).astype("float32")
 df = df.join(geo[["lat", "lon"]])
+
+
+### Assign map symbol for use in (some) tiles
+df["symbol"] = 0
+df.loc[df.invasive, "symbol"] = 4
+df.loc[df.nobarrier, "symbol"] = 3
+df.loc[df.removed, "symbol"] = 2
+df.loc[~df.snapped, "symbol"] = 1
+df.symbol = df.symbol.astype("uint8")
+
 
 print("\n--------------\n")
 df = df.reset_index(drop=True)

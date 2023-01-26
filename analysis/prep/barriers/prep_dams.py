@@ -413,6 +413,9 @@ df["invasive"] = False
 # TEMP: no-structure barriers are excluded instead of marked as unranked
 df["nostructure"] = df.StructureCategory.isin(NOSTRUCTURE_STRUCTURECATEGORY)
 
+# nobarrier: barriers that have been assessed and determined not to be a barrier
+df["nobarrier"] = df.BarrierSeverity == 7
+
 df["unranked"] = False  # combined from above fields
 
 # removed: dam was removed for conservation but we still want to track it
@@ -487,7 +490,8 @@ ix = (
 df.loc[ix, "excluded"] = True
 df.loc[
     ix, "log"
-] = "excluded: Recon/Feasibility indicate fish passage installed but BarrierSeverity marked as passable"
+] = "excluded: Recon/Feasibility indicate fish passage installed and BarrierSeverity marked as passable"
+df.loc[ix, "nobarrier"] = True
 
 ### Mark any dams that should cut the network but be excluded from ranking
 unranked_fields = {
@@ -880,6 +884,15 @@ if df.Recon.max() >= 32:
 if df.PassageFacility.max() >= 32:
     raise ValueError("Update categorical packing, too many PassageFacility values")
 
+
+### Assign map symbol for use in (some) tiles
+df["symbol"] = 0
+df.loc[df.nostructure, "symbol"] = 5
+df.loc[df.invasive, "symbol"] = 4
+df.loc[df.nobarrier, "symbol"] = 3
+df.loc[df.removed, "symbol"] = 2
+df.loc[~df.snapped, "symbol"] = 1
+df.symbol = df.symbol.astype("uint8")
 
 ### All done processing!
 

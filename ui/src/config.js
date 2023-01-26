@@ -39,11 +39,16 @@ export const pointColors = {
     color: '#c51b8a',
     strokeColor: '#FFFFFF',
   },
+  // outside selected areas or filters
   excluded: {
-    color: '#fbb4b9',
+    color: '#E9B4D0',
     strokeColor: '#c51b8a',
   },
   offNetwork: {
+    color: '#999',
+    strokeColor: '#666',
+  },
+  roadCrossings: {
     color: '#999',
     strokeColor: '#666',
   },
@@ -51,9 +56,22 @@ export const pointColors = {
     color: '#fec44f',
     strokeColor: '#FFFFFF',
   },
-  waterfalls: {
-    color: '#2ca25f',
+  removed: {
+    color: '#00F8FB',
     strokeColor: '#FFFFFF',
+  },
+  nonBarrier: {
+    color: '#00D46A',
+    strokeColor: '#037424',
+  },
+  // TODO: use 1px stroke at all zooms
+  invasive: {
+    color: '#F9DAEA',
+    strokeColor: '#DB8CB7',
+  },
+  waterfalls: {
+    color: '#007DC5',
+    strokeColor: '#000000',
   },
 
   // only used in prioritize
@@ -61,10 +79,10 @@ export const pointColors = {
     strokeColor: '#FFFFFF',
   },
   topRank: {
-    color: '#c51b8a',
+    color: '#7916BD',
   },
   lowerRank: {
-    color: '#2c7fb8',
+    color: '#DB8CB7',
   },
 }
 

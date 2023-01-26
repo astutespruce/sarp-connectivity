@@ -143,11 +143,40 @@ export const offnetworkPoint = {
   maxzoom: 24,
   paint: {
     'circle-color': getHighlightExpr(
-      pointColors.offNetwork.color,
+      [
+        'match',
+        ['get', 'symbol'],
+        // unsnapped
+        1,
+        pointColors.offNetwork.color,
+        2,
+        pointColors.removed.color,
+        3,
+        pointColors.nonBarrier.color,
+        // invasive is in unranked layer
+        // 4,
+        // pointColors.invasive.color,
+        // default
+        pointColors.offNetwork.color,
+      ],
       pointColors.highlight.color
     ),
     'circle-stroke-color': getHighlightExpr(
-      pointColors.offNetwork.strokeColor,
+      [
+        'match',
+        ['get', 'symbol'],
+        // unsnapped
+        1,
+        pointColors.offNetwork.strokeColor,
+        2,
+        pointColors.removed.strokeColor,
+        3,
+        pointColors.nonBarrier.strokeColor,
+        // 4,
+        // pointColors.invasive.strokeColor,
+        // default
+        pointColors.offNetwork.strokeColor,
+      ],
       pointColors.highlight.strokeColor
     ),
     'circle-radius': [
@@ -177,6 +206,7 @@ export const offnetworkPoint = {
   },
 }
 
+// TODO: split this out for invasive barriers, non-barriers
 export const unrankedPoint = {
   id: 'point-unranked',
   // source: "", // provided by specific layer
@@ -185,20 +215,35 @@ export const unrankedPoint = {
   minzoom: 10,
   maxzoom: 24,
   paint: {
-    'circle-color': '#999',
+    'circle-color': getHighlightExpr(
+      [
+        'match',
+        ['get', 'symbol'],
+        4,
+        pointColors.invasive.color,
+        // default
+        pointColors.offNetwork.color,
+      ],
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      [
+        'match',
+        ['get', 'symbol'],
+        4,
+        pointColors.invasive.strokeColor,
+        // default
+        pointColors.offNetwork.strokeColor,
+      ],
+      pointColors.highlight.strokeColor
+    ),
     'circle-radius': {
       stops: [
         [10, 0.5],
         [14, 4],
       ],
     },
-    'circle-opacity': {
-      stops: [
-        [10, 0.5],
-        [14, 1],
-      ],
-    },
-    'circle-stroke-color': '#666',
+    'circle-opacity': 1,
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -308,7 +353,7 @@ export const includedPoint = {
         [7, 0],
         [8, 0.25],
         [10, 1],
-        [14, 3],
+        [14, 2],
       ],
     },
   },
@@ -337,7 +382,7 @@ export const getTierPointSize = (scenario, tierThreshold) => [
   5,
   getHighlightExpr(getTierExpr(scenario, tierThreshold, 3, 1.25), 5),
   14,
-  getHighlightExpr(getTierExpr(scenario, tierThreshold, 10, 8), 14),
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 10, 4), 14),
 ]
 
 export const rankedPoint = {
@@ -364,7 +409,7 @@ export const rankedPoint = {
         [4, 0],
         [6, 0.25],
         [8, 0.5],
-        [14, 3],
+        [14, 2],
       ],
     },
   },
@@ -383,11 +428,11 @@ export const roadCrossingsLayer = {
   },
   paint: {
     'circle-color': getHighlightExpr(
-      pointColors.offNetwork.color,
+      pointColors.roadCrossings.color,
       pointColors.highlight.color
     ),
     'circle-stroke-color': getHighlightExpr(
-      pointColors.offNetwork.strokeColor,
+      pointColors.roadCrossings.strokeColor,
       pointColors.highlight.strokeColor
     ),
     'circle-radius': [
@@ -452,17 +497,8 @@ export const damsSecondaryLayer = {
       16,
       getHighlightExpr(6, 14),
     ],
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      10,
-      getHighlightExpr(0.25, 1),
-      12,
-      getHighlightExpr(0.5, 1),
-      14,
-      1,
-    ],
+    'circle-opacity': 1,
+
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -496,23 +532,13 @@ export const waterfallsLayer = {
       10,
       getHighlightExpr(1, 10),
       12,
-      getHighlightExpr(2, 14),
+      getHighlightExpr(3, 14),
       14,
-      getHighlightExpr(4, 14),
-      16,
       getHighlightExpr(6, 14),
+      16,
+      getHighlightExpr(8, 14),
     ],
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      10,
-      getHighlightExpr(0.25, 1),
-      12,
-      getHighlightExpr(0.5, 1),
-      14,
-      1,
-    ],
+    'circle-opacity': 1,
     'circle-stroke-width': {
       stops: [
         [10, 0],
