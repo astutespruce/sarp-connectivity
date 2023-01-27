@@ -67,22 +67,19 @@ from analysis.lib.geometry.lines import merge_lines
 
 src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")
+out_dir.mkdir(exist_ok=True)
 
-if not out_dir.exists():
-    os.makedirs(out_dir)
-
-
-barrier_type = "dams"
-ext = "shp"
-
+suffix = ""
+ext = "gdb"
+driver = "OpenFileGDB"
 
 huc2_groups = [
-    {"02"},
-    {"03"},
-    {"05", "06", "07", "08", "10", "11",},
-    {"12"},
-    {"13"},
-    {"21"},
+    # {"02"},
+    # {"03"},
+    # {"05", "06", "07", "08", "10", "11",},
+    # {"12"},
+    # {"13"},
+    # {"21"},
 ]
 
 huc2s = set()
@@ -92,7 +89,7 @@ huc2s = sorted(huc2s)
 
 
 df = pd.read_feather(
-    f"data/barriers/master/archive/Feb2022/api/{barrier_type}.feather",  # FIXME:
+    f"data/api/dams.feather",
     columns=[
         "HasNetwork",
         "id",
@@ -119,23 +116,20 @@ df = pd.read_feather(
         "PercentPerennialUnaltered",
         "Landcover",
         "SizeClasses",
-        "NumBarriersDownstream",
         "FlowsToOcean",
         "Ranked",
     ],
 ).set_index("id")
 
 master = pd.read_feather(
-    f"data/barriers/master/archive/Feb2022/{barrier_type}.feather",
-    columns=["id", "NHDPlusID"],  # FIXME:
+    f"data/barriers/master/dams.feather",
+    columns=["id", "NHDPlusID"],
 ).set_index("id")
 df = df.loc[df.HasNetwork].join(master).drop(columns=["HasNetwork"])
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 df["HUC2"] = df.HUC12.str[:2]
 df = df.loc[df.HUC2.isin(huc2s)].copy()
-
-df.to_csv(out_dir / "on_network_dams.csv", index=False)
 
 
 floodplains = (
@@ -151,72 +145,41 @@ floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).as
 )
 
 
-# HUC2s that specifically overlap SECAS states (SARP states + WV)
+# HUC2s that specifically overlap SECAS states (SARP states + VI & WV)
 for group in huc2_groups:
     segments = (
         read_feathers(
             [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
-            columns=["lineID", barrier_type],
+            columns=["lineID", "dams"],
         )
-        .rename(columns={barrier_type: "networkID"})
+        .rename(columns={"dams": "networkID"})
         .set_index("lineID")
     )
 
-    stats = (
-        read_feathers(
-            [
-                src_dir / "clean" / huc2 / f"{barrier_type}_network_stats.feather"
-                for huc2 in group
-            ],
-            columns=[
-                "networkID",
-                "total_miles",
-                "perennial_miles",
-                "intermittent_miles",
-                "altered_miles",
-                "unaltered_miles",
-                "perennial_unaltered_miles",
-                "free_miles",
-                "free_perennial_miles",
-                "free_intermittent_miles",
-                "free_altered_miles",
-                "free_unaltered_miles",
-                "free_perennial_unaltered_miles",
-                "pct_unaltered",
-                "pct_perennial_unaltered",
-                "segments",
-                "natfldpln",
-                "sizeclasses",
-                "up_ndams",
-                # "up_nwfs", # not always present
-                "barrier",
-                "num_downstream",
-                "flows_to_ocean",
-            ],
-        )
-        .set_index("networkID")
-        .rename(
-            columns={
-                "total_miles": "miles",
-                "perennial_miles": "p_miles",
-                "intermittent_miles": "i_miles",
-                "altered_miles": "a_miles",
-                "unaltered_miles": "ua_miles",
-                "perennial_unaltered_miles": "pu_miles",
-                "free_miles": "f_miles",
-                "free_perennial_miles": "fp_miles",
-                "free_intermittent_miles": "fi_miles",
-                "free_altered_miles": "fa_miles",
-                "free_unaltered_miles": "fu_miles",
-                "free_perennial_unaltered_miles": "fpu_miles",
-                "pct_unaltered": "pct_u",
-                "pct_perennial_unaltered": "pct_pu",
-                "sizeclasses": "numsizecl",
-                "num_downstream": "numdown",
-                "flows_to_ocean": "fl_ocean",
-            }
-        )
-    )
+    stats = read_feathers(
+        [src_dir / "clean" / huc2 / "dams_network_stats.feather" for huc2 in group],
+        columns=[
+            "networkID",
+            "total_miles",
+            "perennial_miles",
+            "intermittent_miles",
+            "altered_miles",
+            "unaltered_miles",
+            "perennial_unaltered_miles",
+            "free_miles",
+            "free_perennial_miles",
+            "free_intermittent_miles",
+            "free_altered_miles",
+            "free_unaltered_miles",
+            "free_perennial_unaltered_miles",
+            "pct_unaltered",
+            "pct_perennial_unaltered",
+            "natfldpln",
+            "sizeclasses",
+            "barrier",
+            "flows_to_ocean",
+        ],
+    ).set_index("networkID")
 
     # use smaller data types for smaller output files
     length_cols = [c for c in stats.columns if c.endswith("_miles")]
@@ -227,59 +190,55 @@ for group in huc2_groups:
         stats[col] = stats[col].fillna(0).astype("int8")
 
     # natural floodplain is missing for several catchments; fill with -1
-    for col in ["natfldpln", "numsizecl"]:
+    for col in ["natfldpln", "sizeclasses"]:
         stats[col] = stats[col].fillna(-1).astype("int8")
-
-    stats.segments = stats.segments.astype("uint32")
 
     # create output files by HUC2 based on where the segments occur
     for huc2 in group:
         print(f"Processing {huc2}")
 
+        flowlines = gp.read_feather(
+            src_dir / "raw" / huc2 / "flowlines.feather",
+            columns=[
+                "lineID",
+                "geometry",
+                "length",
+                "intermittent",
+                "altered",
+                "sizeclass",
+                "StreamOrder",
+                "NHDPlusID",
+                "FCode",
+                "FType",
+                "TotDASqKm",
+                "HUC4",
+            ],
+        ).set_index("lineID")
+
+        # otherwise doesn't encode properly to FGDB
+        for col in ["StreamOrder", "FCode", "FType", "intermittent", "altered"]:
+            flowlines[col] = flowlines[col].astype("int32")
+
         flowlines = (
-            gp.read_feather(
-                src_dir / "raw" / huc2 / "flowlines.feather",
-                columns=[
-                    "lineID",
-                    "geometry",
-                    "length",
-                    "intermittent",
-                    "altered",
-                    "sizeclass",
-                    # "StreamOrder",
-                    "StreamOrde",  # FIXME:
-                    "NHDPlusID",
-                    "FCode",
-                    "FType",
-                    "TotDASqKm",
-                    "HUC4",  # FIXME:
-                ],
-            )
-            .set_index("lineID")
-            .rename(
-                columns={
-                    # "StreamOrder": "streamord",
-                    "StreamOrde": "streamord",  # FIXME:
-                    "intermittent": "interm",
-                    "length": "length_m",
-                }
-            )
+            flowlines.join(segments)
+            .join(floodplains, on="NHDPlusID")
+            .join(stats[["sizeclasses", "flows_to_ocean"]], on="networkID")
         )
-        flowlines = flowlines.join(segments).join(floodplains, on="NHDPlusID")
-        flowlines["length"] = flowlines["length_m"] / 1000.0
+        flowlines["km"] = flowlines["length"] / 1000.0
+        flowlines["miles"] = flowlines["length"] * 0.000621371
+
+        flowlines = flowlines.drop(columns=["length"])
 
         for col in ["natfldpln", "fldkm2", "natfldkm2"]:
             flowlines[col] = flowlines[col].fillna(-1)
 
-        for col in ["interm", "altered"]:
-            flowlines[col] = flowlines[col].astype("uint8")
-
-        # # serialize raw segments
-        # print("Serializing undissolved networks...")
-        # write_dataframe(
-        #     flowlines.reset_index(),
-        #     out_dir / f"region{huc2}_{barrier_type}_segments.{ext}",
-        # )
+        # serialize raw segments
+        print("Serializing undissolved networks...")
+        write_dataframe(
+            flowlines.reset_index(),
+            out_dir / f"region{huc2}_dams_segments.{ext}",
+            driver=driver,
+        )
 
         # # aggregate to multilinestrings by combinations of networkID
         # print("Dissolving networks...")
@@ -290,65 +249,9 @@ for group in huc2_groups:
             .reset_index()
         )
 
-        # this currently takes a very long time for shapefiles on GDAL3.4.x due to large multilinestrings
-        # so write to GPKG and convert to shapefile using Docker GDAL 3.3.x
         print("Serializing dissolved networks...")
         write_dataframe(
-            networks, out_dir / f"region{huc2}_{barrier_type}_networks.gpkg"
+            networks,
+            out_dir / f"region{huc2}_dams_networks.{ext}",
+            driver=driver,
         )
-
-        # region 10 only
-        # huc4_groups = [
-        #     [
-        #         "1002",
-        #         "1003",
-        #         "1004",
-        #         "1005",
-        #         "1006",
-        #         "1007",
-        #         "1008",
-        #         "1009",
-        #         "1010",
-        #         "1011",
-        #         "1012",
-        #         "1013",
-        #         "1014",
-        #         "1015",
-        #     ],
-        #     [
-        #         "1016",
-        #         "1017",
-        #         "1018",
-        #         "1019",
-        #         "1020",
-        #         "1021",
-        #         "1022",
-        #         "1023",
-        #         "1024",
-        #         "1025",
-        #         "1026",
-        #         "1027",
-        #         "1028",
-        #         "1029",
-        #         "1030",
-        #     ],
-        # ]
-        # for i, huc4_group in enumerate(huc4_groups):
-        #     networks = (
-        #         merge_lines(
-        #             flowlines.loc[flowlines.HUC4.isin(huc4_group)][
-        #                 ["networkID", "geometry"]
-        #             ],
-        #             by=["networkID"],
-        #         )
-        #         .set_index("networkID")
-        #         .join(stats, how="inner")
-        #         .reset_index()
-        #     )
-
-        #     # this currently takes a very long time for shapefiles on GDAL3.4.x due to large multilinestrings
-        #     # so write to GPKG and convert to shapefile using Docker GDAL 3.3.x
-        #     print("Serializing dissolved networks...")
-        #     write_dataframe(
-        #         networks, out_dir / f"region{huc2}_{barrier_type}_networks_{i}.gpkg"
-        #     )

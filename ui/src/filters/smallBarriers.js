@@ -5,7 +5,7 @@ import {
   SALMONID_ESU_COUNT,
   INTERMITTENT,
   GAINMILES,
-  BARRIER_SEVERITY,
+  SMALL_BARRIER_SEVERITY,
   CROSSING_TYPE,
   CONSTRICTION,
   ROAD_TYPE,
@@ -31,7 +31,7 @@ export const smallBarriers = [
         field: 'barrierseverity',
         title: 'Barrier Severity',
         sort: true,
-        ...getEntries(BARRIER_SEVERITY),
+        ...getEntries(SMALL_BARRIER_SEVERITY),
       },
 
       {

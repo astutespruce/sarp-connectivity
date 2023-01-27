@@ -39,4 +39,15 @@ huc2s = [
 for huc2 in huc2s:
     print(f"Exporting {huc2}...")
     flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather")
-    write_dataframe(flowlines, out_dir / f"region{huc2}_raw_flowlines.shp")
+
+    # WARNING: certain data types get re-cast to other types in FileGDB (e.g., NHDPlusID becomes float64)
+    # try to avoid bad conversions by recasting here
+    for col in ["StreamOrder", "FCode", "FType", "intermittent", "altered"]:
+        flowlines[col] = flowlines[col].astype("int32")
+
+    flowlines["km"] = flowlines["length"] / 1000.0
+    flowlines["miles"] = flowlines["length"] * 0.000621371
+
+    write_dataframe(
+        flowlines, out_dir / f"region{huc2}_raw_flowlines.gdb", driver="OpenFileGDB"
+    )

@@ -488,14 +488,25 @@ export const INTERMITTENT = {
   1: 'Yes',
 }
 
-export const BARRIER_SEVERITY = {
+// barrier passability or combined dams and small barriers
+export const PASSABILITY = {
   0: 'Unknown',
-  1: 'Complete',
+  1: 'Complete barrier',
   2: 'Partial passability - unspecified',
   3: 'Partial passability - non salmonid',
   4: 'Partial passability - salmonid',
   5: 'Seasonbly passable - non salmonid',
   6: 'Seasonably passable - salmonid',
+  7: 'No barrier',
+}
+
+// FIXME: replace when new domain encoded on backend
+// severity is limited to small barriers
+export const SMALL_BARRIER_SEVERITY = {
+  0: 'Unknown',
+  1: 'Major barrier',
+  2: 'Moderate Barrier',
+  // FIXME: add Minor barrier
   7: 'No barrier',
 }
 
