@@ -16,7 +16,8 @@ import {
   OWNERTYPE,
   BARRIEROWNERTYPE,
   PURPOSE,
-  BARRIER_SEVERITY,
+  PASSABILITY,
+  SMALL_BARRIER_SEVERITY,
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
@@ -216,6 +217,10 @@ const LocationConstruction = ({
                     </Entry>
                   ) : null}
 
+                  {barrierseverity !== null ? (
+                    <Entry>Passability: {PASSABILITY[barrierseverity]}</Entry>
+                  ) : null}
+
                   {passagefacility !== null && passagefacility >= 0 ? (
                     <Entry>
                       Passage facility type:{' '}
@@ -242,8 +247,11 @@ const LocationConstruction = ({
                 <Entry>Condition: {CONDITION[condition]}</Entry>
               ) : null}
               {barrierseverity !== null ? (
-                <Entry>Severity: {BARRIER_SEVERITY[barrierseverity]}</Entry>
+                <Entry>
+                  Severity: {SMALL_BARRIER_SEVERITY[barrierseverity]}
+                </Entry>
               ) : null}
+
               {sarp_score >= 0 ? (
                 <Entry>
                   SARP Aquatic Organism Passage Score:{' '}

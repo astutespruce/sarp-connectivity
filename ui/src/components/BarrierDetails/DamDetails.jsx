@@ -12,6 +12,7 @@ import {
   PASSAGEFACILITY,
   PURPOSE,
   RECON,
+  PASSABILITY,
 } from 'config'
 
 import DiadromousInfo from './DiadromousInfo'
@@ -41,6 +42,7 @@ const DamDetails = ({
   nostructure,
   purpose,
   condition,
+  barrierseverity,
   lowheaddam,
   passagefacility,
   river,
@@ -194,6 +196,14 @@ const DamDetails = ({
           </Entry>
         ) : null}
 
+        {barrierseverity !== null ? (
+          <Entry>
+            <Field label="Passability" isUnknown={barrierseverity === 0}>
+              {PASSABILITY[barrierseverity]}
+            </Field>
+          </Entry>
+        ) : null}
+
         {passagefacility !== null &&
         passagefacility >= 0 &&
         PASSAGEFACILITY[passagefacility] ? (
@@ -299,6 +309,7 @@ DamDetails.propTypes = {
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.number,
+  barrierseverity: PropTypes.number,
   passagefacility: PropTypes.number,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
@@ -353,6 +364,7 @@ DamDetails.defaultProps = {
   construction: null,
   purpose: null,
   condition: null,
+  barrierseverity: null,
   passagefacility: null,
   tespp: 0,
   statesgcnspp: 0,

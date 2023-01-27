@@ -15,7 +15,8 @@ import {
   BARRIEROWNERTYPE,
   PASSAGEFACILITY,
   PURPOSE,
-  BARRIER_SEVERITY,
+  PASSABILITY,
+  SMALL_BARRIER_SEVERITY,
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
@@ -261,6 +262,12 @@ const Location = ({
                   </Entry>
                 ) : null}
 
+                {barrierseverity !== null ? (
+                  <Entry>
+                    <Text>Passability: {PASSABILITY[barrierseverity]}</Text>
+                  </Entry>
+                ) : null}
+
                 {!nostructure &&
                 passagefacility !== null &&
                 passagefacility >= 0 ? (
@@ -294,13 +301,15 @@ const Location = ({
 
                 {condition !== null && condition >= 0 ? (
                   <Entry>
-                    <Text>Condition: {condition}</Text>
+                    <Text>Condition: {CONDITION[condition]}</Text>
                   </Entry>
                 ) : null}
 
                 {barrierseverity !== null && barrierseverity >= 0 ? (
                   <Entry>
-                    <Text>Severity: {BARRIER_SEVERITY[barrierseverity]}</Text>
+                    <Text>
+                      Severity: {SMALL_BARRIER_SEVERITY[barrierseverity]}
+                    </Text>
                   </Entry>
                 ) : null}
 
