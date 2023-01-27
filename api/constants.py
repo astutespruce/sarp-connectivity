@@ -828,7 +828,7 @@ SCREENTYPE_DOMAIN = {
 
 SEVERITY_DOMAIN = {
     0: "Unknown",
-    1: "Complete",
+    1: "Complete barrier",
     2: "Partial passability - unspecified",
     3: "Partial passability - non salmonid",
     4: "Partial passability - salmonid",

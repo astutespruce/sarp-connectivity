@@ -7,7 +7,7 @@ import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 
 import {
-  BARRIER_SEVERITY,
+  SMALL_BARRIER_SEVERITY,
   CONDITION,
   CROSSING_TYPE,
   ROAD_TYPE,
@@ -168,7 +168,7 @@ const BarrierDetails = ({
       {barrierseverity !== null ? (
         <Entry>
           <Field label="Severity" isUnknown={barrierseverity === 0}>
-            {BARRIER_SEVERITY[barrierseverity]}
+            {SMALL_BARRIER_SEVERITY[barrierseverity]}
           </Field>
         </Entry>
       ) : null}

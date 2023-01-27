@@ -10,7 +10,7 @@ import {
   INTERMITTENT,
   GAINMILES,
   CONDITION,
-  BARRIER_SEVERITY,
+  PASSABILITY,
   LOWHEAD_DAM,
   WATERBODY_SIZECLASS,
   PERCENT_ALTERED,
@@ -49,7 +49,7 @@ export const dams = [
         sort: false,
         hideEmpty: true,
         help: 'Note: passability information is only available for a small number of dams.  Not all data sources recorded this information.',
-        ...getEntries(BARRIER_SEVERITY),
+        ...getEntries(PASSABILITY),
       },
       {
         field: 'gainmilesclass',
