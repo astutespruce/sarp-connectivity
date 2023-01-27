@@ -826,7 +826,15 @@ SCREENTYPE_DOMAIN = {
 }
 
 
-SEVERITY_DOMAIN = {
+BARRIER_SEVERITY_DOMAIN = {
+    0: "Unknown",
+    1: "Complete barrier",
+    2: "Moderate barrier",
+    # FIXME: add minor barrier
+    7: "No barrier",
+}
+
+PASSABILITY_DOMAIN = {
     0: "Unknown",
     1: "Complete barrier",
     2: "Partial passability - unspecified",
@@ -1015,7 +1023,8 @@ DOMAINS = {
     "BarrierOwnerType": BARRIEROWNERTYPE_DOMAIN,
     "ProtectedLand": BOOLEAN_DOMAIN,
     "ManualReview": MANUALREVIEW_DOMAIN,
-    "BarrierSeverity": SEVERITY_DOMAIN,
+    "Passability": PASSABILITY_DOMAIN,
+    "BarrierSeverity": BARRIER_SEVERITY_DOMAIN,
     "Recon": RECON_DOMAIN,
     "Condition": CONDITION_DOMAIN,
     "Trout": TROUT_DOMAIN,
@@ -1082,7 +1091,8 @@ FIELD_DEFINITIONS = {
     "PotentialProject": "reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
     # other general fields
-    "BarrierSeverity": "passability of the {type}, if known.   Note: assessment dates are not known.",
+    "BarrierSeverity": "barrier severity of the {type}, if known.   Note: assessment dates are not known.",
+    "Passability": "passability of the {type}, if known.   Note: assessment dates are not known.",
     "Condition": "Condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
     "NHDPlusID": "Unique NHD Plus High Resolution flowline identifier to which the barrier is snapped.  -1 = not snapped to a flowline.  Note: not all barriers snapped to flowlines are used in the network connectivity analysis.",
     "StreamSizeClass": "Stream size class based on total catchment drainage area in square kilometers.  1a: <10 km2, 1b: 10-100 km2, 2: 100-518 km2, 3a: 518-2,590 km2, 3b: 2,590-10,000 km2, 4: 10,000-25,000 km2, 5: >= 25,000 km2.",
