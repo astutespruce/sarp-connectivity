@@ -301,7 +301,7 @@ const Location = ({
 
                 {condition !== null && condition >= 0 ? (
                   <Entry>
-                    <Text>Condition: {condition}</Text>
+                    <Text>Condition: {CONDITION[condition]}</Text>
                   </Entry>
                 ) : null}
 
