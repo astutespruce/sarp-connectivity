@@ -89,7 +89,6 @@ const BarrierDetails = ({ barrier, onClose }) => {
       break
     }
   }
-  console.log('upacked bits', packedInfo)
 
   let scoreContent = null
   if (ranked) {

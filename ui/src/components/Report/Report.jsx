@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
     paddingTop: '0.5in',
-    paddingBottom: '1in',
+    paddingBottom: '0.5in',
     paddingHorizontal: '0.5in',
     fontSize: 12,
     lineHeight: 1.4,
@@ -42,8 +42,6 @@ const Report = ({
   visibleLayers,
 }) => {
   const { county, state, hasnetwork } = data
-
-  console.log('visibleLayers', visibleLayers)
 
   return (
     <Document

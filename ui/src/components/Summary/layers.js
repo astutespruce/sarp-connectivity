@@ -309,23 +309,11 @@ export const waterfallsLayer = {
       16,
       getHighlightExpr(6, 14),
     ],
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      10,
-      getHighlightExpr(0.25, 1),
-      12,
-      getHighlightExpr(0.5, 1),
-      14,
-      1,
-    ],
-
+    'circle-opacity': 1,
     'circle-stroke-width': {
       stops: [
         [10, 0],
         [12, 1],
-        [14, 2],
       ],
     },
   },
@@ -411,24 +399,13 @@ export const damsSecondaryLayer = {
       14,
       getHighlightExpr(4, 14),
       16,
-      getHighlightExpr(6, 14),
+      getHighlightExpr(8, 14),
     ],
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      10,
-      getHighlightExpr(0.25, 1),
-      12,
-      getHighlightExpr(0.5, 1),
-      14,
-      1,
-    ],
+    'circle-opacity': 1,
     'circle-stroke-width': {
       stops: [
         [10, 0],
-        [12, 1],
-        [14, 2],
+        [12, 0.5],
       ],
     },
   },
@@ -497,11 +474,35 @@ export const offnetworkPointLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': getHighlightExpr(
-      pointColors.offNetwork.color,
+      [
+        'match',
+        ['get', 'symbol'],
+        // 1 is unsnapped (actually off-network)
+        1,
+        pointColors.offNetwork.color,
+        2,
+        pointColors.removed.color,
+        3,
+        pointColors.nonBarrier.color,
+        // 4: invasive is in unranked layer below
+        // last entry is default
+        pointColors.offNetwork.color,
+      ],
       pointColors.highlight.color
     ),
     'circle-stroke-color': getHighlightExpr(
-      pointColors.offNetwork.strokeColor,
+      [
+        'match',
+        ['get', 'symbol'],
+        // unsnapped
+        1,
+        pointColors.offNetwork.strokeColor,
+        2,
+        pointColors.removed.strokeColor,
+        3,
+        pointColors.nonBarrier.strokeColor,
+        pointColors.offNetwork.strokeColor,
+      ],
       pointColors.highlight.strokeColor
     ),
     'circle-radius': [
@@ -511,9 +512,7 @@ export const offnetworkPointLayer = {
       12,
       getHighlightExpr(1, 12),
       14,
-      getHighlightExpr(3, 14),
-      16,
-      getHighlightExpr(6, 14),
+      getHighlightExpr(4, 14),
     ],
     'circle-opacity': [
       'interpolate',
@@ -577,27 +576,6 @@ export const unrankedPointLayer = {
         [14, 1],
       ],
     },
-  },
-}
-
-export const pointLegends = {
-  primary: {
-    radius: 8,
-    color: pointColors.included.color,
-  },
-  offnetwork: {
-    radius: 6,
-    color: pointColors.offNetwork.color,
-    borderColor: pointColors.offNetwork.strokeColor,
-    borderWidth: 1,
-  },
-  damsSecondary: {
-    radius: 6,
-    color: pointColors.damsSecondary.color,
-  },
-  waterfalls: {
-    radius: 6,
-    color: pointColors.waterfalls.color,
   },
 }
 

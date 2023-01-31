@@ -240,7 +240,7 @@ df["unranked"] = False  # includes invasive and barriers with no upstream
 df["removed"] = False
 
 # nobarrier: barriers that have been assessed and determined not to be a barrier
-df["nobarrier"] = df.BarrierSeverity == 7
+df["nobarrier"] = df.BarrierSeverity == 6
 
 # invasive: records that are also unranked, but we want to track specfically as invasive for mapping
 df["invasive"] = False

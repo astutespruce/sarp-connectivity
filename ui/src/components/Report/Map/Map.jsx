@@ -14,7 +14,7 @@ const Map = ({
   attribution,
   scale: { width: scaleWidth, label: scaleLabel },
 }) => (
-  <View style={{ marginBottom: 24 }}>
+  <View style={{ marginBottom: 12 }}>
     <View
       style={{
         border: '1 solid #AAA',
