@@ -134,6 +134,8 @@ export const unitLayers = [unitFill, unitOutline]
 
 export const unitHighlightLayers = [unitHighlightFill, unitHighlightOutline]
 
+// off network points are everything that was not included in the network analysis
+// including points that are actually off network (unsnapped), removed, not actually barriers
 export const offnetworkPoint = {
   id: 'point-off-network',
   // source: "", // provided by specific layer
@@ -143,11 +145,35 @@ export const offnetworkPoint = {
   maxzoom: 24,
   paint: {
     'circle-color': getHighlightExpr(
-      pointColors.offNetwork.color,
+      [
+        'match',
+        ['get', 'symbol'],
+        // 1 is unsnapped (actually off-network)
+        1,
+        pointColors.offNetwork.color,
+        2,
+        pointColors.removed.color,
+        3,
+        pointColors.nonBarrier.color,
+        // 4: invasive is in unranked layer below
+        // last entry is default
+        pointColors.offNetwork.color,
+      ],
       pointColors.highlight.color
     ),
     'circle-stroke-color': getHighlightExpr(
-      pointColors.offNetwork.strokeColor,
+      [
+        'match',
+        ['get', 'symbol'],
+        // unsnapped
+        1,
+        pointColors.offNetwork.strokeColor,
+        2,
+        pointColors.removed.strokeColor,
+        3,
+        pointColors.nonBarrier.strokeColor,
+        pointColors.offNetwork.strokeColor,
+      ],
       pointColors.highlight.strokeColor
     ),
     'circle-radius': [
@@ -177,6 +203,8 @@ export const offnetworkPoint = {
   },
 }
 
+// unranked points include everything that was included in network analysis
+// but not prioritized; right now this is only invasive barriers
 export const unrankedPoint = {
   id: 'point-unranked',
   // source: "", // provided by specific layer
@@ -185,20 +213,35 @@ export const unrankedPoint = {
   minzoom: 10,
   maxzoom: 24,
   paint: {
-    'circle-color': '#999',
+    'circle-color': getHighlightExpr(
+      [
+        'match',
+        ['get', 'symbol'],
+        4,
+        pointColors.invasive.color,
+        // default
+        pointColors.offNetwork.color,
+      ],
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      [
+        'match',
+        ['get', 'symbol'],
+        4,
+        pointColors.invasive.strokeColor,
+        // default
+        pointColors.offNetwork.strokeColor,
+      ],
+      pointColors.highlight.strokeColor
+    ),
     'circle-radius': {
       stops: [
         [10, 0.5],
         [14, 4],
       ],
     },
-    'circle-opacity': {
-      stops: [
-        [10, 0.5],
-        [14, 1],
-      ],
-    },
-    'circle-stroke-color': '#666',
+    'circle-opacity': 1,
     'circle-stroke-width': {
       stops: [
         [10, 0],
@@ -245,7 +288,7 @@ export const excludedPoint = {
       ['zoom'],
       10,
       getHighlightExpr(0.5, 1),
-      14,
+      12,
       1,
     ],
     'circle-stroke-width': {
@@ -308,7 +351,7 @@ export const includedPoint = {
         [7, 0],
         [8, 0.25],
         [10, 1],
-        [14, 3],
+        [14, 2],
       ],
     },
   },
@@ -337,7 +380,7 @@ export const getTierPointSize = (scenario, tierThreshold) => [
   5,
   getHighlightExpr(getTierExpr(scenario, tierThreshold, 3, 1.25), 5),
   14,
-  getHighlightExpr(getTierExpr(scenario, tierThreshold, 10, 8), 14),
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 10, 4), 14),
 ]
 
 export const rankedPoint = {
@@ -364,7 +407,7 @@ export const rankedPoint = {
         [4, 0],
         [6, 0.25],
         [8, 0.5],
-        [14, 3],
+        [14, 2],
       ],
     },
   },
@@ -383,11 +426,11 @@ export const roadCrossingsLayer = {
   },
   paint: {
     'circle-color': getHighlightExpr(
-      pointColors.offNetwork.color,
+      pointColors.roadCrossings.color,
       pointColors.highlight.color
     ),
     'circle-stroke-color': getHighlightExpr(
-      pointColors.offNetwork.strokeColor,
+      pointColors.roadCrossings.strokeColor,
       pointColors.highlight.strokeColor
     ),
     'circle-radius': [
@@ -450,24 +493,13 @@ export const damsSecondaryLayer = {
       14,
       getHighlightExpr(4, 14),
       16,
-      getHighlightExpr(6, 14),
+      getHighlightExpr(8, 14),
     ],
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      10,
-      getHighlightExpr(0.25, 1),
-      12,
-      getHighlightExpr(0.5, 1),
-      14,
-      1,
-    ],
+    'circle-opacity': 1,
     'circle-stroke-width': {
       stops: [
         [10, 0],
-        [12, 1],
-        [14, 2],
+        [12, 0.5],
       ],
     },
   },
@@ -496,65 +528,17 @@ export const waterfallsLayer = {
       10,
       getHighlightExpr(1, 10),
       12,
-      getHighlightExpr(2, 14),
+      getHighlightExpr(3, 14),
       14,
-      getHighlightExpr(4, 14),
-      16,
       getHighlightExpr(6, 14),
     ],
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      10,
-      getHighlightExpr(0.25, 1),
-      12,
-      getHighlightExpr(0.5, 1),
-      14,
-      1,
-    ],
+    'circle-opacity': 1,
     'circle-stroke-width': {
       stops: [
         [10, 0],
         [12, 1],
-        [14, 2],
       ],
     },
-  },
-}
-
-export const pointLegends = {
-  included: {
-    radius: 8,
-    color: pointColors.included.color,
-  },
-  excluded: {
-    radius: 6,
-    color: `${pointColors.excluded.color}99`,
-    borderColor: `${pointColors.excluded.strokeColor}99`,
-    borderWidth: 1,
-  },
-  offnetwork: {
-    radius: 5,
-    color: pointColors.offNetwork.color,
-    borderColor: pointColors.offNetwork.strokeColor,
-    borderWidth: 1,
-  },
-  topRank: {
-    radius: 8,
-    color: pointColors.topRank.color,
-  },
-  lowerRank: {
-    radius: 8,
-    color: pointColors.lowerRank.color,
-  },
-  waterfalls: {
-    radius: 6,
-    color: pointColors.waterfalls.color,
-  },
-  damsSecondary: {
-    radius: 6,
-    color: pointColors.damsSecondary.color,
   },
 }
 

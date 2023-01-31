@@ -17,8 +17,6 @@ const tabs = [
 const tabIndex = groupBy(tabs, 'id')
 
 const Scores = ({ barrierType, scores }) => {
-  console.log('scores', scores)
-
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const prioritizePath =
     barrierType === 'dams' ? '/priority/dams' : '/priority/barriers'

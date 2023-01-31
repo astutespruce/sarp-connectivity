@@ -30,6 +30,7 @@ export const REGIONS = {
   sw: 'Southwest',
 }
 
+// some colors are derived from: https://xdgov.github.io/data-design-standards/components/colors
 export const pointColors = {
   highlight: {
     color: '#fd8d3c',
@@ -39,33 +40,134 @@ export const pointColors = {
     color: '#c51b8a',
     strokeColor: '#FFFFFF',
   },
+  // outside selected areas or filters
   excluded: {
-    color: '#fbb4b9',
+    color: '#E9B4D0',
     strokeColor: '#c51b8a',
   },
   offNetwork: {
     color: '#999',
     strokeColor: '#666',
   },
+  roadCrossings: {
+    color: '#999',
+    strokeColor: '#666',
+  },
   damsSecondary: {
     color: '#fec44f',
-    strokeColor: '#FFFFFF',
+    strokeColor: '#000000',
+  },
+  removed: {
+    color: '#6BEFF9',
+    strokeColor: '#000000',
+  },
+  nonBarrier: {
+    color: '#00D46A',
+    strokeColor: '#037424',
+  },
+  invasive: {
+    color: '#FFBEA9',
+    strokeColor: '#000000',
   },
   waterfalls: {
-    color: '#2ca25f',
-    strokeColor: '#FFFFFF',
+    color: '#6DA1E0',
+    strokeColor: '#000000',
   },
-
   // only used in prioritize
   ranked: {
     strokeColor: '#FFFFFF',
   },
   topRank: {
-    color: '#c51b8a',
+    color: '#7916BD',
   },
   lowerRank: {
-    color: '#2c7fb8',
+    color: '#DB8CB7',
   },
+}
+
+export const pointLegends = {
+  // included for ranking based on filters / primary barrier in summary view
+  included: {
+    radius: 6,
+    color: pointColors.included.color,
+    // border is actually white, but this makes it bigger in legend
+    borderColor: pointColors.included.color,
+    borderWidth: 1,
+  },
+  // excluded from ranking based on filters
+  excluded: {
+    radius: 6,
+    color: `${pointColors.excluded.color}99`,
+    borderColor: `${pointColors.excluded.strokeColor}99`,
+    borderWidth: 1,
+  },
+  topRank: {
+    radius: 6,
+    color: pointColors.topRank.color,
+    borderColor: pointColors.topRank.color,
+    borderWidth: 1,
+  },
+  lowerRank: {
+    radius: 6,
+    color: pointColors.lowerRank.color,
+    borderColor: pointColors.lowerRank.color,
+    borderWidth: 1,
+  },
+
+  // only show >= minZoom for layers
+  other: [
+    {
+      id: 'removed',
+      radius: 5,
+      color: pointColors.removed.color,
+      borderColor: pointColors.removed.strokeColor,
+      borderWidth: 0.5,
+      label: (barrierTypeLabel) =>
+        `${barrierTypeLabel} removed for conservation`,
+    },
+    {
+      id: 'nonBarrier',
+      radius: 5,
+      color: pointColors.nonBarrier.color,
+      borderColor: pointColors.nonBarrier.strokeColor,
+      borderWidth: 0.5,
+      label: () => 'not a barrier based on field assessment',
+    },
+    {
+      id: 'invasive',
+      radius: 5,
+      color: pointColors.invasive.color,
+      borderColor: pointColors.invasive.strokeColor,
+      borderWidth: 0.5,
+      label: (barrierTypeLabel) =>
+        `${barrierTypeLabel} that prevent movement of invasive species`,
+    },
+    {
+      id: 'default',
+      radius: 5,
+      color: pointColors.offNetwork.color,
+      borderColor: pointColors.offNetwork.strokeColor,
+      borderWidth: 1,
+      label: (barrierTypeLabel) =>
+        `${barrierTypeLabel} not available for prioritization`,
+    },
+    {
+      id: 'dams-secondary',
+      radius: 5,
+      color: pointColors.damsSecondary.color,
+      borderColor: pointColors.damsSecondary.strokeColor,
+      borderWidth: 0.5,
+      label: () => 'dams analyzed for impacts to aquatic connectivity',
+    },
+    {
+      id: 'waterfalls',
+      radius: 5,
+      color: pointColors.waterfalls.color,
+      borderColor: `${pointColors.waterfalls.strokeColor}`,
+      borderWidth: 0.5,
+      label: () => 'waterfalls',
+    },
+  ],
 }
 
 export const STATE_FIPS = {

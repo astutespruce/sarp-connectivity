@@ -10,7 +10,7 @@ const Footer = () => (
       position: 'absolute',
       display: 'flex',
       justifyContent: 'space-between',
-      bottom: 30,
+      bottom: 20,
       left: '0.5in',
       right: '0.5in',
       color: '#7f8a93',

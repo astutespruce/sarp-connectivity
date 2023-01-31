@@ -2,9 +2,8 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { View } from '@react-pdf/renderer'
 
-import { pointLegends } from 'components/Summary/layers'
 import { capitalize } from 'util/format'
-import { barrierTypeLabels } from 'config'
+import { barrierTypeLabels, pointLegends } from 'config'
 import LegendElement from './elements/LegendElement'
 
 const flowlineSymbols = {
@@ -47,7 +46,7 @@ export const getLegendEntries = ({ name, barrierType, visibleLayers }) => {
     },
   ]
 
-  const { primary, offnetwork, damsSecondary, waterfalls } = pointLegends
+  const { included: primary, other } = pointLegends
   entries.push({
     ...primary,
     type: 'circle',
@@ -56,53 +55,34 @@ export const getLegendEntries = ({ name, barrierType, visibleLayers }) => {
     )} analyzed for impacts to aquatic connectivity`,
   })
 
-  entries.push({
-    ...offnetwork,
-    type: 'circle',
-    label: `${capitalize(
-      barrierTypeLabel
-    )} not analyzed for impacts to aquatic connectivity`,
+  other.forEach(({ id, label, ...rest }) => {
+    // if visible layers are tracked, but not currently
+    // visible, don't add to legend
+    if (
+      (id === 'dams-secondary ' || id === 'waterfalls') &&
+      visibleLayers &&
+      !visibleLayers.has(id)
+    ) {
+      return
+    }
+
+    if (id === 'dams-secondary' && barrierType !== 'small_barriers') {
+      return
+    }
+
+    entries.push({
+      ...rest,
+      type: 'circle',
+      label: capitalize(label(barrierTypeLabel)),
+    })
   })
 
   if (visibleLayers) {
-    if (
-      barrierType === 'small_barriers' &&
-      visibleLayers.has('dams-secondary')
-    ) {
-      entries.push({
-        ...damsSecondary,
-        type: 'circle',
-        label: 'Dams analyzed for impacts to aquatic connectivity',
-      })
-    }
-
     const flowlineElements = Object.entries(flowlineSymbols)
       .filter(([key, _]) => visibleLayers.has(key))
       .map(([_, symbol]) => symbol)
     entries.push(...flowlineElements)
-
-    if (visibleLayers.has('waterfalls')) {
-      entries.push({
-        ...waterfalls,
-        type: 'circle',
-        label: 'Waterfalls',
-      })
-    }
   } else {
-    if (barrierType === 'small_barriers') {
-      entries.push({
-        ...damsSecondary,
-        type: 'circle',
-        label: 'Dams analyzed for impacts to aquatic connectivity',
-      })
-    }
-
-    entries.push({
-      ...waterfalls,
-      type: 'circle',
-      label: 'Waterfalls',
-    })
-
     entries.push(...Object.values(flowlineSymbols))
   }
 

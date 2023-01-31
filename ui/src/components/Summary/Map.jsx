@@ -26,7 +26,7 @@ import {
   setBarrierHighlight,
   getBarrierTooltip,
 } from 'components/Map'
-import { barrierTypeLabels } from 'config'
+import { barrierTypeLabels, pointLegends } from 'config'
 import { isEqual } from 'util/data'
 import { COLORS } from './config'
 import {
@@ -37,7 +37,6 @@ import {
   pointLayer,
   offnetworkPointLayer,
   unrankedPointLayer,
-  pointLegends,
   regionLayers,
 } from './layers'
 
@@ -548,27 +547,21 @@ const SummaryMap = ({
 
     const circles = []
     if (map && map.getZoom() >= 12) {
-      const { primary, offnetwork, damsSecondary, waterfalls } = pointLegends
+      const { included: primary, other } = pointLegends
       circles.push({
         ...primary,
         label: `${barrierTypeLabel} analyzed for impacts to aquatic connectivity`,
       })
 
-      circles.push({
-        ...offnetwork,
-        label: `${barrierTypeLabel} not analyzed`,
-      })
+      other.forEach(({ id, label, ...rest }) => {
+        if (id === 'dams-secondary' && barrierType !== 'small_barriers') {
+          return
+        }
 
-      if (barrierType === 'small_barriers') {
         circles.push({
-          ...damsSecondary,
-          label: 'dams analyzed for impacts to aquatic connectivity',
+          ...rest,
+          label: label(barrierTypeLabel),
         })
-      }
-
-      circles.push({
-        ...waterfalls,
-        label: 'waterfalls',
       })
     }
 

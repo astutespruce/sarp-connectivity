@@ -216,7 +216,7 @@ const Preview = ({ barrierType, data }) => {
 
         <Attribution attribution={attribution} />
 
-        <Flex sx={{ mt: '2rem' }}>
+        <Flex sx={{ mt: '1rem' }}>
           <Box sx={{ flex: '0 0 auto', mr: '2rem' }}>
             <LocatorMap
               center={[lon, lat]}

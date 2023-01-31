@@ -27,11 +27,12 @@ const Legend = ({ title, subtitle, patches, circles, lines, footnote }) => {
       onClick={toggleOpen}
       sx={{
         position: 'absolute',
-        zIndex: 1000,
+        zIndex: 10000,
         right: '10px',
         bottom: '24px',
-        maxWidth: '12rem',
-        p: '10px',
+        maxWidth: '16rem',
+        py: '0.5em',
+        px: '0.75em',
         bg: '#FFF',
         cursor: 'pointer',
         border: '1px solid #AAA',
@@ -78,10 +79,10 @@ const Legend = ({ title, subtitle, patches, circles, lines, footnote }) => {
                   key={id}
                   sx={{
                     '&:not(:first-of-type)': {
-                      mt: '0.5rem',
-                      pt: '0.5rem',
-                      borderTop: '1px solid',
-                      borderTopColor: 'grey.1',
+                      mt: '0.25rem',
+                      pt: '0.25rem',
+                      // borderTop: '1px solid',
+                      // borderTopColor: 'grey.1',
                     },
                   }}
                 >
@@ -159,7 +160,7 @@ const Legend = ({ title, subtitle, patches, circles, lines, footnote }) => {
                   key={point.color}
                   sx={{
                     alignItems: 'flex-start',
-                    py: '0.5em',
+                    py: '0.25em',
                     '&:not(:first-of-type)': {
                       borderTop: '1px solid',
                       borderTopColor: 'grey.1',
@@ -209,7 +210,7 @@ const Legend = ({ title, subtitle, patches, circles, lines, footnote }) => {
                     key={id}
                     sx={{
                       alignItems: 'flex-start',
-                      py: '0.5em',
+                      py: '0.25em',
                       '&:not(:first-of-type)': {
                         borderTop: '1px solid',
                         borderTopColor: 'grey.1',

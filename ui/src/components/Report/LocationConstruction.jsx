@@ -204,7 +204,7 @@ const Location = ({
               <Entry>
                 <Text>
                   Barrier ownership type:{' '}
-                  {BARRIEROWNERTYPE[barrierownertype].toLowerCase}
+                  {BARRIEROWNERTYPE[barrierownertype].toLowerCase()}
                 </Text>
               </Entry>
             ) : null}

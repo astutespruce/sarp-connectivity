@@ -3,6 +3,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
 
+import { pointColors } from 'config'
 import { formatNumber } from 'util/format'
 
 const Histogram = ({ counts, threshold }) => {
@@ -18,7 +19,7 @@ const Histogram = ({ counts, threshold }) => {
           sx={{
             alignItems: 'center',
             mb: '0.25rem',
-            color: i + 1 <= threshold ? 'accent' : 'grey.7',
+            color: i + 1 <= threshold ? pointColors.topRank.color : 'grey.7',
           }}
         >
           <Text
@@ -43,7 +44,10 @@ const Histogram = ({ counts, threshold }) => {
             <Box
               sx={{
                 height: '1rem',
-                bg: i + 1 <= threshold ? 'accent' : 'primary',
+                bg:
+                  i + 1 <= threshold
+                    ? pointColors.topRank.color
+                    : pointColors.lowerRank.color,
                 width: `calc(${(100 * count) / max}% - ${labelWidth}em)`,
               }}
             />

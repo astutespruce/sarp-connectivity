@@ -126,10 +126,10 @@ ret.check_returncode()
 df = df.drop(columns=["TotDASqKm"])
 
 ### Create tiles for ranked dams with networks
-ranked_dams = df.loc[df.Ranked].drop(columns=["Ranked", "HasNetwork"])
+ranked_dams = df.loc[df.Ranked].drop(columns=["Ranked", "HasNetwork", "symbol"])
 print(f"Creating tiles for {len(ranked_dams):,} ranked dams with networks")
 
-# Pack tier fields; not used for filtering, only display
+# Pack tier fields; not used for filtering, only display of info in sidebars
 ranked_dams["StateTiers"] = pack_bits(ranked_dams, STATE_TIER_PACK_BITS)
 ranked_dams = ranked_dams.drop(columns=STATE_TIER_FIELDS)
 ranked_dams = to_lowercase(ranked_dams)
@@ -153,6 +153,9 @@ ret.check_returncode()
 
 
 ### Create tiles for unranked dams with networks
+
+# TODO: split out invasive barriers
+
 unranked_dams = df.loc[df.HasNetwork & (~df.Ranked)].drop(
     columns=[
         "Ranked",
@@ -320,7 +323,7 @@ ret.check_returncode()
 
 ### Create tiles for ranked small barriers
 
-ranked_barriers = df.loc[df.Ranked].drop(columns=["Ranked", "HasNetwork"])
+ranked_barriers = df.loc[df.Ranked].drop(columns=["Ranked", "HasNetwork", "symbol"])
 print(
     f"Creating tiles for {len(ranked_barriers):,} ranked small barriers with networks"
 )

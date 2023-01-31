@@ -286,7 +286,7 @@ DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
 # Drop fields that can be calculated on frontend or are not used
 DAM_TILE_FIELDS = [
     c
-    for c in DAM_API_FIELDS + ["packed"]
+    for c in DAM_API_FIELDS + ["packed", "symbol"]
     if not c
     in {
         "YearRemoved",
@@ -325,6 +325,7 @@ DAM_TILE_FILTER_FIELDS = unique(
     DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
 )
 
+# TODO: add removed
 DAM_PACK_BITS = [
     {"field": "StreamOrder", "bits": 4},
     {"field": "Recon", "bits": 5},
@@ -380,7 +381,7 @@ SB_PUBLIC_EXPORT_FIELDS = SB_CORE_FIELDS
 # Drop fields from tiles that are calculated on frontend or not used
 SB_TILE_FIELDS = [
     c
-    for c in SB_API_FIELDS + ["packed"]
+    for c in SB_API_FIELDS + ["packed", "symbol"]
     if not c
     in {
         "YearRemoved",
@@ -951,6 +952,18 @@ STREAMTYPE_DOMAIN = {
 BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
 
 TROUT_DOMAIN = {0: "not recorded", 1: "yes"}
+
+
+# symbol domain - not used but included here as a reference for the codes used
+# SYMBOL_DOMAIN = {
+#     0: "regular barrier",
+#     1: "unsnapped",
+#     2: "removed",
+#     3: "assessed and not a barrier (fully passable)",
+#     4: "invasive barrier",
+#     5: "no-structure diversion",
+# }
+
 
 # state abbrev to name, from CENSUS Tiger
 STATES = {

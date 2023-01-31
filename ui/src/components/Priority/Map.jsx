@@ -30,7 +30,7 @@ import {
   getNotInStringExpr,
   getBarrierTooltip,
 } from 'components/Map'
-import { barrierTypeLabels } from 'config'
+import { barrierTypeLabels, pointLegends } from 'config'
 import { isEqual, groupBy } from 'util/data'
 
 import { unitLayerConfig } from './config'
@@ -44,7 +44,6 @@ import {
   unrankedPoint,
   excludedPoint,
   includedPoint,
-  pointLegends,
   rankedPoint,
   roadCrossingsLayer,
   damsSecondaryLayer,
@@ -576,7 +575,7 @@ const PriorityMap = ({
         ...includedByFilters,
       ])
       map.setFilter(excludedPoint.id, [
-        'all',
+        'any', // should this be any?
         outsideActiveUnitsExpr,
         ...excludedByFilters,
       ])
@@ -705,11 +704,9 @@ const PriorityMap = ({
     const {
       included: includedLegend,
       excluded: excludedLegend,
-      offnetwork: offnetworkLegend,
       topRank: topRankLegend,
       lowerRank: lowerRankLegend,
-      damsSecondary,
-      waterfalls,
+      other,
     } = pointLegends
 
     const circles = []
@@ -761,24 +758,6 @@ const PriorityMap = ({
           label: `${barrierTypeLabel} available for prioritization`,
         })
       }
-
-      if (isWithinZoom[offnetworkPoint.id]) {
-        circles.push({
-          ...offnetworkLegend,
-          label: `${barrierTypeLabel} not available for prioritization`,
-        })
-        // only show secondary dams & waterfalls at same time as background points
-        if (barrierType === 'small_barriers') {
-          circles.push({
-            ...damsSecondary,
-            label: 'dams analyzed for impacts to aquatic connectivity',
-          })
-        }
-        circles.push({
-          ...waterfalls,
-          label: 'waterfalls',
-        })
-      }
     }
 
     // may need to be mutually exclusive of above
@@ -801,25 +780,6 @@ const PriorityMap = ({
           label: `${barrierTypeLabel} not included in prioritization`,
         })
       }
-
-      if (isWithinZoom[offnetworkPoint.id]) {
-        circles.push({
-          ...offnetworkLegend,
-          label: `${barrierTypeLabel} not available for prioritization`,
-        })
-
-        // only show secondary dams & waterfalls at same time as background points
-        if (barrierType === 'small_barriers') {
-          circles.push({
-            ...damsSecondary,
-            label: 'dams analyzed for impacts to aquatic connectivity',
-          })
-        }
-        circles.push({
-          ...waterfalls,
-          label: 'waterfalls',
-        })
-      }
     } else {
       // either in select units or filter step
       if (isWithinZoom[includedPoint.id]) {
@@ -838,25 +798,6 @@ const PriorityMap = ({
         })
       }
 
-      if (isWithinZoom[offnetworkPoint.id]) {
-        circles.push({
-          ...offnetworkLegend,
-          label: `${barrierTypeLabel} not available for prioritization`,
-        })
-
-        // only show secondary dams & waterfalls at same time as background points
-        if (barrierType === 'small_barriers') {
-          circles.push({
-            ...damsSecondary,
-            label: 'dams analyzed for impacts to aquatic connectivity',
-          })
-        }
-        circles.push({
-          ...waterfalls,
-          label: 'waterfalls',
-        })
-      }
-
       if (allowUnitSelect) {
         patches.push({
           id: 'summaryAreas',
@@ -868,6 +809,16 @@ const PriorityMap = ({
           ],
         })
       }
+    }
+
+    if (isWithinZoom[offnetworkPoint.id]) {
+      other.forEach(({ id, label, ...rest }) => {
+        if (id === 'dams-secondary' && barrierType !== 'small_barriers') {
+          return
+        }
+
+        circles.push({ ...rest, label: label(barrierTypeLabel) })
+      })
     }
 
     return {
