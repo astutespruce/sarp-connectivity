@@ -1,10 +1,10 @@
 from pathlib import Path
 from time import time
-import warnings
 
 import geopandas as gp
 import pandas as pd
 
+from analysis.constants import SEVERITY_TO_PASSABILITY
 from analysis.lib.compression import pack_bits
 from analysis.lib.util import get_signed_dtype
 from analysis.rank.lib.networks import get_network_results
@@ -231,6 +231,13 @@ tmp.to_feather(api_dir / f"small_barriers.feather")
 #########################################################################################
 ###
 ### Get combined networks
+
+# convert small barriers BarrierSeverity to Passability before merge
+small_barriers["Passability"] = small_barriers.BarrierSeverity.map(
+    SEVERITY_TO_PASSABILITY
+)
+small_barriers = small_barriers.drop(columns=["BarrierSeverity"])
+
 dams["BarrierType"] = "dam"
 small_barriers["BarrierType"] = "Inventoried road-related barrier"
 combined = pd.concat(
@@ -318,7 +325,8 @@ print("Saving combined networks for tiles and API")
 combined.reset_index().to_feather(results_dir / "combined.feather")
 
 # save for API
-tmp = combined[unique(DAM_API_FIELDS + SB_API_FIELDS + ["BarrierType"])].reset_index()
+cols = [c for c in DAM_API_FIELDS + SB_API_FIELDS if not c == "BarrierSeverity"]
+tmp = combined[unique(cols + ["BarrierType"])].reset_index()
 tmp["id"] = tmp.id.astype("uint32")
 tmp.to_feather(api_dir / f"combined.feather")
 

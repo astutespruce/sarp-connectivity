@@ -65,7 +65,7 @@ from analysis.constants import (
     FCODE_TO_STREAMTYPE,
     DAM_BARRIER_SEVERITY_TO_DOMAIN,
     BARRIEROWNERTYPE_TO_DOMAIN,
-    EXCLUDE_BARRIER_SEVERITY,
+    EXCLUDE_PASSABILITY,
     FEASIBILITY_TO_DOMAIN,
 )
 from analysis.lib.io import read_feathers
@@ -382,15 +382,15 @@ df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityCla
 df["FeasibilityClass"] = df.Feasibility.map(FEASIBILITY_TO_DOMAIN).astype("uint8")
 
 
-# Convert BarrierSeverity to a domain
-df.BarrierSeverity = (
+# Convert BarrierSeverity to a domain and call it Passability
+df["Passability"] = (
     df.BarrierSeverity.fillna("unknown")
     .str.strip()
     .str.lower()
     .map(DAM_BARRIER_SEVERITY_TO_DOMAIN)
     .astype("uint8")
 )
-
+df = df.drop(columns=["BarrierSeverity"])
 
 # Recode BarrierOwnerType
 df.BarrierOwnerType = (
@@ -465,7 +465,7 @@ excluded_fields = {
     "Feasibility": EXCLUDE_FEASIBILITY,
     "ManualReview": EXCLUDE_MANUALREVIEW,
     "PassageFacility": EXCLUDE_PASSAGEFACILITY,
-    "BarrierSeverity": EXCLUDE_BARRIER_SEVERITY,
+    "Passability": EXCLUDE_PASSABILITY,
     # Temp: lump diversions without structures in with other excluded barriers
     "StructureCategory": NOSTRUCTURE_STRUCTURECATEGORY,
 }
@@ -481,13 +481,13 @@ for field, values in excluded_fields.items():
 # does not indicate passability issue, exclude (per guidance from SARP)
 ix = (
     (df.Recon.isin([22, 23]) | (df.Feasibility == 11))
-    & df.BarrierSeverity.isin([0, 7])
+    & df.Passability.isin([0, 7])
     & (~(df.dropped | df.removed | df.excluded))
 )
 df.loc[ix, "excluded"] = True
 df.loc[
     ix, "log"
-] = "excluded: Recon/Feasibility indicate fish passage installed but BarrierSeverity marked as passable"
+] = "excluded: Recon/Feasibility indicate fish passage installed but Passability marked as passable"
 
 ### Mark any dams that should cut the network but be excluded from ranking
 unranked_fields = {

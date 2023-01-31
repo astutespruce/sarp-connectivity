@@ -56,6 +56,7 @@ from analysis.constants import (
     INVASIVE_RECON,
     BARRIER_CONDITION_TO_DOMAIN,
     POTENTIALPROJECT_TO_SEVERITY,
+    SEVERITY_TO_PASSABILITY,
     ROAD_TYPE_TO_DOMAIN,
     CROSSING_TYPE_TO_DOMAIN,
     FCODE_TO_STREAMTYPE,
@@ -185,13 +186,8 @@ df.BarrierOwnerType = (
     df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
 )
 
-# Code BarrierSeverity to use same domain as dams
 df["BarrierSeverity"] = (
-    df.PotentialProject.fillna("")
-    .str.strip()
-    .str.lower()
-    .map(POTENTIALPROJECT_TO_SEVERITY)
-    .astype("uint8")
+    df.PotentialProject.str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
 )
 
 # Code Condition to use same domain as dams

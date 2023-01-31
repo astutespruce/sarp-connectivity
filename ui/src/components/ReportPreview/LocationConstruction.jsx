@@ -49,6 +49,7 @@ const LocationConstruction = ({
   roadtype,
   crossingtype,
   constriction,
+  passability,
   barrierseverity,
   sarp_score,
   diversion,
@@ -70,7 +71,6 @@ const LocationConstruction = ({
     river.toLowerCase() !== 'unnamed'
 
   const hasLandOwner = ownertype && ownertype > 0
-  const hasBarrierOwner = barrierownertype && barrierownertype > 0
   const isLowheadDam = lowheaddam !== null && lowheaddam >= 1
   const isDiversion = diversion !== null && diversion >= 1
 
@@ -175,7 +175,7 @@ const LocationConstruction = ({
             <Entry>Conservation land type: {OWNERTYPE[ownertype]}</Entry>
           ) : null}
 
-          {hasBarrierOwner ? (
+          {barrierownertype !== null ? (
             <Entry>
               Barrier ownership type: {BARRIEROWNERTYPE[barrierownertype]}
             </Entry>
@@ -217,8 +217,8 @@ const LocationConstruction = ({
                     </Entry>
                   ) : null}
 
-                  {barrierseverity !== null ? (
-                    <Entry>Passability: {PASSABILITY[barrierseverity]}</Entry>
+                  {passability !== null ? (
+                    <Entry>Passability: {PASSABILITY[passability]}</Entry>
                   ) : null}
 
                   {passagefacility !== null && passagefacility >= 0 ? (
@@ -288,6 +288,7 @@ LocationConstruction.propTypes = {
   roadtype: PropTypes.number,
   crossingtype: PropTypes.number,
   constriction: PropTypes.number,
+  passability: PropTypes.number,
   barrierseverity: PropTypes.number,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
@@ -320,6 +321,7 @@ LocationConstruction.defaultProps = {
   roadtype: null,
   crossingtype: null,
   constriction: null,
+  passability: null,
   barrierseverity: null,
   sarp_score: -1,
   diversion: 0,

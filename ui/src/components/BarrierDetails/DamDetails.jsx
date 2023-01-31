@@ -42,7 +42,7 @@ const DamDetails = ({
   nostructure,
   purpose,
   condition,
-  barrierseverity,
+  passability,
   lowheaddam,
   passagefacility,
   river,
@@ -196,10 +196,10 @@ const DamDetails = ({
           </Entry>
         ) : null}
 
-        {barrierseverity !== null ? (
+        {passability !== null ? (
           <Entry>
-            <Field label="Passability" isUnknown={barrierseverity === 0}>
-              {PASSABILITY[barrierseverity]}
+            <Field label="Passability" isUnknown={passability === 0}>
+              {PASSABILITY[passability]}
             </Field>
           </Entry>
         ) : null}
@@ -309,7 +309,7 @@ DamDetails.propTypes = {
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.number,
-  barrierseverity: PropTypes.number,
+  passability: PropTypes.number,
   passagefacility: PropTypes.number,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
@@ -364,7 +364,7 @@ DamDetails.defaultProps = {
   construction: null,
   purpose: null,
   condition: null,
-  barrierseverity: null,
+  passability: null,
   passagefacility: null,
   tespp: 0,
   statesgcnspp: 0,

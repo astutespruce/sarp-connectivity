@@ -301,7 +301,7 @@ EXCLUDE_FEASIBILITY = [
 ]
 
 # limited to just dams
-EXCLUDE_BARRIER_SEVERITY = [7]  # No Barrier
+EXCLUDE_PASSABILITY = [7]  # No Barrier
 
 INVASIVE_MANUALREVIEW = [
     10,  # invasive barriers; these break the network, but not included in prioritization
@@ -455,7 +455,7 @@ BARRIER_CONDITION_TO_DOMAIN = {
     "new": 1,
 }
 
-# Dams and small barriers are mapped to SEVERITY_DOMAIN
+# Dams, small barriers, and waterfalls are mapped to PASSABILITY_DOMAIN
 DAM_BARRIER_SEVERITY_TO_DOMAIN = {
     "": 0,
     "0": 0,  # TEMP: coding error
@@ -474,27 +474,29 @@ DAM_BARRIER_SEVERITY_TO_DOMAIN = {
     "no barrier": 7,
 }
 
+# uses BarrierSeverity domain
+# barriers with severity == 0 are excluded from analysis
 POTENTIALPROJECT_TO_SEVERITY = {
     "": 0,
     "na": 0,
     "unknown": 0,
     "inaccessible": 0,
-    "indeterminate": 0,  # removed from processing
-    "insignificant barrier": 7,
-    "minor barrier": 7,
+    "indeterminate": 3,
+    "insignificant barrier": 4,
+    "minor barrier": 4,  # remove from processing except for darter scenario
     "moderate barrier": 2,
-    "no barrier": 7,  # removed from processing
-    "no crossing": 7,
-    "no upstream channel": 7,
-    "no upstream habitat": 7,
-    "buried stream": 7,
+    "no barrier": 6,  # removed from processing
+    "no crossing": 6,
+    "no upstream channel": 6,
+    "no upstream habitat": 6,
+    "buried stream": 6,
     "not scored": 0,
-    "no": 7,
+    "no": 6,
     "unassessed": 0,
     "completed project": 0,  # removed from processing
     "past project": 0,  # removed from processing
-    "potential project": 0,
-    "proposed project": 0,
+    "potential project": 5,
+    "proposed project": 5,
     "severe barrier": 1,
     "significant barrier": 1,
     "small project": 0,
@@ -502,6 +504,9 @@ POTENTIALPROJECT_TO_SEVERITY = {
     "other": 0,
     "no score - missing data": 0,
 }
+
+
+SEVERITY_TO_PASSABILITY = {0: 0, 1: 1, 2: 2, 3: 2, 4: 2, 5: 2, 6: 7}
 
 
 # recoded to better align with OWNERTYPE domain

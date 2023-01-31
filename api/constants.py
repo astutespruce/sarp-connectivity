@@ -157,7 +157,6 @@ STATE_TIER_FIELDS = [f"State_{c}" for c in CUSTOM_TIER_FIELDS]
 
 FILTER_FIELDS = [
     "GainMilesClass",
-    "BarrierSeverity",
     "Condition",
     "TESppClass",
     "StateSGCNSppClass",
@@ -176,6 +175,7 @@ FILTER_FIELDS = [
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
+    "Passability",
     "FeasibilityClass",
     "Purpose",
     "HeightClass",
@@ -186,6 +186,7 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
 SB_FILTER_FIELDS = FILTER_FIELDS + [
+    "BarrierSeverity",
     "Constriction",
     "RoadType",
     "CrossingType",
@@ -211,7 +212,6 @@ GENERAL_API_FIELDS2 = (
     [
         "Removed",
         "YearRemoved",
-        "BarrierSeverity",
         "Condition",
         "TESpp",
         "StateSGCNSpp",
@@ -252,6 +252,7 @@ DAM_CORE_FIELDS = (
         "Width",
         "Construction",
         "Purpose",
+        "Passability",
         "PassageFacility",
         "FishScreen",
         "ScreenType",
@@ -355,6 +356,7 @@ SB_CORE_FIELDS = (
         "CrossingType",
         "Constriction",
         "PotentialProject",
+        "BarrierSeverity",
         "SARP_Score",
         "StreamSizeClass",
     ]
@@ -509,6 +511,7 @@ WF_CORE_FIELDS = (
         "AnnualVelocity",
         "AnnualFlow",
         "TotDASqKm",
+        "Passability",
         # from GENERAL_API_FIELDS2
         "TESpp",
         "StateSGCNSpp",
@@ -830,8 +833,10 @@ BARRIER_SEVERITY_DOMAIN = {
     0: "Unknown",
     1: "Complete barrier",
     2: "Moderate barrier",
-    # FIXME: add minor barrier
-    7: "No barrier",
+    3: "Indeterminate barrier",
+    4: "Minor barrier",
+    5: "Barrier - unknown severity",
+    6: "No barrier",
 }
 
 PASSABILITY_DOMAIN = {
@@ -1023,8 +1028,6 @@ DOMAINS = {
     "BarrierOwnerType": BARRIEROWNERTYPE_DOMAIN,
     "ProtectedLand": BOOLEAN_DOMAIN,
     "ManualReview": MANUALREVIEW_DOMAIN,
-    "Passability": PASSABILITY_DOMAIN,
-    "BarrierSeverity": BARRIER_SEVERITY_DOMAIN,
     "Recon": RECON_DOMAIN,
     "Condition": CONDITION_DOMAIN,
     "Trout": TROUT_DOMAIN,
@@ -1034,6 +1037,7 @@ DOMAINS = {
     "Construction": CONSTRUCTION_DOMAIN,
     "Purpose": PURPOSE_DOMAIN,
     "Feasibility": FEASIBILITY_DOMAIN,
+    "Passability": PASSABILITY_DOMAIN,
     "PassageFacility": PASSAGEFACILITY_DOMAIN,
     "Diversion": DIVERSION_DOMAIN,
     "LowheadDam": LOWHEADDAM_DOMAIN,
@@ -1043,6 +1047,7 @@ DOMAINS = {
     "Estimated": BOOLEAN_DOMAIN,
     # "NoStructure": BOOLEAN_DOMAIN,
     # barrier fields
+    "BarrierSeverity": BARRIER_SEVERITY_DOMAIN,
     "Constriction": CONSTRICTION_DOMAIN,
     "CrossingType": CROSSING_TYPE_DOMAIN,
     "RoadType": ROAD_TYPE_DOMAIN,
@@ -1089,9 +1094,9 @@ FIELD_DEFINITIONS = {
     "CrossingType": "type of road / stream crossing, if known.",
     "Constriction": "type of constriction at road / stream crossing, if known.",
     "PotentialProject": "reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.",
+    "BarrierSeverity": "barrier severity of the {type}, if known.   Note: assessment dates are not known.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
     # other general fields
-    "BarrierSeverity": "barrier severity of the {type}, if known.   Note: assessment dates are not known.",
     "Passability": "passability of the {type}, if known.   Note: assessment dates are not known.",
     "Condition": "Condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
     "NHDPlusID": "Unique NHD Plus High Resolution flowline identifier to which the barrier is snapped.  -1 = not snapped to a flowline.  Note: not all barriers snapped to flowlines are used in the network connectivity analysis.",

@@ -42,6 +42,7 @@ const Location = ({
   roadtype,
   crossingtype,
   constriction,
+  passability,
   barrierseverity,
   river,
   intermittent,
@@ -69,7 +70,6 @@ const Location = ({
     river.toLowerCase() !== 'unnamed'
 
   const hasLandOwner = ownertype && ownertype > 0
-  const hasBarrierOwner = barrierownertype && barrierownertype > 0
   const isLowheadDam = lowheaddam !== null && lowheaddam >= 1
   const isDiversion = diversion !== null && diversion >= 1
 
@@ -200,10 +200,11 @@ const Location = ({
               </Entry>
             ) : null}
 
-            {hasBarrierOwner ? (
+            {barrierownertype !== null ? (
               <Entry>
                 <Text>
-                  Barrier ownership type: {BARRIEROWNERTYPE[barrierownertype]}
+                  Barrier ownership type:{' '}
+                  {BARRIEROWNERTYPE[barrierownertype].toLowerCase}
                 </Text>
               </Entry>
             ) : null}
@@ -262,9 +263,9 @@ const Location = ({
                   </Entry>
                 ) : null}
 
-                {barrierseverity !== null ? (
+                {passability !== null ? (
                   <Entry>
-                    <Text>Passability: {PASSABILITY[barrierseverity]}</Text>
+                    <Text>Passability: {PASSABILITY[passability]}</Text>
                   </Entry>
                 ) : null}
 
@@ -345,6 +346,7 @@ Location.propTypes = {
   roadtype: PropTypes.number,
   crossingtype: PropTypes.number,
   constriction: PropTypes.number,
+  passability: PropTypes.number,
   barrierseverity: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
@@ -376,6 +378,7 @@ Location.defaultProps = {
   roadtype: null,
   crossingtype: null,
   constriction: null,
+  passability: null,
   barrierseverity: null,
   river: null,
   intermittent: 0,
