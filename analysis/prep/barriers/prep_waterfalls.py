@@ -156,7 +156,6 @@ print(
 
 ### Exclude barriers based on BarrierSeverity
 
-# Convert BarrierSeverity to a domain
 df.BarrierSeverity = df.BarrierSeverity.fillna("").str.strip().str.lower()
 
 # FIXME: temporary fixes
@@ -171,14 +170,16 @@ ix = df.BarrierSeverity.isin(exclude_severities)
 df.loc[ix, "excluded"] = True
 df.loc[ix, "log"] = f"excluded: BarrierSeverity one of {', '.join(exclude_severities)}"
 
-# Convert to domain
-df["BarrierSeverity"] = (
+# Convert to domain and call it Passability
+df["Passability"] = (
     df.BarrierSeverity.fillna("unknown")
     .str.strip()
     .str.lower()
     .map(DAM_BARRIER_SEVERITY_TO_DOMAIN)
     .astype("uint8")
 )
+
+df = df.drop(columns=["BarrierSeverity"])
 
 ### Exclude barriers that should not be analyzed based on manual QA
 df["excluded"] = df.ManualReview.isin(EXCLUDE_MANUALREVIEW) | df.Recon.isin(

@@ -109,10 +109,6 @@ def download_dams(
         # sort only HasNetwork
         df = df.sort_by([("HasNetwork", "descending")])
 
-    # FIXME: temporary, rename BarrierSeverity => Passability
-    names = ["Passability" if c == "BarrierSeverity" else c for c in df.column_names]
-    df = df.rename_columns(names)
-
     df = unpack_domains(df.drop(["id"]))
 
     filename = f"aquatic_barrier_ranks.{format}"

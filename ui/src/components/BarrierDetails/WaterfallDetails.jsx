@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Paragraph, Text } from 'theme-ui'
 
+import { PASSABILITY } from 'config'
 import { Entry, Field, Section } from 'components/Sidebar'
 import { isEmptyString } from 'util/string'
 
@@ -22,6 +23,7 @@ const WaterfallDetails = ({
   HUC8Name,
   HUC12Name,
   falltype,
+  passability,
   tespp,
   statesgcnspp,
   regionalsgcnspp,
@@ -72,6 +74,14 @@ const WaterfallDetails = ({
       {falltype && !isEmptyString(falltype) ? (
         <Entry>
           <Field label="Waterfall type">{falltype}</Field>
+        </Entry>
+      ) : null}
+
+      {passability !== null ? (
+        <Entry>
+          <Field label="Passability" isUnknown={passability === 0}>
+            {PASSABILITY[passability]}
+          </Field>
         </Entry>
       ) : null}
     </Section>
@@ -158,6 +168,7 @@ WaterfallDetails.propTypes = {
   HUC8Name: PropTypes.string,
   HUC12Name: PropTypes.string,
   falltype: PropTypes.string,
+  passability: PropTypes.number,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
@@ -193,6 +204,7 @@ WaterfallDetails.defaultProps = {
   stream: null,
   intermittent: -1,
   falltype: null,
+  passability: null,
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,

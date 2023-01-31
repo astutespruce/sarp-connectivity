@@ -44,7 +44,7 @@ export const dams = [
     title: 'Conservation benefits',
     filters: [
       {
-        field: 'barrierseverity',
+        field: 'passability',
         title: 'Passability',
         sort: false,
         hideEmpty: true,
