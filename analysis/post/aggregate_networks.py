@@ -288,8 +288,6 @@ fill_columns = [
     "HeightClass",
     "Length",
     "LowheadDam",
-    "PassageFacility",
-    "PassageFacilityClass",
     "Purpose",
     "ScreenType",
     "WaterbodyKM2",

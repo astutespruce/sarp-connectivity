@@ -481,10 +481,8 @@ export const offnetworkPointLayer = {
         1,
         pointColors.offNetwork.color,
         2,
-        pointColors.removed.color,
-        3,
         pointColors.nonBarrier.color,
-        // 4: invasive is in unranked layer below
+        // 3: invasive is in unranked layer below
         // last entry is default
         pointColors.offNetwork.color,
       ],
@@ -498,11 +496,52 @@ export const offnetworkPointLayer = {
         1,
         pointColors.offNetwork.strokeColor,
         2,
-        pointColors.removed.strokeColor,
-        3,
         pointColors.nonBarrier.strokeColor,
         pointColors.offNetwork.strokeColor,
       ],
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      getHighlightExpr(1, 12),
+      14,
+      getHighlightExpr(4, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
+    'circle-stroke-width': {
+      stops: [
+        [12, 0],
+        [14, 1],
+      ],
+    },
+  },
+}
+
+export const removedBarrierPointLayer = {
+  // id: '', // provided by specific layer
+  // source: "", // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
+  type: 'circle',
+  minzoom: 12,
+  maxzoom: 24,
+  paint: {
+    'circle-color': getHighlightExpr(
+      pointColors.removed.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.removed.strokeColor,
       pointColors.highlight.strokeColor
     ),
     'circle-radius': [
@@ -542,11 +581,25 @@ export const unrankedPointLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': getHighlightExpr(
-      pointColors.offNetwork.color,
+      [
+        'match',
+        ['get', 'symbol'],
+        3,
+        pointColors.invasive.color,
+        // default
+        pointColors.offNetwork.color,
+      ],
       pointColors.highlight.color
     ),
     'circle-stroke-color': getHighlightExpr(
-      pointColors.offNetwork.strokeColor,
+      [
+        'match',
+        ['get', 'symbol'],
+        3,
+        pointColors.invasive.strokeColor,
+        // default
+        pointColors.offNetwork.strokeColor,
+      ],
       pointColors.highlight.strokeColor
     ),
     'circle-radius': [

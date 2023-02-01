@@ -35,6 +35,8 @@ const Network = ({
   hasnetwork,
   invasive,
   unranked,
+  removed,
+  yearremoved,
   ...props
 }) => {
   const barrierTypeLabel =
@@ -59,6 +61,19 @@ const Network = ({
     : 0
 
   const colWidth = totalupstreammiles > 0 ? 1 / 4 : 1 / 3
+
+  if (removed) {
+    return (
+      <Section title="Functional network information" {...props} wrap={false}>
+        <Text>
+          {yearremoved !== null && yearremoved > 0
+            ? `This barrier was removed or mitigated in ${yearremoved}.`
+            : 'This barrier has been removed or mitigated.'}{' '}
+          No network information is available.
+        </Text>
+      </Section>
+    )
+  }
 
   if (excluded) {
     if (diversion && nostructure) {
@@ -384,6 +399,8 @@ Network.propTypes = {
   sizeclasses: PropTypes.number,
   invasive: PropTypes.bool,
   unranked: PropTypes.bool,
+  removed: PropTypes.bool,
+  yearremoved: PropTypes.number,
 }
 
 Network.defaultProps = {
@@ -403,6 +420,8 @@ Network.defaultProps = {
   sizeclasses: 0,
   invasive: false,
   unranked: false,
+  removed: false,
+  yearremoved: 0,
 }
 
 export default Network

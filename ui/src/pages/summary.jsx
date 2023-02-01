@@ -59,8 +59,6 @@ const SummaryPage = ({ location }) => {
   }
 
   const handleSelectBarrier = (feature) => {
-    console.log('selected:', feature)
-
     // promote appropriate network results
     if (feature && feature.barrierType === 'waterfalls') {
       const curBarrierType = barrierTypeRef.current

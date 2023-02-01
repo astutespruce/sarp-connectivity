@@ -134,8 +134,8 @@ export const unitLayers = [unitFill, unitOutline]
 
 export const unitHighlightLayers = [unitHighlightFill, unitHighlightOutline]
 
-// off network points are everything that was not included in the network analysis
-// including points that are actually off network (unsnapped), removed, not actually barriers
+// off network points were not included in the network analysis
+// including points that are actually off network (unsnapped), not actually barriers, etc
 export const offnetworkPoint = {
   id: 'point-off-network',
   // source: "", // provided by specific layer
@@ -152,10 +152,8 @@ export const offnetworkPoint = {
         1,
         pointColors.offNetwork.color,
         2,
-        pointColors.removed.color,
-        3,
         pointColors.nonBarrier.color,
-        // 4: invasive is in unranked layer below
+        // 3: invasive is in unranked layer below
         // last entry is default
         pointColors.offNetwork.color,
       ],
@@ -169,11 +167,52 @@ export const offnetworkPoint = {
         1,
         pointColors.offNetwork.strokeColor,
         2,
-        pointColors.removed.strokeColor,
-        3,
         pointColors.nonBarrier.strokeColor,
         pointColors.offNetwork.strokeColor,
       ],
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 2),
+      14,
+      getHighlightExpr(4, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [14, 1],
+      ],
+    },
+  },
+}
+
+export const removedBarrierPoint = {
+  id: 'point-removed',
+  // source: "", // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
+  type: 'circle',
+  minzoom: 10,
+  maxzoom: 24,
+  paint: {
+    'circle-color': getHighlightExpr(
+      pointColors.removed.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.removed.strokeColor,
       pointColors.highlight.strokeColor
     ),
     'circle-radius': [
@@ -217,7 +256,7 @@ export const unrankedPoint = {
       [
         'match',
         ['get', 'symbol'],
-        4,
+        3,
         pointColors.invasive.color,
         // default
         pointColors.offNetwork.color,
@@ -228,19 +267,22 @@ export const unrankedPoint = {
       [
         'match',
         ['get', 'symbol'],
-        4,
+        3,
         pointColors.invasive.strokeColor,
         // default
         pointColors.offNetwork.strokeColor,
       ],
       pointColors.highlight.strokeColor
     ),
-    'circle-radius': {
-      stops: [
-        [10, 0.5],
-        [14, 4],
-      ],
-    },
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 2),
+      14,
+      getHighlightExpr(4, 14),
+    ],
     'circle-opacity': 1,
     'circle-stroke-width': {
       stops: [

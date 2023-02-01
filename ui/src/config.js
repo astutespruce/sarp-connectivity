@@ -811,6 +811,7 @@ export const DAM_PACK_BITS = [
 export const SB_PACK_BITS = [
   { field: 'streamorder', bits: 4 },
   { field: 'recon', bits: 5 },
+  { field: 'passagefacility', bits: 5 },
   { field: 'hasnetwork', bits: 1 },
   { field: 'excluded', bits: 1 },
   { field: 'onloop', bits: 1 },

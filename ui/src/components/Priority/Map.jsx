@@ -40,6 +40,7 @@ import {
   unitLayers,
   unitHighlightLayers,
   parentOutline,
+  removedBarrierPoint,
   offnetworkPoint,
   unrankedPoint,
   excludedPoint,
@@ -120,6 +121,7 @@ const PriorityMap = ({
         waterfallsLayer.id,
         unrankedPoint.id,
         offnetworkPoint.id,
+        removedBarrierPoint.id,
         excludedPoint.id,
         includedPoint.id,
         rankedPoint.id,
@@ -217,6 +219,12 @@ const PriorityMap = ({
         source: barrierType,
         'source-layer': `unranked_${barrierType}`,
         ...unrankedPoint,
+      })
+
+      map.addLayer({
+        source: barrierType,
+        'source-layer': `removed_${barrierType}`,
+        ...removedBarrierPoint,
       })
 
       // add primary barrier-type point layers
@@ -370,6 +378,7 @@ const PriorityMap = ({
           lon,
           // note: ranked layers are those that can be ranked, not necessarily those that have custom ranks
           ranked: sourceLayer.startsWith('ranked_'),
+          removed: sourceLayer.startsWith('removed_'),
           layer: {
             source,
             sourceLayer,

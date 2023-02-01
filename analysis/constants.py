@@ -193,7 +193,9 @@ SMALL_BARRIER_COLS = [
     "EditDate",
     "Editor",
     "OwnerType",
-    "Constriction"
+    "Constriction",
+    "PassageFacility",
+    "Link"
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",

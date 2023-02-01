@@ -12,6 +12,7 @@ import {
   CROSSING_TYPE,
   ROAD_TYPE,
   CONSTRICTION,
+  PASSAGEFACILITY,
 } from 'config'
 
 import DiadromousInfo from './DiadromousInfo'
@@ -48,6 +49,7 @@ const BarrierDetails = ({
   barrierType,
   sarpid,
   source,
+  link,
   hasnetwork,
   excluded,
   onloop,
@@ -62,6 +64,7 @@ const BarrierDetails = ({
   crossingtype,
   constriction,
   condition,
+  passagefacility,
   sarp_score,
   tespp,
   statesgcnspp,
@@ -71,6 +74,8 @@ const BarrierDetails = ({
   ownertype,
   barrierownertype,
   barrierseverity,
+  removed,
+  yearremoved,
   invasive,
   unranked,
   streamorder,
@@ -110,6 +115,14 @@ const BarrierDetails = ({
             <>
               ,<br />
               invasive species barrier
+            </>
+          ) : null}
+          {removed ? (
+            <>
+              <br />
+              {yearremoved !== null && yearremoved > 0
+                ? `(removed in ${yearremoved})`
+                : '(removed)'}
             </>
           ) : null}
         </Field>
@@ -182,9 +195,28 @@ const BarrierDetails = ({
           </Field>
         </Entry>
       ) : null}
+      {passagefacility !== null &&
+      passagefacility >= 0 &&
+      PASSAGEFACILITY[passagefacility] ? (
+        <Entry>
+          <Field
+            label="Passage facility type"
+            isUnknown={passagefacility === 0}
+          >
+            {PASSAGEFACILITY[passagefacility].toLowerCase()}
+          </Field>
+        </Entry>
+      ) : null}
     </Section>
 
     <Section title="Functional network information">
+      {removed ? (
+        <Entry>
+          {yearremoved !== null && yearremoved > 0
+            ? `This barrier was removed or mitigated in ${yearremoved}.`
+            : 'This barrier has been removed or mitigated.'}
+        </Entry>
+      ) : null}
       {hasnetwork ? (
         <NetworkInfo
           barrierType={barrierType}
@@ -236,7 +268,7 @@ const BarrierDetails = ({
     </Section>
 
     <Section title="Other information">
-      <IDInfo sarpid={sarpid} source={source} />
+      <IDInfo sarpid={sarpid} source={source} link={link} />
     </Section>
   </Box>
 )
@@ -249,6 +281,7 @@ BarrierDetails.propTypes = {
   unsnapped: PropTypes.number,
   excluded: PropTypes.number,
   source: PropTypes.string,
+  link: PropTypes.string,
   stream: PropTypes.string,
   intermittent: PropTypes.number,
   HUC12: PropTypes.string,
@@ -260,6 +293,9 @@ BarrierDetails.propTypes = {
   constriction: PropTypes.number,
   condition: PropTypes.number,
   barrierseverity: PropTypes.number,
+  passagefacility: PropTypes.number,
+  removed: PropTypes.bool,
+  yearremoved: PropTypes.number,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
@@ -299,6 +335,7 @@ BarrierDetails.defaultProps = {
   onloop: 0,
   unsnapped: 0,
   source: null,
+  link: null,
   stream: null,
   intermittent: -1,
   road: null,
@@ -306,6 +343,9 @@ BarrierDetails.defaultProps = {
   crossingtype: null,
   constriction: null,
   barrierseverity: null,
+  passagefacility: null,
+  removed: false,
+  yearremoved: 0,
   condition: null,
   tespp: 0,
   statesgcnspp: 0,

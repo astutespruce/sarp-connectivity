@@ -887,12 +887,11 @@ if df.PassageFacility.max() >= 32:
 
 ### Assign map symbol for use in (some) tiles
 df["symbol"] = 0
-df.loc[df.invasive, "symbol"] = 4
-df.loc[df.nobarrier, "symbol"] = 3
+df.loc[df.invasive, "symbol"] = 3
+df.loc[df.nobarrier, "symbol"] = 2
 # intentionally give no structure diversions higher precedence so they don't
 # show up as no-barrier points
-df.loc[df.nostructure, "symbol"] = 5
-df.loc[df.removed, "symbol"] = 2
+df.loc[df.nostructure, "symbol"] = 4
 df.loc[~df.snapped, "symbol"] = 1
 df.symbol = df.symbol.astype("uint8")
 

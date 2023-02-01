@@ -172,6 +172,7 @@ FILTER_FIELDS = [
     "DownstreamOceanMilesClass",
     "DownstreamOceanBarriersClass",
     "CoastalHUC8",
+    "PassageFacilityClass",
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
@@ -180,7 +181,6 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "Purpose",
     "HeightClass",
     "LowheadDam",
-    "PassageFacilityClass",
     "WaterbodySizeClass",
 ]
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
@@ -206,6 +206,8 @@ GENERAL_API_FIELDS1 = [
     "Name",
     "SARPID",
     "Source",
+    "NHDPlusID",
+    "StreamSizeClass",
 ]
 
 GENERAL_API_FIELDS2 = (
@@ -213,6 +215,7 @@ GENERAL_API_FIELDS2 = (
         "Removed",
         "YearRemoved",
         "Condition",
+        "PassageFacility",
         "TESpp",
         "StateSGCNSpp",
         "RegionalSGCNSpp",
@@ -220,6 +223,7 @@ GENERAL_API_FIELDS2 = (
         "OwnerType",
         "BarrierOwnerType",
         "ProtectedLand",
+        "Link",
         # Watershed names
         "Basin",
         "Subbasin",
@@ -238,11 +242,8 @@ DAM_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
         "NIDID",
-        "Link",
         "Estimated",
         "River",
-        "NHDPlusID",
-        "StreamSizeClass",
         "AnnualVelocity",
         "AnnualFlow",
         "TotDASqKm",
@@ -253,7 +254,6 @@ DAM_CORE_FIELDS = (
         "Construction",
         "Purpose",
         "Passability",
-        "PassageFacility",
         "FishScreen",
         "ScreenType",
         "Feasibility",
@@ -289,7 +289,6 @@ DAM_TILE_FIELDS = [
     for c in DAM_API_FIELDS + ["packed", "symbol"]
     if not c
     in {
-        "YearRemoved",
         "NHDPlusID",
         "Basin",
         "HUC2",
@@ -317,7 +316,6 @@ DAM_TILE_FIELDS = [
         "TotalDownstreamSmallBarriers",
         "TotalDownstreamRoadCrossings",
         "ExitsRegion",
-        "Removed",
     }.union(UNUSED_TILE_METRIC_FIELDS)
 ]
 
@@ -325,7 +323,6 @@ DAM_TILE_FILTER_FIELDS = unique(
     DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
 )
 
-# TODO: add removed
 DAM_PACK_BITS = [
     {"field": "StreamOrder", "bits": 4},
     {"field": "Recon", "bits": 5},
@@ -348,7 +345,6 @@ SB_CORE_FIELDS = (
         "LocalID",
         "CrossingCode",
         "Stream",
-        "NHDPlusID",
         "AnnualVelocity",
         "AnnualFlow",
         "TotDASqKm",
@@ -359,7 +355,6 @@ SB_CORE_FIELDS = (
         "PotentialProject",
         "BarrierSeverity",
         "SARP_Score",
-        "StreamSizeClass",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -384,7 +379,6 @@ SB_TILE_FIELDS = [
     for c in SB_API_FIELDS + ["packed", "symbol"]
     if not c
     in {
-        "YearRemoved",
         "NHDPlusID",
         "ProtectedLand",
         "Basin",
@@ -402,16 +396,17 @@ SB_TILE_FIELDS = [
         "StreamOrder",
         "Invasive",
         "Recon",  # excluded from API_FIELDS (important!)
+        "PassageFacility",
         # metric fields that can be calculated on frontend or not used
         "TotalDownstreamRoadCrossings",
         "ExitsRegion",
-        "Removed",
     }.union(UNUSED_TILE_METRIC_FIELDS)
 ]
 
 SB_PACK_BITS = [
     {"field": "StreamOrder", "bits": 4},
     {"field": "Recon", "bits": 5},
+    {"field": "PassageFacility", "bits": 5},
     {"field": "HasNetwork", "bits": 1},
     {"field": "Excluded", "bits": 1},
     {"field": "OnLoop", "bits": 1},
@@ -445,7 +440,6 @@ ROAD_CROSSING_CORE_FIELDS = (
         # "OnLoop", # not useful
         "Intermittent",
         "StreamOrder",
-        "StreamSizeClass",
     ]
     + UNIT_FIELDS
 )
@@ -508,7 +502,6 @@ WF_CORE_FIELDS = (
     + [
         "Stream",
         "FallType",
-        "NHDPlusID",
         "AnnualVelocity",
         "AnnualFlow",
         "TotDASqKm",
@@ -531,7 +524,6 @@ WF_CORE_FIELDS = (
     + [
         "Intermittent",
         "StreamOrder",
-        "StreamSizeClass",
     ]
     + [f"{c}_dams" for c in WF_METRIC_FIELDS]
     + ["upNetID_dams", "downNetID_dams"]
@@ -568,7 +560,6 @@ WF_TILE_FIELDS = [
         "HUC10",
         "OwnerType",
         "CoastalHUC8",
-        "Removed",
     }
     .union({f"{c}_dams" for c in UNUSED_TILE_METRIC_FIELDS})
     .union({f"{c}_small_barriers" for c in UNUSED_TILE_METRIC_FIELDS})
@@ -958,10 +949,9 @@ TROUT_DOMAIN = {0: "not recorded", 1: "yes"}
 # SYMBOL_DOMAIN = {
 #     0: "regular barrier",
 #     1: "unsnapped",
-#     2: "removed",
-#     3: "assessed and not a barrier (fully passable)",
-#     4: "invasive barrier",
-#     5: "no-structure diversion",
+#     2: "assessed and not a barrier (fully passable)",
+#     3: "invasive barrier",
+#     4: "no-structure diversion",
 # }
 
 

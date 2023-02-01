@@ -36,6 +36,7 @@ import {
   roadCrossingsLayer,
   pointLayer,
   offnetworkPointLayer,
+  removedBarrierPointLayer,
   unrankedPointLayer,
   regionLayers,
 } from './layers'
@@ -213,6 +214,17 @@ const SummaryMap = ({
           },
         })
 
+        // removed barriers
+        map.addLayer({
+          id: `removed_${t}`,
+          source: t,
+          'source-layer': `removed_${t}`,
+          ...removedBarrierPointLayer,
+          layout: {
+            visibility: barrierType === t ? 'visible' : 'none',
+          },
+        })
+
         // on-network ranked barriers
         map.addLayer({
           id: `ranked_${t}`,
@@ -229,6 +241,7 @@ const SummaryMap = ({
         .concat(
           ...barrierTypes.map((t) => [
             `ranked_${t}`,
+            `removed_${t}`,
             `unranked_${t}`,
             `offnetwork_${t}`,
           ])
@@ -336,6 +349,7 @@ const SummaryMap = ({
             lat,
             lon,
             ranked: sourceLayer.startsWith('ranked_'),
+            removed: sourceLayer.startsWith('removed_'),
             layer: {
               source,
               sourceLayer,
@@ -399,6 +413,7 @@ const SummaryMap = ({
     barrierTypes.forEach((t) => {
       const visibility = barrierType === t ? 'visible' : 'none'
       map.setLayoutProperty(`ranked_${t}`, 'visibility', visibility)
+      map.setLayoutProperty(`removed_${t}`, 'visibility', visibility)
       map.setLayoutProperty(`unranked_${t}`, 'visibility', visibility)
       map.setLayoutProperty(`offnetwork_${t}`, 'visibility', visibility)
     })

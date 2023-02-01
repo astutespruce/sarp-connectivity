@@ -90,6 +90,8 @@ const BarrierDetails = ({ barrier, onClose }) => {
     }
   }
 
+  console.log('barrer details:', barrier, 'packed info:', packedInfo)
+
   let scoreContent = null
   if (ranked) {
     // Transform properties to priorities: <unit>_<metric>_score

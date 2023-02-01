@@ -5,13 +5,14 @@ import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
 import { RECON } from 'config'
+import { capitalize } from 'util/format'
 import { Section } from './elements'
 
 const Feasibility = ({ recon, ...props }) => (
   <Section title="Feasibility & conservation benefit" {...props} wrap={false}>
     <View>
       {recon !== null ? (
-        <Text>{RECON[recon]}.</Text>
+        <Text>{capitalize(RECON[recon])}.</Text>
       ) : (
         <Text>No feasibility information is available for this barrier.</Text>
       )}

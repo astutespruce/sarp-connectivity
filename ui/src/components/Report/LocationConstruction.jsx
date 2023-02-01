@@ -44,6 +44,8 @@ const Location = ({
   constriction,
   passability,
   barrierseverity,
+  removed,
+  yearremoved,
   river,
   intermittent,
   subwatershed,
@@ -84,8 +86,36 @@ const Location = ({
         >
           <Entries>
             <Entry>
+              <Text>
+                Barrier Type:{' '}
+                {isLowheadDam ? (
+                  <>
+                    {lowheaddam === 2 ? 'likely ' : null}
+                    lowhead dam
+                  </>
+                ) : null}
+                {isDiversion ? (
+                  <>
+                    {isLowheadDam ? ', ' : null}
+                    {diversion === 2 ? 'likely ' : null} water diversion
+                    {nostructure ? ' (no associated barrier structure)' : null}
+                  </>
+                ) : null}
+                {!(isLowheadDam || isDiversion) ? (
+                  <> {barrierTypeLabel}</>
+                ) : null}
+                {invasive ? ', invasive species barrier' : null}
+                {removed ? (
+                  <>
+                    {yearremoved !== null && yearremoved > 0
+                      ? ` (removed in ${yearremoved})`
+                      : ' (removed)'}
+                  </>
+                ) : null}
+              </Text>
+
               {estimated ? (
-                <Flex style={{ alignItems: 'flex-start' }}>
+                <Flex style={{ alignItems: 'flex-start', marginTop: '6pt' }}>
                   <View
                     style={{
                       flex: '0 0 auto',
@@ -104,6 +134,7 @@ const Location = ({
                       flex: '1 1 auto',
                       lineHeight: 1.1,
                       marginLeft: '24pt',
+                      fontSize: '11pt',
                     }}
                   >
                     Dam is estimated from other data sources and may be
@@ -115,30 +146,7 @@ const Location = ({
                     </Link>
                   </Text>
                 </Flex>
-              ) : (
-                <Text>
-                  Barrier Type:
-                  {isLowheadDam ? (
-                    <>
-                      {lowheaddam === 2 ? 'likely ' : null}
-                      lowhead dam
-                    </>
-                  ) : null}
-                  {isDiversion ? (
-                    <>
-                      {isLowheadDam ? ', ' : null}
-                      {diversion === 2 ? 'likely ' : null} water diversion
-                      {nostructure
-                        ? ' (no associated barrier structure)'
-                        : null}
-                    </>
-                  ) : null}
-                  {!(isLowheadDam || isDiversion) ? (
-                    <> {barrierTypeLabel}</>
-                  ) : null}
-                  {invasive ? ', invasive species barrier' : null}
-                </Text>
-              )}
+              ) : null}
             </Entry>
 
             <Entry>
@@ -323,6 +331,15 @@ const Location = ({
                     </Text>
                   </Entry>
                 ) : null}
+
+                {passagefacility !== null && passagefacility >= 0 ? (
+                  <Entry>
+                    <Text>
+                      Passage facility type:{' '}
+                      {PASSAGEFACILITY[passagefacility].toLowerCase()}
+                    </Text>
+                  </Entry>
+                ) : null}
               </Entries>
             )}
           </>
@@ -348,6 +365,8 @@ Location.propTypes = {
   constriction: PropTypes.number,
   passability: PropTypes.number,
   barrierseverity: PropTypes.number,
+  removed: PropTypes.bool,
+  yearremoved: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
   huc12: PropTypes.string,
@@ -380,6 +399,8 @@ Location.defaultProps = {
   constriction: null,
   passability: null,
   barrierseverity: null,
+  removed: false,
+  yearremoved: 0,
   river: null,
   intermittent: 0,
   huc12: null,

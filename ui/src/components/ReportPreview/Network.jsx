@@ -28,6 +28,8 @@ const Network = ({
   onloop,
   invasive,
   unranked,
+  removed,
+  yearremoved,
   sx,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -51,6 +53,20 @@ const Network = ({
     : 0
 
   const header = <Heading as="h3">Functional network information</Heading>
+
+  if (removed) {
+    return (
+      <Box sx={sx}>
+        {header}
+        <Text>
+          {yearremoved !== null && yearremoved > 0
+            ? `This barrier was removed or mitigated in ${yearremoved}.`
+            : 'This barrier has been removed or mitigated.'}{' '}
+          No network information is available.
+        </Text>
+      </Box>
+    )
+  }
 
   if (excluded) {
     if (diversion && nostructure) {
@@ -304,6 +320,8 @@ Network.propTypes = {
   sizeclasses: PropTypes.number,
   invasive: PropTypes.bool,
   unranked: PropTypes.bool,
+  removed: PropTypes.bool,
+  yearremoved: PropTypes.number,
   sx: PropTypes.object,
 }
 
@@ -324,6 +342,8 @@ Network.defaultProps = {
   sizeclasses: 0,
   invasive: false,
   unranked: false,
+  removed: false,
+  yearremoved: 0,
   sx: null,
 }
 

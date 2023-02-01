@@ -24,7 +24,6 @@ from pathlib import Path
 from time import time
 import warnings
 
-import pandas as pd
 import geopandas as gp
 import shapely
 import numpy as np
@@ -56,7 +55,6 @@ from analysis.constants import (
     INVASIVE_RECON,
     BARRIER_CONDITION_TO_DOMAIN,
     POTENTIALPROJECT_TO_SEVERITY,
-    SEVERITY_TO_PASSABILITY,
     ROAD_TYPE_TO_DOMAIN,
     CROSSING_TYPE_TO_DOMAIN,
     FCODE_TO_STREAMTYPE,
@@ -172,12 +170,14 @@ df["YearRemoved"] = df.YearRemoved.fillna(0).astype("uint16")
 
 #########  Fill NaN fields and set data types
 
-for column in ["CrossingCode", "LocalID", "Source"]:
+for column in ["CrossingCode", "LocalID", "Source", "Link"]:
     df[column] = df[column].fillna("").str.strip()
 
 for column in ["Editor", "EditDate"]:
     df[column] = df[column].fillna("")
 
+for column in ["PassageFacility"]:
+    df[column] = df[column].fillna(0).astype("uint8")
 
 ### Convert to domain values
 
@@ -186,9 +186,14 @@ df.BarrierOwnerType = (
     df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
 )
 
+# Calculate BarrierSeverity from PotentialProject
 df["BarrierSeverity"] = (
     df.PotentialProject.str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
 )
+
+# Calculate PassageFacility class
+df["PassageFacilityClass"] = np.uint8(1)
+df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 2
 
 # Code Condition to use same domain as dams
 df["Condition"] = (
@@ -538,9 +543,8 @@ df = df.join(geo[["lat", "lon"]])
 
 ### Assign map symbol for use in (some) tiles
 df["symbol"] = 0
-df.loc[df.invasive, "symbol"] = 4
-df.loc[df.nobarrier, "symbol"] = 3
-df.loc[df.removed, "symbol"] = 2
+df.loc[df.invasive, "symbol"] = 3
+df.loc[df.nobarrier, "symbol"] = 2
 df.loc[~df.snapped, "symbol"] = 1
 df.symbol = df.symbol.astype("uint8")
 

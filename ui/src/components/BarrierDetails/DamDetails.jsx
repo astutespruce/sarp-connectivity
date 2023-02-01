@@ -43,6 +43,8 @@ const DamDetails = ({
   purpose,
   condition,
   passability,
+  removed,
+  yearremoved,
   lowheaddam,
   passagefacility,
   river,
@@ -94,42 +96,6 @@ const DamDetails = ({
       }}
     >
       <Section title="Location">
-        {estimated === 1 ? (
-          <Entry>
-            <Flex sx={{ alignItems: 'flex-start' }}>
-              <Box sx={{ color: 'grey.4', flex: '0 0 auto', mr: '0.5em' }}>
-                <ExclamationTriangle size="2.5em" />
-              </Box>
-              <Text sx={{ flex: '1 1 auto' }}>
-                Dam is estimated from other data sources and may be incorrect;
-                please{' '}
-                <a
-                  href={`mailto:Kat@southeastaquatics.net?subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
-                >
-                  let us know
-                </a>
-              </Text>
-            </Flex>
-          </Entry>
-        ) : null}
-
-        <LocationInfo
-          barrierType={barrierType}
-          reachName={river}
-          HUC8Name={HUC8Name}
-          HUC12Name={HUC12Name}
-          HUC12={HUC12}
-          ownertype={ownertype}
-          barrierownertype={barrierownertype}
-          intermittent={intermittent}
-          streamorder={streamorder}
-          streamsizeclass={streamsizeclass}
-          waterbodysizeclass={waterbodysizeclass}
-          waterbodykm2={waterbodykm2}
-        />
-      </Section>
-
-      <Section title="Construction information">
         <Entry>
           <Field label="Barrier type">
             {isLowheadDam ? (
@@ -157,9 +123,51 @@ const DamDetails = ({
                 invasive species barrier
               </>
             ) : null}
+            {removed ? (
+              <>
+                <br />
+                {yearremoved !== null && yearremoved > 0
+                  ? `(removed in ${yearremoved})`
+                  : '(removed)'}
+              </>
+            ) : null}
           </Field>
+
+          {estimated === 1 ? (
+            <Flex sx={{ alignItems: 'flex-start', mt: '0.5rem' }}>
+              <Box sx={{ color: 'grey.4', flex: '0 0 auto', mr: '0.5em' }}>
+                <ExclamationTriangle size="2.25em" />
+              </Box>
+              <Text sx={{ flex: '1 1 auto', fontSize: 0 }}>
+                Dam is estimated from other data sources and may be incorrect;
+                please{' '}
+                <a
+                  href={`mailto:Kat@southeastaquatics.net?subject=Problem with Estimated Dam ${sarpid} (data version: ${dataVersion})`}
+                >
+                  let us know
+                </a>
+              </Text>
+            </Flex>
+          ) : null}
         </Entry>
 
+        <LocationInfo
+          barrierType={barrierType}
+          reachName={river}
+          HUC8Name={HUC8Name}
+          HUC12Name={HUC12Name}
+          HUC12={HUC12}
+          ownertype={ownertype}
+          barrierownertype={barrierownertype}
+          intermittent={intermittent}
+          streamorder={streamorder}
+          streamsizeclass={streamsizeclass}
+          waterbodysizeclass={waterbodysizeclass}
+          waterbodykm2={waterbodykm2}
+        />
+      </Section>
+
+      <Section title="Construction information">
         {purpose !== null && purpose >= 0 && PURPOSE[purpose] ? (
           <Entry>
             <Field label="Purpose" isUnknown={purpose === 0}>
@@ -219,6 +227,14 @@ const DamDetails = ({
       </Section>
 
       <Section title="Functional network information">
+        {removed ? (
+          <Entry>
+            {yearremoved !== null && yearremoved > 0
+              ? `This barrier was removed or mitigated in ${yearremoved}.`
+              : 'This barrier has been removed or mitigated.'}
+          </Entry>
+        ) : null}
+
         {hasnetwork ? (
           <NetworkInfo
             barrierType={barrierType}
@@ -310,6 +326,8 @@ DamDetails.propTypes = {
   purpose: PropTypes.number,
   condition: PropTypes.number,
   passability: PropTypes.number,
+  removed: PropTypes.bool,
+  yearremoved: PropTypes.number,
   passagefacility: PropTypes.number,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
@@ -338,7 +356,6 @@ DamDetails.propTypes = {
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.number,
   unranked: PropTypes.number,
-
   flowstoocean: PropTypes.number,
   milestooutlet: PropTypes.number,
   totaldownstreamdams: PropTypes.number,
@@ -365,6 +382,8 @@ DamDetails.defaultProps = {
   purpose: null,
   condition: null,
   passability: null,
+  removed: false,
+  yearremoved: 0,
   passagefacility: null,
   tespp: 0,
   statesgcnspp: 0,

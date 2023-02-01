@@ -257,8 +257,6 @@ const Prioritize = () => {
   // local state referenced here is not updated when the callback
   // is later called.  To get around that, use reference to step instead.
   const handleSelectBarrier = (feature) => {
-    console.log('selected', feature)
-
     setState((prevState) => ({
       ...prevState,
       selectedBarrier: feature,

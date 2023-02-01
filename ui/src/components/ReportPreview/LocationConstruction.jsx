@@ -51,6 +51,8 @@ const LocationConstruction = ({
   constriction,
   passability,
   barrierseverity,
+  removed,
+  yearremoved,
   sarp_score,
   diversion,
   nostructure,
@@ -81,12 +83,46 @@ const LocationConstruction = ({
       <Grid columns={2} gap={0}>
         <Box sx={{ mr: '1rem' }}>
           <Entry>
+            <>
+              Barrier Type:{' '}
+              {isLowheadDam ? (
+                <>
+                  {lowheaddam === 2 ? 'likely ' : null}
+                  lowhead dam
+                </>
+              ) : null}
+              {isDiversion ? (
+                <>
+                  {isLowheadDam ? (
+                    <>
+                      ,<br />
+                    </>
+                  ) : null}{' '}
+                  {diversion === 2 ? 'likely ' : null} water diversion
+                  {nostructure ? ' (no associated barrier structure)' : null}
+                </>
+              ) : null}
+              {!(isLowheadDam || isDiversion) ? barrierTypeLabel : null}
+              {invasive ? (
+                <>
+                  ,<br /> invasive species barrier
+                </>
+              ) : null}
+            </>
+
+            {removed ? (
+              <>
+                {yearremoved !== null && yearremoved > 0
+                  ? ` (removed in ${yearremoved})`
+                  : ' (removed)'}
+              </>
+            ) : null}
             {estimated ? (
-              <Flex sx={{ alignItems: 'flex-start' }}>
+              <Flex sx={{ alignItems: 'flex-start', mt: '0.5rem' }}>
                 <Box sx={{ color: 'grey.4', flex: '0 0 auto', mr: '0.5em' }}>
-                  <ExclamationTriangle size="2.5em" />
+                  <ExclamationTriangle size="2em" />
                 </Box>
-                <Text sx={{ flex: '1 1 auto', lineHeight: 1.1 }}>
+                <Text sx={{ flex: '1 1 auto', lineHeight: 1.1, fontSize: 1 }}>
                   Dam is estimated from other data sources and may be incorrect;
                   please{' '}
                   <a
@@ -96,34 +132,7 @@ const LocationConstruction = ({
                   </a>
                 </Text>
               </Flex>
-            ) : (
-              <>
-                Barrier Type:{' '}
-                {isLowheadDam ? (
-                  <>
-                    {lowheaddam === 2 ? 'likely ' : null}
-                    lowhead dam
-                  </>
-                ) : null}
-                {isDiversion ? (
-                  <>
-                    {isLowheadDam ? (
-                      <>
-                        ,<br />
-                      </>
-                    ) : null}{' '}
-                    {diversion === 2 ? 'likely ' : null} water diversion
-                    {nostructure ? ' (no associated barrier structure)' : null}
-                  </>
-                ) : null}
-                {!(isLowheadDam || isDiversion) ? barrierTypeLabel : null}
-                {invasive ? (
-                  <>
-                    ,<br /> invasive species barrier
-                  </>
-                ) : null}
-              </>
-            )}
+            ) : null}
           </Entry>
           <Entry>
             {hasRiver ? `On ${river} in` : 'Within'} {subwatershed}{' '}
@@ -259,6 +268,13 @@ const LocationConstruction = ({
                   )
                 </Entry>
               ) : null}
+
+              {passagefacility !== null && passagefacility >= 0 ? (
+                <Entry>
+                  Passage facility type:{' '}
+                  {PASSAGEFACILITY[passagefacility].toLowerCase()}
+                </Entry>
+              ) : null}
             </>
           )}
         </Box>
@@ -290,6 +306,8 @@ LocationConstruction.propTypes = {
   constriction: PropTypes.number,
   passability: PropTypes.number,
   barrierseverity: PropTypes.number,
+  removed: PropTypes.bool,
+  yearremoved: PropTypes.number,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
@@ -323,6 +341,8 @@ LocationConstruction.defaultProps = {
   constriction: null,
   passability: null,
   barrierseverity: null,
+  removed: false,
+  yearremoved: 0,
   sarp_score: -1,
   diversion: 0,
   nostructure: false,

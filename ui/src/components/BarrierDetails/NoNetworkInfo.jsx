@@ -77,7 +77,7 @@ const NoNetworkInfo = ({
     )
   }
 
-  return <Entry>No network information is available for this dam.</Entry>
+  return <Entry>No network information is available.</Entry>
 }
 
 NoNetworkInfo.propTypes = {

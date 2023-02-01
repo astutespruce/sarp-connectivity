@@ -15,6 +15,7 @@ import {
   waterfallsLayer,
   offnetworkPointLayer,
   unrankedPointLayer,
+  removedBarrierPointLayer,
 } from 'components/Summary/layers'
 
 import {
@@ -201,6 +202,13 @@ const Map = ({
           ...offnetworkPointLayer,
         })
 
+        mapObj.addLayer({
+          id: `removed_${barrierType}`,
+          source: barrierType,
+          'source-layer': `removed_${barrierType}`,
+          ...removedBarrierPointLayer,
+        })
+
         // Add barrier highlight layer for on and off-network barriers.
         mapObj.addLayer({
           ...pointHighlightLayer,
@@ -224,6 +232,15 @@ const Map = ({
           id: 'offnetwork-point-highlight',
           source: barrierType,
           'source-layer': `offnetwork_${barrierType}`,
+          minzoom: 9,
+          filter: ['==', ['get', 'id'], barrierID],
+        })
+
+        mapObj.addLayer({
+          ...pointHighlightLayer,
+          id: 'removed-point-highlight',
+          source: barrierType,
+          'source-layer': `removed_${barrierType}`,
           minzoom: 9,
           filter: ['==', ['get', 'id'], barrierID],
         })
