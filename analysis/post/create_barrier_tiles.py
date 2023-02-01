@@ -12,6 +12,8 @@ from api.constants import (
     DAM_TILE_FIELDS,
     UNIT_FIELDS,
     METRIC_FIELDS,
+    UPSTREAM_COUNT_FIELDS,
+    DOWNSTREAM_LINEAR_NETWORK_FIELDS,
     SB_TILE_FILTER_FIELDS,
     SB_TILE_FIELDS,
     WF_TILE_FIELDS,
@@ -126,7 +128,15 @@ ret.check_returncode()
 df = df.drop(columns=["TotDASqKm"])
 
 ### Create tiles for ranked dams with networks
-ranked_dams = df.loc[df.Ranked].drop(columns=["Ranked", "HasNetwork", "symbol"])
+ranked_dams = df.loc[df.Ranked].drop(
+    columns=[
+        "Ranked",
+        "HasNetwork",
+        "symbol",
+        "YearRemoved",
+        "Removed",
+    ]
+)
 print(f"Creating tiles for {len(ranked_dams):,} ranked dams with networks")
 
 # Pack tier fields; not used for filtering, only display of info in sidebars
@@ -152,14 +162,82 @@ ret = subprocess.run(
 ret.check_returncode()
 
 
+### Create tiles for removed dams
+removed_dams = df.loc[df.Removed].drop(
+    columns=[
+        "Removed",
+        "Ranked",
+        "Unranked",
+        "HasNetwork",
+        "symbol",
+        # remove fields only used for filtering
+        "HUC6",
+        "GainMilesClass",
+        "TESppClass",
+        "StateSGCNSppClass",
+        "StreamOrderClass",
+        "CoastalHUC8",
+        "DownstreamOceanMilesClass",
+        "DownstreamOceanBarriersClass",
+        "PassageFacilityClass",
+        "PercentAlteredClass",
+        "SalmonidESUCount",
+    ]
+    + DROP_UNIT_FIELDS
+    + STATE_TIER_FIELDS,
+    errors="ignore",
+)
+
+# TEMP: eventually removed dams will have network fields; for now, drop them
+removed_dams = removed_dams.drop(
+    columns=[
+        "FlowsToOcean",
+        "MilesToOutlet",
+        "upNetID",
+        "downNetID",
+    ]
+    + [
+        c
+        for c in METRIC_FIELDS
+        if not c
+        in {
+            "Intermittent",
+            "StreamOrder",
+        }
+    ]
+    + UPSTREAM_COUNT_FIELDS
+    + DOWNSTREAM_LINEAR_NETWORK_FIELDS,
+    errors="ignore",
+)
+
+
+print(f"Creating tiles for {len(removed_dams):,} removed small barriers")
+
+removed_dams = to_lowercase(removed_dams)
+
+outfilename = tmp_dir / "removed_dams.fgb"
+mbtiles_filename = tmp_dir / "removed_dams.mbtiles"
+mbtiles_files.append(mbtiles_filename)
+write_dataframe(removed_dams.reset_index(drop=True), outfilename)
+
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
+    + ["-l", "removed_dams"]
+    + ["-o", f"{str(mbtiles_filename)}"]
+    + get_col_types(removed_dams)
+    + [str(outfilename)]
+)
+ret.check_returncode()
+
+
 ### Create tiles for unranked dams with networks
-
-# TODO: split out invasive barriers
-
-unranked_dams = df.loc[df.HasNetwork & (~df.Ranked)].drop(
+unranked_dams = df.loc[df.HasNetwork & (~(df.Ranked | df.Removed))].drop(
     columns=[
         "Ranked",
         "HasNetwork",
+        "YearRemoved",
+        "Removed",
         "GainMilesClass",
         "TESppClass",
         "StateSGCNSppClass",
@@ -202,11 +280,13 @@ print("Creating tiles for dams without networks")
 
 # Drop metrics, tiers, and units used only for filtering
 offnetwork_dams = (
-    df.loc[~df.HasNetwork]
+    df.loc[~(df.HasNetwork | df.Removed)]
     .drop(
         columns=[
             "HasNetwork",
             "Ranked",
+            "YearRemoved",
+            "Removed",
             "GainMilesClass",
             "TESppClass",
             "StateSGCNSppClass",
@@ -225,12 +305,13 @@ offnetwork_dams = (
             "CoastalHUC8",
             "DownstreamOceanMilesClass",
             "DownstreamOceanBarriersClass",
-            "NHDPlusID",
             "upNetID",
             "downNetID",
         ]
         + DROP_UNIT_FIELDS
         + METRIC_FIELDS
+        + UPSTREAM_COUNT_FIELDS
+        + DOWNSTREAM_LINEAR_NETWORK_FIELDS
         + STATE_TIER_FIELDS,
         errors="ignore",
     )
@@ -322,8 +403,15 @@ ret.check_returncode()
 
 
 ### Create tiles for ranked small barriers
-
-ranked_barriers = df.loc[df.Ranked].drop(columns=["Ranked", "HasNetwork", "symbol"])
+ranked_barriers = df.loc[df.Ranked].drop(
+    columns=[
+        "Ranked",
+        "HasNetwork",
+        "symbol",
+        "YearRemoved",
+        "Removed",
+    ]
+)
 print(
     f"Creating tiles for {len(ranked_barriers):,} ranked small barriers with networks"
 )
@@ -347,11 +435,83 @@ ret = subprocess.run(
 )
 ret.check_returncode()
 
+### Create tiles for removed small barriers
+removed_barriers = df.loc[df.Removed].drop(
+    columns=[
+        "Removed",
+        "Ranked",
+        "Unranked",
+        "HasNetwork",
+        "symbol",
+        # remove fields only used for filtering
+        "HUC6",
+        "GainMilesClass",
+        "TESppClass",
+        "StateSGCNSppClass",
+        "StreamOrderClass",
+        "CoastalHUC8",
+        "DownstreamOceanMilesClass",
+        "DownstreamOceanBarriersClass",
+        "PassageFacilityClass",
+        "PercentAlteredClass",
+        "SalmonidESUCount",
+    ]
+    + DROP_UNIT_FIELDS
+    + STATE_TIER_FIELDS,
+    errors="ignore",
+)
+
+# TEMP: eventually removed barriers will have network fields; for now, drop them
+removed_barriers = removed_barriers.drop(
+    columns=[
+        "FlowsToOcean",
+        "MilesToOutlet",
+        "upNetID",
+        "downNetID",
+    ]
+    + DROP_UNIT_FIELDS
+    + [
+        c
+        for c in METRIC_FIELDS
+        if not c
+        in {
+            "Intermittent",
+            "StreamOrder",
+        }
+    ]
+    + UPSTREAM_COUNT_FIELDS
+    + DOWNSTREAM_LINEAR_NETWORK_FIELDS,
+    errors="ignore",
+)
+
+
+print(f"Creating tiles for {len(removed_barriers):,} removed small barriers")
+
+removed_barriers = to_lowercase(removed_barriers)
+
+outfilename = tmp_dir / "removed_small_barriers.fgb"
+mbtiles_filename = tmp_dir / "removed_small_barriers.mbtiles"
+mbtiles_files.append(mbtiles_filename)
+write_dataframe(removed_barriers.reset_index(drop=True), outfilename)
+
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
+    + ["-l", "removed_small_barriers"]
+    + ["-o", f"{str(mbtiles_filename)}"]
+    + get_col_types(removed_barriers)
+    + [str(outfilename)]
+)
+ret.check_returncode()
+
+
 ### Create tiles for unranked barriers with networks
-unranked_barriers = df.loc[df.HasNetwork & (~df.Ranked)].drop(
+unranked_barriers = df.loc[df.HasNetwork & (~(df.Ranked | df.Removed))].drop(
     columns=[
         "Ranked",
         "HasNetwork",
+        "Removed",
+        "YearRemoved",
         "GainMilesClass",
         "TESppClass",
         "StateSGCNSppClass",
@@ -361,6 +521,7 @@ unranked_barriers = df.loc[df.HasNetwork & (~df.Ranked)].drop(
         "SalmonidESUCount",
         "DownstreamOceanMilesClass",
         "DownstreamOceanBarriersClass",
+        "PassageFacilityClass",
     ]
     + DROP_UNIT_FIELDS,
     errors="ignore",
@@ -389,10 +550,13 @@ ret.check_returncode()
 
 
 ### Create tiles for small barriers without networks (these are never ranked)
-offnetwork_barriers = df.loc[~df.HasNetwork].drop(
+offnetwork_barriers = df.loc[~(df.HasNetwork | df.Removed)].drop(
     columns=[
         "HasNetwork",
         "Ranked",
+        "Removed",
+        "YearRemoved",
+        # remove fields only used for filtering and general network fields
         "HUC6",
         "GainMilesClass",
         "TESppClass",
@@ -407,12 +571,13 @@ offnetwork_barriers = df.loc[~df.HasNetwork].drop(
         "CoastalHUC8",
         "DownstreamOceanMilesClass",
         "DownstreamOceanBarriersClass",
-        "NHDPlusID",
         "upNetID",
         "downNetID",
     ]
     + DROP_UNIT_FIELDS
     + METRIC_FIELDS
+    + UPSTREAM_COUNT_FIELDS
+    + DOWNSTREAM_LINEAR_NETWORK_FIELDS
     + STATE_TIER_FIELDS,
     errors="ignore",
 )
