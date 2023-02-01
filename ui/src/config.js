@@ -585,14 +585,20 @@ export const PASSABILITY = {
 }
 
 // severity is limited to small barriers
-export const SMALL_BARRIER_SEVERITY = {
-  0: 'unknown',
+// filter bins do not include unknown, no barrier, no upstream habitat,
+// minor barrier because these are never ranked
+export const SMALL_BARRIER_SEVERITY_FILTER_BINS = {
   1: 'complete barrier',
   2: 'moderate barrier',
   3: 'indeterminate barrier',
-  4: 'minor barrier',
   5: 'barrier - unknown severity',
+}
+export const SMALL_BARRIER_SEVERITY = {
+  0: 'unknown',
+  ...SMALL_BARRIER_SEVERITY_FILTER_BINS,
+  4: 'minor barrier',
   6: 'no barrier',
+  7: 'no upstream habitat',
 }
 
 export const LOWHEAD_DAM = {

@@ -489,8 +489,8 @@ POTENTIALPROJECT_TO_SEVERITY = {
     "moderate barrier": 2,
     "no barrier": 6,  # removed from processing
     "no crossing": 6,
-    "no upstream channel": 6,
-    "no upstream habitat": 6,
+    "no upstream channel": 7,
+    "no upstream habitat": 7,
     "buried stream": 6,
     "not scored": 0,
     "no": 6,
@@ -508,7 +508,18 @@ POTENTIALPROJECT_TO_SEVERITY = {
 }
 
 
-SEVERITY_TO_PASSABILITY = {0: 0, 1: 1, 2: 2, 3: 2, 4: 2, 5: 2, 6: 7}
+# Map small barrier BarrierSeverity to Passability domain used by dams / combined
+SEVERITY_TO_PASSABILITY = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 2,
+    4: 2,
+    5: 2,
+    6: 7,
+    # FIXME: verify mapping with Kat
+    7: 2,
+}
 
 
 # recoded to better align with OWNERTYPE domain
