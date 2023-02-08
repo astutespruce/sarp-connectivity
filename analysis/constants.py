@@ -517,8 +517,7 @@ SEVERITY_TO_PASSABILITY = {
     4: 2,
     5: 2,
     6: 7,
-    # FIXME: verify mapping with Kat
-    7: 2,
+    7: 0,
 }
 
 
