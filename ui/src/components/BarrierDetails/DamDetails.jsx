@@ -64,6 +64,7 @@ const DamDetails = ({
   recon,
   ownertype,
   barrierownertype,
+  disadvantagedcommunity,
   // metrics
   totalupstreammiles,
   perennialupstreammiles,
@@ -159,6 +160,7 @@ const DamDetails = ({
           HUC12={HUC12}
           ownertype={ownertype}
           barrierownertype={barrierownertype}
+          disadvantagedcommunity={disadvantagedcommunity}
           intermittent={intermittent}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
@@ -337,6 +339,7 @@ DamDetails.propTypes = {
   recon: PropTypes.number,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
+  disadvantagedcommunity: PropTypes.string,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -393,6 +396,7 @@ DamDetails.defaultProps = {
   recon: null,
   ownertype: null,
   barrierownertype: null,
+  disadvantagedcommunity: null,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,

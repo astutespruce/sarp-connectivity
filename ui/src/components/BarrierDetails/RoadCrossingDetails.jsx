@@ -24,6 +24,7 @@ const RoadCrossingDetails = ({
   road,
   roadtype,
   crossingtype,
+  disadvantagedcommunity,
   tespp,
   statesgcnspp,
   regionalsgcnspp,
@@ -59,6 +60,7 @@ const RoadCrossingDetails = ({
         HUC12Name={HUC12Name}
         HUC12={HUC12}
         ownertype={ownertype}
+        disadvantagedcommunity={disadvantagedcommunity}
         intermittent={intermittent}
         streamorder={streamorder}
         streamsizeclass={streamsizeclass}
@@ -122,6 +124,7 @@ RoadCrossingDetails.propTypes = {
   road: PropTypes.string,
   roadtype: PropTypes.number,
   crossingtype: PropTypes.number,
+  disadvantagedcommunity: PropTypes.string,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
@@ -144,6 +147,7 @@ RoadCrossingDetails.defaultProps = {
   road: null,
   roadtype: null,
   crossingtype: null,
+  disadvantagedcommunity: null,
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,

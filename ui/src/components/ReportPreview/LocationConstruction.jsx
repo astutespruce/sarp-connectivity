@@ -15,6 +15,7 @@ import {
   ROAD_TYPE,
   OWNERTYPE,
   BARRIEROWNERTYPE,
+  DISADVANTAGED_COMMUNITY,
   PURPOSE,
   PASSABILITY,
   SMALL_BARRIER_SEVERITY,
@@ -37,6 +38,7 @@ const LocationConstruction = ({
   huc12,
   ownertype,
   barrierownertype,
+  disadvantagedcommunity,
   construction,
   lowheaddam,
   purpose,
@@ -189,6 +191,16 @@ const LocationConstruction = ({
               Barrier ownership type: {BARRIEROWNERTYPE[barrierownertype]}
             </Entry>
           ) : null}
+
+          {disadvantagedcommunity ? (
+            <Entry>
+              Climate and environmental justice:{' '}
+              {disadvantagedcommunity
+                .split(',')
+                .map((type) => DISADVANTAGED_COMMUNITY[type].toLowerCase())
+                .join(', ')}
+            </Entry>
+          ) : null}
         </Box>
 
         <Box
@@ -293,6 +305,7 @@ LocationConstruction.propTypes = {
   huc12: PropTypes.string,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
+  disadvantagedcommunity: PropTypes.string,
   height: PropTypes.number,
   width: PropTypes.number,
   yearcompleted: PropTypes.number,
@@ -328,6 +341,7 @@ LocationConstruction.defaultProps = {
   huc12: null,
   ownertype: null,
   barrierownertype: null,
+  disadvantagedcommunity: null,
   height: 0,
   width: 0,
   yearcompleted: 0,

@@ -9,6 +9,7 @@ import {
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
+  DISADVANTAGED_COMMUNITY,
 } from 'config'
 import { Entry, Field } from 'components/Sidebar'
 import { formatNumber } from 'util/format'
@@ -22,6 +23,7 @@ const LocationInfo = ({
   HUC12Name,
   ownertype,
   barrierownertype,
+  disadvantagedcommunity,
   intermittent,
   streamorder,
   streamsizeclass,
@@ -89,6 +91,16 @@ const LocationInfo = ({
           </Field>{' '}
         </Entry>
       ) : null}
+      {!isEmptyString(disadvantagedcommunity) ? (
+        <Entry>
+          <Field label="Climate and environmental justice">
+            {disadvantagedcommunity
+              .split(',')
+              .map((type) => DISADVANTAGED_COMMUNITY[type].toLowerCase())
+              .join(', ')}
+          </Field>
+        </Entry>
+      ) : null}
     </>
   )
 }
@@ -101,6 +113,7 @@ LocationInfo.propTypes = {
   HUC12Name: PropTypes.string.isRequired,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
+  disadvantagedcommunity: PropTypes.string,
   intermittent: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
@@ -112,6 +125,7 @@ LocationInfo.defaultProps = {
   reachName: null,
   ownertype: 0,
   barrierownertype: 0,
+  disadvantagedcommunity: null,
   intermittent: 0,
   streamorder: 0,
   streamsizeclass: null,

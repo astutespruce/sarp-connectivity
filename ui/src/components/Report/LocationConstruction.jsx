@@ -13,6 +13,7 @@ import {
   ROAD_TYPE,
   OWNERTYPE,
   BARRIEROWNERTYPE,
+  DISADVANTAGED_COMMUNITY,
   PASSAGEFACILITY,
   PURPOSE,
   PASSABILITY,
@@ -53,6 +54,7 @@ const Location = ({
   huc12,
   ownertype,
   barrierownertype,
+  disadvantagedcommunity,
   sarp_score,
   diversion,
   nostructure,
@@ -216,6 +218,18 @@ const Location = ({
                 </Text>
               </Entry>
             ) : null}
+
+            {disadvantagedcommunity ? (
+              <Entry>
+                <Text>
+                  Climate and environmental justice:{' '}
+                  {disadvantagedcommunity
+                    .split(',')
+                    .map((type) => DISADVANTAGED_COMMUNITY[type].toLowerCase())
+                    .join(', ')}
+                </Text>
+              </Entry>
+            ) : null}
           </Entries>
         </View>
 
@@ -374,6 +388,7 @@ Location.propTypes = {
   subbasin: PropTypes.string,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
+  disadvantagedcommunity: PropTypes.string,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
@@ -408,6 +423,7 @@ Location.defaultProps = {
   subbasin: null,
   ownertype: null,
   barrierownertype: null,
+  disadvantagedcommunity: null,
   sarp_score: -1,
   diversion: 0,
   lowheaddam: null,

@@ -564,6 +564,10 @@ export const PASSAGEFACILITY = {
   16: 'vertical slot fishway',
   17: 'nature-like fishway',
   18: 'bypass channel fishway',
+  19: 'crossvane',
+  20: 'screen bypass',
+  21: 'fishway unspecified',
+  22: 'other',
 }
 
 export const INTERMITTENT = {

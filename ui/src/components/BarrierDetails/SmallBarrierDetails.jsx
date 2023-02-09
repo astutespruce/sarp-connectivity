@@ -73,6 +73,7 @@ const BarrierDetails = ({
   salmonidesu,
   ownertype,
   barrierownertype,
+  disadvantagedcommunity,
   barrierseverity,
   removed,
   yearremoved,
@@ -141,6 +142,7 @@ const BarrierDetails = ({
         HUC12={HUC12}
         ownertype={ownertype}
         barrierownertype={barrierownertype}
+        disadvantagedcommunity={disadvantagedcommunity}
         intermittent={intermittent}
         streamorder={streamorder}
         streamsizeclass={streamsizeclass}
@@ -303,6 +305,7 @@ BarrierDetails.propTypes = {
   salmonidesu: PropTypes.string,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
+  disadvantagedcommunity: PropTypes.string,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -354,6 +357,7 @@ BarrierDetails.defaultProps = {
   salmonidesu: null,
   ownertype: null,
   barrierownertype: null,
+  disadvantagedcommunity: null,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,
