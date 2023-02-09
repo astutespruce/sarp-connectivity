@@ -41,39 +41,46 @@ const LengthPage = ({ data: { headerImage } }) => (
         <Heading as="h2" variant="heading.section">
           Methods
         </Heading>
-        <Paragraph>We categorized species as follows:</Paragraph>
+        <Paragraph>
+          We summarized species data to the subwatershed level based on:
+        </Paragraph>
         <ol>
           <li>
-            Federally-listed species were identified based on data managed by
-            the state programs or based on species lists from the U.S. Fish and
-            Wildlife Service.
+            Presence of federally-listed species using data managed by the state
+            programs or species lists from the U.S. Fish and Wildlife Service.
           </li>
           <li>
-            State-listed Species of Greatest Conservation Need were identified
-            using species lists from{' '}
+            Presence of state-listed Species of Greatest Conservation Need using
+            species lists from{' '}
             <OutboundLink to="https://www1.usgs.gov/csas/swap/">
               State Wildlife Action Plan species lists
             </OutboundLink>{' '}
             compiled by the U.S. Geological Survey.
           </li>
           <li>
-            Regionally-listed Species of Greatest Conservation Need were
-            identified using a species list from the Southeast Association of
-            Fish and Wildlife Agencies.
+            Presence of regionally-listed Species of Greatest Conservation Need
+            using a species list from the Southeast Association of Fish and
+            Wildlife Agencies.
+          </li>
+          <li>
+            Presence of trout species using a combination of data provided from
+            natural heritage programs and NatureServe, as well as data from the
+            Eastern Brook Trout Joint Venture (
+            <OutboundLink to="https://easternbrooktrout.org/about/reports/ebtjv-salmonid-catchment-assessment-and-habitat-patch-layers">
+              EBTJV Habitat Patch Dataset
+            </OutboundLink>
+            , brook trout only).
+          </li>
+          <li>
+            Overlap with salmon and steelhead Evolutionarily Significant Units /
+            Discrete Population Segment data provided by the National Oceanic
+            and Atmospheric Administration (NOAA){' '}
+            <OutboundLink to="https://www.fisheries.noaa.gov/about/northwest-fisheries-science-center">
+              Northwest Fisheries Science Center
+            </OutboundLink>
+            .
           </li>
         </ol>
-        <Paragraph>
-          <br />
-          We then counted the number of federally-listed threatened and
-          endangered species and Species of Greatest Conservation Need by
-          subwatershed (HUC12) and assigned to each barrier within that
-          subwatershed.
-          <br />
-          <br />
-          We identified the top 10 watersheds for each state based on the number
-          of state-listed species of Greatest Conservation Need aggregated up to
-          the watershed (HUC8) level.
-        </Paragraph>
       </Box>
 
       <Box sx={{ mt: '3rem' }}>
