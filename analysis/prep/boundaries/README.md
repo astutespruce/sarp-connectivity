@@ -34,7 +34,7 @@ for use later in the analysis pipeline.
 
 ### States in region
 
-State boundaries (2021 version) were downloaded from CENSUS Tiger website.
+State boundaries (2022 version) were downloaded from CENSUS Tiger website.
 
 The predefined list of states is assigned in `analysis/constants.py`.
 
@@ -69,11 +69,19 @@ include:
 
 ### Counties
 
-County boundaries (2021 version) were downloaded from CENSUS Tiger website.
+County boundaries (2022 version) were downloaded from CENSUS Tiger website.
 
 ### Protected Areas
 
 Kat Hoenke (SARP) extracted protected area data from CBI Protected Areas and TNC Secured Lands and merged them together. Kat later obtained a boundaries layer from USFS, and overlayed this over the top (11/4/2019). Because this causes multiple owner type polygons to occur in the same location, the `Preference` attribute is added, so that we can sort on ascending preference to assign the most appropriate ownership to a given barrier (nulls assigned arbitrary high value).
+
+### Environmental Justice Disadvantaged Communities
+
+Environmental justice disadvantaged communites evaluated at the Census tract level
+were downloaded 2/8/2023 from: https://screeningtool.geoplatform.gov/en/downloads
+
+Following the same methods as described in the tool above, Tribal areas (2022 version)
+were downloaded from the Census TIGER website.
 
 ## 4. Create boundary vector tiles
 

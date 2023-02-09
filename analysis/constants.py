@@ -591,6 +591,65 @@ FCODE_TO_STREAMTYPE = {
 }
 
 
+# map ESU layer names to 2-digit integer indexes
+# these are based on data/species/source/ESU_DPS_CA_WA_OR_ID.gdb
+# the inverse of this (with modifications) is the lookup used in frontend
+SALMONID_ESU_LAYER_TO_CODE = {
+    "Chinook_California_Coastal": 10,
+    "Chinook_Central_Valley_Fall_LateFall_run": 11,
+    "Chinook_Central_Valley_Spring_run": 12,
+    "Chinook_Deschutes_River_Summer_Fall_run": 13,
+    "Chinook_Lower_Columbia_River": 14,
+    "Chinook_Mid_Columbia_River_Spring_run": 15,
+    "Chinook_Oregon_Coast": 16,
+    "Chinook_Puget_Sound": 17,
+    "Chinook_Sacramento_River_Winter_run": 18,
+    "Chinook_Snake_River_Fall_run": 19,
+    "Chinook_Snake_River_Spring_Summer_run": 20,
+    "Chinook_Southern_OR_Northern_CA_Coastal": 21,
+    "Chinook_Upper_Columbia_River_Spring_run": 22,
+    "Chinook_Upper_Columbia_River_Summer_Fall_run": 23,
+    "Chinook_Upper_Klamath_Trinity_Rivers": 24,
+    "Chinook_Upper_Willamette_River": 25,
+    "Chinook_Washington_Coast": 26,
+    "Chum_Columbia_River": 27,
+    "Chum_Hood_Canal_Summer_run": 28,
+    "Chum_Pacific_Coast": 29,
+    "Chum_Puget_Sound_Strait_of_Georgia": 30,
+    "Coho_Central_California_Coast": 31,
+    "Coho_Lower_Columbia_River": 32,
+    "Coho_Olympic_Peninsula": 33,
+    "Coho_Oregon_Coast": 34,
+    "Coho_Puget_Sound_Strait_of_Georgia": 35,
+    "Coho_Southern_OR_Northern_CA_Coast": 36,
+    "Coho_Southwest_Washington": 37,
+    "Pink_even_year": 38,
+    "Pink_odd_year": 39,
+    "Sockeye_Baker_River": 40,
+    "Sockeye_Lake_Pleasant": 41,
+    "Sockeye_Lake_Wenatchee": 42,
+    "Sockeye_Okanogan_River": 43,
+    "Sockeye_Ozette_Lake": 44,
+    "Sockeye_Quinalt_Lake": 45,
+    "Sockeye_Snake_River": 46,
+    "Steelhead_California_Central_Valley": 47,
+    "Steelhead_Central_California_Coast": 48,
+    "Steelhead_Klamath_Mountains_Province": 49,
+    "Steelhead_Lower_Columbia_River": 50,
+    "Steelhead_Middle_Columbia_River": 51,
+    "Steelhead_Northern_California": 52,
+    "Steelhead_Olympic_Peninsula": 53,
+    "Steelhead_Oregon_Coast": 54,
+    "Steelhead_Puget_Sound": 55,
+    "Steelhead_Snake_River_Basin": 56,
+    "Steelhead_South_Central_California_Coast": 57,
+    "Steelhead_Southern_California": 58,
+    "Steelhead_Southwest_Washington": 59,
+    "Steelhead_Upper_Columbia_River": 60,
+    "Steelhead_Upper_Willamette_River": 61,
+}
+
+
 # List of NHDPlusIDs to convert from loops to non-loops;
 # they are coded incorrectly in NHD
 # WARNING: you may need to remove the corresponding segments or joins that

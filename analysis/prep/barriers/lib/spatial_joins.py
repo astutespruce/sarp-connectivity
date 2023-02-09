@@ -1,7 +1,8 @@
 from pathlib import Path
 
-import pandas as pd
 import geopandas as gp
+import numpy as np
+import pandas as pd
 from shapely import STRtree
 
 from analysis.lib.geometry import sjoin_points_to_poly
@@ -114,6 +115,24 @@ def add_spatial_joins(df):
     df = sjoin_points_to_poly(df, protected)
     df.OwnerType = df.OwnerType.fillna(0).astype("uint8")
     df.ProtectedLand = df.ProtectedLand.fillna(False).astype("bool")
+
+    ### Environmental justice layers
+    print("Joining to environmental justice disadvantaged communities")
+    tracts = gp.read_feather(boundaries_dir / "environmental_justice_tracts.feather")
+    tracts["EJTract"] = 1
+    df = sjoin_points_to_poly(df, tracts)
+    df["EJTract"] = df.EJTract.fillna(0).astype("uint8")
+
+    tribal_lands = gp.read_feather(boundaries_dir / "tribal_lands.feather")
+    tribal_lands["EJTribal"] = 1
+    df = sjoin_points_to_poly(df, tribal_lands)
+    df["EJTribal"] = df.EJTribal.fillna(0).astype("uint8")
+
+    # combine into single column for filtering
+    labels = np.array(["tract", "tribal"])
+    df["DisadvantagedCommunity"] = df[["EJTract", "EJTribal"]].apply(
+        lambda row: ",".join(labels[row.values == 1]), axis=1
+    )
 
     ### Join in species stats
     spp_df = (

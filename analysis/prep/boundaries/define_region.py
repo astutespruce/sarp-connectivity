@@ -14,7 +14,7 @@ data_dir = Path("data")
 out_dir = data_dir / "boundaries"
 ui_dir = Path("ui/data")
 
-state_filename = data_dir / "boundaries/source/tl_2021_us_state.shp"
+state_filename = data_dir / "boundaries/source/tl_2022_us_state.shp"
 wbd_gdb = data_dir / "nhd/source/wbd/WBD_National_GDB/WBD_National_GDB.gdb"
 
 

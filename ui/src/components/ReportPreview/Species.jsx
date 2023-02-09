@@ -58,7 +58,7 @@ const Species = ({
         This subwatershed falls within the following salmon Evolutionarily
         Significant Units (ESU) / steelhead trout Discrete Population Segments
         (DPS):
-        <Box as="ul" sx={{ mt: '0.25rem' }}>
+        <Box as="ul" sx={{ mt: '0.25rem', ml: '1rem' }}>
           {salmonidesu.split(',').map((code) => (
             <li key={code}>{SALMONID_ESU[code]}</li>
           ))}

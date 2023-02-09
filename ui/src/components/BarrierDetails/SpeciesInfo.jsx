@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Text, Paragraph } from 'theme-ui'
+import { Box, Text, Paragraph } from 'theme-ui'
 
 import { SALMONID_ESU, barrierTypeLabelSingular } from 'config'
 import { Entry, Field } from 'components/Sidebar'
@@ -98,11 +98,26 @@ const SpeciesInfo = ({
       </Entry>
       {salmonidesu ? (
         <Entry>
-          Within{' '}
-          {salmonidesu
-            .split(',')
-            .map((code) => SALMONID_ESU[code])
-            .join(', ')}
+          <Field
+            label="Salmon Evolutionarily Significant Units / Steelhead trout Discrete Population Segments present"
+            sx={{
+              display: 'block',
+              '&>div': {
+                mt: '0.25rem',
+                ml: '2rem',
+                textAlign: 'left',
+              },
+              '& li+li': {
+                mt: '0.25rem',
+              },
+            }}
+          >
+            <Box as="ul">
+              {salmonidesu.split(',').map((code) => (
+                <li key={code}>{SALMONID_ESU[code]}</li>
+              ))}
+            </Box>
+          </Field>
         </Entry>
       ) : null}
       {disclaimer}

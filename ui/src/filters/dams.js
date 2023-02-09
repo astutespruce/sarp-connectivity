@@ -20,6 +20,7 @@ import {
   BOOLEAN_FIELD,
   DOWNSTREAM_OCEAN_MILES,
   DOWNSTREAM_OCEAN_DAMS_DOMAIN,
+  DISADVANTAGED_COMMUNITY,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -36,6 +37,18 @@ export const dams = [
         help: 'Note: feasibility is based on further reconnaissance to evaluate individual barriers. Values are provided only for those that have been evaluated. There may be more feasible or infeasible dams than are indicated above.',
         hideEmpty: true,
         ...getEntries(FEASIBILITYCLASS, (v) => v > 0),
+      },
+      {
+        field: 'disadvantagedcommunity',
+        title: 'Climate and environmental justice',
+        help: 'Within a disadvantaged community as defined by the Climate and Environmental Justice Screening tool.  These include overburdened and underserved Census tracts and American Indian and Alaska Native areas as defined by the Census.', // TODO:,
+        sort: false,
+        hideIfEmpty: true,
+        isArray: true,
+        labels: Object.values(DISADVANTAGED_COMMUNITY),
+        values: Object.keys(DISADVANTAGED_COMMUNITY),
+        getValue: ({ disadvantagedcommunity }) =>
+          disadvantagedcommunity.split(','),
       },
     ],
   },

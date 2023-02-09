@@ -86,7 +86,7 @@ const Species = ({
           Significant Units (ESU) / steelhead trout Discrete Population Segments
           (DPS):
         </Text>
-        <List>
+        <List style={{ marginLeft: 12 }}>
           {salmonidesu.split(',').map((code) => (
             <ListItem key={code}>
               <Text>{SALMONID_ESU[code]}</Text>

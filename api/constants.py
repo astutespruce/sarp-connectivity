@@ -52,7 +52,7 @@ def unique(items):
 
 
 # Fields that have multiple values present, encoded as comma-delimited string
-MULTIPLE_VALUE_FIELDS = ["SalmonidESU"]
+MULTIPLE_VALUE_FIELDS = ["SalmonidESU", "DisadvantagedCommunity"]
 
 
 # Summary unit fields
@@ -173,6 +173,7 @@ FILTER_FIELDS = [
     "DownstreamOceanBarriersClass",
     "CoastalHUC8",
     "PassageFacilityClass",
+    "DisadvantagedCommunity",
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
@@ -224,6 +225,8 @@ GENERAL_API_FIELDS2 = (
         "BarrierOwnerType",
         "ProtectedLand",
         "Link",
+        "EJTract",
+        "EJTribal",
         # Watershed names
         "Basin",
         "Subbasin",
@@ -299,6 +302,8 @@ DAM_TILE_FIELDS = [
         "ScreenType",
         "Width",
         "Length",
+        "EJTract",
+        "EJTribal",
         # unit name fields are retrieved from summary tiles
         "Subbasin",
         "Subwatershed",
@@ -386,6 +391,8 @@ SB_TILE_FIELDS = [
         "AnnualVelocity",
         "AnnualFlow",
         "PotentialProject",
+        "EJTract",
+        "EJTribal",
         # unit name fields are retrieved from summary tiles
         "Subbasin",
         "Subwatershed",
@@ -1036,6 +1043,8 @@ DOMAINS = {
     "Condition": CONDITION_DOMAIN,
     "Trout": TROUT_DOMAIN,
     "Removed": BOOLEAN_DOMAIN,
+    "EJTract": BOOLEAN_DOMAIN,
+    "EJTribal": BOOLEAN_DOMAIN,
     # dam fields
     # note Recon domain is just used for internal exports; excluded from public exports
     "Construction": CONSTRUCTION_DOMAIN,
@@ -1115,6 +1124,8 @@ FIELD_DEFINITIONS = {
     "OwnerType": "Land ownership type. This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
     "BarrierOwnerType": "Barrier ownership type, if available.",
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.",
+    "EJTract": "Within overburdened and underserved Census tracts as defined by the Climate and Environmental Justice Screening tool.",
+    "EJTribal": "Within disadvantaged tribal communities as defined by the Climate and Environmental Justice Screening tool based on American Indian and Alaska Native areas as defined by the US Census Bureau.  Note: all tribal communities considered disadvantaged by the tool.",
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",
     "Subbasin": "Name of the hydrologic subbasin (HUC8) where the {type} occurs.",
     "Subwatershed": "Name of the hydrologic subwatershed (HUC12) where the {type} occurs.",

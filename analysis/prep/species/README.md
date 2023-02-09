@@ -7,6 +7,14 @@ to taxonomic change.
 
 Data on trout species are obtained by SARP and joined at the HUC12 level.
 
+## Salmonid ESU / DPS
+
 Data on Salmon Evolutionarily Significant Units (ESUs) and Steelhead Trout
 Discrete Population Segments (DPSs) are obtained by SARP from NOAA. These are
-spatially joined to HUC12s for all ESUs of a particular species / run.
+spatially joined to HUC12s.
+
+These are prepared using `analysis/prep/species/prep_salmonid_esu.py`.
+
+## Species summaries
+
+Data are processed using `analysis/prep/species/calculate_spp_stats.py`.

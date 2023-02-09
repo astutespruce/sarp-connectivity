@@ -37,7 +37,7 @@ out_dir = data_dir / "boundaries"
 src_dir = out_dir / "source"
 api_dir = Path("data/api")
 
-county_filename = src_dir / "tl_2021_us_county.shp"
+county_filename = src_dir / "tl_2022_us_county.shp"
 huc4_df = gp.read_feather(out_dir / "huc4.feather")
 
 # state outer boundaries, NOT analysis boundaries
@@ -320,3 +320,41 @@ for col in ["coa"]:
     df[col] = df[col].fillna(0).astype("uint8")
 
 df.rename(columns={"HUC8": "id"}).to_feather(out_dir / "huc8_priorities.feather")
+
+
+### Environmental justice disadvantaged communities
+print("Processing environmental justice areas")
+
+# Process Census tracts for disadvantaged communities
+df = read_dataframe(src_dir / "environmental_justice_tracts/usa.shp", columns=["SN_C"])
+df = df.loc[df.geometry.notnull() & (df.SN_C == 1)].reset_index(drop=True)
+
+# select areas that overlap HUC4s
+tree = shapely.STRtree(df.geometry.values)
+huc4_geo = huc4_df.to_crs(GEO_CRS)
+ix = np.unique(tree.query(huc4_geo.geometry.values, predicate="intersects")[1])
+df = df.take(ix).to_crs(CRS)
+
+df = (
+    dissolve(df.explode(ignore_index=True), by="SN_C")
+    .drop(columns=["SN_C"])
+    .explode(ignore_index=True)
+    .reset_index(drop=True)
+)
+df.to_feather(out_dir / "environmental_justice_tracts.feather")
+
+# process Tribal lands (all are considered disadvantaged)
+df = read_dataframe(src_dir / "tl_2022_us_aiannh.shp", columns=[]).to_crs(CRS)
+tree = shapely.STRtree(df.geometry.values)
+ix = np.unique(tree.query(huc4_df.geometry.values, predicate="intersects")[1])
+df = df.take(ix)
+
+df["group"] = 1
+df = (
+    dissolve(df.explode(ignore_index=True), by="group")
+    .drop(columns=["group"])
+    .explode(ignore_index=True)
+    .reset_index(drop=True)
+)
+
+df.to_feather(out_dir / "tribal_lands.feather")
