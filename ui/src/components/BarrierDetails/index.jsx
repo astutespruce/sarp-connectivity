@@ -70,9 +70,23 @@ const BarrierDetails = ({ barrier, onClose }) => {
     }
     case 'road_crossings': {
       packedInfo = unpackBits(packed, RC_PACK_BITS)
+      // parse EJTract, EJTribal back to DisadvantagedCommunity
+      const disadvantagedcommunityParts = []
+      if (packedInfo.ejtract) {
+        disadvantagedcommunityParts.push('tract')
+      }
+      if (packedInfo.ejtribal) {
+        disadvantagedcommunityParts.push('tribal')
+      }
+      const disadvantagedcommunity = disadvantagedcommunityParts.join(',')
 
       details = (
-        <RoadCrossingDetails sarpid={sarpid} {...barrier} {...packedInfo} />
+        <RoadCrossingDetails
+          sarpid={sarpid}
+          {...barrier}
+          {...packedInfo}
+          disadvantagedcommunity={disadvantagedcommunity}
+        />
       )
       break
     }

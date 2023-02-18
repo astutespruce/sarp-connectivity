@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 ### Enums for validating incoming request values
 class BarrierTypes(str, Enum):
     dams = "dams"
@@ -456,7 +457,10 @@ ROAD_CROSSING_CORE_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS)
 ROAD_CROSSING_API_FIELDS = ROAD_CROSSING_CORE_FIELDS
 
 # Manually-selected subset of fields to keep size small
+# NOTE: all retained road crossings are snapped
 ROAD_CROSSING_TILE_FIELDS = [
+    "id",
+    "SARPIDName",
     "Source",
     "County",
     "State",
@@ -468,7 +472,6 @@ ROAD_CROSSING_TILE_FIELDS = [
     "RegionalSGCNSpp",
     "StateSGCNSpp",
     "SalmonidESU",
-    # NOTE: all retained road crossings are snapped
     "StreamSizeClass",
     "packed",
     # merged into separate field
@@ -480,16 +483,23 @@ ROAD_CROSSING_TILE_FIELDS = [
     # "crossingtype",
     # "Trout",
     # "Intermittent",
+    # "ProtectedLand",
+    # "EJTract", # and following combined back to DisadvantagedCommunity
+    # "EJTribal"
 ]
 
 # Fields that are used for filtering other barrier types can be bit-packed instead
 # for road crossings (they aren't filtered)
 ROAD_CROSSING_PACK_BITS = [
     {"field": "StreamOrder", "bits": 4},
+    {"field": "OnLoop", "bits": 1},
     {"field": "OwnerType", "bits": 4},
     {"field": "crossingtype", "bits": 4},
     {"field": "Trout", "bits": 1},
     {"field": "Intermittent", "bits": 1},
+    {"field": "ProtectedLand", "bits": 1},
+    {"field": "EJTract", "bits": 1},
+    {"field": "EJTribal", "bits": 1},
 ]
 
 

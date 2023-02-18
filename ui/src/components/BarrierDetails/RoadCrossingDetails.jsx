@@ -33,8 +33,6 @@ const RoadCrossingDetails = ({
   ownertype,
   streamorder,
   streamsizeclass,
-  waterbodysizeclass,
-  waterbodykm2,
 }) => (
   <Box
     sx={{
@@ -64,8 +62,6 @@ const RoadCrossingDetails = ({
         intermittent={intermittent}
         streamorder={streamorder}
         streamsizeclass={streamsizeclass}
-        waterbodysizeclass={waterbodysizeclass}
-        waterbodykm2={waterbodykm2}
       />
     </Section>
 
@@ -133,8 +129,6 @@ RoadCrossingDetails.propTypes = {
   ownertype: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
-  waterbodykm2: PropTypes.number,
-  waterbodysizeclass: PropTypes.number,
 }
 
 RoadCrossingDetails.defaultProps = {
