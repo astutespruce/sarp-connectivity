@@ -202,8 +202,8 @@ export const smallBarriers = [
       },
       {
         field: 'trout',
-        title: 'Trout presence / absence',
-        help: 'Note: This information is based on occurrences within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
+        title: 'Interior and eastern native trout presence / absence',
+        help: 'Note: This information is based on occurrences of Apache, brook, bull, cutthroat, Gila, lake, and redband trout species within the same subwatershed as the barrier.  These species may or may not be impacted by this barrier.  Information on these species is limited and comprehensive information has not been provided for all states at this time.',
         sort: false,
         hideEmpty: false,
         ...getEntries(TROUT),
