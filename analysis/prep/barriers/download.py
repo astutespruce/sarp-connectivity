@@ -61,6 +61,7 @@ DAM_URLS = {
     "VA": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/Virginia_Dam_Inventory_11_12_2018/FeatureServer/0",
     "VI": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/USVI_Dam_Inventory_01242023/FeatureServer/0",
     "WA": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Washington_Dam_Inventory_03022022/FeatureServer/0",
+    "WV": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/WV_Dams_SARP_03142022/FeatureServer/0",
     "WY": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Wyoming_Dam_Inventory_03052021/FeatureServer/1",
 }
 
@@ -222,36 +223,6 @@ print("\n---- Downloading State Dams ----")
 download_start = time()
 df = asyncio.run(download_dams(TOKEN))
 print("Downloaded {:,} dams in {:.2f}s".format(len(df), time() - download_start))
-
-### Merge in WV, provided separately instead of as feature service
-print("---- Merging in WV from local GDB ----")
-wv = read_dataframe(
-    "data/barriers/source/OuterHUC4_Dams_2022.gdb",
-    layer="WVa_Dams_SARP_03142022",
-    force_2d=True,
-).to_crs(CRS)
-
-cols = [c for c in wv.columns if c in DAM_FS_COLS] + ["geometry"]
-wv = wv[cols].rename(
-    columns={
-        "SARPUniqueID": "SARPID",
-        "PotentialFeasibility": "Feasibility",
-        "Barrier_Name": "Name",
-        "Other_Barrier_Name": "OtherName",
-        "DB_Source": "Source",
-        "Year_Completed": "YearCompleted",
-        "Year_Removed": "YearRemoved",
-        "ConstructionMaterial": "Construction",
-        "PurposeCategory": "Purpose",
-        "StructureCondition": "Condition",
-        "OwnerType": "BarrierOwnerType",
-    }
-)
-wv["SourceState"] = "WV"
-
-df = pd.concat([df, wv], ignore_index=True, sort=False)
-
-print("Merged {:,} dams in analysis region states".format(len(df)))
 
 ix = df.geometry.isnull()
 if ix.sum():

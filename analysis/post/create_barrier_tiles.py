@@ -615,19 +615,20 @@ print(f"Created small barrier tiles in {time() - start:,.2f}s")
 ####################################################################
 print("\n\n-----------------Creating road crossing tiles------------------------\n\n")
 
-# rename sizeclass after reading
-cols = (
-    ["geometry", "id"]
-    + [c for c in ROAD_CROSSING_TILE_FIELDS if not c == "StreamSizeClass"]
-    + ["sizeclass"]
-)
 df = (
     gp.read_feather(
         barriers_dir / "road_crossings.feather",
-        columns=cols,
     )
     .to_crs("EPSG:4326")
-    .rename(columns={"COUNTYFIPS": "County", "sizeclass": "StreamSizeClass"})
+    .drop(columns=["County"])
+    .rename(
+        columns={
+            "COUNTYFIPS": "County",
+            "intermittent": "Intermittent",
+            "loop": "OnLoop",
+            "sizeclass": "StreamSizeClass",
+        }
+    )
 )
 
 # Set string field nulls to blank strings
@@ -655,7 +656,7 @@ tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
 df["packed"] = pack_bits(tmp, ROAD_CROSSING_PACK_BITS)
 df = df.drop(columns=pack_cols)
 
-df = to_lowercase(df)
+df = to_lowercase(df[ROAD_CROSSING_TILE_FIELDS + ["geometry"]])
 
 outfilename = tmp_dir / "road_crossings.fgb"
 mbtiles_filename = out_dir / "road_crossings.mbtiles"

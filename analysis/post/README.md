@@ -8,7 +8,7 @@ Vector tiles are created to display the summary statistics by summary unit, as w
 
 Run `analysis/post/extract_summary_stats.py` to generate an overall summary file used by the user interface in the tool.
 
-Run `analysis/post/create_region_maps.py` to generate thumbnails of the ranked dams in each region.
+Run `analysis/post/create_region_maps.py` to generate thumbnails of the ranked dams in each region. This must be done after creating tilesets below.
 
 Note: generating maps uses `pymgl` to render the maps, which is only available for MacOS or Ubuntu 20.04.
 

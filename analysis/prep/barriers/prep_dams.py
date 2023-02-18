@@ -608,8 +608,8 @@ df.loc[ix, "Name"] = df.loc[ix].OtherName
 df.loc[df.Source.str.count("Amber Ignatius") > 0, "snap_group"] = 2
 
 # Identify dams estimated from waterbodies
-ix = df.Source.isin(
-    ["Estimated Dams OCT 2021", "Estimated Dams Summer 2022", "Estimated Dams JAN 2023"]
+ix = df.Source.str.lower().isin(
+    ["estimated dams oct 2021", "estimated dams summer 2022", "estimated dams jan 2023"]
 )
 df.loc[ix, "snap_group"] = 3
 df.loc[ix, "Name"] = "Estimated dam"

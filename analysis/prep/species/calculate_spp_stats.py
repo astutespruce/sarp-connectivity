@@ -24,8 +24,8 @@ data_dir = Path("data")
 bnd_dir = data_dir / "boundaries"
 src_dir = data_dir / "species/source"
 out_dir = data_dir / "species/derived"
-gdb = src_dir / "Species_Results_Tables_2022.gdb"
-rare_spp_layers = ["Southeast_Table", "Western_Table"]
+gdb = src_dir / "Species_Results_Tables_2023.gdb"
+layer = "All_States_HUC12_ScientificName_2023"
 trout_layer = "Trout_Filter_2022"
 
 
@@ -128,40 +128,31 @@ trout = trout.groupby(by=["HUC12", "SNAME"]).first().reset_index()
 
 
 ### Extract occurrence table from SARP
-merged = None
-for layer in rare_spp_layers:
-    print(f"Reading species occurrence data: {layer}")
+print(f"Reading species occurrence data: {layer}")
 
-    cols = [
-        "HUC12_Code",
-        "Species_Name",
-        "Common_Name",
-        "Historical",
-        "Federal_Status",
-        "State_Status",
-        "SGCN_Listing",
-    ]
-    if layer != "Western_Table":
-        cols.append("Regional_SGCN")
+cols = [
+    "HUC12_Code",
+    "Species_Name",
+    "Common_Name",
+    "Historical",
+    "Federal_Status",
+    "State_Status",
+    "SGCN_Listing",
+    "Regional_SGCN",
+]
 
-    df = read_dataframe(gdb, layer=layer, read_geometry=False)[cols].rename(
-        columns={
-            "HUC12_Code": "HUC12",
-            "Species_Name": "SNAME",
-            "Common_Name": "CNAME",
-            "Federal_Status": "federal",
-            "State_Status": "state",
-            "SGCN_Listing": "sgcn",
-            "Regional_SGCN": "regional",
-        }
-    )
+df = read_dataframe(gdb, layer=layer, read_geometry=False)[cols].rename(
+    columns={
+        "HUC12_Code": "HUC12",
+        "Species_Name": "SNAME",
+        "Common_Name": "CNAME",
+        "Federal_Status": "federal",
+        "State_Status": "state",
+        "SGCN_Listing": "sgcn",
+        "Regional_SGCN": "regional",
+    }
+)
 
-    if not "Regional_SGCN" in df.columns:
-        df["Regional_SGCN"] = ""
-
-    merged = append(merged, df)
-
-df = merged
 
 print("Processing species data")
 

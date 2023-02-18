@@ -457,26 +457,29 @@ ROAD_CROSSING_API_FIELDS = ROAD_CROSSING_CORE_FIELDS
 
 # Manually-selected subset of fields to keep size small
 ROAD_CROSSING_TILE_FIELDS = [
-    "SARPID",
     "Source",
-    "Name",
     "County",
     "State",
     "HUC8",
     "HUC12",
     "Road",
     "Stream",
-    "crossingtype",
-    "OwnerType",
     "TESpp",
     "RegionalSGCNSpp",
     "StateSGCNSpp",
-    "Trout",
     "SalmonidESU",
     # NOTE: all retained road crossings are snapped
-    "StreamOrder",
     "StreamSizeClass",
-    "intermittent",
+    "packed",
+    # merged into separate field
+    # "SARPID",
+    # "Name",
+    # included in packed bits
+    # "StreamOrder",
+    # "OwnerType",
+    # "crossingtype",
+    # "Trout",
+    # "Intermittent",
 ]
 
 # Fields that are used for filtering other barrier types can be bit-packed instead
