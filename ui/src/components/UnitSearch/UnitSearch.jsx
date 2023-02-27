@@ -9,7 +9,14 @@ import { formatNumber } from 'util/format'
 import ListItem from './ListItem'
 import SearchField from './SearchField'
 
-const UnitSearch = ({ system, layer, ignoreIds, onSelect }) => {
+const UnitSearch = ({
+  barrierType,
+  system,
+  layer,
+  ignoreIds,
+  showCount,
+  onSelect,
+}) => {
   const [{ query, activeIndex }, setState] = useState({
     query: '',
     activeIndex: null,
@@ -95,7 +102,7 @@ const UnitSearch = ({ system, layer, ignoreIds, onSelect }) => {
         }))
       }
     },
-    [results, activeIndex]
+    [results, ignoreIds, activeIndex]
   )
 
   useEffect(() => {
@@ -133,8 +140,10 @@ const UnitSearch = ({ system, layer, ignoreIds, onSelect }) => {
           {results.map((item, i) => (
             <ListItem
               key={`${item.layer}-${item.id}`}
+              barrierType={barrierType}
               {...item}
               showID={showID}
+              showCount={showCount}
               onClick={handleSelect(item)}
               disabled={ignoreIds && ignoreIds.has(item.id)}
               focused={i === activeIndex}
@@ -178,9 +187,11 @@ const UnitSearch = ({ system, layer, ignoreIds, onSelect }) => {
 }
 
 UnitSearch.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   system: PropTypes.string,
   layer: PropTypes.string,
   ignoreIds: PropTypes.object, // Set
+  showCount: PropTypes.bool,
   onSelect: PropTypes.func.isRequired,
 }
 
@@ -188,6 +199,7 @@ UnitSearch.defaultProps = {
   layer: null,
   system: null,
   ignoreIds: null,
+  showCount: false,
 }
 
 export default memo(UnitSearch)

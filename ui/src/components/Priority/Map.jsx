@@ -20,7 +20,6 @@ import {
   Map,
   DropDownLayerChooser,
   Legend,
-  SearchFeaturePropType,
   networkLayers,
   highlightNetwork,
   setBarrierHighlight,
@@ -63,7 +62,6 @@ const PriorityMap = ({
   rankedBarriers,
   tierThreshold,
   scenario,
-  searchFeature,
   summaryUnits,
   bounds,
   onSelectUnit,
@@ -412,21 +410,6 @@ const PriorityMap = ({
     return null
   }
 
-  const selectUnitById = useCallback(
-    (id, layer) => {
-      const [feature] = mapRef.current.querySourceFeatures('summary', {
-        sourceLayer: layer,
-        filter: ['==', 'id', id],
-      })
-
-      if (feature !== undefined) {
-        onSelectUnit({ ...feature.properties, layerId: layer })
-      }
-      return feature
-    },
-    [onSelectUnit]
-  )
-
   // Debounce updates to the filter to prevent frequent redraws
   // which have bad performance with high numbers of dams
   const debouncedSetRankFilter = useDebouncedCallback(
@@ -593,36 +576,6 @@ const PriorityMap = ({
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
     [activeLayer, summaryUnits, filters]
   )
-
-  useEffect(() => {
-    const { current: map } = mapRef
-    if (!(map && searchFeature)) {
-      return
-    }
-
-    const { id = null, layer, bbox } = searchFeature
-    // if feature is already visible, select it
-    // otherwise, zoom and attempt to select it
-
-    let feature = selectUnitById(id, layer)
-    if (!feature) {
-      map.once('moveend', () => {
-        feature = selectUnitById(id, layer)
-        // source may still be loading, try again in 1 second
-        if (!feature) {
-          setTimeout(() => {
-            selectUnitById(id, layer)
-          }, 1000)
-        }
-      })
-    }
-
-    // have to zoom to feature in order to fetch data for it
-    map.fitBounds(bbox.split(',').map(parseFloat), {
-      padding: 20,
-      duration: 500,
-    })
-  }, [searchFeature, selectUnitById])
 
   useEffect(() => {
     const { current: map } = mapRef
@@ -867,7 +820,6 @@ PriorityMap.propTypes = {
       id: PropTypes.string.isRequired,
     })
   ),
-  searchFeature: SearchFeaturePropType,
   bounds: PropTypes.arrayOf(PropTypes.number),
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
@@ -879,7 +831,6 @@ PriorityMap.defaultProps = {
   activeLayer: null,
   selectedUnit: null,
   selectedBarrier: null,
-  searchFeature: null,
   summaryUnits: [],
   rankedBarriers: [],
   bounds: null,

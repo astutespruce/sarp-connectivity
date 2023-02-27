@@ -55,7 +55,6 @@ const Prioritize = () => {
     {
       step,
       selectedBarrier,
-      searchFeature,
       layer,
       summaryUnits,
       rankData,
@@ -69,7 +68,6 @@ const Prioritize = () => {
   ] = useState({
     step: 'select',
     selectedBarrier: null,
-    searchFeature: null,
     layer: null,
     summaryUnits: [],
     rankData: [],
@@ -85,7 +83,6 @@ const Prioritize = () => {
     setState(() => ({
       step: 'select',
       selectedBarrier: null,
-      searchFeature: null,
       layer: null,
       summaryUnits: [],
       rankData: [],
@@ -123,17 +120,9 @@ const Prioritize = () => {
     }))
   }
 
-  const handleSearch = useCallback((nextSearchFeature) => {
-    setState((prevState) => ({
-      ...prevState,
-      searchFeature: nextSearchFeature,
-    }))
-  }, [])
-
   const handleSetLayer = (nextLayer) => {
     setState((prevState) => ({
       ...prevState,
-      searchFeature: null,
       summaryUnits: [],
       layer: nextLayer,
     }))
@@ -161,11 +150,11 @@ const Prioritize = () => {
           .slice(0, index)
           .concat(prevSummaryUnits.slice(index + 1))
       }
+
       return {
         ...prevState,
         selectedBarrier: null,
         summaryUnits: nextSummaryUnits,
-        searchFeature: null,
       }
     })
   }
@@ -173,8 +162,9 @@ const Prioritize = () => {
   const loadBarrierInfo = async () => {
     setIsLoading(true)
 
+    // only select units with non-zero ranked barriers
     const nonzeroSummaryUnits = summaryUnits.filter(
-      ({ [barrierType]: count }) => count > 0
+      ({ [`ranked_${barrierType}`]: count }) => count > 0
     )
 
     const {
@@ -323,7 +313,6 @@ const Prioritize = () => {
                 summaryUnits={summaryUnits}
                 onBack={handleUnitChooserBack}
                 selectUnit={handleSelectUnit}
-                setSearchFeature={handleSearch}
                 onSubmit={loadBarrierInfo}
                 onStartOver={handleStartOver}
               />
@@ -432,7 +421,6 @@ const Prioritize = () => {
           bounds={bounds}
           allowUnitSelect={step === 'select'}
           activeLayer={layer}
-          searchFeature={searchFeature}
           selectedBarrier={selectedBarrier}
           summaryUnits={summaryUnits}
           rankedBarriers={rankData}

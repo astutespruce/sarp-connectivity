@@ -13,9 +13,11 @@ This is run AFTER running `aggregate_networks.py`
 Inputs:
 * `data/api/dams.feather`
 * `data/api/small_barriers.feather`
+* `data/api/road_crossings.feather`
 
 Outputs:
-* `/tiles/summary.mbtiles
+* `/tiles/summary.mbtiles`
+* `/data/api/map_units.feather`
 
 """
 
@@ -25,6 +27,8 @@ import subprocess
 import pandas as pd
 import pyarrow as pa
 from pyarrow.csv import write_csv
+
+from analysis.lib.util import append
 
 # Note: states are identified by name, whereas counties are uniquely identified by
 # FIPS code.
@@ -57,6 +61,7 @@ INT_COLS = [
 tile_join = "../lib/tippecanoe/tile-join"
 
 data_dir = Path("data")
+api_dir = data_dir / "api"
 src_dir = data_dir / "barriers/master"
 bnd_dir = data_dir / "boundaries"
 results_dir = data_dir / "barriers/networks"
@@ -110,6 +115,7 @@ crossings = pd.read_feather(
 
 # Calculate summary statistics for each type of summary unit
 # These are joined to vector tiles
+stats = None
 mbtiles_files = []
 for unit in SUMMARY_UNITS:
     print(f"processing {unit}")
@@ -171,6 +177,14 @@ for unit in SUMMARY_UNITS:
 
     unit = "County" if unit == "COUNTYFIPS" else unit
 
+    # collate stats
+    tmp = merged[["ranked_dams", "ranked_small_barriers", "crossings"]].copy()
+    tmp["priority"] = i  # assign priority for sort order
+    tmp.index.name = "id"
+    tmp = tmp.reset_index()
+    tmp["layer"] = unit
+    stats = append(stats, tmp)
+
     # Write summary CSV for each unit type
     merged.index.name = "id"
     write_csv(pa.Table.from_pandas(merged.reset_index()), tmp_dir / f"{unit}.csv")
@@ -210,3 +224,13 @@ ret = subprocess.run(
     + mbtiles_files
 )
 ret.check_returncode()
+
+
+# output unit stats with bounds for API
+# NOTE: not currently using bounds
+units = pd.read_feather(
+    bnd_dir / "unit_bounds.feather",
+    columns=["layer", "priority", "id", "state", "name", "key"],
+).set_index(["layer", "id"])
+out = units.join(stats.set_index(["layer", "id"]))
+out.reset_index().to_feather(api_dir / "map_units.feather")

@@ -23,6 +23,7 @@ from api.constants import (
     SB_API_FIELDS,
     SB_TILE_FIELDS,
     SB_PACK_BITS,
+    COMBINED_API_FIELDS,
     WF_CORE_FIELDS,
     WF_TILE_FIELDS,
     WF_PACK_BITS,
@@ -303,7 +304,6 @@ fill_columns = [
 
 dtypes = pd.concat([dams.dtypes, small_barriers.dtypes])
 for col in fill_columns:
-
     orig_dtype = dtypes[col]
     if col.endswith("Class"):
         combined[col] = combined[col].fillna(0).astype(orig_dtype)
@@ -320,13 +320,13 @@ verify_domains(combined)
 
 print("Saving combined networks for tiles and API")
 # Save full results for tiles, etc
-combined.reset_index().to_feather(results_dir / "combined.feather")
+combined.reset_index().to_feather(results_dir / "combined_barriers.feather")
 
 # save for API
-cols = [c for c in DAM_API_FIELDS + SB_API_FIELDS if not c == "BarrierSeverity"]
-tmp = combined[unique(cols + ["BarrierType"])].reset_index()
+# cols = [c for c in DAM_API_FIELDS + SB_API_FIELDS if not c == "BarrierSeverity"]
+tmp = combined[COMBINED_API_FIELDS].reset_index()
 tmp["id"] = tmp.id.astype("uint32")
-tmp.to_feather(api_dir / f"combined.feather")
+tmp.to_feather(api_dir / f"combined_barriers.feather")
 
 #########################################################################################
 ###

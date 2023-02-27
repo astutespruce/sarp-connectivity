@@ -35,7 +35,6 @@ def encode_bbox(geometries):
 data_dir = Path("data")
 out_dir = data_dir / "boundaries"
 src_dir = out_dir / "source"
-api_dir = Path("data/api")
 
 county_filename = src_dir / "tl_2022_us_county.shp"
 huc4_df = gp.read_feather(out_dir / "huc4.feather")
@@ -193,7 +192,7 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
         ignore_index=True,
     )
 
-out.reset_index(drop=True).to_feather(api_dir / "unit_bounds.feather")
+out.reset_index(drop=True).to_feather(out_dir / "unit_bounds.feather")
 
 ### Protected areas
 

@@ -5,7 +5,7 @@ import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { UnitSearch } from 'components/UnitSearch'
 import { useBarrierType } from 'components/Data'
-import { LAYER_ZOOM, barrierTypeLabels } from 'config'
+import { barrierTypeLabels } from 'config'
 import { formatNumber } from 'util/format'
 
 import BackLink from './BackLink'
@@ -58,7 +58,6 @@ const UnitChooser = ({
   onBack,
   onSubmit,
   onStartOver,
-  setSearchFeature,
 }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
@@ -101,7 +100,8 @@ const UnitChooser = ({
   }
 
   const handleSearchSelect = (item) => {
-    setSearchFeature(item, LAYER_ZOOM[layer])
+    // rename fields
+    selectUnit(item)
     setSearchValue('')
   }
 
@@ -154,6 +154,7 @@ const UnitChooser = ({
         )}
 
         <UnitSearch
+          barrierType={barrierType}
           layer={layer}
           value={searchValue}
           ignoreIds={
@@ -161,6 +162,7 @@ const UnitChooser = ({
               ? new Set(summaryUnits.map(({ id }) => id))
               : null
           }
+          showCount
           onChange={handleSearchChange}
           onSelect={handleSearchSelect}
         />
@@ -235,7 +237,6 @@ UnitChooser.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onStartOver: PropTypes.func.isRequired,
   selectUnit: PropTypes.func.isRequired,
-  setSearchFeature: PropTypes.func.isRequired,
 }
 
 export default UnitChooser

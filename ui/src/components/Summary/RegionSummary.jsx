@@ -53,7 +53,11 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
           Click on a summary unit the map for more information about that area.
         </Paragraph>
 
-        <UnitSearch system={system} onSelect={onSearch} />
+        <UnitSearch
+          barrierType={barrierType}
+          system={system}
+          onSelect={onSearch}
+        />
 
         <Paragraph variant="help" sx={{ mt: '3rem' }}>
           Note: These statistics are based on <i>inventoried</i> dams. Because
@@ -100,7 +104,11 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
         Click on a summary unit the map for more information about that area.
       </Paragraph>
 
-      <UnitSearch system={system} onSelect={onSearch} />
+      <UnitSearch
+        barrierType={barrierType}
+        system={system}
+        onSelect={onSearch}
+      />
 
       <Paragraph variant="help" sx={{ mt: '3rem' }}>
         Note: These statistics are based on <i>inventoried</i> road-related
