@@ -121,6 +121,21 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
           from the analysis.
         </Paragraph>
       ) : null}
+
+      {barrierType === 'combined' ? (
+        <Paragraph variant="help" sx={{ mt: '3rem' }}>
+          Note: These statistics are based on <i>inventoried</i> dams and
+          road-related barriers. Because the inventory is incomplete in many
+          areas, areas with a high number of dams or road-related barriers may
+          simply represent areas that have a more complete inventory.
+          <br />
+          <br />
+          {formatNumber(unrankedDams, 0)} dams and{' '}
+          {formatNumber(unrankedBarriers, 0)} road-related barriers could not be
+          correctly located on the aquatic network or were otherwise excluded
+          from the analysis.
+        </Paragraph>
+      ) : null}
     </Box>
   )
 }

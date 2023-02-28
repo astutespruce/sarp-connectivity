@@ -246,6 +246,68 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           </>
         ) : null}
 
+        {barrierType === 'dams' ? (
+          <Paragraph variant="help" sx={{ mt: '2rem' }}>
+            Note: These statistics are based on <i>inventoried</i> dams. Because
+            the inventory is incomplete in many areas, areas with a high number
+            of dams may simply represent areas that have a more complete
+            inventory.
+            {unrankedDams > 0 ? (
+              <>
+                <br />
+                <br />
+                {formatNumber(unrankedDams, 0)} dams were not analyzed because
+                they were not on the aquatic network or could not be correctly
+                located on the network.
+              </>
+            ) : null}
+          </Paragraph>
+        ) : null}
+
+        {barrierType === 'small_barriers' ? (
+          <Paragraph variant="help" sx={{ mt: '2rem' }}>
+            Note: These statistics are based on <i>inventoried</i> road-related
+            barriers that have been assessed for impacts to aquatic organisms.
+            Because the inventory is incomplete in many areas, areas with a high
+            number of barriers may simply represent areas that have a more
+            complete inventory.
+            {unrankedBarriers > 0 ? (
+              <>
+                <br />
+                <br />
+                {formatNumber(unrankedBarriers, 0)} road-related barriers were
+                not analyzed because they were not on the aquatic network or
+                could not be correctly located on the network
+              </>
+            ) : null}
+          </Paragraph>
+        ) : null}
+
+        {barrierType === 'combined' ? (
+          <Paragraph variant="help" sx={{ mt: '2rem' }}>
+            Note: These statistics are based on <i>inventoried</i> dams and
+            road-related barriers that have been assessed for impacts to aquatic
+            organisms. Because the inventory is incomplete in many areas, areas
+            with a high number of barriers may simply represent areas that have
+            a more complete inventory.
+            {unrankedDams > 0 || unrankedBarriers > 0 ? (
+              <>
+                <br />
+                <br />
+                {unrankedDams > 0
+                  ? `${formatNumber(unrankedDams, 0)} dams`
+                  : null}
+                {unrankedDams > 0 && unrankedBarriers > 0 ? ' and ' : null}
+                {unrankedBarriers > 0
+                  ? `${formatNumber(unrankedBarriers, 0)} road-related barriers`
+                  : null}{' '}
+                were not analyzed because they were not on the aquatic network
+                or could not be correctly located on the network
+              </>
+            ) : null}
+          </Paragraph>
+        ) : null}
+
         {team ? (
           <Box
             sx={{
