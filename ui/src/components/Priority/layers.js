@@ -507,8 +507,9 @@ export const roadCrossingsLayer = {
 // NOTE: this is ONLY for displaying dams when small barriers are selected
 export const damsSecondaryLayer = {
   id: 'dams-secondary',
-  source: 'dams',
-  'source-layer': 'ranked_dams',
+  source: 'combined_barriers',
+  'source-layer': 'ranked_combined_barriers',
+  filter: ['==', 'barriertype', 'dams'],
   layout: {
     visibility: 'none',
   },

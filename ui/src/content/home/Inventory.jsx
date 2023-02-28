@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Grid, Paragraph, Heading } from 'theme-ui'
 
-import { Link, OutboundLink } from 'components/Link'
+import { Link } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
 import { siteMetadata, REGION_STATES } from 'config'
 import { formatNumber } from 'util/format'

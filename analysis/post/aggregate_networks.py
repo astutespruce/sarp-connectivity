@@ -24,7 +24,6 @@ from api.constants import (
     SB_TILE_FIELDS,
     SB_PACK_BITS,
     COMBINED_API_FIELDS,
-    COMBINED_PACK_BITS,
     WF_CORE_FIELDS,
     WF_TILE_FIELDS,
     WF_PACK_BITS,
@@ -151,7 +150,7 @@ for col in dam_networks.columns:
 for col in ["CoastalHUC8"]:
     dams[col] = dams[col].astype("uint8")
 
-dams_tmp = dams.drop(columns=["packed"])
+dams_tmp = dams.copy()
 
 dams = dams[unique(["geometry", "Unranked"] + DAM_API_FIELDS + DAM_TILE_FIELDS)]
 verify_domains(dams)
@@ -218,7 +217,7 @@ for col in ["CoastalHUC8"]:
     small_barriers[col] = small_barriers[col].astype("uint8")
 
 
-small_barriers_tmp = small_barriers.drop(columns=["packed"])
+small_barriers_tmp = small_barriers.copy()
 
 
 small_barriers = small_barriers[
@@ -246,6 +245,8 @@ small_barriers_tmp["Passability"] = small_barriers_tmp.BarrierSeverity.map(
 
 dams_tmp["BarrierType"] = "dams"
 small_barriers_tmp["BarrierType"] = "small_barriers"
+
+# NOTE: the packed column is specific to the barrier type and is calculated above
 combined = pd.concat(
     [
         dams_tmp.drop(columns=dam_networks.columns, errors="ignore").reset_index(),
@@ -322,12 +323,6 @@ for col in ["CoastalHUC8"]:
     combined[col] = combined[col].astype("uint8")
 
 verify_domains(combined)
-
-pack_cols = [e["field"] for e in COMBINED_PACK_BITS]
-tmp = combined[pack_cols].copy()
-tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
-tmp.loc[tmp.Diversion == -1, "Diversion"] = 0
-combined["packed"] = pack_bits(tmp, COMBINED_PACK_BITS)
 
 
 print("Saving combined networks for tiles and API")

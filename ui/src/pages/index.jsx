@@ -12,7 +12,6 @@ import {
   RegionSection,
   ToolSection,
   GetInvolvedSection,
-  CreditsSection,
 } from 'content/home'
 
 const IndexPage = ({ data: { headerImage } }) => (

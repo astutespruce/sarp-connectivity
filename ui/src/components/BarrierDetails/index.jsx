@@ -51,6 +51,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
   const name = !isEmptyString(rawName)
     ? rawName
     : barrierNameWhenUnknown[barrierType] || 'Unknown name'
+
   let details = null
   let packedInfo = null
   switch (barrierType) {

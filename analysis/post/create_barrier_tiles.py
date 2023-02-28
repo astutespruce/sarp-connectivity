@@ -625,7 +625,7 @@ write_dataframe(tmp.reset_index(drop=True), outfilename)
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z2", "-z7", "-r1.5", "-g1.5", "-B5"]
-    + ["-l", "ranked_combined"]
+    + ["-l", "ranked_combined_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(tmp)
     + [str(outfilename)]
@@ -636,7 +636,7 @@ ret.check_returncode()
 df = df.drop(columns=["TotDASqKm"])
 
 ### Create tiles for ranked dams with networks
-ranked_combined = df.loc[df.Ranked].drop(
+ranked_combined_barriers = df.loc[df.Ranked].drop(
     columns=[
         "Ranked",
         "HasNetwork",
@@ -646,28 +646,30 @@ ranked_combined = df.loc[df.Ranked].drop(
     ]
 )
 print(
-    f"Creating tiles for {len(ranked_combined):,} ranked combined barriers with networks"
+    f"Creating tiles for {len(ranked_combined_barriers):,} ranked combined barriers with networks"
 )
 
-outfilename = tmp_dir / "ranked_combined.fgb"
-mbtiles_filename = tmp_dir / "ranked_combined.mbtiles"
+ranked_combined_barriers = to_lowercase(ranked_combined_barriers)
+
+outfilename = tmp_dir / "ranked_combined_barriers.fgb"
+mbtiles_filename = tmp_dir / "ranked_combined_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
 
-write_dataframe(ranked_combined.reset_index(drop=True), outfilename)
+write_dataframe(ranked_combined_barriers.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
-    + ["-l", "ranked_combined"]
+    + ["-l", "ranked_combined_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(ranked_combined)
+    + get_col_types(ranked_combined_barriers)
     + [str(outfilename)]
 )
 ret.check_returncode()
 
 
 ### Create tiles for removed combined barriers
-removed_combined = df.loc[df.Removed].drop(
+removed_combined_barriers = df.loc[df.Removed].drop(
     columns=[
         "Removed",
         "Ranked",
@@ -693,7 +695,7 @@ removed_combined = df.loc[df.Removed].drop(
 )
 
 # TEMP: eventually removed barriers will have network fields; for now, drop them
-removed_combined = removed_combined.drop(
+removed_combined_barriers = removed_combined_barriers.drop(
     columns=[
         "FlowsToOcean",
         "MilesToOutlet",
@@ -715,28 +717,30 @@ removed_combined = removed_combined.drop(
 )
 
 
-print(f"Creating tiles for {len(removed_combined):,} removed combined barriers")
+print(
+    f"Creating tiles for {len(removed_combined_barriers):,} removed combined barriers"
+)
 
-removed_combined = to_lowercase(removed_combined)
+removed_combined_barriers = to_lowercase(removed_combined_barriers)
 
-outfilename = tmp_dir / "removed_combined.fgb"
-mbtiles_filename = tmp_dir / "removed_combined.mbtiles"
+outfilename = tmp_dir / "removed_combined_barriers.fgb"
+mbtiles_filename = tmp_dir / "removed_combined_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
-write_dataframe(removed_combined.reset_index(drop=True), outfilename)
+write_dataframe(removed_combined_barriers.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
-    + ["-l", "removed_combined"]
+    + ["-l", "removed_combined_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(removed_combined)
+    + get_col_types(removed_combined_barriers)
     + [str(outfilename)]
 )
 ret.check_returncode()
 
 
 ### Create tiles for unranked combined barriers with networks
-unranked_combined = df.loc[df.HasNetwork & (~(df.Ranked | df.Removed))].drop(
+unranked_combined_barriers = df.loc[df.HasNetwork & (~(df.Ranked | df.Removed))].drop(
     columns=[
         "Ranked",
         "HasNetwork",
@@ -760,22 +764,22 @@ unranked_combined = df.loc[df.HasNetwork & (~(df.Ranked | df.Removed))].drop(
     errors="ignore",
 )
 print(
-    f"Creating tiles for {len(unranked_combined):,} unranked combined barriers with networks"
+    f"Creating tiles for {len(unranked_combined_barriers):,} unranked combined barriers with networks"
 )
 
-unranked_combined = to_lowercase(unranked_combined)
+unranked_combined_barriers = to_lowercase(unranked_combined_barriers)
 
-outfilename = tmp_dir / "unranked_combined.fgb"
-mbtiles_filename = tmp_dir / "unranked_combined.mbtiles"
+outfilename = tmp_dir / "unranked_combined_barriers.fgb"
+mbtiles_filename = tmp_dir / "unranked_combined_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
-write_dataframe(unranked_combined.reset_index(drop=True), outfilename)
+write_dataframe(unranked_combined_barriers.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
-    + ["-l", "unranked_combined"]
+    + ["-l", "unranked_combined_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(unranked_combined)
+    + get_col_types(unranked_combined_barriers)
     + [str(outfilename)]
 )
 ret.check_returncode()
@@ -785,7 +789,7 @@ ret.check_returncode()
 print("Creating tiles for combined barriers without networks")
 
 # Drop metrics, tiers, and units used only for filtering
-offnetwork_combined = (
+offnetwork_combined_barriers = (
     df.loc[~(df.HasNetwork | df.Removed)]
     .drop(
         columns=[
@@ -824,21 +828,21 @@ offnetwork_combined = (
     .reset_index(drop=True)
 )
 
-offnetwork_combined = to_lowercase(offnetwork_combined)
+offnetwork_combined_barriers = to_lowercase(offnetwork_combined_barriers)
 
 
-outfilename = tmp_dir / "offnetwork_combined.fgb"
-mbtiles_filename = tmp_dir / "offnetwork_combined.mbtiles"
+outfilename = tmp_dir / "offnetwork_combined_barriers.fgb"
+mbtiles_filename = tmp_dir / "offnetwork_combined_barriers.mbtiles"
 mbtiles_files.append(mbtiles_filename)
-write_dataframe(offnetwork_combined, outfilename)
+write_dataframe(offnetwork_combined_barriers, outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
     + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
-    + ["-l", "offnetwork_combined"]
+    + ["-l", "offnetwork_combined_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(
-        offnetwork_combined,
+        offnetwork_combined_barriers,
     )
     + [str(outfilename)]
 )
@@ -846,7 +850,7 @@ ret.check_returncode()
 
 
 print("Joining combined barrier tilesets")
-mbtiles_filename = out_dir / "combined.mbtiles"
+mbtiles_filename = out_dir / "combined_barriers.mbtiles"
 ret = subprocess.run(
     tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
 )

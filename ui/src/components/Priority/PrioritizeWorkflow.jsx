@@ -162,10 +162,20 @@ const Prioritize = () => {
   const loadBarrierInfo = async () => {
     setIsLoading(true)
 
+    console.log('summary units', summaryUnits)
+
     // only select units with non-zero ranked barriers
-    const nonzeroSummaryUnits = summaryUnits.filter(
-      ({ [`ranked_${barrierType}`]: count }) => count > 0
-    )
+    let nonzeroSummaryUnits = []
+    if (barrierType === 'combined_barriers') {
+      nonzeroSummaryUnits = summaryUnits.filter(
+        ({ ranked_dams = 0, ranked_small_barriers = 0 }) =>
+          ranked_dams + ranked_small_barriers > 0
+      )
+    } else {
+      nonzeroSummaryUnits = summaryUnits.filter(
+        ({ [`ranked_${barrierType}`]: count }) => count > 0
+      )
+    }
 
     const {
       error,

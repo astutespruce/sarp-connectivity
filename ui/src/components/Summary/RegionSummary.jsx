@@ -33,7 +33,7 @@ const RegionSummary = ({ region, barrierType, system, onSearch }) => {
         Across the {regionName}, there are:
       </Paragraph>
 
-      {barrierType === 'dams' || barrierType === 'combined' ? (
+      {barrierType === 'dams' || barrierType === 'combined_barriers' ? (
         <>
           <Paragraph sx={{ mt: '0.5rem' }}>
             <b>{formatNumber(dams, 0)}</b> inventoried dams, including:
@@ -51,10 +51,13 @@ const RegionSummary = ({ region, barrierType, system, onSearch }) => {
         </>
       ) : null}
 
-      {barrierType === 'small_barriers' || barrierType === 'combined' ? (
+      {barrierType === 'small_barriers' ||
+      barrierType === 'combined_barriers' ? (
         <>
           <Paragraph
-            sx={{ mt: barrierType === 'combined' ? '1.5rem' : '0.5rem' }}
+            sx={{
+              mt: barrierType === 'combined_barriers' ? '1.5rem' : '0.5rem',
+            }}
           >
             <b>{formatNumber(totalSmallBarriers + crossings, 0)}</b> or more
             potential road-related aquatic barriers, including:
@@ -122,7 +125,7 @@ const RegionSummary = ({ region, barrierType, system, onSearch }) => {
         </Paragraph>
       ) : null}
 
-      {barrierType === 'combined' ? (
+      {barrierType === 'combined_barriers' ? (
         <Paragraph variant="help" sx={{ mt: '3rem' }}>
           Note: These statistics are based on <i>inventoried</i> dams and
           road-related barriers. Because the inventory is incomplete in many

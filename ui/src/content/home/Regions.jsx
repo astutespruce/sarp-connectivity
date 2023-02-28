@@ -1,7 +1,7 @@
 import React from 'react'
-import { Box, Button, Divider, Flex, Grid, Heading, Text } from 'theme-ui'
+import { Box, Divider, Flex, Grid, Heading, Text } from 'theme-ui'
 import { GatsbyImage } from 'gatsby-plugin-image'
-import { ChartBar, SearchLocation, ChevronRight } from '@emotion-icons/fa-solid'
+import { ChevronRight } from '@emotion-icons/fa-solid'
 import { useStaticQuery, graphql } from 'gatsby'
 
 import { Link } from 'components/Link'

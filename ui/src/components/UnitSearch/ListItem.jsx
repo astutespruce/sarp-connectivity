@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
-import { STATES, barrierTypeLabels, barrierTypeLabelSingular } from 'config'
+import { STATES, barrierTypeLabels } from 'config'
 import { formatNumber, pluralize } from 'util/format'
 
 const ListItem = ({
@@ -48,7 +48,7 @@ const ListItem = ({
       case 'small_barriers': {
         count = rankedSmallBarriers
         if (totalSmallBarriers === 0) {
-          warning = `no potential road-related barriers have been inventoried in this area (${formatNumber(
+          warning = `no potential road-related barriers have been assessed in this area (${formatNumber(
             crossings
           )} road / stream ${pluralize('crossing', crossings)})`
         } else if (rankedSmallBarriers === 0) {
@@ -70,7 +70,7 @@ const ListItem = ({
                 )})`
           warning = `${prefix} ${
             rankedSmallBarriers === 1 ? 'has' : 'have'
-          } been inventoried out of ${formatNumber(
+          } been assessed out of ${formatNumber(
             crossings
           )} road / stream ${pluralize(
             'crossing',
@@ -82,7 +82,7 @@ const ListItem = ({
             rankedSmallBarriers
           )} of ${formatNumber(
             totalSmallBarriers
-          )} inventoried potential road-related ${pluralize(
+          )} assessed potential road-related ${pluralize(
             'barrier',
             totalSmallBarriers
           )} (${formatNumber(crossings)} road/stream ${pluralize(
@@ -93,7 +93,7 @@ const ListItem = ({
 
         break
       }
-      case 'combined': {
+      case 'combined_barriers': {
         count = rankedDams + rankedSmallBarriers
         if (count === 0) {
           warning = `no ${barrierTypeLabels[barrierType]} available for prioritization`
@@ -112,7 +112,7 @@ const ListItem = ({
                 )})`
           warning = `${prefix} ${
             rankedSmallBarriers === 1 ? 'has' : 'have'
-          } been inventoried out of ${formatNumber(
+          } been assessed out of ${formatNumber(
             crossings
           )} road / stream ${pluralize(
             'crossing',
@@ -130,8 +130,10 @@ const ListItem = ({
           )} and ${formatNumber(rankedSmallBarriers)} ${pluralize(
             'likely barrier',
             rankedSmallBarriers
-          )} of ${formatNumber(totalSmallBarriers)} ${pluralize(
-            'inventoried potential road-related barrier',
+          )} of ${formatNumber(
+            totalSmallBarriers
+          )} assessed potential road-related ${pluralize(
+            'barrier',
             totalSmallBarriers
           )} (${formatNumber(crossings)} road/stream ${pluralize(
             'crossing',
@@ -211,9 +213,7 @@ const ListItem = ({
       ) : null}
 
       {countMessage !== null ? (
-        <Text sx={{ fontWeight: 'normal', color: 'grey.6', fontSize: 1 }}>
-          {countMessage}
-        </Text>
+        <Text variant="help">{countMessage}</Text>
       ) : null}
 
       {warning !== null ? (

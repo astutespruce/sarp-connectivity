@@ -11,7 +11,7 @@ import {
   CONNECTIVITY_TEAMS,
   barrierTypeLabels,
 } from 'config'
-import { formatNumber } from 'util/format'
+import { formatNumber, pluralize } from 'util/format'
 
 import { layers } from '../layers'
 
@@ -72,13 +72,15 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   switch (barrierType) {
     case 'dams': {
       downloadButtons = (
-        <Box sx={{ ml: '1rem' }}>
-          <Downloader
-            barrierType={barrierType}
-            label={barrierTypeLabels[barrierType]}
-            config={downloaderConfig}
-            disabled={dams === 0}
-          />
+        <Box sx={{ width: '10rem' }}>
+          <Flex sx={{ ml: '1rem', flex: '1 1 auto' }}>
+            <Downloader
+              barrierType={barrierType}
+              label={barrierTypeLabels[barrierType]}
+              config={downloaderConfig}
+              disabled={dams === 0}
+            />
+          </Flex>
         </Box>
       )
 
@@ -107,7 +109,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
       )
       break
     }
-    case 'combined': {
+    case 'combined_barriers': {
       downloadButtons = (
         <>
           <Downloader
@@ -176,7 +178,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
       >
         <Paragraph>This area contains:</Paragraph>
 
-        {barrierType === 'dams' || barrierType === 'combined' ? (
+        {barrierType === 'dams' || barrierType === 'combined_barriers' ? (
           <>
             {dams > 0 ? (
               <>
@@ -202,12 +204,16 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           </>
         ) : null}
 
-        {barrierType === 'small_barriers' || barrierType === 'combined' ? (
+        {barrierType === 'small_barriers' ||
+        barrierType === 'combined_barriers' ? (
           <>
             {totalRoadBarriers > 0 ? (
               <>
                 <Paragraph
-                  sx={{ mt: barrierType === 'combined' ? '1.5rem' : '0.5rem' }}
+                  sx={{
+                    mt:
+                      barrierType === 'combined_barriers' ? '1.5rem' : '0.5rem',
+                  }}
                 >
                   <b>{formatNumber(totalSmallBarriers + crossings, 0)}</b> or
                   more potential road-related aquatic barriers, including:
@@ -226,13 +232,13 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
                   </li>
                   <li>
                     <b>{formatNumber(smallBarriers, 0)}</b> road-related{' '}
-                    {smallBarriers === 1 ? 'barrier' : 'barriers'} assessed{' '}
+                    {pluralize('barrier', smallBarriers)} assessed{' '}
                     {smallBarriers === 1 ? 'is' : 'are'} likely to impact
                     aquatic organisms
                   </li>
                   <li>
                     <b>{formatNumber(rankedSmallBarriers, 0)}</b> road-related{' '}
-                    {rankedSmallBarriers === 1 ? 'barrier' : 'barriers'} that{' '}
+                    {pluralize('barrier', rankedSmallBarriers)} that{' '}
                     {rankedSmallBarriers === 1 ? 'was ' : 'were '} analyzed for
                     impacts to aquatic connectivity in this tool
                   </li>
@@ -256,9 +262,10 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
               <>
                 <br />
                 <br />
-                {formatNumber(unrankedDams, 0)} dams were not analyzed because
-                they were not on the aquatic network or could not be correctly
-                located on the network.
+                {formatNumber(unrankedDams, 0)} {pluralize('dam', unrankedDams)}{' '}
+                {unrankedDams === 1 ? 'was' : 'were'} not analyzed because{' '}
+                {unrankedDams === 1 ? 'it was' : 'they were'} not on the aquatic
+                network or could not be correctly located on the network.
               </>
             ) : null}
           </Paragraph>
@@ -275,15 +282,17 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
               <>
                 <br />
                 <br />
-                {formatNumber(unrankedBarriers, 0)} road-related barriers were
-                not analyzed because they were not on the aquatic network or
-                could not be correctly located on the network
+                {formatNumber(unrankedBarriers, 0)} road-related{' '}
+                {pluralize('barrier', unrankedBarriers)}{' '}
+                {unrankedBarriers === 1 ? 'was' : 'were'} not analyzed because{' '}
+                {unrankedBarriers === 1 ? 'it was' : 'they were'} not on the
+                aquatic network or could not be correctly located on the network
               </>
             ) : null}
           </Paragraph>
         ) : null}
 
-        {barrierType === 'combined' ? (
+        {barrierType === 'combined_barriers' ? (
           <Paragraph variant="help" sx={{ mt: '2rem' }}>
             Note: These statistics are based on <i>inventoried</i> dams and
             road-related barriers that have been assessed for impacts to aquatic
@@ -301,8 +310,11 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
                 {unrankedBarriers > 0
                   ? `${formatNumber(unrankedBarriers, 0)} road-related barriers`
                   : null}{' '}
-                were not analyzed because they were not on the aquatic network
-                or could not be correctly located on the network
+                {unrankedDams + unrankedBarriers === 1 ? 'was' : 'were'} not
+                analyzed because{' '}
+                {unrankedDams + unrankedBarriers === 1 ? 'it was' : 'they were'}{' '}
+                not on the aquatic network or could not be correctly located on
+                the network
               </>
             ) : null}
           </Paragraph>

@@ -47,7 +47,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
     case 'small_barriers': {
       count = rankedSmallBarriers
       if (totalSmallBarriers === 0) {
-        warning = `no potential road-related barriers have been inventoried in this area (${formatNumber(
+        warning = `no potential road-related barriers have been assessed in this area (${formatNumber(
           crossings
         )} road / stream ${pluralize('crossing', crossings)})`
       } else if (rankedSmallBarriers === 0) {
@@ -69,7 +69,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
               )})`
         warning = `${prefix} ${
           rankedSmallBarriers === 1 ? 'has' : 'have'
-        } been inventoried out of ${formatNumber(
+        } been assessed out of ${formatNumber(
           crossings
         )} road / stream ${pluralize(
           'crossing',
@@ -81,7 +81,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
           rankedSmallBarriers
         )} of ${formatNumber(
           totalSmallBarriers
-        )} inventoried potential road-related ${pluralize(
+        )} assessed potential road-related ${pluralize(
           'barrier',
           totalSmallBarriers
         )} (${formatNumber(crossings)} road/stream ${pluralize(
@@ -92,7 +92,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
 
       break
     }
-    case 'combined': {
+    case 'combined_barriers': {
       count = rankedDams + rankedSmallBarriers
       if (count === 0) {
         warning = `no ${barrierTypeLabels[barrierType]} available for prioritization`
@@ -111,7 +111,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
               )})`
         warning = `${prefix} ${
           rankedSmallBarriers === 1 ? 'has' : 'have'
-        } been inventoried out of ${formatNumber(
+        } been assessed out of ${formatNumber(
           crossings
         )} road / stream ${pluralize(
           'crossing',
@@ -129,8 +129,10 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
         )} and ${formatNumber(rankedSmallBarriers)} ${pluralize(
           'likely barrier',
           rankedSmallBarriers
-        )} of ${formatNumber(totalSmallBarriers)} ${pluralize(
-          'inventoried potential road-related barrier',
+        )} of ${formatNumber(
+          totalSmallBarriers
+        )} assessed potential road-related ${pluralize(
+          'barrier',
           totalSmallBarriers
         )} (${formatNumber(crossings)} road/stream ${pluralize(
           'crossing',
@@ -152,10 +154,15 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
       as="li"
       sx={{
         justifyContent: 'space-between',
-        borderBottom: '1px solid #EEE',
+        borderBottom: '1px solid',
+        borderBottomColor: 'grey.1',
         mx: '-1rem',
         px: '1rem',
         py: '0.5em',
+        '&:first-of-type': {
+          borderTop: '1px solid',
+          borderTopColor: 'grey.1',
+        },
       }}
     >
       <Box
@@ -189,9 +196,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
         ) : null}
 
         {countMessage !== null ? (
-          <Text sx={{ fontWeight: 'normal', color: 'grey.6', fontSize: 1 }}>
-            {countMessage}
-          </Text>
+          <Text variant="help">{countMessage}</Text>
         ) : null}
 
         {warning !== null ? (

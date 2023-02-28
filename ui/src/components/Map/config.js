@@ -39,9 +39,9 @@ export const sources = {
     maxzoom: 16,
     promoteId: 'id',
   },
-  combined: {
+  combined_barriers: {
     type: 'vector',
-    tiles: [`${tileHost}/services/combined/tiles/{z}/{x}/{y}.pbf`],
+    tiles: [`${tileHost}/services/combined_barriers/tiles/{z}/{x}/{y}.pbf`],
     minzoom: 2,
     maxzoom: 16,
     promoteId: 'id',

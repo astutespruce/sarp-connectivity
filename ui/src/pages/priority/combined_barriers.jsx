@@ -9,7 +9,7 @@ import { combinedBarriers } from 'filters'
 const PrioritizeCombinedBarriersPage = () => (
   <Layout>
     <ClientOnly>
-      <BarrierTypeProvider barrierType="combined">
+      <BarrierTypeProvider barrierType="combined_barriers">
         <CrossfilterProvider filterConfig={combinedBarriers}>
           <PrioritizeWorkflow />
         </CrossfilterProvider>

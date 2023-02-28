@@ -139,7 +139,7 @@ const DamDetails = ({
               <Box sx={{ color: 'grey.4', flex: '0 0 auto', mr: '0.5em' }}>
                 <ExclamationTriangle size="2.25em" />
               </Box>
-              <Text sx={{ flex: '1 1 auto', fontSize: 0 }}>
+              <Text variant="help" sx={{ flex: '1 1 auto', fontSize: 0 }}>
                 Dam is estimated from other data sources and may be incorrect;
                 please{' '}
                 <a

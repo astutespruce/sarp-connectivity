@@ -280,7 +280,7 @@ const PriorityMap = ({
             .setLngLat(coordinates)
             .setHTML(
               getBarrierTooltip(
-                feature.source === 'combined'
+                feature.source === 'combined_barriers'
                   ? feature.properties.barriertype
                   : feature.source,
                 feature.properties
@@ -373,9 +373,7 @@ const PriorityMap = ({
           ...networkFields,
           tiers: rankedBarriersIndexRef.current[properties.id] || null,
           barrierType:
-            (barrierType === source) === 'combined'
-              ? properties.barriertype
-              : source,
+            source === 'combined_barriers' ? properties.barriertype : source,
           networkType: source === 'dams' ? 'dams' : undefined,
           HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),
           HUC12Name: getSummaryUnitName('HUC12', properties.HUC12),
@@ -500,16 +498,11 @@ const PriorityMap = ({
     if (!map) return
 
     let networkID = Infinity
-    let networkType = barrierType
 
     if (selectedBarrier) {
-      const {
-        upnetid = Infinity,
-        networkType: barrierNetworkType = barrierType,
-      } = selectedBarrier
+      const { upnetid = Infinity } = selectedBarrier
 
       networkID = upnetid
-      networkType = barrierNetworkType
     } else {
       const prevFeature = selectedFeatureRef.current
       if (prevFeature) {
@@ -523,7 +516,11 @@ const PriorityMap = ({
       }
     }
 
-    highlightNetwork(map, networkType, networkID)
+    highlightNetwork(
+      map,
+      barrierType === 'dams' ? 'dams' : 'small_barriers',
+      networkID
+    )
   }, [barrierType, selectedBarrier])
 
   // if map allows filter, show selected vs unselected points, and make those without networks

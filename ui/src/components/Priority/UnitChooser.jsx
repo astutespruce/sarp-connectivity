@@ -32,6 +32,7 @@ export const getPluralLabel = (layer) => {
   }
 }
 
+// used by caller, not here
 export const getSingularLabel = (layer) => {
   switch (layer) {
     case 'State':
@@ -64,7 +65,6 @@ const UnitChooser = ({
   const [searchValue, setSearchValue] = useState('')
 
   const pluralLabel = getPluralLabel(layer)
-  const singularLabel = getSingularLabel(layer)
 
   let offNetworkCount = 0
   let total = 0
@@ -89,7 +89,7 @@ const UnitChooser = ({
         )
         break
       }
-      case 'combined': {
+      case 'combined_barriers': {
         offNetworkCount = summaryUnits.reduce(
           (out, v) =>
             out +
@@ -142,12 +142,18 @@ const UnitChooser = ({
           overflowX: 'hidden',
         }}
       >
-        {summaryUnits.length === 0 ? (
-          <Text variant="help" sx={{ mb: '2rem' }}>
-            Select your {pluralLabel} of interest by clicking on them in the
-            map.
-          </Text>
-        ) : (
+        <Text
+          variant="help"
+          sx={{
+            mt: '-0.5rem',
+            pb: '1.5rem',
+          }}
+        >
+          Select {summaryUnits.length > 0 ? 'additional' : ''} {pluralLabel} by
+          clicking on them on the map or using the search below.
+        </Text>
+
+        {summaryUnits.length > 0 ? (
           <Box
             as="ul"
             sx={{
@@ -165,7 +171,7 @@ const UnitChooser = ({
               />
             ))}
           </Box>
-        )}
+        ) : null}
 
         <UnitSearch
           barrierType={barrierType}
@@ -181,26 +187,16 @@ const UnitChooser = ({
           onSelect={handleSearchSelect}
         />
 
-        {summaryUnits.length > 0 ? (
-          <>
-            <Text variant="help" sx={{ py: '2rem' }}>
-              Select additional {pluralLabel} by clicking on them on the map or
-              using the search above. To unselect a {singularLabel}, use the
-              trash button above or click on it on the map.
-            </Text>
-            {offNetworkCount > 0 ? (
-              <Text variant="help" sx={{ pb: '2rem' }}>
-                Note: only {barrierTypeLabel} that have been evaluated for
-                aquatic network connectivity are available for prioritization.
-                There are <b>{formatNumber(offNetworkCount, 0)}</b>{' '}
-                {barrierTypeLabel} not available for prioritization in your
-                selected area.
-              </Text>
-            ) : null}
-          </>
+        {summaryUnits.length > 0 && offNetworkCount > 0 ? (
+          <Text variant="help" sx={{ mt: '2rem', pb: '2rem' }}>
+            Note: only {barrierTypeLabel} that have been evaluated for aquatic
+            network connectivity are available for prioritization. There are{' '}
+            <b>{formatNumber(offNetworkCount, 0)}</b> {barrierTypeLabel} not
+            available for prioritization in your selected area.
+          </Text>
         ) : null}
 
-        {layer !== 'State' && layer !== 'County' ? (
+        {!(layer === 'State' || layer === 'County') ? (
           <Text variant="help" sx={{ pt: '2rem' }}>
             <ExclamationTriangle
               size="1em"

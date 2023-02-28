@@ -7,7 +7,7 @@ export const barrierTypeLabels = {
   small_barriers: 'road-related barriers',
   road_crossings: 'road/stream crossings',
   waterfalls: 'waterfalls',
-  combined: 'dams & road-related barriers',
+  combined_barriers: 'dams & road-related barriers',
 }
 
 export const barrierTypeLabelSingular = {
@@ -16,8 +16,8 @@ export const barrierTypeLabelSingular = {
   road_crossings: 'road/stream crossing',
   waterfalls: 'waterfall',
   // FIXME: is this used?
-  // combined: 'dam or road-related barrier',
-  combined: 'FIXME: is this showing up anywhere?',
+  // combined_barriers: 'dam or road-related barrier',
+  combined_barriers: 'FIXME: is this showing up anywhere?',
 }
 
 export const barrierNameWhenUnknown = {
@@ -59,7 +59,8 @@ export const pointColors = {
   },
   damsSecondary: {
     color: '#fec44f',
-    strokeColor: '#000000',
+    // strokeColor: '#000000',
+    strokeColor: '#FFFFFF',
   },
   removed: {
     color: '#6BEFF9',

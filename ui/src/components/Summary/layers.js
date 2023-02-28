@@ -9,7 +9,7 @@ export const layers = [
     bins: {
       dams: [1000, 2500, 5000, 10000, 25000, 50000, 100000],
       small_barriers: [50, 100, 500, 1000, 2500, 5000, 10000],
-      combined: [1000, 2500, 5000, 10000, 25000, 50000, 100000],
+      combined_barriers: [1000, 2500, 5000, 10000, 25000, 50000, 100000],
     },
     fill: {
       minzoom: 0,
@@ -47,7 +47,7 @@ export const layers = [
     bins: {
       dams: [100, 500, 750, 1000, 1500, 2000, 2500, 5000, 25000],
       small_barriers: [10, 100, 200, 300, 500, 1000, 2500],
-      combined: [100, 500, 750, 1000, 1500, 2000, 2500, 5000, 25000],
+      combined_barriers: [100, 500, 750, 1000, 1500, 2000, 2500, 5000, 25000],
     },
     fill: {
       minzoom: 4,
@@ -89,7 +89,7 @@ export const layers = [
     bins: {
       dams: [10, 50, 100, 200, 250, 300, 400, 500, 5000],
       small_barriers: [25, 50, 100, 150, 1500],
-      combined: [10, 50, 100, 200, 250, 300, 400, 500, 5000],
+      combined_barriers: [10, 50, 100, 200, 250, 300, 400, 500, 5000],
     },
     fill: {
       minzoom: 6,
@@ -128,7 +128,7 @@ export const layers = [
     bins: {
       dams: [5, 10, 25, 50, 100, 500, 1000],
       small_barriers: [5, 10, 25, 50, 100, 500, 1000],
-      combined: [5, 10, 25, 50, 100, 500, 1000],
+      combined_barriers: [5, 10, 25, 50, 100, 500, 1000],
     },
     fill: {
       minzoom: 7,
@@ -167,7 +167,7 @@ export const layers = [
     bins: {
       dams: [1, 10, 25, 100, 200],
       small_barriers: [1, 10, 25, 100, 200],
-      combined: [1, 10, 25, 100, 200],
+      combined_barriers: [1, 10, 25, 100, 200],
     },
     fill: {
       minzoom: 9,
@@ -206,7 +206,7 @@ export const layers = [
     bins: {
       dams: [500, 1000, 5000, 10000, 15000, 20000, 25000],
       small_barriers: [100, 250, 500, 1000, 2500, 5000, 10000],
-      combined: [500, 1000, 5000, 10000, 15000, 20000, 25000],
+      combined_barriers: [500, 1000, 5000, 10000, 15000, 20000, 25000],
     },
     fill: {
       minzoom: 0,
@@ -249,7 +249,7 @@ export const layers = [
     bins: {
       dams: [10, 50, 100, 250, 1000],
       small_barriers: [10, 25, 50, 100, 500],
-      combined: [10, 50, 100, 250, 1000],
+      combined_barriers: [10, 50, 100, 250, 1000],
     },
     fill: {
       minzoom: 5,
@@ -378,8 +378,9 @@ export const roadCrossingsLayer = {
 // NOTE: this is ONLY for displaying dams when small barriers are selected
 export const damsSecondaryLayer = {
   id: 'dams-secondary',
-  source: 'dams',
-  'source-layer': 'ranked_dams',
+  source: 'combined_barriers',
+  'source-layer': 'ranked_combined_barriers',
+  filter: ['==', 'barriertype', 'dams'],
   layout: {
     visibility: 'none',
   },
@@ -412,7 +413,8 @@ export const damsSecondaryLayer = {
     'circle-stroke-width': {
       stops: [
         [10, 0],
-        [12, 0.5],
+        [12, 1],
+        [14, 2],
       ],
     },
   },
@@ -465,7 +467,7 @@ export const pointLayer = {
       stops: [
         [9, 0],
         [12, 1],
-        [14, 3],
+        [14, 2],
       ],
     },
   },

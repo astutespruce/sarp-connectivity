@@ -43,9 +43,10 @@ const Scores = ({ barrierType, scores }) => {
   if (!(hasStateTiers || hasCustomTiers)) {
     return (
       <Text sx={{ color: 'grey.8' }}>
-        State-level ranks are not available for {barrierTypeLabel}. Instead, you
-        can <Link to={prioritizePath}>prioritize {barrierTypeLabel}</Link> for a
-        specific area.
+        State-level ranks are not available for this barrier for this type of
+        network scenario. Instead, you can{' '}
+        <Link to={prioritizePath}>prioritize</Link> barriers to calculate ranks
+        for a selected area.
       </Text>
     )
   }

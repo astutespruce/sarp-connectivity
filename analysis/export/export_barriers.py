@@ -15,7 +15,7 @@ from analysis.export.lib.domains import unpack_domains
 EXPORT_FIELDS = {
     "dams": DAM_EXPORT_FIELDS,
     "small_barriers": SB_EXPORT_FIELDS,
-    "combined": unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS),
+    "combined_barriers": unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS),
 }
 
 
@@ -23,7 +23,7 @@ data_dir = Path("data/api")
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
-barrier_type = "dams"  #  one of "dams", "small_barriers", "combined"
+barrier_type = "dams"  #  one of "dams", "small_barriers", "combined_barriers"
 suffix = ""  # use to set a filename suffix if filtering further
 
 df = pd.read_feather(data_dir / f"{barrier_type}.feather")

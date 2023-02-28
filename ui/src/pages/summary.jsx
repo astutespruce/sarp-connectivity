@@ -16,7 +16,7 @@ import { getQueryParams } from 'util/dom'
 const barrierTypeOptions = [
   { value: 'dams', label: 'dams' },
   { value: 'small_barriers', label: 'road-related barriers' },
-  { value: 'combined', label: 'both' },
+  { value: 'combined_barriers', label: 'both' },
 ]
 
 const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
@@ -136,7 +136,7 @@ const SummaryPage = ({ location }) => {
               onSelectBarrier={handleSelectBarrier}
             />
             <TopBar>
-              <Text sx={{ mr: '0.5rem' }}>Show:</Text>
+              <Text sx={{ mr: '0.5rem' }}>Show networks for:</Text>
               <ToggleButton
                 value={barrierType}
                 options={barrierTypeOptions}
