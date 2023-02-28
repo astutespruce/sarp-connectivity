@@ -17,6 +17,7 @@ const inactiveSideCSS = {
 
 const NetworkInfo = ({
   barrierType,
+  networkType,
   totalupstreammiles,
   perennialupstreammiles,
   alteredupstreammiles,
@@ -57,6 +58,13 @@ const NetworkInfo = ({
   return (
     <Box {...props}>
       <Entry sx={{ pb: '1.5rem', mx: '-0.5rem' }}>
+        <Text variant="help" sx={{ fontSize: 0, px: '0.5rem', mb: '0.5rem' }}>
+          statistics are based on aquatic networks cut by{' '}
+          {networkType === 'dams'
+            ? 'waterfalls and dams'
+            : 'waterfalls, dams, and road-related barriers'}
+        </Text>
+
         <Table sx={{ fontSize }} columns="11rem 1fr 1fr">
           <Row sx={{ px: '0.5rem' }}>
             <Box />
@@ -352,6 +360,7 @@ NetworkInfo.propTypes = {
   fontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   headerFontSize: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,

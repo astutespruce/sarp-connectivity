@@ -26,6 +26,7 @@ const { version: dataVersion } = siteMetadata
 
 const DamDetails = ({
   barrierType,
+  networkType,
   sarpid,
   hasnetwork,
   excluded,
@@ -240,6 +241,7 @@ const DamDetails = ({
         {hasnetwork ? (
           <NetworkInfo
             barrierType={barrierType}
+            networkType={networkType}
             totalupstreammiles={totalupstreammiles}
             perennialupstreammiles={perennialupstreammiles}
             alteredupstreammiles={alteredupstreammiles}
@@ -308,6 +310,7 @@ const DamDetails = ({
 
 DamDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
   hasnetwork: PropTypes.number.isRequired,
   excluded: PropTypes.number,

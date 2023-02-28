@@ -358,9 +358,10 @@ const PriorityMap = ({
         }
 
         // promote network fields if clicking on a waterfall
+        const networkType = barrierType === 'dams' ? 'dams' : 'small_barriers'
         const networkFields = {}
         Object.keys(properties)
-          .filter((k) => k.endsWith(barrierType))
+          .filter((k) => k.endsWith(networkType))
           .forEach((field) => {
             networkFields[field.split('_')[0]] = properties[field]
           })
@@ -374,7 +375,7 @@ const PriorityMap = ({
           tiers: rankedBarriersIndexRef.current[properties.id] || null,
           barrierType:
             source === 'combined_barriers' ? properties.barriertype : source,
-          networkType: source === 'dams' ? 'dams' : undefined,
+          networkType: barrierType,
           HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),
           HUC12Name: getSummaryUnitName('HUC12', properties.HUC12),
           CountyName: getSummaryUnitName('County', properties.County),

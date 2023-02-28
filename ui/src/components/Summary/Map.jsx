@@ -59,6 +59,7 @@ const SummaryMap = ({
   const mapRef = useRef(null)
   const hoverFeatureRef = useRef(null)
   const selectedFeatureRef = useRef(null)
+  const networkTypeRef = useRef(barrierType)
 
   const [zoom, setZoom] = useState(0)
 
@@ -364,6 +365,7 @@ const SummaryMap = ({
             ...properties,
             barrierType:
               source === 'combined_barriers' ? properties.barriertype : source,
+            networkType: networkTypeRef.current,
             HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),
             HUC12Name: getSummaryUnitName('HUC12', properties.HUC12),
             CountyName: getSummaryUnitName('County', properties.County),
@@ -414,6 +416,8 @@ const SummaryMap = ({
   }, [system])
 
   useEffect(() => {
+    networkTypeRef.current = barrierType
+
     const { current: map } = mapRef
 
     if (!map) return

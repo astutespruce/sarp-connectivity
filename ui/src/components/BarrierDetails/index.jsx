@@ -105,7 +105,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     }
   }
 
-  console.log('barrer details:', barrier, 'packed info:', packedInfo)
+  console.log('barrier details:', barrier, 'packed info:', packedInfo)
 
   let scoreContent = null
   if (ranked) {

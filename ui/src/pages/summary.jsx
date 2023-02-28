@@ -62,10 +62,11 @@ const SummaryPage = ({ location }) => {
   const handleSelectBarrier = (feature) => {
     // promote appropriate network results
     if (feature && feature.barrierType === 'waterfalls') {
-      const curBarrierType = barrierTypeRef.current
+      const networkType =
+        barrierTypeRef.current === 'dams' ? 'dams' : 'small_barriers'
       const networkFields = {}
       Object.keys(feature)
-        .filter((k) => k.endsWith(curBarrierType))
+        .filter((k) => k.endsWith(networkType))
         .forEach((field) => {
           networkFields[field.split('_')[0]] = feature[field]
         })
