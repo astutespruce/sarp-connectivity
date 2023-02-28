@@ -9,7 +9,7 @@ import { useSummaryData } from 'components/Data'
 import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'
 
-const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
+const RegionSummary = ({ region, barrierType, system, onSearch }) => {
   const {
     [region]: {
       dams,
@@ -140,15 +140,15 @@ const SoutheastSummary = ({ region, barrierType, system, onSearch }) => {
   )
 }
 
-SoutheastSummary.propTypes = {
+RegionSummary.propTypes = {
   region: PropTypes.string,
   barrierType: PropTypes.string.isRequired,
   system: PropTypes.string.isRequired,
   onSearch: PropTypes.func.isRequired,
 }
 
-SoutheastSummary.defaultProps = {
+RegionSummary.defaultProps = {
   region: 'total',
 }
 
-export default SoutheastSummary
+export default RegionSummary

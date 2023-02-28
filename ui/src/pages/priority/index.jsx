@@ -5,128 +5,168 @@ import { SearchLocation } from '@emotion-icons/fa-solid'
 import {
   Box,
   Container,
+  Grid,
   Heading,
   Flex,
   Button,
-  Divider,
+  Text,
   Paragraph,
 } from 'theme-ui'
 
+import { useSummaryData } from 'components/Data'
 import { Link } from 'components/Link'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
+import { formatNumber } from 'util/format'
 
-const PrioritizePage = ({ data: { headerImage } }) => (
-  <Layout>
-    <HeaderImage
-      image={headerImage.childImageSharp.gatsbyImageData}
-      height="20vh"
-      minHeight="12rem"
-      yPosition="top"
-      credits={{
-        author: 'Zach Dutra',
-        url: 'https://unsplash.com/photos/2d7Y5Yi3aq8',
-      }}
-    />
+const PrioritizePage = ({ data: { headerImage } }) => {
+  const {
+    total: { rankedDams, rankedSmallBarriers },
+  } = useSummaryData()
 
-    <Container>
-      <Heading as="h2">To prioritize barriers:</Heading>
-
-      <Box sx={{ mt: '2rem' }}>
-        <Flex sx={{ alignItems: 'center' }}>
-          <Box variant="boxes.step">1</Box>
-          <Heading as="h3" sx={{ flex: '1 1 auto' }}>
-            Select area of interest.
-          </Heading>
-        </Flex>
-        <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
-          You can select areas using state, county, and watershed boundaries.
-        </Paragraph>
-      </Box>
-
-      <Box sx={{ mt: '2rem' }}>
-        <Flex sx={{ alignItems: 'center' }}>
-          <Box variant="boxes.step">2</Box>
-          <Heading as="h3" sx={{ flex: '1 1 auto' }}>
-            Filter barriers.
-          </Heading>
-        </Flex>
-        <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
-          You can filter barriers by feasibility, height, and other key
-          characteristics to select those that best meet your needs.
-        </Paragraph>
-      </Box>
-
-      <Box sx={{ mt: '2rem' }}>
-        <Flex sx={{ alignItems: 'center' }}>
-          <Box variant="boxes.step">3</Box>
-          <Heading as="h3" sx={{ flex: '1 1 auto' }}>
-            Explore priorities on the map.
-          </Heading>
-        </Flex>
-        <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
-          Once you have defined your area of interest and selected the barriers
-          you want, you can explore them on the map.
-        </Paragraph>
-      </Box>
-
-      <Box sx={{ mt: '2rem' }}>
-        <Flex sx={{ alignItems: 'center' }}>
-          <Box variant="boxes.step">4</Box>
-          <Heading as="h3" sx={{ flex: '1 1 auto' }}>
-            Download prioritized barriers.
-          </Heading>
-        </Flex>
-        <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
-          You can download the inventory for your area of interest and perform
-          offline work.
-        </Paragraph>
-      </Box>
-
-      <Divider />
-
-      <Heading as="h2">Get started now</Heading>
-
-      <Flex
-        sx={{
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%',
-          fontSize: '1.5rem',
-          mt: '1rem',
-          mb: '8rem',
+  return (
+    <Layout>
+      <HeaderImage
+        image={headerImage.childImageSharp.gatsbyImageData}
+        height="20vh"
+        minHeight="12rem"
+        yPosition="top"
+        credits={{
+          author: 'Zach Dutra',
+          url: 'https://unsplash.com/photos/2d7Y5Yi3aq8',
         }}
-      >
-        <Box
-          sx={{
-            flex: '1 0 auto',
-          }}
-        >
-          <Link to="/priority/dams">
-            <Button>
-              <SearchLocation size="1em" style={{ marginRight: '0.5rem' }} />
-              Prioritize dams
-            </Button>
-          </Link>
-        </Box>
+      />
 
-        <Box
-          sx={{
-            flex: '0 0 auto',
-          }}
-        >
-          <Link to="/priority/barriers">
-            <Button>
-              <SearchLocation size="1em" style={{ marginRight: '0.5rem' }} />
-              Prioritize road-related barriers
-            </Button>
-          </Link>
-        </Box>
-      </Flex>
-    </Container>
-  </Layout>
-)
+      <Container>
+        <Grid columns="1.75fr 1fr" gap={5}>
+          <Box
+            sx={{
+              h4: {
+                fontSize: '1.25rem',
+              },
+            }}
+          >
+            <Heading as="h3">To prioritize barriers:</Heading>
 
+            <Box sx={{ mt: '1rem' }}>
+              <Flex sx={{ alignItems: 'center' }}>
+                <Box variant="boxes.step">1</Box>
+                <Heading as="h4" sx={{ flex: '1 1 auto' }}>
+                  Select area of interest.
+                </Heading>
+              </Flex>
+              <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
+                You can select areas using state, county, and watershed
+                boundaries.
+              </Paragraph>
+            </Box>
+
+            <Box sx={{ mt: '1rem' }}>
+              <Flex sx={{ alignItems: 'center' }}>
+                <Box variant="boxes.step">2</Box>
+                <Heading as="h4" sx={{ flex: '1 1 auto' }}>
+                  Filter barriers.
+                </Heading>
+              </Flex>
+              <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
+                You can filter barriers by feasibility, height, and other key
+                characteristics to select those that best meet your needs.
+              </Paragraph>
+            </Box>
+
+            <Box sx={{ mt: '1rem' }}>
+              <Flex sx={{ alignItems: 'center' }}>
+                <Box variant="boxes.step">3</Box>
+                <Heading as="h4" sx={{ flex: '1 1 auto' }}>
+                  Explore priorities on the map.
+                </Heading>
+              </Flex>
+              <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
+                Once you have defined your area of interest and selected the
+                barriers you want, you can explore them on the map.
+              </Paragraph>
+            </Box>
+
+            <Box sx={{ mt: '1rem' }}>
+              <Flex sx={{ alignItems: 'center' }}>
+                <Box variant="boxes.step">4</Box>
+                <Heading as="h4" sx={{ flex: '1 1 auto' }}>
+                  Download prioritized barriers.
+                </Heading>
+              </Flex>
+              <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
+                You can download the inventory for your area of interest and
+                perform offline work.
+              </Paragraph>
+            </Box>
+          </Box>
+
+          <Box
+            sx={{
+              bg: 'grey.0',
+              borderRadius: '0.5rem',
+              p: '1rem',
+            }}
+          >
+            <Heading as="h3">Prioritize:</Heading>
+            <Box
+              sx={{
+                mt: '1rem',
+                fontSize: '1.1rem',
+              }}
+            >
+              <Box>
+                <Link to="/priority/dams">
+                  <Button sx={{ width: '100%', textAlign: 'left' }}>
+                    <SearchLocation
+                      size="1em"
+                      style={{ marginRight: '0.5rem' }}
+                    />
+                    Dams
+                  </Button>
+                </Link>
+                <Text sx={{ fontSize: 1, color: 'grey.7' }}>
+                  ({formatNumber(rankedDams)} available)
+                </Text>
+              </Box>
+              <Box sx={{ mt: '2rem' }}>
+                <Link to="/priority/barriers">
+                  <Button sx={{ width: '100%', textAlign: 'left' }}>
+                    <SearchLocation
+                      size="1em"
+                      style={{ marginRight: '0.5rem' }}
+                    />
+                    Road-related barriers*
+                  </Button>
+                </Link>
+                <Text sx={{ fontSize: 1, color: 'grey.7' }}>
+                  ({formatNumber(rankedSmallBarriers)} available)
+                </Text>
+              </Box>
+              <Box sx={{ mt: '2rem' }}>
+                <Link to="/priority/combined">
+                  <Button sx={{ width: '100%', textAlign: 'left' }}>
+                    <SearchLocation
+                      size="1em"
+                      style={{ marginRight: '0.5rem' }}
+                    />
+                    Dams & road-related barriers*
+                  </Button>
+                </Link>
+                <Text sx={{ fontSize: 1, color: 'grey.7' }}>
+                  ({formatNumber(rankedDams + rankedSmallBarriers)} available)
+                </Text>
+              </Box>
+            </Box>
+            <Paragraph variant="help" sx={{ mt: '2rem' }}>
+              *limited to areas with inventoried road-related barriers
+            </Paragraph>
+          </Box>
+        </Grid>
+      </Container>
+    </Layout>
+  )
+}
 PrioritizePage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
