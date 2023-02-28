@@ -278,7 +278,14 @@ const PriorityMap = ({
 
           tooltip
             .setLngLat(coordinates)
-            .setHTML(getBarrierTooltip(feature.source, feature.properties))
+            .setHTML(
+              getBarrierTooltip(
+                feature.source === 'combined'
+                  ? feature.properties.barriertype
+                  : feature.source,
+                feature.properties
+              )
+            )
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
@@ -365,9 +372,10 @@ const PriorityMap = ({
           ...properties,
           ...networkFields,
           tiers: rankedBarriersIndexRef.current[properties.id] || null,
-          // barrierType,
-          barrierType: source,
-          // FIXME: is this right?
+          barrierType:
+            (barrierType === source) === 'combined'
+              ? properties.barriertype
+              : source,
           networkType: source === 'dams' ? 'dams' : undefined,
           HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),
           HUC12Name: getSummaryUnitName('HUC12', properties.HUC12),

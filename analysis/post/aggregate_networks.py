@@ -24,6 +24,7 @@ from api.constants import (
     SB_TILE_FIELDS,
     SB_PACK_BITS,
     COMBINED_API_FIELDS,
+    COMBINED_PACK_BITS,
     WF_CORE_FIELDS,
     WF_TILE_FIELDS,
     WF_PACK_BITS,
@@ -150,6 +151,8 @@ for col in dam_networks.columns:
 for col in ["CoastalHUC8"]:
     dams[col] = dams[col].astype("uint8")
 
+dams_tmp = dams.drop(columns=["packed"])
+
 dams = dams[unique(["geometry", "Unranked"] + DAM_API_FIELDS + DAM_TILE_FIELDS)]
 verify_domains(dams)
 
@@ -215,6 +218,9 @@ for col in ["CoastalHUC8"]:
     small_barriers[col] = small_barriers[col].astype("uint8")
 
 
+small_barriers_tmp = small_barriers.drop(columns=["packed"])
+
+
 small_barriers = small_barriers[
     unique(["geometry", "Unranked"] + SB_API_FIELDS + SB_TILE_FIELDS)
 ]
@@ -234,17 +240,16 @@ tmp.to_feather(api_dir / f"small_barriers.feather")
 ### Get combined networks
 
 # convert small barriers BarrierSeverity to Passability before merge
-small_barriers["Passability"] = small_barriers.BarrierSeverity.map(
+small_barriers_tmp["Passability"] = small_barriers_tmp.BarrierSeverity.map(
     SEVERITY_TO_PASSABILITY
 )
-small_barriers = small_barriers.drop(columns=["BarrierSeverity"])
 
-dams["BarrierType"] = "dam"
-small_barriers["BarrierType"] = "Inventoried road-related barrier"
+dams_tmp["BarrierType"] = "dams"
+small_barriers_tmp["BarrierType"] = "small_barriers"
 combined = pd.concat(
     [
-        dams.drop(columns=dam_networks.columns, errors="ignore").reset_index(),
-        small_barriers.drop(
+        dams_tmp.drop(columns=dam_networks.columns, errors="ignore").reset_index(),
+        small_barriers_tmp.drop(
             columns=small_barrier_networks.columns, errors="ignore"
         ).reset_index(),
     ],
@@ -255,7 +260,7 @@ combined = pd.concat(
 combined_networks = get_network_results(
     combined,
     network_type="small_barriers",
-    state_ranks=True,
+    state_ranks=False,
 )
 combined = combined.join(combined_networks)
 for col in ["HasNetwork", "Ranked", "Estimated", "NoStructure"]:
@@ -300,6 +305,7 @@ fill_columns = [
     "CrossingType",
     "RoadType",
     "SARP_Score",
+    "BarrierSeverity",
 ]
 
 dtypes = pd.concat([dams.dtypes, small_barriers.dtypes])
@@ -317,13 +323,18 @@ for col in ["CoastalHUC8"]:
 
 verify_domains(combined)
 
+pack_cols = [e["field"] for e in COMBINED_PACK_BITS]
+tmp = combined[pack_cols].copy()
+tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
+tmp.loc[tmp.Diversion == -1, "Diversion"] = 0
+combined["packed"] = pack_bits(tmp, COMBINED_PACK_BITS)
+
 
 print("Saving combined networks for tiles and API")
 # Save full results for tiles, etc
 combined.reset_index().to_feather(results_dir / "combined_barriers.feather")
 
 # save for API
-# cols = [c for c in DAM_API_FIELDS + SB_API_FIELDS if not c == "BarrierSeverity"]
 tmp = combined[COMBINED_API_FIELDS].reset_index()
 tmp["id"] = tmp.id.astype("uint32")
 tmp.to_feather(api_dir / f"combined_barriers.feather")

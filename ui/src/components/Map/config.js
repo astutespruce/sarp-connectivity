@@ -39,6 +39,13 @@ export const sources = {
     maxzoom: 16,
     promoteId: 'id',
   },
+  combined: {
+    type: 'vector',
+    tiles: [`${tileHost}/services/combined/tiles/{z}/{x}/{y}.pbf`],
+    minzoom: 2,
+    maxzoom: 16,
+    promoteId: 'id',
+  },
   road_crossings: {
     type: 'vector',
     tiles: [`${tileHost}/services/road_crossings/tiles/{z}/{x}/{y}.pbf`],

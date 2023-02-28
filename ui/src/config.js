@@ -16,7 +16,8 @@ export const barrierTypeLabelSingular = {
   road_crossings: 'road/stream crossing',
   waterfalls: 'waterfall',
   // FIXME: is this used?
-  combined: 'dam or road-related barrier',
+  // combined: 'dam or road-related barrier',
+  combined: 'FIXME: is this showing up anywhere?',
 }
 
 export const barrierNameWhenUnknown = {

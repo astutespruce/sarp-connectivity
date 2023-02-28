@@ -65,7 +65,9 @@ def search_units(request: Request, layer: str, query: str):
                 "layer",
                 "name",
                 "state",
+                "dams",
                 "ranked_dams",
+                "total_small_barriers",
                 "ranked_small_barriers",
                 "crossings",
             ]

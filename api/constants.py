@@ -429,7 +429,35 @@ SB_TILE_FILTER_FIELDS = unique(
 )
 
 
-COMBINED_API_FIELDS = unique(["BarrierType"] + DAM_API_FIELDS + SB_API_FIELDS)
+COMBINED_API_FIELDS = [
+    c
+    for c in unique(["BarrierType"] + DAM_API_FIELDS + SB_API_FIELDS)
+    if not c in STATE_TIER_FIELDS
+]
+
+# BarrierSeverity included for API but not filtering
+COMBINED_TILE_FILTER_FIELDS = [
+    c
+    for c in unique(DAM_TILE_FILTER_FIELDS + SB_TILE_FILTER_FIELDS)
+    if not c == "BarrierSeverity"
+]
+
+COMBINED_TILE_FIELDS = unique(DAM_TILE_FIELDS + SB_TILE_FIELDS)
+
+COMBINED_PACK_BITS = [
+    {"field": "StreamOrder", "bits": 4},
+    {"field": "Recon", "bits": 5},
+    {"field": "PassageFacility", "bits": 5},
+    {"field": "Diversion", "bits": 2},
+    {"field": "NoStructure", "bits": 1},
+    {"field": "Estimated", "bits": 1},
+    {"field": "HasNetwork", "bits": 1},
+    {"field": "Excluded", "bits": 1},
+    {"field": "OnLoop", "bits": 1},
+    {"field": "unsnapped", "bits": 1},
+    {"field": "Unranked", "bits": 1},
+    {"field": "Invasive", "bits": 1},
+]
 
 
 ROAD_CROSSING_CORE_FIELDS = (
@@ -610,6 +638,11 @@ CUSTOM_TIER_PACK_BITS = [
 
 
 ### Domains for coded values in exported data
+BARRIERTYPE_DOMAIN = {
+    "dams": "Dam",
+    "small_barriers": "Inventoried road-related barrier",
+}
+
 
 # typos fixed and trailing periods removed
 RECON_DOMAIN = {
@@ -845,6 +878,7 @@ SCREENTYPE_DOMAIN = {
 
 
 BARRIER_SEVERITY_DOMAIN = {
+    -1: "Not applicable",  # only used when combining with small barriers
     0: "Unknown",
     1: "Complete barrier",
     2: "Moderate barrier",
@@ -1042,6 +1076,7 @@ STATES = {
 
 # mapping of field name to domains
 DOMAINS = {
+    "BarrierType": BARRIERTYPE_DOMAIN,
     "State": STATES,
     "HasNetwork": BOOLEAN_DOMAIN,
     "OnLoop": BOOLEAN_DOMAIN,

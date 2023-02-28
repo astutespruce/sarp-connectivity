@@ -70,3 +70,6 @@ export const toCamelCase = (value) => {
     .map((part, i) => (i === 0 ? part : capitalize(part)))
     .join('')
 }
+
+export const pluralize = (word, count, suffix = 's') =>
+  count === 1 ? word : `${word}${suffix}`

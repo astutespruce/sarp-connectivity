@@ -89,6 +89,20 @@ const UnitChooser = ({
         )
         break
       }
+      case 'combined': {
+        offNetworkCount = summaryUnits.reduce(
+          (out, v) =>
+            out +
+            (v.dams - v.ranked_dams) +
+            (v.small_barriers - v.ranked_small_barriers),
+          0
+        )
+        total = summaryUnits.reduce(
+          (out, v) => out + v.ranked_dams + v.ranked_small_barriers,
+          0
+        )
+        break
+      }
       default: {
         break
       }
@@ -193,8 +207,8 @@ const UnitChooser = ({
               style={{ marginRight: '0.25rem' }}
             />
             Note: You can choose from {pluralLabel} outside the highlighted
-            states, but the barriers inventory is likely more complete only
-            where {pluralLabel} overlap the highlighted states.
+            states, but the barriers inventory is more complete only where{' '}
+            {pluralLabel} overlap the highlighted states.
           </Text>
         ) : null}
       </Box>
@@ -214,7 +228,7 @@ const UnitChooser = ({
         <SubmitButton
           disabled={summaryUnits.size === 0 || total === 0}
           onClick={onSubmit}
-          label={`Select ${barrierTypeLabel} in this area`}
+          label="Configure filters"
           title={
             summaryUnits.size === 0 || total === 0
               ? `you must select at least one area that has ${barrierTypeLabel} available`

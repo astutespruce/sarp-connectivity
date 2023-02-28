@@ -178,7 +178,15 @@ for unit in SUMMARY_UNITS:
     unit = "County" if unit == "COUNTYFIPS" else unit
 
     # collate stats
-    tmp = merged[["ranked_dams", "ranked_small_barriers", "crossings"]].copy()
+    tmp = merged[
+        [
+            "dams",
+            "ranked_dams",
+            "total_small_barriers",
+            "ranked_small_barriers",
+            "crossings",
+        ]
+    ].copy()
     tmp.index.name = "id"
     tmp = tmp.reset_index()
     tmp["layer"] = unit
