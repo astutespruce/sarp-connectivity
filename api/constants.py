@@ -457,7 +457,7 @@ ROAD_CROSSING_CORE_FIELDS = (
 
 ROAD_CROSSING_CORE_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS)
 
-ROAD_CROSSING_API_FIELDS = ROAD_CROSSING_CORE_FIELDS
+ROAD_CROSSING_API_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS + ["COUNTYFIPS"])
 
 # Manually-selected subset of fields to keep size small
 # NOTE: all retained road crossings are snapped
