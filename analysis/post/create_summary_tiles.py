@@ -179,7 +179,6 @@ for unit in SUMMARY_UNITS:
 
     # collate stats
     tmp = merged[["ranked_dams", "ranked_small_barriers", "crossings"]].copy()
-    tmp["priority"] = i  # assign priority for sort order
     tmp.index.name = "id"
     tmp = tmp.reset_index()
     tmp["layer"] = unit

@@ -16,6 +16,7 @@ import { getQueryParams } from 'util/dom'
 const barrierTypeOptions = [
   { value: 'dams', label: 'dams' },
   { value: 'small_barriers', label: 'road-related barriers' },
+  { value: 'combined', label: 'both' },
 ]
 
 const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({

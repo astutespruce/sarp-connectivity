@@ -13,7 +13,14 @@ import { trackDownload } from 'util/analytics'
 import UserInfoForm, { FIELDS } from './UserInfoForm'
 import DownloadOptions from './Options'
 
-const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
+const Downloader = ({
+  barrierType,
+  config,
+  customRank,
+  asButton,
+  label,
+  disabled,
+}) => {
   const [isOpen, setIsOpen] = useState(false)
   const [haveUserInfo, setHaveUserInfo] = useState(false)
   const [downloadOptions, setDownloadOptions] = useState({
@@ -88,8 +95,8 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
     <>
       {asButton ? (
         <Button
-          onClick={handleShow}
-          variant="primary"
+          onClick={!disabled ? handleShow : null}
+          variant={!disabled ? 'primary' : 'disabled'}
           sx={{ fontSize: '1.1em', flex: '1 1 auto' }}
         >
           <Flex sx={{ justifyContent: 'center' }}>
@@ -102,7 +109,7 @@ const Downloader = ({ barrierType, config, customRank, asButton, label }) => {
       ) : (
         <Text
           as="span"
-          onClick={handleShow}
+          onClick={!disabled ? handleShow : null}
           sx={{
             flex: '1 1 auto',
             display: 'inline-block',
@@ -197,12 +204,14 @@ Downloader.propTypes = {
   customRank: PropTypes.bool,
   asButton: PropTypes.bool,
   label: PropTypes.string,
+  disabled: PropTypes.bool,
 }
 
 Downloader.defaultProps = {
   customRank: false,
   label: null,
   asButton: true,
+  disabled: false,
 }
 
 export default Downloader

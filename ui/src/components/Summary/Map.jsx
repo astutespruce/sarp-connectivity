@@ -398,11 +398,15 @@ const SummaryMap = ({
     if (!map) return
 
     // update renderer and filter on all layers
+    const fieldExpr =
+      barrierType === 'combined'
+        ? ['+', ['get', 'dams'], ['get', 'small_barriers']]
+        : ['get', barrierType]
     layers.forEach(({ id, bins: { [barrierType]: bins } }) => {
       const colors = COLORS.count[bins.length]
       map.setPaintProperty(`${id}-fill`, 'fill-color', [
         'match',
-        ['get', barrierType],
+        fieldExpr,
         0,
         COLORS.empty,
         interpolateExpr(barrierType, bins, colors),
@@ -643,6 +647,7 @@ const SummaryMap = ({
         title={layerTitle}
         subtitle={`number of ${barrierTypeLabel}`}
         {...legendEntries}
+        maxWidth="12rem"
       />
     </>
   )

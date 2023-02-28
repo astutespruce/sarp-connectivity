@@ -83,7 +83,10 @@ const ListItem = ({
 
         {showCount && !disabled ? (
           <Text
-            sx={{ fontSize: '0.9rem', color: 'grey.6', fontWeight: 'normal' }}
+            sx={{
+              fontSize: '0.9rem',
+              color: 'highlight',
+            }}
           >
             ({formatNumber(count)} {barrierTypeLabels[barrierType]}
             {count === 0 ? ', not available for prioritization' : ''})

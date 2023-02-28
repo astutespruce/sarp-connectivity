@@ -7,6 +7,7 @@ export const barrierTypeLabels = {
   small_barriers: 'road-related barriers',
   road_crossings: 'road/stream crossings',
   waterfalls: 'waterfalls',
+  combined: 'dams & road-related barriers',
 }
 
 export const barrierTypeLabelSingular = {
@@ -14,6 +15,8 @@ export const barrierTypeLabelSingular = {
   small_barriers: 'road-related barrier',
   road_crossings: 'road/stream crossing',
   waterfalls: 'waterfall',
+  // FIXME: is this used?
+  combined: 'dam or road-related barrier',
 }
 
 export const barrierNameWhenUnknown = {

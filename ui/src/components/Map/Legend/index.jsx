@@ -5,7 +5,15 @@ import { CaretDown } from '@emotion-icons/fa-solid'
 
 import Circle from './Circle'
 
-const Legend = ({ title, subtitle, patches, circles, lines, footnote }) => {
+const Legend = ({
+  title,
+  subtitle,
+  patches,
+  circles,
+  lines,
+  footnote,
+  maxWidth,
+}) => {
   const [isOpen, setIsOpen] = useState(false)
 
   const hasElements =
@@ -30,7 +38,7 @@ const Legend = ({ title, subtitle, patches, circles, lines, footnote }) => {
         zIndex: 10000,
         right: '10px',
         bottom: '24px',
-        maxWidth: '16rem',
+        maxWidth,
         py: '0.5em',
         px: '0.75em',
         bg: '#FFF',
@@ -305,6 +313,7 @@ Legend.propTypes = {
     })
   ),
   footnote: PropTypes.string,
+  maxWidth: PropTypes.string,
 }
 
 Legend.defaultProps = {
@@ -314,6 +323,7 @@ Legend.defaultProps = {
   patches: null,
   lines: null,
   footnote: null,
+  maxWidth: '16rem',
 }
 
 export default Legend
