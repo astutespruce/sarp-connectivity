@@ -7,8 +7,8 @@ These are processed in the following order.
 
 1. dams
 2. waterfalls
-3. small barriers (inventoried road-related crossings)
-4. road crossings (non-inventoried road-related crossings)
+3. small barriers (assessed road-related crossings)
+4. road crossings (unassessed road-related crossings)
 
 The output of the processing steps below are full barriers datasets in `data/barriers/master` and a subset of dams, small barriers, and waterfalls that were snapped to the aquatic network in `data/barriers/snapped`.
 

@@ -15,7 +15,7 @@ router = APIRouter()
 
 
 @router.get("/units/search")
-def search_units(request: Request, layer: str, query: str):
+async def search_units(request: Request, layer: str, query: str):
     """Return top 10 units based on text search
 
     Query parameters:
@@ -64,6 +64,7 @@ def search_units(request: Request, layer: str, query: str):
                 "id",
                 "layer",
                 "name",
+                "bbox",
                 "state",
                 "dams",
                 "ranked_dams",

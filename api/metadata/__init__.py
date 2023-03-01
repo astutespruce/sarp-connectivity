@@ -4,7 +4,12 @@ from pathlib import Path
 from api.settings import data_version, data_date
 
 
-from api.constants import DAM_FIELD_DEFINITIONS, SB_FIELD_DEFINITIONS
+from api.constants import (
+    DAM_FIELD_DEFINITIONS,
+    SB_FIELD_DEFINITIONS,
+    COMBINED_FIELD_DEFINITIONS,
+    RC_FIELD_DEFINITIONS,
+)
 
 metadata_dir = Path(__file__).resolve().parent
 
@@ -22,9 +27,22 @@ with open(metadata_dir / "terms_template.txt") as infile:
 
 
 def get_readme(filename, barrier_type, fields, url, layer, ids, warnings=None):
-    field_def = (
-        DAM_FIELD_DEFINITIONS if barrier_type == "dams" else SB_FIELD_DEFINITIONS
-    )
+    field_def = {}
+    barrier_type_label = ""
+
+    match barrier_type:
+        case "dams":
+            field_def = DAM_FIELD_DEFINITIONS
+            barrier_type_label = "dams"
+        case "small_barriers":
+            field_def = SB_FIELD_DEFINITIONS
+            barrier_type_label = "assessed road-related barriers"
+        case "combined_barriers":
+            field_def = COMBINED_FIELD_DEFINITIONS
+            barrier_type_label = "dams and assessed road-related barriers"
+        case "road_crossings":
+            field_def = RC_FIELD_DEFINITIONS
+            barrier_type_label = "potential road-related barriers"
 
     fields = {f: field_def[f] for f in fields if f in field_def}
     field_info = "\n".join([f"{k}: {v}" for k, v in fields.items()])
@@ -34,7 +52,7 @@ def get_readme(filename, barrier_type, fields, url, layer, ids, warnings=None):
     )
 
     return readme.format(
-        type=barrier_type,
+        type=barrier_type_label,
         data_version=data_version,
         data_date=data_date,
         url=url,

@@ -411,7 +411,7 @@ CROSSING_TYPE_TO_DOMAIN = {
     "": 0,
     "tide gate": 10,
     "tidegate": 10,
-    # only for uninventoried road crossings
+    # only for unassessed road crossings
     "assumed culvert": 9,
 }
 

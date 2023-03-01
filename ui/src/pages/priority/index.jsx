@@ -159,7 +159,7 @@ const PrioritizePage = ({ data: { headerImage } }) => {
               </Box>
             </Box>
             <Paragraph variant="help" sx={{ mt: '2rem' }}>
-              *limited to areas with inventoried road-related barriers
+              *limited to areas with assessed road-related barriers
             </Paragraph>
           </Box>
         </Grid>

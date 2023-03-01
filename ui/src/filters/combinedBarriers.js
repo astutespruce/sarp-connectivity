@@ -195,9 +195,9 @@ export const combinedBarriers = [
       {
         field: 'downstreamoceanbarriersclass',
         title:
-          'Number of dams / inventoried road-related barriers between this dam and the ocean',
+          'Number of dams / assessed road-related barriers between this dam and the ocean',
         sort: false,
-        help: 'This value is based on any dams or inventoried road-related barriers that occur on the downstream path between this dam and the ocean.  Note: this does not include any road crossings that have not been evaluated for barrier severity.',
+        help: 'This value is based on any dams or assessed road-related barriers that occur on the downstream path between this dam and the ocean.  Note: this does not include any road crossings that have not been evaluated for barrier severity.',
         ...getEntries(DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN),
       },
     ],

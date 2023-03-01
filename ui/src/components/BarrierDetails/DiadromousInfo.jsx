@@ -22,7 +22,7 @@ const DiadromousInfo = ({
     </Entry>
     {barrierType === 'small_barriers' ? (
       <Entry>
-        <Field label="Number of inventoried road-related barriers downstream">
+        <Field label="Number of assessed road-related barriers downstream">
           {totaldownstreamsmallbarriers}
         </Field>
       </Entry>

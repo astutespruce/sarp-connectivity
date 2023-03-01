@@ -46,7 +46,7 @@ barrier_states = sorted(
 
 
 @router.get("/dams/metadata")
-def get_dams_metadata(
+async def get_dams_metadata(
     request: Request,
 ):
     """Return basic metadata describing the dams data."""
@@ -67,7 +67,7 @@ def get_dams_metadata(
 
 
 @router.get("/barriers/metadata")
-def get_barriers_metadata(
+async def get_barriers_metadata(
     request: Request,
 ):
     """Return basic metadata describing the small barriers data."""

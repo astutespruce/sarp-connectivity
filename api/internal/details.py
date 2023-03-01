@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.get("/dams/details/{sarp_id}")
-def get_dam(request: Request, sarp_id: str):
+async def get_dam(request: Request, sarp_id: str):
     log_request(request)
 
     dam = (
@@ -29,7 +29,7 @@ def get_dam(request: Request, sarp_id: str):
 
 
 @router.get("/small_barriers/details/{sarp_id}")
-def get_small_barrier(request: Request, sarp_id: str):
+async def get_small_barrier(request: Request, sarp_id: str):
     log_request(request)
 
     barrier = (
