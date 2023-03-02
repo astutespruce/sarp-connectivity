@@ -7,7 +7,7 @@ import { ClientOnly, SEO } from 'components/Layout'
 
 const BarriersReportRoute = ({ params: { sarpid } }) => (
   <ClientOnly>
-    <BarrierReport barrierType="small_barriers" sarpid={sarpid} />
+    <BarrierReport networkType="small_barriers" sarpid={sarpid} />
   </ClientOnly>
 )
 

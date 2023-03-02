@@ -53,7 +53,7 @@ const Map = ({
   bounds,
   padding,
   styleID,
-  barrierType,
+  networkType,
   barrierID,
   networkID,
   onCreateMap,
@@ -91,7 +91,7 @@ const Map = ({
       )
 
     const barrierLayers = [waterfallsLayer.id]
-    if (barrierType === 'small_barriers') {
+    if (networkType === 'small_barriers') {
       barrierLayers.push(damsSecondaryLayer.id)
       barrierLayers.push(roadCrossingsLayer.id)
     }
@@ -160,7 +160,11 @@ const Map = ({
             mapObj.addLayer({
               ...layer,
               minzoom: 6,
-              filter: ['==', barrierType, networkID],
+              filter: [
+                '==',
+                networkType === 'dams' ? 'dams' : 'small_barriers',
+                networkID,
+              ],
             })
           } else {
             mapObj.addLayer(layer)
@@ -170,11 +174,16 @@ const Map = ({
         // Add barrier point layers
         mapObj.addLayer(waterfallsLayer)
 
-        if (barrierType === 'small_barriers') {
+        if (networkType === 'small_barriers') {
           mapObj.addLayer({
             ...damsSecondaryLayer,
             layout: { visibility: 'visible' },
           })
+        }
+        if (
+          networkType === 'small_barriers' ||
+          networkType === 'combined_barriers'
+        ) {
           mapObj.addLayer({
             ...roadCrossingsLayer,
             layout: { visibility: 'visible' },
@@ -182,38 +191,38 @@ const Map = ({
         }
 
         mapObj.addLayer({
-          id: barrierType,
-          source: barrierType,
-          'source-layer': `ranked_${barrierType}`,
+          id: networkType,
+          source: networkType,
+          'source-layer': `ranked_${networkType}`,
           ...pointLayer,
         })
 
         mapObj.addLayer({
-          id: `unranked_${barrierType}`,
-          source: barrierType,
-          'source-layer': `unranked_${barrierType}`,
+          id: `unranked_${networkType}`,
+          source: networkType,
+          'source-layer': `unranked_${networkType}`,
           ...unrankedPointLayer,
         })
 
         mapObj.addLayer({
-          id: `offnetwork_${barrierType}`,
-          source: barrierType,
-          'source-layer': `offnetwork_${barrierType}`,
+          id: `offnetwork_${networkType}`,
+          source: networkType,
+          'source-layer': `offnetwork_${networkType}`,
           ...offnetworkPointLayer,
         })
 
         mapObj.addLayer({
-          id: `removed_${barrierType}`,
-          source: barrierType,
-          'source-layer': `removed_${barrierType}`,
+          id: `removed_${networkType}`,
+          source: networkType,
+          'source-layer': `removed_${networkType}`,
           ...removedBarrierPointLayer,
         })
 
         // Add barrier highlight layer for on and off-network barriers.
         mapObj.addLayer({
           ...pointHighlightLayer,
-          source: barrierType,
-          'source-layer': `ranked_${barrierType}`,
+          source: networkType,
+          'source-layer': `ranked_${networkType}`,
           minzoom: 6,
           filter: ['==', ['get', 'id'], barrierID],
         })
@@ -221,8 +230,8 @@ const Map = ({
         mapObj.addLayer({
           ...pointHighlightLayer,
           id: 'unranked-point-highlight',
-          source: barrierType,
-          'source-layer': `unranked_${barrierType}`,
+          source: networkType,
+          'source-layer': `unranked_${networkType}`,
           minzoom: 9,
           filter: ['==', ['get', 'id'], barrierID],
         })
@@ -230,8 +239,8 @@ const Map = ({
         mapObj.addLayer({
           ...pointHighlightLayer,
           id: 'offnetwork-point-highlight',
-          source: barrierType,
-          'source-layer': `offnetwork_${barrierType}`,
+          source: networkType,
+          'source-layer': `offnetwork_${networkType}`,
           minzoom: 9,
           filter: ['==', ['get', 'id'], barrierID],
         })
@@ -239,8 +248,8 @@ const Map = ({
         mapObj.addLayer({
           ...pointHighlightLayer,
           id: 'removed-point-highlight',
-          source: barrierType,
-          'source-layer': `removed_${barrierType}`,
+          source: networkType,
+          'source-layer': `removed_${networkType}`,
           minzoom: 9,
           filter: ['==', ['get', 'id'], barrierID],
         })
@@ -313,7 +322,7 @@ Map.propTypes = {
   bounds: PropTypes.arrayOf(PropTypes.number),
   padding: PropTypes.number,
   styleID: PropTypes.string,
-  barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   barrierID: PropTypes.number.isRequired,
   networkID: PropTypes.number,
   onCreateMap: PropTypes.func.isRequired,

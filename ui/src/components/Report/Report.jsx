@@ -33,6 +33,7 @@ Font.registerHyphenationCallback((word) => [word])
 
 const Report = ({
   barrierType,
+  networkType,
   data,
   name,
   map,
@@ -59,7 +60,7 @@ const Report = ({
         <Flex>
           <LocatorMap map={locatorMap} />
           <Legend
-            barrierType={barrierType}
+            networkType={networkType}
             name={name}
             visibleLayers={visibleLayers}
           />
@@ -74,6 +75,7 @@ const Report = ({
         <Network
           style={{ marginTop: 48 }}
           barrierType={barrierType}
+          networkType={networkType}
           {...data}
         />
 
@@ -81,6 +83,7 @@ const Report = ({
           <Scores
             style={{ marginTop: 24 }}
             barrierType={barrierType}
+            networkType={networkType}
             {...data}
           />
         ) : null}
@@ -111,6 +114,7 @@ const Report = ({
 
 Report.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   data: PropTypes.object.isRequired,
   name: PropTypes.string.isRequired,
   map: PropTypes.string.isRequired,

@@ -18,6 +18,7 @@ const columnCSS = {
 const Network = ({
   sarpid,
   barrierType,
+  networkType,
   totalupstreammiles,
   perennialupstreammiles,
   alteredupstreammiles,
@@ -105,6 +106,7 @@ const Network = ({
           based on its position within the aquatic network.
           {'\n\n'}
         </Text>
+
         <Text style={{ color: '#7f8a93' }}>
           This {barrierType === 'dams' ? 'dam' : 'road-related barrier'} was
           snapped to a secondary channel within the aquatic network according to
@@ -151,7 +153,22 @@ const Network = ({
   }
 
   return (
-    <Section title="Functional network information" {...props} wrap={false}>
+    <Section
+      title="Functional network information"
+      {...props}
+      wrap={false}
+      marginBottom={6}
+    >
+      <View style={{ marginBottom: 12 }}>
+        <Text variant="help" style={{ color: '#7f8a93' }}>
+          Statistics are based on aquatic networks cut by{' '}
+          {networkType === 'dams'
+            ? 'waterfalls and dams'
+            : 'waterfalls, dams, and road-related barriers'}
+          .
+        </Text>
+      </View>
+
       <Flex>
         <View
           style={{
@@ -382,11 +399,12 @@ const Network = ({
 Network.propTypes = {
   sarpid: PropTypes.string.isRequired,
   barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
   onloop: PropTypes.bool,
   diversion: PropTypes.number,
-  nostructure: PropTypes.bool,
+  nostructure: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,

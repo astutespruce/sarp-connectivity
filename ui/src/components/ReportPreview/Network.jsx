@@ -10,6 +10,7 @@ const { version: dataVersion } = siteMetadata
 
 const Network = ({
   barrierType,
+  networkType,
   sarpid,
   totalupstreammiles,
   perennialupstreammiles,
@@ -145,6 +146,14 @@ const Network = ({
   return (
     <Box sx={sx}>
       {header}
+
+      <Text variant="help" sx={{ fontSize: 2, mb: '0.5rem' }}>
+        Statistics are based on aquatic networks cut by{' '}
+        {networkType === 'dams'
+          ? 'waterfalls and dams'
+          : 'waterfalls, dams, and road-related barriers'}
+        .
+      </Text>
 
       <Grid
         columns={totalupstreammiles > 0 ? 4 : 3}
@@ -302,12 +311,13 @@ const Network = ({
 
 Network.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
   onloop: PropTypes.bool,
   diversion: PropTypes.number,
-  nostructure: PropTypes.bool,
+  nostructure: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,

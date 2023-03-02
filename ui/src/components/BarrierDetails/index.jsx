@@ -187,7 +187,11 @@ const BarrierDetails = ({ barrier, onClose }) => {
         {barrierType === 'dams' || barrierType === 'small_barriers' ? (
           <Box sx={{ lineHeight: 1, mt: '1.5rem' }}>
             <a
-              href={`/report/${barrierType}/${sarpid}`}
+              href={`/report/${
+                networkType === 'dams' || networkType === barrierType
+                  ? barrierType
+                  : 'combined_barriers'
+              }/${sarpid}`}
               target="_blank"
               rel="noreferrer"
               style={{ display: 'inline-block' }}

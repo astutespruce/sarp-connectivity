@@ -28,8 +28,8 @@ const flowlineSymbols = {
   },
 }
 
-export const getLegendEntries = ({ name, barrierType, visibleLayers }) => {
-  const barrierTypeLabel = barrierTypeLabels[barrierType]
+export const getLegendEntries = ({ name, networkType, visibleLayers }) => {
+  const networkTypeLabel = barrierTypeLabels[networkType]
   const entries = [
     {
       color: '#fd8d3c',
@@ -51,7 +51,7 @@ export const getLegendEntries = ({ name, barrierType, visibleLayers }) => {
     ...primary,
     type: 'circle',
     label: `${capitalize(
-      barrierTypeLabel
+      networkTypeLabel
     )} analyzed for impacts to aquatic connectivity`,
   })
 
@@ -66,14 +66,14 @@ export const getLegendEntries = ({ name, barrierType, visibleLayers }) => {
       return
     }
 
-    if (id === 'dams-secondary' && barrierType !== 'small_barriers') {
+    if (id === 'dams-secondary' && networkType !== 'small_barriers') {
       return
     }
 
     entries.push({
       ...rest,
       type: 'circle',
-      label: capitalize(label(barrierTypeLabel)),
+      label: capitalize(label(networkTypeLabel)),
     })
   })
 
@@ -89,8 +89,8 @@ export const getLegendEntries = ({ name, barrierType, visibleLayers }) => {
   return entries
 }
 
-const Legend = ({ barrierType, name, visibleLayers }) => {
-  const entries = getLegendEntries({ barrierType, name, visibleLayers })
+const Legend = ({ networkType, name, visibleLayers }) => {
+  const entries = getLegendEntries({ networkType, name, visibleLayers })
 
   return (
     <View
@@ -106,7 +106,7 @@ const Legend = ({ barrierType, name, visibleLayers }) => {
 }
 
 Legend.propTypes = {
-  barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   visibleLayers: PropTypes.object, // Set()
 }
