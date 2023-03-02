@@ -67,13 +67,13 @@ async def download(
     columns = ["id"]
     match barrier_type:
         case "dams":
-            colums += DAM_EXPORT_FIELDS
+            columns += DAM_EXPORT_FIELDS
         case "small_barriers":
-            colums += SB_EXPORT_FIELDS
+            columns += SB_EXPORT_FIELDS
         case "combined_barriers":
-            colums += COMBINED_EXPORT_FIELDS
+            columns += COMBINED_EXPORT_FIELDS
         case "road_crossings":
-            colums += ROAD_CROSSING_API_FIELDS
+            columns += ROAD_CROSSING_API_FIELDS
 
     columns = [c for c in columns if not c in CUSTOM_TIER_FIELDS]
 

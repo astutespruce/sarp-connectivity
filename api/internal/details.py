@@ -3,43 +3,35 @@ from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 import pyarrow.compute as pc
 
-from api.data import dams, small_barriers
+from api.constants import BarrierTypes
+from api.data import dams, small_barriers, combined_barriers
 from api.logger import log_request
 
 
 router = APIRouter()
 
 
-@router.get("/dams/details/{sarp_id}")
-async def get_dam(request: Request, sarp_id: str):
+@router.get("/{barrier_type}/details/{sarp_id}")
+async def get_dam(request: Request, barrier_type: BarrierTypes, sarp_id: str):
     log_request(request)
 
-    dam = (
-        dams.to_table(filter=pc.field("SARPID") == sarp_id)
+    match barrier_type:
+        case "dams":
+            dataset = dams
+        case "small_barriers":
+            dataset = small_barriers
+        case "combined_barriers":
+            dataset = combined_barriers
+
+    record = (
+        dataset.to_table(filter=pc.field("SARPID") == sarp_id)
         .slice(0)
-        .rename_columns([c.lower() for c in dams.schema.names])
+        .rename_columns([c.lower() for c in dataset.schema.names])
     )
 
-    if not len(dam):
-        raise HTTPException(404, detail=f"dam not found for SARPID: {sarp_id}")
+    if not len(record):
+        raise HTTPException(404, detail=f"record not found for SARPID: {sarp_id}")
 
     # use the bulk converter to dict (otherwise float32 serialization issues)
     # and return singular first item
-    return JSONResponse(content=dam.to_pylist()[0])
-
-
-@router.get("/small_barriers/details/{sarp_id}")
-async def get_small_barrier(request: Request, sarp_id: str):
-    log_request(request)
-
-    barrier = (
-        small_barriers.to_table(filter=pc.field("SARPID") == sarp_id)
-        .slice(0)
-        .rename_columns([c.lower() for c in small_barriers.schema.names])
-    )
-    if not len(barrier):
-        raise HTTPException(404, detail=f"barrier not found for SARPID: {sarp_id}")
-
-    # use the bulk converter to dict (otherwise float32 serialization issues)
-    # and return singular first item
-    return JSONResponse(content=barrier.to_pylist()[0])
+    return JSONResponse(content=record.to_pylist()[0])
