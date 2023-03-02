@@ -6,7 +6,7 @@ import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { UnitSearch } from 'components/UnitSearch'
 import { useBarrierType } from 'components/Data'
 import { barrierTypeLabels } from 'config'
-import { formatNumber } from 'util/format'
+import { formatNumber, pluralize } from 'util/format'
 
 import BackLink from './BackLink'
 import StartOverButton from './StartOverButton'
@@ -68,6 +68,7 @@ const UnitChooser = ({
 
   let offNetworkCount = 0
   let total = 0
+  let countMessage = null
   if (summaryUnits.length > 0) {
     switch (barrierType) {
       case 'dams': {
@@ -76,6 +77,7 @@ const UnitChooser = ({
           0
         )
         total = summaryUnits.reduce((out, v) => out + v.ranked_dams, 0)
+        countMessage = `${formatNumber(total)} ${pluralize('dam', total)}`
         break
       }
       case 'small_barriers': {
@@ -87,6 +89,10 @@ const UnitChooser = ({
           (out, v) => out + v.ranked_small_barriers,
           0
         )
+        countMessage = `${formatNumber(total)} road-related ${pluralize(
+          'barrier',
+          total
+        )}`
         break
       }
       case 'combined_barriers': {
@@ -101,6 +107,22 @@ const UnitChooser = ({
           (out, v) => out + v.ranked_dams + v.ranked_small_barriers,
           0
         )
+
+        let dams = 0
+        let smallBarriers = 0
+        summaryUnits.forEach(({ ranked_dams, ranked_small_barriers }) => {
+          dams += ranked_dams
+          smallBarriers += ranked_small_barriers
+        })
+
+        countMessage = `${formatNumber(dams)} ${pluralize(
+          'dam',
+          dams
+        )} and ${formatNumber(smallBarriers)} road-related ${pluralize(
+          'barrier',
+          smallBarriers
+        )}`
+
         break
       }
       default: {
@@ -209,29 +231,43 @@ const UnitChooser = ({
         ) : null}
       </Box>
 
-      <Flex
+      <Box
         sx={{
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          p: '1rem',
           flex: '0 0 auto',
+          pt: '0.5rem',
+          pb: '1rem',
+          px: '1rem',
           borderTop: '1px solid #DDD',
           bg: '#f6f6f2',
         }}
       >
-        <StartOverButton onStartOver={onStartOver} />
+        {countMessage !== null ? (
+          <Text sx={{ fontSize: 1, textAlign: 'right' }}>
+            selected: {countMessage}
+          </Text>
+        ) : null}
 
-        <SubmitButton
-          disabled={summaryUnits.size === 0 || total === 0}
-          onClick={onSubmit}
-          label="Configure filters"
-          title={
-            summaryUnits.size === 0 || total === 0
-              ? `you must select at least one area that has ${barrierTypeLabel} available`
-              : null
-          }
-        />
-      </Flex>
+        <Flex
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mt: '1rem',
+          }}
+        >
+          <StartOverButton onStartOver={onStartOver} />
+
+          <SubmitButton
+            disabled={summaryUnits.size === 0 || total === 0}
+            onClick={onSubmit}
+            label="Configure filters"
+            title={
+              summaryUnits.size === 0 || total === 0
+                ? `you must select at least one area that has ${barrierTypeLabel} available`
+                : null
+            }
+          />
+        </Flex>
+      </Box>
     </Flex>
   )
 }

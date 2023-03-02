@@ -64,21 +64,21 @@ async def download(
 
     log_request(request)
 
-    read_columns = []
+    columns = ["id"]
     match barrier_type:
         case "dams":
-            read_columns = DAM_EXPORT_FIELDS
+            colums += DAM_EXPORT_FIELDS
         case "small_barriers":
-            read_columns = SB_EXPORT_FIELDS
+            colums += SB_EXPORT_FIELDS
         case "combined_barriers":
-            read_columns = COMBINED_EXPORT_FIELDS
+            colums += COMBINED_EXPORT_FIELDS
         case "road_crossings":
-            read_columns = ROAD_CROSSING_API_FIELDS
+            colums += ROAD_CROSSING_API_FIELDS
 
-    read_columns = [c for c in read_columns if not c in CUSTOM_TIER_FIELDS]
+    columns = [c for c in columns if not c in CUSTOM_TIER_FIELDS]
 
     df = extractor.extract(
-        columns=["id"] + read_columns,
+        columns=columns,
         ranked=not (include_unranked or barrier_type == "road_crossings"),
     )
     log.info(f"selected {len(df):,} {barrier_type.replace('_', ' ')} for download")

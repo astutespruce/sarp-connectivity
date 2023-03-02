@@ -35,27 +35,26 @@ async def query_dams(
     """
 
     log_request(request)
-
-    filter_fields = []
+    columns = ["id", "lon", "lat"]
     match barrier_type:
         case "dams":
-            filter_fields = DAM_FILTER_FIELDS
+            columns += DAM_FILTER_FIELDS
         case "small_barriers":
-            filter_fields = SB_FILTER_FIELDS
+            columns += SB_FILTER_FIELDS
         case "combined_barriers":
-            filter_fields = COMBINED_FILTER_FIELDS
+            columns += ["BarrierType"] + COMBINED_FILTER_FIELDS
 
         case _:
             raise NotImplementedError("query is not supported for road crossings")
 
-    df = extractor.extract(columns=["id", "lon", "lat"] + filter_fields, ranked=True)
+    df = extractor.extract(columns=columns, ranked=True)
 
     # extract extent
     xmin, xmax = pc.min_max(df["lon"]).as_py().values()
     ymin, ymax = pc.min_max(df["lat"]).as_py().values()
     bounds = [xmin, ymin, xmax, ymax]
 
-    df = df.select(["id"] + filter_fields)
+    df = df.select(["id"] + columns)
 
     log.info(f"query selected {len(df):,} {barrier_type.replace('_', ' ')}")
 

@@ -8,7 +8,7 @@ import { FilterGroup } from 'components/Filters'
 import { useCrossfilter } from 'components/Crossfilter'
 import { ExpandableParagraph } from 'components/Text'
 import { barrierTypeLabels } from 'config'
-import { formatNumber } from 'util/format'
+import { formatNumber, pluralize } from 'util/format'
 
 import BackLink from './BackLink'
 import SubmitButton from './SubmitButton'
@@ -19,7 +19,7 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const { state, filterConfig, resetFilters } = useCrossfilter()
 
-  const { filteredCount, hasFilters, emptyGroups } = state
+  const { data, filteredCount, hasFilters, emptyGroups } = state
 
   const handleBack = () => {
     resetFilters()
@@ -28,6 +28,47 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
 
   const handleReset = () => {
     resetFilters()
+  }
+
+  let countMessage = null
+  switch (barrierType) {
+    case 'dams': {
+      countMessage = `${formatNumber(filteredCount)} ${pluralize(
+        'dam',
+        filteredCount
+      )}`
+      break
+    }
+    case 'small_barriers': {
+      countMessage = `${formatNumber(filteredCount)} road-related ${pluralize(
+        'barrier',
+        filteredCount
+      )}`
+      break
+    }
+    case 'combined_barriers': {
+      let dams = 0
+      let smallBarriers = 0
+      data.forEach(({ barriertype: recordBarrierType }) => {
+        if (recordBarrierType === 'dams') {
+          dams += 1
+        } else {
+          smallBarriers += 1
+        }
+      })
+
+      countMessage = `${formatNumber(dams)} ${pluralize(
+        'dam',
+        dams
+      )} and ${formatNumber(smallBarriers)} road-related ${pluralize(
+        'barrier',
+        smallBarriers
+      )}`
+      break
+    }
+    default: {
+      break
+    }
   }
 
   return (
@@ -39,7 +80,8 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
     >
       <Box
         sx={{
-          py: '1rem',
+          pt: '1rem',
+          pb: '0.25rem',
           pr: '0.5rem',
           pl: '1rem',
           bg: '#f6f6f2',
@@ -56,12 +98,10 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
         <Flex
           sx={{
             alignItems: 'center',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-end',
+            mt: '0.5rem',
           }}
         >
-          <Text sx={{ color: 'grey.7' }}>
-            {formatNumber(filteredCount, 0)} selected
-          </Text>
           {hasFilters && (
             <Flex
               onClick={handleReset}
@@ -113,29 +153,41 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
         </Box>
       </Box>
 
-      <Flex
+      <Box
         sx={{
           flex: '0 0 auto',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          p: '1rem',
+          pt: '0.5rem',
+          pb: '1rem',
+          px: '1rem',
           bg: '#f6f6f2',
           borderTop: '1px solid #DDD',
         }}
       >
-        <StartOverButton onStartOver={onStartOver} />
+        <Text sx={{ fontSize: 1, textAlign: 'right' }}>
+          selected: {countMessage}
+        </Text>
 
-        <SubmitButton
-          disabled={filteredCount === 0}
-          onClick={onSubmit}
-          label="Prioritize selected barriers"
-          title={
-            filteredCount === 0
-              ? `No ${barrierTypeLabel} selected for prioritization`
-              : null
-          }
-        />
-      </Flex>
+        <Flex
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mt: '1rem',
+          }}
+        >
+          <StartOverButton onStartOver={onStartOver} />
+
+          <SubmitButton
+            disabled={filteredCount === 0}
+            onClick={onSubmit}
+            label="Prioritize selected barriers"
+            title={
+              filteredCount === 0
+                ? `No ${barrierTypeLabel} selected for prioritization`
+                : null
+            }
+          />
+        </Flex>
+      </Box>
     </Flex>
   )
 }
