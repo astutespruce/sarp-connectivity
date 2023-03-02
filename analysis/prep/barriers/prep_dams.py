@@ -376,8 +376,8 @@ df["HeightClass"] = np.asarray(
 ).astype("uint8")
 
 # Convert PassageFacility to class
-df["PassageFacilityClass"] = np.uint8(1)
-df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 2
+df["PassageFacilityClass"] = np.uint8(0)
+df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
 
 df["FeasibilityClass"] = df.Feasibility.map(FEASIBILITY_TO_DOMAIN).astype("uint8")
 

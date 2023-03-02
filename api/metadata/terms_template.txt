@@ -2,7 +2,7 @@ Comprehensive Aquatic Barrier Inventory - Terms of Use
 ----------------------------------------------------------------
 
 Data version: {data_version}
-Data publish date: {data_date}
+Data published: {data_date}
 Downloaded from: {url}
 
 {terms_of_use}

@@ -146,7 +146,14 @@ const Results = ({
         }}
       >
         <StartOverButton onStartOver={onStartOver} />
-        <Downloader barrierType={barrierType} config={config} customRank />
+        <Box>
+          <Downloader
+            barrierType={barrierType}
+            label="Download prioritized barriers"
+            config={config}
+            customRank
+          />
+        </Box>
       </Flex>
     </Flex>
   )

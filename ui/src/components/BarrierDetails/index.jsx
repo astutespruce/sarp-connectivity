@@ -35,6 +35,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     lat,
     lon,
     barrierType,
+    networkType,
     sarpidname,
     ranked,
     CountyName,
@@ -139,7 +140,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
       })
     }
 
-    scoreContent = <Scores scores={scores} barrierType={barrierType} />
+    scoreContent = <Scores scores={scores} networkType={networkType} />
   }
 
   return (

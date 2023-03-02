@@ -128,7 +128,7 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
         <SubmitButton
           disabled={filteredCount === 0}
           onClick={onSubmit}
-          label={`Prioritize ${barrierTypeLabel}`}
+          label="Prioritize selected barriers"
           title={
             filteredCount === 0
               ? `No ${barrierTypeLabel} selected for prioritization`

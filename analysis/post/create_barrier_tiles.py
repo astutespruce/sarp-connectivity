@@ -617,8 +617,8 @@ print(
     f"Creating tiles for {len(tmp):,} ranked combined barriers with networks for zooms 2-7"
 )
 
-outfilename = tmp_dir / "combined_lt_z8.fgb"
-mbtiles_filename = tmp_dir / "combined_lt_z8.mbtiles"
+outfilename = tmp_dir / "combined_barriers_lt_z8.fgb"
+mbtiles_filename = tmp_dir / "combined_barriers_lt_z8.mbtiles"
 mbtiles_files = [mbtiles_filename]
 write_dataframe(tmp.reset_index(drop=True), outfilename)
 

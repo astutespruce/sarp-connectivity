@@ -290,6 +290,7 @@ fill_columns = [
     "Diversion",
     "NoStructure",
     "Feasibility",
+    "FeasibilityClass",
     "FishScreen",
     "Height",
     "HeightClass",

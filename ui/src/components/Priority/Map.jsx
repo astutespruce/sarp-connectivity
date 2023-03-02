@@ -168,13 +168,18 @@ const PriorityMap = ({
             const unitLayer = { ...config, ...rest, id: layerId }
 
             if (id === 'unit-fill') {
-              unitLayer.paint['fill-opacity'] = [
-                'match',
-                ['get', barrierType],
-                0,
-                0.25,
-                0,
-              ]
+              // show grey where there are not sufficient barriers of the chosen
+              // type
+              const fieldExpr =
+                barrierType === 'combined_barriers'
+                  ? [
+                      'min',
+                      ['get', 'ranked_dams'],
+                      ['get', 'ranked_small_barriers'],
+                    ]
+                  : ['get', `ranked_${barrierType}`]
+
+              unitLayer.paint['fill-opacity'] = ['match', fieldExpr, 0, 0.25, 0]
             }
 
             map.addLayer(unitLayer)

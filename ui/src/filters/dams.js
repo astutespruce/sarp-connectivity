@@ -147,8 +147,8 @@ export const dams = [
     ],
   },
   {
-    id: 'diadromous',
-    title: 'Diadromous species',
+    id: 'marine',
+    title: 'Marine connectivity',
     hasData: hasDiadromousData,
     filters: [
       {

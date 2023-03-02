@@ -333,7 +333,6 @@ export const BOOLEAN_FIELD = {
 }
 
 export const RECON = {
-  '-1': 'not applicable',
   0: 'feasibility not yet evaluated',
   1: 'good candidate for removal. Move forward with landowner contact',
   2: 'dam needs follow-up with landowner',
@@ -360,7 +359,7 @@ export const RECON = {
 }
 
 export const PURPOSE = {
-  '-1': 'not applicable',
+  '-1': 'not applicable (road-related barrier)',
   0: 'unknown',
   1: 'agriculture',
   2: 'flood control',
@@ -377,7 +376,7 @@ export const PURPOSE = {
 }
 
 export const CONSTRUCTION = {
-  '-1': 'not applicable',
+  '-1': 'not applicable (road-related barrier)',
   0: 'unknown',
   1: 'cement',
   2: 'concrete/roller-compacted concrete',
@@ -403,7 +402,7 @@ export const CONDITION = {
 }
 
 export const FEASIBILITYCLASS = {
-  0: 'not applicable', // only when merged with small barriers
+  0: 'not applicable (road-related barrier)', // only when merged with small barriers
   1: 'unknown',
   2: 'likely feasible',
   3: 'possibly feasible',
@@ -418,7 +417,7 @@ export const FEASIBILITYCLASS = {
 }
 
 export const HEIGHT = {
-  0: 'Not applicable',
+  0: 'Not applicable (road-related barrier)',
   1: 'Unknown',
   2: '< 5 feet',
   3: '5 - 10 feet',
@@ -478,15 +477,15 @@ export const DOWNSTREAM_OCEAN_DAMS_DOMAIN = {
 
 export const DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN = {
   0: 'not on an aquatic network known to flow into the ocean',
-  1: 'no dams / road-related barriers',
-  2: '1 dams / road-related barrier',
-  3: '2-4 dams / road-related barriers',
-  4: '5-9 dams / road-related barriers',
-  5: '>= 10 dams / road-related barriers',
+  1: 'no dams or road-related barriers',
+  2: '1 dam or road-related barrier',
+  3: '2-4 dams or road-related barriers',
+  4: '5-9 dams or road-related barriers',
+  5: '>= 10 dams or road-related barriers',
 }
 
 export const CROSSING_TYPE = {
-  '-1': 'not applicable',
+  '-1': 'not applicable (dam)',
   0: 'unknown',
   1: 'inaccessible',
   2: 'no crossing',
@@ -502,7 +501,7 @@ export const CROSSING_TYPE = {
 }
 
 export const CONSTRICTION = {
-  '-1': 'not applicable',
+  '-1': 'not applicable (dam)',
   0: 'unknown',
   1: 'spans full channel & banks',
   2: 'spans only bankfull/active channel',
@@ -513,7 +512,7 @@ export const CONSTRICTION = {
 }
 
 export const ROAD_TYPE = {
-  '-1': 'Not applicable',
+  '-1': 'Not applicable (dam)',
   0: 'unknown',
   1: 'unpaved',
   2: 'paved',
@@ -543,13 +542,11 @@ export const BARRIEROWNERTYPE = {
 }
 
 export const PASSAGEFACILITY_CLASS = {
-  0: 'not applicable',
-  1: 'no known fish passage structure',
-  2: 'fish passage structure present',
+  0: 'no known fish passage structure',
+  1: 'fish passage structure present',
 }
 
 export const PASSAGEFACILITY = {
-  '-1': 'not applicable',
   0: 'unknown or none',
   1: 'trap & truck',
   2: 'fish ladder - unspecified',
@@ -611,7 +608,7 @@ export const SMALL_BARRIER_SEVERITY = {
 }
 
 export const LOWHEAD_DAM = {
-  '-1': 'not applicable',
+  '-1': 'not applicable (road-related barrier)',
   0: 'unknown',
   1: 'lowhead dam',
   2: 'likely lowhead dam',

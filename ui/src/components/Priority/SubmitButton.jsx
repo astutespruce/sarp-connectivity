@@ -12,7 +12,7 @@ const SubmitButton = ({ label, disabled, title, onClick }) => (
   >
     <Flex sx={{ alignItems: 'center', gap: '0.5rem' }}>
       <AngleDoubleRight size="1.2em" />
-      <Text>{label}</Text>
+      <Text sx={{ fontSize: 3 }}>{label}</Text>
     </Flex>
   </Button>
 )

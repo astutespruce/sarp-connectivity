@@ -153,7 +153,10 @@ for column in ("Stream", "Road"):
         column,
     ] = ""
 
-df.loc[(df.Stream != "") & (df.Road != ""), "Name",] = (
+df.loc[
+    (df.Stream != "") & (df.Road != ""),
+    "Name",
+] = (
     df.Stream + " / " + df.Road
 )
 df.Name = df.Name.fillna("")
@@ -192,8 +195,8 @@ df["BarrierSeverity"] = (
 )
 
 # Calculate PassageFacility class
-df["PassageFacilityClass"] = np.uint8(1)
-df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 2
+df["PassageFacilityClass"] = np.uint8(0)
+df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
 
 # Code Condition to use same domain as dams
 df["Condition"] = (

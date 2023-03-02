@@ -197,6 +197,14 @@ SB_FILTER_FIELDS = FILTER_FIELDS + [
 ]
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
+# BarrierSeverity included for API but not filtering
+COMBINED_FILTER_FIELDS = [
+    c
+    for c in unique(DAM_FILTER_FIELDS + SB_FILTER_FIELDS)
+    if not c == "BarrierSeverity"
+]
+COMBINED_FILTER_FIELD_MAP = {f.lower(): f for f in COMBINED_FILTER_FIELDS}
+
 # Road crossing filters not currently used
 RC_FILTER_FIELDS = ["CrossingType"]
 RC_FILTER_FIELD_MAP = {f.lower(): f for f in RC_FILTER_FIELDS}
@@ -443,14 +451,6 @@ COMBINED_EXPORT_FIELDS = [
     if not c in STATE_TIER_FIELDS
 ]
 
-# BarrierSeverity included for API but not filtering
-COMBINED_FILTER_FIELDS = [
-    c
-    for c in unique(DAM_FILTER_FIELDS + SB_FILTER_FIELDS)
-    if not c == "BarrierSeverity"
-]
-COMBINED_FILTER_FIELD_MAP = {f.lower(): f for f in COMBINED_FILTER_FIELDS}
-
 
 COMBINED_TILE_FILTER_FIELDS = [
     c
@@ -649,7 +649,6 @@ BARRIERTYPE_DOMAIN = {
 
 # typos fixed and trailing periods removed
 RECON_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
     0: "Not yet evaluated",  # added
     1: "Good candidate for removal. Move forward with landowner contact",  # expanded acronym
     2: "Dam needs follow-up with landowner",
@@ -677,7 +676,7 @@ RECON_DOMAIN = {
 
 # Created here to capture values below
 FEASIBILITY_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Not assessed",
     1: "Not feasible",
     2: "Likely infeasible",
@@ -697,7 +696,7 @@ FEASIBILITY_DOMAIN = {
 
 
 PURPOSE_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Unknown",  # added
     1: "Agriculture",
     2: "Flood Control",
@@ -714,7 +713,7 @@ PURPOSE_DOMAIN = {
 }
 
 CONSTRUCTION_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable  (road-related barrier)",
     0: "Unknown",  # added
     1: "Cement",
     2: "Concrete/Roller-compacted Concrete",
@@ -743,7 +742,7 @@ CONDITION_DOMAIN = {
 # Created here
 # Height in feet
 HEIGHT_DOMAIN = {
-    0: "Not applicable",  # only used when combining with small barriers
+    0: "Not applicable (road-related barrier)",
     1: "Unknown",
     2: "< 5",
     3: "5 - 10",
@@ -819,7 +818,7 @@ WATERBODY_SIZECLASS_DOMAIN = {
 
 
 CROSSING_TYPE_DOMAIN = {
-    -1: "Not applicable",
+    -1: "Not applicable (dam)",
     0: "Unknown",
     1: "Inaccessible",
     2: "No crossing",
@@ -835,7 +834,7 @@ CROSSING_TYPE_DOMAIN = {
 }
 
 CONSTRICTION_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with dams
+    -1: "Not applicable (dam)",
     0: "Unknown",
     1: "Spans full channel & banks",
     2: "Spans only bankfull/active channel",
@@ -846,7 +845,7 @@ CONSTRICTION_DOMAIN = {
 }
 
 DIVERSION_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Unknown",
     1: "Yes",
     2: "No",
@@ -854,7 +853,7 @@ DIVERSION_DOMAIN = {
 
 # NOTE: values do not match original domain; they are recoded
 LOWHEADDAM_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Unknown",
     1: "Yes",
     2: "Likely",
@@ -862,14 +861,14 @@ LOWHEADDAM_DOMAIN = {
 }
 
 FISHSCREEN_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Unknown",
     1: "Yes",
     2: "No",
 }
 
 SCREENTYPE_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Unknown",
     1: "Horizontal",
     2: "Vertical",
@@ -881,7 +880,7 @@ SCREENTYPE_DOMAIN = {
 
 
 BARRIER_SEVERITY_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (dam)",
     0: "Unknown",
     1: "Complete barrier",
     2: "Moderate barrier",
@@ -904,7 +903,7 @@ PASSABILITY_DOMAIN = {
 }
 
 ROAD_TYPE_DOMAIN = {
-    -1: "not applicable",  # when merged with dams
+    -1: "Not applicable (dam)",
     0: "Unknown",
     1: "Unpaved",
     2: "Paved",
@@ -940,13 +939,11 @@ BOOLEAN_DOMAIN = {False: "no", True: "yes"}
 
 
 PASSAGEFACILITY_CLASS_DOMAIN = {
-    0: "Not applicable",  # only used when combining with small barriers
-    1: "No known fish passage structure",
-    2: "Fish passage structure present",
+    0: "No known fish passage structure",
+    1: "Fish passage structure present",
 }
 
 PASSAGEFACILITY_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
     0: "Unknown or none",
     1: "Trap & truck",
     2: "Fish ladder - unspecified",
@@ -1125,8 +1122,9 @@ DOMAINS = {
 # Note: replace {type} with appropriate type when rendering
 FIELD_DEFINITIONS = {
     # general fields
-    "lat": "latitude in WGS84 geographic coordinates.",
-    "lon": "longitude in WGS84 geographic coordinates.",
+    "BarrierType": "Type of barrier",
+    "lat": "Latitude in WGS84 geographic coordinates.",
+    "lon": "Longitude in WGS84 geographic coordinates.",
     "Name": "{type} name, if available.",
     "SARPID": "SARP Identifier.",
     # dam-specific fields
