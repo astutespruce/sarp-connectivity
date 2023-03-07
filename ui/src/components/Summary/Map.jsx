@@ -596,21 +596,26 @@ const SummaryMap = ({
 
     const circles = []
     if (map && map.getZoom() >= 12) {
-      const { included: primary, other } = pointLegends
+      const { included: primary, unrankedBarriers, other } = pointLegends
       circles.push({
-        ...primary,
-        label: `${barrierTypeLabel} analyzed for impacts to aquatic connectivity`,
+        ...primary.getSymbol(barrierType),
+        label: primary.getLabel(barrierTypeLabel),
       })
 
-      other.forEach(({ id, label, ...rest }) => {
-        // dams secondary is only relevant for small barriers
+      unrankedBarriers.forEach(({ getSymbol, getLabel }) => {
+        circles.push({
+          ...getSymbol(barrierType),
+          label: getLabel(barrierTypeLabel),
+        })
+      })
+
+      other.forEach(({ id, getSymbol, getLabel }) => {
         if (id === 'dams-secondary' && barrierType !== 'small_barriers') {
           return
         }
-
         circles.push({
-          ...rest,
-          label: label(barrierTypeLabel),
+          ...getSymbol(barrierType),
+          label: getLabel(barrierTypeLabel),
         })
       })
     }

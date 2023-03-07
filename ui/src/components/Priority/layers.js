@@ -152,7 +152,14 @@ export const offnetworkPoint = {
         1,
         pointColors.offNetwork.color,
         2,
-        pointColors.nonBarrier.color,
+        [
+          'match',
+          ['get', 'barrier_type'],
+          'dams',
+          pointColors.nonBarrier.damsColor,
+          pointColors.nonBarrier.color,
+        ],
+        // pointColors.nonBarrier.color,
         // 3: invasive is in unranked layer below
         // last entry is default
         pointColors.offNetwork.color,
@@ -186,7 +193,10 @@ export const offnetworkPoint = {
       ['linear'],
       ['zoom'],
       10,
-      getHighlightExpr(0.5, 1),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 0.25, 0.5],
+        1
+      ),
       14,
       1,
     ],
@@ -208,7 +218,14 @@ export const removedBarrierPoint = {
   maxzoom: 24,
   paint: {
     'circle-color': getHighlightExpr(
-      pointColors.removed.color,
+      // pointColors.removed.color,
+      [
+        'match',
+        ['get', 'barriertype'],
+        'dams',
+        pointColors.removed.damsColor,
+        pointColors.removed.color,
+      ],
       pointColors.highlight.color
     ),
     'circle-stroke-color': getHighlightExpr(
@@ -220,9 +237,15 @@ export const removedBarrierPoint = {
       ['linear'],
       ['zoom'],
       10,
-      getHighlightExpr(0.5, 2),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 0.25, 0.5],
+        2
+      ),
       14,
-      getHighlightExpr(4, 14),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 2.5, 4],
+        14
+      ),
     ],
     'circle-opacity': [
       'interpolate',
@@ -257,7 +280,13 @@ export const unrankedPoint = {
         'match',
         ['get', 'symbol'],
         3,
-        pointColors.invasive.color,
+        [
+          'match',
+          ['get', 'barriertype'],
+          'dams',
+          pointColors.invasive.damsColor,
+          pointColors.invasive.color,
+        ],
         // default
         pointColors.offNetwork.color,
       ],
@@ -279,9 +308,15 @@ export const unrankedPoint = {
       ['linear'],
       ['zoom'],
       10,
-      getHighlightExpr(0.5, 2),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 0.25, 0.5],
+        2
+      ),
       14,
-      getHighlightExpr(4, 14),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 2.5, 4],
+        14
+      ),
     ],
     'circle-opacity': 1,
     'circle-stroke-width': {
@@ -304,11 +339,23 @@ export const excludedPoint = {
   // filter:  [], // will be filtered using "in" or "!in"
   paint: {
     'circle-color': getHighlightExpr(
-      pointColors.excluded.color,
+      [
+        'match',
+        ['get', 'barriertype'],
+        'small_barriers',
+        pointColors.excluded.smallBarriersColor,
+        pointColors.excluded.color,
+      ],
       pointColors.highlight.color
     ),
     'circle-stroke-color': getHighlightExpr(
-      pointColors.excluded.strokeColor,
+      [
+        'match',
+        ['get', 'barriertype'],
+        'small_barriers',
+        pointColors.excluded.smallBarriersStrokeColor,
+        pointColors.excluded.strokeColor,
+      ],
       pointColors.highlight.strokeColor
     ),
     'circle-radius': [
@@ -316,13 +363,25 @@ export const excludedPoint = {
       ['linear'],
       ['zoom'],
       4,
-      getHighlightExpr(0.5, 2),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 0.25, 0.5],
+        2
+      ),
       5,
-      getHighlightExpr(1, 5),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 0.5, 1],
+        5
+      ),
       9,
-      getHighlightExpr(2, 10),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 1, 2],
+        10
+      ),
       14,
-      getHighlightExpr(6, 14),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 4, 6],
+        14
+      ),
     ],
     'circle-opacity': [
       'interpolate',
@@ -354,11 +413,23 @@ export const includedPoint = {
   filter: ['==', 'id', 'Infinity'], // will be filtered using "in" or "!in"
   paint: {
     'circle-color': getHighlightExpr(
-      pointColors.included.color,
+      [
+        'match',
+        ['get', 'barriertype'],
+        'small_barriers',
+        pointColors.included.smallBarriersColor,
+        pointColors.included.color,
+      ],
       pointColors.highlight.color
     ),
     'circle-stroke-color': getHighlightExpr(
-      pointColors.included.strokeColor,
+      [
+        'match',
+        ['get', 'barriertype'],
+        'dams',
+        pointColors.included.damsStrokeColor,
+        pointColors.included.color,
+      ],
       pointColors.highlight.strokeColor
     ),
     'circle-radius':
@@ -368,13 +439,25 @@ export const includedPoint = {
         ['linear'],
         ['zoom'],
         3,
-        getHighlightExpr(0.5, 2),
+        getHighlightExpr(
+          ['match', ['get', 'barriertype'], 'small_barriers', 0.25, 0.5],
+          2
+        ),
         4,
-        getHighlightExpr(1, 4),
+        getHighlightExpr(
+          ['match', ['get', 'barriertype'], 'small_barriers', 0.5, 1],
+          4
+        ),
         5,
-        getHighlightExpr(1.25, 5),
+        getHighlightExpr(
+          ['match', ['get', 'barriertype'], 'small_barriers', 0.75, 1.25],
+          5
+        ),
         14,
-        getHighlightExpr(8, 14),
+        getHighlightExpr(
+          ['match', ['get', 'barriertype'], 'small_barriers', 6, 8],
+          14
+        ),
       ],
     'circle-opacity': [
       'interpolate',
@@ -390,7 +473,7 @@ export const includedPoint = {
 
     'circle-stroke-width': {
       stops: [
-        [7, 0],
+        [7, 0.1],
         [8, 0.25],
         [10, 1],
         [14, 2],
@@ -404,8 +487,20 @@ export const getTierPointColor = (scenario, tierThreshold) =>
     getTierExpr(
       scenario,
       tierThreshold,
-      pointColors.topRank.color,
-      pointColors.lowerRank.color
+      [
+        'match',
+        ['get', 'barriertype'],
+        'small_barriers',
+        pointColors.topRank.smallBarriersColor,
+        pointColors.topRank.color,
+      ],
+      [
+        'match',
+        ['get', 'barriertype'],
+        'small_barriers',
+        pointColors.lowerRank.smallBarriersColor,
+        pointColors.lowerRank.color,
+      ]
     ),
     pointColors.highlight.color
   )
@@ -416,13 +511,29 @@ export const getTierPointSize = (scenario, tierThreshold) => [
   ['linear'],
   ['zoom'],
   3,
-  getHighlightExpr(getTierExpr(scenario, tierThreshold, 1, 0.5), 3),
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 1, 0.75), 3),
   4,
-  getHighlightExpr(getTierExpr(scenario, tierThreshold, 1.5, 1), 4),
+  getHighlightExpr(getTierExpr(scenario, tierThreshold, 1.5, 1.25), 4),
   5,
-  getHighlightExpr(getTierExpr(scenario, tierThreshold, 3, 1.25), 5),
+  getHighlightExpr(
+    getTierExpr(
+      scenario,
+      tierThreshold,
+      ['match', ['get', 'barriertype'], 'small_barriers', 2, 3],
+      1.25
+    ),
+    5
+  ),
   14,
-  getHighlightExpr(getTierExpr(scenario, tierThreshold, 10, 4), 14),
+  getHighlightExpr(
+    getTierExpr(
+      scenario,
+      tierThreshold,
+      ['match', ['get', 'barriertype'], 'small_barriers', 8, 10],
+      4
+    ),
+    14
+  ),
 ]
 
 export const rankedPoint = {
@@ -439,16 +550,16 @@ export const rankedPoint = {
   paint: {
     'circle-color': '#000000', // provided dynamically when added to map
     'circle-stroke-color': getHighlightExpr(
-      pointColors.ranked.strokeColor,
+      pointColors.topRank.color,
       pointColors.highlight.strokeColor
     ),
     'circle-radius': 6, // provided dynamically when added to map
     'circle-opacity': 1,
     'circle-stroke-width': {
       stops: [
-        [4, 0],
-        [6, 0.25],
-        [8, 0.5],
+        // [4, 0],
+        [6, 0],
+        [8, 0.1],
         [14, 2],
       ],
     },

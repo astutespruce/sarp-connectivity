@@ -77,14 +77,14 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
         )}; this may not result in useful priorities`
       } else {
         countMessage = `${formatNumber(rankedSmallBarriers)} ${pluralize(
-          'likely barrier',
+          'barrier',
           rankedSmallBarriers
-        )} of ${formatNumber(
+        )} (${formatNumber(
           totalSmallBarriers
         )} assessed potential road-related ${pluralize(
           'barrier',
           totalSmallBarriers
-        )} (${formatNumber(crossings)} road/stream ${pluralize(
+        )} of ${formatNumber(crossings)} road/stream ${pluralize(
           'crossing',
           crossings
         )})`
@@ -126,15 +126,15 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
         countMessage = `${formatNumber(rankedDams)} ${pluralize(
           'dam',
           rankedDams
-        )} and ${formatNumber(rankedSmallBarriers)} ${pluralize(
-          'likely barrier',
+        )} and ${formatNumber(rankedSmallBarriers)} road-related ${pluralize(
+          'barrier',
           rankedSmallBarriers
-        )} of ${formatNumber(
+        )} (${formatNumber(
           totalSmallBarriers
         )} assessed potential road-related ${pluralize(
           'barrier',
           totalSmallBarriers
-        )} (${formatNumber(crossings)} road/stream ${pluralize(
+        )} of ${formatNumber(crossings)} road/stream ${pluralize(
           'crossing',
           crossings
         )})`

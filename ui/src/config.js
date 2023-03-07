@@ -43,11 +43,17 @@ export const pointColors = {
   included: {
     color: '#c51b8a',
     strokeColor: '#FFFFFF',
+    // combined scenario:
+    smallBarriersColor: '#E645A7',
+    damsStrokeColor: '#333333',
   },
   // outside selected areas or filters
   excluded: {
     color: '#E9B4D0',
     strokeColor: '#c51b8a',
+    // combined scenario:
+    smallBarriersColor: '#f7e3ee',
+    smallBarriersStrokeColor: '#f08fce',
   },
   offNetwork: {
     color: '#999',
@@ -59,118 +65,320 @@ export const pointColors = {
   },
   damsSecondary: {
     color: '#fec44f',
-    // strokeColor: '#000000',
     strokeColor: '#FFFFFF',
   },
   removed: {
     color: '#6BEFF9',
     strokeColor: '#000000',
+    // combined scenario:
+    damsColor: '#09cad7',
   },
   nonBarrier: {
     color: '#00D46A',
     strokeColor: '#037424',
+    // combined scenario:
+    damsColor: '#00994d',
   },
   invasive: {
     color: '#FFBEA9',
     strokeColor: '#000000',
+    // combined scenario:
+    damsColor: '#ff8c66',
   },
   waterfalls: {
     color: '#6DA1E0',
     strokeColor: '#000000',
   },
   // only used in prioritize
-  ranked: {
-    strokeColor: '#FFFFFF',
-  },
   topRank: {
     color: '#7916BD',
+    // combined scenario:
+    smallBarriersColor: '#a948ea',
   },
   lowerRank: {
-    color: '#DB8CB7',
+    color: '#c51b8a',
+    // combined scenario:
+    smallBarriersColor: '#E645A7',
   },
 }
 
 export const pointLegends = {
   // included for ranking based on filters / primary barrier in summary view
+
   included: {
-    radius: 6,
-    color: pointColors.included.color,
-    // border is actually white, but this makes it bigger in legend
-    borderColor: pointColors.included.color,
-    borderWidth: 1,
+    getSymbol: (barrierType) => {
+      if (barrierType === 'combined_barriers') {
+        return {
+          symbols: [
+            {
+              radius: 6,
+              color: pointColors.included.color,
+              borderColor: pointColors.included.damsStrokeColor,
+              borderWidth: 1,
+            },
+            {
+              radius: 4,
+              color: pointColors.included.smallBarriersColor,
+              borderColor: pointColors.included.color,
+              borderWidth: 1,
+            },
+          ],
+        }
+      }
+      return {
+        radius: 6,
+        color: pointColors.included.color,
+        // border is actually white, but this makes it bigger in legend
+        borderColor: pointColors.included.color,
+        borderWidth: 1,
+      }
+    },
+    getLabel: (barrierTypeLabel) =>
+      `${barrierTypeLabel} included in prioritization`,
   },
+
   // excluded from ranking based on filters
   excluded: {
-    radius: 6,
-    color: `${pointColors.excluded.color}99`,
-    borderColor: `${pointColors.excluded.strokeColor}99`,
-    borderWidth: 1,
+    getSymbol: (barrierType) => {
+      if (barrierType === 'combined_barriers') {
+        return {
+          symbols: [
+            {
+              radius: 6,
+              color: `${pointColors.excluded.color}99`,
+              borderColor: `${pointColors.excluded.strokeColor}99`,
+              borderWidth: 1,
+            },
+            {
+              radius: 4,
+              color: `${pointColors.excluded.smallBarriersColor}99`,
+              borderColor: `${pointColors.excluded.smallBarriersStrokeColor}99`,
+              borderWidth: 1,
+            },
+          ],
+        }
+      }
+
+      return {
+        radius: 6,
+        color: `${pointColors.excluded.color}99`,
+        borderColor: `${pointColors.excluded.strokeColor}99`,
+        borderWidth: 1,
+      }
+    },
+    getLabel: (barrierTypeLabel) =>
+      `${barrierTypeLabel} not included in prioritization`,
   },
   topRank: {
-    radius: 6,
-    color: pointColors.topRank.color,
-    borderColor: pointColors.topRank.color,
-    borderWidth: 1,
+    getSymbol: (barrierType) => {
+      if (barrierType === 'combined_barriers') {
+        return {
+          symbols: [
+            {
+              radius: 6,
+              color: pointColors.topRank.color,
+              borderColor: pointColors.topRank.color,
+              borderWidth: 1,
+            },
+            {
+              radius: 4,
+              color: pointColors.topRank.smallBarriersColor,
+              borderColor: pointColors.topRank.color,
+              borderWidth: 1,
+            },
+          ],
+        }
+      }
+      return {
+        radius: 6,
+        color: pointColors.topRank.color,
+        borderColor: pointColors.topRank.color,
+        borderWidth: 1,
+      }
+    },
+    getLabel: (barrierTypeLabel, tierLabel) =>
+      `top-ranked ${barrierTypeLabel} (${tierLabel})`,
   },
   lowerRank: {
-    radius: 6,
-    color: pointColors.lowerRank.color,
-    borderColor: pointColors.lowerRank.color,
-    borderWidth: 1,
+    getSymbol: (barrierType) => {
+      if (barrierType === 'combined_barriers') {
+        return {
+          symbols: [
+            {
+              radius: 6,
+              color: pointColors.lowerRank.color,
+              // intentionally using top rank for outline color
+              borderColor: pointColors.topRank.color,
+              borderWidth: 1,
+            },
+            {
+              radius: 4,
+              color: pointColors.lowerRank.smallBarriersColor,
+              borderColor: pointColors.topRank.color,
+              borderWidth: 1,
+            },
+          ],
+        }
+      }
+      return {
+        radius: 6,
+        color: pointColors.lowerRank.color,
+        // borderColor: pointColors.lowerRank.color,
+        borderColor: pointColors.topRank.color,
+        borderWidth: 1,
+      }
+    },
+    getLabel: (barrierTypeLabel, tierLabel) =>
+      `lower-ranked ${barrierTypeLabel} (${tierLabel})`,
   },
 
   // only show >= minZoom for layers
-  other: [
+  unrankedBarriers: [
     {
       id: 'removed',
-      radius: 5,
-      color: pointColors.removed.color,
-      borderColor: pointColors.removed.strokeColor,
-      borderWidth: 0.5,
-      label: (barrierTypeLabel) =>
+      getSymbol: (barrierType) => {
+        if (barrierType === 'combined_barriers') {
+          return {
+            symbols: [
+              {
+                radius: 5,
+                color: pointColors.removed.damsColor,
+                borderColor: pointColors.removed.strokeColor,
+                borderWidth: 0.5,
+              },
+              {
+                radius: 3,
+                color: pointColors.removed.color,
+                borderColor: pointColors.removed.strokeColor,
+                borderWidth: 0.5,
+              },
+            ],
+          }
+        }
+        return {
+          radius: 5,
+          color: pointColors.removed.color,
+          borderColor: pointColors.removed.strokeColor,
+          borderWidth: 0.5,
+        }
+      },
+      getLabel: (barrierTypeLabel) =>
         `${barrierTypeLabel} removed for conservation`,
     },
     {
       id: 'nonBarrier',
-      radius: 5,
-      color: pointColors.nonBarrier.color,
-      borderColor: pointColors.nonBarrier.strokeColor,
-      borderWidth: 0.5,
-      label: () => 'not a barrier based on field assessment',
+      getSymbol: (barrierType) => {
+        if (barrierType === 'combined_barriers') {
+          return {
+            symbols: [
+              {
+                radius: 5,
+                color: pointColors.nonBarrier.damsColor,
+                borderColor: pointColors.nonBarrier.strokeColor,
+                borderWidth: 0.5,
+              },
+              {
+                radius: 3,
+                color: pointColors.nonBarrier.color,
+                borderColor: pointColors.nonBarrier.strokeColor,
+                borderWidth: 0.5,
+              },
+            ],
+          }
+        }
+        return {
+          radius: 5,
+          color: pointColors.nonBarrier.color,
+          borderColor: pointColors.nonBarrier.strokeColor,
+          borderWidth: 0.5,
+        }
+      },
+      getLabel: () => 'not a barrier based on field assessment',
     },
     {
       id: 'invasive',
-      radius: 5,
-      color: pointColors.invasive.color,
-      borderColor: pointColors.invasive.strokeColor,
-      borderWidth: 0.5,
-      label: (barrierTypeLabel) =>
+      getSymbol: (barrierType) => {
+        if (barrierType === 'combined_barriers') {
+          return {
+            symbols: [
+              {
+                radius: 5,
+                color: pointColors.invasive.damsColor,
+                borderColor: pointColors.invasive.strokeColor,
+                borderWidth: 0.5,
+              },
+              {
+                radius: 3,
+                color: pointColors.invasive.color,
+                borderColor: pointColors.invasive.strokeColor,
+                borderWidth: 0.5,
+              },
+            ],
+          }
+        }
+        return {
+          radius: 5,
+          color: pointColors.invasive.color,
+          borderColor: pointColors.invasive.strokeColor,
+          borderWidth: 0.5,
+        }
+      },
+      getLabel: (barrierTypeLabel) =>
         `${barrierTypeLabel} that prevent movement of invasive species`,
     },
     {
       id: 'default',
-      radius: 5,
-      color: pointColors.offNetwork.color,
-      borderColor: pointColors.offNetwork.strokeColor,
-      borderWidth: 1,
-      label: (barrierTypeLabel) =>
+      getSymbol: (barrierType) => {
+        if (barrierType === 'combined_barriers') {
+          return {
+            symbols: [
+              {
+                radius: 5,
+                color: pointColors.offNetwork.color,
+                borderColor: pointColors.offNetwork.strokeColor,
+                borderWidth: 1,
+              },
+              {
+                radius: 3,
+                color: pointColors.offNetwork.color,
+                borderColor: pointColors.offNetwork.strokeColor,
+                borderWidth: 1,
+              },
+            ],
+          }
+        }
+        return {
+          radius: 5,
+          color: pointColors.offNetwork.color,
+          borderColor: pointColors.offNetwork.strokeColor,
+          borderWidth: 1,
+        }
+      },
+      getLabel: (barrierTypeLabel) =>
         `${barrierTypeLabel} not available for prioritization`,
     },
+  ],
+
+  other: [
     {
       id: 'dams-secondary',
-      radius: 5,
-      color: pointColors.damsSecondary.color,
-      borderColor: pointColors.damsSecondary.strokeColor,
-      borderWidth: 0.5,
-      label: () => 'dams analyzed for impacts to aquatic connectivity',
+      getSymbol: () => ({
+        radius: 5,
+        color: pointColors.damsSecondary.color,
+        borderColor: pointColors.damsSecondary.strokeColor,
+        borderWidth: 0.5,
+      }),
+      getLabel: () => 'dams analyzed for impacts to aquatic connectivity',
     },
     {
       id: 'waterfalls',
-      radius: 5,
-      color: pointColors.waterfalls.color,
-      borderColor: `${pointColors.waterfalls.strokeColor}`,
-      borderWidth: 0.5,
-      label: () => 'waterfalls',
+      getSymbol: () => ({
+        radius: 5,
+        color: pointColors.waterfalls.color,
+        borderColor: `${pointColors.waterfalls.strokeColor}`,
+        borderWidth: 0.5,
+      }),
+      getLabel: () => 'waterfalls',
     },
   ],
 }

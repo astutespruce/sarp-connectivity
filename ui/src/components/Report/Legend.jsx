@@ -46,20 +46,26 @@ export const getLegendEntries = ({ name, networkType, visibleLayers }) => {
     },
   ]
 
-  const { included: primary, other } = pointLegends
+  const { included: primary, unrankedBarriers, other } = pointLegends
   entries.push({
-    ...primary,
+    ...primary.getSymbol(networkType),
     type: 'circle',
-    label: `${capitalize(
-      networkTypeLabel
-    )} analyzed for impacts to aquatic connectivity`,
+    label: capitalize(primary.getLabel(networkTypeLabel)),
   })
 
-  other.forEach(({ id, label, ...rest }) => {
+  unrankedBarriers.forEach(({ id, getSymbol, getLabel }) => {
+    entries.push({
+      ...getSymbol(networkType),
+      type: 'circle',
+      label: capitalize(getLabel(networkTypeLabel)),
+    })
+  })
+
+  other.forEach(({ id, getLabel, getSymbol }) => {
     // if visible layers are tracked, but not currently
     // visible, don't add to legend
     if (
-      (id === 'dams-secondary ' || id === 'waterfalls') &&
+      (id === 'dams-secondary' || id === 'waterfalls') &&
       visibleLayers &&
       !visibleLayers.has(id)
     ) {
@@ -71,9 +77,9 @@ export const getLegendEntries = ({ name, networkType, visibleLayers }) => {
     }
 
     entries.push({
-      ...rest,
+      ...getSymbol(networkType),
       type: 'circle',
-      label: capitalize(label(networkTypeLabel)),
+      label: capitalize(getLabel(networkTypeLabel)),
     })
   })
 

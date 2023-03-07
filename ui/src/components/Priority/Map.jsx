@@ -163,23 +163,45 @@ const PriorityMap = ({
           }
 
           // Each layer has 2 display layers: outline, fill
+          // by default, show anything with 0 ranked barriers as grey
+          let fillExpr = ['match', ['get', `ranked_${barrierType}`], 0, 0.25, 0]
+
+          if (barrierType === 'small_barriers') {
+            fillExpr = [
+              'case',
+              [
+                'any',
+                ['==', ['get', 'ranked_small_barriers'], 0],
+                ['<', ['get', 'total_small_barriers'], 10],
+              ],
+              0.25,
+              0,
+            ]
+          } else if (barrierType === 'combined_barriers') {
+            // show grey if there are 0 of both types, or < 10 total barriers
+            // (Ok if all are not actual barriers and / or no dams)
+            fillExpr = [
+              'case',
+              [
+                'any',
+                ['<', ['get', 'total_small_barriers'], 10],
+                [
+                  'all',
+                  ['==', ['get', 'ranked_dams'], 0],
+                  ['==', ['get', 'total_small_barriers'], 0],
+                ],
+              ],
+              0.25,
+              0,
+            ]
+          }
+
           unitLayers.forEach(({ id, ...rest }) => {
             const layerId = `${layer}-${id}`
             const unitLayer = { ...config, ...rest, id: layerId }
 
             if (id === 'unit-fill') {
-              // show grey where there are not sufficient barriers of the chosen
-              // type
-              const fieldExpr =
-                barrierType === 'combined_barriers'
-                  ? [
-                      'min',
-                      ['get', 'ranked_dams'],
-                      ['get', 'ranked_small_barriers'],
-                    ]
-                  : ['get', `ranked_${barrierType}`]
-
-              unitLayer.paint['fill-opacity'] = ['match', fieldExpr, 0, 0.25, 0]
+              unitLayer.paint['fill-opacity'] = fillExpr
             }
 
             map.addLayer(unitLayer)
@@ -679,6 +701,7 @@ const PriorityMap = ({
       excluded: excludedLegend,
       topRank: topRankLegend,
       lowerRank: lowerRankLegend,
+      unrankedBarriers,
       other,
     } = pointLegends
 
@@ -738,27 +761,27 @@ const PriorityMap = ({
       const tierLabel =
         tierThreshold === 1 ? 'tier 1' : `tiers 1 - ${tierThreshold}`
       circles.push({
-        ...topRankLegend,
-        label: `top-ranked ${barrierTypeLabel} (${tierLabel})`,
+        ...topRankLegend.getSymbol(barrierType),
+        label: topRankLegend.getLabel(barrierTypeLabel, tierLabel),
       })
 
       circles.push({
-        ...lowerRankLegend,
-        label: `lower-ranked ${barrierTypeLabel}`,
+        ...lowerRankLegend.getSymbol(barrierType),
+        label: lowerRankLegend.getLabel(barrierTypeLabel, tierLabel),
       })
 
       if (isWithinZoom[excludedPoint.id]) {
         circles.push({
-          ...excludedLegend,
-          label: `${barrierTypeLabel} not included in prioritization`,
+          ...excludedLegend.getSymbol(barrierType),
+          label: excludedLegend.getLabel(barrierTypeLabel),
         })
       }
     } else {
       // either in select units or filter step
       if (isWithinZoom[includedPoint.id]) {
         circles.push({
-          ...includedLegend,
-          label: `${barrierTypeLabel} included in prioritization`,
+          ...includedLegend.getSymbol(barrierType),
+          label: includedLegend.getLabel(barrierType),
         })
       } else {
         footnote = `zoom in to see ${barrierTypeLabel} included in prioritization`
@@ -766,8 +789,8 @@ const PriorityMap = ({
 
       if (isWithinZoom[excludedPoint.id]) {
         circles.push({
-          ...excludedLegend,
-          label: `${barrierTypeLabel} not included in prioritization`,
+          ...excludedLegend.getSymbol(barrierType),
+          label: excludedLegend.getLabel(barrierTypeLabel),
         })
       }
 
@@ -785,12 +808,22 @@ const PriorityMap = ({
     }
 
     if (isWithinZoom[offnetworkPoint.id]) {
-      other.forEach(({ id, label, ...rest }) => {
+      unrankedBarriers.forEach(({ getSymbol, getLabel }) => {
+        circles.push({
+          ...getSymbol(barrierType),
+          label: getLabel(barrierTypeLabel),
+        })
+      })
+
+      other.forEach(({ id, getSymbol, getLabel }) => {
         if (id === 'dams-secondary' && barrierType !== 'small_barriers') {
           return
         }
 
-        circles.push({ ...rest, label: label(barrierTypeLabel) })
+        circles.push({
+          ...getSymbol(barrierType),
+          label: getLabel(barrierTypeLabel),
+        })
       })
     }
 

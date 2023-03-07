@@ -12,7 +12,7 @@ const Circle = ({ radius, color, borderColor, borderWidth }) => {
       sx={{
         justifyContent: 'flex-start',
         alignItems: 'center',
-        width: '18px',
+        width,
         flex: '0 0 auto',
       }}
     >

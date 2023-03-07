@@ -78,14 +78,14 @@ const ListItem = ({
           )}; this may not result in useful priorities`
         } else {
           countMessage = `${formatNumber(rankedSmallBarriers)} ${pluralize(
-            'likely barrier',
+            'barrier',
             rankedSmallBarriers
-          )} of ${formatNumber(
+          )} (${formatNumber(
             totalSmallBarriers
           )} assessed potential road-related ${pluralize(
             'barrier',
             totalSmallBarriers
-          )} (${formatNumber(crossings)} road/stream ${pluralize(
+          )} of ${formatNumber(crossings)} road/stream ${pluralize(
             'crossing',
             crossings
           )})`
@@ -130,12 +130,12 @@ const ListItem = ({
           )} and ${formatNumber(rankedSmallBarriers)} ${pluralize(
             'likely barrier',
             rankedSmallBarriers
-          )} of ${formatNumber(
+          )} (${formatNumber(
             totalSmallBarriers
           )} assessed potential road-related ${pluralize(
             'barrier',
             totalSmallBarriers
-          )} (${formatNumber(crossings)} road/stream ${pluralize(
+          )} of ${formatNumber(crossings)} road/stream ${pluralize(
             'crossing',
             crossings
           )})`

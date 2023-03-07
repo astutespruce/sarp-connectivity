@@ -371,8 +371,9 @@ df.loc[df.YearCompleted == 9999, "YearCompleted"] = 0
 # Calculate height class
 # NOTE: 0 is reserved for missing data
 bins = [-1, 1e-6, 5, 10, 25, 50, 100, df.Height.max() + 1]
-df["HeightClass"] = np.asarray(
-    pd.cut(df.Height, bins, right=False, labels=np.arange(0, len(bins) - 1))
+df["HeightClass"] = (
+    np.asarray(pd.cut(df.Height, bins, right=False, labels=np.arange(0, len(bins) - 1)))
+    + 1
 ).astype("uint8")
 
 # Convert PassageFacility to class

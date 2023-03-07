@@ -430,11 +430,23 @@ export const pointLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': getHighlightExpr(
-      pointColors.included.color,
+      [
+        'match',
+        ['get', 'barriertype'],
+        'small_barriers',
+        pointColors.included.smallBarriersColor,
+        pointColors.included.color,
+      ],
       pointColors.highlight.color
     ),
     'circle-stroke-color': getHighlightExpr(
-      pointColors.included.strokeColor,
+      [
+        'match',
+        ['get', 'barriertype'],
+        'dams',
+        pointColors.included.damsStrokeColor,
+        pointColors.included.color,
+      ],
       pointColors.highlight.strokeColor
     ),
     'circle-radius': [
@@ -442,15 +454,30 @@ export const pointLayer = {
       ['linear'],
       ['zoom'],
       9,
-      getHighlightExpr(1, 9),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 0.5, 1],
+        9
+      ),
       10,
-      getHighlightExpr(2, 10),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 1, 2],
+        10
+      ),
       12,
-      getHighlightExpr(3, 12),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 2, 3],
+        12
+      ),
       14,
-      getHighlightExpr(4, 14),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 3, 4],
+        14
+      ),
       16,
-      getHighlightExpr(8, 14),
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 6, 8],
+        14
+      ),
     ],
     'circle-opacity': [
       'interpolate',

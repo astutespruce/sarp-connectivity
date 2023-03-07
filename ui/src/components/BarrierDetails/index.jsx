@@ -36,7 +36,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     lon,
     barrierType,
     networkType,
-    sarpidname,
+    sarpidname = '|', // should never be empty, but breaks badly if it is
     ranked,
     CountyName,
     State,

@@ -89,8 +89,6 @@ const Legend = ({
                     '&:not(:first-of-type)': {
                       mt: '0.25rem',
                       pt: '0.25rem',
-                      // borderTop: '1px solid',
-                      // borderTopColor: 'grey.1',
                     },
                   }}
                 >
@@ -165,7 +163,7 @@ const Legend = ({
             <div>
               {circles.map((point) => (
                 <Flex
-                  key={point.color}
+                  key={point.label}
                   sx={{
                     alignItems: 'flex-start',
                     py: '0.25em',
@@ -175,7 +173,25 @@ const Legend = ({
                     },
                   }}
                 >
-                  <Circle {...point} />
+                  <Flex
+                    sx={{
+                      flex: '0 0 auto',
+                      alignItems: 'baseline',
+                      width: '12px',
+                      mr: '0.5rem',
+                    }}
+                  >
+                    {point.symbols ? (
+                      point.symbols.map((p, i) => (
+                        <Circle
+                          key={`${p.color}-${p.borderColor}-${i}`}
+                          {...p}
+                        />
+                      ))
+                    ) : (
+                      <Circle {...point} />
+                    )}
+                  </Flex>
                   <Text
                     sx={{
                       fontSize: '0.75rem',
@@ -284,11 +300,19 @@ Legend.propTypes = {
   subtitle: PropTypes.string,
   circles: PropTypes.arrayOf(
     PropTypes.shape({
-      color: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
+      color: PropTypes.string,
+      label: PropTypes.string,
       radius: PropTypes.number,
       borderWidth: PropTypes.number,
       borderColor: PropTypes.string,
+      symbols: PropTypes.arrayOf(
+        PropTypes.shape({
+          color: PropTypes.string.isRequired,
+          radius: PropTypes.number.isRequired,
+          borderWidth: PropTypes.number,
+          borderColor: PropTypes.string,
+        })
+      ),
     })
   ),
   patches: PropTypes.arrayOf(

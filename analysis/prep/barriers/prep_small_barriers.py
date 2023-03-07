@@ -153,14 +153,18 @@ for column in ("Stream", "Road"):
         column,
     ] = ""
 
-df.loc[
-    (df.Stream != "") & (df.Road != ""),
-    "Name",
-] = (
-    df.Stream + " / " + df.Road
-)
+
+# Fill name with road or name, if available
+ix = (df.Road != "") & (df.Stream != "")
+print(f"Sum: {ix.sum()}")
+df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Road + " / " + df.loc[ix].Stream
 df.Name = df.Name.fillna("")
 
+ix = (df.Name == "") & (df.Road != "")
+df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Road
+
+ix = (df.Name == "") & (df.Stream != "")
+df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Stream
 
 # Fix issues with RoadType
 df.loc[df.RoadType.str.lower().isin(("no data", "nodata")), "RoadType"] = "Unknown"
@@ -516,6 +520,8 @@ ix = (df.Stream == "") & (df.GNIS_Name != "")
 df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
 df = df.drop(columns=["GNIS_Name"])
 
+ix = (df.Name == "") & (df.Stream != "")
+df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Stream
 
 # calculate stream type
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")
