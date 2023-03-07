@@ -781,7 +781,7 @@ const PriorityMap = ({
       if (isWithinZoom[includedPoint.id]) {
         circles.push({
           ...includedLegend.getSymbol(barrierType),
-          label: includedLegend.getLabel(barrierType),
+          label: includedLegend.getLabel(barrierTypeLabel),
         })
       } else {
         footnote = `zoom in to see ${barrierTypeLabel} included in prioritization`
