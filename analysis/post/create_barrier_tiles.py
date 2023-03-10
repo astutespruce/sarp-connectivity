@@ -609,7 +609,7 @@ fill_na_fields(df)
 ### Create tiles for combined barriers (ranked only) with networks for low zooms
 tmp = to_lowercase(
     df.loc[df.Ranked & (df.TotDASqKm >= 1)][
-        ["geometry", "id"] + COMBINED_TILE_FILTER_FIELDS
+        ["geometry", "id", "BarrierType"] + COMBINED_TILE_FILTER_FIELDS
     ]
 )
 
