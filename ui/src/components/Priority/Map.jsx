@@ -291,7 +291,6 @@ const PriorityMap = ({
           }
 
           const {
-            // properties: { sarpidname = '|' },
             geometry: { coordinates },
           } = feature
 
@@ -318,11 +317,16 @@ const PriorityMap = ({
         map.on('mouseleave', id, () => {
           // only unhighlight if not the same as currently selected feature
           const prevFeature = hoverFeatureRef.current
-          if (
-            prevFeature &&
-            !isEqual(prevFeature, selectedFeatureRef.current, ['id', 'layer'])
-          ) {
-            setBarrierHighlight(map, prevFeature, false)
+          const selectedFeature = selectedFeatureRef.current
+
+          if (prevFeature) {
+            if (
+              !selectedFeature ||
+              prevFeature.id !== selectedFeature.id ||
+              prevFeature.layer.id !== selectedFeature.layer.id
+            ) {
+              setBarrierHighlight(map, prevFeature, false)
+            }
           }
 
           hoverFeatureRef.current = null
