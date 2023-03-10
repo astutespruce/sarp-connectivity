@@ -198,6 +198,14 @@ df["BarrierSeverity"] = (
     df.PotentialProject.str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
 )
 
+# per guidance from Kat, if SARP_Score != -1, assign as likely barrier
+df.loc[
+    df.PotentialProject.isin(["Potential Project", "Proposed Project"])
+    & (df.SARP_Score != -1),
+    "BarrierSeverity",
+] = 5
+
+
 # Calculate PassageFacility class
 df["PassageFacilityClass"] = np.uint8(0)
 df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1

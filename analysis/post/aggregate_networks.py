@@ -241,7 +241,7 @@ tmp.to_feather(api_dir / f"small_barriers.feather")
 # convert small barriers BarrierSeverity to Passability before merge
 small_barriers_tmp["Passability"] = small_barriers_tmp.BarrierSeverity.map(
     SEVERITY_TO_PASSABILITY
-)
+).astype("uint8")
 
 dams_tmp["BarrierType"] = "dams"
 small_barriers_tmp["BarrierType"] = "small_barriers"
