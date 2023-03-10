@@ -7,7 +7,7 @@ import shapely
 from analysis.lib.io import read_feathers
 from analysis.lib.geometry import dissolve
 
-MARINE_BUFFER = 10000  # meters
+MARINE_BUFFER = 20000  # meters (used 20km per guidance from Kat)
 
 
 data_dir = Path("data")
