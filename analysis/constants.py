@@ -545,22 +545,35 @@ OWNERTYPE_TO_DOMAIN = {
     # Unknown types are not useful
     # "Unknown": 0,
     # "Designation": 0,
-    "US Fish and Wildlife Service": 1,
-    "USDA Forest Service": 2,
-    "Federal Land": 3,
-    "State Land": 4,
-    "Local Land": 5,
-    "Joint Ownership": 5,
-    "Regional Agency Special Distribution": 5,
-    "Native American Land": 6,
-    "Easement": 7,
-    "Private Conservation Land": 8,
+    "Bureau of Land Management": 1,
+    "Bureau of Reclamation": 2,
+    "Department of Defense": 3,
+    "National Park Service": 4,
+    "US Fish and Wildlife Service": 5,
+    "USDA Forest Service": 6,
+    "Federal Land": 7,
+    "State Land": 8,
+    "Local Land": 9,
+    "Joint Ownership": 9,
+    "Regional Agency Special Distribution": 9,
+    "Native American Land": 10,
+    "Easement": 11,
+    "Private Conservation Land": 12,
+    "NGO": 12,
 }
 
 
 # Map of owner type domain above to whether or not the land is
 # considered public
-OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True}
+OWNERTYPE_TO_PUBLIC_LAND = {
+    1: True,
+    2: True,
+    3: True,
+    4: True,
+    5: True,
+    6: True,
+    7: True,
+}
 
 
 # Map of NHD FCode to stream type

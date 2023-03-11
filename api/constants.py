@@ -914,14 +914,18 @@ ROAD_TYPE_DOMAIN = {
 
 OWNERTYPE_DOMAIN = {
     0: "",  # most likely private land, but just don't say anything
-    1: "US Fish and Wildlife Service land",
-    2: "USDA Forest Service land",
-    3: "Federal land",
-    4: "State land",
-    5: "Joint Ownership or Regional land",
-    6: "Native American land",
-    7: "Private easement",
-    8: "Other private conservation land",
+    1: "Bureau of Land Management",
+    2: "Bureau of Reclamation",
+    3: "Department of Defense",
+    4: "National Park Service",
+    5: "US Fish and Wildlife Service land",
+    6: "USDA Forest Service land",
+    7: "Other Federal land",
+    8: "State land",
+    9: "Joint Ownership or Regional land",
+    10: "Native American land",
+    11: "Private easement",
+    12: "Other private conservation land",
 }
 
 
@@ -1174,9 +1178,9 @@ FIELD_DEFINITIONS = {
     "StateSGCNSpp": "Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "RegionalSGCNSpp": "Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "Trout": "Identifies if one or more interior or eastern native trout species (Apache, brook, bull, cutthroat, Gila, lake, and redband) are present within the same subwatershed (HUC12) as the {type} based on in available natural heritage data.  Note: absence means that occurrences were not present in the available natural heritage data and should not be interpreted as true absences.",
-    "OwnerType": "Land ownership type. This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
+    "OwnerType": "Land ownership type. This information is derived from the BLM Surface Management Agency dataset for federal lands and CBI Protected Areas Database and TNC Secured Lands Database for non-federal lands, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
     "BarrierOwnerType": "Barrier ownership type, if available.",
-    "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.",
+    "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the BLM Surface Management Agency dataset, CBI Protected Areas Database of the U.S., or TNC Secured Lands Database.",
     "EJTract": "Within an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.",
     "EJTribal": "Within a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool based on American Indian and Alaska Native areas as defined by the US Census Bureau.  Note: all tribal communities considered disadvantaged by the Climate and Environmental Justice Screening tool.",
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",

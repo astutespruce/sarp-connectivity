@@ -729,14 +729,18 @@ export const ROAD_TYPE = {
 
 export const OWNERTYPE = {
   0: 'unknown (likely privately owned)',
-  1: 'US Fish and Wildlife Service land',
-  2: 'USDA Forest Service land',
-  3: 'federal land',
-  4: 'state land',
-  5: 'joint ownership or regional land',
-  6: 'Native American land',
-  7: 'private easement',
-  8: 'other private conservation land',
+  1: 'Bureau of Land Management',
+  2: 'Bureau of Reclamation',
+  3: 'Department of Defense',
+  4: 'National Park Service',
+  5: 'US Fish and Wildlife Service land',
+  6: 'USDA Forest Service land',
+  7: 'Other Federal land',
+  8: 'State land',
+  9: 'Joint Ownership or Regional land',
+  10: 'Native American land',
+  11: 'Private easement',
+  12: 'Other private conservation land',
 }
 
 export const BARRIEROWNERTYPE = {
