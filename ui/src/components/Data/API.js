@@ -51,10 +51,9 @@ const fetchFeather = async (url, options) => {
     }
 
     const data = await tableFromIPC(response.arrayBuffer())
-    const [...table] = data
 
     return {
-      data: table.map((row) => row.toJSON()),
+      data: data.toArray().map((row) => row.toJSON()),
       bounds: data.schema.metadata.get('bounds'),
     }
   } catch (err) {
@@ -162,10 +161,9 @@ export const searchUnits = async (layers, query) => {
     }
 
     const data = await tableFromIPC(response.arrayBuffer())
-    const [...table] = data
 
     return {
-      results: table.map((row) => row.toJSON()),
+      results: data.toArray().map((row) => row.toJSON()),
       remaining: parseInt(data.schema.metadata.get('count'), 10) - data.numRows,
     }
   } catch (err) {

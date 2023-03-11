@@ -26,6 +26,7 @@ const { version: dataVersion } = siteMetadata
 
 const DamDetails = ({
   barrierType,
+  networkType,
   sarpid,
   hasnetwork,
   excluded,
@@ -139,7 +140,7 @@ const DamDetails = ({
               <Box sx={{ color: 'grey.4', flex: '0 0 auto', mr: '0.5em' }}>
                 <ExclamationTriangle size="2.25em" />
               </Box>
-              <Text sx={{ flex: '1 1 auto', fontSize: 0 }}>
+              <Text variant="help" sx={{ flex: '1 1 auto', fontSize: 0 }}>
                 Dam is estimated from other data sources and may be incorrect;
                 please{' '}
                 <a
@@ -240,6 +241,7 @@ const DamDetails = ({
         {hasnetwork ? (
           <NetworkInfo
             barrierType={barrierType}
+            networkType={networkType}
             totalupstreammiles={totalupstreammiles}
             perennialupstreammiles={perennialupstreammiles}
             alteredupstreammiles={alteredupstreammiles}
@@ -308,6 +310,7 @@ const DamDetails = ({
 
 DamDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
   hasnetwork: PropTypes.number.isRequired,
   excluded: PropTypes.number,

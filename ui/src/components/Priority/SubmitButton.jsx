@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { SearchLocation } from '@emotion-icons/fa-solid'
-import { Button } from 'theme-ui'
+import { Button, Flex, Text } from 'theme-ui'
+import { AngleDoubleRight } from '@emotion-icons/fa-solid'
 
 const SubmitButton = ({ label, disabled, title, onClick }) => (
   <Button
@@ -10,8 +10,10 @@ const SubmitButton = ({ label, disabled, title, onClick }) => (
     variant={disabled ? 'disabled' : 'primary'}
     title={title}
   >
-    <SearchLocation size="1.2em" style={{ marginRight: '0.25em' }} />
-    {label}
+    <Flex sx={{ alignItems: 'center', gap: '0.5rem' }}>
+      <AngleDoubleRight size="1.2em" />
+      <Text sx={{ fontSize: 3 }}>{label}</Text>
+    </Flex>
   </Button>
 )
 
@@ -24,10 +26,7 @@ SubmitButton.propTypes = {
 
 SubmitButton.defaultProps = {
   title: null,
-}
-
-SubmitButton.defaultProps = {
-  disabled: false,
+  disabled: null,
 }
 
 export default SubmitButton

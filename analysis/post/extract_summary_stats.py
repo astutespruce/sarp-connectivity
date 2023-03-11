@@ -1,24 +1,3 @@
-"""Summarize statistics for dams and small barriers at overall level, reigonal level,
-and state level.
-
-This creates a summary data JSON file in the UI directory for use in the frontend.
-
-These statistics are based on:
-* dams: not dropped or duplicate
-* small_barriers: not duplicate (dropped barriers are included in stats)
-* road crossings
-
-This is run AFTER running `rank_dams.py` and `rank_small_barriers.py`
-
-Inputs:
-* `data/api/dams.feather`
-* `data/api/small_barriers.feather`
-
-Outputs:
-* `ui/data/summary_stats.json
-
-"""
-
 from pathlib import Path
 import json
 

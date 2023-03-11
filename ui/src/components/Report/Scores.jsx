@@ -8,6 +8,7 @@ import { Bold, Flex, Italic, Section } from './elements'
 
 const Scores = ({
   barrierType,
+  networkType,
   state,
   ranked,
   invasive,
@@ -24,8 +25,7 @@ const Scores = ({
     return null
   }
 
-  // small barriers do not have state ranks
-  if (barrierType === 'small_barriers') {
+  if (networkType !== 'dams') {
     return null
   }
 
@@ -55,8 +55,13 @@ const Scores = ({
   }
 
   return (
-    <Section title="Connectivity ranks" {...props} wrap={false}>
-      <Text style={{ color: '#7f8a93', fontSize: 10 }}>
+    <Section
+      title="Connectivity ranks"
+      {...props}
+      wrap={false}
+      marginBottom={6}
+    >
+      <Text style={{ color: '#7f8a93', fontSize: 10, textAlign: 'center' }}>
         connectivity tiers range from 20 (lowest) to 1 (highest)
       </Text>
 
@@ -148,10 +153,11 @@ const Scores = ({
 }
 Scores.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   state: PropTypes.string.isRequired,
   ranked: PropTypes.bool,
   invasive: PropTypes.bool,
-  nostructure: PropTypes.bool,
+  nostructure: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
   state_nc_tier: PropTypes.number,
   state_wc_tier: PropTypes.number,
   state_ncwc_tier: PropTypes.number,

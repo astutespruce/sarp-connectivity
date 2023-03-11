@@ -34,10 +34,11 @@ import Network from './Network'
 import Scores from './Scores'
 import Species from './Species'
 
-const Preview = ({ barrierType, data }) => {
+const Preview = ({ networkType, data }) => {
   const { id, sarpid, upnetid, county, state, lat, lon } = data
 
-  console.log('data', data)
+  const barrierType =
+    networkType === 'combined_barriers' ? data.barriertype : networkType
 
   const name = !isEmptyString(data.name)
     ? data.name
@@ -117,6 +118,7 @@ const Preview = ({ barrierType, data }) => {
           attribution={attribution}
           locatorMap={locatorMapImage}
           barrierType={barrierType}
+          networkType={networkType}
           data={data}
           name={name}
           visibleLayers={visibleLayers}
@@ -208,7 +210,7 @@ const Preview = ({ barrierType, data }) => {
           networkID={upnetid}
           center={[lon, lat]}
           zoom={13.5}
-          barrierType={barrierType}
+          networkType={networkType}
           onCreateMap={handleCreateExportMap}
           onUpdateBasemap={handleUpdateBasemap}
           onVisibleLayerUpdate={handleVisibleLayerUpdate}
@@ -225,7 +227,7 @@ const Preview = ({ barrierType, data }) => {
             />
           </Box>
           <Legend
-            barrierType={barrierType}
+            networkType={networkType}
             name={name}
             visibleLayers={visibleLayers}
           />
@@ -247,9 +249,19 @@ const Preview = ({ barrierType, data }) => {
             {...data}
           />
 
-          <Network sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
+          <Network
+            sx={{ mt: '3rem' }}
+            barrierType={barrierType}
+            networkType={networkType}
+            {...data}
+          />
 
-          <Scores sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
+          <Scores
+            sx={{ mt: '3rem' }}
+            barrierType={barrierType}
+            networkType={networkType}
+            {...data}
+          />
 
           <Feasibility sx={{ mt: '3rem' }} {...data} />
 
@@ -267,9 +279,10 @@ const Preview = ({ barrierType, data }) => {
 }
 
 Preview.propTypes = {
-  barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   data: PropTypes.shape({
     id: PropTypes.number.isRequired,
+    barriertype: PropTypes.string,
     sarpid: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     lat: PropTypes.number.isRequired,

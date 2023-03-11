@@ -3,12 +3,15 @@ from fastapi.requests import Request
 import pyarrow.compute as pc
 
 from api.constants import (
+    BarrierTypes,
     DAM_FILTER_FIELDS,
     SB_FILTER_FIELDS,
+    COMBINED_FILTER_FIELDS,
 )
 
-from api.data import dams, small_barriers
-from api.dependencies import DamsRecordExtractor, BarriersRecordExtractor
+from api.dependencies import (
+    RecordExtractor,
+)
 from api.logger import log, log_request
 from api.response import feather_response
 
@@ -16,9 +19,13 @@ from api.response import feather_response
 router = APIRouter()
 
 
-@router.get("/dams/query/{layer}")
-def query_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
-    """Return subset of dams based on summary unit ids within layer.
+@router.get("/{barrier_type}/query/{layer}")
+async def query_dams(
+    request: Request,
+    barrier_type: BarrierTypes,
+    extractor: RecordExtractor = Depends(RecordExtractor),
+):
+    """Return subset of barrier_type based on summary unit ids within layer.
 
     Path parameters:
     layer : one of LAYERS
@@ -28,46 +35,27 @@ def query_dams(request: Request, extractor: DamsRecordExtractor = Depends()):
     """
 
     log_request(request)
+    columns = ["id", "lon", "lat"]
+    match barrier_type:
+        case "dams":
+            columns += DAM_FILTER_FIELDS
+        case "small_barriers":
+            columns += SB_FILTER_FIELDS
+        case "combined_barriers":
+            columns += ["BarrierType"] + COMBINED_FILTER_FIELDS
 
-    df = extractor.extract(
-        dams, columns=["id", "lon", "lat"] + DAM_FILTER_FIELDS, ranked=True
-    )
+        case _:
+            raise NotImplementedError("query is not supported for road crossings")
 
-    # extract extent
-    xmin, xmax = pc.min_max(df["lon"]).as_py().values()
-    ymin, ymax = pc.min_max(df["lat"]).as_py().values()
-    bounds = [xmin, ymin, xmax, ymax]
-
-    df = df.select(["id"] + DAM_FILTER_FIELDS)
-
-    log.info(f"query selected {len(df):,} dams")
-
-    return feather_response(df, bounds)
-
-
-@router.get("/small_barriers/query/{layer}")
-def query_barriers(request: Request, extractor: BarriersRecordExtractor = Depends()):
-    """Return subset of small barriers based on summary unit ids within layer.
-
-    Path parameters:
-    layer : one of LAYERS
-
-    Query parameters:
-    id: list of ids
-    """
-
-    log_request(request)
-
-    df = extractor.extract(
-        small_barriers, columns=["id", "lon", "lat"] + SB_FILTER_FIELDS, ranked=True
-    )
+    df = extractor.extract(columns=columns, ranked=True)
 
     # extract extent
     xmin, xmax = pc.min_max(df["lon"]).as_py().values()
     ymin, ymax = pc.min_max(df["lat"]).as_py().values()
     bounds = [xmin, ymin, xmax, ymax]
 
-    df = df.select(["id"] + SB_FILTER_FIELDS)
-    log.info(f"barriers query selected {len(df):,} barriers")
+    df = df.select(["id"] + columns)
+
+    log.info(f"query selected {len(df):,} {barrier_type.replace('_', ' ')}")
 
     return feather_response(df, bounds)

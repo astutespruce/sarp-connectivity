@@ -8,14 +8,14 @@ from pyarrow.feather import write_feather
 
 from api.constants import UNIT_FIELDS
 from api.data import units
-from api.logger import log, log_request
+from api.logger import log_request
 
 
 router = APIRouter()
 
 
 @router.get("/units/search")
-def search_units(request: Request, layer: str, query: str):
+async def search_units(request: Request, layer: str, query: str):
     """Return top 10 units based on text search
 
     Query parameters:
@@ -59,7 +59,20 @@ def search_units(request: Request, layer: str, query: str):
                 ["state", "ascending"],
             ]
         )
-        .select(["id", "layer", "name", "state", "bbox"])[:10]
+        .select(
+            [
+                "id",
+                "layer",
+                "name",
+                "bbox",
+                "state",
+                "dams",
+                "ranked_dams",
+                "total_small_barriers",
+                "ranked_small_barriers",
+                "crossings",
+            ]
+        )[:10]
     )
 
     stream = BytesIO()

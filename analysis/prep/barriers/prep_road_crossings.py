@@ -9,7 +9,7 @@ from pyogrio import write_dataframe
 
 from api.constants import ROAD_CROSSING_API_FIELDS
 
-# considered to duplicate an inventoried road barriers if within this value
+# considered to duplicate an assessed road barriers if within this value
 DUPLICATE_TOLERANCE = 10  # meters
 
 start = time()

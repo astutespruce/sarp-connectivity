@@ -7,6 +7,7 @@ export const barrierTypeLabels = {
   small_barriers: 'road-related barriers',
   road_crossings: 'road/stream crossings',
   waterfalls: 'waterfalls',
+  combined_barriers: 'dams & road-related barriers',
 }
 
 export const barrierTypeLabelSingular = {
@@ -14,6 +15,9 @@ export const barrierTypeLabelSingular = {
   small_barriers: 'road-related barrier',
   road_crossings: 'road/stream crossing',
   waterfalls: 'waterfall',
+  // FIXME: is this used?
+  // combined_barriers: 'dam or road-related barrier',
+  combined_barriers: 'FIXME: is this showing up anywhere?',
 }
 
 export const barrierNameWhenUnknown = {
@@ -39,11 +43,17 @@ export const pointColors = {
   included: {
     color: '#c51b8a',
     strokeColor: '#FFFFFF',
+    // combined scenario:
+    smallBarriersColor: '#E645A7',
+    damsStrokeColor: '#333333',
   },
   // outside selected areas or filters
   excluded: {
     color: '#E9B4D0',
     strokeColor: '#c51b8a',
+    // combined scenario:
+    smallBarriersColor: '#f7e3ee',
+    smallBarriersStrokeColor: '#f08fce',
   },
   offNetwork: {
     color: '#999',
@@ -55,117 +65,320 @@ export const pointColors = {
   },
   damsSecondary: {
     color: '#fec44f',
-    strokeColor: '#000000',
+    strokeColor: '#FFFFFF',
   },
   removed: {
     color: '#6BEFF9',
     strokeColor: '#000000',
+    // combined scenario:
+    damsColor: '#09cad7',
   },
   nonBarrier: {
     color: '#00D46A',
     strokeColor: '#037424',
+    // combined scenario:
+    damsColor: '#00994d',
   },
   invasive: {
     color: '#FFBEA9',
     strokeColor: '#000000',
+    // combined scenario:
+    damsColor: '#ff8c66',
   },
   waterfalls: {
     color: '#6DA1E0',
     strokeColor: '#000000',
   },
   // only used in prioritize
-  ranked: {
-    strokeColor: '#FFFFFF',
-  },
   topRank: {
     color: '#7916BD',
+    // combined scenario:
+    smallBarriersColor: '#a948ea',
   },
   lowerRank: {
-    color: '#DB8CB7',
+    color: '#c51b8a',
+    // combined scenario:
+    smallBarriersColor: '#E645A7',
   },
 }
 
 export const pointLegends = {
   // included for ranking based on filters / primary barrier in summary view
+
   included: {
-    radius: 6,
-    color: pointColors.included.color,
-    // border is actually white, but this makes it bigger in legend
-    borderColor: pointColors.included.color,
-    borderWidth: 1,
+    getSymbol: (barrierType) => {
+      if (barrierType === 'combined_barriers') {
+        return {
+          symbols: [
+            {
+              radius: 6,
+              color: pointColors.included.color,
+              borderColor: pointColors.included.damsStrokeColor,
+              borderWidth: 1,
+            },
+            {
+              radius: 4,
+              color: pointColors.included.smallBarriersColor,
+              borderColor: pointColors.included.color,
+              borderWidth: 1,
+            },
+          ],
+        }
+      }
+      return {
+        radius: 6,
+        color: pointColors.included.color,
+        // border is actually white, but this makes it bigger in legend
+        borderColor: pointColors.included.color,
+        borderWidth: 1,
+      }
+    },
+    getLabel: (barrierTypeLabel) =>
+      `${barrierTypeLabel} included in prioritization`,
   },
+
   // excluded from ranking based on filters
   excluded: {
-    radius: 6,
-    color: `${pointColors.excluded.color}99`,
-    borderColor: `${pointColors.excluded.strokeColor}99`,
-    borderWidth: 1,
+    getSymbol: (barrierType) => {
+      if (barrierType === 'combined_barriers') {
+        return {
+          symbols: [
+            {
+              radius: 6,
+              color: `${pointColors.excluded.color}99`,
+              borderColor: `${pointColors.excluded.strokeColor}99`,
+              borderWidth: 1,
+            },
+            {
+              radius: 4,
+              color: `${pointColors.excluded.smallBarriersColor}99`,
+              borderColor: `${pointColors.excluded.smallBarriersStrokeColor}99`,
+              borderWidth: 1,
+            },
+          ],
+        }
+      }
+
+      return {
+        radius: 6,
+        color: `${pointColors.excluded.color}99`,
+        borderColor: `${pointColors.excluded.strokeColor}99`,
+        borderWidth: 1,
+      }
+    },
+    getLabel: (barrierTypeLabel) =>
+      `${barrierTypeLabel} not included in prioritization`,
   },
   topRank: {
-    radius: 6,
-    color: pointColors.topRank.color,
-    borderColor: pointColors.topRank.color,
-    borderWidth: 1,
+    getSymbol: (barrierType) => {
+      if (barrierType === 'combined_barriers') {
+        return {
+          symbols: [
+            {
+              radius: 6,
+              color: pointColors.topRank.color,
+              borderColor: pointColors.topRank.color,
+              borderWidth: 1,
+            },
+            {
+              radius: 4,
+              color: pointColors.topRank.smallBarriersColor,
+              borderColor: pointColors.topRank.color,
+              borderWidth: 1,
+            },
+          ],
+        }
+      }
+      return {
+        radius: 6,
+        color: pointColors.topRank.color,
+        borderColor: pointColors.topRank.color,
+        borderWidth: 1,
+      }
+    },
+    getLabel: (barrierTypeLabel, tierLabel) =>
+      `top-ranked ${barrierTypeLabel} (${tierLabel})`,
   },
   lowerRank: {
-    radius: 6,
-    color: pointColors.lowerRank.color,
-    borderColor: pointColors.lowerRank.color,
-    borderWidth: 1,
+    getSymbol: (barrierType) => {
+      if (barrierType === 'combined_barriers') {
+        return {
+          symbols: [
+            {
+              radius: 6,
+              color: pointColors.lowerRank.color,
+              // intentionally using top rank for outline color
+              borderColor: pointColors.topRank.color,
+              borderWidth: 1,
+            },
+            {
+              radius: 4,
+              color: pointColors.lowerRank.smallBarriersColor,
+              borderColor: pointColors.topRank.color,
+              borderWidth: 1,
+            },
+          ],
+        }
+      }
+      return {
+        radius: 6,
+        color: pointColors.lowerRank.color,
+        // borderColor: pointColors.lowerRank.color,
+        borderColor: pointColors.topRank.color,
+        borderWidth: 1,
+      }
+    },
+    getLabel: (barrierTypeLabel, tierLabel) =>
+      `lower-ranked ${barrierTypeLabel} (${tierLabel})`,
   },
 
   // only show >= minZoom for layers
-  other: [
+  unrankedBarriers: [
     {
       id: 'removed',
-      radius: 5,
-      color: pointColors.removed.color,
-      borderColor: pointColors.removed.strokeColor,
-      borderWidth: 0.5,
-      label: (barrierTypeLabel) =>
+      getSymbol: (barrierType) => {
+        if (barrierType === 'combined_barriers') {
+          return {
+            symbols: [
+              {
+                radius: 5,
+                color: pointColors.removed.damsColor,
+                borderColor: pointColors.removed.strokeColor,
+                borderWidth: 0.5,
+              },
+              {
+                radius: 3,
+                color: pointColors.removed.color,
+                borderColor: pointColors.removed.strokeColor,
+                borderWidth: 0.5,
+              },
+            ],
+          }
+        }
+        return {
+          radius: 5,
+          color: pointColors.removed.color,
+          borderColor: pointColors.removed.strokeColor,
+          borderWidth: 0.5,
+        }
+      },
+      getLabel: (barrierTypeLabel) =>
         `${barrierTypeLabel} removed for conservation`,
     },
     {
       id: 'nonBarrier',
-      radius: 5,
-      color: pointColors.nonBarrier.color,
-      borderColor: pointColors.nonBarrier.strokeColor,
-      borderWidth: 0.5,
-      label: () => 'not a barrier based on field assessment',
+      getSymbol: (barrierType) => {
+        if (barrierType === 'combined_barriers') {
+          return {
+            symbols: [
+              {
+                radius: 5,
+                color: pointColors.nonBarrier.damsColor,
+                borderColor: pointColors.nonBarrier.strokeColor,
+                borderWidth: 0.5,
+              },
+              {
+                radius: 3,
+                color: pointColors.nonBarrier.color,
+                borderColor: pointColors.nonBarrier.strokeColor,
+                borderWidth: 0.5,
+              },
+            ],
+          }
+        }
+        return {
+          radius: 5,
+          color: pointColors.nonBarrier.color,
+          borderColor: pointColors.nonBarrier.strokeColor,
+          borderWidth: 0.5,
+        }
+      },
+      getLabel: () => 'not a barrier based on field assessment',
     },
     {
       id: 'invasive',
-      radius: 5,
-      color: pointColors.invasive.color,
-      borderColor: pointColors.invasive.strokeColor,
-      borderWidth: 0.5,
-      label: (barrierTypeLabel) =>
+      getSymbol: (barrierType) => {
+        if (barrierType === 'combined_barriers') {
+          return {
+            symbols: [
+              {
+                radius: 5,
+                color: pointColors.invasive.damsColor,
+                borderColor: pointColors.invasive.strokeColor,
+                borderWidth: 0.5,
+              },
+              {
+                radius: 3,
+                color: pointColors.invasive.color,
+                borderColor: pointColors.invasive.strokeColor,
+                borderWidth: 0.5,
+              },
+            ],
+          }
+        }
+        return {
+          radius: 5,
+          color: pointColors.invasive.color,
+          borderColor: pointColors.invasive.strokeColor,
+          borderWidth: 0.5,
+        }
+      },
+      getLabel: (barrierTypeLabel) =>
         `${barrierTypeLabel} that prevent movement of invasive species`,
     },
     {
       id: 'default',
-      radius: 5,
-      color: pointColors.offNetwork.color,
-      borderColor: pointColors.offNetwork.strokeColor,
-      borderWidth: 1,
-      label: (barrierTypeLabel) =>
+      getSymbol: (barrierType) => {
+        if (barrierType === 'combined_barriers') {
+          return {
+            symbols: [
+              {
+                radius: 5,
+                color: pointColors.offNetwork.color,
+                borderColor: pointColors.offNetwork.strokeColor,
+                borderWidth: 1,
+              },
+              {
+                radius: 3,
+                color: pointColors.offNetwork.color,
+                borderColor: pointColors.offNetwork.strokeColor,
+                borderWidth: 1,
+              },
+            ],
+          }
+        }
+        return {
+          radius: 5,
+          color: pointColors.offNetwork.color,
+          borderColor: pointColors.offNetwork.strokeColor,
+          borderWidth: 1,
+        }
+      },
+      getLabel: (barrierTypeLabel) =>
         `${barrierTypeLabel} not available for prioritization`,
     },
+  ],
+
+  other: [
     {
       id: 'dams-secondary',
-      radius: 5,
-      color: pointColors.damsSecondary.color,
-      borderColor: pointColors.damsSecondary.strokeColor,
-      borderWidth: 0.5,
-      label: () => 'dams analyzed for impacts to aquatic connectivity',
+      getSymbol: () => ({
+        radius: 5,
+        color: pointColors.damsSecondary.color,
+        borderColor: pointColors.damsSecondary.strokeColor,
+        borderWidth: 0.5,
+      }),
+      getLabel: () => 'dams analyzed for impacts to aquatic connectivity',
     },
     {
       id: 'waterfalls',
-      radius: 5,
-      color: pointColors.waterfalls.color,
-      borderColor: `${pointColors.waterfalls.strokeColor}`,
-      borderWidth: 0.5,
-      label: () => 'waterfalls',
+      getSymbol: () => ({
+        radius: 5,
+        color: pointColors.waterfalls.color,
+        borderColor: `${pointColors.waterfalls.strokeColor}`,
+        borderWidth: 0.5,
+      }),
+      getLabel: () => 'waterfalls',
     },
   ],
 }
@@ -328,7 +541,6 @@ export const BOOLEAN_FIELD = {
 }
 
 export const RECON = {
-  '-1': 'not applicable',
   0: 'feasibility not yet evaluated',
   1: 'good candidate for removal. Move forward with landowner contact',
   2: 'dam needs follow-up with landowner',
@@ -355,7 +567,7 @@ export const RECON = {
 }
 
 export const PURPOSE = {
-  '-1': 'not applicable',
+  '-1': 'not applicable (road-related barrier)',
   0: 'unknown',
   1: 'agriculture',
   2: 'flood control',
@@ -372,7 +584,7 @@ export const PURPOSE = {
 }
 
 export const CONSTRUCTION = {
-  '-1': 'not applicable',
+  '-1': 'not applicable (road-related barrier)',
   0: 'unknown',
   1: 'cement',
   2: 'concrete/roller-compacted concrete',
@@ -398,7 +610,7 @@ export const CONDITION = {
 }
 
 export const FEASIBILITYCLASS = {
-  0: 'not applicable', // only when merged with small barriers
+  0: 'not applicable (road-related barrier)', // only when merged with small barriers
   1: 'unknown',
   2: 'likely feasible',
   3: 'possibly feasible',
@@ -413,7 +625,7 @@ export const FEASIBILITYCLASS = {
 }
 
 export const HEIGHT = {
-  0: 'Not applicable',
+  0: 'Not applicable (road-related barrier)',
   1: 'Unknown',
   2: '< 5 feet',
   3: '5 - 10 feet',
@@ -473,15 +685,15 @@ export const DOWNSTREAM_OCEAN_DAMS_DOMAIN = {
 
 export const DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN = {
   0: 'not on an aquatic network known to flow into the ocean',
-  1: 'no dams / road-related barriers',
-  2: '1 dams / road-related barrier',
-  3: '2-4 dams / road-related barriers',
-  4: '5-9 dams / road-related barriers',
-  5: '>= 10 dams / road-related barriers',
+  1: 'no dams or road-related barriers',
+  2: '1 dam or road-related barrier',
+  3: '2-4 dams or road-related barriers',
+  4: '5-9 dams or road-related barriers',
+  5: '>= 10 dams or road-related barriers',
 }
 
 export const CROSSING_TYPE = {
-  '-1': 'not applicable',
+  '-1': 'not applicable (dam)',
   0: 'unknown',
   1: 'inaccessible',
   2: 'no crossing',
@@ -497,7 +709,7 @@ export const CROSSING_TYPE = {
 }
 
 export const CONSTRICTION = {
-  '-1': 'not applicable',
+  '-1': 'not applicable (dam)',
   0: 'unknown',
   1: 'spans full channel & banks',
   2: 'spans only bankfull/active channel',
@@ -508,7 +720,7 @@ export const CONSTRICTION = {
 }
 
 export const ROAD_TYPE = {
-  '-1': 'Not applicable',
+  '-1': 'Not applicable (dam)',
   0: 'unknown',
   1: 'unpaved',
   2: 'paved',
@@ -517,14 +729,18 @@ export const ROAD_TYPE = {
 
 export const OWNERTYPE = {
   0: 'unknown (likely privately owned)',
-  1: 'US Fish and Wildlife Service land',
-  2: 'USDA Forest Service land',
-  3: 'federal land',
-  4: 'state land',
-  5: 'joint ownership or regional land',
-  6: 'Native American land',
-  7: 'private easement',
-  8: 'other private conservation land',
+  1: 'Bureau of Land Management',
+  2: 'Bureau of Reclamation',
+  3: 'Department of Defense',
+  4: 'National Park Service',
+  5: 'US Fish and Wildlife Service land',
+  6: 'USDA Forest Service land',
+  7: 'Other Federal land',
+  8: 'State land',
+  9: 'Joint Ownership or Regional land',
+  10: 'Native American land',
+  11: 'Private easement',
+  12: 'Other private conservation land',
 }
 
 export const BARRIEROWNERTYPE = {
@@ -538,13 +754,11 @@ export const BARRIEROWNERTYPE = {
 }
 
 export const PASSAGEFACILITY_CLASS = {
-  0: 'not applicable',
-  1: 'no known fish passage structure',
-  2: 'fish passage structure present',
+  0: 'no known fish passage structure',
+  1: 'fish passage structure present',
 }
 
 export const PASSAGEFACILITY = {
-  '-1': 'not applicable',
   0: 'unknown or none',
   1: 'trap & truck',
   2: 'fish ladder - unspecified',
@@ -595,18 +809,19 @@ export const SMALL_BARRIER_SEVERITY_FILTER_BINS = {
   1: 'complete barrier',
   2: 'moderate barrier',
   3: 'indeterminate barrier',
-  5: 'barrier - unknown severity',
+  5: 'likely barrier',
+  6: 'barrier - unknown severity',
 }
 export const SMALL_BARRIER_SEVERITY = {
   0: 'unknown',
   ...SMALL_BARRIER_SEVERITY_FILTER_BINS,
   4: 'minor barrier',
-  6: 'no barrier',
-  7: 'no upstream habitat',
+  7: 'no barrier',
+  8: 'no upstream habitat',
 }
 
 export const LOWHEAD_DAM = {
-  '-1': 'not applicable',
+  '-1': 'not applicable (road-related barrier)',
   0: 'unknown',
   1: 'lowhead dam',
   2: 'likely lowhead dam',

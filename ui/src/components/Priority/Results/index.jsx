@@ -4,6 +4,7 @@ import { Box, Flex, Heading, Paragraph, Text } from 'theme-ui'
 
 import { useBarrierType } from 'components/Data'
 import { Downloader } from 'components/Download'
+import { ExpandableParagraph } from 'components/Text'
 import { SCENARIOS, barrierTypeLabels } from 'config'
 import { countBy } from 'util/data'
 import { formatNumber, capitalize } from 'util/format'
@@ -73,20 +74,29 @@ const Results = ({
       <Box
         sx={{
           flex: '1 1 auto',
-          p: '1rem',
+          pt: '0.5rem',
+          px: '1rem',
+          pb: '1rem',
           overflowY: 'auto',
           overflowX: 'hidden',
         }}
       >
-        <Paragraph variant="help">
-          {capitalize(barrierTypeLabel)} are binned into tiers based on where
-          they fall within the value range of the <b>{scenarioLabel}</b> score.
-          Tier 1 includes {barrierTypeLabel} that fall within the top 5% of
-          values for this score, and tier 20 includes {barrierTypeLabel} that
-          fall within the lowest 5% of values for this score.
-        </Paragraph>
+        <ExpandableParagraph
+          variant="help"
+          snippet={`${capitalize(
+            barrierTypeLabel
+          )} are binned into tiers based on`}
+        >
+          <Text variant="help" sx={{ display: 'inline' }}>
+            {capitalize(barrierTypeLabel)} are binned into tiers based on where
+            they fall within the value range of the <b>{scenarioLabel}</b>{' '}
+            score. Tier 1 includes {barrierTypeLabel} that fall within the top
+            5% of values for this score, and tier 20 includes {barrierTypeLabel}{' '}
+            that fall within the lowest 5% of values for this score.
+          </Text>
+        </ExpandableParagraph>
 
-        <Box sx={{ mt: '2rem' }}>
+        <Box sx={{ mt: '1rem' }}>
           <Text sx={{ fontWeight: 'bold' }}>
             Choose top-ranked {barrierTypeLabel} for display on map
           </Text>
@@ -119,12 +129,12 @@ const Results = ({
             <Text>Highest tier</Text>
           </Flex>
 
-          <Paragraph variant="help">
+          <Text variant="help" sx={{ fontSize: 0 }}>
             Use this slider to control the number of tiers visible on the map.
             Based on the number of {barrierTypeLabel} visible for your area, you
             may be able to identify {barrierTypeLabel} that are more feasible in
             the top several tiers than in the top-most tier.
-          </Paragraph>
+          </Text>
         </Box>
 
         <Box sx={{ mt: '2rem' }}>
@@ -146,7 +156,14 @@ const Results = ({
         }}
       >
         <StartOverButton onStartOver={onStartOver} />
-        <Downloader barrierType={barrierType} config={config} customRank />
+        <Box>
+          <Downloader
+            barrierType={barrierType}
+            label="Download prioritized barriers"
+            config={config}
+            customRank
+          />
+        </Box>
       </Flex>
     </Flex>
   )

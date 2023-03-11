@@ -20,7 +20,6 @@ import {
   Map,
   DropDownLayerChooser,
   Legend,
-  SearchFeaturePropType,
   networkLayers,
   highlightNetwork,
   setBarrierHighlight,
@@ -63,7 +62,6 @@ const PriorityMap = ({
   rankedBarriers,
   tierThreshold,
   scenario,
-  searchFeature,
   summaryUnits,
   bounds,
   onSelectUnit,
@@ -165,18 +163,45 @@ const PriorityMap = ({
           }
 
           // Each layer has 2 display layers: outline, fill
+          // by default, show anything with 0 ranked barriers as grey
+          let fillExpr = ['match', ['get', `ranked_${barrierType}`], 0, 0.25, 0]
+
+          if (barrierType === 'small_barriers') {
+            fillExpr = [
+              'case',
+              [
+                'any',
+                ['==', ['get', 'ranked_small_barriers'], 0],
+                ['<', ['get', 'total_small_barriers'], 10],
+              ],
+              0.25,
+              0,
+            ]
+          } else if (barrierType === 'combined_barriers') {
+            // show grey if there are 0 of both types, or < 10 total barriers
+            // (Ok if all are not actual barriers and / or no dams)
+            fillExpr = [
+              'case',
+              [
+                'any',
+                ['<', ['get', 'total_small_barriers'], 10],
+                [
+                  'all',
+                  ['==', ['get', 'ranked_dams'], 0],
+                  ['==', ['get', 'total_small_barriers'], 0],
+                ],
+              ],
+              0.25,
+              0,
+            ]
+          }
+
           unitLayers.forEach(({ id, ...rest }) => {
             const layerId = `${layer}-${id}`
             const unitLayer = { ...config, ...rest, id: layerId }
 
             if (id === 'unit-fill') {
-              unitLayer.paint['fill-opacity'] = [
-                'match',
-                ['get', barrierType],
-                0,
-                0.25,
-                0,
-              ]
+              unitLayer.paint['fill-opacity'] = fillExpr
             }
 
             map.addLayer(unitLayer)
@@ -266,7 +291,6 @@ const PriorityMap = ({
           }
 
           const {
-            // properties: { sarpidname = '|' },
             geometry: { coordinates },
           } = feature
 
@@ -280,17 +304,29 @@ const PriorityMap = ({
 
           tooltip
             .setLngLat(coordinates)
-            .setHTML(getBarrierTooltip(feature.source, feature.properties))
+            .setHTML(
+              getBarrierTooltip(
+                feature.source === 'combined_barriers'
+                  ? feature.properties.barriertype
+                  : feature.source,
+                feature.properties
+              )
+            )
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
           // only unhighlight if not the same as currently selected feature
           const prevFeature = hoverFeatureRef.current
-          if (
-            prevFeature &&
-            !isEqual(prevFeature, selectedFeatureRef.current, ['id', 'layer'])
-          ) {
-            setBarrierHighlight(map, prevFeature, false)
+          const selectedFeature = selectedFeatureRef.current
+
+          if (prevFeature) {
+            if (
+              !selectedFeature ||
+              prevFeature.id !== selectedFeature.id ||
+              prevFeature.layer.id !== selectedFeature.layer.id
+            ) {
+              setBarrierHighlight(map, prevFeature, false)
+            }
           }
 
           hoverFeatureRef.current = null
@@ -353,9 +389,10 @@ const PriorityMap = ({
         }
 
         // promote network fields if clicking on a waterfall
+        const networkType = barrierType === 'dams' ? 'dams' : 'small_barriers'
         const networkFields = {}
         Object.keys(properties)
-          .filter((k) => k.endsWith(barrierType))
+          .filter((k) => k.endsWith(networkType))
           .forEach((field) => {
             networkFields[field.split('_')[0]] = properties[field]
           })
@@ -367,10 +404,9 @@ const PriorityMap = ({
           ...properties,
           ...networkFields,
           tiers: rankedBarriersIndexRef.current[properties.id] || null,
-          // barrierType,
-          barrierType: source,
-          // FIXME: is this right?
-          networkType: source === 'dams' ? 'dams' : undefined,
+          barrierType:
+            source === 'combined_barriers' ? properties.barriertype : source,
+          networkType: barrierType,
           HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),
           HUC12Name: getSummaryUnitName('HUC12', properties.HUC12),
           CountyName: getSummaryUnitName('County', properties.County),
@@ -411,21 +447,6 @@ const PriorityMap = ({
     }
     return null
   }
-
-  const selectUnitById = useCallback(
-    (id, layer) => {
-      const [feature] = mapRef.current.querySourceFeatures('summary', {
-        sourceLayer: layer,
-        filter: ['==', 'id', id],
-      })
-
-      if (feature !== undefined) {
-        onSelectUnit({ ...feature.properties, layerId: layer })
-      }
-      return feature
-    },
-    [onSelectUnit]
-  )
 
   // Debounce updates to the filter to prevent frequent redraws
   // which have bad performance with high numbers of dams
@@ -509,16 +530,11 @@ const PriorityMap = ({
     if (!map) return
 
     let networkID = Infinity
-    let networkType = barrierType
 
     if (selectedBarrier) {
-      const {
-        upnetid = Infinity,
-        networkType: barrierNetworkType = barrierType,
-      } = selectedBarrier
+      const { upnetid = Infinity } = selectedBarrier
 
       networkID = upnetid
-      networkType = barrierNetworkType
     } else {
       const prevFeature = selectedFeatureRef.current
       if (prevFeature) {
@@ -532,7 +548,11 @@ const PriorityMap = ({
       }
     }
 
-    highlightNetwork(map, networkType, networkID)
+    highlightNetwork(
+      map,
+      barrierType === 'dams' ? 'dams' : 'small_barriers',
+      networkID
+    )
   }, [barrierType, selectedBarrier])
 
   // if map allows filter, show selected vs unselected points, and make those without networks
@@ -593,36 +613,6 @@ const PriorityMap = ({
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
     [activeLayer, summaryUnits, filters]
   )
-
-  useEffect(() => {
-    const { current: map } = mapRef
-    if (!(map && searchFeature)) {
-      return
-    }
-
-    const { id = null, layer, bbox } = searchFeature
-    // if feature is already visible, select it
-    // otherwise, zoom and attempt to select it
-
-    let feature = selectUnitById(id, layer)
-    if (!feature) {
-      map.once('moveend', () => {
-        feature = selectUnitById(id, layer)
-        // source may still be loading, try again in 1 second
-        if (!feature) {
-          setTimeout(() => {
-            selectUnitById(id, layer)
-          }, 1000)
-        }
-      })
-    }
-
-    // have to zoom to feature in order to fetch data for it
-    map.fitBounds(bbox.split(',').map(parseFloat), {
-      padding: 20,
-      duration: 500,
-    })
-  }, [searchFeature, selectUnitById])
 
   useEffect(() => {
     const { current: map } = mapRef
@@ -715,6 +705,7 @@ const PriorityMap = ({
       excluded: excludedLegend,
       topRank: topRankLegend,
       lowerRank: lowerRankLegend,
+      unrankedBarriers,
       other,
     } = pointLegends
 
@@ -774,27 +765,27 @@ const PriorityMap = ({
       const tierLabel =
         tierThreshold === 1 ? 'tier 1' : `tiers 1 - ${tierThreshold}`
       circles.push({
-        ...topRankLegend,
-        label: `top-ranked ${barrierTypeLabel} (${tierLabel})`,
+        ...topRankLegend.getSymbol(barrierType),
+        label: topRankLegend.getLabel(barrierTypeLabel, tierLabel),
       })
 
       circles.push({
-        ...lowerRankLegend,
-        label: `lower-ranked ${barrierTypeLabel}`,
+        ...lowerRankLegend.getSymbol(barrierType),
+        label: lowerRankLegend.getLabel(barrierTypeLabel, tierLabel),
       })
 
       if (isWithinZoom[excludedPoint.id]) {
         circles.push({
-          ...excludedLegend,
-          label: `${barrierTypeLabel} not included in prioritization`,
+          ...excludedLegend.getSymbol(barrierType),
+          label: excludedLegend.getLabel(barrierTypeLabel),
         })
       }
     } else {
       // either in select units or filter step
       if (isWithinZoom[includedPoint.id]) {
         circles.push({
-          ...includedLegend,
-          label: `${barrierTypeLabel} included in prioritization`,
+          ...includedLegend.getSymbol(barrierType),
+          label: includedLegend.getLabel(barrierTypeLabel),
         })
       } else {
         footnote = `zoom in to see ${barrierTypeLabel} included in prioritization`
@@ -802,8 +793,8 @@ const PriorityMap = ({
 
       if (isWithinZoom[excludedPoint.id]) {
         circles.push({
-          ...excludedLegend,
-          label: `${barrierTypeLabel} not included in prioritization`,
+          ...excludedLegend.getSymbol(barrierType),
+          label: excludedLegend.getLabel(barrierTypeLabel),
         })
       }
 
@@ -821,12 +812,22 @@ const PriorityMap = ({
     }
 
     if (isWithinZoom[offnetworkPoint.id]) {
-      other.forEach(({ id, label, ...rest }) => {
+      unrankedBarriers.forEach(({ getSymbol, getLabel }) => {
+        circles.push({
+          ...getSymbol(barrierType),
+          label: getLabel(barrierTypeLabel),
+        })
+      })
+
+      other.forEach(({ id, getSymbol, getLabel }) => {
         if (id === 'dams-secondary' && barrierType !== 'small_barriers') {
           return
         }
 
-        circles.push({ ...rest, label: label(barrierTypeLabel) })
+        circles.push({
+          ...getSymbol(barrierType),
+          label: getLabel(barrierTypeLabel),
+        })
       })
     }
 
@@ -867,7 +868,6 @@ PriorityMap.propTypes = {
       id: PropTypes.string.isRequired,
     })
   ),
-  searchFeature: SearchFeaturePropType,
   bounds: PropTypes.arrayOf(PropTypes.number),
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
@@ -879,7 +879,6 @@ PriorityMap.defaultProps = {
   activeLayer: null,
   selectedUnit: null,
   selectedBarrier: null,
-  searchFeature: null,
   summaryUnits: [],
   rankedBarriers: [],
   bounds: null,

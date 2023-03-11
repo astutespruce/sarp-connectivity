@@ -46,7 +46,7 @@ const index = ({ children, title, onClose }) => {
         }}
       >
         <Heading
-          as="h2"
+          as="h3"
           sx={{
             pb: '0.5rem',
             mb: '0.5rem',

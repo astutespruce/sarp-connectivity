@@ -5,8 +5,8 @@ import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { UnitSearch } from 'components/UnitSearch'
 import { useBarrierType } from 'components/Data'
-import { LAYER_ZOOM, barrierTypeLabels } from 'config'
-import { formatNumber } from 'util/format'
+import { barrierTypeLabels } from 'config'
+import { formatNumber, pluralize } from 'util/format'
 
 import BackLink from './BackLink'
 import StartOverButton from './StartOverButton'
@@ -32,6 +32,7 @@ export const getPluralLabel = (layer) => {
   }
 }
 
+// used by caller, not here
 export const getSingularLabel = (layer) => {
   switch (layer) {
     case 'State':
@@ -58,17 +59,16 @@ const UnitChooser = ({
   onBack,
   onSubmit,
   onStartOver,
-  setSearchFeature,
 }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const [searchValue, setSearchValue] = useState('')
 
   const pluralLabel = getPluralLabel(layer)
-  const singularLabel = getSingularLabel(layer)
 
   let offNetworkCount = 0
   let total = 0
+  let countMessage = null
   if (summaryUnits.length > 0) {
     switch (barrierType) {
       case 'dams': {
@@ -77,6 +77,7 @@ const UnitChooser = ({
           0
         )
         total = summaryUnits.reduce((out, v) => out + v.ranked_dams, 0)
+        countMessage = `${formatNumber(total)} ${pluralize('dam', total)}`
         break
       }
       case 'small_barriers': {
@@ -88,6 +89,40 @@ const UnitChooser = ({
           (out, v) => out + v.ranked_small_barriers,
           0
         )
+        countMessage = `${formatNumber(total)} road-related ${pluralize(
+          'barrier',
+          total
+        )}`
+        break
+      }
+      case 'combined_barriers': {
+        offNetworkCount = summaryUnits.reduce(
+          (out, v) =>
+            out +
+            (v.dams - v.ranked_dams) +
+            (v.small_barriers - v.ranked_small_barriers),
+          0
+        )
+        total = summaryUnits.reduce(
+          (out, v) => out + v.ranked_dams + v.ranked_small_barriers,
+          0
+        )
+
+        let dams = 0
+        let smallBarriers = 0
+        summaryUnits.forEach(({ ranked_dams, ranked_small_barriers }) => {
+          dams += ranked_dams
+          smallBarriers += ranked_small_barriers
+        })
+
+        countMessage = `${formatNumber(dams)} ${pluralize(
+          'dam',
+          dams
+        )} and ${formatNumber(smallBarriers)} road-related ${pluralize(
+          'barrier',
+          smallBarriers
+        )}`
+
         break
       }
       default: {
@@ -101,7 +136,8 @@ const UnitChooser = ({
   }
 
   const handleSearchSelect = (item) => {
-    setSearchFeature(item, LAYER_ZOOM[layer])
+    // rename fields
+    selectUnit(item)
     setSearchValue('')
   }
 
@@ -128,12 +164,18 @@ const UnitChooser = ({
           overflowX: 'hidden',
         }}
       >
-        {summaryUnits.length === 0 ? (
-          <Text variant="help" sx={{ mb: '2rem' }}>
-            Select your {pluralLabel} of interest by clicking on them in the
-            map.
-          </Text>
-        ) : (
+        <Text
+          variant="help"
+          sx={{
+            mt: '-0.5rem',
+            pb: '1.5rem',
+          }}
+        >
+          Select {summaryUnits.length > 0 ? 'additional' : ''} {pluralLabel} by
+          clicking on them on the map or using the search below.
+        </Text>
+
+        {summaryUnits.length > 0 ? (
           <Box
             as="ul"
             sx={{
@@ -151,9 +193,10 @@ const UnitChooser = ({
               />
             ))}
           </Box>
-        )}
+        ) : null}
 
         <UnitSearch
+          barrierType={barrierType}
           layer={layer}
           value={searchValue}
           ignoreIds={
@@ -161,65 +204,70 @@ const UnitChooser = ({
               ? new Set(summaryUnits.map(({ id }) => id))
               : null
           }
+          showCount
           onChange={handleSearchChange}
           onSelect={handleSearchSelect}
         />
 
-        {summaryUnits.length > 0 ? (
-          <>
-            <Text variant="help" sx={{ py: '2rem' }}>
-              Select additional {pluralLabel} by clicking on them on the map or
-              using the search above. To unselect a {singularLabel}, use the
-              trash button above or click on it on the map.
-            </Text>
-            {offNetworkCount > 0 ? (
-              <Text variant="help" sx={{ pb: '2rem' }}>
-                Note: only {barrierTypeLabel} that have been evaluated for
-                aquatic network connectivity are available for prioritization.
-                There are <b>{formatNumber(offNetworkCount, 0)}</b>{' '}
-                {barrierTypeLabel} not available for prioritization in your
-                selected area.
-              </Text>
-            ) : null}
-          </>
+        {summaryUnits.length > 0 && offNetworkCount > 0 ? (
+          <Text variant="help" sx={{ mt: '2rem', pb: '2rem' }}>
+            Note: only {barrierTypeLabel} that have been evaluated for aquatic
+            network connectivity are available for prioritization. There are{' '}
+            <b>{formatNumber(offNetworkCount, 0)}</b> {barrierTypeLabel} not
+            available for prioritization in your selected area.
+          </Text>
         ) : null}
 
-        {layer !== 'State' && layer !== 'County' ? (
+        {!(layer === 'State' || layer === 'County') ? (
           <Text variant="help" sx={{ pt: '2rem' }}>
             <ExclamationTriangle
               size="1em"
               style={{ marginRight: '0.25rem' }}
             />
             Note: You can choose from {pluralLabel} outside the highlighted
-            states, but the barriers inventory is likely more complete only
-            where {pluralLabel} overlap the highlighted states.
+            states, but the barriers inventory is more complete only where{' '}
+            {pluralLabel} overlap the highlighted states.
           </Text>
         ) : null}
       </Box>
 
-      <Flex
+      <Box
         sx={{
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          p: '1rem',
           flex: '0 0 auto',
+          pt: '0.5rem',
+          pb: '1rem',
+          px: '1rem',
           borderTop: '1px solid #DDD',
           bg: '#f6f6f2',
         }}
       >
-        <StartOverButton onStartOver={onStartOver} />
+        {countMessage !== null ? (
+          <Text sx={{ fontSize: 1, textAlign: 'right' }}>
+            selected: {countMessage}
+          </Text>
+        ) : null}
 
-        <SubmitButton
-          disabled={summaryUnits.size === 0 || total === 0}
-          onClick={onSubmit}
-          label={`Select ${barrierTypeLabel} in this area`}
-          title={
-            summaryUnits.size === 0 || total === 0
-              ? `you must select at least one area that has ${barrierTypeLabel} available`
-              : null
-          }
-        />
-      </Flex>
+        <Flex
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mt: '1rem',
+          }}
+        >
+          <StartOverButton onStartOver={onStartOver} />
+
+          <SubmitButton
+            disabled={summaryUnits.size === 0 || total === 0}
+            onClick={onSubmit}
+            label="Configure filters"
+            title={
+              summaryUnits.size === 0 || total === 0
+                ? `you must select at least one area that has ${barrierTypeLabel} available`
+                : null
+            }
+          />
+        </Flex>
+      </Box>
     </Flex>
   )
 }
@@ -235,7 +283,6 @@ UnitChooser.propTypes = {
   onSubmit: PropTypes.func.isRequired,
   onStartOver: PropTypes.func.isRequired,
   selectUnit: PropTypes.func.isRequired,
-  setSearchFeature: PropTypes.func.isRequired,
 }
 
 export default UnitChooser

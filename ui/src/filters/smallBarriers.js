@@ -99,7 +99,7 @@ export const smallBarriers = [
         title: 'Does it have a fish passage facility?',
         sort: false,
         hideEmpty: false,
-        help: 'Note: fish passage facility information is only available for a small number of dams.  Not all data sources recorded this information.',
+        help: 'Note: fish passage facility information is only available for a small number of road-related barriers.  Not all data sources recorded this information.',
         ...getEntries(PASSAGEFACILITY_CLASS, (v) => v > 0),
       },
     ],
@@ -122,8 +122,8 @@ export const smallBarriers = [
     ],
   },
   {
-    id: 'diadromous',
-    title: 'Diadromous species',
+    id: 'marine',
+    title: 'Marine connectivity',
     hasData: hasDiadromousData,
     filters: [
       {
@@ -150,9 +150,9 @@ export const smallBarriers = [
       {
         field: 'downstreamoceanbarriersclass',
         title:
-          'Number of dams / inventoried road-related barriers between this dam and the ocean',
+          'Number of dams / assessed road-related barriers between this dam and the ocean',
         sort: false,
-        help: 'This value is based on any dams or inventoried road-related barriers that occur on the downstream path between this dam and the ocean.  Note: this does not include any road crossings that have not been evaluated for barrier severity.',
+        help: 'This value is based on any dams or assessed road-related barriers that occur on the downstream path between this dam and the ocean.  Note: this does not include any road crossings that have not been evaluated for barrier severity.',
         ...getEntries(DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN),
       },
     ],
@@ -166,7 +166,7 @@ export const smallBarriers = [
         title: 'Land ownership type',
         sort: true,
         hideEmpty: true,
-        help: 'This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: this does not include most private land.',
+        help: 'This information is derived from the BLM Surface Management Agency dataset for federal lands and CBI Protected Areas Database and TNC Secured Lands Database for non-federal lands, to highlight ownership types of particular importance to partners.  NOTE: this does not include most private land.',
         ...getEntries(OWNERTYPE),
       },
       {

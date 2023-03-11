@@ -153,11 +153,18 @@ for column in ("Stream", "Road"):
         column,
     ] = ""
 
-df.loc[(df.Stream != "") & (df.Road != ""), "Name",] = (
-    df.Stream + " / " + df.Road
-)
+
+# Fill name with road or name, if available
+ix = (df.Road != "") & (df.Stream != "")
+print(f"Sum: {ix.sum()}")
+df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Road + " / " + df.loc[ix].Stream
 df.Name = df.Name.fillna("")
 
+ix = (df.Name == "") & (df.Road != "")
+df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Road
+
+ix = (df.Name == "") & (df.Stream != "")
+df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Stream
 
 # Fix issues with RoadType
 df.loc[df.RoadType.str.lower().isin(("no data", "nodata")), "RoadType"] = "Unknown"
@@ -191,9 +198,17 @@ df["BarrierSeverity"] = (
     df.PotentialProject.str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
 )
 
+# per guidance from Kat, if SARP_Score != -1, assign as likely barrier
+df.loc[
+    df.PotentialProject.isin(["Potential Project", "Proposed Project"])
+    & (df.SARP_Score != -1),
+    "BarrierSeverity",
+] = 5
+
+
 # Calculate PassageFacility class
-df["PassageFacilityClass"] = np.uint8(1)
-df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 2
+df["PassageFacilityClass"] = np.uint8(0)
+df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
 
 # Code Condition to use same domain as dams
 df["Condition"] = (
@@ -513,6 +528,8 @@ ix = (df.Stream == "") & (df.GNIS_Name != "")
 df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
 df = df.drop(columns=["GNIS_Name"])
 
+ix = (df.Name == "") & (df.Stream != "")
+df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Stream
 
 # calculate stream type
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")

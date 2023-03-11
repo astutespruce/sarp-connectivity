@@ -5,8 +5,8 @@ import { Box } from 'theme-ui'
 import { getLegendEntries } from 'components/Report/Legend'
 import LegendElement from './LegendElement'
 
-const Legend = ({ barrierType, name, visibleLayers }) => {
-  const entries = getLegendEntries({ barrierType, name, visibleLayers })
+const Legend = ({ networkType, name, visibleLayers }) => {
+  const entries = getLegendEntries({ networkType, name, visibleLayers })
 
   return (
     <Box
@@ -29,7 +29,7 @@ const Legend = ({ barrierType, name, visibleLayers }) => {
 }
 
 Legend.propTypes = {
-  barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   name: PropTypes.string.isRequired,
   visibleLayers: PropTypes.object, // Set()
 }

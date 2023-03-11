@@ -47,6 +47,7 @@ export const classifySARPScore = (score) => {
 
 const BarrierDetails = ({
   barrierType,
+  networkType,
   sarpid,
   source,
   link,
@@ -222,6 +223,7 @@ const BarrierDetails = ({
       {hasnetwork ? (
         <NetworkInfo
           barrierType={barrierType}
+          networkType={networkType}
           totalupstreammiles={totalupstreammiles}
           perennialupstreammiles={perennialupstreammiles}
           alteredupstreammiles={alteredupstreammiles}
@@ -277,6 +279,7 @@ const BarrierDetails = ({
 
 BarrierDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
   hasnetwork: PropTypes.number.isRequired,
   onloop: PropTypes.number,

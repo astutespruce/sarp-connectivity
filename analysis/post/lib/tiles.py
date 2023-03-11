@@ -47,3 +47,20 @@ def to_lowercase(df):
             if k not in UNIT_FIELDS + ["Subbasin", "Subwatershed"]
         }
     )
+
+
+def combine_sarpid_name(df):
+    df["SARPIDName"] = df.SARPID.fillna("") + "|" + df.Name.fillna("")
+
+    return df.drop(
+        columns=[
+            "SARPID",
+            "Name",
+        ]
+    )
+
+
+def fill_na_fields(df):
+    str_cols = df.dtypes.loc[df.dtypes == "object"].index
+    for col in str_cols:
+        df[col] = df[col].fillna("").str.replace('"', "'")

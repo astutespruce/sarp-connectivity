@@ -5,6 +5,7 @@ import { Box, Flex } from 'theme-ui'
 const LegendSymbol = ({
   type,
   color,
+  radius,
   borderColor,
   borderWidth,
   borderStyle,
@@ -12,7 +13,6 @@ const LegendSymbol = ({
   if (type === 'line') {
     return (
       <Flex sx={{ alignItems: 'center', flex: '0 0 auto' }}>
-        {/* <Box sx={{ width: '1rem', height: `${borderWidth}px`, bg: color }} /> */}
         <Box
           sx={{
             width: '1rem',
@@ -26,10 +26,10 @@ const LegendSymbol = ({
   return (
     <Box
       sx={{
-        flex: '0 0 auto',
+        flex: `0 0 auto`,
         mt: '0.25rem',
-        width: '0.75rem',
-        height: '0.75rem',
+        width: `${radius * 2.5}px`,
+        height: `${radius * 2.5}px`,
         borderRadius: '1rem',
         bg: color,
         border: borderWidth ? `${borderWidth}px solid ${borderColor}` : null,
@@ -40,6 +40,7 @@ const LegendSymbol = ({
 
 LegendSymbol.propTypes = {
   type: PropTypes.string.isRequired,
+  radius: PropTypes.number,
   color: PropTypes.string.isRequired,
   borderColor: PropTypes.string,
   borderWidth: PropTypes.number,
@@ -47,6 +48,7 @@ LegendSymbol.propTypes = {
 }
 
 LegendSymbol.defaultProps = {
+  radius: 8,
   borderColor: null,
   borderWidth: null,
   borderStyle: 'solid',

@@ -16,6 +16,7 @@ import { getQueryParams } from 'util/dom'
 const barrierTypeOptions = [
   { value: 'dams', label: 'dams' },
   { value: 'small_barriers', label: 'road-related barriers' },
+  { value: 'combined_barriers', label: 'both' },
 ]
 
 const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
@@ -61,10 +62,11 @@ const SummaryPage = ({ location }) => {
   const handleSelectBarrier = (feature) => {
     // promote appropriate network results
     if (feature && feature.barrierType === 'waterfalls') {
-      const curBarrierType = barrierTypeRef.current
+      const networkType =
+        barrierTypeRef.current === 'dams' ? 'dams' : 'small_barriers'
       const networkFields = {}
       Object.keys(feature)
-        .filter((k) => k.endsWith(curBarrierType))
+        .filter((k) => k.endsWith(networkType))
         .forEach((field) => {
           networkFields[field.split('_')[0]] = feature[field]
         })
@@ -135,7 +137,7 @@ const SummaryPage = ({ location }) => {
               onSelectBarrier={handleSelectBarrier}
             />
             <TopBar>
-              <Text sx={{ mr: '0.5rem' }}>Show:</Text>
+              <Text sx={{ mr: '0.5rem' }}>Show networks for:</Text>
               <ToggleButton
                 value={barrierType}
                 options={barrierTypeOptions}

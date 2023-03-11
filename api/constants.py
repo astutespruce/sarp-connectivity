@@ -5,6 +5,8 @@ from enum import Enum
 class BarrierTypes(str, Enum):
     dams = "dams"
     small_barriers = "small_barriers"
+    combined_barriers = "combined_barriers"
+    road_crossings = "road_crossings"
 
 
 class Layers(str, Enum):
@@ -194,6 +196,14 @@ SB_FILTER_FIELDS = FILTER_FIELDS + [
     "CrossingType",
 ]
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
+
+# BarrierSeverity included for API but not filtering
+COMBINED_FILTER_FIELDS = [
+    c
+    for c in unique(DAM_FILTER_FIELDS + SB_FILTER_FIELDS)
+    if not c == "BarrierSeverity"
+]
+COMBINED_FILTER_FIELD_MAP = {f.lower(): f for f in COMBINED_FILTER_FIELDS}
 
 # Road crossing filters not currently used
 RC_FILTER_FIELDS = ["CrossingType"]
@@ -429,6 +439,30 @@ SB_TILE_FILTER_FIELDS = unique(
 )
 
 
+COMBINED_API_FIELDS = [
+    c
+    for c in unique(["BarrierType"] + DAM_API_FIELDS + SB_API_FIELDS)
+    if not c in STATE_TIER_FIELDS
+]
+
+COMBINED_EXPORT_FIELDS = [
+    c
+    for c in unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS)
+    if not c in STATE_TIER_FIELDS
+]
+
+
+COMBINED_TILE_FILTER_FIELDS = [
+    c
+    for c in unique(DAM_TILE_FILTER_FIELDS + SB_TILE_FILTER_FIELDS)
+    if not c == "BarrierSeverity"
+]
+
+COMBINED_TILE_FIELDS = [
+    c for c in unique(DAM_TILE_FIELDS + SB_TILE_FIELDS) if not c in STATE_TIER_FIELDS
+]
+
+
 ROAD_CROSSING_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
@@ -607,10 +641,14 @@ CUSTOM_TIER_PACK_BITS = [
 
 
 ### Domains for coded values in exported data
+BARRIERTYPE_DOMAIN = {
+    "dams": "Dam",
+    "small_barriers": "Assessed road-related barrier",
+}
+
 
 # typos fixed and trailing periods removed
 RECON_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
     0: "Not yet evaluated",  # added
     1: "Good candidate for removal. Move forward with landowner contact",  # expanded acronym
     2: "Dam needs follow-up with landowner",
@@ -638,7 +676,7 @@ RECON_DOMAIN = {
 
 # Created here to capture values below
 FEASIBILITY_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Not assessed",
     1: "Not feasible",
     2: "Likely infeasible",
@@ -658,7 +696,7 @@ FEASIBILITY_DOMAIN = {
 
 
 PURPOSE_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Unknown",  # added
     1: "Agriculture",
     2: "Flood Control",
@@ -675,7 +713,7 @@ PURPOSE_DOMAIN = {
 }
 
 CONSTRUCTION_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable  (road-related barrier)",
     0: "Unknown",  # added
     1: "Cement",
     2: "Concrete/Roller-compacted Concrete",
@@ -704,7 +742,7 @@ CONDITION_DOMAIN = {
 # Created here
 # Height in feet
 HEIGHT_DOMAIN = {
-    0: "Not applicable",  # only used when combining with small barriers
+    0: "Not applicable (road-related barrier)",
     1: "Unknown",
     2: "< 5",
     3: "5 - 10",
@@ -780,7 +818,7 @@ WATERBODY_SIZECLASS_DOMAIN = {
 
 
 CROSSING_TYPE_DOMAIN = {
-    -1: "Not applicable",
+    -1: "Not applicable (dam)",
     0: "Unknown",
     1: "Inaccessible",
     2: "No crossing",
@@ -796,7 +834,7 @@ CROSSING_TYPE_DOMAIN = {
 }
 
 CONSTRICTION_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with dams
+    -1: "Not applicable (dam)",
     0: "Unknown",
     1: "Spans full channel & banks",
     2: "Spans only bankfull/active channel",
@@ -807,7 +845,7 @@ CONSTRICTION_DOMAIN = {
 }
 
 DIVERSION_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Unknown",
     1: "Yes",
     2: "No",
@@ -815,7 +853,7 @@ DIVERSION_DOMAIN = {
 
 # NOTE: values do not match original domain; they are recoded
 LOWHEADDAM_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Unknown",
     1: "Yes",
     2: "Likely",
@@ -823,14 +861,14 @@ LOWHEADDAM_DOMAIN = {
 }
 
 FISHSCREEN_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Unknown",
     1: "Yes",
     2: "No",
 }
 
 SCREENTYPE_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
+    -1: "Not applicable (road-related barrier)",
     0: "Unknown",
     1: "Horizontal",
     2: "Vertical",
@@ -842,14 +880,16 @@ SCREENTYPE_DOMAIN = {
 
 
 BARRIER_SEVERITY_DOMAIN = {
+    -1: "Not applicable (dam)",
     0: "Unknown",
     1: "Complete barrier",
     2: "Moderate barrier",
     3: "Indeterminate barrier",
     4: "Minor barrier",
-    5: "Barrier - unknown severity",
-    6: "No barrier",
-    7: "No upstream habitat",
+    5: "Likely barrier",
+    6: "Barrier - unknown severity",
+    7: "No barrier",
+    8: "No upstream habitat",
 }
 
 PASSABILITY_DOMAIN = {
@@ -864,7 +904,7 @@ PASSABILITY_DOMAIN = {
 }
 
 ROAD_TYPE_DOMAIN = {
-    -1: "not applicable",  # when merged with dams
+    -1: "Not applicable (dam)",
     0: "Unknown",
     1: "Unpaved",
     2: "Paved",
@@ -874,14 +914,18 @@ ROAD_TYPE_DOMAIN = {
 
 OWNERTYPE_DOMAIN = {
     0: "",  # most likely private land, but just don't say anything
-    1: "US Fish and Wildlife Service land",
-    2: "USDA Forest Service land",
-    3: "Federal land",
-    4: "State land",
-    5: "Joint Ownership or Regional land",
-    6: "Native American land",
-    7: "Private easement",
-    8: "Other private conservation land",
+    1: "Bureau of Land Management",
+    2: "Bureau of Reclamation",
+    3: "Department of Defense",
+    4: "National Park Service",
+    5: "US Fish and Wildlife Service land",
+    6: "USDA Forest Service land",
+    7: "Other Federal land",
+    8: "State land",
+    9: "Joint Ownership or Regional land",
+    10: "Native American land",
+    11: "Private easement",
+    12: "Other private conservation land",
 }
 
 
@@ -900,13 +944,11 @@ BOOLEAN_DOMAIN = {False: "no", True: "yes"}
 
 
 PASSAGEFACILITY_CLASS_DOMAIN = {
-    0: "Not applicable",  # only used when combining with small barriers
-    1: "No known fish passage structure",
-    2: "Fish passage structure present",
+    0: "No known fish passage structure",
+    1: "Fish passage structure present",
 }
 
 PASSAGEFACILITY_DOMAIN = {
-    -1: "Not applicable",  # only used when combining with small barriers
     0: "Unknown or none",
     1: "Trap & truck",
     2: "Fish ladder - unspecified",
@@ -1039,6 +1081,7 @@ STATES = {
 
 # mapping of field name to domains
 DOMAINS = {
+    "BarrierType": BARRIERTYPE_DOMAIN,
     "State": STATES,
     "HasNetwork": BOOLEAN_DOMAIN,
     "OnLoop": BOOLEAN_DOMAIN,
@@ -1084,8 +1127,9 @@ DOMAINS = {
 # Note: replace {type} with appropriate type when rendering
 FIELD_DEFINITIONS = {
     # general fields
-    "lat": "latitude in WGS84 geographic coordinates.",
-    "lon": "longitude in WGS84 geographic coordinates.",
+    "BarrierType": "Type of barrier",
+    "lat": "Latitude in WGS84 geographic coordinates.",
+    "lon": "Longitude in WGS84 geographic coordinates.",
     "Name": "{type} name, if available.",
     "SARPID": "SARP Identifier.",
     # dam-specific fields
@@ -1114,7 +1158,7 @@ FIELD_DEFINITIONS = {
     # barrier-specific fields
     "LocalID": "local identifier.",
     "CrossingCode": "crossing identifier.",
-    "Stream": "stream or river name where barrier occurs, if available.",
+    "Stream": "stream or river name where this {type} occurs, if available.",
     "Road": "road name, if available.",
     "RoadType": "type of road, if available.",
     "CrossingType": "type of road / stream crossing, if known.",
@@ -1125,7 +1169,7 @@ FIELD_DEFINITIONS = {
     # other general fields
     "Passability": "passability of the {type}, if known.   Note: assessment dates are not known.",
     "Condition": "Condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
-    "NHDPlusID": "Unique NHD Plus High Resolution flowline identifier to which the barrier is snapped.  -1 = not snapped to a flowline.  Note: not all barriers snapped to flowlines are used in the network connectivity analysis.",
+    "NHDPlusID": "Unique NHD Plus High Resolution flowline identifier to which this {type} is snapped.  -1 = not snapped to a flowline.  Note: not all barriers snapped to flowlines are used in the network connectivity analysis.",
     "StreamSizeClass": "Stream size class based on total catchment drainage area in square kilometers.  1a: <10 km2, 1b: 10-100 km2, 2: 100-518 km2, 3a: 518-2,590 km2, 3b: 2,590-10,000 km2, 4: 10,000-25,000 km2, 5: >= 25,000 km2.",
     "TotDASqKm": "Total drainage area at the downstream end of the NHD Plus High Resolution flowline to which this {type} has been snapped, in square kilometers.  -1 if not snapped to flowline or otherwise not available",
     "AnnualFlow": "Annual flow at the downstream end of the NHD Plus High Resolution flowline to which this {type} has been snapped, in square cubic feet per second.  -1 if not snapped to flowline or otherwise not available",
@@ -1134,9 +1178,9 @@ FIELD_DEFINITIONS = {
     "StateSGCNSpp": "Number of state-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "RegionalSGCNSpp": "Number of regionally-listed Species of Greatest Conservation Need (SGCN), compiled from element occurrence data within the same subwatershed (HUC12) as the {type}.  Note: rare species information is based on occurrences within the same subwatershed as the {type}.  These species may or may not be impacted by this {type}.  Information on rare species is very limited and comprehensive information has not been provided for all states at this time.",
     "Trout": "Identifies if one or more interior or eastern native trout species (Apache, brook, bull, cutthroat, Gila, lake, and redband) are present within the same subwatershed (HUC12) as the {type} based on in available natural heritage data.  Note: absence means that occurrences were not present in the available natural heritage data and should not be interpreted as true absences.",
-    "OwnerType": "Land ownership type. This information is derived from the CBI Protected Areas Database and TNC Secured Lands Database, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
+    "OwnerType": "Land ownership type. This information is derived from the BLM Surface Management Agency dataset for federal lands and CBI Protected Areas Database and TNC Secured Lands Database for non-federal lands, to highlight ownership types of particular importance to partners.  NOTE: does not include most private land.",
     "BarrierOwnerType": "Barrier ownership type, if available.",
-    "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the CBI Protected Areas Database of the U.S. and TNC Secured Lands Database.",
+    "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the BLM Surface Management Agency dataset, CBI Protected Areas Database of the U.S., or TNC Secured Lands Database.",
     "EJTract": "Within an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.",
     "EJTribal": "Within a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool based on American Indian and Alaska Native areas as defined by the US Census Bureau.  Note: all tribal communities considered disadvantaged by the Climate and Environmental Justice Screening tool.",
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",
@@ -1179,21 +1223,21 @@ FIELD_DEFINITIONS = {
     "UpstreamDrainageArea": "approximate drainage area of all NHD High Resolution catchments within upstream functional network of {type}.  Includes the total catchment area of any NHD High Resolution flowlines that are cut by barriers in the analysis, which may overrepresent total drainage area of the network. -1 = not available.",
     "UpstreamWaterfalls": "number of waterfalls at the upstream ends of the functional network for this {type}. -1 = not available.",
     "UpstreamDams": "number of dams at the upstream ends of the functional network for this {type}.",
-    "UpstreamSmallBarriers": "number of inventoried road-related barriers within the functional network if this barrier is a dam or at the upstream ends of the functional network if this barrier is a road-related barrier. -1 = not available.",
+    "UpstreamSmallBarriers": "number of assessed road-related barriers within the functional network if this barrier is a dam or at the upstream ends of the functional network if this barrier is a road-related barrier. -1 = not available.",
     "UpstreamRoadCrossings": "number of uninventoried estimated road crossings within the functional network for this {type}. -1 = not available.",
     "UpstreamHeadwaters": "number of headwaters within the functional network for this {type}. -1 = not available.",
     "UpstreamCatchmentWaterfalls": "number of waterfalls within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
     "UpstreamCatchmentDams": "number of dams within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
-    "UpstreamCatchmentSmallBarriers": "number of inventoried road-related barriers within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
+    "UpstreamCatchmentSmallBarriers": "number of assessed road-related barriers within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
     "UpstreamCatchmentRoadCrossings": "number of uninventoried estimated road crossings within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
     "TotalUpstreamWaterfalls": "total number of waterfalls upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamDams": "total number of dams upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
-    "TotalUpstreamSmallBarriers": "total number of inventoried road-related barriers upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
+    "TotalUpstreamSmallBarriers": "total number of assessed road-related barriers upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamRoadCrossings": "total number of uninventroeid estimated road crossings upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamHeadwaters": "total number of headwaters upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalDownstreamWaterfalls": "total number of waterfalls between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "TotalDownstreamDams": "total number of dams between this {type} and the downstream-most point the full aquatic network on which it occurs (e.g., river mouth). -1 = not available.",
-    "TotalDownstreamSmallBarriers": "total number of inventoried road-related barriers between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
+    "TotalDownstreamSmallBarriers": "total number of assessed road-related barriers between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "TotalDownstreamRoadCrossings": "total number of uninventoried estimated road crossings between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "MilesToOutlet": "miles between this {type} and the downstream-most point on the full aquatic network on which it occurs. -1 = not available.",
     "FlowsToOcean": "indicates if this {type} was snapped to a stream or river that is known to flow into the ocean.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the ocean.",
@@ -1217,6 +1261,14 @@ DAM_FIELD_DEFINITIONS = {
 }
 SB_FIELD_DEFINITIONS = {
     k: v.replace("{type}", "road-related barrier") for k, v in FIELD_DEFINITIONS.items()
+}
+COMBINED_FIELD_DEFINITIONS = {
+    k: v.replace("{type}", "dam or road-related barrier")
+    for k, v in FIELD_DEFINITIONS.items()
+}
+RC_FIELD_DEFINITIONS = {
+    k: v.replace("{type}", "potential road-related barrier")
+    for k, v in FIELD_DEFINITIONS.items()
 }
 
 

@@ -1,15 +1,19 @@
 /* eslint-disable camelcase */
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Button, Heading, Flex, Text } from 'theme-ui'
+import { Box, Button, Heading, Flex, Text, Paragraph } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
 import { Downloader } from 'components/Download'
-import { STATE_FIPS, STATES, CONNECTIVITY_TEAMS } from 'config'
+import {
+  STATE_FIPS,
+  STATES,
+  CONNECTIVITY_TEAMS,
+  barrierTypeLabels,
+} from 'config'
+import { formatNumber, pluralize } from 'util/format'
 
 import { layers } from '../layers'
-import Barriers from './Barriers'
-import Dams from './Dams'
 
 const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   const teams = {}
@@ -23,9 +27,16 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
     id,
     layerId,
     dams = 0,
+    rankedDams = 0,
+    smallBarriers = 0,
     totalSmallBarriers = 0,
+    rankedSmallBarriers = 0,
     crossings = 0,
   } = summaryUnit
+
+  const unrankedDams = dams - rankedDams
+  const unrankedBarriers = smallBarriers - rankedSmallBarriers
+  const totalRoadBarriers = totalSmallBarriers + crossings
 
   let { name = '' } = summaryUnit
 
@@ -58,59 +69,68 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
 
   let downloadButtons = null
 
-  if (barrierType === 'dams') {
-    if (dams > 0) {
+  switch (barrierType) {
+    case 'dams': {
       downloadButtons = (
-        <Flex
-          sx={{
-            justifyContent: 'flex-end',
-            p: '1rem',
-            flex: '0 0 auto',
-            borderTop: '1px solid #DDD',
-            bg: '#f6f6f2',
-          }}
-        >
-          <Downloader barrierType={barrierType} config={downloaderConfig} />
-        </Flex>
+        <Box sx={{ width: '10rem' }}>
+          <Flex sx={{ ml: '1rem', flex: '1 1 auto' }}>
+            <Downloader
+              barrierType={barrierType}
+              label={barrierTypeLabels[barrierType]}
+              config={downloaderConfig}
+              disabled={dams === 0}
+            />
+          </Flex>
+        </Box>
       )
+
+      break
     }
-  } else if (totalSmallBarriers + crossings > 0) {
-    const showBoth = totalSmallBarriers > 0 && crossings > 0
+    case 'small_barriers': {
+      downloadButtons = (
+        <>
+          <Downloader
+            barrierType={barrierType}
+            label={barrierTypeLabels[barrierType]}
+            config={downloaderConfig}
+            disabled={totalSmallBarriers === 0}
+          />
 
-    downloadButtons = (
-      <Flex
-        sx={{
-          justifyContent: showBoth ? 'space-between' : 'flex-end',
-          p: '1rem',
-          flex: '0 0 auto',
-          borderTop: '1px solid #DDD',
-          bg: '#f6f6f2',
-          '& button': showBoth
-            ? {
-                fontSize: 1,
-                textAlign: 'left',
-                p: '0.5rem',
-              }
-            : null,
-        }}
-      >
-        {totalSmallBarriers > 0 ? (
-          <Downloader barrierType={barrierType} config={downloaderConfig} />
-        ) : null}
-
-        {showBoth ? <Box sx={{ width: '1em', flex: '0 0 auto' }} /> : null}
-
-        {crossings > 0 ? (
           <Downloader
             barrierType="road_crossings"
+            label={barrierTypeLabels.road_crossings}
             config={{
               layer: layerId,
               summaryUnits: [{ id }],
             }}
+            disabled={crossings === 0}
           />
-        ) : null}
-      </Flex>
-    )
+        </>
+      )
+      break
+    }
+    case 'combined_barriers': {
+      downloadButtons = (
+        <>
+          <Downloader
+            barrierType="dams"
+            label={barrierTypeLabels.dams}
+            config={downloaderConfig}
+            disabled={dams === 0}
+          />
+          <Downloader
+            barrierType="small_barriers"
+            label={barrierTypeLabels.small_barriers}
+            config={downloaderConfig}
+            disabled={totalSmallBarriers === 0}
+          />
+        </>
+      )
+      break
+    }
+    default: {
+      break
+    }
   }
 
   return (
@@ -156,11 +176,149 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           overflowY: 'auto',
         }}
       >
+        <Paragraph>This area contains:</Paragraph>
+
+        {barrierType === 'dams' || barrierType === 'combined_barriers' ? (
+          <>
+            {dams > 0 ? (
+              <>
+                <Paragraph sx={{ mt: '0.5rem' }}>
+                  <b>{formatNumber(dams, 0)}</b> inventoried{' '}
+                  {dams === 1 ? 'dam' : 'dams'}, including:
+                </Paragraph>
+
+                <Box as="ul" sx={{ mt: '0.5rem' }}>
+                  <li>
+                    <b>{formatNumber(rankedDams, 0)}</b>{' '}
+                    {rankedDams === 1 ? 'dam' : 'dams'} that{' '}
+                    {rankedDams === 1 ? 'was ' : 'were '} analyzed for impacts
+                    to aquatic connectivity in this tool
+                  </li>
+                </Box>
+              </>
+            ) : (
+              <Text sx={{ mt: '0.5rem' }}>
+                <b>0</b> inventoried dams
+              </Text>
+            )}
+          </>
+        ) : null}
+
+        {barrierType === 'small_barriers' ||
+        barrierType === 'combined_barriers' ? (
+          <>
+            {totalRoadBarriers > 0 ? (
+              <>
+                <Paragraph
+                  sx={{
+                    mt:
+                      barrierType === 'combined_barriers' ? '1.5rem' : '0.5rem',
+                  }}
+                >
+                  <b>{formatNumber(totalSmallBarriers + crossings, 0)}</b> or
+                  more potential road-related aquatic barriers, including:
+                </Paragraph>
+                <Box as="ul" sx={{ mt: '0.5rem' }}>
+                  <li>
+                    <b>{formatNumber(totalRoadBarriers, 0)}</b> road-related
+                    potential {totalRoadBarriers === 1 ? 'barrier' : 'barriers'}{' '}
+                    (road/stream crossings)
+                  </li>
+                  <li>
+                    <b>{formatNumber(totalSmallBarriers, 0)}</b> road-related{' '}
+                    {totalSmallBarriers === 1 ? 'barrier' : 'barriers'}{' '}
+                    {totalSmallBarriers === 1 ? 'has ' : 'have '} been assessed
+                    for impacts to aquatic organisms.
+                  </li>
+                  <li>
+                    <b>{formatNumber(smallBarriers, 0)}</b> road-related{' '}
+                    {pluralize('barrier', smallBarriers)} assessed{' '}
+                    {smallBarriers === 1 ? 'is' : 'are'} likely to impact
+                    aquatic organisms
+                  </li>
+                  <li>
+                    <b>{formatNumber(rankedSmallBarriers, 0)}</b> road-related{' '}
+                    {pluralize('barrier', rankedSmallBarriers)} that{' '}
+                    {rankedSmallBarriers === 1 ? 'was ' : 'were '} analyzed for
+                    impacts to aquatic connectivity in this tool
+                  </li>
+                </Box>
+              </>
+            ) : (
+              <Text sx={{ mt: '0.5rem' }}>
+                <b>0</b> known road-related barriers or road/stream crossings
+              </Text>
+            )}
+          </>
+        ) : null}
+
         {barrierType === 'dams' ? (
-          <Dams {...summaryUnit} />
-        ) : (
-          <Barriers {...summaryUnit} />
-        )}
+          <Paragraph variant="help" sx={{ mt: '2rem' }}>
+            Note: These statistics are based on <i>inventoried</i> dams. Because
+            the inventory is incomplete in many areas, areas with a high number
+            of dams may simply represent areas that have a more complete
+            inventory.
+            {unrankedDams > 0 ? (
+              <>
+                <br />
+                <br />
+                {formatNumber(unrankedDams, 0)} {pluralize('dam', unrankedDams)}{' '}
+                {unrankedDams === 1 ? 'was' : 'were'} not analyzed because{' '}
+                {unrankedDams === 1 ? 'it was' : 'they were'} not on the aquatic
+                network or could not be correctly located on the network.
+              </>
+            ) : null}
+          </Paragraph>
+        ) : null}
+
+        {barrierType === 'small_barriers' ? (
+          <Paragraph variant="help" sx={{ mt: '2rem' }}>
+            Note: These statistics are based on <i>inventoried</i> road-related
+            barriers that have been assessed for impacts to aquatic organisms.
+            Because the inventory is incomplete in many areas, areas with a high
+            number of barriers may simply represent areas that have a more
+            complete inventory.
+            {unrankedBarriers > 0 ? (
+              <>
+                <br />
+                <br />
+                {formatNumber(unrankedBarriers, 0)} road-related{' '}
+                {pluralize('barrier', unrankedBarriers)}{' '}
+                {unrankedBarriers === 1 ? 'was' : 'were'} not analyzed because{' '}
+                {unrankedBarriers === 1 ? 'it was' : 'they were'} not on the
+                aquatic network or could not be correctly located on the network
+              </>
+            ) : null}
+          </Paragraph>
+        ) : null}
+
+        {barrierType === 'combined_barriers' ? (
+          <Paragraph variant="help" sx={{ mt: '2rem' }}>
+            Note: These statistics are based on <i>inventoried</i> dams and
+            road-related barriers that have been assessed for impacts to aquatic
+            organisms. Because the inventory is incomplete in many areas, areas
+            with a high number of barriers may simply represent areas that have
+            a more complete inventory.
+            {unrankedDams > 0 || unrankedBarriers > 0 ? (
+              <>
+                <br />
+                <br />
+                {unrankedDams > 0
+                  ? `${formatNumber(unrankedDams, 0)} dams`
+                  : null}
+                {unrankedDams > 0 && unrankedBarriers > 0 ? ' and ' : null}
+                {unrankedBarriers > 0
+                  ? `${formatNumber(unrankedBarriers, 0)} road-related barriers`
+                  : null}{' '}
+                {unrankedDams + unrankedBarriers === 1 ? 'was' : 'were'} not
+                analyzed because{' '}
+                {unrankedDams + unrankedBarriers === 1 ? 'it was' : 'they were'}{' '}
+                not on the aquatic network or could not be correctly located on
+                the network
+              </>
+            ) : null}
+          </Paragraph>
+        ) : null}
 
         {team ? (
           <Box
@@ -197,7 +355,35 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
         ) : null}
       </Box>
 
-      {downloadButtons}
+      <Box
+        sx={{
+          flex: '0 0 auto',
+          display: barrierType === 'dams' ? 'flex' : null,
+          alignItems: 'center',
+          pt: '0.5rem',
+          px: '1rem',
+          pb: '1rem',
+          borderTop: '1px solid #DDD',
+          bg: '#f6f6f2',
+          '& button': {
+            fontSize: 1,
+            textAlign: 'left',
+            p: '0.5rem',
+          },
+        }}
+      >
+        <Text sx={{ lineHeight: 1, flex: '0 0 auto' }}>Download:</Text>
+        <Flex
+          sx={{
+            flex: '1 1 auto',
+            mt: '0.5rem',
+            justifyContent: 'space-between',
+            gap: '1rem',
+          }}
+        >
+          {downloadButtons}
+        </Flex>
+      </Box>
     </Flex>
   )
 }
@@ -212,7 +398,7 @@ UnitDetails.propTypes = {
     rankedDams: PropTypes.number,
     smallBarriers: PropTypes.number,
     totalSmallBarriers: PropTypes.number,
-    unrankedSmallBarriers: PropTypes.number,
+    rankedSmallBarriers: PropTypes.number,
     crossings: PropTypes.number,
     miles: PropTypes.number,
   }).isRequired,

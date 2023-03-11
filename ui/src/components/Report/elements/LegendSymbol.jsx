@@ -5,6 +5,7 @@ import { Circle, Line, Svg, View } from '@react-pdf/renderer'
 const LegendSymbol = ({
   type,
   color,
+  radius,
   borderColor,
   borderWidth,
   borderStyle,
@@ -29,11 +30,14 @@ const LegendSymbol = ({
   }
   return (
     <View style={{ flex: '0 0 16' }}>
-      <Svg width={12} height={12}>
+      <Svg
+        width={(radius + borderWidth) * 2}
+        height={(radius + borderWidth) * 2}
+      >
         <Circle
-          cx={6}
-          cy={6}
-          r={4}
+          cx={radius + borderWidth}
+          cy={radius + borderWidth}
+          r={radius}
           fill={color}
           strokeWidth={borderWidth}
           stroke={borderColor}
@@ -45,6 +49,7 @@ const LegendSymbol = ({
 
 LegendSymbol.propTypes = {
   type: PropTypes.string.isRequired,
+  radius: PropTypes.number,
   color: PropTypes.string.isRequired,
   borderColor: PropTypes.string,
   borderWidth: PropTypes.number,
@@ -55,6 +60,7 @@ LegendSymbol.defaultProps = {
   borderColor: null,
   borderWidth: null,
   borderStyle: null,
+  radius: 8,
 }
 
 export default LegendSymbol

@@ -6,7 +6,6 @@ Note: output shapefiles for creating tilesets are limited to only those areas th
 the SARP states boundary.
 """
 from pathlib import Path
-import warnings
 
 import geopandas as gp
 import numpy as np
@@ -21,7 +20,8 @@ from analysis.constants import (
     OWNERTYPE_TO_PUBLIC_LAND,
     STATES,
 )
-from analysis.lib.geometry import explode, dissolve, to_multipolygon
+from analysis.lib.geometry import explode, dissolve, to_multipolygon, make_valid
+from analysis.lib.util import append
 
 
 def encode_bbox(geometries):
@@ -35,7 +35,6 @@ def encode_bbox(geometries):
 data_dir = Path("data")
 out_dir = data_dir / "boundaries"
 src_dir = out_dir / "source"
-api_dir = Path("data/api")
 
 county_filename = src_dir / "tl_2022_us_county.shp"
 huc4_df = gp.read_feather(out_dir / "huc4.feather")
@@ -193,7 +192,39 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
         ignore_index=True,
     )
 
-out.reset_index(drop=True).to_feather(api_dir / "unit_bounds.feather")
+out.reset_index(drop=True).to_feather(out_dir / "unit_bounds.feather")
+
+
+### Federal ownership
+print("Extracting federal areas (will take a while)...")
+
+gdb = src_dir / "SMA_WM.gdb"
+# mapping of layer to ownertype
+federal = None
+layers = {
+    "SurfaceMgtAgy_BIA": "Native American Land",
+    "SurfaceMgtAgy_BLM": "Bureau of Land Management",
+    "SurfaceMgtAgy_BOR": "Bureau of Reclamation",
+    "SurfaceMgtAgy_DOD": "Department of Defense",
+    "SurfaceMgtAgy_FWS": "US Fish and Wildlife Service",
+    "SurfaceMgtAgy_NPS": "National Park Service",
+    "SurfaceMgtAgy_OTHFED": "Federal Land",
+    "SurfaceMgtAgy_USFS": "USDA Forest Service",
+}
+for layer, ownertype in layers.items():
+    print(f"Extracting {ownertype}")
+    df = read_dataframe(gdb, layer=layer, columns=[], force_2d=True).to_crs(CRS)
+
+    tree = shapely.STRtree(df.geometry.values.data)
+    df = df.take(tree.query(bnd, predicate="intersects"))
+    df["otype"] = ownertype
+    df["owner"] = ownertype
+
+    federal = append(federal, df)
+
+federal = federal.explode(ignore_index=True)
+federal["geometry"] = make_valid(federal.geometry)
+
 
 ### Protected areas
 
@@ -202,75 +233,39 @@ df = (
     read_dataframe(
         src_dir / "SARP_ProtectedAreas_2021.gdb",
         layer="SARP_ProtectedArea_National_2021",
-        columns=["OwnerType", "OwnerName", "EasementHolderType", "Preference"],
+        columns=["OwnerType", "OwnerName", "Preference"],
+        # Unknown / Designation are not useful so they are dropped; other
+        # federal types are handled above
+        where=""" "OwnerType" not in ('Federal Land', 'Native American Land', 'Unknown', 'Designation', 'Territory') """,
     )
     .to_crs(CRS)
     .rename(
         columns={
             "OwnerType": "otype",
             "OwnerName": "owner",
-            "EasementHolderType": "etype",
             "Preference": "sort",
         }
     )
 )
 
+# fix spelling issue
+df.loc[df.otype == "Easment", "otype"] = "Easement"
+
 # select those that are within the boundary
 tree = shapely.STRtree(df.geometry.values.data)
-ix = tree.query(bnd, predicate="intersects")
-
-df = df.take(ix)
+df = df.take(tree.query(bnd, predicate="intersects"))
 
 # this takes a while...
 print("Making geometries valid, this might take a while")
-df.geometry = shapely.make_valid(df.geometry.values.data)
-
+df["geometry"] = make_valid(df.geometry.values)
 
 # sort on 'sort' so that later when we do spatial joins and get multiple hits, we take the ones with
 # the lowest sort value (1 = highest priority) first.
 df.sort = df.sort.fillna(255).astype("uint8")  # missing values should sort to bottom
 df = df.sort_values(by="sort").drop(columns=["sort"])
 
-# partner federal agencies to call out specifically
-# map of substrings to search for specific owners
-partner_federal = {
-    "US Fish and Wildlife Service": [
-        "FWS",
-        "USFWS",
-        "USFW",
-        "US FWS",
-        "U.S. Fish and Wildlife Service",
-        "U. S. Fish & Wildlife Service",
-        "U.S. Fish & Wildlife Service",
-        "U.S. Fish and Wildlife Service (FWS)",
-        "US Fish & Wildlife Service",
-        "US Fish and Wildlife Service",
-        "USDI FISH AND WILDLIFE SERVICE",
-    ],
-    "USDA Forest Service": [
-        "Forest Service",
-        "USFS",
-        "USDA FOREST SERVICE",
-        "USDA Forest Service",
-        "US Forest Service",
-        "USDA Forest Service",
-        "U.S. Forest Service",
-        "U.S. Forest Service (USFS)",
-        "United States Forest Service",
-    ],
-}
 
-has_owner = df.owner.notnull()
-for partner, substrings in partner_federal.items():
-    print("Finding specific federal partner {}".format(partner))
-    # search on the primary name
-    df.loc[has_owner & df.owner.str.contains(partner), "otype"] = partner
-
-    for substring in substrings:
-        df.loc[has_owner & df.owner.str.contains(substring), "otype"] = partner
-
-    print("Found {:,} areas for that partner".format(len(df.loc[df.otype == partner])))
-
+df = append(federal, df).explode(ignore_index=True)
 
 # convert to int groups
 df["OwnerType"] = df.otype.map(OWNERTYPE_TO_DOMAIN)

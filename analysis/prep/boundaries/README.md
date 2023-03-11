@@ -71,9 +71,15 @@ include:
 
 County boundaries (2022 version) were downloaded from CENSUS Tiger website.
 
+### Federal Ownership
+
+Kat Hoenke (SARP) provided the BLM's Surface Management Agency dataset on 3/10/2023.
+This was used to extract federal ownership types.
+
 ### Protected Areas
 
-Kat Hoenke (SARP) extracted protected area data from CBI Protected Areas and TNC Secured Lands and merged them together. Kat later obtained a boundaries layer from USFS, and overlayed this over the top (11/4/2019). Because this causes multiple owner type polygons to occur in the same location, the `Preference` attribute is added, so that we can sort on ascending preference to assign the most appropriate ownership to a given barrier (nulls assigned arbitrary high value).
+Kat Hoenke (SARP) extracted protected area data from CBI Protected Areas and TNC Secured Lands and merged them together. Kat later obtained a boundaries layer from USFS, and overlayed this over the top (11/4/2019). Because this causes multiple owner type polygons to occur in the same location, the `Preference` attribute is added, so that we can sort on ascending preference to assign the most appropriate ownership to a given barrier (nulls assigned arbitrary high value). Only nonfederal areas were
+extracted from the protected areas dataset.
 
 ### Environmental Justice Disadvantaged Communities
 

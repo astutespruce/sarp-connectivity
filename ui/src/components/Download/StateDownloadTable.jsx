@@ -91,7 +91,7 @@ const StateDownloadTable = ({
               <th> </th>
               <th>Inventoried dams</th>
               <th>Reconned dams</th>
-              <th>Inventoried road-related barriers</th>
+              <th>Assessed road-related barriers</th>
               <th> </th>
               <th> </th>
             </tr>
@@ -164,8 +164,7 @@ const StateDownloadTable = ({
         <Paragraph variant="help">
           <b>{formatNumber(unrankedDams, 0)} inventoried dams</b> and{' '}
           <b>
-            {formatNumber(unrankedBarriers, 0)} inventoried road-related
-            barriers
+            {formatNumber(unrankedBarriers, 0)} assessed road-related barriers
           </b>{' '}
           were not analyzed because they could not be correctly located on the
           aquatic network or were otherwise excluded from the analysis. You can

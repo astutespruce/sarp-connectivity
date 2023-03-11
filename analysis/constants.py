@@ -232,6 +232,8 @@ KEEP_POTENTIAL_PROJECT = [
     "Indeterminate",
     "Potential Project",
     "Proposed Project",
+    # NOTE: only enable Minor Barrier for Darter scenario
+    # "Minor Barrier",
 ]
 
 UNRANKED_POTENTIAL_PROJECT = ["No Upstream Channel", "No Upstream Habitat"]
@@ -411,7 +413,7 @@ CROSSING_TYPE_TO_DOMAIN = {
     "": 0,
     "tide gate": 10,
     "tidegate": 10,
-    # only for uninventoried road crossings
+    # only for unassessed road crossings
     "assumed culvert": 9,
 }
 
@@ -487,18 +489,19 @@ POTENTIALPROJECT_TO_SEVERITY = {
     "insignificant barrier": 4,
     "minor barrier": 4,  # remove from processing except for darter scenario
     "moderate barrier": 2,
-    "no barrier": 6,  # removed from processing
-    "no crossing": 6,
-    "no upstream channel": 7,
-    "no upstream habitat": 7,
-    "buried stream": 6,
+    "no barrier": 7,  # removed from processing
+    "no crossing": 7,
+    "no upstream channel": 8,
+    "no upstream habitat": 8,
+    "buried stream": 7,
     "not scored": 0,
-    "no": 6,
+    "no": 7,
     "unassessed": 0,
     "completed project": 0,  # removed from processing
     "past project": 0,  # removed from processing
-    "potential project": 5,
-    "proposed project": 5,
+    # Potential / proposed project both get assigned as likely barrier if SARP_Score != -1
+    "potential project": 6,
+    "proposed project": 6,
     "severe barrier": 1,
     "significant barrier": 1,
     "small project": 0,
@@ -516,8 +519,9 @@ SEVERITY_TO_PASSABILITY = {
     3: 2,
     4: 2,
     5: 2,
-    6: 7,
-    7: 0,
+    6: 2,
+    7: 7,
+    8: 0,
 }
 
 
@@ -541,22 +545,35 @@ OWNERTYPE_TO_DOMAIN = {
     # Unknown types are not useful
     # "Unknown": 0,
     # "Designation": 0,
-    "US Fish and Wildlife Service": 1,
-    "USDA Forest Service": 2,
-    "Federal Land": 3,
-    "State Land": 4,
-    "Local Land": 5,
-    "Joint Ownership": 5,
-    "Regional Agency Special Distribution": 5,
-    "Native American Land": 6,
-    "Easement": 7,
-    "Private Conservation Land": 8,
+    "Bureau of Land Management": 1,
+    "Bureau of Reclamation": 2,
+    "Department of Defense": 3,
+    "National Park Service": 4,
+    "US Fish and Wildlife Service": 5,
+    "USDA Forest Service": 6,
+    "Federal Land": 7,
+    "State Land": 8,
+    "Local Land": 9,
+    "Joint Ownership": 9,
+    "Regional Agency Special Distribution": 9,
+    "Native American Land": 10,
+    "Easement": 11,
+    "Private Conservation Land": 12,
+    "NGO": 12,
 }
 
 
 # Map of owner type domain above to whether or not the land is
 # considered public
-OWNERTYPE_TO_PUBLIC_LAND = {1: True, 2: True, 3: True, 4: True, 5: True}
+OWNERTYPE_TO_PUBLIC_LAND = {
+    1: True,
+    2: True,
+    3: True,
+    4: True,
+    5: True,
+    6: True,
+    7: True,
+}
 
 
 # Map of NHD FCode to stream type

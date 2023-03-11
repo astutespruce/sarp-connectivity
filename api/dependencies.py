@@ -6,22 +6,49 @@ import pyarrow.compute as pc
 from api.constants import (
     DAM_FILTER_FIELD_MAP,
     SB_FILTER_FIELD_MAP,
+    COMBINED_FILTER_FIELD_MAP,
     RC_FILTER_FIELD_MAP,
     MULTIPLE_VALUE_FIELDS,
+    BarrierTypes,
     Layers,
 )
+from api.data import dams, small_barriers, combined_barriers, road_crossings
 
 
 class RecordExtractor:
-    """Base class for extracting records that are within summary unit ids
+    """Class for extracting records that are within summary unit ids
     in layer, and according to optional filters.
-
-    Must be subclassed to provide field_map in order to provide optional filters.
     """
 
     field_map = None  # must be set by deriving class to enable filters
 
-    def __init__(self, request: Request, id: str, layer: Layers = "State"):
+    def __init__(
+        self,
+        request: Request,
+        barrier_type: BarrierTypes,
+        id: str,
+        layer: Layers = "State",
+    ):
+        field_map = {}
+        self.dataset = None
+
+        match barrier_type:
+            case "dams":
+                field_map = DAM_FILTER_FIELD_MAP
+                self.dataset = dams
+
+            case "small_barriers":
+                field_map = SB_FILTER_FIELD_MAP
+                self.dataset = small_barriers
+
+            case "combined_barriers":
+                field_map = COMBINED_FILTER_FIELD_MAP
+                self.dataset = combined_barriers
+
+            case "road_crossings":
+                field_map = RC_FILTER_FIELD_MAP
+                self.dataset = road_crossings
+
         if layer == "County":
             layer = "COUNTYFIPS"
 
@@ -35,12 +62,12 @@ class RecordExtractor:
 
         # extract optional filters
         self.filters = dict()
-        if self.field_map:
-            filter_keys = {q for q in request.query_params if q in self.field_map}
+        if field_map:
+            filter_keys = {q for q in request.query_params if q in field_map}
 
             # convert all incoming filter keys to their uppercase field name
             for key in filter_keys:
-                field = self.field_map[key]
+                field = field_map[key]
                 if field in MULTIPLE_VALUE_FIELDS:
                     self.filters[field] = (
                         "in_string",
@@ -52,7 +79,7 @@ class RecordExtractor:
                         [int(x) for x in request.query_params.get(key).split(",")],
                     )
 
-    def extract(self, ds, columns=None, ranked=False):
+    def extract(self, columns=None, ranked=False):
         ix = pc.field(self.layer).isin(self.ids)
 
         if ranked:
@@ -73,16 +100,4 @@ class RecordExtractor:
                 # test that the field value is present in the set of incoming values
                 ix = ix & (pc.is_in(pc.field(key), pa.array(values)))
 
-        return ds.scanner(columns=columns, filter=ix).to_table()
-
-
-class DamsRecordExtractor(RecordExtractor):
-    field_map = DAM_FILTER_FIELD_MAP
-
-
-class BarriersRecordExtractor(RecordExtractor):
-    field_map = SB_FILTER_FIELD_MAP
-
-
-class RoadCrossingsRecordExtractor(RecordExtractor):
-    field_map = RC_FILTER_FIELD_MAP
+        return self.dataset.scanner(columns=columns, filter=ix).to_table()

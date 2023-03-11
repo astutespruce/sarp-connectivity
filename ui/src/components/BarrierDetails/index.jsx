@@ -35,7 +35,8 @@ const BarrierDetails = ({ barrier, onClose }) => {
     lat,
     lon,
     barrierType,
-    sarpidname,
+    networkType,
+    sarpidname = '|', // should never be empty, but breaks badly if it is
     ranked,
     CountyName,
     State,
@@ -51,6 +52,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
   const name = !isEmptyString(rawName)
     ? rawName
     : barrierNameWhenUnknown[barrierType] || 'Unknown name'
+
   let details = null
   let packedInfo = null
   switch (barrierType) {
@@ -104,7 +106,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     }
   }
 
-  console.log('barrer details:', barrier, 'packed info:', packedInfo)
+  console.log('barrier details:', barrier, 'packed info:', packedInfo)
 
   let scoreContent = null
   if (ranked) {
@@ -138,7 +140,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
       })
     }
 
-    scoreContent = <Scores scores={scores} barrierType={barrierType} />
+    scoreContent = <Scores scores={scores} networkType={networkType} />
   }
 
   return (
@@ -185,7 +187,11 @@ const BarrierDetails = ({ barrier, onClose }) => {
         {barrierType === 'dams' || barrierType === 'small_barriers' ? (
           <Box sx={{ lineHeight: 1, mt: '1.5rem' }}>
             <a
-              href={`/report/${barrierType}/${sarpid}`}
+              href={`/report/${
+                networkType === 'dams' || networkType === barrierType
+                  ? barrierType
+                  : 'combined_barriers'
+              }/${sarpid}`}
               target="_blank"
               rel="noreferrer"
               style={{ display: 'inline-block' }}

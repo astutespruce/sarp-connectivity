@@ -5,7 +5,15 @@ import { CaretDown } from '@emotion-icons/fa-solid'
 
 import Circle from './Circle'
 
-const Legend = ({ title, subtitle, patches, circles, lines, footnote }) => {
+const Legend = ({
+  title,
+  subtitle,
+  patches,
+  circles,
+  lines,
+  footnote,
+  maxWidth,
+}) => {
   const [isOpen, setIsOpen] = useState(false)
 
   const hasElements =
@@ -30,7 +38,7 @@ const Legend = ({ title, subtitle, patches, circles, lines, footnote }) => {
         zIndex: 10000,
         right: '10px',
         bottom: '24px',
-        maxWidth: '16rem',
+        maxWidth,
         py: '0.5em',
         px: '0.75em',
         bg: '#FFF',
@@ -81,8 +89,6 @@ const Legend = ({ title, subtitle, patches, circles, lines, footnote }) => {
                     '&:not(:first-of-type)': {
                       mt: '0.25rem',
                       pt: '0.25rem',
-                      // borderTop: '1px solid',
-                      // borderTopColor: 'grey.1',
                     },
                   }}
                 >
@@ -157,7 +163,7 @@ const Legend = ({ title, subtitle, patches, circles, lines, footnote }) => {
             <div>
               {circles.map((point) => (
                 <Flex
-                  key={point.color}
+                  key={point.label}
                   sx={{
                     alignItems: 'flex-start',
                     py: '0.25em',
@@ -167,7 +173,25 @@ const Legend = ({ title, subtitle, patches, circles, lines, footnote }) => {
                     },
                   }}
                 >
-                  <Circle {...point} />
+                  <Flex
+                    sx={{
+                      flex: '0 0 auto',
+                      alignItems: 'baseline',
+                      width: '12px',
+                      mr: '0.5rem',
+                    }}
+                  >
+                    {point.symbols ? (
+                      point.symbols.map((p, i) => (
+                        <Circle
+                          key={`${p.color}-${p.borderColor}-${i}`}
+                          {...p}
+                        />
+                      ))
+                    ) : (
+                      <Circle {...point} />
+                    )}
+                  </Flex>
                   <Text
                     sx={{
                       fontSize: '0.75rem',
@@ -276,11 +300,19 @@ Legend.propTypes = {
   subtitle: PropTypes.string,
   circles: PropTypes.arrayOf(
     PropTypes.shape({
-      color: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
+      color: PropTypes.string,
+      label: PropTypes.string,
       radius: PropTypes.number,
       borderWidth: PropTypes.number,
       borderColor: PropTypes.string,
+      symbols: PropTypes.arrayOf(
+        PropTypes.shape({
+          color: PropTypes.string.isRequired,
+          radius: PropTypes.number.isRequired,
+          borderWidth: PropTypes.number,
+          borderColor: PropTypes.string,
+        })
+      ),
     })
   ),
   patches: PropTypes.arrayOf(
@@ -305,6 +337,7 @@ Legend.propTypes = {
     })
   ),
   footnote: PropTypes.string,
+  maxWidth: PropTypes.string,
 }
 
 Legend.defaultProps = {
@@ -314,6 +347,7 @@ Legend.defaultProps = {
   patches: null,
   lines: null,
   footnote: null,
+  maxWidth: '16rem',
 }
 
 export default Legend

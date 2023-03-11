@@ -9,10 +9,10 @@ import { Preview } from 'components/ReportPreview'
 
 import { Layout, PageError, PageLoading } from 'components/Layout'
 
-const BarrierReport = ({ barrierType, sarpid }) => {
+const BarrierReport = ({ networkType, sarpid }) => {
   const { isLoading, error, data } = useQuery(
-    `${barrierType}:${sarpid}`,
-    async () => fetchBarrierDetails(barrierType, sarpid),
+    `${networkType}:${sarpid}`,
+    async () => fetchBarrierDetails(networkType, sarpid),
     {
       staleTime: 60 * 60 * 1000, // 60 minutes
       // staleTime: 1, // use then reload to force refresh of underlying data during dev
@@ -45,7 +45,7 @@ const BarrierReport = ({ barrierType, sarpid }) => {
 
   return (
     <Layout>
-      <Preview barrierType={barrierType} data={data} />
+      <Preview networkType={networkType} data={data} />
     </Layout>
   )
 }
@@ -54,7 +54,7 @@ BarrierReport.propTypes = {}
 
 // Since these come from the router, they may be undefined during prop validation
 BarrierReport.propTypes = {
-  barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
 }
 

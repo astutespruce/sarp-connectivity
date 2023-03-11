@@ -16,11 +16,7 @@ const tabs = [
 
 const tabIndex = groupBy(tabs, 'id')
 
-const Scores = ({ barrierType, scores }) => {
-  const barrierTypeLabel = barrierTypeLabels[barrierType]
-  const prioritizePath =
-    barrierType === 'dams' ? '/priority/dams' : '/priority/barriers'
-
+const Scores = ({ networkType, scores }) => {
   const hasCustomTiers = scores.custom && scores.custom.ncwc
   const hasStateTiers = scores.state && scores.state.ncwc
 
@@ -43,9 +39,10 @@ const Scores = ({ barrierType, scores }) => {
   if (!(hasStateTiers || hasCustomTiers)) {
     return (
       <Text sx={{ color: 'grey.8' }}>
-        State-level ranks are not available for {barrierTypeLabel}. Instead, you
-        can <Link to={prioritizePath}>prioritize {barrierTypeLabel}</Link> for a
-        specific area.
+        State-level ranks are not available for this network type because there
+        are not yet sufficient assessed road-related barriers at the state level
+        for all states. Instead, you can <Link to="/priority">prioritize</Link>{' '}
+        barriers to calculate ranks for a selected area.
       </Text>
     )
   }
@@ -58,7 +55,7 @@ const Scores = ({ barrierType, scores }) => {
 
       {tab !== null ? (
         <Text>
-          Compared to other {barrierTypeLabels[barrierType]} in the
+          Compared to other {barrierTypeLabels[networkType]} in the
           {availableTabs.length === 1
             ? ` ${tabIndex[tab].label.toLowerCase()}:`
             : null}
@@ -88,7 +85,7 @@ const Scores = ({ barrierType, scores }) => {
 }
 
 Scores.propTypes = {
-  barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   scores: PropTypes.shape({
     state: ScoresPropType,
     custom: ScoresPropType,

@@ -61,10 +61,10 @@ const flatzip = (a, b) => {
   return a.reduce((prev, v, i) => prev.concat([v, b[i]]), [])
 }
 
-export const interpolateExpr = (property, domain, range) => [
+export const interpolateExpr = (fieldExpr, domain, range) => [
   'interpolate',
   ['linear'],
-  ['get', property],
+  fieldExpr,
   ...flatzip(domain, range),
 ]
 

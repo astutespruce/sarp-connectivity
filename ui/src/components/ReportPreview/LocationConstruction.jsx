@@ -324,7 +324,7 @@ LocationConstruction.propTypes = {
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
-  nostructure: PropTypes.bool,
+  nostructure: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   waterbodykm2: PropTypes.number,

@@ -14,6 +14,7 @@ import SpeciesInfo from './SpeciesInfo'
 
 const WaterfallDetails = ({
   barrierType,
+  networkType,
   source,
   hasnetwork,
   excluded,
@@ -90,6 +91,7 @@ const WaterfallDetails = ({
       {hasnetwork ? (
         <NetworkInfo
           barrierType={barrierType}
+          networkType={networkType}
           totalupstreammiles={totalupstreammiles}
           perennialupstreammiles={perennialupstreammiles}
           alteredupstreammiles={alteredupstreammiles}
@@ -159,6 +161,7 @@ const WaterfallDetails = ({
 
 WaterfallDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   hasnetwork: PropTypes.number.isRequired,
   excluded: PropTypes.number,
   source: PropTypes.string,

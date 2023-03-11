@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState } from 'react'
 import { Box, Flex, Text, Spinner } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { useQueryClient } from 'react-query'
@@ -55,7 +55,6 @@ const Prioritize = () => {
     {
       step,
       selectedBarrier,
-      searchFeature,
       layer,
       summaryUnits,
       rankData,
@@ -69,7 +68,6 @@ const Prioritize = () => {
   ] = useState({
     step: 'select',
     selectedBarrier: null,
-    searchFeature: null,
     layer: null,
     summaryUnits: [],
     rankData: [],
@@ -85,7 +83,6 @@ const Prioritize = () => {
     setState(() => ({
       step: 'select',
       selectedBarrier: null,
-      searchFeature: null,
       layer: null,
       summaryUnits: [],
       rankData: [],
@@ -123,17 +120,9 @@ const Prioritize = () => {
     }))
   }
 
-  const handleSearch = useCallback((nextSearchFeature) => {
-    setState((prevState) => ({
-      ...prevState,
-      searchFeature: nextSearchFeature,
-    }))
-  }, [])
-
   const handleSetLayer = (nextLayer) => {
     setState((prevState) => ({
       ...prevState,
-      searchFeature: null,
       summaryUnits: [],
       layer: nextLayer,
     }))
@@ -161,11 +150,11 @@ const Prioritize = () => {
           .slice(0, index)
           .concat(prevSummaryUnits.slice(index + 1))
       }
+
       return {
         ...prevState,
         selectedBarrier: null,
         summaryUnits: nextSummaryUnits,
-        searchFeature: null,
       }
     })
   }
@@ -173,9 +162,20 @@ const Prioritize = () => {
   const loadBarrierInfo = async () => {
     setIsLoading(true)
 
-    const nonzeroSummaryUnits = summaryUnits.filter(
-      ({ [barrierType]: count }) => count > 0
-    )
+    console.log('summary units', summaryUnits)
+
+    // only select units with non-zero ranked barriers
+    let nonzeroSummaryUnits = []
+    if (barrierType === 'combined_barriers') {
+      nonzeroSummaryUnits = summaryUnits.filter(
+        ({ ranked_dams = 0, ranked_small_barriers = 0 }) =>
+          ranked_dams + ranked_small_barriers > 0
+      )
+    } else {
+      nonzeroSummaryUnits = summaryUnits.filter(
+        ({ [`ranked_${barrierType}`]: count }) => count > 0
+      )
+    }
 
     const {
       error,
@@ -323,7 +323,6 @@ const Prioritize = () => {
                 summaryUnits={summaryUnits}
                 onBack={handleUnitChooserBack}
                 selectUnit={handleSelectUnit}
-                setSearchFeature={handleSearch}
                 onSubmit={loadBarrierInfo}
                 onStartOver={handleStartOver}
               />
@@ -432,7 +431,6 @@ const Prioritize = () => {
           bounds={bounds}
           allowUnitSelect={step === 'select'}
           activeLayer={layer}
-          searchFeature={searchFeature}
           selectedBarrier={selectedBarrier}
           summaryUnits={summaryUnits}
           rankedBarriers={rankData}

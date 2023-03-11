@@ -41,7 +41,7 @@ import {
   regionLayers,
 } from './layers'
 
-const barrierTypes = ['dams', 'small_barriers']
+const barrierTypes = ['dams', 'small_barriers', 'combined_barriers']
 
 const SummaryMap = ({
   region,
@@ -59,24 +59,31 @@ const SummaryMap = ({
   const mapRef = useRef(null)
   const hoverFeatureRef = useRef(null)
   const selectedFeatureRef = useRef(null)
+  const networkTypeRef = useRef(barrierType)
 
   const [zoom, setZoom] = useState(0)
 
-  const selectFeatureByID = useCallback((id, layer) => {
-    const { current: map } = mapRef
+  const selectFeatureByID = useCallback(
+    (id, layer) => {
+      const { current: map } = mapRef
 
-    if (!map) return null
+      if (!map) return null
 
-    const [feature] = map.querySourceFeatures('summary', {
-      sourceLayer: layer,
-      filter: ['==', 'id', id],
-    })
+      const [feature] = map.querySourceFeatures('summary', {
+        sourceLayer: layer,
+        filter: ['==', 'id', id],
+      })
 
-    if (feature !== undefined) {
-      onSelectUnit({ ...feature.properties, layerId: layer })
-    }
-    return feature
-  }, []) // onSelectUnit intentionally omitted here
+      if (feature !== undefined) {
+        onSelectUnit({ ...feature.properties, layerId: layer })
+      }
+      return feature
+    },
+
+    // onSelectUnit intentionally omitted here
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+    []
+  )
 
   const handleCreateMap = useCallback(
     (map) => {
@@ -110,6 +117,11 @@ const SummaryMap = ({
           }
 
           // add fill layer
+          const fieldExpr =
+            barrierType === 'combined_barriers'
+              ? ['+', ['get', 'dams'], ['get', 'small_barriers']]
+              : ['get', barrierType]
+
           const fillID = `${id}-fill`
           map.addLayer({
             ...config,
@@ -123,10 +135,12 @@ const SummaryMap = ({
               'fill-opacity': fill.paint['fill-opacity'],
               'fill-color': [
                 'match',
-                ['get', barrierType],
+                fieldExpr,
                 0,
                 COLORS.empty,
-                interpolateExpr(barrierType, bins, colors),
+                // NOTE: using simpler get expr here because barrierType is
+                // dams at init time
+                interpolateExpr(fieldExpr, bins, colors),
               ],
             },
           })
@@ -278,17 +292,29 @@ const SummaryMap = ({
 
           tooltip
             .setLngLat(coordinates)
-            .setHTML(getBarrierTooltip(feature.source, feature.properties))
+            .setHTML(
+              getBarrierTooltip(
+                feature.source === 'combined_barriers'
+                  ? feature.properties.barriertype
+                  : feature.source,
+                feature.properties
+              )
+            )
             .addTo(map)
         })
         map.on('mouseleave', id, () => {
           // only unhighlight if not the same as currently selected feature
           const prevFeature = hoverFeatureRef.current
-          if (
-            prevFeature &&
-            !isEqual(prevFeature, selectedFeatureRef.current, ['id', 'layer'])
-          ) {
-            setBarrierHighlight(map, prevFeature, false)
+          const selectedFeature = selectedFeatureRef.current
+
+          if (prevFeature) {
+            if (
+              !selectedFeature ||
+              prevFeature.id !== selectedFeature.id ||
+              prevFeature.layer.id !== selectedFeature.layer.id
+            ) {
+              setBarrierHighlight(map, prevFeature, false)
+            }
           }
 
           hoverFeatureRef.current = null
@@ -342,10 +368,12 @@ const SummaryMap = ({
           // dam, barrier, waterfall
           onSelectBarrier({
             ...properties,
+            barrierType:
+              source === 'combined_barriers' ? properties.barriertype : source,
+            networkType: networkTypeRef.current,
             HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),
             HUC12Name: getSummaryUnitName('HUC12', properties.HUC12),
             CountyName: getSummaryUnitName('County', properties.County),
-            barrierType: source,
             lat,
             lon,
             ranked: sourceLayer.startsWith('ranked_'),
@@ -393,19 +421,25 @@ const SummaryMap = ({
   }, [system])
 
   useEffect(() => {
+    networkTypeRef.current = barrierType
+
     const { current: map } = mapRef
 
     if (!map) return
 
     // update renderer and filter on all layers
+    const fieldExpr =
+      barrierType === 'combined_barriers'
+        ? ['+', ['get', 'dams'], ['get', 'small_barriers']]
+        : ['get', barrierType]
     layers.forEach(({ id, bins: { [barrierType]: bins } }) => {
       const colors = COLORS.count[bins.length]
       map.setPaintProperty(`${id}-fill`, 'fill-color', [
         'match',
-        ['get', barrierType],
+        fieldExpr,
         0,
         COLORS.empty,
-        interpolateExpr(barrierType, bins, colors),
+        interpolateExpr(fieldExpr, bins, colors),
       ])
     })
 
@@ -423,12 +457,13 @@ const SummaryMap = ({
     map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
 
     const smallBarriersLayerVisibility =
-      barrierType === 'small_barriers' ? 'visible' : 'none'
+      barrierType !== 'dams' ? 'visible' : 'none'
 
+    // dams-secondary is only relevant for small barriers
     map.setLayoutProperty(
       'dams-secondary',
       'visibility',
-      smallBarriersLayerVisibility
+      barrierType === 'small_barriers' ? 'visible' : 'none'
     )
     map.setLayoutProperty(
       'road-crossings',
@@ -462,7 +497,11 @@ const SummaryMap = ({
       }
     }
 
-    highlightNetwork(map, barrierType, networkID)
+    highlightNetwork(
+      map,
+      barrierType === 'dams' ? 'dams' : 'small_barriers',
+      networkID
+    )
   }, [selectedBarrier, barrierType])
 
   useEffect(() => {
@@ -562,20 +601,26 @@ const SummaryMap = ({
 
     const circles = []
     if (map && map.getZoom() >= 12) {
-      const { included: primary, other } = pointLegends
+      const { included: primary, unrankedBarriers, other } = pointLegends
       circles.push({
-        ...primary,
-        label: `${barrierTypeLabel} analyzed for impacts to aquatic connectivity`,
+        ...primary.getSymbol(barrierType),
+        label: primary.getLabel(barrierTypeLabel),
       })
 
-      other.forEach(({ id, label, ...rest }) => {
+      unrankedBarriers.forEach(({ getSymbol, getLabel }) => {
+        circles.push({
+          ...getSymbol(barrierType),
+          label: getLabel(barrierTypeLabel),
+        })
+      })
+
+      other.forEach(({ id, getSymbol, getLabel }) => {
         if (id === 'dams-secondary' && barrierType !== 'small_barriers') {
           return
         }
-
         circles.push({
-          ...rest,
-          label: label(barrierTypeLabel),
+          ...getSymbol(barrierType),
+          label: getLabel(barrierTypeLabel),
         })
       })
     }
@@ -643,6 +688,7 @@ const SummaryMap = ({
         title={layerTitle}
         subtitle={`number of ${barrierTypeLabel}`}
         {...legendEntries}
+        maxWidth="12rem"
       />
     </>
   )
