@@ -1,5 +1,9 @@
+/* eslint-disable no-underscore-dangle */
+
 import { useState } from 'react'
 import Crossfilter2 from 'crossfilter2'
+
+import { sum } from 'util/data'
 import { isDebug } from 'util/dom'
 import { useIsEqualMemo } from 'util/hooks'
 import { countByDimension, getFilteredCount } from './util'
@@ -48,7 +52,11 @@ export const Crossfilter = (data, filterConfig) => {
 
   // create the initial state in the callback so that we only construct it once
   const [state, setState] = useState(() => {
-    const count = crossfilter.size()
+    // const count = crossfilter.size()
+
+    // aggregate counts per combination of fields to total
+    const count = sum(crossfilter.all().map((d) => d._count))
+
     const initialState = {
       // passed in data
       data,
@@ -86,8 +94,8 @@ export const Crossfilter = (data, filterConfig) => {
       // remove all previous records
       crossfilter.remove(() => true)
       crossfilter.add(newData)
-      const count = crossfilter.size()
 
+      const count = sum(crossfilter.all().map((d) => d._count))
       const dimensionCounts = countByDimension(dimensions)
 
       const newState = {

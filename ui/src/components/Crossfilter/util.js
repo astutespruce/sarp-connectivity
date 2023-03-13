@@ -1,3 +1,5 @@
+/* eslint-disable no-underscore-dangle */
+
 import { reduceToObject } from 'util/data'
 
 /**
@@ -7,7 +9,11 @@ import { reduceToObject } from 'util/data'
  * @param {Object} crossfilter - Crossfilter object
  */
 export const getFilteredCount = (crossfilter) =>
-  crossfilter.groupAll().reduceCount().value()
+  // aggregate all counts
+  crossfilter
+    .groupAll()
+    .reduceSum((d) => d._count)
+    .value()
 
 /**
  * Calculates the count by value for each dimension based on the current filters
@@ -21,6 +27,7 @@ export const countByDimension = (dimensions) =>
       ({
         field,
         total: group()
+          .reduceSum((d) => d._count)
           .all()
           .reduce(...reduceToObject('key', (d) => d.value)),
       })
