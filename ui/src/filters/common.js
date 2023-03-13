@@ -8,7 +8,7 @@ const getIntKeys = (obj) =>
  * @param {Object} obj
  */
 export const getEntries = (obj, filter = null) => {
-  let values = getIntKeys(obj).sort()
+  let values = getIntKeys(obj).sort((l, r) => (l < r ? -1 : 1))
 
   if (filter) {
     values = values.filter(filter)
