@@ -57,9 +57,7 @@ async def query(
     bounds = [xmin, ymin, xmax, ymax]
 
     # group by filter fields
-    counts = (
-        df.combine_chunks().group_by(DAM_FILTER_FIELDS).aggregate([("id", "count")])
-    )
+    counts = df.combine_chunks().group_by(filter_fields).aggregate([("id", "count")])
     schema = counts.schema
     # cast count to uint32
     fields = [
