@@ -794,7 +794,7 @@ export const INTERMITTENT = {
 export const PASSABILITY = {
   0: 'unknown',
   1: 'complete barrier',
-  2: 'partial passability - unspecified',
+  2: 'partial passability',
   3: 'partial passability - non salmonid',
   4: 'partial passability - salmonid',
   5: 'seasonbly passable - non salmonid',

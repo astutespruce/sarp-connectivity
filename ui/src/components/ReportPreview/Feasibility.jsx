@@ -4,28 +4,31 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Heading } from 'theme-ui'
 
-import { RECON } from 'config'
-import { capitalize } from 'util/format'
+import { RECON, FEASIBILITYCLASS } from 'config'
 
-const Feasibility = ({ recon, sx }) => (
+const Feasibility = ({ recon, feasibilityclass, sx }) => (
   <Box sx={sx}>
     <Heading as="h3">Feasibility & conservation benefit</Heading>
 
     <Box sx={{ mt: '0.5rem' }}>
-      {recon !== null
-        ? capitalize(RECON[recon])
-        : 'No feasibility information is available for this barrier.'}
+      <Box>Feasibility: {FEASIBILITYCLASS[feasibilityclass]}</Box>
+
+      {recon !== null && recon > 0 ? (
+        <Box sx={{ mt: '0.5rem' }}>Field recon notes: {RECON[recon]}</Box>
+      ) : null}
     </Box>
   </Box>
 )
 
 Feasibility.propTypes = {
   recon: PropTypes.number,
+  feasibilityclass: PropTypes.number,
   sx: PropTypes.object,
 }
 
 Feasibility.defaultProps = {
   recon: 0,
+  feasibilityclass: 0,
   sx: null,
 }
 

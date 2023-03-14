@@ -370,6 +370,7 @@ RECON_TO_FEASIBILITY = {
 # }
 
 # NOTE: values with 10 are NOT shown in filters in the UI; 0 is reserved for missing values
+# Domain is FeasibilityClass
 FEASIBILITY_TO_DOMAIN = {
     0: 1,  # not assessed
     1: 5,  # not feasible

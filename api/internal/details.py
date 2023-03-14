@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.get("/{barrier_type}/details/{sarp_id}")
-async def get_dam(request: Request, barrier_type: BarrierTypes, sarp_id: str):
+async def details(request: Request, barrier_type: BarrierTypes, sarp_id: str):
     log_request(request)
 
     match barrier_type:

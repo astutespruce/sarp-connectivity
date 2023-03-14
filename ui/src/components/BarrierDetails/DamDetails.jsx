@@ -11,6 +11,7 @@ import {
   CONSTRUCTION,
   PASSAGEFACILITY,
   PURPOSE,
+  FEASIBILITYCLASS,
   RECON,
   PASSABILITY,
 } from 'config'
@@ -62,6 +63,7 @@ const DamDetails = ({
   regionalsgcnspp,
   trout,
   salmonidesu,
+  feasibilityclass,
   recon,
   ownertype,
   barrierownertype,
@@ -294,11 +296,18 @@ const DamDetails = ({
       </Section>
 
       <Section title="Feasibility & conservation benefit">
-        {recon !== null && recon >= 0 ? (
-          <Entry>{RECON[recon]}</Entry>
-        ) : (
-          <Entry>No feasibility information is available for this dam.</Entry>
-        )}
+        <Entry>
+          <Field label="Feasibility" isUnknown={feasibilityclass <= 1}>
+            {FEASIBILITYCLASS[feasibilityclass]}
+          </Field>
+
+          {recon !== null && recon > 0 ? (
+            <>
+              <br />
+              <Field label="Field recon notes">{RECON[recon]}</Field>
+            </>
+          ) : null}
+        </Entry>
       </Section>
 
       <Section title="Other information">
@@ -339,6 +348,7 @@ DamDetails.propTypes = {
   regionalsgcnspp: PropTypes.number,
   trout: PropTypes.number,
   salmonidesu: PropTypes.string,
+  feasibilityclass: PropTypes.number,
   recon: PropTypes.number,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
@@ -396,6 +406,7 @@ DamDetails.defaultProps = {
   regionalsgcnspp: 0,
   trout: 0,
   salmonidesu: null,
+  feasibilityclass: 0,
   recon: null,
   ownertype: null,
   barrierownertype: null,

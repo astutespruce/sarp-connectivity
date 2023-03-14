@@ -4,27 +4,30 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Text, View } from '@react-pdf/renderer'
 
-import { RECON } from 'config'
-import { capitalize } from 'util/format'
+import { FEASIBILITYCLASS, RECON } from 'config'
 import { Section } from './elements'
 
-const Feasibility = ({ recon, ...props }) => (
+const Feasibility = ({ feasibilityclass, recon, ...props }) => (
   <Section title="Feasibility & conservation benefit" {...props} wrap={false}>
     <View>
-      {recon !== null ? (
-        <Text>{capitalize(RECON[recon])}.</Text>
-      ) : (
-        <Text>No feasibility information is available for this barrier.</Text>
-      )}
+      <Text>Feasibility: {FEASIBILITYCLASS[feasibilityclass]}</Text>
+
+      {recon !== null && recon > 0 ? (
+        <Text style={{ marginTop: '8pt' }}>
+          Field recon notes: {RECON[recon]}
+        </Text>
+      ) : null}
     </View>
   </Section>
 )
 
 Feasibility.propTypes = {
+  feasibilityclass: PropTypes.number,
   recon: PropTypes.number,
 }
 
 Feasibility.defaultProps = {
+  feasibilityclass: 0,
   recon: 0,
 }
 

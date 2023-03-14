@@ -271,8 +271,7 @@ DAM_CORE_FIELDS = (
         "FishScreen",
         "ScreenType",
         "Feasibility",
-        # IMPORTANT: Recon is intentionally omitted per direction from SARP
-        # "Recon",
+        "Recon",
         "Diversion",
         "LowheadDam",
         "NoStructure",
@@ -285,7 +284,13 @@ DAM_CORE_FIELDS = (
 DAM_CORE_FIELDS = unique(DAM_CORE_FIELDS)
 
 # Internal API includes tiers
-DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
+# IMPORTANT: Recon is intentionally omitted per direction from SARP
+
+DAM_EXPORT_FIELDS = [
+    c
+    for c in unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
+    if not c == "Recon"
+]
 DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
     + STATE_TIER_FIELDS
@@ -294,7 +299,7 @@ DAM_API_FIELDS = unique(
 )
 
 # Public API does not include tier or filter fields
-DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
+DAM_PUBLIC_EXPORT_FIELDS = [c for c in DAM_CORE_FIELDS if not c == "Recon"]
 
 
 # Drop fields that can be calculated on frontend or are not used
@@ -328,6 +333,7 @@ DAM_TILE_FIELDS = [
         "NoStructure",
         "Diversion",
         "Recon",  # excluded from API_FIELDS (important!)
+        "Feasibility",  # not used, only FeasibilityClass used in UI
         "PassageFacility",
         "TotalDownstreamSmallBarriers",
         "TotalDownstreamRoadCrossings",
@@ -448,7 +454,7 @@ COMBINED_API_FIELDS = [
 COMBINED_EXPORT_FIELDS = [
     c
     for c in unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS)
-    if not c in STATE_TIER_FIELDS
+    if not c in STATE_TIER_FIELDS + ["Recon"]
 ]
 
 
@@ -895,7 +901,7 @@ BARRIER_SEVERITY_DOMAIN = {
 PASSABILITY_DOMAIN = {
     0: "Unknown",
     1: "Complete barrier",
-    2: "Partial passability - unspecified",
+    2: "Partial passability",
     3: "Partial passability - non salmonid",
     4: "Partial passability - salmonid",
     5: "Seasonably passable - non salmonid",

@@ -43,6 +43,8 @@ const BarrierReport = ({ networkType, sarpid }) => {
     return <NotFound />
   }
 
+  console.log('data', data)
+
   return (
     <Layout>
       <Preview networkType={networkType} data={data} />

@@ -64,7 +64,7 @@ export const combinedBarriers = [
         title: 'Passability',
         sort: false,
         hideEmpty: true,
-        help: 'Note: passability information is only available for a small number of dams.  Not all data sources recorded this information.',
+        help: 'Note: passability information is only available for a small number of dams. Not all data sources recorded this information. Partial passability includes any dam or road related barrier where some passability was indicated using a barrier assessment protocol.',
         ...getEntries(PASSABILITY),
       },
       {

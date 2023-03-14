@@ -443,14 +443,9 @@ export const includedPoint = {
           ['match', ['get', 'barriertype'], 'small_barriers', 0.25, 0.5],
           2
         ),
-        4,
-        getHighlightExpr(
-          ['match', ['get', 'barriertype'], 'small_barriers', 0.5, 1],
-          4
-        ),
         5,
         getHighlightExpr(
-          ['match', ['get', 'barriertype'], 'small_barriers', 0.75, 1.25],
+          ['match', ['get', 'barriertype'], 'small_barriers', 1.5, 2],
           5
         ),
         14,
