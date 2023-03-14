@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from fastapi.requests import Request
+import pyarrow as pa
 import pyarrow.compute as pc
 
 from api.constants import (
@@ -20,7 +21,7 @@ router = APIRouter()
 
 
 @router.get("/{barrier_type}/query/{layer}")
-async def query_dams(
+async def query(
     request: Request,
     barrier_type: BarrierTypes,
     extractor: RecordExtractor = Depends(RecordExtractor),
@@ -35,27 +36,44 @@ async def query_dams(
     """
 
     log_request(request)
-    columns = ["id", "lon", "lat"]
+
+    filter_fields = None
     match barrier_type:
         case "dams":
-            columns += DAM_FILTER_FIELDS
+            filter_fields = DAM_FILTER_FIELDS
         case "small_barriers":
-            columns += SB_FILTER_FIELDS
+            filter_fields = SB_FILTER_FIELDS
         case "combined_barriers":
-            columns += ["BarrierType"] + COMBINED_FILTER_FIELDS
+            filter_fields = COMBINED_FILTER_FIELDS
 
         case _:
             raise NotImplementedError("query is not supported for road crossings")
 
-    df = extractor.extract(columns=columns, ranked=True)
+    df = extractor.extract(columns=["id", "lon", "lat"] + filter_fields, ranked=True)
 
     # extract extent
     xmin, xmax = pc.min_max(df["lon"]).as_py().values()
     ymin, ymax = pc.min_max(df["lat"]).as_py().values()
     bounds = [xmin, ymin, xmax, ymax]
 
-    df = df.select(["id"] + columns)
+    # group by filter fields
+    counts = (
+        df.combine_chunks().group_by(DAM_FILTER_FIELDS).aggregate([("id", "count")])
+    )
+    schema = counts.schema
+    # cast count to uint32
+    fields = [
+        pa.field("id_count", "uint32") if c == "id_count" else schema.field(c)
+        for c in schema.names
+    ]
+    counts = counts.cast(pa.schema(fields))
 
-    log.info(f"query selected {len(df):,} {barrier_type.replace('_', ' ')}")
+    counts = counts.rename_columns(
+        ["_count" if c == "id_count" else c for c in counts.column_names]
+    )
 
-    return feather_response(df, bounds)
+    log.info(
+        f"query selected {len(df):,} {barrier_type.replace('_', ' ')} ({len(counts):,} unique combinations of fields)"
+    )
+
+    return feather_response(counts, bounds)

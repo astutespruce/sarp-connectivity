@@ -1,5 +1,12 @@
 import { dequal } from 'dequal'
+
 import { toCamelCase } from 'util/format'
+
+/**
+ * Calculate the sum of an array of numbers
+ * @param {Array} values - array of numbers
+ */
+export const sum = (values) => values.reduce((prev, value) => prev + value, 0)
 
 export const groupBy = (records, groupField) =>
   records.reduce(
