@@ -2,12 +2,14 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { TimesCircle } from '@emotion-icons/fa-solid'
 import { Box, Flex, Heading, Text } from 'theme-ui'
+import { op } from 'arquero'
 
 import { useBarrierType } from 'components/Data'
 import { FilterGroup } from 'components/Filters'
 import { useCrossfilter } from 'components/Crossfilter'
 import { ExpandableParagraph } from 'components/Text'
 import { barrierTypeLabels } from 'config'
+import { reduceToObject } from 'util/data'
 import { formatNumber, pluralize } from 'util/format'
 
 import BackLink from './BackLink'
@@ -49,22 +51,19 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
       break
     }
     case 'combined_barriers': {
-      let dams = 0
-      let smallBarriers = 0
-      data.forEach(({ barriertype: recordBarrierType }) => {
-        if (recordBarrierType === 'dams') {
-          dams += 1
-        } else {
-          smallBarriers += 1
-        }
-      })
+      const { dams = 0, small_barriers = 0 } = data
+        .groupby('barriertype')
+        .rollup({ _count: (d) => op.sum(d._count) })
+        .derive({ row: op.row_object() })
+        .array('row')
+        .reduce(...reduceToObject('barriertype', (d) => d._count))
 
-      countMessage = `${formatNumber(dams)} ${pluralize(
+      countMessage = `${formatNumber(dams || 0)} ${pluralize(
         'dam',
         dams
-      )} and ${formatNumber(smallBarriers)} road-related ${pluralize(
+      )} and ${formatNumber(small_barriers)} road-related ${pluralize(
         'barrier',
-        smallBarriers
+        small_barriers
       )}`
       break
     }

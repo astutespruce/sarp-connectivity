@@ -1,14 +1,12 @@
-/* eslint-disable no-underscore-dangle */
-
 import { useState, useRef } from 'react'
 import { op } from 'arquero'
 
-window.op = op
-
 import { reduceToObject, sum } from 'util/data'
 import { isDebug } from 'util/dom'
-import { columnsToObject, getDimensionCount, countByDimension } from './util'
+import { getDimensionCount, countByDimension } from './util'
 
+// FIXME:
+window.reduceToObject = reduceToObject
 // returns true if passed in values contains the value
 // values must be a Set
 export const hasValue = (filterValues) => (value) => filterValues.has(value)
@@ -37,23 +35,14 @@ const createDimensions = (filterConfig) => {
     window.dimensions = dimensions
   }
 
+  // FIXME: remove
+  console.log('filterConfig', filterConfig, dimensions)
+
   return dimensions
 }
 
 export const Crossfilter = (filterConfig) => {
-  // const dataRef = useRef(null)
-  // const filteredDataRef = useRef(null)
   const dimensionsRef = useRef(createDimensions(filterConfig))
-
-  // Memoize dimensions, so they only get created once
-
-  // FIXME: remove
-  console.log('filterConfig', filterConfig, dimensionsRef.current)
-
-  // const getFilteredCount = () =>
-  // filteredDataRef.current
-  //   .rollup({ _count: (d) => op.sum(d._count) })
-  //   .column('_count').data[0]
 
   const [state, setState] = useState(() => ({
     data: null,
@@ -75,9 +64,6 @@ export const Crossfilter = (filterConfig) => {
     }
 
     const { current: dimensions } = dimensionsRef
-
-    // dataRef.current = newData
-    // filteredDataRef.current = newData
 
     let dimensionCounts = null
     const emptyDimensions = new Set()
@@ -115,9 +101,12 @@ export const Crossfilter = (filterConfig) => {
 
         // change on update to filters:
         filteredData: newData,
-        filteredCount: newData
-          .rollup({ _count: (d) => op.sum(d._count) })
-          .column('_count').data[0],
+        filteredCount:
+          newData !== null
+            ? newData
+                .rollup({ _count: (d) => op.sum(d._count) })
+                .column('_count').data[0]
+            : 0,
         filters: {},
         hasFilters: false,
         dimensionCounts,
@@ -152,9 +141,6 @@ export const Crossfilter = (filterConfig) => {
       // FIXME: remove
       const start = Date.now()
 
-      // const { current: data } = dataRef
-      // const { current: dimensions } = dimensionsRef
-
       const {
         data,
         filters: { [filterField]: prevFilter, ...prevFilters },
@@ -168,8 +154,7 @@ export const Crossfilter = (filterConfig) => {
         filters[filterField] = filterValue
       }
 
-      // reset filtered data
-      // let filteredData = dataRef.current
+      // reset filtered data to full data
       let filteredData = data
 
       const activeFilters = Object.entries(filters).filter(

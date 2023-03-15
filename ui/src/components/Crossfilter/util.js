@@ -1,24 +1,6 @@
-/* eslint-disable no-underscore-dangle */
-
 import { op } from 'arquero'
 
 import { reduceToObject } from 'util/data'
-
-/**
- * Return an arquero table as an object of {<key>: <value>, ...}
- * @param {Object} table - arquero table
- * @param {String} keyCol - name of key column
- * @param {String} valueCol - name of value column
- * @returns Object
- */
-export const columnsToObject = (table, keyCol, valueCol) =>
-  table
-    .array(valueCol)
-    .reduce(
-      (prev, value, i) =>
-        Object.assign(prev, { [table.get(keyCol, i)]: value }),
-      {}
-    )
 
 /**
  * Calculate the count for each value present in values for dimension;
@@ -30,14 +12,27 @@ export const getDimensionCount = (table, dimension) => {
   // FIXME: this is not working for multi-value fields
   let grouped = table.groupby(field).rollup({ _count: (d) => op.sum(d._count) })
 
-  // drop any values in data not in values list
-  if (!isArray && values.length < grouped.numRows()) {
+  if (isArray) {
+    // split by commas into separate rows, then regroup
     grouped = grouped
-      .params({ field, values })
-      .filter((d, $) => op.includes($.values, d[$.field]))
+      .params({ field })
+      .derive({ [field]: (d, $) => op.split(d[$.field], ',') })
+      .unroll(field)
+      .groupby(field)
+      .rollup({ _count: (d) => op.sum(d._count) })
   }
 
-  return columnsToObject(grouped, field, '_count')
+  // TODO: drop any values in data not in values list
+  // if (!isArray && values.length < grouped.numRows()) {
+  // grouped = grouped
+  //   .params({ field, values })
+  //   .filter((d, $) => op.includes($.values, d[$.field]))
+  // }
+
+  return grouped
+    .derive({ row: op.row_object() })
+    .array('row')
+    .reduce(...reduceToObject(field, (d) => d._count))
 }
 
 /**
