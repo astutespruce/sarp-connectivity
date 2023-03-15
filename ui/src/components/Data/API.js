@@ -1,4 +1,5 @@
 import { tableFromIPC } from '@apache-arrow/es2015-esm'
+import { fromArrow } from 'arquero'
 
 import { unpackBits } from 'util/data'
 import { captureException } from 'util/log'
@@ -52,8 +53,12 @@ const fetchFeather = async (url, options) => {
 
     const data = await tableFromIPC(response.arrayBuffer())
 
+    // FIXME: remove
+    window.data = fromArrow(data)
+
     return {
-      data: data.toArray().map((row) => row.toJSON()),
+      // data: data.toArray().map((row) => row.toJSON()),
+      data: fromArrow(data),
       bounds: data.schema.metadata.get('bounds'),
     }
   } catch (err) {

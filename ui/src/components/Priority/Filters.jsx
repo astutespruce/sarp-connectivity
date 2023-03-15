@@ -17,9 +17,11 @@ import StartOverButton from './StartOverButton'
 const Filters = ({ onBack, onSubmit, onStartOver }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
-  const { state, filterConfig, resetFilters } = useCrossfilter()
-
-  const { data, filteredCount, hasFilters, emptyGroups } = state
+  const {
+    state: { filteredData: data, filteredCount, hasFilters, emptyGroups },
+    filterConfig,
+    resetFilters,
+  } = useCrossfilter()
 
   const handleBack = () => {
     resetFilters()
@@ -91,21 +93,16 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
       >
         <BackLink label="modify area of interest" onClick={handleBack} />
 
-        <Heading as="h3" sx={{ fontSize: '1.5rem' }}>
-          Filter {barrierTypeLabel}
-        </Heading>
-
-        <Flex
-          sx={{
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            mt: '0.5rem',
-          }}
-        >
+        <Flex sx={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <Heading as="h3" sx={{ fontSize: '1.5rem', flex: '0 0 auto' }}>
+            Filter {barrierTypeLabel}
+          </Heading>
           {hasFilters && (
             <Flex
               onClick={handleReset}
               sx={{
+                flex: '1 1 auto',
+                justifyContent: 'flex-end',
                 alignItems: 'center',
                 color: 'highlight',
                 cursor: 'pointer',

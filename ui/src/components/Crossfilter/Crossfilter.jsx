@@ -1,120 +1,129 @@
 /* eslint-disable no-underscore-dangle */
 
-import { useState } from 'react'
-import Crossfilter2 from 'crossfilter2'
+import { useState, useRef } from 'react'
+import { op } from 'arquero'
 
-import { sum } from 'util/data'
+window.op = op
+
+import { reduceToObject, sum } from 'util/data'
 import { isDebug } from 'util/dom'
-import { useIsEqualMemo } from 'util/hooks'
-import { countByDimension, getFilteredCount } from './util'
+import { columnsToObject, getDimensionCount, countByDimension } from './util'
 
 // returns true if passed in values contains the value
 // values must be a Set
 export const hasValue = (filterValues) => (value) => filterValues.has(value)
 
-/**
- * Initialize crossfilter from the data and filters
- * @param {Array} data - records to index
- * @param {Array} filters - array of field configuration
- */
-const initCrossfilter = (data, filterConfig) => {
-  const crossfilter = Crossfilter2(data)
-
+const createDimensions = (filterConfig) => {
   const dimensions = {}
   filterConfig.forEach(({ filters }) => {
     filters.forEach((filter) => {
-      const { field, isArray, getValue } = filter
-      // default `getValue` function is identify function for field
-      const dimensionFunction = getValue || ((record) => record[field])
+      const {
+        field,
+        // isArray, // TODO: handle isArray (can we update the field values to a set?)
+        getValue,
+      } = filter
 
-      const dimension = crossfilter.dimension(dimensionFunction, !!isArray)
-      dimension.config = filter
-      dimensions[field] = dimension
+      dimensions[field] = {
+        ...filter,
+        // default `getValue` function is identify function for field
+
+        // FIXME: deprecated; only do this for isArray types
+        // getValue: getValue || ((record) => record[field]),
+      }
     })
   })
 
   if (isDebug) {
-    window.crossfilter = crossfilter
     window.dimensions = dimensions
   }
-  return {
-    crossfilter,
-    dimensions,
-  }
+
+  return dimensions
 }
 
-export const Crossfilter = (data, filterConfig) => {
-  // Memoize construction of crossfilter and dimensions, so they only get created once
-  const { crossfilter, dimensions } = useIsEqualMemo(
-    () => initCrossfilter(data, filterConfig),
-    [data]
-  )
+export const Crossfilter = (filterConfig) => {
+  // const dataRef = useRef(null)
+  // const filteredDataRef = useRef(null)
+  const dimensionsRef = useRef(createDimensions(filterConfig))
 
-  // create the initial state in the callback so that we only construct it once
-  const [state, setState] = useState(() => {
-    // const count = crossfilter.size()
+  // Memoize dimensions, so they only get created once
 
-    // aggregate counts per combination of fields to total
-    const count = sum(crossfilter.all().map((d) => d._count))
+  // FIXME: remove
+  console.log('filterConfig', filterConfig, dimensionsRef.current)
 
-    const initialState = {
-      // passed in data
-      data,
+  // const getFilteredCount = () =>
+  // filteredDataRef.current
+  //   .rollup({ _count: (d) => op.sum(d._count) })
+  //   .column('_count').data[0]
 
-      // derived data
-      count,
-      filteredCount: count,
-      filters: {},
-      hasFilters: false,
-      dimensionCounts: countByDimension(dimensions),
-    }
+  const [state, setState] = useState(() => ({
+    data: null,
+    totalDimensionCounts: null,
 
-    if (isDebug) {
-      console.log('Initial state', initialState)
-    }
-
-    return initialState
-  })
+    filteredData: null,
+    filteredCount: 0,
+    filters: {},
+    hasFilters: false,
+    dimensionCounts: null,
+    filteredDimensionCounts: null,
+    emptyDimensions: new Set(),
+    emptyGroups: new Set(),
+  }))
 
   const setData = (newData) => {
     if (isDebug) {
-      console.log('setData')
+      console.log('setData', newData)
+    }
+
+    const { current: dimensions } = dimensionsRef
+
+    // dataRef.current = newData
+    // filteredDataRef.current = newData
+
+    let dimensionCounts = null
+    const emptyDimensions = new Set()
+    const emptyGroups = new Set()
+
+    if (newData !== null) {
+      //   validate that expected fields are present
+      const cols = new Set(newData.columnNames())
+      Object.keys(dimensions).forEach((field) => {
+        if (!cols.has(field)) {
+          throw new Error(`Field is not present in data: ${field}`)
+        }
+      })
+
+      dimensionCounts = countByDimension(newData, dimensions)
+
+      filterConfig
+        .filter(({ hasData }) => hasData && !hasData(newData))
+        .forEach(({ id }) => {
+          emptyGroups.add(id)
+        })
+
+      Object.entries(dimensionCounts).forEach(([field, counts]) => {
+        if (!(counts && sum(Object.values(counts)) > 0)) {
+          emptyDimensions.add(field)
+        }
+      })
     }
 
     setState(() => {
-      // validate that expected fields are present
-      if (newData.length > 0) {
-        Object.keys(dimensions).forEach((field) => {
-          if (newData[0][field] === undefined) {
-            throw new Error(`Field is not present in data: ${field}`)
-          }
-        })
-      }
-
-      // remove all previous records
-      crossfilter.remove(() => true)
-      crossfilter.add(newData)
-
-      const count = sum(crossfilter.all().map((d) => d._count))
-      const dimensionCounts = countByDimension(dimensions)
-
       const newState = {
+        // only change on update of data:
         data: newData,
-        count,
-        filteredCount: count,
+        totalDimensionCounts: dimensionCounts,
+
+        // change on update to filters:
+        filteredData: newData,
+        filteredCount: newData
+          .rollup({ _count: (d) => op.sum(d._count) })
+          .column('_count').data[0],
         filters: {},
         hasFilters: false,
         dimensionCounts,
-        emptyDimensions: new Set(
-          Object.keys(dimensionCounts).filter(
-            (id) => Object.keys(dimensionCounts[id]).length <= 1
-          )
-        ),
-        emptyGroups: new Set(
-          filterConfig
-            .filter(({ hasData }) => hasData && !hasData(newData))
-            .map(({ id }) => id)
-        ),
+
+        emptyDimensions,
+        emptyGroups,
       }
 
       if (isDebug) {
@@ -125,60 +134,122 @@ export const Crossfilter = (data, filterConfig) => {
     })
   }
 
-  const setFilter = (field, filterValue) => {
-    if (!dimensions[field]) {
+  const setFilter = (filterField, filterValue) => {
+    const { current: dimensions } = dimensionsRef
+
+    if (!dimensions[filterField]) {
       console.warn(
-        `Filter requested on dimension that does not exist: ${field}`
+        `Filter requested on dimension that does not exist: ${filterField}`
       )
     }
 
     setState((prevState) => {
       if (isDebug) {
-        console.log('setFilter', field, filterValue)
+        console.log('setFilter', filterField, filterValue)
         console.log('Prev state', prevState)
       }
 
-      const dimension = dimensions[field]
-      if (!filterValue || filterValue.size === 0) {
-        // there are no filter values, so clear filter on this field
-        dimension.filterAll()
-      } else {
-        // default to hasValue if filterFunc is not provided in config
-        const {
-          config: { filterFunc = hasValue },
-        } = dimension
-        dimension.filterFunction(filterFunc(filterValue))
-      }
+      // FIXME: remove
+      const start = Date.now()
 
-      const { filters: prevFilters } = prevState
+      // const { current: data } = dataRef
+      // const { current: dimensions } = dimensionsRef
+
+      const {
+        data,
+        filters: { [filterField]: prevFilter, ...prevFilters },
+      } = prevState
 
       // Create new instance, don't mutate
-      const newFilters = {
-        ...prevFilters,
-        [field]: filterValue,
+      const filters = { ...prevFilters }
+
+      // only set if non-empty
+      if (filterValue && filterValue.size) {
+        filters[filterField] = filterValue
       }
 
-      const hasFilters =
-        Object.values(newFilters).filter((filter) => filter && filter.size > 0)
-          .length > 0
+      // reset filtered data
+      // let filteredData = dataRef.current
+      let filteredData = data
+
+      const activeFilters = Object.entries(filters).filter(
+        ([_, filter]) => filter && filter.size > 0
+      )
+      console.log('activeFilters', activeFilters)
+
+      activeFilters.forEach(([field, filter]) => {
+        // skip current field, that is filtered last
+        if (field === filterField) {
+          return
+        }
+
+        const { isArray } = dimensions[field]
+        if (isArray) {
+          // TODO: handle isArray filters
+          console.log('TODO:', field, filter)
+        } else {
+          filteredData = filteredData
+            .params({ field, values: [...filter] })
+            .filter((d, $) => op.includes($.values, d[$.field]))
+
+          console.log('applied filter', field, '=>', filteredData)
+        }
+      })
+
+      window.filteredData = filteredData
+
+      // calculate count of current field based on all other filters,
+      // then apply filter to last field
+      const currentDimensionCount = getDimensionCount(
+        filteredData,
+        dimensions[filterField]
+      )
+
+      if (filterValue && filterValue.size > 0) {
+        // TODO: apply current filter last
+        console.log('apply current filter', filterField, filterValue)
+        const { isArray } = dimensions[filterField]
+        if (isArray) {
+          // TODO: handle isArray filters
+          console.log('TODO:', filterField, filterValue)
+        } else {
+          filteredData = filteredData
+            .params({ field: filterField, values: [...filterValue] })
+            .filter((d, $) => op.includes($.values, d[$.field]))
+
+          console.log('applied filter', filterField, '=>', filteredData)
+        }
+      }
+
+      const dimensionCounts = countByDimension(filteredData, dimensions)
+      dimensionCounts[filterField] = currentDimensionCount
+
+      // filteredDataRef.current = filteredData
 
       const newState = {
         ...prevState,
-        data: crossfilter.allFiltered(),
-        filters: newFilters,
-        hasFilters,
-        dimensionCounts: countByDimension(dimensions),
-        filteredCount: getFilteredCount(crossfilter),
+        filteredData,
+        filteredCount: filteredData
+          .rollup({ _count: (d) => op.sum(d._count) })
+          .column('_count').data[0],
+        filters,
+        hasFilters: activeFilters.length > 0,
+        dimensionCounts,
       }
 
       if (isDebug) {
         console.log('Next state', newState)
+
+        // FIXME: remove
+        const end = Date.now()
+        console.log(`Execution time: ${end - start} ms`)
       }
 
       return newState
     })
   }
 
+  // TODO:
   const resetGroupFilters = (groupId) => {
     setState((prevState) => {
       if (isDebug) {
@@ -186,6 +257,7 @@ export const Crossfilter = (data, filterConfig) => {
         console.log('Prev state', prevState)
       }
 
+      const { current: dimensions } = dimensionsRef
       const { filters: prevFilters } = prevState
 
       // Create new instance, don't mutate
@@ -206,14 +278,12 @@ export const Crossfilter = (data, filterConfig) => {
         Object.values(newFilters).filter((filter) => filter && filter.size > 0)
           .length > 0
 
+      const filteredData = prevState.data // FIXME:
+
       const newState = {
         ...prevState,
-        data: crossfilter.allFiltered(),
-        // remove all filter entries for these fields
         filters: newFilters,
         hasFilters,
-        dimensionCounts: countByDimension(dimensions),
-        filteredCount: getFilteredCount(crossfilter),
       }
 
       if (isDebug) {
@@ -231,21 +301,18 @@ export const Crossfilter = (data, filterConfig) => {
         console.log('Prev state', prevState)
       }
 
-      const { filters: prevFilters } = prevState
-
-      // reset the filters on the dimenions
-      Object.keys(prevFilters).forEach((field) => {
-        dimensions[field].filterAll()
-      })
+      const { current: dimensions } = dimensionsRef
+      const { data } = prevState
 
       const newState = {
         ...prevState,
-        data: crossfilter.allFiltered(),
-        // remove all filter entries for these fields
+        filteredData: data,
+        filteredCount: data
+          .rollup({ _count: (d) => op.sum(d._count) })
+          .column('_count').data[0],
         filters: {},
         hasFilters: false,
-        dimensionCounts: countByDimension(dimensions),
-        filteredCount: getFilteredCount(crossfilter),
+        dimensionCounts: countByDimension(data, dimensions),
       }
 
       if (isDebug) {

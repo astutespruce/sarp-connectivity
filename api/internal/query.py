@@ -44,7 +44,9 @@ async def query(
         case "small_barriers":
             filter_fields = SB_FILTER_FIELDS
         case "combined_barriers":
-            filter_fields = COMBINED_FILTER_FIELDS
+            # NOTE: BarrierType is used for counting barriers by type after
+            # applying filters
+            filter_fields = ["BarrierType"] + COMBINED_FILTER_FIELDS
 
         case _:
             raise NotImplementedError("query is not supported for road crossings")

@@ -23,6 +23,7 @@
     "@theme-ui/color": "^0.15.4",
     "@theme-ui/components": "^0.15.4",
     "@theme-ui/mdx": "^0.15.4",
+    "arquero": "^5.1.0",
     "assert": "^2.0.0",
     "babel-preset-gatsby": "^3.2.0",
     "browserify-zlib": "^0.2.0",
