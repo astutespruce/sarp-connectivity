@@ -1,48 +1,16 @@
 import { useState, useRef } from 'react'
 import { op } from 'arquero'
 
-import { reduceToObject, sum } from 'util/data'
+import { sum } from 'util/data'
 import { isDebug } from 'util/dom'
-import { getDimensionCount, countByDimension } from './util'
-
-// FIXME:
-window.reduceToObject = reduceToObject
-// returns true if passed in values contains the value
-// values must be a Set
-export const hasValue = (filterValues) => (value) => filterValues.has(value)
-
-const createDimensions = (filterConfig) => {
-  const dimensions = {}
-  filterConfig.forEach(({ filters }) => {
-    filters.forEach((filter) => {
-      const {
-        field,
-        // isArray, // TODO: handle isArray (can we update the field values to a set?)
-        getValue,
-      } = filter
-
-      dimensions[field] = {
-        ...filter,
-        // default `getValue` function is identify function for field
-
-        // FIXME: deprecated; only do this for isArray types
-        // getValue: getValue || ((record) => record[field]),
-      }
-    })
-  })
-
-  if (isDebug) {
-    window.dimensions = dimensions
-  }
-
-  // FIXME: remove
-  console.log('filterConfig', filterConfig, dimensions)
-
-  return dimensions
-}
+import { createDimensions, getDimensionCount, countByDimension } from './util'
 
 export const Crossfilter = (filterConfig) => {
   const dimensionsRef = useRef(createDimensions(filterConfig))
+
+  if (isDebug) {
+    window.dimensions = dimensionsRef.current
+  }
 
   const [state, setState] = useState(() => ({
     data: null,
@@ -58,7 +26,9 @@ export const Crossfilter = (filterConfig) => {
     emptyGroups: new Set(),
   }))
 
-  const setData = (newData) => {
+  const setData = (rawData) => {
+    let newData = rawData
+
     if (isDebug) {
       console.log('setData', newData)
     }
@@ -70,11 +40,16 @@ export const Crossfilter = (filterConfig) => {
     const emptyGroups = new Set()
 
     if (newData !== null) {
-      //   validate that expected fields are present
+      // validate that expected fields are present and split array fields
       const cols = new Set(newData.columnNames())
-      Object.keys(dimensions).forEach((field) => {
+      Object.values(dimensions).forEach(({ field, isArray }) => {
         if (!cols.has(field)) {
           throw new Error(`Field is not present in data: ${field}`)
+        }
+        if (isArray) {
+          newData = newData
+            .params({ field })
+            .derive({ [field]: (d, $) => op.split(d[$.field], ',') })
         }
       })
 
@@ -92,6 +67,9 @@ export const Crossfilter = (filterConfig) => {
         }
       })
     }
+
+    // FIXME:
+    window.data = newData
 
     setState(() => {
       const newState = {
@@ -168,20 +146,8 @@ export const Crossfilter = (filterConfig) => {
           return
         }
 
-        const { isArray } = dimensions[field]
-        if (isArray) {
-          // TODO: handle isArray filters
-          console.log('TODO:', field, filter)
-        } else {
-          filteredData = filteredData
-            .params({ field, values: [...filter] })
-            .filter((d, $) => op.includes($.values, d[$.field]))
-
-          console.log('applied filter', field, '=>', filteredData)
-        }
+        filteredData = applyFilter(filteredData, dimensions[field], filter)
       })
-
-      window.filteredData = filteredData
 
       // calculate count of current field based on all other filters,
       // then apply filter to last field
@@ -193,23 +159,19 @@ export const Crossfilter = (filterConfig) => {
       if (filterValue && filterValue.size > 0) {
         // TODO: apply current filter last
         console.log('apply current filter', filterField, filterValue)
-        const { isArray } = dimensions[filterField]
-        if (isArray) {
-          // TODO: handle isArray filters
-          console.log('TODO:', filterField, filterValue)
-        } else {
-          filteredData = filteredData
-            .params({ field: filterField, values: [...filterValue] })
-            .filter((d, $) => op.includes($.values, d[$.field]))
 
-          console.log('applied filter', filterField, '=>', filteredData)
-        }
+        filteredData = applyFilter(
+          filteredData,
+          dimensions[filterField],
+          filterValue
+        )
       }
+
+      // FIXME:
+      window.filteredData = filteredData
 
       const dimensionCounts = countByDimension(filteredData, dimensions)
       dimensionCounts[filterField] = currentDimensionCount
-
-      // filteredDataRef.current = filteredData
 
       const newState = {
         ...prevState,

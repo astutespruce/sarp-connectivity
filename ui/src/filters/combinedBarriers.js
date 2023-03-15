@@ -50,8 +50,6 @@ export const combinedBarriers = [
         isArray: true,
         labels: Object.values(DISADVANTAGED_COMMUNITY),
         values: Object.keys(DISADVANTAGED_COMMUNITY),
-        getValue: ({ disadvantagedcommunity }) =>
-          disadvantagedcommunity.split(','),
       },
     ],
   },
@@ -285,7 +283,6 @@ export const combinedBarriers = [
         isArray: true,
         labels: Object.values(SALMONID_ESU),
         values: Object.keys(SALMONID_ESU),
-        getValue: ({ salmonidesu }) => salmonidesu.split(','),
       },
     ],
   },

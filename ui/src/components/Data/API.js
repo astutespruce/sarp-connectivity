@@ -53,11 +53,7 @@ const fetchFeather = async (url, options) => {
 
     const data = await tableFromIPC(response.arrayBuffer())
 
-    // FIXME: remove
-    window.data = fromArrow(data)
-
     return {
-      // data: data.toArray().map((row) => row.toJSON()),
       data: fromArrow(data),
       bounds: data.schema.metadata.get('bounds'),
     }
