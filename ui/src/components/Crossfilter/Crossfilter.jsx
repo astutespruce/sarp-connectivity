@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { op, agg } from 'arquero'
+import { op, agg, escape } from 'arquero'
 
 import { sum, reduceToObject } from 'util/data'
 import { isDebug } from 'util/dom'
@@ -47,8 +47,12 @@ export const Crossfilter = (filterConfig) => {
         }
         if (isArray) {
           newData = newData
-            .params({ field })
-            .derive({ [field]: (d, $) => op.split(d[$.field], ',') })
+            // .params({ field })
+            .derive({
+              // [field]: (d, $) => op.split(d[$.field], ','),
+              // temporary shim: build does not work with unescaped expressions
+              [field]: escape((d) => op.split(d[field], ',')),
+            })
         }
       })
 

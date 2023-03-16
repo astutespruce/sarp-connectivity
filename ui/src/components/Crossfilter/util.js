@@ -89,13 +89,22 @@ export const applyFilters = (rawData, dimensions, rawFilters) => {
     .filter(([field, values]) => values && values.size > 0)
     .map(([field, values]) => {
       if (dimensions[field].isArray) {
-        data = data.params({ field, values: [...values] }).derive({
-          [`${field}_filter`]: (d, $) => op.hasAny($.values, d[$.field]),
-        })
+        data = data
+          // .params({ field, values: [...values] })
+          .derive({
+            // [`${field}_filter`]: (d, $) => op.hasAny($.values, d[$.field]),
+            // temporary shim: build does not work with unescaped expressions
+            [`${field}_filter`]: escape((d) =>
+              op.hasAny([...values], d[field])
+            ),
+          })
       } else {
-        data = data.params({ field, values }).derive({
-          [`${field}_filter`]: (d, $) => op.has($.values, d[$.field]),
-        })
+        data = data
+          // .params({ field, values })
+          .derive({
+            // [`${field}_filter`]: (d, $) => op.has($.values, d[$.field]),
+            [`${field}_filter`]: escape((d) => op.has(values, d[field])),
+          })
       }
 
       return field
@@ -103,15 +112,16 @@ export const applyFilters = (rawData, dimensions, rawFilters) => {
 
   // loop over filter in filters, apply all other filters except self and get count
   filters.forEach((field) => {
-    const otherFilterFields = filters
+    const fields = filters
       .filter((otherField) => otherField !== field)
       .map((otherField) => `${otherField}_filter`)
 
     const filtered = data
-      .params({ fields: otherFilterFields })
+      // .params({ fields })
       .filter(
         escape(
-          (d, $) => $.fields.filter((f) => d[f]).length === $.fields.length
+          // (d, $) => $.fields.filter((f) => d[f]).length === $.fields.length
+          (d) => fields.filter((f) => d[f]).length === fields.length
         )
       )
 
@@ -120,11 +130,12 @@ export const applyFilters = (rawData, dimensions, rawFilters) => {
 
   // apply all filters and update dimension counts for every dimension that
   // doesn't have a filter
-  const allFilterFields = filters.map((field) => `${field}_filter`)
+  const fields = filters.map((field) => `${field}_filter`)
   data = data
-    .params({ fields: allFilterFields })
+    // .params({ fields })
     .filter(
-      escape((d, $) => $.fields.filter((f) => d[f]).length === $.fields.length)
+      // escape((d, $) => $.fields.filter((f) => d[f]).length === $.fields.length)
+      escape((d) => fields.filter((f) => d[f]).length === fields.length)
     )
 
   Object.values(dimensions)
