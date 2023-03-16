@@ -130,7 +130,7 @@ const Filter = ({
 
       {isOpen && (
         <>
-          {data.length > 0 && max > 0 ? (
+          {data.length > 0 ? (
             <Box sx={{ pt: '0.5rem', pl: '1rem' }}>
               <HorizontalBars
                 data={data}

@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react'
-import { op } from 'arquero'
+import { op, agg } from 'arquero'
 
-import { sum } from 'util/data'
+import { sum, reduceToObject } from 'util/data'
 import { isDebug } from 'util/dom'
-import { createDimensions, getDimensionCount, countByDimension } from './util'
+import { applyFilters, createDimensions, countByDimension } from './util'
 
 export const Crossfilter = (filterConfig) => {
   const dimensionsRef = useRef(createDimensions(filterConfig))
@@ -21,7 +21,6 @@ export const Crossfilter = (filterConfig) => {
     filters: {},
     hasFilters: false,
     dimensionCounts: null,
-    filteredDimensionCounts: null,
     emptyDimensions: new Set(),
     emptyGroups: new Set(),
   }))
@@ -68,9 +67,6 @@ export const Crossfilter = (filterConfig) => {
       })
     }
 
-    // FIXME:
-    window.data = newData
-
     setState(() => {
       const newState = {
         // only change on update of data:
@@ -80,11 +76,7 @@ export const Crossfilter = (filterConfig) => {
         // change on update to filters:
         filteredData: newData,
         filteredCount:
-          newData !== null
-            ? newData
-                .rollup({ _count: (d) => op.sum(d._count) })
-                .column('_count').data[0]
-            : 0,
+          newData !== null ? agg(newData, (d) => op.sum(d._count)) : 0,
         filters: {},
         hasFilters: false,
         dimensionCounts,
@@ -116,11 +108,12 @@ export const Crossfilter = (filterConfig) => {
         console.log('Prev state', prevState)
       }
 
-      // FIXME: remove
       const start = Date.now()
 
       const {
         data,
+        totalDimensionCounts,
+        // discard prev filter
         filters: { [filterField]: prevFilter, ...prevFilters },
       } = prevState
 
@@ -134,60 +127,37 @@ export const Crossfilter = (filterConfig) => {
 
       // reset filtered data to full data
       let filteredData = data
+      let dimensionCounts = totalDimensionCounts
 
-      const activeFilters = Object.entries(filters).filter(
-        ([_, filter]) => filter && filter.size > 0
-      )
-      console.log('activeFilters', activeFilters)
+      const hasFilters =
+        Object.entries(filters).filter(
+          ([_, filter]) => filter && filter.size > 0
+        ).length > 0
 
-      activeFilters.forEach(([field, filter]) => {
-        // skip current field, that is filtered last
-        if (field === filterField) {
-          return
-        }
-
-        filteredData = applyFilter(filteredData, dimensions[field], filter)
-      })
-
-      // calculate count of current field based on all other filters,
-      // then apply filter to last field
-      const currentDimensionCount = getDimensionCount(
-        filteredData,
-        dimensions[filterField]
-      )
-
-      if (filterValue && filterValue.size > 0) {
-        // TODO: apply current filter last
-        console.log('apply current filter', filterField, filterValue)
-
-        filteredData = applyFilter(
-          filteredData,
-          dimensions[filterField],
-          filterValue
-        )
+      if (hasFilters) {
+        const {
+          data: actuallyFilteredData,
+          dimensionCounts: filteredDimensionCounts,
+        } = applyFilters(data, dimensions, filters)
+        filteredData = actuallyFilteredData
+        dimensionCounts = filteredDimensionCounts
       }
-
-      // FIXME:
-      window.filteredData = filteredData
-
-      const dimensionCounts = countByDimension(filteredData, dimensions)
-      dimensionCounts[filterField] = currentDimensionCount
 
       const newState = {
         ...prevState,
         filteredData,
-        filteredCount: filteredData
-          .rollup({ _count: (d) => op.sum(d._count) })
-          .column('_count').data[0],
+        filteredCount:
+          filteredData.numRows() > 0
+            ? agg(filteredData, (d) => op.sum(d._count))
+            : 0,
         filters,
-        hasFilters: activeFilters.length > 0,
+        hasFilters,
         dimensionCounts,
       }
 
       if (isDebug) {
         console.log('Next state', newState)
 
-        // FIXME: remove
         const end = Date.now()
         console.log(`Execution time: ${end - start} ms`)
       }
@@ -196,7 +166,6 @@ export const Crossfilter = (filterConfig) => {
     })
   }
 
-  // TODO:
   const resetGroupFilters = (groupId) => {
     setState((prevState) => {
       if (isDebug) {
@@ -205,32 +174,48 @@ export const Crossfilter = (filterConfig) => {
       }
 
       const { current: dimensions } = dimensionsRef
-      const { filters: prevFilters } = prevState
+      const { data, totalDimensionCounts, filters: prevFilters } = prevState
 
       // Create new instance, don't mutate
-      const newFilters = {
-        ...prevFilters,
-      }
+      const filters = {}
 
       const groupFields = filterConfig
         .filter(({ id }) => id === groupId)[0]
-        .filters.map(({ field }) => field)
-      groupFields.forEach((field) => {
-        const dimension = dimensions[field]
-        dimension.filterAll()
-        newFilters[field] = new Set()
-      })
+        .filters.reduce(...reduceToObject('field', () => true))
 
-      const hasFilters =
-        Object.values(newFilters).filter((filter) => filter && filter.size > 0)
-          .length > 0
+      Object.entries(prevFilters)
+        .filter(
+          ([field, filter]) => !groupFields[field] && filter && filter.size > 0
+        )
+        .forEach(([field, filter]) => {
+          filters[field] = filter
+        })
 
-      const filteredData = prevState.data // FIXME:
+      // reset filtered data to full data
+      let filteredData = data
+      let dimensionCounts = totalDimensionCounts
+
+      const hasFilters = Object.keys(filters).length > 0
+
+      if (hasFilters) {
+        const {
+          data: actuallyFilteredData,
+          dimensionCounts: filteredDimensionCounts,
+        } = applyFilters(data, dimensions, filters)
+        filteredData = actuallyFilteredData
+        dimensionCounts = filteredDimensionCounts
+      }
 
       const newState = {
         ...prevState,
-        filters: newFilters,
+        filteredData,
+        filteredCount:
+          filteredData.numRows() > 0
+            ? agg(filteredData, (d) => op.sum(d._count))
+            : 0,
+        filters,
         hasFilters,
+        dimensionCounts,
       }
 
       if (isDebug) {
@@ -248,18 +233,15 @@ export const Crossfilter = (filterConfig) => {
         console.log('Prev state', prevState)
       }
 
-      const { current: dimensions } = dimensionsRef
-      const { data } = prevState
+      const { data, totalDimensionCounts } = prevState
 
       const newState = {
         ...prevState,
         filteredData: data,
-        filteredCount: data
-          .rollup({ _count: (d) => op.sum(d._count) })
-          .column('_count').data[0],
+        filteredCount: agg(data, (d) => op.sum(d._count)),
         filters: {},
         hasFilters: false,
-        dimensionCounts: countByDimension(data, dimensions),
+        dimensionCounts: totalDimensionCounts,
       }
 
       if (isDebug) {

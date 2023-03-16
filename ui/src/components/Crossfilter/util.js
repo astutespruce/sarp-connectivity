@@ -1,4 +1,4 @@
-import { addFunction, op } from 'arquero'
+import { addFunction, op, escape } from 'arquero'
 
 import { reduceToObject } from 'util/data'
 
@@ -31,8 +31,6 @@ export const getDimensionCount = (data, dimension) => {
   if (isArray) {
     // split by commas into separate rows, then regroup
     grouped = grouped
-      // .params({ field })
-      // .derive({ [field]: (d, $) => op.split(d[$.field], ',') })
       .unroll(field)
       .groupby(field)
       .rollup({ _count: (d) => op.sum(d._count) })
@@ -81,19 +79,62 @@ const hasAny = (filterValues, values) => {
 // NOTE: overwrite is used to redefine this on window reload
 addFunction('hasAny', hasAny, { override: true })
 
-export const applyFilter = (data, dimension, filterValues) => {
-  const { field, isArray } = dimension
-  let filteredData = data
+export const applyFilters = (rawData, dimensions, rawFilters) => {
+  let data = rawData
+  const dimensionCounts = {}
 
-  if (isArray) {
-    filteredData = data
-      .params({ field, values: [...filterValues] })
-      .filter((d, $) => op.hasAny($.values, d[$.field]))
-  } else {
-    filteredData = data
-      .params({ field, values: filterValues })
-      .filter((d, $) => op.has($.values, d[$.field]))
+  // do a first pass and apply all filters into derived columns
+  const filters = Object.entries(rawFilters)
+    /* eslint-disable-next-line no-unused-vars */
+    .filter(([field, values]) => values && values.size > 0)
+    .map(([field, values]) => {
+      if (dimensions[field].isArray) {
+        data = data.params({ field, values: [...values] }).derive({
+          [`${field}_filter`]: (d, $) => op.hasAny($.values, d[$.field]),
+        })
+      } else {
+        data = data.params({ field, values }).derive({
+          [`${field}_filter`]: (d, $) => op.has($.values, d[$.field]),
+        })
+      }
+
+      return field
+    })
+
+  // loop over filter in filters, apply all other filters except self and get count
+  filters.forEach((field) => {
+    const otherFilterFields = filters
+      .filter((otherField) => otherField !== field)
+      .map((otherField) => `${otherField}_filter`)
+
+    const filtered = data
+      .params({ fields: otherFilterFields })
+      .filter(
+        escape(
+          (d, $) => $.fields.filter((f) => d[f]).length === $.fields.length
+        )
+      )
+
+    dimensionCounts[field] = getDimensionCount(filtered, dimensions[field])
+  })
+
+  // apply all filters and update dimension counts for every dimension that
+  // doesn't have a filter
+  const allFilterFields = filters.map((field) => `${field}_filter`)
+  data = data
+    .params({ fields: allFilterFields })
+    .filter(
+      escape((d, $) => $.fields.filter((f) => d[f]).length === $.fields.length)
+    )
+
+  Object.values(dimensions)
+    .filter(({ field }) => !(rawFilters[field] && rawFilters[field].size > 0))
+    .forEach((dimension) => {
+      dimensionCounts[dimension.field] = getDimensionCount(data, dimension)
+    })
+
+  return {
+    data,
+    dimensionCounts,
   }
-
-  return filteredData
 }
