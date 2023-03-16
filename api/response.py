@@ -56,6 +56,7 @@ def feather_response(df, bounds=None):
     write_feather(
         table,
         stream,
+        # Feather format in JS Arrow lib does not yet support compressed
         compression="uncompressed",
     )
     response = Response(
