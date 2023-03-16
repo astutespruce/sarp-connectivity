@@ -43,7 +43,7 @@ const apiQueryParams = ({
   return query
 }
 
-const fetchFeather = async (url, options) => {
+const fetchFeather = async (url, options, asTable = false) => {
   try {
     const response = await fetch(url, options)
 
@@ -54,7 +54,9 @@ const fetchFeather = async (url, options) => {
     const data = await tableFromIPC(response.arrayBuffer())
 
     return {
-      data: fromArrow(data),
+      data: asTable
+        ? fromArrow(data)
+        : data.toArray().map((row) => row.toJSON()),
       bounds: data.schema.metadata.get('bounds'),
     }
   } catch (err) {
@@ -77,7 +79,7 @@ export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
     }
   )}`
 
-  return fetchFeather(url, undefined)
+  return fetchFeather(url, undefined, true)
 }
 
 /**

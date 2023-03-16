@@ -93,24 +93,23 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
         <BackLink label="modify area of interest" onClick={handleBack} />
 
         <Flex sx={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <Heading as="h3" sx={{ fontSize: '1.5rem', flex: '0 0 auto' }}>
+          <Heading as="h3" sx={{ fontSize: '1.5rem', flex: '1 1 auto' }}>
             Filter {barrierTypeLabel}
           </Heading>
-          {hasFilters && (
-            <Flex
-              onClick={handleReset}
-              sx={{
-                flex: '1 1 auto',
-                justifyContent: 'flex-end',
-                alignItems: 'center',
-                color: 'highlight',
-                cursor: 'pointer',
-              }}
-            >
-              <TimesCircle size="1em" />
-              <Text sx={{ ml: '0.5rem' }}>reset filters</Text>
-            </Flex>
-          )}
+          <Flex
+            onClick={handleReset}
+            sx={{
+              flex: '0 0 auto',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              visibility: hasFilters ? 'visible' : 'hidden',
+              color: 'highlight',
+              cursor: 'pointer',
+            }}
+          >
+            <TimesCircle size="1em" />
+            <Text sx={{ ml: '0.5rem' }}>reset filters</Text>
+          </Flex>
         </Flex>
       </Box>
 
