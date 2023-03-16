@@ -1,4 +1,4 @@
-/* eslint-disable max-len, no-underscore-dangle */
+/* eslint-disable max-len */
 import React, { useLayoutEffect, useRef, useState } from 'react'
 import PropTypes from 'prop-types'
 import { Box } from 'theme-ui'

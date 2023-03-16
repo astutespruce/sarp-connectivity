@@ -17,22 +17,22 @@ const Filter = ({
   help,
   url,
   isOpen,
-  hideEmpty,
+  hideMissingValues,
   sort,
   onToggle,
 }) => {
   const {
     setFilter,
-    state: { filters, dimensionCounts },
+    state: { filters, dimensionCounts, totalDimensionCounts },
   } = useCrossfilter()
 
   const filterValues = filters[field] || new Set()
-  const counts = dimensionCounts[field] || {}
+  const counts = dimensionCounts[field]
+  const unfilteredCounts = totalDimensionCounts[field]
   const max = Math.max(0, ...Object.values(counts))
 
   // Memoize processing of data, since the context changes frequently
   // but the data that impact this filter may not change as frequently
-
   const data = useIsEqualMemo(() => {
     // if not isOpen, we can bypass processing the data
     if (!isOpen) {
@@ -46,12 +46,12 @@ const Filter = ({
       quantity: counts[value] || 0,
       isFiltered: filterValues.has(value),
       isExcluded: filterValues.size > 0 && !filterValues.has(value),
+      // value is not present in the original data
+      isMissing: (unfilteredCounts[value] || 0) === 0,
     }))
 
-    if (hideEmpty) {
-      newData = newData.filter(
-        ({ quantity, isFiltered }) => quantity > 0 || isFiltered
-      )
+    if (hideMissingValues) {
+      newData = newData.filter(({ isMissing }) => !isMissing)
     }
 
     if (sort) {
@@ -63,7 +63,7 @@ const Filter = ({
       })
     }
     return newData
-  }, [filterValues, counts, isOpen])
+  }, [filterValues, counts, unfilteredCounts, isOpen])
 
   const handleFilterToggle = useIsEqualCallback(
     (value) => {
@@ -130,7 +130,7 @@ const Filter = ({
 
       {isOpen && (
         <>
-          {data.length > 0 && max > 0 ? (
+          {data.length > 0 ? (
             <Box sx={{ pt: '0.5rem', pl: '1rem' }}>
               <HorizontalBars
                 data={data}
@@ -176,7 +176,7 @@ Filter.propTypes = {
   help: PropTypes.string,
   url: PropTypes.string,
   isOpen: PropTypes.bool,
-  hideEmpty: PropTypes.bool,
+  hideMissingValues: PropTypes.bool,
   sort: PropTypes.bool,
   onToggle: PropTypes.func,
 }
@@ -186,7 +186,7 @@ Filter.defaultProps = {
   help: null,
   url: null,
   isOpen: false,
-  hideEmpty: false,
+  hideMissingValues: false,
   sort: false,
   onToggle: () => {},
 }

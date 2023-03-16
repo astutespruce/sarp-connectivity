@@ -11,7 +11,7 @@ const Context = createContext()
 
 export const Provider = ({ filterConfig, children }) => {
   // init crossfilter with empty data
-  const crossfilter = Crossfilter([], filterConfig)
+  const crossfilter = Crossfilter(filterConfig)
   return <Context.Provider value={crossfilter}>{children}</Context.Provider>
 }
 

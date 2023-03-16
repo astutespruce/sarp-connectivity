@@ -2,12 +2,14 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { TimesCircle } from '@emotion-icons/fa-solid'
 import { Box, Flex, Heading, Text } from 'theme-ui'
+import { op } from 'arquero'
 
 import { useBarrierType } from 'components/Data'
 import { FilterGroup } from 'components/Filters'
 import { useCrossfilter } from 'components/Crossfilter'
 import { ExpandableParagraph } from 'components/Text'
 import { barrierTypeLabels } from 'config'
+import { reduceToObject } from 'util/data'
 import { formatNumber, pluralize } from 'util/format'
 
 import BackLink from './BackLink'
@@ -17,9 +19,11 @@ import StartOverButton from './StartOverButton'
 const Filters = ({ onBack, onSubmit, onStartOver }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
-  const { state, filterConfig, resetFilters } = useCrossfilter()
-
-  const { data, filteredCount, hasFilters, emptyGroups } = state
+  const {
+    state: { filteredData: data, filteredCount, hasFilters, emptyGroups },
+    filterConfig,
+    resetFilters,
+  } = useCrossfilter()
 
   const handleBack = () => {
     resetFilters()
@@ -47,22 +51,19 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
       break
     }
     case 'combined_barriers': {
-      let dams = 0
-      let smallBarriers = 0
-      data.forEach(({ barriertype: recordBarrierType }) => {
-        if (recordBarrierType === 'dams') {
-          dams += 1
-        } else {
-          smallBarriers += 1
-        }
-      })
+      const { dams = 0, small_barriers = 0 } = data
+        .groupby('barriertype')
+        .rollup({ _count: (d) => op.sum(d._count) })
+        .derive({ row: op.row_object() })
+        .array('row')
+        .reduce(...reduceToObject('barriertype', (d) => d._count))
 
-      countMessage = `${formatNumber(dams)} ${pluralize(
+      countMessage = `${formatNumber(dams || 0)} ${pluralize(
         'dam',
         dams
-      )} and ${formatNumber(smallBarriers)} road-related ${pluralize(
+      )} and ${formatNumber(small_barriers)} road-related ${pluralize(
         'barrier',
-        smallBarriers
+        small_barriers
       )}`
       break
     }
@@ -91,30 +92,24 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
       >
         <BackLink label="modify area of interest" onClick={handleBack} />
 
-        <Heading as="h3" sx={{ fontSize: '1.5rem' }}>
-          Filter {barrierTypeLabel}
-        </Heading>
-
-        <Flex
-          sx={{
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            mt: '0.5rem',
-          }}
-        >
-          {hasFilters && (
-            <Flex
-              onClick={handleReset}
-              sx={{
-                alignItems: 'center',
-                color: 'highlight',
-                cursor: 'pointer',
-              }}
-            >
-              <TimesCircle size="1em" />
-              <Text sx={{ ml: '0.5rem' }}>reset filters</Text>
-            </Flex>
-          )}
+        <Flex sx={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <Heading as="h3" sx={{ fontSize: '1.5rem', flex: '1 1 auto' }}>
+            Filter {barrierTypeLabel}
+          </Heading>
+          <Flex
+            onClick={handleReset}
+            sx={{
+              flex: '0 0 auto',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              visibility: hasFilters ? 'visible' : 'hidden',
+              color: 'highlight',
+              cursor: 'pointer',
+            }}
+          >
+            <TimesCircle size="1em" />
+            <Text sx={{ ml: '0.5rem' }}>reset filters</Text>
+          </Flex>
         </Flex>
       </Box>
 

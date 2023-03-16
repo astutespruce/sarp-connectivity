@@ -25,8 +25,15 @@ aquaticbarriers.mockuplab.us {
       path */query/* */rank/* */public/* */docs/* */details/*
     }
 
-      encode @encode_paths zstd gzip
-      reverse_proxy localhost:5000
+    encode @encode_paths zstd gzip {
+      # enable gzip of octet-stream (disabled by default)
+      match {
+          header Content-Type text/csv
+          header Content-Type application/octet-stream
+      }
+    }
+
+    reverse_proxy localhost:5000
   }
 
   route /* {

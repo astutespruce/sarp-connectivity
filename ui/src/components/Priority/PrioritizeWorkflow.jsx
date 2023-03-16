@@ -105,7 +105,7 @@ const Prioritize = () => {
   }
 
   const handleFilterBack = () => {
-    setFilterData([])
+    setFilterData(null)
     setState((prevState) => ({ ...prevState, step: 'select' }))
   }
 
