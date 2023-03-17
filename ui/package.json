@@ -1,8 +1,8 @@
 {
   "name": "sarp-prioritization-tool",
   "description": "Aquatic Barrier Inventory Visualization & Prioritization Tool",
-  "version": "2.6.0",
-  "date": "2/16/2023",
+  "version": "2.7.0",
+  "date": "3/13/2023",
   "author": "Brendan C. Ward <bcward@astutespruce.com>",
   "dependencies": {
     "@apache-arrow/es2015-esm": "^11.0.0",
