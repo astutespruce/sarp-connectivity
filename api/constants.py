@@ -286,11 +286,8 @@ DAM_CORE_FIELDS = unique(DAM_CORE_FIELDS)
 # Internal API includes tiers
 # IMPORTANT: Recon is intentionally omitted per direction from SARP
 
-DAM_EXPORT_FIELDS = [
-    c
-    for c in unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
-    if not c == "Recon"
-]
+DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
+
 DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
     + STATE_TIER_FIELDS
@@ -299,7 +296,7 @@ DAM_API_FIELDS = unique(
 )
 
 # Public API does not include tier or filter fields
-DAM_PUBLIC_EXPORT_FIELDS = [c for c in DAM_CORE_FIELDS if not c == "Recon"]
+DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
 
 
 # Drop fields that can be calculated on frontend or are not used
@@ -332,7 +329,7 @@ DAM_TILE_FIELDS = [
         "Invasive",
         "NoStructure",
         "Diversion",
-        "Recon",  # excluded from API_FIELDS (important!)
+        "Recon",
         "Feasibility",  # not used, only FeasibilityClass used in UI
         "PassageFacility",
         "TotalDownstreamSmallBarriers",
@@ -419,7 +416,7 @@ SB_TILE_FIELDS = [
         "OnLoop",
         "StreamOrder",
         "Invasive",
-        "Recon",  # excluded from API_FIELDS (important!)
+        "Recon",
         "PassageFacility",
         # metric fields that can be calculated on frontend or not used
         "TotalDownstreamRoadCrossings",
@@ -454,7 +451,7 @@ COMBINED_API_FIELDS = [
 COMBINED_EXPORT_FIELDS = [
     c
     for c in unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS)
-    if not c in STATE_TIER_FIELDS + ["Recon"]
+    if not c in STATE_TIER_FIELDS
 ]
 
 
@@ -668,7 +665,7 @@ RECON_DOMAIN = {
     10: "Was once considered, need to revisit",
     11: "Removal planned",
     13: "Unsure, need second opinion",
-    14: "Take immediate action, abandoned-looking dam in poor condition",
+    14: "Good candidate for further exploration - dam appears to be in poor condition",  # new phrasing from Kat
     15: "No conservation benefit",
     16: "Invasive species barrier",
     17: "Risky for mussels",

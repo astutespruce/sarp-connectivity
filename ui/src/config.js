@@ -554,7 +554,7 @@ export const RECON = {
   10: 'dam was once considered, need to revisit',
   11: 'removal planned',
   13: 'unsure, need second opinion',
-  14: 'take immediate action, abandoned-looking dam in poor condition',
+  14: 'good candidate for further exploration - dam appears to be in poor condition',
   15: 'no conservation benefit',
   16: 'invasive species barrier',
   17: 'risky for mussels',
