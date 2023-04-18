@@ -93,7 +93,7 @@ def extract_flowlines(gdb, target_crs):
     read_cols, col_map = get_column_names(gdb, layer, VAA_COLS)
 
     vaa_df = (
-        read_dataframe(gdb, layer=layer, columns=read_cols)
+        read_dataframe(gdb, layer=layer, columns=read_cols, use_arrow=True)
         .rename(columns=col_map)
         .rename(
             columns={

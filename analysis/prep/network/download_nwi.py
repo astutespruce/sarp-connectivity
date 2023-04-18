@@ -9,7 +9,8 @@ import shapely
 import numpy as np
 import httpx
 
-import pandas as pd
+
+from analysis.constants import NWI_HUC8_ALIAS
 
 
 # Data are available within the NWI Viewer: https://www.fws.gov/wetlands/Data/Mapper.html
@@ -18,9 +19,6 @@ import pandas as pd
 URL = "https://www.fws.gov/wetlands/downloads/Watershed/HU8_{huc8}_watershed.zip"
 MAX_WORKERS = 2
 CONNECTION_TIMEOUT = 120  # seconds
-
-# current HUC8 to NWI HUC8 codes
-HUC8_ALIAS = {"08010300": "08020201", "10170104": "10150001"}
 
 
 async def download_huc8s(huc8s):
@@ -36,10 +34,11 @@ async def download_huc8s(huc8s):
 
 
 async def download_huc8(huc8, client, out_dir):
-    r = await client.get(URL.format(huc8=huc8), timeout=CONNECTION_TIMEOUT)
+    nwi_id = NWI_HUC8_ALIAS.get(huc8, huc8)
+    r = await client.get(URL.format(huc8=nwi_id), timeout=CONNECTION_TIMEOUT)
     r.raise_for_status()
 
-    outzipname = out_dir / f"{huc8}.zip"
+    outzipname = out_dir / f"{nwi_id}.zip"
     with open(outzipname, "wb") as out:
         out.write(r.content)
 
@@ -72,8 +71,10 @@ units = huc8_df.groupby("HUC2").HUC8.unique().apply(sorted).to_dict()
 
 # manually subset keys from above for processing
 huc2s = [
+    # "01",  # 01100007, 01090006 both => 01090005
     # "02",
     # "03",
+    # "04",
     # "05",
     # "06",
     # "07",
@@ -88,6 +89,7 @@ huc2s = [
     # "16",
     # "17",
     # "18",
+    # "19",
     # "21",  # Missing: 21010007, 21010008 (islands)
 ]
 

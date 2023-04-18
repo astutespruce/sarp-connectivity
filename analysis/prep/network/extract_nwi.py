@@ -1,7 +1,6 @@
 from pathlib import Path
 import os
 from time import time
-import warnings
 
 import geopandas as gp
 import shapely
@@ -9,11 +8,9 @@ import numpy as np
 from pyogrio import read_dataframe, write_dataframe
 from pyogrio.errors import DataSourceError
 
-from analysis.constants import CRS
+from analysis.constants import CRS, NWI_HUC8_ALIAS
 from analysis.lib.geometry import dissolve, explode
 from analysis.lib.util import append
-
-from analysis.prep.network.download_nwi import HUC8_ALIAS
 
 
 MODIFIERS = {
@@ -68,25 +65,28 @@ units = huc8_df.groupby("HUC2").HUC8.unique().apply(sorted).to_dict()
 huc2s = units.keys()
 
 # manually subset keys from above for processing
-huc2s = [
-    # "02",
-    # "03",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
-    # "18",
-    # "21",  # Missing: 21010007, 21010008 (islands)
-]
+# huc2s = [
+# "01",
+# "02",
+# "03",
+# "04",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",  # several HUC8s do not have wetlands data
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "18",
+# "19",  # several HUC8s do not have wetlands data
+# "21",  # Missing: 21010007, 21010008 (islands)
+# ]
 
 
 for huc2 in huc2s:
@@ -106,7 +106,7 @@ for huc2 in huc2s:
     for huc8 in units[huc2]:
         print(f"Reading NWI data for {huc8}")
 
-        huc8 = HUC8_ALIAS.get(huc8, huc8)
+        huc8 = NWI_HUC8_ALIAS.get(huc8, huc8)
 
         filename = src_dir.resolve() / f"{huc8}.zip"
         if not filename.exists():
@@ -118,6 +118,7 @@ for huc2 in huc2s:
             df = read_dataframe(
                 f"/vsizip/{filename}/HU8_{huc8}_Watershed/HU8_{huc8}_Wetlands.shp",
                 columns=["ATTRIBUTE", "WETLAND_TY"],
+                use_arrow=True,
                 where="WETLAND_TY in ('Lake', 'Pond', 'Riverine')",
             ).rename(columns={"ATTRIBUTE": "nwi_code", "WETLAND_TY": "nwi_type"})
 

@@ -1,7 +1,6 @@
 from pathlib import Path
 import os
 from time import time
-import warnings
 
 import pandas as pd
 import geopandas as gp
@@ -28,8 +27,10 @@ huc2s = sorted(
 
 # manually subset keys from above for processing
 # huc2s = [
+# "01",
 # "02",
 # "03",
+# "04",
 # "05",
 # "06",
 # "07",
@@ -44,6 +45,7 @@ huc2s = sorted(
 # "16",
 # "17",
 # "18",
+# "19",
 # "21",
 # ]
 
@@ -51,6 +53,7 @@ start = time()
 
 print("Reading state level datasets")
 
+overlaps_mn = False
 overlaps_or_ca = False
 overlaps_sd = False
 if set(huc2s).intersection(["16", "17", "18"]):
@@ -73,6 +76,12 @@ if set(huc2s).intersection(["07", "09", "10"]):
     sd_wb["altered"] = False
 
 
+if set(huc2s).intersection(["04", "07", "09", "10"]):
+    overlaps_mn = True
+    mn_wb = gp.read_feather(
+        "data/states/mn/mn_waterbodies.feather", columns=["geometry", "altered", "HUC2"]
+    )
+
 for huc2 in huc2s:
     huc2_start = time()
     print(f"----- {huc2} ------")
@@ -83,7 +92,7 @@ for huc2 in huc2s:
 
     nhd = gp.read_feather(
         nhd_dir / huc2 / "waterbodies.feather",
-        columns=["geometry", "FType", "GNIS_Name"],
+        columns=["geometry", "FType", "GNIS_Name", "AreaSqKm"],
     )
     # determine altered types from NHD codes and names
     # note: other waterbodies may be altered but are not marked as such by NHD
@@ -92,6 +101,17 @@ for huc2 in huc2s:
     )
 
     nwi = gp.read_feather(nwi_dir / huc2 / "waterbodies.feather")
+
+    # strip the Great Lakes out of NWI and set aside from NHD to prevent dissolve
+    if huc2 == "04":
+        # Lake Michigan and Lake Superior are duplicated, drop smaller duplicates
+        great_lakes = (
+            nhd.loc[nhd.AreaSqKm >= 8000]
+            .sort_values(by=["AreaSqKm"], ascending=False)
+            .drop_duplicates(subset="GNIS_Name")
+        )
+        nhd = nhd.loc[nhd.AreaSqKm < 8000].copy()
+        nwi = nwi.loc[nwi.km2 < 8000].reset_index(drop=True)
 
     df = pd.concat(
         [nhd[["geometry", "altered"]], nwi[["geometry", "altered"]]],
@@ -111,6 +131,13 @@ for huc2 in huc2s:
     elif huc2 == "17":
         df = pd.concat(
             [df, wa_wb[["geometry", "altered"]]], ignore_index=True, sort=False
+        )
+
+    if overlaps_mn:
+        df = pd.concat(
+            [df, mn_wb.loc[mn_wb.HUC2 == huc2, ["geometry", "altered"]]],
+            ignore_index=True,
+            sort=False,
         )
 
     if overlaps_or_ca:
@@ -175,6 +202,11 @@ for huc2 in huc2s:
             )
 
             df = explode(df).reset_index(drop=True)
+
+    if huc2 == "04":
+        df = pd.concat([df, great_lakes[["geometry", "altered"]]]).reset_index(
+            drop=True
+        )
 
     # make sure all polygons are valid
     ix = ~shapely.is_valid(df.geometry.values)

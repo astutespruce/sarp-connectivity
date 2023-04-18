@@ -45,6 +45,14 @@ California data are available at:
 - https://www.sfei.org/data/california-aquatic-resource-inventory-cari-version-03-gis-data
   These were downloaded on 2/19/2022 to `data/states/ca/CA_Lakes.shp` and `data/states/ca/CARIv0.3.gdb`.
 
+#### Minnesota
+
+Minnesota data were downloaded from https://gisdata.mn.gov/dataset/water-dnr-hydrography
+
+These were downloaded on 4/14/2023 to `data/states/mn/water_dnr_hydrography.gpkg`.
+
+Data were prepared using `analysis/prep/network/special/prepare_wi_waterbodies.py`.
+
 #### Oregon
 
 Oregon data are available at: https://spatialdata.oregonexplorer.info/geoportal/details;id=3439a3c43f9f4c4499802f55898b7dd8
@@ -63,7 +71,7 @@ These were downloaded manually on 3/8/2022 to `data/states/sd/State_Waterbodies.
 
 #### Washington State
 
-Washinton State data are available at:
+Washington State data are available at:
 
 - https://geo.wa.gov/datasets/wdfw::visible-surface-water/explore (more metadata at: https://geodataservices.wdfw.wa.gov/arcgis/rest/services/HP_Projects/Visible_Surface_Water/MapServer)
 - https://www.arcgis.com/sharing/rest/content/items/28a0f93c33454297b4a9d3faf3da552a/info/metadata/metadata.xml?format=default&output=html

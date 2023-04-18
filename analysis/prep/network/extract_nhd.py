@@ -28,7 +28,7 @@ from analysis.lib.util import append
 warnings.filterwarnings("ignore", message=".*geometry types are not supported*")
 
 
-def process_huc4s(huc2, src_dir, out_dir, huc4s):
+def process_gdbs(huc2, src_dir, out_dir):
     merged_flowlines = None
     merged_joins = None
     merged_waterbodies = None
@@ -49,11 +49,19 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
     nhd_polygons_offset = huc2_offset.copy()
     altered_rivers_offset = huc2_offset.copy()
 
-    for huc4 in huc4s:
-        print(f"------------------- Reading {huc4} -------------------")
+    gdbs = sorted(
+        [gdb for gdb in src_dir.glob(f"{huc2}*/*.gdb")],
+        key=lambda p: p.parent.name,
+    )
+    if len(gdbs) == 0:
+        raise ValueError(
+            f"No GDBs available for {huc2} within {src_dir}; did you forget to unzip them?"
+        )
 
-        # filenames vary for current NHD HR datasets; beta datasets had stable names
-        gdb = next((src_dir / huc4).glob("*.gdb"))
+    for gdb in gdbs:
+        print(f"------------------- Reading {gdb.name} -------------------")
+
+        huc4 = gdb.parent.name[:4]
 
         ### Read flowlines and joins
         read_start = time()
@@ -105,7 +113,7 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
         ### Extract barrier points, lines, polygons
         points = extract_barrier_points(gdb, target_crs=CRS)
         if len(points):
-            points.HUC4 = huc4
+            points["HUC4"] = huc4
             points["id"] = (
                 np.arange(1, len(points) + 1, dtype="uint32") + nhd_points_offset
             )
@@ -114,7 +122,7 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
 
         lines = extract_barrier_lines(gdb, target_crs=CRS)
         if len(lines):
-            lines.HUC4 = huc4
+            lines["HUC4"] = huc4
             lines["id"] = (
                 np.arange(1, len(lines) + 1, dtype="uint32") + nhd_lines_offset
             )
@@ -123,7 +131,7 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
 
         poly = extract_barrier_polygons(gdb, target_crs=CRS)
         if len(poly):
-            poly.HUC4 = huc4
+            poly["HUC4"] = huc4
             poly["id"] = (
                 np.arange(1, len(poly) + 1, dtype="uint32") + nhd_polygons_offset
             )
@@ -133,7 +141,7 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
         ### Extract altered rivers
         altered_rivers = extract_altered_rivers(gdb, target_crs=CRS)
         if len(altered_rivers):
-            altered_rivers.HUC4 = huc4
+            altered_rivers["HUC4"] = huc4
             altered_rivers["id"] = (
                 np.arange(len(altered_rivers), dtype="uint32") + altered_rivers_offset
             )
@@ -143,7 +151,7 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
         ### Extract marine
         marine = extract_marine(gdb, target_crs=CRS)
         if len(marine):
-            marine.HUC4 = huc4
+            marine["HUC4"] = huc4
             merged_marine = append(merged_marine, marine)
 
     print("--------------------")
@@ -152,17 +160,27 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
     joins = merged_joins.reset_index(drop=True)
     waterbodies = merged_waterbodies.reset_index(drop=True)
 
-    if len(points):
+    if merged_points is not None and len(merged_points):
         points = merged_points.reset_index(drop=True)
     else:
         points = None
 
-    lines = merged_lines.reset_index(drop=True)
-    poly = merged_poly.reset_index(drop=True)
+    if merged_lines is not None and len(merged_lines):
+        lines = merged_lines.reset_index(drop=True)
+    else:
+        lines = None
 
-    altered_rivers = merged_altered_rivers.reset_index(drop=True)
+    if merged_poly is not None and len(merged_poly):
+        poly = merged_poly.reset_index(drop=True)
+    else:
+        poly = None
 
-    if merged_marine is not None:
+    if merged_altered_rivers is not None and len(merged_altered_rivers):
+        altered_rivers = merged_altered_rivers.reset_index(drop=True)
+    else:
+        altered_rivers = None
+
+    if merged_marine is not None and len(merged_marine):
         marine = merged_marine.reset_index(drop=True)
     else:
         marine = None
@@ -256,15 +274,15 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
         print(f"serializing {len(points):,} NHD barrier points")
         points.to_feather(out_dir / "nhd_points.feather")
 
-    if len(lines):
+    if lines is not None and len(lines):
         print(f"serializing {len(lines):,} NHD barrier lines")
         lines.to_feather(out_dir / "nhd_lines.feather")
 
-    if len(poly):
+    if poly is not None and len(poly):
         print(f"serializing {len(poly):,} NHD barrier polygons")
         poly.to_feather(out_dir / "nhd_poly.feather")
 
-    if len(altered_rivers):
+    if altered_rivers is not None and len(altered_rivers):
         print(f"serializing {len(altered_rivers):,} NHD altered rivers")
         altered_rivers.to_feather(out_dir / "nhd_altered_rivers.feather")
 
@@ -274,7 +292,8 @@ def process_huc4s(huc2, src_dir, out_dir, huc4s):
 
 
 data_dir = Path("data")
-src_dir = data_dir / "nhd/source/huc4"
+huc4_dir = data_dir / "nhd/source/huc4"
+huc8_dir = data_dir / "nhd/source/huc8"
 out_dir = data_dir / "nhd/raw"
 
 if not out_dir.exists():
@@ -282,29 +301,26 @@ if not out_dir.exists():
 
 start = time()
 
-huc4_df = pd.read_feather(
-    data_dir / "boundaries/huc4.feather", columns=["HUC2", "HUC4"]
-)
-# Convert to dict of sorted HUC4s per HUC2
-units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
-
 huc2s = [
+    # "01",
     # "02",
     # "03",
-    # "05",
+    # "04"
+    "05",
     # "06",
-    # "07",
+    "07",
     # "08",
-    # "09",
+    "09",
     # "10",
     # "11",
     # "12",
     # "13",
     # "14",
     # "15",
-    # "16",
+    "16",
     # "17",
-    # "18",
+    "18",
+    # "19",
     # "21",
 ]
 
@@ -317,7 +333,8 @@ for huc2 in huc2s:
     if not huc2_dir.exists():
         os.makedirs(huc2_dir)
 
-    process_huc4s(huc2, src_dir, huc2_dir, units[huc2])
+    src_dir = huc8_dir if huc2 == "19" else huc4_dir
+    process_gdbs(huc2, src_dir, huc2_dir)
 
     print("--------------------")
     print("HUC2: {} done in {:.0f}s\n\n".format(huc2, time() - huc2_start))

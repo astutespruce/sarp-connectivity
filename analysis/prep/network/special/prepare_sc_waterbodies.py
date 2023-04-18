@@ -10,12 +10,11 @@ Creates the following files in `data/states/sc`:
 
 
 from pathlib import Path
-import warnings
 
 import geopandas as gp
 import shapely
 import numpy as np
-from pyogrio import read_dataframe, write_dataframe
+from pyogrio import read_dataframe
 
 from analysis.constants import CRS
 from analysis.lib.geometry import dissolve, explode

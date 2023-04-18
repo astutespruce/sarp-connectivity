@@ -1,5 +1,4 @@
 from pathlib import Path
-import warnings
 
 import geopandas as gp
 import shapely
@@ -8,6 +7,10 @@ from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import STATES, CRS, GEO_CRS, REGION_STATES
 from analysis.lib.geometry import to_multipolygon
+
+
+# HUC4s in Mexico that are not available from NHD
+MISSING_HUC4 = ["1310", "1311", "1312"]
 
 
 data_dir = Path("data")
@@ -87,43 +90,33 @@ tree = shapely.STRtree(huc2_df.geometry.values.data)
 # Subset out HUC2 in region
 ix = tree.query(bnd, predicate="intersects")
 huc2_df = huc2_df.iloc[ix].reset_index(drop=True)
+
+# drop holes within HUC2s (04, 19)
+huc2_df = huc2_df.explode(ignore_index=True)
+huc2_df["geometry"] = shapely.polygons(
+    shapely.get_exterior_ring(huc2_df.geometry.values)
+)
+huc2_df = gp.GeoDataFrame(
+    huc2_df.groupby("HUC2").agg({"name": "first", "geometry": shapely.multipolygons}),
+    geometry="geometry",
+    crs=huc2_df.crs,
+).reset_index()
+
 write_dataframe(huc2_df, out_dir / "huc2.fgb")
 huc2_df.to_feather(out_dir / "huc2.feather")
 huc2 = sorted(huc2_df.HUC2)
 
-# Next, determine the HUC4s that are within these HUC2s that also overlap the region
+# Use all HUC4s in these HUC2s
 print("Extracting HUC4...")
 huc4_df = read_dataframe(wbd_gdb, layer="WBDHU4", columns=["huc4"]).rename(
     columns={"huc4": "HUC4"}
 )
 huc4_df["HUC2"] = huc4_df.HUC4.str[:2]
-huc4_df = huc4_df.loc[huc4_df.HUC2.isin(huc2)].to_crs(CRS).reset_index(drop=True)
-
-# Extract HUC4s that intersect
-tree = shapely.STRtree(huc4_df.geometry.values.data)
-ix = tree.query(bnd, predicate="intersects")
-huc4_df = huc4_df.iloc[ix].reset_index(drop=True)
-
-# Drop any that are at the edges only and have little overlap
-tree = shapely.STRtree(huc4_df.geometry.values.data)
-contains_ix = tree.query(bnd, predicate="contains")
-edge_ix = np.setdiff1d(np.arange(len(huc4_df)), contains_ix)
-
-# clip geometries by bnd
-edge_df = huc4_df.iloc[edge_ix].reset_index(drop=True)
-edge_df["clipped"] = shapely.intersection(bnd, edge_df.geometry.values.data)
-edge_df["overlap_pct"] = (
-    100
-    * shapely.area(edge_df.clipped.values.data)
-    / shapely.area(edge_df.geometry.values.data)
+huc4_df = (
+    huc4_df.loc[huc4_df.HUC2.isin(huc2) & (~huc4_df.HUC4.isin(MISSING_HUC4))]
+    .to_crs(CRS)
+    .reset_index(drop=True)
 )
 
-# keep areas that overlap by >= 1%
-huc4 = np.unique(
-    np.append(
-        huc4_df.iloc[contains_ix].HUC4, edge_df.loc[edge_df.overlap_pct >= 1].HUC4
-    )
-)
-huc4_df = huc4_df.loc[huc4_df.HUC4.isin(huc4)].reset_index(drop=True)
 write_dataframe(huc4_df, out_dir / "huc4.fgb")
 huc4_df.to_feather(out_dir / "huc4.feather")

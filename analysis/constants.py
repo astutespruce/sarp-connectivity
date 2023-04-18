@@ -7,29 +7,48 @@ NETWORK_TYPES = {
     # "road_crossing": ["waterfall", "dam", "small_barrier", "road_crossing"],
 }
 
-# Full Southeast + USFWS R2 / R6 region + OR / WA / ID
+# All states in analysis region
 STATES = {
+    "AK": "Alaska",
     "AL": "Alabama",
     "AR": "Arkansas",
     "AZ": "Arizona",
+    "CA": "California",
     "CO": "Colorado",
+    "CT": "Connecticut",
+    "DC": "District of Columbia",
+    "DE": "Delaware",
     "FL": "Florida",
     "GA": "Georgia",
-    "IA": "Iowa",  # not officially part of SE / R2 & R6, but important and mostly covered anyway
+    "IA": "Iowa",
+    "IL": "Illinois",
+    "IN": "Indiana",
     "ID": "Idaho",
     "KS": "Kansas",
     "KY": "Kentucky",
     "LA": "Louisiana",
+    "MA": "Massachusetts",
+    "MD": "Maryland",
+    "ME": "Maine",
+    "MI": "Michigan",
+    "MN": "Minnesota",
     "MO": "Missouri",
     "MS": "Mississippi",
     "MT": "Montana",
     "NC": "North Carolina",
     "ND": "North Dakota",
     "NE": "Nebraska",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
     "NM": "New Mexico",
+    "NV": "Nevada",
+    "NY": "New York",
     "OK": "Oklahoma",
+    "OH": "Ohio",
     "OR": "Oregon",
+    "PA": "Pennsylvania",
     "PR": "Puerto Rico",
+    "RI": "Rhode Island",
     "SC": "South Carolina",
     "SD": "South Dakota",
     "TN": "Tennessee",
@@ -37,7 +56,9 @@ STATES = {
     "UT": "Utah",
     "VA": "Virginia",
     "VI": "United States Virgin Islands",
+    "VT": "Vermont",
     "WA": "Washington",
+    "WI": "Wisconsin",
     "WV": "West Virginia",
     "WY": "Wyoming",
 }
@@ -68,10 +89,9 @@ SARP_STATE_NAMES = [STATES[s] for s in SARP_STATES]
 REGION_STATES = {
     # Southeast is SARP states plus VI & WV (SECAS not SARP states)
     "se": SARP_STATES + ["VI", "WV"],
-    # great plains / intermountain west
+    # Great Plains / intermountain west
     "gpiw": [
         "CO",
-        "IA",  # NOTE: temporary member
         "KS",
         "MT",
         "ND",
@@ -80,8 +100,13 @@ REGION_STATES = {
         "WY",
         "UT",
     ],
+    # Great Lakes
+    "gl": ["IA", "IL", "IN", "MI", "MN", "OH", "WI"],
+    "ak": ["AK"],
     "pnw": ["ID", "OR", "WA"],
+    "psw": ["CA", "NV"],
     "sw": ["AZ", "NM", "OK", "TX"],
+    "ne": ["CT", "DC", "DE", "MA", "MD", "ME", "NH", "NJ", "NY", "PA", "RI", "VT"],
 }
 
 
@@ -115,10 +140,10 @@ GEO_CRS = "EPSG:4326"
 # distance within which points snapping to a line will snap to endpoint of the line
 SNAP_ENDPOINT_TOLERANCE = 1  # meters
 
-# Exclude swamp/marsh (466), estuaries (493), playas (361).
+# Exclude swamp/marsh (466), estuaries (493), playas (361), glaciers (378).
 # NOTE: they do not cut the flowlines in the same
 # way as other waterbodies, so they will cause issues.
-WATERBODY_EXCLUDE_FTYPES = [361, 466, 493]
+WATERBODY_EXCLUDE_FTYPES = [361, 378, 466, 493]
 
 WATERBODY_MIN_SIZE = 0
 
@@ -668,6 +693,47 @@ SALMONID_ESU_LAYER_TO_CODE = {
 }
 
 
+# current HUC8 to NWI HUC8 codes
+NWI_HUC8_ALIAS = {
+    "04030113": "04060106",
+    "04100013": "04100002",
+    "04140301": "04150101",
+    "04140302": "04150102",
+    "04180000": "04020300",
+    "04190000": "04060200",
+    "04200001": "04070002",
+    "04200002": "04070001",
+    "04240002": "04080300",
+    "04260000": "04120200",
+    "04270101": "04120104",
+    "04280002": "04150200",
+    "04290001": "04150309",
+    "04290002": "04150303",
+    "04290003": "04150302",
+    "04290004": "04150304",
+    "04290005": "04150305",
+    "04290006": "04150306",
+    "04290007": "04150307",
+    "04290008": "04150310",
+    "04310001": "04150600",
+    "04300101": "04150401",
+    "04300102": "04150402",
+    "04300103": "04150403",
+    "04300104": "04150404",
+    "04300105": "04150405",
+    "04300106": "04150406",
+    "04300107": "04150407",
+    "04300108": "04150408",
+    "04300109": "04150409",
+    "04030114": "04060107",
+    "04300201": "04150308",
+    "04300202": "04150500",
+    "08010300": "08020201",
+    "10170104": "10150001",
+    "01090006": "01090005",
+}
+
+
 # List of NHDPlusIDs to convert from loops to non-loops;
 # they are coded incorrectly in NHD
 # WARNING: you may need to remove the corresponding segments or joins that
@@ -727,7 +793,7 @@ CONVERT_TO_NONLOOP = {
 # the network topology
 CONVERT_TO_LOOP = {
     "03": [15000600190797],
-    "07": [22000200040459],
+    "07": [22000200040459, 22000500077837, 22000500108669, 22000200040459],
     "10": [
         23001200078773,
         23001200056308,
@@ -783,6 +849,10 @@ REMOVE_IDS = {
     "17": [
         # Fix flowlines at Big Sheep Creek
         55000500251842
+    ],
+    "19": [
+        # remove divergent downstream
+        75000100004795
     ],
 }
 
