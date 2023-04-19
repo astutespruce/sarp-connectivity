@@ -856,6 +856,23 @@ REMOVE_IDS = {
     ],
 }
 
+# List of NHDPlusIDs that border the Great Lakes or are located at junctions
+# between them and aren't picked up automatically via remove_great_lakes_flowlines()
+CONVERT_TO_GREAT_LAKES = {
+    "04": [
+        60001900010183,
+        60002500018160,
+        60002700043312,
+        60002100000007,
+        60002100056060,
+        60002100000016,
+        60002100000021,
+        60002100045841,
+        60002100000015,
+        60002800048624,
+    ]
+}
+
 # List of NHDPlusIDs that flow into marine based on visual inspection
 CONVERT_TO_MARINE = {
     "03": [

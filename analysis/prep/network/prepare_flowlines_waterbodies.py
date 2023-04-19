@@ -26,7 +26,6 @@ It produces data in `data/nhd/clean/<region>`
 
 from pathlib import Path
 from time import time
-import warnings
 
 import geopandas as gp
 import numpy as np
@@ -49,6 +48,7 @@ from analysis.constants import (
 from analysis.lib.flowlines import (
     remove_flowlines,
     remove_pipelines,
+    remove_great_lakes_flowlines,
     remove_marine_flowlines,
     cut_lines_by_waterbodies,
     mark_altered_flowlines,
@@ -67,25 +67,28 @@ huc2s = sorted(
     pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
 )
 # manually subset keys from above for processing
-# huc2s = [
-# "02",
-# "03",
-# "05",
-# "06",
-# "07",
-# "08",
-# "09",
-# "10",
-# "11",
-# "12",
-# "13",
-# "14",
-# "15",
-# "16",
-# "17",
-# "18",
-# "21",
-# ]
+huc2s = [
+    "01",
+    "02",
+    # "03",
+    # "04",
+    "05",
+    # "06",
+    "07",
+    # "08",
+    "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    "14",
+    "15",
+    # "16",
+    # "17",
+    "18",
+    "19",
+    # "21",
+]
 
 
 start = time()
@@ -103,6 +106,11 @@ for huc2 in huc2s:
     )
     joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
     print(f"Read {len(flowlines):,} flowlines")
+
+    waterbodies = gp.read_feather(
+        waterbodies_dir / huc2 / "waterbodies.feather"
+    ).set_index("wbID")
+    print(f"Read {len(waterbodies):,} waterbodies")
 
     print("------------------")
 
@@ -182,6 +190,11 @@ for huc2 in huc2s:
         flowlines, joins = remove_marine_flowlines(flowlines, joins, marine)
         print("------------------")
 
+    ### Remove any flowlines that fall within or follow coastline of the Great Lakes
+    if huc2 == "04":
+        flowlines, joins = remove_great_lakes_flowlines(flowlines, joins, waterbodies)
+        print("------------------")
+
     ### Drop pipelines that are > PIPELINE_MAX_LENGTH or are otherwise isolated from the network
     print("Evaluating pipelines")
     keep_ids = KEEP_PIPELINES.get(huc2, [])
@@ -197,13 +210,6 @@ for huc2 in huc2s:
     ### Add altered status
     nwi = gp.read_feather(nwi_dir / huc2 / "altered_rivers.feather")
     flowlines = mark_altered_flowlines(flowlines, nwi)
-
-    print("------------------")
-
-    waterbodies = gp.read_feather(
-        waterbodies_dir / huc2 / "waterbodies.feather"
-    ).set_index("wbID")
-    print(f"Read {len(waterbodies):,} waterbodies")
 
     print("------------------")
 

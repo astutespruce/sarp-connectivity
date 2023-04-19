@@ -14,7 +14,7 @@ from analysis.lib.geometry import explode
 from analysis.lib.geometry.speedups.lines import cut_lines_at_points
 from analysis.lib.graph.speedups import DirectedGraph
 
-from analysis.constants import SNAP_ENDPOINT_TOLERANCE
+from analysis.constants import SNAP_ENDPOINT_TOLERANCE, CONVERT_TO_GREAT_LAKES
 
 # In order to cut a flowline, it must be at least this long, and at least
 # this different from original flowline
@@ -1017,6 +1017,86 @@ def remove_marine_flowlines(flowlines, joins, marine):
     joins = remove_joins(
         joins, ix, downstream_col="downstream_id", upstream_col="upstream_id"
     )
+
+    # mark any new terminals as such
+    joins.loc[
+        (joins.downstream_id == 0) & (joins.type == "internal"), "type"
+    ] = "terminal"
+
+    return flowlines, joins
+
+
+def remove_great_lakes_flowlines(flowlines, joins, waterbodies):
+    """Remove flowlines that fall within the Great Lakes
+    (they are not well-connected networks) and any that form the borders of the
+    Great Lakes because NHD coded coastlines as artificial paths instead of the
+    coastlines FType.
+
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+    marine : GeoDataFrame
+
+    Returns
+    -------
+    (GeoDataFrame, DataFrame)
+        flowlines, joins
+    """
+
+    print("Finding flowlines that overlap with the Great Lakes")
+
+    # limit to artificial paths
+    tmp = flowlines.loc[flowlines.FType == 558]
+    # limit to great lakes
+    great_lakes = waterbodies.loc[waterbodies.km2 >= 8000]
+
+    tree = shapely.STRtree(tmp.geometry.values)
+    left, right = tree.query(great_lakes.geometry.values, predicate="intersects")
+
+    # NOTE: any that touch 2 waterbodies are at the junction of Lake Michigan &
+    # Lake Huron; these are manually removed elsewhere
+    pairs = pd.DataFrame(
+        {
+            "wb": great_lakes.geometry.values.take(left),
+            "lineID": tmp.index.values.take(right),
+            "first_point": shapely.get_point(tmp.geometry.values.take(right), 0),
+            "last_point": shapely.get_point(tmp.geometry.values.take(right), -1),
+        }
+    )
+    shapely.prepare(pairs.wb.values)
+
+    # find any where the first and last point intersect a Great Lake or are
+    # within 1m
+    close_enough = (
+        shapely.intersects(pairs.wb.values, pairs.first_point.values)
+        & shapely.intersects(pairs.wb.values, pairs.last_point.values)
+    ) | (
+        shapely.dwithin(pairs.wb.values, pairs.first_point.values, 1)
+        & shapely.dwithin(pairs.wb.values, pairs.last_point.values, 1)
+    )
+
+    # remove any that were within or bordered the Great Lakes
+    drop_ids = pairs.loc[close_enough].lineID.unique()
+
+    # also add any that were picked up in manual review but not via methods above
+    other_drop_ids = flowlines.loc[
+        flowlines.NHDPlusID.isin(CONVERT_TO_GREAT_LAKES["04"])
+    ].index.unique()
+
+    drop_ids = np.unique(np.concatenate([drop_ids, other_drop_ids]))
+
+    print(
+        f"Removing {len(drop_ids):,} flowlines that border or fall within the Great Lakes"
+    )
+
+    flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
+    joins = remove_joins(
+        joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+
+    # fix any that are now defunct
+    joins = joins.loc[~((joins.upstream_id == 0) & (joins.downstream_id == 0))].copy()
 
     # mark any new terminals as such
     joins.loc[
