@@ -8,6 +8,7 @@ import { Link } from 'components/Link'
 const NavMenuItem = ({
   label,
   url,
+  inDevelopment,
   external,
   showBorder,
   hasChildren,
@@ -44,6 +45,9 @@ const NavMenuItem = ({
     {url ? (
       <Link to={url} css={{ display: 'block' }}>
         {label}
+        {inDevelopment ? (
+          <Text sx={{ fontSize: 0, color: 'grey.8' }}>(in development)</Text>
+        ) : null}
       </Link>
     ) : (
       <Text
@@ -62,6 +66,7 @@ const NavMenuItem = ({
 NavMenuItem.propTypes = {
   label: PropTypes.string.isRequired,
   url: PropTypes.string,
+  inDevelopment: PropTypes.bool,
   external: PropTypes.bool,
   showBorder: PropTypes.bool,
   hasChildren: PropTypes.bool,
@@ -69,6 +74,7 @@ NavMenuItem.propTypes = {
 
 NavMenuItem.defaultProps = {
   url: null,
+  inDevelopment: false,
   external: null,
   showBorder: true,
   hasChildren: false,

@@ -3,7 +3,7 @@ import { Box, Grid, Paragraph, Heading } from 'theme-ui'
 
 import { Link } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
-import { siteMetadata, REGION_STATES } from 'config'
+import { siteMetadata, ANALYSIS_STATES } from 'config'
 import { formatNumber } from 'util/format'
 import { useSummaryData } from 'components/Data'
 
@@ -68,8 +68,8 @@ const Inventory = () => {
               }}
             >
               <li>
-                <b>{Object.keys(REGION_STATES.total).length - 1}</b> states,
-                Puerto Rico, and U.S. Virgin Islands
+                <b>{ANALYSIS_STATES.length - 2}</b> states, Puerto Rico, and
+                U.S. Virgin Islands
               </li>
               <li>
                 <b>{formatNumber(dams, 0)}</b> inventoried dams

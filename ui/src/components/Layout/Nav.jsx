@@ -2,6 +2,7 @@ import React from 'react'
 import { Flex } from 'theme-ui'
 import { ChartBar, SearchLocation, Download } from '@emotion-icons/fa-solid'
 
+import { REGIONS } from 'config'
 import { hasWindow } from 'util/dom'
 import { Link } from 'components/Link'
 import NavMenu from './NavMenu'
@@ -26,22 +27,9 @@ const activeNavLinkCSS = {
 const isActivePath = (path) =>
   hasWindow && window.location.href.search(path) !== -1
 
-const regions = [
-  { label: 'Southeast', url: '/regions/southeast' },
-  {
-    label: 'Great Plains & Intermountain West',
-    url: '/regions/great_plains_intermountain_west',
-  },
-  { label: 'Southwest', url: '/regions/southwest' },
-  { label: 'Pacific Northwest', url: '/regions/northwest' },
-  { label: 'Great Lakes (under development)', url: '/regions/great_lakes' },
-  {
-    label: 'Pacific Southwest (under development)',
-    url: '/regions/pacific_southwest',
-  },
-  { label: 'Alaska (under development)', url: '/regions/alaska' },
-  { label: 'Northeast (under development)', url: '/regions/northeast' },
-]
+const regions = Object.values(REGIONS)
+  .map(({ name: label, ...rest }) => ({ label, ...rest }))
+  .sort(({ order: a }, { order: b }) => (a < b ? -1 : 1))
 
 const Nav = () => (
   <Flex

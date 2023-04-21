@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Paragraph } from 'theme-ui'
 
 import { useStateSummary } from 'components/Data'
-import { REGION_STATES, STATES } from 'config'
+import { REGIONS, STATES } from 'config'
 import { groupBy } from 'util/data'
 import { formatNumber } from 'util/format'
 
@@ -22,7 +22,7 @@ const StateDownloadTable = ({
   ...props
 }) => {
   const stateData = groupBy(useStateSummary(), 'id')
-  const regionStates = REGION_STATES[region]
+  const { states } = REGIONS[region]
 
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
@@ -97,7 +97,7 @@ const StateDownloadTable = ({
             </tr>
           </thead>
           <tbody>
-            {regionStates
+            {states
               .sort((a, b) => (STATES[a] < STATES[b] ? -1 : 1))
               .map((id) => (
                 <tr key={id}>
@@ -145,7 +145,7 @@ const StateDownloadTable = ({
                   disabled={dams === 0}
                   config={{
                     ...downloadConfig,
-                    summaryUnits: regionStates.map((id) => ({ id })),
+                    summaryUnits: states.map((id) => ({ id })),
                   }}
                 />
               </td>
@@ -157,7 +157,7 @@ const StateDownloadTable = ({
                   disabled={totalSmallBarriers === 0}
                   config={{
                     ...downloadConfig,
-                    summaryUnits: regionStates.map((id) => ({ id })),
+                    summaryUnits: states.map((id) => ({ id })),
                   }}
                 />
               </td>

@@ -27,17 +27,6 @@ export const barrierNameWhenUnknown = {
   waterfalls: 'Waterfall (unknown name)',
 }
 
-export const REGIONS = {
-  ak: 'Alaska',
-  gl: 'Great Lakes',
-  gpiw: 'Great Plains & Intermountain West',
-  ne: 'Northeast',
-  pnw: 'Pacific Northwest',
-  psw: 'Pacific Southwest',
-  se: 'Southeast',
-  sw: 'Southwest',
-}
-
 // some colors are derived from: https://xdgov.github.io/data-design-standards/components/colors
 export const pointColors = {
   highlight: {
@@ -498,37 +487,95 @@ export const STATES = {
   WY: 'Wyoming',
 }
 
-export const REGION_STATES = {
-  ak: ['AK'],
-  gl: ['IA', 'IL', 'IN', 'MI', 'MN', 'OH', 'WI'],
-  gpiw: ['CO', 'IA', 'KS', 'MT', 'ND', 'NE', 'SD', 'WY', 'UT'],
-  ne: ['CT', 'DC', 'DE', 'MA', 'MD', 'ME', 'NH', 'NJ', 'NY', 'PA', 'RI', 'VT'],
-  pnw: ['ID', 'OR', 'WA'],
-  psw: ['CA', 'NV'],
-  se: [
-    'AL',
-    'AR',
-    'FL',
-    'GA',
-    'KY',
-    'LA',
-    'MO',
-    'MS',
-    'NC',
-    'OK',
-    'PR',
-    'SC',
-    'TN',
-    'TX',
-    'VA',
-    'VI',
-    'WV',
-  ],
-  sw: ['AZ', 'NM', 'OK', 'TX'],
+export const REGIONS = {
+  ak: {
+    name: 'Alaska',
+    order: 6,
+    url: '/regions/alaska',
+    states: ['AK'],
+    inDevelopment: true,
+  },
+  gl: {
+    name: 'Great Lakes',
+    order: 4,
+    url: '/regions/great_lakes',
+    states: ['IA', 'IL', 'IN', 'MI', 'MN', 'OH', 'WI'],
+    inDevelopment: true,
+  },
+  gpiw: {
+    name: 'Great Plains & Intermountain West',
+    url: '/regions/great_plains_intermountain_west',
+    order: 1,
+    states: ['CO', 'IA', 'KS', 'MT', 'ND', 'NE', 'SD', 'WY', 'UT'],
+  },
+  ne: {
+    name: 'Northeast',
+    order: 7,
+    url: '/regions/northeast',
+    states: [
+      'CT',
+      'DC',
+      'DE',
+      'MA',
+      'MD',
+      'ME',
+      'NH',
+      'NJ',
+      'NY',
+      'PA',
+      'RI',
+      'VT',
+    ],
+    inDevelopment: true,
+  },
+  pnw: {
+    name: 'Pacific Northwest',
+    order: 3,
+    url: '/regions/northwest',
+    states: ['ID', 'OR', 'WA'],
+  },
+  psw: {
+    name: 'Pacific Southwest',
+    order: 5,
+    url: '/regions/pacific_southwest',
+    states: ['CA', 'NV'],
+    inDevelopment: true,
+  },
+  se: {
+    name: 'Southeast',
+    order: 0,
+    url: '/regions/southeast',
+    states: [
+      'AL',
+      'AR',
+      'FL',
+      'GA',
+      'KY',
+      'LA',
+      'MO',
+      'MS',
+      'NC',
+      'OK',
+      'PR',
+      'SC',
+      'TN',
+      'TX',
+      'VA',
+      'VI',
+      'WV',
+    ],
+  },
+  sw: {
+    name: 'Southwest',
+    order: 2,
+    url: '/regions/southwest',
+    states: ['AZ', 'NM', 'OK', 'TX'],
+  },
 }
-REGION_STATES.total = [
+
+export const ANALYSIS_STATES = [
   ...new Set(
-    Object.values(REGION_STATES).reduce((prev, cur) => {
+    Object.values(REGIONS).reduce((prev, { states: cur }) => {
       prev.push(...cur)
       return prev
     }, [])

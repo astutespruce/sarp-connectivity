@@ -5,6 +5,7 @@ import { GatsbyImage } from 'gatsby-plugin-image'
 
 import {
   Box,
+  Flex,
   Container,
   Divider,
   Grid,
@@ -20,13 +21,14 @@ import { Link, OutboundLink } from 'components/Link'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-import { REGIONS, REGION_STATES } from 'config'
+import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'
 import SARPLogoImage from 'images/sarp_logo.png'
 
 const regionID = 'se'
-const { [regionID]: name } = REGIONS
-const { [regionID]: states } = REGION_STATES
+const {
+  [regionID]: { name, states },
+} = REGIONS
 
 const SERegionPage = ({
   data: {
@@ -59,7 +61,19 @@ const SERegionPage = ({
       />
 
       <Container>
-        <Heading as="h1">Southeast Region</Heading>
+        <Flex
+          sx={{
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid',
+            borderBottomColor: 'grey.2',
+            pb: '0.25rem',
+          }}
+        >
+          <Heading as="h1" sx={{ flex: '1 1 auto' }}>
+            {name} Region
+          </Heading>
+        </Flex>
 
         <Grid columns={2} gap={5} sx={{ mt: '2rem' }}>
           <Box>
