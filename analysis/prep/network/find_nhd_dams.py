@@ -1,7 +1,6 @@
 from pathlib import Path
 import os
 from time import time
-import warnings
 
 import numpy as np
 import pandas as pd
@@ -15,7 +14,6 @@ from analysis.lib.geometry import (
     dissolve,
     explode,
     sjoin_geometry,
-    nearest,
     find_contiguous_groups,
 )
 from analysis.lib.io import read_feathers

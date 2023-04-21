@@ -14,7 +14,7 @@ ui_data_dir = Path("ui/data")
 
 ### Read dams
 dams = pd.read_feather(
-    api_dir / f"dams.feather",
+    api_dir / "dams.feather",
     columns=["id", "HasNetwork", "Ranked", "State"],
 ).set_index("id", drop=False)
 # Get recon from master

@@ -19,12 +19,16 @@ import { StateDownloadTable } from 'components/Download'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-import { REGION_STATES } from 'config'
+import { REGIONS, REGION_STATES } from 'config'
 import { formatNumber } from 'util/format'
 
 import WDFWLogo from 'images/wdfw_logo.svg'
 import ODFWLogo from 'images/odfw_logo.svg'
 import IDFGLogo from 'images/idfg_logo.png'
+
+const regionID = 'pnw'
+const { [regionID]: name } = REGIONS
+const { [regionID]: states } = REGION_STATES
 
 const PNWRegionPage = ({
   data: {
@@ -39,7 +43,7 @@ const PNWRegionPage = ({
     },
   },
 }) => {
-  const { pnw } = useSummaryData()
+  const { [regionID]: summary } = useSummaryData()
 
   return (
     <Layout>
@@ -54,33 +58,33 @@ const PNWRegionPage = ({
       />
 
       <Container>
-        <Heading as="h1">Pacific Northwest Region</Heading>
+        <Heading as="h1">{name} Region</Heading>
 
         <Grid columns={2} gap={5} sx={{ mt: '2rem' }}>
           <Box>
             <Box sx={{ border: '1px solid', borderColor: 'grey.4' }}>
               <GatsbyImage
                 image={map}
-                alt="Northwest region map"
+                alt={`${name} region map`}
                 sx={{ border: '1px solid', borderColor: 'grey.3' }}
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(pnw.dams)} inventoried dams and{' '}
-              {formatNumber(pnw.smallBarriers)} road-related barriers likely to
-              impact aquatic organisms in the Northwest region.
+              Map of {formatNumber(summary.dams)} inventoried dams and{' '}
+              {formatNumber(summary.smallBarriers)} road-related barriers likely
+              to impact aquatic organisms in the {name} region.
             </Text>
           </Box>
           <Box>
             <Heading as="h4" sx={{ mb: '1rem' }}>
-              Includes {REGION_STATES.pnw.length} states with:
+              Includes {states.length} states with:
             </Heading>
 
-            <RegionStats {...pnw} />
+            <RegionStats {...summary} />
           </Box>
         </Grid>
 
-        <RegionActionLinks region="pnw" />
+        <RegionActionLinks region={regionID} />
 
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">
@@ -140,7 +144,7 @@ const PNWRegionPage = ({
             Statistics by state:
           </Heading>
           <Box sx={{ mt: '0.5rem' }}>
-            <StateDownloadTable region="pnw" {...pnw} />
+            <StateDownloadTable region={regionID} {...summary} />
           </Box>
         </Box>
 
@@ -161,7 +165,7 @@ const PNWRegionPage = ({
                 <br />
                 <a href="mailto:kat@southeastaquatics.net">Contact us</a> to
                 learn more about how you can help improve aquatic connectivity
-                in the Northwest.
+                in the {name} region.
               </Paragraph>
             </Box>
 
@@ -229,4 +233,4 @@ export const pageQuery = graphql`
 
 export default PNWRegionPage
 
-export const Head = () => <SEO title="Pacific Northwest Region" />
+export const Head = () => <SEO title={`${name} Region`} />

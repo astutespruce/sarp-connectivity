@@ -166,6 +166,7 @@ DAM_FS_COLS = [
     "NIDID",
     "SourceDBID",
     "DB_Source",
+    "StateAbbreviation",
     "Barrier_Name",
     "Other_Barrier_Name",
     "OwnerType",

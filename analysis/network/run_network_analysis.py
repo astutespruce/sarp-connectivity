@@ -64,8 +64,10 @@ huc2s = sorted([huc2 for huc2 in barriers.HUC2.unique() if huc2])
 
 # manually subset keys from above for processing
 # huc2s = [
+#     "01",
 #     "02",
 #     "03",
+#     "04",
 #     "05",
 #     "06",
 #     "07",
@@ -80,6 +82,7 @@ huc2s = sorted([huc2 for huc2 in barriers.HUC2.unique() if huc2])
 #     "16",
 #     "17",
 #     "18",
+#     "19",
 #     "21",
 # ]
 

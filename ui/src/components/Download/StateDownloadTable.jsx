@@ -97,36 +97,40 @@ const StateDownloadTable = ({
             </tr>
           </thead>
           <tbody>
-            {regionStates.map((id) => (
-              <tr key={id}>
-                <td>{STATES[id]}</td>
-                <td>{formatNumber(stateData[id].dams)}</td>
-                <td>{formatNumber(stateData[id].reconDams)}</td>
-                <td>{formatNumber(stateData[id].totalSmallBarriers)}</td>
-                <td>
-                  <Downloader
-                    label="dams"
-                    asButton
-                    barrierType="dams"
-                    config={{
-                      ...downloadConfig,
-                      summaryUnits: [{ id }],
-                    }}
-                  />
-                </td>
-                <td>
-                  <Downloader
-                    label="barriers"
-                    asButton
-                    barrierType="small_barriers"
-                    config={{
-                      ...downloadConfig,
-                      summaryUnits: [{ id }],
-                    }}
-                  />
-                </td>
-              </tr>
-            ))}
+            {regionStates
+              .sort((a, b) => (STATES[a] < STATES[b] ? -1 : 1))
+              .map((id) => (
+                <tr key={id}>
+                  <td>{STATES[id]}</td>
+                  <td>{formatNumber(stateData[id].dams)}</td>
+                  <td>{formatNumber(stateData[id].reconDams)}</td>
+                  <td>{formatNumber(stateData[id].totalSmallBarriers)}</td>
+                  <td>
+                    <Downloader
+                      label="dams"
+                      asButton
+                      barrierType="dams"
+                      disabled={stateData[id].dams === 0}
+                      config={{
+                        ...downloadConfig,
+                        summaryUnits: [{ id }],
+                      }}
+                    />
+                  </td>
+                  <td>
+                    <Downloader
+                      label="barriers"
+                      asButton
+                      barrierType="small_barriers"
+                      disabled={stateData[id].totalSmallBarriers === 0}
+                      config={{
+                        ...downloadConfig,
+                        summaryUnits: [{ id }],
+                      }}
+                    />
+                  </td>
+                </tr>
+              ))}
 
             <tr>
               <td>Total</td>
@@ -138,6 +142,7 @@ const StateDownloadTable = ({
                   label="dams"
                   asButton
                   barrierType="dams"
+                  disabled={dams === 0}
                   config={{
                     ...downloadConfig,
                     summaryUnits: regionStates.map((id) => ({ id })),
@@ -149,6 +154,7 @@ const StateDownloadTable = ({
                   label="barriers"
                   asButton
                   barrierType="small_barriers"
+                  disabled={totalSmallBarriers === 0}
                   config={{
                     ...downloadConfig,
                     summaryUnits: regionStates.map((id) => ({ id })),

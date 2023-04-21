@@ -28,8 +28,12 @@ export const barrierNameWhenUnknown = {
 }
 
 export const REGIONS = {
+  ak: 'Alaska',
+  gl: 'Great Lakes',
   gpiw: 'Great Plains & Intermountain West',
+  ne: 'Northeast',
   pnw: 'Pacific Northwest',
+  psw: 'Pacific Southwest',
   se: 'Southeast',
   sw: 'Southwest',
 }
@@ -486,6 +490,7 @@ export const STATES = {
   TX: 'Texas',
   UT: 'Utah',
   VA: 'Virginia',
+  VI: 'U.S. Virgin Islands',
   VT: 'Vermont',
   WA: 'Washington',
   WI: 'Wisconsin',
@@ -494,6 +499,12 @@ export const STATES = {
 }
 
 export const REGION_STATES = {
+  ak: ['AK'],
+  gl: ['IA', 'IL', 'IN', 'MI', 'MN', 'OH', 'WI'],
+  gpiw: ['CO', 'IA', 'KS', 'MT', 'ND', 'NE', 'SD', 'WY', 'UT'],
+  ne: ['CT', 'DC', 'DE', 'MA', 'MD', 'ME', 'NH', 'NJ', 'NY', 'PA', 'RI', 'VT'],
+  pnw: ['ID', 'OR', 'WA'],
+  psw: ['CA', 'NV'],
   se: [
     'AL',
     'AR',
@@ -510,20 +521,9 @@ export const REGION_STATES = {
     'TN',
     'TX',
     'VA',
-    'WV', // TEMP
+    'VI',
+    'WV',
   ],
-  gpiw: [
-    'CO',
-    'IA', // TEMP:
-    'KS',
-    'MT',
-    'ND',
-    'NE',
-    'SD',
-    'WY',
-    'UT',
-  ],
-  pnw: ['ID', 'OR', 'WA'],
   sw: ['AZ', 'NM', 'OK', 'TX'],
 }
 REGION_STATES.total = [

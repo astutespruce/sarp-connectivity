@@ -68,8 +68,8 @@ const Inventory = () => {
               }}
             >
               <li>
-                <b>{Object.keys(REGION_STATES.total).length - 1}</b> states and
-                Puerto Rico
+                <b>{Object.keys(REGION_STATES.total).length - 1}</b> states,
+                Puerto Rico, and U.S. Virgin Islands
               </li>
               <li>
                 <b>{formatNumber(dams, 0)}</b> inventoried dams

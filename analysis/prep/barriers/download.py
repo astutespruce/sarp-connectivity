@@ -2,13 +2,11 @@ import asyncio
 import os
 from pathlib import Path
 from time import time
-import warnings
 
 from dotenv import load_dotenv
 import httpx
 import pandas as pd
 import numpy as np
-from pyogrio import read_dataframe
 
 from analysis.constants import (
     DAM_FS_COLS,
@@ -16,7 +14,7 @@ from analysis.constants import (
     SMALL_BARRIER_COLS,
     WATERFALL_COLS,
 )
-from analysis.prep.barriers.lib.arcgis import download_fs, list_services
+from analysis.prep.barriers.lib.arcgis import download_fs
 
 
 # Load the token from the .env file in the root of this project
@@ -29,6 +27,9 @@ if not TOKEN:
 SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Dam_Snapping_QA_Dataset_01212020/FeatureServer/0"
 SMALL_BARRIERS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_RoadBarriers_01212019/FeatureServer/0"
 WATERFALLS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/SARP_Waterfall_Database_01212020/FeatureServer/0"
+
+# National dams URL
+DAMS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/National_Aquatic_Barrier_Inventory_Dams_Compilation_03202023/FeatureServer/0"
 
 # Root URLS of feature service
 DAM_URLS = {
@@ -66,7 +67,34 @@ DAM_URLS = {
 }
 
 
-async def download_state_dams(client, state, token):
+async def download_national_dams(token):
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(60.0, connect=60.0), http2=True
+    ) as client:
+        df = await download_fs(client, DAMS_URL, fields=DAM_FS_COLS, token=token)
+
+        df = df.rename(
+            columns={
+                "SARPUniqueID": "SARPID",
+                "PotentialFeasibility": "Feasibility",
+                "Barrier_Name": "Name",
+                "Other_Barrier_Name": "OtherName",
+                "DB_Source": "Source",
+                "Year_Completed": "YearCompleted",
+                "Year_Removed": "YearRemoved",
+                "ConstructionMaterial": "Construction",
+                "PurposeCategory": "Purpose",
+                "StructureCondition": "Condition",
+                "LowheadDam1": "LowheadDam",
+                "OwnerType": "BarrierOwnerType",
+                "StateAbbreviation": "SourceState",
+            }
+        )
+
+    return df
+
+
+async def download_dams_for_state(client, state, token):
     df = await download_fs(client, DAM_URLS[state], fields=DAM_FS_COLS, token=token)
 
     df = df.rename(
@@ -97,20 +125,20 @@ async def download_state_dams(client, state, token):
     df["SourceState"] = state
 
     # Add feasibility so that we can merge
-    if not "Feasibility" in df.columns:
+    if "Feasibility" not in df.columns:
         # we backfill this later
         df["Feasibility"] = np.nan
 
     return df
 
 
-async def download_dams(token):
+async def download_state_dams(token):
     async with httpx.AsyncClient(
         timeout=httpx.Timeout(60.0, connect=60.0),
         http2=True,
     ) as client:
         tasks = [
-            asyncio.ensure_future(download_state_dams(client, state, token))
+            asyncio.ensure_future(download_dams_for_state(client, state, token))
             for state in DAM_URLS
         ]
         completed = await asyncio.gather(*tasks)
@@ -218,29 +246,38 @@ out_dir = Path("data/barriers/source")
 
 start = time()
 
+### Download national dams
+print("\n---- Downloading National Dams ----")
+download_start = time()
+natl_df = asyncio.run(download_national_dams(TOKEN))
+print(f"Downloaded {len(natl_df):,} dams in {time() - download_start:.2f}s")
+
+
 ## Download and merge state feature services
 print("\n---- Downloading State Dams ----")
 download_start = time()
-df = asyncio.run(download_dams(TOKEN))
-print("Downloaded {:,} dams in {:.2f}s".format(len(df), time() - download_start))
+state_df = asyncio.run(download_state_dams(TOKEN))
+print(
+    f"Downloaded {len(state_df):,} state-level dams in {time() - download_start:.2f}s"
+)
 
-ix = df.geometry.isnull()
+ix = state_df.geometry.isnull()
 if ix.sum():
     print(f"WARNING: {ix.sum()} dams are missing geometry values")
-    print(df.loc[ix].groupby("SourceState").size())
-    print("SARPIDs:", df.loc[ix].SARPID.unique().tolist())
-    df = df.loc[~ix].copy()
+    print(state_df.loc[ix].groupby("SourceState").size())
+    print("SARPIDs:", state_df.loc[ix].SARPID.unique().tolist())
+    df = state_df.loc[~ix].copy()
     print("\n")
 
-print("Projecting dams...")
-df = df.copy().to_crs(CRS).reset_index(drop=True)
+print("Merging and projecting dams...")
+df = pd.concat(
+    [natl_df.to_crs(CRS), state_df.to_crs(CRS)], ignore_index=True, sort=False
+).reset_index(drop=True)
 
 ix = df.SARPID.isnull() | (df.SARPID == "")
 if ix.max():
     print(
-        "--------------------------\nWARNING: {:,} dams are missing SARPID\n----------------------------".format(
-            ix.sum()
-        )
+        f"--------------------------\nWARNING: {ix.sum():,} dams are missing SARPID\n----------------------------"
     )
     print(df.loc[ix].groupby("SourceState").size())
 
@@ -263,9 +300,7 @@ df.to_feather(out_dir / "sarp_dams.feather")
 print("\n---- Downloading Snapped Dams ----")
 download_start = time()
 df = asyncio.run(download_snapped_dams(TOKEN))
-print(
-    "Downloaded {:,} snapped dams in {:.2f}s".format(len(df), time() - download_start)
-)
+print(f"Downloaded {len(df):,} snapped dams in {time() - download_start:.2f}s")
 
 df.to_feather(out_dir / "manually_snapped_dams.feather")
 
@@ -273,16 +308,12 @@ df.to_feather(out_dir / "manually_snapped_dams.feather")
 print("\n---- Downloading Small Barriers ----")
 download_start = time()
 df = asyncio.run(download_small_barriers(TOKEN))
-print(
-    "Downloaded {:,} small barriers in {:.2f}s".format(len(df), time() - download_start)
-)
+print(f"Downloaded {len(df):,} small barriers in {time() - download_start:.2f}s")
 
 ix = df.SARPID.isnull() | (df.SARPID == "")
 if ix.max():
     print(
-        "--------------------------\nWARNING: {:,} small barriers are missing SARPID\n----------------------------".format(
-            ix.sum()
-        )
+        f"--------------------------\nWARNING: {ix.sum():,} small barriers are missing SARPID\n----------------------------"
     )
 
 # # DEBUG ONLY - SARPID must be present; follow up with SARP if not
@@ -300,9 +331,9 @@ df.to_feather(out_dir / "sarp_small_barriers.feather")
 download_start = time()
 print("\n---- Downloading waterfalls ----")
 df = asyncio.run(download_waterfalls(TOKEN))
-print("Downloaded {:,} waterfalls in {:.2f}s".format(len(df), time() - download_start))
+print(f"Downloaded {len(df):,} waterfalls in {time() - download_start:.2f}s")
 
 df.to_feather(out_dir / "waterfalls.feather")
 
 
-print("---------------\nAll done in {:.2f}s".format(time() - start))
+print(f"---------------\nAll done in {time() - start:.2f}s")

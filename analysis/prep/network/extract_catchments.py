@@ -11,10 +11,6 @@ from analysis.prep.network.lib.nhd.util import get_column_names
 
 warnings.filterwarnings("ignore", message=".*Warning 1: organizePolygons.*")
 
-MAX_HUC4s = 5  # max number of HUC4s to include before considering a split
-# For region 17:
-# MAX_HUC4s = 3
-
 
 def process_gdbs(src_dir):
     merged = None
@@ -70,27 +66,28 @@ tmp_dir.mkdir(exist_ok=True, parents=True)
 start = time()
 
 # manually subset keys from above for processing
-huc2s = [
-    # "02",
-    # "03",
-    "04",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
-    # "18",
-    # "19",
-    # "21",
-]
+# huc2s = [
+# "01",
+# "02",
+# "03",
+# "04",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "18",
+# "19",
+# "21",
+# ]
 
 for huc2 in huc2s:
     print(f"----- {huc2} ------")

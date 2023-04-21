@@ -8,7 +8,6 @@ import {
   Divider,
   Grid,
   Heading,
-  Image,
   Paragraph,
   Text,
 } from 'theme-ui'
@@ -16,21 +15,16 @@ import {
 import { useSummaryData } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
 import { Layout, SEO } from 'components/Layout'
-import { OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
 import { REGIONS, REGION_STATES } from 'config'
 import { formatNumber } from 'util/format'
 
-import MTFWPLogo from 'images/mtfwp_logo.svg'
-import UTDWRLogo from 'images/utdwr_logo.svg'
-import WYGFDLogo from 'images/wygfd_logo.png'
-
-const regionID = 'gpiw'
+const regionID = 'ne'
 const { [regionID]: name } = REGIONS
 const { [regionID]: states } = REGION_STATES
 
-const GPIWRegionPage = ({
+const NortheastRegionPage = ({
   data: {
     headerImage: {
       childImageSharp: { gatsbyImageData: headerImage },
@@ -49,14 +43,13 @@ const GPIWRegionPage = ({
         height="20vh"
         minHeight="18rem"
         credits={{
-          author: 'Dillon Fancher',
-          url: 'https://unsplash.com/photos/E1FpiiUhRJ0',
+          author: 'John Holm',
+          url: 'https://unsplash.com/photos/JxpZVvRjhKQ',
         }}
       />
 
       <Container>
         <Heading as="h1">{name} Region</Heading>
-
         <Grid columns={2} gap={5} sx={{ mt: '2rem' }}>
           <Box>
             <Box sx={{ border: '1px solid', borderColor: 'grey.4' }}>
@@ -69,7 +62,8 @@ const GPIWRegionPage = ({
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
               Map of {formatNumber(summary.dams)} inventoried dams and{' '}
               {formatNumber(summary.smallBarriers)} road-related barriers likely
-              to impact aquatic organisms in the {name} region.
+              to impact aquatic organisms in the {name}
+              region.
             </Text>
           </Box>
           <Box>
@@ -80,56 +74,9 @@ const GPIWRegionPage = ({
             <RegionStats {...summary} />
           </Box>
         </Grid>
-
         <RegionActionLinks region={regionID} />
 
-        <Box variant="boxes.section">
-          <Heading as="h2" variant="heading.section">
-            Data Sources
-          </Heading>
-
-          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '0.5rem' }}>
-            <Paragraph>
-              Records describing dams and road-related barriers within Montana
-              include those maintained by the{' '}
-              <OutboundLink to="https://fwp.mt.gov/">
-                Montana Department of Fish, Wildlife, and Parks
-              </OutboundLink>
-              .
-            </Paragraph>
-            <Box sx={{ maxWidth: '80px' }}>
-              <Image src={MTFWPLogo} />
-            </Box>
-          </Grid>
-
-          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
-            <Paragraph>
-              Records describing dams and road-related barriers within Utah
-              include those maintained by the{' '}
-              <OutboundLink to="https://wildlifemigration.utah.gov/fish-and-amphibians/barriers/">
-                Utah Barrier Assessment Inventory Tool
-              </OutboundLink>
-              .
-            </Paragraph>
-            <Box sx={{ maxWidth: '300px' }}>
-              <Image src={UTDWRLogo} />
-            </Box>
-          </Grid>
-
-          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
-            <Paragraph>
-              Information on aquatic barriers in Wyoming is a product of the{' '}
-              <OutboundLink to="https://wgfd.wyo.gov/habitat/aquatic-habitat">
-                Wyoming Game & Fish Department
-              </OutboundLink>
-              , including field data collection in coordination with the
-              Southeast Aquatic Resources Partnership.
-            </Paragraph>
-            <Box sx={{ maxWidth: '80px' }}>
-              <Image src={WYGFDLogo} />
-            </Box>
-          </Grid>
-        </Box>
+        {/* TODO: data sources section */}
 
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">
@@ -139,9 +86,7 @@ const GPIWRegionPage = ({
             <StateDownloadTable region={regionID} {...summary} />
           </Box>
         </Box>
-
         <Divider sx={{ my: '4rem' }} />
-
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">
             You can help!
@@ -163,7 +108,7 @@ const GPIWRegionPage = ({
   )
 }
 
-GPIWRegionPage.propTypes = {
+NortheastRegionPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
     map: PropTypes.object.isRequired,
@@ -171,9 +116,9 @@ GPIWRegionPage.propTypes = {
 }
 
 export const pageQuery = graphql`
-  query GPIWRegionPageQuery {
+  query NortheastRegionPageQuery {
     headerImage: file(
-      relativePath: { eq: "dillon-fancher-E1FpiiUhRJ0-unsplash.jpg" }
+      relativePath: { eq: "john-holm-JxpZVvRjhKQ-unsplash.jpg" }
     ) {
       childImageSharp {
         gatsbyImageData(
@@ -183,7 +128,7 @@ export const pageQuery = graphql`
         )
       }
     }
-    map: file(relativePath: { eq: "maps/gpiw.png" }) {
+    map: file(relativePath: { eq: "maps/ne.png" }) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH
@@ -195,6 +140,6 @@ export const pageQuery = graphql`
   }
 `
 
-export default GPIWRegionPage
+export default NortheastRegionPage
 
 export const Head = () => <SEO title={`${name} Region`} />

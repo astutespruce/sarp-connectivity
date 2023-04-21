@@ -34,6 +34,13 @@ const regions = [
   },
   { label: 'Southwest', url: '/regions/southwest' },
   { label: 'Pacific Northwest', url: '/regions/northwest' },
+  { label: 'Great Lakes (under development)', url: '/regions/great_lakes' },
+  {
+    label: 'Pacific Southwest (under development)',
+    url: '/regions/pacific_southwest',
+  },
+  { label: 'Alaska (under development)', url: '/regions/alaska' },
+  { label: 'Northeast (under development)', url: '/regions/northeast' },
 ]
 
 const Nav = () => (

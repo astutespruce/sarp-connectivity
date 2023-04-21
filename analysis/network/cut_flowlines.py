@@ -25,8 +25,10 @@ huc2s = huc2_df.HUC2.sort_values().values
 
 # manually subset keys from above for processing
 # huc2s = [
+# "01",
 # "02",
 # "03",
+# "04"
 # "05",
 # "06",
 # "07",
@@ -41,6 +43,7 @@ huc2s = huc2_df.HUC2.sort_values().values
 # "16",
 # "17",
 # "18"
+# "19",
 # "21",
 # ]
 
