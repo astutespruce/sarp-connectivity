@@ -52,6 +52,7 @@ from analysis.lib.flowlines import (
     remove_marine_flowlines,
     cut_lines_by_waterbodies,
     mark_altered_flowlines,
+    repair_disconnected_subnetworks,
 )
 from analysis.prep.network.lib.drains import create_drain_points
 
@@ -67,28 +68,28 @@ huc2s = sorted(
     pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
 )
 # manually subset keys from above for processing
-# huc2s = [
-# "01",
-# "02",
-# "03",
-# "04",
-# "05",
-# "06",
-# "07",
-# "08",
-# "09",
-# "10",
-# "11",
-# "12",
-# "13",
-# "14",
-# "15",
-# "16",
-# "17",
-# "18",
-# "19",
-# "21",
-# ]
+huc2s = [
+    # "01",
+    # "02",
+    # "03",
+    # "04",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    # "14",
+    # "15",
+    # "16",
+    # "17",
+    "18",
+    # "19",
+    # "21",
+]
 
 
 start = time()
@@ -200,6 +201,17 @@ for huc2 in huc2s:
     keep_ids = KEEP_PIPELINES.get(huc2, [])
     flowlines, joins = remove_pipelines(flowlines, joins, MAX_PIPELINE_LENGTH, keep_ids)
     print(f"{len(flowlines):,} flowlines after dropping pipelines")
+    print("------------------")
+
+    ### Repair disconnected subnetworks
+    if huc2 == "18":
+        print("Repairing disconnected subnetworks")
+        next_lineID = flowlines.index.max() + np.uint32(1)
+        flowlines, joins = repair_disconnected_subnetworks(
+            flowlines, joins, next_lineID
+        )
+        print(f"{len(flowlines):,} flowlines after repairing subnetworks")
+        print("------------------")
 
     # make sure that updated joins are unique
     joins = joins.drop_duplicates()

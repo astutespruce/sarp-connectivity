@@ -294,7 +294,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         by=["idx", "linepos"], ascending=True
     )
 
-    # check for errors
+    # check for errors (barriers not deduplicated properly)
     s = split_segments.groupby(by=["lineID", "linepos"]).size()
     s = s[s > 1]
     if len(s):
@@ -379,7 +379,6 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
 
     # Update existing joins with the new lineIDs we created at the upstream or downstream
     # ends of segments we just created
-
     updated_joins = update_joins(
         joins, first, last, downstream_col="downstream_id", upstream_col="upstream_id"
     )
@@ -1160,3 +1159,194 @@ def mark_altered_flowlines(flowlines, nwi):
     del df
 
     return flowlines
+
+
+def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
+    """Attempt to repair disconnected subnetworks that nearly intersect downstream
+    flowlines between their endpoints.  There are locations within NHD
+    (e.g., coastal CA) that should join based on manual review but incoming
+    tributaries are marked as terminals instead of joined to existing flowlines.
+
+    This splits an existing flowline and then joins in incoming tributaries.
+
+    Limited to non-loop tributaries that are StreamOrder >= 4.
+
+    WARNING: this does not update any of the accumulation attributes or their
+    derivatives, such as TotDASqKm, AnnualFlow, sizeclass, etc.
+
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+        flowline joins
+    next_lineID : int
+        next lineID; must be greater than all prior lines in region
+
+    Returns
+    -------
+    tuple of (GeoDataFrame, DataFrame)
+        (flowlines, joins)
+    """
+    terminal_ix = joins.loc[joins.downstream == 0].upstream_id.unique()
+
+    # limit these to non-trivial tributaries and non-loops; exclude pipelines
+    tmp = flowlines.loc[
+        flowlines.index.isin(terminal_ix)
+        & (flowlines.StreamOrder >= 4)
+        & (~flowlines.loop)
+        & (flowlines.FType != 428),
+        ["geometry"],
+    ].copy()
+
+    # get last point, is furthest downstream
+    tmp["geometry"] = shapely.get_point(tmp.geometry.values.data, -1)
+
+    # avoid any other terminals
+    target = flowlines.loc[~flowlines.index.isin(terminal_ix)]
+
+    tree = shapely.STRtree(target.geometry.values.data)
+    # search within a tolerance of 0.001, these are very very close
+    left, right = tree.query_nearest(tmp.geometry.values.data, max_distance=0.001)
+
+    pairs = pd.DataFrame(
+        {
+            # src is the incoming trib that spits the target flowline
+            "src_id": tmp.index.take(left),
+            "src_geom": tmp.geometry.values.take(left),
+            # target is the downstream flowline that gets split
+            "target_id": target.index.take(right),
+            "target_geom": target.geometry.values.take(right),
+            "target_NHDPlusID": target.NHDPlusID.values.take(right),
+        }
+    )
+
+    pairs["linepos"] = shapely.line_locate_point(pairs.target_geom, pairs.src_geom)
+    pairs = pairs.sort_values(by=["target_id", "linepos"])
+
+    # NOTE: there may be multiple incoming tributaries per target
+    grouped = pairs.groupby("target_id").agg(
+        {
+            "target_geom": "first",
+            "target_NHDPlusID": "first",
+            "src_id": list,
+            "src_geom": list,
+            "linepos": list,
+        }
+    )
+
+    outer_ix, inner_ix, lines = cut_lines_at_points(
+        grouped.target_geom.apply(lambda x: shapely.get_coordinates(x)).values,
+        grouped.linepos.apply(np.array).values,
+    )
+
+    lines = np.asarray(lines)
+    new_flowlines = gp.GeoDataFrame(
+        {
+            "lineID": (next_lineID + np.arange(len(outer_ix))).astype("uint32"),
+            "origLineID": grouped.index.take(outer_ix),
+            "position": inner_ix,
+            "geometry": lines,
+            "length": shapely.length(lines).astype("float32"),
+        },
+        crs=flowlines.crs,
+    ).join(
+        flowlines.drop(
+            columns=[
+                "geometry",
+                "lineID",
+                "length",
+            ],
+            errors="ignore",
+        ),
+        on="origLineID",
+    )
+
+    updated_flowlines = pd.concat(
+        [
+            flowlines.loc[
+                ~flowlines.index.isin(new_flowlines.origLineID.unique())
+            ].reset_index(),
+            new_flowlines.drop(columns=["origLineID", "position"]),
+        ],
+        ignore_index=True,
+        sort=False,
+    ).set_index("lineID")
+
+    # transform new segments to create new joins
+    lineIDs = new_flowlines.groupby("origLineID").lineID
+    # the first new line per original line is the furthest upstream, so use its
+    # ID as the new downstream ID for anything that had this origLineID as its downstream
+    first = lineIDs.first().rename("new_downstream_id")
+    # the last new line per original line is the furthest downstream...
+    last = lineIDs.last().rename("new_upstream_id")
+
+    # Update existing joins with the new lineIDs we created at the upstream or downstream
+    # ends of segments we just created
+    updated_joins = update_joins(
+        joins, first, last, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+
+    # For all new interior joins, create upstream & downstream ids per original line
+    upstream_side = (
+        new_flowlines.loc[~new_flowlines.lineID.isin(last)][
+            ["origLineID", "position", "lineID"]
+        ]
+        .set_index(["origLineID", "position"])
+        .rename(columns={"lineID": "upstream_id"})
+    )
+
+    downstream_side = new_flowlines.loc[~new_flowlines.lineID.isin(first)][
+        ["origLineID", "position", "lineID"]
+    ].rename(columns={"lineID": "downstream_id"})
+    downstream_side.position = downstream_side.position - 1
+    downstream_side = downstream_side.set_index(["origLineID", "position"])
+
+    new_joins = (
+        grouped.src_id.apply(pd.Series)
+        .stack()
+        .astype("uint32")
+        .rename("src_id")
+        .reset_index()
+        .rename(columns={"target_id": "origLineID", "level_1": "position"})
+        .set_index(["origLineID", "position"])
+        .join(upstream_side)
+        .join(downstream_side)
+        .reset_index()
+        .join(grouped.target_NHDPlusID.rename("upstream"), on="origLineID")
+    )
+    new_joins["downstream"] = new_joins.upstream
+    new_joins["type"] = "internal"
+    new_joins["marine"] = False
+    new_joins["loop"] = new_joins.upstream.isin(flowlines.loc[flowlines.loop].index)
+
+    # update the downstream end of the incoming tributaries
+    updated_joins = updated_joins.join(
+        new_joins.set_index("src_id").downstream_id.rename("new_downstream_id"),
+        on="upstream_id",
+    )
+    ix = updated_joins.new_downstream_id.notnull()
+    updated_joins.loc[ix, "downstream_id"] = updated_joins.loc[
+        ix
+    ].new_downstream_id.astype("uint32")
+    updated_joins = updated_joins.drop(columns=["new_downstream_id"])
+
+    updated_joins = pd.concat(
+        [
+            updated_joins,
+            new_joins[
+                [
+                    "upstream",
+                    "downstream",
+                    "upstream_id",
+                    "downstream_id",
+                    "type",
+                    "loop",
+                    "marine",
+                ]
+            ],
+        ],
+        ignore_index=True,
+        sort=False,
+    ).sort_values(["downstream_id", "upstream_id"])
+
+    return updated_flowlines, updated_joins
