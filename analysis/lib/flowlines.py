@@ -1187,22 +1187,29 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
     tuple of (GeoDataFrame, DataFrame)
         (flowlines, joins)
     """
+    updated_joins = joins.copy()
+
     terminal_ix = joins.loc[joins.downstream == 0].upstream_id.unique()
 
-    # limit these to non-trivial tributaries and non-loops; exclude pipelines
+    # exclude loops and pipelines / canals
     tmp = flowlines.loc[
         flowlines.index.isin(terminal_ix)
-        & (flowlines.StreamOrder >= 4)
         & (~flowlines.loop)
-        & (flowlines.FType != 428),
+        & (~flowlines.FType.isin([336, 428])),
         ["geometry"],
     ].copy()
 
     # get last point, is furthest downstream
     tmp["geometry"] = shapely.get_point(tmp.geometry.values.data, -1)
 
-    # avoid any other terminals
-    target = flowlines.loc[~flowlines.index.isin(terminal_ix)]
+    # avoid any other terminals, loops, or pipelines / canals
+    target = flowlines.loc[
+        ~(
+            flowlines.index.isin(terminal_ix)
+            | flowlines.loop
+            | flowlines.FType.isin([336, 428])
+        )
+    ]
 
     tree = shapely.STRtree(target.geometry.values.data)
     # search within a tolerance of 0.001, these are very very close
@@ -1222,6 +1229,39 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
 
     pairs["linepos"] = shapely.line_locate_point(pairs.target_geom, pairs.src_geom)
     pairs = pairs.sort_values(by=["target_id", "linepos"])
+
+    if pairs.groupby("src_id").size().sort_values().max() > 1:
+        raise NotImplementedError(
+            "Multiple downstream targets found for upstream tributaries"
+        )
+
+    if (shapely.length(pairs.target_geom) - pairs.linepos).min() < CUT_TOLERANCE:
+        raise NotImplementedError(
+            "incoming tributaries are too close to downstream end of downstream target flowline"
+        )
+
+    # directly join on upstream end
+    upstream_ix = pairs.linepos < CUT_TOLERANCE
+    if upstream_ix.any():
+        subset = pairs.loc[upstream_ix]
+        pairs = pairs.loc[~upstream_ix]
+
+        updated_joins = updated_joins.join(
+            subset.set_index("src_id").target_id.rename("new_downstream_id"),
+            on="upstream_id",
+        )
+        ix = updated_joins.new_downstream_id.notnull()
+        updated_joins.loc[ix, "downstream_id"] = updated_joins.loc[
+            ix
+        ].new_downstream_id.astype("uint32")
+        updated_joins = updated_joins.drop(columns=["new_downstream_id"])
+
+        # if any of these were headwaters, remove their origin join since there
+        # are now incoming tributaries
+        ix = updated_joins.downstream_id.isin(subset.target_id) & (
+            updated_joins.upstream_id == 0
+        )
+        updated_joins = updated_joins[~ix]
 
     # NOTE: there may be multiple incoming tributaries per target
     grouped = pairs.groupby("target_id").agg(
@@ -1283,7 +1323,11 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
     # Update existing joins with the new lineIDs we created at the upstream or downstream
     # ends of segments we just created
     updated_joins = update_joins(
-        joins, first, last, downstream_col="downstream_id", upstream_col="upstream_id"
+        updated_joins,
+        first,
+        last,
+        downstream_col="downstream_id",
+        upstream_col="upstream_id",
     )
 
     # For all new interior joins, create upstream & downstream ids per original line
