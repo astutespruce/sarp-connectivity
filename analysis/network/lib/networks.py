@@ -269,9 +269,11 @@ def create_networks(joins, barrier_joins, lineIDs):
 
     # check for duplicates
     s = up_network_df.groupby("lineID").size()
-    if s.max() > 1:
+    s = s.loc[s > 1]
+    if len(s):
+        s.rename("count").reset_index().to_feather("/tmp/dup_networks.feather")
         raise ValueError(
-            f"lineIDs are found in multiple networks: {', '.join([str(v)  for v in s.loc[s>1].index.values.tolist()[:10]])}..."
+            f"lineIDs are found in multiple networks: {', '.join([str(v)  for v in s.index.values.tolist()[:10]])}..."
         )
 
     ### Handle multiple upstreams

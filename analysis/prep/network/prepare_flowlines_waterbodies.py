@@ -86,8 +86,8 @@ huc2s = [
     # "15",
     # "16",
     # "17",
-    "18",
-    # "19",
+    # "18",
+    "19",
     # "21",
 ]
 
@@ -106,6 +106,11 @@ for huc2 in huc2s:
         "lineID"
     )
     joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
+
+    # update loop status of joins, if needed
+    loop_ix = flowlines.loc[flowlines.loop].NHDPlusID.unique()
+    joins["loop"] = joins.upstream.isin(loop_ix) | joins.downstream.isin(loop_ix)
+
     print(f"Read {len(flowlines):,} flowlines")
 
     waterbodies = gp.read_feather(
@@ -164,8 +169,11 @@ for huc2 in huc2s:
     if convert_ids:
         print(f"Converting {len(convert_ids):,} non-loops to loops")
         flowlines.loc[flowlines.NHDPlusID.isin(convert_ids), "loop"] = True
-        joins.loc[joins.upstream.isin(convert_ids), "loop"] = True
-        joins.loc[joins.downstream.isin(convert_ids), "loop"] = True
+        # a join is a loop if either end is a loop
+        joins.loc[
+            joins.upstream.isin(convert_ids) | joins.downstream.isin(convert_ids),
+            "loop",
+        ] = True
         print("------------------")
 
     ### Fix segments that should not have been coded as loops
@@ -173,8 +181,14 @@ for huc2 in huc2s:
     if convert_ids:
         print(f"Converting {len(convert_ids):,} loops to non-loops")
         flowlines.loc[flowlines.NHDPlusID.isin(convert_ids), "loop"] = False
-        joins.loc[joins.upstream.isin(convert_ids), "loop"] = False
-        joins.loc[joins.downstream.isin(convert_ids), "loop"] = False
+
+        # only set loop as False if neither upstream nor downstream are loops
+        loop_ix = flowlines.loc[flowlines.loop].NHDPlusID.unique()
+        joins.loc[
+            (joins.upstream.isin(convert_ids) | joins.downstream.isin(convert_ids))
+            & (~(joins.upstream.isin(loop_ix) | (joins.downstream.isin(loop_ix)))),
+            "loop",
+        ] = False
         print("------------------")
 
     ### Fix joins that should have been marked as marine
