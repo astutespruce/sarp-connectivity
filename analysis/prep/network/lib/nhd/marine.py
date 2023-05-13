@@ -51,7 +51,6 @@ def extract_marine(gdb, target_crs):
         layer=layer,
         columns=read_cols,
         force_2d=True,
-        use_arrow=True,
         where=f"{ftype_col} in {tuple(AREA_FTYPES)}",
     ).rename(columns=col_map)
 
@@ -64,7 +63,6 @@ def extract_marine(gdb, target_crs):
         layer=layer,
         columns=read_cols,
         force_2d=True,
-        use_arrow=True,
         # more complex expression when list is size 1
         where=f"{ftype_col} in ({','.join([str(t) for t in WB_FTYPES])})",
     ).rename(columns=col_map)

@@ -117,6 +117,7 @@ df = pd.read_feather(
         "Landcover",
         "SizeClasses",
         "FlowsToOcean",
+        "FlowsToGreatLakes",
         "Ranked",
     ],
 ).set_index("id")

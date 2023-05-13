@@ -38,11 +38,13 @@ from analysis.constants import (
     CONVERT_TO_LOOP,
     CONVERT_TO_NONLOOP,
     CONVERT_TO_MARINE,
+    CONVERT_TO_FLOW_INTO_GREAT_LAKES,
     REMOVE_IDS,
     MAX_PIPELINE_LENGTH,
     KEEP_PIPELINES,
     JOIN_FIXES,
     REMOVE_JOINS,
+    COASTAL_HUC2,
 )
 
 from analysis.lib.flowlines import (
@@ -72,7 +74,7 @@ huc2s = [
     # "01",
     # "02",
     # "03",
-    # "04",
+    "04",
     # "05",
     # "06",
     # "07",
@@ -87,12 +89,19 @@ huc2s = [
     # "16",
     # "17",
     # "18",
-    "19",
+    # "19",
     # "21",
 ]
 
 
 start = time()
+
+marine = None
+if len(COASTAL_HUC2.intersection(huc2s)):
+    marine = gp.read_feather(
+        nhd_dir / "merged/nhd_marine.feather", columns=["geometry"]
+    )
+
 for huc2 in huc2s:
     region_start = time()
 
@@ -199,22 +208,35 @@ for huc2 in huc2s:
         print("------------------")
 
     ### Remove any flowlines that start in marine areas
-    marine_filename = src_dir / huc2 / "nhd_marine.feather"
-    if marine_filename.exists():
-        marine = gp.read_feather(marine_filename)
+    if huc2 in COASTAL_HUC2:
         flowlines, joins = remove_marine_flowlines(flowlines, joins, marine)
         print("------------------")
 
     ### Remove any flowlines that fall within or follow coastline of the Great Lakes
+    # and mark those that terminate in Great Lakes
     if huc2 == "04":
         flowlines, joins = remove_great_lakes_flowlines(flowlines, joins, waterbodies)
         print("------------------")
 
+    ### Fix joins that should have been marked as great_lakes
+    great_lakes_ids = CONVERT_TO_FLOW_INTO_GREAT_LAKES.get(huc2, [])
+    if great_lakes_ids:
+        print(f"Converting {len(great_lakes_ids):,} joins to marine")
+        joins.loc[joins.upstream.isin(great_lakes_ids), "great_lakes"] = True
+        print("------------------")
+
+    if "great_lakes" not in joins:
+        joins["great_lakes"] = False
+
+    joins["great_lakes"] = joins.great_lakes.fillna(False)
+
     ### Drop pipelines that are > PIPELINE_MAX_LENGTH or are otherwise isolated from the network
-    print("Evaluating pipelines")
+    print("Evaluating pipelines & undeground connectors")
     keep_ids = KEEP_PIPELINES.get(huc2, [])
     flowlines, joins = remove_pipelines(flowlines, joins, MAX_PIPELINE_LENGTH, keep_ids)
-    print(f"{len(flowlines):,} flowlines after dropping pipelines")
+    print(
+        f"{len(flowlines):,} flowlines after dropping pipelines & underground connectors"
+    )
     print("------------------")
 
     ### Repair disconnected subnetworks
@@ -241,9 +263,17 @@ for huc2 in huc2s:
 
     ### Cut flowlines by waterbodies
     print("Processing intersections between waterbodies and flowlines")
+
+    cut_waterbodies = waterbodies
+    if huc2 == "04":
+        # exclude Great Lakes since they are evaluated above and they generate
+        # a lot of unnecessary intersections and they make the crosses predicate
+        # take a very long time
+        cut_waterbodies = waterbodies.loc[waterbodies.km2 < 8000]
+
     next_lineID = flowlines.index.max() + np.uint32(1)
     flowlines, joins, wb_joins = cut_lines_by_waterbodies(
-        flowlines, joins, waterbodies, next_lineID=next_lineID
+        flowlines, joins, cut_waterbodies, next_lineID=next_lineID
     )
 
     # NOTE: we retain all waterbodies at this point, even if they don't overlap

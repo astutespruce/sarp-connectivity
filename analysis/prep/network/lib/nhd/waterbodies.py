@@ -49,7 +49,6 @@ def extract_waterbodies(gdb, target_crs):
         layer=layer,
         columns=read_cols,
         force_2d=True,
-        use_arrow=True,
         where=f"{ftype_col} not in {tuple(WATERBODY_EXCLUDE_FTYPES)}",
     ).rename(columns=col_map)
     print(f"Read {len(df):,} waterbodies")

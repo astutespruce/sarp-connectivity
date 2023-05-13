@@ -4,7 +4,6 @@ import geopandas as gp
 import pandas as pd
 from pyogrio import write_dataframe
 
-from analysis.constants import CRS
 from analysis.lib.io import read_feathers
 from analysis.lib.geometry.lines import merge_lines
 
@@ -13,16 +12,23 @@ out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True, parents=True)
 
 
-barrier_type = "dams"
+barrier_type = "waterfalls"  # "dams"
 ext = "fgb"
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
-# export_hucs = {"02", "03", "05", "06", "07", "08", "10", "11", "12", "13"}
+export_hucs = {
+    "04",
+    # "05",
+    # "06",
+    # "07",
+    # "09"
+}
 
 
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
-for group in [{"17"}]:
+# for group in [{"05", "06", "07", "08", "10", "11"}]:
+for group in [{"04"}]:
     group = sorted(group)
 
     segments = (
@@ -54,7 +60,8 @@ for group in [{"17"}]:
             col = f"{count_type}_{kind}"
             stats[col] = stats[col].fillna(0).astype("uint32")
 
-    stats["flows_to_ocean"] = stats.flows_to_ocean.astype("uint8")
+    for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region"]:
+        stats[col] = stats[col].astype("uint8")
 
     # natural floodplain is missing for several catchments; fill with -1
     for col in ["natfldpln", "sizeclasses"]:
@@ -62,8 +69,8 @@ for group in [{"17"}]:
 
     # create output files by HUC2 based on where the segments occur
     for huc2 in group:
-        # if not huc2 in export_hucs:
-        #     continue
+        if huc2 not in export_hucs:
+            continue
 
         print(f"Dissolving networks in {huc2}...")
         flowlines = (
@@ -83,10 +90,11 @@ for group in [{"17"}]:
         )
         flowlines = flowlines.join(segments)
 
-        # ### To export larger flowlines only
-        # flowlines = flowlines.loc[
-        #     flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
-        # ]
+        ### To export larger flowlines only
+        flowlines = flowlines.loc[
+            flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
+        ]
+        # flowlines = flowlines.loc[flowlines.sizeclass.isin(["2", "3a", "3b", "4", "5"])]
 
         ### To export dissolved networks
         networks = (
@@ -117,5 +125,5 @@ for group in [{"17"}]:
 
         print(f"Serializing {len(networks):,} dissolved networks...")
         write_dataframe(
-            networks, out_dir / f"region{huc2}_{barrier_type}_networks.{ext}"
+            networks, out_dir / f"region{huc2}_{barrier_type}_large_networks.{ext}"
         )

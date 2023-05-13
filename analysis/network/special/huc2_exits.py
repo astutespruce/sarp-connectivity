@@ -17,6 +17,7 @@ huc2 = "18"
 joins = pd.read_feather(network_dir / huc2 / "flowline_joins.feather")
 terminal_ids = joins.loc[joins.type == "terminal"].upstream_id.unique()
 marine_ids = joins.loc[joins.marine].upstream_id.unique()
+great_lakes_ids = joins.loc[joins.great_lakes].upstream_id.unique()
 
 flowlines = gp.read_feather(
     network_dir / huc2 / "flowlines.feather",

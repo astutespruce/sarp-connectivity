@@ -41,7 +41,6 @@ def extract_altered_rivers(gdb, target_crs):
         layer=layer,
         columns=read_cols,
         force_2d=True,
-        use_arrow=True,
         where=f"{ftype_col} in {tuple(FTYPES)}",
     ).rename(columns=col_map)
 

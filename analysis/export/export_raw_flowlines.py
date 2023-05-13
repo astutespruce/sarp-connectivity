@@ -15,25 +15,28 @@ out_dir.mkdir(exist_ok=True)
 huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"])
 huc2s = huc2_df.HUC2.sort_values().values
 
-huc2s = [
-    # "02",
-    # "03",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
-    # "18",
-    # "21",
-]
+# huc2s = [
+# "01",
+# "02",
+# "03",
+# "04",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "18",
+# "19",
+# "21",
+# ]
 
 
 for huc2 in huc2s:
@@ -42,7 +45,7 @@ for huc2 in huc2s:
 
     # WARNING: certain data types get re-cast to other types in FileGDB (e.g., NHDPlusID becomes float64)
     # try to avoid bad conversions by recasting here
-    for col in ["StreamOrder", "FCode", "FType", "intermittent", "altered"]:
+    for col in ["StreamOrder", "FCode", "FType"]:
         flowlines[col] = flowlines[col].astype("int32")
 
     flowlines["km"] = flowlines["length"] / 1000.0

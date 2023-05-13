@@ -1,5 +1,4 @@
 from pathlib import Path
-import warnings
 import pyarrow as pa
 
 import pyarrow.compute as pc
@@ -8,9 +7,9 @@ import numpy as np
 from analysis.lib.io import read_feathers
 from analysis.rank.lib.metrics import (
     classify_gain_miles,
-    classify_ocean_miles,
+    classify_downstream_miles,
     classify_percent_altered,
-    classify_ocean_barriers,
+    classify_downstream_barriers,
 )
 from api.lib.tiers import calculate_tiers, METRICS
 
@@ -86,6 +85,7 @@ NETWORK_COLUMN_NAMES = {
     "totd_waterfalls": "TotalDownstreamWaterfalls",
     "miles_to_outlet": "MilesToOutlet",
     "flows_to_ocean": "FlowsToOcean",
+    "flows_to_great_lakes": "FlowsToGreatLakes",
     "exits_region": "ExitsRegion",
 }
 
@@ -157,8 +157,10 @@ def get_network_results(df, network_type, state_ranks=False):
         ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
     ].min(axis=1)
 
-    # For barriers that terminate in marine areas, their GainMiles is only based on the upstream miles
-    ix = (networks.MilesToOutlet == 0) & (networks.FlowsToOcean == 1)
+    # For barriers that terminate in marine areas or Great Lakes, their GainMiles is only based on the upstream miles
+    ix = (networks.MilesToOutlet == 0) & (
+        (networks.FlowsToOcean == 1) | (networks.FlowsToGreatLakes)
+    )
     networks.loc[ix, "GainMiles"] = networks.loc[ix].TotalUpstreamMiles
     networks.loc[ix, "PerennialGainMiles"] = networks.loc[ix].PerennialUpstreamMiles
 
@@ -182,9 +184,6 @@ def get_network_results(df, network_type, state_ranks=False):
     networks["GainMilesClass"] = classify_gain_miles(networks.GainMiles)
     networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
 
-    # Diadromous related filters - must have FlowsToOcean == True
-    networks["DownstreamOceanMilesClass"] = classify_ocean_miles(networks.MilesToOutlet)
-
     # NOTE: per guidance from SARP, do not include count of waterfalls
     if network_type == "dams":
         num_downstream = networks.TotalDownstreamDams
@@ -193,11 +192,27 @@ def get_network_results(df, network_type, state_ranks=False):
             +networks.TotalDownstreamDams + networks.TotalDownstreamSmallBarriers
         )
 
-    networks["DownstreamOceanBarriersClass"] = classify_ocean_barriers(num_downstream)
-
+    # Diadromous related filters - must have FlowsToOcean == True
+    networks["DownstreamOceanMilesClass"] = classify_downstream_miles(
+        networks.MilesToOutlet
+    )
+    networks["DownstreamOceanBarriersClass"] = classify_downstream_barriers(
+        num_downstream
+    )
     ix = ~networks.FlowsToOcean
     networks.loc[ix, "DownstreamOceanMilesClass"] = 0
     networks.loc[ix, "DownstreamOceanBarriersClass"] = 0
+
+    # similar for Great Lakes
+    networks["DownstreamGreatLakesMilesClass"] = classify_downstream_miles(
+        networks.MilesToOutlet
+    )
+    networks["DownstreamGreatLakesBarriersClass"] = classify_downstream_barriers(
+        num_downstream
+    )
+    ix = ~networks.FlowsToGreatLakes
+    networks.loc[ix, "DownstreamGreatLakesMilesClass"] = 0
+    networks.loc[ix, "DownstreamGreatLakesBarriersClass"] = 0
 
     # Convert dtypes to allow missing data when joined to barriers later
     # NOTE: upNetID or downNetID may be 0 if there aren't networks on that side, but

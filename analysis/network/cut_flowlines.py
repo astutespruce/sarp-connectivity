@@ -24,40 +24,46 @@ huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]
 huc2s = huc2_df.HUC2.sort_values().values
 
 # manually subset keys from above for processing
-# huc2s = [
-# "01",
-# "02",
-# "03",
-# "04"
-# "05",
-# "06",
-# "07",
-# "08",
-# "09",
-# "10",
-# "11",
-# "12",
-# "13",
-# "14",
-# "15",
-# "16",
-# "17",
-# "18"
-# "19",
-# "21",
-# ]
+huc2s = [
+    # "01",
+    # "02",
+    # "03",
+    "04",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    # "14",
+    # "15",
+    # "16",
+    # "17",
+    # "18",
+    # "19",
+    # "21",
+]
 
 
 start = time()
 
 ### Aggregate barriers
 print("Aggregating barriers")
-kinds = ["waterfall", "dam", "small_barrier", "road_crossing"]
+# kinds = ["waterfall", "dam", "small_barrier", "road_crossing"]
+# FIXME:
+kinds = ["waterfall", "dam"]
 barriers = read_feathers(
     [barriers_dir / f"{kind}s.feather" for kind in kinds],
     geo=True,
     new_fields={"kind": kinds},
 )
+
+# FIXME:
+if "removed" not in barriers.columns:
+    barriers["removed"] = False
 
 # FIXME: remove once all barriers have been re-prepared
 barriers["id"] = barriers.id.astype("uint64")
@@ -103,18 +109,45 @@ for huc2 in huc2s:
     # increment lineIDs before dropping loops
     next_segment_id = flowlines.lineID.max() + np.uint32(1)
 
+    #### Temporary
+    # FIXME: enable after all regions rerun prepare_flowlines_waterbodies.py
+    # joins = pd.read_feather(
+    #     nhd_dir / huc2 / "flowline_joins.feather",
+    #     columns=[
+    #         "upstream",
+    #         "downstream",
+    #         "upstream_id",
+    #         "downstream_id",
+    #         "type",
+    #         "marine",
+    #         "great_lakes",
+    #         "loop",
+    #     ],
+    # )
+
     joins = pd.read_feather(
         nhd_dir / huc2 / "flowline_joins.feather",
-        columns=[
+    )
+
+    if "great_lakes" not in joins:
+        joins["great_lakes"] = False
+
+    joins["great_lakes"] = joins.great_lakes.fillna(False)
+
+    joins = joins[
+        [
             "upstream",
             "downstream",
             "upstream_id",
             "downstream_id",
             "type",
             "marine",
+            "great_lakes",
             "loop",
-        ],
-    )
+        ]
+    ]
+
+    #### end temporary
 
     # drop all loops from the analysis
     print(f"Dropping {flowlines.loop .sum():,} loops")

@@ -37,16 +37,16 @@ def classify_percent_altered(series):
     ).astype("uint8")
 
 
-def classify_ocean_miles(series):
-    """classify ocean miles into bins 1...7; 0 is reserved for missing values"""
+def classify_downstream_miles(series):
+    """classify downstream miles to ocean / Great Lakesinto bins 1...7; 0 is reserved for missing values"""
     bins = [-1, 0, 1, 5, 10, 25, 100, 250, 500, 1000] + [series.max() + 1]
     return np.asarray(
         pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))
     ).astype("uint8")
 
 
-def classify_ocean_barriers(series):
-    """classify ocean barriers into bins 1...5; 0 is reserved for missing values"""
+def classify_downstream_barriers(series):
+    """classify barriers downstream to ocean / Great Lakes into bins 1...5; 0 is reserved for missing values"""
     bins = [-1, 0, 1, 2, 5, 10] + [series.max() + 1]
     return np.asarray(
         pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))

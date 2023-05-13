@@ -59,32 +59,34 @@ barriers = (
     barriers.loc[~barriers.removed].drop(columns=["removed"]).reset_index(drop=True)
 )
 
+huc2s = sorted(
+    pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
+)
 
-huc2s = sorted([huc2 for huc2 in barriers.HUC2.unique() if huc2])
 
 # manually subset keys from above for processing
-# huc2s = [
-#     "01",
-#     "02",
-#     "03",
-#     "04",
-#     "05",
-#     "06",
-#     "07",
-#     "08",
-#     "09",
-#     "10",
-#     "11",
-#     "12",
-#     "13",
-#     "14",
-#     "15",
-#     "16",
-#     "17",
-#     "18",
-#     "19",
-#     "21",
-# ]
+huc2s = [
+    # "01",
+    # "02",
+    #     "03",
+    "04",
+    #     "05",
+    #     "06",
+    #     "07",
+    #     "08",
+    #     "09",
+    #     "10",
+    #     "11",
+    #     "12",
+    #     "13",
+    # "14",
+    # "15",
+    # "16",
+    #     "17",
+    # "18",
+    # "19",
+    #     "21",
+]
 
 
 print("Finding connected HUC2s")
@@ -95,6 +97,7 @@ joins = read_feathers(
         "downstream",
         "type",
         "marine",
+        "great_lakes",
         "upstream_id",
         "downstream_id",
     ],
@@ -136,13 +139,22 @@ for group in groups:
     )
 
     group_joins = joins.loc[
-        joins.HUC2.isin(group), ["downstream_id", "upstream_id", "type", "marine"]
+        joins.HUC2.isin(group),
+        ["downstream_id", "upstream_id", "type", "marine", "great_lakes"],
     ]
 
     # WARNING: set_index alters dtype of "id" column
     barrier_joins = read_feathers(
         [src_dir / huc2 / "barrier_joins.feather" for huc2 in group_huc2s],
-        columns=["id", "upstream_id", "downstream_id", "kind", "marine", "type"],
+        columns=[
+            "id",
+            "upstream_id",
+            "downstream_id",
+            "kind",
+            "marine",
+            "great_lakes",
+            "type",
+        ],
         new_fields={"HUC2": group_huc2s},
     ).set_index("id")
 
@@ -213,11 +225,17 @@ for group in groups:
 
         # lineIDs that terminate in marine or downstream exits of HUC2
         marine_ids = joins.loc[joins.marine].upstream_id.unique()
+        great_lake_ids = joins.loc[joins.great_lakes].upstream_id.unique()
         exit_ids = joins.loc[joins.type == "huc2_drain"].upstream_id.unique()
 
         # downstream_stats are indexed on the ID of the barrier
         downstream_stats = calculate_downstream_stats(
-            down_network_df, focal_barrier_joins, barrier_joins, marine_ids, exit_ids
+            down_network_df,
+            focal_barrier_joins,
+            barrier_joins,
+            marine_ids,
+            great_lake_ids,
+            exit_ids,
         )
 
         ### Join upstream network stats to downstream network stats
@@ -235,16 +253,19 @@ for group in groups:
             col = f"totd_{kind}"
             network_stats[col] = network_stats[col].fillna(0).astype("uint32")
 
-        for col in ["flows_to_ocean", "exits_region"]:
+        for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region"]:
             network_stats[col] = network_stats[col].fillna(False).astype("bool")
 
         network_stats.barrier = network_stats.barrier.fillna("")
 
         network_stats.miles_to_outlet = network_stats.miles_to_outlet.fillna(0)
 
-        # set to_ocean and exits_region for functional networks that terminate
-        # in marine or leave region and have no downstream barrier
+        # set to_ocean, to_great_lakes, and exits_region for functional networks that terminate
+        # in marine or Great Lakes or leave region and have no downstream barrier
         network_stats.loc[network_stats.index.isin(marine_ids), "flows_to_ocean"] = True
+        network_stats.loc[
+            network_stats.index.isin(great_lake_ids), "flows_to_great_lakes"
+        ] = True
         # if segments connect to marine they also leave the region
         network_stats.loc[
             network_stats.index.isin(np.unique(np.append(marine_ids, exit_ids))),
@@ -344,8 +365,12 @@ for group in groups:
         barrier_networks.barrier = barrier_networks.barrier.fillna("")
         barrier_networks.origin_HUC2 = barrier_networks.origin_HUC2.fillna("")
         barrier_networks.flows_to_ocean = barrier_networks.flows_to_ocean.fillna(False)
+        barrier_networks.flows_to_great_lakes = (
+            barrier_networks.flows_to_great_lakes.fillna(False)
+        )
         barrier_networks.exits_region = barrier_networks.exits_region.fillna(False)
-        # if isolated network or connects to marine / exit, there are no further miles downstream from this network
+        # if isolated network or connects to marine / Great Lakes / exit, there
+        # are no further miles downstream from this network
         barrier_networks.miles_to_outlet = barrier_networks.miles_to_outlet.fillna(
             0
         ).astype("float32")

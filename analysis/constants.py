@@ -618,6 +618,10 @@ FCODE_TO_STREAMTYPE = {
     33601: 4,  # canal / ditch
     33603: 4,  # canal / ditch
     33400: 3,  # unspecified connector
+    42000: 5,  # underground connector
+    42001: 5,  # underground connector
+    42002: 5,  # underground connector
+    42003: 5,  # underground connector
     42800: 5,  # pipeline
     42801: 5,  # pipeline
     42802: 5,  # pipeline
@@ -743,11 +747,26 @@ NWI_HUC8_ALIAS = {
 # WARNING: you may need to remove the corresponding segments or joins that
 # were previously identified as loops
 CONVERT_TO_NONLOOP = {
+    "01": [
+        10000900029041,
+        10000900015420,
+        # loops that go on a side channel across a dam but network would otherwise
+        # be broken
+        5000900024080,
+        5000900013773,
+        5000900021495,
+    ],
+    "04": [60000800221705, 60000800211576, 60000800234160],
     "05": [
         # this is a loop at the junction of 05/06 that needs to be retained as a non-loop
         # for networks to be built correctly
-        24000100384878
+        24000100384878,
     ],
+    "07": [
+        # junction of Wisconsin River into Mississippi River
+        22000400022387
+    ],
+    "09": [65000200009866],
     "10": [
         23001300034513,
         23001300009083,
@@ -815,7 +834,9 @@ CONVERT_TO_NONLOOP = {
 # List of NHDPlusIDs to convert from non-loops to loops based on inspection of
 # the network topology
 CONVERT_TO_LOOP = {
+    "01": [10000900028934],
     "03": [15000600190797],
+    "04": [60000800227820],
     "07": [22000200040459, 22000500077837, 22000500108669, 22000200040459],
     "10": [
         23001200078773,
@@ -870,6 +891,17 @@ CONVERT_TO_LOOP = {
 
 # List of NHDPlusIDs to remove due to issues with NHD
 REMOVE_IDS = {
+    "01": [
+        # flowlines around networks that are broken at dams; remove
+        # them to prevent barriesr from snapping to them
+        5000900008543,
+        5000900021494,
+        5000900016329,
+        5000900006026,
+        5000900038825,
+    ],
+    "04": [60000800202273, 60000800265556],
+    "09": [65000200080964],
     "17": [
         # Fix flowlines at Big Sheep Creek
         55000500251842
@@ -904,6 +936,78 @@ CONVERT_TO_GREAT_LAKES = {
 
 # List of NHDPlusIDs that flow into marine based on visual inspection
 CONVERT_TO_MARINE = {
+    "01": [
+        5000200026117,
+        5000700071761,
+        10000800061298,
+        10000800028440,
+        10000800068648,
+        10000800056564,
+        5000700044074,
+        10000800003141,
+        10000800073132,
+        10000800003148,
+        10000800068314,
+        10000800002216,
+        10000800073041,
+        10000800007870,
+        10000800007827,
+        10000800007841,
+        10000800069333,
+        10000800039419,
+        10000800047087,
+        10000800070103,
+        10000800069324,
+        10000800072789,
+        10000800000109,
+        10000800020565,
+        10000800034794,
+        10000800069381,
+        10000800030215,
+        10000800064377,
+        10000800065300,
+        10000800030186,
+        10000800064416,
+        10000800065275,
+        10000800066314,
+        10000800066355,
+        10000800065353,
+        10000800031740,
+        10000800034245,
+        10000800055654,
+        10000800072876,
+        10000800072874,
+        10000800056871,
+        10000800034013,
+        10000800034006,
+        10000800034032,
+        10000800037841,
+        10000800056880,
+        10000800044102,
+        10000800068534,
+        10000800062661,
+        10000800043890,
+        10000800068634,
+        10000800062628,
+        10000800060731,
+        10000800060819,
+        10000800034261,
+        10000800057337,
+        10000800038717,
+        10000800056564,
+        10000800038687,
+        10000800000024,
+        10000800034879,
+        10000800024213,
+        10000800033286,
+        10000800061100,
+        10000800033261,
+        10000800002262,
+        10000800011376,
+        10000800061360,
+        10000800071952,
+    ],
+    "02": [10000100039317, 10000200672603, 10000200653686, 10000200427232],
     "03": [
         15001800056287,
         15001800004549,
@@ -1157,13 +1261,24 @@ CONVERT_TO_MARINE = {
 }
 
 
+CONVERT_TO_FLOW_INTO_GREAT_LAKES = {
+    "04": [60001500014272, 60002700006825, 60003700022372, 60003700005514]
+}
+
+
 # List of NHDPlusIDs that are of pipeline type and greater than MAX_PIPELINE_LENGTH
 # but must be kept as they flow through dams; removing them would break networks
 KEEP_PIPELINES = {
-    "02": [10000200568875, 10000200523449],
-    "05": [
-        24000900019974,
+    "01": [10000900032491, 10000900077592],
+    "02": [
+        10000200568875,
+        10000200523449,
+        10000200672603,
+        10000200653686,
+        10000200664162,
+        10000200664187,
     ],
+    "05": [24000900019974, 24000200040231],
     "10": [23001800189071, 23001900161939, 23001900224128, 23001300078800],
     "11": [
         21000300167343,
@@ -1283,12 +1398,39 @@ REMOVE_JOINS = {
     ],
 }
 
+# set of HUC2s that touch the coast
+COASTAL_HUC2 = {"01", "02", "03", "08", "12", "13", "15", "17", "18", "19", "21"}
+
 
 # List of NHDPlusIDs that are exit points draining a given HUC2
 # NOTE: these are only applicable for HUC2s that drain into other HUCS2s outside the analysis region
 # they are not specified for HUC2s that can be traversed to the ocean
 HUC2_EXITS = {
-    "09": [65000200059360, 65000100013652],
+    "01": [
+        # eventually connects to the ocean through Canada
+        5000100086769
+    ],
+    "04": [
+        # there are several networks that flow into Canada
+        60003500015245,
+        60000200097957,
+        60000100003951,
+        60000200106923,
+        60000200005463,
+        60000200088973,
+        60000200111331,
+        60000200088449,
+        60000200025568,
+        60000200103466,
+        60000300003409,
+        60000300002879,
+        60000300002274,
+        60000300003840,
+        60000300005212,
+        60000300007591,
+        60000300038536,
+    ],
+    "09": [65000200059360, 65000100013652, 65000300094466],
     "14": [41000100046769, 41000100047124],
     "15": [
         # NOTE: the first two are irrigation ditches

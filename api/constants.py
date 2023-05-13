@@ -127,6 +127,7 @@ DOWNSTREAM_LINEAR_NETWORK_FIELDS = [
     # "TotalDownstreamRoadCrossings",
     "MilesToOutlet",
     "FlowsToOcean",
+    "FlowsToGreatLakes",
     "ExitsRegion",
 ]
 
@@ -174,6 +175,9 @@ FILTER_FIELDS = [
     "FlowsToOcean",
     "DownstreamOceanMilesClass",
     "DownstreamOceanBarriersClass",
+    "FlowsToGreatLakes",
+    "DownstreamGreatLakesMilesClass",
+    "DownstreamGreatLakesBarriersClass",
     "CoastalHUC8",
     "PassageFacilityClass",
     "DisadvantagedCommunity",
@@ -1003,7 +1007,7 @@ STREAMTYPE_DOMAIN = {
     2: "Intermittent stream / river",
     3: "Artificial path / unspecified connector",
     4: "Canal / ditch",
-    5: "Pipeline",
+    5: "Pipeline / underground connector",
 }
 
 BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
@@ -1093,6 +1097,7 @@ DOMAINS = {
     "Invasive": BOOLEAN_DOMAIN,
     "Intermittent": BOOLEAN_OFFNETWORK_DOMAIN,
     "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
+    "FlowsToGreatLakes": BOOLEAN_OFFNETWORK_DOMAIN,
     "ExitsRegion": BOOLEAN_OFFNETWORK_DOMAIN,
     "OwnerType": OWNERTYPE_DOMAIN,
     "BarrierOwnerType": BARRIEROWNERTYPE_DOMAIN,
@@ -1244,6 +1249,7 @@ FIELD_DEFINITIONS = {
     "TotalDownstreamRoadCrossings": "total number of uninventoried estimated road crossings between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "MilesToOutlet": "miles between this {type} and the downstream-most point on the full aquatic network on which it occurs. -1 = not available.",
     "FlowsToOcean": "indicates if this {type} was snapped to a stream or river that is known to flow into the ocean.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the ocean.",
+    "FlowsToGreatLakes": "indicates if this {type} was snapped to a stream or river that is known to flow into the Great Lakes.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the Great Lakes.",
     # "ExitsRegion": "indicates this {type} was snapped to a stream or river that exits the region of analysis (e.g., flows into Canada or Mexico) or flows into the ocean.",
     "State_NC_tier": "network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_WC_tier": "watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",

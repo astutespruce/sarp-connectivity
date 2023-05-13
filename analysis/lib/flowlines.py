@@ -20,9 +20,11 @@ from analysis.constants import SNAP_ENDPOINT_TOLERANCE, CONVERT_TO_GREAT_LAKES
 # this different from original flowline
 CUT_TOLERANCE = 1
 
+PIPELINE_FTYPES = [420, 428]
+
 
 def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
-    """Remove pipelines that are above max length,
+    """Remove pipelines and underground connectors that are above max length,
     based on contiguous length of pipeline segments.
 
     Parameters
@@ -47,7 +49,7 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
     keep_ids = keep_ids or []
 
     pids = flowlines.loc[
-        (flowlines.FType == 428) & (~flowlines.NHDPlusID.isin(keep_ids))
+        (flowlines.FType.isin(PIPELINE_FTYPES)) & (~flowlines.NHDPlusID.isin(keep_ids))
     ].index
     pjoins = find_joins(
         joins, pids, downstream_col="downstream_id", upstream_col="upstream_id"
@@ -215,7 +217,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         segments.loc[segments.on_upstream][["id", "lineID"]]
         .rename(columns={"lineID": "downstream_id"})
         .join(
-            joins.set_index("downstream_id")[["upstream_id", "type", "marine"]],
+            joins.set_index("downstream_id")[
+                ["upstream_id", "type", "marine", "great_lakes"]
+            ],
             on="downstream_id",
         )
     )
@@ -225,6 +229,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     ).astype("uint32")
     upstream_barrier_joins["type"] = upstream_barrier_joins["type"].fillna("origin")
     upstream_barrier_joins.marine = upstream_barrier_joins.marine.fillna(False)
+    upstream_barrier_joins.great_lakes = upstream_barrier_joins.great_lakes.fillna(
+        False
+    )
 
     # Barriers on downstream endpoint:
     # their upstream_id is the segment they are on and their downstream_id is the
@@ -236,7 +243,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         segments.loc[segments.on_downstream][["id", "lineID"]]
         .rename(columns={"lineID": "upstream_id"})
         .join(
-            joins.set_index("upstream_id")[["downstream_id", "type", "marine"]],
+            joins.set_index("upstream_id")[
+                ["downstream_id", "type", "marine", "great_lakes"]
+            ],
             on="upstream_id",
         )
     )
@@ -248,6 +257,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         "terminal"
     )
     downstream_barrier_joins.marine = downstream_barrier_joins.marine.fillna(False)
+    downstream_barrier_joins.great_lakes = downstream_barrier_joins.great_lakes.fillna(
+        False
+    )
 
     # Add sibling joins if on a confluence
     # NOTE: a barrier may have multiple sibling upstreams if it occurs at a
@@ -256,7 +268,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
 
     at_confluence = downstream_barrier_joins.loc[
         downstream_barrier_joins.downstream_id != 0
-    ][["id", "downstream_id", "type", "marine"]].join(
+    ][["id", "downstream_id", "type", "marine", "great_lakes"]].join(
         joins.loc[~joins.upstream_id.isin(downstream_barrier_joins.index)]
         .set_index("downstream_id")
         .upstream_id,
@@ -422,6 +434,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     new_joins["downstream"] = new_joins.upstream
     new_joins["type"] = "internal"
     new_joins["marine"] = False
+    new_joins["great_lakes"] = False
 
     updated_joins = pd.concat(
         [
@@ -434,6 +447,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
                     "downstream_id",
                     "type",
                     "marine",
+                    "great_lakes",
                 ]
             ],
         ],
@@ -444,7 +458,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     barrier_joins = pd.concat(
         [
             barrier_joins,
-            new_joins[["id", "upstream_id", "downstream_id", "type", "marine"]],
+            new_joins[
+                ["id", "upstream_id", "downstream_id", "type", "marine", "great_lakes"]
+            ],
         ],
         ignore_index=True,
         sort=False,
@@ -578,8 +594,10 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     # NHDPlusID is same for both sides
     new_joins["downstream"] = new_joins.upstream
     new_joins["type"] = "internal"
-    # new joins do not terminate in marine, so marine should always be false
+    # new joins do not terminate in marine, so marine should always be false;
+    # ditto for great_lakes
     new_joins["marine"] = False
+    new_joins["great_lakes"] = False
     new_joins = new_joins[
         [
             "upstream",
@@ -589,6 +607,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
             "type",
             "loop",
             "marine",
+            "great_lakes",
             "HUC4",
         ]
     ]
@@ -1035,7 +1054,7 @@ def remove_great_lakes_flowlines(flowlines, joins, waterbodies):
     ----------
     flowlines : GeoDataFrame
     joins : DataFrame
-    marine : GeoDataFrame
+    waterbodies : GeoDataFrame
 
     Returns
     -------
@@ -1090,17 +1109,20 @@ def remove_great_lakes_flowlines(flowlines, joins, waterbodies):
     )
 
     flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
+    # remove joins will mark new endpoints with 0
     joins = remove_joins(
         joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
     )
 
-    # fix any that are now defunct
+    # drop any that are now defunct
     joins = joins.loc[~((joins.upstream_id == 0) & (joins.downstream_id == 0))].copy()
 
-    # mark any new terminals as such
-    joins.loc[
-        (joins.downstream_id == 0) & (joins.type == "internal"), "type"
-    ] = "terminal"
+    # mark any new terminals as such and mark them as flowing into Great Lakes
+    ix = (joins.downstream_id == 0) & (joins.type == "internal")
+    joins.loc[ix, "type"] = "terminal"
+
+    joins["great_lakes"] = False
+    joins.loc[ix, "great_lakes"] = True
 
     return flowlines, joins
 
@@ -1118,8 +1140,8 @@ def mark_altered_flowlines(flowlines, nwi):
     flowlines with additional columns: "altered", "altered_src"
     """
 
-    # NHD canals / ditches & pipelines considered altered
-    flowlines["altered"] = flowlines.FType.isin([336, 428])
+    # NHD canals / ditches, underground connectors, pipelines considered altered
+    flowlines["altered"] = flowlines.FType.isin([336, 420, 428])
     flowlines["altered_src"] = ""
     flowlines.loc[flowlines.altered, "altered_src"] = "NHD"
 
@@ -1191,11 +1213,11 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
 
     terminal_ix = joins.loc[joins.downstream == 0].upstream_id.unique()
 
-    # exclude loops and pipelines / canals
+    # exclude loops and pipelines / underground connectors / canals
     tmp = flowlines.loc[
         flowlines.index.isin(terminal_ix)
         & (~flowlines.loop)
-        & (~flowlines.FType.isin([336, 428])),
+        & (~flowlines.FType.isin([336, 420, 428])),
         ["geometry"],
     ].copy()
 
@@ -1207,7 +1229,7 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
         ~(
             flowlines.index.isin(terminal_ix)
             | flowlines.loop
-            | flowlines.FType.isin([336, 428])
+            | flowlines.FType.isin([336, 420, 428])
         )
     ]
 
@@ -1361,6 +1383,7 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
     new_joins["downstream"] = new_joins.upstream
     new_joins["type"] = "internal"
     new_joins["marine"] = False
+    new_joins["great_lakes"] = False
     new_joins["loop"] = new_joins.upstream.isin(flowlines.loc[flowlines.loop].index)
 
     # update the downstream end of the incoming tributaries
@@ -1386,6 +1409,7 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
                     "type",
                     "loop",
                     "marine",
+                    "great_lakes",
                 ]
             ],
         ],

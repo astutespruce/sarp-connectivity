@@ -42,7 +42,6 @@ def extract_barrier_points(gdb, target_crs):
         layer=layer,
         columns=read_cols,
         force_2d=True,
-        use_arrow=True,
         where=f"{ftype_col} in {tuple(POINT_FTYPES)}",
     ).rename(columns=col_map)
 
@@ -79,7 +78,6 @@ def extract_barrier_lines(gdb, target_crs):
         layer=layer,
         columns=read_cols,
         force_2d=True,
-        use_arrow=True,
         where=f"{ftype_col} in {tuple(LINE_FTYPES)}",
     ).rename(columns=col_map)
 
@@ -117,7 +115,6 @@ def extract_barrier_polygons(gdb, target_crs):
         layer=layer,
         columns=read_cols,
         force_2d=True,
-        use_arrow=True,
         where=f"{ftype_col} in {tuple(POLY_FTYPES)}",
     ).rename(columns=col_map)
 
