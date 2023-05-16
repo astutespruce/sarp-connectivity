@@ -1,4 +1,4 @@
-# Southeast Aquatic Barrier Inventory Data Processing
+# National Aquatic Barrier Inventory & Prioritization Tool Data Processing
 
 This project involves several data processing steps to work from raw aquatic network and barrier data to outputs of the network and connectivity analyses.
 

@@ -68,8 +68,8 @@ const Inventory = () => {
               }}
             >
               <li>
-                <b>{ANALYSIS_STATES.length - 2}</b> states, Puerto Rico, and
-                U.S. Virgin Islands
+                <b>{ANALYSIS_STATES.length - 3}</b> states, Washington DC,
+                Puerto Rico, and U.S. Virgin Islands
               </li>
               <li>
                 <b>{formatNumber(dams, 0)}</b> inventoried dams

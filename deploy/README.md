@@ -7,6 +7,9 @@
 - Add a second volume with 36 GB (GP3) of space for tiles
 - Create an elastic IP and assign to that instance
 
+NOTE: the same configuration is used for staging as for production, because the
+staging server is typically promoted to the staging server when ready.
+
 ### Create a 4 GB swap file
 
 ```bash
@@ -77,85 +80,126 @@ GATSBY_MAILCHIMP_FORM_ID=<form id>
 
 ## Grant ubuntu user write permissions to the root folder
 
-- as `ubuntu` user
-- `sudo chown -R app:ubuntu /home/app/sarp-connectivity`
+As `ubuntu` user:
+
+```bash
+sudo chown -R app:ubuntu /home/app/sarp-connectivity
+```
 
 ## Install NodeJS and UI dependencies:
 
 Check `.nvmrc` and use the same major version of NodeJS.
 
-- as `ubuntu` user
-- `sudo apt-get update && sudo apt-get install -y make g++` (needed to build @parcel/watch dependency)
+As `ubuntu` user:
 
-- as `app` user
-- `curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash`
-- exit and log back in
-- `nvm install 18`
-- `npm install -g npm@latest`
-- `cd ~/sarp-connectivity/ui`
-- `npm run install-deps`
+```bash
+sudo apt-get update && sudo apt-get install -y make g++
+```
+
+(needed to build @parcel/watch dependency)
+
+As `app` user:
+
+```bash
+curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+```
+
+Exit and log back in as app user.
+
+```bash
+nvm install 18
+npm install -g npm@latest
+cd ~/sarp-connectivity/ui
+npm run install-deps
+```
 
 NOTE: the gatsby-cli version may need to be updated to match version of Gatsby in `package.json`
 
 Build it:
 
-- `npm run deploy`
+```bash
+npm run deploy
+```
 
 ## Install Python dependencies
 
-- as `ubuntu` user
-  `sudo apt-get install -y python3-pip`
+As `ubuntu` user:
 
-- as `app` user
-- `cd ~/sarp-connectivity`
-- `curl -sSL https://install.python-poetry.org | python3 -`
-- `echo 'export PATH="/home/app/.local/bin:$PATH"' >> ~/.bashrc`
-- `source ~/.bashrc`
-- `poetry install --only main --extras deploy`
+```bash
+sudo apt-get install -y python3-pip
+```
+
+As `app` user:
+
+```bash
+cd ~/sarp-connectivity
+curl -sSL https://install.python-poetry.org | python3 -
+echo 'export PATH="/home/app/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+poetry install --only main --extras deploy
+```
 
 To activate the shell, use `poetry shell`.
 
-## Install and build mbtileserver
+## Install mbtileserver
 
 - as `ubuntu` user, in `/tmp` directory
 - install `unzip`: `sudo apt-get update && sudo apt-get install -y unzip`
 - Find the latest release on https://github.com/consbio/mbtileserver/releases and download the zip file for the correct architecture (`wget https://github.com/consbio/mbtileserver/releases/download/v0.9.0/mbtileserver_v0.9.0_linux_arm64.zip`).
-- `unzip <filename>`
-- `mv <filename> mbtileserver`
-- `sudo chmod 777 mbtileserver`
-- `sudo mv mbtileserver /usr/bin`
+
+```bash
+unzip <filename>
+mv <filename> mbtileserver
+sudo chmod 777 mbtileserver
+sudo mv mbtileserver /usr/bin
+```
 
 Verify it starts up properly (error about no tiles is OK):
 
-- `mbtileserver -d /tiles -p 8001`
+```bash
+mbtileserver -d /tiles -p 8001
+```
 
 Setup and enable service (will be restarted after uploading tiles):
 
-- `sudo cp /home/app/sarp-connectivity/deploy/<environment>/service/mbtileserver.service /etc/systemd/system` (where environment is staging or production)
-- `sudo systemctl enable mbtileserver`
+```bash
+sudo cp /home/app/sarp-connectivity/deploy/<environment>/service/mbtileserver.service /etc/systemd/system
+sudo systemctl enable mbtileserver
+```
+
+(where environment is staging or production)
 
 Verify that it loaded as a service correctly:
 
-- `sudo service mbtileserver status`
+```bash
+sudo service mbtileserver status
+```
 
 ## Install Caddy
 
-- as `ubuntu` user
-- follow instructions [here](https://caddyserver.com/docs/install#debian-ubuntu-raspbian) to install on Linux/Arm64:
+As `ubuntu` user:
 
-- `sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https`
-- `curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg`
-- `curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list`
-- `sudo apt update && sudo apt install caddy`
+follow instructions [here](https://caddyserver.com/docs/install#debian-ubuntu-raspbian) to install on Linux/Arm64:
+
+```bash
+sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+sudo apt update && sudo apt install caddy
+```
 
 Note: this automatically enables the caddy service
 
-- `sudo cp /home/app/sarp-connectivity/deploy/<environment>/Caddyfile /etc/caddy/Caddyfile`
-- `sudo service caddy restart`
+```bash
+sudo cp /home/app/sarp-connectivity/deploy/<environment>/Caddyfile /etc/caddy/Caddyfile
+sudo service caddy restart
+```
 
 Verify that it loaded as a service correctly:
 
-- `sudo service caddy status`
+```bash
+sudo service caddy status
+```
 
 ## Copy data and tiles to server
 
@@ -180,14 +224,19 @@ Verify that API starts correctly with gunicorn:
 
 Enable service:
 
-- as `ubuntu` user
-- `sudo cp /home/app/sarp-connectivity/deploy/<environment>/service/api.service /etc/systemd/system/`
-- `sudo systemctl enable api`
-- `sudo service api start`
+As `ubuntu` user:
+
+```bash
+sudo cp /home/app/sarp-connectivity/deploy/<environment>/service/api.service /etc/systemd/system/
+sudo systemctl enable api
+sudo service api start
+```
 
 Verify the service started correctly:
 
-- `sudo service api status`
+```bash
+sudo service api status
+```
 
 For more log messages:
 

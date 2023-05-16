@@ -10,6 +10,7 @@ import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'
 
 const RegionSummary = ({ region, barrierType, system, onSearch }) => {
+  const { name } = REGIONS[region]
   const {
     [region]: {
       dams,
@@ -25,7 +26,7 @@ const RegionSummary = ({ region, barrierType, system, onSearch }) => {
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
 
-  const regionName = region === 'total' ? 'full analysis area' : REGIONS[region]
+  const regionName = region === 'total' ? 'full analysis area' : name
 
   return (
     <Box sx={{ p: '1rem', overflowY: 'auto', height: '100%' }}>

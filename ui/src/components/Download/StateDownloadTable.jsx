@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Paragraph } from 'theme-ui'
 
 import { useStateSummary } from 'components/Data'
-import { REGIONS, STATES } from 'config'
+import { REGIONS, STATES, ANALYSIS_STATES } from 'config'
 import { groupBy } from 'util/data'
 import { formatNumber } from 'util/format'
 
@@ -22,7 +22,12 @@ const StateDownloadTable = ({
   ...props
 }) => {
   const stateData = groupBy(useStateSummary(), 'id')
-  const { states } = REGIONS[region]
+  let states = []
+  if (region === 'total') {
+    states = ANALYSIS_STATES
+  } else {
+    states = REGIONS[region].states
+  }
 
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers

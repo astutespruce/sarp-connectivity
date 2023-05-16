@@ -1,4 +1,4 @@
-# Southeast Aquatic Barrier Inventory Data Processing - Network Data Preparation
+# National Aquatic Barrier Inventory & Prioritization Tool Data Processing - Network Data Preparation
 
 This stage involves processing NHD data and related data into data structures that are ready to use for snapping and network analysis. These should only need to be rerun when you need more HUC4s than are currently included in the analysis, need to update NHD data, or need to resolve logic errors in the data extraction pipeline.
 

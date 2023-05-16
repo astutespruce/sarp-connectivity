@@ -24,13 +24,9 @@ const Header = () => {
         borderBottomColor: 'blue.8',
       }}
     >
-      <Heading
-        as="h1"
+      <Box
         sx={{
           flex: '0 0 auto',
-          m: 0,
-          lineHeight: 1,
-          fontSize: '1.5rem',
           'a, a:hover': {
             textDecoration: 'none',
             color: '#fff',
@@ -50,18 +46,37 @@ const Header = () => {
                 sx={{
                   fill: '#fff',
                   mr: '0.25rem',
-                  width: '2rem',
-                  height: '2rem',
+                  width: '2.25rem',
+                  height: '2.25rem',
                 }}
               />
             </Box>
-            <Text sx={{ display: ['none', 'none', 'unset'] }}>{title}</Text>
-            <Text sx={{ display: ['unset', 'unset', 'none'] }}>
+            <Box sx={{ display: ['none', 'none', 'unset'], lineHeight: 1 }}>
+              <Text sx={{ fontSize: 1, fontStyle: 'italic' }}>National</Text>
+              <Heading
+                as="h1"
+                sx={{
+                  m: 0,
+                  fontSize: '1.25rem',
+                  fontWeight: 'normal',
+                }}
+              >
+                Aquatic Barrier Inventory & Prioritization Tool
+              </Heading>
+            </Box>
+            <Heading
+              as="h1"
+              sx={{
+                display: ['unset', 'unset', 'none'],
+                lineHeight: 1,
+                fontSize: '1.5rem',
+              }}
+            >
               {shortTitle}
-            </Text>
+            </Heading>
           </Flex>
         </Link>
-      </Heading>
+      </Box>
       <Nav />
     </Flex>
   )

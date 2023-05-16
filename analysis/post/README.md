@@ -1,4 +1,4 @@
-# Southeast Aquatic Barrier Inventory Data Processing - Post-Processing
+# National Aquatic Barrier Inventory & Prioritization Tool Data Processing - Post-Processing
 
 Once all data have been processed from the network analysis and prioritization steps, they can be summarized for each of the summary units used in the tool.
 

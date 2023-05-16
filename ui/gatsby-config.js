@@ -13,7 +13,7 @@ module.exports = {
     version,
     date,
     siteUrl: process.env.GATSBY_SITE_URL || defaultHost,
-    title: `Aquatic Barrier Prioritization Tool`,
+    title: `National Aquatic Barrier Inventory & Prioritization Tool`,
     shortTitle: `Aquatic Barrier Tool`,
     description: `A tool to help prioritize aquatic barriers for removal or mitigation.`,
     author: `Brendan C. Ward`,
@@ -90,7 +90,7 @@ module.exports = {
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
-        name: `Aquatic Barrier Prioritization Tool`,
+        name: `National Aquatic Barrier Inventory & Prioritization Tool`,
         short_name: `Aquatic Barrier Tool`,
         icon: 'src/images/favicon-64x64.svg',
         start_url: `/`,

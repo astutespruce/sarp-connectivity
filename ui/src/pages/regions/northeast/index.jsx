@@ -87,7 +87,7 @@ const NortheastRegionPage = ({
           </Box>
           <Box>
             <Heading as="h4" sx={{ mb: '1rem' }}>
-              Includes {states.length} states with:
+              Includes {states.length - 1} states and Washington DC with:
             </Heading>
 
             <RegionStats {...summary} />

@@ -38,6 +38,7 @@ const Nav = () => (
       fontSize: '1rem',
       position: 'relative',
       zIndex: 10000,
+      gap: '0.25rem',
     }}
   >
     <NavMenu label="Explore regions" items={regions} />

@@ -14,7 +14,7 @@ setup(
     name="sarp-connectivity",
     # version must be kept in sync with ui/package.json
     version="2.6.0",
-    description="Aquatic Barrier Inventory Visualization & Prioritization Tool",
+    description="National Aquatic Barrier Inventory & Prioritization Tool",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/astutespruce/sarp-connectivity",

@@ -35,7 +35,6 @@ const NavMenu = ({ label, items, ...props }) => (
         borderRight: '1px solid transparent',
         position: 'relative',
         transformStyle: 'preserve-3d',
-        mr: '0.5rem',
       }}
     >
       <Text

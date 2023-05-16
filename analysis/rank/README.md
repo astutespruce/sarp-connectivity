@@ -1,4 +1,4 @@
-# Southeast Aquatic Barrier Inventory Data Processing - Barrier Prioritization
+# National Aquatic Barrier Inventory & Prioritization Tool Data Processing - Barrier Prioritization
 
 Once all networks have been generated and merged across regions, barriers can be prioritized using their network connectivity metrics.
 

@@ -1,4 +1,4 @@
-# Southeast Aquatic Barrier Inventory Data Processing - Network Analysis
+# National Aquatic Barrier Inventory & Prioritization Tool Data Processing - Network Analysis
 
 Once all the inputs are prepared (see `analysis/prep/README.md`), you now run the network analysis on all regions.
 
