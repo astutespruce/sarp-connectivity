@@ -2,10 +2,9 @@
 
 # Mapping of network type to barrier kinds that break that network
 NETWORK_TYPES = {
-    # FIXME:
-    "waterfalls": ["waterfall"],
-    # "dams": ["waterfall", "dam"],
-    # "small_barriers": ["waterfall", "dam", "small_barrier"],
+    # "waterfalls": ["waterfall"],
+    "dams": ["waterfall", "dam"],
+    "small_barriers": ["waterfall", "dam", "small_barrier"],
     # "road_crossing": ["waterfall", "dam", "small_barrier", "road_crossing"],
 }
 

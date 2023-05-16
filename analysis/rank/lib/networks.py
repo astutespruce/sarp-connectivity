@@ -57,6 +57,7 @@ NETWORK_COLUMNS = [
     "totd_road_crossings",
     "miles_to_outlet",
     "flows_to_ocean",
+    "flows_to_great_lakes",
     "exits_region",
 ]
 
