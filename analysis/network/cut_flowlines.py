@@ -52,9 +52,7 @@ start = time()
 
 ### Aggregate barriers
 print("Aggregating barriers")
-# kinds = ["waterfall", "dam", "small_barrier", "road_crossing"]
-# FIXME:
-kinds = ["waterfall", "dam"]
+kinds = ["waterfall", "dam", "small_barrier", "road_crossing"]
 barriers = read_feathers(
     [barriers_dir / f"{kind}s.feather" for kind in kinds],
     geo=True,
@@ -64,9 +62,6 @@ barriers = read_feathers(
 # FIXME:
 if "removed" not in barriers.columns:
     barriers["removed"] = False
-
-# FIXME: remove once all barriers have been re-prepared
-barriers["id"] = barriers.id.astype("uint64")
 
 barriers = barriers.set_index("id", drop=False)
 

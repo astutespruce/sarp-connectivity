@@ -80,9 +80,8 @@ zoom_config = [
 ]
 
 
-# use local clone of github.com/tippecanoe
-tippecanoe = "../lib/tippecanoe/tippecanoe"
-tile_join = "../lib/tippecanoe/tile-join"
+tippecanoe = "tippecanoe"
+tile_join = "tile-join"
 
 col_types = [
     "-T",

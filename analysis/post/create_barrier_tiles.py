@@ -3,10 +3,8 @@ import subprocess
 from time import time
 
 import geopandas as gp
-import pandas as pd
 from pyogrio import write_dataframe
 
-from analysis.lib.compression import pack_bits
 from api.constants import (
     DAM_TILE_FILTER_FIELDS,
     DAM_TILE_FIELDS,
@@ -34,7 +32,7 @@ from analysis.post.lib.tiles import (
 
 # unit fields that can be dropped for sets of barriers that are not filtered
 DROP_UNIT_FIELDS = [
-    f for f in UNIT_FIELDS if not f in {"State", "County", "HUC8", "HUC12"}
+    f for f in UNIT_FIELDS if f not in {"State", "County", "HUC8", "HUC12"}
 ]
 
 MAX_ZOOM = 16
@@ -109,7 +107,7 @@ write_dataframe(tmp.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z2", "-z7", "-r1.5", "-g1.5", "-B5"]
+    + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "ranked_dams"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(tmp)
@@ -185,6 +183,7 @@ removed_dams = df.loc[df.Removed].drop(
 removed_dams = removed_dams.drop(
     columns=[
         "FlowsToOcean",
+        "FlowsToGreatLakes",
         "MilesToOutlet",
         "upNetID",
         "downNetID",
@@ -192,8 +191,8 @@ removed_dams = removed_dams.drop(
     + [
         c
         for c in METRIC_FIELDS
-        if not c
-        in {
+        if c
+        not in {
             "Intermittent",
             "StreamOrder",
         }
@@ -294,6 +293,7 @@ offnetwork_dams = (
             "PassageFacilityClass",
             "SalmonidESUCount",
             "FlowsToOcean",
+            "FlowsToGreatLakes",
             "MilesToOutlet",
             "CoastalHUC8",
             "DownstreamOceanMilesClass",
@@ -373,7 +373,7 @@ write_dataframe(tmp.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z2", "-z7", "-r1.5", "-g1.5", "-B5"]
+    + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "ranked_small_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(tmp)
@@ -445,6 +445,7 @@ removed_barriers = df.loc[df.Removed].drop(
 removed_barriers = removed_barriers.drop(
     columns=[
         "FlowsToOcean",
+        "FlowsToGreatLakes",
         "MilesToOutlet",
         "upNetID",
         "downNetID",
@@ -453,8 +454,8 @@ removed_barriers = removed_barriers.drop(
     + [
         c
         for c in METRIC_FIELDS
-        if not c
-        in {
+        if c
+        not in {
             "Intermittent",
             "StreamOrder",
         }
@@ -547,6 +548,7 @@ offnetwork_barriers = df.loc[~(df.HasNetwork | df.Removed)].drop(
         "PercentAlteredClass",
         "SalmonidESUCount",
         "FlowsToOcean",
+        "FlowsToGreatLakes",
         "MilesToOutlet",
         "CoastalHUC8",
         "DownstreamOceanMilesClass",
@@ -624,7 +626,7 @@ write_dataframe(tmp.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z2", "-z7", "-r1.5", "-g1.5", "-B5"]
+    + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "ranked_combined_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(tmp)
@@ -698,6 +700,7 @@ removed_combined_barriers = df.loc[df.Removed].drop(
 removed_combined_barriers = removed_combined_barriers.drop(
     columns=[
         "FlowsToOcean",
+        "FlowsToGreatLakes",
         "MilesToOutlet",
         "upNetID",
         "downNetID",
@@ -705,8 +708,8 @@ removed_combined_barriers = removed_combined_barriers.drop(
     + [
         c
         for c in METRIC_FIELDS
-        if not c
-        in {
+        if c
+        not in {
             "Intermittent",
             "StreamOrder",
         }
@@ -811,6 +814,7 @@ offnetwork_combined_barriers = (
             "PassageFacilityClass",
             "SalmonidESUCount",
             "FlowsToOcean",
+            "FlowsToGreatLakes",
             "MilesToOutlet",
             "CoastalHUC8",
             "DownstreamOceanMilesClass",

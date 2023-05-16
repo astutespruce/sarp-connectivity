@@ -163,7 +163,7 @@ dams.reset_index().to_feather(results_dir / "dams.feather")
 tmp = dams[DAM_API_FIELDS].reset_index()
 # downcast to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
-tmp.to_feather(api_dir / f"dams.feather")
+tmp.to_feather(api_dir / "dams.feather")
 
 
 #########################################################################################

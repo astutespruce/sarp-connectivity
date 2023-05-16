@@ -2,43 +2,57 @@
 
 ## Server
 
-- Create an EC2 T3a.small server based on Ubuntu 20.04 LTS
+- Create an EC2 T4g.small server based on Ubuntu 22.04 LTS (Arm64)
 - Set root volume to have 24 GB (GP3) of space
-- Add a second volume with 24 GB (GP3) of space
+- Add a second volume with 36 GB (GP3) of space for tiles
 - Create an elastic IP and assign to that instance
-- Create a 4 GB swap file according to instructions here: https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04
-  - `sudo fallocate -l 4G /swapfile`
-  - `sudo chmod 600 /swapfile`
-  - `sudo mkswap /swapfile`
-  - `sudo swapon /swapfile`
-  - add this to `/etc/fstab`: `/swapfile none swap sw 0 0`
-- Format and mount 32 GB secondary volume, used for tiles
-  - use `lsblk` to list volumes; it may be listed as `nvme1n1`
-  - `sudo mkfs -t ext4 /dev/nvme1n1`
-  - `sudo mkdir /tiles`
-  - `sudo mount /dev/nvme1n1 /tiles/`
-  - add this to `/etc/fstab`: `/dev/nvme1n1 /tiles ext4 defaults,nofail`
+
+### Create a 4 GB swap file
+
+```bash
+sudo fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+
+Add this to `/etc/fstab`: `/swapfile none swap sw 0 0`
+
+### Format and mount 32 GB secondary volume, used for tiles
+
+se `lsblk` to list volumes; it may be listed as `nvme1n1`
+
+```bash
+sudo mkfs -t ext4 /dev/nvme1n1
+sudo mkdir /tiles
+sudo mount /dev/nvme1n1 /tiles/
+```
+
+Add this to `/etc/fstab`: `/dev/nvme1n1 /tiles ext4 defaults,nofail`
 
 ## Setup accounts and directories
 
 The application is managed by the `app` user account.
 
-- `sudo useradd --create-home app`
-- `sudo usermod -a -G app ubuntu`
-- `sudo chsh -s /bin/bash app`
-- `sudo mkdir /var/www`
-- `sudo chown app:app /var/www`
-- `sudo chown app:app /tiles`
-- `sudo chmod 774 /tiles`
+```bash
+sudo useradd --create-home app
+sudo usermod -a -G app ubuntu
+sudo chsh -s /bin/bash app
+sudo mkdir /var/www
+sudo chown app:app /var/www
+sudo chown app:app /tiles
+sudo chmod 774 /tiles
+```
 
 ## Clone the repository and setup environment files
 
-- `sudo su app`
-- `cd ~`
-- `git clone https://github.com/astutespruce/sarp-connectivity.git`
-- `cd sarp-connectivity`
-- `mkdir data`
-- `mkdir data/api`
+```bash
+sudo su app
+cd ~
+git clone https://github.com/astutespruce/sarp-connectivity.git
+cd sarp-connectivity
+mkdir -p data/api
+```
 
 Create a `.env` in the root of the repository with the following:
 
