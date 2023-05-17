@@ -10,7 +10,11 @@ import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'
 
 const RegionSummary = ({ region, barrierType, system, onSearch }) => {
-  const { name } = REGIONS[region]
+  let name = 'full analysis area'
+  if (region !== 'total') {
+    name = REGIONS[region].name
+  }
+
   const {
     [region]: {
       dams,

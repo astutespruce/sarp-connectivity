@@ -338,6 +338,11 @@ ret = subprocess.run(
     tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
 )
 
+# remove intermediates
+for mbtiles_file in mbtiles_files:
+    mbtiles_file.unlink()
+
+
 print(f"Created dam tiles in {time() - start:,.2f}s")
 
 ####################################################################
@@ -588,6 +593,10 @@ mbtiles_filename = out_dir / "small_barriers.mbtiles"
 ret = subprocess.run(
     tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
 )
+
+# remove intermediates
+for mbtiles_file in mbtiles_files:
+    mbtiles_file.unlink()
 
 print(f"Created small barrier tiles in {time() - start:,.2f}s")
 
@@ -858,6 +867,10 @@ mbtiles_filename = out_dir / "combined_barriers.mbtiles"
 ret = subprocess.run(
     tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
 )
+
+# remove intermediates
+for mbtiles_file in mbtiles_files:
+    mbtiles_file.unlink()
 
 print(f"Created combined barrier tiles in {time() - start:,.2f}s")
 

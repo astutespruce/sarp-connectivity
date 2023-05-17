@@ -4,7 +4,7 @@
 
 - Create an EC2 T4g.small server based on Ubuntu 22.04 LTS (Arm64)
 - Set root volume to have 24 GB (GP3) of space
-- Add a second volume with 36 GB (GP3) of space for tiles
+- Add a second volume with 40 GB (GP3) of space for tiles
 - Create an elastic IP and assign to that instance
 
 NOTE: the same configuration is used for staging as for production, because the
@@ -43,7 +43,7 @@ sudo usermod -a -G app ubuntu
 sudo chsh -s /bin/bash app
 sudo mkdir /var/www
 sudo chown app:app /var/www
-sudo chown app:app /tiles
+sudo chown app:ubuntu /tiles
 sudo chmod 774 /tiles
 ```
 
@@ -203,24 +203,46 @@ sudo service caddy status
 
 ## Copy data and tiles to server
 
-- on local (dev) machine, copy contents of `tiles` directory to server: `rsync -azvhP --append *.mbtiles sarp:/tiles/tmp` (or appropriate extra volume online just for copying data up)
-- move to `/tiles` and change ownership to `app`
-- restart mbtileserver: `sudo service mbtileserver restart`
+- on local (dev) machine, copy contents of `tiles` directory to server:
 
-- on local (dev) machine copy `feather` files in `sarp/data/api/` to server: `rsync -azvhP --append *.feather sarp:/tmp`
-- on remote: `sudo mv /tmp/*.feather /home/app/sarp-connectivity/data/api`
+```bash
+rsync -azvhpP --partial --inplace *.mbtiles sarp:/tiles
+```
+
+(or appropriate extra volume online just for copying data up)
+
+Restart mbtileserver: `sudo service mbtileserver restart`
+
+On local (dev) machine copy `feather` files in `sarp/data/api/` to server:
+
+```bash
+rsync -azvhP --append *.feather sarp:/tmp
+```
+
+On remote:
+
+```bash
+sudo chown app:app /tmp/*.feather
+sudo mv /tmp/*.feather /home/app/sarp-connectivity/data/api
+```
 
 ## Bring up API
 
-Verify that API starts correctly:
+Verify that API starts correctly. As `app` user from within `~/sarp-connectivity`:
 
-- `uvicorn api.server:app --port 5000`
-- `CTRL-C` to exit
+```bash
+/home/app/.local/bin/poetry run uvicorn api.server:app --port 5000
+```
+
+`CTRL-C` to exit
 
 Verify that API starts correctly with gunicorn:
 
-- `/home/app/.local/bin/poetry run gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 2 -b ":5000" api.server:app`
-- `CTRL-C` to exit
+```bash
+/home/app/.local/bin/poetry run gunicorn -k uvicorn.workers.UvicornWorker --name uvicorn --workers 2 -b ":5000" api.server:app
+```
+
+`CTRL-C` to exit
 
 Enable service:
 
@@ -240,20 +262,32 @@ sudo service api status
 
 For more log messages:
 
-- `journalctl -u api`
+```bash
+journalctl -u api
+```
 
-Verify that the API returns valid data
+Verify that the API returns valid data:
 
-- `https://<host>/api/v1/public/dams/metadata` should return valid JSON
+Open `https://<host>/api/v1/public/dams/metadata` in a browser; it should return
+valid JSON.
 
 ## Verify services
 
 Verify that each service runs properly. For `caddy`, `mbtileserver`, `api` services:
 
-- As `ubuntu` user
-- `sudo service <service_name> start`
-- `sudo service <service_name> status` (look for errors or success)
-- `sudo service <service_name> stop`
+As `ubuntu` user:
+
+Bring any services not already running up
+
+```bash
+sudo service caddy start
+```
+
+```bash
+sudo service <service_name> status
+```
+
+This should not show any errors
 
 After that, test the first few steps of the prioritization workflow here: https://<host>/priority
 

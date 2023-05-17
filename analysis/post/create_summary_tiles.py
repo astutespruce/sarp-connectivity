@@ -194,7 +194,8 @@ for unit in SUMMARY_UNITS:
 
     # Write summary CSV for each unit type
     merged.index.name = "id"
-    write_csv(pa.Table.from_pandas(merged.reset_index()), tmp_dir / f"{unit}.csv")
+    csv_filename = tmp_dir / f"{unit}.csv"
+    write_csv(pa.Table.from_pandas(merged.reset_index()), csv_filename)
 
     # join to tiles
     mbtiles_filename = f"{tmp_dir}/{unit}_summary.mbtiles"
@@ -214,6 +215,8 @@ for unit in SUMMARY_UNITS:
     )
     ret.check_returncode()
 
+    csv_filename.unlink()
+
 
 # join all summary tiles together
 print("Merging all summary tiles")
@@ -231,6 +234,11 @@ ret = subprocess.run(
     + mbtiles_files
 )
 ret.check_returncode()
+
+
+# delete intermediates
+for mbtiles_file in mbtiles_files:
+    mbtiles_file.unlink()
 
 
 # output unit stats with bounds for API
