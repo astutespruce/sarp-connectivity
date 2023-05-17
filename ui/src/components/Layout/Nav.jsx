@@ -35,10 +35,12 @@ const Nav = () => (
   <Flex
     sx={{
       alignItems: 'center',
-      fontSize: '1rem',
+      fontSize: [1, 1, '1rem'],
       position: 'relative',
       zIndex: 10000,
       gap: '0.25rem',
+      flexWrap: 'wrap',
+      justifyContent: 'flex-end',
     }}
   >
     <NavMenu label="Explore regions" items={regions} />

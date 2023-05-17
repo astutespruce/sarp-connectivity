@@ -96,7 +96,7 @@ const Regions = () => {
         Explore the inventory by region:
       </Heading>
 
-      <Grid columns={4} gap={4} sx={{ bg: 'grey.0', p: '1rem' }}>
+      <Grid columns={3} gap={4} sx={{ bg: 'grey.0', p: '1rem' }}>
         {regions.map(({ id, name, url, inDevelopment }) => (
           <Link key={id} to={url}>
             <Box
@@ -115,9 +115,9 @@ const Regions = () => {
             >
               <Flex
                 sx={{
-                  alignItems: 'baseline',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
+                  justifyContent: 'flex-end',
+                  flexDirection: 'column',
+                  height: '3rem',
                 }}
               >
                 <Heading
@@ -131,7 +131,7 @@ const Regions = () => {
                   {name}
                 </Heading>
                 {inDevelopment ? (
-                  <Text
+                  <Box
                     sx={{
                       flex: '1 1 auto',
                       fontSize: 1,
@@ -139,7 +139,7 @@ const Regions = () => {
                     }}
                   >
                     (in development)
-                  </Text>
+                  </Box>
                 ) : null}
               </Flex>
 
