@@ -518,7 +518,9 @@ export const offnetworkPointLayer = {
         pointColors.offNetwork.color,
         2,
         pointColors.nonBarrier.color,
-        // 3: invasive is in unranked layer below
+        3,
+        pointColors.minorBarrier.color,
+        // 4: invasive is in unranked layer below
         // last entry is default
         pointColors.offNetwork.color,
       ],
@@ -533,6 +535,8 @@ export const offnetworkPointLayer = {
         pointColors.offNetwork.strokeColor,
         2,
         pointColors.nonBarrier.strokeColor,
+        3,
+        pointColors.minorBarrier.strokeColor,
         pointColors.offNetwork.strokeColor,
       ],
       pointColors.highlight.strokeColor

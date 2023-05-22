@@ -159,8 +159,10 @@ export const offnetworkPoint = {
           pointColors.nonBarrier.damsColor,
           pointColors.nonBarrier.color,
         ],
+        3,
+        pointColors.minorBarrier.color,
         // pointColors.nonBarrier.color,
-        // 3: invasive is in unranked layer below
+        // 4: invasive is in unranked layer below
         // last entry is default
         pointColors.offNetwork.color,
       ],
@@ -175,6 +177,8 @@ export const offnetworkPoint = {
         pointColors.offNetwork.strokeColor,
         2,
         pointColors.nonBarrier.strokeColor,
+        3,
+        pointColors.minorBarrier.strokeColor,
         pointColors.offNetwork.strokeColor,
       ],
       pointColors.highlight.strokeColor
@@ -636,9 +640,9 @@ export const damsSecondaryLayer = {
       ['linear'],
       ['zoom'],
       10,
-      getHighlightExpr(2, 10),
+      getHighlightExpr(1, 10),
       12,
-      getHighlightExpr(3, 14),
+      getHighlightExpr(2, 14),
       14,
       getHighlightExpr(4, 14),
       16,

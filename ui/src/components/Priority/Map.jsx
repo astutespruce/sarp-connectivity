@@ -754,7 +754,7 @@ const PriorityMap = ({
         footnote = `zoom in to see ${barrierTypeLabel} available for prioritization`
       } else {
         circles.push({
-          ...excludedLegend,
+          ...includedLegend.getSymbol(barrierType),
           label: `${barrierTypeLabel} available for prioritization`,
         })
       }
@@ -812,12 +812,18 @@ const PriorityMap = ({
     }
 
     if (isWithinZoom[offnetworkPoint.id]) {
-      unrankedBarriers.forEach(({ getSymbol, getLabel }) => {
-        circles.push({
-          ...getSymbol(barrierType),
-          label: getLabel(barrierTypeLabel),
+      unrankedBarriers
+        .filter(
+          ({ id }) =>
+            // don't show minor barriers for dams view
+            id !== 'minorBarrier' || barrierType !== 'dams'
+        )
+        .forEach(({ getSymbol, getLabel }) => {
+          circles.push({
+            ...getSymbol(barrierType),
+            label: getLabel(barrierTypeLabel),
+          })
         })
-      })
 
       other.forEach(({ id, getSymbol, getLabel }) => {
         if (id === 'dams-secondary' && barrierType !== 'small_barriers') {

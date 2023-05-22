@@ -53,13 +53,19 @@ export const getLegendEntries = ({ name, networkType, visibleLayers }) => {
     label: capitalize(primary.getLabel(networkTypeLabel)),
   })
 
-  unrankedBarriers.forEach(({ id, getSymbol, getLabel }) => {
-    entries.push({
-      ...getSymbol(networkType),
-      type: 'circle',
-      label: capitalize(getLabel(networkTypeLabel)),
+  unrankedBarriers
+    .filter(
+      ({ id }) =>
+        // don't show minor barriers for dams view
+        id !== 'minorBarrier' || networkType !== 'dams'
+    )
+    .forEach(({ id, getSymbol, getLabel }) => {
+      entries.push({
+        ...getSymbol(networkType),
+        type: 'circle',
+        label: capitalize(getLabel(networkTypeLabel)),
+      })
     })
-  })
 
   other.forEach(({ id, getLabel, getSymbol }) => {
     // if visible layers are tracked, but not currently

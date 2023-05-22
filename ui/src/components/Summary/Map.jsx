@@ -607,12 +607,18 @@ const SummaryMap = ({
         label: primary.getLabel(barrierTypeLabel),
       })
 
-      unrankedBarriers.forEach(({ getSymbol, getLabel }) => {
-        circles.push({
-          ...getSymbol(barrierType),
-          label: getLabel(barrierTypeLabel),
+      unrankedBarriers
+        .filter(
+          ({ id }) =>
+            // don't show minor barriers for dams view
+            id !== 'minorBarrier' || barrierType !== 'dams'
+        )
+        .forEach(({ getSymbol, getLabel }) => {
+          circles.push({
+            ...getSymbol(barrierType),
+            label: getLabel(barrierTypeLabel),
+          })
         })
-      })
 
       other.forEach(({ id, getSymbol, getLabel }) => {
         if (id === 'dams-secondary' && barrierType !== 'small_barriers') {

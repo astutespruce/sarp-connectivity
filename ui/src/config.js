@@ -57,7 +57,7 @@ export const pointColors = {
     strokeColor: '#666',
   },
   damsSecondary: {
-    color: '#fec44f',
+    color: '#c20a38',
     strokeColor: '#FFFFFF',
   },
   removed: {
@@ -65,6 +65,10 @@ export const pointColors = {
     strokeColor: '#000000',
     // combined scenario:
     damsColor: '#09cad7',
+  },
+  minorBarrier: {
+    color: '#fec44f',
+    strokeColor: '#b27701',
   },
   nonBarrier: {
     color: '#00D46A',
@@ -257,6 +261,16 @@ export const pointLegends = {
       },
       getLabel: (barrierTypeLabel) =>
         `${barrierTypeLabel} removed for conservation`,
+    },
+    {
+      id: 'minorBarrier',
+      getSymbol: () => ({
+        radius: 5,
+        color: pointColors.minorBarrier.color,
+        borderColor: pointColors.minorBarrier.strokeColor,
+        borderWidth: 0.5,
+      }),
+      getLabel: () => 'minor barrier based on field assessment',
     },
     {
       id: 'nonBarrier',
