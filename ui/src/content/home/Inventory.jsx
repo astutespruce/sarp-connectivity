@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Grid, Paragraph, Heading } from 'theme-ui'
 
-import { Link } from 'components/Link'
+import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
 import { siteMetadata, ANALYSIS_STATES } from 'config'
 import { formatNumber } from 'util/format'
@@ -98,6 +98,23 @@ const Inventory = () => {
           </Paragraph>
         </Box>
       </Grid>
+      <Paragraph sx={{ mt: '2rem' }}>
+        If you have recently completed a dam removal, fish passage, or barrier
+        remediation project, please use the following links to report these
+        projects so they may be included in the inventory:
+      </Paragraph>
+      <Box as="ul" sx={{ mt: '0.5rem' }}>
+        <li>
+          <OutboundLink to="https://arcg.is/1fvmXS1">
+            Dam removal and fish passage at dams
+          </OutboundLink>
+        </li>
+        <li>
+          <OutboundLink to="https://arcg.is/11OSuL0">
+            Road related barrier replacement
+          </OutboundLink>
+        </li>
+      </Box>
     </Box>
   )
 }

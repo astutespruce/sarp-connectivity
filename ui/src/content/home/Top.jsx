@@ -92,7 +92,19 @@ const Top = () => (
       <OutboundLink to="https://www.fws.gov/program/national-wetlands-inventory">
         National Wetlands Inventory
       </OutboundLink>
+      . Along with national data sources, several other regional and state
+      efforts to collect barrier data were included in this inventory and are
+      regularly updated within. To see a list of data sources as well as a link
+      to submit a missing data source,{' '}
+      <OutboundLink to="https://docs.google.com/document/d/1mUwk9rHukmY1D_NInxjdIxbBVfILD1Y8Xr-lMqjV4xU/edit?usp=sharing">
+        click here
+      </OutboundLink>
       .
+      <br />
+      <br />
+      This inventory and prioritization tool are planned for a full national
+      expansion by the end of 2025. Barriers for Alaska, Nevada, California, the
+      Great Lakes Region, and the Northeast Region are currently incomplete.
     </Paragraph>
 
     <Box variant="boxes.section" sx={{ mt: '4rem' }}>
