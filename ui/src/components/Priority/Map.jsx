@@ -754,7 +754,7 @@ const PriorityMap = ({
         footnote = `zoom in to see ${barrierTypeLabel} available for prioritization`
       } else {
         circles.push({
-          ...excludedLegend,
+          ...includedLegend.getSymbol(barrierType),
           label: `${barrierTypeLabel} available for prioritization`,
         })
       }
