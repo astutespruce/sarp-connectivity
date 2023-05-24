@@ -75,7 +75,7 @@ async def download(
         case "road_crossings":
             columns += ROAD_CROSSING_API_FIELDS
 
-    columns = [c for c in columns if not c in CUSTOM_TIER_FIELDS]
+    columns = [c for c in columns if c not in CUSTOM_TIER_FIELDS]
 
     df = extractor.extract(
         columns=columns,
@@ -113,7 +113,7 @@ async def download(
                         **{
                             col: df[col]
                             for col in df.column_names
-                            if not col in CUSTOM_TIER_FIELDS
+                            if col not in CUSTOM_TIER_FIELDS
                         },
                         **{
                             col: df[col].fill_null(-1)
@@ -136,17 +136,19 @@ async def download(
 
     filename = f"aquatic_barrier_ranks.{format}"
 
+    url = f"{request.base_url.scheme}://{request.base_url.netloc}"
+
     ### Get metadata
     readme = get_readme(
         filename=filename,
         barrier_type=barrier_type,
         fields=df.column_names,
-        url=request.base_url,
+        url=url,
         layer=extractor.layer,
         ids=extractor.ids.tolist(),
         warnings=warnings,
     )
-    terms = get_terms(url=request.base_url)
+    terms = get_terms(url=url)
 
     if format == "csv":
         return zip_csv_response(
