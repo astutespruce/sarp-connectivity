@@ -1,4 +1,20 @@
-aquaticbarriers.mockuplab.us {
+aquaticbarriers.mockuplab.us:80 {
+  log {
+    level ERROR
+  }
+
+  redir https://staging.aquaticbarriers.org{uri} 308
+}
+
+aquaticbarriers.mockuplab.us:443 {
+  log {
+    level ERROR
+  }
+
+  redir https://staging.aquaticbarriers.org{uri} 308
+}
+
+staging.aquaticbarriers.org {
   log {
     level ERROR
   }
@@ -10,7 +26,7 @@ aquaticbarriers.mockuplab.us {
   header X-Content-Type-Options nosniff
 
   # Set CORS
-  header Access-Control-Allow-Origin "https://aquaticbarriers.mockuplab.us"
+  header Access-Control-Allow-Origin "https://staging.aquaticbarriers.org"
   header Access-Control-Request-Method *
   header Access-Control-Request-Headers *
 

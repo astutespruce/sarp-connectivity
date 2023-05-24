@@ -1,6 +1,6 @@
 # Southeast Aquatic Barriers Inventory Visualization & Prioritization Tool
 
-https://connectivity.sarpdata.com/
+https://aquaticbarriers.org/
 
 ## Purpose
 

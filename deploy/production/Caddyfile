@@ -1,4 +1,39 @@
-connectivity.sarpdata.com {
+# redirect HTTP / HTTPS to bare domain
+connectivity.sarpdata.com:80 {
+  log {
+    level ERROR
+  }
+
+  redir https://aquaticbarriers.org{uri} 308
+}
+
+connectivity.sarpdata.com:443 {
+  log {
+    level ERROR
+  }
+
+  redir https://aquaticbarriers.org{uri} 308
+}
+
+# redirect HTTP / HTTPS to bare domain
+www.aquaticbarriers.org:80 {
+  log {
+    level ERROR
+  }
+
+  redir https://aquaticbarriers.org{uri} 308
+}
+
+www.aquaticbarriers.org:443 {
+  log {
+    level ERROR
+  }
+
+  redir https://aquaticbarriers.org{uri} 308
+}
+
+
+aquaticbarriers.org {
   log {
     level ERROR
   }
@@ -10,7 +45,7 @@ connectivity.sarpdata.com {
   header X-Content-Type-Options nosniff
 
   # Set CORS
-  header Access-Control-Allow-Origin "https://connectivity.sarpdata.com"
+  header Access-Control-Allow-Origin "https://aquaticbarriers.org"
   header Access-Control-Request-Method *
   header Access-Control-Request-Headers *
 
