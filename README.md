@@ -1,6 +1,6 @@
 # National Aquatic Barrier Inventory & Prioritization Tool
 
-https://connectivity.sarpdata.com/
+https://aquaticbarriers.org/
 
 ## Purpose
 

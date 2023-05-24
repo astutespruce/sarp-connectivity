@@ -26,7 +26,7 @@ const Footer = () => (
       fixed
     >
       Created by the{' '}
-      <Link href="https://connectivity.sarpdata.com/">
+      <Link href="https://aquaticbarriers.org/">
         <Text>National Aquatic Barrier Inventory & Prioritization Tool</Text>
       </Link>{' '}
       on {new Date().toLocaleDateString()}.

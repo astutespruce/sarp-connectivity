@@ -6,7 +6,7 @@ require('dotenv').config({
 const theme = require('./src/theme')
 const { version, date } = require('./package.json')
 
-const defaultHost = `https://connectivity.sarpdata.com`
+const defaultHost = `https://aquaticbarriers.org`
 
 module.exports = {
   siteMetadata: {

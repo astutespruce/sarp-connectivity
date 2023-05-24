@@ -8,7 +8,7 @@ const Credits = (props) => (
   <Flex {...props} wrap={false}>
     <Text style={{ flex: '1 1 auto', marginRight: 36, fontSize: 10 }}>
       This report was created using the{' '}
-      <Link href="https://connectivity.sarpdata.com/">
+      <Link href="https://aquaticbarriers.org/">
         <Text>National Aquatic Barrier Inventory & Prioritization Tool</Text>
       </Link>
       , a project of the{' '}
