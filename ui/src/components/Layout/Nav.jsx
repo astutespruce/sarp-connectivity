@@ -1,6 +1,11 @@
 import React from 'react'
 import { Flex } from 'theme-ui'
-import { ChartBar, SearchLocation, Download } from '@emotion-icons/fa-solid'
+import {
+  ChartBar,
+  SearchLocation,
+  Download,
+  QuestionCircle,
+} from '@emotion-icons/fa-solid'
 
 import { hasWindow } from 'util/dom'
 import { Link } from 'components/Link'
@@ -50,8 +55,8 @@ const Nav = () => (
       to="/summary"
       sx={isActivePath('/summary') ? activeNavLinkCSS : navLinkCSS}
     >
-      <Flex sx={{ alignItems: 'center' }}>
-        <ChartBar size="1em" style={{ marginRight: '0.25em' }} />
+      <Flex sx={{ alignItems: 'center', gap: '0.25rem' }}>
+        <ChartBar size="1em" />
         <div>Summarize</div>
       </Flex>
     </Link>
@@ -60,8 +65,8 @@ const Nav = () => (
       activeClassName="nav-active"
       sx={isActivePath('/priority') ? activeNavLinkCSS : navLinkCSS}
     >
-      <Flex sx={{ alignItems: 'center' }}>
-        <SearchLocation size="1em" style={{ marginRight: '0.25em' }} />
+      <Flex sx={{ alignItems: 'center', gap: '0.25rem' }}>
+        <SearchLocation size="1em" />
         <div>Prioritize</div>
       </Flex>
     </Link>
@@ -69,9 +74,15 @@ const Nav = () => (
       to="/download"
       sx={isActivePath('/download') ? activeNavLinkCSS : navLinkCSS}
     >
-      <Flex sx={{ alignItems: 'center' }}>
-        <Download size="1em" style={{ marginRight: '0.25em' }} />
+      <Flex sx={{ alignItems: 'center', gap: '0.25rem' }}>
+        <Download size="1em" />
         <div>Download</div>
+      </Flex>
+    </Link>
+    <Link to="/faq" sx={isActivePath('/faq') ? activeNavLinkCSS : navLinkCSS}>
+      <Flex sx={{ alignItems: 'center', gap: '0.25rem' }}>
+        <QuestionCircle size="1em" />
+        <div>FAQ</div>
       </Flex>
     </Link>
   </Flex>
