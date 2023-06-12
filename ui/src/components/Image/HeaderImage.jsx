@@ -1,8 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Container, Heading } from 'theme-ui'
-import { convertToBgImage } from 'gbimage-bridge'
-import BackgroundImage from 'gatsby-background-image'
+import { GatsbyImage } from 'gatsby-plugin-image'
 
 import ImageCredits from './Credits'
 
@@ -15,19 +14,28 @@ const HeaderImage = ({
   subtitle,
   credits,
   caption,
-  yPosition,
 }) => (
-  <BackgroundImage
-    {...convertToBgImage(image)}
-    style={{
+  <Box
+    sx={{
+      position: 'relative',
       height,
       minHeight,
       maxHeight: maxHeight || height,
-      backgroundPosition: `center ${yPosition}`,
     }}
-    alt=""
-    preserveStackingContext
   >
+    <GatsbyImage
+      image={image}
+      style={{
+        position: 'relative',
+        top: 0,
+        zIndex: 0,
+        height,
+        minHeight,
+        maxHeight: maxHeight || height,
+      }}
+      alt=""
+    />
+
     <Box
       sx={{
         mt: 0,
@@ -86,7 +94,7 @@ const HeaderImage = ({
       )}
     </Box>
     {credits ? <ImageCredits caption={caption} {...credits} /> : null}
-  </BackgroundImage>
+  </Box>
 )
 
 HeaderImage.propTypes = {
@@ -101,7 +109,6 @@ HeaderImage.propTypes = {
     author: PropTypes.string.isRequired,
   }),
   caption: PropTypes.string,
-  yPosition: PropTypes.string,
 }
 
 HeaderImage.defaultProps = {
@@ -112,7 +119,6 @@ HeaderImage.defaultProps = {
   subtitle: null,
   credits: null,
   caption: null,
-  yPosition: 'center',
 }
 
 export default HeaderImage

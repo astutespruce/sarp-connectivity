@@ -30,7 +30,6 @@ const PrioritizePage = ({ data: { headerImage } }) => {
         image={headerImage.childImageSharp.gatsbyImageData}
         height="20vh"
         minHeight="12rem"
-        yPosition="top"
         credits={{
           author: 'Zach Dutra',
           url: 'https://unsplash.com/photos/2d7Y5Yi3aq8',

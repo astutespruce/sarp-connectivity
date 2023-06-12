@@ -44,7 +44,6 @@ const PacificSouthwestRegionPage = ({
         image={headerImage}
         height="20vh"
         minHeight="18rem"
-        yPosition="bottom"
         credits={{
           author: 'Rakshith Hatwar',
           url: 'https://unsplash.com/photos/XNfyaABCLJk',
