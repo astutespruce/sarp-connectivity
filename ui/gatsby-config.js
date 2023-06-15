@@ -30,7 +30,7 @@ module.exports = {
   },
   flags: {
     FAST_DEV: true,
-    DEV_SSR: false, // appears to throw '"filePath" is not allowed to be empty' when true
+    DEV_SSR: true,
     PARALLEL_SOURCING: false, // uses a lot of memory on server, so disable
   },
   plugins: [

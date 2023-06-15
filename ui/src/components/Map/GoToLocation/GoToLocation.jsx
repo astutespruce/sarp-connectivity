@@ -55,7 +55,6 @@ const FindLocation = ({ map }) => {
 
     const { current: marker } = markerRef
 
-    console.log('location updated', location)
     if (location === null) {
       if (marker) {
         marker.remove()

@@ -28,8 +28,11 @@ export const saveToStorage = (key, data) => {
   window.localStorage.setItem(key, JSON.stringify(data))
 }
 
-export const getFromStorage = (key) =>
+export const getFromStorage = (key) => {
+  if (!hasWindow) return
+
   JSON.parse(window.localStorage.getItem(key))
+}
 
 /**
  * Extract query params into a key / value object
