@@ -29,9 +29,9 @@ export const saveToStorage = (key, data) => {
 }
 
 export const getFromStorage = (key) => {
-  if (!hasWindow) return
+  if (!hasWindow) return null
 
-  JSON.parse(window.localStorage.getItem(key))
+  return JSON.parse(window.localStorage.getItem(key))
 }
 
 /**
