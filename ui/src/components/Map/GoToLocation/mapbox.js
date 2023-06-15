@@ -135,7 +135,7 @@ const useSearchSuggestions = (query) => {
     error,
     data: results = [],
   } = useQuery(
-    ['search', query],
+    ['searchMapbox', query],
     () => {
       if (!query) {
         return null

@@ -52,6 +52,7 @@ const SummaryMap = ({
   selectedBarrier,
   onSelectUnit,
   onSelectBarrier,
+  children,
   ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabels[barrierType]
@@ -689,13 +690,15 @@ const SummaryMap = ({
         onCreateMap={handleCreateMap}
         {...props}
         bounds={regionBounds[region].bbox}
-      />
-      <Legend
-        title={layerTitle}
-        subtitle={`number of ${barrierTypeLabel}`}
-        {...legendEntries}
-        maxWidth="12rem"
-      />
+      >
+        <Legend
+          title={layerTitle}
+          subtitle={`number of ${barrierTypeLabel}`}
+          {...legendEntries}
+          maxWidth="12rem"
+        />
+        {children}
+      </Map>
     </>
   )
 }
@@ -709,6 +712,10 @@ SummaryMap.propTypes = {
   selectedBarrier: PropTypes.object,
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
+  children: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.node),
+    PropTypes.node,
+  ]),
 }
 
 SummaryMap.defaultProps = {
@@ -716,6 +723,7 @@ SummaryMap.defaultProps = {
   selectedUnit: null,
   searchFeature: null,
   selectedBarrier: null,
+  children: null,
 }
 
 // construct only once

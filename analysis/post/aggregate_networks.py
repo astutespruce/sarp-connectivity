@@ -232,7 +232,7 @@ small_barriers.reset_index().to_feather(results_dir / "small_barriers.feather")
 # save for API
 tmp = small_barriers[SB_API_FIELDS].reset_index()
 tmp["id"] = tmp.id.astype("uint32")
-tmp.to_feather(api_dir / f"small_barriers.feather")
+tmp.to_feather(api_dir / "small_barriers.feather")
 
 #########################################################################################
 ###
@@ -333,7 +333,15 @@ combined.reset_index().to_feather(results_dir / "combined_barriers.feather")
 # save for API
 tmp = combined[COMBINED_API_FIELDS].reset_index()
 tmp["id"] = tmp.id.astype("uint32")
-tmp.to_feather(api_dir / f"combined_barriers.feather")
+
+# create search key for search by name
+tmp["search_key"] = (
+    (tmp["Name"] + " " + tmp["River"] + " " + tmp["Stream"])
+    .str.strip()
+    .str.replace("  ", " ", regex=False)
+)
+
+tmp.to_feather(api_dir / "combined_barriers.feather")
 
 #########################################################################################
 ###

@@ -11,7 +11,7 @@ import { Box, Flex, Input } from 'theme-ui'
 
 /* eslint-disable-next-line react/display-name */
 const PlacenameSearchField = forwardRef(
-  ({ value, onChange, onReset, onFocus, onBlur }, ref) => {
+  ({ value, placeholder, onChange, onReset, onFocus, onBlur }, ref) => {
     const [internalValue, setInternalValue] = useState('')
     const timeoutRef = useRef(null)
 
@@ -75,7 +75,7 @@ const PlacenameSearchField = forwardRef(
                 color: 'grey.4',
               },
             }}
-            placeholder="Find a place by name / address"
+            placeholder={placeholder}
             value={internalValue}
             onClick={handleClick}
             onChange={handleChange}
@@ -110,6 +110,7 @@ const PlacenameSearchField = forwardRef(
 
 PlacenameSearchField.propTypes = {
   value: PropTypes.string,
+  placeholder: PropTypes.string,
   onChange: PropTypes.func.isRequired,
   onReset: PropTypes.func.isRequired,
   onFocus: PropTypes.func,
@@ -118,6 +119,7 @@ PlacenameSearchField.propTypes = {
 
 PlacenameSearchField.defaultProps = {
   value: '',
+  placeholder: '',
   onFocus: () => {},
   onBlur: () => {},
 }

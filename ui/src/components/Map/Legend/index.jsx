@@ -35,7 +35,7 @@ const Legend = ({
       onClick={toggleOpen}
       sx={{
         position: 'absolute',
-        zIndex: 10000,
+        zIndex: 1000,
         right: '10px',
         bottom: '24px',
         maxWidth,

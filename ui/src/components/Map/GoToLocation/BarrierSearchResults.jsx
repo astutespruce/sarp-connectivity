@@ -3,7 +3,13 @@ import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
+import {
+  STATES,
+  barrierNameWhenUnknown,
+  barrierTypeLabelSingular,
+} from 'config'
 import { OutboundLink } from 'components/Link'
+import { formatNumber } from 'util/format'
 import LoadingIcon from './LoadingIcon'
 import { siteMetadata } from '../../../../gatsby-config'
 
@@ -17,13 +23,14 @@ const highlightCSS = {
   },
 }
 
-const Results = ({
+const BarrierSearchResults = ({
   results,
+  remaining,
   index,
   isLoading,
   error,
   selectedId,
-  setSelectedId,
+  setLocation,
 }) => {
   const listNode = useRef(null)
 
@@ -41,10 +48,9 @@ const Results = ({
 
   const handleSelectId = useCallback(
     (nextIndex) => {
-      const { id } = results[nextIndex]
-      setSelectedId(id)
+      setLocation(results[nextIndex])
     },
-    [results, setSelectedId]
+    [results, setLocation]
   )
 
   const handleClick = useCallback(
@@ -154,11 +160,13 @@ const Results = ({
       sx={{
         mt: '0.5rem',
         ml: '-1.5rem',
+        maxHeight: 'calc(80vh - 6rem)',
+        overflowY: 'auto',
       }}
     >
-      {results.map(({ id, name, address }, i) => (
+      {results.map(({ sarpid, name, state, river, stream, barriertype }, i) => (
         <Box
-          key={id}
+          key={sarpid}
           data-index={i}
           tabIndex={0}
           onKeyDown={handleKeyDown}
@@ -175,40 +183,68 @@ const Results = ({
             '&:hover': {
               bg: 'grey.0',
             },
-            ...(id === selectedId ? highlightCSS : {}),
+            ...(sarpid === selectedId ? highlightCSS : {}),
           }}
         >
           <Box sx={{ pointerEvents: 'none' }}>
-            <Text>{name}</Text>
-            {address ? <Text sx={{ color: 'grey.8' }}>{address}</Text> : null}
+            <Text>
+              {name || barrierNameWhenUnknown[barriertype] || 'Unknown name'} (
+              {sarpid})
+            </Text>
+            <Text sx={{ color: 'grey.8' }}>
+              barrier type: {barrierTypeLabelSingular[barriertype]}
+              <br />
+              {river ? `located on ${river}, ` : null}
+              {stream && !river ? `located on ${stream}, ` : null}
+              {STATES[state]}
+            </Text>
           </Box>
         </Box>
       ))}
+      {remaining && remaining > 0 ? (
+        <Flex
+          sx={{
+            justifyContent: 'center',
+            fontSize: 0,
+            color: 'grey.8',
+            pt: '0.5rem',
+            borderTop: '1px solid',
+            borderTopColor: 'grey.1',
+          }}
+        >
+          ... and {remaining >= 1000 ? 'at least ' : null}
+          {formatNumber(remaining)} more ...
+        </Flex>
+      ) : null}
     </Box>
   )
 }
 
-Results.propTypes = {
+BarrierSearchResults.propTypes = {
   results: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
+      sarpid: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      address: PropTypes.string,
+      state: PropTypes.string.isRequired,
+      river: PropTypes.string,
+      Stream: PropTypes.string,
     })
   ),
+  remaining: PropTypes.number,
   index: PropTypes.number,
   isLoading: PropTypes.bool,
   error: PropTypes.object,
   selectedId: PropTypes.string,
-  setSelectedId: PropTypes.func.isRequired,
+  setLocation: PropTypes.func.isRequired,
 }
 
-Results.defaultProps = {
+BarrierSearchResults.defaultProps = {
+  results: [],
+  remaining: 0,
   index: null,
   isLoading: false,
   error: null,
-  results: [],
   selectedId: null,
 }
 
-export default Results
+export default BarrierSearchResults

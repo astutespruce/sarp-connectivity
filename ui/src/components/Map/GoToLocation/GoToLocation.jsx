@@ -17,6 +17,7 @@ import mapboxgl from '!mapbox-gl'
 import { hasWindow } from 'util/dom'
 import { useIsEqualEffect } from 'util/hooks'
 
+import BarrierSearch from './BarrierSearch'
 import PlacenameSearch from './PlacenameSearch'
 import LatLon from './LatLon'
 
@@ -35,11 +36,12 @@ const controlCSS = {
 const FindLocation = ({ map }) => {
   const isMountedRef = useRef(false)
   const markerRef = useRef(null)
-  const placenameInputRef = useRef()
+  const barrierInputRef = useRef(null)
+  const placenameInputRef = useRef(null)
   const latLonInputRef = useRef(null)
 
   const [{ mode, showOptions, isFocused, location }, setState] = useState({
-    mode: 'placename',
+    mode: 'barrier',
     showOptions: false,
     isFocused: false,
     location: null,
@@ -61,7 +63,7 @@ const FindLocation = ({ map }) => {
       markerRef.current = null
     } else {
       const { latitude, longitude } = location
-      map.jumpTo({ center: [longitude, latitude], zoom: 9 })
+      map.jumpTo({ center: [longitude, latitude], zoom: 14 })
       if (!marker) {
         markerRef.current = new mapboxgl.Marker()
           .setLngLat([longitude, latitude])
@@ -82,23 +84,7 @@ const FindLocation = ({ map }) => {
     }))
   }, [])
 
-  const handlePlacenameSubmit = useCallback((newLocation) => {
-    setState((prevState) => ({
-      ...prevState,
-      isFocused: false,
-      location: newLocation,
-    }))
-  }, [])
-
-  const handlePlacenameReset = useCallback(() => {
-    setState((prevState) => ({
-      ...prevState,
-      isFocused: false,
-      location: null,
-    }))
-  }, [])
-
-  const handlePlacenameFocus = useCallback(() => {
+  const handleFocus = useCallback(() => {
     setState((prevState) => ({
       ...prevState,
       showOptions: false,
@@ -106,9 +92,32 @@ const FindLocation = ({ map }) => {
     }))
   }, [])
 
-  const handleLatLonFocus = useCallback(() => {
+  const handleSubmit = useCallback((newLocation) => {
     setState((prevState) => ({
       ...prevState,
+      isFocused: false,
+      location: newLocation,
+    }))
+  }, [])
+
+  const handleReset = useCallback(() => {
+    setState((prevState) => ({
+      ...prevState,
+      location: null,
+      isFocused: false,
+    }))
+  }, [])
+
+  const setBarrierMode = useCallback((e) => {
+    e.stopPropagation()
+
+    if (barrierInputRef.current) {
+      barrierInputRef.current.focus()
+    }
+
+    setState(({ mode: prevMode, ...prevState }) => ({
+      ...prevState,
+      mode: 'barrier',
       showOptions: false,
       isFocused: true,
     }))
@@ -141,21 +150,6 @@ const FindLocation = ({ map }) => {
       mode: 'latlon',
       showOptions: false,
       isFocused: true,
-    }))
-  }, [])
-
-  const handleLatLonSubmit = useCallback((newLocation) => {
-    setState((prevState) => ({
-      ...prevState,
-      location: newLocation,
-    }))
-  }, [])
-
-  const handleLatLonReset = useCallback(() => {
-    setState((prevState) => ({
-      ...prevState,
-      location: null,
-      isFocused: false,
     }))
   }, [])
 
@@ -229,15 +223,28 @@ const FindLocation = ({ map }) => {
           <Box sx={{ flex: '1 1 auto', fontSize: 0 }}>
             <Box
               sx={{
+                display: mode === 'barrier' ? 'block' : 'none',
+              }}
+            >
+              <BarrierSearch
+                ref={barrierInputRef}
+                isFocused={isFocused && !showOptions}
+                onSubmit={handleSubmit}
+                onReset={handleReset}
+                onFocus={handleFocus}
+              />
+            </Box>
+            <Box
+              sx={{
                 display: mode === 'placename' ? 'block' : 'none',
               }}
             >
               <PlacenameSearch
                 ref={placenameInputRef}
                 isFocused={isFocused && !showOptions}
-                onSubmit={handlePlacenameSubmit}
-                onReset={handlePlacenameReset}
-                onFocus={handlePlacenameFocus}
+                onSubmit={handleSubmit}
+                onReset={handleReset}
+                onFocus={handleFocus}
               />
             </Box>
 
@@ -249,9 +256,9 @@ const FindLocation = ({ map }) => {
               <LatLon
                 ref={latLonInputRef}
                 isFocused={isFocused}
-                onSubmit={handleLatLonSubmit}
-                onReset={handleLatLonReset}
-                onFocus={handleLatLonFocus}
+                onSubmit={handleSubmit}
+                onReset={handleReset}
+                onFocus={handleFocus}
               />
             </Box>
           </Box>
@@ -275,7 +282,10 @@ const FindLocation = ({ map }) => {
               },
             }}
           >
-            <Box onClick={setPlacenameMode}>Find by a name or address</Box>
+            <Box onClick={setBarrierMode}>Find a barrier by name or ID</Box>
+            <Box onClick={setPlacenameMode}>
+              Find a place by name or address
+            </Box>
             <Box onClick={setLatLonMode}>Find by latitude & longitude</Box>
           </Box>
         ) : null}

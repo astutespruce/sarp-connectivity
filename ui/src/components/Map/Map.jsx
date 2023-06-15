@@ -104,6 +104,7 @@ const Map = ({ bounds, children, onCreateMap }) => {
         position: 'relative',
         flex: '1 0 auto',
         height: '100%',
+        overflow: 'hidden',
         zIndex: 1,
         '.mapboxgl-ctrl-top-right': {
           top: '46px',

@@ -4,8 +4,8 @@ import { Box } from 'theme-ui'
 
 import { useIsEqualEffect } from 'util/hooks'
 import { useMapboxSearch } from './mapbox'
-import Results from './Results'
-import PlacenameSearchField from './PlacenameSearchField'
+import PlacenameResults from './PlacenameResults'
+import LocationSearchField from './LocationSearchField'
 
 /* eslint-disable-next-line react/display-name */
 const PlacenameSearch = forwardRef(
@@ -21,6 +21,8 @@ const PlacenameSearch = forwardRef(
       selectedId
     )
 
+    // have to use an effect because location is set via a chain of async
+    // queries that shouldn't call a callback directly
     useIsEqualEffect(() => {
       if (location !== null) {
         onSubmit(location)
@@ -85,16 +87,17 @@ const PlacenameSearch = forwardRef(
 
     return (
       <Box onKeyDown={handleKeyDown}>
-        <PlacenameSearchField
+        <LocationSearchField
           ref={ref}
           value={query}
+          placeholder="Find a place by name / address"
           onChange={handleQueryChange}
           onReset={handleReset}
           {...props}
         />
 
         {isFocused && query && query.length >= 3 ? (
-          <Results
+          <PlacenameResults
             results={results}
             index={index}
             isLoading={isLoading}
