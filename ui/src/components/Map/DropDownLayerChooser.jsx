@@ -8,7 +8,7 @@ import { useEffectSkipFirst } from 'util/hooks'
 
 const controlCSS = {
   position: 'absolute',
-  top: '114px',
+  top: '120px',
   right: '10px',
   lineHeight: 1,
   bg: '#FFF',

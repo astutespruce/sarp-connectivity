@@ -382,7 +382,7 @@ const Prioritize = () => {
   if (step === 'results') {
     topbarContent = (
       <TopBar>
-        <Text sx={{ mr: '0.5rem' }}>Show ranks for:</Text>
+        <Text sx={{ mr: '0.5rem' }}>Show:</Text>
         <ToggleButton
           value={scenario}
           options={scenarioOptions}
@@ -440,9 +440,9 @@ const Prioritize = () => {
           onSelectUnit={handleSelectUnit}
           onSelectBarrier={handleSelectBarrier}
           onMapLoad={handleMapLoad}
-        />
-
-        {topbarContent}
+        >
+          {topbarContent}
+        </Map>
       </Box>
     </Flex>
   )

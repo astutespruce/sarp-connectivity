@@ -12,7 +12,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 import { getCenterAndZoom } from './util'
 import BasemapSelector from './BasemapSelector'
-import GoToLocation from './GoToLocation'
+import { GoToLocation } from './GoToLocation'
 import { mapConfig, sources, basemapLayers } from './config'
 import Coords from './Coords'
 
@@ -105,18 +105,21 @@ const Map = ({ bounds, children, onCreateMap }) => {
         flex: '1 0 auto',
         height: '100%',
         zIndex: 1,
+        '.mapboxgl-ctrl-top-right': {
+          top: '46px',
+        },
       }}
     >
       <Box ref={mapNode} sx={{ width: '100%', height: '100%' }} />
 
-      {map && (
+      {map ? (
         <>
           <Coords map={map} />
           <GoToLocation map={map} />
           <BasemapSelector map={map} basemaps={basemapLayers} />
           {children}
         </>
-      )}
+      ) : null}
     </Box>
   )
 }
