@@ -41,7 +41,7 @@ const FindLocation = ({ map }) => {
   const latLonInputRef = useRef(null)
 
   const [{ mode, showOptions, isFocused, location }, setState] = useState({
-    mode: 'barrier',
+    mode: 'barrier', // options are barrier, placename, latlon
     showOptions: false,
     isFocused: false,
     location: null,
@@ -159,13 +159,35 @@ const FindLocation = ({ map }) => {
       return
     }
 
-    if (mode === 'placename') {
-      if (placenameInputRef.current) {
-        placenameInputRef.current.focus()
+    /* eslint-disable-next-line default-case */
+    switch (mode) {
+      case 'barrier': {
+        if (barrierInputRef.current) {
+          barrierInputRef.current.focus()
+        }
+        break
       }
-    } else if (latLonInputRef.current) {
-      latLonInputRef.current.focus()
+      case 'placename': {
+        if (placenameInputRef.current) {
+          placenameInputRef.current.focus()
+        }
+        break
+      }
+      case 'latlon': {
+        if (latLonInputRef.current) {
+          latLonInputRef.current.focus()
+        }
+        break
+      }
     }
+
+    // if (mode === 'placename') {
+    //   if (placenameInputRef.current) {
+    //     placenameInputRef.current.focus()
+    //   }
+    // } else if (latLonInputRef.current) {
+    //   latLonInputRef.current.focus()
+    // }
   }, [mode])
 
   // prevent click from calling window click handler
