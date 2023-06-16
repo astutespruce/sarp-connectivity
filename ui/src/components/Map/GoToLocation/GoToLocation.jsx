@@ -180,14 +180,6 @@ const FindLocation = ({ map }) => {
         break
       }
     }
-
-    // if (mode === 'placename') {
-    //   if (placenameInputRef.current) {
-    //     placenameInputRef.current.focus()
-    //   }
-    // } else if (latLonInputRef.current) {
-    //   latLonInputRef.current.focus()
-    // }
   }, [mode])
 
   // prevent click from calling window click handler
