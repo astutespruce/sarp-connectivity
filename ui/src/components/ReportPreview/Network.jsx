@@ -55,20 +55,6 @@ const Network = ({
 
   const header = <Heading as="h3">Functional network information</Heading>
 
-  if (removed) {
-    return (
-      <Box sx={sx}>
-        {header}
-        <Text>
-          {yearremoved !== null && yearremoved > 0
-            ? `This barrier was removed or mitigated in ${yearremoved}.`
-            : 'This barrier has been removed or mitigated.'}{' '}
-          No network information is available.
-        </Text>
-      </Box>
-    )
-  }
-
   if (excluded) {
     if (diversion && nostructure) {
       return (
@@ -147,19 +133,19 @@ const Network = ({
     <Box sx={sx}>
       {header}
 
-      <Text variant="help" sx={{ fontSize: 2, mb: '0.5rem' }}>
-        Statistics are based on aquatic networks cut by{' '}
-        {networkType === 'dams'
-          ? 'waterfalls and dams'
-          : 'waterfalls, dams, and road-related barriers'}
-        .
-      </Text>
+      {removed ? (
+        <Text>
+          {yearremoved !== null && yearremoved > 0
+            ? `This barrier was removed or mitigated in ${yearremoved}.`
+            : 'This barrier has been removed or mitigated.'}
+        </Text>
+      ) : null}
 
       <Grid
         columns={totalupstreammiles > 0 ? 4 : 3}
         gap={0}
         sx={{
-          mt: '2rem',
+          mt: '1rem',
           '&>div': {
             py: '0.5em',
           },
@@ -172,8 +158,9 @@ const Network = ({
         }}
       >
         <Box>
-          <b>{formatNumber(gainmiles, 2, true)} total miles</b> could be
-          reconnected by removing this {barrierTypeLabel} including{' '}
+          <b>{formatNumber(gainmiles, 2, true)} total miles</b>{' '}
+          {removed ? 'were' : 'could be'} reconnected by removing this{' '}
+          {barrierTypeLabel} including{' '}
           <b>{formatNumber(perennialGainMiles, 2, true)} miles</b> of perennial
           reaches.
         </Box>
@@ -189,7 +176,8 @@ const Network = ({
           <b>
             {sizeclasses} river size {sizeclasses === 1 ? 'class' : 'classes'}
           </b>{' '}
-          could be gained by removing this {barrierTypeLabel}.
+          {removed ? 'were' : 'could be'} gained by removing this{' '}
+          {barrierTypeLabel}.
         </Box>
 
         <Box>
@@ -295,7 +283,15 @@ const Network = ({
       ) : null}
 
       <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
-        Note: downstream lengths are limited to free-flowing reaches only; these
+        Note: Statistics are based on aquatic networks cut by{' '}
+        {networkType === 'dams'
+          ? 'waterfalls and dams'
+          : 'waterfalls, dams, and road-related barriers'}
+        {removed
+          ? `, including any that were present at the time this ${barrierTypeLabel} was removed.  All barriers removed prior to 2000 or where the year they were removed
+            was unknown were lumped together for this analysis`
+          : null}
+        . Downstream lengths are limited to free-flowing reaches only; these
         exclude lengths within waterbodies in the downstream network. Perennial
         miles are the sum of lengths of all reaches not specifically coded as
         ephemeral or intermittent within the functional network. Perennial

@@ -133,8 +133,6 @@ for group in huc2_groups:
 
         focal_barrier_joins = barrier_joins.loc[barrier_joins.kind.isin(breaking_kinds)]
 
-        # focal_barrier_joins = barrier_joins.loc[barrier_joins.index.isin(removed_ids) & (barrier_joins.kind=='dam')]
-
         if len(focal_barrier_joins) == 0:
             print(f"skipping {network_type}, no removed barriers of this type present")
             flowlines[network_type] = np.nan
@@ -153,9 +151,12 @@ for group in huc2_groups:
             prev_stats.index.isin(barrier_joins[network_type].unique())
         ]
 
-        within_subnetwork_stats = focal_barrier_joins.join(prev_stats, on=network_type)[
-            prev_stats.columns
-        ]
+        within_subnetwork_stats = (
+            focal_barrier_joins.join(prev_stats, on=network_type)[prev_stats.columns]
+            .reset_index()
+            .drop_duplicates(subset="id")
+            .set_index("id")
+        )
         # increment the count based on the type at the root of the subnetwork
         for kind in BARRIER_COUNT_KINDS[:4]:
             within_subnetwork_stats.loc[

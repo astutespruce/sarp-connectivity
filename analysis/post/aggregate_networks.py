@@ -2,12 +2,13 @@ from pathlib import Path
 from time import time
 
 import geopandas as gp
+import numpy as np
 import pandas as pd
 
 from analysis.constants import SEVERITY_TO_PASSABILITY
 from analysis.lib.compression import pack_bits
 from analysis.lib.util import get_signed_dtype
-from analysis.rank.lib.networks import get_network_results
+from analysis.rank.lib.networks import get_network_results, get_removed_network_results
 from analysis.rank.lib.metrics import (
     classify_streamorder,
     classify_spps,
@@ -41,6 +42,7 @@ results_dir = data_dir / "barriers/networks"
 results_dir.mkdir(exist_ok=True, parents=True)
 
 
+# columns for removed dams API public endpoint
 removed_dam_cols = (
     GENERAL_API_FIELDS1
     + [
@@ -102,6 +104,12 @@ dams = (
     .set_index("id")
     .rename(columns=rename_cols)
 )
+
+# FIXME: temporary until rerun download with missing fields
+if "YearCompleted" not in dams.columns:
+    dams["YearCompleted"] = np.uint16(0)
+
+
 dams["unsnapped"] = (~dams.snapped).astype("uint8")
 fill_flowline_cols(dams)
 
@@ -121,7 +129,18 @@ pd.DataFrame(dams.loc[dams.Removed, removed_dam_cols].reset_index()).to_feather(
 # NOTE: removed dams are retained for download per direction from Kat
 dams = dams.loc[~(dams.dropped | dams.duplicate)].copy()
 
-dam_networks = get_network_results(dams, "dams", state_ranks=True)
+nonremoved_dam_networks = get_network_results(
+    dams.loc[~dams.Removed], "dams", state_ranks=True
+)
+removed_dam_networks = get_removed_network_results(dams.loc[dams.Removed], "dams")
+
+dam_networks = pd.concat(
+    [
+        nonremoved_dam_networks.reset_index(),
+        removed_dam_networks.reset_index(),
+    ]
+).set_index("id")
+
 
 dams = dams.join(dam_networks)
 for col in ["HasNetwork", "Ranked"]:
@@ -135,11 +154,11 @@ tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
 dams["packed"] = pack_bits(tmp, DAM_PACK_BITS)
 
 # fill other network columns and set to signed dtypes
-for col in dam_networks.columns:
+for col in nonremoved_dam_networks.columns:
     if dams[col].dtype == bool:
         continue
 
-    orig_dtype = dam_networks[col].dtype
+    orig_dtype = nonremoved_dam_networks[col].dtype
     if col.endswith("Class"):
         dams[col] = dams[col].fillna(0).astype(orig_dtype)
     else:
@@ -189,7 +208,20 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 
 # NOTE: not calculating state ranks, per guidance from SARP
 # (not enough barriers to have appropriate ranks)
-small_barrier_networks = get_network_results(small_barriers, "small_barriers")
+nonremoved_small_barrier_networks = get_network_results(
+    small_barriers.loc[~small_barriers.Removed], "small_barriers"
+)
+removed_small_barrier_networks = get_removed_network_results(
+    small_barriers.loc[small_barriers.Removed], "small_barriers"
+)
+
+small_barrier_networks = pd.concat(
+    [
+        nonremoved_small_barrier_networks.reset_index(),
+        removed_small_barrier_networks.reset_index(),
+    ]
+).set_index("id")
+
 small_barriers = small_barriers.join(small_barrier_networks)
 for col in ["HasNetwork", "Ranked"]:
     small_barriers[col] = small_barriers[col].fillna(False)
@@ -200,11 +232,11 @@ tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
 small_barriers["packed"] = pack_bits(tmp, SB_PACK_BITS)
 
 # set -1 when network not available for barrier
-for col in small_barrier_networks.columns:
+for col in nonremoved_small_barrier_networks.columns:
     if small_barriers[col].dtype == bool:
         continue
 
-    orig_dtype = small_barrier_networks[col].dtype
+    orig_dtype = nonremoved_small_barrier_networks[col].dtype
     if col.endswith("Class"):
         small_barriers[col] = small_barriers[col].fillna(0).astype(orig_dtype)
 

@@ -42,7 +42,7 @@ const Report = ({
   scale,
   visibleLayers,
 }) => {
-  const { county, state, hasnetwork } = data
+  const { county, state, hasnetwork, feasibilityclass } = data
 
   return (
     <Document
@@ -88,7 +88,11 @@ const Report = ({
           />
         ) : null}
 
-        <Feasibility style={{ marginTop: 48 }} {...data} />
+        {feasibilityclass !== null &&
+        feasibilityclass > 0 &&
+        feasibilityclass < 10 ? (
+          <Feasibility style={{ marginTop: 48 }} {...data} />
+        ) : null}
 
         <Species
           barrierType={barrierType}

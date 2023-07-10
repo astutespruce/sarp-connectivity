@@ -286,7 +286,11 @@ DAM_CORE_FIELDS = unique(DAM_CORE_FIELDS)
 # Internal API includes tiers
 # IMPORTANT: Recon is intentionally omitted per direction from SARP
 
-DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
+DAM_EXPORT_FIELDS = [
+    c
+    for c in unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
+    if not c == "Recon"
+]
 
 DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
@@ -296,15 +300,15 @@ DAM_API_FIELDS = unique(
 )
 
 # Public API does not include tier or filter fields
-DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
+DAM_PUBLIC_EXPORT_FIELDS = [c for c in DAM_CORE_FIELDS if not c == "Recon"]
 
 
 # Drop fields that can be calculated on frontend or are not used
 DAM_TILE_FIELDS = [
     c
     for c in DAM_API_FIELDS + ["packed", "symbol"]
-    if not c
-    in {
+    if c
+    not in {
         "NHDPlusID",
         "Basin",
         "HUC2",
@@ -374,6 +378,7 @@ SB_CORE_FIELDS = (
         "PotentialProject",
         "BarrierSeverity",
         "SARP_Score",
+        "Recon",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -381,7 +386,9 @@ SB_CORE_FIELDS = (
 SB_CORE_FIELDS = unique(SB_CORE_FIELDS)
 
 # NOTE: state tiers are excluded based on SARP direction
-SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS)
+SB_EXPORT_FIELDS = [
+    c for c in unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS) if not c == "Recon"
+]
 SB_API_FIELDS = unique(
     SB_CORE_FIELDS
     + SB_FILTER_FIELDS
@@ -389,15 +396,15 @@ SB_API_FIELDS = unique(
 )
 
 # Public API does not include tier fields
-SB_PUBLIC_EXPORT_FIELDS = SB_CORE_FIELDS
+SB_PUBLIC_EXPORT_FIELDS = [c for c in SB_CORE_FIELDS if not c == "Recon"]
 
 
 # Drop fields from tiles that are calculated on frontend or not used
 SB_TILE_FIELDS = [
     c
     for c in SB_API_FIELDS + ["packed", "symbol"]
-    if not c
-    in {
+    if c
+    not in {
         "NHDPlusID",
         "ProtectedLand",
         "Basin",
@@ -445,13 +452,13 @@ SB_TILE_FILTER_FIELDS = unique(
 COMBINED_API_FIELDS = [
     c
     for c in unique(["BarrierType"] + DAM_API_FIELDS + SB_API_FIELDS)
-    if not c in STATE_TIER_FIELDS
+    if c not in STATE_TIER_FIELDS
 ]
 
 COMBINED_EXPORT_FIELDS = [
     c
     for c in unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS)
-    if not c in STATE_TIER_FIELDS
+    if c not in STATE_TIER_FIELDS
 ]
 
 
@@ -462,7 +469,7 @@ COMBINED_TILE_FILTER_FIELDS = [
 ]
 
 COMBINED_TILE_FIELDS = [
-    c for c in unique(DAM_TILE_FIELDS + SB_TILE_FIELDS) if not c in STATE_TIER_FIELDS
+    c for c in unique(DAM_TILE_FIELDS + SB_TILE_FIELDS) if c not in STATE_TIER_FIELDS
 ]
 
 
@@ -545,8 +552,8 @@ ROAD_CROSSING_PACK_BITS = [
 WF_METRIC_FIELDS = [
     c
     for c in METRIC_FIELDS + UPSTREAM_COUNT_FIELDS
-    if not c
-    in {
+    if c
+    not in {
         "HasNetwork",
         "Ranked",
         "Intermittent",
@@ -594,8 +601,8 @@ WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
 WF_TILE_FIELDS = [
     c
     for c in WF_CORE_FIELDS + ["packed"]
-    if not c
-    in {
+    if c
+    not in {
         "NHDPlusID",
         "Basin",
         "HUC2",
@@ -1161,8 +1168,8 @@ FIELD_DEFINITIONS = {
     # "NoStructure": "this location is a water diversion without an associated barrier structure and is not ranked",
     "River": "River name where {type} occurs, if available.",
     "YearCompleted": "year that construction was completed, if available.  0 = data not available.",
-    "Removed": "Identifies if the {type} has been removed for conservation, if known.",
-    "YearRemoved": "year that barrier was removed, if available.  0 = data not available or not removed.",
+    "Removed": "Identifies if the {type} has been removed for conservation, if known.  Removed barriers will not have values present for all fields.",
+    "YearRemoved": "year that barrier was removed, if available.  All barriers removed prior to 2000 or where YearRemoved is unknown were lumped together for the network analysis.  0 = data not available or not removed.",
     "Height": "{type} height in feet, if available.  0 = data not available.",
     "Length": "{type} length in feet, if available.  0 = data not available.",
     "Width": "{type} width in feet, if available.  0 = data not available.",
@@ -1237,8 +1244,8 @@ FIELD_DEFINITIONS = {
     "FreeIntermittentDownstreamMiles": "number of free-flowing ephemeral and intermittent miles in the downstream river network.  Excludes miles in waterbodies.  See IntermittentUpstreamMiles. -1 = not available.",
     "FreeAlteredDownstreamMiles": "number of free-flowing altered miles in the downstream river network from this {type}.  Excludes miles in waterbodies or reaches specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch or other channel alteration). -1 = not available.",
     "FreeUnalteredDownstreamMiles": "number of free-flowing altered miles in the downstream river network from this {type}.  Limited to reaches specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch or other channel alteration).  Excludes miles in waterbodies. -1 = not available.",
-    "GainMiles": "absolute number of miles that could be gained by removal of this {type}.  Calculated as the minimum of the TotalUpstreamMiles and FreeDownstreamMiles. -1 = not available.",
-    "PerennialGainMiles": "absolute number of perennial miles that could be gained by removal of this {type}.  Calculated as the minimum of the PerennialUpstreamMiles and FreePerennialDownstreamMiles. -1 = not available.",
+    "GainMiles": "absolute number of miles that could be gained by removal of this {type}.  Calculated as the minimum of the TotalUpstreamMiles and FreeDownstreamMiles. For removed barriers, this is based on the barriers present at the time this barrier was removed.  -1 = not available.",
+    "PerennialGainMiles": "absolute number of perennial miles that could be gained by removal of this {type}.  Calculated as the minimum of the PerennialUpstreamMiles and FreePerennialDownstreamMiles.  For removed barriers, this is based on the barriers present at the time this barrier was removed.  -1 = not available.",
     "TotalNetworkMiles": "sum of TotalUpstreamMiles and FreeDownstreamMiles. -1 = not available.",
     "TotalPerennialNetworkMiles": "sum of PerennialUpstreamMiles and FreePerennialDownstreamMiles. -1 = not available.",
     "UpstreamDrainageArea": "approximate drainage area of all NHD High Resolution catchments within upstream functional network of {type}.  Includes the total catchment area of any NHD High Resolution flowlines that are cut by barriers in the analysis, which may overrepresent total drainage area of the network. -1 = not available.",
