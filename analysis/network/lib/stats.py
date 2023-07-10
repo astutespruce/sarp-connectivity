@@ -54,7 +54,7 @@ def calculate_upstream_network_stats(
         Summary statistics, with one row per functional network.
     """
 
-    # re-rederive all focal barriers joins from barrier joins to keep confluences
+    # re-derive all focal barriers joins from barrier joins to keep confluences
     # which are otherwise filtered out before calling here
     all_focal_barrier_joins = barrier_joins.loc[
         barrier_joins.index.isin(focal_barrier_joins.index.unique())
@@ -198,46 +198,6 @@ def calculate_upstream_network_stats(
         how="inner",
     ).NHDPlusID
 
-    # use all_barrier_joins because these include confluences
-    network_nhdplusID = (
-        all_focal_barrier_joins.join(nhdplusID, how="inner")
-        .join(networkID, on="upstream_id")
-        .set_index("networkID")
-        .NHDPlusID
-    )
-
-    # then for each set of upstream barriers within the functional network of a given
-    # barrier, filter those to ones on the same NHDPlusID
-    cat_barriers_upstream = (
-        (
-            upstream_barrier_joins[["downstream_id", "kind"]].join(
-                networkID, on="downstream_id", how="inner"
-            )
-        )
-        .join(nhdplusID, how="inner")
-        .join(network_nhdplusID, on="networkID", rsuffix="_network", how="inner")
-    )
-    cat_barriers_upstream = cat_barriers_upstream.loc[
-        cat_barriers_upstream.NHDPlusID == cat_barriers_upstream.NHDPlusID_network
-    ]
-
-    cat_upstream_counts = (
-        cat_barriers_upstream.groupby(["networkID", "kind"])
-        .size()
-        .rename("count")
-        .reset_index()
-        .pivot(index="networkID", columns="kind", values="count")
-        .fillna(0)
-        .rename(
-            columns={
-                "dam": "cat_dams",
-                "waterfall": "cat_waterfalls",
-                "small_barrier": "cat_small_barriers",
-                "road_crossing": "cat_road_crossings",
-            }
-        )
-    )
-
     # determine the barrier type associated with this functional network
     network_barrier = (
         focal_barrier_joins.loc[
@@ -255,7 +215,6 @@ def calculate_upstream_network_stats(
         .join(sizeclasses)
         .join(fn_upstream_counts)
         .join(fn_upstream_area)
-        .join(cat_upstream_counts)
         .join(tot_upstream_counts)
         .join(network_barrier)
         .join(root_huc2)
@@ -268,13 +227,11 @@ def calculate_upstream_network_stats(
     for stat_type in ["fn", "cat", "tot"]:
         for kind in ["waterfalls", "dams", "small_barriers", "road_crossings"]:
             col = f"{stat_type}_{kind}"
-            if not col in results.columns:
+            if col not in results.columns:
                 results[col] = 0
 
     count_cols = (
-        fn_upstream_counts.columns.tolist()
-        + cat_upstream_counts.columns.tolist()
-        + tot_upstream_counts.columns.tolist()
+        fn_upstream_counts.columns.tolist() + tot_upstream_counts.columns.tolist()
     )
 
     results[count_cols] = results[count_cols].fillna(0)

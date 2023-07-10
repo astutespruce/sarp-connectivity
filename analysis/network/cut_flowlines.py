@@ -59,9 +59,12 @@ barriers = read_feathers(
     new_fields={"kind": kinds},
 )
 
-# FIXME:
 if "removed" not in barriers.columns:
     barriers["removed"] = False
+
+if "YearRemoved" not in barriers.columns:
+    barriers["YearRemoved"] = 0
+
 
 barriers = barriers.set_index("id", drop=False)
 
@@ -69,6 +72,7 @@ barriers = barriers.set_index("id", drop=False)
 # removed is not applicable for road crossings or waterfalls, backfill with False
 # NOTE: removed barriers cut flowlines but are not counted toward dam / small barrier networks
 barriers["removed"] = barriers.removed.fillna(False)
+barriers["YearRemoved"] = barriers.YearRemoved.fillna(0).astype("uint16")
 
 print(f"Serializing {len(barriers):,} barriers")
 barriers.to_feather(out_dir / "all_barriers.feather")

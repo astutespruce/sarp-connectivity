@@ -18,6 +18,10 @@ NETWORK_COLUMNS = [
     "id",
     "upNetID",
     "downNetID",
+    "GainMiles",
+    "PerennialGainMiles",
+    "TotalNetworkMiles",
+    "TotalPerennialNetworkMiles",
     "TotalUpstreamMiles",
     "PerennialUpstreamMiles",
     "AlteredUpstreamMiles",
@@ -28,7 +32,9 @@ NETWORK_COLUMNS = [
     "FreePerennialDownstreamMiles",
     "FreeAlteredDownstreamMiles",
     "FreeUnalteredDownstreamMiles",
-    # "FreePerennialUnalteredDownstreamMiles",  # not nused
+    # "FreePerennialUnalteredDownstreamMiles",  # not used
+    "PercentAltered",
+    "PercentPerennialAltered",
     "PercentUnaltered",
     "PercentPerennialUnaltered",
     "IntermittentUpstreamMiles",
@@ -71,10 +77,6 @@ NETWORK_COLUMN_NAMES = {
     "fn_road_crossings": "UpstreamRoadCrossings",
     "fn_waterfalls": "UpstreamWaterfalls",
     "fn_headwaters": "UpstreamHeadwaters",
-    "cat_dams": "UpstreamCatchmentDams",
-    "cat_small_barriers": "UpstreamCatchmentSmallBarriers",
-    "cat_road_crossings": "UpstreamCatchmentRoadCrossings",
-    "cat_waterfalls": "UpstreamCatchmentWaterfalls",
     "tot_dams": "TotalUpstreamDams",
     "tot_small_barriers": "TotalUpstreamSmallBarriers",
     "tot_road_crossings": "TotalUpstreamRoadCrossings",
@@ -148,38 +150,38 @@ def get_network_results(df, network_type, state_ranks=False):
         networks.loc[networks.SizeClasses > 0, "SizeClasses"] - 1
     )
 
-    ### Calculate miles GAINED if barrier is removed
-    # this is the lesser of the upstream or free downstream lengths.
-    # Non-free miles downstream (downstream waterbodies) are omitted from this analysis.
-    networks["GainMiles"] = networks[["TotalUpstreamMiles", "FreeDownstreamMiles"]].min(
-        axis=1
-    )
-    networks["PerennialGainMiles"] = networks[
-        ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
-    ].min(axis=1)
+    # ### Calculate miles GAINED if barrier is removed
+    # # this is the lesser of the upstream or free downstream lengths.
+    # # Non-free miles downstream (downstream waterbodies) are omitted from this analysis.
+    # networks["GainMiles"] = networks[["TotalUpstreamMiles", "FreeDownstreamMiles"]].min(
+    #     axis=1
+    # )
+    # networks["PerennialGainMiles"] = networks[
+    #     ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
+    # ].min(axis=1)
 
-    # For barriers that terminate in marine areas or Great Lakes, their GainMiles is only based on the upstream miles
-    ix = (networks.MilesToOutlet == 0) & (
-        (networks.FlowsToOcean == 1) | (networks.FlowsToGreatLakes)
-    )
-    networks.loc[ix, "GainMiles"] = networks.loc[ix].TotalUpstreamMiles
-    networks.loc[ix, "PerennialGainMiles"] = networks.loc[ix].PerennialUpstreamMiles
+    # # For barriers that terminate in marine areas or Great Lakes, their GainMiles is only based on the upstream miles
+    # ix = (networks.MilesToOutlet == 0) & (
+    #     (networks.FlowsToOcean == 1) | (networks.FlowsToGreatLakes)
+    # )
+    # networks.loc[ix, "GainMiles"] = networks.loc[ix].TotalUpstreamMiles
+    # networks.loc[ix, "PerennialGainMiles"] = networks.loc[ix].PerennialUpstreamMiles
 
-    # TotalNetworkMiles is sum of upstream and free downstream miles
-    networks["TotalNetworkMiles"] = networks[
-        ["TotalUpstreamMiles", "FreeDownstreamMiles"]
-    ].sum(axis=1)
-    networks["TotalPerennialNetworkMiles"] = networks[
-        ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
-    ].sum(axis=1)
+    # # TotalNetworkMiles is sum of upstream and free downstream miles
+    # networks["TotalNetworkMiles"] = networks[
+    #     ["TotalUpstreamMiles", "FreeDownstreamMiles"]
+    # ].sum(axis=1)
+    # networks["TotalPerennialNetworkMiles"] = networks[
+    #     ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
+    # ].sum(axis=1)
 
-    # Round floating point columns to 3 decimals
-    for column in [c for c in networks.columns if c.endswith("Miles")]:
-        networks[column] = networks[column].round(3).fillna(-1)
+    # # Round floating point columns to 3 decimals
+    # for column in [c for c in networks.columns if c.endswith("Miles")]:
+    #     networks[column] = networks[column].round(3).fillna(-1)
 
-    ### Set PercentUnaltered and PercentAltered to integers
-    networks["PercentUnaltered"] = networks.PercentUnaltered.round().astype("int8")
-    networks["PercentAltered"] = 100 - networks.PercentUnaltered
+    # ### Set PercentUnaltered and PercentAltered to integers
+    # networks["PercentUnaltered"] = networks.PercentUnaltered.round().astype("int8")
+    # networks["PercentAltered"] = 100 - networks.PercentUnaltered
 
     ### Calculate classes used for filtering
     networks["GainMilesClass"] = classify_gain_miles(networks.GainMiles)

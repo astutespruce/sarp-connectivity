@@ -108,10 +108,6 @@ UPSTREAM_COUNT_FIELDS = [
     "UpstreamSmallBarriers",
     "UpstreamRoadCrossings",
     "UpstreamHeadwaters",
-    # "UpstreamCatchmentWaterfalls",
-    # "UpstreamCatchmentDams",
-    # "UpstreamCatchmentSmallBarriers",
-    # "UpstreamCatchmentRoadCrossings",
     # "TotalUpstreamWaterfalls",
     # "TotalUpstreamDams",
     # "TotalUpstreamSmallBarriers",
@@ -910,6 +906,23 @@ PASSABILITY_DOMAIN = {
     7: "No barrier",
 }
 
+FERC_REGULATED_DOMAIN = {
+    0: "Unknown",
+    1: "Yes",
+    2: "No",
+}
+
+
+STATE_REGULATED_DOMAIN = {
+    0: "Unknown",
+    1: "Yes",
+    2: "No",
+}
+
+
+HAZARD_DOMAIN = {0: "Unknown", 1: "High", 2: "Significant", 3: "Intermediate", 4: "Low"}
+
+
 ROAD_TYPE_DOMAIN = {
     -1: "Not applicable (dam)",
     0: "Unknown",
@@ -1234,10 +1247,6 @@ FIELD_DEFINITIONS = {
     "UpstreamSmallBarriers": "number of assessed road-related barriers within the functional network if this barrier is a dam or at the upstream ends of the functional network if this barrier is a road-related barrier. -1 = not available.",
     "UpstreamRoadCrossings": "number of uninventoried estimated road crossings within the functional network for this {type}. -1 = not available.",
     "UpstreamHeadwaters": "number of headwaters within the functional network for this {type}. -1 = not available.",
-    "UpstreamCatchmentWaterfalls": "number of waterfalls within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
-    "UpstreamCatchmentDams": "number of dams within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
-    "UpstreamCatchmentSmallBarriers": "number of assessed road-related barriers within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
-    "UpstreamCatchmentRoadCrossings": "number of uninventoried estimated road crossings within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
     "TotalUpstreamWaterfalls": "total number of waterfalls upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamDams": "total number of dams upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamSmallBarriers": "total number of assessed road-related barriers upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",

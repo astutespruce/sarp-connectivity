@@ -153,7 +153,7 @@ def aggregate_lines(df, by):
     tmp = pd.DataFrame(df.copy())
     tmp["geometry"] = tmp.geometry.values.data
     return gp.GeoDataFrame(
-        tmp.groupby(by=by)
+        tmp.groupby(by=by, group_keys=False)
         .geometry.apply(shapely.multilinestrings)
         .rename("geometry")
         .reset_index(),
