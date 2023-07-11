@@ -27,8 +27,9 @@ DROP_COLS = (
     [f"tot_{kind}" for kind in BARRIER_COUNT_KINDS]
     + [f"fn_{kind}" for kind in BARRIER_COUNT_KINDS]
     + [
-        # temporary until run_network_analysis.py completely rerun
-        f"can_{kind}"
+        # FIXME: temporary until run_network_analysis.py completely rerun; then can
+        # be removed since the cat_* stats will no longer be present
+        f"cat_{kind}"
         for kind in BARRIER_COUNT_KINDS
     ]
 )
@@ -188,9 +189,9 @@ for group in huc2_groups:
         # save networkID to flowlines
         flowlines = flowlines.join(network_segments[network_type])
 
-        barrier_networks = barrier_networks.join(
-            group_barriers.set_index("id").YearRemoved
-        )
+        barrier_networks = barrier_networks.drop(
+            columns=DROP_COLS, errors="ignore"
+        ).join(group_barriers.set_index("id").YearRemoved)
 
         # update network stats based on previous downstream network stats
         network_stats = network_stats.drop(columns=DROP_COLS, errors="ignore")

@@ -19,7 +19,7 @@ const StateDownloadTable = ({
   smallBarriers,
   rankedSmallBarriers,
   totalSmallBarriers,
-  ...props
+  sx,
 }) => {
   const stateData = groupBy(useStateSummary(), 'id')
   let states = []
@@ -33,7 +33,7 @@ const StateDownloadTable = ({
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
 
   return (
-    <Box {...props}>
+    <Box sx={sx}>
       <Box
         sx={{
           mt: '1rem',
@@ -200,6 +200,7 @@ StateDownloadTable.propTypes = {
   smallBarriers: PropTypes.number,
   rankedSmallBarriers: PropTypes.number,
   totalSmallBarriers: PropTypes.number,
+  sx: PropTypes.object,
 }
 
 StateDownloadTable.defaultProps = {
@@ -209,6 +210,7 @@ StateDownloadTable.defaultProps = {
   smallBarriers: 0,
   rankedSmallBarriers: 0,
   totalSmallBarriers: 0,
+  sx: {},
 }
 
 export default StateDownloadTable

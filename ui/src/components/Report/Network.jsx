@@ -147,7 +147,7 @@ const Network = ({
       marginBottom={6}
     >
       {removed ? (
-        <Text>
+        <Text style={{ marginBottom: `12pt` }}>
           {yearremoved !== null && yearremoved > 0
             ? `This barrier was removed or mitigated in ${yearremoved}.`
             : 'This barrier has been removed or mitigated.'}

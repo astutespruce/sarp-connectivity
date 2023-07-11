@@ -290,20 +290,33 @@ combined = pd.concat(
     sort=False,
 ).set_index("id")
 
-combined_networks = get_network_results(
-    combined,
+
+# FIXME: needs to use removed barriers
+nonremoved_combined_networks = get_network_results(
+    combined.loc[~combined.Removed],
     network_type="small_barriers",
     state_ranks=False,
 )
+removed_combined_networks = get_removed_network_results(
+    combined.loc[combined.Removed],
+    network_type="small_barriers",
+)
+combined_networks = pd.concat(
+    [
+        nonremoved_combined_networks.reset_index(),
+        removed_combined_networks.reset_index(),
+    ]
+).set_index("id")
+
 combined = combined.join(combined_networks)
 for col in ["HasNetwork", "Ranked", "Estimated", "NoStructure"]:
     combined[col] = combined[col].fillna(False)
 
-for col in combined_networks.columns:
+for col in nonremoved_combined_networks.columns:
     if combined[col].dtype == bool:
         continue
 
-    orig_dtype = combined_networks[col].dtype
+    orig_dtype = nonremoved_combined_networks[col].dtype
     if col.endswith("Class"):
         combined[col] = combined[col].fillna(0).astype(orig_dtype)
 

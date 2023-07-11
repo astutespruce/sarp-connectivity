@@ -285,14 +285,9 @@ def get_removed_network_results(df, network_type):
         # Force to -1 since these aren't part of standard networks
         networks[col] = -1
 
-    for stat_type in [
-        "Upstream",
-        "TotalUpstream",
-        "TotalDownstream",
-    ]:
-        for t in ["Waterfalls", "Dams", "SmallBarriers", "RoadCrossings"]:
-            col = f"{stat_type}{t}"
-            networks[col] = networks[col].fillna(0).astype("int32")
+    for t in ["Waterfalls", "Dams", "SmallBarriers", "RoadCrossings"]:
+        col = f"TotalDownstream{t}"
+        networks[col] = networks[col].fillna(0).astype("int32")
 
     for col in ("Landcover", "FlowsToOcean", "ExitsRegion"):
         networks[col] = networks[col].astype("int8")

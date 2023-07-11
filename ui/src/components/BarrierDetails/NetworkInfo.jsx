@@ -32,6 +32,7 @@ const NetworkInfo = ({
   headerFontSize,
   invasive,
   unranked,
+  removed,
   ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -57,14 +58,7 @@ const NetworkInfo = ({
 
   return (
     <Box {...props}>
-      <Entry sx={{ pb: '1.5rem', mx: '-0.5rem' }}>
-        <Text variant="help" sx={{ fontSize: 0, px: '0.5rem', mb: '0.5rem' }}>
-          statistics are based on aquatic networks cut by{' '}
-          {networkType === 'dams'
-            ? 'waterfalls and dams'
-            : 'waterfalls, dams, and road-related barriers'}
-        </Text>
-
+      <Entry sx={{ pb: '.5rem', mx: '-0.5rem' }}>
         <Table sx={{ fontSize }} columns="11rem 1fr 1fr">
           <Row sx={{ px: '0.5rem' }}>
             <Box />
@@ -242,9 +236,9 @@ const NetworkInfo = ({
                 </Text>
                 <Box sx={{ display: 'inline-block' }}>
                   <InfoTooltip>
-                    The total miles that could be gained by removing this
-                    barrier is the lesser of the upstream or downstream total
-                    functional network miles.
+                    The total miles that {removed ? 'were' : 'could be'} gained
+                    by removing this barrier is the lesser of the upstream or
+                    downstream total functional network miles.
                   </InfoTooltip>
                 </Box>
               </Box>
@@ -272,8 +266,9 @@ const NetworkInfo = ({
                 </Text>
                 <Box sx={{ display: 'inline-block' }}>
                   <InfoTooltip>
-                    The total perennial miles that could be gained by removing
-                    this barrier is the lesser of the upstream or downstream
+                    The total perennial miles that{' '}
+                    {removed ? 'were' : 'could be'} gained by removing this
+                    barrier is the lesser of the upstream or downstream
                     perennial miles.
                   </InfoTooltip>
                 </Box>
@@ -299,6 +294,18 @@ const NetworkInfo = ({
             </Row>
           </Table>
         ) : null}
+
+        <Text variant="help" sx={{ fontSize: 0, px: '0.5rem', mt: '2rem' }}>
+          Note: statistics are based on aquatic networks cut by{' '}
+          {networkType === 'dams'
+            ? 'waterfalls and dams'
+            : 'waterfalls, dams, and road-related barriers'}
+          {removed
+            ? `, including any that were present at the time this ${barrierTypeLabel} was removed.  All barriers removed prior to 2000 or where the year they were removed
+                was unknown were lumped together for this analysis`
+            : null}
+          .
+        </Text>
       </Entry>
 
       {totalupstreammiles > 0 ? (
@@ -321,7 +328,9 @@ const NetworkInfo = ({
           label={
             barrierType === 'waterfalls'
               ? 'Number of size classes upstream'
-              : 'Number of size classes that could be gained by removing this barrier'
+              : `Number of size classes that ${
+                  removed ? 'were' : 'could be'
+                } gained by removing this barrier`
           }
         >
           <Text
@@ -386,6 +395,7 @@ NetworkInfo.propTypes = {
   sizeclasses: PropTypes.number,
   invasive: PropTypes.number,
   unranked: PropTypes.number,
+  removed: PropTypes.bool,
 }
 
 NetworkInfo.defaultProps = {
@@ -403,6 +413,7 @@ NetworkInfo.defaultProps = {
   sizeclasses: 0,
   invasive: 0,
   unranked: 0,
+  removed: false,
 }
 
 export default NetworkInfo

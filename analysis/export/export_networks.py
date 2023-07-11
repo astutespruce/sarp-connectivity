@@ -11,29 +11,37 @@ src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True, parents=True)
 
-
-barrier_type = "waterfalls"  # "dams"
+prefix = ""  # "removed_"
+segments_prefix = ""  # "removed_barriers_"
+barrier_type = "small_barriers"  # , "dams"
 ext = "fgb"
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
 export_hucs = {
-    "04",
+    # "01",
+    # "02",
+    # "04",
     # "05",
     # "06",
     # "07",
+    # "08"
     # "09"
+    "21"
 }
 
 
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
 # for group in [{"05", "06", "07", "08", "10", "11"}]:
-for group in [{"04"}]:
+for group in [{"21"}]:
     group = sorted(group)
 
     segments = (
         read_feathers(
-            [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
+            [
+                src_dir / "clean" / huc2 / f"{segments_prefix}network_segments.feather"
+                for huc2 in group
+            ],
             columns=["lineID", barrier_type],
         )
         .rename(columns={barrier_type: "networkID"})
@@ -42,7 +50,7 @@ for group in [{"04"}]:
 
     stats = read_feathers(
         [
-            src_dir / "clean" / huc2 / f"{barrier_type}_network_stats.feather"
+            src_dir / "clean" / huc2 / f"{prefix}{barrier_type}_network_stats.feather"
             for huc2 in group
         ]
     ).set_index("networkID")
@@ -58,10 +66,12 @@ for group in [{"04"}]:
     for kind in ["waterfalls", "dams", "small_barriers", "road_crossings"]:
         for count_type in ["fn", "tot", "totd", "cat"]:
             col = f"{count_type}_{kind}"
-            stats[col] = stats[col].fillna(0).astype("uint32")
+            if col in stats.columns:
+                stats[col] = stats[col].fillna(0).astype("uint32")
 
     for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region"]:
-        stats[col] = stats[col].astype("uint8")
+        if col in stats.columns:
+            stats[col] = stats[col].astype("uint8")
 
     # natural floodplain is missing for several catchments; fill with -1
     for col in ["natfldpln", "sizeclasses"]:
@@ -91,9 +101,9 @@ for group in [{"04"}]:
         flowlines = flowlines.join(segments)
 
         ### To export larger flowlines only
-        flowlines = flowlines.loc[
-            flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
-        ]
+        # flowlines = flowlines.loc[
+        #     flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
+        # ]
         # flowlines = flowlines.loc[flowlines.sizeclass.isin(["2", "3a", "3b", "4", "5"])]
 
         ### To export dissolved networks
@@ -125,5 +135,5 @@ for group in [{"04"}]:
 
         print(f"Serializing {len(networks):,} dissolved networks...")
         write_dataframe(
-            networks, out_dir / f"region{huc2}_{barrier_type}_large_networks.{ext}"
+            networks, out_dir / f"region{huc2}_{prefix}{barrier_type}_networks.{ext}"
         )

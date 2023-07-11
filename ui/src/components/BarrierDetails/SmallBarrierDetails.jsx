@@ -214,12 +214,13 @@ const BarrierDetails = ({
 
     <Section title="Functional network information">
       {removed ? (
-        <Entry>
+        <Entry sx={{ mb: '1rem' }}>
           {yearremoved !== null && yearremoved > 0
             ? `This barrier was removed or mitigated in ${yearremoved}.`
             : 'This barrier has been removed or mitigated.'}
         </Entry>
       ) : null}
+
       {hasnetwork ? (
         <NetworkInfo
           barrierType={barrierType}
@@ -237,6 +238,7 @@ const BarrierDetails = ({
           intermittent={intermittent}
           invasive={invasive}
           unranked={unranked}
+          removed={removed}
         />
       ) : (
         <NoNetworkInfo

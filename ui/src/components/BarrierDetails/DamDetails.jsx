@@ -233,7 +233,7 @@ const DamDetails = ({
 
       <Section title="Functional network information">
         {removed ? (
-          <Entry>
+          <Entry sx={{ mb: '1rem' }}>
             {yearremoved !== null && yearremoved > 0
               ? `This barrier was removed or mitigated in ${yearremoved}.`
               : 'This barrier has been removed or mitigated.'}
@@ -259,6 +259,7 @@ const DamDetails = ({
             intermittent={intermittent}
             invasive={invasive}
             unranked={unranked}
+            removed={removed}
           />
         ) : (
           <NoNetworkInfo
@@ -295,20 +296,22 @@ const DamDetails = ({
         />
       </Section>
 
-      <Section title="Feasibility & conservation benefit">
-        <Entry>
-          <Field label="Feasibility" isUnknown={feasibilityclass <= 1}>
-            {FEASIBILITYCLASS[feasibilityclass]}
-          </Field>
+      {feasibilityclass && feasibilityclass < 10 ? (
+        <Section title="Feasibility & conservation benefit">
+          <Entry>
+            <Field label="Feasibility" isUnknown={feasibilityclass <= 1}>
+              {FEASIBILITYCLASS[feasibilityclass]}
+            </Field>
 
-          {recon !== null && recon > 0 ? (
-            <>
-              <br />
-              <Field label="Field recon notes">{RECON[recon]}</Field>
-            </>
-          ) : null}
-        </Entry>
-      </Section>
+            {recon !== null && recon > 0 ? (
+              <>
+                <br />
+                <Field label="Field recon notes">{RECON[recon]}</Field>
+              </>
+            ) : null}
+          </Entry>
+        </Section>
+      ) : null}
 
       <Section title="Other information">
         <IDInfo sarpid={sarpid} nidid={nidid} source={source} link={link} />
