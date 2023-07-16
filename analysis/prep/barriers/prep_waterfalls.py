@@ -12,7 +12,6 @@ This creates 2 files:
 
 from pathlib import Path
 from time import time
-import warnings
 
 import pandas as pd
 import shapely
@@ -142,7 +141,7 @@ drop_ix = df.SARPID.isin(
     ]
 )
 df.loc[drop_ix, "dropped"] = True
-df.loc[drop_ix, "log"] = f"dropped: removed specific ids"
+df.loc[drop_ix, "log"] = "dropped: removed specific ids"
 
 # Drop records that indicate waterfall is not likely a current fish passage barrier
 drop_types = ["dam", "historical rapids", "historical waterfall", "rapids"]

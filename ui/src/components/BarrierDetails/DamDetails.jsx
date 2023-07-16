@@ -296,7 +296,7 @@ const DamDetails = ({
         />
       </Section>
 
-      {feasibilityclass && feasibilityclass < 10 ? (
+      {feasibilityclass && feasibilityclass <= 10 ? (
         <Section title="Feasibility & conservation benefit">
           <Entry>
             <Field label="Feasibility" isUnknown={feasibilityclass <= 1}>

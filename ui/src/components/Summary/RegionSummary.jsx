@@ -59,7 +59,7 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
       ) : null}
 
       <Paragraph sx={{ fontSize: [3, 4] }}>
-        Across the {regionName} Region, there are:
+        Across the {regionName}{region !== 'total' ? ' Region': null}, there are:
       </Paragraph>
 
       {barrierType === 'dams' || barrierType === 'combined_barriers' ? (
@@ -79,7 +79,7 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
             {removedDams > 0 ? (
               <li>
                 <b>{formatNumber(removedDams, 0)}</b> that have been removed or
-                mitigated for conservation, gaining{' '}
+                mitigated, gaining{' '}
                 <b>{formatNumber(removedDamsGainMiles)} miles</b> of reconnected
                 rivers and streams
               </li>

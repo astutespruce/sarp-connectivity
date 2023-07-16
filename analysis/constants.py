@@ -172,9 +172,9 @@ DAM_FS_COLS = [
     "Barrier_Name",
     "Other_Barrier_Name",
     "OwnerType",
-    "River",
+    "RIVER",
     "PurposeCategory",
-    "Year_Completed",
+    "YEAR_COMPLETED",
     "Year_Removed",
     "Height",
     "Length",
@@ -195,11 +195,15 @@ DAM_FS_COLS = [
     "ScreenType",
     "BarrierSeverity",
     "LowheadDam",
-    "LowheadDam1",  # temporary, for Oregon
     "ImpoundmentType",
     "EditDate",
     "Editor",
     "Link",
+    "FERC_Dam",
+    "STATE_REGULATED",
+    "Hazard",
+    "Water_Right",
+    # "Private",  # TODO: enable when values are present
 ]
 
 
@@ -223,7 +227,7 @@ SMALL_BARRIER_COLS = [
     "OwnerType",
     "Constriction",
     "PassageFacility",
-    "Link"
+    "Link",
     # Not used:
     # "NumberOfStructures",
     # "CrossingComment",
@@ -291,7 +295,7 @@ REMOVED_MANUALREVIEW = [
 ]
 
 EXCLUDE_PASSAGEFACILITY = [
-    13,  # Natural Breach
+    13,  # Partial Breach
     14,  # Removal
 ]
 
@@ -351,6 +355,9 @@ NOSTRUCTURE_STRUCTURECATEGORY = [
     3  # Diversion (canal / ditch) without associated dam structure
 ]
 
+# per instructions from Kat on 7/14/2023; drop all types except 3 (above) and 9
+DROP_STRUCTURECATEGORY = [0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 12]
+
 # Applies to Recon values, omitted values should be filtered out
 RECON_TO_FEASIBILITY = {
     0: 0,
@@ -395,11 +402,14 @@ RECON_TO_FEASIBILITY = {
 #   # 11: 'Fish passage installed'
 #   # 12: 'Removal planned'
 #   # 13: 'Breached - full flow'
+#   # 14: 'Fish passage installed for conservation benefit'
+#   # 15: 'Treatment completed (removal vs fishway unspecified)
+#   # 16: 'Treatment planned'
 # }
 
 # NOTE: values with 10 are NOT shown in filters in the UI; 0 is reserved for missing values
 # Domain is FeasibilityClass
-FEASIBILITY_TO_DOMAIN = {
+FEASIBILITY_TO_FEASIBILITYCLASS_DOMAIN = {
     0: 1,  # not assessed
     1: 5,  # not feasible
     2: 4,  # likely infeasible
@@ -407,13 +417,28 @@ FEASIBILITY_TO_DOMAIN = {
     4: 2,  # likely feasible
     5: 6,  # no conservation benefit
     6: 1,  # unknown
-    7: 10,  # error (filtered out)
-    8: 10,  # dam removed for conservation benefit (filtered out)
-    9: 10,  # invasive species barrier (filtered out)
-    10: 10,  # proposed dam
-    11: 9,  # fish passage installed
+    7: 11,  # error (filtered out)
+    8: 11,  # dam removed for conservation benefit (filtered out)
+    9: 11,  # invasive species barrier (filtered out)
+    10: 11,  # proposed dam (filtered out, code no longer used)
+    11: 9,  # fish passage installed (code no longer used, superseded by 14)
     12: 7,  # removal planned
     13: 8,  # breached - full flow
+    14: 9,  # fish passage installed for conservation benefit
+    15: 10,  # treatment complete
+    16: 7,  # treatment planned
+}
+
+
+# recode domain values to be in better order
+HAZARD_TO_DOMAIN = {
+    0: 0,  # not provided in domain, is unknown
+    1: 1,  # high
+    2: 3,  # intermediate
+    3: 4,  # low
+    4: 0,  # unknown,
+    5: 2,  # significant
+    6: 0,  # unknown (not in domain / NID, recode to unknown per direction from Kat)
 }
 
 
@@ -506,6 +531,17 @@ DAM_BARRIER_SEVERITY_TO_DOMAIN = {
     "seasonably passable - salmonid": 6,
     "no barrier": 7,
 }
+
+
+FERCREGULATED_TO_DOMAIN = {
+    0: 0,  # unknown
+    1: 1,  # licensed
+    3: 4,  # exemption
+    4: 3,  # pending permit
+    5: 2,  # preliminary permit
+    2: 5,  # not a FERC dam
+}
+
 
 # uses BarrierSeverity domain
 # barriers with severity == 0 are excluded from analysis

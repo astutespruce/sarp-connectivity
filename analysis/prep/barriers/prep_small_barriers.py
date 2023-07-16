@@ -117,6 +117,7 @@ df = df.set_index("id", drop=False)
 ######### Fix data issues
 df["ManualReview"] = df.ManualReview.fillna(0).astype("uint8")
 df["Recon"] = df.Recon.fillna(0).astype("uint8")
+
 df["SARP_Score"] = df.SARP_Score.fillna(-1).astype("float32")
 
 
@@ -584,7 +585,17 @@ df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped small barriers".format(len(df)))
 df[
-    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent", "removed"]
+    [
+        "geometry",
+        "id",
+        "HUC2",
+        "lineID",
+        "NHDPlusID",
+        "loop",
+        "intermittent",
+        "removed",
+        "YearRemoved",
+    ]
 ].to_feather(
     snapped_dir / "small_barriers.feather",
 )

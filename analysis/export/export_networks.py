@@ -13,7 +13,7 @@ out_dir.mkdir(exist_ok=True, parents=True)
 
 prefix = ""  # "removed_"
 segments_prefix = ""  # "removed_barriers_"
-barrier_type = "small_barriers"  # , "dams"
+barrier_type = "dams"  # , "dams"
 ext = "fgb"
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
@@ -27,13 +27,13 @@ export_hucs = {
     # "07",
     # "08"
     # "09"
-    "21"
+    # "21"
 }
 
 
-# for group in groups_df.groupby("group").HUC2.apply(set).values:
-# for group in [{"05", "06", "07", "08", "10", "11"}]:
-for group in [{"21"}]:
+for group in groups_df.groupby("group").HUC2.apply(set).values:
+    # for group in [{"05", "06", "07", "08", "10", "11"}]:
+    # for group in [{"14","15"}, {"16"}]:
     group = sorted(group)
 
     segments = (
@@ -79,8 +79,8 @@ for group in [{"21"}]:
 
     # create output files by HUC2 based on where the segments occur
     for huc2 in group:
-        if huc2 not in export_hucs:
-            continue
+        # if huc2 not in export_hucs:
+        #     continue
 
         print(f"Dissolving networks in {huc2}...")
         flowlines = (
@@ -101,10 +101,10 @@ for group in [{"21"}]:
         flowlines = flowlines.join(segments)
 
         ### To export larger flowlines only
-        # flowlines = flowlines.loc[
-        #     flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
-        # ]
-        # flowlines = flowlines.loc[flowlines.sizeclass.isin(["2", "3a", "3b", "4", "5"])]
+        flowlines = flowlines.loc[
+            flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
+        ]
+        flowlines = flowlines.loc[flowlines.sizeclass.isin(["2", "3a", "3b", "4", "5"])]
 
         ### To export dissolved networks
         networks = (

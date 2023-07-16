@@ -27,7 +27,7 @@ const RegionStats = ({
       {removedDams > 0 ? (
         <li>
           <b>{formatNumber(removedDams, 0)}</b> that have been removed or
-          mitigated for conservation, gaining{' '}
+          mitigated, gaining{' '}
           <b>{formatNumber(removedDamsGainMiles)} miles</b> of reconnected
           rivers and streams
         </li>

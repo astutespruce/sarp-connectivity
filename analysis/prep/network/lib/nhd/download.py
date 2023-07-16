@@ -16,7 +16,7 @@ BETA_DATA_URL = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHD
 
 # Current is for anything delivered starting in 2022, with different naming schemes
 # Listing URL https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/
-CURRENT_DATA_LIST_URL = "https://prd-tnm.s3.amazonaws.com/?prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/"
+CURRENT_DATA_LIST_URL = "https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/"
 CURRENT_DATA_URL = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/NHDPLUS_H_{HUC}_{HUC_type}_{datestamp}_GDB.zip"
 
 # NOTE: the updates in 19 are on a HUC8 by HUC8 basis

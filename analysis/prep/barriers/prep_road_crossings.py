@@ -38,7 +38,7 @@ right = tree.query(
 )[1]
 dam_ix = df.index.values.take(np.unique(right))
 
-print(f"Found {len(dam_ix)} road crossings within {DUPLICATE_TOLERANCE}m of dams")
+print(f"Found {len(dam_ix):,} road crossings within {DUPLICATE_TOLERANCE}m of dams")
 
 ### Remove those that co-occur with waterfalls
 waterfalls = gp.read_feather(
@@ -49,7 +49,9 @@ right = tree.query(
 )[1]
 wf_ix = df.index.values.take(np.unique(right))
 
-print(f"Found {len(wf_ix)} road crossings within {DUPLICATE_TOLERANCE}m of waterfalls")
+print(
+    f"Found {len(wf_ix):,} road crossings within {DUPLICATE_TOLERANCE}m of waterfalls"
+)
 
 ### Remove those that otherwise duplicate existing small barriers
 print("Removing crossings that duplicate existing barriers")

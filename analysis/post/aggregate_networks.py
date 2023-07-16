@@ -105,11 +105,6 @@ dams = (
     .rename(columns=rename_cols)
 )
 
-# FIXME: temporary until rerun download with missing fields
-if "YearCompleted" not in dams.columns:
-    dams["YearCompleted"] = np.uint16(0)
-
-
 dams["unsnapped"] = (~dams.snapped).astype("uint8")
 fill_flowline_cols(dams)
 
@@ -291,7 +286,6 @@ combined = pd.concat(
 ).set_index("id")
 
 
-# FIXME: needs to use removed barriers
 nonremoved_combined_networks = get_network_results(
     combined.loc[~combined.Removed],
     network_type="small_barriers",

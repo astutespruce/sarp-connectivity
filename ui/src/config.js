@@ -678,11 +678,12 @@ export const FEASIBILITYCLASS = {
   4: 'likely infeasible',
   5: 'not feasible',
   6: 'no conservation benefit',
-  7: 'removal planned',
+  7: 'project planned',
   8: 'breached with full flow',
   9: 'fish passage installed',
+  10: 'treatment complete (removal vs fishway unspecified)',
   // not shown to user
-  // 10: (multiple values lumped to prevent showing in filter)
+  // 11: (multiple values lumped to prevent showing in filter)
 }
 
 export const HEIGHT = {

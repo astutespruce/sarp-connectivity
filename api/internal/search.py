@@ -168,9 +168,6 @@ async def search_barriers(request: Request, query: str):
             }
         ).sort_by([["sim", "descending"], ["ipos", "ascending"]])
 
-        # FIXME:
-        print(matches.to_pandas()[["search_key", "sim", "ipos"]])
-
         matches = matches.select([c.lower() for c in BARRIER_SEARCH_RESULT_COLUMNS])
 
     matches = matches[:NUM_BARRIER_SEARCH_RESULTS].combine_chunks()

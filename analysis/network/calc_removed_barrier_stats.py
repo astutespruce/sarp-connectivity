@@ -26,12 +26,6 @@ BARRIER_COUNT_KINDS = [
 DROP_COLS = (
     [f"tot_{kind}" for kind in BARRIER_COUNT_KINDS]
     + [f"fn_{kind}" for kind in BARRIER_COUNT_KINDS]
-    + [
-        # FIXME: temporary until run_network_analysis.py completely rerun; then can
-        # be removed since the cat_* stats will no longer be present
-        f"cat_{kind}"
-        for kind in BARRIER_COUNT_KINDS
-    ]
 )
 
 

@@ -682,6 +682,8 @@ RECON_DOMAIN = {
     21: "Potential thermal issues",
     22: "Removal unlikely; fish passage installed",
     23: "Duplicate fish passage project structure",
+    24: "Treatment completed (removal vs fishway unspecified)",
+    25: "Treatment planned",
 }
 
 # Created here to capture values below
@@ -693,15 +695,18 @@ FEASIBILITY_DOMAIN = {
     3: "Possibly feasible",
     4: "Likely feasible",
     5: "No conservation benefit",
-    11: "Fish passage installed",
-    12: "Removal planned",
+    11: "Fish passage installed",  # code no longer used
+    12: "Removal planned",  # code no longer used; superseded by 16
     13: "Breached with full flow",
+    14: "Fish passage installed for conservation benefit",
+    15: "Treatment complete (removal vs fishway unspecified)",
+    16: "Removal or fish passage planned",
     # not shown to user (filtered out for other reasons)
     6: "Unknown",
     7: "Error",
     8: "Dam removed for conservation benefit",
     9: "Invasive species barrier",
-    10: "Proposed dam",
+    10: "Proposed dam",  # code no longer used
 }
 
 
@@ -913,12 +918,14 @@ PASSABILITY_DOMAIN = {
     7: "No barrier",
 }
 
-FERC_REGULATED_DOMAIN = {
+FERCREGULATED_DOMAIN = {
     0: "Unknown",
     1: "Yes",
-    2: "No",
+    2: "Preliminary permit",
+    3: "Pending permit",
+    4: "Exemption",
+    5: "No",
 }
-
 
 STATE_REGULATED_DOMAIN = {
     0: "Unknown",
@@ -998,7 +1005,9 @@ PASSAGEFACILITY_DOMAIN = {
     19: "Crossvane",
     20: "Screen bypass",
     21: "Fishway unspecified",
-    22: "Other",
+    22: "Roughened channel",
+    23: "Hybrid / multiple",
+    24: "None (confirmed)",
 }
 
 MANUALREVIEW_DOMAIN = {
@@ -1308,6 +1317,7 @@ RC_FIELD_DEFINITIONS = {
 #     3: "Partial breach",
 #     4: "Drained",
 #     5: "Dry detention",
+#     6: "Functions limited"
 # }
 
 
@@ -1327,6 +1337,9 @@ RC_FIELD_DEFINITIONS = {
 #     7: "Debris",
 #     8: "Other",
 #     9: "Dam",
+#     10: "Channel",
+#     11: "Gravel/borrow pits",
+#     12: "Utility crossing"
 # }
 
 

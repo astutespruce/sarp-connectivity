@@ -90,7 +90,7 @@ const Report = ({
 
         {feasibilityclass !== null &&
         feasibilityclass > 0 &&
-        feasibilityclass < 10 ? (
+        feasibilityclass <= 10 ? (
           <Feasibility style={{ marginTop: 48 }} {...data} />
         ) : null}
 
