@@ -180,6 +180,8 @@ FILTER_FIELDS = [
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
+    "FERCRegulated",
+    "StateRegulated",
     "Passability",
     "FeasibilityClass",
     "Purpose",
@@ -262,6 +264,8 @@ DAM_CORE_FIELDS = (
         "AnnualFlow",
         "TotDASqKm",
         "YearCompleted",
+        "FERCRegulated",
+        "StateRegulated",
         "Height",
         "Length",
         "Width",
@@ -919,6 +923,7 @@ PASSABILITY_DOMAIN = {
 }
 
 FERCREGULATED_DOMAIN = {
+    -1: "Not applicable",  # small barriers only
     0: "Unknown",
     1: "Yes",
     2: "Preliminary permit",
@@ -928,6 +933,7 @@ FERCREGULATED_DOMAIN = {
 }
 
 STATE_REGULATED_DOMAIN = {
+    -1: "Not applicable",  # small barriers only
     0: "Unknown",
     1: "Yes",
     2: "No",
@@ -1140,6 +1146,8 @@ DOMAINS = {
     "EJTribal": BOOLEAN_DOMAIN,
     # dam fields
     # note Recon domain is just used for internal exports; excluded from public exports
+    "FERCRegulated": FERCREGULATED_DOMAIN,
+    "StateRegulated": STATE_REGULATED_DOMAIN,
     "Construction": CONSTRUCTION_DOMAIN,
     "Purpose": PURPOSE_DOMAIN,
     "Feasibility": FEASIBILITY_DOMAIN,
@@ -1173,7 +1181,9 @@ FIELD_DEFINITIONS = {
     "NIDID": "National Inventory of Dams Identifier.",
     "Source": "Source of this record in the inventory.",
     "Link": "Link to additional information about this {type}",
-    "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information",
+    "FERCRegulated": "Identifies if the {type} is regulated at the federal level by the Federal Energy Regulatory Commission, if known.",
+    "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
+    "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information.",
     # "NoStructure": "this location is a water diversion without an associated barrier structure and is not ranked",
     "River": "River name where {type} occurs, if available.",
     "YearCompleted": "year that construction was completed, if available.  0 = data not available.",

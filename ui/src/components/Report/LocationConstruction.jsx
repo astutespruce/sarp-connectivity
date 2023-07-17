@@ -13,6 +13,8 @@ import {
   ROAD_TYPE,
   OWNERTYPE,
   BARRIEROWNERTYPE,
+  FERC_REGULATED,
+  STATE_REGULATED,
   DISADVANTAGED_COMMUNITY,
   PASSAGEFACILITY,
   PURPOSE,
@@ -54,6 +56,8 @@ const Location = ({
   huc12,
   ownertype,
   barrierownertype,
+  fercregulated,
+  stateregulated,
   disadvantagedcommunity,
   sarp_score,
   diversion,
@@ -215,6 +219,24 @@ const Location = ({
                 <Text>
                   Barrier ownership type:{' '}
                   {BARRIEROWNERTYPE[barrierownertype].toLowerCase()}
+                </Text>
+              </Entry>
+            ) : null}
+
+            {fercregulated !== null && fercregulated !== -1 ? (
+              <Entry>
+                <Text>
+                  Regulated at the federal level:{' '}
+                  {FERC_REGULATED[fercregulated].toLowerCase()}
+                </Text>
+              </Entry>
+            ) : null}
+
+            {stateregulated !== null && stateregulated !== -1 ? (
+              <Entry>
+                <Text>
+                  Regulated at the state level:{' '}
+                  {STATE_REGULATED[stateregulated].toLowerCase()}
                 </Text>
               </Entry>
             ) : null}
@@ -388,6 +410,8 @@ Location.propTypes = {
   subbasin: PropTypes.string,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
+  fercregulated: PropTypes.number,
+  stateregulated: PropTypes.number,
   disadvantagedcommunity: PropTypes.string,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
@@ -423,6 +447,8 @@ Location.defaultProps = {
   subbasin: null,
   ownertype: null,
   barrierownertype: null,
+  fercregulated: null,
+  stateregulated: null,
   disadvantagedcommunity: null,
   sarp_score: -1,
   diversion: 0,

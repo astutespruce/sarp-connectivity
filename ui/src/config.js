@@ -815,6 +815,23 @@ export const BARRIEROWNERTYPE = {
   6: 'tribal',
 }
 
+export const FERC_REGULATED = {
+  '-1': 'Not applicable', // small barriers only
+  0: 'Unknown',
+  1: 'Yes',
+  2: 'Preliminary permit',
+  3: 'Pending permit',
+  4: 'Exemption',
+  5: 'No',
+}
+
+export const STATE_REGULATED = {
+  '-1': 'Not applicable', // small barriers only
+  0: 'Unknown',
+  1: 'Yes',
+  2: 'No',
+}
+
 export const PASSAGEFACILITY_CLASS = {
   0: 'no known fish passage structure',
   1: 'fish passage structure present',

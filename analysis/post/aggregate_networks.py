@@ -325,6 +325,8 @@ for col in str_columns:
 # fill most domain columns with -1 (not applicable)
 fill_columns = [
     # dam columns
+    "FERCRegulated",
+    "StateRegulated",
     "Construction",
     "Diversion",
     "NoStructure",

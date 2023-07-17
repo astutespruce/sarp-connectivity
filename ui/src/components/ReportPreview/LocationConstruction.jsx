@@ -15,6 +15,8 @@ import {
   ROAD_TYPE,
   OWNERTYPE,
   BARRIEROWNERTYPE,
+  FERC_REGULATED,
+  STATE_REGULATED,
   DISADVANTAGED_COMMUNITY,
   PURPOSE,
   PASSABILITY,
@@ -38,6 +40,8 @@ const LocationConstruction = ({
   huc12,
   ownertype,
   barrierownertype,
+  fercregulated,
+  stateregulated,
   disadvantagedcommunity,
   construction,
   lowheaddam,
@@ -192,6 +196,18 @@ const LocationConstruction = ({
             </Entry>
           ) : null}
 
+          {fercregulated !== null && fercregulated !== -1 ? (
+            <Entry>
+              Regulated at the federal level: {FERC_REGULATED[fercregulated].toLowerCase()}
+            </Entry>
+          ) : null}
+
+{stateregulated !== null && stateregulated !== -1 ? (
+            <Entry>
+              Regulated at the state level: {STATE_REGULATED[stateregulated].toLowerCase()}
+            </Entry>
+          ) : null}
+
           {disadvantagedcommunity ? (
             <Entry>
               Climate and environmental justice:{' '}
@@ -305,6 +321,8 @@ LocationConstruction.propTypes = {
   huc12: PropTypes.string,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
+  fercregulated: PropTypes.number,
+  stateregulated: PropTypes.number,
   disadvantagedcommunity: PropTypes.string,
   height: PropTypes.number,
   width: PropTypes.number,
@@ -341,6 +359,8 @@ LocationConstruction.defaultProps = {
   huc12: null,
   ownertype: null,
   barrierownertype: null,
+  fercregulated: null,
+  stateregulated: null,
   disadvantagedcommunity: null,
   height: 0,
   width: 0,
