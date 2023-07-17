@@ -327,6 +327,7 @@ fill_columns = [
     # dam columns
     "FERCRegulated",
     "StateRegulated",
+    "WaterRight",
     "Construction",
     "Diversion",
     "NoStructure",

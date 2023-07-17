@@ -52,6 +52,7 @@ async def download_dams(token):
                 "OwnerType": "BarrierOwnerType",
                 "StateAbbreviation": "SourceState",
                 "FERC_Dam": "FERCRegulated",
+                "Fed_Regulatory_Agency": "FedRegulatoryAgency",
                 "STATE_REGULATED": "StateRegulated",
                 "Water_Right": "WaterRight",
                 "Water_Right_Status": "WaterRightStatus",

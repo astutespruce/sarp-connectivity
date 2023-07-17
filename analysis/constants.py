@@ -200,6 +200,7 @@ DAM_FS_COLS = [
     "Editor",
     "Link",
     "FERC_Dam",
+    "Fed_Regulatory_Agency",
     "STATE_REGULATED",
     "Hazard",
     "Water_Right",

@@ -182,6 +182,7 @@ FILTER_FIELDS = [
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "FERCRegulated",
     "StateRegulated",
+    "WaterRight",
     "Passability",
     "FeasibilityClass",
     "Purpose",
@@ -266,6 +267,7 @@ DAM_CORE_FIELDS = (
         "YearCompleted",
         "FERCRegulated",
         "StateRegulated",
+        "WaterRight",
         "Height",
         "Length",
         "Width",
@@ -928,7 +930,7 @@ FERCREGULATED_DOMAIN = {
     1: "Yes",
     2: "Preliminary permit",
     3: "Pending permit",
-    4: "Exemption",
+    4: "Exempt",
     5: "No",
 }
 
@@ -939,6 +941,12 @@ STATE_REGULATED_DOMAIN = {
     2: "No",
 }
 
+WATER_RIGHT_DOMAIN = {
+    -1: "Not applicable",  # small barriers only
+    0: "Unknown",
+    1: "Yes",
+    2: "No",
+}
 
 HAZARD_DOMAIN = {0: "Unknown", 1: "High", 2: "Significant", 3: "Intermediate", 4: "Low"}
 
@@ -1148,6 +1156,7 @@ DOMAINS = {
     # note Recon domain is just used for internal exports; excluded from public exports
     "FERCRegulated": FERCREGULATED_DOMAIN,
     "StateRegulated": STATE_REGULATED_DOMAIN,
+    "WaterRight": WATER_RIGHT_DOMAIN,
     "Construction": CONSTRUCTION_DOMAIN,
     "Purpose": PURPOSE_DOMAIN,
     "Feasibility": FEASIBILITY_DOMAIN,
@@ -1183,6 +1192,7 @@ FIELD_DEFINITIONS = {
     "Link": "Link to additional information about this {type}",
     "FERCRegulated": "Identifies if the {type} is regulated at the federal level by the Federal Energy Regulatory Commission, if known.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
+    "WaterRight": "Identifies if the {type} has an associated water right, if known.",
     "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information.",
     # "NoStructure": "this location is a water diversion without an associated barrier structure and is not ranked",
     "River": "River name where {type} occurs, if available.",

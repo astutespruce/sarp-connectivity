@@ -6,6 +6,9 @@ import {
   barrierTypeLabelSingular,
   OWNERTYPE,
   BARRIEROWNERTYPE,
+  FERC_REGULATED,
+  STATE_REGULATED,
+  WATER_RIGHT,
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
@@ -23,6 +26,9 @@ const LocationInfo = ({
   HUC12Name,
   ownertype,
   barrierownertype,
+  fercregulated,
+  stateregulated,
+  waterright,
   disadvantagedcommunity,
   intermittent,
   streamorder,
@@ -88,9 +94,34 @@ const LocationInfo = ({
         <Entry>
           <Field label="Barrier ownership type">
             {BARRIEROWNERTYPE[barrierownertype]}
-          </Field>{' '}
+          </Field>
         </Entry>
       ) : null}
+
+      {fercregulated !== null && fercregulated !== -1 ? (
+        <Entry>
+          <Field label="Regulated at the federal level (FERC)">
+            {FERC_REGULATED[fercregulated].toLowerCase()}
+          </Field>
+        </Entry>
+      ) : null}
+
+      {stateregulated !== null && stateregulated !== -1 ? (
+        <Entry>
+          <Field label="Regulated at the state level">
+            {STATE_REGULATED[stateregulated].toLowerCase()}
+          </Field>
+        </Entry>
+      ) : null}
+
+      {waterright !== null && waterright !== -1 ? (
+        <Entry>
+          <Field label="Has an associated water right">
+            {WATER_RIGHT[waterright].toLowerCase()}
+          </Field>
+        </Entry>
+      ) : null}
+
       {!isEmptyString(disadvantagedcommunity) ? (
         <Entry>
           <Field label="Climate and environmental justice">
@@ -113,6 +144,9 @@ LocationInfo.propTypes = {
   HUC12Name: PropTypes.string.isRequired,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
+  fercregulated: PropTypes.number,
+  stateregulated: PropTypes.number,
+  waterright: PropTypes.number,
   disadvantagedcommunity: PropTypes.string,
   intermittent: PropTypes.number,
   streamorder: PropTypes.number,
@@ -125,6 +159,9 @@ LocationInfo.defaultProps = {
   reachName: null,
   ownertype: 0,
   barrierownertype: 0,
+  fercregulated: null,
+  stateregulated: null,
+  waterright: null,
   disadvantagedcommunity: null,
   intermittent: 0,
   streamorder: 0,

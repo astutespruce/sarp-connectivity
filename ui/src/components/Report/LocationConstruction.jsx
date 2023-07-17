@@ -15,6 +15,7 @@ import {
   BARRIEROWNERTYPE,
   FERC_REGULATED,
   STATE_REGULATED,
+  WATER_RIGHT,
   DISADVANTAGED_COMMUNITY,
   PASSAGEFACILITY,
   PURPOSE,
@@ -58,6 +59,7 @@ const Location = ({
   barrierownertype,
   fercregulated,
   stateregulated,
+  waterright,
   disadvantagedcommunity,
   sarp_score,
   diversion,
@@ -226,7 +228,7 @@ const Location = ({
             {fercregulated !== null && fercregulated !== -1 ? (
               <Entry>
                 <Text>
-                  Regulated at the federal level:{' '}
+                  Regulated at the federal level (FERC:{' '}
                   {FERC_REGULATED[fercregulated].toLowerCase()}
                 </Text>
               </Entry>
@@ -237,6 +239,15 @@ const Location = ({
                 <Text>
                   Regulated at the state level:{' '}
                   {STATE_REGULATED[stateregulated].toLowerCase()}
+                </Text>
+              </Entry>
+            ) : null}
+
+            {waterright !== null && waterright !== -1 ? (
+              <Entry>
+                <Text>
+                  Has an associated water right:{' '}
+                  {WATER_RIGHT[waterright].toLowerCase()}
                 </Text>
               </Entry>
             ) : null}
@@ -412,6 +423,7 @@ Location.propTypes = {
   barrierownertype: PropTypes.number,
   fercregulated: PropTypes.number,
   stateregulated: PropTypes.number,
+  waterright: PropTypes.number,
   disadvantagedcommunity: PropTypes.string,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
@@ -449,6 +461,7 @@ Location.defaultProps = {
   barrierownertype: null,
   fercregulated: null,
   stateregulated: null,
+  waterright: null,
   disadvantagedcommunity: null,
   sarp_score: -1,
   diversion: 0,

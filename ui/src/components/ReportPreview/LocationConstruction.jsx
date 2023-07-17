@@ -17,6 +17,7 @@ import {
   BARRIEROWNERTYPE,
   FERC_REGULATED,
   STATE_REGULATED,
+  WATER_RIGHT,
   DISADVANTAGED_COMMUNITY,
   PURPOSE,
   PASSABILITY,
@@ -42,6 +43,7 @@ const LocationConstruction = ({
   barrierownertype,
   fercregulated,
   stateregulated,
+  waterright,
   disadvantagedcommunity,
   construction,
   lowheaddam,
@@ -198,13 +200,22 @@ const LocationConstruction = ({
 
           {fercregulated !== null && fercregulated !== -1 ? (
             <Entry>
-              Regulated at the federal level: {FERC_REGULATED[fercregulated].toLowerCase()}
+              Regulated at the federal level (FERC):{' '}
+              {FERC_REGULATED[fercregulated].toLowerCase()}
             </Entry>
           ) : null}
 
-{stateregulated !== null && stateregulated !== -1 ? (
+          {stateregulated !== null && stateregulated !== -1 ? (
             <Entry>
-              Regulated at the state level: {STATE_REGULATED[stateregulated].toLowerCase()}
+              Regulated at the state level:{' '}
+              {STATE_REGULATED[stateregulated].toLowerCase()}
+            </Entry>
+          ) : null}
+
+          {waterright !== null && waterright > 0 ? (
+            <Entry>
+              Has an associated water right:{' '}
+              {WATER_RIGHT[waterright].toLowerCase()}
             </Entry>
           ) : null}
 
@@ -323,6 +334,7 @@ LocationConstruction.propTypes = {
   barrierownertype: PropTypes.number,
   fercregulated: PropTypes.number,
   stateregulated: PropTypes.number,
+  waterright: PropTypes.number,
   disadvantagedcommunity: PropTypes.string,
   height: PropTypes.number,
   width: PropTypes.number,
@@ -361,6 +373,7 @@ LocationConstruction.defaultProps = {
   barrierownertype: null,
   fercregulated: null,
   stateregulated: null,
+  waterright: null,
   disadvantagedcommunity: null,
   height: 0,
   width: 0,

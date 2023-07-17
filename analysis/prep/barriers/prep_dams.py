@@ -414,7 +414,7 @@ df["FERCRegulated"] = (
     .astype("uint8")
 )
 df["StateRegulated"] = df.StateRegulated.fillna("0").astype("uint8")
-
+df["WaterRight"] = df.WaterRight.fillna(0).astype("uint8")
 
 # Recode Hazard (note: original value of 4 = unknown)
 df["Hazard"] = df.Hazard.fillna(4).astype("uint8").map(HAZARD_TO_DOMAIN).astype("uint8")
