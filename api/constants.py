@@ -1190,7 +1190,7 @@ FIELD_DEFINITIONS = {
     "NIDID": "National Inventory of Dams Identifier.",
     "Source": "Source of this record in the inventory.",
     "Link": "Link to additional information about this {type}",
-    "FERCRegulated": "Identifies if the {type} is regulated at the federal level by the Federal Energy Regulatory Commission, if known.",
+    "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
     "WaterRight": "Identifies if the {type} has an associated water right, if known.",
     "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information.",

@@ -85,8 +85,8 @@ export const dams = [
     filters: [
       {
         field: 'fercregulated',
-        title: 'Federally regulated dam?',
-        help: 'Based on Federal Energy Regulatory Commission regulatory category.  Note: regulatory information is only available for a small number of dams.',
+        title: 'Regulated by the Federal Energy Regulatory Commission?',
+        help: 'Note: regulatory information is only available for a small number of dams.',
         ...getEntries(FERC_REGULATED, (v) => v >= 0),
       },
       {

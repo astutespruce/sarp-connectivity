@@ -98,9 +98,9 @@ const LocationInfo = ({
         </Entry>
       ) : null}
 
-      {fercregulated !== null && fercregulated !== -1 ? (
+      {fercregulated !== null && fercregulated > 0 ? (
         <Entry>
-          <Field label="Regulated at the federal level (FERC)">
+          <Field label="Regulated by the Federal Energy Regulatory Commission">
             {FERC_REGULATED[fercregulated].toLowerCase()}
           </Field>
         </Entry>
@@ -114,7 +114,7 @@ const LocationInfo = ({
         </Entry>
       ) : null}
 
-      {waterright !== null && waterright !== -1 ? (
+      {waterright !== null && waterright > 0 ? (
         <Entry>
           <Field label="Has an associated water right">
             {WATER_RIGHT[waterright].toLowerCase()}

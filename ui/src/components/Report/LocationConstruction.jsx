@@ -225,10 +225,10 @@ const Location = ({
               </Entry>
             ) : null}
 
-            {fercregulated !== null && fercregulated !== -1 ? (
+            {fercregulated !== null && fercregulated > 0 ? (
               <Entry>
                 <Text>
-                  Regulated at the federal level (FERC:{' '}
+                  Regulated by the Federal Energy Regulatory Commission:{' '}
                   {FERC_REGULATED[fercregulated].toLowerCase()}
                 </Text>
               </Entry>
