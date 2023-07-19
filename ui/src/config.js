@@ -839,6 +839,15 @@ export const WATER_RIGHT = {
   2: 'No',
 }
 
+export const HAZARD = {
+  '-1': 'Not applicable (road-related barrier)',
+  0: 'Unknown',
+  1: 'High',
+  2: 'Significant',
+  3: 'Intermediate',
+  4: 'Low',
+}
+
 export const PASSAGEFACILITY_CLASS = {
   0: 'no known fish passage structure',
   1: 'fish passage structure present',

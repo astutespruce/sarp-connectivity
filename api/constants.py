@@ -180,6 +180,7 @@ FILTER_FIELDS = [
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
+    "Hazard",
     "FERCRegulated",
     "StateRegulated",
     "WaterRight",
@@ -271,6 +272,7 @@ DAM_CORE_FIELDS = (
         "Height",
         "Length",
         "Width",
+        "Hazard",
         "Construction",
         "Purpose",
         "Passability",
@@ -948,7 +950,14 @@ WATER_RIGHT_DOMAIN = {
     2: "No",
 }
 
-HAZARD_DOMAIN = {0: "Unknown", 1: "High", 2: "Significant", 3: "Intermediate", 4: "Low"}
+HAZARD_DOMAIN = {
+    -1: "Not applicable",
+    0: "Unknown",
+    1: "High",
+    2: "Significant",
+    3: "Intermediate",
+    4: "Low",
+}
 
 
 ROAD_TYPE_DOMAIN = {
@@ -1157,6 +1166,7 @@ DOMAINS = {
     "FERCRegulated": FERCREGULATED_DOMAIN,
     "StateRegulated": STATE_REGULATED_DOMAIN,
     "WaterRight": WATER_RIGHT_DOMAIN,
+    "Hazard": HAZARD_DOMAIN,
     "Construction": CONSTRUCTION_DOMAIN,
     "Purpose": PURPOSE_DOMAIN,
     "Feasibility": FEASIBILITY_DOMAIN,
@@ -1202,6 +1212,7 @@ FIELD_DEFINITIONS = {
     "Height": "{type} height in feet, if available.  0 = data not available.",
     "Length": "{type} length in feet, if available.  0 = data not available.",
     "Width": "{type} width in feet, if available.  0 = data not available.",
+    "Hazard": "Hazard rating of this {type}, if known.",
     "Construction": "material used in {type} construction, if known.",
     "Purpose": "primary purpose of {type}, if known.",
     "PassageFacility": "type of fish passage facility, if known.",

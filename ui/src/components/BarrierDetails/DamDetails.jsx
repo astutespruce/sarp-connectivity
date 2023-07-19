@@ -7,6 +7,7 @@ import { Entry, Field, Section } from 'components/Sidebar'
 
 import {
   siteMetadata,
+  HAZARD,
   CONDITION,
   CONSTRUCTION,
   PASSAGEFACILITY,
@@ -39,6 +40,7 @@ const DamDetails = ({
   link,
   estimated,
   yearcompleted,
+  hazard,
   construction,
   diversion,
   nostructure,
@@ -207,6 +209,12 @@ const DamDetails = ({
           </Entry>
         ) : null}
 
+        {hazard !== null && hazard > 0 && HAZARD[hazard] ? (
+          <Entry>
+            <Field label="Hazard rating">{HAZARD[hazard].toLowerCase()}</Field>
+          </Entry>
+        ) : null}
+
         {condition !== null && condition >= 0 && CONDITION[condition] ? (
           <Entry>
             <Field label="Structural condition" isUnknown={condition === 0}>
@@ -345,6 +353,7 @@ DamDetails.propTypes = {
   source: PropTypes.string,
   link: PropTypes.string,
   estimated: PropTypes.number,
+  hazard: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.number,
@@ -406,6 +415,7 @@ DamDetails.defaultProps = {
   estimated: 0,
   height: 0,
   yearcompleted: 0,
+  hazard: null,
   construction: null,
   purpose: null,
   condition: null,

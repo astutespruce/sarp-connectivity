@@ -328,6 +328,7 @@ fill_columns = [
     "FERCRegulated",
     "StateRegulated",
     "WaterRight",
+    "Hazard",
     "Construction",
     "Diversion",
     "NoStructure",

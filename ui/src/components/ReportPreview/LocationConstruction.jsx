@@ -7,6 +7,7 @@ import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails
 import {
   siteMetadata,
   barrierTypeLabelSingular,
+  HAZARD,
   CONDITION,
   CONSTRUCTION,
   CONSTRICTION,
@@ -45,6 +46,7 @@ const LocationConstruction = ({
   stateregulated,
   waterright,
   disadvantagedcommunity,
+  hazard,
   construction,
   lowheaddam,
   purpose,
@@ -259,6 +261,10 @@ const LocationConstruction = ({
                     </Entry>
                   ) : null}
 
+                  {hazard !== null && hazard > 0 ? (
+                    <Entry>Hazard rating: {HAZARD[hazard].toLowerCase()}</Entry>
+                  ) : null}
+
                   {condition !== null && condition >= 0 ? (
                     <Entry>
                       Structural condition: {CONDITION[condition].toLowerCase()}
@@ -339,6 +345,7 @@ LocationConstruction.propTypes = {
   height: PropTypes.number,
   width: PropTypes.number,
   yearcompleted: PropTypes.number,
+  hazard: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.number,
@@ -377,6 +384,7 @@ LocationConstruction.defaultProps = {
   disadvantagedcommunity: null,
   height: 0,
   width: 0,
+  hazard: null,
   yearcompleted: 0,
   construction: null,
   purpose: null,

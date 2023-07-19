@@ -9,6 +9,7 @@ import {
   STREAMORDER,
   INTERMITTENT,
   GAINMILES,
+  HAZARD,
   CONDITION,
   PASSABILITY,
   LOWHEAD_DAM,
@@ -137,6 +138,12 @@ export const combinedBarriers = [
         title: 'Dam height',
         help: 'Note: height information is only available for a small number of dams.  Not all data sources recorded this information.',
         ...getEntries(HEIGHT),
+      },
+      {
+        field: 'hazard',
+        title: 'Hazard rating',
+        help: 'Note: hazard rating information is only available for a small number of dams.  Not all data sources recorded this information.',
+        ...getEntries(HAZARD),
       },
       {
         field: 'purpose',

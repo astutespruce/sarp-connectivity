@@ -6,6 +6,7 @@ import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails
 import {
   siteMetadata,
   barrierTypeLabelSingular,
+  HAZARD,
   CONDITION,
   CONSTRUCTION,
   CONSTRICTION,
@@ -34,6 +35,7 @@ const { version: dataVersion } = siteMetadata
 const Location = ({
   barrierType,
   sarpid,
+  hazard,
   construction,
   purpose,
   condition,
@@ -310,6 +312,12 @@ const Location = ({
                   </Entry>
                 ) : null}
 
+                {!nostructure && hazard !== null && hazard > 0 ? (
+                  <Entry>
+                    <Text>Hazard rating: {HAZARD[hazard].toLowerCase()}</Text>
+                  </Entry>
+                ) : null}
+
                 {!nostructure && condition !== null && condition >= 0 ? (
                   <Entry>
                     <Text>
@@ -402,6 +410,7 @@ Location.propTypes = {
   height: PropTypes.number,
   width: PropTypes.number,
   yearcompleted: PropTypes.number,
+  hazard: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.number,
@@ -440,6 +449,7 @@ Location.defaultProps = {
   height: 0,
   width: 0,
   yearcompleted: 0,
+  hazard: null,
   construction: 0,
   purpose: null,
   condition: null,

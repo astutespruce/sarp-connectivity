@@ -420,6 +420,9 @@ df["WaterRight"] = df.WaterRight.fillna(0).astype("uint8")
 df["Hazard"] = df.Hazard.fillna(4).astype("uint8").map(HAZARD_TO_DOMAIN).astype("uint8")
 
 
+# Recode
+
+
 ### Add tracking fields
 # master log field for status
 df["log"] = ""
