@@ -74,12 +74,19 @@ ext = "gdb"
 driver = "OpenFileGDB"
 
 huc2_groups = [
-    # {"02"},
-    # {"03"},
-    # {"05", "06", "07", "08", "10", "11",},
-    # {"12"},
-    # {"13"},
-    # {"21"},
+    {"02"},
+    {"03"},
+    {
+        "05",
+        "06",
+        "07",
+        "08",
+        "10",
+        "11",
+    },
+    {"12"},
+    {"13"},
+    {"21"},
 ]
 
 huc2s = set()
@@ -89,7 +96,7 @@ huc2s = sorted(huc2s)
 
 
 df = pd.read_feather(
-    f"data/api/dams.feather",
+    "data/api/dams.feather",
     columns=[
         "HasNetwork",
         "id",
@@ -123,7 +130,7 @@ df = pd.read_feather(
 ).set_index("id")
 
 master = pd.read_feather(
-    f"data/barriers/master/dams.feather",
+    "data/barriers/master/dams.feather",
     columns=["id", "NHDPlusID"],
 ).set_index("id")
 df = df.loc[df.HasNetwork].join(master).drop(columns=["HasNetwork"])
