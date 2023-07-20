@@ -12,7 +12,6 @@ Outputs:
 
 from pathlib import Path
 from time import time
-import warnings
 
 import geopandas as gp
 import pandas as pd

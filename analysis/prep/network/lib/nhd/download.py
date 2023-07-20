@@ -11,16 +11,18 @@ CONNECTION_TIMEOUT = 120  # seconds
 
 # Beta is for everything delivered up until 2022
 # Listing URL: https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHDPlusHR/Beta/GDB/
-BETA_DATA_URL = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/Beta/GDB/NHDPLUS_H_{HUC4}_HU4_GDB.zip"
+# HUC_type is HU4 or HU8
+BETA_DATA_URL = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/Beta/GDB/NHDPLUS_H_{HUC}_{HUC_type}_GDB.zip"
 
 # Current is for anything delivered starting in 2022, with different naming schemes
 # Listing URL https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/
-CURRENT_DATA_LIST_URL = "https://prd-tnm.s3.amazonaws.com/?prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/"
-CURRENT_DATA_URL = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/NHDPLUS_H_{HUC4}_HU4_{datestamp}_GDB.zip"
-CURRENT_HUC2 = ["02", "06", "16"]
+CURRENT_DATA_LIST_URL = "https://prd-tnm.s3.amazonaws.com/index.html?prefix=StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/"
+CURRENT_DATA_URL = "https://prd-tnm.s3.amazonaws.com/StagedProducts/Hydrography/NHDPlusHR/VPU/Current/GDB/NHDPLUS_H_{HUC}_{HUC_type}_{datestamp}_GDB.zip"
 
+# NOTE: the updates in 19 are on a HUC8 by HUC8 basis
+CURRENT_HUC2 = ["01", "02", "06", "14", "15", "16", "19"]
 
-HUC4_URL_CACHE = None
+HUC_URL_CACHE = None
 
 
 async def get_gdb_urls(client):
@@ -42,39 +44,44 @@ async def get_gdb_urls(client):
     keys = xml.findall(
         "s3:Contents/s3:Key", {"s3": "http://s3.amazonaws.com/doc/2006-03-01/"}
     )
-    # ignore HUC8s for now
-    gdbs = [k.text for k in keys if k.text.endswith("_GDB.zip") and "HU4" in k.text]
+    gdbs = [k.text for k in keys if k.text.endswith("_GDB.zip")]
 
-    huc4_urls = {
+    urls = {
         Path(gdb).name.split("_")[2]: f"https://prd-tnm.s3.amazonaws.com/{gdb}"
         for gdb in gdbs
     }
 
-    return huc4_urls
+    return urls
 
 
-async def download_huc4(HUC4, client, filename):
-    """Download HUC4 geodatabase (flowlines and boundaries) from NHD Plus HR data distribution site
+async def download_gdb(id, client, filename):
+    """Download HUC4 or HUC8 geodatabase (flowlines and boundaries) from NHD
+    Plus HR data distribution site
 
     Parameters
     ----------
-    HUC4 : str
-        HUC4 ID code
+    id : str
+        HUC4 or HUC8 code
     client : httpx client
     filename : str
         output filename.  Will always overwrite this filename.
     """
 
-    huc2 = HUC4[:2]
-    if huc2 in CURRENT_HUC2:
-        global HUC4_URL_CACHE
-        if HUC4_URL_CACHE is None:
-            HUC4_URL_CACHE = await get_gdb_urls(client)
+    huc_type = "HU8" if len(id) == 8 else "HU4"
 
-        url = HUC4_URL_CACHE[HUC4]
+    huc2 = id[:2]
+    if huc2 in CURRENT_HUC2:
+        global HUC_URL_CACHE
+        if HUC_URL_CACHE is None:
+            HUC_URL_CACHE = await get_gdb_urls(client)
+
+        if id in HUC_URL_CACHE:
+            url = HUC_URL_CACHE[id]
+        else:
+            url = BETA_DATA_URL.format(HUC=id, HUC_type=huc_type)
 
     else:
-        url = BETA_DATA_URL.format(HUC4=HUC4)
+        url = BETA_DATA_URL.format(HUC=id, HUC_type=huc_type)
 
     print(f"Requesting data from: {url}")
 
@@ -83,15 +90,10 @@ async def download_huc4(HUC4, client, filename):
 
         total_bytes = int(r.headers["Content-Length"])
 
-        print(
-            "Downloading HUC4: {HUC4} ({size:.2f} MB)".format(
-                HUC4=HUC4, size=total_bytes / 1024**2
-            )
-        )
+        print(f"Downloading {id} ({total_bytes / 1024**2:.2f} MB)")
 
         with open(filename, "wb") as out:
             with tqdm(total=total_bytes) as bar:
-
                 prev_bytes_downloaded = 0
 
                 async for chunk in r.aiter_bytes():

@@ -1,4 +1,4 @@
-# Southeast Aquatic Barriers Inventory Visualization & Prioritization Tool
+# National Aquatic Barrier Inventory & Prioritization Tool
 
 https://aquaticbarriers.org/
 

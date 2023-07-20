@@ -30,7 +30,7 @@ def get_core_metadata(url):
         "data_publish_date": INFO["date"],
         "contact_person": "Kat Hoenke (Spatial Ecologist, Southeast Aquatic Resources Partnership)",
         "contact_email": "kat@southeastaquatics.net",
-        "citation": f"Southeast Aquatic Resources Partnership (SARP). {date.today().year}. Comprehensive Southeast Aquatic Barrier Inventory. https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act. (dowloaded {date.today().strftime('%m/%d/%Y')} from {url}). SARP/USFWS.",
+        "citation": f"Southeast Aquatic Resources Partnership (SARP). {date.today().year}. Comprehensive Aquatic Barrier Inventory. https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act. (dowloaded {date.today().strftime('%m/%d/%Y')} from {url}). SARP/USFWS.",
         "description": description,
         "terms_of_use": terms_of_use,
     }

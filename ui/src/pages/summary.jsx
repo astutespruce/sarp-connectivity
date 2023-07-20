@@ -135,21 +135,22 @@ const SummaryPage = ({ location }) => {
               selectedBarrier={selectedBarrier}
               onSelectUnit={handleSelectUnit}
               onSelectBarrier={handleSelectBarrier}
-            />
-            <TopBar>
-              <Text sx={{ mr: '0.5rem' }}>Show networks for:</Text>
-              <ToggleButton
-                value={barrierType}
-                options={barrierTypeOptions}
-                onChange={handleSetBarrierType}
-              />
-              <Text sx={{ mx: '0.5rem' }}>by</Text>
-              <ToggleButton
-                value={system}
-                options={systemOptions}
-                onChange={handleSetSystem}
-              />
-            </TopBar>
+            >
+              <TopBar>
+                <Text sx={{ mr: '0.5rem' }}>Show networks for:</Text>
+                <ToggleButton
+                  value={barrierType}
+                  options={barrierTypeOptions}
+                  onChange={handleSetBarrierType}
+                />
+                <Text sx={{ mx: '0.5rem' }}>by</Text>
+                <ToggleButton
+                  value={system}
+                  options={systemOptions}
+                  onChange={handleSetSystem}
+                />
+              </TopBar>
+            </Map>
           </ClientOnly>
         </Box>
       </Flex>

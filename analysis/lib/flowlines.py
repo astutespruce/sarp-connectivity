@@ -14,15 +14,17 @@ from analysis.lib.geometry import explode
 from analysis.lib.geometry.speedups.lines import cut_lines_at_points
 from analysis.lib.graph.speedups import DirectedGraph
 
-from analysis.constants import SNAP_ENDPOINT_TOLERANCE
+from analysis.constants import SNAP_ENDPOINT_TOLERANCE, CONVERT_TO_GREAT_LAKES
 
 # In order to cut a flowline, it must be at least this long, and at least
 # this different from original flowline
 CUT_TOLERANCE = 1
 
+PIPELINE_FTYPES = [420, 428]
+
 
 def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
-    """Remove pipelines that are above max length,
+    """Remove pipelines and underground connectors that are above max length,
     based on contiguous length of pipeline segments.
 
     Parameters
@@ -47,7 +49,7 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
     keep_ids = keep_ids or []
 
     pids = flowlines.loc[
-        (flowlines.FType == 428) & (~flowlines.NHDPlusID.isin(keep_ids))
+        (flowlines.FType.isin(PIPELINE_FTYPES)) & (~flowlines.NHDPlusID.isin(keep_ids))
     ].index
     pjoins = find_joins(
         joins, pids, downstream_col="downstream_id", upstream_col="upstream_id"
@@ -215,7 +217,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         segments.loc[segments.on_upstream][["id", "lineID"]]
         .rename(columns={"lineID": "downstream_id"})
         .join(
-            joins.set_index("downstream_id")[["upstream_id", "type", "marine"]],
+            joins.set_index("downstream_id")[
+                ["upstream_id", "type", "marine", "great_lakes"]
+            ],
             on="downstream_id",
         )
     )
@@ -225,6 +229,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     ).astype("uint32")
     upstream_barrier_joins["type"] = upstream_barrier_joins["type"].fillna("origin")
     upstream_barrier_joins.marine = upstream_barrier_joins.marine.fillna(False)
+    upstream_barrier_joins.great_lakes = upstream_barrier_joins.great_lakes.fillna(
+        False
+    )
 
     # Barriers on downstream endpoint:
     # their upstream_id is the segment they are on and their downstream_id is the
@@ -236,7 +243,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         segments.loc[segments.on_downstream][["id", "lineID"]]
         .rename(columns={"lineID": "upstream_id"})
         .join(
-            joins.set_index("upstream_id")[["downstream_id", "type", "marine"]],
+            joins.set_index("upstream_id")[
+                ["downstream_id", "type", "marine", "great_lakes"]
+            ],
             on="upstream_id",
         )
     )
@@ -248,6 +257,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         "terminal"
     )
     downstream_barrier_joins.marine = downstream_barrier_joins.marine.fillna(False)
+    downstream_barrier_joins.great_lakes = downstream_barrier_joins.great_lakes.fillna(
+        False
+    )
 
     # Add sibling joins if on a confluence
     # NOTE: a barrier may have multiple sibling upstreams if it occurs at a
@@ -256,7 +268,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
 
     at_confluence = downstream_barrier_joins.loc[
         downstream_barrier_joins.downstream_id != 0
-    ][["id", "downstream_id", "type", "marine"]].join(
+    ][["id", "downstream_id", "type", "marine", "great_lakes"]].join(
         joins.loc[~joins.upstream_id.isin(downstream_barrier_joins.index)]
         .set_index("downstream_id")
         .upstream_id,
@@ -294,7 +306,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         by=["idx", "linepos"], ascending=True
     )
 
-    # check for errors
+    # check for errors (barriers not deduplicated properly)
     s = split_segments.groupby(by=["lineID", "linepos"]).size()
     s = s[s > 1]
     if len(s):
@@ -379,7 +391,6 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
 
     # Update existing joins with the new lineIDs we created at the upstream or downstream
     # ends of segments we just created
-
     updated_joins = update_joins(
         joins, first, last, downstream_col="downstream_id", upstream_col="upstream_id"
     )
@@ -423,6 +434,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     new_joins["downstream"] = new_joins.upstream
     new_joins["type"] = "internal"
     new_joins["marine"] = False
+    new_joins["great_lakes"] = False
 
     updated_joins = pd.concat(
         [
@@ -435,6 +447,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
                     "downstream_id",
                     "type",
                     "marine",
+                    "great_lakes",
                 ]
             ],
         ],
@@ -445,7 +458,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     barrier_joins = pd.concat(
         [
             barrier_joins,
-            new_joins[["id", "upstream_id", "downstream_id", "type", "marine"]],
+            new_joins[
+                ["id", "upstream_id", "downstream_id", "type", "marine", "great_lakes"]
+            ],
         ],
         ignore_index=True,
         sort=False,
@@ -579,8 +594,10 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     # NHDPlusID is same for both sides
     new_joins["downstream"] = new_joins.upstream
     new_joins["type"] = "internal"
-    # new joins do not terminate in marine, so marine should always be false
+    # new joins do not terminate in marine, so marine should always be false;
+    # ditto for great_lakes
     new_joins["marine"] = False
+    new_joins["great_lakes"] = False
     new_joins = new_joins[
         [
             "upstream",
@@ -590,6 +607,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
             "type",
             "loop",
             "marine",
+            "great_lakes",
             "HUC4",
         ]
     ]
@@ -1026,6 +1044,89 @@ def remove_marine_flowlines(flowlines, joins, marine):
     return flowlines, joins
 
 
+def remove_great_lakes_flowlines(flowlines, joins, waterbodies):
+    """Remove flowlines that fall within the Great Lakes
+    (they are not well-connected networks) and any that form the borders of the
+    Great Lakes because NHD coded coastlines as artificial paths instead of the
+    coastlines FType.
+
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+    waterbodies : GeoDataFrame
+
+    Returns
+    -------
+    (GeoDataFrame, DataFrame)
+        flowlines, joins
+    """
+
+    print("Finding flowlines that overlap with the Great Lakes")
+
+    # limit to artificial paths
+    tmp = flowlines.loc[flowlines.FType == 558]
+    # limit to great lakes
+    great_lakes = waterbodies.loc[waterbodies.km2 >= 8000]
+
+    tree = shapely.STRtree(tmp.geometry.values)
+    left, right = tree.query(great_lakes.geometry.values, predicate="intersects")
+
+    # NOTE: any that touch 2 waterbodies are at the junction of Lake Michigan &
+    # Lake Huron; these are manually removed elsewhere
+    pairs = pd.DataFrame(
+        {
+            "wb": great_lakes.geometry.values.take(left),
+            "lineID": tmp.index.values.take(right),
+            "first_point": shapely.get_point(tmp.geometry.values.take(right), 0),
+            "last_point": shapely.get_point(tmp.geometry.values.take(right), -1),
+        }
+    )
+    shapely.prepare(pairs.wb.values)
+
+    # find any where the first and last point intersect a Great Lake or are
+    # within 1m
+    close_enough = (
+        shapely.intersects(pairs.wb.values, pairs.first_point.values)
+        & shapely.intersects(pairs.wb.values, pairs.last_point.values)
+    ) | (
+        shapely.dwithin(pairs.wb.values, pairs.first_point.values, 1)
+        & shapely.dwithin(pairs.wb.values, pairs.last_point.values, 1)
+    )
+
+    # remove any that were within or bordered the Great Lakes
+    drop_ids = pairs.loc[close_enough].lineID.unique()
+
+    # also add any that were picked up in manual review but not via methods above
+    other_drop_ids = flowlines.loc[
+        flowlines.NHDPlusID.isin(CONVERT_TO_GREAT_LAKES["04"])
+    ].index.unique()
+
+    drop_ids = np.unique(np.concatenate([drop_ids, other_drop_ids]))
+
+    print(
+        f"Removing {len(drop_ids):,} flowlines that border or fall within the Great Lakes"
+    )
+
+    flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
+    # remove joins will mark new endpoints with 0
+    joins = remove_joins(
+        joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id"
+    )
+
+    # drop any that are now defunct
+    joins = joins.loc[~((joins.upstream_id == 0) & (joins.downstream_id == 0))].copy()
+
+    # mark any new terminals as such and mark them as flowing into Great Lakes
+    ix = (joins.downstream_id == 0) & (joins.type == "internal")
+    joins.loc[ix, "type"] = "terminal"
+
+    joins["great_lakes"] = False
+    joins.loc[ix, "great_lakes"] = True
+
+    return flowlines, joins
+
+
 def mark_altered_flowlines(flowlines, nwi):
     """Marks altered flowlines based on NHD and NWI
 
@@ -1039,8 +1140,8 @@ def mark_altered_flowlines(flowlines, nwi):
     flowlines with additional columns: "altered", "altered_src"
     """
 
-    # NHD canals / ditches & pipelines considered altered
-    flowlines["altered"] = flowlines.FType.isin([336, 428])
+    # NHD canals / ditches, underground connectors, pipelines considered altered
+    flowlines["altered"] = flowlines.FType.isin([336, 420, 428])
     flowlines["altered_src"] = ""
     flowlines.loc[flowlines.altered, "altered_src"] = "NHD"
 
@@ -1080,3 +1181,240 @@ def mark_altered_flowlines(flowlines, nwi):
     del df
 
     return flowlines
+
+
+def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
+    """Attempt to repair disconnected subnetworks that nearly intersect downstream
+    flowlines between their endpoints.  There are locations within NHD
+    (e.g., coastal CA) that should join based on manual review but incoming
+    tributaries are marked as terminals instead of joined to existing flowlines.
+
+    This splits an existing flowline and then joins in incoming tributaries.
+
+    Limited to non-loop tributaries that are StreamOrder >= 4.
+
+    WARNING: this does not update any of the accumulation attributes or their
+    derivatives, such as TotDASqKm, AnnualFlow, sizeclass, etc.
+
+    Parameters
+    ----------
+    flowlines : GeoDataFrame
+    joins : DataFrame
+        flowline joins
+    next_lineID : int
+        next lineID; must be greater than all prior lines in region
+
+    Returns
+    -------
+    tuple of (GeoDataFrame, DataFrame)
+        (flowlines, joins)
+    """
+    updated_joins = joins.copy()
+
+    terminal_ix = joins.loc[joins.downstream == 0].upstream_id.unique()
+
+    # exclude loops and pipelines / underground connectors / canals
+    tmp = flowlines.loc[
+        flowlines.index.isin(terminal_ix)
+        & (~flowlines.loop)
+        & (~flowlines.FType.isin([336, 420, 428])),
+        ["geometry"],
+    ].copy()
+
+    # get last point, is furthest downstream
+    tmp["geometry"] = shapely.get_point(tmp.geometry.values.data, -1)
+
+    # avoid any other terminals, loops, or pipelines / canals
+    target = flowlines.loc[
+        ~(
+            flowlines.index.isin(terminal_ix)
+            | flowlines.loop
+            | flowlines.FType.isin([336, 420, 428])
+        )
+    ]
+
+    tree = shapely.STRtree(target.geometry.values.data)
+    # search within a tolerance of 0.001, these are very very close
+    left, right = tree.query_nearest(tmp.geometry.values.data, max_distance=0.001)
+
+    pairs = pd.DataFrame(
+        {
+            # src is the incoming trib that spits the target flowline
+            "src_id": tmp.index.take(left),
+            "src_geom": tmp.geometry.values.take(left),
+            # target is the downstream flowline that gets split
+            "target_id": target.index.take(right),
+            "target_geom": target.geometry.values.take(right),
+            "target_NHDPlusID": target.NHDPlusID.values.take(right),
+        }
+    )
+
+    pairs["linepos"] = shapely.line_locate_point(pairs.target_geom, pairs.src_geom)
+    pairs = pairs.sort_values(by=["target_id", "linepos"])
+
+    if pairs.groupby("src_id").size().sort_values().max() > 1:
+        raise NotImplementedError(
+            "Multiple downstream targets found for upstream tributaries"
+        )
+
+    if (shapely.length(pairs.target_geom) - pairs.linepos).min() < CUT_TOLERANCE:
+        raise NotImplementedError(
+            "incoming tributaries are too close to downstream end of downstream target flowline"
+        )
+
+    # directly join on upstream end
+    upstream_ix = pairs.linepos < CUT_TOLERANCE
+    if upstream_ix.any():
+        subset = pairs.loc[upstream_ix]
+        pairs = pairs.loc[~upstream_ix]
+
+        updated_joins = updated_joins.join(
+            subset.set_index("src_id").target_id.rename("new_downstream_id"),
+            on="upstream_id",
+        )
+        ix = updated_joins.new_downstream_id.notnull()
+        updated_joins.loc[ix, "downstream_id"] = updated_joins.loc[
+            ix
+        ].new_downstream_id.astype("uint32")
+        updated_joins = updated_joins.drop(columns=["new_downstream_id"])
+
+        # if any of these were headwaters, remove their origin join since there
+        # are now incoming tributaries
+        ix = updated_joins.downstream_id.isin(subset.target_id) & (
+            updated_joins.upstream_id == 0
+        )
+        updated_joins = updated_joins[~ix]
+
+    # NOTE: there may be multiple incoming tributaries per target
+    grouped = pairs.groupby("target_id").agg(
+        {
+            "target_geom": "first",
+            "target_NHDPlusID": "first",
+            "src_id": list,
+            "src_geom": list,
+            "linepos": list,
+        }
+    )
+
+    outer_ix, inner_ix, lines = cut_lines_at_points(
+        grouped.target_geom.apply(lambda x: shapely.get_coordinates(x)).values,
+        grouped.linepos.apply(np.array).values,
+    )
+
+    lines = np.asarray(lines)
+    new_flowlines = gp.GeoDataFrame(
+        {
+            "lineID": (next_lineID + np.arange(len(outer_ix))).astype("uint32"),
+            "origLineID": grouped.index.take(outer_ix),
+            "position": inner_ix,
+            "geometry": lines,
+            "length": shapely.length(lines).astype("float32"),
+        },
+        crs=flowlines.crs,
+    ).join(
+        flowlines.drop(
+            columns=[
+                "geometry",
+                "lineID",
+                "length",
+            ],
+            errors="ignore",
+        ),
+        on="origLineID",
+    )
+
+    updated_flowlines = pd.concat(
+        [
+            flowlines.loc[
+                ~flowlines.index.isin(new_flowlines.origLineID.unique())
+            ].reset_index(),
+            new_flowlines.drop(columns=["origLineID", "position"]),
+        ],
+        ignore_index=True,
+        sort=False,
+    ).set_index("lineID")
+
+    # transform new segments to create new joins
+    lineIDs = new_flowlines.groupby("origLineID").lineID
+    # the first new line per original line is the furthest upstream, so use its
+    # ID as the new downstream ID for anything that had this origLineID as its downstream
+    first = lineIDs.first().rename("new_downstream_id")
+    # the last new line per original line is the furthest downstream...
+    last = lineIDs.last().rename("new_upstream_id")
+
+    # Update existing joins with the new lineIDs we created at the upstream or downstream
+    # ends of segments we just created
+    updated_joins = update_joins(
+        updated_joins,
+        first,
+        last,
+        downstream_col="downstream_id",
+        upstream_col="upstream_id",
+    )
+
+    # For all new interior joins, create upstream & downstream ids per original line
+    upstream_side = (
+        new_flowlines.loc[~new_flowlines.lineID.isin(last)][
+            ["origLineID", "position", "lineID"]
+        ]
+        .set_index(["origLineID", "position"])
+        .rename(columns={"lineID": "upstream_id"})
+    )
+
+    downstream_side = new_flowlines.loc[~new_flowlines.lineID.isin(first)][
+        ["origLineID", "position", "lineID"]
+    ].rename(columns={"lineID": "downstream_id"})
+    downstream_side.position = downstream_side.position - 1
+    downstream_side = downstream_side.set_index(["origLineID", "position"])
+
+    new_joins = (
+        grouped.src_id.apply(pd.Series)
+        .stack()
+        .astype("uint32")
+        .rename("src_id")
+        .reset_index()
+        .rename(columns={"target_id": "origLineID", "level_1": "position"})
+        .set_index(["origLineID", "position"])
+        .join(upstream_side)
+        .join(downstream_side)
+        .reset_index()
+        .join(grouped.target_NHDPlusID.rename("upstream"), on="origLineID")
+    )
+    new_joins["downstream"] = new_joins.upstream
+    new_joins["type"] = "internal"
+    new_joins["marine"] = False
+    new_joins["great_lakes"] = False
+    new_joins["loop"] = new_joins.upstream.isin(flowlines.loc[flowlines.loop].index)
+
+    # update the downstream end of the incoming tributaries
+    updated_joins = updated_joins.join(
+        new_joins.set_index("src_id").downstream_id.rename("new_downstream_id"),
+        on="upstream_id",
+    )
+    ix = updated_joins.new_downstream_id.notnull()
+    updated_joins.loc[ix, "downstream_id"] = updated_joins.loc[
+        ix
+    ].new_downstream_id.astype("uint32")
+    updated_joins = updated_joins.drop(columns=["new_downstream_id"])
+
+    updated_joins = pd.concat(
+        [
+            updated_joins,
+            new_joins[
+                [
+                    "upstream",
+                    "downstream",
+                    "upstream_id",
+                    "downstream_id",
+                    "type",
+                    "loop",
+                    "marine",
+                    "great_lakes",
+                ]
+            ],
+        ],
+        ignore_index=True,
+        sort=False,
+    ).sort_values(["downstream_id", "upstream_id"])
+
+    return updated_flowlines, updated_joins

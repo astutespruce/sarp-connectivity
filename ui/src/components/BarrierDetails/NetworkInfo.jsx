@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Paragraph, Text } from 'theme-ui'
+import { Box, Flex, Paragraph, Text } from 'theme-ui'
 
 import { barrierTypeLabelSingular } from 'config'
 import { Table, Row } from 'components/Table'
@@ -32,6 +32,7 @@ const NetworkInfo = ({
   headerFontSize,
   invasive,
   unranked,
+  removed,
   ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -57,14 +58,7 @@ const NetworkInfo = ({
 
   return (
     <Box {...props}>
-      <Entry sx={{ pb: '1.5rem', mx: '-0.5rem' }}>
-        <Text variant="help" sx={{ fontSize: 0, px: '0.5rem', mb: '0.5rem' }}>
-          statistics are based on aquatic networks cut by{' '}
-          {networkType === 'dams'
-            ? 'waterfalls and dams'
-            : 'waterfalls, dams, and road-related barriers'}
-        </Text>
-
+      <Entry sx={{ pb: '.5rem', mx: '-0.5rem' }}>
         <Table sx={{ fontSize }} columns="11rem 1fr 1fr">
           <Row sx={{ px: '0.5rem' }}>
             <Box />
@@ -83,15 +77,17 @@ const NetworkInfo = ({
           <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>Total miles</Text>
-              <InfoTooltip>
-                Total miles upstream is the sum of all river and stream lengths
-                in the upstream functional network.
-                <br />
-                <br />
-                Total miles downstream is the sum of all river and stream
-                lengths in the functional network immediately downstream of this
-                network, excluding all lengths within waterbodies.
-              </InfoTooltip>
+              <Box sx={{ display: 'inline-block' }}>
+                <InfoTooltip>
+                  Total miles upstream is the sum of all river and stream
+                  lengths in the upstream functional network.
+                  <br />
+                  <br />
+                  Total miles downstream is the sum of all river and stream
+                  lengths in the functional network immediately downstream of
+                  this network, excluding all lengths within waterbodies.
+                </InfoTooltip>
+              </Box>
             </Box>
             <Box
               sx={{
@@ -113,18 +109,20 @@ const NetworkInfo = ({
           <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>Perennial miles</Text>
-              <InfoTooltip>
-                Total perennial miles upstream is the sum of all perennial reach
-                lengths in the upstream functional network. Perennial reaches
-                are all those that are not specifically identified as ephemeral
-                or intermittent. Perennial reaches are not necessarily
-                contiguous.
-                <br />
-                <br />
-                Total perennial miles downstream is the sum of all perennial
-                reach lengths in the functional network immediately downstream
-                of this network, excluding all lengths within waterbodies.
-              </InfoTooltip>
+              <Box sx={{ display: 'inline-block' }}>
+                <InfoTooltip>
+                  Total perennial miles upstream is the sum of all perennial
+                  reach lengths in the upstream functional network. Perennial
+                  reaches are all those that are not specifically identified as
+                  ephemeral or intermittent. Perennial reaches are not
+                  necessarily contiguous.
+                  <br />
+                  <br />
+                  Total perennial miles downstream is the sum of all perennial
+                  reach lengths in the functional network immediately downstream
+                  of this network, excluding all lengths within waterbodies.
+                </InfoTooltip>
+              </Box>
             </Box>
             <Box
               sx={{
@@ -145,20 +143,21 @@ const NetworkInfo = ({
 
           <Row sx={{ px: '0.5rem' }}>
             <Box>
-              <Text sx={{ display: 'inline' }}>
-                Intermittent / ephemeral miles
-              </Text>
-              <InfoTooltip>
-                Total ephemeral and intermittent miles upstream is the sum of
-                all ephemeral and intermittent reach lengths in the upstream
-                functional network.
-                <br />
-                <br />
-                Total ephemeral and intermittent miles downstream is the sum of
-                all ephemeral and intermittent reach lengths in the functional
-                network immediately downstream of this network, excluding all
-                lengths within waterbodies.
-              </InfoTooltip>
+              <Text sx={{ display: 'inline' }}>Intermittent miles</Text>
+
+              <Box sx={{ display: 'inline-block' }}>
+                <InfoTooltip>
+                  Total ephemeral and intermittent miles upstream is the sum of
+                  all ephemeral and intermittent reach lengths in the upstream
+                  functional network.
+                  <br />
+                  <br />
+                  Total ephemeral and intermittent miles downstream is the sum
+                  of all ephemeral and intermittent reach lengths in the
+                  functional network immediately downstream of this network,
+                  excluding all lengths within waterbodies.
+                </InfoTooltip>
+              </Box>
             </Box>
             <Box
               sx={{
@@ -180,16 +179,18 @@ const NetworkInfo = ({
           <Row sx={{ px: '0.5rem' }}>
             <Box>
               <Text sx={{ display: 'inline' }}>Altered miles</Text>
-              <InfoTooltip>
-                Total altered miles upstream is the sum of all reach lengths
-                specifically identified as altered (canal / ditch, within
-                reservoir, or other channel alteration).
-                <br />
-                <br />
-                Total altered miles downstream is the sum of all altered reach
-                lengths in the functional network immediately downstream of this
-                network, excluding all lengths within waterbodies.
-              </InfoTooltip>
+              <Box sx={{ display: 'inline-block' }}>
+                <InfoTooltip>
+                  Total altered miles upstream is the sum of all reach lengths
+                  specifically identified as altered (canal / ditch, within
+                  reservoir, or other channel alteration).
+                  <br />
+                  <br />
+                  Total altered miles downstream is the sum of all altered reach
+                  lengths in the functional network immediately downstream of
+                  this network, excluding all lengths within waterbodies.
+                </InfoTooltip>
+              </Box>
             </Box>
             <Box>{formatNumber(alteredupstreammiles, 2, true)}</Box>
             <Box>{formatNumber(freealtereddownstreammiles, 2, true)}</Box>
@@ -199,16 +200,18 @@ const NetworkInfo = ({
             <Box>
               <Text sx={{ display: 'inline' }}>Unaltered miles</Text>
 
-              <InfoTooltip>
-                Total unaltered miles upstream is the sum of all reach lengths
-                not specifically identified as altered (canal / ditch, within
-                reservoir, or other channel alteration).
-                <br />
-                <br />
-                Total unaltered miles downstream is the sum of all unaltered
-                reach lengths in the functional network immediately downstream
-                of this network, excluding all lengths within waterbodies.
-              </InfoTooltip>
+              <Box sx={{ display: 'inline-block' }}>
+                <InfoTooltip>
+                  Total unaltered miles upstream is the sum of all reach lengths
+                  not specifically identified as altered (canal / ditch, within
+                  reservoir, or other channel alteration).
+                  <br />
+                  <br />
+                  Total unaltered miles downstream is the sum of all unaltered
+                  reach lengths in the functional network immediately downstream
+                  of this network, excluding all lengths within waterbodies.
+                </InfoTooltip>
+              </Box>
             </Box>
             <Box>{formatNumber(unalteredupstreammiles, 2, true)}</Box>
             <Box>{formatNumber(freeunaltereddownstreammiles, 2, true)}</Box>
@@ -228,14 +231,16 @@ const NetworkInfo = ({
           >
             <Row sx={{ px: '0.5rem' }}>
               <Box>
-                <Text sx={{ fontWeight: 'bold', display: 'inline' }}>
+                <Text sx={{ display: 'inline', fontWeight: 'bold' }}>
                   Total miles gained
                 </Text>
-                <InfoTooltip>
-                  The total miles that could be gained by removing this barrier
-                  is the lesser of the upstream or downstream total functional
-                  network miles.
-                </InfoTooltip>
+                <Box sx={{ display: 'inline-block' }}>
+                  <InfoTooltip>
+                    The total miles that {removed ? 'were' : 'could be'} gained
+                    by removing this barrier is the lesser of the upstream or
+                    downstream total functional network miles.
+                  </InfoTooltip>
+                </Box>
               </Box>
               <Box
                 sx={
@@ -259,11 +264,14 @@ const NetworkInfo = ({
                 <Text sx={{ fontWeight: 'bold', display: 'inline' }}>
                   Perennial miles gained
                 </Text>
-                <InfoTooltip>
-                  The total perennial miles that could be gained by removing
-                  this barrier is the lesser of the upstream or downstream
-                  perennial miles.
-                </InfoTooltip>
+                <Box sx={{ display: 'inline-block' }}>
+                  <InfoTooltip>
+                    The total perennial miles that{' '}
+                    {removed ? 'were' : 'could be'} gained by removing this
+                    barrier is the lesser of the upstream or downstream
+                    perennial miles.
+                  </InfoTooltip>
+                </Box>
               </Box>
               <Box
                 sx={
@@ -286,6 +294,18 @@ const NetworkInfo = ({
             </Row>
           </Table>
         ) : null}
+
+        <Text variant="help" sx={{ fontSize: 0, px: '0.5rem', mt: '2rem' }}>
+          Note: statistics are based on aquatic networks cut by{' '}
+          {networkType === 'dams'
+            ? 'waterfalls and dams'
+            : 'waterfalls, dams, and road-related barriers'}
+          {removed
+            ? `, including any that were present at the time this ${barrierTypeLabel} was removed.  All barriers removed prior to 2000 or where the year they were removed
+                was unknown were lumped together for this analysis`
+            : null}
+          .
+        </Text>
       </Entry>
 
       {totalupstreammiles > 0 ? (
@@ -308,7 +328,9 @@ const NetworkInfo = ({
           label={
             barrierType === 'waterfalls'
               ? 'Number of size classes upstream'
-              : 'Number of size classes that could be gained by removing this barrier'
+              : `Number of size classes that ${
+                  removed ? 'were' : 'could be'
+                } gained by removing this barrier`
           }
         >
           <Text
@@ -373,6 +395,7 @@ NetworkInfo.propTypes = {
   sizeclasses: PropTypes.number,
   invasive: PropTypes.number,
   unranked: PropTypes.number,
+  removed: PropTypes.bool,
 }
 
 NetworkInfo.defaultProps = {
@@ -390,6 +413,7 @@ NetworkInfo.defaultProps = {
   sizeclasses: 0,
   invasive: 0,
   unranked: 0,
+  removed: false,
 }
 
 export default NetworkInfo

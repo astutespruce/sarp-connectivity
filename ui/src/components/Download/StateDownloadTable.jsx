@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Paragraph } from 'theme-ui'
 
 import { useStateSummary } from 'components/Data'
-import { REGION_STATES, STATES } from 'config'
+import { REGIONS, STATES, ANALYSIS_STATES } from 'config'
 import { groupBy } from 'util/data'
 import { formatNumber } from 'util/format'
 
@@ -19,16 +19,21 @@ const StateDownloadTable = ({
   smallBarriers,
   rankedSmallBarriers,
   totalSmallBarriers,
-  ...props
+  sx,
 }) => {
   const stateData = groupBy(useStateSummary(), 'id')
-  const regionStates = REGION_STATES[region]
+  let states = []
+  if (region === 'total') {
+    states = ANALYSIS_STATES
+  } else {
+    states = REGIONS[region].states
+  }
 
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
 
   return (
-    <Box {...props}>
+    <Box sx={sx}>
       <Box
         sx={{
           mt: '1rem',
@@ -97,36 +102,40 @@ const StateDownloadTable = ({
             </tr>
           </thead>
           <tbody>
-            {regionStates.map((id) => (
-              <tr key={id}>
-                <td>{STATES[id]}</td>
-                <td>{formatNumber(stateData[id].dams)}</td>
-                <td>{formatNumber(stateData[id].reconDams)}</td>
-                <td>{formatNumber(stateData[id].totalSmallBarriers)}</td>
-                <td>
-                  <Downloader
-                    label="dams"
-                    asButton
-                    barrierType="dams"
-                    config={{
-                      ...downloadConfig,
-                      summaryUnits: [{ id }],
-                    }}
-                  />
-                </td>
-                <td>
-                  <Downloader
-                    label="barriers"
-                    asButton
-                    barrierType="small_barriers"
-                    config={{
-                      ...downloadConfig,
-                      summaryUnits: [{ id }],
-                    }}
-                  />
-                </td>
-              </tr>
-            ))}
+            {states
+              .sort((a, b) => (STATES[a] < STATES[b] ? -1 : 1))
+              .map((id) => (
+                <tr key={id}>
+                  <td>{STATES[id]}</td>
+                  <td>{formatNumber(stateData[id].dams)}</td>
+                  <td>{formatNumber(stateData[id].reconDams)}</td>
+                  <td>{formatNumber(stateData[id].totalSmallBarriers)}</td>
+                  <td>
+                    <Downloader
+                      label="dams"
+                      asButton
+                      barrierType="dams"
+                      disabled={stateData[id].dams === 0}
+                      config={{
+                        ...downloadConfig,
+                        summaryUnits: [{ id }],
+                      }}
+                    />
+                  </td>
+                  <td>
+                    <Downloader
+                      label="barriers"
+                      asButton
+                      barrierType="small_barriers"
+                      disabled={stateData[id].totalSmallBarriers === 0}
+                      config={{
+                        ...downloadConfig,
+                        summaryUnits: [{ id }],
+                      }}
+                    />
+                  </td>
+                </tr>
+              ))}
 
             <tr>
               <td>Total</td>
@@ -138,9 +147,10 @@ const StateDownloadTable = ({
                   label="dams"
                   asButton
                   barrierType="dams"
+                  disabled={dams === 0}
                   config={{
                     ...downloadConfig,
-                    summaryUnits: regionStates.map((id) => ({ id })),
+                    summaryUnits: states.map((id) => ({ id })),
                   }}
                 />
               </td>
@@ -149,9 +159,10 @@ const StateDownloadTable = ({
                   label="barriers"
                   asButton
                   barrierType="small_barriers"
+                  disabled={totalSmallBarriers === 0}
                   config={{
                     ...downloadConfig,
-                    summaryUnits: regionStates.map((id) => ({ id })),
+                    summaryUnits: states.map((id) => ({ id })),
                   }}
                 />
               </td>
@@ -189,6 +200,7 @@ StateDownloadTable.propTypes = {
   smallBarriers: PropTypes.number,
   rankedSmallBarriers: PropTypes.number,
   totalSmallBarriers: PropTypes.number,
+  sx: PropTypes.object,
 }
 
 StateDownloadTable.defaultProps = {
@@ -198,6 +210,7 @@ StateDownloadTable.defaultProps = {
   smallBarriers: 0,
   rankedSmallBarriers: 0,
   totalSmallBarriers: 0,
+  sx: {},
 }
 
 export default StateDownloadTable

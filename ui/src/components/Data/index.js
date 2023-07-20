@@ -1,6 +1,11 @@
 import { useSummaryData } from './Summary'
 import { useStateSummary } from './StateSummary'
-import { fetchBarrierInfo, fetchBarrierRanks, getDownloadURL } from './API'
+import {
+  fetchBarrierInfo,
+  fetchBarrierRanks,
+  getDownloadURL,
+  searchBarriers,
+} from './API'
 import { Provider as BarrierTypeProvider, useBarrierType } from './BarrierType'
 
 export {
@@ -8,6 +13,7 @@ export {
   useStateSummary,
   fetchBarrierInfo,
   fetchBarrierRanks,
+  searchBarriers,
   BarrierTypeProvider,
   useBarrierType,
   getDownloadURL,

@@ -26,7 +26,6 @@ It produces data in `data/nhd/clean/<region>`
 
 from pathlib import Path
 from time import time
-import warnings
 
 import geopandas as gp
 import numpy as np
@@ -39,19 +38,23 @@ from analysis.constants import (
     CONVERT_TO_LOOP,
     CONVERT_TO_NONLOOP,
     CONVERT_TO_MARINE,
+    CONVERT_TO_FLOW_INTO_GREAT_LAKES,
     REMOVE_IDS,
     MAX_PIPELINE_LENGTH,
     KEEP_PIPELINES,
     JOIN_FIXES,
     REMOVE_JOINS,
+    COASTAL_HUC2,
 )
 
 from analysis.lib.flowlines import (
     remove_flowlines,
     remove_pipelines,
+    remove_great_lakes_flowlines,
     remove_marine_flowlines,
     cut_lines_by_waterbodies,
     mark_altered_flowlines,
+    repair_disconnected_subnetworks,
 )
 from analysis.prep.network.lib.drains import create_drain_points
 
@@ -67,28 +70,38 @@ huc2s = sorted(
     pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
 )
 # manually subset keys from above for processing
-# huc2s = [
-# "02",
-# "03",
-# "05",
-# "06",
-# "07",
-# "08",
-# "09",
-# "10",
-# "11",
-# "12",
-# "13",
-# "14",
-# "15",
-# "16",
-# "17",
-# "18",
-# "21",
-# ]
+huc2s = [
+    # "01",
+    # "02",
+    # "03",
+    "04",
+    # "05",
+    # "06",
+    # "07",
+    # "08",
+    # "09",
+    # "10",
+    # "11",
+    # "12",
+    # "13",
+    # "14",
+    # "15",
+    # "16",
+    # "17",
+    # "18",
+    # "19",
+    # "21",
+]
 
 
 start = time()
+
+marine = None
+if len(COASTAL_HUC2.intersection(huc2s)):
+    marine = gp.read_feather(
+        nhd_dir / "merged/nhd_marine.feather", columns=["geometry"]
+    )
+
 for huc2 in huc2s:
     region_start = time()
 
@@ -102,7 +115,17 @@ for huc2 in huc2s:
         "lineID"
     )
     joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
+
+    # update loop status of joins, if needed
+    loop_ix = flowlines.loc[flowlines.loop].NHDPlusID.unique()
+    joins["loop"] = joins.upstream.isin(loop_ix) | joins.downstream.isin(loop_ix)
+
     print(f"Read {len(flowlines):,} flowlines")
+
+    waterbodies = gp.read_feather(
+        waterbodies_dir / huc2 / "waterbodies.feather"
+    ).set_index("wbID")
+    print(f"Read {len(waterbodies):,} waterbodies")
 
     print("------------------")
 
@@ -155,8 +178,11 @@ for huc2 in huc2s:
     if convert_ids:
         print(f"Converting {len(convert_ids):,} non-loops to loops")
         flowlines.loc[flowlines.NHDPlusID.isin(convert_ids), "loop"] = True
-        joins.loc[joins.upstream.isin(convert_ids), "loop"] = True
-        joins.loc[joins.downstream.isin(convert_ids), "loop"] = True
+        # a join is a loop if either end is a loop
+        joins.loc[
+            joins.upstream.isin(convert_ids) | joins.downstream.isin(convert_ids),
+            "loop",
+        ] = True
         print("------------------")
 
     ### Fix segments that should not have been coded as loops
@@ -164,8 +190,14 @@ for huc2 in huc2s:
     if convert_ids:
         print(f"Converting {len(convert_ids):,} loops to non-loops")
         flowlines.loc[flowlines.NHDPlusID.isin(convert_ids), "loop"] = False
-        joins.loc[joins.upstream.isin(convert_ids), "loop"] = False
-        joins.loc[joins.downstream.isin(convert_ids), "loop"] = False
+
+        # only set loop as False if neither upstream nor downstream are loops
+        loop_ix = flowlines.loc[flowlines.loop].NHDPlusID.unique()
+        joins.loc[
+            (joins.upstream.isin(convert_ids) | joins.downstream.isin(convert_ids))
+            & (~(joins.upstream.isin(loop_ix) | (joins.downstream.isin(loop_ix)))),
+            "loop",
+        ] = False
         print("------------------")
 
     ### Fix joins that should have been marked as marine
@@ -176,17 +208,46 @@ for huc2 in huc2s:
         print("------------------")
 
     ### Remove any flowlines that start in marine areas
-    marine_filename = src_dir / huc2 / "nhd_marine.feather"
-    if marine_filename.exists():
-        marine = gp.read_feather(marine_filename)
+    if huc2 in COASTAL_HUC2:
         flowlines, joins = remove_marine_flowlines(flowlines, joins, marine)
         print("------------------")
 
+    ### Remove any flowlines that fall within or follow coastline of the Great Lakes
+    # and mark those that terminate in Great Lakes
+    if huc2 == "04":
+        flowlines, joins = remove_great_lakes_flowlines(flowlines, joins, waterbodies)
+        print("------------------")
+
+    ### Fix joins that should have been marked as great_lakes
+    great_lakes_ids = CONVERT_TO_FLOW_INTO_GREAT_LAKES.get(huc2, [])
+    if great_lakes_ids:
+        print(f"Converting {len(great_lakes_ids):,} joins to marine")
+        joins.loc[joins.upstream.isin(great_lakes_ids), "great_lakes"] = True
+        print("------------------")
+
+    if "great_lakes" not in joins:
+        joins["great_lakes"] = False
+
+    joins["great_lakes"] = joins.great_lakes.fillna(False)
+
     ### Drop pipelines that are > PIPELINE_MAX_LENGTH or are otherwise isolated from the network
-    print("Evaluating pipelines")
+    print("Evaluating pipelines & undeground connectors")
     keep_ids = KEEP_PIPELINES.get(huc2, [])
     flowlines, joins = remove_pipelines(flowlines, joins, MAX_PIPELINE_LENGTH, keep_ids)
-    print(f"{len(flowlines):,} flowlines after dropping pipelines")
+    print(
+        f"{len(flowlines):,} flowlines after dropping pipelines & underground connectors"
+    )
+    print("------------------")
+
+    ### Repair disconnected subnetworks
+    if huc2 == "18":
+        print("Repairing disconnected subnetworks")
+        next_lineID = flowlines.index.max() + np.uint32(1)
+        flowlines, joins = repair_disconnected_subnetworks(
+            flowlines, joins, next_lineID
+        )
+        print(f"{len(flowlines):,} flowlines after repairing subnetworks")
+        print("------------------")
 
     # make sure that updated joins are unique
     joins = joins.drop_duplicates()
@@ -200,18 +261,19 @@ for huc2 in huc2s:
 
     print("------------------")
 
-    waterbodies = gp.read_feather(
-        waterbodies_dir / huc2 / "waterbodies.feather"
-    ).set_index("wbID")
-    print(f"Read {len(waterbodies):,} waterbodies")
-
-    print("------------------")
-
     ### Cut flowlines by waterbodies
     print("Processing intersections between waterbodies and flowlines")
+
+    cut_waterbodies = waterbodies
+    if huc2 == "04":
+        # exclude Great Lakes since they are evaluated above and they generate
+        # a lot of unnecessary intersections and they make the crosses predicate
+        # take a very long time
+        cut_waterbodies = waterbodies.loc[waterbodies.km2 < 8000]
+
     next_lineID = flowlines.index.max() + np.uint32(1)
     flowlines, joins, wb_joins = cut_lines_by_waterbodies(
-        flowlines, joins, waterbodies, next_lineID=next_lineID
+        flowlines, joins, cut_waterbodies, next_lineID=next_lineID
     )
 
     # NOTE: we retain all waterbodies at this point, even if they don't overlap

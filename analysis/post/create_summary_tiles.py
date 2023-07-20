@@ -28,6 +28,7 @@ import pandas as pd
 import pyarrow as pa
 from pyarrow.csv import write_csv
 
+from analysis.lib.io import read_feathers
 from analysis.lib.util import append
 
 # Note: states are identified by name, whereas counties are uniquely identified by
@@ -50,15 +51,16 @@ INT_COLS = [
     "dams",
     "recon_dams",
     "ranked_dams",
+    "removed_dams",
     "small_barriers",
     "total_small_barriers",
+    "removed_small_barriers",
     "crossings",
     "ranked_small_barriers",
 ]
 
 
-# use local clone of github.com/tippecanoe
-tile_join = "../lib/tippecanoe/tile-join"
+tile_join = "tile-join"
 
 data_dir = Path("data")
 api_dir = data_dir / "api"
@@ -73,8 +75,8 @@ tmp_dir = Path("/tmp")
 
 ### Read dams
 dams = pd.read_feather(
-    results_dir / f"dams.feather",
-    columns=["id", "HasNetwork"] + SUMMARY_UNITS,
+    results_dir / "dams.feather",
+    columns=["id", "HasNetwork", "Removed"] + SUMMARY_UNITS,
 ).set_index("id", drop=False)
 
 # Get recon from master
@@ -83,14 +85,28 @@ dams_master = pd.read_feather(
 ).set_index("id")
 dams = dams.join(dams_master)
 dams["Recon"] = dams.Recon > 0
-
 dams["Ranked"] = dams.HasNetwork & (dams.unranked == 0)
+
+# get stats for removed dams
+removed_dam_networks = (
+    read_feathers(
+        [
+            Path("data/networks/clean") / huc2 / "removed_dams_network.feather"
+            for huc2 in sorted(dams.HUC2.unique())
+        ],
+        columns=["id", "EffectiveGainMiles"],
+    )
+    .set_index("id")
+    .EffectiveGainMiles.rename("RemovedGainMiles")
+)
+dams = dams.join(removed_dam_networks)
+dams["RemovedGainMiles"] = dams.RemovedGainMiles.fillna(0)
 
 
 ### Read road-related barriers
 barriers = pd.read_feather(
     results_dir / "small_barriers.feather",
-    columns=["id", "HasNetwork"] + SUMMARY_UNITS,
+    columns=["id", "HasNetwork", "Removed"] + SUMMARY_UNITS,
 ).set_index("id", drop=False)
 
 barriers_master = pd.read_feather(
@@ -102,8 +118,24 @@ barriers = barriers.join(barriers_master)
 
 # barriers that were not dropped or excluded are likely to have impacts
 barriers["Included"] = ~(barriers.dropped | barriers.excluded)
-
 barriers["Ranked"] = barriers.HasNetwork & (barriers.unranked == 0)
+
+removed_barrier_networks = (
+    read_feathers(
+        [
+            Path("data/networks/clean")
+            / huc2
+            / "removed_small_barriers_network.feather"
+            for huc2 in sorted(dams.HUC2.unique())
+        ],
+        columns=["id", "EffectiveGainMiles"],
+    )
+    .set_index("id")
+    .EffectiveGainMiles.rename("RemovedGainMiles")
+)
+barriers = barriers.join(removed_barrier_networks)
+barriers["RemovedGainMiles"] = barriers.RemovedGainMiles.fillna(0)
+
 
 ### Read road / stream crossings
 # NOTE: crossings are already de-duplicated against each other and against
@@ -134,26 +166,38 @@ for unit in SUMMARY_UNITS:
         )
 
     dam_stats = (
-        dams[[unit, "id", "Ranked", "Recon"]]
+        dams[[unit, "id", "Ranked", "Recon", "Removed", "RemovedGainMiles"]]
         .groupby(unit)
-        .agg({"id": "count", "Ranked": "sum", "Recon": "sum"})
+        .agg(
+            {
+                "id": "count",
+                "Ranked": "sum",
+                "Recon": "sum",
+                "Removed": "sum",
+                "RemovedGainMiles": "sum",
+            }
+        )
         .rename(
             columns={
                 "id": "dams",
                 "Ranked": "ranked_dams",
                 "Recon": "recon_dams",
+                "Removed": "removed_dams",
+                "RemovedGainMiles": "removed_dams_gain_miles",
             }
         )
     )
 
     barriers_stats = (
-        barriers[[unit, "id", "Included", "Ranked"]]
+        barriers[[unit, "id", "Included", "Ranked", "Removed", "RemovedGainMiles"]]
         .groupby(unit)
         .agg(
             {
                 "id": "count",
                 "Included": "sum",
                 "Ranked": "sum",
+                "Removed": "sum",
+                "RemovedGainMiles": "sum",
             }
         )
         .rename(
@@ -161,6 +205,8 @@ for unit in SUMMARY_UNITS:
                 "id": "total_small_barriers",
                 "Included": "small_barriers",
                 "Ranked": "ranked_small_barriers",
+                "Removed": "removed_small_barriers",
+                "RemovedGainMiles": "removed_small_barriers_gain_miles",
             }
         )
     )
@@ -182,8 +228,12 @@ for unit in SUMMARY_UNITS:
         [
             "dams",
             "ranked_dams",
+            "removed_dams",
+            "removed_dams_gain_miles",
             "total_small_barriers",
             "ranked_small_barriers",
+            "removed_small_barriers",
+            "removed_small_barriers_gain_miles",
             "crossings",
         ]
     ].copy()
@@ -194,7 +244,8 @@ for unit in SUMMARY_UNITS:
 
     # Write summary CSV for each unit type
     merged.index.name = "id"
-    write_csv(pa.Table.from_pandas(merged.reset_index()), tmp_dir / f"{unit}.csv")
+    csv_filename = tmp_dir / f"{unit}.csv"
+    write_csv(pa.Table.from_pandas(merged.reset_index()), csv_filename)
 
     # join to tiles
     mbtiles_filename = f"{tmp_dir}/{unit}_summary.mbtiles"
@@ -214,6 +265,8 @@ for unit in SUMMARY_UNITS:
     )
     ret.check_returncode()
 
+    csv_filename.unlink()
+
 
 # join all summary tiles together
 print("Merging all summary tiles")
@@ -231,6 +284,11 @@ ret = subprocess.run(
     + mbtiles_files
 )
 ret.check_returncode()
+
+
+# delete intermediates
+for mbtiles_file in mbtiles_files:
+    Path(mbtiles_file).unlink()
 
 
 # output unit stats with bounds for API

@@ -10,7 +10,7 @@ const Credits = ({ sx }) => (
       <Box sx={{ flex: '1 1 auto' }}>
         This report was created using the{' '}
         <a href="https://aquaticbarriers.org/">
-          Aquatic Barrier Prioritization Tool
+          National Aquatic Barrier Inventory & Prioritization Tool
         </a>
         , a project of the{' '}
         <a href="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">

@@ -2,35 +2,64 @@
 
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Paragraph, Divider } from 'theme-ui'
+import { AngleDoubleRight } from '@emotion-icons/fa-solid'
+import { Box, Flex, Paragraph, Divider, Text } from 'theme-ui'
 
+import { Link } from 'components/Link'
 import { UnitSearch } from 'components/UnitSearch'
 import { useSummaryData } from 'components/Data'
 import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'
 
-const RegionSummary = ({ region, barrierType, system, onSearch }) => {
+const Summary = ({ region, barrierType, system, onSearch }) => {
+  let name = 'full analysis area'
+  if (region !== 'total') {
+    name = REGIONS[region].name
+  }
+
   const {
     [region]: {
       dams,
       reconDams,
       rankedDams,
+      removedDams,
+      removedDamsGainMiles,
       totalSmallBarriers,
       smallBarriers,
       rankedSmallBarriers,
+      removedSmallBarriers,
+      removedSmallBarriersGainMiles,
       crossings,
     },
   } = useSummaryData()
 
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
+  const isRegion = region !== 'total'
 
-  const regionName = region === 'total' ? 'full analysis area' : REGIONS[region]
+  const regionName = isRegion ? name : 'full analysis area'
 
   return (
-    <Box sx={{ p: '1rem', overflowY: 'auto', height: '100%' }}>
+    <Box
+      sx={{
+        pt: '0.5rem',
+        pb: '1rem',
+        px: '1rem',
+        overflowY: 'auto',
+        height: '100%',
+      }}
+    >
+      {isRegion ? (
+        <Box sx={{ mb: '1rem' }}>
+          <Link to={REGIONS[region].url}>
+            view region page for more information{' '}
+            <AngleDoubleRight size="1em" />
+          </Link>
+        </Box>
+      ) : null}
+
       <Paragraph sx={{ fontSize: [3, 4] }}>
-        Across the {regionName}, there are:
+        Across the {regionName}{region !== 'total' ? ' Region': null}, there are:
       </Paragraph>
 
       {barrierType === 'dams' || barrierType === 'combined_barriers' ? (
@@ -44,9 +73,17 @@ const RegionSummary = ({ region, barrierType, system, onSearch }) => {
               social feasibility of removal
             </li>
             <li>
-              <b>{formatNumber(rankedDams, 0)}</b> have been analyzed for their
-              impacts to aquatic connectivity in this tool
+              <b>{formatNumber(rankedDams, 0)}</b> that have been analyzed for
+              their impacts to aquatic connectivity in this tool
             </li>
+            {removedDams > 0 ? (
+              <li>
+                <b>{formatNumber(removedDams, 0)}</b> that have been removed or
+                mitigated, gaining{' '}
+                <b>{formatNumber(removedDamsGainMiles)} miles</b> of reconnected
+                rivers and streams
+              </li>
+            ) : null}
           </Box>
         </>
       ) : null}
@@ -75,6 +112,14 @@ const RegionSummary = ({ region, barrierType, system, onSearch }) => {
               <b>{formatNumber(rankedSmallBarriers, 0)}</b> that have been
               analyzed for their impacts to aquatic connectivity in this tool
             </li>
+            {removedSmallBarriers > 0 ? (
+              <li>
+                <b>{formatNumber(removedSmallBarriers, 0)}</b> that have been
+                removed or mitigated, gaining{' '}
+                <b>{formatNumber(removedSmallBarriersGainMiles)} miles</b> of
+                reconnected rivers and streams
+              </li>
+            ) : null}
           </Box>
         </>
       ) : null}
@@ -143,15 +188,15 @@ const RegionSummary = ({ region, barrierType, system, onSearch }) => {
   )
 }
 
-RegionSummary.propTypes = {
+Summary.propTypes = {
   region: PropTypes.string,
   barrierType: PropTypes.string.isRequired,
   system: PropTypes.string.isRequired,
   onSearch: PropTypes.func.isRequired,
 }
 
-RegionSummary.defaultProps = {
+Summary.defaultProps = {
   region: 'total',
 }
 
-export default RegionSummary
+export default Summary

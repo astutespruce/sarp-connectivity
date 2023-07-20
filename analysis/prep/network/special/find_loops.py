@@ -12,8 +12,10 @@ huc2s = huc2_df.HUC2.sort_values().values
 
 # manually subset keys from above for processing
 # huc2s = [
+# "01",
 # "02",
 # "03",
+# "04",
 # "05",
 # "06",
 # "07",
@@ -28,7 +30,7 @@ huc2s = huc2_df.HUC2.sort_values().values
 # "16",
 # "17",
 # "18",
-# "17",
+# "19",
 # "21",
 # ]
 
@@ -48,7 +50,6 @@ for huc2 in huc2s:
 
     # make a directed graph of the raw network, facing upstream
     # NOTE: this uses NHDPlusIDs, not lineIDs
-    # g = DirectedGraph(joins, source="downstream", target="upstream")
     g = DirectedGraph(
         joins.downstream.values.astype("int64"), joins.upstream.values.astype("int64")
     )

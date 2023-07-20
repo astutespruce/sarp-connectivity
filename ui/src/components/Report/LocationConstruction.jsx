@@ -6,6 +6,7 @@ import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails
 import {
   siteMetadata,
   barrierTypeLabelSingular,
+  HAZARD,
   CONDITION,
   CONSTRUCTION,
   CONSTRICTION,
@@ -13,6 +14,9 @@ import {
   ROAD_TYPE,
   OWNERTYPE,
   BARRIEROWNERTYPE,
+  FERC_REGULATED,
+  STATE_REGULATED,
+  WATER_RIGHT,
   DISADVANTAGED_COMMUNITY,
   PASSAGEFACILITY,
   PURPOSE,
@@ -31,6 +35,7 @@ const { version: dataVersion } = siteMetadata
 const Location = ({
   barrierType,
   sarpid,
+  hazard,
   construction,
   purpose,
   condition,
@@ -54,6 +59,9 @@ const Location = ({
   huc12,
   ownertype,
   barrierownertype,
+  fercregulated,
+  stateregulated,
+  waterright,
   disadvantagedcommunity,
   sarp_score,
   diversion,
@@ -219,6 +227,33 @@ const Location = ({
               </Entry>
             ) : null}
 
+            {fercregulated !== null && fercregulated > 0 ? (
+              <Entry>
+                <Text>
+                  Regulated by the Federal Energy Regulatory Commission:{' '}
+                  {FERC_REGULATED[fercregulated].toLowerCase()}
+                </Text>
+              </Entry>
+            ) : null}
+
+            {stateregulated !== null && stateregulated !== -1 ? (
+              <Entry>
+                <Text>
+                  Regulated at the state level:{' '}
+                  {STATE_REGULATED[stateregulated].toLowerCase()}
+                </Text>
+              </Entry>
+            ) : null}
+
+            {waterright !== null && waterright !== -1 ? (
+              <Entry>
+                <Text>
+                  Has an associated water right:{' '}
+                  {WATER_RIGHT[waterright].toLowerCase()}
+                </Text>
+              </Entry>
+            ) : null}
+
             {disadvantagedcommunity ? (
               <Entry>
                 <Text>
@@ -274,6 +309,12 @@ const Location = ({
                       Construction material:{' '}
                       {CONSTRUCTION[construction].toLowerCase()}
                     </Text>
+                  </Entry>
+                ) : null}
+
+                {!nostructure && hazard !== null && hazard > 0 ? (
+                  <Entry>
+                    <Text>Hazard rating: {HAZARD[hazard].toLowerCase()}</Text>
                   </Entry>
                 ) : null}
 
@@ -369,6 +410,7 @@ Location.propTypes = {
   height: PropTypes.number,
   width: PropTypes.number,
   yearcompleted: PropTypes.number,
+  hazard: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.number,
@@ -388,6 +430,9 @@ Location.propTypes = {
   subbasin: PropTypes.string,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
+  fercregulated: PropTypes.number,
+  stateregulated: PropTypes.number,
+  waterright: PropTypes.number,
   disadvantagedcommunity: PropTypes.string,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
@@ -404,6 +449,7 @@ Location.defaultProps = {
   height: 0,
   width: 0,
   yearcompleted: 0,
+  hazard: null,
   construction: 0,
   purpose: null,
   condition: null,
@@ -423,6 +469,9 @@ Location.defaultProps = {
   subbasin: null,
   ownertype: null,
   barrierownertype: null,
+  fercregulated: null,
+  stateregulated: null,
+  waterright: null,
   disadvantagedcommunity: null,
   sarp_score: -1,
   diversion: 0,

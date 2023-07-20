@@ -7,6 +7,7 @@ import { Entry, Field, Section } from 'components/Sidebar'
 
 import {
   siteMetadata,
+  HAZARD,
   CONDITION,
   CONSTRUCTION,
   PASSAGEFACILITY,
@@ -39,6 +40,7 @@ const DamDetails = ({
   link,
   estimated,
   yearcompleted,
+  hazard,
   construction,
   diversion,
   nostructure,
@@ -67,6 +69,9 @@ const DamDetails = ({
   recon,
   ownertype,
   barrierownertype,
+  fercregulated,
+  stateregulated,
+  waterright,
   disadvantagedcommunity,
   // metrics
   totalupstreammiles,
@@ -163,6 +168,9 @@ const DamDetails = ({
           HUC12={HUC12}
           ownertype={ownertype}
           barrierownertype={barrierownertype}
+          fercregulated={fercregulated}
+          stateregulated={stateregulated}
+          waterright={waterright}
           disadvantagedcommunity={disadvantagedcommunity}
           intermittent={intermittent}
           streamorder={streamorder}
@@ -201,6 +209,12 @@ const DamDetails = ({
           </Entry>
         ) : null}
 
+        {hazard !== null && hazard > 0 && HAZARD[hazard] ? (
+          <Entry>
+            <Field label="Hazard rating">{HAZARD[hazard].toLowerCase()}</Field>
+          </Entry>
+        ) : null}
+
         {condition !== null && condition >= 0 && CONDITION[condition] ? (
           <Entry>
             <Field label="Structural condition" isUnknown={condition === 0}>
@@ -233,7 +247,7 @@ const DamDetails = ({
 
       <Section title="Functional network information">
         {removed ? (
-          <Entry>
+          <Entry sx={{ mb: '1rem' }}>
             {yearremoved !== null && yearremoved > 0
               ? `This barrier was removed or mitigated in ${yearremoved}.`
               : 'This barrier has been removed or mitigated.'}
@@ -259,6 +273,7 @@ const DamDetails = ({
             intermittent={intermittent}
             invasive={invasive}
             unranked={unranked}
+            removed={removed}
           />
         ) : (
           <NoNetworkInfo
@@ -295,20 +310,22 @@ const DamDetails = ({
         />
       </Section>
 
-      <Section title="Feasibility & conservation benefit">
-        <Entry>
-          <Field label="Feasibility" isUnknown={feasibilityclass <= 1}>
-            {FEASIBILITYCLASS[feasibilityclass]}
-          </Field>
+      {feasibilityclass && feasibilityclass <= 10 ? (
+        <Section title="Feasibility & conservation benefit">
+          <Entry>
+            <Field label="Feasibility" isUnknown={feasibilityclass <= 1}>
+              {FEASIBILITYCLASS[feasibilityclass]}
+            </Field>
 
-          {recon !== null && recon > 0 ? (
-            <>
-              <br />
-              <Field label="Field recon notes">{RECON[recon]}</Field>
-            </>
-          ) : null}
-        </Entry>
-      </Section>
+            {recon !== null && recon > 0 ? (
+              <>
+                <br />
+                <Field label="Field recon notes">{RECON[recon]}</Field>
+              </>
+            ) : null}
+          </Entry>
+        </Section>
+      ) : null}
 
       <Section title="Other information">
         <IDInfo sarpid={sarpid} nidid={nidid} source={source} link={link} />
@@ -336,6 +353,7 @@ DamDetails.propTypes = {
   source: PropTypes.string,
   link: PropTypes.string,
   estimated: PropTypes.number,
+  hazard: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.number,
@@ -352,6 +370,9 @@ DamDetails.propTypes = {
   recon: PropTypes.number,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
+  fercregulated: PropTypes.number,
+  stateregulated: PropTypes.number,
+  waterright: PropTypes.number,
   disadvantagedcommunity: PropTypes.string,
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
@@ -394,6 +415,7 @@ DamDetails.defaultProps = {
   estimated: 0,
   height: 0,
   yearcompleted: 0,
+  hazard: null,
   construction: null,
   purpose: null,
   condition: null,
@@ -410,6 +432,9 @@ DamDetails.defaultProps = {
   recon: null,
   ownertype: null,
   barrierownertype: null,
+  fercregulated: null,
+  stateregulated: null,
+  waterright: null,
   disadvantagedcommunity: null,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,

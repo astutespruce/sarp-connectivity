@@ -25,8 +25,10 @@ huc2s = huc2_df.HUC2.sort_values().values
 
 # manually subset keys from above for processing
 # huc2s = [
+# "01",
 # "02",
 # "03",
+# "04",
 # "05",
 # "06",
 # "07",
@@ -40,7 +42,8 @@ huc2s = huc2_df.HUC2.sort_values().values
 # "15",
 # "16",
 # "17",
-# "18"
+# "18",
+# "19",
 # "21",
 # ]
 
@@ -56,8 +59,12 @@ barriers = read_feathers(
     new_fields={"kind": kinds},
 )
 
-# FIXME: remove once all barriers have been re-prepared
-barriers["id"] = barriers.id.astype("uint64")
+if "removed" not in barriers.columns:
+    barriers["removed"] = False
+
+if "YearRemoved" not in barriers.columns:
+    barriers["YearRemoved"] = 0
+
 
 barriers = barriers.set_index("id", drop=False)
 
@@ -65,6 +72,7 @@ barriers = barriers.set_index("id", drop=False)
 # removed is not applicable for road crossings or waterfalls, backfill with False
 # NOTE: removed barriers cut flowlines but are not counted toward dam / small barrier networks
 barriers["removed"] = barriers.removed.fillna(False)
+barriers["YearRemoved"] = barriers.YearRemoved.fillna(0).astype("uint16")
 
 print(f"Serializing {len(barriers):,} barriers")
 barriers.to_feather(out_dir / "all_barriers.feather")
@@ -100,18 +108,45 @@ for huc2 in huc2s:
     # increment lineIDs before dropping loops
     next_segment_id = flowlines.lineID.max() + np.uint32(1)
 
+    #### Temporary
+    # FIXME: enable after all regions rerun prepare_flowlines_waterbodies.py
+    # joins = pd.read_feather(
+    #     nhd_dir / huc2 / "flowline_joins.feather",
+    #     columns=[
+    #         "upstream",
+    #         "downstream",
+    #         "upstream_id",
+    #         "downstream_id",
+    #         "type",
+    #         "marine",
+    #         "great_lakes",
+    #         "loop",
+    #     ],
+    # )
+
     joins = pd.read_feather(
         nhd_dir / huc2 / "flowline_joins.feather",
-        columns=[
+    )
+
+    if "great_lakes" not in joins:
+        joins["great_lakes"] = False
+
+    joins["great_lakes"] = joins.great_lakes.fillna(False)
+
+    joins = joins[
+        [
             "upstream",
             "downstream",
             "upstream_id",
             "downstream_id",
             "type",
             "marine",
+            "great_lakes",
             "loop",
-        ],
-    )
+        ]
+    ]
+
+    #### end temporary
 
     # drop all loops from the analysis
     print(f"Dropping {flowlines.loop .sum():,} loops")

@@ -1,4 +1,4 @@
-# Southeast Aquatic Barrier Inventory Data Processing - Network Data Preparation
+# National Aquatic Barrier Inventory & Prioritization Tool Data Processing - Network Data Preparation
 
 This stage involves processing NHD data and related data into data structures that are ready to use for snapping and network analysis. These should only need to be rerun when you need more HUC4s than are currently included in the analysis, need to update NHD data, or need to resolve logic errors in the data extraction pipeline.
 
@@ -8,12 +8,13 @@ This stage involves processing NHD data and related data into data structures th
 2. Run `download_nwi.py` to download National Wetlands Inventory data.
 3. Manually download state-level LIDAR waterbody datasets.
 4. Run `extract_nhd.py` to extract flowlines, flowline joins, waterbodies, NHD barriers (points, lines, polygons) for each HUC2.
-5. Run any special pre-processing scripts in `special` (e.g. `find_loops.py`)
-6. Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
-7. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region).
-8. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
-9. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
-10. Run `prep_floodplain_statistics.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
+5. Run `merge_marine.py` to merge all marine areas.
+6. Run any special pre-processing scripts in `special` (e.g. `find_loops.py`)
+7. Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect the above flowlines.
+8. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region).
+9. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
+10. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
+11. Run `prep_floodplain_statistics.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
 
 Now the underlying aquatic networks are ready for the network analysis.
 
@@ -45,6 +46,14 @@ California data are available at:
 - https://www.sfei.org/data/california-aquatic-resource-inventory-cari-version-03-gis-data
   These were downloaded on 2/19/2022 to `data/states/ca/CA_Lakes.shp` and `data/states/ca/CARIv0.3.gdb`.
 
+#### Minnesota
+
+Minnesota data were downloaded from https://gisdata.mn.gov/dataset/water-dnr-hydrography
+
+These were downloaded on 4/14/2023 to `data/states/mn/water_dnr_hydrography.gpkg`.
+
+Data were prepared using `analysis/prep/network/special/prepare_wi_waterbodies.py`.
+
 #### Oregon
 
 Oregon data are available at: https://spatialdata.oregonexplorer.info/geoportal/details;id=3439a3c43f9f4c4499802f55898b7dd8
@@ -63,7 +72,7 @@ These were downloaded manually on 3/8/2022 to `data/states/sd/State_Waterbodies.
 
 #### Washington State
 
-Washinton State data are available at:
+Washington State data are available at:
 
 - https://geo.wa.gov/datasets/wdfw::visible-surface-water/explore (more metadata at: https://geodataservices.wdfw.wa.gov/arcgis/rest/services/HP_Projects/Visible_Surface_Water/MapServer)
 - https://www.arcgis.com/sharing/rest/content/items/28a0f93c33454297b4a9d3faf3da552a/info/metadata/metadata.xml?format=default&output=html
@@ -190,7 +199,7 @@ This performs several steps:
 1. Drops any flowlines that are excluded (from special processing above)
 2. Recodes "loops" as needed
 3. Drops all underground conduits (FType=420)
-4. Drops pipelines (FType=428) that are isolated, at terminal ends of flowlines, or are long connectors between flowlines (>250m)
+4. Drops underground connectorspipelines (FType=420 or 428) that are isolated, at terminal ends of flowlines, or are long connectors between flowlines (>250m)
 5. Flowlines are cut by waterbodies, and flowlines are attributed with `waterbody` to indicate if they fall entirely or mostly (>50%) within a waterbody.
 6. Waterbody "drain points" are identified by taking the furthest downstream point of each flowline network that falls within a waterbody. Due to the way that waterbodies are connected to exiting flowlines, there may be multiple drain points for some waterbodies (most typically have just one). Note: some large riverways are mapped as NHD waterbodies; drain points are not as meaningful for these features.
 

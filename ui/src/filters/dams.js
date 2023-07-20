@@ -9,6 +9,7 @@ import {
   STREAMORDER,
   INTERMITTENT,
   GAINMILES,
+  HAZARD,
   CONDITION,
   PASSABILITY,
   LOWHEAD_DAM,
@@ -17,6 +18,9 @@ import {
   PASSAGEFACILITY_CLASS,
   OWNERTYPE,
   BARRIEROWNERTYPE,
+  FERC_REGULATED,
+  STATE_REGULATED,
+  WATER_RIGHT,
   BOOLEAN_FIELD,
   DOWNSTREAM_OCEAN_MILES,
   DOWNSTREAM_OCEAN_DAMS_DOMAIN,
@@ -77,6 +81,30 @@ export const dams = [
     ],
   },
   {
+    id: 'regulatory',
+    title: 'Regulatory',
+    filters: [
+      {
+        field: 'fercregulated',
+        title: 'Regulated by the Federal Energy Regulatory Commission?',
+        help: 'Note: regulatory information is only available for a small number of dams.',
+        ...getEntries(FERC_REGULATED, (v) => v >= 0),
+      },
+      {
+        field: 'stateregulated',
+        title: 'State regulated dam?',
+        help: 'Note: regulatory information is only available for a small number of dams.',
+        ...getEntries(STATE_REGULATED, (v) => v >= 0),
+      },
+      {
+        field: 'waterright',
+        title: 'Has an associated water right?',
+        help: 'Note: water right information is only available for a small number of dams.',
+        ...getEntries(WATER_RIGHT, (v) => v >= 0),
+      },
+    ],
+  },
+  {
     id: 'structure',
     title: 'Dam characteristics',
     filters: [
@@ -85,6 +113,12 @@ export const dams = [
         title: 'Height',
         help: 'Note: height information is only available for a small number of dams.  Not all data sources recorded this information.',
         ...getEntries(HEIGHT, (v) => v > 0),
+      },
+      {
+        field: 'hazard',
+        title: 'Hazard rating',
+        help: 'Note: hazard rating information is only available for a small number of dams.  Not all data sources recorded this information.',
+        ...getEntries(HAZARD, (v) => v >= 0),
       },
       {
         field: 'condition',

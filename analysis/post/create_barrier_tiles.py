@@ -3,10 +3,8 @@ import subprocess
 from time import time
 
 import geopandas as gp
-import pandas as pd
 from pyogrio import write_dataframe
 
-from analysis.lib.compression import pack_bits
 from api.constants import (
     DAM_TILE_FILTER_FIELDS,
     DAM_TILE_FIELDS,
@@ -34,7 +32,7 @@ from analysis.post.lib.tiles import (
 
 # unit fields that can be dropped for sets of barriers that are not filtered
 DROP_UNIT_FIELDS = [
-    f for f in UNIT_FIELDS if not f in {"State", "County", "HUC8", "HUC12"}
+    f for f in UNIT_FIELDS if f not in {"State", "County", "HUC8", "HUC12"}
 ]
 
 MAX_ZOOM = 16
@@ -45,9 +43,8 @@ out_dir = Path("tiles")
 tmp_dir = Path("/tmp")
 
 
-# use local clone of github.com/tippecanoe
-tippecanoe = "../lib/tippecanoe/tippecanoe"
-tile_join = "../lib/tippecanoe/tile-join"
+tippecanoe = "tippecanoe"
+tile_join = "tile-join"
 
 
 # To determine size of largest tile, query mbtiles file:
@@ -109,7 +106,7 @@ write_dataframe(tmp.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z2", "-z7", "-r1.5", "-g1.5", "-B5"]
+    + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "ranked_dams"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(tmp)
@@ -161,7 +158,6 @@ removed_dams = df.loc[df.Removed].drop(
         "Removed",
         "Ranked",
         "Unranked",
-        "HasNetwork",
         "symbol",
         # remove fields only used for filtering
         "HUC6",
@@ -181,25 +177,13 @@ removed_dams = df.loc[df.Removed].drop(
     errors="ignore",
 )
 
-# TEMP: eventually removed dams will have network fields; for now, drop them
 removed_dams = removed_dams.drop(
     columns=[
-        "FlowsToOcean",
-        "MilesToOutlet",
+        # not used: network IDs
         "upNetID",
         "downNetID",
     ]
-    + [
-        c
-        for c in METRIC_FIELDS
-        if not c
-        in {
-            "Intermittent",
-            "StreamOrder",
-        }
-    ]
-    + UPSTREAM_COUNT_FIELDS
-    + DOWNSTREAM_LINEAR_NETWORK_FIELDS,
+    + UPSTREAM_COUNT_FIELDS,
     errors="ignore",
 )
 
@@ -294,6 +278,7 @@ offnetwork_dams = (
             "PassageFacilityClass",
             "SalmonidESUCount",
             "FlowsToOcean",
+            "FlowsToGreatLakes",
             "MilesToOutlet",
             "CoastalHUC8",
             "DownstreamOceanMilesClass",
@@ -338,6 +323,11 @@ ret = subprocess.run(
     tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
 )
 
+# remove intermediates
+for mbtiles_file in mbtiles_files:
+    mbtiles_file.unlink()
+
+
 print(f"Created dam tiles in {time() - start:,.2f}s")
 
 ####################################################################
@@ -373,7 +363,7 @@ write_dataframe(tmp.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z2", "-z7", "-r1.5", "-g1.5", "-B5"]
+    + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "ranked_small_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(tmp)
@@ -421,7 +411,6 @@ removed_barriers = df.loc[df.Removed].drop(
         "Removed",
         "Ranked",
         "Unranked",
-        "HasNetwork",
         "symbol",
         # remove fields only used for filtering
         "HUC6",
@@ -444,23 +433,11 @@ removed_barriers = df.loc[df.Removed].drop(
 # TEMP: eventually removed barriers will have network fields; for now, drop them
 removed_barriers = removed_barriers.drop(
     columns=[
-        "FlowsToOcean",
-        "MilesToOutlet",
         "upNetID",
         "downNetID",
     ]
     + DROP_UNIT_FIELDS
-    + [
-        c
-        for c in METRIC_FIELDS
-        if not c
-        in {
-            "Intermittent",
-            "StreamOrder",
-        }
-    ]
-    + UPSTREAM_COUNT_FIELDS
-    + DOWNSTREAM_LINEAR_NETWORK_FIELDS,
+    + UPSTREAM_COUNT_FIELDS,
     errors="ignore",
 )
 
@@ -547,6 +524,7 @@ offnetwork_barriers = df.loc[~(df.HasNetwork | df.Removed)].drop(
         "PercentAlteredClass",
         "SalmonidESUCount",
         "FlowsToOcean",
+        "FlowsToGreatLakes",
         "MilesToOutlet",
         "CoastalHUC8",
         "DownstreamOceanMilesClass",
@@ -587,6 +565,10 @@ ret = subprocess.run(
     tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
 )
 
+# remove intermediates
+for mbtiles_file in mbtiles_files:
+    mbtiles_file.unlink()
+
 print(f"Created small barrier tiles in {time() - start:,.2f}s")
 
 
@@ -624,7 +606,7 @@ write_dataframe(tmp.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z2", "-z7", "-r1.5", "-g1.5", "-B5"]
+    + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
     + ["-l", "ranked_combined_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(tmp)
@@ -635,7 +617,7 @@ ret.check_returncode()
 
 df = df.drop(columns=["TotDASqKm"])
 
-### Create tiles for ranked dams with networks
+### Create tiles for ranked combined barriers with networks
 ranked_combined_barriers = df.loc[df.Ranked].drop(
     columns=[
         "Ranked",
@@ -674,7 +656,6 @@ removed_combined_barriers = df.loc[df.Removed].drop(
         "Removed",
         "Ranked",
         "Unranked",
-        "HasNetwork",
         "symbol",
         # remove fields only used for filtering
         "HUC6",
@@ -694,25 +675,12 @@ removed_combined_barriers = df.loc[df.Removed].drop(
     errors="ignore",
 )
 
-# TEMP: eventually removed barriers will have network fields; for now, drop them
 removed_combined_barriers = removed_combined_barriers.drop(
     columns=[
-        "FlowsToOcean",
-        "MilesToOutlet",
         "upNetID",
         "downNetID",
     ]
-    + [
-        c
-        for c in METRIC_FIELDS
-        if not c
-        in {
-            "Intermittent",
-            "StreamOrder",
-        }
-    ]
-    + UPSTREAM_COUNT_FIELDS
-    + DOWNSTREAM_LINEAR_NETWORK_FIELDS,
+    + UPSTREAM_COUNT_FIELDS,
     errors="ignore",
 )
 
@@ -811,6 +779,7 @@ offnetwork_combined_barriers = (
             "PassageFacilityClass",
             "SalmonidESUCount",
             "FlowsToOcean",
+            "FlowsToGreatLakes",
             "MilesToOutlet",
             "CoastalHUC8",
             "DownstreamOceanMilesClass",
@@ -854,6 +823,10 @@ mbtiles_filename = out_dir / "combined_barriers.mbtiles"
 ret = subprocess.run(
     tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
 )
+
+# remove intermediates
+for mbtiles_file in mbtiles_files:
+    mbtiles_file.unlink()
 
 print(f"Created combined barrier tiles in {time() - start:,.2f}s")
 

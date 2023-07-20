@@ -54,7 +54,7 @@ def calculate_upstream_network_stats(
         Summary statistics, with one row per functional network.
     """
 
-    # re-rederive all focal barriers joins from barrier joins to keep confluences
+    # re-derive all focal barriers joins from barrier joins to keep confluences
     # which are otherwise filtered out before calling here
     all_focal_barrier_joins = barrier_joins.loc[
         barrier_joins.index.isin(focal_barrier_joins.index.unique())
@@ -198,46 +198,6 @@ def calculate_upstream_network_stats(
         how="inner",
     ).NHDPlusID
 
-    # use all_barrier_joins because these include confluences
-    network_nhdplusID = (
-        all_focal_barrier_joins.join(nhdplusID, how="inner")
-        .join(networkID, on="upstream_id")
-        .set_index("networkID")
-        .NHDPlusID
-    )
-
-    # then for each set of upstream barriers within the functional network of a given
-    # barrier, filter those to ones on the same NHDPlusID
-    cat_barriers_upstream = (
-        (
-            upstream_barrier_joins[["downstream_id", "kind"]].join(
-                networkID, on="downstream_id", how="inner"
-            )
-        )
-        .join(nhdplusID, how="inner")
-        .join(network_nhdplusID, on="networkID", rsuffix="_network", how="inner")
-    )
-    cat_barriers_upstream = cat_barriers_upstream.loc[
-        cat_barriers_upstream.NHDPlusID == cat_barriers_upstream.NHDPlusID_network
-    ]
-
-    cat_upstream_counts = (
-        cat_barriers_upstream.groupby(["networkID", "kind"])
-        .size()
-        .rename("count")
-        .reset_index()
-        .pivot(index="networkID", columns="kind", values="count")
-        .fillna(0)
-        .rename(
-            columns={
-                "dam": "cat_dams",
-                "waterfall": "cat_waterfalls",
-                "small_barrier": "cat_small_barriers",
-                "road_crossing": "cat_road_crossings",
-            }
-        )
-    )
-
     # determine the barrier type associated with this functional network
     network_barrier = (
         focal_barrier_joins.loc[
@@ -255,7 +215,6 @@ def calculate_upstream_network_stats(
         .join(sizeclasses)
         .join(fn_upstream_counts)
         .join(fn_upstream_area)
-        .join(cat_upstream_counts)
         .join(tot_upstream_counts)
         .join(network_barrier)
         .join(root_huc2)
@@ -268,13 +227,11 @@ def calculate_upstream_network_stats(
     for stat_type in ["fn", "cat", "tot"]:
         for kind in ["waterfalls", "dams", "small_barriers", "road_crossings"]:
             col = f"{stat_type}_{kind}"
-            if not col in results.columns:
+            if col not in results.columns:
                 results[col] = 0
 
     count_cols = (
-        fn_upstream_counts.columns.tolist()
-        + cat_upstream_counts.columns.tolist()
-        + tot_upstream_counts.columns.tolist()
+        fn_upstream_counts.columns.tolist() + tot_upstream_counts.columns.tolist()
     )
 
     results[count_cols] = results[count_cols].fillna(0)
@@ -425,7 +382,12 @@ def calculate_floodplain_stats(df):
 
 
 def calculate_downstream_stats(
-    down_network_df, focal_barrier_joins, barrier_joins, marine_ids, exit_ids
+    down_network_df,
+    focal_barrier_joins,
+    barrier_joins,
+    marine_ids,
+    great_lake_ids,
+    exit_ids,
 ):
     """Calculate downstream statistics for each barrier.  Downstream networks
     are linear from the barrier to the downstream terminal.
@@ -453,6 +415,9 @@ def calculate_downstream_stats(
 
     marine_ids : ndarray
         lineIDs of segments that directly connect to marine
+
+    great_lake_ids : ndarray
+        lineIDs of segments that directly connect to Great Lakes
 
     exit_ids : ndarray
         lineIDs of segments that directly leave the HUC2
@@ -500,7 +465,7 @@ def calculate_downstream_stats(
 
     # make sure all barrier types have a count column
     for kind in ["waterfall", "dam", "small_barrier", "road_crossing"]:
-        if not kind in ln_downstream_counts.columns:
+        if kind not in ln_downstream_counts.columns:
             ln_downstream_counts[kind] = 0
 
     # calculate total length of each downstream network
@@ -642,6 +607,30 @@ def calculate_downstream_stats(
         | to_ocean.index.isin(marine_downstream_ids)
     ] = True
 
+    ### Identify networks that terminate in Great Lakes
+    # ids of barriers that connect directly to Great Lakes
+    great_lake_barriers = all_focal_barrier_joins.loc[
+        all_focal_barrier_joins.upstream_id.isin(great_lake_ids)
+    ].index.unique()
+
+    # downstream networks that connect to Great Lakes via downstream linear networks
+    great_lake_downstream = down_network_df.loc[
+        down_network_df.index.isin(great_lake_ids)
+    ].networkID.unique()
+    great_lake_downstream_ids = downstreams.loc[
+        downstreams.downstream_network.isin(great_lake_downstream)
+    ].index.unique()
+
+    to_great_lakes = pd.Series(
+        np.zeros(shape=(len(focal_barrier_joins),), dtype="bool"),
+        index=focal_barrier_joins.index,
+        name="flows_to_great_lakes",
+    )
+    to_great_lakes.loc[
+        to_great_lakes.index.isin(great_lake_barriers)
+        | to_great_lakes.index.isin(great_lake_downstream_ids)
+    ] = True
+
     ### Identify any networks that exit HUC2s
     # Note: only applicable for those that exit into HUC2s outside the analysis region
 
@@ -671,7 +660,11 @@ def calculate_downstream_stats(
     ] = True
 
     results = (
-        focal_barrier_joins[[]].join(downstream_stats).join(to_ocean).join(exits_region)
+        focal_barrier_joins[[]]
+        .join(downstream_stats)
+        .join(to_ocean)
+        .join(to_great_lakes)
+        .join(exits_region)
     )
 
     # set appropriate nodata

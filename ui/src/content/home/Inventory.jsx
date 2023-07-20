@@ -1,9 +1,9 @@
 import React from 'react'
-import { Box, Grid, Paragraph, Heading } from 'theme-ui'
+import { Box, Grid, Paragraph, Heading, Text } from 'theme-ui'
 
 import { Link, OutboundLink } from 'components/Link'
 import { HighlightBox } from 'components/Layout'
-import { siteMetadata, REGION_STATES } from 'config'
+import { siteMetadata, ANALYSIS_STATES } from 'config'
 import { formatNumber } from 'util/format'
 import { useSummaryData } from 'components/Data'
 
@@ -11,7 +11,7 @@ const { version: dataVersion, date: dataDate } = siteMetadata
 
 const Inventory = () => {
   const {
-    total: { dams, totalSmallBarriers },
+    total: { dams, removedDams, totalSmallBarriers, removedSmallBarriers },
   } = useSummaryData()
 
   return (
@@ -42,7 +42,24 @@ const Inventory = () => {
               See an example of how the inventory can assist local partners to
               identify and prioritize barriers for removal.
             </Link>
+            <br />
+            <br />
+            If you have recently completed a dam removal, fish passage, or
+            barrier remediation project, please use the following links to
+            report these projects so they may be included in the inventory:
           </Paragraph>
+          <Box as="ul" sx={{ mt: '0.5rem' }}>
+            <li>
+              <OutboundLink to="https://arcg.is/1fvmXS1">
+                Dam removal and fish passage at dams
+              </OutboundLink>
+            </li>
+            <li>
+              <OutboundLink to="https://arcg.is/11OSuL0">
+                Road related barrier replacement
+              </OutboundLink>
+            </li>
+          </Box>
         </Box>
 
         <Box
@@ -68,16 +85,23 @@ const Inventory = () => {
               }}
             >
               <li>
-                <b>{Object.keys(REGION_STATES.total).length - 1}</b> states and
-                Puerto Rico
+                <b>{ANALYSIS_STATES.length - 3}</b> states, Washington DC,
+                Puerto Rico, and U.S. Virgin Islands
               </li>
               <li>
                 <b>{formatNumber(dams, 0)}</b> inventoried dams
+                <Text sx={{ fontSize: 1, mt: '0.25rem' }}>
+                  ({formatNumber(removedDams, 0)} removed for conservation)
+                </Text>
               </li>
 
               <li>
                 <b>{formatNumber(totalSmallBarriers, 0)}</b> road-related
                 barriers assessed for impact to aquatic organisms
+                <Text sx={{ fontSize: 1, mt: '0.25rem' }}>
+                  ({formatNumber(removedSmallBarriers, 0)} removed for
+                  conservation)
+                </Text>
               </li>
             </Box>
 
@@ -98,23 +122,6 @@ const Inventory = () => {
           </Paragraph>
         </Box>
       </Grid>
-      <Paragraph sx={{ mt: '2rem' }}>
-        If you have recently completed a dam removal, fish passage, or barrier
-        remediation project, please use the following links to report these
-        projects so they may be included in the inventory:
-      </Paragraph>
-      <Box as="ul" sx={{ mt: '0.5rem' }}>
-        <li>
-          <OutboundLink to="https://arcg.is/1fvmXS1">
-            Dam removal and fish passage at dams
-          </OutboundLink>
-        </li>
-        <li>
-          <OutboundLink to="https://arcg.is/11OSuL0">
-            Road related barrier replacement
-          </OutboundLink>
-        </li>
-      </Box>
     </Box>
   )
 }

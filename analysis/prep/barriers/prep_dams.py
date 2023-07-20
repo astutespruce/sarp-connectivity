@@ -47,7 +47,6 @@ from analysis.constants import (
     DROP_FEASIBILITY,
     EXCLUDE_FEASIBILITY,
     REMOVED_FEASIBILITY,
-    EXCLUDE_FEASIBILITY,
     INVASIVE_FEASIBILITY,
     DROP_MANUALREVIEW,
     EXCLUDE_MANUALREVIEW,
@@ -62,11 +61,14 @@ from analysis.constants import (
     RECON_TO_FEASIBILITY,
     EXCLUDE_PASSAGEFACILITY,
     NOSTRUCTURE_STRUCTURECATEGORY,
+    DROP_STRUCTURECATEGORY,
     FCODE_TO_STREAMTYPE,
     DAM_BARRIER_SEVERITY_TO_DOMAIN,
     BARRIEROWNERTYPE_TO_DOMAIN,
     EXCLUDE_PASSABILITY,
-    FEASIBILITY_TO_DOMAIN,
+    FEASIBILITY_TO_FEASIBILITYCLASS_DOMAIN,
+    HAZARD_TO_DOMAIN,
+    FERCREGULATED_TO_DOMAIN,
 )
 from analysis.lib.io import read_feathers
 
@@ -96,31 +98,16 @@ start = time()
 ### Read dams for analysis region states states and merge
 print("Reading dams in analysis region states")
 df = gp.read_feather(src_dir / "sarp_dams.feather")
-
-# TODO: remove after rerunning download
-df = df.rename(columns={"Year": "YearCompleted"})
-
-
 print(f"Read {len(df):,} dams in region states")
 
-### Read in non-SARP states and join in
-# these are for states that overlap with HUC4s that overlap with analysis region states
-print(
-    "Reading dams that fall outside region states, but within HUC4s that overlap with region states..."
-)
 
-outside_df = gp.read_feather(src_dir / "dams_outer_huc4.feather")
-
-# drop any that are in the main dataset, since there are several dams at state lines
-outside_df = outside_df.loc[~outside_df.SARPID.isin(df.SARPID.unique())].copy()
-
-print(f"Read {len(outside_df):,} dams in outer HUC4s")
-
-df = pd.concat([df, outside_df], ignore_index=True, sort=False)
-
-### Read in dams that have been manually reviewed within region states (and possibly beyond)
+### Read in dams that have been manually reviewed
 print("Reading manually snapped dams...")
 snapped_df = gp.read_feather(src_dir / "manually_snapped_dams.feather")
+
+# FIXME: temporary fix; there are some with duplicate SARPIDs or missing field values
+snapped_df = snapped_df.loc[snapped_df.snapped.notnull()]
+
 
 # Don't pull across those that were not manually snapped or are missing key fields
 # 0,1: not reviewed,
@@ -266,6 +253,7 @@ for column in (
 ):
     df[column] = df[column].fillna(0).astype("uint8")
 
+
 for column in ("YearCompleted", "YearRemoved", "StructureClass"):
     df[column] = df[column].fillna(0).astype("uint16")
 
@@ -303,11 +291,29 @@ df.Length = df.Length.fillna(0).round().astype("uint16")
 df.Width = df.Width.fillna(0).round().astype("uint16")
 
 
-# Recode lowhead dams so that 0 = Unknown, 3 = no (originally 0), 1 = yes, 2 = likely
-df.loc[df.LowheadDam == 0, "LowheadDam"] = 3
-df.LowheadDam = df.LowheadDam.fillna(0).astype("uint8")
+# FIXME: temporarily recode dams that are indicated as errors in lowhead field
+# Fix LowheadDam value that should be assigned to Recon / ManualReview instead
+ix = df.LowheadDam == 5
+df.loc[ix, "Recon"] = 5
+df.loc[ix, "Feasibility"] = 7
+df.loc[ix, "ManualReview"] = 6
 
-# From Kat: if StructureCategory == 916 (lowead dam / weir)
+# Recode lowhead dams to align with LOWHEADDAM_DOMAN
+df["LowheadDam"] = (
+    df.LowheadDam.map(
+        {
+            0: 3,  # no  # FIXME: longer term these should only come in as 0's
+            1: 1,  # yes
+            2: 3,  # no
+            3: 0,  # unknown
+            5: 0,  # not a dam but set it to 0 to get it out of the codes
+        }
+    )
+    .fillna(0)
+    .astype("uint8")
+)
+
+# From Kat: if StructureClass == 916 (lowead dam / weir)
 # several are miscoded on Mississippi River and are not lowhead dams
 df.loc[
     (df.LowheadDam == 0)
@@ -380,7 +386,9 @@ df["HeightClass"] = (
 df["PassageFacilityClass"] = np.uint8(0)
 df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
 
-df["FeasibilityClass"] = df.Feasibility.map(FEASIBILITY_TO_DOMAIN).astype("uint8")
+df["FeasibilityClass"] = df.Feasibility.map(
+    FEASIBILITY_TO_FEASIBILITYCLASS_DOMAIN
+).astype("uint8")
 
 
 # Convert BarrierSeverity to a domain and call it Passability
@@ -397,6 +405,23 @@ df = df.drop(columns=["BarrierSeverity"])
 df.BarrierOwnerType = (
     df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
 )
+
+# Cleanup FERCRegulated and StateRegulated
+df["FERCRegulated"] = (
+    df.FERCRegulated.fillna(0)
+    .astype("uint8")
+    .map(FERCREGULATED_TO_DOMAIN)
+    .astype("uint8")
+)
+df["StateRegulated"] = df.StateRegulated.fillna("0").astype("uint8")
+df["WaterRight"] = df.WaterRight.fillna(0).astype("uint8")
+
+# Recode Hazard (note: original value of 4 = unknown)
+df["Hazard"] = df.Hazard.fillna(4).astype("uint8").map(HAZARD_TO_DOMAIN).astype("uint8")
+
+
+# Recode
+
 
 ### Add tracking fields
 # master log field for status
@@ -436,6 +461,20 @@ for field, values in invasive_fields.items():
     df.loc[ix, "invasive"] = True
 
 
+### Drop any dams that should be completely dropped from analysis
+dropped_fields = {
+    "Recon": DROP_RECON,
+    "Feasibility": DROP_FEASIBILITY,
+    "ManualReview": DROP_MANUALREVIEW,
+    "StructureCategory": DROP_STRUCTURECATEGORY,
+}
+
+for field, values in dropped_fields.items():
+    ix = df[field].isin(values) & (~df.dropped)
+    df.loc[ix, "dropped"] = True
+    df.loc[ix, "log"] = format_log("dropped", field, sorted(df.loc[ix][field].unique()))
+
+
 ### Mark any that were removed so that we can show these on the map
 # NOTE: we don't mark these as dropped
 removed_fields = {
@@ -448,19 +487,6 @@ for field, values in removed_fields.items():
     ix = df[field].isin(values) & (~(df.dropped | df.removed))
     df.loc[ix, "removed"] = True
     df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique()))
-
-
-### Drop any dams that should be completely dropped from analysis
-dropped_fields = {
-    "Recon": DROP_RECON,
-    "Feasibility": DROP_FEASIBILITY,
-    "ManualReview": DROP_MANUALREVIEW,
-}
-
-for field, values in dropped_fields.items():
-    ix = df[field].isin(values) & (~(df.dropped | df.removed))
-    df.loc[ix, "dropped"] = True
-    df.loc[ix, "log"] = format_log("dropped", field, sorted(df.loc[ix][field].unique()))
 
 
 ### Exclude dams that should not be analyzed or prioritized based on manual QA
@@ -541,6 +567,7 @@ df.loc[df.River != "", "dup_sort"] = 6
 df.loc[df.Recon > 0, "dup_sort"] = 5
 # Prefer dams with height or year completed to those that do not
 df.loc[(df.YearCompleted > 0) | (df.Height > 0), "dup_sort"] = 4
+
 # Prefer NID dams
 df.loc[df.NIDID.notnull(), "dup_sort"] = 3
 # Prefer NABD dams
@@ -888,7 +915,8 @@ if df.PassageFacility.max() >= 32:
 
 ### Assign map symbol for use in (some) tiles
 df["symbol"] = 0
-df.loc[df.invasive, "symbol"] = 3
+df.loc[df.invasive, "symbol"] = 4
+# value 3 is minor barrier, not used
 df.loc[df.nobarrier, "symbol"] = 2
 # intentionally give no structure diversions higher precedence so they don't
 # show up as no-barrier points
@@ -915,7 +943,17 @@ df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print("Serializing {:,} snapped dams".format(len(df)))
 df[
-    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent", "removed"]
+    [
+        "geometry",
+        "id",
+        "HUC2",
+        "lineID",
+        "NHDPlusID",
+        "loop",
+        "intermittent",
+        "removed",
+        "YearRemoved",
+    ]
 ].to_feather(
     snapped_dir / "dams.feather",
 )

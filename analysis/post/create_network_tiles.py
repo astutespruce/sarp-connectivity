@@ -11,9 +11,8 @@ import shapely
 from pyogrio import write_dataframe
 
 from analysis.constants import GEO_CRS, NETWORK_TYPES, CRS
-from analysis.lib.io import read_feathers, read_arrow_tables
+from analysis.lib.io import read_arrow_tables
 from analysis.lib.geometry.lines import merge_lines
-from analysis.post.lib.tiles import get_col_types
 
 src_dir = Path("data/networks")
 intermediate_dir = Path("data/tiles")
@@ -80,9 +79,8 @@ zoom_config = [
 ]
 
 
-# use local clone of github.com/tippecanoe
-tippecanoe = "../lib/tippecanoe/tippecanoe"
-tile_join = "../lib/tippecanoe/tile-join"
+tippecanoe = "tippecanoe"
+tile_join = "tile-join"
 
 col_types = [
     "-T",

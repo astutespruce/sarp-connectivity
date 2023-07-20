@@ -108,10 +108,6 @@ UPSTREAM_COUNT_FIELDS = [
     "UpstreamSmallBarriers",
     "UpstreamRoadCrossings",
     "UpstreamHeadwaters",
-    # "UpstreamCatchmentWaterfalls",
-    # "UpstreamCatchmentDams",
-    # "UpstreamCatchmentSmallBarriers",
-    # "UpstreamCatchmentRoadCrossings",
     # "TotalUpstreamWaterfalls",
     # "TotalUpstreamDams",
     # "TotalUpstreamSmallBarriers",
@@ -127,6 +123,7 @@ DOWNSTREAM_LINEAR_NETWORK_FIELDS = [
     # "TotalDownstreamRoadCrossings",
     "MilesToOutlet",
     "FlowsToOcean",
+    "FlowsToGreatLakes",
     "ExitsRegion",
 ]
 
@@ -174,12 +171,19 @@ FILTER_FIELDS = [
     "FlowsToOcean",
     "DownstreamOceanMilesClass",
     "DownstreamOceanBarriersClass",
+    "FlowsToGreatLakes",
+    "DownstreamGreatLakesMilesClass",
+    "DownstreamGreatLakesBarriersClass",
     "CoastalHUC8",
     "PassageFacilityClass",
     "DisadvantagedCommunity",
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
+    "Hazard",
+    "FERCRegulated",
+    "StateRegulated",
+    "WaterRight",
     "Passability",
     "FeasibilityClass",
     "Purpose",
@@ -262,9 +266,13 @@ DAM_CORE_FIELDS = (
         "AnnualFlow",
         "TotDASqKm",
         "YearCompleted",
+        "FERCRegulated",
+        "StateRegulated",
+        "WaterRight",
         "Height",
         "Length",
         "Width",
+        "Hazard",
         "Construction",
         "Purpose",
         "Passability",
@@ -286,7 +294,11 @@ DAM_CORE_FIELDS = unique(DAM_CORE_FIELDS)
 # Internal API includes tiers
 # IMPORTANT: Recon is intentionally omitted per direction from SARP
 
-DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
+DAM_EXPORT_FIELDS = [
+    c
+    for c in unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
+    if not c == "Recon"
+]
 
 DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
@@ -296,15 +308,15 @@ DAM_API_FIELDS = unique(
 )
 
 # Public API does not include tier or filter fields
-DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
+DAM_PUBLIC_EXPORT_FIELDS = [c for c in DAM_CORE_FIELDS if not c == "Recon"]
 
 
 # Drop fields that can be calculated on frontend or are not used
 DAM_TILE_FIELDS = [
     c
     for c in DAM_API_FIELDS + ["packed", "symbol"]
-    if not c
-    in {
+    if c
+    not in {
         "NHDPlusID",
         "Basin",
         "HUC2",
@@ -374,6 +386,7 @@ SB_CORE_FIELDS = (
         "PotentialProject",
         "BarrierSeverity",
         "SARP_Score",
+        "Recon",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -381,7 +394,9 @@ SB_CORE_FIELDS = (
 SB_CORE_FIELDS = unique(SB_CORE_FIELDS)
 
 # NOTE: state tiers are excluded based on SARP direction
-SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS)
+SB_EXPORT_FIELDS = [
+    c for c in unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS) if not c == "Recon"
+]
 SB_API_FIELDS = unique(
     SB_CORE_FIELDS
     + SB_FILTER_FIELDS
@@ -389,15 +404,15 @@ SB_API_FIELDS = unique(
 )
 
 # Public API does not include tier fields
-SB_PUBLIC_EXPORT_FIELDS = SB_CORE_FIELDS
+SB_PUBLIC_EXPORT_FIELDS = [c for c in SB_CORE_FIELDS if not c == "Recon"]
 
 
 # Drop fields from tiles that are calculated on frontend or not used
 SB_TILE_FIELDS = [
     c
     for c in SB_API_FIELDS + ["packed", "symbol"]
-    if not c
-    in {
+    if c
+    not in {
         "NHDPlusID",
         "ProtectedLand",
         "Basin",
@@ -445,13 +460,13 @@ SB_TILE_FILTER_FIELDS = unique(
 COMBINED_API_FIELDS = [
     c
     for c in unique(["BarrierType"] + DAM_API_FIELDS + SB_API_FIELDS)
-    if not c in STATE_TIER_FIELDS
+    if c not in STATE_TIER_FIELDS
 ]
 
 COMBINED_EXPORT_FIELDS = [
     c
     for c in unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS)
-    if not c in STATE_TIER_FIELDS
+    if c not in STATE_TIER_FIELDS
 ]
 
 
@@ -462,7 +477,7 @@ COMBINED_TILE_FILTER_FIELDS = [
 ]
 
 COMBINED_TILE_FIELDS = [
-    c for c in unique(DAM_TILE_FIELDS + SB_TILE_FIELDS) if not c in STATE_TIER_FIELDS
+    c for c in unique(DAM_TILE_FIELDS + SB_TILE_FIELDS) if c not in STATE_TIER_FIELDS
 ]
 
 
@@ -545,8 +560,8 @@ ROAD_CROSSING_PACK_BITS = [
 WF_METRIC_FIELDS = [
     c
     for c in METRIC_FIELDS + UPSTREAM_COUNT_FIELDS
-    if not c
-    in {
+    if c
+    not in {
         "HasNetwork",
         "Ranked",
         "Intermittent",
@@ -594,8 +609,8 @@ WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
 WF_TILE_FIELDS = [
     c
     for c in WF_CORE_FIELDS + ["packed"]
-    if not c
-    in {
+    if c
+    not in {
         "NHDPlusID",
         "Basin",
         "HUC2",
@@ -675,6 +690,8 @@ RECON_DOMAIN = {
     21: "Potential thermal issues",
     22: "Removal unlikely; fish passage installed",
     23: "Duplicate fish passage project structure",
+    24: "Treatment completed (removal vs fishway unspecified)",
+    25: "Treatment planned",
 }
 
 # Created here to capture values below
@@ -686,15 +703,18 @@ FEASIBILITY_DOMAIN = {
     3: "Possibly feasible",
     4: "Likely feasible",
     5: "No conservation benefit",
-    11: "Fish passage installed",
-    12: "Removal planned",
+    11: "Fish passage installed",  # code no longer used
+    12: "Removal planned",  # code no longer used; superseded by 16
     13: "Breached with full flow",
+    14: "Fish passage installed for conservation benefit",
+    15: "Treatment complete (removal vs fishway unspecified)",
+    16: "Removal or fish passage planned",
     # not shown to user (filtered out for other reasons)
     6: "Unknown",
     7: "Error",
     8: "Dam removed for conservation benefit",
     9: "Invasive species barrier",
-    10: "Proposed dam",
+    10: "Proposed dam",  # code no longer used
 }
 
 
@@ -906,6 +926,40 @@ PASSABILITY_DOMAIN = {
     7: "No barrier",
 }
 
+FERCREGULATED_DOMAIN = {
+    -1: "Not applicable",  # small barriers only
+    0: "Unknown",
+    1: "Yes",
+    2: "Preliminary permit",
+    3: "Pending permit",
+    4: "Exempt",
+    5: "No",
+}
+
+STATE_REGULATED_DOMAIN = {
+    -1: "Not applicable",  # small barriers only
+    0: "Unknown",
+    1: "Yes",
+    2: "No",
+}
+
+WATER_RIGHT_DOMAIN = {
+    -1: "Not applicable",  # small barriers only
+    0: "Unknown",
+    1: "Yes",
+    2: "No",
+}
+
+HAZARD_DOMAIN = {
+    -1: "Not applicable",
+    0: "Unknown",
+    1: "High",
+    2: "Significant",
+    3: "Intermediate",
+    4: "Low",
+}
+
+
 ROAD_TYPE_DOMAIN = {
     -1: "Not applicable (dam)",
     0: "Unknown",
@@ -974,7 +1028,9 @@ PASSAGEFACILITY_DOMAIN = {
     19: "Crossvane",
     20: "Screen bypass",
     21: "Fishway unspecified",
-    22: "Other",
+    22: "Roughened channel",
+    23: "Hybrid / multiple",
+    24: "None (confirmed)",
 }
 
 MANUALREVIEW_DOMAIN = {
@@ -1003,7 +1059,7 @@ STREAMTYPE_DOMAIN = {
     2: "Intermittent stream / river",
     3: "Artificial path / unspecified connector",
     4: "Canal / ditch",
-    5: "Pipeline",
+    5: "Pipeline / underground connector",
 }
 
 BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
@@ -1093,6 +1149,7 @@ DOMAINS = {
     "Invasive": BOOLEAN_DOMAIN,
     "Intermittent": BOOLEAN_OFFNETWORK_DOMAIN,
     "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
+    "FlowsToGreatLakes": BOOLEAN_OFFNETWORK_DOMAIN,
     "ExitsRegion": BOOLEAN_OFFNETWORK_DOMAIN,
     "OwnerType": OWNERTYPE_DOMAIN,
     "BarrierOwnerType": BARRIEROWNERTYPE_DOMAIN,
@@ -1106,6 +1163,10 @@ DOMAINS = {
     "EJTribal": BOOLEAN_DOMAIN,
     # dam fields
     # note Recon domain is just used for internal exports; excluded from public exports
+    "FERCRegulated": FERCREGULATED_DOMAIN,
+    "StateRegulated": STATE_REGULATED_DOMAIN,
+    "WaterRight": WATER_RIGHT_DOMAIN,
+    "Hazard": HAZARD_DOMAIN,
     "Construction": CONSTRUCTION_DOMAIN,
     "Purpose": PURPOSE_DOMAIN,
     "Feasibility": FEASIBILITY_DOMAIN,
@@ -1139,15 +1200,19 @@ FIELD_DEFINITIONS = {
     "NIDID": "National Inventory of Dams Identifier.",
     "Source": "Source of this record in the inventory.",
     "Link": "Link to additional information about this {type}",
-    "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information",
+    "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
+    "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
+    "WaterRight": "Identifies if the {type} has an associated water right, if known.",
+    "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information.",
     # "NoStructure": "this location is a water diversion without an associated barrier structure and is not ranked",
     "River": "River name where {type} occurs, if available.",
     "YearCompleted": "year that construction was completed, if available.  0 = data not available.",
-    "Removed": "Identifies if the {type} has been removed for conservation, if known.",
-    "YearRemoved": "year that barrier was removed, if available.  0 = data not available or not removed.",
+    "Removed": "Identifies if the {type} has been removed for conservation, if known.  Removed barriers will not have values present for all fields.",
+    "YearRemoved": "year that barrier was removed, if available.  All barriers removed prior to 2000 or where YearRemoved is unknown were lumped together for the network analysis.  0 = data not available or not removed.",
     "Height": "{type} height in feet, if available.  0 = data not available.",
     "Length": "{type} length in feet, if available.  0 = data not available.",
     "Width": "{type} width in feet, if available.  0 = data not available.",
+    "Hazard": "Hazard rating of this {type}, if known.",
     "Construction": "material used in {type} construction, if known.",
     "Purpose": "primary purpose of {type}, if known.",
     "PassageFacility": "type of fish passage facility, if known.",
@@ -1219,8 +1284,8 @@ FIELD_DEFINITIONS = {
     "FreeIntermittentDownstreamMiles": "number of free-flowing ephemeral and intermittent miles in the downstream river network.  Excludes miles in waterbodies.  See IntermittentUpstreamMiles. -1 = not available.",
     "FreeAlteredDownstreamMiles": "number of free-flowing altered miles in the downstream river network from this {type}.  Excludes miles in waterbodies or reaches specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch or other channel alteration). -1 = not available.",
     "FreeUnalteredDownstreamMiles": "number of free-flowing altered miles in the downstream river network from this {type}.  Limited to reaches specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch or other channel alteration).  Excludes miles in waterbodies. -1 = not available.",
-    "GainMiles": "absolute number of miles that could be gained by removal of this {type}.  Calculated as the minimum of the TotalUpstreamMiles and FreeDownstreamMiles. -1 = not available.",
-    "PerennialGainMiles": "absolute number of perennial miles that could be gained by removal of this {type}.  Calculated as the minimum of the PerennialUpstreamMiles and FreePerennialDownstreamMiles. -1 = not available.",
+    "GainMiles": "absolute number of miles that could be gained by removal of this {type}.  Calculated as the minimum of the TotalUpstreamMiles and FreeDownstreamMiles. For removed barriers, this is based on the barriers present at the time this barrier was removed.  -1 = not available.",
+    "PerennialGainMiles": "absolute number of perennial miles that could be gained by removal of this {type}.  Calculated as the minimum of the PerennialUpstreamMiles and FreePerennialDownstreamMiles.  For removed barriers, this is based on the barriers present at the time this barrier was removed.  -1 = not available.",
     "TotalNetworkMiles": "sum of TotalUpstreamMiles and FreeDownstreamMiles. -1 = not available.",
     "TotalPerennialNetworkMiles": "sum of PerennialUpstreamMiles and FreePerennialDownstreamMiles. -1 = not available.",
     "UpstreamDrainageArea": "approximate drainage area of all NHD High Resolution catchments within upstream functional network of {type}.  Includes the total catchment area of any NHD High Resolution flowlines that are cut by barriers in the analysis, which may overrepresent total drainage area of the network. -1 = not available.",
@@ -1229,10 +1294,6 @@ FIELD_DEFINITIONS = {
     "UpstreamSmallBarriers": "number of assessed road-related barriers within the functional network if this barrier is a dam or at the upstream ends of the functional network if this barrier is a road-related barrier. -1 = not available.",
     "UpstreamRoadCrossings": "number of uninventoried estimated road crossings within the functional network for this {type}. -1 = not available.",
     "UpstreamHeadwaters": "number of headwaters within the functional network for this {type}. -1 = not available.",
-    "UpstreamCatchmentWaterfalls": "number of waterfalls within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
-    "UpstreamCatchmentDams": "number of dams within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
-    "UpstreamCatchmentSmallBarriers": "number of assessed road-related barriers within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
-    "UpstreamCatchmentRoadCrossings": "number of uninventoried estimated road crossings within the same catchment on the same NHD High Resolution flowline upstream of this {type}. -1 = not available.",
     "TotalUpstreamWaterfalls": "total number of waterfalls upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamDams": "total number of dams upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamSmallBarriers": "total number of assessed road-related barriers upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
@@ -1244,6 +1305,7 @@ FIELD_DEFINITIONS = {
     "TotalDownstreamRoadCrossings": "total number of uninventoried estimated road crossings between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "MilesToOutlet": "miles between this {type} and the downstream-most point on the full aquatic network on which it occurs. -1 = not available.",
     "FlowsToOcean": "indicates if this {type} was snapped to a stream or river that is known to flow into the ocean.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the ocean.",
+    "FlowsToGreatLakes": "indicates if this {type} was snapped to a stream or river that is known to flow into the Great Lakes.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the Great Lakes.",
     # "ExitsRegion": "indicates this {type} was snapped to a stream or river that exits the region of analysis (e.g., flows into Canada or Mexico) or flows into the ocean.",
     "State_NC_tier": "network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_WC_tier": "watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
@@ -1286,6 +1348,7 @@ RC_FIELD_DEFINITIONS = {
 #     3: "Partial breach",
 #     4: "Drained",
 #     5: "Dry detention",
+#     6: "Functions limited"
 # }
 
 
@@ -1305,6 +1368,9 @@ RC_FIELD_DEFINITIONS = {
 #     7: "Debris",
 #     8: "Other",
 #     9: "Dam",
+#     10: "Channel",
+#     11: "Gravel/borrow pits",
+#     12: "Utility crossing"
 # }
 
 

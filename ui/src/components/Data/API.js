@@ -175,3 +175,25 @@ export const searchUnits = async (layers, query) => {
     throw err
   }
 }
+
+export const searchBarriers = async (query) => {
+  const url = `${apiHost}/api/v1/internal/combined_barriers/search?query=${query}`
+
+  try {
+    const response = await fetch(url)
+    if (response.status !== 200) {
+      throw new Error(`Failed request to ${url}: ${response.statusText}`)
+    }
+
+    const data = await tableFromIPC(response.arrayBuffer())
+
+    return {
+      results: data.toArray().map((row) => row.toJSON()),
+      remaining: parseInt(data.schema.metadata.get('count'), 10) - data.numRows,
+    }
+  } catch (err) {
+    captureException(err)
+
+    throw err
+  }
+}

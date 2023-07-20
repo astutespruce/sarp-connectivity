@@ -4,6 +4,7 @@ import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
 import {
   Box,
+  Flex,
   Container,
   Divider,
   Grid,
@@ -19,12 +20,17 @@ import { Layout, SEO } from 'components/Layout'
 import { OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-import { REGION_STATES } from 'config'
+import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'
 
 import MTFWPLogo from 'images/mtfwp_logo.svg'
 import UTDWRLogo from 'images/utdwr_logo.svg'
 import WYGFDLogo from 'images/wygfd_logo.png'
+
+const regionID = 'gpiw'
+const {
+  [regionID]: { name, states },
+} = REGIONS
 
 const GPIWRegionPage = ({
   data: {
@@ -36,7 +42,7 @@ const GPIWRegionPage = ({
     },
   },
 }) => {
-  const { gpiw } = useSummaryData()
+  const { [regionID]: summary } = useSummaryData()
 
   return (
     <Layout>
@@ -51,34 +57,45 @@ const GPIWRegionPage = ({
       />
 
       <Container>
-        <Heading as="h1">Great Plains & Intermountain West Region</Heading>
+        <Flex
+          sx={{
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid',
+            borderBottomColor: 'grey.2',
+            pb: '0.25rem',
+          }}
+        >
+          <Heading as="h1" sx={{ flex: '1 1 auto' }}>
+            {name} Region
+          </Heading>
+        </Flex>
 
         <Grid columns={2} gap={5} sx={{ mt: '2rem' }}>
           <Box>
             <Box sx={{ border: '1px solid', borderColor: 'grey.4' }}>
               <GatsbyImage
                 image={map}
-                alt="Great Plains & Intermountain West region map"
+                alt={`${name} region map`}
                 sx={{ border: '1px solid', borderColor: 'grey.3' }}
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(gpiw.dams)} inventoried dams and{' '}
-              {formatNumber(gpiw.smallBarriers)} road-related barriers likely to
-              impact aquatic organisms in the Great Plains & Intermountain West
-              region.
+              Map of {formatNumber(summary.dams)} inventoried dams and{' '}
+              {formatNumber(summary.smallBarriers)} road-related barriers likely
+              to impact aquatic organisms in the {name} region.
             </Text>
           </Box>
           <Box>
             <Heading as="h4" sx={{ mb: '1rem' }}>
-              Includes {REGION_STATES.gpiw.length} states with:
+              Includes {states.length} states with:
             </Heading>
 
-            <RegionStats {...gpiw} />
+            <RegionStats {...summary} />
           </Box>
         </Grid>
 
-        <RegionActionLinks region="gpiw" />
+        <RegionActionLinks region={regionID} />
 
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">
@@ -133,7 +150,7 @@ const GPIWRegionPage = ({
             Statistics by state:
           </Heading>
           <Box sx={{ mt: '0.5rem' }}>
-            <StateDownloadTable region="gpiw" {...gpiw} />
+            <StateDownloadTable region={regionID} {...summary} />
           </Box>
         </Box>
 
@@ -151,8 +168,8 @@ const GPIWRegionPage = ({
             <br />
             <br />
             <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn
-            more about how you can help improve aquatic connectivity in the
-            Great Plains & Intermountain West.
+            more about how you can help improve aquatic connectivity in the{' '}
+            {name} region.
           </Paragraph>
         </Box>
       </Container>
@@ -194,6 +211,4 @@ export const pageQuery = graphql`
 
 export default GPIWRegionPage
 
-export const Head = () => (
-  <SEO title="Great Plains & Intermountain West Region" />
-)
+export const Head = () => <SEO title={`${name} Region`} />

@@ -11,9 +11,13 @@ export const useSummaryData = () => {
           dams
           rankedDams: ranked_dams
           reconDams: recon_dams
+          removedDams: removed_dams
+          removedDamsGainMiles: removed_dams_gain_miles
           totalSmallBarriers: total_small_barriers
           smallBarriers: small_barriers
           rankedSmallBarriers: ranked_small_barriers
+          removedSmallBarriers: removed_small_barriers
+          removedSmallBarriersGainMiles: removed_small_barriers_gain_miles
           crossings
         }
         regions: region {
@@ -21,9 +25,13 @@ export const useSummaryData = () => {
           dams
           rankedDams: ranked_dams
           reconDams: recon_dams
+          removedDams: removed_dams
+          removedDamsGainMiles: removed_dams_gain_miles
           totalSmallBarriers: total_small_barriers
           smallBarriers: small_barriers
           rankedSmallBarriers: ranked_small_barriers
+          removedSmallBarriers: removed_small_barriers
+          removedSmallBarriersGainMiles: removed_small_barriers_gain_miles
           crossings
         }
       }

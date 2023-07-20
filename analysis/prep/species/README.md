@@ -1,4 +1,4 @@
-# Southeast Aquatic Barrier Inventory Data Processing - Species Data Preparation
+# National Aquatic Barrier Inventory & Prioritization Tool Data Processing - Species Data Preparation
 
 Data on T&E species are obtained by SARP from regional and state partners. These
 are summarized to the HUC12 level. Where possible, additional names of T&E species

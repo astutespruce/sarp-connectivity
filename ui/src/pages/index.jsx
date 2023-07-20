@@ -19,8 +19,8 @@ const IndexPage = ({ data: { headerImage } }) => (
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
       height="28vh"
-      minHeight="18rem"
-      title="Aquatic Barrier Prioritization Tool"
+      minHeight="22rem"
+      title="National Aquatic Barrier Inventory & Prioritization Tool"
       subtitle="Improve aquatic connectivity by prioritizing aquatic barriers for removal using the best
       available data."
     />

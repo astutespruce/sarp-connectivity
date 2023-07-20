@@ -1,4 +1,4 @@
-# Southeast Aquatic Barrier Inventory Data Processing - Aquatic Barriers
+# National Aquatic Barrier Inventory & Prioritization Tool Data Processing - Aquatic Barriers
 
 This is the main data flow for updating barrier data, each time new barriers need to be processed for use in the tool.
 

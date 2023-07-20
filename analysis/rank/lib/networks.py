@@ -1,5 +1,4 @@
 from pathlib import Path
-import warnings
 import pyarrow as pa
 
 import pyarrow.compute as pc
@@ -8,9 +7,9 @@ import numpy as np
 from analysis.lib.io import read_feathers
 from analysis.rank.lib.metrics import (
     classify_gain_miles,
-    classify_ocean_miles,
+    classify_downstream_miles,
     classify_percent_altered,
-    classify_ocean_barriers,
+    classify_downstream_barriers,
 )
 from api.lib.tiers import calculate_tiers, METRICS
 
@@ -19,6 +18,10 @@ NETWORK_COLUMNS = [
     "id",
     "upNetID",
     "downNetID",
+    "GainMiles",
+    "PerennialGainMiles",
+    "TotalNetworkMiles",
+    "TotalPerennialNetworkMiles",
     "TotalUpstreamMiles",
     "PerennialUpstreamMiles",
     "AlteredUpstreamMiles",
@@ -29,7 +32,9 @@ NETWORK_COLUMNS = [
     "FreePerennialDownstreamMiles",
     "FreeAlteredDownstreamMiles",
     "FreeUnalteredDownstreamMiles",
-    # "FreePerennialUnalteredDownstreamMiles",  # not nused
+    # "FreePerennialUnalteredDownstreamMiles",  # not used
+    "PercentAltered",
+    "PercentPerennialAltered",
     "PercentUnaltered",
     "PercentPerennialUnaltered",
     "IntermittentUpstreamMiles",
@@ -43,10 +48,6 @@ NETWORK_COLUMNS = [
     "fn_small_barriers",
     "fn_road_crossings",
     "fn_headwaters",
-    "cat_waterfalls",
-    "cat_dams",
-    "cat_small_barriers",
-    "cat_road_crossings",
     "tot_waterfalls",
     "tot_dams",
     "tot_small_barriers",
@@ -58,6 +59,7 @@ NETWORK_COLUMNS = [
     "totd_road_crossings",
     "miles_to_outlet",
     "flows_to_ocean",
+    "flows_to_great_lakes",
     "exits_region",
 ]
 
@@ -71,10 +73,6 @@ NETWORK_COLUMN_NAMES = {
     "fn_road_crossings": "UpstreamRoadCrossings",
     "fn_waterfalls": "UpstreamWaterfalls",
     "fn_headwaters": "UpstreamHeadwaters",
-    "cat_dams": "UpstreamCatchmentDams",
-    "cat_small_barriers": "UpstreamCatchmentSmallBarriers",
-    "cat_road_crossings": "UpstreamCatchmentRoadCrossings",
-    "cat_waterfalls": "UpstreamCatchmentWaterfalls",
     "tot_dams": "TotalUpstreamDams",
     "tot_small_barriers": "TotalUpstreamSmallBarriers",
     "tot_road_crossings": "TotalUpstreamRoadCrossings",
@@ -86,6 +84,7 @@ NETWORK_COLUMN_NAMES = {
     "totd_waterfalls": "TotalDownstreamWaterfalls",
     "miles_to_outlet": "MilesToOutlet",
     "flows_to_ocean": "FlowsToOcean",
+    "flows_to_great_lakes": "FlowsToGreatLakes",
     "exits_region": "ExitsRegion",
 }
 
@@ -147,43 +146,9 @@ def get_network_results(df, network_type, state_ranks=False):
         networks.loc[networks.SizeClasses > 0, "SizeClasses"] - 1
     )
 
-    ### Calculate miles GAINED if barrier is removed
-    # this is the lesser of the upstream or free downstream lengths.
-    # Non-free miles downstream (downstream waterbodies) are omitted from this analysis.
-    networks["GainMiles"] = networks[["TotalUpstreamMiles", "FreeDownstreamMiles"]].min(
-        axis=1
-    )
-    networks["PerennialGainMiles"] = networks[
-        ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
-    ].min(axis=1)
-
-    # For barriers that terminate in marine areas, their GainMiles is only based on the upstream miles
-    ix = (networks.MilesToOutlet == 0) & (networks.FlowsToOcean == 1)
-    networks.loc[ix, "GainMiles"] = networks.loc[ix].TotalUpstreamMiles
-    networks.loc[ix, "PerennialGainMiles"] = networks.loc[ix].PerennialUpstreamMiles
-
-    # TotalNetworkMiles is sum of upstream and free downstream miles
-    networks["TotalNetworkMiles"] = networks[
-        ["TotalUpstreamMiles", "FreeDownstreamMiles"]
-    ].sum(axis=1)
-    networks["TotalPerennialNetworkMiles"] = networks[
-        ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
-    ].sum(axis=1)
-
-    # Round floating point columns to 3 decimals
-    for column in [c for c in networks.columns if c.endswith("Miles")]:
-        networks[column] = networks[column].round(3).fillna(-1)
-
-    ### Set PercentUnaltered and PercentAltered to integers
-    networks["PercentUnaltered"] = networks.PercentUnaltered.round().astype("int8")
-    networks["PercentAltered"] = 100 - networks.PercentUnaltered
-
     ### Calculate classes used for filtering
     networks["GainMilesClass"] = classify_gain_miles(networks.GainMiles)
     networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
-
-    # Diadromous related filters - must have FlowsToOcean == True
-    networks["DownstreamOceanMilesClass"] = classify_ocean_miles(networks.MilesToOutlet)
 
     # NOTE: per guidance from SARP, do not include count of waterfalls
     if network_type == "dams":
@@ -193,11 +158,27 @@ def get_network_results(df, network_type, state_ranks=False):
             +networks.TotalDownstreamDams + networks.TotalDownstreamSmallBarriers
         )
 
-    networks["DownstreamOceanBarriersClass"] = classify_ocean_barriers(num_downstream)
-
+    # Diadromous related filters - must have FlowsToOcean == True
+    networks["DownstreamOceanMilesClass"] = classify_downstream_miles(
+        networks.MilesToOutlet
+    )
+    networks["DownstreamOceanBarriersClass"] = classify_downstream_barriers(
+        num_downstream
+    )
     ix = ~networks.FlowsToOcean
     networks.loc[ix, "DownstreamOceanMilesClass"] = 0
     networks.loc[ix, "DownstreamOceanBarriersClass"] = 0
+
+    # similar for Great Lakes
+    networks["DownstreamGreatLakesMilesClass"] = classify_downstream_miles(
+        networks.MilesToOutlet
+    )
+    networks["DownstreamGreatLakesBarriersClass"] = classify_downstream_barriers(
+        num_downstream
+    )
+    ix = ~networks.FlowsToGreatLakes
+    networks.loc[ix, "DownstreamGreatLakesMilesClass"] = 0
+    networks.loc[ix, "DownstreamGreatLakesBarriersClass"] = 0
 
     # Convert dtypes to allow missing data when joined to barriers later
     # NOTE: upNetID or downNetID may be 0 if there aren't networks on that side, but
@@ -207,7 +188,6 @@ def get_network_results(df, network_type, state_ranks=False):
 
     for stat_type in [
         "Upstream",
-        "UpstreamCatchment",
         "TotalUpstream",
         "TotalDownstream",
     ]:
@@ -244,5 +224,72 @@ def get_network_results(df, network_type, state_ranks=False):
     networks = networks.join(state_tiers)
     for col in [col for col in networks.columns if col.endswith("_tier")]:
         networks[col] = networks[col].fillna(np.int8(-1)).astype("int8")
+
+    return networks.drop(columns=["Unranked", "State"])
+
+
+def get_removed_network_results(df, network_type):
+    """Read network results for removed barriers.
+
+    Parameters
+    ----------
+    df : DataFrame
+        barriers data; must contain State and Unranked
+    network_type : {"dams", "small_barriers"}
+        network scenario; note that small_barriers includes the network already
+        cut by dams
+
+    Returns
+    -------
+    DataFrame
+        Contains network metrics
+    """
+
+    networks = read_feathers(
+        [
+            Path("data/networks/clean")
+            / huc2
+            / f"removed_{network_type}_network.feather"
+            for huc2 in sorted(df.HUC2.unique())
+        ],
+    ).set_index("id")
+
+    networks = networks[[c for c in NETWORK_COLUMNS if c in networks.columns]].rename(
+        columns=NETWORK_COLUMN_NAMES
+    )
+
+    # join back to df using inner join, which limits to barrier types present in df
+    networks = networks.join(
+        df[df.columns.intersection(["Unranked", "State"])], how="inner"
+    )
+
+    # sanity check to make sure no duplicate networks
+    if networks.groupby(level=0).size().max() > 1:
+        raise Exception(
+            f"ERROR: multiple networks found for some {network_type} networks"
+        )
+
+    networks["HasNetwork"] = True
+    networks["Ranked"] = False
+
+    # update data types and calculate total fields
+    # calculate size classes GAINED instead of total
+    # doesn't apply to those that don't have upstream networks
+    networks["SizeClasses"] = networks.SizeClasses.astype("int8")
+    networks.loc[networks.SizeClasses > 0, "SizeClasses"] = (
+        networks.loc[networks.SizeClasses > 0, "SizeClasses"] - 1
+    )
+
+    # Convert dtypes to allow missing data when joined to barriers later
+    for col in ["upNetID", "downNetID"]:
+        # Force to -1 since these aren't part of standard networks
+        networks[col] = -1
+
+    for t in ["Waterfalls", "Dams", "SmallBarriers", "RoadCrossings"]:
+        col = f"TotalDownstream{t}"
+        networks[col] = networks[col].fillna(0).astype("int32")
+
+    for col in ("Landcover", "FlowsToOcean", "ExitsRegion"):
+        networks[col] = networks[col].astype("int8")
 
     return networks.drop(columns=["Unranked", "State"])

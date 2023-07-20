@@ -67,6 +67,7 @@ const PriorityMap = ({
   onSelectUnit,
   onSelectBarrier,
   onMapLoad,
+  children,
   ...props
 }) => {
   const barrierType = useBarrierType()
@@ -812,12 +813,18 @@ const PriorityMap = ({
     }
 
     if (isWithinZoom[offnetworkPoint.id]) {
-      unrankedBarriers.forEach(({ getSymbol, getLabel }) => {
-        circles.push({
-          ...getSymbol(barrierType),
-          label: getLabel(barrierTypeLabel),
+      unrankedBarriers
+        .filter(
+          ({ id }) =>
+            // don't show minor barriers for dams view
+            id !== 'minorBarrier' || barrierType !== 'dams'
+        )
+        .forEach(({ getSymbol, getLabel }) => {
+          circles.push({
+            ...getSymbol(barrierType),
+            label: getLabel(barrierTypeLabel),
+          })
         })
-      })
 
       other.forEach(({ id, getSymbol, getLabel }) => {
         if (id === 'dams-secondary' && barrierType !== 'small_barriers') {
@@ -847,6 +854,7 @@ const PriorityMap = ({
         onChange={handlePriorityLayerChange}
       />
       <Legend {...getLegend()} />
+      {children}
     </Map>
   )
 }
@@ -869,6 +877,10 @@ PriorityMap.propTypes = {
     })
   ),
   bounds: PropTypes.arrayOf(PropTypes.number),
+  children: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.node),
+    PropTypes.node,
+  ]),
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
   onMapLoad: PropTypes.func.isRequired,
@@ -882,6 +894,7 @@ PriorityMap.defaultProps = {
   summaryUnits: [],
   rankedBarriers: [],
   bounds: null,
+  children: null,
 }
 
 export default memo(PriorityMap)

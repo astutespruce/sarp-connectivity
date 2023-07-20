@@ -27,13 +27,6 @@ export const barrierNameWhenUnknown = {
   waterfalls: 'Waterfall (unknown name)',
 }
 
-export const REGIONS = {
-  gpiw: 'Great Plains & Intermountain West',
-  pnw: 'Pacific Northwest',
-  se: 'Southeast',
-  sw: 'Southwest',
-}
-
 // some colors are derived from: https://xdgov.github.io/data-design-standards/components/colors
 export const pointColors = {
   highlight: {
@@ -64,7 +57,7 @@ export const pointColors = {
     strokeColor: '#666',
   },
   damsSecondary: {
-    color: '#fec44f',
+    color: '#c20a38',
     strokeColor: '#FFFFFF',
   },
   removed: {
@@ -72,6 +65,10 @@ export const pointColors = {
     strokeColor: '#000000',
     // combined scenario:
     damsColor: '#09cad7',
+  },
+  minorBarrier: {
+    color: '#fec44f',
+    strokeColor: '#b27701',
   },
   nonBarrier: {
     color: '#00D46A',
@@ -264,6 +261,16 @@ export const pointLegends = {
       },
       getLabel: (barrierTypeLabel) =>
         `${barrierTypeLabel} removed for conservation`,
+    },
+    {
+      id: 'minorBarrier',
+      getSymbol: () => ({
+        radius: 5,
+        color: pointColors.minorBarrier.color,
+        borderColor: pointColors.minorBarrier.strokeColor,
+        borderWidth: 0.5,
+      }),
+      getLabel: () => 'minor barrier based on field assessment',
     },
     {
       id: 'nonBarrier',
@@ -486,6 +493,7 @@ export const STATES = {
   TX: 'Texas',
   UT: 'Utah',
   VA: 'Virginia',
+  VI: 'U.S. Virgin Islands',
   VT: 'Vermont',
   WA: 'Washington',
   WI: 'Wisconsin',
@@ -493,42 +501,95 @@ export const STATES = {
   WY: 'Wyoming',
 }
 
-export const REGION_STATES = {
-  se: [
-    'AL',
-    'AR',
-    'FL',
-    'GA',
-    'KY',
-    'LA',
-    'MO',
-    'MS',
-    'NC',
-    'OK',
-    'PR',
-    'SC',
-    'TN',
-    'TX',
-    'VA',
-    'WV', // TEMP
-  ],
-  gpiw: [
-    'CO',
-    'IA', // TEMP:
-    'KS',
-    'MT',
-    'ND',
-    'NE',
-    'SD',
-    'WY',
-    'UT',
-  ],
-  pnw: ['ID', 'OR', 'WA'],
-  sw: ['AZ', 'NM', 'OK', 'TX'],
+export const REGIONS = {
+  ak: {
+    name: 'Alaska',
+    order: 6,
+    url: '/regions/alaska',
+    states: ['AK'],
+    inDevelopment: true,
+  },
+  gl: {
+    name: 'Great Lakes',
+    order: 4,
+    url: '/regions/great_lakes',
+    states: ['IA', 'IL', 'IN', 'MI', 'MN', 'OH', 'WI'],
+    inDevelopment: true,
+  },
+  gpiw: {
+    name: 'Great Plains & Intermountain West',
+    url: '/regions/great_plains_intermountain_west',
+    order: 1,
+    states: ['CO', 'IA', 'KS', 'MT', 'ND', 'NE', 'SD', 'WY', 'UT'],
+  },
+  ne: {
+    name: 'Northeast',
+    order: 7,
+    url: '/regions/northeast',
+    states: [
+      'CT',
+      'DC',
+      'DE',
+      'MA',
+      'MD',
+      'ME',
+      'NH',
+      'NJ',
+      'NY',
+      'PA',
+      'RI',
+      'VT',
+    ],
+    inDevelopment: true,
+  },
+  pnw: {
+    name: 'Pacific Northwest',
+    order: 3,
+    url: '/regions/northwest',
+    states: ['ID', 'OR', 'WA'],
+  },
+  psw: {
+    name: 'Pacific Southwest',
+    order: 5,
+    url: '/regions/pacific_southwest',
+    states: ['CA', 'NV'],
+    inDevelopment: true,
+  },
+  se: {
+    name: 'Southeast',
+    order: 0,
+    url: '/regions/southeast',
+    states: [
+      'AL',
+      'AR',
+      'FL',
+      'GA',
+      'KY',
+      'LA',
+      'MO',
+      'MS',
+      'NC',
+      'OK',
+      'PR',
+      'SC',
+      'TN',
+      'TX',
+      'VA',
+      'VI',
+      'WV',
+    ],
+  },
+  sw: {
+    name: 'Southwest',
+    order: 2,
+    url: '/regions/southwest',
+    states: ['AZ', 'NM', 'OK', 'TX'],
+  },
 }
-REGION_STATES.total = [
+
+export const ANALYSIS_STATES = [
   ...new Set(
-    Object.values(REGION_STATES).reduce((prev, cur) => {
+    Object.values(REGIONS).reduce((prev, { states: cur }) => {
       prev.push(...cur)
       return prev
     }, [])
@@ -617,11 +678,12 @@ export const FEASIBILITYCLASS = {
   4: 'likely infeasible',
   5: 'not feasible',
   6: 'no conservation benefit',
-  7: 'removal planned',
+  7: 'project planned',
   8: 'breached with full flow',
   9: 'fish passage installed',
+  10: 'treatment complete (removal vs fishway unspecified)',
   // not shown to user
-  // 10: (multiple values lumped to prevent showing in filter)
+  // 11: (multiple values lumped to prevent showing in filter)
 }
 
 export const HEIGHT = {
@@ -751,6 +813,39 @@ export const BARRIEROWNERTYPE = {
   4: 'local government',
   5: 'public utility',
   6: 'tribal',
+}
+
+export const FERC_REGULATED = {
+  '-1': 'Not applicable (road-related barrier)', // small barriers only
+  0: 'Unknown',
+  1: 'Yes',
+  2: 'Preliminary permit',
+  3: 'Pending permit',
+  4: 'Exempt',
+  5: 'No',
+}
+
+export const STATE_REGULATED = {
+  '-1': 'Not applicable (road-related barrier)', // small barriers only
+  0: 'Unknown',
+  1: 'Yes',
+  2: 'No',
+}
+
+export const WATER_RIGHT = {
+  '-1': 'Not applicable (road-related barrier)', // small barriers only
+  0: 'Unknown',
+  1: 'Yes',
+  2: 'No',
+}
+
+export const HAZARD = {
+  '-1': 'Not applicable (road-related barrier)',
+  0: 'Unknown',
+  1: 'High',
+  2: 'Significant',
+  3: 'Intermediate',
+  4: 'Low',
 }
 
 export const PASSAGEFACILITY_CLASS = {

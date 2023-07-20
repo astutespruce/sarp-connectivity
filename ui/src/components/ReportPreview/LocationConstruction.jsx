@@ -7,6 +7,7 @@ import { classifySARPScore } from 'components/BarrierDetails/SmallBarrierDetails
 import {
   siteMetadata,
   barrierTypeLabelSingular,
+  HAZARD,
   CONDITION,
   CONSTRUCTION,
   CONSTRICTION,
@@ -15,6 +16,9 @@ import {
   ROAD_TYPE,
   OWNERTYPE,
   BARRIEROWNERTYPE,
+  FERC_REGULATED,
+  STATE_REGULATED,
+  WATER_RIGHT,
   DISADVANTAGED_COMMUNITY,
   PURPOSE,
   PASSABILITY,
@@ -38,7 +42,11 @@ const LocationConstruction = ({
   huc12,
   ownertype,
   barrierownertype,
+  fercregulated,
+  stateregulated,
+  waterright,
   disadvantagedcommunity,
+  hazard,
   construction,
   lowheaddam,
   purpose,
@@ -192,6 +200,27 @@ const LocationConstruction = ({
             </Entry>
           ) : null}
 
+          {fercregulated !== null && fercregulated > 0 ? (
+            <Entry>
+              Regulated by the Federal Energy Regulatory Commission:{' '}
+              {FERC_REGULATED[fercregulated].toLowerCase()}
+            </Entry>
+          ) : null}
+
+          {stateregulated !== null && stateregulated !== -1 ? (
+            <Entry>
+              Regulated at the state level:{' '}
+              {STATE_REGULATED[stateregulated].toLowerCase()}
+            </Entry>
+          ) : null}
+
+          {waterright !== null && waterright > 0 ? (
+            <Entry>
+              Has an associated water right:{' '}
+              {WATER_RIGHT[waterright].toLowerCase()}
+            </Entry>
+          ) : null}
+
           {disadvantagedcommunity ? (
             <Entry>
               Climate and environmental justice:{' '}
@@ -230,6 +259,10 @@ const LocationConstruction = ({
                       Construction material:{' '}
                       {CONSTRUCTION[construction].toLowerCase()}
                     </Entry>
+                  ) : null}
+
+                  {hazard !== null && hazard > 0 ? (
+                    <Entry>Hazard rating: {HAZARD[hazard].toLowerCase()}</Entry>
                   ) : null}
 
                   {condition !== null && condition >= 0 ? (
@@ -305,10 +338,14 @@ LocationConstruction.propTypes = {
   huc12: PropTypes.string,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
+  fercregulated: PropTypes.number,
+  stateregulated: PropTypes.number,
+  waterright: PropTypes.number,
   disadvantagedcommunity: PropTypes.string,
   height: PropTypes.number,
   width: PropTypes.number,
   yearcompleted: PropTypes.number,
+  hazard: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
   condition: PropTypes.number,
@@ -341,9 +378,13 @@ LocationConstruction.defaultProps = {
   huc12: null,
   ownertype: null,
   barrierownertype: null,
+  fercregulated: null,
+  stateregulated: null,
+  waterright: null,
   disadvantagedcommunity: null,
   height: 0,
   width: 0,
+  hazard: null,
   yearcompleted: 0,
   construction: null,
   purpose: null,

@@ -4,7 +4,6 @@ import geopandas as gp
 import pandas as pd
 from pyogrio import write_dataframe
 
-from analysis.constants import CRS
 from analysis.lib.io import read_feathers
 from analysis.lib.geometry.lines import merge_lines
 
@@ -12,22 +11,37 @@ src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True, parents=True)
 
-
-barrier_type = "dams"
+prefix = ""  # "removed_"
+segments_prefix = ""  # "removed_barriers_"
+barrier_type = "dams"  # , "dams"
 ext = "fgb"
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
-# export_hucs = {"02", "03", "05", "06", "07", "08", "10", "11", "12", "13"}
+export_hucs = {
+    # "01",
+    # "02",
+    # "04",
+    # "05",
+    # "06",
+    # "07",
+    # "08"
+    # "09"
+    # "21"
+}
 
 
-# for group in groups_df.groupby("group").HUC2.apply(set).values:
-for group in [{"17"}]:
+for group in groups_df.groupby("group").HUC2.apply(set).values:
+    # for group in [{"05", "06", "07", "08", "10", "11"}]:
+    # for group in [{"14","15"}, {"16"}]:
     group = sorted(group)
 
     segments = (
         read_feathers(
-            [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
+            [
+                src_dir / "clean" / huc2 / f"{segments_prefix}network_segments.feather"
+                for huc2 in group
+            ],
             columns=["lineID", barrier_type],
         )
         .rename(columns={barrier_type: "networkID"})
@@ -36,7 +50,7 @@ for group in [{"17"}]:
 
     stats = read_feathers(
         [
-            src_dir / "clean" / huc2 / f"{barrier_type}_network_stats.feather"
+            src_dir / "clean" / huc2 / f"{prefix}{barrier_type}_network_stats.feather"
             for huc2 in group
         ]
     ).set_index("networkID")
@@ -52,9 +66,12 @@ for group in [{"17"}]:
     for kind in ["waterfalls", "dams", "small_barriers", "road_crossings"]:
         for count_type in ["fn", "tot", "totd", "cat"]:
             col = f"{count_type}_{kind}"
-            stats[col] = stats[col].fillna(0).astype("uint32")
+            if col in stats.columns:
+                stats[col] = stats[col].fillna(0).astype("uint32")
 
-    stats["flows_to_ocean"] = stats.flows_to_ocean.astype("uint8")
+    for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region"]:
+        if col in stats.columns:
+            stats[col] = stats[col].astype("uint8")
 
     # natural floodplain is missing for several catchments; fill with -1
     for col in ["natfldpln", "sizeclasses"]:
@@ -62,7 +79,7 @@ for group in [{"17"}]:
 
     # create output files by HUC2 based on where the segments occur
     for huc2 in group:
-        # if not huc2 in export_hucs:
+        # if huc2 not in export_hucs:
         #     continue
 
         print(f"Dissolving networks in {huc2}...")
@@ -83,10 +100,11 @@ for group in [{"17"}]:
         )
         flowlines = flowlines.join(segments)
 
-        # ### To export larger flowlines only
-        # flowlines = flowlines.loc[
-        #     flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
-        # ]
+        ### To export larger flowlines only
+        flowlines = flowlines.loc[
+            flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
+        ]
+        flowlines = flowlines.loc[flowlines.sizeclass.isin(["2", "3a", "3b", "4", "5"])]
 
         ### To export dissolved networks
         networks = (
@@ -117,5 +135,5 @@ for group in [{"17"}]:
 
         print(f"Serializing {len(networks):,} dissolved networks...")
         write_dataframe(
-            networks, out_dir / f"region{huc2}_{barrier_type}_networks.{ext}"
+            networks, out_dir / f"region{huc2}_{prefix}{barrier_type}_networks.{ext}"
         )

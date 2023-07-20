@@ -28,9 +28,13 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
     layerId,
     dams = 0,
     rankedDams = 0,
+    removedDams = 0,
+    removedDamsGainMiles = 0,
     smallBarriers = 0,
     totalSmallBarriers = 0,
     rankedSmallBarriers = 0,
+    removedSmallBarriers = 0,
+    removedSmallBarriersGainMiles = 0,
     crossings = 0,
   } = summaryUnit
 
@@ -190,10 +194,18 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
                 <Box as="ul" sx={{ mt: '0.5rem' }}>
                   <li>
                     <b>{formatNumber(rankedDams, 0)}</b>{' '}
-                    {rankedDams === 1 ? 'dam' : 'dams'} that{' '}
+                    that{' '}
                     {rankedDams === 1 ? 'was ' : 'were '} analyzed for impacts
                     to aquatic connectivity in this tool
                   </li>
+                  {removedDams > 0 ? (
+                    <li>
+                      <b>{formatNumber(removedDams, 0)}</b> that have been
+                      removed or mitigated, gaining{' '}
+                      <b>{formatNumber(removedDamsGainMiles)} miles</b> of
+                      reconnected rivers and streams
+                    </li>
+                  ) : null}
                 </Box>
               </>
             ) : (
@@ -220,28 +232,31 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
                 </Paragraph>
                 <Box as="ul" sx={{ mt: '0.5rem' }}>
                   <li>
-                    <b>{formatNumber(totalRoadBarriers, 0)}</b> road-related
-                    potential {totalRoadBarriers === 1 ? 'barrier' : 'barriers'}{' '}
-                    (road/stream crossings)
+                    <b>{formatNumber(totalRoadBarriers, 0)}</b> road/stream crossings
                   </li>
                   <li>
-                    <b>{formatNumber(totalSmallBarriers, 0)}</b> road-related{' '}
-                    {totalSmallBarriers === 1 ? 'barrier' : 'barriers'}{' '}
+                    <b>{formatNumber(totalSmallBarriers, 0)}</b> that{' '}
                     {totalSmallBarriers === 1 ? 'has ' : 'have '} been assessed
                     for impacts to aquatic organisms.
                   </li>
                   <li>
-                    <b>{formatNumber(smallBarriers, 0)}</b> road-related{' '}
-                    {pluralize('barrier', smallBarriers)} assessed{' '}
+                    <b>{formatNumber(smallBarriers, 0)}</b> that{' '}
                     {smallBarriers === 1 ? 'is' : 'are'} likely to impact
                     aquatic organisms
                   </li>
                   <li>
-                    <b>{formatNumber(rankedSmallBarriers, 0)}</b> road-related{' '}
-                    {pluralize('barrier', rankedSmallBarriers)} that{' '}
+                    <b>{formatNumber(rankedSmallBarriers, 0)}</b> that{' '}
                     {rankedSmallBarriers === 1 ? 'was ' : 'were '} analyzed for
                     impacts to aquatic connectivity in this tool
                   </li>
+                  {removedSmallBarriers > 0 ? (
+                    <li>
+                      <b>{formatNumber(removedSmallBarriers, 0)}</b> that have
+                      been removed or mitigated, gaining{' '}
+                      <b>{formatNumber(removedSmallBarriersGainMiles)} miles</b>{' '}
+                      of reconnected rivers and streams
+                    </li>
+                  ) : null}
                 </Box>
               </>
             ) : (
@@ -396,9 +411,13 @@ UnitDetails.propTypes = {
     name: PropTypes.string,
     dams: PropTypes.number,
     rankedDams: PropTypes.number,
+    removedDams: PropTypes.number,
+    removedDamsGainMiles: PropTypes.number,
     smallBarriers: PropTypes.number,
     totalSmallBarriers: PropTypes.number,
     rankedSmallBarriers: PropTypes.number,
+    removedSmallBarriers: PropTypes.number,
+    removedSmallBarriersGainMiles: PropTypes.number,
     crossings: PropTypes.number,
     miles: PropTypes.number,
   }).isRequired,

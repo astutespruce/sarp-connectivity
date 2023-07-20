@@ -93,7 +93,7 @@ def extract_flowlines(gdb, target_crs):
     read_cols, col_map = get_column_names(gdb, layer, VAA_COLS)
 
     vaa_df = (
-        read_dataframe(gdb, layer=layer, columns=read_cols)
+        read_dataframe(gdb, layer=layer, columns=read_cols, use_arrow=True)
         .rename(columns=col_map)
         .rename(
             columns={
@@ -259,14 +259,6 @@ def extract_flowlines(gdb, target_crs):
 
     # drop any duplicates (above operation sets some joins to upstream and downstream of 0)
     join_df = join_df.drop_duplicates(subset=["upstream", "downstream"])
-
-    ### Filter out underground connectors
-    ix = df.loc[df.FType == 420].index
-    print(f"Removing {len(ix):,} underground conduits")
-    df = df.loc[~df.index.isin(ix)].copy()
-    join_df = remove_joins(
-        join_df, ix, downstream_col="downstream", upstream_col="upstream"
-    )
 
     ### Filter out any flowlines where TotDASqKm is 0; these do not have associated catchments
     # and are likely noise

@@ -48,37 +48,6 @@ state_df = gp.read_feather(
     out_dir / "region_states.feather", columns=["STATEFIPS", "geometry", "id"]
 )
 
-# Clip HUC4 areas outside state boundaries; these are remainder
-state_merged = shapely.coverage_union_all(state_df.geometry.values.data)
-
-# find all that intersect but are not contained
-tree = shapely.STRtree(huc4_df.geometry.values.data)
-intersects_ix = tree.query(state_merged, predicate="intersects")
-contains_ix = tree.query(state_merged, predicate="contains")
-ix = np.setdiff1d(intersects_ix, contains_ix)
-
-outer_huc4 = huc4_df.iloc[ix].copy()
-outer_huc4["km2"] = shapely.area(outer_huc4.geometry.values.data) / 1e6
-
-# calculate geometric difference, explode, and keep non-slivers
-# outer HUC4s are used to clip NID dams for areas outside region states for which
-# inventoried dams are available
-outer_huc4["geometry"] = shapely.difference(
-    outer_huc4.geometry.values.data, state_merged
-)
-outer_huc4 = explode(outer_huc4)
-outer_huc4["clip_km2"] = shapely.area(outer_huc4.geometry.values.data) / 1e6
-outer_huc4["percent"] = 100 * outer_huc4.clip_km2 / outer_huc4.km2
-keep_huc4 = outer_huc4.loc[outer_huc4.clip_km2 >= 100].HUC4.unique()
-outer_huc4 = outer_huc4.loc[
-    outer_huc4.HUC4.isin(keep_huc4) & (outer_huc4.clip_km2 >= 2.5)
-].copy()
-outer_huc4 = dissolve(outer_huc4, by="HUC4", agg={"HUC2": "first"}).reset_index(
-    drop=True
-)
-outer_huc4.to_feather(out_dir / "outer_huc4.feather")
-write_dataframe(outer_huc4, out_dir / "outer_huc4.fgb")
-
 ### Counties - within HUC4 bounds
 print("Processing counties")
 state_fips = sorted(state_df.STATEFIPS.unique())

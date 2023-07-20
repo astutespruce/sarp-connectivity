@@ -35,7 +35,8 @@ import Scores from './Scores'
 import Species from './Species'
 
 const Preview = ({ networkType, data }) => {
-  const { id, sarpid, upnetid, county, state, lat, lon } = data
+  const { id, sarpid, upnetid, county, state, lat, lon, feasibilityclass } =
+    data
 
   const barrierType =
     networkType === 'combined_barriers' ? data.barriertype : networkType
@@ -263,7 +264,11 @@ const Preview = ({ networkType, data }) => {
             {...data}
           />
 
-          <Feasibility sx={{ mt: '3rem' }} {...data} />
+          {feasibilityclass !== null &&
+          feasibilityclass > 0 &&
+          feasibilityclass <= 10 ? (
+            <Feasibility sx={{ mt: '3rem' }} {...data} />
+          ) : null}
 
           <Species sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
 

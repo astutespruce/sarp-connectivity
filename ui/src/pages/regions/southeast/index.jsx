@@ -5,6 +5,7 @@ import { GatsbyImage } from 'gatsby-plugin-image'
 
 import {
   Box,
+  Flex,
   Container,
   Divider,
   Grid,
@@ -20,9 +21,14 @@ import { Link, OutboundLink } from 'components/Link'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-import { REGION_STATES } from 'config'
+import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'
 import SARPLogoImage from 'images/sarp_logo.png'
+
+const regionID = 'se'
+const {
+  [regionID]: { name, states },
+} = REGIONS
 
 const SERegionPage = ({
   data: {
@@ -40,7 +46,7 @@ const SERegionPage = ({
     },
   },
 }) => {
-  const { se } = useSummaryData()
+  const { [regionID]: summary } = useSummaryData()
 
   return (
     <Layout>
@@ -55,34 +61,46 @@ const SERegionPage = ({
       />
 
       <Container>
-        <Heading as="h1">Southeast Region</Heading>
+        <Flex
+          sx={{
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid',
+            borderBottomColor: 'grey.2',
+            pb: '0.25rem',
+          }}
+        >
+          <Heading as="h1" sx={{ flex: '1 1 auto' }}>
+            {name} Region
+          </Heading>
+        </Flex>
 
         <Grid columns={2} gap={5} sx={{ mt: '2rem' }}>
           <Box>
             <Box sx={{ border: '1px solid', borderColor: 'grey.4' }}>
               <GatsbyImage
                 image={map}
-                alt="Southeast region map"
+                alt={`${name} region map`}
                 sx={{ border: '1px solid', borderColor: 'grey.3' }}
               />
             </Box>
             <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-              Map of {formatNumber(se.dams)} inventoried dams and{' '}
-              {formatNumber(se.smallBarriers)} road-related barriers likely to
-              impact aquatic organisms in the Southeast region.
+              Map of {formatNumber(summary.dams)} inventoried dams and{' '}
+              {formatNumber(summary.smallBarriers)} road-related barriers likely
+              to impact aquatic organisms in the {name} region.
             </Text>
           </Box>
           <Box>
             <Heading as="h4" sx={{ mb: '1rem' }}>
-              Includes {REGION_STATES.se.length - 1} states and Puerto Rico
-              with:
+              Includes {states.length - 2} states, Puerto Rico, and U.S. Virgin
+              Islands with:
             </Heading>
 
-            <RegionStats {...se} />
+            <RegionStats {...summary} />
           </Box>
         </Grid>
 
-        <RegionActionLinks region="se" />
+        <RegionActionLinks region={regionID} />
 
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">
@@ -154,7 +172,7 @@ const SERegionPage = ({
             Statistics by state:
           </Heading>
           <Box sx={{ mt: '0.5rem' }}>
-            <StateDownloadTable region="se" {...se} />
+            <StateDownloadTable region={regionID} {...summary} />
           </Box>
         </Box>
 
@@ -209,8 +227,8 @@ const SERegionPage = ({
             <br />
             <br />
             <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn
-            more about how you can help improve aquatic connectivity in the
-            Southeast.
+            more about how you can help improve aquatic connectivity in the{' '}
+            {name} region.
           </Paragraph>
         </Box>
       </Container>
@@ -276,4 +294,4 @@ export const pageQuery = graphql`
 
 export default SERegionPage
 
-export const Head = () => <SEO title="Southeast Region" />
+export const Head = () => <SEO title={`${name} Region`} />

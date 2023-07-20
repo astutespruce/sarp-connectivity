@@ -105,13 +105,22 @@ STYLE = {
             },
         },
         {
-            "id": "states",
+            "id": "states-outline-mask",
             "source": "states",
             "source-layer": "State",
             "type": "line",
             "minzoom": 0,
             "maxzoom": 22,
-            "paint": {"line-color": "#666666", "line-width": 0.3, "line-opacity": 1},
+            "paint": {"line-color": "#FFFFFF", "line-width": 1.5, "line-opacity": 1},
+        },
+        {
+            "id": "states-outline",
+            "source": "states",
+            "source-layer": "State",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 22,
+            "paint": {"line-color": "#333333", "line-width": 0.5, "line-opacity": 1},
         },
         {
             "id": "region-mask",
@@ -157,8 +166,8 @@ df = (
 for id, row in df.bounds.iterrows():
     print(f"Rendering map for {id}")
     style = deepcopy(STYLE)
-    style["layers"][4]["filter"] = ["==", "id", id]
-    style["layers"][5]["filter"] = ["==", "id", id]
+    style["layers"][-2]["filter"] = ["==", "id", id]
+    style["layers"][-1]["filter"] = ["==", "id", id]
     with Map(
         json.dumps(style), WIDTH, HEIGHT, ratio=1, token=TOKEN, provider="mapbox"
     ) as map:

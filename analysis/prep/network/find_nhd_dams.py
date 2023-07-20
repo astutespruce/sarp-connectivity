@@ -1,7 +1,6 @@
 from pathlib import Path
 import os
 from time import time
-import warnings
 
 import numpy as np
 import pandas as pd
@@ -15,7 +14,6 @@ from analysis.lib.geometry import (
     dissolve,
     explode,
     sjoin_geometry,
-    nearest,
     find_contiguous_groups,
 )
 from analysis.lib.io import read_feathers
@@ -211,12 +209,16 @@ for huc2 in huc2s:
         .join(downstreams, on="damID", how="inner")
         .drop_duplicates(subset=["damID", "lineID"])
         .join(
-            flowlines.geometry.rename("flowline"),
+            flowlines[["geometry", "loop"]].rename(columns={"geometry": "flowline"}),
             on="lineID",
         )
         .reset_index(drop=True)
     )
-    print(f"Found {len(dams):,} joins between NHD dams and flowlines")
+    print(
+        f"Found {len(dams):,} joins between NHD dams and flowlines ({dams.loop.sum()} are loops that will be dropped)"
+    )
+
+    dams = dams.loc[~dams.loop].reset_index(drop=True)
 
     ### Extract representative point
     # Look at either end of overlapping line and use that as representative point.

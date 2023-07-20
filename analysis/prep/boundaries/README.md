@@ -1,4 +1,4 @@
-# Southeast Aquatic Barrier Inventory Data Processing - Boundary Data Prep
+# National Aquatic Barrier Inventory & Prioritization Tool Data Processing - Boundary Data Prep
 
 ## Overall workflow
 

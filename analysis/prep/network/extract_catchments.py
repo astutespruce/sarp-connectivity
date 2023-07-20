@@ -2,7 +2,6 @@ from pathlib import Path
 from time import time
 import warnings
 
-import pandas as pd
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS
@@ -12,18 +11,22 @@ from analysis.prep.network.lib.nhd.util import get_column_names
 
 warnings.filterwarnings("ignore", message=".*Warning 1: organizePolygons.*")
 
-MAX_HUC4s = 5  # max number of HUC4s to include before considering a split
-# For region 17:
-# MAX_HUC4s = 3
 
-
-def process_huc4s(src_dir, huc4s):
+def process_gdbs(src_dir):
     merged = None
-    for HUC4 in huc4s:
-        print(f"\n\n------------------- Reading {HUC4} -------------------")
 
-        # filenames vary for current NHD HR datasets; beta datasets had stable names
-        gdb = next((src_dir / HUC4).glob("*.gdb"))
+    gdbs = sorted(
+        [gdb for gdb in src_dir.glob(f"{huc2}*/*.gdb")],
+        key=lambda p: p.parent.name,
+    )
+
+    if len(gdbs) == 0:
+        raise ValueError(
+            f"No GDBs available for {huc2} within {src_dir}; did you forget to unzip them?"
+        )
+
+    for gdb in gdbs:
+        print(f"\n\n------------------- Reading {gdb.name} -------------------")
 
         layer = "NHDPlusCatchment"
         read_cols, col_map = get_column_names(gdb, layer, ["NHDPlusID"])
@@ -54,66 +57,51 @@ def process_huc4s(src_dir, huc4s):
 
 
 data_dir = Path("data")
-src_dir = data_dir / "nhd/source/huc4"
+huc4_dir = data_dir / "nhd/source/huc4"
+huc8_dir = data_dir / "nhd/source/huc8"
 tmp_dir = Path("/tmp/sarp")  # only need GIS files to provide to SARP
 tmp_dir.mkdir(exist_ok=True, parents=True)
 
 
 start = time()
 
-huc4_df = pd.read_feather(
-    data_dir / "boundaries/huc4.feather", columns=["HUC2", "HUC4"]
-)
-# Convert to dict of sorted HUC4s per HUC2
-units = huc4_df.groupby("HUC2").HUC4.unique().apply(sorted).to_dict()
-huc2s = units.keys()
-
-
 # manually subset keys from above for processing
-huc2s = [
-    # "02",
-    # "03",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
-    # "18",
-    # "21",
-]
+# huc2s = [
+# "01",
+# "02",
+# "03",
+# "04",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "18",
+# "19",
+# "21",
+# ]
 
 for huc2 in huc2s:
     print(f"----- {huc2} ------")
 
-    huc4s = units[huc2]
+    src_dir = huc8_dir if huc2 == "19" else huc4_dir
+    df = process_gdbs(src_dir)
 
-    if len(huc4s) > MAX_HUC4s:
-        # split into smaller groups to keep output files smaller
-        for counter, i in enumerate(range(0, len(huc4s), MAX_HUC4s)):
-            print(f"Processing subgroup {huc2}_{counter}")
+    print(f"serializing {len(df):,} catchments")
 
-            df = process_huc4s(src_dir, huc4s[i : i + MAX_HUC4s])
+    # convert to types allowed by GDB
+    df = df.astype({"NHDPlusID": "float64", "catchID": "int32"})
+    write_dataframe(df, tmp_dir / f"region{huc2}_catchments.gdb", driver="OpenFileGDB")
 
-            print(f"serializing {len(df):,} catchments")
-            write_dataframe(df, tmp_dir / f"region{huc2}_catchments_{counter}.shp")
-
-            del df
-
-    else:
-        df = process_huc4s(src_dir, huc4s)
-
-        print(f"serializing {len(df):,} catchments")
-        write_dataframe(df, tmp_dir / f"region{huc2}_catchments.shp")
-
-        del df
+    del df
 
 
 print(f"Done in {time() - start:.2f}s\n============================")
