@@ -100,7 +100,10 @@ const LocationInfo = ({
 
       {fercregulated !== null && fercregulated > 0 ? (
         <Entry>
-          <Field label="Regulated by the Federal Energy Regulatory Commission">
+          <Field
+            label="Regulated by the Federal Energy Regulatory Commission"
+            isUnknown={fercregulated === 0}
+          >
             {FERC_REGULATED[fercregulated].toLowerCase()}
           </Field>
         </Entry>
@@ -108,7 +111,10 @@ const LocationInfo = ({
 
       {stateregulated !== null && stateregulated !== -1 ? (
         <Entry>
-          <Field label="Regulated at the state level">
+          <Field
+            label="Regulated at the state level"
+            isUnknown={stateregulated === 0}
+          >
             {STATE_REGULATED[stateregulated].toLowerCase()}
           </Field>
         </Entry>

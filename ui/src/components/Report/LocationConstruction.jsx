@@ -245,7 +245,7 @@ const Location = ({
               </Entry>
             ) : null}
 
-            {waterright !== null && waterright !== -1 ? (
+            {waterright !== null && waterright > 0 ? (
               <Entry>
                 <Text>
                   Has an associated water right:{' '}

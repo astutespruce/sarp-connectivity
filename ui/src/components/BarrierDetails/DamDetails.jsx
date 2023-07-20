@@ -287,7 +287,7 @@ const DamDetails = ({
         )}
       </Section>
 
-      {flowstoocean && milestooutlet < 500 ? (
+      {hasnetwork && flowstoocean && milestooutlet < 500 ? (
         <Section title="Diadromous species information">
           <DiadromousInfo
             barrierType={barrierType}
