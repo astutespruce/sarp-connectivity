@@ -59,6 +59,10 @@ barriers = read_feathers(
     new_fields={"kind": kinds},
 )
 
+# drop any barriers on loops or off-network flowlines
+barriers = barriers.loc[~(barriers.loop | barriers.offnetwork_flowline)].reset_index()
+
+
 if "removed" not in barriers.columns:
     barriers["removed"] = False
 
@@ -88,7 +92,6 @@ for huc2 in huc2s:
     if not huc2_dir.exists():
         os.makedirs(huc2_dir)
 
-    # drop any barriers on loops in this region
     huc2_barriers = barriers.loc[(barriers.HUC2 == huc2)]
 
     ##################### Cut flowlines at barriers #################
@@ -110,31 +113,9 @@ for huc2 in huc2s:
 
     #### Temporary
     # FIXME: enable after all regions rerun prepare_flowlines_waterbodies.py
-    # joins = pd.read_feather(
-    #     nhd_dir / huc2 / "flowline_joins.feather",
-    #     columns=[
-    #         "upstream",
-    #         "downstream",
-    #         "upstream_id",
-    #         "downstream_id",
-    #         "type",
-    #         "marine",
-    #         "great_lakes",
-    #         "loop",
-    #     ],
-    # )
-
     joins = pd.read_feather(
         nhd_dir / huc2 / "flowline_joins.feather",
-    )
-
-    if "great_lakes" not in joins:
-        joins["great_lakes"] = False
-
-    joins["great_lakes"] = joins.great_lakes.fillna(False)
-
-    joins = joins[
-        [
+        columns=[
             "upstream",
             "downstream",
             "upstream_id",
@@ -143,14 +124,39 @@ for huc2 in huc2s:
             "marine",
             "great_lakes",
             "loop",
-        ]
-    ]
+        ],
+    )
+
+    # FIXME: remove
+    # joins = pd.read_feather(
+    #     nhd_dir / huc2 / "flowline_joins.feather",
+    # )
+
+    # if "great_lakes" not in joins:
+    #     joins["great_lakes"] = False
+
+    # joins["great_lakes"] = joins.great_lakes.fillna(False)
+
+    # joins = joins[
+    #     [
+    #         "upstream",
+    #         "downstream",
+    #         "upstream_id",
+    #         "downstream_id",
+    #         "type",
+    #         "marine",
+    #         "great_lakes",
+    #         "loop",
+    #     ]
+    # ]
 
     #### end temporary
 
     # drop all loops from the analysis
     print(f"Dropping {flowlines.loop .sum():,} loops")
-    flowlines = flowlines.loc[~flowlines.loop].drop(columns=["loop"])
+    flowlines = flowlines.loc[~(flowlines.loop | flowlines.offnetwork)].drop(
+        columns=["loop"]
+    )
     joins = joins.loc[~joins.loop].drop(columns=["loop"])
 
     flowlines, joins, barrier_joins = cut_flowlines_at_barriers(

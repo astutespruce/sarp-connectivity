@@ -661,12 +661,15 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
     ### Find flowlines that intersect waterbodies
 
     join_start = time()
-    tree = shapely.STRtree(flowlines.geometry.values.data)
+
+    onnetwork_flowlines = flowlines.loc[~flowlines.offnetwork]
+
+    tree = shapely.STRtree(onnetwork_flowlines.geometry.values.data)
     left, right = tree.query(waterbodies.geometry.values.data, predicate="intersects")
     df = pd.DataFrame(
         {
-            "lineID": flowlines.index.take(right),
-            "flowline": flowlines.geometry.values.data.take(right),
+            "lineID": onnetwork_flowlines.index.take(right),
+            "flowline": onnetwork_flowlines.geometry.values.data.take(right),
             "wbID": waterbodies.index.take(left),
             "waterbody": waterbodies.geometry.values.data.take(left),
         }
@@ -1213,10 +1216,10 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
 
     terminal_ix = joins.loc[joins.downstream == 0].upstream_id.unique()
 
-    # exclude loops and pipelines / underground connectors / canals
+    # exclude loops, offnetwork, and pipelines / underground connectors / canals
     tmp = flowlines.loc[
         flowlines.index.isin(terminal_ix)
-        & (~flowlines.loop)
+        & (~(flowlines.loop | flowlines.offnetwork))
         & (~flowlines.FType.isin([336, 420, 428])),
         ["geometry"],
     ].copy()
@@ -1229,6 +1232,7 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
         ~(
             flowlines.index.isin(terminal_ix)
             | flowlines.loop
+            | flowlines.offnetwork
             | flowlines.FType.isin([336, 420, 428])
         )
     ]
@@ -1244,9 +1248,12 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
             "src_geom": tmp.geometry.values.take(left),
             # target is the downstream flowline that gets split
             "target_id": target.index.take(right),
-            "target_geom": target.geometry.values.take(right),
-            "target_NHDPlusID": target.NHDPlusID.values.take(right),
         }
+    ).join(
+        target[["geometry", "NHDPlusID"]].rename(
+            columns={"geometry": "target_geom", "NHDPlusID": "target_NHDPlusID"}
+        ),
+        on="target_id",
     )
 
     pairs["linepos"] = shapely.line_locate_point(pairs.target_geom, pairs.src_geom)

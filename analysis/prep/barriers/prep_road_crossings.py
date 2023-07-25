@@ -83,7 +83,16 @@ write_dataframe(df, qa_dir / "road_crossings.fgb")
 print(f"Serializing {df.snapped.sum():,} snapped road crossings")
 snapped = df.loc[
     df.snapped & (~df.loop),
-    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"],
+    [
+        "geometry",
+        "id",
+        "HUC2",
+        "lineID",
+        "NHDPlusID",
+        "loop",
+        "offnetwork_flowline",
+        "intermittent",
+    ],
 ].reset_index(drop=True)
 
 snapped.lineID = snapped.lineID.astype("uint32")

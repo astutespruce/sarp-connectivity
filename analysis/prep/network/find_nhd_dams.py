@@ -138,8 +138,12 @@ for huc2 in huc2s:
     print("Reading flowlines...")
     flowlines = gp.read_feather(
         clean_dir / huc2 / "flowlines.feather",
-        columns=["lineID", "loop", "geometry", "sizeclass"],
+        columns=["lineID", "loop", "geometry", "sizeclass", "offnetwork"],
     ).set_index("lineID")
+
+    # drop any that are off-network
+    flowlines = flowlines.loc[~flowlines.offnetwork].copy()
+
     joins = pd.read_feather(
         clean_dir / huc2 / "flowline_joins.feather",
         columns=["downstream_id", "upstream_id"],

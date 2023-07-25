@@ -14,7 +14,7 @@ This stage involves processing NHD data and related data into data structures th
 8. Run `merge_waterbodies.py` to merge NHD and NWI waterbodies (and others, depending on region).
 9. Run `prepare_flowlines_waterbodies.py` to preprocess flowlines and waterbodies into data structures ready for analysis.
 10. Run `find_nhd_dams.py` to intersect NHD dam-related features with flowlines and extract intersection points.
-11. Run `prep_floodplain_statistics.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
+11. Run `prep_floodplain_stats.py` to extract pre-calculated statistics on natural landcover within floodplains for each flowline's catchment.
 
 Now the underlying aquatic networks are ready for the network analysis.
 

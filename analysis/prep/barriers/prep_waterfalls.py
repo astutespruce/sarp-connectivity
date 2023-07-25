@@ -204,7 +204,7 @@ df["snap_tolerance"] = SNAP_TOLERANCE
 # Snap to flowlines
 snap_start = time()
 
-df, to_snap = snap_to_flowlines(df, to_snap=df.copy())
+df, to_snap = snap_to_flowlines(df, to_snap=df.copy(), allow_offnetwork_flowlines=False)
 print(f"Snapped {len(df.loc[df.snapped]):,} waterfalls in {time() - snap_start:.2f}s")
 print("---------------------------------")
 print("\nSnapping statistics")
@@ -362,7 +362,15 @@ df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 print(f"Serializing {len(df)} snapped waterfalls")
 df[
-    ["geometry", "id", "HUC2", "lineID", "NHDPlusID", "loop", "intermittent"]
+    [
+        "geometry",
+        "id",
+        "HUC2",
+        "lineID",
+        "NHDPlusID",
+        "loop",
+        "intermittent",
+    ]
 ].to_feather(
     snapped_dir / "waterfalls.feather",
 )

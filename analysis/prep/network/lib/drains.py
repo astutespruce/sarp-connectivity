@@ -32,7 +32,9 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
 
     wb_atts = waterbodies[["altered", "km2", "flowlineLength"]].copy()
 
-    tmp_flowlines = flowlines[
+    # NOTE: off-network flowlines aren't allowed to create drain points
+    tmp_flowlines = flowlines.loc[
+        ~flowlines.offnetwork,
         [
             "geometry",
             "FCode",
@@ -48,7 +50,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
             "AnnualVelocity",
             "HUC4",
             "loop",
-        ]
+        ],
     ].rename(columns={"FCode": "lineFCode", "FType": "lineFType"})
 
     ### Find the downstream most point(s) on the flowline for each waterbody
@@ -257,7 +259,9 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     wb_geom = pd.Series(wb_geom.values.data, index=wb_geom.index)
     # take only the upstream most point
     tmp_flowline_pts = tmp_flowlines[["geometry", "loop", "TotDASqKm"]].copy()
-    tmp_flowline_pts["geometry"] = shapely.get_point(flowlines.geometry.values.data, 0)
+    tmp_flowline_pts["geometry"] = shapely.get_point(
+        tmp_flowlines.geometry.values.data, 0
+    )
     fl_pt = pd.Series(
         tmp_flowline_pts.geometry.values.data, index=tmp_flowline_pts.index
     )

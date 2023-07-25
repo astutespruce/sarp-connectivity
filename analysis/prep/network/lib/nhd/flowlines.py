@@ -20,6 +20,7 @@ FLOWLINE_COLS = [
     "FCode",
     "GNIS_ID",
     "GNIS_Name",
+    "InNetwork",  # flowlines are only useful for InNetwork = 1
 ]
 
 VAA_COLS = [
@@ -77,6 +78,10 @@ def extract_flowlines(gdb, target_crs):
     df.NHDPlusID = df.NHDPlusID.astype("uint64")
     df = df.set_index(["NHDPlusID"], drop=False)
 
+    df["offnetwork"] = ~df.InNetwork.fillna(0).astype("bool")
+    # drop any that are offnetwork and pipelines / underground connectors
+    df = df.loc[~(df.offnetwork & df.FType.isin([420, 428]))]
+
     # convert MultiLineStrings to LineStrings (all have a single linestring)
     df.geometry = shapely.get_geometry(df.geometry.values.data, 0)
 
@@ -86,8 +91,7 @@ def extract_flowlines(gdb, target_crs):
     print(f"Read {len(df):,} flowlines")
 
     ### Read in VAA and convert to data frame
-    # NOTE: not all records in Flowlines have corresponding records in VAA
-    # we drop those that do not since we need these fields.
+    # NOTE: these are only valid where offnetwork is False
     print("Reading VAA table and joining...")
     layer = "NHDPlusFlowlineVAA"
     read_cols, col_map = get_column_names(gdb, layer, VAA_COLS)
@@ -108,24 +112,30 @@ def extract_flowlines(gdb, target_crs):
     )
 
     vaa_df.NHDPlusID = vaa_df.NHDPlusID.astype("uint64")
-    vaa_df = vaa_df.set_index(["NHDPlusID"])
-    df = df.join(vaa_df, how="inner")
-    print(f"{len(df):,} features after join to VAA")
+    df = df.join(vaa_df.set_index(["NHDPlusID"]))
 
     # Simplify data types for smaller files and faster IO
-    for field in ["StreamOrder", "Divergence"]:
-        df[field] = df[field].astype("uint8")
+    for field in ["StreamOrder", "StreamCalc", "StreamLevel", "Divergence"]:
+        # Note: value 0 signals it is not valid
+        # -9 values are invalid coming in (e.g., coastlines)
+        df.loc[df[field] == -9, field] = 0
+        df[field] = df[field].fillna(0).astype("uint8")
 
     for field in ["FType", "FCode"]:
         df[field] = df[field].astype("uint16")
 
     for field in ["Slope", "MinElev", "MaxElev"]:
-        df[field] = df[field].astype("float32")
+        df[field] = df[field].fillna(-9998.0).astype("float32")
 
     for field in ["LevelPathID", "TerminalID"]:
-        df[field] = df[field].astype("uint64")
+        df[field] = df[field].fillna(0).astype("uint64")
+
+    for field in ["AreaSqKm", "TotDASqKm"]:
+        # Note: 0 values signal not valid
+        df[field] = df[field].fillna(0).astype("float32")
 
     ### Read in EROMMA_COLS
+    # NOTE: these are only valid where offnetwork is False
     layer = "NHDPlusEROMMA"
     read_cols, col_map = get_column_names(gdb, layer, EROMMA_COLS)
     flow_df = (
@@ -134,10 +144,14 @@ def extract_flowlines(gdb, target_crs):
         .rename(columns={"QAMA": "AnnualFlow", "VAMA": "AnnualVelocity"})
     )
     flow_df.NHDPlusID = flow_df.NHDPlusID.astype("uint64")
-    flow_df = flow_df.set_index("NHDPlusID").astype("float32")
+    flow_df = flow_df.set_index("NHDPlusID")
     df = df.join(flow_df)
 
+    for field in ["AnnualFlow", "AnnualVelocity"]:
+        df[field] = df[field].fillna(-9998.0).astype("float32")
+
     ### Read in flowline joins
+    # NOTE: these are only present for flowlines where offnetwork is False
     print("Reading flowline joins")
     layer = "NHDPlusFlow"
     read_cols, col_map = get_column_names(gdb, layer, ["FromNHDPID", "ToNHDPID"])
@@ -260,18 +274,6 @@ def extract_flowlines(gdb, target_crs):
     # drop any duplicates (above operation sets some joins to upstream and downstream of 0)
     join_df = join_df.drop_duplicates(subset=["upstream", "downstream"])
 
-    ### Filter out any flowlines where TotDASqKm is 0; these do not have associated catchments
-    # and are likely noise
-    ix = df.TotDASqKm == 0
-    df = df.loc[~ix].copy()
-    join_df = remove_joins(
-        join_df,
-        ix[ix].index.unique(),
-        downstream_col="downstream",
-        upstream_col="upstream",
-    )
-    print(f"Removing {ix.sum():,} flowlines that have no drainage area")
-
     ### set join types to make it easier to track
     join_df["type"] = "internal"  # set default
     # upstream-most origin points
@@ -280,8 +282,6 @@ def extract_flowlines(gdb, target_crs):
     join_df.loc[join_df.downstream == 0, "type"] = "terminal"
 
     ### Label loops for easier removal later
-    # WARNING: loops may be very problematic from a network processing standpoint.
-    # Include with caution.
     print("Identifying loops")
     df["loop"] = (df.StreamOrder != df.StreamCalc) | (df.FlowDir.isnull())
 
@@ -289,7 +289,7 @@ def extract_flowlines(gdb, target_crs):
     join_df["loop"] = join_df.upstream.isin(idx) | join_df.downstream.isin(idx)
 
     # drop columns not useful for later processing steps
-    df = df.drop(columns=["FlowDir", "StreamCalc"])
+    df = df.drop(columns=["FlowDir", "StreamCalc", "InNetwork"])
 
     # Cleanup invalid joins
     join_df = join_df.loc[(join_df.upstream != 0) | (join_df.downstream != 0)].copy()
@@ -319,7 +319,8 @@ def extract_flowlines(gdb, target_crs):
     ### Calculate size classes
     print("Calculating size class")
     drainage = df.TotDASqKm
-    df.loc[drainage < 10, "sizeclass"] = "1a"
+    df.loc[drainage == 0, "sizeclass"] = ""  # not valid
+    df.loc[(drainage > 0) & (drainage < 10), "sizeclass"] = "1a"
     df.loc[(drainage >= 10) & (drainage < 100), "sizeclass"] = "1b"
     df.loc[(drainage >= 100) & (drainage < 518), "sizeclass"] = "2"
     df.loc[(drainage >= 518) & (drainage < 2590), "sizeclass"] = "3a"

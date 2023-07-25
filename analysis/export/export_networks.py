@@ -101,9 +101,9 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         flowlines = flowlines.join(segments)
 
         ### To export larger flowlines only
-        flowlines = flowlines.loc[
-            flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
-        ]
+        # flowlines = flowlines.loc[
+        #     flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
+        # ]
         flowlines = flowlines.loc[flowlines.sizeclass.isin(["2", "3a", "3b", "4", "5"])]
 
         ### To export dissolved networks

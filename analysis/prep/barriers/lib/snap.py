@@ -538,7 +538,9 @@ def snap_to_waterbodies(df, to_snap):
     return df, to_snap
 
 
-def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False):
+def snap_to_flowlines(
+    df, to_snap, find_nearest_nonloop=False, allow_offnetwork_flowlines=True
+):
     """Snap to nearest flowline, within tolerance.
 
     Updates df with snapping results, and returns to_snap as set of dams still
@@ -560,6 +562,10 @@ def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False):
         NEAREST_FLOWLINE_TOLERANCE and less than 2x as far away as the nearest
         loop, otherwise it will take the nearest loop that is closer than the
         nearest non-loop.
+    allow_offnetwork_flowlines : bool, optional (default: True)
+        If True, will allow snapping to the nearest off-network flowline if it
+        is within NEAREST_FLOWLINE_TOLERANCE.  If False, will never snap to an
+        off-network flowline regardless of how close.
 
     Returns
     -------
@@ -576,14 +582,17 @@ def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False):
         in_huc2 = to_snap.loc[to_snap.HUC2 == huc2].copy()
         flowlines = gp.read_feather(
             nhd_dir / "clean" / huc2 / "flowlines.feather",
-            columns=["geometry", "lineID", "loop"],
+            columns=["geometry", "lineID", "loop", "offnetwork"],
         ).set_index("lineID")
+
+        if not allow_offnetwork_flowlines:
+            flowlines = flowlines.loc[~flowlines.offnetwork]
 
         print(
             f"Selected {len(in_huc2):,} barriers in region to snap against {len(flowlines):,} flowlines"
         )
 
-        # Find nearest flowlines within tolerance, then sort by nonloop and descending distance
+        # Find nearest flowlines within tolerance, then sort by nonloop and ascending distance
         tree = shapely.STRtree(flowlines.geometry.values.data)
         left, right = tree.query(
             shapely.buffer(in_huc2.geometry.values.data, in_huc2.snap_tolerance.values),
@@ -594,15 +603,26 @@ def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False):
             {
                 "id": in_huc2.index.values.take(left),
                 "geometry": in_huc2.geometry.values.data.take(left),
-                "line": flowlines.geometry.values.data.take(right),
                 "lineID": flowlines.index.values.take(right),
-                "loop": flowlines.loop.values.take(right),
             },
             geometry="geometry",
             crs=in_huc2.crs,
+        ).join(
+            flowlines[["geometry", "loop", "offnetwork"]].rename(
+                columns={"geometry": "line"}
+            ),
+            on="lineID",
         )
+
         lines["dist"] = shapely.distance(lines.geometry.values.data, lines.line.values)
         lines = lines.sort_values(by=["id", "dist"], ascending=True)
+
+        # drop any off-network flowlines > NEAREST_FLOWLINE_TOLERANCE; these are
+        # not good snap targets
+        if allow_offnetwork_flowlines:
+            lines = lines.loc[
+                ~((lines.dist > NEAREST_FLOWLINE_TOLERANCE) & lines.offnetwork)
+            ]
 
         nearest_lines = lines.groupby("id").first()
 

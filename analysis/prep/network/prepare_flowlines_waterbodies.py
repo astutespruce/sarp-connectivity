@@ -74,7 +74,7 @@ huc2s = [
     # "01",
     # "02",
     # "03",
-    "04",
+    # "04",
     # "05",
     # "06",
     # "07",
@@ -311,7 +311,7 @@ for huc2 in huc2s:
 
     print("Serializing {:,} waterbodies".format(len(waterbodies)))
     # waterbodies are losing their CRS somewhere along the way, not sure why it is failing here
-    waterbodies.set_crs(flowlines.crs, inplace=True)
+    waterbodies.set_crs(flowlines.crs, inplace=True, allow_override=True)
     waterbodies = waterbodies.reset_index()
     waterbodies.to_feather(huc2_dir / "waterbodies.feather")
     write_dataframe(waterbodies, huc2_dir / "waterbodies.fgb")

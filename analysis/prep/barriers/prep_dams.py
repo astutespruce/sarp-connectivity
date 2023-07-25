@@ -420,9 +420,6 @@ df["WaterRight"] = df.WaterRight.fillna(0).astype("uint8")
 df["Hazard"] = df.Hazard.fillna(4).astype("uint8").map(HAZARD_TO_DOMAIN).astype("uint8")
 
 
-# Recode
-
-
 ### Add tracking fields
 # master log field for status
 df["log"] = ""
@@ -799,25 +796,30 @@ df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 
 
 ### Join to line atts
-flowlines = read_feathers(
-    [
-        nhd_dir / "clean" / huc2 / "flowlines.feather"
-        for huc2 in df.HUC2.unique()
-        if huc2
-    ],
-    columns=[
-        "lineID",
-        "NHDPlusID",
-        "GNIS_Name",
-        "sizeclass",
-        "StreamOrder",
-        "FCode",
-        "loop",
-        "AnnualFlow",
-        "AnnualVelocity",
-        "TotDASqKm",
-    ],
-).set_index("lineID")
+flowlines = (
+    read_feathers(
+        [
+            nhd_dir / "clean" / huc2 / "flowlines.feather"
+            for huc2 in df.HUC2.unique()
+            if huc2
+        ],
+        columns=[
+            "lineID",
+            "NHDPlusID",
+            "GNIS_Name",
+            "sizeclass",
+            "StreamOrder",
+            "FCode",
+            "loop",
+            "offnetwork",
+            "AnnualFlow",
+            "AnnualVelocity",
+            "TotDASqKm",
+        ],
+    )
+    .set_index("lineID")
+    .rename(columns={"offnetwork": "offnetwork_flowline"})
+)
 
 df = df.join(flowlines, on="lineID")
 
@@ -838,6 +840,7 @@ df["intermittent"] = df.FCode.isin([46003, 46007])
 
 # Fix missing field values
 df["loop"] = df.loop.fillna(False)
+df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(False)
 df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
@@ -848,6 +851,7 @@ for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
     df[field] = df[field].astype("float32")
 
 print("dams on loops:\n", df.groupby("loop").size())
+print("dams on offnetwork flowlines: \n", df.groupby("offnetwork_flowline").size())
 
 
 ### Join waterbody properties
@@ -950,6 +954,7 @@ df[
         "lineID",
         "NHDPlusID",
         "loop",
+        "offnetwork_flowline",
         "intermittent",
         "removed",
         "YearRemoved",
