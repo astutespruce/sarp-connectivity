@@ -32,36 +32,32 @@ You must set `AGOL_TOKEN` in an `.env` file in the root of this project. It must
 
 ## Dams
 
-### Prep: Dams in states outside SARP boundary
-
-National Inventory of Dams (NID) dams are used to supplement the inventory for HUC4s outside the core states analyzed in this tool (see `analysis/constants.py::STATES` for the list).
-
-NID dams for outer HUC4s (HUC4s that overlap states within the analysis region, but the portions of those HUC4s that are outside those states)
-were provided by Kat @ SARP on 3/15/2022 (`OuterHUC4_Dams_2022.gdb`). These include dams from the NID (March 2022) Northeast aquatic connectivity project (TNC).
-
-Kat took care of rectifying previous versions of NID and TNC data against the latest versions.
-
-These were processed and joined with NABD, which provide updated (snapped) locations of many dams in NID using `special/prep_nid_dams_outer_huc4s.py`.
-
-This step should only be necessary to run once each time the HUC4s outside the core states in the analysis are updated (i.e., by adding states to the analysis region).
-
 ### Prep: NABD dams
 
-The National Anthropogenic Barrier Database is used to help snap dams derived from NID, unless otherwise manually reviewed.
+The National Anthropogenic Barrier Database is used to help snap dams derived
+from NID, unless otherwise manually reviewed.
 
 NABD dams are prepared using `special/prep_nabd.py`.
 
 ### Processing
 
-Dams for SARP states are downloaded from user-edited state-level datasets hosted on ArcGIS Online using `analysis/prep/barriers/download.py`. The individual states are standardized slightly and merged into a single dataset.
+Dams are downloaded from the user-edited national dataset hosted
+on ArcGIS Online using `analysis/prep/barriers/download.py`.
 
-Dams for non-SARP states were provided by Kat on 9/5/2019. These include dams from National Inventory of Dams for HUC4s that overlap SARP states.
-
-There is also a manually snapped dams dataset on ArcGIS Online. This is also downloaded as part of the above script. These locations are edited by users to correct snapping errors, or otherwise flag dams that should be excluded from processing. The locations of dams have been updated using corrected locations obtained from the National Anthropogenic Barrier database or snapped manually by SARP staff and aquatic connectivity team members. These corrected locations are joined to the master inventory after merging the SARP and non-SARP state datasets together.
+There is also a manually snapped dams dataset on ArcGIS Online. This is also
+downloaded as part of the above script. These locations are edited by users to
+correct snapping errors, or otherwise flag dams that should be excluded from
+processing. The locations of dams have been updated using corrected locations
+obtained from the National Anthropogenic Barrier database or snapped manually by
+SARP staff and aquatic connectivity team members. These corrected locations are
+joined to the master inventory.
 
 Dams are processed using `analysis/prep/prep_dams.py`.
 
-Dams are snapped automatically to the aquatic network if within 100 meters. Dams are excluded from analysis if they did not snap to the network or were otherwise identified by various attributes (e.g., Recon). After snapping, dams are de-duplicated to remove those that are very close to each other (within 30m).
+Dams are snapped automatically to the aquatic network if within 100 meters. Dams
+are excluded from analysis if they did not snap to the network or were otherwise
+identified by various attributes (e.g., Recon). After snapping, dams are
+de-duplicated to remove those that are very close to each other (within 30m).
 
 ## Waterfalls
 
