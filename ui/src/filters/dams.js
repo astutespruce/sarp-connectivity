@@ -12,6 +12,7 @@ import {
   HAZARD,
   CONDITION,
   PASSABILITY,
+  YEARCOMPLETED,
   LOWHEAD_DAM,
   WATERBODY_SIZECLASS,
   PERCENT_ALTERED,
@@ -135,6 +136,12 @@ export const dams = [
         hideMissingValues: true,
         help: 'Note: purpose information is only available for a small number of dams.  Not all data sources recorded this information.',
         ...getEntries(PURPOSE, (v) => v >= 0),
+      },
+      {
+        field: 'yearcompletedclass',
+        title: 'Years since dam was completed',
+        help: 'Note: year completed information is only available for a small number of dams.  Not all data sources recorded this information.',
+        ...getEntries(YEARCOMPLETED, (v) => v > 0),
       },
       {
         field: 'lowheaddam',

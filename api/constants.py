@@ -188,6 +188,7 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "FeasibilityClass",
     "Purpose",
     "HeightClass",
+    "YearCompletedClass",
     "LowheadDam",
     "WaterbodySizeClass",
 ]
@@ -773,6 +774,17 @@ HEIGHT_DOMAIN = {
     5: "25 - 50",
     6: "50 - 100",
     7: ">= 100",
+}
+
+YEARCOMPLETED_DOMAIN = {
+    0: "Not applicable (road-related barrier)",
+    1: "Unknown",
+    2: "< 10 years ago",
+    3: "10 - 29 years ago",
+    4: "30 - 49 years ago",
+    5: "50 - 69 years ago",
+    6: "70 - 99 years ago",
+    7: ">= 100 years ago",
 }
 
 GAINMILES_DOMAIN = {

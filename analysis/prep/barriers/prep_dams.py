@@ -18,6 +18,7 @@ This creates several QA/QC files:
 """
 
 from pathlib import Path
+from datetime import datetime
 from time import time
 import warnings
 
@@ -374,6 +375,24 @@ df.loc[df.YearCompleted == 9999, "YearCompleted"] = 0
 
 
 ### Calculate classes
+# Calculate YearCompleted class based on difference from current year
+# NOTE: 0 is reserved for missing data (when combined with small barriers),
+# 1: YearCompleted==0
+bins = [-1, 10, 30, 50, 70, 100, 1000]
+df["YearCompletedClass"] = (
+    np.asarray(
+        pd.cut(
+            datetime.today().year - df.YearCompleted,
+            bins,
+            right=False,
+            labels=np.arange(0, len(bins) - 1),
+        )
+    )
+    + 2
+)
+df["YearCompletedClass"] = df.YearCompletedClass.fillna(1).astype("uint8")
+
+
 # Calculate height class
 # NOTE: 0 is reserved for missing data
 bins = [-1, 1e-6, 5, 10, 25, 50, 100, df.Height.max() + 1]

@@ -13,6 +13,7 @@ import {
   CONDITION,
   PASSABILITY,
   LOWHEAD_DAM,
+  YEARCOMPLETED,
   CROSSING_TYPE,
   ROAD_TYPE,
   CONSTRICTION,
@@ -152,6 +153,12 @@ export const combinedBarriers = [
         hideMissingValues: true,
         help: 'Note: purpose information is only available for a small number of dams.  Not all data sources recorded this information.',
         ...getEntries(PURPOSE),
+      },
+      {
+        field: 'yearcompletedclass',
+        title: 'Years since dam was completed',
+        help: 'Note: year completed information is only available for a small number of dams.  Not all data sources recorded this information.',
+        ...getEntries(YEARCOMPLETED),
       },
       {
         field: 'lowheaddam',

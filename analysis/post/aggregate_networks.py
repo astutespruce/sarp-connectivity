@@ -337,6 +337,7 @@ fill_columns = [
     "FishScreen",
     "Height",
     "HeightClass",
+    "YearCompletedClass",
     "Length",
     "LowheadDam",
     "Purpose",

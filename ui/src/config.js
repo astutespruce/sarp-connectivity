@@ -697,6 +697,17 @@ export const HEIGHT = {
   7: '>= 100 feet',
 }
 
+export const YEARCOMPLETED = {
+  0: 'Not applicable (road-related barrier)',
+  1: 'Unknown',
+  2: '< 10 years ago',
+  3: '10 - 29 years ago',
+  4: '30 - 49 years ago',
+  5: '50 - 69 years ago',
+  6: '70 - 99 years ago',
+  7: '>= 100 years ago',
+}
+
 export const GAINMILES = {
   0: '< 1 miles',
   1: '1 - 5 miles',
