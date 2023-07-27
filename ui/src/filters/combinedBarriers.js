@@ -156,8 +156,8 @@ export const combinedBarriers = [
       },
       {
         field: 'yearcompletedclass',
-        title: 'Years since dam was completed',
-        help: 'Note: year completed information is only available for a small number of dams.  Not all data sources recorded this information.',
+        title: 'Dam age',
+        help: 'Note: dam age is based on year completed information that is only available for a small number of dams.  Not all data sources recorded this information.',
         ...getEntries(YEARCOMPLETED),
       },
       {

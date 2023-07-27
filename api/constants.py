@@ -779,12 +779,12 @@ HEIGHT_DOMAIN = {
 YEARCOMPLETED_DOMAIN = {
     0: "Not applicable (road-related barrier)",
     1: "Unknown",
-    2: "< 10 years ago",
-    3: "10 - 29 years ago",
-    4: "30 - 49 years ago",
-    5: "50 - 69 years ago",
-    6: "70 - 99 years ago",
-    7: ">= 100 years ago",
+    2: "< 10 years",
+    3: "10 - 29 years",
+    4: "30 - 49 years",
+    5: "50 - 69 years",
+    6: "70 - 99 years",
+    7: ">= 100 years",
 }
 
 GAINMILES_DOMAIN = {
