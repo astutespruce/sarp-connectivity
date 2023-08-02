@@ -95,6 +95,9 @@ df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
 
 df = df.drop(columns=["GNIS_Name"])
 
+df["Recon"] = df.Recon.fillna(0).astype("uint8")
+df["ManualReview"] = df.ManualReview.fillna(0).astype("uint8")
+
 
 ### Add persistant sourceID based on original IDs
 df["sourceID"] = df.LocalID
@@ -181,14 +184,13 @@ df["Passability"] = (
 df = df.drop(columns=["BarrierSeverity"])
 
 ### Exclude barriers that should not be analyzed based on manual QA
-df["excluded"] = df.ManualReview.isin(EXCLUDE_MANUALREVIEW) | df.Recon.isin(
-    EXCLUDE_RECON
-)
+ix = df.Recon.isin(EXCLUDE_RECON)
+df.loc[ix, "excluded"] = True
+df.loc[ix, "log"] = f"excluded: Recon one of {EXCLUDE_RECON}"
 
-df.loc[df.Recon.isin(EXCLUDE_RECON), "log"] = f"excluded: Recon one of {EXCLUDE_RECON}"
-df.loc[
-    df.ManualReview.isin(EXCLUDE_MANUALREVIEW), "log"
-] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
+ix = df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
+df.loc[ix, "excluded"] = True
+df.loc[ix, "log"] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
 print(f"Excluded {df.excluded.sum():,} waterfalls from network analysis")
 
 ### Snap waterfalls
@@ -343,6 +345,15 @@ geo["lon"] = shapely.get_x(geo.geometry.values.data).astype("float32")
 df = df.join(geo[["lat", "lon"]])
 
 
+### Assign to network analysis scenario
+# omit any that are not snapped or are duplicate / dropped / excluded or on loops
+can_break_networks = df.snapped & (~(df.duplicate | df.dropped | df.excluded | df.loop))
+df["primary_network"] = can_break_networks
+# salmonid / large fish: exclude barriers that are passable to salmonids
+df["largefish_network"] = can_break_networks & (~(df.Passability.isin([4])))
+df["smallfish_network"] = can_break_networks
+
+
 ### All done processing!
 print("\n--------------\n")
 df = df.reset_index(drop=True)
@@ -355,7 +366,7 @@ write_dataframe(df, qa_dir / "waterfalls.fgb")
 
 # Extract out only the snapped ones not on loops
 df = df.loc[
-    df.snapped & (~(df.duplicate | df.dropped | df.excluded | df.loop))
+    df.primary_network | df.largefish_network | df.smallfish_network
 ].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
@@ -368,8 +379,9 @@ df[
         "HUC2",
         "lineID",
         "NHDPlusID",
-        "loop",
-        "intermittent",
+        "primary_network",
+        "largefish_network",
+        "smallfish_network",
     ]
 ].to_feather(
     snapped_dir / "waterfalls.feather",

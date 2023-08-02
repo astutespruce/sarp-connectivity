@@ -947,6 +947,18 @@ df.loc[df.nostructure, "symbol"] = 4
 df.loc[~df.snapped, "symbol"] = 1
 df.symbol = df.symbol.astype("uint8")
 
+
+### Assign to network analysis scenario
+# omit any that are not snapped or are duplicate / dropped / excluded or on loops / off-network flowlines
+can_break_networks = df.snapped & (
+    ~(df.duplicate | df.dropped | df.excluded | df.loop | df.offnetwork_flowline)
+)
+df["primary_network"] = can_break_networks
+# salmonid / large fish: exclude barriers that are passable to salmonids
+df["largefish_network"] = can_break_networks & (~(df.Passability.isin([4])))
+df["smallfish_network"] = can_break_networks
+
+
 ### All done processing!
 
 print("\n--------------\n")
@@ -958,9 +970,9 @@ write_dataframe(df, qa_dir / "dams.fgb")
 
 
 # Extract out only the snapped ones that are not on loops
-df = df.loc[df.snapped & (~(df.duplicate | df.dropped | df.excluded))].reset_index(
-    drop=True
-)
+df = df.loc[
+    df.primary_network | df.largefish_network | df.smallfish_network
+].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
@@ -972,9 +984,9 @@ df[
         "HUC2",
         "lineID",
         "NHDPlusID",
-        "loop",
-        "offnetwork_flowline",
-        "intermittent",
+        "primary_network",
+        "largefish_network",
+        "smallfish_network",
         "removed",
         "YearRemoved",
     ]

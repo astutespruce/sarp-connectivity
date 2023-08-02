@@ -4,7 +4,7 @@ from time import time
 import numpy as np
 import pandas as pd
 
-from analysis.constants import NETWORK_TYPES
+from analysis.constants import NETWORK_SCENARIOS
 from analysis.lib.io import read_feathers
 from analysis.lib.util import append
 from analysis.network.lib.networks import create_barrier_networks
@@ -23,10 +23,9 @@ BARRIER_COUNT_KINDS = [
 # Likewise, total upstream barrier stats (tot_) are only valid up to the
 # top of the network containing the barrier
 # For now, drop them all
-DROP_COLS = (
-    [f"tot_{kind}" for kind in BARRIER_COUNT_KINDS]
-    + [f"fn_{kind}" for kind in BARRIER_COUNT_KINDS]
-)
+DROP_COLS = [f"tot_{kind}" for kind in BARRIER_COUNT_KINDS] + [
+    f"fn_{kind}" for kind in BARRIER_COUNT_KINDS
+]
 
 
 DOWNSTREAM_COLS = [f"totd_{kind}" for kind in BARRIER_COUNT_KINDS[:4]] + [
@@ -53,10 +52,19 @@ huc2_groups = (
 
 barriers = pd.read_feather(
     src_dir / "all_barriers.feather",
-    columns=["id", "kind", "intermittent", "HUC2", "loop", "removed", "YearRemoved"],
+    columns=[
+        "id",
+        "kind",
+        "HUC2",
+        "primary_network",
+        "largefish_network",
+        "smallfish_network",
+        "removed",
+        "YearRemoved",
+    ],
 )
-# extract removed barriers, dropping any on loops (will be off-network)
-barriers = barriers.loc[barriers.removed & (~barriers.loop)]
+# extract removed barriers
+barriers = barriers.loc[barriers.removed]
 
 # Lump together YearRemoved < 2000 with baseline
 barriers.loc[barriers.YearRemoved < 2000, "YearRemoved"] = 0
@@ -93,7 +101,17 @@ for group in huc2_groups:
             new_fields={"HUC2": group_huc2s},
         )
         .set_index("id")
-        .join(barriers.set_index("id").YearRemoved, how="inner")
+        .join(
+            barriers.set_index("id")[
+                [
+                    "primary_network",
+                    "largefish_network",
+                    "smallfish_network",
+                    "YearRemoved",
+                ]
+            ],
+            how="inner",
+        )
     )
 
     # extract a non-zero lineID to join to segments in order to resolve the
@@ -104,50 +122,55 @@ for group in huc2_groups:
 
     # add networkID columns for each network type
     barrier_joins = barrier_joins.join(
-        prev_segments[NETWORK_TYPES.keys()],
+        prev_segments[NETWORK_SCENARIOS.keys()],
         on="lineID",
     ).drop(columns=["lineID"])
 
     # extract flowlines that are present in any of the network types
     ids = []
-    for network_type in NETWORK_TYPES:
+    for scenario in NETWORK_SCENARIOS:
         ids = np.append(
             ids,
             prev_segments.loc[
-                prev_segments[network_type].isin(barrier_joins[network_type].unique())
+                prev_segments[scenario].isin(barrier_joins[scenario].unique())
             ].index.values,
         )
 
     flowlines = prev_segments.loc[prev_segments.index.isin(np.unique(ids))].drop(
-        columns=NETWORK_TYPES
+        columns=NETWORK_SCENARIOS.keys()
     )
 
-    for network_type, breaking_kinds in NETWORK_TYPES.items():
-        print(f"-------------------------\nCreating networks for {network_type}")
+    for scenario in NETWORK_SCENARIOS:
+        print(f"-------------------------\nCreating networks for {scenario}")
         network_start = time()
 
-        focal_barrier_joins = barrier_joins.loc[barrier_joins.kind.isin(breaking_kinds)]
+        breaking_kinds = NETWORK_SCENARIOS[scenario]["kinds"]
+        col = NETWORK_SCENARIOS[scenario]["column"]
+
+        focal_barrier_joins = barrier_joins.loc[
+            barrier_joins.kind.isin(breaking_kinds) & barrier_joins[col]
+        ]
 
         if len(focal_barrier_joins) == 0:
-            print(f"skipping {network_type}, no removed barriers of this type present")
-            flowlines[network_type] = np.nan
+            print(f"skipping {scenario}, no removed barriers of this type present")
+            flowlines[scenario] = np.nan
             continue
 
         # read in previous downstream stats
         prev_stats = read_feathers(
             [
-                out_dir / huc2 / f"{network_type}_network_stats.feather"
+                out_dir / huc2 / f"{scenario}_network_stats.feather"
                 for huc2 in group_huc2s
             ],
             columns=["networkID", "barrier"] + DOWNSTREAM_COLS,
         ).set_index("networkID")
 
         prev_stats = prev_stats.loc[
-            prev_stats.index.isin(barrier_joins[network_type].unique())
+            prev_stats.index.isin(barrier_joins[scenario].unique())
         ]
 
         within_subnetwork_stats = (
-            focal_barrier_joins.join(prev_stats, on=network_type)[prev_stats.columns]
+            focal_barrier_joins.join(prev_stats, on=scenario)[prev_stats.columns]
             .reset_index()
             .drop_duplicates(subset="id")
             .set_index("id")
@@ -163,8 +186,8 @@ for group in huc2_groups:
 
         # only keep the joins and segments for the subnetworks containing removed barriers
         subnetwork_flowlines = prev_segments.loc[
-            prev_segments[network_type].isin(focal_barrier_joins[network_type].unique())
-        ].drop(columns=NETWORK_TYPES)
+            prev_segments[scenario].isin(focal_barrier_joins[scenario].unique())
+        ].drop(columns=NETWORK_SCENARIOS.keys())
         lineIDs = subnetwork_flowlines.index.values
         subnetwork_joins = group_joins.loc[
             group_joins.upstream_id.isin(lineIDs)
@@ -173,15 +196,15 @@ for group in huc2_groups:
 
         barrier_networks, network_stats, network_segments = create_barrier_networks(
             group_barriers,
-            barrier_joins.drop(columns=NETWORK_TYPES.keys()),
-            focal_barrier_joins.drop(columns=NETWORK_TYPES.keys()),
+            barrier_joins.drop(columns=NETWORK_SCENARIOS.keys()),
+            focal_barrier_joins.drop(columns=NETWORK_SCENARIOS.keys()),
             subnetwork_joins,
             subnetwork_flowlines,
-            network_type,
+            scenario,
         )
 
         # save networkID to flowlines
-        flowlines = flowlines.join(network_segments[network_type])
+        flowlines = flowlines.join(network_segments[scenario])
 
         barrier_networks = barrier_networks.drop(
             columns=DROP_COLS, errors="ignore"
@@ -231,7 +254,7 @@ for group in huc2_groups:
             network_stats.loc[
                 network_stats.origin_HUC2 == huc2
             ].reset_index().to_feather(
-                out_dir / huc2 / f"removed_{network_type}_network_stats.feather"
+                out_dir / huc2 / f"removed_{scenario}_network_stats.feather"
             )
 
         # save a version cut by all barriers at the same time
@@ -245,9 +268,9 @@ for group in huc2_groups:
         years_removed = barrier_networks.YearRemoved.sort_values().unique()
 
         # can start from any that are in year 1 or are not on the same original network
-        s = focal_barrier_joins.groupby(network_type).size()
+        s = focal_barrier_joins.groupby(scenario).size()
         isolated_ids = focal_barrier_joins.loc[
-            focal_barrier_joins[network_type].isin(s[s == 1].index.values)
+            focal_barrier_joins[scenario].isin(s[s == 1].index.values)
         ].index
         barrier_networks_by_year = barrier_networks.loc[
             (barrier_networks.YearRemoved == years_removed[0])
@@ -266,7 +289,7 @@ for group in huc2_groups:
 
         for year in years_removed:
             print(
-                f"\n---------------------------\nProcessing {network_type} removed in {year}"
+                f"\n---------------------------\nProcessing {scenario} removed in {year}"
             )
 
             # exclude any focal_barrier_joins that have already been evaluated
@@ -279,15 +302,15 @@ for group in huc2_groups:
                     ],
                     barrier_joins.loc[
                         ~barrier_joins.index.isin(barrier_networks_by_year.id.values)
-                    ].drop(columns=NETWORK_TYPES.keys()),
+                    ].drop(columns=NETWORK_SCENARIOS.keys()),
                     focal_barrier_joins.loc[
                         ~focal_barrier_joins.index.isin(
                             barrier_networks_by_year.id.values
                         )
-                    ].drop(columns=NETWORK_TYPES.keys()),
+                    ].drop(columns=NETWORK_SCENARIOS.keys()),
                     subnetwork_joins,
                     subnetwork_flowlines,
-                    network_type,
+                    scenario,
                 )[0]
                 .drop(columns=DROP_COLS, errors="ignore")
                 .join(group_barriers.set_index("id").YearRemoved)
@@ -332,7 +355,7 @@ for group in huc2_groups:
             tmp = (
                 barrier_networks.loc[barrier_networks.HUC2 == huc2]
                 .reset_index(drop=True)
-                .to_feather(out_dir / huc2 / f"removed_{network_type}_network.feather")
+                .to_feather(out_dir / huc2 / f"removed_{scenario}_network.feather")
             )
 
     print("-------------------------\n")
@@ -342,15 +365,15 @@ for group in huc2_groups:
         print("dups", s[s > 1])
 
     # all flowlines without networks marked -1
-    for network_type in NETWORK_TYPES:
-        flowlines[network_type] = flowlines[network_type].fillna(-1).astype("int64")
+    for scenario in NETWORK_SCENARIOS:
+        flowlines[scenario] = flowlines[scenario].fillna(-1).astype("int64")
 
     # drop any that weren't assigned any networks; these were selected because
     # they were part of a network that contained a given barrier but network
     # was for a different type (e.g., large dams network, but only evaluted
     # small part of it for a removed small_barrier)
 
-    flowlines = flowlines.loc[flowlines[list(NETWORK_TYPES)].max(axis=1) > -1]
+    flowlines = flowlines.loc[flowlines[list(NETWORK_SCENARIOS)].max(axis=1) > -1]
 
     # save network segments in the HUC2 where they are located
     print("Serializing network segments")

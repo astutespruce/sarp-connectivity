@@ -325,6 +325,8 @@ for field, values in unranked_fields.items():
     )
 
 ### Exclude any other PotentialProject values that we don't specfically allow
+# IMPORTANT: we now include Minor Barriers, but then exclude them from specific
+# network scenarios
 exclude_ix = (~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT)) & (
     ~(df.dropped | df.excluded | df.unranked | df.removed)
 )
@@ -574,6 +576,19 @@ df.loc[~df.snapped, "symbol"] = 1
 df.symbol = df.symbol.astype("uint8")
 
 
+### Assign to network analysis scenario
+# omit any that are not snapped or are duplicate / dropped / excluded or on loops / off-network flowlines
+can_break_networks = df.snapped & (
+    ~(df.duplicate | df.dropped | df.excluded | df.loop | df.offnetwork_flowline)
+)
+df["primary_network"] = can_break_networks & (df.PotentialProject != "Minor Barrier")
+# salmonid / large fish: only keep significant and severe barriers
+df["largefish_network"] = can_break_networks & (
+    df.PotentialProject.isin(["Severe Barrier", "Significant Barrier"])
+)
+df["smallfish_network"] = can_break_networks  # includes minor barriers
+
+
 print("\n--------------\n")
 df = df.reset_index(drop=True)
 
@@ -584,7 +599,7 @@ write_dataframe(df, qa_dir / "small_barriers.fgb")
 
 # Extract out only the snapped ones not on loops
 df = df.loc[
-    df.snapped & (~(df.duplicate | df.dropped | df.excluded | df.loop))
+    df.primary_network | df.largefish_network | df.smallfish_network
 ].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
@@ -597,9 +612,9 @@ df[
         "HUC2",
         "lineID",
         "NHDPlusID",
-        "loop",
-        "offnetwork_flowline",
-        "intermittent",
+        "primary_network",
+        "largefish_network",
+        "smallfish_network",
         "removed",
         "YearRemoved",
     ]

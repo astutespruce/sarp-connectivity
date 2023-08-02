@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import geopandas as gp
 import pyarrow as pa
@@ -54,7 +55,7 @@ def read_feathers(paths, columns=None, geo=False, new_fields=None):
     return merged.reset_index(drop=True)
 
 
-def read_arrow_tables(paths, columns=None, filter=None):
+def read_arrow_tables(paths, columns=None, filter=None, new_fields=None):
     """Read multiple feather files into a single pyarrow.Table
 
     Parameters
@@ -64,17 +65,22 @@ def read_arrow_tables(paths, columns=None, filter=None):
         Columns to read from the feather files
     filter : pyarrow.compute.Expression
         filter to apply when reading from disk
-
+    new_fields : dict, optional (default: None)
+        if present, is a mapping of new field name to add to a list-like of values
+        the same length as paths
     Returns
     -------
     pyarrow.Table
     """
     merged = None
-    for path in paths:
+    for i, path in enumerate(paths):
         if not Path(path).exists():
             continue
 
         table = dataset(path, format="feather").to_table(columns=columns, filter=filter)
+        if new_fields is not None:
+            for field, values in new_fields.items():
+                table = table.append_column(field, [np.repeat(values[i], len(table))])
 
         merged = pa.concat_tables([merged, table]) if merged is not None else table
 

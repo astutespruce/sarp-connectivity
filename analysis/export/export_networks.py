@@ -11,9 +11,9 @@ src_dir = Path("data/networks")
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True, parents=True)
 
-prefix = ""  # "removed_"
-segments_prefix = ""  # "removed_barriers_"
-barrier_type = "dams"  # , "dams"
+
+scenario = "combined_barriers"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
+removed = False
 ext = "fgb"
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
@@ -31,9 +31,11 @@ export_hucs = {
 }
 
 
-for group in groups_df.groupby("group").HUC2.apply(set).values:
-    # for group in [{"05", "06", "07", "08", "10", "11"}]:
-    # for group in [{"14","15"}, {"16"}]:
+prefix = "removed_" if removed else ""
+segments_prefix = "removed_barriers_" if removed else ""
+
+# for group in groups_df.groupby("group").HUC2.apply(set).values:
+for group in [{"01", "02"}]:
     group = sorted(group)
 
     segments = (
@@ -42,15 +44,15 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
                 src_dir / "clean" / huc2 / f"{segments_prefix}network_segments.feather"
                 for huc2 in group
             ],
-            columns=["lineID", barrier_type],
+            columns=["lineID", scenario],
         )
-        .rename(columns={barrier_type: "networkID"})
+        .rename(columns={scenario: "networkID"})
         .set_index("lineID")
     )
 
     stats = read_feathers(
         [
-            src_dir / "clean" / huc2 / f"{prefix}{barrier_type}_network_stats.feather"
+            src_dir / "clean" / huc2 / f"{prefix}{scenario}_network_stats.feather"
             for huc2 in group
         ]
     ).set_index("networkID")
@@ -104,7 +106,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         # flowlines = flowlines.loc[
         #     flowlines.sizeclass.isin(["1b", "2", "3a", "3b", "4", "5"])
         # ]
-        flowlines = flowlines.loc[flowlines.sizeclass.isin(["2", "3a", "3b", "4", "5"])]
+        # flowlines = flowlines.loc[flowlines.sizeclass.isin(["2", "3a", "3b", "4", "5"])]
 
         ### To export dissolved networks
         networks = (
@@ -135,5 +137,5 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 
         print(f"Serializing {len(networks):,} dissolved networks...")
         write_dataframe(
-            networks, out_dir / f"region{huc2}_{prefix}{barrier_type}_networks.{ext}"
+            networks, out_dir / f"region{huc2}_{prefix}{scenario}_networks.{ext}"
         )

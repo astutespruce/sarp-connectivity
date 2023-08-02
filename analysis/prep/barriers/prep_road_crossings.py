@@ -70,6 +70,14 @@ drop_ix = np.unique(np.concatenate([dam_ix, wf_ix, sb_ix]))
 df = df.loc[~df.index.isin(drop_ix)].copy()
 
 
+### Assign to network analysis scenario
+# NOTE: road crossings are always excluded from network analysis but cut networks
+# so they can be counted within networks
+df["primary_network"] = False
+df["largefish_network"] = False
+df["smallfish_network"] = False
+
+
 ### Export all barriers for use in counts / tiles
 print(f"Serializing {len(df):,} road crossings")
 
@@ -82,16 +90,16 @@ write_dataframe(df, qa_dir / "road_crossings.fgb")
 # NOTE: any that were not snapped were dropped in earlier processing
 print(f"Serializing {df.snapped.sum():,} snapped road crossings")
 snapped = df.loc[
-    df.snapped & (~df.loop),
+    df.snapped & (~(df.loop | df.offnetwork_flowline)),
     [
         "geometry",
         "id",
         "HUC2",
         "lineID",
         "NHDPlusID",
-        "loop",
-        "offnetwork_flowline",
-        "intermittent",
+        "primary_network",
+        "largefish_network",
+        "smallfish_network",
     ],
 ].reset_index(drop=True)
 

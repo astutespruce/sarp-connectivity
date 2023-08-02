@@ -225,6 +225,14 @@ print("\n---- Downloading waterfalls ----")
 df = asyncio.run(download_waterfalls(TOKEN))
 print(f"Downloaded {len(df):,} waterfalls in {time() - download_start:.2f}s")
 
+ix = df.SARPID.isnull() | (df.SARPID == "")
+if ix.max():
+    print(
+        f"--------------------------\nWARNING: {ix.sum():,} waterfallsdf.oloc are missing SARPID\n----------------------------"
+    )
+
+df.SARPID = df.SARPID.fillna("").astype("str")
+
 df.to_feather(out_dir / "waterfalls.feather")
 
 

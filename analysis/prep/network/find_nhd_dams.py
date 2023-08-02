@@ -17,7 +17,7 @@ from analysis.lib.geometry import (
     find_contiguous_groups,
 )
 from analysis.lib.io import read_feathers
-from analysis.lib.graph.speedups.graph import DirectedGraph
+from analysis.lib.graph.speedups.directedgraph import DirectedGraph
 
 
 # consider dam associated with waterbody drain if within 15m

@@ -54,12 +54,6 @@ def calculate_upstream_network_stats(
         Summary statistics, with one row per functional network.
     """
 
-    # re-derive all focal barriers joins from barrier joins to keep confluences
-    # which are otherwise filtered out before calling here
-    all_focal_barrier_joins = barrier_joins.loc[
-        barrier_joins.index.isin(focal_barrier_joins.index.unique())
-    ]
-
     # find the HUC2 of the network origin
     root_huc2 = up_network_df.loc[
         up_network_df.index == up_network_df.lineID
@@ -187,16 +181,6 @@ def calculate_upstream_network_stats(
         .groupby("networkID")
         .sum()
     )
-
-    ### Count barriers for the immediate catchment, spanning multiple upstream
-    # networks if on the same NHDPlusID
-
-    # for every barrier join, get associated NHDPlusID
-    nhdplusID = barrier_joins.join(
-        up_network_df.reset_index().set_index("lineID")[["networkID", "NHDPlusID"]],
-        on="upstream_id",
-        how="inner",
-    ).NHDPlusID
 
     # determine the barrier type associated with this functional network
     network_barrier = (
