@@ -12,11 +12,8 @@ from api.constants import (
     # UPSTREAM_COUNT_FIELDS,
     # DOWNSTREAM_LINEAR_NETWORK_FIELDS,
     SB_TILE_FILTER_FIELDS,
-    # SB_TILE_FIELDS,
-    # COMBINED_TILE_FILTER_FIELDS,
+    COMBINED_TILE_FILTER_FIELDS,
     # WF_TILE_FIELDS,
-    # STATE_TIER_FIELDS,
-    # STATE_TIER_PACK_BITS,
     # ROAD_CROSSING_TILE_FIELDS,
     # ROAD_CROSSING_PACK_BITS,
     unique,
@@ -369,263 +366,150 @@ start = time()
 # print(f"Created small barrier tiles in {time() - start:,.2f}s")
 
 
-# ####################################################################
-# ### Create combined barrier tiles
-# ####################################################################
-# print("-----------------Creating combined barrier tiles------------------------\n\n")
-# df = (
-#     gp.read_feather(
-#         results_dir / "combined_barriers.feather",
-#         columns=["geometry", "id", "BarrierType"] + COMBINED_TILE_FIELDS,
-#     )
-#     .to_crs("EPSG:4326")
-#     .rename(columns={"COUNTYFIPS": "County"})
-#     .sort_values(by=["TotDASqKm"], ascending=False)
-# )
-# df = combine_sarpid_name(df)
-# fill_na_fields(df)
+####################################################################
+### Create barrier tiles for other scenarios
+####################################################################
+for scenario in ["combined_barriers", "largefish_barriers", "smallfish_barriers"]:
+    print(f"-----------------Creating {scenario} tiles------------------------\n\n")
+    df = (
+        gp.read_feather(
+            results_dir / f"{scenario}.feather",
+            columns=[
+                "geometry",
+                "BarrierType",
+                "id",
+                "SARPID",
+                "Name",
+                "symbol",
+                "upNetID",
+                "HasNetwork",
+                "Ranked",
+                "Removed",
+                "TotDASqKm",
+            ]
+            + COMBINED_TILE_FILTER_FIELDS,
+        )
+        .to_crs("EPSG:4326")
+        .rename(columns={"COUNTYFIPS": "County"})
+        .sort_values(by=["TotDASqKm"], ascending=False)
+    )
+    df = combine_sarpid_name(df)
+    fill_na_fields(df)
 
-# ### Create tiles for combined barriers (ranked only) with networks for low zooms
-# tmp = to_lowercase(
-#     df.loc[df.Ranked & (df.TotDASqKm >= 1)][
-#         ["geometry", "id", "BarrierType"] + COMBINED_TILE_FILTER_FIELDS
-#     ]
-# )
+    ### Create tiles for ranked combined barriers
+    ranked_barriers = df.loc[
+        df.Ranked,
+        ["geometry", "BarrierType", "id", "SARPIDName", "upNetID", "TotDASqKm"]
+        + COMBINED_TILE_FILTER_FIELDS,
+    ]
 
-# print(
-#     f"Creating tiles for {len(tmp):,} ranked combined barriers with networks for zooms 2-7"
-# )
+    # create tiles for low zooms
+    tmp = ranked_barriers.loc[ranked_barriers.TotDASqKm >= 1][
+        ["geometry", "id", "BarrierType"] + COMBINED_TILE_FILTER_FIELDS
+    ]
 
-# outfilename = tmp_dir / "combined_barriers_lt_z8.fgb"
-# mbtiles_filename = tmp_dir / "combined_barriers_lt_z8.mbtiles"
-# mbtiles_files = [mbtiles_filename]
-# write_dataframe(tmp.reset_index(drop=True), outfilename)
+    print(
+        f"Creating tiles for {len(tmp):,} ranked {scenario} with networks for zooms 2-7"
+    )
 
-# ret = subprocess.run(
-#     tippecanoe_args
-#     + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
-#     + ["-l", "ranked_combined_barriers"]
-#     + ["-o", f"{str(mbtiles_filename)}"]
-#     + get_col_types(tmp)
-#     + [str(outfilename)]
-# )
-# ret.check_returncode()
+    outfilename = tmp_dir / "combined_barriers_lt_z8.fgb"
+    mbtiles_filename = tmp_dir / "combined_barriers_lt_z8.mbtiles"
+    mbtiles_files = [mbtiles_filename]
+    tmp = to_lowercase(tmp)
+    write_dataframe(tmp.reset_index(drop=True), outfilename)
 
+    ret = subprocess.run(
+        tippecanoe_args
+        + ["-Z0", "-z7", "-r1.5", "-g1.5", "-B5"]
+        + ["-l", f"ranked_{scenario}"]
+        + ["-o", f"{str(mbtiles_filename)}"]
+        + get_col_types(tmp)
+        + [str(outfilename)]
+    )
+    ret.check_returncode()
 
-# df = df.drop(columns=["TotDASqKm"])
+    ranked_barriers = ranked_barriers.drop(columns=["TotDASqKm"])
 
-# ### Create tiles for ranked combined barriers with networks
-# ranked_combined_barriers = df.loc[df.Ranked].drop(
-#     columns=[
-#         "Ranked",
-#         "HasNetwork",
-#         "symbol",
-#         "YearRemoved",
-#         "Removed",
-#     ]
-# )
-# print(
-#     f"Creating tiles for {len(ranked_combined_barriers):,} ranked combined barriers with networks"
-# )
+    ### Create tiles for ranked combined barriers with networks
+    print(
+        f"Creating tiles for {len(ranked_barriers):,} {scenario} barriers with networks"
+    )
 
-# ranked_combined_barriers = to_lowercase(ranked_combined_barriers)
+    outfilename = tmp_dir / f"ranked_{scenario}.fgb"
+    mbtiles_filename = tmp_dir / f"ranked_{scenario}.mbtiles"
+    mbtiles_files.append(mbtiles_filename)
+    ranked_barriers = to_lowercase(ranked_barriers)
+    write_dataframe(ranked_barriers.reset_index(drop=True), outfilename)
 
-# outfilename = tmp_dir / "ranked_combined_barriers.fgb"
-# mbtiles_filename = tmp_dir / "ranked_combined_barriers.mbtiles"
-# mbtiles_files.append(mbtiles_filename)
+    ret = subprocess.run(
+        tippecanoe_args
+        + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
+        + ["-l", f"ranked_{scenario}"]
+        + ["-o", f"{str(mbtiles_filename)}"]
+        + get_col_types(ranked_barriers)
+        + [str(outfilename)]
+    )
+    ret.check_returncode()
 
-# write_dataframe(ranked_combined_barriers.reset_index(drop=True), outfilename)
+    ### Create tiles for unranked combined barriers with networks
+    unranked_barriers = df.loc[
+        df.HasNetwork & (~(df.Ranked | df.Removed)),
+        ["geometry", "id", "SARPIDName", "upNetID", "symbol"],
+    ]
 
-# ret = subprocess.run(
-#     tippecanoe_args
-#     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
-#     + ["-l", "ranked_combined_barriers"]
-#     + ["-o", f"{str(mbtiles_filename)}"]
-#     + get_col_types(ranked_combined_barriers)
-#     + [str(outfilename)]
-# )
-# ret.check_returncode()
+    print(
+        f"Creating tiles for {len(unranked_barriers):,} unranked combined barriers with networks"
+    )
 
+    outfilename = tmp_dir / f"unranked_{scenario}.fgb"
+    mbtiles_filename = tmp_dir / f"unranked_{scenario}.mbtiles"
+    mbtiles_files.append(mbtiles_filename)
+    unranked_barriers = to_lowercase(unranked_barriers)
+    write_dataframe(unranked_barriers.reset_index(drop=True), outfilename)
 
-# ### Create tiles for removed combined barriers
-# removed_combined_barriers = df.loc[df.Removed].drop(
-#     columns=[
-#         "Removed",
-#         "Ranked",
-#         "Unranked",
-#         "symbol",
-#         # remove fields only used for filtering
-#         "HUC6",
-#         "GainMilesClass",
-#         "TESppClass",
-#         "StateSGCNSppClass",
-#         "StreamOrderClass",
-#         "CoastalHUC8",
-#         "DownstreamOceanMilesClass",
-#         "DownstreamOceanBarriersClass",
-#         "PassageFacilityClass",
-#         "PercentAlteredClass",
-#         "SalmonidESUCount",
-#     ]
-#     + DROP_UNIT_FIELDS
-#     + STATE_TIER_FIELDS,
-#     errors="ignore",
-# )
+    ret = subprocess.run(
+        tippecanoe_args
+        + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
+        + ["-l", f"unranked_{scenario}"]
+        + ["-o", f"{str(mbtiles_filename)}"]
+        + get_col_types(unranked_barriers)
+        + [str(outfilename)]
+    )
+    ret.check_returncode()
 
-# removed_combined_barriers = removed_combined_barriers.drop(
-#     columns=[
-#         "upNetID",
-#         "downNetID",
-#     ]
-#     + UPSTREAM_COUNT_FIELDS,
-#     errors="ignore",
-# )
+    ### Create tiles for all other barriers
+    other_barriers = df.loc[
+        df.Removed | ~df.HasNetwork, ["geometry", "id", "SARPIDName", "symbol"]
+    ]
+    print(f"Creating tiles for {len(other_barriers)} other barriers")
 
+    outfilename = tmp_dir / f"other_{scenario}.fgb"
+    mbtiles_filename = tmp_dir / f"other_{scenario}.mbtiles"
+    mbtiles_files.append(mbtiles_filename)
+    other_barriers = to_lowercase(other_barriers)
+    write_dataframe(other_barriers, outfilename)
 
-# print(
-#     f"Creating tiles for {len(removed_combined_barriers):,} removed combined barriers"
-# )
+    ret = subprocess.run(
+        tippecanoe_args
+        + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
+        + ["-l", f"other_{scenario}"]
+        + ["-o", f"{str(mbtiles_filename)}"]
+        + get_col_types(other_barriers)
+        + [str(outfilename)]
+    )
+    ret.check_returncode()
 
-# removed_combined_barriers = to_lowercase(removed_combined_barriers)
+    print(f"Joining {scenario} tilesets")
+    mbtiles_filename = out_dir / f"{scenario}.mbtiles"
+    ret = subprocess.run(
+        tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
+    )
 
-# outfilename = tmp_dir / "removed_combined_barriers.fgb"
-# mbtiles_filename = tmp_dir / "removed_combined_barriers.mbtiles"
-# mbtiles_files.append(mbtiles_filename)
-# write_dataframe(removed_combined_barriers.reset_index(drop=True), outfilename)
+    # remove intermediates
+    for mbtiles_file in mbtiles_files:
+        mbtiles_file.unlink()
 
-# ret = subprocess.run(
-#     tippecanoe_args
-#     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
-#     + ["-l", "removed_combined_barriers"]
-#     + ["-o", f"{str(mbtiles_filename)}"]
-#     + get_col_types(removed_combined_barriers)
-#     + [str(outfilename)]
-# )
-# ret.check_returncode()
-
-
-# ### Create tiles for unranked combined barriers with networks
-# unranked_combined_barriers = df.loc[df.HasNetwork & (~(df.Ranked | df.Removed))].drop(
-#     columns=[
-#         "Ranked",
-#         "HasNetwork",
-#         "YearRemoved",
-#         "Removed",
-#         "GainMilesClass",
-#         "TESppClass",
-#         "StateSGCNSppClass",
-#         "StreamOrderClass",
-#         "StreamSizeClass",
-#         "PercentAlteredClass",
-#         "WaterbodySizeClass",
-#         "HeightClass",
-#         "PassageFacilityClass",
-#         "SalmonidESUCount",
-#         "DownstreamOceanMilesClass",
-#         "DownstreamOceanBarriersClass",
-#     ]
-#     + DROP_UNIT_FIELDS
-#     + STATE_TIER_FIELDS,
-#     errors="ignore",
-# )
-# print(
-#     f"Creating tiles for {len(unranked_combined_barriers):,} unranked combined barriers with networks"
-# )
-
-# unranked_combined_barriers = to_lowercase(unranked_combined_barriers)
-
-# outfilename = tmp_dir / "unranked_combined_barriers.fgb"
-# mbtiles_filename = tmp_dir / "unranked_combined_barriers.mbtiles"
-# mbtiles_files.append(mbtiles_filename)
-# write_dataframe(unranked_combined_barriers.reset_index(drop=True), outfilename)
-
-# ret = subprocess.run(
-#     tippecanoe_args
-#     + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
-#     + ["-l", "unranked_combined_barriers"]
-#     + ["-o", f"{str(mbtiles_filename)}"]
-#     + get_col_types(unranked_combined_barriers)
-#     + [str(outfilename)]
-# )
-# ret.check_returncode()
-
-
-# ### Create tiles for combined barriers without networks (these are never ranked)
-# print("Creating tiles for combined barriers without networks")
-
-# # Drop metrics, tiers, and units used only for filtering
-# offnetwork_combined_barriers = (
-#     df.loc[~(df.HasNetwork | df.Removed)]
-#     .drop(
-#         columns=[
-#             "HasNetwork",
-#             "Ranked",
-#             "YearRemoved",
-#             "Removed",
-#             "GainMilesClass",
-#             "TESppClass",
-#             "StateSGCNSppClass",
-#             "StreamOrderClass",
-#             "StreamSizeClass",
-#             "Intermittent",
-#             "PercentAlteredClass",
-#             "Waterbody",
-#             "WaterbodyKM2",
-#             "WaterbodySizeClass",
-#             "HeightClass",
-#             "PassageFacilityClass",
-#             "SalmonidESUCount",
-#             "FlowsToOcean",
-#             "FlowsToGreatLakes",
-#             "MilesToOutlet",
-#             "CoastalHUC8",
-#             "DownstreamOceanMilesClass",
-#             "DownstreamOceanBarriersClass",
-#             "upNetID",
-#             "downNetID",
-#         ]
-#         + DROP_UNIT_FIELDS
-#         + METRIC_FIELDS
-#         + UPSTREAM_COUNT_FIELDS
-#         + DOWNSTREAM_LINEAR_NETWORK_FIELDS
-#         + STATE_TIER_FIELDS,
-#         errors="ignore",
-#     )
-#     .reset_index(drop=True)
-# )
-
-# offnetwork_combined_barriers = to_lowercase(offnetwork_combined_barriers)
-
-
-# outfilename = tmp_dir / "offnetwork_combined_barriers.fgb"
-# mbtiles_filename = tmp_dir / "offnetwork_combined_barriers.mbtiles"
-# mbtiles_files.append(mbtiles_filename)
-# write_dataframe(offnetwork_combined_barriers, outfilename)
-
-# ret = subprocess.run(
-#     tippecanoe_args
-#     + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
-#     + ["-l", "offnetwork_combined_barriers"]
-#     + ["-o", f"{str(mbtiles_filename)}"]
-#     + get_col_types(
-#         offnetwork_combined_barriers,
-#     )
-#     + [str(outfilename)]
-# )
-# ret.check_returncode()
-
-
-# print("Joining combined barrier tilesets")
-# mbtiles_filename = out_dir / "combined_barriers.mbtiles"
-# ret = subprocess.run(
-#     tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
-# )
-
-# # remove intermediates
-# for mbtiles_file in mbtiles_files:
-#     mbtiles_file.unlink()
-
-# print(f"Created combined barrier tiles in {time() - start:,.2f}s")
+    print(f"Created {scenario} tiles in {time() - start:,.2f}s")
 
 
 # ####################################################################

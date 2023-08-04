@@ -79,8 +79,8 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
         <Box sx={{ width: '10rem' }}>
           <Flex sx={{ ml: '1rem', flex: '1 1 auto' }}>
             <Downloader
-              barrierType={barrierType}
-              label={barrierTypeLabels[barrierType]}
+              barrierType="dams"
+              label={barrierTypeLabels.dams}
               config={downloaderConfig}
               disabled={dams === 0}
             />
@@ -94,8 +94,8 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
       downloadButtons = (
         <>
           <Downloader
-            barrierType={barrierType}
-            label={barrierTypeLabels[barrierType]}
+            barrierType="small_barriers"
+            label={barrierTypeLabels.small_barriers}
             config={downloaderConfig}
             disabled={totalSmallBarriers === 0}
           />
@@ -193,8 +193,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
 
                 <Box as="ul" sx={{ mt: '0.5rem' }}>
                   <li>
-                    <b>{formatNumber(rankedDams, 0)}</b>{' '}
-                    that{' '}
+                    <b>{formatNumber(rankedDams, 0)}</b> that{' '}
                     {rankedDams === 1 ? 'was ' : 'were '} analyzed for impacts
                     to aquatic connectivity in this tool
                   </li>
@@ -232,7 +231,8 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
                 </Paragraph>
                 <Box as="ul" sx={{ mt: '0.5rem' }}>
                   <li>
-                    <b>{formatNumber(totalRoadBarriers, 0)}</b> road/stream crossings
+                    <b>{formatNumber(totalRoadBarriers, 0)}</b> road/stream
+                    crossings
                   </li>
                   <li>
                     <b>{formatNumber(totalSmallBarriers, 0)}</b> that{' '}

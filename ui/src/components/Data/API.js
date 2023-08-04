@@ -114,12 +114,13 @@ export const fetchBarrierRanks = async (
 export const fetchBarrierDetails = async (networkType, sarpid) => {
   const url = `${apiHost}/api/v1/internal/${networkType}/details/${sarpid}`
 
-  const request = await fetch(url)
-  const response = await request.json()
-  if (response.detail) {
+  const response = await fetch(url)
+  if (response.status === 404) {
     return null // not found
   }
-  return response
+
+  const data = await response.json()
+  return data
 }
 
 export const getDownloadURL = ({

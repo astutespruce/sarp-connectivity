@@ -9,13 +9,12 @@ import mapboxgl from '!mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 import {
-  pointLayer,
+  rankedPointLayer,
   damsSecondaryLayer,
   roadCrossingsLayer,
   waterfallsLayer,
-  offnetworkPointLayer,
+  otherBarrierPointLayer,
   unrankedPointLayer,
-  removedBarrierPointLayer,
 } from 'components/Summary/layers'
 
 import {
@@ -194,7 +193,7 @@ const Map = ({
           id: networkType,
           source: networkType,
           'source-layer': `ranked_${networkType}`,
-          ...pointLayer,
+          ...rankedPointLayer,
         })
 
         mapObj.addLayer({
@@ -205,17 +204,10 @@ const Map = ({
         })
 
         mapObj.addLayer({
-          id: `offnetwork_${networkType}`,
+          id: `other_${networkType}`,
           source: networkType,
-          'source-layer': `offnetwork_${networkType}`,
-          ...offnetworkPointLayer,
-        })
-
-        mapObj.addLayer({
-          id: `removed_${networkType}`,
-          source: networkType,
-          'source-layer': `removed_${networkType}`,
-          ...removedBarrierPointLayer,
+          'source-layer': `other_${networkType}`,
+          ...otherBarrierPointLayer,
         })
 
         // Add barrier highlight layer for on and off-network barriers.
@@ -238,18 +230,9 @@ const Map = ({
 
         mapObj.addLayer({
           ...pointHighlightLayer,
-          id: 'offnetwork-point-highlight',
+          id: 'other-point-highlight',
           source: networkType,
-          'source-layer': `offnetwork_${networkType}`,
-          minzoom: 9,
-          filter: ['==', ['get', 'id'], barrierID],
-        })
-
-        mapObj.addLayer({
-          ...pointHighlightLayer,
-          id: 'removed-point-highlight',
-          source: networkType,
-          'source-layer': `removed_${networkType}`,
+          'source-layer': `other_${networkType}`,
           minzoom: 9,
           filter: ['==', ['get', 'id'], barrierID],
         })

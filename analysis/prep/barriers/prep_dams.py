@@ -939,11 +939,12 @@ if df.PassageFacility.max() >= 32:
 ### Assign map symbol for use in (some) tiles
 df["symbol"] = 0
 df.loc[df.invasive, "symbol"] = 4
-# value 3 is minor barrier, not used
+# value 3 is minor road-related barrier, not used for dams
 df.loc[df.nobarrier, "symbol"] = 2
 # intentionally give no structure diversions higher precedence so they don't
-# show up as no-barrier points
-df.loc[df.nostructure, "symbol"] = 4
+# show up as no-barrier points (these are excluded from the analysis and should
+# be styled same as other off-network barriers)
+df.loc[df.nostructure, "symbol"] = 99  # NOTE: don't style this as special class
 df.loc[~df.snapped, "symbol"] = 1
 # intentionally give removed barriers higher precedence
 df.loc[df.removed, "symbol"] = 5
@@ -957,7 +958,8 @@ can_break_networks = df.snapped & (
 )
 df["primary_network"] = can_break_networks
 # salmonid / large fish: exclude barriers that are passable to salmonids
-df["largefish_network"] = can_break_networks & (~(df.Passability.isin([4])))
+# based on direction from Kat, exclude any with partial or seasonal passability
+df["largefish_network"] = can_break_networks & (~(df.Passability.isin([2, 3, 4, 5, 6])))
 df["smallfish_network"] = can_break_networks
 
 

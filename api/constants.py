@@ -302,7 +302,12 @@ DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
     + STATE_TIER_FIELDS
     + DAM_FILTER_FIELDS
-    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked",]
+    + [
+        "upNetID",
+        "downNetID",
+        "COUNTYFIPS",
+        "Unranked",
+    ]
 )
 
 # Public API does not include tier or filter fields
@@ -433,17 +438,11 @@ COMBINED_EXPORT_FIELDS = [
     if c not in STATE_TIER_FIELDS
 ]
 
-
 COMBINED_TILE_FILTER_FIELDS = [
     c
     for c in unique(DAM_TILE_FILTER_FIELDS + SB_TILE_FILTER_FIELDS)
     if not c == "BarrierSeverity"
 ]
-
-# FIXME:
-# COMBINED_TILE_FIELDS = [
-#     c for c in unique(DAM_TILE_FIELDS + SB_TILE_FIELDS) if c not in STATE_TIER_FIELDS
-# ]
 
 
 ROAD_CROSSING_CORE_FIELDS = (
@@ -615,11 +614,7 @@ WF_API_FIELDS = WF_CORE_FIELDS
 
 
 ### Bit-packing for tiers
-
 TIER_BITS = 5  # holds values 0...21 after subtracting offset
-STATE_TIER_PACK_BITS = [
-    {"field": c, "bits": TIER_BITS, "value_shift": 1} for c in STATE_TIER_FIELDS
-]
 CUSTOM_TIER_PACK_BITS = [
     {"field": c, "bits": TIER_BITS, "value_shift": 1} for c in CUSTOM_TIER_FIELDS
 ]

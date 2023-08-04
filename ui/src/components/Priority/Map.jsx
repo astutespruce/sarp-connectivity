@@ -39,11 +39,11 @@ import {
   unitLayers,
   unitHighlightLayers,
   parentOutline,
-  rankedPoint,
-  unrankedPoint,
-  otherBarrierPoint,
-  excludedPoint,
-  includedPoint,
+  prioritizedPointLayer,
+  unrankedPointLayer,
+  otherBarrierPointLayer,
+  excludedPointLayer,
+  includedPointLayer,
   roadCrossingsLayer,
   damsSecondaryLayer,
   waterfallsLayer,
@@ -117,11 +117,11 @@ const PriorityMap = ({
         roadCrossingsLayer.id,
         damsSecondaryLayer.id,
         waterfallsLayer.id,
-        otherBarrierPoint.id,
-        unrankedPoint.id,
-        excludedPoint.id,
-        includedPoint.id,
-        rankedPoint.id,
+        otherBarrierPointLayer.id,
+        unrankedPointLayer.id,
+        excludedPointLayer.id,
+        includedPointLayer.id,
+        prioritizedPointLayer.id,
       ]
 
       const clickLayers = pointLayers.concat(
@@ -236,13 +236,13 @@ const PriorityMap = ({
       map.addLayer({
         source: barrierType,
         'source-layer': `other_${barrierType}`,
-        ...otherBarrierPoint,
+        ...otherBarrierPointLayer,
       })
 
       map.addLayer({
         source: barrierType,
         'source-layer': `unranked_${barrierType}`,
-        ...unrankedPoint,
+        ...unrankedPointLayer,
       })
 
       // add primary barrier-type point layers
@@ -253,17 +253,17 @@ const PriorityMap = ({
 
       // all points are initially excluded from analysis until their
       // units are selected
-      map.addLayer({ ...pointConfig, ...excludedPoint })
+      map.addLayer({ ...pointConfig, ...excludedPointLayer })
       map.addLayer({
         ...pointConfig,
-        ...includedPoint,
+        ...includedPointLayer,
       })
 
       map.addLayer({
         ...pointConfig,
-        ...rankedPoint,
+        ...prioritizedPointLayer,
         paint: {
-          ...rankedPoint.paint,
+          ...prioritizedPointLayer.paintLayer,
           'circle-color': getTierPointColor(scenario, tierThreshold),
           'circle-radius': getTierPointSize(scenario, tierThreshold),
         },
@@ -406,8 +406,6 @@ const PriorityMap = ({
           lon,
           // note: ranked layers are those that can be ranked, not necessarily those that have custom ranks
           ranked: sourceLayer.startsWith('ranked_'),
-          // FIXME:
-          // removed: sourceLayer.startsWith('removed_'),
           layer: {
             source,
             sourceLayer,
@@ -435,12 +433,12 @@ const PriorityMap = ({
       const { current: map } = mapRef
 
       map.setPaintProperty(
-        rankedPoint.id,
+        prioritizedPointLayer.id,
         'circle-color',
         getTierPointColor(currentScenario, threshold)
       )
       map.setPaintProperty(
-        rankedPoint.id,
+        prioritizedPointLayer.id,
         'circle-radius',
         getTierPointSize(currentScenario, threshold)
       )
@@ -548,8 +546,8 @@ const PriorityMap = ({
 
       if (!(activeLayer || ids.length > 0)) {
         // if no summary units are selected, reset filters on barriers
-        map.setFilter(includedPoint.id, ['==', 'id', Infinity])
-        map.setFilter(excludedPoint.id, null)
+        map.setFilter(includedPointLayer.id, ['==', 'id', Infinity])
+        map.setFilter(excludedPointLayer.id, null)
         return
       }
 
@@ -579,12 +577,12 @@ const PriorityMap = ({
       )
 
       // update barrier layers to select those that are in selected units
-      map.setFilter(includedPoint.id, [
+      map.setFilter(includedPointLayer.id, [
         'all',
         insideActiveUnitsExpr,
         ...includedByFilters,
       ])
-      map.setFilter(excludedPoint.id, [
+      map.setFilter(excludedPointLayer.id, [
         'any', // should this be any?
         outsideActiveUnitsExpr,
         ...excludedByFilters,
@@ -601,17 +599,17 @@ const PriorityMap = ({
 
     const showRanks = rankedBarriers.length > 0
     map.setLayoutProperty(
-      includedPoint.id,
+      includedPointLayer.id,
       'visibility',
       showRanks ? 'none' : 'visible'
     )
     map.setLayoutProperty(
-      rankedPoint.id,
+      prioritizedPointLayer.id,
       'visibility',
       showRanks ? 'visible' : 'none'
     )
 
-    const { source, sourceLayer } = map.getLayer(rankedPoint.id)
+    const { source, sourceLayer } = map.getLayer(prioritizedPointLayer.id)
     const prevRankedBarriers = rankedBarriersRef.current
 
     // unset feature state for all ranked points
@@ -625,7 +623,10 @@ const PriorityMap = ({
     }
     if (showRanks) {
       // copy filters to ranked layers
-      map.setFilter(rankedPoint.id, map.getFilter(includedPoint.id))
+      map.setFilter(
+        prioritizedPointLayer.id,
+        map.getFilter(includedPointLayer.id)
+      )
       rankedBarriers.forEach(({ id, ...rest }) => {
         map.setFeatureState({ source, sourceLayer, id }, rest)
       })
@@ -667,10 +668,10 @@ const PriorityMap = ({
 
   const getLegend = () => {
     const pointLayers = [
-      includedPoint,
-      excludedPoint,
-      otherBarrierPoint,
-      rankedPoint,
+      includedPointLayer,
+      excludedPointLayer,
+      otherBarrierPointLayer,
+      prioritizedPointLayer,
     ]
 
     const isWithinZoom = pointLayers.reduce(
@@ -731,7 +732,7 @@ const PriorityMap = ({
 
     // if no layer is selected for choosing summary areas
     if (activeLayer === null) {
-      if (!isWithinZoom[excludedPoint.id]) {
+      if (!isWithinZoom[excludedPointLayer.id]) {
         footnote = `zoom in to see ${barrierTypeLabel} available for prioritization`
       } else {
         circles.push({
@@ -755,7 +756,7 @@ const PriorityMap = ({
         label: lowerRankLegend.getLabel(barrierTypeLabel, tierLabel),
       })
 
-      if (isWithinZoom[excludedPoint.id]) {
+      if (isWithinZoom[excludedPointLayer.id]) {
         circles.push({
           ...excludedLegend.getSymbol(barrierType),
           label: excludedLegend.getLabel(barrierTypeLabel),
@@ -763,7 +764,7 @@ const PriorityMap = ({
       }
     } else {
       // either in select units or filter step
-      if (isWithinZoom[includedPoint.id]) {
+      if (isWithinZoom[includedPointLayer.id]) {
         circles.push({
           ...includedLegend.getSymbol(barrierType),
           label: includedLegend.getLabel(barrierTypeLabel),
@@ -772,7 +773,7 @@ const PriorityMap = ({
         footnote = `zoom in to see ${barrierTypeLabel} included in prioritization`
       }
 
-      if (isWithinZoom[excludedPoint.id]) {
+      if (isWithinZoom[excludedPointLayer.id]) {
         circles.push({
           ...excludedLegend.getSymbol(barrierType),
           label: excludedLegend.getLabel(barrierTypeLabel),
@@ -792,7 +793,7 @@ const PriorityMap = ({
       }
     }
 
-    if (isWithinZoom[otherBarrierPoint.id]) {
+    if (isWithinZoom[otherBarrierPointLayer.id]) {
       unrankedBarriers
         .filter(
           ({ id }) =>

@@ -350,7 +350,8 @@ df = df.join(geo[["lat", "lon"]])
 can_break_networks = df.snapped & (~(df.duplicate | df.dropped | df.excluded | df.loop))
 df["primary_network"] = can_break_networks
 # salmonid / large fish: exclude barriers that are passable to salmonids
-df["largefish_network"] = can_break_networks & (~(df.Passability.isin([4])))
+# based on direction from Kat, exclude any with partial or seasonal passability
+df["largefish_network"] = can_break_networks & (~(df.Passability.isin([2, 3, 4, 5, 6])))
 df["smallfish_network"] = can_break_networks
 
 

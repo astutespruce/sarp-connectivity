@@ -46,15 +46,20 @@ const BarrierDetails = ({ barrier, onClose }) => {
     ? rawName
     : barrierNameWhenUnknown[barrierType] || 'Unknown name'
 
-  console.log('show barrier details: ', sarpid, barrier)
+  console.log(
+    'show barrier details: ',
+    networkType,
+    barrierType,
+    sarpid,
+    barrier
+  )
 
   const { isLoading, error, data } = useQuery(
-    ['getBarrierDetails', sarpid],
+    ['getBarrierDetails', networkType, sarpid],
     () => fetchBarrierDetails(networkType, sarpid),
     {
-      // FIXME:
-      // staleTime: 60 * 60 * 1000, // 60 minutes
-      staleTime: 1, // use then reload to force refresh of underlying data during dev
+      staleTime: 60 * 60 * 1000, // 60 minutes
+      // staleTime: 1, // use then reload to force refresh of underlying data during dev
       refetchOnWindowFocus: false,
       refetchOnMount: false,
     }
@@ -81,7 +86,8 @@ const BarrierDetails = ({ barrier, onClose }) => {
     )
   }
 
-  if (error) {
+  // data===null is a signal for barrier data not found, skip retry
+  if (error || (!isLoading && data === null)) {
     content = (
       <Flex
         sx={{
