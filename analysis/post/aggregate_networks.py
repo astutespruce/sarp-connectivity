@@ -6,7 +6,7 @@ import pandas as pd
 
 from analysis.constants import SEVERITY_TO_PASSABILITY
 from analysis.lib.compression import pack_bits
-from analysis.lib.util import get_signed_dtype
+from analysis.lib.util import get_signed_dtype, append
 from analysis.rank.lib.networks import get_network_results, get_removed_network_results
 from analysis.rank.lib.metrics import (
     classify_streamorder,
@@ -23,6 +23,7 @@ from api.constants import (
     WF_API_FIELDS,
     unique,
 )
+from analysis.constants import NETWORK_TYPES
 
 
 start = time()
@@ -91,6 +92,7 @@ def verify_domains(df):
         )
 
 
+#######################################################################################
 ### Read dams and associated networks
 print("Reading dams and networks")
 dams = (
@@ -315,19 +317,19 @@ for col in fill_columns:
 for col in ["CoastalHUC8"]:
     combined[col] = combined[col].astype("uint8")
 
-for scenario in [
+for network_type in [
     "combined_barriers",
     "largefish_barriers",
     "smallfish_barriers",
 ]:
     nonremoved_networks = get_network_results(
         combined.loc[~combined.Removed],
-        network_scenario=scenario,
+        network_type=network_type,
         state_ranks=False,
     )
     removed_networks = get_removed_network_results(
         combined.loc[combined.Removed],
-        network_scenario=scenario,
+        network_type=network_type,
     )
     networks = pd.concat(
         [
@@ -354,16 +356,16 @@ for scenario in [
                 scenario_results[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
             )
 
-    print(f"Saving {scenario} networks for tiles and API")
+    print(f"Saving {network_type} networks for tiles and API")
     # Save full results for tiles, etc
-    scenario_results.reset_index().to_feather(results_dir / f"{scenario}.feather")
+    scenario_results.reset_index().to_feather(results_dir / f"{network_type}.feather")
 
     # save for API
     tmp = scenario_results[COMBINED_API_FIELDS].reset_index()
     verify_domains(tmp)
     tmp["id"] = tmp.id.astype("uint32")
 
-    if scenario == "combined_barriers":
+    if network_type == "combined_barriers":
         # create search key for search by name
         tmp["search_key"] = (
             (tmp["Name"] + " " + tmp["River"] + " " + tmp["Stream"])
@@ -371,11 +373,13 @@ for scenario in [
             .str.replace("  ", " ", regex=False)
         )
 
-    tmp.to_feather(api_dir / f"{scenario}.feather")
+    tmp.to_feather(api_dir / f"{network_type}.feather")
 
-#########################################################################################
-###
-### Read waterfalls and associated networks
+########################################################################################
+##
+## Read waterfalls and associated networks
+# NOTE: this creates one record per network type in a single file
+
 print("Reading waterfalls and networks")
 waterfalls = (
     gp.read_feather(barriers_dir / "waterfalls.feather")
@@ -388,52 +392,42 @@ fill_flowline_cols(waterfalls)
 # backfill Unranked for compatibility (this is needed when getting networks)
 waterfalls["Unranked"] = False
 
-wf_dam_networks = get_network_results(
-    waterfalls, network_scenario="dams", state_ranks=False
-)
-# columns that remain the same regardless of network type
-constant_cols = [
-    "HasNetwork",
-    "Ranked",
-] + DOWNSTREAM_LINEAR_NETWORK_FIELDS
-wf_dam_networks.columns = [
-    f"{c}_dams" if c not in constant_cols else c for c in wf_dam_networks.columns
-]
+merged = None
+for network_type in NETWORK_TYPES.keys():
+    networks = get_network_results(
+        waterfalls, network_type=network_type, state_ranks=False
+    )
 
-wf_combined_networks = get_network_results(
-    waterfalls, network_scenario="combined_barriers", state_ranks=False
-).drop(columns=constant_cols)
-wf_combined_networks.columns = [
-    f"{c}_combined_barriers" for c in wf_combined_networks.columns
-]
+    scenario_results = waterfalls.join(networks)
 
-waterfalls = waterfalls.join(wf_dam_networks).join(wf_combined_networks).copy()
-for col in ["HasNetwork", "Ranked"]:
-    waterfalls[col] = waterfalls[col].fillna(False)
+    for col in networks.columns:
+        orig_dtype = networks[col].dtype
 
-network_cols = wf_dam_networks.columns.tolist() + wf_combined_networks.columns.tolist()
-dtypes = pd.concat([wf_dam_networks.dtypes, wf_combined_networks.dtypes])
-for col in network_cols:
-    if waterfalls[col].dtype == bool:
-        continue
+        if orig_dtype == bool:
+            scenario_results[col] = (
+                scenario_results[col].fillna(False).astype(orig_dtype)
+            )
 
-    orig_dtype = dtypes[col]
-    if col.endswith("Class"):
-        waterfalls[col] = waterfalls[col].fillna(0).astype(orig_dtype)
+        elif col.endswith("Class"):
+            scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
-    else:
-        waterfalls[col] = (
-            waterfalls[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
-        )
+        else:
+            scenario_results[col] = (
+                scenario_results[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
+            )
 
-for col in ["CoastalHUC8"]:
-    waterfalls[col] = waterfalls[col].astype("uint8")
+    scenario_results["network_type"] = network_type
 
-# save full results for tiles
-waterfalls.reset_index().to_feather(results_dir / "waterfalls.feather")
+    merged = append(merged, scenario_results.reset_index())
 
-tmp = waterfalls[WF_API_FIELDS].reset_index()
+waterfalls = merged
+
+print("Saving waterfalls networks for tiles and API")
+
+waterfalls.to_feather(results_dir / "waterfalls.feather")
+
+tmp = waterfalls[["id"] + WF_API_FIELDS].copy()
 verify_domains(tmp)
-
 tmp["id"] = tmp.id.astype("uint32")
+
 tmp.to_feather(api_dir / "waterfalls.feather")

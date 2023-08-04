@@ -1166,24 +1166,3 @@ export const TIER_PACK_BITS = [
   { field: 'ncwc', bits: 5, value_shift: 1 },
   { field: 'pncwc', bits: 5, value_shift: 1 },
 ]
-
-export const RC_PACK_BITS = [
-  { field: 'StreamOrder', bits: 4 },
-  { field: 'OnLoop', bits: 1 },
-  { field: 'OwnerType', bits: 4 },
-  { field: 'crossingtype', bits: 4 },
-  { field: 'Trout', bits: 1 },
-  { field: 'Intermittent', bits: 1 },
-  { field: 'ProtectedLand', bits: 1 },
-  { field: 'EJTract', bits: 1 },
-  { field: 'EJTribal', bits: 1 },
-]
-
-export const WF_PACK_BITS = [
-  { field: 'streamorder', bits: 4 },
-  { field: 'hasnetwork', bits: 1 },
-  { field: 'intermittent', bits: 1 },
-  { field: 'excluded', bits: 1 },
-  { field: 'onloop', bits: 1 },
-  { field: 'unsnapped', bits: 1 },
-]

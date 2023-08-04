@@ -18,9 +18,9 @@ const RoadCrossingDetails = ({
   source,
   stream,
   intermittent,
-  HUC12,
-  HUC8Name,
-  HUC12Name,
+  huc12,
+  basin,
+  subwatershed,
   road,
   roadtype,
   crossingtype,
@@ -54,9 +54,9 @@ const RoadCrossingDetails = ({
       <LocationInfo
         barrierType={barrierType}
         reachName={stream}
-        HUC8Name={HUC8Name}
-        HUC12Name={HUC12Name}
-        HUC12={HUC12}
+        basin={basin}
+        subwatershed={subwatershed}
+        huc12={huc12}
         ownertype={ownertype}
         disadvantagedcommunity={disadvantagedcommunity}
         intermittent={intermittent}
@@ -86,7 +86,7 @@ const RoadCrossingDetails = ({
     </Section>
 
     <Section title="Functional network information">
-      <NoNetworkInfo barrierType={barrierType} />
+      <NoNetworkInfo barrierType={barrierType} snapped />
     </Section>
 
     {/* Note: diadromous species info not shown because these have no network */}
@@ -114,9 +114,9 @@ RoadCrossingDetails.propTypes = {
   source: PropTypes.string,
   stream: PropTypes.string,
   intermittent: PropTypes.number,
-  HUC12: PropTypes.string,
-  HUC8Name: PropTypes.string,
-  HUC12Name: PropTypes.string,
+  huc12: PropTypes.string,
+  basin: PropTypes.string,
+  subwatershed: PropTypes.string,
   road: PropTypes.string,
   roadtype: PropTypes.number,
   crossingtype: PropTypes.number,
@@ -132,9 +132,9 @@ RoadCrossingDetails.propTypes = {
 }
 
 RoadCrossingDetails.defaultProps = {
-  HUC12: null,
-  HUC8Name: null,
-  HUC12Name: null,
+  huc12: null,
+  basin: null,
+  subwatershed: null,
   source: null,
   stream: null,
   intermittent: -1,
@@ -150,8 +150,6 @@ RoadCrossingDetails.defaultProps = {
   ownertype: null,
   streamorder: 0,
   streamsizeclass: null,
-  waterbodykm2: -1,
-  waterbodysizeclass: null,
 }
 
 export default RoadCrossingDetails

@@ -20,9 +20,9 @@ const WaterfallDetails = ({
   excluded,
   stream,
   intermittent,
-  HUC12,
-  HUC8Name,
-  HUC12Name,
+  huc12,
+  basin,
+  subwatershed,
   falltype,
   passability,
   tespp,
@@ -62,9 +62,9 @@ const WaterfallDetails = ({
       <LocationInfo
         barrierType={barrierType}
         reachName={stream}
-        HUC8Name={HUC8Name}
-        HUC12Name={HUC12Name}
-        HUC12={HUC12}
+        basin={basin}
+        subwatershed={subwatershed}
+        huc12={huc12}
         intermittent={intermittent}
         streamorder={streamorder}
         streamsizeclass={streamsizeclass}
@@ -162,14 +162,14 @@ const WaterfallDetails = ({
 WaterfallDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
-  hasnetwork: PropTypes.number.isRequired,
-  excluded: PropTypes.number,
+  hasnetwork: PropTypes.bool.isRequired,
+  excluded: PropTypes.bool,
   source: PropTypes.string,
   stream: PropTypes.string,
   intermittent: PropTypes.number,
-  HUC12: PropTypes.string,
-  HUC8Name: PropTypes.string,
-  HUC12Name: PropTypes.string,
+  huc12: PropTypes.string,
+  basin: PropTypes.string,
+  subwatershed: PropTypes.string,
   falltype: PropTypes.string,
   passability: PropTypes.number,
   tespp: PropTypes.number,
@@ -199,10 +199,10 @@ WaterfallDetails.propTypes = {
 }
 
 WaterfallDetails.defaultProps = {
-  HUC12: null,
-  HUC8Name: null,
-  HUC12Name: null,
-  excluded: 0,
+  huc12: null,
+  basin: null,
+  subwatershed: null,
+  excluded: false,
   source: null,
   stream: null,
   intermittent: -1,

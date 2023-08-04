@@ -7,6 +7,15 @@ class BarrierTypes(str, Enum):
     small_barriers = "small_barriers"
     combined_barriers = "combined_barriers"
     road_crossings = "road_crossings"
+    waterfalls = "waterfalls"
+
+
+# must match analysis/constants.py::NETWORK_TYPES keys
+class NetworkTypes(str, Enum):
+    dams = "dams"
+    combined_barriers = "combined_barriers"
+    largefish_barriers = "largefish_barriers"
+    smallfish_barriers = "smallfish_barriers"
 
 
 class Layers(str, Enum):
@@ -314,75 +323,9 @@ DAM_API_FIELDS = unique(
 DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
 
 
-# Drop fields that can be calculated on frontend or are not used
-# DAM_TILE_FIELDS = [
-#     c
-#     for c in DAM_API_FIELDS + ["packed", "symbol"]
-#     if c
-#     not in {
-#         "NHDPlusID",
-#         "Basin",
-#         "HUC2",
-#         "ProtectedLand",
-#         "AnnualVelocity",
-#         "AnnualFlow",
-#         "FishScreen",
-#         "ScreenType",
-#         "Width",
-#         "Length",
-#         "EJTract",
-#         "EJTribal",
-#         # unit name fields are retrieved from summary tiles
-#         "Subbasin",
-#         "Subwatershed",
-#         "County",
-#         # included in "packed": (note: some fields included above since used for processing tiles)
-#         "Excluded",
-#         "OnLoop",
-#         "StreamOrder",
-#         "Estimated",
-#         "Invasive",
-#         "NoStructure",
-#         "Diversion",
-#         "Recon",
-#         "Feasibility",  # not used, only FeasibilityClass used in UI
-#         "PassageFacility",
-#         "TotalDownstreamSmallBarriers",
-#         "TotalDownstreamRoadCrossings",
-#         "ExitsRegion",
-#     }.union(UNUSED_TILE_METRIC_FIELDS)
-# ]
-
 DAM_TILE_FILTER_FIELDS = unique(
     DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
 )
-
-# DAM_TILE_FIELDS = unique(
-#     [
-#         "SARPID",
-#         "Name",
-#         "symbol",
-#         "upNetID",
-#         # "downNetID",
-#     ]
-#     + DAM_TILE_FILTER_FIELDS
-# )
-
-# FIXME: remove
-# DAM_PACK_BITS = [
-#     {"field": "StreamOrder", "bits": 4},
-#     {"field": "Recon", "bits": 5},
-#     {"field": "PassageFacility", "bits": 5},
-#     {"field": "Diversion", "bits": 2},
-#     {"field": "NoStructure", "bits": 1},
-#     {"field": "Estimated", "bits": 1},
-#     {"field": "HasNetwork", "bits": 1},
-#     {"field": "Excluded", "bits": 1},
-#     {"field": "OnLoop", "bits": 1},
-#     {"field": "unsnapped", "bits": 1},
-#     {"field": "Unranked", "bits": 1},
-#     {"field": "Invasive", "bits": 1},
-# ]
 
 
 SB_CORE_FIELDS = (
@@ -456,6 +399,8 @@ ROAD_CROSSING_CORE_FIELDS = (
         "OwnerType",
         # "BarrierOwnerType", # not available
         "ProtectedLand",
+        "EJTract",
+        "EJTribal",
         # Watershed names
         "Basin",
         "Subbasin",
@@ -470,68 +415,9 @@ ROAD_CROSSING_CORE_FIELDS = (
 
 ROAD_CROSSING_CORE_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS)
 
+# include COUNTYFIPS for download of road crossings by county
 ROAD_CROSSING_API_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS + ["COUNTYFIPS"])
 
-# Manually-selected subset of fields to keep size small
-# NOTE: all retained road crossings are snapped
-ROAD_CROSSING_TILE_FIELDS = [
-    "id",
-    "SARPIDName",
-    "Source",
-    "County",
-    "State",
-    "HUC8",
-    "HUC12",
-    "Road",
-    "Stream",
-    "TESpp",
-    "RegionalSGCNSpp",
-    "StateSGCNSpp",
-    "SalmonidESU",
-    "StreamSizeClass",
-    "packed",
-    # merged into separate field
-    # "SARPID",
-    # "Name",
-    # included in packed bits
-    # "StreamOrder",
-    # "OwnerType",
-    # "crossingtype",
-    # "Trout",
-    # "Intermittent",
-    # "ProtectedLand",
-    # "EJTract", # and following combined back to DisadvantagedCommunity
-    # "EJTribal"
-]
-
-# Fields that are used for filtering other barrier types can be bit-packed instead
-# for road crossings (they aren't filtered)
-ROAD_CROSSING_PACK_BITS = [
-    {"field": "StreamOrder", "bits": 4},
-    {"field": "OnLoop", "bits": 1},
-    {"field": "OwnerType", "bits": 4},
-    {"field": "crossingtype", "bits": 4},
-    {"field": "Trout", "bits": 1},
-    {"field": "Intermittent", "bits": 1},
-    {"field": "ProtectedLand", "bits": 1},
-    {"field": "EJTract", "bits": 1},
-    {"field": "EJTribal", "bits": 1},
-]
-
-
-# NOTE: waterfalls have network metrics for both dams and small barriers; these
-# are not repeated for general flowline properties
-WF_METRIC_FIELDS = [
-    c
-    for c in METRIC_FIELDS + UPSTREAM_COUNT_FIELDS
-    if c
-    not in {
-        "HasNetwork",
-        "Ranked",
-        "Intermittent",
-        "StreamOrder",
-    }
-]
 
 WF_CORE_FIELDS = (
     GENERAL_API_FIELDS1
@@ -555,63 +441,17 @@ WF_CORE_FIELDS = (
         "Subbasin",
         "Subwatershed",
         "Excluded",
+        "OnLoop",
     ]
-    + ["HUC8", "HUC10", "HUC12", "State", "County", "COUNTYFIPS"]
-    + [
-        "Intermittent",
-        "StreamOrder",
-    ]
-    + [f"{c}_dams" for c in WF_METRIC_FIELDS]
-    + ["upNetID_dams", "downNetID_dams"]
-    + [f"{c}_combined_barriers" for c in WF_METRIC_FIELDS]
-    + ["upNetID_combined_barriers", "downNetID_combined_barriers"]
+    + UNIT_FIELDS
+    + METRIC_FIELDS
+    + UPSTREAM_COUNT_FIELDS
     + DOWNSTREAM_LINEAR_NETWORK_FIELDS
 )
 WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
 
-WF_API_FIELDS = WF_CORE_FIELDS
-
-
-# WF_TILE_FIELDS = [
-#     c
-#     for c in WF_CORE_FIELDS + ["packed"]
-#     if c
-#     not in {
-#         "NHDPlusID",
-#         "Basin",
-#         "HUC2",
-#         "ProtectedLand",
-#         "AnnualVelocity",
-#         "AnnualFlow",
-#         # unit name fields are retrieved from summary tiles
-#         "Subbasin",
-#         "Subwatershed",
-#         "County",
-#         # included in "packed": (note: some fields included above since used for processing tiles)
-#         "Excluded",
-#         "OnLoop",
-#         "StreamOrder",
-#         "Intermittent",
-#         "TotalDownstreamRoadCrossings",
-#         "ExitsRegion",
-#         # Not used
-#         "HUC10",
-#         "OwnerType",
-#         "CoastalHUC8",
-#     }
-#     .union({f"{c}_dams" for c in UNUSED_TILE_METRIC_FIELDS})
-#     .union({f"{c}_small_barriers" for c in UNUSED_TILE_METRIC_FIELDS})
-# ]
-
-# WF_PACK_BITS = [
-#     {"field": "StreamOrder", "bits": 4},
-#     {"field": "HasNetwork", "bits": 1},
-#     {"field": "Intermittent", "bits": 1},
-#     {"field": "Excluded", "bits": 1},
-#     {"field": "OnLoop", "bits": 1},
-#     {"field": "unsnapped", "bits": 1},
-# ]
-
+# network_type resolves to a single row; API has one row per waterfall per network type
+WF_API_FIELDS = unique(WF_CORE_FIELDS + ["network_type"])
 
 ### Bit-packing for tiers
 TIER_BITS = 5  # holds values 0...21 after subtracting offset

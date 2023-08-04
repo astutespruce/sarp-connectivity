@@ -89,7 +89,7 @@ NETWORK_COLUMN_NAMES = {
 }
 
 
-def get_network_results(df, network_scenario, state_ranks=False):
+def get_network_results(df, network_type, state_ranks=False):
     """Read network results, calculate derived metric classes, and calculate
     tiers.
 
@@ -100,9 +100,7 @@ def get_network_results(df, network_scenario, state_ranks=False):
     ----------
     df : DataFrame
         barriers data; must contain State and Unranked
-    network_scenario : {"dams", "small_barriers"}
-        network scenario; note that small_barriers includes the network already
-        cut by dams
+    network_type : {"dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"}
     state_ranks : bool, optional (default: False)
         if True, results will include tiers for the state level
 
@@ -115,9 +113,7 @@ def get_network_results(df, network_scenario, state_ranks=False):
     networks = (
         read_arrow_tables(
             [
-                Path("data/networks/clean")
-                / huc2
-                / f"{network_scenario}_network.feather"
+                Path("data/networks/clean") / huc2 / f"{network_type}_network.feather"
                 for huc2 in sorted(df.HUC2.unique())
             ],
             columns=NETWORK_COLUMNS,
@@ -135,7 +131,7 @@ def get_network_results(df, network_scenario, state_ranks=False):
     # sanity check to make sure no duplicate networks
     if networks.groupby(level=0).size().max() > 1:
         raise Exception(
-            f"ERROR: multiple networks found for some {network_scenario} networks"
+            f"ERROR: multiple networks found for some {network_type} networks"
         )
 
     networks["HasNetwork"] = True
@@ -154,13 +150,9 @@ def get_network_results(df, network_scenario, state_ranks=False):
     networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
 
     # NOTE: per guidance from SARP, do not include count of waterfalls
-    if network_scenario == "dams":
+    if network_type == "dams":
         num_downstream = networks.TotalDownstreamDams
-    elif network_scenario in [
-        "combined_barriers",
-        "largefish_barriers",
-        "smallfish_barriers",
-    ]:
+    else:
         num_downstream = (
             networks.TotalDownstreamDams + networks.TotalDownstreamSmallBarriers
         )
@@ -235,16 +227,14 @@ def get_network_results(df, network_scenario, state_ranks=False):
     return networks.drop(columns=["Unranked", "State"])
 
 
-def get_removed_network_results(df, network_scenario):
+def get_removed_network_results(df, network_type):
     """Read network results for removed barriers.
 
     Parameters
     ----------
     df : DataFrame
         barriers data; must contain State and Unranked
-    network_scenario : {"dams", "small_barriers"}
-        network scenario; note that small_barriers includes the network already
-        cut by dams
+    network_type : {"dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"}
 
     Returns
     -------
@@ -258,7 +248,7 @@ def get_removed_network_results(df, network_scenario):
             [
                 Path("data/networks/clean")
                 / huc2
-                / f"removed_{network_scenario}_network.feather"
+                / f"removed_{network_type}_network.feather"
                 for huc2 in sorted(df.HUC2.unique())
             ],
         ).set_index("id")
@@ -276,7 +266,7 @@ def get_removed_network_results(df, network_scenario):
     # sanity check to make sure no duplicate networks
     if networks.groupby(level=0).size().max() > 1:
         raise Exception(
-            f"ERROR: multiple networks found for some {network_scenario} networks"
+            f"ERROR: multiple networks found for some {network_type} networks"
         )
 
     networks["HasNetwork"] = True

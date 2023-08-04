@@ -315,7 +315,7 @@ def create_networks(joins, barrier_joins, lineIDs):
 
 
 def create_barrier_networks(
-    barriers, barrier_joins, focal_barrier_joins, joins, flowlines, scenario
+    barriers, barrier_joins, focal_barrier_joins, joins, flowlines, network_type
 ):
     """Calculate networks based on barriers and network origins
 
@@ -333,8 +333,8 @@ def create_barrier_networks(
         networks
     flowlines : DataFrame
         flowline info that gets joined to the networkID for this type
-    scenario : str
-        name of network scenario, one of NETWORK_SCENARIOS keys
+    network_type : str
+        name of network network_type, one of NETWORK_TYPES keys
 
     Returns
     -------
@@ -355,7 +355,7 @@ def create_barrier_networks(
     )
 
     # join networkID to flowlines
-    flowlines = flowlines.join(upstream_networks.rename(scenario))
+    flowlines = flowlines.join(upstream_networks.rename(network_type))
 
     up_network_df = (
         flowlines.join(upstream_networks, how="inner")

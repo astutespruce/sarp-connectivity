@@ -15,7 +15,7 @@ import warnings
 
 import pandas as pd
 
-from analysis.constants import NETWORK_SCENARIOS
+from analysis.constants import NETWORK_TYPES
 from analysis.lib.io import read_arrow_tables
 from analysis.network.lib.networks import (
     connect_huc2s,
@@ -184,12 +184,12 @@ for group in groups:
         .set_index("lineID")
     )
 
-    for scenario in NETWORK_SCENARIOS:
-        print(f"-------------------------\nCreating networks for {scenario}")
+    for network_type in NETWORK_TYPES:
+        print(f"-------------------------\nCreating networks for {network_type}")
         network_start = time()
 
-        breaking_kinds = NETWORK_SCENARIOS[scenario]["kinds"]
-        col = NETWORK_SCENARIOS[scenario]["column"]
+        breaking_kinds = NETWORK_TYPES[network_type]["kinds"]
+        col = NETWORK_TYPES[network_type]["column"]
 
         focal_barrier_joins = barrier_joins.loc[
             barrier_joins.kind.isin(breaking_kinds) & barrier_joins[col]
@@ -201,7 +201,7 @@ for group in groups:
             focal_barrier_joins,
             group_joins,
             flowlines,
-            scenario,
+            network_type,
         )
 
         # save network stats to the HUC2 where the network originates
@@ -209,7 +209,7 @@ for group in groups:
             network_stats.loc[
                 network_stats.origin_HUC2 == huc2
             ].reset_index().to_feather(
-                out_dir / huc2 / f"{scenario}_network_stats.feather"
+                out_dir / huc2 / f"{network_type}_network_stats.feather"
             )
 
         # save barriers by the HUC2 where they are located
@@ -217,7 +217,7 @@ for group in groups:
             tmp = (
                 barrier_networks.loc[barrier_networks.HUC2 == huc2]
                 .reset_index()
-                .to_feather(out_dir / huc2 / f"{scenario}_network.feather")
+                .to_feather(out_dir / huc2 / f"{network_type}_network.feather")
             )
 
     print("-------------------------\n")
@@ -227,8 +227,8 @@ for group in groups:
         print("dups", s[s > 1])
 
     # all flowlines without networks marked -1
-    for scenario in NETWORK_SCENARIOS:
-        flowlines[scenario] = flowlines[scenario].fillna(-1).astype("int64")
+    for network_type in NETWORK_TYPES:
+        flowlines[network_type] = flowlines[network_type].fillna(-1).astype("int64")
 
     # save network segments in the HUC2 where they are located
     print("Serializing network segments")

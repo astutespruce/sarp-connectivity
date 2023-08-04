@@ -9,9 +9,9 @@
 # "road_crossing": ["waterfall", "dam", "small_barrier", "road_crossing"],
 # }
 
-# Mapping of network scenario to barrier kinds that break the network based
+# Mapping of network type to barrier kinds that break the network based
 # on the value in the boolean column
-NETWORK_SCENARIOS = {
+NETWORK_TYPES = {
     "dams": {"kinds": ["waterfall", "dam"], "column": "primary_network"},
     "combined_barriers": {
         "kinds": ["waterfall", "dam", "small_barrier"],

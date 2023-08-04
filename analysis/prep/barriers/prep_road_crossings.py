@@ -8,6 +8,7 @@ import shapely
 from pyogrio import write_dataframe
 
 from api.constants import ROAD_CROSSING_API_FIELDS
+from analysis.post.aggregate_networks import verify_domains
 
 # considered to duplicate an assessed road barriers if within this value
 DUPLICATE_TOLERANCE = 10  # meters
@@ -86,7 +87,8 @@ df.to_feather(out_dir / "road_crossings.feather")
 write_dataframe(df, qa_dir / "road_crossings.fgb")
 
 
-### Extract out only the snapped ones on loops for use in network analysis
+### Extract out only the snapped ones not on loops / off-network flowlines
+# for use in network analysis
 # NOTE: any that were not snapped were dropped in earlier processing
 print(f"Serializing {df.snapped.sum():,} snapped road crossings")
 snapped = df.loc[
@@ -120,6 +122,10 @@ df = df.rename(
     }
 )[["id"] + ROAD_CROSSING_API_FIELDS]
 
+# cast intermittent to int to match other types
+df["Intermittent"] = df.Intermittent.astype("int8")
+
+verify_domains(df)
 
 df.to_feather(api_dir / "road_crossings.feather")
 

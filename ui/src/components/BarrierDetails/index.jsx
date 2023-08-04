@@ -11,10 +11,8 @@ import {
   siteMetadata,
   barrierTypeLabelSingular,
   barrierNameWhenUnknown,
-  RC_PACK_BITS,
 } from 'config'
 import { isEmptyString } from 'util/string'
-import { unpackBits } from 'util/data'
 
 import Header from './Header'
 import DamDetails from './DamDetails'
@@ -67,7 +65,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
 
   let content = null
 
-  if (isLoading || true) {
+  if (isLoading) {
     content = (
       <Flex
         sx={{
@@ -121,7 +119,6 @@ const BarrierDetails = ({ barrier, onClose }) => {
     state = data.state
 
     let details = null
-    let packedInfo = null
     switch (barrierType) {
       case 'dams': {
         details = (
@@ -146,30 +143,25 @@ const BarrierDetails = ({ barrier, onClose }) => {
         break
       }
       case 'road_crossings': {
-        // FIXME: remove
-        packedInfo = unpackBits(packed, RC_PACK_BITS)
-        // parse EJTract, EJTribal back to DisadvantagedCommunity
-        const disadvantagedcommunityParts = []
-        if (packedInfo.ejtract) {
-          disadvantagedcommunityParts.push('tract')
-        }
-        if (packedInfo.ejtribal) {
-          disadvantagedcommunityParts.push('tribal')
-        }
-        const disadvantagedcommunity = disadvantagedcommunityParts.join(',')
-
         details = (
           <RoadCrossingDetails
+            barrierType={barrierType}
+            networkType={networkType}
             sarpid={sarpid}
             {...data}
-            {...packedInfo}
-            disadvantagedcommunity={disadvantagedcommunity}
           />
         )
         break
       }
       case 'waterfalls': {
-        details = <WaterfallDetails sarpid={sarpid} {...data} />
+        details = (
+          <WaterfallDetails
+            barrierType={barrierType}
+            networkType={networkType}
+            sarpid={sarpid}
+            {...data}
+          />
+        )
         break
       }
       default: {
