@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Text } from 'theme-ui'
+import { Box, Flex, Text, Spinner } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { Entry, Field, Section } from 'components/Sidebar'
@@ -33,7 +33,7 @@ const DamDetails = ({
   hasnetwork,
   excluded,
   onloop,
-  unsnapped,
+  snapped,
   height,
   nidid,
   source,
@@ -57,9 +57,9 @@ const DamDetails = ({
   waterbodykm2,
   waterbodysizeclass,
   intermittent,
-  HUC12,
-  HUC8Name,
-  HUC12Name,
+  huc12,
+  basin,
+  subwatershed,
   tespp,
   statesgcnspp,
   regionalsgcnspp,
@@ -163,9 +163,9 @@ const DamDetails = ({
         <LocationInfo
           barrierType={barrierType}
           reachName={river}
-          HUC8Name={HUC8Name}
-          HUC12Name={HUC12Name}
-          HUC12={HUC12}
+          basin={basin}
+          subwatershed={subwatershed}
+          huc12={huc12}
           ownertype={ownertype}
           barrierownertype={barrierownertype}
           fercregulated={fercregulated}
@@ -278,7 +278,7 @@ const DamDetails = ({
         ) : (
           <NoNetworkInfo
             barrierType={barrierType}
-            unsnapped={unsnapped}
+            snapped={snapped}
             excluded={excluded}
             onloop={onloop}
             diversion={diversion}
@@ -338,21 +338,21 @@ DamDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-  hasnetwork: PropTypes.number.isRequired,
-  excluded: PropTypes.number,
-  onloop: PropTypes.number,
-  unsnapped: PropTypes.number,
+  hasnetwork: PropTypes.bool.isRequired,
+  excluded: PropTypes.bool,
+  onloop: PropTypes.bool,
+  snapped: PropTypes.bool,
   river: PropTypes.string,
   intermittent: PropTypes.number,
-  HUC12: PropTypes.string,
-  HUC8Name: PropTypes.string,
-  HUC12Name: PropTypes.string,
+  huc12: PropTypes.string,
+  basin: PropTypes.string,
+  subwatershed: PropTypes.string,
   height: PropTypes.number,
   yearcompleted: PropTypes.number,
   nidid: PropTypes.string,
   source: PropTypes.string,
   link: PropTypes.string,
-  estimated: PropTypes.number,
+  estimated: PropTypes.bool,
   hazard: PropTypes.number,
   construction: PropTypes.number,
   purpose: PropTypes.number,
@@ -385,14 +385,14 @@ DamDetails.propTypes = {
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
   diversion: PropTypes.number,
-  nostructure: PropTypes.number,
+  nostructure: PropTypes.bool,
   lowheaddam: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
-  invasive: PropTypes.number,
-  unranked: PropTypes.number,
+  invasive: PropTypes.bool,
+  unranked: PropTypes.bool,
   flowstoocean: PropTypes.number,
   milestooutlet: PropTypes.number,
   totaldownstreamdams: PropTypes.number,
@@ -401,18 +401,18 @@ DamDetails.propTypes = {
 }
 
 DamDetails.defaultProps = {
-  HUC12: null,
-  HUC8Name: null,
-  HUC12Name: null,
-  excluded: 0,
-  onloop: 0,
-  unsnapped: 0,
+  huc12: null,
+  basin: null,
+  subwatershed: null,
+  excluded: false,
+  onloop: false,
+  snapped: false,
   river: null,
   intermittent: -1,
   nidid: null,
   source: null,
   link: null,
-  estimated: 0,
+  estimated: false,
   height: 0,
   yearcompleted: 0,
   hazard: null,
@@ -447,15 +447,15 @@ DamDetails.defaultProps = {
   landcover: null,
   sizeclasses: null,
   diversion: 0,
-  nostructure: 0,
+  nostructure: false,
   lowheaddam: null,
   streamorder: 0,
   streamsizeclass: null,
   waterbodykm2: -1,
   waterbodysizeclass: null,
-  invasive: 0,
-  unranked: 0,
-  flowstoocean: 0,
+  invasive: false,
+  unranked: false,
+  flowstoocean: false,
   milestooutlet: 0,
   totaldownstreamdams: 0,
   totaldownstreamsmallbarriers: 0,

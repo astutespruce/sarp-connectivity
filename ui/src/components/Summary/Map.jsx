@@ -372,13 +372,9 @@ const SummaryMap = ({
             barrierType:
               source === 'combined_barriers' ? properties.barriertype : source,
             networkType: networkTypeRef.current,
-            HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),
-            HUC12Name: getSummaryUnitName('HUC12', properties.HUC12),
-            CountyName: getSummaryUnitName('County', properties.County),
             lat,
             lon,
             ranked: sourceLayer.startsWith('ranked_'),
-            removed: sourceLayer.startsWith('removed_'),
             layer: {
               source,
               sourceLayer,
@@ -391,19 +387,6 @@ const SummaryMap = ({
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
     []
   )
-
-  const getSummaryUnitName = (layer, id) => {
-    if (!id) return null
-
-    const [result] = mapRef.current.querySourceFeatures('summary', {
-      sourceLayer: layer,
-      filter: ['==', 'id', id],
-    })
-    if (result) {
-      return result.properties.name
-    }
-    return null
-  }
 
   useEffect(() => {
     const { current: map } = mapRef

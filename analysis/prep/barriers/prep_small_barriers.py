@@ -573,6 +573,8 @@ df.loc[df.invasive, "symbol"] = 4
 df.loc[df.BarrierSeverity == 4, "symbol"] = 3
 df.loc[df.nobarrier, "symbol"] = 2
 df.loc[~df.snapped, "symbol"] = 1
+# intentionally give removed barriers higher precedence
+df.loc[df.removed, "symbol"] = 5
 df.symbol = df.symbol.astype("uint8")
 
 

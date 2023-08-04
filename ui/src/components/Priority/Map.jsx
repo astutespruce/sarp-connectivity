@@ -39,12 +39,11 @@ import {
   unitLayers,
   unitHighlightLayers,
   parentOutline,
-  removedBarrierPoint,
-  offnetworkPoint,
+  rankedPoint,
   unrankedPoint,
+  otherBarrierPoint,
   excludedPoint,
   includedPoint,
-  rankedPoint,
   roadCrossingsLayer,
   damsSecondaryLayer,
   waterfallsLayer,
@@ -118,9 +117,8 @@ const PriorityMap = ({
         roadCrossingsLayer.id,
         damsSecondaryLayer.id,
         waterfallsLayer.id,
+        otherBarrierPoint.id,
         unrankedPoint.id,
-        offnetworkPoint.id,
-        removedBarrierPoint.id,
         excludedPoint.id,
         includedPoint.id,
         rankedPoint.id,
@@ -237,20 +235,14 @@ const PriorityMap = ({
 
       map.addLayer({
         source: barrierType,
-        'source-layer': `offnetwork_${barrierType}`,
-        ...offnetworkPoint,
+        'source-layer': `other_${barrierType}`,
+        ...otherBarrierPoint,
       })
 
       map.addLayer({
         source: barrierType,
         'source-layer': `unranked_${barrierType}`,
         ...unrankedPoint,
-      })
-
-      map.addLayer({
-        source: barrierType,
-        'source-layer': `removed_${barrierType}`,
-        ...removedBarrierPoint,
       })
 
       // add primary barrier-type point layers
@@ -390,7 +382,9 @@ const PriorityMap = ({
         }
 
         // promote network fields if clicking on a waterfall
-        const networkType = barrierType === 'dams' ? 'dams' : 'small_barriers'
+        // FIXME: needs to include all network scenarios
+        const networkType =
+          barrierType === 'dams' ? 'dams' : 'combined_barriers'
         const networkFields = {}
         Object.keys(properties)
           .filter((k) => k.endsWith(networkType))
@@ -408,14 +402,12 @@ const PriorityMap = ({
           barrierType:
             source === 'combined_barriers' ? properties.barriertype : source,
           networkType: barrierType,
-          HUC8Name: getSummaryUnitName('HUC8', properties.HUC8),
-          HUC12Name: getSummaryUnitName('HUC12', properties.HUC12),
-          CountyName: getSummaryUnitName('County', properties.County),
           lat,
           lon,
           // note: ranked layers are those that can be ranked, not necessarily those that have custom ranks
           ranked: sourceLayer.startsWith('ranked_'),
-          removed: sourceLayer.startsWith('removed_'),
+          // FIXME:
+          // removed: sourceLayer.startsWith('removed_'),
           layer: {
             source,
             sourceLayer,
@@ -435,19 +427,6 @@ const PriorityMap = ({
       tierThreshold,
     ]
   )
-
-  const getSummaryUnitName = (layer, id) => {
-    if (!id) return null
-
-    const [result] = mapRef.current.querySourceFeatures('summary', {
-      sourceLayer: layer,
-      filter: ['==', 'id', id],
-    })
-    if (result) {
-      return result.properties.name
-    }
-    return null
-  }
 
   // Debounce updates to the filter to prevent frequent redraws
   // which have bad performance with high numbers of dams
@@ -551,6 +530,7 @@ const PriorityMap = ({
 
     highlightNetwork(
       map,
+      // FIXME:
       barrierType === 'dams' ? 'dams' : 'small_barriers',
       networkID
     )
@@ -689,7 +669,7 @@ const PriorityMap = ({
     const pointLayers = [
       includedPoint,
       excludedPoint,
-      offnetworkPoint,
+      otherBarrierPoint,
       rankedPoint,
     ]
 
@@ -812,11 +792,11 @@ const PriorityMap = ({
       }
     }
 
-    if (isWithinZoom[offnetworkPoint.id]) {
+    if (isWithinZoom[otherBarrierPoint.id]) {
       unrankedBarriers
         .filter(
           ({ id }) =>
-            // don't show minor barriers for dams view
+            // don't show minor barriers legend entry for dams view
             id !== 'minorBarrier' || barrierType !== 'dams'
         )
         .forEach(({ getSymbol, getLabel }) => {

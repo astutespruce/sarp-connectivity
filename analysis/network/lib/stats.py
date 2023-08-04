@@ -10,6 +10,7 @@ from analysis.lib.graph.speedups import DirectedGraph
 data_dir = Path("data")
 
 METERS_TO_MILES = 0.000621371
+COUNT_KINDS = ["waterfalls", "dams", "small_barriers", "road_crossings", "headwaters"]
 
 
 def calculate_upstream_network_stats(
@@ -116,6 +117,14 @@ def calculate_upstream_network_stats(
             }
         )
     )
+    # make sure all count columns are present and in correct order
+    cols = [f"fn_{kind}" for kind in COUNT_KINDS]
+    for col in cols:
+        if col not in fn_upstream_counts.columns:
+            fn_upstream_counts[col] = 0
+
+    fn_upstream_counts = fn_upstream_counts[cols]
+
     fn_upstream_area = up_network_df.groupby(level=0).AreaSqKm.sum().rename("fn_dakm2")
 
     ### Count TOTAL barriers of each kind in the total upstream network(s),
@@ -182,6 +191,13 @@ def calculate_upstream_network_stats(
         .sum()
     )
 
+    cols = [f"tot_{kind}" for kind in COUNT_KINDS]
+    for col in cols:
+        if col not in tot_upstream_counts.columns:
+            tot_upstream_counts[col] = 0
+
+    tot_upstream_counts = tot_upstream_counts[cols]
+
     # determine the barrier type associated with this functional network
     network_barrier = (
         focal_barrier_joins.loc[
@@ -207,17 +223,10 @@ def calculate_upstream_network_stats(
     # index name is getting dropped in some cases
     results.index.name = "networkID"
 
-    # make sure all count columns are at least present
-    for stat_type in ["fn", "cat", "tot"]:
-        for kind in ["waterfalls", "dams", "small_barriers", "road_crossings"]:
-            col = f"{stat_type}_{kind}"
-            if col not in results.columns:
-                results[col] = 0
-
+    # backfill count columns
     count_cols = (
         fn_upstream_counts.columns.tolist() + tot_upstream_counts.columns.tolist()
     )
-
     results[count_cols] = results[count_cols].fillna(0)
 
     return results

@@ -4,7 +4,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import numpy as np
 
-from analysis.lib.io import read_feathers
+from analysis.lib.io import read_arrow_tables, read_feathers
 from analysis.rank.lib.metrics import (
     classify_gain_miles,
     classify_downstream_miles,
@@ -89,7 +89,7 @@ NETWORK_COLUMN_NAMES = {
 }
 
 
-def get_network_results(df, network_type, state_ranks=False):
+def get_network_results(df, network_scenario, state_ranks=False):
     """Read network results, calculate derived metric classes, and calculate
     tiers.
 
@@ -100,7 +100,7 @@ def get_network_results(df, network_type, state_ranks=False):
     ----------
     df : DataFrame
         barriers data; must contain State and Unranked
-    network_type : {"dams", "small_barriers"}
+    network_scenario : {"dams", "small_barriers"}
         network scenario; note that small_barriers includes the network already
         cut by dams
     state_ranks : bool, optional (default: False)
@@ -113,13 +113,16 @@ def get_network_results(df, network_type, state_ranks=False):
     """
 
     networks = (
-        read_feathers(
+        read_arrow_tables(
             [
-                Path("data/networks/clean") / huc2 / f"{network_type}_network.feather"
+                Path("data/networks/clean")
+                / huc2
+                / f"{network_scenario}_network.feather"
                 for huc2 in sorted(df.HUC2.unique())
             ],
             columns=NETWORK_COLUMNS,
         )
+        .to_pandas()
         .rename(columns=NETWORK_COLUMN_NAMES)
         .set_index("id")
     )
@@ -132,7 +135,7 @@ def get_network_results(df, network_type, state_ranks=False):
     # sanity check to make sure no duplicate networks
     if networks.groupby(level=0).size().max() > 1:
         raise Exception(
-            f"ERROR: multiple networks found for some {network_type} networks"
+            f"ERROR: multiple networks found for some {network_scenario} networks"
         )
 
     networks["HasNetwork"] = True
@@ -151,11 +154,15 @@ def get_network_results(df, network_type, state_ranks=False):
     networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
 
     # NOTE: per guidance from SARP, do not include count of waterfalls
-    if network_type == "dams":
+    if network_scenario == "dams":
         num_downstream = networks.TotalDownstreamDams
-    elif network_type == "small_barriers":
+    elif network_scenario in [
+        "combined_barriers",
+        "largefish_barriers",
+        "smallfish_barriers",
+    ]:
         num_downstream = (
-            +networks.TotalDownstreamDams + networks.TotalDownstreamSmallBarriers
+            networks.TotalDownstreamDams + networks.TotalDownstreamSmallBarriers
         )
 
     # Diadromous related filters - must have FlowsToOcean == True
@@ -228,14 +235,14 @@ def get_network_results(df, network_type, state_ranks=False):
     return networks.drop(columns=["Unranked", "State"])
 
 
-def get_removed_network_results(df, network_type):
+def get_removed_network_results(df, network_scenario):
     """Read network results for removed barriers.
 
     Parameters
     ----------
     df : DataFrame
         barriers data; must contain State and Unranked
-    network_type : {"dams", "small_barriers"}
+    network_scenario : {"dams", "small_barriers"}
         network scenario; note that small_barriers includes the network already
         cut by dams
 
@@ -245,14 +252,17 @@ def get_removed_network_results(df, network_type):
         Contains network metrics
     """
 
-    networks = read_feathers(
-        [
-            Path("data/networks/clean")
-            / huc2
-            / f"removed_{network_type}_network.feather"
-            for huc2 in sorted(df.HUC2.unique())
-        ],
-    ).set_index("id")
+    networks = (
+        # TODO: read_arrow_tables once all schemas match
+        read_feathers(
+            [
+                Path("data/networks/clean")
+                / huc2
+                / f"removed_{network_scenario}_network.feather"
+                for huc2 in sorted(df.HUC2.unique())
+            ],
+        ).set_index("id")
+    )
 
     networks = networks[[c for c in NETWORK_COLUMNS if c in networks.columns]].rename(
         columns=NETWORK_COLUMN_NAMES
@@ -266,7 +276,7 @@ def get_removed_network_results(df, network_type):
     # sanity check to make sure no duplicate networks
     if networks.groupby(level=0).size().max() > 1:
         raise Exception(
-            f"ERROR: multiple networks found for some {network_type} networks"
+            f"ERROR: multiple networks found for some {network_scenario} networks"
         )
 
     networks["HasNetwork"] = True

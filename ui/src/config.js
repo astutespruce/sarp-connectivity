@@ -1167,33 +1167,6 @@ export const TIER_PACK_BITS = [
   { field: 'pncwc', bits: 5, value_shift: 1 },
 ]
 
-export const DAM_PACK_BITS = [
-  { field: 'streamorder', bits: 4 },
-  { field: 'recon', bits: 5 },
-  { field: 'passagefacility', bits: 5 },
-  { field: 'diversion', bits: 2 },
-  { field: 'nostructure', bits: 1 },
-  { field: 'estimated', bits: 1 },
-  { field: 'hasnetwork', bits: 1 },
-  { field: 'excluded', bits: 1 },
-  { field: 'onloop', bits: 1 },
-  { field: 'unsnapped', bits: 1 },
-  { field: 'unranked', bits: 1 },
-  { field: 'invasive', bits: 1 },
-]
-
-export const SB_PACK_BITS = [
-  { field: 'streamorder', bits: 4 },
-  { field: 'recon', bits: 5 },
-  { field: 'passagefacility', bits: 5 },
-  { field: 'hasnetwork', bits: 1 },
-  { field: 'excluded', bits: 1 },
-  { field: 'onloop', bits: 1 },
-  { field: 'unsnapped', bits: 1 },
-  { field: 'unranked', bits: 1 },
-  { field: 'invasive', bits: 1 },
-]
-
 export const RC_PACK_BITS = [
   { field: 'StreamOrder', bits: 4 },
   { field: 'OnLoop', bits: 1 },

@@ -134,10 +134,10 @@ export const unitLayers = [unitFill, unitOutline]
 
 export const unitHighlightLayers = [unitHighlightFill, unitHighlightOutline]
 
-// off network points were not included in the network analysis
-// including points that are actually off network (unsnapped), not actually barriers, etc
-export const offnetworkPoint = {
-  id: 'point-off-network',
+// Other barriers are those that are not ranked and not marked as unranked;
+// they include: off-network barriers, non-barriers, minor barriers, removed barriers
+export const otherBarrierPoint = {
+  id: 'point-other',
   // source: "", // provided by specific layer
   // 'source-layer': '', // provided by specific layer
   type: 'circle',
@@ -148,10 +148,9 @@ export const offnetworkPoint = {
       [
         'match',
         ['get', 'symbol'],
-        // 1 is unsnapped (actually off-network)
-        1,
+        1, // unsnapped (actually off-network)
         pointColors.offNetwork.color,
-        2,
+        2, // non-barrier
         [
           'match',
           ['get', 'barrier_type'],
@@ -159,10 +158,21 @@ export const offnetworkPoint = {
           pointColors.nonBarrier.damsColor,
           pointColors.nonBarrier.color,
         ],
-        3,
+        // NOTE: this only gets used when minor barriers are NOT included in
+        // ranked / unranked barrier tile layers
+        3, // minor barrier
         pointColors.minorBarrier.color,
         // pointColors.nonBarrier.color,
         // 4: invasive is in unranked layer below
+        5, // removed barrier
+        [
+          'match',
+          ['get', 'barriertype'],
+          'dams',
+          pointColors.removed.damsColor,
+          pointColors.removed.color,
+        ],
+
         // last entry is default
         pointColors.offNetwork.color,
       ],
@@ -172,13 +182,15 @@ export const offnetworkPoint = {
       [
         'match',
         ['get', 'symbol'],
-        // unsnapped
-        1,
+
+        1, // unsnapped
         pointColors.offNetwork.strokeColor,
-        2,
+        2, // non-barrier
         pointColors.nonBarrier.strokeColor,
-        3,
+        3, // minor barrier
         pointColors.minorBarrier.strokeColor,
+        5, // removed barrier
+        pointColors.removed.strokeColor,
         pointColors.offNetwork.strokeColor,
       ],
       pointColors.highlight.strokeColor
@@ -213,62 +225,6 @@ export const offnetworkPoint = {
   },
 }
 
-export const removedBarrierPoint = {
-  id: 'point-removed',
-  // source: "", // provided by specific layer
-  // 'source-layer': '', // provided by specific layer
-  type: 'circle',
-  minzoom: 10,
-  maxzoom: 24,
-  paint: {
-    'circle-color': getHighlightExpr(
-      // pointColors.removed.color,
-      [
-        'match',
-        ['get', 'barriertype'],
-        'dams',
-        pointColors.removed.damsColor,
-        pointColors.removed.color,
-      ],
-      pointColors.highlight.color
-    ),
-    'circle-stroke-color': getHighlightExpr(
-      pointColors.removed.strokeColor,
-      pointColors.highlight.strokeColor
-    ),
-    'circle-radius': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      10,
-      getHighlightExpr(
-        ['match', ['get', 'barriertype'], 'small_barriers', 0.25, 0.5],
-        2
-      ),
-      14,
-      getHighlightExpr(
-        ['match', ['get', 'barriertype'], 'small_barriers', 2.5, 4],
-        14
-      ),
-    ],
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      10,
-      getHighlightExpr(0.5, 1),
-      14,
-      1,
-    ],
-    'circle-stroke-width': {
-      stops: [
-        [10, 0],
-        [14, 1],
-      ],
-    },
-  },
-}
-
 // unranked points include everything that was included in network analysis
 // but not prioritized; right now this is only invasive barriers
 export const unrankedPoint = {
@@ -283,7 +239,7 @@ export const unrankedPoint = {
       [
         'match',
         ['get', 'symbol'],
-        3,
+        4,
         [
           'match',
           ['get', 'barriertype'],
@@ -614,7 +570,8 @@ export const roadCrossingsLayer = {
   },
 }
 
-// NOTE: this is ONLY for displaying dams when small barriers are selected
+// NOTE: this is ONLY for displaying dams when small barriers type is selected
+// (not combined barriers type)
 export const damsSecondaryLayer = {
   id: 'dams-secondary',
   source: 'combined_barriers',

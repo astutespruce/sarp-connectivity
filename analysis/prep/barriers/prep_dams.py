@@ -945,6 +945,8 @@ df.loc[df.nobarrier, "symbol"] = 2
 # show up as no-barrier points
 df.loc[df.nostructure, "symbol"] = 4
 df.loc[~df.snapped, "symbol"] = 1
+# intentionally give removed barriers higher precedence
+df.loc[df.removed, "symbol"] = 5
 df.symbol = df.symbol.astype("uint8")
 
 

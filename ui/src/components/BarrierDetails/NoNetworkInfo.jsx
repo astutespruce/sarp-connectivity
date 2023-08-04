@@ -7,7 +7,7 @@ import { Entry } from 'components/Sidebar'
 
 const NoNetworkInfo = ({
   barrierType,
-  unsnapped,
+  snapped,
   excluded,
   onloop,
   diversion,
@@ -25,7 +25,7 @@ const NoNetworkInfo = ({
     )
   }
 
-  if (unsnapped) {
+  if (!snapped) {
     return (
       <Entry>
         This {typeLabel} is off-network and has no functional network
@@ -82,17 +82,17 @@ const NoNetworkInfo = ({
 
 NoNetworkInfo.propTypes = {
   barrierType: PropTypes.string.isRequired,
-  excluded: PropTypes.number,
-  onloop: PropTypes.number,
-  unsnapped: PropTypes.number,
+  excluded: PropTypes.bool,
+  onloop: PropTypes.bool,
+  snapped: PropTypes.bool,
   diversion: PropTypes.number,
   nostructure: PropTypes.number,
 }
 
 NoNetworkInfo.defaultProps = {
-  excluded: 0,
-  onloop: 0,
-  unsnapped: 0,
+  excluded: false,
+  onloop: false,
+  snapped: false,
   diversion: 0,
   nostructure: 0,
 }

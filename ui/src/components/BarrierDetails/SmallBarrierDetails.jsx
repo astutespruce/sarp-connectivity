@@ -54,12 +54,12 @@ const BarrierDetails = ({
   hasnetwork,
   excluded,
   onloop,
-  unsnapped,
+  snapped,
   stream,
   intermittent,
-  HUC12,
-  HUC8Name,
-  HUC12Name,
+  huc12,
+  basin,
+  subwatershed,
   road,
   roadtype,
   crossingtype,
@@ -138,9 +138,9 @@ const BarrierDetails = ({
       <LocationInfo
         barrierType={barrierType}
         reachName={stream}
-        HUC8Name={HUC8Name}
-        HUC12Name={HUC12Name}
-        HUC12={HUC12}
+        basin={basin}
+        subwatershed={subwatershed}
+        huc12={huc12}
         ownertype={ownertype}
         barrierownertype={barrierownertype}
         disadvantagedcommunity={disadvantagedcommunity}
@@ -243,14 +243,14 @@ const BarrierDetails = ({
       ) : (
         <NoNetworkInfo
           barrierType={barrierType}
-          unsnapped={unsnapped}
+          snapped={snapped}
           excluded={excluded}
           onloop={onloop}
         />
       )}
     </Section>
 
-    {flowstoocean && milestooutlet < 500 ? (
+    {hasnetwork && flowstoocean && milestooutlet < 500 ? (
       <Section title="Diadromous species information">
         <DiadromousInfo
           barrierType={barrierType}
@@ -283,17 +283,17 @@ BarrierDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-  hasnetwork: PropTypes.number.isRequired,
-  onloop: PropTypes.number,
-  unsnapped: PropTypes.number,
-  excluded: PropTypes.number,
+  hasnetwork: PropTypes.bool.isRequired,
+  onloop: PropTypes.bool,
+  snapped: PropTypes.bool,
+  excluded: PropTypes.bool,
   source: PropTypes.string,
   link: PropTypes.string,
   stream: PropTypes.string,
   intermittent: PropTypes.number,
-  HUC12: PropTypes.string,
-  HUC8Name: PropTypes.string,
-  HUC12Name: PropTypes.string,
+  huc12: PropTypes.string,
+  basin: PropTypes.string,
+  subwatershed: PropTypes.string,
   road: PropTypes.string,
   roadtype: PropTypes.number,
   crossingtype: PropTypes.number,
@@ -322,8 +322,8 @@ BarrierDetails.propTypes = {
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
   sarp_score: PropTypes.number,
-  invasive: PropTypes.number,
-  unranked: PropTypes.number,
+  invasive: PropTypes.bool,
+  unranked: PropTypes.bool,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   waterbodykm2: PropTypes.number,
@@ -336,12 +336,12 @@ BarrierDetails.propTypes = {
 }
 
 BarrierDetails.defaultProps = {
-  HUC12: null,
-  HUC8Name: null,
-  HUC12Name: null,
-  excluded: 0,
-  onloop: 0,
-  unsnapped: 0,
+  huc12: null,
+  basin: null,
+  subwatershed: null,
+  excluded: false,
+  onloop: false,
+  snapped: false,
   source: null,
   link: null,
   stream: null,
@@ -375,7 +375,7 @@ BarrierDetails.defaultProps = {
   sizeclasses: null,
   sarp_score: -1,
   invasive: 0,
-  unranked: 0,
+  unranked: false,
   streamorder: 0,
   streamsizeclass: null,
   waterbodykm2: -1,

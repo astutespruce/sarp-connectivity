@@ -1,24 +1,22 @@
 /* eslint-disable camelcase */
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Envelope, FileDownload } from '@emotion-icons/fa-solid'
-import { Box, Button, Flex, Heading, Text } from 'theme-ui'
+import { Envelope, ExclamationTriangle } from '@emotion-icons/fa-solid'
+import { Box, Flex, Spinner, Text } from 'theme-ui'
+import { useQuery } from 'react-query'
 
+import { fetchBarrierDetails } from 'components/Data/API'
 import { Tab, Tabs } from 'components/Tabs'
 import {
   siteMetadata,
   barrierTypeLabelSingular,
   barrierNameWhenUnknown,
-  STATES,
-  DAM_PACK_BITS,
-  SB_PACK_BITS,
   RC_PACK_BITS,
-  WF_PACK_BITS,
-  TIER_PACK_BITS,
 } from 'config'
 import { isEmptyString } from 'util/string'
 import { unpackBits } from 'util/data'
-import { formatNumber } from 'util/format'
+
+import Header from './Header'
 import DamDetails from './DamDetails'
 import RoadCrossingDetails from './RoadCrossingDetails'
 import SmallBarrierDetails from './SmallBarrierDetails'
@@ -38,180 +36,183 @@ const BarrierDetails = ({ barrier, onClose }) => {
     networkType,
     sarpidname = '|', // should never be empty, but breaks badly if it is
     ranked,
-    CountyName,
-    State,
     packed,
-    statetiers = null,
     tiers = null,
   } = barrier
 
   const typeLabel = barrierTypeLabelSingular[barrierType]
-
   const [sarpid, rawName] = sarpidname.split('|')
-
   const name = !isEmptyString(rawName)
     ? rawName
     : barrierNameWhenUnknown[barrierType] || 'Unknown name'
 
-  let details = null
-  let packedInfo = null
-  switch (barrierType) {
-    case 'dams': {
-      packedInfo = unpackBits(packed, DAM_PACK_BITS)
+  console.log('show barrier details: ', sarpid, barrier)
 
-      details = <DamDetails sarpid={sarpid} {...barrier} {...packedInfo} />
-      break
+  const { isLoading, error, data } = useQuery(
+    ['getBarrierDetails', sarpid],
+    () => fetchBarrierDetails(networkType, sarpid),
+    {
+      // FIXME:
+      // staleTime: 60 * 60 * 1000, // 60 minutes
+      staleTime: 1, // use then reload to force refresh of underlying data during dev
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
     }
-    case 'small_barriers': {
-      packedInfo = unpackBits(packed, SB_PACK_BITS)
+  )
 
-      details = (
-        <SmallBarrierDetails sarpid={sarpid} {...barrier} {...packedInfo} />
-      )
-      break
-    }
-    case 'road_crossings': {
-      packedInfo = unpackBits(packed, RC_PACK_BITS)
-      // parse EJTract, EJTribal back to DisadvantagedCommunity
-      const disadvantagedcommunityParts = []
-      if (packedInfo.ejtract) {
-        disadvantagedcommunityParts.push('tract')
-      }
-      if (packedInfo.ejtribal) {
-        disadvantagedcommunityParts.push('tribal')
-      }
-      const disadvantagedcommunity = disadvantagedcommunityParts.join(',')
+  let content = null
 
-      details = (
-        <RoadCrossingDetails
-          sarpid={sarpid}
-          {...barrier}
-          {...packedInfo}
-          disadvantagedcommunity={disadvantagedcommunity}
-        />
-      )
-      break
-    }
-    case 'waterfalls': {
-      packedInfo = unpackBits(packed, WF_PACK_BITS)
-
-      details = (
-        <WaterfallDetails sarpid={sarpid} {...barrier} {...packedInfo} />
-      )
-      break
-    }
-    default: {
-      // no-op
-      break
-    }
-  }
-
-  console.log('barrier details:', barrier, 'packed info:', packedInfo)
-
-  let scoreContent = null
-  if (ranked) {
-    // Transform properties to priorities: <unit>_<metric>_score
-    // For now, we are using tier to save space in data transport, so convert them to percent
-    const scores = {}
-    const metrics = ['nc', 'wc', 'ncwc', 'pnc', 'pwc', 'pncwc']
-
-    if (statetiers !== null) {
-      // state ranks are in a bit-packed field, only available for dams
-      const stateRanks = unpackBits(statetiers, TIER_PACK_BITS)
-      scores.state = {}
-      metrics.forEach((metric) => {
-        const tier = stateRanks[metric]
-        scores.state[metric] = {
-          score: tierToPercent(tier),
-          tier,
-        }
-      })
-    }
-
-    // add in custom results if available
-    if (tiers) {
-      scores.custom = {}
-      metrics.forEach((metric) => {
-        const tier = tiers[metric]
-        scores.custom[metric] = {
-          score: tierToPercent(tier),
-          tier,
-        }
-      })
-    }
-
-    scoreContent = <Scores scores={scores} networkType={networkType} />
-  }
-
-  return (
-    <>
-      <Box
+  if (isLoading || true) {
+    content = (
+      <Flex
         sx={{
-          py: '0.5rem',
-          px: '0.5rem',
-          borderBottom: '4px solid',
-          borderBottomColor: 'blue.2',
+          alignItems: 'center',
+          flexDirection: 'column',
+          p: '1rem',
+          mt: '2rem',
+          flex: '1 1 auto',
         }}
       >
-        <Flex
-          sx={{
-            flex: '0 0 auto',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Box sx={{ flex: '1 1 auto' }}>
-            <Heading as="h3" sx={{ m: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
-              {name}
-            </Heading>
-          </Box>
-          <Button variant="close" onClick={onClose}>
-            &#10006;
-          </Button>
+        <Flex sx={{ alignItems: 'center', gap: '0.5rem' }}>
+          <Spinner size="2rem" />
+          <Text>Loading details...</Text>
         </Flex>
+      </Flex>
+    )
+  }
 
-        <Flex sx={{ color: 'grey.8', fontSize: 1, lineHeight: 1.1 }}>
-          {!isEmptyString(State) ? (
-            <Text sx={{ flex: '1 1 auto', mr: '1rem' }}>
-              {CountyName} County, {STATES[State]}
-            </Text>
-          ) : null}
-
-          <Text sx={{ flex: '0 0 auto', textAlign: 'right' }}>
-            {formatNumber(lat, 3)}
-            &deg; N, {formatNumber(lon, 3)}
-            &deg; E
-          </Text>
+  if (error) {
+    content = (
+      <Flex
+        sx={{
+          alignItems: 'center',
+          flexDirection: 'column',
+          p: '1rem',
+          mt: '2rem',
+          flex: '1 1 auto',
+        }}
+      >
+        <Flex sx={{ color: 'highlight', alignItems: 'center' }}>
+          <ExclamationTriangle size="2em" />
+          <Text sx={{ ml: '0.5rem', fontSize: '2rem' }}>Whoops!</Text>
         </Flex>
+        There was an error loading these data. Please try clicking on a
+        different barrier or refresh this page in your browser.
+        <Text variant="help" sx={{ mt: '2rem' }}>
+          If it happens again, please{' '}
+          <a href="mailto:kat@southeastaquatics.net">contact us</a>.
+        </Text>
+      </Flex>
+    )
+  }
 
-        {/* Only show report for dams / small barriers */}
-        {barrierType === 'dams' || barrierType === 'small_barriers' ? (
-          <Box sx={{ lineHeight: 1, mt: '1.5rem' }}>
-            <a
-              href={`/report/${
-                networkType === 'dams' || networkType === barrierType
-                  ? barrierType
-                  : 'combined_barriers'
-              }/${sarpid}`}
-              target="_blank"
-              rel="noreferrer"
-              style={{ display: 'inline-block' }}
-            >
-              <Flex
-                sx={{
-                  alignItems: 'baseline',
-                }}
-              >
-                <Box sx={{ flex: '0 0 auto', color: 'link', mr: '0.25rem' }}>
-                  <FileDownload size="1em" />
-                </Box>
-                <Text>Create PDF report</Text>
-              </Flex>
-            </a>
-          </Box>
-        ) : null}
-      </Box>
+  let county = ''
+  let state = ''
+  if (data) {
+    console.log('barrier details:', sarpid, data)
 
-      {ranked ? (
+    county = data.county
+    state = data.state
+
+    let details = null
+    let packedInfo = null
+    switch (barrierType) {
+      case 'dams': {
+        details = (
+          <DamDetails
+            barrierType={barrierType}
+            networkType={networkType}
+            sarpid={sarpid}
+            {...data}
+          />
+        )
+        break
+      }
+      case 'small_barriers': {
+        details = (
+          <SmallBarrierDetails
+            barrierType={barrierType}
+            networkType={networkType}
+            sarpid={sarpid}
+            {...data}
+          />
+        )
+        break
+      }
+      case 'road_crossings': {
+        // FIXME: remove
+        packedInfo = unpackBits(packed, RC_PACK_BITS)
+        // parse EJTract, EJTribal back to DisadvantagedCommunity
+        const disadvantagedcommunityParts = []
+        if (packedInfo.ejtract) {
+          disadvantagedcommunityParts.push('tract')
+        }
+        if (packedInfo.ejtribal) {
+          disadvantagedcommunityParts.push('tribal')
+        }
+        const disadvantagedcommunity = disadvantagedcommunityParts.join(',')
+
+        details = (
+          <RoadCrossingDetails
+            sarpid={sarpid}
+            {...data}
+            {...packedInfo}
+            disadvantagedcommunity={disadvantagedcommunity}
+          />
+        )
+        break
+      }
+      case 'waterfalls': {
+        details = <WaterfallDetails sarpid={sarpid} {...data} />
+        break
+      }
+      default: {
+        // no-op
+        break
+      }
+    }
+
+    let scoreContent = null
+    if (ranked) {
+      // Transform properties to priorities: <unit>_<metric>_score
+      // For now, we are using tier to save space in data transport, so convert them to percent
+      const scores = {}
+      const metrics = ['nc', 'wc', 'ncwc', 'pnc', 'pwc', 'pncwc']
+
+      // state ranks are only available for dams networks (not combined)
+      if (
+        networkType === 'dams' &&
+        data.state_ncwc_tier !== null &&
+        data.state_ncwc_tier !== undefined &&
+        data.state_ncwc_tier !== -1
+      ) {
+        scores.state = {}
+        metrics.forEach((metric) => {
+          const tier = data[`state_${metric}_tier`]
+          scores.state[metric] = {
+            score: tierToPercent(tier),
+            tier,
+          }
+        })
+      }
+
+      // add in custom results if available
+      if (tiers) {
+        scores.custom = {}
+        metrics.forEach((metric) => {
+          const tier = tiers[metric]
+          scores.custom[metric] = {
+            score: tierToPercent(tier),
+            tier,
+          }
+        })
+      }
+
+      scoreContent = <Scores scores={scores} networkType={networkType} />
+    }
+
+    if (ranked) {
+      content = (
         <Tabs
           sx={{
             flex: '1 1 auto',
@@ -225,8 +226,10 @@ const BarrierDetails = ({ barrier, onClose }) => {
             {scoreContent}
           </Tab>
         </Tabs>
-      ) : (
-        // Only show details, not scores if cannot be ranked
+      )
+    } else {
+      // Only show details, not scores if cannot be ranked
+      content = (
         <Box
           sx={{
             flex: '1 1 auto',
@@ -238,7 +241,25 @@ const BarrierDetails = ({ barrier, onClose }) => {
         >
           {details}
         </Box>
-      )}
+      )
+    }
+  }
+
+  return (
+    <>
+      <Header
+        barrierType={barrierType}
+        networkType={networkType}
+        sarpid={sarpid}
+        name={name}
+        lat={lat}
+        lon={lon}
+        county={county}
+        state={state}
+        onClose={onClose}
+      />
+
+      {content}
 
       <Flex
         sx={{

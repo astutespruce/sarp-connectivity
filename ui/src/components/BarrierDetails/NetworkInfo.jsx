@@ -393,8 +393,8 @@ NetworkInfo.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
-  invasive: PropTypes.number,
-  unranked: PropTypes.number,
+  invasive: PropTypes.bool,
+  unranked: PropTypes.bool,
   removed: PropTypes.bool,
 }
 
@@ -411,8 +411,8 @@ NetworkInfo.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: 0,
   sizeclasses: 0,
-  invasive: 0,
-  unranked: 0,
+  invasive: false,
+  unranked: false,
   removed: false,
 }
 

@@ -47,7 +47,7 @@ def unique(items):
     s = set()
     result = []
     for item in items:
-        if not item in s:
+        if item not in s:
             result.append(item)
             s.add(item)
 
@@ -108,10 +108,11 @@ UPSTREAM_COUNT_FIELDS = [
     "UpstreamSmallBarriers",
     "UpstreamRoadCrossings",
     "UpstreamHeadwaters",
+    "TotalUpstreamRoadCrossings",
+    # remaining total upstream metrics are not used
     # "TotalUpstreamWaterfalls",
     # "TotalUpstreamDams",
     # "TotalUpstreamSmallBarriers",
-    "TotalUpstreamRoadCrossings",
     # "TotalUpstreamHeadwaters",
 ]
 
@@ -120,7 +121,7 @@ DOWNSTREAM_LINEAR_NETWORK_FIELDS = [
     "TotalDownstreamWaterfalls",
     "TotalDownstreamDams",
     "TotalDownstreamSmallBarriers",
-    # "TotalDownstreamRoadCrossings",
+    # "TotalDownstreamRoadCrossings", # not used
     "MilesToOutlet",
     "FlowsToOcean",
     "FlowsToGreatLakes",
@@ -223,6 +224,7 @@ GENERAL_API_FIELDS1 = [
     "Name",
     "SARPID",
     "Source",
+    "Snapped",
     "NHDPlusID",
     "StreamSizeClass",
 ]
@@ -293,82 +295,89 @@ DAM_CORE_FIELDS = (
 DAM_CORE_FIELDS = unique(DAM_CORE_FIELDS)
 
 # Internal API includes tiers
-# IMPORTANT: Recon is intentionally omitted per direction from SARP
 
-DAM_EXPORT_FIELDS = [
-    c
-    for c in unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
-    if not c == "Recon"
-]
+DAM_EXPORT_FIELDS = unique(DAM_CORE_FIELDS + STATE_TIER_FIELDS + CUSTOM_TIER_FIELDS)
 
 DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
     + STATE_TIER_FIELDS
     + DAM_FILTER_FIELDS
-    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked"]
+    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked",]
 )
 
 # Public API does not include tier or filter fields
-DAM_PUBLIC_EXPORT_FIELDS = [c for c in DAM_CORE_FIELDS if not c == "Recon"]
+DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
 
 
 # Drop fields that can be calculated on frontend or are not used
-DAM_TILE_FIELDS = [
-    c
-    for c in DAM_API_FIELDS + ["packed", "symbol"]
-    if c
-    not in {
-        "NHDPlusID",
-        "Basin",
-        "HUC2",
-        "ProtectedLand",
-        "AnnualVelocity",
-        "AnnualFlow",
-        "FishScreen",
-        "ScreenType",
-        "Width",
-        "Length",
-        "EJTract",
-        "EJTribal",
-        # unit name fields are retrieved from summary tiles
-        "Subbasin",
-        "Subwatershed",
-        "County",
-        # included in "packed": (note: some fields included above since used for processing tiles)
-        "Excluded",
-        "OnLoop",
-        "StreamOrder",
-        "Estimated",
-        "Invasive",
-        "NoStructure",
-        "Diversion",
-        "Recon",
-        "Feasibility",  # not used, only FeasibilityClass used in UI
-        "PassageFacility",
-        "TotalDownstreamSmallBarriers",
-        "TotalDownstreamRoadCrossings",
-        "ExitsRegion",
-    }.union(UNUSED_TILE_METRIC_FIELDS)
-]
+# DAM_TILE_FIELDS = [
+#     c
+#     for c in DAM_API_FIELDS + ["packed", "symbol"]
+#     if c
+#     not in {
+#         "NHDPlusID",
+#         "Basin",
+#         "HUC2",
+#         "ProtectedLand",
+#         "AnnualVelocity",
+#         "AnnualFlow",
+#         "FishScreen",
+#         "ScreenType",
+#         "Width",
+#         "Length",
+#         "EJTract",
+#         "EJTribal",
+#         # unit name fields are retrieved from summary tiles
+#         "Subbasin",
+#         "Subwatershed",
+#         "County",
+#         # included in "packed": (note: some fields included above since used for processing tiles)
+#         "Excluded",
+#         "OnLoop",
+#         "StreamOrder",
+#         "Estimated",
+#         "Invasive",
+#         "NoStructure",
+#         "Diversion",
+#         "Recon",
+#         "Feasibility",  # not used, only FeasibilityClass used in UI
+#         "PassageFacility",
+#         "TotalDownstreamSmallBarriers",
+#         "TotalDownstreamRoadCrossings",
+#         "ExitsRegion",
+#     }.union(UNUSED_TILE_METRIC_FIELDS)
+# ]
 
 DAM_TILE_FILTER_FIELDS = unique(
     DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
 )
 
-DAM_PACK_BITS = [
-    {"field": "StreamOrder", "bits": 4},
-    {"field": "Recon", "bits": 5},
-    {"field": "PassageFacility", "bits": 5},
-    {"field": "Diversion", "bits": 2},
-    {"field": "NoStructure", "bits": 1},
-    {"field": "Estimated", "bits": 1},
-    {"field": "HasNetwork", "bits": 1},
-    {"field": "Excluded", "bits": 1},
-    {"field": "OnLoop", "bits": 1},
-    {"field": "unsnapped", "bits": 1},
-    {"field": "Unranked", "bits": 1},
-    {"field": "Invasive", "bits": 1},
-]
+# DAM_TILE_FIELDS = unique(
+#     [
+#         "SARPID",
+#         "Name",
+#         "symbol",
+#         "upNetID",
+#         # "downNetID",
+#     ]
+#     + DAM_TILE_FILTER_FIELDS
+# )
+
+# FIXME: remove
+# DAM_PACK_BITS = [
+#     {"field": "StreamOrder", "bits": 4},
+#     {"field": "Recon", "bits": 5},
+#     {"field": "PassageFacility", "bits": 5},
+#     {"field": "Diversion", "bits": 2},
+#     {"field": "NoStructure", "bits": 1},
+#     {"field": "Estimated", "bits": 1},
+#     {"field": "HasNetwork", "bits": 1},
+#     {"field": "Excluded", "bits": 1},
+#     {"field": "OnLoop", "bits": 1},
+#     {"field": "unsnapped", "bits": 1},
+#     {"field": "Unranked", "bits": 1},
+#     {"field": "Invasive", "bits": 1},
+# ]
 
 
 SB_CORE_FIELDS = (
@@ -395,9 +404,8 @@ SB_CORE_FIELDS = (
 SB_CORE_FIELDS = unique(SB_CORE_FIELDS)
 
 # NOTE: state tiers are excluded based on SARP direction
-SB_EXPORT_FIELDS = [
-    c for c in unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS) if not c == "Recon"
-]
+SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS)
+
 SB_API_FIELDS = unique(
     SB_CORE_FIELDS
     + SB_FILTER_FIELDS
@@ -405,52 +413,7 @@ SB_API_FIELDS = unique(
 )
 
 # Public API does not include tier fields
-SB_PUBLIC_EXPORT_FIELDS = [c for c in SB_CORE_FIELDS if not c == "Recon"]
-
-
-# Drop fields from tiles that are calculated on frontend or not used
-SB_TILE_FIELDS = [
-    c
-    for c in SB_API_FIELDS + ["packed", "symbol"]
-    if c
-    not in {
-        "NHDPlusID",
-        "ProtectedLand",
-        "Basin",
-        "HUC2",
-        "AnnualVelocity",
-        "AnnualFlow",
-        "PotentialProject",
-        "EJTract",
-        "EJTribal",
-        # unit name fields are retrieved from summary tiles
-        "Subbasin",
-        "Subwatershed",
-        "County",
-        # included in "packed": (note: some fields included above since used for processing tiles)
-        "Excluded",
-        "OnLoop",
-        "StreamOrder",
-        "Invasive",
-        "Recon",
-        "PassageFacility",
-        # metric fields that can be calculated on frontend or not used
-        "TotalDownstreamRoadCrossings",
-        "ExitsRegion",
-    }.union(UNUSED_TILE_METRIC_FIELDS)
-]
-
-SB_PACK_BITS = [
-    {"field": "StreamOrder", "bits": 4},
-    {"field": "Recon", "bits": 5},
-    {"field": "PassageFacility", "bits": 5},
-    {"field": "HasNetwork", "bits": 1},
-    {"field": "Excluded", "bits": 1},
-    {"field": "OnLoop", "bits": 1},
-    {"field": "unsnapped", "bits": 1},
-    {"field": "Unranked", "bits": 1},
-    {"field": "Invasive", "bits": 1},
-]
+SB_PUBLIC_EXPORT_FIELDS = SB_CORE_FIELDS
 
 
 SB_TILE_FILTER_FIELDS = unique(
@@ -477,9 +440,10 @@ COMBINED_TILE_FILTER_FIELDS = [
     if not c == "BarrierSeverity"
 ]
 
-COMBINED_TILE_FIELDS = [
-    c for c in unique(DAM_TILE_FIELDS + SB_TILE_FIELDS) if c not in STATE_TIER_FIELDS
-]
+# FIXME:
+# COMBINED_TILE_FIELDS = [
+#     c for c in unique(DAM_TILE_FIELDS + SB_TILE_FIELDS) if c not in STATE_TIER_FIELDS
+# ]
 
 
 ROAD_CROSSING_CORE_FIELDS = (
@@ -600,52 +564,54 @@ WF_CORE_FIELDS = (
     ]
     + [f"{c}_dams" for c in WF_METRIC_FIELDS]
     + ["upNetID_dams", "downNetID_dams"]
-    + [f"{c}_small_barriers" for c in WF_METRIC_FIELDS]
-    + ["upNetID_small_barriers", "downNetID_small_barriers"]
+    + [f"{c}_combined_barriers" for c in WF_METRIC_FIELDS]
+    + ["upNetID_combined_barriers", "downNetID_combined_barriers"]
     + DOWNSTREAM_LINEAR_NETWORK_FIELDS
 )
 WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
 
+WF_API_FIELDS = WF_CORE_FIELDS
 
-WF_TILE_FIELDS = [
-    c
-    for c in WF_CORE_FIELDS + ["packed"]
-    if c
-    not in {
-        "NHDPlusID",
-        "Basin",
-        "HUC2",
-        "ProtectedLand",
-        "AnnualVelocity",
-        "AnnualFlow",
-        # unit name fields are retrieved from summary tiles
-        "Subbasin",
-        "Subwatershed",
-        "County",
-        # included in "packed": (note: some fields included above since used for processing tiles)
-        "Excluded",
-        "OnLoop",
-        "StreamOrder",
-        "Intermittent",
-        "TotalDownstreamRoadCrossings",
-        "ExitsRegion",
-        # Not used
-        "HUC10",
-        "OwnerType",
-        "CoastalHUC8",
-    }
-    .union({f"{c}_dams" for c in UNUSED_TILE_METRIC_FIELDS})
-    .union({f"{c}_small_barriers" for c in UNUSED_TILE_METRIC_FIELDS})
-]
 
-WF_PACK_BITS = [
-    {"field": "StreamOrder", "bits": 4},
-    {"field": "HasNetwork", "bits": 1},
-    {"field": "Intermittent", "bits": 1},
-    {"field": "Excluded", "bits": 1},
-    {"field": "OnLoop", "bits": 1},
-    {"field": "unsnapped", "bits": 1},
-]
+# WF_TILE_FIELDS = [
+#     c
+#     for c in WF_CORE_FIELDS + ["packed"]
+#     if c
+#     not in {
+#         "NHDPlusID",
+#         "Basin",
+#         "HUC2",
+#         "ProtectedLand",
+#         "AnnualVelocity",
+#         "AnnualFlow",
+#         # unit name fields are retrieved from summary tiles
+#         "Subbasin",
+#         "Subwatershed",
+#         "County",
+#         # included in "packed": (note: some fields included above since used for processing tiles)
+#         "Excluded",
+#         "OnLoop",
+#         "StreamOrder",
+#         "Intermittent",
+#         "TotalDownstreamRoadCrossings",
+#         "ExitsRegion",
+#         # Not used
+#         "HUC10",
+#         "OwnerType",
+#         "CoastalHUC8",
+#     }
+#     .union({f"{c}_dams" for c in UNUSED_TILE_METRIC_FIELDS})
+#     .union({f"{c}_small_barriers" for c in UNUSED_TILE_METRIC_FIELDS})
+# ]
+
+# WF_PACK_BITS = [
+#     {"field": "StreamOrder", "bits": 4},
+#     {"field": "HasNetwork", "bits": 1},
+#     {"field": "Intermittent", "bits": 1},
+#     {"field": "Excluded", "bits": 1},
+#     {"field": "OnLoop", "bits": 1},
+#     {"field": "unsnapped", "bits": 1},
+# ]
 
 
 ### Bit-packing for tiers
@@ -1174,7 +1140,6 @@ DOMAINS = {
     "EJTract": BOOLEAN_DOMAIN,
     "EJTribal": BOOLEAN_DOMAIN,
     # dam fields
-    # note Recon domain is just used for internal exports; excluded from public exports
     "FERCRegulated": FERCREGULATED_DOMAIN,
     "StateRegulated": STATE_REGULATED_DOMAIN,
     "WaterRight": WATER_RIGHT_DOMAIN,
@@ -1190,7 +1155,7 @@ DOMAINS = {
     "ScreenType": SCREENTYPE_DOMAIN,
     "WaterbodySizeClass": WATERBODY_SIZECLASS_DOMAIN,
     "Estimated": BOOLEAN_DOMAIN,
-    # "NoStructure": BOOLEAN_DOMAIN,
+    "NoStructure": BOOLEAN_DOMAIN,
     # barrier fields
     "BarrierSeverity": BARRIER_SEVERITY_DOMAIN,
     "Constriction": CONSTRICTION_DOMAIN,
@@ -1216,7 +1181,7 @@ FIELD_DEFINITIONS = {
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
     "WaterRight": "Identifies if the {type} has an associated water right, if known.",
     "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information.",
-    # "NoStructure": "this location is a water diversion without an associated barrier structure and is not ranked",
+    "NoStructure": "this location is a water diversion without an associated barrier structure and is not ranked",
     "River": "River name where {type} occurs, if available.",
     "YearCompleted": "year that construction was completed, if available.  0 = data not available.",
     "Removed": "Identifies if the {type} has been removed for conservation, if known.  Removed barriers will not have values present for all fields.",
@@ -1247,8 +1212,10 @@ FIELD_DEFINITIONS = {
     "BarrierSeverity": "barrier severity of the {type}, if known.   Note: assessment dates are not known.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
     # other general fields
+    "Recon": "Field reconnaissance notes, if available.",
     "Passability": "passability of the {type}, if known.   Note: assessment dates are not known.",
     "Condition": "Condition of the {type} as of last assessment, if known. Note: assessment dates are not known.",
+    "Snapped": "Indicates if the {type} was snapped to a flowline.  Note: not all barriers snapped to flowlines are used in the network connectivity analysis.",
     "NHDPlusID": "Unique NHD Plus High Resolution flowline identifier to which this {type} is snapped.  -1 = not snapped to a flowline.  Note: not all barriers snapped to flowlines are used in the network connectivity analysis.",
     "StreamSizeClass": "Stream size class based on total catchment drainage area in square kilometers.  1a: <10 km2, 1b: 10-100 km2, 2: 100-518 km2, 3a: 518-2,590 km2, 3b: 2,590-10,000 km2, 4: 10,000-25,000 km2, 5: >= 25,000 km2.",
     "TotDASqKm": "Total drainage area at the downstream end of the NHD Plus High Resolution flowline to which this {type} has been snapped, in square kilometers.  -1 if not snapped to flowline or otherwise not available",

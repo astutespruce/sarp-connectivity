@@ -21,9 +21,9 @@ import { isEmptyString } from 'util/string'
 const LocationInfo = ({
   barrierType,
   reachName,
-  HUC12,
-  HUC8Name,
-  HUC12Name,
+  huc12,
+  basin,
+  subwatershed,
   ownertype,
   barrierownertype,
   fercregulated,
@@ -46,10 +46,10 @@ const LocationInfo = ({
     <>
       <Entry>
         <Text sx={{ fontSize: 1 }}>
-          {hasReachName ? `On ${reachName} in` : 'Within'} {HUC12Name}{' '}
-          Subwatershed, {HUC8Name} Subbasin{' '}
+          {hasReachName ? `On ${reachName} in` : 'Within'} {subwatershed}{' '}
+          Subwatershed, {basin} Subbasin{' '}
         </Text>
-        <Text sx={{ fontSize: 0, color: 'grey.8' }}>(HUC12: {HUC12})</Text>
+        <Text sx={{ fontSize: 0, color: 'grey.8' }}>(HUC12: {huc12})</Text>
       </Entry>
       {intermittent === 1 ? (
         <Entry>This {barrierTypeLabel} is on an intermittent reach</Entry>
@@ -145,9 +145,9 @@ const LocationInfo = ({
 LocationInfo.propTypes = {
   barrierType: PropTypes.string.isRequired,
   reachName: PropTypes.string,
-  HUC12: PropTypes.string.isRequired,
-  HUC8Name: PropTypes.string.isRequired,
-  HUC12Name: PropTypes.string.isRequired,
+  huc12: PropTypes.string.isRequired,
+  basin: PropTypes.string.isRequired,
+  subwatershed: PropTypes.string.isRequired,
   ownertype: PropTypes.number,
   barrierownertype: PropTypes.number,
   fercregulated: PropTypes.number,

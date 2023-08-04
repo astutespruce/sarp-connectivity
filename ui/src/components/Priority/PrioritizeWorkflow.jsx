@@ -305,9 +305,10 @@ const Prioritize = () => {
             alignItems: 'center',
             justifyContent: 'center',
             height: '100%',
+            gap: '1rem',
           }}
         >
-          <Spinner size="2rem" sx={{ mr: '1rem' }} />
+          <Spinner size="2rem" />
           <Text>Loading...</Text>
         </Flex>
       )
