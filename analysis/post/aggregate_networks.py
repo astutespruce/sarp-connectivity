@@ -5,7 +5,6 @@ import geopandas as gp
 import pandas as pd
 
 from analysis.constants import SEVERITY_TO_PASSABILITY
-from analysis.lib.compression import pack_bits
 from analysis.lib.util import get_signed_dtype, append
 from analysis.rank.lib.networks import get_network_results, get_removed_network_results
 from analysis.rank.lib.metrics import (
@@ -15,13 +14,11 @@ from analysis.rank.lib.metrics import (
 from api.constants import (
     GENERAL_API_FIELDS1,
     UNIT_FIELDS,
-    DOWNSTREAM_LINEAR_NETWORK_FIELDS,
-    DOMAINS,
     DAM_API_FIELDS,
     SB_API_FIELDS,
     COMBINED_API_FIELDS,
     WF_API_FIELDS,
-    unique,
+    verify_domains,
 )
 from analysis.constants import NETWORK_TYPES
 
@@ -78,20 +75,6 @@ def fill_flowline_cols(df):
     df["TotDASqKm"] = df.TotDASqKm.fillna(-1).astype("float32")
 
 
-def verify_domains(df):
-    failed = False
-    for col in df.columns.intersection(DOMAINS.keys()):
-        diff = set(df[col].unique()).difference(DOMAINS[col].keys())
-        if diff:
-            print(f"Missing values from domain lookup: {col}: {diff}")
-            failed = True
-
-    if failed:
-        raise ValueError(
-            "ERROR: stopping; one or more domain fields includes values not present in domain lookup"
-        )
-
-
 #######################################################################################
 ### Read dams and associated networks
 print("Reading dams and networks")
@@ -100,6 +83,7 @@ dams = (
     .set_index("id")
     .rename(columns=rename_cols)
 )
+dams["in_network_type"] = dams.primary_network
 
 fill_flowline_cols(dams)
 
@@ -175,6 +159,8 @@ small_barriers = (
     .set_index("id")
     .rename(columns=rename_cols)
 )
+small_barriers["in_network_type"] = small_barriers.primary_network
+
 small_barriers = small_barriers.loc[
     ~(small_barriers.dropped | small_barriers.duplicate)
 ].copy()
@@ -339,6 +325,11 @@ for network_type in [
     ).set_index("id")
 
     scenario_results = combined.join(networks)
+    scenario_results["in_network_type"] = (
+        scenario_results.primary_network
+        if network_type == "combined_barriers"
+        else scenario_results[f"{network_type.split('_')[0]}_network"]
+    )
 
     for col in nonremoved_networks.columns:
         orig_dtype = nonremoved_networks[col].dtype

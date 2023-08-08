@@ -39,7 +39,11 @@ const Preview = ({ networkType, data }) => {
     data
 
   const barrierType =
-    networkType === 'combined_barriers' ? data.barriertype : networkType
+    networkType === 'combined_barriers' ||
+    networkType === 'largefish_barriers' ||
+    networkType === 'smallfish_barriers'
+      ? data.barriertype
+      : networkType
 
   const name = !isEmptyString(data.name)
     ? data.name
@@ -294,6 +298,7 @@ Preview.propTypes = {
     lon: PropTypes.number.isRequired,
     county: PropTypes.string.isRequired,
     state: PropTypes.string.isRequired,
+    feasibilityclass: PropTypes.number,
     upnetid: PropTypes.number,
     // other props validated by subcomponents
   }).isRequired,

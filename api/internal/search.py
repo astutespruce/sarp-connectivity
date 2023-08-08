@@ -86,6 +86,10 @@ async def search_units(request: Request, layer: str, query: str):
                 "ranked_dams",
                 "total_small_barriers",
                 "ranked_small_barriers",
+                "ranked_largefish_barriers_dams",
+                "ranked_largefish_barriers_small_barriers",
+                "ranked_smallfish_barriers_dams",
+                "ranked_smallfish_barriers_small_barriers",
                 "crossings",
             ]
         )[:10]

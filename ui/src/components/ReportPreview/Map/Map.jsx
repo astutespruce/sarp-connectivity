@@ -159,11 +159,7 @@ const Map = ({
             mapObj.addLayer({
               ...layer,
               minzoom: 6,
-              filter: [
-                '==',
-                networkType === 'dams' ? 'dams' : 'small_barriers',
-                networkID,
-              ],
+              filter: ['==', networkType, networkID],
             })
           } else {
             mapObj.addLayer(layer)
@@ -179,10 +175,7 @@ const Map = ({
             layout: { visibility: 'visible' },
           })
         }
-        if (
-          networkType === 'small_barriers' ||
-          networkType === 'combined_barriers'
-        ) {
+        if (networkType !== 'dams') {
           mapObj.addLayer({
             ...roadCrossingsLayer,
             layout: { visibility: 'visible' },

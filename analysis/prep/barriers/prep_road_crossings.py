@@ -1,14 +1,12 @@
 from pathlib import Path
 from time import time
-import warnings
 
 import geopandas as gp
 import numpy as np
 import shapely
 from pyogrio import write_dataframe
 
-from api.constants import ROAD_CROSSING_API_FIELDS
-from analysis.post.aggregate_networks import verify_domains
+from api.constants import ROAD_CROSSING_API_FIELDS, verify_domains
 
 # considered to duplicate an assessed road barriers if within this value
 DUPLICATE_TOLERANCE = 10  # meters
@@ -115,6 +113,7 @@ snapped.to_feather(barriers_dir / "snapped/road_crossings.feather")
 
 df = df.rename(
     columns={
+        "snapped": "Snapped",
         "intermittent": "Intermittent",
         "loop": "OnLoop",
         "sizeclass": "StreamSizeClass",

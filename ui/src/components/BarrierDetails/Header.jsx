@@ -60,9 +60,7 @@ const Header = ({
       <Box sx={{ lineHeight: 1, mt: '1.5rem' }}>
         <a
           href={`/report/${
-            networkType === 'dams' || networkType === barrierType
-              ? barrierType
-              : 'combined_barriers'
+            networkType === 'small_barriers' ? 'combined_barriers' : networkType
           }/${sarpid}`}
           target="_blank"
           rel="noreferrer"

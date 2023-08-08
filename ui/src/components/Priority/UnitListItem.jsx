@@ -14,6 +14,12 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
     ranked_dams: rankedDams = 0,
     total_small_barriers: totalSmallBarriers = 0,
     ranked_small_barriers: rankedSmallBarriers = 0,
+    ranked_largefish_barriers_dams: rankedLargefishBarriersDams = 0,
+    ranked_largefish_barriers_small_barriers:
+      rankedLargefishBarriersSmallBarriers = 0,
+    ranked_smallfish_barriers_dams: rankedSmallfishBarriersDams = 0,
+    ranked_smallfish_barriers_small_barriers:
+      rankedSmallfishBarriersSmallBarriers = 0,
     crossings = 0,
   } = unit
   let { name = id } = unit
@@ -92,11 +98,28 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
 
       break
     }
-    case 'combined_barriers': {
-      count = rankedDams + rankedSmallBarriers
+    case 'combined_barriers':
+    case 'largefish_barriers':
+    case 'smallfish_barriers': {
+      // extract counts specific to network type
+      let rankedD = 0
+      let rankedSB = 0
+      if (barrierType === 'combined_barriers') {
+        rankedD = rankedDams
+        rankedSB = rankedSmallBarriers
+      } else if (barrierType === 'largefish_barriers') {
+        rankedD = rankedLargefishBarriersDams
+        rankedSB = rankedLargefishBarriersSmallBarriers
+      } else if (barrierType === 'smallfish_barriers') {
+        rankedD = rankedSmallfishBarriersDams
+        rankedSB = rankedSmallfishBarriersSmallBarriers
+      }
+
+      count = rankedD + rankedSB
+
       if (count === 0) {
         warning = `no ${barrierTypeLabels[barrierType]} available for prioritization`
-      } else if (rankedDams > 0 && insufficientBarriers) {
+      } else if (rankedD > 0 && insufficientBarriers) {
         const prefix =
           totalSmallBarriers === 0
             ? 'no potential road-related barriers'
@@ -105,12 +128,12 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
               )} potential road-related ${pluralize(
                 'barrier',
                 totalSmallBarriers
-              )} (${formatNumber(rankedSmallBarriers)} likely ${pluralize(
+              )} (${formatNumber(rankedSB)} likely ${pluralize(
                 'barrier',
-                rankedSmallBarriers
+                rankedSB
               )})`
         warning = `${prefix} ${
-          rankedSmallBarriers === 1 ? 'has' : 'have'
+          totalSmallBarriers === 1 ? 'has' : 'have'
         } been assessed out of ${formatNumber(
           crossings
         )} road / stream ${pluralize(
@@ -118,17 +141,14 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
           crossings
         )}; this may not result in useful priorities`
 
-        countMessage = `${formatNumber(rankedDams)} ${pluralize(
+        countMessage = `${formatNumber(rankedD)} ${pluralize('dam', rankedD)}`
+      } else if (rankedD > 0) {
+        countMessage = `${formatNumber(rankedD)} ${pluralize(
           'dam',
           rankedDams
-        )}`
-      } else if (rankedDams > 0) {
-        countMessage = `${formatNumber(rankedDams)} ${pluralize(
-          'dam',
-          rankedDams
-        )} and ${formatNumber(rankedSmallBarriers)} road-related ${pluralize(
+        )} and ${formatNumber(rankedSB)} road-related ${pluralize(
           'barrier',
-          rankedSmallBarriers
+          rankedSB
         )} (${formatNumber(
           totalSmallBarriers
         )} assessed potential road-related ${pluralize(

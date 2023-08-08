@@ -32,6 +32,7 @@ const DamDetails = ({
   sarpid,
   hasnetwork,
   excluded,
+  in_network_type,
   onloop,
   snapped,
   height,
@@ -278,8 +279,10 @@ const DamDetails = ({
         ) : (
           <NoNetworkInfo
             barrierType={barrierType}
+            networkType={networkType}
             snapped={snapped}
             excluded={excluded}
+            in_network_type={in_network_type}
             onloop={onloop}
             diversion={diversion}
             nostructure={nostructure}
@@ -340,6 +343,7 @@ DamDetails.propTypes = {
   sarpid: PropTypes.string.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
+  in_network_type: PropTypes.bool,
   onloop: PropTypes.bool,
   snapped: PropTypes.bool,
   river: PropTypes.string,
@@ -405,6 +409,7 @@ DamDetails.defaultProps = {
   basin: null,
   subwatershed: null,
   excluded: false,
+  in_network_type: false,
   onloop: false,
   snapped: false,
   river: null,

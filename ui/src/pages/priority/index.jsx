@@ -129,7 +129,7 @@ const PrioritizePage = ({ data: { headerImage } }) => {
                 </Text>
               </Box>
               <Box sx={{ mt: '2rem' }}>
-                <Link to="/priority/barriers">
+                <Link to="/priority/small_barriers">
                   <Button sx={{ width: '100%', textAlign: 'left' }}>
                     <SearchLocation
                       size="1em"

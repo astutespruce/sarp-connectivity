@@ -311,12 +311,7 @@ DAM_API_FIELDS = unique(
     DAM_CORE_FIELDS
     + STATE_TIER_FIELDS
     + DAM_FILTER_FIELDS
-    + [
-        "upNetID",
-        "downNetID",
-        "COUNTYFIPS",
-        "Unranked",
-    ]
+    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked", "in_network_type"]
 )
 
 # Public API does not include tier or filter fields
@@ -357,7 +352,7 @@ SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS)
 SB_API_FIELDS = unique(
     SB_CORE_FIELDS
     + SB_FILTER_FIELDS
-    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked"]
+    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked", "in_network_type"]
 )
 
 # Public API does not include tier fields
@@ -997,6 +992,20 @@ DOMAINS = {
     "CrossingType": CROSSING_TYPE_DOMAIN,
     "RoadType": ROAD_TYPE_DOMAIN,
 }
+
+
+def verify_domains(df):
+    failed = False
+    for col in df.columns.intersection(DOMAINS.keys()):
+        diff = set(df[col].unique()).difference(DOMAINS[col].keys())
+        if diff:
+            print(f"Missing values from domain lookup: {col}: {diff}")
+            failed = True
+
+    if failed:
+        raise ValueError(
+            "ERROR: stopping; one or more domain fields includes values not present in domain lookup"
+        )
 
 
 # Lookup of field to description, for download / APIs

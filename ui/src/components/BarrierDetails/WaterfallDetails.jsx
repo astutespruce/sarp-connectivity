@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Paragraph, Text } from 'theme-ui'
+import { Box } from 'theme-ui'
 
 import { PASSABILITY } from 'config'
 import { Entry, Field, Section } from 'components/Sidebar'
@@ -10,6 +10,7 @@ import DiadromousInfo from './DiadromousInfo'
 import IDInfo from './IDInfo'
 import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
+import NoNetworkInfo from './NoNetworkInfo'
 import SpeciesInfo from './SpeciesInfo'
 
 const WaterfallDetails = ({
@@ -18,6 +19,9 @@ const WaterfallDetails = ({
   source,
   hasnetwork,
   excluded,
+  in_network_type,
+  onloop,
+  snapped,
   stream,
   intermittent,
   huc12,
@@ -105,30 +109,38 @@ const WaterfallDetails = ({
           intermittent={intermittent}
         />
       ) : (
-        <>
-          {excluded ? (
-            <Entry>
-              This waterfall was excluded from the connectivity analysis based
-              on field reconnaissance or manual review of aerial imagery.
-            </Entry>
-          ) : (
-            <Entry>
-              <Text>
-                This waterfall is off-network and has no functional network
-                information.
-              </Text>
-              <Paragraph variant="help" sx={{ mt: '1rem' }}>
-                Not all barriers could be correctly snapped to the aquatic
-                network for analysis. Please contact us to report an error or
-                for assistance interpreting these results.
-              </Paragraph>
-            </Entry>
-          )}
-        </>
+        <NoNetworkInfo
+          barrierType={barrierType}
+          networkType={networkType}
+          snapped={snapped}
+          excluded={excluded}
+          in_network_type={in_network_type}
+          onloop={onloop}
+        />
+        // <>
+        //   {excluded ? (
+        //     <Entry>
+        //       This waterfall was excluded from the connectivity analysis based
+        //       on field reconnaissance or manual review of aerial imagery.
+        //     </Entry>
+        //   ) : (
+        //     <Entry>
+        //       <Text>
+        //         This waterfall is off-network and has no functional network
+        //         information.
+        //       </Text>
+        //       <Paragraph variant="help" sx={{ mt: '1rem' }}>
+        //         Not all barriers could be correctly snapped to the aquatic
+        //         network for analysis. Please contact us to report an error or
+        //         for assistance interpreting these results.
+        //       </Paragraph>
+        //     </Entry>
+        //   )}
+        // </>
       )}
     </Section>
 
-    {flowstoocean && milestooutlet < 500 ? (
+    {hasnetwork && flowstoocean && milestooutlet < 500 ? (
       <Section title="Diadromous species information">
         <DiadromousInfo
           barrierType={barrierType}
@@ -164,6 +176,9 @@ WaterfallDetails.propTypes = {
   networkType: PropTypes.string.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
+  in_network_type: PropTypes.bool,
+  onloop: PropTypes.bool,
+  snapped: PropTypes.bool,
   source: PropTypes.string,
   stream: PropTypes.string,
   intermittent: PropTypes.number,
@@ -203,6 +218,9 @@ WaterfallDetails.defaultProps = {
   basin: null,
   subwatershed: null,
   excluded: false,
+  in_network_type: false,
+  onloop: false,
+  snapped: false,
   source: null,
   stream: null,
   intermittent: -1,

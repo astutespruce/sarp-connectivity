@@ -176,9 +176,21 @@ const PriorityMap = ({
               0.25,
               0,
             ]
-          } else if (barrierType === 'combined_barriers') {
+          } else if (
+            barrierType === 'combined_barriers' ||
+            barrierType === 'largefish_barriers' ||
+            barrierType === 'smallfish_barriers'
+          ) {
+            let damField = 'ranked_dams'
+            if (barrierType === 'largefish_barriers') {
+              damField = 'largefish_barriers_ranked_dams'
+            } else if (barrierType === 'smallfish_barriers') {
+              damField = 'smallfish_barriers_ranked_dams'
+            }
+
             // show grey if there are 0 of both types, or < 10 total barriers
             // (Ok if all are not actual barriers and / or no dams)
+            // always use total small barriers even if count for scenario is 0
             fillExpr = [
               'case',
               [
@@ -186,7 +198,7 @@ const PriorityMap = ({
                 ['<', ['get', 'total_small_barriers'], 10],
                 [
                   'all',
-                  ['==', ['get', 'ranked_dams'], 0],
+                  ['==', ['get', damField], 0],
                   ['==', ['get', 'total_small_barriers'], 0],
                 ],
               ],
@@ -221,11 +233,11 @@ const PriorityMap = ({
       map.addLayer({
         ...roadCrossingsLayer,
         layout: {
-          visibility: barrierType === 'small_barriers' ? 'visible' : 'none',
+          visibility: barrierType !== 'dams' ? 'visible' : 'none',
         },
       })
 
-      // add secondary dams layer
+      // add secondary dams layer (only applicable for small barriers)
       map.addLayer({
         ...damsSecondaryLayer,
         layout: {
@@ -299,7 +311,9 @@ const PriorityMap = ({
             .setLngLat(coordinates)
             .setHTML(
               getBarrierTooltip(
-                feature.source === 'combined_barriers'
+                feature.source === 'combined_barriers' ||
+                  feature.source === 'largefish_barriers' ||
+                  feature.source === 'smallfish_barriers'
                   ? feature.properties.barriertype
                   : feature.source,
                 feature.properties
@@ -381,27 +395,31 @@ const PriorityMap = ({
           return
         }
 
-        // promote network fields if clicking on a waterfall
-        // FIXME: needs to include all network scenarios
+        const thisBarrierType =
+          source === 'combined_barriers' ||
+          source === 'largefish_barriers' ||
+          source === 'smallfish_barriers'
+            ? properties.barriertype
+            : source
+
         const networkType =
-          barrierType === 'dams' ? 'dams' : 'combined_barriers'
-        const networkFields = {}
-        Object.keys(properties)
-          .filter((k) => k.endsWith(networkType))
-          .forEach((field) => {
-            networkFields[field.split('_')[0]] = properties[field]
-          })
+          barrierType === 'small_barriers' ? 'combined_barriers' : barrierType
+
+        // promote network fields if clicking on a waterfall
+        const networkIDField =
+          thisBarrierType === 'waterfalls'
+            ? `${networkType}_upnetid`
+            : 'upnetid'
 
         setBarrierHighlight(map, feature, true)
         selectedFeatureRef.current = feature
 
         onSelectBarrier({
+          upnetid: properties[networkIDField] || -1,
           ...properties,
-          ...networkFields,
           tiers: rankedBarriersIndexRef.current[properties.id] || null,
-          barrierType:
-            source === 'combined_barriers' ? properties.barriertype : source,
-          networkType: barrierType,
+          barrierType: thisBarrierType,
+          networkType,
           lat,
           lon,
           // note: ranked layers are those that can be ranked, not necessarily those that have custom ranks
@@ -528,8 +546,7 @@ const PriorityMap = ({
 
     highlightNetwork(
       map,
-      // FIXME:
-      barrierType === 'dams' ? 'dams' : 'small_barriers',
+      barrierType === 'small_barriers' ? 'combined_barriers' : barrierType,
       networkID
     )
   }, [barrierType, selectedBarrier])

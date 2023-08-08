@@ -207,6 +207,10 @@ for col in [
 ]:
     df[col] = df[col].fillna("")
 
+
+### Drop any that didn't intersect HUCs or states (including those outside analysis region)
+df = df.loc[(df.HUC12 != "") & (df.State != "")].copy()
+
 df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
 
 

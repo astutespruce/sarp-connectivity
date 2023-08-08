@@ -55,7 +55,7 @@ removed_barrier_networks = (
         [
             Path("data/networks/clean")
             / huc2
-            / "removed_small_barriers_network.feather"
+            / "removed_combined_barriers_network.feather"
             for huc2 in sorted(dams.HUC2.unique())
         ],
         columns=["id", "EffectiveGainMiles"],

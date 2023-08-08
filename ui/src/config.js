@@ -8,6 +8,8 @@ export const barrierTypeLabels = {
   road_crossings: 'road/stream crossings',
   waterfalls: 'waterfalls',
   combined_barriers: 'dams & road-related barriers',
+  largefish_barriers: 'dams & road-related barriers (for large-bodied fish)',
+  smallfish_barriers: 'dams & road-related barriers (for small-bodied fish)',
 }
 
 export const barrierTypeLabelSingular = {
@@ -15,9 +17,6 @@ export const barrierTypeLabelSingular = {
   small_barriers: 'road-related barrier',
   road_crossings: 'road/stream crossing',
   waterfalls: 'waterfall',
-  // FIXME: is this used?
-  // combined_barriers: 'dam or road-related barrier',
-  combined_barriers: 'FIXME: is this showing up anywhere?',
 }
 
 export const barrierNameWhenUnknown = {
@@ -104,7 +103,11 @@ export const pointLegends = {
 
   included: {
     getSymbol: (barrierType) => {
-      if (barrierType === 'combined_barriers') {
+      if (
+        barrierType === 'combined_barriers' ||
+        barrierType === 'largefish_barriers' ||
+        barrierType === 'smallfish_barriers'
+      ) {
         return {
           symbols: [
             {
@@ -137,7 +140,11 @@ export const pointLegends = {
   // excluded from ranking based on filters
   excluded: {
     getSymbol: (barrierType) => {
-      if (barrierType === 'combined_barriers') {
+      if (
+        barrierType === 'combined_barriers' ||
+        barrierType === 'largefish_barriers' ||
+        barrierType === 'smallfish_barriers'
+      ) {
         return {
           symbols: [
             {
@@ -168,7 +175,11 @@ export const pointLegends = {
   },
   topRank: {
     getSymbol: (barrierType) => {
-      if (barrierType === 'combined_barriers') {
+      if (
+        barrierType === 'combined_barriers' ||
+        barrierType === 'largefish_barriers' ||
+        barrierType === 'smallfish_barriers'
+      ) {
         return {
           symbols: [
             {
@@ -198,7 +209,11 @@ export const pointLegends = {
   },
   lowerRank: {
     getSymbol: (barrierType) => {
-      if (barrierType === 'combined_barriers') {
+      if (
+        barrierType === 'combined_barriers' ||
+        barrierType === 'largefish_barriers' ||
+        barrierType === 'smallfish_barriers'
+      ) {
         return {
           symbols: [
             {
@@ -234,7 +249,11 @@ export const pointLegends = {
     {
       id: 'removed',
       getSymbol: (barrierType) => {
-        if (barrierType === 'combined_barriers') {
+        if (
+          barrierType === 'combined_barriers' ||
+          barrierType === 'largefish_barriers' ||
+          barrierType === 'smallfish_barriers'
+        ) {
           return {
             symbols: [
               {
@@ -275,7 +294,11 @@ export const pointLegends = {
     {
       id: 'nonBarrier',
       getSymbol: (barrierType) => {
-        if (barrierType === 'combined_barriers') {
+        if (
+          barrierType === 'combined_barriers' ||
+          barrierType === 'largefish_barriers' ||
+          barrierType === 'smallfish_barriers'
+        ) {
           return {
             symbols: [
               {
@@ -305,7 +328,11 @@ export const pointLegends = {
     {
       id: 'invasive',
       getSymbol: (barrierType) => {
-        if (barrierType === 'combined_barriers') {
+        if (
+          barrierType === 'combined_barriers' ||
+          barrierType === 'largefish_barriers' ||
+          barrierType === 'smallfish_barriers'
+        ) {
           return {
             symbols: [
               {
@@ -336,7 +363,11 @@ export const pointLegends = {
     {
       id: 'default',
       getSymbol: (barrierType) => {
-        if (barrierType === 'combined_barriers') {
+        if (
+          barrierType === 'combined_barriers' ||
+          barrierType === 'largefish_barriers' ||
+          barrierType === 'smallfish_barriers'
+        ) {
           return {
             symbols: [
               {

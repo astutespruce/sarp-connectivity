@@ -14,6 +14,9 @@ import SpeciesInfo from './SpeciesInfo'
 
 const RoadCrossingDetails = ({
   barrierType,
+  networkType,
+  onloop,
+  snapped,
   sarpid,
   source,
   stream,
@@ -86,7 +89,12 @@ const RoadCrossingDetails = ({
     </Section>
 
     <Section title="Functional network information">
-      <NoNetworkInfo barrierType={barrierType} snapped />
+      <NoNetworkInfo
+        barrierType={barrierType}
+        networkType={networkType}
+        snapped={snapped}
+        onloop={onloop}
+      />
     </Section>
 
     {/* Note: diadromous species info not shown because these have no network */}
@@ -111,6 +119,8 @@ const RoadCrossingDetails = ({
 RoadCrossingDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
+  onloop: PropTypes.bool,
+  snapped: PropTypes.bool,
   source: PropTypes.string,
   stream: PropTypes.string,
   intermittent: PropTypes.number,
@@ -132,6 +142,8 @@ RoadCrossingDetails.propTypes = {
 }
 
 RoadCrossingDetails.defaultProps = {
+  onloop: false,
+  snapped: true,
   huc12: null,
   basin: null,
   subwatershed: null,

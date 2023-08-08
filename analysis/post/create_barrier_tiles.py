@@ -20,9 +20,7 @@ from analysis.post.lib.tiles import (
 )
 
 
-# FIXME:
-# MAX_ZOOM = 16
-MAX_ZOOM = 12
+MAX_ZOOM = 16
 
 barriers_dir = Path("data/barriers/master")
 results_dir = Path("data/barriers/networks")
@@ -447,11 +445,11 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     ### Create tiles for unranked combined barriers with networks
     unranked_barriers = df.loc[
         df.HasNetwork & (~(df.Ranked | df.Removed)),
-        ["geometry", "id", "SARPIDName", "upNetID", "symbol"],
+        ["geometry", "id", "SARPIDName", "BarrierType", "upNetID", "symbol"],
     ]
 
     print(
-        f"Creating tiles for {len(unranked_barriers):,} unranked combined barriers with networks"
+        f"Creating tiles for {len(unranked_barriers):,} unranked {network_type} barriers with networks"
     )
 
     outfilename = tmp_dir / f"unranked_{network_type}.fgb"
@@ -470,9 +468,10 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     )
     ret.check_returncode()
 
-    ### Create tiles for all other barriers
+    ### Create tiles for all other barriers; these don't have network info
     other_barriers = df.loc[
-        df.Removed | ~df.HasNetwork, ["geometry", "id", "SARPIDName", "symbol"]
+        df.Removed | ~df.HasNetwork,
+        ["geometry", "id", "SARPIDName", "BarrierType", "symbol"],
     ]
     print(f"Creating tiles for {len(other_barriers)} other barriers")
 

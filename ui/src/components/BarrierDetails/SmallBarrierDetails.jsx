@@ -53,6 +53,7 @@ const BarrierDetails = ({
   link,
   hasnetwork,
   excluded,
+  in_network_type,
   onloop,
   snapped,
   stream,
@@ -243,8 +244,10 @@ const BarrierDetails = ({
       ) : (
         <NoNetworkInfo
           barrierType={barrierType}
+          networkType={networkType}
           snapped={snapped}
           excluded={excluded}
+          in_network_type={in_network_type}
           onloop={onloop}
         />
       )}
@@ -287,6 +290,7 @@ BarrierDetails.propTypes = {
   onloop: PropTypes.bool,
   snapped: PropTypes.bool,
   excluded: PropTypes.bool,
+  in_network_type: PropTypes.bool,
   source: PropTypes.string,
   link: PropTypes.string,
   stream: PropTypes.string,
@@ -340,6 +344,7 @@ BarrierDetails.defaultProps = {
   basin: null,
   subwatershed: null,
   excluded: false,
+  in_network_type: false,
   onloop: false,
   snapped: false,
   source: null,

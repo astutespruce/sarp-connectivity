@@ -431,9 +431,6 @@ const SummaryMap = ({
     map.setFilter('network-highlight', ['==', 'dams', Infinity])
     map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
 
-    const smallBarriersLayerVisibility =
-      focalBarrierType !== 'dams' ? 'visible' : 'none'
-
     // dams-secondary is only relevant for small barriers
     map.setLayoutProperty(
       'dams-secondary',
@@ -443,7 +440,7 @@ const SummaryMap = ({
     map.setLayoutProperty(
       'road-crossings',
       'visibility',
-      smallBarriersLayerVisibility
+      focalBarrierType !== 'dams' ? 'visible' : 'none'
     )
   }, [focalBarrierType])
 
