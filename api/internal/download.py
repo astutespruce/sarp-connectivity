@@ -70,7 +70,7 @@ async def download(
             columns += DAM_EXPORT_FIELDS
         case "small_barriers":
             columns += SB_EXPORT_FIELDS
-        case "combined_barriers":
+        case "combined_barriers" | "largefish_barriers" | "smallfish_barriers":
             columns += COMBINED_EXPORT_FIELDS
         case "road_crossings":
             columns += ROAD_CROSSING_API_FIELDS

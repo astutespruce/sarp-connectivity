@@ -6,6 +6,8 @@ class BarrierTypes(str, Enum):
     dams = "dams"
     small_barriers = "small_barriers"
     combined_barriers = "combined_barriers"
+    largefish_barriers = "largefish_barriers"
+    smallfish_barriers = "smallfish_barriers"
     road_crossings = "road_crossings"
     waterfalls = "waterfalls"
 
@@ -411,7 +413,9 @@ ROAD_CROSSING_CORE_FIELDS = (
 ROAD_CROSSING_CORE_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS)
 
 # include COUNTYFIPS for download of road crossings by county
-ROAD_CROSSING_API_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS + ["COUNTYFIPS"])
+ROAD_CROSSING_API_FIELDS = unique(
+    ROAD_CROSSING_CORE_FIELDS + ["COUNTYFIPS", "SalmonidESU"]
+)
 
 
 WF_CORE_FIELDS = (
@@ -446,7 +450,7 @@ WF_CORE_FIELDS = (
 WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
 
 # network_type resolves to a single row; API has one row per waterfall per network type
-WF_API_FIELDS = unique(WF_CORE_FIELDS + ["network_type"])
+WF_API_FIELDS = unique(WF_CORE_FIELDS + ["network_type", "in_network_type"])
 
 ### Bit-packing for tiers
 TIER_BITS = 5  # holds values 0...21 after subtracting offset

@@ -119,19 +119,19 @@ def add_spatial_joins(df):
     ### Environmental justice layers
     print("Joining to environmental justice disadvantaged communities")
     tracts = gp.read_feather(boundaries_dir / "environmental_justice_tracts.feather")
-    tracts["EJTract"] = 1
+    tracts["EJTract"] = True
     df = sjoin_points_to_poly(df, tracts)
-    df["EJTract"] = df.EJTract.fillna(0).astype("uint8")
+    df["EJTract"] = df.EJTract.fillna(False)
 
     tribal_lands = gp.read_feather(boundaries_dir / "tribal_lands.feather")
-    tribal_lands["EJTribal"] = 1
+    tribal_lands["EJTribal"] = True
     df = sjoin_points_to_poly(df, tribal_lands)
-    df["EJTribal"] = df.EJTribal.fillna(0).astype("uint8")
+    df["EJTribal"] = df.EJTribal.fillna(False)
 
     # combine into single column for filtering
     labels = np.array(["tract", "tribal"])
     df["DisadvantagedCommunity"] = df[["EJTract", "EJTribal"]].apply(
-        lambda row: ",".join(labels[row.values == 1]), axis=1
+        lambda row: ",".join(labels[row.values == True]), axis=1
     )
 
     ### Join in species stats

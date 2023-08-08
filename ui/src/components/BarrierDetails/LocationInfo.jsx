@@ -29,7 +29,8 @@ const LocationInfo = ({
   fercregulated,
   stateregulated,
   waterright,
-  disadvantagedcommunity,
+  ejtract,
+  ejtribal,
   intermittent,
   streamorder,
   streamsizeclass,
@@ -128,13 +129,12 @@ const LocationInfo = ({
         </Entry>
       ) : null}
 
-      {!isEmptyString(disadvantagedcommunity) ? (
+      {ejtract || ejtribal ? (
         <Entry>
           <Field label="Climate and environmental justice">
-            {disadvantagedcommunity
-              .split(',')
-              .map((type) => DISADVANTAGED_COMMUNITY[type].toLowerCase())
-              .join(', ')}
+            {ejtract ? 'within a disadvantaged census tract' : null}
+            {ejtract && ejtribal ? ', ' : null}
+            {ejtribal ? 'within a tribal community' : null}
           </Field>
         </Entry>
       ) : null}
@@ -153,7 +153,8 @@ LocationInfo.propTypes = {
   fercregulated: PropTypes.number,
   stateregulated: PropTypes.number,
   waterright: PropTypes.number,
-  disadvantagedcommunity: PropTypes.string,
+  ejtract: PropTypes.bool,
+  ejtribal: PropTypes.bool,
   intermittent: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
@@ -168,7 +169,8 @@ LocationInfo.defaultProps = {
   fercregulated: null,
   stateregulated: null,
   waterright: null,
-  disadvantagedcommunity: null,
+  ejtract: false,
+  ejtribal: false,
   intermittent: 0,
   streamorder: 0,
   streamsizeclass: null,

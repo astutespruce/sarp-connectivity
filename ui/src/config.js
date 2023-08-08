@@ -8,8 +8,8 @@ export const barrierTypeLabels = {
   road_crossings: 'road/stream crossings',
   waterfalls: 'waterfalls',
   combined_barriers: 'dams & road-related barriers',
-  largefish_barriers: 'dams & road-related barriers (for large-bodied fish)',
-  smallfish_barriers: 'dams & road-related barriers (for small-bodied fish)',
+  largefish_barriers: 'dams & road-related barriers',
+  smallfish_barriers: 'dams & road-related barriers',
 }
 
 export const barrierTypeLabelSingular = {

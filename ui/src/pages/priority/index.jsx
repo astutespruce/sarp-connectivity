@@ -21,7 +21,14 @@ import { formatNumber } from 'util/format'
 
 const PrioritizePage = ({ data: { headerImage } }) => {
   const {
-    total: { rankedDams, rankedSmallBarriers },
+    total: {
+      rankedDams,
+      rankedSmallBarriers,
+      rankedLargefishBarriersDams,
+      rankedLargefishBarriersSmallBarriers,
+      rankedSmallfishBarriersDams,
+      rankedSmallfishBarriersSmallBarriers,
+    },
   } = useSummaryData()
 
   return (
@@ -154,6 +161,44 @@ const PrioritizePage = ({ data: { headerImage } }) => {
                 </Link>
                 <Text sx={{ fontSize: 1, color: 'grey.7' }}>
                   ({formatNumber(rankedDams + rankedSmallBarriers)} available)
+                </Text>
+              </Box>
+              <Box sx={{ mt: '2rem' }}>
+                <Link to="/priority/largefish_barriers">
+                  <Button sx={{ width: '100%', textAlign: 'left' }}>
+                    <SearchLocation
+                      size="1em"
+                      style={{ marginRight: '0.5rem' }}
+                    />
+                    Dams & road-related barriers (for large-bodied fish)*
+                  </Button>
+                </Link>
+                <Text sx={{ fontSize: 1, color: 'grey.7' }}>
+                  (
+                  {formatNumber(
+                    rankedLargefishBarriersDams +
+                      rankedLargefishBarriersSmallBarriers
+                  )}{' '}
+                  available)
+                </Text>
+              </Box>
+              <Box sx={{ mt: '2rem' }}>
+                <Link to="/priority/smallfish_barriers">
+                  <Button sx={{ width: '100%', textAlign: 'left' }}>
+                    <SearchLocation
+                      size="1em"
+                      style={{ marginRight: '0.5rem' }}
+                    />
+                    Dams & road-related barriers (for small-bodied fish)*
+                  </Button>
+                </Link>
+                <Text sx={{ fontSize: 1, color: 'grey.7' }}>
+                  (
+                  {formatNumber(
+                    rankedSmallfishBarriersDams +
+                      rankedSmallfishBarriersSmallBarriers
+                  )}{' '}
+                  available)
                 </Text>
               </Box>
             </Box>

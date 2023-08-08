@@ -141,10 +141,6 @@ barriers = barriers.join(removed_barrier_networks)
 barriers["RemovedGainMiles"] = barriers.RemovedGainMiles.fillna(0)
 
 
-combined_barriers = pd.read_feather(
-    results_dir / "combined_barriers.feather",
-    columns=["id", "BarrierType", "Ranked"] + SUMMARY_UNITS,
-)
 largefish_barriers = pd.read_feather(
     results_dir / "largefish_barriers.feather",
     columns=["id", "BarrierType", "Ranked"] + SUMMARY_UNITS,

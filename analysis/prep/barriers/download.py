@@ -228,10 +228,16 @@ print(f"Downloaded {len(df):,} waterfalls in {time() - download_start:.2f}s")
 ix = df.SARPID.isnull() | (df.SARPID == "")
 if ix.max():
     print(
-        f"--------------------------\nWARNING: {ix.sum():,} waterfallsdf.oloc are missing SARPID\n----------------------------"
+        f"--------------------------\nWARNING: {ix.sum():,} waterfalls are missing SARPID\n----------------------------"
     )
 
 df.SARPID = df.SARPID.fillna("").astype("str")
+
+s = df.groupby("SARPID").size()
+if s.max() > 1:
+    print("WARNING: multiple waterfalls with same SARPID")
+    print(s[s > 1])
+
 
 df.to_feather(out_dir / "waterfalls.feather")
 

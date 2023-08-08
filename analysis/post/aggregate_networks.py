@@ -408,6 +408,11 @@ for network_type in NETWORK_TYPES.keys():
             )
 
     scenario_results["network_type"] = network_type
+    scenario_results["in_network_type"] = (
+        scenario_results[f"{network_type.split('_')[0]}_network"]
+        if network_type in {"largefish_barriers", "smallfish_barriers"}
+        else scenario_results.primary_network
+    )
 
     merged = append(merged, scenario_results.reset_index())
 
