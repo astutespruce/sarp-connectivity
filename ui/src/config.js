@@ -941,13 +941,14 @@ export const PASSABILITY = {
 
 // severity is limited to small barriers
 // filter bins do not include unknown, no barrier, no upstream habitat,
-// minor barrier because these are never ranked
+// minor barrier because these are never ranked (in small barriers scenario;
+// other combined scenarios use PASSABILITY)
 export const SMALL_BARRIER_SEVERITY_FILTER_BINS = {
   1: 'complete barrier',
   2: 'moderate barrier',
   3: 'indeterminate barrier',
   5: 'likely barrier',
-  6: 'barrier - unknown severity',
+  6: 'barrier with unknown severity',
 }
 export const SMALL_BARRIER_SEVERITY = {
   0: 'unknown',

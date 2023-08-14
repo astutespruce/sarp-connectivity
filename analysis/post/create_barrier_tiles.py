@@ -512,12 +512,16 @@ print("\n\n-----------------Creating road crossing tiles------------------------
 df = (
     gp.read_feather(
         barriers_dir / "road_crossings.feather",
-        columns=["geometry", "id", "SARPID", "Name", "TotDASqKm"],
+        columns=["geometry", "id", "SARPID", "Name", "TotDASqKm", "loop"],
     )
     .to_crs("EPSG:4326")
     .sort_values(by="TotDASqKm", ascending=False)
     .drop(columns=["TotDASqKm"])
 )
+
+# drop any on loops; these are not useful to show
+df = df.loc[~df.loop].drop(columns=["loop"])
+
 df = combine_sarpid_name(df)
 fill_na_fields(df)
 
