@@ -166,8 +166,8 @@ df.loc[
 ] = "unknown"
 
 
-# mark as excluded if barrier severity is unknown / no barrier
-exclude_severities = ["unknown", "no barrier"]
+# mark as excluded if barrier severity is no barrier
+exclude_severities = ["no barrier"]
 ix = df.BarrierSeverity.isin(exclude_severities)
 df.loc[ix, "excluded"] = True
 df.loc[ix, "log"] = f"excluded: BarrierSeverity one of {', '.join(exclude_severities)}"

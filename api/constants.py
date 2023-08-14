@@ -398,6 +398,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         "ProtectedLand",
         "EJTract",
         "EJTribal",
+        "SalmonidESU",
         # Watershed names
         "Basin",
         "Subbasin",
@@ -413,9 +414,11 @@ ROAD_CROSSING_CORE_FIELDS = (
 ROAD_CROSSING_CORE_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS)
 
 # include COUNTYFIPS for download of road crossings by county
-ROAD_CROSSING_API_FIELDS = unique(
-    ROAD_CROSSING_CORE_FIELDS + ["COUNTYFIPS", "SalmonidESU"]
-)
+ROAD_CROSSING_API_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS + ["COUNTYFIPS"])
+
+ROAD_CROSSING_EXPORT_FIELDS = [
+    c for c in ROAD_CROSSING_API_FIELDS if c not in {"SalmonidESU"}
+]
 
 
 WF_CORE_FIELDS = (
