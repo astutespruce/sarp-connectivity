@@ -1,23 +1,13 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
-import { SearchLocation } from '@emotion-icons/fa-solid'
-import {
-  Box,
-  Container,
-  Grid,
-  Heading,
-  Flex,
-  Button,
-  Text,
-  Paragraph,
-} from 'theme-ui'
+import { Box, Grid, Heading, Flex, Button, Text, Paragraph } from 'theme-ui'
+import { AngleDoubleRight } from '@emotion-icons/fa-solid'
 
 import { useSummaryData } from 'components/Data'
 import { Link } from 'components/Link'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
-import { Tooltip } from 'components/Tooltip'
 import { formatNumber } from 'util/format'
 
 const PrioritizePage = ({ data: { headerImage } }) => {
@@ -44,8 +34,8 @@ const PrioritizePage = ({ data: { headerImage } }) => {
         }}
       />
 
-      <Container>
-        <Grid columns="1.75fr 1fr" gap={5}>
+      <Box sx={{ p: '2rem' }}>
+        <Grid columns="1fr 2fr" gap={5}>
           <Box
             sx={{
               h4: {
@@ -53,7 +43,7 @@ const PrioritizePage = ({ data: { headerImage } }) => {
               },
             }}
           >
-            <Heading as="h3">To prioritize barriers:</Heading>
+            <Heading as="h3">How to prioritize barriers:</Heading>
 
             <Box sx={{ mt: '1rem' }}>
               <Flex sx={{ alignItems: 'center' }}>
@@ -65,6 +55,10 @@ const PrioritizePage = ({ data: { headerImage } }) => {
               <Paragraph variant="help" sx={{ ml: '3.75rem' }}>
                 You can select areas using state, county, and watershed
                 boundaries.
+                <br />
+                <br />
+                Prioritization is limited to areas with dams or assessed
+                barriers depending on the scenario.
               </Paragraph>
             </Box>
 
@@ -108,185 +102,202 @@ const PrioritizePage = ({ data: { headerImage } }) => {
             </Box>
           </Box>
 
-          <Box
-            sx={{
-              bg: 'grey.0',
-              borderRadius: '0.5rem',
-              p: '1rem',
-            }}
-          >
-            <Heading as="h3">Prioritize:</Heading>
-            <Box
+          <Box>
+            <Heading as="h3" sx={{ mb: '1rem' }}>
+              Prioritization scenarios available:
+            </Heading>
+
+            <Grid
+              columns={[1, 2, 3]}
+              gap={3}
               sx={{
-                mt: '1rem',
-                fontSize: '1.1rem',
+                '&>div': {
+                  border: '1px solid',
+                  borderColor: 'grey.2',
+                  borderRadius: '0.5rem',
+                  boxShadow: '2px 2px 4px #EEE',
+                  p: '1rem',
+                },
+                '& h4': {
+                  borderBottom: '1px solid',
+                  borderBottomColor: 'grey.9',
+                  pb: '0.25rem',
+                  mb: '0.5rem',
+                },
               }}
             >
-              <Box>
-                <Link to="/priority/dams">
-                  <Tooltip
-                    content="Prioritize dams based on aquatic networks cut by dams and waterfalls."
-                    direction="left"
-                    maxWidth="360px"
-                  >
+              <Flex sx={{ flexDirection: 'column' }}>
+                <Box sx={{ flex: '1 1 auto', mb: '1rem' }}>
+                  <Heading as="h4">Dams</Heading>
+                  <Text sx={{ lineHeight: 1.2 }}>
+                    Prioritize dams based on aquatic networks cut by dams and
+                    waterfalls.
+                  </Text>
+                </Box>
+
+                <Box sx={{ flex: '0 0 auto' }}>
+                  <Link to="/priority/dams">
                     <Button sx={{ width: '100%', textAlign: 'left' }}>
-                      <SearchLocation
-                        size="1em"
-                        style={{ marginRight: '0.5rem' }}
+                      <AngleDoubleRight
+                        size="1.25rem"
+                        style={{ marginRight: '0.5rem', marginTop: '-0.25rem' }}
                       />
-                      Dams
+                      Start prioritizing
                     </Button>
-                  </Tooltip>
-                </Link>
-                <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-                  {formatNumber(rankedDams)} available
-                </Text>
-              </Box>
-              <Box sx={{ mt: '2rem' }}>
-                <Link to="/priority/small_barriers">
-                  <Tooltip
-                    content={
-                      <>
-                        <Text>
-                          Prioritize road-related barriers based on aquatic
-                          networks cut by dams, waterfalls, and road-related
-                          barriers with at least moderate barrier severity.
-                        </Text>
-                        <Text sx={{ fontSize: 0, color: 'grey.8', mt: '1rem' }}>
-                          Note: prioritization is limited to areas with assessed
-                          road-related barriers.
-                        </Text>
-                      </>
-                    }
-                    direction="left"
-                    maxWidth="360px"
+                  </Link>
+                  <Text
+                    sx={{
+                      textAlign: 'center',
+                      fontSize: 1,
+                      color: 'grey.7',
+                      mt: '0.5rem',
+                    }}
                   >
+                    {formatNumber(rankedDams)} available
+                  </Text>
+                </Box>
+              </Flex>
+              <Flex sx={{ flexDirection: 'column' }}>
+                <Box sx={{ flex: '1 1 auto', mb: '1rem' }}>
+                  <Heading as="h4">Road-related barriers</Heading>
+                  <Text sx={{ lineHeight: 1.2 }}>
+                    Prioritize road-related barriers based on aquatic networks
+                    cut by dams, waterfalls, and road-related barriers with at
+                    least moderate barrier severity.
+                  </Text>
+                </Box>
+                <Box sx={{ flex: '0 0 auto' }}>
+                  <Link to="/priority/small_barriers">
                     <Button sx={{ width: '100%', textAlign: 'left' }}>
-                      <SearchLocation
-                        size="1em"
-                        style={{ marginRight: '0.5rem' }}
+                      <AngleDoubleRight
+                        size="1.25rem"
+                        style={{ marginRight: '0.5rem', marginTop: '-0.25rem' }}
                       />
-                      Road-related barriers
+                      Start prioritizing
                     </Button>
-                  </Tooltip>
-                </Link>
-                <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-                  {formatNumber(rankedSmallBarriers)} available
-                </Text>
-              </Box>
-              <Box sx={{ mt: '2rem' }}>
-                <Link to="/priority/combined_barriers">
-                  <Tooltip
-                    content={
-                      <>
-                        <Text>
-                          Prioritize dams and road-related barriers based on
-                          aquatic networks cut by dams, waterfalls, and
-                          road-related barriers with at least moderate barrier
-                          severity.
-                        </Text>
-                        <Text sx={{ fontSize: 0, color: 'grey.8', mt: '1rem' }}>
-                          Note: prioritization is limited to areas with assessed
-                          road-related barriers.
-                        </Text>
-                      </>
-                    }
-                    direction="left"
-                    maxWidth="360px"
+                  </Link>
+                  <Text
+                    sx={{
+                      textAlign: 'center',
+                      fontSize: 1,
+                      color: 'grey.7',
+                      mt: '0.5rem',
+                    }}
                   >
+                    {formatNumber(rankedSmallBarriers)} available
+                  </Text>
+                </Box>
+              </Flex>
+              <Flex sx={{ flexDirection: 'column' }}>
+                <Box sx={{ flex: '1 1 auto', mb: '1rem' }}>
+                  <Heading as="h4">Dams & road-related barriers</Heading>
+                  <Text sx={{ lineHeight: 1.2 }}>
+                    Prioritize dams and road-related barriers based on aquatic
+                    networks cut by dams, waterfalls, and road-related barriers
+                    with at least moderate barrier severity.
+                  </Text>
+                </Box>
+                <Box sx={{ flex: '0 0 auto' }}>
+                  <Link to="/priority/combined_barriers">
                     <Button sx={{ width: '100%', textAlign: 'left' }}>
-                      <SearchLocation
-                        size="1em"
-                        style={{ marginRight: '0.5rem' }}
-                      />
-                      Dams & road-related barriers
+                      <AngleDoubleRight
+                        size="1.25rem"
+                        style={{ marginRight: '0.5rem', marginTop: '-0.25rem' }}
+                      />{' '}
+                      Start prioritizing
                     </Button>
-                  </Tooltip>
-                </Link>
-                <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-                  {formatNumber(rankedDams + rankedSmallBarriers)} available
-                </Text>
-              </Box>
-              <Box sx={{ mt: '2rem' }}>
-                <Link to="/priority/largefish_barriers">
-                  <Tooltip
-                    content={
-                      <>
-                        <Text>
-                          Prioritize dams and road-related barriers that are
-                          likely to impact large-bodied fish species based on
-                          aquatic networks cut by dams and waterfalls that do
-                          not have partial or seasonal passability to salmonids
-                          and non-salmonids, and road-related barriers with
-                          severe or significant barrier severity.
-                        </Text>
-                        <Text sx={{ fontSize: 0, color: 'grey.8', mt: '1rem' }}>
-                          Note: prioritization is limited to areas with assessed
-                          road-related barriers.
-                        </Text>
-                      </>
-                    }
-                    direction="left"
-                    maxWidth="360px"
+                  </Link>
+                  <Text
+                    sx={{
+                      textAlign: 'center',
+                      fontSize: 1,
+                      color: 'grey.7',
+                      mt: '0.5rem',
+                    }}
                   >
+                    {formatNumber(rankedDams + rankedSmallBarriers)} available
+                  </Text>
+                </Box>
+              </Flex>
+
+              <Flex sx={{ flexDirection: 'column' }}>
+                <Box sx={{ flex: '1 1 auto', mb: '1rem' }}>
+                  <Heading as="h4">Large-bodied fish barriers</Heading>
+                  <Text sx={{ lineHeight: 1.2 }}>
+                    Prioritize dams and road-related barriers that are likely to
+                    impact large-bodied fish species based on aquatic networks
+                    cut by dams and waterfalls that do not have partial or
+                    seasonal passability to salmonids and non-salmonids, and
+                    road-related barriers with severe or significant barrier
+                    severity.
+                  </Text>
+                </Box>
+                <Box sx={{ flex: '0 0 auto' }}>
+                  <Link to="/priority/largefish_barriers">
                     <Button sx={{ width: '100%', textAlign: 'left' }}>
-                      <SearchLocation
-                        size="1em"
-                        style={{ marginRight: '0.5rem' }}
+                      <AngleDoubleRight
+                        size="1.25rem"
+                        style={{ marginRight: '0.5rem', marginTop: '-0.25rem' }}
                       />
-                      Large-bodied fish barriers
+                      Start prioritizing
                     </Button>
-                  </Tooltip>
-                </Link>
-                <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-                  {formatNumber(
-                    rankedLargefishBarriersDams +
-                      rankedLargefishBarriersSmallBarriers
-                  )}{' '}
-                  available
-                </Text>
-              </Box>
-              <Box sx={{ mt: '2rem' }}>
-                <Link to="/priority/smallfish_barriers">
-                  <Tooltip
-                    content={
-                      <>
-                        <Text>
-                          Prioritize dams and road-related barriers based on
-                          aquatic networks cut by dams, waterfalls, and
-                          road-related barriers with at least minor barrier
-                          severity.
-                        </Text>
-                        <Text sx={{ fontSize: 0, color: 'grey.8', mt: '1rem' }}>
-                          Note: prioritization is limited to areas with assessed
-                          road-related barriers.
-                        </Text>
-                      </>
-                    }
-                    direction="left"
-                    maxWidth="360px"
+                  </Link>
+                  <Text
+                    sx={{
+                      textAlign: 'center',
+                      fontSize: 1,
+                      color: 'grey.7',
+                      mt: '0.5rem',
+                    }}
                   >
+                    {formatNumber(
+                      rankedLargefishBarriersDams +
+                        rankedLargefishBarriersSmallBarriers
+                    )}{' '}
+                    available
+                  </Text>
+                </Box>
+              </Flex>
+
+              <Flex sx={{ flexDirection: 'column' }}>
+                <Box sx={{ flex: '1 1 auto', mb: '1rem' }}>
+                  <Heading as="h4">Small-bodied fish barriers</Heading>
+                  <Text sx={{ lineHeight: 1.2 }}>
+                    Prioritize dams and road-related barriers based on aquatic
+                    networks cut by dams, waterfalls, and road-related barriers
+                    with at least minor barrier severity.
+                  </Text>
+                </Box>
+                <Box sx={{ flex: '0 0 auto' }}>
+                  <Link to="/priority/smallfish_barriers">
                     <Button sx={{ width: '100%', textAlign: 'left' }}>
-                      <SearchLocation
-                        size="1em"
-                        style={{ marginRight: '0.5rem' }}
+                      <AngleDoubleRight
+                        size="1.25rem"
+                        style={{ marginRight: '0.5rem', marginTop: '-0.25rem' }}
                       />
-                      Small-bodied fish barriers
+                      Start prioritizing
                     </Button>
-                  </Tooltip>
-                </Link>
-                <Text sx={{ fontSize: 1, color: 'grey.7' }}>
-                  {formatNumber(
-                    rankedSmallfishBarriersDams +
-                      rankedSmallfishBarriersSmallBarriers
-                  )}{' '}
-                  available
-                </Text>
-              </Box>
-            </Box>
+                  </Link>
+                  <Text
+                    sx={{
+                      textAlign: 'center',
+                      fontSize: 1,
+                      color: 'grey.7',
+                      mt: '0.5rem',
+                    }}
+                  >
+                    {formatNumber(
+                      rankedSmallfishBarriersDams +
+                        rankedSmallfishBarriersSmallBarriers
+                    )}{' '}
+                    available
+                  </Text>
+                </Box>
+              </Flex>
+            </Grid>
           </Box>
         </Grid>
-      </Container>
+      </Box>
     </Layout>
   )
 }
