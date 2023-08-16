@@ -7,8 +7,7 @@ These are processed in the following order.
 
 1. dams
 2. waterfalls
-3. small barriers (assessed road-related crossings)
-4. road crossings (unassessed road-related crossings)
+3. road-related barriers (assessed) and road crossings (unassessed)
 
 The output of the processing steps below are full barriers datasets in `data/barriers/master` and a subset of dams, small barriers, and waterfalls that were snapped to the aquatic network in `data/barriers/snapped`.
 
@@ -65,13 +64,13 @@ Waterfalls are processed using `analysis/prep/barriers/prep_waterfalls.py`.
 
 Waterfalls are snapped to the aquatic network and duplicates are marked.
 
-## Small Barriers
+## Road-related barriers and crossings
 
-Small barriers are hosted on ArcGIS Online and downloaded using `analysis/prep/barriers/download.py`.
+Road-related barriers are hosted on ArcGIS Online and downloaded using `analysis/prep/barriers/download.py`.
 
-Small barriers are processed using `analysis/prep/barriers/prep_small_barriers.py`.
+Road-related barriers are processed using `analysis/prep/barriers/prep_road_barriers.py`.
 
-Small barriers are automatically snapped to the aquatic network if within 50
+Road-related barriers are automatically snapped to the aquatic network if within 50
 meters. Barriers are excluded from analysis if they did not snap to the network
 or were otherwise identified by various attributes (e.g., Feasibility). After
 snapping, barriers are de-duplicated to remove those that are very close to each
@@ -79,16 +78,13 @@ other (within 10m).
 
 Barriers are deduplicated against dams and waterfalls.
 
-### Road crossings
+Road crossings were downloaded from https://www.sciencebase.gov/catalog/item/6128fbf2d34e40dd9c061360 on 2/16/2022.
 
-Downloaded from https://www.sciencebase.gov/catalog/item/6128fbf2d34e40dd9c061360 on 2/16/2022.
-
-These are processed once for a given snapshot of the road crossings input
+These are processed in advance for a given snapshot of the road crossings input
 dataset ("stream_crossings_united_states_feb_2022.gpkg") using
-`analysis/prep/barriers/special/prep_raw_road_crossings.py`.
+`analysis/prep/barriers/special/prep_raw_road_crossings.py`. These go through
+multiple steps of deduplication against each other and are snapped to flowlines.
 
-Then, each time small barriers are processed above, run
-`analysis/prep/barriers/prep_road_crossings.py`, which deduplicates road
-crossings against small barriers, performs spatial joins, and prepares for use
-in the analysis. These are ultimately merged in with final small barriers
-dataset to create background barriers displayed on the map.
+Road crossings are deduplicated against dams, waterfalls, and assessed road-
+related barriers. The nearest duplicate crossing to each assessed road-related
+barrier is assigned to the road-related barrier it duplicates.

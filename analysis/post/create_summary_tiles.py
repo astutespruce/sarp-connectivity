@@ -155,8 +155,11 @@ smallfish_barriers = pd.read_feather(
 # NOTE: crossings are already de-duplicated against each other and against
 # barriers
 crossings = pd.read_feather(
-    src_dir / "road_crossings.feather", columns=["id"] + SUMMARY_UNITS
+    src_dir / "road_crossings.feather",
+    columns=["id", "NearestBarrierID"] + SUMMARY_UNITS,
 )
+# exclude crossings that have a corresonding inventoried barrier to avoid double-counting
+crossings = crossings.loc[crossings.NearestBarrierID == ""]
 
 
 # Calculate summary statistics for each type of summary unit

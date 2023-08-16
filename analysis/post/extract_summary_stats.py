@@ -84,7 +84,9 @@ smallfish_barriers = pd.read_feather(
 ### Read road / stream crossings
 # NOTE: crossings are already de-duplicated against each other and against
 # barriers
-crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "State"])
+crossings = pd.read_feather(
+    src_dir / "road_crossings.feather", columns=["id", "State", "NearestBarrierID"]
+)
 
 
 # Calculate summary stats for entire analysis area
@@ -94,7 +96,9 @@ crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "
 analysis_states = STATES.keys()
 analysis_dams = dams.loc[dams.State.isin(analysis_states)]
 analysis_barriers = barriers.loc[barriers.State.isin(analysis_states)]
-analysis_crossings = crossings.loc[crossings.State.isin(analysis_states)]
+analysis_crossings = crossings.loc[
+    crossings.State.isin(analysis_states) & (crossings.NearestBarrierID == "")
+]
 
 stats = {
     "total": {

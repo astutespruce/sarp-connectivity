@@ -512,15 +512,27 @@ print("\n\n-----------------Creating road crossing tiles------------------------
 df = (
     gp.read_feather(
         barriers_dir / "road_crossings.feather",
-        columns=["geometry", "id", "SARPID", "Name", "TotDASqKm", "loop"],
+        columns=[
+            "geometry",
+            "id",
+            "SARPID",
+            "Name",
+            "TotDASqKm",
+            "loop",
+            "offnetwork_flowline",
+            "NearestBarrierID",
+        ],
     )
     .to_crs("EPSG:4326")
     .sort_values(by="TotDASqKm", ascending=False)
     .drop(columns=["TotDASqKm"])
 )
 
-# drop any on loops; these are not useful to show
-df = df.loc[~df.loop].drop(columns=["loop"])
+# drop any on loops or off-network flowlines; these are not useful to show
+# drop any that have a nearest barrier ID; these duplicate barriers in the analysis
+df = df.loc[~(df.loop | df.offnetwork_flowline | (df.NearestBarrierID != ""))].drop(
+    columns=["loop", "offnetwork_flowline", "NearestBarrierID"]
+)
 
 df = combine_sarpid_name(df)
 fill_na_fields(df)

@@ -93,6 +93,10 @@ df = read_dataframe(
 )
 print(f"Read {len(df):,} road crossings")
 
+
+df["Source"] = "USGS Database of Stream Crossings in the United States (2022)"
+
+
 # project HUC4 to match crossings
 huc4 = gp.read_feather(
     boundaries_dir / "huc4.feather", columns=["geometry", "HUC4"]
@@ -242,14 +246,14 @@ flowlines = (
 
 df = df.join(flowlines, on="lineID")
 
-df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
+df.lineID = df.lineID.astype("uint32")
+df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 # Add name from snapped flowline if not already present
 df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()
 ix = (df.Stream == "") & (df.GNIS_Name != "")
 df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
 df = df.drop(columns=["GNIS_Name"])
-
 
 # calculate stream type
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")
@@ -258,6 +262,7 @@ df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")
 df["intermittent"] = df.FCode.isin([46003, 46007])
 
 # Fix missing field values
+df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
 df["loop"] = df.loop.fillna(False)
 df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(False)
 df["sizeclass"] = df.sizeclass.fillna("")

@@ -342,6 +342,7 @@ SB_CORE_FIELDS = (
         "BarrierSeverity",
         "SARP_Score",
         "Recon",
+        "NearestCrossingID",
     ]
     + GENERAL_API_FIELDS2
 )
@@ -407,6 +408,8 @@ ROAD_CROSSING_CORE_FIELDS = (
         # "OnLoop", # not useful
         "Intermittent",
         "StreamOrder",
+        # specific to crossings
+        "NearestBarrierID",
     ]
     + UNIT_FIELDS
 )
@@ -1062,6 +1065,9 @@ FIELD_DEFINITIONS = {
     "PotentialProject": "reconnaissance information about the crossing, including severity of the barrier and / or potential for removal project.",
     "BarrierSeverity": "barrier severity of the {type}, if known.   Note: assessment dates are not known.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
+    "NearestCrossingID": "The SARPID of the nearest road/stream crossing point, if any are found within 10 meters",
+    # crossing-specific fields
+    "NearestBarrierID": "The SARPID of the nearest inventoried road-related barrier, if any are found within 10 meters",
     # other general fields
     "Recon": "Field reconnaissance notes, if available.",
     "Passability": "passability of the {type}, if known.   Note: assessment dates are not known.",
