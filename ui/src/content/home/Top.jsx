@@ -105,6 +105,19 @@ const Top = () => (
       This inventory and prioritization tool are planned for a full national
       expansion by the end of 2025. Barriers for Alaska, Nevada, California, the
       Great Lakes Region, and the Northeast Region are currently incomplete.
+      <br />
+      <br />
+      This inventory and prioritization tool is designed to guide users in
+      identifying high priority barrier removal projects. To access information
+      about to funding sources for barrier removal, please visit the{' '}
+      <OutboundLink to="https://interagency-bil-fish-passage-project-1-fws.hub.arcgis.com/">
+        Fish Passage Portal
+      </OutboundLink>
+      . The portal is a &quot;one-stop shop&quot; for anyone who needs
+      information, funding, or resources to improve fish passage and aquatic
+      connectivity projects. It provides landowners and public lands managers
+      the tools to find funding across the federal government, as well as access
+      to data, planning, and geospatial information.
     </Paragraph>
 
     <Box variant="boxes.section" sx={{ mt: '4rem' }}>

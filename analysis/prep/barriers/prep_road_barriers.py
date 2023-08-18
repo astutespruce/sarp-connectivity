@@ -654,8 +654,16 @@ can_break_networks = df.snapped & (
 )
 df["primary_network"] = can_break_networks & (df.PotentialProject != "Minor Barrier")
 # salmonid / large fish: only keep significant and severe barriers
+# added Potential Project, Proposed Project per direction from Kat on 8/18/2023 due to insufficient data re: actual passability
 df["largefish_network"] = can_break_networks & (
-    df.PotentialProject.isin(["Severe Barrier", "Significant Barrier"])
+    df.PotentialProject.isin(
+        [
+            "Severe Barrier",
+            "Significant Barrier",
+            "Potential Project",
+            "Proposed Project",
+        ]
+    )
 )
 df["smallfish_network"] = can_break_networks  # includes minor barriers
 
