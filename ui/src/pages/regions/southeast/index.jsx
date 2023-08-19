@@ -17,12 +17,14 @@ import {
 
 import { useSummaryData } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
-import { Link, OutboundLink } from 'components/Link'
+import { OutboundLink } from 'components/Link'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-import { REGIONS } from 'config'
+import { CONNECTIVITY_TEAMS, REGIONS, STATES } from 'config'
+import { groupBy } from 'util/data'
 import { formatNumber } from 'util/format'
+import { extractNodes } from 'util/graphql'
 import SARPLogoImage from 'images/sarp_logo.png'
 
 const regionID = 'se'
@@ -38,15 +40,15 @@ const SERegionPage = ({
     map: {
       childImageSharp: { gatsbyImageData: map },
     },
+    imagesSharp,
     forestStreamPhoto: {
       childImageSharp: { gatsbyImageData: forestStreamPhoto },
-    },
-    gaTeamPhoto: {
-      childImageSharp: { gatsbyImageData: gaTeamPhoto },
     },
   },
 }) => {
   const { [regionID]: summary } = useSummaryData()
+
+  const images = groupBy(extractNodes(imagesSharp), 'state')
 
   return (
     <Layout>
@@ -121,8 +123,8 @@ const SERegionPage = ({
               enjoyment of the American people. SARP is also one of the first
               Fish Habitat Partnerships under the the National Fish Habitat
               Partnership umbrella that works to conserve and protect the
-              nation’s fisheries and aquatic systems through a network of 20
-              Fish Habitat Partnerships.
+              nation&apos;s fisheries and aquatic systems through a network of
+              20 Fish Habitat Partnerships.
             </Paragraph>
 
             <Box>
@@ -149,12 +151,9 @@ const SERegionPage = ({
               <OutboundLink to="https://southeastaquatics.net/sarps-programs/southeast-aquatic-connectivity-assessment-program-seacap">
                 SARP&apos;s Connectivity Program
               </OutboundLink>{' '}
-              because it empowers{' '}
-              <Link to="/regions/southeast/teams">
-                Aquatic Connectivity Teams
-              </Link>{' '}
-              and other collaborators with the best available information on
-              aquatic barriers.
+              because it empowers Aquatic Connectivity Teams and other
+              collaborators with the best available information on aquatic
+              barriers.
             </Paragraph>
             <Image
               src={SARPLogoImage}
@@ -183,35 +182,54 @@ const SERegionPage = ({
             How to get involved?
           </Heading>
 
-          <Grid columns={[0, '5fr 3fr']} gap={5}>
-            <Paragraph>
-              SARP and partners have been working to build a community of
-              practice surrounding barrier removal through the development of
-              state-based Aquatic Connectivity Teams (ACTs). These teams create
-              a forum that allows resource managers from all sectors to work
-              together and share resources, disseminate information, and examine
-              regulatory streamlining processes as well as project management
-              tips and techniques. These teams are active in Arkansas, Florida,
-              Georgia, North Carolina, South Carolina, Tennessee, and Virginia.
-              <br />
-              <br />
-              <Link to="/regions/southeast/teams">
-                Learn more about aquatic connectivity teams in the Southeast.
-              </Link>
-            </Paragraph>
-
+          <Grid columns={[0, 2]} gap={5}>
             <Box>
-              <GatsbyImage
-                image={gaTeamPhoto}
-                alt="Georgia Aquatic Connectivity Team"
-              />
-              <Box sx={{ fontSize: 0 }}>
-                Photo:{' '}
-                <OutboundLink to="https://www.southeastaquatics.net/news/white-dam-removal-motivates-georgia-conservation-practitioners">
-                  Georgia Aquatic Connectivity Team
-                </OutboundLink>
+              <Paragraph>
+                SARP and partners have been working to build a community of
+                practice surrounding barrier removal through the development of
+                state-based Aquatic Connectivity Teams (ACTs). These teams
+                create a forum that allows resource managers from all sectors to
+                work together and share resources, disseminate information, and
+                examine regulatory streamlining processes as well as project
+                management tips and techniques.
+              </Paragraph>
+            </Box>
+            <Box>
+              <Box as="ul" sx={{ mt: '0.5rem' }}>
+                {Object.entries(CONNECTIVITY_TEAMS.southeast).map(
+                  ([state, team]) => (
+                    <li>
+                      {STATES[state]}:{' '}
+                      <OutboundLink to={team.url}>{team.name}</OutboundLink>
+                    </li>
+                  )
+                )}
               </Box>
             </Box>
+          </Grid>
+
+          <Grid
+            columns={Object.keys(images).length}
+            gap={2}
+            sx={{ mt: '2rem' }}
+          >
+            {Object.entries(images)
+              .slice(0, 4)
+              .map(
+                ([
+                  state,
+                  {
+                    childImageSharp: { gatsbyImageData },
+                  },
+                ]) => (
+                  <Box sx={{ maxHeight: '8rem', overflow: 'hidden' }}>
+                    <GatsbyImage
+                      image={gatsbyImageData}
+                      alt={`${state} aquatic connectivity team photo`}
+                    />
+                  </Box>
+                )
+              )}
           </Grid>
         </Box>
         <Box variant="boxes.section">
@@ -221,9 +239,8 @@ const SERegionPage = ({
           <Paragraph sx={{ mt: '1rem' }}>
             You can help improve the inventory by sharing data, assisting with
             field reconnaissance to evaluate the impact of aquatic barriers,
-            joining an{' '}
-            <Link to="/regions/southeast/teams">Aquatic Connectivity Team</Link>
-            , or even by reporting issues with the inventory data in this tool.
+            joining an Aquatic Connectivity Team, or even by reporting issues
+            with the inventory data in this tool.
             <br />
             <br />
             <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn
@@ -241,7 +258,7 @@ SERegionPage.propTypes = {
     headerImage: PropTypes.object.isRequired,
     map: PropTypes.object.isRequired,
     forestStreamPhoto: PropTypes.object.isRequired,
-    gaTeamPhoto: PropTypes.object.isRequired,
+    imagesSharp: PropTypes.object.isRequired,
   }).isRequired,
 }
 
@@ -279,14 +296,19 @@ export const pageQuery = graphql`
         )
       }
     }
-    gaTeamPhoto: file(relativePath: { eq: "GA_ACT_small.jpg" }) {
-      childImageSharp {
-        gatsbyImageData(
-          layout: CONSTRAINED
-          width: 640
-          formats: [AUTO, WEBP]
-          placeholder: BLURRED
-        )
+    imagesSharp: allFile(filter: { relativeDirectory: { eq: "teams" } }) {
+      edges {
+        node {
+          state: name
+          childImageSharp {
+            gatsbyImageData(
+              layout: CONSTRAINED
+              width: 640
+              formats: [AUTO, WEBP]
+              placeholder: BLURRED
+            )
+          }
+        }
       }
     }
   }

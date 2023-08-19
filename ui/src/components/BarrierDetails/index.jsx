@@ -34,7 +34,6 @@ const BarrierDetails = ({ barrier, onClose }) => {
     networkType,
     sarpidname = '|', // should never be empty, but breaks badly if it is
     ranked,
-    packed,
     tiers = null,
   } = barrier
 

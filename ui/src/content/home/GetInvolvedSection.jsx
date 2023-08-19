@@ -3,8 +3,6 @@ import { graphql, useStaticQuery } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
 import { Box, Divider, Heading, Paragraph, Grid, Text } from 'theme-ui'
 
-import { Link } from 'components/Link'
-
 const SARP = () => {
   const {
     damRemovalTeamPhoto: {
@@ -39,9 +37,8 @@ const SARP = () => {
           <Paragraph sx={{ mt: '1rem' }}>
             You can help improve the inventory by sharing data, assisting with
             field reconnaissance to evaluate the impact of aquatic barriers,
-            joining an{' '}
-            <Link to="/regions/southeast/teams">Aquatic Connectivity Team</Link>
-            , or even by reporting issues with the inventory data in this tool.
+            joining an Aquatic Connectivity Team, or even by reporting issues
+            with the inventory data in this tool.
             <br />
             <br />
             <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn

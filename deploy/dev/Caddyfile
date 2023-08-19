@@ -41,7 +41,7 @@
 
   route /* {
     # redirect teams page
-    redir /teams /regions/southeast/teams 301
+    redir /teams /regions/southeast 301
 
     # most files can be cached indefinitely, they are rebuilt with new names each time
     @cached_files {

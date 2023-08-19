@@ -3,7 +3,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Button, Heading, Flex, Text, Paragraph } from 'theme-ui'
 
-import { OutboundLink } from 'components/Link'
+import { ExternalLink } from 'components/Link'
 import { Downloader } from 'components/Download'
 import {
   STATE_FIPS,
@@ -344,27 +344,14 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
               pt: '1rem',
             }}
           >
-            <Heading as="h5" style={{ marginBottom: '0.5em' }}>
-              {state} Aquatic Connectivity Team
-            </Heading>
-            <Text sx={{ fontSize: 1 }}>
-              {team.description}
-              <br />
-              <br />
-              {team.url !== undefined ? (
-                <>
-                  Please see the{' '}
-                  <OutboundLink to={team.url}>
-                    {state} Aquatic Connectivity Team website
-                  </OutboundLink>
-                  .
-                  <br />
-                  <br />
-                </>
-              ) : null}
-              For more information, please contact{' '}
-              <a href={`mailto:${team.contact.email}`}>{team.contact.name}</a> (
-              {team.contact.org}).
+            <Text>
+              This state has an active Aquatic Connectivity Team: the{' '}
+              {team.name}.{' '}
+              <Text sx={{ display: 'inline-block' }}>
+                <ExternalLink to={team.url}>
+                  Learn more about this team
+                </ExternalLink>
+              </Text>
             </Text>
           </Box>
         ) : null}

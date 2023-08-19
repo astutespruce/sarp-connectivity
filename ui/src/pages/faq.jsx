@@ -44,9 +44,8 @@ const FAQPage = ({ data: { headerImage } }) => (
           <br />
           You can help improve the inventory by sharing data, assisting with
           field reconnaissance to evaluate the impact of aquatic barriers,
-          joining an{' '}
-          <Link to="/regions/southeast/teams">Aquatic Connectivity Team</Link>
-          , or even by reporting issues with the inventory data in this tool.
+          joining a Aquatic Connectivity Team, or even by reporting issues with
+          the inventory data in this tool.
           <br />
           <br />
           <a href="mailto:kat@southeastaquatics.net">Contact us</a> to learn

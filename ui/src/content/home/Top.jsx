@@ -154,9 +154,8 @@ const Top = () => (
           projects.
           <br />
           <br />
-          <Link to="/regions/southeast/teams">
-            Learn more about Southeast Aquatic Connectivity Teams
-          </Link>
+          Learn more about Aquatic Connectivity Teams by choosing a region from{' '}
+          <b>Explore regions</b> at the top.
         </HighlightBox>
       </Grid>
     </Box>
