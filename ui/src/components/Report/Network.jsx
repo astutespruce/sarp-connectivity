@@ -34,6 +34,7 @@ const Network = ({
   diversion,
   nostructure,
   hasnetwork,
+  in_network_type,
   invasive,
   unranked,
   removed,
@@ -110,6 +111,24 @@ const Network = ({
             contact us
           </Link>{' '}
           to report an error.
+        </Text>
+      </Section>
+    )
+  }
+  if (!in_network_type) {
+    return (
+      <Section title="Functional network information" {...props} wrap={false}>
+        <Text>
+          This {barrierTypeLabel} is not included in this network scenario based
+          on its passability
+          {networkType === 'largefish_barriers'
+            ? ' for large-bodied fish '
+            : null}
+          {networkType === 'smallfish_barriers'
+            ? ' for small-bodied fish '
+            : null}
+          and has no functional network information.
+          {'\n\n'}
         </Text>
       </Section>
     )
@@ -372,6 +391,12 @@ const Network = ({
           {networkType === 'dams'
             ? 'waterfalls and dams'
             : 'waterfalls, dams, and road-related barriers'}
+          {networkType === 'largefish_barriers'
+            ? ' based on their passability for large-bodied fish'
+            : null}
+          {networkType === 'smallfish_barriers'
+            ? ' based on their passability for small-bodied fish'
+            : null}
           {removed
             ? `, including any that were present at the time this ${barrierTypeLabel} was removed.  All barriers removed prior to 2000 or where the year they were removed
             was unknown were lumped together for this analysis`
@@ -396,6 +421,7 @@ Network.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   hasnetwork: PropTypes.bool.isRequired,
+  in_network_type: PropTypes.bool.isRequired,
   excluded: PropTypes.bool,
   onloop: PropTypes.bool,
   diversion: PropTypes.number,

@@ -46,6 +46,20 @@ export const sources = {
     maxzoom: 16,
     promoteId: 'id',
   },
+  largefish_barriers: {
+    type: 'vector',
+    tiles: [`${tileHost}/services/largefish_barriers/tiles/{z}/{x}/{y}.pbf`],
+    minzoom: 2,
+    maxzoom: 16,
+    promoteId: 'id',
+  },
+  smallfish_barriers: {
+    type: 'vector',
+    tiles: [`${tileHost}/services/smallfish_barriers/tiles/{z}/{x}/{y}.pbf`],
+    minzoom: 2,
+    maxzoom: 16,
+    promoteId: 'id',
+  },
   road_crossings: {
     type: 'vector',
     tiles: [`${tileHost}/services/road_crossings/tiles/{z}/{x}/{y}.pbf`],

@@ -80,7 +80,9 @@ staging.aquaticbarriers.org {
 
     # Capture client only routes and route through correct page to force loading on client side
     rewrite /report/dams/* "report/dams/[sarpid]/index.html"
-    rewrite /report/small_barriers/* "report/small_barriers/[sarpid]/index.html"
+    rewrite /report/combined_barriers/* "report/combined_barriers/[sarpid]/index.html"
+    rewrite /report/largefish_barriers/* "report/largefish_barriers/[sarpid]/index.html"
+    rewrite /report/smallfish_barriers/* "report/smallfish_barriers/[sarpid]/index.html"
 
     root * /var/www
     file_server

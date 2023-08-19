@@ -12,7 +12,14 @@ from api.constants import (
     BarrierTypes,
     Layers,
 )
-from api.data import dams, small_barriers, combined_barriers, road_crossings
+from api.data import (
+    dams,
+    small_barriers,
+    combined_barriers,
+    largefish_barriers,
+    smallfish_barriers,
+    road_crossings,
+)
 
 
 class RecordExtractor:
@@ -45,9 +52,22 @@ class RecordExtractor:
                 field_map = COMBINED_FILTER_FIELD_MAP
                 self.dataset = combined_barriers
 
+            case "largefish_barriers":
+                field_map = COMBINED_FILTER_FIELD_MAP
+                self.dataset = largefish_barriers
+
+            case "smallfish_barriers":
+                field_map = COMBINED_FILTER_FIELD_MAP
+                self.dataset = smallfish_barriers
+
             case "road_crossings":
                 field_map = RC_FILTER_FIELD_MAP
                 self.dataset = road_crossings
+
+            case _:
+                raise NotImplementedError(
+                    f"RecordExtractor is not supported for {barrier_type}"
+                )
 
         if layer == "County":
             layer = "COUNTYFIPS"

@@ -4,19 +4,22 @@ from numba.typed import List
 import numpy as np
 
 
-@njit("(i8[:],i8[:])")
+@njit("(i8[:],i8[:])", cache=True)
 def make_adj_matrix(source, target):
     # NOTE: drop dups first before calling this!
     out = dict()
     for i in range(len(source)):
         key = source[i]
+
+        # ideally, we would use a set to deduplicate targets on input instead
+        # of in advance, but that is not supported by numba
         if key not in out:
             out[key] = List.empty_list(types.int64)
         out[key].append(target[i])
     return out
 
 
-@njit
+@njit(cache=True)
 def descendants(adj_matrix, root_ids):
     out = []
     for i in range(len(root_ids)):
@@ -28,7 +31,7 @@ def descendants(adj_matrix, root_ids):
                 nodes = next_nodes
                 next_nodes = set()
                 for next_node in nodes:
-                    if not next_node in collected:
+                    if next_node not in collected:
                         collected.add(next_node)
                         if next_node in adj_matrix:
                             next_nodes.update(adj_matrix[next_node])
@@ -55,7 +58,7 @@ def descendants2(adj_matrix, root_ids):
                 nodes = next_nodes
                 next_nodes = set()
                 for next_node in nodes:
-                    if not next_node in seen:
+                    if next_node not in seen:
                         seen.add(next_node)
                         collected.add(next_node)
                         if next_node in adj_matrix:
@@ -64,12 +67,52 @@ def descendants2(adj_matrix, root_ids):
     return out
 
 
+@njit(cache=True)
+def network_pairs(adj_matrix, root_ids):
+    """Return ndarray of shape(n, 2) where each entry is [root_id, target_id]
+
+    Note: includes self: [root_id, root_id]
+
+    Parameters
+    ----------
+    adj_matrix : dict
+        adjacency matrix
+    root_ids : 1-d array of int64
+        of root_ids that are at the root of each network
+
+    Returns
+    -------
+    ndarray of shape(n, 2)
+        where each entry is [root_id, target_id]
+    """
+    pairs = []
+    for i in range(len(root_ids)):
+        node = root_ids[i]
+        # add self
+        pairs.append([node, node])
+
+        collected = set()  # per root node
+        if node in adj_matrix:
+            next_nodes = set(adj_matrix[node])
+            while next_nodes:
+                nodes = next_nodes
+                next_nodes = set()
+                for next_node in nodes:
+                    if next_node not in collected:
+                        collected.add(next_node)
+                        if next_node in adj_matrix:
+                            next_nodes.update(adj_matrix[next_node])
+        for target_node in collected:
+            pairs.append([node, target_node])
+    return np.asarray(pairs, dtype="int64")
+
+
 @njit
 def components(adj_matrix):
     groups = []
     seen = set()
     for node in adj_matrix.keys():
-        if not node in seen:
+        if node not in seen:
             # add current node with all descendants
             adj_nodes = {node} | descendants(adj_matrix, [node])[0]
             seen.update(adj_nodes)
@@ -86,7 +129,7 @@ def flat_components(adj_matrix):
     seen = set()
     group = 0
     for node in adj_matrix.keys():
-        if not node in seen:
+        if node not in seen:
             # add current node with all descendants
             adj_nodes = {node} | descendants(adj_matrix, [node])[0]
             seen.update(adj_nodes)
@@ -131,7 +174,7 @@ def _is_reachable_pair(adj_matrix, source_node, target_node, max_depth):
             if next_node == target_node:
                 return True
 
-            if not next_node in seen:
+            if next_node not in seen:
                 seen.add(next_node)
                 if next_node in adj_matrix:
                     next_nodes.update(adj_matrix[next_node])
@@ -256,3 +299,6 @@ class DirectedGraph(object):
 
     def find_loops(self, sources, max_depth=None):
         return find_loops(self.adj_matrix, sources, max_depth)
+
+    def network_pairs(self, sources):
+        return network_pairs(self.adj_matrix, sources)

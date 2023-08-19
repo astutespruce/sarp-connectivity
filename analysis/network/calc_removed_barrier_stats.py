@@ -23,10 +23,9 @@ BARRIER_COUNT_KINDS = [
 # Likewise, total upstream barrier stats (tot_) are only valid up to the
 # top of the network containing the barrier
 # For now, drop them all
-DROP_COLS = (
-    [f"tot_{kind}" for kind in BARRIER_COUNT_KINDS]
-    + [f"fn_{kind}" for kind in BARRIER_COUNT_KINDS]
-)
+DROP_COLS = [f"tot_{kind}" for kind in BARRIER_COUNT_KINDS] + [
+    f"fn_{kind}" for kind in BARRIER_COUNT_KINDS
+]
 
 
 DOWNSTREAM_COLS = [f"totd_{kind}" for kind in BARRIER_COUNT_KINDS[:4]] + [
@@ -53,10 +52,19 @@ huc2_groups = (
 
 barriers = pd.read_feather(
     src_dir / "all_barriers.feather",
-    columns=["id", "kind", "intermittent", "HUC2", "loop", "removed", "YearRemoved"],
+    columns=[
+        "id",
+        "kind",
+        "HUC2",
+        "primary_network",
+        "largefish_network",
+        "smallfish_network",
+        "removed",
+        "YearRemoved",
+    ],
 )
-# extract removed barriers, dropping any on loops (will be off-network)
-barriers = barriers.loc[barriers.removed & (~barriers.loop)]
+# extract removed barriers
+barriers = barriers.loc[barriers.removed]
 
 # Lump together YearRemoved < 2000 with baseline
 barriers.loc[barriers.YearRemoved < 2000, "YearRemoved"] = 0
@@ -93,7 +101,17 @@ for group in huc2_groups:
             new_fields={"HUC2": group_huc2s},
         )
         .set_index("id")
-        .join(barriers.set_index("id").YearRemoved, how="inner")
+        .join(
+            barriers.set_index("id")[
+                [
+                    "primary_network",
+                    "largefish_network",
+                    "smallfish_network",
+                    "YearRemoved",
+                ]
+            ],
+            how="inner",
+        )
     )
 
     # extract a non-zero lineID to join to segments in order to resolve the
@@ -119,14 +137,19 @@ for group in huc2_groups:
         )
 
     flowlines = prev_segments.loc[prev_segments.index.isin(np.unique(ids))].drop(
-        columns=NETWORK_TYPES
+        columns=NETWORK_TYPES.keys()
     )
 
-    for network_type, breaking_kinds in NETWORK_TYPES.items():
+    for network_type in NETWORK_TYPES:
         print(f"-------------------------\nCreating networks for {network_type}")
         network_start = time()
 
-        focal_barrier_joins = barrier_joins.loc[barrier_joins.kind.isin(breaking_kinds)]
+        breaking_kinds = NETWORK_TYPES[network_type]["kinds"]
+        col = NETWORK_TYPES[network_type]["column"]
+
+        focal_barrier_joins = barrier_joins.loc[
+            barrier_joins.kind.isin(breaking_kinds) & barrier_joins[col]
+        ]
 
         if len(focal_barrier_joins) == 0:
             print(f"skipping {network_type}, no removed barriers of this type present")
@@ -164,7 +187,7 @@ for group in huc2_groups:
         # only keep the joins and segments for the subnetworks containing removed barriers
         subnetwork_flowlines = prev_segments.loc[
             prev_segments[network_type].isin(focal_barrier_joins[network_type].unique())
-        ].drop(columns=NETWORK_TYPES)
+        ].drop(columns=NETWORK_TYPES.keys())
         lineIDs = subnetwork_flowlines.index.values
         subnetwork_joins = group_joins.loc[
             group_joins.upstream_id.isin(lineIDs)

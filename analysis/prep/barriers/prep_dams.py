@@ -939,13 +939,29 @@ if df.PassageFacility.max() >= 32:
 ### Assign map symbol for use in (some) tiles
 df["symbol"] = 0
 df.loc[df.invasive, "symbol"] = 4
-# value 3 is minor barrier, not used
+# value 3 is minor road-related barrier, not used for dams
 df.loc[df.nobarrier, "symbol"] = 2
 # intentionally give no structure diversions higher precedence so they don't
-# show up as no-barrier points
-df.loc[df.nostructure, "symbol"] = 4
+# show up as no-barrier points (these are excluded from the analysis and should
+# be styled same as other off-network barriers)
+df.loc[df.nostructure, "symbol"] = 99  # NOTE: don't style this as special class
 df.loc[~df.snapped, "symbol"] = 1
+# intentionally give removed barriers higher precedence
+df.loc[df.removed, "symbol"] = 5
 df.symbol = df.symbol.astype("uint8")
+
+
+### Assign to network analysis scenario
+# omit any that are not snapped or are duplicate / dropped / excluded or on loops / off-network flowlines
+can_break_networks = df.snapped & (
+    ~(df.duplicate | df.dropped | df.excluded | df.loop | df.offnetwork_flowline)
+)
+df["primary_network"] = can_break_networks
+# salmonid / large fish: exclude barriers that are passable to salmonids
+# based on direction from Kat, exclude any with partial or seasonal passability
+df["largefish_network"] = can_break_networks & (~(df.Passability.isin([2, 3, 4, 5, 6])))
+df["smallfish_network"] = can_break_networks
+
 
 ### All done processing!
 
@@ -958,9 +974,9 @@ write_dataframe(df, qa_dir / "dams.fgb")
 
 
 # Extract out only the snapped ones that are not on loops
-df = df.loc[df.snapped & (~(df.duplicate | df.dropped | df.excluded))].reset_index(
-    drop=True
-)
+df = df.loc[
+    df.primary_network | df.largefish_network | df.smallfish_network
+].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
@@ -972,9 +988,9 @@ df[
         "HUC2",
         "lineID",
         "NHDPlusID",
-        "loop",
-        "offnetwork_flowline",
-        "intermittent",
+        "primary_network",
+        "largefish_network",
+        "smallfish_network",
         "removed",
         "YearRemoved",
     ]

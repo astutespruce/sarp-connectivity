@@ -6,7 +6,6 @@ import warnings
 import geopandas as gp
 import numpy as np
 import pandas as pd
-from pyogrio import write_dataframe
 
 from analysis.lib.io import read_feathers
 from analysis.lib.flowlines import cut_flowlines_at_barriers
@@ -51,30 +50,19 @@ huc2s = huc2_df.HUC2.sort_values().values
 start = time()
 
 ### Aggregate barriers
+# NOTE: any barriers on loops or off-network flowlines have already been removed
+# from the snapped barrier data.  All barriers in this dataset cut the raw
+# networks, but subsets of them are used to create different network scenarios
 print("Aggregating barriers")
 kinds = ["waterfall", "dam", "small_barrier", "road_crossing"]
 barriers = read_feathers(
     [barriers_dir / f"{kind}s.feather" for kind in kinds],
     geo=True,
     new_fields={"kind": kinds},
-)
-
-# drop any barriers on loops or off-network flowlines
-barriers = barriers.loc[~(barriers.loop | barriers.offnetwork_flowline)].reset_index()
-
-
-if "removed" not in barriers.columns:
-    barriers["removed"] = False
-
-if "YearRemoved" not in barriers.columns:
-    barriers["YearRemoved"] = 0
-
-
-barriers = barriers.set_index("id", drop=False)
+).set_index("id", drop=False)
 
 
 # removed is not applicable for road crossings or waterfalls, backfill with False
-# NOTE: removed barriers cut flowlines but are not counted toward dam / small barrier networks
 barriers["removed"] = barriers.removed.fillna(False)
 barriers["YearRemoved"] = barriers.YearRemoved.fillna(0).astype("uint16")
 
@@ -111,8 +99,6 @@ for huc2 in huc2s:
     # increment lineIDs before dropping loops
     next_segment_id = flowlines.lineID.max() + np.uint32(1)
 
-    #### Temporary
-    # FIXME: enable after all regions rerun prepare_flowlines_waterbodies.py
     joins = pd.read_feather(
         nhd_dir / huc2 / "flowline_joins.feather",
         columns=[
@@ -127,36 +113,12 @@ for huc2 in huc2s:
         ],
     )
 
-    # FIXME: remove
-    # joins = pd.read_feather(
-    #     nhd_dir / huc2 / "flowline_joins.feather",
-    # )
-
-    # if "great_lakes" not in joins:
-    #     joins["great_lakes"] = False
-
-    # joins["great_lakes"] = joins.great_lakes.fillna(False)
-
-    # joins = joins[
-    #     [
-    #         "upstream",
-    #         "downstream",
-    #         "upstream_id",
-    #         "downstream_id",
-    #         "type",
-    #         "marine",
-    #         "great_lakes",
-    #         "loop",
-    #     ]
-    # ]
-
-    #### end temporary
-
     # drop all loops from the analysis
     print(f"Dropping {flowlines.loop .sum():,} loops")
     flowlines = flowlines.loc[~(flowlines.loop | flowlines.offnetwork)].drop(
         columns=["loop"]
     )
+    # NOTE: off-network flowlines don't have joins, so they don't need to be removed here
     joins = joins.loc[~joins.loop].drop(columns=["loop"])
 
     flowlines, joins, barrier_joins = cut_flowlines_at_barriers(

@@ -4,13 +4,13 @@ import { Layout, ClientOnly, SEO } from 'components/Layout'
 import { Provider as CrossfilterProvider } from 'components/Crossfilter'
 import { PrioritizeWorkflow } from 'components/Priority'
 import { BarrierTypeProvider } from 'components/Data'
-import { smallBarriers } from 'filters'
+import { combinedBarriers } from 'filters'
 
-const PrioritizeBarriersPage = () => (
+const PrioritizeSmallfishBarriersPage = () => (
   <Layout>
     <ClientOnly>
-      <BarrierTypeProvider barrierType="small_barriers">
-        <CrossfilterProvider filterConfig={smallBarriers}>
+      <BarrierTypeProvider barrierType="smallfish_barriers">
+        <CrossfilterProvider filterConfig={combinedBarriers}>
           <PrioritizeWorkflow />
         </CrossfilterProvider>
       </BarrierTypeProvider>
@@ -18,6 +18,8 @@ const PrioritizeBarriersPage = () => (
   </Layout>
 )
 
-export default PrioritizeBarriersPage
+export default PrioritizeSmallfishBarriersPage
 
-export const Head = () => <SEO title="Prioritize road-related barriers" />
+export const Head = () => (
+  <SEO title="Prioritize dams & road-related barriers for small-bodied fish" />
+)

@@ -7,8 +7,10 @@ import { Entry } from 'components/Sidebar'
 
 const NoNetworkInfo = ({
   barrierType,
-  unsnapped,
+  networkType,
+  snapped,
   excluded,
+  in_network_type,
   onloop,
   diversion,
   nostructure,
@@ -25,7 +27,7 @@ const NoNetworkInfo = ({
     )
   }
 
-  if (unsnapped) {
+  if (!snapped) {
     return (
       <Entry>
         This {typeLabel} is off-network and has no functional network
@@ -77,24 +79,45 @@ const NoNetworkInfo = ({
     )
   }
 
+  if (!in_network_type) {
+    return (
+      <Entry>
+        <Text>
+          This {typeLabel} is not included in this network scenario based on its
+          passability
+          {networkType === 'largefish_barriers'
+            ? ' for large-bodied fish '
+            : null}
+          {networkType === 'smallfish_barriers'
+            ? ' for small-bodied fish '
+            : null}
+          and has no functional network information.
+        </Text>
+      </Entry>
+    )
+  }
+
   return <Entry>No network information is available.</Entry>
 }
 
 NoNetworkInfo.propTypes = {
   barrierType: PropTypes.string.isRequired,
-  excluded: PropTypes.number,
-  onloop: PropTypes.number,
-  unsnapped: PropTypes.number,
+  networkType: PropTypes.string.isRequired,
+  excluded: PropTypes.bool,
+  in_network_type: PropTypes.bool,
+  onloop: PropTypes.bool,
+  snapped: PropTypes.bool,
   diversion: PropTypes.number,
-  nostructure: PropTypes.number,
+  nostructure: PropTypes.bool,
 }
 
 NoNetworkInfo.defaultProps = {
-  excluded: 0,
-  onloop: 0,
-  unsnapped: 0,
+  excluded: false,
+  in_network_type: false,
+  onloop: false,
+  snapped: false,
   diversion: 0,
-  nostructure: 0,
+  nostructure: false,
 }
 
 export default NoNetworkInfo

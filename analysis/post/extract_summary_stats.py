@@ -55,7 +55,7 @@ removed_barrier_networks = (
         [
             Path("data/networks/clean")
             / huc2
-            / "removed_small_barriers_network.feather"
+            / "removed_combined_barriers_network.feather"
             for huc2 in sorted(dams.HUC2.unique())
         ],
         columns=["id", "EffectiveGainMiles"],
@@ -66,14 +66,27 @@ removed_barrier_networks = (
 barriers = barriers.join(removed_barrier_networks)
 barriers["RemovedGainMiles"] = barriers.RemovedGainMiles.fillna(0)
 
-
 # barriers that were not dropped or excluded are likely to have impacts
 barriers["Included"] = ~(barriers.dropped | barriers.excluded)
+
+
+largefish_barriers = pd.read_feather(
+    api_dir / "largefish_barriers.feather",
+    columns=["id", "BarrierType", "Ranked"],
+)
+
+smallfish_barriers = pd.read_feather(
+    api_dir / "smallfish_barriers.feather",
+    columns=["id", "BarrierType", "Ranked"],
+)
+
 
 ### Read road / stream crossings
 # NOTE: crossings are already de-duplicated against each other and against
 # barriers
-crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "State"])
+crossings = pd.read_feather(
+    src_dir / "road_crossings.feather", columns=["id", "State", "NearestBarrierID"]
+)
 
 
 # Calculate summary stats for entire analysis area
@@ -83,18 +96,44 @@ crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "
 analysis_states = STATES.keys()
 analysis_dams = dams.loc[dams.State.isin(analysis_states)]
 analysis_barriers = barriers.loc[barriers.State.isin(analysis_states)]
-analysis_crossings = crossings.loc[crossings.State.isin(analysis_states)]
+analysis_crossings = crossings.loc[
+    crossings.State.isin(analysis_states) & (crossings.NearestBarrierID == "")
+]
 
 stats = {
     "total": {
         "dams": len(analysis_dams),
         "ranked_dams": int(analysis_dams.Ranked.sum()),
         "recon_dams": int((analysis_dams.Recon > 0).sum()),
+        "ranked_largefish_barriers_dams": int(
+            (
+                largefish_barriers.loc[largefish_barriers.BarrierType == "dams"].Ranked
+            ).sum()
+        ),
+        "ranked_smallfish_barriers_dams": int(
+            (
+                smallfish_barriers.loc[largefish_barriers.BarrierType == "dams"].Ranked
+            ).sum()
+        ),
         "removed_dams": int(analysis_dams.Removed.sum()),
         "removed_dams_gain_miles": float(analysis_dams.RemovedGainMiles.sum()),
         "total_small_barriers": len(analysis_barriers),
         "small_barriers": int(analysis_barriers.Included.sum()),
         "ranked_small_barriers": int(analysis_barriers.Ranked.sum()),
+        "ranked_largefish_barriers_small_barriers": int(
+            (
+                largefish_barriers.loc[
+                    largefish_barriers.BarrierType == "small_barriers"
+                ].Ranked
+            ).sum()
+        ),
+        "ranked_smallfish_barriers_small_barriers": int(
+            (
+                smallfish_barriers.loc[
+                    largefish_barriers.BarrierType == "small_barriers"
+                ].Ranked
+            ).sum()
+        ),
         "removed_small_barriers": int(analysis_barriers.Removed.sum()),
         "removed_small_barriers_gain_miles": float(
             analysis_barriers.RemovedGainMiles.sum()

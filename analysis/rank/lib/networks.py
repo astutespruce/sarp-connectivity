@@ -4,7 +4,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 import numpy as np
 
-from analysis.lib.io import read_feathers
+from analysis.lib.io import read_arrow_tables, read_feathers
 from analysis.rank.lib.metrics import (
     classify_gain_miles,
     classify_downstream_miles,
@@ -100,9 +100,7 @@ def get_network_results(df, network_type, state_ranks=False):
     ----------
     df : DataFrame
         barriers data; must contain State and Unranked
-    network_type : {"dams", "small_barriers"}
-        network scenario; note that small_barriers includes the network already
-        cut by dams
+    network_type : {"dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"}
     state_ranks : bool, optional (default: False)
         if True, results will include tiers for the state level
 
@@ -113,13 +111,14 @@ def get_network_results(df, network_type, state_ranks=False):
     """
 
     networks = (
-        read_feathers(
+        read_arrow_tables(
             [
                 Path("data/networks/clean") / huc2 / f"{network_type}_network.feather"
                 for huc2 in sorted(df.HUC2.unique())
             ],
             columns=NETWORK_COLUMNS,
         )
+        .to_pandas()
         .rename(columns=NETWORK_COLUMN_NAMES)
         .set_index("id")
     )
@@ -153,9 +152,9 @@ def get_network_results(df, network_type, state_ranks=False):
     # NOTE: per guidance from SARP, do not include count of waterfalls
     if network_type == "dams":
         num_downstream = networks.TotalDownstreamDams
-    elif network_type == "small_barriers":
+    else:
         num_downstream = (
-            +networks.TotalDownstreamDams + networks.TotalDownstreamSmallBarriers
+            networks.TotalDownstreamDams + networks.TotalDownstreamSmallBarriers
         )
 
     # Diadromous related filters - must have FlowsToOcean == True
@@ -235,9 +234,7 @@ def get_removed_network_results(df, network_type):
     ----------
     df : DataFrame
         barriers data; must contain State and Unranked
-    network_type : {"dams", "small_barriers"}
-        network scenario; note that small_barriers includes the network already
-        cut by dams
+    network_type : {"dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"}
 
     Returns
     -------
@@ -245,14 +242,17 @@ def get_removed_network_results(df, network_type):
         Contains network metrics
     """
 
-    networks = read_feathers(
-        [
-            Path("data/networks/clean")
-            / huc2
-            / f"removed_{network_type}_network.feather"
-            for huc2 in sorted(df.HUC2.unique())
-        ],
-    ).set_index("id")
+    networks = (
+        # TODO: read_arrow_tables once all schemas match
+        read_feathers(
+            [
+                Path("data/networks/clean")
+                / huc2
+                / f"removed_{network_type}_network.feather"
+                for huc2 in sorted(df.HUC2.unique())
+            ],
+        ).set_index("id")
+    )
 
     networks = networks[[c for c in NETWORK_COLUMNS if c in networks.columns]].rename(
         columns=NETWORK_COLUMN_NAMES

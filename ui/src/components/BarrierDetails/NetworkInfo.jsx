@@ -300,6 +300,12 @@ const NetworkInfo = ({
           {networkType === 'dams'
             ? 'waterfalls and dams'
             : 'waterfalls, dams, and road-related barriers'}
+          {networkType === 'largefish_barriers'
+            ? ' based on their passability for large-bodied fish'
+            : null}
+          {networkType === 'smallfish_barriers'
+            ? ' based on their passability for small-bodied fish'
+            : null}
           {removed
             ? `, including any that were present at the time this ${barrierTypeLabel} was removed.  All barriers removed prior to 2000 or where the year they were removed
                 was unknown were lumped together for this analysis`
@@ -393,8 +399,8 @@ NetworkInfo.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
-  invasive: PropTypes.number,
-  unranked: PropTypes.number,
+  invasive: PropTypes.bool,
+  unranked: PropTypes.bool,
   removed: PropTypes.bool,
 }
 
@@ -411,8 +417,8 @@ NetworkInfo.defaultProps = {
   freeunaltereddownstreammiles: 0,
   landcover: 0,
   sizeclasses: 0,
-  invasive: 0,
-  unranked: 0,
+  invasive: false,
+  unranked: false,
   removed: false,
 }
 

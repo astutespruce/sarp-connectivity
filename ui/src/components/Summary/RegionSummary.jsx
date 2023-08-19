@@ -3,7 +3,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { AngleDoubleRight } from '@emotion-icons/fa-solid'
-import { Box, Flex, Paragraph, Divider, Text } from 'theme-ui'
+import { Box, Paragraph, Divider } from 'theme-ui'
 
 import { Link } from 'components/Link'
 import { UnitSearch } from 'components/UnitSearch'
@@ -59,7 +59,8 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
       ) : null}
 
       <Paragraph sx={{ fontSize: [3, 4] }}>
-        Across the {regionName}{region !== 'total' ? ' Region': null}, there are:
+        Across the {regionName}
+        {region !== 'total' ? ' Region' : null}, there are:
       </Paragraph>
 
       {barrierType === 'dams' || barrierType === 'combined_barriers' ? (

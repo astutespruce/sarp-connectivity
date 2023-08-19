@@ -1,7 +1,7 @@
 {
   "name": "sarp-prioritization-tool",
   "description": "National Aquatic Barrier Inventory & Prioritization Tool",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "date": "7/14/2023",
   "author": "Brendan C. Ward <bcward@astutespruce.com>",
   "dependencies": {
@@ -68,7 +68,7 @@
     "@emotion/eslint-plugin": "^11.2.0",
     "eslint": "^8.45.0",
     "eslint-config-airbnb": "^19.0.4",
-    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-prettier": "^9.0.0",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jsx-a11y": "^6.4.1",

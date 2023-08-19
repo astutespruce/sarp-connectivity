@@ -8,6 +8,8 @@ export const barrierTypeLabels = {
   road_crossings: 'road/stream crossings',
   waterfalls: 'waterfalls',
   combined_barriers: 'dams & road-related barriers',
+  largefish_barriers: 'dams & road-related barriers',
+  smallfish_barriers: 'dams & road-related barriers',
 }
 
 export const barrierTypeLabelSingular = {
@@ -15,9 +17,6 @@ export const barrierTypeLabelSingular = {
   small_barriers: 'road-related barrier',
   road_crossings: 'road/stream crossing',
   waterfalls: 'waterfall',
-  // FIXME: is this used?
-  // combined_barriers: 'dam or road-related barrier',
-  combined_barriers: 'FIXME: is this showing up anywhere?',
 }
 
 export const barrierNameWhenUnknown = {
@@ -104,7 +103,11 @@ export const pointLegends = {
 
   included: {
     getSymbol: (barrierType) => {
-      if (barrierType === 'combined_barriers') {
+      if (
+        barrierType === 'combined_barriers' ||
+        barrierType === 'largefish_barriers' ||
+        barrierType === 'smallfish_barriers'
+      ) {
         return {
           symbols: [
             {
@@ -137,7 +140,11 @@ export const pointLegends = {
   // excluded from ranking based on filters
   excluded: {
     getSymbol: (barrierType) => {
-      if (barrierType === 'combined_barriers') {
+      if (
+        barrierType === 'combined_barriers' ||
+        barrierType === 'largefish_barriers' ||
+        barrierType === 'smallfish_barriers'
+      ) {
         return {
           symbols: [
             {
@@ -168,7 +175,11 @@ export const pointLegends = {
   },
   topRank: {
     getSymbol: (barrierType) => {
-      if (barrierType === 'combined_barriers') {
+      if (
+        barrierType === 'combined_barriers' ||
+        barrierType === 'largefish_barriers' ||
+        barrierType === 'smallfish_barriers'
+      ) {
         return {
           symbols: [
             {
@@ -198,7 +209,11 @@ export const pointLegends = {
   },
   lowerRank: {
     getSymbol: (barrierType) => {
-      if (barrierType === 'combined_barriers') {
+      if (
+        barrierType === 'combined_barriers' ||
+        barrierType === 'largefish_barriers' ||
+        barrierType === 'smallfish_barriers'
+      ) {
         return {
           symbols: [
             {
@@ -234,7 +249,11 @@ export const pointLegends = {
     {
       id: 'removed',
       getSymbol: (barrierType) => {
-        if (barrierType === 'combined_barriers') {
+        if (
+          barrierType === 'combined_barriers' ||
+          barrierType === 'largefish_barriers' ||
+          barrierType === 'smallfish_barriers'
+        ) {
           return {
             symbols: [
               {
@@ -275,7 +294,11 @@ export const pointLegends = {
     {
       id: 'nonBarrier',
       getSymbol: (barrierType) => {
-        if (barrierType === 'combined_barriers') {
+        if (
+          barrierType === 'combined_barriers' ||
+          barrierType === 'largefish_barriers' ||
+          barrierType === 'smallfish_barriers'
+        ) {
           return {
             symbols: [
               {
@@ -305,7 +328,11 @@ export const pointLegends = {
     {
       id: 'invasive',
       getSymbol: (barrierType) => {
-        if (barrierType === 'combined_barriers') {
+        if (
+          barrierType === 'combined_barriers' ||
+          barrierType === 'largefish_barriers' ||
+          barrierType === 'smallfish_barriers'
+        ) {
           return {
             symbols: [
               {
@@ -336,7 +363,11 @@ export const pointLegends = {
     {
       id: 'default',
       getSymbol: (barrierType) => {
-        if (barrierType === 'combined_barriers') {
+        if (
+          barrierType === 'combined_barriers' ||
+          barrierType === 'largefish_barriers' ||
+          barrierType === 'smallfish_barriers'
+        ) {
           return {
             symbols: [
               {
@@ -910,13 +941,14 @@ export const PASSABILITY = {
 
 // severity is limited to small barriers
 // filter bins do not include unknown, no barrier, no upstream habitat,
-// minor barrier because these are never ranked
+// minor barrier because these are never ranked (in small barriers scenario;
+// other combined scenarios use PASSABILITY)
 export const SMALL_BARRIER_SEVERITY_FILTER_BINS = {
   1: 'complete barrier',
   2: 'moderate barrier',
   3: 'indeterminate barrier',
   5: 'likely barrier',
-  6: 'barrier - unknown severity',
+  6: 'barrier with unknown severity',
 }
 export const SMALL_BARRIER_SEVERITY = {
   0: 'unknown',
@@ -1165,52 +1197,4 @@ export const TIER_PACK_BITS = [
   { field: 'pwc', bits: 5, value_shift: 1 },
   { field: 'ncwc', bits: 5, value_shift: 1 },
   { field: 'pncwc', bits: 5, value_shift: 1 },
-]
-
-export const DAM_PACK_BITS = [
-  { field: 'streamorder', bits: 4 },
-  { field: 'recon', bits: 5 },
-  { field: 'passagefacility', bits: 5 },
-  { field: 'diversion', bits: 2 },
-  { field: 'nostructure', bits: 1 },
-  { field: 'estimated', bits: 1 },
-  { field: 'hasnetwork', bits: 1 },
-  { field: 'excluded', bits: 1 },
-  { field: 'onloop', bits: 1 },
-  { field: 'unsnapped', bits: 1 },
-  { field: 'unranked', bits: 1 },
-  { field: 'invasive', bits: 1 },
-]
-
-export const SB_PACK_BITS = [
-  { field: 'streamorder', bits: 4 },
-  { field: 'recon', bits: 5 },
-  { field: 'passagefacility', bits: 5 },
-  { field: 'hasnetwork', bits: 1 },
-  { field: 'excluded', bits: 1 },
-  { field: 'onloop', bits: 1 },
-  { field: 'unsnapped', bits: 1 },
-  { field: 'unranked', bits: 1 },
-  { field: 'invasive', bits: 1 },
-]
-
-export const RC_PACK_BITS = [
-  { field: 'StreamOrder', bits: 4 },
-  { field: 'OnLoop', bits: 1 },
-  { field: 'OwnerType', bits: 4 },
-  { field: 'crossingtype', bits: 4 },
-  { field: 'Trout', bits: 1 },
-  { field: 'Intermittent', bits: 1 },
-  { field: 'ProtectedLand', bits: 1 },
-  { field: 'EJTract', bits: 1 },
-  { field: 'EJTribal', bits: 1 },
-]
-
-export const WF_PACK_BITS = [
-  { field: 'streamorder', bits: 4 },
-  { field: 'hasnetwork', bits: 1 },
-  { field: 'intermittent', bits: 1 },
-  { field: 'excluded', bits: 1 },
-  { field: 'onloop', bits: 1 },
-  { field: 'unsnapped', bits: 1 },
 ]

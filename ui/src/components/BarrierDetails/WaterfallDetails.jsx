@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Paragraph, Text } from 'theme-ui'
+import { Box } from 'theme-ui'
 
 import { PASSABILITY } from 'config'
 import { Entry, Field, Section } from 'components/Sidebar'
@@ -10,46 +10,51 @@ import DiadromousInfo from './DiadromousInfo'
 import IDInfo from './IDInfo'
 import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
+import NoNetworkInfo from './NoNetworkInfo'
 import SpeciesInfo from './SpeciesInfo'
 
 const WaterfallDetails = ({
   barrierType,
   networkType,
-  source,
-  hasnetwork,
-  excluded,
-  stream,
-  intermittent,
-  HUC12,
-  HUC8Name,
-  HUC12Name,
-  falltype,
-  passability,
-  tespp,
-  statesgcnspp,
-  regionalsgcnspp,
-  trout,
-  salmonidesu,
-  streamorder,
-  streamsizeclass,
-  waterbodysizeclass,
-  waterbodykm2,
-  // metrics
-  totalupstreammiles,
-  perennialupstreammiles,
+  sarpid,
+
   alteredupstreammiles,
-  unalteredupstreammiles,
+  basin,
+  excluded,
+  falltype,
+  flowstoocean,
+  freealtereddownstreammiles,
   freedownstreammiles,
   freeperennialdownstreammiles,
-  freealtereddownstreammiles,
   freeunaltereddownstreammiles,
+  hasnetwork,
+  huc12,
+  in_network_type,
+  intermittent,
   landcover,
-  sizeclasses,
-  flowstoocean,
   milestooutlet,
+  onloop,
+  passability,
+  perennialupstreammiles,
+  regionalsgcnspp,
+  salmonidesu,
+  sizeclasses,
+  snapped,
+  source,
+  statesgcnspp,
+  stream,
+  streamorder,
+  streamsizeclass,
+  subwatershed,
+  tespp,
   totaldownstreamdams,
   totaldownstreamsmallbarriers,
   totaldownstreamwaterfalls,
+  totalupstreammiles,
+  trout,
+  unalteredupstreammiles,
+  waterbodykm2,
+  waterbodysizeclass,
 }) => (
   <Box
     sx={{
@@ -62,9 +67,9 @@ const WaterfallDetails = ({
       <LocationInfo
         barrierType={barrierType}
         reachName={stream}
-        HUC8Name={HUC8Name}
-        HUC12Name={HUC12Name}
-        HUC12={HUC12}
+        basin={basin}
+        subwatershed={subwatershed}
+        huc12={huc12}
         intermittent={intermittent}
         streamorder={streamorder}
         streamsizeclass={streamsizeclass}
@@ -105,30 +110,18 @@ const WaterfallDetails = ({
           intermittent={intermittent}
         />
       ) : (
-        <>
-          {excluded ? (
-            <Entry>
-              This waterfall was excluded from the connectivity analysis based
-              on field reconnaissance or manual review of aerial imagery.
-            </Entry>
-          ) : (
-            <Entry>
-              <Text>
-                This waterfall is off-network and has no functional network
-                information.
-              </Text>
-              <Paragraph variant="help" sx={{ mt: '1rem' }}>
-                Not all barriers could be correctly snapped to the aquatic
-                network for analysis. Please contact us to report an error or
-                for assistance interpreting these results.
-              </Paragraph>
-            </Entry>
-          )}
-        </>
+        <NoNetworkInfo
+          barrierType={barrierType}
+          networkType={networkType}
+          snapped={snapped}
+          excluded={excluded}
+          in_network_type={in_network_type}
+          onloop={onloop}
+        />
       )}
     </Section>
 
-    {flowstoocean && milestooutlet < 500 ? (
+    {hasnetwork && flowstoocean && milestooutlet < 500 ? (
       <Section title="Diadromous species information">
         <DiadromousInfo
           barrierType={barrierType}
@@ -153,7 +146,7 @@ const WaterfallDetails = ({
 
     {!isEmptyString(source) ? (
       <Section title="Other information">
-        <IDInfo source={source} />
+        <IDInfo sarpid={sarpid} source={source} />
       </Section>
     ) : null}
   </Box>
@@ -162,76 +155,84 @@ const WaterfallDetails = ({
 WaterfallDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
-  hasnetwork: PropTypes.number.isRequired,
-  excluded: PropTypes.number,
-  source: PropTypes.string,
-  stream: PropTypes.string,
-  intermittent: PropTypes.number,
-  HUC12: PropTypes.string,
-  HUC8Name: PropTypes.string,
-  HUC12Name: PropTypes.string,
-  falltype: PropTypes.string,
-  passability: PropTypes.number,
-  tespp: PropTypes.number,
-  statesgcnspp: PropTypes.number,
-  regionalsgcnspp: PropTypes.number,
-  trout: PropTypes.number,
-  salmonidesu: PropTypes.string,
-  totalupstreammiles: PropTypes.number,
-  perennialupstreammiles: PropTypes.number,
+  sarpid: PropTypes.string.isRequired,
+
+  hasnetwork: PropTypes.bool.isRequired,
   alteredupstreammiles: PropTypes.number,
-  unalteredupstreammiles: PropTypes.number,
+  basin: PropTypes.string,
+  excluded: PropTypes.bool,
+  falltype: PropTypes.string,
+  flowstoocean: PropTypes.number,
+  freealtereddownstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
-  freealtereddownstreammiles: PropTypes.number,
   freeunaltereddownstreammiles: PropTypes.number,
+  huc12: PropTypes.string,
+  in_network_type: PropTypes.bool,
+  intermittent: PropTypes.number,
   landcover: PropTypes.number,
+  milestooutlet: PropTypes.number,
+  onloop: PropTypes.bool,
+  passability: PropTypes.number,
+  perennialupstreammiles: PropTypes.number,
+  regionalsgcnspp: PropTypes.number,
+  salmonidesu: PropTypes.string,
   sizeclasses: PropTypes.number,
+  snapped: PropTypes.bool,
+  source: PropTypes.string,
+  statesgcnspp: PropTypes.number,
+  stream: PropTypes.string,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
-  waterbodykm2: PropTypes.number,
-  waterbodysizeclass: PropTypes.number,
-  flowstoocean: PropTypes.number,
-  milestooutlet: PropTypes.number,
+  subwatershed: PropTypes.string,
+  tespp: PropTypes.number,
   totaldownstreamdams: PropTypes.number,
   totaldownstreamsmallbarriers: PropTypes.number,
   totaldownstreamwaterfalls: PropTypes.number,
+  totalupstreammiles: PropTypes.number,
+  trout: PropTypes.number,
+  unalteredupstreammiles: PropTypes.number,
+  waterbodykm2: PropTypes.number,
+  waterbodysizeclass: PropTypes.number,
 }
 
 WaterfallDetails.defaultProps = {
-  HUC12: null,
-  HUC8Name: null,
-  HUC12Name: null,
-  excluded: 0,
-  source: null,
-  stream: null,
-  intermittent: -1,
-  falltype: null,
-  passability: null,
-  tespp: 0,
-  statesgcnspp: 0,
-  regionalsgcnspp: 0,
-  trout: 0,
-  salmonidesu: null,
-  totalupstreammiles: 0,
-  perennialupstreammiles: 0,
   alteredupstreammiles: 0,
-  unalteredupstreammiles: 0,
+  basin: null,
+  excluded: false,
+  falltype: null,
+  flowstoocean: 0,
+  freealtereddownstreammiles: 0,
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,
-  freealtereddownstreammiles: 0,
   freeunaltereddownstreammiles: 0,
+  huc12: null,
+  in_network_type: false,
+  intermittent: -1,
   landcover: null,
+  milestooutlet: 0,
+  onloop: false,
+  passability: null,
+  perennialupstreammiles: 0,
+  regionalsgcnspp: 0,
+  salmonidesu: null,
   sizeclasses: null,
+  snapped: false,
+  source: null,
+  statesgcnspp: 0,
+  stream: null,
   streamorder: 0,
   streamsizeclass: null,
-  waterbodykm2: -1,
-  waterbodysizeclass: null,
-  flowstoocean: 0,
-  milestooutlet: 0,
+  subwatershed: null,
+  tespp: 0,
   totaldownstreamdams: 0,
   totaldownstreamsmallbarriers: 0,
   totaldownstreamwaterfalls: 0,
+  totalupstreammiles: 0,
+  trout: 0,
+  unalteredupstreammiles: 0,
+  waterbodykm2: -1,
+  waterbodysizeclass: null,
 }
 
 export default WaterfallDetails

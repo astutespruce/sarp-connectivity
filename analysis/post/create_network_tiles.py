@@ -19,6 +19,8 @@ intermediate_dir = Path("data/tiles")
 out_dir = Path("tiles")
 tmp_dir = Path("/tmp")
 
+network_cols = list(NETWORK_TYPES.keys())
+
 # map sizeclasses
 sizeclasses = [2, 5, 25, 100, 250, 500, 5000, 25000, 50000, 500000, 2000000]
 
@@ -92,6 +94,8 @@ col_types = [
     "-T",
     "mapcode:int",
 ]
+for col in network_cols:
+    col_types.extend(["-T", f"{col}:int"])
 
 tippecanoe_args = [
     tippecanoe,
@@ -105,7 +109,7 @@ tippecanoe_args = [
 
 start = time()
 
-network_cols = list(NETWORK_TYPES.keys())
+
 merge_cols = network_cols + ["sizeclass", "mapcode"]
 
 
@@ -238,6 +242,10 @@ for level in national_levels:
     outfilename.unlink()
 
 
+# delete objects to free memory
+del lines
+
+
 ######################
 
 
@@ -314,6 +322,8 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 
             # remove FGB file
             outfilename.unlink()
+
+        del lines
 
         print(f"Region done in {(time() - huc2_start) / 60:,.2f}m")
 

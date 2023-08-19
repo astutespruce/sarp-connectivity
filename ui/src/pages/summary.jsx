@@ -13,7 +13,7 @@ import { SYSTEMS } from 'config'
 import { toCamelCaseFields } from 'util/data'
 import { getQueryParams } from 'util/dom'
 
-const barrierTypeOptions = [
+const focalBarrierTypeOptions = [
   { value: 'dams', label: 'dams' },
   { value: 'small_barriers', label: 'road-related barriers' },
   { value: 'combined_barriers', label: 'both' },
@@ -26,8 +26,8 @@ const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
 
 const SummaryPage = ({ location }) => {
   const [system, setSystem] = useState('HUC')
-  const [barrierType, setBarrierType] = useState('dams')
-  const barrierTypeRef = useRef('dams') // ref that parallels above state for use in callbacks
+  const [focalBarrierType, setFocalBarrierType] = useState('dams') // options: dams, small_barriers, combined_barriers
+  const focalBarrierTypeRef = useRef('dams') // ref that parallels above state for use in callbacks
   const [searchFeature, setSearchFeature] = useState(null)
   const [selectedUnit, setSelectedUnit] = useState(null)
   const [selectedBarrier, setSelectedBarrier] = useState(null)
@@ -38,9 +38,9 @@ const SummaryPage = ({ location }) => {
     setSearchFeature(nextSearchFeature)
   }, [])
 
-  const handleSetBarrierType = (nextBarrierType) => {
-    setBarrierType(nextBarrierType)
-    barrierTypeRef.current = nextBarrierType
+  const handleSetFocalBarrierType = (nextType) => {
+    setFocalBarrierType(nextType)
+    focalBarrierTypeRef.current = nextType
     setSelectedBarrier(null)
   }
 
@@ -61,22 +61,23 @@ const SummaryPage = ({ location }) => {
 
   const handleSelectBarrier = (feature) => {
     // promote appropriate network results
-    if (feature && feature.barrierType === 'waterfalls') {
-      const networkType =
-        barrierTypeRef.current === 'dams' ? 'dams' : 'small_barriers'
-      const networkFields = {}
-      Object.keys(feature)
-        .filter((k) => k.endsWith(networkType))
-        .forEach((field) => {
-          networkFields[field.split('_')[0]] = feature[field]
-        })
-      setSelectedBarrier({
-        ...feature,
-        ...networkFields,
-      })
-    } else {
-      setSelectedBarrier(feature)
-    }
+    // FIXME:
+    // if (feature && feature.barrierType === 'waterfalls') {
+    //   const networkType =
+    //     networkTypeRef.current === 'dams' ? 'dams' : 'small_barriers'
+    //   const networkFields = {}
+    //   Object.keys(feature)
+    //     .filter((k) => k.endsWith(networkType))
+    //     .forEach((field) => {
+    //       networkFields[field.split('_')[0]] = feature[field]
+    //     })
+    //   setSelectedBarrier({
+    //     ...feature,
+    //     ...networkFields,
+    //   })
+    // } else {
+    setSelectedBarrier(feature)
+    // }
 
     setSelectedUnit(null)
   }
@@ -98,7 +99,7 @@ const SummaryPage = ({ location }) => {
     sidebarContent = (
       <UnitDetails
         summaryUnit={selectedUnit}
-        barrierType={barrierType}
+        barrierType={focalBarrierType}
         onClose={handleDetailsClose}
       />
     )
@@ -106,7 +107,7 @@ const SummaryPage = ({ location }) => {
     sidebarContent = (
       <RegionSummary
         region={region}
-        barrierType={barrierType}
+        barrierType={focalBarrierType}
         system={system}
         onSearch={handleSearch}
       />
@@ -128,7 +129,7 @@ const SummaryPage = ({ location }) => {
           <ClientOnly>
             <Map
               region={region}
-              barrierType={barrierType}
+              focalBarrierType={focalBarrierType}
               system={system}
               searchFeature={searchFeature}
               selectedUnit={selectedUnit}
@@ -139,9 +140,9 @@ const SummaryPage = ({ location }) => {
               <TopBar>
                 <Text sx={{ mr: '0.5rem' }}>Show networks for:</Text>
                 <ToggleButton
-                  value={barrierType}
-                  options={barrierTypeOptions}
-                  onChange={handleSetBarrierType}
+                  value={focalBarrierType}
+                  options={focalBarrierTypeOptions}
+                  onChange={handleSetFocalBarrierType}
                 />
                 <Text sx={{ mx: '0.5rem' }}>by</Text>
                 <ToggleButton

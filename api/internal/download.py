@@ -13,7 +13,7 @@ from api.constants import (
     DAM_EXPORT_FIELDS,
     SB_EXPORT_FIELDS,
     COMBINED_EXPORT_FIELDS,
-    ROAD_CROSSING_API_FIELDS,
+    ROAD_CROSSING_EXPORT_FIELDS,
 )
 from api.lib.domains import unpack_domains
 from api.lib.tiers import calculate_tiers
@@ -70,10 +70,10 @@ async def download(
             columns += DAM_EXPORT_FIELDS
         case "small_barriers":
             columns += SB_EXPORT_FIELDS
-        case "combined_barriers":
+        case "combined_barriers" | "largefish_barriers" | "smallfish_barriers":
             columns += COMBINED_EXPORT_FIELDS
         case "road_crossings":
-            columns += ROAD_CROSSING_API_FIELDS
+            columns += ROAD_CROSSING_EXPORT_FIELDS
 
     columns = [c for c in columns if c not in CUSTOM_TIER_FIELDS]
 

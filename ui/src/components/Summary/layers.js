@@ -420,8 +420,8 @@ export const damsSecondaryLayer = {
   },
 }
 
-// points filtered IN with networks
-export const pointLayer = {
+// ranked points with networks
+export const rankedPointLayer = {
   // id: '' // provided by specific layer
   // source: "" // provided by specific layer
   // 'source-layer': '', // provided by specific layer
@@ -500,118 +500,8 @@ export const pointLayer = {
   },
 }
 
-// off-network barriers
-export const offnetworkPointLayer = {
-  // id: '', // provided by specific layer
-  // source: "", // provided by specific layer
-  // 'source-layer': '', // provided by specific layer
-  type: 'circle',
-  minzoom: 12,
-  maxzoom: 24,
-  paint: {
-    'circle-color': getHighlightExpr(
-      [
-        'match',
-        ['get', 'symbol'],
-        // 1 is unsnapped (actually off-network)
-        1,
-        pointColors.offNetwork.color,
-        2,
-        pointColors.nonBarrier.color,
-        3,
-        pointColors.minorBarrier.color,
-        // 4: invasive is in unranked layer below
-        // last entry is default
-        pointColors.offNetwork.color,
-      ],
-      pointColors.highlight.color
-    ),
-    'circle-stroke-color': getHighlightExpr(
-      [
-        'match',
-        ['get', 'symbol'],
-        // unsnapped
-        1,
-        pointColors.offNetwork.strokeColor,
-        2,
-        pointColors.nonBarrier.strokeColor,
-        3,
-        pointColors.minorBarrier.strokeColor,
-        pointColors.offNetwork.strokeColor,
-      ],
-      pointColors.highlight.strokeColor
-    ),
-    'circle-radius': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      12,
-      getHighlightExpr(1, 12),
-      14,
-      getHighlightExpr(4, 14),
-    ],
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      12,
-      getHighlightExpr(0.5, 1),
-      14,
-      1,
-    ],
-    'circle-stroke-width': {
-      stops: [
-        [12, 0],
-        [14, 1],
-      ],
-    },
-  },
-}
-
-export const removedBarrierPointLayer = {
-  // id: '', // provided by specific layer
-  // source: "", // provided by specific layer
-  // 'source-layer': '', // provided by specific layer
-  type: 'circle',
-  minzoom: 12,
-  maxzoom: 24,
-  paint: {
-    'circle-color': getHighlightExpr(
-      pointColors.removed.color,
-      pointColors.highlight.color
-    ),
-    'circle-stroke-color': getHighlightExpr(
-      pointColors.removed.strokeColor,
-      pointColors.highlight.strokeColor
-    ),
-    'circle-radius': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      12,
-      getHighlightExpr(1, 12),
-      14,
-      getHighlightExpr(4, 14),
-    ],
-    'circle-opacity': [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      12,
-      getHighlightExpr(0.5, 1),
-      14,
-      1,
-    ],
-    'circle-stroke-width': {
-      stops: [
-        [12, 0],
-        [14, 1],
-      ],
-    },
-  },
-}
-
-// on-network but unranked barriers
+// unranked points include everything that was included in network analysis
+// but not prioritized; right now this is only invasive barriers
 export const unrankedPointLayer = {
   // id: '', // provided by specific layer
   // source: "", // provided by specific layer
@@ -624,8 +514,14 @@ export const unrankedPointLayer = {
       [
         'match',
         ['get', 'symbol'],
-        3,
-        pointColors.invasive.color,
+        4, // invasive barrier
+        [
+          'match',
+          ['get', 'barriertype'],
+          'dams',
+          pointColors.invasive.damsColor,
+          pointColors.invasive.color,
+        ],
         // default
         pointColors.offNetwork.color,
       ],
@@ -635,7 +531,7 @@ export const unrankedPointLayer = {
       [
         'match',
         ['get', 'symbol'],
-        3,
+        4, // invasive barrier
         pointColors.invasive.strokeColor,
         // default
         pointColors.offNetwork.strokeColor,
@@ -663,6 +559,102 @@ export const unrankedPointLayer = {
       1,
     ],
 
+    'circle-stroke-width': {
+      stops: [
+        [12, 0],
+        [14, 1],
+      ],
+    },
+  },
+}
+
+// Other barriers are those that are not ranked and not marked as unranked;
+// they include: off-network barriers, non-barriers, minor barriers, removed barriers
+export const otherBarrierPointLayer = {
+  // id: '', // provided by specific layer
+  // source: "", // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
+  type: 'circle',
+  minzoom: 12,
+  maxzoom: 24,
+  paint: {
+    'circle-color': getHighlightExpr(
+      [
+        'match',
+        ['get', 'symbol'],
+        1, // unsnapped (actually off-network)
+        pointColors.offNetwork.color,
+        2, // non-barrier
+        [
+          'match',
+          ['get', 'barrier_type'],
+          'dams',
+          pointColors.nonBarrier.damsColor,
+          pointColors.nonBarrier.color,
+        ],
+        // NOTE: this only gets used when minor barriers are NOT included in
+        // ranked / unranked barrier tile layers
+        3, // minor barrier
+        pointColors.minorBarrier.color,
+        // pointColors.nonBarrier.color,
+        4, // invasive barrier (should mostly be handled in unranked layer)
+        [
+          'match',
+          ['get', 'barriertype'],
+          'dams',
+          pointColors.invasive.damsColor,
+          pointColors.invasive.color,
+        ],
+        5, // removed barrier
+        [
+          'match',
+          ['get', 'barriertype'],
+          'dams',
+          pointColors.removed.damsColor,
+          pointColors.removed.color,
+        ],
+
+        // last entry is default
+        pointColors.offNetwork.color,
+      ],
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      [
+        'match',
+        ['get', 'symbol'],
+        1, // unsnapped
+        pointColors.offNetwork.strokeColor,
+        2, // non-barrier
+        pointColors.nonBarrier.strokeColor,
+        3, // minor barrier
+        pointColors.minorBarrier.strokeColor,
+        4, // invasive barrier
+        pointColors.invasive.strokeColor,
+        5, // removed barrier
+        pointColors.removed.strokeColor,
+        pointColors.offNetwork.strokeColor,
+      ],
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      getHighlightExpr(1, 12),
+      14,
+      getHighlightExpr(4, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
     'circle-stroke-width': {
       stops: [
         [12, 0],

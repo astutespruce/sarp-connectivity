@@ -1,1 +1,2 @@
-from .graph import DirectedGraph
+from .directedgraph import DirectedGraph
+from .lineardirectedgraph import LinearDirectedGraph

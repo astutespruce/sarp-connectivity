@@ -43,13 +43,13 @@ async def query(
             filter_fields = DAM_FILTER_FIELDS
         case "small_barriers":
             filter_fields = SB_FILTER_FIELDS
-        case "combined_barriers":
+        case "combined_barriers" | "largefish_barriers" | "smallfish_barriers":
             # NOTE: BarrierType is used for counting barriers by type after
             # applying filters
             filter_fields = ["BarrierType"] + COMBINED_FILTER_FIELDS
 
         case _:
-            raise NotImplementedError("query is not supported for road crossings")
+            raise NotImplementedError(f"query is not supported for {barrier_type}")
 
     df = extractor.extract(columns=["id", "lon", "lat"] + filter_fields, ranked=True)
 

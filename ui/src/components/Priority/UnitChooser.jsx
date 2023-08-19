@@ -95,7 +95,23 @@ const UnitChooser = ({
         )}`
         break
       }
-      case 'combined_barriers': {
+      case 'combined_barriers':
+      case 'largefish_barriers':
+      case 'smallfish_barriers': {
+        let damField = null
+        let smallBarrierField = null
+        if (barrierType === 'combined_barriers') {
+          damField = 'ranked_dams'
+          smallBarrierField = 'ranked_small_barriers'
+        } else if (barrierType === 'largefish_barriers') {
+          damField = 'ranked_largefish_barriers_dams'
+          smallBarrierField = 'ranked_largefish_barriers_small_barriers'
+        } else if (barrierType === 'smallfish_barriers') {
+          damField = 'ranked_smallfish_barriers_dams'
+          smallBarrierField = 'ranked_smallfish_barriers_small_barriers'
+        }
+
+        // always use plain ranked barriers vs count to determine off-network values
         offNetworkCount = summaryUnits.reduce(
           (out, v) =>
             out +
@@ -103,17 +119,19 @@ const UnitChooser = ({
             (v.small_barriers - v.ranked_small_barriers),
           0
         )
-        total = summaryUnits.reduce(
-          (out, v) => out + v.ranked_dams + v.ranked_small_barriers,
-          0
-        )
 
         let dams = 0
         let smallBarriers = 0
-        summaryUnits.forEach(({ ranked_dams, ranked_small_barriers }) => {
-          dams += ranked_dams
-          smallBarriers += ranked_small_barriers
-        })
+        summaryUnits.forEach(
+          ({
+            [damField]: damCount = 0,
+            [smallBarrierField]: smallBarrierCount = 0,
+          }) => {
+            dams += damCount
+            smallBarriers += smallBarrierCount
+          }
+        )
+        total = dams + smallBarriers
 
         countMessage = `${formatNumber(dams)} ${pluralize(
           'dam',

@@ -14,25 +14,30 @@ import SpeciesInfo from './SpeciesInfo'
 
 const RoadCrossingDetails = ({
   barrierType,
+  networkType,
   sarpid,
-  source,
-  stream,
+
+  basin,
+  crossingtype,
+  ejtract,
+  ejtribal,
+  huc12,
   intermittent,
-  HUC12,
-  HUC8Name,
-  HUC12Name,
+  onloop,
+  ownertype,
+  regionalsgcnspp,
   road,
   roadtype,
-  crossingtype,
-  disadvantagedcommunity,
-  tespp,
-  statesgcnspp,
-  regionalsgcnspp,
-  trout,
   salmonidesu,
-  ownertype,
+  snapped,
+  source,
+  statesgcnspp,
+  stream,
   streamorder,
   streamsizeclass,
+  subwatershed,
+  tespp,
+  trout,
 }) => (
   <Box
     sx={{
@@ -54,11 +59,12 @@ const RoadCrossingDetails = ({
       <LocationInfo
         barrierType={barrierType}
         reachName={stream}
-        HUC8Name={HUC8Name}
-        HUC12Name={HUC12Name}
-        HUC12={HUC12}
+        basin={basin}
+        subwatershed={subwatershed}
+        huc12={huc12}
         ownertype={ownertype}
-        disadvantagedcommunity={disadvantagedcommunity}
+        ejtract={ejtract}
+        ejtribal={ejtribal}
         intermittent={intermittent}
         streamorder={streamorder}
         streamsizeclass={streamsizeclass}
@@ -86,7 +92,12 @@ const RoadCrossingDetails = ({
     </Section>
 
     <Section title="Functional network information">
-      <NoNetworkInfo barrierType={barrierType} />
+      <NoNetworkInfo
+        barrierType={barrierType}
+        networkType={networkType}
+        snapped={snapped}
+        onloop={onloop}
+      />
     </Section>
 
     {/* Note: diadromous species info not shown because these have no network */}
@@ -110,48 +121,54 @@ const RoadCrossingDetails = ({
 
 RoadCrossingDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
+  networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-  source: PropTypes.string,
-  stream: PropTypes.string,
+
+  basin: PropTypes.string,
+  crossingtype: PropTypes.number,
+  ejtract: PropTypes.bool,
+  ejtribal: PropTypes.bool,
+  huc12: PropTypes.string,
   intermittent: PropTypes.number,
-  HUC12: PropTypes.string,
-  HUC8Name: PropTypes.string,
-  HUC12Name: PropTypes.string,
+  onloop: PropTypes.bool,
+  ownertype: PropTypes.number,
+  regionalsgcnspp: PropTypes.number,
   road: PropTypes.string,
   roadtype: PropTypes.number,
-  crossingtype: PropTypes.number,
-  disadvantagedcommunity: PropTypes.string,
-  tespp: PropTypes.number,
-  statesgcnspp: PropTypes.number,
-  regionalsgcnspp: PropTypes.number,
-  trout: PropTypes.number,
   salmonidesu: PropTypes.string,
-  ownertype: PropTypes.number,
+  snapped: PropTypes.bool,
+  source: PropTypes.string,
+  statesgcnspp: PropTypes.number,
+  stream: PropTypes.string,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
+  subwatershed: PropTypes.string,
+  tespp: PropTypes.number,
+  trout: PropTypes.number,
 }
 
 RoadCrossingDetails.defaultProps = {
-  HUC12: null,
-  HUC8Name: null,
-  HUC12Name: null,
-  source: null,
-  stream: null,
+  basin: null,
+  crossingtype: null,
+  ejtract: false,
+  ejtribal: false,
+  huc12: null,
   intermittent: -1,
+  onloop: false,
+  ownertype: null,
+  regionalsgcnspp: 0,
   road: null,
   roadtype: null,
-  crossingtype: null,
-  disadvantagedcommunity: null,
-  tespp: 0,
-  statesgcnspp: 0,
-  regionalsgcnspp: 0,
-  trout: 0,
   salmonidesu: null,
-  ownertype: null,
+  snapped: true,
+  source: null,
+  statesgcnspp: 0,
+  stream: null,
   streamorder: 0,
   streamsizeclass: null,
-  waterbodykm2: -1,
-  waterbodysizeclass: null,
+  subwatershed: null,
+  tespp: 0,
+  trout: 0,
 }
 
 export default RoadCrossingDetails

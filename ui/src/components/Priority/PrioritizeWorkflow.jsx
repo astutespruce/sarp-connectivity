@@ -79,7 +79,7 @@ const Prioritize = () => {
   })
 
   const handleStartOver = () => {
-    setFilterData([])
+    setFilterData(null)
     setState(() => ({
       step: 'select',
       selectedBarrier: null,
@@ -162,19 +162,47 @@ const Prioritize = () => {
   const loadBarrierInfo = async () => {
     setIsLoading(true)
 
-    console.log('summary units', summaryUnits)
-
     // only select units with non-zero ranked barriers
     let nonzeroSummaryUnits = []
-    if (barrierType === 'combined_barriers') {
-      nonzeroSummaryUnits = summaryUnits.filter(
-        ({ ranked_dams = 0, ranked_small_barriers = 0 }) =>
-          ranked_dams + ranked_small_barriers > 0
-      )
-    } else {
-      nonzeroSummaryUnits = summaryUnits.filter(
-        ({ [`ranked_${barrierType}`]: count }) => count > 0
-      )
+    switch (barrierType) {
+      case 'combined_barriers': {
+        nonzeroSummaryUnits = summaryUnits.filter(
+          ({ ranked_dams = 0, ranked_small_barriers = 0 }) =>
+            ranked_dams + ranked_small_barriers > 0
+        )
+        break
+      }
+      case 'largefish_barriers': {
+        nonzeroSummaryUnits = summaryUnits.filter(
+          ({
+            ranked_largefish_barriers_dams = 0,
+            ranked_largefish_barriers_small_barriers = 0,
+          }) =>
+            ranked_largefish_barriers_dams +
+              ranked_largefish_barriers_small_barriers >
+            0
+        )
+        break
+      }
+      case 'smallfish_barriers': {
+        nonzeroSummaryUnits = summaryUnits.filter(
+          ({
+            ranked_smallfish_barriers_dams = 0,
+            ranked_smallfish_barriers_small_barriers = 0,
+          }) =>
+            ranked_smallfish_barriers_dams +
+              ranked_smallfish_barriers_small_barriers >
+            0
+        )
+        break
+      }
+      default: {
+        // dams or small_barriers individually
+        nonzeroSummaryUnits = summaryUnits.filter(
+          ({ [`ranked_${barrierType}`]: count }) => count > 0
+        )
+        break
+      }
     }
 
     const {
@@ -305,9 +333,10 @@ const Prioritize = () => {
             alignItems: 'center',
             justifyContent: 'center',
             height: '100%',
+            gap: '1rem',
           }}
         >
-          <Spinner size="2rem" sx={{ mr: '1rem' }} />
+          <Spinner size="2rem" />
           <Text>Loading...</Text>
         </Flex>
       )

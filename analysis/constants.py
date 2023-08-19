@@ -1,12 +1,32 @@
 """Constants used in other scripts."""
 
 # Mapping of network type to barrier kinds that break that network
+# FIXME: deprecated
+# NETWORK_TYPES = {
+# "waterfalls": ["waterfall"],
+# "dams": ["waterfall", "dam"],
+# "small_barriers": ["waterfall", "dam", "small_barrier"],
+# "road_crossing": ["waterfall", "dam", "small_barrier", "road_crossing"],
+# }
+
+# Mapping of network type to barrier kinds that break the network based
+# on the value in the boolean column
 NETWORK_TYPES = {
-    # "waterfalls": ["waterfall"],
-    "dams": ["waterfall", "dam"],
-    "small_barriers": ["waterfall", "dam", "small_barrier"],
-    # "road_crossing": ["waterfall", "dam", "small_barrier", "road_crossing"],
+    "dams": {"kinds": ["waterfall", "dam"], "column": "primary_network"},
+    "combined_barriers": {
+        "kinds": ["waterfall", "dam", "small_barrier"],
+        "column": "primary_network",
+    },
+    "largefish_barriers": {
+        "kinds": ["waterfall", "dam", "small_barrier"],
+        "column": "largefish_network",
+    },
+    "smallfish_barriers": {
+        "kinds": ["waterfall", "dam", "small_barrier"],
+        "column": "smallfish_network",
+    },
 }
+
 
 # All states in analysis region
 STATES = {
@@ -266,8 +286,7 @@ KEEP_POTENTIAL_PROJECT = [
     "Indeterminate",
     "Potential Project",
     "Proposed Project",
-    # NOTE: only enable Minor Barrier for Darter scenario
-    # "Minor Barrier",
+    "Minor Barrier",  # NOTE: excluded from primary networks
 ]
 
 UNRANKED_POTENTIAL_PROJECT = ["No Upstream Channel", "No Upstream Habitat"]

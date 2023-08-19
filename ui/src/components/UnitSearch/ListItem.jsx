@@ -15,6 +15,12 @@ const ListItem = ({
   ranked_dams: rankedDams,
   total_small_barriers: totalSmallBarriers,
   ranked_small_barriers: rankedSmallBarriers,
+  ranked_largefish_barriers_dams: rankedLargefishBarriersDams,
+  ranked_largefish_barriers_small_barriers:
+    rankedLargefishBarriersSmallBarriers,
+  ranked_smallfish_barriers_dams: rankedSmallfishBarriersDams,
+  ranked_smallfish_barriers_small_barriers:
+    rankedSmallfishBarriersSmallBarriers,
   crossings,
   showID,
   showCount,
@@ -93,11 +99,28 @@ const ListItem = ({
 
         break
       }
-      case 'combined_barriers': {
-        count = rankedDams + rankedSmallBarriers
+      case 'combined_barriers':
+      case 'largefish_barriers':
+      case 'smallfish_barriers': {
+        // extract counts specific to network type
+        let rankedD = 0
+        let rankedSB = 0
+        if (barrierType === 'combined_barriers') {
+          rankedD = rankedDams
+          rankedSB = rankedSmallBarriers
+        } else if (barrierType === 'largefish_barriers') {
+          rankedD = rankedLargefishBarriersDams
+          rankedSB = rankedLargefishBarriersSmallBarriers
+        } else if (barrierType === 'smallfish_barriers') {
+          rankedD = rankedSmallfishBarriersDams
+          rankedSB = rankedSmallfishBarriersSmallBarriers
+        }
+
+        count = rankedD + rankedSB
+
         if (count === 0) {
           warning = `no ${barrierTypeLabels[barrierType]} available for prioritization`
-        } else if (rankedDams > 0 && insufficientBarriers) {
+        } else if (rankedD > 0 && insufficientBarriers) {
           const prefix =
             totalSmallBarriers === 0
               ? 'no potential road-related barriers'
@@ -106,12 +129,12 @@ const ListItem = ({
                 )} potential road-related ${pluralize(
                   'barrier',
                   totalSmallBarriers
-                )} (${formatNumber(rankedSmallBarriers)} likely ${pluralize(
+                )} (${formatNumber(rankedSB)} likely ${pluralize(
                   'barrier',
-                  rankedSmallBarriers
+                  rankedSB
                 )})`
           warning = `${prefix} ${
-            rankedSmallBarriers === 1 ? 'has' : 'have'
+            totalSmallBarriers === 1 ? 'has' : 'have'
           } been assessed out of ${formatNumber(
             crossings
           )} road / stream ${pluralize(
@@ -119,17 +142,14 @@ const ListItem = ({
             crossings
           )}; this may not result in useful priorities`
 
-          countMessage = `${formatNumber(rankedDams)} ${pluralize(
+          countMessage = `${formatNumber(rankedD)} ${pluralize('dam', rankedD)}`
+        } else if (rankedD > 0) {
+          countMessage = `${formatNumber(rankedD)} ${pluralize(
             'dam',
-            rankedDams
-          )}`
-        } else if (rankedDams > 0) {
-          countMessage = `${formatNumber(rankedDams)} ${pluralize(
-            'dam',
-            rankedDams
-          )} and ${formatNumber(rankedSmallBarriers)} ${pluralize(
+            rankedD
+          )} and ${formatNumber(rankedSB)} ${pluralize(
             'likely barrier',
-            rankedSmallBarriers
+            rankedSB
           )} (${formatNumber(
             totalSmallBarriers
           )} assessed potential road-related ${pluralize(
@@ -246,6 +266,10 @@ ListItem.propTypes = {
   ranked_dams: PropTypes.number,
   total_small_barriers: PropTypes.number,
   ranked_small_barriers: PropTypes.number,
+  ranked_largefish_barriers_dams: PropTypes.number,
+  ranked_largefish_barriers_small_barriers: PropTypes.number,
+  ranked_smallfish_barriers_dams: PropTypes.number,
+  ranked_smallfish_barriers_small_barriers: PropTypes.number,
   crossings: PropTypes.number,
   showID: PropTypes.bool,
   showCount: PropTypes.bool,
@@ -259,6 +283,10 @@ ListItem.defaultProps = {
   ranked_dams: 0,
   total_small_barriers: 0,
   ranked_small_barriers: 0,
+  ranked_largefish_barriers_dams: 0,
+  ranked_largefish_barriers_small_barriers: 0,
+  ranked_smallfish_barriers_dams: 0,
+  ranked_smallfish_barriers_small_barriers: 0,
   crossings: 0,
   showID: false,
   showCount: false,

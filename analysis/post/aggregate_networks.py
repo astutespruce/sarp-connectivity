@@ -2,12 +2,10 @@ from pathlib import Path
 from time import time
 
 import geopandas as gp
-import numpy as np
 import pandas as pd
 
 from analysis.constants import SEVERITY_TO_PASSABILITY
-from analysis.lib.compression import pack_bits
-from analysis.lib.util import get_signed_dtype
+from analysis.lib.util import get_signed_dtype, append
 from analysis.rank.lib.networks import get_network_results, get_removed_network_results
 from analysis.rank.lib.metrics import (
     classify_streamorder,
@@ -16,20 +14,13 @@ from analysis.rank.lib.metrics import (
 from api.constants import (
     GENERAL_API_FIELDS1,
     UNIT_FIELDS,
-    DOWNSTREAM_LINEAR_NETWORK_FIELDS,
-    DOMAINS,
     DAM_API_FIELDS,
-    DAM_TILE_FIELDS,
-    DAM_PACK_BITS,
     SB_API_FIELDS,
-    SB_TILE_FIELDS,
-    SB_PACK_BITS,
     COMBINED_API_FIELDS,
-    WF_CORE_FIELDS,
-    WF_TILE_FIELDS,
-    WF_PACK_BITS,
-    unique,
+    WF_API_FIELDS,
+    verify_domains,
 )
+from analysis.constants import NETWORK_TYPES
 
 
 start = time()
@@ -60,6 +51,7 @@ removed_dam_cols = (
 )
 
 rename_cols = {
+    "snapped": "Snapped",
     "excluded": "Excluded",
     "removed": "Removed",
     "intermittent": "Intermittent",
@@ -77,26 +69,13 @@ def fill_flowline_cols(df):
 
     df["NHDPlusID"] = df.NHDPlusID.fillna(-1).astype("int64")
     df["Intermittent"] = df["Intermittent"].astype("int8")
-    df.loc[~df.snapped, "Intermittent"] = -1
+    df.loc[~df.Snapped, "Intermittent"] = -1
     df["AnnualFlow"] = df.AnnualFlow.fillna(-1).astype("float32")
     df["AnnualVelocity"] = df.AnnualVelocity.fillna(-1).astype("float32")
     df["TotDASqKm"] = df.TotDASqKm.fillna(-1).astype("float32")
 
 
-def verify_domains(df):
-    failed = False
-    for col in df.columns.intersection(DOMAINS.keys()):
-        diff = set(df[col].unique()).difference(DOMAINS[col].keys())
-        if diff:
-            print(f"Missing values from domain lookup: {col}: {diff}")
-            failed = True
-
-    if failed:
-        raise ValueError(
-            "ERROR: stopping; one or more domain fields includes values not present in domain lookup"
-        )
-
-
+#######################################################################################
 ### Read dams and associated networks
 print("Reading dams and networks")
 dams = (
@@ -104,8 +83,8 @@ dams = (
     .set_index("id")
     .rename(columns=rename_cols)
 )
+dams["in_network_type"] = dams.primary_network
 
-dams["unsnapped"] = (~dams.snapped).astype("uint8")
 fill_flowline_cols(dams)
 
 # add stream order and species classes for filtering
@@ -120,13 +99,14 @@ pd.DataFrame(dams.loc[dams.Removed, removed_dam_cols].reset_index()).to_feather(
 )
 
 # Drop all dropped / duplicate dams from API / tiles
-# NOTE: excluded ones are retained but don't have networks; ones on loops are retained but also don't have networks
-# NOTE: removed dams are retained for download per direction from Kat
+# NOTE: excluded ones are retained but don't have networks; ones on loops are
+# retained but also don't have networks
 dams = dams.loc[~(dams.dropped | dams.duplicate)].copy()
 
 nonremoved_dam_networks = get_network_results(
     dams.loc[~dams.Removed], "dams", state_ranks=True
 )
+# NOTE: removed dam networks do not have all fields present or set
 removed_dam_networks = get_removed_network_results(dams.loc[dams.Removed], "dams")
 
 dam_networks = pd.concat(
@@ -141,14 +121,7 @@ dams = dams.join(dam_networks)
 for col in ["HasNetwork", "Ranked"]:
     dams[col] = dams[col].fillna(False)
 
-# Pack bits for categorical fields not used for filtering
-# IMPORTANT: this needs to happen here, before backfilling fields with -1
-pack_cols = [e["field"] for e in DAM_PACK_BITS]
-tmp = dams[pack_cols].copy()
-tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
-dams["packed"] = pack_bits(tmp, DAM_PACK_BITS)
-
-# fill other network columns and set to signed dtypes
+# backfill missing values with 0 for classes and -1 for other network metrics
 for col in nonremoved_dam_networks.columns:
     if dams[col].dtype == bool:
         continue
@@ -164,10 +137,6 @@ for col in nonremoved_dam_networks.columns:
 for col in ["CoastalHUC8"]:
     dams[col] = dams[col].astype("uint8")
 
-dams_tmp = dams.copy()
-
-dams = dams[unique(["geometry", "Unranked"] + DAM_API_FIELDS + DAM_TILE_FIELDS)]
-verify_domains(dams)
 
 print("Saving dams for tiles and API")
 # Save full results for tiles, etc
@@ -175,7 +144,8 @@ dams.reset_index().to_feather(results_dir / "dams.feather")
 
 # save for API
 tmp = dams[DAM_API_FIELDS].reset_index()
-# downcast to uint32 or it breaks in UI
+verify_domains(tmp)
+# downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
 tmp.to_feather(api_dir / "dams.feather")
 
@@ -189,7 +159,8 @@ small_barriers = (
     .set_index("id")
     .rename(columns=rename_cols)
 )
-small_barriers["unsnapped"] = (~small_barriers.snapped).astype("uint8")
+small_barriers["in_network_type"] = small_barriers.primary_network
+
 small_barriers = small_barriers.loc[
     ~(small_barriers.dropped | small_barriers.duplicate)
 ].copy()
@@ -204,10 +175,10 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 # NOTE: not calculating state ranks, per guidance from SARP
 # (not enough barriers to have appropriate ranks)
 nonremoved_small_barrier_networks = get_network_results(
-    small_barriers.loc[~small_barriers.Removed], "small_barriers"
+    small_barriers.loc[~small_barriers.Removed], "combined_barriers"
 )
 removed_small_barrier_networks = get_removed_network_results(
-    small_barriers.loc[small_barriers.Removed], "small_barriers"
+    small_barriers.loc[small_barriers.Removed], "combined_barriers"
 )
 
 small_barrier_networks = pd.concat(
@@ -221,12 +192,7 @@ small_barriers = small_barriers.join(small_barrier_networks)
 for col in ["HasNetwork", "Ranked"]:
     small_barriers[col] = small_barriers[col].fillna(False)
 
-pack_cols = [e["field"] for e in SB_PACK_BITS]
-tmp = small_barriers[pack_cols].copy()
-tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
-small_barriers["packed"] = pack_bits(tmp, SB_PACK_BITS)
-
-# set -1 when network not available for barrier
+# backfill missing values with 0 for classes and -1 for other network metrics
 for col in nonremoved_small_barrier_networks.columns:
     if small_barriers[col].dtype == bool:
         continue
@@ -243,82 +209,54 @@ for col in nonremoved_small_barrier_networks.columns:
 for col in ["CoastalHUC8"]:
     small_barriers[col] = small_barriers[col].astype("uint8")
 
-
-small_barriers_tmp = small_barriers.copy()
-
-
-small_barriers = small_barriers[
-    unique(["geometry", "Unranked"] + SB_API_FIELDS + SB_TILE_FIELDS)
-]
-verify_domains(small_barriers)
-
 print("Saving small barriers for tiles and API")
 # Save full results for tiles, etc
 small_barriers.reset_index().to_feather(results_dir / "small_barriers.feather")
 
 # save for API
 tmp = small_barriers[SB_API_FIELDS].reset_index()
+verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 tmp.to_feather(api_dir / "small_barriers.feather")
 
 #########################################################################################
 ###
 ### Get combined networks
+tier_columns = [c for c in dam_networks.columns if c.endswith("_tier")]
+dams = dams.drop(columns=dam_networks.columns.tolist() + tier_columns, errors="ignore")
+dams["BarrierType"] = "dams"
+
+small_barriers = small_barriers.drop(
+    columns=small_barrier_networks.columns.tolist() + tier_columns,
+    errors="ignore",
+)
+small_barriers["BarrierType"] = "small_barriers"
 
 # convert small barriers BarrierSeverity to Passability before merge
-small_barriers_tmp["Passability"] = small_barriers_tmp.BarrierSeverity.map(
+small_barriers["Passability"] = small_barriers.BarrierSeverity.map(
     SEVERITY_TO_PASSABILITY
 ).astype("uint8")
 
-dams_tmp["BarrierType"] = "dams"
-small_barriers_tmp["BarrierType"] = "small_barriers"
 
-# NOTE: the packed column is specific to the barrier type and is calculated above
 combined = pd.concat(
     [
-        dams_tmp.drop(columns=dam_networks.columns, errors="ignore").reset_index(),
-        small_barriers_tmp.drop(
-            columns=small_barrier_networks.columns, errors="ignore"
-        ).reset_index(),
+        dams.reset_index(),
+        small_barriers.reset_index(),
     ],
     ignore_index=True,
     sort=False,
 ).set_index("id")
 
 
-nonremoved_combined_networks = get_network_results(
-    combined.loc[~combined.Removed],
-    network_type="small_barriers",
-    state_ranks=False,
-)
-removed_combined_networks = get_removed_network_results(
-    combined.loc[combined.Removed],
-    network_type="small_barriers",
-)
-combined_networks = pd.concat(
-    [
-        nonremoved_combined_networks.reset_index(),
-        removed_combined_networks.reset_index(),
-    ]
-).set_index("id")
-
-combined = combined.join(combined_networks)
-for col in ["HasNetwork", "Ranked", "Estimated", "NoStructure"]:
-    combined[col] = combined[col].fillna(False)
-
-for col in nonremoved_combined_networks.columns:
-    if combined[col].dtype == bool:
-        continue
-
-    orig_dtype = nonremoved_combined_networks[col].dtype
-    if col.endswith("Class"):
-        combined[col] = combined[col].fillna(0).astype(orig_dtype)
-
-    combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
-
 # fill string columns
 dt = combined.dtypes
-str_columns = dt[dt == object].index
+bool_columns = set(c for c in dams.columns if dams.dtypes[c] == "bool").union(
+    set(c for c in small_barriers.columns if small_barriers.dtypes[c] == "bool")
+)
+for col in bool_columns:
+    combined[col] = combined[col].fillna(False)
+
+str_columns = [c for c in dt[dt == object].index if c not in bool_columns]
 for col in str_columns:
     combined[col] = combined[col].fillna("")
 
@@ -331,7 +269,6 @@ fill_columns = [
     "Hazard",
     "Construction",
     "Diversion",
-    "NoStructure",
     "Feasibility",
     "FeasibilityClass",
     "FishScreen",
@@ -363,96 +300,130 @@ for col in fill_columns:
     else:
         combined[col] = combined[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
-
 for col in ["CoastalHUC8"]:
     combined[col] = combined[col].astype("uint8")
 
-verify_domains(combined)
+for network_type in [
+    "combined_barriers",
+    "largefish_barriers",
+    "smallfish_barriers",
+]:
+    nonremoved_networks = get_network_results(
+        combined.loc[~combined.Removed],
+        network_type=network_type,
+        state_ranks=False,
+    )
+    removed_networks = get_removed_network_results(
+        combined.loc[combined.Removed],
+        network_type=network_type,
+    )
+    networks = pd.concat(
+        [
+            nonremoved_networks.reset_index(),
+            removed_networks.reset_index(),
+        ]
+    ).set_index("id")
 
+    scenario_results = combined.join(networks)
+    scenario_results["in_network_type"] = (
+        scenario_results.primary_network
+        if network_type == "combined_barriers"
+        else scenario_results[f"{network_type.split('_')[0]}_network"]
+    )
 
-print("Saving combined networks for tiles and API")
-# Save full results for tiles, etc
-combined.reset_index().to_feather(results_dir / "combined_barriers.feather")
+    for col in nonremoved_networks.columns:
+        orig_dtype = nonremoved_networks[col].dtype
 
-# save for API
-tmp = combined[COMBINED_API_FIELDS].reset_index()
-tmp["id"] = tmp.id.astype("uint32")
+        if orig_dtype == bool:
+            scenario_results[col] = (
+                scenario_results[col].fillna(False).astype(orig_dtype)
+            )
 
-# create search key for search by name
-tmp["search_key"] = (
-    (tmp["Name"] + " " + tmp["River"] + " " + tmp["Stream"])
-    .str.strip()
-    .str.replace("  ", " ", regex=False)
-)
+        elif col.endswith("Class"):
+            scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
-tmp.to_feather(api_dir / "combined_barriers.feather")
+        else:
+            scenario_results[col] = (
+                scenario_results[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
+            )
 
-#########################################################################################
-###
-### Read waterfalls and associated networks
+    print(f"Saving {network_type} networks for tiles and API")
+    # Save full results for tiles, etc
+    scenario_results.reset_index().to_feather(results_dir / f"{network_type}.feather")
+
+    # save for API
+    tmp = scenario_results[COMBINED_API_FIELDS].reset_index()
+    verify_domains(tmp)
+    tmp["id"] = tmp.id.astype("uint32")
+
+    if network_type == "combined_barriers":
+        # create search key for search by name
+        tmp["search_key"] = (
+            (tmp["Name"] + " " + tmp["River"] + " " + tmp["Stream"])
+            .str.strip()
+            .str.replace("  ", " ", regex=False)
+        )
+
+    tmp.to_feather(api_dir / f"{network_type}.feather")
+
+########################################################################################
+##
+## Read waterfalls and associated networks
+# NOTE: this creates one record per network type in a single file
+
 print("Reading waterfalls and networks")
 waterfalls = (
     gp.read_feather(barriers_dir / "waterfalls.feather")
     .set_index("id")
     .rename(columns=rename_cols)
 )
-waterfalls["unsnapped"] = (~waterfalls.snapped).astype("uint8")
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 fill_flowline_cols(waterfalls)
 
-# backfill Unranked for compatibility (this is needed when getting networks
+# backfill Unranked for compatibility (this is needed when getting networks)
 waterfalls["Unranked"] = False
 
-wf_dam_networks = get_network_results(
-    waterfalls, network_type="dams", state_ranks=False
-)
-# columns that remain the same regardless of network type
-constant_cols = [
-    "HasNetwork",
-    "Ranked",
-] + DOWNSTREAM_LINEAR_NETWORK_FIELDS
-wf_dam_networks.columns = [
-    f"{c}_dams" if c not in constant_cols else c for c in wf_dam_networks.columns
-]
+merged = None
+for network_type in NETWORK_TYPES.keys():
+    networks = get_network_results(
+        waterfalls, network_type=network_type, state_ranks=False
+    )
 
-wf_sb_networks = get_network_results(
-    waterfalls, network_type="small_barriers", state_ranks=False
-).drop(columns=constant_cols)
-wf_sb_networks.columns = [f"{c}_small_barriers" for c in wf_sb_networks.columns]
+    scenario_results = waterfalls.join(networks)
 
-waterfalls = waterfalls.join(wf_dam_networks).join(wf_sb_networks).copy()
-for col in ["HasNetwork", "Ranked"]:
-    waterfalls[col] = waterfalls[col].fillna(False)
+    for col in networks.columns:
+        orig_dtype = networks[col].dtype
 
-pack_cols = [e["field"] for e in WF_PACK_BITS]
-tmp = waterfalls[pack_cols].copy()
-tmp.loc[tmp.StreamOrder == -1, "StreamOrder"] = 0
-tmp.loc[tmp.Intermittent == -1, "Intermittent"] = 0
-waterfalls["packed"] = pack_bits(tmp, WF_PACK_BITS)
+        if orig_dtype == bool:
+            scenario_results[col] = (
+                scenario_results[col].fillna(False).astype(orig_dtype)
+            )
 
-network_cols = wf_dam_networks.columns.tolist() + wf_sb_networks.columns.tolist()
-dtypes = pd.concat([wf_dam_networks.dtypes, wf_sb_networks.dtypes])
-for col in network_cols:
-    if waterfalls[col].dtype == bool:
-        continue
+        elif col.endswith("Class"):
+            scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
-    orig_dtype = dtypes[col]
-    if col.endswith("Class"):
-        waterfalls[col] = waterfalls[col].fillna(0).astype(orig_dtype)
+        else:
+            scenario_results[col] = (
+                scenario_results[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
+            )
 
-    else:
-        waterfalls[col] = (
-            waterfalls[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
-        )
+    scenario_results["network_type"] = network_type
+    scenario_results["in_network_type"] = (
+        scenario_results[f"{network_type.split('_')[0]}_network"]
+        if network_type in {"largefish_barriers", "smallfish_barriers"}
+        else scenario_results.primary_network
+    )
 
-for col in ["CoastalHUC8"]:
-    waterfalls[col] = waterfalls[col].astype("uint8")
+    merged = append(merged, scenario_results.reset_index())
 
-waterfalls = waterfalls[
-    unique(["geometry", "packed"] + unique(WF_CORE_FIELDS + WF_TILE_FIELDS))
-]
+waterfalls = merged
 
-print("Saving waterfalls for tiles")
-waterfalls = waterfalls.reset_index()
-waterfalls["id"] = waterfalls.id.astype("uint32")
+print("Saving waterfalls networks for tiles and API")
+
 waterfalls.to_feather(results_dir / "waterfalls.feather")
+
+tmp = waterfalls[["id"] + WF_API_FIELDS].copy()
+verify_domains(tmp)
+tmp["id"] = tmp.id.astype("uint32")
+
+tmp.to_feather(api_dir / "waterfalls.feather")

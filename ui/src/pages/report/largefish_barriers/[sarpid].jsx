@@ -5,16 +5,16 @@ import { BarrierReport } from 'views'
 
 import { ClientOnly, SEO } from 'components/Layout'
 
-const CombinedBarriersReportRoute = ({ params: { sarpid } }) => (
+const LargefishBarriersReportRoute = ({ params: { sarpid } }) => (
   <ClientOnly>
-    <BarrierReport networkType="combined_barriers" sarpid={sarpid} />
+    <BarrierReport networkType="largefish_barriers" sarpid={sarpid} />
   </ClientOnly>
 )
 
-CombinedBarriersReportRoute.propTypes = {
+LargefishBarriersReportRoute.propTypes = {
   params: PropTypes.shape({ sarpid: PropTypes.string.isRequired }).isRequired,
 }
 
-export default CombinedBarriersReportRoute
+export default LargefishBarriersReportRoute
 
 export const Head = () => <SEO title="Download a Report" />

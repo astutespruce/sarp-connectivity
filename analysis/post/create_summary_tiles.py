@@ -57,6 +57,10 @@ INT_COLS = [
     "removed_small_barriers",
     "crossings",
     "ranked_small_barriers",
+    "ranked_largefish_barriers_dams",
+    "ranked_largefish_barriers_small_barriers",
+    "ranked_smallfish_barriers_dams",
+    "ranked_smallfish_barriers_small_barriers",
 ]
 
 
@@ -125,7 +129,7 @@ removed_barrier_networks = (
         [
             Path("data/networks/clean")
             / huc2
-            / "removed_small_barriers_network.feather"
+            / "removed_combined_barriers_network.feather"
             for huc2 in sorted(dams.HUC2.unique())
         ],
         columns=["id", "EffectiveGainMiles"],
@@ -137,12 +141,25 @@ barriers = barriers.join(removed_barrier_networks)
 barriers["RemovedGainMiles"] = barriers.RemovedGainMiles.fillna(0)
 
 
+largefish_barriers = pd.read_feather(
+    results_dir / "largefish_barriers.feather",
+    columns=["id", "BarrierType", "Ranked"] + SUMMARY_UNITS,
+)
+smallfish_barriers = pd.read_feather(
+    results_dir / "smallfish_barriers.feather",
+    columns=["id", "BarrierType", "Ranked"] + SUMMARY_UNITS,
+)
+
+
 ### Read road / stream crossings
 # NOTE: crossings are already de-duplicated against each other and against
 # barriers
 crossings = pd.read_feather(
-    src_dir / "road_crossings.feather", columns=["id"] + SUMMARY_UNITS
+    src_dir / "road_crossings.feather",
+    columns=["id", "NearestBarrierID"] + SUMMARY_UNITS,
 )
+# exclude crossings that have a corresonding inventoried barrier to avoid double-counting
+crossings = crossings.loc[crossings.NearestBarrierID == ""]
 
 
 # Calculate summary statistics for each type of summary unit
@@ -211,11 +228,40 @@ for unit in SUMMARY_UNITS:
         )
     )
 
+    # have to split out stats by barrier type because this is how it is handled in UI
+    largefish_stats = (
+        largefish_barriers.loc[largefish_barriers.Ranked]
+        .groupby([unit, "BarrierType"])
+        .size()
+        .rename("count")
+        .reset_index()
+        .pivot(columns=["BarrierType"], index=unit)
+        .fillna(0)
+    )
+    largefish_stats.columns = [
+        f"ranked_largefish_barriers_{c}" for _, c in largefish_stats.columns
+    ]
+
+    smallfish_stats = (
+        smallfish_barriers.loc[smallfish_barriers.Ranked]
+        .groupby([unit, "BarrierType"])
+        .size()
+        .rename("count")
+        .reset_index()
+        .pivot(columns=["BarrierType"], index=unit)
+        .fillna(0)
+    )
+    smallfish_stats.columns = [
+        f"ranked_smallfish_barriers_{c}" for _, c in smallfish_stats.columns
+    ]
+
     crossing_stats = crossings[[unit, "id"]].groupby(unit).size().rename("crossings")
 
     merged = (
         units.join(dam_stats, how="left")
         .join(barriers_stats, how="left")
+        .join(largefish_stats, how="left")
+        .join(smallfish_stats, how="left")
         .join(crossing_stats, how="left")
         .fillna(0)
     )
@@ -234,6 +280,10 @@ for unit in SUMMARY_UNITS:
             "ranked_small_barriers",
             "removed_small_barriers",
             "removed_small_barriers_gain_miles",
+            "ranked_largefish_barriers_dams",
+            "ranked_largefish_barriers_small_barriers",
+            "ranked_smallfish_barriers_dams",
+            "ranked_smallfish_barriers_small_barriers",
             "crossings",
         ]
     ].copy()

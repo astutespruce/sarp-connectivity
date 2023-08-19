@@ -16,7 +16,7 @@ import warnings
 import pandas as pd
 
 from analysis.constants import NETWORK_TYPES
-from analysis.lib.io import read_feathers
+from analysis.lib.io import read_arrow_tables
 from analysis.network.lib.networks import (
     connect_huc2s,
     create_barrier_networks,
@@ -47,7 +47,15 @@ start = time()
 
 barriers = pd.read_feather(
     src_dir / "all_barriers.feather",
-    columns=["id", "loop", "removed", "intermittent", "kind", "HUC2"],
+    columns=[
+        "id",
+        "kind",
+        "HUC2",
+        "primary_network",
+        "largefish_network",
+        "smallfish_network",
+        "removed",
+    ],
 )
 
 # exclude all removed barriers from this analysis; they are handled in a separate step
@@ -86,7 +94,7 @@ huc2s = sorted(
 
 
 print("Finding connected HUC2s")
-joins = read_feathers(
+joins = read_arrow_tables(
     [src_dir / huc2 / "flowline_joins.feather" for huc2 in huc2s],
     columns=[
         "upstream",
@@ -98,11 +106,8 @@ joins = read_feathers(
         "downstream_id",
     ],
     new_fields={"HUC2": huc2s},
-)
+).to_pandas()
 
-
-# TODO: remove once all flowlines have been re-extracted from NHD
-joins.loc[(joins.upstream == 0) & (joins.type == "internal"), "type"] = "origin"
 
 groups, joins = connect_huc2s(joins)
 groups = sorted(groups)
@@ -141,40 +146,54 @@ for group in groups:
     ]
 
     # WARNING: set_index alters dtype of "id" column
-    barrier_joins = read_feathers(
-        [src_dir / huc2 / "barrier_joins.feather" for huc2 in group_huc2s],
-        columns=[
-            "id",
-            "upstream_id",
-            "downstream_id",
-            "kind",
-            "marine",
-            "great_lakes",
-            "type",
-        ],
-        new_fields={"HUC2": group_huc2s},
-    ).set_index("id")
+    barrier_joins = (
+        read_arrow_tables(
+            [src_dir / huc2 / "barrier_joins.feather" for huc2 in group_huc2s],
+            columns=[
+                "id",
+                "upstream_id",
+                "downstream_id",
+                "kind",
+                "marine",
+                "great_lakes",
+                "type",
+            ],
+            new_fields={"HUC2": group_huc2s},
+        )
+        .to_pandas()
+        .set_index("id")
+        .join(
+            group_barriers.set_index("id")[
+                ["primary_network", "largefish_network", "smallfish_network"]
+            ],
+            # only keep barrier joins that are in the set of barriers above
+            how="inner",
+        )
+    )
 
-    # only keep barrier joins that are in the set of barriers above
-    barrier_joins = barrier_joins.loc[
-        barrier_joins.index.isin(barriers.id.unique())
-    ].copy()
+    flowlines = (
+        read_arrow_tables(
+            [src_dir / huc2 / "flowlines.feather" for huc2 in group_huc2s],
+            columns=[
+                "lineID",
+            ]
+            + FLOWLINE_COLS,
+            new_fields={"HUC2": group_huc2s},
+        )
+        .to_pandas()
+        .set_index("lineID")
+    )
 
-    flowlines = read_feathers(
-        [src_dir / huc2 / "flowlines.feather" for huc2 in group_huc2s],
-        columns=[
-            "lineID",
-        ]
-        + FLOWLINE_COLS,
-        new_fields={"HUC2": group_huc2s},
-    ).set_index("lineID")
-
-    # Build networks for dams and again for small barriers
-    for network_type, breaking_kinds in NETWORK_TYPES.items():
+    for network_type in NETWORK_TYPES:
         print(f"-------------------------\nCreating networks for {network_type}")
         network_start = time()
 
-        focal_barrier_joins = barrier_joins.loc[barrier_joins.kind.isin(breaking_kinds)]
+        breaking_kinds = NETWORK_TYPES[network_type]["kinds"]
+        col = NETWORK_TYPES[network_type]["column"]
+
+        focal_barrier_joins = barrier_joins.loc[
+            barrier_joins.kind.isin(breaking_kinds) & barrier_joins[col]
+        ]
 
         barrier_networks, network_stats, flowlines = create_barrier_networks(
             group_barriers,

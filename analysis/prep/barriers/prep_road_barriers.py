@@ -1,5 +1,5 @@
 """
-Extract small barriers from original data source, process for use in network analysis, and convert to feather format.
+Extract road-related barriers from original data source, process for use in network analysis, and convert to feather format.
 1. Cleanup data values (as needed)
 2. Filter out barriers not to be included in analysis (based on Potential_Project and ManualReview)
 3. Snap to flowlines
@@ -7,11 +7,14 @@ Extract small barriers from original data source, process for use in network ana
 5. Remove barriers that duplicate dams
 6. Mark barriers that co-occur with waterfalls (waterfalls have higher precedence)
 
-NOTE: this must be run AFTER running prep_dams.py, because it deduplicates against existing dams.
+NOTE: this must be run AFTER running prep_dams.py and prep_waterfalls.py, because it deduplicates against existing dams and waterfalls.
 
-This creates 2 files:
-`barriers/master/small_barriers.feather` - master barriers dataset, including coordinates updated from snapping
-`barriers/snapped/small_barriers.feather` - snapped barriers dataset for network analysis
+This creates 2 files for small barriers and 3 for road crossings:
+- `barriers/master/small_barriers.feather` - master barriers dataset, including coordinates updated from snapping
+- `barriers/snapped/small_barriers.feather` - snapped barriers dataset for network analysis
+- `barriers/master/road_crossings.feather` - master road crossings dataset for snapped road crossings
+- `barriers/snapped/road_crossings.feather` - snapped road crossings for network analysis
+- `data/api/road_crossings.feather` - road crossings data for use in the API
 
 This creates several QA/QC files:
 - `barriers/qa/small_barriers_pre_snap_to_post_snap.fgb`: lines between the original coordinate and the snapped coordinate (snapped barriers only)
@@ -27,6 +30,7 @@ import warnings
 import geopandas as gp
 import shapely
 import numpy as np
+import pandas as pd
 from pyogrio import write_dataframe
 
 from analysis.prep.barriers.lib.snap import snap_to_flowlines, export_snap_dist_lines
@@ -61,6 +65,7 @@ from analysis.constants import (
     CONSTRICTION_TO_DOMAIN,
     BARRIEROWNERTYPE_TO_DOMAIN,
 )
+from api.constants import ROAD_CROSSING_API_FIELDS, verify_domains
 
 ### Custom tolerance values for dams
 SNAP_TOLERANCE = {
@@ -82,13 +87,24 @@ nhd_dir = data_dir / "nhd"
 barriers_dir = data_dir / "barriers"
 src_dir = barriers_dir / "source"
 master_dir = barriers_dir / "master"
+api_dir = data_dir / "api"
 snapped_dir = barriers_dir / "snapped"
 qa_dir = barriers_dir / "qa"
 
 start = time()
 
+print("Reading data")
 df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
 print(f"Read {len(df):,} small barriers")
+
+crossings = gp.read_feather(src_dir / "road_crossings.feather").set_index(
+    "id", drop=False
+)
+print(f"Read {len(crossings):,} road crossings")
+
+# only cross-check against dams / waterfalls that break networks
+dams = gp.read_feather(snapped_dir / "dams.feather", columns=["geometry"])
+waterfalls = gp.read_feather(snapped_dir / "waterfalls.feather", columns=["geometry"])
 
 
 ### Make sure there are not duplicates
@@ -157,7 +173,6 @@ for column in ("Stream", "Road"):
 
 # Fill name with road or name, if available
 ix = (df.Road != "") & (df.Stream != "")
-print(f"Sum: {ix.sum()}")
 df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Road + " / " + df.loc[ix].Stream
 df.Name = df.Name.fillna("")
 
@@ -325,6 +340,8 @@ for field, values in unranked_fields.items():
     )
 
 ### Exclude any other PotentialProject values that we don't specfically allow
+# IMPORTANT: we now include Minor Barriers, but then exclude them from specific
+# network scenarios
 exclude_ix = (~df.PotentialProject.isin(KEEP_POTENTIAL_PROJECT)) & (
     ~(df.dropped | df.excluded | df.unranked | df.removed)
 )
@@ -434,7 +451,6 @@ export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas.fgb")
 ### Deduplicate by dams
 # any that are within duplicate tolerance of dams may be duplicating those dams
 # NOTE: these are only the dams that are snapped and not dropped or excluded
-dams = gp.read_feather(snapped_dir / "dams.feather", columns=["geometry"])
 tree = shapely.STRtree(df.geometry.values.data)
 left, right = tree.query(
     dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
@@ -447,8 +463,6 @@ df.loc[ix, "dup_log"] = f"Within {DUPLICATE_TOLERANCE}m of an existing dam"
 print(f"Found {len(ix)} small barriers within {DUPLICATE_TOLERANCE}m of dams")
 
 ### Exclude those that co-occur with waterfalls
-waterfalls = gp.read_feather(snapped_dir / "waterfalls.feather", columns=["geometry"])
-
 tree = shapely.STRtree(df.geometry.values.data)
 left, right = tree.query(
     waterfalls.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
@@ -543,7 +557,6 @@ df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")
 # calculate intermittent + ephemeral
 df["intermittent"] = df.FCode.isin([46003, 46007])
 
-
 # Fix missing field values
 df["loop"] = df.loop.fillna(False)
 df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(False)
@@ -556,6 +569,64 @@ for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
     df[field] = df[field].astype("float32")
 
 print(df.groupby("loop").size())
+
+################################################################################
+### prepare road crossings
+################################################################################
+print("-----------------")
+
+# remove road crossings that are too close to dams or waterfalls
+tree = shapely.STRtree(crossings.geometry.values.data)
+right = tree.query(
+    dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+)[1]
+dam_ix = crossings.index.values.take(np.unique(right))
+
+# remove road crossings that are too close to waterfalls
+right = tree.query(
+    waterfalls.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+)[1]
+wf_ix = crossings.index.values.take(np.unique(right))
+
+print(
+    f"Found {len(dam_ix):,} road crossings within {DUPLICATE_TOLERANCE}m of dams"
+    f" and {len(wf_ix):,} within {DUPLICATE_TOLERANCE}m of waterfalls"
+)
+
+drop_ix = np.unique(np.concatenate([dam_ix, wf_ix]))
+crossings = crossings.loc[~crossings.index.isin(drop_ix)].copy()
+
+tree = shapely.STRtree(crossings.geometry.values.data)
+
+# find pairs of inventoried barriers and assign
+left, right = tree.query(
+    df.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+)
+
+sb_dups = pd.DataFrame(
+    {
+        "barrier_SARPID": df.SARPID.values.take(left),
+        "crossing_SARPID": crossings.SARPID.values.take(right),
+        "dist": shapely.distance(
+            df.geometry.values.take(left), crossings.geometry.values.take(right)
+        ),
+    }
+).sort_values(by="dist")
+
+print(
+    f"Found {len(sb_dups):,} crossings within {DUPLICATE_TOLERANCE}m of inventoried road-related barriers"
+)
+
+# find the nearest barrier for each crossing and the nearest crossing for each
+# barrier
+nearest_barrier = sb_dups.groupby("crossing_SARPID").barrier_SARPID.first()
+nearest_crossing = sb_dups.groupby("barrier_SARPID").crossing_SARPID.first()
+
+df = df.join(nearest_crossing.rename("NearestCrossingID"), on="SARPID")
+df["NearestCrossingID"] = df.NearestCrossingID.fillna("")
+crossings = crossings.join(nearest_barrier.rename("NearestBarrierID"), on="SARPID")
+crossings["NearestBarrierID"] = crossings.NearestBarrierID.fillna("")
+
 
 ### Add lat / lon
 print("Adding lat / lon fields")
@@ -571,7 +642,30 @@ df.loc[df.invasive, "symbol"] = 4
 df.loc[df.BarrierSeverity == 4, "symbol"] = 3
 df.loc[df.nobarrier, "symbol"] = 2
 df.loc[~df.snapped, "symbol"] = 1
+# intentionally give removed barriers higher precedence
+df.loc[df.removed, "symbol"] = 5
 df.symbol = df.symbol.astype("uint8")
+
+
+### Assign to network analysis scenario
+# omit any that are not snapped or are duplicate / dropped / excluded or on loops / off-network flowlines
+can_break_networks = df.snapped & (
+    ~(df.duplicate | df.dropped | df.excluded | df.loop | df.offnetwork_flowline)
+)
+df["primary_network"] = can_break_networks & (df.PotentialProject != "Minor Barrier")
+# salmonid / large fish: only keep significant and severe barriers
+# added Potential Project, Proposed Project per direction from Kat on 8/18/2023 due to insufficient data re: actual passability
+df["largefish_network"] = can_break_networks & (
+    df.PotentialProject.isin(
+        [
+            "Severe Barrier",
+            "Significant Barrier",
+            "Potential Project",
+            "Proposed Project",
+        ]
+    )
+)
+df["smallfish_network"] = can_break_networks  # includes minor barriers
 
 
 print("\n--------------\n")
@@ -584,7 +678,7 @@ write_dataframe(df, qa_dir / "small_barriers.fgb")
 
 # Extract out only the snapped ones not on loops
 df = df.loc[
-    df.snapped & (~(df.duplicate | df.dropped | df.excluded | df.loop))
+    df.primary_network | df.largefish_network | df.smallfish_network
 ].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
@@ -597,9 +691,9 @@ df[
         "HUC2",
         "lineID",
         "NHDPlusID",
-        "loop",
-        "offnetwork_flowline",
-        "intermittent",
+        "primary_network",
+        "largefish_network",
+        "smallfish_network",
         "removed",
         "YearRemoved",
     ]
@@ -607,5 +701,66 @@ df[
     snapped_dir / "small_barriers.feather",
 )
 write_dataframe(df, qa_dir / "snapped_small_barriers.fgb")
+
+
+### Output road crossings
+
+# NOTE: road crossings are always excluded from network analysis but cut networks
+# so they can be counted within networks
+crossings["primary_network"] = False
+crossings["largefish_network"] = False
+crossings["smallfish_network"] = False
+
+print(f"Serializing {len(crossings):,} road crossings")
+
+crossings = crossings.reset_index(drop=True)
+crossings.to_feather(master_dir / "road_crossings.feather")
+write_dataframe(crossings, qa_dir / "road_crossings.fgb")
+
+### Extract out only the snapped crossings not on loops / off-network flowlines
+# for use in network analysis; also exclude any that duplicate inventoried barriers
+# NOTE: any that were not snapped were dropped in earlier processing
+print(f"Serializing {crossings.snapped.sum():,} snapped road crossings")
+snapped_crossings = crossings.loc[
+    crossings.snapped
+    & (
+        ~(
+            crossings.loop
+            | crossings.offnetwork_flowline
+            | (crossings.NearestBarrierID != "")
+        )
+    ),
+    [
+        "geometry",
+        "id",
+        "HUC2",
+        "lineID",
+        "NHDPlusID",
+        "primary_network",
+        "largefish_network",
+        "smallfish_network",
+    ],
+].reset_index(drop=True)
+
+snapped_crossings.to_feather(barriers_dir / "snapped/road_crossings.feather")
+
+
+### Export for use in API to avoid reading the data again later
+crossings = crossings.rename(
+    columns={
+        "snapped": "Snapped",
+        "intermittent": "Intermittent",
+        "loop": "OnLoop",
+        "sizeclass": "StreamSizeClass",
+        "crossingtype": "CrossingType",
+    }
+)[["id"] + ROAD_CROSSING_API_FIELDS]
+
+# cast intermittent to int to match other types
+crossings["Intermittent"] = crossings.Intermittent.astype("int8")
+
+verify_domains(crossings)
+
+crossings.to_feather(api_dir / "road_crossings.feather")
 
 print("All done in {:.2f}s".format(time() - start))

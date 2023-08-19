@@ -21,7 +21,7 @@ sudo swapon /swapfile
 
 Add this to `/etc/fstab`: `/swapfile none swap sw 0 0`
 
-### Format and mount 32 GB secondary volume, used for tiles
+### Format and mount 40 GB secondary volume, used for tiles
 
 se `lsblk` to list volumes; it may be listed as `nvme1n1`
 
