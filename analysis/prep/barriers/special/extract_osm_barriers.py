@@ -108,6 +108,8 @@ lines = lines.loc[
     )
 ].reset_index(drop=True)
 lines["Link"] = "https://www.openstreetmap.org/way/" + lines.SourceDBID
+lines = lines.drop(columns=["z_order"])
+
 
 poly = (
     read_dataframe(infilename, layer="multipolygons", use_arrow=True)
@@ -129,7 +131,7 @@ poly["Link"] = "https://www.openstreetmap.org/relation/" + poly.SourceDBID
 ix = poly.SourceDBID.isnull()
 poly.loc[ix, "SourceDBID"] = poly.loc[ix].osm_way_id
 poly.loc[ix, "Link"] = "https://www.openstreetmap.org/way/" + poly.loc[ix].SourceDBID
-poly = poly.drop(columns=["osm_way_id", "z_order"])
+poly = poly.drop(columns=["osm_way_id"])
 
 
 for df in [points, lines, poly]:
@@ -194,7 +196,7 @@ write_dataframe(
 
 write_dataframe(
     lines.loc[lines.waterway == "fish_pass"].drop(
-        columns=["other_tags", "natural", "waterway", "z_order"]
+        columns=["other_tags", "natural", "waterway"]
     ),
     out_dir / "osm_barriers.gdb",
     layer="fish_pass_line",
