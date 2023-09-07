@@ -28,8 +28,24 @@ You must set `AGOL_TOKEN` in an `.env` file in the root of this project. It must
 - Road crossings: downloaded from USGS in Feb 2022.
 - NID: obtained by Kat and provided on 3/5/2021
 - National Anthropogenic Barriers Database (NABD): obtained by Kat and provided on 1/22/2021
+- OpenStreetMap
 
-## Dams
+## One-time data preparation
+
+### Prep: Download and extract OpenStreetMap dams
+
+OpenStreetMap (OSM) data for the U.S. was downloaded from https://download.geofabrik.de/north-america.html on 9/6/2023.
+
+OSM data are very slow to process. Features of interest are first extracted to a GPKG file using the following command-line commands:
+
+```bash
+export OSM_CONFIG_FILE="analysis/prep/barriers/special/osmconf.ini"
+ogr2ogr data/barriers/source/us_osm.gpkg -nln points data/barriers/source/us-latest.osm.pbf -sql "SELECT * from points WHERE \"waterway\" in ('waterfall', 'dam', 'weir', 'fish_pass')"
+ogr2ogr data/barriers/source/us_osm.gpkg -nln lines -update data/barriers/source/us-latest.osm.pbf -sql "SELECT * from lines WHERE \"waterway\" in ('dam', 'weir', 'fish_pass')"
+ogr2ogr data/barriers/source/us_osm.gpkg -nln multipolygons -update data/barriers/source/us-latest.osm.pbf -sql "SELECT * from multipolygons WHERE \"waterway\" in ('dam', 'weir', 'fish_pass')"
+```
+
+Dams and waterfalls are extracted from OSM data using `special/extract_osm_barriers.py`.
 
 ### Prep: NABD dams
 
@@ -37,6 +53,8 @@ The National Anthropogenic Barrier Database is used to help snap dams derived
 from NID, unless otherwise manually reviewed.
 
 NABD dams are prepared using `special/prep_nabd.py`.
+
+## Dams
 
 ### Processing
 
