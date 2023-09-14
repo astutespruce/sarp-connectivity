@@ -18,3 +18,17 @@ These are prepared using `analysis/prep/species/prep_salmonid_esu.py`.
 ## Species summaries
 
 Data are processed using `analysis/prep/species/calculate_spp_stats.py`.
+
+## Species habitat data
+
+### Eastern Brook Trout
+
+Eastern Brook Trout potential distribution data were compiled by Trout Unlimited
+and provided to SARP on 8/30/2023. These include medium and high resolution
+flowlines.
+
+### StreamNet salmonid species
+
+Habitat linework for several salmonid species in the Pacific Northwest were
+downloaded from https://www.streamnet.org/home/data-maps/gis-data-sets/
+on 9/7/2023.
