@@ -459,6 +459,9 @@ def fill_endpoint_gaps(df, gap_size):
         ]
     ).drop_duplicates(subset=["left", "right"])
 
+    if len(new_segments) == 0:
+        return df.copy()
+
     ### find connected components in order to take shortest connection per group
     # (otherwise we create triangles)
     # add back symmetric pairs

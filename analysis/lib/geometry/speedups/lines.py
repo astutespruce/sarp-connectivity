@@ -360,6 +360,7 @@ def cut_lines_at_points(coords, cut_offsets):
     return outer_ix, inner_ix, lines
 
 
+# TODO: mark this for numba
 def substring(coords, start_offsets, stop_offsets):
     """Extract new lines from within coords that are >= start_offsets and
     <= stop_offsets.
