@@ -43,7 +43,7 @@ MAX_LINE_DIFF = 500  # meters
 
 data_dir = Path("data")
 src_dir = data_dir / "species/source"
-nhd_dir = data_dir / "nhd/raw"
+nhd_dir = data_dir / "nhd/clean"
 out_dir = data_dir / "species/derived"
 
 infilename = (
@@ -196,6 +196,7 @@ flowlines = read_arrow_tables(
         "geometry",
         "lineID",
         "NHDPlusID",
+        "GNIS_Name",
         "HUC4",
         "length",
         "loop",
@@ -216,7 +217,10 @@ flowlines = gp.GeoDataFrame(
 
 # mark canals; these require higher confidence of overlap since they may spatially
 # interact with habitat but not functionally
-flowlines["canal"] = flowlines.FType == 428
+# include those with canal in the name since many are not marked via FType
+flowlines["canal"] = (flowlines.FType == 336) | (
+    flowlines.GNIS_Name.fillna("").str.lower().str.contains(" canal")
+)
 
 # set anadromous status to False to start
 flowlines["anadromous"] = False
@@ -394,8 +398,12 @@ for unit in units:
     # are short root points of incoming tribs that are not themselves included
     potential_fragments = pd.Series(
         total_overlap.loc[
-            (total_overlap.overlap_ratio >= MIN_OVERLAP_RATIO)
-            & (total_overlap.length < 3 * SELECTION_TOLERANCE)
+            (
+                (total_overlap.overlap_ratio >= MIN_OVERLAP_RATIO)
+                & (total_overlap.length < 3 * SELECTION_TOLERANCE)
+            )
+            # also keep longer lines with higher overlap regardless of difference
+            | ((total_overlap.overlap_ratio >= 0.75) & (total_overlap.length >= 2000))
         ].index.unique()
     )
 
@@ -625,7 +633,8 @@ for unit in units:
         flowlines.loc[flowlines[unit], "anadromous"] = True
 
     print(
-        f"species habitat: {shapely.length(spp_df.geometry.values).sum() / 1000:,.1f} km; extracted {spp_flowlines.loc[spp_flowlines.index.isin(keep_line_ids), ['length']].values.sum() / 1000:,.1f} km from NHD"
+        f"species habitat: {shapely.length(spp_df.geometry.values).sum() / 1000:,.1f} km; "
+        f" extracted {spp_flowlines.loc[spp_flowlines.index.isin(keep_line_ids), ['length']].values.sum() / 1000:,.1f} km from NHD"
     )
 
     write_dataframe(
@@ -634,6 +643,10 @@ for unit in units:
     )
 
 
-out = flowlines.loc[flowlines[units].any(axis=1)].reset_index()
+out = flowlines.loc[
+    flowlines[units].any(axis=1), ["geometry", "NHDPlusID"] + units
+].reset_index()
 write_dataframe(out, out_dir / "streamnet_habitat_nhd.fgb")
-out[units].reset_index().to_feather(out_dir / "streamnet_habitat_nhd.feather")
+out[["lineID", "NHDPlusID"] + units].to_feather(
+    out_dir / "streamnet_habitat_nhd.feather"
+)

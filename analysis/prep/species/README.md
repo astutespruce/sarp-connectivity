@@ -33,9 +33,11 @@ Habitat linework for several salmonid species in the Pacific Northwest were
 downloaded from https://www.streamnet.org/home/data-maps/gis-data-sets/
 on 9/7/2023.
 
-StreamNet data are prepared using `analysis/prep/species/prep_streamnet.py`.
+StreamNet data are prepared and associated with NHD flowlines using
+`analysis/prep/species/prep_streamnet.py`.
 This selects out species and runs of interest, fills small gaps between
-endpoints, and merges the linework.
+endpoints, and merges the habitat linework. It then tries to find closely
+related NHD flowlines that have sufficient overlap with the habitat linework.
 
 NOTE: this merges lines that overlap; this means that canals / ditches that may
 be functionaly separate from regular flowlines but spatially overlap are merged
@@ -44,7 +46,12 @@ together into a contiuous set of linework.
 NOTE: StreamNet data combine linework from multiple sources and levels of detail.
 Some areas may have very low resolution linework and not line up well with NHD HR.
 
-### Associating habitat data with NHD Flowlines
+### California Baseline Fish Habitat
 
-NHD flowlines that are closely associated with habitat linework are selected
-and cut if necessary using `analysis/prep/species/prep_spp_distribution.py`.
+California Baseline Fish Habitat data were downloaded 9/15/2023 from
+https://psmfc.sharefile.com/d-s03b563353ec340faba23d1f14b073f3c
+
+Metadata available at: https://psmfc.maps.arcgis.com/home/item.html?id=a8117ce44a16493ca2aa0571769e5654
+
+These data are prepared and associated with NHD flowlines using
+`analysis/prep/speciescprep_ca_baseline_habitat.py`.
