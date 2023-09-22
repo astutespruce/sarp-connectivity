@@ -38,7 +38,7 @@ layer = "Baseline_Fish_Habitat_V3"
 # manually-identified keep lines:
 
 # NHDPlusIDs
-keep_nhd_ids = np.array([50000300034240])
+keep_nhd_ids = np.array([50000300034240, 50000900133268])
 
 
 df = read_dataframe(
@@ -87,6 +87,7 @@ flowlines = read_arrow_tables(
         "loop",
         "offnetwork",
         "FType",
+        "Slope",
     ],
     filter=pc.is_in(pc.field("HUC4"), pa.array(huc4s)),
     new_fields={"HUC2": huc2s},
@@ -160,14 +161,24 @@ by_reach["length_diff"] = np.abs(
 # of habitat line
 ix = (by_reach.length_diff < 0.75) & (by_reach.endpoint_dist < MAX_LINE_DIFF)
 
+keep_reaches = reaches.loc[
+    reaches.ReachCode.isin(by_reach.loc[ix].ReachCode.unique()) & (~reaches.canal)
+].join(by_reach.set_index("ReachCode").mr_line, on="ReachCode")
+keep_reaches["endpoint_dist"] = shapely.distance(
+    shapely.get_point(keep_reaches.geometry.values, 0),
+    keep_reaches.mr_line.values,
+)
+
+# drop any of these segments if upstream point is not near habitat; this helps
+# limit overshoots
+keep_ids = keep_reaches.loc[keep_reaches.endpoint_dist < 250].index.unique().values
+
+
 keep_line_ids = np.unique(
     np.concatenate(
         [
             keep_line_ids,
-            reaches.loc[
-                reaches.ReachCode.isin(by_reach.loc[ix].ReachCode.unique())
-                & (~reaches.canal)
-            ].index.unique(),
+            keep_ids,
         ]
     )
 )
@@ -291,10 +302,6 @@ keep_ids = np.setdiff1d(
             (total_overlap.overlap_ratio >= MIN_OVERLAP_RATIO)
             & (total_overlap.length - total_overlap.overlap < 500)
         )
-        # # also keep longer lines with higher overlap regardless of difference
-        # | ((total_overlap.overlap_ratio >= 0.75) & (total_overlap.length >= 2000))
-        # (total_overlap.overlap_ratio >= 0.75)
-        # & (total_overlap.length - total_overlap.overlap < 500)
     ].index.unique(),
     drop_ids,
 )
