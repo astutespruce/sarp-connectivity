@@ -24,8 +24,9 @@ Data are processed using `analysis/prep/species/calculate_spp_stats.py`.
 ### Eastern Brook Trout
 
 Eastern Brook Trout potential distribution data were compiled by Trout Unlimited
-and provided to SARP on 8/30/2023. These include medium and high resolution
-flowlines.
+and provided to SARP on 8/30/2023. These are based on NHD medium resolution
+flowlines. These data are prepared and associated with NHD high resolution
+flowlines using `analysis/prep/species/prep_eastern_brook_trout.py`.
 
 ### StreamNet salmonid species
 
@@ -35,9 +36,9 @@ on 9/7/2023.
 
 StreamNet data are prepared and associated with NHD flowlines using
 `analysis/prep/species/prep_streamnet.py`.
-This selects out species and runs of interest, fills small gaps between
-endpoints, and merges the habitat linework. It then tries to find closely
-related NHD flowlines that have sufficient overlap with the habitat linework.
+This selects species of interest, fills small gaps between endpoints, and merges
+the habitat linework. It then tries to find closely related NHD flowlines that
+have sufficient overlap with the habitat linework.
 
 NOTE: this merges lines that overlap; this means that canals / ditches that may
 be functionaly separate from regular flowlines but spatially overlap are merged

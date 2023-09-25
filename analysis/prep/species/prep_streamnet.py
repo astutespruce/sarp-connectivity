@@ -72,7 +72,11 @@ keep_species = [
     "Yellowstone cutthroat trout",
 ]
 # split by run for these species; aggregate the others
-run_species = ["Chinook salmon", "Steelhead"]
+# NOTE: for now, lump all at species / major geography instead
+run_species = [
+    # "Chinook salmon",
+    # "Steelhead"
+]
 
 
 ################################################################################
@@ -402,8 +406,6 @@ for unit in units:
                 (total_overlap.overlap_ratio >= MIN_OVERLAP_RATIO)
                 & (total_overlap.length < 3 * SELECTION_TOLERANCE)
             )
-            # also keep longer lines with higher overlap regardless of difference
-            | ((total_overlap.overlap_ratio >= 0.75) & (total_overlap.length >= 2000))
         ].index.unique()
     )
 
