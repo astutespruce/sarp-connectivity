@@ -16,7 +16,7 @@ from analysis.lib.io import read_arrow_tables
 
 warnings.filterwarnings("ignore", category=UserWarning, message=".*Measured.*")
 
-SELECTION_TOLERANCE = 100  # meters; used to select flowlines that are near habitat
+SELECTION_TOLERANCE = 50  # meters; used to select flowlines that are near habitat
 # outer overlap used to check overlap of flowlines filled in gaps
 OUTER_OVERLAP_TOLERANCE = 300  # meters;
 ENDPOINT_TOLERANCE = 1  # meters; used to determine if endpoints are on habitat
@@ -32,84 +32,53 @@ src_dir = data_dir / "species/source"
 nhd_dir = data_dir / "nhd/clean"
 out_dir = data_dir / "species/derived"
 
-infilename = src_dir / "NHFlowline_within_BKT_patches_TU.gdb"
+infilename = src_dir / "Diadromous_Regional.gdb"
+layer = "All_Species_Anadromous_Lines_SEACAP_2014"
+
 
 # manually-identified keep lines (NHDPlusIDs):
 keep_nhd_ids = np.array(
     [
-        60000200071259,
-        60000200050220,
-        60000200090093,
-        60000200013138,
-        60000200062019,
-        60000200115026,
-        60000200115298,
-        60000200021005,
-        60000200033029,
-        60000200025324,
-        60000200022945,
-        60000200028202,
-        60000200055303,
-        60000200003014,
-        60000200064048,
-        60000200024481,
-        60000200011248,
-        60000200072396,
-        60000200068350,
-        60000200073523,
-        60000200012468,
-        60000200036476,
-        60000200061823,
-        60000200000761,
-        60000200043958,
-        60000200034424,
-        60000200045385,
-        60000200031696,
-        60000200042847,
-        60000200017336,
-        60000200025959,
-        60000200008862,
-        60000200020977,
-        60000200060623,
-        60000200055448,
-        60000200004701,
-        60000200059665,
-        60000200008903,
-        60000200018297,
-        60000200056808,
-        10000700063933,
-        10000700064319,
-        10000900091410,
-        5000300010501,
-        5000400030741,
-        60000600082943,
-        60000600064073,
-        60000600088404,
-        60000600070393,
-        60000600084159,
-        60000600061235,
-        60000600083182,
-        60000600089711,
-        60000600092705,
-        60000600088405,
-        60000600065693,
-        60000600057947,
-        60000600061236,
+        15001500071696,
+        15001500264629,
+        15001500073883,
+        15001500229530,
+        15001500000015,
+        15001500034705,
+        15000500043731,
+        15000400044466,
+        15000400045006,
+        15000100034271,
+        15000100111215,
+        15000100112346,
+        15000100094115,
+        15001500038197,
+        15001500298139,
+        15001500255586,
+        15000600208958,
+        15001600030526,
     ]
 )
 
-
-df = read_dataframe(infilename, use_arrow=True, columns=["REACHCODE"])
-
+df = read_dataframe(infilename, layer=layer, use_arrow=True, columns=[])
 df["geometry"] = shapely.force_2d(df.geometry.values)
 df = df.to_crs(CRS)
 
-# merge up to reach code level
-df = merge_lines(df.explode(ignore_index=True), by="REACHCODE").set_index("REACHCODE")
-df["mr_length"] = shapely.length(df.geometry.values)
+# merge linework
+geometry = shapely.get_parts(shapely.unary_union(shapely.get_parts(df.geometry.values)))
+df = (
+    merge_lines(
+        gp.GeoDataFrame({"tmp": ["tmp"] * len(geometry)}, geometry=geometry, crs=CRS),
+        by="tmp",
+    )
+    .explode(ignore_index=True)
+    .drop(columns=["tmp"])
+)
 
 # DEBUG:
-write_dataframe(df.reset_index(), "/tmp/eastern_brook_trout_habitat_source.fgb")
+write_dataframe(df, "/tmp/south_atlantic_anadromous_habitat.fgb")
+
+df["buf"] = shapely.buffer(df.geometry.values, SELECTION_TOLERANCE, cap_style="flat")
 
 
 ################################################################################
@@ -133,7 +102,6 @@ flowlines = read_arrow_tables(
         "geometry",
         "lineID",
         "NHDPlusID",
-        "ReachCode",
         "GNIS_Name",
         "HUC4",
         "length",
@@ -154,6 +122,10 @@ flowlines = gp.GeoDataFrame(
     geometry=shapely.from_wkb(flowlines.column("geometry")),
     crs=CRS,
 ).set_index("lineID")
+
+# add upstream / downstream points
+flowlines["nhd_upstream_pt"] = shapely.get_point(flowlines.geometry.values, 0)
+flowlines["nhd_downstream_pt"] = shapely.get_point(flowlines.geometry.values, -1)
 
 # mark canals; these require higher confidence of overlap since they may spatially
 # interact with habitat but not functionally
@@ -186,116 +158,29 @@ downstream_graph = LinearDirectedGraph(
 
 
 ################################################################################
-### Select NHD HR flowlines by NHD medium resolution reach code
-################################################################################
-# NOTE: some of the reaches are cut short, so we check for the amount of
-# similarity in their overall lengths
-reaches = flowlines.loc[
-    flowlines.ReachCode.isin(df.loc[df.index.values].index.unique())
-]
-by_reach = (
-    merge_lines(reaches, by="ReachCode")
-    .join(
-        df[["geometry", "mr_length"]].rename(columns={"geometry": "mr_line"}),
-        on="ReachCode",
-    )
-    .explode(ignore_index=True)
-)
-by_reach["hr_length"] = shapely.length(by_reach.geometry.values)
-
-# # DEBUG:
-# write_dataframe(by_reach.drop(columns=['mr_line']), "/tmp/reaches.fgb")
-by_reach["endpoint_dist"] = shapely.distance(
-    shapely.get_point(by_reach.geometry.values, 0), by_reach.mr_line.values
-)
-by_reach["length_diff"] = np.abs(
-    by_reach.hr_length.values - by_reach.mr_length.values
-) / by_reach[["mr_length", "hr_length"]].max(axis=1)
-
-# keep them if their lengths are 75% similar and endpoint is within MAX_LENGTH_DIFF
-# of habitat line (these are further filtered to NHD HR segments below)
-ix = (by_reach.length_diff < 0.75) & (by_reach.endpoint_dist < MAX_LENGTH_DIFF)
-
-keep_reaches = reaches.loc[
-    reaches.ReachCode.isin(by_reach.loc[ix].ReachCode.unique()) & (~reaches.canal)
-].join(by_reach.set_index("ReachCode").mr_line, on="ReachCode")
-keep_reaches["upstream_endpoint_dist"] = shapely.distance(
-    shapely.get_point(keep_reaches.geometry.values, 0),
-    keep_reaches.mr_line.values,
-)
-keep_reaches["downstream_endpoint_dist"] = shapely.distance(
-    shapely.get_point(keep_reaches.geometry.values, -1),
-    keep_reaches.mr_line.values,
-)
-
-# drop any of these segments if upstream point is not near habitat; this helps
-# limit overshoots
-keep_ids = (
-    keep_reaches.loc[
-        (keep_reaches.downstream_endpoint_dist < MAX_ENDPOINT_DIFF)
-        & (keep_reaches.upstream_endpoint_dist < MAX_ENDPOINT_DIFF)
-        & (
-            ~(
-                keep_reaches.intermittent
-                & (
-                    (keep_reaches.downstream_endpoint_dist > 250)
-                    | (keep_reaches.upstream_endpoint_dist > 250)
-                )
-            )
-        )
-    ]
-    .index.unique()
-    .values
-)
-
-keep_line_ids = np.unique(
-    np.concatenate(
-        [
-            keep_line_ids,
-            keep_ids,
-        ]
-    )
-)
-print(
-    f"selected {len(keep_line_ids):,} NHD flowlines that line up with habitat linework by NHD ReachCode"
-)
-
-remaining_flowlines = flowlines.loc[~flowlines.index.isin(keep_line_ids)].copy()
-
-
-################################################################################
 ### Associate habitat linework with NHD flowlines by proximity
 ################################################################################
-df["buf"] = shapely.buffer(df.geometry.values, SELECTION_TOLERANCE, cap_style="flat")
 
 # DEBUG:
 # write_dataframe(
 #     gp.GeoDataFrame(geometry=df.buf, crs=CRS),
-#     "/tmp/eastern_brook_trout_habitat_source_buffer.fgb",
+#     "/tmp/south_atlantic_anadromous_habitat_source_buffer.fgb",
 # )
-
-# add upstream / downstream points
-remaining_flowlines["nhd_upstream_pt"] = shapely.get_point(
-    remaining_flowlines.geometry.values, 0
-)
-remaining_flowlines["nhd_downstream_pt"] = shapely.get_point(
-    remaining_flowlines.geometry.values, -1
-)
 
 # extract flowlines within SELECTION_TOLERANCE of habitat lines
 # WARNING: this will include many flowlines that we should not keep
-left, right = shapely.STRtree(remaining_flowlines.geometry.values).query(
+left, right = shapely.STRtree(flowlines.geometry.values).query(
     df.buf.values, predicate="intersects"
 )
 pairs = (
     pd.DataFrame(
         {
-            "lineID": remaining_flowlines.index.values.take(right),
+            "lineID": flowlines.index.values.take(right),
             "ReachCode": df.index.values.take(left),
         }
     )
     .join(
-        remaining_flowlines[
+        flowlines[
             [
                 "geometry",
                 "length",
@@ -331,6 +216,7 @@ tmp = pairs.groupby("lineID").agg(
         "intermittent": "first",
     }
 )
+
 
 # keep any NHD flowlines where both endpoints are in habitat and discard from
 # further processing
@@ -377,7 +263,10 @@ pairs["overlap_ratio"] = pairs.overlap / pairs["length"]
 # DEBUG:
 pairs[
     ["lineID", "loop", "canal", "waterbody", "length", "overlap", "overlap_ratio"]
-].reset_index(drop=True).to_feather("/tmp/eastern_brook_trout_pairs.feather")
+].reset_index(drop=True).to_feather(
+    "/tmp/south_atlantic_anadromous_habitat_pairs.feather"
+)
+
 
 # keep any where there is a high degree of overlap across all habitat lines
 # unless they overlap multiple species groups
@@ -399,14 +288,15 @@ keep_ids = np.setdiff1d(
         )
         # allow looser matches in waterbodies; the synthetic flowlines there
         # are quite different between NHD versions
-        | (
-            total_overlap.waterbody
-            & (total_overlap.overlap_ratio >= 0.1)
-            & (total_overlap.length - total_overlap.overlap < 5000)
-        )
+        # | (
+        #     total_overlap.waterbody
+        #     & (total_overlap.overlap_ratio >= 0.1)
+        #     & (total_overlap.length - total_overlap.overlap < 5000)
+        # )
     ].index.unique(),
     drop_ids,
 )
+
 
 # filter out short segments with upstreams that are not in keep_ids; these
 # are short root points of incoming tribs that are not themselves included
@@ -442,13 +332,12 @@ pairs = pairs.loc[
 ].reset_index()
 print(f"keeping {len(keep_ids):,} NHD lines that mostly overlap habitat")
 
-
 # DEBUG:
 write_dataframe(
     flowlines.loc[flowlines.index.isin(keep_line_ids)]
     .join(total_overlap[["overlap", "overlap_ratio"]])
     .reset_index(),
-    "/tmp/eastern_brook_trout_high_overlap_keep_lines.fgb",
+    "/tmp/south_atlantic_anadromous_habitat_high_overlap_keep_lines.fgb",
 )
 
 
@@ -576,15 +465,15 @@ print(
 
 keep_line_ids = np.unique(np.concatenate([keep_line_ids, keep_ids]))
 
-flowlines["eastern_brook_trout"] = flowlines.index.isin(keep_line_ids)
+flowlines["south_atlantic_anadromous"] = flowlines.index.isin(keep_line_ids)
 
 print(
     f"species habitat: {shapely.length(df.geometry.values).sum() / 1000:,.1f} km; "
-    f"extracted {flowlines.loc[flowlines.eastern_brook_trout, ['length']].values.sum() / 1000:,.1f} km from NHD"
+    f"extracted {flowlines.loc[flowlines.south_atlantic_anadromous, ['length']].values.sum() / 1000:,.1f} km from NHD"
 )
 
-out = flowlines.loc[flowlines.eastern_brook_trout].reset_index()
-write_dataframe(out, out_dir / "eastern_brook_trout_habitat.fgb")
-out[["lineID", "NHDPlusID", "eastern_brook_trout"]].reset_index().to_feather(
-    out_dir / "eastern_brook_trout_habitat.feather"
+out = flowlines.loc[flowlines.south_atlantic_anadromous].reset_index()
+write_dataframe(out, out_dir / "south_atlantic_anadromous_habitat.fgb")
+out[["lineID", "NHDPlusID", "south_atlantic_anadromous"]].reset_index().to_feather(
+    out_dir / "south_atlantic_anadromous_habitat.feather"
 )
