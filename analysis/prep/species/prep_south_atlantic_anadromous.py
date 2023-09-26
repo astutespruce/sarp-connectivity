@@ -286,13 +286,6 @@ keep_ids = np.setdiff1d(
             (total_overlap.overlap_ratio >= MIN_OVERLAP_RATIO)
             & (total_overlap.length - total_overlap.overlap < MAX_LENGTH_DIFF)
         )
-        # allow looser matches in waterbodies; the synthetic flowlines there
-        # are quite different between NHD versions
-        # | (
-        #     total_overlap.waterbody
-        #     & (total_overlap.overlap_ratio >= 0.1)
-        #     & (total_overlap.length - total_overlap.overlap < 5000)
-        # )
     ].index.unique(),
     drop_ids,
 )
