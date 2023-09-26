@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore", category=UserWarning, message=".*Measured.*")
 
 SELECTION_TOLERANCE = 50  # meters; used to select flowlines that are near habitat
 # outer overlap used to check overlap of flowlines filled in gaps
-OUTER_OVERLAP_TOLERANCE = 300  # meters;
+OUTER_OVERLAP_TOLERANCE = 100  # meters;
 ENDPOINT_TOLERANCE = 1  # meters; used to determine if endpoints are on habitat
 MIN_LINE_LENGTH = 10  # meters
 # required amount of overlap required beween flowline and buffer around habitat line
@@ -57,6 +57,18 @@ keep_nhd_ids = np.array(
         15001500255586,
         15000600208958,
         15001600030526,
+        15000300002237,
+        15000300026471,
+        15000300008077,
+        15000300026473,
+        15000300018319,
+        15000300050527,
+        15000300042577,
+        15000300034554,
+        15000300042678,
+        15000300026706,
+        15000300010716,
+        15001200000678,
     ]
 )
 

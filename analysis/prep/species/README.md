@@ -31,8 +31,8 @@ flowlines using `analysis/prep/species/prep_eastern_brook_trout.py`.
 ### StreamNet salmonid species
 
 Habitat linework for several salmonid species in the Pacific Northwest were
-downloaded from https://www.streamnet.org/home/data-maps/gis-data-sets/
-on 9/7/2023.
+downloaded on 9/7/2023 from https://www.streamnet.org/home/data-maps/gis-data-sets/.
+These data represent current habitat and account for impassable barriers.
 
 StreamNet data are prepared and associated with NHD flowlines using
 `analysis/prep/species/prep_streamnet.py`.
@@ -50,9 +50,26 @@ Some areas may have very low resolution linework and not line up well with NHD H
 ### California Baseline Fish Habitat
 
 California Baseline Fish Habitat data were downloaded 9/15/2023 from
-https://psmfc.sharefile.com/d-s03b563353ec340faba23d1f14b073f3c
+https://psmfc.sharefile.com/d-s03b563353ec340faba23d1f14b073f3c. These data
+represent potential habitat for anadromous species and resident rainbow trout
+in southern California.
 
 Metadata available at: https://psmfc.maps.arcgis.com/home/item.html?id=a8117ce44a16493ca2aa0571769e5654
 
 These data are prepared and associated with NHD flowlines using
-`analysis/prep/speciescprep_ca_baseline_habitat.py`.
+`analysis/prep/species/prep_ca_baseline_habitat.py`.
+
+### South Atlantic Anadromous Species Habitat
+
+Data were provided by Kat Hoenke from the SEACAP project.
+
+These data were prepared and associated with NHD flowlines using
+`analysis/prep/species/prep_south_atlantic_anadromous.py`.
+
+### Chesapeake Bay Diadromous Species Habitat
+
+Data were provided by Erik Martin (TNC) on 11/15/2022. We extracted current
+and potential habitat, but not historic habitat.
+
+These data were prepared and associated with NHD flowlines using
+`analysis/prep/species/prep_chesapeake_species_habitat.py`.
