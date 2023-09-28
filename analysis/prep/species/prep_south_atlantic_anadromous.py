@@ -37,7 +37,7 @@ layer = "All_Species_Anadromous_Lines_SEACAP_2014"
 
 
 # manually-identified keep lines (NHDPlusIDs):
-keep_nhd_ids = np.array(
+keep_line_ids = np.array(
     [
         15001500071696,
         15001500264629,
@@ -112,7 +112,6 @@ flowlines = read_arrow_tables(
     [nhd_dir / huc2 / "flowlines.feather" for huc2 in huc2s],
     columns=[
         "geometry",
-        "lineID",
         "NHDPlusID",
         "GNIS_Name",
         "HUC4",
@@ -120,8 +119,7 @@ flowlines = read_arrow_tables(
         "loop",
         "offnetwork",
         "FType",
-        "waterbody",
-        "intermittent",
+        "FCode",
     ],
     filter=pc.is_in(pc.field("HUC4"), pa.array(huc4s)),
     new_fields={"HUC2": huc2s},
@@ -133,7 +131,10 @@ flowlines = gp.GeoDataFrame(
     ).to_pandas(),
     geometry=shapely.from_wkb(flowlines.column("geometry")),
     crs=CRS,
-).set_index("lineID")
+).set_index("NHDPlusID")
+
+# mark intermittent flowlines
+flowlines["intermittent"] = flowlines.FCode.isin([46003, 46007])
 
 # add upstream / downstream points
 flowlines["nhd_upstream_pt"] = shapely.get_point(flowlines.geometry.values, 0)
@@ -147,25 +148,21 @@ flowlines["canal"] = (flowlines.FType == 336) | (
 )
 canal_ids = flowlines.loc[flowlines.canal].index.values
 
-keep_line_ids = flowlines.loc[flowlines.NHDPlusID.isin(keep_nhd_ids)].index.unique()
-
 
 joins = read_arrow_tables(
     [nhd_dir / huc2 / "flowline_joins.feather" for huc2 in huc2s],
-    columns=["upstream_id", "downstream_id", "loop"],
+    columns=["upstream", "downstream", "loop"],
 ).to_pandas()
 joins = joins.loc[
-    joins.upstream_id.isin(flowlines.index.values)
-    | joins.downstream_id.isin(flowlines.index.values)
+    joins.upstream.isin(flowlines.index.values)
+    | joins.downstream.isin(flowlines.index.values)
 ].reset_index(drop=True)
 
 # create a linear graph facing downstream
 # NOTE: this can't handle loops
-tmp = joins.loc[
-    (joins.upstream_id != 0) & (joins.downstream_id != 0) & (~joins.loop)
-].copy()
+tmp = joins.loc[(joins.upstream != 0) & (joins.downstream != 0) & (~joins.loop)].copy()
 downstream_graph = LinearDirectedGraph(
-    tmp.upstream_id.values.astype("int64"), tmp.downstream_id.values.astype("int64")
+    tmp.upstream.values.astype("int64"), tmp.downstream.values.astype("int64")
 )
 
 
@@ -187,7 +184,7 @@ left, right = shapely.STRtree(flowlines.geometry.values).query(
 pairs = (
     pd.DataFrame(
         {
-            "lineID": flowlines.index.values.take(right),
+            "NHDPlusID": flowlines.index.values.take(right),
             "ReachCode": df.index.values.take(left),
         }
     )
@@ -198,13 +195,12 @@ pairs = (
                 "length",
                 "canal",
                 "loop",
-                "waterbody",
                 "intermittent",
                 "nhd_upstream_pt",
                 "nhd_downstream_pt",
             ]
         ].rename(columns={"geometry": "nhd_line"}),
-        on="lineID",
+        on="NHDPlusID",
     )
     .join(
         df[["geometry", "buf"]].rename(
@@ -219,7 +215,7 @@ pairs["downstream_dist"] = shapely.distance(
     pairs.nhd_downstream_pt, pairs.spp_line.values
 )
 
-tmp = pairs.groupby("lineID").agg(
+tmp = pairs.groupby("NHDPlusID").agg(
     {
         "upstream_dist": "min",
         "downstream_dist": "min",
@@ -258,7 +254,7 @@ keep_line_ids = np.unique(
     )
 )
 pairs = pairs.loc[
-    ~pairs.lineID.isin(np.unique(np.concatenate([keep_line_ids, drop_ids])))
+    ~pairs.NHDPlusID.isin(np.unique(np.concatenate([keep_line_ids, drop_ids])))
 ].copy()
 print(
     f"keeping {len(keep_ids):,} NHD lines with endpoints that completely overlap habitat"
@@ -272,18 +268,18 @@ pairs["overlap"] = shapely.length(
 )
 pairs["overlap_ratio"] = pairs.overlap / pairs["length"]
 
-# DEBUG:
-pairs[
-    ["lineID", "loop", "canal", "waterbody", "length", "overlap", "overlap_ratio"]
-].reset_index(drop=True).to_feather(
-    "/tmp/south_atlantic_anadromous_habitat_pairs.feather"
-)
+# # DEBUG:
+# pairs[
+#     ["NHDPlusID", "loop", "canal","length", "overlap", "overlap_ratio"]
+# ].reset_index(drop=True).to_feather(
+#     "/tmp/south_atlantic_anadromous_habitat_pairs.feather"
+# )
 
 
 # keep any where there is a high degree of overlap across all habitat lines
 # unless they overlap multiple species groups
-total_overlap = pairs.groupby("lineID").agg(
-    {"overlap": "sum", "length": "first", "canal": "first", "waterbody": "first"}
+total_overlap = pairs.groupby("NHDPlusID").agg(
+    {"overlap": "sum", "length": "first", "canal": "first"}
 )
 total_overlap["overlap_ratio"] = total_overlap.overlap / total_overlap.length
 
@@ -317,9 +313,9 @@ potential_fragments = pd.Series(
 for i in range(10):
     potential_keep = np.unique(np.concatenate([keep_line_ids, keep_ids]))
     keep_fragments = joins.loc[
-        joins.downstream_id.isin(potential_fragments.values)
-        & joins.upstream_id.isin(potential_keep)
-    ].downstream_id.unique()
+        joins.downstream.isin(potential_fragments.values)
+        & joins.upstream.isin(potential_keep)
+    ].downstream.unique()
     drop_fragments = potential_fragments.loc[
         ~potential_fragments.isin(keep_fragments)
     ].values
@@ -333,7 +329,7 @@ for i in range(10):
 
 keep_line_ids = np.unique(np.concatenate([keep_line_ids, keep_ids]))
 pairs = pairs.loc[
-    ~(pairs.lineID.isin(np.unique(np.concatenate([keep_line_ids, drop_ids]))))
+    ~(pairs.NHDPlusID.isin(np.unique(np.concatenate([keep_line_ids, drop_ids]))))
 ].reset_index()
 print(f"keeping {len(keep_ids):,} NHD lines that mostly overlap habitat")
 
@@ -356,21 +352,21 @@ write_dataframe(
 # in order to find linear networks downstream of downstreams that terminate at
 # any of the upstream points
 # do not traverse downstream of any canals; these are questionable
-# have to group by upstream_id because it may have multiple downstreams
+# have to group by upstream because it may have multiple downstreams
 # exclude loops
 tmp = joins.loc[
-    joins.upstream_id.isin(keep_line_ids)
-    & (~joins.upstream_id.isin(canal_ids))
+    joins.upstream.isin(keep_line_ids)
+    & (~joins.upstream.isin(canal_ids))
     & (~joins.loop)
 ].copy()
-tmp["has_downstream"] = tmp.downstream_id.isin(keep_line_ids)
-has_downstream = tmp.groupby("upstream_id").has_downstream.max()
+tmp["has_downstream"] = tmp.downstream.isin(keep_line_ids)
+has_downstream = tmp.groupby("upstream").has_downstream.max()
 downstreams = has_downstream.loc[~has_downstream].index.unique().values.astype("int64")
 upstreams = (
     joins.loc[
-        joins.downstream_id.isin(keep_line_ids) & ~joins.upstream_id.isin(keep_line_ids)
+        joins.downstream.isin(keep_line_ids) & ~joins.upstream.isin(keep_line_ids)
     ]
-    .upstream_id.unique()
+    .upstream.unique()
     .astype("int64")
 )
 
@@ -381,16 +377,18 @@ paths = downstream_graph.extract_paths(
     upstreams,
     max_depth=100,
 )
-paths = pd.DataFrame({"path": range(len(paths)), "lineID": paths})
-paths = paths.loc[paths.lineID.apply(len) > 0].explode(column="lineID")
+paths = pd.DataFrame({"path": range(len(paths)), "NHDPlusID": paths})
+paths = paths.loc[paths.NHDPlusID.apply(len) > 0].explode(column="NHDPlusID")
 
 # drop any paths that pass through canals; these cause issues
-drop_paths = paths.loc[paths.lineID.isin(canal_ids)].path.unique()
+drop_paths = paths.loc[paths.NHDPlusID.isin(canal_ids)].path.unique()
 paths = paths.loc[~paths.path.isin(drop_paths)].copy()
 
-# merge paths that have overlapping lineIDs
+# merge paths that have overlapping NHDPlusIDs
 tmp = (
-    paths.join(paths.groupby("lineID").path.unique().rename("other_path"), on="lineID")
+    paths.join(
+        paths.groupby("NHDPlusID").path.unique().rename("other_path"), on="NHDPlusID"
+    )
     .explode(column="other_path")[["path", "other_path"]]
     .drop_duplicates()
 )
@@ -407,11 +405,11 @@ groups = (
 )
 paths = (
     paths.join(groups, on="path")
-    .groupby(["group", "lineID"])[[]]
+    .groupby(["group", "NHDPlusID"])[[]]
     .first()
     .reset_index()
     .rename(columns={"group": "path"})
-    .join(flowlines[["geometry", "length"]], on="lineID")
+    .join(flowlines[["geometry", "length"]], on="NHDPlusID")
 )
 
 # Limit these to ones with >= 50% overlap with a OUTER_OVERLAP_TOLERANCE buffer
@@ -463,22 +461,22 @@ path_pairs["overlap_ratio"] = (
 # we can use low overlap because the downstream lines are lower resolution
 # but generally we are tracing the right general direction
 keep_paths = path_pairs.overlap_ratio.loc[path_pairs.overlap_ratio >= 0.1].index
-keep_ids = paths.loc[paths.path.isin(keep_paths)].lineID.unique()
+keep_ids = paths.loc[paths.path.isin(keep_paths)].NHDPlusID.unique()
 print(
     f"adding {len(keep_ids):,} filler lines between disconnected upstream and downstream habitat"
 )
 
 keep_line_ids = np.unique(np.concatenate([keep_line_ids, keep_ids]))
 
-flowlines["south_atlantic_anadromous"] = flowlines.index.isin(keep_line_ids)
+flowlines["south_atlantic_anadromous_habitat"] = flowlines.index.isin(keep_line_ids)
 
 print(
     f"species habitat: {shapely.length(df.geometry.values).sum() / 1000:,.1f} km; "
-    f"extracted {flowlines.loc[flowlines.south_atlantic_anadromous, ['length']].values.sum() / 1000:,.1f} km from NHD"
+    f"extracted {flowlines.loc[flowlines.south_atlantic_anadromous_habitat, ['length']].values.sum() / 1000:,.1f} km from NHD"
 )
 
-out = flowlines.loc[flowlines.south_atlantic_anadromous].reset_index()
+out = flowlines.loc[flowlines.south_atlantic_anadromous_habitat].reset_index()
 write_dataframe(out, out_dir / "south_atlantic_anadromous_habitat.fgb")
-out[["lineID", "NHDPlusID", "south_atlantic_anadromous"]].reset_index().to_feather(
+out[["NHDPlusID", "HUC2", "south_atlantic_anadromous_habitat"]].to_feather(
     out_dir / "south_atlantic_anadromous_habitat.feather"
 )

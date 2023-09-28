@@ -21,6 +21,9 @@ Data are processed using `analysis/prep/species/calculate_spp_stats.py`.
 
 ## Species habitat data
 
+IMPORTANT: species habitat data are assigned to "cleaned" NHD flowlines output
+by `analysis/prep/network/prepare_flowlines_waterbodies.py`.
+
 ### Eastern Brook Trout
 
 Eastern Brook Trout potential distribution data were compiled by Trout Unlimited
@@ -73,3 +76,11 @@ and potential habitat, but not historic habitat.
 
 These data were prepared and associated with NHD flowlines using
 `analysis/prep/species/prep_chesapeake_species_habitat.py`.
+
+### Combined Species Habitat
+
+The datasets above are combined together using
+`analysis/prep/species/aggregate_species_habitat.py`. This merges eastern
+brook trout to include the brook trout data from the Chesapeake dataset, and
+contains a boolean column per species and group (e.g., anadromous species from
+streamnet).

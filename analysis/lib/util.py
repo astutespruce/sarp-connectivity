@@ -97,3 +97,7 @@ def get_signed_dtype(dtype):
         return f"int{bits}"
 
     return dtype
+
+
+def snake_to_title_case(text):
+    return text.title().replace("_", "")

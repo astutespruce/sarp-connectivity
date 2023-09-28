@@ -58,7 +58,7 @@ keep_species = [
     "Chum salmon",
     "Coastal cutthroat trout",
     "Coho salmon",
-    "Cutthroat trout",
+    # "Cutthroat trout",  # duplicates linework of subspecies, don't use
     "Green sturgeon",
     "Kokanee",
     "Pacific lamprey",
@@ -198,7 +198,6 @@ flowlines = read_arrow_tables(
     [nhd_dir / huc2 / "flowlines.feather" for huc2 in huc2s],
     columns=[
         "geometry",
-        "lineID",
         "NHDPlusID",
         "GNIS_Name",
         "HUC4",
@@ -217,7 +216,7 @@ flowlines = gp.GeoDataFrame(
     ).to_pandas(),
     geometry=shapely.from_wkb(flowlines.column("geometry")),
     crs=CRS,
-).set_index("lineID")
+).set_index("NHDPlusID")
 
 # mark canals; these require higher confidence of overlap since they may spatially
 # interact with habitat but not functionally
@@ -227,7 +226,7 @@ flowlines["canal"] = (flowlines.FType == 336) | (
 )
 
 # set anadromous status to False to start
-flowlines["anadromous"] = False
+flowlines["streamnet_anadromous_habitat"] = False
 
 # add upstream / downstream points
 flowlines["nhd_upstream_pt"] = shapely.get_point(flowlines.geometry.values, 0)
@@ -283,6 +282,13 @@ for unit in units:
             )[0]
         )
     )
+
+    exclude_huc4s = []
+    if unit == "Yellowstone cutthroat trout":
+        # this includes what appear to be erroneous isolated segments in a
+        # HUC4 well removed from core habitat
+        spp_huc4s = [huc4 for huc4 in spp_huc4s if huc4 != "1701"]
+
     spp_flowlines = flowlines.loc[flowlines.HUC4.isin(spp_huc4s)]
 
     # extract flowlines within SELECTION_TOLERANCE of habitat lines
@@ -293,7 +299,7 @@ for unit in units:
     pairs = (
         pd.DataFrame(
             {
-                "lineID": spp_flowlines.index.values.take(right),
+                "NHDPlusID": spp_flowlines.index.values.take(right),
                 "spp_line_id": spp_df.id.values.take(left),
             }
         )
@@ -308,7 +314,7 @@ for unit in units:
                     "nhd_downstream_pt",
                 ]
             ].rename(columns={"geometry": "nhd_line"}),
-            on="lineID",
+            on="NHDPlusID",
         )
         .join(
             spp_df[["geometry", "group", "buf"]].rename(
@@ -319,13 +325,13 @@ for unit in units:
     )
 
     spp_groups = (
-        pairs.groupby("lineID")
+        pairs.groupby("NHDPlusID")
         .spp_group.agg(["first", lambda x: len(set(x))])
         .reset_index()
     )
-    spp_groups.columns = ["lineID", "spp_group", "group_count"]
+    spp_groups.columns = ["NHDPlusID", "spp_group", "group_count"]
 
-    canal_ids = pairs.loc[pairs.canal].lineID.unique()
+    canal_ids = pairs.loc[pairs.canal].NHDPlusID.unique()
 
     # keep any NHD flowlines where both endpoints are in habitat and discard from
     # further processing
@@ -336,7 +342,7 @@ for unit in units:
         pairs.nhd_downstream_pt, pairs.spp_line.values, ENDPOINT_TOLERANCE
     )
 
-    tmp = pairs.groupby("lineID").agg(
+    tmp = pairs.groupby("NHDPlusID").agg(
         {
             "has_upstream": "max",
             "has_downstream": "max",
@@ -351,10 +357,14 @@ for unit in units:
         tmp.has_upstream
         & tmp.has_downstream
         & (~tmp.canal)
-        & (~tmp.index.isin(spp_groups.loc[spp_groups.group_count > 1].lineID.unique()))
+        & (
+            ~tmp.index.isin(
+                spp_groups.loc[spp_groups.group_count > 1].NHDPlusID.unique()
+            )
+        )
         & (~tmp.loop)
     ].index.unique()
-    pairs = pairs.loc[~pairs.lineID.isin(keep_line_ids)].copy()
+    pairs = pairs.loc[~pairs.NHDPlusID.isin(keep_line_ids)].copy()
     print(
         f"keeping {len(keep_line_ids):,} NHD lines with endpoints that completely overlap habitat"
     )
@@ -367,13 +377,13 @@ for unit in units:
     pairs["overlap_ratio"] = pairs.overlap / pairs["length"]
 
     # DEBUG:
-    # pairs[["lineID", "spp_line_id", "length", "overlap", "overlap_ratio"]].reset_index(
+    # pairs[["NHDPlusID", "spp_line_id", "length", "overlap", "overlap_ratio"]].reset_index(
     #     drop=True
     # ).to_feather(f"/tmp/{unit}_pairs.feather")
 
     # keep any where there is a high degree of overlap across all habitat lines
     # unless they overlap multiple species groups
-    total_overlap = pairs.groupby("lineID").agg(
+    total_overlap = pairs.groupby("NHDPlusID").agg(
         {"overlap": "sum", "length": "first", "canal": "first"}
     )
     total_overlap["overlap_ratio"] = total_overlap.overlap / total_overlap.length
@@ -384,7 +394,7 @@ for unit in units:
                 total_overlap.loc[total_overlap.overlap < MIN_LINE_LENGTH]
                 .index.unique()
                 .values,
-                spp_groups.loc[spp_groups.group_count > 1].lineID.values,
+                spp_groups.loc[spp_groups.group_count > 1].NHDPlusID.values,
             ]
         )
     )
@@ -430,19 +440,20 @@ for unit in units:
 
     keep_line_ids = np.unique(np.concatenate([keep_line_ids, keep_ids]))
     pairs = pairs.loc[
-        ~(pairs.lineID.isin(np.unique(np.concatenate([keep_line_ids, drop_ids]))))
+        ~(pairs.NHDPlusID.isin(np.unique(np.concatenate([keep_line_ids, drop_ids]))))
     ].reset_index()
     print(f"keeping {len(keep_ids):,} NHD lines that mostly overlap habitat")
 
     # update species groups
     tmp = (
-        pairs.groupby("lineID")
+        pairs.groupby("NHDPlusID")
         .spp_group.agg(["first", lambda x: len(set(x))])
         .reset_index()
     )
-    tmp.columns = ["lineID", "spp_group", "group_count"]
+    tmp.columns = ["NHDPlusID", "spp_group", "group_count"]
     spp_groups = pd.concat(
-        [spp_groups.loc[spp_groups.lineID.isin(keep_line_ids)], tmp], ignore_index=True
+        [spp_groups.loc[spp_groups.NHDPlusID.isin(keep_line_ids)], tmp],
+        ignore_index=True,
     )
 
     # DEBUG:
@@ -489,18 +500,18 @@ for unit in units:
             upstreams,
             max_depth=100,
         )
-        paths = pd.DataFrame({"path": range(len(paths)), "lineID": paths})
-        paths = paths.loc[paths.lineID.apply(len) > 0].explode(column="lineID")
+        paths = pd.DataFrame({"path": range(len(paths)), "NHDPlusID": paths})
+        paths = paths.loc[paths.NHDPlusID.apply(len) > 0].explode(column="NHDPlusID")
 
         # drop any where a given flowline has multiple species groups; these are problematic
         # then join in the group associated with the flowline
         # also drop any where the path goes through canals; these are also questionable
         drop_ids = paths.loc[
-            paths.lineID.isin(
+            paths.NHDPlusID.isin(
                 np.unique(
                     np.concatenate(
                         [
-                            spp_groups.loc[spp_groups.group_count > 1].lineID.values,
+                            spp_groups.loc[spp_groups.group_count > 1].NHDPlusID.values,
                             canal_ids,
                         ]
                     )
@@ -511,32 +522,35 @@ for unit in units:
 
         # drop any where either of the path endpoints has multiple groups; keep the rest
         # and remove them from further analysis
-        starts = pd.DataFrame({"path": range(len(downstreams)), "lineID": downstreams})
+        starts = pd.DataFrame(
+            {"path": range(len(downstreams)), "NHDPlusID": downstreams}
+        )
         starts = starts.loc[starts.path.isin(paths.path.unique())]
-        ends = paths.groupby("path")[["lineID"]].last().reset_index()
+        ends = paths.groupby("path")[["NHDPlusID"]].last().reset_index()
         ends = (
             ends.join(
-                joins.loc[joins.upstream_id.isin(ends.lineID)]
+                joins.loc[joins.upstream_id.isin(ends.NHDPlusID)]
                 .set_index("upstream_id")
                 .downstream_id,
-                on="lineID",
+                on="NHDPlusID",
             )
-            .drop(columns=["lineID"])
-            .rename(columns={"downstream_id": "lineID"})
+            .drop(columns=["NHDPlusID"])
+            .rename(columns={"downstream_id": "NHDPlusID"})
         )
         path_endpoints = (
             pd.concat([starts, ends], ignore_index=True)
-            .join(spp_groups.set_index("lineID").spp_group, on="lineID")
+            .join(spp_groups.set_index("NHDPlusID").spp_group, on="NHDPlusID")
             .dropna()
         )
         ix = path_endpoints.groupby("path").spp_group.unique().apply(len) > 1
         drop_ids = ix[ix].index
         paths = paths.loc[~paths.path.isin(drop_ids)]
 
-        # merge paths that have overlapping lineIDs
+        # merge paths that have overlapping NHDPlusIDs
         tmp = (
             paths.join(
-                paths.groupby("lineID").path.unique().rename("other_path"), on="lineID"
+                paths.groupby("NHDPlusID").path.unique().rename("other_path"),
+                on="NHDPlusID",
             )
             .explode(column="other_path")[["path", "other_path"]]
             .drop_duplicates()
@@ -556,11 +570,11 @@ for unit in units:
         )
         paths = (
             paths.join(groups, on="path")
-            .groupby(["group", "lineID"])[[]]
+            .groupby(["group", "NHDPlusID"])[[]]
             .first()
             .reset_index()
             .rename(columns={"group": "path"})
-            .join(flowlines[["geometry", "length"]], on="lineID")
+            .join(flowlines[["geometry", "length"]], on="NHDPlusID")
         )
 
         # Limit these to ones with >= 50% overlap with a OUTER_OVERLAP_TOLERANCE buffer
@@ -614,7 +628,7 @@ for unit in units:
                 / path_pairs.length
             )
             keep_paths = overlap_ratio.loc[overlap_ratio >= 0.5].index
-            keep_ids = paths.loc[paths.path.isin(keep_paths)].lineID.unique()
+            keep_ids = paths.loc[paths.path.isin(keep_paths)].NHDPlusID.unique()
 
             print(
                 f"adding {len(keep_ids):,} filler lines between disconnected upstream and downstream habitat"
@@ -627,12 +641,12 @@ for unit in units:
             # )
 
             keep_line_ids = np.unique(np.concatenate([keep_line_ids, keep_ids]))
-            pairs = pairs.loc[~pairs.lineID.isin(keep_ids)].copy()
+            pairs = pairs.loc[~pairs.NHDPlusID.isin(keep_ids)].copy()
 
     #########################################
     flowlines[unit] = flowlines.index.isin(keep_line_ids)
     if spp_df.anadromous.iloc[0]:
-        flowlines.loc[flowlines[unit], "anadromous"] = True
+        flowlines.loc[flowlines[unit], "streamnet_anadromous_habitat"] = True
 
     print(
         f"species habitat: {shapely.length(spp_df.geometry.values).sum() / 1000:,.1f} km; "
@@ -644,11 +658,11 @@ for unit in units:
         f"/tmp/{unit}_keep_lines.fgb",
     )
 
-
 out = flowlines.loc[
-    flowlines[units].any(axis=1), ["geometry", "NHDPlusID"] + units
+    flowlines[units].any(axis=1),
+    ["geometry", "HUC2", "streamnet_anadromous_habitat"] + units,
 ].reset_index()
-write_dataframe(out, out_dir / "streamnet_habitat_nhd.fgb")
-out[["lineID", "NHDPlusID"] + units].to_feather(
-    out_dir / "streamnet_habitat_nhd.feather"
-)
+out = out.rename(columns={c: f"{c.lower().replace(' ', '_')}_habitat" for c in units})
+
+write_dataframe(out, out_dir / "streamnet_habitat.fgb")
+out.drop(columns=["geometry"]).to_feather(out_dir / "streamnet_habitat.feather")

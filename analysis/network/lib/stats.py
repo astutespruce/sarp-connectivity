@@ -211,6 +211,7 @@ def calculate_upstream_network_stats(
     ### Collect results
     results = (
         calculate_geometry_stats(up_network_df)
+        .join(calculate_species_habitat_stats(up_network_df))
         .join(calculate_floodplain_stats(up_network_df))
         .join(sizeclasses)
         .join(fn_upstream_counts)
@@ -327,8 +328,9 @@ def calculate_geometry_stats(df):
     ).astype("float32")
     # Note: if there are no perennial miles, this should be 0
     lengths["pct_perennial_unaltered"] = 0
-    lengths.loc[lengths.perennial_miles > 0, "pct_perennial_unaltered"] = 100 * (
-        lengths.perennial_unaltered_miles / lengths.perennial_miles
+    ix = lengths.perennial_miles > 0
+    lengths.loc[ix, "pct_perennial_unaltered"] = 100 * (
+        lengths.loc[ix].perennial_unaltered_miles / lengths.loc[ix].perennial_miles
     )
     lengths["pct_perennial_unaltered"] = lengths.pct_perennial_unaltered.astype(
         "float32"
@@ -372,6 +374,53 @@ def calculate_floodplain_stats(df):
     return (100 * pct_nat_df.nat_floodplain_km2 / pct_nat_df.floodplain_km2).rename(
         "natfldpln"
     )
+
+
+def calculate_species_habitat_stats(df):
+    habitat = (
+        pa.dataset(
+            data_dir / "species/derived/combined_species_habitat.feather",
+            format="feather",
+        )
+        .to_table(filter=pc.field("HUC2").isin(df.HUC2.unique()))
+        .to_pandas()
+        .set_index("NHDPlusID")
+        .drop(columns=["HUC2"])
+    )
+    habitat_cols = habitat.columns
+
+    habitat = df[["NHDPlusID", "length", "waterbody"]].join(habitat, on="NHDPlusID")
+
+    # drop any columns not present in this set of HUC2s
+    habitat_cols = habitat_cols[habitat[habitat_cols].max()].to_list()
+    if len(habitat_cols) == 0:
+        return pd.DataFrame([], index=df.index.values)
+
+    out = None
+    for col in habitat_cols:
+        habitat[col] = habitat[col].fillna(False)
+        total_miles = (
+            habitat.loc[habitat[col], "length"]
+            .groupby(level=0)
+            .sum()
+            .rename(f"{col}_miles")
+            * METERS_TO_MILES
+        )
+        free_miles = (
+            habitat.loc[habitat[col] & (~habitat.waterbody), "length"]
+            .groupby(level=0)
+            .sum()
+            .rename(f"free_{col}_miles")
+            * METERS_TO_MILES
+        )
+        habitat_miles = pd.DataFrame(total_miles).join(free_miles)
+
+        if out is None:
+            out = habitat_miles
+        else:
+            out = out.join(habitat_miles)
+
+    return pd.DataFrame([], index=np.unique(df.index.values)).join(out).fillna(0)
 
 
 def calculate_downstream_stats(
