@@ -146,8 +146,12 @@ async def search_barriers(request: Request, query: str):
     else:
         # replace spaces with regex that allows any whitespace or intermediate words
         # make sure to search whole words, but can be stem of following due to type-ahead
-        filter = query.replace(",", "").replace(" ", "(((\s)+(\s|\S|\d)*)|(\s))+")
-        filter = f"(^|\s){filter}"
+        filter = (
+            re.escape(query)
+            .replace(",", "")
+            .replace("\\ ", r"(((\s)+(\s|\S|\d)*)|(\s))+")
+        )
+        filter = rf"(^|\s){filter}"
 
         matches = combined_barriers.to_table(
             filter=pc.match_substring_regex(
