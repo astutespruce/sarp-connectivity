@@ -947,15 +947,16 @@ export const SMALL_BARRIER_SEVERITY_FILTER_BINS = {
   1: 'complete barrier',
   2: 'moderate barrier',
   3: 'indeterminate barrier',
-  5: 'likely barrier',
-  6: 'barrier with unknown severity',
+  6: 'likely barrier',
+  7: 'barrier with unknown severity',
 }
 export const SMALL_BARRIER_SEVERITY = {
   0: 'unknown',
   ...SMALL_BARRIER_SEVERITY_FILTER_BINS,
   4: 'minor barrier',
-  7: 'no barrier',
-  8: 'no upstream habitat',
+  5: 'insignificant barrier',
+  8: 'no barrier',
+  9: 'no upstream habitat',
 }
 
 export const LOWHEAD_DAM = {

@@ -73,6 +73,7 @@ const BarrierDetails = ({
   landcover,
   link,
   milestooutlet,
+  nearestcrossingid,
   onloop,
   ownertype,
   passagefacility,
@@ -279,7 +280,12 @@ const BarrierDetails = ({
     </Section>
 
     <Section title="Other information">
-      <IDInfo sarpid={sarpid} source={source} link={link} />
+      <IDInfo
+        sarpid={sarpid}
+        source={source}
+        link={link}
+        nearestcrossingid={nearestcrossingid}
+      />
     </Section>
   </Box>
 )
@@ -312,6 +318,7 @@ BarrierDetails.propTypes = {
   landcover: PropTypes.number,
   link: PropTypes.string,
   milestooutlet: PropTypes.number,
+  nearestcrossingid: PropTypes.string,
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
   passagefacility: PropTypes.number,
@@ -322,7 +329,6 @@ BarrierDetails.propTypes = {
   roadtype: PropTypes.number,
   salmonidesu: PropTypes.string,
   sarp_score: PropTypes.number,
-
   sizeclasses: PropTypes.number,
   snapped: PropTypes.bool,
   source: PropTypes.string,
@@ -367,6 +373,7 @@ BarrierDetails.defaultProps = {
   landcover: null,
   link: null,
   milestooutlet: 0,
+  nearestcrossingid: null,
   onloop: false,
   ownertype: null,
   passagefacility: null,

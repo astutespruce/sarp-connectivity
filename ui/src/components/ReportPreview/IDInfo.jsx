@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Heading } from 'theme-ui'
+import { Box, Heading, Text } from 'theme-ui'
 
 import { siteMetadata } from 'config'
 import { OutboundLink } from 'components/Link'
@@ -9,7 +9,7 @@ import { Entry } from './elements'
 
 const { version: dataVersion } = siteMetadata
 
-const IDInfo = ({ sarpid, nidid, source, link, sx }) => {
+const IDInfo = ({ sarpid, nidid, source, link, nearestcrossingid, sx }) => {
   const fromWDFW = source && source.startsWith('WDFW')
   const fromODFW = source && source.startsWith('ODFW')
 
@@ -27,6 +27,19 @@ const IDInfo = ({ sarpid, nidid, source, link, sx }) => {
         {!isEmptyString(link) ? (
           <Entry>
             More information: <OutboundLink to={link}>{link}</OutboundLink>
+          </Entry>
+        ) : null}
+
+        {!isEmptyString(nearestcrossingid) ? (
+          <Entry>
+            USGS Database of Stream Crossings ID:{' '}
+            {nearestcrossingid.replace('cr', '')}
+            <Text sx={{ fontSize: 0, color: 'grey.7', mt: '0.5rem' }}>
+              Note: this crossing is close to the location of this barrier, but
+              it may not represent exactly the same barrier that was inventoried
+              due to methods used to snap barriers and crossings to the aquatic
+              network.
+            </Text>
           </Entry>
         ) : null}
       </Box>
@@ -61,6 +74,7 @@ IDInfo.propTypes = {
   nidid: PropTypes.string,
   source: PropTypes.string,
   link: PropTypes.string,
+  nearestcrossingid: PropTypes.string,
   sx: PropTypes.object,
 }
 
@@ -68,6 +82,7 @@ IDInfo.defaultProps = {
   nidid: null,
   source: null,
   link: null,
+  nearestcrossingid: null,
   sx: null,
 }
 

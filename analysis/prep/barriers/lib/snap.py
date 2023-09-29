@@ -691,11 +691,7 @@ def snap_to_flowlines(
 
         to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
 
-        print(
-            "{:,} barriers snapped in region in {:.2f}s".format(
-                len(ix), time() - region_start
-            )
-        )
+        print(f"{len(ix):,} barriers snapped in region in {time() - region_start:.2f}s")
 
     return df, to_snap
 

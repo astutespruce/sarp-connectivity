@@ -727,10 +727,11 @@ BARRIER_SEVERITY_DOMAIN = {
     2: "Moderate barrier",
     3: "Indeterminate barrier",
     4: "Minor barrier",
-    5: "Likely barrier",
-    6: "Barrier - unknown severity",
-    7: "No barrier",
-    8: "No upstream habitat",
+    5: "Insignificant barrier",
+    6: "Likely barrier",
+    7: "Barrier - unknown severity",
+    8: "No barrier",
+    9: "No upstream habitat",
 }
 
 PASSABILITY_DOMAIN = {

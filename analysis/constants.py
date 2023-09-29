@@ -572,22 +572,22 @@ POTENTIALPROJECT_TO_SEVERITY = {
     "unknown": 0,
     "inaccessible": 0,
     "indeterminate": 3,
-    "insignificant barrier": 4,
+    "insignificant barrier": 5,
     "minor barrier": 4,  # remove from processing except for darter scenario
     "moderate barrier": 2,
-    "no barrier": 7,  # removed from processing
-    "no crossing": 7,
-    "no upstream channel": 8,
-    "no upstream habitat": 8,
-    "buried stream": 7,
+    "no barrier": 8,  # removed from processing
+    "no crossing": 8,
+    "no upstream channel": 9,
+    "no upstream habitat": 9,
+    "buried stream": 8,
     "not scored": 0,
-    "no": 7,
+    "no": 8,
     "unassessed": 0,
     "completed project": 0,  # removed from processing
     "past project": 0,  # removed from processing
     # Potential / proposed project both get assigned as likely barrier if SARP_Score != -1
-    "potential project": 6,
-    "proposed project": 6,
+    "potential project": 7,
+    "proposed project": 7,
     "severe barrier": 1,
     "significant barrier": 1,
     "small project": 0,
@@ -606,8 +606,9 @@ SEVERITY_TO_PASSABILITY = {
     4: 2,
     5: 2,
     6: 2,
-    7: 7,
-    8: 0,
+    7: 2,
+    8: 7,
+    9: 0,
 }
 
 

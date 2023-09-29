@@ -6,7 +6,7 @@ import { ExternalLink, OutboundLink } from 'components/Link'
 import { Entry, Field } from 'components/Sidebar'
 import { isEmptyString } from 'util/string'
 
-const IDInfo = ({ sarpid, nidid, source, link }) => {
+const IDInfo = ({ sarpid, nidid, source, link, nearestcrossingid }) => {
   const fromWDFW = source && source.startsWith('WDFW')
   const fromODFW = source && source.startsWith('ODFW')
 
@@ -67,6 +67,20 @@ const IDInfo = ({ sarpid, nidid, source, link }) => {
           .
         </Entry>
       ) : null}
+
+      {!isEmptyString(nearestcrossingid) ? (
+        <Entry>
+          <Field label="USGS Database of Stream Crossings ID">
+            {nearestcrossingid.replace('cr', '')}
+          </Field>
+          <Text sx={{ fontSize: 0, color: 'grey.7', mt: '0.5rem' }}>
+            Note: this crossing is close to the location of this barrier, but it
+            may not represent exactly the same barrier that was inventoried due
+            to methods used to snap barriers and crossings to the aquatic
+            network.
+          </Text>
+        </Entry>
+      ) : null}
     </>
   )
 }
@@ -76,6 +90,7 @@ IDInfo.propTypes = {
   nidid: PropTypes.string,
   source: PropTypes.string,
   link: PropTypes.string,
+  nearestcrossingid: PropTypes.string,
 }
 
 IDInfo.defaultProps = {
@@ -83,6 +98,7 @@ IDInfo.defaultProps = {
   nidid: null,
   source: null,
   link: null,
+  nearestcrossingid: null,
 }
 
 export default IDInfo

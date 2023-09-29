@@ -9,7 +9,14 @@ import { Link, Entry, Entries, Section } from './elements'
 
 const { version: dataVersion } = siteMetadata
 
-const IDInfo = ({ sarpid, nidid, source, link, ...props }) => {
+const IDInfo = ({
+  sarpid,
+  nidid,
+  source,
+  link,
+  nearestcrossingid,
+  ...props
+}) => {
   const fromWDFW = source && source.startsWith('WDFW')
   const fromODFW = source && source.startsWith('ODFW')
 
@@ -37,6 +44,21 @@ const IDInfo = ({ sarpid, nidid, source, link, ...props }) => {
             <Link href={link}>
               <Text>{link}</Text>
             </Link>
+          </Entry>
+        ) : null}
+
+        {!isEmptyString(nearestcrossingid) ? (
+          <Entry>
+            <Text>
+              USGS Database of Stream Crossings ID:{' '}
+              {nearestcrossingid.replace('cr', '')}
+            </Text>
+            <Text style={{ color: '#7f8a93', marginTop: 6, fontSize: 10 }}>
+              Note: this crossing is close to the location of this barrier, but
+              it may not represent exactly the same barrier that was inventoried
+              due to methods used to snap barriers and crossings to the aquatic
+              network.
+            </Text>
           </Entry>
         ) : null}
       </Entries>
@@ -71,12 +93,14 @@ IDInfo.propTypes = {
   nidid: PropTypes.string,
   source: PropTypes.string,
   link: PropTypes.string,
+  nearestcrossingid: PropTypes.string,
 }
 
 IDInfo.defaultProps = {
   nidid: null,
   source: null,
   link: null,
+  nearestcrossingid: null,
 }
 
 export default IDInfo

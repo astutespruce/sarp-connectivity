@@ -2,7 +2,7 @@
 Extract road-related barriers from original data source, process for use in network analysis, and convert to feather format.
 1. Cleanup data values (as needed)
 2. Filter out barriers not to be included in analysis (based on Potential_Project and ManualReview)
-3. Snap to flowlines
+3. Snap to USGS road crossings and flowlines
 4. Remove duplicate barriers
 5. Remove barriers that duplicate dams
 6. Mark barriers that co-occur with waterfalls (waterfalls have higher precedence)
@@ -77,7 +77,6 @@ SNAP_TOLERANCE = {
     "bat survey": 100,
 }
 
-
 DUPLICATE_TOLERANCE = 10  # meters
 
 
@@ -95,16 +94,36 @@ start = time()
 
 print("Reading data")
 df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
+df["NearestCrossingID"] = ""
 print(f"Read {len(df):,} small barriers")
 
 crossings = gp.read_feather(src_dir / "road_crossings.feather").set_index(
     "id", drop=False
 )
+crossings["NearestBarrierID"] = ""
 print(f"Read {len(crossings):,} road crossings")
 
 # only cross-check against dams / waterfalls that break networks
 dams = gp.read_feather(snapped_dir / "dams.feather", columns=["geometry"])
 waterfalls = gp.read_feather(snapped_dir / "waterfalls.feather", columns=["geometry"])
+
+
+# remove road crossings that are too close to dams or waterfalls
+tree = shapely.STRtree(crossings.geometry.values.data)
+right = tree.query(
+    dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+)[1]
+dam_ix = crossings.index.values.take(np.unique(right))
+right = tree.query(
+    waterfalls.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+)[1]
+wf_ix = crossings.index.values.take(np.unique(right))
+drop_ix = np.unique(np.concatenate([dam_ix, wf_ix]))
+crossings = crossings.loc[~crossings.index.isin(drop_ix)].copy()
+print(
+    f"Found {len(dam_ix):,} road crossings within {DUPLICATE_TOLERANCE}m of dams"
+    f" and {len(wf_ix):,} within {DUPLICATE_TOLERANCE}m of waterfalls"
+)
 
 
 ### Make sure there are not duplicates
@@ -133,9 +152,7 @@ df = df.set_index("id", drop=False)
 ######### Fix data issues
 df["ManualReview"] = df.ManualReview.fillna(0).astype("uint8")
 df["Recon"] = df.Recon.fillna(0).astype("uint8")
-
 df["SARP_Score"] = df.SARP_Score.fillna(-1).astype("float32")
-
 
 # fix casing issues of PotentialProject
 df["PotentialProject"] = (
@@ -188,11 +205,9 @@ df["RoadType"] = df.RoadType.fillna("").apply(
     lambda x: f"{x[0].upper()}{x[1:]}" if x else x
 )
 
-
 df["YearRemoved"] = df.YearRemoved.fillna(0).astype("uint16")
 
 #########  Fill NaN fields and set data types
-
 for column in ["CrossingCode", "LocalID", "Source", "Link"]:
     df[column] = df[column].fillna("").str.strip()
 
@@ -203,7 +218,6 @@ for column in ["PassageFacility"]:
     df[column] = df[column].fillna(0).astype("uint8")
 
 ### Convert to domain values
-
 # Recode BarrierOwnerType
 df.BarrierOwnerType = (
     df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
@@ -219,7 +233,7 @@ df.loc[
     df.PotentialProject.isin(["Potential Project", "Proposed Project"])
     & (df.SARP_Score != -1),
     "BarrierSeverity",
-] = 5
+] = 6
 
 
 # Calculate PassageFacility class
@@ -276,7 +290,7 @@ df["unranked"] = False  # includes invasive and barriers with no upstream
 df["removed"] = False
 
 # nobarrier: barriers that have been assessed and determined not to be a barrier
-df["nobarrier"] = df.BarrierSeverity == 7
+df["nobarrier"] = df.BarrierSeverity == 8
 
 # invasive: records that are also unranked, but we want to track specfically as invasive for mapping
 df["invasive"] = False
@@ -366,6 +380,7 @@ print(
 
 ### Snap barriers
 print(f"Snapping {len(df):,} small barriers")
+snap_start = time()
 
 df["snapped"] = False
 df["snap_log"] = "not snapped"
@@ -400,9 +415,56 @@ for field, values in exclude_snap_fields.items():
 
 to_snap = df.loc[~exclude_snap_ix].copy()
 
+# Snap to nearest crossing (all of which are already snapped to flowlines)
+tree = shapely.STRtree(crossings.geometry.values)
+for tolerance in to_snap.snap_tolerance.unique():
+    tmp = to_snap.loc[to_snap.snap_tolerance == tolerance]
+    (left, right), distance = tree.query_nearest(
+        tmp.geometry.values,
+        max_distance=tolerance,
+        return_distance=True,
+        all_matches=False,
+    )
+
+    matches = pd.DataFrame(
+        {
+            "crossing_id": crossings.index.values.take(right),
+            "crossing_SARPID": crossings.SARPID.values.take(right),
+            "geometry": crossings.geometry.values.take(right),
+            "lineID": crossings.lineID.values.take(right),
+            "barrier_SARPID": tmp.SARPID.values.take(left),
+            "snap_dist": distance,
+        },
+        index=tmp.index.values.take(left),
+    )
+    if len(matches) == 0:
+        continue
+
+    ix = matches.index
+    df.loc[ix, "snapped"] = True
+    df.loc[ix, "geometry"] = matches.geometry.values
+    df.loc[ix, "snap_dist"] = matches.snap_dist.values
+    df.loc[ix, "lineID"] = matches.lineID.values
+    df.loc[
+        ix, "snap_log"
+    ] = f"snapped: within {tolerance}m tolerance of snapped USGS road crossing"
+    df.loc[ix, "NearestCrossingID"] = matches.crossing_SARPID.values
+
+    to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
+
+    print(f"{len(ix):,} barriers snapped to USGS road crossings within {tolerance}m")
+
+    # mark the crossing by the closest of any snapped barriers
+    nearest_barriers = (
+        matches.sort_values(by=["crossing_id", "snap_dist"])
+        .groupby("crossing_id")
+        .barrier_SARPID.first()
+    )
+    ix = nearest_barriers.index
+    crossings.loc[ix, "NearestBarrierID"] = nearest_barriers.values
+
 
 # Snap to flowlines
-snap_start = time()
 df, to_snap = snap_to_flowlines(df, to_snap)
 
 print(f"Snapped {df.snapped.sum():,} small barriers in {time() - snap_start:.2f}s")
@@ -575,57 +637,20 @@ print(df.groupby("loop").size())
 ################################################################################
 print("-----------------")
 
-# remove road crossings that are too close to dams or waterfalls
-tree = shapely.STRtree(crossings.geometry.values.data)
-right = tree.query(
-    dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
-)[1]
-dam_ix = crossings.index.values.take(np.unique(right))
+# for any road crossings that didn't have an inventoried barrier snap to them
+# and are within DUPLICATE_TOLERANCE, mark them with the nearest barrier SARPID
+# NOTE: all barriers selected here will already be marked with NearestCrossingID
+tmp = crossings.loc[crossings.NearestBarrierID == ""]
+tree = shapely.STRtree(df.geometry.values)
 
-# remove road crossings that are too close to waterfalls
-right = tree.query(
-    waterfalls.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
-)[1]
-wf_ix = crossings.index.values.take(np.unique(right))
-
-print(
-    f"Found {len(dam_ix):,} road crossings within {DUPLICATE_TOLERANCE}m of dams"
-    f" and {len(wf_ix):,} within {DUPLICATE_TOLERANCE}m of waterfalls"
+# find nearest inventoried barrier
+left, right = tree.query_nearest(
+    tmp.geometry.values, max_distance=DUPLICATE_TOLERANCE, all_matches=False
 )
 
-drop_ix = np.unique(np.concatenate([dam_ix, wf_ix]))
-crossings = crossings.loc[~crossings.index.isin(drop_ix)].copy()
-
-tree = shapely.STRtree(crossings.geometry.values.data)
-
-# find pairs of inventoried barriers and assign
-left, right = tree.query(
-    df.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
-)
-
-sb_dups = pd.DataFrame(
-    {
-        "barrier_SARPID": df.SARPID.values.take(left),
-        "crossing_SARPID": crossings.SARPID.values.take(right),
-        "dist": shapely.distance(
-            df.geometry.values.take(left), crossings.geometry.values.take(right)
-        ),
-    }
-).sort_values(by="dist")
-
-print(
-    f"Found {len(sb_dups):,} crossings within {DUPLICATE_TOLERANCE}m of inventoried road-related barriers"
-)
-
-# find the nearest barrier for each crossing and the nearest crossing for each
-# barrier
-nearest_barrier = sb_dups.groupby("crossing_SARPID").barrier_SARPID.first()
-nearest_crossing = sb_dups.groupby("barrier_SARPID").crossing_SARPID.first()
-
-df = df.join(nearest_crossing.rename("NearestCrossingID"), on="SARPID")
-df["NearestCrossingID"] = df.NearestCrossingID.fillna("")
-crossings = crossings.join(nearest_barrier.rename("NearestBarrierID"), on="SARPID")
-crossings["NearestBarrierID"] = crossings.NearestBarrierID.fillna("")
+ix = tmp.index.values.take(left)
+barriers_ix = df.index.values.take(right)
+crossings.loc[ix, "NearestBarrierID"] = df.loc[barriers_ix].SARPID.values
 
 
 ### Add lat / lon
