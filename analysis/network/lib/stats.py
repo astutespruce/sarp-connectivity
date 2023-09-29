@@ -124,7 +124,6 @@ def calculate_upstream_network_stats(
             fn_upstream_counts[col] = 0
 
     fn_upstream_counts = fn_upstream_counts[cols]
-
     fn_upstream_area = up_network_df.groupby(level=0).AreaSqKm.sum().rename("fn_dakm2")
 
     ### Count TOTAL barriers of each kind in the total upstream network(s),
@@ -360,12 +359,13 @@ def calculate_floodplain_stats(df):
             data_dir / "floodplains" / "floodplain_stats.feather", format="feather"
         )
         .to_table(
-            filter=pc.field("NHDPlusID").isin(df.NHDPlusID.unique()),
+            filter=pc.field("HUC2").isin(df.HUC2.unique()),
             columns=["NHDPlusID", "floodplain_km2", "nat_floodplain_km2"],
         )
         .to_pandas()
         .set_index("NHDPlusID")
     )
+    fp_stats = fp_stats.loc[fp_stats.index.isin(df.NHDPlusID.unique())]
 
     df = df.join(fp_stats, on="NHDPlusID")
 
@@ -387,6 +387,9 @@ def calculate_species_habitat_stats(df):
         .set_index("NHDPlusID")
         .drop(columns=["HUC2"])
     )
+    if len(habitat) == 0:
+        return pd.DataFrame([], index=df.index.unique().values)
+
     habitat_cols = habitat.columns
 
     habitat = df[["NHDPlusID", "length", "waterbody"]].join(habitat, on="NHDPlusID")
@@ -394,7 +397,7 @@ def calculate_species_habitat_stats(df):
     # drop any columns not present in this set of HUC2s
     habitat_cols = habitat_cols[habitat[habitat_cols].max()].to_list()
     if len(habitat_cols) == 0:
-        return pd.DataFrame([], index=df.index.values)
+        return pd.DataFrame([], index=df.index.unique().values)
 
     out = None
     for col in habitat_cols:
