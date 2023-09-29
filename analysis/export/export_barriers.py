@@ -29,12 +29,15 @@ data_dir = Path("data/api")
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
-barrier_type = "road_crossings"  #  one of "dams", "small_barriers", "combined_barriers", "road_crossings"
+#  one of "dams", "small_barriers", "combined_barriers", "road_crossings"
+barrier_type = "dams"
 suffix = ""  # use to set a filename suffix if filtering further
 
 df = pd.read_feather(data_dir / f"{barrier_type}.feather")
 
-cols = [c for c in EXPORT_FIELDS[barrier_type] if c in df.columns]
+cols = [
+    c for c in EXPORT_FIELDS[barrier_type] + ["upNetID", "downNetID"] if c in df.columns
+]
 
 df = unpack_domains(df[cols])
 
