@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import shapely
 
+from analysis.lib.graph.speedups import DirectedGraph
+
 
 def calculate_sinuosity(geometries):
     """Calculate sinuosity of the line.
@@ -372,3 +374,148 @@ def extract_straight_segments(coords, max_angle=10, loops=5):
         keep_coords = coords[keep_ix]
 
     return keep_coords, keep_ix
+
+
+def fill_endpoint_gaps(df, gap_size):
+    """Create new line segments that fill gaps below gap_size, and attach
+    attributes from one side of the gap.
+
+    A gap is defined as a non-zero (>1e-6) space between the endpoints of a line
+    and another line, which is evaluated for all combinations of lines that are
+    within gap_size distance of each other.
+
+    IMPORTANT: lines must already be merged / unioned before calling this function;
+    calling it repeatedly without merging in the new segments created here will
+    create duplicate segments to fill those gaps
+
+    NOTE: this does not fill gaps between endpoints of one line and any interior
+    point of the other line.
+
+    Parameters
+    ----------
+    df : GeoDataFrame
+    gap_size : float
+        maximum size to fill
+
+    Returns
+    -------
+    GeoDataFrame
+        all records from df plus any new segments that fill gaps between them
+    """
+
+    tree = shapely.STRtree(df.geometry.values)
+    left, right = tree.query(df.geometry.values, predicate="dwithin", distance=gap_size)
+
+    # drop self intersections
+    ix = left != right
+    left = left[ix]
+    right = right[ix]
+
+    # extract unique pairs (dedup symmetric pairs)
+    pairs = np.array([left, right]).T
+    pairs = (
+        (
+            pd.DataFrame({"left": pairs.min(axis=1), "right": pairs.max(axis=1)})
+            .groupby(["left", "right"])
+            .first()
+            .reset_index()
+        )
+        .join(df.geometry.rename("left_line"), on="left")
+        .join(df.geometry.rename("right_line"), on="right")
+    )
+
+    # have to do all combinations because segments could be oriented differently
+    pairs["left_pt1"] = shapely.get_point(pairs.left_line, 0)
+    pairs["left_pt2"] = shapely.get_point(pairs.left_line, -1)
+    pairs["right_pt1"] = shapely.get_point(pairs.right_line, 0)
+    pairs["right_pt2"] = shapely.get_point(pairs.right_line, -1)
+    pairs["d1"] = shapely.distance(pairs.left_pt1, pairs.right_pt1)
+    pairs["d2"] = shapely.distance(pairs.left_pt1, pairs.right_pt2)
+    pairs["d3"] = shapely.distance(pairs.left_pt2, pairs.right_pt1)
+    pairs["d4"] = shapely.distance(pairs.left_pt2, pairs.right_pt2)
+
+    # make sure not to use points that already intersect other points
+    # if the min distance across d1 - d4 is < 1e-6, drop that pair
+    pairs = pairs.loc[pairs[["d1", "d2", "d3", "d4"]].min(axis=1) > 1e-6]
+
+    new_segments = pd.concat(
+        [
+            pairs.loc[
+                (pairs.d1 > 0) & (pairs.d1 < gap_size),
+                ["left", "right", "left_pt1", "right_pt1", "d1"],
+            ].rename(columns={"left_pt1": "start", "right_pt1": "end", "d1": "dist"}),
+            pairs.loc[
+                (pairs.d2 > 0) & (pairs.d2 < gap_size),
+                ["left", "right", "left_pt1", "right_pt2", "d2"],
+            ].rename(columns={"left_pt1": "start", "right_pt2": "end", "d2": "dist"}),
+            pairs.loc[
+                (pairs.d3 > 0) & (pairs.d3 < gap_size),
+                ["left", "right", "left_pt2", "right_pt1", "d3"],
+            ].rename(columns={"left_pt2": "start", "right_pt1": "end", "d3": "dist"}),
+            pairs.loc[
+                (pairs.d4 > 0) & (pairs.d4 < gap_size),
+                ["left", "right", "left_pt2", "right_pt2", "d4"],
+            ].rename(columns={"left_pt2": "start", "right_pt2": "end", "d4": "dist"}),
+        ]
+    ).drop_duplicates(subset=["left", "right"])
+
+    if len(new_segments) == 0:
+        return df.copy()
+
+    ### find connected components in order to take shortest connection per group
+    # (otherwise we create triangles)
+    # add back symmetric pairs
+    groups = DirectedGraph(
+        np.concatenate([new_segments.left, new_segments.right]).astype("int64"),
+        np.concatenate([new_segments.right, new_segments.left]).astype("int64"),
+    ).components()
+    groups = (
+        pd.DataFrame(
+            {i: list(g) for i, g in enumerate(groups)}.items(),
+            columns=["group", "index"],
+        )
+        .explode("index")
+        .set_index("index")
+    )
+    new_segments = (
+        new_segments.join(groups, on="left").sort_values(
+            by=["group", "dist"], ascending=[True, False]
+        )
+        # drop any complete duplicates (e.g., extending a line to a fork)
+        .drop_duplicates(subset=["group", "dist"])
+    )
+
+    # find any groups with > 2 new segments where the endpoints are shared with
+    # the endpoints of other new segments; these will create triangles that
+    # we do not want
+    g = new_segments.groupby("group").size()
+    multi = new_segments.loc[new_segments.group.isin(g[g > 2].index)]
+
+    # iteratively remove new segments where the endpoints are already captured by
+    # segments with lower distances
+    drop_ids = []
+    for index, row in multi.iterrows():
+        subset = multi.loc[~multi.index.isin([index] + drop_ids)]
+        count = len(
+            subset.loc[
+                (subset.left == row.left)
+                | (subset.right == row.right)
+                | (subset.left == row.right)
+                | (subset.right == row.left)
+            ]
+        )
+        if count >= 2:
+            drop_ids.append(index)
+
+    new_segments = new_segments.loc[~new_segments.index.isin(drop_ids)]
+
+    # attach attributes from left side of pair
+    new_segments["geometry"] = new_segments[["start", "end"]].apply(
+        lambda row: shapely.LineString([row.start, row.end]), axis=1
+    )
+    new_segments = gp.GeoDataFrame(
+        new_segments.join(df.drop(columns=["geometry"]), on="left")[df.columns],
+        geometry="geometry",
+        crs=df.crs,
+    )
+    return pd.concat([df, new_segments], ignore_index=True)

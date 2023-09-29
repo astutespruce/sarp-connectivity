@@ -5,6 +5,7 @@ import numpy as np
 
 from analysis.constants import HUC2_EXITS
 
+from analysis.lib.util import snake_to_title_case
 from analysis.lib.graph.speedups import DirectedGraph, LinearDirectedGraph
 from analysis.network.lib.stats import (
     calculate_upstream_network_stats,
@@ -448,30 +449,30 @@ def create_barrier_networks(
     # total network and are missing either upstream or downstream network
     print("calculating upstream and downstream networks for barriers")
 
+    upstream_cols = [c for c in upstream_stats.columns if not c.startswith("free_")]
     upstream_networks = (
         focal_barrier_joins[["upstream_id"]]
         .join(
-            upstream_stats.drop(
-                columns=[c for c in upstream_stats.columns if c.startswith("free_")]
-            ),
+            upstream_stats[upstream_cols],
             on="upstream_id",
         )
         .rename(
             columns={
                 "upstream_id": "upNetID",
-                "total_miles": "TotalUpstreamMiles",
-                "perennial_miles": "PerennialUpstreamMiles",
-                "intermittent_miles": "IntermittentUpstreamMiles",
-                "altered_miles": "AlteredUpstreamMiles",
-                "unaltered_miles": "UnalteredUpstreamMiles",
-                "perennial_unaltered_miles": "PerennialUnalteredUpstreamMiles",
                 "pct_unaltered": "PercentUnaltered",
                 "pct_perennial_unaltered": "PercentPerennialUnaltered",
+                **{
+                    c: snake_to_title_case(c).replace("Miles", "UpstreamMiles")
+                    for c in [col for col in upstream_cols if col.endswith("_miles")]
+                },
             }
         )
     )
 
     # these are the downstream FUNCTIONAL networks, not linear networks
+    downstream_cols = [
+        c for c in network_stats if c.startswith("free_") or c == "total_miles"
+    ]
     downstream_networks = (
         focal_barrier_joins[["downstream_id"]]
         .join(
@@ -479,25 +480,10 @@ def create_barrier_networks(
             on="downstream_id",
         )
         .join(
-            network_stats[
-                [
-                    "total_miles",
-                    "free_miles",
-                    "free_perennial_miles",
-                    "free_intermittent_miles",
-                    "free_altered_miles",
-                    "free_unaltered_miles",
-                    "free_perennial_unaltered_miles",
-                ]
-            ].rename(
+            network_stats[downstream_cols].rename(
                 columns={
-                    "total_miles": "TotalDownstreamMiles",
-                    "free_miles": "FreeDownstreamMiles",
-                    "free_perennial_miles": "FreePerennialDownstreamMiles",
-                    "free_intermittent_miles": "FreeIntermittentDownstreamMiles",
-                    "free_altered_miles": "FreeAlteredDownstreamMiles",
-                    "free_unaltered_miles": "FreeUnalteredDownstreamMiles",
-                    "free_perennial_unaltered_miles": "FreePerennialUnalteredDownstreamMiles",
+                    c: snake_to_title_case(c).replace("Miles", "DownstreamMiles")
+                    for c in [col for col in downstream_cols if col.endswith("_miles")]
                 }
             ),
             on="networkID",
@@ -569,21 +555,29 @@ def create_barrier_networks(
     ### Calculate miles GAINED if barrier is removed
     # this is the lesser of the upstream or free downstream lengths.
     # Non-free miles downstream (downstream waterbodies) are omitted from this analysis.
-    barrier_networks["GainMiles"] = barrier_networks[
-        ["TotalUpstreamMiles", "FreeDownstreamMiles"]
-    ].min(axis=1)
-    barrier_networks["PerennialGainMiles"] = barrier_networks[
-        ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
-    ].min(axis=1)
 
-    # For barriers that terminate in marine areas or Great Lakes, their GainMiles is only based on the upstream miles
-    ix = (barrier_networks.miles_to_outlet == 0) & (
+    # For barriers that terminate in marine areas or Great Lakes, their
+    # GainMiles is only based on the upstream miles
+    terminates_downstream_ix = (barrier_networks.miles_to_outlet == 0) & (
         (barrier_networks.flows_to_ocean == 1) | (barrier_networks.flows_to_great_lakes)
     )
-    barrier_networks.loc[ix, "GainMiles"] = barrier_networks.loc[ix].TotalUpstreamMiles
-    barrier_networks.loc[ix, "PerennialGainMiles"] = barrier_networks.loc[
-        ix
-    ].PerennialUpstreamMiles
+
+    cols = ["TotalUpstreamMiles", "PerennialUpstreamMiles"]
+    # TODO: add species habitat columns
+    # + [
+    #     c for c in length_cols if c.endswith("HabitatUpstreamMiles")
+    # ]
+    for upstream_col in cols:
+        out_col = upstream_col.replace("Total", "").replace("Upstream", "Gain")
+        downstream_col = (
+            f"Free{upstream_col.replace('Total', '').replace('Upstream','Downstream')}"
+        )
+        barrier_networks[out_col] = barrier_networks[
+            [upstream_col, downstream_col]
+        ].min(axis=1)
+        barrier_networks.loc[terminates_downstream_ix, out_col] = barrier_networks.loc[
+            terminates_downstream_ix, upstream_col
+        ]
 
     # TotalNetworkMiles is sum of upstream and free downstream miles
     barrier_networks["TotalNetworkMiles"] = barrier_networks[

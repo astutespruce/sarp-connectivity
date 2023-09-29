@@ -358,3 +358,43 @@ def cut_lines_at_points(coords, cut_offsets):
         lines.extend(l)
 
     return outer_ix, inner_ix, lines
+
+
+# TODO: mark this for numba
+def substring(coords, start_offsets, stop_offsets):
+    """Extract new lines from within coords that are >= start_offsets and
+    <= stop_offsets.
+
+    NOTE: this does not add new vertices at start or stop offsets.
+
+    Parameters
+    ----------
+    coords : list-like of coordinate arrays (one sub-array per line)
+        coordinates for each line
+    start_offsets : list-like
+        position on line to start
+    stop_offsets : list-like
+    position on line to stop
+
+    Returns
+    -------
+    list of LineStrings
+        lines will be empty if less than 2 vertices exist between start and stop
+        offsets
+    """
+
+    lines = []
+    for i in range(len(coords)):
+        offsets = vertex_offsets(coords[i])
+        ix = (offsets >= start_offsets[i]) & (offsets <= stop_offsets[i])
+
+        if ix.sum() >= 2:
+            line = shapely.LineString(coords[i][ix])
+
+        else:
+            # if there is not at least a line segment, return an empty line
+            line = shapely.LineString()
+
+        lines.append(line)
+
+    return lines
