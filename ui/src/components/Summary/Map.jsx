@@ -451,12 +451,12 @@ const SummaryMap = ({
 
     let networkID = Infinity
 
-    let networkIDField = 'upnetid'
-    if (selectedBarrier.barrierType === 'waterfalls') {
-      networkIDField = `${focalBarrierTypeRef.current}_upnetid`
-    }
-
     if (selectedBarrier) {
+      let networkIDField = 'upnetid'
+      if (selectedBarrier.barrierType === 'waterfalls') {
+        networkIDField = `${focalBarrierTypeRef.current}_upnetid`
+      }
+
       const { [networkIDField]: upnetid = Infinity } = selectedBarrier
 
       // highlight upstream network
