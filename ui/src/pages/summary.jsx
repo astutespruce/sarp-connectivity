@@ -60,25 +60,7 @@ const SummaryPage = ({ location }) => {
   }
 
   const handleSelectBarrier = (feature) => {
-    // promote appropriate network results
-    // FIXME:
-    // if (feature && feature.barrierType === 'waterfalls') {
-    //   const networkType =
-    //     networkTypeRef.current === 'dams' ? 'dams' : 'small_barriers'
-    //   const networkFields = {}
-    //   Object.keys(feature)
-    //     .filter((k) => k.endsWith(networkType))
-    //     .forEach((field) => {
-    //       networkFields[field.split('_')[0]] = feature[field]
-    //     })
-    //   setSelectedBarrier({
-    //     ...feature,
-    //     ...networkFields,
-    //   })
-    // } else {
     setSelectedBarrier(feature)
-    // }
-
     setSelectedUnit(null)
   }
 

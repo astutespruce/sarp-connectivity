@@ -222,20 +222,32 @@ def snap_to_nhd_dams(df, to_snap):
 
     ### Find dams that are within tolerance of NHD dam points
     near_nhd_pt = nearest(
-        pd.Series(to_snap.geometry.values.data, index=to_snap.index),
-        pd.Series(nhd_dams.geometry.values.data, index=nhd_dams.index),
+        pd.Series(to_snap.geometry.values, index=to_snap.index),
+        pd.Series(nhd_dams.geometry.values, index=nhd_dams.index),
         max_distance=to_snap.snap_tolerance,
     )[["damID"]]
-    near_nhd_pt = near_nhd_pt.join(to_snap.geometry.rename("source_pt")).join(
-        nhd_dams, on="damID"
+    near_nhd_pt = (
+        near_nhd_pt.join(to_snap.geometry.rename("source_pt"))
+        .join(nhd_dams, on="damID")
+        .reset_index()
+        .drop_duplicates(subset=["id", "damID", "lineID", "geometry"])
+        .set_index("id")
     )
-    near_nhd_pt.reset_index().drop_duplicates(
-        subset=["id", "damID", "lineID", "geometry"]
-    ).set_index("id")
     near_nhd_pt["snap_dist"] = shapely.distance(
-        near_nhd_pt.geometry.values.data, near_nhd_pt.source_pt.values.data
+        near_nhd_pt.geometry.values, near_nhd_pt.source_pt.values
     )
-    # take the largest, nonloop
+
+    # drop any candidate target points if they are >10x as far away as the closest
+    # unless they are within 150m
+    near_nhd_pt = near_nhd_pt.join(
+        near_nhd_pt.groupby(level=0).snap_dist.min().rename("nearest_dist")
+    )
+    near_nhd_pt = near_nhd_pt.loc[
+        (near_nhd_pt.snap_dist / near_nhd_pt.nearest_dist <= 10)
+        | (near_nhd_pt.snap_dist <= 150)
+    ].drop(columns=["nearest_dist"])
+
+    # then take the largest, nonloop
     near_nhd_pt = (
         near_nhd_pt.reset_index()
         .sort_values(

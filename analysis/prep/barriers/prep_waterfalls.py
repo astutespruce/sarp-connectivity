@@ -164,7 +164,7 @@ df.BarrierSeverity = df.BarrierSeverity.fillna("").str.strip().str.lower()
 df.loc[
     df.BarrierSeverity.str.lower().str.startswith("state of ut"), "BarrierSeverity"
 ] = "unknown"
-
+df.loc[df.BarrierSeverity == "complete barriar", "BarrierSeverity"] = "Complete Barrier"
 
 # mark as excluded if barrier severity is no barrier
 exclude_severities = ["no barrier"]

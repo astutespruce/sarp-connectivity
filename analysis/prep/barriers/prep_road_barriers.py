@@ -163,6 +163,10 @@ df["PotentialProject"] = (
 
 # TEMP: fix bogus values
 df.loc[df.PotentialProject == "1", "PotentialProject"] = ""
+# FIXME: remove fix for typo
+df.loc[
+    df.PotentialProject == "Insignficant Barrier", "PotentialProject"
+] = "Insignificant Barrier"
 
 # Recode No => No Barrier per guidance from SARP
 df.loc[df.PotentialProject == "No", "PotentialProject"] = "No Barrier"

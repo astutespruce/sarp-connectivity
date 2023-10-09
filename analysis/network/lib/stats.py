@@ -402,20 +402,12 @@ def calculate_species_habitat_stats(df):
     out = None
     for col in habitat_cols:
         habitat[col] = habitat[col].fillna(False)
-        total_miles = (
-            habitat.loc[habitat[col], "length"]
-            .groupby(level=0)
-            .sum()
-            .rename(f"{col}_miles")
-            * METERS_TO_MILES
-        )
-        free_miles = (
-            habitat.loc[habitat[col] & (~habitat.waterbody), "length"]
-            .groupby(level=0)
-            .sum()
-            .rename(f"free_{col}_miles")
-            * METERS_TO_MILES
-        )
+        total_miles = (habitat[col] * habitat.length).groupby(level=0).sum().rename(
+            f"{col}_miles"
+        ) * METERS_TO_MILES
+        free_miles = ((habitat[col] & (~habitat.waterbody)) * habitat.length).groupby(
+            level=0
+        ).sum().rename(f"free_{col}_miles") * METERS_TO_MILES
         habitat_miles = pd.DataFrame(total_miles).join(free_miles)
 
         if out is None:

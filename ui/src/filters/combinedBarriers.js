@@ -92,12 +92,14 @@ export const combinedBarriers = [
         field: 'fercregulated',
         title: 'Regulated by the Federal Energy Regulatory Commission?',
         help: 'Note: regulatory information is only available for a small number of dams.',
+        hideMissingValues: true,
         ...getEntries(FERC_REGULATED),
       },
       {
         field: 'stateregulated',
         title: 'State regulated dam?',
         help: 'Note: regulatory information is only available for a small number of dams.',
+        hideMissingValues: true,
         ...getEntries(STATE_REGULATED),
       },
       {
