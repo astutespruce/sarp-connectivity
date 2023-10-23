@@ -25,7 +25,7 @@ tmp_dir = Path("/tmp")
 ### Full analysis area and regions
 print("Creating region tiles")
 df = gp.read_feather(src_dir / "region_boundary.feather").to_crs(GEO_CRS)
-bnd = df.loc[df.id == "total"].geometry.values.data[0]
+bnd = df.loc[df.id == "total"].geometry.values[0]
 outfilename = tmp_dir / "region_boundary.fgb"
 write_dataframe(df, outfilename)
 mbtiles_filename = tile_dir / "boundary.mbtiles"
@@ -137,7 +137,7 @@ for huc, (minzoom, maxzoom) in huc_zoom_levels.items():
         df["coa"] = df.coa.fillna(0).astype("uint8")
 
     # only keep units that actually overlap the region at each level
-    tree = shapely.STRtree(df.geometry.values.data)
+    tree = shapely.STRtree(df.geometry.values)
     ix = tree.query(bnd, predicate="intersects")
     df = df.loc[ix]
 

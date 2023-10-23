@@ -83,10 +83,10 @@ def extract_flowlines(gdb, target_crs):
     df = df.loc[~(df.offnetwork & df.FType.isin([420, 428]))]
 
     # convert MultiLineStrings to LineStrings (all have a single linestring)
-    df.geometry = shapely.get_geometry(df.geometry.values.data, 0)
+    df.geometry = shapely.get_geometry(df.geometry.values, 0)
 
     print("making valid and projecting to target projection")
-    df.geometry = make_valid(df.geometry.values.data)
+    df.geometry = make_valid(df.geometry.values)
     df = df.to_crs(target_crs)
     print(f"Read {len(df):,} flowlines")
 
@@ -178,24 +178,22 @@ def extract_flowlines(gdb, target_crs):
     ix = join_df.loc[join_df.downstream == 0].upstream.unique()
     # get last point, is furthest downstream
     tmp = df.loc[df.index.isin(ix), ["geometry"]].copy()
-    tmp["geometry"] = shapely.get_point(tmp.geometry.values.data, -1)
+    tmp["geometry"] = shapely.get_point(tmp.geometry.values, -1)
 
     target = df.loc[~df.index.isin(ix)]
 
     # only search against other flowlines
-    tree = shapely.STRtree(target.geometry.values.data)
+    tree = shapely.STRtree(target.geometry.values)
     # search within a tolerance of 0.001, these are very very close
-    left, right = tree.query_nearest(tmp.geometry.values.data, max_distance=0.001)
+    left, right = tree.query_nearest(tmp.geometry.values, max_distance=0.001)
 
     pairs = pd.DataFrame(
         {
             "left": tmp.index.take(left),
             "right": target.index.take(right),
-            "source": tmp.geometry.values.data.take(left),
+            "source": tmp.geometry.values.take(left),
             # take upstream / downstream points of matched lines
-            "upstream_target": shapely.get_point(
-                df.geometry.values.data.take(right), 0
-            ),
+            "upstream_target": shapely.get_point(df.geometry.values.take(right), 0),
         }
     )
 
@@ -213,7 +211,7 @@ def extract_flowlines(gdb, target_crs):
     pairs.loc[pairs.next_downstream.notnull(), "downstream_target"] = shapely.get_point(
         df.loc[
             pairs.loc[pairs.next_downstream.notnull()].next_downstream
-        ].geometry.values.data,
+        ].geometry.values,
         0,
     )
 

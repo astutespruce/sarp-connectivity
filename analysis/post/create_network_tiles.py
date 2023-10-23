@@ -297,7 +297,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             if simplification:
                 print(f"simplifying to {simplification} m")
                 subset["geometry"] = shapely.simplify(
-                    subset.geometry.values.data, simplification
+                    subset.geometry.values, simplification
                 )
 
             outfilename = tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.fgb"

@@ -29,7 +29,7 @@ def find_duplicates(df, to_dedup, tolerance, next_group_id=0):
     groups = (
         pd.DataFrame(
             neighborhoods(
-                pd.Series(to_dedup.geometry.values.data, index=to_dedup.index),
+                pd.Series(to_dedup.geometry.values, index=to_dedup.index),
                 tolerance,
             )
         )
@@ -117,7 +117,7 @@ def export_duplicate_areas(dups, path):
     """
 
     dups = dups.copy()
-    dups["geometry"] = shapely.buffer(dups.geometry.values.data, dups.dup_tolerance)
+    dups["geometry"] = shapely.buffer(dups.geometry.values, dups.dup_tolerance)
     dissolved = dissolve(dups[["geometry", "dup_group"]], by="dup_group")
     groups = gp.GeoDataFrame(
         dups[["id", "SARPID", "dup_group"]]

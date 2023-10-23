@@ -26,7 +26,7 @@ df = gp.read_feather("data/barriers/master/dams.feather").set_index("id")
 ### Identify any that are duplicates within 100m before or after snapping
 raw_groups = pd.DataFrame(
     neighborhoods(
-        pd.Series(raw.geometry.values.data, index=raw.index),
+        pd.Series(raw.geometry.values, index=raw.index),
         tolerance=DUPLICATE_TOLERANCE,
     ).join(raw[["SARPID"]])
 )
@@ -34,7 +34,7 @@ dup_100m_presnap = raw_groups.SARPID.unique()
 
 groups = pd.DataFrame(
     neighborhoods(
-        pd.Series(df.geometry.values.data, index=df.index),
+        pd.Series(df.geometry.values, index=df.index),
         tolerance=DUPLICATE_TOLERANCE,
     )
 ).join(raw[["SARPID"]])

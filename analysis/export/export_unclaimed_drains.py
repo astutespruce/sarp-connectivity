@@ -59,9 +59,9 @@ drains = drains.loc[~ix].copy()
 
 # Find any that are within 50m of dams and ignore those
 # This picks up any that are likely related to dams but not used for snapping
-tree = shapely.STRtree(drains.geometry.values.data)
+tree = shapely.STRtree(drains.geometry.values)
 (left, right), dist = tree.query_nearest(
-    dams.geometry.values.data, max_distance=50, return_distance=True
+    dams.geometry.values, max_distance=50, return_distance=True
 )
 
 right = np.unique(right)
@@ -79,8 +79,8 @@ states = gp.read_feather(
 states = states.loc[states.state.isin(STATES.keys())].copy()
 
 print("Joining to states...")
-tree = shapely.STRtree(drains.geometry.values.data)
-left, right = tree.query(states.geometry.values.data, predicate="intersects")
+tree = shapely.STRtree(drains.geometry.values)
+left, right = tree.query(states.geometry.values, predicate="intersects")
 
 tmp = (
     pd.DataFrame(

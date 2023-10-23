@@ -287,7 +287,7 @@ for huc2 in huc2s:
 
     # calculate stats for flowlines in waterbodies
     tmp = wb_joins.join(flowlines.geometry, on="lineID")
-    tmp["length"] = shapely.length(tmp.geometry.values.data)
+    tmp["length"] = shapely.length(tmp.geometry.values)
     tmp = tmp.groupby("wbID")["length"].sum().astype("float32").rename("flowlineLength")
     waterbodies = waterbodies.join(tmp)
     waterbodies.flowlineLength = waterbodies.flowlineLength.fillna(0)

@@ -58,7 +58,7 @@ nhd_pts["source"] = "NHDPoint"
 # create tiny circular buffers around points to merge with others
 # WARNING: using a larger buffer causes displacement of the dam point upstream,
 # which is not desirable
-nhd_pts["geometry"] = shapely.buffer(nhd_pts.geometry.values.data, 1e-6)
+nhd_pts["geometry"] = shapely.buffer(nhd_pts.geometry.values, 1e-6)
 
 nhd_lines = read_feathers(
     [raw_dir / huc2 / "nhd_lines.feather" for huc2 in huc2s],
@@ -73,7 +73,7 @@ nhd_lines = nhd_lines.loc[
 # NOTE: this is the same buffer distance used to cut holes out of waterbodies
 # to preserve breaks between merged waterbodies where there are NHD lines
 # see analysis/prep/network/lib/nhd/waterbodies.py
-nhd_lines["geometry"] = shapely.buffer(nhd_lines.geometry.values.data, 10)
+nhd_lines["geometry"] = shapely.buffer(nhd_lines.geometry.values, 10)
 nhd_lines["source"] = "NHDLine"
 
 # All NHD areas indicate a dam-related feature
@@ -84,7 +84,7 @@ nhd_areas = read_feathers(
 )
 nhd_areas = nhd_areas.loc[nhd_areas.geometry.notnull()].reset_index(drop=True)
 # buffer polygons slightly so we can dissolve touching ones together.
-nhd_areas["geometry"] = shapely.buffer(nhd_areas.geometry.values.data, 0.001)
+nhd_areas["geometry"] = shapely.buffer(nhd_areas.geometry.values, 0.001)
 nhd_areas["source"] = "NHDArea"
 
 # Dissolve adjacent nhd lines and polygons together
@@ -93,7 +93,7 @@ nhd_dams = pd.concat(
 ).reset_index(drop=True)
 
 # find contiguous groups for dissolve
-nhd_dams = nhd_dams.join(find_contiguous_groups(nhd_dams.geometry.values.data))
+nhd_dams = nhd_dams.join(find_contiguous_groups(nhd_dams.geometry.values))
 # fill in the isolated dams
 ix = nhd_dams.group.isnull()
 next_group = nhd_dams.group.max() + 1
@@ -120,7 +120,7 @@ nhd_dams = (
 # fill in missing values
 nhd_dams.GNIS_Name = nhd_dams.GNIS_Name.fillna("")
 
-nhd_dams.geometry = shapely.make_valid(nhd_dams.geometry.values.data)
+nhd_dams.geometry = shapely.make_valid(nhd_dams.geometry.values)
 
 nhd_dams["damID"] = nhd_dams.index.copy()
 nhd_dams.damID = nhd_dams.damID.astype("uint32")
@@ -158,8 +158,8 @@ for huc2 in huc2s:
     dams = (
         pd.DataFrame(
             sjoin_geometry(
-                pd.Series(dams.geometry.values.data, index=dams.index),
-                pd.Series(flowlines.geometry.values.data, flowlines.index),
+                pd.Series(dams.geometry.values, index=dams.index),
+                pd.Series(flowlines.geometry.values, flowlines.index),
             ).rename("lineID")
         )
         .reset_index()
@@ -170,7 +170,7 @@ for huc2 in huc2s:
 
     print("Extracting intersecting flowlines...")
     # Only keep the joins for lines that significantly cross (have a line / multiline and not a point)
-    clipped = shapely.intersection(dams.geometry.values.data, dams.flowline.values.data)
+    clipped = shapely.intersection(dams.geometry.values, dams.flowline.values)
     t = shapely.get_type_id(clipped)
     dams = dams.loc[(t == 1) | (t == 5)].copy()
 
@@ -227,13 +227,13 @@ for huc2 in huc2s:
     ### Extract representative point
     # Look at either end of overlapping line and use that as representative point.
     # Otherwise intersect and extract first coordinate of overlapping line
-    last_pt = shapely.get_point(dams.flowline.values.data, -1)
-    ix = shapely.intersects(dams.geometry.values.data, last_pt)
+    last_pt = shapely.get_point(dams.flowline.values, -1)
+    ix = shapely.intersects(dams.geometry.values, last_pt)
     dams.loc[ix, "pt"] = last_pt[ix]
 
     # override with upstream most point when both intersect
-    first_pt = shapely.get_point(dams.flowline.values.data, 0)
-    ix = shapely.intersects(dams.geometry.values.data, first_pt)
+    first_pt = shapely.get_point(dams.flowline.values, 0)
+    ix = shapely.intersects(dams.geometry.values, first_pt)
     dams.loc[ix, "pt"] = first_pt[ix]
 
     ix = dams.pt.isnull()
@@ -243,7 +243,7 @@ for huc2 in huc2s:
         shapely.get_point(
             shapely.get_geometry(
                 shapely.intersection(
-                    dams.loc[ix].geometry.values.data, dams.loc[ix].flowline.values.data
+                    dams.loc[ix].geometry.values, dams.loc[ix].flowline.values
                 ),
                 0,
             ),
@@ -290,9 +290,9 @@ for huc2 in huc2s:
     # We do it this way because the dam may intersect or affect multiple drain points
     # so we can't always take the first or nearest from the dam's perspective
     tmp_dams = dams.groupby("damID").geometry.first()
-    tree = shapely.STRtree(tmp_dams.values.data)
+    tree = shapely.STRtree(tmp_dams.values)
     drain_ix, dam_ix = tree.query_nearest(
-        drains.geometry.values.data, max_distance=MAX_DRAIN_DISTANCE
+        drains.geometry.values, max_distance=MAX_DRAIN_DISTANCE
     )
     near_drains = pd.DataFrame(
         {
@@ -338,7 +338,7 @@ for huc2 in huc2s:
     tmp = tmp.loc[tmp.same_subnet].copy()
     # take the closest drain to the crossing point if there are multiple on the
     # same flowline
-    tmp["dist"] = shapely.distance(tmp.geometry.values.data, tmp.pt.values.data)
+    tmp["dist"] = shapely.distance(tmp.geometry.values, tmp.pt.values)
     use_drains = (
         tmp.sort_values(by=["damPtID", "dist"], ascending=True)
         .drop(columns=["same_subnet", "dist", "pt", "lineID"])
@@ -356,7 +356,7 @@ for huc2 in huc2s:
         f"Found {ix.sum():,} dams associated with waterbodies in {time() - join_start:,.2f}s"
     )
     dams["geometry"] = dams.pt.values
-    dams.loc[ix, "geometry"] = dams.loc[ix].drain.values.data
+    dams.loc[ix, "geometry"] = dams.loc[ix].drain.values
     dams.loc[ix, "lineID"] = dams.loc[ix].drainLineID.astype("uint32")
 
     dams = dams.drop(columns=["drain", "drainLineID", "pt"]).join(
@@ -381,9 +381,9 @@ dams = merged.reset_index(drop=True).join(
 
 
 ### Drop spatial duplicates
-tree = shapely.STRtree(dams.geometry.values.data)
+tree = shapely.STRtree(dams.geometry.values)
 left, right = tree.query(
-    dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+    dams.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )
 g = DirectedGraph(left.astype("int64"), right.astype("int64"))
 groups, values = g.flat_components()

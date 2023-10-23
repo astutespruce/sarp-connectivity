@@ -41,11 +41,11 @@ flowlines = flowlines.loc[flowlines.lineID.isin(terminal_ids)].copy()
 
 write_dataframe(flowlines, out_dir / f"region{huc2}_flowline_terminals.fgb")
 
-tree = shapely.STRtree(flowlines.geometry.values.data)
+tree = shapely.STRtree(flowlines.geometry.values)
 
 # extract linear rings
-# huc2_bnd.geometry = shapely.get_exterior_ring(huc2_bnd.geometry.values.data)
-left, right = tree.query(huc2_bnd.geometry.values.data, predicate="intersects")
+# huc2_bnd.geometry = shapely.get_exterior_ring(huc2_bnd.geometry.values)
+left, right = tree.query(huc2_bnd.geometry.values, predicate="intersects")
 
 df = pd.DataFrame(
     {

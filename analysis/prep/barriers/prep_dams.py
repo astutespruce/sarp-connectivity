@@ -920,8 +920,8 @@ print(f"Lowhead dams: {df.groupby('LowheadDam').size()}")
 ### Add lat / lon (must be done after snapping!)
 print("Adding lat / lon fields")
 geo = df[["geometry"]].to_crs(GEO_CRS)
-geo["lat"] = shapely.get_y(geo.geometry.values.data).astype("float32")
-geo["lon"] = shapely.get_x(geo.geometry.values.data).astype("float32")
+geo["lat"] = shapely.get_y(geo.geometry.values).astype("float32")
+geo["lon"] = shapely.get_x(geo.geometry.values).astype("float32")
 df = df.join(geo[["lat", "lon"]])
 
 ### Pack small categorical fields not used for filtering in UI into an integer

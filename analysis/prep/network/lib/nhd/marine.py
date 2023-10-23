@@ -73,11 +73,9 @@ def extract_marine(gdb, target_crs):
         return df.to_crs(target_crs)
 
     df = explode(df).reset_index(drop=True)
-    df["geometry"] = make_valid(df.geometry.values.data)
+    df["geometry"] = make_valid(df.geometry.values)
     df = explode(df)
-    df = df.loc[shapely.get_type_id(df.geometry.values.data) == 3].reset_index(
-        drop=True
-    )
+    df = df.loc[shapely.get_type_id(df.geometry.values) == 3].reset_index(drop=True)
 
     if not len(df):
         return df.to_crs(target_crs)
@@ -86,9 +84,9 @@ def extract_marine(gdb, target_crs):
     df["marine"] = df.FType == 445
 
     # find all connected parts
-    tree = shapely.STRtree(df.geometry.values.data)
+    tree = shapely.STRtree(df.geometry.values)
     pairs = pd.DataFrame(
-        tree.query(df.geometry.values.data, predicate="intersects").T,
+        tree.query(df.geometry.values, predicate="intersects").T,
         columns=["left", "right"],
     )
     g = DirectedGraph(

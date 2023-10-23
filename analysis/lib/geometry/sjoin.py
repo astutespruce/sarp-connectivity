@@ -24,8 +24,8 @@ def sjoin(left, right, predicate="intersects", how="left"):
 
     # spatial join is inner to avoid recasting indices to float
     joined = sjoin_geometry(
-        pd.Series(left.geometry.values.data, index=left.index),
-        pd.Series(right.geometry.values.data, index=right.index),
+        pd.Series(left.geometry.values, index=left.index),
+        pd.Series(right.geometry.values, index=right.index),
         predicate,
         how="inner",
     )
@@ -108,16 +108,12 @@ def sjoin_points_to_poly(point_df, poly_df):
         all columns of left plus all non-geometry columns from right
     """
     if len(point_df) > len(poly_df):
-        tree = shapely.STRtree(point_df.geometry.values.data)
-        poly_ix, pt_ix = tree.query(
-            poly_df.geometry.values.data, predicate="intersects"
-        )
+        tree = shapely.STRtree(point_df.geometry.values)
+        poly_ix, pt_ix = tree.query(poly_df.geometry.values, predicate="intersects")
 
     else:
-        tree = shapely.STRtree(poly_df.geometry.values.data)
-        pt_ix, poly_ix = tree.query(
-            point_df.geometry.values.data, predicate="intersects"
-        )
+        tree = shapely.STRtree(poly_df.geometry.values)
+        pt_ix, poly_ix = tree.query(point_df.geometry.values, predicate="intersects")
 
     # reduce to unique poly per pt
     j = pd.DataFrame(

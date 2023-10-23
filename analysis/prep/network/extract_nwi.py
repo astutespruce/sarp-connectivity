@@ -53,8 +53,8 @@ huc8_df["HUC2"] = huc8_df.HUC8.str[:2]
 
 # need to filter to only those that occur in the US
 states = gp.read_feather(data_dir / "boundaries/states.feather", columns=["geometry"])
-tree = shapely.STRtree(huc8_df.geometry.values.data)
-left, right = tree.query(states.geometry.values.data, predicate="intersects")
+tree = shapely.STRtree(huc8_df.geometry.values)
+left, right = tree.query(states.geometry.values, predicate="intersects")
 ix = np.unique(right)
 print(f"Dropping {len(huc8_df) - len(ix):,} HUC8s that are outside U.S.")
 huc8_df = huc8_df.iloc[ix].copy()
@@ -99,7 +99,7 @@ for huc2 in huc2s:
 
     print("Reading flowlines")
     flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather", columns=[])
-    tree = shapely.STRtree(flowlines.geometry.values.data)
+    tree = shapely.STRtree(flowlines.geometry.values)
 
     waterbodies = None
     rivers = None
@@ -128,7 +128,7 @@ for huc2 in huc2s:
             )
 
         # some geometries are invalid, filter them out
-        df = df.loc[shapely.is_geometry(df.geometry.values.data)].copy()
+        df = df.loc[shapely.is_geometry(df.geometry.values)].copy()
 
         if not len(df):
             continue
@@ -153,7 +153,7 @@ for huc2 in huc2s:
     ### Process waterbodies
     # only keep that intersect flowlines
     print(f"Extracted {len(waterbodies):,} NWI lakes and ponds")
-    left, right = tree.query(waterbodies.geometry.values.data, predicate="intersects")
+    left, right = tree.query(waterbodies.geometry.values, predicate="intersects")
     waterbodies = waterbodies.iloc[np.unique(left)].reset_index(drop=True)
     print(f"Kept {len(waterbodies):,} that intersect flowlines")
 
@@ -167,16 +167,16 @@ for huc2 in huc2s:
     # TODO: explode, repair, dissolve, explode, reset index
     waterbodies = explode(waterbodies)
     # make valid
-    ix = ~shapely.is_valid(waterbodies.geometry.values.data)
+    ix = ~shapely.is_valid(waterbodies.geometry.values)
     if ix.sum():
         print(f"Repairing {ix.sum():,} invalid waterbodies")
         waterbodies.loc[ix, "geometry"] = shapely.make_valid(
-            waterbodies.loc[ix].geometry.values.data
+            waterbodies.loc[ix].geometry.values
         )
 
     # cleanup any that collapsed to other geometry types during make valid or import
     waterbodies = waterbodies.loc[
-        shapely.get_type_id(waterbodies.geometry.values.data) == 3
+        shapely.get_type_id(waterbodies.geometry.values) == 3
     ].reset_index()
 
     # note: nwi_code, nwi_type are discarded here since they aren't used later
@@ -184,30 +184,26 @@ for huc2 in huc2s:
     waterbodies = dissolve(waterbodies, by=["altered"])
     waterbodies = explode(waterbodies).reset_index(drop=True)
 
-    waterbodies["km2"] = shapely.area(waterbodies.geometry.values.data) / 1e6
+    waterbodies["km2"] = shapely.area(waterbodies.geometry.values) / 1e6
 
     waterbodies.to_feather(huc2_dir / "waterbodies.feather")
     write_dataframe(waterbodies, huc2_dir / "waterbodies.fgb")
 
     ### Process riverine
     print(f"Extracted {len(rivers):,} NWI altered river polygons")
-    left, right = tree.query(rivers.geometry.values.data, predicate="intersects")
+    left, right = tree.query(rivers.geometry.values, predicate="intersects")
     rivers = rivers.iloc[np.unique(left)].reset_index(drop=True)
     print(f"Kept {len(rivers):,} that intersect flowlines")
 
     rivers = explode(rivers)
     # make valid
-    ix = ~shapely.is_valid(rivers.geometry.values.data)
+    ix = ~shapely.is_valid(rivers.geometry.values)
     if ix.sum():
         print(f"Repairing {ix.sum():,} invalid rivers")
-        rivers.loc[ix, "geometry"] = shapely.make_valid(
-            rivers.loc[ix].geometry.values.data
-        )
+        rivers.loc[ix, "geometry"] = shapely.make_valid(rivers.loc[ix].geometry.values)
 
     # cleanup any that collapsed to other geometry types during make valid or import
-    rivers = rivers.loc[
-        shapely.get_type_id(rivers.geometry.values.data) == 3
-    ].reset_index()
+    rivers = rivers.loc[shapely.get_type_id(rivers.geometry.values) == 3].reset_index()
 
     rivers["modifier"] = rivers.modifier.map(MODIFIERS)
 

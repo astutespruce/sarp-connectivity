@@ -24,7 +24,7 @@ print("Reading flowlines...")
 flowlines = read_feathers(
     [nhd_dir / huc2 / "flowlines.feather" for huc2 in huc2s], columns=[], geo=True
 )
-tree = shapely.STRtree(flowlines.geometry.values.data)
+tree = shapely.STRtree(flowlines.geometry.values)
 
 
 # bring in Great Lakes
@@ -70,7 +70,7 @@ df = df.loc[
 
 print(f"Extracted {len(df):,} MN waterbodies")
 
-left, right = tree.query(df.geometry.values.data, predicate="intersects")
+left, right = tree.query(df.geometry.values, predicate="intersects")
 df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
@@ -120,23 +120,23 @@ df = df.drop(columns=["tmp"])
 
 # mark any that are more than 50% altered as altered
 altered = df.loc[df.altered]
-tree = shapely.STRtree(altered.geometry.values.data)
-left, right = tree.query(wb.geometry.values.data, predicate="intersects")
+tree = shapely.STRtree(altered.geometry.values)
+left, right = tree.query(wb.geometry.values, predicate="intersects")
 intersection = shapely.area(
     shapely.intersection(
-        wb.geometry.values.data.take(left), altered.geometry.values.data.take(right)
+        wb.geometry.values.take(left), altered.geometry.values.take(right)
     )
-) / shapely.area(wb.geometry.values.data.take(left))
+) / shapely.area(wb.geometry.values.take(left))
 ix = wb.index.values.take(np.unique(left[intersection >= 0.5]))
 wb["altered"] = False
 wb.loc[ix, "altered"] = True
 
 
 ### Split out by HUC2
-tree = shapely.STRtree(wb.geometry.values.data)
+tree = shapely.STRtree(wb.geometry.values)
 
 # confirmed by hand, there are no waterbodies that show up in multiple HUC2s
-left, right = tree.query(huc2_df.geometry.values.data, predicate="intersects")
+left, right = tree.query(huc2_df.geometry.values, predicate="intersects")
 
 wb = wb.join(
     pd.DataFrame(

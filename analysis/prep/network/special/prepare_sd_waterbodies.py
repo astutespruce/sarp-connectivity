@@ -32,8 +32,8 @@ src_dir = data_dir / "states/sd"
 huc4_df = gp.read_feather(data_dir / "boundaries/huc4.feather")
 states = gp.read_feather(data_dir / "boundaries/states.feather")
 states = states.loc[states.State == "South Dakota"].copy()
-tree = shapely.STRtree(huc4_df.geometry.values.data)
-ix = tree.query(states.geometry.values.data[0], predicate="intersects")
+tree = shapely.STRtree(huc4_df.geometry.values)
+ix = tree.query(states.geometry.values[0], predicate="intersects")
 huc4_df = huc4_df.iloc[ix].copy()
 huc2s = sorted(huc4_df.HUC2.unique())
 
@@ -47,22 +47,22 @@ flowlines = read_feathers(
     geo=True,
 )
 flowlines = flowlines.loc[flowlines.HUC4.isin(huc4_df.HUC4.unique())].copy()
-tree = shapely.STRtree(flowlines.geometry.values.data)
+tree = shapely.STRtree(flowlines.geometry.values)
 
 print("Reading waterbodies...")
 df = read_dataframe(src_dir / "Statewide_Waterbodies.shp", columns=[]).to_crs(CRS)
 print(f"Extracted {len(df):,} waterbodies")
 
-left, right = tree.query(df.geometry.values.data, predicate="intersects")
+left, right = tree.query(df.geometry.values, predicate="intersects")
 df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
 df = explode(df)
 # make valid
-ix = ~shapely.is_valid(df.geometry.values.data)
+ix = ~shapely.is_valid(df.geometry.values)
 if ix.sum():
     print(f"Repairing {ix.sum():,} invalid waterbodies")
-    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values.data)
+    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values)
 
 
 print("Dissolving adjacent waterbodies...")
@@ -72,10 +72,10 @@ df = explode(df).reset_index(drop=True)
 
 
 ### Split out by HUC2
-tree = shapely.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values)
 
 # confirmed by hand, there are no waterbodies that show up in multiple HUC2s
-left, right = tree.query(huc2_df.geometry.values.data, predicate="intersects")
+left, right = tree.query(huc2_df.geometry.values, predicate="intersects")
 
 df = df.join(
     pd.DataFrame(

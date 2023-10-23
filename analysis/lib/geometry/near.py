@@ -70,11 +70,11 @@ def nearest(source, target, max_distance, keep_all=False):
     left_index_name = source.index.name or "index"
     right_index_name = target.index.name or "index_right"
 
-    tree = shapely.STRtree(target.values.data)
+    tree = shapely.STRtree(target.values)
 
     if np.isscalar(max_distance):
         (left_ix, right_ix), distance = tree.query_nearest(
-            source.values.data, max_distance=max_distance, return_distance=True
+            source.values, max_distance=max_distance, return_distance=True
         )
 
         # Note: there may be multiple equidistant or intersected results, so we take the first
@@ -92,7 +92,7 @@ def nearest(source, target, max_distance, keep_all=False):
             ix = max_distance == d
             left = source.loc[ix]
             (left_ix, right_ix), distance = tree.query_nearest(
-                left.values.data, max_distance=d, return_distance=True
+                left.values, max_distance=d, return_distance=True
             )
             merged = append(
                 merged,

@@ -109,13 +109,13 @@ waterfalls = gp.read_feather(snapped_dir / "waterfalls.feather", columns=["geome
 
 
 # remove road crossings that are too close to dams or waterfalls
-tree = shapely.STRtree(crossings.geometry.values.data)
+tree = shapely.STRtree(crossings.geometry.values)
 right = tree.query(
-    dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+    dams.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )[1]
 dam_ix = crossings.index.values.take(np.unique(right))
 right = tree.query(
-    waterfalls.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+    waterfalls.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )[1]
 wf_ix = crossings.index.values.take(np.unique(right))
 drop_ix = np.unique(np.concatenate([dam_ix, wf_ix]))
@@ -517,9 +517,9 @@ export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas.fgb")
 ### Deduplicate by dams
 # any that are within duplicate tolerance of dams may be duplicating those dams
 # NOTE: these are only the dams that are snapped and not dropped or excluded
-tree = shapely.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values)
 left, right = tree.query(
-    dams.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+    dams.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )
 ix = df.index.values.take(np.unique(right))
 
@@ -529,9 +529,9 @@ df.loc[ix, "dup_log"] = f"Within {DUPLICATE_TOLERANCE}m of an existing dam"
 print(f"Found {len(ix)} small barriers within {DUPLICATE_TOLERANCE}m of dams")
 
 ### Exclude those that co-occur with waterfalls
-tree = shapely.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values)
 left, right = tree.query(
-    waterfalls.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+    waterfalls.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE
 )
 near_wf = df.index.values.take(np.unique(right))
 
@@ -660,8 +660,8 @@ crossings.loc[ix, "NearestBarrierID"] = df.loc[barriers_ix].SARPID.values
 ### Add lat / lon
 print("Adding lat / lon fields")
 geo = df[["geometry"]].to_crs(GEO_CRS)
-geo["lat"] = shapely.get_y(geo.geometry.values.data).astype("float32")
-geo["lon"] = shapely.get_x(geo.geometry.values.data).astype("float32")
+geo["lat"] = shapely.get_y(geo.geometry.values).astype("float32")
+geo["lon"] = shapely.get_x(geo.geometry.values).astype("float32")
 df = df.join(geo[["lat", "lon"]])
 
 

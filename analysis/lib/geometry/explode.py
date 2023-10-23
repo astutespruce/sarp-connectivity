@@ -20,7 +20,7 @@ def explode(df, add_position=False):
     """
     join_cols = [c for c in df.columns if not c == "geometry"]
     crs = df.crs
-    geom, outer_index = shapely.get_parts(df.geometry.values.data, return_index=True)
+    geom, outer_index = shapely.get_parts(df.geometry.values, return_index=True)
 
     if not add_position:
         return gp.GeoDataFrame(

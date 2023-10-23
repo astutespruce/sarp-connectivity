@@ -181,51 +181,51 @@ MAX_PIPELINE_LENGTH = 250  # meters
 
 # NOTE: not all feature services have all columns
 DAM_FS_COLS = [
-    "SARPUniqueID",
-    "SNAP2018",  # renamed to ManualReview
-    "Snap2018",  # renamed to ManualReview
-    "ManualReview",  # for western states and NC (which also has Snap2018)
-    "NIDID",
     "SourceDBID",
     "DB_Source",
-    "StateAbbreviation",
+    "SARPUniqueID",
+    "NIDID",
     "Barrier_Name",
     "Other_Barrier_Name",
-    "OwnerType",
+    "StateAbbreviation",
     "RIVER",
-    "PurposeCategory",
+    "Editor",
     "YEAR_COMPLETED",
-    "Year_Removed",
-    "Height",
-    "Length",
-    "Width",
+    "HEIGHT",
+    "WIDTH",
+    "LENGTH",
+    "StructureCategory",
+    "StructureClass",
+    "PurposeCategory",
+    "OwnerType",
+    "Hazard",
+    "ImpoundmentType",
+    "BarrierStatus",
     "StructureCondition",
     "ConstructionMaterial",
+    "PassageFacility",
+    "PotentialFeasibility",  # only present in some states, backfilled from Recon
     "Recon",
     "Recon2",
     "Recon3",
-    "PotentialFeasibility",  # only present in some states, backfilled from Recon
     "InvasiveSpecies",
-    "BarrierStatus",
-    "PassageFacility",
-    "StructureCategory",
-    "StructureClass",
+    "Year_Removed",
     "Diversion",
     "FishScreen",
     "ScreenType",
     "BarrierSeverity",
     "LowheadDam",
-    "ImpoundmentType",
-    "EditDate",
-    "Editor",
-    "Link",
-    "Fed_Regulatory_Agency",
-    "Regulatory_Agency",
     "FERC_Dam",
+    "Fed_Regulatory_Agency",
     "STATE_REGULATED",
-    "Hazard",
-    "Water_Right",
+    "Regulatory_Agency",
     # "Private",  # TODO: enable when values are present
+    "Water_Right",
+    "Water_Right_Status",  # FIXME: check
+    "Beneficial_Use",  # FIXME: check
+    "Link",
+    "ManualReview",
+    "EditDate",
 ]
 
 
@@ -274,6 +274,8 @@ WATERFALL_COLS = [
     "Recon",
     "ManualReview",
     "BarrierSeverity",
+    "Link",
+    "Year_Removed",
 ]
 
 

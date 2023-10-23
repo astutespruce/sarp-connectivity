@@ -48,6 +48,6 @@ def extract_altered_rivers(gdb, target_crs):
 
     if len(df):
         df = df.to_crs(target_crs)
-        df.geometry = make_valid(df.geometry.values.data)
+        df.geometry = make_valid(df.geometry.values)
 
     return df

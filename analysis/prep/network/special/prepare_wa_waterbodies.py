@@ -33,7 +33,7 @@ huc2 = "17"
 
 print("Reading flowlines...")
 flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather", columns=[])
-tree = shapely.STRtree(flowlines.geometry.values.data)
+tree = shapely.STRtree(flowlines.geometry.values)
 
 
 ### Read WA hydro waterbody dataset
@@ -64,15 +64,15 @@ df["source"] = "wa_hydro"
 df = df.to_crs(CRS)
 
 print(f"Extracted {len(df):,} WA hydro waterbodies")
-left, right = tree.query(df.geometry.values.data, predicate="intersects")
+left, right = tree.query(df.geometry.values, predicate="intersects")
 df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
 df = explode(df)
-ix = ~shapely.is_valid(df.geometry.values.data)
+ix = ~shapely.is_valid(df.geometry.values)
 if ix.sum():
     print(f"Repairing {ix.sum():,} invalid waterbodies")
-    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values.data)
+    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values)
 
 waterbodies = df[["geometry", "altered", "source"]].copy()
 del df
@@ -95,22 +95,20 @@ df["altered"] = df.WSubClass == "Manmade"
 df["source"] = "wa_visiblesurfacewater"
 
 # reduce precision of geometry to 0.25ft; we'll cleanup topology later
-df["geometry"] = shapely.simplify(
-    df.geometry.values.data, 0.25, preserve_topology=False
-)
+df["geometry"] = shapely.simplify(df.geometry.values, 0.25, preserve_topology=False)
 
 df = df.to_crs(CRS)
 
 print(f"Extracted {len(df):,} WA surface waterbodies")
-left, right = tree.query(df.geometry.values.data, predicate="intersects")
+left, right = tree.query(df.geometry.values, predicate="intersects")
 df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
 df = explode(df)
-ix = ~shapely.is_valid(df.geometry.values.data)
+ix = ~shapely.is_valid(df.geometry.values)
 if ix.sum():
     print(f"Repairing {ix.sum():,} invalid waterbodies")
-    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values.data)
+    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values)
 
 
 df = pd.concat(
@@ -131,13 +129,13 @@ df = df.drop(columns=["tmp"])
 
 # mark any that are more than 50% altered as altered
 altered = df.loc[df.altered]
-tree = shapely.STRtree(altered.geometry.values.data)
-left, right = tree.query(wb.geometry.values.data, predicate="intersects")
+tree = shapely.STRtree(altered.geometry.values)
+left, right = tree.query(wb.geometry.values, predicate="intersects")
 intersection = shapely.area(
     shapely.intersection(
-        wb.geometry.values.data.take(left), altered.geometry.values.data.take(right)
+        wb.geometry.values.take(left), altered.geometry.values.take(right)
     )
-) / shapely.area(wb.geometry.values.data.take(left))
+) / shapely.area(wb.geometry.values.take(left))
 ix = wb.index.values.take(np.unique(left[intersection >= 0.5]))
 wb["altered"] = False
 wb.loc[ix, "altered"] = True

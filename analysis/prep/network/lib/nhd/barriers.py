@@ -49,7 +49,7 @@ def extract_barrier_points(gdb, target_crs):
 
     if len(df):
         df = df.to_crs(target_crs)
-        df.geometry = make_valid(df.geometry.values.data)
+        df.geometry = make_valid(df.geometry.values)
 
     return df
 
@@ -85,7 +85,7 @@ def extract_barrier_lines(gdb, target_crs):
 
     if len(df):
         df = df.to_crs(target_crs)
-        df.geometry = make_valid(df.geometry.values.data)
+        df.geometry = make_valid(df.geometry.values)
 
     return df
 
@@ -122,6 +122,6 @@ def extract_barrier_polygons(gdb, target_crs):
 
     if len(df):
         df = df.to_crs(target_crs)
-        df.geometry = make_valid(df.geometry.values.data)
+        df.geometry = make_valid(df.geometry.values)
 
     return df

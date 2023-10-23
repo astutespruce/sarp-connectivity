@@ -41,8 +41,8 @@ huc4_df = gp.read_feather(out_dir / "huc4.feather")
 
 # state outer boundaries, NOT analysis boundaries
 bnd_df = gp.read_feather(out_dir / "region_boundary.feather")
-bnd = bnd_df.loc[bnd_df.id == "total"].geometry.values.data[0]
-bnd_geo = bnd_df.loc[bnd_df.id == "total"].to_crs(GEO_CRS).geometry.values.data[0]
+bnd = bnd_df.loc[bnd_df.id == "total"].geometry.values[0]
+bnd_geo = bnd_df.loc[bnd_df.id == "total"].to_crs(GEO_CRS).geometry.values[0]
 
 state_df = gp.read_feather(
     out_dir / "region_states.feather", columns=["STATEFIPS", "geometry", "id"]
@@ -62,11 +62,11 @@ county_df = (
 )
 
 # keep only those within the region HUC4 outer boundary
-tree = shapely.STRtree(county_df.geometry.values.data)
-ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
+tree = shapely.STRtree(county_df.geometry.values)
+ix = np.unique(tree.query(huc4_df.geometry.values, predicate="intersects")[1])
 ix.sort()
 county_df = county_df.iloc[ix].reset_index(drop=True)
-county_df.geometry = to_multipolygon(shapely.make_valid(county_df.geometry.values.data))
+county_df.geometry = to_multipolygon(shapely.make_valid(county_df.geometry.values))
 
 # keep larger set for spatial joins
 county_df.to_feather(out_dir / "counties.feather")
@@ -88,7 +88,7 @@ state_geo_df = (
     .rename(columns={"State": "name"})
     .to_crs(GEO_CRS)
 )
-state_geo_df["bbox"] = encode_bbox(state_geo_df.geometry.values.data)
+state_geo_df["bbox"] = encode_bbox(state_geo_df.geometry.values)
 state_geo_df["in_region"] = state_geo_df.id.isin(STATES)
 state_geo_df["state"] = ""  # state_geo_df.id
 state_geo_df["layer"] = "State"
@@ -103,7 +103,7 @@ county_geo_df = (
     .join(state_geo_df.set_index("STATEFIPS").name.rename("state_name"), on="STATEFIPS")
 )
 county_geo_df["name"] = county_geo_df["name"] + " County"
-county_geo_df["bbox"] = encode_bbox(county_geo_df.geometry.values.data)
+county_geo_df["bbox"] = encode_bbox(county_geo_df.geometry.values)
 county_geo_df["layer"] = "County"
 county_geo_df["priority"] = 2
 county_geo_df["key"] = county_geo_df["name"] + " " + county_geo_df.state_name
@@ -127,18 +127,18 @@ for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
         .to_crs(GEO_CRS)
     )
 
-    df["bbox"] = encode_bbox(df.geometry.values.data)
+    df["bbox"] = encode_bbox(df.geometry.values)
     df["layer"] = unit
     df["priority"] = i + 2
 
     # only keep those that overlap the boundary
-    tree = shapely.STRtree(df.geometry.values.data)
+    tree = shapely.STRtree(df.geometry.values)
     ix = tree.query(bnd_geo, predicate="intersects")
     df = df.loc[ix]
 
     # spatially join to states
-    tree = shapely.STRtree(state_geo_df.geometry.values.data)
-    left, right = tree.query(df.geometry.values.data, predicate="intersects")
+    tree = shapely.STRtree(state_geo_df.geometry.values)
+    left, right = tree.query(df.geometry.values, predicate="intersects")
     unit_states = (
         pd.DataFrame(
             {
@@ -184,7 +184,7 @@ for layer, ownertype in layers.items():
     print(f"Extracting {ownertype}")
     df = read_dataframe(gdb, layer=layer, columns=[], force_2d=True).to_crs(CRS)
 
-    tree = shapely.STRtree(df.geometry.values.data)
+    tree = shapely.STRtree(df.geometry.values)
     df = df.take(tree.query(bnd, predicate="intersects"))
     df["otype"] = ownertype
     df["owner"] = ownertype
@@ -221,7 +221,7 @@ df = (
 df.loc[df.otype == "Easment", "otype"] = "Easement"
 
 # select those that are within the boundary
-tree = shapely.STRtree(df.geometry.values.data)
+tree = shapely.STRtree(df.geometry.values)
 df = df.take(tree.query(bnd, predicate="intersects"))
 
 # this takes a while...

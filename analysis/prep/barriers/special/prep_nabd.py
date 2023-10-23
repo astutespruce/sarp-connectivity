@@ -27,8 +27,8 @@ nabd["ManualReview"] = 2
 
 ### Select NABD within analysis HUC4s
 huc4_df = gp.read_feather(boundaries_dir / "huc4.feather")
-tree = shapely.STRtree(nabd.geometry.values.data)
-ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
+tree = shapely.STRtree(nabd.geometry.values)
+ix = np.unique(tree.query(huc4_df.geometry.values, predicate="intersects")[1])
 nabd = nabd.iloc[ix].copy()
 
 ### Load NID versions and determine which ones moved
@@ -39,8 +39,8 @@ prev_nid = (
     .to_crs(CRS)
     .set_index("NIDID")
 )
-tree = shapely.STRtree(prev_nid.geometry.values.data)
-ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
+tree = shapely.STRtree(prev_nid.geometry.values)
+ix = np.unique(tree.query(huc4_df.geometry.values, predicate="intersects")[1])
 prev_nid = prev_nid.iloc[ix].copy()
 
 nid = (
@@ -49,8 +49,8 @@ nid = (
     .rename(columns={"federalId": "NIDID"})
     .set_index("NIDID")
 )
-tree = shapely.STRtree(nid.geometry.values.data)
-ix = np.unique(tree.query(huc4_df.geometry.values.data, predicate="intersects")[1])
+tree = shapely.STRtree(nid.geometry.values)
+ix = np.unique(tree.query(huc4_df.geometry.values, predicate="intersects")[1])
 nid = nid.iloc[ix].copy()
 
 
@@ -58,14 +58,10 @@ nid = nid.iloc[ix].copy()
 df = nid.join(nabd.geometry.rename("nabd_geometry"), how="inner").join(
     prev_nid[["geometry", "Barrier_Name"]].rename(columns={"geometry": "prev_geometry"})
 )
-df["update_dist"] = shapely.distance(
-    df.geometry.values.data, df.prev_geometry.values.data
-)
-df["cur_nabd_dist"] = shapely.distance(
-    df.geometry.values.data, df.nabd_geometry.values.data
-)
+df["update_dist"] = shapely.distance(df.geometry.values, df.prev_geometry.values)
+df["cur_nabd_dist"] = shapely.distance(df.geometry.values, df.nabd_geometry.values)
 df["prev_nabd_dist"] = shapely.distance(
-    df.prev_geometry.values.data, df.nabd_geometry.values.data
+    df.prev_geometry.values, df.nabd_geometry.values
 )
 
 # any that moved less than 10m in NABD can be ignored from NABD (not useful)

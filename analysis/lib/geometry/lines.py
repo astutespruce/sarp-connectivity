@@ -153,7 +153,7 @@ def aggregate_lines(df, by):
 
     # convert to DataFrame, so that we can get at pygeos geometries directly in apply
     tmp = pd.DataFrame(df.copy())
-    tmp["geometry"] = tmp.geometry.values.data
+    tmp["geometry"] = tmp.geometry.values
     return gp.GeoDataFrame(
         tmp.groupby(by=by, group_keys=False)
         .geometry.apply(shapely.multilinestrings)
@@ -181,13 +181,13 @@ def merge_lines(df, by):
     GeoDataFrame of LineStrings or MultiLinestrings (if required)
     """
     agg = aggregate_lines(df, by)
-    agg["geometry"] = shapely.line_merge(agg.geometry.values.data)
+    agg["geometry"] = shapely.line_merge(agg.geometry.values)
 
-    geom_type = shapely.get_type_id(agg["geometry"].values.data)
+    geom_type = shapely.get_type_id(agg["geometry"].values)
     ix = geom_type == 5
     if ix.sum() > 0:
         agg.loc[~ix, "geometry"] = shapely.multilinestrings(
-            agg.loc[~ix].geometry.values.data, np.arange((~ix).sum())
+            agg.loc[~ix].geometry.values, np.arange((~ix).sum())
         )
 
     return agg

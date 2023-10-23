@@ -28,8 +28,8 @@ def get_huc2(df):
     huc2 = gp.read_feather(
         boundaries_dir / "huc2.feather", columns=["HUC2", "geometry"]
     ).explode(ignore_index=True)
-    tree = STRtree(df.geometry.values.data)
-    left, right = tree.query(huc2.geometry.values.data, predicate="intersects")
+    tree = STRtree(df.geometry.values)
+    left, right = tree.query(huc2.geometry.values, predicate="intersects")
     huc2 = (
         pd.DataFrame(
             {"HUC2": huc2.HUC2.values.take(left)}, index=df.index.values.take(right)

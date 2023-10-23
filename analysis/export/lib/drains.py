@@ -39,8 +39,8 @@ def find_dam_faces(drains, waterbodies):
             on="wbID",
         )
     )
-    joined["geometry"] = joined.geometry.values.data
-    joined["waterbody"] = joined.waterbody.values.data
+    joined["geometry"] = joined.geometry.values
+    joined["waterbody"] = joined.waterbody.values
 
     ids, segments = loop(
         joined.waterbody.values, joined.geometry.values, joined.index.values

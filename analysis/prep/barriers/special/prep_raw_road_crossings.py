@@ -47,10 +47,10 @@ qa_dir = barriers_dir / "qa"
 def dedup_crossings(df):
     # we only want to dedup those that are really close, and some may be in chains of
     # crossings, so only dedup by distance not neighborhoods
-    tree = shapely.STRtree(df.geometry.values.data)
+    tree = shapely.STRtree(df.geometry.values)
     pairs = pd.DataFrame(
         tree.query(
-            df.geometry.values.data, predicate="dwithin", distance=DUPLICATE_TOLERANCE
+            df.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE
         ).T,
         columns=["left", "right"],
     )
@@ -101,8 +101,8 @@ df["Source"] = "USGS Database of Stream Crossings in the United States (2022)"
 huc4 = gp.read_feather(
     boundaries_dir / "huc4.feather", columns=["geometry", "HUC4"]
 ).to_crs(df.crs)
-tree = shapely.STRtree(df.geometry.values.data)
-left, right = tree.query(huc4.geometry.values.data, predicate="intersects")
+tree = shapely.STRtree(df.geometry.values)
+left, right = tree.query(huc4.geometry.values, predicate="intersects")
 huc4_join = (
     pd.DataFrame(
         {"HUC4": huc4.HUC4.values.take(left)}, index=df.index.values.take(right)
@@ -116,7 +116,7 @@ df["HUC2"] = df.HUC4.str[:2]
 print(f"Selected {len(df):,} road crossings in region")
 
 # use original latitude / longitude (NAD83) values
-lon, lat = shapely.get_coordinates(df.geometry.values.data).astype("float32").T
+lon, lat = shapely.get_coordinates(df.geometry.values).astype("float32").T
 df["lon"] = lon
 df["lat"] = lat
 
@@ -132,7 +132,7 @@ df = df.set_index("id", drop=False)
 print("Removing duplicate crossings at same location...")
 
 # round to int
-x, y = shapely.get_coordinates(df.geometry.values.data).astype("int").T
+x, y = shapely.get_coordinates(df.geometry.values).astype("int").T
 df["x"] = x
 df["y"] = y
 

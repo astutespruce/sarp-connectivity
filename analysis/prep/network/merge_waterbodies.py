@@ -167,7 +167,7 @@ for huc2 in huc2s:
     print(f"Now have {len(df):,} waterbodies ({time() - dissolve_start:,.2f}s)")
 
     # assign altered if any resulting polygons intersect altered polygons
-    tree = shapely.STRtree(df.geometry.values.data.copy())
+    tree = shapely.STRtree(df.geometry.values.copy())
     left, right = tree.query(altered.geometry.values)
     df["altered"] = False
     df.loc[np.unique(right), "altered"] = True
@@ -189,13 +189,13 @@ for huc2 in huc2s:
             # find all pairs of waterbody and breaks, aggregate
             # breaks by waterbody, then calculate difference
 
-            tree = shapely.STRtree(df.geometry.values.data.copy())
+            tree = shapely.STRtree(df.geometry.values.copy())
             left, right = tree.query(breaks, predicate="intersects")
             pairs = pd.DataFrame(
                 {"break_geometry": breaks.take(left)}, index=df.index.take(right)
             )
             grouped = pairs.groupby(level=0).break_geometry.apply(
-                lambda g: shapely.multipolygons(g.values.data)
+                lambda g: shapely.multipolygons(g.values)
             )
             df.loc[grouped.index, "geometry"] = shapely.difference(
                 df.loc[grouped.index].geometry.values, grouped.values

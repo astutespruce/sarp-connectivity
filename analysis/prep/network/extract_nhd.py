@@ -95,10 +95,8 @@ def process_gdbs(huc2, src_dir, out_dir):
         ### Only retain waterbodies that intersect flowlines
         print("Intersecting waterbodies and flowlines")
         # use waterbodies to query flowlines since there are many more flowlines
-        tree = shapely.STRtree(
-            flowlines.loc[~flowlines.offnetwork].geometry.values.data
-        )
-        ix = tree.query(waterbodies.geometry.values.data, predicate="intersects")[0]
+        tree = shapely.STRtree(flowlines.loc[~flowlines.offnetwork].geometry.values)
+        ix = tree.query(waterbodies.geometry.values, predicate="intersects")[0]
         waterbodies = waterbodies.iloc[np.unique(ix)].copy()
         print(f"Retained {len(waterbodies):,} waterbodies that intersect flowlines")
 
@@ -194,7 +192,7 @@ def process_gdbs(huc2, src_dir, out_dir):
     # It will miss those that are NEARLY the same.
 
     waterbodies["hash"] = pd.util.hash_array(
-        shapely.to_wkb(waterbodies.geometry.values.data)
+        shapely.to_wkb(waterbodies.geometry.values)
     )
 
     id_map = (

@@ -39,20 +39,20 @@ df = (
 
 print("Reading flowlines...")
 flowlines = gp.read_feather(nhd_dir / huc2 / "flowlines.feather", columns=[])
-tree = shapely.STRtree(flowlines.geometry.values.data)
+tree = shapely.STRtree(flowlines.geometry.values)
 
 
 print(f"Extracted {len(df):,} SC waterbodies")
-left, right = tree.query(df.geometry.values.data, predicate="intersects")
+left, right = tree.query(df.geometry.values, predicate="intersects")
 df = df.iloc[np.unique(left)].reset_index(drop=True)
 print(f"Kept {len(df):,} that intersect flowlines")
 
 df = explode(df)
 # make valid
-ix = ~shapely.is_valid(df.geometry.values.data)
+ix = ~shapely.is_valid(df.geometry.values)
 if ix.sum():
     print(f"Repairing {ix.sum():,} invalid waterbodies")
-    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values.data)
+    df.loc[ix, "geometry"] = shapely.make_valid(df.loc[ix].geometry.values)
 
 
 print("Dissolving adjacent waterbodies...")

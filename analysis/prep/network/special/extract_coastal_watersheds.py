@@ -23,7 +23,7 @@ paths = [p for p in paths if p.exists()]
 marine = read_feathers(paths, geo=True).explode(ignore_index=True)
 
 print(f"Creating {MARINE_BUFFER}m buffer around marine areas")
-marine["geometry"] = shapely.buffer(marine.geometry.values.data, MARINE_BUFFER)
+marine["geometry"] = shapely.buffer(marine.geometry.values, MARINE_BUFFER)
 
 print("Dissolving marine areas")
 marine["group"] = 1
@@ -35,9 +35,9 @@ huc8s = gp.read_feather(data_dir / "boundaries/huc8.feather").drop(
     columns=["coastal"], errors="ignore"
 )
 
-tree = shapely.STRtree(huc8s.geometry.values.data)
+tree = shapely.STRtree(huc8s.geometry.values)
 ix = huc8s.index.take(
-    tree.query(marine.geometry.values.data, predicate="intersects")[1]
+    tree.query(marine.geometry.values, predicate="intersects")[1]
 ).unique()
 huc8s["coastal"] = huc8s.index.isin(ix)
 

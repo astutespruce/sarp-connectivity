@@ -59,8 +59,8 @@ huc8_df["HUC2"] = huc8_df.HUC8.str[:2]
 
 # need to filter to only those that occur in the US
 states = gp.read_feather(data_dir / "boundaries/states.feather", columns=["geometry"])
-tree = shapely.STRtree(huc8_df.geometry.values.data)
-left, right = tree.query(states.geometry.values.data, predicate="intersects")
+tree = shapely.STRtree(huc8_df.geometry.values)
+left, right = tree.query(states.geometry.values, predicate="intersects")
 ix = np.unique(right)
 print(f"Dropping {len(huc8_df) - len(ix):,} HUC8s that are outside U.S.")
 huc8_df = huc8_df.iloc[ix].copy()

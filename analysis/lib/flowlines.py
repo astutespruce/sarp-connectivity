@@ -184,14 +184,14 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     # Barriers are on upstream or downstream end of segment if they are within
     # SNAP_ENDPOINT_TOLERANCE of the ends.  Otherwise, they are splits
     segments["linepos"] = shapely.line_locate_point(
-        segments.flowline.values.data, segments.barrier.values.data
+        segments.flowline.values, segments.barrier.values
     )
 
     ### Upstream and downstream endpoint barriers
     segments["on_upstream"] = segments.linepos <= SNAP_ENDPOINT_TOLERANCE
     segments["on_downstream"] = (
         segments.linepos
-        >= shapely.length(segments.flowline.values.data) - SNAP_ENDPOINT_TOLERANCE
+        >= shapely.length(segments.flowline.values) - SNAP_ENDPOINT_TOLERANCE
     )
 
     # if line length is < SNAP_ENDPOINT_TOLERANCE, then barrier could be tagged
@@ -314,8 +314,8 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
 
     # Convert to DataFrame so that geometry cols are arrays of pygeos geometries
     tmp = pd.DataFrame(split_segments.copy())
-    tmp.flowline = tmp.flowline.values.data
-    tmp.barrier = tmp.barrier.values.data
+    tmp.flowline = tmp.flowline.values
+    tmp.barrier = tmp.barrier.values
 
     # Group barriers by line so that we can split geometries in one pass
     grouped = (
@@ -510,7 +510,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     """
 
     df = flowlines.join(points.rename("point"), how="inner")
-    df["pos"] = shapely.line_locate_point(df.geometry.values.data, df.point.values.data)
+    df["pos"] = shapely.line_locate_point(df.geometry.values, df.point.values)
 
     # only keep cut points that are sufficiently interior to the line
     # (i.e., not too close to endpoints)
@@ -522,7 +522,7 @@ def cut_flowlines_at_points(flowlines, joins, points, next_lineID):
     df = df.loc[ix].sort_values(by=["lineID", "pos"])
     # convert to plain DataFrame so that we can extract coords
     grouped = pd.DataFrame(df.groupby("lineID").agg({"geometry": "first", "pos": list}))
-    grouped["geometry"] = grouped.geometry.values.data
+    grouped["geometry"] = grouped.geometry.values
     outer_ix, inner_ix, lines = cut_lines_at_points(
         grouped.geometry.apply(lambda x: shapely.get_coordinates(x)).values,
         grouped.pos.apply(np.array).values,
@@ -664,14 +664,14 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
 
     onnetwork_flowlines = flowlines.loc[~flowlines.offnetwork]
 
-    tree = shapely.STRtree(onnetwork_flowlines.geometry.values.data)
-    left, right = tree.query(waterbodies.geometry.values.data, predicate="intersects")
+    tree = shapely.STRtree(onnetwork_flowlines.geometry.values)
+    left, right = tree.query(waterbodies.geometry.values, predicate="intersects")
     df = pd.DataFrame(
         {
             "lineID": onnetwork_flowlines.index.take(right),
-            "flowline": onnetwork_flowlines.geometry.values.data.take(right),
+            "flowline": onnetwork_flowlines.geometry.values.take(right),
             "wbID": waterbodies.index.take(left),
-            "waterbody": waterbodies.geometry.values.data.take(left),
+            "waterbody": waterbodies.geometry.values.take(left),
         }
     )
     print(f"Found {len(df):,} waterbody / flowline joins in {time() - join_start:.2f}s")
@@ -766,7 +766,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
         # extract all intersecting interior rings for these waterbodies
         print("Extracting interior rings for intersected waterbodies")
         wb = waterbodies.loc[waterbodies.index.isin(wbID)]
-        outer_index, inner_index, rings = get_interior_rings(wb.geometry.values.data)
+        outer_index, inner_index, rings = get_interior_rings(wb.geometry.values)
         if len(outer_index):
             # find the pairs of waterbody rings and lines to add
             rings = np.asarray(rings)
@@ -774,12 +774,12 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             lines_in_wb = df.loc[df.wbID.isin(wb_with_rings)].lineID.unique()
             lines_in_wb = flowlines.loc[flowlines.index.isin(lines_in_wb)].geometry
             tree = shapely.STRtree(rings)
-            left, right = tree.query(lines_in_wb.values.data, predicate="intersects")
+            left, right = tree.query(lines_in_wb.values, predicate="intersects")
 
             tmp = pd.DataFrame(
                 {
                     "lineID": lines_in_wb.index.values.take(left),
-                    "flowline": lines_in_wb.values.data.take(left),
+                    "flowline": lines_in_wb.values.take(left),
                     "wbID": wb_with_rings.take(right),
                     "waterbody": rings.take(right),
                 }
@@ -787,10 +787,8 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             df = pd.concat([df, tmp], ignore_index=True, sort=False)
 
         # extract the outer ring for original waterbodies
-        ix = shapely.get_type_id(df.waterbody.values.data) == 3
-        df.loc[ix, "waterbody"] = shapely.get_exterior_ring(
-            df.loc[ix].waterbody.values.data
-        )
+        ix = shapely.get_type_id(df.waterbody.values) == 3
+        df.loc[ix, "waterbody"] = shapely.get_exterior_ring(df.loc[ix].waterbody.values)
 
         # Calculate all geometric intersections between the flowlines and
         # waterbody rings and drop any that are not points
@@ -808,7 +806,7 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             )
         ).reset_index()
         points = (
-            df.loc[shapely.get_type_id(df.geometry.values.data) == 0]
+            df.loc[shapely.get_type_id(df.geometry.values) == 0]
             .set_index("lineID")
             .geometry
         )
@@ -834,15 +832,15 @@ def cut_lines_by_waterbodies(flowlines, joins, waterbodies, next_lineID):
             # recalculate overlaps with waterbodies
             print("Recalculating overlaps with waterbodies")
             wb = waterbodies.loc[wbID]
-            tree = shapely.STRtree(new_flowlines.geometry.values.data)
-            left, right = tree.query(wb.geometry.values.data, predicate="intersects")
+            tree = shapely.STRtree(new_flowlines.geometry.values)
+            left, right = tree.query(wb.geometry.values, predicate="intersects")
 
             df = pd.DataFrame(
                 {
                     "lineID": new_flowlines.index.take(right),
-                    "flowline": new_flowlines.geometry.values.data.take(right),
+                    "flowline": new_flowlines.geometry.values.take(right),
                     "wbID": wb.index.take(left),
-                    "waterbody": wb.geometry.values.data.take(left),
+                    "waterbody": wb.geometry.values.take(left),
                 }
             )
 
@@ -991,9 +989,9 @@ def remove_marine_flowlines(flowlines, joins, marine):
     """
 
     # Remove those that start in marine areas
-    points = shapely.get_point(flowlines.geometry.values.data, 0)
+    points = shapely.get_point(flowlines.geometry.values, 0)
     tree = shapely.STRtree(points)
-    left, right = tree.query(marine.geometry.values.data, predicate="intersects")
+    left, right = tree.query(marine.geometry.values, predicate="intersects")
     ix = flowlines.index.take(np.unique(right))
 
     print(f"Removing {len(ix):,} flowlines that originate in marine areas")
@@ -1005,9 +1003,9 @@ def remove_marine_flowlines(flowlines, joins, marine):
     )
 
     # Mark those that end in marine areas as marine
-    endpoints = shapely.get_point(flowlines.geometry.values.data, -1)
+    endpoints = shapely.get_point(flowlines.geometry.values, -1)
     tree = shapely.STRtree(endpoints)
-    left, right = tree.query(marine.geometry.values.data, predicate="intersects")
+    left, right = tree.query(marine.geometry.values, predicate="intersects")
     ix = flowlines.index.take(np.unique(right))
     joins.loc[joins.upstream_id.isin(ix), "marine"] = True
 
@@ -1017,8 +1015,8 @@ def remove_marine_flowlines(flowlines, joins, marine):
     tmp = pd.DataFrame(
         {
             "lineID": flowlines.iloc[right].index,
-            "geometry": flowlines.iloc[right].geometry.values.data,
-            "marine": marine.iloc[left].geometry.values.data,
+            "geometry": flowlines.iloc[right].geometry.values,
+            "marine": marine.iloc[left].geometry.values,
         }
     )
     tmp["overlap"] = shapely.intersection(tmp.geometry, tmp.marine)
@@ -1154,20 +1152,18 @@ def mark_altered_flowlines(flowlines, nwi):
     # buffer by 10m before finding overlaps
     # (seemed reasonable from visual inspection in region 15)
     print("Buffering NWI...")
-    b = shapely.get_parts(
-        union_or_combine(shapely.buffer(nwi.geometry.values.data, 10))
-    )
+    b = shapely.get_parts(union_or_combine(shapely.buffer(nwi.geometry.values, 10)))
 
     # Only analyze those not marked by NHD as altered
     unaltered = flowlines.loc[~flowlines.altered]
 
-    tree = shapely.STRtree(unaltered.geometry.values.data)
+    tree = shapely.STRtree(unaltered.geometry.values)
     left, right = tree.query(b, predicate="intersects")
 
     df = pd.DataFrame(
         {
             "lineID": unaltered.index.values.take(right),
-            "line": unaltered.geometry.values.data.take(right),
+            "line": unaltered.geometry.values.take(right),
             "nwi": b.take(left),
         }
     )
@@ -1225,7 +1221,7 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
     ].copy()
 
     # get last point, is furthest downstream
-    tmp["geometry"] = shapely.get_point(tmp.geometry.values.data, -1)
+    tmp["geometry"] = shapely.get_point(tmp.geometry.values, -1)
 
     # avoid any other terminals, loops, or pipelines / canals
     target = flowlines.loc[
@@ -1237,9 +1233,9 @@ def repair_disconnected_subnetworks(flowlines, joins, next_lineID):
         )
     ]
 
-    tree = shapely.STRtree(target.geometry.values.data)
+    tree = shapely.STRtree(target.geometry.values)
     # search within a tolerance of 0.001, these are very very close
-    left, right = tree.query_nearest(tmp.geometry.values.data, max_distance=0.001)
+    left, right = tree.query_nearest(tmp.geometry.values, max_distance=0.001)
 
     pairs = pd.DataFrame(
         {

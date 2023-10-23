@@ -237,8 +237,8 @@ print(
 # NOTE: these are only the dams that are snapped and not dropped or excluded
 dams = gp.read_feather(snapped_dir / "dams.feather", columns=["geometry"])
 near_dams = nearest(
-    pd.Series(df.geometry.values.data, index=df.index),
-    pd.Series(dams.geometry.values.data, index=dams.index),
+    pd.Series(df.geometry.values, index=df.index),
+    pd.Series(dams.geometry.values, index=dams.index),
     DUPLICATE_TOLERANCE,
 )
 
@@ -340,8 +340,8 @@ print(df.groupby("loop").size())
 ### Add lat / lon and drop geometry
 print("Adding lat / lon fields")
 geo = df[["geometry"]].to_crs(GEO_CRS)
-geo["lat"] = shapely.get_y(geo.geometry.values.data).astype("float32")
-geo["lon"] = shapely.get_x(geo.geometry.values.data).astype("float32")
+geo["lat"] = shapely.get_y(geo.geometry.values).astype("float32")
+geo["lon"] = shapely.get_x(geo.geometry.values).astype("float32")
 df = df.join(geo[["lat", "lon"]])
 
 

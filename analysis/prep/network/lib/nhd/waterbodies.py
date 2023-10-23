@@ -55,8 +55,8 @@ def extract_waterbodies(gdb, target_crs):
 
     # Convert multipolygons to polygons
     # those we checked that are true multipolygons are errors
-    df.geometry = shapely.get_geometry(df.geometry.values.data, 0)
-    df.geometry = make_valid(df.geometry.values.data)
+    df.geometry = shapely.get_geometry(df.geometry.values, 0)
+    df.geometry = make_valid(df.geometry.values)
 
     print("projecting to target projection")
     df = df.to_crs(target_crs)

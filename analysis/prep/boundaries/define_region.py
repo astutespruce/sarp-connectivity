@@ -34,7 +34,7 @@ state_df = (
     .rename(columns={"STUSPS": "id", "NAME": "State", "STATEFP": "STATEFIPS"})
     .to_crs(CRS)
 )
-state_df["geometry"] = shapely.make_valid(state_df.geometry.values.data)
+state_df["geometry"] = shapely.make_valid(state_df.geometry.values)
 state_df["geometry"] = to_multipolygon(state_df.geometry.values)
 
 # save all states for spatial joins
@@ -52,14 +52,12 @@ state_df["geometry"] = unwrap_antimeridian(state_df.geometry.values)
 # dissolve to create outer state boundary for total analysis area and regions
 bnd_df = gp.GeoDataFrame(
     [
-        {"geometry": shapely.union_all(state_df.geometry.values.data), "id": "total"},
+        {"geometry": shapely.union_all(state_df.geometry.values), "id": "total"},
     ]
     + [
         {
             "geometry": shapely.union_all(
-                state_df.loc[
-                    state_df.id.isin(REGION_STATES[region])
-                ].geometry.values.data
+                state_df.loc[state_df.id.isin(REGION_STATES[region])].geometry.values
             ),
             "id": region,
         }
@@ -69,7 +67,7 @@ bnd_df = gp.GeoDataFrame(
 )
 
 # NOTE: region is in WGS84
-bnd_df["geometry"] = to_multipolygon(bnd_df.geometry.values.data)
+bnd_df["geometry"] = to_multipolygon(bnd_df.geometry.values)
 write_dataframe(bnd_df, out_dir / "region_boundary.fgb")
 bnd_df.to_feather(out_dir / "region_boundary.feather")
 
@@ -79,14 +77,14 @@ bnd_df.set_index("id").bounds.round(2).apply(list, axis=1).rename(
 ).reset_index().to_json(ui_dir / "region_bounds.json", orient="records")
 
 
-bnd = bnd_df.geometry.values.data[0]
-bnd_df["bbox"] = shapely.bounds(bnd_df.geometry.values.data).round(2).tolist()
+bnd = bnd_df.geometry.values[0]
+bnd_df["bbox"] = shapely.bounds(bnd_df.geometry.values).round(2).tolist()
 
 # create mask
 world = shapely.box(-180, -85, 180, 85)
 bnd_mask = bnd_df.drop(columns=["bbox"])
 bnd_mask["geometry"] = shapely.normalize(
-    shapely.difference(world, bnd_mask.geometry.values.data)
+    shapely.difference(world, bnd_mask.geometry.values)
 )
 bnd_mask.to_feather(out_dir / "region_mask.feather")
 
