@@ -113,7 +113,7 @@ const MethodsPage = ({ data: { headerImage } }) => (
         <p>
           The location of dams across the Southeast were compiled by SARP from a
           variety of data providers, including the{' '}
-          <OutboundLink to="http://nid.usace.army.mil/cm_apex/f?p=838:12">
+          <OutboundLink to="https://nid.sec.usace.army.mil/#/">
             National Inventory of Dams
           </OutboundLink>
           ,{' '}

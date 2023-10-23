@@ -13,7 +13,7 @@ with open(path.join(here, "README.md"), encoding="utf-8") as f:
 setup(
     name="sarp-connectivity",
     # version must be kept in sync with ui/package.json
-    version="3.2.0",
+    version="3.3.0",
     description="National Aquatic Barrier Inventory & Prioritization Tool",
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -323,14 +323,15 @@ def calculate_geometry_stats(df):
 
     # calculate percent altered
     lengths["pct_unaltered"] = (
-        100 * (lengths.unaltered_miles / lengths.total_miles)
+        100.0 * (lengths.unaltered_miles / lengths.total_miles)
     ).astype("float32")
     # Note: if there are no perennial miles, this should be 0
-    lengths["pct_perennial_unaltered"] = 0
+    lengths["pct_perennial_unaltered"] = 0.0
     ix = lengths.perennial_miles > 0
-    lengths.loc[ix, "pct_perennial_unaltered"] = 100 * (
-        lengths.loc[ix].perennial_unaltered_miles / lengths.loc[ix].perennial_miles
-    )
+    lengths.loc[ix, "pct_perennial_unaltered"] = (
+        100.0
+        * (lengths.loc[ix].perennial_unaltered_miles / lengths.loc[ix].perennial_miles)
+    ).astype("float32")
     lengths["pct_perennial_unaltered"] = lengths.pct_perennial_unaltered.astype(
         "float32"
     )

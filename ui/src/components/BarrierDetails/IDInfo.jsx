@@ -20,7 +20,7 @@ const IDInfo = ({ sarpid, nidid, source, link, nearestcrossingid }) => {
       {!isEmptyString(nidid) ? (
         <Entry>
           <Field label="National inventory of dams ID">
-            <ExternalLink to="https://nid.usace.army.mil/#/">
+            <ExternalLink to="https://nid.sec.usace.army.mil/#/">
               {nidid}
             </ExternalLink>
           </Field>

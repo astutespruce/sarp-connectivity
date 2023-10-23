@@ -73,7 +73,7 @@ const Top = () => (
     <Paragraph sx={{ mt: '2rem' }}>
       In addition to state and local datasets, national barrier datasets used in
       this inventory include the{' '}
-      <OutboundLink to="https://nid.usace.army.mil/#/">
+      <OutboundLink to="https://nid.sec.usace.army.mil/#/">
         National Inventory of Dams
       </OutboundLink>
       ,{' '}

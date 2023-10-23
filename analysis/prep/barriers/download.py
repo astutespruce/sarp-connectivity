@@ -23,7 +23,7 @@ if not TOKEN:
     raise ValueError("AGOL_TOKEN must be defined in your .env file")
 
 
-DAMS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/National_Aquatic_Barrier_Inventory_Dams_06142023/FeatureServer/0"
+DAMS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/National_Dams_New_10_18_2023_UPLOAD/FeatureServer/0"
 SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Dam_Snapping_QA_Dataset_01212020/FeatureServer/0"
 SMALL_BARRIERS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_RoadBarriers_01212019/FeatureServer/0"
 WATERFALLS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/SARP_Waterfall_Database_01212020/FeatureServer/0"
@@ -57,6 +57,9 @@ async def download_dams(token):
                 "Water_Right": "WaterRight",
                 "Water_Right_Status": "WaterRightStatus",
                 "Beneficial_Use": "BeneficialUse",
+                "HEIGHT": "Height",
+                "WIDTH": "Width",
+                "LENGTH": "Length",
             }
         )
 
@@ -149,9 +152,15 @@ async def download_waterfalls(token):
                 "gnis_name_": "GNIS_Name",
                 "watercours": "Stream",
                 "name": "Name",
+                "Year_Removed": "YearRemoved",
             }
         )
         df = df.loc[df.geometry.notnull()].to_crs(CRS).reset_index(drop=True)
+
+        # gnis_name_ may be completely null and thus dropped during download,
+        # but GNIS_Name is used during prep and needs to be present
+        if "GNIS_Name" not in df.columns:
+            df["GNIS_Name"] = ""
 
         return df
 

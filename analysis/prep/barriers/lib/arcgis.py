@@ -178,6 +178,10 @@ async def download_fs(client, url, fields=None, token=None, target_wkid=None):
     for features in completed:
         df = gp.GeoDataFrame.from_features(features, crs="EPSG:4326")
 
+        missing = df.columns[df.isnull().all()]
+        if len(missing):
+            df = df.drop(columns=missing)
+
         if merged is None:
             merged = df
         else:

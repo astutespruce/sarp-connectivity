@@ -6,7 +6,8 @@ from pyogrio import write_dataframe
 
 
 data_dir = Path("data")
-src_dir = data_dir / "barriers/source/Archive_Feb2022"
+# last run with source data on 10/20/2023
+src_dir = data_dir / "barriers/source"
 out_dir = Path("/tmp/sarp")
 
 if not out_dir.exists():
@@ -24,13 +25,10 @@ src.ManualReview = src.ManualReview.fillna(0).astype("uint8")
 # these are invasive species barriers
 src.loc[(src.Recon == 16) & (src.ManualReview == 0), "ManualReview"] = 10
 
-# Reset manual review for dams that were previously not snapped, but are not reviewed
-# only keep those with manual review >= 2 (0,1 not useful; 10,20,21 do not indicate review of coordinates)
-src.loc[~src.ManualReview.isin([0, 1, 7, 9, 10, 20, 21])].copy()
+# only keep source points with manual review >= 2 (0,1 not useful; 10,20,21 do not indicate review of coordinates)
+src = src.loc[~src.ManualReview.isin([0, 1, 7, 9, 10, 20, 21])].copy()
 
-
-### For SARP states, update existing snapping dataset
-# read manually snapped dams
+### read manually snapped dams
 snapped_df = gp.read_feather(
     src_dir / "manually_snapped_dams.feather",
     columns=[
@@ -74,7 +72,7 @@ print(
     f"Dropping {ix.sum():,} dams that were marked as duplicates both manually and automatically"
 )
 
-### extract outputs of previous prep_dams.py
+### extract latest outputs produced by prep_dams.py
 df = gp.read_feather(
     data_dir / "barriers/master/dams.feather",
     columns=[
@@ -84,6 +82,8 @@ df = gp.read_feather(
         "State",
         "HUC2",
         "ManualReview",
+        "removed",
+        "YearRemoved",
         "dropped",
         "excluded",
         "duplicate",
@@ -115,8 +115,8 @@ df = df.join(
 )
 
 # mark any as snapped / not
+df["cur_pt_src"] = "not snapped"
 df.loc[df.snapped, "cur_pt_src"] = "autosnapped pt"
-df.loc[~df.snapped, "cur_pt_src"] = "not snapped"
 
 # any that were manually reviewed in source, use that original point and manual review
 # (note: these may be overridden again by manually reviewed dams in snapping dataset)
