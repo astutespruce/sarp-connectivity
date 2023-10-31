@@ -1,6 +1,6 @@
 import React, { memo, useCallback, useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Box, Text } from 'theme-ui'
 
 import { searchUnits } from 'components/Data/API'
@@ -25,9 +25,9 @@ const UnitSearch = ({
   const {
     isLoading,
     data: { results = [], meta: { remaining = 0 } = {} } = {},
-  } = useQuery(
-    ['search', system, layer, query],
-    async () => {
+  } = useQuery({
+    queryKey: ['search', system, layer, query],
+    queryFn: async () => {
       if (!(query && query.length >= 3)) {
         return {}
       }
@@ -35,12 +35,11 @@ const UnitSearch = ({
       const layers = layer !== null ? [layer] : SYSTEM_UNITS[system]
       return searchUnits(layers, query)
     },
-    {
-      staleTime: 10 * 60 * 1000, // 10 minutes
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-    }
-  )
+
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
 
   const showID = layer
     ? !(layer === 'State' || layer === 'County')

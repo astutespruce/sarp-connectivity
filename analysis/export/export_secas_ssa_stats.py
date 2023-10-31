@@ -15,8 +15,7 @@ from shapely import STRtree
 
 from analysis.constants import SARP_STATES
 
-# temporarily remove PR / USVI since they are not within the SSA tool at this time
-SECAS_STATES = sorted(set(SARP_STATES + ["WV"]) - set(["PR", "USVI"]))
+SECAS_STATES = sorted(set(SARP_STATES + ["WV"]))
 METERS_TO_MILES = 0.000621371
 
 data_dir = Path("data")

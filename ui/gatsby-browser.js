@@ -1,7 +1,7 @@
 import React from 'react'
 
 import * as Sentry from '@sentry/react'
-import { QueryClient, QueryClientProvider } from 'react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { siteMetadata } from './gatsby-config'
 

@@ -1,7 +1,7 @@
 import React, { useCallback, useState, memo, forwardRef } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex } from 'theme-ui'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 
 import { searchBarriers } from 'components/Data'
 
@@ -22,23 +22,22 @@ const BarrierSearch = forwardRef(
       isLoading,
       error,
       data: { results = [], remaining = 0 } = {},
-    } = useQuery(
-      ['searchBarriers', query],
-      () => {
+    } = useQuery({
+      queryKey: ['searchBarriers', query],
+      queryFn: () => {
         if (!query) {
           return null
         }
 
         return searchBarriers(query)
       },
-      {
-        enabled: !!query && query.length >= 3,
-        staleTime: 60 * 60 * 1000, // 60 minutes
-        // staleTime: 1, // use then reload to force refresh of underlying data during dev
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-      }
-    )
+
+      enabled: !!query && query.length >= 3,
+      staleTime: 60 * 60 * 1000, // 60 minutes
+      // staleTime: 1, // use then reload to force refresh of underlying data during dev
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+    })
 
     // Just log the error, there isn't much we can show the user here
     if (error) {

@@ -3,7 +3,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Envelope, ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { Box, Flex, Spinner, Text } from 'theme-ui'
-import { useQuery } from 'react-query'
+import { useQuery } from '@tanstack/react-query'
 
 import { fetchBarrierDetails } from 'components/Data/API'
 import { Tab, Tabs } from 'components/Tabs'
@@ -51,16 +51,15 @@ const BarrierDetails = ({ barrier, onClose }) => {
     barrier
   )
 
-  const { isLoading, error, data } = useQuery(
-    ['getBarrierDetails', networkType, sarpid],
-    () => fetchBarrierDetails(networkType, sarpid),
-    {
-      staleTime: 60 * 60 * 1000, // 60 minutes
-      // staleTime: 1, // use then reload to force refresh of underlying data during dev
-      refetchOnWindowFocus: false,
-      refetchOnMount: false,
-    }
-  )
+  const { isLoading, error, data } = useQuery({
+    queryKey: ['getBarrierDetails', networkType, sarpid],
+    queryFn: () => fetchBarrierDetails(networkType, sarpid),
+
+    staleTime: 60 * 60 * 1000, // 60 minutes
+    // staleTime: 1, // use then reload to force refresh of underlying data during dev
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
 
   let content = null
 

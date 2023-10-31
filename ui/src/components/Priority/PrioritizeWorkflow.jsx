@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Flex, Text, Spinner } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
-import { useQueryClient } from 'react-query'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { useCrossfilter } from 'components/Crossfilter'
 import { ToggleButton } from 'components/Button'
@@ -209,15 +209,15 @@ const Prioritize = () => {
       error,
       data,
       bounds: newBounds = null,
-    } = await queryClient.fetchQuery(
-      [barrierType, layer, nonzeroSummaryUnits],
-      async () => fetchBarrierInfo(barrierType, layer, nonzeroSummaryUnits),
-      {
-        staleTime: 30 * 60 * 1000, // 30 minutes
-        // staleTime: 1, // use then reload to force refresh of underlying data during dev
-        refetchOnMount: false,
-      }
-    )
+    } = await queryClient.fetchQuery({
+      queryKey: [barrierType, layer, nonzeroSummaryUnits],
+      queryFn: async () =>
+        fetchBarrierInfo(barrierType, layer, nonzeroSummaryUnits),
+
+      staleTime: 30 * 60 * 1000, // 30 minutes
+      // staleTime: 1, // use then reload to force refresh of underlying data during dev
+      refetchOnMount: false,
+    })
 
     if (error || !data) {
       setIsLoading(false)
@@ -242,15 +242,15 @@ const Prioritize = () => {
       error,
       data,
       bounds: newBounds = null,
-    } = await queryClient.fetchQuery(
-      [barrierType, layer, summaryUnits, filters],
-      async () => fetchBarrierRanks(barrierType, layer, summaryUnits, filters),
-      {
-        staleTime: 30 * 60 * 1000, // 30 minutes
-        // staleTime: 1, // use then reload to force refresh of underlying data during dev
-        refetchOnMount: false,
-      }
-    )
+    } = await queryClient.fetchQuery({
+      queryKey: [barrierType, layer, summaryUnits, filters],
+      queryFn: async () =>
+        fetchBarrierRanks(barrierType, layer, summaryUnits, filters),
+
+      staleTime: 30 * 60 * 1000, // 30 minutes
+      // staleTime: 1, // use then reload to force refresh of underlying data during dev
+      refetchOnMount: false,
+    })
 
     if (error || !data) {
       setIsLoading(false)
