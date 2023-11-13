@@ -41,6 +41,7 @@ import {
   parentOutline,
   prioritizedPointLayer,
   unrankedPointLayer,
+  removedBarrierPointLayer,
   otherBarrierPointLayer,
   excludedPointLayer,
   includedPointLayer,
@@ -117,6 +118,7 @@ const PriorityMap = ({
         roadCrossingsLayer.id,
         damsSecondaryLayer.id,
         waterfallsLayer.id,
+        removedBarrierPointLayer.id,
         otherBarrierPointLayer.id,
         unrankedPointLayer.id,
         excludedPointLayer.id,
@@ -249,6 +251,12 @@ const PriorityMap = ({
         source: barrierType,
         'source-layer': `other_${barrierType}`,
         ...otherBarrierPointLayer,
+      })
+
+      map.addLayer({
+        source: barrierType,
+        'source-layer': `removed_${barrierType}`,
+        ...removedBarrierPointLayer,
       })
 
       map.addLayer({

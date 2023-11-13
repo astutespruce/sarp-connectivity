@@ -13,7 +13,7 @@ import {
 } from 'config'
 import { formatNumber, pluralize } from 'util/format'
 
-import { layers } from '../layers'
+import { layers } from './layers'
 
 const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   const teams = {}
@@ -92,7 +92,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
     }
     case 'small_barriers': {
       downloadButtons = (
-        <>
+        <Flex sx={{ justifyContent: 'space-between', gap: '1rem' }}>
           <Downloader
             barrierType="small_barriers"
             label={barrierTypeLabels.small_barriers}
@@ -109,13 +109,13 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
             }}
             disabled={crossings === 0}
           />
-        </>
+        </Flex>
       )
       break
     }
     case 'combined_barriers': {
       downloadButtons = (
-        <>
+        <Flex sx={{ justifyContent: 'space-between', gap: '1rem' }}>
           <Downloader
             barrierType="dams"
             label={barrierTypeLabels.dams}
@@ -128,7 +128,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
             config={downloaderConfig}
             disabled={totalSmallBarriers === 0}
           />
-        </>
+        </Flex>
       )
       break
     }
@@ -360,7 +360,10 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
       <Box
         sx={{
           flex: '0 0 auto',
-          display: barrierType === 'dams' ? 'flex' : null,
+          display:
+            barrierType === 'dams' || barrierType === 'combined_barriers'
+              ? 'flex'
+              : null,
           alignItems: 'center',
           pt: '0.5rem',
           px: '1rem',
@@ -379,8 +382,8 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           sx={{
             flex: '1 1 auto',
             mt: '0.5rem',
-            justifyContent: 'space-between',
-            gap: '1rem',
+            justifyContent:
+              barrierType === 'small_barriers' ? 'center' : 'flex-end',
           }}
         >
           {downloadButtons}

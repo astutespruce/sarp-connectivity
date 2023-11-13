@@ -1,3 +1,5 @@
+// color bins last updated 11/10/2023
+
 import { pointColors } from 'config'
 import { getHighlightExpr } from '../Map/util'
 
@@ -7,9 +9,9 @@ export const layers = [
     system: 'HUC',
     title: 'Region',
     bins: {
-      dams: [1000, 2500, 5000, 10000, 25000, 50000, 100000],
-      small_barriers: [50, 100, 500, 1000, 2500, 5000, 10000],
-      combined_barriers: [1000, 2500, 5000, 10000, 25000, 50000, 100000],
+      dams: [1_500, 5_000, 10_000, 25_000, 75_000, 150_000],
+      small_barriers: [500, 1_000, 5_000, 10_000, 25_000, 50_000],
+      combined_barriers: [2_500, 10_000, 25_000, 50_000, 100_000, 150_000],
     },
     fill: {
       minzoom: 0,
@@ -45,9 +47,9 @@ export const layers = [
     system: 'HUC',
     title: 'Basin',
     bins: {
-      dams: [100, 500, 750, 1000, 1500, 2000, 2500, 5000, 25000],
-      small_barriers: [10, 100, 200, 300, 500, 1000, 2500],
-      combined_barriers: [100, 500, 750, 1000, 1500, 2000, 2500, 5000, 25000],
+      dams: [50, 250, 500, 1_000, 5_000, 10_000],
+      small_barriers: [10, 50, 250, 1_000, 2_500, 10_000],
+      combined_barriers: [50, 500, 1_000, 2_500, 5_000, 10_000],
     },
     fill: {
       minzoom: 4,
@@ -87,9 +89,9 @@ export const layers = [
     system: 'HUC',
     title: 'Subbasin',
     bins: {
-      dams: [10, 50, 100, 200, 250, 300, 400, 500, 5000],
-      small_barriers: [25, 50, 100, 150, 1500],
-      combined_barriers: [10, 50, 100, 200, 250, 300, 400, 500, 5000],
+      dams: [10, 50, 100, 250, 1_000, 5_000],
+      small_barriers: [5, 25, 50, 250, 500, 5_000],
+      combined_barriers: [10, 50, 150, 500, 1_000, 5_000],
     },
     fill: {
       minzoom: 6,
@@ -126,9 +128,9 @@ export const layers = [
     system: 'HUC',
     title: 'Watershed',
     bins: {
-      dams: [5, 10, 25, 50, 100, 500, 1000],
-      small_barriers: [5, 10, 25, 50, 100, 500, 1000],
-      combined_barriers: [5, 10, 25, 50, 100, 500, 1000],
+      dams: [1, 5, 10, 50, 100, 500, 1_000],
+      small_barriers: [1, 5, 10, 50, 100, 500, 1_000],
+      combined_barriers: [1, 5, 10, 50, 100, 500, 1_000],
     },
     fill: {
       minzoom: 7,
@@ -165,9 +167,9 @@ export const layers = [
     system: 'HUC',
     title: 'Subwatershed',
     bins: {
-      dams: [1, 10, 25, 100, 200],
-      small_barriers: [1, 10, 25, 100, 200],
-      combined_barriers: [1, 10, 25, 100, 200],
+      dams: [1, 2, 5, 10, 25, 50, 100, 500],
+      small_barriers: [1, 2, 5, 10, 25, 50, 100, 500],
+      combined_barriers: [1, 2, 5, 10, 25, 50, 100, 500],
     },
     fill: {
       minzoom: 9,
@@ -204,9 +206,9 @@ export const layers = [
     system: 'ADM',
     title: 'State',
     bins: {
-      dams: [500, 1000, 5000, 10000, 15000, 20000, 25000],
-      small_barriers: [100, 250, 500, 1000, 2500, 5000, 10000],
-      combined_barriers: [500, 1000, 5000, 10000, 15000, 20000, 25000],
+      dams: [500, 1_000, 5_000, 10_000, 25_000, 50_000],
+      small_barriers: [100, 500, 1_000, 5_000, 10_000, 25_000],
+      combined_barriers: [500, 1_000, 5_000, 10_000, 25_000, 50_000],
     },
     fill: {
       minzoom: 0,
@@ -247,9 +249,9 @@ export const layers = [
     system: 'ADM',
     title: 'County',
     bins: {
-      dams: [10, 50, 100, 250, 1000],
-      small_barriers: [10, 25, 50, 100, 500],
-      combined_barriers: [10, 50, 100, 250, 1000],
+      dams: [10, 25, 100, 250, 500, 1_000, 5_000],
+      small_barriers: [5, 10, 50, 250, 500, 1_000, 5_000],
+      combined_barriers: [10, 50, 250, 500, 1_000, 5_000],
     },
     fill: {
       minzoom: 5,
@@ -568,8 +570,57 @@ export const unrankedPointLayer = {
   },
 }
 
+export const removedBarrierPointLayer = {
+  // id: '', // provided by specific layer
+  // source: "", // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
+  type: 'circle',
+  minzoom: 10,
+  maxzoom: 24,
+  paint: {
+    'circle-color': getHighlightExpr(
+      [
+        'match',
+        ['get', 'barriertype'],
+        'dams',
+        pointColors.removed.damsColor,
+        pointColors.removed.color,
+      ],
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.removed.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      getHighlightExpr(1, 12),
+      14,
+      getHighlightExpr(4, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      12,
+      getHighlightExpr(0.5, 1),
+      14,
+      1,
+    ],
+    'circle-stroke-width': {
+      stops: [
+        [12, 0],
+        [14, 1],
+      ],
+    },
+  },
+}
+
 // Other barriers are those that are not ranked and not marked as unranked;
-// they include: off-network barriers, non-barriers, minor barriers, removed barriers
+// they include: off-network barriers, non-barriers, minor barriers
 export const otherBarrierPointLayer = {
   // id: '', // provided by specific layer
   // source: "", // provided by specific layer
@@ -605,15 +656,6 @@ export const otherBarrierPointLayer = {
           pointColors.invasive.damsColor,
           pointColors.invasive.color,
         ],
-        5, // removed barrier
-        [
-          'match',
-          ['get', 'barriertype'],
-          'dams',
-          pointColors.removed.damsColor,
-          pointColors.removed.color,
-        ],
-
         // last entry is default
         pointColors.offNetwork.color,
       ],
@@ -631,8 +673,6 @@ export const otherBarrierPointLayer = {
         pointColors.minorBarrier.strokeColor,
         4, // invasive barrier
         pointColors.invasive.strokeColor,
-        5, // removed barrier
-        pointColors.removed.strokeColor,
         pointColors.offNetwork.strokeColor,
       ],
       pointColors.highlight.strokeColor
