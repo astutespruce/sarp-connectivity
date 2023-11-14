@@ -198,7 +198,7 @@ const SERegionPage = ({
               <Box as="ul" sx={{ mt: '0.5rem' }}>
                 {Object.entries(CONNECTIVITY_TEAMS.southeast).map(
                   ([state, team]) => (
-                    <li>
+                    <li key={state}>
                       {STATES[state]}:{' '}
                       <OutboundLink to={team.url}>{team.name}</OutboundLink>
                     </li>
