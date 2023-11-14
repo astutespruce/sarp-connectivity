@@ -13,6 +13,7 @@ import {
   damsSecondaryLayer,
   roadCrossingsLayer,
   waterfallsLayer,
+  removedBarrierPointLayer,
   otherBarrierPointLayer,
   unrankedPointLayer,
 } from 'components/Summary/layers'
@@ -203,6 +204,13 @@ const Map = ({
           ...otherBarrierPointLayer,
         })
 
+        mapObj.addLayer({
+          id: `removed_${networkType}`,
+          source: networkType,
+          'source-layer': `removed_${networkType}`,
+          ...removedBarrierPointLayer,
+        })
+
         // Add barrier highlight layer for on and off-network barriers.
         mapObj.addLayer({
           ...pointHighlightLayer,
@@ -226,6 +234,15 @@ const Map = ({
           id: 'other-point-highlight',
           source: networkType,
           'source-layer': `other_${networkType}`,
+          minzoom: 9,
+          filter: ['==', ['get', 'id'], barrierID],
+        })
+
+        mapObj.addLayer({
+          ...pointHighlightLayer,
+          id: 'removed-point-highlight',
+          source: networkType,
+          'source-layer': `removed_${networkType}`,
           minzoom: 9,
           filter: ['==', ['get', 'id'], barrierID],
         })
