@@ -225,7 +225,7 @@ const Map = ({
           id: 'unranked-point-highlight',
           source: networkType,
           'source-layer': `unranked_${networkType}`,
-          minzoom: 9,
+          minzoom: 6,
           filter: ['==', ['get', 'id'], barrierID],
         })
 
@@ -234,7 +234,7 @@ const Map = ({
           id: 'other-point-highlight',
           source: networkType,
           'source-layer': `other_${networkType}`,
-          minzoom: 9,
+          minzoom: 6,
           filter: ['==', ['get', 'id'], barrierID],
         })
 
@@ -243,7 +243,7 @@ const Map = ({
           id: 'removed-point-highlight',
           source: networkType,
           'source-layer': `removed_${networkType}`,
-          minzoom: 9,
+          minzoom: 6,
           filter: ['==', ['get', 'id'], barrierID],
         })
 
