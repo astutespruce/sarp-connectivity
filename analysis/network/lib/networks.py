@@ -197,24 +197,6 @@ def create_networks(joins, barrier_joins, lineIDs):
     )
     barrier_network_segments["type"] = "barrier"
 
-    ### Handle multiple upstreams
-    # A given barrier may have > 1 upstream segment, some have 3+
-    multiple_upstreams = barrier_joins.loc[barrier_joins.junction]
-    if len(multiple_upstreams):
-        print(
-            f"Merging multiple upstream networks for barriers at network junctions, affects {len(multiple_upstreams):,} networks"
-        )
-
-        # For each barrier with multiple upstreams, coalesce their networkIDs
-        for id in multiple_upstreams.index.unique():
-            upstream_ids = multiple_upstreams.loc[id].upstream_id
-            networkID = upstream_ids.iloc[0]
-
-            # Set all upstream networks for this barrier to the ID of the first
-            barrier_network_segments.loc[
-                barrier_network_segments.networkID.isin(upstream_ids), ["networkID"]
-            ] = networkID
-
     # Append network types back together
     up_network_df = pd.concat(
         [
@@ -226,6 +208,38 @@ def create_networks(joins, barrier_joins, lineIDs):
     ).reset_index(drop=True)
     up_network_df.networkID = up_network_df.networkID.astype("uint32")
     up_network_df.lineID = up_network_df.lineID.astype("uint32")
+
+    ### Handle multiple upstreams for origin / barrier networks
+    # A given barrier may have > 1 upstream segment, some have 3+
+    # Note: we do this for origin networks because those may actually be barrier
+    # networks when calculating removed barrier networks, as well as trying to
+    # create better downstream total networks.  This intentionally does not try
+    # to fuse sibling networks at a downstream-most origin point though (downstream_id==0)
+
+    # find all networks where the downstream side of the network origin is a junction
+    networks_at_junctions = np.intersect1d(
+        up_network_df.networkID.unique(), joins.loc[joins.junction].upstream_id.unique()
+    )
+    if len(networks_at_junctions):
+        print(
+            f"Merging multiple upstream networks at network junctions, affects {len(networks_at_junctions):,} networks"
+        )
+
+        downstreams = joins.loc[joins.upstream_id.isin(networks_at_junctions)].downstream_id.unique()
+        for downstream_id in downstreams:
+            # find all the networks that have the same downstream and fuse them
+            networkIDs = (
+                up_network_df.loc[
+                    up_network_df.networkID.isin(joins.loc[joins.downstream_id == downstream_id].upstream_id)
+                ]
+                .groupby("networkID")
+                .size()
+                .sort_values()
+                .index.values
+            )
+            # use the networkID with longest number of segments as out networkID
+            networkID = networkIDs[0]
+            up_network_df.loc[up_network_df.networkID.isin(networkIDs), "networkID"] = networkID
 
     # check for duplicates
     s = up_network_df.groupby("lineID").size()

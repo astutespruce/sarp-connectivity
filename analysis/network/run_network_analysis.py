@@ -87,7 +87,15 @@ all_joins = read_arrow_tables(
 all_barrier_joins = (
     read_arrow_tables(
         [src_dir / huc2 / "barrier_joins.feather" for huc2 in huc2s],
-        columns=["id", "upstream_id", "downstream_id", "kind", "marine", "great_lakes", "type", "junction"],
+        columns=[
+            "id",
+            "upstream_id",
+            "downstream_id",
+            "kind",
+            "marine",
+            "great_lakes",
+            "type",
+        ],
         new_fields={"HUC2": huc2s},
     )
     .to_pandas()
