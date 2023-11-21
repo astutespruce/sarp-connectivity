@@ -319,7 +319,12 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
 
     # join networkID to flowlines
     flowlines = flowlines.join(upstream_networks.rename(network_type))
-    up_network_df = flowlines.join(upstream_networks, how="inner").reset_index().set_index("networkID")
+    up_network_df = (
+        flowlines.dropna(subset=[network_type])
+        .rename(columns={network_type: "networkID"})
+        .reset_index()
+        .set_index("networkID")
+    )
 
     # For any barriers that had multiple upstreams, those were coalesced to a single network above
     # So drop any dangling upstream references (those that are not in networks and non-zero)

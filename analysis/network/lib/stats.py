@@ -1,8 +1,8 @@
 from pathlib import Path
 
 import pandas as pd
+import pyarrow as pa
 import pyarrow.compute as pc
-import pyarrow.dataset as pa
 import numpy as np
 
 from analysis.lib.graph.speedups import DirectedGraph
@@ -302,7 +302,7 @@ def calculate_floodplain_stats(df):
     # Sum floodplain and natural floodplain values, and calculate percent natural floodplain
     # Read in associated floodplain info (using pyarrow for speed in filtering) and join
     fp_stats = (
-        pa.dataset(data_dir / "floodplains" / "floodplain_stats.feather", format="feather")
+        pa.dataset.dataset(data_dir / "floodplains" / "floodplain_stats.feather", format="feather")
         .to_table(
             filter=pc.field("HUC2").isin(df.HUC2.unique()),
             columns=["NHDPlusID", "floodplain_km2", "nat_floodplain_km2"],
@@ -321,7 +321,7 @@ def calculate_floodplain_stats(df):
 
 def calculate_species_habitat_stats(df):
     habitat = (
-        pa.dataset(
+        pa.dataset.dataset(
             data_dir / "species/derived/combined_species_habitat.feather",
             format="feather",
         )
