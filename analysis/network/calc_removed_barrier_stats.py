@@ -8,6 +8,7 @@ import pyarrow.compute as pc
 from pyarrow.dataset import dataset
 
 from analysis.constants import NETWORK_TYPES
+from analysis.lib.graph.speedups import DirectedGraph
 from analysis.lib.io import read_arrow_tables
 from analysis.lib.util import append
 from analysis.network.lib.networks import create_barrier_networks
@@ -194,11 +195,11 @@ for network_type in network_types:
         | (all_joins.downstream_id.isin(subnetwork_segments.index.values) & (all_joins.upstream_id == 0))
     ]
 
-    ########## LOOP GOES HERE ##########
+    ### Loop over all years removed to recalculate networks based on those that are present
+    # in a given year
     merged_networks = None
     merged_segments = None
 
-    # FIXME: make loop
     years_removed = sorted(removed_barriers.YearRemoved.unique())
     for year in years_removed:
         print(f"\n----------------- Processing barriers removed in year {year} -----------------")
@@ -271,6 +272,12 @@ for network_type in network_types:
             columns=DROP_COLS, errors="ignore"
         )
 
+        cur_segments = network_segments.join(
+            cur_networks[["upNetID", "YearRemoved"]].reset_index().set_index("upNetID").id.rename("barrier_id"),
+            on=network_type,
+            how="inner",
+        )
+
         # for any contiguous subnetworks, we need to deduct the miles_to_outlet
         # calculated for the intermediate non-removed barriers and then deduct
         # this amount from the miles_to_outlet for the previous stats
@@ -283,20 +290,152 @@ for network_type in network_types:
         updated_prev_stats["miles_to_outlet"] -= updated_prev_stats.deduct_miles_to_outlet.fillna(0).astype("float32")
 
         # bring in stats for the downstream side of the subnetwork the barrier is on
-        cur_networks = cur_networks.join(updated_prev_stats, rsuffix="_prev")
+        cur_networks = cur_networks.join(
+            updated_prev_stats.drop(columns=["subnetworkID", "deduct_miles_to_outlet"]), rsuffix="_prev"
+        )
         # add in miles_to_outlet based on length downstream of subnetwork this barrier is on
         cur_networks["miles_to_outlet"] += cur_networks.miles_to_outlet_prev
         for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region"]:
             cur_networks[col] |= cur_networks[f"{col}_prev"]
         cur_networks = cur_networks.drop(columns=[col for col in cur_networks.columns if col.endswith("_prev")])
 
-        # TODO: update upstream stats & gained miles based on barriers removed in same year on same subnetwork
+        # mark which side a given network used to derive its gain miles
+        cur_networks["GainMilesSide"] = "upstream"
+        cur_networks.loc[
+            cur_networks.TotalUpstreamMiles > cur_networks.FreeDownstreamMiles, "GainMilesSide"
+        ] = "downstream"
+        cur_networks["PerennialGainMilesSide"] = "upstream"
+        cur_networks.loc[
+            cur_networks.PerennialUpstreamMiles > cur_networks.FreePerennialDownstreamMiles, "PerennialGainMilesSide"
+        ] = "downstream"
 
-        cur_segments = network_segments.join(
-            cur_networks[["upNetID", "YearRemoved"]].reset_index().set_index("upNetID").id.rename("barrier_id"),
-            on=network_type,
-            how="inner",
+        ############ in progress
+        # DEBUG:
+        write_dataframe(
+            merge_lines(f7.join(cur_segments.dams, on="lineID", how="inner"), by="dams"),
+            f"/tmp/region07_removed_{network_type}_subnetworks_year{year}.fgb",
         )
+        write_dataframe(
+            dams.loc[dams.id.isin(cur_networks.index.values)], f"/tmp/removed_{network_type}_year{year}.fgb"
+        )
+
+        ### Find any cases where there are multiple removed barriers (in the same year)
+        # in series within a subnetwork, and aggregate them so that each downstream barrier
+        # includes the full upstream network of each upstream removed barrier
+
+        # create pairs between adjacent removed-barrier networks; this automatically
+        # exludes non-removed intermediate barriers
+        network_pairs = (
+            cur_networks.loc[cur_networks.upNetID != 0]
+            .reset_index()[["id", "upNetID"]]
+            .rename(columns={"id": "downstream_barrier_id", "upNetID": "downNetID"})
+            .join(
+                cur_networks.reset_index()
+                .set_index("downNetID")[["id", "upNetID"]]
+                .rename(columns={"id": "upstream_barrier_id"}),
+                on="downNetID",
+                how="inner",
+            )
+        )[["downstream_barrier_id", "upstream_barrier_id"]]
+
+        if len(network_pairs):
+            upstream_cols = [c for c in cur_networks.columns if "Upstream" in c] + [
+                "fn_dakm2",
+                "floodplain_km2",
+                "nat_floodplain_km2",
+            ]
+
+            # create a network of networks facing upstream
+            # TODO: in order to accumulate in right direction, do we need to do this facing downstream instead?
+            up_network_graph = DirectedGraph(
+                network_pairs.downstream_barrier_id.values.astype("int64"),
+                network_pairs.upstream_barrier_id.values.astype("int64"),
+            )
+            pairs = pd.DataFrame(
+                up_network_graph.network_pairs(network_pairs.downstream_barrier_id.unique().astype("int64")),
+                columns=["downstream_barrier_id", "upstream_barrier_id"],
+            )
+            # NOTE: we intentionally keep self-pairs because we are combining together all upstreams
+
+            isolated_networks = cur_networks.loc[~cur_networks.index.isin(pairs.downstream_barrier_id.unique())]
+
+            # update the upstream stats for non-isolated networks
+            upstream_stats = (
+                pairs.join(cur_networks[upstream_cols], on="upstream_barrier_id")
+                .groupby("downstream_barrier_id")[upstream_cols]
+                .sum()
+            )
+            sibling_networks = (
+                cur_networks.loc[cur_networks.index.isin(pairs.downstream_barrier_id.unique())]
+                .drop(columns=upstream_cols)
+                .join(upstream_stats)
+            )
+            # recalculate percentage fields
+            sibling_networks["natfldpln"] = (
+                (100 * sibling_networks.nat_floodplain_km2 / sibling_networks.floodplain_km2)
+                .fillna(0)
+                .astype("float32")
+            )
+            sibling_networks["PercentUnaltered"] = (
+                (100 * sibling_networks.UnalteredUpstreamMiles / sibling_networks.TotalUpstreamMiles)
+                .fillna(0)
+                .round()
+                .astype("int8")
+            )
+            sibling_networks["PercentPerennialUnaltered"] = (
+                (100 * sibling_networks.PerennialUnalteredUpstreamMiles / sibling_networks.PerennialUpstreamMiles)
+                .fillna(0)
+                .round()
+                .astype("int8")
+            )
+
+            # recalculate gain miles
+            sibling_networks["GainMiles"] = sibling_networks[["TotalUpstreamMiles", "FreeDownstreamMiles"]].min(axis=1)
+            sibling_networks["GainMilesSide"] = "upstream"
+            sibling_networks.loc[
+                sibling_networks.TotalUpstreamMiles > sibling_networks.FreeDownstreamMiles, "GainMilesSide"
+            ] = "downstream"
+
+            sibling_networks["PerennialGainMiles"] = sibling_networks[
+                ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
+            ].min(axis=1)
+            sibling_networks["PerennialGainMilesSide"] = "upstream"
+            sibling_networks.loc[
+                sibling_networks.PerennialUpstreamMiles > sibling_networks.FreePerennialDownstreamMiles,
+                "PerennialGainMilesSide",
+            ] = "downstream"
+
+            # TODO: calculate effective gain miles
+
+            # copy network segments for each downstream sibling removed barrier
+            # so that each extends to top of network
+            pairs = pairs.loc[pairs.downstream_barrier_id != pairs.upstream_barrier_id]
+            tmp_segments = (
+                cur_segments.join(pairs.set_index("upstream_barrier_id"), on="barrier_id", how="inner")
+                .drop(columns=["barrier_id"])
+                .rename(columns={"downstream_barrier_id": "barrier_id"})
+            )
+            tmp_segments["barrier_id"] = tmp_segments.barrier_id.astype("uint64")
+            cur_segments = pd.concat(
+                [cur_segments.reset_index(), tmp_segments.reset_index()], ignore_index=True
+            ).set_index("lineID")
+            # update size classes based on segments
+            sibling_networks = sibling_networks.drop(columns=["sizeclasses"]).join(
+                cur_segments.groupby("barrier_id").sizeclass.unique().apply(len).rename("sizeclasses")
+            )
+
+            # FIXME: DEBUG
+            write_dataframe(
+                merge_lines(f7.join(cur_segments.barrier_id, on="lineID", how="inner"), by="barrier_id"),
+                f"/tmp/region07_removed_{network_type}_aggregated_subnetworks_year{year}.fgb",
+            )
+            # TODO: re-aggregate to cur_networks
+
+            cur_networks = pd.concat(
+                [isolated_networks.reset_index(), sibling_networks.reset_index()], ignore_index=True
+            ).set_index("id")
+
+        ############# end in progress
 
         # accumulate networks / network_segments across years
         merged_networks = append(merged_networks, cur_networks.reset_index())
