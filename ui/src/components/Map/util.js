@@ -162,17 +162,46 @@ export const getTierExpr = (scenario, tierThreshold, belowExpr, aboveExpr) => [
  * @param {Object} map - Mapbox GL map instance
  * @param {String} networkType - dams or small_barriers
  * @param {Number} networkID - network to highlight or Infinity to clear highlight
+ * @param {bool} removed - true if network is for a removed barrier
  */
-export const highlightNetwork = (map, networkType, networkID) => {
-  map.setFilter('network-highlight', [
+export const highlightNetwork = (
+  map,
+  networkType,
+  networkID,
+  removed = false
+) => {
+  const prefix = removed ? 'removed-' : ''
+  const filterExpr = removed
+    ? [
+        ['==', 'network_type', networkType],
+        ['==', 'barrier_id', networkID],
+      ]
+    : [['==', networkType, networkID]]
+
+  map.setFilter(`${prefix}network-highlight`, [
     'all',
     ['any', ['==', 'mapcode', 0], ['==', 'mapcode', 2]],
-    ['==', networkType, networkID],
+    ...filterExpr,
   ])
-  map.setFilter('network-intermittent-highlight', [
+  map.setFilter(`${prefix}network-intermittent-highlight`, [
     'all',
     ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
-    ['==', networkType, networkID],
+    ...filterExpr,
+  ])
+}
+
+export const highlightRemovedNetwork = (map, networkType, barrierID) => {
+  map.setFilter('removed-network-highlight', [
+    'all',
+    ['any', ['==', 'mapcode', 0], ['==', 'mapcode', 2]],
+    ['==', 'network_type', networkType],
+    ['==', 'barrier_id', barrierID],
+  ])
+  map.setFilter('removed-network-intermittent-highlight', [
+    'all',
+    ['any', ['==', 'mapcode', 1], ['==', 'mapcode', 3]],
+    ['==', 'network_type', networkType],
+    ['==', 'barrier_id', barrierID],
   ])
 }
 

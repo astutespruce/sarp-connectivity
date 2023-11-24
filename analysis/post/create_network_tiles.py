@@ -23,12 +23,12 @@ tmp_dir = Path("/tmp")
 network_cols = list(NETWORK_TYPES.keys())
 
 # map sizeclasses
-sizeclasses = [2, 5, 25, 100, 250, 500, 5000, 25000, 50000, 500000, 2000000]
+sizeclasses = [0, 2, 5, 25, 100, 250, 500, 5000, 25000, 50000, 500000, 2000000]
 
 
 def classify_size(series):
-    bins = sizeclasses + [max(series.max().round().astype("int"), 2000000) + 1]
-    return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(1, len(bins)))).astype("uint8")
+    bins = sizeclasses + [max(np.ceil(series.max()).astype("int"), 2000000) + 1]
+    return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
 
 
 zoom_config = [
@@ -91,9 +91,6 @@ tippecanoe_args = [
 ]
 
 start = time()
-
-
-merge_cols = network_cols + ["sizeclass", "mapcode"]
 
 
 print("Loading data")
@@ -221,7 +218,8 @@ for level in national_levels:
     ret.check_returncode()
 
     # remove FGB file
-    outfilename.unlink()
+    # FIXME:
+    # outfilename.unlink()
 
 # delete objects to free memory
 del lines
@@ -369,7 +367,7 @@ for level in zoom_config:
 
     subset = merge_lines(
         subset.explode(ignore_index=True),
-        by=["network_type", "sizeclass", "mapcode"],
+        by=["network_type", "barrier_id", "sizeclass", "mapcode"],
     ).sort_values(by=["network_type", "sizeclass"])
 
     if simplification:
@@ -391,7 +389,8 @@ for level in zoom_config:
     ret.check_returncode()
 
     # remove FGB file
-    outfilename.unlink()
+    # FIXME:
+    # outfilename.unlink()
 
 
 ###############

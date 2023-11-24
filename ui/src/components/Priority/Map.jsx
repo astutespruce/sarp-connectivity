@@ -403,6 +403,8 @@ const PriorityMap = ({
           return
         }
 
+        const removed = sourceLayer.startsWith('removed_')
+
         const thisBarrierType =
           source === 'combined_barriers' ||
           source === 'largefish_barriers' ||
@@ -414,16 +416,18 @@ const PriorityMap = ({
           barrierType === 'small_barriers' ? 'combined_barriers' : barrierType
 
         // promote network fields if clicking on a waterfall
-        const networkIDField =
-          thisBarrierType === 'waterfalls'
-            ? `${networkType}_upnetid`
-            : 'upnetid'
+        let networkIDField = 'upnetid'
+        if (removed) {
+          networkIDField = 'id'
+        } else if (thisBarrierType === 'waterfalls') {
+          networkIDField = `${networkType}_upnetid`
+        }
 
         setBarrierHighlight(map, feature, true)
         selectedFeatureRef.current = feature
 
         onSelectBarrier({
-          upnetid: properties[networkIDField] || -1,
+          upnetid: properties[networkIDField] || Infinity,
           ...properties,
           tiers: rankedBarriersIndexRef.current[properties.id] || null,
           barrierType: thisBarrierType,
@@ -432,6 +436,7 @@ const PriorityMap = ({
           lon,
           // note: ranked layers are those that can be ranked, not necessarily those that have custom ranks
           ranked: sourceLayer.startsWith('ranked_'),
+          removed,
           layer: {
             source,
             sourceLayer,
@@ -534,9 +539,10 @@ const PriorityMap = ({
     if (!map) return
 
     let networkID = Infinity
-
+    const removed = selectedBarrier && selectedBarrier.removed
     if (selectedBarrier) {
-      const { upnetid = Infinity } = selectedBarrier
+      const networkIDField = removed ? 'id' : 'upnetid'
+      const { [networkIDField]: upnetid = Infinity } = selectedBarrier
 
       networkID = upnetid
     } else {
@@ -555,7 +561,8 @@ const PriorityMap = ({
     highlightNetwork(
       map,
       barrierType === 'small_barriers' ? 'combined_barriers' : barrierType,
-      networkID
+      networkID,
+      removed
     )
   }, [barrierType, selectedBarrier])
 

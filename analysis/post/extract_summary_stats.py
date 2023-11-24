@@ -4,7 +4,6 @@ import json
 import pandas as pd
 
 from analysis.constants import STATES, REGION_STATES
-from analysis.lib.io import read_feathers
 
 
 data_dir = Path("data")

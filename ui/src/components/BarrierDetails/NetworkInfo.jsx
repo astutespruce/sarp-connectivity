@@ -307,8 +307,11 @@ const NetworkInfo = ({
             ? ' based on their passability for small-bodied fish'
             : null}
           {removed
-            ? `, including any that were present at the time this ${barrierTypeLabel} was removed.  All barriers removed prior to 2000 or where the year they were removed
-                was unknown were lumped together for this analysis`
+            ? `, including any that were present at the time this
+                ${barrierTypeLabel} was removed, except for any barriers directly
+                upstream that were removed in the same year as this barrier.
+                All barriers removed prior to 2000 or where the year they were
+                removed was unknown were lumped together for this analysis`
             : null}
           .
         </Text>
