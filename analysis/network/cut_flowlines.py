@@ -140,6 +140,7 @@ for huc2 in huc2s:
                 "GNIS_Name",
                 "geometry",
                 "StreamOrder",
+                "StreamLevel",  # used to create network tiles
                 "AreaSqKm",
                 "TotDASqKm",
                 "AnnualFlow",

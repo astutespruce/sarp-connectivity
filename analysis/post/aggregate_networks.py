@@ -78,11 +78,7 @@ def fill_flowline_cols(df):
 #######################################################################################
 ### Read dams and associated networks
 print("Reading dams and networks")
-dams = (
-    gp.read_feather(barriers_dir / "dams.feather")
-    .set_index("id")
-    .rename(columns=rename_cols)
-)
+dams = gp.read_feather(barriers_dir / "dams.feather").set_index("id").rename(columns=rename_cols)
 dams["in_network_type"] = dams.primary_network
 
 fill_flowline_cols(dams)
@@ -94,18 +90,15 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 
 
 # export removed dams for separate API endpoint
-pd.DataFrame(dams.loc[dams.Removed, removed_dam_cols].reset_index()).to_feather(
-    api_dir / "removed_dams.feather"
-)
+# NOTE: these don't have network stats for removed dams
+pd.DataFrame(dams.loc[dams.Removed, removed_dam_cols].reset_index()).to_feather(api_dir / "removed_dams.feather")
 
 # Drop all dropped / duplicate dams from API / tiles
 # NOTE: excluded ones are retained but don't have networks; ones on loops are
 # retained but also don't have networks
 dams = dams.loc[~(dams.dropped | dams.duplicate)].copy()
 
-nonremoved_dam_networks = get_network_results(
-    dams.loc[~dams.Removed], "dams", state_ranks=True
-)
+nonremoved_dam_networks = get_network_results(dams.loc[~dams.Removed], "dams", state_ranks=True)
 # NOTE: removed dam networks do not have all fields present or set
 removed_dam_networks = get_removed_network_results(dams.loc[dams.Removed], "dams")
 
@@ -154,16 +147,10 @@ tmp.to_feather(api_dir / "dams.feather")
 ###
 ### Read small barriers and associated networks
 print("Reading small barriers and networks")
-small_barriers = (
-    gp.read_feather(barriers_dir / "small_barriers.feather")
-    .set_index("id")
-    .rename(columns=rename_cols)
-)
+small_barriers = gp.read_feather(barriers_dir / "small_barriers.feather").set_index("id").rename(columns=rename_cols)
 small_barriers["in_network_type"] = small_barriers.primary_network
 
-small_barriers = small_barriers.loc[
-    ~(small_barriers.dropped | small_barriers.duplicate)
-].copy()
+small_barriers = small_barriers.loc[~(small_barriers.dropped | small_barriers.duplicate)].copy()
 fill_flowline_cols(small_barriers)
 
 # add stream order and species classes for filtering
@@ -202,9 +189,7 @@ for col in nonremoved_small_barrier_networks.columns:
         small_barriers[col] = small_barriers[col].fillna(0).astype(orig_dtype)
 
     else:
-        small_barriers[col] = (
-            small_barriers[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
-        )
+        small_barriers[col] = small_barriers[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
 for col in ["CoastalHUC8"]:
     small_barriers[col] = small_barriers[col].astype("uint8")
@@ -233,9 +218,7 @@ small_barriers = small_barriers.drop(
 small_barriers["BarrierType"] = "small_barriers"
 
 # convert small barriers BarrierSeverity to Passability before merge
-small_barriers["Passability"] = small_barriers.BarrierSeverity.map(
-    SEVERITY_TO_PASSABILITY
-).astype("uint8")
+small_barriers["Passability"] = small_barriers.BarrierSeverity.map(SEVERITY_TO_PASSABILITY).astype("uint8")
 
 
 combined = pd.concat(
@@ -335,17 +318,13 @@ for network_type in [
         orig_dtype = nonremoved_networks[col].dtype
 
         if orig_dtype == bool:
-            scenario_results[col] = (
-                scenario_results[col].fillna(False).astype(orig_dtype)
-            )
+            scenario_results[col] = scenario_results[col].fillna(False).astype(orig_dtype)
 
         elif col.endswith("Class"):
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:
-            scenario_results[col] = (
-                scenario_results[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
-            )
+            scenario_results[col] = scenario_results[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
     print(f"Saving {network_type} networks for tiles and API")
     # Save full results for tiles, etc
@@ -359,9 +338,7 @@ for network_type in [
     if network_type == "combined_barriers":
         # create search key for search by name
         tmp["search_key"] = (
-            (tmp["Name"] + " " + tmp["River"] + " " + tmp["Stream"])
-            .str.strip()
-            .str.replace("  ", " ", regex=False)
+            (tmp["Name"] + " " + tmp["River"] + " " + tmp["Stream"]).str.strip().str.replace("  ", " ", regex=False)
         )
 
     tmp.to_feather(api_dir / f"{network_type}.feather")
@@ -372,11 +349,7 @@ for network_type in [
 # NOTE: this creates one record per network type in a single file
 
 print("Reading waterfalls and networks")
-waterfalls = (
-    gp.read_feather(barriers_dir / "waterfalls.feather")
-    .set_index("id")
-    .rename(columns=rename_cols)
-)
+waterfalls = gp.read_feather(barriers_dir / "waterfalls.feather").set_index("id").rename(columns=rename_cols)
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 fill_flowline_cols(waterfalls)
 
@@ -385,9 +358,7 @@ waterfalls["Unranked"] = False
 
 merged = None
 for network_type in NETWORK_TYPES.keys():
-    networks = get_network_results(
-        waterfalls, network_type=network_type, state_ranks=False
-    )
+    networks = get_network_results(waterfalls, network_type=network_type, state_ranks=False)
 
     scenario_results = waterfalls.join(networks)
 
@@ -395,17 +366,13 @@ for network_type in NETWORK_TYPES.keys():
         orig_dtype = networks[col].dtype
 
         if orig_dtype == bool:
-            scenario_results[col] = (
-                scenario_results[col].fillna(False).astype(orig_dtype)
-            )
+            scenario_results[col] = scenario_results[col].fillna(False).astype(orig_dtype)
 
         elif col.endswith("Class"):
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:
-            scenario_results[col] = (
-                scenario_results[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
-            )
+            scenario_results[col] = scenario_results[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
 
     scenario_results["network_type"] = network_type
     scenario_results["in_network_type"] = (

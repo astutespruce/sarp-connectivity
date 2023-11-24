@@ -275,7 +275,7 @@ for network_type in network_types:
             cur_networks[["upNetID", "YearRemoved"]].reset_index().set_index("upNetID").id.rename("barrier_id"),
             on=network_type,
             how="inner",
-        )
+        ).rename(columns={network_type: "networkID"})
 
         # for any contiguous subnetworks, we need to deduct the miles_to_outlet
         # calculated for the intermediate non-removed barriers and then deduct
@@ -417,7 +417,7 @@ for network_type in network_types:
             # IMPORTANT: to query out the full aggregated upstream network for a barrier,
             # query segments on barrier_id == <id>
             # to query out the original unaggregated upstream network, use
-            # (barrier_id == <id>) & (<network_type> == cur_networks.loc[<id>].upNetID)
+            # (barrier_id == <id>) & (networkID == cur_networks.loc[<id>].upNetID)
 
             # update size classes based on updated segments
             sibling_networks = sibling_networks.drop(columns=["sizeclasses"]).join(
@@ -484,7 +484,10 @@ for network_type in network_types:
         networks[col] = networks[col].round(3).fillna(-1)
 
     networks.to_feather(out_dir / f"removed_{network_type}_networks.feather")
-    network_segments.to_feather(out_dir / f"removed_{network_type}_network_segments")
+
+    # NOTE: removed network segments only include upstream networks of removed
+    # barriers; they do not include origin networks
+    network_segments.to_feather(out_dir / f"removed_{network_type}_network_segments.feather")
 
 
-print(f"All done in {time() - start:.2f}s")
+print(f"\n\n=============================\nAll done in {time() - start:.2f}s")

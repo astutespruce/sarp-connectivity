@@ -13,6 +13,7 @@ from pyogrio import write_dataframe
 from analysis.constants import GEO_CRS, NETWORK_TYPES, CRS
 from analysis.lib.io import read_arrow_tables
 from analysis.lib.geometry.lines import merge_lines
+from analysis.post.lib.tiles import get_col_types
 
 src_dir = Path("data/networks")
 intermediate_dir = Path("data/tiles")
@@ -26,10 +27,8 @@ sizeclasses = [2, 5, 25, 100, 250, 500, 5000, 25000, 50000, 500000, 2000000]
 
 
 def classify_size(series):
-    bins = sizeclasses + [max(series.max(), 2000000) + 1]
-    return np.asarray(
-        pd.cut(series, bins, right=False, labels=np.arange(1, len(bins)))
-    ).astype("uint8")
+    bins = sizeclasses + [max(series.max().round().astype("int"), 2000000) + 1]
+    return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(1, len(bins)))).astype("uint8")
 
 
 zoom_config = [
@@ -84,28 +83,12 @@ zoom_config = [
 tippecanoe = "tippecanoe"
 tile_join = "tile-join"
 
-col_types = [
-    "-T",
-    "dams:int",
-    "-T",
-    "small_barriers:int",
-    "-T",
-    "sizeclass:int",
-    "-T",
-    "mapcode:int",
-]
-for col in network_cols:
-    col_types.extend(["-T", f"{col}:int"])
-
 tippecanoe_args = [
     tippecanoe,
     "-f",
-    "-l",
-    "networks",
     "-pg",
     "--visvalingam",
-] + col_types
-
+]
 
 start = time()
 
@@ -118,15 +101,10 @@ print("Loading data")
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 huc2s = sorted(groups_df.HUC2.unique())
 
-segments = (
-    read_arrow_tables(
-        [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in huc2s],
-        columns=["lineID"] + network_cols,
-    )
-    .combine_chunks()
-    .sort_by("lineID")
-)
-
+segments = read_arrow_tables(
+    [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in huc2s],
+    columns=["lineID"] + network_cols,
+).sort_by("lineID")
 
 flowline_paths = [src_dir / "raw" / huc2 / "flowlines.feather" for huc2 in huc2s]
 flowlines = (
@@ -229,10 +207,14 @@ for level in national_levels:
         outfilename,
     )
 
+    col_types = get_col_types(subset)
+
     del subset  # free up memory
 
     ret = subprocess.run(
         tippecanoe_args
+        + ["-l", "networks"]
+        + col_types
         + ["-Z", str(minzoom), "-z", str(maxzoom)]
         + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
     )
@@ -241,17 +223,15 @@ for level in national_levels:
     # remove FGB file
     outfilename.unlink()
 
-
 # delete objects to free memory
 del lines
 
 
 ######################
 
-
 regional_levels = [l for l in zoom_config if l.get("scope") != "national"]
 
-for group in groups_df.groupby("group").HUC2.apply(set).values:
+for group in sorted(groups_df.groupby("group").HUC2.apply(list).values):
     group = sorted(group)
 
     print(f"\n\n===========================\nProcessing group {group}")
@@ -263,9 +243,7 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
         huc2_start = time()
 
         lines = (
-            pa.dataset.dataset(
-                src_dir / "raw" / huc2 / "flowlines.feather", format="feather"
-            )
+            pa.dataset.dataset(src_dir / "raw" / huc2 / "flowlines.feather", format="feather")
             .to_table(
                 columns=["lineID", "geometry"],
             )
@@ -289,21 +267,15 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
             simplification = level["simplification"]
             sizeclass = level["sizeclass"]
 
-            print(
-                f"Extracting size class >= {sizeclass} for zooms {minzoom} - {maxzoom}"
-            )
+            print(f"Extracting size class >= {sizeclass} for zooms {minzoom} - {maxzoom}")
             subset = lines.loc[lines.sizeclass >= sizeclass].copy()
 
             if simplification:
                 print(f"simplifying to {simplification} m")
-                subset["geometry"] = shapely.simplify(
-                    subset.geometry.values, simplification
-                )
+                subset["geometry"] = shapely.simplify(subset.geometry.values, simplification)
 
             outfilename = tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.fgb"
-            mbtiles_filename = (
-                tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.mbtiles"
-            )
+            mbtiles_filename = tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.mbtiles"
             mbtiles_files.append(mbtiles_filename)
 
             write_dataframe(
@@ -311,10 +283,14 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
                 outfilename,
             )
 
+            col_types = get_col_types(subset)
+
             del subset
 
             ret = subprocess.run(
                 tippecanoe_args
+                + ["-l", "networks"]
+                + col_types
                 + ["-Z", str(minzoom), "-z", str(maxzoom)]
                 + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
             )
@@ -327,6 +303,98 @@ for group in groups_df.groupby("group").HUC2.apply(set).values:
 
         print(f"Region done in {(time() - huc2_start) / 60:,.2f}m")
 
+
+######################
+### Removed networks can be done all at once, no need to split by HUC2s
+print("\n-----------------------\nProcessing removed barrier networks")
+segments = read_arrow_tables(
+    [
+        src_dir / f"clean/removed/removed_{network_type}_network_segments.feather"
+        for network_type in sorted(NETWORK_TYPES.keys())
+    ],
+    columns=["lineID", "barrier_id"],
+    new_fields={"network_type": sorted(NETWORK_TYPES.keys())},
+).to_pandas()
+
+
+lineIDs = pa.array(segments.lineID.unique())
+lines = (
+    read_arrow_tables(
+        flowline_paths,
+        columns=[
+            "lineID",
+            "geometry",
+            "StreamLevel",
+            "intermittent",
+            "altered",
+            "TotDASqKm",
+        ],
+        filter=pc.is_in(pc.field("lineID"), lineIDs),
+    )
+    .to_pandas()
+    .set_index("lineID")
+)
+lines["geometry"] = shapely.from_wkb(lines.geometry.values)
+lines["sizeclass"] = classify_size(lines.TotDASqKm)
+lines["mapcode"] = np.uint8(0)
+lines.loc[lines.intermittent, "mapcode"] = np.uint8(1)
+lines.loc[lines.altered & (~lines.intermittent), "mapcode"] = np.uint8(2)
+lines.loc[lines.altered & lines.intermittent, "mapcode"] = np.uint8(3)
+
+lines = gp.GeoDataFrame(
+    segments.join(lines[["geometry", "sizeclass", "mapcode", "StreamLevel"]], on="lineID"), geometry="geometry", crs=CRS
+)
+
+# preliminary merge
+lines = merge_lines(lines, by=["network_type", "barrier_id", "sizeclass", "mapcode", "StreamLevel"])
+
+for level in zoom_config:
+    minzoom, maxzoom = level["zoom"]
+    simplification = level["simplification"]
+
+    ix = lines.sizeclass >= level["sizeclass"]
+    if "streamlevel" in level:
+        ix = ix & (lines.StreamLevel <= level["streamlevel"])
+
+    if ix.sum() == 0:
+        continue
+
+    subset = lines.loc[ix].copy()
+
+    print(f"Processing zooms {minzoom}-{maxzoom} for removed barrier networks ({len(subset):,} flowlines)")
+
+    # suppress styling of intermittent / altered at low zooms
+    if maxzoom < 8:
+        subset["mapcode"] = 0
+
+    subset = merge_lines(
+        subset.explode(ignore_index=True),
+        by=["network_type", "sizeclass", "mapcode"],
+    ).sort_values(by=["network_type", "sizeclass"])
+
+    if simplification:
+        print(f"simplifying to {simplification} m")
+        subset["geometry"] = shapely.simplify(subset["geometry"], level["simplification"])
+
+    outfilename = tmp_dir / f"removed_network_flowlines_{minzoom}_{maxzoom}.fgb"
+    mbtiles_filename = tmp_dir / f"removed_network_flowlines_{minzoom}_{maxzoom}.mbtiles"
+    mbtiles_files.append(mbtiles_filename)
+    write_dataframe(subset.to_crs(GEO_CRS), outfilename)
+
+    ret = subprocess.run(
+        tippecanoe_args
+        + ["-l", "removed_networks"]
+        + get_col_types(subset)
+        + ["-Z", str(minzoom), "-z", str(maxzoom)]
+        + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+    )
+    ret.check_returncode()
+
+    # remove FGB file
+    outfilename.unlink()
+
+
+###############
 
 print("\n\n============================\nCombining tiles")
 mbtiles_filename = out_dir / "networks.mbtiles"
