@@ -247,6 +247,10 @@ for column in (
 for column in ("YearCompleted", "YearRemoved", "StructureClass"):
     df[column] = df[column].fillna(0).astype("uint16")
 
+# Fix bad values for YearRemoved
+df.loc[(df.YearRemoved > 0) & (df.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
+
+
 # Use float32 instead of float64 (still can hold nulls)
 for column in (
     "ImpoundmentType",

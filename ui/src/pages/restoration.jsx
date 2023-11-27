@@ -31,6 +31,7 @@ const ProgressPage = ({ location }) => {
   const [searchFeature, setSearchFeature] = useState(null)
   const [selectedUnit, setSelectedUnit] = useState(null)
   const [selectedBarrier, setSelectedBarrier] = useState(null)
+  const [metric, setMetric] = useState('gainmiles')
 
   const { region = 'total' } = getQueryParams(location)
 
@@ -91,7 +92,9 @@ const ProgressPage = ({ location }) => {
         region={region}
         barrierType={focalBarrierType}
         system={system}
+        metric={metric}
         onSearch={handleSearch}
+        onChangeMetric={setMetric}
       />
     )
   }

@@ -27,6 +27,7 @@ Outputs:
 from pathlib import Path
 import subprocess
 
+import numpy as np
 import pandas as pd
 import pyarrow as pa
 from pyarrow.csv import write_csv
@@ -64,6 +65,34 @@ INT_COLS = [
     "ranked_smallfish_barriers_dams",
     "ranked_smallfish_barriers_small_barriers",
 ]
+
+# Bin year removed in to smaller groups
+# 0 = unknown
+# 1 = <= 1999
+YEAR_REMOVED_BINS = [0, 1, 2000, 2010, 2020, 2021, 2022, 2023, 2024]
+
+
+def calc_year_removed_bin(series):
+    return pd.cut(series, bins=YEAR_REMOVED_BINS, right=False, labels=np.arange(0, len(YEAR_REMOVED_BINS) - 1))
+
+
+def pack_year_removed_stats(df):
+    """Combine year removed counts and gained miles into a single string:
+    <year_bin>:<count>|<gainmiles>,...
+    """
+    stats = (
+        df[["YearRemoved", "RemovedGainMiles"]]
+        .reset_index()
+        .groupby("YearRemoved", observed=True)
+        .agg({"id": "count", "RemovedGainMiles": "sum"})
+        .apply(lambda row: f"{int(row.id)}|{row.RemovedGainMiles:.2f}", axis=1)
+        .to_dict()
+    )
+    if len(stats) == 0:
+        return ""
+
+    bins = range(len(YEAR_REMOVED_BINS) - 1)
+    return ",".join([stats.get(bin, "") for bin in bins])
 
 
 tile_join = "tile-join"

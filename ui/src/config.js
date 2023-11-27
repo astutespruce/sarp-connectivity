@@ -1214,3 +1214,14 @@ export const TIER_PACK_BITS = [
   { field: 'ncwc', bits: 5, value_shift: 1 },
   { field: 'pncwc', bits: 5, value_shift: 1 },
 ]
+
+export const YEAR_REMOVED_BINS = {
+  0: 'unknown',
+  1: 'before 2000',
+  2: '2000-2009',
+  3: '2010-2019',
+  4: '2020',
+  5: '2021',
+  6: '2022',
+  7: '2023',
+}

@@ -1,9 +1,38 @@
 from pathlib import Path
 import json
 
+import numpy as np
 import pandas as pd
 
 from analysis.constants import STATES, REGION_STATES
+
+# Bin year removed in to smaller groups
+# 0 = unknown
+# 1 = <= 1999
+YEAR_REMOVED_BINS = [0, 1, 2000, 2010, 2020, 2021, 2022, 2023, 2024]
+
+
+def calc_year_removed_bin(series):
+    return pd.cut(series, bins=YEAR_REMOVED_BINS, right=False, labels=np.arange(0, len(YEAR_REMOVED_BINS) - 1))
+
+
+def pack_year_removed_stats(df):
+    """Combine year removed counts and gained miles into a single string:
+    <year_bin>:<count>|<gainmiles>,...
+    """
+    stats = (
+        df[["YearRemoved", "RemovedGainMiles"]]
+        .reset_index()
+        .groupby("YearRemoved", observed=True)
+        .agg({"id": "count", "RemovedGainMiles": "sum"})
+        .apply(lambda row: f"{int(row.id)}|{row.RemovedGainMiles:.2f}", axis=1)
+        .to_dict()
+    )
+    if len(stats) == 0:
+        return ""
+
+    bins = range(len(YEAR_REMOVED_BINS) - 1)
+    return ",".join([stats.get(bin, "") for bin in bins])
 
 
 data_dir = Path("data")
@@ -24,11 +53,13 @@ dams = dams.join(dams_master)
 # get stats for removed dams
 removed_dam_networks = (
     pd.read_feather(
-        data_dir / "networks/clean/removed/removed_dams_networks.feather", columns=["id", "EffectiveGainMiles"]
+        data_dir / "networks/clean/removed/removed_dams_networks.feather",
+        columns=["id", "EffectiveGainMiles", "YearRemoved"],
     )
     .set_index("id")
-    .EffectiveGainMiles.rename("RemovedGainMiles")
+    .rename(columns={"EffectiveGainMiles": "RemovedGainMiles"})
 )
+removed_dam_networks["YearRemoved"] = calc_year_removed_bin(removed_dam_networks.YearRemoved)
 dams = dams.join(removed_dam_networks)
 dams["RemovedGainMiles"] = dams.RemovedGainMiles.fillna(0)
 
@@ -47,11 +78,12 @@ barriers = barriers.join(barriers_master)
 removed_barrier_networks = (
     pd.read_feather(
         data_dir / "networks/clean/removed/removed_combined_barriers_networks.feather",
-        columns=["id", "EffectiveGainMiles"],
+        columns=["id", "EffectiveGainMiles", "YearRemoved"],
     )
     .set_index("id")
-    .EffectiveGainMiles.rename("RemovedGainMiles")
+    .rename(columns={"EffectiveGainMiles": "RemovedGainMiles"})
 )
+removed_barrier_networks["YearRemoved"] = calc_year_removed_bin(removed_barrier_networks.YearRemoved)
 barriers = barriers.join(removed_barrier_networks)
 barriers["RemovedGainMiles"] = barriers.RemovedGainMiles.fillna(0)
 
@@ -98,6 +130,7 @@ stats = {
         ),
         "removed_dams": int(analysis_dams.Removed.sum()),
         "removed_dams_gain_miles": int(round(analysis_dams.RemovedGainMiles.sum())),
+        "removed_dams_by_year": pack_year_removed_stats(analysis_dams),
         "total_small_barriers": len(analysis_barriers),
         "small_barriers": int(analysis_barriers.Included.sum()),
         "ranked_small_barriers": int(analysis_barriers.Ranked.sum()),
@@ -109,6 +142,7 @@ stats = {
         ),
         "removed_small_barriers": int(analysis_barriers.Removed.sum()),
         "removed_small_barriers_gain_miles": int(round(analysis_barriers.RemovedGainMiles.sum())),
+        "removed_small_barriers_by_year": pack_year_removed_stats(analysis_barriers),
         "crossings": len(analysis_crossings),
     }
 }
@@ -129,11 +163,13 @@ for region, region_states in REGION_STATES.items():
             "recon_dams": int((region_dams.Recon > 0).sum()),
             "removed_dams": int(region_dams.Removed.sum()),
             "removed_dams_gain_miles": int(round(region_dams.RemovedGainMiles.sum())),
+            "removed_dams_by_year": pack_year_removed_stats(region_dams),
             "total_small_barriers": len(region_barriers),
             "small_barriers": int(region_barriers.Included.sum()),
             "ranked_small_barriers": int(region_barriers.Ranked.sum()),
             "removed_small_barriers": int(region_barriers.Removed.sum()),
             "removed_small_barriers_gain_miles": int(round(region_barriers.RemovedGainMiles.sum())),
+            "removed_small_barriers_by_year": pack_year_removed_stats(region_barriers),
             "crossings": len(region_crossings),
         }
     )
@@ -148,17 +184,19 @@ for state in sorted(STATES.keys()):
     state_dams = dams.loc[dams.State == state]
     state_barriers = barriers.loc[barriers.State == state]
 
+    # NOTE: removed barrier counts not currently used at state level in this
+    # data structure; only used in tiles
     state_stats.append(
         {
             "id": state,
             "dams": int(len(state_dams)),
             "recon_dams": int((state_dams.Recon > 0).sum()),
-            "removed_dams": int(state_dams.Removed.sum()),
-            "removed_dams_gain_miles": int(round(state_dams.RemovedGainMiles.sum())),
+            # "removed_dams": int(state_dams.Removed.sum()),
+            # "removed_dams_gain_miles": int(round(state_dams.RemovedGainMiles.sum())),
             "total_small_barriers": int(len(state_barriers)),
             "small_barriers": int(state_barriers.Included.sum()),
-            "removed_small_barriers": int(state_barriers.Removed.sum()),
-            "removed_small_barriers_gain_miles": int(round(state_barriers.RemovedGainMiles.sum())),
+            # "removed_small_barriers": int(state_barriers.Removed.sum()),
+            # "removed_small_barriers_gain_miles": int(round(state_barriers.RemovedGainMiles.sum())),
         }
     )
 stats["State"] = state_stats

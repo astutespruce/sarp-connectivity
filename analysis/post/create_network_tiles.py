@@ -218,8 +218,7 @@ for level in national_levels:
     ret.check_returncode()
 
     # remove FGB file
-    # FIXME:
-    # outfilename.unlink()
+    outfilename.unlink()
 
 # delete objects to free memory
 del lines
@@ -389,9 +388,9 @@ for level in zoom_config:
     ret.check_returncode()
 
     # remove FGB file
-    # FIXME:
-    # outfilename.unlink()
+    outfilename.unlink()
 
+del lines
 
 ###############
 

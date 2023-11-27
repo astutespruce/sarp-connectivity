@@ -308,8 +308,8 @@ const NetworkInfo = ({
             : null}
           {removed
             ? `, including any that were present at the time this
-                ${barrierTypeLabel} was removed, except for any barriers directly
-                upstream that were removed in the same year as this barrier.
+                ${barrierTypeLabel} was removed, with the exception of those
+                directly upstream that were removed in the same year as this barrier.
                 All barriers removed prior to 2000 or where the year they were
                 removed was unknown were lumped together for this analysis`
             : null}
