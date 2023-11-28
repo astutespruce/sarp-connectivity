@@ -172,7 +172,6 @@ ret.check_returncode()
 
 ### Create tiles for removed dams (including off-network)
 # these are not filtered
-# TODO: network IDs
 removed_dams = df.loc[df.Removed, ["geometry", "id", "SARPIDName"]]
 print(f"Creating tiles for {len(removed_dams):,} removed dams")
 
@@ -221,9 +220,8 @@ mbtiles_filename = out_dir / "dams.mbtiles"
 ret = subprocess.run(tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
 
 # remove intermediates
-# FIXME:
-# for mbtiles_file in mbtiles_files:
-#     mbtiles_file.unlink()
+for mbtiles_file in mbtiles_files:
+    mbtiles_file.unlink()
 
 
 print(f"Created dam tiles in {time() - start:,.2f}s")
@@ -333,7 +331,6 @@ ret.check_returncode()
 
 
 ### Create tiles for removed small barriers
-# TODO: network IDs
 removed_barriers = df.loc[df.Removed, ["geometry", "id", "SARPIDName"]]
 
 print(f"Creating tiles for {len(removed_barriers):,} removed small barriers")
@@ -384,9 +381,8 @@ mbtiles_filename = out_dir / "small_barriers.mbtiles"
 ret = subprocess.run(tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
 
 # remove intermediates
-# FIXME:
-# for mbtiles_file in mbtiles_files:
-#     mbtiles_file.unlink()
+for mbtiles_file in mbtiles_files:
+    mbtiles_file.unlink()
 
 print(f"Created small barrier tiles in {time() - start:,.2f}s")
 
@@ -498,9 +494,9 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     ### Create tiles for removed barriers
     removed_barriers = df.loc[
         df.Removed,
-        # TODO: network IDs
         ["geometry", "id", "SARPIDName", "BarrierType"],
     ]
+
     print(f"Creating tiles for {len(removed_barriers)} removed barriers")
 
     outfilename = tmp_dir / f"removed_{network_type}.fgb"
@@ -547,9 +543,8 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     ret = subprocess.run(tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
 
     # remove intermediates
-    # FIXME:
-    # for mbtiles_file in mbtiles_files:
-    #     mbtiles_file.unlink()
+    for mbtiles_file in mbtiles_files:
+        mbtiles_file.unlink()
 
     print(f"Created {network_type} tiles in {time() - start:,.2f}s")
 

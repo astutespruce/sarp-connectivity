@@ -31,6 +31,7 @@ const ProgressPage = ({ location }) => {
   const [searchFeature, setSearchFeature] = useState(null)
   const [selectedUnit, setSelectedUnit] = useState(null)
   const [selectedBarrier, setSelectedBarrier] = useState(null)
+  const [metric, setMetric] = useState('gainmiles')
 
   const { region = 'total' } = getQueryParams(location)
 
@@ -82,6 +83,8 @@ const ProgressPage = ({ location }) => {
       <UnitDetails
         summaryUnit={selectedUnit}
         barrierType={focalBarrierType}
+        metric={metric}
+        onChangeMetric={setMetric}
         onClose={handleDetailsClose}
       />
     )
@@ -91,7 +94,9 @@ const ProgressPage = ({ location }) => {
         region={region}
         barrierType={focalBarrierType}
         system={system}
+        metric={metric}
         onSearch={handleSearch}
+        onChangeMetric={setMetric}
       />
     )
   }
@@ -132,6 +137,19 @@ const ProgressPage = ({ location }) => {
                   options={systemOptions}
                   onChange={handleSetSystem}
                 />
+                {!selectedUnit ? (
+                  <Text
+                    sx={{
+                      fontSize: 'smaller',
+                      color: 'grey.7',
+                      lineHeight: 1.1,
+                      maxWidth: '10rem',
+                      ml: '0.75rem',
+                    }}
+                  >
+                    Click on a summary unit for more information
+                  </Text>
+                ) : null}
               </TopBar>
             </Map>
           </Box>

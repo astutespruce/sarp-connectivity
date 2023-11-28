@@ -130,18 +130,22 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
           borderBottom: '2px solid',
           borderBottomColor: 'grey.3',
           mt: '1.5rem',
-          mb: '1rem',
+          mb: '2rem',
         }}
       />
-
-      <Paragraph sx={{ mb: '2rem' }}>
-        Click on a summary unit the map for more information about that area.
-      </Paragraph>
 
       <UnitSearch
         barrierType={barrierType}
         system={system}
         onSelect={onSearch}
+      />
+
+      <Divider
+        sx={{
+          borderBottom: '2px solid',
+          borderBottomColor: 'grey.3',
+          mt: '3rem',
+        }}
       />
 
       {barrierType === 'dams' ? (

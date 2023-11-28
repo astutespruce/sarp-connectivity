@@ -35,8 +35,17 @@ import Scores from './Scores'
 import Species from './Species'
 
 const Preview = ({ networkType, data }) => {
-  const { id, sarpid, upnetid, county, state, lat, lon, feasibilityclass } =
-    data
+  const {
+    id,
+    sarpid,
+    upnetid,
+    county,
+    state,
+    lat,
+    lon,
+    feasibilityclass,
+    removed,
+  } = data
 
   const barrierType =
     networkType === 'combined_barriers' ||
@@ -212,10 +221,11 @@ const Preview = ({ networkType, data }) => {
 
         <Map
           barrierID={id}
-          networkID={upnetid}
+          networkID={removed ? id : upnetid}
           center={[lon, lat]}
           zoom={13.5}
           networkType={networkType}
+          removed={removed}
           onCreateMap={handleCreateExportMap}
           onUpdateBasemap={handleUpdateBasemap}
           onVisibleLayerUpdate={handleVisibleLayerUpdate}
@@ -300,6 +310,7 @@ Preview.propTypes = {
     state: PropTypes.string.isRequired,
     feasibilityclass: PropTypes.number,
     upnetid: PropTypes.number,
+    removed: PropTypes.bool,
     // other props validated by subcomponents
   }).isRequired,
 }

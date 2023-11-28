@@ -142,12 +142,18 @@ def create_networks(joins, barrier_joins, lineIDs):
     # lineIDs of flowlines immediately upstream of barriers
     barrier_upstream_idx = barrier_joins.loc[barrier_joins.upstream_id != 0].upstream_id.unique()
 
+    ### Create a directed graph facing upstream
     # extract flowline joins that are not at the endpoints of the network and
     # are not cut by barriers
     upstream_joins = joins.loc[
         (joins.upstream_id != 0) & (joins.downstream_id != 0) & (~joins.upstream_id.isin(barrier_upstream_idx)),
         ["downstream_id", "upstream_id"],
     ].drop_duplicates()
+
+    upstream_graph = DirectedGraph(
+        upstream_joins.downstream_id.values.astype("int64"),
+        upstream_joins.upstream_id.values.astype("int64"),
+    )
 
     ### Get list of network root IDs
     # Create networks from all terminal nodes (have no downstream nodes) up to barriers.
@@ -174,12 +180,6 @@ def create_networks(joins, barrier_joins, lineIDs):
     # remove any origins that have associated barriers
     # this also ensures a unique list
     origin_idx = np.setdiff1d(origin_idx, barrier_upstream_idx)
-
-    ### Create a directed graph facing upstream
-    upstream_graph = DirectedGraph(
-        upstream_joins.downstream_id.values.astype("int64"),
-        upstream_joins.upstream_id.values.astype("int64"),
-    )
 
     print(f"Generating networks for {len(origin_idx):,} origin points")
     origin_network_segments = pd.DataFrame(
@@ -319,7 +319,12 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
 
     # join networkID to flowlines
     flowlines = flowlines.join(upstream_networks.rename(network_type))
-    up_network_df = flowlines.join(upstream_networks, how="inner").reset_index().set_index("networkID")
+    up_network_df = (
+        flowlines.dropna(subset=[network_type])
+        .rename(columns={network_type: "networkID"})
+        .reset_index()
+        .set_index("networkID")
+    )
 
     # For any barriers that had multiple upstreams, those were coalesced to a single network above
     # So drop any dangling upstream references (those that are not in networks and non-zero)

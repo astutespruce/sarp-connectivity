@@ -97,9 +97,29 @@ const intermittentNetworkHighlightLayer = {
   },
 }
 
+const removedNetworkHighlightLayer = {
+  ...networkHighlightLayer,
+  id: 'removed-network-highlight',
+  'source-layer': 'removed_networks',
+  filter: ['==', 'barrier_id', Infinity],
+  paint: {
+    ...networkHighlightLayer.paint,
+  },
+}
+
+const removedIntermittentNetworkHighlightLayer = {
+  ...removedNetworkHighlightLayer,
+  id: 'removed-network-intermittent-highlight',
+  paint: {
+    ...networkHighlightLayer.paint,
+  },
+}
+
 export const networkLayers = [
   networkHighlightLayer,
   intermittentNetworkHighlightLayer,
+  removedNetworkHighlightLayer,
+  removedIntermittentNetworkHighlightLayer,
   flowlinesLayer,
   intermittentFlowlinesLayer,
 ]

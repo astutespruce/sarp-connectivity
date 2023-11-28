@@ -32,7 +32,7 @@ import { layers, removedPointLayer, regionLayers } from './layers'
 
 const barrierTypes = ['dams', 'small_barriers', 'combined_barriers']
 
-const SummaryMap = ({
+const RestorationMap = ({
   region,
   system,
   focalBarrierType,
@@ -52,6 +52,21 @@ const SummaryMap = ({
   const focalBarrierTypeRef = useRef(focalBarrierType)
 
   const [zoom, setZoom] = useState(0)
+
+  const clearNetworkHighlight = () => {
+    const { current: map } = mapRef
+
+    if (map) {
+      map.setFilter('network-highlight', ['==', 'dams', Infinity])
+      map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
+      map.setFilter('removed-network-highlight', ['==', 'barrier_id', Infinity])
+      map.setFilter('removed-network-intermittent-highlight', [
+        '==',
+        'barrier_id',
+        Infinity,
+      ])
+    }
+  }
 
   const selectFeatureByID = useCallback(
     (id, layer) => {
@@ -312,11 +327,24 @@ const SummaryMap = ({
           setBarrierHighlight(map, feature, true)
           selectedFeatureRef.current = feature
 
+          const removed = sourceLayer.startsWith('removed_')
+
+          const thisBarrierType =
+            source === 'combined_barriers' ? properties.barriertype : source
+
+          // promote network fields if clicking on a waterfall
+          let networkIDField = 'upnetid'
+          if (removed) {
+            networkIDField = 'id'
+          } else if (thisBarrierType === 'waterfalls') {
+            networkIDField = `${focalBarrierTypeRef}_upnetid`
+          }
+
           // dam, barrier, waterfall
           onSelectBarrier({
             ...properties,
-            barrierType:
-              source === 'combined_barriers' ? properties.barriertype : source,
+            upnetid: properties[networkIDField] || Infinity,
+            barrierType: thisBarrierType,
             // use combined barrier networks unless we are looking at only
             // dams
             networkType:
@@ -326,6 +354,7 @@ const SummaryMap = ({
             lat,
             lon,
             ranked: sourceLayer.startsWith('ranked_'),
+            removed,
             layer: {
               source,
               sourceLayer,
@@ -384,9 +413,7 @@ const SummaryMap = ({
       map.setLayoutProperty(`removed_${t}`, 'visibility', visibility)
     })
 
-    // clear highlighted networks
-    map.setFilter('network-highlight', ['==', 'dams', Infinity])
-    map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
+    clearNetworkHighlight()
   }, [focalBarrierType])
 
   useEffect(() => {
@@ -394,14 +421,19 @@ const SummaryMap = ({
 
     if (!map) return
 
-    let networkID = Infinity
+    clearNetworkHighlight()
 
     if (selectedBarrier) {
-      const networkIDField = 'upnetid'
-      const { [networkIDField]: upnetid = Infinity } = selectedBarrier
+      const networkIDField = selectedBarrier.removed ? 'id' : 'upnetid'
+      const { [networkIDField]: networkID = Infinity } = selectedBarrier
 
       // highlight upstream network
-      networkID = upnetid
+      highlightNetwork(
+        map,
+        focalBarrierType === 'dams' ? 'dams' : 'combined_barriers',
+        networkID,
+        selectedBarrier.removed
+      )
     } else {
       const prevFeature = selectedFeatureRef.current
       if (prevFeature) {
@@ -414,12 +446,6 @@ const SummaryMap = ({
         }
       }
     }
-
-    highlightNetwork(
-      map,
-      focalBarrierType === 'dams' ? 'dams' : 'combined_barriers',
-      networkID
-    )
   }, [selectedBarrier, focalBarrierType])
 
   useEffect(() => {
@@ -602,7 +628,7 @@ const SummaryMap = ({
   )
 }
 
-SummaryMap.propTypes = {
+RestorationMap.propTypes = {
   region: PropTypes.string,
   system: PropTypes.string.isRequired,
   focalBarrierType: PropTypes.string.isRequired,
@@ -617,7 +643,7 @@ SummaryMap.propTypes = {
   ]),
 }
 
-SummaryMap.defaultProps = {
+RestorationMap.defaultProps = {
   region: 'total',
   selectedUnit: null,
   searchFeature: null,
@@ -626,4 +652,4 @@ SummaryMap.defaultProps = {
 }
 
 // construct only once
-export default memo(SummaryMap)
+export default memo(RestorationMap)

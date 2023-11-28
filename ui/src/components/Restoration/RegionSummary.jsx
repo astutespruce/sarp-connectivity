@@ -11,7 +11,16 @@ import { useSummaryData } from 'components/Data'
 import { REGIONS } from 'config'
 import { formatNumber, pluralize } from 'util/format'
 
-const Summary = ({ region, barrierType, system, onSearch }) => {
+import Chart from './Chart'
+
+const Summary = ({
+  region,
+  barrierType,
+  system,
+  metric,
+  onSearch,
+  onChangeMetric,
+}) => {
   let name = 'full analysis area'
   if (region !== 'total') {
     name = REGIONS[region].name
@@ -25,11 +34,11 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
       totalSmallBarriers,
       removedSmallBarriers,
       removedSmallBarriersGainMiles,
+      removedBarriersByYear,
     },
   } = useSummaryData()
 
   const isRegion = region !== 'total'
-
   const regionName = isRegion ? name : 'full analysis area'
 
   return (
@@ -102,23 +111,36 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
         </>
       ) : null}
 
+      <Box sx={{ mt: '2rem' }}>
+        <Chart
+          barrierType={barrierType}
+          removedBarriersByYear={removedBarriersByYear}
+          metric={metric}
+          onChangeMetric={onChangeMetric}
+        />
+      </Box>
+
       <Divider
         sx={{
           borderBottom: '2px solid',
           borderBottomColor: 'grey.3',
-          mt: '1.5rem',
-          mb: '1rem',
+          mt: '3rem',
+          mb: '2rem',
         }}
       />
-
-      <Paragraph sx={{ mb: '2rem' }}>
-        Click on a summary unit the map for more information about that area.
-      </Paragraph>
 
       <UnitSearch
         barrierType={barrierType}
         system={system}
         onSelect={onSearch}
+      />
+
+      <Divider
+        sx={{
+          borderBottom: '2px solid',
+          borderBottomColor: 'grey.3',
+          mt: '3rem',
+        }}
       />
 
       {barrierType === 'dams' ? (
@@ -152,6 +174,16 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
           more complete inventory.
         </Paragraph>
       ) : null}
+
+      <Paragraph variant="help" sx={{ mt: '1rem' }}>
+        Miles gained are based on aquatic networks cut by{' '}
+        {barrierType === 'dams'
+          ? 'waterfalls and dams'
+          : 'waterfalls, dams, and road-related barriers'}{' '}
+        that were present at the time a given barrier was removed, with the
+        exception of those directly upstream that were removed in the same year
+        as a given barrier.
+      </Paragraph>
     </Box>
   )
 }
@@ -160,7 +192,9 @@ Summary.propTypes = {
   region: PropTypes.string,
   barrierType: PropTypes.string.isRequired,
   system: PropTypes.string.isRequired,
+  metric: PropTypes.string.isRequired,
   onSearch: PropTypes.func.isRequired,
+  onChangeMetric: PropTypes.func.isRequired,
 }
 
 Summary.defaultProps = {

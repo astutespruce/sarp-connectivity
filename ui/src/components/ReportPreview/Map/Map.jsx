@@ -56,6 +56,7 @@ const Map = ({
   networkType,
   barrierID,
   networkID,
+  removed,
   onCreateMap,
   onUpdateBasemap,
   onVisibleLayerUpdate,
@@ -157,10 +158,21 @@ const Map = ({
         // Add network layers
         networkLayers.forEach((layer) => {
           if (layer.id.endsWith('-highlight')) {
+            let filterExpr = null
+            if (removed) {
+              filterExpr = [
+                'all',
+                ['==', 'network_type', networkType],
+                ['==', 'barrier_id', networkID],
+              ]
+            } else {
+              filterExpr = ['==', networkType, networkID]
+            }
+
             mapObj.addLayer({
               ...layer,
               minzoom: 6,
-              filter: ['==', networkType, networkID],
+              filter: filterExpr,
             })
           } else {
             mapObj.addLayer(layer)
@@ -318,6 +330,7 @@ Map.propTypes = {
   networkType: PropTypes.string.isRequired,
   barrierID: PropTypes.number.isRequired,
   networkID: PropTypes.number,
+  removed: PropTypes.bool,
   onCreateMap: PropTypes.func.isRequired,
   onUpdateBasemap: PropTypes.func.isRequired,
   onVisibleLayerUpdate: PropTypes.func.isRequired,
@@ -332,6 +345,7 @@ Map.defaultProps = {
   padding: 0.1,
   styleID: defaultStyleID,
   networkID: null,
+  removed: false,
 }
 
 export default Map

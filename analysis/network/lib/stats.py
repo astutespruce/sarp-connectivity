@@ -1,8 +1,8 @@
 from pathlib import Path
 
 import pandas as pd
+import pyarrow as pa
 import pyarrow.compute as pc
-import pyarrow.dataset as pa
 import numpy as np
 
 from analysis.lib.graph.speedups import DirectedGraph
@@ -302,7 +302,7 @@ def calculate_floodplain_stats(df):
     # Sum floodplain and natural floodplain values, and calculate percent natural floodplain
     # Read in associated floodplain info (using pyarrow for speed in filtering) and join
     fp_stats = (
-        pa.dataset(data_dir / "floodplains" / "floodplain_stats.feather", format="feather")
+        pa.dataset.dataset(data_dir / "floodplains" / "floodplain_stats.feather", format="feather")
         .to_table(
             filter=pc.field("HUC2").isin(df.HUC2.unique()),
             columns=["NHDPlusID", "floodplain_km2", "nat_floodplain_km2"],
@@ -321,7 +321,7 @@ def calculate_floodplain_stats(df):
 
 def calculate_species_habitat_stats(df):
     habitat = (
-        pa.dataset(
+        pa.dataset.dataset(
             data_dir / "species/derived/combined_species_habitat.feather",
             format="feather",
         )
@@ -621,68 +621,3 @@ def calculate_downstream_stats(
     results.miles_to_outlet = results.miles_to_outlet.fillna(0)
 
     return results
-
-
-def update_downstream_subnetwork_stats(networks, network_stats, prev_stats, within_subnetwork_stats):
-    """Update downstream network stats for a removed barrier within a subnetwork
-    based on the stats at the root of the subnetwork
-
-    Parameters
-    ----------
-    networks: DataFrame
-        origin and barrier networks for removed barriers within subnetwork
-    network_stats: DataFrame
-        raw network stats for removed barriers within subnetwork
-    prev_stats: DataFrame
-        network stats for the root of the subnetwork, indexed on networkID
-    within_subnetwork_stats: DataFrame
-        network stats for the root of the subnetwork updated with counts of
-        barriers at the root of the subnetwork, indexed on barrier ID
-    """
-
-    # bring in previous downstream stats on the bottom networks in this
-    # subnetwork
-    origin_network_stats = network_stats.drop(columns=prev_stats.columns).join(prev_stats, how="inner")
-
-    # update network stats for barriers in this subnetwork based on within
-    # network stats
-    barrier_network_stats = network_stats.join(
-        # reindex subnetwork stats to by on networkIDs of networks
-        within_subnetwork_stats.join(networks.upNetID.rename("networkID"), how="inner").set_index("networkID"),
-        how="inner",
-        rsuffix="_prev",
-    )
-
-    for col in within_subnetwork_stats.columns:
-        if barrier_network_stats[col].dtype == "bool":
-            barrier_network_stats[col] = barrier_network_stats[f"{col}_prev"]
-        else:
-            # increment based on the type of barrier at the root of the subnetwork
-            barrier_network_stats[col] += barrier_network_stats[f"{col}_prev"]
-
-    barrier_network_stats = barrier_network_stats.drop(
-        columns=[c for c in barrier_network_stats.columns if c.endswith("_prev")]
-    )
-
-    updated_network_stats = pd.concat(
-        [
-            origin_network_stats.reset_index(),
-            barrier_network_stats.reset_index(),
-        ],
-        ignore_index=True,
-    ).set_index("networkID")
-
-    # update downstream stats in networks with above
-    # NOTE: some barriers don't have upstream networks, so we can't just
-    # join to updated stats from above
-    updated_networks = networks.join(within_subnetwork_stats, how="inner", rsuffix="_prev")
-    for col in within_subnetwork_stats.columns:
-        if updated_networks[col].dtype == "bool":
-            updated_networks[col] = updated_networks[f"{col}_prev"]
-        else:
-            # increment based on the type of barrier at the root of the subnetwork
-            updated_networks[col] += updated_networks[f"{col}_prev"]
-
-    updated_networks = updated_networks.drop(columns=[c for c in updated_networks.columns if c.endswith("_prev")])
-
-    return updated_networks, updated_network_stats
