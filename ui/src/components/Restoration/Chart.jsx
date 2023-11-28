@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Grid, Text } from 'theme-ui'
+import { Box, Flex, Text } from 'theme-ui'
 
 import { barrierTypeLabels } from 'config'
 import { formatNumber } from 'util/format'
@@ -176,8 +176,7 @@ const Chart = ({
                   pl: '0.25rem',
                 }}
               >
-                {formatNumber(total, 0)}{' '}
-                {metric === 'gainmiles' ? 'miles' : null}
+                {formatNumber(total)} {metric === 'gainmiles' ? 'miles' : null}
               </Text>
             </Flex>
           </Flex>
