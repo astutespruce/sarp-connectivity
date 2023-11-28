@@ -53,6 +53,21 @@ const RestorationMap = ({
 
   const [zoom, setZoom] = useState(0)
 
+  const clearNetworkHighlight = () => {
+    const { current: map } = mapRef
+
+    if (map) {
+      map.setFilter('network-highlight', ['==', 'dams', Infinity])
+      map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
+      map.setFilter('removed-network-highlight', ['==', 'barrier_id', Infinity])
+      map.setFilter('removed-network-intermittent-highlight', [
+        '==',
+        'barrier_id',
+        Infinity,
+      ])
+    }
+  }
+
   const selectFeatureByID = useCallback(
     (id, layer) => {
       const { current: map } = mapRef
@@ -398,15 +413,7 @@ const RestorationMap = ({
       map.setLayoutProperty(`removed_${t}`, 'visibility', visibility)
     })
 
-    // clear highlighted networks
-    map.setFilter('network-highlight', ['==', 'dams', Infinity])
-    map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
-    map.setFilter('removed-network-highlight', ['==', 'barrier_id', Infinity])
-    map.setFilter('removed-network-intermittent-highlight', [
-      '==',
-      'barrier_id',
-      Infinity,
-    ])
+    clearNetworkHighlight()
   }, [focalBarrierType])
 
   useEffect(() => {
@@ -414,14 +421,19 @@ const RestorationMap = ({
 
     if (!map) return
 
-    let networkID = Infinity
-    const removed = selectedBarrier && selectedBarrier.removed
+    clearNetworkHighlight()
+
     if (selectedBarrier) {
-      const networkIDField = removed ? 'id' : 'upnetid'
-      const { [networkIDField]: upnetid = Infinity } = selectedBarrier
+      const networkIDField = selectedBarrier.removed ? 'id' : 'upnetid'
+      const { [networkIDField]: networkID = Infinity } = selectedBarrier
 
       // highlight upstream network
-      networkID = upnetid
+      highlightNetwork(
+        map,
+        focalBarrierType === 'dams' ? 'dams' : 'combined_barriers',
+        networkID,
+        selectedBarrier.removed
+      )
     } else {
       const prevFeature = selectedFeatureRef.current
       if (prevFeature) {
@@ -434,13 +446,6 @@ const RestorationMap = ({
         }
       }
     }
-
-    highlightNetwork(
-      map,
-      focalBarrierType === 'dams' ? 'dams' : 'combined_barriers',
-      networkID,
-      removed
-    )
   }, [selectedBarrier, focalBarrierType])
 
   useEffect(() => {

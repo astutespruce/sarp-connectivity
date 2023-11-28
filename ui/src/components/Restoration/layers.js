@@ -317,17 +317,12 @@ export const removedPointLayer = {
       ),
       8,
       getHighlightExpr(
-        ['match', ['get', 'barriertype'], 'small_barriers', 1, 2],
-        10
-      ),
-      12,
-      getHighlightExpr(
         ['match', ['get', 'barriertype'], 'small_barriers', 2, 3],
         12
       ),
-      14,
+      12,
       getHighlightExpr(
-        ['match', ['get', 'barriertype'], 'small_barriers', 3, 4],
+        ['match', ['get', 'barriertype'], 'small_barriers', 4, 5],
         14
       ),
       16,

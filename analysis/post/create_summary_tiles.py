@@ -27,12 +27,12 @@ Outputs:
 from pathlib import Path
 import subprocess
 
-import numpy as np
 import pandas as pd
 import pyarrow as pa
 from pyarrow.csv import write_csv
 
 from analysis.lib.util import append
+from analysis.post.lib.removed_barriers import calc_year_removed_bin, pack_year_removed_stats
 
 # Note: states are identified by name, whereas counties are uniquely identified by
 # FIPS code.
@@ -66,34 +66,6 @@ INT_COLS = [
     "ranked_smallfish_barriers_small_barriers",
 ]
 
-# Bin year removed in to smaller groups
-# 0 = unknown
-# 1 = <= 1999
-YEAR_REMOVED_BINS = [0, 1, 2000, 2010, 2020, 2021, 2022, 2023, 2024]
-
-
-def calc_year_removed_bin(series):
-    return pd.cut(series, bins=YEAR_REMOVED_BINS, right=False, labels=np.arange(0, len(YEAR_REMOVED_BINS) - 1))
-
-
-def pack_year_removed_stats(df):
-    """Combine year removed counts and gained miles into a single string:
-    <year_bin>:<count>|<gainmiles>,...
-    """
-    stats = (
-        df[["YearRemoved", "RemovedGainMiles"]]
-        .reset_index()
-        .groupby("YearRemoved", observed=True)
-        .agg({"id": "count", "RemovedGainMiles": "sum"})
-        .apply(lambda row: f"{int(row.id)}|{row.RemovedGainMiles:.2f}", axis=1)
-        .to_dict()
-    )
-    if len(stats) == 0:
-        return ""
-
-    bins = range(len(YEAR_REMOVED_BINS) - 1)
-    return ",".join([stats.get(bin, "") for bin in bins])
-
 
 tile_join = "tile-join"
 
@@ -123,11 +95,13 @@ dams["Ranked"] = dams.HasNetwork & (dams.unranked == 0)
 # get stats for removed dams
 removed_dam_networks = (
     pd.read_feather(
-        data_dir / "networks/clean/removed/removed_dams_networks.feather", columns=["id", "EffectiveGainMiles"]
+        data_dir / "networks/clean/removed/removed_dams_networks.feather",
+        columns=["id", "EffectiveGainMiles", "YearRemoved"],
     )
     .set_index("id")
-    .EffectiveGainMiles.rename("RemovedGainMiles")
+    .rename(columns={"EffectiveGainMiles": "RemovedGainMiles"})
 )
+removed_dam_networks["YearRemoved"] = calc_year_removed_bin(removed_dam_networks.YearRemoved)
 dams = dams.join(removed_dam_networks)
 dams["RemovedGainMiles"] = dams.RemovedGainMiles.fillna(0)
 
@@ -152,11 +126,12 @@ barriers["Ranked"] = barriers.HasNetwork & (barriers.unranked == 0)
 removed_barrier_networks = (
     pd.read_feather(
         data_dir / "networks/clean/removed/removed_combined_barriers_networks.feather",
-        columns=["id", "EffectiveGainMiles"],
+        columns=["id", "EffectiveGainMiles", "YearRemoved"],
     )
     .set_index("id")
-    .EffectiveGainMiles.rename("RemovedGainMiles")
+    .rename(columns={"EffectiveGainMiles": "RemovedGainMiles"})
 )
+removed_barrier_networks["YearRemoved"] = calc_year_removed_bin(removed_barrier_networks.YearRemoved)
 barriers = barriers.join(removed_barrier_networks)
 barriers["RemovedGainMiles"] = barriers.RemovedGainMiles.fillna(0)
 
@@ -216,7 +191,13 @@ for unit in SUMMARY_UNITS:
                 "RemovedGainMiles": "removed_dams_gain_miles",
             }
         )
+        .join(
+            pack_year_removed_stats(dams[[unit, "YearRemoved", "RemovedGainMiles"]], unit=unit).rename(
+                "removed_dams_by_year"
+            )
+        )
     )
+    dam_stats["removed_dams_by_year"] = dam_stats.removed_dams_by_year.fillna("")
 
     barriers_stats = (
         barriers[[unit, "id", "Included", "Ranked", "Removed", "RemovedGainMiles"]]
@@ -239,7 +220,13 @@ for unit in SUMMARY_UNITS:
                 "RemovedGainMiles": "removed_small_barriers_gain_miles",
             }
         )
+        .join(
+            pack_year_removed_stats(barriers[[unit, "YearRemoved", "RemovedGainMiles"]], unit=unit).rename(
+                "removed_small_barriers_by_year"
+            )
+        )
     )
+    barriers_stats["removed_small_barriers_by_year"] = barriers_stats.removed_small_barriers_by_year.fillna("")
 
     # have to split out stats by barrier type because this is how it is handled in UI
     largefish_stats = (
@@ -272,9 +259,13 @@ for unit in SUMMARY_UNITS:
         .join(largefish_stats, how="left")
         .join(smallfish_stats, how="left")
         .join(crossing_stats, how="left")
-        .fillna(0)
     )
-    merged[INT_COLS] = merged[INT_COLS].astype("uint32")
+    merged[INT_COLS] = merged[INT_COLS].fillna(0).astype("uint32")
+
+    for col in ["removed_dams_by_year", "removed_small_barriers_by_year"]:
+        merged[col] = merged[col].fillna("")
+
+    merged = merged.fillna(0)
 
     unit = "County" if unit == "COUNTYFIPS" else unit
 
@@ -285,10 +276,12 @@ for unit in SUMMARY_UNITS:
             "ranked_dams",
             "removed_dams",
             "removed_dams_gain_miles",
+            "removed_dams_by_year",
             "total_small_barriers",
             "ranked_small_barriers",
             "removed_small_barriers",
             "removed_small_barriers_gain_miles",
+            "removed_small_barriers_by_year",
             "ranked_largefish_barriers_dams",
             "ranked_largefish_barriers_small_barriers",
             "ranked_smallfish_barriers_dams",

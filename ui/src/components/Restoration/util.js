@@ -1,7 +1,8 @@
 import { YEAR_REMOVED_BINS } from 'config'
+import { isEmptyString } from 'util/string'
 
 const unpackYearRemoved = (text) => {
-  if (!text) {
+  if (isEmptyString(text)) {
     return Object.keys(YEAR_REMOVED_BINS).map(() => ({
       count: 0,
       gainmiles: 0,

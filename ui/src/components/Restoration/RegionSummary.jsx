@@ -39,10 +39,7 @@ const Summary = ({
   } = useSummaryData()
 
   const isRegion = region !== 'total'
-
   const regionName = isRegion ? name : 'full analysis area'
-
-  console.log(barrierType, removedBarriersByYear)
 
   return (
     <Box
@@ -121,35 +118,29 @@ const Summary = ({
           metric={metric}
           onChangeMetric={onChangeMetric}
         />
-
-        <Paragraph variant="help" sx={{ mt: '2rem' }}>
-          <sup>*</sup> based on aquatic networks cut by{' '}
-          {barrierType === 'dams'
-            ? 'waterfalls and dams'
-            : 'waterfalls, dams, and road-related barriers'}{' '}
-          that were present at the time a given barrier was removed, with the
-          exception of those directly upstream that were removed in the same
-          year as a given barrier.
-        </Paragraph>
       </Box>
 
       <Divider
         sx={{
           borderBottom: '2px solid',
           borderBottomColor: 'grey.3',
-          mt: '1.5rem',
-          mb: '1rem',
+          mt: '3rem',
+          mb: '2rem',
         }}
       />
-
-      <Paragraph sx={{ mb: '2rem' }}>
-        Click on a summary unit the map for more information about that area.
-      </Paragraph>
 
       <UnitSearch
         barrierType={barrierType}
         system={system}
         onSelect={onSearch}
+      />
+
+      <Divider
+        sx={{
+          borderBottom: '2px solid',
+          borderBottomColor: 'grey.3',
+          mt: '3rem',
+        }}
       />
 
       {barrierType === 'dams' ? (
@@ -183,6 +174,16 @@ const Summary = ({
           more complete inventory.
         </Paragraph>
       ) : null}
+
+      <Paragraph variant="help" sx={{ mt: '1rem' }}>
+        Miles gained are based on aquatic networks cut by{' '}
+        {barrierType === 'dams'
+          ? 'waterfalls and dams'
+          : 'waterfalls, dams, and road-related barriers'}{' '}
+        that were present at the time a given barrier was removed, with the
+        exception of those directly upstream that were removed in the same year
+        as a given barrier.
+      </Paragraph>
     </Box>
   )
 }

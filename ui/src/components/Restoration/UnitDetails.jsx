@@ -7,9 +7,17 @@ import { ExternalLink } from 'components/Link'
 import { STATE_FIPS, STATES, CONNECTIVITY_TEAMS } from 'config'
 import { formatNumber, pluralize } from 'util/format'
 
+import Chart from './Chart'
 import { layers } from './layers'
+import { extractYearRemovedStats } from './util'
 
-const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
+const UnitDetails = ({
+  barrierType,
+  summaryUnit,
+  metric,
+  onChangeMetric,
+  onClose,
+}) => {
   const teams = {}
   Object.values(CONNECTIVITY_TEAMS).forEach((region) => {
     Object.entries(region).forEach(([state, info]) => {
@@ -23,15 +31,16 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
     dams = 0,
     removedDams = 0,
     removedDamsGainMiles = 0,
+    removedDamsByYear = '',
     totalSmallBarriers = 0,
     removedSmallBarriers = 0,
     removedSmallBarriersGainMiles = 0,
+    removedSmallBarriersByYear = '',
   } = summaryUnit
 
   let { name = '' } = summaryUnit
 
   const layerConfig = layers.filter(({ id: lyrID }) => lyrID === layerId)[0]
-
   let { title: layerTitle } = layerConfig
 
   let title = null
@@ -50,6 +59,12 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   }
 
   title = name || id
+
+  const removedBarriersByYear = extractYearRemovedStats(
+    removedDamsByYear,
+    removedSmallBarriersByYear
+  )
+  console.log('removed', removedBarriersByYear)
 
   return (
     <Flex sx={{ flexDirection: 'column', height: '100%' }}>
@@ -141,6 +156,15 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           </Paragraph>
         ) : null}
 
+        <Box sx={{ mt: '2rem' }}>
+          <Chart
+            barrierType={barrierType}
+            removedBarriersByYear={removedBarriersByYear}
+            metric={metric}
+            onChangeMetric={onChangeMetric}
+          />
+        </Box>
+
         {barrierType === 'dams' ? (
           <Paragraph variant="help" sx={{ mt: '2rem' }}>
             Note: These statistics are based on <b>{formatNumber(dams, 0)}</b>{' '}
@@ -177,6 +201,16 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           </Paragraph>
         ) : null}
 
+        <Paragraph variant="help" sx={{ mt: '1rem' }}>
+          Miles gained are based on aquatic networks cut by{' '}
+          {barrierType === 'dams'
+            ? 'waterfalls and dams'
+            : 'waterfalls, dams, and road-related barriers'}{' '}
+          that were present at the time a given barrier was removed, with the
+          exception of those directly upstream that were removed in the same
+          year as a given barrier.
+        </Paragraph>
+
         {team ? (
           <Box
             sx={{
@@ -212,14 +246,18 @@ UnitDetails.propTypes = {
     rankedDams: PropTypes.number,
     removedDams: PropTypes.number,
     removedDamsGainMiles: PropTypes.number,
+    removedDamsByYear: PropTypes.string,
     smallBarriers: PropTypes.number,
     totalSmallBarriers: PropTypes.number,
     rankedSmallBarriers: PropTypes.number,
     removedSmallBarriers: PropTypes.number,
     removedSmallBarriersGainMiles: PropTypes.number,
+    removedSmallBarriersByYear: PropTypes.string,
     crossings: PropTypes.number,
     miles: PropTypes.number,
   }).isRequired,
+  metric: PropTypes.string.isRequired,
+  onChangeMetric: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
 }
 

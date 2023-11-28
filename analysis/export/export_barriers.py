@@ -14,6 +14,7 @@ from api.constants import (
     ROAD_CROSSING_EXPORT_FIELDS,
     unique,
 )
+from api.lib.tiers import calculate_tiers
 from analysis.export.lib.domains import unpack_domains
 
 
@@ -21,6 +22,8 @@ EXPORT_FIELDS = {
     "dams": DAM_EXPORT_FIELDS,
     "small_barriers": SB_EXPORT_FIELDS,
     "combined_barriers": unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS),
+    "largefish_barriers": unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS),
+    "smallfish_barriers": unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS),
     "road_crossings": ROAD_CROSSING_EXPORT_FIELDS,
 }
 
@@ -30,19 +33,20 @@ out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
 #  one of "dams", "small_barriers", "combined_barriers", "road_crossings"
-barrier_type = "dams"
-suffix = ""  # use to set a filename suffix if filtering further
+barrier_type = "smallfish_barriers"
+suffix = "_AR(road barriers only)"  # use to set a filename suffix if filtering further
 
 df = pd.read_feather(data_dir / f"{barrier_type}.feather")
+df = (
+    df.loc[(df.State == "AR") & (df.BarrierType == "small_barriers") & (df.Ranked) & df.HasNetwork & (df.HUC2 == "11")]
+    .reset_index(drop=True)
+    .join(calculate_tiers(df).to_pandas())
+)
 
-cols = [
-    c for c in EXPORT_FIELDS[barrier_type] + ["upNetID", "downNetID"] if c in df.columns
-]
+cols = [c for c in EXPORT_FIELDS[barrier_type] + ["upNetID", "downNetID"] if c in df.columns]
 
 df = unpack_domains(df[cols])
 
 df = pa.Table.from_pandas(df)
 
-write_csv(
-    df, out_dir / f"{barrier_type}{suffix}_{datetime.today().strftime('%m_%d_%Y')}.csv"
-)
+write_csv(df, out_dir / f"{barrier_type}{suffix}__{datetime.today().strftime('%m_%d_%Y')}.csv")

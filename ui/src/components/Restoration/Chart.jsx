@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Text } from 'theme-ui'
+import { Box, Flex, Grid, Text } from 'theme-ui'
 
 import { barrierTypeLabels } from 'config'
 import { formatNumber } from 'util/format'
@@ -68,50 +68,72 @@ const Chart = ({
     <>
       <Flex
         sx={{
-          gap: '0.5rem',
+          mt: '0.5rem',
           alignItems: 'center',
-          fontSize: 1,
+          fontSize: 0,
+          color: 'grey.7',
           borderBottom: '1px solid',
-          borderBottomColor: 'grey.1',
-          pb: '0.25em',
+          borderBottomColor: 'grey.2',
         }}
       >
-        <Text sx={{ color: 'grey.7' }}>Show total:</Text>
         <Text
           sx={{
-            fontWeight: metric === 'gainmiles' ? 'bold' : 'inherit',
-            color: metric === 'gainmiles' ? 'highlight' : 'grey.7',
-            cursor: 'pointer',
-            '&:hover': {
-              color: metric === 'gainmiles' ? 'highlight' : 'text',
-            },
+            flex: '0 0 6rem',
+            textAlign: 'right',
+            pr: '0.75em',
+            pb: '0.25rem',
           }}
-          onClick={() => onChangeMetric('gainmiles')}
         >
-          miles gained
-          <sup>*</sup>
+          year removed
         </Text>
-        <Text>|</Text>
-        <Text
+        <Flex
           sx={{
-            fontWeight: metric === 'count' ? 'bold' : 'inherit',
-            color: metric === 'count' ? 'highlight' : 'grey.7',
-            cursor: 'pointer',
-            '&:hover': {
-              color: metric === 'count' ? 'highlight' : 'text',
-            },
+            gap: '0.5rem',
+            alignItems: 'center',
+            borderLeft: '1px solid',
+            borderLeftColor: 'grey.2',
+            pl: '0.5rem',
+            pb: '0.25rem',
           }}
-          onClick={() => onChangeMetric('count')}
         >
-          count
-        </Text>
+          <Text sx={{ flex: '0 0 auto', color: 'grey.7' }}>show:</Text>
+          <Text
+            sx={{
+              flex: '0 0 auto',
+              fontWeight: metric === 'gainmiles' ? 'bold' : 'inherit',
+              color: metric === 'gainmiles' ? 'highlight' : 'grey.7',
+              cursor: 'pointer',
+              '&:hover': {
+                color: metric === 'gainmiles' ? 'highlight' : 'text',
+              },
+            }}
+            onClick={() => onChangeMetric('gainmiles')}
+          >
+            miles gained
+          </Text>
+          <Text sx={{ flex: '0 0 auto', color: 'grey.7' }}>|</Text>
+          <Text
+            sx={{
+              flex: '0 0 auto',
+              fontWeight: metric === 'count' ? 'bold' : 'inherit',
+              color: metric === 'count' ? 'highlight' : 'grey.7',
+              cursor: 'pointer',
+              '&:hover': {
+                color: metric === 'count' ? 'highlight' : 'text',
+              },
+            }}
+            onClick={() => onChangeMetric('count')}
+          >
+            number removed
+          </Text>
+        </Flex>
       </Flex>
 
       <Box
         sx={{
           fontSize: 1,
           mr: `${formatNumber(max).length + 2}em`,
-          py: '0.5em',
+          mb: '0.5em',
         }}
       >
         {entries.map(({ label, dams, smallBarriers, total }) => (

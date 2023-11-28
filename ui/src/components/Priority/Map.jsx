@@ -103,6 +103,21 @@ const PriorityMap = ({
   // first layer of system is default on init
   const [zoom, setZoom] = useState(0)
 
+  const clearNetworkHighlight = () => {
+    const { current: map } = mapRef
+
+    if (map) {
+      map.setFilter('network-highlight', ['==', 'dams', Infinity])
+      map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
+      map.setFilter('removed-network-highlight', ['==', 'barrier_id', Infinity])
+      map.setFilter('removed-network-intermittent-highlight', [
+        '==',
+        'barrier_id',
+        Infinity,
+      ])
+    }
+  }
+
   const handleCreateMap = useCallback(
     (map) => {
       mapRef.current = map
@@ -538,13 +553,19 @@ const PriorityMap = ({
 
     if (!map) return
 
-    let networkID = Infinity
+    clearNetworkHighlight()
+
     const removed = selectedBarrier && selectedBarrier.removed
     if (selectedBarrier) {
       const networkIDField = removed ? 'id' : 'upnetid'
-      const { [networkIDField]: upnetid = Infinity } = selectedBarrier
+      const { [networkIDField]: networkID = Infinity } = selectedBarrier
 
-      networkID = upnetid
+      highlightNetwork(
+        map,
+        barrierType === 'small_barriers' ? 'combined_barriers' : barrierType,
+        networkID,
+        removed
+      )
     } else {
       const prevFeature = selectedFeatureRef.current
       if (prevFeature) {
@@ -557,13 +578,6 @@ const PriorityMap = ({
         }
       }
     }
-
-    highlightNetwork(
-      map,
-      barrierType === 'small_barriers' ? 'combined_barriers' : barrierType,
-      networkID,
-      removed
-    )
   }, [barrierType, selectedBarrier])
 
   // if map allows filter, show selected vs unselected points, and make those without networks

@@ -159,6 +159,13 @@ CRS = {
 GEO_CRS = "EPSG:4326"
 
 
+# Bin year removed in to smaller groups
+# 0 = unknown
+# 1 = <= 1999
+# NOTE: need to include 1 year beyond current
+YEAR_REMOVED_BINS = [0, 1, 2000, 2010, 2020, 2021, 2022, 2023, 2024]
+
+
 # distance within which points snapping to a line will snap to endpoint of the line
 SNAP_ENDPOINT_TOLERANCE = 1  # meters
 
