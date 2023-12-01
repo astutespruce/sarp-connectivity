@@ -4,6 +4,7 @@ import { Document, Font, Page, StyleSheet } from '@react-pdf/renderer'
 
 import Contact from './Contact'
 import Credits from './Credits'
+import DiadromousInfo from './DiadromousInfo'
 import Feasibility from './Feasibility'
 import Footer from './Footer'
 import Header from './Header'
@@ -42,7 +43,14 @@ const Report = ({
   scale,
   visibleLayers,
 }) => {
-  const { county, state, hasnetwork, feasibilityclass } = data
+  const {
+    county,
+    state,
+    hasnetwork,
+    feasibilityclass,
+    flowstoocean,
+    milestooutlet,
+  } = data
 
   return (
     <Document
@@ -92,6 +100,14 @@ const Report = ({
         feasibilityclass > 0 &&
         feasibilityclass <= 10 ? (
           <Feasibility style={{ marginTop: 48 }} {...data} />
+        ) : null}
+
+        {hasnetwork && flowstoocean && milestooutlet < 500 ? (
+          <DiadromousInfo
+            style={{ marginTop: 32 }}
+            barrierType={barrierType}
+            {...data}
+          />
         ) : null}
 
         <Species

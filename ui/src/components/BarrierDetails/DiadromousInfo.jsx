@@ -19,20 +19,22 @@ const DiadromousInfo = ({
     </Entry>
     {totaldownstreamdams >= 0 ? (
       <Entry>
-        <Field label="Number of dams downstream">{totaldownstreamdams}</Field>
+        <Field label="Number of dams downstream">
+          {formatNumber(totaldownstreamdams)}
+        </Field>
       </Entry>
     ) : null}
     {barrierType === 'small_barriers' && totaldownstreamsmallbarriers >= 0 ? (
       <Entry>
         <Field label="Number of assessed road-related barriers downstream">
-          {totaldownstreamsmallbarriers}
+          {formatNumber(totaldownstreamsmallbarriers)}
         </Field>
       </Entry>
     ) : null}
     {totaldownstreamwaterfalls >= 0 ? (
       <Entry>
         <Field label="Number of waterfalls downstream">
-          {totaldownstreamwaterfalls}
+          {formatNumber(totaldownstreamwaterfalls)}
         </Field>
       </Entry>
     ) : null}

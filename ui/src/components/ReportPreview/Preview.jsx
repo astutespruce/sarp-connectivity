@@ -25,6 +25,7 @@ import { PageError } from 'components/Layout'
 import LocationConstruction from './LocationConstruction'
 import Contact from './Contact'
 import Credits from './Credits'
+import DiadromousInfo from './DiadromousInfo'
 import Feasibility from './Feasibility'
 import Header from './Header'
 import IDInfo from './IDInfo'
@@ -45,6 +46,9 @@ const Preview = ({ networkType, data }) => {
     lon,
     feasibilityclass,
     removed,
+    hasnetwork,
+    flowstoocean,
+    milestooutlet,
   } = data
 
   const barrierType =
@@ -284,6 +288,14 @@ const Preview = ({ networkType, data }) => {
             <Feasibility sx={{ mt: '3rem' }} {...data} />
           ) : null}
 
+          {hasnetwork && flowstoocean && milestooutlet < 500 ? (
+            <DiadromousInfo
+              sx={{ mt: '3rem' }}
+              barrierType={barrierType}
+              {...data}
+            />
+          ) : null}
+
           <Species sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
 
           <IDInfo sx={{ mt: '3rem' }} {...data} />
@@ -311,6 +323,9 @@ Preview.propTypes = {
     feasibilityclass: PropTypes.number,
     upnetid: PropTypes.number,
     removed: PropTypes.bool,
+    hasnetwork: PropTypes.bool,
+    flowstoocean: PropTypes.bool,
+    milestooutlet: PropTypes.bool,
     // other props validated by subcomponents
   }).isRequired,
 }
