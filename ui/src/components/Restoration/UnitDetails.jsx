@@ -64,7 +64,6 @@ const UnitDetails = ({
     removedDamsByYear,
     removedSmallBarriersByYear
   )
-  console.log('removed', removedBarriersByYear)
 
   return (
     <Flex sx={{ flexDirection: 'column', height: '100%' }}>
