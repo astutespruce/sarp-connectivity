@@ -13,6 +13,7 @@ import {
   damsSecondaryLayer,
   roadCrossingsLayer,
   waterfallsLayer,
+  removedBarrierPointLayer,
   otherBarrierPointLayer,
   unrankedPointLayer,
 } from 'components/Summary/layers'
@@ -55,6 +56,7 @@ const Map = ({
   networkType,
   barrierID,
   networkID,
+  removed,
   onCreateMap,
   onUpdateBasemap,
   onVisibleLayerUpdate,
@@ -156,10 +158,21 @@ const Map = ({
         // Add network layers
         networkLayers.forEach((layer) => {
           if (layer.id.endsWith('-highlight')) {
+            let filterExpr = null
+            if (removed) {
+              filterExpr = [
+                'all',
+                ['==', 'network_type', networkType],
+                ['==', 'barrier_id', networkID],
+              ]
+            } else {
+              filterExpr = ['==', networkType, networkID]
+            }
+
             mapObj.addLayer({
               ...layer,
               minzoom: 6,
-              filter: ['==', networkType, networkID],
+              filter: filterExpr,
             })
           } else {
             mapObj.addLayer(layer)
@@ -203,6 +216,13 @@ const Map = ({
           ...otherBarrierPointLayer,
         })
 
+        mapObj.addLayer({
+          id: `removed_${networkType}`,
+          source: networkType,
+          'source-layer': `removed_${networkType}`,
+          ...removedBarrierPointLayer,
+        })
+
         // Add barrier highlight layer for on and off-network barriers.
         mapObj.addLayer({
           ...pointHighlightLayer,
@@ -217,7 +237,7 @@ const Map = ({
           id: 'unranked-point-highlight',
           source: networkType,
           'source-layer': `unranked_${networkType}`,
-          minzoom: 9,
+          minzoom: 6,
           filter: ['==', ['get', 'id'], barrierID],
         })
 
@@ -226,7 +246,16 @@ const Map = ({
           id: 'other-point-highlight',
           source: networkType,
           'source-layer': `other_${networkType}`,
-          minzoom: 9,
+          minzoom: 6,
+          filter: ['==', ['get', 'id'], barrierID],
+        })
+
+        mapObj.addLayer({
+          ...pointHighlightLayer,
+          id: 'removed-point-highlight',
+          source: networkType,
+          'source-layer': `removed_${networkType}`,
+          minzoom: 6,
           filter: ['==', ['get', 'id'], barrierID],
         })
 
@@ -301,6 +330,7 @@ Map.propTypes = {
   networkType: PropTypes.string.isRequired,
   barrierID: PropTypes.number.isRequired,
   networkID: PropTypes.number,
+  removed: PropTypes.bool,
   onCreateMap: PropTypes.func.isRequired,
   onUpdateBasemap: PropTypes.func.isRequired,
   onVisibleLayerUpdate: PropTypes.func.isRequired,
@@ -315,6 +345,7 @@ Map.defaultProps = {
   padding: 0.1,
   styleID: defaultStyleID,
   networkID: null,
+  removed: false,
 }
 
 export default Map

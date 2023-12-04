@@ -17,21 +17,27 @@ const DiadromousInfo = ({
         {formatNumber(milestooutlet)}
       </Field>
     </Entry>
-    <Entry>
-      <Field label="Number of dams downstream">{totaldownstreamdams}</Field>
-    </Entry>
-    {barrierType === 'small_barriers' ? (
+    {totaldownstreamdams >= 0 ? (
       <Entry>
-        <Field label="Number of assessed road-related barriers downstream">
-          {totaldownstreamsmallbarriers}
+        <Field label="Number of dams downstream">
+          {formatNumber(totaldownstreamdams)}
         </Field>
       </Entry>
     ) : null}
-    <Entry>
-      <Field label="Number of waterfalls downstream">
-        {totaldownstreamwaterfalls}
-      </Field>
-    </Entry>
+    {barrierType === 'small_barriers' && totaldownstreamsmallbarriers >= 0 ? (
+      <Entry>
+        <Field label="Number of assessed road-related barriers downstream">
+          {formatNumber(totaldownstreamsmallbarriers)}
+        </Field>
+      </Entry>
+    ) : null}
+    {totaldownstreamwaterfalls >= 0 ? (
+      <Entry>
+        <Field label="Number of waterfalls downstream">
+          {formatNumber(totaldownstreamwaterfalls)}
+        </Field>
+      </Entry>
+    ) : null}
   </>
 )
 

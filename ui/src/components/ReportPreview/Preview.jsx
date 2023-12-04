@@ -25,6 +25,7 @@ import { PageError } from 'components/Layout'
 import LocationConstruction from './LocationConstruction'
 import Contact from './Contact'
 import Credits from './Credits'
+import DiadromousInfo from './DiadromousInfo'
 import Feasibility from './Feasibility'
 import Header from './Header'
 import IDInfo from './IDInfo'
@@ -35,8 +36,20 @@ import Scores from './Scores'
 import Species from './Species'
 
 const Preview = ({ networkType, data }) => {
-  const { id, sarpid, upnetid, county, state, lat, lon, feasibilityclass } =
-    data
+  const {
+    id,
+    sarpid,
+    upnetid,
+    county,
+    state,
+    lat,
+    lon,
+    feasibilityclass,
+    removed,
+    hasnetwork,
+    flowstoocean,
+    milestooutlet,
+  } = data
 
   const barrierType =
     networkType === 'combined_barriers' ||
@@ -212,10 +225,11 @@ const Preview = ({ networkType, data }) => {
 
         <Map
           barrierID={id}
-          networkID={upnetid}
+          networkID={removed ? id : upnetid}
           center={[lon, lat]}
           zoom={13.5}
           networkType={networkType}
+          removed={removed}
           onCreateMap={handleCreateExportMap}
           onUpdateBasemap={handleUpdateBasemap}
           onVisibleLayerUpdate={handleVisibleLayerUpdate}
@@ -274,6 +288,14 @@ const Preview = ({ networkType, data }) => {
             <Feasibility sx={{ mt: '3rem' }} {...data} />
           ) : null}
 
+          {hasnetwork && flowstoocean && milestooutlet < 500 ? (
+            <DiadromousInfo
+              sx={{ mt: '3rem' }}
+              barrierType={barrierType}
+              {...data}
+            />
+          ) : null}
+
           <Species sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
 
           <IDInfo sx={{ mt: '3rem' }} {...data} />
@@ -300,6 +322,10 @@ Preview.propTypes = {
     state: PropTypes.string.isRequired,
     feasibilityclass: PropTypes.number,
     upnetid: PropTypes.number,
+    removed: PropTypes.bool,
+    hasnetwork: PropTypes.bool,
+    flowstoocean: PropTypes.bool,
+    milestooutlet: PropTypes.bool,
     // other props validated by subcomponents
   }).isRequired,
 }

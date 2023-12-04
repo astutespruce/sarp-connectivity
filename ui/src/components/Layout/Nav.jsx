@@ -1,16 +1,18 @@
 import React from 'react'
-import { Flex } from 'theme-ui'
+import { Box, Flex } from 'theme-ui'
 import {
   ChartBar,
+  Fish,
+  GlobeAmericas,
   SearchLocation,
   Download,
   QuestionCircle,
 } from '@emotion-icons/fa-solid'
 
 import { REGIONS } from 'config'
-import { hasWindow } from 'util/dom'
-import { ClientOnly } from 'components/Layout'
 import { Link } from 'components/Link'
+import { hasWindow } from 'util/dom'
+import ClientOnly from './ClientOnly'
 import NavMenu from './NavMenu'
 
 const navLinkCSS = {
@@ -50,7 +52,11 @@ const Nav = () => (
         justifyContent: 'flex-end',
       }}
     >
-      <NavMenu label="Explore regions" items={regions} />
+      <NavMenu
+        label="Regions"
+        items={regions}
+        icon={<GlobeAmericas size="1em" />}
+      />
       <Link
         to="/summary"
         sx={isActivePath('/summary') ? activeNavLinkCSS : navLinkCSS}
@@ -70,6 +76,17 @@ const Nav = () => (
           <div>Prioritize</div>
         </Flex>
       </Link>
+
+      <Link
+        to="/restoration"
+        sx={isActivePath('/restoration') ? activeNavLinkCSS : navLinkCSS}
+      >
+        <Flex sx={{ alignItems: 'center', gap: '0.25rem' }}>
+          <Fish size="1em" />
+          <div>Restoration</div>
+        </Flex>
+      </Link>
+
       <Link
         to="/download"
         sx={isActivePath('/download') ? activeNavLinkCSS : navLinkCSS}
@@ -79,10 +96,11 @@ const Nav = () => (
           <div>Download</div>
         </Flex>
       </Link>
+
       <Link to="/faq" sx={isActivePath('/faq') ? activeNavLinkCSS : navLinkCSS}>
         <Flex sx={{ alignItems: 'center', gap: '0.25rem' }}>
           <QuestionCircle size="1em" />
-          <div>FAQ</div>
+          <Box>FAQ</Box>
         </Flex>
       </Link>
     </Flex>

@@ -139,7 +139,7 @@ const DamDetails = ({
                 <br />
                 {yearremoved !== null && yearremoved > 0
                   ? `(removed in ${yearremoved})`
-                  : '(removed)'}
+                  : '(removed / year unknown)'}
               </>
             ) : null}
           </Field>

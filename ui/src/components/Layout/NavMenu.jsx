@@ -1,10 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Text } from 'theme-ui'
+import { Box, Flex, Text } from 'theme-ui'
 
 import NavMenuItem from './NavMenuItem'
 
-const NavMenu = ({ label, items, ...props }) => (
+const NavMenu = ({ label, items, icon, ...props }) => (
   <Box
     {...props}
     tabIndex={0}
@@ -37,15 +37,18 @@ const NavMenu = ({ label, items, ...props }) => (
         transformStyle: 'preserve-3d',
       }}
     >
-      <Text
+      <Flex
         sx={{
+          alignItems: 'center',
           color: '#FFF',
+          gap: '0.5rem',
           py: '0.25rem',
           px: '0.5rem',
         }}
       >
-        {label}
-      </Text>
+        {icon}
+        <Text>{label}</Text>
+      </Flex>
       <Box
         as="ul"
         sx={{
@@ -74,6 +77,11 @@ const NavMenu = ({ label, items, ...props }) => (
 NavMenu.propTypes = {
   label: PropTypes.string.isRequired,
   items: PropTypes.arrayOf(PropTypes.shape(NavMenuItem.propTypes)).isRequired,
+  icon: PropTypes.node,
+}
+
+NavMenu.defaultProps = {
+  icon: null,
 }
 
 export default NavMenu

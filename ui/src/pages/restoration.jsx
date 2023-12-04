@@ -7,7 +7,7 @@ import { Layout, ClientOnly, SEO } from 'components/Layout'
 import { ToggleButton } from 'components/Button'
 import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
-import { Map, UnitDetails, RegionSummary } from 'components/Summary'
+import { Map, UnitDetails, RegionSummary } from 'components/Restoration'
 import BarrierDetails from 'components/BarrierDetails'
 import { SYSTEMS } from 'config'
 import { toCamelCaseFields } from 'util/data'
@@ -24,13 +24,14 @@ const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
   label,
 }))
 
-const SummaryPage = ({ location }) => {
+const ProgressPage = ({ location }) => {
   const [system, setSystem] = useState('HUC')
   const [focalBarrierType, setFocalBarrierType] = useState('dams') // options: dams, small_barriers, combined_barriers
   const focalBarrierTypeRef = useRef('dams') // ref that parallels above state for use in callbacks
   const [searchFeature, setSearchFeature] = useState(null)
   const [selectedUnit, setSelectedUnit] = useState(null)
   const [selectedBarrier, setSelectedBarrier] = useState(null)
+  const [metric, setMetric] = useState('gainmiles')
 
   const { region = 'total' } = getQueryParams(location)
 
@@ -82,6 +83,8 @@ const SummaryPage = ({ location }) => {
       <UnitDetails
         summaryUnit={selectedUnit}
         barrierType={focalBarrierType}
+        metric={metric}
+        onChangeMetric={setMetric}
         onClose={handleDetailsClose}
       />
     )
@@ -91,24 +94,26 @@ const SummaryPage = ({ location }) => {
         region={region}
         barrierType={focalBarrierType}
         system={system}
+        metric={metric}
         onSearch={handleSearch}
+        onChangeMetric={setMetric}
       />
     )
   }
 
   return (
     <Layout>
-      <Flex sx={{ height: '100%' }}>
-        <Sidebar>{sidebarContent}</Sidebar>
+      <ClientOnly>
+        <Flex sx={{ height: '100%' }}>
+          <Sidebar>{sidebarContent}</Sidebar>
 
-        <Box
-          sx={{
-            position: 'relative',
-            height: '100%',
-            flex: '1 0 auto',
-          }}
-        >
-          <ClientOnly>
+          <Box
+            sx={{
+              position: 'relative',
+              height: '100%',
+              flex: '1 0 auto',
+            }}
+          >
             <Map
               region={region}
               focalBarrierType={focalBarrierType}
@@ -147,21 +152,21 @@ const SummaryPage = ({ location }) => {
                 ) : null}
               </TopBar>
             </Map>
-          </ClientOnly>
-        </Box>
-      </Flex>
+          </Box>
+        </Flex>
+      </ClientOnly>
     </Layout>
   )
 }
 
-SummaryPage.propTypes = {
+ProgressPage.propTypes = {
   location: PropTypes.object,
 }
 
-SummaryPage.defaultProps = {
+ProgressPage.defaultProps = {
   location: null,
 }
 
-export default SummaryPage
+export default ProgressPage
 
-export const Head = () => <SEO title="Summarize barriers" />
+export const Head = () => <SEO title="Restoring aquatic connectivity" />

@@ -402,6 +402,60 @@ export const unrankedPointLayer = {
 
 // Other barriers are those that are not ranked and not marked as unranked;
 // they include: off-network barriers, non-barriers, minor barriers, removed barriers
+export const removedBarrierPointLayer = {
+  id: 'point-removed',
+  // source: "", // provided by specific layer
+  // 'source-layer': '', // provided by specific layer
+  type: 'circle',
+  minzoom: 10,
+  maxzoom: 24,
+  paint: {
+    'circle-color': getHighlightExpr(
+      [
+        'match',
+        ['get', 'barriertype'],
+        'dams',
+        pointColors.removed.damsColor,
+        pointColors.removed.color,
+      ],
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.removed.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(0.5, 2),
+      14,
+      getHighlightExpr(4, 14),
+    ],
+    'circle-opacity': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(
+        ['match', ['get', 'barriertype'], 'small_barriers', 0.25, 0.5],
+        1
+      ),
+      14,
+      1,
+    ],
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [14, 1],
+      ],
+    },
+  },
+}
+
+// Other barriers are those that are not ranked and not marked as unranked;
+// they include: off-network barriers, non-barriers, minor barriers
 export const otherBarrierPointLayer = {
   id: 'point-other',
   // source: "", // provided by specific layer
@@ -436,15 +490,6 @@ export const otherBarrierPointLayer = {
           pointColors.invasive.damsColor,
           pointColors.invasive.color,
         ],
-        5, // removed barrier
-        [
-          'match',
-          ['get', 'barriertype'],
-          'dams',
-          pointColors.removed.damsColor,
-          pointColors.removed.color,
-        ],
-
         // last entry is default
         pointColors.offNetwork.color,
       ],
@@ -462,8 +507,6 @@ export const otherBarrierPointLayer = {
         pointColors.minorBarrier.strokeColor,
         4, // invasive barrier
         pointColors.invasive.strokeColor,
-        5, // removed barrier
-        pointColors.removed.strokeColor,
         pointColors.offNetwork.strokeColor,
       ],
       pointColors.highlight.strokeColor

@@ -72,6 +72,7 @@ suffix = ""
 ext = "gdb"
 driver = "OpenFileGDB"
 
+# specific HUC2 groups that overlap with SECAS area
 huc2_groups = [
     {"02"},
     {"03"},
@@ -147,9 +148,7 @@ floodplains = (
     .set_index("NHDPlusID")
     .rename(columns={"nat_floodplain_km2": "natfldkm2", "floodplain_km2": "fldkm2"})
 )
-floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).astype(
-    "float32"
-)
+floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).astype("float32")
 
 
 # HUC2s that specifically overlap SECAS states (SARP states + VI & WV)

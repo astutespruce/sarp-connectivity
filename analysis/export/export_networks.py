@@ -13,7 +13,6 @@ out_dir.mkdir(exist_ok=True, parents=True)
 
 
 scenario = "combined_barriers"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
-removed = False
 ext = "fgb"
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
@@ -31,31 +30,22 @@ export_hucs = {
 }
 
 
-prefix = "removed_" if removed else ""
-segments_prefix = "removed_barriers_" if removed else ""
-
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
 for group in [{"01", "02"}]:
     group = sorted(group)
 
     segments = (
         read_feathers(
-            [
-                src_dir / "clean" / huc2 / f"{segments_prefix}network_segments.feather"
-                for huc2 in group
-            ],
+            [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in group],
             columns=["lineID", scenario],
         )
         .rename(columns={scenario: "networkID"})
         .set_index("lineID")
     )
 
-    stats = read_feathers(
-        [
-            src_dir / "clean" / huc2 / f"{prefix}{scenario}_network_stats.feather"
-            for huc2 in group
-        ]
-    ).set_index("networkID")
+    stats = read_feathers([src_dir / "clean" / huc2 / f"{scenario}_network_stats.feather" for huc2 in group]).set_index(
+        "networkID"
+    )
 
     # use smaller data types for smaller output files
     length_cols = [c for c in stats.columns if c.endswith("_miles")]
@@ -136,6 +126,4 @@ for group in [{"01", "02"}]:
         # ] = "altered_intermittent"
 
         print(f"Serializing {len(networks):,} dissolved networks...")
-        write_dataframe(
-            networks, out_dir / f"region{huc2}_{prefix}{scenario}_networks.{ext}"
-        )
+        write_dataframe(networks, out_dir / f"region{huc2}_{scenario}_networks.{ext}")

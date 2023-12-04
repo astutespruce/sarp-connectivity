@@ -23,6 +23,7 @@ This creates several QA/QC files:
 - `barriers/qa/small_barriers_duplicate_areas.fgb`: dissolved buffers around duplicate barriers (duplicates only)
 """
 
+from datetime import datetime
 from pathlib import Path
 from time import time
 import warnings
@@ -97,9 +98,7 @@ df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
 df["NearestCrossingID"] = ""
 print(f"Read {len(df):,} small barriers")
 
-crossings = gp.read_feather(src_dir / "road_crossings.feather").set_index(
-    "id", drop=False
-)
+crossings = gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False)
 crossings["NearestBarrierID"] = ""
 print(f"Read {len(crossings):,} road crossings")
 
@@ -110,13 +109,9 @@ waterfalls = gp.read_feather(snapped_dir / "waterfalls.feather", columns=["geome
 
 # remove road crossings that are too close to dams or waterfalls
 tree = shapely.STRtree(crossings.geometry.values)
-right = tree.query(
-    dams.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE
-)[1]
+right = tree.query(dams.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE)[1]
 dam_ix = crossings.index.values.take(np.unique(right))
-right = tree.query(
-    waterfalls.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE
-)[1]
+right = tree.query(waterfalls.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE)[1]
 wf_ix = crossings.index.values.take(np.unique(right))
 drop_ix = np.unique(np.concatenate([dam_ix, wf_ix]))
 crossings = crossings.loc[~crossings.index.isin(drop_ix)].copy()
@@ -137,9 +132,7 @@ if s.max() > 1:
 df = df.join(get_huc2(df))
 drop_ix = df.HUC2.isnull()
 if drop_ix.sum():
-    print(
-        f"{drop_ix.sum():,} small barriers are outside analysis HUC2s; these are dropped from master dataset"
-    )
+    print(f"{drop_ix.sum():,} small barriers are outside analysis HUC2s; these are dropped from master dataset")
     df = df.loc[~drop_ix].copy()
 
 
@@ -155,18 +148,12 @@ df["Recon"] = df.Recon.fillna(0).astype("uint8")
 df["SARP_Score"] = df.SARP_Score.fillna(-1).astype("float32")
 
 # fix casing issues of PotentialProject
-df["PotentialProject"] = (
-    df.PotentialProject.fillna("Unassessed")
-    .str.strip()
-    .str.replace("barrier", "Barrier")
-)
+df["PotentialProject"] = df.PotentialProject.fillna("Unassessed").str.strip().str.replace("barrier", "Barrier")
 
 # TEMP: fix bogus values
 df.loc[df.PotentialProject == "1", "PotentialProject"] = ""
 # FIXME: remove fix for typo
-df.loc[
-    df.PotentialProject == "Insignficant Barrier", "PotentialProject"
-] = "Insignificant Barrier"
+df.loc[df.PotentialProject == "Insignficant Barrier", "PotentialProject"] = "Insignificant Barrier"
 
 # Recode No => No Barrier per guidance from SARP
 df.loc[df.PotentialProject == "No", "PotentialProject"] = "No Barrier"
@@ -177,9 +164,7 @@ df.loc[ix, "PotentialProject"] = "Unassessed"
 
 # per guidance from Kat, anything where SARP_Score is 0 and potential project is
 # not severe barrier is not set correctly, set it to -1 (null)
-df.loc[
-    (df.SARP_Score == 0) & (df.PotentialProject != "Severe Barrier"), "SARP_Score"
-] = -1
+df.loc[(df.SARP_Score == 0) & (df.PotentialProject != "Severe Barrier"), "SARP_Score"] = -1
 
 
 # Fix mixed casing of values and discard meaningless unknown values
@@ -205,9 +190,7 @@ df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Stream
 
 # Fix issues with RoadType
 df.loc[df.RoadType.str.lower().isin(("no data", "nodata")), "RoadType"] = "Unknown"
-df["RoadType"] = df.RoadType.fillna("").apply(
-    lambda x: f"{x[0].upper()}{x[1:]}" if x else x
-)
+df["RoadType"] = df.RoadType.fillna("").apply(lambda x: f"{x[0].upper()}{x[1:]}" if x else x)
 
 df["YearRemoved"] = df.YearRemoved.fillna(0).astype("uint16")
 
@@ -223,19 +206,14 @@ for column in ["PassageFacility"]:
 
 ### Convert to domain values
 # Recode BarrierOwnerType
-df.BarrierOwnerType = (
-    df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
-)
+df.BarrierOwnerType = df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
 
 # Calculate BarrierSeverity from PotentialProject
-df["BarrierSeverity"] = (
-    df.PotentialProject.str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
-)
+df["BarrierSeverity"] = df.PotentialProject.str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
 
 # per guidance from Kat, if SARP_Score != -1, assign as likely barrier
 df.loc[
-    df.PotentialProject.isin(["Potential Project", "Proposed Project"])
-    & (df.SARP_Score != -1),
+    df.PotentialProject.isin(["Potential Project", "Proposed Project"]) & (df.SARP_Score != -1),
     "BarrierSeverity",
 ] = 6
 
@@ -245,38 +223,14 @@ df["PassageFacilityClass"] = np.uint8(0)
 df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
 
 # Code Condition to use same domain as dams
-df["Condition"] = (
-    df.Condition.fillna("")
-    .str.strip()
-    .str.lower()
-    .map(BARRIER_CONDITION_TO_DOMAIN)
-    .astype("uint8")
-)
+df["Condition"] = df.Condition.fillna("").str.strip().str.lower().map(BARRIER_CONDITION_TO_DOMAIN).astype("uint8")
 
-df["Constriction"] = (
-    df.Constriction.fillna("")
-    .str.strip()
-    .str.lower()
-    .map(CONSTRICTION_TO_DOMAIN)
-    .astype("uint8")
-)
+df["Constriction"] = df.Constriction.fillna("").str.strip().str.lower().map(CONSTRICTION_TO_DOMAIN).astype("uint8")
 
 # Convert CrossingType to domain
-df["CrossingType"] = (
-    df.CrossingType.fillna("")
-    .str.strip()
-    .str.lower()
-    .map(CROSSING_TYPE_TO_DOMAIN)
-    .astype("uint8")
-)
+df["CrossingType"] = df.CrossingType.fillna("").str.strip().str.lower().map(CROSSING_TYPE_TO_DOMAIN).astype("uint8")
 
-df["RoadType"] = (
-    df.RoadType.fillna("")
-    .str.strip()
-    .str.lower()
-    .map(ROAD_TYPE_TO_DOMAIN)
-    .astype("uint8")
-)
+df["RoadType"] = df.RoadType.fillna("").str.strip().str.lower().map(ROAD_TYPE_TO_DOMAIN).astype("uint8")
 
 ### Add tracking fields
 # master log field for status
@@ -301,9 +255,7 @@ df["invasive"] = False
 
 ### Mark invasive barriers
 # NOTE: invasive status is not affected by other statuses
-df["invasive"] = df.ManualReview.isin(INVASIVE_MANUALREVIEW) | df.Recon.isin(
-    INVASIVE_RECON
-)
+df["invasive"] = df.ManualReview.isin(INVASIVE_MANUALREVIEW) | df.Recon.isin(INVASIVE_RECON)
 print(f"Marked {df.invasive.sum()} barriers as invasive barriers")
 
 ### Mark any that were removed so that we can show these on the map
@@ -314,8 +266,9 @@ removed_fields = {
     "ManualReview": REMOVED_MANUALREVIEW,
 }
 
+# make sure that any with YearRemoved > current year are not marked as removed
 for field, values in removed_fields.items():
-    ix = df[field].isin(values) & (~(df.dropped | df.removed))
+    ix = df[field].isin(values) & (df.YearRemoved <= datetime.today().year) & (~(df.dropped | df.removed))
     df.loc[ix, "removed"] = True
     df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique()))
 
@@ -340,22 +293,16 @@ exclude_fields = {"Recon": EXCLUDE_RECON, "ManualReview": EXCLUDE_MANUALREVIEW}
 for field, values in exclude_fields.items():
     ix = df[field].isin(values) & (~(df.dropped | df.removed | df.excluded))
     df.loc[ix, "excluded"] = True
-    df.loc[ix, "log"] = format_log(
-        "excluded", field, sorted(df.loc[ix][field].unique())
-    )
+    df.loc[ix, "log"] = format_log("excluded", field, sorted(df.loc[ix][field].unique()))
 
 
 ### Mark any barriers that should cut the network but be excluded from ranking
 unranked_fields = {"invasive": [True], "PotentialProject": UNRANKED_POTENTIAL_PROJECT}
 
 for field, values in unranked_fields.items():
-    ix = df[field].isin(values) & (
-        ~(df.dropped | df.excluded | df.removed | df.unranked)
-    )
+    ix = df[field].isin(values) & (~(df.dropped | df.excluded | df.removed | df.unranked))
     df.loc[ix, "unranked"] = True
-    df.loc[ix, "log"] = format_log(
-        "unranked", field, sorted(df.loc[ix][field].unique())
-    )
+    df.loc[ix, "log"] = format_log("unranked", field, sorted(df.loc[ix][field].unique()))
 
 ### Exclude any other PotentialProject values that we don't specfically allow
 # IMPORTANT: we now include Minor Barriers, but then exclude them from specific
@@ -369,18 +316,10 @@ df.loc[exclude_ix, "log"] = f"excluded: PotentialProject {found_values}"
 
 
 ### Summarize counts
-print(
-    f"Dropped {df.dropped.sum():,} small barriers from network analysis and prioritization"
-)
-print(
-    f"Excluded {df.excluded.sum():,} small barriers from network analysis and prioritization"
-)
-print(
-    f"Marked {df.unranked.sum():,} small barriers to break networks but not be ranked"
-)
-print(
-    f"Marked {df.removed.sum()} small barriers that have been removed for conservation"
-)
+print(f"Dropped {df.dropped.sum():,} small barriers from network analysis and prioritization")
+print(f"Excluded {df.excluded.sum():,} small barriers from network analysis and prioritization")
+print(f"Marked {df.unranked.sum():,} small barriers to break networks but not be ranked")
+print(f"Marked {df.removed.sum()} small barriers that have been removed for conservation")
 
 ### Snap barriers
 print(f"Snapping {len(df):,} small barriers")
@@ -391,14 +330,12 @@ df["snap_log"] = "not snapped"
 df["lineID"] = np.nan  # line to which dam was snapped
 df["snap_tolerance"] = SNAP_TOLERANCE["default"]
 
-ix = df.Source.str.contains(
-    "WDFW Fish Passage Barrier Database"
-) | df.Source.str.contains("ODFW Fish Passage Barrier Database")
+ix = df.Source.str.contains("WDFW Fish Passage Barrier Database") | df.Source.str.contains(
+    "ODFW Fish Passage Barrier Database"
+)
 df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["pnw"]
 
-ix = df.Source.str.contains("Bat Surveys") | df.Source.isin(
-    ["Coarse Surveys 2020-2021 "]
-)
+ix = df.Source.str.contains("Bat Surveys") | df.Source.isin(["Coarse Surveys 2020-2021 "])
 df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["bat survey"]
 
 
@@ -413,9 +350,7 @@ exclude_snap_fields = {
 for field, values in exclude_snap_fields.items():
     ix = df[field].isin(values)
     exclude_snap_ix = exclude_snap_ix | ix
-    df.loc[ix, "snap_log"] = format_log(
-        "not snapped", field, sorted(df.loc[ix][field].unique())
-    )
+    df.loc[ix, "snap_log"] = format_log("not snapped", field, sorted(df.loc[ix][field].unique()))
 
 to_snap = df.loc[~exclude_snap_ix].copy()
 
@@ -449,9 +384,7 @@ for tolerance in to_snap.snap_tolerance.unique():
     df.loc[ix, "geometry"] = matches.geometry.values
     df.loc[ix, "snap_dist"] = matches.snap_dist.values
     df.loc[ix, "lineID"] = matches.lineID.values
-    df.loc[
-        ix, "snap_log"
-    ] = f"snapped: within {tolerance}m tolerance of snapped USGS road crossing"
+    df.loc[ix, "snap_log"] = f"snapped: within {tolerance}m tolerance of snapped USGS road crossing"
     df.loc[ix, "NearestCrossingID"] = matches.crossing_SARPID.values
 
     to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
@@ -460,9 +393,7 @@ for tolerance in to_snap.snap_tolerance.unique():
 
     # mark the crossing by the closest of any snapped barriers
     nearest_barriers = (
-        matches.sort_values(by=["crossing_id", "snap_dist"])
-        .groupby("crossing_id")
-        .barrier_SARPID.first()
+        matches.sort_values(by=["crossing_id", "snap_dist"]).groupby("crossing_id").barrier_SARPID.first()
     )
     ix = nearest_barriers.index
     crossings.loc[ix, "NearestBarrierID"] = nearest_barriers.values
@@ -480,9 +411,7 @@ print("---------------------------------\n")
 
 
 ### Save results from snapping for QA
-export_snap_dist_lines(
-    df.loc[df.snapped], original_locations, qa_dir, prefix="small_barriers_"
-)
+export_snap_dist_lines(df.loc[df.snapped], original_locations, qa_dir, prefix="small_barriers_")
 
 
 print("\n--------------\n")
@@ -518,9 +447,7 @@ export_duplicate_areas(dups, qa_dir / "small_barriers_duplicate_areas.fgb")
 # any that are within duplicate tolerance of dams may be duplicating those dams
 # NOTE: these are only the dams that are snapped and not dropped or excluded
 tree = shapely.STRtree(df.geometry.values)
-left, right = tree.query(
-    dams.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE
-)
+left, right = tree.query(dams.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE)
 ix = df.index.values.take(np.unique(right))
 
 df.loc[ix, "duplicate"] = True
@@ -530,9 +457,7 @@ print(f"Found {len(ix)} small barriers within {DUPLICATE_TOLERANCE}m of dams")
 
 ### Exclude those that co-occur with waterfalls
 tree = shapely.STRtree(df.geometry.values)
-left, right = tree.query(
-    waterfalls.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE
-)
+left, right = tree.query(waterfalls.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE)
 near_wf = df.index.values.take(np.unique(right))
 
 # only update those that are not already dropped / excluded / removed
@@ -581,11 +506,7 @@ df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 ### Join to line atts
 flowlines = (
     read_feathers(
-        [
-            nhd_dir / "clean" / huc2 / "flowlines.feather"
-            for huc2 in df.HUC2.unique()
-            if huc2
-        ],
+        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique() if huc2],
         columns=[
             "lineID",
             "NHDPlusID",
@@ -648,9 +569,7 @@ tmp = crossings.loc[crossings.NearestBarrierID == ""]
 tree = shapely.STRtree(df.geometry.values)
 
 # find nearest inventoried barrier
-left, right = tree.query_nearest(
-    tmp.geometry.values, max_distance=DUPLICATE_TOLERANCE, all_matches=False
-)
+left, right = tree.query_nearest(tmp.geometry.values, max_distance=DUPLICATE_TOLERANCE, all_matches=False)
 
 ix = tmp.index.values.take(left)
 barriers_ix = df.index.values.take(right)
@@ -678,9 +597,7 @@ df.symbol = df.symbol.astype("uint8")
 
 ### Assign to network analysis scenario
 # omit any that are not snapped or are duplicate / dropped / excluded or on loops / off-network flowlines
-can_break_networks = df.snapped & (
-    ~(df.duplicate | df.dropped | df.excluded | df.loop | df.offnetwork_flowline)
-)
+can_break_networks = df.snapped & (~(df.duplicate | df.dropped | df.excluded | df.loop | df.offnetwork_flowline))
 df["primary_network"] = can_break_networks & (df.PotentialProject != "Minor Barrier")
 # salmonid / large fish: only keep significant and severe barriers
 # added Potential Project, Proposed Project per direction from Kat on 8/18/2023 due to insufficient data re: actual passability
@@ -706,9 +623,7 @@ write_dataframe(df, qa_dir / "small_barriers.fgb")
 
 
 # Extract out only the snapped ones not on loops
-df = df.loc[
-    df.primary_network | df.largefish_network | df.smallfish_network
-].reset_index(drop=True)
+df = df.loc[df.primary_network | df.largefish_network | df.smallfish_network].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
@@ -751,14 +666,7 @@ write_dataframe(crossings, qa_dir / "road_crossings.fgb")
 # NOTE: any that were not snapped were dropped in earlier processing
 print(f"Serializing {crossings.snapped.sum():,} snapped road crossings")
 snapped_crossings = crossings.loc[
-    crossings.snapped
-    & (
-        ~(
-            crossings.loop
-            | crossings.offnetwork_flowline
-            | (crossings.NearestBarrierID != "")
-        )
-    ),
+    crossings.snapped & (~(crossings.loop | crossings.offnetwork_flowline | (crossings.NearestBarrierID != ""))),
     [
         "geometry",
         "id",

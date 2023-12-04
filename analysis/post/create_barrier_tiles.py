@@ -169,11 +169,32 @@ ret = subprocess.run(
 )
 ret.check_returncode()
 
+
+### Create tiles for removed dams (including off-network)
+# these are not filtered
+removed_dams = df.loc[df.Removed, ["geometry", "id", "SARPIDName"]]
+print(f"Creating tiles for {len(removed_dams):,} removed dams")
+
+outfilename = tmp_dir / "removed_dams.fgb"
+mbtiles_filename = tmp_dir / "removed_dams.mbtiles"
+mbtiles_files.append(mbtiles_filename)
+removed_dams = to_lowercase(removed_dams)
+write_dataframe(removed_dams.reset_index(drop=True), outfilename)
+
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
+    + ["-l", "removed_dams"]
+    + ["-o", f"{str(mbtiles_filename)}"]
+    + get_col_types(removed_dams)
+    + [str(outfilename)]
+)
+ret.check_returncode()
+
+
 ### Create tiles for all other dams
-# these include removed and off-network dams; these are not filtered
-other_dams = df.loc[
-    df.Removed | ~df.HasNetwork, ["geometry", "id", "SARPIDName", "symbol"]
-]
+# these include remaining off-network / excluded dams; these are not filtered
+other_dams = df.loc[(~df.HasNetwork) & (~df.Removed), ["geometry", "id", "SARPIDName", "symbol"]]
 
 print(f"Creating tiles for {len(other_dams):,} other dams")
 
@@ -185,7 +206,7 @@ write_dataframe(other_dams.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z8", f"-z{MAX_ZOOM}", "-B8"]
+    + ["-Z6", f"-z{MAX_ZOOM}", "-B8"]
     + ["-l", "other_dams"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(other_dams)
@@ -196,9 +217,7 @@ ret.check_returncode()
 
 print("Joining dams tilesets")
 mbtiles_filename = out_dir / "dams.mbtiles"
-ret = subprocess.run(
-    tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
-)
+ret = subprocess.run(tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
 
 # remove intermediates
 for mbtiles_file in mbtiles_files:
@@ -241,9 +260,7 @@ fill_na_fields(df)
 
 ### Create tiles for ranked small barriers at low zooms
 
-ranked_barriers = df.loc[
-    df.Ranked, ["geometry", "id", "SARPIDName", "upNetID"] + SB_TILE_FILTER_FIELDS
-]
+ranked_barriers = df.loc[df.Ranked, ["geometry", "id", "SARPIDName", "upNetID"] + SB_TILE_FILTER_FIELDS]
 
 
 # Below zoom 8, we only need filter fields
@@ -252,9 +269,7 @@ mbtiles_filename = tmp_dir / "small_barriers_lt_z8.mbtiles"
 mbtiles_files = [mbtiles_filename]
 
 tmp = ranked_barriers[["geometry", "id"] + SB_TILE_FILTER_FIELDS]
-print(
-    f"Creating tiles for {len(tmp):,} ranked small barriers with networks for zooms 2-7"
-)
+print(f"Creating tiles for {len(tmp):,} ranked small barriers with networks for zooms 2-7")
 
 tmp = to_lowercase(ranked_barriers)
 write_dataframe(tmp.reset_index(drop=True), outfilename)
@@ -270,9 +285,7 @@ ret = subprocess.run(
 ret.check_returncode()
 
 ### Create tiles for ranked small barriers
-print(
-    f"Creating tiles for {len(ranked_barriers):,} ranked small barriers with networks"
-)
+print(f"Creating tiles for {len(ranked_barriers):,} ranked small barriers with networks")
 
 outfilename = tmp_dir / "ranked_small_barriers.fgb"
 mbtiles_filename = tmp_dir / "ranked_small_barriers.mbtiles"
@@ -298,9 +311,7 @@ unranked_barriers = df.loc[
     ["geometry", "id", "SARPIDName", "upNetID", "symbol"],
 ]
 
-print(
-    f"Creating tiles for {len(unranked_barriers):,} unranked small barriers with networks"
-)
+print(f"Creating tiles for {len(unranked_barriers):,} unranked small barriers with networks")
 
 outfilename = tmp_dir / "unranked_barriers.fgb"
 mbtiles_filename = tmp_dir / "unranked_barriers.mbtiles"
@@ -319,10 +330,31 @@ ret = subprocess.run(
 ret.check_returncode()
 
 
+### Create tiles for removed small barriers
+removed_barriers = df.loc[df.Removed, ["geometry", "id", "SARPIDName"]]
+
+print(f"Creating tiles for {len(removed_barriers):,} removed small barriers")
+
+outfilename = tmp_dir / "removed_small_barriers.fgb"
+mbtiles_filename = tmp_dir / "removed_small_barriers.mbtiles"
+mbtiles_files.append(mbtiles_filename)
+removed_barriers = to_lowercase(removed_barriers)
+write_dataframe(removed_barriers, outfilename)
+
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
+    + ["-l", "removed_small_barriers"]
+    + ["-o", f"{str(mbtiles_filename)}"]
+    + get_col_types(
+        removed_barriers,
+    )
+    + [str(outfilename)]
+)
+ret.check_returncode()
+
 ### Create tiles all other small barriers
-other_barriers = df.loc[
-    df.Removed | ~df.HasNetwork, ["geometry", "id", "SARPIDName", "symbol"]
-]
+other_barriers = df.loc[(~df.HasNetwork) & (~df.Removed), ["geometry", "id", "SARPIDName", "symbol"]]
 
 print(f"Creating tiles for {len(other_barriers):,} other small barriers")
 
@@ -334,7 +366,7 @@ write_dataframe(other_barriers, outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
+    + ["-Z6", f"-z{MAX_ZOOM}", "-B10"]
     + ["-l", "other_small_barriers"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(
@@ -346,9 +378,7 @@ ret.check_returncode()
 
 print("Joining small barriers tilesets")
 mbtiles_filename = out_dir / "small_barriers.mbtiles"
-ret = subprocess.run(
-    tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
-)
+ret = subprocess.run(tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
 
 # remove intermediates
 for mbtiles_file in mbtiles_files:
@@ -390,8 +420,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     ### Create tiles for ranked combined barriers
     ranked_barriers = df.loc[
         df.Ranked,
-        ["geometry", "BarrierType", "id", "SARPIDName", "upNetID", "TotDASqKm"]
-        + COMBINED_TILE_FILTER_FIELDS,
+        ["geometry", "BarrierType", "id", "SARPIDName", "upNetID", "TotDASqKm"] + COMBINED_TILE_FILTER_FIELDS,
     ]
 
     # create tiles for low zooms
@@ -399,9 +428,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         ["geometry", "id", "BarrierType"] + COMBINED_TILE_FILTER_FIELDS
     ]
 
-    print(
-        f"Creating tiles for {len(tmp):,} ranked {network_type} with networks for zooms 2-7"
-    )
+    print(f"Creating tiles for {len(tmp):,} ranked {network_type} with networks for zooms 2-7")
 
     outfilename = tmp_dir / "combined_barriers_lt_z8.fgb"
     mbtiles_filename = tmp_dir / "combined_barriers_lt_z8.mbtiles"
@@ -422,9 +449,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     ranked_barriers = ranked_barriers.drop(columns=["TotDASqKm"])
 
     ### Create tiles for ranked combined barriers with networks
-    print(
-        f"Creating tiles for {len(ranked_barriers):,} {network_type} barriers with networks"
-    )
+    print(f"Creating tiles for {len(ranked_barriers):,} {network_type} barriers with networks")
 
     outfilename = tmp_dir / f"ranked_{network_type}.fgb"
     mbtiles_filename = tmp_dir / f"ranked_{network_type}.mbtiles"
@@ -448,9 +473,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         ["geometry", "id", "SARPIDName", "BarrierType", "upNetID", "symbol"],
     ]
 
-    print(
-        f"Creating tiles for {len(unranked_barriers):,} unranked {network_type} barriers with networks"
-    )
+    print(f"Creating tiles for {len(unranked_barriers):,} unranked {network_type} barriers with networks")
 
     outfilename = tmp_dir / f"unranked_{network_type}.fgb"
     mbtiles_filename = tmp_dir / f"unranked_{network_type}.mbtiles"
@@ -468,9 +491,33 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     )
     ret.check_returncode()
 
+    ### Create tiles for removed barriers
+    removed_barriers = df.loc[
+        df.Removed,
+        ["geometry", "id", "SARPIDName", "BarrierType"],
+    ]
+
+    print(f"Creating tiles for {len(removed_barriers)} removed barriers")
+
+    outfilename = tmp_dir / f"removed_{network_type}.fgb"
+    mbtiles_filename = tmp_dir / f"removed_{network_type}.mbtiles"
+    mbtiles_files.append(mbtiles_filename)
+    removedr_barriers = to_lowercase(removed_barriers)
+    write_dataframe(removed_barriers, outfilename)
+
+    ret = subprocess.run(
+        tippecanoe_args
+        + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
+        + ["-l", f"removed_{network_type}"]
+        + ["-o", f"{str(mbtiles_filename)}"]
+        + get_col_types(other_barriers)
+        + [str(outfilename)]
+    )
+    ret.check_returncode()
+
     ### Create tiles for all other barriers; these don't have network info
     other_barriers = df.loc[
-        df.Removed | ~df.HasNetwork,
+        (~df.HasNetwork) & (~df.Removed),
         ["geometry", "id", "SARPIDName", "BarrierType", "symbol"],
     ]
     print(f"Creating tiles for {len(other_barriers)} other barriers")
@@ -483,7 +530,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
 
     ret = subprocess.run(
         tippecanoe_args
-        + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
+        + ["-Z6", f"-z{MAX_ZOOM}", "-B10"]
         + ["-l", f"other_{network_type}"]
         + ["-o", f"{str(mbtiles_filename)}"]
         + get_col_types(other_barriers)
@@ -493,9 +540,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
 
     print(f"Joining {network_type} tilesets")
     mbtiles_filename = out_dir / f"{network_type}.mbtiles"
-    ret = subprocess.run(
-        tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files]
-    )
+    ret = subprocess.run(tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
 
     # remove intermediates
     for mbtiles_file in mbtiles_files:
@@ -575,10 +620,7 @@ df = gp.read_feather(
 
 # pivot network IDs into one column per network type for tiles, then join back to single record
 network_ids = (
-    df[["id", "network_type", "upNetID"]]
-    .pivot(columns=["network_type"], index="id")
-    .fillna(-1)
-    .astype("int64")
+    df[["id", "network_type", "upNetID"]].pivot(columns=["network_type"], index="id").fillna(-1).astype("int64")
 )
 network_ids.columns = [f"{network}_{col}" for col, network in network_ids.columns]
 

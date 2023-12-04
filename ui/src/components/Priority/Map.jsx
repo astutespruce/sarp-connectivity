@@ -41,6 +41,7 @@ import {
   parentOutline,
   prioritizedPointLayer,
   unrankedPointLayer,
+  removedBarrierPointLayer,
   otherBarrierPointLayer,
   excludedPointLayer,
   includedPointLayer,
@@ -102,6 +103,21 @@ const PriorityMap = ({
   // first layer of system is default on init
   const [zoom, setZoom] = useState(0)
 
+  const clearNetworkHighlight = () => {
+    const { current: map } = mapRef
+
+    if (map) {
+      map.setFilter('network-highlight', ['==', 'dams', Infinity])
+      map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
+      map.setFilter('removed-network-highlight', ['==', 'barrier_id', Infinity])
+      map.setFilter('removed-network-intermittent-highlight', [
+        '==',
+        'barrier_id',
+        Infinity,
+      ])
+    }
+  }
+
   const handleCreateMap = useCallback(
     (map) => {
       mapRef.current = map
@@ -117,6 +133,7 @@ const PriorityMap = ({
         roadCrossingsLayer.id,
         damsSecondaryLayer.id,
         waterfallsLayer.id,
+        removedBarrierPointLayer.id,
         otherBarrierPointLayer.id,
         unrankedPointLayer.id,
         excludedPointLayer.id,
@@ -249,6 +266,12 @@ const PriorityMap = ({
         source: barrierType,
         'source-layer': `other_${barrierType}`,
         ...otherBarrierPointLayer,
+      })
+
+      map.addLayer({
+        source: barrierType,
+        'source-layer': `removed_${barrierType}`,
+        ...removedBarrierPointLayer,
       })
 
       map.addLayer({
@@ -395,6 +418,8 @@ const PriorityMap = ({
           return
         }
 
+        const removed = sourceLayer.startsWith('removed_')
+
         const thisBarrierType =
           source === 'combined_barriers' ||
           source === 'largefish_barriers' ||
@@ -406,16 +431,18 @@ const PriorityMap = ({
           barrierType === 'small_barriers' ? 'combined_barriers' : barrierType
 
         // promote network fields if clicking on a waterfall
-        const networkIDField =
-          thisBarrierType === 'waterfalls'
-            ? `${networkType}_upnetid`
-            : 'upnetid'
+        let networkIDField = 'upnetid'
+        if (removed) {
+          networkIDField = 'id'
+        } else if (thisBarrierType === 'waterfalls') {
+          networkIDField = `${networkType}_upnetid`
+        }
 
         setBarrierHighlight(map, feature, true)
         selectedFeatureRef.current = feature
 
         onSelectBarrier({
-          upnetid: properties[networkIDField] || -1,
+          upnetid: properties[networkIDField] || Infinity,
           ...properties,
           tiers: rankedBarriersIndexRef.current[properties.id] || null,
           barrierType: thisBarrierType,
@@ -424,6 +451,7 @@ const PriorityMap = ({
           lon,
           // note: ranked layers are those that can be ranked, not necessarily those that have custom ranks
           ranked: sourceLayer.startsWith('ranked_'),
+          removed,
           layer: {
             source,
             sourceLayer,
@@ -525,12 +553,19 @@ const PriorityMap = ({
 
     if (!map) return
 
-    let networkID = Infinity
+    clearNetworkHighlight()
 
+    const removed = selectedBarrier && selectedBarrier.removed
     if (selectedBarrier) {
-      const { upnetid = Infinity } = selectedBarrier
+      const networkIDField = removed ? 'id' : 'upnetid'
+      const { [networkIDField]: networkID = Infinity } = selectedBarrier
 
-      networkID = upnetid
+      highlightNetwork(
+        map,
+        barrierType === 'small_barriers' ? 'combined_barriers' : barrierType,
+        networkID,
+        removed
+      )
     } else {
       const prevFeature = selectedFeatureRef.current
       if (prevFeature) {
@@ -543,12 +578,6 @@ const PriorityMap = ({
         }
       }
     }
-
-    highlightNetwork(
-      map,
-      barrierType === 'small_barriers' ? 'combined_barriers' : barrierType,
-      networkID
-    )
   }, [barrierType, selectedBarrier])
 
   // if map allows filter, show selected vs unselected points, and make those without networks

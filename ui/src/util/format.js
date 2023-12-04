@@ -20,14 +20,12 @@ export const formatNumber = (number, decimals = null, auto = false) => {
   let targetDecimals = decimals
   // guess number of decimals based on magnitude
   if (targetDecimals === null || auto) {
-    if (absNumber > 100 || Math.round(absNumber) === absNumber) {
+    if (absNumber > 10 || Math.round(absNumber) === absNumber) {
       targetDecimals = 0
-    } else if (absNumber > 10) {
-      targetDecimals = 1
     } else if (absNumber > 1) {
-      targetDecimals = 2
+      targetDecimals = 1
     } else {
-      targetDecimals = 3
+      targetDecimals = 2
     }
   }
 

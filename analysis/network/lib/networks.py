@@ -56,25 +56,9 @@ def connect_huc2s(joins):
     ).drop_duplicates()
 
     # update joins to include those that cross region boundaries
-    # FIXME: this is slow
-    # for row in cross_region.itertuples():
-    #     # update the upstream side of the join
-    #     ix = joins.upstream_id == row.upstream_id
-    #     joins.loc[ix, ["downstream", "downstream_id", "type"]] = (
-    #         row.downstream,
-    #         row.downstream_id,
-    #         "huc2_join",
-    #     )
-    #     # update the downstream side of the join
-    #     ix = (joins.downstream_id == row.downstream_id) & (joins.upstream_id == 0)
-    #     joins.loc[ix, "upstream_id"] = row.upstream_id
-
-    # TEST
     joins = joins.join(
         # upstream side of join
-        cross_region[["upstream_id", "downstream", "downstream_id"]].set_index(
-            "upstream_id"
-        ),
+        cross_region[["upstream_id", "downstream", "downstream_id"]].set_index("upstream_id"),
         on="upstream_id",
         rsuffix="_new_upstream",
     ).join(
@@ -87,19 +71,13 @@ def connect_huc2s(joins):
     # update upstream side
     ix = joins.downstream_id_new_upstream.notnull()
     tmp = joins.loc[ix]
-    joins.loc[ix, "downstream"] = tmp.downstream_new_upstream.astype(
-        joins.downstream.dtype
-    )
-    joins.loc[ix, "downstream_id"] = tmp.downstream_id_new_upstream.astype(
-        joins.downstream_id.dtype
-    )
+    joins.loc[ix, "downstream"] = tmp.downstream_new_upstream.astype(joins.downstream.dtype)
+    joins.loc[ix, "downstream_id"] = tmp.downstream_id_new_upstream.astype(joins.downstream_id.dtype)
     joins.loc[ix, "type"] = "huc2_join"
 
     # update downstream side
     ix = joins.upstream_id_new_downstream.notnull() & (joins.upstream_id == 0)
-    joins.loc[ix, "upstream_id"] = joins.loc[ix].upstream_id_new_downstream.astype(
-        joins.upstream_id.dtype
-    )
+    joins.loc[ix, "upstream_id"] = joins.loc[ix].upstream_id_new_downstream.astype(joins.upstream_id.dtype)
 
     joins = joins.drop(
         columns=[
@@ -109,8 +87,6 @@ def connect_huc2s(joins):
         ]
     )
 
-    # END TEST
-
     joins = joins.drop_duplicates(subset=["downstream_id", "upstream_id"]).copy()
 
     # add information about the HUC2 drain points
@@ -118,9 +94,7 @@ def connect_huc2s(joins):
     for exits in HUC2_EXITS.values():
         huc2_exits.update(exits)
 
-    joins.loc[
-        (joins.downstream == 0) & joins.upstream.isin(huc2_exits), "type"
-    ] = "huc2_drain"
+    joins.loc[(joins.downstream == 0) & joins.upstream.isin(huc2_exits), "type"] = "huc2_drain"
 
     # make symmetric pairs of HUC2s so that we get all those that are connected
     tmp = cross_region[["upstream_HUC2", "downstream_HUC2"]]
@@ -139,9 +113,7 @@ def connect_huc2s(joins):
         {huc2}
         for huc2 in np.setdiff1d(
             joins.HUC2.unique(),
-            np.unique(
-                np.append(cross_region.upstream_HUC2, cross_region.downstream_HUC2)
-            ),
+            np.unique(np.append(cross_region.upstream_HUC2, cross_region.downstream_HUC2)),
         )
     ]
 
@@ -168,18 +140,20 @@ def create_networks(joins, barrier_joins, lineIDs):
     """
 
     # lineIDs of flowlines immediately upstream of barriers
-    barrier_upstream_idx = barrier_joins.loc[
-        barrier_joins.upstream_id != 0
-    ].upstream_id.unique()
+    barrier_upstream_idx = barrier_joins.loc[barrier_joins.upstream_id != 0].upstream_id.unique()
 
+    ### Create a directed graph facing upstream
     # extract flowline joins that are not at the endpoints of the network and
     # are not cut by barriers
     upstream_joins = joins.loc[
-        (joins.upstream_id != 0)
-        & (joins.downstream_id != 0)
-        & (~joins.upstream_id.isin(barrier_upstream_idx)),
+        (joins.upstream_id != 0) & (joins.downstream_id != 0) & (~joins.upstream_id.isin(barrier_upstream_idx)),
         ["downstream_id", "upstream_id"],
     ].drop_duplicates()
+
+    upstream_graph = DirectedGraph(
+        upstream_joins.downstream_id.values.astype("int64"),
+        upstream_joins.upstream_id.values.astype("int64"),
+    )
 
     ### Get list of network root IDs
     # Create networks from all terminal nodes (have no downstream nodes) up to barriers.
@@ -190,34 +164,22 @@ def create_networks(joins, barrier_joins, lineIDs):
     origin_idx = joins.loc[joins.downstream_id == 0].upstream_id.unique()
 
     # find joins that are not marked as terminated, but do not have upstreams in the region
-    unterminated = joins.loc[
-        (joins.downstream_id != 0) & ~joins.downstream_id.isin(joins.upstream_id)
-    ]
+    unterminated = joins.loc[(joins.downstream_id != 0) & ~joins.downstream_id.isin(joins.upstream_id)]
     # if downstream_id is not in upstream_id for region, and is in flowlines, add downstream id as origin
     origin_idx = np.append(
         origin_idx,
-        unterminated.loc[
-            unterminated.downstream_id.isin(lineIDs)
-        ].downstream_id.unique(),
+        unterminated.loc[unterminated.downstream_id.isin(lineIDs)].downstream_id.unique(),
     )
 
     # otherwise add upstream id
     origin_idx = np.append(
         origin_idx,
-        unterminated.loc[
-            ~unterminated.downstream_id.isin(lineIDs)
-        ].upstream_id.unique(),
+        unterminated.loc[~unterminated.downstream_id.isin(lineIDs)].upstream_id.unique(),
     )
 
     # remove any origins that have associated barriers
     # this also ensures a unique list
     origin_idx = np.setdiff1d(origin_idx, barrier_upstream_idx)
-
-    ### Create a directed graph facing upstream
-    upstream_graph = DirectedGraph(
-        upstream_joins.downstream_id.values.astype("int64"),
-        upstream_joins.upstream_id.values.astype("int64"),
-    )
 
     print(f"Generating networks for {len(origin_idx):,} origin points")
     origin_network_segments = pd.DataFrame(
@@ -235,30 +197,6 @@ def create_networks(joins, barrier_joins, lineIDs):
     )
     barrier_network_segments["type"] = "barrier"
 
-    ### Handle multiple upstreams
-    # TODO: optimize this further
-    # A given barrier may have > 1 upstream segment, some have 3+
-    # Group by barrier id
-    upstream_count = barrier_joins.groupby(level=0).size()
-    multiple_upstreams = barrier_joins.loc[
-        barrier_joins.index.isin(upstream_count.loc[upstream_count > 1].index.unique())
-    ]
-
-    if len(multiple_upstreams):
-        print(
-            f"Merging multiple upstream networks for barriers at network junctions, affects {len(multiple_upstreams):,} networks"
-        )
-
-        # For each barrier with multiple upstreams, coalesce their networkIDs
-        for id in multiple_upstreams.index.unique():
-            upstream_ids = multiple_upstreams.loc[id].upstream_id
-            networkID = upstream_ids.iloc[0]
-
-            # Set all upstream networks for this barrier to the ID of the first
-            barrier_network_segments.loc[
-                barrier_network_segments.networkID.isin(upstream_ids), ["networkID"]
-            ] = networkID
-
     # Append network types back together
     up_network_df = pd.concat(
         [
@@ -270,6 +208,38 @@ def create_networks(joins, barrier_joins, lineIDs):
     ).reset_index(drop=True)
     up_network_df.networkID = up_network_df.networkID.astype("uint32")
     up_network_df.lineID = up_network_df.lineID.astype("uint32")
+
+    ### Handle multiple upstreams for origin / barrier networks
+    # A given barrier may have > 1 upstream segment, some have 3+
+    # Note: we do this for origin networks because those may actually be barrier
+    # networks when calculating removed barrier networks, as well as trying to
+    # create better downstream total networks.  This intentionally does not try
+    # to fuse sibling networks at a downstream-most origin point though (downstream_id==0)
+
+    # find all networks where the downstream side of the network origin is a junction
+    networks_at_junctions = np.intersect1d(
+        up_network_df.networkID.unique(), joins.loc[joins.junction].upstream_id.unique()
+    )
+    if len(networks_at_junctions):
+        print(
+            f"Merging multiple upstream networks at network junctions, affects {len(networks_at_junctions):,} networks"
+        )
+
+        downstreams = joins.loc[joins.upstream_id.isin(networks_at_junctions)].downstream_id.unique()
+        for downstream_id in downstreams:
+            # find all the networks that have the same downstream and fuse them
+            networkIDs = (
+                up_network_df.loc[
+                    up_network_df.networkID.isin(joins.loc[joins.downstream_id == downstream_id].upstream_id)
+                ]
+                .groupby("networkID")
+                .size()
+                .sort_values()
+                .index.values
+            )
+            # use the networkID with longest number of segments as out networkID
+            networkID = networkIDs[0]
+            up_network_df.loc[up_network_df.networkID.isin(networkIDs), "networkID"] = networkID
 
     # check for duplicates
     s = up_network_df.groupby("lineID").size()
@@ -288,15 +258,11 @@ def create_networks(joins, barrier_joins, lineIDs):
     print("Extracting downstream linear networks for each barrier")
 
     # lineIDs of flowlines immediately downstream of barriers
-    barrier_downstream_idx = barrier_joins.loc[
-        barrier_joins.downstream_id != 0
-    ].downstream_id.unique()
+    barrier_downstream_idx = barrier_joins.loc[barrier_joins.downstream_id != 0].downstream_id.unique()
 
     # break joins at barriers
     downstream_joins = joins.loc[
-        (joins.upstream_id != 0)
-        & (joins.downstream_id != 0)
-        & (~joins.downstream_id.isin(barrier_downstream_idx)),
+        (joins.upstream_id != 0) & (joins.downstream_id != 0) & (~joins.downstream_id.isin(barrier_downstream_idx)),
         ["downstream_id", "upstream_id"],
     ].drop_duplicates(subset=["downstream_id", "upstream_id"])
 
@@ -315,9 +281,7 @@ def create_networks(joins, barrier_joins, lineIDs):
     return (up_network_df, down_network_df)
 
 
-def create_barrier_networks(
-    barriers, barrier_joins, focal_barrier_joins, joins, flowlines, network_type
-):
+def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins, flowlines, network_type):
     """Calculate networks based on barriers and network origins
 
     Parameters
@@ -351,15 +315,22 @@ def create_barrier_networks(
     )
 
     upstream_networks = upstream_networks.set_index("lineID").networkID
-    print(
-        f"{len(upstream_networks.unique()):,} networks created in {time() - network_start:.2f}s"
-    )
+    print(f"{len(upstream_networks.unique()):,} networks created in {time() - network_start:.2f}s")
 
     # join networkID to flowlines
     flowlines = flowlines.join(upstream_networks.rename(network_type))
+    # any segment that wasn't assigned to a network can use its lineID as its network
+    # assume that these are isolated segments whose upstream / downstreams were
+    # removed becasue they were loops
+    ix = flowlines[network_type].isnull()
+    if ix.sum() > 0:
+        print(f"Backfilling {ix.sum():,} flowlines that weren't assigned to a network")
+        flowlines.loc[ix, network_type] = flowlines.loc[ix].index.values
+        flowlines[network_type] = flowlines[network_type].astype("uint32")
 
     up_network_df = (
-        flowlines.join(upstream_networks, how="inner")
+        flowlines.dropna(subset=[network_type])
+        .rename(columns={network_type: "networkID"})
         .reset_index()
         .set_index("networkID")
     )
@@ -368,8 +339,7 @@ def create_barrier_networks(
     # So drop any dangling upstream references (those that are not in networks and non-zero)
     # NOTE: these are not persisted because we want the original barrier_joins to reflect multiple upstreams
     focal_barrier_joins = focal_barrier_joins.loc[
-        focal_barrier_joins.upstream_id.isin(upstream_networks.unique())
-        | (focal_barrier_joins.upstream_id == 0)
+        focal_barrier_joins.upstream_id.isin(upstream_networks.unique()) | (focal_barrier_joins.upstream_id == 0)
     ].copy()
 
     down_network_df = (
@@ -411,9 +381,7 @@ def create_barrier_networks(
     ### Join upstream network stats to downstream network stats
     # NOTE: a network will only have downstream stats if it is upstream of a
     # barrier
-    network_stats = upstream_stats.join(
-        downstream_stats.join(focal_barrier_joins.upstream_id).set_index("upstream_id")
-    )
+    network_stats = upstream_stats.join(downstream_stats.join(focal_barrier_joins.upstream_id).set_index("upstream_id"))
     network_stats.index.name = "networkID"
 
     # Fill missing data
@@ -430,9 +398,7 @@ def create_barrier_networks(
     # set to_ocean, to_great_lakes, and exits_region for functional networks that terminate
     # in marine or Great Lakes or leave region and have no downstream barrier
     network_stats.loc[network_stats.index.isin(marine_ids), "flows_to_ocean"] = True
-    network_stats.loc[
-        network_stats.index.isin(great_lake_ids), "flows_to_great_lakes"
-    ] = True
+    network_stats.loc[network_stats.index.isin(great_lake_ids), "flows_to_great_lakes"] = True
     # if segments connect to marine they also leave the region
     network_stats.loc[
         network_stats.index.isin(np.unique(np.append(marine_ids, exit_ids))),
@@ -470,9 +436,7 @@ def create_barrier_networks(
     )
 
     # these are the downstream FUNCTIONAL networks, not linear networks
-    downstream_cols = [
-        c for c in network_stats if c.startswith("free_") or c == "total_miles"
-    ]
+    downstream_cols = [c for c in network_stats if c.startswith("free_") or c == "total_miles"]
     downstream_networks = (
         focal_barrier_joins[["downstream_id"]]
         .join(
@@ -509,15 +473,11 @@ def create_barrier_networks(
     barrier_networks.barrier = barrier_networks.barrier.fillna("")
     barrier_networks.origin_HUC2 = barrier_networks.origin_HUC2.fillna("")
     barrier_networks.flows_to_ocean = barrier_networks.flows_to_ocean.fillna(False)
-    barrier_networks.flows_to_great_lakes = (
-        barrier_networks.flows_to_great_lakes.fillna(False)
-    )
+    barrier_networks.flows_to_great_lakes = barrier_networks.flows_to_great_lakes.fillna(False)
     barrier_networks.exits_region = barrier_networks.exits_region.fillna(False)
     # if isolated network or connects to marine / Great Lakes / exit, there
     # are no further miles downstream from this network
-    barrier_networks.miles_to_outlet = barrier_networks.miles_to_outlet.fillna(
-        0
-    ).astype("float32")
+    barrier_networks.miles_to_outlet = barrier_networks.miles_to_outlet.fillna(0).astype("float32")
     # total drainage area will be 0 for barriers at top of network
     barrier_networks.fn_dakm2 = barrier_networks.fn_dakm2.fillna(0).astype("float32")
 
@@ -569,20 +529,14 @@ def create_barrier_networks(
     # ]
     for upstream_col in cols:
         out_col = upstream_col.replace("Total", "").replace("Upstream", "Gain")
-        downstream_col = (
-            f"Free{upstream_col.replace('Total', '').replace('Upstream','Downstream')}"
-        )
-        barrier_networks[out_col] = barrier_networks[
-            [upstream_col, downstream_col]
-        ].min(axis=1)
+        downstream_col = f"Free{upstream_col.replace('Total', '').replace('Upstream','Downstream')}"
+        barrier_networks[out_col] = barrier_networks[[upstream_col, downstream_col]].min(axis=1)
         barrier_networks.loc[terminates_downstream_ix, out_col] = barrier_networks.loc[
             terminates_downstream_ix, upstream_col
         ]
 
     # TotalNetworkMiles is sum of upstream and free downstream miles
-    barrier_networks["TotalNetworkMiles"] = barrier_networks[
-        ["TotalUpstreamMiles", "FreeDownstreamMiles"]
-    ].sum(axis=1)
+    barrier_networks["TotalNetworkMiles"] = barrier_networks[["TotalUpstreamMiles", "FreeDownstreamMiles"]].sum(axis=1)
     barrier_networks["TotalPerennialNetworkMiles"] = barrier_networks[
         ["PerennialUpstreamMiles", "FreePerennialDownstreamMiles"]
     ].sum(axis=1)
@@ -596,8 +550,6 @@ def create_barrier_networks(
         barrier_networks[f"Percent{subset}Unaltered"] = (
             barrier_networks[f"Percent{subset}Unaltered"].round().astype("int8")
         )
-        barrier_networks[f"Percent{subset}Altered"] = (
-            100 - barrier_networks[f"Percent{subset}Unaltered"]
-        )
+        barrier_networks[f"Percent{subset}Altered"] = 100 - barrier_networks[f"Percent{subset}Unaltered"]
 
     return barrier_networks, network_stats, flowlines

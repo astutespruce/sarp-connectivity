@@ -215,11 +215,7 @@ SB_FILTER_FIELDS = FILTER_FIELDS + [
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
 # BarrierSeverity included for API but not filtering
-COMBINED_FILTER_FIELDS = [
-    c
-    for c in unique(DAM_FILTER_FIELDS + SB_FILTER_FIELDS)
-    if not c == "BarrierSeverity"
-]
+COMBINED_FILTER_FIELDS = [c for c in unique(DAM_FILTER_FIELDS + SB_FILTER_FIELDS) if not c == "BarrierSeverity"]
 COMBINED_FILTER_FIELD_MAP = {f.lower(): f for f in COMBINED_FILTER_FIELDS}
 
 # Road crossing filters not currently used
@@ -320,9 +316,7 @@ DAM_API_FIELDS = unique(
 DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
 
 
-DAM_TILE_FILTER_FIELDS = unique(
-    DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
-)
+DAM_TILE_FILTER_FIELDS = unique(DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"])
 
 
 SB_CORE_FIELDS = (
@@ -353,36 +347,26 @@ SB_CORE_FIELDS = unique(SB_CORE_FIELDS)
 SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS)
 
 SB_API_FIELDS = unique(
-    SB_CORE_FIELDS
-    + SB_FILTER_FIELDS
-    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked", "in_network_type"]
+    SB_CORE_FIELDS + SB_FILTER_FIELDS + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked", "in_network_type"]
 )
 
 # Public API does not include tier fields
 SB_PUBLIC_EXPORT_FIELDS = SB_CORE_FIELDS
 
 
-SB_TILE_FILTER_FIELDS = unique(
-    SB_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"]
-)
+SB_TILE_FILTER_FIELDS = unique(SB_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"])
 
 
 COMBINED_API_FIELDS = [
-    c
-    for c in unique(["BarrierType"] + DAM_API_FIELDS + SB_API_FIELDS)
-    if c not in STATE_TIER_FIELDS
+    c for c in unique(["BarrierType"] + DAM_API_FIELDS + SB_API_FIELDS) if c not in STATE_TIER_FIELDS
 ]
 
 COMBINED_EXPORT_FIELDS = [
-    c
-    for c in unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS)
-    if c not in STATE_TIER_FIELDS
+    c for c in unique(["BarrierType"] + DAM_EXPORT_FIELDS + SB_EXPORT_FIELDS) if c not in STATE_TIER_FIELDS
 ]
 
 COMBINED_TILE_FILTER_FIELDS = [
-    c
-    for c in unique(DAM_TILE_FILTER_FIELDS + SB_TILE_FILTER_FIELDS)
-    if not c == "BarrierSeverity"
+    c for c in unique(DAM_TILE_FILTER_FIELDS + SB_TILE_FILTER_FIELDS) if not c == "BarrierSeverity"
 ]
 
 
@@ -419,9 +403,7 @@ ROAD_CROSSING_CORE_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS)
 # include COUNTYFIPS for download of road crossings by county
 ROAD_CROSSING_API_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS + ["COUNTYFIPS"])
 
-ROAD_CROSSING_EXPORT_FIELDS = [
-    c for c in ROAD_CROSSING_API_FIELDS if c not in {"SalmonidESU"}
-]
+ROAD_CROSSING_EXPORT_FIELDS = [c for c in ROAD_CROSSING_API_FIELDS if c not in {"SalmonidESU"}]
 
 
 WF_CORE_FIELDS = (
@@ -460,9 +442,7 @@ WF_API_FIELDS = unique(WF_CORE_FIELDS + ["network_type", "in_network_type"])
 
 ### Bit-packing for tiers
 TIER_BITS = 5  # holds values 0...21 after subtracting offset
-CUSTOM_TIER_PACK_BITS = [
-    {"field": c, "bits": TIER_BITS, "value_shift": 1} for c in CUSTOM_TIER_FIELDS
-]
+CUSTOM_TIER_PACK_BITS = [{"field": c, "bits": TIER_BITS, "value_shift": 1} for c in CUSTOM_TIER_FIELDS]
 
 
 ### Domains for coded values in exported data
@@ -1014,9 +994,7 @@ def verify_domains(df):
             failed = True
 
     if failed:
-        raise ValueError(
-            "ERROR: stopping; one or more domain fields includes values not present in domain lookup"
-        )
+        raise ValueError("ERROR: stopping; one or more domain fields includes values not present in domain lookup")
 
 
 # Lookup of field to description, for download / APIs
@@ -1121,8 +1099,8 @@ FIELD_DEFINITIONS = {
     "FreeIntermittentDownstreamMiles": "number of free-flowing ephemeral and intermittent miles in the downstream river network.  Excludes miles in waterbodies.  See IntermittentUpstreamMiles. -1 = not available.",
     "FreeAlteredDownstreamMiles": "number of free-flowing altered miles in the downstream river network from this {type}.  Excludes miles in waterbodies or reaches specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch or other channel alteration). -1 = not available.",
     "FreeUnalteredDownstreamMiles": "number of free-flowing altered miles in the downstream river network from this {type}.  Limited to reaches specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch or other channel alteration).  Excludes miles in waterbodies. -1 = not available.",
-    "GainMiles": "absolute number of miles that could be gained by removal of this {type}.  Calculated as the minimum of the TotalUpstreamMiles and FreeDownstreamMiles. For removed barriers, this is based on the barriers present at the time this barrier was removed.  -1 = not available.",
-    "PerennialGainMiles": "absolute number of perennial miles that could be gained by removal of this {type}.  Calculated as the minimum of the PerennialUpstreamMiles and FreePerennialDownstreamMiles.  For removed barriers, this is based on the barriers present at the time this barrier was removed.  -1 = not available.",
+    "GainMiles": "absolute number of miles that could be gained by removal of this {type}.  Calculated as the minimum of the TotalUpstreamMiles and FreeDownstreamMiles. For removed barriers, this is based on the barriers present at the time this barrier was removed, with the exception of those that are immediately upstream and removed in the same year.  -1 = not available.",
+    "PerennialGainMiles": "absolute number of perennial miles that could be gained by removal of this {type}.  Calculated as the minimum of the PerennialUpstreamMiles and FreePerennialDownstreamMiles.  For removed barriers, this is based on the barriers present at the time this barrier was removed, with the exception of those that are immediately upstream and removed in the same year.  -1 = not available.",
     "TotalNetworkMiles": "sum of TotalUpstreamMiles and FreeDownstreamMiles. -1 = not available.",
     "TotalPerennialNetworkMiles": "sum of PerennialUpstreamMiles and FreePerennialDownstreamMiles. -1 = not available.",
     "UpstreamDrainageArea": "approximate drainage area of all NHD High Resolution catchments within upstream functional network of {type}.  Includes the total catchment area of any NHD High Resolution flowlines that are cut by barriers in the analysis, which may overrepresent total drainage area of the network. -1 = not available.",
@@ -1158,20 +1136,12 @@ FIELD_DEFINITIONS = {
     "PNCWC_tier": "combined perennial network connectivity and watershed condition tier for your selected subset.  Tier 1 represents the {type}s within the top 5% of scores for the combined network connectivity and watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",
 }
 
-DAM_FIELD_DEFINITIONS = {
-    k: v.replace("{type}", "dam") for k, v in FIELD_DEFINITIONS.items()
-}
-SB_FIELD_DEFINITIONS = {
-    k: v.replace("{type}", "road-related barrier") for k, v in FIELD_DEFINITIONS.items()
-}
+DAM_FIELD_DEFINITIONS = {k: v.replace("{type}", "dam") for k, v in FIELD_DEFINITIONS.items()}
+SB_FIELD_DEFINITIONS = {k: v.replace("{type}", "road-related barrier") for k, v in FIELD_DEFINITIONS.items()}
 COMBINED_FIELD_DEFINITIONS = {
-    k: v.replace("{type}", "dam or road-related barrier")
-    for k, v in FIELD_DEFINITIONS.items()
+    k: v.replace("{type}", "dam or road-related barrier") for k, v in FIELD_DEFINITIONS.items()
 }
-RC_FIELD_DEFINITIONS = {
-    k: v.replace("{type}", "potential road-related barrier")
-    for k, v in FIELD_DEFINITIONS.items()
-}
+RC_FIELD_DEFINITIONS = {k: v.replace("{type}", "potential road-related barrier") for k, v in FIELD_DEFINITIONS.items()}
 
 
 ### Domains not currently used

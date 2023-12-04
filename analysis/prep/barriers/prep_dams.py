@@ -107,7 +107,12 @@ print("Reading manually snapped dams...")
 snapped_df = gp.read_feather(src_dir / "manually_snapped_dams.feather")
 
 # FIXME: temporary fix; there are some with duplicate SARPIDs or missing field values
-snapped_df = snapped_df.loc[snapped_df.snapped.notnull()]
+snapped_df = (
+    snapped_df.loc[snapped_df.snapped.notnull() & (~snapped_df.SARPID.isin(["<Null>", "CA"]))]
+    .groupby("SARPID")
+    .first()
+    .reset_index()
+)
 
 
 # Don't pull across those that were not manually snapped or are missing key fields
@@ -123,9 +128,7 @@ for col in ["dropped", "excluded", "duplicate", "snapped"]:
 # these are errors
 ix = (snapped_df.ManualReview == 13) & ~snapped_df.snapped
 if ix.sum():
-    print(
-        f"Dropping {ix.sum():,} dams marked as in correct location but were not previously snapped (errors)"
-    )
+    print(f"Dropping {ix.sum():,} dams marked as in correct location but were not previously snapped (errors)")
     snapped_df = snapped_df.loc[~ix].copy()
 
 # Drop any that were marked as duplicates manually and also automatically
@@ -137,19 +140,12 @@ if ix.sum():
 ### Read in NABD dams and drop any that are already present in snapping dataset or manually reviewed in master
 nabd = gp.read_feather(src_dir / "nabd.feather").set_index("NIDID")
 # join through NIDID to get SARPID
-nabd = nabd.loc[nabd.index.isin(df.NIDID)].join(
-    df[["SARPID", "NIDID"]].set_index("NIDID")
-)
+nabd = nabd.loc[nabd.index.isin(df.NIDID)].join(df[["SARPID", "NIDID"]].set_index("NIDID"))
 
 # note: 2 (NABD) is excluded because they weren't actually manually reviewed
-manually_reviewed_sarpid = df.loc[
-    df.ManualReview.isin([4, 5, 6, 8, 13, 14, 15])
-].SARPID.unique()
+manually_reviewed_sarpid = df.loc[df.ManualReview.isin([4, 5, 6, 8, 13, 14, 15])].SARPID.unique()
 
-nabd = nabd.loc[
-    (~nabd.SARPID.isin(snapped_df.SARPID))
-    & (~nabd.SARPID.isin(manually_reviewed_sarpid))
-].copy()
+nabd = nabd.loc[(~nabd.SARPID.isin(snapped_df.SARPID)) & (~nabd.SARPID.isin(manually_reviewed_sarpid))].copy()
 
 
 snapped_df = pd.concat(
@@ -190,9 +186,7 @@ if s.max() > 1:
 df = df.join(get_huc2(df))
 drop_ix = df.HUC2.isnull()
 if drop_ix.sum():
-    print(
-        f"{drop_ix.sum():,} dams are outside analysis HUC2s; these are dropped from master dataset"
-    )
+    print(f"{drop_ix.sum():,} dams are outside analysis HUC2s; these are dropped from master dataset")
     df = df.loc[~drop_ix].copy()
 
 
@@ -258,12 +252,13 @@ for column in (
 for column in ("YearCompleted", "YearRemoved", "StructureClass"):
     df[column] = df[column].fillna(0).astype("uint16")
 
+# Fix bad values for YearRemoved
+df.loc[(df.YearRemoved > 0) & (df.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
+
+
 # Use float32 instead of float64 (still can hold nulls)
 for column in (
     "ImpoundmentType",
-    "Height",
-    "Length",
-    "Width",
     "Recon2",
     "Recon3",
 ):
@@ -287,8 +282,8 @@ df.loc[df.BarrierStatus.isin([2, 3]), "Condition"] = 6
 # Round height and width to nearest foot.
 # There are no dams between 0 and 1 foot, so fill all na as 0.
 df.Height = df.Height.fillna(0).round().clip(0, 1e6).astype("uint16")
-# coerce length to width
-df.Length = df.Length.fillna(0).round().astype("uint16")
+# coerce length to width, fix negative values
+df.Length = df.Length.fillna(0).round().clip(0, df.Length.max()).astype("uint32")
 df.Width = df.Width.fillna(0).round().astype("uint16")
 
 
@@ -320,12 +315,7 @@ df.loc[
     (df.LowheadDam == 0)
     & (df.StructureClass == 916)
     & (~df.Name.str.lower().str.contains("mississippi river"))
-    & (
-        ~df.SARPID.isin(
-            ["IA19114", "IA19110", "IA19207", "IA19112", "IA19019", "GA29841"]
-        )
-        & (df.Height <= 25)
-    ),
+    & (~df.SARPID.isin(["IA19114", "IA19110", "IA19207", "IA19112", "IA19019", "GA29841"]) & (df.Height <= 25)),
     "LowheadDam",
 ] = 2
 
@@ -367,9 +357,7 @@ df.loc[ids, "Name"] = df.loc[ids].Name.apply(lambda v: v.split("\r")[0]).fillna(
 df.loc[(df.Diversion == 1) & (df.Name == ""), "Name"] = "Water diversion"
 
 # Fix years between 0 and 100; assume they were in the 1900s
-df.loc[(df.YearCompleted > 0) & (df.YearCompleted < 100), "YearCompleted"] = (
-    df.YearCompleted + 1900
-)
+df.loc[(df.YearCompleted > 0) & (df.YearCompleted < 100), "YearCompleted"] = df.YearCompleted + 1900
 df.loc[df.YearCompleted == 20151, "YearCompleted"] = 2015
 df.loc[df.YearCompleted == 9999, "YearCompleted"] = 0
 
@@ -396,42 +384,28 @@ df["YearCompletedClass"] = df.YearCompletedClass.fillna(1).astype("uint8")
 # Calculate height class
 # NOTE: 0 is reserved for missing data
 bins = [-1, 1e-6, 5, 10, 25, 50, 100, df.Height.max() + 1]
-df["HeightClass"] = (
-    np.asarray(pd.cut(df.Height, bins, right=False, labels=np.arange(0, len(bins) - 1)))
-    + 1
-).astype("uint8")
+df["HeightClass"] = (np.asarray(pd.cut(df.Height, bins, right=False, labels=np.arange(0, len(bins) - 1))) + 1).astype(
+    "uint8"
+)
 
 # Convert PassageFacility to class
 df["PassageFacilityClass"] = np.uint8(0)
 df.loc[(df.PassageFacility > 0) & (df.PassageFacility != 9), "PassageFacilityClass"] = 1
 
-df["FeasibilityClass"] = df.Feasibility.map(
-    FEASIBILITY_TO_FEASIBILITYCLASS_DOMAIN
-).astype("uint8")
+df["FeasibilityClass"] = df.Feasibility.map(FEASIBILITY_TO_FEASIBILITYCLASS_DOMAIN).astype("uint8")
 
 
 # Convert BarrierSeverity to a domain and call it Passability
 df["Passability"] = (
-    df.BarrierSeverity.fillna("unknown")
-    .str.strip()
-    .str.lower()
-    .map(DAM_BARRIER_SEVERITY_TO_DOMAIN)
-    .astype("uint8")
+    df.BarrierSeverity.fillna("unknown").str.strip().str.lower().map(DAM_BARRIER_SEVERITY_TO_DOMAIN).astype("uint8")
 )
 df = df.drop(columns=["BarrierSeverity"])
 
 # Recode BarrierOwnerType
-df.BarrierOwnerType = (
-    df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
-)
+df.BarrierOwnerType = df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
 
 # Cleanup FERCRegulated and StateRegulated
-df["FERCRegulated"] = (
-    df.FERCRegulated.fillna(0)
-    .astype("uint8")
-    .map(FERCREGULATED_TO_DOMAIN)
-    .astype("uint8")
-)
+df["FERCRegulated"] = df.FERCRegulated.fillna(0).astype("uint8").map(FERCREGULATED_TO_DOMAIN).astype("uint8")
 df["StateRegulated"] = df.StateRegulated.fillna("0").astype("uint8")
 df["WaterRight"] = df.WaterRight.fillna(0).astype("uint8")
 
@@ -499,8 +473,9 @@ removed_fields = {
     "ManualReview": REMOVED_MANUALREVIEW,
 }
 
+# make sure that any with YearRemoved > current year are not marked as removed
 for field, values in removed_fields.items():
-    ix = df[field].isin(values) & (~(df.dropped | df.removed))
+    ix = df[field].isin(values) & (df.YearRemoved <= datetime.today().year) & (~(df.dropped | df.removed))
     df.loc[ix, "removed"] = True
     df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique()))
 
@@ -519,9 +494,7 @@ excluded_fields = {
 for field, values in excluded_fields.items():
     ix = df[field].isin(values) & (~(df.dropped | df.removed | df.excluded))
     df.loc[ix, "excluded"] = True
-    df.loc[ix, "log"] = format_log(
-        "excluded", field, sorted(df.loc[ix][field].unique())
-    )
+    df.loc[ix, "log"] = format_log("excluded", field, sorted(df.loc[ix][field].unique()))
 
 # If Recon / Feasibility indicates fish passage installed and Barrier Severity
 # does not indicate passability issue, exclude (per guidance from SARP)
@@ -531,9 +504,7 @@ ix = (
     & (~(df.dropped | df.removed | df.excluded))
 )
 df.loc[ix, "excluded"] = True
-df.loc[
-    ix, "log"
-] = "excluded: Recon/Feasibility indicate fish passage installed but Passability marked as passable"
+df.loc[ix, "log"] = "excluded: Recon/Feasibility indicate fish passage installed but Passability marked as passable"
 df.loc[ix, "nobarrier"] = True
 
 ### Mark any dams that should cut the network but be excluded from ranking
@@ -541,13 +512,9 @@ unranked_fields = {
     "invasive": [True],
 }
 for field, values in unranked_fields.items():
-    ix = df[field].isin(values) & (
-        ~(df.dropped | df.excluded | df.removed | df.unranked)
-    )
+    ix = df[field].isin(values) & (~(df.dropped | df.excluded | df.removed | df.unranked))
     df.loc[ix, "unranked"] = True
-    df.loc[ix, "log"] = format_log(
-        "unranked", field, sorted(df.loc[ix][field].unique())
-    )
+    df.loc[ix, "log"] = format_log("unranked", field, sorted(df.loc[ix][field].unique()))
 
 ### Mark estimated dams
 # these were generated by SARP from analysis of small waterbodies or in this
@@ -599,9 +566,7 @@ to_dedup = df.loc[~df.duplicate].copy()
 # from those that were hand-checked on the map, they are duplicates of each other
 df, to_dedup = find_duplicates(df, to_dedup, tolerance=DUPLICATE_TOLERANCE["default"])
 
-print(
-    f"Found {df.duplicate.sum():,} total duplicates before snapping (duplicates are not snapped)"
-)
+print(f"Found {df.duplicate.sum():,} total duplicates before snapping (duplicates are not snapped)")
 print("---------------------------------")
 print("\nDe-duplication statistics")
 print(df.groupby("dup_log").size())
@@ -632,9 +597,7 @@ length_tolerance = np.clip(
     1000,
 )
 
-df.loc[ix, "snap_tolerance"] = np.max(
-    [df.loc[ix].snap_tolerance.values, length_tolerance], axis=0
-)
+df.loc[ix, "snap_tolerance"] = np.max([df.loc[ix].snap_tolerance.values, length_tolerance], axis=0)
 
 ### Mark dam snapping groups
 # estimated dams or likely off-network dams will get lower snapping tolerance
@@ -652,16 +615,12 @@ df.loc[ix, "Name"] = df.loc[ix].OtherName
 df.loc[df.Source.str.count("Amber Ignatius") > 0, "snap_group"] = 2
 
 # Identify dams estimated from waterbodies
-ix = df.Source.str.lower().isin(
-    ["estimated dams oct 2021", "estimated dams summer 2022", "estimated dams jan 2023"]
-)
+ix = df.Source.str.lower().isin(["estimated dams oct 2021", "estimated dams summer 2022", "estimated dams jan 2023"])
 df.loc[ix, "snap_group"] = 3
 df.loc[ix, "Name"] = "Estimated dam"
 
 # Dams likely to be off network get a much smaller tolerance
-df.loc[df.snap_group.isin([1, 2]), "snap_tolerance"] = SNAP_TOLERANCE[
-    "likely off network"
-]
+df.loc[df.snap_group.isin([1, 2]), "snap_tolerance"] = SNAP_TOLERANCE["likely off network"]
 print(
     f"Setting snap tolerance to {SNAP_TOLERANCE['likely off network']}m for {df.snap_group.isin([1,2]).sum():,} dams likely off network"
 )
@@ -683,9 +642,7 @@ exclude_snap_fields = {
 for field, values in exclude_snap_fields.items():
     ix = df[field].isin(values)
     exclude_snap_ix = exclude_snap_ix | ix
-    df.loc[ix, "snap_log"] = format_log(
-        "not snapped", field, sorted(df.loc[ix][field].unique())
-    )
+    df.loc[ix, "snap_log"] = format_log("not snapped", field, sorted(df.loc[ix][field].unique()))
 
 to_snap = df.loc[~exclude_snap_ix].copy()
 
@@ -740,9 +697,7 @@ to_dedup = df.loc[~df.duplicate].copy()
 # Dams within 10 meters are very likely duplicates of each other
 # from those that were hand-checked on the map, they are duplicates of each other
 next_group_id = df.dup_group.max() + 1
-df, to_dedup = find_duplicates(
-    df, to_dedup, tolerance=DUPLICATE_TOLERANCE["default"], next_group_id=next_group_id
-)
+df, to_dedup = find_duplicates(df, to_dedup, tolerance=DUPLICATE_TOLERANCE["default"], next_group_id=next_group_id)
 
 # Search a bit further for duplicates from estimated dams that snapped
 # hand-checked these on the map, these look very likely to be real duplicates
@@ -817,11 +772,7 @@ df.loc[drop_ix, "log"] = "dropped: outside HUC12 / states"
 ### Join to line atts
 flowlines = (
     read_feathers(
-        [
-            nhd_dir / "clean" / huc2 / "flowlines.feather"
-            for huc2 in df.HUC2.unique()
-            if huc2
-        ],
+        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique() if huc2],
         columns=[
             "lineID",
             "NHDPlusID",
@@ -876,11 +827,7 @@ print("dams on offnetwork flowlines: \n", df.groupby("offnetwork_flowline").size
 ### Join waterbody properties
 wb = (
     read_feathers(
-        [
-            nhd_dir / "clean" / huc2 / "waterbodies.feather"
-            for huc2 in df.HUC2.unique()
-            if huc2
-        ],
+        [nhd_dir / "clean" / huc2 / "waterbodies.feather" for huc2 in df.HUC2.unique() if huc2],
         columns=["wbID", "km2"],
     )
     .rename(columns={"km2": "WaterbodyKM2"})
@@ -891,9 +838,7 @@ wb = (
 # classify waterbody size class (see WATERBODY_SIZECLASS_DOMAIN)
 # Note: 0 is reserved for missing data
 bins = [-1, 0, 0.01, 0.1, 1, 10] + [wb.WaterbodyKM2.max() + 1]
-wb["WaterbodySizeClass"] = np.asarray(
-    pd.cut(wb.WaterbodyKM2, bins, right=False, labels=np.arange(0, len(bins) - 1))
-)
+wb["WaterbodySizeClass"] = np.asarray(pd.cut(wb.WaterbodyKM2, bins, right=False, labels=np.arange(0, len(bins) - 1)))
 
 df = df.join(wb, on="wbID")
 df.WaterbodyKM2 = df.WaterbodyKM2.fillna(-1).astype("float32")
@@ -953,9 +898,7 @@ df.symbol = df.symbol.astype("uint8")
 
 ### Assign to network analysis scenario
 # omit any that are not snapped or are duplicate / dropped / excluded or on loops / off-network flowlines
-can_break_networks = df.snapped & (
-    ~(df.duplicate | df.dropped | df.excluded | df.loop | df.offnetwork_flowline)
-)
+can_break_networks = df.snapped & (~(df.duplicate | df.dropped | df.excluded | df.loop | df.offnetwork_flowline))
 df["primary_network"] = can_break_networks
 # salmonid / large fish: exclude barriers that are passable to salmonids
 # based on direction from Kat, exclude any with partial or seasonal passability
@@ -974,9 +917,7 @@ write_dataframe(df, qa_dir / "dams.fgb")
 
 
 # Extract out only the snapped ones that are not on loops
-df = df.loc[
-    df.primary_network | df.largefish_network | df.smallfish_network
-].reset_index(drop=True)
+df = df.loc[df.primary_network | df.largefish_network | df.smallfish_network].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 

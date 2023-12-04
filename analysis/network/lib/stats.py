@@ -1,8 +1,8 @@
 from pathlib import Path
 
 import pandas as pd
+import pyarrow as pa
 import pyarrow.compute as pc
-import pyarrow.dataset as pa
 import numpy as np
 
 from analysis.lib.graph.speedups import DirectedGraph
@@ -13,9 +13,7 @@ METERS_TO_MILES = 0.000621371
 COUNT_KINDS = ["waterfalls", "dams", "small_barriers", "road_crossings", "headwaters"]
 
 
-def calculate_upstream_network_stats(
-    up_network_df, joins, focal_barrier_joins, barrier_joins
-):
+def calculate_upstream_network_stats(up_network_df, joins, focal_barrier_joins, barrier_joins):
     """Calculate upstream functional network statistics.  Each network starts
     at a downstream terminal or a barrier.
 
@@ -56,17 +54,10 @@ def calculate_upstream_network_stats(
     """
 
     # find the HUC2 of the network origin
-    root_huc2 = up_network_df.loc[
-        up_network_df.index == up_network_df.lineID
-    ].HUC2.rename("origin_HUC2")
+    root_huc2 = up_network_df.loc[up_network_df.index == up_network_df.lineID].HUC2.rename("origin_HUC2")
 
     # count unique size classes in upstream functional network
-    sizeclasses = (
-        up_network_df.groupby(level=0)
-        .sizeclass.nunique()
-        .astype("uint8")
-        .rename("sizeclasses")
-    )
+    sizeclasses = up_network_df.groupby(level=0).sizeclass.nunique().astype("uint8").rename("sizeclasses")
 
     # create series of networkID indexed by lineID
     networkID = up_network_df.reset_index().set_index("lineID").networkID
@@ -81,9 +72,7 @@ def calculate_upstream_network_stats(
     # that are in the lineIDs associated with the current networkID
 
     # limit barrier_joins to those with downstream IDs present within these networks
-    upstream_barrier_joins = barrier_joins.loc[
-        barrier_joins.downstream_id.isin(networkID.index.unique())
-    ].copy()
+    upstream_barrier_joins = barrier_joins.loc[barrier_joins.downstream_id.isin(networkID.index.unique())].copy()
 
     fn_barriers_upstream = (
         upstream_barrier_joins[["downstream_id", "kind"]]
@@ -92,11 +81,7 @@ def calculate_upstream_network_stats(
     )
     # calculate the number of network origins (headwaters) in the upstream network
     fn_headwaters_upstream = (
-        networkID.loc[headwaters_ids]
-        .reset_index()
-        .groupby("networkID")
-        .size()
-        .rename("headwaters")
+        networkID.loc[headwaters_ids].reset_index().groupby("networkID").size().rename("headwaters")
     )
 
     fn_upstream_counts = (
@@ -135,10 +120,7 @@ def calculate_upstream_network_stats(
     # NOTE: upstream_ids that are not also networks (because of confluences) are
     # removed prior to calling here
     network_joins = (
-        focal_barrier_joins.loc[
-            (focal_barrier_joins.upstream_id != 0)
-            & (focal_barrier_joins.downstream_id != 0)
-        ]
+        focal_barrier_joins.loc[(focal_barrier_joins.upstream_id != 0) & (focal_barrier_joins.downstream_id != 0)]
         .join(networkID, on="downstream_id")
         .rename(
             columns={
@@ -199,9 +181,7 @@ def calculate_upstream_network_stats(
 
     # determine the barrier type associated with this functional network
     network_barrier = (
-        focal_barrier_joins.loc[
-            focal_barrier_joins.upstream_id != 0, ["kind", "upstream_id"]
-        ]
+        focal_barrier_joins.loc[focal_barrier_joins.upstream_id != 0, ["kind", "upstream_id"]]
         .join(networkID, on="upstream_id", how="inner")
         .set_index("networkID")
         .kind.rename("barrier")
@@ -224,9 +204,7 @@ def calculate_upstream_network_stats(
     results.index.name = "networkID"
 
     # backfill count columns
-    count_cols = (
-        fn_upstream_counts.columns.tolist() + tot_upstream_counts.columns.tolist()
-    )
+    count_cols = fn_upstream_counts.columns.tolist() + tot_upstream_counts.columns.tolist()
     results[count_cols] = results[count_cols].fillna(0)
 
     return results
@@ -251,50 +229,23 @@ def calculate_geometry_stats(df):
 
     # total lengths used for upstream network
     total_length = df["length"].groupby(level=0).sum().rename("total")
-    perennial_length = (
-        df.loc[~df.intermittent, "length"].groupby(level=0).sum().rename("perennial")
-    )
-    intermittent_length = (
-        df.loc[df.intermittent, "length"].groupby(level=0).sum().rename("intermittent")
-    )
-    altered_length = (
-        df.loc[df.altered, "length"].groupby(level=0).sum().rename("altered")
-    )
-    unaltered_length = (
-        df.loc[~df.altered, "length"].groupby(level=0).sum().rename("unaltered")
-    )
+    perennial_length = df.loc[~df.intermittent, "length"].groupby(level=0).sum().rename("perennial")
+    intermittent_length = df.loc[df.intermittent, "length"].groupby(level=0).sum().rename("intermittent")
+    altered_length = df.loc[df.altered, "length"].groupby(level=0).sum().rename("altered")
+    unaltered_length = df.loc[~df.altered, "length"].groupby(level=0).sum().rename("unaltered")
     perennial_unaltered_length = (
-        df.loc[~(df.intermittent | df.altered), "length"]
-        .groupby(level=0)
-        .sum()
-        .rename("perennial_unaltered")
+        df.loc[~(df.intermittent | df.altered), "length"].groupby(level=0).sum().rename("perennial_unaltered")
     )
 
     # free lengths used for downstream network; these deduct lengths in waterbodies
     free_length = df.loc[~df.waterbody, "length"].groupby(level=0).sum().rename("free")
-    free_perennial = (
-        df.loc[~(df.intermittent | df.waterbody), "length"]
-        .groupby(level=0)
-        .sum()
-        .rename("free_perennial")
-    )
+    free_perennial = df.loc[~(df.intermittent | df.waterbody), "length"].groupby(level=0).sum().rename("free_perennial")
     free_intermittent = (
-        df.loc[df.intermittent & (~df.waterbody), "length"]
-        .groupby(level=0)
-        .sum()
-        .rename("free_intermittent")
+        df.loc[df.intermittent & (~df.waterbody), "length"].groupby(level=0).sum().rename("free_intermittent")
     )
-    free_altered_length = (
-        df.loc[df.altered & (~df.waterbody), "length"]
-        .groupby(level=0)
-        .sum()
-        .rename("free_altered")
-    )
+    free_altered_length = df.loc[df.altered & (~df.waterbody), "length"].groupby(level=0).sum().rename("free_altered")
     free_unaltered_length = (
-        df.loc[~(df.waterbody | df.altered), "length"]
-        .groupby(level=0)
-        .sum()
-        .rename("free_unaltered")
+        df.loc[~(df.waterbody | df.altered), "length"].groupby(level=0).sum().rename("free_unaltered")
     )
     free_perennial_unaltered = (
         df.loc[~(df.intermittent | df.waterbody | df.altered), "length"]
@@ -322,19 +273,14 @@ def calculate_geometry_stats(df):
     lengths.columns = [f"{c}_miles" for c in lengths.columns]
 
     # calculate percent altered
-    lengths["pct_unaltered"] = (
-        100.0 * (lengths.unaltered_miles / lengths.total_miles)
-    ).astype("float32")
+    lengths["pct_unaltered"] = (100.0 * (lengths.unaltered_miles / lengths.total_miles)).astype("float32")
     # Note: if there are no perennial miles, this should be 0
     lengths["pct_perennial_unaltered"] = 0.0
     ix = lengths.perennial_miles > 0
     lengths.loc[ix, "pct_perennial_unaltered"] = (
-        100.0
-        * (lengths.loc[ix].perennial_unaltered_miles / lengths.loc[ix].perennial_miles)
+        100.0 * (lengths.loc[ix].perennial_unaltered_miles / lengths.loc[ix].perennial_miles)
     ).astype("float32")
-    lengths["pct_perennial_unaltered"] = lengths.pct_perennial_unaltered.astype(
-        "float32"
-    )
+    lengths["pct_perennial_unaltered"] = lengths.pct_perennial_unaltered.astype("float32")
 
     return lengths
 
@@ -349,16 +295,14 @@ def calculate_floodplain_stats(df):
 
     Returns
     -------
-    Series
-        natfldpln
+    DataFrame
+        natfldpln (percent), nat_floodplain_km2, floodplain_km2
     """
 
     # Sum floodplain and natural floodplain values, and calculate percent natural floodplain
     # Read in associated floodplain info (using pyarrow for speed in filtering) and join
     fp_stats = (
-        pa.dataset(
-            data_dir / "floodplains" / "floodplain_stats.feather", format="feather"
-        )
+        pa.dataset.dataset(data_dir / "floodplains" / "floodplain_stats.feather", format="feather")
         .to_table(
             filter=pc.field("HUC2").isin(df.HUC2.unique()),
             columns=["NHDPlusID", "floodplain_km2", "nat_floodplain_km2"],
@@ -368,18 +312,16 @@ def calculate_floodplain_stats(df):
     )
     fp_stats = fp_stats.loc[fp_stats.index.isin(df.NHDPlusID.unique())]
 
-    df = df.join(fp_stats, on="NHDPlusID")
+    # sum values to NHDPlusID
+    fp_stats = df.join(fp_stats, on="NHDPlusID")[["floodplain_km2", "nat_floodplain_km2"]].groupby(level=0).sum()
+    fp_stats["natfldpln"] = 100 * fp_stats.nat_floodplain_km2 / fp_stats.floodplain_km2
 
-    pct_nat_df = df[["floodplain_km2", "nat_floodplain_km2"]].groupby(level=0).sum()
-
-    return (100 * pct_nat_df.nat_floodplain_km2 / pct_nat_df.floodplain_km2).rename(
-        "natfldpln"
-    )
+    return fp_stats
 
 
 def calculate_species_habitat_stats(df):
     habitat = (
-        pa.dataset(
+        pa.dataset.dataset(
             data_dir / "species/derived/combined_species_habitat.feather",
             format="feather",
         )
@@ -403,12 +345,10 @@ def calculate_species_habitat_stats(df):
     out = None
     for col in habitat_cols:
         habitat[col] = habitat[col].fillna(False)
-        total_miles = (habitat[col] * habitat.length).groupby(level=0).sum().rename(
-            f"{col}_miles"
+        total_miles = (habitat[col] * habitat.length).groupby(level=0).sum().rename(f"{col}_miles") * METERS_TO_MILES
+        free_miles = ((habitat[col] & (~habitat.waterbody)) * habitat.length).groupby(level=0).sum().rename(
+            f"free_{col}_miles"
         ) * METERS_TO_MILES
-        free_miles = ((habitat[col] & (~habitat.waterbody)) * habitat.length).groupby(
-            level=0
-        ).sum().rename(f"free_{col}_miles") * METERS_TO_MILES
         habitat_miles = pd.DataFrame(total_miles).join(free_miles)
 
         if out is None:
@@ -472,9 +412,7 @@ def calculate_downstream_stats(
     # re-rederive all focal barriers joins from barrier joins to keep confluences
     # which are otherwise filtered out before calling here
     # TODO: is there a way we can avoid removing these before calling into stats?
-    all_focal_barrier_joins = barrier_joins.loc[
-        barrier_joins.index.isin(focal_barrier_joins.index.unique())
-    ]
+    all_focal_barrier_joins = barrier_joins.loc[barrier_joins.index.isin(focal_barrier_joins.index.unique())]
 
     ### Count barriers that are DOWNSTREAM (linear to terminal / river outlet) of each barrier
     # using a directed graph of all network joins facing downstream
@@ -521,9 +459,7 @@ def calculate_downstream_stats(
 
     downstream_network_joins = all_focal_barrier_joins.join(
         down_network_df.networkID, on="upstream_id", how="inner"
-    ).rename(
-        columns={"networkID": "upstream_network", "downstream_id": "downstream_network"}
-    )
+    ).rename(columns={"networkID": "upstream_network", "downstream_id": "downstream_network"})
 
     downstream_graph = DirectedGraph(
         downstream_network_joins.upstream_network.values.astype("int64"),
@@ -532,9 +468,7 @@ def calculate_downstream_stats(
 
     # search from the lineID immediately downstream of each focal barrier
     # but indexed on the id
-    search_ids = focal_barrier_joins.loc[
-        (focal_barrier_joins.downstream_id != 0)
-    ].downstream_id
+    search_ids = focal_barrier_joins.loc[(focal_barrier_joins.downstream_id != 0)].downstream_id
 
     # mapping of id to all downstream linear networks downstream of the
     # linear network immediately below the barrier
@@ -623,27 +557,18 @@ def calculate_downstream_stats(
 
     ### Identify networks that terminate in marine
     # ids of barriers that connect directly to marine
-    marine_barriers = all_focal_barrier_joins.loc[
-        all_focal_barrier_joins.upstream_id.isin(marine_ids)
-    ].index.unique()
+    marine_barriers = all_focal_barrier_joins.loc[all_focal_barrier_joins.upstream_id.isin(marine_ids)].index.unique()
 
     # downstream networks that connect to marine via downstream linear networks
-    marine_downstream = down_network_df.loc[
-        down_network_df.index.isin(marine_ids)
-    ].networkID.unique()
-    marine_downstream_ids = downstreams.loc[
-        downstreams.downstream_network.isin(marine_downstream)
-    ].index.unique()
+    marine_downstream = down_network_df.loc[down_network_df.index.isin(marine_ids)].networkID.unique()
+    marine_downstream_ids = downstreams.loc[downstreams.downstream_network.isin(marine_downstream)].index.unique()
 
     to_ocean = pd.Series(
         np.zeros(shape=(len(focal_barrier_joins),), dtype="bool"),
         index=focal_barrier_joins.index,
         name="flows_to_ocean",
     )
-    to_ocean.loc[
-        to_ocean.index.isin(marine_barriers)
-        | to_ocean.index.isin(marine_downstream_ids)
-    ] = True
+    to_ocean.loc[to_ocean.index.isin(marine_barriers) | to_ocean.index.isin(marine_downstream_ids)] = True
 
     ### Identify networks that terminate in Great Lakes
     # ids of barriers that connect directly to Great Lakes
@@ -652,9 +577,7 @@ def calculate_downstream_stats(
     ].index.unique()
 
     # downstream networks that connect to Great Lakes via downstream linear networks
-    great_lake_downstream = down_network_df.loc[
-        down_network_df.index.isin(great_lake_ids)
-    ].networkID.unique()
+    great_lake_downstream = down_network_df.loc[down_network_df.index.isin(great_lake_ids)].networkID.unique()
     great_lake_downstream_ids = downstreams.loc[
         downstreams.downstream_network.isin(great_lake_downstream)
     ].index.unique()
@@ -665,25 +588,18 @@ def calculate_downstream_stats(
         name="flows_to_great_lakes",
     )
     to_great_lakes.loc[
-        to_great_lakes.index.isin(great_lake_barriers)
-        | to_great_lakes.index.isin(great_lake_downstream_ids)
+        to_great_lakes.index.isin(great_lake_barriers) | to_great_lakes.index.isin(great_lake_downstream_ids)
     ] = True
 
     ### Identify any networks that exit HUC2s
     # Note: only applicable for those that exit into HUC2s outside the analysis region
 
     # ids of barriers that connect directly to exits
-    exit_barriers = all_focal_barrier_joins.loc[
-        all_focal_barrier_joins.upstream_id.isin(exit_ids)
-    ].index.unique()
+    exit_barriers = all_focal_barrier_joins.loc[all_focal_barrier_joins.upstream_id.isin(exit_ids)].index.unique()
 
     # networks connected to huc2 exits via downstream linear networks
-    exit_downstream = down_network_df.loc[
-        down_network_df.index.isin(exit_ids)
-    ].networkID.unique()
-    exit_downstream_ids = downstreams.loc[
-        downstreams.downstream_network.isin(exit_downstream)
-    ].index.unique()
+    exit_downstream = down_network_df.loc[down_network_df.index.isin(exit_ids)].networkID.unique()
+    exit_downstream_ids = downstreams.loc[downstreams.downstream_network.isin(exit_downstream)].index.unique()
 
     exits_region = pd.Series(
         np.zeros(shape=(len(focal_barrier_joins),), dtype="bool"),
@@ -697,13 +613,7 @@ def calculate_downstream_stats(
         | exits_region.index.isin(to_ocean.loc[to_ocean].index)
     ] = True
 
-    results = (
-        focal_barrier_joins[[]]
-        .join(downstream_stats)
-        .join(to_ocean)
-        .join(to_great_lakes)
-        .join(exits_region)
-    )
+    results = focal_barrier_joins[[]].join(downstream_stats).join(to_ocean).join(to_great_lakes).join(exits_region)
 
     # set appropriate nodata
     count_cols = [c for c in downstream_stats.columns if c.startswith("totd_")]

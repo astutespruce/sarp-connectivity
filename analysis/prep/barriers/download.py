@@ -23,16 +23,20 @@ if not TOKEN:
     raise ValueError("AGOL_TOKEN must be defined in your .env file")
 
 
-DAMS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/National_Dams_New_10_18_2023_UPLOAD/FeatureServer/0"
-SNAPPED_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Dam_Snapping_QA_Dataset_01212020/FeatureServer/0"
-SMALL_BARRIERS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_RoadBarriers_01212019/FeatureServer/0"
-WATERFALLS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/SARP_Waterfall_Database_01212020/FeatureServer/0"
+DAMS_URL = "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Dams_National_Aquatic_Barrier_Inventory_Dec_2023/FeatureServer/0"
+SNAPPED_URL = (
+    "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/Dam_Snapping_QA_Dataset_01212020/FeatureServer/0"
+)
+SMALL_BARRIERS_URL = (
+    "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/All_RoadBarriers_01212019/FeatureServer/0"
+)
+WATERFALLS_URL = (
+    "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/SARP_Waterfall_Database_01212020/FeatureServer/0"
+)
 
 
 async def download_dams(token):
-    async with httpx.AsyncClient(
-        timeout=httpx.Timeout(60.0, connect=60.0), http2=True
-    ) as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
         df = await download_fs(client, DAMS_URL, fields=DAM_FS_COLS, token=token)
 
         df = df.rename(
@@ -71,9 +75,7 @@ async def download_dams(token):
 
 
 async def download_snapped_dams(token):
-    async with httpx.AsyncClient(
-        timeout=httpx.Timeout(60.0, connect=60.0), http2=True
-    ) as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
         df = await download_fs(
             client,
             SNAPPED_URL,
@@ -105,12 +107,8 @@ async def download_snapped_dams(token):
 
 
 async def download_small_barriers(token):
-    async with httpx.AsyncClient(
-        timeout=httpx.Timeout(60.0, connect=60.0), http2=True
-    ) as client:
-        df = await download_fs(
-            client, SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token
-        )
+    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
+        df = await download_fs(client, SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token)
 
         df = df.rename(
             columns={
@@ -140,12 +138,8 @@ async def download_small_barriers(token):
 
 
 async def download_waterfalls(token):
-    async with httpx.AsyncClient(
-        timeout=httpx.Timeout(60.0, connect=60.0), http2=True
-    ) as client:
-        df = await download_fs(
-            client, WATERFALLS_URL, fields=WATERFALL_COLS, token=token
-        )
+    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
+        df = await download_fs(client, WATERFALLS_URL, fields=WATERFALL_COLS, token=token)
         df = df.rename(
             columns={
                 "SARPUniqueId": "SARPID",
@@ -177,9 +171,7 @@ print(f"Downloaded {len(df):,} dams in {time() - download_start:.2f}s")
 
 ix = df.SARPID.isnull() | (df.SARPID == "")
 if ix.max():
-    print(
-        f"--------------------------\nWARNING: {ix.sum():,} dams are missing SARPID\n----------------------------"
-    )
+    print(f"--------------------------\nWARNING: {ix.sum():,} dams are missing SARPID\n----------------------------")
     print(df.loc[ix].groupby("SourceState").size())
 
 # DEBUG ONLY - SARPID must be present; follow up with SARP if not
@@ -202,6 +194,11 @@ print("\n---- Downloading Snapped Dams ----")
 download_start = time()
 df = asyncio.run(download_snapped_dams(TOKEN))
 print(f"Downloaded {len(df):,} snapped dams in {time() - download_start:.2f}s")
+
+s = df.groupby("SARPID").size()
+if s.max() > 1:
+    print("WARNING: multiple dams with same SARPID in snapped dataset")
+    print(s[s > 1])
 
 df.to_feather(out_dir / "manually_snapped_dams.feather")
 

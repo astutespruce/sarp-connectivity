@@ -421,6 +421,49 @@ export const pointLegends = {
   ],
 }
 
+export const SUMMARY_UNIT_COLORS = {
+  YlOrRed: {
+    // http://colorbrewer2.org/#type=sequential&scheme=YlOrRd&n=8
+    8: [
+      '#ffffcc',
+      '#ffeda0',
+      '#fed976',
+      '#feb24c',
+      '#fd8d3c',
+      '#fc4e2a',
+      '#e31a1c',
+      '#b10026',
+    ],
+    7: [
+      '#ffffb2',
+      '#fed976',
+      '#feb24c',
+      '#fd8d3c',
+      '#fc4e2a',
+      '#e31a1c',
+      '#b10026',
+    ],
+    6: ['#ffffb2', '#fed976', '#feb24c', '#fd8d3c', '#f03b20', '#bd0026'],
+    5: ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'],
+  },
+  Greens: {
+    // https://colorbrewer2.org/?type=sequential&scheme=Greens&n=7
+    7: [
+      '#edf8e9',
+      '#c7e9c0',
+      '#a1d99b',
+      '#74c476',
+      '#41ab5d',
+      '#238b45',
+      '#005a32',
+    ],
+    6: ['#edf8e9', '#c7e9c0', '#a1d99b', '#74c476', '#31a354', '#006d2c'],
+    5: ['#edf8e9', '#bae4b3', '#74c476', '#31a354', '#006d2c'],
+  },
+
+  empty: '#BBB',
+}
+
 export const STATE_FIPS = {
   '01': 'Alabama',
   '04': 'Arizona',
@@ -1171,3 +1214,14 @@ export const TIER_PACK_BITS = [
   { field: 'ncwc', bits: 5, value_shift: 1 },
   { field: 'pncwc', bits: 5, value_shift: 1 },
 ]
+
+export const YEAR_REMOVED_BINS = {
+  0: 'unknown',
+  1: 'before 2000',
+  2: '2000-2009',
+  3: '2010-2019',
+  4: '2020',
+  5: '2021',
+  6: '2022',
+  7: '2023',
+}
