@@ -319,6 +319,15 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
 
     # join networkID to flowlines
     flowlines = flowlines.join(upstream_networks.rename(network_type))
+    # any segment that wasn't assigned to a network can use its lineID as its network
+    # assume that these are isolated segments whose upstream / downstreams were
+    # removed becasue they were loops
+    ix = flowlines[network_type].isnull()
+    if ix.sum() > 0:
+        print(f"Backfilling {ix.sum():,} flowlines that weren't assigned to a network")
+        flowlines.loc[ix, network_type] = flowlines.loc[ix].index.values
+        flowlines[network_type] = flowlines[network_type].astype("uint32")
+
     up_network_df = (
         flowlines.dropna(subset=[network_type])
         .rename(columns={network_type: "networkID"})

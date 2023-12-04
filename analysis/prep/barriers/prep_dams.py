@@ -107,7 +107,12 @@ print("Reading manually snapped dams...")
 snapped_df = gp.read_feather(src_dir / "manually_snapped_dams.feather")
 
 # FIXME: temporary fix; there are some with duplicate SARPIDs or missing field values
-snapped_df = snapped_df.loc[snapped_df.snapped.notnull()]
+snapped_df = (
+    snapped_df.loc[snapped_df.snapped.notnull() & (~snapped_df.SARPID.isin(["<Null>", "CA"]))]
+    .groupby("SARPID")
+    .first()
+    .reset_index()
+)
 
 
 # Don't pull across those that were not manually snapped or are missing key fields
@@ -254,9 +259,6 @@ df.loc[(df.YearRemoved > 0) & (df.YearRemoved < 1900), "YearRemoved"] = np.uint1
 # Use float32 instead of float64 (still can hold nulls)
 for column in (
     "ImpoundmentType",
-    "Height",
-    "Length",
-    "Width",
     "Recon2",
     "Recon3",
 ):
@@ -280,8 +282,8 @@ df.loc[df.BarrierStatus.isin([2, 3]), "Condition"] = 6
 # Round height and width to nearest foot.
 # There are no dams between 0 and 1 foot, so fill all na as 0.
 df.Height = df.Height.fillna(0).round().clip(0, 1e6).astype("uint16")
-# coerce length to width
-df.Length = df.Length.fillna(0).round().astype("uint16")
+# coerce length to width, fix negative values
+df.Length = df.Length.fillna(0).round().clip(0, df.Length.max()).astype("uint32")
 df.Width = df.Width.fillna(0).round().astype("uint16")
 
 
