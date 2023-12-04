@@ -195,6 +195,7 @@ const SERegionPage = ({
               </Paragraph>
             </Box>
             <Box>
+              <Heading as="h4">Aquatic connectivity teams:</Heading>
               <Box as="ul" sx={{ mt: '0.5rem' }}>
                 {Object.entries(CONNECTIVITY_TEAMS.southeast).map(
                   ([state, team]) => (
@@ -222,7 +223,10 @@ const SERegionPage = ({
                     childImageSharp: { gatsbyImageData },
                   },
                 ]) => (
-                  <Box sx={{ maxHeight: '8rem', overflow: 'hidden' }}>
+                  <Box
+                    key={state}
+                    sx={{ maxHeight: '8rem', overflow: 'hidden' }}
+                  >
                     <GatsbyImage
                       image={gatsbyImageData}
                       alt={`${state} aquatic connectivity team photo`}
