@@ -502,7 +502,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     outfilename = tmp_dir / f"removed_{network_type}.fgb"
     mbtiles_filename = tmp_dir / f"removed_{network_type}.mbtiles"
     mbtiles_files.append(mbtiles_filename)
-    removedr_barriers = to_lowercase(removed_barriers)
+    removed_barriers = to_lowercase(removed_barriers)
     write_dataframe(removed_barriers, outfilename)
 
     ret = subprocess.run(
@@ -510,7 +510,7 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
         + ["-Z6", f"-z{MAX_ZOOM}", "-B6"]
         + ["-l", f"removed_{network_type}"]
         + ["-o", f"{str(mbtiles_filename)}"]
-        + get_col_types(other_barriers)
+        + get_col_types(removed_barriers)
         + [str(outfilename)]
     )
     ret.check_returncode()
