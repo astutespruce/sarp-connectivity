@@ -248,7 +248,7 @@ const Chart = ({
 
       {totalNoNetworkCount > 0 ? (
         <Text variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
-          <sup>*</sup> includes {totalNoNetworkCount}{' '}
+          <sup>*</sup> includes {formatNumber(totalNoNetworkCount)}{' '}
           {showDams ? barrierTypeLabels.dams : null}{' '}
           {showDams && showSmallBarriers ? ' and / or ' : null}{' '}
           {showSmallBarriers ? barrierTypeLabels.smallBarriers : null} that
