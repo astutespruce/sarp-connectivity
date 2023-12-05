@@ -10,12 +10,13 @@ def calc_year_removed_bin(series):
 
 def pack_year_removed_stats(df, unit=None):
     """Combine year removed counts and gained miles into a single string:
-    <year_bin>:<count>|<gainmiles>,...
+    <year_bin>:<count>|<gainmiles>,...<?>
+    adds "?" at end if year includes barriers that do not have networks
 
     Parameters:
     -----------
     df: DataFrame
-        has columns for YearRemoved and RemovedGainMiles
+        has columns for HasNetwork, YearRemoved, RemovedGainMiles
     unit: str, optional (default: None)
         if present, is used as the top-level grouping of results; otherwise
         a single packed string is returned
@@ -23,18 +24,22 @@ def pack_year_removed_stats(df, unit=None):
 
     bins = range(len(YEAR_REMOVED_BINS) - 1)
 
-    cols = ["YearRemoved", "RemovedGainMiles"]
+    cols = ["YearRemoved", "RemovedGainMiles", "HasNetwork"]
     group_key = ["YearRemoved"]
     if unit:
         cols.insert(0, unit)
         group_key.insert(0, unit)
 
+    tmp = df[cols].copy().reset_index()
+    tmp["NoNetwork"] = (~tmp.HasNetwork).astype("uint8")
+
     stats = (
-        df[cols]
-        .reset_index()
-        .groupby(group_key, observed=True)
-        .agg({"id": "count", "RemovedGainMiles": "sum"})
-        .apply(lambda row: f"{int(row.id)}|{row.RemovedGainMiles:.2f}", axis=1)
+        tmp.groupby(group_key, observed=True)
+        .agg({"id": "count", "RemovedGainMiles": "sum", "NoNetwork": "sum"})
+        .apply(
+            lambda row: f"{int(row.id)}{f'/{int(row.NoNetwork)}' if row.NoNetwork>0 else ''}|{row.RemovedGainMiles:.2f}",
+            axis=1,
+        )
         .rename("packed")
     )
 

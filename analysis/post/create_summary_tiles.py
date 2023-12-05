@@ -27,6 +27,7 @@ Outputs:
 from pathlib import Path
 import subprocess
 
+import numpy as np
 import pandas as pd
 import pyarrow as pa
 from pyarrow.csv import write_csv
@@ -83,7 +84,7 @@ tmp_dir = Path("/tmp")
 ### Read dams
 dams = pd.read_feather(
     results_dir / "dams.feather",
-    columns=["id", "HasNetwork", "Removed"] + SUMMARY_UNITS,
+    columns=["id", "HasNetwork", "Removed", "YearRemoved"] + SUMMARY_UNITS,
 ).set_index("id", drop=False)
 
 # Get recon from master
@@ -96,20 +97,25 @@ dams["Ranked"] = dams.HasNetwork & (dams.unranked == 0)
 removed_dam_networks = (
     pd.read_feather(
         data_dir / "networks/clean/removed/removed_dams_networks.feather",
-        columns=["id", "EffectiveGainMiles", "YearRemoved"],
+        columns=["id", "EffectiveGainMiles"],
     )
     .set_index("id")
     .rename(columns={"EffectiveGainMiles": "RemovedGainMiles"})
 )
-removed_dam_networks["YearRemoved"] = calc_year_removed_bin(removed_dam_networks.YearRemoved)
 dams = dams.join(removed_dam_networks)
 dams["RemovedGainMiles"] = dams.RemovedGainMiles.fillna(0)
+
+# fix YearRemoved and bin
+dams.loc[~dams.Removed, "YearRemoved"] = np.nan
+dams.loc[(dams.YearRemoved > 0) & (dams.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
+dams.loc[(dams.YearRemoved > 0) & (dams.YearRemoved < 2000), "YearRemoved"] = 1
+dams["YearRemoved"] = calc_year_removed_bin(dams.YearRemoved)
 
 
 ### Read road-related barriers
 barriers = pd.read_feather(
     results_dir / "small_barriers.feather",
-    columns=["id", "HasNetwork", "Removed"] + SUMMARY_UNITS,
+    columns=["id", "HasNetwork", "Removed", "YearRemoved"] + SUMMARY_UNITS,
 ).set_index("id", drop=False)
 
 barriers_master = pd.read_feather(
@@ -126,14 +132,18 @@ barriers["Ranked"] = barriers.HasNetwork & (barriers.unranked == 0)
 removed_barrier_networks = (
     pd.read_feather(
         data_dir / "networks/clean/removed/removed_combined_barriers_networks.feather",
-        columns=["id", "EffectiveGainMiles", "YearRemoved"],
+        columns=["id", "EffectiveGainMiles"],
     )
     .set_index("id")
     .rename(columns={"EffectiveGainMiles": "RemovedGainMiles"})
 )
-removed_barrier_networks["YearRemoved"] = calc_year_removed_bin(removed_barrier_networks.YearRemoved)
 barriers = barriers.join(removed_barrier_networks)
 barriers["RemovedGainMiles"] = barriers.RemovedGainMiles.fillna(0)
+
+barriers.loc[~barriers.Removed, "YearRemoved"] = np.nan
+barriers.loc[(barriers.YearRemoved > 0) & (barriers.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
+barriers.loc[(barriers.YearRemoved > 0) & (barriers.YearRemoved < 2000), "YearRemoved"] = 1
+barriers["YearRemoved"] = calc_year_removed_bin(barriers.YearRemoved)
 
 largefish_barriers = pd.read_feather(
     results_dir / "largefish_barriers.feather",
@@ -192,7 +202,7 @@ for unit in SUMMARY_UNITS:
             }
         )
         .join(
-            pack_year_removed_stats(dams[[unit, "YearRemoved", "RemovedGainMiles"]], unit=unit).rename(
+            pack_year_removed_stats(dams[[unit, "HasNetwork", "YearRemoved", "RemovedGainMiles"]], unit=unit).rename(
                 "removed_dams_by_year"
             )
         )
@@ -221,9 +231,9 @@ for unit in SUMMARY_UNITS:
             }
         )
         .join(
-            pack_year_removed_stats(barriers[[unit, "YearRemoved", "RemovedGainMiles"]], unit=unit).rename(
-                "removed_small_barriers_by_year"
-            )
+            pack_year_removed_stats(
+                barriers[[unit, "HasNetwork", "YearRemoved", "RemovedGainMiles"]], unit=unit
+            ).rename("removed_small_barriers_by_year")
         )
     )
     barriers_stats["removed_small_barriers_by_year"] = barriers_stats.removed_small_barriers_by_year.fillna("")

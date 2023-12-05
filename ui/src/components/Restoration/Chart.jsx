@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
 
 import { barrierTypeLabels } from 'config'
+import { sum } from 'util/data'
 import { formatNumber } from 'util/format'
 
 const Chart = ({
@@ -16,45 +17,57 @@ const Chart = ({
       ({
         label,
         dams = 0,
+        damsNoNetwork = 0,
         damsGainMiles = 0,
         smallBarriers = 0,
+        smallBarriersNoNetwork = 0,
         smallBarriersGainMiles = 0,
       }) => {
-        if (metric === 'count') {
-          let total = dams + smallBarriers
-          if (barrierType === 'dams') {
-            total = dams
-          } else if (barrierType === 'small_barriers') {
-            total = smallBarriers
-          }
+        let totalCount = dams + smallBarriers
 
-          return {
-            label,
-            dams,
-            smallBarriers,
-            total,
-          }
-        }
-
-        let total = damsGainMiles + smallBarriersGainMiles
+        let totalNoNetworkCount = damsNoNetwork + smallBarriersNoNetwork
+        let totalGainMiles = damsGainMiles + smallBarriersGainMiles
         if (barrierType === 'dams') {
-          total = damsGainMiles
+          totalCount = dams
+          totalNoNetworkCount = damsNoNetwork
+          totalGainMiles = damsGainMiles
         } else if (barrierType === 'small_barriers') {
-          total = smallBarriersGainMiles
+          totalCount = smallBarriers
+          totalNoNetworkCount = smallBarriersNoNetwork
+          totalGainMiles = smallBarriersGainMiles
         }
 
-        return {
+        const out = {
           label,
-          dams: damsGainMiles,
-          smallBarriers: smallBarriersGainMiles,
-          total,
+          totalCount,
+          totalNoNetworkCount,
+          totalGainMiles,
+          dams,
+          smallBarriersGainMiles,
         }
+
+        if (metric === 'gainmiles') {
+          out.dams = damsGainMiles
+          out.smallBarriers = smallBarriersGainMiles
+        }
+
+        return out
       }
     )
     // only show unknown when present
-    .filter(({ label, total }) => label !== 'unknown' || total > 0)
+    .filter(({ label, totalCount }) => label !== 'unknown' || totalCount > 0)
 
-  const max = Math.max(...entries.map(({ total }) => total))
+  const max = Math.max(
+    ...entries.map(({ totalCount, totalGainMiles }) =>
+      metric === 'gainmiles' ? totalGainMiles : totalCount
+    )
+  )
+
+  const totalNoNetworkCount = sum(
+    entries.map(
+      ({ totalNoNetworkCount: yearNoNetworkCount }) => yearNoNetworkCount
+    )
+  )
 
   if (max === 0) {
     return null
@@ -136,51 +149,63 @@ const Chart = ({
           mb: '0.5em',
         }}
       >
-        {entries.map(({ label, dams, smallBarriers, total }) => (
-          <Flex key={label} sx={{ alignItems: 'center' }}>
-            <Text sx={{ flex: '0 0 6rem', textAlign: 'right', pr: '0.75em' }}>
-              {label}
-            </Text>
-            <Flex
-              sx={{
-                flex: '1 1 auto',
-                alignItems: 'center',
-                borderLeft: '1px solid',
-                borderLeftColor: 'grey.2',
-                py: '0.25rem',
-              }}
-            >
-              {showDams ? (
-                <Box
-                  sx={{
-                    flex: `0 0 ${(100 * dams) / max}%`,
-                    height: '1em',
-                    bg: 'blue.8',
-                  }}
-                />
-              ) : null}
-              {showSmallBarriers ? (
-                <Box
-                  sx={{
-                    flex: `0 0 ${(100 * smallBarriers) / max}%`,
-                    height: '1em',
-                    bg: showDams ? 'blue.2' : 'blue.8',
-                  }}
-                />
-              ) : null}
-              <Text
+        {entries.map(
+          ({
+            label,
+            dams,
+            smallBarriers,
+            totalCount,
+            totalGainMiles,
+            totalNoNetworkCount: yearNoNetworkCount,
+          }) => (
+            <Flex key={label} sx={{ alignItems: 'center' }}>
+              <Text sx={{ flex: '0 0 6rem', textAlign: 'right', pr: '0.75em' }}>
+                {label}
+              </Text>
+              <Flex
                 sx={{
-                  flex: '0 0 auto',
-                  fontSize: 0,
-                  color: 'grey.7',
-                  pl: '0.25rem',
+                  flex: '1 1 auto',
+                  alignItems: 'center',
+                  borderLeft: '1px solid',
+                  borderLeftColor: 'grey.2',
+                  py: '0.25rem',
                 }}
               >
-                {formatNumber(total)} {metric === 'gainmiles' ? 'miles' : null}
-              </Text>
+                {showDams ? (
+                  <Box
+                    sx={{
+                      flex: `0 0 ${(100 * dams) / max}%`,
+                      height: '1em',
+                      bg: 'blue.8',
+                    }}
+                  />
+                ) : null}
+                {showSmallBarriers ? (
+                  <Box
+                    sx={{
+                      flex: `0 0 ${(100 * smallBarriers) / max}%`,
+                      height: '1em',
+                      bg: showDams ? 'blue.2' : 'blue.8',
+                    }}
+                  />
+                ) : null}
+                <Text
+                  sx={{
+                    flex: '0 0 auto',
+                    fontSize: 0,
+                    color: 'grey.7',
+                    pl: '0.25rem',
+                  }}
+                >
+                  {metric === 'gainmiles'
+                    ? `${formatNumber(totalGainMiles)} miles`
+                    : formatNumber(totalCount)}
+                  {yearNoNetworkCount ? <sup>*</sup> : null}
+                </Text>
+              </Flex>
             </Flex>
-          </Flex>
-        ))}
+          )
+        )}
       </Box>
 
       {barrierType === 'combined_barriers' ? (
@@ -219,6 +244,18 @@ const Chart = ({
             </Box>
           </Flex>
         </Flex>
+      ) : null}
+
+      {totalNoNetworkCount > 0 ? (
+        <Text variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+          <sup>*</sup> includes {totalNoNetworkCount}{' '}
+          {showDams ? barrierTypeLabels.dams : null}{' '}
+          {showDams && showSmallBarriers ? ' and / or ' : null}{' '}
+          {showSmallBarriers ? barrierTypeLabels.smallBarriers : null} that
+          could not be correctly located on the aquatic network or were
+          otherwise excluded from the analysis; these contribute toward the
+          count but not the miles gained.
+        </Text>
       ) : null}
     </>
   )

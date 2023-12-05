@@ -5,6 +5,7 @@ const unpackYearRemoved = (text) => {
   if (isEmptyString(text)) {
     return Object.keys(YEAR_REMOVED_BINS).map(() => ({
       count: 0,
+      countNoNetwork: 0,
       gainmiles: 0,
     }))
   }
@@ -13,8 +14,14 @@ const unpackYearRemoved = (text) => {
     if (!part) {
       return { count: 0, gainmiles: 0 }
     }
-    const [count = '0', gainmiles = '0'] = part.split('|')
-    return { count: parseFloat(count), gainmiles: parseFloat(gainmiles) }
+    const [rawCount = '0', gainmiles = '0'] = part.split('|')
+    const [count, countNoNetwork] = rawCount.split('/')
+    return {
+      count: parseFloat(count),
+      countNoNetwork:
+        countNoNetwork !== undefined ? parseFloat(countNoNetwork) : 0,
+      gainmiles: parseFloat(gainmiles),
+    }
   })
 }
 
@@ -29,17 +36,23 @@ export const extractYearRemovedStats = (
 
   return Object.entries(YEAR_REMOVED_BINS)
     .map(([bin, label]) => {
-      const { count: dams = 0, gainmiles: damsGainMiles = 0 } =
-        removedDamsByYear[bin]
+      const {
+        count: dams = 0,
+        countNoNetwork: damsNoNetwork = 0,
+        gainmiles: damsGainMiles = 0,
+      } = removedDamsByYear[bin]
       const {
         count: smallBarriers = 0,
+        countNoNetwork: smallBarriersNoNetwork = 0,
         gainmiles: smallBarriersGainMiles = 0,
       } = removedSmallBarriersByYear[bin]
       return {
         label,
         dams,
+        damsNoNetwork,
         damsGainMiles,
         smallBarriers,
+        smallBarriersNoNetwork,
         smallBarriersGainMiles,
       }
     })
