@@ -316,6 +316,11 @@ module.exports = {
           mt: '0.5em',
         },
       },
+      ol: {
+        'li + li': {
+          mt: '0.5em',
+        },
+      },
     },
     hr: {
       borderBottom: '0.5rem solid',
