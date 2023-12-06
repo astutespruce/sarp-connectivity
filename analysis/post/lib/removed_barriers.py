@@ -40,11 +40,10 @@ def pack_year_removed_stats(df, unit=None):
             lambda row: f"{int(row.id)}{f'/{int(row.NoNetwork)}' if row.NoNetwork>0 else ''}|{row.RemovedGainMiles:.2f}",
             axis=1,
         )
-        .rename("packed")
     )
 
     if unit:
-        stats = stats.reset_index()
+        stats = stats.rename("packed").reset_index()
         # create tuple so we can create dict later in aggregation
         stats["packed"] = stats.apply(lambda row: (row.YearRemoved, row.packed), axis=1)
         return (

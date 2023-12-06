@@ -98,17 +98,17 @@ const SummaryPage = ({ location }) => {
 
   return (
     <Layout>
-      <Flex sx={{ height: '100%' }}>
-        <Sidebar>{sidebarContent}</Sidebar>
+      <ClientOnly>
+        <Flex sx={{ height: '100%' }}>
+          <Sidebar>{sidebarContent}</Sidebar>
 
-        <Box
-          sx={{
-            position: 'relative',
-            height: '100%',
-            flex: '1 0 auto',
-          }}
-        >
-          <ClientOnly>
+          <Box
+            sx={{
+              position: 'relative',
+              height: '100%',
+              flex: '1 0 auto',
+            }}
+          >
             <Map
               region={region}
               focalBarrierType={focalBarrierType}
@@ -147,9 +147,9 @@ const SummaryPage = ({ location }) => {
                 ) : null}
               </TopBar>
             </Map>
-          </ClientOnly>
-        </Box>
-      </Flex>
+          </Box>
+        </Flex>
+      </ClientOnly>
     </Layout>
   )
 }

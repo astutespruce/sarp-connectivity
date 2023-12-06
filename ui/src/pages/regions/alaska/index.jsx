@@ -13,13 +13,13 @@ import {
   Text,
 } from 'theme-ui'
 
-import { useSummaryData } from 'components/Data'
+import { useRegionSummary } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
 import { REGIONS } from 'config'
-import { formatNumber } from 'util/format'
+import { formatNumber, pluralize } from 'util/format'
 
 const regionID = 'ak'
 const {
@@ -36,7 +36,7 @@ const AlaskaRegionPage = ({
     },
   },
 }) => {
-  const { [regionID]: summary } = useSummaryData()
+  const { [regionID]: summary } = useRegionSummary()
 
   return (
     <Layout>
@@ -87,7 +87,7 @@ const AlaskaRegionPage = ({
           </Box>
           <Box>
             <Heading as="h4" sx={{ mb: '1rem' }}>
-              Includes {states.length} states with:
+              Includes {states.length} {pluralize('state', states.length)} with:
             </Heading>
 
             <RegionStats {...summary} />

@@ -5,11 +5,12 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import { useCrossfilter } from 'components/Crossfilter'
 import { ToggleButton } from 'components/Button'
-import { TopBar, mapConfig } from 'components/Map'
+import { TopBar } from 'components/Map'
 import {
   fetchBarrierInfo,
   fetchBarrierRanks,
   useBarrierType,
+  useSummaryData,
 } from 'components/Data'
 import { Sidebar } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
@@ -41,6 +42,7 @@ const resultTypeOptions = [
 
 const Prioritize = () => {
   const barrierType = useBarrierType()
+  const { bounds: fullBounds } = useSummaryData()
   const {
     state: { filters },
     setData: setFilterData,
@@ -74,7 +76,7 @@ const Prioritize = () => {
     scenario: 'ncwc',
     resultsType: 'full',
     tierThreshold: 1,
-    bounds: mapConfig.bounds,
+    bounds: fullBounds,
     zoom: null,
   })
 
@@ -89,7 +91,7 @@ const Prioritize = () => {
       scenario: 'ncwc',
       resultsType: 'full',
       tierThreshold: 1,
-      bounds: mapConfig.bounds,
+      bounds: fullBounds,
     }))
   }
 

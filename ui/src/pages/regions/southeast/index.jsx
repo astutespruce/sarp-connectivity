@@ -15,7 +15,7 @@ import {
   Text,
 } from 'theme-ui'
 
-import { useSummaryData } from 'components/Data'
+import { useRegionSummary } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
 import { OutboundLink } from 'components/Link'
 import { Layout, SEO } from 'components/Layout'
@@ -46,7 +46,7 @@ const SERegionPage = ({
     },
   },
 }) => {
-  const { [regionID]: summary } = useSummaryData()
+  const { [regionID]: summary } = useRegionSummary()
 
   const images = groupBy(extractNodes(imagesSharp), 'state')
 

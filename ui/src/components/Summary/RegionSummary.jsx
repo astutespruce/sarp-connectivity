@@ -7,7 +7,7 @@ import { Box, Paragraph, Divider } from 'theme-ui'
 
 import { Link } from 'components/Link'
 import { UnitSearch } from 'components/UnitSearch'
-import { useSummaryData } from 'components/Data'
+import { useSummaryData, useRegionSummary } from 'components/Data'
 import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'
 
@@ -17,25 +17,26 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
     name = REGIONS[region].name
   }
 
+  const summary = useSummaryData()
+  const regions = useRegionSummary()
+  const isRegion = region !== 'total'
+
   const {
-    [region]: {
-      dams,
-      reconDams,
-      rankedDams,
-      removedDams,
-      removedDamsGainMiles,
-      totalSmallBarriers,
-      smallBarriers,
-      rankedSmallBarriers,
-      removedSmallBarriers,
-      removedSmallBarriersGainMiles,
-      crossings,
-    },
-  } = useSummaryData()
+    dams,
+    reconDams,
+    rankedDams,
+    removedDams,
+    removedDamsGainMiles,
+    totalSmallBarriers,
+    smallBarriers,
+    rankedSmallBarriers,
+    removedSmallBarriers,
+    removedSmallBarriersGainMiles,
+    crossings,
+  } = isRegion ? regions[region] : summary
 
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
-  const isRegion = region !== 'total'
 
   const regionName = isRegion ? name : 'full analysis area'
 

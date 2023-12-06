@@ -13,7 +13,7 @@ import {
   Text,
 } from 'theme-ui'
 
-import { useSummaryData } from 'components/Data'
+import { useRegionSummary } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
@@ -36,7 +36,7 @@ const PacificSouthwestRegionPage = ({
     },
   },
 }) => {
-  const { [regionID]: summary } = useSummaryData()
+  const { [regionID]: summary } = useRegionSummary()
 
   return (
     <Layout>
