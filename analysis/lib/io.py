@@ -46,11 +46,7 @@ def read_feathers(paths, columns=None, geo=False, new_fields=None):
             for field, values in new_fields.items():
                 df[field] = values[i]
 
-        merged = (
-            pd.concat([merged, df], ignore_index=True, sort=False)
-            if merged is not None
-            else df
-        )
+        merged = pd.concat([merged, df], ignore_index=True, sort=False) if merged is not None else df
 
     return merged.reset_index(drop=True)
 
@@ -82,6 +78,10 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None):
             for field, values in new_fields.items():
                 table = table.append_column(field, [np.repeat(values[i], len(table))])
 
-        merged = pa.concat_tables([merged, table]) if merged is not None else table
+        try:
+            merged = pa.concat_tables([merged, table]) if merged is not None else table
+
+        except pa.lib.ArrowInvalid:
+            merged = pa.concat_tables([merged, table], promote_options="default") if merged is not None else table
 
     return merged.combine_chunks()

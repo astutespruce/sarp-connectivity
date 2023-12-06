@@ -505,9 +505,7 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
 
     length_cols = [c for c in barrier_networks.columns if c.endswith("Miles")]
 
-    for col in length_cols + [
-        "natfldpln",
-    ]:
+    for col in length_cols + ["natfldpln"]:
         barrier_networks[col] = barrier_networks[col].astype("float32")
 
     barrier_networks.sizeclasses = barrier_networks.sizeclasses.astype("uint8")
@@ -523,7 +521,7 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
     )
 
     cols = ["TotalUpstreamMiles", "PerennialUpstreamMiles"]
-    # TODO: add species habitat columns
+    # TODO: add gain miles for species habitat columns
     # + [
     #     c for c in length_cols if c.endswith("HabitatUpstreamMiles")
     # ]
@@ -543,7 +541,7 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
 
     # Round floating point columns to 3 decimals
     for column in [c for c in barrier_networks.columns if c.endswith("Miles")]:
-        barrier_networks[column] = barrier_networks[column].round(3).fillna(-1)
+        barrier_networks[column] = barrier_networks[column].round(3).fillna(0)
 
     ### Round PercentUnaltered and PercentAltered to integers
     for subset in ["", "Perennial"]:

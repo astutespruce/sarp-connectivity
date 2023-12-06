@@ -3,7 +3,6 @@ require('dotenv').config({
   path: `.env.${process.env.NODE_ENV}`,
 })
 
-const theme = require('./src/theme')
 const { version, date } = require('./package.json')
 
 const defaultHost = `https://aquaticbarriers.org`
@@ -51,7 +50,6 @@ module.exports = {
       resolve: `gatsby-plugin-theme-ui`,
       options: {
         injectColorFlashScript: false,
-        preset: theme,
       },
     },
     `gatsby-plugin-image`,

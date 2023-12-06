@@ -8,7 +8,7 @@ import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { Link, OutboundLink } from 'components/Link'
 
-const MethodsPage = ({ data: { headerImage } }) => (
+const NetworkMethodsPage = ({ data: { headerImage } }) => (
   <Layout>
     <HeaderImage
       image={headerImage.childImageSharp.gatsbyImageData}
@@ -24,7 +24,7 @@ const MethodsPage = ({ data: { headerImage } }) => (
     <Container>
       <Heading as="h1">Network Analysis Methods</Heading>
       <Paragraph variant="paragraph.large" sx={{ mt: '2rem' }}>
-        Barriers in the Southeast U.S. were analyzed using the{' '}
+        Aquatic barriers were analyzed using the{' '}
         <OutboundLink to="https://www.usgs.gov/core-science-systems/ngp/national-hydrography/nhdplus-high-resolution">
           National Hydrography Dataset - High Resolution Plus
         </OutboundLink>{' '}
@@ -111,8 +111,8 @@ const MethodsPage = ({ data: { headerImage } }) => (
           Methods for Dams
         </Heading>
         <p>
-          The location of dams across the Southeast were compiled by SARP from a
-          variety of data providers, including the{' '}
+          The location of dams were compiled by SARP from a variety of data
+          providers, including the{' '}
           <OutboundLink to="https://nid.sec.usace.army.mil/#/">
             National Inventory of Dams
           </OutboundLink>
@@ -315,14 +315,14 @@ const MethodsPage = ({ data: { headerImage } }) => (
   </Layout>
 )
 
-MethodsPage.propTypes = {
+NetworkMethodsPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
   }).isRequired,
 }
 
 export const pageQuery = graphql`
-  query NetworkMethodsPageQuery {
+  query NetworkNetworkMethodsPageQuery {
     headerImage: file(relativePath: { eq: "30557776285_90ce5f6683_6k.jpg" }) {
       childImageSharp {
         gatsbyImageData(
@@ -335,6 +335,6 @@ export const pageQuery = graphql`
   }
 `
 
-export default MethodsPage
+export default NetworkMethodsPage
 
 export const Head = () => <SEO title="Network Analysis Methods" />

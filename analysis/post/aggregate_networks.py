@@ -230,7 +230,6 @@ combined = pd.concat(
     sort=False,
 ).set_index("id")
 
-
 # fill string columns
 dt = combined.dtypes
 bool_columns = set(c for c in dams.columns if dams.dtypes[c] == "bool").union(

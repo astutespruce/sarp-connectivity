@@ -481,7 +481,7 @@ for network_type in network_types:
     network_segments = merged_segments
 
     for col in [c for c in networks.columns if c.endswith("Miles")]:
-        networks[col] = networks[col].round(3).fillna(-1)
+        networks[col] = networks[col].round(3).fillna(0)
 
     networks.to_feather(out_dir / f"removed_{network_type}_networks.feather")
 
