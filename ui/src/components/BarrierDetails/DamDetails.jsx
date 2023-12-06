@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
+import { extractHabitat } from 'components/Data/Habitat'
 import { Entry, Field, Section } from 'components/Sidebar'
 
 import {
@@ -22,7 +23,8 @@ import IDInfo from './IDInfo'
 import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
 import NoNetworkInfo from './NoNetworkInfo'
-import SpeciesInfo from './SpeciesInfo'
+import SpeciesWatershedPresenceInfo from './SpeciesWatershedPresenceInfo'
+import SpeciesHabitatInfo from './SpeciesHabitatInfo'
 
 const { version: dataVersion } = siteMetadata
 
@@ -93,10 +95,12 @@ const DamDetails = ({
   waterright,
   yearcompleted,
   yearremoved,
+  ...props // includes species habitat fields selected dynamically
 }) => {
   const isLowheadDam = lowheaddam !== null && lowheaddam >= 1
   const isDiversion = diversion !== null && diversion >= 1
   const isUnspecifiedType = !(isLowheadDam || isDiversion || invasive)
+  const habitat = hasnetwork ? extractHabitat(props) : []
 
   return (
     <Box
@@ -293,6 +297,12 @@ const DamDetails = ({
         )}
       </Section>
 
+      {hasnetwork && habitat.length > 0 ? (
+        <Section title="Species habitat information for this network">
+          <SpeciesHabitatInfo habitat={habitat} />
+        </Section>
+      ) : null}
+
       {hasnetwork && flowstoocean && milestooutlet < 500 ? (
         <Section title="Diadromous species information">
           <DiadromousInfo
@@ -306,7 +316,7 @@ const DamDetails = ({
       ) : null}
 
       <Section title="Species information for this subwatershed">
-        <SpeciesInfo
+        <SpeciesWatershedPresenceInfo
           barrierType={barrierType}
           tespp={tespp}
           regionalsgcnspp={regionalsgcnspp}
@@ -407,6 +417,36 @@ DamDetails.propTypes = {
   waterright: PropTypes.number,
   yearcompleted: PropTypes.number,
   yearremoved: PropTypes.number,
+  alewifehabitatupstreammiles: PropTypes.number,
+  americaneelhabitatupstreammiles: PropTypes.number,
+  americanshadhabitatupstreammiles: PropTypes.number,
+  atlanticsturgeonhabitatupstreammiles: PropTypes.number,
+  bluebackherringhabitatupstreammiles: PropTypes.number,
+  bonnevillecutthroattrouthabitatupstreammiles: PropTypes.number,
+  bulltrouthabitatupstreammiles: PropTypes.number,
+  cabaselinefishhabitatupstreammiles: PropTypes.number,
+  chesapeakediadromoushabitatupstreammiles: PropTypes.number,
+  chinooksalmonhabitatupstreammiles: PropTypes.number,
+  chumsalmonhabitatupstreammiles: PropTypes.number,
+  coastalcutthroattrouthabitatupstreammiles: PropTypes.number,
+  cohosalmonhabitatupstreammiles: PropTypes.number,
+  easternbrooktrouthabitatupstreammiles: PropTypes.number,
+  greensturgeonhabitatupstreammiles: PropTypes.number,
+  hickoryshadhabitatupstreammiles: PropTypes.number,
+  kokaneehabitatupstreammiles: PropTypes.number,
+  pacificlampreyhabitatupstreammiles: PropTypes.number,
+  pinksalmonhabitatupstreammiles: PropTypes.number,
+  rainbowtrouthabitatupstreammiles: PropTypes.number,
+  redbandtrouthabitatupstreammiles: PropTypes.number,
+  shortnosesturgeonhabitatupstreammiles: PropTypes.number,
+  sockeyesalmonhabitatupstreammiles: PropTypes.number,
+  southatlanticanadromoushabitatupstreammiles: PropTypes.number,
+  steelheadhabitatupstreammiles: PropTypes.number,
+  streamnetanadromoushabitatupstreammiles: PropTypes.number,
+  stripedbasshabitatupstreammiles: PropTypes.number,
+  westslopecutthroattrouthabitatupstreammiles: PropTypes.number,
+  whitesturgeonhabitatupstreammiles: PropTypes.number,
+  yellowstonecutthroattrouthabitatupstreammiles: PropTypes.number,
 }
 
 DamDetails.defaultProps = {
@@ -422,7 +462,7 @@ DamDetails.defaultProps = {
   excluded: false,
   feasibilityclass: 0,
   fercregulated: null,
-  flowstoocean: false,
+  flowstoocean: 0,
   freealtereddownstreammiles: 0,
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,
@@ -471,6 +511,36 @@ DamDetails.defaultProps = {
   waterright: null,
   yearcompleted: 0,
   yearremoved: 0,
+  alewifehabitatupstreammiles: 0,
+  americaneelhabitatupstreammiles: 0,
+  americanshadhabitatupstreammiles: 0,
+  atlanticsturgeonhabitatupstreammiles: 0,
+  bluebackherringhabitatupstreammiles: 0,
+  bonnevillecutthroattrouthabitatupstreammiles: 0,
+  bulltrouthabitatupstreammiles: 0,
+  cabaselinefishhabitatupstreammiles: 0,
+  chesapeakediadromoushabitatupstreammiles: 0,
+  chinooksalmonhabitatupstreammiles: 0,
+  chumsalmonhabitatupstreammiles: 0,
+  coastalcutthroattrouthabitatupstreammiles: 0,
+  cohosalmonhabitatupstreammiles: 0,
+  easternbrooktrouthabitatupstreammiles: 0,
+  greensturgeonhabitatupstreammiles: 0,
+  hickoryshadhabitatupstreammiles: 0,
+  kokaneehabitatupstreammiles: 0,
+  pacificlampreyhabitatupstreammiles: 0,
+  pinksalmonhabitatupstreammiles: 0,
+  rainbowtrouthabitatupstreammiles: 0,
+  redbandtrouthabitatupstreammiles: 0,
+  shortnosesturgeonhabitatupstreammiles: 0,
+  sockeyesalmonhabitatupstreammiles: 0,
+  southatlanticanadromoushabitatupstreammiles: 0,
+  steelheadhabitatupstreammiles: 0,
+  streamnetanadromoushabitatupstreammiles: 0,
+  stripedbasshabitatupstreammiles: 0,
+  westslopecutthroattrouthabitatupstreammiles: 0,
+  whitesturgeonhabitatupstreammiles: 0,
+  yellowstonecutthroattrouthabitatupstreammiles: 0,
 }
 
 export default DamDetails

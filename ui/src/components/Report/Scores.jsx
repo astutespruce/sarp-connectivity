@@ -67,19 +67,19 @@ const Scores = ({
 
       <View style={{ marginTop: 24 }}>
         <Flex>
-          <View style={{ flex: '1 1 160pt' }}>
+          <View style={{ flex: '1 1 auto' }}>
             <Text>
               <Italic>
                 Compared to other {barrierTypeLabel} in {state}:
               </Italic>
             </Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 120pt' }}>
             <Text>
               <Bold>full network</Bold>
             </Text>
           </View>
-          <View style={{ flex: '1 1 60pt' }}>
+          <View style={{ flex: '0 0 120pt' }}>
             <Text>
               <Bold>perennial reaches only</Bold>
             </Text>
@@ -93,13 +93,13 @@ const Scores = ({
             paddingTop: 6,
           }}
         >
-          <View style={{ flex: '1 1 160pt' }}>
+          <View style={{ flex: '1 1 auto' }}>
             <Text>Network connectivity tier</Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 120pt' }}>
             <Text>{state_nc_tier}</Text>
           </View>
-          <View style={{ flex: '1 1 60pt' }}>
+          <View style={{ flex: '0 0 120pt' }}>
             <Text>{state_pnc_tier}</Text>
           </View>
         </Flex>
@@ -111,13 +111,13 @@ const Scores = ({
             paddingTop: 6,
           }}
         >
-          <View style={{ flex: '1 1 160pt' }}>
+          <View style={{ flex: '1 1 auto' }}>
             <Text>Watershed condition tier</Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 120pt' }}>
             <Text>{state_wc_tier}</Text>
           </View>
-          <View style={{ flex: '1 1 60pt' }}>
+          <View style={{ flex: '0 0 120pt' }}>
             <Text>{state_pwc_tier}</Text>
           </View>
         </Flex>
@@ -129,14 +129,14 @@ const Scores = ({
             paddingTop: 6,
           }}
         >
-          <View style={{ flex: '1 1 160pt' }}>
+          <View style={{ flex: '1 1 auto' }}>
             <Text>Combined network connectivity &amp;</Text>
             <Text>watershed condition tier</Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 120pt' }}>
             <Text>{state_ncwc_tier}</Text>
           </View>
-          <View style={{ flex: '1 1 60pt' }}>
+          <View style={{ flex: '0 0 120pt' }}>
             <Text>{state_pncwc_tier}</Text>
           </View>
         </Flex>

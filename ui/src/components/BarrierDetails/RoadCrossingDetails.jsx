@@ -10,7 +10,7 @@ import { CROSSING_TYPE, ROAD_TYPE } from 'config'
 import IDInfo from './IDInfo'
 import LocationInfo from './LocationInfo'
 import NoNetworkInfo from './NoNetworkInfo'
-import SpeciesInfo from './SpeciesInfo'
+import SpeciesWatershedPresenceInfo from './SpeciesWatershedPresenceInfo'
 
 const RoadCrossingDetails = ({
   barrierType,
@@ -103,7 +103,7 @@ const RoadCrossingDetails = ({
     {/* Note: diadromous species info not shown because these have no network */}
 
     <Section title="Species information for this subwatershed">
-      <SpeciesInfo
+      <SpeciesWatershedPresenceInfo
         barrierType={barrierType}
         tespp={tespp}
         regionalsgcnspp={regionalsgcnspp}

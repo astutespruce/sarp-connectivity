@@ -27,14 +27,14 @@ const SpeciesInfo = ({
 
   const disclaimer = (
     <Entry>
-      <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
+      <Text variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
         Note: species information is very incomplete and is limited to the
         subwatershed level. These species may or may not be directly impacted by
         this {typeLabel}.{' '}
         <a href="/sgcn" target="_blank">
           Read more.
         </a>
-      </Paragraph>
+      </Text>
     </Entry>
   )
 
@@ -42,12 +42,11 @@ const SpeciesInfo = ({
     return (
       <>
         <Text
+          variant="help"
           sx={{
             my: '0.5rem',
             mr: '0.5rem',
             px: '0.5rem',
-            color: 'grey.8',
-            fontSize: 1,
           }}
         >
           Data sources in the subwatershed containing this {typeLabel} have not

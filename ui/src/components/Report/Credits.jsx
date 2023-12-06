@@ -11,7 +11,7 @@ const Credits = (props) => (
       <Link href="https://aquaticbarriers.org/">
         <Text>National Aquatic Barrier Inventory & Prioritization Tool</Text>
       </Link>
-      , a project of the{' '}
+      ,{'\n'} a project of the{' '}
       <Link href="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
         <Text>Southeast Aquatic Resources Partnership</Text>
       </Link>
@@ -23,7 +23,8 @@ const Credits = (props) => (
       , the&nbsp;
       <Link href="https://gcpolcc.org/">
         <Text>
-          Gulf Coastal Plains and Ozarks Landscape Conservation Cooperative
+          Gulf Coastal Plains and Ozarks Landscape {'\n'}Conservation
+          Cooperative
         </Text>
       </Link>
       , and the&nbsp;

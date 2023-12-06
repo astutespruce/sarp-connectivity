@@ -2,6 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Text } from 'theme-ui'
 
+import { extractHabitat } from 'components/Data/Habitat'
 import { Entry, Field, Section } from 'components/Sidebar'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
@@ -20,7 +21,8 @@ import IDInfo from './IDInfo'
 import LocationInfo from './LocationInfo'
 import NetworkInfo from './NetworkInfo'
 import NoNetworkInfo from './NoNetworkInfo'
-import SpeciesInfo from './SpeciesInfo'
+import SpeciesWatershedPresenceInfo from './SpeciesWatershedPresenceInfo'
+import SpeciesHabitatInfo from './SpeciesHabitatInfo'
 
 export const classifySARPScore = (score) => {
   // assumes -1 (NODATA) already filtered out
@@ -103,192 +105,204 @@ const BarrierDetails = ({
   waterbodykm2,
   waterbodysizeclass,
   yearremoved,
-}) => (
-  <Box
-    sx={{
-      mt: '-1rem',
-      mx: '-0.5rem',
-      fontSize: 1,
-    }}
-  >
-    <Section title="Location">
-      <Entry>
-        <Field label="Barrier type">
-          Road-related <br />
-          potential barrier
-          {invasive ? (
-            <>
-              ,<br />
-              invasive species barrier
-            </>
-          ) : null}
-          {removed ? (
-            <>
-              <br />
-              {yearremoved !== null && yearremoved > 0
-                ? `(removed in ${yearremoved})`
-                : '(removed / year unknown)'}
-            </>
-          ) : null}
-        </Field>
-      </Entry>
-      {!isEmptyString(road) ? (
-        <Entry>
-          <Field label="Road">{road}</Field>
-        </Entry>
-      ) : null}
+  ...props // includes species habitat fields selected dynamically
+}) => {
+  const habitat = hasnetwork ? extractHabitat(props) : []
 
-      <LocationInfo
-        barrierType={barrierType}
-        reachName={stream}
-        basin={basin}
-        subwatershed={subwatershed}
-        huc12={huc12}
-        ownertype={ownertype}
-        barrierownertype={barrierownertype}
-        ejtract={ejtract}
-        ejtribal={ejtribal}
-        intermittent={intermittent}
-        streamorder={streamorder}
-        streamsizeclass={streamsizeclass}
-        waterbodysizeclass={waterbodysizeclass}
-        waterbodykm2={waterbodykm2}
-      />
-    </Section>
+  return (
+    <Box
+      sx={{
+        mt: '-1rem',
+        mx: '-0.5rem',
+        fontSize: 1,
+      }}
+    >
+      <Section title="Location">
+        <Entry>
+          <Field label="Barrier type">
+            Road-related <br />
+            potential barrier
+            {invasive ? (
+              <>
+                ,<br />
+                invasive species barrier
+              </>
+            ) : null}
+            {removed ? (
+              <>
+                <br />
+                {yearremoved !== null && yearremoved > 0
+                  ? `(removed in ${yearremoved})`
+                  : '(removed / year unknown)'}
+              </>
+            ) : null}
+          </Field>
+        </Entry>
+        {!isEmptyString(road) ? (
+          <Entry>
+            <Field label="Road">{road}</Field>
+          </Entry>
+        ) : null}
 
-    <Section title="Barrier information">
-      {roadtype !== null && roadtype >= 0 ? (
-        <Entry>
-          <Field label="Road type" isUnknown={roadtype === 0}>
-            {ROAD_TYPE[roadtype]}
-          </Field>
-        </Entry>
-      ) : null}
-      {crossingtype !== null && crossingtype >= 0 ? (
-        <Entry>
-          <Field label="Crossing type" isUnknown={crossingtype === 0}>
-            {CROSSING_TYPE[crossingtype]}
-          </Field>
-        </Entry>
-      ) : null}
-      {condition !== null && condition >= 0 ? (
-        <Entry>
-          <Field label="Condition" isUnknown={condition === 0}>
-            {CONDITION[condition]}
-          </Field>
-        </Entry>
-      ) : null}
-      {constriction !== null && constriction >= 0 ? (
-        <Entry>
-          <Field label="Type of constriction" isUnknown={constriction === 0}>
-            {CONSTRICTION[constriction]}
-          </Field>
-        </Entry>
-      ) : null}
-      {barrierseverity !== null ? (
-        <Entry>
-          <Field label="Severity" isUnknown={barrierseverity === 0}>
-            {SMALL_BARRIER_SEVERITY[barrierseverity]}
-          </Field>
-        </Entry>
-      ) : null}
-      {sarp_score >= 0 ? (
-        <Entry>
-          <Field label="SARP Aquatic Organism Passage score">
-            {formatNumber(sarp_score, 1)}
-            <Text sx={{ fontSize: 0, color: 'grey.8' }}>
-              ({classifySARPScore(sarp_score)})
-            </Text>
-          </Field>
-        </Entry>
-      ) : null}
-      {passagefacility !== null &&
-      passagefacility >= 0 &&
-      PASSAGEFACILITY[passagefacility] ? (
-        <Entry>
-          <Field
-            label="Passage facility type"
-            isUnknown={passagefacility === 0}
-          >
-            {PASSAGEFACILITY[passagefacility].toLowerCase()}
-          </Field>
-        </Entry>
-      ) : null}
-    </Section>
-
-    <Section title="Functional network information">
-      {removed ? (
-        <Entry sx={{ mb: '1rem' }}>
-          {yearremoved !== null && yearremoved > 0
-            ? `This barrier was removed or mitigated in ${yearremoved}.`
-            : 'This barrier has been removed or mitigated.'}
-        </Entry>
-      ) : null}
-
-      {hasnetwork ? (
-        <NetworkInfo
+        <LocationInfo
           barrierType={barrierType}
-          networkType={networkType}
-          totalupstreammiles={totalupstreammiles}
-          perennialupstreammiles={perennialupstreammiles}
-          alteredupstreammiles={alteredupstreammiles}
-          unalteredupstreammiles={unalteredupstreammiles}
-          freedownstreammiles={freedownstreammiles}
-          freeperennialdownstreammiles={freeperennialdownstreammiles}
-          freealtereddownstreammiles={freealtereddownstreammiles}
-          freeunaltereddownstreammiles={freeunaltereddownstreammiles}
-          sizeclasses={sizeclasses}
-          landcover={landcover}
+          reachName={stream}
+          basin={basin}
+          subwatershed={subwatershed}
+          huc12={huc12}
+          ownertype={ownertype}
+          barrierownertype={barrierownertype}
+          ejtract={ejtract}
+          ejtribal={ejtribal}
           intermittent={intermittent}
-          invasive={invasive}
-          unranked={unranked}
-          removed={removed}
-        />
-      ) : (
-        <NoNetworkInfo
-          barrierType={barrierType}
-          networkType={networkType}
-          snapped={snapped}
-          excluded={excluded}
-          in_network_type={in_network_type}
-          onloop={onloop}
-        />
-      )}
-    </Section>
-
-    {hasnetwork && flowstoocean && milestooutlet < 500 ? (
-      <Section title="Diadromous species information">
-        <DiadromousInfo
-          barrierType={barrierType}
-          milestooutlet={milestooutlet}
-          totaldownstreamdams={totaldownstreamdams}
-          totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
-          totaldownstreamwaterfalls={totaldownstreamwaterfalls}
+          streamorder={streamorder}
+          streamsizeclass={streamsizeclass}
+          waterbodysizeclass={waterbodysizeclass}
+          waterbodykm2={waterbodykm2}
         />
       </Section>
-    ) : null}
 
-    <Section title="Species information for this subwatershed">
-      <SpeciesInfo
-        barrierType={barrierType}
-        tespp={tespp}
-        regionalsgcnspp={regionalsgcnspp}
-        statesgcnspp={statesgcnspp}
-        trout={trout}
-        salmonidesu={salmonidesu}
-      />
-    </Section>
+      <Section title="Barrier information">
+        {roadtype !== null && roadtype >= 0 ? (
+          <Entry>
+            <Field label="Road type" isUnknown={roadtype === 0}>
+              {ROAD_TYPE[roadtype]}
+            </Field>
+          </Entry>
+        ) : null}
+        {crossingtype !== null && crossingtype >= 0 ? (
+          <Entry>
+            <Field label="Crossing type" isUnknown={crossingtype === 0}>
+              {CROSSING_TYPE[crossingtype]}
+            </Field>
+          </Entry>
+        ) : null}
+        {condition !== null && condition >= 0 ? (
+          <Entry>
+            <Field label="Condition" isUnknown={condition === 0}>
+              {CONDITION[condition]}
+            </Field>
+          </Entry>
+        ) : null}
+        {constriction !== null && constriction >= 0 ? (
+          <Entry>
+            <Field label="Type of constriction" isUnknown={constriction === 0}>
+              {CONSTRICTION[constriction]}
+            </Field>
+          </Entry>
+        ) : null}
+        {barrierseverity !== null ? (
+          <Entry>
+            <Field label="Severity" isUnknown={barrierseverity === 0}>
+              {SMALL_BARRIER_SEVERITY[barrierseverity]}
+            </Field>
+          </Entry>
+        ) : null}
+        {sarp_score >= 0 ? (
+          <Entry>
+            <Field label="SARP Aquatic Organism Passage score">
+              {formatNumber(sarp_score, 1)}
+              <Text sx={{ fontSize: 0, color: 'grey.8' }}>
+                ({classifySARPScore(sarp_score)})
+              </Text>
+            </Field>
+          </Entry>
+        ) : null}
+        {passagefacility !== null &&
+        passagefacility >= 0 &&
+        PASSAGEFACILITY[passagefacility] ? (
+          <Entry>
+            <Field
+              label="Passage facility type"
+              isUnknown={passagefacility === 0}
+            >
+              {PASSAGEFACILITY[passagefacility].toLowerCase()}
+            </Field>
+          </Entry>
+        ) : null}
+      </Section>
 
-    <Section title="Other information">
-      <IDInfo
-        sarpid={sarpid}
-        source={source}
-        link={link}
-        nearestcrossingid={nearestcrossingid}
-      />
-    </Section>
-  </Box>
-)
+      <Section title="Functional network information">
+        {removed ? (
+          <Entry sx={{ mb: '1rem' }}>
+            {yearremoved !== null && yearremoved > 0
+              ? `This barrier was removed or mitigated in ${yearremoved}.`
+              : 'This barrier has been removed or mitigated.'}
+          </Entry>
+        ) : null}
+
+        {hasnetwork ? (
+          <NetworkInfo
+            barrierType={barrierType}
+            networkType={networkType}
+            totalupstreammiles={totalupstreammiles}
+            perennialupstreammiles={perennialupstreammiles}
+            alteredupstreammiles={alteredupstreammiles}
+            unalteredupstreammiles={unalteredupstreammiles}
+            freedownstreammiles={freedownstreammiles}
+            freeperennialdownstreammiles={freeperennialdownstreammiles}
+            freealtereddownstreammiles={freealtereddownstreammiles}
+            freeunaltereddownstreammiles={freeunaltereddownstreammiles}
+            sizeclasses={sizeclasses}
+            landcover={landcover}
+            intermittent={intermittent}
+            invasive={invasive}
+            unranked={unranked}
+            removed={removed}
+          />
+        ) : (
+          <NoNetworkInfo
+            barrierType={barrierType}
+            networkType={networkType}
+            snapped={snapped}
+            excluded={excluded}
+            in_network_type={in_network_type}
+            onloop={onloop}
+          />
+        )}
+      </Section>
+
+      {hasnetwork && habitat.length > 0 ? (
+        <Section title="Species habitat information for this network">
+          <SpeciesHabitatInfo habitat={habitat} />
+        </Section>
+      ) : null}
+
+      {hasnetwork && flowstoocean && milestooutlet < 500 ? (
+        <Section title="Diadromous species information">
+          <DiadromousInfo
+            barrierType={barrierType}
+            milestooutlet={milestooutlet}
+            totaldownstreamdams={totaldownstreamdams}
+            totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
+            totaldownstreamwaterfalls={totaldownstreamwaterfalls}
+            {...props}
+          />
+        </Section>
+      ) : null}
+
+      <Section title="Species information for this subwatershed">
+        <SpeciesWatershedPresenceInfo
+          barrierType={barrierType}
+          tespp={tespp}
+          regionalsgcnspp={regionalsgcnspp}
+          statesgcnspp={statesgcnspp}
+          trout={trout}
+          salmonidesu={salmonidesu}
+        />
+      </Section>
+
+      <Section title="Other information">
+        <IDInfo
+          sarpid={sarpid}
+          source={source}
+          link={link}
+          nearestcrossingid={nearestcrossingid}
+        />
+      </Section>
+    </Box>
+  )
+}
 
 BarrierDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
@@ -348,6 +362,36 @@ BarrierDetails.propTypes = {
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   yearremoved: PropTypes.number,
+  alewifehabitatupstreammiles: PropTypes.number,
+  americaneelhabitatupstreammiles: PropTypes.number,
+  americanshadhabitatupstreammiles: PropTypes.number,
+  atlanticsturgeonhabitatupstreammiles: PropTypes.number,
+  bluebackherringhabitatupstreammiles: PropTypes.number,
+  bonnevillecutthroattrouthabitatupstreammiles: PropTypes.number,
+  bulltrouthabitatupstreammiles: PropTypes.number,
+  cabaselinefishhabitatupstreammiles: PropTypes.number,
+  chesapeakediadromoushabitatupstreammiles: PropTypes.number,
+  chinooksalmonhabitatupstreammiles: PropTypes.number,
+  chumsalmonhabitatupstreammiles: PropTypes.number,
+  coastalcutthroattrouthabitatupstreammiles: PropTypes.number,
+  cohosalmonhabitatupstreammiles: PropTypes.number,
+  easternbrooktrouthabitatupstreammiles: PropTypes.number,
+  greensturgeonhabitatupstreammiles: PropTypes.number,
+  hickoryshadhabitatupstreammiles: PropTypes.number,
+  kokaneehabitatupstreammiles: PropTypes.number,
+  pacificlampreyhabitatupstreammiles: PropTypes.number,
+  pinksalmonhabitatupstreammiles: PropTypes.number,
+  rainbowtrouthabitatupstreammiles: PropTypes.number,
+  redbandtrouthabitatupstreammiles: PropTypes.number,
+  shortnosesturgeonhabitatupstreammiles: PropTypes.number,
+  sockeyesalmonhabitatupstreammiles: PropTypes.number,
+  southatlanticanadromoushabitatupstreammiles: PropTypes.number,
+  steelheadhabitatupstreammiles: PropTypes.number,
+  streamnetanadromoushabitatupstreammiles: PropTypes.number,
+  stripedbasshabitatupstreammiles: PropTypes.number,
+  westslopecutthroattrouthabitatupstreammiles: PropTypes.number,
+  whitesturgeonhabitatupstreammiles: PropTypes.number,
+  yellowstonecutthroattrouthabitatupstreammiles: PropTypes.number,
 }
 
 BarrierDetails.defaultProps = {
@@ -403,6 +447,36 @@ BarrierDetails.defaultProps = {
   waterbodykm2: -1,
   waterbodysizeclass: null,
   yearremoved: 0,
+  alewifehabitatupstreammiles: 0,
+  americaneelhabitatupstreammiles: 0,
+  americanshadhabitatupstreammiles: 0,
+  atlanticsturgeonhabitatupstreammiles: 0,
+  bluebackherringhabitatupstreammiles: 0,
+  bonnevillecutthroattrouthabitatupstreammiles: 0,
+  bulltrouthabitatupstreammiles: 0,
+  cabaselinefishhabitatupstreammiles: 0,
+  chesapeakediadromoushabitatupstreammiles: 0,
+  chinooksalmonhabitatupstreammiles: 0,
+  chumsalmonhabitatupstreammiles: 0,
+  coastalcutthroattrouthabitatupstreammiles: 0,
+  cohosalmonhabitatupstreammiles: 0,
+  easternbrooktrouthabitatupstreammiles: 0,
+  greensturgeonhabitatupstreammiles: 0,
+  hickoryshadhabitatupstreammiles: 0,
+  kokaneehabitatupstreammiles: 0,
+  pacificlampreyhabitatupstreammiles: 0,
+  pinksalmonhabitatupstreammiles: 0,
+  rainbowtrouthabitatupstreammiles: 0,
+  redbandtrouthabitatupstreammiles: 0,
+  shortnosesturgeonhabitatupstreammiles: 0,
+  sockeyesalmonhabitatupstreammiles: 0,
+  southatlanticanadromoushabitatupstreammiles: 0,
+  steelheadhabitatupstreammiles: 0,
+  streamnetanadromoushabitatupstreammiles: 0,
+  stripedbasshabitatupstreammiles: 0,
+  westslopecutthroattrouthabitatupstreammiles: 0,
+  whitesturgeonhabitatupstreammiles: 0,
+  yellowstonecutthroattrouthabitatupstreammiles: 0,
 }
 
 export default BarrierDetails

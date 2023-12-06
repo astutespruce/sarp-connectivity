@@ -16,6 +16,7 @@ import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
 
 import { barrierNameWhenUnknown } from 'config'
+import { extractHabitat } from 'components/Data/Habitat'
 import { Report } from 'components/Report'
 import { mapToDataURL, basemapAttribution } from 'components/Map'
 import { isEmptyString } from 'util/string'
@@ -33,7 +34,8 @@ import Legend from './Legend'
 import { Attribution, LocatorMap, Map } from './Map'
 import Network from './Network'
 import Scores from './Scores'
-import Species from './Species'
+import SpeciesHabitat from './SpeciesHabitat'
+import SpeciesWatershedPresence from './SpeciesWatershedPresence'
 
 const Preview = ({ networkType, data }) => {
   const {
@@ -61,6 +63,8 @@ const Preview = ({ networkType, data }) => {
   const name = !isEmptyString(data.name)
     ? data.name
     : barrierNameWhenUnknown[barrierType] || 'Unknown name'
+
+  const habitat = hasnetwork ? extractHabitat(data) : []
 
   const [{ attribution, hasError, isPending, visibleLayers }, setState] =
     useState({
@@ -288,6 +292,10 @@ const Preview = ({ networkType, data }) => {
             <Feasibility sx={{ mt: '3rem' }} {...data} />
           ) : null}
 
+          {hasnetwork && habitat.length > 0 ? (
+            <SpeciesHabitat sx={{ mt: '3rem' }} habitat={habitat} />
+          ) : null}
+
           {hasnetwork && flowstoocean && milestooutlet < 500 ? (
             <DiadromousInfo
               sx={{ mt: '3rem' }}
@@ -296,7 +304,11 @@ const Preview = ({ networkType, data }) => {
             />
           ) : null}
 
-          <Species sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
+          <SpeciesWatershedPresence
+            sx={{ mt: '3rem' }}
+            barrierType={barrierType}
+            {...data}
+          />
 
           <IDInfo sx={{ mt: '3rem' }} {...data} />
 
@@ -324,8 +336,8 @@ Preview.propTypes = {
     upnetid: PropTypes.number,
     removed: PropTypes.bool,
     hasnetwork: PropTypes.bool,
-    flowstoocean: PropTypes.bool,
-    milestooutlet: PropTypes.bool,
+    flowstoocean: PropTypes.number,
+    milestooutlet: PropTypes.number,
     // other props validated by subcomponents
   }).isRequired,
 }

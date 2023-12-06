@@ -1,6 +1,6 @@
 const { darken } = require('@theme-ui/color')
 
-module.exports = {
+export default {
   useColorSchemeMediaQuery: false,
   useLocalStorage: false,
   breakpoints: ['40em', '52em', '64em'],

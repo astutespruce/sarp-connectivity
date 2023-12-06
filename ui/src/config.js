@@ -1225,3 +1225,95 @@ export const YEAR_REMOVED_BINS = {
   6: '2022',
   7: '2023',
 }
+
+export const SPECIES_HABITAT_FIELDS = {
+  // StreamNet
+  bonnevillecutthroattrouthabitat: {
+    label: 'Bonneville cutthroat trout',
+    source: 'StreamNet',
+  },
+  bulltrouthabitat: { label: 'bull trout', source: 'StreamNet' },
+  chinooksalmonhabitat: { label: 'Chinook salmon', source: 'StreamNet' },
+  chumsalmonhabitat: { label: 'chum salmon', source: 'StreamNet' },
+  coastalcutthroattrouthabitat: {
+    label: 'coastal cutthroat trout',
+    source: 'StreamNet',
+  },
+  cohosalmonhabitat: { label: 'coho salmon', source: 'StreamNet' },
+  greensturgeonhabitat: {
+    label: 'green sturgeon',
+    source: 'StreamNet',
+    limit: 'Oregon',
+  },
+  kokaneehabitat: { label: 'kokanee', source: '' },
+  pacificlampreyhabitat: {
+    label: 'Pacific lamprey',
+    source: 'StreamNet',
+    limit: 'Oregon',
+  },
+  pinksalmonhabitat: { label: 'pink salmon', source: 'StreamNet' },
+  rainbowtrouthabitat: { label: 'rainbow trout', source: 'StreamNet' },
+  redbandtrouthabitat: { label: 'redband trout', source: 'StreamNet' },
+  sockeyesalmonhabitat: { label: 'sockeye salmon', source: 'StreamNet' },
+  steelheadhabitat: { label: 'steelhead', source: 'StreamNet' },
+  streamnetanadromoushabitat: {
+    label: 'StreamNet anadromous species (combined)',
+    source: 'StreamNet',
+  },
+
+  // CA Baseline
+  cabaselinefishhabitat: {
+    label: 'California Baseline fish habitat',
+    source: 'California Fish Passage Forum',
+  },
+
+  // Eastern Brook Trout / Chesapeake
+  easternbrooktrouthabitat: {
+    label: 'eastern brook trout',
+    source: 'Trout Unlimited / Chesapeake Fish Passage Workgroup',
+  },
+
+  // South Atlantic / Gulf
+  southatlanticanadromoushabitat: {
+    label: 'South Atlantic and Gulf anadromous fish habitat (combined)',
+    source: 'SEACAP',
+  },
+
+  // Chesapeake
+  alewifehabitat: {
+    label: 'alewife',
+    source: 'Chesapeake Fish Passage Workgroup',
+  },
+  americaneelhabitat: {
+    label: 'American eel',
+    source: 'Chesapeake Fish Passage Workgroup',
+  },
+  americanshadhabitat: {
+    label: 'American shad',
+    source: 'Chesapeake Fish Passage Workgroup',
+  },
+  atlanticsturgeonhabitat: {
+    label: 'Atlantic sturgeon',
+    source: 'Chesapeake Fish Passage Workgroup',
+  },
+  bluebackherringhabitat: {
+    label: 'BluebackHerring',
+    source: 'Chesapeake Fish Passage Workgroup',
+  },
+  hickoryshadhabitat: {
+    label: 'hickory shad',
+    source: 'Chesapeake Fish Passage Workgroup',
+  },
+  shortnosesturgeonhabitat: {
+    label: 'shortnose sturgeon',
+    source: 'Chesapeake Fish Passage Workgroup',
+  },
+  stripedbasshabitat: {
+    label: 'striped bass',
+    source: 'Chesapeake Fish Passage Workgroup',
+  },
+  chesapeakediadromoushabitat: {
+    label: 'Chesapeake diadromous fish habitat (combined)',
+    source: 'Chesapeake Fish Passage Workgroup',
+  },
+}

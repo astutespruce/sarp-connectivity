@@ -5,7 +5,7 @@ import { Box, Heading, Grid, Paragraph, Text } from 'theme-ui'
 import { SALMONID_ESU } from 'config'
 import { formatNumber } from 'util/format'
 
-const Species = ({
+const SpeciesWatershedPresence = ({
   barrierType,
   tespp,
   statesgcnspp,
@@ -78,7 +78,7 @@ const Species = ({
   </Box>
 )
 
-Species.propTypes = {
+SpeciesWatershedPresence.propTypes = {
   barrierType: PropTypes.string.isRequired,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
@@ -88,7 +88,7 @@ Species.propTypes = {
   sx: PropTypes.object,
 }
 
-Species.defaultProps = {
+SpeciesWatershedPresence.defaultProps = {
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
@@ -97,4 +97,4 @@ Species.defaultProps = {
   sx: null,
 }
 
-export default Species
+export default SpeciesWatershedPresence

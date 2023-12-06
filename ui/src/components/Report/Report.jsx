@@ -2,6 +2,8 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Document, Font, Page, StyleSheet } from '@react-pdf/renderer'
 
+import { extractHabitat } from 'components/Data/Habitat'
+
 import Contact from './Contact'
 import Credits from './Credits'
 import DiadromousInfo from './DiadromousInfo'
@@ -14,7 +16,8 @@ import LocationConstruction from './LocationConstruction'
 import { LocatorMap, Map } from './Map'
 import Network from './Network'
 import Scores from './Scores'
-import Species from './Species'
+import SpeciesHabitat from './SpeciesHabitat'
+import SpeciesWatershedPresence from './SpeciesWatershedPresence'
 import { Flex } from './elements'
 
 const styles = StyleSheet.create({
@@ -51,6 +54,8 @@ const Report = ({
     flowstoocean,
     milestooutlet,
   } = data
+
+  const habitat = hasnetwork ? extractHabitat(data) : []
 
   return (
     <Document
@@ -102,6 +107,10 @@ const Report = ({
           <Feasibility style={{ marginTop: 48 }} {...data} />
         ) : null}
 
+        {hasnetwork && habitat.length > 0 ? (
+          <SpeciesHabitat style={{ marginTop: 32 }} habitat={habitat} />
+        ) : null}
+
         {hasnetwork && flowstoocean && milestooutlet < 500 ? (
           <DiadromousInfo
             style={{ marginTop: 32 }}
@@ -110,7 +119,7 @@ const Report = ({
           />
         ) : null}
 
-        <Species
+        <SpeciesWatershedPresence
           barrierType={barrierType}
           style={{ marginTop: 32 }}
           {...data}

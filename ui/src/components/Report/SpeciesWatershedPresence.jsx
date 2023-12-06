@@ -7,7 +7,7 @@ import { formatNumber } from 'util/format'
 
 import { Bold, Flex, List, ListItem, Section } from './elements'
 
-const Species = ({
+const SpeciesWatershedPresence = ({
   barrierType,
   tespp,
   statesgcnspp,
@@ -108,7 +108,7 @@ const Species = ({
   </Section>
 )
 
-Species.propTypes = {
+SpeciesWatershedPresence.propTypes = {
   barrierType: PropTypes.string.isRequired,
   tespp: PropTypes.number,
   statesgcnspp: PropTypes.number,
@@ -117,7 +117,7 @@ Species.propTypes = {
   salmonidesu: PropTypes.string,
 }
 
-Species.defaultProps = {
+SpeciesWatershedPresence.defaultProps = {
   tespp: 0,
   statesgcnspp: 0,
   regionalsgcnspp: 0,
@@ -125,4 +125,4 @@ Species.defaultProps = {
   salmonidesu: null,
 }
 
-export default Species
+export default SpeciesWatershedPresence
