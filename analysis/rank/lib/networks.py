@@ -62,6 +62,37 @@ NETWORK_COLUMNS = [
     "flows_to_ocean",
     "flows_to_great_lakes",
     "exits_region",
+    # species upstream habitat
+    "AlewifeHabitatUpstreamMiles",
+    "AmericanEelHabitatUpstreamMiles",
+    "AmericanShadHabitatUpstreamMiles",
+    "AtlanticSturgeonHabitatUpstreamMiles",
+    "BluebackHerringHabitatUpstreamMiles",
+    "BonnevilleCutthroatTroutHabitatUpstreamMiles",
+    "BullTroutHabitatUpstreamMiles",
+    "CaBaselineFishHabitatUpstreamMiles",
+    "ChesapeakeDiadromousHabitatUpstreamMiles",
+    "ChinookSalmonHabitatUpstreamMiles",
+    "ChumSalmonHabitatUpstreamMiles",
+    "CoastalCutthroatTroutHabitatUpstreamMiles",
+    "CohoSalmonHabitatUpstreamMiles",
+    "EasternBrookTroutHabitatUpstreamMiles",
+    "GreenSturgeonHabitatUpstreamMiles",
+    "HickoryShadHabitatUpstreamMiles",
+    "KokaneeHabitatUpstreamMiles",
+    "PacificLampreyHabitatUpstreamMiles",
+    "PinkSalmonHabitatUpstreamMiles",
+    "RainbowTroutHabitatUpstreamMiles",
+    "RedbandTroutHabitatUpstreamMiles",
+    "ShortnoseSturgeonHabitatUpstreamMiles",
+    "SockeyeSalmonHabitatUpstreamMiles",
+    "SouthAtlanticAnadromousHabitatUpstreamMiles",
+    "SteelheadHabitatUpstreamMiles",
+    "StreamnetAnadromousHabitatUpstreamMiles",
+    "StripedBassHabitatUpstreamMiles",
+    "WestslopeCutthroatTroutHabitatUpstreamMiles",
+    "WhiteSturgeonHabitatUpstreamMiles",
+    "YellowstoneCutthroatTroutHabitatUpstreamMiles",
 ]
 
 
@@ -117,9 +148,8 @@ def get_network_results(df, network_type, state_ranks=False):
                 Path("data/networks/clean") / huc2 / f"{network_type}_network.feather"
                 for huc2 in sorted(df.HUC2.unique())
             ],
-            columns=NETWORK_COLUMNS,
         )
-        .to_pandas()
+        .to_pandas()[NETWORK_COLUMNS]
         .rename(columns=NETWORK_COLUMN_NAMES)
         .set_index("id")
     )
@@ -133,6 +163,11 @@ def get_network_results(df, network_type, state_ranks=False):
 
     networks["HasNetwork"] = True
     networks["Ranked"] = networks.HasNetwork & (~networks.Unranked)
+
+    # fill species habitat columns; some species are only available for some HUC2s
+    spp_cols = [c for c in networks.columns if "Habitat" in c]
+    for col in spp_cols:
+        networks[col] = networks[col].fillna(0)
 
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total
@@ -233,6 +268,11 @@ def get_removed_network_results(df, network_type):
 
     networks["HasNetwork"] = True
     networks["Ranked"] = False
+
+    # fill species habitat columns; some species are only available for some HUC2s
+    spp_cols = [c for c in networks.columns if "Habitat" in c]
+    for col in spp_cols:
+        networks[col] = networks[col].fillna(0)
 
     # update data types and calculate total fields
     # calculate size classes GAINED instead of total

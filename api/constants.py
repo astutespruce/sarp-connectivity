@@ -166,6 +166,40 @@ CUSTOM_TIER_FIELDS = [
 # Only present for dams
 STATE_TIER_FIELDS = [f"State_{c}" for c in CUSTOM_TIER_FIELDS]
 
+SPECIES_HABITAT_FIELDS = [
+    # species upstream habitat
+    "AlewifeHabitatUpstreamMiles",
+    "AmericanEelHabitatUpstreamMiles",
+    "AmericanShadHabitatUpstreamMiles",
+    "AtlanticSturgeonHabitatUpstreamMiles",
+    "BluebackHerringHabitatUpstreamMiles",
+    "BonnevilleCutthroatTroutHabitatUpstreamMiles",
+    "BullTroutHabitatUpstreamMiles",
+    "CaBaselineFishHabitatUpstreamMiles",
+    "ChesapeakeDiadromousHabitatUpstreamMiles",
+    "ChinookSalmonHabitatUpstreamMiles",
+    "ChumSalmonHabitatUpstreamMiles",
+    "CoastalCutthroatTroutHabitatUpstreamMiles",
+    "CohoSalmonHabitatUpstreamMiles",
+    "EasternBrookTroutHabitatUpstreamMiles",
+    "GreenSturgeonHabitatUpstreamMiles",
+    "HickoryShadHabitatUpstreamMiles",
+    "KokaneeHabitatUpstreamMiles",
+    "PacificLampreyHabitatUpstreamMiles",
+    "PinkSalmonHabitatUpstreamMiles",
+    "RainbowTroutHabitatUpstreamMiles",
+    "RedbandTroutHabitatUpstreamMiles",
+    "ShortnoseSturgeonHabitatUpstreamMiles",
+    "SockeyeSalmonHabitatUpstreamMiles",
+    "SouthAtlanticAnadromousHabitatUpstreamMiles",
+    "SteelheadHabitatUpstreamMiles",
+    "StreamnetAnadromousHabitatUpstreamMiles",
+    "StripedBassHabitatUpstreamMiles",
+    "WestslopeCutthroatTroutHabitatUpstreamMiles",
+    "WhiteSturgeonHabitatUpstreamMiles",
+    "YellowstoneCutthroatTroutHabitatUpstreamMiles",
+]
+
 
 FILTER_FIELDS = [
     "GainMilesClass",
@@ -262,6 +296,7 @@ GENERAL_API_FIELDS2 = (
     + METRIC_FIELDS
     + UPSTREAM_COUNT_FIELDS
     + DOWNSTREAM_LINEAR_NETWORK_FIELDS
+    + SPECIES_HABITAT_FIELDS
 )
 
 # This order should mostly match FIELD_DEFINITIONS below
@@ -434,6 +469,7 @@ WF_CORE_FIELDS = (
     + METRIC_FIELDS
     + UPSTREAM_COUNT_FIELDS
     + DOWNSTREAM_LINEAR_NETWORK_FIELDS
+    + SPECIES_HABITAT_FIELDS
 )
 WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
 
@@ -1121,6 +1157,37 @@ FIELD_DEFINITIONS = {
     "MilesToOutlet": "miles between this {type} and the downstream-most point on the full aquatic network on which it occurs. -1 = not available.",
     "FlowsToOcean": "indicates if this {type} was snapped to a stream or river that is known to flow into the ocean.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the ocean.",
     "FlowsToGreatLakes": "indicates if this {type} was snapped to a stream or river that is known to flow into the Great Lakes.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the Great Lakes.",
+    # Species upstream habitat
+    "AlewifeHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for Alewife.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "AmericanEelHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for American eel.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "AmericanShadHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for American shad.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "AtlanticSturgeonHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for Atlantic sturgeon.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "BluebackHerringHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for blueback herring.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "BonnevilleCutthroatTroutHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for Bonneville cutthroat trout.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "BullTroutHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for bull trout.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "CaBaselineFishHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat based on the California Baseline Fish Habitat dataset.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "ChesapeakeDiadromousHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for diadromous species in the Chesapeake Bay watershed.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "ChinookSalmonHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for Chinook salmon.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "ChumSalmonHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for chum salmon.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "CoastalCutthroatTroutHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for coastal cutthroat trout.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "CohoSalmonHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for coho salmon.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "EasternBrookTroutHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for eastern brook trout.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "GreenSturgeonHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for green sturgeon (limited to Oregon).  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "HickoryShadHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for hickory shad.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "KokaneeHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for Kokanee salmon.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "PacificLampreyHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for Pacific lamprey (limited to Oregon).  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "PinkSalmonHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for pink salmon.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "RainbowTroutHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for resident rainbow trout.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "RedbandTroutHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for redband trout.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "ShortnoseSturgeonHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for shortnose sturgeon.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "SockeyeSalmonHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for sockeye salmon.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "SouthAtlanticAnadromousHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for South Atlantic and Gulf anadromous fish species.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "SteelheadHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for steelhead trout.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "StreamnetAnadromousHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for anadromous species identified by StreamNet.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "StripedBassHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for striped bass.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "WestslopeCutthroatTroutHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for westslope cutthroat trout.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "WhiteSturgeonHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for white sturgeon.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
+    "YellowstoneCutthroatTroutHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for Yellowstone cutthroat trout.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by regional partners; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
     # "ExitsRegion": "indicates this {type} was snapped to a stream or river that exits the region of analysis (e.g., flows into Canada or Mexico) or flows into the ocean.",
     "State_NC_tier": "network connectivity tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for network connectivity and tier 20 represents the lowest 5%.  -1 = not prioritized.",
     "State_WC_tier": "watershed condition tier for the state that contains this {type}.  Tier 1 represents the {type}s within the top 5% of scores for watershed condition and tier 20 represents the lowest 5%.  -1 = not prioritized.",

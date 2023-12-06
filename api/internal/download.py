@@ -24,10 +24,7 @@ from api.response import zip_csv_response
 
 
 ### Include logo in download package
-LOGO_PATH = (
-    Path(__file__).resolve().parent.parent.parent
-    / "ui/src/images/sarp_logo_highres.png"
-)
+LOGO_PATH = Path(__file__).resolve().parent.parent.parent / "ui/src/images/sarp_logo_highres.png"
 
 
 MAX_CROSSINGS = 1e6  # limit to 1M crossings in downloads
@@ -93,15 +90,21 @@ async def download(
         warnings = "this dataset includes potential road-related barriers derived from the USGS Road Crossings dataset (2022) that have not yet been assessed for impacts to aquatic organisms.  These only include those that were snapped to the aquatic network and should not be taken as a comprehensive survey of all possible road-related barriers."
 
     else:
+        # drop species habitat columns that have no useful data
+        spp_cols = [c for c in df.column_names if "Habitat" in c]
+        drop_cols = [c for c in spp_cols if pc.max(df[c]).as_py() <= 0]
+        if len(drop_cols) > 0:
+            df = df.drop(drop_cols)
+
         # calculate custom ranks
         # NOTE: can only calculate ranks for those that have networks and are not excluded from ranking
         if custom:
             to_rank = df.filter(pc.equal(df["Ranked"], True))
             tiers = calculate_tiers(to_rank)
             # cast to int8 to allow setting -1 null values
-            tiers = tiers.cast(
-                pa.schema([pa.field(c, "int8") for c in tiers.column_names])
-            ).add_column(0, to_rank.schema.field("id"), to_rank["id"])
+            tiers = tiers.cast(pa.schema([pa.field(c, "int8") for c in tiers.column_names])).add_column(
+                0, to_rank.schema.field("id"), to_rank["id"]
+            )
 
             # join back to full data frame
             df = df.join(tiers, "id")
@@ -110,23 +113,13 @@ async def download(
                 # fill missing values
                 df = pa.Table.from_pydict(
                     {
-                        **{
-                            col: df[col]
-                            for col in df.column_names
-                            if col not in CUSTOM_TIER_FIELDS
-                        },
-                        **{
-                            col: df[col].fill_null(-1)
-                            for col in df.column_names
-                            if col in CUSTOM_TIER_FIELDS
-                        },
+                        **{col: df[col] for col in df.column_names if col not in CUSTOM_TIER_FIELDS},
+                        **{col: df[col].fill_null(-1) for col in df.column_names if col in CUSTOM_TIER_FIELDS},
                     }
                 )
 
             # Sort by HasNetwork, tier
-            df = df.sort_by(
-                [("HasNetwork", "descending"), (f"{sort}_tier", "ascending")]
-            )
+            df = df.sort_by([("HasNetwork", "descending"), (f"{sort}_tier", "ascending")])
 
         else:
             # sort only HasNetwork
