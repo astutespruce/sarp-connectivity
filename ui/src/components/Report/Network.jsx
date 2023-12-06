@@ -236,17 +236,17 @@ const Network = ({
 
       <View style={{ marginTop: 36 }}>
         <Flex>
-          <View style={{ flex: '1 1 160pt' }}>
+          <View style={{ flex: '1 1 auto' }}>
             <Text>
               <Italic>Network statistics:</Italic>
             </Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>
               <Bold>upstream network</Bold>
             </Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>
               <Bold>downstream network</Bold>
             </Text>
@@ -260,10 +260,10 @@ const Network = ({
             paddingTop: 6,
           }}
         >
-          <View style={{ flex: '1 1 160pt' }}>
+          <View style={{ flex: '1 1 auto' }}>
             <Text>Total miles</Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>
               {gainMilesSide === 'upstream' ? (
                 <Bold>{formatNumber(totalupstreammiles, 2, true)}</Bold>
@@ -272,7 +272,7 @@ const Network = ({
               )}
             </Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>
               {gainMilesSide === 'downstream' ? (
                 <Bold>{formatNumber(freedownstreammiles, 2, true)}</Bold>
@@ -290,10 +290,10 @@ const Network = ({
             paddingTop: 6,
           }}
         >
-          <View style={{ flex: '1 1 160pt' }}>
+          <View style={{ flex: '1 1 auto' }}>
             <Text>Perennial miles</Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>
               {perennialGainMilesSide === 'upstream' ? (
                 <Bold>{formatNumber(perennialupstreammiles, 2, true)}</Bold>
@@ -302,7 +302,7 @@ const Network = ({
               )}
             </Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>
               {perennialGainMilesSide === 'downstream' ? (
                 <Bold>
@@ -322,13 +322,13 @@ const Network = ({
             paddingTop: 6,
           }}
         >
-          <View style={{ flex: '1 1 160pt' }}>
+          <View style={{ flex: '1 1 auto' }}>
             <Text>Ephemeral / intermittent miles</Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>{formatNumber(intermittentupstreammiles, 2, true)}</Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>
               {formatNumber(freeintermittentdownstreammiles, 2, true)}
             </Text>
@@ -342,13 +342,13 @@ const Network = ({
             paddingTop: 6,
           }}
         >
-          <View style={{ flex: '1 1 160pt' }}>
+          <View style={{ flex: '1 1 auto' }}>
             <Text>Altered miles</Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>{formatNumber(alteredupstreammiles, 2, true)}</Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>{formatNumber(freealtereddownstreammiles, 2, true)}</Text>
           </View>
         </Flex>
@@ -360,13 +360,13 @@ const Network = ({
             paddingTop: 6,
           }}
         >
-          <View style={{ flex: '1 1 160pt' }}>
+          <View style={{ flex: '1 1 auto' }}>
             <Text>Unaltered miles</Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>{formatNumber(unalteredupstreammiles, 2, true)}</Text>
           </View>
-          <View style={{ flex: '1 1 auto' }}>
+          <View style={{ flex: '0 0 140pt' }}>
             <Text>{formatNumber(freeunaltereddownstreammiles, 2, true)}</Text>
           </View>
         </Flex>

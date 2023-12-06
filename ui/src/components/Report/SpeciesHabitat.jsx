@@ -63,7 +63,10 @@ const SpeciesHabitat = ({ habitat, ...props }) => {
         data are limited to available data sources and are not comprehensive and
         do not fully capture all current or potential habitat for a given
         species or group across its range. For more information, please see the{' '}
-        <Link to="/habitat_methods">analysis methods</Link>.
+        <Link href="https://aquaticbarriers.org/habitat_methods">
+          analysis methods
+        </Link>
+        .
       </Text>
     </Section>
   )
