@@ -8,6 +8,7 @@ import {
   searchBarriers,
 } from './API'
 import { Provider as BarrierTypeProvider, useBarrierType } from './BarrierType'
+import DataProviders from './DataProviders'
 
 export {
   useSummaryData,
@@ -19,6 +20,7 @@ export {
   BarrierTypeProvider,
   useBarrierType,
   getDownloadURL,
+  DataProviders,
 }
 
 export const useRegionBounds = () => ({

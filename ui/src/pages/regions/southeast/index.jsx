@@ -10,29 +10,22 @@ import {
   Divider,
   Grid,
   Heading,
-  Image,
   Paragraph,
   Text,
 } from 'theme-ui'
 
-import { useRegionSummary } from 'components/Data'
+import { useRegionSummary, DataProviders } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
-import { OutboundLink } from 'components/Link'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
 import { Chart } from 'components/Restoration'
+import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
 import {
-  CONNECTIVITY_TEAMS,
-  REGIONS,
-  STATES,
-  STATE_DATA_PROVIDERS,
-} from 'config'
-import { groupBy } from 'util/data'
-import { dynamicallyLoadImage } from 'util/dom'
+  SARPConnectivityProgram,
+  SARPGetInvolvedSection,
+} from 'content/regions/southeast'
 import { formatNumber } from 'util/format'
-import { extractNodes } from 'util/graphql'
-import SARPLogoImage from 'images/sarp_logo.png'
 
 const regionID = 'se'
 const {
@@ -52,17 +45,12 @@ const SERegionPage = ({
     map: {
       childImageSharp: { gatsbyImageData: map },
     },
-    imagesSharp,
-    forestStreamPhoto: {
-      childImageSharp: { gatsbyImageData: forestStreamPhoto },
-    },
+    // imagesSharp,
   },
 }) => {
   const [metric, setMetric] = useState('gainmiles')
   const { [regionID]: summary } = useRegionSummary()
   const { removedBarriersByYear } = summary
-
-  const images = groupBy(extractNodes(imagesSharp), 'state')
 
   return (
     <Layout>
@@ -132,65 +120,7 @@ const SERegionPage = ({
 
         <RegionActionLinks region={regionID} />
 
-        <Box variant="boxes.section">
-          <Heading as="h2" variant="heading.section">
-            Southeast Aquatic Connectivity Program
-          </Heading>
-          <Grid columns="2fr 1fr" sx={{ mt: '0.5rem' }}>
-            <Paragraph sx={{ mr: '2rem', flex: '1 1 auto' }}>
-              The&nbsp;
-              <OutboundLink to="https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act">
-                Southeast Aquatic Resources Partnership
-              </OutboundLink>
-              &nbsp; (SARP) was formed by the Southeastern Association of Fish
-              and Wildlife Agencies (SEAFWA) to protect aquatic resources across
-              political boundaries as many of our river systems cross multiple
-              jurisdictional boundaries. SARP works with partners to protect,
-              conserve, and restore aquatic resources including habitats
-              throughout the Southeast for the continuing benefit, use, and
-              enjoyment of the American people. SARP is also one of the first
-              Fish Habitat Partnerships under the the National Fish Habitat
-              Partnership umbrella that works to conserve and protect the
-              nation&apos;s fisheries and aquatic systems through a network of
-              20 Fish Habitat Partnerships.
-            </Paragraph>
-
-            <Box>
-              <GatsbyImage
-                image={forestStreamPhoto}
-                alt="Sam D. Hamilton Noxubee National Wildlife Refuge"
-              />
-
-              <Box sx={{ fontSize: 0 }}>
-                Photo:{' '}
-                <OutboundLink to="https://www.flickr.com/photos/usfwssoutheast/6882770647/in/album-72157629334467105/">
-                  Sam D. Hamilton Noxubee National Wildlife Refuge in
-                  Mississippi. U.S. Fish and Wildlife Service.
-                </OutboundLink>
-              </Box>
-            </Box>
-          </Grid>
-
-          <Grid columns="4fr 1fr" sx={{ mt: '1rem' }}>
-            <Paragraph>
-              SARP and partners within the region have been working for several
-              years to compile a comprehensive inventory of aquatic barriers
-              across the region. This inventory is the foundation of{' '}
-              <OutboundLink to="https://southeastaquatics.net/sarps-programs/southeast-aquatic-connectivity-assessment-program-seacap">
-                SARP&apos;s Connectivity Program
-              </OutboundLink>{' '}
-              because it empowers Aquatic Connectivity Teams and other
-              collaborators with the best available information on aquatic
-              barriers.
-            </Paragraph>
-            <Image
-              src={SARPLogoImage}
-              width="224px"
-              height="113px"
-              alt="SARP logo"
-            />
-          </Grid>
-        </Box>
+        <SARPConnectivityProgram />
 
         <Divider sx={{ my: '4rem' }} />
 
@@ -209,91 +139,14 @@ const SERegionPage = ({
               Data Sources
             </Heading>
 
-            {dataProviders.map(({ key, description, logo, logoWidth }) => (
-              <Grid
-                key={key}
-                columns="2fr 1fr"
-                gap={5}
-                sx={{
-                  '&:not(:first-of-type)': {
-                    mt: '2rem',
-                  },
-                }}
-              >
-                <Box sx={{ fontSize: [2, 3] }}>
-                  <div dangerouslySetInnerHTML={{ __html: description }} />
-                </Box>
-                {logo ? (
-                  <Box sx={{ maxWidth: logoWidth }}>
-                    <Image src={dynamicallyLoadImage(logo)} />
-                  </Box>
-                ) : null}
-              </Grid>
-            ))}
+            <DataProviders dataProviders={dataProviders} />
           </Box>
         ) : null}
 
         <Divider sx={{ my: '4rem' }} />
 
-        <Box variant="boxes.section">
-          <Heading as="h2" variant="heading.section">
-            How to get involved?
-          </Heading>
+        <SARPGetInvolvedSection />
 
-          <Grid columns={[0, 2]} gap={5}>
-            <Box>
-              <Paragraph>
-                SARP and partners have been working to build a community of
-                practice surrounding barrier removal through the development of
-                state-based Aquatic Connectivity Teams (ACTs). These teams
-                create a forum that allows resource managers from all sectors to
-                work together and share resources, disseminate information, and
-                examine regulatory streamlining processes as well as project
-                management tips and techniques.
-              </Paragraph>
-            </Box>
-            <Box>
-              <Heading as="h4">Aquatic connectivity teams:</Heading>
-              <Box as="ul" sx={{ mt: '0.5rem' }}>
-                {Object.entries(CONNECTIVITY_TEAMS.southeast).map(
-                  ([state, team]) => (
-                    <li key={state}>
-                      {STATES[state]}:{' '}
-                      <OutboundLink to={team.url}>{team.name}</OutboundLink>
-                    </li>
-                  )
-                )}
-              </Box>
-            </Box>
-          </Grid>
-
-          <Grid
-            columns={Object.keys(images).length}
-            gap={2}
-            sx={{ mt: '2rem' }}
-          >
-            {Object.entries(images)
-              .slice(0, 4)
-              .map(
-                ([
-                  state,
-                  {
-                    childImageSharp: { gatsbyImageData },
-                  },
-                ]) => (
-                  <Box
-                    key={state}
-                    sx={{ maxHeight: '8rem', overflow: 'hidden' }}
-                  >
-                    <GatsbyImage
-                      image={gatsbyImageData}
-                      alt={`${state} aquatic connectivity team photo`}
-                    />
-                  </Box>
-                )
-              )}
-          </Grid>
-        </Box>
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">
             You can help!
@@ -319,8 +172,6 @@ SERegionPage.propTypes = {
   data: PropTypes.shape({
     headerImage: PropTypes.object.isRequired,
     map: PropTypes.object.isRequired,
-    forestStreamPhoto: PropTypes.object.isRequired,
-    imagesSharp: PropTypes.object.isRequired,
   }).isRequired,
 }
 
@@ -344,33 +195,6 @@ export const pageQuery = graphql`
           formats: [AUTO, WEBP]
           placeholder: BLURRED
         )
-      }
-    }
-    forestStreamPhoto: file(
-      relativePath: { eq: "6882770647_60c0d68a9c_z.jpg" }
-    ) {
-      childImageSharp {
-        gatsbyImageData(
-          layout: CONSTRAINED
-          width: 960
-          formats: [AUTO, WEBP]
-          placeholder: BLURRED
-        )
-      }
-    }
-    imagesSharp: allFile(filter: { relativeDirectory: { eq: "teams" } }) {
-      edges {
-        node {
-          state: name
-          childImageSharp {
-            gatsbyImageData(
-              layout: CONSTRAINED
-              width: 640
-              formats: [AUTO, WEBP]
-              placeholder: BLURRED
-            )
-          }
-        }
       }
     }
   }

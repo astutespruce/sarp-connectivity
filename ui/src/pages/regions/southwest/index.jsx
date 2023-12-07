@@ -10,19 +10,17 @@ import {
   Divider,
   Grid,
   Heading,
-  Image,
   Paragraph,
   Text,
 } from 'theme-ui'
 
-import { useRegionSummary } from 'components/Data'
+import { useRegionSummary, DataProviders } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
 import { Chart } from 'components/Restoration'
 import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
-import { dynamicallyLoadImage } from 'util/dom'
 import { formatNumber } from 'util/format'
 
 const regionID = 'sw'
@@ -131,27 +129,7 @@ const SWRegionPage = ({
               Data Sources
             </Heading>
 
-            {dataProviders.map(({ key, description, logo, logoWidth }) => (
-              <Grid
-                key={key}
-                columns="2fr 1fr"
-                gap={5}
-                sx={{
-                  '&:not(:first-of-type)': {
-                    mt: '2rem',
-                  },
-                }}
-              >
-                <Box sx={{ fontSize: [2, 3] }}>
-                  <div dangerouslySetInnerHTML={{ __html: description }} />
-                </Box>
-                {logo ? (
-                  <Box sx={{ maxWidth: logoWidth }}>
-                    <Image src={dynamicallyLoadImage(logo)} />
-                  </Box>
-                ) : null}
-              </Grid>
-            ))}
+            <DataProviders dataProviders={dataProviders} />
           </Box>
         ) : null}
 
