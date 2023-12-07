@@ -43,6 +43,7 @@ const Chart = ({
           totalNoNetworkCount,
           totalGainMiles,
           dams,
+          smallBarriers,
           smallBarriersGainMiles,
         }
 
@@ -251,7 +252,7 @@ const Chart = ({
           <sup>*</sup> includes {formatNumber(totalNoNetworkCount)}{' '}
           {showDams ? barrierTypeLabels.dams : null}{' '}
           {showDams && showSmallBarriers ? ' and / or ' : null}{' '}
-          {showSmallBarriers ? barrierTypeLabels.smallBarriers : null} that
+          {showSmallBarriers ? barrierTypeLabels.small_barriers : null} that
           could not be correctly located on the aquatic network or were
           otherwise excluded from the analysis; these contribute toward the
           count but not the miles gained.

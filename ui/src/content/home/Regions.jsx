@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Divider, Flex, Grid, Heading, Text } from 'theme-ui'
+import { Box, Divider, Flex, Grid, Heading } from 'theme-ui'
 import { GatsbyImage } from 'gatsby-plugin-image'
 import { useStaticQuery, graphql } from 'gatsby'
 

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
@@ -17,20 +17,22 @@ import {
 import { useRegionSummary } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
 import { Layout, SEO } from 'components/Layout'
-import { OutboundLink } from 'components/Link'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-import { REGIONS } from 'config'
+import { Chart } from 'components/Restoration'
+import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
+import { dynamicallyLoadImage } from 'util/dom'
 import { formatNumber } from 'util/format'
-
-import MTFWPLogo from 'images/mtfwp_logo.svg'
-import UTDWRLogo from 'images/utdwr_logo.svg'
-import WYGFDLogo from 'images/wygfd_logo.png'
 
 const regionID = 'gpiw'
 const {
   [regionID]: { name, states },
 } = REGIONS
+
+const dataProviders = []
+states.forEach((state) => {
+  dataProviders.push(...(STATE_DATA_PROVIDERS[state] || []))
+})
 
 const GPIWRegionPage = ({
   data: {
@@ -42,7 +44,9 @@ const GPIWRegionPage = ({
     },
   },
 }) => {
+  const [metric, setMetric] = useState('gainmiles')
   const { [regionID]: summary } = useRegionSummary()
+  const { removedBarriersByYear } = summary
 
   return (
     <Layout>
@@ -95,55 +99,21 @@ const GPIWRegionPage = ({
           </Box>
         </Grid>
 
-        <RegionActionLinks region={regionID} />
-
-        <Box variant="boxes.section">
-          <Heading as="h2" variant="heading.section">
-            Data Sources
+        <Box sx={{ mt: '3rem' }}>
+          <Heading as="h3">
+            Progress toward restoring aquatic connectivity:
           </Heading>
-
-          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '0.5rem' }}>
-            <Paragraph>
-              Records describing dams and road-related barriers within Montana
-              include those maintained by the{' '}
-              <OutboundLink to="https://fwp.mt.gov/">
-                Montana Department of Fish, Wildlife, and Parks
-              </OutboundLink>
-              .
-            </Paragraph>
-            <Box sx={{ maxWidth: '80px' }}>
-              <Image src={MTFWPLogo} />
-            </Box>
-          </Grid>
-
-          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
-            <Paragraph>
-              Records describing dams and road-related barriers within Utah
-              include those maintained by the{' '}
-              <OutboundLink to="https://wildlifemigration.utah.gov/fish-and-amphibians/barriers/">
-                Utah Barrier Assessment Inventory Tool
-              </OutboundLink>
-              .
-            </Paragraph>
-            <Box sx={{ maxWidth: '300px' }}>
-              <Image src={UTDWRLogo} />
-            </Box>
-          </Grid>
-
-          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
-            <Paragraph>
-              Information on aquatic barriers in Wyoming is a product of the{' '}
-              <OutboundLink to="https://wgfd.wyo.gov/habitat/aquatic-habitat">
-                Wyoming Game & Fish Department
-              </OutboundLink>
-              , including field data collection in coordination with the
-              Southeast Aquatic Resources Partnership.
-            </Paragraph>
-            <Box sx={{ maxWidth: '80px' }}>
-              <Image src={WYGFDLogo} />
-            </Box>
-          </Grid>
+          <Box sx={{ mt: '1rem' }}>
+            <Chart
+              barrierType="combined_barriers"
+              removedBarriersByYear={removedBarriersByYear}
+              metric={metric}
+              onChangeMetric={setMetric}
+            />
+          </Box>
         </Box>
+
+        <RegionActionLinks region={regionID} />
 
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">
@@ -153,6 +123,36 @@ const GPIWRegionPage = ({
             <StateDownloadTable region={regionID} {...summary} />
           </Box>
         </Box>
+
+        {dataProviders.length > 0 ? (
+          <Box variant="boxes.section">
+            <Heading as="h2" variant="heading.section">
+              Data Sources
+            </Heading>
+
+            {dataProviders.map(({ key, description, logo, logoWidth }) => (
+              <Grid
+                key={key}
+                columns="2fr 1fr"
+                gap={5}
+                sx={{
+                  '&:not(:first-of-type)': {
+                    mt: '2rem',
+                  },
+                }}
+              >
+                <Box sx={{ fontSize: [2, 3] }}>
+                  <div dangerouslySetInnerHTML={{ __html: description }} />
+                </Box>
+                {logo ? (
+                  <Box sx={{ maxWidth: logoWidth }}>
+                    <Image src={dynamicallyLoadImage(logo)} />
+                  </Box>
+                ) : null}
+              </Grid>
+            ))}
+          </Box>
+        ) : null}
 
         <Divider sx={{ my: '4rem' }} />
 

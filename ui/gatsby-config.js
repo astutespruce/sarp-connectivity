@@ -76,6 +76,16 @@ module.exports = {
         typeName: ({ node }) => `${node.name}Json`,
       },
     },
+    {
+      resolve: `gatsby-plugin-page-creator`,
+      options: {
+        path: `${__dirname}/src/pages`,
+        slugify: {
+          // preserve capitalization of states
+          lowercase: false,
+        },
+      },
+    },
     `gatsby-plugin-catch-links`,
     `gatsby-plugin-sitemap`,
     {

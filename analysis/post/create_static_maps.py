@@ -5,9 +5,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 import geopandas as gp
+import pyarrow as pa
+import pyarrow.compute as pc
 from pymgl import Map
+import shapely
 
-from analysis.constants import GEO_CRS
+from analysis.constants import GEO_CRS, STATES
 
 
 load_dotenv()
@@ -32,22 +35,9 @@ STYLE = {
         "basemap": {
             "type": "raster",
             "tiles": [
-                "https://api.mapbox.com/styles/v1/mapbox/light-v10/tiles/{z}/{x}/{y}?access_token="
-                + TOKEN,
+                "https://api.mapbox.com/styles/v1/mapbox/light-v10/tiles/{z}/{x}/{y}?access_token=" + TOKEN,
             ],
             "tileSize": 512,
-        },
-        "regions": {
-            "type": "vector",
-            "url": f"mbtiles://{region_tiles}",
-            "minzoom": 0,
-            "maxzoom": 8,
-        },
-        "masks": {
-            "type": "vector",
-            "url": f"mbtiles://{mask_tiles}",
-            "minzoom": 0,
-            "maxzoom": 8,
         },
         "states": {
             "type": "vector",
@@ -78,10 +68,7 @@ STYLE = {
             "paint": {
                 "circle-radius": {
                     "base": 0.5,
-                    "stops": [
-                        [2, 0.5],
-                        [6, 1.5],
-                    ],
+                    "stops": [[2, 0.5], [4, 1.5], [6, 2], [8, 3]],
                 },
                 "circle-opacity": 1,
                 "circle-color": "#1891ac",
@@ -95,10 +82,7 @@ STYLE = {
             "paint": {
                 "circle-radius": {
                     "base": 0.25,
-                    "stops": [
-                        [2, 0.25],
-                        [6, 1],
-                    ],
+                    "stops": [[2, 0.25], [4, 1.1], [6, 1.5], [8, 2]],
                 },
                 "circle-opacity": 1,
                 "circle-color": "#1891ac",
@@ -122,6 +106,29 @@ STYLE = {
             "maxzoom": 22,
             "paint": {"line-color": "#333333", "line-width": 0.5, "line-opacity": 1},
         },
+    ],
+}
+
+
+REGION_STYLE = deepcopy(STYLE)
+REGION_STYLE["sources"].update(
+    {
+        "regions": {
+            "type": "vector",
+            "url": f"mbtiles://{region_tiles}",
+            "minzoom": 0,
+            "maxzoom": 8,
+        },
+        "masks": {
+            "type": "vector",
+            "url": f"mbtiles://{mask_tiles}",
+            "minzoom": 0,
+            "maxzoom": 8,
+        },
+    }
+)
+REGION_STYLE["layers"].extend(
+    [
         {
             "id": "region-mask",
             "source": "masks",
@@ -148,30 +155,93 @@ STYLE = {
                 "line-width": 2,
             },
         },
-    ],
+    ]
+)
+
+STATE_STYLE = deepcopy(STYLE)
+STATE_STYLE["sources"]["mask"] = {
+    "type": "geojson",
+    "data": "",
 }
+STATE_STYLE["layers"].extend(
+    [
+        {
+            "id": "state-mask",
+            "source": "mask",
+            "source-layer": "mask",
+            "type": "fill",
+            "minzoom": 0,
+            "maxzoom": 22,
+            "paint": {
+                "fill-color": "#FFFFFF",
+                "fill-opacity": 0.6,
+            },
+        },
+        {
+            "id": "selected-state-outline",
+            "source": "states",
+            "source-layer": "State",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 22,
+            "paint": {"line-color": "#333333", "line-width": 2, "line-opacity": 1},
+        },
+    ]
+)
 
 
 out_dir = Path("ui/src/images/maps")
-if not out_dir.exists():
-    os.makedirs(out_dir)
+out_dir.mkdir(exist_ok=True)
+state_dir = out_dir / "states"
+state_dir.mkdir(exist_ok=True)
 
-
-df = (
-    gp.read_feather("data/boundaries/region_boundary.feather")
-    .to_crs(GEO_CRS)
-    .set_index("id")
-)
+### Render region maps
+df = gp.read_feather("data/boundaries/region_boundary.feather").to_crs(GEO_CRS).set_index("id")
 
 for id, row in df.bounds.iterrows():
     print(f"Rendering map for {id}")
-    style = deepcopy(STYLE)
+    style = deepcopy(REGION_STYLE)
     style["layers"][-2]["filter"] = ["==", "id", id]
     style["layers"][-1]["filter"] = ["==", "id", id]
-    with Map(
-        json.dumps(style), WIDTH, HEIGHT, ratio=1, token=TOKEN, provider="mapbox"
-    ) as map:
+
+    if id == "ak":
+        style["layers"][1]["paint"]["circle-radius"] = 3
+        style["layers"][2]["paint"]["circle-radius"] = 2
+
+    with Map(json.dumps(style), WIDTH, HEIGHT, ratio=1, token=TOKEN, provider="mapbox") as map:
         map.setBounds(*row.values, padding=10 if id == "se" else 20)
         png = map.renderPNG()
         with open(out_dir / f"{id}.png", "wb") as out:
-            out.write(png)
+            _ = out.write(png)
+
+
+### Render state maps
+df = (
+    gp.read_feather("data/boundaries/states.feather", columns=["id", "geometry"])
+    .to_crs(GEO_CRS)
+    .sort_values(by="id")
+    .set_index("id")
+)
+df = df.loc[df.index.isin(STATES.keys())].copy()
+
+# clip data to avoid wrapping antimeridian
+df.loc["AK", "geometry"] = shapely.intersection(df.loc["AK"].geometry, shapely.box(-180, -90, 0, 90))
+
+for id, row in df.iterrows():
+    print(f"Rendering map for {id}")
+    style = deepcopy(STATE_STYLE)
+
+    bounds = shapely.bounds(row.geometry)
+
+    if id == "AK":
+        style["layers"][1]["paint"]["circle-radius"] = 3
+        style["layers"][2]["paint"]["circle-radius"] = 2
+
+    mask = shapely.to_geojson(shapely.difference(shapely.box(-180, -90, 180, 90), row.geometry))
+    style["sources"]["mask"]["data"] = json.loads(mask)
+    style["layers"][-1]["filter"] = ["==", "id", id]
+    with Map(json.dumps(style), WIDTH, HEIGHT, ratio=1, token=TOKEN, provider="mapbox") as map:
+        map.setBounds(*bounds, padding=20)
+        png = map.renderPNG()
+        with open(state_dir / f"{id}.png", "wb") as out:
+            _ = out.write(png)

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
@@ -21,8 +21,15 @@ import { OutboundLink } from 'components/Link'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-import { CONNECTIVITY_TEAMS, REGIONS, STATES } from 'config'
+import { Chart } from 'components/Restoration'
+import {
+  CONNECTIVITY_TEAMS,
+  REGIONS,
+  STATES,
+  STATE_DATA_PROVIDERS,
+} from 'config'
 import { groupBy } from 'util/data'
+import { dynamicallyLoadImage } from 'util/dom'
 import { formatNumber } from 'util/format'
 import { extractNodes } from 'util/graphql'
 import SARPLogoImage from 'images/sarp_logo.png'
@@ -31,6 +38,11 @@ const regionID = 'se'
 const {
   [regionID]: { name, states },
 } = REGIONS
+
+const dataProviders = []
+states.forEach((state) => {
+  dataProviders.push(...(STATE_DATA_PROVIDERS[state] || []))
+})
 
 const SERegionPage = ({
   data: {
@@ -46,7 +58,9 @@ const SERegionPage = ({
     },
   },
 }) => {
+  const [metric, setMetric] = useState('gainmiles')
   const { [regionID]: summary } = useRegionSummary()
+  const { removedBarriersByYear } = summary
 
   const images = groupBy(extractNodes(imagesSharp), 'state')
 
@@ -101,6 +115,20 @@ const SERegionPage = ({
             <RegionStats {...summary} />
           </Box>
         </Grid>
+
+        <Box sx={{ mt: '3rem' }}>
+          <Heading as="h3">
+            Progress toward restoring aquatic connectivity:
+          </Heading>
+          <Box sx={{ mt: '1rem' }}>
+            <Chart
+              barrierType="combined_barriers"
+              removedBarriersByYear={removedBarriersByYear}
+              metric={metric}
+              onChangeMetric={setMetric}
+            />
+          </Box>
+        </Box>
 
         <RegionActionLinks region={regionID} />
 
@@ -174,6 +202,36 @@ const SERegionPage = ({
             <StateDownloadTable region={regionID} {...summary} />
           </Box>
         </Box>
+
+        {dataProviders.length > 0 ? (
+          <Box variant="boxes.section">
+            <Heading as="h2" variant="heading.section">
+              Data Sources
+            </Heading>
+
+            {dataProviders.map(({ key, description, logo, logoWidth }) => (
+              <Grid
+                key={key}
+                columns="2fr 1fr"
+                gap={5}
+                sx={{
+                  '&:not(:first-of-type)': {
+                    mt: '2rem',
+                  },
+                }}
+              >
+                <Box sx={{ fontSize: [2, 3] }}>
+                  <div dangerouslySetInnerHTML={{ __html: description }} />
+                </Box>
+                {logo ? (
+                  <Box sx={{ maxWidth: logoWidth }}>
+                    <Image src={dynamicallyLoadImage(logo)} />
+                  </Box>
+                ) : null}
+              </Grid>
+            ))}
+          </Box>
+        ) : null}
 
         <Divider sx={{ my: '4rem' }} />
 

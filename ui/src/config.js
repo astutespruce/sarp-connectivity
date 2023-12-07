@@ -670,6 +670,63 @@ export const ANALYSIS_STATES = [
   ),
 ].sort()
 
+export const STATE_DATA_PROVIDERS = {
+  ID: [
+    {
+      key: 'idfg',
+      description:
+        'Records describing dams and road-related barriers within Idaho include those maintained by the <a href="https://idfg.idaho.gov/data/fisheries/resources" target="_blank">Idaho Department of Fish and Game</a>.',
+      logo: 'idfg_logo.png',
+      logoWidth: '64px',
+    },
+  ],
+  MT: [
+    {
+      key: 'mtfwp',
+      description:
+        'Records describing dams and road-related barriers within Montana include those maintained by the <a href="https://fwp.mt.gov/" target="_blank">Montana Department of Fish, Wildlife, and Parks</a>.',
+      logo: 'mtfwp_logo.svg',
+      logoWidth: '80px',
+    },
+  ],
+  OR: [
+    {
+      key: 'odfw',
+      description:
+        'Records describing dams and road-related barriers within Oregon include those maintained by the <a href="https://www.dfw.state.or.us/fish/passage/inventories.asp" target="_blank"> Oregon Department of Fish and Wildlife</a>.',
+      logo: 'odfw_logo.svg',
+      logoWidth: '240px',
+    },
+  ],
+  UT: [
+    {
+      key: 'utdwr',
+      description:
+        'Records describing dams and road-related barriers within Utah include those maintained by the <a href="https://wildlifemigration.utah.gov/fish-and-amphibians/barriers/" target="_blank">Utah Barrier Assessment Inventory Tool</a>.',
+      logo: 'utdwr_logo.svg',
+      logoWidth: '300px',
+    },
+  ],
+  WA: [
+    {
+      key: 'wdfw',
+      description:
+        'Records describing dams and road-related barriers within Washington State include those maintained by the <a href="https://wdfw.wa.gov/species-habitats/habitat-recovery/fish-passage" target="_blank">Washington State Department of Fish and Wildlife, Fish Passage Division</a>. For more information about specific structures, please visit the <a href="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html" target="_blank">fish passage web map</a>.',
+      logo: 'wdfw_logo.svg',
+      logoWidth: '240px',
+    },
+  ],
+  WY: [
+    {
+      key: 'wygfd',
+      description:
+        'Information on aquatic barriers in Wyoming is a product of the <a href="https://wgfd.wyo.gov/habitat/aquatic-habitat" target="_blank">Wyoming Game & Fish Department</a>, including field data collection in coordination with the Southeast Aquatic Resources Partnership.',
+      logo: 'wygfd_logo.png',
+      logoWidth: '80px',
+    },
+  ],
+}
+
 export const BOOLEAN_FIELD = {
   0: 'no',
   1: 'yes',

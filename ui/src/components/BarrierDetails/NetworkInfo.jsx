@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Paragraph, Text } from 'theme-ui'
+import { Box, Paragraph, Text } from 'theme-ui'
 
 import { barrierTypeLabelSingular } from 'config'
 import { Table, Row } from 'components/Table'
