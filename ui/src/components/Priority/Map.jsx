@@ -874,7 +874,7 @@ const PriorityMap = ({
   }
 
   return (
-    <Map onCreateMap={handleCreateMap} {...props}>
+    <Map onCreateMap={handleCreateMap} bounds={bounds} {...props}>
       <DropDownLayerChooser
         label="Priority Watersheds"
         options={[{ id: 'coa', label: 'SARP conservation opportunity areas' }]}

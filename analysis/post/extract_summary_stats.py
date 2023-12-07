@@ -1,6 +1,7 @@
 from pathlib import Path
 import json
 
+import geopandas as gp
 import numpy as np
 import pandas as pd
 
@@ -12,6 +13,9 @@ data_dir = Path("data")
 src_dir = data_dir / "barriers/master"
 api_dir = data_dir / "api"
 ui_data_dir = Path("ui/data")
+
+# Outputs are written to the UI directory so they can be imported at build time
+# into the UI code
 
 
 ### Read dams
@@ -91,7 +95,17 @@ smallfish_barriers = pd.read_feather(
 crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "State", "NearestBarrierID"])
 
 
-# Calculate summary stats for entire analysis area
+bounds = (
+    gp.read_feather(data_dir / "boundaries/region_boundary.feather")
+    .set_index("id")
+    .bounds.round(2)
+    .apply(list, axis=1)
+    .rename("bbox")
+    .to_dict()
+)
+
+
+### Calculate summary stats for entire analysis area
 # NOTE: this is limited to the states fully within the analysis region and excludes
 # HUC4s that cross their borders
 
@@ -101,36 +115,39 @@ analysis_barriers = barriers.loc[barriers.State.isin(analysis_states)]
 analysis_crossings = crossings.loc[crossings.State.isin(analysis_states) & (crossings.NearestBarrierID == "")]
 
 stats = {
-    "total": {
-        "dams": len(analysis_dams),
-        "ranked_dams": int(analysis_dams.Ranked.sum()),
-        "recon_dams": int((analysis_dams.Recon > 0).sum()),
-        "ranked_largefish_barriers_dams": int(
-            (largefish_barriers.loc[largefish_barriers.BarrierType == "dams"].Ranked).sum()
-        ),
-        "ranked_smallfish_barriers_dams": int(
-            (smallfish_barriers.loc[largefish_barriers.BarrierType == "dams"].Ranked).sum()
-        ),
-        "removed_dams": int(analysis_dams.Removed.sum()),
-        "removed_dams_gain_miles": round(analysis_dams.RemovedGainMiles.sum().item(), 1),
-        "removed_dams_by_year": pack_year_removed_stats(analysis_dams),
-        "total_small_barriers": len(analysis_barriers),
-        "small_barriers": int(analysis_barriers.Included.sum()),
-        "ranked_small_barriers": int(analysis_barriers.Ranked.sum()),
-        "ranked_largefish_barriers_small_barriers": int(
-            (largefish_barriers.loc[largefish_barriers.BarrierType == "small_barriers"].Ranked).sum()
-        ),
-        "ranked_smallfish_barriers_small_barriers": int(
-            (smallfish_barriers.loc[largefish_barriers.BarrierType == "small_barriers"].Ranked).sum()
-        ),
-        "removed_small_barriers": int(analysis_barriers.Removed.sum()),
-        "removed_small_barriers_gain_miles": round(analysis_barriers.RemovedGainMiles.sum().item(), 1),
-        "removed_small_barriers_by_year": pack_year_removed_stats(analysis_barriers),
-        "crossings": len(analysis_crossings),
-    }
+    "bounds": bounds["total"],
+    "dams": len(analysis_dams),
+    "ranked_dams": int(analysis_dams.Ranked.sum()),
+    "recon_dams": int((analysis_dams.Recon > 0).sum()),
+    "ranked_largefish_barriers_dams": int(
+        (largefish_barriers.loc[largefish_barriers.BarrierType == "dams"].Ranked).sum()
+    ),
+    "ranked_smallfish_barriers_dams": int(
+        (smallfish_barriers.loc[largefish_barriers.BarrierType == "dams"].Ranked).sum()
+    ),
+    "removed_dams": int(analysis_dams.Removed.sum()),
+    "removed_dams_gain_miles": round(analysis_dams.RemovedGainMiles.sum().item(), 1),
+    "removed_dams_by_year": pack_year_removed_stats(analysis_dams),
+    "total_small_barriers": len(analysis_barriers),
+    "small_barriers": int(analysis_barriers.Included.sum()),
+    "ranked_small_barriers": int(analysis_barriers.Ranked.sum()),
+    "ranked_largefish_barriers_small_barriers": int(
+        (largefish_barriers.loc[largefish_barriers.BarrierType == "small_barriers"].Ranked).sum()
+    ),
+    "ranked_smallfish_barriers_small_barriers": int(
+        (smallfish_barriers.loc[largefish_barriers.BarrierType == "small_barriers"].Ranked).sum()
+    ),
+    "removed_small_barriers": int(analysis_barriers.Removed.sum()),
+    "removed_small_barriers_gain_miles": round(analysis_barriers.RemovedGainMiles.sum().item(), 1),
+    "removed_small_barriers_by_year": pack_year_removed_stats(analysis_barriers),
+    "crossings": int(len(analysis_crossings)),
 }
 
-# Calculate stats for regions
+with open(ui_data_dir / "summary_stats.json", "w") as outfile:
+    _ = outfile.write(json.dumps(stats))
+
+
+### Calculate stats for regions
 # NOTE: these are groupings of states and some states may be in multiple regions
 region_stats = []
 for region, region_states in REGION_STATES.items():
@@ -141,6 +158,7 @@ for region, region_states in REGION_STATES.items():
     region_stats.append(
         {
             "id": region,
+            "bounds": bounds[region],
             "dams": len(region_dams),
             "ranked_dams": int(region_dams.Ranked.sum()),
             "recon_dams": int((region_dams.Recon > 0).sum()),
@@ -157,34 +175,34 @@ for region, region_states in REGION_STATES.items():
         }
     )
 
-stats["region"] = region_stats
+with open(ui_data_dir / "region_stats.json", "w") as outfile:
+    _ = outfile.write(json.dumps(region_stats))
 
 
-# only extract core counts in states for data download page,
-# as other stats are joined to state vector tiles elsewhere
+### Calculate stats for states; these are used on state pages and state download
+# tables
 state_stats = []
-for state in sorted(STATES.keys()):
+for state, name in sorted(STATES.items(), key=lambda x: x[1]):
     state_dams = dams.loc[dams.State == state]
     state_barriers = barriers.loc[barriers.State == state]
+    state_crossings = crossings.loc[crossings.State == state]
 
-    # NOTE: removed barrier counts not currently used at state level in this
-    # data structure; only used in tiles
     state_stats.append(
         {
             "id": state,
-            "dams": int(len(state_dams)),
+            "dams": len(state_dams),
             "recon_dams": int((state_dams.Recon > 0).sum()),
-            # "removed_dams": int(state_dams.Removed.sum()),
-            # "removed_dams_gain_miles": int(round(state_dams.RemovedGainMiles.sum())),
+            "removed_dams": int(state_dams.Removed.sum()),
+            "removed_dams_gain_miles": round(state_dams.RemovedGainMiles.sum().item(), 1),
+            "removed_dams_by_year": pack_year_removed_stats(state_dams),
             "total_small_barriers": int(len(state_barriers)),
             "small_barriers": int(state_barriers.Included.sum()),
-            # "removed_small_barriers": int(state_barriers.Removed.sum()),
-            # "removed_small_barriers_gain_miles": int(round(state_barriers.RemovedGainMiles.sum())),
+            "removed_small_barriers": int(state_barriers.Removed.sum()),
+            "removed_small_barriers_gain_miles": round(state_barriers.RemovedGainMiles.sum().item(), 1),
+            "removed_small_barriers_by_year": pack_year_removed_stats(state_barriers),
+            "crossings": len(state_crossings),
         }
     )
-stats["State"] = state_stats
 
-# Write the summary statistics into the UI directory so that it can be imported at build time
-# into the code
-with open(ui_data_dir / "summary_stats.json", "w") as outfile:
-    outfile.write(json.dumps(stats))
+with open(ui_data_dir / "state_stats.json", "w") as outfile:
+    _ = outfile.write(json.dumps(state_stats))

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { Box, Grid, Paragraph } from 'theme-ui'
 
 import { useStateSummary } from 'components/Data'
+import { Link } from 'components/Link'
 import { REGIONS, STATES, ANALYSIS_STATES } from 'config'
 import { groupBy } from 'util/data'
 import { formatNumber } from 'util/format'
@@ -106,7 +107,9 @@ const StateDownloadTable = ({
               .sort((a, b) => (STATES[a] < STATES[b] ? -1 : 1))
               .map((id) => (
                 <tr key={id}>
-                  <td>{STATES[id]}</td>
+                  <td>
+                    <Link to={`/states/${id}`}>{STATES[id]}</Link>
+                  </td>
                   <td>{formatNumber(stateData[id].dams)}</td>
                   <td>{formatNumber(stateData[id].reconDams)}</td>
                   <td>{formatNumber(stateData[id].totalSmallBarriers)}</td>

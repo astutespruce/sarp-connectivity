@@ -15,7 +15,7 @@ import PropTypes from 'prop-types'
 /* eslint-disable-next-line */
 import mapboxgl from '!mapbox-gl'
 
-import { useRegionBounds } from 'components/Data/RegionBounds'
+import { useRegionBounds } from 'components/Data'
 import {
   Map,
   Legend,
@@ -686,7 +686,9 @@ const SummaryMap = ({
         map.setFilter(id, ['==', 'id', region])
       })
 
-      map.fitBounds(regionBounds[region].bbox, { padding: 100 })
+      map.fitBounds(regionBounds[region], {
+        padding: 100,
+      })
     },
     // regionBounds deliberately omitted
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
@@ -698,7 +700,7 @@ const SummaryMap = ({
       <Map
         onCreateMap={handleCreateMap}
         {...props}
-        bounds={regionBounds[region].bbox}
+        bounds={regionBounds[region]}
       >
         <Legend
           title={layerTitle}

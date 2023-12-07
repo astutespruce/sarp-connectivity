@@ -13,7 +13,7 @@ import { siteMetadata } from 'config'
 const { version: dataVersion, date: dataDate } = siteMetadata
 
 const DownloadPage = ({ data: { headerImage } }) => {
-  const { total } = useSummaryData()
+  const summaryStats = useSummaryData()
 
   return (
     <Layout>
@@ -82,7 +82,11 @@ const DownloadPage = ({ data: { headerImage } }) => {
           </Box>
         </Grid>
 
-        <StateDownloadTable region="total" {...total} sx={{ mt: '4rem' }} />
+        <StateDownloadTable
+          region="total"
+          {...summaryStats}
+          sx={{ mt: '4rem' }}
+        />
       </Container>
     </Layout>
   )

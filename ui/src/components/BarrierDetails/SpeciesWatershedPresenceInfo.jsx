@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Text, Paragraph } from 'theme-ui'
+import { Box, Text } from 'theme-ui'
 
 import { SALMONID_ESU, barrierTypeLabelSingular } from 'config'
 import { Entry, Field } from 'components/Sidebar'

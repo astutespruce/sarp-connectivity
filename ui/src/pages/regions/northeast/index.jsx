@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
@@ -9,22 +9,30 @@ import {
   Divider,
   Grid,
   Heading,
+  Image,
   Paragraph,
   Text,
 } from 'theme-ui'
 
-import { useSummaryData } from 'components/Data'
+import { useRegionSummary } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-import { REGIONS } from 'config'
+import { Chart } from 'components/Restoration'
+import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
+import { dynamicallyLoadImage } from 'util/dom'
 import { formatNumber } from 'util/format'
 
 const regionID = 'ne'
 const {
   [regionID]: { name, states, inDevelopment },
 } = REGIONS
+
+const dataProviders = []
+states.forEach((state) => {
+  dataProviders.push(...(STATE_DATA_PROVIDERS[state] || []))
+})
 
 const NortheastRegionPage = ({
   data: {
@@ -36,7 +44,9 @@ const NortheastRegionPage = ({
     },
   },
 }) => {
-  const { [regionID]: summary } = useSummaryData()
+  const [metric, setMetric] = useState('gainmiles')
+  const { [regionID]: summary } = useRegionSummary()
+  const { removedBarriersByYear } = summary
 
   return (
     <Layout>
@@ -93,9 +103,22 @@ const NortheastRegionPage = ({
             <RegionStats {...summary} />
           </Box>
         </Grid>
-        <RegionActionLinks region={regionID} />
 
-        {/* TODO: data sources section */}
+        <Box sx={{ mt: '3rem' }}>
+          <Heading as="h3">
+            Progress toward restoring aquatic connectivity:
+          </Heading>
+          <Box sx={{ mt: '1rem' }}>
+            <Chart
+              barrierType="combined_barriers"
+              removedBarriersByYear={removedBarriersByYear}
+              metric={metric}
+              onChangeMetric={setMetric}
+            />
+          </Box>
+        </Box>
+
+        <RegionActionLinks region={regionID} />
 
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">
@@ -105,6 +128,37 @@ const NortheastRegionPage = ({
             <StateDownloadTable region={regionID} {...summary} />
           </Box>
         </Box>
+
+        {dataProviders.length > 0 ? (
+          <Box variant="boxes.section">
+            <Heading as="h2" variant="heading.section">
+              Data Sources
+            </Heading>
+
+            {dataProviders.map(({ key, description, logo, logoWidth }) => (
+              <Grid
+                key={key}
+                columns="2fr 1fr"
+                gap={5}
+                sx={{
+                  '&:not(:first-of-type)': {
+                    mt: '2rem',
+                  },
+                }}
+              >
+                <Box sx={{ fontSize: [2, 3] }}>
+                  <div dangerouslySetInnerHTML={{ __html: description }} />
+                </Box>
+                {logo ? (
+                  <Box sx={{ maxWidth: logoWidth }}>
+                    <Image src={dynamicallyLoadImage(logo)} />
+                  </Box>
+                ) : null}
+              </Grid>
+            ))}
+          </Box>
+        ) : null}
+
         <Divider sx={{ my: '4rem' }} />
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">

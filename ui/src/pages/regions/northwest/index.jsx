@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
@@ -15,22 +15,25 @@ import {
 } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
-import { useSummaryData } from 'components/Data'
+import { useRegionSummary } from 'components/Data'
 import { StateDownloadTable } from 'components/Download'
 import { Layout, SEO } from 'components/Layout'
 import { HeaderImage } from 'components/Image'
 import { RegionActionLinks, RegionStats } from 'components/Regions'
-import { REGIONS } from 'config'
+import { Chart } from 'components/Restoration'
+import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
 import { formatNumber } from 'util/format'
-
-import WDFWLogo from 'images/wdfw_logo.svg'
-import ODFWLogo from 'images/odfw_logo.svg'
-import IDFGLogo from 'images/idfg_logo.png'
+import { dynamicallyLoadImage } from 'util/dom'
 
 const regionID = 'pnw'
 const {
   [regionID]: { name, states },
 } = REGIONS
+
+const dataProviders = []
+states.forEach((state) => {
+  dataProviders.push(...(STATE_DATA_PROVIDERS[state] || []))
+})
 
 const PNWRegionPage = ({
   data: {
@@ -45,7 +48,9 @@ const PNWRegionPage = ({
     },
   },
 }) => {
-  const { [regionID]: summary } = useSummaryData()
+  const [metric, setMetric] = useState('gainmiles')
+  const { [regionID]: summary } = useRegionSummary()
+  const { removedBarriersByYear } = summary
 
   return (
     <Layout>
@@ -98,60 +103,21 @@ const PNWRegionPage = ({
           </Box>
         </Grid>
 
-        <RegionActionLinks region={regionID} />
-
-        <Box variant="boxes.section">
-          <Heading as="h2" variant="heading.section">
-            Data Sources
+        <Box sx={{ mt: '3rem' }}>
+          <Heading as="h3">
+            Progress toward restoring aquatic connectivity:
           </Heading>
-
-          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '0.5rem' }}>
-            <Paragraph>
-              Records describing dams and road-related barriers within Idaho
-              include those maintained by the{' '}
-              <OutboundLink to="https://idfg.idaho.gov/data/fisheries/resources">
-                Idaho Department of Fish and Game
-              </OutboundLink>
-              .
-            </Paragraph>
-            <Box sx={{ maxWidth: '64px' }}>
-              <Image src={IDFGLogo} />
-            </Box>
-          </Grid>
-
-          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
-            <Paragraph>
-              Records describing dams and road-related barriers within Oregon
-              include those maintained by the{' '}
-              <OutboundLink to="https://www.dfw.state.or.us/fish/passage/inventories.asp">
-                Oregon Department of Fish and Wildlife
-              </OutboundLink>
-              .
-            </Paragraph>
-            <Box sx={{ maxWidth: '240px' }}>
-              <Image src={ODFWLogo} />
-            </Box>
-          </Grid>
-
-          <Grid columns="2fr 1fr" gap={5} sx={{ mt: '2rem' }}>
-            <Paragraph>
-              Records describing dams and road-related barriers within
-              Washington State include those maintained by the{' '}
-              <OutboundLink to="https://wdfw.wa.gov/species-habitats/habitat-recovery/fish-passage">
-                Washington State Department of Fish and Wildlife, Fish Passage
-                Division
-              </OutboundLink>
-              . For more information about specific structures, please visit the{' '}
-              <OutboundLink to="https://geodataservices.wdfw.wa.gov/hp/fishpassage/index.html">
-                fish passage web map
-              </OutboundLink>
-              .
-            </Paragraph>
-            <Box sx={{ maxWidth: '240px' }}>
-              <Image src={WDFWLogo} />
-            </Box>
-          </Grid>
+          <Box sx={{ mt: '1rem' }}>
+            <Chart
+              barrierType="combined_barriers"
+              removedBarriersByYear={removedBarriersByYear}
+              metric={metric}
+              onChangeMetric={setMetric}
+            />
+          </Box>
         </Box>
+
+        <RegionActionLinks region={regionID} />
 
         <Box variant="boxes.section">
           <Heading as="h2" variant="heading.section">
@@ -161,6 +127,36 @@ const PNWRegionPage = ({
             <StateDownloadTable region={regionID} {...summary} />
           </Box>
         </Box>
+
+        {dataProviders.length > 0 ? (
+          <Box variant="boxes.section">
+            <Heading as="h2" variant="heading.section">
+              Data Sources
+            </Heading>
+
+            {dataProviders.map(({ key, description, logo, logoWidth }) => (
+              <Grid
+                key={key}
+                columns="2fr 1fr"
+                gap={5}
+                sx={{
+                  '&:not(:first-of-type)': {
+                    mt: '2rem',
+                  },
+                }}
+              >
+                <Box sx={{ fontSize: [2, 3] }}>
+                  <div dangerouslySetInnerHTML={{ __html: description }} />
+                </Box>
+                {logo ? (
+                  <Box sx={{ maxWidth: logoWidth }}>
+                    <Image src={dynamicallyLoadImage(logo)} />
+                  </Box>
+                ) : null}
+              </Grid>
+            ))}
+          </Box>
+        ) : null}
 
         <Divider sx={{ my: '4rem' }} />
 

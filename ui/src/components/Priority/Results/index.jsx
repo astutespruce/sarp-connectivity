@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Heading, Paragraph, Text } from 'theme-ui'
+import { Box, Flex, Heading, Text } from 'theme-ui'
 
 import { useBarrierType } from 'components/Data'
 import { Downloader } from 'components/Download'

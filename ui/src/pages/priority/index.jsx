@@ -12,14 +12,12 @@ import { formatNumber } from 'util/format'
 
 const PrioritizePage = ({ data: { headerImage } }) => {
   const {
-    total: {
-      rankedDams,
-      rankedSmallBarriers,
-      rankedLargefishBarriersDams,
-      rankedLargefishBarriersSmallBarriers,
-      rankedSmallfishBarriersDams,
-      rankedSmallfishBarriersSmallBarriers,
-    },
+    rankedDams,
+    rankedSmallBarriers,
+    rankedLargefishBarriersDams,
+    rankedLargefishBarriersSmallBarriers,
+    rankedSmallfishBarriersDams,
+    rankedSmallfishBarriersSmallBarriers,
   } = useSummaryData()
 
   return (

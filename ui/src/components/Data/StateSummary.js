@@ -1,23 +1,46 @@
 import { graphql, useStaticQuery } from 'gatsby'
 
-export const useStateSummary = () =>
-  useStaticQuery(graphql`
+import { extractYearRemovedStats } from 'components/Restoration/util'
+
+export const useStateSummary = () => {
+  const {
+    allStateStatsJson: { states },
+  } = useStaticQuery(graphql`
     query stateSummaryQuery {
-      allSummaryStatsJson {
-        edges {
+      allStateStatsJson {
+        states: edges {
           node {
-            State {
-              id
-              dams
-              reconDams: recon_dams
-              totalSmallBarriers: total_small_barriers
-            }
+            id: jsonId
+            dams
+            reconDams: recon_dams
+            removedDams: removed_dams
+            removedDamsGainMiles: removed_dams_gain_miles
+            removedDamsByYear: removed_dams_by_year
+            totalSmallBarriers: total_small_barriers
+            smallBarriers: small_barriers
+            removedSmallBarriers: removed_small_barriers
+            removedSmallBarriersGainMiles: removed_small_barriers_gain_miles
+            removedSmallBarriersByYear: removed_small_barriers_by_year
+            crossings
           }
         }
       }
     }
-  `).allSummaryStatsJson.edges[0].node.State.sort((a, b) => {
-    if (a < b) return -1
-    if (a > b) return 1
-    return 0
-  })
+  `)
+
+  return states.map(
+    ({
+      node: {
+        removedDamsByYear = '',
+        removedSmallBarriersByYear = '',
+        ...state
+      },
+    }) => ({
+      ...state,
+      removedBarriersByYear: extractYearRemovedStats(
+        removedDamsByYear,
+        removedSmallBarriersByYear
+      ),
+    })
+  )
+}

@@ -12,7 +12,6 @@ import {
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
-  DISADVANTAGED_COMMUNITY,
 } from 'config'
 import { Entry, Field } from 'components/Sidebar'
 import { formatNumber } from 'util/format'

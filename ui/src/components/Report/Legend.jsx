@@ -59,7 +59,7 @@ export const getLegendEntries = ({ name, networkType, visibleLayers }) => {
         // don't show minor barriers for dams view
         id !== 'minorBarrier' || networkType !== 'dams'
     )
-    .forEach(({ id, getSymbol, getLabel }) => {
+    .forEach(({ getSymbol, getLabel }) => {
       entries.push({
         ...getSymbol(networkType),
         type: 'circle',

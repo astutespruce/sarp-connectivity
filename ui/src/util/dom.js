@@ -47,3 +47,18 @@ export const getQueryParams = (location) => {
     {}
   )
 }
+
+/**
+ * Dynamically load an image using require()
+ * @param {String} filename
+ * @returns resolved image
+ */
+export const dynamicallyLoadImage = (filename) => {
+  try {
+    /* eslint-disable-next-line global-require,import/no-dynamic-require */
+    return require(`images/${filename}`).default
+  } catch (err) {
+    console.error(err)
+  }
+  return null
+}

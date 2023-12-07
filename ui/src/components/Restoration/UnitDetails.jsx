@@ -2,8 +2,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Button, Heading, Flex, Text, Paragraph } from 'theme-ui'
+import { AngleDoubleRight } from '@emotion-icons/fa-solid'
 
-import { ExternalLink } from 'components/Link'
+import { Link, ExternalLink } from 'components/Link'
 import { STATE_FIPS, STATES, CONNECTIVITY_TEAMS } from 'config'
 import { formatNumber, pluralize } from 'util/format'
 
@@ -108,6 +109,15 @@ const UnitDetails = ({
           overflowY: 'auto',
         }}
       >
+        {layerId === 'State' ? (
+          <Box sx={{ mt: '-0.5rem', mb: '1rem' }}>
+            <Link to={`/states/${id}`}>
+              view state page for more information{' '}
+              <AngleDoubleRight size="1em" />
+            </Link>
+          </Box>
+        ) : null}
+
         <Paragraph>This area contains:</Paragraph>
 
         {barrierType === 'dams' || barrierType === 'combined_barriers' ? (

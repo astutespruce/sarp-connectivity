@@ -10,9 +10,8 @@ import { useSummaryData } from 'components/Data'
 const { version: dataVersion, date: dataDate } = siteMetadata
 
 const Inventory = () => {
-  const {
-    total: { dams, removedDams, totalSmallBarriers, removedSmallBarriers },
-  } = useSummaryData()
+  const { dams, removedDams, totalSmallBarriers, removedSmallBarriers } =
+    useSummaryData()
 
   return (
     <Box variant="boxes.section">
