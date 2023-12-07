@@ -12,35 +12,47 @@ import { formatNumber } from 'util/format'
 const SpeciesHabitatInfo = ({ habitat }) => (
   <>
     <Entry sx={{ pb: '.5rem', mx: '-0.5rem' }}>
-      <Table sx={{ fontSize: 1 }} columns="18rem 1fr">
+      <Table sx={{ fontSize: 1 }} columns="12rem 1fr 1fr">
         <Row sx={{ px: '0.5rem' }}>
           <Box />
+          <Box sx={{ fontSize: 0, fontWeight: 'bold' }}>Upstream miles</Box>
           <Box sx={{ fontSize: 0 }}>
-            <b>Upstream miles</b>
+            <Text sx={{ fontWeight: 'bold' }}>Downstream miles</Text>
+            <Text sx={{ color: 'grey.7' }}>free-flowing miles only</Text>
           </Box>
         </Row>
-        {habitat.map(({ key, label, source, limit, upstreammiles }) => (
-          <Row key={key} sx={{ px: '0.5rem' }}>
-            <Box>
-              <Text sx={{ display: 'inline' }}>{label}</Text>
-              <Box sx={{ display: 'inline-block' }}>
-                <InfoTooltip>
-                  Estimated instream habitat based on data provided by {source}.
-                  {limit ? (
-                    <>
-                      <br />
-                      Data are known to be limited to {limit} and do not cover
-                      the full range of this species.
-                    </>
-                  ) : null}
-                </InfoTooltip>
+        {habitat.map(
+          ({ key, label, source, limit, upstreammiles, downstreammiles }) => (
+            <Row key={key} sx={{ px: '0.5rem' }}>
+              <Box>
+                <Text sx={{ display: 'inline' }}>{label}</Text>
+                <Box sx={{ display: 'inline-block' }}>
+                  <InfoTooltip>
+                    Estimated instream habitat based on data provided by{' '}
+                    {source}.
+                    {limit ? (
+                      <>
+                        <br />
+                        Data are known to be limited to {limit} and do not cover
+                        the full range of this species.
+                      </>
+                    ) : null}
+                  </InfoTooltip>
+                </Box>
               </Box>
-            </Box>
-            <Box>
-              {upstreammiles < 0.1 ? '<0.1' : formatNumber(upstreammiles)}
-            </Box>
-          </Row>
-        ))}
+              <Box>
+                {upstreammiles > 0 && upstreammiles < 0.1
+                  ? '<0.1'
+                  : formatNumber(upstreammiles)}
+              </Box>
+              <Box>
+                {downstreammiles > 0 && downstreammiles < 0.1
+                  ? '<0.1'
+                  : formatNumber(downstreammiles)}
+              </Box>
+            </Row>
+          )
+        )}
       </Table>
     </Entry>
     <Entry>
@@ -65,6 +77,7 @@ SpeciesHabitatInfo.propTypes = {
       label: PropTypes.string.isRequired,
       source: PropTypes.string.isRequired,
       upstreammiles: PropTypes.number.isRequired,
+      downstreammiles: PropTypes.number.isRequired,
       limit: PropTypes.string,
     })
   ).isRequired,

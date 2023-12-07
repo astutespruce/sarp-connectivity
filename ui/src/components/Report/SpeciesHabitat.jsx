@@ -27,9 +27,17 @@ const SpeciesHabitat = ({ habitat, ...props }) => {
             <Bold>upstream miles</Bold>
           </Text>
         </View>
+        <View style={{ flex: '0 0 120pt' }}>
+          <Text>
+            <Bold>downstream miles</Bold>
+          </Text>
+          <Text style={{ color: '#7f8a93', fontSize: 10 }}>
+            free-flowing miles only
+          </Text>
+        </View>
       </Flex>
 
-      {habitat.map(({ key, label, limit, upstreammiles }) => (
+      {habitat.map(({ key, label, limit, upstreammiles, downstreammiles }) => (
         <Flex
           key={key}
           style={{
@@ -49,7 +57,16 @@ const SpeciesHabitat = ({ habitat, ...props }) => {
           </View>
           <View style={{ flex: '0 0 120pt' }}>
             <Text>
-              {upstreammiles < 0.1 ? '<0.1' : formatNumber(upstreammiles)}
+              {upstreammiles > 0 && upstreammiles < 0.1
+                ? '<0.1'
+                : formatNumber(upstreammiles)}
+            </Text>
+          </View>
+          <View style={{ flex: '0 0 120pt' }}>
+            <Text>
+              {downstreammiles > 0 && downstreammiles < 0.1
+                ? '<0.1'
+                : formatNumber(downstreammiles)}
             </Text>
           </View>
         </Flex>

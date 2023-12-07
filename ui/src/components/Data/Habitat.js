@@ -8,5 +8,9 @@ export const extractHabitat = (habitatFields) =>
       source,
       limit,
       upstreammiles: habitatFields[`${key}upstreammiles`] || 0,
+      downstreammiles: habitatFields[`free${key}downstreammiles`] || 0,
     }))
-    .filter(({ upstreammiles }) => upstreammiles > 0)
+    .filter(
+      ({ upstreammiles, downstreammiles }) =>
+        upstreammiles + downstreammiles > 0
+    )

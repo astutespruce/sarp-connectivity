@@ -14,7 +14,7 @@ const SpeciesHabitat = ({ habitat, sx }) => {
       <Heading as="h3">Species habitat information for this network</Heading>
 
       <Table
-        columns="34rem 1fr"
+        columns="1fr 10rem 10rem"
         sx={{
           mt: '1rem',
           '> div:not(:first-of-type)': {
@@ -27,24 +27,40 @@ const SpeciesHabitat = ({ habitat, sx }) => {
           <Box>
             <b>upstream miles</b>
           </Box>
+          <Box>
+            <b>downstream miles</b>
+            <br />
+            <Text sx={{ color: 'grey.7', fontSize: 0 }}>
+              free-flowing miles only
+            </Text>
+          </Box>
         </Row>
 
-        {habitat.map(({ key, label, limit, upstreammiles }) => (
-          <Row key={key}>
-            <Box>
-              <Text>{label}</Text>
-              {limit ? (
-                <Text variant="help" sx={{ fontSize: 0 }}>
-                  Data are known to be limited to {limit} and do not cover the
-                  full range of this species.
-                </Text>
-              ) : null}
-            </Box>
-            <Box>
-              {upstreammiles < 0.1 ? '<0.1' : formatNumber(upstreammiles)}
-            </Box>
-          </Row>
-        ))}
+        {habitat.map(
+          ({ key, label, limit, upstreammiles, downstreammiles }) => (
+            <Row key={key}>
+              <Box>
+                <Text>{label}</Text>
+                {limit ? (
+                  <Text variant="help" sx={{ fontSize: 0 }}>
+                    Data are known to be limited to {limit} and do not cover the
+                    full range of this species.
+                  </Text>
+                ) : null}
+              </Box>
+              <Box>
+                {upstreammiles > 0 && upstreammiles < 0.1
+                  ? '<0.1'
+                  : formatNumber(upstreammiles)}
+              </Box>
+              <Box>
+                {downstreammiles > 0 && downstreammiles < 0.1
+                  ? '<0.1'
+                  : formatNumber(downstreammiles)}
+              </Box>
+            </Row>
+          )
+        )}
       </Table>
 
       <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>

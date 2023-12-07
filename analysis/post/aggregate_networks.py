@@ -380,7 +380,7 @@ for network_type in NETWORK_TYPES.keys():
         else scenario_results.primary_network
     )
 
-    merged = append(merged, scenario_results.reset_index())
+    merged = append(merged, scenario_results.reset_index()).copy()
 
 waterfalls = merged
 
