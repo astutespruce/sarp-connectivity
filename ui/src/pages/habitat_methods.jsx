@@ -118,12 +118,12 @@ const HabitatMethodsPage = ({
           </Box>
           <Box>
             <a href="#Northeast">
-              Chesapeake Bay Watershed Anadromous Fish Habitat
+              Chesapeake Bay Watershed Diadromous Fish Habitat
             </a>
           </Box>
           <Box>
             <a href="#SEACAP">
-              South Atlantic and Gulf Anadromous Fish Habitat
+              South Atlantic and Gulf Diadromous Fish Habitat
             </a>
           </Box>
         </Grid>
@@ -510,13 +510,13 @@ const HabitatMethodsPage = ({
 
       <Box id="Northeast" sx={{ mt: '3rem' }}>
         <Heading as="h2" variant="heading.section">
-          Chesapeake Bay Watershed Anadromous Fish Habitat
+          Chesapeake Bay Watershed Diadromous Fish Habitat
         </Heading>
 
         <Grid columns="2fr 1fr" gap={4}>
           <Box>
             <Paragraph>
-              Habitat for several anadromous species in the Chesapeake Bay
+              Habitat for several diadromous species in the Chesapeake Bay
               Watershed were derived from data provided by the Chesapeake Fish
               Passage Workgroup. These data were attributed to either NHDPlus
               medium-resolution flowlines or NHDPlusHR flowlines.
@@ -561,7 +561,7 @@ const HabitatMethodsPage = ({
 
         <Paragraph sx={{ mt: '2rem', fontWeight: 'bold' }}>
           We used the following steps to attribute the Chesapeake Bay Watershed
-          anadromous fish habitat data for each species to NHDPlusHR flowlines:
+          diadromous fish habitat data for each species to NHDPlusHR flowlines:
         </Paragraph>
         <Box
           as="ol"
@@ -629,7 +629,7 @@ const HabitatMethodsPage = ({
         </Box>
         <Paragraph variant="help" sx={{ mt: '2rem' }}>
           Note: the habitat data included used within this tool is a best first
-          approximation of the Chesapeake Bay Watershed anadromous habitat data,
+          approximation of the Chesapeake Bay Watershed diadromous habitat data,
           attributed at the entire NHDPlusHR flowline level; it does not include
           elevation gradients or other natural barriers that may have been
           included within the original habitat data.
@@ -640,20 +640,20 @@ const HabitatMethodsPage = ({
 
       <Box id="SEACAP" sx={{ mt: '3rem' }}>
         <Heading as="h2" variant="heading.section">
-          South Atlantic and Gulf Anadromous Fish Habitat
+          South Atlantic and Gulf Diadromous Fish Habitat
         </Heading>
 
         <Grid columns="2fr 1fr" gap={4}>
           <Box>
             <Paragraph>
-              Anadromous fish habitat for the South Atlantic and Gulf regions
+              Diadromous fish habitat for the South Atlantic and Gulf regions
               were derived from habitat data compiled by the{' '}
               <OutboundLink to="https://easternbrooktrout.org/science-data/aquatic-organism-passage-inventory-assessment-protocols/seacap-southeast-aquatic-connectivity-assessment-project-assessing-the-ecological-impact-of-dams-on-southeastern-rivers">
                 SEACAP project
               </OutboundLink>{' '}
-              published in 2014. These data were created using anadromous fish
+              published in 2014. These data were created using diadromous fish
               presence data attributed to NHDPlus medium-resolution hydrography
-              andwere validated through workshops held in 2014 with state
+              and were validated through workshops held in 2014 with state
               resource manager stakeholder groups.
             </Paragraph>
           </Box>
@@ -671,7 +671,7 @@ const HabitatMethodsPage = ({
 
         <Paragraph sx={{ mt: '2rem', fontWeight: 'bold' }}>
           We used the following steps to attribute the South Atlantic and Gulf
-          anadromous fish habitat data to NHDPlusHR flowlines:
+          diadromous fish habitat data to NHDPlusHR flowlines:
         </Paragraph>
         <Box
           as="ol"
@@ -731,7 +731,7 @@ const HabitatMethodsPage = ({
         </Box>
         <Paragraph variant="help" sx={{ mt: '2rem' }}>
           Note: the habitat data included used within this tool is a best first
-          approximation of the South Atlantic and Gulf anadromous fish habitat
+          approximation of the South Atlantic and Gulf diadromous fish habitat
           data, attributed at the entire NHDPlusHR flowline level; it does not
           include elevation gradients or other natural barriers that may have
           been included within the original data.
