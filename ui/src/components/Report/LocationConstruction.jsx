@@ -65,7 +65,6 @@ const Location = ({
   disadvantagedcommunity,
   sarp_score,
   diversion,
-  nostructure,
   streamorder,
   streamsizeclass,
   waterbodykm2,
@@ -108,7 +107,6 @@ const Location = ({
                   <>
                     {isLowheadDam ? ', ' : null}
                     {diversion === 2 ? 'likely ' : null} water diversion
-                    {nostructure ? ' (no associated barrier structure)' : null}
                   </>
                 ) : null}
                 {!(isLowheadDam || isDiversion) ? (
@@ -290,20 +288,19 @@ const Location = ({
                   </Entry>
                 ) : null}
 
-                {/* Have to evalute nostructure on each or Entries doesn't work */}
-                {!nostructure && height > 0 ? (
+                {height > 0 ? (
                   <Entry>
                     <Text>Height: {height} feet</Text>
                   </Entry>
                 ) : null}
 
-                {!nostructure && width > 0 ? (
+                {width > 0 ? (
                   <Entry>
                     <Text>Width: {width} feet</Text>
                   </Entry>
                 ) : null}
 
-                {!nostructure && construction !== null && construction >= 0 ? (
+                {construction !== null && construction >= 0 ? (
                   <Entry>
                     <Text>
                       Construction material:{' '}
@@ -312,13 +309,13 @@ const Location = ({
                   </Entry>
                 ) : null}
 
-                {!nostructure && hazard !== null && hazard > 0 ? (
+                {hazard !== null && hazard > 0 ? (
                   <Entry>
                     <Text>Hazard rating: {HAZARD[hazard].toLowerCase()}</Text>
                   </Entry>
                 ) : null}
 
-                {!nostructure && condition !== null && condition >= 0 ? (
+                {condition !== null && condition >= 0 ? (
                   <Entry>
                     <Text>
                       Structural condition: {CONDITION[condition].toLowerCase()}
@@ -332,9 +329,7 @@ const Location = ({
                   </Entry>
                 ) : null}
 
-                {!nostructure &&
-                passagefacility !== null &&
-                passagefacility >= 0 ? (
+                {passagefacility !== null && passagefacility >= 0 ? (
                   <Entry>
                     <Text>
                       Passage facility type:{' '}
@@ -437,7 +432,6 @@ Location.propTypes = {
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
-  nostructure: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   waterbodykm2: PropTypes.number,
@@ -476,7 +470,6 @@ Location.defaultProps = {
   sarp_score: -1,
   diversion: 0,
   lowheaddam: null,
-  nostructure: false,
   streamorder: 0,
   streamsizeclass: null,
   waterbodykm2: -1,

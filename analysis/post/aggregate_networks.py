@@ -57,7 +57,6 @@ rename_cols = {
     "intermittent": "Intermittent",
     "is_estimated": "Estimated",
     "invasive": "Invasive",
-    "nostructure": "NoStructure",
     "unranked": "Unranked",
     "loop": "OnLoop",
     "sizeclass": "StreamSizeClass",

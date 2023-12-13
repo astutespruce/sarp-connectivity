@@ -62,7 +62,6 @@ const DamDetails = ({
   lowheaddam,
   milestooutlet,
   nidid,
-  nostructure,
   onloop,
   ownertype,
   passability,
@@ -123,11 +122,6 @@ const DamDetails = ({
               <>
                 {isLowheadDam ? <br /> : null}
                 {diversion === 2 ? 'likely ' : null} water diversion
-                {nostructure === 1 ? (
-                  <Text sx={{ fontSize: 0, color: 'grey.8' }}>
-                    (no associated barrier structure)
-                  </Text>
-                ) : null}
               </>
             ) : null}
 
@@ -292,7 +286,6 @@ const DamDetails = ({
             in_network_type={in_network_type}
             onloop={onloop}
             diversion={diversion}
-            nostructure={nostructure}
           />
         )}
       </Section>
@@ -384,7 +377,6 @@ DamDetails.propTypes = {
   lowheaddam: PropTypes.number,
   milestooutlet: PropTypes.number,
   nidid: PropTypes.string,
-  nostructure: PropTypes.bool,
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
   passability: PropTypes.number,
@@ -508,7 +500,6 @@ DamDetails.defaultProps = {
   lowheaddam: null,
   milestooutlet: 0,
   nidid: null,
-  nostructure: false,
   onloop: false,
   ownertype: null,
   passability: null,

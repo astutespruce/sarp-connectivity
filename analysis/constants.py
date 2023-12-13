@@ -233,6 +233,8 @@ DAM_FS_COLS = [
     "Link",
     "ManualReview",
     "EditDate",
+    "Cost_95_Lower",
+    "Cost_95_Upper",
 ]
 
 
@@ -381,11 +383,8 @@ INVASIVE_FEASIBILITY = [
     9  # invasive barriers; these break the network, but not included in prioritization
 ]
 
-NOSTRUCTURE_STRUCTURECATEGORY = [
-    3  # Diversion (canal / ditch) without associated dam structure
-]
-
-# per instructions from Kat on 7/14/2023; drop all types except 3 (above) and 9
+# per instructions from Kat on 7/14/2023; drop all types except 3 and 9
+# NOTE: category 3 has dedicated handling based on other fields
 DROP_STRUCTURECATEGORY = [0, 1, 2, 4, 5, 6, 7, 8, 10, 11, 12]
 
 # Applies to Recon values, omitted values should be filtered out

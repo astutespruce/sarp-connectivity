@@ -61,7 +61,6 @@ from analysis.constants import (
     INVASIVE_RECON,
     RECON_TO_FEASIBILITY,
     EXCLUDE_PASSAGEFACILITY,
-    NOSTRUCTURE_STRUCTURECATEGORY,
     DROP_STRUCTURECATEGORY,
     FCODE_TO_STREAMTYPE,
     DAM_BARRIER_SEVERITY_TO_DOMAIN,
@@ -425,10 +424,6 @@ df["excluded"] = False
 # unranked: records that should break the network but not be used for ranking
 df["invasive"] = False
 
-# flag diversions with no associated structure
-# TEMP: no-structure barriers are excluded instead of marked as unranked
-df["nostructure"] = df.StructureCategory.isin(NOSTRUCTURE_STRUCTURECATEGORY)
-
 # nobarrier: barriers that have been assessed and determined not to be a barrier
 df["nobarrier"] = df.Passability == 7
 
@@ -464,6 +459,26 @@ for field, values in dropped_fields.items():
     df.loc[ix, "dropped"] = True
     df.loc[ix, "log"] = format_log("dropped", field, sorted(df.loc[ix][field].unique()))
 
+# per direction from Kat on 12/8/2023, drop if:
+# structure category == 3 and structureclass is not 916 or 917 and barrierseverity is null
+# structure category == 3 and barrier severity is no barrier
+# snap if:
+# if structure category == 3 and structure class == 916 or 917 and barrier severity is null or not no barrier
+# structure category == 3 and barrier severity is not null or is not no barrier
+ix = (
+    (df.StructureCategory == 3)
+    & (
+        # no barrrier: always exclude
+        (df.Passability == 7)
+        # unknown severity and not a dam structure class
+        | ((df.Passability == 0) & (~df.StructureClass.isin([916, 917])))
+    )
+    & (~df.dropped)
+)
+
+df.loc[ix, "dropped"] = True
+df.loc[ix, "log"] = "dropped: StructureCategory==3 and not identified as dam by other fields"
+
 
 ### Mark any that were removed so that we can show these on the map
 # NOTE: we don't mark these as dropped
@@ -487,8 +502,6 @@ excluded_fields = {
     "ManualReview": EXCLUDE_MANUALREVIEW,
     "PassageFacility": EXCLUDE_PASSAGEFACILITY,
     "Passability": EXCLUDE_PASSABILITY,
-    # Temp: lump diversions without structures in with other excluded barriers
-    "StructureCategory": NOSTRUCTURE_STRUCTURECATEGORY,
 }
 
 for field, values in excluded_fields.items():
@@ -886,10 +899,6 @@ df["symbol"] = 0
 df.loc[df.invasive, "symbol"] = 4
 # value 3 is minor road-related barrier, not used for dams
 df.loc[df.nobarrier, "symbol"] = 2
-# intentionally give no structure diversions higher precedence so they don't
-# show up as no-barrier points (these are excluded from the analysis and should
-# be styled same as other off-network barriers)
-df.loc[df.nostructure, "symbol"] = 99  # NOTE: don't style this as special class
 df.loc[~df.snapped, "symbol"] = 1
 # intentionally give removed barriers higher precedence
 df.loc[df.removed, "symbol"] = 5

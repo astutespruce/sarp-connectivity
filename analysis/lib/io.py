@@ -76,7 +76,8 @@ def read_arrow_tables(paths, columns=None, filter=None, new_fields=None):
         table = dataset(path, format="feather").to_table(columns=columns, filter=filter)
         if new_fields is not None:
             for field, values in new_fields.items():
-                table = table.append_column(field, [np.repeat(values[i], len(table))])
+                new_col = pa.array(np.repeat(values[i], len(table)))
+                table = table.append_column(field, [new_col])
 
         try:
             merged = pa.concat_tables([merged, table]) if merged is not None else table

@@ -32,7 +32,6 @@ const Network = ({
   excluded,
   onloop,
   diversion,
-  nostructure,
   hasnetwork,
   in_network_type,
   invasive,
@@ -65,17 +64,6 @@ const Network = ({
   const colWidth = totalupstreammiles > 0 ? 1 / 4 : 1 / 3
 
   if (excluded) {
-    if (diversion && nostructure) {
-      return (
-        <Section title="Functional network information" {...props} wrap={false}>
-          <Text>
-            This water diversion was excluded from the connectivity analysis
-            because it does not have an associated in-stream barrier.
-          </Text>
-        </Section>
-      )
-    }
-
     return (
       <Section title="Functional network information" {...props} wrap={false}>
         <Text>
@@ -424,7 +412,6 @@ Network.propTypes = {
   excluded: PropTypes.bool,
   onloop: PropTypes.bool,
   diversion: PropTypes.number,
-  nostructure: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
   totalupstreammiles: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
@@ -445,7 +432,6 @@ Network.defaultProps = {
   excluded: false,
   onloop: false,
   diversion: 0,
-  nostructure: false,
   totalupstreammiles: 0,
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,

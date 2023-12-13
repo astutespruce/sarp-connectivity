@@ -357,7 +357,6 @@ DAM_CORE_FIELDS = (
         "Recon",
         "Diversion",
         "LowheadDam",
-        "NoStructure",
         "WaterbodyKM2",
         "WaterbodySizeClass",
     ]
@@ -1042,7 +1041,6 @@ DOMAINS = {
     "ScreenType": SCREENTYPE_DOMAIN,
     "WaterbodySizeClass": WATERBODY_SIZECLASS_DOMAIN,
     "Estimated": BOOLEAN_DOMAIN,
-    "NoStructure": BOOLEAN_DOMAIN,
     # barrier fields
     "BarrierSeverity": BARRIER_SEVERITY_DOMAIN,
     "Constriction": CONSTRICTION_DOMAIN,
@@ -1080,7 +1078,6 @@ FIELD_DEFINITIONS = {
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
     "WaterRight": "Identifies if the {type} has an associated water right, if known.",
     "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information.",
-    "NoStructure": "this location is a water diversion without an associated barrier structure and is not ranked",
     "River": "River name where {type} occurs, if available.",
     "YearCompleted": "year that construction was completed, if available.  0 = data not available.",
     "Removed": "Identifies if the {type} has been removed for conservation, if known.  Removed barriers will not have values present for all fields.",

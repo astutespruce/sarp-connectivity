@@ -12,7 +12,6 @@ const Scores = ({
   state,
   ranked,
   invasive,
-  nostructure,
   state_nc_tier,
   state_wc_tier,
   state_ncwc_tier,
@@ -41,18 +40,6 @@ const Scores = ({
           This {barrierTypeLabel} was excluded from prioritization because it
           provides an ecological benefit by restricting the movement of invasive
           aquatic species.
-        </Text>
-      </Box>
-    )
-  }
-
-  if (nostructure) {
-    return (
-      <Box sx={sx}>
-        {header}
-        <Text>
-          This {barrierTypeLabel} was excluded from prioritization because it is
-          a water diversion without associated in-stream barrier.
         </Text>
       </Box>
     )
@@ -125,7 +112,6 @@ Scores.propTypes = {
   state: PropTypes.string.isRequired,
   ranked: PropTypes.bool,
   invasive: PropTypes.bool,
-  nostructure: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
   state_nc_tier: PropTypes.number,
   state_wc_tier: PropTypes.number,
   state_ncwc_tier: PropTypes.number,
@@ -138,7 +124,6 @@ Scores.propTypes = {
 Scores.defaultProps = {
   ranked: false,
   invasive: false,
-  nostructure: false,
   state_nc_tier: null,
   state_wc_tier: null,
   state_ncwc_tier: null,

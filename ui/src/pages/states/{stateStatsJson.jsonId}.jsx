@@ -45,12 +45,14 @@ const StateRoute = ({
     stateStatsJson: {
       id,
       dams,
+      rankedDams,
       reconDams,
       removedDams,
       removedDamsGainMiles,
       removedDamsByYear,
       totalSmallBarriers,
       smallBarriers,
+      rankedSmallBarriers,
       removedSmallBarriers,
       removedSmallBarriersGainMiles,
       removedSmallBarriersByYear,
@@ -195,6 +197,11 @@ const StateRoute = ({
             </Text>
             <Box as="ul" sx={{ ml: '1rem', mb: '1rem', mt: '0.5rem' }}>
               <li>
+                <b>{formatNumber(rankedDams, 0)}</b> that{' '}
+                {rankedDams === 1 ? 'was ' : 'were '} analyzed for impacts to
+                aquatic connectivity in this tool
+              </li>
+              <li>
                 <b>{formatNumber(reconDams)}</b> that{' '}
                 {reconDams === 1 ? 'has' : 'have'} been reconned for social
                 feasibility of removal
@@ -224,6 +231,11 @@ const StateRoute = ({
                 <b>{formatNumber(smallBarriers, 0)}</b> that{' '}
                 {smallBarriers === 1 ? 'is' : 'are'} likely to impact aquatic
                 organisms
+              </li>
+              <li>
+                <b>{formatNumber(rankedSmallBarriers, 0)}</b> that{' '}
+                {rankedSmallBarriers === 1 ? 'was ' : 'were '} analyzed for
+                impacts to aquatic connectivity in this tool
               </li>
               {removedSmallBarriers > 0 ? (
                 <li>
@@ -444,12 +456,14 @@ StateRoute.propTypes = {
     stateStatsJson: PropTypes.shape({
       id: PropTypes.string.isRequired,
       dams: PropTypes.number.isRequired,
+      rankedDams: PropTypes.number.isRequired,
       reconDams: PropTypes.number.isRequired,
       removedDams: PropTypes.number.isRequired,
       removedDamsGainMiles: PropTypes.number.isRequired,
       removedDamsByYear: PropTypes.string.isRequired,
       totalSmallBarriers: PropTypes.number.isRequired,
       smallBarriers: PropTypes.number.isRequired,
+      rankedSmallBarriers: PropTypes.number.isRequired,
       removedSmallBarriers: PropTypes.number.isRequired,
       removedSmallBarriersGainMiles: PropTypes.number.isRequired,
       removedSmallBarriersByYear: PropTypes.string.isRequired,
@@ -474,12 +488,14 @@ export const query = graphql`
     stateStatsJson(jsonId: { eq: $jsonId }) {
       id: jsonId
       dams
+      rankedDams: ranked_dams
       reconDams: recon_dams
       removedDams: removed_dams
       removedDamsGainMiles: removed_dams_gain_miles
       removedDamsByYear: removed_dams_by_year
       totalSmallBarriers: total_small_barriers
       smallBarriers: small_barriers
+      rankedSmallBarriers: ranked_small_barriers
       removedSmallBarriers: removed_small_barriers
       removedSmallBarriersGainMiles: removed_small_barriers_gain_miles
       removedSmallBarriersByYear: removed_small_barriers_by_year

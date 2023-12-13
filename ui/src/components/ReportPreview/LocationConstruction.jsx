@@ -65,7 +65,6 @@ const LocationConstruction = ({
   yearremoved,
   sarp_score,
   diversion,
-  nostructure,
   streamorder,
   streamsizeclass,
   waterbodykm2,
@@ -109,7 +108,6 @@ const LocationConstruction = ({
                     </>
                   ) : null}{' '}
                   {diversion === 2 ? 'likely ' : null} water diversion
-                  {nostructure ? ' (no associated barrier structure)' : null}
                 </>
               ) : null}
               {!(isLowheadDam || isDiversion) ? barrierTypeLabel : null}
@@ -248,40 +246,36 @@ const LocationConstruction = ({
                 <Entry>Constructed completed: {yearcompleted}</Entry>
               ) : null}
 
-              {!nostructure ? (
-                <>
-                  {height > 0 ? <Entry>Height: {height} feet</Entry> : null}
+              {height > 0 ? <Entry>Height: {height} feet</Entry> : null}
 
-                  {width > 0 ? <Entry>Width: {width} feet</Entry> : null}
+              {width > 0 ? <Entry>Width: {width} feet</Entry> : null}
 
-                  {construction !== null && construction >= 0 ? (
-                    <Entry>
-                      Construction material:{' '}
-                      {CONSTRUCTION[construction].toLowerCase()}
-                    </Entry>
-                  ) : null}
+              {construction !== null && construction >= 0 ? (
+                <Entry>
+                  Construction material:{' '}
+                  {CONSTRUCTION[construction].toLowerCase()}
+                </Entry>
+              ) : null}
 
-                  {hazard !== null && hazard > 0 ? (
-                    <Entry>Hazard rating: {HAZARD[hazard].toLowerCase()}</Entry>
-                  ) : null}
+              {hazard !== null && hazard > 0 ? (
+                <Entry>Hazard rating: {HAZARD[hazard].toLowerCase()}</Entry>
+              ) : null}
 
-                  {condition !== null && condition >= 0 ? (
-                    <Entry>
-                      Structural condition: {CONDITION[condition].toLowerCase()}
-                    </Entry>
-                  ) : null}
+              {condition !== null && condition >= 0 ? (
+                <Entry>
+                  Structural condition: {CONDITION[condition].toLowerCase()}
+                </Entry>
+              ) : null}
 
-                  {passability !== null ? (
-                    <Entry>Passability: {PASSABILITY[passability]}</Entry>
-                  ) : null}
+              {passability !== null ? (
+                <Entry>Passability: {PASSABILITY[passability]}</Entry>
+              ) : null}
 
-                  {passagefacility !== null && passagefacility >= 0 ? (
-                    <Entry>
-                      Passage facility type:{' '}
-                      {PASSAGEFACILITY[passagefacility].toLowerCase()}
-                    </Entry>
-                  ) : null}
-                </>
+              {passagefacility !== null && passagefacility >= 0 ? (
+                <Entry>
+                  Passage facility type:{' '}
+                  {PASSAGEFACILITY[passagefacility].toLowerCase()}
+                </Entry>
               ) : null}
             </>
           ) : (
@@ -361,7 +355,6 @@ LocationConstruction.propTypes = {
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
-  nostructure: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   waterbodykm2: PropTypes.number,
@@ -400,7 +393,6 @@ LocationConstruction.defaultProps = {
   yearremoved: 0,
   sarp_score: -1,
   diversion: 0,
-  nostructure: false,
   lowheaddam: null,
   streamorder: 0,
   streamsizeclass: null,

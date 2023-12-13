@@ -13,7 +13,6 @@ const NoNetworkInfo = ({
   in_network_type,
   onloop,
   diversion,
-  nostructure,
 }) => {
   const typeLabel = barrierTypeLabelSingular[barrierType]
 
@@ -42,15 +41,6 @@ const NoNetworkInfo = ({
   }
 
   if (excluded) {
-    if (diversion && nostructure) {
-      return (
-        <Entry>
-          This water diversion was excluded from the connectivity analysis
-          because it does not have an associated in-stream barrier.
-        </Entry>
-      )
-    }
-
     return (
       <Entry>
         This {typeLabel} was excluded from the connectivity analysis based on
@@ -108,7 +98,6 @@ NoNetworkInfo.propTypes = {
   onloop: PropTypes.bool,
   snapped: PropTypes.bool,
   diversion: PropTypes.number,
-  nostructure: PropTypes.bool,
 }
 
 NoNetworkInfo.defaultProps = {
@@ -117,7 +106,6 @@ NoNetworkInfo.defaultProps = {
   onloop: false,
   snapped: false,
   diversion: 0,
-  nostructure: false,
 }
 
 export default NoNetworkInfo

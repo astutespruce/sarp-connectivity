@@ -84,14 +84,13 @@ tmp_dir = Path("/tmp")
 ### Read dams
 dams = pd.read_feather(
     results_dir / "dams.feather",
-    columns=["id", "HasNetwork", "Removed", "YearRemoved"] + SUMMARY_UNITS,
+    columns=["id", "HasNetwork", "Ranked", "Removed", "YearRemoved"] + SUMMARY_UNITS,
 ).set_index("id", drop=False)
 
 # Get recon from master
-dams_master = pd.read_feather(src_dir / "dams.feather", columns=["id", "Recon", "unranked"]).set_index("id")
+dams_master = pd.read_feather(src_dir / "dams.feather", columns=["id", "Recon"]).set_index("id")
 dams = dams.join(dams_master)
 dams["Recon"] = dams.Recon > 0
-dams["Ranked"] = dams.HasNetwork & (dams.unranked == 0)
 
 # get stats for removed dams
 removed_dam_networks = (
@@ -115,19 +114,22 @@ dams["YearRemoved"] = calc_year_removed_bin(dams.YearRemoved)
 ### Read road-related barriers
 barriers = pd.read_feather(
     results_dir / "small_barriers.feather",
-    columns=["id", "HasNetwork", "Removed", "YearRemoved"] + SUMMARY_UNITS,
+    columns=["id", "HasNetwork", "Ranked", "Removed", "YearRemoved"] + SUMMARY_UNITS,
 ).set_index("id", drop=False)
 
 barriers_master = pd.read_feather(
     "data/barriers/master/small_barriers.feather",
-    columns=["id", "dropped", "excluded", "unranked"],
+    columns=[
+        "id",
+        "dropped",
+        "excluded",
+    ],
 ).set_index("id")
 
 barriers = barriers.join(barriers_master)
 
 # barriers that were not dropped or excluded are likely to have impacts
 barriers["Included"] = ~(barriers.dropped | barriers.excluded)
-barriers["Ranked"] = barriers.HasNetwork & (barriers.unranked == 0)
 
 removed_barrier_networks = (
     pd.read_feather(
