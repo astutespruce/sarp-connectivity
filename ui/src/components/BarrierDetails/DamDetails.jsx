@@ -96,7 +96,7 @@ const DamDetails = ({
   yearremoved,
   ...props // includes species habitat fields selected dynamically
 }) => {
-  const isLowheadDam = lowheaddam !== null && lowheaddam >= 1
+  const isLowheadDam = lowheaddam === 1 || lowheaddam === 2
   const isDiversion = diversion !== null && diversion >= 1
   const isUnspecifiedType = !(isLowheadDam || isDiversion || invasive)
   const habitat = hasnetwork ? extractHabitat(props) : []

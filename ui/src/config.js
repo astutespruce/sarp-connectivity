@@ -1028,6 +1028,8 @@ export const PASSAGEFACILITY = {
   20: 'screen bypass',
   21: 'fishway unspecified',
   22: 'other',
+  23: 'Hybrid / multiple',
+  24: 'None (confirmed)',
 }
 
 export const INTERMITTENT = {

@@ -81,7 +81,7 @@ const Location = ({
     river.toLowerCase() !== 'unnamed'
 
   const hasLandOwner = ownertype && ownertype > 0
-  const isLowheadDam = lowheaddam !== null && lowheaddam >= 1
+  const isLowheadDam = lowheaddam === 1 || lowheaddam === 2
   const isDiversion = diversion !== null && diversion >= 1
 
   return (
