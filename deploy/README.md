@@ -107,7 +107,7 @@ curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 Exit and log back in as app user.
 
 ```bash
-nvm install 18
+nvm install
 npm install -g npm@latest
 cd ~/sarp-connectivity/ui
 npm run install-deps

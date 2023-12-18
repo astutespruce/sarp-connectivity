@@ -300,7 +300,7 @@ df["LowheadDam"] = (
             0: 3,  # no  # FIXME: longer term these should only come in as 0's
             1: 1,  # yes
             2: 3,  # no
-            3: 0,  # unknown
+            3: 2,  # needs further review; map these to likely based on direction from Kat on 12/15/2023
             5: 0,  # not a dam but set it to 0 to get it out of the codes
         }
     )
@@ -319,7 +319,13 @@ df.loc[
 ] = 2
 
 # From Kat: many Recon == 14 are lowhead
-df.loc[(df.Recon == 14) & (df.Height <= 25), "LowheadDam"] = 2
+
+df.loc[
+    (df.LowheadDam == 0)  # TODO: should this include 3?
+    & (df.Recon == 14)
+    & (df.Height <= 25),
+    "LowheadDam",
+] = 2
 
 # TODO: from Kat: if in NC and source is Aquatic Obstruction Inventory, also set lowhead dam
 
@@ -863,7 +869,7 @@ df.WaterbodySizeClass = df.WaterbodySizeClass.fillna(0).astype("uint8")
 # limit this to <= 15 feet based on review against aerial imagery (very few over 15 feet are lowhead)
 # or if height is not present.  Ignore estimated dams or ones on very small streams
 df.loc[
-    (df.LowheadDam == 0)
+    (df.LowheadDam == 0)  # TODO: should this include 3
     & (df.ImpoundmentType == 1)
     & (df.Height <= 25)
     & (~df.is_estimated)

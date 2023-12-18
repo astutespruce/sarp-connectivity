@@ -671,6 +671,15 @@ export const ANALYSIS_STATES = [
 ].sort()
 
 export const STATE_DATA_PROVIDERS = {
+  CA: [
+    {
+      key: 'ca',
+      description:
+        'The <a href="https://www.cafishpassageforum.org/">California Fish Passage Forum </a>and the <a href="https://www.psmfc.org/">Pacific States Marine Fisheries Commission</a> have developed and maintain a barrier inventory for the state of California, called the <a href="https://www.calfish.org/ProgramsData/HabitatandBarriers/CaliforniaFishPassageAssessmentDatabase.aspx">California Fish Passage Assessment Database</a> (PAD). The PAD is an ongoing map-based inventory of known and potential barriers to anadromous fish in California, compiled and maintained through a cooperative interagency agreement. It compiles currently available fish passage information from many different sources, allows past and future barrier assessments to be standardized and stored in one place, and enables the analysis of cumulative effects of passage barriers in the context of overall watershed health.  This dataset is the primary dataset used within this tool for the state of California.',
+      logo: 'cfpf_logo.png',
+      logoWidth: '180px',
+    },
+  ],
   ID: [
     {
       key: 'idfg',
