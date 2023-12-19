@@ -12,6 +12,9 @@ const tabCSS = {
   bg: 'blue.1',
   border: 'none',
   borderRadius: 0,
+  '&:hover': {
+    bg: 'blue.2',
+  },
 }
 
 const activeTabCSS = {
@@ -20,6 +23,9 @@ const activeTabCSS = {
   fontWeight: 'bold',
   bg: '#FFF',
   border: 'none',
+  '&:hover': {
+    bg: '#FFF',
+  },
 }
 
 const TabBar = ({ tabs, activeTab, onChange }) => {
