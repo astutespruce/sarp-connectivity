@@ -458,6 +458,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         "StreamOrder",
         # specific to crossings
         "NearestBarrierID",
+        "Surveyed",
     ]
     + UNIT_FIELDS
 )
@@ -928,7 +929,15 @@ STREAMTYPE_DOMAIN = {
 
 BOOLEAN_OFFNETWORK_DOMAIN = {-1: "off network", 0: "no", 1: "yes"}
 
+INTERMITTENT_DOMAIN = {
+    -1: "off network",
+    0: "stream is not likely intermittent / ephemeral",
+    1: "stream is likely intermittent / ephemeral",
+}
+
 TROUT_DOMAIN = {0: "not recorded", 1: "yes"}
+
+SURVEYED_CROSSING_DOMAIN = {0: "not likely", 1: "likely"}
 
 
 # symbol domain - not used but included here as a reference for the codes used
@@ -1011,7 +1020,7 @@ DOMAINS = {
     "Excluded": BOOLEAN_DOMAIN,
     "Ranked": BOOLEAN_DOMAIN,
     "Invasive": BOOLEAN_DOMAIN,
-    "Intermittent": BOOLEAN_OFFNETWORK_DOMAIN,
+    "Intermittent": INTERMITTENT_DOMAIN,
     "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
     "FlowsToGreatLakes": BOOLEAN_OFFNETWORK_DOMAIN,
     "ExitsRegion": BOOLEAN_OFFNETWORK_DOMAIN,
@@ -1046,6 +1055,8 @@ DOMAINS = {
     "Constriction": CONSTRICTION_DOMAIN,
     "CrossingType": CROSSING_TYPE_DOMAIN,
     "RoadType": ROAD_TYPE_DOMAIN,
+    # crossing fields
+    "Surveyed": SURVEYED_CROSSING_DOMAIN,
 }
 
 
@@ -1109,7 +1120,8 @@ FIELD_DEFINITIONS = {
     "BarrierSeverity": "barrier severity of the {type}, if known.   Note: assessment dates are not known.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
     # crossing-specific fields
-    "NearestBarrierID": "The SARPID of the nearest inventoried road-related barrier, if any are found within 10 meters",
+    "NearestBarrierID": "The SARPID of the nearest inventoried road-related barrier within 50-100m (depending on data source)",
+    "Surveyed": "Indicates if the crossing has likely been surveyed according to inventoried road-related barrier data.  'likely': inventoried barrier within 50-100m (depending on data source), 'not likely': no inventoried barrier within 50-100m.",
     # other general fields
     "Recon": "Field reconnaissance notes, if available.",
     "Passability": "passability of the {type}, if known.   Note: assessment dates are not known.",

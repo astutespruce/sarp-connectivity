@@ -100,6 +100,7 @@ print(f"Read {len(df):,} small barriers")
 
 crossings = gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False)
 crossings["NearestBarrierID"] = ""
+crossings["Surveyed"] = np.uint8(0)
 print(f"Read {len(crossings):,} road crossings")
 
 # only cross-check against dams / waterfalls that break networks
@@ -397,6 +398,7 @@ for tolerance in to_snap.snap_tolerance.unique():
     )
     ix = nearest_barriers.index
     crossings.loc[ix, "NearestBarrierID"] = nearest_barriers.values
+    crossings.loc[ix, "Surveyed"] = np.uint8(1)
 
 
 # Snap to flowlines

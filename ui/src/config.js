@@ -1034,8 +1034,8 @@ export const PASSAGEFACILITY = {
 
 export const INTERMITTENT = {
   // -1: 'off network', // filtered out
-  0: 'no',
-  1: 'yes',
+  0: 'stream is not likely intermittent / ephemeral',
+  1: 'stream is likely intermittent / ephemeral',
 }
 
 // barrier passability
