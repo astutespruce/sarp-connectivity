@@ -327,7 +327,8 @@ def calculate_species_habitat_stats(df):
         )
         .to_table(filter=pc.field("HUC2").isin(df.HUC2.unique()))
         .to_pandas()
-        .set_index("NHDPlusID")
+        .groupby("NHDPlusID")
+        .first()
         .drop(columns=["HUC2"])
     )
     if len(habitat) == 0:
