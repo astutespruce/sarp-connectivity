@@ -46,6 +46,7 @@ const DamDetails = ({
   feasibilityclass,
   fercregulated,
   flowstoocean,
+  flowstogreatlakes,
   freealtereddownstreammiles,
   freedownstreammiles,
   freeperennialdownstreammiles,
@@ -276,6 +277,11 @@ const DamDetails = ({
             invasive={invasive}
             unranked={unranked}
             removed={removed}
+            flowstoocean={flowstoocean}
+            flowstogreatlakes={flowstogreatlakes}
+            totaldownstreamdams={totaldownstreamdams}
+            totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
+            totaldownstreamwaterfalls={totaldownstreamwaterfalls}
           />
         ) : (
           <NoNetworkInfo
@@ -361,6 +367,7 @@ DamDetails.propTypes = {
   feasibilityclass: PropTypes.number,
   fercregulated: PropTypes.number,
   flowstoocean: PropTypes.number,
+  flowstogreatlakes: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
@@ -485,6 +492,7 @@ DamDetails.defaultProps = {
   feasibilityclass: 0,
   fercregulated: null,
   flowstoocean: 0,
+  flowstogreatlakes: 0,
   freealtereddownstreammiles: 0,
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,

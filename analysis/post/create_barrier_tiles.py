@@ -63,23 +63,9 @@ print("-----------------Creating dam tiles------------------------\n\n")
 df = (
     gp.read_feather(
         results_dir / "dams.feather",
-        columns=unique(
-            [
-                "geometry",
-                "id",
-                "SARPID",
-                "Name",
-                "symbol",
-                "upNetID",
-                "HasNetwork",
-                "Ranked",
-                "Removed",
-                "TotDASqKm",
-            ]
-            + DAM_TILE_FILTER_FIELDS
-        ),
     )
     .to_crs("EPSG:4326")
+    .drop(columns=["County"])
     .rename(columns={"COUNTYFIPS": "County"})
     .sort_values(by=["TotDASqKm"], ascending=False)
 )
@@ -236,21 +222,9 @@ start = time()
 df = (
     gp.read_feather(
         results_dir / "small_barriers.feather",
-        columns=[
-            "geometry",
-            "id",
-            "SARPID",
-            "Name",
-            "symbol",
-            "upNetID",
-            "HasNetwork",
-            "Ranked",
-            "Removed",
-            "TotDASqKm",
-        ]
-        + SB_TILE_FILTER_FIELDS,
     )
     .to_crs("EPSG:4326")
+    .drop(columns=["County"])
     .rename(columns={"COUNTYFIPS": "County"})
     .sort_values(by=["TotDASqKm"], ascending=False)
     .drop(columns=["TotDASqKm"])
@@ -395,22 +369,9 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     df = (
         gp.read_feather(
             results_dir / f"{network_type}.feather",
-            columns=[
-                "geometry",
-                "BarrierType",
-                "id",
-                "SARPID",
-                "Name",
-                "symbol",
-                "upNetID",
-                "HasNetwork",
-                "Ranked",
-                "Removed",
-                "TotDASqKm",
-            ]
-            + COMBINED_TILE_FILTER_FIELDS,
         )
         .to_crs("EPSG:4326")
+        .drop(columns=["County"])
         .rename(columns={"COUNTYFIPS": "County"})
         .sort_values(by=["TotDASqKm"], ascending=False)
     )
@@ -549,107 +510,107 @@ for network_type in ["combined_barriers", "largefish_barriers", "smallfish_barri
     print(f"Created {network_type} tiles in {time() - start:,.2f}s")
 
 
-####################################################################
-### Create road crossing tiles
-####################################################################
-print("\n\n-----------------Creating road crossing tiles------------------------\n\n")
+# ####################################################################
+# ### Create road crossing tiles
+# ####################################################################
+# print("\n\n-----------------Creating road crossing tiles------------------------\n\n")
 
-df = (
-    gp.read_feather(
-        barriers_dir / "road_crossings.feather",
-        columns=[
-            "geometry",
-            "id",
-            "SARPID",
-            "Name",
-            "TotDASqKm",
-            "loop",
-            "offnetwork_flowline",
-            "NearestBarrierID",
-        ],
-    )
-    .to_crs("EPSG:4326")
-    .sort_values(by="TotDASqKm", ascending=False)
-    .drop(columns=["TotDASqKm"])
-)
+# df = (
+#     gp.read_feather(
+#         barriers_dir / "road_crossings.feather",
+#         columns=[
+#             "geometry",
+#             "id",
+#             "SARPID",
+#             "Name",
+#             "TotDASqKm",
+#             "loop",
+#             "offnetwork_flowline",
+#             "NearestBarrierID",
+#         ],
+#     )
+#     .to_crs("EPSG:4326")
+#     .sort_values(by="TotDASqKm", ascending=False)
+#     .drop(columns=["TotDASqKm"])
+# )
 
-# drop any on loops or off-network flowlines; these are not useful to show
-# drop any that have a nearest barrier ID; these duplicate barriers in the analysis
-df = df.loc[~(df.loop | df.offnetwork_flowline | (df.NearestBarrierID != ""))].drop(
-    columns=["loop", "offnetwork_flowline", "NearestBarrierID"]
-)
+# # drop any on loops or off-network flowlines; these are not useful to show
+# # drop any that have a nearest barrier ID; these duplicate barriers in the analysis
+# df = df.loc[~(df.loop | df.offnetwork_flowline | (df.NearestBarrierID != ""))].drop(
+#     columns=["loop", "offnetwork_flowline", "NearestBarrierID"]
+# )
 
-df = combine_sarpid_name(df)
-fill_na_fields(df)
+# df = combine_sarpid_name(df)
+# fill_na_fields(df)
 
-outfilename = tmp_dir / "road_crossings.fgb"
-mbtiles_filename = out_dir / "road_crossings.mbtiles"
-df = to_lowercase(df)
-write_dataframe(df.reset_index(drop=True), outfilename)
+# outfilename = tmp_dir / "road_crossings.fgb"
+# mbtiles_filename = out_dir / "road_crossings.mbtiles"
+# df = to_lowercase(df)
+# write_dataframe(df.reset_index(drop=True), outfilename)
 
-ret = subprocess.run(
-    tippecanoe_args
-    + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
-    + ["-l", "road_crossings"]
-    + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(df)
-    + [str(outfilename)]
-)
-ret.check_returncode()
+# ret = subprocess.run(
+#     tippecanoe_args
+#     + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
+#     + ["-l", "road_crossings"]
+#     + ["-o", f"{str(mbtiles_filename)}"]
+#     + get_col_types(df)
+#     + [str(outfilename)]
+# )
+# ret.check_returncode()
 
 
-print(f"Created road crossing tiles in {time() - start:,.2f}s")
+# print(f"Created road crossing tiles in {time() - start:,.2f}s")
 
-###################################################################
-## Create waterfalls tiles
-###################################################################
-print("\n\n-----------------Creating waterfalls tiles------------------------\n\n")
-print("Creating waterfalls tiles")
-df = gp.read_feather(
-    results_dir / "waterfalls.feather",
-    columns=[
-        "geometry",
-        "id",
-        "SARPID",
-        "Name",
-        "network_type",
-        "upNetID",
-        "TotDASqKm",
-    ],
-)
+# ###################################################################
+# ## Create waterfalls tiles
+# ###################################################################
+# print("\n\n-----------------Creating waterfalls tiles------------------------\n\n")
+# print("Creating waterfalls tiles")
+# df = gp.read_feather(
+#     results_dir / "waterfalls.feather",
+#     columns=[
+#         "geometry",
+#         "id",
+#         "SARPID",
+#         "Name",
+#         "network_type",
+#         "upNetID",
+#         "TotDASqKm",
+#     ],
+# )
 
-# pivot network IDs into one column per network type for tiles, then join back to single record
-network_ids = (
-    df[["id", "network_type", "upNetID"]].pivot(columns=["network_type"], index="id").fillna(-1).astype("int64")
-)
-network_ids.columns = [f"{network}_{col}" for col, network in network_ids.columns]
+# # pivot network IDs into one column per network type for tiles, then join back to single record
+# network_ids = (
+#     df[["id", "network_type", "upNetID"]].pivot(columns=["network_type"], index="id").fillna(-1).astype("int64")
+# )
+# network_ids.columns = [f"{network}_{col}" for col, network in network_ids.columns]
 
-df = (
-    df.drop(columns=["network_type", "upNetID"])
-    .groupby("id")
-    .first()
-    .join(network_ids)
-    .reset_index()
-    .sort_values(by=["TotDASqKm"], ascending=False)
-    .drop(columns=["TotDASqKm"])
-    .set_crs(df.crs)
-    .to_crs("EPSG:4326")
-)
+# df = (
+#     df.drop(columns=["network_type", "upNetID"])
+#     .groupby("id")
+#     .first()
+#     .join(network_ids)
+#     .reset_index()
+#     .sort_values(by=["TotDASqKm"], ascending=False)
+#     .drop(columns=["TotDASqKm"])
+#     .set_crs(df.crs)
+#     .to_crs("EPSG:4326")
+# )
 
-df = combine_sarpid_name(df)
-fill_na_fields(df)
+# df = combine_sarpid_name(df)
+# fill_na_fields(df)
 
-outfilename = tmp_dir / "waterfalls.fgb"
-mbtiles_filename = out_dir / "waterfalls.mbtiles"
-df = to_lowercase(df)
-write_dataframe(df.reset_index(drop=True), outfilename)
+# outfilename = tmp_dir / "waterfalls.fgb"
+# mbtiles_filename = out_dir / "waterfalls.mbtiles"
+# df = to_lowercase(df)
+# write_dataframe(df.reset_index(drop=True), outfilename)
 
-ret = subprocess.run(
-    tippecanoe_args
-    + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
-    + ["-l", "waterfalls"]
-    + ["-o", f"{str(mbtiles_filename)}"]
-    + get_col_types(df)
-    + [str(outfilename)]
-)
-ret.check_returncode()
+# ret = subprocess.run(
+#     tippecanoe_args
+#     + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
+#     + ["-l", "waterfalls"]
+#     + ["-o", f"{str(mbtiles_filename)}"]
+#     + get_col_types(df)
+#     + [str(outfilename)]
+# )
+# ret.check_returncode()

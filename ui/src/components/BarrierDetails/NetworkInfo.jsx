@@ -33,20 +33,40 @@ const NetworkInfo = ({
   invasive,
   unranked,
   removed,
+  flowstoocean,
+  flowstogreatlakes,
+  totaldownstreamdams,
+  totaldownstreamsmallbarriers,
+  totaldownstreamwaterfalls,
   ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
 
+  const totaldownstreambarriers =
+    networkType === 'dams'
+      ? totaldownstreamdams + totaldownstreamwaterfalls
+      : totaldownstreamdams +
+        totaldownstreamwaterfalls +
+        totaldownstreamsmallbarriers
+
+  const alwaysUseUpstream =
+    (flowstoocean === 1 || flowstogreatlakes === 1) &&
+    totaldownstreambarriers === 0
+
   const gainmiles = Math.min(totalupstreammiles, freedownstreammiles)
   const gainMilesSide =
-    gainmiles === totalupstreammiles ? 'upstream' : 'downstream'
+    alwaysUseUpstream || gainmiles === totalupstreammiles
+      ? 'upstream'
+      : 'downstream'
 
   const perennialGainMiles = Math.min(
     perennialupstreammiles,
     freeperennialdownstreammiles
   )
   const perennialGainMilesSide =
-    perennialGainMiles === perennialupstreammiles ? 'upstream' : 'downstream'
+    alwaysUseUpstream || perennialGainMiles === perennialupstreammiles
+      ? 'upstream'
+      : 'downstream'
 
   const intermittentupstreammiles = totalupstreammiles - perennialupstreammiles
   const freeintermittentdownstreammiles =
@@ -126,7 +146,8 @@ const NetworkInfo = ({
             </Box>
             <Box
               sx={{
-                fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
+                fontWeight:
+                  perennialGainMilesSide === 'upstream' ? 'bold' : 'inherited',
               }}
             >
               {formatNumber(perennialupstreammiles, 2, true)}
@@ -134,7 +155,9 @@ const NetworkInfo = ({
             <Box
               sx={{
                 fontWeight:
-                  gainMilesSide === 'downstream' ? 'bold' : 'inherited',
+                  perennialGainMilesSide === 'downstream'
+                    ? 'bold'
+                    : 'inherited',
               }}
             >
               {formatNumber(freeperennialdownstreammiles, 2, true)}
@@ -159,21 +182,8 @@ const NetworkInfo = ({
                 </InfoTooltip>
               </Box>
             </Box>
-            <Box
-              sx={{
-                fontWeight: gainMilesSide === 'upstream' ? 'bold' : 'inherited',
-              }}
-            >
-              {formatNumber(intermittentupstreammiles, 2, true)}
-            </Box>
-            <Box
-              sx={{
-                fontWeight:
-                  gainMilesSide === 'downstream' ? 'bold' : 'inherited',
-              }}
-            >
-              {formatNumber(freeintermittentdownstreammiles, 2, true)}
-            </Box>
+            <Box>{formatNumber(intermittentupstreammiles, 2, true)}</Box>
+            <Box>{formatNumber(freeintermittentdownstreammiles, 2, true)}</Box>
           </Row>
 
           <Row sx={{ px: '0.5rem' }}>
@@ -248,6 +258,7 @@ const NetworkInfo = ({
                 }
               >
                 {formatNumber(totalupstreammiles, 2, true)}
+                {alwaysUseUpstream ? <sup>*</sup> : null}
               </Box>
               <Box
                 sx={
@@ -281,6 +292,7 @@ const NetworkInfo = ({
                 }
               >
                 {formatNumber(perennialupstreammiles, 2, true)}
+                {alwaysUseUpstream ? <sup>*</sup> : null}
               </Box>
               <Box
                 sx={
@@ -296,6 +308,15 @@ const NetworkInfo = ({
         ) : null}
 
         <Text variant="help" sx={{ fontSize: 0, px: '0.5rem', mt: '2rem' }}>
+          {barrierType !== 'waterfalls' && alwaysUseUpstream ? (
+            <>
+              <sup>*</sup>upstream miles are used because the downstream network
+              flows into the {flowstogreatlakes === 1 ? 'Great Lakes' : 'ocean'}{' '}
+              and there are no barriers downstream.
+              <br />
+              <br />
+            </>
+          ) : null}
           Note: statistics are based on aquatic networks cut by{' '}
           {networkType === 'dams'
             ? 'waterfalls and dams'
@@ -405,6 +426,11 @@ NetworkInfo.propTypes = {
   invasive: PropTypes.bool,
   unranked: PropTypes.bool,
   removed: PropTypes.bool,
+  flowstoocean: PropTypes.number,
+  flowstogreatlakes: PropTypes.number,
+  totaldownstreamdams: PropTypes.number,
+  totaldownstreamsmallbarriers: PropTypes.number,
+  totaldownstreamwaterfalls: PropTypes.number,
 }
 
 NetworkInfo.defaultProps = {
@@ -423,6 +449,11 @@ NetworkInfo.defaultProps = {
   invasive: false,
   unranked: false,
   removed: false,
+  flowstoocean: 0,
+  flowstogreatlakes: 0,
+  totaldownstreamdams: 0,
+  totaldownstreamsmallbarriers: 0,
+  totaldownstreamwaterfalls: 0,
 }
 
 export default NetworkInfo

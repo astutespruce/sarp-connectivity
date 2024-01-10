@@ -63,6 +63,7 @@ const BarrierDetails = ({
   ejtribal,
   excluded,
   flowstoocean,
+  flowstogreatlakes,
   freealtereddownstreammiles,
   freedownstreammiles,
   freeperennialdownstreammiles,
@@ -249,6 +250,11 @@ const BarrierDetails = ({
             invasive={invasive}
             unranked={unranked}
             removed={removed}
+            flowstoocean={flowstoocean}
+            flowstogreatlakes={flowstogreatlakes}
+            totaldownstreamdams={totaldownstreamdams}
+            totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
+            totaldownstreamwaterfalls={totaldownstreamwaterfalls}
           />
         ) : (
           <NoNetworkInfo
@@ -320,6 +326,7 @@ BarrierDetails.propTypes = {
   ejtribal: PropTypes.bool,
   excluded: PropTypes.bool,
   flowstoocean: PropTypes.number,
+  flowstogreatlakes: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
@@ -436,6 +443,7 @@ BarrierDetails.defaultProps = {
   ejtribal: false,
   excluded: false,
   flowstoocean: 0,
+  flowstogreatlakes: 0,
   freealtereddownstreammiles: 0,
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,

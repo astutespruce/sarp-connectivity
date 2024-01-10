@@ -65,9 +65,7 @@ class RecordExtractor:
                 self.dataset = road_crossings
 
             case _:
-                raise NotImplementedError(
-                    f"RecordExtractor is not supported for {barrier_type}"
-                )
+                raise NotImplementedError(f"RecordExtractor is not supported for {barrier_type}")
 
         if layer == "County":
             layer = "COUNTYFIPS"
@@ -103,7 +101,7 @@ class RecordExtractor:
         ix = pc.field(self.layer).isin(self.ids)
 
         if ranked:
-            ix = ix & (pc.field("Ranked") == True)
+            ix = ix & (pc.field("Ranked") == True)  # noqa
 
         # fields are evaluated using AND logic
         for key, (match_type, values) in self.filters.items():

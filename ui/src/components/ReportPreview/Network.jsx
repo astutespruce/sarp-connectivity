@@ -31,19 +31,40 @@ const Network = ({
   unranked,
   removed,
   yearremoved,
+  flowstoocean,
+  flowstogreatlakes,
+  totaldownstreamdams,
+  totaldownstreamsmallbarriers,
+  totaldownstreamwaterfalls,
   sx,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
+
+  const totaldownstreambarriers =
+    networkType === 'dams'
+      ? totaldownstreamdams + totaldownstreamwaterfalls
+      : totaldownstreamdams +
+        totaldownstreamwaterfalls +
+        totaldownstreamsmallbarriers
+
+  const alwaysUseUpstream =
+    (flowstoocean === 1 || flowstogreatlakes === 1) &&
+    totaldownstreambarriers === 0
+
   const gainmiles = Math.min(totalupstreammiles, freedownstreammiles)
   const gainMilesSide =
-    gainmiles === totalupstreammiles ? 'upstream' : 'downstream'
+    alwaysUseUpstream || gainmiles === totalupstreammiles
+      ? 'upstream'
+      : 'downstream'
 
   const perennialGainMiles = Math.min(
     perennialupstreammiles,
     freeperennialdownstreammiles
   )
   const perennialGainMilesSide =
-    perennialGainMiles === perennialupstreammiles ? 'upstream' : 'downstream'
+    alwaysUseUpstream || perennialGainMiles === perennialupstreammiles
+      ? 'upstream'
+      : 'downstream'
 
   const intermittentupstreammiles = totalupstreammiles - perennialupstreammiles
   const freeintermittentdownstreammiles =
@@ -290,6 +311,15 @@ const Network = ({
       ) : null}
 
       <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
+        {alwaysUseUpstream ? (
+          <>
+            Note: upstream miles are used because the downstream network flows
+            into the {flowstogreatlakes === 1 ? 'Great Lakes' : 'ocean'} and
+            there are no barriers downstream.
+            <br />
+            <br />
+          </>
+        ) : null}
         Note: Statistics are based on aquatic networks cut by{' '}
         {networkType === 'dams'
           ? 'waterfalls and dams'
@@ -344,6 +374,11 @@ Network.propTypes = {
   unranked: PropTypes.bool,
   removed: PropTypes.bool,
   yearremoved: PropTypes.number,
+  flowstoocean: PropTypes.number,
+  flowstogreatlakes: PropTypes.number,
+  totaldownstreamdams: PropTypes.number,
+  totaldownstreamsmallbarriers: PropTypes.number,
+  totaldownstreamwaterfalls: PropTypes.number,
   sx: PropTypes.object,
 }
 
@@ -365,6 +400,11 @@ Network.defaultProps = {
   unranked: false,
   removed: false,
   yearremoved: 0,
+  flowstoocean: 0,
+  flowstogreatlakes: 0,
+  totaldownstreamdams: 0,
+  totaldownstreamsmallbarriers: 0,
+  totaldownstreamwaterfalls: 0,
   sx: null,
 }
 

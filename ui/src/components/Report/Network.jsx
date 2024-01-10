@@ -38,20 +38,41 @@ const Network = ({
   unranked,
   removed,
   yearremoved,
+  flowstoocean,
+  flowstogreatlakes,
+  totaldownstreamdams,
+  totaldownstreamsmallbarriers,
+  totaldownstreamwaterfalls,
   ...props
 }) => {
   const barrierTypeLabel =
     barrierType === 'dams' ? 'dam' : 'road-related barrier'
+
+  const totaldownstreambarriers =
+    networkType === 'dams'
+      ? totaldownstreamdams + totaldownstreamwaterfalls
+      : totaldownstreamdams +
+        totaldownstreamwaterfalls +
+        totaldownstreamsmallbarriers
+
+  const alwaysUseUpstream =
+    (flowstoocean === 1 || flowstogreatlakes === 1) &&
+    totaldownstreambarriers === 0
+
   const gainmiles = Math.min(totalupstreammiles, freedownstreammiles)
   const gainMilesSide =
-    gainmiles === totalupstreammiles ? 'upstream' : 'downstream'
+    alwaysUseUpstream || gainmiles === totalupstreammiles
+      ? 'upstream'
+      : 'downstream'
 
   const perennialGainMiles = Math.min(
     perennialupstreammiles,
     freeperennialdownstreammiles
   )
   const perennialGainMilesSide =
-    perennialGainMiles === perennialupstreammiles ? 'upstream' : 'downstream'
+    alwaysUseUpstream || perennialGainMiles === perennialupstreammiles
+      ? 'upstream'
+      : 'downstream'
 
   const intermittentupstreammiles = totalupstreammiles - perennialupstreammiles
   const freeintermittentdownstreammiles =
@@ -263,7 +284,9 @@ const Network = ({
           <View style={{ flex: '0 0 140pt' }}>
             <Text>
               {gainMilesSide === 'downstream' ? (
-                <Bold>{formatNumber(freedownstreammiles, 2, true)}</Bold>
+                <>
+                  <Bold>{formatNumber(freedownstreammiles, 2, true)}</Bold>
+                </>
               ) : (
                 <>{formatNumber(freedownstreammiles, 2, true)}</>
               )}
@@ -284,7 +307,9 @@ const Network = ({
           <View style={{ flex: '0 0 140pt' }}>
             <Text>
               {perennialGainMilesSide === 'upstream' ? (
-                <Bold>{formatNumber(perennialupstreammiles, 2, true)}</Bold>
+                <>
+                  <Bold>{formatNumber(perennialupstreammiles, 2, true)}</Bold>
+                </>
               ) : (
                 <>{formatNumber(perennialupstreammiles, 2, true)}</>
               )}
@@ -374,7 +399,21 @@ const Network = ({
           </Text>
         ) : null}
 
-        <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
+        {alwaysUseUpstream ? (
+          <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
+            Note: upstream miles are used because the downstream network flows
+            into the {flowstogreatlakes === 1 ? 'Great Lakes' : 'ocean'} and
+            there are no barriers downstream.
+          </Text>
+        ) : null}
+
+        <Text
+          style={{
+            color: '#7f8a93',
+            marginTop: alwaysUseUpstream ? 14 : 28,
+            fontSize: 10,
+          }}
+        >
           Note: statistics are based on aquatic networks cut by{' '}
           {networkType === 'dams'
             ? 'waterfalls and dams'
@@ -426,6 +465,11 @@ Network.propTypes = {
   unranked: PropTypes.bool,
   removed: PropTypes.bool,
   yearremoved: PropTypes.number,
+  flowstoocean: PropTypes.number,
+  flowstogreatlakes: PropTypes.number,
+  totaldownstreamdams: PropTypes.number,
+  totaldownstreamsmallbarriers: PropTypes.number,
+  totaldownstreamwaterfalls: PropTypes.number,
 }
 
 Network.defaultProps = {
@@ -446,6 +490,11 @@ Network.defaultProps = {
   unranked: false,
   removed: false,
   yearremoved: 0,
+  flowstoocean: 0,
+  flowstogreatlakes: 0,
+  totaldownstreamdams: 0,
+  totaldownstreamsmallbarriers: 0,
+  totaldownstreamwaterfalls: 0,
 }
 
 export default Network

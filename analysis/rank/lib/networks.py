@@ -244,7 +244,7 @@ def get_network_results(df, network_type, state_ranks=False):
             col = f"{stat_type}{t}"
             networks[col] = networks[col].astype("int32")
 
-    for col in ("Landcover", "FlowsToOcean", "ExitsRegion"):
+    for col in ("Landcover", "FlowsToOcean", "FlowsToGreatLakes", "ExitsRegion"):
         networks[col] = networks[col].astype("int8")
 
     if not state_ranks:
@@ -315,7 +315,7 @@ def get_removed_network_results(df, network_type):
         # Force to -1 since these aren't part of standard networks
         networks[col] = -1
 
-    for col in ("Landcover", "FlowsToOcean", "ExitsRegion"):
+    for col in ("Landcover", "FlowsToOcean", "FlowsToGreatLakes", "ExitsRegion"):
         networks[col] = networks[col].astype("int8")
 
     return networks.drop(columns=["Unranked", "State"])

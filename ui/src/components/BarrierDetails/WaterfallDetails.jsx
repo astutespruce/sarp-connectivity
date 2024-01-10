@@ -25,6 +25,7 @@ const WaterfallDetails = ({
   excluded,
   falltype,
   flowstoocean,
+  flowstogreatlakes,
   freealtereddownstreammiles,
   freedownstreammiles,
   freeperennialdownstreammiles,
@@ -114,6 +115,11 @@ const WaterfallDetails = ({
             sizeclasses={sizeclasses}
             landcover={landcover}
             intermittent={intermittent}
+            flowstoocean={flowstoocean}
+            flowstogreatlakes={flowstogreatlakes}
+            totaldownstreamdams={totaldownstreamdams}
+            totaldownstreamsmallbarriers={totaldownstreamsmallbarriers}
+            totaldownstreamwaterfalls={totaldownstreamwaterfalls}
           />
         ) : (
           <NoNetworkInfo
@@ -177,6 +183,7 @@ WaterfallDetails.propTypes = {
   excluded: PropTypes.bool,
   falltype: PropTypes.string,
   flowstoocean: PropTypes.number,
+  flowstogreatlakes: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
@@ -276,6 +283,7 @@ WaterfallDetails.defaultProps = {
   excluded: false,
   falltype: null,
   flowstoocean: 0,
+  flowstogreatlakes: 0,
   freealtereddownstreammiles: 0,
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,

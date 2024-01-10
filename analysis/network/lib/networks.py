@@ -3,7 +3,7 @@ from time import time
 import pandas as pd
 import numpy as np
 
-from analysis.constants import HUC2_EXITS
+from analysis.constants import HUC2_EXITS, NETWORK_TYPES
 
 from analysis.lib.util import snake_to_title_case
 from analysis.lib.graph.speedups import DirectedGraph, LinearDirectedGraph
@@ -514,9 +514,13 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
     # this is the lesser of the upstream or free downstream lengths.
     # Non-free miles downstream (downstream waterbodies) are omitted from this analysis.
 
-    # For barriers that terminate in marine areas or Great Lakes, their
-    # GainMiles is only based on the upstream miles
-    terminates_downstream_ix = (barrier_networks.miles_to_outlet == 0) & (
+    # For barriers that flow directly into marine areas or Great Lakes
+    # (no downstream barriers), their GainMiles is only based on the upstream miles
+    # add count of downstream breaking barriers
+    downstream_cols = [f"totd_{kind}s" for kind in NETWORK_TYPES[network_type]["kinds"]]
+    barrier_networks["totd_barriers"] = barrier_networks[downstream_cols].sum(axis=1)
+
+    terminates_downstream_ix = (barrier_networks.totd_barriers == 0) & (
         (barrier_networks.flows_to_ocean == 1) | (barrier_networks.flows_to_great_lakes)
     )
 

@@ -9,12 +9,16 @@ const BackLink = ({ label, onClick }) => (
     sx={{
       outline: 'none',
       border: 'none',
-      background: 'none',
+      bg: 'transparent',
       color: 'link',
       display: 'block',
       p: 0,
       fontSize: '1rem',
       m: '-0.75rem 0 0.5rem -0.75rem',
+      '&:hover': {
+        bg: 'transparent',
+        textDecoration: 'underline',
+      },
     }}
   >
     <Reply size="1.1rem" style={{ marginRight: '0.25rem' }} /> {label}
