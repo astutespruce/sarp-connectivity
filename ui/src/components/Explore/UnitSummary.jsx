@@ -140,15 +140,17 @@ const UnitSummary = ({
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
   const totalRoadBarriers = totalSmallBarriers + crossings
 
+  const summaryUnitsForDownload = summaryUnits.reduce(
+    (prev, { layerId: l, id: i }) =>
+      Object.assign(prev, {
+        [l]: prev[l] ? prev[l].concat([i]) : [i],
+      }),
+    {}
+  )
+
   const downloaderConfig = {
     // aggregate summary unit ids to list per summary unit layer
-    summaryUnits: summaryUnits.reduce(
-      (prev, { layerId: l, id: i }) =>
-        Object.assign(prev, {
-          [l]: prev[l] ? prev[l].concat([i]) : [i],
-        }),
-      {}
-    ),
+    summaryUnits: summaryUnitsForDownload,
     scenario: 'ncwc',
   }
 
@@ -185,8 +187,7 @@ const UnitSummary = ({
             barrierType="road_crossings"
             label={barrierTypeLabels.road_crossings}
             config={{
-              layer: layerId,
-              summaryUnits: [{ id }],
+              summaryUnits: summaryUnitsForDownload,
             }}
             disabled={crossings === 0}
           />
