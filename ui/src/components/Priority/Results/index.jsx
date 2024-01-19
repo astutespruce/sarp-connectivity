@@ -171,10 +171,7 @@ const Results = ({
 
 Results.propTypes = {
   config: PropTypes.shape({
-    layer: PropTypes.string.isRequired,
-    summaryUnits: PropTypes.arrayOf(
-      PropTypes.shape({ id: PropTypes.string.isRequired })
-    ).isRequired,
+    summaryUnits: PropTypes.objectOf(PropTypes.array).isRequired,
     filters: PropTypes.object,
     scenario: PropTypes.string.isRequired,
   }).isRequired,

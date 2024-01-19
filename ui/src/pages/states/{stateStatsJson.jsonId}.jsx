@@ -141,7 +141,7 @@ const StateRoute = ({
                 disabled={dams === 0}
                 config={{
                   ...downloadConfig,
-                  summaryUnits: [{ id }],
+                  summaryUnits: { State: [id] },
                 }}
               />
             </Box>
@@ -154,7 +154,7 @@ const StateRoute = ({
                 disabled={totalSmallBarriers === 0}
                 config={{
                   ...downloadConfig,
-                  summaryUnits: [{ id }],
+                  summaryUnits: { State: [id] },
                 }}
               />
             </Box>
@@ -166,7 +166,7 @@ const StateRoute = ({
                 disabled={crossings === 0}
                 config={{
                   ...downloadConfig,
-                  summaryUnits: [{ id }],
+                  summaryUnits: { State: [id] },
                 }}
               />
             </Box>
@@ -303,10 +303,10 @@ const StateRoute = ({
                 alignItems: 'flex-end',
               }}
             >
-              <Link to="/summary">
+              <Link to="/explore">
                 <Button variant="primary">
                   <ChartBar size="1em" />
-                  &nbsp; Start summarizing
+                  &nbsp; Start exploring
                 </Button>
               </Link>
             </Flex>

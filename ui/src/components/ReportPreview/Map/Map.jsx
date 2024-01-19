@@ -16,7 +16,7 @@ import {
   removedBarrierPointLayer,
   otherBarrierPointLayer,
   unrankedPointLayer,
-} from 'components/Summary/layers'
+} from 'components/Explore/layers'
 
 import {
   BasemapSelector,

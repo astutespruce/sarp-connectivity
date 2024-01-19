@@ -14,7 +14,7 @@ from api.response import feather_response
 router = APIRouter()
 
 
-@router.get("/{barrier_type}/rank/{layer}")
+@router.get("/{barrier_type}/rank")
 async def rank(
     request: Request,
     barrier_type: BarrierTypes,
@@ -46,8 +46,6 @@ async def rank(
     ymin, ymax = pc.min_max(df["lat"]).as_py().values()
     bounds = [xmin, ymin, xmax, ymax]
 
-    tiers = pa.Table.from_pydict(
-        {"id": df["id"], "tiers": pack_bits(calculate_tiers(df), CUSTOM_TIER_PACK_BITS)}
-    )
+    tiers = pa.Table.from_pydict({"id": df["id"], "tiers": pack_bits(calculate_tiers(df), CUSTOM_TIER_PACK_BITS)})
 
     return feather_response(tiers, bounds=bounds)

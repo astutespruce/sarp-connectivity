@@ -33,7 +33,7 @@ MAX_CROSSINGS = 1e6  # limit to 1M crossings in downloads
 router = APIRouter()
 
 
-@router.get("/{barrier_type}/{format}/{layer}")
+@router.get("/{barrier_type}/{format}")
 async def download(
     request: Request,
     barrier_type: BarrierTypes,
@@ -48,11 +48,10 @@ async def download(
     If `include_unranked` is `True`, all barriers in the summary units are downloaded.
 
     Path parameters:
-    <layer> : one of LAYERS
     <format> : "csv"
 
     Query parameters:
-    * id: list of ids
+    * one more more ids (comma delimited) for each of the unit types, e.g., State=OR,WA
     * custom: bool (default: False); set to true to perform custom ranking of subset defined here
     * include_unranked: bool (default: False); set to true to include unranked barriers in output
     * sort: str, one of 'NC', 'WC', 'NCWC'
@@ -138,8 +137,7 @@ async def download(
         barrier_type=barrier_type,
         fields=df.column_names,
         url=url,
-        layer=extractor.layer,
-        ids=extractor.ids.tolist(),
+        unit_ids=extractor.unit_ids,
         warnings=warnings,
     )
     terms = get_terms(url=url)

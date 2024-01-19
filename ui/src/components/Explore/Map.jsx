@@ -42,11 +42,11 @@ import {
 
 const barrierTypes = ['dams', 'small_barriers', 'combined_barriers']
 
-const SummaryMap = ({
+const ExploreMap = ({
   region,
   system,
   focalBarrierType,
-  selectedUnit,
+  summaryUnits,
   searchFeature,
   selectedBarrier,
   onSelectUnit,
@@ -193,7 +193,7 @@ const SummaryMap = ({
             },
             paint: {
               'line-opacity': 1,
-              'line-width': 4,
+              'line-width': 3,
               'line-color': '#333',
             },
             filter: ['==', 'id', Infinity],
@@ -517,17 +517,17 @@ const SummaryMap = ({
 
     if (!map) return
 
-    // clear out filter on non-visible layers and set for visible layers
-    // also clear it out if it is undefined
-    const { id = Infinity } = selectedUnit || {}
+    const ids = summaryUnits.map(({ id }) => id)
+
     layers.forEach(({ id: lyrId, system: lyrSystem }) => {
-      map.setFilter(`${lyrId}-highlight`, [
-        '==',
-        'id',
-        lyrSystem === system ? id : Infinity,
-      ])
+      map.setFilter(
+        `${lyrId}-highlight`,
+        lyrSystem === system && ids.length > 0
+          ? ['in', 'id', ...ids]
+          : ['==', 'id', Infinity]
+      )
     })
-  }, [system, selectedUnit])
+  }, [system, summaryUnits])
 
   useEffect(() => {
     const { current: map } = mapRef
@@ -714,11 +714,15 @@ const SummaryMap = ({
   )
 }
 
-SummaryMap.propTypes = {
+ExploreMap.propTypes = {
   region: PropTypes.string,
   system: PropTypes.string.isRequired,
   focalBarrierType: PropTypes.string.isRequired,
-  selectedUnit: PropTypes.object,
+  summaryUnits: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+    })
+  ),
   searchFeature: SearchFeaturePropType,
   selectedBarrier: PropTypes.object,
   onSelectUnit: PropTypes.func.isRequired,
@@ -729,13 +733,13 @@ SummaryMap.propTypes = {
   ]),
 }
 
-SummaryMap.defaultProps = {
+ExploreMap.defaultProps = {
   region: 'total',
-  selectedUnit: null,
+  summaryUnits: [],
   searchFeature: null,
   selectedBarrier: null,
   children: null,
 }
 
 // construct only once
-export default memo(SummaryMap)
+export default memo(ExploreMap)

@@ -6,21 +6,13 @@ import { AngleDoubleRight } from '@emotion-icons/fa-solid'
 import { Box, Paragraph, Divider } from 'theme-ui'
 
 import { Link } from 'components/Link'
-import { UnitSearch } from 'components/UnitSearch'
 import { useSummaryData, useRegionSummary } from 'components/Data'
 import { REGIONS } from 'config'
 import { formatNumber, pluralize } from 'util/format'
 
 import Chart from './Chart'
 
-const Summary = ({
-  region,
-  barrierType,
-  system,
-  metric,
-  onSearch,
-  onChangeMetric,
-}) => {
+const Summary = ({ region, barrierType, metric, onChangeMetric }) => {
   let name = 'full analysis area'
   if (region !== 'total') {
     name = REGIONS[region].name
@@ -130,12 +122,6 @@ const Summary = ({
         }}
       />
 
-      <UnitSearch
-        barrierType={barrierType}
-        system={system}
-        onSelect={onSearch}
-      />
-
       <Divider
         sx={{
           borderBottom: '2px solid',
@@ -194,7 +180,6 @@ Summary.propTypes = {
   barrierType: PropTypes.string.isRequired,
   system: PropTypes.string.isRequired,
   metric: PropTypes.string.isRequired,
-  onSearch: PropTypes.func.isRequired,
   onChangeMetric: PropTypes.func.isRequired,
 }
 

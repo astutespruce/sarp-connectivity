@@ -55,11 +55,10 @@ const Downloader = ({
   }
 
   const handleDownload = () => {
-    const { layer, summaryUnits, filters, scenario } = config
+    const { summaryUnits, filters, scenario } = config
 
     const downloadURL = getDownloadURL({
       barrierType,
-      layer,
       summaryUnits,
       filters,
       includeUnranked:
@@ -73,12 +72,13 @@ const Downloader = ({
     window.open(downloadURL)
     setIsOpen(false)
 
+    const formattedIds = Object.entries(summaryUnits)
+      .map(([key, values]) => `${key}: ${values.join(',')}`)
+      .join(';')
+
     trackDownload({
       barrierType,
-      unitType: layer,
-      details: `ids: [${
-        summaryUnits ? summaryUnits.map(({ id }) => id) : 'none'
-      }], filters: ${
+      details: `ids: [${formattedIds}], filters: ${
         filters ? Object.keys(filters) : 'none'
       }, scenario: ${scenario}, include unranked: ${
         downloadOptions.includeUnranked
@@ -194,10 +194,8 @@ const Downloader = ({
 Downloader.propTypes = {
   barrierType: PropTypes.string.isRequired,
   config: PropTypes.shape({
-    layer: PropTypes.string.isRequired,
-    summaryUnits: PropTypes.arrayOf(
-      PropTypes.shape({ id: PropTypes.string.isRequired })
-    ).isRequired,
+    // <layer>: [ids...]
+    summaryUnits: PropTypes.objectOf(PropTypes.array),
     filters: PropTypes.object,
     scenario: PropTypes.string,
   }).isRequired,

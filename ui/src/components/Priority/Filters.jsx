@@ -50,8 +50,10 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
       )}`
       break
     }
-    case 'combined_barriers': {
-      const { dams = 0, small_barriers = 0 } = data
+    case 'combined_barriers':
+    case 'largefish_barriers':
+    case 'smallfish_barriers': {
+      const { dams = 0, small_barriers: smallBarriers = 0 } = data
         .groupby('barriertype')
         .rollup({ _count: (d) => op.sum(d._count) })
         .derive({ row: op.row_object() })
@@ -61,9 +63,9 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
       countMessage = `${formatNumber(dams || 0)} ${pluralize(
         'dam',
         dams
-      )} and ${formatNumber(small_barriers)} road-related ${pluralize(
+      )} and ${formatNumber(smallBarriers)} road-related ${pluralize(
         'barrier',
-        small_barriers
+        smallBarriers
       )}`
       break
     }

@@ -10,23 +10,19 @@ const IndexPage = () => {
     headerImage: {
       childImageSharp: { gatsbyImageData: headerImage },
     },
-  } = useStaticQuery(
-    graphql`
-      query {
-        headerImage: file(
-          relativePath: { eq: "25898720604_f380ee9709_k.jpg" }
-        ) {
-          childImageSharp {
-            gatsbyImageData(
-              layout: FULL_WIDTH
-              formats: [AUTO, WEBP]
-              placeholder: BLURRED
-            )
-          }
+  } = useStaticQuery(graphql`
+    query {
+      headerImage: file(relativePath: { eq: "25898720604_f380ee9709_k.jpg" }) {
+        childImageSharp {
+          gatsbyImageData(
+            layout: FULL_WIDTH
+            formats: [AUTO, WEBP]
+            placeholder: BLURRED
+          )
         }
       }
-    `
-  )
+    }
+  `)
 
   if (!hasWindow) {
     // prevents initial load of this page for client-only pages that are still loading
@@ -52,4 +48,4 @@ const IndexPage = () => {
 
 export default IndexPage
 
-export const Head = () => <SEO />
+export const Head = () => <SEO title="NOT FOUND" />

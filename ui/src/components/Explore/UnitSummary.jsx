@@ -1,74 +1,156 @@
 /* eslint-disable camelcase */
-import React from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Button, Heading, Flex, Text, Paragraph } from 'theme-ui'
 import { AngleDoubleRight } from '@emotion-icons/fa-solid'
 
-import { Link, ExternalLink } from 'components/Link'
+import { Link } from 'components/Link'
 import { Downloader } from 'components/Download'
-import {
-  STATE_FIPS,
-  STATES,
-  CONNECTIVITY_TEAMS,
-  barrierTypeLabels,
-} from 'config'
+import { UnitSearch } from 'components/UnitSearch'
+import { STATE_FIPS, STATES, barrierTypeLabels } from 'config'
 import { formatNumber, pluralize } from 'util/format'
 
+import UnitListItem from './UnitListItem'
 import { layers } from './layers'
 
-const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
-  const teams = {}
-  Object.values(CONNECTIVITY_TEAMS).forEach((region) => {
-    Object.entries(region).forEach(([state, info]) => {
-      teams[state] = info
-    })
-  })
+const UnitSummary = ({
+  barrierType,
+  system,
+  summaryUnits,
+  onSelectUnit,
+  onReset,
+}) => {
+  const [searchValue, setSearchValue] = useState('')
+  const pluralLabel =
+    system === 'ADM' ? 'states / counties' : 'hydrologic units'
 
-  const {
-    id,
-    layerId,
-    dams = 0,
-    rankedDams = 0,
-    removedDams = 0,
-    removedDamsGainMiles = 0,
-    smallBarriers = 0,
-    totalSmallBarriers = 0,
-    rankedSmallBarriers = 0,
-    removedSmallBarriers = 0,
-    removedSmallBarriersGainMiles = 0,
-    crossings = 0,
-  } = summaryUnit
+  const handleSearchChange = (value) => {
+    setSearchValue(value)
+  }
+
+  const handleSearchSelect = ({ layer: layerId, ...item }) => {
+    onSelectUnit({ ...item, layerId })
+    setSearchValue('')
+  }
+
+  const [{ id, name = '', layerId }] = summaryUnits
+
+  let dams = 0
+  let rankedDams = 0
+  let removedDams = 0
+  let removedDamsGainMiles = 0
+  let smallBarriers = 0
+  let totalSmallBarriers = 0
+  let rankedSmallBarriers = 0
+  let removedSmallBarriers = 0
+  let removedSmallBarriersGainMiles = 0
+  let crossings = 0
+
+  // ignore any unit that is contained within another unit
+  const ignoreIds = new Set()
+
+  let title = null
+  let subtitle = null
+  let idline = null
+  if (summaryUnits.length === 1) {
+    switch (layerId) {
+      case 'State': {
+        title = STATES[id]
+        break
+      }
+      case 'County': {
+        title = `${name} County`
+        subtitle = STATE_FIPS[id.slice(0, 2)]
+        break
+      }
+      case 'HUC2': {
+        title = name
+        idline = `${layerId}: ${id}`
+        break
+      }
+      default: {
+        // all remaining HUC cases
+        title = name
+        const [{ title: layerTitle }] = layers.filter(
+          ({ id: lyrID }) => lyrID === layerId
+        )
+        subtitle = layerTitle
+        idline = `${layerId}: ${id}`
+        break
+      }
+    }
+  } else {
+    title = 'Statistics for selected areas'
+
+    if (system === 'ADM') {
+      const statesPresent = new Set(
+        summaryUnits
+          .filter(({ layerId: l }) => l === 'State')
+          .map(({ id: i }) => STATES[i])
+      )
+      summaryUnits
+        .filter(({ layerId: l }) => l === 'County')
+        .forEach(({ id: i }) => {
+          const state = STATE_FIPS[i.slice(0, 2)]
+          if (statesPresent.has(state)) {
+            ignoreIds.add(i)
+          }
+        })
+    } else {
+      const hucsPresent = new Set(summaryUnits.map(({ id: huc }) => huc))
+      const ids = [...hucsPresent]
+      ids.forEach((parentHuc) => {
+        ids.forEach((childHuc) => {
+          if (parentHuc !== childHuc && childHuc.startsWith(parentHuc)) {
+            ignoreIds.add(childHuc)
+          }
+        })
+      })
+    }
+  }
+
+  // aggregate statistics
+  summaryUnits
+    .filter(({ id: i }) => !ignoreIds.has(i))
+    .forEach(
+      ({
+        dams: curDams = 0,
+        rankedDams: curRankedDams = 0,
+        removedDams: curRemovedDams = 0,
+        removedDamsGainMiles: curRemovedDamsGainMiles = 0,
+        smallBarriers: curSmallBarriers = 0,
+        totalSmallBarriers: curTotalSmallBarriers = 0,
+        rankedSmallBarriers: curRankedSmallBarriers = 0,
+        removedSmallBarriers: curRemovedSmallBarriers = 0,
+        removedSmallBarriersGainMiles: curRemovedSmallBarriersGainMiles = 0,
+        crossings: curCrossings = 0,
+      }) => {
+        dams += curDams
+        rankedDams += curRankedDams
+        removedDams += curRemovedDams
+        removedDamsGainMiles += curRemovedDamsGainMiles
+        smallBarriers += curSmallBarriers
+        totalSmallBarriers += curTotalSmallBarriers
+        rankedSmallBarriers += curRankedSmallBarriers
+        removedSmallBarriers += curRemovedSmallBarriers
+        removedSmallBarriersGainMiles += curRemovedSmallBarriersGainMiles
+        crossings += curCrossings
+      }
+    )
 
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
   const totalRoadBarriers = totalSmallBarriers + crossings
 
-  let { name = '' } = summaryUnit
-
-  const layerConfig = layers.filter(({ id: lyrID }) => lyrID === layerId)[0]
-
-  let { title: layerTitle } = layerConfig
-
-  let title = null
-  let state = null
-  let team = null
-  if (layerId === 'County') {
-    title = `${name} County`
-    state = STATE_FIPS[id.slice(0, 2)]
-    layerTitle = state
-  }
-
-  if (layerId === 'State') {
-    state = STATES[id]
-    name = state
-    team = teams[id]
-  }
-
-  title = name || id
-
   const downloaderConfig = {
-    layer: layerId,
-    summaryUnits: [{ id }],
+    // aggregate summary unit ids to list per summary unit layer
+    summaryUnits: summaryUnits.reduce(
+      (prev, { layerId: l, id: i }) =>
+        Object.assign(prev, {
+          [l]: prev[l] ? prev[l].concat([i]) : [i],
+        }),
+      {}
+    ),
     scenario: 'ncwc',
   }
 
@@ -156,20 +238,13 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           <Heading as="h3" sx={{ m: 0, fontSize: '1.25rem' }}>
             {title}
           </Heading>
-          {layerId !== 'State' && layerId !== 'HUC2' ? (
-            <Text sx={{ fontSize: '1.25rem' }}>{layerTitle}</Text>
+          {subtitle ? (
+            <Text sx={{ fontSize: '1.25rem' }}>{subtitle}</Text>
           ) : null}
-          {layerId === 'HUC6' ||
-          layerId === 'HUC8' ||
-          layerId === 'HUC10' ||
-          layerId === 'HUC12' ? (
-            <Text sx={{ color: 'grey.7' }}>
-              {layerId}: {id}
-            </Text>
-          ) : null}
+          {idline ? <Text sx={{ color: 'grey.7' }}>{idline}</Text> : null}
         </Box>
 
-        <Button variant="close" onClick={onClose}>
+        <Button variant="close" onClick={onReset}>
           &#10006;
         </Button>
       </Flex>
@@ -181,7 +256,7 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           overflowY: 'auto',
         }}
       >
-        {layerId === 'State' ? (
+        {summaryUnits.length === 1 && layerId === 'State' ? (
           <Box sx={{ mt: '-0.5rem', mb: '1rem' }}>
             <Link to={`/states/${id}`}>
               view state page for more information{' '}
@@ -190,8 +265,11 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
           </Box>
         ) : null}
 
-        <Paragraph>This area contains:</Paragraph>
-
+        <Paragraph>
+          {summaryUnits.length === 1
+            ? 'This area contains:'
+            : 'These areas contain:'}
+        </Paragraph>
         {barrierType === 'dams' || barrierType === 'combined_barriers' ? (
           <>
             {dams > 0 ? (
@@ -224,7 +302,6 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
             )}
           </>
         ) : null}
-
         {barrierType === 'small_barriers' ||
         barrierType === 'combined_barriers' ? (
           <>
@@ -276,6 +353,83 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
             )}
           </>
         ) : null}
+
+        {summaryUnits.length > 1 ? (
+          <Box>
+            <Box
+              sx={{
+                mt: '2rem',
+                mb: '0.5rem',
+                mx: '-1rem',
+                px: '1rem',
+                py: '0.25rem',
+                bg: 'grey.0',
+                borderTop: '1px solid',
+                borderTopColor: 'grey.2',
+                borderBottom: '1px solid',
+                borderBottomColor: 'grey.2',
+              }}
+            >
+              <Text sx={{ fontWeight: 'bold' }}>Selected areas:</Text>
+            </Box>
+            <Box
+              as="ul"
+              sx={{
+                m: 0,
+                p: 0,
+                listStyle: 'none',
+              }}
+            >
+              {summaryUnits.map((unit) => (
+                <UnitListItem
+                  key={unit.id}
+                  barrierType={barrierType}
+                  system={system}
+                  unit={unit}
+                  ignore={ignoreIds.has(unit.id)}
+                  onDelete={() => onSelectUnit(unit)}
+                />
+              ))}
+            </Box>
+          </Box>
+        ) : null}
+
+        <Box
+          sx={{
+            mt: summaryUnits.length === 1 ? '2rem' : undefined,
+            mx: '-1rem',
+            pt: '1rem',
+            pb: '2rem',
+            px: '1rem',
+            borderBottom: '2px solid',
+            borderBottomColor: 'grey.2',
+            borderTop: summaryUnits.length === 1 ? '2px solid' : undefined,
+            borderTopColor: 'grey.2',
+          }}
+        >
+          <Text
+            variant="help"
+            sx={{
+              mt: '0.5rem',
+              pb: '1.5rem',
+            }}
+          >
+            Select {summaryUnits.length > 0 ? 'additional' : ''} {pluralLabel}{' '}
+            by clicking on them on the map or searching by name.
+          </Text>
+          <UnitSearch
+            barrierType={barrierType}
+            system={system}
+            value={searchValue}
+            ignoreIds={
+              summaryUnits && summaryUnits.length > 0
+                ? new Set(summaryUnits.map(({ id: unitId }) => unitId))
+                : null
+            }
+            onChange={handleSearchChange}
+            onSelect={handleSearchSelect}
+          />
+        </Box>
 
         {barrierType === 'dams' ? (
           <Paragraph variant="help" sx={{ mt: '2rem' }}>
@@ -344,27 +498,6 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
             ) : null}
           </Paragraph>
         ) : null}
-
-        {team ? (
-          <Box
-            sx={{
-              mt: '3rem',
-              borderTop: '1px solid',
-              borderTopColor: 'grey.1',
-              pt: '1rem',
-            }}
-          >
-            <Text>
-              This state has an active Aquatic Connectivity Team: the{' '}
-              {team.name}.{' '}
-              <Text sx={{ display: 'inline-block' }}>
-                <ExternalLink to={team.url}>
-                  Learn more about this team
-                </ExternalLink>
-              </Text>
-            </Text>
-          </Box>
-        ) : null}
       </Box>
 
       <Box
@@ -403,25 +536,29 @@ const UnitDetails = ({ barrierType, summaryUnit, onClose }) => {
   )
 }
 
-UnitDetails.propTypes = {
+UnitSummary.propTypes = {
   barrierType: PropTypes.string.isRequired,
-  summaryUnit: PropTypes.shape({
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    layerId: PropTypes.string.isRequired,
-    name: PropTypes.string,
-    dams: PropTypes.number,
-    rankedDams: PropTypes.number,
-    removedDams: PropTypes.number,
-    removedDamsGainMiles: PropTypes.number,
-    smallBarriers: PropTypes.number,
-    totalSmallBarriers: PropTypes.number,
-    rankedSmallBarriers: PropTypes.number,
-    removedSmallBarriers: PropTypes.number,
-    removedSmallBarriersGainMiles: PropTypes.number,
-    crossings: PropTypes.number,
-    miles: PropTypes.number,
-  }).isRequired,
-  onClose: PropTypes.func.isRequired,
+  system: PropTypes.string.isRequired,
+  summaryUnits: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      layerId: PropTypes.string.isRequired,
+      name: PropTypes.string,
+      dams: PropTypes.number,
+      rankedDams: PropTypes.number,
+      removedDams: PropTypes.number,
+      removedDamsGainMiles: PropTypes.number,
+      smallBarriers: PropTypes.number,
+      totalSmallBarriers: PropTypes.number,
+      rankedSmallBarriers: PropTypes.number,
+      removedSmallBarriers: PropTypes.number,
+      removedSmallBarriersGainMiles: PropTypes.number,
+      crossings: PropTypes.number,
+      miles: PropTypes.number,
+    })
+  ).isRequired,
+  onSelectUnit: PropTypes.func.isRequired,
+  onReset: PropTypes.func.isRequired,
 }
 
-export default UnitDetails
+export default UnitSummary

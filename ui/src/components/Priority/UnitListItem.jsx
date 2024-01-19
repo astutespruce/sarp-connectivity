@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 import React, { memo } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Button, Text } from 'theme-ui'
@@ -11,15 +10,13 @@ import { formatNumber, pluralize } from 'util/format'
 const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
   const {
     id,
-    ranked_dams: rankedDams = 0,
-    total_small_barriers: totalSmallBarriers = 0,
-    ranked_small_barriers: rankedSmallBarriers = 0,
-    ranked_largefish_barriers_dams: rankedLargefishBarriersDams = 0,
-    ranked_largefish_barriers_small_barriers:
-      rankedLargefishBarriersSmallBarriers = 0,
-    ranked_smallfish_barriers_dams: rankedSmallfishBarriersDams = 0,
-    ranked_smallfish_barriers_small_barriers:
-      rankedSmallfishBarriersSmallBarriers = 0,
+    rankedDams = 0,
+    totalSmallBarriers = 0,
+    rankedSmallBarriers = 0,
+    rankedLargefishBarriersDams = 0,
+    rankedLargefishBarriersSmallBarriers = 0,
+    rankedSmallfishBarriersDams = 0,
+    rankedSmallfishBarriersSmallBarriers = 0,
     crossings = 0,
   } = unit
   let { name = id } = unit

@@ -9,6 +9,7 @@ from api.constants import (
     COMBINED_FILTER_FIELD_MAP,
     RC_FILTER_FIELD_MAP,
     MULTIPLE_VALUE_FIELDS,
+    UNIT_FIELDS,
     BarrierTypes,
     Layers,
 )
@@ -33,8 +34,14 @@ class RecordExtractor:
         self,
         request: Request,
         barrier_type: BarrierTypes,
-        id: str,
-        layer: Layers = "State",
+        # unit types must be specified manually
+        HUC2: str = None,
+        HUC6: str = None,
+        HUC8: str = None,
+        HUC10: str = None,
+        HUC12: str = None,
+        State: str = None,
+        County: str = None,
     ):
         field_map = {}
         self.dataset = None
@@ -67,16 +74,27 @@ class RecordExtractor:
             case _:
                 raise NotImplementedError(f"RecordExtractor is not supported for {barrier_type}")
 
-        if layer == "County":
-            layer = "COUNTYFIPS"
+        units = {
+            "HUC2": HUC2,
+            "HUC6": HUC6,
+            "HUC8": HUC8,
+            "HUC10": HUC10,
+            "HUC12": HUC12,
+            "State": State,
+            "COUNTYFIPS": County,
+        }
+        self.unit_ids = {}
+        for key, ids in units.items():
+            if ids is not None:
+                if ids == "":
+                    raise HTTPException(
+                        400, detail=f"ids for {'County' if key=='COUNTYFIPS' else key} must be non-empty"
+                    )
 
-        self.layer = layer
+                self.unit_ids[key] = pa.array([id for id in ids.split(",") if id])
 
-        ids = [id for id in id.split(",") if id]
-        if not ids:
-            raise HTTPException(400, detail="id must be non-empty")
-
-        self.ids = pa.array(ids)
+        if len(self.unit_ids) == 0:
+            raise HTTPException(400, detail="At least one summary unit layer must have ids present")
 
         # extract optional filters
         self.filters = dict()
@@ -98,7 +116,11 @@ class RecordExtractor:
                     )
 
     def extract(self, columns=None, ranked=False):
-        ix = pc.field(self.layer).isin(self.ids)
+        # evaluate unit ids using OR logic
+        layers = list(self.unit_ids.keys())
+        ix = pc.field(layers[0]).isin(self.unit_ids[layers[0]])
+        for layer in layers[1:]:
+            ix = ix | pc.field(layer).isin(self.unit_ids[layer])
 
         if ranked:
             ix = ix & (pc.field("Ranked") == True)  # noqa

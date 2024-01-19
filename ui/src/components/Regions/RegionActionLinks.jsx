@@ -43,10 +43,10 @@ const RegionActionLinks = ({ region }) => (
           alignItems: 'flex-end',
         }}
       >
-        <Link to={`/summary/?region=${region}`}>
+        <Link to={`/explore/?region=${region}`}>
           <Button variant="primary">
             <ChartBar size="1em" />
-            &nbsp; Start summarizing
+            &nbsp; Start exploring
           </Button>
         </Link>
       </Flex>

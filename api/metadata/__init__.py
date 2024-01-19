@@ -26,7 +26,7 @@ with open(metadata_dir / "terms_template.txt") as infile:
     terms = infile.read()
 
 
-def get_readme(filename, barrier_type, fields, url, layer, ids, warnings=None):
+def get_readme(filename, barrier_type, fields, url, unit_ids, warnings=None):
     field_def = {}
     barrier_type_label = ""
 
@@ -47,9 +47,7 @@ def get_readme(filename, barrier_type, fields, url, layer, ids, warnings=None):
     fields = {f: field_def[f] for f in fields if f in field_def}
     field_info = "\n".join([f"{k}: {v}" for k, v in fields.items()])
 
-    meta_description = (
-        description if not warnings else f"{description}\n\nWARNING: {warnings}"
-    )
+    meta_description = description if not warnings else f"{description}\n\nWARNING: {warnings}"
 
     return readme.format(
         type=barrier_type_label,
@@ -57,8 +55,7 @@ def get_readme(filename, barrier_type, fields, url, layer, ids, warnings=None):
         data_date=data_date,
         url=url,
         filename=filename,
-        layer=layer,
-        ids=", ".join(ids),
+        unit_ids="\n".join([f"{key}: {', '.join(ids.tolist())}" for key, ids in unit_ids.items()]),
         description=meta_description,
         field_info=field_info,
     )
