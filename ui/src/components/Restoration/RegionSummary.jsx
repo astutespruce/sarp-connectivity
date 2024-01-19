@@ -3,16 +3,24 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { AngleDoubleRight } from '@emotion-icons/fa-solid'
-import { Box, Paragraph, Divider } from 'theme-ui'
+import { Box, Paragraph, Divider, Text } from 'theme-ui'
 
 import { Link } from 'components/Link'
+import { UnitSearch } from 'components/UnitSearch'
 import { useSummaryData, useRegionSummary } from 'components/Data'
 import { REGIONS } from 'config'
 import { formatNumber, pluralize } from 'util/format'
 
 import Chart from './Chart'
 
-const Summary = ({ region, barrierType, metric, onChangeMetric }) => {
+const Summary = ({
+  region,
+  barrierType,
+  system,
+  metric,
+  onSearch,
+  onChangeMetric,
+}) => {
   let name = 'full analysis area'
   if (region !== 'total') {
     name = REGIONS[region].name
@@ -122,6 +130,23 @@ const Summary = ({ region, barrierType, metric, onChangeMetric }) => {
         }}
       />
 
+      <Text
+        variant="help"
+        sx={{
+          mt: '0.5rem',
+          pb: '1.5rem',
+        }}
+      >
+        Select {system === 'ADM' ? 'states / counties' : 'hydrologic units'} by
+        clicking on them on the map or searching by name.
+      </Text>
+
+      <UnitSearch
+        barrierType={barrierType}
+        system={system}
+        onSelect={onSearch}
+      />
+
       <Divider
         sx={{
           borderBottom: '2px solid',
@@ -180,6 +205,7 @@ Summary.propTypes = {
   barrierType: PropTypes.string.isRequired,
   system: PropTypes.string.isRequired,
   metric: PropTypes.string.isRequired,
+  onSearch: PropTypes.func.isRequired,
   onChangeMetric: PropTypes.func.isRequired,
 }
 

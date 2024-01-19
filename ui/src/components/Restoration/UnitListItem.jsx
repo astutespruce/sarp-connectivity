@@ -6,8 +6,10 @@ import { STATE_FIPS, STATES } from 'config'
 import { OutboundLink } from 'components/Link'
 import { formatNumber, pluralize } from 'util/format'
 
+// TODO: counts for removed barriers
+
 const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
-  const { id, layerId, dams = 0, totalSmallBarriers = 0, crossings = 0 } = unit
+  const { id, layerId, removedDams = 0, removedSmallBarriers = 0 } = unit
   let { name = id } = unit
 
   if (layerId === 'State') {
@@ -19,41 +21,32 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
 
   switch (barrierType) {
     case 'dams': {
-      count = dams
-      countMessage = `${formatNumber(dams)} ${pluralize('dam', dams)}`
+      count = removedDams
+      countMessage = `${formatNumber(removedDams)} removed ${pluralize(
+        'dam',
+        removedDams
+      )}`
 
       break
     }
     case 'small_barriers': {
-      count = totalSmallBarriers
+      count = removedSmallBarriers
 
       countMessage = `${formatNumber(
-        totalSmallBarriers
-      )} assessed potential road-related ${pluralize(
-        'barrier',
-        totalSmallBarriers
-      )} (out of ${formatNumber(crossings)} road/stream ${pluralize(
-        'crossing',
-        crossings
-      )})`
+        removedSmallBarriers
+      )} removed road-related ${pluralize('barrier', removedSmallBarriers)}`
 
       break
     }
     case 'combined_barriers': {
-      count = dams + totalSmallBarriers
+      count = removedDams + removedSmallBarriers
 
-      countMessage = `${formatNumber(dams)} ${pluralize(
+      countMessage = `${formatNumber(removedDams)} removed ${pluralize(
         'dam',
-        dams
+        removedDams
       )} and ${formatNumber(
-        totalSmallBarriers
-      )} assessed potential road-related ${pluralize(
-        'barrier',
-        totalSmallBarriers
-      )} (out of ${formatNumber(crossings)} road/stream ${pluralize(
-        'crossing',
-        crossings
-      )})`
+        removedSmallBarriers
+      )} removed road-related ${pluralize('barrier', removedSmallBarriers)}`
 
       break
     }

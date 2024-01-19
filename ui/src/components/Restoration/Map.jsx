@@ -36,7 +36,7 @@ const RestorationMap = ({
   region,
   system,
   focalBarrierType,
-  selectedUnit,
+  summaryUnits,
   searchFeature,
   selectedBarrier,
   onSelectUnit,
@@ -453,17 +453,17 @@ const RestorationMap = ({
 
     if (!map) return
 
-    // clear out filter on non-visible layers and set for visible layers
-    // also clear it out if it is undefined
-    const { id = Infinity } = selectedUnit || {}
+    const ids = summaryUnits.map(({ id }) => id)
+
     layers.forEach(({ id: lyrId, system: lyrSystem }) => {
-      map.setFilter(`${lyrId}-highlight`, [
-        '==',
-        'id',
-        lyrSystem === system ? id : Infinity,
-      ])
+      map.setFilter(
+        `${lyrId}-highlight`,
+        lyrSystem === system && ids.length > 0
+          ? ['in', 'id', ...ids]
+          : ['==', 'id', Infinity]
+      )
     })
-  }, [system, selectedUnit])
+  }, [system, summaryUnits])
 
   useEffect(() => {
     const { current: map } = mapRef
@@ -634,7 +634,11 @@ RestorationMap.propTypes = {
   region: PropTypes.string,
   system: PropTypes.string.isRequired,
   focalBarrierType: PropTypes.string.isRequired,
-  selectedUnit: PropTypes.object,
+  summaryUnits: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+    })
+  ),
   searchFeature: SearchFeaturePropType,
   selectedBarrier: PropTypes.object,
   onSelectUnit: PropTypes.func.isRequired,
@@ -647,7 +651,7 @@ RestorationMap.propTypes = {
 
 RestorationMap.defaultProps = {
   region: 'total',
-  selectedUnit: null,
+  summaryUnits: [],
   searchFeature: null,
   selectedBarrier: null,
   children: null,
