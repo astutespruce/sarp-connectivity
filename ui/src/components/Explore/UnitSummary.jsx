@@ -21,8 +21,6 @@ const UnitSummary = ({
   onReset,
 }) => {
   const [searchValue, setSearchValue] = useState('')
-  const pluralLabel =
-    system === 'ADM' ? 'states / counties' : 'hydrologic units'
 
   const handleSearchChange = (value) => {
     setSearchValue(value)
@@ -414,8 +412,10 @@ const UnitSummary = ({
               pb: '1.5rem',
             }}
           >
-            Select {summaryUnits.length > 0 ? 'additional' : ''} {pluralLabel}{' '}
-            by clicking on them on the map or searching by name.
+            Select {summaryUnits.length > 0 ? 'additional' : ''}{' '}
+            {system === 'ADM' ? 'states / counties' : 'hydrologic units'} by
+            clicking on them on the map or searching by name. You can then
+            download data for all selected areas.
           </Text>
           <UnitSearch
             barrierType={barrierType}
