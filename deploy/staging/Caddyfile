@@ -41,8 +41,8 @@ staging.aquaticbarriers.org {
     redir /teams /regions/southeast 301
 
     # redirect previous summary and download pages to explore page
-    redir /summary /explore 301
-    redir /download /explore 301
+    redir /summary* /explore/ 301
+    redir /download* /explore/ 301
 
     # most files can be cached indefinitely, they are rebuilt with new names each time
     @cached_files {
