@@ -41,3 +41,15 @@ exports.onCreateWebpackConfig = ({ actions, stage, loaders, plugins }) => {
 
   actions.setWebpackConfig(config)
 }
+
+exports.createPages = async ({ actions: { createRedirect } }) => {
+  createRedirect({
+    fromPath: `/download`,
+    toPath: `/explore`,
+  })
+
+  createRedirect({
+    fromPath: `/summary`,
+    toPath: `/explore`,
+  })
+}
