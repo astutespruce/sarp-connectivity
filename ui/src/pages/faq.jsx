@@ -58,15 +58,14 @@ const FAQPage = ({ data: { headerImage } }) => (
           What can the Inventory and Prioritization Tool do?
         </Heading>
         <Paragraph>
-          The prioritization tool allows users to summarize and download barrier
-          inventory information at different scales. It also allows users to
-          prioritize barriers at different scales using different filtering
-          approaches and different prioritization scenarios.
-          <br />
-          <br />
-          In planned future enhancements, it will be possible to summarize
-          accomplishments over multiple years, such as miles restored through
-          barrier removal by year.
+          The prioritization tool allows users to{' '}
+          <Link to="/explore">explore and download barrier</Link> inventory
+          information at different scales. It also allows users to{' '}
+          <Link to="/priority">prioritize</Link> barriers at different scales
+          using different filtering approaches and different prioritization
+          scenarios. It is also possible to{' '}
+          <Link to="/restoration">summarize accomplishments</Link> over multiple
+          years, such as miles restored through barrier removal by year.
         </Paragraph>
       </Box>
 
@@ -230,7 +229,22 @@ const FAQPage = ({ data: { headerImage } }) => (
           </a>{' '}
           with the coordinates, or when prioritizing within the tool, scroll to
           the bottom of the sidebar for the barrier in question and click{' '}
-          <b>Report a problem with this barrier</b>..
+          <b>Report a problem with this barrier</b>.
+        </Paragraph>
+      </Box>
+
+      <Box>
+        <Heading as="h2">
+          How can I download barriers for a specific area?
+        </Heading>
+        <Paragraph>
+          Use the{' '}
+          <Link to="/explore">
+            <b>Explore &amp; Download</b>
+          </Link>{' '}
+          page to select one or more states, counties, or hydrologic units for
+          your area of interest. You can then download all dams, road-related
+          barriers, or both types for that area.
         </Paragraph>
       </Box>
     </Container>

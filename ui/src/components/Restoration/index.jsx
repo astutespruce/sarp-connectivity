@@ -1,7 +1,7 @@
 import Chart from './Chart'
 import Map from './Map'
-import UnitDetails from './UnitDetails'
+import UnitSummary from './UnitSummary'
 import RegionSummary from './RegionSummary'
 import { extractYearRemovedStats } from './util'
 
-export { Chart, Map, UnitDetails, RegionSummary, extractYearRemovedStats }
+export { Chart, Map, UnitSummary, RegionSummary, extractYearRemovedStats }

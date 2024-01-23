@@ -121,7 +121,7 @@ const StateDownloadTable = ({
                       disabled={stateData[id].dams === 0}
                       config={{
                         ...downloadConfig,
-                        summaryUnits: [{ id }],
+                        summaryUnits: { State: [id] },
                       }}
                     />
                   </td>
@@ -133,7 +133,7 @@ const StateDownloadTable = ({
                       disabled={stateData[id].totalSmallBarriers === 0}
                       config={{
                         ...downloadConfig,
-                        summaryUnits: [{ id }],
+                        summaryUnits: { State: [id] },
                       }}
                     />
                   </td>
@@ -153,7 +153,7 @@ const StateDownloadTable = ({
                   disabled={dams === 0}
                   config={{
                     ...downloadConfig,
-                    summaryUnits: states.map((id) => ({ id })),
+                    summaryUnits: { State: states.map((id) => id) },
                   }}
                 />
               </td>
@@ -165,7 +165,7 @@ const StateDownloadTable = ({
                   disabled={totalSmallBarriers === 0}
                   config={{
                     ...downloadConfig,
-                    summaryUnits: states.map((id) => ({ id })),
+                    summaryUnits: { State: states.map((id) => id) },
                   }}
                 />
               </td>

@@ -20,7 +20,7 @@ from api.response import feather_response
 router = APIRouter()
 
 
-@router.get("/{barrier_type}/query/{layer}")
+@router.get("/{barrier_type}/query")
 async def query(
     request: Request,
     barrier_type: BarrierTypes,
@@ -62,15 +62,10 @@ async def query(
     counts = df.combine_chunks().group_by(filter_fields).aggregate([("id", "count")])
     schema = counts.schema
     # cast count to uint32
-    fields = [
-        pa.field("id_count", "uint32") if c == "id_count" else schema.field(c)
-        for c in schema.names
-    ]
+    fields = [pa.field("id_count", "uint32") if c == "id_count" else schema.field(c) for c in schema.names]
     counts = counts.cast(pa.schema(fields))
 
-    counts = counts.rename_columns(
-        ["_count" if c == "id_count" else c for c in counts.column_names]
-    )
+    counts = counts.rename_columns(["_count" if c == "id_count" else c for c in counts.column_names])
 
     log.info(
         f"query selected {len(df):,} {barrier_type.replace('_', ' ')} ({len(counts):,} unique combinations of fields)"

@@ -75,6 +75,10 @@ aquaticbarriers.org {
     # redirect teams page
     redir /teams /regions/southeast 301
 
+    # redirect previous summary and download pages to explore page
+    redir /summary* /explore/ 301
+    redir /download* /explore/ 301
+
     # most files can be cached indefinitely, they are rebuilt with new names each time
     @cached_files {
       path *.jpg *.jpeg *.png *.gif *.webp *.svg *.css *.js */static/*
@@ -91,7 +95,7 @@ aquaticbarriers.org {
 
     # page-data, html, and site root must be fetched each time
     @no_cache {
-      path *.html *.webmanifest */page-data/* / /priority /summary /network_methods /habitat_methods /metrics/* /regions/* /states/* /report/*
+      path *.html *.webmanifest */page-data/* / /priority /explore /network_methods /habitat_methods /metrics/* /regions/* /states/* /report/*
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
 

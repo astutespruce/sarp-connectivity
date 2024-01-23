@@ -8,7 +8,7 @@ Filename: {filename}
 
 Selected Area:
 --------------
-{layer}: {ids}
+{unit_ids}
 
 
 Description:

@@ -69,26 +69,24 @@ const UnitChooser = ({
   let offNetworkCount = 0
   let total = 0
   let countMessage = null
+
   if (summaryUnits.length > 0) {
     switch (barrierType) {
       case 'dams': {
         offNetworkCount = summaryUnits.reduce(
-          (out, v) => out + (v.dams - v.ranked_dams),
+          (out, v) => out + (v.dams - v.rankedDams),
           0
         )
-        total = summaryUnits.reduce((out, v) => out + v.ranked_dams, 0)
+        total = summaryUnits.reduce((out, v) => out + v.rankedDams, 0)
         countMessage = `${formatNumber(total)} ${pluralize('dam', total)}`
         break
       }
       case 'small_barriers': {
         offNetworkCount = summaryUnits.reduce(
-          (out, v) => out + (v.small_barriers - v.ranked_small_barriers),
+          (out, v) => out + (v.smallBarriers - v.rankedSmallBarriers),
           0
         )
-        total = summaryUnits.reduce(
-          (out, v) => out + v.ranked_small_barriers,
-          0
-        )
+        total = summaryUnits.reduce((out, v) => out + v.rankedSmallBarriers, 0)
         countMessage = `${formatNumber(total)} road-related ${pluralize(
           'barrier',
           total
@@ -101,22 +99,22 @@ const UnitChooser = ({
         let damField = null
         let smallBarrierField = null
         if (barrierType === 'combined_barriers') {
-          damField = 'ranked_dams'
-          smallBarrierField = 'ranked_small_barriers'
+          damField = 'rankedDams'
+          smallBarrierField = 'rankedSmallBarriers'
         } else if (barrierType === 'largefish_barriers') {
-          damField = 'ranked_largefish_barriers_dams'
-          smallBarrierField = 'ranked_largefish_barriers_small_barriers'
+          damField = 'rankedLargefishBarriersDams'
+          smallBarrierField = 'rankedLargefishBarriersSmallBarriers'
         } else if (barrierType === 'smallfish_barriers') {
-          damField = 'ranked_smallfish_barriers_dams'
-          smallBarrierField = 'ranked_smallfish_barriers_small_barriers'
+          damField = 'rankedSmallfishBarriersDams'
+          smallBarrierField = 'rankedSmallfishBarriersSmallBarriers'
         }
 
         // always use plain ranked barriers vs count to determine off-network values
         offNetworkCount = summaryUnits.reduce(
           (out, v) =>
             out +
-            (v.dams - v.ranked_dams) +
-            (v.small_barriers - v.ranked_small_barriers),
+            (v.dams - v.rankedDams) +
+            (v.smallBarriers - v.rankedSmallBarriers),
           0
         )
 

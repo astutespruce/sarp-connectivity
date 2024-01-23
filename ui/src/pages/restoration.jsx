@@ -7,7 +7,7 @@ import { Layout, ClientOnly, SEO } from 'components/Layout'
 import { ToggleButton } from 'components/Button'
 import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
-import { Map, UnitDetails, RegionSummary } from 'components/Restoration'
+import { Map, UnitSummary, RegionSummary } from 'components/Restoration'
 import BarrierDetails from 'components/BarrierDetails'
 import { SYSTEMS } from 'config'
 import { toCamelCaseFields } from 'util/data'
@@ -29,7 +29,7 @@ const ProgressPage = ({ location }) => {
   const [focalBarrierType, setFocalBarrierType] = useState('dams') // options: dams, small_barriers, combined_barriers
   const focalBarrierTypeRef = useRef('dams') // ref that parallels above state for use in callbacks
   const [searchFeature, setSearchFeature] = useState(null)
-  const [selectedUnit, setSelectedUnit] = useState(null)
+  const [summaryUnits, setSummaryUnits] = useState([])
   const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [metric, setMetric] = useState('gainmiles')
 
@@ -47,22 +47,44 @@ const ProgressPage = ({ location }) => {
 
   const handleSetSystem = (nextSystem) => {
     setSystem(nextSystem)
-    setSelectedUnit(null)
+    setSummaryUnits([])
   }
 
-  const handleSelectUnit = (feature) => {
-    setSelectedUnit(toCamelCaseFields(feature))
-    setSelectedBarrier(null)
+  // Toggle selected unit in or out of selection
+  const handleSelectUnit = (unit) => {
+    const { id } = unit
+
+    setSummaryUnits((prevSummaryUnits) => {
+      // NOTE: we are always creating a new object,
+      // because we cannot mutate the underlying object
+      // without causing the setSummaryUnits call to be a no-op
+      const index = prevSummaryUnits.findIndex(
+        ({ id: unitId }) => unitId === id
+      )
+
+      let nextSummaryUnits = prevSummaryUnits
+      if (index === -1) {
+        // add it
+        nextSummaryUnits = prevSummaryUnits.concat([toCamelCaseFields(unit)])
+      } else {
+        // remove it
+        nextSummaryUnits = prevSummaryUnits
+          .slice(0, index)
+          .concat(prevSummaryUnits.slice(index + 1))
+      }
+
+      return nextSummaryUnits
+    })
   }
 
-  const handleDetailsClose = () => {
-    setSelectedUnit(null)
+  const handleReset = () => {
+    setSummaryUnits([])
     setSearchFeature(null)
   }
 
   const handleSelectBarrier = (feature) => {
     setSelectedBarrier(feature)
-    setSelectedUnit(null)
+    setSummaryUnits([])
   }
 
   const handleBarrierDetailsClose = () => {
@@ -78,14 +100,16 @@ const ProgressPage = ({ location }) => {
         onClose={handleBarrierDetailsClose}
       />
     )
-  } else if (selectedUnit !== null) {
+  } else if (summaryUnits.length > 0) {
     sidebarContent = (
-      <UnitDetails
-        summaryUnit={selectedUnit}
+      <UnitSummary
         barrierType={focalBarrierType}
+        system={system}
+        summaryUnits={summaryUnits}
         metric={metric}
         onChangeMetric={setMetric}
-        onClose={handleDetailsClose}
+        onSelectUnit={handleSelectUnit}
+        onReset={handleReset}
       />
     )
   } else {
@@ -119,7 +143,7 @@ const ProgressPage = ({ location }) => {
               focalBarrierType={focalBarrierType}
               system={system}
               searchFeature={searchFeature}
-              selectedUnit={selectedUnit}
+              summaryUnits={summaryUnits}
               selectedBarrier={selectedBarrier}
               onSelectUnit={handleSelectUnit}
               onSelectBarrier={handleSelectBarrier}
@@ -137,7 +161,7 @@ const ProgressPage = ({ location }) => {
                   options={systemOptions}
                   onChange={handleSetSystem}
                 />
-                {!selectedUnit ? (
+                {summaryUnits.length === 0 ? (
                   <Text
                     sx={{
                       fontSize: 'smaller',

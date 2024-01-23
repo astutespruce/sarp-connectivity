@@ -3,7 +3,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { AngleDoubleRight } from '@emotion-icons/fa-solid'
-import { Box, Paragraph, Divider } from 'theme-ui'
+import { Box, Paragraph, Divider, Text } from 'theme-ui'
 
 import { Link } from 'components/Link'
 import { UnitSearch } from 'components/UnitSearch'
@@ -134,6 +134,18 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
           mb: '2rem',
         }}
       />
+
+      <Text
+        variant="help"
+        sx={{
+          mt: '0.5rem',
+          pb: '1.5rem',
+        }}
+      >
+        Select {system === 'ADM' ? 'states / counties' : 'hydrologic units'} by
+        clicking on them on the map or searching by name. You can then download
+        data for all selected areas.
+      </Text>
 
       <UnitSearch
         barrierType={barrierType}

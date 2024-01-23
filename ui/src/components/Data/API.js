@@ -11,19 +11,17 @@ const { apiHost } = siteMetadata
  * Converts units and filters into query parameters for API requests
  */
 const apiQueryParams = ({
-  summaryUnits = [],
+  summaryUnits = {},
   filters = {},
   includeUnranked = false,
   sort = null,
   customRank = false,
 }) => {
-  const ids = summaryUnits.map(({ id }) => id)
+  let query = Object.entries(summaryUnits)
+    .map(([key, values]) => `${key}=${values.join(',')}`)
+    .join('&')
+
   const filterValues = Object.entries(filters).filter(([, v]) => v.size > 0)
-
-  if (!(ids.length || filterValues.length)) return ''
-
-  let query = `id=${ids.join(',')}`
-
   if (filterValues.length > 0) {
     query += `&${filterValues
       .map(([k, v]) => `${k}=${Array.from(v).join(',')}`)
@@ -72,8 +70,8 @@ const fetchFeather = async (url, options, asTable = false) => {
 /**
  * Fetch and parse Feather data from API for dams or small barriers
  */
-export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
-  const url = `${apiHost}/api/v1/internal/${barrierType}/query/${layer}?${apiQueryParams(
+export const fetchBarrierInfo = async (barrierType, summaryUnits) => {
+  const url = `${apiHost}/api/v1/internal/${barrierType}/query?${apiQueryParams(
     {
       summaryUnits,
     }
@@ -85,13 +83,8 @@ export const fetchBarrierInfo = async (barrierType, layer, summaryUnits) => {
 /**
  * Fetch and parse Feather data from API for dams or small barriers
  */
-export const fetchBarrierRanks = async (
-  barrierType,
-  layer,
-  summaryUnits,
-  filters
-) => {
-  const url = `${apiHost}/api/v1/internal/${barrierType}/rank/${layer}?${apiQueryParams(
+export const fetchBarrierRanks = async (barrierType, summaryUnits, filters) => {
+  const url = `${apiHost}/api/v1/internal/${barrierType}/rank/?${apiQueryParams(
     {
       summaryUnits,
       filters,
@@ -125,7 +118,6 @@ export const fetchBarrierDetails = async (networkType, sarpid) => {
 
 export const getDownloadURL = ({
   barrierType,
-  layer,
   summaryUnits,
   filters,
   includeUnranked = null,
@@ -148,7 +140,7 @@ export const getDownloadURL = ({
     params.customRank = customRank
   }
 
-  return `${apiHost}/api/v1/internal/${barrierType}/csv/${layer}?${apiQueryParams(
+  return `${apiHost}/api/v1/internal/${barrierType}/csv?${apiQueryParams(
     params
   )}`
 }

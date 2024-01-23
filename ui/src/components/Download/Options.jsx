@@ -32,8 +32,11 @@ const Options = ({ barrierType, options, customRank, onChange }) => {
       <Text sx={{ color: 'grey.8', mt: '0rem', ml: '1.8rem' }}>
         This will include {barrierTypeLabel} within your selected geographic
         area that were not prioritized in the analysis. These include any{' '}
-        {barrierTypeLabel} that were not located on the aquatic network
-        {customRank && ' or that you filtered out during your prioritization'}.
+        {barrierTypeLabel} that were not located on the aquatic network{' '}
+        {customRank ? ', ' : 'and'} any that have been removed
+        {customRank &&
+          ', and any that you filtered out during your prioritization'}
+        .
         {barrierType === 'small_barriers' &&
           '  These data only include road-related barriers that have been assessed for impacts to aquatic organisms.'}
       </Text>

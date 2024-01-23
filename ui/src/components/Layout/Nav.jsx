@@ -58,12 +58,12 @@ const Nav = () => (
         icon={<GlobeAmericas size="1em" />}
       />
       <Link
-        to="/summary"
-        sx={isActivePath('/summary') ? activeNavLinkCSS : navLinkCSS}
+        to="/explore"
+        sx={isActivePath('/explore') ? activeNavLinkCSS : navLinkCSS}
       >
         <Flex sx={{ alignItems: 'center', gap: '0.25rem' }}>
           <ChartBar size="1em" />
-          <div>Summarize</div>
+          <div>Explore &amp; Download</div>
         </Flex>
       </Link>
       <Link
@@ -84,16 +84,6 @@ const Nav = () => (
         <Flex sx={{ alignItems: 'center', gap: '0.25rem' }}>
           <Fish size="1em" />
           <div>Restoration</div>
-        </Flex>
-      </Link>
-
-      <Link
-        to="/download"
-        sx={isActivePath('/download') ? activeNavLinkCSS : navLinkCSS}
-      >
-        <Flex sx={{ alignItems: 'center', gap: '0.25rem' }}>
-          <Download size="1em" />
-          <div>Download</div>
         </Flex>
       </Link>
 

@@ -119,17 +119,14 @@ barriers = pd.read_feather(
 
 barriers_master = pd.read_feather(
     "data/barriers/master/small_barriers.feather",
-    columns=[
-        "id",
-        "dropped",
-        "excluded",
-    ],
+    columns=["id", "dropped", "excluded", "duplicate"],
 ).set_index("id")
 
 barriers = barriers.join(barriers_master)
 
-# barriers that were not dropped or excluded are likely to have impacts
-barriers["Included"] = ~(barriers.dropped | barriers.excluded)
+# barriers that were not  excluded are likely to have impacts
+# (dropped / duplicates are already removed from above)
+barriers["Included"] = ~barriers.excluded
 
 removed_barrier_networks = (
     pd.read_feather(

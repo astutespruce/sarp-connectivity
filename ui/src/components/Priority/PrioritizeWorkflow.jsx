@@ -15,6 +15,7 @@ import {
 import { Sidebar } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
 import { trackPrioritize } from 'util/analytics'
+import { toCamelCaseFields } from 'util/data'
 
 import Map from './Map'
 import { unitLayerConfig } from './config'
@@ -145,7 +146,7 @@ const Prioritize = () => {
       let nextSummaryUnits = prevSummaryUnits
       if (index === -1) {
         // add it
-        nextSummaryUnits = prevSummaryUnits.concat([unit])
+        nextSummaryUnits = prevSummaryUnits.concat([toCamelCaseFields(unit)])
       } else {
         // remove it
         nextSummaryUnits = prevSummaryUnits
@@ -166,22 +167,34 @@ const Prioritize = () => {
 
     // only select units with non-zero ranked barriers
     let nonzeroSummaryUnits = []
+    /* eslint-disable default-case */
     switch (barrierType) {
+      case 'dams': {
+        nonzeroSummaryUnits = summaryUnits.filter(
+          ({ rankedDams }) => rankedDams > 0
+        )
+        break
+      }
+      case 'small_barriers': {
+        nonzeroSummaryUnits = summaryUnits.filter(
+          ({ rankedSmallBarriers }) => rankedSmallBarriers > 0
+        )
+        break
+      }
       case 'combined_barriers': {
         nonzeroSummaryUnits = summaryUnits.filter(
-          ({ ranked_dams = 0, ranked_small_barriers = 0 }) =>
-            ranked_dams + ranked_small_barriers > 0
+          ({ rankedDams = 0, rankedSmallBarriers = 0 }) =>
+            rankedDams + rankedSmallBarriers > 0
         )
         break
       }
       case 'largefish_barriers': {
         nonzeroSummaryUnits = summaryUnits.filter(
           ({
-            ranked_largefish_barriers_dams = 0,
-            ranked_largefish_barriers_small_barriers = 0,
+            rankedLargefishBarriersDams = 0,
+            rankedLargefishBarriersSmallBarriers = 0,
           }) =>
-            ranked_largefish_barriers_dams +
-              ranked_largefish_barriers_small_barriers >
+            rankedLargefishBarriersDams + rankedLargefishBarriersSmallBarriers >
             0
         )
         break
@@ -189,19 +202,11 @@ const Prioritize = () => {
       case 'smallfish_barriers': {
         nonzeroSummaryUnits = summaryUnits.filter(
           ({
-            ranked_smallfish_barriers_dams = 0,
-            ranked_smallfish_barriers_small_barriers = 0,
+            rankedSmallfishBarriersDams = 0,
+            rankedSmallfishBarriersSmallBarriers = 0,
           }) =>
-            ranked_smallfish_barriers_dams +
-              ranked_smallfish_barriers_small_barriers >
+            rankedSmallfishBarriersDams + rankedSmallfishBarriersSmallBarriers >
             0
-        )
-        break
-      }
-      default: {
-        // dams or small_barriers individually
-        nonzeroSummaryUnits = summaryUnits.filter(
-          ({ [`ranked_${barrierType}`]: count }) => count > 0
         )
         break
       }
@@ -214,7 +219,9 @@ const Prioritize = () => {
     } = await queryClient.fetchQuery({
       queryKey: [barrierType, layer, nonzeroSummaryUnits],
       queryFn: async () =>
-        fetchBarrierInfo(barrierType, layer, nonzeroSummaryUnits),
+        fetchBarrierInfo(barrierType, {
+          [layer]: nonzeroSummaryUnits.map(({ id }) => id),
+        }),
 
       staleTime: 30 * 60 * 1000, // 30 minutes
       // staleTime: 1, // use then reload to force refresh of underlying data during dev
@@ -247,7 +254,11 @@ const Prioritize = () => {
     } = await queryClient.fetchQuery({
       queryKey: [barrierType, layer, summaryUnits, filters],
       queryFn: async () =>
-        fetchBarrierRanks(barrierType, layer, summaryUnits, filters),
+        fetchBarrierRanks(
+          barrierType,
+          { [layer]: summaryUnits.map(({ id }) => id) },
+          filters
+        ),
 
       staleTime: 30 * 60 * 1000, // 30 minutes
       // staleTime: 1, // use then reload to force refresh of underlying data during dev
@@ -379,8 +390,7 @@ const Prioritize = () => {
               scenario={scenario}
               resultsType={resultsType}
               config={{
-                layer,
-                summaryUnits,
+                summaryUnits: { [layer]: summaryUnits.map(({ id }) => id) },
                 filters,
                 scenario,
               }}
