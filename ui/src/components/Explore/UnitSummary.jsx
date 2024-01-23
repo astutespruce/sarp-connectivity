@@ -312,14 +312,10 @@ const UnitSummary = ({
                       barrierType === 'combined_barriers' ? '1.5rem' : '0.5rem',
                   }}
                 >
-                  <b>{formatNumber(totalSmallBarriers + crossings, 0)}</b> or
-                  more potential road-related aquatic barriers, including:
+                  <b>{formatNumber(totalRoadBarriers, 0)}</b> or more potential
+                  road-related aquatic barriers, including:
                 </Paragraph>
                 <Box as="ul" sx={{ mt: '0.5rem' }}>
-                  <li>
-                    <b>{formatNumber(totalRoadBarriers, 0)}</b> road/stream
-                    crossings
-                  </li>
                   <li>
                     <b>{formatNumber(totalSmallBarriers, 0)}</b> that{' '}
                     {totalSmallBarriers === 1 ? 'has ' : 'have '} been assessed
@@ -343,6 +339,10 @@ const UnitSummary = ({
                       of reconnected rivers and streams
                     </li>
                   ) : null}
+                  <li>
+                    <b>{formatNumber(crossings, 0)}</b> unsurveyed road/stream
+                    crossings
+                  </li>
                 </Box>
               </>
             ) : (

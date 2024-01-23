@@ -74,8 +74,9 @@ barriers.loc[(barriers.YearRemoved > 0) & (barriers.YearRemoved < 2000), "YearRe
 barriers["YearRemoved"] = calc_year_removed_bin(barriers.YearRemoved)
 
 
-# barriers that were not dropped or excluded are likely to have impacts
-barriers["Included"] = ~(barriers.dropped | barriers.excluded)
+# barriers that were not  excluded are likely to have impacts
+# (dropped / duplicates are already removed from above)
+barriers["Included"] = ~barriers.excluded
 
 
 largefish_barriers = pd.read_feather(
@@ -90,9 +91,9 @@ smallfish_barriers = pd.read_feather(
 
 
 ### Read road / stream crossings
-# NOTE: crossings are already de-duplicated against each other and against
-# barriers
 crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "State", "NearestBarrierID"])
+# exclude crossings that have a corresonding inventoried barrier to avoid double-counting
+crossings = crossings.loc[crossings.NearestBarrierID == ""]
 
 
 bounds = (
