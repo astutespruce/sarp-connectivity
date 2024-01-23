@@ -37,6 +37,7 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
 
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
+  const totalRoadBarriers = totalSmallBarriers + crossings
 
   const regionName = isRegion ? name : 'full analysis area'
 
@@ -98,8 +99,8 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
               mt: barrierType === 'combined_barriers' ? '1.5rem' : '0.5rem',
             }}
           >
-            <b>{formatNumber(totalSmallBarriers + crossings, 0)}</b> or more
-            potential road-related aquatic barriers, including:
+            <b>{formatNumber(totalRoadBarriers, 0)}</b> or more potential
+            road-related aquatic barriers, including:
           </Paragraph>
           <Box as="ul" sx={{ mt: '0.5rem', fontSize: 2 }}>
             <li>
@@ -122,6 +123,10 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
                 reconnected rivers and streams
               </li>
             ) : null}
+            <li>
+              <b>{formatNumber(crossings, 0)}</b> unsurveyed road/stream
+              crossings
+            </li>
           </Box>
         </>
       ) : null}
