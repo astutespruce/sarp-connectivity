@@ -312,19 +312,30 @@ const UnitSummary = ({
                       barrierType === 'combined_barriers' ? '1.5rem' : '0.5rem',
                   }}
                 >
-                  <b>{formatNumber(totalRoadBarriers, 0)}</b> or more potential
-                  road-related aquatic barriers, including:
+                  <b>{formatNumber(totalRoadBarriers, 0)}</b> or more
+                  road/stream crossings (potential aquatic barriers), including:
                 </Paragraph>
                 <Box as="ul" sx={{ mt: '0.5rem' }}>
                   <li>
-                    <b>{formatNumber(totalSmallBarriers, 0)}</b> that{' '}
-                    {totalSmallBarriers === 1 ? 'has ' : 'have '} been assessed
-                    for impacts to aquatic organisms.
+                    <b>
+                      {formatNumber(
+                        totalSmallBarriers - removedSmallBarriers,
+                        0
+                      )}
+                    </b>{' '}
+                    that{' '}
+                    {totalSmallBarriers - removedSmallBarriers === 1
+                      ? 'has '
+                      : 'have '}{' '}
+                    been assessed for impacts to aquatic organisms.
                   </li>
                   <li>
-                    <b>{formatNumber(smallBarriers, 0)}</b> that{' '}
-                    {smallBarriers === 1 ? 'is' : 'are'} likely to impact
-                    aquatic organisms
+                    <b>
+                      {formatNumber(smallBarriers - removedSmallBarriers, 0)}
+                    </b>{' '}
+                    that{' '}
+                    {smallBarriers - removedSmallBarriers === 1 ? 'is' : 'are'}{' '}
+                    likely to impact aquatic organisms
                   </li>
                   <li>
                     <b>{formatNumber(rankedSmallBarriers, 0)}</b> that{' '}
@@ -340,14 +351,14 @@ const UnitSummary = ({
                     </li>
                   ) : null}
                   <li>
-                    <b>{formatNumber(crossings, 0)}</b> unsurveyed road/stream
-                    crossings
+                    <b>{formatNumber(crossings, 0)}</b> that have not yet been
+                    surveyed
                   </li>
                 </Box>
               </>
             ) : (
               <Text sx={{ mt: '0.5rem' }}>
-                <b>0</b> known road-related barriers or road/stream crossings
+                <b>0</b> known road/stream crossings
               </Text>
             )}
           </>

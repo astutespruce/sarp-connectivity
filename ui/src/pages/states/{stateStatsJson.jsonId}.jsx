@@ -218,7 +218,7 @@ const StateRoute = ({
             </Box>
             <Text sx={{ mt: '2rem' }}>
               <b>{formatNumber(totalSmallBarriers + crossings, 0)}</b> or more
-              potential road-related aquatic barriers, including:
+              road/stream crossings (potential barriers), including:
             </Text>
             <Box as="ul" sx={{ ml: '1rem', mt: '0.5rem' }}>
               <li>

@@ -1,9 +1,9 @@
-This inventory is a growing and living database of dams and potential
-road-related barriers compiled by the Southeast Aquatic Resources Partnership
-with the generous support from many partners and funders. Information about
-network connectivity, landscape condition, and presence of threatened and
-endangered aquatic organisms are added to this inventory to help you investigate
-barriers at any scale for your desired purposes.
+This inventory is a growing and living database of dams and surveyed road/stream
+crossings (potential barriers) compiled by the Southeast Aquatic Resources
+Partnership with the generous support from many partners and funders.
+Information about network connectivity, landscape condition, and presence of
+threatened and endangered aquatic organisms are added to this inventory to help
+you investigate barriers at any scale for your desired purposes.
 
 This inventory consists of datasets from local, state, and federal partners. It
 is supplemented with input from partners with on the ground knowledge of

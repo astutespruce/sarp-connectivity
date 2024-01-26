@@ -99,17 +99,20 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
               mt: barrierType === 'combined_barriers' ? '1.5rem' : '0.5rem',
             }}
           >
-            <b>{formatNumber(totalRoadBarriers, 0)}</b> or more potential
-            road-related aquatic barriers, including:
+            <b>{formatNumber(totalRoadBarriers, 0)}</b> or more road/stream
+            crossings (potential aquatic barriers), including:
           </Paragraph>
           <Box as="ul" sx={{ mt: '0.5rem', fontSize: 2 }}>
             <li>
-              <b>{formatNumber(totalSmallBarriers, 0)}</b> that have been
-              assessed for impacts to aquatic organisms
+              <b>
+                {formatNumber(totalSmallBarriers - removedSmallBarriers, 0)}
+              </b>{' '}
+              that have been assessed for impacts to aquatic organisms
             </li>
             <li>
-              <b>{formatNumber(smallBarriers, 0)}</b> that have been assessed so
-              far that are likely to impact aquatic organisms
+              <b>{formatNumber(smallBarriers - removedSmallBarriers, 0)}</b>{' '}
+              that have been assessed so far that are likely to impact aquatic
+              organisms
             </li>
             <li>
               <b>{formatNumber(rankedSmallBarriers, 0)}</b> that have been

@@ -50,7 +50,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
     case 'small_barriers': {
       count = rankedSmallBarriers
       if (totalSmallBarriers === 0) {
-        warning = `no potential road-related barriers have been assessed in this area (${formatNumber(
+        warning = `no road/stream crossings (potential barriers) have been assessed in this area (${formatNumber(
           crossings
         )} road / stream ${pluralize('crossing', crossings)})`
       } else if (rankedSmallBarriers === 0) {
@@ -60,11 +60,9 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
       } else if (insufficientBarriers) {
         const prefix =
           totalSmallBarriers === 0
-            ? 'no potential road-related barriers'
-            : `${formatNumber(
-                totalSmallBarriers
-              )} potential road-related ${pluralize(
-                'barrier',
+            ? 'no road/stream crossings (potential barriers)'
+            : `${formatNumber(totalSmallBarriers)} road/stream ${pluralize(
+                'crossing',
                 totalSmallBarriers
               )} (${formatNumber(rankedSmallBarriers)} likely ${pluralize(
                 'barrier',
@@ -74,7 +72,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
           rankedSmallBarriers === 1 ? 'has' : 'have'
         } been assessed out of ${formatNumber(
           crossings
-        )} road / stream ${pluralize(
+        )} total road / stream ${pluralize(
           'crossing',
           crossings
         )}; this may not result in useful priorities`
@@ -84,10 +82,10 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
           rankedSmallBarriers
         )} (${formatNumber(
           totalSmallBarriers
-        )} assessed potential road-related ${pluralize(
-          'barrier',
+        )} assessed road/stream ${pluralize(
+          'crossing',
           totalSmallBarriers
-        )} of ${formatNumber(crossings)} road/stream ${pluralize(
+        )} of ${formatNumber(crossings)} total road/stream ${pluralize(
           'crossing',
           crossings
         )})`
@@ -119,11 +117,11 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
       } else if (rankedD > 0 && insufficientBarriers) {
         const prefix =
           totalSmallBarriers === 0
-            ? 'no potential road-related barriers'
+            ? 'no assessed road/stream crossings'
             : `${formatNumber(
                 totalSmallBarriers
-              )} potential road-related ${pluralize(
-                'barrier',
+              )} assessed road/stream ${pluralize(
+                'crossing',
                 totalSmallBarriers
               )} (${formatNumber(rankedSB)} likely ${pluralize(
                 'barrier',
@@ -133,7 +131,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
           totalSmallBarriers === 1 ? 'has' : 'have'
         } been assessed out of ${formatNumber(
           crossings
-        )} road / stream ${pluralize(
+        )} total road / stream ${pluralize(
           'crossing',
           crossings
         )}; this may not result in useful priorities`
@@ -148,10 +146,10 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
           rankedSB
         )} (${formatNumber(
           totalSmallBarriers
-        )} assessed potential road-related ${pluralize(
-          'barrier',
+        )} assessed road/stream ${pluralize(
+          'crossing',
           totalSmallBarriers
-        )} of ${formatNumber(crossings)} road/stream ${pluralize(
+        )} of ${formatNumber(crossings)} total road/stream ${pluralize(
           'crossing',
           crossings
         )})`

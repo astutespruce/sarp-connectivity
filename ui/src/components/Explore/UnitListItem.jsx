@@ -29,10 +29,10 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
 
       countMessage = `${formatNumber(
         totalSmallBarriers
-      )} assessed potential road-related ${pluralize(
-        'barrier',
+      )} assessed road/stream ${pluralize(
+        'crossing',
         totalSmallBarriers
-      )} (out of ${formatNumber(crossings)} road/stream ${pluralize(
+      )} (out of ${formatNumber(crossings)} total ${pluralize(
         'crossing',
         crossings
       )})`
@@ -47,10 +47,10 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
         dams
       )} and ${formatNumber(
         totalSmallBarriers
-      )} assessed potential road-related ${pluralize(
-        'barrier',
+      )} assessed road/stream ${pluralize(
+        'crossing',
         totalSmallBarriers
-      )} (out of ${formatNumber(crossings)} road/stream ${pluralize(
+      )} (out of ${formatNumber(crossings)} total ${pluralize(
         'crossing',
         crossings
       )})`

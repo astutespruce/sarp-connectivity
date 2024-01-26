@@ -348,12 +348,12 @@ const UnitSummary = ({
         {barrierType === 'small_barriers' ? (
           <Paragraph variant="help" sx={{ mt: '2rem' }}>
             Note: These statistics are based on{' '}
-            {formatNumber(totalSmallBarriers, 0)} inventoried road-related
-            barriers that have been assessed for impacts to aquatic organisms
-            and available information on barriers that have been removed or
-            mitigated. Because the inventory is incomplete in many areas, areas
-            with a high number of barriers may simply represent areas that have
-            a more complete inventory.
+            {formatNumber(totalSmallBarriers, 0)} road/stream crossings that
+            have been assessed for impacts to aquatic organisms and available
+            information on barriers that have been removed or mitigated. Because
+            the inventory is incomplete in many areas, areas with a high number
+            of barriers may simply represent areas that have a more complete
+            inventory.
           </Paragraph>
         ) : null}
 

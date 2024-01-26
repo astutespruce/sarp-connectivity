@@ -1120,8 +1120,8 @@ FIELD_DEFINITIONS = {
     "BarrierSeverity": "barrier severity of the {type}, if known.   Note: assessment dates are not known.",
     "SARP_Score": "The best way to consider the aquatic passability scores is that they represent the degree to which crossings deviate from an ideal crossing. We assume that those crossings that are very close to the ideal (scores > 0.6) will present only a minor or insignificant barrier to aquatic organisms. Those structures that are farthest from the ideal (scores < 0.4) are likely to be either significant or severe barriers. These are, however, arbitrary distinctions imposed on a continuous scoring system and should be used with that in mind. -1 = not available.",
     # crossing-specific fields
-    "NearestBarrierID": "The SARPID of the nearest inventoried road-related barrier within 50-100m (depending on data source)",
-    "Surveyed": "Indicates if the crossing has likely been surveyed according to inventoried road-related barrier data.  'likely': inventoried barrier within 50-100m (depending on data source), 'not likely': no inventoried barrier within 50-100m.",
+    "NearestBarrierID": "The SARPID of the nearest assessed road/stream crossing within 50-100m (depending on data source)",
+    "Surveyed": "Indicates if the crossing has likely been surveyed according to assessed road/stream crossing data.  'likely': inventoried barrier within 50-100m (depending on data source), 'not likely': no inventoried barrier within 50-100m.",
     # other general fields
     "Recon": "Field reconnaissance notes, if available.",
     "Passability": "passability of the {type}, if known.   Note: assessment dates are not known.",
@@ -1181,17 +1181,17 @@ FIELD_DEFINITIONS = {
     "UpstreamDrainageArea": "approximate drainage area of all NHD High Resolution catchments within upstream functional network of {type}.  Includes the total catchment area of any NHD High Resolution flowlines that are cut by barriers in the analysis, which may overrepresent total drainage area of the network. -1 = not available.",
     "UpstreamWaterfalls": "number of waterfalls at the upstream ends of the functional network for this {type}. -1 = not available.",
     "UpstreamDams": "number of dams at the upstream ends of the functional network for this {type}.",
-    "UpstreamSmallBarriers": "number of assessed road-related barriers within the functional network if this barrier is a dam or at the upstream ends of the functional network if this barrier is a road-related barrier. -1 = not available.",
+    "UpstreamSmallBarriers": "number of assessed road/stream crossings within the functional network if this barrier is a dam or at the upstream ends of the functional network if this barrier is a road/stream crossing. -1 = not available.",
     "UpstreamRoadCrossings": "number of uninventoried estimated road crossings within the functional network for this {type}. -1 = not available.",
     "UpstreamHeadwaters": "number of headwaters within the functional network for this {type}. -1 = not available.",
     "TotalUpstreamWaterfalls": "total number of waterfalls upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamDams": "total number of dams upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
-    "TotalUpstreamSmallBarriers": "total number of assessed road-related barriers upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
+    "TotalUpstreamSmallBarriers": "total number of assessed road/stream crossings upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamRoadCrossings": "total number of uninventroeid estimated road crossings upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalUpstreamHeadwaters": "total number of headwaters upstream of this {type}; includes in all functional networks above this {type}. -1 = not available.",
     "TotalDownstreamWaterfalls": "total number of waterfalls between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "TotalDownstreamDams": "total number of dams between this {type} and the downstream-most point the full aquatic network on which it occurs (e.g., river mouth). -1 = not available.",
-    "TotalDownstreamSmallBarriers": "total number of assessed road-related barriers between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
+    "TotalDownstreamSmallBarriers": "total number of assessed road/stream crossings between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "TotalDownstreamRoadCrossings": "total number of uninventoried estimated road crossings between this {type} and the downstream-most point the full aquatic network on which it occurs. -1 = not available.",
     "MilesToOutlet": "miles between this {type} and the downstream-most point on the full aquatic network on which it occurs. -1 = not available.",
     "FlowsToOcean": "indicates if this {type} was snapped to a stream or river that is known to flow into the ocean.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the ocean.",
@@ -1273,11 +1273,11 @@ FIELD_DEFINITIONS = {
 }
 
 DAM_FIELD_DEFINITIONS = {k: v.replace("{type}", "dam") for k, v in FIELD_DEFINITIONS.items()}
-SB_FIELD_DEFINITIONS = {k: v.replace("{type}", "road-related barrier") for k, v in FIELD_DEFINITIONS.items()}
+SB_FIELD_DEFINITIONS = {k: v.replace("{type}", "assessed road/stream crossing") for k, v in FIELD_DEFINITIONS.items()}
 COMBINED_FIELD_DEFINITIONS = {
-    k: v.replace("{type}", "dam or road-related barrier") for k, v in FIELD_DEFINITIONS.items()
+    k: v.replace("{type}", "dam or assessed road/stream crossing") for k, v in FIELD_DEFINITIONS.items()
 }
-RC_FIELD_DEFINITIONS = {k: v.replace("{type}", "potential road-related barrier") for k, v in FIELD_DEFINITIONS.items()}
+RC_FIELD_DEFINITIONS = {k: v.replace("{type}", "road/stream crossing") for k, v in FIELD_DEFINITIONS.items()}
 
 
 ### Domains not currently used

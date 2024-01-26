@@ -248,9 +248,9 @@ const NetworkMethodsPage = ({ data: { headerImage } }) => (
           impacts to aquatic organisms using a defined protocol and were
           determined to be a likely barrier to those organisms were included in
           the network connectivity analysis. These represent a small subset of
-          the potential road-related barriers within the region. These barriers
-          were analyzed within the aquatic networks already subdivided by dams
-          and waterfalls above.
+          the road/stream crossings (potential barriers) within the region.
+          These barriers were analyzed within the aquatic networks already
+          subdivided by dams and waterfalls above.
           <br />
           <br />
         </p>
