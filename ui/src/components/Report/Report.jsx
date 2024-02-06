@@ -23,7 +23,7 @@ import { Flex } from './elements'
 const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
-    paddingTop: '0.5in',
+    paddingTop: '0.3in',
     paddingBottom: '0.5in',
     paddingHorizontal: '0.5in',
     fontSize: 12,
@@ -53,6 +53,7 @@ const Report = ({
     feasibilityclass,
     flowstoocean,
     milestooutlet,
+    removed,
   } = data
 
   const habitat = hasnetwork ? extractHabitat(data) : []
@@ -83,10 +84,14 @@ const Report = ({
       </Page>
 
       <Page style={styles.page} size="LETTER">
-        <LocationConstruction barrierType={barrierType} {...data} />
+        <LocationConstruction
+          style={{ marginTop: 24 }}
+          barrierType={barrierType}
+          {...data}
+        />
 
         <Network
-          style={{ marginTop: 48 }}
+          style={{ marginTop: 24 }}
           barrierType={barrierType}
           networkType={networkType}
           {...data}
@@ -101,7 +106,8 @@ const Report = ({
           />
         ) : null}
 
-        {feasibilityclass !== null &&
+        {!removed &&
+        feasibilityclass !== null &&
         feasibilityclass > 0 &&
         feasibilityclass <= 10 ? (
           <Feasibility style={{ marginTop: 48 }} {...data} />

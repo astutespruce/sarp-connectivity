@@ -129,14 +129,6 @@ const BarrierDetails = ({
                 invasive species barrier
               </>
             ) : null}
-            {removed ? (
-              <>
-                <br />
-                {yearremoved !== null && yearremoved > 0
-                  ? `(removed in ${yearremoved})`
-                  : '(removed / year unknown)'}
-              </>
-            ) : null}
           </Field>
         </Entry>
         {!isEmptyString(road) ? (
@@ -192,14 +184,14 @@ const BarrierDetails = ({
             </Field>
           </Entry>
         ) : null}
-        {barrierseverity !== null ? (
+        {!removed && barrierseverity !== null ? (
           <Entry>
             <Field label="Severity" isUnknown={barrierseverity === 0}>
               {SMALL_BARRIER_SEVERITY[barrierseverity]}
             </Field>
           </Entry>
         ) : null}
-        {sarp_score >= 0 ? (
+        {!removed && sarp_score >= 0 ? (
           <Entry>
             <Field label="SARP Aquatic Organism Passage score">
               {formatNumber(sarp_score, 1)}

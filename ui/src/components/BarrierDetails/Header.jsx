@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Button, Flex, Heading, Text } from 'theme-ui'
-import { FileDownload } from '@emotion-icons/fa-solid'
+import { FileDownload, Water } from '@emotion-icons/fa-solid'
 
 import { STATES } from 'config'
 import { formatNumber } from 'util/format'
@@ -16,6 +16,8 @@ const Header = ({
   state,
   lat,
   lon,
+  removed,
+  yearremoved,
   onClose,
 }) => (
   <Box
@@ -32,10 +34,33 @@ const Header = ({
         justifyContent: 'space-between',
       }}
     >
-      <Box sx={{ flex: '1 1 auto' }}>
-        <Heading as="h3" sx={{ m: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
+      <Box sx={{ flex: '1 1 auto', mb: '0.5rem' }}>
+        <Heading as="h3" sx={{ m: 0, fontSize: '1.25rem' }}>
           {name}
         </Heading>
+        {removed ? (
+          <Flex
+            sx={{
+              alignItems: 'center',
+              gap: '0.5rem',
+              mt: '0.25rem',
+            }}
+          >
+            <Box sx={{ color: 'blue.8' }}>
+              <Water size="1em" />
+            </Box>
+            {yearremoved !== null && yearremoved !== 0 ? (
+              <Text sx={{ fontWeight: 'bold' }}>
+                Removed / mitigated in {yearremoved}
+              </Text>
+            ) : (
+              <Flex sx={{ alignItems: 'baseline', gap: '0.25rem' }}>
+                <Text sx={{ fontWeight: 'bold' }}>Removed / mitigated</Text>
+                <Text sx={{ fontSize: 0 }}>(year unknown)</Text>
+              </Flex>
+            )}
+          </Flex>
+        ) : null}
       </Box>
       <Button variant="close" onClick={onClose}>
         &#10006;
@@ -54,7 +79,6 @@ const Header = ({
       </Text>
     </Flex>
 
-    {/* TODO: move back to containing item? */}
     {/* Only show report for dams / small barriers */}
     {barrierType === 'dams' || barrierType === 'small_barriers' ? (
       <Box sx={{ lineHeight: 1, mt: '1.5rem' }}>
@@ -91,6 +115,8 @@ Header.propTypes = {
   state: PropTypes.string,
   lat: PropTypes.number.isRequired,
   lon: PropTypes.number.isRequired,
+  removed: PropTypes.bool,
+  yearremoved: PropTypes.number,
   onClose: PropTypes.func.isRequired,
 }
 
@@ -98,6 +124,8 @@ Header.defaultProps = {
   name: '',
   county: '',
   state: '',
+  removed: false,
+  yearremoved: null,
 }
 
 export default Header

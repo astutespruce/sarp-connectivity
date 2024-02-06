@@ -286,7 +286,8 @@ const Preview = ({ networkType, data }) => {
             {...data}
           />
 
-          {feasibilityclass !== null &&
+          {!removed &&
+          feasibilityclass !== null &&
           feasibilityclass > 0 &&
           feasibilityclass <= 10 ? (
             <Feasibility sx={{ mt: '3rem' }} {...data} />

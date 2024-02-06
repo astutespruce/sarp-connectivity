@@ -110,11 +110,16 @@ const BarrierDetails = ({ barrier, onClose }) => {
 
   let county = ''
   let state = ''
+  let removed = false
+  let yearremoved = null
+
   if (data) {
     console.log('barrier details:', sarpid, data)
 
     county = data.county
     state = data.state
+    removed = data.removed
+    yearremoved = data.yearremoved
 
     let details = null
     switch (barrierType) {
@@ -252,6 +257,8 @@ const BarrierDetails = ({ barrier, onClose }) => {
         lon={lon}
         county={county}
         state={state}
+        removed={removed}
+        yearremoved={yearremoved}
         onClose={onClose}
       />
 

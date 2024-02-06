@@ -1092,7 +1092,7 @@ FIELD_DEFINITIONS = {
     "River": "River name where {type} occurs, if available.",
     "YearCompleted": "year that construction was completed, if available.  0 = data not available.",
     "Removed": "Identifies if the {type} has been removed for conservation, if known.  Removed barriers will not have values present for all fields.",
-    "YearRemoved": "year that barrier was removed, if available.  All barriers removed prior to 2000 or where YearRemoved is unknown were lumped together for the network analysis.  0 = data not available or not removed.",
+    "YearRemoved": "year that barrier was removed or mitigated, if available.  All barriers removed prior to 2000 or where YearRemoved is unknown were lumped together for the network analysis.  0 = data not available or not removed / mitigated.",
     "Height": "{type} height in feet, if available.  0 = data not available.",
     "Length": "{type} length in feet, if available.  0 = data not available.",
     "Width": "{type} width in feet, if available.  0 = data not available.",

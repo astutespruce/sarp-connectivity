@@ -61,8 +61,6 @@ const LocationConstruction = ({
   constriction,
   passability,
   barrierseverity,
-  removed,
-  yearremoved,
   sarp_score,
   diversion,
   streamorder,
@@ -70,6 +68,7 @@ const LocationConstruction = ({
   waterbodykm2,
   waterbodysizeclass,
   invasive,
+  removed,
   sx,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -118,13 +117,6 @@ const LocationConstruction = ({
               ) : null}
             </>
 
-            {removed ? (
-              <>
-                {yearremoved !== null && yearremoved > 0
-                  ? ` (removed in ${yearremoved})`
-                  : ' (removed)'}
-              </>
-            ) : null}
             {estimated ? (
               <Flex sx={{ alignItems: 'flex-start', mt: '0.5rem' }}>
                 <Box sx={{ color: 'grey.4', flex: '0 0 auto', mr: '0.5em' }}>
@@ -267,7 +259,7 @@ const LocationConstruction = ({
                 </Entry>
               ) : null}
 
-              {passability !== null ? (
+              {!removed && passability !== null ? (
                 <Entry>Passability: {PASSABILITY[passability]}</Entry>
               ) : null}
 
@@ -294,13 +286,13 @@ const LocationConstruction = ({
               {condition !== null && condition >= 0 ? (
                 <Entry>Condition: {CONDITION[condition]}</Entry>
               ) : null}
-              {barrierseverity !== null ? (
+              {!removed && barrierseverity !== null ? (
                 <Entry>
                   Severity: {SMALL_BARRIER_SEVERITY[barrierseverity]}
                 </Entry>
               ) : null}
 
-              {sarp_score >= 0 ? (
+              {!removed && sarp_score >= 0 ? (
                 <Entry>
                   SARP Aquatic Organism Passage Score:{' '}
                   {formatNumber(sarp_score, 1)} ({classifySARPScore(sarp_score)}
@@ -350,8 +342,6 @@ LocationConstruction.propTypes = {
   constriction: PropTypes.number,
   passability: PropTypes.number,
   barrierseverity: PropTypes.number,
-  removed: PropTypes.bool,
-  yearremoved: PropTypes.number,
   sarp_score: PropTypes.number,
   diversion: PropTypes.number,
   lowheaddam: PropTypes.number,
@@ -360,6 +350,7 @@ LocationConstruction.propTypes = {
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
+  removed: PropTypes.bool,
   sx: PropTypes.object,
 }
 
@@ -389,8 +380,6 @@ LocationConstruction.defaultProps = {
   constriction: null,
   passability: null,
   barrierseverity: null,
-  removed: false,
-  yearremoved: 0,
   sarp_score: -1,
   diversion: 0,
   lowheaddam: null,
@@ -399,6 +388,7 @@ LocationConstruction.defaultProps = {
   waterbodykm2: -1,
   waterbodysizeclass: null,
   invasive: false,
+  removed: false,
   sx: null,
 }
 

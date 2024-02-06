@@ -13,7 +13,10 @@ out_dir.mkdir(exist_ok=True, parents=True)
 
 
 scenario = "combined_barriers"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
-ext = "fgb"
+# ext = "fgb"
+# driver = "FlatGeobuff"
+ext = "gdb"
+driver = "OpenFileGDB"
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
@@ -22,7 +25,7 @@ export_hucs = {
     # "02",
     # "04",
     # "05",
-    # "06",
+    "06",
     # "07",
     # "08"
     # "09"
@@ -30,8 +33,20 @@ export_hucs = {
 }
 
 
+floodplains = (
+    pd.read_feather(
+        "data/floodplains/floodplain_stats.feather",
+        columns=["NHDPlusID", "nat_floodplain_km2", "floodplain_km2"],
+    )
+    .set_index("NHDPlusID")
+    .rename(columns={"nat_floodplain_km2": "natfldkm2", "floodplain_km2": "fldkm2"})
+)
+floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).astype("float32")
+
+
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
-for group in [{"01", "02"}]:
+# for group in [{"01", "02"}]:
+for group in [{"05", "06", "07", "08", "10", "11"}]:
     group = sorted(group)
 
     segments = (
@@ -43,9 +58,31 @@ for group in [{"01", "02"}]:
         .set_index("lineID")
     )
 
-    stats = read_feathers([src_dir / "clean" / huc2 / f"{scenario}_network_stats.feather" for huc2 in group]).set_index(
-        "networkID"
-    )
+    stats = read_feathers(
+        [src_dir / "clean" / huc2 / f"{scenario}_network_stats.feather" for huc2 in group],
+        columns=[
+            "networkID",
+            "total_miles",
+            "perennial_miles",
+            "intermittent_miles",
+            "altered_miles",
+            "unaltered_miles",
+            "perennial_unaltered_miles",
+            "free_miles",
+            "free_perennial_miles",
+            "free_intermittent_miles",
+            "free_altered_miles",
+            "free_unaltered_miles",
+            "free_perennial_unaltered_miles",
+            "pct_unaltered",
+            "pct_perennial_unaltered",
+            "natfldpln",
+            "sizeclasses",
+            "barrier",
+            "flows_to_ocean",
+            "flows_to_great_lakes",
+        ],
+    ).set_index("networkID")
 
     # use smaller data types for smaller output files
     length_cols = [c for c in stats.columns if c.endswith("_miles")]
@@ -71,26 +108,49 @@ for group in [{"01", "02"}]:
 
     # create output files by HUC2 based on where the segments occur
     for huc2 in group:
-        # if huc2 not in export_hucs:
-        #     continue
+        if huc2 not in export_hucs:
+            continue
 
         print(f"Dissolving networks in {huc2}...")
+        flowlines = gp.read_feather(
+            src_dir / "raw" / huc2 / "flowlines.feather",
+            columns=[
+                "lineID",
+                "geometry",
+                "length",
+                "intermittent",
+                "altered",
+                "waterbody",
+                "sizeclass",
+                "StreamOrder",
+                "NHDPlusID",
+                "FCode",
+                "FType",
+                "TotDASqKm",
+            ],
+        ).set_index("lineID")
+
+        # FIXME: remove
+        flowlines = flowlines.loc[~flowlines.waterbody].copy().drop(columns=["waterbody"])
+
         flowlines = (
-            gp.read_feather(
-                src_dir / "raw" / huc2 / "flowlines.feather",
-                columns=[
-                    "lineID",
-                    "geometry",
-                    "intermittent",
-                    "altered",
-                    "sizeclass",
-                    "StreamOrder",
-                ],
-            )
-            .set_index("lineID")
-            .rename(columns={"StreamOrder": "streamorder"})
+            flowlines.join(segments)
+            .join(floodplains, on="NHDPlusID")
+            .join(stats[["flows_to_ocean", "flows_to_great_lakes"]], on="networkID")
         )
-        flowlines = flowlines.join(segments)
+
+        flowlines["km"] = flowlines["length"] / 1000.0
+        flowlines["miles"] = flowlines["length"] * 0.000621371
+
+        flowlines = flowlines.drop(columns=["length"])
+
+        for col in ["natfldpln", "fldkm2", "natfldkm2"]:
+            flowlines[col] = flowlines[col].fillna(-1)
+
+        if ext == "gdb":
+            # otherwise doesn't encode properly to FGDB
+            for col in ["StreamOrder", "FCode", "FType", "intermittent", "altered"]:
+                flowlines[col] = flowlines[col].astype("int32")
 
         ### To export larger flowlines only
         # flowlines = flowlines.loc[
@@ -98,9 +158,13 @@ for group in [{"01", "02"}]:
         # ]
         # flowlines = flowlines.loc[flowlines.sizeclass.isin(["2", "3a", "3b", "4", "5"])]
 
+        ### To export flowline segments
+        print(f"Serializing {len(flowlines):,} network segments...")
+        write_dataframe(flowlines, out_dir / f"region{huc2}_{scenario}_network_segments.{ext}", driver=driver)
+
         ### To export dissolved networks
         networks = (
-            merge_lines(flowlines, by=["networkID"])
+            merge_lines(flowlines[["networkID", "geometry"]], by=["networkID"])
             .set_index("networkID")
             .join(stats, how="inner")
             .reset_index()
@@ -126,4 +190,4 @@ for group in [{"01", "02"}]:
         # ] = "altered_intermittent"
 
         print(f"Serializing {len(networks):,} dissolved networks...")
-        write_dataframe(networks, out_dir / f"region{huc2}_{scenario}_networks.{ext}")
+        write_dataframe(networks, out_dir / f"region{huc2}_{scenario}_networks.{ext}", driver=driver)

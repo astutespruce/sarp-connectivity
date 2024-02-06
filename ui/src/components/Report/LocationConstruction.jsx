@@ -50,8 +50,6 @@ const Location = ({
   constriction,
   passability,
   barrierseverity,
-  removed,
-  yearremoved,
   river,
   intermittent,
   subwatershed,
@@ -70,6 +68,8 @@ const Location = ({
   waterbodykm2,
   waterbodysizeclass,
   invasive,
+  removed,
+  ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
 
@@ -85,7 +85,11 @@ const Location = ({
   const isDiversion = diversion !== null && diversion >= 1
 
   return (
-    <Section title="Location & construction information" wrap={false}>
+    <Section
+      title="Location & construction information"
+      {...props}
+      wrap={false}
+    >
       <Flex>
         <View
           style={{
@@ -113,13 +117,6 @@ const Location = ({
                   <> {barrierTypeLabel}</>
                 ) : null}
                 {invasive ? ', invasive species barrier' : null}
-                {removed ? (
-                  <>
-                    {yearremoved !== null && yearremoved > 0
-                      ? ` (removed in ${yearremoved})`
-                      : ' (removed)'}
-                  </>
-                ) : null}
               </Text>
 
               {estimated ? (
@@ -323,7 +320,7 @@ const Location = ({
                   </Entry>
                 ) : null}
 
-                {passability !== null ? (
+                {!removed && passability !== null ? (
                   <Entry>
                     <Text>Passability: {PASSABILITY[passability]}</Text>
                   </Entry>
@@ -364,7 +361,9 @@ const Location = ({
                   </Entry>
                 ) : null}
 
-                {barrierseverity !== null && barrierseverity >= 0 ? (
+                {!removed &&
+                barrierseverity !== null &&
+                barrierseverity >= 0 ? (
                   <Entry>
                     <Text>
                       Severity: {SMALL_BARRIER_SEVERITY[barrierseverity]}
@@ -372,7 +371,7 @@ const Location = ({
                   </Entry>
                 ) : null}
 
-                {sarp_score >= 0 ? (
+                {!removed && sarp_score >= 0 ? (
                   <Entry>
                     <Text>
                       SARP Aquatic Organism Passage Score:{' '}
@@ -416,8 +415,6 @@ Location.propTypes = {
   constriction: PropTypes.number,
   passability: PropTypes.number,
   barrierseverity: PropTypes.number,
-  removed: PropTypes.bool,
-  yearremoved: PropTypes.number,
   river: PropTypes.string,
   intermittent: PropTypes.number,
   huc12: PropTypes.string,
@@ -437,6 +434,7 @@ Location.propTypes = {
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
+  removed: PropTypes.bool,
 }
 
 Location.defaultProps = {
@@ -454,8 +452,6 @@ Location.defaultProps = {
   constriction: null,
   passability: null,
   barrierseverity: null,
-  removed: false,
-  yearremoved: 0,
   river: null,
   intermittent: 0,
   huc12: null,
@@ -475,6 +471,7 @@ Location.defaultProps = {
   waterbodykm2: -1,
   waterbodysizeclass: null,
   invasive: false,
+  removed: false,
 }
 
 export default Location

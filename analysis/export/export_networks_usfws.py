@@ -217,7 +217,6 @@ for group in huc2_groups:
                 "FCode",
                 "FType",
                 "TotDASqKm",
-                "HUC4",
             ],
         ).set_index("lineID")
 

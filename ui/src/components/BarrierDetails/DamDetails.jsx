@@ -133,14 +133,6 @@ const DamDetails = ({
                 invasive species barrier
               </>
             ) : null}
-            {removed ? (
-              <>
-                <br />
-                {yearremoved !== null && yearremoved > 0
-                  ? `(removed in ${yearremoved})`
-                  : '(removed / year unknown)'}
-              </>
-            ) : null}
           </Field>
 
           {estimated === 1 ? (
@@ -226,7 +218,7 @@ const DamDetails = ({
           </Entry>
         ) : null}
 
-        {passability !== null ? (
+        {!removed && passability !== null ? (
           <Entry>
             <Field label="Passability" isUnknown={passability === 0}>
               {PASSABILITY[passability]}
@@ -325,7 +317,7 @@ const DamDetails = ({
         />
       </Section>
 
-      {feasibilityclass && feasibilityclass <= 10 ? (
+      {!removed && feasibilityclass && feasibilityclass <= 10 ? (
         <Section title="Feasibility & conservation benefit">
           <Entry>
             <Field label="Feasibility" isUnknown={feasibilityclass <= 1}>
