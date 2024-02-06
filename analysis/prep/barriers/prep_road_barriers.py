@@ -274,6 +274,12 @@ for field, values in removed_fields.items():
     df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique()))
 
 
+# for any marked as removed, clear out fields that may now be outdated, per direction from Kat on 1/6/2024
+df.loc[df.removed, "Passability"] = np.uint8(0)  # unknown
+df.loc[df.removed, "BarrierSeverity"] = np.uint8(0)  # unknown
+df.loc[df.removed, "SARP_Score"] = np.float32(-1)  # unknown
+
+
 ### Drop any small barriers that should be completely dropped from analysis
 dropped_fields = {
     "PotentialProject": DROP_POTENTIAL_PROJECT,
