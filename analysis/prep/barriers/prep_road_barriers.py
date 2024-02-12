@@ -275,9 +275,11 @@ for field, values in removed_fields.items():
 
 
 # for any marked as removed, clear out fields that may now be outdated, per direction from Kat on 1/6/2024
-df.loc[df.removed, "Passability"] = np.uint8(0)  # unknown
-df.loc[df.removed, "BarrierSeverity"] = np.uint8(0)  # unknown
-df.loc[df.removed, "SARP_Score"] = np.float32(-1)  # unknown
+# but don't reset if Feasibility indicates it wasn't completely removed, per direction from Kat on 1/7/2024
+ix = df.removed & (~df.Recon.isin([22, 23]))
+df.loc[ix, "Passability"] = np.uint8(0)  # unknown
+df.loc[ix, "BarrierSeverity"] = np.uint8(0)  # unknown
+df.loc[ix, "SARP_Score"] = np.float32(-1)  # unknown
 
 
 ### Drop any small barriers that should be completely dropped from analysis

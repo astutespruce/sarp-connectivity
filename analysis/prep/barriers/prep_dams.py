@@ -501,7 +501,9 @@ for field, values in removed_fields.items():
     df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique()))
 
 # for any marked as removed, clear out fields that may now be outdated, per direction from Kat on 1/6/2024
-df.loc[df.removed, "Passability"] = np.uint8(0)  # unknown
+# but don't reset if Feasibility indicates it wasn't completely removed, per direction from Kat on 1/7/2024
+ix = df.removed & (~(df.Feasibility.isin([11, 14]) | df.Recon.isin([22, 23])))
+df.loc[ix, "Passability"] = np.uint8(0)  # unknown
 
 
 ### Exclude dams that should not be analyzed or prioritized based on manual QA
