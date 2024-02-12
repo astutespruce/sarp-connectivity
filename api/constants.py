@@ -297,6 +297,7 @@ GENERAL_API_FIELDS1 = [
     "Source",
     "Snapped",
     "NHDPlusID",
+    "River",
     "StreamSizeClass",
 ]
 
@@ -336,7 +337,6 @@ DAM_CORE_FIELDS = (
     + [
         "NIDID",
         "Estimated",
-        "River",
         "AnnualVelocity",
         "AnnualFlow",
         "TotDASqKm",
@@ -389,7 +389,6 @@ SB_CORE_FIELDS = (
         "LocalID",
         "CrossingCode",
         "NearestCrossingID",
-        "Stream",
         "AnnualVelocity",
         "AnnualFlow",
         "TotDASqKm",
@@ -474,7 +473,6 @@ ROAD_CROSSING_EXPORT_FIELDS = [c for c in ROAD_CROSSING_API_FIELDS if c not in {
 WF_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
-        "Stream",
         "FallType",
         "AnnualVelocity",
         "AnnualFlow",
@@ -1081,6 +1079,7 @@ FIELD_DEFINITIONS = {
     "lon": "Longitude in WGS84 geographic coordinates.",
     "Name": "{type} name, if available.",
     "SARPID": "SARP Identifier.",
+    "River": "River or stream name where {type} occurs, if available.",
     # dam-specific fields
     "NIDID": "National Inventory of Dams Identifier.",
     "Source": "Source of this record in the inventory.",
@@ -1089,7 +1088,6 @@ FIELD_DEFINITIONS = {
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
     "WaterRight": "Identifies if the {type} has an associated water right, if known.",
     "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information.",
-    "River": "River name where {type} occurs, if available.",
     "YearCompleted": "year that construction was completed, if available.  0 = data not available.",
     "Removed": "Identifies if the {type} has been removed for conservation, if known.  Removed barriers will not have values present for all fields.",
     "YearRemoved": "year that barrier was removed or mitigated, if available.  All barriers removed prior to 2000 or where YearRemoved is unknown were lumped together for the network analysis.  0 = data not available or not removed / mitigated.",
@@ -1111,7 +1109,6 @@ FIELD_DEFINITIONS = {
     "LocalID": "local identifier.",
     "CrossingCode": "crossing identifier.",
     "NearestCrossingID": "The SARPID of the nearest road/stream crossing point, if any are found within 10 meters",
-    "Stream": "stream or river name where this {type} occurs, if available.",
     "Road": "road name, if available.",
     "RoadType": "type of road, if available.",
     "CrossingType": "type of road / stream crossing, if known.",

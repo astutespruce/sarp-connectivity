@@ -94,11 +94,15 @@ qa_dir = barriers_dir / "qa"
 start = time()
 
 print("Reading data")
-df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
+# TODO: remove rename of Stream on next download
+df = gp.read_feather(src_dir / "sarp_small_barriers.feather").rename(columns={"Stream": "River"})
 df["NearestCrossingID"] = ""
 print(f"Read {len(df):,} small barriers")
 
-crossings = gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False)
+# TODO: remove rename of Stream on next full run
+crossings = (
+    gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False).rename(columns={"Stream": "River"})
+)
 crossings["NearestBarrierID"] = ""
 crossings["Surveyed"] = np.uint8(0)
 print(f"Read {len(crossings):,} road crossings")
@@ -169,7 +173,7 @@ df.loc[(df.SARP_Score == 0) & (df.PotentialProject != "Severe Barrier"), "SARP_S
 
 
 # Fix mixed casing of values and discard meaningless unknown values
-for column in ("Stream", "Road"):
+for column in ("River", "Road"):
     df[column] = df[column].fillna("").str.replace("\r\n", "").str.strip().str.title()
     df.loc[df[column].str.len() == 0, column] = ""
     df.loc[
@@ -179,15 +183,15 @@ for column in ("Stream", "Road"):
 
 
 # Fill name with road or name, if available
-ix = (df.Road != "") & (df.Stream != "")
-df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Road + " / " + df.loc[ix].Stream
+ix = (df.Road != "") & (df.River != "")
+df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Road + " / " + df.loc[ix].River
 df.Name = df.Name.fillna("")
 
 ix = (df.Name == "") & (df.Road != "")
 df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Road
 
-ix = (df.Name == "") & (df.Stream != "")
-df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Stream
+ix = (df.Name == "") & (df.River != "")
+df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].River
 
 # Fix issues with RoadType
 df.loc[df.RoadType.str.lower().isin(("no data", "nodata")), "RoadType"] = "Unknown"
@@ -541,12 +545,12 @@ df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
 
 # Add name from snapped flowline if not already present
 df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()
-ix = (df.Stream == "") & (df.GNIS_Name != "")
-df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
+ix = (df.River == "") & (df.GNIS_Name != "")
+df.loc[ix, "River"] = df.loc[ix].GNIS_Name
 df = df.drop(columns=["GNIS_Name"])
 
-ix = (df.Name == "") & (df.Stream != "")
-df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].Stream
+ix = (df.Name == "") & (df.River != "")
+df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].River
 
 # calculate stream type
 df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")

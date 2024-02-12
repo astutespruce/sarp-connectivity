@@ -49,9 +49,7 @@ def dedup_crossings(df):
     # crossings, so only dedup by distance not neighborhoods
     tree = shapely.STRtree(df.geometry.values)
     pairs = pd.DataFrame(
-        tree.query(
-            df.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE
-        ).T,
+        tree.query(df.geometry.values, predicate="dwithin", distance=DUPLICATE_TOLERANCE).T,
         columns=["left", "right"],
     )
     g = DirectedGraph(
@@ -86,7 +84,7 @@ df = read_dataframe(
 ).rename(
     columns={
         "tiger2020_feature_names": "Road",
-        "nhdhr_gnis_stream_name": "Stream",
+        "nhdhr_gnis_stream_name": "River",
         "stream_crossing_id": "SARPID",
         "crossing_type": "crossingtype",
     }
@@ -98,17 +96,11 @@ df["Source"] = "USGS Database of Stream Crossings in the United States (2022)"
 
 
 # project HUC4 to match crossings
-huc4 = gp.read_feather(
-    boundaries_dir / "huc4.feather", columns=["geometry", "HUC4"]
-).to_crs(df.crs)
+huc4 = gp.read_feather(boundaries_dir / "huc4.feather", columns=["geometry", "HUC4"]).to_crs(df.crs)
 tree = shapely.STRtree(df.geometry.values)
 left, right = tree.query(huc4.geometry.values, predicate="intersects")
 huc4_join = (
-    pd.DataFrame(
-        {"HUC4": huc4.HUC4.values.take(left)}, index=df.index.values.take(right)
-    )
-    .groupby(level=0)
-    .HUC4.first()
+    pd.DataFrame({"HUC4": huc4.HUC4.values.take(left)}, index=df.index.values.take(right)).groupby(level=0).HUC4.first()
 )
 
 df = df.join(huc4_join, how="inner").reset_index(drop=True)
@@ -150,20 +142,18 @@ print(f"now have {len(df):,} road crossings")
 # match dtype of SARPID elsewhere
 df.SARPID = "cr" + df.SARPID.round().astype(int).astype(str)
 
-df.Stream = df.Stream.str.strip().fillna("")
+df.River = df.River.str.strip().fillna("")
 df.Road = df.Road.str.strip().fillna("")
 
-df.loc[(df.Stream != "") & (df.Road != ""), "Name"] = df.Stream + " / " + df.Road
+df.loc[(df.River != "") & (df.Road != ""), "Name"] = df.River + " / " + df.Road
 df.Name = df.Name.fillna("")
 
 # update crossingtype and set as domain
 df.loc[df.crossingtype == "tiger2020 road", "crossingtype"] = "assumed culvert"
 
-errors = [v for v in df.crossingtype.unique() if not v in CROSSING_TYPE_TO_DOMAIN]
+errors = [v for v in df.crossingtype.unique() if v not in CROSSING_TYPE_TO_DOMAIN]
 if len(errors):
-    raise ValueError(
-        f"Values present in crossingtype not present in CROSSING_TYPE_TO_DOMAIN: {errors}"
-    )
+    raise ValueError(f"Values present in crossingtype not present in CROSSING_TYPE_TO_DOMAIN: {errors}")
 
 df["crossingtype"] = df.crossingtype.map(CROSSING_TYPE_TO_DOMAIN)
 
@@ -221,11 +211,7 @@ df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
 ### Join to line atts
 flowlines = (
     read_feathers(
-        [
-            nhd_dir / "clean" / huc2 / "flowlines.feather"
-            for huc2 in df.HUC2.unique()
-            if huc2
-        ],
+        [nhd_dir / "clean" / huc2 / "flowlines.feather" for huc2 in df.HUC2.unique() if huc2],
         columns=[
             "lineID",
             "NHDPlusID",
@@ -251,8 +237,8 @@ df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
 # Add name from snapped flowline if not already present
 df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()
-ix = (df.Stream == "") & (df.GNIS_Name != "")
-df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
+ix = (df.River == "") & (df.GNIS_Name != "")
+df.loc[ix, "River"] = df.loc[ix].GNIS_Name
 df = df.drop(columns=["GNIS_Name"])
 
 # calculate stream type

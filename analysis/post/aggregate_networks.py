@@ -39,7 +39,6 @@ removed_dam_cols = (
     + [
         "NIDID",
         "SourceDBID",
-        "River",
         "YearCompleted",
         "YearRemoved",
         "Height",
@@ -105,7 +104,8 @@ dam_networks = pd.concat(
     [
         nonremoved_dam_networks.reset_index(),
         removed_dam_networks.reset_index(),
-    ]
+    ],
+    ignore_index=True,
 ).set_index("id")
 
 
@@ -171,7 +171,8 @@ small_barrier_networks = pd.concat(
     [
         nonremoved_small_barrier_networks.reset_index(),
         removed_small_barrier_networks.reset_index(),
-    ]
+    ],
+    ignore_index=True,
 ).set_index("id")
 
 small_barriers = small_barriers.join(small_barrier_networks)
@@ -272,7 +273,14 @@ fill_columns = [
     "BarrierSeverity",
 ]
 
-dtypes = pd.concat([dams.dtypes, small_barriers.dtypes])
+dtypes = (
+    pd.concat(
+        [dams.dtypes.rename("type").reset_index(), small_barriers.dtypes.rename("type").reset_index()],
+        ignore_index=True,
+    )
+    .drop_duplicates("index")
+    .set_index("index")["type"]
+)
 for col in fill_columns:
     orig_dtype = dtypes[col]
     if col.endswith("Class"):
@@ -302,7 +310,8 @@ for network_type in [
         [
             nonremoved_networks.reset_index(),
             removed_networks.reset_index(),
-        ]
+        ],
+        ignore_index=True,
     ).set_index("id")
 
     scenario_results = combined.join(networks)
@@ -335,9 +344,7 @@ for network_type in [
 
     if network_type == "combined_barriers":
         # create search key for search by name
-        tmp["search_key"] = (
-            (tmp["Name"] + " " + tmp["River"] + " " + tmp["Stream"]).str.strip().str.replace("  ", " ", regex=False)
-        )
+        tmp["search_key"] = (tmp["Name"] + " " + tmp["River"]).str.strip().str.replace("  ", " ", regex=False)
 
     tmp.to_feather(api_dir / f"{network_type}.feather")
 
@@ -371,6 +378,9 @@ for network_type in NETWORK_TYPES.keys():
 
         else:
             scenario_results[col] = scenario_results[col].fillna(-1).astype(get_signed_dtype(orig_dtype))
+
+    # copy to defragment DataFrame
+    scenario_results = scenario_results.copy()
 
     scenario_results["network_type"] = network_type
     scenario_results["in_network_type"] = (

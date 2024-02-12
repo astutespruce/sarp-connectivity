@@ -164,7 +164,7 @@ const BarrierSearchResults = ({
         overflowY: 'auto',
       }}
     >
-      {results.map(({ sarpid, name, state, river, stream, barriertype }, i) => (
+      {results.map(({ sarpid, name, state, river, barriertype }, i) => (
         <Box
           key={sarpid}
           data-index={i}
@@ -195,7 +195,6 @@ const BarrierSearchResults = ({
               barrier type: {barrierTypeLabelSingular[barriertype]}
               <br />
               {river ? `located on ${river}, ` : null}
-              {stream && !river ? `located on ${stream}, ` : null}
               {STATES[state]}
             </Text>
           </Box>
@@ -227,7 +226,6 @@ BarrierSearchResults.propTypes = {
       name: PropTypes.string.isRequired,
       state: PropTypes.string.isRequired,
       river: PropTypes.string,
-      Stream: PropTypes.string,
     })
   ),
   remaining: PropTypes.number,

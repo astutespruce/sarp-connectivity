@@ -21,7 +21,6 @@ BARRIER_SEARCH_RESULT_COLUMNS = [
     "SARPID",
     "Name",
     "River",
-    "Stream",
     "State",
     "BarrierType",
     "lat",
@@ -50,8 +49,7 @@ async def search_units(request: Request, layer: str, query: str):
 
     # use case-insensitive search
     matches = units.to_table(
-        filter=pc.field("layer").isin(layers)
-        & pc.match_substring(pc.field("key"), query.lower(), ignore_case=True)
+        filter=pc.field("layer").isin(layers) & pc.match_substring(pc.field("key"), query.lower(), ignore_case=True)
     )
 
     # discard pandas metadata and store count
@@ -146,17 +144,11 @@ async def search_barriers(request: Request, query: str):
     else:
         # replace spaces with regex that allows any whitespace or intermediate words
         # make sure to search whole words, but can be stem of following due to type-ahead
-        filter = (
-            re.escape(query)
-            .replace(",", "")
-            .replace("\\ ", r"(((\s)+(\s|\S|\d)*)|(\s))+")
-        )
+        filter = re.escape(query).replace(",", "").replace("\\ ", r"(((\s)+(\s|\S|\d)*)|(\s))+")
         filter = rf"(^|\s){filter}"
 
         matches = combined_barriers.to_table(
-            filter=pc.match_substring_regex(
-                pc.field("search_key"), filter, ignore_case=True
-            ),
+            filter=pc.match_substring_regex(pc.field("search_key"), filter, ignore_case=True),
             columns=BARRIER_SEARCH_RESULT_COLUMNS + ["search_key"],
         )[: 1000 + NUM_BARRIER_SEARCH_RESULTS]
 
@@ -170,9 +162,7 @@ async def search_barriers(request: Request, query: str):
                     query,
                 ),
                 # find position of first word, further left is better
-                "ipos": pc.find_substring(
-                    matches["search_key"], query.split(" ")[0], ignore_case=True
-                ),
+                "ipos": pc.find_substring(matches["search_key"], query.split(" ")[0], ignore_case=True),
             }
         ).sort_by([["sim", "descending"], ["ipos", "ascending"]])
 

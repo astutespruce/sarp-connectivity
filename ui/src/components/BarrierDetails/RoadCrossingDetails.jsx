@@ -32,7 +32,7 @@ const RoadCrossingDetails = ({
   snapped,
   source,
   statesgcnspp,
-  stream,
+  river,
   streamorder,
   streamsizeclass,
   subwatershed,
@@ -58,7 +58,7 @@ const RoadCrossingDetails = ({
 
       <LocationInfo
         barrierType={barrierType}
-        reachName={stream}
+        reachName={river}
         basin={basin}
         subwatershed={subwatershed}
         huc12={huc12}
@@ -139,7 +139,7 @@ RoadCrossingDetails.propTypes = {
   snapped: PropTypes.bool,
   source: PropTypes.string,
   statesgcnspp: PropTypes.number,
-  stream: PropTypes.string,
+  river: PropTypes.string,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
   subwatershed: PropTypes.string,
@@ -163,7 +163,7 @@ RoadCrossingDetails.defaultProps = {
   snapped: true,
   source: null,
   statesgcnspp: 0,
-  stream: null,
+  river: null,
   streamorder: 0,
   streamsizeclass: null,
   subwatershed: null,

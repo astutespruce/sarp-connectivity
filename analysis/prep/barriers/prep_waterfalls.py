@@ -54,21 +54,16 @@ qa_dir = barriers_dir / "qa"
 start = time()
 
 
-print(
-    "\n\n----------------------------------\nReading waterfalls\n---------------------------"
-)
+print("\n\n----------------------------------\nReading waterfalls\n---------------------------")
 
-df = gp.read_feather(src_dir / "waterfalls.feather").rename(
-    columns={"fall_type": "FallType"}
-)
+# TODO: remove rename of Stream on next download
+df = gp.read_feather(src_dir / "waterfalls.feather").rename(columns={"fall_type": "FallType", "Stream": "River"})
 
 ### drop any that are outside analysis HUC2s
 df = df.join(get_huc2(df))
 drop_ix = df.HUC2.isnull()
 if drop_ix.sum():
-    print(
-        f"{drop_ix.sum():,} waterfalls are outside analysis HUC2s; these are dropped from master dataset"
-    )
+    print(f"{drop_ix.sum():,} waterfalls are outside analysis HUC2s; these are dropped from master dataset")
     df = df.loc[~drop_ix].copy()
 
 
@@ -87,11 +82,11 @@ df.loc[df.Source == "Amy Cottrell, Auburn", "Source"] = "Amy Cotrell, Auburn Uni
 df.Name = df.Name.fillna("").str.strip()
 df.loc[df.Name.str.lower().isin(["unknown"]), "Name"] = ""
 df.LocalID = df.LocalID.fillna("").str.strip()
-df.Stream = df.Stream.fillna("").str.strip()
+df.River = df.River.fillna("").str.strip()
 
 df.GNIS_Name = df.GNIS_Name.fillna("").str.strip()
-ix = (df.Stream == "") & (df.GNIS_Name != "")
-df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
+ix = (df.River == "") & (df.GNIS_Name != "")
+df.loc[ix, "River"] = df.loc[ix].GNIS_Name
 
 df = df.drop(columns=["GNIS_Name"])
 
@@ -152,18 +147,14 @@ drop_ix = df.FallType.isin(drop_types)
 df.loc[drop_ix, "dropped"] = True
 df.loc[drop_ix, "log"] = f"dropped: type one of {drop_types}"
 
-print(
-    f"Dropped {drop_ix.sum():,} waterfalls from all analysis and mapping based on ManualReview, Recon, type, or ID"
-)
+print(f"Dropped {drop_ix.sum():,} waterfalls from all analysis and mapping based on ManualReview, Recon, type, or ID")
 
 ### Exclude barriers based on BarrierSeverity
 
 df.BarrierSeverity = df.BarrierSeverity.fillna("").str.strip().str.lower()
 
 # FIXME: temporary fixes
-df.loc[
-    df.BarrierSeverity.str.lower().str.startswith("state of ut"), "BarrierSeverity"
-] = "unknown"
+df.loc[df.BarrierSeverity.str.lower().str.startswith("state of ut"), "BarrierSeverity"] = "unknown"
 df.loc[df.BarrierSeverity == "complete barriar", "BarrierSeverity"] = "Complete Barrier"
 
 # mark as excluded if barrier severity is no barrier
@@ -174,11 +165,7 @@ df.loc[ix, "log"] = f"excluded: BarrierSeverity one of {', '.join(exclude_severi
 
 # Convert to domain and call it Passability
 df["Passability"] = (
-    df.BarrierSeverity.fillna("unknown")
-    .str.strip()
-    .str.lower()
-    .map(DAM_BARRIER_SEVERITY_TO_DOMAIN)
-    .astype("uint8")
+    df.BarrierSeverity.fillna("unknown").str.strip().str.lower().map(DAM_BARRIER_SEVERITY_TO_DOMAIN).astype("uint8")
 )
 
 df = df.drop(columns=["BarrierSeverity"])
@@ -228,9 +215,7 @@ df["ManualReview"] = 0  # not meaningful for waterfalls
 
 dedup_start = time()
 df, to_dedup = find_duplicates(df, to_dedup=df.copy(), tolerance=DUPLICATE_TOLERANCE)
-print(
-    f"Found {len(df.loc[df.duplicate]):,} total duplicates in {time() - dedup_start:.2f}s"
-)
+print(f"Found {len(df.loc[df.duplicate]):,} total duplicates in {time() - dedup_start:.2f}s")
 
 ### Deduplicate by dams
 # any that are within duplicate tolerance of dams may be duplicating those dams
@@ -312,8 +297,8 @@ df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
 
 # Add name from snapped flowline if not already present
 df["GNIS_Name"] = df.GNIS_Name.fillna("").str.strip()
-ix = (df.Stream == "") & (df.GNIS_Name != "")
-df.loc[ix, "Stream"] = df.loc[ix].GNIS_Name
+ix = (df.River == "") & (df.GNIS_Name != "")
+df.loc[ix, "River"] = df.loc[ix].GNIS_Name
 df = df.drop(columns=["GNIS_Name"])
 
 
@@ -366,9 +351,7 @@ print("writing GIS for QA/QC")
 write_dataframe(df, qa_dir / "waterfalls.fgb")
 
 # Extract out only the snapped ones not on loops
-df = df.loc[
-    df.primary_network | df.largefish_network | df.smallfish_network
-].reset_index(drop=True)
+df = df.loc[df.primary_network | df.largefish_network | df.smallfish_network].reset_index(drop=True)
 df.lineID = df.lineID.astype("uint32")
 df.NHDPlusID = df.NHDPlusID.astype("uint64")
 

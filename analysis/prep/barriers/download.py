@@ -118,7 +118,7 @@ async def download_small_barriers(token):
                 "CrossingTypeId": "CrossingType",
                 "RoadTypeId": "RoadType",
                 "CrossingConditionId": "Condition",
-                "StreamName": "Stream",
+                "StreamName": "River",
                 "Year_Removed": "YearRemoved",
                 "OwnerType": "BarrierOwnerType",
             }
@@ -144,7 +144,7 @@ async def download_waterfalls(token):
             columns={
                 "SARPUniqueId": "SARPID",
                 "gnis_name_": "GNIS_Name",
-                "watercours": "Stream",
+                "watercours": "River",
                 "name": "Name",
                 "Year_Removed": "YearRemoved",
             }
