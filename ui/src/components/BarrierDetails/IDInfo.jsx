@@ -6,7 +6,14 @@ import { ExternalLink, OutboundLink } from 'components/Link'
 import { Entry, Field } from 'components/Sidebar'
 import { isEmptyString } from 'util/string'
 
-const IDInfo = ({ sarpid, nidid, source, link, nearestcrossingid }) => {
+const IDInfo = ({
+  sarpid,
+  nidid,
+  source,
+  sourcedbid,
+  link,
+  nearestcrossingid,
+}) => {
   const fromWDFW = source && source.startsWith('WDFW')
   const fromODFW = source && source.startsWith('ODFW')
 
@@ -31,6 +38,14 @@ const IDInfo = ({ sarpid, nidid, source, link, nearestcrossingid }) => {
         <Entry>
           <Field label="Source">
             <Text sx={{ textAlign: 'right' }}>{source}</Text>
+          </Field>
+        </Entry>
+      ) : null}
+
+      {!isEmptyString(sourcedbid) ? (
+        <Entry>
+          <Field label="Source ID">
+            <Text sx={{ textAlign: 'right' }}>{sourcedbid}</Text>
           </Field>
         </Entry>
       ) : null}
@@ -89,6 +104,7 @@ IDInfo.propTypes = {
   sarpid: PropTypes.string,
   nidid: PropTypes.string,
   source: PropTypes.string,
+  sourcedbid: PropTypes.string,
   link: PropTypes.string,
   nearestcrossingid: PropTypes.string,
 }
@@ -97,6 +113,7 @@ IDInfo.defaultProps = {
   sarpid: null,
   nidid: null,
   source: null,
+  sourcedbid: null,
   link: null,
   nearestcrossingid: null,
 }

@@ -336,6 +336,7 @@ DAM_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
         "NIDID",
+        "SourceDBID",
         "Estimated",
         "AnnualVelocity",
         "AnnualFlow",
@@ -1083,6 +1084,7 @@ FIELD_DEFINITIONS = {
     # dam-specific fields
     "NIDID": "National Inventory of Dams Identifier.",
     "Source": "Source of this record in the inventory.",
+    "SourceDBID": "Identifier of the dam in the source database",
     "Link": "Link to additional information about this {type}",
     "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",

@@ -9,7 +9,15 @@ import { Entry } from './elements'
 
 const { version: dataVersion } = siteMetadata
 
-const IDInfo = ({ sarpid, nidid, source, link, nearestcrossingid, sx }) => {
+const IDInfo = ({
+  sarpid,
+  nidid,
+  source,
+  sourcedbid,
+  link,
+  nearestcrossingid,
+  sx,
+}) => {
   const fromWDFW = source && source.startsWith('WDFW')
   const fromODFW = source && source.startsWith('ODFW')
 
@@ -24,6 +32,9 @@ const IDInfo = ({ sarpid, nidid, source, link, nearestcrossingid, sx }) => {
           <Entry>National inventory of dams ID: {nidid}</Entry>
         ) : null}
         {!isEmptyString(source) ? <Entry>Source: {source}</Entry> : null}
+        {!isEmptyString(sourcedbid) ? (
+          <Entry>Source ID: {sourcedbid}</Entry>
+        ) : null}
         {!isEmptyString(link) ? (
           <Entry>
             More information: <OutboundLink to={link}>{link}</OutboundLink>
@@ -73,6 +84,7 @@ IDInfo.propTypes = {
   sarpid: PropTypes.string.isRequired,
   nidid: PropTypes.string,
   source: PropTypes.string,
+  sourcedbid: PropTypes.string,
   link: PropTypes.string,
   nearestcrossingid: PropTypes.string,
   sx: PropTypes.object,
@@ -81,6 +93,7 @@ IDInfo.propTypes = {
 IDInfo.defaultProps = {
   nidid: null,
   source: null,
+  sourcedbid: null,
   link: null,
   nearestcrossingid: null,
   sx: null,
