@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Text } from 'theme-ui'
-import { ExclamationTriangle } from '@emotion-icons/fa-solid'
+import { Envelope, ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { extractHabitat } from 'components/Data/Habitat'
 import { Entry, Field, Section } from 'components/Sidebar'
@@ -323,6 +323,24 @@ const DamDetails = ({
           <Entry>
             <Field label="Feasibility" isUnknown={feasibilityclass <= 1}>
               {FEASIBILITYCLASS[feasibilityclass]}
+              <br />
+              <a
+                href={`mailto:Kat@southeastaquatics.net?subject=Update feasibility for dam: ${sarpid} (data version: ${dataVersion})&body=The feasibility of this barrier should be: %0D%0A%0D%0A(choose one of the following options)%0D%0A%0D%0A${Object.entries(
+                  FEASIBILITYCLASS
+                )
+                  .filter(([key, value]) => key >= 1)
+                  .map(([_, value]) => value)
+                  .join('%0D%0A')})`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Flex
+                  sx={{ gap: '0.25rem', alignItems: 'center', fontSize: 0 }}
+                >
+                  <Envelope size="1rem" />
+                  submit {feasibilityclass > 1 ? 'new' : null} feasibility
+                </Flex>
+              </a>
             </Field>
 
             {recon !== null && recon > 0 ? (

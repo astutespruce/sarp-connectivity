@@ -206,6 +206,10 @@ df["YearRemoved"] = df.YearRemoved.fillna(0).astype("uint16")
 for column in ["SourceID", "CrossingCode", "Source", "Link"]:
     df[column] = df[column].fillna("").str.strip()
 
+
+# if SourceID is negative, assume it is null (per guidance from Kat on 2/16/2024)
+df.loc[df.SourceID.str.startswith("-"), "SourceID"] = ""
+
 for column in ["Editor", "EditDate"]:
     df[column] = df[column].fillna("")
 
