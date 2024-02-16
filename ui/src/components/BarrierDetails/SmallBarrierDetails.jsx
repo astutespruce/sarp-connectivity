@@ -51,6 +51,8 @@ const BarrierDetails = ({
   barrierType,
   networkType,
   sarpid,
+  lat,
+  lon,
 
   alteredupstreammiles,
   barrierownertype,
@@ -293,7 +295,10 @@ const BarrierDetails = ({
 
       <Section title="Other information">
         <IDInfo
+          barrierType={barrierType}
           sarpid={sarpid}
+          lat={lat}
+          lon={lon}
           source={source}
           sourceid={sourceid}
           link={link}
@@ -308,7 +313,8 @@ BarrierDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-
+  lat: PropTypes.string.isRequired,
+  lon: PropTypes.string.isRequired,
   alteredupstreammiles: PropTypes.number,
   barrierownertype: PropTypes.number,
   barrierseverity: PropTypes.number,

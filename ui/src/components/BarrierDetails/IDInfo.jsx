@@ -1,18 +1,21 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Text } from 'theme-ui'
+import { Box, Flex, Text } from 'theme-ui'
 
 import { ExternalLink, OutboundLink } from 'components/Link'
 import { Entry, Field } from 'components/Sidebar'
 import { isEmptyString } from 'util/string'
 
 const IDInfo = ({
+  barrierType,
   sarpid,
   nidid,
   source,
   sourceid,
   link,
   nearestcrossingid,
+  lat,
+  lon,
 }) => {
   const fromWDFW = source && source.startsWith('WDFW')
   const fromODFW = source && source.startsWith('ODFW')
@@ -96,17 +99,44 @@ const IDInfo = ({
           </Text>
         </Entry>
       ) : null}
+
+      <Entry>
+        <Field label="View location in Google Maps">
+          <Flex sx={{ flex: '0 0 auto', gap: '1rem' }}>
+            <Box sx={{ flex: '0 0 auto' }}>
+              <ExternalLink
+                to={`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`}
+              >
+                map
+              </ExternalLink>
+            </Box>
+            {barrierType === 'small_barriers' ||
+            barrierType === 'road_crossings' ? (
+              <Box sx={{ flex: '0 0 auto' }}>
+                <ExternalLink
+                  to={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}&fov=100`}
+                >
+                  street view
+                </ExternalLink>
+              </Box>
+            ) : null}
+          </Flex>
+        </Field>
+      </Entry>
     </>
   )
 }
 
 IDInfo.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string,
   nidid: PropTypes.string,
   source: PropTypes.string,
   sourceid: PropTypes.string,
   link: PropTypes.string,
   nearestcrossingid: PropTypes.string,
+  lat: PropTypes.number.isRequired,
+  lon: PropTypes.number.isRequired,
 }
 
 IDInfo.defaultProps = {

@@ -16,6 +16,8 @@ const RoadCrossingDetails = ({
   barrierType,
   networkType,
   sarpid,
+  lat,
+  lon,
   basin,
   crossingtype,
   ejtract,
@@ -114,7 +116,14 @@ const RoadCrossingDetails = ({
     </Section>
 
     <Section title="Other information">
-      <IDInfo sarpid={sarpid} source={source} sourceid={sourceid} />
+      <IDInfo
+        barrierType={barrierType}
+        sarpid={sarpid}
+        lat={lat}
+        lon={lon}
+        source={source}
+        sourceid={sourceid}
+      />
     </Section>
   </Box>
 )
@@ -123,6 +132,8 @@ RoadCrossingDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
+  lat: PropTypes.string.isRequired,
+  lon: PropTypes.string.isRequired,
   basin: PropTypes.string,
   crossingtype: PropTypes.number,
   ejtract: PropTypes.bool,

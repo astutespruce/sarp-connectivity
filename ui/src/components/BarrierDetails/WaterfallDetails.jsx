@@ -19,6 +19,8 @@ const WaterfallDetails = ({
   barrierType,
   networkType,
   sarpid,
+  lat,
+  lon,
 
   alteredupstreammiles,
   basin,
@@ -166,7 +168,14 @@ const WaterfallDetails = ({
 
       {!isEmptyString(source) ? (
         <Section title="Other information">
-          <IDInfo sarpid={sarpid} source={source} sourceid={sourceid} />
+          <IDInfo
+            barrierType={barrierType}
+            sarpid={sarpid}
+            lat={lat}
+            lon={lon}
+            source={source}
+            sourceid={sourceid}
+          />
         </Section>
       ) : null}
     </Box>
@@ -177,6 +186,8 @@ WaterfallDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
+  lat: PropTypes.string.isRequired,
+  lon: PropTypes.string.isRequired,
 
   hasnetwork: PropTypes.bool.isRequired,
   alteredupstreammiles: PropTypes.number,

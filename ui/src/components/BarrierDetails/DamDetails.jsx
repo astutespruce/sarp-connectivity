@@ -32,7 +32,8 @@ const DamDetails = ({
   barrierType,
   networkType,
   sarpid,
-
+  lat,
+  lon,
   alteredupstreammiles,
   barrierownertype,
   basin,
@@ -328,7 +329,9 @@ const DamDetails = ({
                 href={`mailto:Kat@southeastaquatics.net?subject=Update feasibility for dam: ${sarpid} (data version: ${dataVersion})&body=The feasibility of this barrier should be: %0D%0A%0D%0A(choose one of the following options)%0D%0A%0D%0A${Object.entries(
                   FEASIBILITYCLASS
                 )
-                  .filter(([key, value]) => key >= 1)
+                  // eslint-disable-next-line no-unused-vars
+                  .filter(([key, _]) => key >= 1)
+                  // eslint-disable-next-line no-unused-vars
                   .map(([_, value]) => value)
                   .join('%0D%0A')})`}
                 target="_blank"
@@ -355,7 +358,10 @@ const DamDetails = ({
 
       <Section title="Other information">
         <IDInfo
+          barrierType={barrierType}
           sarpid={sarpid}
+          lat={lat}
+          lon={lon}
           nidid={nidid}
           source={source}
           sourceid={sourceid}
@@ -370,7 +376,8 @@ DamDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-
+  lat: PropTypes.string.isRequired,
+  lon: PropTypes.string.isRequired,
   alteredupstreammiles: PropTypes.number,
   barrierownertype: PropTypes.number,
   basin: PropTypes.string,
