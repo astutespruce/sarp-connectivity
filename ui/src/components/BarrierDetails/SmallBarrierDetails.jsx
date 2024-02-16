@@ -90,6 +90,7 @@ const BarrierDetails = ({
   sizeclasses,
   snapped,
   source,
+  sourceid,
   statesgcnspp,
   river,
   streamorder,
@@ -294,6 +295,7 @@ const BarrierDetails = ({
         <IDInfo
           sarpid={sarpid}
           source={source}
+          sourceid={sourceid}
           link={link}
           nearestcrossingid={nearestcrossingid}
         />
@@ -345,6 +347,7 @@ BarrierDetails.propTypes = {
   sizeclasses: PropTypes.number,
   snapped: PropTypes.bool,
   source: PropTypes.string,
+  sourceid: PropTypes.string,
   statesgcnspp: PropTypes.number,
   river: PropTypes.string,
   streamorder: PropTypes.number,
@@ -461,6 +464,7 @@ BarrierDetails.defaultProps = {
   sizeclasses: null,
   snapped: false,
   source: null,
+  sourceid: null,
   statesgcnspp: 0,
   river: null,
   streamorder: 0,

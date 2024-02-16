@@ -295,6 +295,7 @@ GENERAL_API_FIELDS1 = [
     "Name",
     "SARPID",
     "Source",
+    "SourceID",
     "Snapped",
     "NHDPlusID",
     "River",
@@ -336,7 +337,6 @@ DAM_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
         "NIDID",
-        "SourceDBID",
         "Estimated",
         "AnnualVelocity",
         "AnnualFlow",
@@ -387,7 +387,6 @@ DAM_TILE_FILTER_FIELDS = unique(DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if n
 SB_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
-        "LocalID",
         "CrossingCode",
         "NearestCrossingID",
         "AnnualVelocity",
@@ -1081,10 +1080,10 @@ FIELD_DEFINITIONS = {
     "Name": "{type} name, if available.",
     "SARPID": "SARP Identifier.",
     "River": "River or stream name where {type} occurs, if available.",
+    "Source": "Source of this record in the inventory.",
+    "SourceID": "Identifier of this {type} in the source database",
     # dam-specific fields
     "NIDID": "National Inventory of Dams Identifier.",
-    "Source": "Source of this record in the inventory.",
-    "SourceDBID": "Identifier of the dam in the source database",
     "Link": "Link to additional information about this {type}",
     "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
@@ -1108,7 +1107,6 @@ FIELD_DEFINITIONS = {
     "WaterbodyKM2": "area of associated waterbody in square kilometers.  -1 = no associated waterbody",
     "WaterbodySizeClass": "size class of associated waterbody.  -1 = no associated waterbody",
     # barrier-specific fields
-    "LocalID": "local identifier.",
     "CrossingCode": "crossing identifier.",
     "NearestCrossingID": "The SARPID of the nearest road/stream crossing point, if any are found within 10 meters",
     "Road": "road name, if available.",

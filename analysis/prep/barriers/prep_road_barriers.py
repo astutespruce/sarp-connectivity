@@ -94,8 +94,8 @@ qa_dir = barriers_dir / "qa"
 start = time()
 
 print("Reading data")
-# TODO: remove rename of Stream on next download
-df = gp.read_feather(src_dir / "sarp_small_barriers.feather").rename(columns={"Stream": "River"})
+# TODO: remove rename of Stream / LocalID on next download
+df = gp.read_feather(src_dir / "sarp_small_barriers.feather").rename(columns={"Stream": "River", "LocalID": "SourceID"})
 df["NearestCrossingID"] = ""
 print(f"Read {len(df):,} small barriers")
 
@@ -105,6 +105,9 @@ crossings = (
 )
 crossings["NearestBarrierID"] = ""
 crossings["Surveyed"] = np.uint8(0)
+crossings["SourceID"] = crossings.SARPID.str[2:]
+crossings["EJTract"] = crossings.EJTract.astype("bool")
+crossings["EJTribal"] = crossings.EJTribal.astype("bool")
 print(f"Read {len(crossings):,} road crossings")
 
 # only cross-check against dams / waterfalls that break networks
@@ -200,7 +203,7 @@ df["RoadType"] = df.RoadType.fillna("").apply(lambda x: f"{x[0].upper()}{x[1:]}"
 df["YearRemoved"] = df.YearRemoved.fillna(0).astype("uint16")
 
 #########  Fill NaN fields and set data types
-for column in ["CrossingCode", "LocalID", "Source", "Link"]:
+for column in ["SourceID", "CrossingCode", "Source", "Link"]:
     df[column] = df[column].fillna("").str.strip()
 
 for column in ["Editor", "EditDate"]:

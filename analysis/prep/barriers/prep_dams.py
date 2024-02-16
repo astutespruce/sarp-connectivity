@@ -97,7 +97,9 @@ start = time()
 
 ### Read dams for analysis region states states and merge
 print("Reading dams in analysis region states")
-df = gp.read_feather(src_dir / "sarp_dams.feather")
+
+# FIXME: remove rename on next download of data
+df = gp.read_feather(src_dir / "sarp_dams.feather").rename(columns={"SourceDBID": "SourceID"})
 print(f"Read {len(df):,} dams in region states")
 
 
@@ -226,7 +228,7 @@ for column in (
     "Source",
     "Name",
     "OtherName",
-    "SourceDBID",
+    "SourceID",
     "Editor",
     "EditDate",
     "Link",
@@ -548,7 +550,7 @@ for field, values in unranked_fields.items():
 df["is_estimated"] = (
     df.Name.str.lower().str.contains("Estimated Dam")
     | df.Source.str.lower().str.contains("estimated dam")
-    | (df.SourceDBID.str.startswith("e"))
+    | (df.SourceID.str.startswith("e"))
 )
 
 

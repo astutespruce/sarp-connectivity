@@ -44,6 +44,7 @@ const WaterfallDetails = ({
   sizeclasses,
   snapped,
   source,
+  sourceid,
   statesgcnspp,
   river,
   streamorder,
@@ -165,7 +166,7 @@ const WaterfallDetails = ({
 
       {!isEmptyString(source) ? (
         <Section title="Other information">
-          <IDInfo sarpid={sarpid} source={source} />
+          <IDInfo sarpid={sarpid} source={source} sourceid={sourceid} />
         </Section>
       ) : null}
     </Box>
@@ -201,6 +202,7 @@ WaterfallDetails.propTypes = {
   sizeclasses: PropTypes.number,
   snapped: PropTypes.bool,
   source: PropTypes.string,
+  sourceid: PropTypes.string,
   statesgcnspp: PropTypes.number,
   river: PropTypes.string,
   streamorder: PropTypes.number,
@@ -301,6 +303,7 @@ WaterfallDetails.defaultProps = {
   sizeclasses: null,
   snapped: false,
   source: null,
+  sourceid: null,
   statesgcnspp: 0,
   river: null,
   streamorder: 0,

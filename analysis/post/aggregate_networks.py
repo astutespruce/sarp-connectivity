@@ -38,7 +38,6 @@ removed_dam_cols = (
     GENERAL_API_FIELDS1
     + [
         "NIDID",
-        "SourceDBID",
         "YearCompleted",
         "YearRemoved",
         "Height",

@@ -42,6 +42,7 @@ async def download_dams(token):
         df = df.rename(
             columns={
                 "SARPUniqueID": "SARPID",
+                "SourceDBID": "SourceID",
                 "PotentialFeasibility": "Feasibility",
                 "Barrier_Name": "Name",
                 "Other_Barrier_Name": "OtherName",
@@ -112,6 +113,7 @@ async def download_small_barriers(token):
 
         df = df.rename(
             columns={
+                "LocalID": "SourceID",
                 "Crossing_Code": "CrossingCode",
                 "Potential_Project": "PotentialProject",
                 "SARPUniqueID": "SARPID",
@@ -143,6 +145,7 @@ async def download_waterfalls(token):
         df = df.rename(
             columns={
                 "SARPUniqueId": "SARPID",
+                "LocalID": "SourceID",
                 "gnis_name_": "GNIS_Name",
                 "watercours": "River",
                 "name": "Name",

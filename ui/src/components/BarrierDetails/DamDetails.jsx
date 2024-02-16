@@ -77,7 +77,7 @@ const DamDetails = ({
   sizeclasses,
   snapped,
   source,
-  sourcedbid,
+  sourceid,
   stateregulated,
   statesgcnspp,
   streamorder,
@@ -340,7 +340,7 @@ const DamDetails = ({
           sarpid={sarpid}
           nidid={nidid}
           source={source}
-          sourcedbid={sourcedbid}
+          sourceid={sourceid}
           link={link}
         />
       </Section>
@@ -397,7 +397,7 @@ DamDetails.propTypes = {
   sizeclasses: PropTypes.number,
   snapped: PropTypes.bool,
   source: PropTypes.string,
-  sourcedbid: PropTypes.string,
+  sourceid: PropTypes.string,
   stateregulated: PropTypes.number,
   statesgcnspp: PropTypes.number,
   streamorder: PropTypes.number,
@@ -522,7 +522,7 @@ DamDetails.defaultProps = {
   sizeclasses: null,
   snapped: false,
   source: null,
-  sourcedbid: null,
+  sourceid: null,
   stateregulated: null,
   statesgcnspp: 0,
   streamorder: 0,

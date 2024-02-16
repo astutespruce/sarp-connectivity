@@ -56,8 +56,10 @@ start = time()
 
 print("\n\n----------------------------------\nReading waterfalls\n---------------------------")
 
-# TODO: remove rename of Stream on next download
-df = gp.read_feather(src_dir / "waterfalls.feather").rename(columns={"fall_type": "FallType", "Stream": "River"})
+# TODO: remove rename of Stream / LocalID on next download
+df = gp.read_feather(src_dir / "waterfalls.feather").rename(
+    columns={"fall_type": "FallType", "Stream": "River", "LocalID": "SourceID"}
+)
 
 ### drop any that are outside analysis HUC2s
 df = df.join(get_huc2(df))
@@ -81,7 +83,7 @@ df.loc[df.Source == "Amy Cottrell, Auburn", "Source"] = "Amy Cotrell, Auburn Uni
 
 df.Name = df.Name.fillna("").str.strip()
 df.loc[df.Name.str.lower().isin(["unknown"]), "Name"] = ""
-df.LocalID = df.LocalID.fillna("").str.strip()
+df.SourceID = df.SourceID.fillna("").str.strip()
 df.River = df.River.fillna("").str.strip()
 
 df.GNIS_Name = df.GNIS_Name.fillna("").str.strip()
@@ -92,12 +94,6 @@ df = df.drop(columns=["GNIS_Name"])
 
 df["Recon"] = df.Recon.fillna(0).astype("uint8")
 df["ManualReview"] = df.ManualReview.fillna(0).astype("uint8")
-
-
-### Add persistant sourceID based on original IDs
-df["sourceID"] = df.LocalID
-ix = ~df.fall_id.isnull()
-df.loc[ix, "sourceID"] = df.loc[ix].fall_id.astype("int").astype("str")
 
 
 ### Add tracking fields

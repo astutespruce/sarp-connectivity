@@ -10,7 +10,7 @@ const IDInfo = ({
   sarpid,
   nidid,
   source,
-  sourcedbid,
+  sourceid,
   link,
   nearestcrossingid,
 }) => {
@@ -42,10 +42,10 @@ const IDInfo = ({
         </Entry>
       ) : null}
 
-      {!isEmptyString(sourcedbid) ? (
+      {!isEmptyString(sourceid) ? (
         <Entry>
           <Field label="Source ID">
-            <Text sx={{ textAlign: 'right' }}>{sourcedbid}</Text>
+            <Text sx={{ textAlign: 'right' }}>{sourceid}</Text>
           </Field>
         </Entry>
       ) : null}
@@ -104,7 +104,7 @@ IDInfo.propTypes = {
   sarpid: PropTypes.string,
   nidid: PropTypes.string,
   source: PropTypes.string,
-  sourcedbid: PropTypes.string,
+  sourceid: PropTypes.string,
   link: PropTypes.string,
   nearestcrossingid: PropTypes.string,
 }
@@ -113,7 +113,7 @@ IDInfo.defaultProps = {
   sarpid: null,
   nidid: null,
   source: null,
-  sourcedbid: null,
+  sourceid: null,
   link: null,
   nearestcrossingid: null,
 }

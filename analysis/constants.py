@@ -188,7 +188,7 @@ MAX_PIPELINE_LENGTH = 250  # meters
 
 # NOTE: not all feature services have all columns
 DAM_FS_COLS = [
-    "SourceDBID",
+    "SourceID",
     "DB_Source",
     "SARPUniqueID",
     "NIDID",
@@ -242,7 +242,6 @@ SMALL_BARRIER_COLS = [
     "SARPUniqueID",
     "Recon",
     "ManualReview",
-    "LocalID",
     "Crossing_Code",
     "StreamName",
     "Road",
@@ -276,7 +275,6 @@ WATERFALL_COLS = [
     "fall_id",
     "fall_type",
     "Source",
-    "LocalID",
     "name",
     "gnis_name_",
     "watercours",
