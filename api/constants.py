@@ -137,6 +137,7 @@ DOWNSTREAM_LINEAR_NETWORK_FIELDS = [
     "FlowsToOcean",
     "FlowsToGreatLakes",
     "ExitsRegion",
+    "InvasiveNetwork",
 ]
 
 # metric fields not used in tiles because they can be calculated on frontend or are not used
@@ -250,6 +251,7 @@ FILTER_FIELDS = [
     "FlowsToGreatLakes",
     "DownstreamGreatLakesMilesClass",
     "DownstreamGreatLakesBarriersClass",
+    "InvasiveNetwork",
     "CoastalHUC8",
     "PassageFacilityClass",
     "DisadvantagedCommunity",
@@ -492,6 +494,7 @@ WF_CORE_FIELDS = (
         "Subwatershed",
         "Excluded",
         "OnLoop",
+        "Invasive",
     ]
     + UNIT_FIELDS
     + METRIC_FIELDS
@@ -1022,6 +1025,7 @@ DOMAINS = {
     "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
     "FlowsToGreatLakes": BOOLEAN_OFFNETWORK_DOMAIN,
     "ExitsRegion": BOOLEAN_OFFNETWORK_DOMAIN,
+    "InvasiveNetwork": BOOLEAN_OFFNETWORK_DOMAIN,
     "OwnerType": OWNERTYPE_DOMAIN,
     "BarrierOwnerType": BARRIEROWNERTYPE_DOMAIN,
     "ProtectedLand": BOOLEAN_DOMAIN,
@@ -1193,6 +1197,7 @@ FIELD_DEFINITIONS = {
     "MilesToOutlet": "miles between this {type} and the downstream-most point on the full aquatic network on which it occurs. -1 = not available.",
     "FlowsToOcean": "indicates if this {type} was snapped to a stream or river that is known to flow into the ocean.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the ocean.",
     "FlowsToGreatLakes": "indicates if this {type} was snapped to a stream or river that is known to flow into the Great Lakes.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the Great Lakes.",
+    "InvasiveNetwork": "indicates if there is an invasive species barrier at or downstream of this {type}.",
     # Species upstream habitat
     "AlewifeHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for Alewife.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by the Chesapeake Fish Passage Workgroup; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
     "FreeAlewifeHabitatDownstreamMiles": "number of free-flowing miles in the downstream river network from this {type} that are attributed as habitat for Alewife.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by the Chesapeake Fish Passage Workgroup; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",

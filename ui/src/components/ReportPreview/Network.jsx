@@ -295,13 +295,6 @@ const Network = ({
         </Table>
       </Box>
 
-      {invasive ? (
-        <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
-          Note: this {barrierTypeLabel} is identified as a beneficial to
-          restricting the movement of invasive species and is not ranked.
-        </Paragraph>
-      ) : null}
-
       {unranked && !invasive ? (
         <Paragraph variant="help" sx={{ mt: '2rem', fontSize: 0 }}>
           Note: this {barrierTypeLabel} excluded from ranking based on field

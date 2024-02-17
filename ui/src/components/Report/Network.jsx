@@ -384,13 +384,6 @@ const Network = ({
           </View>
         </Flex>
 
-        {invasive ? (
-          <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
-            Note: this {barrierTypeLabel} is identified as a beneficial to
-            restricting the movement of invasive species and is not ranked.
-          </Text>
-        ) : null}
-
         {unranked && !invasive ? (
           <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
             Note: this {barrierTypeLabel} excluded from ranking based on field

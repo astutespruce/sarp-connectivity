@@ -261,7 +261,7 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
     if len(s):
         raise ValueError(f"Multiple barriers at exact same location on flowline: {s}")
 
-    # Convert to DataFrame so that geometry cols are arrays of pygeos geometries
+    # Convert to DataFrame so that geometry cols are arrays of shapely geometries
     tmp = pd.DataFrame(split_segments.copy())
     tmp.flowline = tmp.flowline.values
     tmp.barrier = tmp.barrier.values
@@ -386,7 +386,16 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
         [
             updated_joins,
             new_joins[
-                ["upstream", "downstream", "upstream_id", "downstream_id", "type", "marine", "great_lakes", "junction"]
+                [
+                    "upstream",
+                    "downstream",
+                    "upstream_id",
+                    "downstream_id",
+                    "type",
+                    "marine",
+                    "great_lakes",
+                    "junction",
+                ]
             ],
         ],
         ignore_index=True,

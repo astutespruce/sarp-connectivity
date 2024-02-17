@@ -661,6 +661,7 @@ df[
         "smallfish_network",
         "removed",
         "YearRemoved",
+        "invasive",
     ]
 ].to_feather(
     snapped_dir / "small_barriers.feather",

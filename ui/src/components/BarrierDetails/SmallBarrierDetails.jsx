@@ -8,6 +8,7 @@ import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 
 import {
+  barrierTypeLabelSingular,
   SMALL_BARRIER_SEVERITY,
   CONDITION,
   CROSSING_TYPE,
@@ -75,6 +76,7 @@ const BarrierDetails = ({
   in_network_type,
   intermittent,
   invasive,
+  invasivenetwork,
   landcover,
   link,
   milestooutlet,
@@ -111,6 +113,7 @@ const BarrierDetails = ({
   yearremoved,
   ...props // includes species habitat fields selected dynamically
 }) => {
+  const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
   const habitat = hasnetwork ? extractHabitat(props) : []
 
   return (
@@ -293,6 +296,24 @@ const BarrierDetails = ({
         />
       </Section>
 
+      {hasnetwork && (invasive || invasivenetwork === 1) ? (
+        <Section title="Invasive species management">
+          {!invasive && invasivenetwork === 1 ? (
+            <Entry>
+              Upstream of a barrier identified as a beneficial to restricting
+              the movement of invasive species.
+            </Entry>
+          ) : null}
+
+          {invasive ? (
+            <Entry>
+              This {barrierTypeLabel} is identified as a beneficial to
+              restricting the movement of invasive species and is not ranked.
+            </Entry>
+          ) : null}
+        </Section>
+      ) : null}
+
       <Section title="Other information">
         <IDInfo
           barrierType={barrierType}
@@ -313,8 +334,8 @@ BarrierDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-  lat: PropTypes.string.isRequired,
-  lon: PropTypes.string.isRequired,
+  lat: PropTypes.number.isRequired,
+  lon: PropTypes.number.isRequired,
   alteredupstreammiles: PropTypes.number,
   barrierownertype: PropTypes.number,
   barrierseverity: PropTypes.number,
@@ -370,6 +391,7 @@ BarrierDetails.propTypes = {
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   yearremoved: PropTypes.number,
+  invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
   freealewifehabitatdownstreammiles: PropTypes.number,
   americaneelhabitatupstreammiles: PropTypes.number,
@@ -487,6 +509,7 @@ BarrierDetails.defaultProps = {
   waterbodykm2: -1,
   waterbodysizeclass: null,
   yearremoved: 0,
+  invasivenetwork: 0,
   alewifehabitatupstreammiles: 0,
   freealewifehabitatdownstreammiles: 0,
   americaneelhabitatupstreammiles: 0,

@@ -386,15 +386,6 @@ const NetworkInfo = ({
         </Field>
       </Entry>
 
-      {invasive ? (
-        <Entry>
-          <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>
-            Note: this {barrierTypeLabel} is identified as a beneficial to
-            restricting the movement of invasive species and is not ranked.
-          </Paragraph>
-        </Entry>
-      ) : null}
-
       {unranked && !invasive ? (
         <Entry>
           <Paragraph variant="help" sx={{ mt: '1rem', fontSize: 0 }}>

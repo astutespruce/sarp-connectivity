@@ -28,6 +28,8 @@ from analysis.constants import (
     EXCLUDE_RECON,
     EXCLUDE_MANUALREVIEW,
     DAM_BARRIER_SEVERITY_TO_DOMAIN,
+    INVASIVE_RECON,
+    INVASIVE_MANUALREVIEW,
 )
 
 from analysis.lib.io import read_feathers
@@ -104,8 +106,8 @@ df["dropped"] = False
 # NOTE: no waterfalls are currently excluded from analysis
 df["excluded"] = False
 
-# removed is just to satisfy expected fields for barriers, not relevant
-df["removed"] = False
+# used to flag networks that have invasive barriers, including waterfalls
+df["invasive"] = False
 
 df["log"] = ""
 
@@ -175,6 +177,18 @@ ix = df.ManualReview.isin(EXCLUDE_MANUALREVIEW)
 df.loc[ix, "excluded"] = True
 df.loc[ix, "log"] = f"excluded: ManualReview one of {EXCLUDE_MANUALREVIEW}"
 print(f"Excluded {df.excluded.sum():,} waterfalls from network analysis")
+
+### Mark invasive barriers
+# for waterfalls, these indicate that the waterfall is a barrier to flow of invasive species
+invasive_fields = {
+    "Recon": INVASIVE_RECON,
+    "ManualReview": INVASIVE_MANUALREVIEW,
+}
+
+for field, values in invasive_fields.items():
+    ix = df[field].isin(values)
+    df.loc[ix, "invasive"] = True
+
 
 ### Snap waterfalls
 print(f"Snapping {len(df):,} waterfalls")
@@ -362,6 +376,7 @@ df[
         "primary_network",
         "largefish_network",
         "smallfish_network",
+        "invasive",
     ]
 ].to_feather(
     snapped_dir / "waterfalls.feather",

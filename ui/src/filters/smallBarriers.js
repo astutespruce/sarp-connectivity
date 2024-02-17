@@ -19,6 +19,7 @@ import {
   DOWNSTREAM_OCEAN_MILES,
   DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN,
   DISADVANTAGED_COMMUNITY,
+  INVASIVE_NETWORK,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -173,6 +174,20 @@ export const smallBarriers = [
         sort: true,
         hideMissingValues: true,
         ...getEntries(BARRIEROWNERTYPE),
+      },
+    ],
+  },
+
+  {
+    id: 'invasivespecies',
+    title: 'Invasive species management',
+    filters: [
+      {
+        field: 'invasivenetwork',
+        title: 'Upstream of an invasive species barrier?',
+        hideMissingValues: false,
+        help: 'Includes all barriers that are upstream of a barrier identified as a beneficial to restricting the movement of invasive species.',
+        ...getEntries(INVASIVE_NETWORK),
       },
     ],
   },

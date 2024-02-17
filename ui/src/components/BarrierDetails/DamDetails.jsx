@@ -1,12 +1,13 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Text } from 'theme-ui'
+import { Box, Flex, Paragraph, Text } from 'theme-ui'
 import { Envelope, ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { extractHabitat } from 'components/Data/Habitat'
 import { Entry, Field, Section } from 'components/Sidebar'
 
 import {
+  barrierTypeLabelSingular,
   siteMetadata,
   HAZARD,
   CONDITION,
@@ -97,8 +98,10 @@ const DamDetails = ({
   waterright,
   yearcompleted,
   yearremoved,
+  invasivenetwork,
   ...props // includes species habitat fields selected dynamically
 }) => {
+  const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
   const isLowheadDam = lowheaddam === 1 || lowheaddam === 2
   const isDiversion = diversion !== null && diversion >= 1
   const isUnspecifiedType = !(isLowheadDam || isDiversion || invasive)
@@ -356,6 +359,24 @@ const DamDetails = ({
         </Section>
       ) : null}
 
+      {hasnetwork && (invasive || invasivenetwork === 1) ? (
+        <Section title="Invasive species management">
+          {!invasive && invasivenetwork === 1 ? (
+            <Entry>
+              Upstream of a barrier identified as a beneficial to restricting
+              the movement of invasive species.
+            </Entry>
+          ) : null}
+
+          {invasive ? (
+            <Entry>
+              This {barrierTypeLabel} is identified as a beneficial to
+              restricting the movement of invasive species and is not ranked.
+            </Entry>
+          ) : null}
+        </Section>
+      ) : null}
+
       <Section title="Other information">
         <IDInfo
           barrierType={barrierType}
@@ -376,8 +397,8 @@ DamDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-  lat: PropTypes.string.isRequired,
-  lon: PropTypes.string.isRequired,
+  lat: PropTypes.number.isRequired,
+  lon: PropTypes.number.isRequired,
   alteredupstreammiles: PropTypes.number,
   barrierownertype: PropTypes.number,
   basin: PropTypes.string,
@@ -441,6 +462,7 @@ DamDetails.propTypes = {
   waterright: PropTypes.number,
   yearcompleted: PropTypes.number,
   yearremoved: PropTypes.number,
+  invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
   freealewifehabitatdownstreammiles: PropTypes.number,
   americaneelhabitatupstreammiles: PropTypes.number,
@@ -566,6 +588,7 @@ DamDetails.defaultProps = {
   waterright: null,
   yearcompleted: 0,
   yearremoved: 0,
+  invasivenetwork: 0,
   alewifehabitatupstreammiles: 0,
   freealewifehabitatdownstreammiles: 0,
   americaneelhabitatupstreammiles: 0,
