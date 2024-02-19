@@ -99,6 +99,26 @@ df = gp.read_feather(src_dir / "sarp_small_barriers.feather").rename(columns={"S
 df["NearestCrossingID"] = ""
 print(f"Read {len(df):,} small barriers")
 
+### Read in photo attachments, have to join on location
+urls = gp.read_feather(
+    src_dir / "sarp_small_barrier_survey_urls.feather",
+    columns=["geometry", "attachments"],
+)
+tree = shapely.STRtree(urls.geometry.values)
+left, right = tree.query(df.geometry.values, predicate="dwithin", distance=0.1)
+urls = (
+    pd.DataFrame(
+        {
+            "attachments": urls.attachments.values.take(right),
+        },
+        index=df.index.values.take(left),
+    )
+    .groupby(level=0)
+    .first()
+)
+
+df = df.join(urls)
+
 # TODO: remove rename of Stream on next full run
 crossings = (
     gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False).rename(columns={"Stream": "River"})

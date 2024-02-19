@@ -412,7 +412,9 @@ SB_CORE_FIELDS = unique(SB_CORE_FIELDS)
 SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS)
 
 SB_API_FIELDS = unique(
-    SB_CORE_FIELDS + SB_FILTER_FIELDS + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked", "in_network_type"]
+    SB_CORE_FIELDS
+    + SB_FILTER_FIELDS
+    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked", "in_network_type", "attachments"]
 )
 
 # Public API does not include tier fields

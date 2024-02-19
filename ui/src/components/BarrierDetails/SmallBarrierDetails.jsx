@@ -95,6 +95,7 @@ const BarrierDetails = ({
   snapped,
   source,
   sourceid,
+  attachments,
   statesgcnspp,
   river,
   streamorder,
@@ -324,6 +325,7 @@ const BarrierDetails = ({
           sourceid={sourceid}
           link={link}
           nearestcrossingid={nearestcrossingid}
+          attachments={attachments}
         />
       </Section>
     </Box>
@@ -375,6 +377,7 @@ BarrierDetails.propTypes = {
   snapped: PropTypes.bool,
   source: PropTypes.string,
   sourceid: PropTypes.string,
+  attachments: PropTypes.string,
   statesgcnspp: PropTypes.number,
   river: PropTypes.string,
   streamorder: PropTypes.number,
@@ -493,6 +496,7 @@ BarrierDetails.defaultProps = {
   snapped: false,
   source: null,
   sourceid: null,
+  attachments: null,
   statesgcnspp: 0,
   river: null,
   streamorder: 0,

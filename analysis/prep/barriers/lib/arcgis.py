@@ -6,6 +6,7 @@ from math import ceil
 from requests import HTTPError
 import geopandas as gp
 import pandas as pd
+import numpy as np
 
 
 # Mapping of ESRI WKID to proj4 strings
@@ -52,11 +53,7 @@ def get_token(user, password):
 
     content = response.json()
     if "error" in content:
-        raise HTTPError(
-            "Error making request: {}\n{}".format(
-                content["error"]["message"], content["error"]["details"]
-            )
-        )
+        raise HTTPError("Error making request: {}\n{}".format(content["error"]["message"], content["error"]["details"]))
 
     return content["token"]
 
@@ -86,9 +83,7 @@ async def get_json(client, url, params=None, token=None):
     response.raise_for_status()
     content = response.json()
     if "error" in content:
-        raise HTTPError(
-            f'Error making request to: {url}\n{content["error"]["message"]}\n{content["error"]["details"]}'
-        )
+        raise HTTPError(f'Error making request to: {url}\n{content["error"]["message"]}\n{content["error"]["details"]}')
 
     return content
 
@@ -166,11 +161,8 @@ async def download_fs(client, url, fields=None, token=None, target_wkid=None):
     for offset in range(0, batches * batch_size, batch_size):
         batch_query = deepcopy(query)
         batch_query["resultOffset"] = offset
-        tasks.append(
-            asyncio.ensure_future(
-                get_json(client, f"{url}/query", params=batch_query, token=token)
-            )
-        )
+        batch_query["resultRecordCount"] = batch_size
+        tasks.append(asyncio.ensure_future(get_json(client, f"{url}/query", params=batch_query, token=token)))
 
     completed = await asyncio.gather(*tasks)
 
@@ -188,3 +180,88 @@ async def download_fs(client, url, fields=None, token=None, target_wkid=None):
             merged = pd.concat([merged, df], ignore_index=True, sort=False)
 
     return merged
+
+
+async def get_attachments(client, url, token):
+    """Get attachment URLs for a FeatureService
+
+    URLS can be expanded to <prefix>/<id> for id in attachments.
+
+    Parameters
+    ----------
+    client: httpx.AsyncClient
+    url : str
+        services endpoint
+    token : str, optional
+        token, if required to access secured services
+
+    Returns
+    -------
+    Pandas DataFrame
+        each record is indexed on objectid field to link to record in FeatureService,
+        and contains a URL prefix and a dict of attachments: {<keyword>: <id>, ...}
+    """
+
+    # NOTE: this endpoint does not appear to respect the max record count of the service
+    batch_size = 1000
+
+    query = {"definitionExpression": "1=1", "returnUrl": False, "f": "json"}
+
+    ### Get count of attachments per feature
+    # NOTE: there is no API to get total count of attachments
+    records = (
+        await get_json(
+            client,
+            f"{url}/queryAttachments",
+            params={"definitionExpression": "1=1", "returnCountOnly": "true"},
+            token=token,
+        )
+    )["attachmentGroups"]
+    count = sum([r["count"] for r in records])
+    batches = ceil(count / batch_size)
+
+    ### Download batches and merge
+    tasks = []
+    for offset in range(0, batches * batch_size, batch_size):
+        batch_query = deepcopy(query)
+        batch_query["resultOffset"] = offset
+        batch_query["resultRecordCount"] = batch_size
+        tasks.append(
+            asyncio.ensure_future(get_json(client, f"{url}/queryAttachments", params=batch_query, token=token))
+        )
+
+    completed = await asyncio.gather(*tasks)
+
+    merged = None
+    for results in completed:
+        records = []
+        for group in results["attachmentGroups"]:
+            records.extend(
+                [
+                    {"objectid": group["parentObjectId"], "id": attachment["id"], "keyword": attachment["keywords"]}
+                    for attachment in group["attachmentInfos"]
+                    if attachment["id"] and attachment["keywords"]
+                ]
+            )
+
+        df = pd.DataFrame(records)
+
+        if merged is None:
+            merged = df
+        else:
+            merged = pd.concat([merged, df], ignore_index=True, sort=False)
+
+    # Because results may be split across attachment groups, we need to merge
+    # attachments per objectid to dict after merging all records
+    df = pd.DataFrame(
+        merged.set_index("objectid")[["keyword", "id"]]
+        .apply(lambda row: f"{row.keyword.lower()}:{row.id}", axis=1)
+        .groupby(level=0)
+        .unique()
+        .apply(",".join)
+        .rename("attachments")
+    )
+
+    df["attachments"] = url + "/" + df.index.astype("str") + "/attachements|" + df.attachments
+
+    return df.attachments
