@@ -238,9 +238,14 @@ async def get_attachments(client, url, token):
         for group in results["attachmentGroups"]:
             records.extend(
                 [
-                    {"objectid": group["parentObjectId"], "id": attachment["id"], "keyword": attachment["keywords"]}
+                    {
+                        "objectid": group["parentObjectId"],
+                        "id": attachment["id"],
+                        "keyword": attachment["keywords"]
+                        or str(attachment["name"]).replace(".jpg", "").replace(".jpeg", ""),
+                    }
                     for attachment in group["attachmentInfos"]
-                    if attachment["id"] and attachment["keywords"]
+                    if attachment["id"]
                 ]
             )
 

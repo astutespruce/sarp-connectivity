@@ -37,6 +37,7 @@ WATERFALLS_URL = (
 SMALL_BARRIER_SURVEY_URLS = {
     "Southeast (inland)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/service_27160a30499e47ad8a33b641b2fb6b97/FeatureServer/0",
     "Southeast (tidal)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/service_e2b2b49c4126467eac1d77069e33820f/FeatureServer/0",
+    "Southeast (pre 2019)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/SARP_AOP_Road_Crossings_PriorTo2019/FeatureServer/0",
     "Southeast (coarse)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/service_4b226787a3464f478602431383498138/FeatureServer/0",
     "Western (inland)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/service_1da663f4b2ff45aeadbf5568829f40f6/FeatureServer/0",
 }
@@ -152,8 +153,14 @@ async def download_small_barrier_survey_photo_urls(token):
         for id, survey_url in SMALL_BARRIER_SURVEY_URLS.items():
             print(f"Downloading attachments from: {id}")
             df = await download_fs(
-                client, survey_url, fields=["objectid", "Crossing_Code", "DateObserved"], token=token
+                client,
+                survey_url,
+                fields=["OBJECTID" if id == "Southeast (pre 2019)" else "objectid", "Crossing_Code", "DateObserved"],
+                token=token,
             )
+
+            df = df.rename(columns={"OBJECTID": "objectid"})
+
             # convert from ESRI format to string
             df["DateObserved"] = pd.to_datetime(df.DateObserved, unit="ms").dt.strftime("%m/%d/%Y")
 
