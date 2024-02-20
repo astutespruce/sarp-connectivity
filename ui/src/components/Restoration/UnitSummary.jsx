@@ -5,14 +5,21 @@ import { Box, Button, Heading, Flex, Text, Paragraph } from 'theme-ui'
 import { AngleDoubleRight } from '@emotion-icons/fa-solid'
 
 import { Link } from 'components/Link'
+import { Downloader } from 'components/Download'
 import { UnitSearch } from 'components/UnitSearch'
-import { STATE_FIPS, STATES } from 'config'
+import { STATE_FIPS, STATES, barrierTypeLabels } from 'config'
 import { formatNumber, pluralize } from 'util/format'
 
 import Chart from './Chart'
 import UnitListItem from './UnitListItem'
 import { layers } from './layers'
 import { extractYearRemovedStats } from './util'
+
+const defaultDownloaderConfig = {
+  filters: {
+    removed: new Set([true]),
+  },
+}
 
 const UnitSummary = ({
   barrierType,
@@ -150,6 +157,86 @@ const UnitSummary = ({
         }
       }
     )
+
+  const summaryUnitsForDownload = summaryUnits.reduce(
+    (prev, { layerId: l, id: i }) =>
+      Object.assign(prev, {
+        [l]: prev[l] ? prev[l].concat([i]) : [i],
+      }),
+    {}
+  )
+
+  const downloaderConfig = {
+    // aggregate summary unit ids to list per summary unit layer
+    summaryUnits: summaryUnitsForDownload,
+    ...defaultDownloaderConfig,
+  }
+
+  let downloadButtons = null
+
+  switch (barrierType) {
+    case 'dams': {
+      downloadButtons = (
+        <Box sx={{ width: '10rem' }}>
+          <Flex sx={{ ml: '1rem', flex: '1 1 auto' }}>
+            <Downloader
+              barrierType="dams"
+              label={barrierTypeLabels.dams}
+              config={downloaderConfig}
+              disabled={dams === 0}
+              showOptions={false}
+              includeUnranked
+            />
+          </Flex>
+        </Box>
+      )
+
+      break
+    }
+    case 'small_barriers': {
+      downloadButtons = (
+        <Box sx={{ width: '12rem' }}>
+          <Flex sx={{ ml: '1rem', flex: '1 1 auto' }}>
+            <Downloader
+              barrierType="small_barriers"
+              label={barrierTypeLabels.small_barriers}
+              config={downloaderConfig}
+              disabled={totalSmallBarriers === 0}
+              showOptions={false}
+              includeUnranked
+            />
+          </Flex>
+        </Box>
+      )
+      break
+    }
+    case 'combined_barriers': {
+      downloadButtons = (
+        <Flex sx={{ justifyContent: 'space-between', gap: '1rem' }}>
+          <Downloader
+            barrierType="dams"
+            label={barrierTypeLabels.dams}
+            config={downloaderConfig}
+            disabled={dams === 0}
+            showOptions={false}
+            includeUnranked
+          />
+          <Downloader
+            barrierType="small_barriers"
+            label={barrierTypeLabels.small_barriers}
+            config={downloaderConfig}
+            disabled={totalSmallBarriers === 0}
+            showOptions={false}
+            includeUnranked
+          />
+        </Flex>
+      )
+      break
+    }
+    default: {
+      break
+    }
+  }
 
   return (
     <Flex sx={{ flexDirection: 'column', height: '100%' }}>
@@ -381,6 +468,34 @@ const UnitSummary = ({
           year as a given barrier.
         </Paragraph>
       </Box>
+
+      <Flex
+        sx={{
+          flex: '0 0 auto',
+          alignItems: 'center',
+          pt: '0.5rem',
+          px: '1rem',
+          pb: '1rem',
+          borderTop: '1px solid #DDD',
+          bg: '#f6f6f2',
+          '& button': {
+            fontSize: 1,
+            textAlign: 'left',
+            p: '0.5rem',
+          },
+        }}
+      >
+        <Text sx={{ lineHeight: 1, flex: '0 0 auto' }}>Download:</Text>
+        <Flex
+          sx={{
+            flex: '1 1 auto',
+            mt: '0.5rem',
+            justifyContent: 'flex-end',
+          }}
+        >
+          {downloadButtons}
+        </Flex>
+      </Flex>
     </Flex>
   )
 }

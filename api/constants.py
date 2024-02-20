@@ -67,6 +67,7 @@ def unique(items):
 
 # Fields that have multiple values present, encoded as comma-delimited string
 MULTIPLE_VALUE_FIELDS = ["SalmonidESU", "DisadvantagedCommunity"]
+BOOLEAN_FILTER_FIELDS = ["Removed"]
 
 
 # Summary unit fields
@@ -269,15 +270,11 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "YearCompletedClass",
     "LowheadDam",
     "WaterbodySizeClass",
+    "Removed",
 ]
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
-SB_FILTER_FIELDS = FILTER_FIELDS + [
-    "BarrierSeverity",
-    "Constriction",
-    "RoadType",
-    "CrossingType",
-]
+SB_FILTER_FIELDS = FILTER_FIELDS + ["BarrierSeverity", "Constriction", "RoadType", "CrossingType", "Removed"]
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
 # BarrierSeverity included for API but not filtering
