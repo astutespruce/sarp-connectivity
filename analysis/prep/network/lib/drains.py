@@ -1,6 +1,7 @@
 from time import time
 
 import pandas as pd
+import numpy as np
 import geopandas as gp
 import shapely
 
@@ -59,10 +60,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     # that were removed)
     tmp = wb_joins[["lineID", "wbID"]].set_index("lineID")
     drains = (
-        joins.loc[
-            joins.upstream_id.isin(wb_joins.lineID.unique())
-            & (joins.downstream_id != 0)
-        ]
+        joins.loc[joins.upstream_id.isin(wb_joins.lineID.unique()) & (joins.downstream_id != 0)]
         .join(tmp.wbID.rename("upstream_wbID"), on="upstream_id")
         .join(tmp.wbID.rename("downstream_wbID"), on="downstream_id")
     )
@@ -89,9 +87,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
 
     # drop any that are downstream terminals; these are most likely waterbodies
     # that do not have further downstream networks (e.g., flow to ocean)
-    ix = joins.loc[
-        joins.upstream_id.isin(drain_pts.lineID) & (joins.downstream_id == 0)
-    ].upstream_id
+    ix = joins.loc[joins.upstream_id.isin(drain_pts.lineID) & (joins.downstream_id == 0)].upstream_id
     drain_pts = drain_pts.loc[~drain_pts.lineID.isin(ix)].copy()
 
     ### Find all drain points that share the same geometry.
@@ -107,8 +103,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         # downstreams, favoring the non-loops
         j = (
             joins.loc[
-                joins.upstream_id.isin(drain_pts.loc[ix].lineID)
-                & (joins.downstream_id != 0),
+                joins.upstream_id.isin(drain_pts.loc[ix].lineID) & (joins.downstream_id != 0),
                 ["upstream_id", "downstream_id", "loop"],
             ]
             .sort_values(by=["upstream_id", "loop"], ascending=True)
@@ -120,11 +115,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         drain_pts = drain_pts.join(j, on="lineID")
 
         # for those at same location that share the same downstream line, use that line instead
-        s = (
-            drain_pts.loc[drain_pts.downstream_id.notnull()]
-            .groupby("downstream_id")
-            .size()
-        )
+        s = drain_pts.loc[drain_pts.downstream_id.notnull()].groupby("downstream_id").size()
         ix = drain_pts.downstream_id.isin(s[s > 1].index.astype("uint32"))
         drain_pts.loc[ix, "lineID"] = drain_pts.loc[ix].downstream_id.astype("uint32")
         # update the line properties to match that lineID
@@ -154,17 +145,13 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
 
     dups = drain_pts.groupby("wbID").size() > 1
     if dups.sum():
-        print(
-            f"Found {dups.sum():,} waterbodies with multiple drain points; cleaing up"
-        )
+        print(f"Found {dups.sum():,} waterbodies with multiple drain points; cleaing up")
         # find all waterbodies that have duplicate drains
         ix = drain_pts.wbID.isin(dups[dups].index)
         wb_ids = drain_pts.loc[ix].wbID.unique()
         # find all corresponding line IDs for these waterbodies
         line_ids = wb_joins.loc[wb_joins.wbID.isin(wb_ids)].lineID.unique()
-        lines_per_wb = (
-            drain_pts.loc[drain_pts.wbID.isin(wb_ids)].groupby("wbID").lineID.unique()
-        )
+        lines_per_wb = drain_pts.loc[drain_pts.wbID.isin(wb_ids)].groupby("wbID").lineID.unique()
         # search within 20 degrees removed from ids; this hopefully
         # picks up any gaps where lines exit waterbodies for a ways then re-enter
         # some floodplain areas have very big loops outside waterbody
@@ -185,23 +172,19 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
         # these are "parents" in the directed graph
         upstreams = graph.find_all_parents(lines_per_wb.values)
         ix = pd.Series(upstreams).explode().dropna().unique()
-        print(
-            f"Dropping {len(ix):,} drains that are upstream of other drains in the same waterbody"
-        )
+        print(f"Dropping {len(ix):,} drains that are upstream of other drains in the same waterbody")
         drain_pts = drain_pts.loc[~drain_pts.lineID.isin(ix)]
 
     ### check if drain points are on a loop and very close to the junction
     # of the loop and nonloop (e.g., Hoover Dam, HUC2 == 15)
     drain_pts["snap_to_junction"] = False
-    drain_pts["snap_dist"] = 0
+    drain_pts["snap_dist"] = np.float64(0)
 
     drains_by_wb = drain_pts.groupby("wbID").size()
     multiple_drain_wb = drains_by_wb[drains_by_wb > 1].index
 
     # limit this to drain points on loops where there are multiple drains per waterbody
-    loop_pts = drain_pts.loc[
-        drain_pts.loop & (drain_pts.wbID.isin(multiple_drain_wb))
-    ].copy()
+    loop_pts = drain_pts.loc[drain_pts.loop & (drain_pts.wbID.isin(multiple_drain_wb))].copy()
 
     # search within 3 degrees removed from ids; this hopefully
     # picks up any downstream junctions
@@ -230,16 +213,12 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
 
     # make sure they are connected on the network
     g = DirectedGraph(pairs, source="upstream_id", target="downstream_id")
-    ix = g.is_reachable(
-        loop_pts.iloc[left].lineID.values, downstream_junction_pts.iloc[right].index
-    )
+    ix = g.is_reachable(loop_pts.iloc[left].lineID.values, downstream_junction_pts.iloc[right].index)
     left = left[ix]
     right = right[ix]
 
     if len(left):
-        print(
-            f"Found {len(left)} drains on loops within 5m upstream of a junction, updating them..."
-        )
+        print(f"Found {len(left)} drains on loops within 5m upstream of a junction, updating them...")
         # NOTE: these are attributed to the flowline that is DOWNSTREAM of the junction point
         # whereas other drains are attributed to the flowline upstream of themselves
         ix = loop_pts.index.take(left)
@@ -259,11 +238,7 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     tmp_flowline_pts = tmp_flowlines[["geometry", "loop", "TotDASqKm"]].copy()
     tmp_flowline_pts["geometry"] = shapely.get_point(tmp_flowlines.geometry.values, 0)
     fl_pt = pd.Series(tmp_flowline_pts.geometry.values, index=tmp_flowline_pts.index)
-    headwaters = (
-        sjoin_geometry(wb_geom, fl_pt, predicate="intersects")
-        .rename("lineID")
-        .reset_index()
-    )
+    headwaters = sjoin_geometry(wb_geom, fl_pt, predicate="intersects").rename("lineID").reset_index()
     headwaters = (
         headwaters.join(
             wb_atts,
@@ -277,15 +252,11 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     )
     headwaters["headwaters"] = True
     headwaters["snap_to_junction"] = False
-    headwaters["snap_dist"] = 0
-    print(
-        f"Found {len(headwaters):,} headwaters waterbodies, adding drain points for these too"
-    )
+    headwaters["snap_dist"] = np.float64(0)
+    print(f"Found {len(headwaters):,} headwaters waterbodies, adding drain points for these too")
 
     drain_pts["headwaters"] = False
-    drain_pts = pd.concat(
-        [drain_pts, headwaters], sort=False, ignore_index=True
-    ).reset_index(drop=True)
+    drain_pts = pd.concat([drain_pts, headwaters], sort=False, ignore_index=True).reset_index(drop=True)
 
     # join in line properties
     drain_pts = drain_pts.drop(columns=["loop", "TotDASqKm"]).join(
@@ -302,10 +273,6 @@ def create_drain_points(flowlines, joins, waterbodies, wb_joins):
     drain_pts.lineID = drain_pts.lineID.astype("uint32")
     drain_pts.flowlineLength = drain_pts.flowlineLength.astype("float32")
 
-    print(
-        "Done extracting {:,} waterbody drain points in {:.2f}s".format(
-            len(drain_pts), time() - start
-        )
-    )
+    print("Done extracting {:,} waterbody drain points in {:.2f}s".format(len(drain_pts), time() - start))
 
     return drain_pts

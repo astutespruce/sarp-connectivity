@@ -32,10 +32,7 @@ huc2s = huc2_df.HUC2.sort_values().values
 
 drains = (
     read_feathers(
-        [
-            data_dir / "nhd/clean/" / huc2 / "waterbody_drain_points.feather"
-            for huc2 in huc2s
-        ],
+        [data_dir / "nhd/clean/" / huc2 / "waterbody_drain_points.feather" for huc2 in huc2s],
         new_fields={"HUC2": huc2s},
         geo=True,
     )
@@ -54,7 +51,6 @@ drains = (
 )
 
 drains["intermittent"] = drains.lineFCode.isin([46003, 46007])
-
 drains.loc[drains.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
 
 
@@ -62,9 +58,7 @@ merged = None
 for huc2 in huc2s:
     huc2_start = time()
     print(f"----- Processing {huc2} ------")
-    waterbodies = gp.read_feather(nhd_dir / huc2 / "waterbodies.feather").set_index(
-        "wbID"
-    )
+    waterbodies = gp.read_feather(nhd_dir / huc2 / "waterbodies.feather").set_index("wbID")
 
     df = find_dam_faces(drains.loc[drains.HUC2 == huc2], waterbodies)
     merged = append(merged, df)
@@ -76,7 +70,17 @@ df = merged.reset_index(drop=True)
 dams = gp.read_feather(data_dir / "barriers/master/dams.feather")
 # drop any that were previously estimated
 dams = dams.loc[
-    dams.wbID.notnull() & (~dams.Source.isin(["Estimated Dams OCT 2021"]))
+    dams.wbID.notnull()
+    & (
+        ~dams.Source.isin(
+            [
+                "Estimated Dams OCT 2021",
+                "ESTIMATED DAMS OCT 2021",
+                "Estimated Dams Summer 2022",
+                "Estimated Dams JAN 2023",
+            ]
+        )
+    )
 ].copy()
 
 has_dam = df.wbID.isin(dams.wbID.unique())
@@ -85,11 +89,7 @@ states = gp.read_feather("data/boundaries/states.feather", columns=["id", "geome
 tree = shapely.STRtree(df.geometry.values)
 left, right = tree.query(states.geometry.values, predicate="intersects")
 
-state_join = (
-    pd.DataFrame({"state": states.id.take(left), "drain": df.index.take(right)})
-    .groupby("drain")
-    .first()
-)
+state_join = pd.DataFrame({"state": states.id.take(left), "drain": df.index.take(right)}).groupby("drain").first()
 
 df = df.join(state_join)
 
@@ -97,28 +97,18 @@ df = df.join(state_join)
 df = df.loc[df.state.isin(STATES)].copy()
 
 write_dataframe(df.loc[~has_dam], out_dir / "estimated_dam_lines.fgb")
-write_dataframe(
-    df.loc[~has_dam], tmp_dir / "estimated_dam_lines.gdb", driver="OpenFileGDB"
-)
+write_dataframe(df.loc[~has_dam], tmp_dir / "estimated_dam_lines.gdb", driver="OpenFileGDB")
 
 write_dataframe(df.loc[has_dam], out_dir / "estimated_dam_lines_with_dam.fgb")
-write_dataframe(
-    df.loc[has_dam], tmp_dir / "estimated_dam_lines_with_dam.gdb", driver="OpenFileGDB"
-)
+write_dataframe(df.loc[has_dam], tmp_dir / "estimated_dam_lines_with_dam.gdb", driver="OpenFileGDB")
 
 
-df = (
-    df.join(drains.geometry.rename("drain"), on="drainID")
-    .set_geometry("drain")
-    .drop(columns=["geometry"])
-)
+df = df.join(drains.geometry.rename("drain"), on="drainID").set_geometry("drain").drop(columns=["geometry"])
 write_dataframe(df.loc[~has_dam], out_dir / "estimated_dams.fgb")
 write_dataframe(df.loc[~has_dam], tmp_dir / "estimated_dams.gdb", driver="OpenFileGDB")
 
 write_dataframe(df.loc[has_dam], out_dir / "estimated_dams_with_dam.fgb")
-write_dataframe(
-    df.loc[has_dam], tmp_dir / "estimated_dams_with_dam.gdb", driver="OpenFileGDB"
-)
+write_dataframe(df.loc[has_dam], tmp_dir / "estimated_dams_with_dam.gdb", driver="OpenFileGDB")
 
 
 print(f"Total elapsed {time() - start:,.2f}s")

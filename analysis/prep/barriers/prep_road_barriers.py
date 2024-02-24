@@ -94,8 +94,7 @@ qa_dir = barriers_dir / "qa"
 start = time()
 
 print("Reading data")
-# TODO: remove rename of Stream / LocalID on next download
-df = gp.read_feather(src_dir / "sarp_small_barriers.feather").rename(columns={"Stream": "River", "LocalID": "SourceID"})
+df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
 df["NearestCrossingID"] = ""
 print(f"Read {len(df):,} small barriers")
 
@@ -104,14 +103,14 @@ urls = gp.read_feather(
     src_dir / "sarp_small_barrier_survey_urls.feather",
     columns=["geometry", "attachments"],
 )
-tree = shapely.STRtree(urls.geometry.values)
-left, right = tree.query(df.geometry.values, predicate="dwithin", distance=0.1)
+tree = shapely.STRtree(df.geometry.values)
+left, right = tree.query_nearest(urls.geometry.values, max_distance=50)
 urls = (
     pd.DataFrame(
         {
-            "attachments": urls.attachments.values.take(right),
+            "attachments": urls.attachments.values.take(left),
         },
-        index=df.index.values.take(left),
+        index=df.index.values.take(right),
     )
     .groupby(level=0)
     .first()
@@ -119,7 +118,7 @@ urls = (
 
 df = df.join(urls)
 
-# TODO: remove rename of Stream on next full run
+# TODO: remove rename of Stream on next full run of prep raw road crossings
 crossings = (
     gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False).rename(columns={"Stream": "River"})
 )
@@ -241,7 +240,9 @@ for column in ["PassageFacility"]:
 df.BarrierOwnerType = df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
 
 # Calculate BarrierSeverity from PotentialProject
-df["BarrierSeverity"] = df.PotentialProject.str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
+df["BarrierSeverity"] = (
+    df.PotentialProject.str.replace("  ", " ").str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
+)
 
 # per guidance from Kat, if SARP_Score != -1, assign as likely barrier
 df.loc[

@@ -114,6 +114,8 @@ snapped_df = (
     .first()
     .reset_index()
 )
+# groupby loses CRS
+snapped_df = snapped_df.set_crs(df.crs, allow_override=True)
 
 
 # Don't pull across those that were not manually snapped or are missing key fields
@@ -219,6 +221,9 @@ df.loc[ix, "Feasibility"] = 9
 
 # drop invasive species column to prevent later confusion
 df = df.drop(columns=["InvasiveSpecies"])
+
+# convert IsPriority to a bool (1 = Yes, Null/0/2 = No / not set)
+df["IsPriority"] = df.IsPriority == 1
 
 
 ### Set data types
@@ -548,9 +553,9 @@ for field, values in unranked_fields.items():
 # NOTE: this MUST be done AFTER dropping / excluding barriers
 # NOTE: Estimated Dams <datestamp> are estimated using methods here; others were done in other ways
 df["is_estimated"] = (
-    df.Name.str.lower().str.contains("Estimated Dam")
+    df.Name.str.lower().str.contains("estimated dam")
     | df.Source.str.lower().str.contains("estimated dam")
-    | (df.SourceID.str.startswith("e"))
+    | df.Source.str.lower().str.contains("nhdplus high resolution watebodies instersecting")
 )
 
 

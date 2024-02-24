@@ -58,10 +58,7 @@ start = time()
 
 print("\n\n----------------------------------\nReading waterfalls\n---------------------------")
 
-# TODO: remove rename of Stream / LocalID on next download
-df = gp.read_feather(src_dir / "waterfalls.feather").rename(
-    columns={"fall_type": "FallType", "Stream": "River", "LocalID": "SourceID"}
-)
+df = gp.read_feather(src_dir / "waterfalls.feather").rename(columns={"fall_type": "FallType"})
 
 ### drop any that are outside analysis HUC2s
 df = df.join(get_huc2(df))

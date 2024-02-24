@@ -112,6 +112,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
   let state = ''
   let removed = false
   let yearremoved = null
+  let ispriority = false
 
   if (data) {
     console.log('barrier details:', sarpid, data)
@@ -120,6 +121,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     state = data.state
     removed = data.removed
     yearremoved = data.yearremoved
+    ispriority = data.ispriority
 
     let details = null
     switch (barrierType) {
@@ -259,6 +261,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
         state={state}
         removed={removed}
         yearremoved={yearremoved}
+        ispriority={ispriority}
         onClose={onClose}
       />
 

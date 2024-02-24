@@ -344,6 +344,7 @@ DAM_CORE_FIELDS = (
         "FERCRegulated",
         "StateRegulated",
         "WaterRight",
+        "IsPriority",
         "Height",
         "Length",
         "Width",
@@ -763,6 +764,7 @@ SCREENTYPE_DOMAIN = {
     4: "Pipe",
     5: "Drum",
     6: "Other",
+    7: "TODO:",
 }
 
 
@@ -896,6 +898,7 @@ PASSAGEFACILITY_DOMAIN = {
     22: "Roughened channel",
     23: "Hybrid / multiple",
     24: "None (confirmed)",
+    26: "TODO:",
 }
 
 MANUALREVIEW_DOMAIN = {
@@ -938,6 +941,11 @@ INTERMITTENT_DOMAIN = {
 TROUT_DOMAIN = {0: "not recorded", 1: "yes"}
 
 SURVEYED_CROSSING_DOMAIN = {0: "not likely", 1: "likely"}
+
+IS_PRIORITY_DOMAIN = {
+    0: "not identified as a priority by resource managers",
+    1: "identified as a priority by resource managers",
+}
 
 
 # symbol domain - not used but included here as a reference for the codes used
@@ -1051,6 +1059,7 @@ DOMAINS = {
     "ScreenType": SCREENTYPE_DOMAIN,
     "WaterbodySizeClass": WATERBODY_SIZECLASS_DOMAIN,
     "Estimated": BOOLEAN_DOMAIN,
+    "IsPriority": IS_PRIORITY_DOMAIN,
     # barrier fields
     "BarrierSeverity": BARRIER_SEVERITY_DOMAIN,
     "Constriction": CONSTRICTION_DOMAIN,
@@ -1091,6 +1100,7 @@ FIELD_DEFINITIONS = {
     "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
     "WaterRight": "Identifies if the {type} has an associated water right, if known.",
+    "IsPriority": "Indicates if the {type} has been identified as a priority by resource managers, if known.",
     "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information.",
     "YearCompleted": "year that construction was completed, if available.  0 = data not available.",
     "Removed": "Identifies if the {type} has been removed for conservation, if known.  Removed barriers will not have values present for all fields.",

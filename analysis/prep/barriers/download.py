@@ -73,6 +73,7 @@ async def download_dams(token):
                 "HEIGHT": "Height",
                 "WIDTH": "Width",
                 "LENGTH": "Length",
+                "Priority_Identified": "IsPriority",
             }
         )
 
@@ -276,7 +277,7 @@ print(f"Downloaded {len(df):,} small records with photo URLs in {time() - downlo
 df.to_feather(out_dir / "sarp_small_barrier_survey_urls.feather")
 
 
-# ### Download waterfalls
+### Download waterfalls
 download_start = time()
 print("\n---- Downloading waterfalls ----")
 df = asyncio.run(download_waterfalls(TOKEN))

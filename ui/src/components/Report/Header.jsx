@@ -6,7 +6,16 @@ import { STATES } from 'config'
 import { formatNumber } from 'util/format'
 import { Flex } from './elements'
 
-const Header = ({ name, county, state, lat, lon, removed, yearremoved }) => (
+const Header = ({
+  name,
+  county,
+  state,
+  lat,
+  lon,
+  removed,
+  yearremoved,
+  ispriority,
+}) => (
   <View style={{ marginBottom: 4 }}>
     <Text
       style={{ fontFamily: 'Helvetica-Bold', fontSize: 24, lineHeight: 1.2 }}
@@ -44,6 +53,33 @@ const Header = ({ name, county, state, lat, lon, removed, yearremoved }) => (
       </Flex>
     ) : null}
 
+    {ispriority && !removed ? (
+      <Flex
+        style={{
+          marginTop: '2pt',
+          lineHeight: 1,
+        }}
+      >
+        {/* Fish icon: Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc. */}
+        <div style={{ marginRight: '4pt' }}>
+          <Svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 576 512"
+            style={{ width: '16pt', height: '16pt' }}
+          >
+            <Path
+              d="M327.1 96c-90 0-168.5 54.8-212.3 101.6L27.5 131.6c-12.1-9.2-30.2 .6-27.1 14.7L24.5 256 .4 365.8c-3.1 14.1 15 23.8 27.1 14.7l87.3-66.1C158.6 361.2 237.1 416 327.1 416 464.6 416 576 288 576 256S464.6 96 327.1 96zm87.4 184c-13.3 0-24-10.8-24-24 0-13.3 10.8-24 24-24 13.3 0 24 10.7 24 24 0 13.3-10.8 24-24 24z"
+              fill="#1f5f8b"
+            />
+          </Svg>
+        </div>
+
+        <Text style={{ fontFamily: 'Helvetica-Bold', marginTop: '2pt' }}>
+          Identified as a priority by resource managers
+        </Text>
+      </Flex>
+    ) : null}
+
     <Flex
       style={{
         justifyContent: 'space-beteween',
@@ -76,11 +112,13 @@ Header.propTypes = {
   lon: PropTypes.number.isRequired,
   removed: PropTypes.bool,
   yearremoved: PropTypes.number,
+  ispriority: PropTypes.bool,
 }
 
 Header.defaultProps = {
   removed: false,
   yearremoved: null,
+  ispriority: false,
 }
 
 export default Header

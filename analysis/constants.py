@@ -188,7 +188,7 @@ MAX_PIPELINE_LENGTH = 250  # meters
 
 # NOTE: not all feature services have all columns
 DAM_FS_COLS = [
-    "SourceID",
+    "SourceDBID",
     "DB_Source",
     "SARPUniqueID",
     "NIDID",
@@ -235,11 +235,13 @@ DAM_FS_COLS = [
     "EditDate",
     "Cost_95_Lower",
     "Cost_95_Upper",
+    "Priority_Identified",
 ]
 
 
 SMALL_BARRIER_COLS = [
     "SARPUniqueID",
+    "LocalID",
     "Recon",
     "ManualReview",
     "Crossing_Code",
@@ -272,6 +274,7 @@ SMALL_BARRIER_COLS = [
 
 WATERFALL_COLS = [
     "SARPUniqueId",
+    "LocalID",
     "fall_id",
     "fall_type",
     "Source",
@@ -590,6 +593,7 @@ POTENTIALPROJECT_TO_SEVERITY = {
     "no": 8,
     "unassessed": 0,
     "completed project": 0,  # removed from processing
+    "completed": 0,  # removed from processing
     "past project": 0,  # removed from processing
     # Potential / proposed project both get assigned as likely barrier if SARP_Score != -1
     "potential project": 7,

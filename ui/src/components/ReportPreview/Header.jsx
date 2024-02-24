@@ -1,12 +1,21 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Water } from '@emotion-icons/fa-solid'
+import { Fish, Water } from '@emotion-icons/fa-solid'
 import { Box, Flex, Text } from 'theme-ui'
 
 import { STATES } from 'config'
 import { formatNumber } from 'util/format'
 
-const Header = ({ name, county, state, lat, lon, removed, yearremoved }) => (
+const Header = ({
+  name,
+  county,
+  state,
+  lat,
+  lon,
+  removed,
+  yearremoved,
+  ispriority,
+}) => (
   <Flex sx={{ alignItems: 'flex-end', mb: ' 0.5rem', lineHeight: 1.2 }}>
     <Box sx={{ flex: '1 1 auto' }}>
       <Text sx={{ fontSize: '2rem', fontWeight: 'bold' }}>{name}</Text>
@@ -16,6 +25,7 @@ const Header = ({ name, county, state, lat, lon, removed, yearremoved }) => (
             alignItems: 'center',
             gap: '0.5rem',
             mt: '0.25rem',
+            mb: '1rem',
           }}
         >
           <Box sx={{ color: 'blue.8', mb: '2px' }}>
@@ -30,6 +40,25 @@ const Header = ({ name, county, state, lat, lon, removed, yearremoved }) => (
           </Text>
         </Flex>
       ) : null}
+
+      {ispriority && !removed ? (
+        <Flex
+          sx={{
+            alignItems: 'center',
+            gap: '0.5rem',
+            mt: '0.25rem',
+            mb: '1rem',
+          }}
+        >
+          <Box sx={{ color: 'blue.8' }}>
+            <Fish size="1.5em" style={{ transform: 'rotate(180deg)' }} />
+          </Box>
+          <Text sx={{ fontWeight: 'bold' }}>
+            Identified as a priority by resource managers
+          </Text>
+        </Flex>
+      ) : null}
+
       <Flex sx={{ justifyContent: 'space-between', mt: '0.5rem' }}>
         <Text sx={{ flex: '1 1 auto', color: 'grey.8' }}>
           {county} County, {STATES[state]}
@@ -52,11 +81,13 @@ Header.propTypes = {
   lon: PropTypes.number.isRequired,
   removed: PropTypes.bool,
   yearremoved: PropTypes.number,
+  ispriority: PropTypes.bool,
 }
 
 Header.defaultProps = {
   removed: false,
   yearremoved: null,
+  ispriority: false,
 }
 
 export default Header
