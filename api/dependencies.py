@@ -9,9 +9,8 @@ from api.constants import (
     COMBINED_FILTER_FIELD_MAP,
     RC_FILTER_FIELD_MAP,
     MULTIPLE_VALUE_FIELDS,
-    UNIT_FIELDS,
+    BOOLEAN_FILTER_FIELDS,
     BarrierTypes,
-    Layers,
 )
 from api.data import (
     dams,
@@ -108,6 +107,11 @@ class RecordExtractor:
                     self.filters[field] = (
                         "in_string",
                         request.query_params.get(key).split(","),
+                    )
+                elif field in BOOLEAN_FILTER_FIELDS:
+                    self.filters[field] = (
+                        "in_array",
+                        [bool(x) for x in request.query_params.get(key).split(",")],
                     )
                 else:
                     self.filters[field] = (

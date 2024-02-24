@@ -1,12 +1,13 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Text } from 'theme-ui'
-import { ExclamationTriangle } from '@emotion-icons/fa-solid'
+import { Box, Flex, Paragraph, Text } from 'theme-ui'
+import { Envelope, ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { extractHabitat } from 'components/Data/Habitat'
 import { Entry, Field, Section } from 'components/Sidebar'
 
 import {
+  barrierTypeLabelSingular,
   siteMetadata,
   HAZARD,
   CONDITION,
@@ -32,7 +33,8 @@ const DamDetails = ({
   barrierType,
   networkType,
   sarpid,
-
+  lat,
+  lon,
   alteredupstreammiles,
   barrierownertype,
   basin,
@@ -77,6 +79,7 @@ const DamDetails = ({
   sizeclasses,
   snapped,
   source,
+  sourceid,
   stateregulated,
   statesgcnspp,
   streamorder,
@@ -95,8 +98,10 @@ const DamDetails = ({
   waterright,
   yearcompleted,
   yearremoved,
+  invasivenetwork,
   ...props // includes species habitat fields selected dynamically
 }) => {
+  const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
   const isLowheadDam = lowheaddam === 1 || lowheaddam === 2
   const isDiversion = diversion !== null && diversion >= 1
   const isUnspecifiedType = !(isLowheadDam || isDiversion || invasive)
@@ -322,6 +327,26 @@ const DamDetails = ({
           <Entry>
             <Field label="Feasibility" isUnknown={feasibilityclass <= 1}>
               {FEASIBILITYCLASS[feasibilityclass]}
+              <br />
+              <a
+                href={`mailto:Kat@southeastaquatics.net?subject=Update feasibility for dam: ${sarpid} (data version: ${dataVersion})&body=The feasibility of this barrier should be: %0D%0A%0D%0A(choose one of the following options)%0D%0A%0D%0A${Object.entries(
+                  FEASIBILITYCLASS
+                )
+                  // eslint-disable-next-line no-unused-vars
+                  .filter(([key, _]) => key >= 1)
+                  // eslint-disable-next-line no-unused-vars
+                  .map(([_, value]) => value)
+                  .join('%0D%0A')})`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Flex
+                  sx={{ gap: '0.25rem', alignItems: 'center', fontSize: 0 }}
+                >
+                  <Envelope size="1rem" />
+                  submit {feasibilityclass > 1 ? 'new' : null} feasibility
+                </Flex>
+              </a>
             </Field>
 
             {recon !== null && recon > 0 ? (
@@ -334,8 +359,35 @@ const DamDetails = ({
         </Section>
       ) : null}
 
+      {hasnetwork && (invasive || invasivenetwork === 1) ? (
+        <Section title="Invasive species management">
+          {!invasive && invasivenetwork === 1 ? (
+            <Entry>
+              Upstream of a barrier identified as a beneficial to restricting
+              the movement of invasive species.
+            </Entry>
+          ) : null}
+
+          {invasive ? (
+            <Entry>
+              This {barrierTypeLabel} is identified as a beneficial to
+              restricting the movement of invasive species and is not ranked.
+            </Entry>
+          ) : null}
+        </Section>
+      ) : null}
+
       <Section title="Other information">
-        <IDInfo sarpid={sarpid} nidid={nidid} source={source} link={link} />
+        <IDInfo
+          barrierType={barrierType}
+          sarpid={sarpid}
+          lat={lat}
+          lon={lon}
+          nidid={nidid}
+          source={source}
+          sourceid={sourceid}
+          link={link}
+        />
       </Section>
     </Box>
   )
@@ -345,7 +397,8 @@ DamDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-
+  lat: PropTypes.number.isRequired,
+  lon: PropTypes.number.isRequired,
   alteredupstreammiles: PropTypes.number,
   barrierownertype: PropTypes.number,
   basin: PropTypes.string,
@@ -390,6 +443,7 @@ DamDetails.propTypes = {
   sizeclasses: PropTypes.number,
   snapped: PropTypes.bool,
   source: PropTypes.string,
+  sourceid: PropTypes.string,
   stateregulated: PropTypes.number,
   statesgcnspp: PropTypes.number,
   streamorder: PropTypes.number,
@@ -408,6 +462,7 @@ DamDetails.propTypes = {
   waterright: PropTypes.number,
   yearcompleted: PropTypes.number,
   yearremoved: PropTypes.number,
+  invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
   freealewifehabitatdownstreammiles: PropTypes.number,
   americaneelhabitatupstreammiles: PropTypes.number,
@@ -514,6 +569,7 @@ DamDetails.defaultProps = {
   sizeclasses: null,
   snapped: false,
   source: null,
+  sourceid: null,
   stateregulated: null,
   statesgcnspp: 0,
   streamorder: 0,
@@ -532,6 +588,7 @@ DamDetails.defaultProps = {
   waterright: null,
   yearcompleted: 0,
   yearremoved: 0,
+  invasivenetwork: 0,
   alewifehabitatupstreammiles: 0,
   freealewifehabitatdownstreammiles: 0,
   americaneelhabitatupstreammiles: 0,

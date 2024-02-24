@@ -67,6 +67,7 @@ def unique(items):
 
 # Fields that have multiple values present, encoded as comma-delimited string
 MULTIPLE_VALUE_FIELDS = ["SalmonidESU", "DisadvantagedCommunity"]
+BOOLEAN_FILTER_FIELDS = ["Removed"]
 
 
 # Summary unit fields
@@ -137,6 +138,7 @@ DOWNSTREAM_LINEAR_NETWORK_FIELDS = [
     "FlowsToOcean",
     "FlowsToGreatLakes",
     "ExitsRegion",
+    "InvasiveNetwork",
 ]
 
 # metric fields not used in tiles because they can be calculated on frontend or are not used
@@ -250,6 +252,7 @@ FILTER_FIELDS = [
     "FlowsToGreatLakes",
     "DownstreamGreatLakesMilesClass",
     "DownstreamGreatLakesBarriersClass",
+    "InvasiveNetwork",
     "CoastalHUC8",
     "PassageFacilityClass",
     "DisadvantagedCommunity",
@@ -267,15 +270,11 @@ DAM_FILTER_FIELDS = FILTER_FIELDS + [
     "YearCompletedClass",
     "LowheadDam",
     "WaterbodySizeClass",
+    "Removed",
 ]
 DAM_FILTER_FIELD_MAP = {f.lower(): f for f in DAM_FILTER_FIELDS}
 
-SB_FILTER_FIELDS = FILTER_FIELDS + [
-    "BarrierSeverity",
-    "Constriction",
-    "RoadType",
-    "CrossingType",
-]
+SB_FILTER_FIELDS = FILTER_FIELDS + ["BarrierSeverity", "Constriction", "RoadType", "CrossingType", "Removed"]
 SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 
 # BarrierSeverity included for API but not filtering
@@ -295,6 +294,7 @@ GENERAL_API_FIELDS1 = [
     "Name",
     "SARPID",
     "Source",
+    "SourceID",
     "Snapped",
     "NHDPlusID",
     "River",
@@ -344,6 +344,7 @@ DAM_CORE_FIELDS = (
         "FERCRegulated",
         "StateRegulated",
         "WaterRight",
+        "IsPriority",
         "Height",
         "Length",
         "Width",
@@ -386,7 +387,6 @@ DAM_TILE_FILTER_FIELDS = unique(DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if n
 SB_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
-        "LocalID",
         "CrossingCode",
         "NearestCrossingID",
         "AnnualVelocity",
@@ -410,7 +410,9 @@ SB_CORE_FIELDS = unique(SB_CORE_FIELDS)
 SB_EXPORT_FIELDS = unique(SB_CORE_FIELDS + CUSTOM_TIER_FIELDS)
 
 SB_API_FIELDS = unique(
-    SB_CORE_FIELDS + SB_FILTER_FIELDS + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked", "in_network_type"]
+    SB_CORE_FIELDS
+    + SB_FILTER_FIELDS
+    + ["upNetID", "downNetID", "COUNTYFIPS", "Unranked", "in_network_type", "attachments"]
 )
 
 # Public API does not include tier fields
@@ -492,6 +494,7 @@ WF_CORE_FIELDS = (
         "Subwatershed",
         "Excluded",
         "OnLoop",
+        "Invasive",
     ]
     + UNIT_FIELDS
     + METRIC_FIELDS
@@ -761,6 +764,7 @@ SCREENTYPE_DOMAIN = {
     4: "Pipe",
     5: "Drum",
     6: "Other",
+    7: "TODO:",
 }
 
 
@@ -894,6 +898,7 @@ PASSAGEFACILITY_DOMAIN = {
     22: "Roughened channel",
     23: "Hybrid / multiple",
     24: "None (confirmed)",
+    26: "TODO:",
 }
 
 MANUALREVIEW_DOMAIN = {
@@ -936,6 +941,11 @@ INTERMITTENT_DOMAIN = {
 TROUT_DOMAIN = {0: "not recorded", 1: "yes"}
 
 SURVEYED_CROSSING_DOMAIN = {0: "not likely", 1: "likely"}
+
+IS_PRIORITY_DOMAIN = {
+    0: "not identified as a priority by resource managers",
+    1: "identified as a priority by resource managers",
+}
 
 
 # symbol domain - not used but included here as a reference for the codes used
@@ -1022,6 +1032,7 @@ DOMAINS = {
     "FlowsToOcean": BOOLEAN_OFFNETWORK_DOMAIN,
     "FlowsToGreatLakes": BOOLEAN_OFFNETWORK_DOMAIN,
     "ExitsRegion": BOOLEAN_OFFNETWORK_DOMAIN,
+    "InvasiveNetwork": BOOLEAN_OFFNETWORK_DOMAIN,
     "OwnerType": OWNERTYPE_DOMAIN,
     "BarrierOwnerType": BARRIEROWNERTYPE_DOMAIN,
     "ProtectedLand": BOOLEAN_DOMAIN,
@@ -1048,6 +1059,7 @@ DOMAINS = {
     "ScreenType": SCREENTYPE_DOMAIN,
     "WaterbodySizeClass": WATERBODY_SIZECLASS_DOMAIN,
     "Estimated": BOOLEAN_DOMAIN,
+    "IsPriority": IS_PRIORITY_DOMAIN,
     # barrier fields
     "BarrierSeverity": BARRIER_SEVERITY_DOMAIN,
     "Constriction": CONSTRICTION_DOMAIN,
@@ -1080,13 +1092,15 @@ FIELD_DEFINITIONS = {
     "Name": "{type} name, if available.",
     "SARPID": "SARP Identifier.",
     "River": "River or stream name where {type} occurs, if available.",
+    "Source": "Source of this record in the inventory.",
+    "SourceID": "Identifier of this {type} in the source database",
     # dam-specific fields
     "NIDID": "National Inventory of Dams Identifier.",
-    "Source": "Source of this record in the inventory.",
     "Link": "Link to additional information about this {type}",
     "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
     "WaterRight": "Identifies if the {type} has an associated water right, if known.",
+    "IsPriority": "Indicates if the {type} has been identified as a priority by resource managers, if known.",
     "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information.",
     "YearCompleted": "year that construction was completed, if available.  0 = data not available.",
     "Removed": "Identifies if the {type} has been removed for conservation, if known.  Removed barriers will not have values present for all fields.",
@@ -1106,7 +1120,6 @@ FIELD_DEFINITIONS = {
     "WaterbodyKM2": "area of associated waterbody in square kilometers.  -1 = no associated waterbody",
     "WaterbodySizeClass": "size class of associated waterbody.  -1 = no associated waterbody",
     # barrier-specific fields
-    "LocalID": "local identifier.",
     "CrossingCode": "crossing identifier.",
     "NearestCrossingID": "The SARPID of the nearest road/stream crossing point, if any are found within 10 meters",
     "Road": "road name, if available.",
@@ -1193,6 +1206,7 @@ FIELD_DEFINITIONS = {
     "MilesToOutlet": "miles between this {type} and the downstream-most point on the full aquatic network on which it occurs. -1 = not available.",
     "FlowsToOcean": "indicates if this {type} was snapped to a stream or river that is known to flow into the ocean.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the ocean.",
     "FlowsToGreatLakes": "indicates if this {type} was snapped to a stream or river that is known to flow into the Great Lakes.  Note: this underrepresents any networks that traverse regions outside the analysis region that would ultimately connect the networks to the Great Lakes.",
+    "InvasiveNetwork": "indicates if there is an invasive species barrier at or downstream of this {type}.",
     # Species upstream habitat
     "AlewifeHabitatUpstreamMiles": "number of miles in the upstream river network from this {type} that are attributed as habitat for Alewife.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by the Chesapeake Fish Passage Workgroup; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",
     "FreeAlewifeHabitatDownstreamMiles": "number of free-flowing miles in the downstream river network from this {type} that are attributed as habitat for Alewife.  Habitat reaches are not necessarily contiguous.  Habitat is estimated at the NHDPlusHR flowline level based on best available habitat data provided by the Chesapeake Fish Passage Workgroup; please see https://aquaticbarriers.org/habitat_methods for more information. -1 = not available.",

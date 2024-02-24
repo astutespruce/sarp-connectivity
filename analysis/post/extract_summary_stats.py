@@ -182,6 +182,9 @@ with open(ui_data_dir / "region_stats.json", "w") as outfile:
 
 ### Calculate stats for states; these are used on state pages and state download
 # tables
+map_units = pd.read_feather(api_dir / "map_units.feather", columns=["layer", "id", "bbox"])
+state_bounds = map_units.loc[map_units.layer == "State"].set_index("id").bbox.to_dict()
+
 state_stats = []
 for state, name in sorted(STATES.items(), key=lambda x: x[1]):
     state_dams = dams.loc[dams.State == state]
@@ -191,6 +194,7 @@ for state, name in sorted(STATES.items(), key=lambda x: x[1]):
     state_stats.append(
         {
             "id": state,
+            "bbox": state_bounds[state],
             "dams": len(state_dams),
             "ranked_dams": int(state_dams.Ranked.sum()),
             "recon_dams": int((state_dams.Recon > 0).sum()),

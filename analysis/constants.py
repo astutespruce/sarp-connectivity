@@ -235,14 +235,15 @@ DAM_FS_COLS = [
     "EditDate",
     "Cost_95_Lower",
     "Cost_95_Upper",
+    "Priority_Identified",
 ]
 
 
 SMALL_BARRIER_COLS = [
     "SARPUniqueID",
+    "LocalID",
     "Recon",
     "ManualReview",
-    "LocalID",
     "Crossing_Code",
     "StreamName",
     "Road",
@@ -273,10 +274,10 @@ SMALL_BARRIER_COLS = [
 
 WATERFALL_COLS = [
     "SARPUniqueId",
+    "LocalID",
     "fall_id",
     "fall_type",
     "Source",
-    "LocalID",
     "name",
     "gnis_name_",
     "watercours",
@@ -592,6 +593,7 @@ POTENTIALPROJECT_TO_SEVERITY = {
     "no": 8,
     "unassessed": 0,
     "completed project": 0,  # removed from processing
+    "completed": 0,  # removed from processing
     "past project": 0,  # removed from processing
     # Potential / proposed project both get assigned as likely barrier if SARP_Score != -1
     "potential project": 7,

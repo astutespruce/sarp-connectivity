@@ -30,7 +30,7 @@ for col in [c for c in networks.columns if c.endswith("Miles")]:
 for col in [c for c in networks.columns if c.startswith("Percent")]:
     networks[col] = networks[col].fillna(0).astype("int8")
 
-for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region"]:
+for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]:
     if col in networks.columns:
         networks[col] = networks[col].astype("uint8")
 

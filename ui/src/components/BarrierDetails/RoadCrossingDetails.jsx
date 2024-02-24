@@ -16,7 +16,8 @@ const RoadCrossingDetails = ({
   barrierType,
   networkType,
   sarpid,
-
+  lat,
+  lon,
   basin,
   crossingtype,
   ejtract,
@@ -31,6 +32,7 @@ const RoadCrossingDetails = ({
   salmonidesu,
   snapped,
   source,
+  sourceid,
   statesgcnspp,
   river,
   streamorder,
@@ -114,7 +116,14 @@ const RoadCrossingDetails = ({
     </Section>
 
     <Section title="Other information">
-      <IDInfo sarpid={sarpid} source={source} />
+      <IDInfo
+        barrierType={barrierType}
+        sarpid={sarpid}
+        lat={lat}
+        lon={lon}
+        source={source}
+        sourceid={sourceid}
+      />
     </Section>
   </Box>
 )
@@ -123,7 +132,8 @@ RoadCrossingDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-
+  lat: PropTypes.number.isRequired,
+  lon: PropTypes.number.isRequired,
   basin: PropTypes.string,
   crossingtype: PropTypes.number,
   ejtract: PropTypes.bool,
@@ -138,6 +148,7 @@ RoadCrossingDetails.propTypes = {
   salmonidesu: PropTypes.string,
   snapped: PropTypes.bool,
   source: PropTypes.string,
+  sourceid: PropTypes.string,
   statesgcnspp: PropTypes.number,
   river: PropTypes.string,
   streamorder: PropTypes.number,
@@ -162,6 +173,7 @@ RoadCrossingDetails.defaultProps = {
   salmonidesu: null,
   snapped: true,
   source: null,
+  sourceid: null,
   statesgcnspp: 0,
   river: null,
   streamorder: 0,

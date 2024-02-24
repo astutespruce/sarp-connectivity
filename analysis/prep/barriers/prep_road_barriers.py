@@ -94,17 +94,39 @@ qa_dir = barriers_dir / "qa"
 start = time()
 
 print("Reading data")
-# TODO: remove rename of Stream on next download
-df = gp.read_feather(src_dir / "sarp_small_barriers.feather").rename(columns={"Stream": "River"})
+df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
 df["NearestCrossingID"] = ""
 print(f"Read {len(df):,} small barriers")
 
-# TODO: remove rename of Stream on next full run
+### Read in photo attachments, have to join on location
+urls = gp.read_feather(
+    src_dir / "sarp_small_barrier_survey_urls.feather",
+    columns=["geometry", "attachments"],
+)
+tree = shapely.STRtree(df.geometry.values)
+left, right = tree.query_nearest(urls.geometry.values, max_distance=50)
+urls = (
+    pd.DataFrame(
+        {
+            "attachments": urls.attachments.values.take(left),
+        },
+        index=df.index.values.take(right),
+    )
+    .groupby(level=0)
+    .first()
+)
+
+df = df.join(urls)
+
+# TODO: remove rename of Stream on next full run of prep raw road crossings
 crossings = (
     gp.read_feather(src_dir / "road_crossings.feather").set_index("id", drop=False).rename(columns={"Stream": "River"})
 )
 crossings["NearestBarrierID"] = ""
 crossings["Surveyed"] = np.uint8(0)
+crossings["SourceID"] = crossings.SARPID.str[2:]
+crossings["EJTract"] = crossings.EJTract.astype("bool")
+crossings["EJTribal"] = crossings.EJTribal.astype("bool")
 print(f"Read {len(crossings):,} road crossings")
 
 # only cross-check against dams / waterfalls that break networks
@@ -200,8 +222,12 @@ df["RoadType"] = df.RoadType.fillna("").apply(lambda x: f"{x[0].upper()}{x[1:]}"
 df["YearRemoved"] = df.YearRemoved.fillna(0).astype("uint16")
 
 #########  Fill NaN fields and set data types
-for column in ["CrossingCode", "LocalID", "Source", "Link"]:
+for column in ["SourceID", "CrossingCode", "Source", "Link"]:
     df[column] = df[column].fillna("").str.strip()
+
+
+# if SourceID is negative, assume it is null (per guidance from Kat on 2/16/2024)
+df.loc[df.SourceID.str.startswith("-"), "SourceID"] = ""
 
 for column in ["Editor", "EditDate"]:
     df[column] = df[column].fillna("")
@@ -214,7 +240,9 @@ for column in ["PassageFacility"]:
 df.BarrierOwnerType = df.BarrierOwnerType.fillna(0).map(BARRIEROWNERTYPE_TO_DOMAIN).astype("uint8")
 
 # Calculate BarrierSeverity from PotentialProject
-df["BarrierSeverity"] = df.PotentialProject.str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
+df["BarrierSeverity"] = (
+    df.PotentialProject.str.replace("  ", " ").str.lower().map(POTENTIALPROJECT_TO_SEVERITY).astype("uint8")
+)
 
 # per guidance from Kat, if SARP_Score != -1, assign as likely barrier
 df.loc[
@@ -654,6 +682,7 @@ df[
         "smallfish_network",
         "removed",
         "YearRemoved",
+        "invasive",
     ]
 ].to_feather(
     snapped_dir / "small_barriers.feather",

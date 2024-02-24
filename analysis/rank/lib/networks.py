@@ -62,6 +62,7 @@ NETWORK_COLUMNS = [
     "flows_to_ocean",
     "flows_to_great_lakes",
     "exits_region",
+    "invasive_network",
     # species upstream / downstream habitat
     "AlewifeHabitatUpstreamMiles",
     "FreeAlewifeHabitatDownstreamMiles",
@@ -148,6 +149,7 @@ NETWORK_COLUMN_NAMES = {
     "flows_to_ocean": "FlowsToOcean",
     "flows_to_great_lakes": "FlowsToGreatLakes",
     "exits_region": "ExitsRegion",
+    "invasive_network": "InvasiveNetwork",
 }
 
 

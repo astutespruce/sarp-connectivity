@@ -21,9 +21,7 @@ if not out_dir.exists():
     os.makedirs(out_dir)
 
 
-huc2s = sorted(
-    pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
-)
+huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values)
 
 # manually subset keys from above for processing
 # huc2s = [
@@ -58,29 +56,19 @@ overlaps_or_ca = False
 overlaps_sd = False
 if set(huc2s).intersection(["16", "17", "18"]):
     overlaps_or_ca = True
-    ca_wb = gp.read_feather(
-        "data/states/ca/ca_waterbodies.feather", columns=["geometry", "altered", "HUC2"]
-    )
-    or_wb = gp.read_feather(
-        "data/states/or/or_waterbodies.feather", columns=["geometry", "altered", "HUC2"]
-    )
-    wa_wb = gp.read_feather(
-        "data/states/wa/wa_waterbodies.feather", columns=["geometry", "altered"]
-    )
+    ca_wb = gp.read_feather("data/states/ca/ca_waterbodies.feather", columns=["geometry", "altered", "HUC2"])
+    or_wb = gp.read_feather("data/states/or/or_waterbodies.feather", columns=["geometry", "altered", "HUC2"])
+    wa_wb = gp.read_feather("data/states/wa/wa_waterbodies.feather", columns=["geometry", "altered"])
 
 if set(huc2s).intersection(["07", "09", "10"]):
     overlaps_sd = True
-    sd_wb = gp.read_feather(
-        "data/states/sd/sd_waterbodies.feather", columns=["geometry", "HUC2"]
-    )
+    sd_wb = gp.read_feather("data/states/sd/sd_waterbodies.feather", columns=["geometry", "HUC2"])
     sd_wb["altered"] = False
 
 
 if set(huc2s).intersection(["04", "07", "09", "10"]):
     overlaps_mn = True
-    mn_wb = gp.read_feather(
-        "data/states/mn/mn_waterbodies.feather", columns=["geometry", "altered", "HUC2"]
-    )
+    mn_wb = gp.read_feather("data/states/mn/mn_waterbodies.feather", columns=["geometry", "altered", "HUC2"])
 
 for huc2 in huc2s:
     huc2_start = time()
@@ -96,9 +84,7 @@ for huc2 in huc2s:
     )
     # determine altered types from NHD codes and names
     # note: other waterbodies may be altered but are not marked as such by NHD
-    nhd["altered"] = (nhd.FType == 436) | nhd.GNIS_Name.str.lower().str.contains(
-        "reservoir"
-    )
+    nhd["altered"] = (nhd.FType == 436) | nhd.GNIS_Name.str.lower().str.contains("reservoir")
 
     nwi = gp.read_feather(nwi_dir / huc2 / "waterbodies.feather")
 
@@ -124,14 +110,10 @@ for huc2 in huc2s:
     if huc2 == "03":
         sc_wb = gp.read_feather("data/states/sc/sc_waterbodies.feather", columns=[])
         sc_wb["altered"] = False  # unknown
-        df = pd.concat(
-            [df, sc_wb[["geometry", "altered"]]], ignore_index=True, sort=False
-        )
+        df = pd.concat([df, sc_wb[["geometry", "altered"]]], ignore_index=True, sort=False)
 
     elif huc2 == "17":
-        df = pd.concat(
-            [df, wa_wb[["geometry", "altered"]]], ignore_index=True, sort=False
-        )
+        df = pd.concat([df, wa_wb[["geometry", "altered"]]], ignore_index=True, sort=False)
 
     if overlaps_mn:
         df = pd.concat(
@@ -168,7 +150,7 @@ for huc2 in huc2s:
 
     # assign altered if any resulting polygons intersect altered polygons
     tree = shapely.STRtree(df.geometry.values.copy())
-    left, right = tree.query(altered.geometry.values)
+    left, right = tree.query(altered.geometry.values, predicate="intersects")
     df["altered"] = False
     df.loc[np.unique(right), "altered"] = True
 
@@ -182,21 +164,15 @@ for huc2 in huc2s:
         if breaks is not None:
             breaks = shapely.get_parts(breaks)
             write_geoms(breaks, f"/tmp/{huc2}breaks.fgb", crs=nhd.crs)
-            print(
-                f"Cutting NHD waterbodies by {len(breaks):,} breaks at dams to prevent dissolving together"
-            )
+            print(f"Cutting NHD waterbodies by {len(breaks):,} breaks at dams to prevent dissolving together")
 
             # find all pairs of waterbody and breaks, aggregate
             # breaks by waterbody, then calculate difference
 
             tree = shapely.STRtree(df.geometry.values.copy())
             left, right = tree.query(breaks, predicate="intersects")
-            pairs = pd.DataFrame(
-                {"break_geometry": breaks.take(left)}, index=df.index.take(right)
-            )
-            grouped = pairs.groupby(level=0).break_geometry.apply(
-                lambda g: shapely.multipolygons(g.values)
-            )
+            pairs = pd.DataFrame({"break_geometry": breaks.take(left)}, index=df.index.take(right))
+            grouped = pairs.groupby(level=0).break_geometry.apply(lambda g: shapely.multipolygons(g.values))
             df.loc[grouped.index, "geometry"] = shapely.difference(
                 df.loc[grouped.index].geometry.values, grouped.values
             )
@@ -204,9 +180,7 @@ for huc2 in huc2s:
             df = explode(df).reset_index(drop=True)
 
     if huc2 == "04":
-        df = pd.concat([df, great_lakes[["geometry", "altered"]]]).reset_index(
-            drop=True
-        )
+        df = pd.concat([df, great_lakes[["geometry", "altered"]]]).reset_index(drop=True)
 
     # make sure all polygons are valid
     ix = ~shapely.is_valid(df.geometry.values)

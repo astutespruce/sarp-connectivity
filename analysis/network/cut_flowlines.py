@@ -107,6 +107,9 @@ all_barriers = read_feathers(
 all_barriers["removed"] = all_barriers.removed.fillna(False)
 all_barriers["YearRemoved"] = all_barriers.YearRemoved.fillna(0).astype("uint16")
 
+# invasive is not applicable for road crossings, backfill with False
+all_barriers["invasive"] = all_barriers.invasive.fillna(False)
+
 print(f"Serializing {len(all_barriers):,} barriers")
 all_barriers.to_feather(out_dir / "all_barriers.feather")
 

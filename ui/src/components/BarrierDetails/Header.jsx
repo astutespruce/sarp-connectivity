@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Button, Flex, Heading, Text } from 'theme-ui'
-import { FileDownload, Water } from '@emotion-icons/fa-solid'
+import { FileDownload, Fish, Water } from '@emotion-icons/fa-solid'
 
 import { STATES } from 'config'
 import { formatNumber } from 'util/format'
@@ -18,6 +18,7 @@ const Header = ({
   lon,
   removed,
   yearremoved,
+  ispriority,
   onClose,
 }) => (
   <Box
@@ -50,15 +51,34 @@ const Header = ({
               <Water size="1em" />
             </Box>
             {yearremoved !== null && yearremoved !== 0 ? (
-              <Text sx={{ fontWeight: 'bold' }}>
+              <Text sx={{ fontWeight: 'bold', fontSize: 1 }}>
                 Removed / mitigated in {yearremoved}
               </Text>
             ) : (
               <Flex sx={{ alignItems: 'baseline', gap: '0.25rem' }}>
-                <Text sx={{ fontWeight: 'bold' }}>Removed / mitigated</Text>
+                <Text sx={{ fontWeight: 'bold', fontSize: 1 }}>
+                  Removed / mitigated
+                </Text>
                 <Text sx={{ fontSize: 0 }}>(year unknown)</Text>
               </Flex>
             )}
+          </Flex>
+        ) : null}
+
+        {ispriority && !removed ? (
+          <Flex
+            sx={{
+              alignItems: 'center',
+              gap: '0.5rem',
+              mt: '0.25rem',
+            }}
+          >
+            <Box sx={{ color: 'blue.8' }}>
+              <Fish size="1.5em" style={{ transform: 'rotate(180deg)' }} />
+            </Box>
+            <Text sx={{ fontWeight: 'bold', lineHeight: 1, fontSize: 1 }}>
+              Identified as a priority by resource managers
+            </Text>
           </Flex>
         ) : null}
       </Box>
@@ -117,6 +137,7 @@ Header.propTypes = {
   lon: PropTypes.number.isRequired,
   removed: PropTypes.bool,
   yearremoved: PropTypes.number,
+  ispriority: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
 }
 
@@ -126,6 +147,7 @@ Header.defaultProps = {
   state: '',
   removed: false,
   yearremoved: null,
+  ispriority: false,
 }
 
 export default Header

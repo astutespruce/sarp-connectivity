@@ -38,7 +38,6 @@ removed_dam_cols = (
     GENERAL_API_FIELDS1
     + [
         "NIDID",
-        "SourceDBID",
         "YearCompleted",
         "YearRemoved",
         "Height",
@@ -97,6 +96,10 @@ pd.DataFrame(dams.loc[dams.Removed, removed_dam_cols].reset_index()).to_feather(
 dams = dams.loc[~(dams.dropped | dams.duplicate)].copy()
 
 nonremoved_dam_networks = get_network_results(dams.loc[~dams.Removed], "dams", state_ranks=True)
+
+# cast so that this gets correctly split out as -1/0/1 values
+nonremoved_dam_networks["InvasiveNetwork"] = nonremoved_dam_networks.InvasiveNetwork.fillna(-1).astype("int8")
+
 # NOTE: removed dam networks do not have all fields present or set
 removed_dam_networks = get_removed_network_results(dams.loc[dams.Removed], "dams")
 
@@ -107,7 +110,6 @@ dam_networks = pd.concat(
     ],
     ignore_index=True,
 ).set_index("id")
-
 
 dams = dams.join(dam_networks)
 for col in ["HasNetwork", "Ranked"]:
@@ -163,6 +165,11 @@ for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
 nonremoved_small_barrier_networks = get_network_results(
     small_barriers.loc[~small_barriers.Removed], "combined_barriers"
 )
+# cast so that this gets correctly split out as -1/0/1 values
+nonremoved_small_barrier_networks["InvasiveNetwork"] = nonremoved_small_barrier_networks.InvasiveNetwork.fillna(
+    -1
+).astype("int8")
+
 removed_small_barrier_networks = get_removed_network_results(
     small_barriers.loc[small_barriers.Removed], "combined_barriers"
 )
@@ -174,6 +181,7 @@ small_barrier_networks = pd.concat(
     ],
     ignore_index=True,
 ).set_index("id")
+
 
 small_barriers = small_barriers.join(small_barrier_networks)
 for col in ["HasNetwork", "Ranked"]:
@@ -302,6 +310,9 @@ for network_type in [
         network_type=network_type,
         state_ranks=False,
     )
+    # cast so that this gets correctly split out as -1/0/1 values
+    nonremoved_networks["InvasiveNetwork"] = nonremoved_networks.InvasiveNetwork.fillna(-1).astype("int8")
+
     removed_networks = get_removed_network_results(
         combined.loc[combined.Removed],
         network_type=network_type,
@@ -365,8 +376,10 @@ merged = None
 for network_type in NETWORK_TYPES.keys():
     networks = get_network_results(waterfalls, network_type=network_type, state_ranks=False)
 
-    scenario_results = waterfalls.join(networks)
+    # cast so that this gets correctly split out as -1/0/1 values
+    networks["InvasiveNetwork"] = networks.InvasiveNetwork.astype("int8")
 
+    scenario_results = waterfalls.join(networks)
     for col in networks.columns:
         orig_dtype = networks[col].dtype
 

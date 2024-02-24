@@ -6,6 +6,7 @@ from time import time
 from dotenv import load_dotenv
 import httpx
 import pandas as pd
+import shapely
 
 from analysis.constants import (
     DAM_FS_COLS,
@@ -13,7 +14,7 @@ from analysis.constants import (
     SMALL_BARRIER_COLS,
     WATERFALL_COLS,
 )
-from analysis.prep.barriers.lib.arcgis import download_fs
+from analysis.prep.barriers.lib.arcgis import download_fs, get_attachments
 
 
 # Load the token from the .env file in the root of this project
@@ -33,6 +34,13 @@ SMALL_BARRIERS_URL = (
 WATERFALLS_URL = (
     "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/SARP_Waterfall_Database_01212020/FeatureServer/0"
 )
+SMALL_BARRIER_SURVEY_URLS = {
+    "Southeast (inland)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/service_27160a30499e47ad8a33b641b2fb6b97/FeatureServer/0",
+    "Southeast (tidal)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/service_e2b2b49c4126467eac1d77069e33820f/FeatureServer/0",
+    "Southeast (pre 2019)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/SARP_AOP_Road_Crossings_PriorTo2019/FeatureServer/0",
+    "Southeast (coarse)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/ArcGIS/rest/services/service_4b226787a3464f478602431383498138/FeatureServer/0",
+    "Western (inland)": "https://services.arcgis.com/QVENGdaPbd4LUkLV/arcgis/rest/services/service_1da663f4b2ff45aeadbf5568829f40f6/FeatureServer/0",
+}
 
 
 async def download_dams(token):
@@ -42,6 +50,7 @@ async def download_dams(token):
         df = df.rename(
             columns={
                 "SARPUniqueID": "SARPID",
+                "SourceDBID": "SourceID",
                 "PotentialFeasibility": "Feasibility",
                 "Barrier_Name": "Name",
                 "Other_Barrier_Name": "OtherName",
@@ -64,6 +73,7 @@ async def download_dams(token):
                 "HEIGHT": "Height",
                 "WIDTH": "Width",
                 "LENGTH": "Length",
+                "Priority_Identified": "IsPriority",
             }
         )
 
@@ -112,6 +122,7 @@ async def download_small_barriers(token):
 
         df = df.rename(
             columns={
+                "LocalID": "SourceID",
                 "Crossing_Code": "CrossingCode",
                 "Potential_Project": "PotentialProject",
                 "SARPUniqueID": "SARPID",
@@ -137,12 +148,45 @@ async def download_small_barriers(token):
         return df
 
 
+async def download_small_barrier_survey_photo_urls(token):
+    async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
+        merged = None
+        for id, survey_url in SMALL_BARRIER_SURVEY_URLS.items():
+            print(f"Downloading attachments from: {id}")
+            df = await download_fs(
+                client,
+                survey_url,
+                fields=["OBJECTID" if id == "Southeast (pre 2019)" else "objectid", "Crossing_Code", "DateObserved"],
+                token=token,
+            )
+
+            df = df.rename(columns={"OBJECTID": "objectid"})
+
+            # convert from ESRI format to string
+            df["DateObserved"] = pd.to_datetime(df.DateObserved, unit="ms").dt.strftime("%m/%d/%Y")
+
+            # drop duplicates
+            df = df.loc[df.geometry != shapely.Point(0, 0)].drop_duplicates(subset="geometry")
+
+            attachments = await get_attachments(client, survey_url, token)
+            df = df.join(attachments, on="objectid", how="inner").drop(columns=["objectid"])
+            df["source"] = id
+
+            if merged is None:
+                merged = df
+            else:
+                merged = pd.concat([merged, df], ignore_index=True)
+
+        return merged.to_crs(CRS)
+
+
 async def download_waterfalls(token):
     async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
         df = await download_fs(client, WATERFALLS_URL, fields=WATERFALL_COLS, token=token)
         df = df.rename(
             columns={
                 "SARPUniqueId": "SARPID",
+                "LocalID": "SourceID",
                 "gnis_name_": "GNIS_Name",
                 "watercours": "River",
                 "name": "Name",
@@ -225,7 +269,15 @@ if s.max() > 1:
 df.to_feather(out_dir / "sarp_small_barriers.feather")
 
 
-# ### Download waterfalls
+### Download small barrier survey photo URLs
+download_start = time()
+df = asyncio.run(download_small_barrier_survey_photo_urls(TOKEN))
+print(f"Downloaded {len(df):,} small records with photo URLs in {time() - download_start:.2f}s")
+
+df.to_feather(out_dir / "sarp_small_barrier_survey_urls.feather")
+
+
+### Download waterfalls
 download_start = time()
 print("\n---- Downloading waterfalls ----")
 df = asyncio.run(download_waterfalls(TOKEN))

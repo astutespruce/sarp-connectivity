@@ -11,6 +11,7 @@ import Feasibility from './Feasibility'
 import Footer from './Footer'
 import Header from './Header'
 import IDInfo from './IDInfo'
+import InvasiveSpecies from './InvasiveSpecies'
 import Legend from './Legend'
 import LocationConstruction from './LocationConstruction'
 import { LocatorMap, Map } from './Map'
@@ -54,6 +55,8 @@ const Report = ({
     flowstoocean,
     milestooutlet,
     removed,
+    invasive,
+    invasivenetwork,
   } = data
 
   const habitat = hasnetwork ? extractHabitat(data) : []
@@ -130,6 +133,14 @@ const Report = ({
           style={{ marginTop: 32 }}
           {...data}
         />
+
+        {hasnetwork && (invasive || invasivenetwork === 1) ? (
+          <InvasiveSpecies
+            style={{ marginTop: 32 }}
+            barrierType={barrierType}
+            {...data}
+          />
+        ) : null}
 
         <IDInfo style={{ marginTop: 32 }} {...data} />
 

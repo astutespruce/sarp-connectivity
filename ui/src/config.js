@@ -1187,6 +1187,12 @@ export const DISADVANTAGED_COMMUNITY = {
   tribal: 'Within a tribal community',
 }
 
+export const INVASIVE_NETWORK = {
+  // -1: 'off network', // filtered out
+  0: 'not upstream of an invasive species barrier',
+  1: 'upstream of an invasive species barrier',
+}
+
 export const CONNECTIVITY_TEAMS = {
   southeast: {
     AL: {

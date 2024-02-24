@@ -54,14 +54,7 @@ groups = huc2_group_df.groupby("group").HUC2.apply(list).tolist()
 all_barriers = (
     pa.dataset.dataset(src_dir / "all_barriers.feather", format="feather")
     .to_table(
-        columns=[
-            "id",
-            "kind",
-            "HUC2",
-            "primary_network",
-            "largefish_network",
-            "smallfish_network",
-        ],
+        columns=["id", "kind", "HUC2", "primary_network", "largefish_network", "smallfish_network", "invasive"],
         # exclude all removed barriers from this analysis; they are handled in a separate step
         filter=pc.field("removed") == False,  # noqa
     )
@@ -101,7 +94,7 @@ all_barrier_joins = (
     .to_pandas()
     .set_index("id")
     .join(
-        all_barriers.set_index("id")[["primary_network", "largefish_network", "smallfish_network"]],
+        all_barriers.set_index("id")[["primary_network", "largefish_network", "smallfish_network", "invasive"]],
         # only keep barrier joins that are in the set of barriers above
         how="inner",
     )

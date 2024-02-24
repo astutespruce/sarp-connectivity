@@ -1,14 +1,52 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Text } from 'theme-ui'
+import { Box, Flex, Grid, Text, Image } from 'theme-ui'
 
 import { ExternalLink, OutboundLink } from 'components/Link'
 import { Entry, Field } from 'components/Sidebar'
 import { isEmptyString } from 'util/string'
 
-const IDInfo = ({ sarpid, nidid, source, link, nearestcrossingid }) => {
+// ordered array of attachment keywords for sorting attached photos
+const attachmentKeywords = [
+  'upstream',
+  'inlet',
+  'outlet',
+  'downstream',
+  'optional1',
+  'optional2',
+]
+
+const IDInfo = ({
+  barrierType,
+  sarpid,
+  nidid,
+  source,
+  sourceid,
+  link,
+  nearestcrossingid,
+  lat,
+  lon,
+  attachments: rawAttachments,
+}) => {
   const fromWDFW = source && source.startsWith('WDFW')
   const fromODFW = source && source.startsWith('ODFW')
+
+  let attachments = []
+  if (!isEmptyString(rawAttachments)) {
+    const [prefix, parts] = rawAttachments.split('|')
+    attachments = parts
+      .split(',')
+      .sort((a, b) =>
+        attachmentKeywords.indexOf(a.split(':')[0]) <
+        attachmentKeywords.indexOf(b.split(':')[0])
+          ? -1
+          : 1
+      )
+      .map((part) => {
+        const [keyword, partId] = part.split(':')
+        return { keyword, url: `${prefix}/${partId}` }
+      })
+  }
 
   return (
     <>
@@ -31,6 +69,14 @@ const IDInfo = ({ sarpid, nidid, source, link, nearestcrossingid }) => {
         <Entry>
           <Field label="Source">
             <Text sx={{ textAlign: 'right' }}>{source}</Text>
+          </Field>
+        </Entry>
+      ) : null}
+
+      {!isEmptyString(sourceid) ? (
+        <Entry>
+          <Field label="Source ID">
+            <Text sx={{ textAlign: 'right' }}>{sourceid}</Text>
           </Field>
         </Entry>
       ) : null}
@@ -81,24 +127,107 @@ const IDInfo = ({ sarpid, nidid, source, link, nearestcrossingid }) => {
           </Text>
         </Entry>
       ) : null}
+
+      <Entry>
+        <Field label="View location in Google Maps">
+          <Flex sx={{ flex: '0 0 auto', gap: '0.5rem' }}>
+            <Box sx={{ flex: '0 0 auto' }}>
+              <ExternalLink
+                to={`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`}
+              >
+                map
+              </ExternalLink>
+            </Box>
+            {barrierType === 'small_barriers' ||
+            barrierType === 'road_crossings' ? (
+              <Box
+                sx={{
+                  flex: '0 0 auto',
+                  borderLeft: '1px solid',
+                  borderLeftColor: 'grey.3',
+                  pl: '0.5rem',
+                }}
+              >
+                <ExternalLink
+                  to={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}&fov=100`}
+                >
+                  street view
+                </ExternalLink>
+              </Box>
+            ) : null}
+          </Flex>
+        </Field>
+      </Entry>
+
+      {barrierType === 'small_barriers' && attachments.length > 0 ? (
+        <Entry>
+          <Text>Barrier survey photos:</Text>
+          <Grid columns={Math.min(2, attachments.length)} gap={2}>
+            {attachments.map(({ keyword, url }) => (
+              <Box key={keyword}>
+                <OutboundLink to={url}>
+                  <Box
+                    sx={{
+                      maxWidth: '200px',
+                      minWidth: '100px',
+                    }}
+                  >
+                    <Flex
+                      sx={{
+                        overflow: 'hidden',
+                        maxHeight: '110px',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Image
+                        src={url}
+                        sx={{
+                          width: '100%',
+                          border: '1px solid',
+                          borderColor: 'grey.7',
+                          '&:hover': {
+                            borderColor: 'link',
+                          },
+                        }}
+                      />
+                    </Flex>
+                    <Text
+                      sx={{ fontSize: 0, color: 'grey.7', textAlign: 'center' }}
+                    >
+                      {keyword}
+                    </Text>
+                  </Box>
+                </OutboundLink>
+              </Box>
+            ))}
+          </Grid>
+        </Entry>
+      ) : null}
     </>
   )
 }
 
 IDInfo.propTypes = {
+  barrierType: PropTypes.string.isRequired,
   sarpid: PropTypes.string,
   nidid: PropTypes.string,
   source: PropTypes.string,
+  sourceid: PropTypes.string,
   link: PropTypes.string,
   nearestcrossingid: PropTypes.string,
+  lat: PropTypes.number.isRequired,
+  lon: PropTypes.number.isRequired,
+  attachments: PropTypes.string,
 }
 
 IDInfo.defaultProps = {
   sarpid: null,
   nidid: null,
   source: null,
+  sourceid: null,
   link: null,
   nearestcrossingid: null,
+  attachments: null,
 }
 
 export default IDInfo

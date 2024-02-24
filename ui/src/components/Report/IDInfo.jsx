@@ -13,6 +13,7 @@ const IDInfo = ({
   sarpid,
   nidid,
   source,
+  sourceid,
   link,
   nearestcrossingid,
   ...props
@@ -28,16 +29,25 @@ const IDInfo = ({
             SARP ID: {sarpid} (data version: {dataVersion})
           </Text>
         </Entry>
+
         {!isEmptyString(nidid) ? (
           <Entry>
             <Text>National inventory of dams ID: {nidid}</Text>
           </Entry>
         ) : null}
+
         {!isEmptyString(source) ? (
           <Entry>
             <Text>Source: {source}</Text>
           </Entry>
         ) : null}
+
+        {!isEmptyString(sourceid) ? (
+          <Entry>
+            <Text>Source ID: {sourceid}</Text>
+          </Entry>
+        ) : null}
+
         {!isEmptyString(link) ? (
           <Entry>
             <Text>More information:</Text>
@@ -92,6 +102,7 @@ IDInfo.propTypes = {
   sarpid: PropTypes.string.isRequired,
   nidid: PropTypes.string,
   source: PropTypes.string,
+  sourceid: PropTypes.string,
   link: PropTypes.string,
   nearestcrossingid: PropTypes.string,
 }
@@ -99,6 +110,7 @@ IDInfo.propTypes = {
 IDInfo.defaultProps = {
   nidid: null,
   source: null,
+  sourceid: null,
   link: null,
   nearestcrossingid: null,
 }

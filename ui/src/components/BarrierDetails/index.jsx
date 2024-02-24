@@ -112,6 +112,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
   let state = ''
   let removed = false
   let yearremoved = null
+  let ispriority = false
 
   if (data) {
     console.log('barrier details:', sarpid, data)
@@ -120,6 +121,7 @@ const BarrierDetails = ({ barrier, onClose }) => {
     state = data.state
     removed = data.removed
     yearremoved = data.yearremoved
+    ispriority = data.ispriority
 
     let details = null
     switch (barrierType) {
@@ -259,28 +261,46 @@ const BarrierDetails = ({ barrier, onClose }) => {
         state={state}
         removed={removed}
         yearremoved={yearremoved}
+        ispriority={ispriority}
         onClose={onClose}
       />
 
       {content}
 
-      <Flex
+      <Box
         sx={{
           flex: '0 0 auto',
-          justifyContent: 'center',
-          alignItems: 'center',
           py: '0.5rem',
           borderTop: '1px solid #DDD',
           bg: '#f6f6f2',
         }}
       >
-        <a
-          href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${typeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+        <Flex
+          sx={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '0.25rem',
+          }}
         >
-          <Envelope size="1rem" style={{ marginRight: '0.25rem' }} /> Report a
-          problem with this barrier
-        </a>
-      </Flex>
+          <a
+            href={`mailto:Kat@southeastaquatics.net?subject=Problem with SARP Inventory for ${typeLabel}: ${sarpid} (data version: ${dataVersion})&body=I found the following problem with the SARP Inventory for this barrier:`}
+          >
+            <Envelope size="1rem" /> Report an error with this barrier
+          </a>
+        </Flex>
+        <Text
+          sx={{
+            fontSize: 0,
+            px: '1rem',
+            lineHeight: 1,
+            mt: '0.25rem',
+            color: 'grey.7',
+          }}
+        >
+          If this barrier should have a different value for one of the fields
+          above, please let us know!
+        </Text>
+      </Box>
     </>
   )
 }

@@ -8,6 +8,7 @@ import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
 
 import {
+  barrierTypeLabelSingular,
   SMALL_BARRIER_SEVERITY,
   CONDITION,
   CROSSING_TYPE,
@@ -51,6 +52,8 @@ const BarrierDetails = ({
   barrierType,
   networkType,
   sarpid,
+  lat,
+  lon,
 
   alteredupstreammiles,
   barrierownertype,
@@ -73,6 +76,7 @@ const BarrierDetails = ({
   in_network_type,
   intermittent,
   invasive,
+  invasivenetwork,
   landcover,
   link,
   milestooutlet,
@@ -90,6 +94,8 @@ const BarrierDetails = ({
   sizeclasses,
   snapped,
   source,
+  sourceid,
+  attachments,
   statesgcnspp,
   river,
   streamorder,
@@ -108,6 +114,7 @@ const BarrierDetails = ({
   yearremoved,
   ...props // includes species habitat fields selected dynamically
 }) => {
+  const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
   const habitat = hasnetwork ? extractHabitat(props) : []
 
   return (
@@ -290,12 +297,35 @@ const BarrierDetails = ({
         />
       </Section>
 
+      {hasnetwork && (invasive || invasivenetwork === 1) ? (
+        <Section title="Invasive species management">
+          {!invasive && invasivenetwork === 1 ? (
+            <Entry>
+              Upstream of a barrier identified as a beneficial to restricting
+              the movement of invasive species.
+            </Entry>
+          ) : null}
+
+          {invasive ? (
+            <Entry>
+              This {barrierTypeLabel} is identified as a beneficial to
+              restricting the movement of invasive species and is not ranked.
+            </Entry>
+          ) : null}
+        </Section>
+      ) : null}
+
       <Section title="Other information">
         <IDInfo
+          barrierType={barrierType}
           sarpid={sarpid}
+          lat={lat}
+          lon={lon}
           source={source}
+          sourceid={sourceid}
           link={link}
           nearestcrossingid={nearestcrossingid}
+          attachments={attachments}
         />
       </Section>
     </Box>
@@ -306,7 +336,8 @@ BarrierDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
-
+  lat: PropTypes.number.isRequired,
+  lon: PropTypes.number.isRequired,
   alteredupstreammiles: PropTypes.number,
   barrierownertype: PropTypes.number,
   barrierseverity: PropTypes.number,
@@ -345,6 +376,8 @@ BarrierDetails.propTypes = {
   sizeclasses: PropTypes.number,
   snapped: PropTypes.bool,
   source: PropTypes.string,
+  sourceid: PropTypes.string,
+  attachments: PropTypes.string,
   statesgcnspp: PropTypes.number,
   river: PropTypes.string,
   streamorder: PropTypes.number,
@@ -361,6 +394,7 @@ BarrierDetails.propTypes = {
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
   yearremoved: PropTypes.number,
+  invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
   freealewifehabitatdownstreammiles: PropTypes.number,
   americaneelhabitatupstreammiles: PropTypes.number,
@@ -461,6 +495,8 @@ BarrierDetails.defaultProps = {
   sizeclasses: null,
   snapped: false,
   source: null,
+  sourceid: null,
+  attachments: null,
   statesgcnspp: 0,
   river: null,
   streamorder: 0,
@@ -477,6 +513,7 @@ BarrierDetails.defaultProps = {
   waterbodykm2: -1,
   waterbodysizeclass: null,
   yearremoved: 0,
+  invasivenetwork: 0,
   alewifehabitatupstreammiles: 0,
   freealewifehabitatdownstreammiles: 0,
   americaneelhabitatupstreammiles: 0,

@@ -237,18 +237,17 @@ def calculate_geometry_stats(df):
         df.loc[~(df.intermittent | df.altered), "length"].groupby(level=0).sum().rename("perennial_unaltered")
     )
 
-    # free lengths used for downstream network; these deduct lengths in waterbodies
-    free_length = df.loc[~df.waterbody, "length"].groupby(level=0).sum().rename("free")
-    free_perennial = df.loc[~(df.intermittent | df.waterbody), "length"].groupby(level=0).sum().rename("free_perennial")
+    # free lengths used for downstream network; these deduct lengths in altered waterbodies
+    free_flowing = ~(df.waterbody & df.altered)
+    free_length = df.loc[free_flowing, "length"].groupby(level=0).sum().rename("free")
+    free_perennial = df.loc[free_flowing & ~df.intermittent, "length"].groupby(level=0).sum().rename("free_perennial")
     free_intermittent = (
-        df.loc[df.intermittent & (~df.waterbody), "length"].groupby(level=0).sum().rename("free_intermittent")
+        df.loc[free_flowing & df.intermittent, "length"].groupby(level=0).sum().rename("free_intermittent")
     )
-    free_altered_length = df.loc[df.altered & (~df.waterbody), "length"].groupby(level=0).sum().rename("free_altered")
-    free_unaltered_length = (
-        df.loc[~(df.waterbody | df.altered), "length"].groupby(level=0).sum().rename("free_unaltered")
-    )
+    free_altered_length = df.loc[free_flowing & df.altered, "length"].groupby(level=0).sum().rename("free_altered")
+    free_unaltered_length = df.loc[free_flowing & ~df.altered, "length"].groupby(level=0).sum().rename("free_unaltered")
     free_perennial_unaltered = (
-        df.loc[~(df.intermittent | df.waterbody | df.altered), "length"]
+        df.loc[free_flowing & ~(df.intermittent | df.altered), "length"]
         .groupby(level=0)
         .sum()
         .rename("free_perennial_unaltered")
@@ -426,7 +425,7 @@ def calculate_downstream_stats(
 
     # NOTE: ln_downstream also includes the barrier at the join
     ln_downstream = (
-        downstream_joins[["downstream_id", "kind"]]
+        downstream_joins[["downstream_id", "kind", "invasive"]]
         .join(down_network_df[["networkID", "length"]], on="downstream_id", how="inner")
         .reset_index(drop=True)
     )
@@ -592,6 +591,20 @@ def calculate_downstream_stats(
         to_great_lakes.index.isin(great_lake_barriers) | to_great_lakes.index.isin(great_lake_downstream_ids)
     ] = True
 
+    ### Identify networks that have an invasive barrier downstream
+    invasive_barriers = all_focal_barrier_joins.loc[all_focal_barrier_joins.invasive].index.unique()
+    invasive_ids = focal_barrier_joins.loc[focal_barrier_joins.invasive].upstream_id.unique()
+    invasive_downstream = down_network_df.loc[down_network_df.index.isin(invasive_ids)].networkID.unique()
+    invasive_downstream_ids = downstreams.loc[downstreams.downstream_network.isin(invasive_downstream)].index.unique()
+    invasive_network = pd.Series(
+        np.zeros(shape=(len(focal_barrier_joins),), dtype="bool"),
+        index=focal_barrier_joins.index,
+        name="invasive_network",
+    )
+    invasive_network.loc[
+        invasive_network.index.isin(invasive_barriers) | invasive_network.index.isin(invasive_downstream_ids)
+    ] = True
+
     ### Identify any networks that exit HUC2s
     # Note: only applicable for those that exit into HUC2s outside the analysis region
 
@@ -614,7 +627,14 @@ def calculate_downstream_stats(
         | exits_region.index.isin(to_ocean.loc[to_ocean].index)
     ] = True
 
-    results = focal_barrier_joins[[]].join(downstream_stats).join(to_ocean).join(to_great_lakes).join(exits_region)
+    results = (
+        focal_barrier_joins[[]]
+        .join(downstream_stats)
+        .join(to_ocean)
+        .join(to_great_lakes)
+        .join(exits_region)
+        .join(invasive_network)
+    )
 
     # set appropriate nodata
     count_cols = [c for c in downstream_stats.columns if c.startswith("totd_")]

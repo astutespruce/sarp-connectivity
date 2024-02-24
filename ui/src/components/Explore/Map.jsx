@@ -51,6 +51,7 @@ const ExploreMap = ({
   selectedBarrier,
   onSelectUnit,
   onSelectBarrier,
+  onCreateMap,
   children,
   ...props
 }) => {
@@ -414,6 +415,8 @@ const ExploreMap = ({
           })
         }
       })
+
+      onCreateMap()
     },
     // hook deps are intentionally omitted here
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
@@ -542,7 +545,7 @@ const ExploreMap = ({
     let feature = selectFeatureByID(id, layer)
 
     if (!feature) {
-      map.once('moveend', () => {
+      map.once('idle', () => {
         feature = selectFeatureByID(id, layer)
 
         // source may still be loading, try again in 1 second
@@ -554,11 +557,13 @@ const ExploreMap = ({
       })
     }
 
-    map.fitBounds(bbox.split(',').map(parseFloat), {
-      padding: 20,
-      fitBoundsMaxZoom,
-      duration: 500,
-    })
+    if (bbox) {
+      map.fitBounds(bbox.split(',').map(parseFloat), {
+        padding: 20,
+        fitBoundsMaxZoom,
+        duration: 500,
+      })
+    }
   }, [searchFeature, selectFeatureByID])
 
   const { layerTitle, legendEntries } = useMemo(() => {
@@ -731,6 +736,7 @@ ExploreMap.propTypes = {
     PropTypes.arrayOf(PropTypes.node),
     PropTypes.node,
   ]),
+  onCreateMap: PropTypes.func.isRequired,
 }
 
 ExploreMap.defaultProps = {

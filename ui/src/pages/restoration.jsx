@@ -25,15 +25,19 @@ const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
 }))
 
 const ProgressPage = ({ location }) => {
-  const [system, setSystem] = useState('HUC')
+  const {
+    region = 'total',
+    state: stateFromURL = null,
+    bbox: bboxFromURL = null,
+  } = getQueryParams(location)
+
+  const [system, setSystem] = useState(stateFromURL !== null ? 'ADM' : 'HUC')
   const [focalBarrierType, setFocalBarrierType] = useState('dams') // options: dams, small_barriers, combined_barriers
   const focalBarrierTypeRef = useRef('dams') // ref that parallels above state for use in callbacks
   const [searchFeature, setSearchFeature] = useState(null)
   const [summaryUnits, setSummaryUnits] = useState([])
   const [selectedBarrier, setSelectedBarrier] = useState(null)
   const [metric, setMetric] = useState('gainmiles')
-
-  const { region = 'total' } = getQueryParams(location)
 
   const handleSearch = useCallback((nextSearchFeature) => {
     setSearchFeature(nextSearchFeature)
@@ -89,6 +93,12 @@ const ProgressPage = ({ location }) => {
 
   const handleBarrierDetailsClose = () => {
     setSelectedBarrier(null)
+  }
+
+  const handleCreateMap = () => {
+    if (stateFromURL && !searchFeature) {
+      setSearchFeature({ id: stateFromURL, layer: 'State', bbox: bboxFromURL })
+    }
   }
 
   let sidebarContent = null
@@ -147,6 +157,7 @@ const ProgressPage = ({ location }) => {
               selectedBarrier={selectedBarrier}
               onSelectUnit={handleSelectUnit}
               onSelectBarrier={handleSelectBarrier}
+              onCreateMap={handleCreateMap}
             >
               <TopBar>
                 <Text sx={{ mr: '0.5rem' }}>Show networks for:</Text>

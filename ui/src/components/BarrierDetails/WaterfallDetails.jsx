@@ -2,7 +2,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box } from 'theme-ui'
 
-import { PASSABILITY } from 'config'
+import { barrierTypeLabelSingular, PASSABILITY } from 'config'
 import { extractHabitat } from 'components/Data/Habitat'
 import { Entry, Field, Section } from 'components/Sidebar'
 import { isEmptyString } from 'util/string'
@@ -19,6 +19,8 @@ const WaterfallDetails = ({
   barrierType,
   networkType,
   sarpid,
+  lat,
+  lon,
 
   alteredupstreammiles,
   basin,
@@ -44,6 +46,7 @@ const WaterfallDetails = ({
   sizeclasses,
   snapped,
   source,
+  sourceid,
   statesgcnspp,
   river,
   streamorder,
@@ -58,8 +61,11 @@ const WaterfallDetails = ({
   unalteredupstreammiles,
   waterbodykm2,
   waterbodysizeclass,
+  invasive,
+  invasivenetwork,
   ...props // includes species habitat fields selected dynamically
 }) => {
+  const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
   const habitat = hasnetwork ? extractHabitat(props) : []
 
   return (
@@ -163,11 +169,34 @@ const WaterfallDetails = ({
         />
       </Section>
 
-      {!isEmptyString(source) ? (
-        <Section title="Other information">
-          <IDInfo sarpid={sarpid} source={source} />
+      {hasnetwork && (invasive || invasivenetwork === 1) ? (
+        <Section title="Invasive species management">
+          {!invasive && invasivenetwork === 1 ? (
+            <Entry>
+              Upstream of a barrier identified as a beneficial to restricting
+              the movement of invasive species.
+            </Entry>
+          ) : null}
+
+          {invasive ? (
+            <Entry>
+              This {barrierTypeLabel} is identified as a beneficial to
+              restricting the movement of invasive species and is not ranked.
+            </Entry>
+          ) : null}
         </Section>
       ) : null}
+
+      <Section title="Other information">
+        <IDInfo
+          barrierType={barrierType}
+          sarpid={sarpid}
+          lat={lat}
+          lon={lon}
+          source={source}
+          sourceid={sourceid}
+        />
+      </Section>
     </Box>
   )
 }
@@ -176,6 +205,8 @@ WaterfallDetails.propTypes = {
   barrierType: PropTypes.string.isRequired,
   networkType: PropTypes.string.isRequired,
   sarpid: PropTypes.string.isRequired,
+  lat: PropTypes.number.isRequired,
+  lon: PropTypes.number.isRequired,
 
   hasnetwork: PropTypes.bool.isRequired,
   alteredupstreammiles: PropTypes.number,
@@ -201,6 +232,7 @@ WaterfallDetails.propTypes = {
   sizeclasses: PropTypes.number,
   snapped: PropTypes.bool,
   source: PropTypes.string,
+  sourceid: PropTypes.string,
   statesgcnspp: PropTypes.number,
   river: PropTypes.string,
   streamorder: PropTypes.number,
@@ -215,6 +247,8 @@ WaterfallDetails.propTypes = {
   unalteredupstreammiles: PropTypes.number,
   waterbodykm2: PropTypes.number,
   waterbodysizeclass: PropTypes.number,
+  invasive: PropTypes.bool,
+  invasivenetwork: PropTypes.number,
   alewifehabitatupstreammiles: PropTypes.number,
   freealewifehabitatdownstreammiles: PropTypes.number,
   americaneelhabitatupstreammiles: PropTypes.number,
@@ -301,6 +335,7 @@ WaterfallDetails.defaultProps = {
   sizeclasses: null,
   snapped: false,
   source: null,
+  sourceid: null,
   statesgcnspp: 0,
   river: null,
   streamorder: 0,
@@ -315,6 +350,8 @@ WaterfallDetails.defaultProps = {
   unalteredupstreammiles: 0,
   waterbodykm2: -1,
   waterbodysizeclass: null,
+  invasive: false,
+  invasivenetwork: 0,
   alewifehabitatupstreammiles: 0,
   freealewifehabitatdownstreammiles: 0,
   americaneelhabitatupstreammiles: 0,

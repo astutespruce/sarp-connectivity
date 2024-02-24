@@ -66,41 +66,37 @@ nwi_dir = data_dir / "nwi/raw"
 waterbodies_dir = data_dir / "waterbodies"
 out_dir = nhd_dir / "clean"
 
-huc2s = sorted(
-    pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values
-)
+huc2s = sorted(pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"]).HUC2.values)
 # manually subset keys from above for processing
-huc2s = [
-    # "01",
-    # "02",
-    # "03",
-    # "04",
-    # "05",
-    # "06",
-    # "07",
-    # "08",
-    # "09",
-    # "10",
-    # "11",
-    # "12",
-    # "13",
-    # "14",
-    # "15",
-    # "16",
-    # "17",
-    # "18",
-    # "19",
-    # "21",
-]
+# huc2s = [
+# "01",
+# "02",
+# "03",
+# "04",
+# "05",
+# "06",
+# "07",
+# "08",
+# "09",
+# "10",
+# "11",
+# "12",
+# "13",
+# "14",
+# "15",
+# "16",
+# "17",
+# "18",
+# "19",
+# "21",
+# ]
 
 
 start = time()
 
 marine = None
 if len(COASTAL_HUC2.intersection(huc2s)):
-    marine = gp.read_feather(
-        nhd_dir / "merged/nhd_marine.feather", columns=["geometry"]
-    )
+    marine = gp.read_feather(nhd_dir / "merged/nhd_marine.feather", columns=["geometry"])
 
 for huc2 in huc2s:
     region_start = time()
@@ -111,9 +107,7 @@ for huc2 in huc2s:
     huc2_dir.mkdir(exist_ok=True, parents=True)
 
     print("Reading flowlines...")
-    flowlines = gp.read_feather(src_dir / huc2 / "flowlines.feather").set_index(
-        "lineID"
-    )
+    flowlines = gp.read_feather(src_dir / huc2 / "flowlines.feather").set_index("lineID")
     joins = pd.read_feather(src_dir / huc2 / "flowline_joins.feather")
 
     # update loop status of joins, if needed
@@ -122,9 +116,7 @@ for huc2 in huc2s:
 
     print(f"Read {len(flowlines):,} flowlines")
 
-    waterbodies = gp.read_feather(
-        waterbodies_dir / huc2 / "waterbodies.feather"
-    ).set_index("wbID")
+    waterbodies = gp.read_feather(waterbodies_dir / huc2 / "waterbodies.feather").set_index("wbID")
     print(f"Read {len(waterbodies):,} waterbodies")
 
     print("------------------")
@@ -139,9 +131,7 @@ for huc2 in huc2s:
     if join_fixes:
         print(f"Fixing {len(join_fixes)} joins based on manual updates")
         for fix in join_fixes:
-            ix = (joins.upstream == fix["upstream"]) & (
-                joins.downstream == fix["downstream"]
-            )
+            ix = (joins.upstream == fix["upstream"]) & (joins.downstream == fix["downstream"])
             if "new_upstream" in fix:
                 joins.loc[ix, "upstream"] = fix["new_upstream"]
                 flowline_ix = flowlines.NHDPlusID == fix["new_upstream"]
@@ -161,9 +151,7 @@ for huc2 in huc2s:
     if to_remove:
         print(f"Removing {len(to_remove)} joins based on manual review")
         for entry in to_remove:
-            ix = (joins.upstream == entry["upstream"]) & (
-                joins.downstream == entry["downstream"]
-            )
+            ix = (joins.upstream == entry["upstream"]) & (joins.downstream == entry["downstream"])
             joins = joins.loc[~ix].copy()
 
     ### Manual fixes for flowlines
@@ -234,18 +222,14 @@ for huc2 in huc2s:
     print("Evaluating pipelines & undeground connectors")
     keep_ids = KEEP_PIPELINES.get(huc2, [])
     flowlines, joins = remove_pipelines(flowlines, joins, MAX_PIPELINE_LENGTH, keep_ids)
-    print(
-        f"{len(flowlines):,} flowlines after dropping pipelines & underground connectors"
-    )
+    print(f"{len(flowlines):,} flowlines after dropping pipelines & underground connectors")
     print("------------------")
 
     ### Repair disconnected subnetworks
     if huc2 == "18":
         print("Repairing disconnected subnetworks")
         next_lineID = flowlines.index.max() + np.uint32(1)
-        flowlines, joins = repair_disconnected_subnetworks(
-            flowlines, joins, next_lineID
-        )
+        flowlines, joins = repair_disconnected_subnetworks(flowlines, joins, next_lineID)
         print(f"{len(flowlines):,} flowlines after repairing subnetworks")
         print("------------------")
 
@@ -272,9 +256,7 @@ for huc2 in huc2s:
         cut_waterbodies = waterbodies.loc[waterbodies.km2 < 8000]
 
     next_lineID = flowlines.index.max() + np.uint32(1)
-    flowlines, joins, wb_joins = cut_lines_by_waterbodies(
-        flowlines, joins, cut_waterbodies, next_lineID=next_lineID
-    )
+    flowlines, joins, wb_joins = cut_lines_by_waterbodies(flowlines, joins, cut_waterbodies, next_lineID=next_lineID)
 
     # NOTE: we retain all waterbodies at this point, even if they don't overlap
     # flowlines.  This is because we use headwaters waterbodies to calculate drain points.
@@ -315,19 +297,13 @@ for huc2 in huc2s:
     waterbodies = waterbodies.reset_index()
     waterbodies.to_feather(huc2_dir / "waterbodies.feather")
     write_dataframe(waterbodies, huc2_dir / "waterbodies.fgb")
-    wb_joins.reset_index(drop=True).to_feather(
-        huc2_dir / "waterbody_flowline_joins.feather"
-    )
+    wb_joins.reset_index(drop=True).to_feather(huc2_dir / "waterbody_flowline_joins.feather")
 
     print("Serializing {:,} drain points".format(len(drains)))
     drains.to_feather(huc2_dir / "waterbody_drain_points.feather")
     write_dataframe(drains, huc2_dir / "waterbody_drain_points.fgb")
 
-    print(
-        "------------------\nRegion done in {:.2f}s\n------------------\n".format(
-            time() - region_start
-        )
-    )
+    print("------------------\nRegion done in {:.2f}s\n------------------\n".format(time() - region_start))
 
     del flowlines
     del joins

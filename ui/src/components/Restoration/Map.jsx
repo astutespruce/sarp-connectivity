@@ -41,6 +41,7 @@ const RestorationMap = ({
   selectedBarrier,
   onSelectUnit,
   onSelectBarrier,
+  onCreateMap,
   children,
   ...props
 }) => {
@@ -362,6 +363,8 @@ const RestorationMap = ({
           })
         }
       })
+
+      onCreateMap()
     },
     // hook deps are intentionally omitted here
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
@@ -478,7 +481,7 @@ const RestorationMap = ({
     let feature = selectFeatureByID(id, layer)
 
     if (!feature) {
-      map.once('moveend', () => {
+      map.once('idle', () => {
         feature = selectFeatureByID(id, layer)
 
         // source may still be loading, try again in 1 second
@@ -490,11 +493,13 @@ const RestorationMap = ({
       })
     }
 
-    map.fitBounds(bbox.split(',').map(parseFloat), {
-      padding: 20,
-      fitBoundsMaxZoom,
-      duration: 500,
-    })
+    if (bbox) {
+      map.fitBounds(bbox.split(',').map(parseFloat), {
+        padding: 20,
+        fitBoundsMaxZoom,
+        duration: 500,
+      })
+    }
   }, [searchFeature, selectFeatureByID])
 
   const { layerTitle, legendEntries } = useMemo(() => {
@@ -643,6 +648,7 @@ RestorationMap.propTypes = {
   selectedBarrier: PropTypes.object,
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
+  onCreateMap: PropTypes.func.isRequired,
   children: PropTypes.oneOfType([
     PropTypes.arrayOf(PropTypes.node),
     PropTypes.node,

@@ -97,7 +97,9 @@ start = time()
 
 ### Read dams for analysis region states states and merge
 print("Reading dams in analysis region states")
-df = gp.read_feather(src_dir / "sarp_dams.feather")
+
+# FIXME: remove rename on next download of data
+df = gp.read_feather(src_dir / "sarp_dams.feather").rename(columns={"SourceDBID": "SourceID"})
 print(f"Read {len(df):,} dams in region states")
 
 
@@ -112,6 +114,8 @@ snapped_df = (
     .first()
     .reset_index()
 )
+# groupby loses CRS
+snapped_df = snapped_df.set_crs(df.crs, allow_override=True)
 
 
 # Don't pull across those that were not manually snapped or are missing key fields
@@ -218,6 +222,9 @@ df.loc[ix, "Feasibility"] = 9
 # drop invasive species column to prevent later confusion
 df = df.drop(columns=["InvasiveSpecies"])
 
+# convert IsPriority to a bool (1 = Yes, Null/0/2 = No / not set)
+df["IsPriority"] = df.IsPriority == 1
+
 
 ### Set data types
 for column in (
@@ -226,7 +233,7 @@ for column in (
     "Source",
     "Name",
     "OtherName",
-    "SourceDBID",
+    "SourceID",
     "Editor",
     "EditDate",
     "Link",
@@ -546,9 +553,9 @@ for field, values in unranked_fields.items():
 # NOTE: this MUST be done AFTER dropping / excluding barriers
 # NOTE: Estimated Dams <datestamp> are estimated using methods here; others were done in other ways
 df["is_estimated"] = (
-    df.Name.str.lower().str.contains("Estimated Dam")
+    df.Name.str.lower().str.contains("estimated dam")
     | df.Source.str.lower().str.contains("estimated dam")
-    | (df.SourceDBID.str.startswith("e"))
+    | df.Source.str.lower().str.contains("nhdplus high resolution watebodies instersecting")
 )
 
 
@@ -954,6 +961,7 @@ df[
         "smallfish_network",
         "removed",
         "YearRemoved",
+        "invasive",
     ]
 ].to_feather(
     snapped_dir / "dams.feather",

@@ -30,6 +30,7 @@ import DiadromousInfo from './DiadromousInfo'
 import Feasibility from './Feasibility'
 import Header from './Header'
 import IDInfo from './IDInfo'
+import InvasiveSpecies from './InvasiveSpecies'
 import Legend from './Legend'
 import { Attribution, LocatorMap, Map } from './Map'
 import Network from './Network'
@@ -51,6 +52,8 @@ const Preview = ({ networkType, data }) => {
     hasnetwork,
     flowstoocean,
     milestooutlet,
+    invasive,
+    invasivenetwork,
   } = data
 
   const barrierType =
@@ -311,6 +314,14 @@ const Preview = ({ networkType, data }) => {
             {...data}
           />
 
+          {hasnetwork && (invasive || invasivenetwork === 1) ? (
+            <InvasiveSpecies
+              barrierType={barrierType}
+              sx={{ mt: '3rem' }}
+              {...data}
+            />
+          ) : null}
+
           <IDInfo sx={{ mt: '3rem' }} {...data} />
 
           <Contact sx={{ mt: '3rem' }} barrierType={barrierType} {...data} />
@@ -339,6 +350,8 @@ Preview.propTypes = {
     hasnetwork: PropTypes.bool,
     flowstoocean: PropTypes.number,
     milestooutlet: PropTypes.number,
+    invasive: PropTypes.bool,
+    invasivenetwork: PropTypes.number,
     // other props validated by subcomponents
   }).isRequired,
 }

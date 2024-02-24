@@ -2,12 +2,7 @@ import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { graphql } from 'gatsby'
 import { GatsbyImage } from 'gatsby-plugin-image'
-import {
-  ChartBar,
-  Fish,
-  SearchLocation,
-  UserFriends,
-} from '@emotion-icons/fa-solid'
+import { ChartBar, Fish, SearchLocation } from '@emotion-icons/fa-solid'
 import {
   Box,
   Button,
@@ -44,6 +39,7 @@ const StateRoute = ({
     },
     stateStatsJson: {
       id,
+      bbox,
       dams,
       rankedDams,
       reconDams,
@@ -303,7 +299,7 @@ const StateRoute = ({
                 alignItems: 'flex-end',
               }}
             >
-              <Link to="/explore">
+              <Link to={`/explore?state=${id}&bbox=${bbox}`}>
                 <Button variant="primary">
                   <ChartBar size="1em" />
                   &nbsp; Start exploring
@@ -335,7 +331,7 @@ const StateRoute = ({
                 alignItems: 'flex-end',
               }}
             >
-              <Link to="/restoration">
+              <Link to={`/restoration?state=${id}&bbox=${bbox}`}>
                 <Button variant="primary">
                   <Fish size="1em" />
                   &nbsp; See restoration progress
@@ -455,6 +451,7 @@ StateRoute.propTypes = {
     map: PropTypes.object.isRequired,
     stateStatsJson: PropTypes.shape({
       id: PropTypes.string.isRequired,
+      bbox: PropTypes.string.isRequired,
       dams: PropTypes.number.isRequired,
       rankedDams: PropTypes.number.isRequired,
       reconDams: PropTypes.number.isRequired,
@@ -487,6 +484,7 @@ export const query = graphql`
     }
     stateStatsJson(jsonId: { eq: $jsonId }) {
       id: jsonId
+      bbox
       dams
       rankedDams: ranked_dams
       reconDams: recon_dams

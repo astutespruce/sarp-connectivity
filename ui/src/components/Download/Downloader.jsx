@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { Download as DownloadIcon } from '@emotion-icons/fa-solid'
-import { Box, Button, Flex, Paragraph, Text } from 'theme-ui'
+import { Box, Button, Flex, Text } from 'theme-ui'
 
 import { getDownloadURL } from 'components/Data'
 import { OutboundLink } from 'components/Link'
@@ -20,11 +20,13 @@ const Downloader = ({
   asButton,
   label,
   disabled,
+  showOptions,
+  includeUnranked,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [haveUserInfo, setHaveUserInfo] = useState(false)
   const [downloadOptions, setDownloadOptions] = useState({
-    includeUnranked: false,
+    includeUnranked,
   })
 
   const barrierTypeLabel = barrierTypeLabels[barrierType]
@@ -56,6 +58,8 @@ const Downloader = ({
 
   const handleDownload = () => {
     const { summaryUnits, filters, scenario } = config
+
+    console.log('include unranked', downloadOptions)
 
     const downloadURL = getDownloadURL({
       barrierType,
@@ -133,7 +137,7 @@ const Downloader = ({
         </Modal>
       )}
 
-      {showDownloadPopup && (
+      {showDownloadPopup ? (
         <Modal
           title={`Download ${customRank ? 'prioritized' : ''} ${
             barrierTypeLabels[barrierType]
@@ -141,7 +145,7 @@ const Downloader = ({
           onClose={handleClose}
         >
           <Box sx={{ maxWidth: '600px' }}>
-            {barrierType !== 'road_crossings' ? (
+            {showOptions && barrierType !== 'road_crossings' ? (
               <DownloadOptions
                 barrierType={barrierType}
                 options={downloadOptions}
@@ -150,7 +154,7 @@ const Downloader = ({
               />
             ) : null}
 
-            <Paragraph variant="help" sx={{ mt: '2rem' }}>
+            <Text sx={{ mt: '2rem', fontSize: 1 }}>
               By downloading these data, you agree to the{' '}
               <OutboundLink to="/terms" target="_blank">
                 Terms of Use
@@ -162,7 +166,7 @@ const Downloader = ({
               <br />
               <br />
               Coordinates are in WGS 1984.
-            </Paragraph>
+            </Text>
           </Box>
 
           <Flex
@@ -186,7 +190,7 @@ const Downloader = ({
             </Button>
           </Flex>
         </Modal>
-      )}
+      ) : null}
     </>
   )
 }
@@ -203,6 +207,8 @@ Downloader.propTypes = {
   asButton: PropTypes.bool,
   label: PropTypes.string,
   disabled: PropTypes.bool,
+  showOptions: PropTypes.bool,
+  includeUnranked: PropTypes.bool,
 }
 
 Downloader.defaultProps = {
@@ -210,6 +216,8 @@ Downloader.defaultProps = {
   label: null,
   asButton: true,
   disabled: false,
+  showOptions: true,
+  includeUnranked: false,
 }
 
 export default Downloader

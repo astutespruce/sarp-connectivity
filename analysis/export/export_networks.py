@@ -12,11 +12,11 @@ out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True, parents=True)
 
 
-scenario = "combined_barriers"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
-# ext = "fgb"
-# driver = "FlatGeobuff"
-ext = "gdb"
-driver = "OpenFileGDB"
+scenario = "dams"  # "dams", "combined_barriers", "largefish_barriers", "smallfish_barriers"
+ext = "fgb"
+driver = "FlatGeobuf"
+# ext = "gdb"
+# driver = "OpenFileGDB"
 
 groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 
@@ -25,10 +25,12 @@ export_hucs = {
     # "02",
     # "04",
     # "05",
-    "06",
+    # "06",
     # "07",
-    # "08"
-    # "09"
+    # "08",
+    # "09",
+    "04",
+    # "14",
     # "21"
 }
 
@@ -46,7 +48,9 @@ floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).as
 
 # for group in groups_df.groupby("group").HUC2.apply(set).values:
 # for group in [{"01", "02"}]:
-for group in [{"05", "06", "07", "08", "10", "11"}]:
+# for group in [{"05", "06", "07", "08", "10", "11"}]:
+# for group in [{"14", "15"}]:
+for group in [{"04"}]:
     group = sorted(group)
 
     segments = (
@@ -81,6 +85,7 @@ for group in [{"05", "06", "07", "08", "10", "11"}]:
             "barrier",
             "flows_to_ocean",
             "flows_to_great_lakes",
+            "invasive_network",
         ],
     ).set_index("networkID")
 
@@ -98,7 +103,7 @@ for group in [{"05", "06", "07", "08", "10", "11"}]:
             if col in stats.columns:
                 stats[col] = stats[col].fillna(0).astype("uint32")
 
-    for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region"]:
+    for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]:
         if col in stats.columns:
             stats[col] = stats[col].astype("uint8")
 
@@ -130,13 +135,10 @@ for group in [{"05", "06", "07", "08", "10", "11"}]:
             ],
         ).set_index("lineID")
 
-        # FIXME: remove
-        flowlines = flowlines.loc[~flowlines.waterbody].copy().drop(columns=["waterbody"])
-
         flowlines = (
             flowlines.join(segments)
             .join(floodplains, on="NHDPlusID")
-            .join(stats[["flows_to_ocean", "flows_to_great_lakes"]], on="networkID")
+            .join(stats[["flows_to_ocean", "flows_to_great_lakes", "invasive_network"]], on="networkID")
         )
 
         flowlines["km"] = flowlines["length"] / 1000.0

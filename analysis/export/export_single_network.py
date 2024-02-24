@@ -110,6 +110,8 @@ stats = (
             "sizeclasses",
             "barrier",
             "flows_to_ocean",
+            "flows_to_great_lakes",
+            "invasive_network",
         ],
         filter=pc.field("networkID") == upNetID,
     )
@@ -183,6 +185,8 @@ if driver == "ESRI Shapefile":
             "intermittent": "intermit",
             "StreamOrder": "StrOrd",
             "flows_to_ocean": "fl2ocean",
+            "flows_to_great_lakes": "fl2gl",
+            "invasive_network": "invnet",
         }
     )
 
@@ -228,6 +232,8 @@ if driver == "ESRI Shapefile":
             "pct_perennial_unaltered": "pct_pua",
             "sizeclasses": "sizecl",
             "flows_to_ocean": "fl2ocean",
+            "flows_to_great_lakes": "fl2gl",
+            "invasive_network": "invnet",
         }
     )
 
