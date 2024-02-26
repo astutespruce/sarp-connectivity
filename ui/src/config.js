@@ -1030,6 +1030,8 @@ export const PASSAGEFACILITY = {
   22: 'other',
   23: 'Hybrid / multiple',
   24: 'None (confirmed)',
+  25: 'Submerged orifice',
+  26: 'Other',
 }
 
 export const INTERMITTENT = {
