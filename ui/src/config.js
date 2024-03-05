@@ -1090,11 +1090,11 @@ export const PERCENT_ALTERED = {
 }
 
 export const PERCENT_RESILIENT = {
-  4: '90 - 100%',
-  3: '50 - 89%',
-  2: '10 - 49%',
-  1: '0 - 9%',
   // 0: no network // filtered out
+  1: '0 - 9%',
+  2: '10 - 49%',
+  3: '50 - 89%',
+  4: '90 - 100%',
 }
 
 export const STREAM_SIZECLASS = {

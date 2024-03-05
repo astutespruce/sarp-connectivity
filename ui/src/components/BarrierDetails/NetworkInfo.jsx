@@ -22,10 +22,13 @@ const NetworkInfo = ({
   perennialupstreammiles,
   alteredupstreammiles,
   unalteredupstreammiles,
+  resilientupstreammiles,
   freedownstreammiles,
   freeperennialdownstreammiles,
   freealtereddownstreammiles,
   freeunaltereddownstreammiles,
+  freeresilientdownstreammiles,
+  percentresilient,
   sizeclasses,
   landcover,
   fontSize,
@@ -105,7 +108,8 @@ const NetworkInfo = ({
                   <br />
                   Total miles downstream is the sum of all river and stream
                   lengths in the functional network immediately downstream of
-                  this network, excluding all lengths within waterbodies.
+                  this network, excluding all lengths within altered
+                  waterbodies.
                 </InfoTooltip>
               </Box>
             </Box>
@@ -140,7 +144,8 @@ const NetworkInfo = ({
                   <br />
                   Total perennial miles downstream is the sum of all perennial
                   reach lengths in the functional network immediately downstream
-                  of this network, excluding all lengths within waterbodies.
+                  of this network, excluding all lengths within altered
+                  waterbodies.
                 </InfoTooltip>
               </Box>
             </Box>
@@ -178,7 +183,7 @@ const NetworkInfo = ({
                   Total ephemeral and intermittent miles downstream is the sum
                   of all ephemeral and intermittent reach lengths in the
                   functional network immediately downstream of this network,
-                  excluding all lengths within waterbodies.
+                  excluding all lengths within altered waterbodies.
                 </InfoTooltip>
               </Box>
             </Box>
@@ -198,7 +203,8 @@ const NetworkInfo = ({
                   <br />
                   Total altered miles downstream is the sum of all altered reach
                   lengths in the functional network immediately downstream of
-                  this network, excluding all lengths within waterbodies.
+                  this network, excluding all lengths within altered
+                  waterbodies.
                 </InfoTooltip>
               </Box>
             </Box>
@@ -219,12 +225,37 @@ const NetworkInfo = ({
                   <br />
                   Total unaltered miles downstream is the sum of all unaltered
                   reach lengths in the functional network immediately downstream
-                  of this network, excluding all lengths within waterbodies.
+                  of this network, excluding all lengths within altered
+                  waterbodies.
                 </InfoTooltip>
               </Box>
             </Box>
             <Box>{formatNumber(unalteredupstreammiles, 2, true)}</Box>
             <Box>{formatNumber(freeunaltereddownstreammiles, 2, true)}</Box>
+          </Row>
+
+          <Row sx={{ px: '0.5rem' }}>
+            <Box>
+              <Text sx={{ display: 'inline' }}>Resilient miles</Text>
+
+              <Box sx={{ display: 'inline-block' }}>
+                <InfoTooltip>
+                  Total resilient miles upstream is the sum of all reach lengths
+                  that are within subwatersheds with above average or greater
+                  freshwater resilience within The Nature Conservancy&apos;s
+                  Freshwater Resilience dataset (v0.44).
+                  <br />
+                  <br />
+                  Total resilient miles downstream is the sum of all reach
+                  lengths in the functional network immediately downstream of
+                  this network that are within subwatersheds with above average
+                  or greater freshwater resilience, excluding all lengths within
+                  altered waterbodies.
+                </InfoTooltip>
+              </Box>
+            </Box>
+            <Box>{formatNumber(resilientupstreammiles, 2, true)}</Box>
+            <Box>{formatNumber(freeresilientdownstreammiles, 2, true)}</Box>
           </Row>
         </Table>
 
@@ -339,18 +370,32 @@ const NetworkInfo = ({
       </Entry>
 
       {totalupstreammiles > 0 ? (
-        <Entry>
-          <Field label="Percent of the upstream network in altered stream channels">
-            <Text
-              sx={{
-                fontSize: 1,
-                fontWeight: 'bold',
-              }}
-            >
-              {formatPercent(percentAltered)}%
-            </Text>
-          </Field>
-        </Entry>
+        <>
+          <Entry>
+            <Field label="Percent of the upstream network in altered stream channels">
+              <Text
+                sx={{
+                  fontSize: 1,
+                  fontWeight: 'bold',
+                }}
+              >
+                {formatPercent(percentAltered)}%
+              </Text>
+            </Field>
+          </Entry>
+          <Entry>
+            <Field label="Percent of the upstream network in resilient subwatersheds">
+              <Text
+                sx={{
+                  fontSize: 1,
+                  fontWeight: 'bold',
+                }}
+              >
+                {formatPercent(percentresilient)}%
+              </Text>
+            </Field>
+          </Entry>
+        </>
       ) : null}
 
       <Entry>
@@ -408,10 +453,13 @@ NetworkInfo.propTypes = {
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
   unalteredupstreammiles: PropTypes.number,
+  resilientupstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
   freeunaltereddownstreammiles: PropTypes.number,
+  freeresilientdownstreammiles: PropTypes.number,
+  percentresilient: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
   invasive: PropTypes.bool,
@@ -431,10 +479,13 @@ NetworkInfo.defaultProps = {
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,
   unalteredupstreammiles: 0,
+  resilientupstreammiles: 0,
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,
   freealtereddownstreammiles: 0,
   freeunaltereddownstreammiles: 0,
+  freeresilientdownstreammiles: 0,
+  percentresilient: 0,
   landcover: 0,
   sizeclasses: 0,
   invasive: false,

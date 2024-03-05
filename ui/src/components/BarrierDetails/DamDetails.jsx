@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Paragraph, Text } from 'theme-ui'
+import { Box, Flex, Text } from 'theme-ui'
 import { Envelope, ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { extractHabitat } from 'components/Data/Habitat'
@@ -53,6 +53,7 @@ const DamDetails = ({
   freedownstreammiles,
   freeperennialdownstreammiles,
   freeunaltereddownstreammiles,
+  freeresilientdownstreammiles,
   hasnetwork,
   hazard,
   height,
@@ -69,11 +70,13 @@ const DamDetails = ({
   ownertype,
   passability,
   passagefacility,
+  percentresilient,
   perennialupstreammiles,
   purpose,
   recon,
   regionalsgcnspp,
   removed,
+  resilientupstreammiles,
   river,
   salmonidesu,
   sizeclasses,
@@ -262,10 +265,13 @@ const DamDetails = ({
             perennialupstreammiles={perennialupstreammiles}
             alteredupstreammiles={alteredupstreammiles}
             unalteredupstreammiles={unalteredupstreammiles}
+            resilientupstreammiles={resilientupstreammiles}
             freedownstreammiles={freedownstreammiles}
             freeperennialdownstreammiles={freeperennialdownstreammiles}
             freealtereddownstreammiles={freealtereddownstreammiles}
             freeunaltereddownstreammiles={freeunaltereddownstreammiles}
+            freeresilientdownstreammiles={freeresilientdownstreammiles}
+            percentresilient={percentresilient}
             sizeclasses={sizeclasses}
             landcover={landcover}
             waterbodysizeclass={waterbodysizeclass}
@@ -417,6 +423,7 @@ DamDetails.propTypes = {
   freedownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
   freeunaltereddownstreammiles: PropTypes.number,
+  freeresilientdownstreammiles: PropTypes.number,
   hasnetwork: PropTypes.bool.isRequired,
   hazard: PropTypes.number,
   height: PropTypes.number,
@@ -433,11 +440,13 @@ DamDetails.propTypes = {
   ownertype: PropTypes.number,
   passability: PropTypes.number,
   passagefacility: PropTypes.number,
+  percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   purpose: PropTypes.number,
   recon: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   removed: PropTypes.bool,
+  resilientupstreammiles: PropTypes.number,
   river: PropTypes.string,
   salmonidesu: PropTypes.string,
   sizeclasses: PropTypes.number,
@@ -544,6 +553,7 @@ DamDetails.defaultProps = {
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,
   freeunaltereddownstreammiles: 0,
+  freeresilientdownstreammiles: 0,
   hazard: null,
   height: 0,
   huc12: null,
@@ -559,11 +569,13 @@ DamDetails.defaultProps = {
   ownertype: null,
   passability: null,
   passagefacility: null,
+  percentresilient: 0,
   perennialupstreammiles: 0,
   purpose: null,
   recon: null,
   regionalsgcnspp: 0,
   removed: false,
+  resilientupstreammiles: 0,
   river: null,
   salmonidesu: null,
   sizeclasses: null,

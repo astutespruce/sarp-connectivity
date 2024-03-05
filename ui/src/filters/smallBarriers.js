@@ -11,6 +11,7 @@ import {
   ROAD_TYPE,
   STREAMORDER,
   PERCENT_ALTERED,
+  PERCENT_RESILIENT,
   PASSAGEFACILITY_CLASS,
   CONDITION,
   OWNERTYPE,
@@ -242,6 +243,20 @@ export const smallBarriers = [
         isArray: true,
         labels: Object.values(SALMONID_ESU),
         values: Object.keys(SALMONID_ESU),
+      },
+    ],
+  },
+  {
+    id: 'climate',
+    title: 'Climate resilience',
+    filters: [
+      {
+        field: 'percentresilientclass',
+        title: 'Percent of upstream network in resilient subwatersheds',
+        sort: false,
+        help: "Resilient subwatersheds are those with above average or greater freshwater resilience within The Nature Conservancy's Freshwater Resilience dataset (v0.44).  Note: not available for Alaska, far southern Florida, Puerto Rico, or the U.S. Virgin Islands.",
+        url: 'https://www.maps.tnc.org/resilientrivers/#/explore',
+        ...getEntries(PERCENT_RESILIENT),
       },
     ],
   },

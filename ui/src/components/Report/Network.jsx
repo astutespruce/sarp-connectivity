@@ -23,10 +23,12 @@ const Network = ({
   perennialupstreammiles,
   alteredupstreammiles,
   unalteredupstreammiles,
+  resilientupstreammiles,
   freedownstreammiles,
   freeperennialdownstreammiles,
   freealtereddownstreammiles,
   freeunaltereddownstreammiles,
+  freeresilientdownstreammiles,
   sizeclasses,
   landcover,
   excluded,
@@ -384,6 +386,24 @@ const Network = ({
           </View>
         </Flex>
 
+        <Flex
+          style={{
+            borderTop: '1px solid #dee1e3',
+            marginTop: 6,
+            paddingTop: 6,
+          }}
+        >
+          <View style={{ flex: '1 1 auto' }}>
+            <Text>Resilient miles</Text>
+          </View>
+          <View style={{ flex: '0 0 140pt' }}>
+            <Text>{formatNumber(resilientupstreammiles, 2, true)}</Text>
+          </View>
+          <View style={{ flex: '0 0 140pt' }}>
+            <Text>{formatNumber(freeresilientdownstreammiles, 2, true)}</Text>
+          </View>
+        </Flex>
+
         {unranked && !invasive ? (
           <Text style={{ color: '#7f8a93', marginTop: 28, fontSize: 10 }}>
             Note: this {barrierTypeLabel} excluded from ranking based on field
@@ -429,6 +449,13 @@ const Network = ({
           NHD or the National Wetlands Inventory as altered (canal / ditch,
           within a reservoir, or other channel alteration), and do not
           necessarily include all forms of alteration of the stream channel.
+          Resilient miles are the total length of stream reaches that are within
+          subwatersheds with above average or greater freshwater resilience
+          within{' '}
+          <Link href="https://www.maps.tnc.org/resilientrivers/#/explore">
+            The Nature Conservancy&apos;s Freshwater Resilience
+          </Link>{' '}
+          dataset (v0.44).
         </Text>
       </View>
     </Section>
@@ -448,10 +475,12 @@ Network.propTypes = {
   perennialupstreammiles: PropTypes.number,
   alteredupstreammiles: PropTypes.number,
   unalteredupstreammiles: PropTypes.number,
+  resilientupstreammiles: PropTypes.number,
   freedownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
   freeunaltereddownstreammiles: PropTypes.number,
+  freeresilientdownstreammiles: PropTypes.number,
   landcover: PropTypes.number,
   sizeclasses: PropTypes.number,
   invasive: PropTypes.bool,
@@ -473,10 +502,12 @@ Network.defaultProps = {
   perennialupstreammiles: 0,
   alteredupstreammiles: 0,
   unalteredupstreammiles: 0,
+  resilientupstreammiles: 0,
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,
   freealtereddownstreammiles: 0,
   freeunaltereddownstreammiles: 0,
+  freeresilientdownstreammiles: 0,
   landcover: 0,
   sizeclasses: 0,
   invasive: false,
