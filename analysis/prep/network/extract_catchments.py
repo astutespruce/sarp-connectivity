@@ -2,6 +2,7 @@ from pathlib import Path
 from time import time
 import warnings
 
+import pandas as pd
 from pyogrio import read_dataframe, write_dataframe
 
 from analysis.constants import CRS
@@ -9,7 +10,7 @@ from analysis.lib.util import append
 from analysis.prep.network.lib.nhd.util import get_column_names
 
 
-warnings.filterwarnings("ignore", message=".*Warning 1: organizePolygons.*")
+warnings.filterwarnings("ignore", message=".*organizePolygons.*")
 
 
 def process_gdbs(src_dir):
@@ -21,24 +22,21 @@ def process_gdbs(src_dir):
     )
 
     if len(gdbs) == 0:
-        raise ValueError(
-            f"No GDBs available for {huc2} within {src_dir}; did you forget to unzip them?"
-        )
+        raise ValueError(f"No GDBs available for {huc2} within {src_dir}; did you forget to unzip them?")
 
     for gdb in gdbs:
-        print(f"\n\n------------------- Reading {gdb.name} -------------------")
-
+        print(f"Reading {gdb.name}")
         layer = "NHDPlusCatchment"
         read_cols, col_map = get_column_names(gdb, layer, ["NHDPlusID"])
 
-        df = read_dataframe(gdb, layer=layer, columns=read_cols).rename(columns=col_map)
+        df = read_dataframe(gdb, layer=layer, columns=read_cols, use_arrow=True).rename(columns=col_map)
         print(f"Read {len(df):,} catchments")
 
         missing = df.NHDPlusID.isnull().sum()
         if missing:
             df = df.dropna(subset=["NHDPlusID"])
 
-            print(f"Kept {len(df):,} catchments after dropping those without NHDPlusID")
+            print(f"Kept {len(df):,} catchments after dropping {missing:,} without NHDPlusID")
 
         df.NHDPlusID = df.NHDPlusID.astype("uint64")
 
@@ -59,11 +57,15 @@ def process_gdbs(src_dir):
 data_dir = Path("data")
 huc4_dir = data_dir / "nhd/source/huc4"
 huc8_dir = data_dir / "nhd/source/huc8"
+out_dir = data_dir / "nhd/raw"
 tmp_dir = Path("/tmp/sarp")  # only need GIS files to provide to SARP
 tmp_dir.mkdir(exist_ok=True, parents=True)
 
 
 start = time()
+
+huc2_df = pd.read_feather(data_dir / "boundaries/huc2.feather", columns=["HUC2"])
+huc2s = huc2_df.HUC2.sort_values().values
 
 # manually subset keys from above for processing
 # huc2s = [
@@ -90,12 +92,15 @@ start = time()
 # ]
 
 for huc2 in huc2s:
-    print(f"----- {huc2} ------")
+    print(f"\n\n----- {huc2} ------")
 
     src_dir = huc8_dir if huc2 == "19" else huc4_dir
     df = process_gdbs(src_dir)
 
-    print(f"serializing {len(df):,} catchments")
+    print(f"\n====================================\nserializing {len(df):,} catchments")
+
+    # just save listing of NHDPlusIDs that we expect from floodlpain data
+    df[["NHDPlusID"]].astype("uint64").to_feather(out_dir / huc2 / "catchment_ids.feather")
 
     # convert to types allowed by GDB
     df = df.astype({"NHDPlusID": "float64", "catchID": "int32"})
