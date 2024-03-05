@@ -348,7 +348,7 @@ const Network = ({
         National Wetlands Inventory as altered (canal / ditch, within a
         reservoir, or other channel alteration), and do not necessarily include
         all forms of alteration of the stream channel. Resilient miles are the
-        total length of stream reaches that are within subwatersheds with above
+        total length of stream reaches that are within watersheds with above
         average or greater freshwater resilience within{' '}
         <OutboundLink to="https://www.maps.tnc.org/resilientrivers/#/explore">
           The Nature Conservancy&apos;s Freshwater Resilience

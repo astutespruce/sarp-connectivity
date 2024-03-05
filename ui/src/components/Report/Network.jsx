@@ -450,8 +450,7 @@ const Network = ({
           within a reservoir, or other channel alteration), and do not
           necessarily include all forms of alteration of the stream channel.
           Resilient miles are the total length of stream reaches that are within
-          subwatersheds with above average or greater freshwater resilience
-          within{' '}
+          watersheds with above average or greater freshwater resilience within{' '}
           <Link href="https://www.maps.tnc.org/resilientrivers/#/explore">
             The Nature Conservancy&apos;s Freshwater Resilience
           </Link>{' '}

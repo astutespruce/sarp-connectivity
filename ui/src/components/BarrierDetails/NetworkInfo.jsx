@@ -241,15 +241,15 @@ const NetworkInfo = ({
               <Box sx={{ display: 'inline-block' }}>
                 <InfoTooltip>
                   Total resilient miles upstream is the sum of all reach lengths
-                  that are within subwatersheds with above average or greater
+                  that are within watersheds with above average or greater
                   freshwater resilience within The Nature Conservancy&apos;s
                   Freshwater Resilience dataset (v0.44).
                   <br />
                   <br />
                   Total resilient miles downstream is the sum of all reach
                   lengths in the functional network immediately downstream of
-                  this network that are within subwatersheds with above average
-                  or greater freshwater resilience, excluding all lengths within
+                  this network that are within watersheds with above average or
+                  greater freshwater resilience, excluding all lengths within
                   altered waterbodies.
                 </InfoTooltip>
               </Box>
@@ -384,7 +384,7 @@ const NetworkInfo = ({
             </Field>
           </Entry>
           <Entry>
-            <Field label="Percent of the upstream network in resilient subwatersheds">
+            <Field label="Percent of the upstream network in resilient watersheds">
               <Text
                 sx={{
                   fontSize: 1,
