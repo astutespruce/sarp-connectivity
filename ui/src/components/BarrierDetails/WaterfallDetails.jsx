@@ -32,6 +32,7 @@ const WaterfallDetails = ({
   freedownstreammiles,
   freeperennialdownstreammiles,
   freeunaltereddownstreammiles,
+  freeresilientdownstreammiles,
   hasnetwork,
   huc12,
   in_network_type,
@@ -40,6 +41,7 @@ const WaterfallDetails = ({
   milestooutlet,
   onloop,
   passability,
+  percentresilient,
   perennialupstreammiles,
   regionalsgcnspp,
   salmonidesu,
@@ -48,6 +50,7 @@ const WaterfallDetails = ({
   source,
   sourceid,
   statesgcnspp,
+  resilientupstreammiles,
   river,
   streamorder,
   streamsizeclass,
@@ -114,10 +117,13 @@ const WaterfallDetails = ({
             perennialupstreammiles={perennialupstreammiles}
             alteredupstreammiles={alteredupstreammiles}
             unalteredupstreammiles={unalteredupstreammiles}
+            resilientupstreammiles={resilientupstreammiles}
             freedownstreammiles={freedownstreammiles}
             freeperennialdownstreammiles={freeperennialdownstreammiles}
             freealtereddownstreammiles={freealtereddownstreammiles}
             freeunaltereddownstreammiles={freeunaltereddownstreammiles}
+            freeresilientdownstreammiles={freeresilientdownstreammiles}
+            percentresilient={percentresilient}
             sizeclasses={sizeclasses}
             landcover={landcover}
             intermittent={intermittent}
@@ -219,6 +225,7 @@ WaterfallDetails.propTypes = {
   freedownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
   freeunaltereddownstreammiles: PropTypes.number,
+  freeresilientdownstreammiles: PropTypes.number,
   huc12: PropTypes.string,
   in_network_type: PropTypes.bool,
   intermittent: PropTypes.number,
@@ -226,6 +233,7 @@ WaterfallDetails.propTypes = {
   milestooutlet: PropTypes.number,
   onloop: PropTypes.bool,
   passability: PropTypes.number,
+  percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   salmonidesu: PropTypes.string,
@@ -234,6 +242,7 @@ WaterfallDetails.propTypes = {
   source: PropTypes.string,
   sourceid: PropTypes.string,
   statesgcnspp: PropTypes.number,
+  resilientupstreammiles: PropTypes.number,
   river: PropTypes.string,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
@@ -322,6 +331,7 @@ WaterfallDetails.defaultProps = {
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,
   freeunaltereddownstreammiles: 0,
+  freeresilientdownstreammiles: 0,
   huc12: null,
   in_network_type: false,
   intermittent: -1,
@@ -329,6 +339,7 @@ WaterfallDetails.defaultProps = {
   milestooutlet: 0,
   onloop: false,
   passability: null,
+  percentresilient: 0,
   perennialupstreammiles: 0,
   regionalsgcnspp: 0,
   salmonidesu: null,
@@ -337,6 +348,7 @@ WaterfallDetails.defaultProps = {
   source: null,
   sourceid: null,
   statesgcnspp: 0,
+  resilientupstreammiles: 0,
   river: null,
   streamorder: 0,
   streamsizeclass: null,

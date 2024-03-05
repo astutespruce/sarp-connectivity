@@ -1089,6 +1089,14 @@ export const PERCENT_ALTERED = {
   4: '90 - 100%',
 }
 
+export const PERCENT_RESILIENT = {
+  // 0: no network // filtered out
+  1: '0 - 9%',
+  2: '10 - 49%',
+  3: '50 - 89%',
+  4: '90 - 100%',
+}
+
 export const STREAM_SIZECLASS = {
   '1a': 'headwaters',
   '1b': 'creek',

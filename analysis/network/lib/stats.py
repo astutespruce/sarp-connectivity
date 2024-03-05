@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 import pyarrow as pa
+from pyarrow.dataset import dataset
 import pyarrow.compute as pc
 import numpy as np
 
@@ -227,6 +228,22 @@ def calculate_geometry_stats(df):
         contains total_miles, free_miles, *_miles
     """
 
+    resilient = (
+        dataset(
+            data_dir / "tnc_resilience/derived/tnc_resilient_flowlines.feather",
+            format="feather",
+        )
+        .to_table(filter=pc.field("HUC2").isin(df.HUC2.unique()), columns=["NHDPlusID", "resilient"])
+        .to_pandas()
+        .groupby("NHDPlusID")
+        .first()
+    )
+    if len(resilient) == 0:
+        df["resilient"] = False
+    else:
+        df = df.join(resilient, on="NHDPlusID")
+        df["resilient"] = df.resilient.fillna(False).astype(bool)
+
     # total lengths used for upstream network
     total_length = df["length"].groupby(level=0).sum().rename("total")
     perennial_length = df.loc[~df.intermittent, "length"].groupby(level=0).sum().rename("perennial")
@@ -236,6 +253,7 @@ def calculate_geometry_stats(df):
     perennial_unaltered_length = (
         df.loc[~(df.intermittent | df.altered), "length"].groupby(level=0).sum().rename("perennial_unaltered")
     )
+    resilient_length = df.loc[df.resilient, "length"].groupby(level=0).sum().rename("resilient")
 
     # free lengths used for downstream network; these deduct lengths in altered waterbodies
     free_flowing = ~(df.waterbody & df.altered)
@@ -252,6 +270,9 @@ def calculate_geometry_stats(df):
         .sum()
         .rename("free_perennial_unaltered")
     )
+    free_resilient_length = (
+        df.loc[free_flowing & df.resilient, "length"].groupby(level=0).sum().rename("free_resilient")
+    )
 
     lengths = (
         pd.DataFrame(total_length)
@@ -260,26 +281,32 @@ def calculate_geometry_stats(df):
         .join(altered_length)
         .join(unaltered_length)
         .join(perennial_unaltered_length)
+        .join(resilient_length)
         .join(free_length)
         .join(free_perennial)
         .join(free_intermittent)
         .join(free_altered_length)
         .join(free_unaltered_length)
         .join(free_perennial_unaltered)
+        .join(free_resilient_length)
         .fillna(0)
         * METERS_TO_MILES
     ).astype("float32")
     lengths.columns = [f"{c}_miles" for c in lengths.columns]
 
     # calculate percent altered
-    lengths["pct_unaltered"] = (100.0 * (lengths.unaltered_miles / lengths.total_miles)).astype("float32")
+    lengths["pct_unaltered"] = (100.0 * (lengths.unaltered_miles / lengths.total_miles)).clip(0, 100).astype("float32")
     # Note: if there are no perennial miles, this should be 0
     lengths["pct_perennial_unaltered"] = 0.0
     ix = lengths.perennial_miles > 0
     lengths.loc[ix, "pct_perennial_unaltered"] = (
-        100.0 * (lengths.loc[ix].perennial_unaltered_miles / lengths.loc[ix].perennial_miles)
-    ).astype("float32")
-    lengths["pct_perennial_unaltered"] = lengths.pct_perennial_unaltered.astype("float32")
+        (100.0 * (lengths.loc[ix].perennial_unaltered_miles / lengths.loc[ix].perennial_miles))
+        .clip(0, 100)
+        .astype("float32")
+    )
+    lengths["pct_perennial_unaltered"] = lengths.pct_perennial_unaltered.clip(0, 100).astype("float32")
+
+    lengths["pct_resilient"] = (100 * lengths.resilient_miles / lengths.total_miles).clip(0, 100).astype("float32")
 
     return lengths
 
@@ -301,7 +328,7 @@ def calculate_floodplain_stats(df):
     # Sum floodplain and natural floodplain values, and calculate percent natural floodplain
     # Read in associated floodplain info (using pyarrow for speed in filtering) and join
     fp_stats = (
-        pa.dataset.dataset(data_dir / "floodplains" / "floodplain_stats.feather", format="feather")
+        dataset(data_dir / "floodplains" / "floodplain_stats.feather", format="feather")
         .to_table(
             filter=pc.field("HUC2").isin(df.HUC2.unique()),
             columns=["NHDPlusID", "floodplain_km2", "nat_floodplain_km2"],
@@ -335,7 +362,8 @@ def calculate_species_habitat_stats(df):
 
     habitat_cols = habitat.columns
 
-    habitat = df[["NHDPlusID", "length", "waterbody"]].join(habitat, on="NHDPlusID")
+    habitat = df[["NHDPlusID", "length", "waterbody", "altered"]].join(habitat, on="NHDPlusID")
+    free_flowing = ~(habitat.waterbody & habitat.altered)
 
     # drop any columns not present in this set of HUC2s
     habitat_cols = habitat_cols[habitat[habitat_cols].max()].to_list()
@@ -346,7 +374,7 @@ def calculate_species_habitat_stats(df):
     for col in habitat_cols:
         habitat[col] = habitat[col].fillna(False)
         total_miles = (habitat[col] * habitat.length).groupby(level=0).sum().rename(f"{col}_miles") * METERS_TO_MILES
-        free_miles = ((habitat[col] & (~habitat.waterbody)) * habitat.length).groupby(level=0).sum().rename(
+        free_miles = ((habitat[col] & free_flowing) * habitat.length).groupby(level=0).sum().rename(
             f"free_{col}_miles"
         ) * METERS_TO_MILES
         habitat_miles = pd.DataFrame(total_miles).join(free_miles)

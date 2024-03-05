@@ -427,6 +427,7 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
                 "upstream_id": "upNetID",
                 "pct_unaltered": "PercentUnaltered",
                 "pct_perennial_unaltered": "PercentPerennialUnaltered",
+                "pct_resilient": "PercentResilient",
                 **{
                     c: snake_to_title_case(c).replace("Miles", "UpstreamMiles")
                     for c in [col for col in upstream_cols if col.endswith("_miles")]
@@ -554,5 +555,7 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
             barrier_networks[f"Percent{subset}Unaltered"].round().astype("int8")
         )
         barrier_networks[f"Percent{subset}Altered"] = 100 - barrier_networks[f"Percent{subset}Unaltered"]
+
+    barrier_networks["PercentResilient"] = barrier_networks.PercentResilient.round().astype("int8")
 
     return barrier_networks, network_stats, flowlines

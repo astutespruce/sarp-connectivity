@@ -164,6 +164,16 @@ Run `special/prepare_sd_waterbodies.py` to extract waterbodies that intersect fl
 
 Run `special/prepare_wa_waterbodies.py` to extract waterbodies that intersect flowlines.
 
+#### TNC Freshwater resilience
+
+TNC's Freshwater Resilience data for the contiguous US were provided by Kat on
+1/30/2024 based on data contained in TNC's [Resilient River Explorer](https://www.maps.tnc.org/resilientrivers/#/explore).
+
+Resilient NHD flowlines are extracted where flowlines mostly overlap with areas
+above average in the TNC resilience dataset.
+
+Run `special/prepare_tnc_resilience.py` to extract TNC resilience to NHD flowlines.
+
 ### 6. Extract NWI waterbodies and altered rivers
 
 Run `extract_nwi.py` to extract NWI waterbodies and altered rivers that intersect

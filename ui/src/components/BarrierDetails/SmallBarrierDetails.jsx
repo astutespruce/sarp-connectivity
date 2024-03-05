@@ -71,6 +71,7 @@ const BarrierDetails = ({
   freedownstreammiles,
   freeperennialdownstreammiles,
   freeunaltereddownstreammiles,
+  freeresilientdownstreammiles,
   hasnetwork,
   huc12,
   in_network_type,
@@ -84,6 +85,7 @@ const BarrierDetails = ({
   onloop,
   ownertype,
   passagefacility,
+  percentresilient,
   perennialupstreammiles,
   regionalsgcnspp,
   removed,
@@ -97,6 +99,7 @@ const BarrierDetails = ({
   sourceid,
   attachments,
   statesgcnspp,
+  resilientupstreammiles,
   river,
   streamorder,
   streamsizeclass,
@@ -239,10 +242,13 @@ const BarrierDetails = ({
             perennialupstreammiles={perennialupstreammiles}
             alteredupstreammiles={alteredupstreammiles}
             unalteredupstreammiles={unalteredupstreammiles}
+            resilientupstreammiles={resilientupstreammiles}
             freedownstreammiles={freedownstreammiles}
             freeperennialdownstreammiles={freeperennialdownstreammiles}
             freealtereddownstreammiles={freealtereddownstreammiles}
             freeunaltereddownstreammiles={freeunaltereddownstreammiles}
+            freeresilientdownstreammiles={freeresilientdownstreammiles}
+            percentresilient={percentresilient}
             sizeclasses={sizeclasses}
             landcover={landcover}
             intermittent={intermittent}
@@ -354,6 +360,7 @@ BarrierDetails.propTypes = {
   freedownstreammiles: PropTypes.number,
   freeperennialdownstreammiles: PropTypes.number,
   freeunaltereddownstreammiles: PropTypes.number,
+  freeresilientdownstreammiles: PropTypes.number,
   hasnetwork: PropTypes.bool.isRequired,
   huc12: PropTypes.string,
   in_network_type: PropTypes.bool,
@@ -366,6 +373,7 @@ BarrierDetails.propTypes = {
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
   passagefacility: PropTypes.number,
+  percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
   regionalsgcnspp: PropTypes.number,
   removed: PropTypes.bool,
@@ -379,6 +387,7 @@ BarrierDetails.propTypes = {
   sourceid: PropTypes.string,
   attachments: PropTypes.string,
   statesgcnspp: PropTypes.number,
+  resilientupstreammiles: PropTypes.number,
   river: PropTypes.string,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
@@ -474,6 +483,7 @@ BarrierDetails.defaultProps = {
   freedownstreammiles: 0,
   freeperennialdownstreammiles: 0,
   freeunaltereddownstreammiles: 0,
+  freeresilientdownstreammiles: 0,
   huc12: null,
   in_network_type: false,
   intermittent: -1,
@@ -485,6 +495,7 @@ BarrierDetails.defaultProps = {
   onloop: false,
   ownertype: null,
   passagefacility: null,
+  percentresilient: 0,
   perennialupstreammiles: 0,
   regionalsgcnspp: 0,
   removed: false,
@@ -498,6 +509,7 @@ BarrierDetails.defaultProps = {
   sourceid: null,
   attachments: null,
   statesgcnspp: 0,
+  resilientupstreammiles: 0,
   river: null,
   streamorder: 0,
   streamsizeclass: null,

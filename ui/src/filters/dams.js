@@ -16,6 +16,7 @@ import {
   LOWHEAD_DAM,
   WATERBODY_SIZECLASS,
   PERCENT_ALTERED,
+  PERCENT_RESILIENT,
   PASSAGEFACILITY_CLASS,
   OWNERTYPE,
   BARRIEROWNERTYPE,
@@ -79,6 +80,20 @@ export const dams = [
         sort: false,
         help: 'Note: altered reaches are those specifically identified in NHD or the National Wetlands Inventory as altered (canal / ditch, within a reservoir, or other channel alteration); this status is not consistently available for all stream reaches.',
         ...getEntries(PERCENT_ALTERED),
+      },
+    ],
+  },
+  {
+    id: 'climate',
+    title: 'Climate resilience',
+    filters: [
+      {
+        field: 'percentresilientclass',
+        title: 'Percent of upstream network in resilient watersheds',
+        sort: false,
+        help: "Resilient watersheds are those with above average or greater freshwater resilience within The Nature Conservancy's Freshwater Resilience dataset (v0.44).  Note: not available for Alaska, far southern Florida, Puerto Rico, or the U.S. Virgin Islands.",
+        url: 'https://www.maps.tnc.org/resilientrivers/#/explore',
+        ...getEntries(PERCENT_RESILIENT),
       },
     ],
   },
