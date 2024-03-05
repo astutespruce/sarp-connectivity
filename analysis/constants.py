@@ -624,21 +624,20 @@ SEVERITY_TO_PASSABILITY = {
 }
 
 
-# recoded to better align with OWNERTYPE domain
+# recoded to better align general order with OwnerType: Federal, State, ... Private
 BARRIEROWNERTYPE_TO_DOMAIN = {
     0: 0,  # <missing>
-    1: 2,  # "Federal",
-    2: 3,  # "State",
-    3: 4,  # "Local Government",
-    4: 5,  # "Public Utility",
-    5: 0,  # "Private",
+    1: 1,  # "Federal",
+    2: 2,  # "State",
+    3: 3,  # "Local Government",
+    4: 4,  # "Public Utility",
+    5: 7,  # "Private",
     6: 0,  # "Not Listed",
     7: 0,  # "Unknown",
     8: 0,  # "Other",
     9: 6,  # "Tribe",
-    10: 1,  # "USDA Forest Service",
+    10: 5,  # "Irrigation district",
 }
-
 
 OWNERTYPE_TO_DOMAIN = {
     # Unknown types are not useful

@@ -854,13 +854,14 @@ OWNERTYPE_DOMAIN = {
 
 
 BARRIEROWNERTYPE_DOMAIN = {
-    0: "Unknown / private",
-    1: "USDA Forest Service",
-    2: "Federal",
-    3: "State",
-    4: "Local government",
-    5: "Public utility",
+    0: "Unknown",
+    1: "Federal",
+    2: "State",
+    3: "Local government",
+    4: "Public utility",
+    5: "Irrigation district",
     6: "Tribal",
+    7: "Private",
 }
 
 
