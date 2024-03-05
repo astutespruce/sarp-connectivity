@@ -29,12 +29,7 @@ DROP_COLS = (
     + [f"tot_{kind}" for kind in BARRIER_COUNT_KINDS]
     + [f"fn_{kind}" for kind in BARRIER_COUNT_KINDS]
 )
-DOWNSTREAM_COLS = [
-    "miles_to_outlet",
-    "flows_to_ocean",
-    "flows_to_great_lakes",
-    "exits_region",
-]
+DOWNSTREAM_COLS = ["miles_to_outlet", "flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]
 
 
 data_dir = Path("data")
@@ -70,6 +65,7 @@ all_barriers = (
             "largefish_network",
             "smallfish_network",
             "removed",
+            "invasive",
             "YearRemoved",
         ],
     )
@@ -105,6 +101,7 @@ all_barrier_joins = (
             "largefish_network",
             "smallfish_network",
             "YearRemoved",
+            "invasive",
         ]
     ]
 )

@@ -10,6 +10,7 @@ from analysis.rank.lib.metrics import (
     classify_gain_miles,
     classify_downstream_miles,
     classify_percent_altered,
+    classify_percent_resilient,
     classify_downstream_barriers,
 )
 from api.lib.tiers import calculate_tiers, METRICS
@@ -28,16 +29,19 @@ NETWORK_COLUMNS = [
     "AlteredUpstreamMiles",
     "UnalteredUpstreamMiles",
     "PerennialUnalteredUpstreamMiles",
+    "ResilientUpstreamMiles",
     "TotalDownstreamMiles",
     "FreeDownstreamMiles",
     "FreePerennialDownstreamMiles",
     "FreeAlteredDownstreamMiles",
     "FreeUnalteredDownstreamMiles",
     # "FreePerennialUnalteredDownstreamMiles",  # not used
+    "FreeResilientDownstreamMiles",
     "PercentAltered",
     "PercentPerennialAltered",
     "PercentUnaltered",
     "PercentPerennialUnaltered",
+    "PercentResilient",
     "IntermittentUpstreamMiles",
     "FreeIntermittentDownstreamMiles",
     "natfldpln",
@@ -210,6 +214,7 @@ def get_network_results(df, network_type, state_ranks=False):
     ### Calculate classes used for filtering
     networks["GainMilesClass"] = classify_gain_miles(networks.GainMiles)
     networks["PercentAlteredClass"] = classify_percent_altered(networks.PercentAltered)
+    networks["PercentResilientClass"] = classify_percent_resilient(networks.PercentResilient)
 
     # NOTE: per guidance from SARP, do not include count of waterfalls
     if network_type == "dams":

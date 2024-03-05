@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pandas as pd
 import pyarrow as pa
+from pyarrow.dataset import dataset
 import pyarrow.compute as pc
 import numpy as np
 
@@ -228,20 +229,20 @@ def calculate_geometry_stats(df):
     """
 
     resilient = (
-        pa.dataset.dataset(
+        dataset(
             data_dir / "tnc_resilience/derived/tnc_resilient_flowlines.feather",
             format="feather",
         )
-        .to_table(filter=pc.field("HUC2").isin(df.HUC2.unique()), columns=["NHDPlusID", "tnc_resilient"])
+        .to_table(filter=pc.field("HUC2").isin(df.HUC2.unique()), columns=["NHDPlusID", "resilient"])
         .to_pandas()
         .groupby("NHDPlusID")
         .first()
     )
     if len(resilient) == 0:
-        df["tnc_resilient"] = False
+        df["resilient"] = False
     else:
         df = df.join(resilient, on="NHDPlusID")
-        df["tnc_resilient"] = df.tnc_resilient.fillna(False).astype(bool)
+        df["resilient"] = df.resilient.fillna(False).astype(bool)
 
     # total lengths used for upstream network
     total_length = df["length"].groupby(level=0).sum().rename("total")
@@ -252,7 +253,7 @@ def calculate_geometry_stats(df):
     perennial_unaltered_length = (
         df.loc[~(df.intermittent | df.altered), "length"].groupby(level=0).sum().rename("perennial_unaltered")
     )
-    resilient_length = df.loc[df.tnc_resilient, "length"].groupby(level=0).sum().rename("tnc_resilient")
+    resilient_length = df.loc[df.resilient, "length"].groupby(level=0).sum().rename("resilient")
 
     # free lengths used for downstream network; these deduct lengths in altered waterbodies
     free_flowing = ~(df.waterbody & df.altered)
@@ -270,7 +271,7 @@ def calculate_geometry_stats(df):
         .rename("free_perennial_unaltered")
     )
     free_resilient_length = (
-        df.loc[free_flowing & df.tnc_resilient, "length"].groupby(level=0).sum().rename("free_tnc_resilient")
+        df.loc[free_flowing & df.resilient, "length"].groupby(level=0).sum().rename("free_resilient")
     )
 
     lengths = (
@@ -294,16 +295,18 @@ def calculate_geometry_stats(df):
     lengths.columns = [f"{c}_miles" for c in lengths.columns]
 
     # calculate percent altered
-    lengths["pct_unaltered"] = (100.0 * (lengths.unaltered_miles / lengths.total_miles)).astype("float32")
+    lengths["pct_unaltered"] = (100.0 * (lengths.unaltered_miles / lengths.total_miles)).clip(0, 100).astype("float32")
     # Note: if there are no perennial miles, this should be 0
     lengths["pct_perennial_unaltered"] = 0.0
     ix = lengths.perennial_miles > 0
     lengths.loc[ix, "pct_perennial_unaltered"] = (
-        100.0 * (lengths.loc[ix].perennial_unaltered_miles / lengths.loc[ix].perennial_miles)
-    ).astype("float32")
-    lengths["pct_perennial_unaltered"] = lengths.pct_perennial_unaltered.astype("float32")
+        (100.0 * (lengths.loc[ix].perennial_unaltered_miles / lengths.loc[ix].perennial_miles))
+        .clip(0, 100)
+        .astype("float32")
+    )
+    lengths["pct_perennial_unaltered"] = lengths.pct_perennial_unaltered.clip(0, 100).astype("float32")
 
-    lengths["pct_tnc_resilient"] = (100 * lengths.tnc_resilient_miles / lengths.total_miles).astype("float32")
+    lengths["pct_resilient"] = (100 * lengths.resilient_miles / lengths.total_miles).clip(0, 100).astype("float32")
 
     return lengths
 
@@ -325,7 +328,7 @@ def calculate_floodplain_stats(df):
     # Sum floodplain and natural floodplain values, and calculate percent natural floodplain
     # Read in associated floodplain info (using pyarrow for speed in filtering) and join
     fp_stats = (
-        pa.dataset.dataset(data_dir / "floodplains" / "floodplain_stats.feather", format="feather")
+        dataset(data_dir / "floodplains" / "floodplain_stats.feather", format="feather")
         .to_table(
             filter=pc.field("HUC2").isin(df.HUC2.unique()),
             columns=["NHDPlusID", "floodplain_km2", "nat_floodplain_km2"],

@@ -101,7 +101,7 @@ for huc2 in huc2s:
 
     merged = append(
         merged,
-        pd.DataFrame({"NHDPlusID": keep_ids, "tnc_resilient": [True] * len(keep_ids), "HUC2": [huc2] * len(keep_ids)}),
+        pd.DataFrame({"NHDPlusID": keep_ids, "resilient": [True] * len(keep_ids), "HUC2": [huc2] * len(keep_ids)}),
     )
 
-merged.reset_index(drop=True).to_feather(working_dir / "tnc_resilient_flowlines.feather")
+merged.reset_index(drop=True).to_feather(out_dir / "tnc_resilient_flowlines.feather")
