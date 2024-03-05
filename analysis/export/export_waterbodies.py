@@ -1,13 +1,17 @@
 from pathlib import Path
+import warnings
 
 import pandas as pd
 import geopandas as gp
 
 from pyogrio import write_dataframe
 
+warnings.filterwarnings("ignore", message=".*organizePolygons.*")
+
 
 data_dir = Path("data")
 src_dir = data_dir / "nhd/clean"
+waterbodies_dir = data_dir / "waterbodies"
 out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
@@ -44,9 +48,7 @@ for huc2 in huc2s:
     wb = gp.read_feather(waterbodies_dir / huc2 / "waterbodies.feather", columns=[])
     write_dataframe(wb, out_dir / f"region{huc2}_waterbodies.gdb", driver="OpenFileGDB")
 
-    drains = gp.read_feather(
-        src_dir / huc2 / "waterbody_drain_points.feather", columns=[]
-    )
+    drains = gp.read_feather(src_dir / huc2 / "waterbody_drain_points.feather", columns=[])
     write_dataframe(
         drains,
         out_dir / f"region{huc2}_waterbody_drain_points.gdb",

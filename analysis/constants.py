@@ -497,6 +497,7 @@ CROSSING_TYPE_TO_DOMAIN = {
     "": 0,
     "tide gate": 10,
     "tidegate": 10,
+    "failed culvert": 8,
     # only for unassessed road crossings
     "assumed culvert": 9,
 }
@@ -508,6 +509,7 @@ CONSTRICTION_TO_DOMAIN = {
     "spans full channel & banks": 1,
     "not constricted": 1,
     "spans only bankfull/active channel": 2,
+    "spans only bankfull / active channel": 2,
     "constricted to some degree": 3,
     "minor": 4,
     "moderate": 5,

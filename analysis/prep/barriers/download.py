@@ -214,9 +214,9 @@ df = asyncio.run(download_dams(TOKEN))
 print(f"Downloaded {len(df):,} dams in {time() - download_start:.2f}s")
 
 ix = df.SARPID.isnull() | (df.SARPID == "")
-if ix.max():
+if ix.any():
     print(f"--------------------------\nWARNING: {ix.sum():,} dams are missing SARPID\n----------------------------")
-    print(df.loc[ix].groupby("SourceState").size())
+    print(df.loc[ix].groupby("SourceState", dropna=False).size())
 
 # DEBUG ONLY - SARPID must be present; follow up with SARP if not
 df.SARPID = df.SARPID.fillna("").astype("str")

@@ -98,8 +98,7 @@ start = time()
 ### Read dams for analysis region states states and merge
 print("Reading dams in analysis region states")
 
-# FIXME: remove rename on next download of data
-df = gp.read_feather(src_dir / "sarp_dams.feather").rename(columns={"SourceDBID": "SourceID"})
+df = gp.read_feather(src_dir / "sarp_dams.feather")
 print(f"Read {len(df):,} dams in region states")
 
 

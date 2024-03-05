@@ -764,7 +764,7 @@ SCREENTYPE_DOMAIN = {
     4: "Pipe",
     5: "Drum",
     6: "Other",
-    7: "TODO:",
+    7: "No screen",
 }
 
 
@@ -898,7 +898,8 @@ PASSAGEFACILITY_DOMAIN = {
     22: "Roughened channel",
     23: "Hybrid / multiple",
     24: "None (confirmed)",
-    26: "TODO:",
+    25: "Submerged orifice",
+    26: "Other",
 }
 
 MANUALREVIEW_DOMAIN = {
