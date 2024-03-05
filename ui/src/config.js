@@ -957,13 +957,14 @@ export const OWNERTYPE = {
 }
 
 export const BARRIEROWNERTYPE = {
-  0: 'unknown (possibly privately owned)',
-  1: 'USDA Forest Service',
-  2: 'federal',
-  3: 'state',
-  4: 'local government',
-  5: 'public utility',
-  6: 'tribal',
+  0: 'Unknown',
+  1: 'Federal',
+  2: 'State',
+  3: 'Local government',
+  4: 'Public utility',
+  5: 'Irrigation district',
+  6: 'Tribal',
+  7: 'Private',
 }
 
 export const FERC_REGULATED = {
