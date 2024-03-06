@@ -692,7 +692,7 @@ print("-----------------")
 # Snap estimated dams to the drain point of the waterbody that contains them, if possible
 df, to_snap = snap_estimated_dams_to_drains(df, to_snap)
 
-# # Snap to NHD dams
+# Snap to NHD dams
 df, to_snap = snap_to_nhd_dams(df, to_snap)
 
 # Snap to waterbodies
@@ -765,7 +765,8 @@ for field in (
 
 df["snap_tolerance"] = df.snap_tolerance.astype("uint16")
 
-for field in ("snap_ref_id", "snap_dist", "dup_group", "dup_count", "wbID"):
+# intentionally not casting snap_ref_id, wbID as it changes values
+for field in ("snap_dist", "dup_group", "dup_count"):
     df[field] = df[field].astype("float32")
 
 print("-----------------")

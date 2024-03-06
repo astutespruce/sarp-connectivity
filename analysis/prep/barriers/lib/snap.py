@@ -1,5 +1,6 @@
 from pathlib import Path
 from time import time
+import warnings
 
 import numpy as np
 import geopandas as gp
@@ -12,6 +13,11 @@ from analysis.lib.geometry import nearest, near
 from analysis.constants import SNAP_ENDPOINT_TOLERANCE
 from analysis.lib.io import read_feathers
 from analysis.lib.util import ndarray_append_strings
+
+
+warnings.filterwarnings("ignore", message=".*invalid value encountered in distance.*")
+warnings.filterwarnings("ignore", message=".*invalid value encountered in line_locate_point.*")
+
 
 # distance from edge of an NHD dam poly to be considered associated
 NHD_DAM_TOLERANCE = 150
@@ -83,9 +89,7 @@ def snap_estimated_dams_to_drains(df, to_snap):
         if len(tmp):
             max_drain_dist = tmp.snap_tolerance.unique()[0]
             tree = shapely.STRtree(drains.geometry.values)
-            left, right = tree.query_nearest(
-                tmp.geometry.values, max_distance=max_drain_dist
-            )
+            left, right = tree.query_nearest(tmp.geometry.values, max_distance=max_drain_dist)
             drain_joins = (
                 pd.DataFrame(
                     {
@@ -101,9 +105,7 @@ def snap_estimated_dams_to_drains(df, to_snap):
                 .first()
             )
 
-            drain_joins["snap_dist"] = shapely.distance(
-                drain_joins.geometry.values, drain_joins.drain.values
-            )
+            drain_joins["snap_dist"] = shapely.distance(drain_joins.geometry.values, drain_joins.drain.values)
 
             ix = drain_joins.index
             df.loc[ix, "snapped"] = True
@@ -146,9 +148,7 @@ def snap_estimated_dams_to_drains(df, to_snap):
             )
         )
 
-        in_wb["snap_dist"] = shapely.distance(
-            in_wb.geometry.values, in_wb.drain.values
-        )
+        in_wb["snap_dist"] = shapely.distance(in_wb.geometry.values, in_wb.drain.values)
         grouped = in_wb.sort_values(by="snap_dist").groupby(level=0)
         in_wb = grouped.first()
 
@@ -167,9 +167,7 @@ def snap_estimated_dams_to_drains(df, to_snap):
         df.loc[ix, "snap_ref_id"] = in_wb.drainID
         df.loc[ix, "lineID"] = in_wb.lineID
         df.loc[ix, "wbID"] = in_wb.wbID
-        df.loc[
-            ix, "snap_log"
-        ] = "snapped: estimated dam in waterbody to nearest drain point"
+        df.loc[ix, "snap_log"] = "snapped: estimated dam in waterbody to nearest drain point"
 
         to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
 
@@ -233,18 +231,13 @@ def snap_to_nhd_dams(df, to_snap):
         .drop_duplicates(subset=["id", "damID", "lineID", "geometry"])
         .set_index("id")
     )
-    near_nhd_pt["snap_dist"] = shapely.distance(
-        near_nhd_pt.geometry.values, near_nhd_pt.source_pt.values
-    )
+    near_nhd_pt["snap_dist"] = shapely.distance(near_nhd_pt.geometry.values, near_nhd_pt.source_pt.values)
 
     # drop any candidate target points if they are >10x as far away as the closest
     # unless they are within 150m
-    near_nhd_pt = near_nhd_pt.join(
-        near_nhd_pt.groupby(level=0).snap_dist.min().rename("nearest_dist")
-    )
+    near_nhd_pt = near_nhd_pt.join(near_nhd_pt.groupby(level=0).snap_dist.min().rename("nearest_dist"))
     near_nhd_pt = near_nhd_pt.loc[
-        (near_nhd_pt.snap_dist / near_nhd_pt.nearest_dist <= 10)
-        | (near_nhd_pt.snap_dist <= 150)
+        (near_nhd_pt.snap_dist / near_nhd_pt.nearest_dist <= 10) | (near_nhd_pt.snap_dist <= 150)
     ].drop(columns=["nearest_dist"])
 
     # then take the largest, nonloop
@@ -260,10 +253,7 @@ def snap_to_nhd_dams(df, to_snap):
 
     # drop any that are closer to a waterbody drain point that is larger in volume
     wb_drains = read_feathers(
-        (
-            nhd_dir / "clean" / huc2 / "waterbody_drain_points.feather"
-            for huc2 in to_snap.HUC2.unique()
-        ),
+        (nhd_dir / "clean" / huc2 / "waterbody_drain_points.feather" for huc2 in to_snap.HUC2.unique()),
         columns=["drainID", "wbID", "geometry", "km2"],
         geo=True,
     ).set_index("drainID")
@@ -272,17 +262,13 @@ def snap_to_nhd_dams(df, to_snap):
         pd.Series(wb_drains.geometry.values, index=wb_drains.index),
         max_distance=np.clip(to_snap.snap_tolerance, 0, 150),
     ).join(
-        wb_drains[["wbID", "km2"]].rename(
-            columns={"wbID": "drain_wbID", "km2": "drain_wbKM2"}
-        ),
+        wb_drains[["wbID", "km2"]].rename(columns={"wbID": "drain_wbID", "km2": "drain_wbKM2"}),
         on="drainID",
     )
 
     near_nhd_pt = near_nhd_pt.join(near_drains)
 
-    drop_ix = (near_nhd_pt.snap_dist > near_nhd_pt.distance) & (
-        near_nhd_pt.km2 < near_nhd_pt.drain_wbKM2
-    )
+    drop_ix = (near_nhd_pt.snap_dist > near_nhd_pt.distance) & (near_nhd_pt.km2 < near_nhd_pt.drain_wbKM2)
     drop_ids = near_nhd_pt.loc[drop_ix].index
 
     near_nhd_pt = near_nhd_pt.loc[~near_nhd_pt.index.isin(drop_ids)].copy()
@@ -313,15 +299,9 @@ def snap_to_nhd_dams(df, to_snap):
 
     # snap to nearest dam point for that dam (some are > 1 km away)
     # NOTE: this will create multiple entries for some dams; the closest is used
-    near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(
-        nhd_dams, on="damID"
-    )
-    near_nhd.reset_index().drop_duplicates(
-        subset=["id", "damID", "lineID", "geometry"]
-    ).set_index("id")
-    near_nhd["snap_dist"] = shapely.distance(
-        near_nhd.geometry.values, near_nhd.source_pt.values
-    )
+    near_nhd = near_nhd.join(to_snap.geometry.rename("source_pt")).join(nhd_dams, on="damID")
+    near_nhd.reset_index().drop_duplicates(subset=["id", "damID", "lineID", "geometry"]).set_index("id")
+    near_nhd["snap_dist"] = shapely.distance(near_nhd.geometry.values, near_nhd.source_pt.values)
     # Sort to prioritize larger size classes and non-loops, then distance
     # this also drops duplicates
     near_nhd = (
@@ -343,15 +323,9 @@ def snap_to_nhd_dams(df, to_snap):
     df.loc[ix, "snap_ref_id"] = near_nhd.damID
     df.loc[ix, "lineID"] = near_nhd.lineID
     df.loc[ix, "wbID"] = near_nhd.wbID
-    df.loc[ix, "snap_log"] = ndarray_append_strings(
-        "snapped: within ", NHD_DAM_TOLERANCE, "m of NHD dam polygon"
-    )
+    df.loc[ix, "snap_log"] = ndarray_append_strings("snapped: within ", NHD_DAM_TOLERANCE, "m of NHD dam polygon")
     to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
-    print(
-        "Snapped {:,} dams to NHD dam polygons in {:.2f}s".format(
-            len(ix), time() - snap_start
-        )
-    )
+    print("Snapped {:,} dams to NHD dam polygons in {:.2f}s".format(len(ix), time() - snap_start))
 
     return df, to_snap
 
@@ -376,9 +350,6 @@ def snap_to_waterbodies(df, to_snap):
         (df, to_snap)
     """
 
-    ### Attempt to snap to waterbody drain points for major waterbodies
-    # Use larger tolerance for larger waterbodies
-    # NOTE: this specifically excludes known lowhead dams from snapping to waterbodies
     print("=================\nSnapping to waterbodies and drain points..")
 
     for huc2 in sorted(to_snap.HUC2.unique()):
@@ -394,9 +365,7 @@ def snap_to_waterbodies(df, to_snap):
             columns=["drainID", "wbID", "lineID", "loop", "sizeclass", "geometry"],
         ).set_index("drainID")
 
-        print(
-            f"Selected {len(in_huc2):,} barriers in region to snap against {len(wb):,} waterbodies"
-        )
+        print(f"Selected {len(in_huc2):,} barriers in region to snap against {len(wb):,} waterbodies")
 
         ### First pass - find the dams that are contained by waterbodies
         contained_start = time()
@@ -419,33 +388,27 @@ def snap_to_waterbodies(df, to_snap):
         in_wb_index = in_wb.index
 
         # update wbID in dataset, but this doesn't mean it is snapped
-        df.loc[in_wb.index, "wbID"] = in_wb.wbID
+        df.loc[in_wb_index, "wbID"] = in_wb.wbID
 
-        print(
-            f"Found {len(in_wb):,} dams in waterbodies in {time() - contained_start:.2f}s"
-        )
+        print(f"Found {len(in_wb):,} dams in waterbodies in {time() - contained_start:.2f}s")
 
         print("Finding nearest drain points...")
         snap_start = time()
 
-        # join back to pygeos geoms and join to drains
+        # join back to shapely geoms and join to drains
         # NOTE: this may bring in multiple drains for some waterbodies, we take the
         # closest drain below
         in_wb = (
             in_wb.join(to_snap[["geometry", "snap_tolerance"]])
             .join(
                 drains.reset_index()
-                .set_index("wbID")[
-                    ["drainID", "lineID", "loop", "sizeclass", "geometry"]
-                ]
+                .set_index("wbID")[["drainID", "lineID", "loop", "sizeclass", "geometry"]]
                 .rename(columns={"geometry": "drain"}),
                 on="wbID",
             )
             .dropna(subset=["drain"])
         )
-        in_wb["snap_dist"] = shapely.distance(
-            in_wb.geometry.values, in_wb.drain.values
-        )
+        in_wb["snap_dist"] = shapely.distance(in_wb.geometry.values, in_wb.drain.values)
 
         # sort drains by largest size class, nonloop, then descending distance
         in_wb = (
@@ -491,9 +454,7 @@ def snap_to_waterbodies(df, to_snap):
         nearest_drains = nearest(
             pd.Series(not_in_wb.geometry.values, index=not_in_wb.index),
             pd.Series(drains.geometry.values, index=drains.index),
-            max_distance=np.clip(
-                not_in_wb.snap_tolerance.values, 0, WB_DRAIN_MAX_TOLERANCE
-            ),
+            max_distance=np.clip(not_in_wb.snap_tolerance.values, 0, WB_DRAIN_MAX_TOLERANCE),
         )
 
         # join in all drains for waterbody of nearest drain point
@@ -507,17 +468,13 @@ def snap_to_waterbodies(df, to_snap):
             .drop(columns=["drainID"])
             .join(
                 drains.reset_index()
-                .set_index("wbID")[
-                    ["geometry", "drainID", "lineID", "loop", "sizeclass"]
-                ]
+                .set_index("wbID")[["geometry", "drainID", "lineID", "loop", "sizeclass"]]
                 .rename(columns={"geometry": "drain"}),
                 on="wbID",
             )
         )
 
-        nearest_drains["snap_dist"] = shapely.distance(
-            nearest_drains.geometry.values, nearest_drains.drain.values
-        )
+        nearest_drains["snap_dist"] = shapely.distance(nearest_drains.geometry.values, nearest_drains.drain.values)
         # take the nearest, largest non-loop drain point within tolerance
         nearest_drains = (
             nearest_drains.loc[nearest_drains.snap_dist < nearest_drains.snap_tolerance]
@@ -543,16 +500,12 @@ def snap_to_waterbodies(df, to_snap):
 
         to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
 
-        print(
-            f"Found {len(ix):,} dams within {WB_DRAIN_MAX_TOLERANCE}m or less of waterbody drain points"
-        )
+        print(f"Found {len(ix):,} dams within {WB_DRAIN_MAX_TOLERANCE}m or less of waterbody drain points")
 
     return df, to_snap
 
 
-def snap_to_flowlines(
-    df, to_snap, find_nearest_nonloop=False, allow_offnetwork_flowlines=True
-):
+def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False, allow_offnetwork_flowlines=True):
     """Snap to nearest flowline, within tolerance.
 
     Updates df with snapping results, and returns to_snap as set of dams still
@@ -600,9 +553,7 @@ def snap_to_flowlines(
         if not allow_offnetwork_flowlines:
             flowlines = flowlines.loc[~flowlines.offnetwork]
 
-        print(
-            f"Selected {len(in_huc2):,} barriers in region to snap against {len(flowlines):,} flowlines"
-        )
+        print(f"Selected {len(in_huc2):,} barriers in region to snap against {len(flowlines):,} flowlines")
 
         # Find nearest flowlines within tolerance, then sort by nonloop and ascending distance
         tree = shapely.STRtree(flowlines.geometry.values)
@@ -620,9 +571,7 @@ def snap_to_flowlines(
             geometry="geometry",
             crs=in_huc2.crs,
         ).join(
-            flowlines[["geometry", "loop", "offnetwork"]].rename(
-                columns={"geometry": "line"}
-            ),
+            flowlines[["geometry", "loop", "offnetwork"]].rename(columns={"geometry": "line"}),
             on="lineID",
         )
 
@@ -632,28 +581,21 @@ def snap_to_flowlines(
         # drop any off-network flowlines > NEAREST_FLOWLINE_TOLERANCE; these are
         # not good snap targets
         if allow_offnetwork_flowlines:
-            lines = lines.loc[
-                ~((lines.dist > NEAREST_FLOWLINE_TOLERANCE) & lines.offnetwork)
-            ]
+            lines = lines.loc[~((lines.dist > NEAREST_FLOWLINE_TOLERANCE) & lines.offnetwork)]
 
         nearest_lines = lines.groupby("id").first()
 
         if find_nearest_nonloop:
             nearest_nonloop = lines.loc[~lines.loop].groupby("id").first()
 
-            tmp = nearest_lines.join(
-                nearest_nonloop[["lineID", "dist"]], rsuffix="_nonloop"
-            )
+            tmp = nearest_lines.join(nearest_nonloop[["lineID", "dist"]], rsuffix="_nonloop")
 
             # always take the non-loop if closest is not a loop, non-loop is very close
             # or there is not a loop within NEAREST_FLOWLINE_TOLERANCE and the non-loop is <2x futher away
             tmp["take_nonloop"] = (
                 (~tmp.loop)
                 | (tmp.dist_nonloop <= NEAREST_FLOWLINE_TOLERANCE)
-                | (
-                    (tmp.dist > NEAREST_FLOWLINE_TOLERANCE)
-                    & (tmp.dist_nonloop <= tmp.dist * 2)
-                )
+                | ((tmp.dist > NEAREST_FLOWLINE_TOLERANCE) & (tmp.dist_nonloop <= tmp.dist * 2))
             )
 
             lines = pd.concat(
@@ -669,9 +611,7 @@ def snap_to_flowlines(
 
         # project the point to the line,
         # find out its distance on the line,
-        lines["line_pos"] = shapely.line_locate_point(
-            lines.line.values, lines.geometry.values
-        )
+        lines["line_pos"] = shapely.line_locate_point(lines.line.values, lines.geometry.values)
 
         # if within tolerance of start point, snap to start
         ix = lines["line_pos"] <= SNAP_ENDPOINT_TOLERANCE
@@ -683,16 +623,12 @@ def snap_to_flowlines(
         lines.loc[ix, "line_pos"] = end[ix]
 
         # then interpolate its new coordinates
-        projected = shapely.line_interpolate_point(
-            lines.line.values, lines["line_pos"]
-        )
+        projected = shapely.line_interpolate_point(lines.line.values, lines["line_pos"])
 
         ix = lines.index
         df.loc[ix, "snapped"] = True
         df.loc[ix, "geometry"] = projected
-        df.loc[ix, "snap_dist"] = shapely.distance(
-            lines.geometry.values, projected.values
-        )
+        df.loc[ix, "snap_dist"] = shapely.distance(lines.geometry.values, projected.values)
         df.loc[ix, "snap_ref_id"] = lines.lineID
         df.loc[ix, "lineID"] = lines.lineID
         df.loc[ix, "snap_log"] = ndarray_append_strings(
@@ -730,9 +666,9 @@ def export_snap_dist_lines(df, original_locations, out_dir, prefix=""):
 
     print("Exporting snap review datasets...")
 
-    tmp = df.loc[
-        df.snapped, ["geometry", "Name", "SARPID", "snapped", "snap_dist", "snap_log"]
-    ].join(original_locations.geometry.rename("orig_pt"))
+    tmp = df.loc[df.snapped, ["geometry", "Name", "SARPID", "snapped", "snap_dist", "snap_log"]].join(
+        original_locations.geometry.rename("orig_pt")
+    )
     tmp["new_pt"] = tmp.geometry.copy()
     tmp["geometry"] = connect_points(tmp.new_pt.values, tmp.orig_pt.values)
 
@@ -741,14 +677,10 @@ def export_snap_dist_lines(df, original_locations, out_dir, prefix=""):
         out_dir / f"{prefix}pre_snap_to_post_snap.fgb",
     )
     write_dataframe(
-        tmp.drop(columns=["geometry", "new_pt"])
-        .rename(columns={"orig_pt": "geometry"})
-        .reset_index(drop=True),
+        tmp.drop(columns=["geometry", "new_pt"]).rename(columns={"orig_pt": "geometry"}).reset_index(drop=True),
         out_dir / f"{prefix}pre_snap.fgb",
     )
     write_dataframe(
-        tmp.drop(columns=["geometry", "orig_pt"])
-        .rename(columns={"new_pt": "geometry"})
-        .reset_index(drop=True),
+        tmp.drop(columns=["geometry", "orig_pt"]).rename(columns={"new_pt": "geometry"}).reset_index(drop=True),
         out_dir / f"{prefix}post_snap.fgb",
     )
