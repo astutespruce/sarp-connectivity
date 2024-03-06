@@ -11,11 +11,12 @@ import pyarrow.compute as pc
 import shapely
 
 from analysis.constants import CRS
+from analysis.lib.graph.speedups.directedgraph import DirectedGraph
 from analysis.lib.flowlines import cut_flowlines_at_barriers
 from analysis.lib.io import read_feathers, read_arrow_tables
 from analysis.network.lib.networks import connect_huc2s
 
-warnings.simplefilter("always")  # show geometry related warnings every time
+warnings.simplefilter("ignore", message=".*invalid value encountered in line_locate_point.*")
 
 
 data_dir = Path("data")
@@ -174,8 +175,47 @@ for huc2 in huc2s:
 
     barrier_joins = barrier_joins.join(barriers.kind)
 
-    print(f"Serializing {len(flowlines):,} cut flowlines...")
+    ### mark likely impoundments (waterbody flowlines upstream of dam joins)
+    dam_joins = barrier_joins.loc[barrier_joins.kind == "dam"].copy()
+    wb_flowline_ids = flowlines.loc[flowlines.waterbody].lineID.values
+    wb_joins = joins.loc[
+        # only include waterbody flowlines in network
+        joins.upstream_id.isin(wb_flowline_ids)
+        # break at any dams
+        & ~joins.upstream_id.isin(dam_joins.upstream_id.unique())
+        & (joins.upstream_id != 0)
+        & (joins.downstream_id != 0),
+        ["upstream_id", "downstream_id"],
+    ]
+    graph = DirectedGraph(wb_joins.downstream_id.values.astype("int64"), wb_joins.upstream_id.values.astype("int64"))
 
+    start_ids = dam_joins.loc[dam_joins.upstream_id.isin(wb_flowline_ids)].upstream_id.unique()
+
+    ### also bring in drains of any waterbodies associated with dams, so that we
+    # can mark all flowlines in these waterbodies as impoundments
+    dam_wbid = pa.dataset.dataset(data_dir / "barriers/master/dams.feather", format="feather").to_table(
+        filter=(pc.field("HUC2") == huc2)
+        & (pc.field("primary_network") == True)  # noqa
+        & (~pc.is_null(pc.field("wbID"))),
+        columns=["wbID"],
+    )["wbID"]
+
+    if len(dam_wbid):
+        drain_line_ids = (
+            pa.dataset.dataset(nhd_dir / huc2 / "waterbody_drain_points.feather", format="feather")
+            .to_table(filter=pc.is_in(pc.field("wbID"), dam_wbid), columns=["lineID"])["lineID"]
+            .to_numpy()
+            .astype("uint32")
+        )
+
+        start_ids = np.unique(np.concatenate([start_ids, drain_line_ids]))
+
+    impoundment_ids = graph.network_pairs(start_ids.astype("int64")).T[1]
+    impoundment_ids = np.unique(impoundment_ids[impoundment_ids != 0])
+    flowlines["impoundment"] = flowlines.lineID.isin(impoundment_ids)
+    flowlines["altered"] = flowlines.altered | flowlines.impoundment
+
+    print(f"Serializing {len(flowlines):,} cut flowlines...")
     flowlines = flowlines.reset_index(drop=True)
     flowlines.to_feather(huc2_dir / "flowlines.feather")
 
