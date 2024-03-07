@@ -59,6 +59,7 @@ const Location = ({
   barrierownertype,
   fercregulated,
   stateregulated,
+  fedregulatoryagency,
   waterright,
   disadvantagedcommunity,
   sarp_score,
@@ -237,6 +238,12 @@ const Location = ({
                   Regulated at the state level:{' '}
                   {STATE_REGULATED[stateregulated].toLowerCase()}
                 </Text>
+              </Entry>
+            ) : null}
+
+            {fedregulatoryagency ? (
+              <Entry>
+                <Text>Federal regulatory agency: {fedregulatoryagency}</Text>
               </Entry>
             ) : null}
 
@@ -424,6 +431,7 @@ Location.propTypes = {
   barrierownertype: PropTypes.number,
   fercregulated: PropTypes.number,
   stateregulated: PropTypes.number,
+  fedregulatoryagency: PropTypes.string,
   waterright: PropTypes.number,
   disadvantagedcommunity: PropTypes.string,
   sarp_score: PropTypes.number,
@@ -461,6 +469,7 @@ Location.defaultProps = {
   barrierownertype: null,
   fercregulated: null,
   stateregulated: null,
+  fedregulatoryagency: null,
   waterright: null,
   disadvantagedcommunity: null,
   sarp_score: -1,

@@ -6,7 +6,6 @@ from math import ceil
 from requests import HTTPError
 import geopandas as gp
 import pandas as pd
-import numpy as np
 
 
 # Mapping of ESRI WKID to proj4 strings
@@ -170,6 +169,7 @@ async def download_fs(client, url, fields=None, token=None, target_wkid=None):
     for features in completed:
         df = gp.GeoDataFrame.from_features(features, crs="EPSG:4326")
 
+        # drop missing columns to prevent miscasting them based on missing data
         missing = df.columns[df.isnull().all()]
         if len(missing):
             df = df.drop(columns=missing)

@@ -219,7 +219,16 @@ df.loc[ix, "Name"] = "Road barrier - " + df.loc[ix].River
 df.loc[df.RoadType.str.lower().isin(("no data", "nodata")), "RoadType"] = "Unknown"
 df["RoadType"] = df.RoadType.fillna("").apply(lambda x: f"{x[0].upper()}{x[1:]}" if x else x)
 
-df["YearRemoved"] = df.YearRemoved.fillna(0).astype("uint16")
+for column in ("YearRemoved", "YearFishPass"):
+    df[column] = df[column].fillna(0).astype("uint16")
+
+# Fix bad values for YearRemoved
+df.loc[(df.YearRemoved > 0) & (df.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
+df.loc[(df.YearFishPass > 0) & (df.YearFishPass < 1900), "YearFishPass"] = np.uint16(0)
+# use YearFishPass to set YearRemoved
+ix = (df.YearRemoved == 0) & (df.YearFishPass > 0)
+df.loc[ix, "YearRemoved"] = df.loc[ix].YearFishPass
+
 
 #########  Fill NaN fields and set data types
 for column in ["SourceID", "CrossingCode", "Source", "Link"]:
@@ -732,7 +741,6 @@ crossings = crossings.rename(
         "intermittent": "Intermittent",
         "loop": "OnLoop",
         "sizeclass": "StreamSizeClass",
-        "crossingtype": "CrossingType",
     }
 )[["id"] + ROAD_CROSSING_API_FIELDS]
 

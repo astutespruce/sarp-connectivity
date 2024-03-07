@@ -296,8 +296,11 @@ const UnitSummary = ({
                 <b>
                   {formatNumber(removedDams, 0)} {pluralize('dam', removedDams)}
                 </b>{' '}
-                that {removedDams === 1 ? 'has' : 'have'} been removed or
-                mitigated, gaining{' '}
+                that{' '}
+                {removedDams === 1
+                  ? 'has been or is actively being'
+                  : 'have been or are actively being'}{' '}
+                removed or mitigated, gaining{' '}
                 <b>{formatNumber(removedDamsGainMiles)} miles</b> of reconnected
                 rivers and streams
               </>
@@ -320,8 +323,10 @@ const UnitSummary = ({
               <>
                 <b>{formatNumber(removedSmallBarriers, 0)}</b>{' '}
                 {pluralize('road-related barrier', removedSmallBarriers)} that{' '}
-                {removedSmallBarriers === 1 ? 'has' : 'have'} been removed or
-                mitigated, gaining{' '}
+                {removedSmallBarriers === 1
+                  ? 'has been or is actively being'
+                  : 'have been or are actively being'}{' '}
+                removed or mitigated, gaining{' '}
                 <b>{formatNumber(removedSmallBarriersGainMiles)} miles</b> of
                 reconnected rivers and streams
               </>
@@ -426,7 +431,8 @@ const UnitSummary = ({
           <Paragraph variant="help" sx={{ mt: '2rem' }}>
             Note: These statistics are based on <b>{formatNumber(dams, 0)}</b>{' '}
             inventoried {pluralize('dam', dams)} and available information on
-            dams that have been removed or mitigated. Because the inventory is
+            dams that have been or are actively being removed or mitigated,
+            including projects starting in 2024. Because the inventory is
             incomplete in many areas, areas with a high number of dams may
             simply represent areas that have a more complete inventory.
           </Paragraph>
@@ -451,9 +457,10 @@ const UnitSummary = ({
             {formatNumber(totalSmallBarriers, 0)} inventoried{' '}
             {pluralize('road-related barrier', totalSmallBarriers)} that have
             been assessed for impacts to aquatic organisms, and available
-            information on barriers that have been removed or mitigated. Because
-            the inventory is incomplete in many areas, areas with a high number
-            of barriers may simply represent areas that have a more complete
+            information on barriers that have been or are actively being removed
+            or mitigated, including projects starting in 2024. Because the
+            inventory is incomplete in many areas, areas with a high number of
+            barriers may simply represent areas that have a more complete
             inventory.
           </Paragraph>
         ) : null}

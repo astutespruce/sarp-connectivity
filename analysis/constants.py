@@ -217,6 +217,7 @@ DAM_FS_COLS = [
     "Recon3",
     "InvasiveSpecies",
     "Year_Removed",
+    "YearFishPass",
     "Diversion",
     "FishScreen",
     "ScreenType",
@@ -254,6 +255,7 @@ SMALL_BARRIER_COLS = [
     "Source",
     "SARP_Score",
     "Year_Removed",
+    "YearFishPass",
     "EditDate",
     "Editor",
     "OwnerType",
@@ -475,7 +477,7 @@ HAZARD_TO_DOMAIN = {
 CROSSING_TYPE_TO_DOMAIN = {
     "bridge": 5,
     "bridge adequate": 5,
-    "buried stream": 11,
+    "buried stream": 10,
     "culvert": 8,
     "dam": 0,  # dams should be removed from the small barriers dataset
     "ford": 6,
@@ -495,11 +497,12 @@ CROSSING_TYPE_TO_DOMAIN = {
     "vented ford": 6,
     "vented slab": 6,
     "": 0,
-    "tide gate": 10,
-    "tidegate": 10,
+    "tide gate": 9,
+    "tidegate": 9,
     "failed culvert": 8,
+    "removed": 0,
     # only for unassessed road crossings
-    "assumed culvert": 9,
+    "assumed culvert": 99,
 }
 
 CONSTRICTION_TO_DOMAIN = {
@@ -507,6 +510,7 @@ CONSTRICTION_TO_DOMAIN = {
     "": 0,
     "no data": 0,
     "spans full channel & banks": 1,
+    "spans only channel & banks": 1,  # TODO: verify with Kat
     "not constricted": 1,
     "spans only bankfull/active channel": 2,
     "spans only bankfull / active channel": 2,

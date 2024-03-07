@@ -347,6 +347,7 @@ DAM_CORE_FIELDS = (
         "YearCompleted",
         "FERCRegulated",
         "StateRegulated",
+        "FedRegulatoryAgency",
         "WaterRight",
         "IsPriority",
         "Height",
@@ -720,10 +721,11 @@ CROSSING_TYPE_DOMAIN = {
     6: "Ford / low water crossing",
     7: "Natural ford",
     8: "Culvert",
-    9: "Assumed culvert",
-    10: "Tide gate",
-    11: "Buried stream",
+    9: "Tide gate",
+    10: "Buried stream",
+    99: "Assumed culvert",  # only for road crossings
 }
+
 
 CONSTRICTION_DOMAIN = {
     -1: "Not applicable (dam)",
@@ -1105,6 +1107,7 @@ FIELD_DEFINITIONS = {
     "Link": "Link to additional information about this {type}",
     "FERCRegulated": "Identifies if the {type} is regulated by the Federal Energy Regulatory Commission, if known.",
     "StateRegulated": "Identifies if the {type} is regulated at the state level, if known.",
+    "FedRegulatoryAgency": "Identifies the federal regulatory agency for this {type}, if known",
     "WaterRight": "Identifies if the {type} has an associated water right, if known.",
     "IsPriority": "Indicates if the {type} has been identified as a priority by resource managers, if known.",
     "Estimated": "Dam represents an estimated dam location based on NHD high resolution waterbodies or other information.",

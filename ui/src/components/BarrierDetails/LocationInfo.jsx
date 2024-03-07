@@ -27,6 +27,7 @@ const LocationInfo = ({
   barrierownertype,
   fercregulated,
   stateregulated,
+  fedregulatoryagency,
   waterright,
   ejtract,
   ejtribal,
@@ -120,6 +121,12 @@ const LocationInfo = ({
         </Entry>
       ) : null}
 
+      {fedregulatoryagency ? (
+        <Entry>
+          <Field label="Federal regulatory agency">{fedregulatoryagency}</Field>
+        </Entry>
+      ) : null}
+
       {waterright !== null && waterright > 0 ? (
         <Entry>
           <Field label="Has an associated water right">
@@ -151,6 +158,7 @@ LocationInfo.propTypes = {
   barrierownertype: PropTypes.number,
   fercregulated: PropTypes.number,
   stateregulated: PropTypes.number,
+  fedregulatoryagency: PropTypes.string,
   waterright: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
@@ -167,6 +175,7 @@ LocationInfo.defaultProps = {
   barrierownertype: 0,
   fercregulated: null,
   stateregulated: null,
+  fedregulatoryagency: null,
   waterright: null,
   ejtract: false,
   ejtribal: false,

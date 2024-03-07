@@ -195,7 +195,7 @@ export const combinedBarriers = [
         field: 'crossingtype',
         title: 'Crossing type',
         sort: false,
-        ...getEntries(CROSSING_TYPE),
+        ...getEntries(CROSSING_TYPE, (v) => v !== 99),
       },
       {
         field: 'roadtype',

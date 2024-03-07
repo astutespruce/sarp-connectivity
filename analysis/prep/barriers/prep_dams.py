@@ -236,8 +236,10 @@ for column in (
     "Editor",
     "EditDate",
     "Link",
+    "FedRegulatoryAgency",
 ):
     df[column] = df[column].fillna("").str.strip()
+
 
 for column in (
     "Construction",
@@ -254,11 +256,15 @@ for column in (
     df[column] = df[column].fillna(0).astype("uint8")
 
 
-for column in ("YearCompleted", "YearRemoved", "StructureClass"):
+for column in ("YearCompleted", "YearRemoved", "YearFishPass", "StructureClass"):
     df[column] = df[column].fillna(0).astype("uint16")
 
 # Fix bad values for YearRemoved
 df.loc[(df.YearRemoved > 0) & (df.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
+df.loc[(df.YearFishPass > 0) & (df.YearFishPass < 1900), "YearFishPass"] = np.uint16(0)
+# use YearFishPass to set YearRemoved
+ix = (df.YearRemoved == 0) & (df.YearFishPass > 0)
+df.loc[ix, "YearRemoved"] = df.loc[ix].YearFishPass
 
 
 # Use float32 instead of float64 (still can hold nulls)
@@ -335,6 +341,31 @@ df.loc[
 
 # TODO: from Kat: if in NC and source is Aquatic Obstruction Inventory, also set lowhead dam
 
+
+### standardize and fix bad values for FedRegulatoryAgency
+df.loc[df.FedRegulatoryAgency.isin(["1", "2"]), "FedRegulatoryAgency"] = ""
+df.loc[df.FedRegulatoryAgency == "BOR", "FedRegulatoryAgency"] = "Bureau of Reclamation"
+df.loc[df.FedRegulatoryAgency == "FERC", "FedRegulatoryAgency"] = "Federal Energy Regulatory Commission"
+df.loc[df.FedRegulatoryAgency.isin(["COE", "US Army"]), "FedRegulatoryAgency"] = "US Army Corps of Engineers"
+df.loc[
+    df.FedRegulatoryAgency == "COE and FERC", "FedRegulatoryAgency"
+] = "US Army Corps of Engineers;Federal Energy Regulatory Commission"
+
+df.loc[df.FedRegulatoryAgency.isin(["USFS", "Forest Service"]), "FedRegulatoryAgency"] = "USDA Forest Service"
+df.loc[df.FedRegulatoryAgency == "TVA", "FedRegulatoryAgency"] = "Tennessee Valley Authority"
+df.loc[
+    df.FedRegulatoryAgency.isin(["USFWS", "Fish and Wildlife Service"]), "FedRegulatoryAgency"
+] = "US Fish and Wildlife Service"
+df.loc[
+    df.FedRegulatoryAgency == "US Army Corps of Engineers;Fish and Wildlife Service", "FedRegulatoryAgency"
+] = "US Army Corps of Engineers;US Fish and Wildlife Service"
+df.loc[
+    df.FedRegulatoryAgency == "Forest Service;Natural Resources Conservation Service", "FedRegulatoryAgency"
+] = "USDA Forest Service;Natural Resources Conservation Service"
+df.loc[
+    df.FedRegulatoryAgency == "US Army;Fish and Wildlife Service", "FedRegulatoryAgency"
+] = "US Army Corps of Engineers;US Fish and Wildlife Service"
+df["FedRegulatoryAgency"] = df.FedRegulatoryAgency.str.replace(";", ", ")
 
 # Cleanup names
 # Standardize the casing of the name

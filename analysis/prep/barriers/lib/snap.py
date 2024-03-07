@@ -28,6 +28,9 @@ NHD_DAM_TOLERANCE = 150
 # are not within waterbodies will snap up to this distance (lesser of this distance or their snap_tolerance)
 WB_DRAIN_MAX_TOLERANCE = 250
 
+# use a smaller distance than the default for snapping lowhead dams in relation to waterbodies
+LOWHEAD_DAM_WB_DRAIN_MAX_TOLERANCE = 100
+
 
 # if the nearest flowline (loop or nonloop) is within this value, take it
 # otherwise, try to find the nearest non-loop flowline within tolerance for that
@@ -55,7 +58,7 @@ def snap_estimated_dams_to_drains(df, to_snap):
     df : GeoDataFrame
         master dataset, this is where all snapping gets recorded
     to_snap : DataFrame
-        data frame containing pygeos geometries to snap ("geometry")
+        data frame containing shapely geometries to snap ("geometry")
         and snapping tolerance ("snap_tolerance")
 
     Returns
@@ -193,7 +196,7 @@ def snap_to_nhd_dams(df, to_snap):
     df : GeoDataFrame
         master dataset, this is where all snapping gets recorded
     to_snap : DataFrame
-        data frame containing pygeos geometries to snap ("geometry")
+        data frame containing shapely geometries to snap ("geometry")
         and snapping tolerance ("snap_tolerance")
 
     Returns
@@ -341,7 +344,7 @@ def snap_to_waterbodies(df, to_snap):
     df : GeoDataFrame
         master dataset, this is where all snapping gets recorded
     to_snap : DataFrame
-        data frame containing pygeos geometries to snap ("geometry")
+        data frame containing shapely geometries to snap ("geometry")
         and snapping tolerance ("snap_tolerance")
 
     Returns
@@ -354,7 +357,12 @@ def snap_to_waterbodies(df, to_snap):
 
     for huc2 in sorted(to_snap.HUC2.unique()):
         print(f"\n----- {huc2} ------")
-        in_huc2 = to_snap.loc[(to_snap.HUC2 == huc2) & (to_snap.LowheadDam != 1)].copy()
+        in_huc2 = to_snap.loc[(to_snap.HUC2 == huc2)].copy()
+
+        # use a much smaller tolerance for lowhead dams to avoid pulling them
+        # from the correct location, which could be in the middle of a waterbody
+        ix = to_snap.LowheadDam == 1
+        in_huc2.loc[ix, "snap_tolerance"] = LOWHEAD_DAM_WB_DRAIN_MAX_TOLERANCE
 
         wb = gp.read_feather(
             nhd_dir / "clean" / huc2 / "waterbodies.feather",
@@ -399,7 +407,7 @@ def snap_to_waterbodies(df, to_snap):
         # NOTE: this may bring in multiple drains for some waterbodies, we take the
         # closest drain below
         in_wb = (
-            in_wb.join(to_snap[["geometry", "snap_tolerance"]])
+            in_wb.join(in_huc2[["geometry", "snap_tolerance"]])
             .join(
                 drains.reset_index()
                 .set_index("wbID")[["drainID", "lineID", "loop", "sizeclass", "geometry"]]
@@ -432,7 +440,7 @@ def snap_to_waterbodies(df, to_snap):
         df.loc[ix, "wbID"] = in_wb.wbID
         df.loc[ix, "snap_log"] = ndarray_append_strings(
             "snapped: within ",
-            to_snap.loc[ix].snap_tolerance,
+            in_huc2.loc[ix].snap_tolerance,
             "m tolerance of drain point for waterbody that contains this dam",
         )
 
@@ -519,7 +527,7 @@ def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False, allow_offnetwork_
     df : GeoDataFrame
         master dataset, this is where all snapping gets recorded
     to_snap : DataFrame
-        data frame containing pygeos geometries to snap ("geometry")
+        data frame containing shapely geometries to snap ("geometry")
         and snapping tolerance ("snap_tolerance")
     find_nearest_nonloop : bool, optional (default: False)
         If True, will try to snap the the nearest non-loop if it is within
@@ -656,9 +664,9 @@ def export_snap_dist_lines(df, original_locations, out_dir, prefix=""):
     Parameters
     ----------
     df : DataFrame
-        contains pygeos geometries in "geometry" column
+        contains shapely geometries in "geometry" column
     original_locations : DataFrame
-        contains pygeos geometries in "geometry" column
+        contains shapely geometries in "geometry" column
     out_dir : Path
     prefix : str
         prefix to add to filename

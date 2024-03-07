@@ -44,6 +44,7 @@ const LocationConstruction = ({
   barrierownertype,
   fercregulated,
   stateregulated,
+  fedregulatoryagency,
   waterright,
   disadvantagedcommunity,
   hazard,
@@ -204,6 +205,10 @@ const LocationConstruction = ({
             </Entry>
           ) : null}
 
+          {fedregulatoryagency ? (
+            <Entry>Federal regulatory agency: {fedregulatoryagency}</Entry>
+          ) : null}
+
           {waterright !== null && waterright > 0 ? (
             <Entry>
               Has an associated water right:{' '}
@@ -326,6 +331,7 @@ LocationConstruction.propTypes = {
   barrierownertype: PropTypes.number,
   fercregulated: PropTypes.number,
   stateregulated: PropTypes.number,
+  fedregulatoryagency: PropTypes.string,
   waterright: PropTypes.number,
   disadvantagedcommunity: PropTypes.string,
   height: PropTypes.number,
@@ -364,6 +370,7 @@ LocationConstruction.defaultProps = {
   barrierownertype: null,
   fercregulated: null,
   stateregulated: null,
+  fedregulatoryagency: null,
   waterright: null,
   disadvantagedcommunity: null,
   height: 0,

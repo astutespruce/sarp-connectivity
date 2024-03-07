@@ -5,6 +5,7 @@ from time import time
 
 from dotenv import load_dotenv
 import httpx
+import numpy as np
 import pandas as pd
 import shapely
 
@@ -119,6 +120,13 @@ async def download_snapped_dams(token):
 async def download_small_barriers(token):
     async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=60.0), http2=True) as client:
         df = await download_fs(client, SMALL_BARRIERS_URL, fields=SMALL_BARRIER_COLS, token=token)
+
+        # fill missing fields
+        missing = [c for c in SMALL_BARRIER_COLS if c not in df.columns]
+        if len(missing):
+            print(f"Download is missing columns: {', '.join(missing)}")
+            for col in missing:
+                df[col] = np.nan
 
         df = df.rename(
             columns={

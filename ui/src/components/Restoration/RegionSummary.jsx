@@ -73,9 +73,12 @@ const Summary = ({
               <>
                 <b>{formatNumber(removedDams, 0)}</b>{' '}
                 {pluralize('dam', removedDams)} that{' '}
-                {removedDams === 1 ? 'has' : 'have'} been removed or mitigated,
-                gaining <b>{formatNumber(removedDamsGainMiles)} miles</b> of
-                reconnected rivers and streams
+                {removedDams === 1
+                  ? 'has been or is actively being'
+                  : 'have been or are actively being'}{' '}
+                removed or mitigated, gaining{' '}
+                <b>{formatNumber(removedDamsGainMiles)} miles</b> of reconnected
+                rivers and streams
               </>
             ) : (
               <>
@@ -97,8 +100,11 @@ const Summary = ({
             {removedSmallBarriers > 0 ? (
               <>
                 <b>{formatNumber(removedSmallBarriers, 0)}</b>{' '}
-                {pluralize('road-related barrier', removedSmallBarriers)} that
-                have been removed or mitigated, gaining{' '}
+                {pluralize('road-related barrier', removedSmallBarriers)} that{' '}
+                {removedSmallBarriers === 1
+                  ? 'has been or is being'
+                  : 'have been or are being'}{' '}
+                removed or mitigated, gaining{' '}
                 <b>{formatNumber(removedSmallBarriersGainMiles)} miles</b> of
                 reconnected rivers and streams
               </>
@@ -157,8 +163,10 @@ const Summary = ({
 
       {barrierType === 'dams' ? (
         <Paragraph variant="help" sx={{ mt: '3rem' }}>
-          Note: These statistics are based on {formatNumber(dams, 0)}{' '}
-          inventoried {pluralize('dam', dams)}. Because the inventory is
+          Note: These statistics are based on <b>{formatNumber(dams, 0)}</b>{' '}
+          inventoried {pluralize('dam', dams)}, and available information on
+          dams that have been or are actively being removed or mitigated,
+          including projects starting in 2024. Because the inventory is
           incomplete in many areas, areas with a high number of dams may simply
           represent areas that have a more complete inventory.
         </Paragraph>
@@ -167,8 +175,10 @@ const Summary = ({
       {barrierType === 'small_barriers' ? (
         <Paragraph variant="help" sx={{ mt: '3rem' }}>
           Note: These statistics are based on{' '}
-          {formatNumber(totalSmallBarriers, 0)} inventoried{' '}
-          {pluralize('road-related barrier', totalSmallBarriers)}. Because the
+          <b>{formatNumber(totalSmallBarriers, 0)}</b> inventoried{' '}
+          {pluralize('road-related barrier', totalSmallBarriers)}, and available
+          information on barriers that have been or are actively being removed
+          or mitigated, including projects starting in 2024. Because the
           inventory is incomplete in many areas, areas with a high number of
           road-related barriers may simply represent areas that have a more
           complete inventory.
@@ -177,10 +187,12 @@ const Summary = ({
 
       {barrierType === 'combined_barriers' ? (
         <Paragraph variant="help" sx={{ mt: '3rem' }}>
-          Note: These statistics are based on {formatNumber(dams, 0)}{' '}
+          Note: These statistics are based on <b>{formatNumber(dams, 0)}</b>{' '}
           inventoried {pluralize('dam', dams)} and{' '}
-          {formatNumber(totalSmallBarriers, 0)} inventoried{' '}
-          {pluralize('road-related barrier', totalSmallBarriers)}. Because the
+          <b>{formatNumber(totalSmallBarriers, 0)}</b> inventoried{' '}
+          {pluralize('road-related barrier', totalSmallBarriers)}, and available
+          information on dams and barriers that have been or are actively being
+          removed or mitigated, including projects starting in 2024. Because the
           inventory is incomplete in many areas, areas with a high number of
           dams or road-related barriers may simply represent areas that have a
           more complete inventory.

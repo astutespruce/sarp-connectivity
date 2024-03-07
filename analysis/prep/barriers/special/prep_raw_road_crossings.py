@@ -81,12 +81,13 @@ df = read_dataframe(
         "nhdhr_permanent_identifier",
         "crossing_type",
     ],
+    use_arrow=True,
 ).rename(
     columns={
         "tiger2020_feature_names": "Road",
         "nhdhr_gnis_stream_name": "River",
         "stream_crossing_id": "SARPID",
-        "crossing_type": "crossingtype",
+        "crossing_type": "CrossingType",
     }
 )
 print(f"Read {len(df):,} road crossings")
@@ -149,13 +150,9 @@ df.loc[(df.River != "") & (df.Road != ""), "Name"] = df.River + " / " + df.Road
 df.Name = df.Name.fillna("")
 
 # update crossingtype and set as domain
-df.loc[df.crossingtype == "tiger2020 road", "crossingtype"] = "assumed culvert"
-
-errors = [v for v in df.crossingtype.unique() if v not in CROSSING_TYPE_TO_DOMAIN]
-if len(errors):
-    raise ValueError(f"Values present in crossingtype not present in CROSSING_TYPE_TO_DOMAIN: {errors}")
-
-df["crossingtype"] = df.crossingtype.map(CROSSING_TYPE_TO_DOMAIN)
+df["CrossingType"] = df.CrossingType.fillna("").str.lower()
+df.loc[df.CrossingType.isin(["culvert", "tiger2020 road"]), "CrossingType"] = "assumed culvert"
+df["CrossingType"] = df.CrossingType.map(CROSSING_TYPE_TO_DOMAIN).astype("uint8")
 
 
 # Snap to flowlines

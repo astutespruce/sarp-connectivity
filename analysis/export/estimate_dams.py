@@ -111,4 +111,25 @@ write_dataframe(df.loc[has_dam], out_dir / "estimated_dams_with_dam.fgb")
 write_dataframe(df.loc[has_dam], tmp_dir / "estimated_dams_with_dam.gdb", driver="OpenFileGDB")
 
 
+### Find drain points of altered waterbodies that have no associated estimated dam
+altered_wb_drains = drains.loc[
+    drains.altered
+    & ~drains.wbID.isin(df.wbID.unique())
+    & ~drains.wbID.isin(dams.wbID.dropna().unique().astype("uint32"))
+]
+
+tree = shapely.STRtree(altered_wb_drains.geometry.values)
+left, right = tree.query(states.geometry.values, predicate="intersects")
+
+altered_wb_drains = altered_wb_drains.join(
+    pd.DataFrame({"state": states.id.take(left), "drain": altered_wb_drains.index.take(right)}).groupby("drain").first()
+)
+
+write_dataframe(altered_wb_drains, out_dir / "altered_waterbodies_without_dams.fgb")
+write_dataframe(altered_wb_drains, tmp_dir / "altered_waterbodies_without_dams.gdb", driver="OpenFileGDB")
+
+
 print(f"Total elapsed {time() - start:,.2f}s")
+
+
+####################

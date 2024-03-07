@@ -916,9 +916,9 @@ export const CROSSING_TYPE = {
   6: 'ford / low water crossing',
   7: 'natural ford',
   8: 'culvert',
-  9: 'assumed culvert',
-  10: 'tide gate',
-  11: 'buried stream',
+  9: 'tide gate',
+  10: 'buried stream',
+  99: 'assumed culvert', // not shown in filters for small barriers, only for road crossings
 }
 
 export const CONSTRICTION = {

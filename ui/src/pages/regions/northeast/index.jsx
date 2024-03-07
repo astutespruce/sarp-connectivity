@@ -114,6 +114,10 @@ const NortheastRegionPage = ({
               onChangeMetric={setMetric}
             />
           </Box>
+          <Text variant="help" sx={{ mt: '1rem' }}>
+            Note: counts above may include both completed as well as active
+            barrier removal or mitigation projects.
+          </Text>
         </Box>
 
         <RegionActionLinks region={regionID} />

@@ -16,7 +16,7 @@ from analysis.lib.flowlines import cut_flowlines_at_barriers
 from analysis.lib.io import read_feathers, read_arrow_tables
 from analysis.network.lib.networks import connect_huc2s
 
-warnings.simplefilter("ignore", message=".*invalid value encountered in line_locate_point.*")
+warnings.filterwarnings("ignore", message=".*invalid value encountered in line_locate_point.*")
 
 
 data_dir = Path("data")
