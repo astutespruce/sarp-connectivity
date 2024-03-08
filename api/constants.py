@@ -144,20 +144,6 @@ DOWNSTREAM_LINEAR_NETWORK_FIELDS = [
     "InvasiveNetwork",
 ]
 
-# metric fields not used in tiles because they can be calculated on frontend or are not used
-UNUSED_TILE_METRIC_FIELDS = [
-    "IntermittentUpstreamMiles",
-    "FreeIntermittentDownstreamMiles",
-    "GainMiles",
-    "PerennialGainMiles",
-    "TotalNetworkMiles",
-    "TotalPerennialNetworkMiles",
-    "PercentUnaltered",
-    "PercentPerennialUnaltered",
-    "UpstreamDrainageArea",
-] + UPSTREAM_COUNT_FIELDS
-
-
 # Only present when custom prioritization is performed
 CUSTOM_TIER_FIELDS = [
     "NC_tier",
@@ -285,9 +271,18 @@ SB_FILTER_FIELD_MAP = {f.lower(): f for f in SB_FILTER_FIELDS}
 COMBINED_FILTER_FIELDS = [c for c in unique(DAM_FILTER_FIELDS + SB_FILTER_FIELDS) if not c == "BarrierSeverity"]
 COMBINED_FILTER_FIELD_MAP = {f.lower(): f for f in COMBINED_FILTER_FIELDS}
 
-# Road crossing filters not currently used
-RC_FILTER_FIELDS = ["CrossingType"]
-RC_FILTER_FIELD_MAP = {f.lower(): f for f in RC_FILTER_FIELDS}
+ROAD_CROSSING_FILTER_FIELDS = [
+    "StreamOrderClass",
+    "Intermittent",
+    "CrossingType",
+    "OwnerType",
+    "TESppClass",
+    "StateSGCNSppClass",
+    "Trout",
+    "DisadvantagedCommunity",
+    "Surveyed",
+]
+ROAD_CROSSING_FILTER_FIELD_MAP = {f.lower(): f for f in ROAD_CROSSING_FILTER_FIELDS}
 
 
 ### Fields used for export
@@ -459,12 +454,12 @@ ROAD_CROSSING_CORE_FIELDS = (
         "Subbasin",
         "Subwatershed",
         "CrossingType",
-        # "OnLoop", # not useful
         "Intermittent",
         "StreamOrder",
         # specific to crossings
         "NearestBarrierID",
         "Surveyed",
+        "OnLoop",
     ]
     + UNIT_FIELDS
 )
@@ -472,9 +467,25 @@ ROAD_CROSSING_CORE_FIELDS = (
 ROAD_CROSSING_CORE_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS)
 
 # include COUNTYFIPS for download of road crossings by county
-ROAD_CROSSING_API_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS + ["COUNTYFIPS"])
+ROAD_CROSSING_API_FIELDS = unique(ROAD_CROSSING_CORE_FIELDS + ["COUNTYFIPS"] + ROAD_CROSSING_FILTER_FIELDS)
 
-ROAD_CROSSING_EXPORT_FIELDS = [c for c in ROAD_CROSSING_API_FIELDS if c not in {"SalmonidESU"}]
+ROAD_CROSSING_EXPORT_FIELDS = ROAD_CROSSING_CORE_FIELDS
+
+# only need HUC12 for filtering
+ROAD_CROSSING_TILE_FILTER_FIELDS = unique(
+    ROAD_CROSSING_FILTER_FIELDS
+    + [
+        f
+        for f in UNIT_FIELDS
+        if f
+        not in {
+            "HUC2",
+            "HUC6",
+            "HUC8",
+            "HUC10",
+        }
+    ]
+)
 
 
 WF_CORE_FIELDS = (

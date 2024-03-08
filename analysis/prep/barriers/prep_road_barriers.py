@@ -35,10 +35,7 @@ import pandas as pd
 from pyogrio import write_dataframe
 
 from analysis.prep.barriers.lib.snap import snap_to_flowlines, export_snap_dist_lines
-from analysis.prep.barriers.lib.duplicates import (
-    find_duplicates,
-    export_duplicate_areas,
-)
+from analysis.prep.barriers.lib.duplicates import find_duplicates, export_duplicate_areas
 from analysis.prep.barriers.lib.spatial_joins import get_huc2, add_spatial_joins
 from analysis.prep.barriers.lib.log import format_log
 from analysis.lib.io import read_feathers
@@ -66,7 +63,6 @@ from analysis.constants import (
     CONSTRICTION_TO_DOMAIN,
     BARRIEROWNERTYPE_TO_DOMAIN,
 )
-from api.constants import ROAD_CROSSING_API_FIELDS, verify_domains
 
 ### Custom tolerance values for dams
 SNAP_TOLERANCE = {
@@ -700,6 +696,7 @@ write_dataframe(df, qa_dir / "snapped_small_barriers.fgb")
 
 
 ### Output road crossings
+crossings = crossings.reset_index(drop=True)
 
 # NOTE: road crossings are always excluded from network analysis but cut networks
 # so they can be counted within networks
@@ -708,8 +705,6 @@ crossings["largefish_network"] = False
 crossings["smallfish_network"] = False
 
 print(f"Serializing {len(crossings):,} road crossings")
-
-crossings = crossings.reset_index(drop=True)
 crossings.to_feather(master_dir / "road_crossings.feather")
 write_dataframe(crossings, qa_dir / "road_crossings.fgb")
 
@@ -732,23 +727,5 @@ snapped_crossings = crossings.loc[
 ].reset_index(drop=True)
 
 snapped_crossings.to_feather(barriers_dir / "snapped/road_crossings.feather")
-
-
-### Export for use in API to avoid reading the data again later
-crossings = crossings.rename(
-    columns={
-        "snapped": "Snapped",
-        "intermittent": "Intermittent",
-        "loop": "OnLoop",
-        "sizeclass": "StreamSizeClass",
-    }
-)[["id"] + ROAD_CROSSING_API_FIELDS]
-
-# cast intermittent to int to match other types
-crossings["Intermittent"] = crossings.Intermittent.astype("int8")
-
-verify_domains(crossings)
-
-crossings.to_feather(api_dir / "road_crossings.feather")
 
 print("All done in {:.2f}s".format(time() - start))

@@ -7,10 +7,7 @@ import pandas as pd
 from analysis.constants import SEVERITY_TO_PASSABILITY
 from analysis.lib.util import get_signed_dtype, append
 from analysis.rank.lib.networks import get_network_results, get_removed_network_results
-from analysis.rank.lib.metrics import (
-    classify_streamorder,
-    classify_spps,
-)
+from analysis.rank.lib.metrics import classify_streamorder, classify_spps
 from api.constants import (
     GENERAL_API_FIELDS1,
     UNIT_FIELDS,
@@ -18,6 +15,7 @@ from api.constants import (
     SB_API_FIELDS,
     COMBINED_API_FIELDS,
     WF_API_FIELDS,
+    ROAD_CROSSING_API_FIELDS,
     verify_domains,
 )
 from analysis.constants import NETWORK_TYPES
@@ -415,3 +413,30 @@ verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 
 tmp.to_feather(api_dir / "waterfalls.feather")
+
+
+#########################################################################################
+###
+### Read road crossings and create files for API / tiles
+# NOTE: these don't currently have network data, but share logic with above
+print("Processing road crossings")
+crossings = gp.read_feather(barriers_dir / "road_crossings.feather").set_index("id").rename(columns=rename_cols)
+fill_flowline_cols(crossings)
+
+# cast intermittent to int to match other types
+crossings["StreamOrderClass"] = classify_streamorder(crossings.StreamOrder)
+for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
+    crossings[f"{col}Class"] = classify_spps(crossings[col])
+
+print("Saving crossings for tiles and API")
+# Save full results for tiles, etc
+crossings[ROAD_CROSSING_API_FIELDS + ["offnetwork_flowline", "geometry"]].reset_index().to_feather(
+    results_dir / "road_crossings.feather"
+)
+
+tmp = crossings[ROAD_CROSSING_API_FIELDS].reset_index()
+verify_domains(tmp)
+
+# downcast id to uint32 or it breaks in UI
+tmp["id"] = tmp.id.astype("uint32")
+tmp.to_feather(api_dir / "road_crossings.feather")

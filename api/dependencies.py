@@ -7,7 +7,7 @@ from api.constants import (
     DAM_FILTER_FIELD_MAP,
     SB_FILTER_FIELD_MAP,
     COMBINED_FILTER_FIELD_MAP,
-    RC_FILTER_FIELD_MAP,
+    ROAD_CROSSING_FILTER_FIELD_MAP,
     MULTIPLE_VALUE_FIELDS,
     BOOLEAN_FILTER_FIELDS,
     BarrierTypes,
@@ -67,7 +67,7 @@ class RecordExtractor:
                 self.dataset = smallfish_barriers
 
             case "road_crossings":
-                field_map = RC_FILTER_FIELD_MAP
+                field_map = ROAD_CROSSING_FILTER_FIELD_MAP
                 self.dataset = road_crossings
 
             case _:

@@ -9,7 +9,7 @@ from api.constants import (
     DAM_TILE_FILTER_FIELDS,
     SB_TILE_FILTER_FIELDS,
     COMBINED_TILE_FILTER_FIELDS,
-    unique,
+    ROAD_CROSSING_TILE_FILTER_FIELDS,
 )
 
 from analysis.post.lib.tiles import (
@@ -23,6 +23,7 @@ from analysis.post.lib.tiles import (
 MAX_ZOOM = 16
 
 barriers_dir = Path("data/barriers/master")
+api_dir = Path("data/api")
 results_dir = Path("data/barriers/networks")
 out_dir = Path("tiles")
 tmp_dir = Path("/tmp")
@@ -517,40 +518,56 @@ print("\n\n-----------------Creating road crossing tiles------------------------
 
 df = (
     gp.read_feather(
-        barriers_dir / "road_crossings.feather",
-        columns=[
-            "geometry",
-            "id",
-            "SARPID",
-            "Name",
-            "TotDASqKm",
-            "loop",
-            "offnetwork_flowline",
-            "NearestBarrierID",
-        ],
+        results_dir / "road_crossings.feather",
+        columns=["geometry", "SARPID", "Name"]
+        + ROAD_CROSSING_TILE_FILTER_FIELDS
+        + ["COUNTYFIPS", "StreamOrder", "OnLoop", "offnetwork_flowline"],
     )
     .to_crs("EPSG:4326")
-    .sort_values(by="TotDASqKm", ascending=False)
-    .drop(columns=["TotDASqKm"])
+    .sort_values(by="StreamOrder", ascending=False)
+    .drop(columns=["County"])
+    .rename(columns={"COUNTYFIPS": "County"})
 )
-
-# drop any on loops or off-network flowlines; these are not useful to show
-# drop any that have a nearest barrier ID; these duplicate barriers in the analysis
-df = df.loc[~(df.loop | df.offnetwork_flowline | (df.NearestBarrierID != ""))].drop(
-    columns=["loop", "offnetwork_flowline", "NearestBarrierID"]
-)
-
 df = combine_sarpid_name(df)
 fill_na_fields(df)
 
+# Below zoom 8, we only need filter fields; crossings are not selectable so we
+# can't show additional details including name
+# also, only show those not on loops / not surveyed / perennial streams
+print("Creating tiles for road crossings for zooms 3-7")
+tmp = df.loc[
+    ~df.offnetwork_flowline & (df.Surveyed == 0) & (df.OnLoop == 0) & (df.StreamOrder >= 3) & (df.Intermittent == 0),
+    ["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS,
+]
+
+outfilename = tmp_dir / "road_crossings_lt_z8.fgb"
+mbtiles_filename = tmp_dir / "road_crossings_lt_z8.mbtiles"
+mbtiles_files = [mbtiles_filename]
+tmp = to_lowercase(tmp)
+write_dataframe(tmp.reset_index(drop=True), outfilename)
+
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z3", "-z7", "-r1.5", "-g1.5", "-B5"]
+    + ["-l", "road_crossings"]
+    + ["-o", f"{str(mbtiles_filename)}"]
+    + get_col_types(tmp)
+    + [str(outfilename)]
+)
+ret.check_returncode()
+
+print("Creating tiles for road crossings for zooms 8+")
+
+df = df[["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName"]]
 outfilename = tmp_dir / "road_crossings.fgb"
-mbtiles_filename = out_dir / "road_crossings.mbtiles"
+mbtiles_filename = tmp_dir / "road_crossings_ge_z8.mbtiles"
+mbtiles_files.append(mbtiles_filename)
 df = to_lowercase(df)
 write_dataframe(df.reset_index(drop=True), outfilename)
 
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z9", f"-z{MAX_ZOOM}", "-B10"]
+    + ["-Z8", f"-z{MAX_ZOOM}", "-B10"]
     + ["-l", "road_crossings"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + get_col_types(df)
@@ -558,6 +575,14 @@ ret = subprocess.run(
 )
 ret.check_returncode()
 
+
+print("Joining road crossing tilesets")
+mbtiles_filename = out_dir / "road_crossings.mbtiles"
+ret = subprocess.run(tilejoin_args + ["-o", str(mbtiles_filename)] + [str(f) for f in mbtiles_files])
+
+# remove intermediates
+for mbtiles_file in mbtiles_files:
+    mbtiles_file.unlink()
 
 print(f"Created road crossing tiles in {time() - start:,.2f}s")
 

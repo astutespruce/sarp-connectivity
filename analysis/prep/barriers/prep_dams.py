@@ -367,6 +367,12 @@ df.loc[
 ] = "US Army Corps of Engineers;US Fish and Wildlife Service"
 df["FedRegulatoryAgency"] = df.FedRegulatoryAgency.str.replace(";", ", ")
 
+
+# if FedRegulatoryAgency is FERC, set FERC_Regulated per direction from Kat (3/7/2024)
+ix = df.FedRegulatoryAgency.str.contains("Federal Energy Regulatory Commission")
+df.loc[ix, "FERCRegulated"] = 1
+
+
 # Cleanup names
 # Standardize the casing of the name
 df.Name = df.Name.str.strip().str.title()

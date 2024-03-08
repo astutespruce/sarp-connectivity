@@ -63,7 +63,7 @@ export const sources = {
   road_crossings: {
     type: 'vector',
     tiles: [`${tileHost}/services/road_crossings/tiles/{z}/{x}/{y}.pbf`],
-    minzoom: 9,
+    minzoom: 3,
     maxzoom: 16,
     promoteId: 'id',
   },

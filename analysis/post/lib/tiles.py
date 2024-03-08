@@ -40,17 +40,14 @@ def get_col_types(df, bool_cols=None):
 
 
 def to_lowercase(df):
-    return df.rename(
-        columns={
-            k: k.lower()
-            for k in df.columns
-            if k not in UNIT_FIELDS + ["Subbasin", "Subwatershed"]
-        }
-    )
+    return df.rename(columns={k: k.lower() for k in df.columns if k not in UNIT_FIELDS + ["Subbasin", "Subwatershed"]})
 
 
 def combine_sarpid_name(df):
-    df["SARPIDName"] = df.SARPID.fillna("") + "|" + df.Name.fillna("")
+    df["Name"] = df.Name.fillna("")
+    df["SARPIDName"] = df.SARPID.fillna("")
+    ix = df.Name != ""
+    df.loc[ix, "SARPID"] += "|" + df.loc[ix].Name
 
     return df.drop(
         columns=[

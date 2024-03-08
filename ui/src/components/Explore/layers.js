@@ -339,6 +339,7 @@ export const roadCrossingsLayer = {
   layout: {
     visibility: 'none',
   },
+  filter: ['==', ['get', 'surveyed'], 0],
   paint: {
     'circle-color': getHighlightExpr(
       pointColors.offNetwork.color,
