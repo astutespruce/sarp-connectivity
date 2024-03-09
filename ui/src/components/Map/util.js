@@ -239,16 +239,18 @@ export const getInArrayExpr = (field, values) => [
   ['literal', Array.from(values)],
 ]
 
-/**
- * Construct Mapbox GL filter expression where field value must not be in list of values
- * @param {String} field
- * @param {Iterable} values - list of values where field value must be present
- * @returns
- */
-export const getNotInArrayExpr = (field, values) => [
-  '!',
-  ['in', ['get', field], ['literal', Array.from(values)]],
-]
+export const getInMapUnitsExpr = (field, values) => {
+  // always filter HUC levels by a slice against HUC12 field
+  if (field.startsWith('HUC') && field !== 'HUC12') {
+    const level = parseInt(field.replace('HUC', ''), 10)
+    return [
+      'in',
+      ['slice', ['get', 'HUC12'], 0, level],
+      ['literal', Array.from(values)],
+    ]
+  }
+  return getInArrayExpr(field, values)
+}
 
 /**
  * Construct Mapbox GL filter expression where at least one of the strings in

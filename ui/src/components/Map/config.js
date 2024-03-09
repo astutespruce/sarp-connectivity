@@ -65,7 +65,6 @@ export const sources = {
     tiles: [`${tileHost}/services/road_crossings/tiles/{z}/{x}/{y}.pbf`],
     minzoom: 3,
     maxzoom: 16,
-    promoteId: 'id',
   },
   waterfalls: {
     type: 'vector',

@@ -24,9 +24,8 @@ import {
   highlightNetwork,
   setBarrierHighlight,
   getInArrayExpr,
-  getNotInArrayExpr,
   getInStringExpr,
-  getNotInStringExpr,
+  getInMapUnitsExpr,
   getBarrierTooltip,
 } from 'components/Map'
 import { barrierTypeLabels, pointLegends } from 'config'
@@ -604,11 +603,11 @@ const PriorityMap = ({
 
       const hasActiveUnits = ids && ids.length > 0
       const insideActiveUnitsExpr = hasActiveUnits
-        ? getInArrayExpr(activeLayer, ids)
+        ? getInMapUnitsExpr(activeLayer, ids)
         : false
 
       const outsideActiveUnitsExpr = hasActiveUnits
-        ? getNotInArrayExpr(activeLayer, ids)
+        ? ['!', insideActiveUnitsExpr]
         : true
 
       const includedByFilters = filterEntries.map(([field, values]) =>
@@ -616,11 +615,8 @@ const PriorityMap = ({
           ? getInStringExpr(field, values)
           : getInArrayExpr(field, values)
       )
-      const excludedByFilters = filterEntries.map(([field, values]) =>
-        filterConfigIndex[field].isArray
-          ? getNotInStringExpr(field, values)
-          : getNotInArrayExpr(field, values)
-      )
+
+      const excludedByFilters = includedByFilters.map((f) => ['!', f])
 
       // update barrier layers to select those that are in selected units
       map.setFilter(includedPointLayer.id, [

@@ -15,9 +15,9 @@ import {
   highlightNetwork,
   setBarrierHighlight,
   getInArrayExpr,
-  getNotInArrayExpr,
   getInStringExpr,
   getNotInStringExpr,
+  getInMapUnitsExpr,
   getBarrierTooltip,
 } from './util'
 import { networkLayers } from './layers'
@@ -33,9 +33,9 @@ export {
   unionBounds,
   interpolateExpr,
   getInArrayExpr,
-  getNotInArrayExpr,
   getInStringExpr,
   getNotInStringExpr,
+  getInMapUnitsExpr,
   toGeoJSONPoints,
   mapToBlob,
   mapToDataURL,

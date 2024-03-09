@@ -381,7 +381,20 @@ DAM_API_FIELDS = unique(
 DAM_PUBLIC_EXPORT_FIELDS = DAM_CORE_FIELDS
 
 
-DAM_TILE_FILTER_FIELDS = unique(DAM_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"])
+DAM_TILE_FILTER_FIELDS = unique(
+    DAM_FILTER_FIELDS
+    + [
+        f
+        for f in UNIT_FIELDS
+        if f
+        not in {
+            "HUC2",
+            "HUC6",
+            "HUC8",
+            "HUC10",
+        }
+    ]
+)
 
 
 SB_CORE_FIELDS = (
@@ -419,7 +432,20 @@ SB_API_FIELDS = unique(
 SB_PUBLIC_EXPORT_FIELDS = SB_CORE_FIELDS
 
 
-SB_TILE_FILTER_FIELDS = unique(SB_FILTER_FIELDS + [f for f in UNIT_FIELDS if not f == "HUC2"])
+SB_TILE_FILTER_FIELDS = unique(
+    SB_FILTER_FIELDS
+    + [
+        f
+        for f in UNIT_FIELDS
+        if f
+        not in {
+            "HUC2",
+            "HUC6",
+            "HUC8",
+            "HUC10",
+        }
+    ]
+)
 
 
 COMBINED_API_FIELDS = [

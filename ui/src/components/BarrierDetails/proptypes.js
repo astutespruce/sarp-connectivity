@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types'
 
 export const BarrierPropType = PropTypes.shape({
-  id: PropTypes.number.isRequired,
-  sarpid: PropTypes.string, // TODO: make required when available for waterfalls
+  id: PropTypes.number, // absent for road crossings; not used
+  sarpid: PropTypes.string, // may be coming in as sarpidname before parsing, so don't require
   name: PropTypes.string,
   County: PropTypes.string,
   State: PropTypes.string,
