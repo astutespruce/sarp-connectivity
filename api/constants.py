@@ -1337,7 +1337,7 @@ SB_FIELD_DEFINITIONS = {k: v.replace("{type}", "assessed road/stream crossing") 
 COMBINED_FIELD_DEFINITIONS = {
     k: v.replace("{type}", "dam or assessed road/stream crossing") for k, v in FIELD_DEFINITIONS.items()
 }
-RC_FIELD_DEFINITIONS = {k: v.replace("{type}", "road/stream crossing") for k, v in FIELD_DEFINITIONS.items()}
+ROAD_CROSSING_FIELD_DEFINITIONS = {k: v.replace("{type}", "road/stream crossing") for k, v in FIELD_DEFINITIONS.items()}
 
 
 ### Domains not currently used

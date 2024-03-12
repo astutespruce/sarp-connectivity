@@ -40,12 +40,12 @@ export const extractYearRemovedStats = (
         count: dams = 0,
         countNoNetwork: damsNoNetwork = 0,
         gainmiles: damsGainMiles = 0,
-      } = removedDamsByYear[bin]
+      } = removedDamsByYear[bin] || {}
       const {
         count: smallBarriers = 0,
         countNoNetwork: smallBarriersNoNetwork = 0,
         gainmiles: smallBarriersGainMiles = 0,
-      } = removedSmallBarriersByYear[bin]
+      } = removedSmallBarriersByYear[bin] || {}
       return {
         label,
         dams,

@@ -8,7 +8,7 @@ from api.constants import (
     DAM_FIELD_DEFINITIONS,
     SB_FIELD_DEFINITIONS,
     COMBINED_FIELD_DEFINITIONS,
-    RC_FIELD_DEFINITIONS,
+    ROAD_CROSSING_FIELD_DEFINITIONS,
 )
 
 metadata_dir = Path(__file__).resolve().parent
@@ -41,7 +41,7 @@ def get_readme(filename, barrier_type, fields, url, unit_ids, warnings=None):
             field_def = COMBINED_FIELD_DEFINITIONS
             barrier_type_label = "dams and assessed road-related barriers"
         case "road_crossings":
-            field_def = RC_FIELD_DEFINITIONS
+            field_def = ROAD_CROSSING_FIELD_DEFINITIONS
             barrier_type_label = "road/stream crossings (potential barriers)"
 
     fields = {f: field_def[f] for f in fields if f in field_def}

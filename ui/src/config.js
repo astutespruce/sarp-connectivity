@@ -1309,6 +1309,7 @@ export const YEAR_REMOVED_BINS = {
   5: '2021',
   6: '2022',
   7: '2023',
+  8: '2024',
 }
 
 export const SPECIES_HABITAT_FIELDS = {
