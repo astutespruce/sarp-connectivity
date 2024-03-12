@@ -588,7 +588,6 @@ export const REGIONS = {
     order: 4,
     url: '/regions/great_lakes',
     states: ['IA', 'IL', 'IN', 'MI', 'MN', 'OH', 'WI'],
-    inDevelopment: true,
   },
   gpiw: {
     name: 'Great Plains & Intermountain West',
@@ -614,7 +613,6 @@ export const REGIONS = {
       'RI',
       'VT',
     ],
-    inDevelopment: true,
   },
   pnw: {
     name: 'Pacific Northwest',
@@ -627,7 +625,6 @@ export const REGIONS = {
     order: 5,
     url: '/regions/pacific_southwest',
     states: ['CA', 'NV'],
-    inDevelopment: true,
   },
   se: {
     name: 'Southeast',
