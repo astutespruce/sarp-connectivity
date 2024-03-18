@@ -221,9 +221,6 @@ for column in ("YearRemoved", "YearFishPass"):
 # Fix bad values for YearRemoved
 df.loc[(df.YearRemoved > 0) & (df.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
 df.loc[(df.YearFishPass > 0) & (df.YearFishPass < 1900), "YearFishPass"] = np.uint16(0)
-# use YearFishPass to set YearRemoved
-ix = (df.YearRemoved == 0) & (df.YearFishPass > 0)
-df.loc[ix, "YearRemoved"] = df.loc[ix].YearFishPass
 
 
 #########  Fill NaN fields and set data types
@@ -309,6 +306,24 @@ for field, values in removed_fields.items():
     ix = df[field].isin(values) & (df.YearRemoved <= datetime.today().year) & (~(df.dropped | df.removed))
     df.loc[ix, "removed"] = True
     df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique()))
+
+
+# if YearFishPass is set and Passability indicates no barrier, mark as removed (fully mitigated)
+# (per direction from Kat 3/12/2024)
+ix = (
+    (df.YearFishPass > 0)
+    & (df.YearFishPass <= datetime.today().year)
+    & ~(df.dropped | df.removed)
+    & (df.Passability == 7)
+)
+df.loc[ix, "removed"] = True
+df.loc[ix, "log"] = f"removed: YearFishPass is set and <= {datetime.today().year} and Passability indicates no barrier"
+
+
+# use YearFishPass to set YearRemoved
+# IMPORTANT: this must be done after using YearRemoved above
+ix = (df.YearRemoved == 0) & (df.YearFishPass > 0)
+df.loc[ix, "YearRemoved"] = df.loc[ix].YearFishPass
 
 
 # for any marked as removed, clear out fields that may now be outdated, per direction from Kat on 1/6/2024

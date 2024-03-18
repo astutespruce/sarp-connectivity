@@ -65,7 +65,7 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
             | ((join_idx.downstream_id == 0) & (~join_idx.upstream_id.isin(pids)))
         )
     ].index
-    print(f"Removing {len(drop_ids):,} isolated segments")
+    print(f"Removing {len(drop_ids):,} isolated pipeline segments")
 
     # remove from flowlines, joins, pjoins
     flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
@@ -73,48 +73,26 @@ def remove_pipelines(flowlines, joins, max_pipeline_length=100, keep_ids=None):
     pjoins = remove_joins(pjoins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id")
     join_idx = join_idx.loc[~join_idx.index.isin(drop_ids)].copy()
 
-    # Find single connectors between non-pipeline segments
-    # drop those > max_pipeline_length
-    singles = join_idx.loc[~(join_idx.upstream_id.isin(pids) | join_idx.downstream_id.isin(pids))].join(
-        flowlines["length"]
+    ### Construct a graph facing upstream for all pipeline joins
+    tmp = pjoins.loc[(pjoins.upstream_id != 0) & (pjoins.downstream_id != 0) & (pjoins.upstream_id.isin(pids))]
+    graph = DirectedGraph(tmp.downstream_id.values.astype("int64"), tmp.upstream_id.values.astype("int64"))
+    start_ids = pjoins.loc[
+        (pjoins.downstream_id == 0) | ((pjoins.upstream_id != 0) & ~pjoins.downstream_id.isin(pids))
+    ].upstream_id.unique()
+
+    pairs = pd.DataFrame(graph.network_pairs(start_ids.astype("int64")), columns=["networkID", "lineID"]).join(
+        flowlines["length"], on="lineID"
     )
-    drop_ids = singles.loc[singles.length >= max_pipeline_length].index
-
-    print(
-        f"Found {len(drop_ids):,} pipeline segments between flowlines that are > {max_pipeline_length:,}m; they will be dropped"
-    )
-
-    # remove from flowlines, joins, pjoins
-    flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
-    joins = remove_joins(joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id")
-    pjoins = remove_joins(pjoins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id")
-    join_idx = join_idx.loc[~join_idx.index.isin(drop_ids)].copy()
-
-    ### create a network of pipelines to group them together
-    # Only use contiguous pipelines; those that are not contiguous should have been handled above
-    pairs = pjoins.loc[pjoins.upstream_id.isin(pids) & pjoins.downstream_id.isin(pids)]
-    left = pairs.downstream_id.values
-    right = pairs.upstream_id.values
-
-    # make symmetric by adding each to the end of the other
-    graph = DirectedGraph(np.append(left, right).astype("int64"), np.append(right, left).astype("int64"))
-    groups, values = graph.flat_components()
-    groups = pd.DataFrame(
-        {
-            "group": groups,
-        },
-        index=values,
-    )
-
-    groups = groups.join(flowlines[["length"]])
-    stats = groups.groupby("group").agg({"length": "sum"})
-    drop_groups = stats.loc[stats.length >= max_pipeline_length].index
-    drop_ids = groups.loc[groups.group.isin(drop_groups)].index
+    lengths = pairs.groupby("networkID")["length"].sum()
+    drop_networks = lengths.loc[lengths >= max_pipeline_length].index.values
+    drop_ids = pairs.loc[pairs.networkID.isin(drop_networks)].lineID.unique()
 
     print(f"Dropping {len(drop_ids):,} pipelines that are greater than {max_pipeline_length:,}m")
 
     flowlines = flowlines.loc[~flowlines.index.isin(drop_ids)].copy()
     joins = remove_joins(joins, drop_ids, downstream_col="downstream_id", upstream_col="upstream_id")
+
+    print(f"Retained {flowlines.FType.isin(PIPELINE_FTYPES).sum():,} pipeline segments")
 
     # update NHDPlusIDs to match zeroed out ids
     joins.loc[(joins.downstream_id == 0) & (joins.type == "internal"), "type"] = "former_pipeline_join"

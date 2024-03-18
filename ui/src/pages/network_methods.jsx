@@ -45,11 +45,10 @@ const NetworkMethodsPage = ({ data: { headerImage } }) => (
         </Heading>
         <ol>
           <li>
-            All coastline and underground conduit reaches were first removed
-            from the NHDPlusHR flowlines dataset. &quot;Loops&quot; were
-            retained for purposes of snapping waterfalls and barriers below, but
-            barriers that snapped to these loops were excluded from the network
-            connectivity analysis.
+            All coastline reaches were first removed from the NHDPlusHR
+            flowlines dataset. &quot;Loops&quot; were retained for purposes of
+            snapping waterfalls and barriers below, but barriers that snapped to
+            these loops were excluded from the network connectivity analysis.
           </li>
           <li>
             All isolated pipelines or pipelines &gt;250 meters were removed from

@@ -259,12 +259,9 @@ for column in (
 for column in ("YearCompleted", "YearRemoved", "YearFishPass", "StructureClass"):
     df[column] = df[column].fillna(0).astype("uint16")
 
-# Fix bad values for YearRemoved
+# Fix bad values for YearRemoved & YearFishPass
 df.loc[(df.YearRemoved > 0) & (df.YearRemoved < 1900), "YearRemoved"] = np.uint16(0)
 df.loc[(df.YearFishPass > 0) & (df.YearFishPass < 1900), "YearFishPass"] = np.uint16(0)
-# use YearFishPass to set YearRemoved
-ix = (df.YearRemoved == 0) & (df.YearFishPass > 0)
-df.loc[ix, "YearRemoved"] = df.loc[ix].YearFishPass
 
 
 # Use float32 instead of float64 (still can hold nulls)
@@ -542,6 +539,31 @@ for field, values in removed_fields.items():
     ix = df[field].isin(values) & (df.YearRemoved <= datetime.today().year) & (~(df.dropped | df.removed))
     df.loc[ix, "removed"] = True
     df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique()))
+
+
+# if YearRemoved is set, mark it as removed (per direction from Kat 3/11/2024)
+ix = (df.YearRemoved > 0) & (df.YearRemoved <= datetime.today().year) & ~(df.dropped | df.removed)
+df.loc[ix, "removed"] = True
+df.loc[ix, "log"] = f"removed: YearRemoved is set and <= {datetime.today().year}"
+
+
+# if YearFishPass is set and Passability indicates no barrier, mark as removed (fully mitigated)
+# (per direction from Kat 3/12/2024)
+ix = (
+    (df.YearFishPass > 0)
+    & (df.YearFishPass <= datetime.today().year)
+    & ~(df.dropped | df.removed)
+    & (df.Passability == 7)
+)
+df.loc[ix, "removed"] = True
+df.loc[ix, "log"] = f"removed: YearFishPass is set and <= {datetime.today().year} and Passability indicates no barrier"
+
+
+# use YearFishPass to set YearRemoved
+# IMPORTANT: this must be done after using YearRemoved above
+ix = (df.YearRemoved == 0) & (df.YearFishPass > 0)
+df.loc[ix, "YearRemoved"] = df.loc[ix].YearFishPass
+
 
 # for any marked as removed, clear out fields that may now be outdated, per direction from Kat on 1/6/2024
 # but don't reset if Feasibility indicates it wasn't completely removed, per direction from Kat on 1/7/2024
