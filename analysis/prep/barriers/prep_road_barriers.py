@@ -33,6 +33,7 @@ import shapely
 import numpy as np
 import pandas as pd
 from pyogrio import write_dataframe
+import pyarrow.compute as pc
 
 from analysis.prep.barriers.lib.snap import snap_to_flowlines, export_snap_dist_lines
 from analysis.prep.barriers.lib.duplicates import find_duplicates, export_duplicate_areas
@@ -124,6 +125,12 @@ crossings["SourceID"] = crossings.SARPID.str[2:]
 crossings["EJTract"] = crossings.EJTract.astype("bool")
 crossings["EJTribal"] = crossings.EJTribal.astype("bool")
 print(f"Read {len(crossings):,} road crossings")
+
+# if assumed culvert crossings are on larger stream orders (except loops), assume
+# they are bridges
+ix = (crossings.CrossingType == 99) & (crossings.StreamOrder >= 7) & ~crossings.loop
+crossings.loc[ix, "CrossingType"] = 98
+
 
 # only cross-check against dams / waterfalls that break networks
 dams = gp.read_feather(snapped_dir / "dams.feather", columns=["geometry"])
@@ -291,7 +298,7 @@ df["invasive"] = False
 ### Mark invasive barriers
 # NOTE: invasive status is not affected by other statuses
 df["invasive"] = df.ManualReview.isin(INVASIVE_MANUALREVIEW) | df.Recon.isin(INVASIVE_RECON)
-print(f"Marked {df.invasive.sum()} barriers as invasive barriers")
+print(f"Marked {df.invasive.sum():,} barriers as invasive barriers")
 
 ### Mark any that were removed so that we can show these on the map
 # NOTE: we don't mark these as dropped
@@ -308,13 +315,13 @@ for field, values in removed_fields.items():
     df.loc[ix, "log"] = format_log("removed", field, sorted(df.loc[ix][field].unique()))
 
 
-# if YearFishPass is set and Passability indicates no barrier, mark as removed (fully mitigated)
+# if YearFishPass is set and BarrierSeverity indicates no barrier, mark as removed (fully mitigated)
 # (per direction from Kat 3/12/2024)
 ix = (
     (df.YearFishPass > 0)
     & (df.YearFishPass <= datetime.today().year)
     & ~(df.dropped | df.removed)
-    & (df.Passability == 7)
+    & (df.BarrierSeverity == 8)
 )
 df.loc[ix, "removed"] = True
 df.loc[ix, "log"] = f"removed: YearFishPass is set and <= {datetime.today().year} and Passability indicates no barrier"
@@ -380,7 +387,7 @@ df.loc[exclude_ix, "log"] = f"excluded: PotentialProject {found_values}"
 print(f"Dropped {df.dropped.sum():,} small barriers from network analysis and prioritization")
 print(f"Excluded {df.excluded.sum():,} small barriers from network analysis and prioritization")
 print(f"Marked {df.unranked.sum():,} small barriers to break networks but not be ranked")
-print(f"Marked {df.removed.sum()} small barriers that have been removed for conservation")
+print(f"Marked {df.removed.sum():,} small barriers that have been removed for conservation")
 
 ### Snap barriers
 print(f"Snapping {len(df):,} small barriers")
@@ -403,9 +410,11 @@ df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["bat survey"]
 # Save original locations so we can map the snap line between original and new locations
 original_locations = df.copy()
 
-# IMPORTANT: do not snap manually reviewed, off-network small barriers, duplicates, or ones without HUC2!
+# IMPORTANT: do not snap manually reviewed off-network small barriers, or ones without HUC2!
+# do not snapped dropped  barriers
 exclude_snap_ix = False
 exclude_snap_fields = {
+    "dropped": [True],
     "ManualReview": OFFSTREAM_MANUALREVIEW,
 }
 for field, values in exclude_snap_fields.items():
@@ -415,42 +424,55 @@ for field, values in exclude_snap_fields.items():
 
 to_snap = df.loc[~exclude_snap_ix].copy()
 
-# Snap to nearest crossing (all of which are already snapped to flowlines)
-tree = shapely.STRtree(crossings.geometry.values)
-for tolerance in to_snap.snap_tolerance.unique():
-    tmp = to_snap.loc[to_snap.snap_tolerance == tolerance]
+
+# DEBUG
+# df.to_feather("/tmp/small_barriers.feather")
+# to_snap.to_feather("/tmp/to_snap.feather")
+
+
+### Snap to nearest crossing (all of which are already snapped to flowlines)
+# do this by groups of crossing type to prevent snapping culverts to bridges
+for group, crossing_types in [
+    # only snap bridges to bridge road / stream crossings (allow inventoried bridges to snap against any road crossings)
+    ("bridges", [5, 98, 99]),
+    ("non-bridges", [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 99]),
+]:
+    tmp_crossings = crossings.loc[crossings.CrossingType.isin(crossing_types)]
+    tmp = to_snap.loc[to_snap.CrossingType.isin(crossing_types)]
+
+    tree = shapely.STRtree(tmp_crossings.geometry.values)
     (left, right), distance = tree.query_nearest(
         tmp.geometry.values,
-        max_distance=tolerance,
+        max_distance=SNAP_TOLERANCE["default"],
         return_distance=True,
         all_matches=False,
     )
 
     matches = pd.DataFrame(
         {
-            "crossing_id": crossings.index.values.take(right),
-            "crossing_SARPID": crossings.SARPID.values.take(right),
-            "geometry": crossings.geometry.values.take(right),
-            "lineID": crossings.lineID.values.take(right),
+            "crossing_id": tmp_crossings.index.values.take(right),
+            "crossing_SARPID": tmp_crossings.SARPID.values.take(right),
+            "geometry": tmp_crossings.geometry.values.take(right),
+            "lineID": tmp_crossings.lineID.values.take(right),
             "barrier_SARPID": tmp.SARPID.values.take(left),
             "snap_dist": distance,
         },
         index=tmp.index.values.take(left),
     )
-    if len(matches) == 0:
-        continue
 
     ix = matches.index
     df.loc[ix, "snapped"] = True
     df.loc[ix, "geometry"] = matches.geometry.values
     df.loc[ix, "snap_dist"] = matches.snap_dist.values
     df.loc[ix, "lineID"] = matches.lineID.values
-    df.loc[ix, "snap_log"] = f"snapped: within {tolerance}m tolerance of snapped USGS road crossing"
+    df.loc[
+        ix, "snap_log"
+    ] = f"snapped: within {SNAP_TOLERANCE['default']}m tolerance of snapped USGS road crossing ({group})"
     df.loc[ix, "NearestCrossingID"] = matches.crossing_SARPID.values
 
     to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
 
-    print(f"{len(ix):,} barriers snapped to USGS road crossings within {tolerance}m")
+    print(f"{len(ix):,} barriers snapped to USGS road crossings within {SNAP_TOLERANCE['default']}m ({group})")
 
     # mark the crossing by the closest of any snapped barriers
     nearest_barriers = (
@@ -461,8 +483,22 @@ for tolerance in to_snap.snap_tolerance.unique():
     crossings.loc[ix, "Surveyed"] = np.uint8(1)
 
 
-# Snap to flowlines
-df, to_snap = snap_to_flowlines(df, to_snap)
+### Snap to flowlines
+# snap culverts to smaller stream orders or loops
+# (loops are allowed because they are often side channels with much smaller width)
+print("Snapping culverts")
+df = snap_to_flowlines(
+    df,
+    to_snap.loc[to_snap.CrossingType == 8].copy(),
+    find_nearest_nonloop=False,
+    filter=(pc.field("StreamOrder") < 7) | (pc.field("loop") == True),  # noqa
+)[0]
+
+
+# snap everything else to all flowlines
+print("Snapping non-culverts")
+df = snap_to_flowlines(df, to_snap.loc[to_snap.CrossingType != 8].copy(), find_nearest_nonloop=False)[0]
+
 
 print(f"Snapped {df.snapped.sum():,} small barriers in {time() - snap_start:.2f}s")
 
@@ -490,7 +526,7 @@ df["dup_log"] = "not a duplicate"
 df["dup_sort"] = np.where(df.BarrierSeverity == 0, 9999, df.BarrierSeverity)
 
 dedup_start = time()
-df, to_dedup = find_duplicates(df, to_dedup=df.copy(), tolerance=DUPLICATE_TOLERANCE)
+df, to_dedup = find_duplicates(df, to_dedup=df.loc[df.snapped & ~df.dropped].copy(), tolerance=DUPLICATE_TOLERANCE)
 print(f"Found {df.duplicate.sum():,} total duplicates in {time() - dedup_start:.2f}s")
 
 print("---------------------------------")

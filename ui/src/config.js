@@ -915,6 +915,7 @@ export const CROSSING_TYPE = {
   8: 'culvert',
   9: 'tide gate',
   10: 'buried stream',
+  98: 'assumed bridge', // not shown in filters for small barriers, only for road crossings
   99: 'assumed culvert', // not shown in filters for small barriers, only for road crossings
 }
 

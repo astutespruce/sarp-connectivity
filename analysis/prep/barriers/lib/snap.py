@@ -6,11 +6,13 @@ import numpy as np
 import geopandas as gp
 import pandas as pd
 import shapely
+import pyarrow as pa
+import pyarrow.compute as pc
 from pyogrio import write_dataframe
 
 from analysis.prep.barriers.lib.points import connect_points
 from analysis.lib.geometry import nearest, near
-from analysis.constants import SNAP_ENDPOINT_TOLERANCE
+from analysis.constants import SNAP_ENDPOINT_TOLERANCE, CRS
 from analysis.lib.io import read_feathers
 from analysis.lib.util import ndarray_append_strings
 
@@ -513,7 +515,7 @@ def snap_to_waterbodies(df, to_snap):
     return df, to_snap
 
 
-def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False, allow_offnetwork_flowlines=True):
+def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False, allow_offnetwork_flowlines=True, filter=None):
     """Snap to nearest flowline, within tolerance.
 
     Updates df with snapping results, and returns to_snap as set of dams still
@@ -539,6 +541,8 @@ def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False, allow_offnetwork_
         If True, will allow snapping to the nearest off-network flowline if it
         is within NEAREST_FLOWLINE_TOLERANCE.  If False, will never snap to an
         off-network flowline regardless of how close.
+    filter : pyarrow filter expression, optional (default: None)
+        filter applied to flowlines to limit those used as snapping targets
 
     Returns
     -------
@@ -553,13 +557,22 @@ def snap_to_flowlines(df, to_snap, find_nearest_nonloop=False, allow_offnetwork_
 
         print(f"\n----- {huc2} ------")
         in_huc2 = to_snap.loc[to_snap.HUC2 == huc2].copy()
-        flowlines = gp.read_feather(
-            nhd_dir / "clean" / huc2 / "flowlines.feather",
-            columns=["geometry", "lineID", "loop", "offnetwork"],
-        ).set_index("lineID")
 
         if not allow_offnetwork_flowlines:
-            flowlines = flowlines.loc[~flowlines.offnetwork]
+            if filter is None:
+                filter = pc.field("offnetwork") == False  # noqa
+            else:
+                filter = filter & (pc.field("offnetwork") == False)  # noqa
+
+        flowlines = (
+            pa.dataset.dataset(nhd_dir / "clean" / huc2 / "flowlines.feather", format="feather")
+            .to_table(columns=["geometry", "lineID", "loop", "offnetwork", "StreamOrder"], filter=filter)
+            .to_pandas()
+            .set_index("lineID")
+        )
+
+        flowlines["geometry"] = shapely.from_wkb(flowlines.geometry.values)
+        flowlines = gp.GeoDataFrame(flowlines, geometry="geometry", crs=CRS)
 
         print(f"Selected {len(in_huc2):,} barriers in region to snap against {len(flowlines):,} flowlines")
 

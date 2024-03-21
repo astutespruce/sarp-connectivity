@@ -74,11 +74,7 @@ from analysis.lib.io import read_feathers
 
 
 ### Custom tolerance values for dams
-SNAP_TOLERANCE = {
-    "default": 150,
-    "likely off network": 50,
-    "estimated from network": 25,
-}
+SNAP_TOLERANCE = {"default": 150, "likely off network": 50, "estimated from network": 25}
 DUPLICATE_TOLERANCE = {"default": 10, "likely duplicate": 50}
 
 
@@ -178,7 +174,7 @@ df = df.reset_index(drop=True)
 print("-----------------\nCompiled {:,} dams\n-----------------\n".format(len(df)))
 
 
-### Make sure there are not duplicates
+### Make sure there are not duplicate SARPIDs
 s = df.groupby("SARPID").size()
 if s.max() > 1:
     warnings.warn(f"Multiple dams with same SARPID: {s[s > 1].index.values}")
@@ -478,6 +474,9 @@ df["unranked"] = False  # combined from above fields
 # removed: dam was removed for conservation but we still want to track it
 df["removed"] = False
 
+# nostructure: diversion point without associated structure
+df["nostructure"] = False
+
 
 ### Mark invasive barriers
 # NOTE: invasive status is not affected by other statuses
@@ -511,17 +510,13 @@ for field, values in dropped_fields.items():
 # snap if:
 # if structure category == 3 and structure class == 916 or 917 and barrier severity is null or not no barrier
 # structure category == 3 and barrier severity is not null or is not no barrier
-ix = (
-    (df.StructureCategory == 3)
-    & (
-        # no barrrier: always exclude
-        (df.Passability == 7)
-        # unknown severity and not a dam structure class
-        | ((df.Passability == 0) & (~df.StructureClass.isin([916, 917])))
-    )
-    & (~df.dropped)
+df["nostructure"] = (df.StructureCategory == 3) & (
+    # no barrrier: always exclude
+    (df.Passability == 7)
+    # unknown severity and not a dam structure class
+    | ((df.Passability == 0) & (~df.StructureClass.isin([916, 917])))
 )
-
+ix = df.nostructure & ~df.dropped
 df.loc[ix, "dropped"] = True
 df.loc[ix, "log"] = "dropped: StructureCategory==3 and not identified as dam by other fields"
 
@@ -615,6 +610,9 @@ df["is_estimated"] = (
     | df.Source.str.lower().str.contains("estimated dam")
     | df.Source.str.lower().str.contains("nhdplus high resolution watebodies instersecting")
 )
+# Replace estimated dam names if another name is available
+ix = df.is_estimated & (df.OtherName.str.len() > 0)
+df.loc[ix, "Name"] = df.loc[ix].OtherName
 
 
 ### Mark dams for de-duplication
@@ -631,28 +629,30 @@ df.loc[ix, "duplicate"] = True
 df.loc[ix, "dup_log"] = "Manually reviewed as duplicate"
 
 # Assign dup_sort, lower numbers = higher priority to keep from duplicate group
-# Prefer non-estimated dams
-df.loc[df.is_estimated, "dup_sort"] = 7
 # Prefer dams with River to those that do not
-df.loc[df.River != "", "dup_sort"] = 6
-# Prefer dams that have been reconned to those that haven't
-df.loc[df.Recon > 0, "dup_sort"] = 5
-# Prefer dams with height or year completed to those that do not
-df.loc[(df.YearCompleted > 0) | (df.Height > 0), "dup_sort"] = 4
-
+df.loc[(df.River != "") | (df.Name != ""), "dup_sort"] = 7
+# Prefer dams with key fields present
+df.loc[(df.YearCompleted > 0) | (df.Height > 0) | (df.Condition > 0) | (df.BarrierStatus > 0), "dup_sort"] = 6
 # Prefer NID dams
-df.loc[df.NIDID.notnull(), "dup_sort"] = 3
+df.loc[df.NIDID != "", "dup_sort"] = 5
 # Prefer NABD dams
-df.loc[df.ManualReview == 2, "dup_sort"] = 2
-# manually reviewed dams should be highest priority (both on and off stream)
-df.loc[df.ManualReview.isin(ONSTREAM_MANUALREVIEW + [5]), "dup_sort"] = 1
+df.loc[df.ManualReview == 2, "dup_sort"] = 4
+# Prefer dams with recon / feasibility
+df.loc[
+    ((df.Recon > 0) & ~df.Recon.isin([5, 19])) | ((df.Feasibility > 0) & ~df.Feasibility.isin([6, 7, 10])), "dup_sort"
+] = 3
+# Prefer dams with manual review (onstream or off)
+df.loc[df.ManualReview.isin(ONSTREAM_MANUALREVIEW + [5]), "dup_sort"] = 2
+# Prefer removed dams
+df.loc[df.removed, "dup_sort"] = 1
 
 
-### Duplicate dams before snapping if possible (duplicates are not snapped since they may snap other places)
-to_dedup = df.loc[~df.duplicate].copy()
+### De-duplicate dams before snapping if possible (duplicates are not snapped since they may snap other places)
 
 # Dams within 10 meters are very likely duplicates of each other
 # from those that were hand-checked on the map, they are duplicates of each other
+# Important: remove dropped barriers before dedup
+to_dedup = df.loc[~(df.duplicate | df.dropped)].copy()
 df, to_dedup = find_duplicates(df, to_dedup, tolerance=DUPLICATE_TOLERANCE["default"])
 
 print(f"Found {df.duplicate.sum():,} total duplicates before snapping (duplicates are not snapped)")
@@ -665,9 +665,8 @@ print("---------------------------------\n")
 ### Snap dams
 # snapped: records that snapped to the aquatic network and ready for network analysis
 df["snapped"] = False
-df[
-    "snap_group"
-] = 0  # 0 = default, 1 = estimated (previous), 2 = Amber Ignatius ACF dams, 3 = estimated from waterbodies
+# 0 = default, 1 = estimated (old methods), 2 = Amber Ignatius ACF dams, 3 = estimated from waterbodies (current version)
+df["snap_group"] = 0
 df["snap_tolerance"] = SNAP_TOLERANCE["default"]
 df["snap_log"] = "not snapped"
 df["snap_ref_id"] = np.nan  # id of feature from snap type this was snapped to
@@ -689,43 +688,41 @@ length_tolerance = np.clip(
 df.loc[ix, "snap_tolerance"] = np.max([df.loc[ix].snap_tolerance.values, length_tolerance], axis=0)
 
 ### Mark dam snapping groups
-# estimated dams or likely off-network dams will get lower snapping tolerance
-
-df.loc[df.is_estimated, "snap_group"] = 1  # indicates estimated dam
-
-# Replace estimated dam names if another name is available
-ix = df.is_estimated & (df.OtherName.str.len() > 0)
-df.loc[ix, "Name"] = df.loc[ix].OtherName
-
-
-# Amber Ignatius ACF dams are often features that don't have associated flowlines,
-# flag so we don't snap to flowlines that aren't really close
-# NOTE: this MUST be done AFTER dropping / excluding barriers
-df.loc[df.Source.str.count("Amber Ignatius") > 0, "snap_group"] = 2
 
 # Identify dams estimated from waterbodies
 ix = df.Source.str.lower().isin(["estimated dams oct 2021", "estimated dams summer 2022", "estimated dams jan 2023"])
 df.loc[ix, "snap_group"] = 3
 df.loc[ix, "Name"] = "Estimated dam"
-
-# Dams likely to be off network get a much smaller tolerance
-df.loc[df.snap_group.isin([1, 2]), "snap_tolerance"] = SNAP_TOLERANCE["likely off network"]
+df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["estimated from network"]
 print(
-    f"Setting snap tolerance to {SNAP_TOLERANCE['likely off network']}m for {df.snap_group.isin([1,2]).sum():,} dams likely off network"
+    f"Setting snap tolerance to {SNAP_TOLERANCE['estimated from network']}m for {ix.sum():,} dams estimated from waterbodies"
 )
 
-df.loc[df.snap_group == 3, "snap_tolerance"] = SNAP_TOLERANCE["estimated from network"]
+# use tight tolerance for dams estimated by older methods
+ix = df.is_estimated & (df.snap_group != 3)
+df.loc[ix, "snap_group"] = 1  # indicates estimated dam
+df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["likely off network"]
 print(
-    f"Setting snap tolerance to {SNAP_TOLERANCE['estimated from network']}m for {(df.snap_group == 3).sum():,} dams estimated from waterbodies"
+    f"Setting snap tolerance to {SNAP_TOLERANCE['likely off network']}m for {ix.sum():,} estimated dams (old methods)"
 )
 
+# Amber Ignatius ACF dams are often features that don't have associated flowlines,
+# flag so we don't snap to flowlines that aren't really close
+# NOTE: this MUST be done AFTER dropping / excluding barriers
+ix = df.Source.str.count("Amber Ignatius") > 0
+df.loc[ix, "snap_group"] = 2
+df.loc[ix, "snap_tolerance"] = SNAP_TOLERANCE["likely off network"]
+print(f"Setting snap tolerance to {SNAP_TOLERANCE['likely off network']}m for {ix.sum():,} dams likely off network")
 
-# IMPORTANT: do not snap manually reviewed, off-network dams, or duplicates
+
+# IMPORTANT: do not snap manually reviewed off-network dams, duplicates, or dropped dams
 # duplicates are excluded here because they may snap to different locations due
 # to different snap tolerances, so don't snap them at all
+# dropped dams don't need to be snapped (includes no-structure diversions)
 exclude_snap_ix = False
 exclude_snap_fields = {
     "duplicate": [True],
+    "dropped": [True],
     "ManualReview": OFFSTREAM_MANUALREVIEW,
 }
 for field, values in exclude_snap_fields.items():
@@ -781,7 +778,7 @@ dedup_start = time()
 # Exclude those where ManualReview indicated duplicate (these are also dropped),
 # and those identified as duplicates before snapping, otherwise this cascades to
 # drop other barriers in this group; at least one of which should be kept
-to_dedup = df.loc[~df.duplicate].copy()
+to_dedup = df.loc[df.snapped & ~(df.duplicate | df.dropped)].copy()
 
 # Dams within 10 meters are very likely duplicates of each other
 # from those that were hand-checked on the map, they are duplicates of each other
@@ -791,7 +788,7 @@ df, to_dedup = find_duplicates(df, to_dedup, tolerance=DUPLICATE_TOLERANCE["defa
 # Search a bit further for duplicates from estimated dams that snapped
 # hand-checked these on the map, these look very likely to be real duplicates
 next_group_id = df.dup_group.max() + 1
-to_dedup = to_dedup.loc[to_dedup.snapped & df.snap_group.isin([1, 2])].copy()
+to_dedup = to_dedup.loc[df.snap_group.isin([1, 2])].copy()
 df, to_dedup = find_duplicates(
     df,
     to_dedup,

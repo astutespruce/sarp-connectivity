@@ -89,7 +89,7 @@ export const smallBarriers = [
         field: 'crossingtype',
         title: 'Crossing type',
         sort: true,
-        ...getEntries(CROSSING_TYPE, (v) => v >= 0 && v !== 99),
+        ...getEntries(CROSSING_TYPE, (v) => v >= 0 && v <= 10),
       },
       {
         field: 'roadtype',

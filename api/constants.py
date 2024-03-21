@@ -605,7 +605,7 @@ FEASIBILITY_DOMAIN = {
     14: "Fish passage installed for conservation benefit",
     15: "Treatment complete (removal vs fishway unspecified)",
     16: "Removal or fish passage planned",
-    # not shown to user (filtered out for other reasons)
+    # not shown to user (filtered out for other reasons)S
     6: "Unknown",
     7: "Error",
     8: "Dam removed for conservation benefit",
@@ -760,6 +760,7 @@ CROSSING_TYPE_DOMAIN = {
     8: "Culvert",
     9: "Tide gate",
     10: "Buried stream",
+    98: "Assumed bridge",  # only for road crossings
     99: "Assumed culvert",  # only for road crossings
 }
 

@@ -200,7 +200,7 @@ df["snap_tolerance"] = SNAP_TOLERANCE
 # Snap to flowlines
 snap_start = time()
 
-df, to_snap = snap_to_flowlines(df, to_snap=df.copy(), allow_offnetwork_flowlines=False)
+df, to_snap = snap_to_flowlines(df, to_snap=df.loc[~df.dropped].copy(), allow_offnetwork_flowlines=False)
 print(f"Snapped {len(df.loc[df.snapped]):,} waterfalls in {time() - snap_start:.2f}s")
 print("---------------------------------")
 print("\nSnapping statistics")
@@ -221,7 +221,7 @@ df["dup_sort"] = 0  # not meaningful for waterfalls
 df["ManualReview"] = 0  # not meaningful for waterfalls
 
 dedup_start = time()
-df, to_dedup = find_duplicates(df, to_dedup=df.copy(), tolerance=DUPLICATE_TOLERANCE)
+df, to_dedup = find_duplicates(df, to_dedup=df.loc[~df.dropped].copy(), tolerance=DUPLICATE_TOLERANCE)
 print(f"Found {len(df.loc[df.duplicate]):,} total duplicates in {time() - dedup_start:.2f}s")
 
 ### Deduplicate by dams
