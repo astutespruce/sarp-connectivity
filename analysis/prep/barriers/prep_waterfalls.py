@@ -121,16 +121,13 @@ df.loc[drop_ix, "log"] = f"dropped: ManualReview one of {DROP_MANUALREVIEW}"
 # Drop manually-identified waterfalls that should be removed
 drop_ix = df.SARPID.isin(
     [
-        "f12317",
-        "f13156",
-        "f1557",
-        "f12275",
-        "f92",
-        "f1951",
-        "f7500",
-        "f13457",
         # Celilo Falls are drowned by backwaters of Dalles dam
-        "f3002",
+        "f720",
+        "f5117",
+        "f9785",
+        "f9827",
+        "f10666",
+        "f10925",
     ]
 )
 df.loc[drop_ix, "dropped"] = True

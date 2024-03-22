@@ -58,6 +58,8 @@ const ProgressPage = ({ location }) => {
   const handleSelectUnit = (unit) => {
     const { id } = unit
 
+    setSelectedBarrier(null)
+
     setSummaryUnits((prevSummaryUnits) => {
       // NOTE: we are always creating a new object,
       // because we cannot mutate the underlying object

@@ -47,7 +47,7 @@ def combine_sarpid_name(df):
     df["Name"] = df.Name.fillna("")
     df["SARPIDName"] = df.SARPID.fillna("")
     ix = df.Name != ""
-    df.loc[ix, "SARPID"] += "|" + df.loc[ix].Name
+    df.loc[ix, "SARPIDName"] += "|" + df.loc[ix].Name
 
     return df.drop(
         columns=[

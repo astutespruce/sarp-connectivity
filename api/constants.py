@@ -464,6 +464,9 @@ COMBINED_TILE_FILTER_FIELDS = [
 ROAD_CROSSING_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
+        "AnnualVelocity",
+        "AnnualFlow",
+        "TotDASqKm",
         "TESpp",
         "StateSGCNSpp",
         "RegionalSGCNSpp",
