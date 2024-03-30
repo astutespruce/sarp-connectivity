@@ -4,7 +4,7 @@
 
 - Create an EC2 T4g.small server based on Ubuntu 22.04 LTS (Arm64)
 - Set root volume to have 24 GB (GP3) of space
-- Add a second volume with 40 GB (GP3) of space for tiles
+- Add a second volume with 50 GB (GP3) of space for tiles
 - Create an elastic IP and assign to that instance
 
 NOTE: the same configuration is used for staging as for production, because the
@@ -21,7 +21,7 @@ sudo swapon /swapfile
 
 Add this to `/etc/fstab`: `/swapfile none swap sw 0 0`
 
-### Format and mount 40 GB secondary volume, used for tiles
+### Format and mount 50 GB secondary volume, used for tiles
 
 se `lsblk` to list volumes; it may be listed as `nvme1n1`
 
