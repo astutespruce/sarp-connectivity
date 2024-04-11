@@ -66,6 +66,7 @@ const DamDetails = ({
   link,
   lowheaddam,
   milestooutlet,
+  nativeterritories,
   nidid,
   onloop,
   ownertype,
@@ -177,6 +178,7 @@ const DamDetails = ({
           // disadvantagedcommunity={disadvantagedcommunity}
           ejtract={ejtract}
           ejtribal={ejtribal}
+          nativeterritories={nativeterritories}
           intermittent={intermittent}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
@@ -438,6 +440,7 @@ DamDetails.propTypes = {
   link: PropTypes.string,
   lowheaddam: PropTypes.number,
   milestooutlet: PropTypes.number,
+  nativeterritories: PropTypes.string,
   nidid: PropTypes.string,
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
@@ -568,6 +571,7 @@ DamDetails.defaultProps = {
   link: null,
   lowheaddam: null,
   milestooutlet: 0,
+  nativeterritories: null,
   nidid: null,
   onloop: false,
   ownertype: null,

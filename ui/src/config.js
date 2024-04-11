@@ -945,13 +945,14 @@ export const OWNERTYPE = {
   3: 'Department of Defense',
   4: 'National Park Service',
   5: 'US Fish and Wildlife Service land',
-  6: 'USDA Forest Service land',
-  7: 'Other Federal land',
-  8: 'State land',
-  9: 'Joint Ownership or Regional land',
-  10: 'Native American land',
-  11: 'Private easement',
-  12: 'Other private conservation land',
+  6: 'USDA Forest Service (ownership boundary)',
+  7: 'USDA Forest Service (admin boundary)',
+  8: 'Other Federal land',
+  9: 'State land',
+  10: 'Joint Ownership or Regional land',
+  11: 'Native American land',
+  12: 'Private easement',
+  13: 'Other private conservation land',
 }
 
 export const BARRIEROWNERTYPE = {

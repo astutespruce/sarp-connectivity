@@ -25,15 +25,11 @@ def get_huc2(df):
         indexed on index of df
     """
 
-    huc2 = gp.read_feather(
-        boundaries_dir / "huc2.feather", columns=["HUC2", "geometry"]
-    ).explode(ignore_index=True)
+    huc2 = gp.read_feather(boundaries_dir / "huc2.feather", columns=["HUC2", "geometry"]).explode(ignore_index=True)
     tree = STRtree(df.geometry.values)
     left, right = tree.query(huc2.geometry.values, predicate="intersects")
     huc2 = (
-        pd.DataFrame(
-            {"HUC2": huc2.HUC2.values.take(left)}, index=df.index.values.take(right)
-        )
+        pd.DataFrame({"HUC2": huc2.HUC2.values.take(left)}, index=df.index.values.take(right))
         .groupby(level=0)
         .HUC2.first()
     )
@@ -80,9 +76,7 @@ def add_spatial_joins(df):
         .set_index("HUC6")
     )
     huc8 = (
-        pd.read_feather(
-            boundaries_dir / "HUC8.feather", columns=["HUC8", "name", "coastal"]
-        )
+        pd.read_feather(boundaries_dir / "HUC8.feather", columns=["HUC8", "name", "coastal"])
         .rename(columns={"name": "Subbasin", "coastal": "CoastalHUC8"})
         .set_index("HUC8")
     )
@@ -133,6 +127,20 @@ def add_spatial_joins(df):
     df["DisadvantagedCommunity"] = df[["EJTract", "EJTribal"]].apply(
         lambda row: ",".join(labels[row.values == True]), axis=1
     )
+
+    ### Native territories (convert all intersecting territories into comma-delimited list)
+    print("Joining to native territories")
+    territories = gp.read_feather(boundaries_dir / "native_territories.feather")
+    left, right = STRtree(df.geometry.values).query(territories.geometry.values, predicate="intersects")
+    territories = (
+        pd.DataFrame({"name": territories.name.values.take(left)}, index=df.index.values.take(right))
+        .groupby(level=0)
+        .name.unique()
+        .apply(sorted)
+        .apply(", ".join)
+        .rename("NativeTerritories")
+    )
+    df = df.join(territories)
 
     ### Join in species stats
     spp_df = (

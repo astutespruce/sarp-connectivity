@@ -29,9 +29,7 @@ def sjoin(left, right, predicate="intersects", how="left"):
         predicate,
         how="inner",
     )
-    joined = left.join(joined, how=how).join(
-        right.drop(columns=["geometry"]), on="index_right", rsuffix="_right"
-    )
+    joined = left.join(joined, how=how).join(right.drop(columns=["geometry"]), on="index_right", rsuffix="_right")
     return joined
 
 
@@ -115,16 +113,15 @@ def sjoin_points_to_poly(point_df, poly_df):
         tree = shapely.STRtree(poly_df.geometry.values)
         pt_ix, poly_ix = tree.query(point_df.geometry.values, predicate="intersects")
 
-    # reduce to unique poly per pt
+    # reduce to unique poly per pt; sorted by original index in poly dataset
+    # in case they were sorted in descending priority order
     j = pd.DataFrame(
         {"index_right": poly_df.index.values.take(poly_ix)},
         index=point_df.index.values.take(pt_ix),
-    )
+    ).sort_values(by="index_right")
     grouped = j.groupby(level=0)
     if grouped.size().max() > 1:
-        print(
-            "WARNING: multiple target areas returned in spatial join for a single point"
-        )
+        print("WARNING: multiple target areas returned in spatial join for a single point")
 
         j = grouped.first()
 

@@ -81,6 +81,7 @@ const BarrierDetails = ({
   landcover,
   link,
   milestooutlet,
+  nativeterritories,
   nearestcrossingid,
   onloop,
   ownertype,
@@ -157,6 +158,7 @@ const BarrierDetails = ({
           barrierownertype={barrierownertype}
           ejtract={ejtract}
           ejtribal={ejtribal}
+          nativeterritories={nativeterritories}
           intermittent={intermittent}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
@@ -369,6 +371,7 @@ BarrierDetails.propTypes = {
   landcover: PropTypes.number,
   link: PropTypes.string,
   milestooutlet: PropTypes.number,
+  nativeterritories: PropTypes.string,
   nearestcrossingid: PropTypes.string,
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
@@ -491,6 +494,7 @@ BarrierDetails.defaultProps = {
   landcover: null,
   link: null,
   milestooutlet: 0,
+  nativeterritories: null,
   nearestcrossingid: null,
   onloop: false,
   ownertype: null,

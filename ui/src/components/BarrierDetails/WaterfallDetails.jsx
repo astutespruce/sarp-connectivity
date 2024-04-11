@@ -39,6 +39,7 @@ const WaterfallDetails = ({
   intermittent,
   landcover,
   milestooutlet,
+  nativeterritories,
   onloop,
   passability,
   percentresilient,
@@ -86,6 +87,7 @@ const WaterfallDetails = ({
           basin={basin}
           subwatershed={subwatershed}
           huc12={huc12}
+          nativeterritories={nativeterritories}
           intermittent={intermittent}
           streamorder={streamorder}
           streamsizeclass={streamsizeclass}
@@ -227,6 +229,7 @@ WaterfallDetails.propTypes = {
   freeunaltereddownstreammiles: PropTypes.number,
   freeresilientdownstreammiles: PropTypes.number,
   huc12: PropTypes.string,
+  nativeterritories: PropTypes.string,
   in_network_type: PropTypes.bool,
   intermittent: PropTypes.number,
   landcover: PropTypes.number,
@@ -333,6 +336,7 @@ WaterfallDetails.defaultProps = {
   freeunaltereddownstreammiles: 0,
   freeresilientdownstreammiles: 0,
   huc12: null,
+  nativeterritories: null,
   in_network_type: false,
   intermittent: -1,
   landcover: null,

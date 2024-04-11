@@ -13,6 +13,7 @@ import {
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
 } from 'config'
+import { OutboundLink } from 'components/Link'
 import { Entry, Field } from 'components/Sidebar'
 import { formatNumber } from 'util/format'
 import { isEmptyString } from 'util/string'
@@ -31,6 +32,7 @@ const LocationInfo = ({
   waterright,
   ejtract,
   ejtribal,
+  nativeterritories,
   intermittent,
   streamorder,
   streamsizeclass,
@@ -144,6 +146,22 @@ const LocationInfo = ({
           </Field>
         </Entry>
       ) : null}
+
+      {nativeterritories ? (
+        <Entry>
+          <Text>Within the following native territories:</Text>
+          <Text sx={{ textAlign: 'right', mt: '0.5rem' }}>
+            {nativeterritories}
+          </Text>
+          <Text sx={{ fontSize: 0, color: 'grey.7', textAlign: 'right' }}>
+            (based on data provided by{' '}
+            <OutboundLink to="https://native-land.ca/">
+              Native Land Digital
+            </OutboundLink>
+            )
+          </Text>
+        </Entry>
+      ) : null}
     </>
   )
 }
@@ -162,6 +180,7 @@ LocationInfo.propTypes = {
   waterright: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
+  nativeterritories: PropTypes.string,
   intermittent: PropTypes.number,
   streamorder: PropTypes.number,
   streamsizeclass: PropTypes.string,
@@ -179,6 +198,7 @@ LocationInfo.defaultProps = {
   waterright: null,
   ejtract: false,
   ejtribal: false,
+  nativeterritories: null,
   intermittent: 0,
   streamorder: 0,
   streamsizeclass: null,

@@ -78,16 +78,27 @@ This was used to extract federal ownership types.
 
 ### Protected Areas
 
+Federal agency administrative boundaries were downloaded from https://gbp-blm-egis.hub.arcgis.com/datasets/6bf2e737c59d4111be92420ee5ab0b46/about
+on 4/10/2024 (published 4/1/2024).
+
+USFS-specific surface ownership parcels were downloaded from https://data-usfs.hub.arcgis.com/datasets/24db18ef747945c49b02252ae39ec4aa_0/explore
+on 4/10/2024 (published ).
+
 Kat Hoenke (SARP) extracted protected area data from CBI Protected Areas and TNC Secured Lands and merged them together. Kat later obtained a boundaries layer from USFS, and overlayed this over the top (11/4/2019). Because this causes multiple owner type polygons to occur in the same location, the `Preference` attribute is added, so that we can sort on ascending preference to assign the most appropriate ownership to a given barrier (nulls assigned arbitrary high value). Only nonfederal areas were
 extracted from the protected areas dataset.
 
 ### Environmental Justice Disadvantaged Communities
 
-Environmental justice disadvantaged communites evaluated at the Census tract level
+Environmental justice disadvantaged communities evaluated at the Census tract level
 were downloaded 2/8/2023 from: https://screeningtool.geoplatform.gov/en/downloads
 
 Following the same methods as described in the tool above, Tribal areas (2022 version)
 were downloaded from the Census TIGER website.
+
+### Native territories
+
+Native territories were downloaded from Native Land Digital (https://native-land.ca/)
+on 4/10/2024.
 
 ## 4. Create boundary vector tiles
 

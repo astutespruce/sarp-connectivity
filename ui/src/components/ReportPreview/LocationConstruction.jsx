@@ -27,6 +27,7 @@ import {
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
 } from 'config'
+import { OutboundLink } from 'components/Link'
 import { formatNumber } from 'util/format'
 import { Entry } from './elements'
 
@@ -70,6 +71,9 @@ const LocationConstruction = ({
   waterbodysizeclass,
   invasive,
   removed,
+  ejtract,
+  ejtribal,
+  nativeterritories,
   sx,
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -313,6 +317,29 @@ const LocationConstruction = ({
               ) : null}
             </>
           )}
+
+          {ejtract || ejtribal ? (
+            <Entry>
+              Climate and environmental justice:{' '}
+              {ejtract ? 'within a disadvantaged census tract' : null}
+              {ejtract && ejtribal ? ', ' : null}
+              {ejtribal ? 'within a tribal community' : null}
+            </Entry>
+          ) : null}
+
+          {nativeterritories ? (
+            <Entry>
+              <Text>Within the following native territories:</Text>
+              <Text sx={{ mt: '0.5rem' }}>{nativeterritories}</Text>
+              <Text sx={{ fontSize: 0, color: 'grey.7' }}>
+                (based on data provided by{' '}
+                <OutboundLink to="https://native-land.ca/">
+                  Native Land Digital
+                </OutboundLink>
+                )
+              </Text>
+            </Entry>
+          ) : null}
         </Box>
       </Grid>
     </Box>
@@ -357,6 +384,9 @@ LocationConstruction.propTypes = {
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
   removed: PropTypes.bool,
+  ejtract: PropTypes.bool,
+  ejtribal: PropTypes.bool,
+  nativeterritories: PropTypes.string,
   sx: PropTypes.object,
 }
 
@@ -396,6 +426,9 @@ LocationConstruction.defaultProps = {
   waterbodysizeclass: null,
   invasive: false,
   removed: false,
+  ejtract: false,
+  ejtribal: false,
+  nativeterritories: null,
   sx: null,
 }
 

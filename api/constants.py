@@ -316,6 +316,7 @@ GENERAL_API_FIELDS2 = (
         "Link",
         "EJTract",
         "EJTribal",
+        "NativeTerritories",
         # Watershed names
         "Basin",
         "Subbasin",
@@ -477,6 +478,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         "ProtectedLand",
         "EJTract",
         "EJTribal",
+        "NativeTerritories",
         "SalmonidESU",
         # Watershed names
         "Basin",
@@ -890,13 +892,14 @@ OWNERTYPE_DOMAIN = {
     3: "Department of Defense",
     4: "National Park Service",
     5: "US Fish and Wildlife Service land",
-    6: "USDA Forest Service land",
-    7: "Other Federal land",
-    8: "State land",
-    9: "Joint Ownership or Regional land",
-    10: "Native American land",
-    11: "Private easement",
-    12: "Other private conservation land",
+    6: "USDA Forest Service (ownership boundary)",
+    7: "USDA Forest Service (admin boundary)",
+    8: "Other Federal land",
+    9: "State land",
+    10: "Joint Ownership or Regional land",
+    11: "Native American land",
+    12: "Private easement",
+    13: "Other private conservation land",
 }
 
 
@@ -1201,6 +1204,7 @@ FIELD_DEFINITIONS = {
     "ProtectedLand": "Indicates if the {type} occurs on public land as represented within the BLM Surface Management Agency dataset, CBI Protected Areas Database of the U.S., or TNC Secured Lands Database.",
     "EJTract": "Within an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.",
     "EJTribal": "Within a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool based on American Indian and Alaska Native areas as defined by the US Census Bureau.  Note: all tribal communities considered disadvantaged by the Climate and Environmental Justice Screening tool.",
+    "NativeTerritories": "Native / indigenous people's territories as mapped by Native Land Digital (https://native-land.ca/",
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",
     "Subbasin": "Name of the hydrologic subbasin (HUC8) where the {type} occurs.",
     "Subwatershed": "Name of the hydrologic subwatershed (HUC12) where the {type} occurs.",

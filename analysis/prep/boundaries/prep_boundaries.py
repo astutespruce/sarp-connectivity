@@ -40,13 +40,12 @@ county_filename = src_dir / "tl_2022_us_county.shp"
 huc4_df = gp.read_feather(out_dir / "huc4.feather")
 
 # state outer boundaries, NOT analysis boundaries
-bnd_df = gp.read_feather(out_dir / "region_boundary.feather")
+# (region boundary is in WGS84)
+bnd_df = gp.read_feather(out_dir / "region_boundary.feather").to_crs(CRS)
 bnd = bnd_df.loc[bnd_df.id == "total"].geometry.values[0]
 bnd_geo = bnd_df.loc[bnd_df.id == "total"].to_crs(GEO_CRS).geometry.values[0]
 
-state_df = gp.read_feather(
-    out_dir / "region_states.feather", columns=["STATEFIPS", "geometry", "id"]
-)
+state_df = gp.read_feather(out_dir / "region_states.feather", columns=["STATEFIPS", "geometry", "id"])
 
 ### Counties - within HUC4 bounds
 print("Processing counties")
@@ -73,18 +72,16 @@ county_df.to_feather(out_dir / "counties.feather")
 write_dataframe(county_df, out_dir / "counties.fgb")
 
 # Subset these in the region for tiles and summary stats
-county_df.loc[county_df.STATEFIPS.isin(state_fips)].rename(
-    columns={"COUNTYFIPS": "id", "County": "name"}
-).to_feather(out_dir / "region_counties.feather")
+county_df.loc[county_df.STATEFIPS.isin(state_fips)].rename(columns={"COUNTYFIPS": "id", "County": "name"}).to_feather(
+    out_dir / "region_counties.feather"
+)
 
 
 ### Extract bounds and names for unit search in user interface
 print("Projecting geometries to geographic coordinates for search index")
 print("Processing state and county")
 state_geo_df = (
-    gp.read_feather(
-        out_dir / "states.feather", columns=["geometry", "id", "State", "STATEFIPS"]
-    )
+    gp.read_feather(out_dir / "states.feather", columns=["geometry", "id", "State", "STATEFIPS"])
     .rename(columns={"State": "name"})
     .to_crs(GEO_CRS)
 )
@@ -110,9 +107,7 @@ county_geo_df["key"] = county_geo_df["name"] + " " + county_geo_df.state_name
 
 out = pd.concat(
     [
-        state_geo_df.loc[state_geo_df.in_region][
-            ["layer", "priority", "id", "state", "name", "key", "bbox"]
-        ],
+        state_geo_df.loc[state_geo_df.in_region][["layer", "priority", "id", "state", "name", "key", "bbox"]],
         county_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
     ],
     sort=False,
@@ -121,11 +116,7 @@ out = pd.concat(
 
 for i, unit in enumerate(["HUC2", "HUC6", "HUC8", "HUC10", "HUC12"]):
     print(f"Processing {unit}")
-    df = (
-        gp.read_feather(out_dir / f"{unit.lower()}.feather")
-        .rename(columns={unit: "id"})
-        .to_crs(GEO_CRS)
-    )
+    df = gp.read_feather(out_dir / f"{unit.lower()}.feather").rename(columns={unit: "id"}).to_crs(GEO_CRS)
 
     df["bbox"] = encode_bbox(df.geometry.values)
     df["layer"] = unit
@@ -167,9 +158,26 @@ out.reset_index(drop=True).to_feather(out_dir / "unit_bounds.feather")
 ### Federal ownership
 print("Extracting federal areas (will take a while)...")
 
+
+# Extract USFS parcel ownership boundaries (highest priority)
+gdb = src_dir / "Surface_Ownership_Parcels/Surface_Ownership_Parcels%2C_detailed_(Feature_Layer).shp"
+usfs_ownership = read_dataframe(
+    gdb, columns=["OWNERCLASS"], where=""" "OWNERCLASS" = 'USDA FOREST SERVICE' """, use_arrow=True
+).to_crs(CRS)
+usfs_ownership["geometry"] = make_valid(usfs_ownership.geometry.values)
+usfs_ownership = (
+    dissolve(usfs_ownership.explode(ignore_index=True), by="OWNERCLASS", grid_size=1e-3)
+    .drop(columns=["OWNERCLASS"])
+    .explode(ignore_index=True)
+)
+usfs_ownership["otype"] = "USDA Forest Service (ownership boundary)"
+usfs_ownership["owner"] = usfs_ownership.otype.values
+# assign highest priorioty
+usfs_ownership["sort"] = 1
+
+# Extract federal agency admin boundary (not all lands within boundary are owned)
 gdb = src_dir / "SMA_WM.gdb"
-# mapping of layer to ownertype
-federal = None
+federal_admin = None
 layers = {
     "SurfaceMgtAgy_BIA": "Native American Land",
     "SurfaceMgtAgy_BLM": "Bureau of Land Management",
@@ -178,21 +186,24 @@ layers = {
     "SurfaceMgtAgy_FWS": "US Fish and Wildlife Service",
     "SurfaceMgtAgy_NPS": "National Park Service",
     "SurfaceMgtAgy_OTHFED": "Federal Land",
-    "SurfaceMgtAgy_USFS": "USDA Forest Service",
+    "SurfaceMgtAgy_USFS": "USDA Forest Service (admin boundary)",
 }
 for layer, ownertype in layers.items():
     print(f"Extracting {ownertype}")
-    df = read_dataframe(gdb, layer=layer, columns=[], force_2d=True).to_crs(CRS)
+    df = read_dataframe(gdb, layer=layer, columns=[], use_arrow=True).to_crs(CRS)
+    df["geometry"] = shapely.force_2d(df.geometry.values)
 
     tree = shapely.STRtree(df.geometry.values)
     df = df.take(tree.query(bnd, predicate="intersects"))
     df["otype"] = ownertype
-    df["owner"] = ownertype
 
-    federal = append(federal, df)
+    federal_admin = append(federal_admin, df)
 
-federal = federal.explode(ignore_index=True)
-federal["geometry"] = make_valid(federal.geometry)
+federal_admin = federal_admin.explode(ignore_index=True)
+federal_admin["geometry"] = make_valid(federal_admin.geometry)
+federal_admin = dissolve(federal_admin.explode(ignore_index=True), by="otype").explode(ignore_index=True)
+federal_admin["owner"] = federal_admin.otype.values
+federal_admin["sort"] = 2
 
 
 ### Protected areas
@@ -217,6 +228,10 @@ df = (
     )
 )
 
+# increment sort to allow federal lands above to sort higher
+if not pd.isnull(df.sort.max()):
+    df["sort"] += 10
+
 # fix spelling issue
 df.loc[df.otype == "Easment", "otype"] = "Easement"
 
@@ -228,13 +243,15 @@ df = df.take(tree.query(bnd, predicate="intersects"))
 print("Making geometries valid, this might take a while")
 df["geometry"] = make_valid(df.geometry.values)
 
+df = pd.concat([usfs_ownership, federal_admin, df], ignore_index=True).explode(ignore_index=True)
+
+t = shapely.get_type_id(df.geometry.values)
+df = df.loc[(t == 3) | (t == 6)].reset_index(drop=True)
+
 # sort on 'sort' so that later when we do spatial joins and get multiple hits, we take the ones with
 # the lowest sort value (1 = highest priority) first.
 df.sort = df.sort.fillna(255).astype("uint8")  # missing values should sort to bottom
 df = df.sort_values(by="sort").drop(columns=["sort"])
-
-
-df = append(federal, df).explode(ignore_index=True)
 
 # convert to int groups
 df["OwnerType"] = df.otype.map(OWNERTYPE_TO_DOMAIN)
@@ -244,12 +261,10 @@ df = df.dropna(subset=["OwnerType"])
 df.OwnerType = df.OwnerType.astype("uint8")
 
 # Add in public status
-df["ProtectedLand"] = (
-    df.OwnerType.map(OWNERTYPE_TO_PUBLIC_LAND).fillna(False).astype("bool")
-)
+df["ProtectedLand"] = df.OwnerType.map(OWNERTYPE_TO_PUBLIC_LAND).fillna(False).astype("bool")
 
-# only save owner type
-df = df[["geometry", "OwnerType", "ProtectedLand"]].reset_index(drop=True)
+# only save owner type and protected land status
+df = df[["geometry", "OwnerType", "ProtectedLand"]].explode(ignore_index=True)
 df.to_feather(out_dir / "protected_areas.feather")
 
 
@@ -257,9 +272,7 @@ df.to_feather(out_dir / "protected_areas.feather")
 
 # Conservation opportunity areas (for now the only priority type) joined to HUC8
 # 1 = COA
-coa = read_dataframe(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[
-    ["HUC_8"]
-].set_index("HUC_8")
+coa = read_dataframe(src_dir / "Priority_Areas.gdb", layer="SARP_COA")[["HUC_8"]].set_index("HUC_8")
 coa["coa"] = 1
 
 # take the lowest value (highest priority) for duplicate watersheds
@@ -269,12 +282,7 @@ coa = coa.groupby(level=0).min()
 priorities = coa.fillna(0).astype("uint8")
 
 # drop duplicates
-priorities = (
-    priorities.reset_index()
-    .drop_duplicates()
-    .rename(columns={"index": "HUC8"})
-    .reset_index(drop=True)
-)
+priorities = priorities.reset_index().drop_duplicates().rename(columns={"index": "HUC8"}).reset_index(drop=True)
 
 # join to HUC8 dataset for tiles
 huc8_df = gp.read_feather(out_dir / "huc8.feather")
@@ -322,3 +330,16 @@ df = (
 )
 
 df.to_feather(out_dir / "tribal_lands.feather")
+
+
+### Process native territories
+df = (
+    read_dataframe(src_dir / "indigenousTerritories.json", columns=["Name"])
+    .rename(columns={"Name": "name"})
+    .to_crs(CRS)
+)
+df["geometry"] = shapely.force_2d(df.geometry.values)
+df["geometry"] = make_valid(df.geometry.values)
+tree = shapely.STRtree(df.geometry.values)
+df = df.take(tree.query(bnd, predicate="intersects")).explode(ignore_index=True)
+df.to_feather(out_dir / "native_territories.feather")

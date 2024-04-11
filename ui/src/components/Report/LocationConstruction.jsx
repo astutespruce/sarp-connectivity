@@ -70,6 +70,9 @@ const Location = ({
   waterbodysizeclass,
   invasive,
   removed,
+  ejtract,
+  ejtribal,
+  nativeterritories,
   ...props
 }) => {
   const barrierTypeLabel = barrierTypeLabelSingular[barrierType]
@@ -277,128 +280,173 @@ const Location = ({
             paddingLeft: '12pt',
           }}
         >
-          <>
-            {barrierType === 'dams' ? (
-              <Entries>
-                {purpose !== null && purpose >= 0 ? (
-                  <Entry>
-                    <Text>Purpose: {PURPOSE[purpose].toLowerCase()}</Text>
-                  </Entry>
-                ) : null}
+          {barrierType === 'dams' ? (
+            <Entries>
+              {purpose !== null && purpose >= 0 ? (
+                <Entry>
+                  <Text>Purpose: {PURPOSE[purpose].toLowerCase()}</Text>
+                </Entry>
+              ) : null}
 
-                {yearcompleted > 0 ? (
-                  <Entry>
-                    <Text>Constructed completed: {yearcompleted}</Text>
-                  </Entry>
-                ) : null}
+              {yearcompleted > 0 ? (
+                <Entry>
+                  <Text>Constructed completed: {yearcompleted}</Text>
+                </Entry>
+              ) : null}
 
-                {height > 0 ? (
-                  <Entry>
-                    <Text>Height: {height} feet</Text>
-                  </Entry>
-                ) : null}
+              {height > 0 ? (
+                <Entry>
+                  <Text>Height: {height} feet</Text>
+                </Entry>
+              ) : null}
 
-                {width > 0 ? (
-                  <Entry>
-                    <Text>Width: {width} feet</Text>
-                  </Entry>
-                ) : null}
+              {width > 0 ? (
+                <Entry>
+                  <Text>Width: {width} feet</Text>
+                </Entry>
+              ) : null}
 
-                {construction !== null && construction >= 0 ? (
-                  <Entry>
-                    <Text>
-                      Construction material:{' '}
-                      {CONSTRUCTION[construction].toLowerCase()}
-                    </Text>
-                  </Entry>
-                ) : null}
+              {construction !== null && construction >= 0 ? (
+                <Entry>
+                  <Text>
+                    Construction material:{' '}
+                    {CONSTRUCTION[construction].toLowerCase()}
+                  </Text>
+                </Entry>
+              ) : null}
 
-                {hazard !== null && hazard > 0 ? (
-                  <Entry>
-                    <Text>Hazard rating: {HAZARD[hazard].toLowerCase()}</Text>
-                  </Entry>
-                ) : null}
+              {hazard !== null && hazard > 0 ? (
+                <Entry>
+                  <Text>Hazard rating: {HAZARD[hazard].toLowerCase()}</Text>
+                </Entry>
+              ) : null}
 
-                {condition !== null && condition >= 0 ? (
-                  <Entry>
-                    <Text>
-                      Structural condition: {CONDITION[condition].toLowerCase()}
-                    </Text>
-                  </Entry>
-                ) : null}
+              {condition !== null && condition >= 0 ? (
+                <Entry>
+                  <Text>
+                    Structural condition: {CONDITION[condition].toLowerCase()}
+                  </Text>
+                </Entry>
+              ) : null}
 
-                {!removed && passability !== null ? (
-                  <Entry>
-                    <Text>Passability: {PASSABILITY[passability]}</Text>
-                  </Entry>
-                ) : null}
+              {!removed && passability !== null ? (
+                <Entry>
+                  <Text>Passability: {PASSABILITY[passability]}</Text>
+                </Entry>
+              ) : null}
 
-                {passagefacility !== null && passagefacility >= 0 ? (
-                  <Entry>
-                    <Text>
-                      Passage facility type:{' '}
-                      {PASSAGEFACILITY[passagefacility].toLowerCase()}
-                    </Text>
-                  </Entry>
-                ) : null}
-              </Entries>
-            ) : (
-              <Entries>
-                {roadtype !== null && roadtype >= 0 ? (
-                  <Entry>
-                    <Text>Road type: {ROAD_TYPE[roadtype]}</Text>
-                  </Entry>
-                ) : null}
-                {crossingtype !== null && crossingtype >= 0 ? (
-                  <Entry>
-                    <Text>Crossing type: {CROSSING_TYPE[crossingtype]}</Text>
-                  </Entry>
-                ) : null}
-                {constriction !== null && constriction >= 0 ? (
-                  <Entry>
-                    <Text>
-                      Type of constriction: {CONSTRICTION[constriction]}
-                    </Text>
-                  </Entry>
-                ) : null}
+              {passagefacility !== null && passagefacility >= 0 ? (
+                <Entry>
+                  <Text>
+                    Passage facility type:{' '}
+                    {PASSAGEFACILITY[passagefacility].toLowerCase()}
+                  </Text>
+                </Entry>
+              ) : null}
 
-                {condition !== null && condition >= 0 ? (
-                  <Entry>
-                    <Text>Condition: {CONDITION[condition]}</Text>
-                  </Entry>
-                ) : null}
+              {ejtract || ejtribal ? (
+                <Entry>
+                  <Text>
+                    Climate and environmental justice:{' '}
+                    {ejtract ? 'within a disadvantaged census tract' : null}
+                    {ejtract && ejtribal ? ', ' : null}
+                    {ejtribal ? 'within a tribal community' : null}
+                  </Text>
+                </Entry>
+              ) : null}
 
-                {!removed &&
-                barrierseverity !== null &&
-                barrierseverity >= 0 ? (
-                  <Entry>
-                    <Text>
-                      Severity: {SMALL_BARRIER_SEVERITY[barrierseverity]}
-                    </Text>
-                  </Entry>
-                ) : null}
+              {nativeterritories ? (
+                <Entry>
+                  <Text>Within the following native territories:</Text>
+                  <Text style={{ marginTop: '6pt' }}>{nativeterritories}</Text>
+                  <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+                    (based on data provided by{' '}
+                    <Link href="https://native-land.ca/">
+                      Native Land Digital
+                    </Link>
+                    )
+                  </Text>
+                </Entry>
+              ) : null}
+            </Entries>
+          ) : (
+            <Entries>
+              {roadtype !== null && roadtype >= 0 ? (
+                <Entry>
+                  <Text>Road type: {ROAD_TYPE[roadtype]}</Text>
+                </Entry>
+              ) : null}
+              {crossingtype !== null && crossingtype >= 0 ? (
+                <Entry>
+                  <Text>Crossing type: {CROSSING_TYPE[crossingtype]}</Text>
+                </Entry>
+              ) : null}
+              {constriction !== null && constriction >= 0 ? (
+                <Entry>
+                  <Text>
+                    Type of constriction: {CONSTRICTION[constriction]}
+                  </Text>
+                </Entry>
+              ) : null}
 
-                {!removed && sarp_score >= 0 ? (
-                  <Entry>
-                    <Text>
-                      SARP Aquatic Organism Passage Score:{' '}
-                      {formatNumber(sarp_score, 1)} (
-                      {classifySARPScore(sarp_score)})
-                    </Text>
-                  </Entry>
-                ) : null}
+              {condition !== null && condition >= 0 ? (
+                <Entry>
+                  <Text>Condition: {CONDITION[condition]}</Text>
+                </Entry>
+              ) : null}
 
-                {passagefacility !== null && passagefacility >= 0 ? (
-                  <Entry>
-                    <Text>
-                      Passage facility type:{' '}
-                      {PASSAGEFACILITY[passagefacility].toLowerCase()}
-                    </Text>
-                  </Entry>
-                ) : null}
-              </Entries>
-            )}
-          </>
+              {!removed && barrierseverity !== null && barrierseverity >= 0 ? (
+                <Entry>
+                  <Text>
+                    Severity: {SMALL_BARRIER_SEVERITY[barrierseverity]}
+                  </Text>
+                </Entry>
+              ) : null}
+
+              {!removed && sarp_score >= 0 ? (
+                <Entry>
+                  <Text>
+                    SARP Aquatic Organism Passage Score:{' '}
+                    {formatNumber(sarp_score, 1)} (
+                    {classifySARPScore(sarp_score)})
+                  </Text>
+                </Entry>
+              ) : null}
+
+              {passagefacility !== null && passagefacility >= 0 ? (
+                <Entry>
+                  <Text>
+                    Passage facility type:{' '}
+                    {PASSAGEFACILITY[passagefacility].toLowerCase()}
+                  </Text>
+                </Entry>
+              ) : null}
+              {ejtract || ejtribal ? (
+                <Entry>
+                  <Text>
+                    Climate and environmental justice:{' '}
+                    {ejtract ? 'within a disadvantaged census tract' : null}
+                    {ejtract && ejtribal ? ', ' : null}
+                    {ejtribal ? 'within a tribal community' : null}
+                  </Text>
+                </Entry>
+              ) : null}
+
+              {nativeterritories ? (
+                <Entry>
+                  <Text>Within the following native territories:</Text>
+                  <Text style={{ marginTop: '6pt' }}>{nativeterritories}</Text>
+                  <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
+                    (based on data provided by{' '}
+                    <Link href="https://native-land.ca/">
+                      Native Land Digital
+                    </Link>
+                    )
+                  </Text>
+                </Entry>
+              ) : null}
+            </Entries>
+          )}
         </View>
       </Flex>
     </Section>
@@ -443,6 +491,9 @@ Location.propTypes = {
   waterbodysizeclass: PropTypes.number,
   invasive: PropTypes.bool,
   removed: PropTypes.bool,
+  ejtract: PropTypes.bool,
+  ejtribal: PropTypes.bool,
+  nativeterritories: PropTypes.string,
 }
 
 Location.defaultProps = {
@@ -481,6 +532,9 @@ Location.defaultProps = {
   waterbodysizeclass: null,
   invasive: false,
   removed: false,
+  ejtract: false,
+  ejtribal: false,
+  nativeterritories: null,
 }
 
 export default Location
