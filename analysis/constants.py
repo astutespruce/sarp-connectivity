@@ -189,6 +189,7 @@ MAX_PIPELINE_LENGTH = 250  # meters
 # NOTE: not all feature services have all columns
 DAM_FS_COLS = [
     "SourceDBID",
+    "UNIQUE_ID",  # PartnerID
     "DB_Source",
     "SARPUniqueID",
     "NIDID",
@@ -242,6 +243,7 @@ DAM_FS_COLS = [
 
 SMALL_BARRIER_COLS = [
     "SARPUniqueID",
+    "UNIQUE_ID",  # PartnerID
     "LocalID",
     "Recon",
     "ManualReview",
@@ -276,6 +278,7 @@ SMALL_BARRIER_COLS = [
 
 WATERFALL_COLS = [
     "SARPUniqueId",
+    "UNIQUE_ID",  # PartnerID
     "LocalID",
     "fall_id",
     "fall_type",
@@ -865,6 +868,8 @@ CONVERT_TO_NONLOOP = {
         50000900308919,
         50000900427502,
         50000900397960,
+        50000900308920,
+        50000900160000,
         # this preserves the join to the Middle Fork Eel river
         50000400146877,
         # This preserves the join to Indian Creek
@@ -874,6 +879,10 @@ CONVERT_TO_NONLOOP = {
         # This preserves the join to Kittredge Canal into main network
         # from Williamson river
         50000400211221,
+        # this preserves an incoming tributary at Pyramid dam
+        50000100088802,
+        # preserves incoming triburary;
+        50000100131551,
     ],
     "19": [
         75009800049435,
@@ -950,6 +959,11 @@ CONVERT_TO_LOOP = {
         # this is to preserve the Williamson River join to main network
         # via Kittredge Canal
         50000400299323,
+        # This feeds a very long pipeline (dropped) out of Pyramid dam and
+        # should be dropped too
+        50000100117028,
+        # this is the counterpart to a loop converted to a non-loop
+        50000100017093,
     ],
     "19": [75009800049027, 75009800049021, 75009900024438, 75009800049174],
 }
@@ -1385,6 +1399,18 @@ KEEP_PIPELINES = {
         50000900301457,
         50000800165535,
         50000200030140,
+        # San Gabriel River at San Gabriel dam
+        50000100180163,
+        50000100067358,
+        50000100010944,
+        # Bouquet Reservoir dam
+        50000100120191,
+        # Littlerock dam
+        50000700072234,
+        # Seven oaks dam
+        50000100136899,
+        # short stretch in urban San Luis Obispo, keep per direction from Kat 4/11/2024
+        50000200011605,
     ],
     "21": [85000100010153],
 }
@@ -1440,6 +1466,26 @@ JOIN_FIXES = {
         # via Kittredge Canal; flow is in wrong direction
         {"upstream": 50000900432337, "downstream": 0, "new_downstream": 50000900432336},
         {"upstream": 50000900017559, "downstream": 0, "new_downstream": 50000900432337},
+        # Following entries fix Governor Edmund G Brown West Branch California Aqueduct
+        # flowlines in waterbody to feed tribs in waterbody to main network instead of pipeline
+        # route 50000100088803=>50000100088802
+        {"upstream": 50000100088803, "downstream": 50000100173491, "new_downstream": 50000100088802},
+        # route 50000100088802=>50000100178204
+        {"upstream": 50000100088802, "downstream": 50000100173491, "new_downstream": 50000100178204},
+        # route 50000100004266=>50000100173491
+        {"upstream": 50000100004266, "downstream": 50000100117028, "new_downstream": 50000100173491},
+        # route 50000100173491=>50000100088802
+        {"upstream": 50000100173491, "downstream": 50000100117028, "new_downstream": 50000100088802},
+        # fix incoming trib to Lake Elisnore
+        # route 50000100017094=>50000100131551
+        {"upstream": 50000100017094, "downstream": 50000100017093, "new_downstream": 50000100131551},
+        # route 50000100131551=>50000100045184 (flip direction)
+        {
+            "upstream": 50000100101106,
+            "downstream": 50000100131551,
+            "new_upstream": 50000100131551,
+            "new_downstream": 50000100045184,
+        },
     ],
 }
 
@@ -1458,6 +1504,10 @@ REMOVE_JOINS = {
         {"upstream": 50000900254664, "downstream": 50000900432337},
         # For fix above, this eliminates a duplicate origin point
         {"upstream": 50000900432617, "downstream": 50000900017560},
+        # fix at Governor Edmund G Brown West Branch California Aqueduct
+        {"upstream": 50000100004266, "downstream": 50000100117028},
+        {"upstream": 50000100173491, "downstream": 50000100117028},
+        {"upstream": 50000100173270, "downstream": 50000100088802},
     ],
 }
 
