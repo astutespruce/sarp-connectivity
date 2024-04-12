@@ -22,6 +22,7 @@ const IDInfo = ({
   nidid,
   source,
   sourceid,
+  partnerid,
   link,
   nearestcrossingid,
   lat,
@@ -111,6 +112,12 @@ const IDInfo = ({
             Oregon Department of Fish and Wildlife
           </OutboundLink>
           .
+        </Entry>
+      ) : null}
+
+      {!isEmptyString(partnerid) && partnerid !== sourceid ? (
+        <Entry>
+          <Field label="Local Partner ID">{partnerid}</Field>
         </Entry>
       ) : null}
 
@@ -213,6 +220,7 @@ IDInfo.propTypes = {
   nidid: PropTypes.string,
   source: PropTypes.string,
   sourceid: PropTypes.string,
+  partnerid: PropTypes.string,
   link: PropTypes.string,
   nearestcrossingid: PropTypes.string,
   lat: PropTypes.number.isRequired,
@@ -225,6 +233,7 @@ IDInfo.defaultProps = {
   nidid: null,
   source: null,
   sourceid: null,
+  partnerid: null,
   link: null,
   nearestcrossingid: null,
   attachments: null,

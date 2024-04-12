@@ -60,6 +60,10 @@ print("\n\n----------------------------------\nReading waterfalls\n-------------
 
 df = gp.read_feather(src_dir / "waterfalls.feather").rename(columns={"fall_type": "FallType"})
 
+# TODO: remove once field is added to ArcGIS service
+if "PartnerID" not in df.columns:
+    df["PartnerID"] = ""
+
 ### drop any that are outside analysis HUC2s
 df = df.join(get_huc2(df))
 drop_ix = df.HUC2.isnull()
@@ -75,6 +79,7 @@ df = df.set_index("id", drop=False)
 
 
 ### Cleanup data
+df["PartnerID"] = df.PartnerID.fillna("").str.strip()
 df.FallType = df.FallType.fillna("").str.strip().str.lower()
 
 df.Source = df.Source.str.strip()

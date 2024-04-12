@@ -14,6 +14,7 @@ const IDInfo = ({
   nidid,
   source,
   sourceid,
+  partnerid,
   link,
   nearestcrossingid,
   ...props
@@ -71,6 +72,12 @@ const IDInfo = ({
             </Text>
           </Entry>
         ) : null}
+
+        {!isEmptyString(partnerid) && partnerid !== sourceid ? (
+          <Entry>
+            <Text>Local Partner ID: {partnerid}</Text>
+          </Entry>
+        ) : null}
       </Entries>
 
       {fromWDFW ? (
@@ -103,6 +110,7 @@ IDInfo.propTypes = {
   nidid: PropTypes.string,
   source: PropTypes.string,
   sourceid: PropTypes.string,
+  partnerid: PropTypes.string,
   link: PropTypes.string,
   nearestcrossingid: PropTypes.string,
 }
@@ -111,6 +119,7 @@ IDInfo.defaultProps = {
   nidid: null,
   source: null,
   sourceid: null,
+  partnerid: null,
   link: null,
   nearestcrossingid: null,
 }

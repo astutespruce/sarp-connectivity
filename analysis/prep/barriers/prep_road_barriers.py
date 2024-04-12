@@ -93,6 +93,11 @@ start = time()
 print("Reading data")
 df = gp.read_feather(src_dir / "sarp_small_barriers.feather")
 df["NearestCrossingID"] = ""
+
+# TODO: remove once field is added to ArcGIS service
+if "PartnerID" not in df.columns:
+    df["PartnerID"] = ""
+
 print(f"Read {len(df):,} small barriers")
 
 ### Read in photo attachments, have to join on location
@@ -231,7 +236,7 @@ df.loc[(df.YearFishPass > 0) & (df.YearFishPass < 1900), "YearFishPass"] = np.ui
 
 
 #########  Fill NaN fields and set data types
-for column in ["SourceID", "CrossingCode", "Source", "Link"]:
+for column in ["SourceID", "PartnerID", "CrossingCode", "Source", "Link"]:
     df[column] = df[column].fillna("").str.strip()
 
 

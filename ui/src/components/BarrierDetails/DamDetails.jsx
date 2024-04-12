@@ -70,6 +70,7 @@ const DamDetails = ({
   nidid,
   onloop,
   ownertype,
+  partnerid,
   passability,
   passagefacility,
   percentresilient,
@@ -396,6 +397,7 @@ const DamDetails = ({
           nidid={nidid}
           source={source}
           sourceid={sourceid}
+          partnerid={partnerid}
           link={link}
         />
       </Section>
@@ -444,6 +446,7 @@ DamDetails.propTypes = {
   nidid: PropTypes.string,
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
+  partnerid: PropTypes.string,
   passability: PropTypes.number,
   passagefacility: PropTypes.number,
   percentresilient: PropTypes.number,
@@ -575,6 +578,7 @@ DamDetails.defaultProps = {
   nidid: null,
   onloop: false,
   ownertype: null,
+  partnerid: null,
   passability: null,
   passagefacility: null,
   percentresilient: 0,

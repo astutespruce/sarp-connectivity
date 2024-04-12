@@ -336,6 +336,7 @@ DAM_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
         "NIDID",
+        "PartnerID",
         "Estimated",
         "AnnualVelocity",
         "AnnualFlow",
@@ -402,6 +403,7 @@ SB_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
         "CrossingCode",
+        "PartnerID",
         "NearestCrossingID",
         "AnnualVelocity",
         "AnnualFlow",
@@ -522,6 +524,7 @@ ROAD_CROSSING_TILE_FILTER_FIELDS = unique(
 WF_CORE_FIELDS = (
     GENERAL_API_FIELDS1
     + [
+        "PartnerID",
         "FallType",
         "AnnualVelocity",
         "AnnualFlow",
@@ -1146,6 +1149,7 @@ FIELD_DEFINITIONS = {
     "River": "River or stream name where {type} occurs, if available.",
     "Source": "Source of this record in the inventory.",
     "SourceID": "Identifier of this {type} in the source database",
+    "PartnerID": "Identifier used by local partners for this {type}",
     # dam-specific fields
     "NIDID": "National Inventory of Dams Identifier.",
     "Link": "Link to additional information about this {type}",

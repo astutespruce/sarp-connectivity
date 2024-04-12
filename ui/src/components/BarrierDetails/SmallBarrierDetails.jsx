@@ -85,6 +85,7 @@ const BarrierDetails = ({
   nearestcrossingid,
   onloop,
   ownertype,
+  partnerid,
   passagefacility,
   percentresilient,
   perennialupstreammiles,
@@ -331,6 +332,7 @@ const BarrierDetails = ({
           lon={lon}
           source={source}
           sourceid={sourceid}
+          partnerid={partnerid}
           link={link}
           nearestcrossingid={nearestcrossingid}
           attachments={attachments}
@@ -375,6 +377,7 @@ BarrierDetails.propTypes = {
   nearestcrossingid: PropTypes.string,
   onloop: PropTypes.bool,
   ownertype: PropTypes.number,
+  partnerid: PropTypes.string,
   passagefacility: PropTypes.number,
   percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
@@ -498,6 +501,7 @@ BarrierDetails.defaultProps = {
   nearestcrossingid: null,
   onloop: false,
   ownertype: null,
+  partnerid: null,
   passagefacility: null,
   percentresilient: 0,
   perennialupstreammiles: 0,

@@ -41,6 +41,7 @@ const WaterfallDetails = ({
   milestooutlet,
   nativeterritories,
   onloop,
+  partnerid,
   passability,
   percentresilient,
   perennialupstreammiles,
@@ -203,6 +204,7 @@ const WaterfallDetails = ({
           lon={lon}
           source={source}
           sourceid={sourceid}
+          partnerid={partnerid}
         />
       </Section>
     </Box>
@@ -235,6 +237,7 @@ WaterfallDetails.propTypes = {
   landcover: PropTypes.number,
   milestooutlet: PropTypes.number,
   onloop: PropTypes.bool,
+  partnerid: PropTypes.string,
   passability: PropTypes.number,
   percentresilient: PropTypes.number,
   perennialupstreammiles: PropTypes.number,
@@ -342,6 +345,7 @@ WaterfallDetails.defaultProps = {
   landcover: null,
   milestooutlet: 0,
   onloop: false,
+  partnerid: null,
   passability: null,
   percentresilient: 0,
   perennialupstreammiles: 0,

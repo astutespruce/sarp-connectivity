@@ -229,6 +229,7 @@ for column in (
     "Name",
     "OtherName",
     "SourceID",
+    "PartnerID",
     "Editor",
     "EditDate",
     "Link",
