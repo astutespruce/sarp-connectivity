@@ -143,13 +143,28 @@ const Downloader = ({
           onClose={handleClose}
         >
           <Box sx={{ maxWidth: '600px' }}>
-            {showOptions && barrierType !== 'road_crossings' ? (
-              <DownloadOptions
-                barrierType={barrierType}
-                options={downloadOptions}
-                customRank={customRank}
-                onChange={handleDownloadOptionsChange}
-              />
+            {barrierType !== 'road_crossings' ? (
+              <>
+                {showOptions ? (
+                  <DownloadOptions
+                    barrierType={barrierType}
+                    options={downloadOptions}
+                    customRank={customRank}
+                    onChange={handleDownloadOptionsChange}
+                  />
+                ) : null}
+                {includeUnranked && !showOptions ? (
+                  <Box>
+                    Note: these data include {barrierTypeLabel} that were
+                    located on the aquatic network and have associated network
+                    connectivity results as well as {barrierTypeLabel} that were
+                    not located on the aquatic network and lack connectivity
+                    results.
+                    {barrierType === 'small_barriers' &&
+                      '  These data only include road-related barriers that have been assessed for impacts to aquatic organisms.'}
+                  </Box>
+                ) : null}
+              </>
             ) : null}
 
             <Text sx={{ mt: '2rem', fontSize: 1 }}>

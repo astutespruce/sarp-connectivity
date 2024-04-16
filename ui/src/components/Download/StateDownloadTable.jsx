@@ -119,6 +119,8 @@ const StateDownloadTable = ({
                       asButton
                       barrierType="dams"
                       disabled={stateData[id].dams === 0}
+                      showOptions={false}
+                      includeUnranked
                       config={{
                         ...downloadConfig,
                         summaryUnits: { State: [id] },
@@ -131,6 +133,8 @@ const StateDownloadTable = ({
                       asButton
                       barrierType="small_barriers"
                       disabled={stateData[id].totalSmallBarriers === 0}
+                      showOptions={false}
+                      includeUnranked
                       config={{
                         ...downloadConfig,
                         summaryUnits: { State: [id] },

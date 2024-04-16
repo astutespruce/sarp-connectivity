@@ -164,6 +164,8 @@ const UnitSummary = ({
               label={barrierTypeLabels.dams}
               config={downloaderConfig}
               disabled={dams === 0}
+              showOptions={false}
+              includeUnranked
             />
           </Flex>
         </Box>
@@ -179,6 +181,8 @@ const UnitSummary = ({
             label={barrierTypeLabels.small_barriers}
             config={downloaderConfig}
             disabled={totalSmallBarriers === 0}
+            showOptions={false}
+            includeUnranked
           />
 
           <Downloader
@@ -188,6 +192,8 @@ const UnitSummary = ({
               summaryUnits: summaryUnitsForDownload,
             }}
             disabled={crossings === 0}
+            showOptions={false}
+            includeUnranked
           />
         </Flex>
       )
@@ -201,12 +207,16 @@ const UnitSummary = ({
             label={barrierTypeLabels.dams}
             config={downloaderConfig}
             disabled={dams === 0}
+            showOptions={false}
+            includeUnranked
           />
           <Downloader
             barrierType="small_barriers"
             label={barrierTypeLabels.small_barriers}
             config={downloaderConfig}
             disabled={totalSmallBarriers === 0}
+            showOptions={false}
+            includeUnranked
           />
         </Flex>
       )
