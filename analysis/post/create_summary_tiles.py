@@ -283,10 +283,7 @@ for unit in SUMMARY_UNITS:
 
 
 ### output unit stats with bounds for API
-# NOTE: not currently using bounds
-units = pd.read_feather(
-    bnd_dir / "unit_bounds.feather", column=["layer", "priority", "id", "state", "name", "key"]
-).set_index(["layer", "id"])
+units = pd.read_feather(bnd_dir / "unit_bounds.feather").set_index(["layer", "id"])
 out = units.join(stats.set_index(["layer", "id"]))
 out.reset_index().to_feather(api_dir / "map_units.feather")
 

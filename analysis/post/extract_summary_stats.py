@@ -180,10 +180,8 @@ with open(ui_data_dir / "region_stats.json", "w") as outfile:
     _ = outfile.write(json.dumps(region_stats))
 
 
-### Calculate stats for states; these are used on state pages and state download
-# tables
-map_units = pd.read_feather(api_dir / "map_units.feather", columns=["layer", "id", "bbox"])
-state_bounds = map_units.loc[map_units.layer == "State"].set_index("id").bbox.to_dict()
+### Calculate stats for states; these are used for state download tables
+# (state pages use API data instead)
 
 state_stats = []
 for state, name in sorted(STATES.items(), key=lambda x: x[1]):
@@ -194,20 +192,12 @@ for state, name in sorted(STATES.items(), key=lambda x: x[1]):
     state_stats.append(
         {
             "id": state,
-            "bbox": state_bounds[state],
             "dams": len(state_dams),
             "ranked_dams": int(state_dams.Ranked.sum()),
             "recon_dams": int((state_dams.Recon > 0).sum()),
-            "removed_dams": int(state_dams.Removed.sum()),
-            "removed_dams_gain_miles": round(state_dams.RemovedGainMiles.sum().item(), 1),
-            "removed_dams_by_year": pack_year_removed_stats(state_dams),
-            "total_small_barriers": int(len(state_barriers)),
             "small_barriers": int(state_barriers.Included.sum()),
             "ranked_small_barriers": int(state_barriers.Ranked.sum()),
-            "removed_small_barriers": int(state_barriers.Removed.sum()),
-            "removed_small_barriers_gain_miles": round(state_barriers.RemovedGainMiles.sum().item(), 1),
-            "removed_small_barriers_by_year": pack_year_removed_stats(state_barriers),
-            "crossings": len(state_crossings),
+            "total_small_barriers": int(len(state_barriers)),
         }
     )
 

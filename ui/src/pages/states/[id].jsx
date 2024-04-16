@@ -1,7 +1,5 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
-import { graphql } from 'gatsby'
-import { GatsbyImage } from 'gatsby-plugin-image'
 import { ChartBar, Fish, SearchLocation } from '@emotion-icons/fa-solid'
 import {
   Box,
@@ -15,11 +13,13 @@ import {
   Paragraph,
   Text,
 } from 'theme-ui'
+import { useQuery } from '@tanstack/react-query'
 
+import { fetchUnitDetails } from 'components/Data'
 import { Icon } from 'components/Icon'
 import { Chart, extractYearRemovedStats } from 'components/Restoration'
 import Downloader from 'components/Download/Downloader'
-import { Layout, SEO } from 'components/Layout'
+import { Layout, SEO, PageError, PageLoading } from 'components/Layout'
 import { Link, ExternalLink } from 'components/Link'
 import {
   REGIONS,
@@ -27,42 +27,65 @@ import {
   CONNECTIVITY_TEAMS,
   STATE_DATA_PROVIDERS,
 } from 'config'
+import { toCamelCaseFields } from 'util/data'
 import { dynamicallyLoadImage } from 'util/dom'
 import { formatNumber, pluralize } from 'util/format'
 
 const downloadConfig = { scenario: 'NCWC', layer: 'State' }
 
-const StateRoute = ({
-  data: {
-    map: {
-      childImageSharp: { gatsbyImageData: map },
-    },
-    stateStatsJson: {
-      id,
-      bbox,
-      dams,
-      rankedDams,
-      reconDams,
-      removedDams,
-      removedDamsGainMiles,
-      removedDamsByYear,
-      totalSmallBarriers,
-      smallBarriers,
-      rankedSmallBarriers,
-      removedSmallBarriers,
-      removedSmallBarriersGainMiles,
-      removedSmallBarriersByYear,
-      crossings,
-    },
-  },
-}) => {
-  const [metric, setMetric] = useState('gainmiles')
-
+const StateRoute = ({ params: { id } }) => {
   const name = STATES[id]
-
   const regions = Object.values(REGIONS).filter(
     ({ states }) => states.indexOf(id) !== -1
   )
+
+  const [metric, setMetric] = useState('gainmiles')
+
+  const { isLoading, error, data } = useQuery({
+    queryKey: ['State', id],
+    queryFn: async () => fetchUnitDetails('State', id),
+
+    staleTime: 60 * 60 * 1000, // 60 minutes
+    // staleTime: 1, // use then reload to force refresh of underlying data during dev
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <PageLoading />
+      </Layout>
+    )
+  }
+
+  if (error) {
+    console.error(`Error loading state page: ${id}`)
+
+    return (
+      <Layout>
+        <PageError />
+      </Layout>
+    )
+  }
+
+  console.log('load map', dynamicallyLoadImage(`maps/states/${id}.png`))
+
+  const {
+    dams,
+    rankedDams,
+    reconDams,
+    removedDams,
+    removedDamsGainMiles,
+    removedDamsByYear,
+    totalSmallBarriers,
+    smallBarriers,
+    rankedSmallBarriers,
+    removedSmallBarriers,
+    removedSmallBarriersGainMiles,
+    removedSmallBarriersByYear,
+    crossings,
+  } = toCamelCaseFields(data)
 
   const removedBarriersByYear = extractYearRemovedStats(
     removedDamsByYear,
@@ -171,8 +194,8 @@ const StateRoute = ({
         <Grid columns={2} gap={5} sx={{ mt: '2rem' }}>
           <Box>
             <Box sx={{ border: '1px solid', borderColor: 'grey.4' }}>
-              <GatsbyImage
-                image={map}
+              <Image
+                src={dynamicallyLoadImage(`maps/states/${id}.png`)}
                 alt={`${name} map`}
                 sx={{ border: '1px solid', borderColor: 'grey.3' }}
               />
@@ -451,60 +474,12 @@ const StateRoute = ({
 }
 
 StateRoute.propTypes = {
-  data: PropTypes.shape({
-    map: PropTypes.object.isRequired,
-    stateStatsJson: PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      dams: PropTypes.number.isRequired,
-      rankedDams: PropTypes.number.isRequired,
-      reconDams: PropTypes.number.isRequired,
-      removedDams: PropTypes.number.isRequired,
-      removedDamsGainMiles: PropTypes.number.isRequired,
-      removedDamsByYear: PropTypes.string.isRequired,
-      totalSmallBarriers: PropTypes.number.isRequired,
-      smallBarriers: PropTypes.number.isRequired,
-      rankedSmallBarriers: PropTypes.number.isRequired,
-      removedSmallBarriers: PropTypes.number.isRequired,
-      removedSmallBarriersGainMiles: PropTypes.number.isRequired,
-      removedSmallBarriersByYear: PropTypes.string.isRequired,
-      crossings: PropTypes.number.isRequired,
-    }).isRequired,
+  params: PropTypes.shape({
+    id: PropTypes.string,
   }).isRequired,
 }
 
 export default StateRoute
 
-export const query = graphql`
-  query ($jsonId: String) {
-    map: file(name: { eq: $jsonId }, relativeDirectory: { eq: "maps/states" }) {
-      childImageSharp {
-        gatsbyImageData(
-          layout: FULL_WIDTH
-          formats: [AUTO, WEBP]
-          placeholder: BLURRED
-        )
-      }
-    }
-    stateStatsJson(jsonId: { eq: $jsonId }) {
-      id: jsonId
-      dams
-      rankedDams: ranked_dams
-      reconDams: recon_dams
-      removedDams: removed_dams
-      removedDamsGainMiles: removed_dams_gain_miles
-      removedDamsByYear: removed_dams_by_year
-      totalSmallBarriers: total_small_barriers
-      smallBarriers: small_barriers
-      rankedSmallBarriers: ranked_small_barriers
-      removedSmallBarriers: removed_small_barriers
-      removedSmallBarriersGainMiles: removed_small_barriers_gain_miles
-      removedSmallBarriersByYear: removed_small_barriers_by_year
-      crossings
-    }
-  }
-`
-
 /* eslint-disable-next-line react/prop-types */
-export const Head = ({ params: { jsonId: state } }) => (
-  <SEO title={STATES[state]} />
-)
+export const Head = ({ params: { id } }) => <SEO title={STATES[id]} />

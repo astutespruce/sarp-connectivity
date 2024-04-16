@@ -5,7 +5,13 @@ import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { fetchUnitDetails } from 'components/Data'
-import { Layout, ClientOnly, SEO, PageError } from 'components/Layout'
+import {
+  Layout,
+  ClientOnly,
+  SEO,
+  PageError,
+  PageLoading,
+} from 'components/Layout'
 import { ToggleButton } from 'components/Button'
 import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
@@ -257,19 +263,7 @@ const ExplorePage = ({ location }) => {
         <Flex sx={{ height: '100%' }}>
           {error ? <PageError /> : null}
 
-          {isLoading && !error ? (
-            <Flex
-              sx={{
-                flex: '1 1 auto',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: '1rem',
-              }}
-            >
-              <Spinner />
-              <Text>Loading data...</Text>
-            </Flex>
-          ) : null}
+          {isLoading && !error ? <PageLoading /> : null}
 
           {!(error || isLoading) ? (
             <>
