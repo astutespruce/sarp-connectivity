@@ -145,6 +145,24 @@ export const getDownloadURL = ({
   )}`
 }
 
+export const fetchUnitDetails = async (layer, id) => {
+  const url = `${apiHost}/api/v1/internal/units/${layer}/${id}`
+
+  try {
+    const response = await fetch(url)
+    if (response.status !== 200) {
+      throw new Error(`Failed request to ${url}: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    return data
+  } catch (err) {
+    captureException(err)
+
+    throw err
+  }
+}
+
 export const searchUnits = async (layers, query) => {
   const url = `${apiHost}/api/v1/internal/units/search?layer=${layers.join(
     ','

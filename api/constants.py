@@ -557,6 +557,32 @@ WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
 # network_type resolves to a single row; API has one row per waterfall per network type
 WF_API_FIELDS = unique(WF_CORE_FIELDS + ["network_type", "in_network_type"])
 
+
+# fields returned by map unit search / details APIs
+SUMMARY_UNIT_FIELDS = [
+    "layer",
+    "id",
+    "name",
+    "bbox",
+    "state",
+    "dams",
+    "ranked_dams",
+    "removed_dams",
+    "removed_dams_gain_miles",
+    "removed_dams_by_year",
+    "total_small_barriers",
+    "ranked_small_barriers",
+    "removed_small_barriers",
+    "removed_small_barriers_gain_miles",
+    "removed_small_barriers_by_year",
+    "ranked_largefish_barriers_dams",
+    "ranked_largefish_barriers_small_barriers",
+    "ranked_smallfish_barriers_dams",
+    "ranked_smallfish_barriers_small_barriers",
+    "crossings",
+]
+
+
 ### Bit-packing for tiers
 TIER_BITS = 5  # holds values 0...21 after subtracting offset
 CUSTOM_TIER_PACK_BITS = [{"field": c, "bits": TIER_BITS, "value_shift": 1} for c in CUSTOM_TIER_FIELDS]

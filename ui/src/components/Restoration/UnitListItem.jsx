@@ -6,13 +6,11 @@ import { STATE_FIPS, STATES } from 'config'
 import { OutboundLink } from 'components/Link'
 import { formatNumber, pluralize } from 'util/format'
 
-// TODO: counts for removed barriers
-
 const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
-  const { id, layerId, removedDams = 0, removedSmallBarriers = 0 } = unit
+  const { id, layer, removedDams = 0, removedSmallBarriers = 0 } = unit
   let { name = id } = unit
 
-  if (layerId === 'State') {
+  if (layer === 'State') {
     name = STATES[id]
   }
 
@@ -91,7 +89,7 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
         >
           {name}
 
-          {layerId === 'State' ? (
+          {layer === 'State' ? (
             <Text
               sx={{
                 display: 'inline',
@@ -109,9 +107,7 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
             </Text>
           ) : null}
 
-          {layerId === 'County'
-            ? ` County, ${STATE_FIPS[id.slice(0, 2)]}`
-            : null}
+          {layer === 'County' ? ` County, ${STATE_FIPS[id.slice(0, 2)]}` : null}
         </Text>
 
         {system === 'HUC' ? (
@@ -122,7 +118,7 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
               color: count === 0 ? 'grey.8' : 'inherit',
             }}
           >
-            {layerId}: {id}
+            {layer}: {id}
           </Text>
         ) : null}
 

@@ -11,19 +11,18 @@ export const mapConfig = {
   minZoom: 2,
   maxZoom: 22,
   projection: 'mercator',
-  // To enable CONUS Albers mode
-  // projection: {
-  //   name: 'albers',
-  //   center: [-96, 37.5],
-  //   parallels: [29.5, 45.5],
-  // },
 }
 
 export const sources = {
+  region_boundaries: {
+    type: 'vector',
+    maxzoom: 8,
+    tiles: [`${tileHost}/services/region_boundaries/tiles/{z}/{x}/{y}.pbf`],
+  },
   summary: {
     type: 'vector',
     maxzoom: 8,
-    tiles: [`${tileHost}/services/summary/tiles/{z}/{x}/{y}.pbf`],
+    tiles: [`${tileHost}/services/map_units_summary/tiles/{z}/{x}/{y}.pbf`],
   },
   dams: {
     type: 'vector',

@@ -708,7 +708,7 @@ export const otherBarrierPointLayer = {
 export const regionLayers = [
   {
     id: 'region-mask',
-    source: 'summary',
+    source: 'region_boundaries',
     'source-layer': 'mask',
     type: 'fill',
     maxzoom: 24,
@@ -720,7 +720,7 @@ export const regionLayers = [
   },
   {
     id: 'region-bounds',
-    source: 'summary',
+    source: 'region_boundaries',
     'source-layer': 'boundary',
     type: 'line',
     maxzoom: 24,

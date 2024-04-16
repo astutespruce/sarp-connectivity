@@ -24,7 +24,7 @@ from api.response import zip_csv_response
 
 
 ### Include logo in download package
-LOGO_PATH = Path(__file__).resolve().parent.parent.parent / "ui/src/images/sarp_logo_highres.png"
+LOGO_PATH = Path(__file__).resolve().parent.parent.parent.parent / "ui/src/images/sarp_logo_highres.png"
 
 
 MAX_CROSSINGS = 1e6  # limit to 1M crossings in downloads

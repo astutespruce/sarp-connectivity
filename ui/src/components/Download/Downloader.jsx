@@ -59,8 +59,6 @@ const Downloader = ({
   const handleDownload = () => {
     const { summaryUnits, filters, scenario } = config
 
-    console.log('include unranked', downloadOptions)
-
     const downloadURL = getDownloadURL({
       barrierType,
       summaryUnits,

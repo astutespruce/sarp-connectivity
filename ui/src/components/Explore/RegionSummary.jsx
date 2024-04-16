@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { AngleDoubleRight } from '@emotion-icons/fa-solid'
 import { Box, Paragraph, Divider, Text } from 'theme-ui'
@@ -11,7 +11,16 @@ import { useSummaryData, useRegionSummary } from 'components/Data'
 import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'
 
-const Summary = ({ region, barrierType, system, onSearch }) => {
+const Summary = ({ region, barrierType, system, onSelectUnit }) => {
+  const contentNodeRef = useRef(null)
+
+  useEffect(() => {
+    // force scroll to top on change
+    if (contentNodeRef.current !== null) {
+      contentNodeRef.current.scrollTo(0, 0)
+    }
+  }, [])
+
   let name = 'full analysis area'
   if (region !== 'total') {
     name = REGIONS[region].name
@@ -43,6 +52,7 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
 
   return (
     <Box
+      ref={contentNodeRef}
       sx={{
         pt: '0.5rem',
         pb: '1rem',
@@ -158,7 +168,7 @@ const Summary = ({ region, barrierType, system, onSearch }) => {
       <UnitSearch
         barrierType={barrierType}
         system={system}
-        onSelect={onSearch}
+        onSelect={onSelectUnit}
       />
 
       <Divider
@@ -218,7 +228,7 @@ Summary.propTypes = {
   region: PropTypes.string,
   barrierType: PropTypes.string.isRequired,
   system: PropTypes.string.isRequired,
-  onSearch: PropTypes.func.isRequired,
+  onSelectUnit: PropTypes.func.isRequired,
 }
 
 Summary.defaultProps = {

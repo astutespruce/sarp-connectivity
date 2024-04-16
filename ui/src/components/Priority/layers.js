@@ -57,7 +57,7 @@ export const getTierPointSize = (scenario, tierThreshold) => [
 
 export const maskFill = {
   id: 'mask',
-  source: 'summary',
+  source: 'region_boundaries',
   'source-layer': 'mask',
   type: 'fill',
   filter: ['==', ['get', 'id'], 'total'],
@@ -69,7 +69,7 @@ export const maskFill = {
 
 export const maskOutline = {
   id: 'mask-outline',
-  source: 'summary',
+  source: 'region_boundaries',
   'source-layer': 'boundary',
   type: 'line',
   filter: ['==', ['get', 'id'], 'total'],

@@ -1,7 +1,8 @@
 import React, { memo, useCallback, useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { useQuery } from '@tanstack/react-query'
-import { Box, Text } from 'theme-ui'
+import { Box, Flex, Text } from 'theme-ui'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { searchUnits } from 'components/Data/API'
 import { LAYER_NAMES, SYSTEMS, SYSTEM_UNITS } from 'config'
@@ -24,6 +25,7 @@ const UnitSearch = ({
 
   const {
     isLoading,
+    error,
     data: { results = [], meta: { remaining = 0 } = {} } = {},
   } = useQuery({
     queryKey: ['search', system, layer, query],
@@ -152,20 +154,39 @@ const UnitSearch = ({
       ) : null}
 
       {query.length > 0 && (results.length === 0 || query.length <= 3) ? (
-        <Box
+        <Flex
           sx={{
             my: '1rem',
-            textAlign: 'center',
-            fontStyle: 'italic',
-            color: 'grey.6',
+            justifyContent: 'center',
           }}
         >
-          {query.length < 3 ? '...keep typing...' : null}
-
-          {!isLoading && query.length >= 3 && results.length === 0
-            ? 'No results match your search'
-            : null}
-        </Box>
+          {query.length >= 3 ? (
+            <>
+              {error !== null ? (
+                <Flex sx={{ alignItems: 'center', gap: '0.5rem' }}>
+                  <Box sx={{ color: 'highlight' }}>
+                    <ExclamationTriangle size="1em" />
+                  </Box>
+                  <Text>Error retrieving results</Text>
+                </Flex>
+              ) : null}
+              {error === null && !isLoading && results.length === 0 ? (
+                <Text
+                  sx={{
+                    fontStyle: 'italic',
+                    color: 'grey.6',
+                  }}
+                >
+                  No results match your search
+                </Text>
+              ) : null}
+            </>
+          ) : (
+            <Text sx={{ fontStyle: 'italic', color: 'grey.6' }}>
+              ...keep typing...
+            </Text>
+          )}
+        </Flex>
       ) : null}
 
       {remaining > 0 ? (

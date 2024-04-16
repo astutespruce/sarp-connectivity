@@ -62,7 +62,6 @@ const UnitChooser = ({
 }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
-  const [searchValue, setSearchValue] = useState('')
 
   const pluralLabel = getPluralLabel(layer)
 
@@ -214,15 +213,13 @@ const UnitChooser = ({
         <UnitSearch
           barrierType={barrierType}
           layer={layer}
-          value={searchValue}
           ignoreIds={
             summaryUnits && summaryUnits.length > 0
               ? new Set(summaryUnits.map(({ id }) => id))
               : null
           }
           showCount
-          onChange={handleSearchChange}
-          onSelect={handleSearchSelect}
+          onSelect={selectUnit}
         />
 
         {summaryUnits.length > 0 && offNetworkCount > 0 ? (

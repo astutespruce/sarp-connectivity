@@ -11,6 +11,7 @@ import {
   fetchBarrierRanks,
   useBarrierType,
   useSummaryData,
+  fetchUnitDetails,
 } from 'components/Data'
 import { Sidebar } from 'components/Sidebar'
 import BarrierDetails from 'components/BarrierDetails'
@@ -132,34 +133,76 @@ const Prioritize = () => {
   }
 
   // Toggle selected unit in or out of selection
-  const handleSelectUnit = (unit) => {
-    const { id } = unit
-
-    setState(({ summaryUnits: prevSummaryUnits, ...prevState }) => {
-      // NOTE: we are always creating a new object,
-      // because we cannot mutate the underlying object
-      // without causing the setSummaryUnits call to be a no-op
-      const index = prevSummaryUnits.findIndex(
+  const handleSelectUnit = ({
+    layer: selectedUnitLayer,
+    id,
+    ...preFetchedUnitData
+  }) => {
+    let needsFetchUnit = false
+    setState((prevState) => {
+      const index = prevState.summaryUnits.findIndex(
         ({ id: unitId }) => unitId === id
       )
 
-      let nextSummaryUnits = prevSummaryUnits
-      if (index === -1) {
-        // add it
-        nextSummaryUnits = prevSummaryUnits.concat([toCamelCaseFields(unit)])
-      } else {
+      if (index >= 0) {
         // remove it
-        nextSummaryUnits = prevSummaryUnits
-          .slice(0, index)
-          .concat(prevSummaryUnits.slice(index + 1))
+        return {
+          ...prevState,
+          summaryUnits: prevState.summaryUnits
+            .slice(0, index)
+            .concat(prevState.summaryUnits.slice(index + 1)),
+        }
       }
 
+      // assume if unitData are present it was from a search feature
+      if (Object.keys(preFetchedUnitData).length > 0) {
+        return {
+          ...prevState,
+          isUnitError: false,
+          isUnitLoading: false,
+          summaryUnits: prevState.summaryUnits.concat([
+            toCamelCaseFields({
+              layer: selectedUnitLayer,
+              id,
+              ...preFetchedUnitData,
+            }),
+          ]),
+        }
+      }
+
+      // fetch then add it
+      needsFetchUnit = true
       return {
         ...prevState,
-        selectedBarrier: null,
-        summaryUnits: nextSummaryUnits,
+        isUnitError: false,
+        isUnitLoading: true,
       }
     })
+
+    if (needsFetchUnit) {
+      queryClient
+        .fetchQuery({
+          queryKey: [selectedUnitLayer, id],
+          queryFn: async () => fetchUnitDetails(selectedUnitLayer, id),
+        })
+        .then((unitData) => {
+          setState((prevState) => ({
+            ...prevState,
+            isUnitError: false,
+            isUnitLoading: false,
+            summaryUnits: prevState.summaryUnits.concat([
+              toCamelCaseFields(unitData),
+            ]),
+          }))
+        })
+        .catch(() => {
+          setState((prevState) => ({
+            ...prevState,
+            isUnitError: true,
+            isUnitLoading: false,
+          }))
+        })
+    }
   }
 
   const loadBarrierInfo = async () => {

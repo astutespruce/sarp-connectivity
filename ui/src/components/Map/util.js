@@ -319,3 +319,16 @@ export const getBarrierTooltip = (barrierType, { sarpidname = '|' }) => {
 
   return `<b>${name}</b>`
 }
+
+/**
+ * Extract the bit value (0 or 1) from a given bit position in an bitset
+ * encoded field
+ * @param {String} field - name of field in GL layer
+ * @param {Number} bitPos - bit position
+ * @returns 0 or 1
+ */
+export const getBitFromBitsetExpr = (field, bitPos) => [
+  '%',
+  ['floor', ['/', ['get', field], ['^', 2, bitPos]]],
+  2,
+]

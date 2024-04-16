@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import React, { useState } from 'react'
+import React, { useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Button, Heading, Flex, Text, Paragraph } from 'theme-ui'
 import { AngleDoubleRight } from '@emotion-icons/fa-solid'
@@ -20,18 +20,16 @@ const UnitSummary = ({
   onSelectUnit,
   onReset,
 }) => {
-  const [searchValue, setSearchValue] = useState('')
+  const contentNodeRef = useRef(null)
 
-  const handleSearchChange = (value) => {
-    setSearchValue(value)
-  }
+  useEffect(() => {
+    // force scroll to top on change
+    if (contentNodeRef.current !== null) {
+      contentNodeRef.current.scrollTo(0, 0)
+    }
+  }, [])
 
-  const handleSearchSelect = ({ layer: layerId, ...item }) => {
-    onSelectUnit({ ...item, layerId })
-    setSearchValue('')
-  }
-
-  const [{ id, name = '', layerId }] = summaryUnits
+  const [{ id, name = '', layer }] = summaryUnits
 
   let dams = 0
   let rankedDams = 0
@@ -51,7 +49,7 @@ const UnitSummary = ({
   let subtitle = null
   let idline = null
   if (summaryUnits.length === 1) {
-    switch (layerId) {
+    switch (layer) {
       case 'State': {
         title = STATES[id]
         break
@@ -63,17 +61,17 @@ const UnitSummary = ({
       }
       case 'HUC2': {
         title = name
-        idline = `${layerId}: ${id}`
+        idline = `${layer}: ${id}`
         break
       }
       default: {
         // all remaining HUC cases
         title = name
         const [{ title: layerTitle }] = layers.filter(
-          ({ id: lyrID }) => lyrID === layerId
+          ({ id: lyrID }) => lyrID === layer
         )
         subtitle = layerTitle
-        idline = `${layerId}: ${id}`
+        idline = `${layer}: ${id}`
         break
       }
     }
@@ -83,11 +81,11 @@ const UnitSummary = ({
     if (system === 'ADM') {
       const statesPresent = new Set(
         summaryUnits
-          .filter(({ layerId: l }) => l === 'State')
+          .filter(({ layer: l }) => l === 'State')
           .map(({ id: i }) => STATES[i])
       )
       summaryUnits
-        .filter(({ layerId: l }) => l === 'County')
+        .filter(({ layer: l }) => l === 'County')
         .forEach(({ id: i }) => {
           const state = STATE_FIPS[i.slice(0, 2)]
           if (statesPresent.has(state)) {
@@ -141,7 +139,7 @@ const UnitSummary = ({
   const totalRoadBarriers = totalSmallBarriers + crossings
 
   const summaryUnitsForDownload = summaryUnits.reduce(
-    (prev, { layerId: l, id: i }) =>
+    (prev, { layer: l, id: i }) =>
       Object.assign(prev, {
         [l]: prev[l] ? prev[l].concat([i]) : [i],
       }),
@@ -248,6 +246,7 @@ const UnitSummary = ({
         </Button>
       </Flex>
       <Box
+        ref={contentNodeRef}
         sx={{
           p: '1rem',
           flex: '1 1 auto',
@@ -255,7 +254,7 @@ const UnitSummary = ({
           overflowY: 'auto',
         }}
       >
-        {summaryUnits.length === 1 && layerId === 'State' ? (
+        {summaryUnits.length === 1 && layer === 'State' ? (
           <Box sx={{ mt: '-0.5rem', mb: '1rem' }}>
             <Link to={`/states/${id}`}>
               view state page for more information{' '}
@@ -432,14 +431,12 @@ const UnitSummary = ({
           <UnitSearch
             barrierType={barrierType}
             system={system}
-            value={searchValue}
             ignoreIds={
               summaryUnits && summaryUnits.length > 0
                 ? new Set(summaryUnits.map(({ id: unitId }) => unitId))
                 : null
             }
-            onChange={handleSearchChange}
-            onSelect={handleSearchSelect}
+            onSelect={onSelectUnit}
           />
         </Box>
 
@@ -554,7 +551,7 @@ UnitSummary.propTypes = {
   summaryUnits: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      layerId: PropTypes.string.isRequired,
+      layer: PropTypes.string.isRequired,
       name: PropTypes.string,
       dams: PropTypes.number,
       rankedDams: PropTypes.number,

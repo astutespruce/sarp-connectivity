@@ -168,7 +168,6 @@ crossings = crossings.loc[crossings.NearestBarrierID == ""]
 # Calculate summary statistics for each type of summary unit
 # These are joined to vector tiles
 stats = None
-mbtiles_files = []
 for unit in SUMMARY_UNITS:
     print(f"processing {unit}")
 
@@ -278,59 +277,56 @@ for unit in SUMMARY_UNITS:
 
     unit = "County" if unit == "COUNTYFIPS" else unit
 
-    # collate stats
-    tmp = merged[
-        [
-            "dams",
-            "ranked_dams",
-            "removed_dams",
-            "removed_dams_gain_miles",
-            "removed_dams_by_year",
-            "total_small_barriers",
-            "ranked_small_barriers",
-            "removed_small_barriers",
-            "removed_small_barriers_gain_miles",
-            "removed_small_barriers_by_year",
-            "ranked_largefish_barriers_dams",
-            "ranked_largefish_barriers_small_barriers",
-            "ranked_smallfish_barriers_dams",
-            "ranked_smallfish_barriers_small_barriers",
-            "crossings",
-        ]
-    ].copy()
-    tmp.index.name = "id"
-    tmp = tmp.reset_index()
-    tmp["layer"] = unit
-    stats = append(stats, tmp)
-
-    # Write summary CSV for each unit type
     merged.index.name = "id"
-    csv_filename = tmp_dir / f"{unit}.csv"
-    write_csv(pa.Table.from_pandas(merged.reset_index()), csv_filename)
-
-    # join to tiles
-    mbtiles_filename = f"{tmp_dir}/{unit}_summary.mbtiles"
-    mbtiles_files.append(mbtiles_filename)
-
-    ret = subprocess.run(
-        [
-            tile_join,
-            "-f",
-            "-pg",
-            "-o",
-            mbtiles_filename,
-            "-c",
-            f"{tmp_dir}/{unit}.csv",
-            f"{src_tile_dir}/{unit}.mbtiles",
-        ]
-    )
-    ret.check_returncode()
-
-    csv_filename.unlink()
+    merged["layer"] = unit
+    stats = append(stats, merged.reset_index())
 
 
-# join all summary tiles together
-print("Merging all summary tiles")
+### output unit stats with bounds for API
+# NOTE: not currently using bounds
+units = pd.read_feather(
+    bnd_dir / "unit_bounds.feather", column=["layer", "priority", "id", "state", "name", "key"]
+).set_index(["layer", "id"])
+out = units.join(stats.set_index(["layer", "id"]))
+out.reset_index().to_feather(api_dir / "map_units.feather")
+
+
+### Output minimal subset and join to tiles
+
+# create bit-set field based on number of barriers present per unit; where false for a given barrier type,
+# this is used to color the unit grey (see priority/Map.jsx for decoding)
+# Can rank if:
+# dams: ranked_dams > 0
+# small_barriers: ranked_small_barriers > 0 AND total_small_barriers >= 10
+# other *_barriers: dams ranked in scenario > 0 AND total_small_barriers >= 10 (may need to revisit this)
+
+can_prioritize_dams = (stats.ranked_dams > 0).values.astype("uint8")
+can_prioritize_small_barriers = ((stats.ranked_small_barriers > 0) & (stats.total_small_barriers >= 10)).values.astype(
+    "uint8"
+)
+can_prioritize_combined_barriers = ((stats.ranked_dams > 0) & (stats.total_small_barriers >= 10)).values.astype("uint8")
+can_prioritize_largefish_barriers = (
+    (stats.ranked_largefish_barriers_dams > 0) & (stats.total_small_barriers >= 10)
+).values.astype("uint8")
+can_prioritize_smallfish_barriers = (
+    (stats.ranked_smallfish_barriers_dams > 0) & (stats.total_small_barriers >= 10)
+).values.astype("uint8")
+
+stats["can_prioritize"] = (
+    can_prioritize_dams
+    | (can_prioritize_small_barriers << 1)
+    | (can_prioritize_combined_barriers << 2)
+    | (can_prioritize_largefish_barriers << 3)
+    | (can_prioritize_smallfish_barriers << 4)
+)
+
+stats = stats[["id", "dams", "small_barriers", "removed_dams", "removed_small_barriers", "can_prioritize"]]
+
+csv_filename = tmp_dir / "map_units_summary.csv"
+write_csv(pa.Table.from_pandas(stats), csv_filename)
+
+# join to tiles
+mbtiles_filename = f"{tmp_dir}/map_units_summary.mbtiles"
 ret = subprocess.run(
     [
         tile_join,
@@ -338,24 +334,14 @@ ret = subprocess.run(
         "-pg",
         "--no-tile-size-limit",
         "-o",
-        f"{out_tile_dir}/summary.mbtiles",
-        f"{src_tile_dir}/mask.mbtiles",
-        f"{src_tile_dir}/boundary.mbtiles",
+        mbtiles_filename,
+        "-c",
+        f"{tmp_dir}/map_units_summary.csv",
+        f"{out_tile_dir}/map_units.mbtiles",
     ]
-    + mbtiles_files
 )
 ret.check_returncode()
 
+csv_filename.unlink()
 
-# delete intermediates
-for mbtiles_file in mbtiles_files:
-    Path(mbtiles_file).unlink()
-
-
-# output unit stats with bounds for API
-# NOTE: not currently using bounds
-units = pd.read_feather(
-    bnd_dir / "unit_bounds.feather",
-).set_index(["layer", "id"])
-out = units.join(stats.set_index(["layer", "id"]))
-out.reset_index().to_feather(api_dir / "map_units.feather")
+print("All done!")

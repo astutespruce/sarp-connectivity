@@ -20,7 +20,6 @@ import {
   Map,
   Legend,
   interpolateExpr,
-  SearchFeaturePropType,
   networkLayers,
   highlightNetwork,
   setBarrierHighlight,
@@ -34,10 +33,10 @@ const barrierTypes = ['dams', 'small_barriers', 'combined_barriers']
 
 const RestorationMap = ({
   region,
+  bounds,
   system,
   focalBarrierType,
   summaryUnits,
-  searchFeature,
   selectedBarrier,
   onSelectUnit,
   onSelectBarrier,
@@ -68,28 +67,6 @@ const RestorationMap = ({
       ])
     }
   }
-
-  const selectFeatureByID = useCallback(
-    (id, layer) => {
-      const { current: map } = mapRef
-
-      if (!map) return null
-
-      const [feature] = map.querySourceFeatures('summary', {
-        sourceLayer: layer,
-        filter: ['==', 'id', id],
-      })
-
-      if (feature !== undefined) {
-        onSelectUnit({ ...feature.properties, layerId: layer })
-      }
-      return feature
-    },
-
-    // onSelectUnit intentionally omitted here
-    /* eslint-disable-next-line react-hooks/exhaustive-deps */
-    []
-  )
 
   const handleCreateMap = useCallback(
     (map) => {
@@ -314,10 +291,8 @@ const RestorationMap = ({
 
         if (source === 'summary') {
           // summary unit layer
-          onSelectUnit({
-            ...properties,
-            layerId: sourceLayer,
-          })
+          const { id } = properties
+          onSelectUnit({ layer: sourceLayer, id })
         } else {
           const {
             geometry: {
@@ -468,40 +443,6 @@ const RestorationMap = ({
     })
   }, [system, summaryUnits])
 
-  useEffect(() => {
-    const { current: map } = mapRef
-    if (!(map && searchFeature)) {
-      return
-    }
-
-    const { id = null, layer, bbox, maxZoom: fitBoundsMaxZoom } = searchFeature
-    // if feature is already visible, select it
-    // otherwise, zoom and attempt to select it
-
-    let feature = selectFeatureByID(id, layer)
-
-    if (!feature) {
-      map.once('idle', () => {
-        feature = selectFeatureByID(id, layer)
-
-        // source may still be loading, try again in 1 second
-        if (!feature) {
-          setTimeout(() => {
-            selectFeatureByID(id, layer)
-          }, 1000)
-        }
-      })
-    }
-
-    if (bbox) {
-      map.fitBounds(bbox.split(',').map(parseFloat), {
-        padding: 20,
-        fitBoundsMaxZoom,
-        duration: 500,
-      })
-    }
-  }, [searchFeature, selectFeatureByID])
-
   const { layerTitle, legendEntries } = useMemo(() => {
     const { current: map } = mapRef
 
@@ -621,7 +562,7 @@ const RestorationMap = ({
       <Map
         onCreateMap={handleCreateMap}
         {...props}
-        bounds={regionBounds[region]}
+        bounds={bounds || regionBounds[region]}
       >
         <Legend
           title={layerTitle}
@@ -637,6 +578,7 @@ const RestorationMap = ({
 
 RestorationMap.propTypes = {
   region: PropTypes.string,
+  bounds: PropTypes.arrayOf(PropTypes.number),
   system: PropTypes.string.isRequired,
   focalBarrierType: PropTypes.string.isRequired,
   summaryUnits: PropTypes.arrayOf(
@@ -644,7 +586,6 @@ RestorationMap.propTypes = {
       id: PropTypes.string.isRequired,
     })
   ),
-  searchFeature: SearchFeaturePropType,
   selectedBarrier: PropTypes.object,
   onSelectUnit: PropTypes.func.isRequired,
   onSelectBarrier: PropTypes.func.isRequired,
@@ -657,8 +598,8 @@ RestorationMap.propTypes = {
 
 RestorationMap.defaultProps = {
   region: 'total',
+  bounds: null,
   summaryUnits: [],
-  searchFeature: null,
   selectedBarrier: null,
   children: null,
 }

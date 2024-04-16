@@ -6,6 +6,7 @@ import {
   fetchBarrierRanks,
   getDownloadURL,
   searchBarriers,
+  fetchUnitDetails,
 } from './API'
 import { Provider as BarrierTypeProvider, useBarrierType } from './BarrierType'
 import DataProviders from './DataProviders'
@@ -17,6 +18,7 @@ export {
   fetchBarrierInfo,
   fetchBarrierRanks,
   searchBarriers,
+  fetchUnitDetails,
   BarrierTypeProvider,
   useBarrierType,
   getDownloadURL,

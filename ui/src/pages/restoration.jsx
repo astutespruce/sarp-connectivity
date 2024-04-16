@@ -1,9 +1,11 @@
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
-import { Box, Flex, Text } from 'theme-ui'
+import { Box, Flex, Spinner, Text } from 'theme-ui'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { Layout, ClientOnly, SEO } from 'components/Layout'
-
+import { fetchUnitDetails } from 'components/Data'
+import { Layout, ClientOnly, SEO, PageError } from 'components/Layout'
 import { ToggleButton } from 'components/Button'
 import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
@@ -25,87 +27,208 @@ const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
 }))
 
 const ProgressPage = ({ location }) => {
+  const { region = 'total', state: stateFromURL = null } =
+    getQueryParams(location)
+
+  const [
+    {
+      system,
+      focalBarrierType,
+      summaryUnits,
+      selectedBarrier,
+      metric,
+      isUnitError,
+      isUnitLoading,
+    },
+    setState,
+  ] = useState(() => ({
+    system: stateFromURL !== null ? 'ADM' : 'HUC',
+    focalBarrierType: 'dams', // options: dams, small_barriers, combined_barriers
+    summaryUnits: [],
+    selectedBarrier: null,
+    metric: 'gainmiles',
+    isUnitError: false,
+    isUnitLoading: false,
+  }))
+
   const {
-    region = 'total',
-    state: stateFromURL = null,
-    bbox: bboxFromURL = null,
-  } = getQueryParams(location)
+    isLoading,
+    error,
+    data: selectedStateFromURL = null,
+  } = useQuery({
+    queryKey: [stateFromURL],
+    queryFn: async () => fetchUnitDetails('State', stateFromURL),
+    enabled: stateFromURL !== null,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
 
-  const [system, setSystem] = useState(stateFromURL !== null ? 'ADM' : 'HUC')
-  const [focalBarrierType, setFocalBarrierType] = useState('dams') // options: dams, small_barriers, combined_barriers
-  const focalBarrierTypeRef = useRef('dams') // ref that parallels above state for use in callbacks
-  const [searchFeature, setSearchFeature] = useState(null)
-  const [summaryUnits, setSummaryUnits] = useState([])
-  const [selectedBarrier, setSelectedBarrier] = useState(null)
-  const [metric, setMetric] = useState('gainmiles')
-
-  const handleSearch = useCallback((nextSearchFeature) => {
-    setSearchFeature(nextSearchFeature)
-  }, [])
+  const queryClient = useQueryClient()
 
   const handleSetFocalBarrierType = (nextType) => {
-    setFocalBarrierType(nextType)
-    focalBarrierTypeRef.current = nextType
-    setSelectedBarrier(null)
+    setState((prevState) => ({
+      ...prevState,
+      focalBarrierType: nextType,
+      selectedBarrier: null,
+    }))
   }
 
   const handleSetSystem = (nextSystem) => {
-    setSystem(nextSystem)
-    setSummaryUnits([])
+    setState((prevState) => ({
+      ...prevState,
+      system: nextSystem,
+      summaryUnits: [],
+    }))
   }
 
   // Toggle selected unit in or out of selection
-  const handleSelectUnit = (unit) => {
-    const { id } = unit
-
-    setSelectedBarrier(null)
-
-    setSummaryUnits((prevSummaryUnits) => {
-      // NOTE: we are always creating a new object,
-      // because we cannot mutate the underlying object
-      // without causing the setSummaryUnits call to be a no-op
-      const index = prevSummaryUnits.findIndex(
+  const handleSelectUnit = ({ layer, id, ...preFetchedUnitData }) => {
+    let needsFetchUnit = false
+    setState((prevState) => {
+      const index = prevState.summaryUnits.findIndex(
         ({ id: unitId }) => unitId === id
       )
 
-      let nextSummaryUnits = prevSummaryUnits
-      if (index === -1) {
-        // add it
-        nextSummaryUnits = prevSummaryUnits.concat([toCamelCaseFields(unit)])
-      } else {
+      if (index >= 0) {
         // remove it
-        nextSummaryUnits = prevSummaryUnits
-          .slice(0, index)
-          .concat(prevSummaryUnits.slice(index + 1))
+        return {
+          ...prevState,
+          summaryUnits: prevState.summaryUnits
+            .slice(0, index)
+            .concat(prevState.summaryUnits.slice(index + 1)),
+        }
       }
 
-      return nextSummaryUnits
+      // assume if unitData are present it was from a search feature
+      if (Object.keys(preFetchedUnitData).length > 0) {
+        return {
+          ...prevState,
+          isUnitError: false,
+          isUnitLoading: false,
+          summaryUnits: prevState.summaryUnits.concat([
+            toCamelCaseFields({
+              layer,
+              id,
+              ...preFetchedUnitData,
+            }),
+          ]),
+        }
+      }
+
+      // fetch then add it
+      needsFetchUnit = true
+      return {
+        ...prevState,
+        isUnitError: false,
+        isUnitLoading: true,
+      }
     })
+
+    if (needsFetchUnit) {
+      queryClient
+        .fetchQuery({
+          queryKey: [layer, id],
+          queryFn: async () => fetchUnitDetails(layer, id),
+        })
+        .then((unitData) => {
+          setState((prevState) => ({
+            ...prevState,
+            isUnitError: false,
+            isUnitLoading: false,
+            summaryUnits: prevState.summaryUnits.concat([
+              toCamelCaseFields(unitData),
+            ]),
+          }))
+        })
+        .catch(() => {
+          setState((prevState) => ({
+            ...prevState,
+            isUnitError: true,
+            isUnitLoading: false,
+          }))
+        })
+    }
   }
 
   const handleReset = () => {
-    setSummaryUnits([])
-    setSearchFeature(null)
+    setState((prevState) => ({
+      ...prevState,
+      summaryUnits: [],
+      searchFeature: null,
+      selectedBarrier: null,
+    }))
   }
 
   const handleSelectBarrier = (feature) => {
-    setSelectedBarrier(feature)
-    setSummaryUnits([])
+    setState((prevState) => ({
+      ...prevState,
+      selectedBarrier: feature,
+      summaryUnits: [],
+    }))
   }
 
   const handleBarrierDetailsClose = () => {
-    setSelectedBarrier(null)
+    setState((prevState) => ({
+      ...prevState,
+      selectedBarrier: null,
+    }))
   }
 
   const handleCreateMap = () => {
-    if (stateFromURL && !searchFeature) {
-      setSearchFeature({ id: stateFromURL, layer: 'State', bbox: bboxFromURL })
+    if (selectedStateFromURL !== null) {
+      // NOTE: need to do this after map has loaded!
+      handleSelectUnit(selectedStateFromURL)
     }
+  }
+
+  const handleSetMetric = (newMetric) => {
+    setState((prevState) => ({ ...prevState, metric: newMetric }))
   }
 
   let sidebarContent = null
 
-  if (selectedBarrier !== null) {
+  if (isUnitError) {
+    sidebarContent = (
+      <Flex
+        sx={{
+          alignItems: 'center',
+          flexDirection: 'column',
+          p: '1rem',
+          mt: '2rem',
+          flex: '1 1 auto',
+        }}
+      >
+        <Flex sx={{ color: 'highlight', alignItems: 'center' }}>
+          <ExclamationTriangle size="2em" />
+          <Text sx={{ ml: '0.5rem', fontSize: '2rem' }}>Whoops!</Text>
+        </Flex>
+        There was an error loading these data. Please try clicking on a
+        different barrier or refresh this page in your browser.
+        <Text variant="help" sx={{ mt: '2rem' }}>
+          If it happens again, please{' '}
+          <a href="mailto:kat@southeastaquatics.net">contact us</a>.
+        </Text>
+      </Flex>
+    )
+  } else if (isUnitLoading) {
+    sidebarContent = (
+      <Flex
+        sx={{
+          alignItems: 'center',
+          flexDirection: 'column',
+          p: '1rem',
+          mt: '2rem',
+          flex: '1 1 auto',
+        }}
+      >
+        <Flex sx={{ alignItems: 'center', gap: '0.5rem' }}>
+          <Spinner size="2rem" />
+          <Text>Loading details...</Text>
+        </Flex>
+      </Flex>
+    )
+  } else if (selectedBarrier !== null) {
     sidebarContent = (
       <BarrierDetails
         barrier={selectedBarrier}
@@ -119,7 +242,7 @@ const ProgressPage = ({ location }) => {
         system={system}
         summaryUnits={summaryUnits}
         metric={metric}
-        onChangeMetric={setMetric}
+        onChangeMetric={handleSetMetric}
         onSelectUnit={handleSelectUnit}
         onReset={handleReset}
       />
@@ -131,8 +254,8 @@ const ProgressPage = ({ location }) => {
         barrierType={focalBarrierType}
         system={system}
         metric={metric}
-        onSearch={handleSearch}
-        onChangeMetric={setMetric}
+        onSelectUnit={handleSelectUnit}
+        onChangeMetric={handleSetMetric}
       />
     )
   }
@@ -141,55 +264,79 @@ const ProgressPage = ({ location }) => {
     <Layout>
       <ClientOnly>
         <Flex sx={{ height: '100%' }}>
-          <Sidebar>{sidebarContent}</Sidebar>
+          {error ? <PageError /> : null}
 
-          <Box
-            sx={{
-              position: 'relative',
-              height: '100%',
-              flex: '1 0 auto',
-            }}
-          >
-            <Map
-              region={region}
-              focalBarrierType={focalBarrierType}
-              system={system}
-              searchFeature={searchFeature}
-              summaryUnits={summaryUnits}
-              selectedBarrier={selectedBarrier}
-              onSelectUnit={handleSelectUnit}
-              onSelectBarrier={handleSelectBarrier}
-              onCreateMap={handleCreateMap}
+          {isLoading && !error ? (
+            <Flex
+              sx={{
+                flex: '1 1 auto',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '1rem',
+              }}
             >
-              <TopBar>
-                <Text sx={{ mr: '0.5rem' }}>Show networks for:</Text>
-                <ToggleButton
-                  value={focalBarrierType}
-                  options={focalBarrierTypeOptions}
-                  onChange={handleSetFocalBarrierType}
-                />
-                <Text sx={{ mx: '0.5rem' }}>by</Text>
-                <ToggleButton
-                  value={system}
-                  options={systemOptions}
-                  onChange={handleSetSystem}
-                />
-                {summaryUnits.length === 0 ? (
-                  <Text
-                    sx={{
-                      fontSize: 'smaller',
-                      color: 'grey.7',
-                      lineHeight: 1.1,
-                      maxWidth: '10rem',
-                      ml: '0.75rem',
-                    }}
-                  >
-                    Click on a summary unit for more information
-                  </Text>
-                ) : null}
-              </TopBar>
-            </Map>
-          </Box>
+              <Spinner />
+              <Text>Loading data...</Text>
+            </Flex>
+          ) : null}
+
+          {!(error || isLoading) ? (
+            <>
+              <Sidebar>{sidebarContent}</Sidebar>
+
+              <Box
+                sx={{
+                  position: 'relative',
+                  height: '100%',
+                  flex: '1 0 auto',
+                }}
+              >
+                <Map
+                  region={region}
+                  bounds={
+                    selectedStateFromURL !== null
+                      ? selectedStateFromURL.bbox.split(',').map(parseFloat)
+                      : null
+                  }
+                  focalBarrierType={focalBarrierType}
+                  system={system}
+                  summaryUnits={summaryUnits}
+                  selectedBarrier={selectedBarrier}
+                  onSelectUnit={handleSelectUnit}
+                  onSelectBarrier={handleSelectBarrier}
+                  onCreateMap={handleCreateMap}
+                >
+                  <TopBar>
+                    <Text sx={{ mr: '0.5rem' }}>Show networks for:</Text>
+                    <ToggleButton
+                      value={focalBarrierType}
+                      options={focalBarrierTypeOptions}
+                      onChange={handleSetFocalBarrierType}
+                    />
+                    <Text sx={{ mx: '0.5rem' }}>by</Text>
+                    <ToggleButton
+                      value={system}
+                      options={systemOptions}
+                      onChange={handleSetSystem}
+                    />
+                    {summaryUnits.length === 0 ? (
+                      <Text
+                        sx={{
+                          fontSize: 'smaller',
+                          color: 'grey.7',
+                          lineHeight: 1.1,
+                          maxWidth: '10rem',
+                          ml: '0.75rem',
+                        }}
+                      >
+                        Click on a summary unit for more information
+                      </Text>
+                    ) : null}
+                  </TopBar>
+                </Map>
+              </Box>
+            </>
+          ) : null}
         </Flex>
       </ClientOnly>
     </Layout>

@@ -19,6 +19,7 @@ import {
   getNotInStringExpr,
   getInMapUnitsExpr,
   getBarrierTooltip,
+  getBitFromBitsetExpr,
 } from './util'
 import { networkLayers } from './layers'
 
@@ -45,6 +46,7 @@ export {
   highlightNetwork,
   setBarrierHighlight,
   getBarrierTooltip,
+  getBitFromBitsetExpr,
   mapConfig,
   sources,
 }

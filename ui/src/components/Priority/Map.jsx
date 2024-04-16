@@ -27,6 +27,7 @@ import {
   getInStringExpr,
   getInMapUnitsExpr,
   getBarrierTooltip,
+  getBitFromBitsetExpr,
 } from 'components/Map'
 import { barrierTypeLabels, pointLegends } from 'config'
 import { isEqual, groupBy } from 'util/data'
@@ -178,50 +179,39 @@ const PriorityMap = ({
           }
 
           // Each layer has 2 display layers: outline, fill
-          // by default, show anything with 0 ranked barriers as grey
-          let fillExpr = ['match', ['get', `ranked_${barrierType}`], 0, 0.25, 0]
+          // show grey fill when the map unit cannot be ranked
+          let bitPos = 0
 
-          if (barrierType === 'small_barriers') {
-            fillExpr = [
-              'case',
-              [
-                'any',
-                ['==', ['get', 'ranked_small_barriers'], 0],
-                ['<', ['get', 'total_small_barriers'], 10],
-              ],
-              0.25,
-              0,
-            ]
-          } else if (
-            barrierType === 'combined_barriers' ||
-            barrierType === 'largefish_barriers' ||
-            barrierType === 'smallfish_barriers'
-          ) {
-            let damField = 'ranked_dams'
-            if (barrierType === 'largefish_barriers') {
-              damField = 'largefish_barriers_ranked_dams'
-            } else if (barrierType === 'smallfish_barriers') {
-              damField = 'smallfish_barriers_ranked_dams'
+          /* eslint-disable-next-line default-case */
+          switch (barrierType) {
+            case 'dams': {
+              bitPos = 0
+              break
             }
-
-            // show grey if there are 0 of both types, or < 10 total barriers
-            // (Ok if all are not actual barriers and / or no dams)
-            // always use total small barriers even if count for scenario is 0
-            fillExpr = [
-              'case',
-              [
-                'any',
-                ['<', ['get', 'total_small_barriers'], 10],
-                [
-                  'all',
-                  ['==', ['get', damField], 0],
-                  ['==', ['get', 'total_small_barriers'], 0],
-                ],
-              ],
-              0.25,
-              0,
-            ]
+            case 'small_barriers': {
+              bitPos = 1
+              break
+            }
+            case 'combined_barriers': {
+              bitPos = 2
+              break
+            }
+            case 'largefish_barriers': {
+              bitPos = 3
+              break
+            }
+            case 'smallfish_barriers': {
+              bitPos = 4
+              break
+            }
           }
+
+          const fillExpr = [
+            'case',
+            ['==', getBitFromBitsetExpr('can_prioritize', bitPos), 0],
+            0.25,
+            0,
+          ]
 
           unitLayers.forEach(({ id, ...rest }) => {
             const layerId = `${layer}-${id}`
@@ -402,7 +392,7 @@ const PriorityMap = ({
         } = feature
 
         if (source === 'summary') {
-          onSelectUnit(properties)
+          onSelectUnit({ layer: sourceLayer, id: properties.id })
           return
         }
 
@@ -412,7 +402,10 @@ const PriorityMap = ({
             ({ source: lyrSource }) => lyrSource === 'summary'
           )
           if (unitLayerFeature) {
-            onSelectUnit(unitLayerFeature.properties)
+            onSelectUnit({
+              layer: unitLayerFeature.sourceLayer,
+              id: unitLayerFeature.properties.id,
+            })
           }
           return
         }

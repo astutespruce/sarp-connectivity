@@ -14,9 +14,11 @@ from analysis.constants import GEO_CRS, NETWORK_TYPES, CRS
 from analysis.lib.io import read_arrow_tables
 from analysis.lib.geometry.lines import merge_lines
 from analysis.post.lib.tiles import get_col_types
+from analysis.lib.util import append
 
-src_dir = Path("data/networks")
-intermediate_dir = Path("data/tiles")
+data_dir = Path("data")
+src_dir = data_dir / "networks"
+bnd_dir = data_dir / "boundaries"
 out_dir = Path("tiles")
 tmp_dir = Path("/tmp")
 
@@ -95,13 +97,16 @@ start = time()
 
 print("Loading data")
 
-groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
-huc2s = sorted(groups_df.HUC2.unique())
+huc2s = sorted(pd.read_feather(bnd_dir / "huc2.feather", columns=["HUC2"]).HUC2.values)
 
-segments = read_arrow_tables(
-    [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in huc2s],
-    columns=["lineID"] + network_cols,
-).sort_by("lineID")
+segments = (
+    read_arrow_tables(
+        [src_dir / "clean" / huc2 / "network_segments.feather" for huc2 in huc2s],
+        columns=["lineID"] + network_cols,
+    )
+    .combine_chunks()
+    .sort_by("lineID")
+)
 
 flowline_paths = [src_dir / "raw" / huc2 / "flowlines.feather" for huc2 in huc2s]
 flowlines = (
@@ -129,13 +134,17 @@ mapcode[flowlines["intermittent"]] = 1
 mapcode[pc.and_not(flowlines["altered"], flowlines["intermittent"])] = 2
 mapcode[pc.and_(flowlines["altered"], flowlines["intermittent"])] = 3
 
-flowlines = pa.Table.from_pydict(
-    {
-        "lineID": flowlines["lineID"],
-        "sizeclass": classify_size(flowlines["TotDASqKm"].to_numpy()),
-        "mapcode": mapcode,
-    }
-).join(segments, "lineID")
+flowlines = (
+    pa.Table.from_pydict(
+        {
+            "lineID": flowlines["lineID"],
+            "sizeclass": classify_size(flowlines["TotDASqKm"].to_numpy()),
+            "mapcode": mapcode,
+        }
+    )
+    .join(segments, "lineID")
+    .combine_chunks()
+)
 
 
 ################## Create tiles #######################
@@ -146,32 +155,40 @@ national_levels = [l for l in zoom_config if l.get("scope") == "national"]
 
 # read in the highest level of detail for national level and aggregate
 level = national_levels[-1]
-lines = (
-    read_arrow_tables(
-        flowline_paths,
-        columns=["lineID", "geometry", "StreamLevel"],
-        filter=pc.field("TotDASqKm") >= sizeclasses[level["sizeclass"]],
+
+# load and merge / simplify in a loop to avoid memory impact
+lines = None
+for path in flowline_paths:
+    print(f"Reading and simplifying {path}")
+    df = (
+        pa.dataset.dataset(path, format="feather")
+        .to_table(
+            columns=["lineID", "geometry", "StreamLevel"],
+            filter=pc.field("TotDASqKm") >= sizeclasses[level["sizeclass"]],
+        )
+        .combine_chunks()
+        .join(
+            flowlines.filter(pc.field("sizeclass") >= level["sizeclass"]),
+            "lineID",
+        )
+        .to_pandas()
     )
-    .join(
-        flowlines.filter(pc.field("sizeclass") >= level["sizeclass"]),
-        "lineID",
-    )
-    .to_pandas()
-)
-lines["geometry"] = shapely.from_wkb(lines.geometry.values)
-lines = gp.GeoDataFrame(lines, crs=CRS)
 
-# preliminary merge to reduce complexity
-lines = merge_lines(
-    lines,
-    by=network_cols + ["sizeclass", "mapcode", "StreamLevel"],
-).sort_values(by=network_cols)
+    df["geometry"] = shapely.from_wkb(df.geometry.values)
+    df = gp.GeoDataFrame(df, crs=CRS)
 
-# fix dtypes after merge
-lines["sizeclass"] = lines.sizeclass.astype("uint8")
-lines["mapcode"] = lines.mapcode.astype("uint8")
+    # preliminary merge to reduce complexity; this must be done before simplify
+    df = merge_lines(
+        df,
+        by=network_cols + ["sizeclass", "mapcode", "StreamLevel"],
+    ).sort_values(by=network_cols)
 
-for level in national_levels:
+    # simplify to highest level of detail at national scale
+    df["geometry"] = shapely.simplify(df["geometry"], level["simplification"])
+
+    lines = append(lines, df)
+
+for i, level in enumerate(national_levels):
     minzoom, maxzoom = level["zoom"]
     ix = lines.sizeclass >= level["sizeclass"]
     if "streamlevel" in level:
@@ -184,26 +201,20 @@ for level in national_levels:
     if maxzoom < 8:
         subset["mapcode"] = 0
 
-    subset = merge_lines(
-        subset.explode(ignore_index=True),
-        by=network_cols + ["sizeclass", "mapcode"],
-    ).sort_values(by=network_cols)
-
-    # fix dtypes after merge
-    subset["sizeclass"] = subset.sizeclass.astype("uint8")
-    subset["mapcode"] = subset.mapcode.astype("uint8")
-
+    subset = merge_lines(subset.explode(ignore_index=True), by=network_cols + ["sizeclass", "mapcode"]).sort_values(
+        by=network_cols
+    )
     subset["geometry"] = shapely.simplify(subset["geometry"], level["simplification"])
 
     outfilename = tmp_dir / f"flowlines_{minzoom}_{maxzoom}.fgb"
     mbtiles_filename = tmp_dir / f"flowlines_{minzoom}_{maxzoom}.mbtiles"
     mbtiles_files.append(mbtiles_filename)
 
-    write_dataframe(
-        subset.to_crs(GEO_CRS),
-        outfilename,
-    )
+    # FIXME: remove
+    if mbtiles_filename.exists():
+        continue
 
+    write_dataframe(subset.to_crs(GEO_CRS), outfilename)
     col_types = get_col_types(subset)
 
     del subset  # free up memory
@@ -228,77 +239,68 @@ del lines
 
 regional_levels = [l for l in zoom_config if l.get("scope") != "national"]
 
-for group in sorted(groups_df.groupby("group").HUC2.apply(list).values):
-    group = sorted(group)
 
-    print(f"\n\n===========================\nProcessing group {group}")
+# create output files by HUC2 based on where the segments occur
+for huc2 in huc2s:
+    print(f"----------------------\nProcessing {huc2}")
 
-    # create output files by HUC2 based on where the segments occur
-    for huc2 in group:
-        print(f"----------------------\nProcessing {huc2}")
+    huc2_start = time()
 
-        huc2_start = time()
-
-        lines = (
-            pa.dataset.dataset(src_dir / "raw" / huc2 / "flowlines.feather", format="feather")
-            .to_table(
-                columns=["lineID", "geometry"],
-            )
-            .join(flowlines, "lineID")
-            .to_pandas()
+    lines = (
+        pa.dataset.dataset(src_dir / "raw" / huc2 / "flowlines.feather", format="feather")
+        .to_table(
+            columns=["lineID", "geometry"],
         )
-        lines["geometry"] = shapely.from_wkb(lines.geometry.values)
+        .join(flowlines, "lineID")
+        .to_pandas()
+    )
+    lines["geometry"] = shapely.from_wkb(lines.geometry.values)
 
-        # aggregate by sizeclass / map code
-        lines = merge_lines(
-            gp.GeoDataFrame(lines, crs=CRS),
-            by=network_cols + ["sizeclass", "mapcode"],
-        ).sort_values(by=network_cols)
+    # aggregate by sizeclass / map code
+    lines = merge_lines(gp.GeoDataFrame(lines, crs=CRS), by=network_cols + ["sizeclass", "mapcode"]).sort_values(
+        by=network_cols
+    )
 
-        # fix dtypes after merge
-        lines["sizeclass"] = lines.sizeclass.astype("uint8")
-        lines["mapcode"] = lines.mapcode.astype("uint8")
+    for level in regional_levels:
+        minzoom, maxzoom = level["zoom"]
+        simplification = level["simplification"]
+        sizeclass = level["sizeclass"]
 
-        for level in regional_levels:
-            minzoom, maxzoom = level["zoom"]
-            simplification = level["simplification"]
-            sizeclass = level["sizeclass"]
+        print(f"Extracting size class >= {sizeclass} for zooms {minzoom} - {maxzoom}")
+        subset = lines.loc[lines.sizeclass >= sizeclass].copy()
 
-            print(f"Extracting size class >= {sizeclass} for zooms {minzoom} - {maxzoom}")
-            subset = lines.loc[lines.sizeclass >= sizeclass].copy()
+        if simplification:
+            print(f"simplifying to {simplification} m")
+            subset["geometry"] = shapely.simplify(subset.geometry.values, simplification)
 
-            if simplification:
-                print(f"simplifying to {simplification} m")
-                subset["geometry"] = shapely.simplify(subset.geometry.values, simplification)
+        outfilename = tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.fgb"
+        mbtiles_filename = tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.mbtiles"
+        mbtiles_files.append(mbtiles_filename)
 
-            outfilename = tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.fgb"
-            mbtiles_filename = tmp_dir / f"region{huc2}_flowlines_{minzoom}_{maxzoom}.mbtiles"
-            mbtiles_files.append(mbtiles_filename)
+        # FIXME: remove
+        if mbtiles_filename.exists():
+            continue
 
-            write_dataframe(
-                subset.to_crs(GEO_CRS),
-                outfilename,
-            )
+        write_dataframe(subset.to_crs(GEO_CRS), outfilename)
+        col_types = get_col_types(subset)
 
-            col_types = get_col_types(subset)
+        del subset
 
-            del subset
+        ret = subprocess.run(
+            tippecanoe_args
+            + ["-l", "networks"]
+            + col_types
+            + ["-Z", str(minzoom), "-z", str(maxzoom)]
+            + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
+        )
+        ret.check_returncode()
 
-            ret = subprocess.run(
-                tippecanoe_args
-                + ["-l", "networks"]
-                + col_types
-                + ["-Z", str(minzoom), "-z", str(maxzoom)]
-                + ["-o", f"{str(mbtiles_filename)}", str(outfilename)]
-            )
-            ret.check_returncode()
+        # remove FGB file
+        outfilename.unlink()
 
-            # remove FGB file
-            outfilename.unlink()
+    del lines
 
-        del lines
-
-        print(f"Region done in {(time() - huc2_start) / 60:,.2f}m")
+    print(f"Region done in {(time() - huc2_start) / 60:,.2f}m")
 
 
 ######################
