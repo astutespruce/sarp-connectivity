@@ -85,6 +85,8 @@ const ProgressPage = ({ location }) => {
       ...prevState,
       system: nextSystem,
       summaryUnits: [],
+      isUnitError: false,
+      isUnitLoading: false,
     }))
   }
 
@@ -103,6 +105,8 @@ const ProgressPage = ({ location }) => {
           summaryUnits: prevState.summaryUnits
             .slice(0, index)
             .concat(prevState.summaryUnits.slice(index + 1)),
+          isUnitError: false,
+          isUnitLoading: false,
         }
       }
 
@@ -142,9 +146,13 @@ const ProgressPage = ({ location }) => {
             ...prevState,
             isUnitError: false,
             isUnitLoading: false,
-            summaryUnits: prevState.summaryUnits.concat([
-              toCamelCaseFields(unitData),
-            ]),
+            // only add it if it hasn't already been added
+            summaryUnits:
+              prevState.summaryUnits.findIndex(
+                ({ id: unitId }) => unitId === id
+              ) === -1
+                ? prevState.summaryUnits.concat([toCamelCaseFields(unitData)])
+                : prevState.summaryUnits,
           }))
         })
         .catch(() => {

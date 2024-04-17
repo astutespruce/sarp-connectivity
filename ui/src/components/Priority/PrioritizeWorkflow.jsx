@@ -190,9 +190,13 @@ const Prioritize = () => {
             ...prevState,
             isUnitError: false,
             isUnitLoading: false,
-            summaryUnits: prevState.summaryUnits.concat([
-              toCamelCaseFields(unitData),
-            ]),
+            // only add it if it hasn't already been added
+            summaryUnits:
+              prevState.summaryUnits.findIndex(
+                ({ id: unitId }) => unitId === id
+              ) === -1
+                ? prevState.summaryUnits.concat([toCamelCaseFields(unitData)])
+                : prevState.summaryUnits,
           }))
         })
         .catch(() => {

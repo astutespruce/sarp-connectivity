@@ -84,6 +84,8 @@ const ExplorePage = ({ location }) => {
       ...prevState,
       system: nextSystem,
       summaryUnits: [],
+      isUnitError: false,
+      isUnitLoading: false,
     }))
   }
 
@@ -95,6 +97,15 @@ const ExplorePage = ({ location }) => {
         ({ id: unitId }) => unitId === id
       )
 
+      console.log(
+        'handleSelect unit',
+        layer,
+        id,
+        preFetchedUnitData,
+        index,
+        prevState.summaryUnits
+      )
+
       if (index >= 0) {
         // remove it
         return {
@@ -102,6 +113,8 @@ const ExplorePage = ({ location }) => {
           summaryUnits: prevState.summaryUnits
             .slice(0, index)
             .concat(prevState.summaryUnits.slice(index + 1)),
+          isUnitError: false,
+          isUnitLoading: false,
         }
       }
 
@@ -141,9 +154,13 @@ const ExplorePage = ({ location }) => {
             ...prevState,
             isUnitError: false,
             isUnitLoading: false,
-            summaryUnits: prevState.summaryUnits.concat([
-              toCamelCaseFields(unitData),
-            ]),
+            // only add it if it hasn't already been added
+            summaryUnits:
+              prevState.summaryUnits.findIndex(
+                ({ id: unitId }) => unitId === id
+              ) === -1
+                ? prevState.summaryUnits.concat([toCamelCaseFields(unitData)])
+                : prevState.summaryUnits,
           }))
         })
         .catch(() => {
@@ -162,6 +179,8 @@ const ExplorePage = ({ location }) => {
       summaryUnits: [],
       searchFeature: null,
       selectedBarrier: null,
+      isUnitError: false,
+      isUnitLoading: false,
     }))
   }
 
