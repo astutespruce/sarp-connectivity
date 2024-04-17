@@ -115,7 +115,7 @@ const IDInfo = ({
         </Entry>
       ) : null}
 
-      {!isEmptyString(partnerid) && partnerid !== sourceid ? (
+      {!isEmptyString(partnerid) ? (
         <Entry>
           <Field label="Local Partner ID">{partnerid}</Field>
         </Entry>
