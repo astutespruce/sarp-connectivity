@@ -135,7 +135,11 @@ const Prioritize = () => {
   }
 
   // Toggle selected unit in or out of selection
-  const handleSelectUnit = ({ layer, id, ...preFetchedUnitData }) => {
+  const handleSelectUnit = ({
+    layer: selectedUnitLayer,
+    id,
+    ...preFetchedUnitData
+  }) => {
     if (summaryUnitsRef.current.has(id)) {
       // remove it
       summaryUnitsRef.current.delete(id)
@@ -161,7 +165,7 @@ const Prioritize = () => {
         isUnitLoading: false,
         summaryUnits: prevState.summaryUnits.concat([
           toCamelCaseFields({
-            layer,
+            layer: selectedUnitLayer,
             id,
             ...preFetchedUnitData,
           }),
@@ -172,8 +176,8 @@ const Prioritize = () => {
 
     queryClient
       .fetchQuery({
-        queryKey: [layer, id],
-        queryFn: async () => fetchUnitDetails(layer, id),
+        queryKey: [selectedUnitLayer, id],
+        queryFn: async () => fetchUnitDetails(selectedUnitLayer, id),
       })
       .then((unitData) => {
         if (summaryUnitsRef.current.has(id)) {
