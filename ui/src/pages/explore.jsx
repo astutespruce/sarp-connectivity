@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Spinner, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
@@ -55,6 +55,8 @@ const ExplorePage = ({ location }) => {
     isUnitLoading: false,
   }))
 
+  const summaryUnitsRef = useRef(new Set())
+
   // load data for selected state specified in URL
   const {
     isLoading,
@@ -91,86 +93,73 @@ const ExplorePage = ({ location }) => {
 
   // Toggle selected unit in or out of selection
   const handleSelectUnit = ({ layer, id, ...preFetchedUnitData }) => {
-    let needsFetchUnit = false
-    setState((prevState) => {
-      const index = prevState.summaryUnits.findIndex(
-        ({ id: unitId }) => unitId === id
-      )
-
-      console.log(
-        'handleSelect unit',
-        layer,
-        id,
-        preFetchedUnitData,
-        index,
-        prevState.summaryUnits
-      )
-
-      if (index >= 0) {
-        // remove it
-        return {
-          ...prevState,
-          summaryUnits: prevState.summaryUnits
-            .slice(0, index)
-            .concat(prevState.summaryUnits.slice(index + 1)),
-          isUnitError: false,
-          isUnitLoading: false,
-        }
-      }
-
-      // assume if unitData are present it was from a search feature
-      if (Object.keys(preFetchedUnitData).length > 0) {
-        return {
-          ...prevState,
-          isUnitError: false,
-          isUnitLoading: false,
-          summaryUnits: prevState.summaryUnits.concat([
-            toCamelCaseFields({
-              layer,
-              id,
-              ...preFetchedUnitData,
-            }),
-          ]),
-        }
-      }
-
-      // fetch then add it
-      needsFetchUnit = true
-      return {
+    if (summaryUnitsRef.current.has(id)) {
+      // remove it
+      summaryUnitsRef.current.delete(id)
+      setState((prevState) => ({
         ...prevState,
         isUnitError: false,
-        isUnitLoading: true,
-      }
-    })
+        isUnitLoading: false,
+        summaryUnits: prevState.summaryUnits.filter(
+          ({ id: unitId }) => unitId !== id
+        ),
+      }))
+      return
+    }
 
-    if (needsFetchUnit) {
-      queryClient
-        .fetchQuery({
-          queryKey: [layer, id],
-          queryFn: async () => fetchUnitDetails(layer, id),
-        })
-        .then((unitData) => {
+    // add it
+    // assume if unitData are present it was from a search feature and already
+    // has necessary data loaded
+    if (Object.keys(preFetchedUnitData).length > 0) {
+      summaryUnitsRef.current.add(id)
+      setState((prevState) => ({
+        ...prevState,
+        isUnitError: false,
+        isUnitLoading: false,
+        summaryUnits: prevState.summaryUnits.concat([
+          toCamelCaseFields({
+            layer,
+            id,
+            ...preFetchedUnitData,
+          }),
+        ]),
+      }))
+      return
+    }
+
+    queryClient
+      .fetchQuery({
+        queryKey: [layer, id],
+        queryFn: async () => fetchUnitDetails(layer, id),
+      })
+      .then((unitData) => {
+        if (summaryUnitsRef.current.has(id)) {
+          // if multiple requests resolved with this id due to slow requests
           setState((prevState) => ({
             ...prevState,
             isUnitError: false,
             isUnitLoading: false,
-            // only add it if it hasn't already been added
-            summaryUnits:
-              prevState.summaryUnits.findIndex(
-                ({ id: unitId }) => unitId === id
-              ) === -1
-                ? prevState.summaryUnits.concat([toCamelCaseFields(unitData)])
-                : prevState.summaryUnits,
           }))
-        })
-        .catch(() => {
-          setState((prevState) => ({
-            ...prevState,
-            isUnitError: true,
-            isUnitLoading: false,
-          }))
-        })
-    }
+          return
+        }
+
+        summaryUnitsRef.current.add(id)
+        setState((prevState) => ({
+          ...prevState,
+          isUnitError: false,
+          isUnitLoading: false,
+          summaryUnits: prevState.summaryUnits.concat([
+            toCamelCaseFields(unitData),
+          ]),
+        }))
+      })
+      .catch(() => {
+        setState((prevState) => ({
+          ...prevState,
+          isUnitError: true,
+          isUnitLoading: false,
+        }))
+      })
   }
 
   const handleReset = () => {
