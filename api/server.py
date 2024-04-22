@@ -21,7 +21,7 @@ if SENTRY_DSN:
 
 
 ### Create the main API app
-app = FastAPI(version="1.0", root_path=API_ROOT_PATH)
+app = FastAPI(version="1.0", root_path=API_ROOT_PATH, docs_url=False, redoc_url=False)
 path_prefix = "/api/v1" if API_ROOT_PATH is None else ""
 
 
