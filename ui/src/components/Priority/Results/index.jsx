@@ -2,16 +2,15 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Heading, Text } from 'theme-ui'
 
+import { SCENARIOS, barrierTypeLabels } from 'config'
 import { useBarrierType } from 'components/Data'
 import { Downloader } from 'components/Download'
 import { ExpandableParagraph } from 'components/Text'
-import { SCENARIOS, barrierTypeLabels } from 'config'
+import { BackLink, StartOverButton } from 'components/Workflow'
 import { countBy } from 'util/data'
 import { formatNumber, capitalize } from 'util/format'
 
 import Histogram from './Histogram'
-import BackLink from '../BackLink'
-import StartOverButton from '../StartOverButton'
 
 const Results = ({
   config: rawConfig,

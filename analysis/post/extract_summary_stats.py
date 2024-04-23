@@ -92,9 +92,6 @@ smallfish_barriers = pd.read_feather(
 
 ### Read road / stream crossings
 crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "State", "NearestBarrierID"])
-# exclude crossings that have a corresonding inventoried barrier to avoid double-counting
-crossings = crossings.loc[crossings.NearestBarrierID == ""]
-
 
 bounds = (
     gp.read_feather(data_dir / "boundaries/region_boundary.feather")
@@ -113,7 +110,7 @@ bounds = (
 analysis_states = STATES.keys()
 analysis_dams = dams.loc[dams.State.isin(analysis_states)]
 analysis_barriers = barriers.loc[barriers.State.isin(analysis_states)]
-analysis_crossings = crossings.loc[crossings.State.isin(analysis_states) & (crossings.NearestBarrierID == "")]
+analysis_crossings = crossings.loc[crossings.State.isin(analysis_states)]
 
 stats = {
     "bounds": bounds["total"],
@@ -141,7 +138,8 @@ stats = {
     "removed_small_barriers": int(analysis_barriers.Removed.sum()),
     "removed_small_barriers_gain_miles": round(analysis_barriers.RemovedGainMiles.sum().item(), 1),
     "removed_small_barriers_by_year": pack_year_removed_stats(analysis_barriers),
-    "crossings": int(len(analysis_crossings)),
+    "total_road_crossings": int(len(analysis_crossings)),
+    "unsurveyed_road_crossings": int((crossings.NearestBarrierID == "").sum()),
 }
 
 with open(ui_data_dir / "summary_stats.json", "w") as outfile:
@@ -172,7 +170,8 @@ for region, region_states in REGION_STATES.items():
             "removed_small_barriers": int(region_barriers.Removed.sum()),
             "removed_small_barriers_gain_miles": round(region_barriers.RemovedGainMiles.sum().item(), 1),
             "removed_small_barriers_by_year": pack_year_removed_stats(region_barriers),
-            "crossings": len(region_crossings),
+            "total_road_crossings": len(region_crossings),
+            "unsurveyed_road_crossings": int((region_crossings.NearestBarrierID == "").sum()),
         }
     )
 
@@ -182,7 +181,6 @@ with open(ui_data_dir / "region_stats.json", "w") as outfile:
 
 ### Calculate stats for states; these are used for state download tables
 # (state pages use API data instead)
-
 state_stats = []
 for state, name in sorted(STATES.items(), key=lambda x: x[1]):
     state_dams = dams.loc[dams.State == state]

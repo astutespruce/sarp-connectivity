@@ -5,16 +5,14 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import { getSingularUnitLabel } from 'config'
 import BarrierDetails from 'components/BarrierDetails'
-import { ToggleButton } from 'components/Button'
 import { useCrossfilter } from 'components/Crossfilter'
-import { TopBar } from 'components/Map'
 import {
   fetchBarrierInfo,
-  fetchBarrierRanks,
+  fetchUnitDetails,
   useBarrierType,
   useSummaryData,
-  fetchUnitDetails,
 } from 'components/Data'
+import { TopBar } from 'components/Map'
 import { Sidebar } from 'components/Sidebar'
 import {
   Filters,
@@ -22,31 +20,17 @@ import {
   UnitChooser,
   unitLayerConfig,
 } from 'components/Workflow'
-import { trackPrioritize } from 'util/analytics'
+
+// import { trackPrioritize } from 'util/analytics'
 import { toCamelCaseFields } from 'util/data'
 
 import Map from './Map'
-import Results from './Results'
 
-const scenarioOptions = [
-  { value: 'nc', label: 'network connectivity' },
-  { value: 'wc', label: 'watershed condition' },
-  { value: 'ncwc', label: 'combined' },
-]
+// import Results from './Results'
 
-const resultTypeOptions = [
-  {
-    value: 'full',
-    label: 'full networks',
-  },
-  {
-    value: 'perennial',
-    label: 'perennial reaches only',
-  },
-]
-
-const Prioritize = () => {
+const SurveyWorkflow = () => {
   const barrierType = useBarrierType()
+
   const { bounds: fullBounds } = useSummaryData()
   const {
     state: { filters },
@@ -118,16 +102,16 @@ const Prioritize = () => {
     setState((prevState) => ({ ...prevState, step: 'select' }))
   }
 
-  const handleResultsBack = () => {
-    setState((prevState) => ({
-      ...prevState,
-      step: 'filter',
-      rankData: [],
-      scenario: 'ncwc',
-      resultsType: 'full',
-      tierThreshold: 1,
-    }))
-  }
+  // const handleResultsBack = () => {
+  //   setState((prevState) => ({
+  //     ...prevState,
+  //     step: 'filter',
+  //     rankData: [],
+  //     scenario: 'ncwc',
+  //     resultsType: 'full',
+  //     tierThreshold: 1,
+  //   }))
+  // }
 
   const handleSetLayer = (nextLayer) => {
     setState((prevState) => ({
@@ -294,56 +278,6 @@ const Prioritize = () => {
     setIsLoading(false)
   }
 
-  const loadRankInfo = async () => {
-    setIsLoading(true)
-
-    const {
-      error,
-      data,
-      bounds: newBounds = null,
-    } = await queryClient.fetchQuery({
-      queryKey: [barrierType, layer, summaryUnits, filters],
-      queryFn: async () =>
-        fetchBarrierRanks(
-          barrierType,
-          { [layer]: summaryUnits.map(({ id }) => id) },
-          filters
-        ),
-
-      staleTime: 30 * 60 * 1000, // 30 minutes
-      // staleTime: 1, // use then reload to force refresh of underlying data during dev
-      refetchOnMount: false,
-    })
-
-    if (error || !data) {
-      setIsLoading(false)
-      setIsError(true)
-    }
-
-    setState(({ bounds: prevBounds, ...prevState }) => ({
-      ...prevState,
-      step: 'results',
-      rankData: data,
-      bounds: newBounds ? newBounds.split(',').map(parseFloat) : prevBounds,
-    }))
-    setIsLoading(false)
-  }
-
-  const handleSetScenario = (nextScenario) => {
-    setState((prevState) => ({ ...prevState, scenario: nextScenario }))
-  }
-
-  const handleSetResultsType = (nextResultsType) => {
-    setState((prevState) => ({
-      ...prevState,
-      resultsType: nextResultsType,
-    }))
-  }
-
-  const handleSetTierThreshold = (newThreshold) => {
-    setState((prevState) => ({ ...prevState, tierThreshold: newThreshold }))
-  }
-
   // WARNING: this is passed into map at construction time, any
   // local state referenced here is not updated when the callback
   // is later called.  To get around that, use reference to step instead.
@@ -426,42 +360,44 @@ const Prioritize = () => {
           sidebarContent = (
             <Filters
               onBack={handleFilterBack}
-              onSubmit={loadRankInfo}
-              onStartOver={handleStartOver}
-            />
-          )
-          break
-        }
-        case 'results': {
-          sidebarContent = (
-            <Results
-              rankData={rankData}
-              tierThreshold={tierThreshold}
-              scenario={scenario}
-              resultsType={resultsType}
-              config={{
-                summaryUnits: { [layer]: summaryUnits.map(({ id }) => id) },
-                filters,
-                scenario,
+              onSubmit={() => {
+                console.log('TODO: handle submit')
               }}
-              onSetTierThreshold={handleSetTierThreshold}
               onStartOver={handleStartOver}
-              onBack={handleResultsBack}
             />
           )
-
-          trackPrioritize({
-            barrierType,
-            unitType: layer,
-            details: `ids: [${
-              summaryUnits ? summaryUnits.map(({ id }) => id) : 'none'
-            }], filters: ${
-              filters ? Object.keys(filters) : 'none'
-            }, scenario: ${scenario}`,
-          })
-
           break
         }
+        // case 'results': {
+        //   sidebarContent = (
+        //     <Results
+        //       rankData={rankData}
+        //       tierThreshold={tierThreshold}
+        //       scenario={scenario}
+        //       resultsType={resultsType}
+        //       config={{
+        //         summaryUnits: { [layer]: summaryUnits.map(({ id }) => id) },
+        //         filters,
+        //         scenario,
+        //       }}
+        //       onSetTierThreshold={handleSetTierThreshold}
+        //       onStartOver={handleStartOver}
+        //       onBack={handleResultsBack}
+        //     />
+        //   )
+
+        //   trackPrioritize({
+        //     barrierType,
+        //     unitType: layer,
+        //     details: `ids: [${
+        //       summaryUnits ? summaryUnits.map(({ id }) => id) : 'none'
+        //     }], filters: ${
+        //       filters ? Object.keys(filters) : 'none'
+        //     }, scenario: ${scenario}`,
+        //   })
+
+        //   break
+        // }
         default: {
           sidebarContent = null
         }
@@ -470,24 +406,7 @@ const Prioritize = () => {
   }
 
   let topbarContent = null
-  if (step === 'results') {
-    topbarContent = (
-      <TopBar>
-        <Text sx={{ mr: '0.5rem' }}>Show:</Text>
-        <ToggleButton
-          value={scenario}
-          options={scenarioOptions}
-          onChange={handleSetScenario}
-        />
-        <Text sx={{ mx: '0.5rem' }}>for</Text>
-        <ToggleButton
-          value={resultsType}
-          options={resultTypeOptions}
-          onChange={handleSetResultsType}
-        />
-      </TopBar>
-    )
-  } else if (
+  if (
     step === 'select' &&
     layer !== null &&
     zoom < unitLayerConfig[layer].minzoom
@@ -539,4 +458,4 @@ const Prioritize = () => {
   )
 }
 
-export default Prioritize
+export default SurveyWorkflow

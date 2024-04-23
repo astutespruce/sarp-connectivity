@@ -59,7 +59,8 @@ INT_COLS = [
     "small_barriers",
     "total_small_barriers",
     "removed_small_barriers",
-    "crossings",
+    "total_road_crossings",
+    "unsurveyed_road_crossings",
     "ranked_small_barriers",
     "ranked_largefish_barriers_dams",
     "ranked_largefish_barriers_small_barriers",
@@ -157,12 +158,7 @@ smallfish_barriers = pd.read_feather(
 ### Read road / stream crossings
 # NOTE: crossings are already de-duplicated against each other and against
 # barriers
-crossings = pd.read_feather(
-    src_dir / "road_crossings.feather",
-    columns=["id", "NearestBarrierID"] + SUMMARY_UNITS,
-)
-# exclude crossings that have a corresonding inventoried barrier to avoid double-counting
-crossings = crossings.loc[crossings.NearestBarrierID == ""]
+crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "NearestBarrierID"] + SUMMARY_UNITS)
 
 
 # Calculate summary statistics for each type of summary unit
@@ -259,14 +255,21 @@ for unit in SUMMARY_UNITS:
     )
     smallfish_stats.columns = [f"ranked_smallfish_barriers_{c}" for _, c in smallfish_stats.columns]
 
-    crossing_stats = crossings[[unit, "id"]].groupby(unit).size().rename("crossings")
+    total_crossing_stats = crossings[[unit, "id"]].groupby(unit).size().rename("total_road_crossings")
+    unsurveyed_crossing_stats = (
+        crossings.loc[crossings.NearestBarrierID == ""][[unit, "id"]]
+        .groupby(unit)
+        .size()
+        .rename("unsurveyed_road_crossings")
+    )
 
     merged = (
         units.join(dam_stats, how="left")
         .join(barriers_stats, how="left")
         .join(largefish_stats, how="left")
         .join(smallfish_stats, how="left")
-        .join(crossing_stats, how="left")
+        .join(total_crossing_stats, how="left")
+        .join(unsurveyed_crossing_stats, how="left")
     )
     merged[INT_COLS] = merged[INT_COLS].fillna(0).astype("uint32")
 
@@ -290,7 +293,7 @@ out.reset_index().to_feather(api_dir / "map_units.feather")
 
 ### Output minimal subset and join to tiles
 
-# create bit-set field based on number of barriers present per unit; where false for a given barrier type,
+# create bitset field based on number of barriers present per unit; where false for a given barrier type,
 # this is used to color the unit grey (see priority/Map.jsx for decoding)
 # Can rank if:
 # dams: ranked_dams > 0
@@ -308,22 +311,25 @@ can_prioritize_largefish_barriers = (
 can_prioritize_smallfish_barriers = (
     (stats.ranked_smallfish_barriers_dams > 0) & (stats.total_small_barriers >= 10)
 ).values.astype("uint8")
+can_select_road_crossings = (stats.total_road_crossings > 0).values.astype("uint8")
 
-stats["can_prioritize"] = (
+stats["has_data"] = (
     can_prioritize_dams
     | (can_prioritize_small_barriers << 1)
     | (can_prioritize_combined_barriers << 2)
     | (can_prioritize_largefish_barriers << 3)
     | (can_prioritize_smallfish_barriers << 4)
+    | (can_select_road_crossings << 5)
 )
 
-stats = stats[["id", "dams", "small_barriers", "removed_dams", "removed_small_barriers", "can_prioritize"]]
+# only write the fields used for rendering map units by color in the frontend
+stats = stats[["id", "dams", "small_barriers", "removed_dams", "removed_small_barriers", "has_data"]]
 
 csv_filename = tmp_dir / "map_units_summary.csv"
 write_csv(pa.Table.from_pandas(stats), csv_filename)
 
 # join to tiles
-mbtiles_filename = f"{tmp_dir}/map_units_summary.mbtiles"
+mbtiles_filename = f"{out_tile_dir}/map_units_summary.mbtiles"
 ret = subprocess.run(
     [
         tile_join,
@@ -334,7 +340,7 @@ ret = subprocess.run(
         mbtiles_filename,
         "-c",
         f"{tmp_dir}/map_units_summary.csv",
-        f"{out_tile_dir}/map_units.mbtiles",
+        f"{data_dir}/tiles/map_units.mbtiles",
     ]
 )
 ret.check_returncode()

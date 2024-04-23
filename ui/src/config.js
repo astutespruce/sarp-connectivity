@@ -1402,3 +1402,22 @@ export const SPECIES_HABITAT_FIELDS = {
     source: 'Chesapeake Fish Passage Workgroup',
   },
 }
+
+export const getSingularUnitLabel = (layer) => {
+  switch (layer) {
+    case 'State':
+      return 'state'
+    case 'County':
+      return 'county'
+    case 'HUC6':
+      return 'basin'
+    case 'HUC8':
+      return 'subbasin'
+    case 'HUC10':
+      return 'watershed'
+    case 'HUC12':
+      return 'subwatershed'
+    default:
+      return 'area'
+  }
+}

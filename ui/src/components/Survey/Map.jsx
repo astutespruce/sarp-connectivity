@@ -8,7 +8,6 @@ import React, {
   useMemo,
 } from 'react'
 import PropTypes from 'prop-types'
-import { useDebouncedCallback } from 'use-debounce'
 
 // exclude Mapbox GL from babel transpilation per https://docs.mapbox.com/mapbox-gl-js/guides/migrate-to-v2/
 /* eslint-disable-next-line */
@@ -21,7 +20,6 @@ import {
   DropDownLayerChooser,
   Legend,
   networkLayers,
-  highlightNetwork,
   setBarrierHighlight,
   getInArrayExpr,
   getInStringExpr,
@@ -43,27 +41,18 @@ import {
   priorityWatershedLegends,
 } from 'components/Workflow/layers'
 import {
-  prioritizedPointLayer,
   unrankedPointLayer,
   removedBarrierPointLayer,
   otherBarrierPointLayer,
   excludedPointLayer,
   includedPointLayer,
-  roadCrossingsLayer,
-  damsSecondaryLayer,
-  waterfallsLayer,
-  getTierPointColor,
-  getTierPointSize,
 } from './layers'
 
-const PriorityMap = ({
+const SurveyMap = ({
   allowUnitSelect,
   activeLayer,
   selectedUnit,
   selectedBarrier,
-  rankedBarriers,
-  tierThreshold,
-  scenario,
   summaryUnits,
   bounds,
   onSelectUnit,
@@ -82,7 +71,6 @@ const PriorityMap = ({
   const mapRef = useRef(null)
   const hoverFeatureRef = useRef(null)
   const selectedFeatureRef = useRef(null)
-  const rankedBarriersRef = useRef(null)
   const rankedBarriersIndexRef = useRef({})
   const [priorityLayerState, setPriorityLayerState] = useState({})
 
@@ -105,21 +93,6 @@ const PriorityMap = ({
   // first layer of system is default on init
   const [zoom, setZoom] = useState(0)
 
-  const clearNetworkHighlight = () => {
-    const { current: map } = mapRef
-
-    if (map) {
-      map.setFilter('network-highlight', ['==', 'dams', Infinity])
-      map.setFilter('network-intermittent-highlight', ['==', 'dams', Infinity])
-      map.setFilter('removed-network-highlight', ['==', 'barrier_id', Infinity])
-      map.setFilter('removed-network-intermittent-highlight', [
-        '==',
-        'barrier_id',
-        Infinity,
-      ])
-    }
-  }
-
   const handleCreateMap = useCallback(
     (map) => {
       mapRef.current = map
@@ -132,15 +105,11 @@ const PriorityMap = ({
       setZoom(map.getZoom())
 
       const pointLayers = [
-        roadCrossingsLayer.id,
-        damsSecondaryLayer.id,
-        waterfallsLayer.id,
         removedBarrierPointLayer.id,
         otherBarrierPointLayer.id,
         unrankedPointLayer.id,
         excludedPointLayer.id,
         includedPointLayer.id,
-        prioritizedPointLayer.id,
       ]
 
       const clickLayers = pointLayers.concat(
@@ -156,10 +125,12 @@ const PriorityMap = ({
       map.addLayer(maskFill)
       map.addLayer(maskOutline)
 
-      // Add flowlines and network highlight layers
-      networkLayers.forEach((layer) => {
-        map.addLayer(layer)
-      })
+      // Add flowlines
+      networkLayers
+        .filter(({ id }) => !id.endsWith('-highlight'))
+        .forEach((layer) => {
+          map.addLayer(layer)
+        })
 
       // Add summary unit layers
       Object.entries(unitLayerConfig).forEach(
@@ -182,32 +153,7 @@ const PriorityMap = ({
 
           // Each layer has 2 display layers: outline, fill
           // show grey fill when the map unit cannot be ranked
-          let bitPos = 0
-
-          /* eslint-disable-next-line default-case */
-          switch (barrierType) {
-            case 'dams': {
-              bitPos = 0
-              break
-            }
-            case 'small_barriers': {
-              bitPos = 1
-              break
-            }
-            case 'combined_barriers': {
-              bitPos = 2
-              break
-            }
-            case 'largefish_barriers': {
-              bitPos = 3
-              break
-            }
-            case 'smallfish_barriers': {
-              bitPos = 4
-              break
-            }
-          }
-
+          const bitPos = 5
           const fillExpr = [
             'case',
             ['==', getBitFromBitsetExpr('has_data', bitPos), 0],
@@ -232,47 +178,30 @@ const PriorityMap = ({
         }
       )
 
-      // add waterfalls
-      map.addLayer(waterfallsLayer)
-
-      // add road crossings layer
-      map.addLayer({
-        ...roadCrossingsLayer,
-        layout: {
-          visibility: barrierType !== 'dams' ? 'visible' : 'none',
-        },
-      })
-
-      // add secondary dams layer (only applicable for small barriers)
-      map.addLayer({
-        ...damsSecondaryLayer,
-        layout: {
-          visibility: barrierType === 'small_barriers' ? 'visible' : 'none',
-        },
-      })
-
+      // add inventoried small barriers for reference
+      const refBarrierType = 'small_barriers'
       map.addLayer({
         source: barrierType,
-        'source-layer': `other_${barrierType}`,
+        'source-layer': `other_${refBarrierType}`,
         ...otherBarrierPointLayer,
       })
 
       map.addLayer({
         source: barrierType,
-        'source-layer': `removed_${barrierType}`,
+        'source-layer': `removed_${refBarrierType}`,
         ...removedBarrierPointLayer,
       })
 
       map.addLayer({
         source: barrierType,
-        'source-layer': `unranked_${barrierType}`,
+        'source-layer': `unranked_${refBarrierType}`,
         ...unrankedPointLayer,
       })
 
       // add primary barrier-type point layers
       const pointConfig = {
         source: barrierType,
-        'source-layer': `ranked_${barrierType}`,
+        'source-layer': barrierType,
       }
 
       // all points are initially excluded from analysis until their
@@ -281,16 +210,6 @@ const PriorityMap = ({
       map.addLayer({
         ...pointConfig,
         ...includedPointLayer,
-      })
-
-      map.addLayer({
-        ...pointConfig,
-        ...prioritizedPointLayer,
-        paint: {
-          ...prioritizedPointLayer.paintLayer,
-          'circle-color': getTierPointColor(scenario, tierThreshold),
-          'circle-radius': getTierPointSize(scenario, tierThreshold),
-        },
       })
 
       // add hover and tooltip to point layers
@@ -392,6 +311,7 @@ const PriorityMap = ({
         } = feature
 
         if (source === 'summary') {
+          console.log('click', sourceLayer, properties)
           onSelectUnit({ layer: sourceLayer, id: properties.id })
           return
         }
@@ -420,7 +340,9 @@ const PriorityMap = ({
             : source
 
         const networkType =
-          barrierType === 'small_barriers' ? 'combined_barriers' : barrierType
+          barrierType === 'small_barriers' || barrierType === 'road_crossings'
+            ? 'combined_barriers'
+            : barrierType
 
         // promote network fields if clicking on a waterfall
         let networkIDField = 'upnetid'
@@ -436,7 +358,6 @@ const PriorityMap = ({
         onSelectBarrier({
           upnetid: properties[networkIDField] || Infinity,
           ...properties,
-          tiers: rankedBarriersIndexRef.current[properties.id] || null,
           barrierType: thisBarrierType,
           networkType,
           lat,
@@ -454,34 +375,7 @@ const PriorityMap = ({
       // let consumers of map know that it is now fully loaded
       map.once('idle', () => onMapLoad(map))
     },
-    [
-      barrierType,
-      onMapLoad,
-      onSelectBarrier,
-      onSelectUnit,
-      scenario,
-      tierThreshold,
-    ]
-  )
-
-  // Debounce updates to the filter to prevent frequent redraws
-  // which have bad performance with high numbers of dams
-  const debouncedSetRankFilter = useDebouncedCallback(
-    (currentScenario, threshold) => {
-      const { current: map } = mapRef
-
-      map.setPaintProperty(
-        prioritizedPointLayer.id,
-        'circle-color',
-        getTierPointColor(currentScenario, threshold)
-      )
-      map.setPaintProperty(
-        prioritizedPointLayer.id,
-        'circle-radius',
-        getTierPointSize(currentScenario, threshold)
-      )
-    },
-    200
+    [barrierType, onMapLoad, onSelectBarrier, onSelectUnit]
   )
 
   // If map allows unit selection, make layers visible for the activeLayer, so that user can select from them
@@ -545,20 +439,7 @@ const PriorityMap = ({
 
     if (!map) return
 
-    clearNetworkHighlight()
-
-    const removed = selectedBarrier && selectedBarrier.removed
-    if (selectedBarrier) {
-      const networkIDField = removed ? 'id' : 'upnetid'
-      const { [networkIDField]: networkID = Infinity } = selectedBarrier
-
-      highlightNetwork(
-        map,
-        barrierType === 'small_barriers' ? 'combined_barriers' : barrierType,
-        networkID,
-        removed
-      )
-    } else {
+    if (selectedBarrier === null) {
       const prevFeature = selectedFeatureRef.current
       if (prevFeature) {
         setBarrierHighlight(map, prevFeature, false)
@@ -629,57 +510,6 @@ const PriorityMap = ({
   )
 
   useEffect(() => {
-    const { current: map } = mapRef
-    if (!map) return
-
-    const showRanks = rankedBarriers.length > 0
-    map.setLayoutProperty(
-      includedPointLayer.id,
-      'visibility',
-      showRanks ? 'none' : 'visible'
-    )
-    map.setLayoutProperty(
-      prioritizedPointLayer.id,
-      'visibility',
-      showRanks ? 'visible' : 'none'
-    )
-
-    const { source, sourceLayer } = map.getLayer(prioritizedPointLayer.id)
-    const prevRankedBarriers = rankedBarriersRef.current
-
-    // unset feature state for all ranked points
-    if (prevRankedBarriers && prevRankedBarriers.length) {
-      prevRankedBarriers.forEach(({ id }) => {
-        // NOTE: this removes all feature state including selected and hover
-        // but neither of those should be active on transition to showing
-        // ranked barriers
-        map.removeFeatureState({ source, sourceLayer, id })
-      })
-    }
-    if (showRanks) {
-      // copy filters to ranked layers
-      map.setFilter(
-        prioritizedPointLayer.id,
-        map.getFilter(includedPointLayer.id)
-      )
-      rankedBarriers.forEach(({ id, ...rest }) => {
-        map.setFeatureState({ source, sourceLayer, id }, rest)
-      })
-      rankedBarriersIndexRef.current = groupBy(rankedBarriers, 'id')
-    } else {
-      rankedBarriersIndexRef.current = {}
-    }
-    rankedBarriersRef.current = rankedBarriers
-  }, [rankedBarriers])
-
-  useEffect(() => {
-    const { current: map } = mapRef
-    if (!map) return
-
-    debouncedSetRankFilter(scenario, tierThreshold)
-  }, [tierThreshold, scenario, debouncedSetRankFilter])
-
-  useEffect(() => {
     if (bounds == null) return
     const { current: map } = mapRef
     if (!map) return
@@ -706,7 +536,6 @@ const PriorityMap = ({
       includedPointLayer,
       excludedPointLayer,
       otherBarrierPointLayer,
-      prioritizedPointLayer,
     ]
 
     const isWithinZoom = pointLayers.reduce(
@@ -720,8 +549,6 @@ const PriorityMap = ({
     const {
       included: includedLegend,
       excluded: excludedLegend,
-      topRank: topRankLegend,
-      lowerRank: lowerRankLegend,
       unrankedBarriers,
       other,
     } = pointLegends
@@ -768,33 +595,11 @@ const PriorityMap = ({
     // if no layer is selected for choosing summary areas
     if (activeLayer === null) {
       if (!isWithinZoom[excludedPointLayer.id]) {
-        footnote = `zoom in to see ${barrierTypeLabel} available for prioritization`
+        footnote = `zoom in to see available ${barrierTypeLabel}`
       } else {
         circles.push({
           ...includedLegend.getSymbol(barrierType),
-          label: `${barrierTypeLabel} available for prioritization`,
-        })
-      }
-    }
-
-    // may need to be mutually exclusive of above
-    else if (rankedBarriers.length > 0) {
-      const tierLabel =
-        tierThreshold === 1 ? 'tier 1' : `tiers 1 - ${tierThreshold}`
-      circles.push({
-        ...topRankLegend.getSymbol(barrierType),
-        label: topRankLegend.getLabel(barrierTypeLabel, tierLabel),
-      })
-
-      circles.push({
-        ...lowerRankLegend.getSymbol(barrierType),
-        label: lowerRankLegend.getLabel(barrierTypeLabel, tierLabel),
-      })
-
-      if (isWithinZoom[excludedPointLayer.id]) {
-        circles.push({
-          ...excludedLegend.getSymbol(barrierType),
-          label: excludedLegend.getLabel(barrierTypeLabel),
+          label: `${barrierTypeLabel}`,
         })
       }
     } else {
@@ -802,16 +607,23 @@ const PriorityMap = ({
       if (isWithinZoom[includedPointLayer.id]) {
         circles.push({
           ...includedLegend.getSymbol(barrierType),
-          label: includedLegend.getLabel(barrierTypeLabel),
+          label: includedLegend
+            .getLabel(barrierTypeLabel)
+            .replace('included in prioritization', 'selected for download'),
         })
       } else {
-        footnote = `zoom in to see ${barrierTypeLabel} included in prioritization`
+        footnote = `zoom in to see selected ${barrierTypeLabel}`
       }
 
       if (isWithinZoom[excludedPointLayer.id]) {
         circles.push({
           ...excludedLegend.getSymbol(barrierType),
-          label: excludedLegend.getLabel(barrierTypeLabel),
+          label: excludedLegend
+            .getLabel(barrierTypeLabel)
+            .replace(
+              'not included in prioritization',
+              'not selected for download'
+            ),
         })
       }
 
@@ -821,7 +633,7 @@ const PriorityMap = ({
           entries: [
             {
               color: 'rgba(0,0,0,0.15)',
-              label: `area with no inventoried ${barrierTypeLabel}`,
+              label: `area with no mapped ${barrierTypeLabel}`,
             },
           ],
         })
@@ -875,18 +687,11 @@ const PriorityMap = ({
   )
 }
 
-PriorityMap.propTypes = {
+SurveyMap.propTypes = {
   allowUnitSelect: PropTypes.bool,
   activeLayer: PropTypes.string,
   selectedUnit: PropTypes.object,
   selectedBarrier: PropTypes.object,
-  rankedBarriers: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-    })
-  ),
-  tierThreshold: PropTypes.number.isRequired,
-  scenario: PropTypes.string.isRequired,
   summaryUnits: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
@@ -902,15 +707,14 @@ PriorityMap.propTypes = {
   onMapLoad: PropTypes.func.isRequired,
 }
 
-PriorityMap.defaultProps = {
+SurveyMap.defaultProps = {
   allowUnitSelect: false,
   activeLayer: null,
   selectedUnit: null,
   selectedBarrier: null,
   summaryUnits: [],
-  rankedBarriers: [],
   bounds: null,
   children: null,
 }
 
-export default memo(PriorityMap)
+export default memo(SurveyMap)

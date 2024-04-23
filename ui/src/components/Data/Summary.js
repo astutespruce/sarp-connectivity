@@ -1,7 +1,6 @@
 import { graphql, useStaticQuery } from 'gatsby'
 
 import { extractYearRemovedStats } from 'components/Restoration/util'
-// import { groupBy } from 'util/data'
 
 export const useSummaryData = () => {
   const { stats } = useStaticQuery(graphql`
@@ -24,7 +23,8 @@ export const useSummaryData = () => {
         removedSmallBarriers: removed_small_barriers
         removedSmallBarriersGainMiles: removed_small_barriers_gain_miles
         removedSmallBarriersByYear: removed_small_barriers_by_year
-        crossings
+        # totalRoadCrossings: total_road_crossings  # not currently used
+        unsurveyedRoadCrossings: unsurveyed_road_crossings
       }
     }
   `)

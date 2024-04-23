@@ -41,12 +41,12 @@ const Summary = ({ region, barrierType, system, onSelectUnit }) => {
     rankedSmallBarriers,
     removedSmallBarriers,
     removedSmallBarriersGainMiles,
-    crossings,
+    unsurveyedRoadCrossings,
   } = isRegion ? regions[region] : summary
 
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
-  const totalRoadBarriers = totalSmallBarriers + crossings
+  const totalRoadBarriers = totalSmallBarriers + unsurveyedRoadCrossings
 
   const regionName = isRegion ? name : 'full analysis area'
 
@@ -137,8 +137,8 @@ const Summary = ({ region, barrierType, system, onSelectUnit }) => {
               </li>
             ) : null}
             <li>
-              <b>{formatNumber(crossings, 0)}</b> unsurveyed road/stream
-              crossings
+              <b>{formatNumber(unsurveyedRoadCrossings, 0)}</b> unsurveyed
+              road/stream crossings
             </li>
           </Box>
         </>

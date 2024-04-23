@@ -42,7 +42,7 @@ const BarrierReport = ({ networkType, sarpid }) => {
     return <NotFound />
   }
 
-  console.log('data', data)
+  // console.log('data', data)
 
   return (
     <Layout>

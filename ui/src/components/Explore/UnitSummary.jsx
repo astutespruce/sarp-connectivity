@@ -40,7 +40,8 @@ const UnitSummary = ({
   let rankedSmallBarriers = 0
   let removedSmallBarriers = 0
   let removedSmallBarriersGainMiles = 0
-  let crossings = 0
+  let totalRoadCrossings = 0
+  let unsurveyedRoadCrossings = 0
 
   // ignore any unit that is contained within another unit
   const ignoreIds = new Set()
@@ -119,7 +120,8 @@ const UnitSummary = ({
         rankedSmallBarriers: curRankedSmallBarriers = 0,
         removedSmallBarriers: curRemovedSmallBarriers = 0,
         removedSmallBarriersGainMiles: curRemovedSmallBarriersGainMiles = 0,
-        crossings: curCrossings = 0,
+        totalRoadCrossings: curRoadCrossings = 0,
+        unsurveyedRoadCrossings: curUnsurveyedCrossings = 0,
       }) => {
         dams += curDams
         rankedDams += curRankedDams
@@ -130,13 +132,14 @@ const UnitSummary = ({
         rankedSmallBarriers += curRankedSmallBarriers
         removedSmallBarriers += curRemovedSmallBarriers
         removedSmallBarriersGainMiles += curRemovedSmallBarriersGainMiles
-        crossings += curCrossings
+        totalRoadCrossings += curRoadCrossings
+        unsurveyedRoadCrossings += curUnsurveyedCrossings
       }
     )
 
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
-  const totalRoadBarriers = totalSmallBarriers + crossings
+  const totalRoadBarriers = totalSmallBarriers + unsurveyedRoadCrossings
 
   const summaryUnitsForDownload = summaryUnits.reduce(
     (prev, { layer: l, id: i }) =>
@@ -191,7 +194,7 @@ const UnitSummary = ({
             config={{
               summaryUnits: summaryUnitsForDownload,
             }}
-            disabled={crossings === 0}
+            disabled={totalRoadCrossings === 0}
             showOptions={false}
             includeUnranked
           />
@@ -360,8 +363,8 @@ const UnitSummary = ({
                     </li>
                   ) : null}
                   <li>
-                    <b>{formatNumber(crossings, 0)}</b> that have not yet been
-                    surveyed
+                    <b>{formatNumber(unsurveyedRoadCrossings, 0)}</b> that have
+                    not yet been surveyed
                   </li>
                 </Box>
               </>
@@ -572,7 +575,8 @@ UnitSummary.propTypes = {
       rankedSmallBarriers: PropTypes.number,
       removedSmallBarriers: PropTypes.number,
       removedSmallBarriersGainMiles: PropTypes.number,
-      crossings: PropTypes.number,
+      totalRoadCrossings: PropTypes.number,
+      unsurveyedRoadCrossings: PropTypes.number,
       miles: PropTypes.number,
     })
   ).isRequired,

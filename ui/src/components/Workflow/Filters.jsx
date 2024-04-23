@@ -4,17 +4,17 @@ import { TimesCircle } from '@emotion-icons/fa-solid'
 import { Box, Flex, Heading, Text } from 'theme-ui'
 import { op } from 'arquero'
 
+import { barrierTypeLabels } from 'config'
+import { useCrossfilter } from 'components/Crossfilter'
 import { useBarrierType } from 'components/Data'
 import { FilterGroup } from 'components/Filters'
-import { useCrossfilter } from 'components/Crossfilter'
 import { ExpandableParagraph } from 'components/Text'
-import { barrierTypeLabels } from 'config'
 import { reduceToObject } from 'util/data'
 import { formatNumber, pluralize } from 'util/format'
 
 import BackLink from './BackLink'
-import SubmitButton from './SubmitButton'
 import StartOverButton from './StartOverButton'
+import SubmitButton from './SubmitButton'
 
 const Filters = ({ onBack, onSubmit, onStartOver }) => {
   const barrierType = useBarrierType()

@@ -23,7 +23,7 @@ groups_df = pd.read_feather(src_dir / "connected_huc2s.feather")
 export_hucs = {
     # "01",
     # "02",
-    "03"
+    # "03"
     # "04",
     # "05",
     # "06",
@@ -31,6 +31,7 @@ export_hucs = {
     # "08",
     # "09",
     # "14",
+    "18",
     # "21"
 }
 
@@ -50,7 +51,7 @@ floodplains["natfldpln"] = (100 * floodplains.natfldkm2 / floodplains.fldkm2).as
 # for group in [{"01", "02"}]:
 # for group in [{"05", "06", "07", "08", "10", "11"}]:
 # for group in [{"14", "15"}]:
-for group in [{"03"}]:
+for group in [{"18"}]:
     group = sorted(group)
 
     segments = (
@@ -80,8 +81,8 @@ for group in [{"03"}]:
             "free_perennial_unaltered_miles",
             "pct_unaltered",
             "pct_perennial_unaltered",
-            "tnc_resilient_miles",
-            "pct_tnc_resilient",
+            "resilient_miles",
+            "pct_resilient",
             "natfldpln",
             "sizeclasses",
             "barrier",

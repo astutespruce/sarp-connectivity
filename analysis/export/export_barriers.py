@@ -1,5 +1,4 @@
-"""Helper script to export data in same structure as if downloaded from API
-"""
+"""Helper script to export data in same structure as if downloaded from API"""
 
 from datetime import datetime
 from pathlib import Path
@@ -33,7 +32,7 @@ out_dir = Path("/tmp/sarp")
 out_dir.mkdir(exist_ok=True)
 
 #  one of "dams", "small_barriers", "combined_barriers", "road_crossings"
-barrier_type = "small_barriers"
+barrier_type = "combined_barriers"
 suffix = ""  # use to set a filename suffix if filtering further
 
 df = pd.read_feather(data_dir / f"{barrier_type}.feather")

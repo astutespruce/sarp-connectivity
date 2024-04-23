@@ -26,7 +26,6 @@ const Network = ({
   sizeclasses,
   landcover,
   excluded,
-  diversion,
   hasnetwork,
   in_network_type,
   onloop,

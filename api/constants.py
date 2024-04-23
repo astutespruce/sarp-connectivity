@@ -581,7 +581,8 @@ SUMMARY_UNIT_FIELDS = [
     "ranked_largefish_barriers_small_barriers",
     "ranked_smallfish_barriers_dams",
     "ranked_smallfish_barriers_small_barriers",
-    "crossings",
+    "total_road_crossings",
+    "unsurveyed_road_crossings",
 ]
 
 

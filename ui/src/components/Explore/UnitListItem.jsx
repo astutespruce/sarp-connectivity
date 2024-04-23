@@ -7,7 +7,13 @@ import { OutboundLink } from 'components/Link'
 import { formatNumber, pluralize } from 'util/format'
 
 const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
-  const { id, layer, dams = 0, totalSmallBarriers = 0, crossings = 0 } = unit
+  const {
+    id,
+    layer,
+    dams = 0,
+    totalSmallBarriers = 0,
+    unsurveyedRoadCrossings = 0,
+  } = unit
   let { name = id } = unit
 
   if (layer === 'State') {
@@ -16,6 +22,8 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
 
   let count = 0
   let countMessage = null
+
+  const totalRoadBarriers = totalSmallBarriers + unsurveyedRoadCrossings
 
   switch (barrierType) {
     case 'dams': {
@@ -32,9 +40,9 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
       )} assessed road/stream ${pluralize(
         'crossing',
         totalSmallBarriers
-      )} (out of ${formatNumber(crossings)} total ${pluralize(
+      )} (out of ${formatNumber(totalRoadBarriers)} total ${pluralize(
         'crossing',
-        crossings
+        totalRoadBarriers
       )})`
 
       break
@@ -50,9 +58,9 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
       )} assessed road/stream ${pluralize(
         'crossing',
         totalSmallBarriers
-      )} (out of ${formatNumber(crossings)} total ${pluralize(
+      )} (out of ${formatNumber(totalRoadBarriers)} total ${pluralize(
         'crossing',
-        crossings
+        totalRoadBarriers
       )})`
 
       break

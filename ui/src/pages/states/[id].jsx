@@ -69,8 +69,6 @@ const StateRoute = ({ params: { id } }) => {
     )
   }
 
-  console.log('load map', dynamicallyLoadImage(`maps/states/${id}.png`))
-
   const {
     dams,
     rankedDams,
@@ -84,7 +82,8 @@ const StateRoute = ({ params: { id } }) => {
     removedSmallBarriers,
     removedSmallBarriersGainMiles,
     removedSmallBarriersByYear,
-    crossings,
+    totalRoadCrossings,
+    unsurveyedRoadCrossings,
   } = toCamelCaseFields(data)
 
   const removedBarriersByYear = extractYearRemovedStats(
@@ -182,7 +181,7 @@ const StateRoute = ({ params: { id } }) => {
               <Downloader
                 barrierType="road_crossings"
                 label="road crossings"
-                disabled={crossings === 0}
+                disabled={totalRoadCrossings === 0}
                 config={{
                   ...downloadConfig,
                   summaryUnits: { State: [id] },
@@ -236,8 +235,10 @@ const StateRoute = ({ params: { id } }) => {
               ) : null}
             </Box>
             <Text sx={{ mt: '2rem' }}>
-              <b>{formatNumber(totalSmallBarriers + crossings, 0)}</b> or more
-              road/stream crossings (potential barriers), including:
+              <b>
+                {formatNumber(totalSmallBarriers + unsurveyedRoadCrossings, 0)}
+              </b>{' '}
+              or more road/stream crossings (potential barriers), including:
             </Text>
             <Box as="ul" sx={{ ml: '1rem', mt: '0.5rem' }}>
               <li>
