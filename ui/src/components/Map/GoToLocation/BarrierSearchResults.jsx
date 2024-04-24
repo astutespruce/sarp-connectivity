@@ -206,6 +206,7 @@ const BarrierSearchResults = ({
             justifyContent: 'center',
             fontSize: 0,
             color: 'grey.8',
+            fontStyle: 'italic',
             pt: '0.5rem',
             borderTop: '1px solid',
             borderTopColor: 'grey.1',

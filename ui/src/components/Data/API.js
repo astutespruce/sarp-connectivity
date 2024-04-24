@@ -188,7 +188,7 @@ export const searchUnits = async (layers, query) => {
 }
 
 export const searchBarriers = async (query) => {
-  const url = `${apiHost}/api/v1/internal/combined_barriers/search?query=${query}`
+  const url = `${apiHost}/api/v1/internal/barriers/search?query=${query}`
 
   try {
     const response = await fetch(url)

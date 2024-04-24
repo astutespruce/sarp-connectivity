@@ -560,6 +560,17 @@ WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
 WF_API_FIELDS = unique(WF_CORE_FIELDS + ["network_type", "in_network_type"])
 
 
+BARRIER_SEARCH_RESULT_FIELDS = [
+    "SARPID",
+    "Name",
+    "River",
+    "State",
+    "BarrierType",
+    "lat",
+    "lon",
+]
+
+
 # fields returned by map unit search / details APIs
 SUMMARY_UNIT_FIELDS = [
     "layer",

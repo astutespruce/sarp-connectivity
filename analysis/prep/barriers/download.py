@@ -304,8 +304,7 @@ df.SARPID = df.SARPID.fillna("").astype("str")
 
 s = df.groupby("SARPID").size()
 if s.max() > 1:
-    print("WARNING: multiple waterfalls with same SARPID")
-    print(s[s > 1])
+    print(f"WARNING: {len(s[s > 1])} waterfalls with same SARPID")
 
 
 df.to_feather(out_dir / "waterfalls.feather")

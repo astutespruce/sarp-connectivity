@@ -3,6 +3,8 @@ from time import time
 
 import geopandas as gp
 import pandas as pd
+import pyarrow as pa
+from pyarrow.feather import write_feather
 
 from analysis.constants import SEVERITY_TO_PASSABILITY
 from analysis.lib.util import get_signed_dtype, append
@@ -16,6 +18,7 @@ from api.constants import (
     COMBINED_API_FIELDS,
     WF_API_FIELDS,
     ROAD_CROSSING_API_FIELDS,
+    BARRIER_SEARCH_RESULT_FIELDS,
     verify_domains,
 )
 from analysis.constants import NETWORK_TYPES
@@ -139,7 +142,7 @@ tmp = dams[DAM_API_FIELDS].reset_index()
 verify_domains(tmp)
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
-tmp.to_feather(api_dir / "dams.feather")
+write_feather(pa.Table.from_pandas(tmp), api_dir / "dams.feather", compression="uncompressed")
 
 
 #########################################################################################
@@ -208,7 +211,7 @@ small_barriers.reset_index().to_feather(results_dir / "small_barriers.feather")
 tmp = small_barriers[SB_API_FIELDS].reset_index()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
-tmp.to_feather(api_dir / "small_barriers.feather")
+write_feather(pa.Table.from_pandas(tmp), api_dir / "small_barriers.feather", compression="uncompressed")
 
 #########################################################################################
 ###
@@ -298,6 +301,9 @@ for col in fill_columns:
 for col in ["CoastalHUC8"]:
     combined[col] = combined[col].astype("uint8")
 
+
+search_barriers = None
+
 for network_type in [
     "combined_barriers",
     "largefish_barriers",
@@ -348,11 +354,12 @@ for network_type in [
     verify_domains(tmp)
     tmp["id"] = tmp.id.astype("uint32")
 
-    if network_type == "combined_barriers":
-        # create search key for search by name
-        tmp["search_key"] = (tmp["Name"] + " " + tmp["River"]).str.strip().str.replace("  ", " ", regex=False)
+    write_feather(pa.Table.from_pandas(tmp), api_dir / f"{network_type}.feather", compression="uncompressed")
 
-    tmp.to_feather(api_dir / f"{network_type}.feather")
+    # save for search
+    if network_type == "combined_barriers":
+        search_barriers = tmp[BARRIER_SEARCH_RESULT_FIELDS].reset_index(drop=True)
+
 
 ########################################################################################
 ##
@@ -363,6 +370,12 @@ print("Reading waterfalls and networks")
 waterfalls = gp.read_feather(barriers_dir / "waterfalls.feather").set_index("id").rename(columns=rename_cols)
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 fill_flowline_cols(waterfalls)
+
+tmp = waterfalls.copy()
+tmp["BarrierType"] = "waterfalls"
+search_barriers = pd.concat(
+    [search_barriers, tmp[BARRIER_SEARCH_RESULT_FIELDS].reset_index(drop=True)], ignore_index=True
+)
 
 # backfill Unranked for compatibility (this is needed when getting networks)
 waterfalls["Unranked"] = False
@@ -406,7 +419,7 @@ tmp = waterfalls[["id"] + WF_API_FIELDS].copy()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 
-tmp.to_feather(api_dir / "waterfalls.feather")
+write_feather(pa.Table.from_pandas(tmp), api_dir / "waterfalls.feather", compression="uncompressed")
 
 
 #########################################################################################
@@ -416,6 +429,12 @@ tmp.to_feather(api_dir / "waterfalls.feather")
 print("Processing road crossings")
 crossings = gp.read_feather(barriers_dir / "road_crossings.feather").set_index("id").rename(columns=rename_cols)
 fill_flowline_cols(crossings)
+
+tmp = crossings.copy()
+tmp["BarrierType"] = "road_crossings"
+search_barriers = pd.concat(
+    [search_barriers, tmp[BARRIER_SEARCH_RESULT_FIELDS].reset_index(drop=True)], ignore_index=True
+)
 
 # cast intermittent to int to match other types
 crossings["StreamOrderClass"] = classify_streamorder(crossings.StreamOrder)
@@ -433,4 +452,16 @@ verify_domains(tmp)
 
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
-tmp.to_feather(api_dir / "road_crossings.feather")
+write_feather(pa.Table.from_pandas(tmp), api_dir / "road_crossings.feather", compression="uncompressed")
+
+
+### Save barrier search items
+
+# create search key for search by name
+search_barriers["search_key"] = (
+    (search_barriers["Name"] + " " + search_barriers["River"]).str.strip().str.replace("  ", " ", regex=False)
+)
+search_barriers["priority"] = search_barriers.BarrierType.map(
+    {"dams": 0, "waterfalls": 1, "small_barriers": 2, "road_crossings": 3}
+).astype("uint8")
+write_feather(pa.Table.from_pandas(search_barriers), api_dir / "search_barriers.feather", compression="uncompressed")
