@@ -14,9 +14,8 @@ import { formatNumber, pluralize } from 'util/format'
 
 import BackLink from './BackLink'
 import StartOverButton from './StartOverButton'
-import SubmitButton from './SubmitButton'
 
-const Filters = ({ onBack, onSubmit, onStartOver }) => {
+const Filters = ({ onBack, onStartOver, SubmitButton }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const {
@@ -69,7 +68,15 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
       )}`
       break
     }
+    case 'road_crossings': {
+      countMessage = `${formatNumber(filteredCount)} road/stream ${pluralize(
+        'crossing',
+        filteredCount
+      )}`
+      break
+    }
     default: {
+      console.error(`${barrierType} not handled in switch statement`)
       break
     }
   }
@@ -131,12 +138,12 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
         your needs. Click on a bar to select ${barrierTypeLabel} with that value.`}
           >
             <Text variant="help" sx={{ display: 'inline' }}>
-              [OPTIONAL] Use the filters below to select the {barrierType} that
-              meet your needs. Click on a bar to select {barrierType} with that
-              value. Click on the bar again to unselect. You can combine
-              multiple values across multiple filters to select the{' '}
-              {barrierType} that match ANY of those values within a filter and
-              also have the values selected across ALL filters.
+              [OPTIONAL] Use the filters below to select the {barrierTypeLabel}{' '}
+              that meet your needs. Click on a bar to select {barrierTypeLabel}{' '}
+              with that value. Click on the bar again to unselect. You can
+              combine multiple values across multiple filters to select the{' '}
+              {barrierTypeLabel} that match ANY of those values within a filter
+              and also have the values selected across ALL filters.
             </Text>
           </ExpandableParagraph>
         </Box>
@@ -173,16 +180,7 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
         >
           <StartOverButton onStartOver={onStartOver} />
 
-          <SubmitButton
-            disabled={filteredCount === 0}
-            onClick={onSubmit}
-            label="Prioritize selected barriers"
-            title={
-              filteredCount === 0
-                ? `No ${barrierTypeLabel} selected for prioritization`
-                : null
-            }
-          />
+          {SubmitButton}
         </Flex>
       </Box>
     </Flex>
@@ -191,8 +189,8 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
 
 Filters.propTypes = {
   onBack: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired,
   onStartOver: PropTypes.func.isRequired,
+  SubmitButton: PropTypes.node.isRequired,
 }
 
 export default Filters

@@ -3,7 +3,7 @@ import { Box, Flex, Text, Spinner } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { useQueryClient } from '@tanstack/react-query'
 
-import { getSingularUnitLabel } from 'config'
+import { getSingularUnitLabel, barrierTypeLabels } from 'config'
 import BarrierDetails from 'components/BarrierDetails'
 import { ToggleButton } from 'components/Button'
 import { useCrossfilter } from 'components/Crossfilter'
@@ -21,6 +21,7 @@ import {
   LayerChooser,
   UnitChooser,
   unitLayerConfig,
+  SubmitButton,
 } from 'components/Workflow'
 import { trackPrioritize } from 'util/analytics'
 import { toCamelCaseFields } from 'util/data'
@@ -47,9 +48,10 @@ const resultTypeOptions = [
 
 const Prioritize = () => {
   const barrierType = useBarrierType()
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
   const { bounds: fullBounds } = useSummaryData()
   const {
-    state: { filters },
+    state: { filters, filteredCount },
     setData: setFilterData,
   } = useCrossfilter()
   const queryClient = useQueryClient()
@@ -426,8 +428,19 @@ const Prioritize = () => {
           sidebarContent = (
             <Filters
               onBack={handleFilterBack}
-              onSubmit={loadRankInfo}
               onStartOver={handleStartOver}
+              SubmitButton={
+                <SubmitButton
+                  disabled={filteredCount === 0}
+                  onClick={loadRankInfo}
+                  label="Prioritize selected barriers"
+                  title={
+                    filteredCount === 0
+                      ? `No ${barrierTypeLabel} selected for prioritization`
+                      : null
+                  }
+                />
+              }
             />
           )
           break

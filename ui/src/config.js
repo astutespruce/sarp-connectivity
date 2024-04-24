@@ -1203,6 +1203,11 @@ export const INVASIVE_NETWORK = {
   1: 'upstream of an invasive species barrier',
 }
 
+export const SURVEYED = {
+  0: 'not likely surveyed',
+  1: 'likely surveyed',
+}
+
 export const CONNECTIVITY_TEAMS = {
   southeast: {
     AL: {

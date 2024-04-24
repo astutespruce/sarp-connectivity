@@ -4,28 +4,30 @@ import {
   SALMONID_ESU,
   SALMONID_ESU_COUNT,
   INTERMITTENT,
-  GAINMILES,
-  SMALL_BARRIER_SEVERITY_FILTER_BINS,
   CROSSING_TYPE,
-  CONSTRICTION,
-  ROAD_TYPE,
   STREAMORDER,
-  PERCENT_ALTERED,
-  PERCENT_RESILIENT,
-  PASSAGEFACILITY_CLASS,
-  CONDITION,
   OWNERTYPE,
-  BARRIEROWNERTYPE,
-  BOOLEAN_FIELD,
-  DOWNSTREAM_OCEAN_MILES,
-  DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN,
   DISADVANTAGED_COMMUNITY,
-  INVASIVE_NETWORK,
+  SURVEYED,
 } from 'config'
 
-import { getEntries, hasDiadromousData } from './common'
+import { getEntries } from './common'
 
 export const roadCrossings = [
+  {
+    id: 'surveyed',
+    title: 'Surveyed status',
+    filters: [
+      {
+        field: 'surveyed',
+        title: 'Has crossing been surveyed?',
+        help: 'Road/stream crossings are likely surveyed if there is an inventoried road-related barrier within 50-100m (depends on data source)',
+        sort: false,
+        hideIfEmpty: false,
+        ...getEntries(SURVEYED),
+      },
+    ],
+  },
   {
     id: 'social_benefits',
     title: 'Social Benefits',
@@ -51,7 +53,8 @@ export const roadCrossings = [
         field: 'crossingtype',
         title: 'Crossing type',
         sort: true,
-        ...getEntries(CROSSING_TYPE, (v) => v >= 0 && v <= 10),
+        // show road/stream crossing specific types
+        ...getEntries(CROSSING_TYPE, (v) => v === 5 || v === 98 || v === 99),
       },
     ],
   },
@@ -83,13 +86,6 @@ export const roadCrossings = [
         hideMissingValues: true,
         help: 'This information is derived from the BLM Surface Management Agency dataset for federal lands and CBI Protected Areas Database and TNC Secured Lands Database for non-federal lands, to highlight ownership types of particular importance to partners.  NOTE: this does not include most private land.',
         ...getEntries(OWNERTYPE),
-      },
-      {
-        field: 'barrierownertype',
-        title: 'Barrier ownership type',
-        sort: true,
-        hideMissingValues: true,
-        ...getEntries(BARRIEROWNERTYPE),
       },
     ],
   },

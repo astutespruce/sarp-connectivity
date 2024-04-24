@@ -279,6 +279,8 @@ ROAD_CROSSING_FILTER_FIELDS = [
     "TESppClass",
     "StateSGCNSppClass",
     "Trout",
+    "SalmonidESU",
+    "SalmonidESUCount",
     "DisadvantagedCommunity",
     "Surveyed",
 ]

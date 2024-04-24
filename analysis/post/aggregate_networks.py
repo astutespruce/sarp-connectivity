@@ -111,7 +111,7 @@ dam_networks = pd.concat(
 
 dams = dams.join(dam_networks)
 for col in ["HasNetwork", "Ranked"]:
-    dams[col] = dams[col].fillna(False)
+    dams[col] = dams[col].fillna(0).astype("bool")
 
 # backfill missing values with 0 for classes and -1 for other network metrics
 for col in nonremoved_dam_networks.columns:
@@ -183,7 +183,7 @@ small_barrier_networks = pd.concat(
 
 small_barriers = small_barriers.join(small_barrier_networks)
 for col in ["HasNetwork", "Ranked"]:
-    small_barriers[col] = small_barriers[col].fillna(False)
+    small_barriers[col] = small_barriers[col].fillna(0).astype("bool")
 
 # backfill missing values with 0 for classes and -1 for other network metrics
 for col in nonremoved_small_barrier_networks.columns:
@@ -242,7 +242,7 @@ bool_columns = set(c for c in dams.columns if dams.dtypes[c] == "bool").union(
     set(c for c in small_barriers.columns if small_barriers.dtypes[c] == "bool")
 )
 for col in bool_columns:
-    combined[col] = combined[col].fillna(False)
+    combined[col] = combined[col].fillna(0).astype("bool")
 
 str_columns = [c for c in dt[dt == object].index if c not in bool_columns]
 for col in str_columns:
@@ -333,10 +333,7 @@ for network_type in [
     for col in nonremoved_networks.columns:
         orig_dtype = nonremoved_networks[col].dtype
 
-        if orig_dtype == bool:
-            scenario_results[col] = scenario_results[col].fillna(False).astype(orig_dtype)
-
-        elif col.endswith("Class"):
+        if orig_dtype == bool or col.endswith("Class"):
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:
@@ -381,10 +378,7 @@ for network_type in NETWORK_TYPES.keys():
     for col in networks.columns:
         orig_dtype = networks[col].dtype
 
-        if orig_dtype == bool:
-            scenario_results[col] = scenario_results[col].fillna(False).astype(orig_dtype)
-
-        elif col.endswith("Class"):
+        if orig_dtype == bool or col.endswith("Class"):
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:

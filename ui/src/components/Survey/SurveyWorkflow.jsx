@@ -12,6 +12,7 @@ import {
   useBarrierType,
   useSummaryData,
 } from 'components/Data'
+import { Downloader } from 'components/Download'
 import { TopBar } from 'components/Map'
 import { Sidebar } from 'components/Sidebar'
 import {
@@ -26,45 +27,29 @@ import { toCamelCaseFields } from 'util/data'
 
 import Map from './Map'
 
-// import Results from './Results'
-
 const SurveyWorkflow = () => {
   const barrierType = useBarrierType()
 
   const { bounds: fullBounds } = useSummaryData()
   const {
-    state: { filters },
+    state: { filters, filteredCount },
     setData: setFilterData,
   } = useCrossfilter()
   const queryClient = useQueryClient()
 
-  // individually-managed states
-  const [isLoading, setIsLoading] = useState(true)
-  const [isError, setIsError] = useState(false)
+  const [{ isLoading, isError }, setStatus] = useState({
+    isLoading: true,
+    isError: false,
+  })
 
   const [
-    {
-      step,
-      selectedBarrier,
-      layer,
-      summaryUnits,
-      rankData,
-      scenario,
-      resultsType,
-      tierThreshold,
-      bounds,
-      zoom,
-    },
+    { step, selectedBarrier, layer, summaryUnits, bounds, zoom },
     setState,
   ] = useState({
     step: 'select',
     selectedBarrier: null,
     layer: null,
     summaryUnits: [],
-    rankData: [],
-    scenario: 'ncwc',
-    resultsType: 'full',
-    tierThreshold: 1,
     bounds: fullBounds,
     zoom: null,
   })
@@ -78,16 +63,15 @@ const SurveyWorkflow = () => {
       selectedBarrier: null,
       layer: null,
       summaryUnits: [],
-      rankData: [],
-      scenario: 'ncwc',
-      resultsType: 'full',
-      tierThreshold: 1,
       bounds: fullBounds,
     }))
   }
 
   const handleMapLoad = (map) => {
-    setIsLoading(false)
+    setStatus(() => ({
+      isLoading: false,
+      isError: false,
+    }))
     map.on('zoomend', () => {
       setState((prevState) => ({ ...prevState, zoom: map.getZoom() }))
     })
@@ -101,17 +85,6 @@ const SurveyWorkflow = () => {
     setFilterData(null)
     setState((prevState) => ({ ...prevState, step: 'select' }))
   }
-
-  // const handleResultsBack = () => {
-  //   setState((prevState) => ({
-  //     ...prevState,
-  //     step: 'filter',
-  //     rankData: [],
-  //     scenario: 'ncwc',
-  //     resultsType: 'full',
-  //     tierThreshold: 1,
-  //   }))
-  // }
 
   const handleSetLayer = (nextLayer) => {
     setState((prevState) => ({
@@ -197,11 +170,13 @@ const SurveyWorkflow = () => {
   }
 
   const loadBarrierInfo = async () => {
-    setIsLoading(true)
+    setStatus(() => ({
+      isLoading: true,
+      isError: false,
+    }))
 
     // only select units with non-zero ranked barriers
     let nonzeroSummaryUnits = []
-    /* eslint-disable default-case */
     switch (barrierType) {
       case 'dams': {
         nonzeroSummaryUnits = summaryUnits.filter(
@@ -244,6 +219,16 @@ const SurveyWorkflow = () => {
         )
         break
       }
+      case 'road_crossings': {
+        nonzeroSummaryUnits = summaryUnits.filter(
+          ({ totalRoadCrossings }) => totalRoadCrossings > 0
+        )
+        break
+      }
+      default: {
+        console.error('Unhandled barrier type in query')
+        break
+      }
     }
 
     const {
@@ -263,8 +248,10 @@ const SurveyWorkflow = () => {
     })
 
     if (error || !data) {
-      setIsLoading(false)
-      setIsError(true)
+      setStatus(() => ({
+        isLoading: false,
+        isError: true,
+      }))
       return
     }
 
@@ -275,7 +262,10 @@ const SurveyWorkflow = () => {
       bounds: newBounds ? newBounds.split(',').map(parseFloat) : prevBounds,
       summaryUnits: nonzeroSummaryUnits,
     }))
-    setIsLoading(false)
+    setStatus(() => ({
+      isLoading: false,
+      isError: false,
+    }))
   }
 
   // WARNING: this is passed into map at construction time, any
@@ -360,44 +350,28 @@ const SurveyWorkflow = () => {
           sidebarContent = (
             <Filters
               onBack={handleFilterBack}
-              onSubmit={() => {
-                console.log('TODO: handle submit')
-              }}
               onStartOver={handleStartOver}
+              SubmitButton={
+                <Box>
+                  <Downloader
+                    barrierType={barrierType}
+                    label="Download selected crossings"
+                    disabled={filteredCount === 0}
+                    config={{
+                      summaryUnits: {
+                        [layer]: summaryUnits.map(({ id }) => id),
+                      },
+                      filters,
+                    }}
+                    customRank={false}
+                  />
+                </Box>
+              }
             />
           )
           break
         }
-        // case 'results': {
-        //   sidebarContent = (
-        //     <Results
-        //       rankData={rankData}
-        //       tierThreshold={tierThreshold}
-        //       scenario={scenario}
-        //       resultsType={resultsType}
-        //       config={{
-        //         summaryUnits: { [layer]: summaryUnits.map(({ id }) => id) },
-        //         filters,
-        //         scenario,
-        //       }}
-        //       onSetTierThreshold={handleSetTierThreshold}
-        //       onStartOver={handleStartOver}
-        //       onBack={handleResultsBack}
-        //     />
-        //   )
 
-        //   trackPrioritize({
-        //     barrierType,
-        //     unitType: layer,
-        //     details: `ids: [${
-        //       summaryUnits ? summaryUnits.map(({ id }) => id) : 'none'
-        //     }], filters: ${
-        //       filters ? Object.keys(filters) : 'none'
-        //     }, scenario: ${scenario}`,
-        //   })
-
-        //   break
-        // }
         default: {
           sidebarContent = null
         }
@@ -443,10 +417,6 @@ const SurveyWorkflow = () => {
           activeLayer={layer}
           selectedBarrier={selectedBarrier}
           summaryUnits={summaryUnits}
-          rankedBarriers={rankData}
-          tierThreshold={tierThreshold}
-          resultsType={resultsType}
-          scenario={(resultsType === 'perennial' ? 'p' : '') + scenario}
           onSelectUnit={handleSelectUnit}
           onSelectBarrier={handleSelectBarrier}
           onMapLoad={handleMapLoad}

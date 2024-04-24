@@ -11,7 +11,7 @@ from analysis.post.lib.tiles import get_col_types
 
 tippecanoe = "tippecanoe"
 tile_join = "tile-join"
-tippecanoe_args = [tippecanoe, "-f", "-pg", "--visvalingam", "--detect-shared-borders"]
+tippecanoe_args = [tippecanoe, "-f", "-pg", "--visvalingam", "--no-simplification-of-shared-nodes"]
 
 src_dir = Path("data/boundaries")
 tile_dir = Path("data/tiles")

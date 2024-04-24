@@ -41,6 +41,7 @@ import {
   priorityWatershedLegends,
 } from 'components/Workflow/layers'
 import {
+  rankedPointLayer,
   unrankedPointLayer,
   removedBarrierPointLayer,
   otherBarrierPointLayer,
@@ -71,7 +72,6 @@ const SurveyMap = ({
   const mapRef = useRef(null)
   const hoverFeatureRef = useRef(null)
   const selectedFeatureRef = useRef(null)
-  const rankedBarriersIndexRef = useRef({})
   const [priorityLayerState, setPriorityLayerState] = useState({})
 
   const filterConfigIndex = useMemo(
@@ -105,11 +105,13 @@ const SurveyMap = ({
       setZoom(map.getZoom())
 
       const pointLayers = [
+        excludedPointLayer.id,
+        includedPointLayer.id,
+        // give surveyed barriers higher precedence in hover / click
         removedBarrierPointLayer.id,
         otherBarrierPointLayer.id,
         unrankedPointLayer.id,
-        excludedPointLayer.id,
-        includedPointLayer.id,
+        rankedPointLayer.id,
       ]
 
       const clickLayers = pointLayers.concat(
@@ -178,39 +180,16 @@ const SurveyMap = ({
         }
       )
 
-      // add inventoried small barriers for reference
-      const refBarrierType = 'small_barriers'
-      map.addLayer({
-        source: barrierType,
-        'source-layer': `other_${refBarrierType}`,
-        ...otherBarrierPointLayer,
-      })
-
-      map.addLayer({
-        source: barrierType,
-        'source-layer': `removed_${refBarrierType}`,
-        ...removedBarrierPointLayer,
-      })
-
-      map.addLayer({
-        source: barrierType,
-        'source-layer': `unranked_${refBarrierType}`,
-        ...unrankedPointLayer,
-      })
-
-      // add primary barrier-type point layers
-      const pointConfig = {
-        source: barrierType,
-        'source-layer': barrierType,
-      }
-
       // all points are initially excluded from analysis until their
       // units are selected
-      map.addLayer({ ...pointConfig, ...excludedPointLayer })
-      map.addLayer({
-        ...pointConfig,
-        ...includedPointLayer,
-      })
+      map.addLayer(excludedPointLayer)
+      map.addLayer(includedPointLayer)
+
+      // add inventoried small barriers for reference
+      map.addLayer(otherBarrierPointLayer)
+      map.addLayer(removedBarrierPointLayer)
+      map.addLayer(unrankedPointLayer)
+      map.addLayer(rankedPointLayer)
 
       // add hover and tooltip to point layers
       const tooltip = new mapboxgl.Popup({
@@ -595,7 +574,7 @@ const SurveyMap = ({
     // if no layer is selected for choosing summary areas
     if (activeLayer === null) {
       if (!isWithinZoom[excludedPointLayer.id]) {
-        footnote = `zoom in to see available ${barrierTypeLabel}`
+        footnote = `zoom in to see ${barrierTypeLabel}`
       } else {
         circles.push({
           ...includedLegend.getSymbol(barrierType),
@@ -612,7 +591,7 @@ const SurveyMap = ({
             .replace('included in prioritization', 'selected for download'),
         })
       } else {
-        footnote = `zoom in to see selected ${barrierTypeLabel}`
+        footnote = `zoom in to see ${barrierTypeLabel}`
       }
 
       if (isWithinZoom[excludedPointLayer.id]) {
@@ -641,29 +620,23 @@ const SurveyMap = ({
     }
 
     if (isWithinZoom[otherBarrierPointLayer.id]) {
-      unrankedBarriers
-        .filter(
-          ({ id }) =>
-            // don't show minor barriers legend entry for dams view
-            id !== 'minorBarrier' || barrierType !== 'dams'
-        )
-        .forEach(({ getSymbol, getLabel }) => {
-          circles.push({
-            ...getSymbol(barrierType),
-            label: getLabel(barrierTypeLabel),
-          })
-        })
-
-      other.forEach(({ id, getSymbol, getLabel }) => {
-        if (id === 'dams-secondary' && barrierType !== 'small_barriers') {
-          return
-        }
-
+      unrankedBarriers.forEach(({ getSymbol, getLabel }) => {
         circles.push({
-          ...getSymbol(barrierType),
-          label: getLabel(barrierTypeLabel),
+          ...getSymbol('small_barriers'),
+          label: getLabel(
+            `surveyed ${barrierTypeLabels.small_barriers}`
+          ).replace('not available for prioritization', ''),
         })
       })
+
+      other
+        .filter(({ id }) => id !== 'dams-secondary')
+        .forEach(({ getSymbol, getLabel }) => {
+          circles.push({
+            ...getSymbol('small_barriers'),
+            label: getLabel(barrierTypeLabels.small_barriers),
+          })
+        })
     }
 
     return {

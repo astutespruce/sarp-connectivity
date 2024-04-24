@@ -5,6 +5,7 @@ import { Box, Flex, Text } from 'theme-ui'
 
 import { useCrossfilter } from 'components/Crossfilter'
 import { reduceToObject } from 'util/data'
+import { pluralize } from 'util/format'
 import Filter from './Filter'
 
 const FilterGroup = ({ id, title, filters }) => {
@@ -84,7 +85,8 @@ const FilterGroup = ({ id, title, filters }) => {
           <Box sx={{ ml: '0.25rem' }}>
             <Text sx={{ fontWeight: 'bold' }}>{title}</Text>
             <Text sx={{ fontSize: 0, color: 'grey.7' }}>
-              {availableFilters.length} filters available
+              {availableFilters.length}{' '}
+              {pluralize('filter', availableFilters.length)} available
             </Text>
           </Box>
         </Flex>
