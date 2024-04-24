@@ -30,7 +30,6 @@ async def details(
 
     if sarp_id.startswith("cr"):
         # road crossing
-        # record = road_crossings.to_table(filter=pc.field("SARPID") == sarp_id).slice(0)
         dataset = road_crossings
 
     elif sarp_id.startswith("f"):
@@ -50,11 +49,7 @@ async def details(
             case "smallfish_barriers":
                 dataset = smallfish_barriers
 
-    record = (
-        dataset.to_table(filter=filter)
-        .slice(0)
-        .rename_columns([c.lower() for c in dataset.schema.names])
-    )
+    record = dataset.to_table(filter=filter).slice(0).rename_columns([c.lower() for c in dataset.schema.names])
 
     if not len(record):
         raise HTTPException(404, detail=f"record not found for SARPID: {sarp_id}")

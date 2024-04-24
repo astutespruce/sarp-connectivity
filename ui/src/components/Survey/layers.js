@@ -369,3 +369,40 @@ export const otherBarrierPointLayer = {
     },
   },
 }
+
+export const waterfallsLayer = {
+  id: 'waterfalls',
+  source: 'waterfalls',
+  'source-layer': 'waterfalls',
+  type: 'circle',
+  minzoom: 10,
+  maxzoom: 24,
+  paint: {
+    'circle-color': getHighlightExpr(
+      pointColors.waterfalls.color,
+      pointColors.highlight.color
+    ),
+    'circle-stroke-color': getHighlightExpr(
+      pointColors.waterfalls.strokeColor,
+      pointColors.highlight.strokeColor
+    ),
+    'circle-radius': [
+      'interpolate',
+      ['linear'],
+      ['zoom'],
+      10,
+      getHighlightExpr(1, 10),
+      12,
+      getHighlightExpr(3, 14),
+      14,
+      getHighlightExpr(6, 14),
+    ],
+    'circle-opacity': 1,
+    'circle-stroke-width': {
+      stops: [
+        [10, 0],
+        [12, 1],
+      ],
+    },
+  },
+}

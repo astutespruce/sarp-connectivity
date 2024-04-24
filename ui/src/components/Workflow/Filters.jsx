@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { TimesCircle } from '@emotion-icons/fa-solid'
 import { Box, Flex, Heading, Text } from 'theme-ui'
 import { op } from 'arquero'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
 import { barrierTypeLabels } from 'config'
 import { useCrossfilter } from 'components/Crossfilter'
@@ -15,7 +16,7 @@ import { formatNumber, pluralize } from 'util/format'
 import BackLink from './BackLink'
 import StartOverButton from './StartOverButton'
 
-const Filters = ({ onBack, onStartOver, SubmitButton }) => {
+const Filters = ({ maxAllowed, onBack, onStartOver, SubmitButton }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const {
@@ -171,6 +172,28 @@ const Filters = ({ onBack, onStartOver, SubmitButton }) => {
           selected: {countMessage}
         </Text>
 
+        {filteredCount > maxAllowed ? (
+          <Flex
+            sx={{
+              bg: 'highlight',
+              my: '0.5rem',
+              py: '0.25rem',
+              borderRadius: '0.25rem',
+              gap: '1rem',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box sx={{ color: '#FFF' }}>
+              <ExclamationTriangle size="2em" />
+            </Box>
+            <Text sx={{ fontSize: 1, color: '#FFF' }}>
+              Too many {barrierTypeLabel} selected <br />
+              (limit is {formatNumber(maxAllowed)})
+            </Text>
+          </Flex>
+        ) : null}
+
         <Flex
           sx={{
             justifyContent: 'space-between',
@@ -188,9 +211,14 @@ const Filters = ({ onBack, onStartOver, SubmitButton }) => {
 }
 
 Filters.propTypes = {
+  maxAllowed: PropTypes.number,
   onBack: PropTypes.func.isRequired,
   onStartOver: PropTypes.func.isRequired,
   SubmitButton: PropTypes.node.isRequired,
+}
+
+Filters.defaultProps = {
+  maxAllowed: Infinity,
 }
 
 export default Filters

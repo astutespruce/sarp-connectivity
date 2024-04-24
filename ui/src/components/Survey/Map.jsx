@@ -47,6 +47,7 @@ import {
   otherBarrierPointLayer,
   excludedPointLayer,
   includedPointLayer,
+  waterfallsLayer,
 } from './layers'
 
 const SurveyMap = ({
@@ -105,6 +106,7 @@ const SurveyMap = ({
       setZoom(map.getZoom())
 
       const pointLayers = [
+        waterfallsLayer.id,
         excludedPointLayer.id,
         includedPointLayer.id,
         // give surveyed barriers higher precedence in hover / click
@@ -179,6 +181,8 @@ const SurveyMap = ({
           })
         }
       )
+
+      map.addLayer(waterfallsLayer)
 
       // all points are initially excluded from analysis until their
       // units are selected

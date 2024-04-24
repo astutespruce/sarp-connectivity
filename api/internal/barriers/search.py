@@ -16,7 +16,7 @@ from api.logger import log_request
 router = APIRouter()
 
 
-SARPID_REGEX = re.compile("^\S+d+")
+SARPID_REGEX = re.compile("^\S\S?\d+")
 
 NUM_BARRIER_SEARCH_RESULTS = 10
 
@@ -25,7 +25,6 @@ def rank_similarity(values, query):
     return pa.array([fuzz.WRatio(value, query) for value in values], type=pa.float32())
 
 
-# @router.get("/combined_barriers/search")
 @router.get("/barriers/search")
 async def search(request: Request, query: str):
     """Return top 10 barriers based on text search of name fields or by SARPID

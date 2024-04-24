@@ -31,7 +31,6 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 from pyarrow.csv import write_csv
-from pyarrow.feather import write_feather
 
 from analysis.lib.util import append
 from analysis.post.lib.removed_barriers import calc_year_removed_bin, pack_year_removed_stats
@@ -289,7 +288,7 @@ for unit in SUMMARY_UNITS:
 ### output unit stats with bounds for API
 units = pd.read_feather(bnd_dir / "unit_bounds.feather").set_index(["layer", "id"])
 out = units.join(stats.set_index(["layer", "id"]))
-write_feather(pa.Table.from_pandas(out.reset_index()), api_dir / "map_units.feather", compression="uncompressed")
+out.reset_index().to_feather(api_dir / "map_units.feather")
 
 
 ### Output minimal subset and join to tiles

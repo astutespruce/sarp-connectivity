@@ -3,8 +3,6 @@ from time import time
 
 import geopandas as gp
 import pandas as pd
-import pyarrow as pa
-from pyarrow.feather import write_feather
 
 from analysis.constants import SEVERITY_TO_PASSABILITY
 from analysis.lib.util import get_signed_dtype, append
@@ -142,8 +140,7 @@ tmp = dams[DAM_API_FIELDS].reset_index()
 verify_domains(tmp)
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
-write_feather(pa.Table.from_pandas(tmp), api_dir / "dams.feather", compression="uncompressed")
-
+tmp.sort_values("SARPID").to_feather(api_dir / "dams.feather")
 
 #########################################################################################
 ###
@@ -211,7 +208,7 @@ small_barriers.reset_index().to_feather(results_dir / "small_barriers.feather")
 tmp = small_barriers[SB_API_FIELDS].reset_index()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
-write_feather(pa.Table.from_pandas(tmp), api_dir / "small_barriers.feather", compression="uncompressed")
+tmp.sort_values("SARPID").to_feather(api_dir / "small_barriers.feather")
 
 #########################################################################################
 ###
@@ -354,7 +351,7 @@ for network_type in [
     verify_domains(tmp)
     tmp["id"] = tmp.id.astype("uint32")
 
-    write_feather(pa.Table.from_pandas(tmp), api_dir / f"{network_type}.feather", compression="uncompressed")
+    tmp.sort_values("SARPID").to_feather(api_dir / f"{network_type}.feather")
 
     # save for search
     if network_type == "combined_barriers":
@@ -419,7 +416,7 @@ tmp = waterfalls[["id"] + WF_API_FIELDS].copy()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
 
-write_feather(pa.Table.from_pandas(tmp), api_dir / "waterfalls.feather", compression="uncompressed")
+tmp.to_feather(api_dir / "waterfalls.feather")
 
 
 #########################################################################################
@@ -452,8 +449,7 @@ verify_domains(tmp)
 
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
-write_feather(pa.Table.from_pandas(tmp), api_dir / "road_crossings.feather", compression="uncompressed")
-
+tmp.sort_values("SARPID").to_feather(api_dir / "road_crossings.feather")
 
 ### Save barrier search items
 
@@ -464,4 +460,4 @@ search_barriers["search_key"] = (
 search_barriers["priority"] = search_barriers.BarrierType.map(
     {"dams": 0, "waterfalls": 1, "small_barriers": 2, "road_crossings": 3}
 ).astype("uint8")
-write_feather(pa.Table.from_pandas(search_barriers), api_dir / "search_barriers.feather", compression="uncompressed")
+search_barriers.sort_values(by=["priority", "SARPID"]).to_feather(api_dir / "search_barriers.feather")

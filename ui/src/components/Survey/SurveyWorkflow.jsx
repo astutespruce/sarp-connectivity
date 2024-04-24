@@ -22,10 +22,11 @@ import {
   unitLayerConfig,
 } from 'components/Workflow'
 
-// import { trackPrioritize } from 'util/analytics'
 import { toCamelCaseFields } from 'util/data'
 
 import Map from './Map'
+
+const MAX_RECORDS = 500000
 
 const SurveyWorkflow = () => {
   const barrierType = useBarrierType()
@@ -349,6 +350,7 @@ const SurveyWorkflow = () => {
         case 'filter': {
           sidebarContent = (
             <Filters
+              maxAllowed={MAX_RECORDS}
               onBack={handleFilterBack}
               onStartOver={handleStartOver}
               SubmitButton={
@@ -356,7 +358,9 @@ const SurveyWorkflow = () => {
                   <Downloader
                     barrierType={barrierType}
                     label="Download selected crossings"
-                    disabled={filteredCount === 0}
+                    disabled={
+                      filteredCount === 0 || filteredCount > MAX_RECORDS
+                    }
                     config={{
                       summaryUnits: {
                         [layer]: summaryUnits.map(({ id }) => id),
