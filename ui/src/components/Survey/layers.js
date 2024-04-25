@@ -133,11 +133,11 @@ export const rankedPointLayer = {
   maxzoom: 24,
   paint: {
     'circle-color': getHighlightExpr(
-      pointColors.offNetwork.color, // FIXME:
+      pointColors.majorBarrier.color,
       pointColors.highlight.color
     ),
     'circle-stroke-color': getHighlightExpr(
-      pointColors.offNetwork.strokeColor, // FIXME:
+      pointColors.majorBarrier.strokeColor,
       pointColors.highlight.strokeColor
     ),
     'circle-radius': [

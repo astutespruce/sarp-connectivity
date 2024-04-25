@@ -69,6 +69,11 @@ export const pointColors = {
     color: '#fec44f',
     strokeColor: '#b27701',
   },
+  // majorBarrier only used for surveyed barriers in survey view
+  majorBarrier: {
+    color: '#ef3b2c',
+    strokeColor: '#FFFFFF',
+  },
   nonBarrier: {
     color: '#00D46A',
     strokeColor: '#037424',
@@ -1206,6 +1211,16 @@ export const INVASIVE_NETWORK = {
 export const SURVEYED = {
   0: 'not likely surveyed',
   1: 'likely surveyed',
+}
+
+export const SLOPE_CLASS = {
+  0: 'slope not available',
+  1: '0 - 9%',
+  2: '10 - 19%',
+  3: '20 - 29%',
+  4: '30 - 39%',
+  5: '40 - 49%',
+  6: '>50%',
 }
 
 export const CONNECTIVITY_TEAMS = {

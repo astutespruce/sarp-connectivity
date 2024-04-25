@@ -27,7 +27,7 @@ import {
   getBarrierTooltip,
   getBitFromBitsetExpr,
 } from 'components/Map'
-import { barrierTypeLabels, pointLegends } from 'config'
+import { barrierTypeLabels, pointLegends, pointColors } from 'config'
 import { isEqual, groupBy } from 'util/data'
 
 import { unitLayerConfig } from 'components/Workflow'
@@ -518,6 +518,7 @@ const SurveyMap = ({
     const pointLayers = [
       includedPointLayer,
       excludedPointLayer,
+      rankedPointLayer,
       otherBarrierPointLayer,
     ]
 
@@ -623,12 +624,23 @@ const SurveyMap = ({
       }
     }
 
+    if (isWithinZoom[rankedPointLayer.id]) {
+      circles.push({
+        id: 'majorBarrier',
+        label: 'major or worse barrier based on field assessment',
+        radius: 6,
+        color: `${pointColors.majorBarrier.color}`,
+        borderColor: `${pointColors.majorBarrier.strokeColor}`,
+        borderWidth: 1,
+      })
+    }
+
     if (isWithinZoom[otherBarrierPointLayer.id]) {
-      unrankedBarriers.forEach(({ getSymbol, getLabel }) => {
+      unrankedBarriers.forEach(({ id, getSymbol, getLabel }) => {
         circles.push({
           ...getSymbol('small_barriers'),
           label: getLabel(
-            `surveyed ${barrierTypeLabels.small_barriers}`
+            `${id === 'unranked' ? 'off-network surveyed ' : ''}${barrierTypeLabels.small_barriers}`
           ).replace('not available for prioritization', ''),
         })
       })
