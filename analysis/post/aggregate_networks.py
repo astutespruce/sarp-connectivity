@@ -7,7 +7,7 @@ import pandas as pd
 from analysis.constants import SEVERITY_TO_PASSABILITY
 from analysis.lib.util import get_signed_dtype, append
 from analysis.rank.lib.networks import get_network_results, get_removed_network_results
-from analysis.rank.lib.metrics import classify_streamorder, classify_spps
+from analysis.rank.lib.metrics import classify_streamorder, classify_spps, classify_slope
 from api.constants import (
     GENERAL_API_FIELDS1,
     UNIT_FIELDS,
@@ -69,6 +69,10 @@ def fill_flowline_cols(df):
     df["AnnualFlow"] = df.AnnualFlow.fillna(-1).astype("float32")
     df["AnnualVelocity"] = df.AnnualVelocity.fillna(-1).astype("float32")
     df["TotDASqKm"] = df.TotDASqKm.fillna(-1).astype("float32")
+
+    # slope is only used for road crossings
+    # if "Slope" in df.columns:
+    #     df["Slope"] = df.Slope.fillna(-1).astype("float32")
 
 
 #######################################################################################
@@ -437,6 +441,7 @@ search_barriers = pd.concat(
 crossings["StreamOrderClass"] = classify_streamorder(crossings.StreamOrder)
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
     crossings[f"{col}Class"] = classify_spps(crossings[col])
+# crossings["SlopeClass"] = classify_slope(crossings.Slope)
 
 print("Saving crossings for tiles and API")
 # Save full results for tiles, etc

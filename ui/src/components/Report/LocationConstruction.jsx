@@ -15,6 +15,7 @@ import {
   OWNERTYPE,
   BARRIEROWNERTYPE,
   FERC_REGULATED,
+  FISH_HABITAT_PARTNERSHIP,
   STATE_REGULATED,
   WATER_RIGHT,
   DISADVANTAGED_COMMUNITY,
@@ -72,6 +73,7 @@ const Location = ({
   removed,
   ejtract,
   ejtribal,
+  fishhabitatpartnership,
   nativeterritories,
   ...props
 }) => {
@@ -358,7 +360,9 @@ const Location = ({
               {nativeterritories ? (
                 <Entry>
                   <Text>Within the following native territories:</Text>
-                  <Text style={{ marginTop: '6pt' }}>{nativeterritories}</Text>
+                  <Text style={{ fontSize: '12pt', marginTop: '6pt' }}>
+                    {nativeterritories}
+                  </Text>
                   <Text style={{ fontSize: '10pt', color: '#7f8a93' }}>
                     (based on data provided by{' '}
                     <Link href="https://native-land.ca/">
@@ -449,6 +453,22 @@ const Location = ({
           )}
         </View>
       </Flex>
+
+      {fishhabitatpartnership ? (
+        <View style={{ marginTop: '20pt' }}>
+          <Text>Fish Habitat Partnerships working in this area:</Text>
+          <Text sx={{ mt: '0.25rem', ml: '1rem' }}>
+            {fishhabitatpartnership.split(',').map((code, i) => (
+              <>
+                {i > 0 ? ', ' : null}
+                <Link href={FISH_HABITAT_PARTNERSHIP[code].url}>
+                  {FISH_HABITAT_PARTNERSHIP[code].name}
+                </Link>
+              </>
+            ))}
+          </Text>
+        </View>
+      ) : null}
     </Section>
   )
 }
@@ -493,6 +513,7 @@ Location.propTypes = {
   removed: PropTypes.bool,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
+  fishhabitatpartnership: PropTypes.string,
   nativeterritories: PropTypes.string,
 }
 
@@ -534,6 +555,7 @@ Location.defaultProps = {
   removed: false,
   ejtract: false,
   ejtribal: false,
+  fishhabitatpartnership: null,
   nativeterritories: null,
 }
 

@@ -341,24 +341,24 @@ df.loc[df.FedRegulatoryAgency.isin(["1", "2"]), "FedRegulatoryAgency"] = ""
 df.loc[df.FedRegulatoryAgency == "BOR", "FedRegulatoryAgency"] = "Bureau of Reclamation"
 df.loc[df.FedRegulatoryAgency == "FERC", "FedRegulatoryAgency"] = "Federal Energy Regulatory Commission"
 df.loc[df.FedRegulatoryAgency.isin(["COE", "US Army"]), "FedRegulatoryAgency"] = "US Army Corps of Engineers"
-df.loc[
-    df.FedRegulatoryAgency == "COE and FERC", "FedRegulatoryAgency"
-] = "US Army Corps of Engineers;Federal Energy Regulatory Commission"
+df.loc[df.FedRegulatoryAgency == "COE and FERC", "FedRegulatoryAgency"] = (
+    "US Army Corps of Engineers;Federal Energy Regulatory Commission"
+)
 
 df.loc[df.FedRegulatoryAgency.isin(["USFS", "Forest Service"]), "FedRegulatoryAgency"] = "USDA Forest Service"
 df.loc[df.FedRegulatoryAgency == "TVA", "FedRegulatoryAgency"] = "Tennessee Valley Authority"
-df.loc[
-    df.FedRegulatoryAgency.isin(["USFWS", "Fish and Wildlife Service"]), "FedRegulatoryAgency"
-] = "US Fish and Wildlife Service"
-df.loc[
-    df.FedRegulatoryAgency == "US Army Corps of Engineers;Fish and Wildlife Service", "FedRegulatoryAgency"
-] = "US Army Corps of Engineers;US Fish and Wildlife Service"
-df.loc[
-    df.FedRegulatoryAgency == "Forest Service;Natural Resources Conservation Service", "FedRegulatoryAgency"
-] = "USDA Forest Service;Natural Resources Conservation Service"
-df.loc[
-    df.FedRegulatoryAgency == "US Army;Fish and Wildlife Service", "FedRegulatoryAgency"
-] = "US Army Corps of Engineers;US Fish and Wildlife Service"
+df.loc[df.FedRegulatoryAgency.isin(["USFWS", "Fish and Wildlife Service"]), "FedRegulatoryAgency"] = (
+    "US Fish and Wildlife Service"
+)
+df.loc[df.FedRegulatoryAgency == "US Army Corps of Engineers;Fish and Wildlife Service", "FedRegulatoryAgency"] = (
+    "US Army Corps of Engineers;US Fish and Wildlife Service"
+)
+df.loc[df.FedRegulatoryAgency == "Forest Service;Natural Resources Conservation Service", "FedRegulatoryAgency"] = (
+    "USDA Forest Service;Natural Resources Conservation Service"
+)
+df.loc[df.FedRegulatoryAgency == "US Army;Fish and Wildlife Service", "FedRegulatoryAgency"] = (
+    "US Army Corps of Engineers;US Fish and Wildlife Service"
+)
 df["FedRegulatoryAgency"] = df.FedRegulatoryAgency.str.replace(";", ", ")
 
 
@@ -849,7 +849,7 @@ for col in [
 ]:
     df[col] = df[col].fillna("").astype("str")
 
-df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
+df["CoastalHUC8"] = df.CoastalHUC8.fillna(0).astype("bool")
 
 ### Drop any that didn't intersect HUCs or states (including those outside analysis region)
 drop_ix = (df.HUC12 == "") | (df.State == "")
@@ -897,8 +897,8 @@ df["intermittent"] = df.FCode.isin([46003, 46007])
 
 
 # Fix missing field values
-df["loop"] = df.loop.fillna(False)
-df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(False)
+df["loop"] = df.loop.fillna(0).astype("bool")
+df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(0).astype("bool")
 df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null

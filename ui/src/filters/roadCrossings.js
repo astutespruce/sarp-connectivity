@@ -9,6 +9,7 @@ import {
   OWNERTYPE,
   DISADVANTAGED_COMMUNITY,
   SURVEYED,
+  FISH_HABITAT_PARTNERSHIP,
 } from 'config'
 
 import { getEntries } from './common'
@@ -41,6 +42,17 @@ export const roadCrossings = [
         isArray: true,
         labels: Object.values(DISADVANTAGED_COMMUNITY),
         values: Object.keys(DISADVANTAGED_COMMUNITY),
+      },
+      {
+        field: 'fishhabitatpartnership',
+        title: 'Fish Habitat Partnerships working in area',
+        help: '',
+        sort: false,
+        hideMissingValues: true,
+        hideIfEmpty: true,
+        isArray: true,
+        labels: Object.values(FISH_HABITAT_PARTNERSHIP).map(({ name }) => name),
+        values: Object.keys(FISH_HABITAT_PARTNERSHIP),
       },
     ],
   },

@@ -45,3 +45,9 @@ def classify_downstream_barriers(series):
     """classify barriers downstream to ocean / Great Lakes into bins 1...5; 0 is reserved for missing values"""
     bins = [-1, 0, 1, 2, 5, 10] + [series.max() + 1]
     return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")
+
+
+def classify_slope(series):
+    """classify barriers into slope bins 1...5; 0 is reserved for missing values"""
+    bins = [-1, 0, 10, 20, 30, 40, 50, 100]
+    return np.asarray(pd.cut(series, bins, right=False, labels=np.arange(0, len(bins) - 1))).astype("uint8")

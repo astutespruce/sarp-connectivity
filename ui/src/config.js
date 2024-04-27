@@ -1202,6 +1202,82 @@ export const DISADVANTAGED_COMMUNITY = {
   tribal: 'Within a tribal community',
 }
 
+// NOTE: these are encoded into a comma-delimited field
+export const FISH_HABITAT_PARTNERSHIP = {
+  ACFHP: {
+    name: 'Atlantic Coastal Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/atlantic-coastal-fish-habitat-partnership',
+  },
+  CFPF: {
+    name: 'California Fish Passage Forum',
+    url: 'https://www.fishhabitat.org/the-partnerships/california-fish-passage-forum',
+  },
+  DARE: {
+    name: 'Driftless Area Restoration Effort',
+    url: 'https://www.fishhabitat.org/the-partnerships/driftless-area-restoration-effort',
+  },
+  DFHP: {
+    name: 'Desert Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/desert-fish-habitat-partnership',
+  },
+  EBTJV: {
+    name: 'Eastern Brook Trout Joint Venture',
+    url: 'https://www.fishhabitat.org/the-partnerships/eastern-brook-trout-joint-venture',
+  },
+  FFP: {
+    name: 'Farmers & Fishers Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/fishers-farmers-partnership',
+  },
+  GLBFHP: {
+    name: 'Great Lakes Basin Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/great-lakes-basin-fish-habitat-partnership',
+  },
+  GPFHP: {
+    name: 'Great Plains Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/great-plains-fish-habitat-partnership',
+  },
+  HFHP: {
+    name: 'Hawaii Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/hawaii-fish-habitat-partnership',
+  },
+  KPFHP: {
+    name: 'Kenai Peninsula Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/kenai-peninsula-fish-habitat-partnership',
+  },
+  MSBSHP: {
+    name: 'Mat-Su Basin Salmon Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/mat-su-basin-salmon-habitat-partnership',
+  },
+  MGLP: {
+    name: 'Midwest Glacial Lakes Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/midwest-glacial-lakes-partnership',
+  },
+  ORBFHP: {
+    name: 'Ohio River Basin Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/ohio-river-basin-fish-habitat-partnership',
+  },
+  PMEP: {
+    name: 'Pacific Marine & Estuarine Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/pacific-marine-and-estuarine-fish-habitat-partnership',
+  },
+  SARP: {
+    name: 'Southeast Aquatic Resources Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/southeast-aquatic-resources-partnership',
+  },
+  SEAFHP: {
+    name: 'Southeast Alaska Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/southeast-alaska-fish-habitat-partnership',
+  },
+  SWASHP: {
+    name: 'Southwest Alaska Salmon Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/southwest-alaska-salmon-habitat-partnership',
+  },
+  WNTI: {
+    name: 'Western Native Trout Initiative',
+    url: 'https://www.fishhabitat.org/the-partnerships/western-native-trout-initiative',
+  },
+}
+
 export const INVASIVE_NETWORK = {
   // -1: 'off network', // filtered out
   0: 'not upstream of an invasive species barrier',

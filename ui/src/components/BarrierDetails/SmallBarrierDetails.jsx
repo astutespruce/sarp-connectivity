@@ -65,6 +65,7 @@ const BarrierDetails = ({
   ejtract,
   ejtribal,
   excluded,
+  fishhabitatpartnership,
   flowstoocean,
   flowstogreatlakes,
   freealtereddownstreammiles,
@@ -159,6 +160,7 @@ const BarrierDetails = ({
           barrierownertype={barrierownertype}
           ejtract={ejtract}
           ejtribal={ejtribal}
+          fishhabitatpartnership={fishhabitatpartnership}
           nativeterritories={nativeterritories}
           intermittent={intermittent}
           streamorder={streamorder}
@@ -358,6 +360,7 @@ BarrierDetails.propTypes = {
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
   excluded: PropTypes.bool,
+  fishhabitatpartnership: PropTypes.string,
   flowstoocean: PropTypes.number,
   flowstogreatlakes: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
@@ -483,6 +486,7 @@ BarrierDetails.defaultProps = {
   ejtract: false,
   ejtribal: false,
   excluded: false,
+  fishhabitatpartnership: null,
   flowstoocean: 0,
   flowstogreatlakes: 0,
   freealtereddownstreammiles: 0,

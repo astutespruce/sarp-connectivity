@@ -5,21 +5,16 @@ as barriers (EPSG:102003 - CONUS Albers).
 Note: output shapefiles for creating tilesets are limited to only those areas that overlap
 the SARP states boundary.
 """
+
 from pathlib import Path
 
 import geopandas as gp
 import numpy as np
 import pandas as pd
 import shapely
-from pyogrio import read_dataframe, write_dataframe
+from pyogrio import read_dataframe, write_dataframe, list_layers
 
-from analysis.constants import (
-    CRS,
-    GEO_CRS,
-    OWNERTYPE_TO_DOMAIN,
-    OWNERTYPE_TO_PUBLIC_LAND,
-    STATES,
-)
+from analysis.constants import CRS, GEO_CRS, OWNERTYPE_TO_DOMAIN, OWNERTYPE_TO_PUBLIC_LAND, STATES, FHP_LAYER_TO_CODE
 from analysis.lib.geometry import explode, dissolve, to_multipolygon, make_valid
 from analysis.lib.util import append
 
@@ -261,7 +256,7 @@ df = df.dropna(subset=["OwnerType"])
 df.OwnerType = df.OwnerType.astype("uint8")
 
 # Add in public status
-df["ProtectedLand"] = df.OwnerType.map(OWNERTYPE_TO_PUBLIC_LAND).fillna(False).astype("bool")
+df["ProtectedLand"] = df.OwnerType.map(OWNERTYPE_TO_PUBLIC_LAND).fillna(0).astype("bool")
 
 # only save owner type and protected land status
 df = df[["geometry", "OwnerType", "ProtectedLand"]].explode(ignore_index=True)
@@ -343,3 +338,49 @@ df["geometry"] = make_valid(df.geometry.values)
 tree = shapely.STRtree(df.geometry.values)
 df = df.take(tree.query(bnd, predicate="intersects")).explode(ignore_index=True)
 df.to_feather(out_dir / "native_territories.feather")
+
+
+### Process Fish Habitat Partnership boundaries
+# NOTE: these include overlapping areas
+print("Extracting FHP boundaries")
+merged = None
+for layer, code in FHP_LAYER_TO_CODE.items():
+    print(f"Extracting {layer}")
+
+    columns = []
+    if layer == "FHP_SEAK_Boundary_2013":
+        columns = ["TYPE"]
+
+    df = (
+        read_dataframe(src_dir / "FHP_Official_Boundaries_2013.gdb", layer=layer, columns=columns, use_arrow=True)
+        .to_crs(CRS)
+        .explode(ignore_index=True)
+    )
+
+    ix = shapely.STRtree(df.geometry.values).query(bnd, predicate="intersects")
+    df = df.take(ix)
+
+    # drop small parts (islands)
+    df = df.loc[shapely.area(df.geometry.values) / 1e6 >= 1].reset_index(drop=True)
+
+    df["FishHabitatPartnership"] = code
+
+    if layer == "FHP_SEAK_Boundary_2013":
+        # SE AK is crazy complex because of coastline and needs to be simplified to drop the small islands
+        # only extract outer boundary, dissolve land and water parts, and then extract outer boundary again
+        df["geometry"] = shapely.polygons(shapely.get_exterior_ring(df.geometry.values))
+        df = dissolve(df, by="FishHabitatPartnership").explode(ignore_index=True)
+        df["geometry"] = shapely.polygons(shapely.get_exterior_ring(df.geometry.values))
+        df = dissolve(df, by="FishHabitatPartnership")
+
+    else:
+        df["geometry"] = make_valid(df.geometry.values)
+        df = df.explode(ignore_index=True).explode(ignore_index=True)
+        df = dissolve(df.loc[shapely.get_type_id(df.geometry.values) == 3], by="FishHabitatPartnership")
+
+    merged = append(merged, df[["geometry", "FishHabitatPartnership"]])
+
+df = merged
+
+df.to_feather(out_dir / "fhp_boundary.feather")
+write_dataframe(df, out_dir / "fhp_boundary.fgb")

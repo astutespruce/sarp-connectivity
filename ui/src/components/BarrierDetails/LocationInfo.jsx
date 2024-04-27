@@ -12,6 +12,7 @@ import {
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
+  FISH_HABITAT_PARTNERSHIP,
 } from 'config'
 import { OutboundLink } from 'components/Link'
 import { Entry, Field } from 'components/Sidebar'
@@ -32,6 +33,7 @@ const LocationInfo = ({
   waterright,
   ejtract,
   ejtribal,
+  fishhabitatpartnership,
   nativeterritories,
   intermittent,
   streamorder,
@@ -147,13 +149,27 @@ const LocationInfo = ({
         </Entry>
       ) : null}
 
+      {fishhabitatpartnership ? (
+        <Entry>
+          <Text>Fish Habitat Partnerships working in this area:</Text>
+          <Text sx={{ mt: '0.25rem', ml: '1rem' }}>
+            {fishhabitatpartnership.split(',').map((code, i) => (
+              <>
+                {i > 0 ? <br /> : null}
+                <OutboundLink to={FISH_HABITAT_PARTNERSHIP[code].url}>
+                  {FISH_HABITAT_PARTNERSHIP[code].name}
+                </OutboundLink>
+              </>
+            ))}
+          </Text>
+        </Entry>
+      ) : null}
+
       {nativeterritories ? (
         <Entry>
           <Text>Within the following native territories:</Text>
-          <Text sx={{ textAlign: 'right', mt: '0.5rem' }}>
-            {nativeterritories}
-          </Text>
-          <Text sx={{ fontSize: 0, color: 'grey.7', textAlign: 'right' }}>
+          <Text sx={{ mt: '0.25rem', ml: '1rem' }}>{nativeterritories}</Text>
+          <Text sx={{ fontSize: 0, color: 'grey.7', ml: '1rem' }}>
             (based on data provided by{' '}
             <OutboundLink to="https://native-land.ca/">
               Native Land Digital
@@ -180,6 +196,7 @@ LocationInfo.propTypes = {
   waterright: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
+  fishhabitatpartnership: PropTypes.string,
   nativeterritories: PropTypes.string,
   intermittent: PropTypes.number,
   streamorder: PropTypes.number,
@@ -198,6 +215,7 @@ LocationInfo.defaultProps = {
   waterright: null,
   ejtract: false,
   ejtribal: false,
+  fishhabitatpartnership: null,
   nativeterritories: null,
   intermittent: 0,
   streamorder: 0,

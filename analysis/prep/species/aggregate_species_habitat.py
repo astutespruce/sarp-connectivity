@@ -9,9 +9,9 @@ working_dir = data_dir / "species/derived"
 # datasets with species level columns
 streamnet = pd.read_feather(working_dir / "streamnet_habitat.feather")
 
-chesapeake_diadromous = pd.read_feather(
-    working_dir / "chesapeake_diadromous_species_habitat.feather"
-).rename(columns={"brook_trout_habitat": "chesapeake_brook_trout_habitat"})
+chesapeake_diadromous = pd.read_feather(working_dir / "chesapeake_diadromous_species_habitat.feather").rename(
+    columns={"brook_trout_habitat": "chesapeake_brook_trout_habitat"}
+)
 
 eastern_brook_trout = pd.read_feather(
     working_dir / "eastern_brook_trout_habitat.feather",
@@ -55,12 +55,10 @@ df = (
 )
 
 cols = [c for c in df.columns if c != "HUC2"]
-df[cols] = df[cols].fillna(False).astype("bool")
+df[cols] = df[cols].fillna(0).astype("bool")
 
 # combine Trout Unlimited and Chesapeake Bay data for brook trout
-df["eastern_brook_trout_habitat"] = (
-    df.eastern_brook_trout_habitat | df.chesapeake_brook_trout_habitat
-)
+df["eastern_brook_trout_habitat"] = df.eastern_brook_trout_habitat | df.chesapeake_brook_trout_habitat
 df = df.drop(columns=["chesapeake_brook_trout_habitat"])
 
 

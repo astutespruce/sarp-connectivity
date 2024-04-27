@@ -48,6 +48,7 @@ const DamDetails = ({
   feasibilityclass,
   fedregulatoryagency,
   fercregulated,
+  fishhabitatpartnership,
   flowstoocean,
   flowstogreatlakes,
   freealtereddownstreammiles,
@@ -179,6 +180,7 @@ const DamDetails = ({
           // disadvantagedcommunity={disadvantagedcommunity}
           ejtract={ejtract}
           ejtribal={ejtribal}
+          fishhabitatpartnership={fishhabitatpartnership}
           nativeterritories={nativeterritories}
           intermittent={intermittent}
           streamorder={streamorder}
@@ -424,6 +426,7 @@ DamDetails.propTypes = {
   feasibilityclass: PropTypes.number,
   fedregulatoryagency: PropTypes.string,
   fercregulated: PropTypes.number,
+  fishhabitatpartnership: PropTypes.string,
   flowstoocean: PropTypes.number,
   flowstogreatlakes: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
@@ -557,6 +560,7 @@ DamDetails.defaultProps = {
   feasibilityclass: 0,
   fedregulatoryagency: null,
   fercregulated: null,
+  fishhabitatpartnership: null,
   flowstoocean: 0,
   flowstogreatlakes: 0,
   freealtereddownstreammiles: 0,
