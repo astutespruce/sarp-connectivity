@@ -1206,7 +1206,11 @@ export const DISADVANTAGED_COMMUNITY = {
 export const FISH_HABITAT_PARTNERSHIPS = {
   ACFHP: {
     name: 'Atlantic Coastal Fish Habitat Partnership',
+    description:
+      'The Atlantic Coastal Fish Habitat Partnership (ACFHP) mission is to accelerate the conservation, protection, restoration, and enhancement of habitat for native Atlantic coastal, estuarine-dependent, and diadromous fishes through partnerships between federal, tribal, state, local, and other entities. The Partnership works from the headwaters of coastally draining rivers to the edge of the continental shelf, with a focus on estuarine habitats.',
     url: 'https://www.fishhabitat.org/the-partnerships/atlantic-coastal-fish-habitat-partnership',
+    logo: 'acfhp_logo.png',
+    logoWidth: '140px',
   },
   CFPF: {
     name: 'California Fish Passage Forum',
@@ -1258,11 +1262,19 @@ export const FISH_HABITAT_PARTNERSHIPS = {
   },
   PMEP: {
     name: 'Pacific Marine & Estuarine Fish Habitat Partnership',
+    description:
+      "The Pacific Marine and Estuarine Fish Habitat Partnership's (PMEP) mission is to protect, enhance, and restore ecological habitats within estuaries and nearshore marine environments to sustain healthy native fish communities and support sustainable human uses that depend on healthy fish populations.  The PMEP originated in 2009 when representatives from Oregon, Washington and California agencies and non-governmental entities met to discuss the need to protect and restore habitat for fish species that use estuaries and nearshore marine areas.",
     url: 'https://www.fishhabitat.org/the-partnerships/pacific-marine-and-estuarine-fish-habitat-partnership',
+    logo: 'pmep_logo.png',
+    logoWidth: '180px',
   },
   SARP: {
     name: 'Southeast Aquatic Resources Partnership',
+    description:
+      'The Southeast Aquatic Resources Partnership (SARP) was formed by the Southeastern Association of Fish and Wildlife Agencies (SEAFWA) to protect aquatic resources across political boundaries as many of our river systems cross multiple jurisdictional boundaries. SARP works with partners to protect, conserve, and restore aquatic resources including habitats throughout the Southeast for the continuing benefit, use, and enjoyment of the American people.',
     url: 'https://www.fishhabitat.org/the-partnerships/southeast-aquatic-resources-partnership',
+    logo: 'sarp_logo.png',
+    logoWidth: '140px',
   },
   SEAFHP: {
     name: 'Southeast Alaska Fish Habitat Partnership',

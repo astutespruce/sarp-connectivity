@@ -19,7 +19,7 @@ Inputs:
 * `data/api/road_crossings.feather`
 
 Outputs:
-* `/tiles/summary.mbtiles`
+* `/tiles/map_units_summary.mbtiles`
 * `/data/api/map_units.feather`
 
 """
@@ -49,6 +49,8 @@ SUMMARY_UNITS = [
     "HUC8",
     "HUC10",
     "HUC12",
+    # not shown thematically on map (units overlap)
+    "FishHabitatPartnership",
 ]
 
 INT_COLS = [
@@ -167,15 +169,36 @@ stats = None
 for unit in SUMMARY_UNITS:
     print(f"processing {unit}")
 
+    dams_by_unit = dams.copy()
+    barriers_by_unit = barriers.copy()
+    largefish_barriers_by_unit = largefish_barriers.copy()
+    smallfishbarriers_by_unit = smallfish_barriers.copy()
+    crossings_by_unit = crossings.copy()
+
     if unit == "State":
         units = pd.read_feather(bnd_dir / "region_states.feather", columns=["id"]).set_index("id")
     elif unit == "COUNTYFIPS":
         units = pd.read_feather(bnd_dir / "region_counties.feather", columns=["id"]).set_index("id")
+    elif unit == "FishHabitatPartnership":
+        units = pd.read_feather(bnd_dir / "fhp_boundary.feather", columns=["id"]).set_index("id")
+
+        # have to split lists of fish habitat partnerships into individual records
+        dams_by_unit[unit] = dams_by_unit[unit].str.split(",")
+        dams_by_unit = dams_by_unit.explode(unit)
+        barriers_by_unit[unit] = barriers_by_unit[unit].str.split(",")
+        barriers_by_unit = barriers_by_unit.explode(unit)
+        largefish_barriers_by_unit[unit] = largefish_barriers_by_unit[unit].str.split(",")
+        largefish_barriers_by_unit = largefish_barriers_by_unit.explode(unit)
+        smallfishbarriers_by_unit[unit] = smallfishbarriers_by_unit[unit].str.split(",")
+        smallfishbarriers_by_unit = smallfishbarriers_by_unit.explode(unit)
+        crossings_by_unit[unit] = crossings_by_unit[unit].str.split(",")
+        crossings_by_unit = crossings_by_unit.explode(unit)
+
     else:
         units = pd.read_feather(bnd_dir / f"{unit}.feather", columns=[unit]).set_index(unit)
 
     dam_stats = (
-        dams[[unit, "id", "Ranked", "Recon", "Removed", "RemovedGainMiles"]]
+        dams_by_unit[[unit, "id", "Ranked", "Recon", "Removed", "RemovedGainMiles"]]
         .groupby(unit)
         .agg(
             {
@@ -196,15 +219,15 @@ for unit in SUMMARY_UNITS:
             }
         )
         .join(
-            pack_year_removed_stats(dams[[unit, "HasNetwork", "YearRemoved", "RemovedGainMiles"]], unit=unit).rename(
-                "removed_dams_by_year"
-            )
+            pack_year_removed_stats(
+                dams_by_unit[[unit, "HasNetwork", "YearRemoved", "RemovedGainMiles"]], unit=unit
+            ).rename("removed_dams_by_year")
         )
     )
     dam_stats["removed_dams_by_year"] = dam_stats.removed_dams_by_year.fillna("")
 
     barriers_stats = (
-        barriers[[unit, "id", "Included", "Ranked", "Removed", "RemovedGainMiles"]]
+        barriers_by_unit[[unit, "id", "Included", "Ranked", "Removed", "RemovedGainMiles"]]
         .groupby(unit)
         .agg(
             {
@@ -226,7 +249,7 @@ for unit in SUMMARY_UNITS:
         )
         .join(
             pack_year_removed_stats(
-                barriers[[unit, "HasNetwork", "YearRemoved", "RemovedGainMiles"]], unit=unit
+                barriers_by_unit[[unit, "HasNetwork", "YearRemoved", "RemovedGainMiles"]], unit=unit
             ).rename("removed_small_barriers_by_year")
         )
     )
@@ -234,7 +257,7 @@ for unit in SUMMARY_UNITS:
 
     # have to split out stats by barrier type because this is how it is handled in UI
     largefish_stats = (
-        largefish_barriers.loc[largefish_barriers.Ranked]
+        largefish_barriers_by_unit.loc[largefish_barriers_by_unit.Ranked]
         .groupby([unit, "BarrierType"])
         .size()
         .rename("count")
@@ -245,7 +268,7 @@ for unit in SUMMARY_UNITS:
     largefish_stats.columns = [f"ranked_largefish_barriers_{c}" for _, c in largefish_stats.columns]
 
     smallfish_stats = (
-        smallfish_barriers.loc[smallfish_barriers.Ranked]
+        smallfishbarriers_by_unit.loc[smallfishbarriers_by_unit.Ranked]
         .groupby([unit, "BarrierType"])
         .size()
         .rename("count")
@@ -255,9 +278,9 @@ for unit in SUMMARY_UNITS:
     )
     smallfish_stats.columns = [f"ranked_smallfish_barriers_{c}" for _, c in smallfish_stats.columns]
 
-    total_crossing_stats = crossings[[unit, "id"]].groupby(unit).size().rename("total_road_crossings")
+    total_crossing_stats = crossings_by_unit[[unit, "id"]].groupby(unit).size().rename("total_road_crossings")
     unsurveyed_crossing_stats = (
-        crossings.loc[crossings.NearestBarrierID == ""][[unit, "id"]]
+        crossings_by_unit.loc[crossings_by_unit.NearestBarrierID == ""][[unit, "id"]]
         .groupby(unit)
         .size()
         .rename("unsurveyed_road_crossings")
@@ -291,60 +314,60 @@ out = units.join(stats.set_index(["layer", "id"]))
 out.reset_index().to_feather(api_dir / "map_units.feather")
 
 
-### Output minimal subset and join to tiles
+# ### Output minimal subset and join to tiles
 
-# create bitset field based on number of barriers present per unit; where false for a given barrier type,
-# this is used to color the unit grey (see priority/Map.jsx for decoding)
-# Can rank if:
-# dams: ranked_dams > 0
-# small_barriers: ranked_small_barriers > 0 AND total_small_barriers >= 10
-# other *_barriers: dams ranked in scenario > 0 AND total_small_barriers >= 10 (may need to revisit this)
+# # create bitset field based on number of barriers present per unit; where false for a given barrier type,
+# # this is used to color the unit grey (see priority/Map.jsx for decoding)
+# # Can rank if:
+# # dams: ranked_dams > 0
+# # small_barriers: ranked_small_barriers > 0 AND total_small_barriers >= 10
+# # other *_barriers: dams ranked in scenario > 0 AND total_small_barriers >= 10 (may need to revisit this)
 
-can_prioritize_dams = (stats.ranked_dams > 0).values.astype("uint8")
-can_prioritize_small_barriers = ((stats.ranked_small_barriers > 0) & (stats.total_small_barriers >= 10)).values.astype(
-    "uint8"
-)
-can_prioritize_combined_barriers = ((stats.ranked_dams > 0) & (stats.total_small_barriers >= 10)).values.astype("uint8")
-can_prioritize_largefish_barriers = (
-    (stats.ranked_largefish_barriers_dams > 0) & (stats.total_small_barriers >= 10)
-).values.astype("uint8")
-can_prioritize_smallfish_barriers = (
-    (stats.ranked_smallfish_barriers_dams > 0) & (stats.total_small_barriers >= 10)
-).values.astype("uint8")
-can_select_road_crossings = (stats.total_road_crossings > 0).values.astype("uint8")
+# can_prioritize_dams = (stats.ranked_dams > 0).values.astype("uint8")
+# can_prioritize_small_barriers = ((stats.ranked_small_barriers > 0) & (stats.total_small_barriers >= 10)).values.astype(
+#     "uint8"
+# )
+# can_prioritize_combined_barriers = ((stats.ranked_dams > 0) & (stats.total_small_barriers >= 10)).values.astype("uint8")
+# can_prioritize_largefish_barriers = (
+#     (stats.ranked_largefish_barriers_dams > 0) & (stats.total_small_barriers >= 10)
+# ).values.astype("uint8")
+# can_prioritize_smallfish_barriers = (
+#     (stats.ranked_smallfish_barriers_dams > 0) & (stats.total_small_barriers >= 10)
+# ).values.astype("uint8")
+# can_select_road_crossings = (stats.total_road_crossings > 0).values.astype("uint8")
 
-stats["has_data"] = (
-    can_prioritize_dams
-    | (can_prioritize_small_barriers << 1)
-    | (can_prioritize_combined_barriers << 2)
-    | (can_prioritize_largefish_barriers << 3)
-    | (can_prioritize_smallfish_barriers << 4)
-    | (can_select_road_crossings << 5)
-)
+# stats["has_data"] = (
+#     can_prioritize_dams
+#     | (can_prioritize_small_barriers << 1)
+#     | (can_prioritize_combined_barriers << 2)
+#     | (can_prioritize_largefish_barriers << 3)
+#     | (can_prioritize_smallfish_barriers << 4)
+#     | (can_select_road_crossings << 5)
+# )
 
-# only write the fields used for rendering map units by color in the frontend
-stats = stats[["id", "dams", "small_barriers", "removed_dams", "removed_small_barriers", "has_data"]]
+# # only write the fields used for rendering map units by color in the frontend
+# stats = stats[["id", "dams", "small_barriers", "removed_dams", "removed_small_barriers", "has_data"]]
 
-csv_filename = tmp_dir / "map_units_summary.csv"
-write_csv(pa.Table.from_pandas(stats), csv_filename)
+# csv_filename = tmp_dir / "map_units_summary.csv"
+# write_csv(pa.Table.from_pandas(stats), csv_filename)
 
-# join to tiles
-mbtiles_filename = f"{out_tile_dir}/map_units_summary.mbtiles"
-ret = subprocess.run(
-    [
-        tile_join,
-        "-f",
-        "-pg",
-        "--no-tile-size-limit",
-        "-o",
-        mbtiles_filename,
-        "-c",
-        f"{tmp_dir}/map_units_summary.csv",
-        f"{data_dir}/tiles/map_units.mbtiles",
-    ]
-)
-ret.check_returncode()
+# # join to tiles
+# mbtiles_filename = f"{out_tile_dir}/map_units_summary.mbtiles"
+# ret = subprocess.run(
+#     [
+#         tile_join,
+#         "-f",
+#         "-pg",
+#         "--no-tile-size-limit",
+#         "-o",
+#         mbtiles_filename,
+#         "-c",
+#         f"{tmp_dir}/map_units_summary.csv",
+#         f"{data_dir}/tiles/map_units.mbtiles",
+#     ]
+# )
+# ret.check_returncode()
 
-csv_filename.unlink()
+# csv_filename.unlink()
 
-print("All done!")
+# print("All done!")

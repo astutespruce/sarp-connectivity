@@ -149,9 +149,9 @@ def add_spatial_joins(df):
     fhp = gp.read_feather(boundaries_dir / "fhp_boundary.feather")
     left, right = STRtree(df.geometry.values).query(fhp.geometry.values, predicate="intersects")
     fhp = (
-        pd.DataFrame({"name": fhp.FishHabitatPartnership.values.take(left)}, index=df.index.values.take(right))
+        pd.DataFrame({"id": fhp.id.values.take(left)}, index=df.index.values.take(right))
         .groupby(level=0)
-        .name.unique()
+        .id.unique()
         .apply(sorted)
         .apply(",".join)
         .rename("FishHabitatPartnership")

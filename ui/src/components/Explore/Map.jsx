@@ -632,9 +632,11 @@ const ExploreMap = ({
         map.setFilter(id, ['==', 'id', region])
       })
 
-      map.fitBounds(regionBounds[region], {
-        padding: 100,
-      })
+      if (bounds === null) {
+        map.fitBounds(regionBounds[region], {
+          padding: 100,
+        })
+      }
     },
     // regionBounds deliberately omitted
     /* eslint-disable-next-line react-hooks/exhaustive-deps */

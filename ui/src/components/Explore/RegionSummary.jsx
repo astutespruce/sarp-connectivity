@@ -7,11 +7,28 @@ import { Box, Paragraph, Divider, Text } from 'theme-ui'
 
 import { Link } from 'components/Link'
 import { UnitSearch } from 'components/UnitSearch'
-import { useSummaryData, useRegionSummary } from 'components/Data'
+// import { useSummaryData, useRegionSummary } from 'components/Data'
 import { REGIONS } from 'config'
 import { formatNumber } from 'util/format'
 
-const Summary = ({ region, barrierType, system, onSelectUnit }) => {
+const Summary = ({
+  barrierType,
+  region,
+  name,
+  dams,
+  reconDams,
+  rankedDams,
+  removedDams,
+  removedDamsGainMiles,
+  totalSmallBarriers,
+  smallBarriers,
+  rankedSmallBarriers,
+  removedSmallBarriers,
+  removedSmallBarriersGainMiles,
+  unsurveyedRoadCrossings,
+  system,
+  onSelectUnit,
+}) => {
   const contentNodeRef = useRef(null)
 
   useEffect(() => {
@@ -21,34 +38,34 @@ const Summary = ({ region, barrierType, system, onSelectUnit }) => {
     }
   }, [])
 
-  let name = 'full analysis area'
-  if (region !== 'total') {
-    name = REGIONS[region].name
-  }
+  // let name = 'full analysis area'
+  // if (region !== 'total') {
+  //   name = REGIONS[region].name
+  // }
 
-  const summary = useSummaryData()
-  const regions = useRegionSummary()
+  // const summary = useSummaryData()
+  // const regions = useRegionSummary()
   const isRegion = region !== 'total'
 
-  const {
-    dams,
-    reconDams,
-    rankedDams,
-    removedDams,
-    removedDamsGainMiles,
-    totalSmallBarriers,
-    smallBarriers,
-    rankedSmallBarriers,
-    removedSmallBarriers,
-    removedSmallBarriersGainMiles,
-    unsurveyedRoadCrossings,
-  } = isRegion ? regions[region] : summary
+  // const {
+  //   dams,
+  //   reconDams,
+  //   rankedDams,
+  //   removedDams,
+  //   removedDamsGainMiles,
+  //   totalSmallBarriers,
+  //   smallBarriers,
+  //   rankedSmallBarriers,
+  //   removedSmallBarriers,
+  //   removedSmallBarriersGainMiles,
+  //   unsurveyedRoadCrossings,
+  // } = isRegion ? regions[region] : summary
 
   const unrankedDams = dams - rankedDams
   const unrankedBarriers = smallBarriers - rankedSmallBarriers
   const totalRoadBarriers = totalSmallBarriers + unsurveyedRoadCrossings
 
-  const regionName = isRegion ? name : 'full analysis area'
+  // const regionName = isRegion ? name : 'full analysis area'
 
   return (
     <Box
@@ -71,8 +88,7 @@ const Summary = ({ region, barrierType, system, onSelectUnit }) => {
       ) : null}
 
       <Paragraph sx={{ fontSize: [3, 4] }}>
-        Across the {regionName}
-        {region !== 'total' ? ' Region' : null}, there are:
+        Across the {name}, there are:
       </Paragraph>
 
       {barrierType === 'dams' || barrierType === 'combined_barriers' ? (
@@ -226,13 +242,37 @@ const Summary = ({ region, barrierType, system, onSelectUnit }) => {
 
 Summary.propTypes = {
   region: PropTypes.string,
+  name: PropTypes.string,
   barrierType: PropTypes.string.isRequired,
+  dams: PropTypes.number,
+  reconDams: PropTypes.number,
+  rankedDams: PropTypes.number,
+  removedDams: PropTypes.number,
+  removedDamsGainMiles: PropTypes.number,
+  totalSmallBarriers: PropTypes.number,
+  smallBarriers: PropTypes.number,
+  rankedSmallBarriers: PropTypes.number,
+  removedSmallBarriers: PropTypes.number,
+  removedSmallBarriersGainMiles: PropTypes.number,
+  unsurveyedRoadCrossings: PropTypes.number,
   system: PropTypes.string.isRequired,
   onSelectUnit: PropTypes.func.isRequired,
 }
 
 Summary.defaultProps = {
   region: 'total',
+  name: 'full analysis area',
+  dams: 0,
+  reconDams: 0,
+  rankedDams: 0,
+  removedDams: 0,
+  removedDamsGainMiles: 0,
+  totalSmallBarriers: 0,
+  smallBarriers: 0,
+  rankedSmallBarriers: 0,
+  removedSmallBarriers: 0,
+  removedSmallBarriersGainMiles: 0,
+  unsurveyedRoadCrossings: 0,
 }
 
 export default Summary

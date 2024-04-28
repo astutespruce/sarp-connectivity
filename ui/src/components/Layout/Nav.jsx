@@ -39,6 +39,8 @@ const regions = Object.values(REGIONS)
   .map(({ name: label, ...rest }) => ({ label, ...rest }))
   .sort(({ order: a }, { order: b }) => (a < b ? -1 : 1))
 
+regions.push({ id: 'fhp', label: 'Fish Habitat Partnerships', url: '/fhp' })
+
 const Nav = () => (
   <ClientOnly>
     <Flex

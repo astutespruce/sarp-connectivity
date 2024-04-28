@@ -4,7 +4,11 @@ import { Box, Flex, Spinner, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { fetchUnitDetails } from 'components/Data'
+import {
+  fetchUnitDetails,
+  useSummaryData,
+  useRegionSummary,
+} from 'components/Data'
 import {
   Layout,
   ClientOnly,
@@ -17,7 +21,7 @@ import { Sidebar } from 'components/Sidebar'
 import { TopBar } from 'components/Map'
 import { Map, RegionSummary, UnitSummary } from 'components/Explore'
 import BarrierDetails from 'components/BarrierDetails'
-import { SYSTEMS } from 'config'
+import { REGIONS, SYSTEMS } from 'config'
 import { toCamelCaseFields } from 'util/data'
 import { getQueryParams } from 'util/dom'
 
@@ -33,8 +37,23 @@ const systemOptions = Object.entries(SYSTEMS).map(([value, label]) => ({
 }))
 
 const ExplorePage = ({ location }) => {
-  const { region = 'total', state: stateFromURL = null } =
-    getQueryParams(location)
+  const queryClient = useQueryClient()
+  const summary = useSummaryData()
+  const regions = useRegionSummary()
+
+  const {
+    region = 'total',
+    state: stateFromURL = null,
+    fishhabitatpartnership: fishhabitatpartnershipFromURL = null,
+  } = getQueryParams(location)
+
+  const idFromURL = stateFromURL || fishhabitatpartnershipFromURL
+  let idFromURLType = null
+  if (stateFromURL) {
+    idFromURLType = 'State'
+  } else if (fishhabitatpartnershipFromURL) {
+    idFromURLType = 'FishHabitatPartnership'
+  }
 
   const [
     {
@@ -47,7 +66,7 @@ const ExplorePage = ({ location }) => {
     },
     setState,
   ] = useState(() => ({
-    system: stateFromURL !== null ? 'ADM' : 'HUC',
+    system: idFromURL !== null ? 'ADM' : 'HUC',
     focalBarrierType: 'dams', // options: dams, small_barriers, combined_barriers
     summaryUnits: [],
     selectedBarrier: null,
@@ -61,17 +80,17 @@ const ExplorePage = ({ location }) => {
   const {
     isLoading,
     error,
-    data: selectedStateFromURL = null,
+    data: selectedItemFromURL = null,
   } = useQuery({
-    queryKey: [stateFromURL],
-    queryFn: async () => fetchUnitDetails('State', stateFromURL),
-    enabled: stateFromURL !== null,
+    queryKey: [idFromURL],
+    queryFn: async () => fetchUnitDetails(idFromURLType, idFromURL),
+    enabled: idFromURL !== null,
     staleTime: 10 * 60 * 1000, // 10 minutes
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   })
 
-  const queryClient = useQueryClient()
+  console.log('selected item', selectedItemFromURL)
 
   const handleSetFocalBarrierType = (nextType) => {
     setState((prevState) => ({
@@ -189,10 +208,23 @@ const ExplorePage = ({ location }) => {
   }
 
   const handleCreateMap = () => {
-    if (selectedStateFromURL !== null) {
+    if (stateFromURL !== null && selectedItemFromURL) {
       // NOTE: need to do this after map has loaded!
-      handleSelectUnit(selectedStateFromURL)
+      handleSelectUnit(selectedItemFromURL)
     }
+  }
+
+  let regionData = {}
+  if (fishhabitatpartnershipFromURL && selectedItemFromURL) {
+    regionData = toCamelCaseFields(selectedItemFromURL)
+  } else if (region !== 'total') {
+    regionData = {
+      ...regions[region],
+      name: `${REGIONS[region].name} Region`,
+      layer: 'regions',
+    }
+  } else {
+    regionData = summary
   }
 
   let sidebarContent = null
@@ -257,8 +289,9 @@ const ExplorePage = ({ location }) => {
   } else {
     sidebarContent = (
       <RegionSummary
-        region={region}
         barrierType={focalBarrierType}
+        region={region}
+        {...regionData}
         system={system}
         onSelectUnit={handleSelectUnit}
       />
@@ -285,10 +318,11 @@ const ExplorePage = ({ location }) => {
                 }}
               >
                 <Map
-                  region={region}
+                  // FIXME: cleanup passing of region
+                  region={fishhabitatpartnershipFromURL || region}
                   bounds={
-                    selectedStateFromURL !== null
-                      ? selectedStateFromURL.bbox.split(',').map(parseFloat)
+                    selectedItemFromURL !== null
+                      ? selectedItemFromURL.bbox.split(',').map(parseFloat)
                       : null
                   }
                   focalBarrierType={focalBarrierType}
