@@ -21,7 +21,7 @@ import {
   DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN,
   DISADVANTAGED_COMMUNITY,
   INVASIVE_NETWORK,
-  FISH_HABITAT_PARTNERSHIP,
+  FISH_HABITAT_PARTNERSHIPS,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -49,8 +49,10 @@ export const smallBarriers = [
         hideMissingValues: true,
         hideIfEmpty: true,
         isArray: true,
-        labels: Object.values(FISH_HABITAT_PARTNERSHIP).map(({ name }) => name),
-        values: Object.keys(FISH_HABITAT_PARTNERSHIP),
+        labels: Object.values(FISH_HABITAT_PARTNERSHIPS).map(
+          ({ name }) => name
+        ),
+        values: Object.keys(FISH_HABITAT_PARTNERSHIPS),
       },
     ],
   },

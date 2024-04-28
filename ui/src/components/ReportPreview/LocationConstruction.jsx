@@ -17,7 +17,7 @@ import {
   OWNERTYPE,
   BARRIEROWNERTYPE,
   FERC_REGULATED,
-  FISH_HABITAT_PARTNERSHIP,
+  FISH_HABITAT_PARTNERSHIPS,
   STATE_REGULATED,
   WATER_RIGHT,
   DISADVANTAGED_COMMUNITY,
@@ -354,8 +354,8 @@ const LocationConstruction = ({
             {fishhabitatpartnership.split(',').map((code, i) => (
               <>
                 {i > 0 ? ', ' : null}
-                <OutboundLink to={FISH_HABITAT_PARTNERSHIP[code].url}>
-                  {FISH_HABITAT_PARTNERSHIP[code].name}
+                <OutboundLink to={FISH_HABITAT_PARTNERSHIPS[code].url}>
+                  {FISH_HABITAT_PARTNERSHIPS[code].name}
                 </OutboundLink>
               </>
             ))}

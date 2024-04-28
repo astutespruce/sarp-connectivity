@@ -12,7 +12,7 @@ import {
   STREAM_SIZECLASS,
   STREAM_SIZECLASS_DRAINAGE_AREA,
   WATERBODY_SIZECLASS,
-  FISH_HABITAT_PARTNERSHIP,
+  FISH_HABITAT_PARTNERSHIPS,
 } from 'config'
 import { OutboundLink } from 'components/Link'
 import { Entry, Field } from 'components/Sidebar'
@@ -155,9 +155,9 @@ const LocationInfo = ({
           <Text sx={{ mt: '0.25rem', ml: '1rem' }}>
             {fishhabitatpartnership.split(',').map((code, i) => (
               <>
-                {i > 0 ? <br /> : null}
-                <OutboundLink to={FISH_HABITAT_PARTNERSHIP[code].url}>
-                  {FISH_HABITAT_PARTNERSHIP[code].name}
+                {i > 0 ? ', ' : null}
+                <OutboundLink to={FISH_HABITAT_PARTNERSHIPS[code].url}>
+                  {FISH_HABITAT_PARTNERSHIPS[code].name}
                 </OutboundLink>
               </>
             ))}

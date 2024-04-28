@@ -1121,7 +1121,7 @@ STATES = {
 }
 
 
-FISH_HABITAT_PARTNERSHIP = {
+FISH_HABITAT_PARTNERSHIPS = {
     "ACFHP": "Atlantic Coastal Fish Habitat Partnership",
     "CFPF": "California Fish Passage Forum",
     "DARE": "Driftless Area Restoration Effort",
@@ -1194,7 +1194,7 @@ DOMAINS = {
 }
 
 # domain values are stored as comma-delimited values in a string field
-MULTI_VALUE_DOMAINS = {"FishHabitatPartnership": FISH_HABITAT_PARTNERSHIP}
+MULTI_VALUE_DOMAINS = {"FishHabitatPartnership": FISH_HABITAT_PARTNERSHIPS}
 
 
 def verify_domains(df):

@@ -91,7 +91,7 @@ async def download(
 
         else:
             # drop species habitat columns that have no useful data
-            spp_cols = [c for c in df.column_names if "Habitat" in c]
+            spp_cols = [c for c in df.column_names if "Habitat" in c and c != "FishHabitatPartnership"]
             drop_cols = [c for c in spp_cols if pc.max(df[c]).as_py() <= 0]
             if len(drop_cols) > 0:
                 df = df.drop(drop_cols)

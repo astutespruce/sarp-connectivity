@@ -9,7 +9,7 @@ import {
   OWNERTYPE,
   DISADVANTAGED_COMMUNITY,
   SURVEYED,
-  FISH_HABITAT_PARTNERSHIP,
+  FISH_HABITAT_PARTNERSHIPS,
 } from 'config'
 
 import { getEntries } from './common'
@@ -31,7 +31,7 @@ export const roadCrossings = [
   },
   {
     id: 'social_benefits',
-    title: 'Social Benefits',
+    title: 'Social Benefits & Partners',
     filters: [
       {
         field: 'disadvantagedcommunity',
@@ -51,8 +51,10 @@ export const roadCrossings = [
         hideMissingValues: true,
         hideIfEmpty: true,
         isArray: true,
-        labels: Object.values(FISH_HABITAT_PARTNERSHIP).map(({ name }) => name),
-        values: Object.keys(FISH_HABITAT_PARTNERSHIP),
+        labels: Object.values(FISH_HABITAT_PARTNERSHIPS).map(
+          ({ name }) => name
+        ),
+        values: Object.keys(FISH_HABITAT_PARTNERSHIPS),
       },
     ],
   },

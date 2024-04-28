@@ -1203,7 +1203,7 @@ export const DISADVANTAGED_COMMUNITY = {
 }
 
 // NOTE: these are encoded into a comma-delimited field
-export const FISH_HABITAT_PARTNERSHIP = {
+export const FISH_HABITAT_PARTNERSHIPS = {
   ACFHP: {
     name: 'Atlantic Coastal Fish Habitat Partnership',
     url: 'https://www.fishhabitat.org/the-partnerships/atlantic-coastal-fish-habitat-partnership',
