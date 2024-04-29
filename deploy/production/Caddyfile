@@ -95,13 +95,15 @@ aquaticbarriers.org {
 
     # page-data, html, and site root must be fetched each time
     @no_cache {
-      path *.html *.webmanifest */page-data/* / /priority /explore /network_methods /habitat_methods /metrics/* /regions/* /states/* /report/*
+      path *.html *.webmanifest */page-data/* / /priority /explore /network_methods /habitat_methods /metrics/* /regions/* /fhp/* /states/* /report/*
     }
     header @no_cache Cache-Control "public, max-age:0, must-revalidate"
 
     encode zstd gzip
 
     # Capture client only routes and route through correct page to force loading on client side
+    rewrite /states/* "states/[id]/index.html"
+    rewrite /fhp/* "fhp/[id]/index.html"
     rewrite /report/dams/* "report/dams/[sarpid]/index.html"
     rewrite /report/combined_barriers/* "report/combined_barriers/[sarpid]/index.html"
     rewrite /report/largefish_barriers/* "report/largefish_barriers/[sarpid]/index.html"

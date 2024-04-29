@@ -11,6 +11,7 @@ const NavMenuItem = ({
   inDevelopment,
   external,
   showBorder,
+  borderWidth,
   hasChildren,
   ...props
 }) => (
@@ -37,7 +38,7 @@ const NavMenuItem = ({
         outlineColor: 'purple.5   ',
       },
       '&:not(:first-of-type)': {
-        borderTop: showBorder ? '1px solid' : 'inherit',
+        borderTop: showBorder ? `${borderWidth} solid` : 'inherit',
         borderTopColor: showBorder ? 'grey.1' : 'inherit',
       },
     }}
@@ -69,6 +70,7 @@ NavMenuItem.propTypes = {
   inDevelopment: PropTypes.bool,
   external: PropTypes.bool,
   showBorder: PropTypes.bool,
+  borderWidth: PropTypes.string,
   hasChildren: PropTypes.bool,
 }
 
@@ -77,6 +79,7 @@ NavMenuItem.defaultProps = {
   inDevelopment: false,
   external: null,
   showBorder: true,
+  borderWidth: '1px',
   hasChildren: false,
 }
 

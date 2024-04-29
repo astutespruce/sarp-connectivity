@@ -92,6 +92,18 @@ const FHPRoute = ({ params: { id } }) => {
     removedBarriersByYear.filter(({ dams: d, smallBarriers: sb }) => d + sb > 0)
       .length > 0
 
+  const NFHPContent = (
+    <>
+      The {name} is one of the Fish Habitat Partnerships under the{' '}
+      <OutboundLink to="https://www.fishhabitat.org/">
+        {' '}
+        National Fish Habitat Partnership
+      </OutboundLink>{' '}
+      umbrella that works to conserve and protect the nation&apos;s fisheries
+      and aquatic systems through a network of 20 Fish Habitat Partnerships.
+    </>
+  )
+
   return (
     <Layout>
       <Container>
@@ -109,7 +121,7 @@ const FHPRoute = ({ params: { id } }) => {
           {logo ? (
             <Box sx={{ maxWidth: logoWidth }}>
               <OutboundLink to={url}>
-                <Image src={dynamicallyLoadImage(logo)} />
+                <Image src={dynamicallyLoadImage(logo)} alt={`${name} logo`} />
               </OutboundLink>
             </Box>
           ) : null}
@@ -176,26 +188,28 @@ const FHPRoute = ({ params: { id } }) => {
           </Flex>
         </Box>
 
-        <Box sx={{ mt: '1rem' }}>
-          {description ? (
-            <>
+        {description ? (
+          <Grid columns="2fr 1fr" gap={4} sx={{ mt: '1rem' }}>
+            <Paragraph>
               {description}
               <br />
               <br />
-            </>
-          ) : null}
-          The {name} is one of the Fish Habitat Partnerships under the{' '}
-          <OutboundLink to="https://www.fishhabitat.org/">
-            {' '}
-            National Fish Habitat Partnership
-          </OutboundLink>{' '}
-          umbrella that works to conserve and protect the nation&apos;s
-          fisheries and aquatic systems through a network of 20 Fish Habitat
-          Partnerships.
-          <br />
-          <br />
-          Learn more about the <OutboundLink to={url}>{name}</OutboundLink>.
-        </Box>
+              Learn more about the <OutboundLink to={url}>{name}</OutboundLink>.
+            </Paragraph>
+            <Box sx={{ bg: 'blue.1', p: '1rem', borderRadius: '1rem' }}>
+              {NFHPContent}
+            </Box>
+          </Grid>
+        ) : (
+          <Paragraph sx={{ mt: '1rem' }}>
+            {NFHPContent}
+            <br />
+            <br />
+            Learn more about the <OutboundLink to={url}>{name}</OutboundLink>.
+          </Paragraph>
+        )}
+
+        <Divider />
 
         <Grid columns={2} gap={5} sx={{ mt: '2rem' }}>
           <Box>

@@ -1240,10 +1240,11 @@ export const FISH_HABITAT_PARTNERSHIPS = {
     name: 'Great Plains Fish Habitat Partnership',
     url: 'https://www.fishhabitat.org/the-partnerships/great-plains-fish-habitat-partnership',
   },
-  HFHP: {
-    name: 'Hawaii Fish Habitat Partnership',
-    url: 'https://www.fishhabitat.org/the-partnerships/hawaii-fish-habitat-partnership',
-  },
+  // TODO: enable once Hawaii is included in analysis
+  // HFHP: {
+  //   name: 'Hawaii Fish Habitat Partnership',
+  //   url: 'https://www.fishhabitat.org/the-partnerships/hawaii-fish-habitat-partnership',
+  // },
   KPFHP: {
     name: 'Kenai Peninsula Fish Habitat Partnership',
     url: 'https://www.fishhabitat.org/the-partnerships/kenai-peninsula-fish-habitat-partnership',
