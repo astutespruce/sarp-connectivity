@@ -5,8 +5,8 @@ import {
   Fish,
   GlobeAmericas,
   SearchLocation,
-  Download,
   QuestionCircle,
+  RulerVertical,
 } from '@emotion-icons/fa-solid'
 
 import { REGIONS } from 'config'
@@ -39,6 +39,14 @@ const regions = Object.values(REGIONS)
   .map(({ name: label, ...rest }) => ({ label, ...rest }))
   .sort(({ order: a }, { order: b }) => (a < b ? -1 : 1))
 
+regions.push({
+  id: 'fhp',
+  label: 'Fish Habitat Partnerships',
+  url: '/fhp',
+  showBorder: true,
+  borderWidth: '4px',
+})
+
 const Nav = () => (
   <ClientOnly>
     <Flex
@@ -66,6 +74,7 @@ const Nav = () => (
           <div>Explore &amp; Download</div>
         </Flex>
       </Link>
+
       <Link
         to="/priority"
         activeClassName="nav-active"
@@ -74,6 +83,17 @@ const Nav = () => (
         <Flex sx={{ alignItems: 'center', gap: '0.25rem' }}>
           <SearchLocation size="1em" />
           <div>Prioritize</div>
+        </Flex>
+      </Link>
+
+      <Link
+        to="/survey"
+        activeClassName="nav-active"
+        sx={isActivePath('/survey') ? activeNavLinkCSS : navLinkCSS}
+      >
+        <Flex sx={{ alignItems: 'center', gap: '0.25rem' }}>
+          <RulerVertical size="1em" />
+          <div>Survey</div>
         </Flex>
       </Link>
 

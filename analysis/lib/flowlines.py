@@ -169,9 +169,9 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
 
     upstream_barrier_joins.upstream_id = upstream_barrier_joins.upstream_id.fillna(0).astype("uint32")
     upstream_barrier_joins["type"] = upstream_barrier_joins["type"].fillna("origin")
-    upstream_barrier_joins.marine = upstream_barrier_joins.marine.fillna(False)
-    upstream_barrier_joins.great_lakes = upstream_barrier_joins.great_lakes.fillna(False)
-    upstream_barrier_joins["junction"] = upstream_barrier_joins.junction.fillna(False)
+    upstream_barrier_joins.marine = upstream_barrier_joins.marine.fillna(0).astype("bool")
+    upstream_barrier_joins.great_lakes = upstream_barrier_joins.great_lakes.fillna(0).astype("bool")
+    upstream_barrier_joins["junction"] = upstream_barrier_joins.junction.fillna(0).astype("bool")
 
     # Barriers on downstream endpoint:
     # their upstream_id is the segment they are on and their downstream_id is the
@@ -190,8 +190,8 @@ def cut_flowlines_at_barriers(flowlines, joins, barriers, next_segment_id):
 
     downstream_barrier_joins.downstream_id = downstream_barrier_joins.downstream_id.fillna(0).astype("uint32")
     downstream_barrier_joins["type"] = downstream_barrier_joins["type"].fillna("terminal")
-    downstream_barrier_joins.marine = downstream_barrier_joins.marine.fillna(False)
-    downstream_barrier_joins.great_lakes = downstream_barrier_joins.great_lakes.fillna(False)
+    downstream_barrier_joins.marine = downstream_barrier_joins.marine.fillna(0).astype("bool")
+    downstream_barrier_joins.great_lakes = downstream_barrier_joins.great_lakes.fillna(0).astype("bool")
 
     # Add sibling joins if on a confluence
     # NOTE: a barrier may have multiple sibling upstreams if it occurs at a

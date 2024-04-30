@@ -22,6 +22,7 @@ const RoadCrossingDetails = ({
   crossingtype,
   ejtract,
   ejtribal,
+  fishhabitatpartnership,
   huc12,
   intermittent,
   nativeterritories,
@@ -68,6 +69,7 @@ const RoadCrossingDetails = ({
         ownertype={ownertype}
         ejtract={ejtract}
         ejtribal={ejtribal}
+        fishhabitatpartnership={fishhabitatpartnership}
         nativeterritories={nativeterritories}
         intermittent={intermittent}
         streamorder={streamorder}
@@ -140,6 +142,7 @@ RoadCrossingDetails.propTypes = {
   crossingtype: PropTypes.number,
   ejtract: PropTypes.bool,
   ejtribal: PropTypes.bool,
+  fishhabitatpartnership: PropTypes.string,
   huc12: PropTypes.string,
   intermittent: PropTypes.number,
   nativeterritories: PropTypes.string,
@@ -166,6 +169,7 @@ RoadCrossingDetails.defaultProps = {
   crossingtype: null,
   ejtract: false,
   ejtribal: false,
+  fishhabitatpartnership: null,
   huc12: null,
   intermittent: -1,
   nativeterritories: null,

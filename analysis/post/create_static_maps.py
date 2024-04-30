@@ -11,6 +11,8 @@ from pymgl import Map
 import shapely
 
 from analysis.constants import GEO_CRS, STATES
+from analysis.lib.geometry.polygons import unwrap_antimeridian
+from api.constants import FISH_HABITAT_PARTNERSHIPS
 
 
 load_dotenv()
@@ -19,8 +21,7 @@ if not TOKEN:
     raise ValueError("MAPBOX_TOKEN must be defined in your .env file")
 
 
-region_tiles = Path("data/tiles/boundary.mbtiles").absolute()
-mask_tiles = Path("data/tiles/mask.mbtiles").absolute()
+region_tiles = Path("tiles/region_boundaries.mbtiles").absolute()
 state_tiles = Path("data/tiles/State.mbtiles").absolute()
 dam_tiles = Path("tiles/dams.mbtiles").absolute()
 small_barrier_tiles = Path("tiles/small_barriers.mbtiles").absolute()
@@ -38,6 +39,12 @@ STYLE = {
                 "https://api.mapbox.com/styles/v1/mapbox/light-v10/tiles/{z}/{x}/{y}?access_token=" + TOKEN,
             ],
             "tileSize": 512,
+        },
+        "regions": {
+            "type": "vector",
+            "url": f"mbtiles://{region_tiles}",
+            "minzoom": 0,
+            "maxzoom": 8,
         },
         "states": {
             "type": "vector",
@@ -111,27 +118,11 @@ STYLE = {
 
 
 REGION_STYLE = deepcopy(STYLE)
-REGION_STYLE["sources"].update(
-    {
-        "regions": {
-            "type": "vector",
-            "url": f"mbtiles://{region_tiles}",
-            "minzoom": 0,
-            "maxzoom": 8,
-        },
-        "masks": {
-            "type": "vector",
-            "url": f"mbtiles://{mask_tiles}",
-            "minzoom": 0,
-            "maxzoom": 8,
-        },
-    }
-)
 REGION_STYLE["layers"].extend(
     [
         {
             "id": "region-mask",
-            "source": "masks",
+            "source": "regions",
             "source-layer": "mask",
             "type": "fill",
             "minzoom": 0,
@@ -190,10 +181,45 @@ STATE_STYLE["layers"].extend(
 )
 
 
+FHP_STYLE = deepcopy(STYLE)
+FHP_STYLE["layers"].extend(
+    [
+        {
+            "id": "fhp-mask",
+            "source": "regions",
+            "source-layer": "fhp_mask",
+            "type": "fill",
+            "minzoom": 0,
+            "maxzoom": 22,
+            # filter: set dynamically when loaded
+            "paint": {
+                "fill-color": "#FFFFFF",
+                "fill-opacity": 0.6,
+            },
+        },
+        {
+            "id": "fhp-boundary",
+            "source": "regions",
+            "source-layer": "fhp_boundary",
+            "type": "line",
+            "minzoom": 0,
+            "maxzoom": 22,
+            # filter: set dynamically when loaded
+            "paint": {
+                "line-color": "#000000",
+                "line-width": 2,
+            },
+        },
+    ]
+)
+
+
 out_dir = Path("ui/src/images/maps")
 out_dir.mkdir(exist_ok=True)
 state_dir = out_dir / "states"
 state_dir.mkdir(exist_ok=True)
+fhp_dir = out_dir / "fhp"
+fhp_dir.mkdir(exist_ok=True)
 
 ### Render region maps
 df = gp.read_feather("data/boundaries/region_boundary.feather").to_crs(GEO_CRS).set_index("id")
@@ -244,4 +270,34 @@ for id, row in df.iterrows():
         map.setBounds(*bounds, padding=20)
         png = map.renderPNG()
         with open(state_dir / f"{id}.png", "wb") as out:
+            _ = out.write(png)
+
+
+### Render FHP maps
+df = (
+    gp.read_feather("data/boundaries/fhp_boundary.feather", columns=["id", "geometry"])
+    .to_crs(GEO_CRS)
+    .explode(ignore_index=True)
+    .set_index("id")
+)
+
+# have to unwrap antimeridian
+df["geometry"] = unwrap_antimeridian(df.geometry.values)
+
+df = gp.GeoDataFrame(df.groupby(level=0).agg({"geometry": shapely.multipolygons}), geometry="geometry", crs=df.crs)
+
+for id, row in df.bounds.iterrows():
+    print(f"Rendering map for {id}")
+    style = deepcopy(FHP_STYLE)
+    style["layers"][-2]["filter"] = ["==", "id", id]
+    style["layers"][-1]["filter"] = ["==", "id", id]
+
+    if id == "ak":
+        style["layers"][1]["paint"]["circle-radius"] = 3
+        style["layers"][2]["paint"]["circle-radius"] = 2
+
+    with Map(json.dumps(style), WIDTH, HEIGHT, ratio=1, token=TOKEN, provider="mapbox") as map:
+        map.setBounds(*row.values, padding=10 if id == "se" else 20)
+        png = map.renderPNG()
+        with open(fhp_dir / f"{id}.png", "wb") as out:
             _ = out.write(png)

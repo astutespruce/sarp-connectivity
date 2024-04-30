@@ -13,7 +13,7 @@ const RegionStats = ({
   smallBarriers,
   removedSmallBarriers,
   removedSmallBarriersGainMiles,
-  crossings,
+  unsurveyedRoadCrossings,
 }) => (
   <Box>
     <Paragraph>
@@ -27,15 +27,14 @@ const RegionStats = ({
       {removedDams > 0 ? (
         <li>
           <b>{formatNumber(removedDams, 0)}</b> that have been removed or
-          mitigated, gaining{' '}
-          <b>{formatNumber(removedDamsGainMiles)} miles</b> of reconnected
-          rivers and streams
+          mitigated, gaining <b>{formatNumber(removedDamsGainMiles)} miles</b>{' '}
+          of reconnected rivers and streams
         </li>
       ) : null}
     </Box>
     <Paragraph sx={{ mt: '2rem' }}>
-      <b>{formatNumber(totalSmallBarriers + crossings, 0)}</b> or more potential
-      road-related aquatic barriers, including:
+      <b>{formatNumber(totalSmallBarriers + unsurveyedRoadCrossings, 0)}</b> or
+      more potential road-related aquatic barriers, including:
     </Paragraph>
     <Box as="ul" sx={{ ml: '1rem', mt: '0.5rem' }}>
       <li>
@@ -68,7 +67,7 @@ RegionStats.propTypes = {
   smallBarriers: PropTypes.number.isRequired,
   removedSmallBarriers: PropTypes.number,
   removedSmallBarriersGainMiles: PropTypes.number,
-  crossings: PropTypes.number.isRequired,
+  unsurveyedRoadCrossings: PropTypes.number.isRequired,
 }
 
 RegionStats.defaultProps = {

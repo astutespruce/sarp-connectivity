@@ -768,6 +768,28 @@ SALMONID_ESU_LAYER_TO_CODE = {
     "Steelhead_Upper_Willamette_River": 61,
 }
 
+# Note: not all FHPs are included here (Reservoir FHP specifically excluded)
+FHP_LAYER_TO_CODE = {
+    "FHP_Atlantic_Coast_Boundary_2013": "ACFHP",
+    "FHP_CFPF_Boundary_2013": "CFPF",
+    "FHP_DARE_Boundary_2013": "DARE",
+    "FHP_Desert_Boundary_2013": "DFHP",
+    "FHP_EBTJV_Boundary_2013": "EBTJV",
+    "FHP_Fishers_Farmers_Boundary_2013": "FFP",
+    "FHP_GLB_Boundary_2013": "GLBFHP",
+    "FHP_Great_Plains_Boundary_2013": "GPFHP",
+    "FHP_Hawaii_Boundary_2013": "HFHP",
+    "FHP_Kenai_Peninsula_Boundary": "KPFHP",
+    "FHP_MatSu_Basin_Boundary_2013": "MSBSHP",
+    "FHP_Midwest_Glacial_Lakes_Boundary_2013": "MGLP",
+    "FHP_Ohio_River_Basin_Boundary": "ORBFHP",
+    "FHP_PMEP_Boundary_2013": "PMEP",
+    "FHP_SARP_Boundary_2013": "SARP",
+    "FHP_SEAK_Boundary_2013": "SEAFHP",
+    "FHP_SW_AK_Salmon_Boundary_2013": "SWASHP",
+    "FHP_Western_Native_Trout_Boundary_2013": "WNTI",
+}
+
 
 # current HUC8 to NWI HUC8 codes
 NWI_HUC8_ALIAS = {

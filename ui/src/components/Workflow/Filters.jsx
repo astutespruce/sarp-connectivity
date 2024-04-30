@@ -3,20 +3,20 @@ import PropTypes from 'prop-types'
 import { TimesCircle } from '@emotion-icons/fa-solid'
 import { Box, Flex, Heading, Text } from 'theme-ui'
 import { op } from 'arquero'
+import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
+import { barrierTypeLabels } from 'config'
+import { useCrossfilter } from 'components/Crossfilter'
 import { useBarrierType } from 'components/Data'
 import { FilterGroup } from 'components/Filters'
-import { useCrossfilter } from 'components/Crossfilter'
 import { ExpandableParagraph } from 'components/Text'
-import { barrierTypeLabels } from 'config'
 import { reduceToObject } from 'util/data'
 import { formatNumber, pluralize } from 'util/format'
 
 import BackLink from './BackLink'
-import SubmitButton from './SubmitButton'
 import StartOverButton from './StartOverButton'
 
-const Filters = ({ onBack, onSubmit, onStartOver }) => {
+const Filters = ({ maxAllowed, onBack, onStartOver, SubmitButton }) => {
   const barrierType = useBarrierType()
   const barrierTypeLabel = barrierTypeLabels[barrierType]
   const {
@@ -69,7 +69,15 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
       )}`
       break
     }
+    case 'road_crossings': {
+      countMessage = `${formatNumber(filteredCount)} road/stream ${pluralize(
+        'crossing',
+        filteredCount
+      )}`
+      break
+    }
     default: {
+      console.error(`${barrierType} not handled in switch statement`)
       break
     }
   }
@@ -131,12 +139,12 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
         your needs. Click on a bar to select ${barrierTypeLabel} with that value.`}
           >
             <Text variant="help" sx={{ display: 'inline' }}>
-              [OPTIONAL] Use the filters below to select the {barrierType} that
-              meet your needs. Click on a bar to select {barrierType} with that
-              value. Click on the bar again to unselect. You can combine
-              multiple values across multiple filters to select the{' '}
-              {barrierType} that match ANY of those values within a filter and
-              also have the values selected across ALL filters.
+              [OPTIONAL] Use the filters below to select the {barrierTypeLabel}{' '}
+              that meet your needs. Click on a bar to select {barrierTypeLabel}{' '}
+              with that value. Click on the bar again to unselect. You can
+              combine multiple values across multiple filters to select the{' '}
+              {barrierTypeLabel} that match ANY of those values within a filter
+              and also have the values selected across ALL filters.
             </Text>
           </ExpandableParagraph>
         </Box>
@@ -164,6 +172,28 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
           selected: {countMessage}
         </Text>
 
+        {filteredCount > maxAllowed ? (
+          <Flex
+            sx={{
+              bg: 'highlight',
+              my: '0.5rem',
+              py: '0.25rem',
+              borderRadius: '0.25rem',
+              gap: '1rem',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Box sx={{ color: '#FFF' }}>
+              <ExclamationTriangle size="2em" />
+            </Box>
+            <Text sx={{ fontSize: 1, color: '#FFF' }}>
+              Too many {barrierTypeLabel} selected <br />
+              (limit is {formatNumber(maxAllowed)})
+            </Text>
+          </Flex>
+        ) : null}
+
         <Flex
           sx={{
             justifyContent: 'space-between',
@@ -173,16 +203,7 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
         >
           <StartOverButton onStartOver={onStartOver} />
 
-          <SubmitButton
-            disabled={filteredCount === 0}
-            onClick={onSubmit}
-            label="Prioritize selected barriers"
-            title={
-              filteredCount === 0
-                ? `No ${barrierTypeLabel} selected for prioritization`
-                : null
-            }
-          />
+          {SubmitButton}
         </Flex>
       </Box>
     </Flex>
@@ -190,9 +211,14 @@ const Filters = ({ onBack, onSubmit, onStartOver }) => {
 }
 
 Filters.propTypes = {
+  maxAllowed: PropTypes.number,
   onBack: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired,
   onStartOver: PropTypes.func.isRequired,
+  SubmitButton: PropTypes.node.isRequired,
+}
+
+Filters.defaultProps = {
+  maxAllowed: Infinity,
 }
 
 export default Filters

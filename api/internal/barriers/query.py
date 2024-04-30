@@ -8,6 +8,7 @@ from api.constants import (
     DAM_FILTER_FIELDS,
     SB_FILTER_FIELDS,
     COMBINED_FILTER_FIELDS,
+    ROAD_CROSSING_FILTER_FIELDS,
 )
 
 from api.dependencies import (
@@ -47,11 +48,14 @@ async def query(
             # NOTE: BarrierType is used for counting barriers by type after
             # applying filters
             filter_fields = ["BarrierType"] + COMBINED_FILTER_FIELDS
+        case "road_crossings":
+            filter_fields = ROAD_CROSSING_FILTER_FIELDS
 
         case _:
             raise NotImplementedError(f"query is not supported for {barrier_type}")
 
-    df = extractor.extract(columns=["id", "lon", "lat"] + filter_fields, ranked=True)
+    # always extract ranked barriers unless type is road_crossings (not applicable)
+    df = extractor.extract(columns=["id", "lon", "lat"] + filter_fields, ranked=barrier_type != "road_crossings")
 
     # extract extent
     xmin, xmax = pc.min_max(df["lon"]).as_py().values()

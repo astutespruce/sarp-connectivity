@@ -31,6 +31,7 @@ import {
   DOWNSTREAM_OCEAN_SMALL_BARRIERS_DOMAIN,
   DISADVANTAGED_COMMUNITY,
   INVASIVE_NETWORK,
+  FISH_HABITAT_PARTNERSHIPS,
 } from 'config'
 
 import { getEntries, hasDiadromousData } from './common'
@@ -39,7 +40,7 @@ import { getEntries, hasDiadromousData } from './common'
 export const combinedBarriers = [
   {
     id: 'social_benefits',
-    title: 'Social Benefits',
+    title: 'Social Benefits & Partners',
     filters: [
       {
         field: 'feasibilityclass',
@@ -57,6 +58,19 @@ export const combinedBarriers = [
         isArray: true,
         labels: Object.values(DISADVANTAGED_COMMUNITY),
         values: Object.keys(DISADVANTAGED_COMMUNITY),
+      },
+      {
+        field: 'fishhabitatpartnership',
+        title: 'Fish Habitat Partnerships working in area',
+        help: '',
+        sort: false,
+        hideMissingValues: true,
+        hideIfEmpty: true,
+        isArray: true,
+        labels: Object.values(FISH_HABITAT_PARTNERSHIPS).map(
+          ({ name }) => name
+        ),
+        values: Object.keys(FISH_HABITAT_PARTNERSHIPS),
       },
     ],
   },

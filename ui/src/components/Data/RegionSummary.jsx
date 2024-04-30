@@ -25,7 +25,8 @@ export const useRegionSummary = () => {
             removedSmallBarriers: removed_small_barriers
             removedSmallBarriersGainMiles: removed_small_barriers_gain_miles
             removedSmallBarriersByYear: removed_small_barriers_by_year
-            crossings
+            totalRoadCrossings: total_road_crossings
+            unsurveyedRoadCrossings: unsurveyed_road_crossings
           }
         }
       }

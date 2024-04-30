@@ -6,7 +6,6 @@ This runs on a per-region basis because that is the level where loops are recode
 to loop / nonloop manually.
 """
 
-
 from pathlib import Path
 
 import pyarrow as pa
@@ -197,8 +196,8 @@ if len(networks_at_junctions):
 
 
 ### Export networks
-joins["marine"] = joins.marine.fillna(False)
-joins["great_lakes"] = joins.great_lakes.fillna(False)
+joins["marine"] = joins.marine.fillna(0).astype("bool")
+joins["great_lakes"] = joins.great_lakes.fillna(0).astype("bool")
 networks["flows_to_ocean"] = networks.networkID.isin(joins.loc[joins.marine].upstream_id.unique())
 networks["flows_to_great_lakes"] = networks.networkID.isin(joins.loc[joins.great_lakes].upstream_id.unique())
 

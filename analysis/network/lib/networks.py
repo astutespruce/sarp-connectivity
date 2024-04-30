@@ -390,7 +390,7 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
         network_stats[col] = network_stats[col].fillna(0).astype("uint32")
 
     for col in ["flows_to_ocean", "flows_to_great_lakes", "exits_region", "invasive_network"]:
-        network_stats[col] = network_stats[col].fillna(False).astype("bool")
+        network_stats[col] = network_stats[col].fillna(0).astype("bool")
 
     network_stats.barrier = network_stats.barrier.fillna("")
     network_stats.miles_to_outlet = network_stats.miles_to_outlet.fillna(0)
@@ -473,10 +473,10 @@ def create_barrier_networks(barriers, barrier_joins, focal_barrier_joins, joins,
 
     barrier_networks.barrier = barrier_networks.barrier.fillna("")
     barrier_networks.origin_HUC2 = barrier_networks.origin_HUC2.fillna("")
-    barrier_networks.flows_to_ocean = barrier_networks.flows_to_ocean.fillna(False)
-    barrier_networks.flows_to_great_lakes = barrier_networks.flows_to_great_lakes.fillna(False)
-    barrier_networks.exits_region = barrier_networks.exits_region.fillna(False)
-    barrier_networks.invasive_network = barrier_networks.invasive_network.fillna(False)
+    barrier_networks.flows_to_ocean = barrier_networks.flows_to_ocean.fillna(0).astype("bool")
+    barrier_networks.flows_to_great_lakes = barrier_networks.flows_to_great_lakes.fillna(0).astype("bool")
+    barrier_networks.exits_region = barrier_networks.exits_region.fillna(0).astype("bool")
+    barrier_networks.invasive_network = barrier_networks.invasive_network.fillna(0).astype("bool")
     # if isolated network or connects to marine / Great Lakes / exit, there
     # are no further miles downstream from this network
     barrier_networks.miles_to_outlet = barrier_networks.miles_to_outlet.fillna(0).astype("float32")

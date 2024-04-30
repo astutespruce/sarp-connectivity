@@ -21,7 +21,8 @@ const ListItem = ({
   ranked_smallfish_barriers_dams: rankedSmallfishBarriersDams,
   ranked_smallfish_barriers_small_barriers:
     rankedSmallfishBarriersSmallBarriers,
-  crossings,
+  total_road_crossings: totalRoadCrossings,
+  unsurveyed_road_crossings: unsurveyedRoadCrossings,
   showID,
   showCount,
   disabled,
@@ -30,7 +31,9 @@ const ListItem = ({
 }) => {
   const node = useRef(null)
 
-  const insufficientBarriers = totalSmallBarriers < 10 && crossings > 10
+  const totalRoadBarriers = totalSmallBarriers + unsurveyedRoadCrossings
+  const insufficientBarriers =
+    totalSmallBarriers < 10 && unsurveyedRoadCrossings > 10
 
   let count = 0
   let warning = null
@@ -55,12 +58,12 @@ const ListItem = ({
         count = rankedSmallBarriers
         if (totalSmallBarriers === 0) {
           warning = `no road/stream crossings have been assessed in this area (${formatNumber(
-            crossings
-          )} road / stream ${pluralize('crossing', crossings)})`
+            totalRoadBarriers
+          )} road / stream ${pluralize('crossing', totalRoadBarriers)})`
         } else if (rankedSmallBarriers === 0) {
           warning = `no road-related barriers available for prioritization (${formatNumber(
-            crossings
-          )} road / stream ${pluralize('crossing', crossings)})`
+            totalRoadBarriers
+          )} road / stream ${pluralize('crossing', totalRoadBarriers)})`
         } else if (insufficientBarriers) {
           const prefix =
             totalSmallBarriers === 0
@@ -77,10 +80,10 @@ const ListItem = ({
           warning = `${prefix} ${
             rankedSmallBarriers === 1 ? 'has' : 'have'
           } been assessed out of ${formatNumber(
-            crossings
+            totalRoadBarriers
           )} total road / stream ${pluralize(
             'crossing',
-            crossings
+            totalRoadBarriers
           )}; this may not result in useful priorities`
         } else {
           countMessage = `${formatNumber(rankedSmallBarriers)} ${pluralize(
@@ -91,9 +94,9 @@ const ListItem = ({
           )} assessed road/stream ${pluralize(
             'crossing',
             totalSmallBarriers
-          )} of ${formatNumber(crossings)} total road/stream ${pluralize(
+          )} of ${formatNumber(totalRoadBarriers)} total road/stream ${pluralize(
             'crossing',
-            crossings
+            totalRoadBarriers
           )})`
         }
 
@@ -136,10 +139,10 @@ const ListItem = ({
           warning = `${prefix} ${
             totalSmallBarriers === 1 ? 'has' : 'have'
           } been assessed out of ${formatNumber(
-            crossings
+            totalRoadBarriers
           )} total road / stream ${pluralize(
             'crossing',
-            crossings
+            totalRoadBarriers
           )}; this may not result in useful priorities`
 
           countMessage = `${formatNumber(rankedD)} ${pluralize('dam', rankedD)}`
@@ -155,10 +158,23 @@ const ListItem = ({
           )} assessed road/stream ${pluralize(
             'crossing',
             totalSmallBarriers
-          )} of ${formatNumber(crossings)} road/stream ${pluralize(
+          )} of ${formatNumber(totalRoadBarriers)} road/stream ${pluralize(
             'crossing',
-            crossings
+            totalRoadBarriers
           )})`
+        }
+
+        break
+      }
+      case 'road_crossings': {
+        count = totalRoadCrossings
+        if (totalRoadCrossings === 0) {
+          warning = `no road/stream crossings have been mapped in this area`
+        } else {
+          countMessage = `${formatNumber(totalRoadCrossings)} total road/stream ${pluralize(
+            'crossing',
+            totalRoadCrossings
+          )}`
         }
 
         break
@@ -270,7 +286,8 @@ ListItem.propTypes = {
   ranked_largefish_barriers_small_barriers: PropTypes.number,
   ranked_smallfish_barriers_dams: PropTypes.number,
   ranked_smallfish_barriers_small_barriers: PropTypes.number,
-  crossings: PropTypes.number,
+  total_road_crossings: PropTypes.number,
+  unsurveyed_road_crossings: PropTypes.number,
   showID: PropTypes.bool,
   showCount: PropTypes.bool,
   disabled: PropTypes.bool,
@@ -287,7 +304,8 @@ ListItem.defaultProps = {
   ranked_largefish_barriers_small_barriers: 0,
   ranked_smallfish_barriers_dams: 0,
   ranked_smallfish_barriers_small_barriers: 0,
-  crossings: 0,
+  total_road_crossings: 0,
+  unsurveyed_road_crossings: 0,
   showID: false,
   showCount: false,
   disabled: false,

@@ -41,6 +41,7 @@ class RecordExtractor:
         HUC12: str = None,
         State: str = None,
         County: str = None,
+        # FishHabitatPartnership specifically excluded here; is handled as a filter below
     ):
         field_map = {}
         self.dataset = None
@@ -92,13 +93,10 @@ class RecordExtractor:
 
                 self.unit_ids[key] = pa.array([id for id in ids.split(",") if id])
 
-        if len(self.unit_ids) == 0:
-            raise HTTPException(400, detail="At least one summary unit layer must have ids present")
-
         # extract optional filters
         self.filters = dict()
         if field_map:
-            filter_keys = {q for q in request.query_params if q in field_map}
+            filter_keys = {q for q in request.query_params if q in field_map and q not in units}
 
             # convert all incoming filter keys to their uppercase field name
             for key in filter_keys:
@@ -119,12 +117,23 @@ class RecordExtractor:
                         [int(x) for x in request.query_params.get(key).split(",")],
                     )
 
+        if len(self.unit_ids) == 0 and len(self.filters) == 0:
+            raise HTTPException(
+                400,
+                detail="At least one summary unit layer must have ids present or at least one filter must be defined",
+            )
+
     def extract(self, columns=None, ranked=False):
         # evaluate unit ids using OR logic
         layers = list(self.unit_ids.keys())
-        ix = pc.field(layers[0]).isin(self.unit_ids[layers[0]])
-        for layer in layers[1:]:
-            ix = ix | pc.field(layer).isin(self.unit_ids[layer])
+
+        if len(layers):
+            ix = pc.field(layers[0]).isin(self.unit_ids[layers[0]])
+            for layer in layers[1:]:
+                ix = ix | pc.field(layer).isin(self.unit_ids[layer])
+        else:
+            # filter only by other filters instead of units
+            ix = pc.scalar(True)
 
         if ranked:
             ix = ix & (pc.field("Ranked") == True)  # noqa

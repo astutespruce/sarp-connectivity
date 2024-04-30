@@ -11,7 +11,7 @@ from analysis.post.lib.tiles import get_col_types
 
 tippecanoe = "tippecanoe"
 tile_join = "tile-join"
-tippecanoe_args = [tippecanoe, "-f", "-pg", "--visvalingam", "--detect-shared-borders"]
+tippecanoe_args = [tippecanoe, "-f", "-pg", "--visvalingam", "--no-simplification-of-shared-nodes"]
 
 src_dir = Path("data/boundaries")
 tile_dir = Path("data/tiles")
@@ -54,6 +54,40 @@ ret.check_returncode()
 outfilename.unlink()
 
 
+### Fish Habitat Partnership boundaries
+print("Creating fish habitat partnership tiles")
+df = gp.read_feather(src_dir / "fhp_boundary.feather").to_crs(GEO_CRS)
+outfilename = tmp_dir / "fhp_boundary.fgb"
+write_dataframe(df, outfilename)
+mbtiles_filename = tmp_dir / "fhp_boundary.mbtiles"
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z", "0", "-z", "8"]
+    + ["-l", "fhp_boundary"]
+    + get_col_types(df)
+    + ["-o", str(mbtiles_filename), outfilename]
+)
+ret.check_returncode()
+outfilename.unlink()
+
+# create FHP boundary masks
+world = shapely.box(-180, -85, 180, 85)
+fhp_mask = df.copy()
+fhp_mask["geometry"] = shapely.normalize(shapely.difference(world, fhp_mask.geometry.values))
+outfilename = tmp_dir / "fhp_mask.fgb"
+write_dataframe(fhp_mask, outfilename)
+mbtiles_filename = tmp_dir / "fhp_mask.mbtiles"
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z", "0", "-z", "8"]
+    + ["-l", "fhp_mask"]
+    + get_col_types(fhp_mask)
+    + ["-o", str(mbtiles_filename), outfilename]
+)
+ret.check_returncode()
+outfilename.unlink()
+
+
 ### Merge boundary and mask (final version uploaded to server)
 print("Merging boundary and mask tiles")
 ret = subprocess.run(
@@ -65,6 +99,8 @@ ret = subprocess.run(
         f"{out_dir}/region_boundaries.mbtiles",
         f"{tmp_dir}/boundary.mbtiles",
         f"{tmp_dir}/mask.mbtiles",
+        f"{tmp_dir}/fhp_boundary.mbtiles",
+        f"{tmp_dir}/fhp_mask.mbtiles",
     ]
 )
 ret.check_returncode()

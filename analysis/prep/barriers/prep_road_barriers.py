@@ -470,9 +470,9 @@ for group, crossing_types in [
     df.loc[ix, "geometry"] = matches.geometry.values
     df.loc[ix, "snap_dist"] = matches.snap_dist.values
     df.loc[ix, "lineID"] = matches.lineID.values
-    df.loc[
-        ix, "snap_log"
-    ] = f"snapped: within {SNAP_TOLERANCE['default']}m tolerance of snapped USGS road crossing ({group})"
+    df.loc[ix, "snap_log"] = (
+        f"snapped: within {SNAP_TOLERANCE['default']}m tolerance of snapped USGS road crossing ({group})"
+    )
     df.loc[ix, "NearestCrossingID"] = matches.crossing_SARPID.values
 
     to_snap = to_snap.loc[~to_snap.index.isin(ix)].copy()
@@ -599,7 +599,7 @@ for col in [
 ]:
     df[col] = df[col].fillna("").astype("str")
 
-df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
+df["CoastalHUC8"] = df.CoastalHUC8.fillna(0).astype("bool")
 
 ### Drop any that didn't intersect HUCs or states (including those outside analysis region)
 drop_ix = (df.HUC12 == "") | (df.State == "")
@@ -648,8 +648,8 @@ df["stream_type"] = df.FCode.map(FCODE_TO_STREAMTYPE).fillna(0).astype("uint8")
 df["intermittent"] = df.FCode.isin([46003, 46007])
 
 # Fix missing field values
-df["loop"] = df.loop.fillna(False)
-df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(False)
+df["loop"] = df.loop.fillna(0).astype("bool")
+df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(0).astype("bool")
 df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null

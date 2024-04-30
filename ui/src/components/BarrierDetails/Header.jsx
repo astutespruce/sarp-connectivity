@@ -1,7 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Button, Flex, Heading, Text } from 'theme-ui'
-import { FileDownload, Fish, Water } from '@emotion-icons/fa-solid'
+import {
+  DraftingCompass,
+  FileDownload,
+  Fish,
+  Water,
+} from '@emotion-icons/fa-solid'
 
 import { STATES } from 'config'
 import { formatNumber } from 'util/format'
@@ -18,7 +23,8 @@ const Header = ({
   lon,
   removed,
   yearremoved,
-  ispriority,
+  isPriority,
+  isSurveyed,
   onClose,
 }) => (
   <Box
@@ -65,7 +71,7 @@ const Header = ({
           </Flex>
         ) : null}
 
-        {ispriority && !removed ? (
+        {isPriority && !removed ? (
           <Flex
             sx={{
               alignItems: 'center',
@@ -78,6 +84,35 @@ const Header = ({
             </Box>
             <Text sx={{ fontWeight: 'bold', lineHeight: 1, fontSize: 1 }}>
               Identified as a priority by resource managers
+            </Text>
+          </Flex>
+        ) : null}
+
+        {isSurveyed ? (
+          <Flex
+            sx={{
+              alignItems: 'center',
+              gap: '0.5rem',
+              mt: '0.25rem',
+            }}
+          >
+            <Box sx={{ color: 'highlight' }}>
+              <DraftingCompass size="1em" />
+            </Box>
+            <Text
+              sx={{
+                color: 'highlight',
+                fontWeight: 'bold',
+                lineHeight: 1,
+                fontSize: 1,
+              }}
+            >
+              Likely surveyed{' '}
+              <Text
+                sx={{ display: 'inline', fontSize: 0, fontWeight: 'normal' }}
+              >
+                (close to a surveyed barrier)
+              </Text>
             </Text>
           </Flex>
         ) : null}
@@ -137,7 +172,8 @@ Header.propTypes = {
   lon: PropTypes.number.isRequired,
   removed: PropTypes.bool,
   yearremoved: PropTypes.number,
-  ispriority: PropTypes.bool,
+  isPriority: PropTypes.bool,
+  isSurveyed: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
 }
 
@@ -147,7 +183,8 @@ Header.defaultProps = {
   state: '',
   removed: false,
   yearremoved: null,
-  ispriority: false,
+  isPriority: false,
+  isSurveyed: false,
 }
 
 export default Header

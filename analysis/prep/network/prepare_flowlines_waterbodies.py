@@ -23,7 +23,6 @@ It produces data in `data/nhd/clean/<region>`
 - waterbody_drain_points.feather
 """
 
-
 from pathlib import Path
 from time import time
 
@@ -216,7 +215,7 @@ for huc2 in huc2s:
     if "great_lakes" not in joins:
         joins["great_lakes"] = False
 
-    joins["great_lakes"] = joins.great_lakes.fillna(False)
+    joins["great_lakes"] = joins.great_lakes.fillna(0).astype("bool")
 
     ### Drop pipelines that are > PIPELINE_MAX_LENGTH or are otherwise isolated from the network
     print("Evaluating pipelines & undeground connectors")

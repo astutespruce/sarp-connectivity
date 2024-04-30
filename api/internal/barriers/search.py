@@ -8,23 +8,16 @@ import pyarrow as pa
 from pyarrow.feather import write_feather
 from rapidfuzz import fuzz
 
-from api.data import combined_barriers
+from api.constants import BARRIER_SEARCH_RESULT_FIELDS
+from api.data import search_barriers
 from api.logger import log_request
 
 
 router = APIRouter()
 
 
-SARPID_REGEX = re.compile("^\S\S\d+")
-BARRIER_SEARCH_RESULT_COLUMNS = [
-    "SARPID",
-    "Name",
-    "River",
-    "State",
-    "BarrierType",
-    "lat",
-    "lon",
-]
+SARPID_REGEX = re.compile("^\S\S?\d+")
+
 NUM_BARRIER_SEARCH_RESULTS = 10
 
 
@@ -32,8 +25,8 @@ def rank_similarity(values, query):
     return pa.array([fuzz.WRatio(value, query) for value in values], type=pa.float32())
 
 
-@router.get("/combined_barriers/search")
-async def search_barriers(request: Request, query: str):
+@router.get("/barriers/search")
+async def search(request: Request, query: str):
     """Return top 10 barriers based on text search of name fields or by SARPID
     (combined name search field created in advance)
 
@@ -49,9 +42,9 @@ async def search_barriers(request: Request, query: str):
     # search on SARPID
     if SARPID_REGEX.match(query):
         # NOTE: case must match,
-        matches = combined_barriers.to_table(
+        matches = search_barriers.to_table(
             filter=pc.starts_with(pc.field("SARPID"), query),
-            columns=BARRIER_SEARCH_RESULT_COLUMNS,
+            columns=BARRIER_SEARCH_RESULT_FIELDS,
         )[: 1000 + NUM_BARRIER_SEARCH_RESULTS]
 
         total = len(matches)
@@ -73,9 +66,9 @@ async def search_barriers(request: Request, query: str):
         filter = re.escape(query).replace(",", "").replace("\\ ", r"(((\s)+(\s|\S|\d)*)|(\s))+")
         filter = rf"(^|\s){filter}"
 
-        matches = combined_barriers.to_table(
+        matches = search_barriers.to_table(
             filter=pc.match_substring_regex(pc.field("search_key"), filter, ignore_case=True),
-            columns=BARRIER_SEARCH_RESULT_COLUMNS + ["search_key"],
+            columns=BARRIER_SEARCH_RESULT_FIELDS + ["search_key", "priority"],
         )[: 1000 + NUM_BARRIER_SEARCH_RESULTS]
 
         total = len(matches)
@@ -90,9 +83,9 @@ async def search_barriers(request: Request, query: str):
                 # find position of first word, further left is better
                 "ipos": pc.find_substring(matches["search_key"], query.split(" ")[0], ignore_case=True),
             }
-        ).sort_by([["sim", "descending"], ["ipos", "ascending"]])
+        ).sort_by([["sim", "descending"], ["ipos", "ascending"], ["priority", "ascending"]])
 
-        matches = matches.select([c.lower() for c in BARRIER_SEARCH_RESULT_COLUMNS])
+        matches = matches.select([c.lower() for c in BARRIER_SEARCH_RESULT_FIELDS])
 
     matches = matches[:NUM_BARRIER_SEARCH_RESULTS].combine_chunks()
 

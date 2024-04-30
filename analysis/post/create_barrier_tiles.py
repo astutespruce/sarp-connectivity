@@ -4,6 +4,7 @@ from time import time
 
 import geopandas as gp
 from pyogrio import write_dataframe
+import shapely
 
 from api.constants import (
     DAM_TILE_FILTER_FIELDS,
@@ -38,12 +39,13 @@ tile_join = "tile-join"
 tippecanoe_args = [
     tippecanoe,
     "-f",
-    "-pg",
+    "--no-tile-stats",
+    "--preserve-input-order",
     "--no-tile-size-limit",
+    "--no-feature-limit",
     "--drop-densest-as-needed",
-    "--coalesce-densest-as-needed",
     "--hilbert",
-    "-ai",
+    "--generate-ids",
 ]
 
 tilejoin_args = [
@@ -566,28 +568,29 @@ df = (
         + ROAD_CROSSING_TILE_FILTER_FIELDS
         + ["COUNTYFIPS", "StreamOrder", "OnLoop", "offnetwork_flowline"],
     )
-    .to_crs("EPSG:4326")
-    .sort_values(by="StreamOrder", ascending=False)
+    .sort_values(
+        # sort so that assumed culverts are first and bridges are last
+        by=["CrossingType", "StreamOrder", "OnLoop", "offnetwork_flowline"],
+        ascending=[False, False, True, True],
+    )
     .drop(columns=["County"])
     .rename(columns={"COUNTYFIPS": "County"})
 )
 df = combine_sarpid_name(df)
 fill_na_fields(df)
 
-# Below zoom 8, we only need filter fields; crossings are not selectable so we
-# can't show additional details including name
-# also, only show those not on loops / not surveyed / perennial streams
-print("Creating tiles for road crossings for zooms 3-7")
-tmp = df.loc[
-    ~df.offnetwork_flowline & (df.Surveyed == 0) & (df.OnLoop == 0) & (df.StreamOrder >= 3) & (df.Intermittent == 0),
-    ["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS,
-]
+# # Below zoom 8, we only need filter fields and only show on-network crossings
+# print("Creating tiles for road crossings for zooms 3-7")
+tmp = df.loc[~df.offnetwork_flowline & (df.OnLoop == 0)][["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS]
+# snap to a 500m grid (aggressive!) and drop duplicate points
+tmp["geometry"] = shapely.set_precision(tmp.geometry.values, 500)
+tmp = gp.GeoDataFrame(tmp.groupby("geometry").first().reset_index(), crs=df.crs)
 
 outfilename = tmp_dir / "road_crossings_lt_z8.fgb"
 mbtiles_filename = tmp_dir / "road_crossings_lt_z8.mbtiles"
 mbtiles_files = [mbtiles_filename]
 tmp = to_lowercase(tmp)
-write_dataframe(tmp.reset_index(drop=True), outfilename)
+write_dataframe(tmp.to_crs("EPSG:4326").reset_index(drop=True), outfilename)
 coltypes = get_col_types(tmp)
 
 del tmp
@@ -602,11 +605,39 @@ ret = subprocess.run(
 )
 ret.check_returncode()
 
-print("Creating tiles for road crossings for zooms 8+")
 
-df = df[["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName"]]
-outfilename = tmp_dir / "road_crossings.fgb"
-mbtiles_filename = tmp_dir / "road_crossings_ge_z8.mbtiles"
+# For zooms 8-10, also show name, but not off-network road crossings
+print("Creating tiles for road crossings for zooms 8-10")
+tmp = df.loc[~df.offnetwork_flowline & (df.OnLoop == 0)][
+    ["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName"]
+]
+# # snap to a 100m grid and drop duplicate points
+tmp["geometry"] = shapely.set_precision(tmp.geometry.values, 100)
+tmp = gp.GeoDataFrame(tmp.groupby("geometry").first().reset_index(), crs=df.crs)
+
+outfilename = tmp_dir / "road_crossings_z8_z10.fgb"
+mbtiles_filename = tmp_dir / "road_crossings_z8_z10.mbtiles"
+mbtiles_files.append(mbtiles_filename)
+tmp = to_lowercase(tmp)
+write_dataframe(tmp.to_crs("EPSG:4326").reset_index(drop=True), outfilename)
+coltypes = get_col_types(tmp)
+
+del tmp
+
+ret = subprocess.run(
+    tippecanoe_args
+    + ["-Z8", "-z10", "-r1.5", "-g1.5", "-B8"]
+    + ["-l", "road_crossings"]
+    + ["-o", f"{str(mbtiles_filename)}"]
+    + coltypes
+    + [str(outfilename)]
+)
+ret.check_returncode()
+
+print("Creating tiles for road crossings for zooms 11+")
+df = df[["geometry"] + ROAD_CROSSING_TILE_FILTER_FIELDS + ["SARPIDName"]].to_crs("EPSG:4326")
+outfilename = tmp_dir / "road_crossings_ge_z11.fgb"
+mbtiles_filename = tmp_dir / "road_crossings_ge_z11.mbtiles"
 mbtiles_files.append(mbtiles_filename)
 df = to_lowercase(df)
 write_dataframe(df.reset_index(drop=True), outfilename)
@@ -614,13 +645,14 @@ coltypes = get_col_types(df)
 
 ret = subprocess.run(
     tippecanoe_args
-    + ["-Z8", f"-z{MAX_ZOOM}", "-B10"]
+    + ["-Z11", f"-z{MAX_ZOOM}", "-B11"]
     + ["-l", "road_crossings"]
     + ["-o", f"{str(mbtiles_filename)}"]
     + coltypes
     + [str(outfilename)]
 )
 ret.check_returncode()
+
 
 del df
 

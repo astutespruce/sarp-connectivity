@@ -202,7 +202,7 @@ for col in [
 ### Drop any that didn't intersect HUCs or states (including those outside analysis region)
 df = df.loc[(df.HUC12 != "") & (df.State != "")].copy()
 
-df["CoastalHUC8"] = df.CoastalHUC8.fillna(False)
+df["CoastalHUC8"] = df.CoastalHUC8.fillna(0).astype("bool")
 
 
 ### Join to line atts
@@ -220,6 +220,7 @@ flowlines = (
             "offnetwork",
             "AnnualFlow",
             "AnnualVelocity",
+            # "Slope",
             "TotDASqKm",
         ],
     )
@@ -246,12 +247,13 @@ df["intermittent"] = df.FCode.isin([46003, 46007])
 
 # Fix missing field values
 df.StreamOrder = df.StreamOrder.fillna(-1).astype("int8")
-df["loop"] = df.loop.fillna(False)
-df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(False)
+df["loop"] = df.loop.fillna(0).astype("bool")
+df["offnetwork_flowline"] = df.offnetwork_flowline.fillna(0).astype("bool")
 df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
 df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
+# df.loc[df.Slope == -9998, "Slope"] = np.nan
 
 for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
     df[field] = df[field].astype("float32")

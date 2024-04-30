@@ -5,6 +5,7 @@ as barriers (EPSG:102003 - CONUS Albers).
 Note: output shapefiles for creating tilesets are limited to only those areas that overlap
 the SARP states boundary.
 """
+
 from pathlib import Path
 
 import geopandas as gp
@@ -13,15 +14,11 @@ import pandas as pd
 import shapely
 from pyogrio import read_dataframe, write_dataframe
 
-from analysis.constants import (
-    CRS,
-    GEO_CRS,
-    OWNERTYPE_TO_DOMAIN,
-    OWNERTYPE_TO_PUBLIC_LAND,
-    STATES,
-)
-from analysis.lib.geometry import explode, dissolve, to_multipolygon, make_valid
+from analysis.constants import CRS, GEO_CRS, OWNERTYPE_TO_DOMAIN, OWNERTYPE_TO_PUBLIC_LAND, STATES, FHP_LAYER_TO_CODE
+from analysis.lib.geometry import dissolve, to_multipolygon, make_valid
+from analysis.lib.geometry.polygons import unwrap_antimeridian
 from analysis.lib.util import append
+from api.constants import FISH_HABITAT_PARTNERSHIPS
 
 
 def encode_bbox(geometries):
@@ -77,6 +74,54 @@ county_df.loc[county_df.STATEFIPS.isin(state_fips)].rename(columns={"COUNTYFIPS"
 )
 
 
+### Process Fish Habitat Partnership boundaries
+# NOTE: these include overlapping areas
+print("Extracting FHP boundaries")
+merged = None
+for layer, code in FHP_LAYER_TO_CODE.items():
+    print(f"Extracting {layer}")
+
+    columns = []
+    if layer == "FHP_SEAK_Boundary_2013":
+        columns = ["TYPE"]
+
+    df = (
+        read_dataframe(src_dir / "FHP_Official_Boundaries_2013.gdb", layer=layer, columns=columns, use_arrow=True)
+        .to_crs(CRS)
+        .explode(ignore_index=True)
+    )
+
+    ix = shapely.STRtree(df.geometry.values).query(bnd, predicate="intersects")
+    df = df.take(ix)
+
+    # drop small parts (islands)
+    df = df.loc[shapely.area(df.geometry.values) / 1e6 >= 1].reset_index(drop=True)
+
+    df["id"] = code
+
+    if layer == "FHP_SEAK_Boundary_2013":
+        # SE AK is crazy complex because of coastline and needs to be simplified to drop the small islands
+        # only extract outer boundary, dissolve land and water parts, and then extract outer boundary again
+        df["geometry"] = shapely.polygons(shapely.get_exterior_ring(df.geometry.values))
+        df = dissolve(df, by="id").explode(ignore_index=True)
+        df["geometry"] = shapely.polygons(shapely.get_exterior_ring(df.geometry.values))
+        df = dissolve(df, by="id")
+
+    else:
+        df["geometry"] = make_valid(df.geometry.values)
+        df = df.explode(ignore_index=True).explode(ignore_index=True)
+        df = dissolve(df.loc[shapely.get_type_id(df.geometry.values) == 3], by="id")
+
+    df["name"] = FISH_HABITAT_PARTNERSHIPS[code]
+
+    merged = append(merged, df[["geometry", "id", "name"]])
+
+fhp = merged
+
+fhp.to_feather(out_dir / "fhp_boundary.feather")
+write_dataframe(fhp, out_dir / "fhp_boundary.fgb")
+
+
 ### Extract bounds and names for unit search in user interface
 print("Projecting geometries to geographic coordinates for search index")
 print("Processing state and county")
@@ -105,10 +150,29 @@ county_geo_df["layer"] = "County"
 county_geo_df["priority"] = 2
 county_geo_df["key"] = county_geo_df["name"] + " " + county_geo_df.state_name
 
+print("Processing fish habitat partnerships")
+fhp_geo_df = fhp.to_crs(GEO_CRS).explode(ignore_index=True)
+fhp_geo_df["geometry"] = unwrap_antimeridian(fhp_geo_df.geometry.values)
+fhp_geo_df = gp.GeoDataFrame(
+    fhp_geo_df.groupby("id")
+    .agg({"geometry": shapely.multipolygons, **{c: "first" for c in fhp_geo_df.columns if c not in {"geometry", "id"}}})
+    .reset_index(),
+    geometry="geometry",
+    crs=df.crs,
+)
+fhp_geo_df["bbox"] = encode_bbox(fhp_geo_df.geometry.values)
+fhp_geo_df["in_region"] = True
+fhp_geo_df["state"] = ""  # not used
+fhp_geo_df["layer"] = "FishHabitatPartnership"
+fhp_geo_df["priority"] = 99
+fhp_geo_df["key"] = fhp_geo_df["name"]
+
+
 out = pd.concat(
     [
         state_geo_df.loc[state_geo_df.in_region][["layer", "priority", "id", "state", "name", "key", "bbox"]],
         county_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
+        fhp_geo_df[["layer", "priority", "id", "state", "name", "key", "bbox"]],
     ],
     sort=False,
     ignore_index=True,
@@ -261,7 +325,7 @@ df = df.dropna(subset=["OwnerType"])
 df.OwnerType = df.OwnerType.astype("uint8")
 
 # Add in public status
-df["ProtectedLand"] = df.OwnerType.map(OWNERTYPE_TO_PUBLIC_LAND).fillna(False).astype("bool")
+df["ProtectedLand"] = df.OwnerType.map(OWNERTYPE_TO_PUBLIC_LAND).fillna(0).astype("bool")
 
 # only save owner type and protected land status
 df = df[["geometry", "OwnerType", "ProtectedLand"]].explode(ignore_index=True)

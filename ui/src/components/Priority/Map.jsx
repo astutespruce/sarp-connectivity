@@ -32,13 +32,17 @@ import {
 import { barrierTypeLabels, pointLegends } from 'config'
 import { isEqual, groupBy } from 'util/data'
 
-import { unitLayerConfig } from './config'
+import { unitLayerConfig } from 'components/Workflow'
 import {
   maskFill,
   maskOutline,
   unitLayers,
   unitHighlightLayers,
   parentOutline,
+  priorityWatersheds,
+  priorityWatershedLegends,
+} from 'components/Workflow/layers'
+import {
   prioritizedPointLayer,
   unrankedPointLayer,
   removedBarrierPointLayer,
@@ -48,8 +52,6 @@ import {
   roadCrossingsLayer,
   damsSecondaryLayer,
   waterfallsLayer,
-  priorityWatersheds,
-  priorityWatershedLegends,
   getTierPointColor,
   getTierPointSize,
 } from './layers'
@@ -208,14 +210,13 @@ const PriorityMap = ({
 
           const fillExpr = [
             'case',
-            ['==', getBitFromBitsetExpr('can_prioritize', bitPos), 0],
+            ['==', getBitFromBitsetExpr('has_data', bitPos), 0],
             0.25,
             0,
           ]
 
           unitLayers.forEach(({ id, ...rest }) => {
-            const layerId = `${layer}-${id}`
-            const unitLayer = { ...config, ...rest, id: layerId }
+            const unitLayer = { ...config, ...rest, id: `${layer}-${id}` }
 
             if (id === 'unit-fill') {
               unitLayer.paint['fill-opacity'] = fillExpr
@@ -226,8 +227,7 @@ const PriorityMap = ({
 
           // Each layer has 2 highlight layers: highlight fill, highlight outline
           unitHighlightLayers.forEach(({ id, ...rest }) => {
-            const layerId = `${layer}-${id}`
-            map.addLayer({ ...config, ...rest, id: layerId })
+            map.addLayer({ ...config, ...rest, id: `${layer}-${id}` })
           })
         }
       )

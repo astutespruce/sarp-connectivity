@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Flex, Heading, Text } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 
-import { UnitSearch } from 'components/UnitSearch'
-import { useBarrierType } from 'components/Data'
 import { barrierTypeLabels } from 'config'
+import { useBarrierType } from 'components/Data'
+import { UnitSearch } from 'components/UnitSearch'
 import { formatNumber, pluralize } from 'util/format'
 
 import BackLink from './BackLink'
@@ -29,26 +29,6 @@ export const getPluralLabel = (layer) => {
       return 'subwatersheds'
     default:
       return 'areas'
-  }
-}
-
-// used by caller, not here
-export const getSingularLabel = (layer) => {
-  switch (layer) {
-    case 'State':
-      return 'state'
-    case 'County':
-      return 'county'
-    case 'HUC6':
-      return 'basin'
-    case 'HUC8':
-      return 'subbasin'
-    case 'HUC10':
-      return 'watershed'
-    case 'HUC12':
-      return 'subwatershed'
-    default:
-      return 'area'
   }
 }
 
@@ -140,20 +120,19 @@ const UnitChooser = ({
 
         break
       }
+      case 'road_crossings': {
+        offNetworkCount = 0
+        total = summaryUnits.reduce((out, v) => out + v.totalRoadCrossings, 0)
+        countMessage = `${formatNumber(total)} road/stream ${pluralize(
+          'crossing',
+          total
+        )}`
+        break
+      }
       default: {
         break
       }
     }
-  }
-
-  const handleSearchChange = (value) => {
-    setSearchValue(value)
-  }
-
-  const handleSearchSelect = (item) => {
-    // rename fields
-    selectUnit(item)
-    setSearchValue('')
   }
 
   return (

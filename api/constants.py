@@ -28,6 +28,7 @@ class Layers(str, Enum):
     HUC12 = "HUC12"
     State = "State"
     County = "County"
+    FishHabitatPartnership = "FishHabitatPartnership"
 
 
 class Formats(str, Enum):
@@ -66,7 +67,7 @@ def unique(items):
 
 
 # Fields that have multiple values present, encoded as comma-delimited string
-MULTIPLE_VALUE_FIELDS = ["SalmonidESU", "DisadvantagedCommunity"]
+MULTIPLE_VALUE_FIELDS = ["SalmonidESU", "DisadvantagedCommunity", "FishHabitatPartnership"]
 BOOLEAN_FILTER_FIELDS = ["Removed"]
 
 
@@ -246,6 +247,7 @@ FILTER_FIELDS = [
     "CoastalHUC8",
     "PassageFacilityClass",
     "DisadvantagedCommunity",
+    "FishHabitatPartnership",
 ]
 
 DAM_FILTER_FIELDS = FILTER_FIELDS + [
@@ -279,8 +281,12 @@ ROAD_CROSSING_FILTER_FIELDS = [
     "TESppClass",
     "StateSGCNSppClass",
     "Trout",
+    "SalmonidESU",
+    "SalmonidESUCount",
     "DisadvantagedCommunity",
+    "FishHabitatPartnership",
     "Surveyed",
+    # "SlopeClass",
 ]
 ROAD_CROSSING_FILTER_FIELD_MAP = {f.lower(): f for f in ROAD_CROSSING_FILTER_FIELDS}
 
@@ -317,6 +323,7 @@ GENERAL_API_FIELDS2 = (
         "EJTract",
         "EJTribal",
         "NativeTerritories",
+        "FishHabitatPartnership",
         # Watershed names
         "Basin",
         "Subbasin",
@@ -474,7 +481,6 @@ ROAD_CROSSING_CORE_FIELDS = (
         "StateSGCNSpp",
         "RegionalSGCNSpp",
         "Trout",
-        # "SalmonidESU", # not used for downloads
         "OwnerType",
         # "BarrierOwnerType", # not available
         "ProtectedLand",
@@ -482,6 +488,7 @@ ROAD_CROSSING_CORE_FIELDS = (
         "EJTribal",
         "NativeTerritories",
         "SalmonidESU",
+        "FishHabitatPartnership",
         # Watershed names
         "Basin",
         "Subbasin",
@@ -536,6 +543,7 @@ WF_CORE_FIELDS = (
         "RegionalSGCNSpp",
         "Trout",
         "SalmonidESU",
+        "FishHabitatPartnership",
         "OwnerType",
         "ProtectedLand",
         # Watershed names
@@ -556,6 +564,17 @@ WF_CORE_FIELDS = unique(WF_CORE_FIELDS)
 
 # network_type resolves to a single row; API has one row per waterfall per network type
 WF_API_FIELDS = unique(WF_CORE_FIELDS + ["network_type", "in_network_type"])
+
+
+BARRIER_SEARCH_RESULT_FIELDS = [
+    "SARPID",
+    "Name",
+    "River",
+    "State",
+    "BarrierType",
+    "lat",
+    "lon",
+]
 
 
 # fields returned by map unit search / details APIs
@@ -581,7 +600,8 @@ SUMMARY_UNIT_FIELDS = [
     "ranked_largefish_barriers_small_barriers",
     "ranked_smallfish_barriers_dams",
     "ranked_smallfish_barriers_small_barriers",
-    "crossings",
+    "total_road_crossings",
+    "unsurveyed_road_crossings",
 ]
 
 
@@ -1102,6 +1122,28 @@ STATES = {
 }
 
 
+FISH_HABITAT_PARTNERSHIPS = {
+    "ACFHP": "Atlantic Coastal Fish Habitat Partnership",
+    "CFPF": "California Fish Passage Forum",
+    "DARE": "Driftless Area Restoration Effort",
+    "DFHP": "Desert Fish Habitat Partnership",
+    "EBTJV": "Eastern Brook Trout Joint Venture",
+    "FFP": "Farmers & Fishers Partnership",
+    "GLBFHP": "Great Lakes Basin Fish Habitat Partnership",
+    "GPFHP": "Great Plains Fish Habitat Partnership",
+    "HFHP": "Hawaii Fish Habitat Partnership",
+    "KPFHP": "Kenai Peninsula Fish Habitat Partnership",
+    "MSBSHP": "Mat-Su Basin Salmon Habitat Partnership",
+    "MGLP": "Midwest Glacial Lakes Partnership",
+    "ORBFHP": "Ohio River Basin Fish Habitat Partnership",
+    "PMEP": "Pacific Marine & Estuarine Fish Habitat Partnership",
+    "SARP": "Southeast Aquatic Resources Partnership",
+    "SEAFHP": "Southeast Alaska Fish Habitat Partnership",
+    "SWASHP": "Southwest Alaska Salmon Habitat Partnership",
+    "WNTI": "Western Native Trout Initiative",
+}
+
+
 # mapping of field name to domains
 DOMAINS = {
     "BarrierType": BARRIERTYPE_DOMAIN,
@@ -1152,6 +1194,9 @@ DOMAINS = {
     "Surveyed": SURVEYED_CROSSING_DOMAIN,
 }
 
+# domain values are stored as comma-delimited values in a string field
+MULTI_VALUE_DOMAINS = {"FishHabitatPartnership": FISH_HABITAT_PARTNERSHIPS}
+
 
 def verify_domains(df):
     failed = False
@@ -1159,6 +1204,12 @@ def verify_domains(df):
         diff = set(df[col].unique()).difference(DOMAINS[col].keys())
         if diff:
             print(f"Missing values from domain lookup: {col}: {diff}")
+            failed = True
+
+    for col in df.columns.intersection(MULTI_VALUE_DOMAINS.keys()):
+        diff = set(",".join(df.loc[df[col] != "", col].unique()).split(",")).difference(MULTI_VALUE_DOMAINS[col].keys())
+        if diff:
+            print(f"Missing values from multi-value domain lookup: {col}: {diff}")
             failed = True
 
     if failed:
@@ -1237,6 +1288,7 @@ FIELD_DEFINITIONS = {
     "EJTract": "Within an overburdened and underserved Census tracts a defined by the Climate and Environmental Justice Screening tool.",
     "EJTribal": "Within a disadvantaged tribal community as defined by the Climate and Environmental Justice Screening tool based on American Indian and Alaska Native areas as defined by the US Census Bureau.  Note: all tribal communities considered disadvantaged by the Climate and Environmental Justice Screening tool.",
     "NativeTerritories": "Native / indigenous people's territories as mapped by Native Land Digital (https://native-land.ca/",
+    "FishHabitatPartnership": "Fish Habitat Partnerships working in the area where the {type} occurs.  See https://www.fishhabitat.org/the-partnerships for more information.",
     "Basin": "Name of the hydrologic basin (HUC6) where the {type} occurs.",
     "Subbasin": "Name of the hydrologic subbasin (HUC8) where the {type} occurs.",
     "Subwatershed": "Name of the hydrologic subwatershed (HUC12) where the {type} occurs.",

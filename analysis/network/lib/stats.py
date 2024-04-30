@@ -242,7 +242,7 @@ def calculate_geometry_stats(df):
         df["resilient"] = False
     else:
         df = df.join(resilient, on="NHDPlusID")
-        df["resilient"] = df.resilient.fillna(False).astype(bool)
+        df["resilient"] = df.resilient.fillna(0).astype("bool")
 
     # total lengths used for upstream network
     total_length = df["length"].groupby(level=0).sum().rename("total")
@@ -372,7 +372,7 @@ def calculate_species_habitat_stats(df):
 
     out = None
     for col in habitat_cols:
-        habitat[col] = habitat[col].fillna(False)
+        habitat[col] = habitat[col].fillna(0).astype("bool")
         total_miles = (habitat[col] * habitat.length).groupby(level=0).sum().rename(f"{col}_miles") * METERS_TO_MILES
         free_miles = ((habitat[col] & free_flowing) * habitat.length).groupby(level=0).sum().rename(
             f"free_{col}_miles"

@@ -60,12 +60,18 @@ These are extracted using `analysis/prep/boundaries/extract_watersheds.py`.
 
 Additional boundaries are joined to the barrier inventory during the analysis.
 
-These are processed using `analysis/prep/boundaries/prep_boundaries.py`.
+Native Territories were downloaded 4/10/2024 from https://native-land.ca/
+
+Fish Habitat Partnership boundaries were downloaded on 4/26/2024 from
+https://www.sciencebase.gov/catalog/item/53710d71e4b07ccdd78b368e
+and are used to spatially join to barriers.
 
 Additional watershed-level priorities are joined during this processing. These
 include:
 
 - SARP Conservation Opportunity Areas at HUC8 level (provided by SARP)
+
+These are processed using `analysis/prep/boundaries/prep_boundaries.py`.
 
 ### Counties
 

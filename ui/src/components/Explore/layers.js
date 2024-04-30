@@ -731,4 +731,29 @@ export const regionLayers = [
       'line-color': '#4A0025',
     },
   },
+  {
+    id: 'fhp-mask',
+    source: 'region_boundaries',
+    'source-layer': 'fhp_mask',
+    type: 'fill',
+    maxzoom: 24,
+    filter: ['==', ['get', 'id'], 'total'],
+    paint: {
+      'fill-opacity': 0.6,
+      'fill-color': '#AAA',
+    },
+  },
+  {
+    id: 'fhp-bounds',
+    source: 'region_boundaries',
+    'source-layer': 'fhp_boundary',
+    type: 'line',
+    maxzoom: 24,
+    filter: ['==', ['get', 'id'], 'total'],
+    paint: {
+      'line-opacity': 0.8,
+      'line-width': 2,
+      'line-color': '#4A0025',
+    },
+  },
 ]

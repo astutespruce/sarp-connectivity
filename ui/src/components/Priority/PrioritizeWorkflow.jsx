@@ -3,8 +3,10 @@ import { Box, Flex, Text, Spinner } from 'theme-ui'
 import { ExclamationTriangle } from '@emotion-icons/fa-solid'
 import { useQueryClient } from '@tanstack/react-query'
 
-import { useCrossfilter } from 'components/Crossfilter'
+import { getSingularUnitLabel, barrierTypeLabels } from 'config'
+import BarrierDetails from 'components/BarrierDetails'
 import { ToggleButton } from 'components/Button'
+import { useCrossfilter } from 'components/Crossfilter'
 import { TopBar } from 'components/Map'
 import {
   fetchBarrierInfo,
@@ -14,15 +16,17 @@ import {
   fetchUnitDetails,
 } from 'components/Data'
 import { Sidebar } from 'components/Sidebar'
-import BarrierDetails from 'components/BarrierDetails'
+import {
+  Filters,
+  LayerChooser,
+  UnitChooser,
+  unitLayerConfig,
+  SubmitButton,
+} from 'components/Workflow'
 import { trackPrioritize } from 'util/analytics'
 import { toCamelCaseFields } from 'util/data'
 
 import Map from './Map'
-import { unitLayerConfig } from './config'
-import UnitChooser, { getSingularLabel } from './UnitChooser'
-import LayerChooser from './LayerChooser'
-import Filters from './Filters'
 import Results from './Results'
 
 const scenarioOptions = [
@@ -44,9 +48,10 @@ const resultTypeOptions = [
 
 const Prioritize = () => {
   const barrierType = useBarrierType()
+  const barrierTypeLabel = barrierTypeLabels[barrierType]
   const { bounds: fullBounds } = useSummaryData()
   const {
-    state: { filters },
+    state: { filters, filteredCount },
     setData: setFilterData,
   } = useCrossfilter()
   const queryClient = useQueryClient()
@@ -341,7 +346,7 @@ const Prioritize = () => {
     setState((prevState) => ({ ...prevState, tierThreshold: newThreshold }))
   }
 
-  // WARNING: this is passed into map at construction type, any
+  // WARNING: this is passed into map at construction time, any
   // local state referenced here is not updated when the callback
   // is later called.  To get around that, use reference to step instead.
   const handleSelectBarrier = (feature) => {
@@ -423,8 +428,19 @@ const Prioritize = () => {
           sidebarContent = (
             <Filters
               onBack={handleFilterBack}
-              onSubmit={loadRankInfo}
               onStartOver={handleStartOver}
+              SubmitButton={
+                <SubmitButton
+                  disabled={filteredCount === 0}
+                  onClick={loadRankInfo}
+                  label="Prioritize selected barriers"
+                  title={
+                    filteredCount === 0
+                      ? `No ${barrierTypeLabel} selected for prioritization`
+                      : null
+                  }
+                />
+              }
             />
           )
           break
@@ -495,7 +511,7 @@ const Prioritize = () => {
           <ExclamationTriangle size="1.25em" />
         </Box>
         <Text sx={{ ml: '0.5rem', color: 'highlight' }}>
-          Zoom in further to select a {getSingularLabel(layer)}
+          Zoom in further to select a {getSingularUnitLabel(layer)}
         </Text>
       </TopBar>
     )

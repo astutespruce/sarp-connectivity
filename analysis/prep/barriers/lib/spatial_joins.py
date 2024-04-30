@@ -108,24 +108,25 @@ def add_spatial_joins(df):
     protected = gp.read_feather(boundaries_dir / "protected_areas.feather")
     df = sjoin_points_to_poly(df, protected)
     df.OwnerType = df.OwnerType.fillna(0).astype("uint8")
-    df.ProtectedLand = df.ProtectedLand.fillna(False).astype("bool")
+    df.ProtectedLand = df.ProtectedLand.fillna(0).astype("bool")
 
     ### Environmental justice layers
     print("Joining to environmental justice disadvantaged communities")
     tracts = gp.read_feather(boundaries_dir / "environmental_justice_tracts.feather")
     tracts["EJTract"] = True
     df = sjoin_points_to_poly(df, tracts)
-    df["EJTract"] = df.EJTract.fillna(False)
+    df["EJTract"] = df.EJTract.fillna(0).astype("bool")
 
     tribal_lands = gp.read_feather(boundaries_dir / "tribal_lands.feather")
     tribal_lands["EJTribal"] = True
     df = sjoin_points_to_poly(df, tribal_lands)
-    df["EJTribal"] = df.EJTribal.fillna(False)
+    df["EJTribal"] = df.EJTribal.fillna(0).astype("bool")
 
     # combine into single column for filtering
     labels = np.array(["tract", "tribal"])
     df["DisadvantagedCommunity"] = df[["EJTract", "EJTribal"]].apply(
-        lambda row: ",".join(labels[row.values == True]), axis=1
+        lambda row: ",".join(labels[row.values == True]),  # noqa
+        axis=1,
     )
 
     ### Native territories (convert all intersecting territories into comma-delimited list)
@@ -141,6 +142,22 @@ def add_spatial_joins(df):
         .rename("NativeTerritories")
     )
     df = df.join(territories)
+    df["NativeTerritories"] = df.NativeTerritories.fillna("")
+
+    ### Fish Habitat Partnership boundaries
+    # NOTE: these include overlapping areas
+    fhp = gp.read_feather(boundaries_dir / "fhp_boundary.feather")
+    left, right = STRtree(df.geometry.values).query(fhp.geometry.values, predicate="intersects")
+    fhp = (
+        pd.DataFrame({"id": fhp.id.values.take(left)}, index=df.index.values.take(right))
+        .groupby(level=0)
+        .id.unique()
+        .apply(sorted)
+        .apply(",".join)
+        .rename("FishHabitatPartnership")
+    )
+    df = df.join(fhp)
+    df["FishHabitatPartnership"] = df.FishHabitatPartnership.fillna("")
 
     ### Join in species stats
     spp_df = (

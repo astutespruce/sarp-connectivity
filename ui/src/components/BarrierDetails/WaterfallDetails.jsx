@@ -26,6 +26,7 @@ const WaterfallDetails = ({
   basin,
   excluded,
   falltype,
+  fishhabitatpartnership,
   flowstoocean,
   flowstogreatlakes,
   freealtereddownstreammiles,
@@ -88,6 +89,7 @@ const WaterfallDetails = ({
           basin={basin}
           subwatershed={subwatershed}
           huc12={huc12}
+          fishhabitatpartnership={fishhabitatpartnership}
           nativeterritories={nativeterritories}
           intermittent={intermittent}
           streamorder={streamorder}
@@ -223,6 +225,7 @@ WaterfallDetails.propTypes = {
   basin: PropTypes.string,
   excluded: PropTypes.bool,
   falltype: PropTypes.string,
+  fishhabitatpartnership: PropTypes.string,
   flowstoocean: PropTypes.number,
   flowstogreatlakes: PropTypes.number,
   freealtereddownstreammiles: PropTypes.number,
@@ -331,6 +334,7 @@ WaterfallDetails.defaultProps = {
   basin: null,
   excluded: false,
   falltype: null,
+  fishhabitatpartnership: null,
   flowstoocean: 0,
   flowstogreatlakes: 0,
   freealtereddownstreammiles: 0,

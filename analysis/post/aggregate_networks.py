@@ -7,7 +7,7 @@ import pandas as pd
 from analysis.constants import SEVERITY_TO_PASSABILITY
 from analysis.lib.util import get_signed_dtype, append
 from analysis.rank.lib.networks import get_network_results, get_removed_network_results
-from analysis.rank.lib.metrics import classify_streamorder, classify_spps
+from analysis.rank.lib.metrics import classify_streamorder, classify_spps, classify_slope
 from api.constants import (
     GENERAL_API_FIELDS1,
     UNIT_FIELDS,
@@ -16,6 +16,7 @@ from api.constants import (
     COMBINED_API_FIELDS,
     WF_API_FIELDS,
     ROAD_CROSSING_API_FIELDS,
+    BARRIER_SEARCH_RESULT_FIELDS,
     verify_domains,
 )
 from analysis.constants import NETWORK_TYPES
@@ -69,6 +70,10 @@ def fill_flowline_cols(df):
     df["AnnualVelocity"] = df.AnnualVelocity.fillna(-1).astype("float32")
     df["TotDASqKm"] = df.TotDASqKm.fillna(-1).astype("float32")
 
+    # slope is only used for road crossings
+    # if "Slope" in df.columns:
+    #     df["Slope"] = df.Slope.fillna(-1).astype("float32")
+
 
 #######################################################################################
 ### Read dams and associated networks
@@ -111,7 +116,7 @@ dam_networks = pd.concat(
 
 dams = dams.join(dam_networks)
 for col in ["HasNetwork", "Ranked"]:
-    dams[col] = dams[col].fillna(False)
+    dams[col] = dams[col].fillna(0).astype("bool")
 
 # backfill missing values with 0 for classes and -1 for other network metrics
 for col in nonremoved_dam_networks.columns:
@@ -139,8 +144,7 @@ tmp = dams[DAM_API_FIELDS].reset_index()
 verify_domains(tmp)
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
-tmp.to_feather(api_dir / "dams.feather")
-
+tmp.sort_values("SARPID").to_feather(api_dir / "dams.feather")
 
 #########################################################################################
 ###
@@ -183,7 +187,7 @@ small_barrier_networks = pd.concat(
 
 small_barriers = small_barriers.join(small_barrier_networks)
 for col in ["HasNetwork", "Ranked"]:
-    small_barriers[col] = small_barriers[col].fillna(False)
+    small_barriers[col] = small_barriers[col].fillna(0).astype("bool")
 
 # backfill missing values with 0 for classes and -1 for other network metrics
 for col in nonremoved_small_barrier_networks.columns:
@@ -208,7 +212,7 @@ small_barriers.reset_index().to_feather(results_dir / "small_barriers.feather")
 tmp = small_barriers[SB_API_FIELDS].reset_index()
 verify_domains(tmp)
 tmp["id"] = tmp.id.astype("uint32")
-tmp.to_feather(api_dir / "small_barriers.feather")
+tmp.sort_values("SARPID").to_feather(api_dir / "small_barriers.feather")
 
 #########################################################################################
 ###
@@ -242,7 +246,7 @@ bool_columns = set(c for c in dams.columns if dams.dtypes[c] == "bool").union(
     set(c for c in small_barriers.columns if small_barriers.dtypes[c] == "bool")
 )
 for col in bool_columns:
-    combined[col] = combined[col].fillna(False)
+    combined[col] = combined[col].fillna(0).astype("bool")
 
 str_columns = [c for c in dt[dt == object].index if c not in bool_columns]
 for col in str_columns:
@@ -298,6 +302,9 @@ for col in fill_columns:
 for col in ["CoastalHUC8"]:
     combined[col] = combined[col].astype("uint8")
 
+
+search_barriers = None
+
 for network_type in [
     "combined_barriers",
     "largefish_barriers",
@@ -333,10 +340,7 @@ for network_type in [
     for col in nonremoved_networks.columns:
         orig_dtype = nonremoved_networks[col].dtype
 
-        if orig_dtype == bool:
-            scenario_results[col] = scenario_results[col].fillna(False).astype(orig_dtype)
-
-        elif col.endswith("Class"):
+        if orig_dtype == bool or col.endswith("Class"):
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:
@@ -351,11 +355,12 @@ for network_type in [
     verify_domains(tmp)
     tmp["id"] = tmp.id.astype("uint32")
 
-    if network_type == "combined_barriers":
-        # create search key for search by name
-        tmp["search_key"] = (tmp["Name"] + " " + tmp["River"]).str.strip().str.replace("  ", " ", regex=False)
+    tmp.sort_values("SARPID").to_feather(api_dir / f"{network_type}.feather")
 
-    tmp.to_feather(api_dir / f"{network_type}.feather")
+    # save for search
+    if network_type == "combined_barriers":
+        search_barriers = tmp[BARRIER_SEARCH_RESULT_FIELDS].reset_index(drop=True)
+
 
 ########################################################################################
 ##
@@ -366,6 +371,12 @@ print("Reading waterfalls and networks")
 waterfalls = gp.read_feather(barriers_dir / "waterfalls.feather").set_index("id").rename(columns=rename_cols)
 waterfalls = waterfalls.loc[~(waterfalls.dropped | waterfalls.duplicate)].copy()
 fill_flowline_cols(waterfalls)
+
+tmp = waterfalls.copy()
+tmp["BarrierType"] = "waterfalls"
+search_barriers = pd.concat(
+    [search_barriers, tmp[BARRIER_SEARCH_RESULT_FIELDS].reset_index(drop=True)], ignore_index=True
+)
 
 # backfill Unranked for compatibility (this is needed when getting networks)
 waterfalls["Unranked"] = False
@@ -381,10 +392,7 @@ for network_type in NETWORK_TYPES.keys():
     for col in networks.columns:
         orig_dtype = networks[col].dtype
 
-        if orig_dtype == bool:
-            scenario_results[col] = scenario_results[col].fillna(False).astype(orig_dtype)
-
-        elif col.endswith("Class"):
+        if orig_dtype == bool or col.endswith("Class"):
             scenario_results[col] = scenario_results[col].fillna(0).astype(orig_dtype)
 
         else:
@@ -423,10 +431,17 @@ print("Processing road crossings")
 crossings = gp.read_feather(barriers_dir / "road_crossings.feather").set_index("id").rename(columns=rename_cols)
 fill_flowline_cols(crossings)
 
+tmp = crossings.copy()
+tmp["BarrierType"] = "road_crossings"
+search_barriers = pd.concat(
+    [search_barriers, tmp[BARRIER_SEARCH_RESULT_FIELDS].reset_index(drop=True)], ignore_index=True
+)
+
 # cast intermittent to int to match other types
 crossings["StreamOrderClass"] = classify_streamorder(crossings.StreamOrder)
 for col in ["TESpp", "StateSGCNSpp", "RegionalSGCNSpp"]:
     crossings[f"{col}Class"] = classify_spps(crossings[col])
+# crossings["SlopeClass"] = classify_slope(crossings.Slope)
 
 print("Saving crossings for tiles and API")
 # Save full results for tiles, etc
@@ -439,4 +454,15 @@ verify_domains(tmp)
 
 # downcast id to uint32 or it breaks in UI
 tmp["id"] = tmp.id.astype("uint32")
-tmp.to_feather(api_dir / "road_crossings.feather")
+tmp.sort_values("SARPID").to_feather(api_dir / "road_crossings.feather")
+
+### Save barrier search items
+
+# create search key for search by name
+search_barriers["search_key"] = (
+    (search_barriers["Name"] + " " + search_barriers["River"]).str.strip().str.replace("  ", " ", regex=False)
+)
+search_barriers["priority"] = search_barriers.BarrierType.map(
+    {"dams": 0, "waterfalls": 1, "small_barriers": 2, "road_crossings": 3}
+).astype("uint8")
+search_barriers.sort_values(by=["priority", "SARPID"]).to_feather(api_dir / "search_barriers.feather")

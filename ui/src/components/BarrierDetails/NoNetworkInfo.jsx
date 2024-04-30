@@ -12,7 +12,6 @@ const NoNetworkInfo = ({
   excluded,
   in_network_type,
   onloop,
-  diversion,
 }) => {
   const typeLabel = barrierTypeLabelSingular[barrierType]
 

@@ -69,6 +69,11 @@ export const pointColors = {
     color: '#fec44f',
     strokeColor: '#b27701',
   },
+  // majorBarrier only used for surveyed barriers in survey view
+  majorBarrier: {
+    color: '#ef3b2c',
+    strokeColor: '#FFFFFF',
+  },
   nonBarrier: {
     color: '#00D46A',
     strokeColor: '#037424',
@@ -1197,10 +1202,114 @@ export const DISADVANTAGED_COMMUNITY = {
   tribal: 'Within a tribal community',
 }
 
+// NOTE: these are encoded into a comma-delimited field
+export const FISH_HABITAT_PARTNERSHIPS = {
+  ACFHP: {
+    name: 'Atlantic Coastal Fish Habitat Partnership',
+    description:
+      'The Atlantic Coastal Fish Habitat Partnership (ACFHP) mission is to accelerate the conservation, protection, restoration, and enhancement of habitat for native Atlantic coastal, estuarine-dependent, and diadromous fishes through partnerships between federal, tribal, state, local, and other entities. The Partnership works from the headwaters of coastally draining rivers to the edge of the continental shelf, with a focus on estuarine habitats.',
+    url: 'https://www.fishhabitat.org/the-partnerships/atlantic-coastal-fish-habitat-partnership',
+    logo: 'acfhp_logo.png',
+    logoWidth: '140px',
+  },
+  CFPF: {
+    name: 'California Fish Passage Forum',
+    url: 'https://www.fishhabitat.org/the-partnerships/california-fish-passage-forum',
+  },
+  DARE: {
+    name: 'Driftless Area Restoration Effort',
+    url: 'https://www.fishhabitat.org/the-partnerships/driftless-area-restoration-effort',
+  },
+  DFHP: {
+    name: 'Desert Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/desert-fish-habitat-partnership',
+  },
+  EBTJV: {
+    name: 'Eastern Brook Trout Joint Venture',
+    url: 'https://www.fishhabitat.org/the-partnerships/eastern-brook-trout-joint-venture',
+  },
+  FFP: {
+    name: 'Farmers & Fishers Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/fishers-farmers-partnership',
+  },
+  GLBFHP: {
+    name: 'Great Lakes Basin Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/great-lakes-basin-fish-habitat-partnership',
+  },
+  GPFHP: {
+    name: 'Great Plains Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/great-plains-fish-habitat-partnership',
+  },
+  // TODO: enable once Hawaii is included in analysis
+  // HFHP: {
+  //   name: 'Hawaii Fish Habitat Partnership',
+  //   url: 'https://www.fishhabitat.org/the-partnerships/hawaii-fish-habitat-partnership',
+  // },
+  KPFHP: {
+    name: 'Kenai Peninsula Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/kenai-peninsula-fish-habitat-partnership',
+  },
+  MSBSHP: {
+    name: 'Mat-Su Basin Salmon Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/mat-su-basin-salmon-habitat-partnership',
+  },
+  MGLP: {
+    name: 'Midwest Glacial Lakes Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/midwest-glacial-lakes-partnership',
+  },
+  ORBFHP: {
+    name: 'Ohio River Basin Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/ohio-river-basin-fish-habitat-partnership',
+  },
+  PMEP: {
+    name: 'Pacific Marine & Estuarine Fish Habitat Partnership',
+    description:
+      "The Pacific Marine and Estuarine Fish Habitat Partnership's (PMEP) mission is to protect, enhance, and restore ecological habitats within estuaries and nearshore marine environments to sustain healthy native fish communities and support sustainable human uses that depend on healthy fish populations.  The PMEP originated in 2009 when representatives from Oregon, Washington and California agencies and non-governmental entities met to discuss the need to protect and restore habitat for fish species that use estuaries and nearshore marine areas.",
+    url: 'https://www.fishhabitat.org/the-partnerships/pacific-marine-and-estuarine-fish-habitat-partnership',
+    logo: 'pmep_logo.png',
+    logoWidth: '180px',
+  },
+  SARP: {
+    name: 'Southeast Aquatic Resources Partnership',
+    description:
+      'The Southeast Aquatic Resources Partnership (SARP) was formed by the Southeastern Association of Fish and Wildlife Agencies (SEAFWA) to protect aquatic resources across political boundaries as many of our river systems cross multiple jurisdictional boundaries. SARP works with partners to protect, conserve, and restore aquatic resources including habitats throughout the Southeast for the continuing benefit, use, and enjoyment of the American people.',
+    url: 'https://www.fishhabitat.org/the-partnerships/southeast-aquatic-resources-partnership',
+    logo: 'sarp_logo.png',
+    logoWidth: '140px',
+  },
+  SEAFHP: {
+    name: 'Southeast Alaska Fish Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/southeast-alaska-fish-habitat-partnership',
+  },
+  SWASHP: {
+    name: 'Southwest Alaska Salmon Habitat Partnership',
+    url: 'https://www.fishhabitat.org/the-partnerships/southwest-alaska-salmon-habitat-partnership',
+  },
+  WNTI: {
+    name: 'Western Native Trout Initiative',
+    url: 'https://www.fishhabitat.org/the-partnerships/western-native-trout-initiative',
+  },
+}
+
 export const INVASIVE_NETWORK = {
   // -1: 'off network', // filtered out
   0: 'not upstream of an invasive species barrier',
   1: 'upstream of an invasive species barrier',
+}
+
+export const SURVEYED = {
+  0: 'not likely surveyed',
+  1: 'likely surveyed',
+}
+
+export const SLOPE_CLASS = {
+  0: 'slope not available',
+  1: '0 - 9%',
+  2: '10 - 19%',
+  3: '20 - 29%',
+  4: '30 - 39%',
+  5: '40 - 49%',
+  6: '>50%',
 }
 
 export const CONNECTIVITY_TEAMS = {
@@ -1401,4 +1510,23 @@ export const SPECIES_HABITAT_FIELDS = {
     label: 'Chesapeake diadromous fish habitat (combined)',
     source: 'Chesapeake Fish Passage Workgroup',
   },
+}
+
+export const getSingularUnitLabel = (layer) => {
+  switch (layer) {
+    case 'State':
+      return 'state'
+    case 'County':
+      return 'county'
+    case 'HUC6':
+      return 'basin'
+    case 'HUC8':
+      return 'subbasin'
+    case 'HUC10':
+      return 'watershed'
+    case 'HUC12':
+      return 'subwatershed'
+    default:
+      return 'area'
+  }
 }
