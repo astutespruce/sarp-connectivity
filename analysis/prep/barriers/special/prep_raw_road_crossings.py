@@ -220,7 +220,6 @@ flowlines = (
             "offnetwork",
             "AnnualFlow",
             "AnnualVelocity",
-            # "Slope",
             "TotDASqKm",
         ],
     )
@@ -253,7 +252,6 @@ df["sizeclass"] = df.sizeclass.fillna("")
 df["FCode"] = df.FCode.fillna(-1).astype("int32")
 # -9998.0 values likely indicate AnnualVelocity data is not available, equivalent to null
 df.loc[df.AnnualVelocity < 0, "AnnualVelocity"] = np.nan
-# df.loc[df.Slope == -9998, "Slope"] = np.nan
 
 for field in ["AnnualVelocity", "AnnualFlow", "TotDASqKm"]:
     df[field] = df[field].astype("float32")

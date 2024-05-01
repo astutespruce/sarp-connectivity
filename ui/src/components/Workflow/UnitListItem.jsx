@@ -214,7 +214,7 @@ const SummaryUnitListItem = ({ layer, unit, onDelete }) => {
           }}
         >
           {name}
-          {layer === 'County' ? ` County, ${STATE_FIPS[id.slice(0, 2)]}` : null}
+          {layer === 'County' ? `, ${STATE_FIPS[id.slice(0, 2)]}` : null}
         </Text>
 
         {layer === 'HUC6' || layer === 'HUC8' || layer === 'HUC12' ? (
