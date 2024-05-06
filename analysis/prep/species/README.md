@@ -7,6 +7,11 @@ to taxonomic change.
 
 Data on trout species are obtained by SARP and joined at the HUC12 level.
 
+## Listed Federal Threatened & Endangered species
+
+The authoritative list of species was downloaded from USFWS on 5/3/2024 from
+https://ecos.fws.gov/ecp0/reports/ad-hoc-species-report?kingdom=V&kingdom=I&status=E&status=T&status=EmE&status=EmT&status=EXPE&status=EXPN&status=SAE&status=SAT&mapstatus=3&fcrithab=on&fstatus=on&fspecrule=on&finvpop=on&fgroup=on&header=Listed+Animals
+
 ## Salmonid ESU / DPS
 
 Data on Salmon Evolutionarily Significant Units (ESUs) and Steelhead Trout
