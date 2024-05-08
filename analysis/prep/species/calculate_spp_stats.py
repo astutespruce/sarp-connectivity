@@ -38,14 +38,15 @@ trout_layer = "Trout_Filter_2022"
 
 states = gp.read_feather(bnd_dir / "states.feather")
 huc12 = gp.read_feather(bnd_dir / "huc12.feather", columns=["HUC12", "geometry"]).set_index("HUC12")
-secas_huc12 = huc12.index.values.take(
+secas_huc12 = huc12.take(
     np.unique(
         shapely.STRtree(huc12.geometry.values).query(
             states.loc[states.id.isin(SECAS_STATES)].geometry.values, predicate="intersects"
         )[1]
     )
-)
+)[[]]
 huc12 = pd.DataFrame(huc12[[]])
+
 
 salmonid_huc12 = pd.read_feather(
     src_dir / "salmonid_esu.feather",
@@ -167,6 +168,10 @@ for layer in list_layers(gdb)[:, 0]:
     for col in df.columns:
         df[col] = df[col].fillna("").str.strip().str.replace("<Null>", "").str.replace("Unknown", "")
 
+    # TEMPORARY: prefx huc12 codes that are not 0 prefixed to 12 chars
+    ix = df.HUC12.apply(len) < 12
+    df.loc[ix, "HUC12"] = "0" + df.loc[ix].HUC12
+
     df = df.loc[(df.HUC12 != "") & (df.SNAME != "")].copy()
 
     if "Aquatic" in df.columns:
@@ -212,14 +217,13 @@ spp_presence.to_excel(out_dir / "spp_HUC12_presence.xlsx", index=False)
 
 
 ### Extract counts for SECAS: exclude any entries that are historical
-by_huc12_no_historical = (
-    df.loc[df.HUC12.isin(secas_huc12) & ~df.historical]
-    .groupby("HUC12")[["federal", "sgcn", "regional"]]
-    .sum()
+huc12_counts_secas = (
+    secas_huc12.join(df.loc[~df.historical].groupby("HUC12")[["federal", "sgcn", "regional"]].sum())
+    .fillna(0)
     .astype("uint8")
     .reset_index()
 )
-by_huc12_no_historical.to_excel(out_dir / "SECAS_spp_HUC12_count_no_historical.xlsx", index=False)
+huc12_counts_secas.to_excel(out_dir / "SECAS_spp_HUC12_count_no_historical.xlsx", index=False)
 
 ### Extract summaries by HUC12 including salmonid ESUs
 df = huc12.join(df.groupby("HUC12")[status_cols].sum()).fillna(0).astype("uint8")
