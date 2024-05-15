@@ -13,7 +13,7 @@ const regions = Object.entries(REGIONS)
 const Regions = () => {
   const maps = useStaticQuery(graphql`
     query {
-      ak: file(relativePath: { eq: "maps/ak.png" }) {
+      alaska: file(relativePath: { eq: "maps/regions/alaska.png" }) {
         childImageSharp {
           gatsbyImageData(
             layout: FULL_WIDTH
@@ -22,7 +22,7 @@ const Regions = () => {
           )
         }
       }
-      gl: file(relativePath: { eq: "maps/gl.png" }) {
+      great_lakes: file(relativePath: { eq: "maps/regions/great_lakes.png" }) {
         childImageSharp {
           gatsbyImageData(
             layout: FULL_WIDTH
@@ -31,7 +31,9 @@ const Regions = () => {
           )
         }
       }
-      gpiw: file(relativePath: { eq: "maps/gpiw.png" }) {
+      great_plains_intermountain_west: file(
+        relativePath: { eq: "maps/regions/great_plains_intermountain_west.png" }
+      ) {
         childImageSharp {
           gatsbyImageData(
             layout: FULL_WIDTH
@@ -41,7 +43,7 @@ const Regions = () => {
         }
       }
 
-      ne: file(relativePath: { eq: "maps/ne.png" }) {
+      northest: file(relativePath: { eq: "maps/regions/northeast.png" }) {
         childImageSharp {
           gatsbyImageData(
             layout: FULL_WIDTH
@@ -50,7 +52,7 @@ const Regions = () => {
           )
         }
       }
-      pnw: file(relativePath: { eq: "maps/pnw.png" }) {
+      northwest: file(relativePath: { eq: "maps/regions/northwest.png" }) {
         childImageSharp {
           gatsbyImageData(
             layout: FULL_WIDTH
@@ -59,7 +61,9 @@ const Regions = () => {
           )
         }
       }
-      psw: file(relativePath: { eq: "maps/psw.png" }) {
+      pacific_southwest: file(
+        relativePath: { eq: "maps/regions/pacific_southwest.png" }
+      ) {
         childImageSharp {
           gatsbyImageData(
             layout: FULL_WIDTH
@@ -68,7 +72,7 @@ const Regions = () => {
           )
         }
       }
-      se: file(relativePath: { eq: "maps/se.png" }) {
+      southeast: file(relativePath: { eq: "maps/regions/southeast.png" }) {
         childImageSharp {
           gatsbyImageData(
             layout: FULL_WIDTH
@@ -77,7 +81,7 @@ const Regions = () => {
           )
         }
       }
-      sw: file(relativePath: { eq: "maps/sw.png" }) {
+      southwest: file(relativePath: { eq: "maps/regions/southwest.png" }) {
         childImageSharp {
           gatsbyImageData(
             layout: FULL_WIDTH

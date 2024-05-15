@@ -24,7 +24,7 @@ import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
 import { dynamicallyLoadImage } from 'util/dom'
 import { formatNumber, pluralize } from 'util/format'
 
-const regionID = 'ak'
+const regionID = 'alaska'
 const {
   [regionID]: { name, states, inDevelopment },
 } = REGIONS
@@ -202,7 +202,7 @@ export const pageQuery = graphql`
         )
       }
     }
-    map: file(relativePath: { eq: "maps/ak.png" }) {
+    map: file(relativePath: { eq: "maps/regions/ak.png" }) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH

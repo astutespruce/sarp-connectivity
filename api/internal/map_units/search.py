@@ -19,8 +19,14 @@ async def search_units(request: Request, layer: str, query: str):
     """Return top 10 units based on text search
 
     Query parameters:
+    -----------------
+
     layer: comma-delimited list of layers (e.g., "HUC2,HUC6")
     query: text search
+
+    Returns
+    -------
+    Arrow table
     """
 
     log_request(request)

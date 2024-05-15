@@ -1,7 +1,7 @@
 """Update summary unit map tiles with summary statistics of dams and small barriers
 within them.
 
-Base summary unit map tile are created using `analysis/prep/boundaries/create_region_tiles.py`.
+Base summary unit map tile are created using `analysis/prep/boundaries/create_map_unit_tiles.py`.
 
 These statistics are based on:
 * dams: not dropped or duplicate
@@ -32,6 +32,7 @@ import pandas as pd
 import pyarrow as pa
 from pyarrow.csv import write_csv
 
+from analysis.constants import REGION_STATES
 from analysis.lib.util import append
 from analysis.post.lib.removed_barriers import calc_year_removed_bin, pack_year_removed_stats
 
@@ -84,6 +85,17 @@ out_tile_dir = Path("tiles")
 tmp_dir = Path("/tmp")
 
 
+### Setup region mapping
+# have to aggregate from state to region
+# NOTE: some states are in multiple regions, so we split out associated records
+state_regions = {}
+for region, region_states in REGION_STATES.items():
+    for state in region_states:
+        if state in state_regions:
+            state_regions[state].append(region)
+        else:
+            state_regions[state] = [region]
+
 ### Read dams
 dams = pd.read_feather(
     results_dir / "dams.feather",
@@ -94,6 +106,8 @@ dams = pd.read_feather(
 dams_master = pd.read_feather(src_dir / "dams.feather", columns=["id", "Recon"]).set_index("id")
 dams = dams.join(dams_master)
 dams["Recon"] = dams.Recon > 0
+dams["FishHabitatPartnership"] = dams.FishHabitatPartnership.str.split(",")
+dams["Region"] = dams.State.map(state_regions)
 
 # get stats for removed dams
 removed_dam_networks = (
@@ -130,6 +144,8 @@ barriers = barriers.join(barriers_master)
 # barriers that were not  excluded are likely to have impacts
 # (dropped / duplicates are already removed from above)
 barriers["Included"] = ~barriers.excluded
+barriers["FishHabitatPartnership"] = barriers.FishHabitatPartnership.str.split(",")
+barriers["Region"] = barriers.State.map(state_regions)
 
 removed_barrier_networks = (
     pd.read_feather(
@@ -151,22 +167,27 @@ largefish_barriers = pd.read_feather(
     results_dir / "largefish_barriers.feather",
     columns=["id", "BarrierType", "Ranked"] + SUMMARY_UNITS,
 )
+largefish_barriers["FishHabitatPartnership"] = largefish_barriers.FishHabitatPartnership.str.split(",")
+largefish_barriers["Region"] = largefish_barriers.State.map(state_regions)
+
 smallfish_barriers = pd.read_feather(
     results_dir / "smallfish_barriers.feather",
     columns=["id", "BarrierType", "Ranked"] + SUMMARY_UNITS,
 )
-
+smallfish_barriers["FishHabitatPartnership"] = smallfish_barriers.FishHabitatPartnership.str.split(",")
+smallfish_barriers["Region"] = smallfish_barriers.State.map(state_regions)
 
 ### Read road / stream crossings
 # NOTE: crossings are already de-duplicated against each other and against
 # barriers
 crossings = pd.read_feather(src_dir / "road_crossings.feather", columns=["id", "NearestBarrierID"] + SUMMARY_UNITS)
-
+crossings["FishHabitatPartnership"] = crossings.FishHabitatPartnership.str.split(",")
+crossings["Region"] = crossings.State.map(state_regions)
 
 # Calculate summary statistics for each type of summary unit
 # These are joined to vector tiles
 stats = None
-for unit in SUMMARY_UNITS:
+for unit in SUMMARY_UNITS + ["Region"]:
     print(f"processing {unit}")
 
     dams_by_unit = dams.copy()
@@ -181,21 +202,20 @@ for unit in SUMMARY_UNITS:
         units = pd.read_feather(bnd_dir / "region_counties.feather", columns=["id"]).set_index("id")
     elif unit == "FishHabitatPartnership":
         units = pd.read_feather(bnd_dir / "fhp_boundary.feather", columns=["id"]).set_index("id")
-
-        # have to split lists of fish habitat partnerships into individual records
-        dams_by_unit[unit] = dams_by_unit[unit].str.split(",")
-        dams_by_unit = dams_by_unit.explode(unit)
-        barriers_by_unit[unit] = barriers_by_unit[unit].str.split(",")
-        barriers_by_unit = barriers_by_unit.explode(unit)
-        largefish_barriers_by_unit[unit] = largefish_barriers_by_unit[unit].str.split(",")
-        largefish_barriers_by_unit = largefish_barriers_by_unit.explode(unit)
-        smallfishbarriers_by_unit[unit] = smallfishbarriers_by_unit[unit].str.split(",")
-        smallfishbarriers_by_unit = smallfishbarriers_by_unit.explode(unit)
-        crossings_by_unit[unit] = crossings_by_unit[unit].str.split(",")
-        crossings_by_unit = crossings_by_unit.explode(unit)
-
+    elif unit == "Region":
+        units = pd.read_feather(bnd_dir / "region_boundary.feather", columns=["id"]).set_index("id")
+        # ignore total; that is handled via JSON
+        units = units.loc[units.index != "total"].copy()
     else:
         units = pd.read_feather(bnd_dir / f"{unit}.feather", columns=[unit]).set_index(unit)
+
+    if unit in {"FishHabitatPartnership", "Region"}:
+        # have to split unit list values into individual records
+        dams_by_unit = dams_by_unit.explode(unit)
+        barriers_by_unit = barriers_by_unit.explode(unit)
+        largefish_barriers_by_unit = largefish_barriers_by_unit.explode(unit)
+        smallfishbarriers_by_unit = smallfishbarriers_by_unit.explode(unit)
+        crossings_by_unit = crossings_by_unit.explode(unit)
 
     dam_stats = (
         dams_by_unit[[unit, "id", "Ranked", "Recon", "Removed", "RemovedGainMiles"]]
@@ -311,63 +331,64 @@ for unit in SUMMARY_UNITS:
 ### output unit stats with bounds for API
 units = pd.read_feather(bnd_dir / "unit_bounds.feather").set_index(["layer", "id"])
 out = units.join(stats.set_index(["layer", "id"]))
+
 out.reset_index().to_feather(api_dir / "map_units.feather")
 
 
-# ### Output minimal subset and join to tiles
+### Output minimal subset and join to tiles
 
-# # create bitset field based on number of barriers present per unit; where false for a given barrier type,
-# # this is used to color the unit grey (see priority/Map.jsx for decoding)
-# # Can rank if:
-# # dams: ranked_dams > 0
-# # small_barriers: ranked_small_barriers > 0 AND total_small_barriers >= 10
-# # other *_barriers: dams ranked in scenario > 0 AND total_small_barriers >= 10 (may need to revisit this)
+# create bitset field based on number of barriers present per unit; where false for a given barrier type,
+# this is used to color the unit grey (see priority/Map.jsx for decoding)
+# Can rank if:
+# dams: ranked_dams > 0
+# small_barriers: ranked_small_barriers > 0 AND total_small_barriers >= 10
+# other *_barriers: dams ranked in scenario > 0 AND total_small_barriers >= 10 (may need to revisit this)
 
-# can_prioritize_dams = (stats.ranked_dams > 0).values.astype("uint8")
-# can_prioritize_small_barriers = ((stats.ranked_small_barriers > 0) & (stats.total_small_barriers >= 10)).values.astype(
-#     "uint8"
-# )
-# can_prioritize_combined_barriers = ((stats.ranked_dams > 0) & (stats.total_small_barriers >= 10)).values.astype("uint8")
-# can_prioritize_largefish_barriers = (
-#     (stats.ranked_largefish_barriers_dams > 0) & (stats.total_small_barriers >= 10)
-# ).values.astype("uint8")
-# can_prioritize_smallfish_barriers = (
-#     (stats.ranked_smallfish_barriers_dams > 0) & (stats.total_small_barriers >= 10)
-# ).values.astype("uint8")
-# can_select_road_crossings = (stats.total_road_crossings > 0).values.astype("uint8")
+can_prioritize_dams = (stats.ranked_dams > 0).values.astype("uint8")
+can_prioritize_small_barriers = ((stats.ranked_small_barriers > 0) & (stats.total_small_barriers >= 10)).values.astype(
+    "uint8"
+)
+can_prioritize_combined_barriers = ((stats.ranked_dams > 0) & (stats.total_small_barriers >= 10)).values.astype("uint8")
+can_prioritize_largefish_barriers = (
+    (stats.ranked_largefish_barriers_dams > 0) & (stats.total_small_barriers >= 10)
+).values.astype("uint8")
+can_prioritize_smallfish_barriers = (
+    (stats.ranked_smallfish_barriers_dams > 0) & (stats.total_small_barriers >= 10)
+).values.astype("uint8")
+can_select_road_crossings = (stats.total_road_crossings > 0).values.astype("uint8")
 
-# stats["has_data"] = (
-#     can_prioritize_dams
-#     | (can_prioritize_small_barriers << 1)
-#     | (can_prioritize_combined_barriers << 2)
-#     | (can_prioritize_largefish_barriers << 3)
-#     | (can_prioritize_smallfish_barriers << 4)
-#     | (can_select_road_crossings << 5)
-# )
+stats["has_data"] = (
+    can_prioritize_dams
+    | (can_prioritize_small_barriers << 1)
+    | (can_prioritize_combined_barriers << 2)
+    | (can_prioritize_largefish_barriers << 3)
+    | (can_prioritize_smallfish_barriers << 4)
+    | (can_select_road_crossings << 5)
+)
 
-# # only write the fields used for rendering map units by color in the frontend
-# stats = stats[["id", "dams", "small_barriers", "removed_dams", "removed_small_barriers", "has_data"]]
+# only write the fields used for rendering map units by color in the frontend
+stats = stats[["id", "dams", "small_barriers", "removed_dams", "removed_small_barriers", "has_data"]]
 
-# csv_filename = tmp_dir / "map_units_summary.csv"
-# write_csv(pa.Table.from_pandas(stats), csv_filename)
+csv_filename = tmp_dir / "map_units_summary.csv"
+write_csv(pa.Table.from_pandas(stats), csv_filename)
 
-# # join to tiles
-# mbtiles_filename = f"{out_tile_dir}/map_units_summary.mbtiles"
-# ret = subprocess.run(
-#     [
-#         tile_join,
-#         "-f",
-#         "-pg",
-#         "--no-tile-size-limit",
-#         "-o",
-#         mbtiles_filename,
-#         "-c",
-#         f"{tmp_dir}/map_units_summary.csv",
-#         f"{data_dir}/tiles/map_units.mbtiles",
-#     ]
-# )
-# ret.check_returncode()
+# join to tiles
+mbtiles_filename = f"{out_tile_dir}/map_units_summary.mbtiles"
+ret = subprocess.run(
+    [
+        tile_join,
+        "-f",
+        "-pg",
+        "--no-tile-size-limit",
+        "-o",
+        mbtiles_filename,
+        "-c",
+        f"{tmp_dir}/map_units_summary.csv",
+        f"{data_dir}/tiles/map_units.mbtiles",
+    ]
+)
+ret.check_returncode()
 
-# csv_filename.unlink()
+csv_filename.unlink()
 
-# print("All done!")
+print("All done!")

@@ -110,9 +110,9 @@ SARP_STATE_NAMES = [STATES[s] for s in SARP_STATES]
 
 # Note: some states overlap multiple regions
 REGION_STATES = {
-    "se": SARP_STATES,
+    "southeast": SARP_STATES,
     # Great Plains / intermountain west
-    "gpiw": [
+    "great_plains_intermountain_west": [
         "CO",
         "KS",
         "MT",
@@ -123,13 +123,13 @@ REGION_STATES = {
         "UT",
     ],
     # Great Lakes
-    "gl": ["IA", "IL", "IN", "MI", "MN", "OH", "WI"],
-    "ak": ["AK"],
-    "pnw": ["ID", "OR", "WA"],
-    "psw": ["CA", "NV"],
-    "sw": ["AZ", "NM", "OK", "TX"],
+    "great_lakes": ["IA", "IL", "IN", "MI", "MN", "OH", "WI"],
+    "alaska": ["AK"],
+    "northwest": ["ID", "OR", "WA"],
+    "pacific_southwest": ["CA", "NV"],
+    "southwest": ["AZ", "NM", "OK", "TX"],
     # TEMP
-    "ne": ["CT", "DC", "DE", "MA", "MD", "ME", "NH", "NJ", "NY", "PA", "RI", "VT"],
+    "northeast": ["CT", "DC", "DE", "MA", "MD", "ME", "NH", "NJ", "NY", "PA", "RI", "VT"],
 }
 
 

@@ -22,7 +22,7 @@ import { Chart } from 'components/Restoration'
 import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
 import { formatNumber } from 'util/format'
 
-const regionID = 'gpiw'
+const regionID = 'great_plains_intermountain_west'
 const {
   [regionID]: { name, states },
 } = REGIONS
@@ -179,7 +179,9 @@ export const pageQuery = graphql`
         )
       }
     }
-    map: file(relativePath: { eq: "maps/gpiw.png" }) {
+    map: file(
+      relativePath: { eq: "maps/regions/great_plains_intermountain_west.png" }
+    ) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH

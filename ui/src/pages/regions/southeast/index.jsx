@@ -27,7 +27,7 @@ import {
 } from 'content/regions/southeast'
 import { formatNumber } from 'util/format'
 
-const regionID = 'se'
+const regionID = 'southeast'
 const {
   [regionID]: { name, states },
 } = REGIONS
@@ -192,7 +192,7 @@ export const pageQuery = graphql`
         )
       }
     }
-    map: file(relativePath: { eq: "maps/se.png" }) {
+    map: file(relativePath: { eq: "maps/regions/southeast.png" }) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH

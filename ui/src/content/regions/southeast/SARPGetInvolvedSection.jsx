@@ -52,7 +52,7 @@ const SARPGetInvolvedSection = () => {
         <Box>
           <Heading as="h4">Aquatic connectivity teams:</Heading>
           <Box as="ul" sx={{ mt: '0.5rem' }}>
-            {REGIONS.se.states
+            {REGIONS.southeast.states
               .filter((state) => CONNECTIVITY_TEAMS[state])
               .map((state) => (
                 <li key={state}>

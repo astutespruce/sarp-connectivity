@@ -29,6 +29,7 @@ class Layers(str, Enum):
     State = "State"
     County = "County"
     FishHabitatPartnership = "FishHabitatPartnership"
+    Region = "Region"
 
 
 class Formats(str, Enum):

@@ -22,7 +22,7 @@ import { Chart } from 'components/Restoration'
 import { REGIONS, STATE_DATA_PROVIDERS } from 'config'
 import { formatNumber } from 'util/format'
 
-const regionID = 'psw'
+const regionID = 'pacific_southwest'
 const {
   [regionID]: { name, states, inDevelopment },
 } = REGIONS
@@ -182,7 +182,7 @@ export const pageQuery = graphql`
         )
       }
     }
-    map: file(relativePath: { eq: "maps/psw.png" }) {
+    map: file(relativePath: { eq: "maps/regions/pacific_southwest.png" }) {
       childImageSharp {
         gatsbyImageData(
           layout: FULL_WIDTH

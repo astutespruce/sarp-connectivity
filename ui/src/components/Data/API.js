@@ -146,7 +146,7 @@ export const getDownloadURL = ({
 }
 
 export const fetchUnitDetails = async (layer, id) => {
-  const url = `${apiHost}/api/v1/internal/units/${layer}/${id}`
+  const url = `${apiHost}/api/v1/internal/units/${layer}/details/${id}`
 
   try {
     const response = await fetch(url)
