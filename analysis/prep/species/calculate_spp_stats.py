@@ -23,8 +23,6 @@ from analysis.constants import SARP_STATES
 from analysis.lib.util import append
 
 
-SECAS_STATES = sorted(set(SARP_STATES + ["WV", "VI"]))
-
 start = time()
 data_dir = Path("data")
 bnd_dir = data_dir / "boundaries"
@@ -41,7 +39,7 @@ huc12 = gp.read_feather(bnd_dir / "huc12.feather", columns=["HUC12", "geometry"]
 secas_huc12 = huc12.take(
     np.unique(
         shapely.STRtree(huc12.geometry.values).query(
-            states.loc[states.id.isin(SECAS_STATES)].geometry.values, predicate="intersects"
+            states.loc[states.id.isin(SARP_STATES)].geometry.values, predicate="intersects"
         )[1]
     )
 )[[]]

@@ -56,7 +56,7 @@ const UnitSummary = ({
         break
       }
       case 'County': {
-        title = `${name} County`
+        title = name
         subtitle = STATE_FIPS[id.slice(0, 2)]
         break
       }

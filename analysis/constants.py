@@ -101,6 +101,8 @@ SARP_STATES = [
     "TN",
     "TX",
     "VA",
+    "VI",
+    "WV",
 ]
 
 SARP_STATE_NAMES = [STATES[s] for s in SARP_STATES]
@@ -108,8 +110,7 @@ SARP_STATE_NAMES = [STATES[s] for s in SARP_STATES]
 
 # Note: some states overlap multiple regions
 REGION_STATES = {
-    # Southeast is SARP states plus VI & WV (SECAS not SARP states)
-    "se": SARP_STATES + ["VI", "WV"],
+    "se": SARP_STATES,
     # Great Plains / intermountain west
     "gpiw": [
         "CO",
@@ -784,7 +785,8 @@ FHP_LAYER_TO_CODE = {
     "FHP_Midwest_Glacial_Lakes_Boundary_2013": "MGLP",
     "FHP_Ohio_River_Basin_Boundary": "ORBFHP",
     "FHP_PMEP_Boundary_2013": "PMEP",
-    "FHP_SARP_Boundary_2013": "SARP",
+    # NOTE: intentionally exclude SARP since this layer is out of date; use SARP_STATES instead
+    # "FHP_SARP_Boundary_2013": "SARP",
     "FHP_SEAK_Boundary_2013": "SEAFHP",
     "FHP_SW_AK_Salmon_Boundary_2013": "SWASHP",
     "FHP_Western_Native_Trout_Boundary_2013": "WNTI",

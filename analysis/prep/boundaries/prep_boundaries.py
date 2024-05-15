@@ -14,7 +14,15 @@ import pandas as pd
 import shapely
 from pyogrio import read_dataframe, write_dataframe
 
-from analysis.constants import CRS, GEO_CRS, OWNERTYPE_TO_DOMAIN, OWNERTYPE_TO_PUBLIC_LAND, STATES, FHP_LAYER_TO_CODE
+from analysis.constants import (
+    CRS,
+    GEO_CRS,
+    OWNERTYPE_TO_DOMAIN,
+    OWNERTYPE_TO_PUBLIC_LAND,
+    STATES,
+    FHP_LAYER_TO_CODE,
+    SARP_STATES,
+)
 from analysis.lib.geometry import dissolve, to_multipolygon, make_valid
 from analysis.lib.geometry.polygons import unwrap_antimeridian
 from analysis.lib.util import append
@@ -118,17 +126,54 @@ for layer, code in FHP_LAYER_TO_CODE.items():
 
 fhp = merged
 
+# merge SARP states to create SARP boundary
+fhp = pd.concat(
+    [
+        fhp,
+        gp.GeoDataFrame(
+            [{"id": "SARP", "name": "Southeast Aquatic Resources Partnership"}],
+            geometry=[shapely.union_all(state_df.loc[state_df.id.isin(SARP_STATES)].geometry.values)],
+            crs=CRS,
+        ),
+    ],
+    ignore_index=True,
+)
+
+
 fhp.to_feather(out_dir / "fhp_boundary.feather")
 write_dataframe(fhp, out_dir / "fhp_boundary.fgb")
 
 
 ### Extract bounds and names for unit search in user interface
 print("Projecting geometries to geographic coordinates for search index")
+
+print("Processing regions")
+# NOTE: these already handle antimeridian correctly
+region_geo_df = gp.read_feather(out_dir / "region_boundary.feather").to_crs(GEO_CRS)
+region_geo_df["bbox"] = encode_bbox(region_geo_df.geometry.values)
+region_geo_df["in_region"] = True
+region_geo_df["state"] = ""
+region_geo_df["layer"] = "regions"
+region_geo_df["priority"] = 99  # not used in search
+region_geo_df["key"] = region_geo_df.id
+
 print("Processing state and county")
 state_geo_df = (
     gp.read_feather(out_dir / "states.feather", columns=["geometry", "id", "State", "STATEFIPS"])
     .rename(columns={"State": "name"})
     .to_crs(GEO_CRS)
+    .explode(ignore_index=True)
+)
+# unwrap Alaska around antimeridian
+state_geo_df["geometry"] = unwrap_antimeridian(state_geo_df.geometry.values)
+state_geo_df = gp.GeoDataFrame(
+    state_geo_df.groupby("id")
+    .agg(
+        {"geometry": shapely.multipolygons, **{c: "first" for c in state_geo_df.columns if c not in {"geometry", "id"}}}
+    )
+    .reset_index(),
+    geometry="geometry",
+    crs=df.crs,
 )
 state_geo_df["bbox"] = encode_bbox(state_geo_df.geometry.values)
 state_geo_df["in_region"] = state_geo_df.id.isin(STATES)
@@ -137,12 +182,27 @@ state_geo_df["layer"] = "State"
 state_geo_df["priority"] = 1
 state_geo_df["key"] = state_geo_df["name"]
 
+# Unwrap Alaska counties around antimeridian
 county_geo_df = (
     county_df.loc[county_df.STATEFIPS.isin(state_fips)]
     .rename(columns={"COUNTYFIPS": "id", "County": "name"})
     .join(state_df.set_index("STATEFIPS").id.rename("state"), on="STATEFIPS")
     .to_crs(GEO_CRS)
     .join(state_geo_df.set_index("STATEFIPS").name.rename("state_name"), on="STATEFIPS")
+    .explode(ignore_index=True)
+)
+county_geo_df["geometry"] = unwrap_antimeridian(county_geo_df.geometry.values)
+county_geo_df = gp.GeoDataFrame(
+    county_geo_df.groupby("id")
+    .agg(
+        {
+            "geometry": shapely.multipolygons,
+            **{c: "first" for c in county_geo_df.columns if c not in {"geometry", "id"}},
+        }
+    )
+    .reset_index(),
+    geometry="geometry",
+    crs=df.crs,
 )
 county_geo_df["name"] = county_geo_df["name"] + " County"
 county_geo_df["bbox"] = encode_bbox(county_geo_df.geometry.values)
@@ -164,7 +224,7 @@ fhp_geo_df["bbox"] = encode_bbox(fhp_geo_df.geometry.values)
 fhp_geo_df["in_region"] = True
 fhp_geo_df["state"] = ""  # not used
 fhp_geo_df["layer"] = "FishHabitatPartnership"
-fhp_geo_df["priority"] = 99
+fhp_geo_df["priority"] = 99  # not used in search
 fhp_geo_df["key"] = fhp_geo_df["name"]
 
 

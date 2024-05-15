@@ -15,7 +15,6 @@ from shapely import STRtree
 
 from analysis.constants import SARP_STATES
 
-SECAS_STATES = sorted(set(SARP_STATES + ["WV"]))
 METERS_TO_MILES = 0.000621371
 
 data_dir = Path("data")
@@ -30,7 +29,7 @@ if not out_dir.exists():
 
 ### Read states and HUC12s to determine which HUC12s are in scope
 states = gp.read_feather(bnd_dir / "states.feather", columns=["geometry", "id"])
-states = states.loc[states.id.isin(SECAS_STATES)]
+states = states.loc[states.id.isin(SARP_STATES)]
 huc12 = gp.read_feather(bnd_dir / "huc12.feather", columns=["geometry", "HUC12"])
 
 # derive SECAS boundary from union of selected states
@@ -45,16 +44,12 @@ dams = pd.read_feather(
     columns=["id", "HUC12", "removed"],
 )
 # drop removed dams
-dams = dams.loc[(~dams.removed) & (dams.HUC12.isin(huc12.HUC12))].drop(
-    columns=["removed"]
-)
+dams = dams.loc[(~dams.removed) & (dams.HUC12.isin(huc12.HUC12))].drop(columns=["removed"])
 
 ### Read road crossings
 # NOTE: we use the raw crossings data because we don't want them deduplicated
 # by dams / inventoried barriers
-crossings = pd.read_feather(
-    data_dir / "barriers/source/road_crossings.feather", columns=["id", "HUC12"]
-)
+crossings = pd.read_feather(data_dir / "barriers/source/road_crossings.feather", columns=["id", "HUC12"])
 crossings = crossings.loc[crossings.HUC12.isin(huc12.HUC12)].reset_index(drop=True)
 
 ### Calculate counts by HUC12
@@ -94,40 +89,27 @@ for huc2 in huc2s:
     )
 
     shapely.prepare(pairs.HUC12_geom.values)
-    pairs["contained"] = shapely.contains_properly(
-        pairs.HUC12_geom.values, pairs.flowline.values
-    )
+    pairs["contained"] = shapely.contains_properly(pairs.HUC12_geom.values, pairs.flowline.values)
 
     # clip any that are not totally contained in HUC12
     tmp = pairs.loc[~pairs.contained]
-    pairs.loc[~pairs.contained, "flowline"] = shapely.intersection(
-        tmp.flowline.values, tmp.HUC12_geom.values
-    )
+    pairs.loc[~pairs.contained, "flowline"] = shapely.intersection(tmp.flowline.values, tmp.HUC12_geom.values)
 
     # calculate length in miles
     pairs["miles"] = shapely.length(pairs.flowline) * METERS_TO_MILES
 
     # drop any that don't have any length
-    pairs = pairs.loc[pairs.miles > 0].drop(
-        columns=["HUC12_geom", "contained", "lineID"]
-    )
+    pairs = pairs.loc[pairs.miles > 0].drop(columns=["HUC12_geom", "contained", "lineID"])
 
     # calculate statistics by HUC12
     flowline_stats = (
         pd.DataFrame(pairs.groupby("HUC12").miles.sum().rename("total_miles"))
-        .join(
-            pairs.loc[pairs.altered]
-            .groupby("HUC12")
-            .miles.sum()
-            .rename("altered_miles")
-        )
+        .join(pairs.loc[pairs.altered].groupby("HUC12").miles.sum().rename("altered_miles"))
         .fillna(0)
         .reset_index()
     )
 
-    flowline_stats["pct_altered"] = (
-        100 * flowline_stats.altered_miles / flowline_stats.total_miles
-    )
+    flowline_stats["pct_altered"] = 100 * flowline_stats.altered_miles / flowline_stats.total_miles
 
     if merged is None:
         merged = flowline_stats
@@ -139,9 +121,7 @@ flowline_stats = merged.reset_index(drop=True).set_index("HUC12")
 
 
 df = df.join(flowline_stats)
-df[["altered_miles", "total_miles", "pct_altered"]] = df[
-    ["altered_miles", "total_miles", "pct_altered"]
-].fillna(0)
+df[["altered_miles", "total_miles", "pct_altered"]] = df[["altered_miles", "total_miles", "pct_altered"]].fillna(0)
 
 df = df.reset_index()
 df.to_feather(out_dir / "huc12_stats.feather")

@@ -471,6 +471,7 @@ export const SUMMARY_UNIT_COLORS = {
 
 export const STATE_FIPS = {
   '01': 'Alabama',
+  '02': 'Alaska',
   '04': 'Arizona',
   '05': 'Arkansas',
   '06': 'California',
@@ -520,6 +521,7 @@ export const STATE_FIPS = {
   55: 'Wisconsin',
   56: 'Wyoming',
   72: 'Puerto Rico',
+  78: 'United States Virgin Islands',
 }
 
 export const STATES = {

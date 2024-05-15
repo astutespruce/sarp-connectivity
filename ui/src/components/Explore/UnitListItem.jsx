@@ -124,7 +124,7 @@ const UnitListItem = ({ barrierType, system, unit, ignore, onDelete }) => {
             </Text>
           ) : null}
 
-          {layer === 'County' ? ` County, ${STATE_FIPS[id.slice(0, 2)]}` : null}
+          {layer === 'County' ? `, ${STATE_FIPS[id.slice(0, 2)]}` : null}
         </Text>
 
         {system === 'HUC' ? (
