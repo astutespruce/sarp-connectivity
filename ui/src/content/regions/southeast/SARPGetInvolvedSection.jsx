@@ -5,7 +5,7 @@ import { GatsbyImage } from 'gatsby-plugin-image'
 import { Box, Grid, Heading, Paragraph } from 'theme-ui'
 
 import { OutboundLink } from 'components/Link'
-import { CONNECTIVITY_TEAMS, STATES } from 'config'
+import { CONNECTIVITY_TEAMS, STATES, REGIONS } from 'config'
 import { groupBy } from 'util/data'
 import { extractNodes } from 'util/graphql'
 
@@ -52,14 +52,20 @@ const SARPGetInvolvedSection = () => {
         <Box>
           <Heading as="h4">Aquatic connectivity teams:</Heading>
           <Box as="ul" sx={{ mt: '0.5rem' }}>
-            {Object.entries(CONNECTIVITY_TEAMS.southeast).map(
-              ([state, team]) => (
+            {REGIONS.se.states
+              .filter((state) => CONNECTIVITY_TEAMS[state])
+              .map((state) => (
                 <li key={state}>
                   {STATES[state]}:{' '}
-                  <OutboundLink to={team.url}>{team.name}</OutboundLink>
+                  {CONNECTIVITY_TEAMS[state].url ? (
+                    <OutboundLink to={CONNECTIVITY_TEAMS[state].url}>
+                      {CONNECTIVITY_TEAMS[state].name}
+                    </OutboundLink>
+                  ) : (
+                    CONNECTIVITY_TEAMS[state].name
+                  )}
                 </li>
-              )
-            )}
+              ))}
           </Box>
         </Box>
       </Grid>

@@ -1365,43 +1365,69 @@ export const SLOPE_CLASS = {
 }
 
 export const CONNECTIVITY_TEAMS = {
-  southeast: {
-    AL: {
-      name: 'Alabama Rivers and Streams Network including Connectivity',
-      url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/alabama-act',
-    },
-    AR: {
-      name: 'Arkansas Stream Heritage Partnership',
-      url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/ashp',
-    },
-    FL: {
-      name: 'Florida Aquatic Connectivity Team',
-      url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/florida-act-1',
-    },
-    GA: {
-      name: 'Georgia Aquatic Connectivity Team',
-      url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/georgia-act',
-    },
-    NC: {
-      name: 'North Carolina Aquatic Connectivity Team',
-      url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/north-carolina-act',
-    },
-    SC: {
-      name: 'South Carolina Aquatic Connectivity Team',
-      url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/south-carolina-act',
-    },
-    TN: {
-      name: 'Tennessee Aquatic Connectivity Team',
-      url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/tennessee-act',
-    },
-    TX: {
-      name: 'Texas Aquatic Connectivity Team',
-      url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/texas-act',
-    },
-    VA: {
-      name: 'Virginia Stream Barrier Removal Task Force',
-      url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/virginia-act',
-    },
+  AL: {
+    name: 'Alabama Rivers and Streams Network including Connectivity',
+    url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/alabama-act',
+  },
+  AR: {
+    name: 'Arkansas Stream Heritage Partnership',
+    url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/ashp',
+  },
+  CA: {
+    name: 'California Fish Passage Forum',
+    url: 'https://www.cafishpassageforum.org/',
+  },
+  CO: {
+    name: 'Colorado Aquatic Connectivity Team',
+  },
+  FL: {
+    name: 'Florida Aquatic Connectivity Team',
+    url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/florida-act-1',
+  },
+  GA: {
+    name: 'Georgia Aquatic Connectivity Team',
+    url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/georgia-act',
+  },
+  LA: { name: 'Louisiana Aquatic Connectivity Team' },
+  ME: { name: 'Maine Stream Aquatic Connectivity Team' },
+  MO: { name: 'Missouri Aquatic Connectivity Team' },
+  MS: { name: 'Mississippi Aquatic Connectivity Team' },
+  NC: {
+    name: 'North Carolina Aquatic Connectivity Team',
+    url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/north-carolina-act',
+  },
+  NH: { name: 'New Hampshire River Restoration Task Force' },
+  NJ: { name: 'NJ Statwide Dam Removal Partnership' },
+  NM: { name: 'New Mexico Aquatic Connectivity Team' },
+  NY: { name: 'New York Dam Removal Working Group' },
+  OK: { name: 'Oklahoma Aquatic Connectivity Team' },
+  OR: {
+    name: 'Oregon Fish Passage Task Force',
+    url: 'https://www.dfw.state.or.us/fish/passage/task_force.asp',
+  },
+  PA: { name: 'Pennsylvania Aquatic Connectivity Team' },
+  SC: {
+    name: 'South Carolina Aquatic Connectivity Team',
+    url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/south-carolina-act',
+  },
+  TN: {
+    name: 'Tennessee Aquatic Connectivity Team',
+    url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/tennessee-act',
+  },
+  TX: {
+    name: 'Texas Aquatic Connectivity Team',
+    url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/texas-act',
+  },
+  VA: {
+    name: 'Virginia Stream Barrier Removal Task Force',
+    url: 'https://southeastaquatics.net/sarps-programs/aquatic-connectivity-program-act/act/virginia-act',
+  },
+  VT: {
+    name: 'Vermont Dam Removal Partnership',
+    url: 'https://freevermontrivers.org/',
+  },
+  WY: {
+    name: 'Wyoming Interagency Fish Passage Task Force',
   },
 }
 

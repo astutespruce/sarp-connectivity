@@ -95,14 +95,7 @@ const StateRoute = ({ params: { id } }) => {
     removedBarriersByYear.filter(({ dams: d, smallBarriers: sb }) => d + sb > 0)
       .length > 0
 
-  let team = null
-  Object.values(CONNECTIVITY_TEAMS).forEach((region) => {
-    Object.entries(region).forEach(([state, info]) => {
-      if (state === id) {
-        team = info
-      }
-    })
-  })
+  const team = CONNECTIVITY_TEAMS[id]
 
   const dataProviders = STATE_DATA_PROVIDERS[id] || []
 
@@ -463,7 +456,11 @@ const StateRoute = ({ params: { id } }) => {
                   </Heading>
                 </Flex>
                 <Text sx={{ mt: '1.5rem' }}>
-                  <ExternalLink to={team.url}>{team.name}</ExternalLink>
+                  {team.url ? (
+                    <ExternalLink to={team.url}>{team.name}</ExternalLink>
+                  ) : (
+                    team.name
+                  )}
                 </Text>
               </Box>
             ) : null}
