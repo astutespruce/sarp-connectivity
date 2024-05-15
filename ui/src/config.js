@@ -1208,37 +1208,63 @@ export const FISH_HABITAT_PARTNERSHIPS = {
     name: 'Atlantic Coastal Fish Habitat Partnership',
     description:
       'The Atlantic Coastal Fish Habitat Partnership (ACFHP) mission is to accelerate the conservation, protection, restoration, and enhancement of habitat for native Atlantic coastal, estuarine-dependent, and diadromous fishes through partnerships between federal, tribal, state, local, and other entities. The Partnership works from the headwaters of coastally draining rivers to the edge of the continental shelf, with a focus on estuarine habitats.',
-    url: 'https://www.fishhabitat.org/the-partnerships/atlantic-coastal-fish-habitat-partnership',
+    url: 'https://www.atlanticfishhabitat.org/',
     logo: 'acfhp_logo.png',
     logoWidth: '140px',
   },
   CFPF: {
     name: 'California Fish Passage Forum',
-    url: 'https://www.fishhabitat.org/the-partnerships/california-fish-passage-forum',
+    description:
+      'The mission of the California Fish Passage Forum is to protect and restore listed anadromous salmonid species, and other aquatic organisms, in California by promoting collaboration among public and private sectors for fish passage improvement projects and programs. Species of concern include (but are not limited to): coho and chinook salmon, steelhead trout, and Pacific lamprey.',
+    url: 'https://www.cafishpassageforum.org/',
+    logo: 'cfpf_logo.png',
+    logoWidth: '100px',
   },
   DARE: {
     name: 'Driftless Area Restoration Effort',
-    url: 'https://www.fishhabitat.org/the-partnerships/driftless-area-restoration-effort',
+    description:
+      'The Driftless Area is a 24,000 square-mile area that encompasses portions of southeast Minnesota, northeast Iowa, southwest Wisconsin and northwest Illinois bypassed by the last continental glacier. The region has a high concentration of spring-fed coldwater streams and is recognized for its high diversity of plants, animals, and habitats. The Driftless Area Restoration Effort (DARE) partnership formed to address habitat degradation, loss, and alteration that are the primary factors contributing to the decline of fish populations in this unique region.',
+    url: 'https://www.tu.org/conservation/conservation-areas/watershed-restoration/driftless-area-restoration-effort/',
   },
   DFHP: {
     name: 'Desert Fish Habitat Partnership',
-    url: 'https://www.fishhabitat.org/the-partnerships/desert-fish-habitat-partnership',
+    description:
+      'Desert fish have declined across these arid lands as a result of habitat loss and alteration and the widespread introduction and establishment of nonnative aquatic species. Despite numerous federal and state laws, regulations, and policies to protect and recover native desert fishes and their habitats, most of them remain imperiled.Current habitat conditions and threats require specific management actions and focused consideration of desert fishes if these species and their habitats are to be protected and remain viable into the future.',
+    url: 'https://www.desertfhp.org/',
+    logo: 'dfhp_logo.png',
+    logoWidth: '200px',
   },
   EBTJV: {
     name: 'Eastern Brook Trout Joint Venture',
-    url: 'https://www.fishhabitat.org/the-partnerships/eastern-brook-trout-joint-venture',
+    description:
+      'In 2005, in recognition of the need to address regional and range-wide threats to brook trout, a group of public and private entities formed the Eastern Brook Trout Joint Venture (EBTJV) to halt the decline of brook trout and restore fishable populations of this iconic species. The EBTJV directs locally-driven efforts that build partnerships to improve fish habitat, working to ensure healthy, fishable brook trout populations throughout their historic eastern United States range.',
+    url: 'https://easternbrooktrout.org/',
+    logo: 'ebtjv_logo.png',
+    logoWidth: '200px',
   },
   FFP: {
     name: 'Farmers & Fishers Partnership',
-    url: 'https://www.fishhabitat.org/the-partnerships/fishers-farmers-partnership',
+    description:
+      'Our vision rests on a belief that the combined experience, knowledge and skills of fishers and farmers can measurably improve the health of land and streams in the altered landscape of the Upper Mississippi River Basin. To advance this purpose, rural landowners voluntarily develop and implement science-based solutions to local fish habitat and water quality issues with the support of conservationists and community partners. As landowners achieve their own goals for conservation and sustainable prosperity, successful practices are demonstrated and effects measured, lessons are learned and shared with neighbors and throughout the Basin, and ultimately a globally significant landscape is renewed.',
+    url: 'https://fishersandfarmers.org/',
+    logo: 'ffp_logo.png',
+    logoWidth: '100px',
   },
   GLBFHP: {
     name: 'Great Lakes Basin Fish Habitat Partnership',
+    description:
+      'The international Great Lakes Basin is a unique and biologically diverse region containing the largest surface freshwater system in the world, with sport and commercial fisheries valued at over $7 billion annually. The fishery and aquatic resources of the Great Lakes have suffered detrimental effects of invasive species, loss of biodiversity, poor water quality, contaminants, loss or degradation of coastal wetlands, land use changes, and other factors.  The Basin includes all of Michigan; portions of New York, Pennsylvania, Ohio, Indiana, Illinois, Wisconsin, and Minnesota in the U.S. and Ontario and Quebec in Canada. It covers 295,710 square miles, including 94,250 square miles of surface water and 201,460 square miles of land in the U.S. and Canada. The Great Lakes and connecting waters have over 11,000 miles of coastline.',
     url: 'https://www.fishhabitat.org/the-partnerships/great-lakes-basin-fish-habitat-partnership',
+    logo: 'glbfhp_logo.jpg',
+    logoWidth: '100px',
   },
   GPFHP: {
     name: 'Great Plains Fish Habitat Partnership',
-    url: 'https://www.fishhabitat.org/the-partnerships/great-plains-fish-habitat-partnership',
+    description:
+      'Streams of the Great Plains are home to a wide diversity of aquatic fauna adapted to harsh changes in temperature and water availability. Low human population density has enabled many Great Plains streams to remain relatively unimpaired, yet aquatic species have experienced a slow but steady decline in abundance and diversity during the 20th Century and continue to face challenges that threaten their viability.  Existing habitat loss are attributed to numerous factors including the conversion of native prairie to land uses for agriculture, energy development, and urbanization, which are reflected in degraded water quality, water quantity, fragmentation, and isolation of rivers from their floodplains. Climate change and invasive species are also factors affecting Great Plains stream habitat.',
+    url: 'https://www.prairiefish.org/',
+    logo: 'gpfhp_logo.jpg',
+    logoWidth: '160px',
   },
   // TODO: enable once Hawaii is included in analysis
   // HFHP: {
@@ -1247,25 +1273,39 @@ export const FISH_HABITAT_PARTNERSHIPS = {
   // },
   KPFHP: {
     name: 'Kenai Peninsula Fish Habitat Partnership',
-    url: 'https://www.fishhabitat.org/the-partnerships/kenai-peninsula-fish-habitat-partnership',
+    description:
+      'The Kenai Peninsula Borough covers approximately 25,000 square miles with over 20,000 miles of in-stream habitat and 350,000 acres of wetland habitat in southcentral Alaska. The Peninsula sustains populations of coho, sockeye, chinook, pink, and chum salmon, as well as rainbow and steelhead trout that make it a premier destination for Alaskans, Americans, and people from all over the world. The Kenai Peninsula Fish Habitat Partnership helps foster responsible stewardship to combat threats such as increased development, a warming climate, and invasive species as well as increase awareness for the species that have deep cultural roots in this area.',
+    url: 'http://www.kenaifishpartnership.org/',
+    logo: 'kpfhp_logo.png',
+    logoWidth: '100px',
   },
   MSBSHP: {
     name: 'Mat-Su Basin Salmon Habitat Partnership',
-    url: 'https://www.fishhabitat.org/the-partnerships/mat-su-basin-salmon-habitat-partnership',
+    description:
+      'The Matanuska-Susitna Basin, or Mat-Su, covers 24,500 square miles in southcentral Alaska, roughly the combined size of Vermont, New Hampshire, and Massachusetts. The basin supports populations of chinook, coho, sockeye, pink and chum salmon as well as world-class rainbow trout, char, and grayling, making it one of the country’s premier sportfishing and wildlife viewing destinations. Salmon and other fish are at the heart of Alaskan ecosystems, economy, and culture.',
+    url: 'https://matsusalmon.org/',
+    logo: 'msbshp_logo.png',
+    logoWidth: '400px',
   },
   MGLP: {
     name: 'Midwest Glacial Lakes Partnership',
-    url: 'https://www.fishhabitat.org/the-partnerships/midwest-glacial-lakes-partnership',
+    description:
+      'Each year, millions of anglers fish on over 40,000 inland lakes across the Upper Midwest, seeking recreation, food, and the opportunity to catch “the big one”. These lakes, which were naturally formed by glaciers, are essential in supporting biodiversity, including the many threatened and endangered species that live in them. Fish populations in Midwest glacial lakes are dependent upon the healthy habitats that lakes provide, allowing them to grow, reproduce, and thrive. Stress from human development along lake shorelines, water quality decline driven by development and agriculture in watersheds, changing climate, invasive species, and many other factors threaten these fish populations. The Midwest Glacial Lakes Partnership was created in 2009 to coordinate and improve the conservation of fish habitat in the over 40,000 lakes across the Upper Midwest. ',
+    url: 'https://midwestglaciallakes.org/',
   },
   ORBFHP: {
     name: 'Ohio River Basin Fish Habitat Partnership',
-    url: 'https://www.fishhabitat.org/the-partnerships/ohio-river-basin-fish-habitat-partnership',
+    description:
+      'The Ohio River Basin Fish Habitat Partnership was formed to protect, restore, and enhance priority habitat for fish and mussels in the watersheds of the Ohio River Basin. We pursue this mission for the benefit of the public, but what brings us to the table is as diverse as the basin itself. Whether it is sport fish, mussels, imperiled fish, water quality, or one of many other drivers, what bonds us is the Basin and our desire to work together to protect, restore, and enhance her aquatic resources.  The partnership encompasses the entire 981 miles of the Ohio River mainstem (the second largest river in the U.S. as measured by annual discharge) and 143,550 square miles of the watershed. A decision was made to exclude the Tennessee-Cumberland sub-basin to limit overlap with SARP.',
+    url: 'https://orbfhp.org/',
+    logo: 'orbfhp_logo.png',
+    logoWidth: '300px',
   },
   PMEP: {
     name: 'Pacific Marine & Estuarine Fish Habitat Partnership',
     description:
       "The Pacific Marine and Estuarine Fish Habitat Partnership's (PMEP) mission is to protect, enhance, and restore ecological habitats within estuaries and nearshore marine environments to sustain healthy native fish communities and support sustainable human uses that depend on healthy fish populations.  The PMEP originated in 2009 when representatives from Oregon, Washington and California agencies and non-governmental entities met to discuss the need to protect and restore habitat for fish species that use estuaries and nearshore marine areas.",
-    url: 'https://www.fishhabitat.org/the-partnerships/pacific-marine-and-estuarine-fish-habitat-partnership',
+    url: 'https://www.pacificfishhabitat.org/',
     logo: 'pmep_logo.png',
     logoWidth: '180px',
   },
@@ -1273,21 +1313,33 @@ export const FISH_HABITAT_PARTNERSHIPS = {
     name: 'Southeast Aquatic Resources Partnership',
     description:
       'The Southeast Aquatic Resources Partnership (SARP) was formed by the Southeastern Association of Fish and Wildlife Agencies (SEAFWA) to protect aquatic resources across political boundaries as many of our river systems cross multiple jurisdictional boundaries. SARP works with partners to protect, conserve, and restore aquatic resources including habitats throughout the Southeast for the continuing benefit, use, and enjoyment of the American people.',
-    url: 'https://www.fishhabitat.org/the-partnerships/southeast-aquatic-resources-partnership',
+    url: 'https://southeastaquatics.net/',
     logo: 'sarp_logo.png',
     logoWidth: '140px',
   },
   SEAFHP: {
     name: 'Southeast Alaska Fish Habitat Partnership',
-    url: 'https://www.fishhabitat.org/the-partnerships/southeast-alaska-fish-habitat-partnership',
+    description:
+      'The Southeast Alaska Fish Habitat Partnership works to foster cooperative fish habitat conservation in freshwater, estuarine and marine ecosystems across the southern panhandle of Alaska including the dynamic watersheds and waterways that make up the Alexander Archipelago. Covering nearly 17 million acres of this region is the Tongass National Forest, the largest national forest in the United States and a key producer of salmon. The Partnership’s mission is to support cooperative fish habitat conservation, restoration, and management across the region with consideration of economic, social, and cultural interests of local communities in its efforts.',
+    url: 'http://www.seakfhp.org/',
+    logo: 'seafhp_logo.png',
+    logoWidth: '200px',
   },
   SWASHP: {
     name: 'Southwest Alaska Salmon Habitat Partnership',
+    description:
+      'The Southwest Alaska Salmon Habitat Partnership is a made up of local communities, Native organizations, subsistence users, anglers, hunters, commercial fishing interests, lodge owners, hunting and fishing guides, tourism interests, non-profit organizations, federal, state, and local agencies and corporations and foundations working cooperatively to conserve fish, wildlife and habitat and perpetuate the uses they support through voluntary habitat conservation in Southwest Alaska.',
     url: 'https://www.fishhabitat.org/the-partnerships/southwest-alaska-salmon-habitat-partnership',
+    logo: 'swash_logo.png',
+    logoWidth: '100px',
   },
   WNTI: {
     name: 'Western Native Trout Initiative',
-    url: 'https://www.fishhabitat.org/the-partnerships/western-native-trout-initiative',
+    description:
+      'The Western Native Trout Initiative (WNTI) works collaboratively across 12 western states to conserve (protect, restore, and enhance) 21 native trout and char species. Formed in 2006 under the Western Association of Fish and Wildlife Agencies, WNTI provides a new perspective and impetus to improve the return on investment of the time, money, and workforce dedicated to native trout conservation. WNTI is a collaborative, multi-state approach that requires the involvement of a wide range of partners – from public agencies to private individuals to conservation-minded organizations and corporations. WNTI provides a forum for partners to coordinate and invest their collective assets and capacity toward completing the highest-priority, native trout conservation efforts across the West. Proposed and led by local communities and resource agencies, these projects are funded and supported through WNTI’s grant programs and in-kind contributions by our partners. WNTI is governed by a steering committee representing 12 western state fish and wildlife agencies, 3 federal natural resource agencies, Native American Tribes, Canadian provincial fish and wildlife agencies, and Trout Unlimited and has partnered with over 350 organizations, nonprofits, and businesses to date.',
+    url: 'https://westernnativetrout.org/',
+    logo: 'wnti_logo.png',
+    logoWidth: '60px',
   },
 }
 
